@@ -234,8 +234,14 @@ namespace LinuxSampler { namespace gig {
         if (pEngine) { // if clause to prevent disconnect loops
             ResetInternal();
             for (uint i = 0; i < 128; i++) {
-                if (pMIDIKeyInfo[i].pActiveVoices) delete pMIDIKeyInfo[i].pActiveVoices;
-                if (pMIDIKeyInfo[i].pEvents)       delete pMIDIKeyInfo[i].pEvents;
+                if (pMIDIKeyInfo[i].pActiveVoices) {
+                    delete pMIDIKeyInfo[i].pActiveVoices;
+                    pMIDIKeyInfo[i].pActiveVoices = NULL;
+                }
+                if (pMIDIKeyInfo[i].pEvents) {
+                    delete pMIDIKeyInfo[i].pEvents;
+                    pMIDIKeyInfo[i].pEvents = NULL;
+                }
             }
             Engine* oldEngine = pEngine;
             AudioOutputDevice* oldAudioDevice = pEngine->pAudioOutputDevice;

@@ -25,6 +25,7 @@
 #include "DiskThread.h"
 #include "Voice.h"
 #include "EGADSR.h"
+#include "../EngineFactory.h"
 
 #include "Engine.h"
 
@@ -58,7 +59,7 @@ namespace LinuxSampler { namespace gig {
             pEngine = engines[pDevice];            
         } else { // create a new engine (and disk thread) instance for the given audio output device
             dmsg(4,("Creating new gig::Engine.\n"));
-            pEngine = new Engine;
+            pEngine = (Engine*) EngineFactory::Create("gig");
             pEngine->Connect(pDevice);
             engines[pDevice] = pEngine;            
         }
@@ -144,6 +145,7 @@ namespace LinuxSampler { namespace gig {
         if (pSynthesisParameters[0]) free(pSynthesisParameters[0]);
         if (pVoiceStealingQueue) delete pVoiceStealingQueue;
         if (pSysexBuffer) delete pSysexBuffer;
+        EngineFactory::Destroy(this);
     }
 
     void Engine::Enable() {
@@ -1017,7 +1019,7 @@ namespace LinuxSampler { namespace gig {
     }
 
     String Engine::Version() {
-        String s = "$Revision: 1.27 $";
+        String s = "$Revision: 1.28 $";
         return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
 

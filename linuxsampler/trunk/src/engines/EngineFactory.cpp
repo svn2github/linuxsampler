@@ -24,13 +24,28 @@
 
 #include "gig/Engine.h"
 
+#include "../common/global.h"
+
 namespace LinuxSampler {
+
+    // all currently existing engine instances
+    static std::set<LinuxSampler::Engine*> engines;
 
     LinuxSampler::Engine* EngineFactory::Create(String EngineType) throw (LinuxSamplerException) {
         if (!strcasecmp(EngineType.c_str(),"GigEngine") || !strcasecmp(EngineType.c_str(),"gig")) {
-            return new gig::Engine;
+            Engine* pEngine = new gig::Engine;
+            engines.insert(pEngine);
+            return pEngine;
         }
-        throw LinuxSamplerException("Unknown engine type");
+        throw LinuxSamplerException("Unknown engine type");        
+    }
+
+    void EngineFactory::Destroy(LinuxSampler::Engine* pEngine) {
+        engines.erase(pEngine);
+    }
+
+    std::set<LinuxSampler::Engine*> EngineFactory::EngineInstances() {
+        return engines;
     }
 
 } // namepsace LinuxSampler

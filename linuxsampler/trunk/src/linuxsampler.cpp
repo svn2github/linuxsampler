@@ -25,6 +25,7 @@
 #include <signal.h>
 
 #include "Sampler.h"
+#include "engines/EngineFactory.h"
 #include "drivers/midi/MidiInputDeviceFactory.h"
 #include "drivers/audio/AudioOutputDeviceFactory.h"
 #include "engines/gig/Profiler.h"
@@ -37,6 +38,7 @@ using namespace LinuxSampler;
 Sampler*    pSampler    = NULL;
 LSCPServer* pLSCPServer = NULL;
 pthread_t   main_thread;
+bool bPrintStatistics = false;
 bool profile = false;
 bool tune = true;
 
@@ -117,12 +119,20 @@ int main(int argc, char **argv) {
     rtEvents.push_back(LSCPEvent::event_stream_count);
     rtEvents.push_back(LSCPEvent::event_buffer_fill);
 
-    while(true)
-    {
-      /*printf("Voices: %3.3d (Max: %3.3d) Streams: %3.3d (Max: %3.3d, Unused: %3.3d)\r",
-            pEngine->ActiveVoiceCount, pEngine->ActiveVoiceCountMax,
-            pEngine->pDiskThread->ActiveStreamCount, pEngine->pDiskThread->ActiveStreamCountMax, Stream::GetUnusedStreams());
-      fflush(stdout);*/
+    while (true) {
+        if (bPrintStatistics) {
+            std::set<Engine*> engines = EngineFactory::EngineInstances();
+            std::set<Engine*>::iterator itEngine = engines.begin();
+            for (int i = 0; itEngine != engines.end(); itEngine++, i++) {
+                Engine* pEngine = *itEngine;
+                printf("Engine %d) Voices: %3.3d (Max: %3.3d) Streams: %3.3d (Max: %3.3d)\n", i,
+                    pEngine->VoiceCount(), pEngine->VoiceCountMax(),
+                    pEngine->DiskStreamCount(), pEngine->DiskStreamCountMax()
+                );
+                fflush(stdout);
+            }
+        }
+        
       sleep(1);
       if (profile)
       {
@@ -216,6 +226,7 @@ void parse_options(int argc, char **argv) {
             {"version",0,0,0},
             {"profile",0,0,0},
             {"no-tune",0,0,0},
+            {"statistics",0,0,0},
             {0,0,0,0}
         };
 
@@ -234,6 +245,7 @@ void parse_options(int argc, char **argv) {
                     printf("--version          prints version information\n");
                     printf("--profile          profile synthesis algorithms\n");
                     printf("--no-tune          disable assembly optimization\n");
+                    printf("--statistics       prints periodically statistics\n");
                     exit(EXIT_SUCCESS);
                     break;
                 case 1: // --version
@@ -245,6 +257,9 @@ void parse_options(int argc, char **argv) {
                     break;
                 case 3: // --no-tune
 		    tune = false;
+                    break;
+                case 4: // --statistics
+                    bPrintStatistics = true;
                     break;
             }
         }

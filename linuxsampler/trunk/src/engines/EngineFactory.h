@@ -25,11 +25,15 @@
 #include "../common/LinuxSamplerException.h"
 #include "common/Engine.h"
 
+#include <set>
+
 namespace LinuxSampler {
 
     class EngineFactory {
         public:
             static Engine* Create(String EngineType) throw (LinuxSamplerException);
+            static void Destroy(Engine* pEngine);
+            static std::set<Engine*> EngineInstances();
     };
 
 } // namepsace LinuxSampler

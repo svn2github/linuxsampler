@@ -49,8 +49,10 @@ namespace LinuxSampler {
         if (pEngineChannel) {
             MidiInputPort* pMidiInputPort = GetMidiInputDevicePort(this->midiPort);
             if (pMidiInputPort) pMidiInputPort->Disconnect(pEngineChannel);
-            if (pAudioOutputDevice) pEngineChannel->DisconnectAudioOutputDevice();
-            delete pEngineChannel;
+            if (pEngineChannel) {
+                if (pAudioOutputDevice) pEngineChannel->DisconnectAudioOutputDevice();
+                delete pEngineChannel;
+            }
         }
     }
 
