@@ -101,7 +101,7 @@ void EG_VCA::Process(uint Samples, RTEList<ModulationSystem::Event>* pEvents, Mo
                     if (!Decay1StepsLeft) Stage = (InfiniteSustain) ? stage_sustain : stage_decay2;
                 }
                 while (iSample < process_end) {
-                    Level += Decay1Coeff;
+                    Level += Level * Decay1Coeff;
                     ModulationSystem::pDestinationParameter[ModulationSystem::destination_vca][iSample++] *= Level;
                 }                
                 break;
@@ -194,9 +194,10 @@ void EG_VCA::Trigger(uint PreAttack, double AttackTime, bool HoldAttack, long Lo
         AttackCoeff = 0.0;
     }
 
-    // calculate decay1 stage parameters (lin. curve)
+    // calculate decay1 stage parameters (exp. curve)
     Decay1StepsLeft = (long) (Decay1Time * ModulationSystem::SampleRate());
-    Decay1Coeff     = (Decay1StepsLeft) ? (this->SustainLevel - 1.0) / Decay1StepsLeft : 0.0;
+    Decay1Coeff     = (Decay1StepsLeft) ? exp(log(this->SustainLevel) / (double) Decay1StepsLeft) - 1.0
+                                        : 0.0;
 
     // calculate decay2 stage parameters (exp. curve)
     if (!InfiniteSustain) {
@@ -209,7 +210,6 @@ void EG_VCA::Trigger(uint PreAttack, double AttackTime, bool HoldAttack, long Lo
     // calcuate release stage parameters (exp. curve)
     if (ReleaseTime < EG_MIN_RELEASE_TIME) ReleaseTime = EG_MIN_RELEASE_TIME;  // to avoid click sounds at the end of the sample playback
     ReleaseStepsLeft = (long) (ReleaseTime * ModulationSystem::SampleRate());
-    //ReleaseCoeff     = exp(log(EG_ENVELOPE_LIMIT) / (double) ReleaseStepsLeft) - 1.0; // <- this is only accurate for a curve start level of exactly 1.0, otherwise we have to use the following calculation for the coefficient...
     ReleaseCoeff     = exp((log(EG_ENVELOPE_LIMIT) - log(this->SustainLevel)) / ReleaseStepsLeft + log(this->SustainLevel)) - this->SustainLevel;
 
     dmsg(4,("PreAttack=%d, AttackLength=%d, AttackCoeff=%f, Decay1Coeff=%f, Decay2Coeff=%f, ReleaseLength=%d, ReleaseCoeff=%f\n",
