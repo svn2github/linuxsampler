@@ -97,6 +97,7 @@ class LSCPServer : public Thread {
         String GetAudioOutputDeviceInfo(uint DeviceIndex);
         String GetMidiInputDeviceInfo(uint DeviceIndex);
         String GetMidiInputPortInfo(uint DeviceIndex, uint PortIndex);
+        String GetMidiInputPortParameterInfo(uint DeviceId, uint PortId, String ParameterName);
         String GetAudioOutputChannelInfo(uint DeviceId, uint ChannelId);
         String GetAudioOutputChannelParameterInfo(uint DeviceId, uint ChannelId, String ParameterName);
         String SetAudioOutputChannelParameter(uint DeviceId, uint ChannelId, String ParamKey, String ParamVal);

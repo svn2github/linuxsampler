@@ -897,6 +897,39 @@ String LSCPServer::GetAudioOutputChannelInfo(uint DeviceId, uint ChannelId) {
     return result.Produce();
 }
 
+String LSCPServer::GetMidiInputPortParameterInfo(uint DeviceId, uint PortId, String ParameterName) {
+    dmsg(2,("LSCPServer: GetMidiInputPortParameterInfo(DeviceId=%d,PortId=%d,ParameterName=%s)\n",DeviceId,PortId,ParameterName.c_str()));
+    LSCPResultSet result;
+    try {
+        // get audio output device
+	std::map<uint,MidiInputDevice*> devices = pSampler->GetMidiInputDevices();
+	if (!devices[DeviceId]) throw LinuxSamplerException("There is no midi input device with index " + ToString(DeviceId) + ".");
+	MidiInputDevice* pDevice = devices[DeviceId];
+
+	// get midi port
+	MidiInputDevice::MidiInputPort* pPort = pDevice->GetPort(PortId);
+	if (!pPort) throw LinuxSamplerException("Midi input device does not have port " + ToString(PortId) + ".");
+
+	// get desired port parameter
+	std::map<String,DeviceCreationParameter*> parameters = pPort->DeviceParameters();
+	if (!parameters[ParameterName]) throw LinuxSamplerException("Midi port does not provice a parameters '" + ParameterName + "'.");
+	DeviceCreationParameter* pParameter = parameters[ParameterName];
+	
+        // return all fields of this audio channel parameter
+        result.Add("TYPE",         pParameter->Type());
+        result.Add("DESCRIPTION",  pParameter->Description());
+        result.Add("FIX",          pParameter->Fix());
+        result.Add("MULTIPLICITY", pParameter->Multiplicity());
+        if (pParameter->RangeMin())      result.Add("RANGE_MIN",     pParameter->RangeMin());
+        if (pParameter->RangeMax())      result.Add("RANGE_MAX",     pParameter->RangeMax());
+        if (pParameter->Possibilities()) result.Add("POSSIBILITIES", pParameter->Possibilities());
+    }
+    catch (LinuxSamplerException e) {
+        result.Error(e);
+    }
+    return result.Produce();
+}
+
 String LSCPServer::GetAudioOutputChannelParameterInfo(uint DeviceId, uint ChannelId, String ParameterName) {
     dmsg(2,("LSCPServer: GetAudioOutputChannelParameterInfo(DeviceId=%d,ChannelId=%d,ParameterName=%s)\n",DeviceId,ChannelId,ParameterName.c_str()));
     LSCPResultSet result;

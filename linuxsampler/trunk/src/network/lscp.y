@@ -135,6 +135,7 @@ get_instruction       :  AVAILABLE_ENGINES                          { $$ = LSCPS
                       |  AUDIO_OUTPUT_DEVICE SP INFO SP NUMBER                                      { $$ = LSCPSERVER->GetAudioOutputDeviceInfo($5);       }
                       |  MIDI_INPUT_DEVICE SP INFO SP NUMBER                                        { $$ = LSCPSERVER->GetMidiInputDeviceInfo($5);       }
                       |  MIDI_INPUT_PORT SP INFO SP NUMBER SP NUMBER                                { $$ = LSCPSERVER->GetMidiInputPortInfo($5, $7);       }
+                      |  MIDI_INPUT_PORT_PARAMETER SP INFO SP NUMBER SP NUMBER SP string            { $$ = LSCPSERVER->GetMidiInputPortParameterInfo($5, $7, $9);       }
                       |  AUDIO_OUTPUT_CHANNEL SP INFO SP NUMBER SP NUMBER                           { $$ = LSCPSERVER->GetAudioOutputChannelInfo($5, $7);       }
                       |  AUDIO_OUTPUT_CHANNEL_PARAMETER SP INFO SP NUMBER SP NUMBER SP string       { $$ = LSCPSERVER->GetAudioOutputChannelParameterInfo($5, $7, $9);       }
                       |  CHANNELS                                                                   { $$ = LSCPSERVER->GetChannels();       }
