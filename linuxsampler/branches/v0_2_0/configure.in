@@ -1,0 +1,178 @@
+AC_INIT(configure.in)
+AC_C_BIGENDIAN
+AC_CANONICAL_SYSTEM
+
+AC_SUBST(target)
+AC_SUBST(target_alias)
+AC_SUBST(target_cpu)
+AC_SUBST(target_os)
+AC_SUBST(target_vendor)
+
+
+
+echo -n "checking whether x86 architecture... "
+def_arch_x86=0
+case $target_cpu in
+  "i386" | "i486" | "i586" | "i686" | "i786")
+    echo "yes"
+    def_arch_x86=1;;
+  *)
+    echo "no";;
+esac
+AC_DEFINE_UNQUOTED(ARCH_X86,$def_arch_x86,[Define to 1 if you build for x86 architecture.])
+
+
+AC_MSG_CHECKING([whether UNIX98 compatible])
+AC_LANG_SAVE
+AC_LANG_C
+AC_TRY_RUN([
+#ifndef _GNU_SOURCE
+#define _GNU_SOURCE 1
+#endif
+#include <features.h>
+void main(void) {
+#if _XOPEN_SOURCE >= 500
+exit(0); /* UNIX98 compatible */
+#else
+exit(-1); /* not UNIX98 compatible */
+#endif
+}
+],
+have_unix98="yes",
+have_unix98="no",
+have_unix98="no"
+)
+AC_LANG_RESTORE
+AC_MSG_RESULT([$have_unix98])
+if test "$have_unix98" = "no"; then
+    if test "x$HAVE_UNIX98" = "x"; then
+        echo "LinuxSampler only runs on UNIX98 compatible systems, which is mandatory for"
+        echo "pthread_mutexattr_settype() call in Mutex.cpp. You may want to run
+        echo "./configure with environment variable HAVE_UNIX98=1 in case you think you
+        echo "have a UNIX98 compatible system."
+        exit -1;
+    fi
+fi
+
+
+# Checks for available audio and MIDI systems / drivers
+# (we throw an error if there's not at least one system for audio output and MIDI input available)
+have_midi_input_driver="false"
+have_audio_output_driver="false"
+
+AC_CHECK_HEADER(alsa/asoundlib.h,
+    AC_CHECK_LIB(asound, main,
+                             have_alsa=1
+                             ,
+                             have_alsa=0
+                )
+                ,
+                have_alsa=0
+)
+if test "$have_alsa" = "1"; then
+    have_midi_input_driver="true"
+    have_audio_output_driver="true";
+fi
+AM_CONDITIONAL(HAVE_ALSA, test $have_alsa = "1")
+AC_DEFINE_UNQUOTED(HAVE_ALSA,$have_alsa,[Define to 1 if you have ALSA installed.])
+
+
+echo -n "checking Alsa version... "
+AC_LANG_SAVE
+AC_LANG_C
+AC_TRY_RUN([
+#include <alsa/asoundlib.h>
+void main(void) {
+/* ensure backward compatibility */
+#if !defined(SND_LIB_MAJOR) && defined(SOUNDLIB_VERSION_MAJOR)
+#define SND_LIB_MAJOR SOUNDLIB_VERSION_MAJOR
+#endif
+exit(SND_LIB_MAJOR);
+}
+],
+alsa_major=0,
+alsa_major=$?,
+alsa_major=0
+)
+AC_TRY_RUN([
+#include <alsa/asoundlib.h>
+void main(void) {
+/* ensure backward compatibility */
+#if !defined(SND_LIB_MINOR) && defined(SOUNDLIB_VERSION_MINOR)
+#define SND_LIB_MINOR SOUNDLIB_VERSION_MINOR
+#endif
+exit(SND_LIB_MINOR);
+}
+],
+alsa_minor=0,
+alsa_minor=$?,
+alsa_minor=0
+)
+AC_TRY_RUN([
+#include <alsa/asoundlib.h>
+void main(void) {
+/* ensure backward compatibility */
+#if !defined(SND_LIB_SUBMINOR) && defined(SOUNDLIB_VERSION_SUBMINOR)
+#define SND_LIB_SUBMINOR SOUNDLIB_VERSION_SUBMINOR
+#endif
+exit(SND_LIB_SUBMINOR);
+}
+],
+alsa_subminor=0,
+alsa_subminor=$?,
+alsa_subminor=0
+)
+AC_LANG_RESTORE
+echo "$alsa_major.$alsa_minor.$alsa_subminor";
+AC_DEFINE_UNQUOTED(ALSA_MAJOR,$alsa_major,[Define to the major version number of your Alsa installation.])
+AC_DEFINE_UNQUOTED(ALSA_MINOR,$alsa_minor,[Define to the minor version number of your Alsa installation.])
+AC_DEFINE_UNQUOTED(ALSA_SUBMINOR,$alsa_subminor,[Define to the subminor version number of your Alsa installation.])
+
+
+# JACK
+PKG_CHECK_MODULES(JACK, jack, HAVE_JACK=true, HAVE_JACK=false)
+AC_SUBST(JACK_LIBS)
+AC_SUBST(JACK_CFLAGS)
+if test $HAVE_JACK = false; then
+    HAVE_JACK=0;
+else
+    HAVE_JACK=1
+    have_audio_output_driver="true";
+    AC_CHECK_LIB(jack, jack_client_name_size, [AC_DEFINE(HAVE_JACK_CLIENT_NAME_SIZE, 1, [Define to 1 if you have the `jack_client_name_size' function.])], , $JACK_LIBS)
+fi
+AM_CONDITIONAL(HAVE_JACK, test $HAVE_JACK = 1)
+AC_DEFINE_UNQUOTED(HAVE_JACK,$HAVE_JACK,[Define to 1 if you have JACK installed.])
+
+# SQLITE3
+PKG_CHECK_MODULES(SQLITE3, sqlite3, HAVE_SQLITE3=true, HAVE_SQLITE3=false)
+AC_SUBST(SQLITE3_LIBS)
+AC_SUBST(SQLITE3_CFLAGS)
+if test $HAVE_SQLITE3 = false; then
+    HAVE_SQLITE3=0;
+else
+    HAVE_SQLITE3=1
+fi
+AM_CONDITIONAL(HAVE_SQLITE3, test $HAVE_SQLITE3 = 1)
+AC_DEFINE_UNQUOTED(HAVE_SQLITE3,$HAVE_SQLITE3,[Define to 1 if you have SQLITE3 installed.])
+
+
+if test "$have_midi_input_driver" = "false"; then
+    echo "No supported MIDI input system found!"
+    echo "Sorry, LinuxSampler only supports ALSA as MIDI input driver at the moment!"
+    exit -1;
+fi
+if test "$have_audio_output_driver" = "false"; then
+    echo "No supported audio output system found!"
+    echo "Sorry, LinuxSampler only supports ALSA and JACK as audio output driver at the moment!"
+    exit -1;
+fi
+
+
+AM_CONFIG_HEADER(config.h)
+AM_INIT_AUTOMAKE(linuxsampler, 0.2)
+
+AC_LANG_CPLUSPLUS
+AC_PROG_CXX
+AM_PROG_LIBTOOL
+
+AC_OUTPUT(Makefile src/Makefile src/network/Makefile src/engines/Makefile src/engines/gig/Makefile src/engines/common/Makefile src/common/Makefile src/lib/Makefile src/lib/fileloader/Makefile src/lib/fileloader/libgig/Makefile src/testcases/Makefile src/drivers/Makefile src/drivers/audio/Makefile src/drivers/midi/Makefile)

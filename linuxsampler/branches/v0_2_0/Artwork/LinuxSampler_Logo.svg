@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 20010904//EN"
+"http://www.w3.org/TR/2001/REC-SVG-20010904/DTD/svg10.dtd">
+<!-- Created with Sodipodi ("http://www.sodipodi.com/") -->
+<svg
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   id="svg548"
+   sodipodi:version="0.34"
+   width="210mm"
+   height="297mm"
+   sodipodi:docbase="/home/cuse"
+   sodipodi:docname="/home/cuse/LinuxSampler_LogoNEW2.svg">
+  <defs
+     id="defs550">
+    <linearGradient
+       id="linearGradient572">
+      <stop
+         style="stop-color:#153355;stop-opacity:1;"
+         offset="0.000000"
+         id="stop573" />
+      <stop
+         style="stop-color:#e5f5ff;stop-opacity:1;"
+         offset="1.000000"
+         id="stop574" />
+    </linearGradient>
+    <linearGradient
+       xlink:href="#linearGradient572"
+       id="linearGradient575"
+       x1="0.30890048"
+       y1="0.7421875"
+       x2="0.56544495"
+       y2="0.5234375"
+       spreadMethod="pad" />
+    <linearGradient
+       xlink:href="#linearGradient572"
+       id="linearGradient569"
+       x1="0.80257499"
+       y1="0.82692307"
+       x2="0.50643772"
+       y2="0.44871804"
+       spreadMethod="pad" />
+    <linearGradient
+       xlink:href="#linearGradient572"
+       id="linearGradient570" />
+    <linearGradient
+       xlink:href="#linearGradient572"
+       id="linearGradient571" />
+    <linearGradient
+       xlink:href="#linearGradient572"
+       id="linearGradient573" />
+    <linearGradient
+       xlink:href="#linearGradient572"
+       id="linearGradient574" />
+    <linearGradient
+       xlink:href="#linearGradient572"
+       id="linearGradient576" />
+    <linearGradient
+       xlink:href="#linearGradient572"
+       id="linearGradient577" />
+    <linearGradient
+       xlink:href="#linearGradient572"
+       id="linearGradient578"
+       x1="0.43005186"
+       y1="0.3359361"
+       x2="0.37823838"
+       y2="0.33593744" />
+    <radialGradient
+       xlink:href="#linearGradient572"
+       id="radialGradient570"
+       cx="0.54077244"
+       cy="0.55769235"
+       r="0.17060283"
+       fx="0.54077244"
+       fy="0.55769235"
+       spreadMethod="reflect" />
+    <radialGradient
+       xlink:href="#linearGradient572"
+       id="radialGradient748"
+       cx="0.34374928"
+       cy="0.35937497"
+       r="0.21562706"
+       fx="0.34374928"
+       fy="0.35937497"
+       spreadMethod="reflect" />
+  </defs>
+  <sodipodi:namedview
+     id="base" />
+  <path
+     style="font-size:12;fill:url(#linearGradient575);fill-rule:nonzero;stroke:url(#radialGradient570);stroke-width:6.85;fill-opacity:1;stroke-dasharray:none;stroke-linejoin:miter;stroke-opacity:1;"
+     d="M 366.754 400.436 C 347.394 395.257 197.72 403 212.02 436.489 C 227.893 474.603 365.429 498.983 358.61 532.852 C 353.788 556.396 251.942 569.345 194.392 526.574 C 115.108 467.095 207.702 337.586 318.755 331.04 C 449.662 323.825 510.1556 443.0693 509.7996 441.1933 C 509.4226 439.2103 446.117 324.8103 319.464 322.0163 C 247.655 320.4263 101.546 398.996 160.472 514.728 C 197.163 585.626 422.404 572.661 423.876 542.256 C 425.231 505.53 322.402 484.673 301.168 465.166 C 259.51 427.636 371.131 440.286 390.684 447.457 C 392.588 447.753 376.646 402.975 366.754 400.436 z "
+     id="path621"
+     sodipodi:nodetypes="csssssssssss" />
+</svg>

@@ -1,0 +1,99 @@
+<?xml version = '1.0' encoding = 'UTF-8'?>
+<!DOCTYPE KDevPrjSession>
+<KDevPrjSession>
+ <DocsAndViews NumberOfDocuments="17" >
+  <Doc0 NumberOfViews="1" URL="file:/home/cuse/CVS/linuxsampler/src/engines/gig/InstrumentResourceManager.h" >
+   <View0 line="15" Type="???" >
+    <AdditionalSettings/>
+   </View0>
+  </Doc0>
+  <Doc1 NumberOfViews="1" URL="file:/home/cuse/CVS/linuxsampler/src/Sampler.h" >
+   <View0 line="63" Type="???" >
+    <AdditionalSettings/>
+   </View0>
+  </Doc1>
+  <Doc2 NumberOfViews="1" URL="file:/home/cuse/CVS/linuxsampler/src/engines/gig/Engine.h" >
+   <View0 line="109" Type="???" >
+    <AdditionalSettings/>
+   </View0>
+  </Doc2>
+  <Doc3 NumberOfViews="1" URL="file:/home/cuse/CVS/linuxsampler/src/network/lscpserver.cpp" >
+   <View0 line="179" Type="???" >
+    <AdditionalSettings/>
+   </View0>
+  </Doc3>
+  <Doc4 NumberOfViews="1" URL="file:/home/cuse/CVS/linuxsampler/src/network/lscpserver.h" >
+   <View0 line="0" Type="???" >
+    <AdditionalSettings/>
+   </View0>
+  </Doc4>
+  <Doc5 NumberOfViews="1" URL="file:/home/cuse/CVS/linuxsampler/src/engines/gig/Stream.h" >
+   <View0 line="108" Type="???" >
+    <AdditionalSettings/>
+   </View0>
+  </Doc5>
+  <Doc6 NumberOfViews="1" URL="file:/home/cuse/CVS/linuxsampler/src/engines/gig/Filter.h" >
+   <View0 line="71" Type="???" >
+    <AdditionalSettings/>
+   </View0>
+  </Doc6>
+  <Doc7 NumberOfViews="1" URL="file:/home/cuse/CVS/linuxsampler/src/engines/gig/Voice.h" >
+   <View0 line="245" Type="???" >
+    <AdditionalSettings/>
+   </View0>
+  </Doc7>
+  <Doc8 NumberOfViews="1" URL="file:/home/cuse/CVS/linuxsampler/src/engines/gig/DiskThread.h" >
+   <View0 line="97" Type="???" >
+    <AdditionalSettings/>
+   </View0>
+  </Doc8>
+  <Doc9 NumberOfViews="1" URL="file:/home/cuse/CVS/linuxsampler/src/engines/gig/DiskThread.cpp" >
+   <View0 line="364" Type="???" >
+    <AdditionalSettings/>
+   </View0>
+  </Doc9>
+  <Doc10 NumberOfViews="1" URL="file:/home/cuse/CVS/linuxsampler/src/engines/gig/Engine.cpp" >
+   <View0 line="678" Type="???" >
+    <AdditionalSettings/>
+   </View0>
+  </Doc10>
+  <Doc11 NumberOfViews="1" URL="file:/home/cuse/CVS/linuxsampler/src/engines/gig/Stream.cpp" >
+   <View0 line="112" Type="???" >
+    <AdditionalSettings/>
+   </View0>
+  </Doc11>
+  <Doc12 NumberOfViews="1" URL="file:/home/cuse/CVS/linuxsampler/src/engines/gig/Voice.cpp" >
+   <View0 line="878" Type="???" >
+    <AdditionalSettings/>
+   </View0>
+  </Doc12>
+  <Doc13 NumberOfViews="1" URL="file:/home/cuse/CVS/linuxsampler/src/engines/gig/InstrumentResourceManager.cpp" >
+   <View0 line="24" Type="???" >
+    <AdditionalSettings/>
+   </View0>
+  </Doc13>
+  <Doc14 NumberOfViews="1" URL="file:/home/cuse/CVS/linuxsampler/src/common/global.h" >
+   <View0 line="23" Type="???" >
+    <AdditionalSettings/>
+   </View0>
+  </Doc14>
+  <Doc15 NumberOfViews="1" URL="file:/home/cuse/CVS/linuxsampler/src/linuxsampler.cpp" >
+   <View0 line="84" Type="???" >
+    <AdditionalSettings/>
+   </View0>
+  </Doc15>
+  <Doc16 NumberOfViews="1" URL="file:/home/cuse/CVS/linuxsampler/src/common/Thread.h" >
+   <View0 line="19" Type="???" >
+    <AdditionalSettings/>
+   </View0>
+  </Doc16>
+ </DocsAndViews>
+ <pluginList>
+  <kdevbookmarks>
+   <bookmarks/>
+  </kdevbookmarks>
+  <kdevdebugger>
+   <breakpointList/>
+  </kdevdebugger>
+ </pluginList>
+</KDevPrjSession>

@@ -1,0 +1,16 @@
+default: all
+
+all: configure
+
+configure: configure.in
+	@aclocal
+	@libtoolize --force --copy
+	@autoheader
+	@automake --add-missing --copy
+	@autoconf
+
+clean:
+	@if [ -f Makefile ]; then make distclean; fi || true
+	@rm -rvf *.cache *.log *.status *.m4 stamp-h* config.*
+	@rm -rvf `find . -name Makefile.in`
+	@rm -rvf missing install-sh mkinstalldirs depcomp ltmain.sh configure
