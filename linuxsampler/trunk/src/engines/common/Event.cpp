@@ -97,8 +97,8 @@ namespace LinuxSampler {
             __asm__ __volatile__ ("rpcc %0" : "=r"(t));
             return t;
         #else // we don't want to use a slow generic solution
-        #  error Sorry, LinuxSampler lacks time stamp code for your system.
-        #  error Please report this error and the CPU you are using to the LinuxSampler developers mailing list!
+        #  error "Sorry, LinuxSampler lacks time stamp code for your system."
+        #  error "Please report this error and the CPU you are using to the LinuxSampler developers mailing list!"
         #endif
     }
 
