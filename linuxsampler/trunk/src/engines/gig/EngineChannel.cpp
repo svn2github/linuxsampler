@@ -29,6 +29,8 @@ namespace LinuxSampler { namespace gig {
         pMIDIKeyInfo = new midi_key_info_t[128];
         pEngine      = NULL;
         pInstrument  = NULL;
+        pEvents      = NULL; // we allocate when we retrieve the right Engine object
+        pCCEvents    = NULL; // we allocate when we retrieve the right Engine object
         pEventQueue  = new RingBuffer<Event>(MAX_EVENTS_PER_FRAGMENT, 0);
         pActiveKeys  = new Pool<uint>(128);
         for (uint i = 0; i < 128; i++) {
@@ -39,6 +41,9 @@ namespace LinuxSampler { namespace gig {
             pMIDIKeyInfo[i].pEvents        = NULL; // we allocate when we retrieve the right Engine object
             pMIDIKeyInfo[i].RoundRobinIndex = 0;
         }
+        for (uint i = 0; i < Event::destination_count; i++) {
+            pSynthesisEvents[i] = NULL; // we allocate when we retrieve the right Engine object
+        }
         InstrumentIdx  = -1;
         InstrumentStat = -1;
         AudioDeviceChannelLeft  = -1;
@@ -46,17 +51,8 @@ namespace LinuxSampler { namespace gig {
     }
 
     EngineChannel::~EngineChannel() {
+        DisconnectAudioOutputDevice();
         if (pInstrument) Engine::instruments.HandBack(pInstrument, this);
-        for (uint i = 0; i < 128; i++) {
-            if (pMIDIKeyInfo[i].pActiveVoices) {
-                pMIDIKeyInfo[i].pActiveVoices->clear();
-                delete pMIDIKeyInfo[i].pActiveVoices;
-            }
-            if (pMIDIKeyInfo[i].pEvents) {
-                pMIDIKeyInfo[i].pEvents->clear();
-                delete pMIDIKeyInfo[i].pEvents;
-            }
-        }
         if (pEventQueue) delete pEventQueue;
         if (pActiveKeys) delete pActiveKeys;
         if (pMIDIKeyInfo) delete[] pMIDIKeyInfo;
@@ -75,10 +71,6 @@ namespace LinuxSampler { namespace gig {
 
         // set all MIDI controller values to zero
         memset(ControllerTable, 0x00, 128);
-
-        // reset voice stealing parameters
-        itLastStolenVoice = RTList<Voice>::Iterator();
-        iuiLastStolenKey  = RTList<uint>::Iterator();
 
         // reset key info
         for (uint i = 0; i < 128; i++) {
@@ -218,11 +210,17 @@ namespace LinuxSampler { namespace gig {
     }
 
     void EngineChannel::Connect(AudioOutputDevice* pAudioOut) {
-        if (pEngine && pEngine->pAudioOutputDevice != pAudioOut) {
+        if (pEngine) {
+            if (pEngine->pAudioOutputDevice == pAudioOut) return;
             DisconnectAudioOutputDevice();
         }
         pEngine = Engine::AcquireEngine(this, pAudioOut);
         ResetInternal();
+        pEvents   = new RTList<Event>(pEngine->pEventPool);
+        pCCEvents = new RTList<Event>(pEngine->pEventPool);
+        for (uint i = 0; i < Event::destination_count; i++) {
+            pSynthesisEvents[i] = new RTList<Event>(pEngine->pEventPool);
+        }
         for (uint i = 0; i < 128; i++) {
             pMIDIKeyInfo[i].pActiveVoices = new RTList<Voice>(pEngine->pVoicePool);
             pMIDIKeyInfo[i].pEvents       = new RTList<Event>(pEngine->pEventPool);
@@ -236,6 +234,14 @@ namespace LinuxSampler { namespace gig {
     void EngineChannel::DisconnectAudioOutputDevice() {
         if (pEngine) { // if clause to prevent disconnect loops
             ResetInternal();
+            if (pEvents) {
+                delete pEvents;
+                pEvents = NULL;
+            }
+            if (pCCEvents) {
+                delete pCCEvents;
+                pCCEvents = NULL;
+            }
             for (uint i = 0; i < 128; i++) {
                 if (pMIDIKeyInfo[i].pActiveVoices) {
                     delete pMIDIKeyInfo[i].pActiveVoices;
@@ -244,6 +250,12 @@ namespace LinuxSampler { namespace gig {
                 if (pMIDIKeyInfo[i].pEvents) {
                     delete pMIDIKeyInfo[i].pEvents;
                     pMIDIKeyInfo[i].pEvents = NULL;
+                }
+            }
+            for (uint i = 0; i < Event::destination_count; i++) {
+                if (pSynthesisEvents[i]) {
+                    delete pSynthesisEvents[i];
+                    pSynthesisEvents[i] = NULL;
                 }
             }
             Engine* oldEngine = pEngine;
@@ -357,6 +369,58 @@ namespace LinuxSampler { namespace gig {
             if (this->pEventQueue->write_space() > 0) this->pEventQueue->push(&event);
             else dmsg(1,("EngineChannel: Input event queue full!"));
         }
+    }
+
+    void EngineChannel::ClearEventLists() {
+        pEvents->clear();
+        pCCEvents->clear();
+        for (uint i = 0; i < Event::destination_count; i++) {
+            pSynthesisEvents[i]->clear();
+        }
+        // empty MIDI key specific event lists
+        {
+            RTList<uint>::Iterator iuiKey = pActiveKeys->first();
+            RTList<uint>::Iterator end    = pActiveKeys->end();
+            for(; iuiKey != end; ++iuiKey) {
+                pMIDIKeyInfo[*iuiKey].pEvents->clear(); // free all events on the key
+            }
+        }
+    }
+
+    /**
+     * Copy all events from the engine channel's input event queue buffer to
+     * the internal event list. This will be done at the beginning of each
+     * audio cycle (that is each RenderAudio() call) to distinguish all
+     * events which have to be processed in the current audio cycle. Each
+     * EngineChannel has it's own input event queue for the common channel
+     * specific events (like NoteOn, NoteOff and ControlChange events).
+     * Beside that, the engine also has a input event queue for global
+     * events (usually SysEx messages).
+     *
+     * @param Samples - number of sample points to be processed in the
+     *                  current audio cycle
+     */
+    void EngineChannel::ImportEvents(uint Samples) {
+        RingBuffer<Event>::NonVolatileReader eventQueueReader = pEventQueue->get_non_volatile_reader();
+        Event* pEvent;
+        while (true) {
+            // get next event from input event queue
+            if (!(pEvent = eventQueueReader.pop())) break;
+            // if younger event reached, ignore that and all subsequent ones for now
+            if (pEvent->FragmentPos() >= Samples) {
+                eventQueueReader--;
+                dmsg(2,("Younger Event, pos=%d ,Samples=%d!\n",pEvent->FragmentPos(),Samples));
+                pEvent->ResetFragmentPos();
+                break;
+            }
+            // copy event to internal event list
+            if (pEvents->poolIsEmpty()) {
+                dmsg(1,("Event pool emtpy!\n"));
+                break;
+            }
+            *pEvents->allocAppend() = *pEvent;
+        }
+        eventQueueReader.free(); // free all copied events from input queue
     }
 
     float EngineChannel::Volume() {

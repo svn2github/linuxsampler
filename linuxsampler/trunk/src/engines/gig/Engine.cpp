@@ -64,7 +64,9 @@ namespace LinuxSampler { namespace gig {
             engines[pDevice] = pEngine;
         }
         // register engine channel to the engine instance
-        pEngine->engineChannels.push_back(pChannel);
+        pEngine->engineChannels.add(pChannel);
+        // remember index in the ArrayList
+        pChannel->iEngineIndexSelf = pEngine->engineChannels.size() - 1;
         dmsg(4,("This gig::Engine has now %d EngineChannels.\n",pEngine->engineChannels.size()));
         return pEngine;
     }
@@ -103,12 +105,7 @@ namespace LinuxSampler { namespace gig {
         pEventPool         = new Pool<Event>(MAX_EVENTS_PER_FRAGMENT);
         pVoicePool         = new Pool<Voice>(MAX_AUDIO_VOICES);
         pVoiceStealingQueue = new RTList<Event>(pEventPool);
-        pEvents            = new RTList<Event>(pEventPool);
-        pCCEvents          = new RTList<Event>(pEventPool);
-
-        for (uint i = 0; i < Event::destination_count; i++) {
-            pSynthesisEvents[i] = new RTList<Event>(pEventPool);
-        }
+        pGlobalEvents      = new RTList<Event>(pEventPool);
         for (RTList<Voice>::Iterator iterVoice = pVoicePool->allocAppend(); iterVoice == pVoicePool->last(); iterVoice = pVoicePool->allocAppend()) {
             iterVoice->SetEngine(this);
         }
@@ -128,11 +125,6 @@ namespace LinuxSampler { namespace gig {
             delete pDiskThread;
             dmsg(1,("OK\n"));
         }
-        for (uint i = 0; i < Event::destination_count; i++) {
-            if (pSynthesisEvents[i]) delete pSynthesisEvents[i];
-        }
-        if (pEvents)     delete pEvents;
-        if (pCCEvents)   delete pCCEvents;
         if (pEventQueue) delete pEventQueue;
         if (pEventPool)  delete pEventPool;
         if (pVoicePool) {
@@ -186,6 +178,9 @@ namespace LinuxSampler { namespace gig {
 
         // reset voice stealing parameters
         pVoiceStealingQueue->clear();
+        itLastStolenVoice  = RTList<Voice>::Iterator();
+        iuiLastStolenKey   = RTList<uint>::Iterator();
+        pLastStolenChannel = NULL;
 
         // reset to normal chromatic scale (means equal temper)
         memset(&ScaleTuning[0], 0x00, 12);
@@ -217,8 +212,8 @@ namespace LinuxSampler { namespace gig {
             throw LinuxSamplerException(msg);
         }
 
-        this->MaxSamplesPerCycle      = pAudioOutputDevice->MaxSamplesPerCycle();
-        this->SampleRate              = pAudioOutputDevice->SampleRate();
+        this->MaxSamplesPerCycle = pAudioOutputDevice->MaxSamplesPerCycle();
+        this->SampleRate         = pAudioOutputDevice->SampleRate();
 
         // FIXME: audio drivers with varying fragment sizes might be a problem here
         MaxFadeOutPos = MaxSamplesPerCycle - int(double(SampleRate) * EG_MIN_RELEASE_TIME) - 1;
@@ -278,28 +273,23 @@ namespace LinuxSampler { namespace gig {
     }
 
     void Engine::ClearEventLists() {
-        pEvents->clear();
-        pCCEvents->clear();
-        for (uint i = 0; i < Event::destination_count; i++) {
-            pSynthesisEvents[i]->clear();
-        }
+        pGlobalEvents->clear();
     }
 
     /**
-     * Copy all events from the given input queue buffer to the engine's
-     * internal event list. This will be done at the beginning of each audio
-     * cycle (that is each RenderAudio() call) to get all events which have
-     * to be processed in the current audio cycle. Each EngineChannel has
-     * it's own input event queue for the common channel specific events
-     * (like NoteOn, NoteOff and ControlChange events). Beside that, the
-     * engine also has a input event queue for global events (usually SysEx
-     * message).
+     * Copy all events from the engine's global input queue buffer to the
+     * engine's internal event list. This will be done at the beginning of
+     * each audio cycle (that is each RenderAudio() call) to distinguish
+     * all global events which have to be processed in the current audio
+     * cycle. These events are usually just SysEx messages. Every
+     * EngineChannel has it's own input event queue buffer and event list
+     * to handle common events like NoteOn, NoteOff and ControlChange
+     * events.
      *
-     * @param pEventQueue - input event buffer to read from
-     * @param Samples     - number of sample points to be processed in the
-     *                      current audio cycle
+     * @param Samples - number of sample points to be processed in the
+     *                  current audio cycle
      */
-    void Engine::ImportEvents(RingBuffer<Event>* pEventQueue, uint Samples) {
+    void Engine::ImportEvents(uint Samples) {
         RingBuffer<Event>::NonVolatileReader eventQueueReader = pEventQueue->get_non_volatile_reader();
         Event* pEvent;
         while (true) {
@@ -313,11 +303,11 @@ namespace LinuxSampler { namespace gig {
                 break;
             }
             // copy event to internal event list
-            if (pEvents->poolIsEmpty()) {
+            if (pGlobalEvents->poolIsEmpty()) {
                 dmsg(1,("Event pool emtpy!\n"));
                 break;
             }
-            *pEvents->allocAppend() = *pEvent;
+            *pGlobalEvents->allocAppend() = *pEvent;
         }
         eventQueueReader.free(); // free all copied events from input queue
     }
@@ -344,17 +334,14 @@ namespace LinuxSampler { namespace gig {
         // update time of start and end of this audio fragment (as events' time stamps relate to this)
         pEventGenerator->UpdateFragmentTime(Samples);
 
-        // empty the engine's event lists for the new fragment
-        ClearEventLists();
-
         // get all events from the engine's global input event queue which belong to the current fragment
         // (these are usually just SysEx messages)
-        ImportEvents(this->pEventQueue, Samples);
+        ImportEvents(Samples);
 
         // process engine global events (these are currently only MIDI System Exclusive messages)
         {
-            RTList<Event>::Iterator itEvent = pEvents->first();
-            RTList<Event>::Iterator end     = pEvents->end();
+            RTList<Event>::Iterator itEvent = pGlobalEvents->first();
+            RTList<Event>::Iterator end     = pGlobalEvents->end();
             for (; itEvent != end; ++itEvent) {
                 switch (itEvent->Type) {
                     case Event::type_sysex:
@@ -365,19 +352,42 @@ namespace LinuxSampler { namespace gig {
             }
         }
 
+        // We only allow a maximum of MAX_AUDIO_VOICES voices to be stolen
+        // in each audio fragment. All subsequent request for spawning new
+        // voices in the same audio fragment will be ignored.
+        VoiceTheftsLeft = MAX_AUDIO_VOICES;
+
         // reset internal voice counter (just for statistic of active voices)
         ActiveVoiceCountTemp = 0;
 
-        // render audio for all engine channels
-        // TODO: should we make voice stealing engine globally? unfortunately this would mean other disadvantages so I left voice stealing in the engine channel space for now
-        {
-            std::list<EngineChannel*>::iterator itChannel = engineChannels.begin();
-            std::list<EngineChannel*>::iterator end       = engineChannels.end();
-            for (; itChannel != end; itChannel++) {
-                if (!(*itChannel)->pInstrument) continue; // ignore if no instrument loaded
-                RenderAudio(*itChannel, Samples);
-            }
+
+        // render audio on all engine channels
+        for (int i = 0; i < engineChannels.size(); i++) {
+            if (!engineChannels[i]->pInstrument) continue; // ignore if no instrument loaded
+            // handle events on that engine channel
+            ProcessEvents(engineChannels[i], Samples);
+            // render all 'normal', active voices
+            RenderActiveVoices(engineChannels[i], Samples);
         }
+
+        // now that all ordinary voices on ALL engine channels are rendered, render new stolen voices
+        RenderStolenVoices(Samples);
+
+        // handle cleanup on all engine channels for the next audio fragment
+        for (int i = 0; i < engineChannels.size(); i++) {
+            if (!engineChannels[i]->pInstrument) continue; // ignore if no instrument loaded
+            PostProcess(engineChannels[i]);
+        }
+
+
+        // empty the engine's event list for the next audio fragment
+        ClearEventLists();
+
+        // reset voice stealing for the next audio fragment
+        pVoiceStealingQueue->clear();
+        itLastStolenVoice  = RTList<Voice>::Iterator();
+        iuiLastStolenKey   = RTList<uint>::Iterator();
+        pLastStolenChannel = NULL;
 
         // just some statistics about this engine instance
         ActiveVoiceCount = ActiveVoiceCountTemp;
@@ -386,28 +396,15 @@ namespace LinuxSampler { namespace gig {
         return 0;
     }
 
-    void Engine::RenderAudio(EngineChannel* pEngineChannel, uint Samples) {
-        // empty the engine's event lists for the new fragment
-        ClearEventLists();
-        // empty the engine channel's, MIDI key specific event lists
-        {
-            RTList<uint>::Iterator iuiKey = pEngineChannel->pActiveKeys->first();
-            RTList<uint>::Iterator end    = pEngineChannel->pActiveKeys->end();
-            for(; iuiKey != end; ++iuiKey) {
-                pEngineChannel->pMIDIKeyInfo[*iuiKey].pEvents->clear(); // free all events on the key
-            }
-        }
-
-
+    void Engine::ProcessEvents(EngineChannel* pEngineChannel, uint Samples) {
         // get all events from the engine channels's input event queue which belong to the current fragment
         // (these are the common events like NoteOn, NoteOff, ControlChange, etc.)
-        ImportEvents(pEngineChannel->pEventQueue, Samples);
-
+        pEngineChannel->ImportEvents(Samples);
 
         // process events
         {
-            RTList<Event>::Iterator itEvent = pEvents->first();
-            RTList<Event>::Iterator end     = pEvents->end();
+            RTList<Event>::Iterator itEvent = pEngineChannel->pEvents->first();
+            RTList<Event>::Iterator end     = pEngineChannel->pEvents->end();
             for (; itEvent != end; ++itEvent) {
                 switch (itEvent->Type) {
                     case Event::type_note_on:
@@ -429,55 +426,47 @@ namespace LinuxSampler { namespace gig {
                 }
             }
         }
+    }
 
+    void Engine::RenderActiveVoices(EngineChannel* pEngineChannel, uint Samples) {
+        RTList<uint>::Iterator iuiKey = pEngineChannel->pActiveKeys->first();
+        RTList<uint>::Iterator end    = pEngineChannel->pActiveKeys->end();
+        while (iuiKey != end) { // iterate through all active keys
+            midi_key_info_t* pKey = &pEngineChannel->pMIDIKeyInfo[*iuiKey];
+            ++iuiKey;
 
-        // render audio from all active voices
-        {
-            RTList<uint>::Iterator iuiKey = pEngineChannel->pActiveKeys->first();
-            RTList<uint>::Iterator end    = pEngineChannel->pActiveKeys->end();
-            while (iuiKey != end) { // iterate through all active keys
-                midi_key_info_t* pKey = &pEngineChannel->pMIDIKeyInfo[*iuiKey];
-                ++iuiKey;
-
-                RTList<Voice>::Iterator itVoice     = pKey->pActiveVoices->first();
-                RTList<Voice>::Iterator itVoicesEnd = pKey->pActiveVoices->end();
-                for (; itVoice != itVoicesEnd; ++itVoice) { // iterate through all voices on this key
-                    // now render current voice
-                    itVoice->Render(Samples);
-                    if (itVoice->IsActive()) ActiveVoiceCountTemp++; // still active
-                    else { // voice reached end, is now inactive
-                        FreeVoice(pEngineChannel, itVoice); // remove voice from the list of active voices
-                    }
+            RTList<Voice>::Iterator itVoice     = pKey->pActiveVoices->first();
+            RTList<Voice>::Iterator itVoicesEnd = pKey->pActiveVoices->end();
+            for (; itVoice != itVoicesEnd; ++itVoice) { // iterate through all voices on this key
+                // now render current voice
+                itVoice->Render(Samples);
+                if (itVoice->IsActive()) ActiveVoiceCountTemp++; // still active
+                else { // voice reached end, is now inactive
+                    FreeVoice(pEngineChannel, itVoice); // remove voice from the list of active voices
                 }
             }
         }
+    }
 
-
-        // now render all postponed voices from voice stealing
-        {
-            RTList<Event>::Iterator itVoiceStealEvent = pVoiceStealingQueue->first();
-            RTList<Event>::Iterator end               = pVoiceStealingQueue->end();
-            for (; itVoiceStealEvent != end; ++itVoiceStealEvent) {
-                Pool<Voice>::Iterator itNewVoice =
-                    LaunchVoice(pEngineChannel, itVoiceStealEvent, itVoiceStealEvent->Param.Note.Layer, itVoiceStealEvent->Param.Note.ReleaseTrigger, false);
-                if (itNewVoice) {
-                    for (; itNewVoice; itNewVoice = itNewVoice->itChildVoice) {
-                        itNewVoice->Render(Samples);
-                        if (itNewVoice->IsActive()) ActiveVoiceCountTemp++; // still active
-                        else { // voice reached end, is now inactive
-                            FreeVoice(pEngineChannel, itNewVoice); // remove voice from the list of active voices
-                        }
-                    }
+    void Engine::RenderStolenVoices(uint Samples) {
+        RTList<Event>::Iterator itVoiceStealEvent = pVoiceStealingQueue->first();
+        RTList<Event>::Iterator end               = pVoiceStealingQueue->end();
+        for (; itVoiceStealEvent != end; ++itVoiceStealEvent) {
+            EngineChannel* pEngineChannel = (EngineChannel*) itVoiceStealEvent->pEngineChannel;
+            Pool<Voice>::Iterator itNewVoice =
+                LaunchVoice(pEngineChannel, itVoiceStealEvent, itVoiceStealEvent->Param.Note.Layer, itVoiceStealEvent->Param.Note.ReleaseTrigger, false);
+            if (itNewVoice) {
+                itNewVoice->Render(Samples);
+                if (itNewVoice->IsActive()) ActiveVoiceCountTemp++; // still active
+                else { // voice reached end, is now inactive
+                    FreeVoice(pEngineChannel, itNewVoice); // remove voice from the list of active voices
                 }
-                else dmsg(1,("gig::Engine: ERROR, voice stealing didn't work out!\n"));
             }
+            else dmsg(1,("gig::Engine: ERROR, voice stealing didn't work out!\n"));
         }
-        // reset voice stealing for the new fragment
-        pVoiceStealingQueue->clear();
-        pEngineChannel->itLastStolenVoice = RTList<Voice>::Iterator();
-        pEngineChannel->iuiLastStolenKey  = RTList<uint>::Iterator();
+    }
 
-
+    void Engine::PostProcess(EngineChannel* pEngineChannel) {
         // free all keys which have no active voices left
         {
             RTList<uint>::Iterator iuiKey = pEngineChannel->pActiveKeys->first();
@@ -499,6 +488,9 @@ namespace LinuxSampler { namespace gig {
                 #endif // DEVMODE
             }
         }
+
+        // empty the engine channel's own event lists
+        pEngineChannel->ClearEventLists();
     }
 
     /**
@@ -568,8 +560,17 @@ namespace LinuxSampler { namespace gig {
         // move note on event to the key's own event list
         RTList<Event>::Iterator itNoteOnEventOnKeyList = itNoteOnEvent.moveToEndOf(pKey->pEvents);
 
-        // allocate and trigger a new voice for the key
-        LaunchVoice(pEngineChannel, itNoteOnEventOnKeyList, 0, false, true);
+        // allocate and trigger new voice(s) for the key
+        {
+            // first, get total amount of required voices (dependant on amount of layers)
+            ::gig::Region* pRegion = pEngineChannel->pInstrument->GetRegion(itNoteOnEventOnKeyList->Param.Note.Key);
+            if (pRegion) {
+                int voicesRequired = pRegion->Layers;
+                // now launch the required amount of voices
+                for (int i = 0; i < voicesRequired; i++)
+                    LaunchVoice(pEngineChannel, itNoteOnEventOnKeyList, i, false, true);
+            }
+        }
 
         pKey->RoundRobinIndex++;
     }
@@ -598,7 +599,14 @@ namespace LinuxSampler { namespace gig {
 
         // spawn release triggered voice(s) if needed
         if (pKey->ReleaseTrigger) {
-            LaunchVoice(pEngineChannel, itNoteOffEventOnKeyList, 0, true, false); //FIXME: for the moment we don't perform voice stealing for release triggered samples
+            // first, get total amount of required voices (dependant on amount of layers)
+            ::gig::Region* pRegion = pEngineChannel->pInstrument->GetRegion(itNoteOffEventOnKeyList->Param.Note.Key);
+            if (pRegion) {
+                int voicesRequired = pRegion->Layers;
+                // now launch the required amount of voices
+                for (int i = 0; i < voicesRequired; i++)
+                    LaunchVoice(pEngineChannel, itNoteOffEventOnKeyList, i, true, false); //FIXME: for the moment we don't perform voice stealing for release triggered samples
+            }
             pKey->ReleaseTrigger = false;
         }
     }
@@ -612,7 +620,7 @@ namespace LinuxSampler { namespace gig {
      */
     void Engine::ProcessPitchbend(EngineChannel* pEngineChannel, Pool<Event>::Iterator& itPitchbendEvent) {
         pEngineChannel->Pitch = itPitchbendEvent->Param.Pitch.Pitch; // store current pitch value
-        itPitchbendEvent.moveToEndOf(pSynthesisEvents[Event::destination_vco]);
+        itPitchbendEvent.moveToEndOf(pEngineChannel->pSynthesisEvents[Event::destination_vco]);
     }
 
     /**
@@ -671,14 +679,9 @@ namespace LinuxSampler { namespace gig {
             }
         }
         else if (VoiceStealing) {
-            // first, get total amount of required voices (dependant on amount of layers)
-            ::gig::Region* pRegion = pEngineChannel->pInstrument->GetRegion(itNoteOnEvent->Param.Note.Key);
-            if (!pRegion) return Pool<Voice>::Iterator(); // nothing defined for this MIDI key, so no voice needed
-            int voicesRequired = pRegion->Layers;
 
-            // now steal the (remaining) amount of voices
-            for (int i = iLayer; i < voicesRequired; i++)
-                StealVoice(pEngineChannel, itNoteOnEvent);
+            // try to steal one voice
+            StealVoice(pEngineChannel, itNoteOnEvent);
 
             // put note-on event into voice-stealing queue, so it will be reprocessed after killed voice died
             RTList<Event>::Iterator itStealEvent = pVoiceStealingQueue->allocAppend();
@@ -703,10 +706,13 @@ namespace LinuxSampler { namespace gig {
      *  @param itNoteOnEvent - key, velocity and time stamp of the event
      */
     void Engine::StealVoice(EngineChannel* pEngineChannel, Pool<Event>::Iterator& itNoteOnEvent) {
+        if (!VoiceTheftsLeft) {
+            dmsg(1,("Max. voice thefts per audio fragment reached (you may raise MAX_AUDIO_VOICES).\n"));
+            return;
+        }
         if (!pEventPool->poolIsEmpty()) {
 
-            RTList<uint>::Iterator  iuiOldestKey;
-            RTList<Voice>::Iterator itOldestVoice;
+            RTList<Voice>::Iterator itSelectedVoice;
 
             // Select one voice for voice stealing
             switch (VOICE_STEAL_ALGORITHM) {
@@ -715,46 +721,38 @@ namespace LinuxSampler { namespace gig {
                 // voice should be spawned, if there is no voice on that
                 // key, or no voice left to kill there, then procceed with
                 // 'oldestkey' algorithm
-                case voice_steal_algo_keymask: {
-                    midi_key_info_t* pOldestKey = &pEngineChannel->pMIDIKeyInfo[itNoteOnEvent->Param.Note.Key];
-                    if (pEngineChannel->itLastStolenVoice) {
-                        itOldestVoice = pEngineChannel->itLastStolenVoice;
-                        ++itOldestVoice;
+                case voice_steal_algo_oldestvoiceonkey: {
+                #if 0 // FIXME: broken
+                    midi_key_info_t* pSelectedKey = &pEngineChannel->pMIDIKeyInfo[itNoteOnEvent->Param.Note.Key];
+                    if (this->itLastStolenVoice) {
+                        itSelectedVoice = this->itLastStolenVoice;
+                        ++itSelectedVoice;
                     }
                     else { // no voice stolen in this audio fragment cycle yet
-                        itOldestVoice = pOldestKey->pActiveVoices->first();
+                        itSelectedVoice = pSelectedKey->pActiveVoices->first();
                     }
-                    if (itOldestVoice) {
-                        iuiOldestKey = pOldestKey->itSelf;
+                    if (itSelectedVoice) {
+                        iuiSelectedKey = pSelectedKey->itSelf;
                         break; // selection succeeded
                     }
+                #endif
                 } // no break - intentional !
 
                 // try to pick the oldest voice on the oldest active key
-                // (caution: must stay after 'keymask' algorithm !)
+                // (caution: must stay after 'oldestvoiceonkey' algorithm !)
                 case voice_steal_algo_oldestkey: {
-                    if (pEngineChannel->itLastStolenVoice) {
-                        midi_key_info_t* pOldestKey = &pEngineChannel->pMIDIKeyInfo[*pEngineChannel->iuiLastStolenKey];
-                        itOldestVoice = pEngineChannel->itLastStolenVoice;
-                        ++itOldestVoice;
-                        if (!itOldestVoice) {
-                            iuiOldestKey = pEngineChannel->iuiLastStolenKey;
-                            ++iuiOldestKey;
-                            if (iuiOldestKey) {
-                                midi_key_info_t* pOldestKey = &pEngineChannel->pMIDIKeyInfo[*iuiOldestKey];
-                                itOldestVoice = pOldestKey->pActiveVoices->first();
-                            }
-                            else {
-                                dmsg(1,("gig::Engine: Warning, too less voices, even for voice stealing! - Better recompile with higher MAX_AUDIO_VOICES.\n"));
-                                return;
-                            }
+                    if (this->itLastStolenVoice) {
+                        itSelectedVoice = this->itLastStolenVoice;
+                        ++itSelectedVoice;
+                        if (itSelectedVoice) break; // selection succeeded
+                        RTList<uint>::Iterator iuiSelectedKey = this->iuiLastStolenKey;
+                        ++iuiSelectedKey;
+                        if (iuiSelectedKey) {
+                            this->iuiLastStolenKey = iuiSelectedKey;
+                            midi_key_info_t* pSelectedKey = &pEngineChannel->pMIDIKeyInfo[*iuiSelectedKey];
+                            itSelectedVoice = pSelectedKey->pActiveVoices->first();
+                            break; // selection succeeded
                         }
-                        else iuiOldestKey = pEngineChannel->iuiLastStolenKey;
-                    }
-                    else { // no voice stolen in this audio fragment cycle yet
-                        iuiOldestKey = pEngineChannel->pActiveKeys->first();
-                        midi_key_info_t* pOldestKey = &pEngineChannel->pMIDIKeyInfo[*iuiOldestKey];
-                        itOldestVoice = pOldestKey->pActiveVoices->first();
                     }
                     break;
                 }
@@ -767,14 +765,34 @@ namespace LinuxSampler { namespace gig {
                 }
             }
 
+            // steal oldest voice on the oldest key from this or any other engine channel
+            if (!itSelectedVoice) {
+                EngineChannel* pSelectedChannel = (pLastStolenChannel) ? pLastStolenChannel : pEngineChannel;
+                int iChannelIndex = pSelectedChannel->iEngineIndexSelf;
+                while (true) {
+                    RTList<uint>::Iterator iuiSelectedKey = pSelectedChannel->pActiveKeys->first();
+                    if (iuiSelectedKey) {
+                        midi_key_info_t* pSelectedKey = &pSelectedChannel->pMIDIKeyInfo[*iuiSelectedKey];
+                        itSelectedVoice    = pSelectedKey->pActiveVoices->first();
+                        iuiLastStolenKey   = iuiSelectedKey;
+                        pLastStolenChannel = pSelectedChannel;
+                        break; // selection succeeded
+                    }
+                    iChannelIndex    = (iChannelIndex + 1) % engineChannels.size();
+                    pSelectedChannel =  engineChannels[iChannelIndex];
+                }
+            }
+
             //FIXME: can be removed, just a sanity check for debugging
-            if (!itOldestVoice->IsActive()) dmsg(1,("gig::Engine: ERROR, tried to steal a voice which was not active !!!\n"));
+            if (!itSelectedVoice->IsActive()) dmsg(1,("gig::Engine: ERROR, tried to steal a voice which was not active !!!\n"));
 
             // now kill the selected voice
-            itOldestVoice->Kill(itNoteOnEvent);
-            // remember which voice on which key we stole, so we can simply proceed for the next voice stealing
-            pEngineChannel->itLastStolenVoice = itOldestVoice;
-            pEngineChannel->iuiLastStolenKey = iuiOldestKey;
+            itSelectedVoice->Kill(itNoteOnEvent);
+
+            // remember which voice we stole, so we can simply proceed for the next voice stealing
+            itLastStolenVoice = itSelectedVoice;
+
+            --VoiceTheftsLeft;
         }
         else dmsg(1,("Event pool emtpy!\n"));
     }
@@ -895,7 +913,7 @@ namespace LinuxSampler { namespace gig {
         pEngineChannel->ControllerTable[itControlChangeEvent->Param.CC.Controller] = itControlChangeEvent->Param.CC.Value;
 
         // move event from the unsorted event list to the control change event list
-        itControlChangeEvent.moveToEndOf(pCCEvents);
+        itControlChangeEvent.moveToEndOf(pEngineChannel->pCCEvents);
     }
 
     /**
@@ -1033,7 +1051,7 @@ namespace LinuxSampler { namespace gig {
     }
 
     String Engine::Version() {
-        String s = "$Revision: 1.30 $";
+        String s = "$Revision: 1.31 $";
         return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
 

@@ -117,18 +117,18 @@ namespace LinuxSampler { namespace gig {
      *  Initializes and triggers the voice, a disk stream will be launched if
      *  needed.
      *
-     *  @param pEngineChannel      - engine channel on which this voice was ordered
-     *  @param itNoteOnEvent       - event that caused triggering of this voice
-     *  @param PitchBend           - MIDI detune factor (-8192 ... +8191)
-     *  @param pInstrument         - points to the loaded instrument which provides sample wave(s) and articulation data
-     *  @param iLayer              - layer number this voice refers to (only if this is a layered sound of course)
-     *  @param ReleaseTriggerVoice - if this new voice is a release trigger voice (optional, default = false)
-     *  @param VoiceStealing       - wether the voice is allowed to steal voices for further subvoices
+     *  @param pEngineChannel       - engine channel on which this voice was ordered
+     *  @param itNoteOnEvent        - event that caused triggering of this voice
+     *  @param PitchBend            - MIDI detune factor (-8192 ... +8191)
+     *  @param pInstrument          - points to the loaded instrument which provides sample wave(s) and articulation data
+     *  @param iLayer               - layer number this voice refers to (only if this is a layered sound of course)
+     *  @param ReleaseTriggerVoice  - if this new voice is a release trigger voice (optional, default = false)
+     *  @param VoiceStealingAllowed - wether the voice is allowed to steal voices for further subvoices
      *  @returns 0 on success, a value < 0 if the voice wasn't triggered
      *           (either due to an error or e.g. because no region is
      *           defined for the given key)
      */
-    int Voice::Trigger(EngineChannel* pEngineChannel, Pool<Event>::Iterator& itNoteOnEvent, int PitchBend, ::gig::Instrument* pInstrument, int iLayer, bool ReleaseTriggerVoice, bool VoiceStealing) {
+    int Voice::Trigger(EngineChannel* pEngineChannel, Pool<Event>::Iterator& itNoteOnEvent, int PitchBend, ::gig::Instrument* pInstrument, int iLayer, bool ReleaseTriggerVoice, bool VoiceStealingAllowed) {
         this->pEngineChannel = pEngineChannel;
         if (!pInstrument) {
            dmsg(1,("voice::trigger: !pInstrument\n"));
@@ -145,14 +145,15 @@ namespace LinuxSampler { namespace gig {
         Delay           = itNoteOnEvent->FragmentPos();
         itTriggerEvent  = itNoteOnEvent;
         itKillEvent     = Pool<Event>::Iterator();
-        itChildVoice    = Pool<Voice>::Iterator();
 
         if (!pRegion) {
             dmsg(4, ("gig::Voice: No Region defined for MIDI key %d\n", MIDIKey));
             return -1;
         }
 
-        KeyGroup = pRegion->KeyGroup;
+        // only mark the first voice of a layered voice (group) to be in a
+        // key group, so the layered voices won't kill each other
+        KeyGroup = (iLayer == 0 && !ReleaseTriggerVoice) ? pRegion->KeyGroup : 0;
 
         // get current dimension values to select the right dimension region
         //FIXME: controller values for selecting the dimension region here are currently not sample accurate
@@ -164,10 +165,6 @@ namespace LinuxSampler { namespace gig {
                     break;
                 case ::gig::dimension_layer:
                     DimValues[i] = iLayer;
-                    // if this is the 1st layer then spawn further voices for all the other layers
-                    if (iLayer == 0)
-                        for (int iNewLayer = 1; iNewLayer < pRegion->pDimensionDefinitions[i].zones; iNewLayer++)
-                            itChildVoice = pEngine->LaunchVoice(pEngineChannel, itNoteOnEvent, iNewLayer, ReleaseTriggerVoice, VoiceStealing);
                     break;
                 case ::gig::dimension_velocity:
                     DimValues[i] = itNoteOnEvent->Param.Note.Velocity;
@@ -758,9 +755,9 @@ namespace LinuxSampler { namespace gig {
         }
 
         // Reset synthesis event lists (except VCO, as VCO events apply channel wide currently)
-        pEngine->pSynthesisEvents[Event::destination_vca]->clear();
-        pEngine->pSynthesisEvents[Event::destination_vcfc]->clear();
-        pEngine->pSynthesisEvents[Event::destination_vcfr]->clear();
+        pEngineChannel->pSynthesisEvents[Event::destination_vca]->clear();
+        pEngineChannel->pSynthesisEvents[Event::destination_vcfc]->clear();
+        pEngineChannel->pSynthesisEvents[Event::destination_vcfr]->clear();
 
         // Reset delay
         Delay = 0;
@@ -800,17 +797,17 @@ namespace LinuxSampler { namespace gig {
     void Voice::ProcessEvents(uint Samples) {
 
         // dispatch control change events
-        RTList<Event>::Iterator itCCEvent = pEngine->pCCEvents->first();
+        RTList<Event>::Iterator itCCEvent = pEngineChannel->pCCEvents->first();
         if (Delay) { // skip events that happened before this voice was triggered
             while (itCCEvent && itCCEvent->FragmentPos() <= Delay) ++itCCEvent;
         }
         while (itCCEvent) {
             if (itCCEvent->Param.CC.Controller) { // if valid MIDI controller
                 if (itCCEvent->Param.CC.Controller == VCFCutoffCtrl.controller) {
-                    *pEngine->pSynthesisEvents[Event::destination_vcfc]->allocAppend() = *itCCEvent;
+                    *pEngineChannel->pSynthesisEvents[Event::destination_vcfc]->allocAppend() = *itCCEvent;
                 }
                 if (itCCEvent->Param.CC.Controller == VCFResonanceCtrl.controller) {
-                    *pEngine->pSynthesisEvents[Event::destination_vcfr]->allocAppend() = *itCCEvent;
+                    *pEngineChannel->pSynthesisEvents[Event::destination_vcfr]->allocAppend() = *itCCEvent;
                 }
                 if (itCCEvent->Param.CC.Controller == pLFO1->ExtController) {
                     pLFO1->SendEvent(itCCEvent);
@@ -823,7 +820,7 @@ namespace LinuxSampler { namespace gig {
                 }
                 if (pDimRgn->AttenuationController.type == ::gig::attenuation_ctrl_t::type_controlchange &&
                     itCCEvent->Param.CC.Controller == pDimRgn->AttenuationController.controller_number) { // if crossfade event
-                    *pEngine->pSynthesisEvents[Event::destination_vca]->allocAppend() = *itCCEvent;
+                    *pEngineChannel->pSynthesisEvents[Event::destination_vca]->allocAppend() = *itCCEvent;
                 }
             }
 
@@ -833,7 +830,7 @@ namespace LinuxSampler { namespace gig {
 
         // process pitch events
         {
-            RTList<Event>* pVCOEventList = pEngine->pSynthesisEvents[Event::destination_vco];
+            RTList<Event>* pVCOEventList = pEngineChannel->pSynthesisEvents[Event::destination_vco];
             RTList<Event>::Iterator itVCOEvent = pVCOEventList->first();
             if (Delay) { // skip events that happened before this voice was triggered
                 while (itVCOEvent && itVCOEvent->FragmentPos() <= Delay) ++itVCOEvent;
@@ -871,7 +868,7 @@ namespace LinuxSampler { namespace gig {
 
         // process volume / attenuation events (TODO: we only handle and _expect_ crossfade events here ATM !)
         {
-            RTList<Event>* pVCAEventList = pEngine->pSynthesisEvents[Event::destination_vca];
+            RTList<Event>* pVCAEventList = pEngineChannel->pSynthesisEvents[Event::destination_vca];
             RTList<Event>::Iterator itVCAEvent = pVCAEventList->first();
             if (Delay) { // skip events that happened before this voice was triggered
                 while (itVCAEvent && itVCAEvent->FragmentPos() <= Delay) ++itVCAEvent;
@@ -900,7 +897,7 @@ namespace LinuxSampler { namespace gig {
 
         // process filter cutoff events
         {
-            RTList<Event>* pCutoffEventList = pEngine->pSynthesisEvents[Event::destination_vcfc];
+            RTList<Event>* pCutoffEventList = pEngineChannel->pSynthesisEvents[Event::destination_vcfc];
             RTList<Event>::Iterator itCutoffEvent = pCutoffEventList->first();
             if (Delay) { // skip events that happened before this voice was triggered
                 while (itCutoffEvent && itCutoffEvent->FragmentPos() <= Delay) ++itCutoffEvent;
@@ -927,7 +924,7 @@ namespace LinuxSampler { namespace gig {
 
         // process filter resonance events
         {
-            RTList<Event>* pResonanceEventList = pEngine->pSynthesisEvents[Event::destination_vcfr];
+            RTList<Event>* pResonanceEventList = pEngineChannel->pSynthesisEvents[Event::destination_vcfr];
             RTList<Event>::Iterator itResonanceEvent = pResonanceEventList->first();
             if (Delay) { // skip events that happened before this voice was triggered
                 while (itResonanceEvent && itResonanceEvent->FragmentPos() <= Delay) ++itResonanceEvent;

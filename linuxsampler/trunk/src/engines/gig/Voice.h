@@ -80,7 +80,6 @@ namespace LinuxSampler { namespace gig {
             int          MIDIKey;      ///< MIDI key number of the key that triggered the voice
             uint         KeyGroup;
             DiskThread*  pDiskThread;  ///< Pointer to the disk thread, to be able to order a disk stream and later to delete the stream again
-            RTList<Voice>::Iterator itChildVoice; ///< Points to the next layer voice (if any). This field is currently only used by the voice stealing algorithm.
 
             // Methods
             Voice();
@@ -90,7 +89,7 @@ namespace LinuxSampler { namespace gig {
             void Reset();
             void SetOutput(AudioOutputDevice* pAudioOutputDevice);
             void SetEngine(Engine* pEngine);
-            int  Trigger(EngineChannel* pEngineChannel, Pool<Event>::Iterator& itNoteOnEvent, int PitchBend, ::gig::Instrument* pInstrument, int iLayer, bool ReleaseTriggerVoice, bool VoiceStealing);
+            int  Trigger(EngineChannel* pEngineChannel, Pool<Event>::Iterator& itNoteOnEvent, int PitchBend, ::gig::Instrument* pInstrument, int iLayer, bool ReleaseTriggerVoice, bool VoiceStealingAllowed);
             inline bool IsActive() { return PlaybackState; }
         //private:
             // Types

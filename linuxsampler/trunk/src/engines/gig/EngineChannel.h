@@ -44,15 +44,15 @@ namespace LinuxSampler { namespace gig {
     class EngineChannel : public LinuxSampler::EngineChannel, public InstrumentConsumer {
         public:
             EngineChannel();
-            virtual ~EngineChannel();            
-           
+            virtual ~EngineChannel();
+
             // implementation of abstract methods derived from interface class 'LinuxSampler::EngineChannel'
             virtual void    PrepareLoadInstrument(const char* FileName, uint Instrument);
             virtual void    LoadInstrument();
             virtual void    SendNoteOn(uint8_t Key, uint8_t Velocity);
             virtual void    SendNoteOff(uint8_t Key, uint8_t Velocity);
             virtual void    SendPitchbend(int Pitch);
-            virtual void    SendControlChange(uint8_t Controller, uint8_t Value);            
+            virtual void    SendControlChange(uint8_t Controller, uint8_t Value);
             virtual float   Volume();
             virtual void    Volume(float f);
             virtual uint    Channels();
@@ -64,22 +64,25 @@ namespace LinuxSampler { namespace gig {
             virtual String  InstrumentName();
             virtual int     InstrumentIndex();
             virtual int     InstrumentStatus();
-            virtual LinuxSampler::Engine* GetEngine();            
+            virtual LinuxSampler::Engine* GetEngine();
 
             // implementation of abstract methods derived from interface class 'InstrumentConsumer'
             virtual void ResourceToBeUpdated(::gig::Instrument* pResource, void*& pUpdateArg);
             virtual void ResourceUpdated(::gig::Instrument* pOldResource, ::gig::Instrument* pNewResource, void* pUpdateArg);
-            
-        //protected:                       
+
+        //protected:
             Engine*                 pEngine;
             float*                  pOutputLeft;              ///< Audio output channel buffer (left)
             float*                  pOutputRight;             ///< Audio output channel buffer (right)
             int                     AudioDeviceChannelLeft;   ///< audio device channel number to which the left channel is connected to
             int                     AudioDeviceChannelRight;  ///< audio device channel number to which the right channel is connected to
             RingBuffer<Event>*      pEventQueue;              ///< Input event queue.
-            uint8_t                 ControllerTable[128];     ///< Reflects the current values (0-127) of all MIDI controllers for this engine / sampler channel.            
+            RTList<Event>*          pEvents;                  ///< All engine channel specific events for the current audio fragment.
+            RTList<Event>*          pCCEvents;                ///< All control change events for the current audio fragment on this engine channel.
+            RTList<Event>*          pSynthesisEvents[Event::destination_count]; ///< Events directly affecting synthesis parameters (like pitch, volume and filter).
+            uint8_t                 ControllerTable[128];     ///< Reflects the current values (0-127) of all MIDI controllers for this engine / sampler channel.
             midi_key_info_t*        pMIDIKeyInfo;             ///< Contains all active voices sorted by MIDI key number and other informations to the respective MIDI key
-            Pool<uint>*             pActiveKeys;              ///< Holds all keys in it's allocation list with active voices.            
+            Pool<uint>*             pActiveKeys;              ///< Holds all keys in it's allocation list with active voices.
             std::map<uint,uint*>    ActiveKeyGroups;          ///< Contains active keys (in case they belong to a key group) ordered by key group ID.
             ::gig::Instrument*      pInstrument;
             bool                    SustainPedal;             ///< true if sustain pedal is down
@@ -92,13 +95,15 @@ namespace LinuxSampler { namespace gig {
             int                     InstrumentIdx;
             String                  InstrumentIdxName;
             int                     InstrumentStat;
-            RTList<Voice>::Iterator itLastStolenVoice;        ///< Only for voice stealing: points to the last voice which was theft in current audio fragment, NULL otherwise.
-            RTList<uint>::Iterator  iuiLastStolenKey;         ///< Only for voice stealing: key number of last key on which the last voice was theft in current audio fragment, NULL otherwise.
+            int                     iEngineIndexSelf;         ///< Reflects the index of this EngineChannel in the Engine's ArrayList.
+
+            void ClearEventLists();
+            void ImportEvents(uint Samples);
 
             friend class Engine;
             friend class Voice;
             friend class InstrumentResourceManager;
-            
+
         private:
             void ResetInternal();
     };

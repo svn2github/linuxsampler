@@ -35,6 +35,7 @@
 #include "EngineGlobals.h"
 #include "../../common/RingBuffer.h"
 #include "../../common/Pool.h"
+#include "../../common/ArrayList.h"
 #include "../../common/ConditionServer.h"
 #include "../common/Engine.h"
 #include "../common/Event.h"
@@ -90,26 +91,31 @@ namespace LinuxSampler { namespace gig {
             Pool<Voice>*            pVoicePool;            ///< Contains all voices that can be activated.
             EventGenerator*         pEventGenerator;
             RTList<Event>*          pVoiceStealingQueue;   ///< All voice-launching events which had to be postponed due to free voice shortage.
-            RTList<Event>*          pEvents;               ///< All events for the current audio fragment.
+            RTList<Event>*          pGlobalEvents;         ///< All engine global events for the current audio fragment (usually only SysEx messages).
             Pool<Event>*            pEventPool;            ///< Contains all Event objects that can be used.
-            RTList<Event>*          pCCEvents;             ///< All control change events for the current audio fragment.
             RingBuffer<uint8_t>*    pSysexBuffer;          ///< Input buffer for MIDI system exclusive messages.
-            RTList<Event>*          pSynthesisEvents[Event::destination_count];     ///< Events directly affecting synthesis parameter (like pitch, volume and filter).
             float*                  pSynthesisParameters[Event::destination_count]; ///< Matrix with final synthesis parameters for the current audio fragment which will be used in the main synthesis loop.
             biquad_param_t*         pBasicFilterParameters; ///< Biquad parameters of the basic bandpass filter.
             biquad_param_t*         pMainFilterParameters;  ///< Main biquad parameters of the individual filter (lowpass / bandpass / highpass).
             int                     ActiveVoiceCount;      ///< number of currently active voices (this value will be returned for public calls)
             int                     ActiveVoiceCountTemp;  ///< number of currently active voices (for internal usage, will be used for incrementation)
             int                     ActiveVoiceCountMax;   ///< the maximum voice usage since application start
+            int                     VoiceTheftsLeft;       ///< We only allow MAX_AUDIO_VOICES voices to be stolen per audio fragment, we use this variable to ensure this limit.
+            RTList<Voice>::Iterator itLastStolenVoice;     ///< Only for voice stealing: points to the last voice which was theft in current audio fragment, NULL otherwise.
+            RTList<uint>::Iterator  iuiLastStolenKey;      ///< Only for voice stealing: key number of last key on which the last voice was theft in current audio fragment, NULL otherwise.
+            EngineChannel*          pLastStolenChannel;    ///< Only for voice stealing: points to the engine channel on which the previous voice was stolen in this audio fragment.
             bool                    SuspensionRequested;
             ConditionServer         EngineDisabled;
             int8_t                  ScaleTuning[12];       ///< contains optional detune factors (-64..+63 cents) for all 12 semitones of an octave
             int                     MaxFadeOutPos;         ///< The last position in an audio fragment to allow an instant fade out (e.g. for voice stealing) without leading to clicks.
             uint32_t                RandomSeed;            ///< State of the random number generator used by the random dimension.
 
-            void RenderAudio(EngineChannel* pEngineChannel, uint Samples);
+            void ProcessEvents(EngineChannel* pEngineChannel, uint Samples);
+            void RenderActiveVoices(EngineChannel* pEngineChannel, uint Samples);
+            void RenderStolenVoices(uint Samples);
+            void PostProcess(EngineChannel* pEngineChannel);
             void ClearEventLists();
-            void ImportEvents(RingBuffer<Event>* pEventQueue, uint Samples);
+            void ImportEvents(uint Samples);
             void ProcessNoteOn(EngineChannel* pEngineChannel, Pool<Event>::Iterator& itNoteOnEvent);
             void ProcessNoteOff(EngineChannel* pEngineChannel, Pool<Event>::Iterator& itNoteOffEvent);
             void ProcessPitchbend(EngineChannel* pEngineChannel, Pool<Event>::Iterator& itPitchbendEvent);
@@ -134,7 +140,7 @@ namespace LinuxSampler { namespace gig {
             friend class VCFCManipulator;
             friend class VCOManipulator;
         private:
-            std::list<EngineChannel*> engineChannels; ///< All engine channels of a gig::Engine instance.
+            ArrayList<EngineChannel*> engineChannels; ///< All engine channels of a gig::Engine instance.
 
             static std::map<AudioOutputDevice*,Engine*> engines; ///< All instances of gig::Engine.
 
