@@ -926,6 +926,7 @@ namespace LinuxSampler { namespace gig {
         float prev_cutoff = pEngine->pSynthesisParameters[Event::destination_vcfc][0];
         float prev_res    = pEngine->pSynthesisParameters[Event::destination_vcfr][0];
         FilterLeft.SetParameters(&bqbase, &bqmain, prev_cutoff, prev_res, pEngine->SampleRate);
+        FilterRight.SetParameters(&bqbase, &bqmain, prev_cutoff, prev_res, pEngine->SampleRate);
         pEngine->pBasicFilterParameters[0] = bqbase;
         pEngine->pMainFilterParameters[0]  = bqmain;
 
@@ -939,6 +940,7 @@ namespace LinuxSampler { namespace gig {
                     prev_cutoff = pEngine->pSynthesisParameters[Event::destination_vcfc][i];
                     prev_res    = pEngine->pSynthesisParameters[Event::destination_vcfr][i];
                     FilterLeft.SetParameters(&bqbase, &bqmain, prev_cutoff, prev_res, pEngine->SampleRate);
+                    FilterRight.SetParameters(&bqbase, &bqmain, prev_cutoff, prev_res, pEngine->SampleRate);
                 }
             }
 
