@@ -233,7 +233,21 @@ void PrintRegions(gig::Instrument* instr) {
                     cout << "UNKNOWN - please report this !";
                     break;
             }
-            cout << ", Bits=" << (uint) DimensionDef.bits << ", Zones=" << (uint) DimensionDef.zones << endl;
+            cout << ", Bits=" << (uint) DimensionDef.bits << ", Zones=" << (uint) DimensionDef.zones;
+            cout << ", SplitType=";
+            switch (DimensionDef.split_type) {
+                case gig::split_type_normal:
+                    cout << "NORMAL" << endl;
+                    break;
+                case gig::split_type_customvelocity:
+                    cout << "CUSTOMVELOCITY" << endl;
+                    break;
+                case gig::split_type_bit:
+                    cout << "BIT" << endl;
+                    break;
+                default:
+                    cout << "UNKNOWN" << endl;
+            }
         }
 
         PrintDimensionRegions(pRegion);
