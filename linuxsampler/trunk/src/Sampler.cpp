@@ -27,6 +27,7 @@
 #include "drivers/audio/AudioOutputDeviceFactory.h"
 #include "drivers/midi/MidiInputDeviceFactory.h"
 #include "engines/gig/Engine.h"
+#include "network/lscpserver.h"
 
 namespace LinuxSampler {
 
@@ -181,6 +182,7 @@ namespace LinuxSampler {
         if (!mSamplerChannels.size()) {
             SamplerChannel* pChannel = new SamplerChannel(this);
             mSamplerChannels[0] = pChannel;
+	    LSCPServer::SendLSCPNotify(LSCPEvent(LSCPEvent::event_channels, 1));
             return pChannel;
         }
 
@@ -195,6 +197,7 @@ namespace LinuxSampler {
                 // we found an unused index, so insert the new channel there
                 SamplerChannel* pChannel = new SamplerChannel(this);
                 mSamplerChannels[i] = pChannel;
+		LSCPServer::SendLSCPNotify(LSCPEvent(LSCPEvent::event_channels, i));
                 return pChannel;
             }
             throw LinuxSamplerException("Internal error: could not find unoccupied sampler channel index.");
@@ -203,6 +206,7 @@ namespace LinuxSampler {
         // we have not reached the index limit so we just add the channel past the highest index
         SamplerChannel* pChannel = new SamplerChannel(this);
         mSamplerChannels[lastIndex + 1] = pChannel;
+	LSCPServer::SendLSCPNotify(LSCPEvent(LSCPEvent::event_channels, lastIndex + 1));
         return pChannel;
     }
 
@@ -220,6 +224,7 @@ namespace LinuxSampler {
             if (iterChan->second == pSamplerChannel) {
                 mSamplerChannels.erase(iterChan);
                 delete pSamplerChannel;
+		LSCPServer::SendLSCPNotify(LSCPEvent(LSCPEvent::event_channels, mSamplerChannels.size()));
                 return;
             }
         }
