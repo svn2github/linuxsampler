@@ -25,70 +25,87 @@
 
 namespace LinuxSampler {
 
-	REGISTER_MIDI_INPUT_DRIVER(MidiInputDeviceAlsa);
+    REGISTER_MIDI_INPUT_DRIVER(MidiInputDeviceAlsa);
 
-	/* Common parameters */
-	REGISTER_MIDI_INPUT_DRIVER_PARAMETER(MidiInputDeviceAlsa, ParameterActive);
-	REGISTER_MIDI_INPUT_DRIVER_PARAMETER(MidiInputDeviceAlsa, ParameterPorts);
+    /* Common parameters */
+    REGISTER_MIDI_INPUT_DRIVER_PARAMETER(MidiInputDeviceAlsa, ParameterActive);
+    REGISTER_MIDI_INPUT_DRIVER_PARAMETER(MidiInputDeviceAlsa, ParameterPorts);
 
-    MidiInputDeviceAlsa::MidiInputDeviceAlsa(std::map<String,DeviceCreationParameter*> Parameters) : MidiInputDevice(Parameters), Thread(true, 1, -1) {
-        if (snd_seq_open(&hAlsaSeq, "default", SND_SEQ_OPEN_INPUT, 0) < 0) {
-            throw MidiInputException("Error opening ALSA sequencer");
-        }
-        this->hAlsaSeqClient = snd_seq_client_id(hAlsaSeq);
-        snd_seq_set_client_name(hAlsaSeq, "LinuxSampler");
-	AcquirePorts(((DeviceCreationParameterInt*)Parameters["ports"])->ValueAsInt());
-	if (((DeviceCreationParameterBool*)Parameters["active"])->ValueAsBool()) {
-		Listen();
-	}
+
+
+// *************** ParameterName ***************
+// *
+
+    MidiInputDeviceAlsa::MidiInputPortAlsa::ParameterName::ParameterName(MidiInputPort* pPort) throw (LinuxSamplerException) : MidiInputPort::ParameterName(pPort, "Port " + ToString(pPort->GetPortNumber())) {
+        OnSetValue(ValueAsString()); // initialize port name
     }
 
-    MidiInputDeviceAlsa::~MidiInputDeviceAlsa() {
-	    snd_seq_close(hAlsaSeq);
+    void MidiInputDeviceAlsa::MidiInputPortAlsa::ParameterName::OnSetValue(String s) throw (LinuxSamplerException) {
+        if (s.size() > 16) throw LinuxSamplerException("Name too long for ALSA MIDI input port (max. 16 characters)");
+        snd_seq_port_info_t* hInfo;
+        snd_seq_port_info_malloc(&hInfo);
+        snd_seq_get_port_info(((MidiInputDeviceAlsa*)pPort->GetDevice())->hAlsaSeq, pPort->GetPortNumber(), hInfo);
+        snd_seq_port_info_set_name(hInfo, s.c_str());
+        snd_seq_set_port_info(((MidiInputDeviceAlsa*)pPort->GetDevice())->hAlsaSeq, pPort->GetPortNumber(), hInfo);
+        snd_seq_port_info_free(hInfo);
     }
 
-    MidiInputDeviceAlsa::MidiInputPortAlsa::MidiInputPortAlsa(MidiInputDeviceAlsa* pDevice, int alsaPort) : MidiInputPort(pDevice, alsaPort) {
-	    Parameters["alsa_seq_bindings"] = new ParameterAlsaSeqBindings(this);
-	    this->pDevice = pDevice;
+
+
+// *************** ParameterAlsaSeqBindings ***************
+// *
+
+
+    MidiInputDeviceAlsa::MidiInputPortAlsa::ParameterAlsaSeqBindings::ParameterAlsaSeqBindings(MidiInputPortAlsa* pPort) : DeviceRuntimeParameterStrings( std::vector<String>() ) {
+        this->pPort = pPort;
+    }
+
+    String MidiInputDeviceAlsa::MidiInputPortAlsa::ParameterAlsaSeqBindings::Description() {
+        return "Bindings to other Alsa sequencer clients";
+    }
+    bool MidiInputDeviceAlsa::MidiInputPortAlsa::ParameterAlsaSeqBindings::Fix() {
+        return false;
+    }
+
+    std::vector<String> MidiInputDeviceAlsa::MidiInputPortAlsa::ParameterAlsaSeqBindings::PossibilitiesAsString() {
+        return std::vector<String>(); //TODO
+    }
+
+    void MidiInputDeviceAlsa::MidiInputPortAlsa::ParameterAlsaSeqBindings::OnSetValue(std::vector<String> vS) throw (LinuxSamplerException) {
+        std::vector<String>::iterator iter = vS.begin();
+        for (; iter != vS.end(); iter++) pPort->ConnectToAlsaMidiSource((*iter).c_str());
+    }
+
+
+
+// *************** MidiInputPortAlsa ***************
+// *
+
+    MidiInputDeviceAlsa::MidiInputPortAlsa::MidiInputPortAlsa(MidiInputDeviceAlsa* pDevice) throw (MidiInputException) : MidiInputPort(pDevice, -1) {
+        this->pDevice = pDevice;
+
+        // create Alsa sequencer port
+        int alsaPort = snd_seq_create_simple_port(pDevice->hAlsaSeq, "unnamed port",
+                                                  SND_SEQ_PORT_CAP_WRITE|SND_SEQ_PORT_CAP_SUBS_WRITE,
+                                                  SND_SEQ_PORT_TYPE_APPLICATION);
+        if (alsaPort < 0) throw MidiInputException("Error creating sequencer port");
+        this->portNumber = alsaPort;
+
+        Parameters["NAME"]              = new ParameterName(this);
+        Parameters["ALSA_SEQ_BINDINGS"] = new ParameterAlsaSeqBindings(this);
     }
 
     MidiInputDeviceAlsa::MidiInputPortAlsa::~MidiInputPortAlsa() {
 	    snd_seq_delete_simple_port(pDevice->hAlsaSeq, portNumber);
     }
 
-    MidiInputDeviceAlsa::MidiInputPortAlsa* MidiInputDeviceAlsa::CreateMidiPort() {
-	    int alsaPort;
-	    if ((alsaPort = snd_seq_create_simple_port(hAlsaSeq, "LinuxSampler",
-					    SND_SEQ_PORT_CAP_WRITE|SND_SEQ_PORT_CAP_SUBS_WRITE,
-					    SND_SEQ_PORT_TYPE_APPLICATION)) < 0) {
-		    throw MidiInputException("Error creating sequencer port");
-	    }
-	    return ( new MidiInputPortAlsa(this, alsaPort) );
-    }
-
-    String MidiInputDeviceAlsa::Name() {
-	    return "Alsa";
-    }
-
-    String MidiInputDeviceAlsa::Driver() {
-	    return Name();
-    }
-
-    void MidiInputDeviceAlsa::Listen() {
-        StartThread();
-    }
-
-    void MidiInputDeviceAlsa::StopListen() {
-        StopThread();
-    }
-
     /**
-    * Connects this Alsa midi input device with an Alsa MIDI source.
-    *
-    * @param Client - Alsa sequencer client and port ID of a MIDI source
-    *                (e.g. "64:0")
-    * @throws MidiInputException  if connection cannot be established
-    */
+     * Connects this Alsa midi input device with an Alsa MIDI source.
+     *
+     * @param Client - Alsa sequencer client and port ID of a MIDI source
+     *                (e.g. "64:0")
+     * @throws MidiInputException  if connection cannot be established
+     */
     void MidiInputDeviceAlsa::MidiInputPortAlsa::ConnectToAlsaMidiSource(const char* MidiSource) {
         snd_seq_addr_t sender, dest;
         snd_seq_port_subscribe_t* subs;
@@ -109,12 +126,53 @@ namespace LinuxSampler {
             throw MidiInputException(String("Unable to connect to Alsa seq client \'") + MidiSource + "\' (" + snd_strerror(errno) + ")");
     }
 
+
+
+// *************** MidiInputDeviceAlsa ***************
+// *
+
+    MidiInputDeviceAlsa::MidiInputDeviceAlsa(std::map<String,DeviceCreationParameter*> Parameters) : MidiInputDevice(Parameters), Thread(true, 1, -1) {
+        if (snd_seq_open(&hAlsaSeq, "default", SND_SEQ_OPEN_INPUT, 0) < 0) {
+            throw MidiInputException("Error opening ALSA sequencer");
+        }
+        this->hAlsaSeqClient = snd_seq_client_id(hAlsaSeq);
+        snd_seq_set_client_name(hAlsaSeq, "LinuxSampler");
+	AcquirePorts(((DeviceCreationParameterInt*)Parameters["PORTS"])->ValueAsInt());
+	if (((DeviceCreationParameterBool*)Parameters["ACTIVE"])->ValueAsBool()) {
+		Listen();
+	}
+    }
+
+    MidiInputDeviceAlsa::~MidiInputDeviceAlsa() {
+	    snd_seq_close(hAlsaSeq);
+    }
+
+    MidiInputDeviceAlsa::MidiInputPortAlsa* MidiInputDeviceAlsa::CreateMidiPort() {
+        return new MidiInputPortAlsa(this);
+    }
+
+    String MidiInputDeviceAlsa::Name() {
+	    return "ALSA";
+    }
+
+    String MidiInputDeviceAlsa::Driver() {
+	    return Name();
+    }
+
+    void MidiInputDeviceAlsa::Listen() {
+        StartThread();
+    }
+
+    void MidiInputDeviceAlsa::StopListen() {
+        StopThread();
+    }
+
     String MidiInputDeviceAlsa::Description() {
 	    return "Advanced Linux Sound Architecture";
     }
 
     String MidiInputDeviceAlsa::Version() {
-	    String s = "$Revision: 1.8 $";
+	    String s = "$Revision: 1.9 $";
 	    return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
 
@@ -130,8 +188,8 @@ namespace LinuxSampler {
             if (poll(pfd, npfd, 100000) > 0) {
                 do {
                     snd_seq_event_input(hAlsaSeq, &ev);
-		    int port = (int) ev->dest.port;
-		    MidiInputPort* pMidiInputPort = Ports[port];
+                    int port = (int) ev->dest.port;
+                    MidiInputPort* pMidiInputPort = Ports[port];
 
                     switch (ev->type) {
                         case SND_SEQ_EVENT_CONTROLLER:

@@ -45,7 +45,10 @@ namespace LinuxSampler {
             AudioOutputDeviceJack(std::map<String,DeviceCreationParameter*> Parameters);
             ~AudioOutputDeviceJack();
 
-            // Audio channel parameter to connect to other Jack clients
+            /** Audio Channel Parameter 'JACK_BINDINGS'
+             *
+             * Used to connect to other JACK clients.
+             */
             class ParameterJackBindings : public DeviceRuntimeParameterStrings {
                 public:
                     ParameterJackBindings(AudioChannel* pChannel, std::vector<String> InitialBindings) : DeviceRuntimeParameterStrings(InitialBindings) { this->pChannel = pChannel; }

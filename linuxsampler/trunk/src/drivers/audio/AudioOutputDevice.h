@@ -52,6 +52,10 @@ namespace LinuxSampler {
             /////////////////////////////////////////////////////////////////
             // Device parameters
 
+            /** Device Parameter 'ACTIVE'
+             *
+             * Used to activate / deactivate the audio output device.
+             */
             class ParameterActive : public DeviceCreationParameterBool {
                 public:
                     ParameterActive( void ) : DeviceCreationParameterBool()                  { InitWithDefault();                                  }
@@ -62,9 +66,13 @@ namespace LinuxSampler {
                     virtual std::map<String,DeviceCreationParameter*> DependsAsParameters()  { return std::map<String,DeviceCreationParameter*>(); }
                     virtual optional<bool> DefaultAsBool(std::map<String,String> Parameters) { return true;                                        }
                     virtual void OnSetValue(bool b) throw (LinuxSamplerException)            { if (b) ((AudioOutputDevice*)pDevice)->Play(); else ((AudioOutputDevice*)pDevice)->Stop();       }
-		    static String Name( void ) { return "active"; }
+                    static String Name() { return "ACTIVE"; }
             };
 
+            /** Device Parameter 'SAMPLERATE'
+             *
+             * Used to set the sample rate of the audio output device.
+             */
             class ParameterSampleRate : public DeviceCreationParameterInt {
                 public:
                     ParameterSampleRate() : DeviceCreationParameterInt()                            { InitWithDefault();                                  }
@@ -78,9 +86,14 @@ namespace LinuxSampler {
                     virtual optional<int>    RangeMaxAsInt(std::map<String,String> Parameters)      { return optional<int>::nothing;                      }
                     virtual std::vector<int> PossibilitiesAsInt(std::map<String,String> Parameters) { return std::vector<int>();                          }
                     virtual void             OnSetValue(int i) throw (LinuxSamplerException)        { /* cannot happen, as parameter is fix */            }
-		    static String Name( void ) { return "samplerate"; }
+                    static String Name() { return "SAMPLERATE"; }
             };
 
+            /** Device Parameters 'CHANNELS'
+             *
+             * Used to increase / decrease the number of audio channels of
+             * audio output device.
+             */
             class ParameterChannels : public DeviceCreationParameterInt {
                 public:
                     ParameterChannels() : DeviceCreationParameterInt()                              { InitWithDefault();                                  }
@@ -94,8 +107,9 @@ namespace LinuxSampler {
                     virtual optional<int>    RangeMaxAsInt(std::map<String,String> Parameters)      { return optional<int>::nothing;                      }
                     virtual std::vector<int> PossibilitiesAsInt(std::map<String,String> Parameters) { return std::vector<int>();                          }
                     virtual void             OnSetValue(int i) throw (LinuxSamplerException)        { ((AudioOutputDevice*)pDevice)->AcquireChannels(i);    }
-		    static String Name( void ) { return "channels"; }
+                    static String Name() { return "CHANNELS"; }
             };
+
 
 
             /////////////////////////////////////////////////////////////////
@@ -205,8 +219,10 @@ namespace LinuxSampler {
              */
             AudioChannel* Channel(uint ChannelIndex);
 
+            /**
+             * Returns all device parameter settings.
+             */
             std::map<String,DeviceCreationParameter*> DeviceParameters();
-
 
         protected:
             std::set<Engine*>                         Engines;     ///< All sampler engines that are connected to the audio output device.

@@ -105,7 +105,7 @@ namespace LinuxSampler {
     }
 
     String AudioOutputDeviceAlsa::ParameterCard::Name() {
-        return "card";
+        return "CARD";
     }
 
 
@@ -160,7 +160,7 @@ namespace LinuxSampler {
     }
 
     String AudioOutputDeviceAlsa::ParameterFragments::Name() {
-        return "fragments";
+        return "FRAGMENTS";
     }
 
 
@@ -215,7 +215,7 @@ namespace LinuxSampler {
     }
 
     String AudioOutputDeviceAlsa::ParameterFragmentSize::Name() {
-        return "fragmentsize";
+        return "FRAGMENTSIZE";
     }
 
 
@@ -232,11 +232,11 @@ namespace LinuxSampler {
     AudioOutputDeviceAlsa::AudioOutputDeviceAlsa(std::map<String,DeviceCreationParameter*> Parameters) : AudioOutputDevice(Parameters), Thread(true, 1, 0) {
         pcm_handle           = NULL;
         stream               = SND_PCM_STREAM_PLAYBACK;
-        this->uiAlsaChannels = ((DeviceCreationParameterInt*)Parameters["channels"])->ValueAsInt();
-        this->uiSamplerate   = ((DeviceCreationParameterInt*)Parameters["samplerate"])->ValueAsInt();
-        this->FragmentSize   = ((DeviceCreationParameterInt*)Parameters["fragmentsize"])->ValueAsInt();
-        uint Fragments       = ((DeviceCreationParameterInt*)Parameters["fragments"])->ValueAsInt();
-        String Card          = ((DeviceCreationParameterString*)Parameters["card"])->ValueAsString();
+        this->uiAlsaChannels = ((DeviceCreationParameterInt*)Parameters["CHANNELS"])->ValueAsInt();
+        this->uiSamplerate   = ((DeviceCreationParameterInt*)Parameters["SAMPLERATE"])->ValueAsInt();
+        this->FragmentSize   = ((DeviceCreationParameterInt*)Parameters["FRAGMENTSIZE"])->ValueAsInt();
+        uint Fragments       = ((DeviceCreationParameterInt*)Parameters["FRAGMENTS"])->ValueAsInt();
+        String Card          = ((DeviceCreationParameterString*)Parameters["CARD"])->ValueAsString();
 
         dmsg(1,("Checking if hw parameters supported...\n"));
         if (HardwareParametersSupported(Card, uiAlsaChannels, uiSamplerate, Fragments, FragmentSize)) {
@@ -346,7 +346,7 @@ namespace LinuxSampler {
         // create audio channels for this audio device to which the sampler engines can write to
         for (int i = 0; i < uiAlsaChannels; i++) this->Channels.push_back(new AudioChannel(FragmentSize));
 
-	if (((DeviceCreationParameterBool*)Parameters["active"])->ValueAsBool()) {
+	if (((DeviceCreationParameterBool*)Parameters["ACTIVE"])->ValueAsBool()) {
 		Play();
 	}
     }
@@ -447,7 +447,7 @@ namespace LinuxSampler {
     }
 
     String AudioOutputDeviceAlsa::Name() {
-        return "Alsa";
+        return "ALSA";
     }
 
     String AudioOutputDeviceAlsa::Driver() {
@@ -459,7 +459,7 @@ namespace LinuxSampler {
     }
 
     String AudioOutputDeviceAlsa::Version() {
-       String s = "$Revision: 1.12 $";
+       String s = "$Revision: 1.13 $";
        return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
 
@@ -510,4 +510,3 @@ namespace LinuxSampler {
     }
 
 } // namespace LinuxSampler
-

@@ -68,7 +68,7 @@ int yylex(YYSTYPE* yylval) {
 %type <Char> char digit
 %type <Dotnum> dotnum volume_value boolean
 %type <Number> number sampler_channel instrument_index audio_channel_index device_index midi_input_channel_index midi_input_port_index
-%type <String> string stringval digits param_val filename engine_name command create_instruction destroy_instruction get_instruction list_instruction load_instruction set_chan_instruction load_instr_args load_engine_args audio_output_type_name midi_input_type_name set_instruction subscribe_event unsubscribe_event
+%type <String> string text stringval digits param_val filename engine_name command create_instruction destroy_instruction get_instruction list_instruction load_instruction set_chan_instruction load_instr_args load_engine_args audio_output_type_name midi_input_type_name set_instruction subscribe_event unsubscribe_event
 %type <FillResponse> buffer_size_type
 %type <KeyValList> key_val_list
 
@@ -340,8 +340,14 @@ char                  :  'A' { $$ = 'A'; } | 'B' { $$ = 'B'; } | 'C' { $$ = 'C';
                       |  '\376' { $$ = '\376'; } | '\377' { $$ = '\377'; }
                       ;
 
-stringval             :  '\'' string '\''  { $$ = '\'' + $2 + '\''; }
-                      |  '\"' string '\"'  { $$ = '\"' + $2 + '\"'; }
+text                  :  SP           { $$ = " ";      }
+                      |  string
+                      |  text SP      { $$ = $1 + " "; }
+                      |  text string  { $$ = $1 + $2;  }
+                      ;
+
+stringval             :  '\'' text '\''  { $$ = '\'' + $2 + '\''; }
+                      |  '\"' text '\"'  { $$ = '\"' + $2 + '\"'; }
                       ;
 
 

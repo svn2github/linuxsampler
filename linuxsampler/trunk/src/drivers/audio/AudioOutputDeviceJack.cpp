@@ -137,7 +137,7 @@ namespace LinuxSampler {
     }
 
     String AudioOutputDeviceJack::Name() {
-	return "Jack";
+        return "JACK";
     }
 
     String AudioOutputDeviceJack::Driver() {
@@ -149,7 +149,7 @@ namespace LinuxSampler {
     }
 
     String AudioOutputDeviceJack::Version() {
-       String s = "$Revision: 1.9 $";
+       String s = "$Revision: 1.10 $";
        return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
 

@@ -849,7 +849,7 @@ String LSCPServer::GetAudioOutputDeviceInfo(uint DeviceIndex) {
         std::map<uint,AudioOutputDevice*> devices = pSampler->GetAudioOutputDevices();
         if (!devices[DeviceIndex]) throw LinuxSamplerException("There is no audio output device with index " + ToString(DeviceIndex) + ".");
         AudioOutputDevice* pDevice = devices[DeviceIndex];
-        result.Add("driver", pDevice->Driver());
+        result.Add("DRIVER", pDevice->Driver());
         std::map<String,DeviceCreationParameter*> parameters = pDevice->DeviceParameters();
         std::map<String,DeviceCreationParameter*>::iterator iter = parameters.begin();
         for (; iter != parameters.end(); iter++) {
@@ -869,7 +869,7 @@ String LSCPServer::GetMidiInputDeviceInfo(uint DeviceIndex) {
         std::map<uint,MidiInputDevice*> devices = pSampler->GetMidiInputDevices();
         MidiInputDevice* pDevice = devices[DeviceIndex];
         if (!pDevice) throw LinuxSamplerException("There is no MIDI input device with index " + ToString(DeviceIndex) + ".");
-        result.Add("driver", pDevice->Driver());
+        result.Add("DRIVER", pDevice->Driver());
         std::map<String,DeviceCreationParameter*> parameters = pDevice->DeviceParameters();
         std::map<String,DeviceCreationParameter*>::iterator iter = parameters.begin();
         for (; iter != parameters.end(); iter++) {
@@ -888,10 +888,10 @@ String LSCPServer::GetMidiInputPortInfo(uint DeviceIndex, uint PortIndex) {
         std::map<uint,MidiInputDevice*> devices = pSampler->GetMidiInputDevices();
         MidiInputDevice* pDevice = devices[DeviceIndex];
         if (!pDevice) throw LinuxSamplerException("There is no MIDI input device with index " + ToString(DeviceIndex) + ".");
-	MidiInputDevice::MidiInputPort* pMidiInputPort = pDevice->GetPort(PortIndex);
-	if (!pMidiInputPort) throw LinuxSamplerException("There is no MIDI input port with index " + ToString(PortIndex) + ".");
-        std::map<String,DeviceCreationParameter*> parameters = pMidiInputPort->DeviceParameters();
-        std::map<String,DeviceCreationParameter*>::iterator iter = parameters.begin();
+        MidiInputPort* pMidiInputPort = pDevice->GetPort(PortIndex);
+        if (!pMidiInputPort) throw LinuxSamplerException("There is no MIDI input port with index " + ToString(PortIndex) + ".");
+        std::map<String,DeviceRuntimeParameter*> parameters = pMidiInputPort->PortParameters();
+        std::map<String,DeviceRuntimeParameter*>::iterator iter = parameters.begin();
         for (; iter != parameters.end(); iter++) {
             result.Add(iter->first, iter->second->Value());
         }
@@ -937,14 +937,14 @@ String LSCPServer::GetMidiInputPortParameterInfo(uint DeviceId, uint PortId, Str
 	if (!devices[DeviceId]) throw LinuxSamplerException("There is no midi input device with index " + ToString(DeviceId) + ".");
 	MidiInputDevice* pDevice = devices[DeviceId];
 
-	// get midi port
-	MidiInputDevice::MidiInputPort* pPort = pDevice->GetPort(PortId);
-	if (!pPort) throw LinuxSamplerException("Midi input device does not have port " + ToString(PortId) + ".");
+        // get midi port
+        MidiInputPort* pPort = pDevice->GetPort(PortId);
+        if (!pPort) throw LinuxSamplerException("Midi input device does not have port " + ToString(PortId) + ".");
 
 	// get desired port parameter
-	std::map<String,DeviceCreationParameter*> parameters = pPort->DeviceParameters();
+	std::map<String,DeviceRuntimeParameter*> parameters = pPort->PortParameters();
 	if (!parameters[ParameterName]) throw LinuxSamplerException("Midi port does not provice a parameters '" + ParameterName + "'.");
-	DeviceCreationParameter* pParameter = parameters[ParameterName];
+	DeviceRuntimeParameter* pParameter = parameters[ParameterName];
 
         // return all fields of this audio channel parameter
         result.Add("TYPE",         pParameter->Type());
@@ -1062,9 +1062,9 @@ String LSCPServer::SetMidiInputPortParameter(uint DeviceIndex, uint PortIndex, S
         std::map<uint,MidiInputDevice*> devices = pSampler->GetMidiInputDevices();
         MidiInputDevice* pDevice = devices[DeviceIndex];
         if (!pDevice) throw LinuxSamplerException("There is no MIDI input device with index " + ToString(DeviceIndex) + ".");
-	MidiInputDevice::MidiInputPort* pMidiInputPort = pDevice->GetPort(PortIndex);
-	if (!pMidiInputPort) throw LinuxSamplerException("There is no MIDI input port with index " + ToString(PortIndex) + ".");
-        std::map<String,DeviceCreationParameter*> parameters = pMidiInputPort->DeviceParameters();
+        MidiInputPort* pMidiInputPort = pDevice->GetPort(PortIndex);
+        if (!pMidiInputPort) throw LinuxSamplerException("There is no MIDI input port with index " + ToString(PortIndex) + ".");
+        std::map<String,DeviceRuntimeParameter*> parameters = pMidiInputPort->PortParameters();
         if (!parameters[ParamKey]) throw LinuxSamplerException("MIDI input device " + ToString(PortIndex) + " does not have a parameter '" + ParamKey + "'");
         parameters[ParamKey]->SetValue(ParamVal);
     }
@@ -1157,7 +1157,7 @@ String LSCPServer::SetMIDIInputChannel(uint MIDIChannel, uint uiSamplerChannel) 
     try {
         SamplerChannel* pSamplerChannel = pSampler->GetSamplerChannel(uiSamplerChannel);
         if (!pSamplerChannel) throw LinuxSamplerException("Invalid channel number " + ToString(uiSamplerChannel));
-        pSamplerChannel->SetMidiInputChannel((MidiInputDevice::MidiInputPort::midi_chan_t) MIDIChannel);
+        pSamplerChannel->SetMidiInputChannel((MidiInputPort::midi_chan_t) MIDIChannel);
     }
     catch (LinuxSamplerException e) {
          result.Error(e);
@@ -1207,7 +1207,7 @@ String LSCPServer::SetMIDIInputType(String MidiInputDriver, uint uiSamplerChanne
             pDevice = pSampler->CreateMidiInputDevice(MidiInputDriver, params);
             // Make it with at least one initial port.
             std::map<String,DeviceCreationParameter*> parameters = pDevice->DeviceParameters();
-            parameters["ports"]->SetValue("1");
+            parameters["PORTS"]->SetValue("1");
         }
         // Must have a device...
         if (pDevice == NULL)
@@ -1234,7 +1234,7 @@ String LSCPServer::SetMIDIInput(uint MIDIDeviceId, uint MIDIPort, uint MIDIChann
         std::map<uint, MidiInputDevice*> devices =  pSampler->GetMidiInputDevices();
         MidiInputDevice* pDevice = devices[MIDIDeviceId];
         if (!pDevice) throw LinuxSamplerException("There is no MIDI input device with index " + ToString(MIDIDeviceId));
-        pSamplerChannel->SetMidiInput(pDevice, MIDIPort, (MidiInputDevice::MidiInputPort::midi_chan_t) MIDIChannel);
+        pSamplerChannel->SetMidiInput(pDevice, MIDIPort, (MidiInputPort::midi_chan_t) MIDIChannel);
     }
     catch (LinuxSamplerException e) {
          result.Error(e);

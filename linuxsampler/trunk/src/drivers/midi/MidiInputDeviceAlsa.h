@@ -39,48 +39,58 @@ namespace LinuxSampler {
      */
     class MidiInputDeviceAlsa : public MidiInputDevice, public Thread {
         public:
+
+            /**
+             * MIDI Port implementation for the ALSA MIDI input driver.
+             */
+            class MidiInputPortAlsa : public MidiInputPort {
+                public:
+                    /** MIDI Port Parameter 'NAME'
+                     *
+                     * Used to assign an arbitrary name to the MIDI port.
+                     */
+                    class ParameterName : public MidiInputPort::ParameterName {
+                        public:
+                            ParameterName(MidiInputPort* pPort) throw (LinuxSamplerException);
+                            virtual void OnSetValue(String s) throw (LinuxSamplerException);
+                    };
+
+                    /** MIDI Port Parameter 'ALSA_SEQ_BINDINGS'
+                     *
+                     * Used to connect to other Alsa sequencer clients.
+                     */
+                    class ParameterAlsaSeqBindings : public DeviceRuntimeParameterStrings {
+                        public:
+                            ParameterAlsaSeqBindings(MidiInputPortAlsa* pPort);
+                            virtual String Description();
+                            virtual bool Fix();
+                            virtual std::vector<String> PossibilitiesAsString();
+                            virtual void OnSetValue(std::vector<String> vS) throw (LinuxSamplerException);
+                        protected:
+                            MidiInputPortAlsa* pPort;
+                    };
+
+                    void ConnectToAlsaMidiSource(const char* MidiSource);
+                protected:
+                    MidiInputPortAlsa(MidiInputDeviceAlsa* pDevice) throw (MidiInputException);
+                    ~MidiInputPortAlsa();
+                    friend class MidiInputDeviceAlsa;
+                private:
+                    MidiInputDeviceAlsa* pDevice;
+            };
+
             MidiInputDeviceAlsa(std::map<String,DeviceCreationParameter*> Parameters);
             ~MidiInputDeviceAlsa();
 
             // derived abstract methods from class 'MidiInputDevice'
             void Listen();
             void StopListen();
+            virtual String Driver();
+            static String Name();
+            static String Description();
+            static String Version();
 
-	    virtual String Driver();
-
-	    static String Name();
-
-	    static String Description();
-	    static String Version();
-
-	    class MidiInputPortAlsa : public MidiInputPort {
-		    public:
-			    void ConnectToAlsaMidiSource(const char* MidiSource);
-
-			    class ParameterAlsaSeqBindings : public DeviceCreationParameterString {
-				    public:
-					    ParameterAlsaSeqBindings(MidiInputPortAlsa* pPort) { this->pPort = pPort; InitWithDefault();}
-					    virtual String Description()                                                    { return "Bindings to other Alsa sequencer clients";   }
-					    virtual bool   Fix()                                                            { return false;   }
-					    virtual bool   Mandatory()                                                      { return false;   }
-					    virtual std::map<String,DeviceCreationParameter*> DependsAsParameters()         { return std::map<String,DeviceCreationParameter*>(); }
-					    virtual optional<String>    DefaultAsString(std::map<String,String> Parameters)         { return ""; }
-					    virtual std::vector<String> PossibilitiesAsString(std::map<String,String> Parameters) { return std::vector<String>(); } //TODO
-					    virtual void             OnSetValue(String s) throw (LinuxSamplerException)     { pPort->ConnectToAlsaMidiSource(s.c_str()); }
-				    protected:
-					    MidiInputPortAlsa* pPort;
-			    };
-
-		    protected:
-			    MidiInputPortAlsa(MidiInputDeviceAlsa* pDevice, int portNumber);
-			    ~MidiInputPortAlsa();
-			    friend class MidiInputDeviceAlsa;
-		    private:
-			    MidiInputDeviceAlsa* pDevice;
-	    };
-
-	    MidiInputPortAlsa* CreateMidiPort( void );
-
+            MidiInputPortAlsa* CreateMidiPort();
         protected:
             int Main(); ///< Implementation of virtual method from class Thread
         private:

@@ -52,12 +52,14 @@ namespace LinuxSampler {
             virtual uint SampleRate();
 
             virtual String Driver();
-
-	    static String Name();
-
+            static String Name();
             static String Description();
             static String Version();
 
+            /** Device Parameter 'CARD'
+             *
+             * Used to select the desired ALSA sound card.
+             */
             class ParameterCard : public DeviceCreationParameterString {
                 public:
                     ParameterCard();
@@ -72,6 +74,10 @@ namespace LinuxSampler {
                     static String Name();
             };
 
+            /** Device Parameter 'FRAGMENTS'
+             *
+             * Used to select the number of audio fragments / periods.
+             */
             class ParameterFragments : public DeviceCreationParameterInt {
                 public:
                     ParameterFragments();
@@ -88,6 +94,10 @@ namespace LinuxSampler {
                     static String Name();
             };
 
+            /** Device Parameter 'FRAGMENTSIZE'
+             *
+             * Used to set the audio fragment size / period size.
+             */
             class ParameterFragmentSize : public DeviceCreationParameterInt {
                 public:
                     ParameterFragmentSize();

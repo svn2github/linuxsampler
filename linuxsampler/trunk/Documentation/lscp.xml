@@ -1861,7 +1861,7 @@ Schoenebeck'>
                     <t>Use the following command to alter a specific setting of a MIDI input port:</t>
                     <t>
                         <list>
-                            <t>SET MIDI_INPUT_PORT PARAMETER &lt;device-id&gt; &lt;port&gt; &lt;key&gt;=&lt;value&gt;</t>
+                            <t>SET MIDI_INPUT_PORT_PARAMETER &lt;device-id&gt; &lt;port&gt; &lt;key&gt;=&lt;value&gt;</t>
                         </list>
                     </t>
 

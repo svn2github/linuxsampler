@@ -24,6 +24,102 @@
 
 namespace LinuxSampler {
 
+// *************** ParameterActive ***************
+// *
+
+    MidiInputDevice::ParameterActive::ParameterActive() : DeviceCreationParameterBool() {
+        InitWithDefault();
+    }
+
+    MidiInputDevice::ParameterActive::ParameterActive(String active) : DeviceCreationParameterBool(active) {
+    }
+
+    String MidiInputDevice::ParameterActive::Description() {
+        return "Enable / disable device";
+    }
+
+    bool MidiInputDevice::ParameterActive::Fix() {
+        return false;
+    }
+
+    bool MidiInputDevice::ParameterActive::Mandatory() {
+        return false;
+    }
+
+    std::map<String,DeviceCreationParameter*> MidiInputDevice::ParameterActive::DependsAsParameters() {
+        return std::map<String,DeviceCreationParameter*>();
+    }
+
+    optional<bool> MidiInputDevice::ParameterActive::DefaultAsBool(std::map<String,String> Parameters) {
+        return true;
+    }
+
+    void MidiInputDevice::ParameterActive::OnSetValue(bool b) throw (LinuxSamplerException) {
+        if (b) ((MidiInputDevice*)pDevice)->Listen();
+        else ((MidiInputDevice*)pDevice)->StopListen();
+    }
+
+    String MidiInputDevice::ParameterActive::Name() {
+        return "ACTIVE";
+    }
+
+
+
+// *************** ParameterPorts ***************
+// *
+
+    MidiInputDevice::ParameterPorts::ParameterPorts() : DeviceCreationParameterInt() {
+        InitWithDefault();
+    }
+
+    MidiInputDevice::ParameterPorts::ParameterPorts(String val) : DeviceCreationParameterInt(val) {
+    }
+
+    String MidiInputDevice::ParameterPorts::Description() {
+        return "Number of ports";
+    }
+
+    bool MidiInputDevice::ParameterPorts::Fix() {
+        return false;
+    }
+
+    bool MidiInputDevice::ParameterPorts::Mandatory() {
+        return false;
+    }
+
+    std::map<String,DeviceCreationParameter*> MidiInputDevice::ParameterPorts::DependsAsParameters() {
+        return std::map<String,DeviceCreationParameter*>();
+    }
+
+    optional<int> MidiInputDevice::ParameterPorts::DefaultAsInt(std::map<String,String> Parameters) {
+        return 0;
+    }
+
+    optional<int> MidiInputDevice::ParameterPorts::RangeMinAsInt(std::map<String,String> Parameters) {
+        return optional<int>::nothing;
+    }
+
+    optional<int> MidiInputDevice::ParameterPorts::RangeMaxAsInt(std::map<String,String> Parameters) {
+        return optional<int>::nothing;
+    }
+
+    std::vector<int> MidiInputDevice::ParameterPorts::PossibilitiesAsInt(std::map<String,String> Parameters) {
+        return std::vector<int>();
+    }
+
+    void MidiInputDevice::ParameterPorts::OnSetValue(int i) throw (LinuxSamplerException) {
+        ((MidiInputDevice*)pDevice)->AcquirePorts(i);
+    }
+
+    String MidiInputDevice::ParameterPorts::Name() {
+        return "PORTS";
+    }
+
+
+
+// *************** MidiInputDevice ***************
+// *
+
     MidiInputDevice::MidiInputDevice(std::map<String,DeviceCreationParameter*> DriverParameters) {
 	    this->Parameters = DriverParameters;
     }
@@ -37,71 +133,13 @@ namespace LinuxSampler {
 	    }
     }
 
-    MidiInputDevice::MidiInputPort::~MidiInputPort() {
-	    std::map<String,DeviceCreationParameter*>::iterator iter = Parameters.begin();
-	    while (iter != Parameters.end()) {
-		    Parameters.erase(iter);
-		    delete iter->second;
-		    iter++;
-	    }
-    }
-
-    MidiInputDevice::MidiInputPort::MidiInputPort(MidiInputDevice* pDevice, int portNumber) {
-	    this->pDevice = pDevice;
-	    this->portNumber = portNumber;
-	    Parameters["name"] = new ParameterName(this);
-    }
-
-    MidiInputDevice* MidiInputDevice::MidiInputPort::GetDevice() {
-	    return pDevice;
-    }
-
-    uint MidiInputDevice::MidiInputPort::GetPortNumber() {
-	    return portNumber;
+    MidiInputPort* MidiInputDevice::GetPort(uint iPort) throw (MidiInputException) {
+        if (iPort >= Ports.size()) throw MidiInputException("There is no port " + ToString(iPort));
+        return Ports[iPort];
     }
 
     std::map<String,DeviceCreationParameter*> MidiInputDevice::DeviceParameters() {
 	    return Parameters;
-    }
-
-    std::map<String,DeviceCreationParameter*> MidiInputDevice::MidiInputPort::DeviceParameters() {
-	    return Parameters;
-    }
-
-    void MidiInputDevice::MidiInputPort::DispatchNoteOn(uint8_t Key, uint8_t Velocity, uint MidiChannel) {
-        std::set<Engine*>::iterator engineiter = MidiChannelMap[MidiChannel].begin();
-        std::set<Engine*>::iterator end        = MidiChannelMap[MidiChannel].end();
-        for (; engineiter != end; engineiter++) (*engineiter)->SendNoteOn(Key, Velocity);
-    }
-
-    void MidiInputDevice::MidiInputPort::DispatchNoteOff(uint8_t Key, uint8_t Velocity, uint MidiChannel) {
-        std::set<Engine*>::iterator engineiter = MidiChannelMap[MidiChannel].begin();
-        std::set<Engine*>::iterator end        = MidiChannelMap[MidiChannel].end();
-        for (; engineiter != end; engineiter++) (*engineiter)->SendNoteOff(Key, Velocity);
-    }
-
-    void MidiInputDevice::MidiInputPort::DispatchPitchbend(int Pitch, uint MidiChannel) {
-        std::set<Engine*>::iterator engineiter = MidiChannelMap[MidiChannel].begin();
-        std::set<Engine*>::iterator end        = MidiChannelMap[MidiChannel].end();
-        for (; engineiter != end; engineiter++) (*engineiter)->SendPitchbend(Pitch);
-    }
-
-    void MidiInputDevice::MidiInputPort::DispatchControlChange(uint8_t Controller, uint8_t Value, uint MidiChannel) {
-        std::set<Engine*>::iterator engineiter = MidiChannelMap[MidiChannel].begin();
-        std::set<Engine*>::iterator end        = MidiChannelMap[MidiChannel].end();
-        for (; engineiter != end; engineiter++) (*engineiter)->SendControlChange(Controller, Value);
-    }
-
-    void MidiInputDevice::MidiInputPort::Connect(Engine* pEngine, midi_chan_t MidiChannel) {
-        if (MidiChannel < 0 || MidiChannel > 16)
-            throw MidiInputException("MIDI channel index out of bounds");
-        Disconnect(pEngine);
-        MidiChannelMap[MidiChannel].insert(pEngine);
-    }
-
-    void MidiInputDevice::MidiInputPort::Disconnect(Engine* pEngine) {
-        try { for (int i = 0; i <= 16; i++) MidiChannelMap[i].erase(pEngine); }
-        catch(...) { /* NOOP */ }
     }
 
     void MidiInputDevice::AcquirePorts(uint newPorts) {
