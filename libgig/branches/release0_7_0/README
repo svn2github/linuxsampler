@@ -1,0 +1,62 @@
+Content
+=======
+  libgig actually consists of three parts:
+
+  - RIFF classes (RIFF.h, RIFF.cpp): Provides convenient methods to parse and
+                                     access arbitrary RIFF files.
+  - DLS classes (DLS.h, DLS.cpp):    They're using the RIFF classes to parse
+                                     DLS (Downloadable Sounds) Level 1 and 2
+                                     files and provide abstract access to the
+                                     data.
+  - gig classes (gig.h, gig.cpp):    These are based on the DLS classes and
+                                     provide the neccessary extensions for
+                                     the Gigasampler file format.
+
+Requirements
+============
+  I simply used automake & co this time so you will need to have automake,
+  autoconf and libtool installed. I used the following versions:
+
+    automake  1.6.3
+    autoconf  2.57
+
+  If you want to compile the 'gigextract' application that comes with these
+  sources then you will additionally need to have libaudiofile installed (I
+  used version 0.2.3).
+
+Non-POSIX systems
+=================
+  If you don't have a POSIX system, you have to set 'POSIX' to '0' in RIFF.h.
+  Instead of using POSIX calls then standard C calls will be used for file
+  access. This applies e.g. to Windows systems.
+
+Compiling:
+==========
+ - Use './configure && make all' to compile the library and all tools and
+   demo applications.
+
+ - Beside the actual library there are four applications:
+
+     gigdump:     Demo app that prints out the content of a .gig file.
+     gigextract:  Extracts samples from a .gig file.
+     dlsdump:     Demo app that prints out the content of a DLS file.
+     rifftree:    Tool that prints out the RIFF tree of an arbitrary RIFF
+                  file.
+
+ - If you have Doxygen installed you can generate the API documentation by
+   just running 'doxygen' in the sources' top level directory.
+
+ - 'make distclean' to clean up everything again
+
+Patches
+=======
+  If you find bugs or have improvements, your patches are always welcome!
+  Send them either directly to me or to the LinuxSampler developer's mailing
+  list <linuxsampler-devel@lists.sourceforge.net>.
+
+Credits
+=======
+  This library is based on the reverse engineering work of Paul Kellett and
+  Ruben van Royen. Thanks for your great work!
+
+ Christian Schoenebeck <cuse@users.sourceforge.net>
