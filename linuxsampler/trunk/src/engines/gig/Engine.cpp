@@ -56,12 +56,12 @@ namespace LinuxSampler { namespace gig {
         // check if there's already an engine for the given audio output device
         if (engines.count(pDevice)) {
             dmsg(4,("Using existing gig::Engine.\n"));
-            pEngine = engines[pDevice];            
+            pEngine = engines[pDevice];
         } else { // create a new engine (and disk thread) instance for the given audio output device
             dmsg(4,("Creating new gig::Engine.\n"));
             pEngine = (Engine*) EngineFactory::Create("gig");
             pEngine->Connect(pDevice);
-            engines[pDevice] = pEngine;            
+            engines[pDevice] = pEngine;
         }
         // register engine channel to the engine instance
         pEngine->engineChannels.push_back(pChannel);
@@ -101,11 +101,11 @@ namespace LinuxSampler { namespace gig {
         pSysexBuffer       = new RingBuffer<uint8_t>(SYSEX_BUFFER_SIZE, 0);
         pEventQueue        = new RingBuffer<Event>(MAX_EVENTS_PER_FRAGMENT, 0);
         pEventPool         = new Pool<Event>(MAX_EVENTS_PER_FRAGMENT);
-        pVoicePool         = new Pool<Voice>(MAX_AUDIO_VOICES);        
+        pVoicePool         = new Pool<Voice>(MAX_AUDIO_VOICES);
         pVoiceStealingQueue = new RTList<Event>(pEventPool);
         pEvents            = new RTList<Event>(pEventPool);
         pCCEvents          = new RTList<Event>(pEventPool);
-        
+
         for (uint i = 0; i < Event::destination_count; i++) {
             pSynthesisEvents[i] = new RTList<Event>(pEventPool);
         }
@@ -201,7 +201,7 @@ namespace LinuxSampler { namespace gig {
 
         // delete all input events
         pEventQueue->init();
-    }    
+    }
 
     void Engine::Connect(AudioOutputDevice* pAudioOut) {
         pAudioOutputDevice = pAudioOut;
@@ -216,7 +216,7 @@ namespace LinuxSampler { namespace gig {
             String msg = "Audio output device unable to provide 2 audio channels, cause: " + e.Message();
             throw LinuxSamplerException(msg);
         }
-        
+
         this->MaxSamplesPerCycle      = pAudioOutputDevice->MaxSamplesPerCycle();
         this->SampleRate              = pAudioOutputDevice->SampleRate();
 
@@ -320,7 +320,7 @@ namespace LinuxSampler { namespace gig {
             *pEvents->allocAppend() = *pEvent;
         }
         eventQueueReader.free(); // free all copied events from input queue
-    }    
+    }
 
     /**
      *  Let this engine proceed to render the given amount of sample points. The
@@ -401,7 +401,7 @@ namespace LinuxSampler { namespace gig {
 
         // get all events from the engine channels's input event queue which belong to the current fragment
         // (these are the common events like NoteOn, NoteOff, ControlChange, etc.)
-        ImportEvents(pEngineChannel->pEventQueue, Samples);       
+        ImportEvents(pEngineChannel->pEventQueue, Samples);
 
 
         // process events
@@ -452,7 +452,7 @@ namespace LinuxSampler { namespace gig {
             }
         }
 
-        
+
         // now render all postponed voices from voice stealing
         {
             RTList<Event>::Iterator itVoiceStealEvent = pVoiceStealingQueue->first();
@@ -476,7 +476,7 @@ namespace LinuxSampler { namespace gig {
         pVoiceStealingQueue->clear();
         pEngineChannel->itLastStolenVoice = RTList<Voice>::Iterator();
         pEngineChannel->iuiLastStolenKey  = RTList<uint>::Iterator();
-        
+
 
         // free all keys which have no active voices left
         {
@@ -540,7 +540,7 @@ namespace LinuxSampler { namespace gig {
      *  @param itNoteOnEvent - key, velocity and time stamp of the event
      */
     void Engine::ProcessNoteOn(EngineChannel* pEngineChannel, Pool<Event>::Iterator& itNoteOnEvent) {
-        
+
         const int key = itNoteOnEvent->Param.Note.Key;
 
         // Change key dimension value if key is in keyswitching area
@@ -570,6 +570,8 @@ namespace LinuxSampler { namespace gig {
 
         // allocate and trigger a new voice for the key
         LaunchVoice(pEngineChannel, itNoteOnEventOnKeyList, 0, false, true);
+
+        pKey->RoundRobinIndex++;
     }
 
     /**
@@ -992,7 +994,7 @@ namespace LinuxSampler { namespace gig {
            m[i+2] = val;
            m[i+3] = val;
         }
-    }    
+    }
 
     uint Engine::VoiceCount() {
         return ActiveVoiceCount;
@@ -1031,7 +1033,7 @@ namespace LinuxSampler { namespace gig {
     }
 
     String Engine::Version() {
-        String s = "$Revision: 1.29 $";
+        String s = "$Revision: 1.30 $";
         return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
 

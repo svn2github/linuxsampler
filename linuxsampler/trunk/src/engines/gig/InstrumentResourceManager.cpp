@@ -68,7 +68,7 @@ namespace LinuxSampler { namespace gig {
         instr_entry_t* pEntry = new instr_entry_t;
         pEntry->iInstrument   = Key.iInstrument;
         pEntry->pGig          = pGig;
-        
+
         gig::EngineChannel* pEngineChannel = dynamic_cast<gig::EngineChannel*>(pConsumer);
         // and we save this to check if we need to reallocate for a engine with higher value of 'MaxSamplesPerSecond'
         pEntry->MaxSamplesPerCycle =
@@ -105,19 +105,19 @@ namespace LinuxSampler { namespace gig {
      *  @param pSample - points to the sample to be cached
      *  @param pEngineChannel - pointer to Gig Engine Channel which caused this call
      */
-    void InstrumentResourceManager::CacheInitialSamples(::gig::Sample* pSample, gig::EngineChannel* pEngineChannel) {        
+    void InstrumentResourceManager::CacheInitialSamples(::gig::Sample* pSample, gig::EngineChannel* pEngineChannel) {
         if (!pSample) {
-            dmsg(1,("gig::InstrumentResourceManager: Warning, skipping sample (pSample == NULL)\n"));
+            dmsg(4,("gig::InstrumentResourceManager: Skipping sample (pSample == NULL)\n"));
             return;
         }
         if (!pSample->SamplesTotal) return; // skip zero size samples
-        
+
         if (pSample->SamplesTotal <= NUM_RAM_PRELOAD_SAMPLES) {
             // Sample is too short for disk streaming, so we load the whole
             // sample into RAM and place 'pAudioIO->FragmentSize << MAX_PITCH'
             // number of '0' samples (silence samples) behind the official buffer
             // border, to allow the interpolator do it's work even at the end of
-            // the sample.            
+            // the sample.
             const uint maxSamplesPerCycle =
                 (pEngineChannel->GetEngine()) ? dynamic_cast<gig::Engine*>(pEngineChannel->GetEngine())->pAudioOutputDevice->MaxSamplesPerCycle()
                                               : GIG_RESOURCE_MANAGER_DEFAULT_MAX_SAMPLES_PER_CYCLE;

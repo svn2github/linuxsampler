@@ -182,6 +182,13 @@ namespace LinuxSampler { namespace gig {
                 case ::gig::dimension_keyboard:
                     DimValues[i] = (uint) pEngineChannel->CurrentKeyDimension;
                     break;
+                case ::gig::dimension_roundrobin:
+                    DimValues[i] = (uint) pEngineChannel->pMIDIKeyInfo[MIDIKey].RoundRobinIndex; // incremented for each note on
+                    break;
+                case ::gig::dimension_random:
+                    pEngine->RandomSeed = pEngine->RandomSeed * 1103515245 + 12345; // classic pseudo random number generator
+                    DimValues[i] = (uint) pEngine->RandomSeed >> (32 - pRegion->pDimensionDefinitions[i].bits); // highest bits are most random
+                    break;
                 case ::gig::dimension_modwheel:
                     DimValues[i] = pEngineChannel->ControllerTable[1];
                     break;

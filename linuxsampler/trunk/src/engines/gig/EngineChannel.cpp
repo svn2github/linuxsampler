@@ -23,13 +23,13 @@
 
 #include "EngineChannel.h"
 
-namespace LinuxSampler { namespace gig {    
+namespace LinuxSampler { namespace gig {
 
     EngineChannel::EngineChannel() {
         pMIDIKeyInfo = new midi_key_info_t[128];
         pEngine      = NULL;
         pInstrument  = NULL;
-        pEventQueue  = new RingBuffer<Event>(MAX_EVENTS_PER_FRAGMENT, 0);        
+        pEventQueue  = new RingBuffer<Event>(MAX_EVENTS_PER_FRAGMENT, 0);
         pActiveKeys  = new Pool<uint>(128);
         for (uint i = 0; i < 128; i++) {
             pMIDIKeyInfo[i].pActiveVoices  = NULL; // we allocate when we retrieve the right Engine object
@@ -37,6 +37,7 @@ namespace LinuxSampler { namespace gig {
             pMIDIKeyInfo[i].Active         = false;
             pMIDIKeyInfo[i].ReleaseTrigger = false;
             pMIDIKeyInfo[i].pEvents        = NULL; // we allocate when we retrieve the right Engine object
+            pMIDIKeyInfo[i].RoundRobinIndex = 0;
         }
         InstrumentIdx  = -1;
         InstrumentStat = -1;
@@ -136,9 +137,9 @@ namespace LinuxSampler { namespace gig {
     void EngineChannel::LoadInstrument() {
 
         if (pEngine) pEngine->DisableAndLock();
-        
+
         ResetInternal();
-        
+
         // free old instrument
         if (pInstrument) {
             // give old instrument back to instrument manager
@@ -221,7 +222,7 @@ namespace LinuxSampler { namespace gig {
             DisconnectAudioOutputDevice();
         }
         pEngine = Engine::AcquireEngine(this, pAudioOut);
-        ResetInternal();        
+        ResetInternal();
         for (uint i = 0; i < 128; i++) {
             pMIDIKeyInfo[i].pActiveVoices = new RTList<Voice>(pEngine->pVoicePool);
             pMIDIKeyInfo[i].pEvents       = new RTList<Event>(pEngine->pEventPool);
@@ -250,13 +251,13 @@ namespace LinuxSampler { namespace gig {
             pEngine = NULL;
             Engine::FreeEngine(this, oldAudioDevice);
             AudioDeviceChannelLeft  = -1;
-            AudioDeviceChannelRight = -1;            
+            AudioDeviceChannelRight = -1;
         }
     }
 
     void EngineChannel::SetOutputChannel(uint EngineAudioChannel, uint AudioDeviceChannel) {
         if (!pEngine || !pEngine->pAudioOutputDevice) throw AudioOutputException("No audio output device connected yet.");
-        
+
         AudioChannel* pChannel = pEngine->pAudioOutputDevice->Channel(AudioDeviceChannel);
         if (!pChannel) throw AudioOutputException("Invalid audio output device channel " + ToString(AudioDeviceChannel));
         switch (EngineAudioChannel) {
@@ -297,7 +298,7 @@ namespace LinuxSampler { namespace gig {
             event.Type                = Event::type_note_on;
             event.Param.Note.Key      = Key;
             event.Param.Note.Velocity = Velocity;
-            event.pEngineChannel      = this;            
+            event.pEngineChannel      = this;
             if (this->pEventQueue->write_space() > 0) this->pEventQueue->push(&event);
             else dmsg(1,("EngineChannel: Input event queue full!"));
         }
@@ -329,7 +330,7 @@ namespace LinuxSampler { namespace gig {
      *  @param Pitch - MIDI pitch value (-8192 ... +8191)
      */
     void EngineChannel::SendPitchbend(int Pitch) {
-        if (pEngine) {        
+        if (pEngine) {
             Event event             = pEngine->pEventGenerator->CreateEvent();
             event.Type              = Event::type_pitchbend;
             event.Param.Pitch.Pitch = Pitch;
@@ -384,6 +385,6 @@ namespace LinuxSampler { namespace gig {
 
     int EngineChannel::InstrumentStatus() {
         return InstrumentStat;
-    }    
+    }
 
 }} // namespace LinuxSampler::gig

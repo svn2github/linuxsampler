@@ -94,7 +94,7 @@ namespace gig { namespace {
     void Decompress24(int compressionmode, const unsigned char* params,
                       int dstStep, const unsigned char* pSrc, int16_t* pDst,
                       unsigned long currentframeoffset,
-                      unsigned long copysamples)
+                      unsigned long copysamples, int truncatedBits)
     {
         // Note: The 24 bits are truncated to 16 bits for now.
 
@@ -106,10 +106,13 @@ namespace gig { namespace {
         //
         // Strange thing #2: The formula in SKIP_ONE gives values for
         // y that are twice as high as they should be. That's why
-        // COPY_ONE shifts 9 steps instead of 8, and also why y is
+        // COPY_ONE shifts an extra step, and also why y is
         // initialized with a sum instead of a mean value.
 
         int y, dy, ddy;
+
+        const int shift = 8 - truncatedBits;
+        const int shift1 = shift + 1;
 
 #define GET_PARAMS(params)                              \
         y = (get24(params) + get24((params) + 3));      \
@@ -123,14 +126,14 @@ namespace gig { namespace {
 
 #define COPY_ONE(x)                             \
         SKIP_ONE(x);                            \
-        *pDst = y >> 9;                         \
+        *pDst = y >> shift1;                    \
         pDst += dstStep
 
         switch (compressionmode) {
             case 2: // 24 bit uncompressed
                 pSrc += currentframeoffset * 3;
                 while (copysamples) {
-                    *pDst = get24(pSrc) >> 8;
+                    *pDst = get24(pSrc) >> shift;
                     pDst += dstStep;
                     pSrc += 3;
                     copysamples--;
@@ -239,8 +242,17 @@ namespace gig { namespace {
 
         if (BitDepth > 24) throw gig::Exception("Only samples up to 24 bit supported");
 
-        Compressed = (waveList->GetSubChunk(CHUNK_ID_EWAV));
+        RIFF::Chunk* ewav = waveList->GetSubChunk(CHUNK_ID_EWAV);
+        Compressed        = ewav;
+        Dithered          = false;
+        TruncatedBits     = 0;
         if (Compressed) {
+            uint32_t version = ewav->ReadInt32();
+            if (version == 3 && BitDepth == 24) {
+                Dithered = ewav->ReadInt32();
+                ewav->SetPos(Channels == 2 ? 84 : 64);
+                TruncatedBits = ewav->ReadInt32();
+            }
             ScanCompressedSample();
         }
 
@@ -249,7 +261,7 @@ namespace gig { namespace {
             InternalDecompressionBuffer.pStart = new unsigned char[INITIAL_SAMPLE_BUFFER_SIZE];
             InternalDecompressionBuffer.Size   = INITIAL_SAMPLE_BUFFER_SIZE;
         }
-	FrameOffset = 0; // just for streaming compressed samples
+        FrameOffset = 0; // just for streaming compressed samples
 
         LoopSize = LoopEnd - LoopStart;
     }
@@ -846,13 +858,15 @@ namespace gig { namespace {
                             const unsigned char* const param_r = pSrc;
                             if (mode_r != 2) pSrc += 12;
 
-                            Decompress24(mode_l, param_l, 2, pSrc, pDst, skipsamples, copysamples);
+                            Decompress24(mode_l, param_l, 2, pSrc, pDst,
+                                         skipsamples, copysamples, TruncatedBits);
                             Decompress24(mode_r, param_r, 2, pSrc + rightChannelOffset, pDst + 1,
-                                         skipsamples, copysamples);
+                                         skipsamples, copysamples, TruncatedBits);
                             pDst += copysamples << 1;
                         }
                         else { // Mono
-                            Decompress24(mode_l, param_l, 1, pSrc, pDst, skipsamples, copysamples);
+                            Decompress24(mode_l, param_l, 1, pSrc, pDst,
+                                         skipsamples, copysamples, TruncatedBits);
                             pDst += copysamples;
                         }
                     }
@@ -1378,8 +1392,10 @@ namespace gig { namespace {
                     pDimensionDefinitions[i].zones     = 0x01 << bits; // = pow(2,bits)
                     pDimensionDefinitions[i].split_type = (dimension == dimension_layer ||
                                                            dimension == dimension_samplechannel ||
-                                                           dimension == dimension_releasetrigger) ? split_type_bit
-                                                                                                  : split_type_normal;
+                                                           dimension == dimension_releasetrigger ||
+                                                           dimension == dimension_roundrobin ||
+                                                           dimension == dimension_random) ? split_type_bit
+                                                                                          : split_type_normal;
                     pDimensionDefinitions[i].ranges = NULL; // it's not possible to check velocity dimensions for custom defined ranges at this point
                     pDimensionDefinitions[i].zone_size  =
                         (pDimensionDefinitions[i].split_type == split_type_normal) ? 128 / pDimensionDefinitions[i].zones

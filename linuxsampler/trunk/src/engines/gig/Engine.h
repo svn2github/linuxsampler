@@ -56,7 +56,7 @@ namespace LinuxSampler { namespace gig {
      * Sampler engine for the Gigasampler format.
      */
     class Engine : public LinuxSampler::Engine {
-        public:           
+        public:
             // methods
             Engine();
            ~Engine();
@@ -78,17 +78,17 @@ namespace LinuxSampler { namespace gig {
             virtual String Description();
             virtual String Version();
             virtual String EngineName();
-                        
-        //protected:            
+
+        //protected:
             static InstrumentResourceManager instruments;
 
             AudioOutputDevice*      pAudioOutputDevice;
             uint                    SampleRate;            ///< Sample rate of the engines output audio signal (in Hz)
             uint                    MaxSamplesPerCycle;    ///< Size of each audio output buffer
-            DiskThread*             pDiskThread;          
+            DiskThread*             pDiskThread;
             RingBuffer<Event>*      pEventQueue;           ///< Input event queue for engine global events (e.g. SysEx messages).
-            Pool<Voice>*            pVoicePool;            ///< Contains all voices that can be activated.                                    
-            EventGenerator*         pEventGenerator;            
+            Pool<Voice>*            pVoicePool;            ///< Contains all voices that can be activated.
+            EventGenerator*         pEventGenerator;
             RTList<Event>*          pVoiceStealingQueue;   ///< All voice-launching events which had to be postponed due to free voice shortage.
             RTList<Event>*          pEvents;               ///< All events for the current audio fragment.
             Pool<Event>*            pEventPool;            ///< Contains all Event objects that can be used.
@@ -103,11 +103,12 @@ namespace LinuxSampler { namespace gig {
             int                     ActiveVoiceCountMax;   ///< the maximum voice usage since application start
             bool                    SuspensionRequested;
             ConditionServer         EngineDisabled;
-            int8_t                  ScaleTuning[12];       ///< contains optional detune factors (-64..+63 cents) for all 12 semitones of an octave            
+            int8_t                  ScaleTuning[12];       ///< contains optional detune factors (-64..+63 cents) for all 12 semitones of an octave
             int                     MaxFadeOutPos;         ///< The last position in an audio fragment to allow an instant fade out (e.g. for voice stealing) without leading to clicks.
+            uint32_t                RandomSeed;            ///< State of the random number generator used by the random dimension.
 
             void RenderAudio(EngineChannel* pEngineChannel, uint Samples);
-            void ClearEventLists();            
+            void ClearEventLists();
             void ImportEvents(RingBuffer<Event>* pEventQueue, uint Samples);
             void ProcessNoteOn(EngineChannel* pEngineChannel, Pool<Event>::Iterator& itNoteOnEvent);
             void ProcessNoteOff(EngineChannel* pEngineChannel, Pool<Event>::Iterator& itNoteOffEvent);
@@ -131,12 +132,12 @@ namespace LinuxSampler { namespace gig {
             friend class EGDecay;
             friend class VCAManipulator;
             friend class VCFCManipulator;
-            friend class VCOManipulator;            
+            friend class VCOManipulator;
         private:
             std::list<EngineChannel*> engineChannels; ///< All engine channels of a gig::Engine instance.
-                        
+
             static std::map<AudioOutputDevice*,Engine*> engines; ///< All instances of gig::Engine.
-                        
+
             uint8_t GSCheckSum(const RingBuffer<uint8_t>::NonVolatileReader AddrReader, uint DataSize);
             void    AdjustScale(int8_t ScaleTunes[12]);
     };
