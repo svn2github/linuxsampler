@@ -330,17 +330,20 @@ String LSCPServer::GetBufferFill(fill_response_t ResponseType, uint uiSamplerCha
         if (!pSamplerChannel) throw LinuxSamplerException("Index out of bounds");
         Engine* pEngine = pSamplerChannel->GetEngine();
         if (!pEngine) throw LinuxSamplerException("No engine loaded on channel");
-        if (!pEngine->DiskStreamSupported()) return "NA\r\n"; //FIXME: Update resultset class to support "NA"
-        switch (ResponseType) {
-            case fill_response_bytes:
-		result.Add(pEngine->DiskStreamBufferFillBytes());
-		break;
-            case fill_response_percentage:
-		result.Add(pEngine->DiskStreamBufferFillPercentage());
-		break;
-            default:
-                throw LinuxSamplerException("Unknown fill response type");
-        }
+        if (!pEngine->DiskStreamSupported())
+	    result.Add("NA");
+        else {
+            switch (ResponseType) {
+                case fill_response_bytes:
+	    	    result.Add(pEngine->DiskStreamBufferFillBytes());
+	    	    break;
+                case fill_response_percentage:
+		    result.Add(pEngine->DiskStreamBufferFillPercentage());
+		    break;
+                default:
+                    throw LinuxSamplerException("Unknown fill response type");
+            }
+	}
     }
     catch (LinuxSamplerException e) {
          result.Error(e);
