@@ -61,6 +61,15 @@ namespace LinuxSampler { namespace gig {
         int Samples = (itKillEvent) ? RTMath::Min(itKillEvent->FragmentPos(), pEngine->MaxFadeOutPos) : (int) TotalSamples;
 
         int iSample = TriggerDelay;
+
+        #if DEVMODE
+        if (TriggerDelay > TotalSamples) { // FIXME: should be removed before the final release (purpose: just a sanity check for debugging)
+            dmsg(1,("EGADSR: ERROR, TriggerDelay > Totalsamples\n"));
+            int* i = NULL;
+            (*i)++; // force a segfault
+        }
+        #endif // DEVMODE
+
         while (iSample < TotalSamples) {
 
             // if the voice was killed in this fragment and we already processed the time before this kill event
@@ -182,10 +191,12 @@ namespace LinuxSampler { namespace gig {
             }
         }
 
-        if (itKillEvent && Stage != stage_end) {
-            dmsg(1,("EGADSR: VOICE KILLING NOT COMPLETED !!!\n"));
+        #if DEVMODE
+        if (itKillEvent && Stage != stage_end) { // FIXME: should be removed before the final release (purpose: just a sanity check for debugging)
+            dmsg(1,("EGADSR: ERROR, voice killing not completed !!!\n"));
             dmsg(1,("EGADSR: Stage=%d,iSample=%d,Samples=%d, TotalSamples=%d, MaxFadoutPos=%d\n",Stage,iSample,Samples,TotalSamples,pEngine->MaxFadeOutPos));
         }
+        #endif // DEVMODE
     }
 
     /**
