@@ -38,6 +38,9 @@ build-stamp:  config.status
 	# the build should fail if the tests are not successful
 	#$(MAKE) check
 
+	# generate Doxygen API documentation
+	$(MAKE) docs
+
 	touch build-stamp
 
 clean:
