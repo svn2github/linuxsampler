@@ -541,7 +541,7 @@ namespace gig {
                 // local buffer reallocation - hope this won't happen
                 if (this->pDecompressionBuffer) delete[] (int8_t*) this->pDecompressionBuffer;
                 this->pDecompressionBuffer    = new int8_t[assumedsize << 1]; // double of current needed size
-                this->DecompressionBufferSize = assumedsize;
+                this->DecompressionBufferSize = assumedsize << 1;
             }
 
             int16_t  compressionmode, left, dleft, right, dright;
@@ -681,7 +681,10 @@ namespace gig {
 
     Sample::~Sample() {
         Instances--;
-        if (!Instances && pDecompressionBuffer) delete[] (int8_t*) pDecompressionBuffer;
+        if (!Instances && pDecompressionBuffer) {
+            delete[] (int8_t*) pDecompressionBuffer;
+            pDecompressionBuffer = NULL;
+        }
         if (FrameTable) delete[] FrameTable;
         if (RAMCache.pStart) delete[] (int8_t*) RAMCache.pStart;
     }
@@ -1404,6 +1407,7 @@ namespace gig {
                 SamplesIterator++;
             }
             pSamples->clear();
+            delete pSamples;
 
         }
         // free instruments
@@ -1414,6 +1418,7 @@ namespace gig {
                 InstrumentsIterator++;
             }
             pInstruments->clear();
+            delete pInstruments;
         }
     }
 
