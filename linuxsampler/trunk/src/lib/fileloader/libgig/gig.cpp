@@ -52,7 +52,8 @@ namespace gig { namespace {
     }
 
     void Decompress16(int compressionmode, const unsigned char* params,
-                      int srcStep, const unsigned char* pSrc, int16_t* pDst,
+                      int srcStep, int dstStep,
+                      const unsigned char* pSrc, int16_t* pDst,
                       unsigned long currentframeoffset,
                       unsigned long copysamples)
     {
@@ -61,7 +62,7 @@ namespace gig { namespace {
                 pSrc += currentframeoffset * srcStep;
                 while (copysamples) {
                     *pDst = get16(pSrc);
-                    pDst += 2;
+                    pDst += dstStep;
                     pSrc += srcStep;
                     copysamples--;
                 }
@@ -80,7 +81,7 @@ namespace gig { namespace {
                     dy -= int8_t(*pSrc);
                     y  -= dy;
                     *pDst = y;
-                    pDst += 2;
+                    pDst += dstStep;
                     pSrc += srcStep;
                     copysamples--;
                 }
@@ -89,7 +90,7 @@ namespace gig { namespace {
     }
 
     void Decompress24(int compressionmode, const unsigned char* params,
-                      const unsigned char* pSrc, int16_t* pDst,
+                      int dstStep, const unsigned char* pSrc, int16_t* pDst,
                       unsigned long currentframeoffset,
                       unsigned long copysamples)
     {
@@ -121,14 +122,14 @@ namespace gig { namespace {
 #define COPY_ONE(x)                             \
         SKIP_ONE(x);                            \
         *pDst = y >> 9;                         \
-        pDst += 2
+        pDst += dstStep
 
         switch (compressionmode) {
             case 2: // 24 bit uncompressed
                 pSrc += currentframeoffset * 3;
                 while (copysamples) {
                     *pDst = get24(pSrc) >> 8;
-                    pDst += 2;
+                    pDst += dstStep;
                     pSrc += 3;
                     copysamples--;
                 }
@@ -831,13 +832,13 @@ namespace gig { namespace {
                             const unsigned char* const param_r = pSrc;
                             if (mode_r != 2) pSrc += 12;
 
-                            Decompress24(mode_l, param_l, pSrc, pDst, skipsamples, copysamples);
-                            Decompress24(mode_r, param_r, pSrc + rightChannelOffset, pDst + 1,
+                            Decompress24(mode_l, param_l, 2, pSrc, pDst, skipsamples, copysamples);
+                            Decompress24(mode_r, param_r, 2, pSrc + rightChannelOffset, pDst + 1,
                                          skipsamples, copysamples);
                             pDst += copysamples << 1;
                         }
                         else { // Mono
-                            Decompress24(mode_l, param_l, pSrc, pDst, skipsamples, copysamples);
+                            Decompress24(mode_l, param_l, 1, pSrc, pDst, skipsamples, copysamples);
                             pDst += copysamples;
                         }
                     }
@@ -850,14 +851,14 @@ namespace gig { namespace {
                             if (mode_r) pSrc += 4;
 
                             step = (2 - mode_l) + (2 - mode_r);
-                            Decompress16(mode_l, param_l, step, pSrc, pDst, skipsamples, copysamples);
-                            Decompress16(mode_r, param_r, step, pSrc + (2 - mode_l), pDst + 1,
+                            Decompress16(mode_l, param_l, step, 2, pSrc, pDst, skipsamples, copysamples);
+                            Decompress16(mode_r, param_r, step, 2, pSrc + (2 - mode_l), pDst + 1,
                                          skipsamples, copysamples);
                             pDst += copysamples << 1;
                         }
                         else { // Mono
                             step = 2 - mode_l;
-                            Decompress16(mode_l, param_l, step, pSrc, pDst, skipsamples, copysamples);
+                            Decompress16(mode_l, param_l, step, 1, pSrc, pDst, skipsamples, copysamples);
                             pDst += copysamples;
                         }
                     }
