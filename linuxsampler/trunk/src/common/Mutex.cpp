@@ -20,6 +20,20 @@
  *   MA  02111-1307  USA                                                   *
  ***************************************************************************/
 
+#ifndef _GNU_SOURCE
+# define _GNU_SOURCE 1 /* so _XOPEN_SOURCE will be defined by features.h */
+#endif
+
+#include <features.h>
+
+#if !defined(_XOPEN_SOURCE) || _XOPEN_SOURCE < 500
+# undef _XOPEN_SOURCE
+# define _XOPEN_SOURCE 500 /* to define PTHREAD_MUTEX_ERRORCHECK */
+# warning Seems you don't have a UNIX98 compatible system.
+# warning Please run LinuxSampler's selftest to make sure this won't oppose a problem!
+# warning (compile tests with 'make tests', run them with 'src/testcases/linuxsamplertest')
+#endif
+
 #include <iostream>
 #include <errno.h>
 #include <stdlib.h> /* for exit(int) */

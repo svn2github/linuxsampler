@@ -22,26 +22,37 @@
 
 #include "AudioOutputDeviceFactory.h"
 
-// just to avoid linker problems
-#include "AudioOutputDeviceAlsa.h"
-#include "AudioOutputDeviceJack.h"
+#if HAVE_ALSA
+# include "AudioOutputDeviceAlsa.h"
+#endif // HAVE_ALSA
+
+#if HAVE_JACK
+# include "AudioOutputDeviceJack.h"
+#endif // HAVE_JACK
 
 namespace LinuxSampler {
 
     std::map<String, AudioOutputDeviceFactory::InnerFactory*> AudioOutputDeviceFactory::InnerFactories;
     std::map<String, DeviceParameterFactory*> AudioOutputDeviceFactory::ParameterFactories;
 
-    // just a little hack to avoid linker problems
-    static int ___init___foo___() {
-        #if HAVE_ALSA
-        AudioOutputDeviceAlsa::Name().c_str();
-        #endif // HAVE_ALSA
-        #if HAVE_JACK
-        AudioOutputDeviceJack::Name().c_str();
-        #endif // HAVE_JACK
-        return 0;
-    }
-    static int ___foo___ = ___init___foo___();
+#if HAVE_ALSA
+    REGISTER_AUDIO_OUTPUT_DRIVER(AudioOutputDeviceAlsa);
+    /* Common parameters for now they'll have to be registered here. */
+    REGISTER_AUDIO_OUTPUT_DRIVER_PARAMETER(AudioOutputDeviceAlsa, ParameterActive);
+    REGISTER_AUDIO_OUTPUT_DRIVER_PARAMETER(AudioOutputDeviceAlsa, ParameterSampleRate);
+    REGISTER_AUDIO_OUTPUT_DRIVER_PARAMETER(AudioOutputDeviceAlsa, ParameterChannels);
+    /* Driver specific parameters */
+    REGISTER_AUDIO_OUTPUT_DRIVER_PARAMETER(AudioOutputDeviceAlsa, ParameterCard);
+    REGISTER_AUDIO_OUTPUT_DRIVER_PARAMETER(AudioOutputDeviceAlsa, ParameterFragments);
+    REGISTER_AUDIO_OUTPUT_DRIVER_PARAMETER(AudioOutputDeviceAlsa, ParameterFragmentSize);
+#endif // HAVE_ALSA
+
+#if HAVE_JACK
+    REGISTER_AUDIO_OUTPUT_DRIVER(AudioOutputDeviceJack);
+    /* Common parameters for now they'll have to be registered here. */
+    REGISTER_AUDIO_OUTPUT_DRIVER_PARAMETER(AudioOutputDeviceJack, ParameterActive);
+    REGISTER_AUDIO_OUTPUT_DRIVER_PARAMETER(AudioOutputDeviceJack, ParameterChannels);
+#endif // HAVE_JACK
 
     AudioOutputDevice* AudioOutputDeviceFactory::Create(String DriverName, std::map<String,String> Parameters) throw (LinuxSamplerException) {
         if (!InnerFactories.count(DriverName)) throw LinuxSamplerException("There is no audio output driver '" + DriverName + "'.");

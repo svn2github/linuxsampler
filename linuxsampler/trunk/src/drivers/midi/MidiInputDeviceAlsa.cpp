@@ -27,14 +27,6 @@
 
 namespace LinuxSampler {
 
-    REGISTER_MIDI_INPUT_DRIVER(MidiInputDeviceAlsa);
-
-    /* Common parameters */
-    REGISTER_MIDI_INPUT_DRIVER_PARAMETER(MidiInputDeviceAlsa, ParameterActive);
-    REGISTER_MIDI_INPUT_DRIVER_PARAMETER(MidiInputDeviceAlsa, ParameterPorts);
-
-
-
 // *************** ParameterName ***************
 // *
 
@@ -193,7 +185,7 @@ namespace LinuxSampler {
     }
 
     String MidiInputDeviceAlsa::Version() {
-	    String s = "$Revision: 1.11 $";
+	    String s = "$Revision: 1.12 $";
 	    return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
 

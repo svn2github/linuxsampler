@@ -29,14 +29,6 @@
 
 namespace LinuxSampler {
 
-    REGISTER_AUDIO_OUTPUT_DRIVER(AudioOutputDeviceJack);
-
-    /* Common parameters for now they'll have to be registered here. */
-    REGISTER_AUDIO_OUTPUT_DRIVER_PARAMETER(AudioOutputDeviceJack, ParameterActive);
-    REGISTER_AUDIO_OUTPUT_DRIVER_PARAMETER(AudioOutputDeviceJack, ParameterChannels);
-
-
-
 // *************** ParameterName ***************
 // *
 
@@ -199,7 +191,7 @@ namespace LinuxSampler {
     }
 
     String AudioOutputDeviceJack::Version() {
-       String s = "$Revision: 1.13 $";
+       String s = "$Revision: 1.14 $";
        return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
 
