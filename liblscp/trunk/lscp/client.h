@@ -125,7 +125,7 @@ int                     lscp_client_get_errno           (lscp_client_t *pClient 
 lscp_status_t           lscp_client_subscribe           (lscp_client_t *pClient, lscp_event_t events);
 lscp_status_t           lscp_client_unsubscribe         (lscp_client_t *pClient, lscp_event_t events);
 
-lscp_event_t            lscp_client_events              (lscp_client_t *pClient);
+lscp_event_t            lscp_client_get_events          (lscp_client_t *pClient);
 
 //-------------------------------------------------------------------------
 // Client command protocol functions.
@@ -159,6 +159,8 @@ lscp_status_t           lscp_set_channel_midi_channel   (lscp_client_t *pClient,
 lscp_status_t           lscp_set_channel_volume         (lscp_client_t *pClient, int iSamplerChannel, float fVolume);
 
 lscp_status_t           lscp_reset_channel              (lscp_client_t *pClient, int iSamplerChannel);
+
+lscp_status_t           lscp_reset_sampler              (lscp_client_t *pClient);
 
 
 #if defined(__cplusplus)

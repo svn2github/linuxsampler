@@ -3,7 +3,12 @@ liblscp - LinuxSampler Control Protocol API
 
 ChangeLog
 
-CVS HEAD           Added support for generating Debian packages;
+0.2.2  2004-07-29  In sync with LSCP document draf (v.12).
+
+                   New functions added: lscp_client_get_events() and
+                   lscp_reset_sampler().
+
+                   Added support for generating Debian packages;
                    renamed pkg-config lib name 'liblscp' -> 'lscp' as
                    it's common practice to omit the 'lib' prefix.
 
