@@ -201,17 +201,19 @@ namespace LinuxSampler {
         }
     }
 
-    void AudioOutputDevice::Connect(EngineChannel* pEngineChannel) {
-        if (EngineChannels.find(pEngineChannel) == EngineChannels.end()) {
-            pEngineChannel->Connect(this);
-            EngineChannels.insert(pEngineChannel);
+    void AudioOutputDevice::Connect(Engine* pEngine) {
+        if (Engines.find(pEngine) == Engines.end()) {
+            Engines.insert(pEngine);
+            // make sure the engine knows about the connection
+            //pEngine->Connect(this);
         }
     }
 
-    void AudioOutputDevice::Disconnect(EngineChannel* pEngineChannel) {
-        if (EngineChannels.find(pEngineChannel) != EngineChannels.end()) { // if clause to prevent disconnect loop
-            EngineChannels.erase(pEngineChannel);
-            pEngineChannel->DisconnectAudioOutputDevice();
+    void AudioOutputDevice::Disconnect(Engine* pEngine) {
+        if (Engines.find(pEngine) != Engines.end()) { // if clause to prevent disconnect loop
+            Engines.erase(pEngine);
+            // make sure the engine knows about the disconnection
+            //pEngine->DisconnectAudioOutputDevice();
         }
     }
 
@@ -249,10 +251,10 @@ namespace LinuxSampler {
         try
         #endif // USE_EXCEPTIONS
         {
-            std::set<EngineChannel*>::iterator iterEngineCh = EngineChannels.begin();
-            std::set<EngineChannel*>::iterator end          = EngineChannels.end();
-            for (; iterEngineCh != end; iterEngineCh++) {
-                int res = (*iterEngineCh)->RenderAudio(Samples);
+            std::set<Engine*>::iterator iterEngine = Engines.begin();
+            std::set<Engine*>::iterator end        = Engines.end();
+            for (; iterEngine != end; iterEngine++) {
+                int res = (*iterEngine)->RenderAudio(Samples);
                 if (res != 0) result = res;
             }
         }

@@ -41,6 +41,7 @@ namespace LinuxSampler {
             // abstract methods
             //     (these have to be implemented by the descendant)
 
+            virtual int    RenderAudio(uint Samples) = 0;
             virtual void   SendSysex(void* pData, uint Size) = 0;
             virtual void   Reset() = 0;
             virtual void   Enable() = 0;

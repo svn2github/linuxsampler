@@ -25,6 +25,7 @@
 
 #include "../../common/global.h"
 #include "../../common/RTMath.h"
+#include "EngineChannel.h"
 
 namespace LinuxSampler {
 
@@ -104,6 +105,7 @@ namespace LinuxSampler {
                     uint Size;           ///< Data length (in bytes) of MIDI system exclusive message.
                 } Sysex;
             } Param;
+            EngineChannel* pEngineChannel; ///< Pointer to the EngineChannel where this event occured on, NULL means Engine global event (e.g. SysEx message).
 
             inline int32_t FragmentPos() {
                 if (iFragmentPos >= 0) return iFragmentPos;

@@ -73,6 +73,10 @@ namespace LinuxSampler { namespace gig {
         // set all MIDI controller values to zero
         memset(ControllerTable, 0x00, 128);
 
+        // reset voice stealing parameters
+        itLastStolenVoice = RTList<Voice>::Iterator();
+        iuiLastStolenKey  = RTList<uint>::Iterator();
+
         // reset key info
         for (uint i = 0; i < 128; i++) {
             if (pMIDIKeyInfo[i].pActiveVoices)
@@ -96,10 +100,6 @@ namespace LinuxSampler { namespace gig {
         pEventQueue->init();
 
         if (pEngine) pEngine->ResetInternal();
-    }
-
-    int EngineChannel::RenderAudio(uint Samples) {
-        return (pEngine) ? pEngine->RenderAudio(this, Samples) : 0;
     }
 
     LinuxSampler::Engine* EngineChannel::GetEngine() {
@@ -214,7 +214,10 @@ namespace LinuxSampler { namespace gig {
         if (pEngine) pEngine->Enable();
     }
 
-    void EngineChannel::Connect(AudioOutputDevice* pAudioOut) {        
+    void EngineChannel::Connect(AudioOutputDevice* pAudioOut) {
+        if (pEngine && pEngine->pAudioOutputDevice != pAudioOut) {
+            DisconnectAudioOutputDevice();
+        }
         pEngine = Engine::AcquireEngine(this, pAudioOut);
         ResetInternal();        
         for (uint i = 0; i < 128; i++) {
@@ -239,8 +242,7 @@ namespace LinuxSampler { namespace gig {
             pEngine = NULL;
             Engine::FreeEngine(this, oldAudioDevice);
             AudioDeviceChannelLeft  = -1;
-            AudioDeviceChannelRight = -1;
-            oldAudioDevice->Disconnect(this);
+            AudioDeviceChannelRight = -1;            
         }
     }
 
@@ -287,8 +289,9 @@ namespace LinuxSampler { namespace gig {
             event.Type                = Event::type_note_on;
             event.Param.Note.Key      = Key;
             event.Param.Note.Velocity = Velocity;
+            event.pEngineChannel      = this;            
             if (this->pEventQueue->write_space() > 0) this->pEventQueue->push(&event);
-            else dmsg(1,("Engine: Input event queue full!"));
+            else dmsg(1,("EngineChannel: Input event queue full!"));
         }
     }
 
@@ -305,8 +308,9 @@ namespace LinuxSampler { namespace gig {
             event.Type                = Event::type_note_off;
             event.Param.Note.Key      = Key;
             event.Param.Note.Velocity = Velocity;
+            event.pEngineChannel      = this;
             if (this->pEventQueue->write_space() > 0) this->pEventQueue->push(&event);
-            else dmsg(1,("Engine: Input event queue full!"));
+            else dmsg(1,("EngineChannel: Input event queue full!"));
         }
     }
 
@@ -321,8 +325,9 @@ namespace LinuxSampler { namespace gig {
             Event event             = pEngine->pEventGenerator->CreateEvent();
             event.Type              = Event::type_pitchbend;
             event.Param.Pitch.Pitch = Pitch;
+            event.pEngineChannel    = this;
             if (this->pEventQueue->write_space() > 0) this->pEventQueue->push(&event);
-            else dmsg(1,("Engine: Input event queue full!"));
+            else dmsg(1,("EngineChannel: Input event queue full!"));
         }
     }
 
@@ -339,8 +344,9 @@ namespace LinuxSampler { namespace gig {
             event.Type                = Event::type_control_change;
             event.Param.CC.Controller = Controller;
             event.Param.CC.Value      = Value;
+            event.pEngineChannel      = this;
             if (this->pEventQueue->write_space() > 0) this->pEventQueue->push(&event);
-            else dmsg(1,("Engine: Input event queue full!"));
+            else dmsg(1,("EngineChannel: Input event queue full!"));
         }
     }
 

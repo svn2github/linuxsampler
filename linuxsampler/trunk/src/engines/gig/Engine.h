@@ -60,10 +60,10 @@ namespace LinuxSampler { namespace gig {
             // methods
             Engine();
            ~Engine();
-            int  RenderAudio(LinuxSampler::gig::EngineChannel* pEngineChannel, uint Samples);
             void Connect(AudioOutputDevice* pAudioOut);
 
             // implementation of abstract methods derived from class 'LinuxSampler::Engine'
+            virtual int    RenderAudio(uint Samples);
             virtual void   SendSysex(void* pData, uint Size);
             virtual void   Reset();
             virtual void   Enable();
@@ -98,15 +98,17 @@ namespace LinuxSampler { namespace gig {
             float*                  pSynthesisParameters[Event::destination_count]; ///< Matrix with final synthesis parameters for the current audio fragment which will be used in the main synthesis loop.
             biquad_param_t*         pBasicFilterParameters; ///< Biquad parameters of the basic bandpass filter.
             biquad_param_t*         pMainFilterParameters;  ///< Main biquad parameters of the individual filter (lowpass / bandpass / highpass).
-            int                     ActiveVoiceCount;      ///< number of currently active voices
+            int                     ActiveVoiceCount;      ///< number of currently active voices (this value will be returned for public calls)
+            int                     ActiveVoiceCountTemp;  ///< number of currently active voices (for internal usage, will be used for incrementation)
             int                     ActiveVoiceCountMax;   ///< the maximum voice usage since application start
             bool                    SuspensionRequested;
             ConditionServer         EngineDisabled;
-            int8_t                  ScaleTuning[12];       ///< contains optional detune factors (-64..+63 cents) for all 12 semitones of an octave
-            RTList<Voice>::Iterator itLastStolenVoice;      ///< Only for voice stealing: points to the last voice which was theft in current audio fragment, NULL otherwise.
-            RTList<uint>::Iterator  iuiLastStolenKey;      ///< Only for voice stealing: key number of last key on which the last voice was theft in current audio fragment, NULL otherwise.
+            int8_t                  ScaleTuning[12];       ///< contains optional detune factors (-64..+63 cents) for all 12 semitones of an octave            
             int                     MaxFadeOutPos;         ///< The last position in an audio fragment to allow an instant fade out (e.g. for voice stealing) without leading to clicks.
 
+            void RenderAudio(EngineChannel* pEngineChannel, uint Samples);
+            void ClearEventLists();            
+            void ImportEvents(RingBuffer<Event>* pEventQueue, uint Samples);
             void ProcessNoteOn(EngineChannel* pEngineChannel, Pool<Event>::Iterator& itNoteOnEvent);
             void ProcessNoteOff(EngineChannel* pEngineChannel, Pool<Event>::Iterator& itNoteOffEvent);
             void ProcessPitchbend(EngineChannel* pEngineChannel, Pool<Event>::Iterator& itPitchbendEvent);
@@ -131,7 +133,7 @@ namespace LinuxSampler { namespace gig {
             friend class VCFCManipulator;
             friend class VCOManipulator;            
         private:
-            std::list<EngineChannel*> samplerChannels; ///< All sampler channels of a gig::Engine instance.
+            std::list<EngineChannel*> engineChannels; ///< All engine channels of a gig::Engine instance.
                         
             static std::map<AudioOutputDevice*,Engine*> engines; ///< All instances of gig::Engine.
                         

@@ -49,7 +49,7 @@ namespace LinuxSampler {
         if (pEngineChannel) {
             MidiInputPort* pMidiInputPort = GetMidiInputDevicePort(this->midiPort);
             if (pMidiInputPort) pMidiInputPort->Disconnect(pEngineChannel);
-            if (pAudioOutputDevice) pAudioOutputDevice->Disconnect(pEngineChannel);
+            if (pAudioOutputDevice) pEngineChannel->DisconnectAudioOutputDevice();
             delete pEngineChannel;
         }
     }
@@ -66,23 +66,29 @@ namespace LinuxSampler {
         // disconnect old engine
         if (pEngineChannel) {
             if (pMidiInputPort) pMidiInputPort->Disconnect(pEngineChannel);
-            if (pAudioOutputDevice) pAudioOutputDevice->Disconnect(pEngineChannel);
+            if (pAudioOutputDevice) pEngineChannel->DisconnectAudioOutputDevice();
             delete pEngineChannel;
         }
 
         // connect new engine channel
         pEngineChannel = pNewEngineChannel;
         if (pMidiInputPort) pMidiInputPort->Connect(pNewEngineChannel, this->midiChannel);
-        if (pAudioOutputDevice) pAudioOutputDevice->Connect(pNewEngineChannel);
+        if (pAudioOutputDevice) {
+            pNewEngineChannel->Connect(pAudioOutputDevice);
+            pAudioOutputDevice->Connect(pNewEngineChannel->GetEngine());
+        }
         dmsg(2,("OK\n"));
     }
 
     void SamplerChannel::SetAudioOutputDevice(AudioOutputDevice* pDevice) {
         // disconnect old device
-        if (pAudioOutputDevice && pEngineChannel) pAudioOutputDevice->Disconnect(pEngineChannel);
+        if (pAudioOutputDevice && pEngineChannel) pEngineChannel->DisconnectAudioOutputDevice();
         // connect new device
         pAudioOutputDevice = pDevice;
-        if (pEngineChannel) pAudioOutputDevice->Connect(pEngineChannel);
+        if (pEngineChannel) {
+            pEngineChannel->Connect(pAudioOutputDevice);
+            pAudioOutputDevice->Connect(pEngineChannel->GetEngine());
+        }
     }
 
     void SamplerChannel::SetMidiInputDevice(MidiInputDevice* pDevice) {

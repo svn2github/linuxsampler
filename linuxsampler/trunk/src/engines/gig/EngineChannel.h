@@ -32,11 +32,14 @@
 #include "../common/EngineChannel.h"
 #include "EngineGlobals.h"
 #include "Engine.h"
+#include "Voice.h"
 #include "InstrumentResourceManager.h"
 
 namespace LinuxSampler { namespace gig {
 
+    // just symbol prototyping
     class midi_key_info_t;
+    class Voice;
 
     class EngineChannel : public LinuxSampler::EngineChannel, public InstrumentConsumer {
         public:
@@ -44,7 +47,6 @@ namespace LinuxSampler { namespace gig {
             virtual ~EngineChannel();            
            
             // implementation of abstract methods derived from interface class 'LinuxSampler::EngineChannel'
-            virtual int     RenderAudio(uint Samples);
             virtual void    PrepareLoadInstrument(const char* FileName, uint Instrument);
             virtual void    LoadInstrument();
             virtual void    SendNoteOn(uint8_t Key, uint8_t Velocity);
@@ -87,7 +89,9 @@ namespace LinuxSampler { namespace gig {
             String                  InstrumentFile;
             int                     InstrumentIdx;
             String                  InstrumentIdxName;
-            int                     InstrumentStat;            
+            int                     InstrumentStat;
+            RTList<Voice>::Iterator itLastStolenVoice;        ///< Only for voice stealing: points to the last voice which was theft in current audio fragment, NULL otherwise.
+            RTList<uint>::Iterator  iuiLastStolenKey;         ///< Only for voice stealing: key number of last key on which the last voice was theft in current audio fragment, NULL otherwise.
 
             friend class Engine;
             friend class Voice;

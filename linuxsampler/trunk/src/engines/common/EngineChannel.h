@@ -46,8 +46,7 @@ namespace LinuxSampler {
             /////////////////////////////////////////////////////////////////
             // abstract methods
             //     (these have to be implemented by the descendant)
-
-            virtual int     RenderAudio(uint Samples) = 0;
+            
             virtual void    PrepareLoadInstrument(const char* FileName, uint Instrument) = 0;
             virtual void    LoadInstrument() = 0;
             virtual void    SendNoteOn(uint8_t Key, uint8_t Velocity) = 0;
