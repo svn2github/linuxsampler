@@ -178,6 +178,7 @@ int Thread::Destructor() {
 
 /// Callback function for the POSIX thread API
 void* __pthread_launcher(void* thread) {
+    pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, NULL); // let the thread be killable under any circumstances
     Thread* t;
     t = (Thread*) thread;
     t->SetSchedulingPriority();

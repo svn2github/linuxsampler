@@ -80,7 +80,8 @@ class Condition : public Mutex {
         /**
          * Set Condition object to \a bCondition. Upon change of the
          * condition, other threads waiting for \a bCondition will be
-         * awakened.
+         * awakened. (Note the condition will not be locked for the calling
+         * thread after this method returns!)
          *
          * @param bCondition - new condition
          */

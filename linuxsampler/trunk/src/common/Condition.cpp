@@ -22,6 +22,8 @@
 
 #include "Condition.h"
 
+#include "global.h"
+
 Condition::Condition(bool bInitialCondition) {
     pthread_cond_init(&__posix_true_condition, NULL);
     pthread_cond_init(&__posix_false_condition, NULL);
@@ -34,26 +36,40 @@ Condition::~Condition() {
 }
 
 int Condition::WaitIf(bool bCondition, long TimeoutSeconds, long TimeoutNanoSeconds) {
+    dmsg(7,("Condition::Waitif() -> LOCK()\n"));
     Lock();
+    dmsg(7,("Condition::Waitif() -> LOCK() passed\n"));
     int res = 0;
     if (this->bCondition == bCondition) {
-        if (bCondition) {
-            if (TimeoutSeconds || TimeoutNanoSeconds) {
+        if (bCondition) { // wait until condition turned 'false'
+            if (TimeoutSeconds || TimeoutNanoSeconds) { // wait with timeout
                 timespec timeout;
                 timeout.tv_sec  = TimeoutSeconds;
                 timeout.tv_nsec = TimeoutNanoSeconds;
+                dmsg(7,("Condition::Waitif() -> waiting for 'false' condition with timeout\n"));
                 res = pthread_cond_timedwait(&__posix_false_condition, &__posix_mutex, &timeout);
+                dmsg(7,("Condition::Waitif() -> awakened from 'false' condition waiting\n"));
             }
-            else pthread_cond_wait(&__posix_false_condition, &__posix_mutex);
+            else { // wait without timeout
+                dmsg(7,("Condition::Waitif() -> waiting for 'false' condition\n"));
+                pthread_cond_wait(&__posix_false_condition, &__posix_mutex);
+                dmsg(7,("Condition::Waitif() -> awakened from 'false' condition waiting\n"));
+            }
         }
-        else {
-            if (TimeoutSeconds || TimeoutNanoSeconds) {
+        else { // wait until condition turned 'true'
+            if (TimeoutSeconds || TimeoutNanoSeconds) { // wait with timeout
                 timespec timeout;
                 timeout.tv_sec  = TimeoutSeconds;
                 timeout.tv_nsec = TimeoutNanoSeconds;
+                dmsg(7,("Condition::Waitif() -> waiting for 'true' condition with timeout\n"));
                 res = pthread_cond_timedwait(&__posix_true_condition, &__posix_mutex, &timeout);
+                dmsg(7,("Condition::Waitif() -> awakened from 'true' condition waiting\n"));
             }
-            else pthread_cond_wait(&__posix_true_condition, &__posix_mutex);
+            else { // wait without timeout
+                dmsg(7,("Condition::Waitif() -> waiting for 'true' condition\n"));
+                pthread_cond_wait(&__posix_true_condition, &__posix_mutex);
+                dmsg(7,("Condition::Waitif() -> awakened from 'true' condition waiting\n"));
+            }
         }
     }
     return res;
@@ -61,16 +77,26 @@ int Condition::WaitIf(bool bCondition, long TimeoutSeconds, long TimeoutNanoSeco
 
 int Condition::WaitAndUnlockIf(bool bCondition, long TimeoutSeconds, long TimeoutNanoSeconds) {
     int res = WaitIf(bCondition, TimeoutSeconds, TimeoutNanoSeconds);
+    dmsg(7,("Condition::WaitAndUnlockIf() -> UNLOCK()\n"));
     Unlock();
+    dmsg(7,("Condition::WaitAndUnlockIf() -> UNLOCK() passed\n"));
     return res;
 }
 
 void Condition::Set(bool bCondition) {
+    dmsg(7,("Condition::Set() -> LOCK()\n"));
     Lock();
+    dmsg(7,("Condition::Set() -> LOCK() passed\n"));
     if (this->bCondition != bCondition) {
         this->bCondition = bCondition;
-        if (bCondition) pthread_cond_broadcast(&__posix_true_condition);
-        else            pthread_cond_broadcast(&__posix_false_condition);
+        if (bCondition) {
+            dmsg(7,("Condition::Set() -> broadcasting 'true' condition\n"));
+            pthread_cond_broadcast(&__posix_true_condition);
+        }
+        else {
+            dmsg(7,("Condition::Set() -> broadcasting 'false' condition\n"));
+            pthread_cond_broadcast(&__posix_false_condition);
+        }
     }
-    else Unlock();
+    Unlock();
 }

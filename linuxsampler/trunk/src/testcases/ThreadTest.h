@@ -10,6 +10,9 @@
 // the Thread class we want to test
 #include "../common/Thread.h"
 
+// we need that to check if our thread is killable even if waiting for a condition
+#include "../common/Condition.h"
+
 class ThreadTest : public CppUnit::TestFixture {
 
     CPPUNIT_TEST_SUITE(ThreadTest);
@@ -17,6 +20,7 @@ class ThreadTest : public CppUnit::TestFixture {
     CPPUNIT_TEST(testSignalStopThread);
     CPPUNIT_TEST(testRelaunchThread);
     CPPUNIT_TEST(testStopThread);
+    CPPUNIT_TEST(testThreadKillableWhenWaiting);
     CPPUNIT_TEST_SUITE_END();
 
     private:
@@ -39,6 +43,15 @@ class ThreadTest : public CppUnit::TestFixture {
                 HelperThread(DummyThread* pDummyThread);
                 int Main();
         };
+
+        // this simulates a thread that is waiting for a condition (thus sleeping til then)
+        class WaitingThread : public Thread {
+            public:
+                WaitingThread();
+                int Main();
+            private:
+                Condition condition;
+        };
     public:
         void setUp() {
         }
@@ -50,6 +63,7 @@ class ThreadTest : public CppUnit::TestFixture {
         void testSignalStopThread();
         void testRelaunchThread();
         void testStopThread();
+        void testThreadKillableWhenWaiting();
 };
 
 #endif // __LS_THREADTEST_H__
