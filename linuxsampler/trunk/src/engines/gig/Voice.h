@@ -105,11 +105,13 @@ namespace LinuxSampler { namespace gig {
             // Attributes
             gig::Engine*                pEngine;            ///< Pointer to the sampler engine, to be able to access the event lists.
             float                       Volume;             ///< Volume level of the voice
+            float                       CrossfadeVolume;    ///< Current attenuation level caused by a crossfade (only if a crossfade is defined of course)
             double                      Pos;                ///< Current playback position in sample
             double                      PitchBase;          ///< Basic pitch depth, stays the same for the whole life time of the voice
             double                      PitchBend;          ///< Current pitch value of the pitchbend wheel
             ::gig::Sample*              pSample;            ///< Pointer to the sample to be played back
             ::gig::Region*              pRegion;            ///< Pointer to the articulation information of the respective keyboard region of this voice
+            ::gig::DimensionRegion*     pDimRgn;            ///< Pointer to the articulation information of current dimension region of this voice
             bool                        Active;             ///< If this voice object is currently in usage
             playback_state_t            PlaybackState;      ///< When a sample will be triggered, it will be first played from RAM cache and after a couple of sample points it will switch to disk streaming and at the end of a disk stream we have to add null samples, so the interpolator can do it's work correctly
             bool                        DiskVoice;          ///< If the sample is very short it completely fits into the RAM cache and doesn't need to be streamed from disk, in that case this flag is set to false
@@ -222,6 +224,14 @@ namespace LinuxSampler { namespace gig {
                 pEngine->pOutputRight[i++] += sample_point;
 
                 this->Pos += pitch;
+            }
+
+            inline float CrossfadeAttenuation(uint8_t& CrossfadeControllerValue) {
+                return (CrossfadeControllerValue <= pDimRgn->Crossfade.in_start)  ? 0.0f
+                     : (CrossfadeControllerValue < pDimRgn->Crossfade.in_end)     ? float(CrossfadeControllerValue - pDimRgn->Crossfade.in_start) / float(pDimRgn->Crossfade.in_end - pDimRgn->Crossfade.in_start)
+                     : (CrossfadeControllerValue <= pDimRgn->Crossfade.out_start) ? 1.0f
+                     : (CrossfadeControllerValue < pDimRgn->Crossfade.out_end)    ? float(CrossfadeControllerValue - pDimRgn->Crossfade.out_start) / float(pDimRgn->Crossfade.out_end - pDimRgn->Crossfade.out_start)
+                     : 0.0f;
             }
 
             inline float Constrain(float ValueToCheck, float Min, float Max) {

@@ -120,7 +120,6 @@ namespace LinuxSampler { namespace gig {
         MIDIKey         = pNoteOnEvent->Key;
         pRegion         = pInstrument->GetRegion(MIDIKey);
         PlaybackState   = playback_state_ram; // we always start playback from RAM cache and switch then to disk if needed
-        Pos             = 0;
         Delay           = pNoteOnEvent->FragmentPos();
         pTriggerEvent   = pNoteOnEvent;
 
@@ -233,9 +232,27 @@ namespace LinuxSampler { namespace gig {
                     std::cerr << "gig::Voice::Trigger() Error: Unknown dimension\n" << std::flush;
             }
         }
-        ::gig::DimensionRegion* pDimRgn = pRegion->GetDimensionRegionByValue(DimValues[4],DimValues[3],DimValues[2],DimValues[1],DimValues[0]);
+        pDimRgn = pRegion->GetDimensionRegionByValue(DimValues[4],DimValues[3],DimValues[2],DimValues[1],DimValues[0]);
+
+        // get starting crossfade volume level
+        switch (pDimRgn->AttenuationController.type) {
+            case ::gig::attenuation_ctrl_t::type_channelaftertouch:
+                CrossfadeVolume = 1.0f; //TODO: aftertouch not supported yet
+                break;
+            case ::gig::attenuation_ctrl_t::type_velocity:
+                CrossfadeVolume = CrossfadeAttenuation(pNoteOnEvent->Velocity);
+                break;
+            case ::gig::attenuation_ctrl_t::type_controlchange: //FIXME: currently not sample accurate
+                CrossfadeVolume = CrossfadeAttenuation(pEngine->ControllerTable[pDimRgn->AttenuationController.controller_number]);
+                break;
+            case ::gig::attenuation_ctrl_t::type_none: // no crossfade defined
+            default:
+                CrossfadeVolume = 1.0f;
+        }
 
         pSample = pDimRgn->pSample; // sample won't change until the voice is finished
+
+        Pos = pDimRgn->SampleStartOffset; // offset where we should start playback of sample (0 - 2000 sample points)
 
         // Check if the sample needs disk streaming or is too short for that
         long cachedsamples = pSample->GetCache().Size / pSample->FrameSize;
@@ -605,7 +622,7 @@ namespace LinuxSampler { namespace gig {
     void Voice::Render(uint Samples) {
 
         // Reset the synthesis parameter matrix
-        pEngine->ResetSynthesisParameters(Event::destination_vca, this->Volume * pEngine->GlobalVolume);
+        pEngine->ResetSynthesisParameters(Event::destination_vca, this->Volume * this->CrossfadeVolume * pEngine->GlobalVolume);
         pEngine->ResetSynthesisParameters(Event::destination_vco, this->PitchBase);
     #if ENABLE_FILTER
         pEngine->ResetSynthesisParameters(Event::destination_vcfc, VCFCutoffCtrl.fvalue);
@@ -685,8 +702,9 @@ namespace LinuxSampler { namespace gig {
         }
 
 
-    #if ENABLE_FILTER
         // Reset synthesis event lists (except VCO, as VCO events apply channel wide currently)
+        pEngine->pSynthesisEvents[Event::destination_vca]->clear();
+    #if ENABLE_FILTER
         pEngine->pSynthesisEvents[Event::destination_vcfc]->clear();
         pEngine->pSynthesisEvents[Event::destination_vcfr]->clear();
     #endif // ENABLE_FILTER
@@ -750,6 +768,10 @@ namespace LinuxSampler { namespace gig {
                 if (pCCEvent->Controller == pLFO3->ExtController) {
                     pLFO3->SendEvent(pCCEvent);
                 }
+                if (pDimRgn->AttenuationController.type == ::gig::attenuation_ctrl_t::type_controlchange &&
+                    pCCEvent->Controller == pDimRgn->AttenuationController.controller_number) { // if crossfade event
+                    pEngine->pSynthesisEvents[Event::destination_vca]->alloc_assign(*pCCEvent);
+                }
             }
 
             pCCEvent = pEngine->pCCEvents->next();
@@ -789,6 +811,33 @@ namespace LinuxSampler { namespace gig {
             if (pVCOEventList->last()) this->PitchBend = pitch;
         }
 
+        // process volume / attenuation events (TODO: we only handle and _expect_ crossfade events here ATM !)
+        {
+            RTEList<Event>* pVCAEventList = pEngine->pSynthesisEvents[Event::destination_vca];
+            Event* pVCAEvent = pVCAEventList->first();
+            if (Delay) { // skip events that happened before this voice was triggered
+                while (pVCAEvent && pVCAEvent->FragmentPos() <= Delay) pVCAEvent = pVCAEventList->next();
+            }
+            float crossfadevolume;
+            while (pVCAEvent) {
+                Event* pNextVCAEvent = pVCAEventList->next();
+
+                // calculate the influence length of this event (in sample points)
+                uint end = (pNextVCAEvent) ? pNextVCAEvent->FragmentPos() : Samples;
+
+                crossfadevolume = CrossfadeAttenuation(pVCAEvent->Value);
+
+                float effective_volume = crossfadevolume * this->Volume * pEngine->GlobalVolume;
+
+                // apply volume value to the volume parameter sequence
+                for (uint i = pVCAEvent->FragmentPos(); i < end; i++) {
+                    pEngine->pSynthesisParameters[Event::destination_vca][i] = effective_volume;
+                }
+
+                pVCAEvent = pNextVCAEvent;
+            }
+            if (pVCAEventList->last()) this->CrossfadeVolume = crossfadevolume;
+        }
 
     #if ENABLE_FILTER
         // process filter cutoff events
