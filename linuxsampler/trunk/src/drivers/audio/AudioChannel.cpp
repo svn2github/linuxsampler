@@ -36,7 +36,7 @@ namespace LinuxSampler {
         this->pMixChannel        = NULL;
         this->UsesExternalBuffer = false;
 
-        if (!ChannelParameters["Name"])           ChannelParameters["Name"]           = new ParameterName(Name);
+        if (!ChannelParameters["NAME"])           ChannelParameters["NAME"]           = new ParameterName(Name);
         if (!ChannelParameters["IS_MIX_CHANNEL"]) ChannelParameters["IS_MIX_CHANNEL"] = new ParameterIsMixChannel(false);
         this->mParameters = ChannelParameters;
 
@@ -56,7 +56,7 @@ namespace LinuxSampler {
         this->pMixChannel        = NULL;
         this->UsesExternalBuffer = true;
 
-        if (!ChannelParameters["Name"])           ChannelParameters["Name"]           = new ParameterName(Name);
+        if (!ChannelParameters["NAME"])           ChannelParameters["NAME"]           = new ParameterName(Name);
         if (!ChannelParameters["IS_MIX_CHANNEL"]) ChannelParameters["IS_MIX_CHANNEL"] = new ParameterIsMixChannel(false);
 
         Clear();
@@ -74,7 +74,7 @@ namespace LinuxSampler {
         this->pMixChannel        = pMixChannel;
         this->UsesExternalBuffer = true;
 
-        if (!ChannelParameters["Name"])                    ChannelParameters["Name"]                    = new ParameterName(Name);
+        if (!ChannelParameters["NAME"])                    ChannelParameters["NAME"]                    = new ParameterName(Name);
         if (!ChannelParameters["IS_MIX_CHANNEL"])          ChannelParameters["IS_MIX_CHANNEL"]          = new ParameterIsMixChannel(true);
         //TODO: if (!ChannelParameters["MIX_CHANNEL_DESTINATION"]) ChannelParameters["MIX_CHANNEL_DESTINATION"] = new ParameterMixChannelDestination(dest_chan);
 

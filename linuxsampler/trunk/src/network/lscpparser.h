@@ -63,10 +63,10 @@ enum fill_response_t {
  */
 struct YYSTYPE {
     union {
-        char            Char;
-        unsigned int    Number;
-        double          Dotnum;
-        fill_response_t FillResponse;
+        char               Char;
+        unsigned int       Number;
+        double             Dotnum;
+        fill_response_t    FillResponse;
 	LSCPEvent::event_t Event;
     };
     std::string                       String;
@@ -75,22 +75,17 @@ struct YYSTYPE {
 #define yystype YYSTYPE		///< For backward compatibility.
 #define YYSTYPE_IS_DECLARED	///< We tell the lexer / parser that we use our own data structure as defined above.
 
-// pointer to an (reentrant) scanner / lexical analyzer
-typedef void* yyscan_t;
-
 /**
  * Parameters given to the parser on every yyparse() call.
  */
 struct yyparse_param_t {
     LSCPServer* pServer;
     int         hSession;
-    yyscan_t    pScanner;
     bool        bVerbose; ///< if true then all commands will immediately sent back (echo)
 
     yyparse_param_t() {
         pServer  = NULL;
         hSession = -1;
-        pScanner = NULL;
         bVerbose = false;
     }
 };
@@ -99,14 +94,6 @@ struct yyparse_param_t {
 /**
  * Prototype of the main scanner function (lexical analyzer).
  */
-#define YY_DECL int yylex(YYSTYPE* yylval, yyscan_t yyscanner)
-
-/**
- * Override lex's input function which just reads from stdin by default.
- * We read from a socket instead.
- */
-extern int GetLSCPCommand( void *buf, int max_size);
-#define YY_INPUT(buf,result,max_size) \
-	result = GetLSCPCommand(buf, max_size)
+#define YY_DECL int yylex(YYSTYPE* yylval)
 
 #endif // __LSCPPARSER_H__

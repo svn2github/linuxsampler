@@ -147,7 +147,8 @@ int LSCPServer::Main() {
 		if (FD_ISSET((*iter).hSession, &selectSet)) {	//Was it this socket?
 			if (GetLSCPCommand(iter)) {	//Have we read the entire command?
 				dmsg(3,("LSCPServer: Got command on socket %d, calling parser.\n", currentSocket));
-                                yylex_init(&((*iter).pScanner)); //FIXME: should me moved out of this loop and initialized only when a new session is created
+                                int dummy; // just a temporary hack to fulfill the restart() function prototype
+                                restart(NULL, dummy); // restart the 'scanner'
 				currentSocket = (*iter).hSession;  //a hack
                                 if ((*iter).bVerbose) { // if echo mode enabled
                                     AnswerClient(bufferedCommands[currentSocket]);
@@ -173,8 +174,6 @@ int LSCPServer::Main() {
 	}
 	NotifyBufferMutex.Unlock();
     }
-    //It will never get here anyway
-    //yylex_destroy(yyparse_param.pScanner);
 }
 
 void LSCPServer::CloseConnection( std::vector<yyparse_param_t>::iterator iter ) {
@@ -193,7 +192,6 @@ void LSCPServer::CloseConnection( std::vector<yyparse_param_t>::iterator iter ) 
 	bufferedNotifies.erase(socket);
 	close(socket);
 	NotifyMutex.Unlock();
-        //yylex_destroy((*iter).pScanner);
 }
 
 void LSCPServer::SendLSCPNotify( LSCPEvent event ) {

@@ -51,8 +51,7 @@ using namespace LinuxSampler;
 
 // External references to the main scanner and parser functions
 extern int yyparse(void* YYPARSE_PARAM);
-extern int yylex_init(yyscan_t* scanner);
-extern int yylex_destroy(yyscan_t yyscanner);
+extern void restart(yyparse_param_t* pparam, int& yychar);
 
 /**
  * Network server for the LinuxSampler Control Protocol (LSCP).
