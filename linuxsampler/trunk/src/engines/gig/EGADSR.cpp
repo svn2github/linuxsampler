@@ -85,7 +85,7 @@ namespace LinuxSampler { namespace gig {
                         Level += AttackCoeff;
                         pEngine->pSynthesisParameters[ModulationDestination][iSample++] *= Level;
                     }
-                    if (iSample == TotalSamples) { // postpone last transition event for the next audio fragment
+                    if (iSample == TotalSamples && itTransitionEvent) { // postpone last transition event for the next audio fragment
                         RTList<Event>::Iterator itLastEvent = pEvents->last();
                         if (itLastEvent) ReleasePostponed = (itLastEvent->Type == Event::type_release);
                     }
