@@ -9,7 +9,7 @@ Content
                                      files and provide abstract access to the
                                      data.
   - gig classes (gig.h, gig.cpp):    These are based on the DLS classes and
-                                     provide the neccessary extensions for
+                                     provide the necessary extensions for
                                      the Gigasampler file format.
 
 Requirements
@@ -90,8 +90,8 @@ API Documentation
 =================
 
  If you have Doxygen installed you can generate the API documentation by
- just running 'doxygen' in the sources' top level directory. The API
- documentation will be generated in the 'html' subdirectory.
+ running 'make docs' in the sources' top level directory. The API
+ documentation will be generated in the 'doc' subdirectory.
 
 Patches
 =======
