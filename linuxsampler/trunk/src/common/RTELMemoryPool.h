@@ -251,6 +251,13 @@ class RTEList {
         }
 
         /**
+         * Returns true if no more element can be allocated from the pool.
+         */
+        inline bool pool_is_empty() {
+            return pPool->pool_is_empty();
+        }
+
+        /**
          * Allocate one element from the pool and append it to this list.
          *
          * @returns allocated element
@@ -430,6 +437,14 @@ class RTELMemoryPool : public RTEList<T> {
 
         inline ~RTELMemoryPool() {
             if (memory_pool) delete[] memory_pool;
+        }
+
+        /**
+         * Returns true if no more element can be allocated.
+         */
+        inline bool pool_is_empty() {
+            RTEList<T>::Node<T>* nextnode = firstnode.next;
+            return (nextnode->next == nextnode);
         }
 
         /**
