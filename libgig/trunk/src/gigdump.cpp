@@ -273,7 +273,7 @@ void PrintDimensionRegions(gig::Region* rgn) {
                 cout << "\"" << pSample->pInfo->Name << "\", ";
             }
             cout << pSample->SamplesPerSecond << "Hz, ";
-            cout << "UnityNote=" << (int) pDimensionRegion->UnityNote << ", FineTune=" << (int) pDimensionRegion->FineTune << endl;
+            cout << "UnityNote=" << (int) pDimensionRegion->UnityNote << ", FineTune=" << (int) pDimensionRegion->FineTune << ", Gain=" << (-pDimensionRegion->Gain / 655360.0) << "dB, SampleStartOffset=" << pDimensionRegion->SampleStartOffset << endl;
         }
         else {
             cout << "                Sample: <NO_VALID_SAMPLE_REFERENCE> " << endl;

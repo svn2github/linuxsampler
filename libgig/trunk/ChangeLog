@@ -25,9 +25,11 @@ Version CVS HEAD (?)
     - fixed decompression bug that truncated the last block of samples
     - external decompression buffers can now be used for streaming samples
       to avoid race conditions in case of multiple streaming threads
+    - added pre-calculated sample attenuation parameter
 
   * src/gigdump.cpp:
     - added output of UnityNote and FineTune
+    - added output of Gain and SampleStartOffset
 
   * src/gigextract.cpp:
     - support for compressed mono samples and compressed 24 bit samples

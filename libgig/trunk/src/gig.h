@@ -409,6 +409,8 @@ namespace gig {
             bool               SustainDefeat;                 ///< If <i>true</i>: Sustain pedal will not hold a note.
             bool               MSDecode;                      ///< Gigastudio flag: defines if Mid Side Recordings should be decoded.
             uint16_t           SampleStartOffset;             ///< Number of samples the sample start should be moved (0 - 2000).
+            double             SampleAttenuation;             ///< Sample volume (calculated from DLS::Sampler::Gain)
+
             // derived attributes from DLS::Sampler
             DLS::Sampler::UnityNote;
             DLS::Sampler::FineTune;
