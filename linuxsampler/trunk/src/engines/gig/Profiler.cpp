@@ -27,12 +27,12 @@ namespace LinuxSampler { namespace gig {
 
 	unsigned long long Profiler::profilingSamples = 0;
 	unsigned long long Profiler::profilingTime = 0;
-	unsigned long long Profiler::ticksPerSecond = 0;
+	double Profiler::tsPerSecond = 0;
 
 	void Profiler::Calibrate( void )
 	{
 		clock_t start_time = clock();
-		unsigned long long start_clocks = Stamp();
+		RTMath::time_stamp_t start_clocks = Stamp();
 		volatile int a = 1;
 		volatile int b = 1;
 		for (volatile int i = 0; i < 100000000; i++)
@@ -40,17 +40,17 @@ namespace LinuxSampler { namespace gig {
 			a += b;
 		}
 		clock_t stop_time = clock();
-		unsigned long long stop_clocks = Stamp();
-		unsigned int diff_ticks = (unsigned int) (stop_clocks - start_clocks);
+		RTMath::time_stamp_t stop_clocks = Stamp();
+		double diff_ticks = (stop_clocks - start_clocks);
 		double diff_time = ((stop_time - start_time) / (double(CLOCKS_PER_SEC)));
-		ticksPerSecond = (unsigned long long)(double(diff_ticks) / diff_time);
+		tsPerSecond = diff_ticks / diff_time;
 	}
 
 	unsigned int Profiler::GetBogoVoices(unsigned int SamplingFreq)
 	{
 		if (profilingSamples == 0) return 0;
-		unsigned int avgTicks = profilingTime / profilingSamples;
-		unsigned int samplesPerSecond = ticksPerSecond / avgTicks;
+		double avgTicks = ((double) profilingTime) / ((double) profilingSamples);
+		unsigned int samplesPerSecond = (unsigned int) (tsPerSecond / avgTicks);
 		unsigned int bogoVoices = samplesPerSecond / SamplingFreq;
 		return bogoVoices;
 	}

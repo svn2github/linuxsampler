@@ -22,7 +22,11 @@
 
 #ifndef __LS_GIG_PROFILER_H__
 #define __LS_GIG_PROFILER_H__
+
 #include <stdio.h>
+
+#include "../../common/global.h"
+#include "../../common/RTMath.h"
 
 namespace LinuxSampler { namespace gig {
 
@@ -36,17 +40,15 @@ namespace LinuxSampler { namespace gig {
 
 	    static unsigned int GetBogoVoices( unsigned int SamplingFreq );
 
-	    static unsigned long long Stamp( void )
+	    static RTMath::time_stamp_t Stamp( void )
 	    {
-		    unsigned long long temp;
-		    __asm__ __volatile__ ("rdtsc" : "=A" (temp));
-		    return temp;
+                    return RTMath::CreateTimeStamp();
 	    }
 
-	    static void Record( unsigned long long start,
+	    static void Record( RTMath::time_stamp_t start,
 			unsigned int samples, unsigned int skip )
 	    {
-		    unsigned long long stop = Stamp();
+		    RTMath::time_stamp_t stop = Stamp();
 		    profilingTime += (stop - start);
 		    profilingSamples += (samples - skip);
 	    }
@@ -56,7 +58,7 @@ namespace LinuxSampler { namespace gig {
 	private:
 	    static unsigned long long profilingSamples;
 	    static unsigned long long profilingTime;
-	    static unsigned long long ticksPerSecond;
+	    static double tsPerSecond;
     };
 
 }} // namespace LinuxSampler::gig

@@ -140,6 +140,7 @@ namespace LinuxSampler { namespace gig {
                         BasicBPFilter.ApplyFB(base, in, this->resonance * LSF_FB) * this->resonance;
             }
 
+#if ARCH_X86
             // expects to find input in xmm0 and leaves output in xmm7
             inline void Apply4StepsSSE(biquad_param_t* base, biquad_param_t* main) {
                 float fb;
@@ -167,6 +168,8 @@ namespace LinuxSampler { namespace gig {
                     :: "m" (scale) /* %0 */
                 );
             }
+#endif // ARCH_X86
+
     };
 
 }} //namespace LinuxSampler::gig

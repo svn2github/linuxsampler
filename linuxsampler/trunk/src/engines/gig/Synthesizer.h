@@ -23,6 +23,7 @@
 #ifndef __LS_GIG_SYNTHESIZER_H__
 #define __LS_GIG_SYNTHESIZER_H__
 
+#include "../../common/global.h"
 #include "../../common/RTMath.h"
 #include "../common/Resampler.h"
 #include "../common/BiquadFilter.h"
@@ -152,6 +153,7 @@ namespace LinuxSampler { namespace gig {
                     case CPP: {
                         return uint((LoopEnd - *((double *)Pos)) / Pitch);
                     }
+                    #if ARCH_X86
                     case ASM_X86_MMX_SSE: {
                         int result;
                         __asm__ __volatile__ (
@@ -166,6 +168,7 @@ namespace LinuxSampler { namespace gig {
                         );
                         return result;
                     }
+                    #endif // ARCH_X86
                 }
             }
 
@@ -178,6 +181,7 @@ namespace LinuxSampler { namespace gig {
                         *Pos = fmod(*Pos - LoopEnd, LoopSize) + LoopStart;
                         return 1;
                     }
+                    #if ARCH_X86
                     case ASM_X86_MMX_SSE: {
                         int result;
                         __asm__ __volatile__ (
@@ -210,6 +214,7 @@ namespace LinuxSampler { namespace gig {
                         );
                         return result;
                     }
+                    #endif // ARCH_X86
                 }
             }
 
@@ -240,6 +245,7 @@ namespace LinuxSampler { namespace gig {
                         }
                         break;
                     }
+                    #if ARCH_X86
                     // Assembly optimization using the MMX & SSE(1) instruction set (thus only for x86)
                     case ASM_X86_MMX_SSE: {
                         const int ii = i & 0xfffffffc;
@@ -325,6 +331,7 @@ namespace LinuxSampler { namespace gig {
                               "r" (&pOutR[ii])  /* %1 - must be 16 byte aligned ! */
                         );
                     }
+                    #endif // ARCH_X86
                 }
             }
     };

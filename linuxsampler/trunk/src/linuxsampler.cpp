@@ -206,7 +206,8 @@ void parse_options(int argc, char **argv) {
                     exit(EXIT_SUCCESS);
                     break;
                 case 1: // --version
-		    printf("LinuxSampler %s\n", VERSION);
+                    printf("LinuxSampler %s\n", VERSION);
+                    exit(EXIT_SUCCESS);
                     break;
                 case 2: // --profile
 		    profile = true;

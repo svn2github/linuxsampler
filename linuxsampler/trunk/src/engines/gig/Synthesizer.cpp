@@ -31,7 +31,7 @@
         Synthesizer<IMPL,CHAN,FILTER,INTERPOLATE,LOOP,CONSTPITCH>::SynthesizeFragment( \
         voice, samples, pSrc, skip)
 #define SYNTHESIZEP(IMPL,CHAN,FILTER,INTERPOLATE,LOOP,CONSTPITCH) \
-	unsigned long long start = Profiler::Stamp(); \
+	RTMath::time_stamp_t start = Profiler::Stamp(); \
         Synthesizer<IMPL,CHAN,FILTER,INTERPOLATE,LOOP,CONSTPITCH>::SynthesizeFragment( \
         voice, samples, pSrc, skip); \
 	Profiler::Record(start, samples, skip)
@@ -146,6 +146,8 @@ namespace LinuxSampler { namespace gig {
         SYNTHESIZE(CPP,STEREO,1,1,1,1);
     }
 
+#if ARCH_X86
+
     void SynthesizeFragment_mode21(VOICE &voice, uint samples, sample_t* pSrc, uint skip) {
         SYNTHESIZE(ASM_X86_MMX_SSE,MONO,0,0,0,1);
     }
@@ -242,6 +244,7 @@ namespace LinuxSampler { namespace gig {
         SYNTHESIZE(ASM_X86_MMX_SSE,STEREO,1,1,1,1);
     }
 
+#endif // ARCH_X86
 
 //These are the same thing but with performance monitoring
     void SynthesizeFragment_mode41(VOICE &voice, uint samples, sample_t* pSrc, uint skip) {
@@ -352,6 +355,8 @@ namespace LinuxSampler { namespace gig {
         SYNTHESIZEP(CPP,STEREO,1,1,1,1);
     }
 
+#if ARCH_X86
+
     void SynthesizeFragment_mode61(VOICE &voice, uint samples, sample_t* pSrc, uint skip) {
         SYNTHESIZEP(ASM_X86_MMX_SSE,MONO,0,0,0,1);
     }
@@ -448,6 +453,8 @@ namespace LinuxSampler { namespace gig {
         SYNTHESIZEP(ASM_X86_MMX_SSE,STEREO,1,1,1,1);
     }
 
+#endif // ARCH_X86
+
     void* GetSynthesisFunction(const int SynthesisMode) {
         // Mode Bits:  IMPL,CHAN,FILT,INTERP,LOOP,CONSTPITCH
         switch (SynthesisMode) {
@@ -483,6 +490,7 @@ namespace LinuxSampler { namespace gig {
             case 0x1d: return (void*) SynthesizeFragment_mode1d;
             case 0x1e: return (void*) SynthesizeFragment_mode1e;
             case 0x1f: return (void*) SynthesizeFragment_mode1f;
+#if ARCH_X86
             case 0x20: // redundant
             case 0x21: return (void*) SynthesizeFragment_mode21;
             case 0x22: // redundant
@@ -515,6 +523,7 @@ namespace LinuxSampler { namespace gig {
             case 0x3d: return (void*) SynthesizeFragment_mode3d;
             case 0x3e: return (void*) SynthesizeFragment_mode3e;
             case 0x3f: return (void*) SynthesizeFragment_mode3f;
+#endif // ARCH_X86
 
 	    //these are the same with performance monitoring
             case 0x40: // redundant
@@ -549,6 +558,7 @@ namespace LinuxSampler { namespace gig {
             case 0x5d: return (void*) SynthesizeFragment_mode5d;
             case 0x5e: return (void*) SynthesizeFragment_mode5e;
             case 0x5f: return (void*) SynthesizeFragment_mode5f;
+#if ARCH_X86
             case 0x60: // redundant
             case 0x61: return (void*) SynthesizeFragment_mode61;
             case 0x62: // redundant
@@ -581,6 +591,7 @@ namespace LinuxSampler { namespace gig {
             case 0x7d: return (void*) SynthesizeFragment_mode7d;
             case 0x7e: return (void*) SynthesizeFragment_mode7e;
             case 0x7f: return (void*) SynthesizeFragment_mode7f;
+#endif // ARCH_X86
             default: {
                 printf("gig::Synthesizer: Invalid Synthesis Mode: %d\n", SynthesisMode);
                 exit(-1);
@@ -593,5 +604,5 @@ namespace LinuxSampler { namespace gig {
 	    SynthesizeFragment_Fn* f = (SynthesizeFragment_Fn*) GetSynthesisFunction(SynthesisMode);
 	    f(voice, Samples, pSrc, Skip);
     }
-    
+
 }} // namespace LinuxSampler::gig

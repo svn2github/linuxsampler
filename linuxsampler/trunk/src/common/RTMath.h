@@ -24,18 +24,34 @@
 #define __RT_MATH_H__
 
 #include <math.h>
+#include <stdint.h>
 #include "global.h"
 
 /// Needed for calculating frequency ratio used to pitch a sample
 #define TWELVEHUNDREDTH_ROOT_OF_TWO	1.000577789506555
 
 enum implementation_t {
-    CPP,
-    ASM_X86_MMX_SSE
+    CPP
+    #if ARCH_X86
+    ,ASM_X86_MMX_SSE
+    #endif // ARCH_X86
 };
 
 class RTMathBase {
     public:
+        /**
+         * Highly accurate time stamp.
+         */
+        typedef uint32_t time_stamp_t;
+
+        /**
+         * We read the processor's cycle count register as a reference
+         * for the real time. These are of course only abstract values
+         * with arbitrary time entity, but that's not a problem as long
+         * as we calculate relatively.
+         */
+        static time_stamp_t CreateTimeStamp();
+
         /**
          * Calculates the frequency ratio for a pitch value given in cents
          * (assuming equal tempered scale of course, divided into 12
@@ -75,6 +91,7 @@ class __RTMath : public RTMathBase {
                 case CPP: {
                     return (int) a;
                 }
+                #if ARCH_X86
                 case ASM_X86_MMX_SSE: {
                     int ret;
                     asm (
@@ -84,6 +101,7 @@ class __RTMath : public RTMathBase {
                     );
                     return ret;
                 }
+                #endif // ARCH_X86
             }
         }
 
@@ -97,6 +115,7 @@ class __RTMath : public RTMathBase {
                 case CPP: {
                     return (float) a;
                 }
+                #if ARCH_X86
                 case ASM_X86_MMX_SSE: {
                     float ret;
                     asm (
@@ -107,6 +126,7 @@ class __RTMath : public RTMathBase {
                     );
                     return ret;
                 }
+                #endif // ARCH_X86
             }
         }
 
@@ -122,6 +142,7 @@ class __RTMath : public RTMathBase {
                 case CPP: {
                     return (a + b);
                 }
+                #if ARCH_X86
                 case ASM_X86_MMX_SSE: {
                     float ret;
                     asm (
@@ -133,6 +154,7 @@ class __RTMath : public RTMathBase {
                     );
                     return ret;
                 }
+                #endif // ARCH_X86
             }
         }
 
@@ -145,6 +167,7 @@ class __RTMath : public RTMathBase {
                 case CPP: {
                     return (a - b);
                 }
+                #if ARCH_X86
                 case ASM_X86_MMX_SSE: {
                     float ret;
                     asm (
@@ -156,6 +179,7 @@ class __RTMath : public RTMathBase {
                     );
                     return ret;
                 }
+                #endif // ARCH_X86
             }
         }
 
@@ -168,6 +192,7 @@ class __RTMath : public RTMathBase {
                 case CPP: {
                     return (a * b);
                 }
+                #if ARCH_X86
                 case ASM_X86_MMX_SSE: {
                     float ret;
                     asm (
@@ -179,6 +204,7 @@ class __RTMath : public RTMathBase {
                     );
                     return ret;
                 }
+                #endif // ARCH_X86
             }
         }
 
@@ -191,6 +217,7 @@ class __RTMath : public RTMathBase {
                 case CPP: {
                     return (a / b);
                 }
+                #if ARCH_X86
                 case ASM_X86_MMX_SSE: {
                     float ret;
                     asm (
@@ -202,6 +229,7 @@ class __RTMath : public RTMathBase {
                     );
                     return ret;
                 }
+                #endif // ARCH_X86
             }
         }
 
@@ -214,6 +242,7 @@ class __RTMath : public RTMathBase {
                 case CPP: {
                     return (b < a) ? b : a;
                 }
+                #if ARCH_X86
                 case ASM_X86_MMX_SSE: {
                     float ret;
                     asm (
@@ -225,6 +254,7 @@ class __RTMath : public RTMathBase {
                     );
                     return ret;
                 }
+                #endif // ARCH_X86
             }
         }
 
@@ -237,6 +267,7 @@ class __RTMath : public RTMathBase {
                 case CPP: {
                     return (b > a) ? b : a;
                 }
+                #if ARCH_X86
                 case ASM_X86_MMX_SSE: {
                     float ret;
                     asm (
@@ -248,6 +279,7 @@ class __RTMath : public RTMathBase {
                     );
                     return ret;
                 }
+                #endif // ARCH_X86
             }
         }
 
@@ -260,6 +292,7 @@ class __RTMath : public RTMathBase {
                 case CPP: {
                     return fmodf(a, b);
                 }
+                #if ARCH_X86
                 case ASM_X86_MMX_SSE: {
                     float ret;
                     asm (
@@ -278,6 +311,7 @@ class __RTMath : public RTMathBase {
                     );
                     return ret;
                 }
+                #endif // ARCH_X86
             }
         }
 };

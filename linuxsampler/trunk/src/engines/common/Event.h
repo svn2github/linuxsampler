@@ -24,6 +24,7 @@
 #define __LS_EVENT_H__
 
 #include "../../common/global.h"
+#include "../../common/RTMath.h"
 
 namespace LinuxSampler {
 
@@ -40,7 +41,7 @@ namespace LinuxSampler {
             void UpdateFragmentTime(uint SamplesToProcess);
             Event CreateEvent();
         protected:
-            typedef uint32_t time_stamp_t; ///< We read the processor's cycle count register as a reference for the real time. These are of course only abstract values with arbitrary time entity, but that's not a problem as we calculate relatively.
+            typedef RTMath::time_stamp_t time_stamp_t;
             inline int32_t ToFragmentPos(time_stamp_t TimeStamp) {
                 return int32_t (int32_t(TimeStamp - FragmentTime.begin) * FragmentTime.sample_ratio);
             }
@@ -53,7 +54,6 @@ namespace LinuxSampler {
                 time_stamp_t end;          ///< Real time stamp of the end of this audio fragment cycle.
                 float        sample_ratio; ///< (Samples per cycle) / (Real time duration of cycle)
             } FragmentTime;
-            time_stamp_t CreateTimeStamp();
     };
 
     /**

@@ -25,6 +25,8 @@
 
 #include <math.h>
 
+#include "../../common/global.h"
+
 /// ln(2) / 2
 #define LN_2_2			0.34657359f
 
@@ -121,6 +123,7 @@ namespace LinuxSampler {
                 return y;
             }
 
+#if ARCH_X86
             // expects to find input in xmm0 (xmm0 stays unmodified) and finally leaves output in xmm6
             inline void Apply4StepsSSE(biquad_param_t* param) {
                 __asm__ __volatile__ (
@@ -207,6 +210,7 @@ namespace LinuxSampler {
                       "r" (&param->b0)  /* %2 */
                 );
             }
+#endif // ARCH_X86
 
             inline bq_t ApplyFB(bq_t x, const bq_t fb) {
                 bq_t y;
@@ -238,6 +242,7 @@ namespace LinuxSampler {
                 return y;
             }
 
+#if ARCH_X86
             // expects to find input in xmm0 (xmm0 stays unmodified) and finally leaves output in xmm7
             inline void ApplyFB4StepsSSE(biquad_param_t* param, const bq_t &fb) {
                 float xs, ys;
@@ -434,6 +439,7 @@ namespace LinuxSampler {
                 );
             }
     };
+#endif // ARCH_X86
 
     class LowpassFilter : public BiquadFilter {
         public:
