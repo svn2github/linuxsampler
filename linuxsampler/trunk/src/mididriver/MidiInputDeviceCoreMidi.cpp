@@ -31,13 +31,13 @@ namespace LinuxSampler {
 	
 		err = MIDIClientCreate(CFSTR("LinuxSampler"), NotifyProc, NULL, &hCoreMidiClient);
 		if (!hCoreMidiClient) {
-			fprintf(stderr, "Can not open CoreMidi client\n");
+			fprintf(stderr, "Cannot open CoreMidi client\n");
 			goto error;
 		}
 		
 		err = MIDIInputPortCreate(hCoreMidiClient, CFSTR("Input port"), ReadProc, this, &hCoreMidiInPort);
 		if (!hCoreMidiInPort) {
-			fprintf(stderr, "Can not open Midi in por\n");
+			fprintf(stderr, "Cannot open Midi in port\n");
 			goto error;
 		}
 		
@@ -114,13 +114,19 @@ namespace LinuxSampler {
 					break;
 
 				case 0x90:
-					if (packet->data[1] < 128)
-						driver->DispatchNoteOn(packet->data[1],packet->data[2], packet->data[0]&0x0F);
+					if (packet->data[1] < 128){
+						if (packet->data[2] > 0){
+							driver->DispatchNoteOn(packet->data[1],packet->data[2], packet->data[0]&0x0F);
+						}else{
+							driver->DispatchNoteOff(packet->data[1],packet->data[2],packet->data[0]&0x0F);
+						}
+					}
 					break;
 				
 				case 0x80:
-					if (packet->data[1] < 128)
+					if (packet->data[1] < 128){
 						driver->DispatchNoteOff(packet->data[1],packet->data[2],packet->data[0]&0x0F);
+					}
 					break;
 			}
 			
