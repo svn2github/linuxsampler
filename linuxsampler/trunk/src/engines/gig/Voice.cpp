@@ -789,7 +789,6 @@ namespace LinuxSampler { namespace gig {
                 prev_res    = pEngine->pSynthesisParameters[Event::destination_vcfr][i];
                 FilterLeft.SetParameters(&bqbase, &bqmain, prev_cutoff, prev_res, SampleRate);
             }
-            pEngine->pBasicFilterParameters[i] = bqbase;
 
             //same as 'pEngine->pBasicFilterParameters[i] = bqbase;'
             bq    = (float*) &pEngine->pBasicFilterParameters[i];
