@@ -177,8 +177,7 @@ namespace LinuxSampler { namespace gig {
                         pEngine->pSynthesisParameters[ModulationDestination][iSample++] *= Level;
                     }
                     if (Level <= FadeOutCoeff) Stage = stage_end;
-                    break;
-                }
+                } //Fall through here instead of breaking otherwise we can get back into stage_fadeout and loop forever!
                 case stage_end: {
                     while (iSample < TotalSamples) {
                         pEngine->pSynthesisParameters[ModulationDestination][iSample++] = 0.0f;
