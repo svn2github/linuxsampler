@@ -237,7 +237,7 @@ void PrintRegions(gig::Instrument* instr) {
                     cout << "EFFECT5DEPTH";
                     break;
                 default:
-                    cout << "UNKNOWN - please report this !";
+                    cout << "UNKNOWN (" << int(DimensionDef.dimension) << ") - please report this !";
                     break;
             }
             cout << ", Bits=" << (uint) DimensionDef.bits << ", Zones=" << (uint) DimensionDef.zones;
