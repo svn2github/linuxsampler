@@ -23,6 +23,8 @@
 #ifndef __LS_BIQUADFILTER_H__
 #define __LS_BIQUADFILTER_H__
 
+#include <math.h>
+
 /// ln(2) / 2
 #define LN_2_2			0.34657359f
 

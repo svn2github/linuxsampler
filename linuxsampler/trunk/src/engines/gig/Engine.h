@@ -58,7 +58,7 @@ namespace LinuxSampler { namespace gig {
     /**
      * Sampler engine for the Gigasampler format.
      */
-    class gig::Engine : public LinuxSampler::Engine, public InstrumentConsumer {
+    class Engine : public LinuxSampler::Engine, public InstrumentConsumer {
         public:
             // types
             enum voice_steal_algo_t {

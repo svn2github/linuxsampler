@@ -23,6 +23,8 @@
 #include "AudioOutputDeviceJack.h"
 #include "AudioOutputDeviceFactory.h"
 
+#include <errno.h>
+
 #if HAVE_JACK
 
 namespace LinuxSampler {
@@ -197,7 +199,7 @@ namespace LinuxSampler {
     }
 
     String AudioOutputDeviceJack::Version() {
-       String s = "$Revision: 1.12 $";
+       String s = "$Revision: 1.13 $";
        return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
 

@@ -22,6 +22,8 @@
 
 #include <iostream>
 
+#include <errno.h>
+
 #include "Mutex.h"
 
 Mutex::Mutex() {

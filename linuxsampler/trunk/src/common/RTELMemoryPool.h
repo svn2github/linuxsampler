@@ -81,42 +81,42 @@
 
 template<class T> class RTELMemoryPool;
 
+/**
+ * RTEList::Node contains the next and prev pointers needed to manage
+ * the free element list, and anext, aprev needed to manage the list
+ * of allocated elements. This list is handy for the routines that make
+ * use of RTELMemoryPool because the list of elements can be traversed without
+ * building a separate list outside RTELMemoryPool
+ */
+template<class T>
+class RTELNode {
+	public:
+		RTELNode<T>* next;
+		RTELNode<T>* prev;
+		RTELNode<T>* anext;
+		RTELNode<T>* aprev;
+		T data;
+		RTELNode() {}
+};
+
 template<class T>
 class RTEList {
-    public:
-        /**
-         * RTEList::Node contains the next and prev pointers needed to manage
-         * the free element list, and anext, aprev needed to manage the list
-         * of allocated elements. This list is handy for the routines that make
-         * use of RTELMemoryPool because the list of elements can be traversed without
-         * building a separate list outside RTELMemoryPool
-         */
-        template<class _T>
-        class Node {
-            public:
-                Node<_T>* next;
-                Node<_T>* prev;
-                Node<_T>* anext;
-                Node<_T>* aprev;
-                _T data;
-                Node() {}
-        };
     protected:
-        Node<T>  firstnode;
-        Node<T>  lastnode;
-        Node<T>* acurrentnode;
+        RTELNode<T>  firstnode;
+        RTELNode<T>  lastnode;
+        RTELNode<T>* acurrentnode;
         int   free_offset;
         RTELMemoryPool<T>* pPool;
 
-        inline void move(Node<T>* pNode, RTEList<T>* pDstList) {
+        inline void move(RTELNode<T>* pNode, RTEList<T>* pDstList) {
             // remove element from this list
-            RTEList<T>::Node<T>* prev = pNode->aprev;
-            RTEList<T>::Node<T>* next = pNode->anext;
+            RTELNode<T>* prev = pNode->aprev;
+            RTELNode<T>* next = pNode->anext;
             prev->anext = next;
             next->aprev = prev;
 
             // add element to destination list
-            Node<T>* last            = pDstList->lastnode.aprev;
+            RTELNode<T>* last         = pDstList->lastnode.aprev;
             last->anext              = pNode;
             pNode->anext             = &pDstList->lastnode;
             pDstList->lastnode.aprev = pNode;
@@ -124,6 +124,7 @@ class RTEList {
         }
 
         friend class RTELMemoryPool<T>;
+
     public:
         /**
          * Constructor
@@ -209,7 +210,7 @@ class RTEList {
             // calculate the offset of the RTEListNode (see free_offset calculation in the constructor)
             node -= free_offset;
             // select the node
-            acurrentnode = (Node<T>*) node;
+            acurrentnode = (RTELNode<T>*) node;
         }
 
         /**
@@ -222,8 +223,8 @@ class RTEList {
         inline T* move(RTEList<T>* pDstList) {
             // if there's a valid element selected
             if (acurrentnode != &firstnode && acurrentnode != &lastnode) {
-                Node<T>* pNode = acurrentnode;
-                acurrentnode   = acurrentnode->aprev; // select previous element
+                RTELNode<T>* pNode = acurrentnode;
+                acurrentnode      = acurrentnode->aprev; // select previous element
                 move(pNode, pDstList); // move element's node
                 return &pNode->data;
             }
@@ -241,7 +242,7 @@ class RTEList {
             char* cNode = (char*) pElement;
             // calculate the offset of the RTEListNode (see free_offset calculation in the constructor)
             cNode -= free_offset;
-            Node<T>* pNode = (Node<T>*) cNode;
+            RTELNode<T>* pNode = (RTELNode<T>*) cNode;
 
             // if the node is selected, select previous element
             if (acurrentnode == pNode) acurrentnode = acurrentnode->aprev;
@@ -313,12 +314,12 @@ class RTEList {
 template<class T>
 class RTELMemoryPool : public RTEList<T> {
     protected:
-        RTEList<T>::Node<T>* currentnode;
+        RTELNode<T>* currentnode;
 
         // array that contains the elements:
         // each list element is made of list header (prev,next) and the data
         // of type T
-        RTEList<T>::Node<T>* memory_pool;
+        RTELNode<T>* memory_pool;
 
         /**
          * Allocate one element of the memory pool
@@ -329,20 +330,20 @@ class RTELMemoryPool : public RTEList<T> {
          */
         inline T* alloc_append(RTEList<T>* rtelist) {
             // get the first element
-            currentnode = firstnode.next;
+            currentnode = this->firstnode.next;
             // element->next points to itself which means last element
             // return NULL to signal end of list
             if (currentnode->next == currentnode) return NULL;
 
             // now remove the element from the freelist
-            RTEList<T>::Node<T>* prevelem = currentnode->prev;
-            RTEList<T>::Node<T>* nextelem = currentnode->next;
+            RTELNode<T>* prevelem = currentnode->prev;
+            RTELNode<T>* nextelem = currentnode->next;
             prevelem->next = nextelem;
             nextelem->prev = prevelem;
 
             // append the element to the external rtelist
-            RTEList<T>::Node<T>* el_lastnode = (RTEList<T>::Node<T>*) &rtelist->lastnode;
-            RTEList<T>::Node<T>* last        = el_lastnode->aprev;
+            RTELNode<T>* el_lastnode = (RTELNode<T>*) &rtelist->lastnode;
+            RTELNode<T>* last        = el_lastnode->aprev;
 
             last->anext        = currentnode;
             currentnode->anext = el_lastnode;
@@ -359,10 +360,10 @@ class RTELMemoryPool : public RTEList<T> {
          * beginning of the list
          */
         inline T* alloc_prepend(RTEList<T>* rtelist) {
-            RTEList<T>::Node<T>* prevelem;
-            RTEList<T>::Node<T>* nextelem;
+            RTELNode<T>* prevelem;
+            RTELNode<T>* nextelem;
             // get the first element
-            currentnode = firstnode.next;
+            currentnode = this->firstnode.next;
             // element->next points to itself which means last element
             // return NULL to signal end of list
             if (currentnode->next == currentnode) return NULL;
@@ -374,8 +375,8 @@ class RTELMemoryPool : public RTEList<T> {
             nextelem->prev = prevelem;
 
             // prepend the element to the external rtelist
-            RTEList<T>::Node<T>* el_firstnode = (RTEList<T>::Node<T>*) &rtelist->firstnode;
-            RTEList<T>::Node<T>* first        = el_firstnode->anext;
+            RTELNode<T>* el_firstnode = (RTELNode<T>*) &rtelist->firstnode;
+            RTELNode<T>* first        = el_firstnode->anext;
 
             currentnode->anext  = first;
             currentnode->aprev  = el_firstnode;
@@ -386,21 +387,21 @@ class RTELMemoryPool : public RTEList<T> {
             return &currentnode->data;
         }
 
-        inline void append(RTEList<T>::Node<T>* elem) {
-            RTEList<T>::Node<T>* last = lastnode.prev;
+        inline void append(RTELNode<T>* elem) {
+            RTELNode<T>* last = this->lastnode.prev;
 
             last->next    = elem;
-            elem->next    = &lastnode;
-            lastnode.prev = elem;
+            elem->next    = &(this->lastnode);
+            this->lastnode.prev = elem;
             elem->prev    = last;
         }
 
-        inline void prepend(RTEList<T>::Node<T>* elem) {
-            RTEList<T>::Node<T>* first = firstnode.next;
+        inline void prepend(RTELNode<T>* elem) {
+            RTELNode<T>* first = this->firstnode.next;
 
             elem->next     = first;
-            elem->prev     = &firstnode;
-            firstnode.next = elem;
+            elem->prev     = &(this->firstnode);
+            this->firstnode.next = elem;
             first->prev    = elem;
         }
 
@@ -414,21 +415,21 @@ class RTELMemoryPool : public RTEList<T> {
          */
         RTELMemoryPool(int numelements) : RTEList<T>::RTEList(this) {
             // initialize freelist listnode and lastnode pointers
-            firstnode.prev = &firstnode;
-            firstnode.next = &lastnode;
-            lastnode.next  = &lastnode;
-            lastnode.prev  = &firstnode;
+            this->firstnode.prev = &(this->firstnode);
+            this->firstnode.next = &(this->lastnode);
+            this->lastnode.next  = &(this->lastnode);
+            this->lastnode.prev  = &(this->firstnode);
 
-            currentnode = &lastnode;
+            currentnode = &(this->lastnode);
 
             // initialize alloclist listnode and lastnode pointers
-            firstnode.aprev = &firstnode;
-            firstnode.anext = &lastnode;
-            lastnode.anext  = &lastnode;
-            lastnode.aprev  = &firstnode;
+            this->firstnode.aprev = &(this->firstnode);
+            this->firstnode.anext = &(this->lastnode);
+            this->lastnode.anext  = &(this->lastnode);
+            this->lastnode.aprev  = &(this->firstnode);
 
 
-            memory_pool = new RTEList<T>::Node<T>[numelements];
+            memory_pool = new RTELNode<T>[numelements];
 
             for (int i = 0; i < numelements; i++) {
                 append(&memory_pool[i]);
@@ -443,7 +444,7 @@ class RTELMemoryPool : public RTEList<T> {
          * Returns true if no more element can be allocated.
          */
         inline bool pool_is_empty() {
-            RTEList<T>::Node<T>* nextnode = firstnode.next;
+            RTELNode<T>* nextnode = this->firstnode.next;
             return (nextnode->next == nextnode);
         }
 
@@ -456,22 +457,22 @@ class RTELMemoryPool : public RTEList<T> {
          */
         inline T* alloc() {
             // get the first element
-            currentnode = firstnode.next;
+            currentnode = this->firstnode.next;
             // element->next points to itself which means last element
             // return NULL to signal end of list
             if (currentnode->next == currentnode) return NULL;
 
             // now remove the element from the freelist
-            RTEList<T>::Node<T>* prevelem = currentnode->prev;
-            RTEList<T>::Node<T>* nextelem = currentnode->next;
+            RTELNode<T>* prevelem = currentnode->prev;
+            RTELNode<T>* nextelem = currentnode->next;
             prevelem->next = nextelem;
             nextelem->prev = prevelem;
 
             // append the element to the alloc list
-            RTEList<T>::Node<T>* last = lastnode.aprev;
+            RTELNode<T>* last = this->lastnode.aprev;
             last->anext        = currentnode;
-            currentnode->anext = &lastnode;
-            lastnode.aprev     = currentnode;
+            currentnode->anext = &(this->lastnode);
+            this->lastnode.aprev = currentnode;
             currentnode->aprev = last;
 
             // finally return the allocated elment
@@ -482,15 +483,15 @@ class RTELMemoryPool : public RTEList<T> {
          * Free an allocated element by putting it back to the freelist.
          */
         inline void free(T* element) {
-            RTEList<T>::Node<T>* prevelem;
-            RTEList<T>::Node<T>* nextelem;
-            RTEList<T>::Node<T>* node;
+            RTELNode<T>* prevelem;
+            RTELNode<T>* nextelem;
+            RTELNode<T>* node;
 
             char* node_to_free = (char*) element;
             // calculate the offset of the RTEListNode (see free_offset calculation in the constructor)
-            node_to_free -= free_offset;
+            node_to_free -= this->free_offset;
             // insert the node to the beginning of the freelist
-            node = (RTEList<T>::Node<T>*) node_to_free;
+            node = (RTELNode<T>*) node_to_free;
             prepend(node);
 
             // now remove the element from the alloclist
@@ -510,30 +511,30 @@ class RTELMemoryPool : public RTEList<T> {
          * @returns number of freed elements
          */
         inline int clear() {
-            RTEList<T>::Node<T>* nextnode;
-            RTEList<T>::Node<T>* prevelem;
-            RTEList<T>::Node<T>* nextelem;
+            RTELNode<T>* nextnode;
+            RTELNode<T>* prevelem;
+            RTELNode<T>* nextelem;
 
             int count = 0;
 
-            acurrentnode = firstnode.anext;
-            if (acurrentnode->anext == acurrentnode) return 0;
+            this->acurrentnode = this->firstnode.anext;
+            if (this->acurrentnode->anext == this->acurrentnode) return 0;
 
             while (true) {
-                nextnode = acurrentnode->anext;
+                nextnode = this->acurrentnode->anext;
 
                 // prepend (insert at the beginning) the node to the freelist
                 //printf("empty: putting back elem (node) %d to freelist\n",acurrentnode);
-                prepend(acurrentnode); count++;
+                prepend(this->acurrentnode); count++;
 
                 // now remove the element from the alloclist
-                prevelem        = acurrentnode->aprev;
-                nextelem        = acurrentnode->anext;
+                prevelem        = this->acurrentnode->aprev;
+                nextelem        = this->acurrentnode->anext;
                 prevelem->anext = nextelem;
                 nextelem->aprev = prevelem;
 
                 if (nextnode->anext == nextnode) return count;
-                acurrentnode = nextnode;
+                this->acurrentnode = nextnode;
             }
         }
 };
