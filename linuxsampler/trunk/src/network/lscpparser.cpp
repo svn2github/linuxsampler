@@ -59,35 +59,36 @@
      SP = 261,
      LF = 262,
      CR = 263,
-     ADD = 264,
-     GET = 265,
-     LOAD = 266,
-     REMOVE = 267,
-     SET = 268,
-     SUBSCRIBE = 269,
-     UNSUBSCRIBE = 270,
-     RESET = 271,
-     QUIT = 272,
-     CHANNEL = 273,
-     NOTIFICATION = 274,
-     AVAILABLE_ENGINES = 275,
-     CHANNELS = 276,
-     INFO = 277,
-     BUFFER_FILL = 278,
-     STREAM_COUNT = 279,
-     VOICE_COUNT = 280,
-     INSTRUMENT = 281,
-     ENGINE = 282,
-     AUDIO_OUTPUT_CHANNEL = 283,
-     AUDIO_OUTPUT_TYPE = 284,
-     MIDI_INPUT_PORT = 285,
-     MIDI_INPUT_CHANNEL = 286,
-     MIDI_INPUT_TYPE = 287,
-     VOLUME = 288,
-     BYTES = 289,
-     PERCENTAGE = 290,
-     ALSA = 291,
-     JACK = 292
+     HASH = 264,
+     ADD = 265,
+     GET = 266,
+     LOAD = 267,
+     REMOVE = 268,
+     SET = 269,
+     SUBSCRIBE = 270,
+     UNSUBSCRIBE = 271,
+     RESET = 272,
+     QUIT = 273,
+     CHANNEL = 274,
+     NOTIFICATION = 275,
+     AVAILABLE_ENGINES = 276,
+     CHANNELS = 277,
+     INFO = 278,
+     BUFFER_FILL = 279,
+     STREAM_COUNT = 280,
+     VOICE_COUNT = 281,
+     INSTRUMENT = 282,
+     ENGINE = 283,
+     AUDIO_OUTPUT_CHANNEL = 284,
+     AUDIO_OUTPUT_TYPE = 285,
+     MIDI_INPUT_PORT = 286,
+     MIDI_INPUT_CHANNEL = 287,
+     MIDI_INPUT_TYPE = 288,
+     VOLUME = 289,
+     BYTES = 290,
+     PERCENTAGE = 291,
+     ALSA = 292,
+     JACK = 293
    };
 #endif
 #define CHAR 258
@@ -96,35 +97,36 @@
 #define SP 261
 #define LF 262
 #define CR 263
-#define ADD 264
-#define GET 265
-#define LOAD 266
-#define REMOVE 267
-#define SET 268
-#define SUBSCRIBE 269
-#define UNSUBSCRIBE 270
-#define RESET 271
-#define QUIT 272
-#define CHANNEL 273
-#define NOTIFICATION 274
-#define AVAILABLE_ENGINES 275
-#define CHANNELS 276
-#define INFO 277
-#define BUFFER_FILL 278
-#define STREAM_COUNT 279
-#define VOICE_COUNT 280
-#define INSTRUMENT 281
-#define ENGINE 282
-#define AUDIO_OUTPUT_CHANNEL 283
-#define AUDIO_OUTPUT_TYPE 284
-#define MIDI_INPUT_PORT 285
-#define MIDI_INPUT_CHANNEL 286
-#define MIDI_INPUT_TYPE 287
-#define VOLUME 288
-#define BYTES 289
-#define PERCENTAGE 290
-#define ALSA 291
-#define JACK 292
+#define HASH 264
+#define ADD 265
+#define GET 266
+#define LOAD 267
+#define REMOVE 268
+#define SET 269
+#define SUBSCRIBE 270
+#define UNSUBSCRIBE 271
+#define RESET 272
+#define QUIT 273
+#define CHANNEL 274
+#define NOTIFICATION 275
+#define AVAILABLE_ENGINES 276
+#define CHANNELS 277
+#define INFO 278
+#define BUFFER_FILL 279
+#define STREAM_COUNT 280
+#define VOICE_COUNT 281
+#define INSTRUMENT 282
+#define ENGINE 283
+#define AUDIO_OUTPUT_CHANNEL 284
+#define AUDIO_OUTPUT_TYPE 285
+#define MIDI_INPUT_PORT 286
+#define MIDI_INPUT_CHANNEL 287
+#define MIDI_INPUT_TYPE 288
+#define VOLUME 289
+#define BYTES 290
+#define PERCENTAGE 291
+#define ALSA 292
+#define JACK 293
 
 
 
@@ -183,7 +185,7 @@ typedef int YYSTYPE;
 
 
 /* Line 214 of yacc.c.  */
-#line 187 "y.tab.c"
+#line 189 "y.tab.c"
 
 #if ! defined (yyoverflow) || YYERROR_VERBOSE
 
@@ -280,22 +282,22 @@ union yyalloc
 #endif
 
 /* YYFINAL -- State number of the termination state. */
-#define YYFINAL  22
+#define YYFINAL  24
 /* YYLAST -- Last index in YYTABLE.  */
-#define YYLAST   123
+#define YYLAST   128
 
 /* YYNTOKENS -- Number of terminals. */
-#define YYNTOKENS  38
+#define YYNTOKENS  39
 /* YYNNTS -- Number of nonterminals. */
-#define YYNNTS  24
+#define YYNNTS  25
 /* YYNRULES -- Number of rules. */
-#define YYNRULES  56
+#define YYNRULES  62
 /* YYNRULES -- Number of states. */
-#define YYNSTATES  136
+#define YYNSTATES  142
 
 /* YYTRANSLATE(YYLEX) -- Bison symbol number corresponding to YYLEX.  */
 #define YYUNDEFTOK  2
-#define YYMAXUTOK   292
+#define YYMAXUTOK   293
 
 #define YYTRANSLATE(YYX) 						\
   ((unsigned int) (YYX) <= YYMAXUTOK ? yytranslate[YYX] : YYUNDEFTOK)
@@ -332,7 +334,7 @@ static const unsigned char yytranslate[] =
        5,     6,     7,     8,     9,    10,    11,    12,    13,    14,
       15,    16,    17,    18,    19,    20,    21,    22,    23,    24,
       25,    26,    27,    28,    29,    30,    31,    32,    33,    34,
-      35,    36,    37
+      35,    36,    37,    38
 };
 
 #if YYDEBUG
@@ -340,49 +342,52 @@ static const unsigned char yytranslate[] =
    YYRHS.  */
 static const unsigned char yyprhs[] =
 {
-       0,     0,     3,     5,     9,    14,    15,    17,    19,    23,
-      27,    31,    37,    43,    49,    55,    61,    63,    65,    67,
-      73,    81,    87,    93,    99,   103,   107,   113,   119,   125,
-     131,   137,   143,   145,   147,   153,   157,   159,   161,   163,
-     165,   167,   169,   171,   173,   175,   177,   179,   181,   183,
-     185,   189,   191,   193,   196,   199,   201
+       0,     0,     3,     5,     9,    14,    15,    17,    19,    21,
+      23,    26,    29,    32,    35,    39,    43,    47,    53,    59,
+      65,    71,    77,    79,    81,    83,    89,    97,   103,   109,
+     115,   119,   123,   129,   135,   141,   147,   153,   159,   161,
+     163,   169,   173,   175,   177,   179,   181,   183,   185,   187,
+     189,   191,   193,   195,   197,   199,   201,   205,   207,   209,
+     212,   215,   217
 };
 
 /* YYRHS -- A `-1'-separated list of the rules' RHS. */
 static const yysigned_char yyrhs[] =
 {
-      39,     0,    -1,    40,    -1,    39,     7,    40,    -1,    39,
-       8,     7,    40,    -1,    -1,    41,    -1,     1,    -1,     9,
-       6,    18,    -1,    10,     6,    42,    -1,    11,     6,    43,
-      -1,    12,     6,    18,     6,    51,    -1,    13,     6,    18,
-       6,    44,    -1,    14,     6,    19,     6,    53,    -1,    15,
-       6,    19,     6,    56,    -1,    16,     6,    18,     6,    51,
-      -1,    17,    -1,    20,    -1,    21,    -1,    18,     6,    22,
-       6,    51,    -1,    18,     6,    23,     6,    45,     6,    51,
-      -1,    18,     6,    24,     6,    51,    -1,    18,     6,    25,
-       6,    51,    -1,    27,     6,    22,     6,    57,    -1,    26,
-       6,    46,    -1,    27,     6,    47,    -1,    28,     6,    51,
-       6,    54,    -1,    29,     6,    51,     6,    48,    -1,    30,
-       6,    51,     6,    58,    -1,    31,     6,    51,     6,    55,
-      -1,    32,     6,    51,     6,    49,    -1,    33,     6,    51,
-       6,    50,    -1,    34,    -1,    35,    -1,    59,     6,    52,
-       6,    51,    -1,    57,     6,    51,    -1,    36,    -1,    37,
-      -1,    36,    -1,     4,    -1,     5,    -1,     5,    -1,     5,
-      -1,     5,    -1,     5,    -1,     5,    -1,    60,    -1,    61,
-      -1,    60,    -1,    60,    -1,    59,     6,    60,    -1,    61,
-      -1,     5,    -1,    60,    61,    -1,    60,     5,    -1,     3,
-      -1,    61,     3,    -1
+      40,     0,    -1,    41,    -1,    40,     7,    41,    -1,    40,
+       8,     7,    41,    -1,    -1,    42,    -1,    43,    -1,     1,
+      -1,     9,    -1,    42,     9,    -1,    42,     6,    -1,    42,
+       5,    -1,    42,    63,    -1,    10,     6,    19,    -1,    11,
+       6,    44,    -1,    12,     6,    45,    -1,    13,     6,    19,
+       6,    53,    -1,    14,     6,    19,     6,    46,    -1,    15,
+       6,    20,     6,    55,    -1,    16,     6,    20,     6,    58,
+      -1,    17,     6,    19,     6,    53,    -1,    18,    -1,    21,
+      -1,    22,    -1,    19,     6,    23,     6,    53,    -1,    19,
+       6,    24,     6,    47,     6,    53,    -1,    19,     6,    25,
+       6,    53,    -1,    19,     6,    26,     6,    53,    -1,    28,
+       6,    23,     6,    59,    -1,    27,     6,    48,    -1,    28,
+       6,    49,    -1,    29,     6,    53,     6,    56,    -1,    30,
+       6,    53,     6,    50,    -1,    31,     6,    53,     6,    60,
+      -1,    32,     6,    53,     6,    57,    -1,    33,     6,    53,
+       6,    51,    -1,    34,     6,    53,     6,    52,    -1,    35,
+      -1,    36,    -1,    61,     6,    54,     6,    53,    -1,    59,
+       6,    53,    -1,    37,    -1,    38,    -1,    37,    -1,     4,
+      -1,     5,    -1,     5,    -1,     5,    -1,     5,    -1,     5,
+      -1,     5,    -1,    62,    -1,    63,    -1,    62,    -1,    62,
+      -1,    61,     6,    62,    -1,    63,    -1,     5,    -1,    62,
+      63,    -1,    62,     5,    -1,     3,    -1,    63,     3,    -1
 };
 
 /* YYRLINE[YYN] -- source line where rule number YYN was defined.  */
 static const unsigned char yyrline[] =
 {
-       0,    77,    77,    78,    79,    82,    83,    84,    87,    88,
-      89,    90,    91,    92,    93,    94,    95,    98,    99,   100,
-     101,   102,   103,   104,   107,   108,   111,   112,   113,   114,
-     115,   116,   119,   120,   123,   126,   129,   130,   133,   136,
-     137,   140,   143,   146,   149,   152,   155,   158,   161,   164,
-     165,   168,   169,   170,   171,   174,   175
+       0,    77,    77,    78,    79,    82,    83,    84,    85,    88,
+      89,    90,    91,    92,    95,    96,    97,    98,    99,   100,
+     101,   102,   103,   106,   107,   108,   109,   110,   111,   112,
+     115,   116,   119,   120,   121,   122,   123,   124,   127,   128,
+     131,   134,   137,   138,   141,   144,   145,   148,   151,   154,
+     157,   160,   163,   166,   169,   172,   173,   176,   177,   178,
+     179,   182,   183
 };
 #endif
 
@@ -392,17 +397,17 @@ static const unsigned char yyrline[] =
 static const char *const yytname[] =
 {
   "$end", "error", "$undefined", "CHAR", "DOTNUM", "NUMBER", "SP", "LF", 
-  "CR", "ADD", "GET", "LOAD", "REMOVE", "SET", "SUBSCRIBE", "UNSUBSCRIBE", 
-  "RESET", "QUIT", "CHANNEL", "NOTIFICATION", "AVAILABLE_ENGINES", 
-  "CHANNELS", "INFO", "BUFFER_FILL", "STREAM_COUNT", "VOICE_COUNT", 
-  "INSTRUMENT", "ENGINE", "AUDIO_OUTPUT_CHANNEL", "AUDIO_OUTPUT_TYPE", 
-  "MIDI_INPUT_PORT", "MIDI_INPUT_CHANNEL", "MIDI_INPUT_TYPE", "VOLUME", 
-  "BYTES", "PERCENTAGE", "ALSA", "JACK", "$accept", "input", "line", 
-  "command", "get_instruction", "load_instruction", 
-  "set_chan_instruction", "buffer_size_type", "load_instr_args", 
-  "load_engine_args", "audio_output_type", "midi_input_type", "volume", 
-  "sampler_channel", "instrument_index", "udp_port", 
-  "audio_output_channel", "midi_input_channel", "session_id", 
+  "CR", "HASH", "ADD", "GET", "LOAD", "REMOVE", "SET", "SUBSCRIBE", 
+  "UNSUBSCRIBE", "RESET", "QUIT", "CHANNEL", "NOTIFICATION", 
+  "AVAILABLE_ENGINES", "CHANNELS", "INFO", "BUFFER_FILL", "STREAM_COUNT", 
+  "VOICE_COUNT", "INSTRUMENT", "ENGINE", "AUDIO_OUTPUT_CHANNEL", 
+  "AUDIO_OUTPUT_TYPE", "MIDI_INPUT_PORT", "MIDI_INPUT_CHANNEL", 
+  "MIDI_INPUT_TYPE", "VOLUME", "BYTES", "PERCENTAGE", "ALSA", "JACK", 
+  "$accept", "input", "line", "comment", "command", "get_instruction", 
+  "load_instruction", "set_chan_instruction", "buffer_size_type", 
+  "load_instr_args", "load_engine_args", "audio_output_type", 
+  "midi_input_type", "volume", "sampler_channel", "instrument_index", 
+  "udp_port", "audio_output_channel", "midi_input_channel", "session_id", 
   "engine_name", "midi_input_port", "filename", "alpha_num_string", 
   "string", 0
 };
@@ -416,30 +421,32 @@ static const unsigned short yytoknum[] =
        0,   256,   257,   258,   259,   260,   261,   262,   263,   264,
      265,   266,   267,   268,   269,   270,   271,   272,   273,   274,
      275,   276,   277,   278,   279,   280,   281,   282,   283,   284,
-     285,   286,   287,   288,   289,   290,   291,   292
+     285,   286,   287,   288,   289,   290,   291,   292,   293
 };
 # endif
 
 /* YYR1[YYN] -- Symbol number of symbol that rule YYN derives.  */
 static const unsigned char yyr1[] =
 {
-       0,    38,    39,    39,    39,    40,    40,    40,    41,    41,
-      41,    41,    41,    41,    41,    41,    41,    42,    42,    42,
-      42,    42,    42,    42,    43,    43,    44,    44,    44,    44,
-      44,    44,    45,    45,    46,    47,    48,    48,    49,    50,
-      50,    51,    52,    53,    54,    55,    56,    57,    58,    59,
-      59,    60,    60,    60,    60,    61,    61
+       0,    39,    40,    40,    40,    41,    41,    41,    41,    42,
+      42,    42,    42,    42,    43,    43,    43,    43,    43,    43,
+      43,    43,    43,    44,    44,    44,    44,    44,    44,    44,
+      45,    45,    46,    46,    46,    46,    46,    46,    47,    47,
+      48,    49,    50,    50,    51,    52,    52,    53,    54,    55,
+      56,    57,    58,    59,    60,    61,    61,    62,    62,    62,
+      62,    63,    63
 };
 
 /* YYR2[YYN] -- Number of symbols composing right hand side of rule YYN.  */
 static const unsigned char yyr2[] =
 {
-       0,     2,     1,     3,     4,     0,     1,     1,     3,     3,
-       3,     5,     5,     5,     5,     5,     1,     1,     1,     5,
-       7,     5,     5,     5,     3,     3,     5,     5,     5,     5,
-       5,     5,     1,     1,     5,     3,     1,     1,     1,     1,
-       1,     1,     1,     1,     1,     1,     1,     1,     1,     1,
-       3,     1,     1,     2,     2,     1,     2
+       0,     2,     1,     3,     4,     0,     1,     1,     1,     1,
+       2,     2,     2,     2,     3,     3,     3,     5,     5,     5,
+       5,     5,     1,     1,     1,     5,     7,     5,     5,     5,
+       3,     3,     5,     5,     5,     5,     5,     5,     1,     1,
+       5,     3,     1,     1,     1,     1,     1,     1,     1,     1,
+       1,     1,     1,     1,     1,     1,     3,     1,     1,     2,
+       2,     1,     2
 };
 
 /* YYDEFACT[STATE-NAME] -- Default rule to reduce with in state
@@ -447,96 +454,98 @@ static const unsigned char yyr2[] =
    means the default is an error.  */
 static const unsigned char yydefact[] =
 {
-       0,     7,     0,     0,     0,     0,     0,     0,     0,     0,
-      16,     0,     2,     6,     0,     0,     0,     0,     0,     0,
-       0,     0,     1,     0,     0,     8,     0,    17,    18,     0,
-       9,     0,     0,    10,     0,     0,     0,     0,     0,     3,
-       0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
-       4,     0,     0,     0,     0,     0,    55,    52,    24,     0,
-      49,    51,    25,     0,    47,    41,    11,     0,     0,     0,
-       0,     0,     0,    12,    43,    13,    14,    46,    15,     0,
-       0,     0,     0,     0,     0,    54,    53,    56,     0,     0,
-       0,     0,     0,     0,     0,    19,    32,    33,     0,    21,
-      22,    23,    52,     0,    50,    35,     0,     0,     0,     0,
-       0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
-      20,    34,    44,    26,    36,    37,    27,    28,    48,    45,
-      29,    38,    30,    39,    40,    31
+       0,     8,     9,     0,     0,     0,     0,     0,     0,     0,
+       0,    22,     0,     2,     6,     7,     0,     0,     0,     0,
+       0,     0,     0,     0,     1,     0,     0,    61,    12,    11,
+      10,    13,    14,     0,    23,    24,     0,    15,     0,     0,
+      16,     0,     0,     0,     0,     0,     3,     0,    62,     0,
+       0,     0,     0,     0,     0,     0,     0,     0,     4,     0,
+       0,     0,     0,     0,    58,    30,     0,    55,    57,    31,
+       0,    53,    47,    17,     0,     0,     0,     0,     0,     0,
+      18,    49,    19,    20,    52,    21,     0,     0,     0,     0,
+       0,     0,    60,    59,     0,     0,     0,     0,     0,     0,
+       0,    25,    38,    39,     0,    27,    28,    29,    58,     0,
+      56,    41,     0,     0,     0,     0,     0,     0,     0,     0,
+       0,     0,     0,     0,     0,     0,    26,    40,    50,    32,
+      42,    43,    33,    34,    54,    51,    35,    44,    36,    45,
+      46,    37
 };
 
 /* YYDEFGOTO[NTERM-NUM]. */
 static const short yydefgoto[] =
 {
-      -1,    11,    12,    13,    30,    33,    73,    98,    58,    62,
-     126,   132,   135,    66,   103,    75,   123,   130,    76,    63,
-     127,    59,    60,    61
+      -1,    12,    13,    14,    15,    37,    40,    80,   104,    65,
+      69,   132,   138,   141,    73,   109,    82,   129,   136,    83,
+      70,   133,    66,    67,    68
 };
 
 /* YYPACT[STATE-NUM] -- Index in YYTABLE of the portion describing
    STATE-NUM.  */
-#define YYPACT_NINF -48
+#define YYPACT_NINF -56
 static const yysigned_char yypact[] =
 {
-      10,   -48,    -4,     3,    25,    40,    56,    60,    64,    70,
-     -48,    28,   -48,   -48,    16,   -14,   -12,    57,    59,    61,
-      62,    65,   -48,    10,    71,   -48,    73,   -48,   -48,    76,
-     -48,    79,    80,   -48,    81,    82,    83,    84,    85,   -48,
-      10,    20,    72,     0,    89,    88,    26,    90,     0,    88,
-     -48,    91,    92,    93,    94,    95,   -48,   -48,   -48,    96,
-      27,   100,   -48,    98,   100,   -48,   -48,    99,   101,   102,
-     103,   104,   105,   -48,   -48,   -48,   -48,    27,   -48,    88,
-      30,    88,    88,    89,    58,   -48,   100,   -48,    88,    88,
-      88,    88,    88,    88,    88,   -48,   -48,   -48,   106,   -48,
-     -48,   -48,   107,   108,    27,   -48,   109,   110,   111,   112,
-     113,   114,    88,    88,   116,    31,     0,   117,    87,    69,
-     -48,   -48,   -48,   -48,   -48,   -48,   -48,   -48,    27,   -48,
-     -48,   -48,   -48,   -48,   -48,   -48
+       4,   -56,   -56,    21,    33,    67,    74,    75,    76,    77,
+      78,   -56,    47,   -56,    20,   -56,    -9,     9,    35,    14,
+      50,    32,    59,    66,   -56,     4,    79,   -56,   -56,   -56,
+     -56,    84,   -56,    82,   -56,   -56,    83,   -56,    85,    86,
+     -56,    87,    88,    89,    91,    92,   -56,     4,   -56,   -17,
+      80,    45,    96,    95,    27,    97,    45,    95,   -56,    98,
+      99,   100,   101,   102,   -56,   -56,   103,    46,    84,   -56,
+     104,    84,   -56,   -56,   105,   106,   107,   108,   109,   110,
+     -56,   -56,   -56,   -56,    46,   -56,    95,    36,    95,    95,
+      96,    63,   -56,    84,    95,    95,    95,    95,    95,    95,
+      95,   -56,   -56,   -56,   111,   -56,   -56,   -56,   112,   113,
+      46,   -56,   115,   116,   117,   118,   119,   120,    95,    95,
+     122,    37,    45,   123,    53,    73,   -56,   -56,   -56,   -56,
+     -56,   -56,   -56,   -56,    46,   -56,   -56,   -56,   -56,   -56,
+     -56,   -56
 };
 
 /* YYPGOTO[NTERM-NUM].  */
 static const yysigned_char yypgoto[] =
 {
-     -48,   -48,   -11,   -48,   -48,   -48,   -48,   -48,   -48,   -48,
-     -48,   -48,   -48,   -41,   -48,   -48,   -48,   -48,   -48,    13,
-     -48,   -48,   -47,   -44
+     -56,   -56,   -23,   -56,   -56,   -56,   -56,   -56,   -56,   -56,
+     -56,   -56,   -56,   -56,   -54,   -56,   -56,   -56,   -56,   -56,
+      11,   -56,   -56,   -55,   -14
 };
 
 /* YYTABLE[YYPACT[STATE-NUM]].  What to do in state STATE-NUM.  If
    positive, shift that token.  If negative, reduce the rule which
    number is the opposite.  If zero, do what YYDEFACT says.
    If YYTABLE_NINF, syntax error.  */
-#define YYTABLE_NINF -43
+#define YYTABLE_NINF -49
 static const short yytable[] =
 {
-      64,    77,    14,    56,    26,    57,    27,    28,    78,    15,
-      -5,     1,    39,    29,    31,    32,    86,    -5,    -5,     2,
-       3,     4,     5,     6,     7,     8,     9,    10,    22,    50,
-      56,    16,    85,    86,    25,    23,    24,   104,    95,    64,
-      99,   100,    51,    52,    53,    54,    17,   105,   106,   107,
-     108,   109,   110,   111,    67,    68,    69,    70,    71,    72,
-      86,    56,    18,   102,    96,    97,    19,   124,   125,   128,
-      20,   120,   121,   133,   134,    34,    21,    35,    40,    41,
-      36,    37,    42,    38,    86,    43,    44,    45,    46,    47,
-      48,    49,    56,    65,    55,    74,   101,    79,    80,    81,
-      82,    83,    84,    87,    88,    89,     0,    90,    91,    92,
-      93,    94,   112,   -42,   113,   114,   115,   116,   117,   118,
-     119,   122,   129,   131
+      31,    84,    46,    85,    -5,     1,    59,    60,    61,    62,
+      32,    -5,    -5,     2,     3,     4,     5,     6,     7,     8,
+       9,    10,    11,    27,    58,    28,    29,    16,    33,    30,
+      34,    35,   101,    41,   105,   106,   110,    36,    71,    17,
+     111,   112,   113,   114,   115,   116,   117,    24,    27,    27,
+      64,    92,    43,    93,    25,    26,    74,    75,    76,    77,
+      78,    79,    38,    39,   126,   127,    27,   134,   108,    42,
+      93,   102,   103,    18,   130,   131,    71,   139,   140,    44,
+      19,    20,    21,    22,    23,    45,    47,    48,    49,    50,
+     137,    51,    52,    53,    54,    55,    93,    56,    57,    27,
+      72,   107,    81,    63,    86,    87,    88,    89,    90,    91,
+      94,    95,    96,    97,    98,    99,   100,   118,   -48,   119,
+      93,   120,   121,   122,   123,   124,   125,   128,   135
 };
 
-static const short yycheck[] =
+static const unsigned char yycheck[] =
 {
-      44,    48,     6,     3,    18,     5,    20,    21,    49,     6,
-       0,     1,    23,    27,    26,    27,    60,     7,     8,     9,
-      10,    11,    12,    13,    14,    15,    16,    17,     0,    40,
-       3,     6,     5,    77,    18,     7,     8,    84,    79,    83,
-      81,    82,    22,    23,    24,    25,     6,    88,    89,    90,
-      91,    92,    93,    94,    28,    29,    30,    31,    32,    33,
-     104,     3,     6,     5,    34,    35,     6,    36,    37,   116,
-       6,   112,   113,     4,     5,    18,     6,    18,     7,     6,
-      19,    19,     6,    18,   128,     6,     6,     6,     6,     6,
-       6,     6,     3,     5,    22,     5,    83,     6,     6,     6,
-       6,     6,     6,     3,     6,     6,    -1,     6,     6,     6,
+      14,    56,    25,    57,     0,     1,    23,    24,    25,    26,
+      19,     7,     8,     9,    10,    11,    12,    13,    14,    15,
+      16,    17,    18,     3,    47,     5,     6,     6,    19,     9,
+      21,    22,    86,    19,    88,    89,    91,    28,    52,     6,
+      94,    95,    96,    97,    98,    99,   100,     0,     3,     3,
+       5,     5,    20,    67,     7,     8,    29,    30,    31,    32,
+      33,    34,    27,    28,   118,   119,     3,   122,     5,    19,
+      84,    35,    36,     6,    37,    38,    90,     4,     5,    20,
+       6,     6,     6,     6,     6,    19,     7,     3,     6,     6,
+      37,     6,     6,     6,     6,     6,   110,     6,     6,     3,
+       5,    90,     5,    23,     6,     6,     6,     6,     6,     6,
        6,     6,     6,     6,     6,     6,     6,     6,     6,     6,
-       6,     5,     5,    36
+     134,     6,     6,     6,     6,     6,     6,     5,     5
 };
 
 /* YYSTOS[STATE-NUM] -- The (internal number of the) accessing
@@ -544,19 +553,20 @@ static const short yycheck[] =
 static const unsigned char yystos[] =
 {
        0,     1,     9,    10,    11,    12,    13,    14,    15,    16,
-      17,    39,    40,    41,     6,     6,     6,     6,     6,     6,
-       6,     6,     0,     7,     8,    18,    18,    20,    21,    27,
-      42,    26,    27,    43,    18,    18,    19,    19,    18,    40,
-       7,     6,     6,     6,     6,     6,     6,     6,     6,     6,
-      40,    22,    23,    24,    25,    22,     3,     5,    46,    59,
-      60,    61,    47,    57,    61,     5,    51,    28,    29,    30,
-      31,    32,    33,    44,     5,    53,    56,    60,    51,     6,
-       6,     6,     6,     6,     6,     5,    61,     3,     6,     6,
-       6,     6,     6,     6,     6,    51,    34,    35,    45,    51,
-      51,    57,     5,    52,    60,    51,    51,    51,    51,    51,
-      51,    51,     6,     6,     6,     6,     6,     6,     6,     6,
-      51,    51,     5,    54,    36,    37,    48,    58,    60,     5,
-      55,    36,    49,     4,     5,    50
+      17,    18,    40,    41,    42,    43,     6,     6,     6,     6,
+       6,     6,     6,     6,     0,     7,     8,     3,     5,     6,
+       9,    63,    19,    19,    21,    22,    28,    44,    27,    28,
+      45,    19,    19,    20,    20,    19,    41,     7,     3,     6,
+       6,     6,     6,     6,     6,     6,     6,     6,    41,    23,
+      24,    25,    26,    23,     5,    48,    61,    62,    63,    49,
+      59,    63,     5,    53,    29,    30,    31,    32,    33,    34,
+      46,     5,    55,    58,    62,    53,     6,     6,     6,     6,
+       6,     6,     5,    63,     6,     6,     6,     6,     6,     6,
+       6,    53,    35,    36,    47,    53,    53,    59,     5,    54,
+      62,    53,    53,    53,    53,    53,    53,    53,     6,     6,
+       6,     6,     6,     6,     6,     6,    53,    53,     5,    56,
+      37,    38,    50,    60,    62,     5,    57,    37,    51,     4,
+       5,    52
 };
 
 #if ! defined (YYSIZE_T) && defined (__SIZE_TYPE__)
@@ -1166,208 +1176,208 @@ yyreduce:
   YY_REDUCE_PRINT (yyn);
   switch (yyn)
     {
-        case 6:
-#line 83 "lscp.y"
+        case 7:
+#line 84 "lscp.y"
     { LSCPSERVER->AnswerClient(yyvsp[0].String); }
     break;
 
-  case 7:
-#line 84 "lscp.y"
+  case 8:
+#line 85 "lscp.y"
     { LSCPSERVER->AnswerClient("Err:0:Unknown command.\r\n"); RESTART; return LSCP_SYNTAX_ERROR; }
     break;
 
-  case 8:
-#line 87 "lscp.y"
+  case 14:
+#line 95 "lscp.y"
     { yyval.String = LSCPSERVER->AddChannel();                  }
     break;
 
-  case 9:
-#line 88 "lscp.y"
-    { yyval.String = yyvsp[0].String;                                        }
-    break;
-
-  case 10:
-#line 89 "lscp.y"
-    { yyval.String = yyvsp[0].String;                                        }
-    break;
-
-  case 11:
-#line 90 "lscp.y"
-    { yyval.String = LSCPSERVER->RemoveChannel(yyvsp[0].Number);             }
-    break;
-
-  case 12:
-#line 91 "lscp.y"
-    { yyval.String = yyvsp[0].String;                                        }
-    break;
-
-  case 13:
-#line 92 "lscp.y"
-    { yyval.String = LSCPSERVER->SubscribeNotification(yyvsp[0].Number);     }
-    break;
-
-  case 14:
-#line 93 "lscp.y"
-    { yyval.String = LSCPSERVER->UnsubscribeNotification(yyvsp[0].String);   }
-    break;
-
   case 15:
-#line 94 "lscp.y"
-    { yyval.String = LSCPSERVER->ResetChannel(yyvsp[0].Number);              }
+#line 96 "lscp.y"
+    { yyval.String = yyvsp[0].String;                                        }
     break;
 
   case 16:
-#line 95 "lscp.y"
-    { LSCPSERVER->AnswerClient("Bye!\r\n"); return 0; }
+#line 97 "lscp.y"
+    { yyval.String = yyvsp[0].String;                                        }
     break;
 
   case 17:
 #line 98 "lscp.y"
-    { yyval.String = LSCPSERVER->GetAvailableEngines(); }
+    { yyval.String = LSCPSERVER->RemoveChannel(yyvsp[0].Number);             }
     break;
 
   case 18:
 #line 99 "lscp.y"
-    { yyval.String = LSCPSERVER->GetChannels();         }
+    { yyval.String = yyvsp[0].String;                                        }
     break;
 
   case 19:
 #line 100 "lscp.y"
-    { yyval.String = LSCPSERVER->GetChannelInfo(yyvsp[0].Number);    }
+    { yyval.String = LSCPSERVER->SubscribeNotification(yyvsp[0].Number);     }
     break;
 
   case 20:
 #line 101 "lscp.y"
-    { yyval.String = LSCPSERVER->GetBufferFill(yyvsp[-2].FillResponse, yyvsp[0].Number); }
+    { yyval.String = LSCPSERVER->UnsubscribeNotification(yyvsp[0].String);   }
     break;
 
   case 21:
 #line 102 "lscp.y"
-    { yyval.String = LSCPSERVER->GetStreamCount(yyvsp[0].Number);    }
+    { yyval.String = LSCPSERVER->ResetChannel(yyvsp[0].Number);              }
     break;
 
   case 22:
 #line 103 "lscp.y"
-    { yyval.String = LSCPSERVER->GetVoiceCount(yyvsp[0].Number);     }
+    { LSCPSERVER->AnswerClient("Bye!\r\n"); return 0; }
     break;
 
   case 23:
-#line 104 "lscp.y"
-    { yyval.String = LSCPSERVER->GetEngineInfo(yyvsp[0].String);     }
+#line 106 "lscp.y"
+    { yyval.String = LSCPSERVER->GetAvailableEngines(); }
     break;
 
   case 24:
 #line 107 "lscp.y"
-    { yyval.String = yyvsp[0].String; }
+    { yyval.String = LSCPSERVER->GetChannels();         }
     break;
 
   case 25:
 #line 108 "lscp.y"
-    { yyval.String = yyvsp[0].String; }
+    { yyval.String = LSCPSERVER->GetChannelInfo(yyvsp[0].Number);    }
     break;
 
   case 26:
-#line 111 "lscp.y"
-    { yyval.String = LSCPSERVER->SetAudioOutputChannel(yyvsp[0].Number, yyvsp[-2].Number); }
+#line 109 "lscp.y"
+    { yyval.String = LSCPSERVER->GetBufferFill(yyvsp[-2].FillResponse, yyvsp[0].Number); }
     break;
 
   case 27:
-#line 112 "lscp.y"
-    { yyval.String = LSCPSERVER->SetAudioOutputType(yyvsp[0].AudioOutput, yyvsp[-2].Number);    }
+#line 110 "lscp.y"
+    { yyval.String = LSCPSERVER->GetStreamCount(yyvsp[0].Number);    }
     break;
 
   case 28:
-#line 113 "lscp.y"
-    { yyval.String = LSCPSERVER->SetMIDIInputPort(yyvsp[0].String, yyvsp[-2].Number);      }
+#line 111 "lscp.y"
+    { yyval.String = LSCPSERVER->GetVoiceCount(yyvsp[0].Number);     }
     break;
 
   case 29:
-#line 114 "lscp.y"
-    { yyval.String = LSCPSERVER->SetMIDIInputChannel(yyvsp[0].Number, yyvsp[-2].Number);   }
+#line 112 "lscp.y"
+    { yyval.String = LSCPSERVER->GetEngineInfo(yyvsp[0].String);     }
     break;
 
   case 30:
 #line 115 "lscp.y"
-    { yyval.String = LSCPSERVER->SetMIDIInputType(yyvsp[0].MidiInput, yyvsp[-2].Number);      }
+    { yyval.String = yyvsp[0].String; }
     break;
 
   case 31:
 #line 116 "lscp.y"
-    { yyval.String = LSCPSERVER->SetVolume(yyvsp[0].Dotnum, yyvsp[-2].Number);             }
+    { yyval.String = yyvsp[0].String; }
     break;
 
   case 32:
 #line 119 "lscp.y"
-    { yyval.FillResponse = fill_response_bytes;      }
+    { yyval.String = LSCPSERVER->SetAudioOutputChannel(yyvsp[0].Number, yyvsp[-2].Number); }
     break;
 
   case 33:
 #line 120 "lscp.y"
-    { yyval.FillResponse = fill_response_percentage; }
+    { yyval.String = LSCPSERVER->SetAudioOutputType(yyvsp[0].AudioOutput, yyvsp[-2].Number);    }
     break;
 
   case 34:
-#line 123 "lscp.y"
-    { yyval.String = LSCPSERVER->LoadInstrument(yyvsp[-4].String, yyvsp[-2].Number, yyvsp[0].Number); }
+#line 121 "lscp.y"
+    { yyval.String = LSCPSERVER->SetMIDIInputPort(yyvsp[0].String, yyvsp[-2].Number);      }
     break;
 
   case 35:
-#line 126 "lscp.y"
-    { yyval.String = LSCPSERVER->LoadEngine(yyvsp[-2].String, yyvsp[0].Number); }
+#line 122 "lscp.y"
+    { yyval.String = LSCPSERVER->SetMIDIInputChannel(yyvsp[0].Number, yyvsp[-2].Number);   }
     break;
 
   case 36:
-#line 129 "lscp.y"
-    { yyval.AudioOutput = AudioOutputDevice::type_alsa; }
+#line 123 "lscp.y"
+    { yyval.String = LSCPSERVER->SetMIDIInputType(yyvsp[0].MidiInput, yyvsp[-2].Number);      }
     break;
 
   case 37:
-#line 130 "lscp.y"
-    { yyval.AudioOutput = AudioOutputDevice::type_jack; }
+#line 124 "lscp.y"
+    { yyval.String = LSCPSERVER->SetVolume(yyvsp[0].Dotnum, yyvsp[-2].Number);             }
     break;
 
   case 38:
-#line 133 "lscp.y"
-    { yyval.MidiInput = MidiInputDevice::type_alsa; }
+#line 127 "lscp.y"
+    { yyval.FillResponse = fill_response_bytes;      }
+    break;
+
+  case 39:
+#line 128 "lscp.y"
+    { yyval.FillResponse = fill_response_percentage; }
     break;
 
   case 40:
+#line 131 "lscp.y"
+    { yyval.String = LSCPSERVER->LoadInstrument(yyvsp[-4].String, yyvsp[-2].Number, yyvsp[0].Number); }
+    break;
+
+  case 41:
+#line 134 "lscp.y"
+    { yyval.String = LSCPSERVER->LoadEngine(yyvsp[-2].String, yyvsp[0].Number); }
+    break;
+
+  case 42:
 #line 137 "lscp.y"
+    { yyval.AudioOutput = AudioOutputDevice::type_alsa; }
+    break;
+
+  case 43:
+#line 138 "lscp.y"
+    { yyval.AudioOutput = AudioOutputDevice::type_jack; }
+    break;
+
+  case 44:
+#line 141 "lscp.y"
+    { yyval.MidiInput = MidiInputDevice::type_alsa; }
+    break;
+
+  case 46:
+#line 145 "lscp.y"
     { yyval.Dotnum = yyvsp[0].Number; }
     break;
 
-  case 50:
-#line 165 "lscp.y"
+  case 56:
+#line 173 "lscp.y"
     { yyval.String = yyvsp[-2].String + ' ' + yyvsp[0].String; }
     break;
 
-  case 51:
-#line 168 "lscp.y"
+  case 57:
+#line 176 "lscp.y"
     { yyval.String = yyvsp[0].String;                                             }
     break;
 
-  case 52:
-#line 169 "lscp.y"
+  case 58:
+#line 177 "lscp.y"
     { std::stringstream ss; ss << yyvsp[0].Number; yyval.String = ss.str();       }
     break;
 
-  case 53:
-#line 170 "lscp.y"
+  case 59:
+#line 178 "lscp.y"
     { yyval.String = yyvsp[-1].String + yyvsp[0].String;                                        }
     break;
 
-  case 54:
-#line 171 "lscp.y"
+  case 60:
+#line 179 "lscp.y"
     { std::stringstream ss; ss << yyvsp[-1].String << yyvsp[0].Number; yyval.String = ss.str(); }
     break;
 
-  case 55:
-#line 174 "lscp.y"
+  case 61:
+#line 182 "lscp.y"
     { std::string s; s = yyvsp[0].Char; yyval.String = s; }
     break;
 
-  case 56:
-#line 175 "lscp.y"
+  case 62:
+#line 183 "lscp.y"
     { yyval.String = yyvsp[-1].String + yyvsp[0].Char;                  }
     break;
 
@@ -1375,7 +1385,7 @@ yyreduce:
     }
 
 /* Line 999 of yacc.c.  */
-#line 1379 "y.tab.c"
+#line 1389 "y.tab.c"
 
   yyvsp -= yylen;
   yyssp -= yylen;
@@ -1569,7 +1579,7 @@ yyreturn:
 }
 
 
-#line 178 "lscp.y"
+#line 186 "lscp.y"
 
 
 /**

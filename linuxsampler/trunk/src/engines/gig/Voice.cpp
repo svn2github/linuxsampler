@@ -520,7 +520,7 @@ namespace LinuxSampler { namespace gig {
     void Voice::Render(uint Samples) {
 
         // Reset the synthesis parameter matrix
-        pEngine->ResetSynthesisParameters(Event::destination_vca, this->Volume);
+        pEngine->ResetSynthesisParameters(Event::destination_vca, this->Volume * pEngine->GlobalVolume);
         pEngine->ResetSynthesisParameters(Event::destination_vco, this->PitchBase);
     #if ENABLE_FILTER
         pEngine->ResetSynthesisParameters(Event::destination_vcfc, VCFCutoffCtrl.fvalue);

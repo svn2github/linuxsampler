@@ -35,35 +35,36 @@
      SP = 261,
      LF = 262,
      CR = 263,
-     ADD = 264,
-     GET = 265,
-     LOAD = 266,
-     REMOVE = 267,
-     SET = 268,
-     SUBSCRIBE = 269,
-     UNSUBSCRIBE = 270,
-     RESET = 271,
-     QUIT = 272,
-     CHANNEL = 273,
-     NOTIFICATION = 274,
-     AVAILABLE_ENGINES = 275,
-     CHANNELS = 276,
-     INFO = 277,
-     BUFFER_FILL = 278,
-     STREAM_COUNT = 279,
-     VOICE_COUNT = 280,
-     INSTRUMENT = 281,
-     ENGINE = 282,
-     AUDIO_OUTPUT_CHANNEL = 283,
-     AUDIO_OUTPUT_TYPE = 284,
-     MIDI_INPUT_PORT = 285,
-     MIDI_INPUT_CHANNEL = 286,
-     MIDI_INPUT_TYPE = 287,
-     VOLUME = 288,
-     BYTES = 289,
-     PERCENTAGE = 290,
-     ALSA = 291,
-     JACK = 292
+     HASH = 264,
+     ADD = 265,
+     GET = 266,
+     LOAD = 267,
+     REMOVE = 268,
+     SET = 269,
+     SUBSCRIBE = 270,
+     UNSUBSCRIBE = 271,
+     RESET = 272,
+     QUIT = 273,
+     CHANNEL = 274,
+     NOTIFICATION = 275,
+     AVAILABLE_ENGINES = 276,
+     CHANNELS = 277,
+     INFO = 278,
+     BUFFER_FILL = 279,
+     STREAM_COUNT = 280,
+     VOICE_COUNT = 281,
+     INSTRUMENT = 282,
+     ENGINE = 283,
+     AUDIO_OUTPUT_CHANNEL = 284,
+     AUDIO_OUTPUT_TYPE = 285,
+     MIDI_INPUT_PORT = 286,
+     MIDI_INPUT_CHANNEL = 287,
+     MIDI_INPUT_TYPE = 288,
+     VOLUME = 289,
+     BYTES = 290,
+     PERCENTAGE = 291,
+     ALSA = 292,
+     JACK = 293
    };
 #endif
 #define CHAR 258
@@ -72,35 +73,36 @@
 #define SP 261
 #define LF 262
 #define CR 263
-#define ADD 264
-#define GET 265
-#define LOAD 266
-#define REMOVE 267
-#define SET 268
-#define SUBSCRIBE 269
-#define UNSUBSCRIBE 270
-#define RESET 271
-#define QUIT 272
-#define CHANNEL 273
-#define NOTIFICATION 274
-#define AVAILABLE_ENGINES 275
-#define CHANNELS 276
-#define INFO 277
-#define BUFFER_FILL 278
-#define STREAM_COUNT 279
-#define VOICE_COUNT 280
-#define INSTRUMENT 281
-#define ENGINE 282
-#define AUDIO_OUTPUT_CHANNEL 283
-#define AUDIO_OUTPUT_TYPE 284
-#define MIDI_INPUT_PORT 285
-#define MIDI_INPUT_CHANNEL 286
-#define MIDI_INPUT_TYPE 287
-#define VOLUME 288
-#define BYTES 289
-#define PERCENTAGE 290
-#define ALSA 291
-#define JACK 292
+#define HASH 264
+#define ADD 265
+#define GET 266
+#define LOAD 267
+#define REMOVE 268
+#define SET 269
+#define SUBSCRIBE 270
+#define UNSUBSCRIBE 271
+#define RESET 272
+#define QUIT 273
+#define CHANNEL 274
+#define NOTIFICATION 275
+#define AVAILABLE_ENGINES 276
+#define CHANNELS 277
+#define INFO 278
+#define BUFFER_FILL 279
+#define STREAM_COUNT 280
+#define VOICE_COUNT 281
+#define INSTRUMENT 282
+#define ENGINE 283
+#define AUDIO_OUTPUT_CHANNEL 284
+#define AUDIO_OUTPUT_TYPE 285
+#define MIDI_INPUT_PORT 286
+#define MIDI_INPUT_CHANNEL 287
+#define MIDI_INPUT_TYPE 288
+#define VOLUME 289
+#define BYTES 290
+#define PERCENTAGE 291
+#define ALSA 292
+#define JACK 293
 
 
 

@@ -52,7 +52,7 @@ void yyerror(const char* s);
 %token <Char>   CHAR
 %token <Dotnum> DOTNUM
 %token <Number> NUMBER
-%token SP LF CR
+%token SP LF CR HASH
 %token ADD GET LOAD REMOVE SET SUBSCRIBE UNSUBSCRIBE RESET QUIT
 %token CHANNEL NOTIFICATION
 %token AVAILABLE_ENGINES CHANNELS INFO BUFFER_FILL STREAM_COUNT VOICE_COUNT
@@ -80,8 +80,16 @@ input                 :  line
                       ;
 
 line                  :  /* epsilon (empty line ignored) */
+                      |  comment
                       |  command  { LSCPSERVER->AnswerClient($1); }
                       |  error    { LSCPSERVER->AnswerClient("Err:0:Unknown command.\r\n"); RESTART; return LSCP_SYNTAX_ERROR; }
+                      ;
+
+comment               :  HASH
+                      |  comment HASH
+                      |  comment SP
+                      |  comment NUMBER
+                      |  comment string
                       ;
 
 command               :  ADD SP CHANNEL                             { $$ = LSCPSERVER->AddChannel();                  }

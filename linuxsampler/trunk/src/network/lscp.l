@@ -39,6 +39,7 @@ DIGIT           [0-9]
 " "                                     { return SP; }
 \n                                      { return LF; }
 \r                                      { return CR; }
+"#"                                     { return HASH; }
 ("+"|"-")?{DIGIT}+"."{DIGIT}+           { yylval->Dotnum = atof(yytext); return DOTNUM; }
 ADD                                     { return ADD; }
 GET                                     { return GET; }
