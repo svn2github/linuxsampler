@@ -174,9 +174,9 @@ namespace LinuxSampler { namespace gig {
                     float x0  = pSrc[pos_int+2];
                     float x1  = pSrc[pos_int+4];
                     float x2  = pSrc[pos_int+6];
-                    float a   = (3 * (x0 - x1) - xm1 + x2) / 2;
-                    float b   = 2 * x1 + xm1 - (5 * x0 + x2) / 2;
-                    float c   = (x1 - xm1) / 2;
+                    float a   = (3.0f * (x0 - x1) - xm1 + x2) * 0.5f;
+                    float b   = 2.0f * x1 + xm1 - (5.0f * x0 + x2) * 0.5f;
+                    float c   = (x1 - xm1) * 0.5f;
                     #if ENABLE_FILTER
                         pOutputLeft[i] += this->FilterLeft.Apply(&bq_base, &bq_main, effective_volume * ((((a * pos_fract) + b) * pos_fract + c) * pos_fract + x0));
                     #else // no filter
@@ -188,9 +188,9 @@ namespace LinuxSampler { namespace gig {
                     x0  = pSrc[pos_int+3];
                     x1  = pSrc[pos_int+5];
                     x2  = pSrc[pos_int+7];
-                    a   = (3 * (x0 - x1) - xm1 + x2) / 2;
-                    b   = 2 * x1 + xm1 - (5 * x0 + x2) / 2;
-                    c   = (x1 - xm1) / 2;
+                    a   = (3.0f * (x0 - x1) - xm1 + x2) * 0.5f;
+                    b   = 2.0f * x1 + xm1 - (5.0f * x0 + x2) * 0.5f;
+                    c   = (x1 - xm1) * 0.5f;
                     #if ENABLE_FILTER
                         pOutputRight[i++] += this->FilterRight.Apply(&bq_base, &bq_main, effective_volume * ((((a * pos_fract) + b) * pos_fract + c) * pos_fract + x0));
                     #else // no filter
@@ -212,9 +212,9 @@ namespace LinuxSampler { namespace gig {
                     float x0  = pSrc[pos_int+1];
                     float x1  = pSrc[pos_int+2];
                     float x2  = pSrc[pos_int+3];
-                    float a   = (3 * (x0 - x1) - xm1 + x2) / 2;
-                    float b   = 2 * x1 + xm1 - (5 * x0 + x2) / 2;
-                    float c   = (x1 - xm1) / 2;
+                    float a   = (3.0f * (x0 - x1) - xm1 + x2) * 0.5f;
+                    float b   = 2.0f * x1 + xm1 - (5.0f * x0 + x2) * 0.5f;
+                    float c   = (x1 - xm1) * 0.5f;
                     float sample_point = effective_volume * ((((a * pos_fract) + b) * pos_fract + c) * pos_fract + x0);
                 #endif // USE_LINEAR_INTERPOLATION
 
