@@ -836,36 +836,10 @@ namespace gig {
             pVelocityAttenuationTable = (*pVelocityTables)[tableKey];
         }
         else {
-            pVelocityAttenuationTable = new double[128];
-            switch (VelocityResponseCurve) { // calculate the new table
-                case curve_type_nonlinear:
-                    for (int velocity = 0; velocity < 128; velocity++) {
-                        pVelocityAttenuationTable[velocity] =
-                            GIG_VELOCITY_TRANSFORM_NONLINEAR(((double)velocity),((double)VelocityResponseDepth),((double)VelocityResponseCurveScaling));
-                        if      (pVelocityAttenuationTable[velocity] > 1.0)   pVelocityAttenuationTable[velocity] = 1.0;
-                        else if (pVelocityAttenuationTable[velocity] < 1e-15) pVelocityAttenuationTable[velocity] = 0.0;
-                     }
-                     break;
-                case curve_type_linear:
-                    for (int velocity = 0; velocity < 128; velocity++) {
-                        pVelocityAttenuationTable[velocity] =
-                            GIG_VELOCITY_TRANSFORM_LINEAR(((double)velocity),((double)VelocityResponseDepth),((double)VelocityResponseCurveScaling));
-                        if      (pVelocityAttenuationTable[velocity] > 1.0)   pVelocityAttenuationTable[velocity] = 1.0;
-                        else if (pVelocityAttenuationTable[velocity] < 1e-15) pVelocityAttenuationTable[velocity] = 0.0;
-                    }
-                    break;
-                case curve_type_special:
-                    for (int velocity = 0; velocity < 128; velocity++) {
-                        pVelocityAttenuationTable[velocity] =
-                            GIG_VELOCITY_TRANSFORM_SPECIAL(((double)velocity),((double)VelocityResponseDepth),((double)VelocityResponseCurveScaling));
-                        if      (pVelocityAttenuationTable[velocity] > 1.0)   pVelocityAttenuationTable[velocity] = 1.0;
-                        else if (pVelocityAttenuationTable[velocity] < 1e-15) pVelocityAttenuationTable[velocity] = 0.0;
-                    }
-                    break;
-                case curve_type_unknown:
-                default:
-                    throw gig::Exception("Unknown transform curve type.");
-            }
+            pVelocityAttenuationTable = 
+                CreateVelocityTable(VelocityResponseCurve,
+                                    VelocityResponseDepth,
+                                    VelocityResponseCurveScaling);
             (*pVelocityTables)[tableKey] = pVelocityAttenuationTable; // put the new table into the tables map
         }
     }
@@ -1018,6 +992,68 @@ namespace gig {
         return pVelocityAttenuationTable[MIDIKeyVelocity];
     }
 
+    double* DimensionRegion::CreateVelocityTable(curve_type_t curveType, uint8_t depth, uint8_t scaling) {
+        
+        // line-segment approximations of the 15 velocity curves
+
+        // linear
+        const int lin0[] = { 1, 1, 127, 127 };
+        const int lin1[] = { 1, 21, 127, 127 };
+        const int lin2[] = { 1, 45, 127, 127 };
+        const int lin3[] = { 1, 74, 127, 127 };
+        const int lin4[] = { 1, 127, 127, 127 };
+
+        // non-linear
+        const int non0[] = { 1, 4, 24, 5, 57, 17, 92, 57, 122, 127, 127, 127 };
+        const int non1[] = { 1, 4, 46, 9, 93, 56, 118, 106, 123, 127, 
+                             127, 127 };
+        const int non2[] = { 1, 4, 46, 9, 57, 20, 102, 107, 107, 127,
+                             127, 127 };
+        const int non3[] = { 1, 15, 10, 19, 67, 73, 80, 80, 90, 98, 98, 127,
+                             127, 127 };
+        const int non4[] = { 1, 25, 33, 57, 82, 81, 92, 127, 127, 127 };
+        
+        // special
+        const int spe0[] = { 1, 2, 76, 10, 90, 15, 95, 20, 99, 28, 103, 44, 
+                             113, 127, 127, 127 };
+        const int spe1[] = { 1, 2, 27, 5, 67, 18, 89, 29, 95, 35, 107, 67,
+                             118, 127, 127, 127 };
+        const int spe2[] = { 1, 1, 33, 1, 53, 5, 61, 13, 69, 32, 79, 74, 
+                             85, 90, 91, 127, 127, 127 };
+        const int spe3[] = { 1, 32, 28, 35, 66, 48, 89, 59, 95, 65, 99, 73, 
+                             117, 127, 127, 127 };
+        const int spe4[] = { 1, 4, 23, 5, 49, 13, 57, 17, 92, 57, 122, 127, 
+                             127, 127 };
+        
+        const int* const curves[] = { non0, non1, non2, non3, non4,
+                                      lin0, lin1, lin2, lin3, lin4, 
+                                      spe0, spe1, spe2, spe3, spe4 };
+        
+        double* const table = new double[128];
+
+        const int* curve = curves[curveType * 5 + depth];
+        const int s = scaling == 0 ? 20 : scaling; // 0 or 20 means no scaling
+        
+        table[0] = 0;
+        for (int x = 1 ; x < 128 ; x++) {
+
+            if (x > curve[2]) curve += 2;
+            double y = curve[1] + (x - curve[0]) * 
+                (double(curve[3] - curve[1]) / (curve[2] - curve[0]));
+            y = y / 127;
+
+            // Scale up for s > 20, down for s < 20. When
+            // down-scaling, the curve still ends at 1.0.
+            if (s < 20 && y >= 0.5)
+                y = y / ((2 - 40.0 / s) * y + 40.0 / s - 1);
+            else
+                y = y * (s / 20.0);
+            if (y > 1) y = 1;
+
+            table[x] = y;
+        }
+        return table;
+    }
 
 
 // *************** Region ***************
