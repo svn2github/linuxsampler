@@ -2,8 +2,8 @@
  *                                                                         *
  *   libgig - C++ cross-platform Gigasampler format file loader library    *
  *                                                                         *
- *   Copyright (C) 2003 by Christian Schoenebeck                           *
- *                         <cuse@users.sourceforge.net>                    *
+ *   Copyright (C) 2003, 2004 by Christian Schoenebeck                     *
+ *                               <cuse@users.sourceforge.net>              *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -241,7 +241,7 @@ int writeWav(const char* filename, void* samples, long samplecount, int channels
     if (_afWriteFrames(hFile, AF_DEFAULT_TRACK, samples, samplecount) < 0) return -1;
     _afCloseFile(hFile);
     _afFreeFileSetup(setup);
-    
+
     return 0;
 }
 

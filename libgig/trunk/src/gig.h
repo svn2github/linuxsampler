@@ -2,8 +2,8 @@
  *                                                                         *
  *   libgig - C++ cross-platform Gigasampler format file loader library    *
  *                                                                         *
- *   Copyright (C) 2003 by Christian Schoenebeck                           *
- *                         <cuse@users.sourceforge.net>                    *
+ *   Copyright (C) 2003, 2004 by Christian Schoenebeck                     *
+ *                               <cuse@users.sourceforge.net>              *
  *                                                                         *
  *   This library is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -167,7 +167,7 @@ namespace gig {
         vcf_res_ctrl_genpurpose5 = 2,           ///< General Purpose Controller 5 (Button, MIDI Controller 80)
         vcf_res_ctrl_genpurpose6 = 3            ///< General Purpose Controller 6 (Button, MIDI Controller 81)
     } vcf_res_ctrl_t;
-    
+
     /**
      * Defines a controller that has a certain contrained influence on a
      * particular synthesis parameter (used to define attenuation controller,
@@ -183,25 +183,25 @@ namespace gig {
             type_velocity          = 0xff, ///< Key Velocity
             type_controlchange     = 0xfe  ///< Ordinary MIDI control change controller, see field 'controller_number'
         } type_t;
-        
+
         type_t type;              ///< Controller type
         uint   controller_number; ///< MIDI controller number if this controller is a control change controller, 0 otherwise
     };
-    
+
     /**
      * Defines controller influencing attenuation.
      *
      * @see leverage_ctrl_t
      */
     typedef leverage_ctrl_t attenuation_ctrl_t;
-    
+
     /**
      * Defines controller influencing envelope generator 1.
      *
      * @see leverage_ctrl_t
      */
     typedef leverage_ctrl_t eg1_ctrl_t;
-    
+
     /**
      * Defines controller influencing envelope generator 2.
      *
@@ -442,13 +442,13 @@ namespace gig {
                 _lev_ctrl_effect5depth      = 0x2d, ///< Effect 5 Depth (MIDI Controller 95)
                 _lev_ctrl_channelaftertouch = 0x2f, ///< Channel Key Pressure
                 _lev_ctrl_velocity          = 0xff  ///< Key Velocity
-            } _lev_ctrl_t;        
+            } _lev_ctrl_t;
             typedef std::map<uint32_t, double*> VelocityTableMap;
 
             static uint              Instances;                  ///< Number of DimensionRegion instances.
             static VelocityTableMap* pVelocityTables;            ///< Contains the tables corresponding to the various velocity parameters (VelocityResponseCurve and VelocityResponseDepth).
             double*                  pVelocityAttenuationTable;  ///< Points to the velocity table corresponding to the velocity parameters of this DimensionRegion.
-            
+
             leverage_ctrl_t DecodeLeverageController(_lev_ctrl_t EncodedController);
     };
 

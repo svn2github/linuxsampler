@@ -2,8 +2,8 @@
  *                                                                         *
  *   libgig - C++ cross-platform Gigasampler format file loader library    *
  *                                                                         *
- *   Copyright (C) 2003 by Christian Schoenebeck                           *
- *                         <cuse@users.sourceforge.net>                    *
+ *   Copyright (C) 2003, 2004 by Christian Schoenebeck                     *
+ *                               <cuse@users.sourceforge.net>              *
  *                                                                         *
  *   This library is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
