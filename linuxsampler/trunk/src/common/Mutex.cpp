@@ -21,8 +21,8 @@
  ***************************************************************************/
 
 #include <iostream>
-
 #include <errno.h>
+#include <stdlib.h> /* for exit(int) */
 
 #include "Mutex.h"
 
