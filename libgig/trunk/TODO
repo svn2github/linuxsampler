@@ -1,0 +1,20 @@
+Portability:
+  - finish endian dependent macros and structures
+  - test library on non intel machines
+
+DLS Part:
+  - support for conditional chunks
+  - check for ZSTR terminated strings in DLS::Info::LoadString()
+
+Gig Part:
+  - support for <3dnl> chunk in gig::Region class which provides optional
+    textual descriptions for dimensions
+  - support for <3gnm> chunk in gig::File class which contains names of
+    sample groups
+  - additional scan for compressed samples in
+    gig::Sample::ScanCompressedSample() to build a table with the compression
+    mode of each compressed frame in the sample allowing a more efficient
+    Read() on runtime
+  - low level optimization in decompression algorithm
+  - optional writing of frame table to disk to speed up loading of compressed
+    samples
