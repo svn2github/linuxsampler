@@ -183,12 +183,11 @@ namespace LinuxSampler { namespace gig {
                     }
                     #if ARCH_X86
                     case ASM_X86_MMX_SSE: {
-                        int result;
+                        int result = 0;
                         __asm__ __volatile__ (
                             "movss  (%2), %%xmm0          # load LoopEnd\n\t"
                             "movss  (%1), %%xmm1          # load Pos\n\t"
                             "comiss %%xmm0, %%xmm1      # LoopEnd <> Pos\n\t"
-                            "movl    $0,%%eax            # result = 0\n\t"
                             "jb     1f                  # jump if no work needs to be done\n\t"
                             "movss    (%3), %%xmm2        # load LoopSize\n\t"
                             "subss    %%xmm0, %%xmm1    # Pos - LoopEnd\n\t"
@@ -203,11 +202,11 @@ namespace LinuxSampler { namespace gig {
                             //done with fmodf
                             "addss    %%xmm0, %%xmm3      # add LoopStart\n\t"
                             "movss    %%xmm3, (%1)        # update Pos\n\t"
-                            "movl    $1,%%eax            # result = 1\n\t"
+                            "movl    $1, (%0)             # result = 1\n\t"
                             ".balign 16 \n\t"
                             "1:\n\t"
-                            : "=a" (result)     /* %0 */
-                            : "r"  (vPos),      /* %1 */
+                            :: "r" (&result),   /* %0 */
+                              "r"  (vPos),      /* %1 */
                               "r"  (&LoopEnd),  /* %2 */
                               "r"  (&LoopSize), /* %3 */
                               "r"  (&LoopStart) /* %4 */
