@@ -42,6 +42,7 @@ class LSCPResultSet {
 	void Add(String, String);
 	void Add(String, float);
 	void Add(String, int);
+        void Add(String, bool);
 	void Add(int);
 	void Error(String message = "Undefined Error", int code = 0);
 	void Error(LinuxSamplerException e);

@@ -80,6 +80,11 @@ void LSCPResultSet::Add(String Label, float Value) {
 	Add(Label, ss.str());
 }
 
+void LSCPResultSet::Add(String Label, bool Value) {
+    String s = (Value) ? "true" : "false";
+    Add(Label, s);
+}
+
 //Add a single string to the resultset
 void LSCPResultSet::Add(String Value) {
 	if (result_type != result_type_success)
