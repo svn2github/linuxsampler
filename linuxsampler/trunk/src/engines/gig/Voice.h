@@ -32,7 +32,7 @@
 #include "../../common/RTMath.h"
 #include "../../common/RingBuffer.h"
 #include "../../common/RTELMemoryPool.h"
-#include "../../audiodriver/AudioOutputDevice.h"
+#include "../../drivers/audio/AudioOutputDevice.h"
 #include "../../lib/fileloader/libgig/gig.h"
 #include "../common/BiquadFilter.h"
 #include "Engine.h"

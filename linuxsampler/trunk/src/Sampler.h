@@ -28,8 +28,8 @@
 #include "common/global.h"
 #include "common/LinuxSamplerException.h"
 #include "engines/common/Engine.h"
-#include "mididriver/MidiInputDevice.h"
-#include "audiodriver/AudioOutputDevice.h"
+#include "drivers/midi/MidiInputDevice.h"
+#include "drivers/audio/AudioOutputDevice.h"
 
 namespace LinuxSampler {
 
@@ -152,7 +152,7 @@ namespace LinuxSampler {
 
             /** Getting MIDI input device port given its index number. */
             MidiInputDevice::MidiInputPort* GetMidiInputDevicePort(int MidiPort);
-            
+
             Sampler*           pSampler;
             Engine*            pEngine;
             AudioOutputDevice* pAudioOutputDevice;

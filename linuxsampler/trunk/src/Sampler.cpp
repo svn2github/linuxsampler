@@ -24,8 +24,8 @@
 
 #include "Sampler.h"
 
-#include "audiodriver/AudioOutputDeviceFactory.h"
-#include "mididriver/MidiInputDeviceFactory.h"
+#include "drivers/audio/AudioOutputDeviceFactory.h"
+#include "drivers/midi/MidiInputDeviceFactory.h"
 #include "engines/gig/Engine.h"
 
 namespace LinuxSampler {
@@ -92,15 +92,15 @@ namespace LinuxSampler {
     void SamplerChannel::SetMidiInputDevice(MidiInputDevice* pDevice) {
        SetMidiInput(pDevice, this->midiPort, this->midiChannel);
     }
-    
+
     void SamplerChannel::SetMidiInputPort(int MidiPort) {
        SetMidiInput(pMidiInputDevice, MidiPort, this->midiChannel);
     }
-    
+
     void SamplerChannel::SetMidiInputChannel(MidiInputDevice::MidiInputPort::midi_chan_t MidiChannel) {
        SetMidiInput(pMidiInputDevice, this->midiPort, MidiChannel);
     }
-    
+
     void SamplerChannel::SetMidiInput(MidiInputDevice* pDevice, int MidiPort, MidiInputDevice::MidiInputPort::midi_chan_t MidiChannel) {
         // dereference old midi input port.
         MidiInputDevice::MidiInputPort *pMidiInputPort = GetMidiInputDevicePort(this->midiPort);

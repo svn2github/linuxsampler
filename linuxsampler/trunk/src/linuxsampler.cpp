@@ -24,7 +24,7 @@
 #include <signal.h>
 
 #include "Sampler.h"
-#include "audiodriver/AudioOutputDeviceFactory.h"
+#include "drivers/audio/AudioOutputDeviceFactory.h"
 #include "network/lscpserver.h"
 
 #if 0

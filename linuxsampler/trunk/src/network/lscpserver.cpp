@@ -25,8 +25,8 @@
 #include "lscpevent.h"
 
 #include "../engines/gig/Engine.h"
-#include "../audiodriver/AudioOutputDeviceFactory.h"
-#include "../mididriver/MidiInputDeviceFactory.h"
+#include "../drivers/audio/AudioOutputDeviceFactory.h"
+#include "../drivers/midi/MidiInputDeviceFactory.h"
 
 /**
  * Below are a few static members of the LSCPServer class.
@@ -89,7 +89,7 @@ int LSCPServer::Main() {
     FD_ZERO(&fdSet);
     FD_SET(hSocket, &fdSet);
     int maxSessions = hSocket;
- 
+
     // Parser initialization
     yyparse_param_t yyparse_param;
     yyparse_param.pServer = this;
@@ -104,7 +104,7 @@ int LSCPServer::Main() {
 		close(hSocket);
 		exit(EXIT_FAILURE);
 	}
-	
+
 	//Accept new connections now (if any)
 	if (FD_ISSET(hSocket, &selectSet)) {
 		int socket = accept(hSocket, (sockaddr*) &client, (socklen_t*) &length);
@@ -143,7 +143,7 @@ int LSCPServer::Main() {
 			}
 			//socket may have been closed, iter may be invalid, get out of the loop for now.
 			//we'll be back if there is data.
-			break; 
+			break;
 		}
 	}
 
@@ -238,7 +238,7 @@ bool LSCPServer::GetLSCPCommand( std::vector<int>::iterator iter ) {
 			break;
 		}
 		if (result == 1) {
-			if (c == '\r') 
+			if (c == '\r')
 				continue; //Ignore CR
 			if (c == '\n') {
 				LSCPServer::SendLSCPNotify(LSCPEvent(LSCPEvent::event_misc, "Received \'" + bufferedCommands[socket] + "\' on socket", socket));
@@ -265,23 +265,23 @@ bool LSCPServer::GetLSCPCommand( std::vector<int>::iterator iter ) {
 					break;
 				case EAGAIN:
 					dmsg(2,("LSCPScanner: The socket is marked non-blocking and the receive operation would block, or a receive timeout had been set and the timeout expired before data was received.\n"));
-					break; 
-				case EINTR: 
+					break;
+				case EINTR:
 					dmsg(2,("LSCPScanner: The receive was interrupted by delivery of a signal before any data were available.\n"));
-					break; 
-				case EFAULT: 
-					dmsg(2,("LSCPScanner: The receive buffer pointer(s) point outside the process's address space.\n")); 
-					break; 
-				case EINVAL: 
-					dmsg(2,("LSCPScanner: Invalid argument passed.\n")); 
-					break; 
-				case ENOMEM: 
-					dmsg(2,("LSCPScanner: Could not allocate memory for recvmsg.\n")); 
-					break; 
-				default: 
-					dmsg(2,("LSCPScanner: Unknown recv() error.\n")); 
-					break; 
-			} 
+					break;
+				case EFAULT:
+					dmsg(2,("LSCPScanner: The receive buffer pointer(s) point outside the process's address space.\n"));
+					break;
+				case EINVAL:
+					dmsg(2,("LSCPScanner: Invalid argument passed.\n"));
+					break;
+				case ENOMEM:
+					dmsg(2,("LSCPScanner: Could not allocate memory for recvmsg.\n"));
+					break;
+				default:
+					dmsg(2,("LSCPScanner: Unknown recv() error.\n"));
+					break;
+			}
 			CloseConnection(iter);
 			break;
 		}
@@ -911,7 +911,7 @@ String LSCPServer::GetMidiInputPortParameterInfo(uint DeviceId, uint PortId, Str
 	std::map<String,DeviceCreationParameter*> parameters = pPort->DeviceParameters();
 	if (!parameters[ParameterName]) throw LinuxSamplerException("Midi port does not provice a parameters '" + ParameterName + "'.");
 	DeviceCreationParameter* pParameter = parameters[ParameterName];
-	
+
         // return all fields of this audio channel parameter
         result.Add("TYPE",         pParameter->Type());
         result.Add("DESCRIPTION",  pParameter->Description());
@@ -1074,7 +1074,7 @@ String LSCPServer::SetAudioOutputType(String AudioOutputDriver, uint uiSamplerCh
         if (!pSamplerChannel) throw LinuxSamplerException("Invalid channel number " + ToString(uiSamplerChannel));
         // Driver type name aliasing...
         if (AudioOutputDriver == "ALSA") AudioOutputDriver = "Alsa";
-        if (AudioOutputDriver == "JACK") AudioOutputDriver = "Jack";        
+        if (AudioOutputDriver == "JACK") AudioOutputDriver = "Jack";
         // Check if there's one audio output device already created
         // for the intended audio driver type (AudioOutputDriver)...
         AudioOutputDevice *pDevice = NULL;

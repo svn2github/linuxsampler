@@ -24,7 +24,7 @@
 #define __LS_ENGINE_H__
 
 #include "../../common/global.h"
-#include "../../audiodriver/AudioOutputDevice.h"
+#include "../../drivers/audio/AudioOutputDevice.h"
 
 namespace LinuxSampler {
 
