@@ -37,7 +37,7 @@ AudioThread::AudioThread(AudioIO* pAudioIO, DiskThread* pDiskThread, gig::Instru
     for (uint i = 0; i < 128; i++) {
         pActiveVoices[i] = new RTEList<Voice*>;
     }
-    SustainedKeyPool = new RTELMemoryPool<sustained_key_t>(200);
+    SustainedKeyPool = new RTELMemoryPool<sustained_key_t>(MAX_AUDIO_VOICES);
 
     pAudioSumBuffer = new float[pAudioIO->FragmentSize * pAudioIO->Channels];
 
