@@ -302,6 +302,8 @@
 		};
 		4B05568C07AFF919006F77BE = {
 			children = (
+				4B8048B507C4AB5200166D22,
+				4B8048B607C4AB5200166D22,
 				4BC6094C07BB634100D981F7,
 				4BC6094D07BB634100D981F7,
 				4BC6094E07BB634100D981F7,
@@ -317,6 +319,30 @@
 			path = network;
 			refType = 4;
 			sourceTree = "<group>";
+		};
+		4B8048B507C4AB5200166D22 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.cpp.cpp;
+			name = lscpinstrumentloader.cpp;
+			path = ../src/network/lscpinstrumentloader.cpp;
+			refType = 2;
+			sourceTree = SOURCE_ROOT;
+		};
+		4B8048B607C4AB5200166D22 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.h;
+			name = lscpinstrumentloader.h;
+			path = ../src/network/lscpinstrumentloader.h;
+			refType = 2;
+			sourceTree = SOURCE_ROOT;
+		};
+		4B8048B807C4AB6E00166D22 = {
+			fileRef = 4B8048B507C4AB5200166D22;
+			isa = PBXBuildFile;
+			settings = {
+			};
 		};
 		4B80F96D07BB64460079F315 = {
 			fileRef = 4BC608D707BB626C00D981F7;
@@ -1396,6 +1422,7 @@
 				4B80F99107BB64610079F315,
 				4B80F99207BB64630079F315,
 				4B80F99307BB64630079F315,
+				4B8048B807C4AB6E00166D22,
 			);
 			isa = PBXSourcesBuildPhase;
 			runOnlyForDeploymentPostprocessing = 0;
