@@ -420,7 +420,7 @@ String LSCPServer::GetAudioOutputDeviceCount() {
     LSCPResultSet result;
     try {
         uint count = pSampler->AudioOutputDevices();
-        result = count; // success
+        result.Add(count); // success
     }
     catch (LinuxSamplerException e) {
         result.Error(e);

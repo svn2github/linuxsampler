@@ -179,6 +179,7 @@ extern void yyrestart(FILE* input_file, yyscan_t yyscanner);
 // we provide our own version of yyerror() so we don't have to link against the yacc library
 void yyerror(const char* s);
 
+bool background;
 
 
 /* Enabling traces.  */
@@ -207,7 +208,7 @@ typedef int YYSTYPE;
 
 
 /* Line 214 of yacc.c.  */
-#line 210 "y.tab.c"
+#line 211 "y.tab.c"
 
 #if ! defined (yyoverflow) || YYERROR_VERBOSE
 
@@ -313,7 +314,7 @@ union yyalloc
 /* YYNNTS -- Number of nonterminals. */
 #define YYNNTS  29
 /* YYNRULES -- Number of rules. */
-#define YYNRULES  88
+#define YYNRULES  89
 /* YYNRULES -- Number of states. */
 #define YYNSTATES  228
 
@@ -371,9 +372,9 @@ static const unsigned short yyprhs[] =
       95,    97,    99,   101,   103,   105,   107,   109,   111,   113,
      115,   117,   123,   131,   141,   143,   149,   157,   167,   169,
      175,   183,   189,   195,   201,   209,   219,   223,   229,   233,
-     237,   241,   247,   255,   261,   267,   273,   279,   283,   289,
-     291,   293,   295,   301,   305,   307,   309,   311,   313,   315,
-     317,   319,   321,   323,   325,   327,   329,   331,   333
+     237,   241,   245,   251,   259,   265,   271,   277,   283,   287,
+     293,   295,   297,   299,   305,   309,   311,   313,   315,   317,
+     319,   321,   323,   325,   327,   329,   331,   333,   335,   337
 };
 
 /* YYRHS -- A `-1'-separated list of the rules' RHS. */
@@ -402,31 +403,31 @@ static const yysigned_char yyrhs[] =
       -1,    40,     7,     5,     7,    78,    11,    77,    -1,    37,
        7,     5,     7,     5,     7,    78,    11,    77,    -1,    25,
        7,    62,    -1,    38,     7,    78,     7,    63,    -1,    38,
-       7,     5,    -1,    34,     7,    66,    -1,    35,     7,    67,
-      -1,    38,     7,    70,     7,     5,    -1,    36,     7,    70,
-       7,    72,     7,    72,    -1,    43,     7,    70,     7,    75,
-      -1,    44,     7,    70,     7,    73,    -1,    45,     7,    70,
-       7,    68,    -1,    46,     7,    70,     7,    69,    -1,    78,
-      11,    77,    -1,    63,     7,    78,    11,    77,    -1,    47,
-      -1,    48,    -1,    39,    -1,    76,     7,    71,     7,    70,
-      -1,    74,     7,    70,    -1,    78,    -1,     4,    -1,     5,
-      -1,     5,    -1,     5,    -1,     5,    -1,     5,    -1,    78,
-      -1,     6,    -1,     6,    -1,     6,    -1,     5,    -1,     4,
-      -1,     3,    -1,    78,     3,    -1
+       7,    78,    -1,    38,     7,     5,    -1,    34,     7,    66,
+      -1,    35,     7,    67,    -1,    38,     7,    70,     7,     5,
+      -1,    36,     7,    70,     7,    72,     7,    72,    -1,    43,
+       7,    70,     7,    75,    -1,    44,     7,    70,     7,    73,
+      -1,    45,     7,    70,     7,    68,    -1,    46,     7,    70,
+       7,    69,    -1,    78,    11,    77,    -1,    63,     7,    78,
+      11,    77,    -1,    47,    -1,    48,    -1,    39,    -1,    76,
+       7,    71,     7,    70,    -1,    74,     7,    70,    -1,    78,
+      -1,     4,    -1,     5,    -1,     5,    -1,     5,    -1,     5,
+      -1,     5,    -1,    78,    -1,     6,    -1,     6,    -1,     6,
+      -1,     5,    -1,     4,    -1,     3,    -1,    78,     3,    -1
 };
 
 /* YYRLINE[YYN] -- source line where rule number YYN was defined.  */
 static const unsigned char yyrline[] =
 {
-       0,    77,    77,    78,    79,    82,    83,    84,    85,    88,
-      89,    90,    91,    92,    95,    96,    97,    98,    99,   100,
-     101,   102,   103,   104,   105,   106,   107,   110,   111,   112,
-     113,   114,   115,   118,   119,   120,   121,   122,   123,   126,
-     127,   128,   129,   130,   131,   132,   133,   134,   135,   136,
-     137,   138,   139,   140,   143,   144,   145,   148,   151,   154,
-     155,   158,   159,   160,   161,   162,   163,   166,   167,   170,
-     171,   174,   177,   180,   183,   186,   187,   190,   193,   196,
-     199,   202,   205,   208,   211,   212,   213,   216,   217
+       0,    78,    78,    79,    80,    83,    84,    85,    86,    89,
+      90,    91,    92,    93,    96,    97,    98,    99,   100,   101,
+     102,   103,   104,   105,   106,   107,   108,   111,   112,   113,
+     114,   115,   116,   119,   120,   121,   122,   123,   124,   127,
+     128,   129,   130,   131,   132,   133,   134,   135,   136,   137,
+     138,   139,   140,   141,   144,   145,   146,   149,   150,   153,
+     156,   157,   160,   161,   162,   163,   164,   165,   168,   169,
+     172,   173,   176,   179,   182,   185,   188,   189,   192,   195,
+     198,   201,   204,   207,   210,   213,   214,   215,   218,   219
 };
 #endif
 
@@ -478,10 +479,10 @@ static const unsigned char yyr1[] =
       54,    54,    54,    54,    54,    54,    54,    55,    55,    55,
       55,    55,    55,    56,    56,    56,    56,    56,    56,    57,
       57,    57,    57,    57,    57,    57,    57,    57,    57,    57,
-      57,    57,    57,    57,    58,    58,    58,    59,    60,    61,
-      61,    62,    62,    62,    62,    62,    62,    63,    63,    64,
-      64,    65,    66,    67,    68,    69,    69,    70,    71,    72,
-      73,    74,    75,    76,    77,    77,    77,    78,    78
+      57,    57,    57,    57,    58,    58,    58,    59,    59,    60,
+      61,    61,    62,    62,    62,    62,    62,    62,    63,    63,
+      64,    64,    65,    66,    67,    68,    69,    69,    70,    71,
+      72,    73,    74,    75,    76,    77,    77,    77,    78,    78
 };
 
 /* YYR2[YYN] -- Number of symbols composing right hand side of rule YYN.  */
@@ -493,9 +494,9 @@ static const unsigned char yyr2[] =
        1,     1,     1,     1,     1,     1,     1,     1,     1,     1,
        1,     5,     7,     9,     1,     5,     7,     9,     1,     5,
        7,     5,     5,     5,     7,     9,     3,     5,     3,     3,
-       3,     5,     7,     5,     5,     5,     5,     3,     5,     1,
-       1,     1,     5,     3,     1,     1,     1,     1,     1,     1,
-       1,     1,     1,     1,     1,     1,     1,     1,     2
+       3,     3,     5,     7,     5,     5,     5,     5,     3,     5,
+       1,     1,     1,     5,     3,     1,     1,     1,     1,     1,
+       1,     1,     1,     1,     1,     1,     1,     1,     1,     2
 };
 
 /* YYDEFACT[STATE-NAME] -- Default rule to reduce with in state
@@ -506,26 +507,26 @@ static const unsigned char yydefact[] =
        0,     8,     9,     0,     0,     0,     0,     0,     0,     0,
        0,     0,     0,     0,     0,    26,     0,     2,     6,     7,
        0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
-       0,     0,     1,     0,     0,    87,    12,    11,    10,    13,
+       0,     0,     1,     0,     0,    88,    12,    11,    10,    13,
       14,     0,    39,    40,    48,     0,     0,     0,     0,    44,
-       0,     0,    15,     0,    16,     0,    17,    71,    18,     0,
+       0,     0,    15,     0,    16,     0,    17,    72,    18,     0,
        0,    19,    20,     0,     0,     0,     0,    22,    27,    31,
       30,    29,    28,    32,    23,    33,    37,    36,    35,    34,
-      38,    24,     0,     3,     0,    88,     0,     0,     0,     0,
+      38,    24,     0,     3,     0,    89,     0,     0,     0,     0,
        0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
        0,     0,     4,     0,     0,     0,     0,     0,     0,     0,
-       0,     0,     0,     0,    58,    83,    59,     0,    60,     0,
-      81,    77,    21,     0,     0,     0,     0,     0,     0,    56,
+       0,     0,     0,    58,    59,    84,    60,     0,    61,     0,
+      82,    78,    21,     0,     0,     0,     0,     0,     0,    56,
        0,     0,    25,     0,     0,     0,     0,     0,     0,     0,
        0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
-       0,     0,     0,     0,    49,    69,    70,     0,    51,    52,
-      53,     0,     0,    45,    41,     0,    57,     0,    78,     0,
-      73,     0,     0,     0,     0,     0,     0,     0,     0,     0,
+       0,     0,     0,     0,    49,    70,    71,     0,    51,    52,
+      53,     0,     0,    45,    41,     0,    57,     0,    79,     0,
+      74,     0,     0,     0,     0,     0,     0,     0,     0,     0,
        0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
-       0,     0,     0,     0,    50,    46,     0,    42,     0,    86,
-      85,    84,    67,    72,    79,     0,    61,    82,    63,    80,
-      64,    65,    74,    75,    76,    66,     0,    54,     0,     0,
-       0,     0,     0,    47,    43,    68,    62,    55
+       0,     0,     0,     0,    50,    46,     0,    42,     0,    87,
+      86,    85,    68,    73,    80,     0,    62,    83,    64,    81,
+      65,    66,    75,    76,    77,    67,     0,    54,     0,     0,
+       0,     0,     0,    47,    43,    69,    63,    55
 };
 
 /* YYDEFGOTO[NTERM-NUM]. */
@@ -1268,342 +1269,347 @@ yyreduce:
   switch (yyn)
     {
         case 7:
-#line 84 "lscp.y"
+#line 85 "lscp.y"
     { LSCPSERVER->AnswerClient(yyvsp[0].String); }
     break;
 
   case 8:
-#line 85 "lscp.y"
+#line 86 "lscp.y"
     { LSCPSERVER->AnswerClient("Err:0:Unknown command.\r\n"); RESTART; return LSCP_SYNTAX_ERROR; }
     break;
 
   case 14:
-#line 95 "lscp.y"
+#line 96 "lscp.y"
     { yyval.String = LSCPSERVER->AddChannel();                  }
     break;
 
   case 15:
-#line 96 "lscp.y"
-    { yyval.String = yyvsp[0].String;                                        }
-    break;
-
-  case 16:
 #line 97 "lscp.y"
     { yyval.String = yyvsp[0].String;                                        }
     break;
 
-  case 17:
+  case 16:
 #line 98 "lscp.y"
     { yyval.String = yyvsp[0].String;                                        }
     break;
 
-  case 18:
+  case 17:
 #line 99 "lscp.y"
     { yyval.String = yyvsp[0].String;                                        }
     break;
 
-  case 19:
+  case 18:
 #line 100 "lscp.y"
     { yyval.String = yyvsp[0].String;                                        }
     break;
 
-  case 20:
+  case 19:
 #line 101 "lscp.y"
-    { yyval.String = yyvsp[0].String;                                        }
+    { yyval.String = yyvsp[0].String; background = false;                    }
+    break;
+
+  case 20:
+#line 102 "lscp.y"
+    { yyval.String = yyvsp[0].String; background = true;                     }
     break;
 
   case 21:
-#line 102 "lscp.y"
+#line 103 "lscp.y"
     { yyval.String = LSCPSERVER->RemoveChannel(yyvsp[0].Number);             }
     break;
 
   case 22:
-#line 103 "lscp.y"
-    { yyval.String = yyvsp[0].String;                                        }
-    break;
-
-  case 23:
 #line 104 "lscp.y"
     { yyval.String = yyvsp[0].String;                                        }
     break;
 
-  case 24:
+  case 23:
 #line 105 "lscp.y"
     { yyval.String = yyvsp[0].String;                                        }
     break;
 
-  case 25:
+  case 24:
 #line 106 "lscp.y"
+    { yyval.String = yyvsp[0].String;                                        }
+    break;
+
+  case 25:
+#line 107 "lscp.y"
     { yyval.String = LSCPSERVER->ResetChannel(yyvsp[0].Number);              }
     break;
 
   case 26:
-#line 107 "lscp.y"
+#line 108 "lscp.y"
     { LSCPSERVER->AnswerClient("Bye!\r\n"); return 0; }
     break;
 
   case 27:
-#line 110 "lscp.y"
+#line 111 "lscp.y"
     { yyval.String = LSCPSERVER->SubscribeNotification(event_channels); }
     break;
 
   case 28:
-#line 111 "lscp.y"
+#line 112 "lscp.y"
     { yyval.String = LSCPSERVER->SubscribeNotification(event_voice_count); }
     break;
 
   case 29:
-#line 112 "lscp.y"
+#line 113 "lscp.y"
     { yyval.String = LSCPSERVER->SubscribeNotification(event_stream_count); }
     break;
 
   case 30:
-#line 113 "lscp.y"
+#line 114 "lscp.y"
     { yyval.String = LSCPSERVER->SubscribeNotification(event_channel_buffer_fill); }
     break;
 
   case 31:
-#line 114 "lscp.y"
+#line 115 "lscp.y"
     { yyval.String = LSCPSERVER->SubscribeNotification(event_channel_info); }
     break;
 
   case 32:
-#line 115 "lscp.y"
+#line 116 "lscp.y"
     { yyval.String = LSCPSERVER->SubscribeNotification(event_misc); }
     break;
 
   case 33:
-#line 118 "lscp.y"
+#line 119 "lscp.y"
     { yyval.String = LSCPSERVER->UnsubscribeNotification(event_channels); }
     break;
 
   case 34:
-#line 119 "lscp.y"
+#line 120 "lscp.y"
     { yyval.String = LSCPSERVER->UnsubscribeNotification(event_voice_count); }
     break;
 
   case 35:
-#line 120 "lscp.y"
+#line 121 "lscp.y"
     { yyval.String = LSCPSERVER->UnsubscribeNotification(event_stream_count); }
     break;
 
   case 36:
-#line 121 "lscp.y"
+#line 122 "lscp.y"
     { yyval.String = LSCPSERVER->UnsubscribeNotification(event_channel_buffer_fill); }
     break;
 
   case 37:
-#line 122 "lscp.y"
+#line 123 "lscp.y"
     { yyval.String = LSCPSERVER->UnsubscribeNotification(event_channel_info); }
     break;
 
   case 38:
-#line 123 "lscp.y"
+#line 124 "lscp.y"
     { yyval.String = LSCPSERVER->UnsubscribeNotification(event_misc); }
     break;
 
   case 39:
-#line 126 "lscp.y"
+#line 127 "lscp.y"
     { yyval.String = LSCPSERVER->GetAvailableEngines();                          }
     break;
 
   case 40:
-#line 127 "lscp.y"
+#line 128 "lscp.y"
     { yyval.String = LSCPSERVER->GetAvailableAudioOutputDrivers();               }
     break;
 
   case 41:
-#line 128 "lscp.y"
+#line 129 "lscp.y"
     { yyval.String = LSCPSERVER->GetAudioOutputDriverInfo(yyvsp[0].String);                   }
     break;
 
   case 42:
-#line 129 "lscp.y"
+#line 130 "lscp.y"
     { yyval.String = LSCPSERVER->GetAudioOutputDriverParameterInfo(yyvsp[-2].String, yyvsp[0].String);      }
     break;
 
   case 43:
-#line 130 "lscp.y"
+#line 131 "lscp.y"
     { yyval.String = LSCPSERVER->GetAudioOutputDriverParameterInfo(yyvsp[-4].String, yyvsp[-2].String, yyvsp[0].KeyValList);  }
     break;
 
   case 44:
-#line 131 "lscp.y"
+#line 132 "lscp.y"
     { yyval.String = LSCPSERVER->GetAudioOutputDeviceCount();                    }
     break;
 
   case 45:
-#line 132 "lscp.y"
+#line 133 "lscp.y"
     { yyval.String = LSCPSERVER->GetAudioOutputDeviceInfo(yyvsp[0].Number);                   }
     break;
 
   case 46:
-#line 133 "lscp.y"
+#line 134 "lscp.y"
     { yyval.String = LSCPSERVER->GetAudioOutputChannelInfo(yyvsp[-2].Number, yyvsp[0].Number);              }
     break;
 
   case 47:
-#line 134 "lscp.y"
+#line 135 "lscp.y"
     { yyval.String = LSCPSERVER->GetAudioOutputChannelParameterInfo(yyvsp[-4].Number, yyvsp[-2].Number, yyvsp[0].String); }
     break;
 
   case 48:
-#line 135 "lscp.y"
+#line 136 "lscp.y"
     { yyval.String = LSCPSERVER->GetChannels();                                  }
     break;
 
   case 49:
-#line 136 "lscp.y"
+#line 137 "lscp.y"
     { yyval.String = LSCPSERVER->GetChannelInfo(yyvsp[0].Number);                             }
     break;
 
   case 50:
-#line 137 "lscp.y"
+#line 138 "lscp.y"
     { yyval.String = LSCPSERVER->GetBufferFill(yyvsp[-2].FillResponse, yyvsp[0].Number);                          }
     break;
 
   case 51:
-#line 138 "lscp.y"
+#line 139 "lscp.y"
     { yyval.String = LSCPSERVER->GetStreamCount(yyvsp[0].Number);                             }
     break;
 
   case 52:
-#line 139 "lscp.y"
+#line 140 "lscp.y"
     { yyval.String = LSCPSERVER->GetVoiceCount(yyvsp[0].Number);                              }
     break;
 
   case 53:
-#line 140 "lscp.y"
+#line 141 "lscp.y"
     { yyval.String = LSCPSERVER->GetEngineInfo(yyvsp[0].String);                              }
     break;
 
   case 54:
-#line 143 "lscp.y"
+#line 144 "lscp.y"
     { yyval.String = LSCPSERVER->SetAudioOutputDeviceParameter(yyvsp[-4].Number, yyvsp[-2].String, yyvsp[0].String);      }
     break;
 
   case 55:
-#line 144 "lscp.y"
+#line 145 "lscp.y"
     { yyval.String = LSCPSERVER->SetAudioOutputChannelParameter(yyvsp[-6].Number, yyvsp[-4].Number, yyvsp[-2].String, yyvsp[0].String); }
     break;
 
   case 56:
-#line 145 "lscp.y"
+#line 146 "lscp.y"
     { yyval.String = yyvsp[0].String;                                                         }
     break;
 
   case 57:
-#line 148 "lscp.y"
+#line 149 "lscp.y"
     { yyval.String = LSCPSERVER->CreateAudioOutputDevice(yyvsp[-2].String,yyvsp[0].KeyValList); }
     break;
 
   case 58:
-#line 151 "lscp.y"
-    { yyval.String = LSCPSERVER->DestroyAudioOutputDevice(yyvsp[0].Number); }
+#line 150 "lscp.y"
+    { yyval.String = LSCPSERVER->CreateAudioOutputDevice(yyvsp[0].String); }
     break;
 
   case 59:
-#line 154 "lscp.y"
-    { yyval.String = yyvsp[0].String; }
+#line 153 "lscp.y"
+    { yyval.String = LSCPSERVER->DestroyAudioOutputDevice(yyvsp[0].Number); }
     break;
 
   case 60:
-#line 155 "lscp.y"
+#line 156 "lscp.y"
     { yyval.String = yyvsp[0].String; }
     break;
 
   case 61:
-#line 158 "lscp.y"
-    { yyval.String = LSCPSERVER->SetAudioOutputDevice(yyvsp[0].Number, yyvsp[-2].Number);      }
+#line 157 "lscp.y"
+    { yyval.String = yyvsp[0].String; }
     break;
 
   case 62:
-#line 159 "lscp.y"
-    { yyval.String = LSCPSERVER->SetAudioOutputChannel(yyvsp[-2].Number, yyvsp[0].Number, yyvsp[-4].Number); }
+#line 160 "lscp.y"
+    { yyval.String = LSCPSERVER->SetAudioOutputDevice(yyvsp[0].Number, yyvsp[-2].Number);      }
     break;
 
   case 63:
-#line 160 "lscp.y"
-    { yyval.String = LSCPSERVER->SetMIDIInputPort(yyvsp[0].String, yyvsp[-2].Number);          }
+#line 161 "lscp.y"
+    { yyval.String = LSCPSERVER->SetAudioOutputChannel(yyvsp[-2].Number, yyvsp[0].Number, yyvsp[-4].Number); }
     break;
 
   case 64:
-#line 161 "lscp.y"
-    { yyval.String = LSCPSERVER->SetMIDIInputChannel(yyvsp[0].Number, yyvsp[-2].Number);       }
+#line 162 "lscp.y"
+    { yyval.String = LSCPSERVER->SetMIDIInputPort(yyvsp[0].String, yyvsp[-2].Number);          }
     break;
 
   case 65:
-#line 162 "lscp.y"
-    { yyval.String = LSCPSERVER->SetMIDIInputType(yyvsp[0].String, yyvsp[-2].Number);          }
+#line 163 "lscp.y"
+    { yyval.String = LSCPSERVER->SetMIDIInputChannel(yyvsp[0].Number, yyvsp[-2].Number);       }
     break;
 
   case 66:
-#line 163 "lscp.y"
-    { yyval.String = LSCPSERVER->SetVolume(yyvsp[0].Dotnum, yyvsp[-2].Number);                 }
+#line 164 "lscp.y"
+    { yyval.String = LSCPSERVER->SetMIDIInputType(yyvsp[0].String, yyvsp[-2].Number);          }
     break;
 
   case 67:
-#line 166 "lscp.y"
-    { yyval.KeyValList[yyvsp[-2].String] = yyvsp[0].String;          }
+#line 165 "lscp.y"
+    { yyval.String = LSCPSERVER->SetVolume(yyvsp[0].Dotnum, yyvsp[-2].Number);                 }
     break;
 
   case 68:
-#line 167 "lscp.y"
-    { yyval.KeyValList = yyvsp[-4].KeyValList; yyval.KeyValList[yyvsp[-2].String] = yyvsp[0].String; }
+#line 168 "lscp.y"
+    { yyval.KeyValList[yyvsp[-2].String] = yyvsp[0].String;          }
     break;
 
   case 69:
-#line 170 "lscp.y"
-    { yyval.FillResponse = fill_response_bytes;      }
+#line 169 "lscp.y"
+    { yyval.KeyValList = yyvsp[-4].KeyValList; yyval.KeyValList[yyvsp[-2].String] = yyvsp[0].String; }
     break;
 
   case 70:
-#line 171 "lscp.y"
-    { yyval.FillResponse = fill_response_percentage; }
+#line 172 "lscp.y"
+    { yyval.FillResponse = fill_response_bytes;      }
     break;
 
   case 71:
-#line 174 "lscp.y"
-    { yyval.String = LSCPSERVER->GetAudioOutputDevices(); }
+#line 173 "lscp.y"
+    { yyval.FillResponse = fill_response_percentage; }
     break;
 
   case 72:
-#line 177 "lscp.y"
-    { yyval.String = LSCPSERVER->LoadInstrument(yyvsp[-4].String, yyvsp[-2].Number, yyvsp[0].Number); }
+#line 176 "lscp.y"
+    { yyval.String = LSCPSERVER->GetAudioOutputDevices(); }
     break;
 
   case 73:
-#line 180 "lscp.y"
+#line 179 "lscp.y"
+    { yyval.String = LSCPSERVER->LoadInstrument(yyvsp[-4].String, yyvsp[-2].Number, yyvsp[0].Number, background); }
+    break;
+
+  case 74:
+#line 182 "lscp.y"
     { yyval.String = LSCPSERVER->LoadEngine(yyvsp[-2].String, yyvsp[0].Number); }
     break;
 
-  case 76:
-#line 187 "lscp.y"
+  case 77:
+#line 189 "lscp.y"
     { yyval.Dotnum = yyvsp[0].Number; }
     break;
 
-  case 84:
-#line 211 "lscp.y"
+  case 85:
+#line 213 "lscp.y"
     { yyval.String = yyvsp[0].String;                                             }
     break;
 
-  case 85:
-#line 212 "lscp.y"
+  case 86:
+#line 214 "lscp.y"
     { std::stringstream ss; ss << yyvsp[0].Number; yyval.String = ss.str();       }
     break;
 
-  case 86:
-#line 213 "lscp.y"
+  case 87:
+#line 215 "lscp.y"
     { std::stringstream ss; ss << yyvsp[0].Dotnum; yyval.String = ss.str();       }
     break;
 
-  case 87:
-#line 216 "lscp.y"
+  case 88:
+#line 218 "lscp.y"
     { std::string s; s = yyvsp[0].Char; yyval.String = s; }
     break;
 
-  case 88:
-#line 217 "lscp.y"
+  case 89:
+#line 219 "lscp.y"
     { yyval.String = yyvsp[-1].String + yyvsp[0].Char;                  }
     break;
 
@@ -1611,7 +1617,7 @@ yyreduce:
     }
 
 /* Line 999 of yacc.c.  */
-#line 1614 "y.tab.c"
+#line 1620 "y.tab.c"
 
   yyvsp -= yylen;
   yyssp -= yylen;
@@ -1805,7 +1811,7 @@ yyreturn:
 }
 
 
-#line 77 "lscp.y"
+#line 78 "lscp.y"
 
 
 /**

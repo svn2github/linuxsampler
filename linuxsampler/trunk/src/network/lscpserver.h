@@ -57,7 +57,7 @@ class LSCPServer : public Thread {
         LSCPServer(Sampler* pSampler);
 
         // Methods called by the parser
-        String CreateAudioOutputDevice(String Driver, std::map<String,String> Parameters);
+        String CreateAudioOutputDevice(String Driver, std::map<String,String> Parameters = StringMap());
         String DestroyAudioOutputDevice(uint DeviceIndex);
         String LoadInstrument(String Filename, uint uiInstrument, uint uiSamplerChannel, bool bBackground = false);
         String LoadEngine(String EngineName, uint uiSamplerChannel);
