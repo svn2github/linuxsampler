@@ -36,8 +36,7 @@
 #include "global.h"
 #include "ringbuffer.h"
 #include "gig.h"
-
-#define STREAM_END_SILENCE_SAMPLES	
+	
 class Stream {
     public:
         // Member Types
@@ -101,17 +100,16 @@ class Stream {
         inline static uint       GetUnusedStreams() { return UnusedStreams; }
     protected:
         // Methods
-        void                     Launch(reference_t* pExportReference, gig::Sample* pSample, unsigned long SampleOffset);
-        inline void              Kill() { pExportReference = NULL; Reset(); } ///< Will be called by disk thread after a 'deletion' command from the audio thread (within the voice class)
-        inline Stream::Handle GetHandle() {
-            return (pExportReference) ? pExportReference->hStream : 0;
-        }
-        inline Stream::state_t   GetState() { return State; }
+        void                     Launch(Stream::Handle hStream, reference_t* pExportReference, gig::Sample* pSample, unsigned long SampleOffset);
+        inline void              Kill()      { pExportReference = NULL; Reset(); } ///< Will be called by disk thread after a 'deletion' command from the audio thread (within the voice class)
+        inline Stream::Handle    GetHandle() { return hThis; }
+        inline Stream::state_t   GetState()  { return State; }
         friend class DiskThread; // only the disk thread should be able to launch and most important kill a disk stream to avoid race conditions
     private:
         // Attributes
         reference_t*             pExportReference;
         state_t                  State;
+        Stream::Handle           hThis;
         gig::Sample*             pSample;
         unsigned long            SampleOffset;
         RingBuffer<sample_t>*    pRingBuffer;
@@ -123,6 +121,7 @@ class Stream {
         inline void Reset() {
             pSample      = NULL;
             SampleOffset = 0;
+            hThis        = 0;
             pRingBuffer->init(); // reset ringbuffer
             if (State != state_unused) {
                 // we can't do 'SetPos(state_unused)' here, due to possible race conditions)

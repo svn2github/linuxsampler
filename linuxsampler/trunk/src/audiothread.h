@@ -50,9 +50,9 @@ class AudioThread : public Thread {
 
         AudioThread(AudioIO* pAudioIO, DiskThread* pDiskThread, gig::Instrument* pInstrument);
        ~AudioThread();
-        void ProcessNoteOn(uint8_t Pitch, uint8_t Velocity);
-        void ProcessNoteOff(uint8_t Pitch, uint8_t Velocity);
-        void ProcessContinuousController(uint8_t Channel, uint8_t Number, uint8_t Value);
+        void SendNoteOn(uint8_t Pitch, uint8_t Velocity);
+        void SendNoteOff(uint8_t Pitch, uint8_t Velocity);
+        void SendControlChange(uint8_t Channel, uint8_t Number, uint8_t Value);
     protected:
         int Main(); ///< Implementation of virtual method from class Thread
     private:
@@ -70,9 +70,11 @@ class AudioThread : public Thread {
             uint8_t        value;
         } command;
         struct midi_key_info_t {
-            RTEList<Voice*>*             pActiveVoices; ///< Contains the active voices associated with the MIDI key.
-            RTEList<Voice*>::NodeHandle  hSustainPtr;   ///< Points to the voice element in the active voice list which has not received a note-off yet (this pointer is needed for sustain pedal handling)
-            bool                         Sustained;     ///< Is true if the MIDI key is currently sustained, thus if Note-off arrived while sustain pedal pressed.
+            RTEList<Voice*>*             pActiveVoices;      ///< Contains the active voices associated with the MIDI key.
+            RTEList<Voice*>::NodeHandle  hSustainPtr;        ///< Points to the voice element in the active voice list which has not received a note-off yet (this pointer is needed for sustain pedal handling)
+            bool                         Sustained;          ///< Is true if the MIDI key is currently sustained, thus if Note-off arrived while sustain pedal pressed.
+            bool                         KeyPressed;         ///< Is true if the respective MIDI key is currently pressed.
+            uint*                        pSustainPoolNode;   ///< FIXME: hack to allow fast deallocation of the key from the sustained key pool
         };
 
         RingBuffer<command_t>*           pCommandQueue;
@@ -92,10 +94,10 @@ class AudioThread : public Thread {
         bool                             SustainPedal;       ///< true if sustain pedal is down
         uint8_t                          PrevHoldCCValue;
 
-        void ActivateVoice(uint8_t MIDIKey, uint8_t Velocity);
-        void ReleaseVoice(uint8_t MIDIKey, uint8_t Velocity);
+        void ProcessNoteOn(uint8_t MIDIKey, uint8_t Velocity);
+        void ProcessNoteOff(uint8_t MIDIKey, uint8_t Velocity);
+        void ProcessControlChange(uint8_t Channel, uint8_t Number, uint8_t Value);
         void ReleaseVoice(Voice* pVoice);
-        void ContinuousController(uint8_t Channel, uint8_t Number, uint8_t Value);
         void CacheInitialSamples(gig::Sample* pSample);
 };
 

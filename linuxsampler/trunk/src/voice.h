@@ -31,7 +31,7 @@
 #include "gig.h"
 
 #define MAX_PITCH			4  //FIXME: at the moment in octaves, should be changed into semitones
-#define USE_LINEAR_INTERPOLATION	1
+#define USE_LINEAR_INTERPOLATION	1  ///< set to 0 if you prefer cubic interpolation (slower, better quality)
 
 class Voice {
     public:
@@ -45,7 +45,7 @@ class Voice {
        ~Voice();
         void Kill();
         void RenderAudio();
-        void Trigger(int MIDIKey, uint8_t Velocity, gig::Instrument* Instrument);
+        int  Trigger(int MIDIKey, uint8_t Velocity, gig::Instrument* Instrument);
         inline bool IsActive()                                       { return Active; }
         inline void SetOutput(float* pOutput, uint OutputBufferSize) { this->pOutput = pOutput; this->OutputBufferSize = OutputBufferSize; }
     private:

@@ -27,30 +27,41 @@
 // *
 
 
+// just a placeholder to mark a cell in the pickup array as 'reserved'
+Stream* DiskThread::SLOT_RESERVED = (Stream*) &SLOT_RESERVED;
+
+
 // #########################################################################
 // # Foreign Thread Section
 // #         (following code intended to be interface for audio thread)
 
 
 /**
- * Returns -1 if command queue is full, 0 on success (will be called by audio
- * thread within the voice class).
+ * Returns -1 if command queue or pickup pool is full, 0 on success (will be
+ * called by audio thread within the voice class).
  */
 int DiskThread::OrderNewStream(Stream::reference_t* pStreamRef, gig::Sample* pSample, unsigned long SampleOffset) {
     dmsg(4,("Disk Thread: new stream ordered\n"));
-    if (CreationQueue->write_space() < 1) return -1;
+    if (CreationQueue->write_space() < 1) {
+        dmsg(1,("DiskThread: Order queue full!\n"));
+        return -1;
+    }
 
     pStreamRef->State   = Stream::state_active;
     pStreamRef->OrderID = CreateOrderID();
     pStreamRef->hStream = CreateHandle();
     pStreamRef->pStream = NULL; // a stream has to be activated by the disk thread first
 
+    if (!pStreamRef->OrderID) return -1; // there was no free slot
+
     create_command_t cmd;
+    cmd.OrderID      = pStreamRef->OrderID;
+    cmd.hStream      = pStreamRef->hStream;
     cmd.pStreamRef   = pStreamRef;
     cmd.pSample      = pSample;
     cmd.SampleOffset = SampleOffset;
 
-    CreationQueue->write(&cmd, 1);
+    CreationQueue->push(&cmd);
     return 0;
 }
 
@@ -60,14 +71,17 @@ int DiskThread::OrderNewStream(Stream::reference_t* pStreamRef, gig::Sample* pSa
  */
 int DiskThread::OrderDeletionOfStream(Stream::reference_t* pStreamRef) {
     dmsg(4,("Disk Thread: stream deletion ordered\n"));
-    if (DeletionQueue->write_space() < 1) return -1;
+    if (DeletionQueue->write_space() < 1) {
+        dmsg(1,("DiskThread: Deletion queue full!\n"));
+        return -1;
+    }
 
     delete_command_t cmd;
     cmd.pStream = pStreamRef->pStream;
     cmd.hStream = pStreamRef->hStream;
     cmd.OrderID = pStreamRef->OrderID;
 
-    DeletionQueue->write(&cmd, 1);
+    DeletionQueue->push(&cmd);
     return 0;
 }
 
@@ -87,9 +101,11 @@ int DiskThread::OrderDeletionOfStream(Stream::reference_t* pStreamRef) {
 Stream* DiskThread::AskForCreatedStream(Stream::OrderID_t StreamOrderID) {
     dmsg(4,("Disk Thread: been asked if stream already created, OrderID=%x ", StreamOrderID));
     Stream* pStream = pCreatedStreams[StreamOrderID];
-    if (pStream) { dmsg(4,("(yes created)")) }
-    else         { dmsg(4,("(no not yet created)")) }
-    pCreatedStreams[StreamOrderID] = NULL; // free the slot for a new order
+    if (pStream && pStream != SLOT_RESERVED) {
+        dmsg(4,("(yes created)\n"));
+        pCreatedStreams[StreamOrderID] = NULL; // free the slot for a new order
+    }
+    else dmsg(4,("(no not yet created)\n"));
     return pStream;
 }
 
@@ -103,10 +119,11 @@ Stream* DiskThread::AskForCreatedStream(Stream::OrderID_t StreamOrderID) {
 DiskThread::DiskThread(uint BufferWrapElements) : Thread(false, 1, -2) {
     CreationQueue       = new RingBuffer<create_command_t>(1024);
     DeletionQueue       = new RingBuffer<delete_command_t>(1024);
+    GhostQueue          = new RingBuffer<Stream::Handle>(MAX_INPUT_STREAMS);
     Streams             = MAX_INPUT_STREAMS;
-    RefillStreamsPerRun = 4;
+    RefillStreamsPerRun = REFILL_STREAMS_PER_RUN;
     for (int i = 0; i < MAX_INPUT_STREAMS; i++) {
-        pStreams[i] = new Stream(131072, BufferWrapElements); // 131072 sample words
+        pStreams[i] = new Stream(STREAM_BUFFER_SIZE, BufferWrapElements); // 131072 sample words
     }
     for (int i = 1; i <= MAX_INPUT_STREAMS; i++) {
         pCreatedStreams[i] = NULL;
@@ -119,6 +136,7 @@ DiskThread::~DiskThread() {
     }
     if (CreationQueue) delete CreationQueue;
     if (DeletionQueue) delete DeletionQueue;
+    if (GhostQueue)    delete GhostQueue;
 }
 
 int DiskThread::Main() {
@@ -126,17 +144,32 @@ int DiskThread::Main() {
     while (true) {
         IsIdle = true; // will be set to false if a stream got filled
 
+        // if there are ghost streams, delete them
+        for (int i = 0; i < GhostQueue->read_space(); i++) { //FIXME: unefficient
+            Stream::Handle hGhostStream;
+            GhostQueue->pop(&hGhostStream);
+            bool found = false;
+            for (int i = 0; i < this->Streams; i++) {
+                if (pStreams[i]->GetHandle() == hGhostStream) {
+                    pStreams[i]->Kill();
+                    found = true;
+                    break;
+                }
+            }
+            if (!found) GhostQueue->push(&hGhostStream); // put ghost stream handle back to the queue
+        }
+
         // if there are creation commands, create new streams
         while (Stream::UnusedStreams > 0 && CreationQueue->read_space() > 0) {
             create_command_t command;
-            CreationQueue->read(&command, 1);
+            CreationQueue->pop(&command);
             CreateStream(command);
         }
 
         // if there are deletion commands, delete those streams
         while (Stream::UnusedStreams < Streams && DeletionQueue->read_space() > 0) {
             delete_command_t command;
-            DeletionQueue->read(&command, 1);
+            DeletionQueue->pop(&command);
             DeleteStream(command);
         }
 
@@ -167,34 +200,36 @@ void DiskThread::CreateStream(create_command_t& Command) {
         }
     }
     if (!newstream) {
-        dmsg(1,("No unused stream found (OrderID:%x) - report if this happens, this is a bug!\n", Command.pStreamRef->OrderID));
+        std::cerr << "No unused stream found (OrderID:" << Command.OrderID << ") - report if this happens, this is a bug!\n" << std::flush;
         return;
     }
-    dmsg(4,("new Stream launched by disk thread (OrderID:%x,StreamHandle:%x)\n", Command.pStreamRef->OrderID, Command.pStreamRef->hStream));
-    newstream->Launch(Command.pStreamRef, Command.pSample, Command.SampleOffset);
-    pCreatedStreams[Command.pStreamRef->OrderID] = newstream;
+    newstream->Launch(Command.hStream, Command.pStreamRef, Command.pSample, Command.SampleOffset);
+    dmsg(4,("new Stream launched by disk thread (OrderID:%d,StreamHandle:%d)\n", Command.OrderID, Command.hStream));
+    if (pCreatedStreams[Command.OrderID] != SLOT_RESERVED) {
+        std::cerr << "DiskThread: Slot " << Command.OrderID << " already occupied! Please report this!\n" << std::flush;
+        newstream->Kill();
+        return;
+    }
+    pCreatedStreams[Command.OrderID] = newstream;
 }
 
 void DiskThread::DeleteStream(delete_command_t& Command) {
     if (Command.pStream) Command.pStream->Kill();
     else { // the stream wasn't created by disk thread or picked up by audio thread yet
 
-        // stream was created but not picked up yet
+        // if stream was created but not picked up yet
         Stream* pStream = pCreatedStreams[Command.OrderID];
-        if (pStream) {
+        if (pStream && pStream != SLOT_RESERVED) {
             pStream->Kill();
             pCreatedStreams[Command.OrderID] = NULL; // free slot for new order
             return;
         }
 
-        // else we have to compare the handle with the one's of all streams
-        // (this case should occur only very rarely)
-        for (int i = 0; i < this->Streams; i++) {
-            if (pStreams[i]->GetHandle() == Command.hStream) {
-                pStreams[i]->Kill();
-                return;
-            }
+        // the stream was not created yet
+        if (GhostQueue->write_space() > 0) {
+            GhostQueue->push(&Command.hStream);
         }
+        else dmsg(1,("DiskThread: GhostQueue full!\n"));
     }
 }
 
@@ -237,11 +272,15 @@ Stream::Handle DiskThread::CreateHandle() {
 /// order ID Generator
 Stream::OrderID_t DiskThread::CreateOrderID() {
     static uint32_t counter = 0;
-    do {
+    for (int i = 0; i < MAX_INPUT_STREAMS; i++) {
         if (counter == MAX_INPUT_STREAMS) counter = 1; // we use '0' as 'invalid order' only, so we skip 0
         else                              counter++;
-    } while (pCreatedStreams[counter]); // until empty slot found
-    return counter;
+        if (!pCreatedStreams[counter]) {
+            pCreatedStreams[counter] = SLOT_RESERVED; // mark this slot as reserved
+            return counter;                           // found empty slot
+        }
+    }
+    return 0; // no free slot
 }
 
 

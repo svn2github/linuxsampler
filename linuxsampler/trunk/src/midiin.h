@@ -46,8 +46,7 @@ class MidiIn : public Thread {
         void close_alsa_midi_seq(void);
     private:
         AudioThread* pAudioThread; ///< We will send Note On and Note Off messages to the audio thread
-
-        snd_seq_t *seq_handle;
+        snd_seq_t*   seq_handle;
 };
 
 #endif // __MIDIIN_H__

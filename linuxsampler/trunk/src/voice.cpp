@@ -34,7 +34,13 @@ Voice::Voice(DiskThread* pDiskThread) {
 Voice::~Voice() {
 }
 
-void Voice::Trigger(int MIDIKey, uint8_t Velocity, gig::Instrument* Instrument) {
+/**
+ *  Initializes and triggers the voice, a disk stream will be launched if
+ *  needed.
+ *
+ *  @returns  0 on success, a value < 0 if something failed
+ */
+int Voice::Trigger(int MIDIKey, uint8_t Velocity, gig::Instrument* Instrument) {
     Active          = true;
     this->MIDIKey   = MIDIKey;
     pRegion         = Instrument->GetRegion(MIDIKey);
@@ -44,8 +50,8 @@ void Voice::Trigger(int MIDIKey, uint8_t Velocity, gig::Instrument* Instrument) 
 
     if (!pRegion) {
         std::cerr << "Audio Thread: No Region defined for MIDI key " << MIDIKey << std::endl << std::flush;
-        Active = false;
-        return;
+        Kill();
+        return -1;
     }
 
     //TODO: current MIDI controller values are not taken into account yet
@@ -70,7 +76,11 @@ void Voice::Trigger(int MIDIKey, uint8_t Velocity, gig::Instrument* Instrument) 
 
     if (DiskVoice) {
         MaxRAMPos = cachedsamples - (OutputBufferSize << MAX_PITCH) / pSample->Channels;
-        pDiskThread->OrderNewStream(&DiskStreamRef, pSample, MaxRAMPos);
+        if (pDiskThread->OrderNewStream(&DiskStreamRef, pSample, MaxRAMPos) < 0) {
+            dmsg(1,("Disk stream order failed!\n"));
+            Kill();
+            return -1;
+        }
         dmsg(5,("Disk voice launched (cached samples: %d, total Samples: %d, MaxRAMPos: %d\n", cachedsamples, pSample->SamplesTotal, MaxRAMPos));
     }
     else {
@@ -84,6 +94,8 @@ void Voice::Trigger(int MIDIKey, uint8_t Velocity, gig::Instrument* Instrument) 
     // ************************************************
     // TODO: ARTICULATION DATA HANDLING IS MISSING HERE
     // ************************************************
+
+    return 0; // success
 }
 
 void Voice::RenderAudio() {
@@ -111,8 +123,7 @@ void Voice::RenderAudio() {
                     DiskStreamRef.pStream = pDiskThread->AskForCreatedStream(DiskStreamRef.OrderID);
                     if (!DiskStreamRef.pStream) {
                         std::cout << stderr << "Disk stream not available in time!" << std::endl << std::flush;
-                        pDiskThread->OrderDeletionOfStream(&DiskStreamRef);
-                        this->Active = false;
+                        Kill();
                         return;
                     }
                     DiskStreamRef.pStream->IncrementReadPos(pSample->Channels * (double_to_int(Pos) - MaxRAMPos));
@@ -149,24 +160,35 @@ void Voice::Interpolate(sample_t* pSrc) {
     // FIXME: assuming either mono or stereo
     if (this->pSample->Channels == 2) { // Stereo Sample
         while (i < this->OutputBufferSize) {
-            #ifdef USE_LINEAR_INTERPOLATION
-                int   pos_int   = double_to_int(this->Pos);  // integer position
-                float pos_fract = this->Pos - pos_int;       // fractional part of position
-                pos_int <<= 1;
+            int   pos_int   = double_to_int(this->Pos);  // integer position
+            float pos_fract = this->Pos - pos_int;       // fractional part of position
+            pos_int <<= 1;
+
+            #if USE_LINEAR_INTERPOLATION
                 // left channel
                 this->pOutput[i++] += effective_volume * (pSrc[pos_int]   + pos_fract * (pSrc[pos_int+2] - pSrc[pos_int]));
                 // right channel
                 this->pOutput[i++] += effective_volume * (pSrc[pos_int+1] + pos_fract * (pSrc[pos_int+3] - pSrc[pos_int+1]));
             #else // polynomial interpolation
-                //FIXME: !!!THIS WON'T WORK!!! needs to be adjusted for stereo, use linear interpolation meanwhile
-                xm1 = pSrc[pos_int];
-                x0  = pSrc[pos_int+1];
-                x1  = pSrc[pos_int+2];
-                x2  = pSrc[pos_int+3];
-                a   = (3 * (x0-x1) - xm1 + x2) / 2;
+                // calculate left channel
+                float xm1 = pSrc[pos_int];
+                float x0  = pSrc[pos_int+2];
+                float x1  = pSrc[pos_int+4];
+                float x2  = pSrc[pos_int+6];
+                float a   = (3 * (x0 - x1) - xm1 + x2) / 2;
+                float b   = 2 * x1 + xm1 - (5 * x0 + x2) / 2;
+                float c   = (x1 - xm1) / 2;
+                this->pOutput[i++] += effective_volume * ((((a * pos_fract) + b) * pos_fract + c) * pos_fract + x0);
+
+                //calculate right channel
+                xm1 = pSrc[pos_int+1];
+                x0  = pSrc[pos_int+3];
+                x1  = pSrc[pos_int+5];
+                x2  = pSrc[pos_int+7];
+                a   = (3 * (x0 - x1) - xm1 + x2) / 2;
                 b   = 2 * x1 + xm1 - (5 * x0 + x2) / 2;
                 c   = (x1 - xm1) / 2;
-                this->pOutput[u] += effective_volume*((((a * pos_fract) + b) * pos_fract + c) * pos_fract + x0);
+                this->pOutput[i++] += effective_volume * ((((a * pos_fract) + b) * pos_fract + c) * pos_fract + x0);
             #endif // USE_LINEAR_INTERPOLATION
 
             this->Pos += this->CurrentPitch;
@@ -174,24 +196,24 @@ void Voice::Interpolate(sample_t* pSrc) {
     }
     else { // Mono Sample
         while (i < this->OutputBufferSize) {
-            #ifdef USE_LINEAR_INTERPOLATION
-                int   pos_int       = double_to_int(this->Pos);  // integer position
-                float pos_fract     = this->Pos - pos_int;       // fractional part of position
+            int   pos_int   = double_to_int(this->Pos);  // integer position
+            float pos_fract = this->Pos - pos_int;       // fractional part of position
+
+            #if USE_LINEAR_INTERPOLATION
                 float sample_point  = effective_volume * (pSrc[pos_int] + pos_fract * (pSrc[pos_int+1] - pSrc[pos_int]));
-                this->pOutput[i]   += sample_point;
-                this->pOutput[i+1] += sample_point;
-                i += 2;
             #else // polynomial interpolation
-                //FIXME: !!!THIS WON'T WORK!!! needs to be adjusted for stereo, use linear interpolation meanwhile
-                xm1 = pSrc[pos_int];
-                x0  = pSrc[pos_int+1];
-                x1  = pSrc[pos_int+2];
-                x2  = pSrc[pos_int+3];
-                a   = (3 * (x0-x1) - xm1 + x2) / 2;
-                b   = 2 * x1 + xm1 - (5 * x0 + x2) / 2;
-                c   = (x1 - xm1) / 2;
-               this->pOutput[u] += effective_volume*((((a * pos_fract) + b) * pos_fract + c) * pos_fract + x0);
-            #endif
+                float xm1 = pSrc[pos_int];
+                float x0  = pSrc[pos_int+1];
+                float x1  = pSrc[pos_int+2];
+                float x2  = pSrc[pos_int+3];
+                float a   = (3 * (x0 - x1) - xm1 + x2) / 2;
+                float b   = 2 * x1 + xm1 - (5 * x0 + x2) / 2;
+                float c   = (x1 - xm1) / 2;
+                float sample_point = effective_volume * ((((a * pos_fract) + b) * pos_fract + c) * pos_fract + x0);
+            #endif // USE_LINEAR_INTERPOLATION
+
+            this->pOutput[i++] += sample_point;
+            this->pOutput[i++] += sample_point;
 
             this->Pos += this->CurrentPitch;
         }
@@ -202,5 +224,9 @@ void Voice::Kill() {
     if (DiskVoice && DiskStreamRef.State != Stream::state_unused) {
         pDiskThread->OrderDeletionOfStream(&DiskStreamRef);
     }
+    DiskStreamRef.pStream = NULL;
+    DiskStreamRef.hStream = 0;
+    DiskStreamRef.State   = Stream::state_unused;
+    DiskStreamRef.OrderID = 0;
     Active = false;
 }

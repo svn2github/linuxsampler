@@ -84,9 +84,15 @@ int AudioIO::Initialize(uint channels, uint samplerate, uint numfragments, uint 
         return EXIT_FAILURE;
     }
 
+    int dir = 0;
+
     /* Set sample rate. If the exact rate is not supported */
     /* by the hardware, use nearest possible rate.         */
-    if((err = snd_pcm_hw_params_set_rate_near(pcm_handle, hwparams, samplerate, 0)) < 0) {
+    #if ALSA_MAJOR > 0
+    if((err = snd_pcm_hw_params_set_rate_near(pcm_handle, hwparams, &samplerate, &dir)) < 0) {
+    #else
+    if((err = snd_pcm_hw_params_set_rate_near(pcm_handle, hwparams, samplerate, &dir)) < 0) {
+    #endif
         fprintf(stderr, "Error setting sample rate. : %s\n", snd_strerror(err));
         return EXIT_FAILURE;
     }
@@ -97,7 +103,7 @@ int AudioIO::Initialize(uint channels, uint samplerate, uint numfragments, uint 
     }
 
     /* Set number of periods. Periods used to be called fragments. */
-    if ((err = snd_pcm_hw_params_set_periods(pcm_handle, hwparams, numfragments, 0)) < 0) {
+    if ((err = snd_pcm_hw_params_set_periods(pcm_handle, hwparams, numfragments, dir)) < 0) {
         fprintf(stderr, "Error setting number of periods. : %s\n", snd_strerror(err));
         return EXIT_FAILURE;
     }
@@ -170,7 +176,8 @@ bool AudioIO::HardwareParametersSupported(uint channels, int samplerate, uint nu
         snd_pcm_close(pcm_handle);
         return false;
     }
-    if (snd_pcm_hw_params_test_rate(pcm_handle, hwparams, samplerate, 0) < 0) {
+    int dir = 0;
+    if (snd_pcm_hw_params_test_rate(pcm_handle, hwparams, samplerate, dir) < 0) {
         snd_pcm_close(pcm_handle);
         return false;
     }
@@ -178,7 +185,7 @@ bool AudioIO::HardwareParametersSupported(uint channels, int samplerate, uint nu
         snd_pcm_close(pcm_handle);
         return false;
     }
-    if (snd_pcm_hw_params_test_periods(pcm_handle, hwparams, numfragments, 0) < 0) {
+    if (snd_pcm_hw_params_test_periods(pcm_handle, hwparams, numfragments, dir) < 0) {
         snd_pcm_close(pcm_handle);
         return false;
     }
@@ -191,6 +198,12 @@ bool AudioIO::HardwareParametersSupported(uint channels, int samplerate, uint nu
     return true;
 }
 
+/**
+ *  Will be called by the audio engine after every audio fragment cycle, to
+ *  output the audio data of the current fragment to the soundcard.
+ *
+ *  @returns  0 on success
+ */
 int AudioIO::Output() {
     int err = snd_pcm_writei(pcm_handle, pOutputBuffer, FragmentSize);
     if (err < 0) {

@@ -9,6 +9,15 @@
 /* Define if you need the GNU extensions to compile */
 #undef _GNU_SOURCE
 
+/* Define to the major version number of your Alsa installation. */
+#undef ALSA_MAJOR
+
+/* Define to the minor version number of your Alsa installation. */
+#undef ALSA_MINOR
+
+/* Define to the subminor version number of your Alsa installation. */
+#undef ALSA_SUBMINOR
+
 /* Define to 1 if you build for x86 architecture. */
 #undef ARCH_X86
 

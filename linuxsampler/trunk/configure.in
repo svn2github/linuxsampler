@@ -2,7 +2,8 @@ AC_INIT(configure.in)
 AC_C_BIGENDIAN
 AC_CANONICAL_SYSTEM
 
-echo -n "Checking whether x86 architecture... "
+
+echo -n "checking whether x86 architecture... "
 def_arch_x86=0
 case $target_cpu in
   "i386" | "i486" | "i586" | "i686" | "i786")
@@ -12,6 +13,75 @@ case $target_cpu in
     echo "no";;
 esac
 AC_DEFINE_UNQUOTED(ARCH_X86,$def_arch_x86,[Define to 1 if you build for x86 architecture.])
+
+
+AC_CHECK_HEADER(alsa/asoundlib.h,
+    AC_CHECK_LIB(asound, main,
+                             have_alsa="true"
+                             ,
+                             have_alsa="false"
+                )
+                ,
+                have_alsa="false"
+)
+if test "$have_alsa" = "false"; then
+    echo "Alsa not installed!"
+    echo "Sorry, LinuxSampler only supports Alsa sound drivers at the moment!"
+    exit -1;
+fi
+
+
+echo -n "checking Alsa version... "
+AC_LANG_SAVE
+AC_LANG_C
+AC_TRY_RUN([
+#include <alsa/asoundlib.h>
+void main(void) {
+/* ensure backward compatibility */
+#if !defined(SND_LIB_MAJOR) && defined(SOUNDLIB_VERSION_MAJOR)
+#define SND_LIB_MAJOR SOUNDLIB_VERSION_MAJOR
+#endif
+exit(SND_LIB_MAJOR);
+}
+],
+alsa_major=0,
+alsa_major=$?,
+alsa_major=0
+)
+AC_TRY_RUN([
+#include <alsa/asoundlib.h>
+void main(void) {
+/* ensure backward compatibility */
+#if !defined(SND_LIB_MINOR) && defined(SOUNDLIB_VERSION_MINOR)
+#define SND_LIB_MINOR SOUNDLIB_VERSION_MINOR
+#endif
+exit(SND_LIB_MINOR);
+}
+],
+alsa_minor=0,
+alsa_minor=$?,
+alsa_minor=0
+)
+AC_TRY_RUN([
+#include <alsa/asoundlib.h>
+void main(void) {
+/* ensure backward compatibility */
+#if !defined(SND_LIB_SUBMINOR) && defined(SOUNDLIB_VERSION_SUBMINOR)
+#define SND_LIB_SUBMINOR SOUNDLIB_VERSION_SUBMINOR
+#endif
+exit(SND_LIB_SUBMINOR);
+}
+],
+alsa_subminor=0,
+alsa_subminor=$?,
+alsa_subminor=0
+)
+AC_LANG_RESTORE
+echo "$alsa_major.$alsa_minor.$alsa_subminor";
+AC_DEFINE_UNQUOTED(ALSA_MAJOR,$alsa_major,[Define to the major version number of your Alsa installation.])
+AC_DEFINE_UNQUOTED(ALSA_MINOR,$alsa_minor,[Define to the minor version number of your Alsa installation.])
+AC_DEFINE_UNQUOTED(ALSA_SUBMINOR,$alsa_subminor,[Define to the subminor version number of your Alsa installation.])
+
 
 AM_CONFIG_HEADER(config.h)
 AM_INIT_AUTOMAKE(linuxsampler, 0.1)

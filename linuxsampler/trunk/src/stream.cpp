@@ -63,7 +63,7 @@ int Stream::ReadAhead(unsigned long SampleCount) {
     if (endofsamplereached) SetState(state_end);
     else                    SetState(state_active);
 
-    dmsg(5,("Refilled stream with %d (SamplePos: %d)", SampleCount - samplestoread, this->SampleOffset));
+    dmsg(5,("Refilled stream %d with %d (SamplePos: %d)", this->hThis, SampleCount - samplestoread, this->SampleOffset));
     return (SampleCount - samplestoread);
 }
 
@@ -75,6 +75,7 @@ void Stream::WriteSilence(unsigned long SilenceSampleWords) {
 Stream::Stream(uint BufferSize, uint BufferWrapElements) {
     this->pExportReference = NULL;
     this->State            = state_unused;
+    this->hThis            = 0;
     this->pSample          = NULL;
     this->SampleOffset     = 0;
     this->pRingBuffer      = new RingBuffer<sample_t>(BufferSize, BufferWrapElements);
@@ -87,9 +88,10 @@ Stream::~Stream() {
 }
 
 /// Called by disk thread to activate the disk stream.
-void Stream::Launch(reference_t* pExportReference, gig::Sample* pSample, unsigned long SampleOffset) {
+void Stream::Launch(Stream::Handle hStream, reference_t* pExportReference, gig::Sample* pSample, unsigned long SampleOffset) {
     UnusedStreams--;
     this->pExportReference = pExportReference;
+    this->hThis        = hStream;
     this->pSample      = pSample;
     this->SampleOffset = SampleOffset;
     SetState(state_active);

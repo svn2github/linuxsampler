@@ -76,11 +76,26 @@ public:
 
     __inline int  read (T *dest, int cnt);
     __inline int  write (T *src, int cnt);
+
+    inline int push(T* src) { return write(src,1); }
+    inline int pop(T* dst)  { return read(dst,1);  }
+
     __inline T *get_buffer_begin();
 
     __inline T *get_read_ptr(void) {
       return(&buf[atomic_read(&read_ptr)]);
     }
+
+    /**
+     * Returns a pointer to the element from the current read position,
+     * advanced by \a offset elements.
+     */
+    /*inline T* get_read_ptr(int offset) {
+        int r = atomic_read(&read_ptr);
+        r += offset;
+        r &= size_mask;
+        return &buf[r];
+    }*/
 
     __inline T *get_write_ptr();
     __inline void increment_read_ptr(int cnt) {

@@ -32,9 +32,7 @@ MidiIn::~MidiIn() {
 }
 
 int MidiIn::open_alsa_midi_seq(void) {
-
     int portid;
-
     if (snd_seq_open(&seq_handle, "default", SND_SEQ_OPEN_INPUT, 0) < 0) {
         fprintf(stderr, "Error opening ALSA sequencer.\n");
         exit(1);
@@ -53,7 +51,6 @@ void MidiIn::close_alsa_midi_seq(void) {
 }
 
 int MidiIn::Main() {
-
     int res = open_alsa_midi_seq();
     if (res < 0) {
         fprintf(stderr,"opening of MIDI in device failed, exiting.\n");
@@ -69,17 +66,11 @@ int MidiIn::Main() {
     snd_seq_poll_descriptors(seq_handle, pfd, npfd, POLLIN);
     while (true) {
         if (poll(pfd, npfd, 100000) > 0) {
-
             do {
                 snd_seq_event_input(seq_handle, &ev);
-
                 switch (ev->type) {
                     case SND_SEQ_EVENT_CONTROLLER:
-                     //   fprintf(stderr, "Control event on Channel %2d: num=%5d val=%5d       \n",
-                     //           ev->data.control.channel, ev->data.control.param, ev->data.control.value);
-
-                          pAudioThread->ProcessContinuousController(ev->data.control.channel, ev->data.control.param, ev->data.control.value);
-
+                        pAudioThread->SendControlChange(ev->data.control.channel, ev->data.control.param, ev->data.control.value);
                         break;
 
                     case SND_SEQ_EVENT_PITCHBEND:
@@ -88,25 +79,21 @@ int MidiIn::Main() {
                         break;
 
                     case SND_SEQ_EVENT_NOTEON:
-                        //fprintf(stderr, "Note On event on Channel %2d: note=%5d velocity=%d      \n",
-                        //        ev->data.control.channel, ev->data.note.note, ev->data.note.velocity);
                         if (ev->data.note.velocity != 0) {
-                            pAudioThread->ProcessNoteOn(ev->data.note.note, ev->data.note.velocity);
+                            pAudioThread->SendNoteOn(ev->data.note.note, ev->data.note.velocity);
                         }
                         else {
-                            pAudioThread->ProcessNoteOff(ev->data.note.note, 0);
+                            pAudioThread->SendNoteOff(ev->data.note.note, 0);
                         }
                         break;
 
                     case SND_SEQ_EVENT_NOTEOFF:
-                        //fprintf(stderr, "Note Off event on Channel %2d: note=%5d velocity=%d      \n",
-                        //        ev->data.control.channel, ev->data.note.note, ev->data.note.velocity);
-                        pAudioThread->ProcessNoteOff(ev->data.note.note, ev->data.note.velocity);
+                        pAudioThread->SendNoteOff(ev->data.note.note, ev->data.note.velocity);
                         break;
                 }
                 snd_seq_free_event(ev);
             } while (snd_seq_event_input_pending(seq_handle, 0) > 0);
-        } // end of if(poll...)
-    }  // end of while
+        }
+    }
 }
 

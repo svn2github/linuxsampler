@@ -108,7 +108,7 @@ int main(int argc, char **argv) {
         return EXIT_FAILURE;
     }
 
-    DiskThread*  pDiskThread   = new DiskThread(((pAudioIO->FragmentSize << MAX_PITCH) << 1) + 3); //FIXME: assuming stereo
+    DiskThread*  pDiskThread   = new DiskThread(((pAudioIO->FragmentSize << MAX_PITCH) << 1) + 6); //FIXME: assuming stereo
     AudioThread* pAudioThread  = new AudioThread(pAudioIO, pDiskThread, pInstrument);
     MidiIn*      pMidiInThread = new MidiIn(pAudioThread);
 

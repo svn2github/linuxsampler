@@ -23,12 +23,11 @@
 #ifndef __DISKTHREAD_H__
 #define __DISKTHREAD_H__
 
-#define MAX_BUF_PERCENT 0.8
-#define MIN_REFILL_SIZE 1024
-#define MAX_REFILL_SIZE 65536
-// the diskstream ringbuffer size (256kB as sample_t is 16bit)
-#define STREAM_BUFFER_SIZE 131072
-#define MAX_INPUT_STREAMS 100
+#define REFILL_STREAMS_PER_RUN		4       ///< number of streams that should be refilled with each disk thread cycle
+#define MIN_REFILL_SIZE			1024    ///< if no buffer was filled up more than this bottom limit, the disk thread will go to sleep
+#define MAX_REFILL_SIZE			65536   ///< maximum of samples a buffer should be refilled in one cycle (256kB, as 16 bit stereo)
+#define STREAM_BUFFER_SIZE		131072  ///< the diskstream ringbuffer size (256kB as sample_t is 16bit)
+#define MAX_INPUT_STREAMS		100     ///< number of streams that should be allocated
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -62,6 +61,8 @@ class DiskThread : public Thread {
     private:
         // Private Types
         struct create_command_t {
+            Stream::OrderID_t    OrderID;
+            Stream::Handle       hStream;
             Stream::reference_t* pStreamRef;
             gig::Sample*         pSample;
             unsigned long        SampleOffset;
@@ -73,20 +74,22 @@ class DiskThread : public Thread {
         };
 
         // Attributes
-        bool                          IsIdle;
-        uint                          Streams;
-        RingBuffer<create_command_t>* CreationQueue;
-        RingBuffer<delete_command_t>* DeletionQueue;
-        unsigned int                  RefillStreamsPerRun; // how many streams should be refilled in each loop run
-        Stream*                       pStreams[MAX_INPUT_STREAMS];            ///< Contains all disk streams (wether used or unused)
-        Stream*                       pCreatedStreams[MAX_INPUT_STREAMS + 1]; ///< This is where the voice (audio thread) picks up it's meanwhile hopefully created disk stream.
+        bool                           IsIdle;
+        uint                           Streams;
+        RingBuffer<create_command_t>*  CreationQueue;                          ///< Contains commands to create streams
+        RingBuffer<delete_command_t>*  DeletionQueue;                          ///< Contains commands to delete streams
+        RingBuffer<Stream::Handle>*    GhostQueue;                             ///< Contains handles to streams that are not used anymore and weren't deletable immediately
+        unsigned int                   RefillStreamsPerRun;                    ///< How many streams should be refilled in each loop run
+        Stream*                        pStreams[MAX_INPUT_STREAMS];            ///< Contains all disk streams (wether used or unused)
+        Stream*                        pCreatedStreams[MAX_INPUT_STREAMS + 1]; ///< This is where the voice (audio thread) picks up it's meanwhile hopefully created disk stream.
+        static Stream*                 SLOT_RESERVED;                          ///< This value is used to mark an entry in pCreatedStreams[] as reserved.
 
         // Methods
-        void                          CreateStream(create_command_t& Command);
-        void                          DeleteStream(delete_command_t& Command);
-        void                          RefillStreams();
-        Stream::Handle                CreateHandle();
-        Stream::OrderID_t             CreateOrderID();
+        void                           CreateStream(create_command_t& Command);
+        void                           DeleteStream(delete_command_t& Command);
+        void                           RefillStreams();
+        Stream::Handle                 CreateHandle();
+        Stream::OrderID_t              CreateOrderID();
 };
 
 #endif // __DISKTHREAD_H__
