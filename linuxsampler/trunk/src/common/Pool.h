@@ -334,6 +334,8 @@ class RTListBase {
             next->prev = prev;
         }
 
+        friend class _Iterator<T>;
+        friend class RTList<T>;
         friend class Pool<T>;
 };
 

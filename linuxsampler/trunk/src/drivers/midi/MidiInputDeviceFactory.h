@@ -56,7 +56,7 @@ namespace LinuxSampler {
           class InnerFactoryRegistrator {
               public:
                   InnerFactoryRegistrator() {
-                      MidiInputDeviceFactory::InnerFactories[Driver_T::Name()] = new InnerFactoryTemplate<Driver_T>;
+                      MidiInputDeviceFactory::InnerFactories[Driver_T::Name()] = new MidiInputDeviceFactory::InnerFactoryTemplate<Driver_T>;
 		      MidiInputDeviceFactory::ParameterFactories[Driver_T::Name()] = new DeviceParameterFactory();
                   }
           };
@@ -78,7 +78,7 @@ namespace LinuxSampler {
           static String                                    GetDriverDescription(String DriverName) throw (LinuxSamplerException);
           static String                                    GetDriverVersion(String DriverName) throw (LinuxSamplerException);
 
-      protected:
+//      protected: /* FIXME: fields below should be protected, causes errors on gcc 2.95 though */
           static std::map<String, InnerFactory*> InnerFactories;
 	  static std::map<String, DeviceParameterFactory*> ParameterFactories;
   };

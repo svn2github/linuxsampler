@@ -179,6 +179,8 @@ namespace LinuxSampler {
              */
             void AcquirePorts(uint Ports);
 
+            friend class ParameterActive;
+            friend class ParameterPorts;
             friend class Sampler; // allow Sampler class to destroy midi devices
     };
 }

@@ -77,6 +77,9 @@ namespace LinuxSampler {
                     friend class MidiInputDeviceAlsa;
                 private:
                     MidiInputDeviceAlsa* pDevice;
+
+                    friend class ParameterName;
+                    friend class ParameterAlsaSeqBindings;
             };
 
             MidiInputDeviceAlsa(std::map<String,DeviceCreationParameter*> Parameters);
@@ -96,6 +99,10 @@ namespace LinuxSampler {
         private:
             snd_seq_t* hAlsaSeq;
             int        hAlsaSeqClient;       ///< Alsa Sequencer client ID
+
+            friend class MidiInputPortAlsa;
+            friend class MidiInputPortAlsa::ParameterName;
+            friend class MidiInputPortAlsa::ParameterAlsaSeqBindings;
     };
 }
 

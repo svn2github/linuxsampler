@@ -339,6 +339,8 @@ public:
     atomic_t write_ptr;
     atomic_t read_ptr;
     int size_mask;
+
+    friend class _NonVolatileReader<T>;
 };
 
 template<class T> T *
