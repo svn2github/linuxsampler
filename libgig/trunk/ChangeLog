@@ -23,6 +23,8 @@ Version CVS HEAD (?)
     - experimental support for compressed 24 bit samples
     - fixed decompression on big-endian CPUs
     - fixed decompression bug that truncated the last block of samples
+    - external decompression buffers can now be used for streaming samples
+      to avoid race conditions in case of multiple streaming threads
 
   * src/gigdump.cpp:
     - added output of UnityNote and FineTune
