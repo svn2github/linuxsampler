@@ -79,6 +79,7 @@ namespace LinuxSampler {
             virtual String EngineName() = 0;
             virtual String InstrumentFileName() = 0;
             virtual int    InstrumentIndex() = 0;
+            virtual int    InstrumentStatus() = 0;
     };
 }
 

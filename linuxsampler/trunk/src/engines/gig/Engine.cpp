@@ -63,6 +63,7 @@ namespace LinuxSampler { namespace gig {
         pMainFilterParameters   = NULL;
 
 	InstrumentIdx = -1;
+	InstrumentStat = -1;
 
         ResetInternal();
     }
@@ -197,7 +198,9 @@ namespace LinuxSampler { namespace gig {
             Instruments.HandBack(pInstrument, this);
         }
 
-	InstrumentIdx = -1;
+	InstrumentFile = FileName;
+	InstrumentIdx = Instrument;
+	InstrumentStat = 0;
 
         // request gig instrument from instrument manager
         try {
@@ -206,24 +209,27 @@ namespace LinuxSampler { namespace gig {
             instrid.iInstrument = Instrument;
             pInstrument = Instruments.Borrow(instrid, this);
             if (!pInstrument) {
+                InstrumentStat = -1;
                 dmsg(1,("no instrument loaded!!!\n"));
                 exit(EXIT_FAILURE);
             }
         }
         catch (RIFF::Exception e) {
+            InstrumentStat = -2;
             String msg = "gig::Engine error: Failed to load instrument, cause: " + e.Message;
             throw LinuxSamplerException(msg);
         }
         catch (InstrumentResourceManagerException e) {
+            InstrumentStat = -3;
             String msg = "gig::Engine error: Failed to load instrument, cause: " + e.Message();
             throw LinuxSamplerException(msg);
         }
         catch (...) {
+            InstrumentStat = -4;
             throw LinuxSamplerException("gig::Engine error: Failed to load instrument, cause: Unknown exception while trying to parse gig file.");
         }
 
-	InstrumentFile = FileName;
-	InstrumentIdx = Instrument;
+	InstrumentStat = 100;
 
         // inform audio driver for the need of two channels
         try {
@@ -709,12 +715,16 @@ namespace LinuxSampler { namespace gig {
         return InstrumentIdx;
     }
 
+    int Engine::InstrumentStatus() {
+        return InstrumentStat;
+    }
+
     String Engine::Description() {
         return "Gigasampler Engine";
     }
 
     String Engine::Version() {
-        String s = "$Revision: 1.6 $";
+        String s = "$Revision: 1.7 $";
         return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
 

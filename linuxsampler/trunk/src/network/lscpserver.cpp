@@ -140,7 +140,8 @@ String LSCPServer::LoadInstrument(String Filename, uint uiInstrument, uint uiSam
         if (!pSamplerChannel) throw LinuxSamplerException("Index out of bounds");
         Engine* pEngine = pSamplerChannel->GetEngine();
         if (!pEngine) throw LinuxSamplerException("No engine loaded on channel");
-        pEngine->LoadInstrument(Filename.c_str(), uiInstrument);
+        LSCPLoadInstrument *pLoadInstrument = new LSCPLoadInstrument(pEngine, Filename.c_str(), uiInstrument);
+        pLoadInstrument->StartThread();
     }
     catch (LinuxSamplerException e) {
          result.Error(e);
@@ -244,16 +245,16 @@ String LSCPServer::GetChannelInfo(uint uiSamplerChannel) {
 	String EngineName = "NONE";
 	float Volume = 0;
 	String InstrumentFileName = "NONE";
-	int InstrumentIndex = 0;
+	int InstrumentIndex = -1;
+	int InstrumentStatus = -1;
 
         if (pEngine) {
 	    EngineName =  pEngine->EngineName();
 	    Volume = pEngine->Volume();
-            int iIdx = pEngine->InstrumentIndex();
-            if (iIdx != -1) {
+	    InstrumentStatus = pEngine->InstrumentStatus();
+	    InstrumentIndex = pEngine->InstrumentIndex();
+	    if (InstrumentIndex != -1)
 	        InstrumentFileName = pEngine->InstrumentFileName();
-		InstrumentIndex = iIdx;
-            }
 	}
 
         result.Add("ENGINE_NAME", EngineName);
@@ -266,6 +267,7 @@ String LSCPServer::GetChannelInfo(uint uiSamplerChannel) {
 
         result.Add("INSTRUMENT_FILE", InstrumentFileName);
         result.Add("INSTRUMENT_NR", InstrumentIndex);
+        result.Add("INSTRUMENT_STATUS", InstrumentStatus);
 
 	//Some more hardcoded stuff for now to make GUI look good
         result.Add("MIDI_INPUT_DEVICE", "0");
@@ -695,4 +697,32 @@ String LSCPServer::SubscribeNotification(uint UDPPort) {
 String LSCPServer::UnsubscribeNotification(String SessionID) {
     dmsg(2,("LSCPServer: UnsubscribeNotification(SessionID=%s)\n", SessionID.c_str()));
     return "ERR:0:Not implemented yet.\r\n";
+}
+
+
+// Instrument loader constructor.
+LSCPLoadInstrument::LSCPLoadInstrument(Engine* pEngine, String Filename, uint uiInstrument)
+    : Thread(false, 0, -4)
+{
+    this->pEngine = pEngine;
+    this->Filename = Filename;
+    this->uiInstrument = uiInstrument;
+}
+
+// Instrument loader process.
+int LSCPLoadInstrument::Main()
+{
+    try {
+        pEngine->LoadInstrument(Filename.c_str(), uiInstrument);
+    }
+
+    catch (LinuxSamplerException e) {
+        e.PrintMessage();
+    }
+
+    // Always re-enable the engine.
+    pEngine->Enable();
+
+    // FIXME: Shoot ourselves on the foot?
+    delete this;
 }

@@ -101,7 +101,7 @@ AC_DEFINE_UNQUOTED(HAVE_JACK,$HAVE_JACK,[Define to 1 if you have JACK installed.
 
 
 AM_CONFIG_HEADER(config.h)
-AM_INIT_AUTOMAKE(linuxsampler, 0.1)
+AM_INIT_AUTOMAKE(linuxsampler, 0.2)
 
 AC_LANG_CPLUSPLUS
 AC_PROG_CXX

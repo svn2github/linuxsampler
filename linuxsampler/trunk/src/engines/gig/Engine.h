@@ -84,6 +84,7 @@ namespace LinuxSampler { namespace gig {
             virtual String EngineName();
             virtual String InstrumentFileName();
             virtual int    InstrumentIndex();
+            virtual int    InstrumentStatus();
 
             // abstract methods derived from interface class 'InstrumentConsumer'
             virtual void ResourceToBeUpdated(::gig::Instrument* pResource, void*& pUpdateArg);
@@ -126,6 +127,7 @@ namespace LinuxSampler { namespace gig {
             ConditionServer         EngineDisabled;
 	    String                  InstrumentFile;
 	    int                     InstrumentIdx;
+	    int                     InstrumentStat;
 
             void ProcessNoteOn(Event* pNoteOnEvent);
             void ProcessNoteOff(Event* pNoteOffEvent);

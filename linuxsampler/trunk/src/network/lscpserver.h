@@ -130,4 +130,23 @@ class LSCPServer : public Thread {
         }
 };
 
+
+/**
+ * Instrument loader thread for the LinuxSampler Control Protocol (LSCP).
+ */
+class LSCPLoadInstrument : public Thread {
+
+    public:
+        LSCPLoadInstrument(Engine* pEngine, String Filename, uint uiInstrument);
+
+    protected:
+        // Instance variables.
+        Engine* pEngine;
+        String  Filename;
+        uint    uiInstrument;
+
+        // Implementation of virtual method from class Thread.
+        int Main();
+};
+
 #endif // __LSCPSERVER_H_
