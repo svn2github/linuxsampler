@@ -75,7 +75,8 @@ namespace LinuxSampler {
 
     void AudioOutputDeviceJack::AudioChannelJack::ParameterJackBindings::OnSetValue(std::vector<String> vS) {
         // TODO: we should remove all existing bindings before we connect new ones here
-        String src_name = "LinuxSampler:" + ((DeviceRuntimeParameterString*)pChannel->Parameters["NAME"])->ValueAsString();
+        String src_name = ((DeviceCreationParameterString*)pChannel->pDevice->Parameters["NAME"])->ValueAsString() + ":" +
+                          ((DeviceRuntimeParameterString*)pChannel->Parameters["NAME"])->ValueAsString();
         for (int i = 0; i < vS.size(); i++) {
             String dst_name = vS[i];
             int res = jack_connect(pChannel->pDevice->hJackClient, src_name.c_str(), dst_name.c_str());
@@ -248,7 +249,7 @@ namespace LinuxSampler {
     }
 
     String AudioOutputDeviceJack::Version() {
-       String s = "$Revision: 1.16 $";
+       String s = "$Revision: 1.17 $";
        return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
 
