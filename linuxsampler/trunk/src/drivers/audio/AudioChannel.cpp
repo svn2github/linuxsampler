@@ -73,9 +73,9 @@ namespace LinuxSampler {
      */
     AudioChannel::AudioChannel(uint ChannelNr, AudioChannel* pMixChannelDestination) {
         this->ChannelNr          = ChannelNr;
-        this->pBuffer            = pMixChannel->Buffer();
-        this->uiBufferSize       = pMixChannel->uiBufferSize;
-        this->pMixChannel        = pMixChannel;
+        this->pBuffer            = pMixChannelDestination->Buffer();
+        this->uiBufferSize       = pMixChannelDestination->uiBufferSize;
+        this->pMixChannel        = pMixChannelDestination;
         this->UsesExternalBuffer = true;
 
         Parameters["NAME"]           = new ParameterName("Channel " + ToString(ChannelNr));
