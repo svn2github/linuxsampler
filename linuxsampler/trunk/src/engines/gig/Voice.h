@@ -150,7 +150,6 @@ namespace LinuxSampler { namespace gig {
             Pool<Event>::Iterator       itKillEvent;         ///< Event which caused this voice to be killed
         //private:
             int                         SynthesisMode;
-            void*                       SynthesizeFragmentFnPtr; ///< Points to the respective synthesis function for the current synthesis mode.
 
             // Static Methods
             static float CalculateFilterCutoffCoeff();
@@ -160,8 +159,7 @@ namespace LinuxSampler { namespace gig {
             void KillImmediately();
             void ProcessEvents(uint Samples);
             void CalculateBiquadParameters(uint Samples);
-            void UpdateSynthesisMode();
-            void Synthesize(uint Samples, sample_t* pSrc, int Skip);
+            void Synthesize(uint Samples, sample_t* pSrc, uint Skip);
 
             inline float CrossfadeAttenuation(uint8_t& CrossfadeControllerValue) {
                 return (CrossfadeControllerValue <= pDimRgn->Crossfade.in_start)  ? 0.0f

@@ -61,6 +61,7 @@ namespace LinuxSampler { namespace gig {
 
         // select synthesis implementation (currently either pure C++ or MMX+SSE(1))
         SYNTHESIS_MODE_SET_IMPLEMENTATION(SynthesisMode, Features::supportsMMX() && Features::supportsSSE());
+        SYNTHESIS_MODE_SET_PROFILING(SynthesisMode, true);
     }
 
     Voice::~Voice() {
@@ -979,18 +980,8 @@ namespace LinuxSampler { namespace gig {
      *  @param pSrc    - pointer to input sample data
      *  @param Skip    - number of sample points to skip in output buffer
      */
-    void Voice::Synthesize(uint Samples, sample_t* pSrc, int Skip) {
-        UpdateSynthesisMode();
-        SynthesizeFragment_Fn* f = (SynthesizeFragment_Fn*) SynthesizeFragmentFnPtr;
-        f(*this, Samples, pSrc, Skip);
-    }
-
-    /**
-     *  Determine the respective synthesis function for the given synthesis
-     *  mode.
-     */
-    void Voice::UpdateSynthesisMode() {
-        SynthesizeFragmentFnPtr = GetSynthesisFunction(SynthesisMode);
+    void Voice::Synthesize(uint Samples, sample_t* pSrc, uint Skip) {
+        RunSynthesisFunction(SynthesisMode, *this, Samples, pSrc, Skip);
     }
 
     /**

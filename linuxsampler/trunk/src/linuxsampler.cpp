@@ -26,6 +26,7 @@
 #include "Sampler.h"
 #include "drivers/midi/MidiInputDeviceFactory.h"
 #include "drivers/audio/AudioOutputDeviceFactory.h"
+#include "engines/gig/Profiler.h"
 #include "network/lscpserver.h"
 #include "common/stacktrace.h"
 #include "common/Features.h"
@@ -35,6 +36,8 @@ using namespace LinuxSampler;
 Sampler*    pSampler    = NULL;
 LSCPServer* pLSCPServer = NULL;
 pthread_t   main_thread;
+bool profile = false;
+bool tune = true;
 
 void parse_options(int argc, char **argv);
 void signal_handler(int signal);
@@ -64,20 +67,23 @@ int main(int argc, char **argv) {
     sigaction(SIGUSR2, &sact, NULL);
 
     // parse and assign command line options
-    //parse_options(argc, argv);
+    parse_options(argc, argv);
 
     dmsg(1,("LinuxSampler %s\n", VERSION));
     dmsg(1,("Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck\n"));
 
-    // detect and print system / CPU specific features
-    String sFeatures;
-    Features::detect();
-    #if ARCH_X86
-    if (Features::supportsMMX()) sFeatures += " MMX";
-    if (Features::supportsSSE()) sFeatures += " SSE";
-    #endif // ARCH_X86
-    if (!sFeatures.size()) sFeatures = " None";
-    dmsg(1,("Detected features:%s\n",sFeatures.c_str()));
+    if (tune)
+    {
+	    // detect and print system / CPU specific features
+	    String sFeatures;
+	    Features::detect();
+#if ARCH_X86
+	    if (Features::supportsMMX()) sFeatures += " MMX";
+	    if (Features::supportsSSE()) sFeatures += " SSE";
+#endif // ARCH_X86
+	    if (!sFeatures.size()) sFeatures = " None";
+	    dmsg(1,("Detected features:%s\n",sFeatures.c_str()));
+    }
 
     // create LinuxSampler instance
     dmsg(1,("Creating Sampler..."));
@@ -94,6 +100,14 @@ int main(int argc, char **argv) {
     pLSCPServer->WaitUntilInitialized();
     dmsg(1,("OK\n"));
 
+    if (profile)
+    {
+	    dmsg(1,("Calibrating profiler..."));
+	    gig::Profiler::Calibrate();
+	    gig::Profiler::Reset();
+	    dmsg(1,("OK\n"));
+    }
+
     printf("LinuxSampler initialization completed.\n");
 
     while(true)  {
@@ -101,7 +115,17 @@ int main(int argc, char **argv) {
             pEngine->ActiveVoiceCount, pEngine->ActiveVoiceCountMax,
             pEngine->pDiskThread->ActiveStreamCount, pEngine->pDiskThread->ActiveStreamCountMax, Stream::GetUnusedStreams());
       fflush(stdout);*/
-      usleep(500000);
+      sleep(1);
+      if (profile)
+      {
+	      unsigned int samplingFreq = 48000; //FIXME: hardcoded for now
+	      unsigned int bv = gig::Profiler::GetBogoVoices(samplingFreq);
+	      if (bv != 0)
+	      {
+		      printf("       BogoVoices: %i         \r", bv);
+		      fflush(stdout);
+	      }
+      }
     }
 
     return EXIT_SUCCESS;
@@ -156,23 +180,15 @@ void kill_app() {
     kill(main_thread, SIGKILL);
 }
 
-/*void parse_options(int argc, char **argv) {
+void parse_options(int argc, char **argv) {
     int res;
     int option_index = 0;
     static struct option long_options[] =
         {
-            {"numfragments",1,0,0},
-            {"fragmentsize",1,0,0},
-            {"volume",1,0,0},
-            {"dls",0,0,0},
-            {"gig",0,0,0},
-            {"instrument",1,0,0},
-            {"inputclient",1,0,0},
-            {"alsaout",1,0,0},
-            {"jackout",1,0,0},
-            {"samplerate",1,0,0},
-            {"server",0,0,0},
             {"help",0,0,0},
+            {"version",0,0,0},
+            {"profile",0,0,0},
+            {"no-tune",0,0,0},
             {0,0,0,0}
         };
 
@@ -181,81 +197,24 @@ void kill_app() {
         if(res == -1) break;
         if (res == 0) {
             switch(option_index) {
-                case 0: // --numfragments
-                    num_fragments = atoi(optarg);
-                    break;
-                case 1: // --fragmentsize
-                    fragmentsize = atoi(optarg);
-                    break;
-                case 2: // --volume
-                    volume = atof(optarg);
-                    break;
-                case 3: // --dls
-                    patch_format = patch_format_dls;
-                    break;
-                case 4: // --gig
-                    patch_format = patch_format_gig;
-                    break;
-                case 5: // --instrument
-                    instrument_index = atoi(optarg);
-                    break;
-                case 6: // --inputclient
-                    input_client = optarg;
-                    break;
-                case 7: // --alsaout
-                    alsaout = optarg;
-                    use_jack = false; // If this option is specified do not connect to jack
-                    break;
-                case 8: { // --jackout
-                    try {
-                        String arg(optarg);
-                        // remove outer apostrophes
-                        arg = arg.substr(arg.find('\'') + 1, arg.rfind('\'') - (arg.find('\'') + 1));
-                        // split in two arguments
-                        jack_playback[0] = arg.substr(0, arg.find("\' "));
-                        jack_playback[1] = arg.substr(arg.find("\' ") + 2, arg.size() - (arg.find("\' ") + 2));
-                        // remove inner apostrophes
-                        jack_playback[0] = jack_playback[0].substr(0, jack_playback[0].find('\''));
-                        jack_playback[1] = jack_playback[1].substr(jack_playback[1].find('\'') + 1, jack_playback[1].size() - jack_playback[1].find('\''));
-                        // this is the default but set it up anyway in case alsa_card was also used.
-                        use_jack = true;
-                    }
-                    catch (...) {
-                        fprintf(stderr, "Invalid argument '%s' for parameter --jackout\n", optarg);
-                        exit(EXIT_FAILURE);
-                    }
-                    break;
-                }
-                case 9: // --samplerate
-                    samplerate = atoi(optarg);
-                    break;
-                case 10: // --server
-                    run_server = true;
-                    break;
-                case 11: // --help
-                    printf("usage: linuxsampler [OPTIONS] <INSTRUMENTFILE>\n\n");
-                    printf("--gig              loads a Gigasampler instrument\n");
-                    printf("--dls              loads a DLS instrument\n");
-                    printf("--instrument       index of the instrument in the instrument file if it\n");
-                    printf("                   contains more than one (default: 0)\n");
-                    printf("--numfragments     sets the number of audio fragments\n");
-                    printf("--fragmentsize     sets the fragment size\n");
-                    printf("--volume           sets global volume gain factor (a value > 1.0 means\n");
-                    printf("                   amplification, a value < 1.0 means attenuation,\n");
-                    printf("                   default: 0.25)\n");
-                    printf("--inputclient      connects to an Alsa sequencer input client on startup\n");
-                    printf("                   (e.g. 64:0 to connect to a client with ID 64 and port 0)\n");
-                    printf("--alsaout          connects to the given Alsa sound device on startup\n");
-                    printf("                   (e.g. 0,0 to connect to hw:0,0 or plughw:0,0)\n");
-                    printf("--jackout          connects to the given Jack playback ports on startup\n");
-                    printf("                   (e.g. \"\'alsa_pcm:playback_1\' \'alsa_pcm:playback_2\'\"\n");
-                    printf("                   in case of stereo output)\n");
-                    printf("--samplerate       sets sample rate if supported by audio output system\n");
-                    printf("                   (e.g. 44100)\n");
-                    printf("--server           launch network server for remote control\n");
+                case 0: // --help
+                    printf("usage: linuxsampler [OPTIONS]\n\n");
+                    printf("--help             prints this message\n");
+                    printf("--version          prints version information\n");
+                    printf("--profile          profile synthesis algorithms\n");
+                    printf("--no-tune          disable assembly optimization\n");
                     exit(EXIT_SUCCESS);
+                    break;
+                case 1: // --version
+		    printf("LinuxSampler %s\n", VERSION);
+                    break;
+                case 2: // --profile
+		    profile = true;
+                    break;
+                case 3: // --no-tune
+		    tune = false;
                     break;
             }
         }
     }
-}*/
+}

@@ -35,6 +35,7 @@
 #define SYNTHESIS_MODE_SET_FILTER(iMode,bVal)           if (bVal) iMode |= 0x08; else iMode &= 0xf7   /* (un)set mode bit 3 */
 #define SYNTHESIS_MODE_SET_CHANNELS(iMode,bVal)         if (bVal) iMode |= 0x10; else iMode &= 0xef   /* (un)set mode bit 4 */
 #define SYNTHESIS_MODE_SET_IMPLEMENTATION(iMode,bVal)   if (bVal) iMode |= 0x20; else iMode &= 0xdf   /* (un)set mode bit 5 */
+#define SYNTHESIS_MODE_SET_PROFILING(iMode,bVal)   	if (bVal) iMode |= 0x40; else iMode &= ~0x40   /* (un)set mode bit 6 */
 
 #define SYNTHESIS_MODE_GET_CONSTPITCH(iMode)            iMode & 0x01
 #define SYNTHESIS_MODE_GET_LOOP(iMode)                  iMode & 0x02
@@ -52,9 +53,10 @@
 
 namespace LinuxSampler { namespace gig {
 
-    typedef void SynthesizeFragment_Fn(VOICE&, uint, sample_t*, int);
+    typedef void SynthesizeFragment_Fn(VOICE&, uint, sample_t*, uint);
 
     void* GetSynthesisFunction(const int SynthesisMode);
+    void RunSynthesisFunction(const int SynthesisMode, VOICE& voice, uint Samples, sample_t* pSrc, uint Skip);
 
     enum channels_t {
         MONO,
@@ -65,7 +67,7 @@ namespace LinuxSampler { namespace gig {
     class Synthesizer : public __RTMath<IMPLEMENTATION>, public LinuxSampler::Resampler<INTERPOLATE> {
         public:
             template<typename VOICE_T>
-            inline static void SynthesizeFragment(VOICE_T& Voice, uint Samples, sample_t* pSrc, int& i) {
+            inline static void SynthesizeFragment(VOICE_T& Voice, uint Samples, sample_t* pSrc, uint i) {
                 if (IMPLEMENTATION == ASM_X86_MMX_SSE) {
                     float fPos = (float) Voice.Pos;
                     SynthesizeFragment(Voice, Samples, pSrc, i, Voice.pSample->LoopPlayCount,
@@ -93,7 +95,7 @@ namespace LinuxSampler { namespace gig {
         //protected:
 
             template<typename VOICE_T>
-            inline static void SynthesizeFragment(VOICE_T& Voice, uint Samples, sample_t* pSrc, int& i, uint& LoopPlayCount, uint LoopStart, uint LoopEnd, uint LoopSize, uint& LoopCyclesLeft, void* Pos, float& PitchBase, float& PitchBend) {
+            inline static void SynthesizeFragment(VOICE_T& Voice, uint Samples, sample_t* pSrc, uint& i, uint& LoopPlayCount, uint LoopStart, uint LoopEnd, uint LoopSize, uint& LoopCyclesLeft, void* Pos, float& PitchBase, float& PitchBend) {
                 const float loopEnd = Float(LoopEnd);
                 const float PBbyPB = Mul(PitchBase, PitchBend);
                 const float f_LoopStart = Float(LoopStart);
@@ -103,7 +105,7 @@ namespace LinuxSampler { namespace gig {
                         // render loop (loop count limited)
                         while (i < Samples && LoopCyclesLeft) {
                             if (CONSTPITCH) {
-                                const int processEnd = Min(Samples, i + DiffToLoopEnd(loopEnd,Pos, PBbyPB) + 1); //TODO: instead of +1 we could also round up
+                                const uint processEnd = Min(Samples, i + DiffToLoopEnd(loopEnd,Pos, PBbyPB) + 1); //TODO: instead of +1 we could also round up
                                 while (i < processEnd) Synthesize(Voice, Pos, pSrc, i);
                             }
                             else Synthesize(Voice, Pos, pSrc, i);
@@ -115,7 +117,7 @@ namespace LinuxSampler { namespace gig {
                     else { // render loop (endless loop)
                         while (i < Samples) {
                             if (CONSTPITCH) {
-                                const int processEnd = Min(Samples, i + DiffToLoopEnd(loopEnd, Pos, PBbyPB) + 1); //TODO: instead of +1 we could also round up
+                                const uint processEnd = Min(Samples, i + DiffToLoopEnd(loopEnd, Pos, PBbyPB) + 1); //TODO: instead of +1 we could also round up
                                 while (i < processEnd) Synthesize(Voice, Pos, pSrc, i);
                             }
                             else Synthesize(Voice, Pos, pSrc, i);
@@ -129,7 +131,7 @@ namespace LinuxSampler { namespace gig {
             }
 
             template<typename VOICE_T>
-            inline static void Synthesize(VOICE_T& Voice, void* Pos, sample_t* pSrc, int& i) {
+            inline static void Synthesize(VOICE_T& Voice, void* Pos, sample_t* pSrc, uint& i) {
                 Synthesize(pSrc, Pos,
                            Voice.pEngine->pSynthesisParameters[Event::destination_vco][i],
                            Voice.pEngine->pOutputLeft,
@@ -148,7 +150,7 @@ namespace LinuxSampler { namespace gig {
                 switch (IMPLEMENTATION) {
                     // pure C++ implementation (thus platform independent)
                     case CPP: {
-                        return int((LoopEnd - *((double *)Pos)) / Pitch);
+                        return uint((LoopEnd - *((double *)Pos)) / Pitch);
                     }
                     case ASM_X86_MMX_SSE: {
                         int result;
@@ -211,7 +213,7 @@ namespace LinuxSampler { namespace gig {
                 }
             }
 
-            inline static void Synthesize(sample_t* pSrc, void* Pos, float& Pitch, float* pOutL, float* pOutR, int& i, float* Volume, float* PanL, float* PanR, Filter& FilterL, Filter& FilterR, biquad_param_t& bqBase, biquad_param_t& bqMain) {
+            inline static void Synthesize(sample_t* pSrc, void* Pos, float& Pitch, float* pOutL, float* pOutR, uint& i, float* Volume, float* PanL, float* PanR, Filter& FilterL, Filter& FilterR, biquad_param_t& bqBase, biquad_param_t& bqMain) {
                 switch (IMPLEMENTATION) {
                     // pure C++ implementation (thus platform independent)
                     case CPP: {
