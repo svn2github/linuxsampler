@@ -293,8 +293,10 @@ String LSCPServer::GetBufferFill(fill_response_t ResponseType, uint uiSamplerCha
         switch (ResponseType) {
             case fill_response_bytes:
 		result.Add(pEngine->DiskStreamBufferFillBytes());
+		break;
             case fill_response_percentage:
 		result.Add(pEngine->DiskStreamBufferFillPercentage());
+		break;
             default:
                 throw LinuxSamplerException("Unknown fill response type");
         }
