@@ -230,7 +230,11 @@ namespace LinuxSampler {
             uint SamplerChannels();
 
             /**
-             * Create and add a new sampler channel to this Sampler instance.
+             * Create and add a new sampler channel to this Sampler
+             * instance. For race condition reasons the new channel will use
+             * an index past the last already existing sampler channel
+             * index (in case the index limit was not reached yet, otherwise
+             * a free index starting from 0 is searched).
              *
              * @returns  pointer to new sampler channel
              */
@@ -243,6 +247,11 @@ namespace LinuxSampler {
              * @returns  pointer to sought sampler channel
              */
             SamplerChannel* GetSamplerChannel(uint uiSamplerChannel);
+
+            /**
+             * Returns all created sampler channels.
+             */
+            std::map<uint, SamplerChannel*> GetSamplerChannels();
 
             /**
              * Destroy and remove the given sampler channel from this
@@ -261,6 +270,9 @@ namespace LinuxSampler {
              */
             void RemoveSamplerChannel(uint uiSamplerChannel);
 
+            /**
+             * Returns the names of all available audio output drivers.
+             */
             std::vector<String> AvailableAudioOutputDrivers();
 
             /**
@@ -285,23 +297,52 @@ namespace LinuxSampler {
              */
             MidiInputDevice* CreateMidiInputDevice(String MidiDriver, std::map<String,String> Parameters) throw (LinuxSamplerException);
 
+            /**
+             * Returns the number of all created audio output devices.
+             */
             uint AudioOutputDevices();
+
+            /**
+             * Returns the number of all created MIDI input devices.
+             */
             uint MidiInputDevices();
 
+            /**
+             * Returns all created audio output devices.
+             */
             std::map<uint, AudioOutputDevice*> GetAudioOutputDevices();
 
+            /**
+             * Returns all created MIDI input devices.
+             */
             std::map<uint, MidiInputDevice*> GetMidiInputDevices();
 
+            /**
+             * Destroy the given audio output device and takes care if there
+             * are still sampler angines connected to this device, etc.
+             *
+             * @throws LinuxSamplerException  if sampler channels are still
+             *                                connected to the device
+             */
             void DestroyAudioOutputDevice(AudioOutputDevice* pDevice) throw (LinuxSamplerException);
-	    void DestroyMidiInputDevice(MidiInputDevice* pDevice) throw (LinuxSamplerException);
+
+            /**
+             * Destroy the given MIDI input device and takes care if there
+             * are still sampler angines connected to this device, etc.
+             *
+             * @throws LinuxSamplerException  if sampler channels are still
+             *                                connected to the device
+             */
+            void DestroyMidiInputDevice(MidiInputDevice* pDevice) throw (LinuxSamplerException);
 
         protected:
             typedef std::map<uint, AudioOutputDevice*> AudioOutputDeviceMap;
             typedef std::map<uint, MidiInputDevice*> MidiInputDeviceMap;
+            typedef std::map<uint, SamplerChannel*> SamplerChannelMap;
 
-            std::vector<SamplerChannel*> vSamplerChannels;   ///< contains all created sampler channels
-            AudioOutputDeviceMap         mAudioOutputDevices; ///< contains all created audio output devices
-            MidiInputDeviceMap           mMidiInputDevices;
+            SamplerChannelMap     mSamplerChannels;    ///< contains all created sampler channels
+            AudioOutputDeviceMap  mAudioOutputDevices; ///< contains all created audio output devices
+            MidiInputDeviceMap    mMidiInputDevices;   ///< contains all created MIDI input devices
 
             friend class SamplerChannel;
     };

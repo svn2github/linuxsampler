@@ -1170,11 +1170,13 @@ static yyconst struct yy_trans_info *yy_start_state_list[5] =
 #define INITIAL 0
 #define INSTRING 1
 
+#ifndef YY_NO_UNISTD_H
 /* Special case for "unistd.h", since it is non-ANSI. We include it way
  * down here because we want the user's section 1 to have been scanned first.
  * The user has a chance to override it with an option.
  */
 #include <unistd.h>
+#endif
 
 #ifndef YY_EXTRA_TYPE
 #define YY_EXTRA_TYPE void *
@@ -1366,7 +1368,7 @@ YY_DECL
 #line 36 "lscp.l"
 
 
-#line 1370 "lex.yy.c"
+#line 1372 "lex.yy.c"
 
 	if ( yyg->yy_init )
 		{
@@ -1777,7 +1779,7 @@ YY_RULE_SETUP
 #line 104 "lscp.l"
 ECHO;
 	YY_BREAK
-#line 1781 "lex.yy.c"
+#line 1783 "lex.yy.c"
 case YY_STATE_EOF(INITIAL):
 case YY_STATE_EOF(INSTRING):
 	yyterminate();
@@ -2323,6 +2325,10 @@ static void yy_load_buffer_state  (yyscan_t yyscanner)
 	yyfree((void *) b ,yyscanner );
 }
 
+#ifndef __cplusplus
+extern int isatty (int );
+#endif /* __cplusplus */
+    
 /* Initializes or reinitializes a buffer.
  * This function is sometimes called more than once on the same buffer,
  * such as during a yyrestart() or at EOF.
@@ -2520,10 +2526,10 @@ YY_BUFFER_STATE yy_scan_buffer  (char * base, yy_size_t  size , yyscan_t yyscann
  * @note If you want to scan bytes that may contain NUL values, then use
  *       yy_scan_bytes() instead.
  */
-YY_BUFFER_STATE yy_scan_string (yyconst char * str , yyscan_t yyscanner)
+YY_BUFFER_STATE yy_scan_string (yyconst char * yy_str , yyscan_t yyscanner)
 {
     
-	return yy_scan_bytes(str,strlen(str) ,yyscanner);
+	return yy_scan_bytes(yy_str,strlen(yy_str) ,yyscanner);
 }
 
 /** Setup the input buffer state to scan the given bytes. The next call to yylex() will
@@ -2874,6 +2880,7 @@ void yyfree (void * ptr , yyscan_t yyscanner)
 #undef yy_set_bol
 #undef yy_new_buffer
 #undef yy_set_interactive
+#undef yytext_ptr
 #undef YY_DO_BEFORE_ACTION
 
 #ifdef YY_DECL_IS_OURS

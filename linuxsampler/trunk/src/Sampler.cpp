@@ -142,15 +142,15 @@ namespace LinuxSampler {
     uint SamplerChannel::Index() {
         if (iIndex >= 0) return iIndex;
 
-        std::vector<SamplerChannel*>::iterator iter = pSampler->vSamplerChannels.begin();
-        for (int i = 0; iter != pSampler->vSamplerChannels.end(); i++, iter++) {
-            if (*iter == this) {
-                iIndex = i;
-                return i;
+        Sampler::SamplerChannelMap::iterator iter = pSampler->mSamplerChannels.begin();
+        for (; iter != pSampler->mSamplerChannels.end(); iter++) {
+            if (iter->second == this) {
+                iIndex = iter->first;
+                return iIndex;
             }
         }
 
-        throw LinuxSamplerException("SamplerChannel index not found");
+        throw LinuxSamplerException("Internal error: SamplerChannel index not found");
     }
 
     MidiInputDevice::MidiInputPort* SamplerChannel::GetMidiInputDevicePort(int MidiPort) {
@@ -169,8 +169,8 @@ namespace LinuxSampler {
     Sampler::~Sampler() {
         // delete sampler channels
         {
-            std::vector<SamplerChannel*>::iterator iter = vSamplerChannels.begin();
-            for (; iter != vSamplerChannels.end(); iter++) delete *iter;
+            SamplerChannelMap::iterator iter = mSamplerChannels.begin();
+            for (; iter != mSamplerChannels.end(); iter++) delete iter->second;
         }
 
         // delete midi input devices
@@ -195,25 +195,52 @@ namespace LinuxSampler {
     }
 
     uint Sampler::SamplerChannels() {
-        return vSamplerChannels.size();
+        return mSamplerChannels.size();
     }
 
     SamplerChannel* Sampler::AddSamplerChannel() {
+        // if there's no sampler channel yet
+        if (!mSamplerChannels.size()) {
+            SamplerChannel* pChannel = new SamplerChannel(this);
+            mSamplerChannels[0] = pChannel;
+            return pChannel;
+        }
+
+        // get the highest used sampler channel index
+        uint lastIndex = (--(mSamplerChannels.end()))->first;
+
+        // check if we reached the index limit
+        if (lastIndex + 1 < lastIndex) {
+            // search for an unoccupied sampler channel index starting from 0
+            for (uint i = 0; i < lastIndex; i++) {
+                if (mSamplerChannels.find(i) != mSamplerChannels.end()) continue;
+                // we found an unused index, so insert the new channel there
+                SamplerChannel* pChannel = new SamplerChannel(this);
+                mSamplerChannels[i] = pChannel;
+                return pChannel;
+            }
+            throw LinuxSamplerException("Internal error: could not find unoccupied sampler channel index.");
+        }
+
+        // we have not reached the index limit so we just add the channel past the highest index
         SamplerChannel* pChannel = new SamplerChannel(this);
-        vSamplerChannels.push_back(pChannel);
+        mSamplerChannels[lastIndex + 1] = pChannel;
         return pChannel;
     }
 
     SamplerChannel* Sampler::GetSamplerChannel(uint uiSamplerChannel) {
-        if (uiSamplerChannel >= SamplerChannels()) return NULL;
-        return vSamplerChannels[uiSamplerChannel];
+        return (mSamplerChannels.find(uiSamplerChannel) != mSamplerChannels.end()) ? mSamplerChannels[uiSamplerChannel] : NULL;
+    }
+
+    std::map<uint, SamplerChannel*> Sampler::GetSamplerChannels() {
+        return mSamplerChannels;
     }
 
     void Sampler::RemoveSamplerChannel(SamplerChannel* pSamplerChannel) {
-        std::vector<SamplerChannel*>::iterator iterChan = vSamplerChannels.begin();
-        for (; iterChan != vSamplerChannels.end(); iterChan++) {
-            if (*iterChan == pSamplerChannel) {
-                vSamplerChannels.erase(iterChan);
+        SamplerChannelMap::iterator iterChan = mSamplerChannels.begin();
+        for (; iterChan != mSamplerChannels.end(); iterChan++) {
+            if (iterChan->second == pSamplerChannel) {
+                mSamplerChannels.erase(iterChan);
                 delete pSamplerChannel;
                 return;
             }

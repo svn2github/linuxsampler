@@ -454,6 +454,23 @@ String LSCPServer::GetChannels() {
 }
 
 /**
+ * Will be called by the parser to get the list of sampler channels.
+ */
+String LSCPServer::ListChannels() {
+    dmsg(2,("LSCPServer: ListChannels()\n"));
+    String list;
+    std::map<uint,SamplerChannel*> channels = pSampler->GetSamplerChannels();
+    std::map<uint,SamplerChannel*>::iterator iter = channels.begin();
+    for (; iter != channels.end(); iter++) {
+        if (list != "") list += ",";
+        list += ToString(iter->first);
+    }
+    LSCPResultSet result;
+    result.Add(list);
+    return result.Produce();
+}
+
+/**
  * Will be called by the parser to add a sampler channel.
  */
 String LSCPServer::AddChannel() {

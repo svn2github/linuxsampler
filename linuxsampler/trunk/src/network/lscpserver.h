@@ -66,6 +66,7 @@ class LSCPServer : public Thread {
         String LoadInstrument(String Filename, uint uiInstrument, uint uiSamplerChannel, bool bBackground = false);
         String LoadEngine(String EngineName, uint uiSamplerChannel);
         String GetChannels();
+        String ListChannels();
         String AddChannel();
         String RemoveChannel(uint uiSamplerChannel);
         String GetAvailableEngines();
@@ -131,12 +132,12 @@ class LSCPServer : public Thread {
         int Main(); ///< Implementation of virtual method from class Thread
 
     private:
-        
+
         /**
          * Find a created audio output device index.
          */
         int GetAudioOutputDeviceIndex (AudioOutputDevice *pDevice);
-	
+
         /**
          * Find a created midi input device index.
          */
