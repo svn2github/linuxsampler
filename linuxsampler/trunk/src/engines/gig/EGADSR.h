@@ -27,7 +27,7 @@
 
 #include "../../common/global.h"
 #include "../../common/RTMath.h"
-#include "../../common/RTELMemoryPool.h"
+#include "../../common/Pool.h"
 #include "../common/Event.h"
 #include "Manipulator.h"
 #include "Engine.h"
