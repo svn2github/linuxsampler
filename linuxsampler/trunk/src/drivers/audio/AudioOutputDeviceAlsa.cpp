@@ -20,7 +20,6 @@
  *   MA  02111-1307  USA                                                   *
  ***************************************************************************/
 
-#include "../InputOutputDevice.h"
 #include "AudioOutputDeviceAlsa.h"
 #include "AudioOutputDeviceFactory.h"
 
@@ -274,7 +273,7 @@ namespace LinuxSampler {
     }
 
     String AudioOutputDeviceAlsa::Version() {
-       String s = "$Revision: 1.9 $";
+       String s = "$Revision: 1.10 $";
        return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
 
