@@ -54,7 +54,7 @@ namespace LinuxSampler {
 
             class ParameterActive : public DeviceCreationParameterBool {
                 public:
-                    ParameterActive(AudioOutputDevice* pDevice)                              { this->pDevice = pDevice;                            }
+                    ParameterActive(AudioOutputDevice* pDevice)                              { this->pDevice = pDevice; InitWithDefault();         }
                     virtual String Description()                                             { return "Enable / disable device";                   }
                     virtual bool   Fix()                                                     { return false;                                       }
                     virtual bool   Mandatory()                                               { return false;                                       }
@@ -67,7 +67,7 @@ namespace LinuxSampler {
 
             class ParameterSampleRate : public DeviceCreationParameterInt {
                 public:
-                    ParameterSampleRate(AudioOutputDevice* pDevice)                                 { this->pDevice = pDevice;                            }
+                    ParameterSampleRate(AudioOutputDevice* pDevice)                                 { this->pDevice = pDevice; InitWithDefault();         }
                     virtual String Description()                                                    { return "Output sample rate";                        }
                     virtual bool   Fix()                                                            { return true;                                        }
                     virtual bool   Mandatory()                                                      { return false;                                       }
@@ -83,7 +83,7 @@ namespace LinuxSampler {
 
             class ParameterChannels : public DeviceCreationParameterInt {
                 public:
-                    ParameterChannels(AudioOutputDevice* pDevice)                                   { this->pDevice = pDevice;                            }
+                    ParameterChannels(AudioOutputDevice* pDevice)                                   { this->pDevice = pDevice; InitWithDefault();         }
                     virtual String Description()                                                    { return "Number of output channels";                 }
                     virtual bool   Fix()                                                            { return false;                                       }
                     virtual bool   Mandatory()                                                      { return false;                                       }

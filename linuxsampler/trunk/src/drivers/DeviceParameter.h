@@ -186,8 +186,8 @@ namespace LinuxSampler {
             virtual void OnSetValue(bool b) throw (LinuxSamplerException)  = 0;
         protected:
             bool bVal;
-        private:
             void InitWithDefault();
+        private:
     };
 
     class DeviceCreationParameterInt : public DeviceCreationParameter {
@@ -214,8 +214,8 @@ namespace LinuxSampler {
             virtual void             OnSetValue(int i) throw (LinuxSamplerException)  = 0;
         protected:
             int iVal;
-        private:
             void InitWithDefault();
+        private:
     };
 
     class DeviceCreationParameterFloat : public DeviceCreationParameter {
@@ -242,8 +242,8 @@ namespace LinuxSampler {
             virtual void OnSetValue(float f) throw (LinuxSamplerException)  = 0;
         protected:
             float fVal;
-        private:
             void InitWithDefault();
+        private:
     };
 
     class DeviceCreationParameterString : public DeviceCreationParameter {
@@ -262,8 +262,8 @@ namespace LinuxSampler {
             virtual void OnSetValue(String s) throw (LinuxSamplerException) = 0;
         protected:
             String sVal;
-        private:
             void InitWithDefault();
+        private:
     };
 
     class DeviceCreationParameterStrings : public DeviceCreationParameter {
@@ -287,8 +287,8 @@ namespace LinuxSampler {
             virtual void OnSetValue(std::vector<String> vS) throw (LinuxSamplerException) = 0;
         protected:
             std::vector<String> sVals;
-        private:
             void InitWithDefault();
+        private:
     };
 
     template <class T>

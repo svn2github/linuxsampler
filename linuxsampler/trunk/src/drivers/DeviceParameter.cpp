@@ -441,7 +441,6 @@ namespace LinuxSampler {
 // *
 
     DeviceCreationParameterBool::DeviceCreationParameterBool() {
-        InitWithDefault();
     }
 
     DeviceCreationParameterBool::DeviceCreationParameterBool(bool bVal) {
@@ -509,7 +508,6 @@ namespace LinuxSampler {
 // *
 
     DeviceCreationParameterInt::DeviceCreationParameterInt() {
-        InitWithDefault();
     }
 
     DeviceCreationParameterInt::DeviceCreationParameterInt(int iVal) {
@@ -606,7 +604,6 @@ namespace LinuxSampler {
 // *
 
     DeviceCreationParameterFloat::DeviceCreationParameterFloat() {
-        InitWithDefault();
     }
 
     DeviceCreationParameterFloat::DeviceCreationParameterFloat(float fVal) {
@@ -703,7 +700,6 @@ namespace LinuxSampler {
 // *
 
     DeviceCreationParameterString::DeviceCreationParameterString() {
-        InitWithDefault();
     }
 
     DeviceCreationParameterString::DeviceCreationParameterString(String sVal) {
@@ -765,7 +761,6 @@ namespace LinuxSampler {
 // *
 
     DeviceCreationParameterStrings::DeviceCreationParameterStrings() {
-        InitWithDefault();
     }
 
     DeviceCreationParameterStrings::DeviceCreationParameterStrings(std::vector<String> sVals) {

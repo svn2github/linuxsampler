@@ -58,8 +58,8 @@ namespace LinuxSampler {
 
             class ParameterCard : public DeviceCreationParameterString {
                 public:
-                    ParameterCard(AudioOutputDevice* pDevice) { this->pDevice = pDevice; }
-                    ParameterCard(AudioOutputDevice* pDevice, String card) throw (LinuxSamplerException) : DeviceCreationParameterString(card) { this->pDevice = pDevice; }
+                    ParameterCard(AudioOutputDevice* pDevice) { this->pDevice = pDevice; InitWithDefault();}
+                    ParameterCard(AudioOutputDevice* pDevice, String card) throw (LinuxSamplerException) : DeviceCreationParameterString(card) { this->pDevice = pDevice; InitWithDefault();}
                     virtual String Description()                                                          { return "Sound card to be used";                                }
                     virtual bool   Fix()                                                                  { return true;                                                   }
                     virtual bool   Mandatory()                                                            { return false;                                                  }
@@ -73,8 +73,8 @@ namespace LinuxSampler {
 
             class ParameterFragments : public DeviceCreationParameterInt {
                 public:
-                    ParameterFragments(AudioOutputDevice* pDevice) { this->pDevice = pDevice; }
-                    ParameterFragments(AudioOutputDevice* pDevice, String val) throw (LinuxSamplerException) : DeviceCreationParameterInt(val) { this->pDevice = pDevice; }
+                    ParameterFragments(AudioOutputDevice* pDevice) { this->pDevice = pDevice; InitWithDefault();}
+                    ParameterFragments(AudioOutputDevice* pDevice, String val) throw (LinuxSamplerException) : DeviceCreationParameterInt(val) { this->pDevice = pDevice; InitWithDefault();}
                     virtual String Description()                                                    { return "Number of buffer fragments";                }
                     virtual bool   Fix()                                                            { return true;                                        }
                     virtual bool   Mandatory()                                                      { return false;                                       }
@@ -90,8 +90,8 @@ namespace LinuxSampler {
 
             class ParameterFragmentSize : public DeviceCreationParameterInt {
                 public:
-                    ParameterFragmentSize(AudioOutputDevice* pDevice) { this->pDevice = pDevice; }
-                    ParameterFragmentSize(AudioOutputDevice* pDevice, String val) throw (LinuxSamplerException) : DeviceCreationParameterInt(val) { this->pDevice = pDevice; }
+                    ParameterFragmentSize(AudioOutputDevice* pDevice) { this->pDevice = pDevice; InitWithDefault();}
+                    ParameterFragmentSize(AudioOutputDevice* pDevice, String val) throw (LinuxSamplerException) : DeviceCreationParameterInt(val) { this->pDevice = pDevice; InitWithDefault();}
                     virtual String Description()                                                    { return "Size of each buffer fragment";              }
                     virtual bool   Fix()                                                            { return true;                                        }
                     virtual bool   Mandatory()                                                      { return false;                                       }
