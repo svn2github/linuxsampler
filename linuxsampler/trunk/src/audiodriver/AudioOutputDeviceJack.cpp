@@ -27,7 +27,12 @@
 
 namespace LinuxSampler {
 
-    REGISTER_AUDIO_OUTPUT_DRIVER("Jack",AudioOutputDeviceJack);
+    REGISTER_AUDIO_OUTPUT_DRIVER(AudioOutputDeviceJack);
+
+    /* Common parameters for now they'll have to be registered here. */
+    REGISTER_AUDIO_OUTPUT_DRIVER_PARAMETER(AudioOutputDeviceJack, ParameterActive);
+    REGISTER_AUDIO_OUTPUT_DRIVER_PARAMETER(AudioOutputDeviceJack, ParameterSampleRate);
+    REGISTER_AUDIO_OUTPUT_DRIVER_PARAMETER(AudioOutputDeviceJack, ParameterChannels);
 
     /**
      * Open and initialize connection to the JACK system.
@@ -36,7 +41,7 @@ namespace LinuxSampler {
      * @throws AudioOutputException  on error
      * @see AcquireChannels()
      */
-    AudioOutputDeviceJack::AudioOutputDeviceJack(std::map<String,String> Parameters) : AudioOutputDevice(std::map<String,DeviceCreationParameter*>()) {
+    AudioOutputDeviceJack::AudioOutputDeviceJack(std::map<String,DeviceCreationParameter*> Parameters) : AudioOutputDevice(std::map<String,DeviceCreationParameter*>()) {
         if ((hJackClient = jack_client_new("LinuxSampler")) == 0)
             throw AudioOutputException("Seems Jack server not running.");
 
@@ -131,8 +136,12 @@ namespace LinuxSampler {
         return jack_get_sample_rate(hJackClient);
     }
 
+    String AudioOutputDeviceJack::Name() {
+	return "Jack";
+    }
+
     String AudioOutputDeviceJack::Driver() {
-        return "Jack";
+        return Name();
     }
 
     String AudioOutputDeviceJack::Description() {
@@ -140,16 +149,9 @@ namespace LinuxSampler {
     }
 
     String AudioOutputDeviceJack::Version() {
-       String s = "$Revision: 1.7 $";
+       String s = "$Revision: 1.8 $";
        return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
-
-    std::map<String,DeviceCreationParameter*> AudioOutputDeviceJack::AvailableParameters() {
-        // FIXME: not a good solution to get the commot parameters (ACTIVE,SAMPERATE,CHANNELS which have to be offered by all audio output drivers)
-        std::map<String,DeviceCreationParameter*> available_parameters = AudioOutputDevice::AvailableParameters();
-        return available_parameters; // this driver currently does not have additional, individual device parameters
-    }
-
 
     // libjack callback functions
 

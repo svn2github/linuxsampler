@@ -20,17 +20,12 @@
  *   MA  02111-1307  USA                                                   *
  ***************************************************************************/
 
+#include "AudioOutputDeviceFactory.h"
 #include "AudioOutputDevice.h"
 
 namespace LinuxSampler {
 
     AudioOutputDevice::AudioOutputDevice(std::map<String,DeviceCreationParameter*> DriverParameters) {
-//FIXME: Is this is redundant?
-#if 0
-        if (!DriverParameters["active"])     DriverParameters["active"]     = new ParameterActive(this);
-        if (!DriverParameters["samplerate"]) DriverParameters["samplerate"] = new ParameterSampleRate(this);
-        if (!DriverParameters["channels"])   DriverParameters["channels"]   = new ParameterChannels(this);
-#endif
         this->Parameters = DriverParameters;
     }
 
@@ -41,22 +36,6 @@ namespace LinuxSampler {
             delete iter->second;
 	    iter++;
         }
-    }
-
-    std::map<String,DeviceCreationParameter*> AudioOutputDevice::AvailableParameters() {
-        static const std::map<String,DeviceCreationParameter*> available_parameters = CreateAvailableParameters();
-        return available_parameters;
-    }
-
-    std::map<String,DeviceCreationParameter*> AudioOutputDevice::CreateAvailableParameters() {
-        static ParameterActive     param_active(NULL);
-        static ParameterSampleRate param_samplerate(NULL);
-        static ParameterChannels   param_channels(NULL);
-        std::map<String,DeviceCreationParameter*> result;
-        result["active"]     = &param_active;
-        result["samplerate"] = &param_samplerate;
-        result["channels"]   = &param_channels;
-        return result;
     }
 
     void AudioOutputDevice::Connect(Engine* pEngine) {

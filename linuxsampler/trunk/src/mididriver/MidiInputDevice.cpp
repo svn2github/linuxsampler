@@ -37,20 +37,6 @@ namespace LinuxSampler {
 	    }
     }
 
-    std::map<String,DeviceCreationParameter*> MidiInputDevice::AvailableParameters() {
-	    static const std::map<String,DeviceCreationParameter*> available_parameters = CreateAvailableParameters();
-	    return available_parameters;
-    }
-                                                                                                                                                            
-    std::map<String,DeviceCreationParameter*> MidiInputDevice::CreateAvailableParameters() {
-	    static ParameterActive     param_active(NULL);
-	    static ParameterPorts      param_ports(NULL);
-	    std::map<String,DeviceCreationParameter*> result;
-	    result["active"]     = &param_active;
-	    result["ports"]      = &param_ports;
-	    return result;
-    }
-
     MidiInputDevice::MidiInputPort::~MidiInputPort() {
 	    std::map<String,DeviceCreationParameter*>::iterator iter = Parameters.begin();
 	    while (iter != Parameters.end()) {
@@ -126,7 +112,8 @@ namespace LinuxSampler {
 	 while (diff != 0) {
 		 if (diff > 0) {	//We've got too many ports, remove one
 			 std::map<int,MidiInputPort*>::iterator portsIter = Ports.end();
-			 Ports.erase(--portsIter);
+			 --portsIter;
+			 Ports.erase(portsIter);
 			 delete portsIter->second;
 			 diff--;
 		 }

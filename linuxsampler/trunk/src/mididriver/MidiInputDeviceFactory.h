@@ -27,9 +27,11 @@
 #include <vector>
 
 #include "../common/LinuxSamplerException.h"
+#include "../drivers/DeviceParameterFactory.h"
 #include "MidiInputDevice.h"
 
-#define REGISTER_MIDI_INPUT_DRIVER(DriverName,DriverClass)  static LinuxSampler::MidiInputDeviceFactory::InnerFactoryRegistrator<DriverClass> __auto_register_midi_input_driver__##DriverClass(DriverName)
+#define REGISTER_MIDI_INPUT_DRIVER(DriverClass)  static LinuxSampler::MidiInputDeviceFactory::InnerFactoryRegistrator<DriverClass> __auto_register_midi_input_driver__##DriverClass
+#define REGISTER_MIDI_INPUT_DRIVER_PARAMETER(DriverClass, ParameterClass)  static LinuxSampler::MidiInputDeviceFactory::ParameterRegistrator<DriverClass, DriverClass::ParameterClass> __auto_register_midi_input_driver_parameter__##DriverClass##ParameterClass
 
 namespace LinuxSampler {
 
@@ -37,8 +39,7 @@ namespace LinuxSampler {
       public:
           class InnerFactory {
               public:
-                  virtual MidiInputDevice* Create(std::map<String,String>& Parameters)  = 0;
-                  virtual std::map<String,DeviceCreationParameter*> AvailableParameters() = 0;
+                  virtual MidiInputDevice* Create(std::map<String,DeviceCreationParameter*>& Parameters)  = 0;
                   virtual String Description() = 0;
                   virtual String Version() = 0;
           };
@@ -46,8 +47,7 @@ namespace LinuxSampler {
           template <class Driver_T>
           class InnerFactoryTemplate : public InnerFactory {
               public:
-                  virtual MidiInputDevice* Create(std::map<String,String>& Parameters)  { return new Driver_T(Parameters); }
-                  virtual std::map<String,DeviceCreationParameter*> AvailableParameters() { return Driver_T::AvailableParameters(); }
+                  virtual MidiInputDevice* Create(std::map<String,DeviceCreationParameter*>& Parameters)  { return new Driver_T(Parameters); }
                   virtual String Description() { return Driver_T::Description(); }
                   virtual String Version()     { return Driver_T::Version();     }
           };
@@ -55,12 +55,22 @@ namespace LinuxSampler {
           template <class Driver_T>
           class InnerFactoryRegistrator {
               public:
-                  InnerFactoryRegistrator(String DriverName) {
-                      MidiInputDeviceFactory::InnerFactories[DriverName] = new InnerFactoryTemplate<Driver_T>;
+                  InnerFactoryRegistrator() {
+                      MidiInputDeviceFactory::InnerFactories[Driver_T::Name()] = new InnerFactoryTemplate<Driver_T>;
+		      MidiInputDeviceFactory::ParameterFactories[Driver_T::Name()] = new DeviceParameterFactory();
                   }
           };
 
-          static MidiInputDevice*                          Create(String DriverName, std::map<String,String>& Parameters) throw (LinuxSamplerException);
+	  template <class Driver_T, class Parameter_T>
+	  class ParameterRegistrator {
+	      public:
+		  ParameterRegistrator() {
+			  DeviceParameterFactory::Register<Parameter_T>(MidiInputDeviceFactory::ParameterFactories[Driver_T::Name()]);
+		  }
+	  };
+
+
+          static MidiInputDevice*                          Create(String DriverName, std::map<String,String> Parameters) throw (LinuxSamplerException);
           static std::vector<String>                       AvailableDrivers();
           static String                                    AvailableDriversAsString();
           static std::map<String,DeviceCreationParameter*> GetAvailableDriverParameters(String DriverName) throw (LinuxSamplerException);
@@ -70,6 +80,7 @@ namespace LinuxSampler {
 
       protected:
           static std::map<String, InnerFactory*> InnerFactories;
+	  static std::map<String, DeviceParameterFactory*> ParameterFactories;
   };
 
 } // namespace LinuxSampler

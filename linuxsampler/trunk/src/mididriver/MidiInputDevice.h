@@ -47,7 +47,7 @@ namespace LinuxSampler {
      * occured. The dispatch* methods here will automatically forward the
      * MIDI event to the appropriate, connected sampler engines.
      */
-    class MidiInputDevice {
+    class MidiInputDevice : public InputOutputDevice {
         public:
 
             /////////////////////////////////////////////////////////////////
@@ -55,22 +55,21 @@ namespace LinuxSampler {
 
             class ParameterActive : public DeviceCreationParameterBool {
 		    public:
-			    ParameterActive(MidiInputDevice *pDevice)					{this->pDevice = pDevice; InitWithDefault(); }
-			    ParameterActive(MidiInputDevice* pDevice, String active) throw (LinuxSamplerException) : DeviceCreationParameterBool(active) { this->pDevice = pDevice; }
+			    ParameterActive( void ) : DeviceCreationParameterBool()	                { InitWithDefault(); }
+			    ParameterActive( String active ) : DeviceCreationParameterBool(active)      { }
 			    virtual String Description()						{ return "Enable / disable device";  }
 			    virtual bool   Fix()							{ return false;                      }
 			    virtual bool   Mandatory()							{ return false;                      }
 			    virtual std::map<String,DeviceCreationParameter*> DependsAsParameters()	{ return std::map<String,DeviceCreationParameter*>(); }
 			    virtual optional<bool> DefaultAsBool(std::map<String,String> Parameters)	{ return true;                       }
-			    virtual void OnSetValue(bool b) throw (LinuxSamplerException)		{ if (b) pDevice->Listen(); else pDevice->StopListen(); }
-		    protected:
-			    MidiInputDevice* pDevice;
+			    virtual void OnSetValue(bool b) throw (LinuxSamplerException)		{ if (b) ((MidiInputDevice*)pDevice)->Listen(); else ((MidiInputDevice*)pDevice)->StopListen(); }
+			    static String Name( void ) { return "active"; }
 	    };
 
 	    class ParameterPorts : public DeviceCreationParameterInt {
 		    public:
-			    ParameterPorts(MidiInputDevice* pDevice) { this->pDevice = pDevice; InitWithDefault();}
-			    ParameterPorts(MidiInputDevice* pDevice, String val) throw (LinuxSamplerException) : DeviceCreationParameterInt(val) { this->pDevice = pDevice; }
+			    ParameterPorts( void ) : DeviceCreationParameterInt()                           { InitWithDefault(); }
+			    ParameterPorts( String val ) : DeviceCreationParameterInt(val)                  { }
 			    virtual String Description()                                                    { return "Number of ports";   }
 			    virtual bool   Fix()                                                            { return false;   }
 			    virtual bool   Mandatory()                                                      { return false;   }
@@ -79,9 +78,8 @@ namespace LinuxSampler {
 			    virtual optional<int>    RangeMinAsInt(std::map<String,String> Parameters)      { return optional<int>::nothing;   }
 			    virtual optional<int>    RangeMaxAsInt(std::map<String,String> Parameters)      { return optional<int>::nothing;   }
 			    virtual std::vector<int> PossibilitiesAsInt(std::map<String,String> Parameters) { return std::vector<int>();   }
-			    virtual void             OnSetValue(int i) throw (LinuxSamplerException)        { pDevice->AcquirePorts(i); }
-		    protected:
-			    MidiInputDevice* pDevice;
+			    virtual void             OnSetValue(int i) throw (LinuxSamplerException)        { ((MidiInputDevice*)pDevice)->AcquirePorts(i); }
+			    static String Name( void ) { return "ports"; }
 	    };
 
 	    class MidiInputPort {
@@ -227,13 +225,6 @@ namespace LinuxSampler {
 	     */
 	    virtual MidiInputPort* CreateMidiPort( void ) = 0;
 
-	    template <class Parameter_T>
-            class OptionalParameter {
-		public:                     
-			static Parameter_T* New(MidiInputDevice* pDevice, String val) { if (val == "") return (new Parameter_T(pDevice)); return (new Parameter_T(pDevice, val)); } 
-	    };
-
-	    static std::map<String,DeviceCreationParameter*> AvailableParameters();
 	    std::map<String,DeviceCreationParameter*> DeviceParameters();
 
 	    /////////////////////////////////////////////////////////////////
@@ -270,9 +261,6 @@ namespace LinuxSampler {
 
 
 	    friend class Sampler; // allow Sampler class to destroy midi devices
-
-	private:
-	    static std::map<String,DeviceCreationParameter*> CreateAvailableParameters();
 
             /**
              * Set number of MIDI ports required by the engine

@@ -42,7 +42,7 @@ namespace LinuxSampler {
      */
     class AudioOutputDeviceJack : public AudioOutputDevice {
         public:
-            AudioOutputDeviceJack(std::map<String,String> Parameters);
+            AudioOutputDeviceJack(std::map<String,DeviceCreationParameter*> Parameters);
             ~AudioOutputDeviceJack();
 
             // Audio channel parameter to connect to other Jack clients
@@ -64,6 +64,8 @@ namespace LinuxSampler {
             virtual void AcquireChannels(uint uiChannels);
             virtual uint MaxSamplesPerCycle();
             virtual uint SampleRate();
+
+	    static String Name();
 
             virtual String Driver();
 

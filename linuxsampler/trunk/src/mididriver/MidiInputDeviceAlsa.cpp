@@ -25,14 +25,22 @@
 
 namespace LinuxSampler {
 
-	REGISTER_MIDI_INPUT_DRIVER("Alsa",MidiInputDeviceAlsa);
+	REGISTER_MIDI_INPUT_DRIVER(MidiInputDeviceAlsa);
 
-    MidiInputDeviceAlsa::MidiInputDeviceAlsa(std::map<String,String> Parameters) : MidiInputDevice(CreateParameters(Parameters)), Thread(true, 1, -1) {
+	/* Common parameters */
+	REGISTER_MIDI_INPUT_DRIVER_PARAMETER(MidiInputDeviceAlsa, ParameterActive);
+	REGISTER_MIDI_INPUT_DRIVER_PARAMETER(MidiInputDeviceAlsa, ParameterPorts);
+
+    MidiInputDeviceAlsa::MidiInputDeviceAlsa(std::map<String,DeviceCreationParameter*> Parameters) : MidiInputDevice(Parameters), Thread(true, 1, -1) {
         if (snd_seq_open(&hAlsaSeq, "default", SND_SEQ_OPEN_INPUT, 0) < 0) {
             throw MidiInputException("Error opening ALSA sequencer");
         }
         this->hAlsaSeqClient = snd_seq_client_id(hAlsaSeq);
         snd_seq_set_client_name(hAlsaSeq, "LinuxSampler");
+	AcquirePorts(((DeviceCreationParameterInt*)Parameters["ports"])->ValueAsInt());
+	if (((DeviceCreationParameterBool*)Parameters["active"])->ValueAsBool()) {
+		Listen();
+	}
     }
 
     MidiInputDeviceAlsa::~MidiInputDeviceAlsa() {
@@ -41,6 +49,7 @@ namespace LinuxSampler {
 
     MidiInputDeviceAlsa::MidiInputPortAlsa::MidiInputPortAlsa(MidiInputDeviceAlsa* pDevice, int alsaPort) : MidiInputPort(pDevice, alsaPort) {
 	    Parameters["alsa_seq_bindings"] = new ParameterAlsaSeqBindings(this);
+	    this->pDevice = pDevice;
     }
 
     MidiInputDeviceAlsa::MidiInputPortAlsa::~MidiInputPortAlsa() {
@@ -55,6 +64,14 @@ namespace LinuxSampler {
 		    throw MidiInputException("Error creating sequencer port");
 	    }
 	    return ( new MidiInputPortAlsa(this, alsaPort) );
+    }
+
+    String MidiInputDeviceAlsa::Name() {
+	    return "Alsa";
+    }
+
+    String MidiInputDeviceAlsa::Driver() {
+	    return Name();
     }
 
     void MidiInputDeviceAlsa::Listen() {
@@ -97,15 +114,8 @@ namespace LinuxSampler {
     }
 
     String MidiInputDeviceAlsa::Version() {
-	    String s = "$Revision: 1.6 $";
+	    String s = "$Revision: 1.7 $";
 	    return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
-    }
-
-    std::map<String,DeviceCreationParameter*> MidiInputDeviceAlsa::CreateParameters(std::map<String,String> Parameters) {
-	     std::map<String,DeviceCreationParameter*> result;
-	     result["active"] = OptionalParameter<ParameterActive>::New(this, Parameters["active"]);
-	     result["ports"] = OptionalParameter<ParameterPorts>::New(this, Parameters["ports"]);
-	     return result;
     }
 
     int MidiInputDeviceAlsa::Main() {

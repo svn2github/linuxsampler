@@ -39,13 +39,16 @@ namespace LinuxSampler {
      */
     class MidiInputDeviceAlsa : public MidiInputDevice, public Thread {
         public:
-            MidiInputDeviceAlsa(std::map<String,String> Parameters);
+            MidiInputDeviceAlsa(std::map<String,DeviceCreationParameter*> Parameters);
             ~MidiInputDeviceAlsa();
 
             // derived abstract methods from class 'MidiInputDevice'
             void Listen();
             void StopListen();
-	    String Driver() { return "Alsa"; };
+
+	    virtual String Driver();
+
+	    static String Name();
 
 	    static String Description();
 	    static String Version();
@@ -79,10 +82,8 @@ namespace LinuxSampler {
 	    MidiInputPortAlsa* CreateMidiPort( void );
 
         protected:
-	    std::map<String,DeviceCreationParameter*> CreateParameters(std::map<String,String> Parameters);
             int Main(); ///< Implementation of virtual method from class Thread
         private:
-	    static std::map<String,DeviceCreationParameter*> CreateAvailableParameters();
             snd_seq_t* hAlsaSeq;
             int        hAlsaSeqClient;       ///< Alsa Sequencer client ID
     };

@@ -440,10 +440,7 @@ namespace LinuxSampler {
 // *************** DeviceCreationParameterBool ***************
 // *
 
-    DeviceCreationParameterBool::DeviceCreationParameterBool() {
-    }
-
-    DeviceCreationParameterBool::DeviceCreationParameterBool(bool bVal) {
+    DeviceCreationParameterBool::DeviceCreationParameterBool(bool bVal) : DeviceCreationParameter() {
         this->bVal = bVal;
     }
 
@@ -507,10 +504,7 @@ namespace LinuxSampler {
 // *************** DeviceCreationParameterInt ***************
 // *
 
-    DeviceCreationParameterInt::DeviceCreationParameterInt() {
-    }
-
-    DeviceCreationParameterInt::DeviceCreationParameterInt(int iVal) {
+    DeviceCreationParameterInt::DeviceCreationParameterInt(int iVal) : DeviceCreationParameter() {
         this->iVal = iVal;
     }
 
@@ -603,10 +597,7 @@ namespace LinuxSampler {
 // *************** DeviceCreationParameterFloat ***************
 // *
 
-    DeviceCreationParameterFloat::DeviceCreationParameterFloat() {
-    }
-
-    DeviceCreationParameterFloat::DeviceCreationParameterFloat(float fVal) {
+    DeviceCreationParameterFloat::DeviceCreationParameterFloat(float fVal) : DeviceCreationParameter() {
         this->fVal = fVal;
     }
 
@@ -699,10 +690,7 @@ namespace LinuxSampler {
 // *************** DeviceCreationParameterString ***************
 // *
 
-    DeviceCreationParameterString::DeviceCreationParameterString() {
-    }
-
-    DeviceCreationParameterString::DeviceCreationParameterString(String sVal) {
+    DeviceCreationParameterString::DeviceCreationParameterString(String sVal) : DeviceCreationParameter() {
         this->sVal = sVal;
     }
 
@@ -760,10 +748,7 @@ namespace LinuxSampler {
 // *************** DeviceCreationParameterStrings ***************
 // *
 
-    DeviceCreationParameterStrings::DeviceCreationParameterStrings() {
-    }
-
-    DeviceCreationParameterStrings::DeviceCreationParameterStrings(std::vector<String> sVals) {
+    DeviceCreationParameterStrings::DeviceCreationParameterStrings(std::vector<String> sVals) : DeviceCreationParameter() {
         this->sVals = sVals;
     }
 

@@ -20,12 +20,23 @@
  *   MA  02111-1307  USA                                                   *
  ***************************************************************************/
 
+#include "../drivers/InputOutputDevice.h"
 #include "AudioOutputDeviceAlsa.h"
 #include "AudioOutputDeviceFactory.h"
 
 namespace LinuxSampler {
 
-    REGISTER_AUDIO_OUTPUT_DRIVER("Alsa",AudioOutputDeviceAlsa);
+    REGISTER_AUDIO_OUTPUT_DRIVER(AudioOutputDeviceAlsa);
+
+    /* Common parameters for now they'll have to be registered here. */
+    REGISTER_AUDIO_OUTPUT_DRIVER_PARAMETER(AudioOutputDeviceAlsa, ParameterActive);
+    REGISTER_AUDIO_OUTPUT_DRIVER_PARAMETER(AudioOutputDeviceAlsa, ParameterSampleRate);
+    REGISTER_AUDIO_OUTPUT_DRIVER_PARAMETER(AudioOutputDeviceAlsa, ParameterChannels);
+
+    /* Driver specific parameters */
+    REGISTER_AUDIO_OUTPUT_DRIVER_PARAMETER(AudioOutputDeviceAlsa, ParameterCard);
+    REGISTER_AUDIO_OUTPUT_DRIVER_PARAMETER(AudioOutputDeviceAlsa, ParameterFragments);
+    REGISTER_AUDIO_OUTPUT_DRIVER_PARAMETER(AudioOutputDeviceAlsa, ParameterFragmentSize);
 
     /**
      * Create and initialize Alsa audio output device with given parameters.
@@ -33,14 +44,14 @@ namespace LinuxSampler {
      * @param Parameters - optional parameters
      * @throws AudioOutputException  if output device cannot be opened
      */
-    AudioOutputDeviceAlsa::AudioOutputDeviceAlsa(std::map<String,String> Parameters) : AudioOutputDevice(CreateParameters(Parameters)), Thread(true, 1, 0) {
+    AudioOutputDeviceAlsa::AudioOutputDeviceAlsa(std::map<String,DeviceCreationParameter*> Parameters) : AudioOutputDevice(Parameters), Thread(true, 1, 0) {
         pcm_handle           = NULL;
         stream               = SND_PCM_STREAM_PLAYBACK;
-        this->uiAlsaChannels = ((DeviceCreationParameterInt*)this->Parameters["channels"])->ValueAsInt();
-        this->uiSamplerate   = ((DeviceCreationParameterInt*)this->Parameters["samplerate"])->ValueAsInt();
-        this->FragmentSize   = ((DeviceCreationParameterInt*)this->Parameters["fragmentsize"])->ValueAsInt();
-        uint Fragments       = ((DeviceCreationParameterInt*)this->Parameters["fragments"])->ValueAsInt();
-        String Card          = this->Parameters["card"]->Value();
+        this->uiAlsaChannels = ((DeviceCreationParameterInt*)Parameters["channels"])->ValueAsInt();
+        this->uiSamplerate   = ((DeviceCreationParameterInt*)Parameters["samplerate"])->ValueAsInt();
+        this->FragmentSize   = ((DeviceCreationParameterInt*)Parameters["fragmentsize"])->ValueAsInt();
+        uint Fragments       = ((DeviceCreationParameterInt*)Parameters["fragments"])->ValueAsInt();
+        String Card          = Parameters["card"]->Value();
 
         dmsg(1,("Checking if hw parameters supported...\n"));
         if (HardwareParametersSupported(Card, uiAlsaChannels, uiSamplerate, Fragments, FragmentSize)) {
@@ -149,6 +160,10 @@ namespace LinuxSampler {
 
         // create audio channels for this audio device to which the sampler engines can write to
         for (int i = 0; i < uiAlsaChannels; i++) this->Channels.push_back(new AudioChannel(FragmentSize));
+
+	if (((DeviceCreationParameterBool*)Parameters["active"])->ValueAsBool()) {
+		Play();
+	}
     }
 
     AudioOutputDeviceAlsa::~AudioOutputDeviceAlsa() {
@@ -166,23 +181,6 @@ namespace LinuxSampler {
             //FIXME: currently commented out due to segfault
             //delete[] pOutputBuffer;
         }
-    }
-
-    std::map<String,DeviceCreationParameter*> AudioOutputDeviceAlsa::CreateParameters(std::map<String,String> Parameters) {
-        std::map<String,DeviceCreationParameter*> result;
-	//FIXME: common stuff still has to be created somewhere.
-	// AND filled with values, but we are only passing result
-	// of this method to base, so common stuff will be part
-	// of this result for now.
-	result["channels"]     = OptionalParameter<ParameterChannels>::New(this, Parameters["channels"]);
-	result["samplerate"]   = OptionalParameter<ParameterSampleRate>::New(this, Parameters["samplerate"]);
-	result["active"]       = OptionalParameter<ParameterActive>::New(this, Parameters["active"]);
-
-	//Alsa specific
-        result["card"]         = OptionalParameter<ParameterCard>::New(this, Parameters["card"]);                 // additional parameter, individually for this driver
-        result["fragments"]    = OptionalParameter<ParameterFragments>::New(this, Parameters["fragments"]);       // additional parameter, individually for this driver
-        result["fragmentsize"] = OptionalParameter<ParameterFragmentSize>::New(this, Parameters["fragmentsize"]); // additional parameter, individually for this driver
-        return result;
     }
 
     /**
@@ -263,8 +261,12 @@ namespace LinuxSampler {
         return uiSamplerate;
     }
 
-    String AudioOutputDeviceAlsa::Driver() {
+    String AudioOutputDeviceAlsa::Name() {
         return "Alsa";
+    }
+
+    String AudioOutputDeviceAlsa::Driver() {
+        return Name();
     }
 
     String AudioOutputDeviceAlsa::Description() {
@@ -272,20 +274,8 @@ namespace LinuxSampler {
     }
 
     String AudioOutputDeviceAlsa::Version() {
-       String s = "$Revision: 1.7 $";
+       String s = "$Revision: 1.8 $";
        return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
-    }
-
-    std::map<String,DeviceCreationParameter*> AudioOutputDeviceAlsa::AvailableParameters() {
-        // FIXME: not a good solution to get the commot parameters (ACTIVE,SAMPERATE,CHANNELS which have to be offered by all audio output drivers)
-        std::map<String,DeviceCreationParameter*> available_parameters = AudioOutputDevice::AvailableParameters();
-        static ParameterCard         param_card(NULL);
-        static ParameterFragments    param_fragments(NULL);
-        static ParameterFragmentSize param_fragmentsize(NULL);
-        available_parameters["card"]         = &param_card;         // additional parameter, individually for this driver
-        available_parameters["fragments"]    = &param_fragments;    // additional parameter, individually for this driver
-        available_parameters["fragmentsize"] = &param_fragmentsize; // additional parameter, individually for this driver
-        return available_parameters;
     }
 
     /**

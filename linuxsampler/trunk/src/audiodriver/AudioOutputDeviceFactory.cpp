@@ -25,10 +25,26 @@
 namespace LinuxSampler {
 
     std::map<String, AudioOutputDeviceFactory::InnerFactory*> AudioOutputDeviceFactory::InnerFactories;
+    std::map<String, DeviceParameterFactory*> AudioOutputDeviceFactory::ParameterFactories;
 
-    AudioOutputDevice* AudioOutputDeviceFactory::Create(String DriverName, std::map<String,String>& Parameters) throw (LinuxSamplerException) {
+    AudioOutputDevice* AudioOutputDeviceFactory::Create(String DriverName, std::map<String,String> Parameters) throw (LinuxSamplerException) {
         if (!InnerFactories.count(DriverName)) throw LinuxSamplerException("There is no audio output driver '" + DriverName + "'.");
-        return InnerFactories[DriverName]->Create(Parameters);
+	//Let's see if we need to create parameters
+	std::map<String,DeviceCreationParameter*> thisDeviceParams;
+	DeviceParameterFactory* pParamFactory = ParameterFactories[DriverName];
+	if (pParamFactory) {
+		thisDeviceParams = pParamFactory->CreateAllParams(Parameters);
+	} else {
+	       	//No parameters are registered by the driver. Throw if any parameters were specified.
+		if (Parameters.size() != 0) throw LinuxSamplerException("Driver '" + DriverName + "' does not have any parameters.");
+	}
+	//Now create the device using those parameters
+        AudioOutputDevice* pDevice = InnerFactories[DriverName]->Create(thisDeviceParams);
+	//Now attach all parameters to the newely created device.
+	for (std::map<String,DeviceCreationParameter*>::iterator iter = thisDeviceParams.begin(); iter != thisDeviceParams.end(); iter++) {
+		iter->second->Attach(pDevice);
+	}
+	return pDevice;
     }
 
     std::vector<String> AudioOutputDeviceFactory::AvailableDrivers() {
@@ -54,7 +70,12 @@ namespace LinuxSampler {
 
     std::map<String,DeviceCreationParameter*> AudioOutputDeviceFactory::GetAvailableDriverParameters(String DriverName) throw (LinuxSamplerException) {
         if (!InnerFactories.count(DriverName)) throw LinuxSamplerException("There is no audio output driver '" + DriverName + "'.");
-        return InnerFactories[DriverName]->AvailableParameters();
+	std::map<String,DeviceCreationParameter*> thisDeviceParams;
+	DeviceParameterFactory* pParamFactory = ParameterFactories[DriverName];
+	if (pParamFactory) {
+		thisDeviceParams = pParamFactory->CreateAllParams();
+	}
+        return thisDeviceParams;
     }
 
     DeviceCreationParameter* AudioOutputDeviceFactory::GetDriverParameter(String DriverName, String ParameterName) throw (LinuxSamplerException) {

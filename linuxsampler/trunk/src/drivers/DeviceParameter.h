@@ -29,6 +29,7 @@
 #include "../common/global.h"
 #include "../common/optional.h"
 #include "../common/LinuxSamplerException.h"
+#include "InputOutputDevice.h"
 
 namespace LinuxSampler {
 
@@ -151,6 +152,7 @@ namespace LinuxSampler {
 
     class DeviceCreationParameter : public DeviceRuntimeParameter {
         public:
+	    DeviceCreationParameter ( void )                  { pDevice = NULL; }
             virtual bool                                      Mandatory() = 0;
             virtual optional<String>                          Depends();
             virtual std::map<String,DeviceCreationParameter*> DependsAsParameters() = 0;
@@ -162,12 +164,14 @@ namespace LinuxSampler {
             virtual optional<String>                          RangeMax(std::map<String,String> Parameters) = 0;
             virtual optional<String>                          Possibilities();
             virtual optional<String>                          Possibilities(std::map<String,String> Parameters) = 0;
+	    void                                              Attach(InputOutputDevice* pDevice) { this->pDevice = pDevice; }
+	protected:
+	    InputOutputDevice*       pDevice;
     };
 
     class DeviceCreationParameterBool : public DeviceCreationParameter {
         public:
-            DeviceCreationParameterBool();
-            DeviceCreationParameterBool(bool bVal);
+            DeviceCreationParameterBool(bool bVal = false);
             DeviceCreationParameterBool(String val) throw (LinuxSamplerException);
             virtual String Type();
             virtual bool   Multiplicity();
@@ -191,8 +195,7 @@ namespace LinuxSampler {
 
     class DeviceCreationParameterInt : public DeviceCreationParameter {
         public:
-            DeviceCreationParameterInt();
-            DeviceCreationParameterInt(int iVal);
+            DeviceCreationParameterInt(int iVal = 0);
             DeviceCreationParameterInt(String val) throw (LinuxSamplerException);
             virtual String Type();
             virtual bool   Multiplicity();
@@ -219,8 +222,7 @@ namespace LinuxSampler {
 
     class DeviceCreationParameterFloat : public DeviceCreationParameter {
         public:
-            DeviceCreationParameterFloat();
-            DeviceCreationParameterFloat(float fVal);
+            DeviceCreationParameterFloat(float fVal = 0.0);
             DeviceCreationParameterFloat(String val) throw (LinuxSamplerException);
             virtual String Type();
             virtual bool   Multiplicity();
@@ -247,8 +249,7 @@ namespace LinuxSampler {
 
     class DeviceCreationParameterString : public DeviceCreationParameter {
         public:
-            DeviceCreationParameterString();
-            DeviceCreationParameterString(String sVal);
+            DeviceCreationParameterString(String sVal = String());
             virtual String Type();
             virtual bool   Multiplicity();
             virtual optional<String> RangeMin(std::map<String,String> Parameters);
