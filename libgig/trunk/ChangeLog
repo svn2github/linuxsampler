@@ -13,6 +13,8 @@ Version CVS HEAD (?)
     - fixed crossfade points order (structure for big endian and little
       endian systems was interchanged)
     - fixed some memory leaks (patch by Gene Anders)
+    - fixed crash which occured when patches did not have a sample assigned
+      to their region or dimension region (patch by Andreas Persson)
 
   * src/gigdump.cpp:
     - added output of UnityNote and FineTune
