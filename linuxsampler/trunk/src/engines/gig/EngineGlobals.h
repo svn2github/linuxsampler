@@ -56,7 +56,7 @@ namespace LinuxSampler { namespace gig {
 
     enum voice_steal_algo_t {
         voice_steal_algo_none,
-        voice_steal_algo_keymask,
+        voice_steal_algo_oldestvoiceonkey,
         voice_steal_algo_oldestkey
     };
 
