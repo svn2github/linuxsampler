@@ -244,6 +244,9 @@ namespace LinuxSampler {
         int result = 0;
 
         // let all connected engines render audio for the current audio fragment cycle
+        #if USE_EXCEPTIONS
+        try
+        #endif // USE_EXCEPTIONS
         {
             std::set<Engine*>::iterator iterEngine = Engines.begin();
             std::set<Engine*>::iterator end        = Engines.end();
@@ -252,6 +255,12 @@ namespace LinuxSampler {
                 if (res != 0) result = res;
             }
         }
+        #if USE_EXCEPTIONS
+        catch (std::runtime_error se) {
+            std::cerr << "std::runtime_error: " << se.what() << std::endl << std::flush;
+            exit(EXIT_FAILURE);
+        }
+        #endif // USE_EXCEPTIONS
 
         return result;
     }
