@@ -112,7 +112,7 @@ namespace LinuxSampler { namespace gig {
                 }
                 case stage_decay2: {
                     int process_end;
-                    if (pTransitionEvent && pTransitionEvent->Type == Event::type_release) {
+                    if (pTransitionEvent && pTransitionEvent->Type == Event::type_release && pTransitionEvent->FragmentPos() <= Samples) {
                         process_end      = pTransitionEvent->FragmentPos();
                         pTransitionEvent = pEvents->next();
                         Stage            = stage_release; // switch to release stage soon
@@ -127,7 +127,7 @@ namespace LinuxSampler { namespace gig {
                 }
                 case stage_sustain: {
                     int process_end;
-                    if (pTransitionEvent && pTransitionEvent->Type == Event::type_release) {
+                    if (pTransitionEvent && pTransitionEvent->Type == Event::type_release && pTransitionEvent->FragmentPos() <= Samples) {
                         process_end      = pTransitionEvent->FragmentPos();
                         pTransitionEvent = pEvents->next();
                         Stage            = stage_release; // switch to release stage soon
@@ -140,7 +140,7 @@ namespace LinuxSampler { namespace gig {
                 }
                 case stage_release: {
                     int process_end;
-                    if (pTransitionEvent && pTransitionEvent->Type == Event::type_cancel_release) {
+                    if (pTransitionEvent && pTransitionEvent->Type == Event::type_cancel_release && pTransitionEvent->FragmentPos() <= Samples) {
                         process_end      = pTransitionEvent->FragmentPos();
                         pTransitionEvent = pEvents->next();
                         Stage            = (InfiniteSustain) ? stage_sustain : stage_decay2; // switch back to sustain / decay2 stage soon
