@@ -3,6 +3,10 @@ liblscp - LinuxSampler Control Protocol API
 
 ChangeLog
 
+CVS HEAD           Added support for generating Debian packages;
+                   renamed pkg-config lib name 'liblscp' -> 'lscp' as
+                   it's common practice to omit the 'lib' prefix.
+
 0.2.1  2004-07-09  Potential cripling defects habve been fixed.
 
 0.2.0  2004-07-06  New LSCP extension draft (v.11) initial support.
