@@ -97,6 +97,9 @@ install_sh = @install_sh@
 AUTOMAKE_OPTIONS = foreign 1.4
 
 SUBDIRS = src
+
+# to prevent compile errors on some systems
+AM_CXXFLAGS = -pedantic
 subdir = .
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs

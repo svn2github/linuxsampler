@@ -1,4 +1,5 @@
 AC_INIT(configure.in)
+AC_C_BIGENDIAN
 
 AM_CONFIG_HEADER(config.h)
 AM_INIT_AUTOMAKE(libgig, 0.1)

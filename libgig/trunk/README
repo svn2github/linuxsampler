@@ -28,12 +28,12 @@ Non-POSIX systems
 =================
   If you don't have a POSIX system, you have to set 'POSIX' to '0' in RIFF.h.
   Instead of using POSIX calls then standard C calls will be used for file
-  access.
+  access. This applies e.g. to Windows systems.
 
 Compiling:
 ==========
- - Use 'CXXFLAGS=-pedantic ./configure && make all' to compile the library
-   and all tools and demo applications.
+ - Use './configure && make all' to compile the library and all tools and
+   demo applications.
 
  - Beside the actual library there are four applications:
 
@@ -47,5 +47,16 @@ Compiling:
    just running 'doxygen' in the sources' top level directory.
 
  - 'make distclean' to clean up everything again
+
+Patches
+=======
+  If you find bugs or have improvements, your patches are always welcome!
+  Send them either directly to me or to the LinuxSampler developer's mailing
+  list <linuxsampler-devel@lists.sourceforge.net>.
+
+Credits
+=======
+  This library is based on the reverse engineering work of Paul Kellett and
+  Ruben van Royen. Thanks for your great work!
 
  Christian Schoenebeck <cuse@users.sourceforge.net>

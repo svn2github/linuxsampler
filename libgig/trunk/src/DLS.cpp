@@ -59,7 +59,11 @@ namespace DLS {
         pConnections = new Connection[Connections];
         Connection::conn_block_t connblock;
         for (uint32_t i = 0; i <= Connections; i++) {
-            artList->Read(&connblock, 1, sizeof(Connection::conn_block_t));
+            artList->Read(&connblock.source, 1, 2);
+            artList->Read(&connblock.control, 1, 2);
+            artList->Read(&connblock.destination, 1, 2);
+            artList->Read(&connblock.transform, 1, 2);
+            artList->Read(&connblock.scale, 1, 4);
             pConnections[i].Init(&connblock);
         }
     }
@@ -163,7 +167,10 @@ namespace DLS {
         RIFF::Chunk* ckDLSID = lstResource->GetSubChunk(CHUNK_ID_DLID);
         if (ckDLSID) {
             pDLSID = new dlsid_t;
-            ckDLSID->Read(pDLSID, 1, sizeof(dlsid_t));
+            ckDLSID->Read(&pDLSID->ulData1, 1, 4);
+            ckDLSID->Read(&pDLSID->usData2, 1, 2);
+            ckDLSID->Read(&pDLSID->usData3, 1, 2);
+            ckDLSID->Read(pDLSID->abData, 8, 1);
         }
         else pDLSID = NULL;
     }
@@ -192,7 +199,7 @@ namespace DLS {
         pSampleLoops            = (SampleLoops) ? new sample_loop_t[SampleLoops] : NULL;
         wsmp->SetPos(headersize);
         for (uint32_t i = 0; i < SampleLoops; i++) {
-            wsmp->Read(pSampleLoops + i, 1, sizeof(sample_loop_t));
+            wsmp->Read(pSampleLoops + i, 4, 4);
             if (pSampleLoops[i].Size > sizeof(sample_loop_t)) { // if loop struct was extended
                 wsmp->SetPos(pSampleLoops[i].Size - sizeof(sample_loop_t), RIFF::stream_curpos);
             }
@@ -271,7 +278,7 @@ namespace DLS {
      */
     unsigned long Sample::Read(void* pBuffer, unsigned long SampleCount) {
         if (FormatTag != WAVE_FORMAT_PCM) return 0; // failed: wave data not PCM format
-        return pCkData->Read(pBuffer, SampleCount, FrameSize);
+        return pCkData->Read(pBuffer, SampleCount, FrameSize); // FIXME: channel inversion due to endian correction?
     }
 
 
@@ -283,8 +290,8 @@ namespace DLS {
         pCkRegion = rgnList;
 
         RIFF::Chunk* rgnh = rgnList->GetSubChunk(CHUNK_ID_RGNH);
-        rgnh->Read(&KeyRange, 1, sizeof(range_t));
-        rgnh->Read(&VelocityRange, 1, sizeof(range_t));
+        rgnh->Read(&KeyRange, 2, 2);
+        rgnh->Read(&VelocityRange, 2, 2);
         uint16_t optionflags = rgnh->ReadUint16();
         SelfNonExclusive = optionflags & F_RGN_OPTION_SELFNONEXCLUSIVE;
         KeyGroup = rgnh->ReadUint16();
@@ -332,7 +339,7 @@ namespace DLS {
         if (!insh) throw DLS::Exception("Mandatory chunks in <lins> list chunk not found.");
         Regions = insh->ReadUint32();
         midi_locale_t locale;
-        insh->Read(&locale, 1, sizeof(midi_locale_t));
+        insh->Read(&locale, 2, 4);
         MIDIProgram    = locale.instrument;
         IsDrum         = locale.bank & DRUM_TYPE_MASK;
         MIDIBankCoarse = (uint8_t) MIDI_BANK_COARSE(locale.bank);
@@ -393,7 +400,7 @@ namespace DLS {
         RIFF::Chunk* ckVersion = pRIFF->GetSubChunk(CHUNK_ID_VERS);
         if (ckVersion) {
             pVersion = new version_t;
-            ckVersion->Read(pVersion, 1, sizeof(version_t));
+            ckVersion->Read(pVersion, 4, 2);
         }
         else pVersion = NULL;
 

@@ -1,52 +1,27 @@
 <?xml version = '1.0' encoding = 'UTF-8'?>
 <!DOCTYPE KDevPrjSession>
 <KDevPrjSession>
- <DocsAndViews NumberOfDocuments="9" >
-  <Doc0 NumberOfViews="1" URL="file:/home/cuse/libgig/src/gig.cpp" >
-   <View0 line="0" Type="???" >
+ <DocsAndViews NumberOfDocuments="4" >
+  <Doc0 NumberOfViews="1" URL="file:/home/cuse/libgig/src/RIFF.h" >
+   <View0 line="210" Type="???" >
     <AdditionalSettings/>
    </View0>
   </Doc0>
-  <Doc1 NumberOfViews="1" URL="file:/home/cuse/libgig/src/gig.h" >
-   <View0 line="417" Type="???" >
+  <Doc1 NumberOfViews="1" URL="file:/home/cuse/libgig/src/RIFF.cpp" >
+   <View0 line="754" Type="???" >
     <AdditionalSettings/>
    </View0>
   </Doc1>
   <Doc2 NumberOfViews="1" URL="file:/home/cuse/libgig/src/DLS.h" >
-   <View0 line="485" Type="???" >
+   <View0 line="0" Type="???" >
     <AdditionalSettings/>
    </View0>
   </Doc2>
-  <Doc3 NumberOfViews="1" URL="file:/home/cuse/libgig/src/RIFF.cpp" >
-   <View0 line="412" Type="???" >
+  <Doc3 NumberOfViews="1" URL="file:/home/cuse/libgig/src/gig.cpp" >
+   <View0 line="476" Type="???" >
     <AdditionalSettings/>
    </View0>
   </Doc3>
-  <Doc4 NumberOfViews="1" URL="file:/home/cuse/libgig/src/gigdump.cpp" >
-   <View0 line="168" Type="???" >
-    <AdditionalSettings/>
-   </View0>
-  </Doc4>
-  <Doc5 NumberOfViews="1" URL="file:/home/cuse/libgig/src/gigextract.cpp" >
-   <View0 line="243" Type="???" >
-    <AdditionalSettings/>
-   </View0>
-  </Doc5>
-  <Doc6 NumberOfViews="1" URL="file:/home/cuse/libgig/src/DLS.cpp" >
-   <View0 line="520" Type="???" >
-    <AdditionalSettings/>
-   </View0>
-  </Doc6>
-  <Doc7 NumberOfViews="1" URL="file:/home/cuse/libgig/src/RIFF.h" >
-   <View0 line="222" Type="???" >
-    <AdditionalSettings/>
-   </View0>
-  </Doc7>
-  <Doc8 NumberOfViews="1" URL="file:/home/cuse/libgig/TODO" >
-   <View0 line="20" Type="???" >
-    <AdditionalSettings/>
-   </View0>
-  </Doc8>
  </DocsAndViews>
  <pluginList>
   <kdevbookmarks>
@@ -54,7 +29,7 @@
   </kdevbookmarks>
   <kdevdebugger>
    <breakpointList>
-    <breakpoint0 location="/home/cuse/libgig/src/RIFF.cpp:457" type="1" condition="" enabled="1" />
+    <breakpoint0 location="/home/cuse/libgig/src/RIFF.cpp:491" type="1" condition="" enabled="1" />
    </breakpointList>
   </kdevdebugger>
  </pluginList>

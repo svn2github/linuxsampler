@@ -32,6 +32,10 @@
 #include <map>
 #include <iostream>
 
+#ifdef HAVE_CONFIG_H
+# include <config.h>
+#endif
+
 #if POSIX
 # include <sys/types.h>
 # include <sys/stat.h>
@@ -95,10 +99,10 @@ namespace RIFF {
             Chunk(FILE* hFile, unsigned long StartPos, bool EndianNative, List* Parent);
             #endif // POSIX
             String         GetChunkIDString();
-            uint32_t       GetChunkID() { return ChunkID; };
-            List*          GetParent()  { return pParent; };
-            unsigned long  GetSize()    { return ChunkSize; }; ///< Chunk size in bytes (without header, thus the chunk data body)
-            unsigned long  GetPos()     { return ulPos; };     ///< Position within the chunk data body
+            uint32_t       GetChunkID() { return ChunkID; };            ///< Chunk ID in unsigned integer representation.
+            List*          GetParent()  { return pParent; };            ///< Returns pointer to the chunk's parent list chunk.
+            unsigned long  GetSize()    { return ChunkSize; };          ///< Chunk size in bytes (without header, thus the chunk data body)
+            unsigned long  GetPos()     { return ulPos; };              ///< Position within the chunk data body
             unsigned long  GetFilePos() { return ulStartPos + ulPos; }; ///< Current, actual offset in file.
             unsigned long  SetPos(unsigned long Where, stream_whence_t Whence = stream_start);
             unsigned long  RemainingBytes();
@@ -178,9 +182,9 @@ namespace RIFF {
             List(FILE* hFile, unsigned long StartPos, bool EndianNative, List* Parent);
             #endif // POSIX
             String       GetListTypeString();
-            uint32_t     GetListType() { return ListType; }
-            Chunk*       GetSubChunk(uint32_t ChunkID); /* use this if you expect only one subchunk of that type in the list */
-            List*        GetSubList(uint32_t ListType); /* use this if you expect only one sublist chunk of that type in the list */
+            uint32_t     GetListType() { return ListType; }   ///< Returns unsigned integer representation of the list's ID
+            Chunk*       GetSubChunk(uint32_t ChunkID);
+            List*        GetSubList(uint32_t ListType);
             Chunk*       GetFirstSubChunk();
             Chunk*       GetNextSubChunk();
             List*        GetFirstSubList();

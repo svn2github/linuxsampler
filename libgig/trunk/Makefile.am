@@ -3,3 +3,6 @@
 AUTOMAKE_OPTIONS = foreign 1.4
 
 SUBDIRS = src
+
+# to prevent compile errors on some systems
+AM_CXXFLAGS = -pedantic

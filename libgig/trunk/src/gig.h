@@ -36,7 +36,7 @@
 /// reallocated which is time consuming and unefficient.
 #define INITIAL_SAMPLE_BUFFER_SIZE		512000 // 512 kB
 
-#if 0 //WORDS_BIGENDIAN
+#if WORDS_BIGENDIAN
 # define LIST_TYPE_3PRG	0x33707267
 # define LIST_TYPE_3EWL	0x3365776C
 # define CHUNK_ID_SMPL	0x736D706C
@@ -57,7 +57,7 @@
 #endif // WORDS_BIGENDIAN
 
 /** (so far) every exponential paramater in the gig format has a basis of 1.000000008813822 */
-#define GIG_EXP_DECODE(x)			(powl(1.000000008813822, x))
+#define GIG_EXP_DECODE(x)			(pow(1.000000008813822, x))
 #define GIG_PITCH_TRACK_EXTRACT(x)		(!(x & 0x01))
 #define GIG_VCF_RESONANCE_CTRL_EXTRACT(x)	((x >> 4) & 0x03)
 #define GIG_EG_CTR_ATTACK_INFLUENCE_EXTRACT(x)	((x >> 1) & 0x03)

@@ -3,6 +3,9 @@ bin_PROGRAMS = rifftree gigdump dlsdump gigextract
 # set the include path found by configure
 INCLUDES= $(all_includes)
 
+# to prevent compile errors on some systems
+AM_CXXFLAGS = -pedantic
+
 # the library search path.
 rifftree_SOURCES =  rifftree.cpp
 lib_LIBRARIES =  libgig.a
@@ -19,5 +22,3 @@ dlsdump_LDADD = $(top_builddir)/src/libgig.a
 applnkApplicationdir = $(kde_appsdir)/Application
 gigextract_SOURCES =  gigextract.cpp
 gigextract_LDADD = $(top_builddir)/src/libgig.a -ldl
-
-

@@ -26,7 +26,7 @@
 
 #include "RIFF.h"
 
-#if 0 // WORDS_BIGENDIAN
+#if WORDS_BIGENDIAN
 # define LIST_TYPE_INFO	0x494E464F
 # define LIST_TYPE_WVPL	0x7776706C
 # define LIST_TYPE_DWPL 0x6477706C  ///< Seen on some files instead of a wvpl list chunk.

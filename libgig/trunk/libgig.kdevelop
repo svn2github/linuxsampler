@@ -3,7 +3,7 @@
   <general>
     <author>Christian Schoenebeck</author>
     <email>cuse@users.sourceforge.net</email>
-    <version>0.1</version>
+    <version>0.6.0</version>
     <projectmanagement>KDevAutoProject</projectmanagement>
     <primarylanguage>C++</primarylanguage>
     <keywords>
@@ -59,7 +59,7 @@
         <cxxcompilerbinary/>
         <f77compilerbinary/>
         <cflags/>
-        <cxxflags>-pedantic -Wall</cxxflags>
+        <cxxflags>-Wall</cxxflags>
         <f77flags/>
       </default>
     </configurations>
