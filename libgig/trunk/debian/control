@@ -3,7 +3,7 @@ Section: devel
 Priority: optional
 Maintainer: Christian Schoenebeck <cuse@users.sourceforge.net>
 Build-Depends: debhelper (>= 4.0.0)
-Standards-Version: 3.6.0
+Standards-Version: 3.6.1
 
 Package: libgig-dev
 Section: libdevel
@@ -34,7 +34,7 @@ Description: Library for loading Gigasampler files and DLS Level 1/2 files
 Package: gigtools
 Section: utils
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}
+Depends: ${shlibs:Depends}, ${misc:Depends}, libaudiofile0 (>= 0.2.3)
 Description: Command line tools for Gigasampler and DLS Level 1/2 files
  This package contains the following command line tools:
  .
