@@ -44,7 +44,6 @@ extern void yyrestart(FILE* input_file, yyscan_t yyscanner);
 // we provide our own version of yyerror() so we don't have to link against the yacc library
 void yyerror(const char* s);
 
-bool background;
 %}
 
 // reentrant parser
@@ -55,7 +54,7 @@ bool background;
 %token <Number> NUMBER
 %token <String> STRINGVAL
 %token SP LF CR HASH EQ
-%token ADD GET CREATE DESTROY LIST LOAD LOAD_BACKGROUND REMOVE SET SUBSCRIBE UNSUBSCRIBE RESET QUIT
+%token ADD GET CREATE DESTROY LIST LOAD NON_MODAL REMOVE SET SUBSCRIBE UNSUBSCRIBE RESET QUIT
 %token CHANNEL NOTIFICATION
 %token AVAILABLE_ENGINES AVAILABLE_AUDIO_OUTPUT_DRIVERS CHANNELS INFO BUFFER_FILL STREAM_COUNT VOICE_COUNT
 %token INSTRUMENT ENGINE
@@ -98,8 +97,7 @@ command               :  ADD SP CHANNEL                             { $$ = LSCPS
                       |  CREATE SP create_instruction               { $$ = $3;                                        }
                       |  DESTROY SP destroy_instruction             { $$ = $3;                                        }
                       |  LIST SP list_instruction                   { $$ = $3;                                        }
-                      |  LOAD SP load_instruction                   { $$ = $3; background = false;                    }
-                      |  LOAD_BACKGROUND SP load_instruction        { $$ = $3; background = true;                     }
+                      |  LOAD SP load_instruction                   { $$ = $3;                                        }
                       |  REMOVE SP CHANNEL SP sampler_channel       { $$ = LSCPSERVER->RemoveChannel($5);             }
                       |  SET SP set_instruction                     { $$ = $3;                                        }
                       |  SUBSCRIBE SP subscribe_event               { $$ = $3;                                        }
@@ -176,7 +174,8 @@ buffer_size_type      :  BYTES       { $$ = fill_response_bytes;      }
 list_instruction      :  AUDIO_OUTPUT_DEVICES  { $$ = LSCPSERVER->GetAudioOutputDevices(); }
                       ;
 
-load_instr_args       :  filename SP instrument_index SP sampler_channel  { $$ = LSCPSERVER->LoadInstrument($1, $3, $5, background); }
+load_instr_args       :  filename SP instrument_index SP sampler_channel  { $$ = LSCPSERVER->LoadInstrument($1, $3, $5); }
+                      |  NON_MODAL SP filename SP instrument_index SP sampler_channel  { $$ = LSCPSERVER->LoadInstrument($3, $5, $7, true); }
                       ;
 
 load_engine_args      :  engine_name SP sampler_channel  { $$ = LSCPSERVER->LoadEngine($1, $3); }

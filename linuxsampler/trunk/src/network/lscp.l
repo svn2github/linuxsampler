@@ -50,7 +50,7 @@ CREATE                                  { return CREATE; }
 DESTROY                                 { return DESTROY; }
 LIST                                    { return LIST; }
 LOAD                                    { return LOAD; }
-LOAD_BACKGROUND                         { return LOAD_BACKGROUND; }
+NON_MODAL                               { return NON_MODAL; }
 REMOVE                                  { return REMOVE; }
 SET                                     { return SET; }
 SUBSCRIBE                               { return SUBSCRIBE; }

@@ -44,7 +44,7 @@
      DESTROY = 270,
      LIST = 271,
      LOAD = 272,
-     LOAD_BACKGROUND = 273,
+     NON_MODAL = 273,
      REMOVE = 274,
      SET = 275,
      SUBSCRIBE = 276,
@@ -93,7 +93,7 @@
 #define DESTROY 270
 #define LIST 271
 #define LOAD 272
-#define LOAD_BACKGROUND 273
+#define NON_MODAL 273
 #define REMOVE 274
 #define SET 275
 #define SUBSCRIBE 276
