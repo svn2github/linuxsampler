@@ -102,4 +102,4 @@ AC_LANG_CPLUSPLUS
 AC_PROG_CXX
 AM_PROG_LIBTOOL
 
-AC_OUTPUT(Makefile src/Makefile src/network/Makefile)
+AC_OUTPUT(Makefile src/Makefile src/network/Makefile src/engines/Makefile src/engines/gig/Makefile src/engines/common/Makefile src/common/Makefile src/audiodriver/Makefile src/mididriver/Makefile src/lib/Makefile src/lib/fileloader/Makefile src/lib/fileloader/libgig/Makefile)

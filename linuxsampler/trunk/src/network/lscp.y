@@ -62,10 +62,11 @@ void yyerror(const char* s);
 %token ALSA JACK
 
 %type <Dotnum> volume
-%type <Number> sampler_channel instrument_index udp_port audio_output_channel midi_input_channel midi_input_type
+%type <Number> sampler_channel instrument_index udp_port audio_output_channel midi_input_channel
 %type <String> string alpha_num_string filename engine_name session_id midi_input_port command get_instruction load_instruction set_chan_instruction load_instr_args load_engine_args
 %type <FillResponse> buffer_size_type
 %type <AudioOutput> audio_output_type
+%type <MidiInput> midi_input_type
 
 %start input
 
@@ -111,7 +112,7 @@ set_chan_instruction  :  AUDIO_OUTPUT_CHANNEL SP sampler_channel SP audio_output
                       |  AUDIO_OUTPUT_TYPE SP sampler_channel SP audio_output_type        { $$ = LSCPSERVER->SetAudioOutputType($5, $3);    }
                       |  MIDI_INPUT_PORT SP sampler_channel SP midi_input_port            { $$ = LSCPSERVER->SetMIDIInputPort($5, $3);      }
                       |  MIDI_INPUT_CHANNEL SP sampler_channel SP midi_input_channel      { $$ = LSCPSERVER->SetMIDIInputChannel($5, $3);   }
-                      |  MIDI_INPUT_TYPE SP sampler_channel SP midi_input_type            { $$ = "Err:0:Not implemented yet\r\n";           }
+                      |  MIDI_INPUT_TYPE SP sampler_channel SP midi_input_type            { $$ = LSCPSERVER->SetMIDIInputType($5, $3);      }
                       |  VOLUME SP sampler_channel SP volume                              { $$ = LSCPSERVER->SetVolume($5, $3);             }
                       ;
 
@@ -129,7 +130,7 @@ audio_output_type     :  ALSA  { $$ = audio_output_type_alsa; }
                       |  JACK  { $$ = audio_output_type_jack; }
                       ;
 
-midi_input_type       :  ALSA  { $$ = ALSA; }
+midi_input_type       :  ALSA  { $$ = midi_input_type_alsa; }
                       ;
 
 volume                :  DOTNUM

@@ -377,12 +377,12 @@ static const yysigned_char yyrhs[] =
 /* YYRLINE[YYN] -- source line where rule number YYN was defined.  */
 static const unsigned char yyrline[] =
 {
-       0,    76,    76,    77,    78,    81,    82,    83,    86,    87,
-      88,    89,    90,    91,    92,    93,    94,    97,    98,    99,
-     100,   101,   102,   103,   106,   107,   110,   111,   112,   113,
-     114,   115,   118,   119,   122,   125,   128,   129,   132,   135,
-     136,   139,   142,   145,   148,   151,   154,   157,   160,   163,
-     164,   167,   168,   169,   170,   173,   174
+       0,    77,    77,    78,    79,    82,    83,    84,    87,    88,
+      89,    90,    91,    92,    93,    94,    95,    98,    99,   100,
+     101,   102,   103,   104,   107,   108,   111,   112,   113,   114,
+     115,   116,   119,   120,   123,   126,   129,   130,   133,   136,
+     137,   140,   143,   146,   149,   152,   155,   158,   161,   164,
+     165,   168,   169,   170,   171,   174,   175
 };
 #endif
 
@@ -1167,207 +1167,207 @@ yyreduce:
   switch (yyn)
     {
         case 6:
-#line 82 "lscp.y"
+#line 83 "lscp.y"
     { LSCPSERVER->AnswerClient(yyvsp[0].String); }
     break;
 
   case 7:
-#line 83 "lscp.y"
+#line 84 "lscp.y"
     { LSCPSERVER->AnswerClient("Err:0:Unknown command.\r\n"); RESTART; return LSCP_SYNTAX_ERROR; }
     break;
 
   case 8:
-#line 86 "lscp.y"
+#line 87 "lscp.y"
     { yyval.String = LSCPSERVER->AddChannel();                  }
     break;
 
   case 9:
-#line 87 "lscp.y"
-    { yyval.String = yyvsp[0].String;                                        }
-    break;
-
-  case 10:
 #line 88 "lscp.y"
     { yyval.String = yyvsp[0].String;                                        }
     break;
 
-  case 11:
+  case 10:
 #line 89 "lscp.y"
+    { yyval.String = yyvsp[0].String;                                        }
+    break;
+
+  case 11:
+#line 90 "lscp.y"
     { yyval.String = LSCPSERVER->RemoveChannel(yyvsp[0].Number);             }
     break;
 
   case 12:
-#line 90 "lscp.y"
+#line 91 "lscp.y"
     { yyval.String = yyvsp[0].String;                                        }
     break;
 
   case 13:
-#line 91 "lscp.y"
+#line 92 "lscp.y"
     { yyval.String = LSCPSERVER->SubscribeNotification(yyvsp[0].Number);     }
     break;
 
   case 14:
-#line 92 "lscp.y"
+#line 93 "lscp.y"
     { yyval.String = LSCPSERVER->UnsubscribeNotification(yyvsp[0].String);   }
     break;
 
   case 15:
-#line 93 "lscp.y"
+#line 94 "lscp.y"
     { yyval.String = LSCPSERVER->ResetChannel(yyvsp[0].Number);              }
     break;
 
   case 16:
-#line 94 "lscp.y"
+#line 95 "lscp.y"
     { LSCPSERVER->AnswerClient("Bye!\r\n"); return 0; }
     break;
 
   case 17:
-#line 97 "lscp.y"
+#line 98 "lscp.y"
     { yyval.String = LSCPSERVER->GetAvailableEngines(); }
     break;
 
   case 18:
-#line 98 "lscp.y"
+#line 99 "lscp.y"
     { yyval.String = LSCPSERVER->GetChannels();         }
     break;
 
   case 19:
-#line 99 "lscp.y"
+#line 100 "lscp.y"
     { yyval.String = LSCPSERVER->GetChannelInfo(yyvsp[0].Number);    }
     break;
 
   case 20:
-#line 100 "lscp.y"
+#line 101 "lscp.y"
     { yyval.String = LSCPSERVER->GetBufferFill(yyvsp[-2].FillResponse, yyvsp[0].Number); }
     break;
 
   case 21:
-#line 101 "lscp.y"
+#line 102 "lscp.y"
     { yyval.String = LSCPSERVER->GetStreamCount(yyvsp[0].Number);    }
     break;
 
   case 22:
-#line 102 "lscp.y"
+#line 103 "lscp.y"
     { yyval.String = LSCPSERVER->GetVoiceCount(yyvsp[0].Number);     }
     break;
 
   case 23:
-#line 103 "lscp.y"
+#line 104 "lscp.y"
     { yyval.String = LSCPSERVER->GetEngineInfo(yyvsp[0].String);     }
     break;
 
   case 24:
-#line 106 "lscp.y"
-    { yyval.String = yyvsp[0].String; }
-    break;
-
-  case 25:
 #line 107 "lscp.y"
     { yyval.String = yyvsp[0].String; }
     break;
 
+  case 25:
+#line 108 "lscp.y"
+    { yyval.String = yyvsp[0].String; }
+    break;
+
   case 26:
-#line 110 "lscp.y"
+#line 111 "lscp.y"
     { yyval.String = LSCPSERVER->SetAudioOutputChannel(yyvsp[0].Number, yyvsp[-2].Number); }
     break;
 
   case 27:
-#line 111 "lscp.y"
+#line 112 "lscp.y"
     { yyval.String = LSCPSERVER->SetAudioOutputType(yyvsp[0].AudioOutput, yyvsp[-2].Number);    }
     break;
 
   case 28:
-#line 112 "lscp.y"
+#line 113 "lscp.y"
     { yyval.String = LSCPSERVER->SetMIDIInputPort(yyvsp[0].String, yyvsp[-2].Number);      }
     break;
 
   case 29:
-#line 113 "lscp.y"
+#line 114 "lscp.y"
     { yyval.String = LSCPSERVER->SetMIDIInputChannel(yyvsp[0].Number, yyvsp[-2].Number);   }
     break;
 
   case 30:
-#line 114 "lscp.y"
-    { yyval.String = "Err:0:Not implemented yet\r\n";           }
+#line 115 "lscp.y"
+    { yyval.String = LSCPSERVER->SetMIDIInputType(yyvsp[0].MidiInput, yyvsp[-2].Number);      }
     break;
 
   case 31:
-#line 115 "lscp.y"
+#line 116 "lscp.y"
     { yyval.String = LSCPSERVER->SetVolume(yyvsp[0].Dotnum, yyvsp[-2].Number);             }
     break;
 
   case 32:
-#line 118 "lscp.y"
+#line 119 "lscp.y"
     { yyval.FillResponse = fill_response_bytes;      }
     break;
 
   case 33:
-#line 119 "lscp.y"
+#line 120 "lscp.y"
     { yyval.FillResponse = fill_response_percentage; }
     break;
 
   case 34:
-#line 122 "lscp.y"
+#line 123 "lscp.y"
     { yyval.String = LSCPSERVER->LoadInstrument(yyvsp[-4].String, yyvsp[-2].Number, yyvsp[0].Number); }
     break;
 
   case 35:
-#line 125 "lscp.y"
+#line 126 "lscp.y"
     { yyval.String = LSCPSERVER->LoadEngine(yyvsp[-2].String, yyvsp[0].Number); }
     break;
 
   case 36:
-#line 128 "lscp.y"
+#line 129 "lscp.y"
     { yyval.AudioOutput = audio_output_type_alsa; }
     break;
 
   case 37:
-#line 129 "lscp.y"
+#line 130 "lscp.y"
     { yyval.AudioOutput = audio_output_type_jack; }
     break;
 
   case 38:
-#line 132 "lscp.y"
-    { yyval.Number = ALSA; }
+#line 133 "lscp.y"
+    { yyval.MidiInput = midi_input_type_alsa; }
     break;
 
   case 40:
-#line 136 "lscp.y"
+#line 137 "lscp.y"
     { yyval.Dotnum = yyvsp[0].Number; }
     break;
 
   case 50:
-#line 164 "lscp.y"
+#line 165 "lscp.y"
     { yyval.String = yyvsp[-2].String + ' ' + yyvsp[0].String; }
     break;
 
   case 51:
-#line 167 "lscp.y"
+#line 168 "lscp.y"
     { yyval.String = yyvsp[0].String;                                             }
     break;
 
   case 52:
-#line 168 "lscp.y"
+#line 169 "lscp.y"
     { std::stringstream ss; ss << yyvsp[0].Number; yyval.String = ss.str();       }
     break;
 
   case 53:
-#line 169 "lscp.y"
+#line 170 "lscp.y"
     { yyval.String = yyvsp[-1].String + yyvsp[0].String;                                        }
     break;
 
   case 54:
-#line 170 "lscp.y"
+#line 171 "lscp.y"
     { std::stringstream ss; ss << yyvsp[-1].String << yyvsp[0].Number; yyval.String = ss.str(); }
     break;
 
   case 55:
-#line 173 "lscp.y"
+#line 174 "lscp.y"
     { std::string s; s = yyvsp[0].Char; yyval.String = s; }
     break;
 
   case 56:
-#line 174 "lscp.y"
+#line 175 "lscp.y"
     { yyval.String = yyvsp[-1].String + yyvsp[0].Char;                  }
     break;
 
@@ -1569,7 +1569,7 @@ yyreturn:
 }
 
 
-#line 177 "lscp.y"
+#line 178 "lscp.y"
 
 
 /**

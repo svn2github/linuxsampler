@@ -23,32 +23,28 @@
 #include <getopt.h>
 #include <signal.h>
 
-#include "global.h"
-#include "diskthread.h"
-#include "audiothread.h"
-#include "alsaio.h"
-#include "jackio.h"
-#include "midiin.h"
-#include "stream.h"
-#include "RIFF.h"
-#include "gig.h"
+#include "Sampler.h"
 #include "network/lscpserver.h"
 
+#if 0
 #define AUDIO_CHANNELS		2     // stereo
 #define AUDIO_FRAGMENTS		3     // 3 fragments, if it does not work set it to 2
 #define AUDIO_FRAGMENTSIZE	512   // each fragment has 512 frames
 #define AUDIO_SAMPLERATE	44100 // Hz
+#endif
 
-enum patch_format_t {
+using namespace LinuxSampler;
+
+/*enum patch_format_t {
     patch_format_unknown,
     patch_format_gig,
     patch_format_dls
-} patch_format = patch_format_unknown;
+} patch_format = patch_format_unknown;*/
 
-AudioIO*     pAudioIO         = NULL;
-MidiIn*      pMidiInThread    = NULL;
+Sampler*     pSampler         = NULL;
 LSCPServer*  pLSCPServer      = NULL;
-AudioThread* pEngine          = NULL;
+pthread_t    signalhandlerthread;
+/*AudioThread* pEngine          = NULL;
 uint         instrument_index = 0;
 double       volume           = 0.25;
 int          num_fragments    = AUDIO_FRAGMENTS;
@@ -58,8 +54,8 @@ String       input_client;
 String       alsaout          = "0,0"; // default card
 String       jack_playback[2] = { "", "" };
 bool         use_jack         = true;
-bool         run_server       = false;
-pthread_t    signalhandlerthread;
+bool         run_server       = false;*/
+
 
 void parse_options(int argc, char **argv);
 void signal_handler(int signal);
@@ -71,65 +67,58 @@ int main(int argc, char **argv) {
     signal(SIGINT, signal_handler);
 
     // parse and assign command line options
-    parse_options(argc, argv);
+    //parse_options(argc, argv);
 
-    if (patch_format != patch_format_gig) {
+    /*if (patch_format != patch_format_gig) {
         printf("Sorry only Gigasampler loading migrated in LinuxSampler so far, use --gig to load a .gig file!\n");
         printf("Use 'linuxsampler --help' to see all available options.\n");
         return EXIT_FAILURE;
-    }
+    }*/
 
-    int error = 1;
+    // create LinuxSampler instance
+    pSampler = new Sampler;
+
+    // create an audio output device
+   /* bool no_jack = true;
 #if HAVE_JACK
     if (use_jack) {
-        dmsg(1,("Initializing audio output (Jack)..."));
-        pAudioIO = new JackIO();
-        error = ((JackIO*)pAudioIO)->Initialize(AUDIO_CHANNELS, jack_playback);
-        if (error) dmsg(1,("Trying Alsa output instead.\n"));
+        dmsg(1,("Creating audio output device (Jack)..."));
+        try {
+            pSampler->CreateAudioOutputDevice(audio_output_type_jack);
+            no_jack = false;
+        }
+        catch (AudioOutputException aoe) {
+            aoe.PrintMessage();
+            dmsg(1,("Trying to create Alsa output device instead.\n"));
+        }
     }
 #endif // HAVE_JACK
-    if (error) {
-        dmsg(1,("Initializing audio output (Alsa)..."));
-        pAudioIO = new AlsaIO();
-        int error = ((AlsaIO*)pAudioIO)->Initialize(AUDIO_CHANNELS, samplerate, num_fragments, fragmentsize, alsaout);
-        if (error) return EXIT_FAILURE;
+    if (no_jack) {
+        dmsg(1,("Creating audio output device (Alsa)..."));
+        try {
+            pSampler->CreateAudioOutputDevice(audio_output_type_alsa);
+        }
+        catch (AudioOutputException aoe) {
+            aoe.PrintMessage();
+            dmsg(1,("Trying to create Alsa output device instead.\n"));
+            return EXIT_FAILURE;
+        }
     }
+    dmsg(1,("OK\n"));*/
+
+    // start LSCP network server
+    dmsg(1,("Starting network server..."));
+    pLSCPServer = new LSCPServer(pSampler);
+    pLSCPServer->StartThread();
     dmsg(1,("OK\n"));
-
-    AudioThread* pEngine       = new AudioThread(pAudioIO);
-    MidiIn*      pMidiInThread = new MidiIn(pEngine);
-
-    // Loading gig file
-    result_t result = pEngine->LoadInstrument(argv[argc - 1], instrument_index);
-    if (result.type == result_type_error) return EXIT_FAILURE;
-    pEngine->Volume = volume;
-
-    dmsg(1,("Starting MIDI in thread..."));
-    if (input_client.size() > 0) pMidiInThread->SubscribeToClient(input_client.c_str());
-    pMidiInThread->StartThread();
-    dmsg(1,("OK\n"));
-
-    sleep(1);
-
-    dmsg(1,("Starting audio thread..."));
-    pAudioIO->AssignEngine(pEngine);
-    pAudioIO->Activate();
-    dmsg(1,("OK\n"));
-
-    if (run_server) {
-        dmsg(1,("Starting network server..."));
-        pLSCPServer = new LSCPServer(pEngine);
-        pLSCPServer->StartThread();
-        dmsg(1,("OK\n"));
-    }
 
     printf("LinuxSampler initialization completed.\n");
 
     while(true)  {
-      printf("Voices: %3.3d (Max: %3.3d) Streams: %3.3d (Max: %3.3d, Unused: %3.3d)\r",
+      /*printf("Voices: %3.3d (Max: %3.3d) Streams: %3.3d (Max: %3.3d, Unused: %3.3d)\r",
             pEngine->ActiveVoiceCount, pEngine->ActiveVoiceCountMax,
             pEngine->pDiskThread->ActiveStreamCount, pEngine->pDiskThread->ActiveStreamCountMax, Stream::GetUnusedStreams());
-      fflush(stdout);
+      fflush(stdout);*/
       usleep(500000);
     }
 
@@ -138,21 +127,17 @@ int main(int argc, char **argv) {
 
 void signal_handler(int signal) {
     if (pthread_equal(pthread_self(), signalhandlerthread) && signal == SIGINT) {
-        // stop all threads
-        if (pAudioIO)      pAudioIO->Close();
-        if (pMidiInThread) pMidiInThread->StopThread();
-
-        // free all resources
-        if (pMidiInThread) delete pMidiInThread;
-        if (pEngine)       delete pEngine;
-        if (pAudioIO)      delete pAudioIO;
-
+        if (pLSCPServer) {
+            pLSCPServer->StopThread();
+            delete pLSCPServer;
+        }
+        if (pSampler) delete pSampler;
         printf("LinuxSampler stopped due to SIGINT\n");
         exit(EXIT_SUCCESS);
     }
 }
 
-void parse_options(int argc, char **argv) {
+/*void parse_options(int argc, char **argv) {
     int res;
     int option_index = 0;
     static struct option long_options[] =
@@ -254,4 +239,4 @@ void parse_options(int argc, char **argv) {
             }
         }
     }
-}
+}*/

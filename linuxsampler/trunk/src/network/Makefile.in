@@ -100,21 +100,20 @@ am__quote = @am__quote@
 install_sh = @install_sh@
 INCLUDES = $(all_includes)
 METASOURCES = AUTO
-lib_LIBRARIES = liblscpserver.a
-
-liblscpserver_a_SOURCES = lscpparser.h lscpserver.cpp lscpparser.cpp lscpscanner.cpp
-noinst_HEADERS = lscpserver.h lscp.h
+noinst_LIBRARIES = liblinuxsamplernetwork.a
+liblinuxsamplernetwork_a_SOURCES = lscp.h lscpparser.cpp lscpparser.h lscpscanner.cpp lscpserver.cpp lscpserver.h lscpsymbols.h
 subdir = src/network
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
 CONFIG_HEADER = $(top_builddir)/config.h
 CONFIG_CLEAN_FILES =
-LIBRARIES = $(lib_LIBRARIES)
+LIBRARIES = $(noinst_LIBRARIES)
 
-liblscpserver_a_AR = $(AR) cru
-liblscpserver_a_LIBADD =
-am_liblscpserver_a_OBJECTS = lscpserver.$(OBJEXT) lscpparser.$(OBJEXT) \
-	lscpscanner.$(OBJEXT)
-liblscpserver_a_OBJECTS = $(am_liblscpserver_a_OBJECTS)
+liblinuxsamplernetwork_a_AR = $(AR) cru
+liblinuxsamplernetwork_a_LIBADD =
+am_liblinuxsamplernetwork_a_OBJECTS = lscpparser.$(OBJEXT) \
+	lscpscanner.$(OBJEXT) lscpserver.$(OBJEXT)
+liblinuxsamplernetwork_a_OBJECTS = \
+	$(am_liblinuxsamplernetwork_a_OBJECTS)
 
 DEFS = @DEFS@
 DEFAULT_INCLUDES =  -I. -I$(srcdir) -I$(top_builddir)
@@ -143,11 +142,9 @@ LTCOMPILE = $(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) \
 CCLD = $(CC)
 LINK = $(LIBTOOL) --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
 	$(AM_LDFLAGS) $(LDFLAGS) -o $@
-DIST_SOURCES = $(liblscpserver_a_SOURCES)
-HEADERS = $(noinst_HEADERS)
-
-DIST_COMMON = $(noinst_HEADERS) Makefile.am Makefile.in
-SOURCES = $(liblscpserver_a_SOURCES)
+DIST_SOURCES = $(liblinuxsamplernetwork_a_SOURCES)
+DIST_COMMON = Makefile.am Makefile.in
+SOURCES = $(liblinuxsamplernetwork_a_SOURCES)
 
 all: all-am
 
@@ -158,40 +155,13 @@ $(srcdir)/Makefile.in:  Makefile.am  $(top_srcdir)/configure.in $(ACLOCAL_M4)
 	  $(AUTOMAKE) --gnu  src/network/Makefile
 Makefile:  $(srcdir)/Makefile.in  $(top_builddir)/config.status
 	cd $(top_builddir) && $(SHELL) ./config.status $(subdir)/$@ $(am__depfiles_maybe)
-libLIBRARIES_INSTALL = $(INSTALL_DATA)
-install-libLIBRARIES: $(lib_LIBRARIES)
-	@$(NORMAL_INSTALL)
-	$(mkinstalldirs) $(DESTDIR)$(libdir)
-	@list='$(lib_LIBRARIES)'; for p in $$list; do \
-	  if test -f $$p; then \
-	    f="`echo $$p | sed -e 's|^.*/||'`"; \
-	    echo " $(libLIBRARIES_INSTALL) $$p $(DESTDIR)$(libdir)/$$f"; \
-	    $(libLIBRARIES_INSTALL) $$p $(DESTDIR)$(libdir)/$$f; \
-	  else :; fi; \
-	done
-	@$(POST_INSTALL)
-	@list='$(lib_LIBRARIES)'; for p in $$list; do \
-	  if test -f $$p; then \
-	    p="`echo $$p | sed -e 's|^.*/||'`"; \
-	    echo " $(RANLIB) $(DESTDIR)$(libdir)/$$p"; \
-	    $(RANLIB) $(DESTDIR)$(libdir)/$$p; \
-	  else :; fi; \
-	done
 
-uninstall-libLIBRARIES:
-	@$(NORMAL_UNINSTALL)
-	@list='$(lib_LIBRARIES)'; for p in $$list; do \
-	  p="`echo $$p | sed -e 's|^.*/||'`"; \
-	  echo " rm -f $(DESTDIR)$(libdir)/$$p"; \
-	  rm -f $(DESTDIR)$(libdir)/$$p; \
-	done
-
-clean-libLIBRARIES:
-	-test -z "$(lib_LIBRARIES)" || rm -f $(lib_LIBRARIES)
-liblscpserver.a: $(liblscpserver_a_OBJECTS) $(liblscpserver_a_DEPENDENCIES) 
-	-rm -f liblscpserver.a
-	$(liblscpserver_a_AR) liblscpserver.a $(liblscpserver_a_OBJECTS) $(liblscpserver_a_LIBADD)
-	$(RANLIB) liblscpserver.a
+clean-noinstLIBRARIES:
+	-test -z "$(noinst_LIBRARIES)" || rm -f $(noinst_LIBRARIES)
+liblinuxsamplernetwork.a: $(liblinuxsamplernetwork_a_OBJECTS) $(liblinuxsamplernetwork_a_DEPENDENCIES) 
+	-rm -f liblinuxsamplernetwork.a
+	$(liblinuxsamplernetwork_a_AR) liblinuxsamplernetwork.a $(liblinuxsamplernetwork_a_OBJECTS) $(liblinuxsamplernetwork_a_LIBADD)
+	$(RANLIB) liblinuxsamplernetwork.a
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT) core *.core
@@ -298,10 +268,9 @@ distdir: $(DISTFILES)
 	done
 check-am: all-am
 check: check-am
-all-am: Makefile $(LIBRARIES) $(HEADERS)
+all-am: Makefile $(LIBRARIES)
 
 installdirs:
-	$(mkinstalldirs) $(DESTDIR)$(libdir)
 
 install: install-am
 install-exec: install-exec-am
@@ -329,7 +298,8 @@ maintainer-clean-generic:
 	@echo "it deletes files that may require special tools to rebuild."
 clean: clean-am
 
-clean-am: clean-generic clean-libLIBRARIES clean-libtool mostlyclean-am
+clean-am: clean-generic clean-libtool clean-noinstLIBRARIES \
+	mostlyclean-am
 
 distclean: distclean-am
 
@@ -346,7 +316,7 @@ info-am:
 
 install-data-am:
 
-install-exec-am: install-libLIBRARIES
+install-exec-am:
 
 install-info: install-info-am
 
@@ -363,19 +333,18 @@ mostlyclean: mostlyclean-am
 mostlyclean-am: mostlyclean-compile mostlyclean-generic \
 	mostlyclean-libtool
 
-uninstall-am: uninstall-info-am uninstall-libLIBRARIES
+uninstall-am: uninstall-info-am
 
 .PHONY: GTAGS all all-am check check-am clean clean-generic \
-	clean-libLIBRARIES clean-libtool distclean distclean-compile \
+	clean-libtool clean-noinstLIBRARIES distclean distclean-compile \
 	distclean-depend distclean-generic distclean-libtool \
 	distclean-tags distdir dvi dvi-am info info-am install \
 	install-am install-data install-data-am install-exec \
-	install-exec-am install-info install-info-am \
-	install-libLIBRARIES install-man install-strip installcheck \
-	installcheck-am installdirs maintainer-clean \
-	maintainer-clean-generic mostlyclean mostlyclean-compile \
-	mostlyclean-generic mostlyclean-libtool tags uninstall \
-	uninstall-am uninstall-info-am uninstall-libLIBRARIES
+	install-exec-am install-info install-info-am install-man \
+	install-strip installcheck installcheck-am installdirs \
+	maintainer-clean maintainer-clean-generic mostlyclean \
+	mostlyclean-compile mostlyclean-generic mostlyclean-libtool \
+	tags uninstall uninstall-am uninstall-info-am
 
 
 .PHONY: parser

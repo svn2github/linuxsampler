@@ -18,7 +18,7 @@
   </general>
   <kdevautoproject>
     <general>
-      <activetarget>src/linuxsampler</activetarget>
+      <activetarget>src/liblinuxsampler.la</activetarget>
       <useconfiguration>debug</useconfiguration>
     </general>
     <run>
@@ -26,7 +26,7 @@
       <terminal>true</terminal>
       <directoryradio>executable</directoryradio>
       <runarguments>
-        <linuxsampler/>
+        <linuxsampler></linuxsampler>
       </runarguments>
       <customdirectory>/</customdirectory>
       <programargs/>
@@ -63,7 +63,7 @@
         <envvar value="1" name="WANT_AUTOCONF_2_5" />
         <envvar value="1" name="WANT_AUTOMAKE_1_6" />
       </envvars>
-      <abortonerror>false</abortonerror>
+      <abortonerror>true</abortonerror>
       <numberofjobs>1</numberofjobs>
       <dontact>false</dontact>
       <makebin/>

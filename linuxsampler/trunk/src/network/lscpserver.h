@@ -31,12 +31,15 @@
 #include <arpa/inet.h>
 #include <netdb.h>
 
+#include "lscp.h"
 #include "lscpparser.h"
-#include "../thread.h"
-#include "../audiothread.h"
+#include "../Sampler.h"
+#include "../common/Thread.h"
 
 /// TCP Port on which the server should listen for connection requests.
 #define LSCP_PORT 8888
+
+using namespace LinuxSampler;
 
 /// Handle for a client connection (FIXME: doesn't work for more than one network connections of course, thus has to be included to the yyparse() parameters instead).
 extern int hSession;
@@ -51,33 +54,34 @@ extern int yylex_destroy(yyscan_t yyscanner);
  */
 class LSCPServer : public Thread {
     public:
-        LSCPServer(AudioThread* pEngine);
+        LSCPServer(Sampler* pSampler);
 
         // Methods called by the parser
-        String LoadInstrument(String Filename, uint Instrument, uint SamplerChannel);
-        String LoadEngine(String EngineName, uint SamplerChannel);
+        String LoadInstrument(String Filename, uint uiInstrument, uint uiSamplerChannel);
+        String LoadEngine(String EngineName, uint uiSamplerChannel);
         String GetChannels();
         String AddChannel();
-        String RemoveChannel(uint SamplerChannel);
+        String RemoveChannel(uint uiSamplerChannel);
         String GetAvailableEngines();
         String GetEngineInfo(String EngineName);
-        String GetChannelInfo(uint SamplerChannel);
-        String GetVoiceCount(uint SamplerChannel);
-        String GetStreamCount(uint SamplerChannel);
-        String GetBufferFill(fill_response_t ResponseType, uint SamplerChannel);
-        String SetAudioOutputType(audio_output_type_t AudioOutputType, uint SamplerChannel);
-        String SetAudioOutputChannel(uint AudioOutputChannel, uint SamplerChannel);
-        String SetMIDIInputPort(String MIDIInputPort, uint Samplerchannel);
-        String SetMIDIInputChannel(uint MIDIChannel, uint SamplerChannel);
-        String SetVolume(double Volume, uint SamplerChannel);
-        String ResetChannel(uint SamplerChannel);
+        String GetChannelInfo(uint uiSamplerChannel);
+        String GetVoiceCount(uint uiSamplerChannel);
+        String GetStreamCount(uint uiSamplerChannel);
+        String GetBufferFill(fill_response_t ResponseType, uint uiSamplerChannel);
+        String SetAudioOutputType(audio_output_type_t AudioOutputType, uint uiSamplerChannel);
+        String SetAudioOutputChannel(uint AudioOutputChannel, uint uiSamplerChannel);
+        String SetMIDIInputType(midi_input_type_t MidiInputType, uint uiSamplerChannel);
+        String SetMIDIInputPort(String MIDIInputPort, uint uiSamplerchannel);
+        String SetMIDIInputChannel(uint MIDIChannel, uint uiSamplerChannel);
+        String SetVolume(double Volume, uint uiSamplerChannel);
+        String ResetChannel(uint uiSamplerChannel);
         String SubscribeNotification(uint UDPPort);
         String UnsubscribeNotification(String SessionID);
         void   AnswerClient(String ReturnMessage);
     protected:
-        int          hSocket;
-        sockaddr_in  SocketAddress;
-        AudioThread* pEngine; // FIXME: as long as we only have one engine...
+        int            hSocket;
+        sockaddr_in    SocketAddress;
+        Sampler*       pSampler;
 
         int Main(); ///< Implementation of virtual method from class Thread
     private:
@@ -102,15 +106,9 @@ class LSCPServer : public Thread {
             }
         }
 
-        inline String ToString(int i) {
+        template<class T> inline String ToString(T o) {
             std::stringstream ss;
-            ss << i;
-            return ss.str();
-        }
-
-        inline String ToString(double d) {
-            std::stringstream ss;
-            ss << d;
+            ss << o;
             return ss.str();
         }
 };

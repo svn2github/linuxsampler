@@ -98,8 +98,6 @@ VERSION = @VERSION@
 am__include = @am__include@
 am__quote = @am__quote@
 install_sh = @install_sh@
-bin_PROGRAMS = linuxsampler
-linuxsampler_SOURCES = linuxsampler.cpp audioio.cpp audioio.h audiothread.cpp audiothread.h diskthread.cpp diskthread.h global.cpp global.h midiin.cpp midiin.h ringbuffer.h stream.cpp stream.h thread.cpp thread.h voice.cpp voice.h rtelmemorypool.h atomic.h modulationsystem.cpp eg_vca.cpp alsaio.cpp alsaio.h jackio.cpp jackio.h lfo.cpp eg_d.cpp rtmath.cpp
 
 # set the include path found by configure
 INCLUDES = $(all_includes)
@@ -107,35 +105,33 @@ INCLUDES = $(all_includes)
 # to prevent compile errors on some systems
 AM_CXXFLAGS = -pedantic
 
-# the library search path.
-linuxsampler_LDFLAGS = $(all_libraries) $(JACK_LIBS)
-lib_LIBRARIES = libgig.a
-libgig_a_SOURCES = DLS.cpp DLS.h gig.cpp gig.h RIFF.cpp RIFF.h
-linuxsampler_LDADD = $(top_builddir)/src/network/liblscpserver.a $(top_builddir)/src/libgig.a -lpthread -lasound
-noinst_HEADERS = modulationsystem.h eg_vca.h filter.h lfo.h eg_d.h rtmath.h
-SUBDIRS = network
+SUBDIRS = network engines common audiodriver mididriver lib
+
+pkglib_LTLIBRARIES = liblinuxsampler.la
+
+liblinuxsampler_la_SOURCES = Sampler.cpp Sampler.h
+
+bin_PROGRAMS = linuxsampler
+linuxsampler_SOURCES = linuxsampler.cpp
+linuxsampler_LDADD = $(top_builddir)/src/liblinuxsampler.la $(top_builddir)/src/common/liblinuxsamplercommon.a $(top_builddir)/src/mididriver/liblinuxsamplermididriver.a $(top_builddir)/src/audiodriver/liblinuxsampleraudiodriver.a $(top_builddir)/src/engines/common/liblinuxsamplercommonengine.a $(top_builddir)/src/engines/gig/liblinuxsamplergigengine.a $(top_builddir)/src/network/liblinuxsamplernetwork.a $(top_builddir)/src/lib/fileloader/libgig/libgig.la -lasound
+linuxsampler_DEPENDENCIES = $(JACK_LIBS)
+liblinuxsampler_la_LIBADD = $(top_builddir)/src/network/liblinuxsamplernetwork.a $(top_builddir)/src/mididriver/liblinuxsamplermididriver.a $(top_builddir)/src/lib/fileloader/libgig/libgig.la $(top_builddir)/src/engines/gig/liblinuxsamplergigengine.a $(top_builddir)/src/engines/common/liblinuxsamplercommonengine.a $(top_builddir)/src/common/liblinuxsamplercommon.a $(top_builddir)/src/audiodriver/liblinuxsampleraudiodriver.a -lasound
+liblinuxsampler_la_DEPENDENCIES = $(JACK_LIBS)
+liblinuxsampler_la_LDFLAGS = $(JACK_LIBS)
 subdir = src
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
 CONFIG_HEADER = $(top_builddir)/config.h
 CONFIG_CLEAN_FILES =
-LIBRARIES = $(lib_LIBRARIES)
+LTLIBRARIES = $(pkglib_LTLIBRARIES)
 
-libgig_a_AR = $(AR) cru
-libgig_a_LIBADD =
-am_libgig_a_OBJECTS = DLS.$(OBJEXT) gig.$(OBJEXT) RIFF.$(OBJEXT)
-libgig_a_OBJECTS = $(am_libgig_a_OBJECTS)
+am_liblinuxsampler_la_OBJECTS = Sampler.lo
+liblinuxsampler_la_OBJECTS = $(am_liblinuxsampler_la_OBJECTS)
 bin_PROGRAMS = linuxsampler$(EXEEXT)
 PROGRAMS = $(bin_PROGRAMS)
 
-am_linuxsampler_OBJECTS = linuxsampler.$(OBJEXT) audioio.$(OBJEXT) \
-	audiothread.$(OBJEXT) diskthread.$(OBJEXT) global.$(OBJEXT) \
-	midiin.$(OBJEXT) stream.$(OBJEXT) thread.$(OBJEXT) \
-	voice.$(OBJEXT) modulationsystem.$(OBJEXT) eg_vca.$(OBJEXT) \
-	alsaio.$(OBJEXT) jackio.$(OBJEXT) lfo.$(OBJEXT) eg_d.$(OBJEXT) \
-	rtmath.$(OBJEXT)
+am_linuxsampler_OBJECTS = linuxsampler.$(OBJEXT)
 linuxsampler_OBJECTS = $(am_linuxsampler_OBJECTS)
-linuxsampler_DEPENDENCIES = $(top_builddir)/src/network/liblscpserver.a \
-	$(top_builddir)/src/libgig.a
+linuxsampler_LDFLAGS =
 
 DEFS = @DEFS@
 DEFAULT_INCLUDES =  -I. -I$(srcdir) -I$(top_builddir)
@@ -144,17 +140,8 @@ LDFLAGS = @LDFLAGS@
 LIBS = @LIBS@
 depcomp = $(SHELL) $(top_srcdir)/depcomp
 am__depfiles_maybe = depfiles
-@AMDEP_TRUE@DEP_FILES = ./$(DEPDIR)/DLS.Po ./$(DEPDIR)/RIFF.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/alsaio.Po ./$(DEPDIR)/audioio.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/audiothread.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/diskthread.Po ./$(DEPDIR)/eg_d.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/eg_vca.Po ./$(DEPDIR)/gig.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/global.Po ./$(DEPDIR)/jackio.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/lfo.Po ./$(DEPDIR)/linuxsampler.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/midiin.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/modulationsystem.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/rtmath.Po ./$(DEPDIR)/stream.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/thread.Po ./$(DEPDIR)/voice.Po
+@AMDEP_TRUE@DEP_FILES = ./$(DEPDIR)/Sampler.Plo \
+@AMDEP_TRUE@	./$(DEPDIR)/linuxsampler.Po
 CXXCOMPILE = $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
 	$(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS)
 LTCXXCOMPILE = $(LIBTOOL) --mode=compile $(CXX) $(DEFS) \
@@ -172,17 +159,15 @@ LTCOMPILE = $(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) \
 CCLD = $(CC)
 LINK = $(LIBTOOL) --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
 	$(AM_LDFLAGS) $(LDFLAGS) -o $@
-DIST_SOURCES = $(libgig_a_SOURCES) $(linuxsampler_SOURCES)
-HEADERS = $(noinst_HEADERS)
-
+DIST_SOURCES = $(liblinuxsampler_la_SOURCES) $(linuxsampler_SOURCES)
 
 RECURSIVE_TARGETS = info-recursive dvi-recursive install-info-recursive \
 	uninstall-info-recursive all-recursive install-data-recursive \
 	install-exec-recursive installdirs-recursive install-recursive \
 	uninstall-recursive check-recursive installcheck-recursive
-DIST_COMMON = $(noinst_HEADERS) Makefile.am Makefile.in
+DIST_COMMON = Makefile.am Makefile.in
 DIST_SUBDIRS = $(SUBDIRS)
-SOURCES = $(libgig_a_SOURCES) $(linuxsampler_SOURCES)
+SOURCES = $(liblinuxsampler_la_SOURCES) $(linuxsampler_SOURCES)
 
 all: all-recursive
 
@@ -193,40 +178,36 @@ $(srcdir)/Makefile.in:  Makefile.am  $(top_srcdir)/configure.in $(ACLOCAL_M4)
 	  $(AUTOMAKE) --gnu  src/Makefile
 Makefile:  $(srcdir)/Makefile.in  $(top_builddir)/config.status
 	cd $(top_builddir) && $(SHELL) ./config.status $(subdir)/$@ $(am__depfiles_maybe)
-libLIBRARIES_INSTALL = $(INSTALL_DATA)
-install-libLIBRARIES: $(lib_LIBRARIES)
+pkglibLTLIBRARIES_INSTALL = $(INSTALL)
+install-pkglibLTLIBRARIES: $(pkglib_LTLIBRARIES)
 	@$(NORMAL_INSTALL)
-	$(mkinstalldirs) $(DESTDIR)$(libdir)
-	@list='$(lib_LIBRARIES)'; for p in $$list; do \
+	$(mkinstalldirs) $(DESTDIR)$(pkglibdir)
+	@list='$(pkglib_LTLIBRARIES)'; for p in $$list; do \
 	  if test -f $$p; then \
 	    f="`echo $$p | sed -e 's|^.*/||'`"; \
-	    echo " $(libLIBRARIES_INSTALL) $$p $(DESTDIR)$(libdir)/$$f"; \
-	    $(libLIBRARIES_INSTALL) $$p $(DESTDIR)$(libdir)/$$f; \
-	  else :; fi; \
-	done
-	@$(POST_INSTALL)
-	@list='$(lib_LIBRARIES)'; for p in $$list; do \
-	  if test -f $$p; then \
-	    p="`echo $$p | sed -e 's|^.*/||'`"; \
-	    echo " $(RANLIB) $(DESTDIR)$(libdir)/$$p"; \
-	    $(RANLIB) $(DESTDIR)$(libdir)/$$p; \
+	    echo " $(LIBTOOL) --mode=install $(pkglibLTLIBRARIES_INSTALL) $(INSTALL_STRIP_FLAG) $$p $(DESTDIR)$(pkglibdir)/$$f"; \
+	    $(LIBTOOL) --mode=install $(pkglibLTLIBRARIES_INSTALL) $(INSTALL_STRIP_FLAG) $$p $(DESTDIR)$(pkglibdir)/$$f; \
 	  else :; fi; \
 	done
 
-uninstall-libLIBRARIES:
+uninstall-pkglibLTLIBRARIES:
 	@$(NORMAL_UNINSTALL)
-	@list='$(lib_LIBRARIES)'; for p in $$list; do \
-	  p="`echo $$p | sed -e 's|^.*/||'`"; \
-	  echo " rm -f $(DESTDIR)$(libdir)/$$p"; \
-	  rm -f $(DESTDIR)$(libdir)/$$p; \
+	@list='$(pkglib_LTLIBRARIES)'; for p in $$list; do \
+	    p="`echo $$p | sed -e 's|^.*/||'`"; \
+	  echo " $(LIBTOOL) --mode=uninstall rm -f $(DESTDIR)$(pkglibdir)/$$p"; \
+	  $(LIBTOOL) --mode=uninstall rm -f $(DESTDIR)$(pkglibdir)/$$p; \
 	done
 
-clean-libLIBRARIES:
-	-test -z "$(lib_LIBRARIES)" || rm -f $(lib_LIBRARIES)
-libgig.a: $(libgig_a_OBJECTS) $(libgig_a_DEPENDENCIES) 
-	-rm -f libgig.a
-	$(libgig_a_AR) libgig.a $(libgig_a_OBJECTS) $(libgig_a_LIBADD)
-	$(RANLIB) libgig.a
+clean-pkglibLTLIBRARIES:
+	-test -z "$(pkglib_LTLIBRARIES)" || rm -f $(pkglib_LTLIBRARIES)
+	@list='$(pkglib_LTLIBRARIES)'; for p in $$list; do \
+	  dir="`echo $$p | sed -e 's|/[^/]*$$||'`"; \
+	  test -z "$dir" && dir=.; \
+	  echo "rm -f \"$${dir}/so_locations\""; \
+	  rm -f "$${dir}/so_locations"; \
+	done
+liblinuxsampler.la: $(liblinuxsampler_la_OBJECTS) $(liblinuxsampler_la_DEPENDENCIES) 
+	$(CXXLINK) -rpath $(pkglibdir) $(liblinuxsampler_la_LDFLAGS) $(liblinuxsampler_la_OBJECTS) $(liblinuxsampler_la_LIBADD) $(LIBS)
 binPROGRAMS_INSTALL = $(INSTALL_PROGRAM)
 install-binPROGRAMS: $(bin_PROGRAMS)
 	@$(NORMAL_INSTALL)
@@ -266,25 +247,8 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/DLS.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/RIFF.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/alsaio.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/audioio.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/audiothread.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/diskthread.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/eg_d.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/eg_vca.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gig.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/global.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/jackio.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/lfo.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Sampler.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/linuxsampler.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/midiin.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/modulationsystem.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/rtmath.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/stream.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/thread.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/voice.Po@am__quote@
 
 distclean-depend:
 	-rm -rf ./$(DEPDIR)
@@ -454,10 +418,10 @@ distdir: $(DISTFILES)
 	done
 check-am: all-am
 check: check-recursive
-all-am: Makefile $(LIBRARIES) $(PROGRAMS) $(HEADERS)
+all-am: Makefile $(LTLIBRARIES) $(PROGRAMS)
 installdirs: installdirs-recursive
 installdirs-am:
-	$(mkinstalldirs) $(DESTDIR)$(libdir) $(DESTDIR)$(bindir)
+	$(mkinstalldirs) $(DESTDIR)$(pkglibdir) $(DESTDIR)$(bindir)
 
 install: install-recursive
 install-exec: install-exec-recursive
@@ -485,8 +449,8 @@ maintainer-clean-generic:
 	@echo "it deletes files that may require special tools to rebuild."
 clean: clean-recursive
 
-clean-am: clean-binPROGRAMS clean-generic clean-libLIBRARIES \
-	clean-libtool mostlyclean-am
+clean-am: clean-binPROGRAMS clean-generic clean-libtool \
+	clean-pkglibLTLIBRARIES mostlyclean-am
 
 distclean: distclean-recursive
 
@@ -503,7 +467,7 @@ info-am:
 
 install-data-am:
 
-install-exec-am: install-binPROGRAMS install-libLIBRARIES
+install-exec-am: install-binPROGRAMS install-pkglibLTLIBRARIES
 
 install-info: install-info-recursive
 
@@ -521,20 +485,20 @@ mostlyclean-am: mostlyclean-compile mostlyclean-generic \
 	mostlyclean-libtool
 
 uninstall-am: uninstall-binPROGRAMS uninstall-info-am \
-	uninstall-libLIBRARIES
+	uninstall-pkglibLTLIBRARIES
 
 uninstall-info: uninstall-info-recursive
 
 .PHONY: $(RECURSIVE_TARGETS) GTAGS all all-am check check-am clean \
-	clean-binPROGRAMS clean-generic clean-libLIBRARIES \
-	clean-libtool clean-recursive distclean distclean-compile \
-	distclean-depend distclean-generic distclean-libtool \
-	distclean-recursive distclean-tags distdir dvi dvi-am \
-	dvi-recursive info info-am info-recursive install install-am \
-	install-binPROGRAMS install-data install-data-am \
+	clean-binPROGRAMS clean-generic clean-libtool \
+	clean-pkglibLTLIBRARIES clean-recursive distclean \
+	distclean-compile distclean-depend distclean-generic \
+	distclean-libtool distclean-recursive distclean-tags distdir \
+	dvi dvi-am dvi-recursive info info-am info-recursive install \
+	install-am install-binPROGRAMS install-data install-data-am \
 	install-data-recursive install-exec install-exec-am \
 	install-exec-recursive install-info install-info-am \
-	install-info-recursive install-libLIBRARIES install-man \
+	install-info-recursive install-man install-pkglibLTLIBRARIES \
 	install-recursive install-strip installcheck installcheck-am \
 	installdirs installdirs-am installdirs-recursive \
 	maintainer-clean maintainer-clean-generic \
@@ -542,7 +506,7 @@ uninstall-info: uninstall-info-recursive
 	mostlyclean-generic mostlyclean-libtool mostlyclean-recursive \
 	tags tags-recursive uninstall uninstall-am \
 	uninstall-binPROGRAMS uninstall-info-am \
-	uninstall-info-recursive uninstall-libLIBRARIES \
+	uninstall-info-recursive uninstall-pkglibLTLIBRARIES \
 	uninstall-recursive
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.

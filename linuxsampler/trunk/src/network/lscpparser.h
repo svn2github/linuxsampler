@@ -31,10 +31,13 @@
 #include <sstream>
 #include <string>
 
-#include "../global.h"
+#include "../common/global.h"
+#include "../Sampler.h"
 
 /// Will be returned by the parser in case of syntax errors.
 #define LSCP_SYNTAX_ERROR	-69
+
+using namespace LinuxSampler;
 
 /**
  * How the fill states of disk stream buffers should be reflected.
@@ -42,14 +45,6 @@
 enum fill_response_t {
     fill_response_bytes,      ///< The returned values are meant in bytes.
     fill_response_percentage  ///< The returned values are meant in percentage.
-};
-
-/**
- * Which audio output system to be used.
- */
-enum audio_output_type_t {
-    audio_output_type_alsa,
-    audio_output_type_jack
 };
 
 /**
@@ -67,6 +62,7 @@ struct YYSTYPE {
         double              Dotnum;
         fill_response_t     FillResponse;
         audio_output_type_t AudioOutput;
+        midi_input_type_t   MidiInput;
     };
     std::string  String;
 };

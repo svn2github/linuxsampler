@@ -22,15 +22,18 @@
 
 #include "lscpserver.h"
 
-LSCPServer::LSCPServer(AudioThread* pEngine) : Thread(false, 0, -4) {
-    this->pEngine = pEngine;
+#include "../engines/gig/Engine.h"
+
+LSCPServer::LSCPServer(Sampler* pSampler) : Thread(false, 0, -4) {
+    this->pSampler = pSampler;
 }
 
 int LSCPServer::Main() {
     hSocket = socket(AF_INET, SOCK_STREAM, 0);
     if (hSocket < 0) {
         std::cerr << "LSCPServer: Could not create server socket." << std::endl;
-        return -1;
+        //return -1;
+        exit(EXIT_FAILURE);
     }
 
     SocketAddress.sin_family      = AF_INET;
@@ -40,7 +43,8 @@ int LSCPServer::Main() {
     if (bind(hSocket, (sockaddr*) &SocketAddress, sizeof(sockaddr_in)) < 0) {
         std::cerr << "LSCPServer: Could not bind server socket." << std::endl;
         close(hSocket);
-        return -1;
+        //return -1;
+        exit(EXIT_FAILURE);
     }
 
     listen(hSocket, 1);
@@ -54,7 +58,8 @@ int LSCPServer::Main() {
         if (hSession < 0) {
             std::cerr << "LSCPServer: Client connection failed." << std::endl;
             close(hSocket);
-            return -1;
+            //return -1;
+            exit(EXIT_FAILURE);
         }
 
         dmsg(1,("LSCPServer: Client connection established.\n"));
@@ -86,18 +91,48 @@ void LSCPServer::AnswerClient(String ReturnMessage) {
 /**
  * Will be called by the parser to load an instrument.
  */
-String LSCPServer::LoadInstrument(String Filename, uint Instrument, uint SamplerChannel) {
-    dmsg(2,("LSCPServer: LoadInstrument(Filename=%s,Instrument=%d,SamplerChannel=%d)\n", Filename.c_str(), Instrument, SamplerChannel));
-    result_t res = pEngine->LoadInstrument(Filename.c_str(), Instrument);
-    return ConvertResult(res);
+String LSCPServer::LoadInstrument(String Filename, uint uiInstrument, uint uiSamplerChannel) {
+    dmsg(2,("LSCPServer: LoadInstrument(Filename=%s,Instrument=%d,SamplerChannel=%d)\n", Filename.c_str(), uiInstrument, uiSamplerChannel));
+    result_t result;
+    try {
+        SamplerChannel* pSamplerChannel = pSampler->GetSamplerChannel(uiSamplerChannel);
+        if (!pSamplerChannel) throw LinuxSamplerException("Index out of bounds");
+        Engine* pEngine = pSamplerChannel->GetEngine();
+        if (!pEngine) throw LinuxSamplerException("No engine loaded on channel");
+        pEngine->LoadInstrument(Filename.c_str(), uiInstrument);
+        result.type = result_type_success;
+    }
+    catch (LinuxSamplerException e) {
+         e.PrintMessage();
+         result.type    = result_type_error;
+         result.code    = LSCP_ERR_UNKNOWN;
+         result.message = e.Message();
+    }
+    return ConvertResult(result);
 }
 
 /**
  * Will be called by the parser to load and deploy an engine.
  */
-String LSCPServer::LoadEngine(String EngineName, uint SamplerChannel) {
-    dmsg(2,("LSCPServer: LoadEngine(EngineName=%s,SamplerChannel=%d)\n", EngineName.c_str(), SamplerChannel));
-    return "ERR:0:Not implemented yet.\r\n";
+String LSCPServer::LoadEngine(String EngineName, uint uiSamplerChannel) {
+    dmsg(2,("LSCPServer: LoadEngine(EngineName=%s,SamplerChannel=%d)\n", EngineName.c_str(), uiSamplerChannel));
+    result_t result;
+    try {
+        engine_type_t type;
+        if (EngineName == "gig") type = engine_type_gig;
+        else throw LinuxSamplerException("Unknown engine type");
+        SamplerChannel* pSamplerChannel = pSampler->GetSamplerChannel(uiSamplerChannel);
+        if (!pSamplerChannel) throw LinuxSamplerException("Index out of bounds");
+        pSamplerChannel->LoadEngine(type);
+        result.type = result_type_success;
+    }
+    catch (LinuxSamplerException e) {
+         e.PrintMessage();
+         result.type    = result_type_error;
+         result.code    = LSCP_ERR_UNKNOWN;
+         result.message = e.Message();
+    }
+    return ConvertResult(result);
 }
 
 /**
@@ -105,7 +140,7 @@ String LSCPServer::LoadEngine(String EngineName, uint SamplerChannel) {
  */
 String LSCPServer::GetChannels() {
     dmsg(2,("LSCPServer: GetChannels()\n"));
-    return "1\r\n";
+    return ToString(pSampler->SamplerChannels()) + "\r\n";
 }
 
 /**
@@ -113,15 +148,17 @@ String LSCPServer::GetChannels() {
  */
 String LSCPServer::AddChannel() {
     dmsg(2,("LSCPServer: AddChannel()\n"));
-    return "ERR:0:Not implemented yet.\r\n";
+    SamplerChannel* pSamplerChannel = pSampler->AddSamplerChannel();
+    return "OK[" + ToString(pSamplerChannel->Index()) + "]\r\n";
 }
 
 /**
  * Will be called by the parser to remove a sampler channel.
  */
-String LSCPServer::RemoveChannel(uint SamplerChannel) {
-    dmsg(2,("LSCPServer: RemoveChannel(SamplerChannel=%d)\n", SamplerChannel));
-    return "ERR:0:Not implemented yet.\r\n";
+String LSCPServer::RemoveChannel(uint uiSamplerChannel) {
+    dmsg(2,("LSCPServer: RemoveChannel(SamplerChannel=%d)\n", uiSamplerChannel));
+    pSampler->RemoveSamplerChannel(uiSamplerChannel);
+    return "OK\r\n";
 }
 
 /**
@@ -129,7 +166,7 @@ String LSCPServer::RemoveChannel(uint SamplerChannel) {
  */
 String LSCPServer::GetAvailableEngines() {
     dmsg(2,("LSCPServer: GetAvailableEngines()\n"));
-    return "ERR:0:Not implemented yet.\r\n";
+    return "gig\r\n";
 }
 
 /**
@@ -137,15 +174,31 @@ String LSCPServer::GetAvailableEngines() {
  */
 String LSCPServer::GetEngineInfo(String EngineName) {
     dmsg(2,("LSCPServer: GetEngineInfo(EngineName=%s)\n", EngineName.c_str()));
-    return "ERR:0:Not implemented yet.\r\n";
+    result_t result;
+    try {
+        if (EngineName == "gig") {
+            Engine* pEngine = new LinuxSampler::gig::Engine;
+            String info = pEngine->Description() + "\r\n";
+            delete pEngine;
+            return info; // success
+        }
+        else throw LinuxSamplerException("Unknown engine type");
+    }
+    catch (LinuxSamplerException e) {
+         e.PrintMessage();
+         result.type    = result_type_error;
+         result.code    = LSCP_ERR_UNKNOWN;
+         result.message = e.Message();
+    }
+    return ConvertResult(result);
 }
 
 /**
  * Will be called by the parser to get informations about a particular
  * sampler channel.
  */
-String LSCPServer::GetChannelInfo(uint SamplerChannel) {
-    dmsg(2,("LSCPServer: GetChannelInfo(SamplerChannel=%d)\n", SamplerChannel));
+String LSCPServer::GetChannelInfo(uint uiSamplerChannel) {
+    dmsg(2,("LSCPServer: GetChannelInfo(SamplerChannel=%d)\n", uiSamplerChannel));
     return "ERR:0:Not implemented yet.\r\n";
 }
 
@@ -153,54 +206,134 @@ String LSCPServer::GetChannelInfo(uint SamplerChannel) {
  * Will be called by the parser to get the amount of active voices on a
  * particular sampler channel.
  */
-String LSCPServer::GetVoiceCount(uint SamplerChannel) {
-    dmsg(2,("LSCPServer: GetVoiceCount(SamplerChannel=%d)\n", SamplerChannel));
-    return ToString(pEngine->ActiveVoiceCount) + "\r\n";
+String LSCPServer::GetVoiceCount(uint uiSamplerChannel) {
+    dmsg(2,("LSCPServer: GetVoiceCount(SamplerChannel=%d)\n", uiSamplerChannel));
+    result_t result;
+    try {
+        SamplerChannel* pSamplerChannel = pSampler->GetSamplerChannel(uiSamplerChannel);
+        if (!pSamplerChannel) throw LinuxSamplerException("Index out of bounds");
+        Engine* pEngine = pSamplerChannel->GetEngine();
+        if (!pEngine) throw LinuxSamplerException("No engine loaded on channel");
+        return ToString(pEngine->VoiceCount()) + "\r\n"; // success
+    }
+    catch (LinuxSamplerException e) {
+         e.PrintMessage();
+         result.type    = result_type_error;
+         result.code    = LSCP_ERR_UNKNOWN;
+         result.message = e.Message();
+    }
+    return ConvertResult(result);
 }
 
 /**
  * Will be called by the parser to get the amount of active disk streams on a
  * particular sampler channel.
  */
-String LSCPServer::GetStreamCount(uint SamplerChannel) {
-    dmsg(2,("LSCPServer: GetStreamCount(SamplerChannel=%d)\n", SamplerChannel));
-    return ToString(pEngine->pDiskThread->ActiveStreamCount) + "\r\n";
+String LSCPServer::GetStreamCount(uint uiSamplerChannel) {
+    dmsg(2,("LSCPServer: GetStreamCount(SamplerChannel=%d)\n", uiSamplerChannel));
+    result_t result;
+    try {
+        SamplerChannel* pSamplerChannel = pSampler->GetSamplerChannel(uiSamplerChannel);
+        if (!pSamplerChannel) throw LinuxSamplerException("Index out of bounds");
+        Engine* pEngine = pSamplerChannel->GetEngine();
+        if (!pEngine) throw LinuxSamplerException("No engine loaded on channel");
+        return ToString(pEngine->DiskStreamCount()) + "\r\n"; // success
+    }
+    catch (LinuxSamplerException e) {
+         e.PrintMessage();
+         result.type    = result_type_error;
+         result.code    = LSCP_ERR_UNKNOWN;
+         result.message = e.Message();
+    }
+    return ConvertResult(result);
 }
 
 /**
  * Will be called by the parser to get the buffer fill states of all disk
  * streams on a particular sampler channel.
  */
-String LSCPServer::GetBufferFill(fill_response_t ResponseType, uint SamplerChannel) {
-    dmsg(2,("LSCPServer: GetBufferFill(ResponseType=%d, SamplerChannel=%d)\n", ResponseType, SamplerChannel));
-    return (ResponseType == fill_response_bytes) ? pEngine->pDiskThread->GetBufferFillBytes() + "\r\n"
-                                                 : pEngine->pDiskThread->GetBufferFillPercentage() + "\r\n";
+String LSCPServer::GetBufferFill(fill_response_t ResponseType, uint uiSamplerChannel) {
+    dmsg(2,("LSCPServer: GetBufferFill(ResponseType=%d, SamplerChannel=%d)\n", ResponseType, uiSamplerChannel));
+    result_t result;
+    try {
+        SamplerChannel* pSamplerChannel = pSampler->GetSamplerChannel(uiSamplerChannel);
+        if (!pSamplerChannel) throw LinuxSamplerException("Index out of bounds");
+        Engine* pEngine = pSamplerChannel->GetEngine();
+        if (!pEngine) throw LinuxSamplerException("No engine loaded on channel");
+        if (!pEngine->DiskStreamSupported()) return "NA\r\n";
+        switch (ResponseType) {
+            case fill_response_bytes:
+                return ToString(pEngine->DiskStreamBufferFillBytes()) + "\r\n"; // success
+            case fill_response_percentage:
+                return ToString(pEngine->DiskStreamBufferFillPercentage()) + "\r\n"; // success
+            default:
+                throw LinuxSamplerException("Unknown fill response type");
+        }
+    }
+    catch (LinuxSamplerException e) {
+         e.PrintMessage();
+         result.type    = result_type_error;
+         result.code    = LSCP_ERR_UNKNOWN;
+         result.message = e.Message();
+    }
+    return ConvertResult(result);
 }
 
 /**
  * Will be called by the parser to change the audio output type on a
  * particular sampler channel.
  */
-String LSCPServer::SetAudioOutputType(audio_output_type_t AudioOutputType, uint SamplerChannel) {
-    dmsg(2,("LSCPServer: SetAudioOutputType(AudioOutputType=%d, SamplerChannel=%d)\n", AudioOutputType, SamplerChannel));
-    return "ERR:0:Not implemented yet.\r\n";
+String LSCPServer::SetAudioOutputType(audio_output_type_t AudioOutputType, uint uiSamplerChannel) {
+    dmsg(2,("LSCPServer: SetAudioOutputType(AudioOutputType=%d, SamplerChannel=%d)\n", AudioOutputType, uiSamplerChannel));
+    result_t result;
+    try {
+        SamplerChannel* pSamplerChannel = pSampler->GetSamplerChannel(uiSamplerChannel);
+        if (!pSamplerChannel) throw LinuxSamplerException("Index out of bounds");
+        pSamplerChannel->SetAudioOutputDevice(AudioOutputType);
+        result.type = result_type_success;
+    }
+    catch (LinuxSamplerException e) {
+         e.PrintMessage();
+         result.type    = result_type_error;
+         result.code    = LSCP_ERR_UNKNOWN;
+         result.message = e.Message();
+    }
+    return ConvertResult(result);
 }
 
 /**
  * Will be called by the parser to change the audio output channel for
  * playback on a particular sampler channel.
  */
-String LSCPServer::SetAudioOutputChannel(uint AudioOutputChannel, uint SamplerChannel) {
-    dmsg(2,("LSCPServer: SetAudioOutputChannel(AudioOutputChannel=%d, SamplerChannel=%d)\n", AudioOutputChannel, SamplerChannel));
+String LSCPServer::SetAudioOutputChannel(uint AudioOutputChannel, uint uiSamplerChannel) {
+    dmsg(2,("LSCPServer: SetAudioOutputChannel(AudioOutputChannel=%d, SamplerChannel=%d)\n", AudioOutputChannel, uiSamplerChannel));
     return "ERR:0:Not implemented yet.\r\n";
+}
+
+String LSCPServer::SetMIDIInputType(midi_input_type_t MidiInputType, uint uiSamplerChannel) {
+    dmsg(2,("LSCPServer: SetMIDIInputType(MidiInputType=%d, SamplerChannel=%d)\n", MidiInputType, uiSamplerChannel));
+    result_t result;
+    try {
+        SamplerChannel* pSamplerChannel = pSampler->GetSamplerChannel(uiSamplerChannel);
+        if (!pSamplerChannel) throw LinuxSamplerException("Index out of bounds");
+        pSamplerChannel->SetMidiInputDevice(MidiInputType);
+        result.type = result_type_success;
+    }
+    catch (LinuxSamplerException e) {
+         e.PrintMessage();
+         result.type    = result_type_error;
+         result.code    = LSCP_ERR_UNKNOWN;
+         result.message = e.Message();
+    }
+    return ConvertResult(result);
 }
 
 /**
  * Will be called by the parser to change the MIDI input port on which the
  * engine of a particular sampler channel should listen to.
  */
-String LSCPServer::SetMIDIInputPort(String MIDIInputPort, uint Samplerchannel) {
-    dmsg(2,("LSCPServer: SetMIDIInputPort(MIDIInputPort=%s, Samplerchannel=%d)\n", MIDIInputPort.c_str(), Samplerchannel));
+String LSCPServer::SetMIDIInputPort(String MIDIInputPort, uint uiSamplerchannel) {
+    dmsg(2,("LSCPServer: SetMIDIInputPort(MIDIInputPort=%s, Samplerchannel=%d)\n", MIDIInputPort.c_str(), uiSamplerchannel));
     return "ERR:0:Not implemented yet.\r\n";
 }
 
@@ -208,8 +341,8 @@ String LSCPServer::SetMIDIInputPort(String MIDIInputPort, uint Samplerchannel) {
  * Will be called by the parser to change the MIDI input channel on which the
  * engine of a particular sampler channel should listen to.
  */
-String LSCPServer::SetMIDIInputChannel(uint MIDIChannel, uint SamplerChannel) {
-    dmsg(2,("LSCPServer: SetMIDIInputChannel(MIDIChannel=%d, SamplerChannel=%d)\n", MIDIChannel, SamplerChannel));
+String LSCPServer::SetMIDIInputChannel(uint MIDIChannel, uint uiSamplerChannel) {
+    dmsg(2,("LSCPServer: SetMIDIInputChannel(MIDIChannel=%d, SamplerChannel=%d)\n", MIDIChannel, uiSamplerChannel));
     return "ERR:0:Not implemented yet.\r\n";
 }
 
@@ -217,19 +350,47 @@ String LSCPServer::SetMIDIInputChannel(uint MIDIChannel, uint SamplerChannel) {
  * Will be called by the parser to change the global volume factor on a
  * particular sampler channel.
  */
-String LSCPServer::SetVolume(double Volume, uint SamplerChannel) {
-    dmsg(2,("LSCPServer: SetVolume(Volume=%f, SamplerChannel=%d)\n", Volume, SamplerChannel));
-    pEngine->Volume = Volume;
-    return "OK\r\n";
+String LSCPServer::SetVolume(double Volume, uint uiSamplerChannel) {
+    dmsg(2,("LSCPServer: SetVolume(Volume=%f, SamplerChannel=%d)\n", Volume, uiSamplerChannel));
+    result_t result;
+    try {
+        SamplerChannel* pSamplerChannel = pSampler->GetSamplerChannel(uiSamplerChannel);
+        if (!pSamplerChannel) throw LinuxSamplerException("Index out of bounds");
+        Engine* pEngine = pSamplerChannel->GetEngine();
+        if (!pEngine) throw LinuxSamplerException("No engine loaded on channel");
+        pEngine->Volume(Volume);
+        result.type = result_type_success;
+    }
+    catch (LinuxSamplerException e) {
+         e.PrintMessage();
+         result.type    = result_type_error;
+         result.code    = LSCP_ERR_UNKNOWN;
+         result.message = e.Message();
+    }
+    return ConvertResult(result);
 }
 
 /**
  * Will be called by the parser to reset a particular sampler channel.
  */
-String LSCPServer::ResetChannel(uint SamplerChannel) {
-    dmsg(2,("LSCPServer: ResetChannel(SamplerChannel=%d)\n", SamplerChannel));
-    pEngine->Reset();
-    return "OK\r\n";
+String LSCPServer::ResetChannel(uint uiSamplerChannel) {
+    dmsg(2,("LSCPServer: ResetChannel(SamplerChannel=%d)\n", uiSamplerChannel));
+    result_t result;
+    try {
+        SamplerChannel* pSamplerChannel = pSampler->GetSamplerChannel(uiSamplerChannel);
+        if (!pSamplerChannel) throw LinuxSamplerException("Index out of bounds");
+        Engine* pEngine = pSamplerChannel->GetEngine();
+        if (!pEngine) throw LinuxSamplerException("No engine loaded on channel");
+        pEngine->Reset();
+        result.type = result_type_success;
+    }
+    catch (LinuxSamplerException e) {
+         e.PrintMessage();
+         result.type    = result_type_error;
+         result.code    = LSCP_ERR_UNKNOWN;
+         result.message = e.Message();
+    }
+    return ConvertResult(result);
 }
 
 /**
