@@ -87,6 +87,8 @@ namespace LinuxSampler {
                 struct _Note {
                     uint8_t Key;         ///< MIDI key number of note-on / note-off event.
                     uint8_t Velocity;    ///< Trigger or release velocity of note-on / note-off event.
+                    int8_t  Layer;       ///< Layer index (usually only used if a note-on event has to be postponed, e.g. due to shortage of free voices).
+                    int8_t  ReleaseTrigger; ///< If new voice should be a release triggered voice (actually boolean field and usually only used if a note-on event has to be postponed, e.g. due to shortage of free voices).
                 } Note;
                 /// Control change event specifics
                 struct _CC {

@@ -42,6 +42,7 @@ namespace LinuxSampler { namespace gig {
         pEventPool         = new RTELMemoryPool<Event>(MAX_EVENTS_PER_FRAGMENT);
         pVoicePool         = new RTELMemoryPool<Voice>(MAX_AUDIO_VOICES);
         pActiveKeys        = new RTELMemoryPool<uint>(128);
+        pVoiceStealingQueue = new RTEList<Event>(pEventPool);
         pEvents            = new RTEList<Event>(pEventPool);
         pCCEvents          = new RTEList<Event>(pEventPool);
         for (uint i = 0; i < Event::destination_count; i++) {
@@ -99,6 +100,7 @@ namespace LinuxSampler { namespace gig {
         if (pMainFilterParameters) delete[] pMainFilterParameters;
         if (pBasicFilterParameters) delete[] pBasicFilterParameters;
         if (pSynthesisParameters[0]) delete[] pSynthesisParameters[0];
+        if (pVoiceStealingQueue) delete pVoiceStealingQueue;
     }
 
     void Engine::Enable() {
@@ -156,6 +158,11 @@ namespace LinuxSampler { namespace gig {
         ActiveVoiceCount    = 0;
         ActiveVoiceCountMax = 0;
         GlobalVolume        = 1.0;
+
+        // reset voice stealing parameters
+        pLastStolenVoice = NULL;
+        puiLastStolenKey = NULL;
+        pVoiceStealingQueue->clear();
 
         // reset to normal chromatic scale (means equal temper)
         memset(&ScaleTuning[0], 0x00, 12);
@@ -392,6 +399,10 @@ namespace LinuxSampler { namespace gig {
         for (uint i = 0; i < Event::destination_count; i++) {
             pSynthesisEvents[i]->clear();
         }
+        for (uint* puiKey = pActiveKeys->first(); puiKey; puiKey = pActiveKeys->next()) {
+            midi_key_info_t* pKey = &pMIDIKeyInfo[*puiKey];
+            pKey->pEvents->clear(); // free all events on the key
+        }
 
         // read and copy events from input queue
         Event event = pEventGenerator->CreateEvent();
@@ -458,8 +469,27 @@ namespace LinuxSampler { namespace gig {
                     KillVoiceImmediately(pVoice); // remove voice from the list of active voices
                 }
             }
-            pKey->pEvents->clear(); // free all events on the key
         }
+
+
+        // now render all postponed voices from voice stealing
+        Event* pVoiceStealEvent = pVoiceStealingQueue->first();
+        while (pVoiceStealEvent) {
+            Voice* pNewVoice = LaunchVoice(pVoiceStealEvent, pVoiceStealEvent->Param.Note.Layer, pVoiceStealEvent->Param.Note.ReleaseTrigger, false);
+            if (pNewVoice) {
+                pNewVoice->Render(Samples);
+                if (pNewVoice->IsActive()) active_voices++; // still active
+                else { // voice reached end, is now inactive
+                    KillVoiceImmediately(pNewVoice); // remove voice from the list of active voices
+                }
+            }
+            else dmsg(1,("Ouch, voice stealing didn't work out!\n"));
+            pVoiceStealEvent = pVoiceStealingQueue->next();
+        }
+        // reset voice stealing for the new fragment
+        pVoiceStealingQueue->clear();
+        pLastStolenVoice = NULL;
+        puiLastStolenKey = NULL;
 
 
         // write that to the disk thread class so that it can print it
@@ -640,8 +670,13 @@ namespace LinuxSampler { namespace gig {
      *                               in case of layered sounds of course)
      *  @param ReleaseTriggerVoice - if new voice is a release triggered voice
      *                               (optional, default = false)
+     *  @param VoiceStealing       - if voice stealing should be performed
+     *                               when there is no free voice
+     *                               (optional, default = true)
+     *  @returns pointer to new voice or NULL if there was no free voice or
+     *           if an error occured while trying to trigger the new voice
      */
-    void Engine::LaunchVoice(Event* pNoteOnEvent, int iLayer, bool ReleaseTriggerVoice) {
+    Voice* Engine::LaunchVoice(Event* pNoteOnEvent, int iLayer, bool ReleaseTriggerVoice, bool VoiceStealing) {
         midi_key_info_t* pKey = &pMIDIKeyInfo[pNoteOnEvent->Param.Note.Key];
 
         // allocate a new voice for the key
@@ -677,9 +712,101 @@ namespace LinuxSampler { namespace gig {
                     *ppKeyGroup = pKey->pSelf; // put key as the (new) active key to its key group
                 }
                 if (pNewVoice->Type == Voice::type_release_trigger_required) pKey->ReleaseTrigger = true; // mark key for the need of release triggered voice(s)
+                return pNewVoice; // success
             }
         }
-        else std::cerr << "No free voice!" << std::endl << std::flush;
+        else if (VoiceStealing) StealVoice(pNoteOnEvent, iLayer, ReleaseTriggerVoice); // no free voice left, so steal one
+
+        return NULL; // no free voice or error
+    }
+
+    /**
+     *  Will be called by LaunchVoice() method in case there are no free
+     *  voices left. This method will select and kill one old voice for
+     *  voice stealing and postpone the note-on event until the selected
+     *  voice actually died.
+     *
+     *  @param pNoteOnEvent        - key, velocity and time stamp of the event
+     *  @param iLayer              - layer index for the new voice
+     *  @param ReleaseTriggerVoice - if new voice is a release triggered voice
+     */
+    void Engine::StealVoice(Event* pNoteOnEvent, int iLayer, bool ReleaseTriggerVoice) {
+        if (!pEventPool->pool_is_empty()) {
+
+            uint*  puiOldestKey;
+            Voice* pOldestVoice;
+
+            // Select one voice for voice stealing
+            switch (VOICE_STEAL_ALGORITHM) {
+
+                // try to pick the oldest voice on the key where the new
+                // voice should be spawned, if there is no voice on that
+                // key, or no voice left to kill there, then procceed with
+                // 'oldestkey' algorithm
+                case voice_steal_algo_keymask: {
+                    midi_key_info_t* pOldestKey = &pMIDIKeyInfo[pNoteOnEvent->Param.Note.Key];
+                    if (pLastStolenVoice) {
+                        pOldestKey->pActiveVoices->set_current(pLastStolenVoice);
+                        pOldestVoice = pOldestKey->pActiveVoices->next();
+                    }
+                    else { // no voice stolen in this audio fragment cycle yet
+                        pOldestVoice = pOldestKey->pActiveVoices->first();
+                    }
+                    if (pOldestVoice) {
+                        puiOldestKey = pOldestKey->pSelf;
+                        break; // selection succeeded
+                    }
+                } // no break - intentional !
+
+                // try to pick the oldest voice on the oldest active key
+                // (caution: must stay after 'keymask' algorithm !)
+                case voice_steal_algo_oldestkey: {
+                    if (pLastStolenVoice) {
+                        midi_key_info_t* pOldestKey = &pMIDIKeyInfo[*puiLastStolenKey];
+                        pOldestKey->pActiveVoices->set_current(pLastStolenVoice);
+                        pOldestVoice = pOldestKey->pActiveVoices->next();
+                        if (!pOldestVoice) {
+                            pActiveKeys->set_current(puiLastStolenKey);
+                            puiOldestKey = pActiveKeys->next();
+                            if (puiOldestKey) {
+                                midi_key_info_t* pOldestKey = &pMIDIKeyInfo[*puiOldestKey];
+                                pOldestVoice = pOldestKey->pActiveVoices->first();
+                            }
+                            else { // too less voices, even for voice stealing
+                                dmsg(1,("Voice overflow! - You might recompile with higher MAX_AUDIO_VOICES!\n"));
+                                return;
+                            }
+                        }
+                        else puiOldestKey = puiLastStolenKey;
+                    }
+                    else { // no voice stolen in this audio fragment cycle yet
+                        puiOldestKey = pActiveKeys->first();
+                        midi_key_info_t* pOldestKey = &pMIDIKeyInfo[*puiOldestKey];
+                        pOldestVoice = pOldestKey->pActiveVoices->first();
+                    }
+                    break;
+                }
+
+                // don't steal anything
+                case voice_steal_algo_none:
+                default: {
+                    dmsg(1,("No free voice (voice stealing disabled)!\n"));
+                    return;
+                }
+            }
+
+            // now kill the selected voice
+            pOldestVoice->Kill(pNoteOnEvent);
+            // remember which voice on which key we stole, so we can simply proceed for the next voice stealing
+            this->pLastStolenVoice = pOldestVoice;
+            this->puiLastStolenKey = puiOldestKey;
+            // put note-on event into voice-stealing queue, so it will be reprocessed after killed voice died
+            Event* pStealEvent = pVoiceStealingQueue->alloc();
+            *pStealEvent = *pNoteOnEvent;
+            pStealEvent->Param.Note.Layer = iLayer;
+            pStealEvent->Param.Note.ReleaseTrigger = ReleaseTriggerVoice;
+        }
+        else dmsg(1,("Event pool emtpy!\n"));
     }
 
     /**
@@ -708,6 +835,7 @@ namespace LinuxSampler { namespace gig {
                 pActiveKeys->free(pKey->pSelf); // remove key from list of active keys
                 pKey->pSelf = NULL;
                 pKey->ReleaseTrigger = false;
+                pKey->pEvents->clear();
                 dmsg(3,("Key has no more voices now\n"));
             }
         }
@@ -963,7 +1091,7 @@ namespace LinuxSampler { namespace gig {
     }
 
     String Engine::Version() {
-        String s = "$Revision: 1.13 $";
+        String s = "$Revision: 1.14 $";
         return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
 

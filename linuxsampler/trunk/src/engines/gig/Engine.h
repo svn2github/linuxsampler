@@ -44,6 +44,7 @@
 #define PITCHBEND_SEMITONES		12
 #define MAX_AUDIO_VOICES		128
 #define SYSEX_BUFFER_SIZE		2048  // 2kB
+#define VOICE_STEAL_ALGORITHM		voice_steal_algo_oldestkey  ///< @see voice_steal_algo_t for available voice stealing algorithms
 
 namespace LinuxSampler { namespace gig {
 
@@ -59,6 +60,13 @@ namespace LinuxSampler { namespace gig {
      */
     class gig::Engine : public LinuxSampler::Engine, public InstrumentConsumer {
         public:
+            // types
+            enum voice_steal_algo_t {
+                voice_steal_algo_none,
+                voice_steal_algo_keymask,
+                voice_steal_algo_oldestkey
+            };
+
             // methods
             Engine();
            ~Engine();
@@ -126,6 +134,7 @@ namespace LinuxSampler { namespace gig {
             RTELMemoryPool<uint>*   pActiveKeys;           ///< Holds all keys in it's allocation list with active voices.
             RTELMemoryPool<Event>*  pEventPool;            ///< Contains all Event objects that can be used.
             EventGenerator*         pEventGenerator;
+            RTEList<Event>*         pVoiceStealingQueue;   ///< All voice-launching events which had to be postponed due to free voice shortage.
             RTEList<Event>*         pEvents;               ///< All events for the current audio fragment.
             RTEList<Event>*         pCCEvents;             ///< All control change events for the current audio fragment.
             RTEList<Event>*         pSynthesisEvents[Event::destination_count];     ///< Events directly affecting synthesis parameter (like pitch, volume and filter).
@@ -147,13 +156,16 @@ namespace LinuxSampler { namespace gig {
 	    int                     InstrumentIdx;
 	    int                     InstrumentStat;
             int8_t                  ScaleTuning[12];       ///< contains optional detune factors (-64..+63 cents) for all 12 semitones of an octave
+            Voice*                  pLastStolenVoice;      ///< Only for voice stealing: points to the last voice which was theft in current audio fragment, NULL otherwise.
+            uint*                   puiLastStolenKey;      ///< Only for voice stealing: key number of last key on which the last voice was theft in current audio fragment, NULL otherwise.
 
             void ProcessNoteOn(Event* pNoteOnEvent);
             void ProcessNoteOff(Event* pNoteOffEvent);
             void ProcessPitchbend(Event* pPitchbendEvent);
             void ProcessControlChange(Event* pControlChangeEvent);
             void ProcessSysex(Event* pSysexEvent);
-            void LaunchVoice(Event* pNoteOnEvent, int iLayer = 0, bool ReleaseTriggerVoice = false);
+            Voice* LaunchVoice(Event* pNoteOnEvent, int iLayer = 0, bool ReleaseTriggerVoice = false, bool VoiceStealing = true);
+            void StealVoice(Event* pNoteOnEvent, int iLayer, bool ReleaseTriggerVoice);
             void KillVoiceImmediately(Voice* pVoice);
             void ResetSynthesisParameters(Event::destination_t dst, float val);
             void ResetInternal();
