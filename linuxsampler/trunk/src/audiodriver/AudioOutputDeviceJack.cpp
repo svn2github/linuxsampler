@@ -110,7 +110,7 @@ namespace LinuxSampler {
 
     void AudioOutputDeviceJack::AcquireChannels(uint uiChannels) {
         if (uiChannels > this->Channels.size()) {
-            for (int c = uiChannels; c < uiChannels; c++) {
+            for (int c = this->Channels.size(); c < uiChannels; c++) {
                 // create new jack output port
                 std::stringstream portid; portid << "LinuxSampler:" << c;
                 jack_port_t* newport;
