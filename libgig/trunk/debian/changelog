@@ -1,3 +1,10 @@
+libgig (1.0.0-1) unstable; urgency=low
+
+  * New upstream release
+  * Doxygen API documentation included with libgig-dev
+
+ -- Christian Schoenebeck <cuse@users.sourceforge.net>  Fri, 26 Nov 2004 20:02:26 +0100
+
 libgig (0.7.1-1) unstable; urgency=low
 
   * Initial Release.

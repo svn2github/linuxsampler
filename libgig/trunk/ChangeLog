@@ -1,12 +1,17 @@
-Version CVS HEAD (?)
+Version 1.0.0 (26 Nov 2004)
 
   * packaging changes:
     - renamed 'libgig.pc.in' -> 'gig.pc.in' and renamed pkg-config lib name
       'libgig' -> 'gig' as it's common practice to omit the 'lib' prefix
+    - fixed man pages automake install rule (which didn't work on Mandrake,
+      SuSE and Fedora)
+    - fixed generation of Doxygen API documentation (now also included in
+      RPM and Debian packages)
 
   * src/gig.cpp, src/gig.h:
     - fixed / improved accuracy of all three velocity to volume
-      transformation functions (a.k.a. 'nonlinear','linear','special')
+      transformation functions a.k.a. 'nonlinear','linear','special'
+      (patch by Andreas Persson)
     - denormals are filtered from the velocity to volume tables
     - bugfix for dimension region switching (wrong handling of the release
       trigger dimension, no bit range check for dimensions of split type
@@ -14,6 +19,7 @@ Version CVS HEAD (?)
     - fixed panorama value in DimensionRegion (invalid conversion from
       signed 7 bit to signed 8 bit)
     - added class attribute 'Layers' to class 'gig::Region'
+    - symbol prototyping of gig::Region (fixes build failure with qsampler)
 
   * src/gigextract.cpp:
     - added support for libsndfile (if libaudiofile and libsndfile are

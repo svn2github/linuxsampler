@@ -1,7 +1,7 @@
 AC_INIT(configure.in)
 AM_CONFIG_HEADER(config.h)
 
-AM_INIT_AUTOMAKE(libgig, 0.7.1, cuse@users.sourceforge.net)
+AM_INIT_AUTOMAKE(libgig, 1.0.0, cuse@users.sourceforge.net)
 AC_PROG_LIBTOOL
 
 
@@ -21,8 +21,7 @@ AC_PROG_LIBTOOL
 #  6. If any interfaces have been removed since the last public release, then set age
 #     to 0.
 
-# we wait to bump the version until the next point release
-SHARED_VERSION_INFO="0:0:0"
+SHARED_VERSION_INFO="1:0:0"
 
 
 AC_C_BIGENDIAN
