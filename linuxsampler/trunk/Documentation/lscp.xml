@@ -2876,7 +2876,7 @@ Schoenebeck'>
                     </t>
                 </section>
 
-                <section title="Unregister front-end for not receiving UDP event messages anymore">
+                <section title="Unregister front-end for not receiving event messages">
                     <t>The front-end can unregister itself if it doesn't want to receive event
                     messages anymore by sending the following command:</t>
                     <t>
