@@ -303,12 +303,6 @@ namespace LinuxSampler {
             AudioOutputDeviceMap         mAudioOutputDevices; ///< contains all created audio output devices
             MidiInputDeviceMap           mMidiInputDevices;
 
-            template<class T> inline String ToString(T o) {
-                std::stringstream ss;
-                ss << o;
-                return ss.str();
-            }
-
             friend class SamplerChannel;
     };
 }
