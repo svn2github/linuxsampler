@@ -10,3 +10,16 @@ the authors for permission.
 LinuxSampler is in alpha phase and thus intended to be a DEVELOPERS VERSION
 ONLY! A lot of functionality is not yet implemented or working correctly.
 You may even have to adjust things to get it running on your system.
+
+
+Compilation on OSX : Stephane Letz (letz@grame.fr)
+--------------------------------------------------
+
+The compilation on OSX currently uses an XCode project. 
+
+- Download and install the JackOSX package (www.jackosx.com)
+
+- In the "osx" folder, possibly manually edit the version.h to change the version number
+
+- In the XCode project, build the "LinuxSampler" target
+
