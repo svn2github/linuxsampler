@@ -40,28 +40,36 @@ LSCPInstrumentLoader::~LSCPInstrumentLoader() {
  */
 void LSCPInstrumentLoader::StartNewLoad(String Filename, uint uiInstrumentIndex, Engine* pEngine) {
     command_t cmd;
-    cmd.Filename          = Filename;
+    cmd.pFilename         = new String(Filename);
     cmd.uiInstrumentIndex = uiInstrumentIndex;
     cmd.pEngine           = pEngine;
     pQueue->push(&cmd);
-    StartThread(); // ensure the thread is running
+    StartThread(); // ensure thread is running
+    conditionJobsLeft.Set(true); // wake up thread
 }
 
 // Entry point for the InstrumentLoader Thread.
 int LSCPInstrumentLoader::Main() {
-    while (pQueue->read_space()) {
-        command_t cmd;
-        pQueue->pop(&cmd);
-        try {
-            cmd.pEngine->LoadInstrument(cmd.Filename.c_str(), cmd.uiInstrumentIndex);
+    while (true) {
+        while (pQueue->read_space()) {
+            command_t cmd;
+            pQueue->pop(&cmd);
+            try {
+                cmd.pEngine->LoadInstrument(cmd.pFilename->c_str(), cmd.uiInstrumentIndex);
+            }
+            catch (LinuxSamplerException e) {
+                e.PrintMessage();
+            }
+            delete cmd.pFilename;
+            // Always re-enable the engine.
+            cmd.pEngine->Enable();
         }
-        catch (LinuxSamplerException e) {
-            e.PrintMessage();
-        }
-        // Always re-enable the engine.
-        cmd.pEngine->Enable();
-    }
 
-    // nothing left to do
-    StopThread();
+        // nothing left to do, sleep until new jobs arrive
+        conditionJobsLeft.WaitIf(false);
+        // reset flag
+        conditionJobsLeft.Set(false);
+        // unlock condition object so it can be turned again by other thread
+        conditionJobsLeft.Unlock();
+    }
 }

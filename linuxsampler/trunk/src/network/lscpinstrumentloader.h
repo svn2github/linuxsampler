@@ -23,6 +23,7 @@
 
 #include "../common/global.h"
 #include "../common/Thread.h"
+#include "../common/Condition.h"
 #include "../common/RingBuffer.h"
 #include "../Sampler.h"
 
@@ -34,7 +35,10 @@ using namespace LinuxSampler;
 /**
  * Instrument loader thread for the LinuxSampler Control Protocol (LSCP)
  * Server for loading instruments in the background. This loader will only
- * load one instrument by one.
+ * load one instrument by one. The thread will actually only be created once
+ * StartnewLoad() method was called the first time. After that the thread
+ * will exist for the whole life time of the LSCPInstrumentLoader instance
+ * and just block until new loading jobs arrive.
  */
 class LSCPInstrumentLoader : public Thread {
     public:
@@ -43,13 +47,14 @@ class LSCPInstrumentLoader : public Thread {
         virtual ~LSCPInstrumentLoader();
     protected:
         struct command_t {
-            String  Filename;
+            String* pFilename;
             uint    uiInstrumentIndex;
             Engine* pEngine;
         };
 
         // Instance variables.
         RingBuffer<command_t>* pQueue; ///< queue with commands for loading new instruments.
+        Condition              conditionJobsLeft; ///< synchronizer to block this thread until a new job arrives
 
         int Main(); ///< Implementation of virtual method from class Thread.
 };
