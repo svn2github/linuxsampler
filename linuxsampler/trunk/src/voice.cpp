@@ -101,7 +101,9 @@ int Voice::Trigger(int MIDIKey, uint8_t Velocity, gig::Instrument* Instrument) {
         dmsg(4,("RAM only voice launched (Looping: %s)\n", (RAMLoop) ? "yes" : "no"));
     }
 
-    CurrentPitch = pow(2, (double) (MIDIKey - (int) pSample->MIDIUnityNote) / (double) 12);
+    // Pitch according to keyboard position (if keyrange > 1 key)
+    CurrentPitch = (pRegion->KeyRange.high != pRegion->KeyRange.low) ?
+                           pow(2, (double) (MIDIKey - (int) pSample->MIDIUnityNote) / (double) 12) : 1.0;
     Volume       = pDimRgn->GetVelocityAttenuation(Velocity);
 
     // ************************************************

@@ -79,7 +79,11 @@ int AudioIO::Initialize(uint channels, uint samplerate, uint numfragments, uint 
     }
 
     /* Set sample format */
+    #if WORDS_BIGENDIAN
+    if ((err = snd_pcm_hw_params_set_format(pcm_handle, hwparams, SND_PCM_FORMAT_S16_BE)) < 0) {
+    #else // little endian
     if ((err = snd_pcm_hw_params_set_format(pcm_handle, hwparams, SND_PCM_FORMAT_S16_LE)) < 0) {
+    #endif
         fprintf(stderr, "Error setting sample format. : %s\n", snd_strerror(err));
         return EXIT_FAILURE;
     }
@@ -172,7 +176,11 @@ bool AudioIO::HardwareParametersSupported(uint channels, int samplerate, uint nu
         snd_pcm_close(pcm_handle);
         return false;
     }
+    #if WORDS_BIGENDIAN
+    if (snd_pcm_hw_params_test_format(pcm_handle, hwparams, SND_PCM_FORMAT_S16_BE) < 0) {
+    #else // little endian
     if (snd_pcm_hw_params_test_format(pcm_handle, hwparams, SND_PCM_FORMAT_S16_LE) < 0) {
+    #endif
         snd_pcm_close(pcm_handle);
         return false;
     }

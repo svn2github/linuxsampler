@@ -27,10 +27,11 @@
 
 #include <string.h>
 #include <stdio.h>
-#include <asm/atomic.h>
 
 #include <sys/types.h>
 #include <pthread.h>
+
+#include "atomic.h"
 
 template<class T>
 class RingBuffer
