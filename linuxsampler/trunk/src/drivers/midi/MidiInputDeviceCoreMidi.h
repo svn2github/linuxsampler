@@ -26,35 +26,82 @@
 
 #include <CoreMIDI/MIDIServices.h>
 
-#include "../common/global.h"
+#include "../../common/global.h"
 #include "MidiInputDevice.h"
 
 namespace LinuxSampler {
 
-    /** Core MIDI input driver
+    /** CoreMidi input driver
      *
      * Implements MIDI input for MacOSX CoreMidi architecture
      */
     class MidiInputDeviceCoreMidi : public MidiInputDevice {
-        public:
-            MidiInputDeviceCoreMidi(char* AutoConnectPortID = NULL);
-            ~MidiInputDeviceCoreMidi();
+	
+		 public:
+			/**
+             * MIDI Port implementation for the CoreMidi input driver.
+             */
+            class MidiInputPortCoreMidi : public MidiInputPort {
+                public:
+                    /** MIDI Port Parameter 'NAME'
+                     *
+                     * Used to assign an arbitrary name to the MIDI port.
+                     */
+                    class ParameterName : public MidiInputPort::ParameterName {
+                        public:
+                            ParameterName(MidiInputPort* pPort) throw (LinuxSamplerException);
+                            virtual void OnSetValue(String s) throw (LinuxSamplerException);
+                    };
+
+                    /** MIDI Port Parameter 'CORE_MIDI_BINDINGS'
+                     *
+                     * Used to connect to other Alsa sequencer clients.
+                     */
+					 
+                    class ParameterCoreMidiBindings : public DeviceRuntimeParameterStrings {
+                        public:
+                            ParameterCoreMidiBindings(MidiInputPortCoreMidi* pPort);
+                            virtual String Description();
+                            virtual bool Fix();
+                            virtual std::vector<String> PossibilitiesAsString();
+                            virtual void OnSetValue(std::vector<String> vS) throw (LinuxSamplerException);
+                        protected:
+                            MidiInputPortCoreMidi* pPort;
+                    };
+					
+					static void ReadProc(const MIDIPacketList *pktlist, void *refCon, void *connRefCon);
+					static int pPortID;
+					
+                protected:
+                    MidiInputPortCoreMidi(MidiInputDeviceCoreMidi* pDevice) throw (MidiInputException);
+                    ~MidiInputPortCoreMidi();
+                    friend class MidiInputDeviceCoreMidi;
+                private:
+                    MidiInputPortCoreMidi* pDevice;
+					MIDIEndpointRef pDestination;
+
+                    friend class ParameterName;
+                    friend class ParameterCoreMidiBindings;
+            };
+ 
+            MidiInputDeviceCoreMidi(std::map<String,DeviceCreationParameter*> Parameters);
+            virtual ~MidiInputDeviceCoreMidi();
 
             // derived abstract methods from class 'MidiInputDevice'
             void Listen(){}
             void StopListen(){}
-			void SetInputPort(const char *);
+			virtual String Driver();
+			static String Name();
+			static String Description();
+            static String Version();
 
-            // own methods
-            void ConnectToCoreMidiSource(const char* MidiSource);
+			MidiInputPortCoreMidi* CreateMidiPort();
 			
 			// CoreMidi callback
-			static void NotifyProc(const MIDINotification *message, void *refCon);
-			static void ReadProc(const MIDIPacketList *pktlist, void *refCon, void *connRefCon);
+			static void NotifyProc(const MIDINotification* message, void* refCon);
 			
         private:
 			MIDIClientRef   hCoreMidiClient;
-			MIDIPortRef		hCoreMidiInPort;
     };
 }
 

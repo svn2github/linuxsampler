@@ -22,82 +22,69 @@
  ***************************************************************************/
 
 #include "MidiInputDeviceCoreMidi.h"
+#include "MidiInputDeviceFactory.h"
 
 namespace LinuxSampler {
 
-    MidiInputDeviceCoreMidi::MidiInputDeviceCoreMidi(char* AutoConnectPortID) : MidiInputDevice(MidiInputDevice::type_core_midi) 
-	{
-		OSStatus err;
-	
-		err = MIDIClientCreate(CFSTR("LinuxSampler"), NotifyProc, NULL, &hCoreMidiClient);
-		if (!hCoreMidiClient) {
-			fprintf(stderr, "Cannot open CoreMidi client\n");
-			goto error;
-		}
-		
-		err = MIDIInputPortCreate(hCoreMidiClient, CFSTR("Input port"), ReadProc, this, &hCoreMidiInPort);
-		if (!hCoreMidiInPort) {
-			fprintf(stderr, "Cannot open Midi in port\n");
-			goto error;
-		}
-		
-		if (AutoConnectPortID) ConnectToCoreMidiSource(AutoConnectPortID);
-		
-		// for test : to be improved
-		ConnectToCoreMidiSource(NULL);
-		return;
-		
-	error :
-		if (hCoreMidiInPort){
-			 MIDIPortDispose(hCoreMidiInPort);
-		}
-		
-		if (hCoreMidiClient) {
-			MIDIClientDispose(hCoreMidiClient);
-		}
-		
-		throw MidiInputException("Error opening CoreMidi device");
+	int MidiInputDeviceCoreMidi::MidiInputPortCoreMidi::pPortID = 0;
+
+	MidiInputDeviceCoreMidi::MidiInputPortCoreMidi::ParameterName::ParameterName(MidiInputPort* pPort) throw (LinuxSamplerException) : MidiInputPort::ParameterName(pPort, "Port " + ToString(pPort->GetPortNumber())) {
+        OnSetValue(ValueAsString()); // initialize port name
     }
 
-    void MidiInputDeviceCoreMidi::SetInputPort(const char * MidiSource) 
-	{
-	    ConnectToCoreMidiSource(MidiSource);
+    void MidiInputDeviceCoreMidi::MidiInputPortCoreMidi::ParameterName::OnSetValue(String s) throw (LinuxSamplerException) {
+        
+    }	
+	
+	// *************** ParameterCoreMidiBindings ***************
+	// *
+
+    MidiInputDeviceCoreMidi::MidiInputPortCoreMidi::ParameterCoreMidiBindings::ParameterCoreMidiBindings(MidiInputPortCoreMidi* pPort) : DeviceRuntimeParameterStrings( std::vector<String>() ) {
+        this->pPort = pPort;
     }
 
-    MidiInputDeviceCoreMidi::~MidiInputDeviceCoreMidi() 
-	{
-        if (hCoreMidiInPort){
-			 MIDIPortDispose(hCoreMidiInPort);
-		}
+    String MidiInputDeviceCoreMidi::MidiInputPortCoreMidi::ParameterCoreMidiBindings::Description() {
+        return "Bindings to other CoreMidi clients";
+    }
+    bool MidiInputDeviceCoreMidi::MidiInputPortCoreMidi::ParameterCoreMidiBindings::Fix() {
+        return false;
+    }
+
+    std::vector<String> MidiInputDeviceCoreMidi::MidiInputPortCoreMidi::ParameterCoreMidiBindings::PossibilitiesAsString() {
+        std::vector<String> res;
+		// Connections
+		return res;
+    }
+
+    void MidiInputDeviceCoreMidi::MidiInputPortCoreMidi::ParameterCoreMidiBindings::OnSetValue(std::vector<String> vS) throw (LinuxSamplerException) {
+        // to finish
+    }
+
+
+// *************** MidiInputPortCoreMidi ***************
+// *
+
+    MidiInputDeviceCoreMidi::MidiInputPortCoreMidi::MidiInputPortCoreMidi(MidiInputDeviceCoreMidi* pDevice) throw (MidiInputException) : MidiInputPort(pDevice, -1) {
+    	// create CoreMidi virtual destination
+		 
+		MIDIDestinationCreate(pDevice->hCoreMidiClient, CFSTR("LinuxSampler_in"), ReadProc, this, &pDestination);
+		if (!pDestination) throw MidiInputException("Error creating CoreMidi virtual destination");
+		this->portNumber = pPortID++;
 		
-		if (hCoreMidiClient) {
-			MIDIClientDispose(hCoreMidiClient);
-		}
+        Parameters["NAME"]	= new ParameterName(this);
+        Parameters["CORE_MIDI_BINDINGS"] = new ParameterCoreMidiBindings(this);
     }
 
-	void MidiInputDeviceCoreMidi::ConnectToCoreMidiSource(const char* MidiSource)
-	{
-		// Open connections from all sources : to be improved
-		int n = MIDIGetNumberOfSources();
-		for (int i = 0; i < n; ++i) {
-			MIDIEndpointRef src = MIDIGetSource(i);
-			MIDIPortConnectSource(hCoreMidiInPort, src, NULL);
-		}
-	}
+    MidiInputDeviceCoreMidi::MidiInputPortCoreMidi::~MidiInputPortCoreMidi() {
+		MIDIEndpointDispose(pDestination);
+    }
 	
-	void MidiInputDeviceCoreMidi::NotifyProc(const MIDINotification *message, void *refCon)
+	void MidiInputDeviceCoreMidi::MidiInputPortCoreMidi::ReadProc(const MIDIPacketList* pktlist, void* refCon, void* connRefCon)
 	{
-		if (message->messageID == kMIDIMsgSetupChanged) {
-			printf("kMIDIMsgSetupChanged\n");
-		}
-	}
-	
-	void MidiInputDeviceCoreMidi::ReadProc(const MIDIPacketList *pktlist, void *refCon, void *connRefCon)
-	{
-		MidiInputDeviceCoreMidi* driver = (MidiInputDeviceCoreMidi*)refCon;
+		MidiInputPortCoreMidi* port = (MidiInputPortCoreMidi*)refCon;
 		MIDIPacket *packet = (MIDIPacket *)pktlist->packet;	
-	
-		for (int i = 0; i < pktlist->numPackets; ++i) {
+
+		for (unsigned int i = 0; i < pktlist->numPackets; ++i) {
 		
 			int cin = packet->data[0] & 0xF0;
 			
@@ -106,33 +93,76 @@ namespace LinuxSampler {
 			switch(cin) { // status byte
 			
 				case 0xB0:
-					driver->DispatchControlChange(packet->data[1],packet->data[2],packet->data[0]&0x0F);
+					port->DispatchControlChange(packet->data[1],packet->data[2],packet->data[0]&0x0F);
 					break;
 					
 				case 0xE0:
-					driver->DispatchPitchbend(packet->data[1],packet->data[0]&0x0F);
+					port->DispatchPitchbend(packet->data[1],packet->data[0]&0x0F);
 					break;
 
 				case 0x90:
-					if (packet->data[1] < 128){
+					if (packet->data[1] < 0x80) {
 						if (packet->data[2] > 0){
-							driver->DispatchNoteOn(packet->data[1],packet->data[2], packet->data[0]&0x0F);
+							port->DispatchNoteOn(packet->data[1],packet->data[2], packet->data[0]&0x0F);
 						}else{
-							driver->DispatchNoteOff(packet->data[1],packet->data[2],packet->data[0]&0x0F);
+							port->DispatchNoteOff(packet->data[1],packet->data[2],packet->data[0]&0x0F);
 						}
 					}
 					break;
 				
 				case 0x80:
-					if (packet->data[1] < 128){
-						driver->DispatchNoteOff(packet->data[1],packet->data[2],packet->data[0]&0x0F);
+					if (packet->data[1] < 0x80) {
+						port->DispatchNoteOff(packet->data[1],packet->data[2],packet->data[0]&0x0F);
 					}
 					break;
 			}
 			
 			packet = MIDIPacketNext(packet);
-		}
+		}	
 	}
 
+    MidiInputDeviceCoreMidi::MidiInputDeviceCoreMidi(std::map<String,DeviceCreationParameter*> Parameters) : MidiInputDevice(Parameters) 
+	{
+		MIDIClientCreate(CFSTR("LinuxSampler"), NotifyProc, NULL, &hCoreMidiClient);
+		if (!hCoreMidiClient) throw MidiInputException("Error opening CoreMidi client");
+		AcquirePorts(((DeviceCreationParameterInt*)Parameters["PORTS"])->ValueAsInt());
+	}
+
+    MidiInputDeviceCoreMidi::~MidiInputDeviceCoreMidi() 
+	{
+   		if (hCoreMidiClient) {
+			MIDIClientDispose(hCoreMidiClient);
+		}
+    }
+	
+	MidiInputDeviceCoreMidi::MidiInputPortCoreMidi* MidiInputDeviceCoreMidi::CreateMidiPort() {
+		return new MidiInputPortCoreMidi(this);
+    }
+	
+	String MidiInputDeviceCoreMidi::Name() {
+	    return "CoreMidi";
+    }
+
+	String MidiInputDeviceCoreMidi::Driver() {
+	    return Name();
+    }
+	
+	 String MidiInputDeviceCoreMidi::Description() {
+	    return "Apple CoreMidi";
+    }
+
+    String MidiInputDeviceCoreMidi::Version() {
+	    String s = "$Revision: 1.4 $";
+	    return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
+    }
+
+	void MidiInputDeviceCoreMidi::NotifyProc(const MIDINotification* message, void* refCon)
+	{
+		// to be finished
+		if (message->messageID == kMIDIMsgSetupChanged) {
+			printf("kMIDIMsgSetupChanged\n");
+		}
+	}
+	
 
 } // namespace LinuxSampler
