@@ -27,8 +27,6 @@
 
 namespace LinuxSampler { namespace gig {
 
-    // TODO: no support for crossfades yet
-
     const float Voice::FILTER_CUTOFF_COEFF(CalculateFilterCutoffCoeff());
 
     const int Voice::FILTER_UPDATE_MASK(CalculateFilterUpdateMask());
@@ -105,18 +103,20 @@ namespace LinuxSampler { namespace gig {
      *  Initializes and triggers the voice, a disk stream will be launched if
      *  needed.
      *
-     *  @param pNoteOnEvent - event that caused triggering of this voice
-     *  @param PitchBend    - MIDI detune factor (-8192 ... +8191)
-     *  @param pInstrument  - points to the loaded instrument which provides sample wave(s) and articulation data
-     *  @param iLayer       - layer number this voice refers to (only if this is a layered sound of course)
-     *  @returns            0 on success, a value < 0 if something failed
+     *  @param pNoteOnEvent        - event that caused triggering of this voice
+     *  @param PitchBend           - MIDI detune factor (-8192 ... +8191)
+     *  @param pInstrument         - points to the loaded instrument which provides sample wave(s) and articulation data
+     *  @param iLayer              - layer number this voice refers to (only if this is a layered sound of course)
+     *  @param ReleaseTriggerVoice - if this new voice is a release trigger voice (optional, default = false)
+     *  @returns 0 on success, a value < 0 if something failed
      */
-    int Voice::Trigger(Event* pNoteOnEvent, int PitchBend, ::gig::Instrument* pInstrument, int iLayer) {
+    int Voice::Trigger(Event* pNoteOnEvent, int PitchBend, ::gig::Instrument* pInstrument, int iLayer, bool ReleaseTriggerVoice) {
         if (!pInstrument) {
            dmsg(1,("voice::trigger: !pInstrument\n"));
            exit(EXIT_FAILURE);
         }
 
+        Type            = type_normal;
         Active          = true;
         MIDIKey         = pNoteOnEvent->Key;
         pRegion         = pInstrument->GetRegion(MIDIKey);
@@ -146,7 +146,7 @@ namespace LinuxSampler { namespace gig {
                     // if this is the 1st layer then spawn further voices for all the other layers
                     if (iLayer == 0)
                         for (int iNewLayer = 1; iNewLayer < pRegion->pDimensionDefinitions[i].zones; iNewLayer++)
-                            pEngine->LaunchVoice(pNoteOnEvent, iNewLayer);
+                            pEngine->LaunchVoice(pNoteOnEvent, iNewLayer, ReleaseTriggerVoice);
                     break;
                 case ::gig::dimension_velocity:
                     DimValues[i] = pNoteOnEvent->Velocity;
@@ -155,7 +155,8 @@ namespace LinuxSampler { namespace gig {
                     DimValues[i] = 0; //TODO: we currently ignore this dimension
                     break;
                 case ::gig::dimension_releasetrigger:
-                    DimValues[i] = 0; //TODO: we currently ignore this dimension
+                    Type = (ReleaseTriggerVoice) ? type_release_trigger : (!iLayer) ? type_release_trigger_required : type_normal;
+                    DimValues[i] = (uint) ReleaseTriggerVoice;
                     break;
                 case ::gig::dimension_keyboard:
                     DimValues[i] = (uint) pNoteOnEvent->Key;
@@ -1086,6 +1087,7 @@ namespace LinuxSampler { namespace gig {
      *  @param pKillEvent - event which caused the voice to be killed
      */
     void Voice::Kill(Event* pKillEvent) {
+        if (pTriggerEvent && pKillEvent->FragmentPos() <= pTriggerEvent->FragmentPos()) return;
         this->pKillEvent = pKillEvent;
     }
 

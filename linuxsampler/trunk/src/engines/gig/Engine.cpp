@@ -47,11 +47,12 @@ namespace LinuxSampler { namespace gig {
             pSynthesisEvents[i] = new RTEList<Event>(pEventPool);
         }
         for (uint i = 0; i < 128; i++) {
-            pMIDIKeyInfo[i].pActiveVoices = new RTEList<Voice>(pVoicePool);
-            pMIDIKeyInfo[i].KeyPressed    = false;
-            pMIDIKeyInfo[i].Active        = false;
-            pMIDIKeyInfo[i].pSelf         = NULL;
-            pMIDIKeyInfo[i].pEvents       = new RTEList<Event>(pEventPool);
+            pMIDIKeyInfo[i].pActiveVoices  = new RTEList<Voice>(pVoicePool);
+            pMIDIKeyInfo[i].KeyPressed     = false;
+            pMIDIKeyInfo[i].Active         = false;
+            pMIDIKeyInfo[i].ReleaseTrigger = false;
+            pMIDIKeyInfo[i].pSelf          = NULL;
+            pMIDIKeyInfo[i].pEvents        = new RTEList<Event>(pEventPool);
         }
         for (Voice* pVoice = pVoicePool->alloc(); pVoice; pVoice = pVoicePool->alloc()) {
             pVoice->SetEngine(this);
@@ -161,9 +162,10 @@ namespace LinuxSampler { namespace gig {
         for (uint i = 0; i < 128; i++) {
             pMIDIKeyInfo[i].pActiveVoices->clear();
             pMIDIKeyInfo[i].pEvents->clear();
-            pMIDIKeyInfo[i].KeyPressed = false;
-            pMIDIKeyInfo[i].Active     = false;
-            pMIDIKeyInfo[i].pSelf      = NULL;
+            pMIDIKeyInfo[i].KeyPressed     = false;
+            pMIDIKeyInfo[i].Active         = false;
+            pMIDIKeyInfo[i].ReleaseTrigger = false;
+            pMIDIKeyInfo[i].pSelf          = NULL;
         }
 
         // reset all key groups
@@ -565,8 +567,16 @@ namespace LinuxSampler { namespace gig {
         // release voices on this key if needed
         if (pKey->Active && !SustainPedal) {
             pNoteOffEvent->Type = Event::type_release; // transform event type
-            pEvents->move(pNoteOffEvent, pKey->pEvents); // move event to the key's own event list
         }
+
+        // spawn release triggered voice(s) if needed
+        if (pKey->ReleaseTrigger) {
+            LaunchVoice(pNoteOffEvent, 0, true);
+            pKey->ReleaseTrigger = false;
+        }
+
+        // move event to the key's own event list
+        pEvents->move(pNoteOffEvent, pKey->pEvents);
     }
 
     /**
@@ -585,18 +595,20 @@ namespace LinuxSampler { namespace gig {
      *  called by the ProcessNoteOn() method and by the voices itself
      *  (e.g. to spawn further voices on the same key for layered sounds).
      *
-     *  @param pNoteOnEvent - key, velocity and time stamp of the event
-     *  @param iLayer       - layer index for the new voice (optional - only
-     *                        in case of layered sounds of course)
+     *  @param pNoteOnEvent        - key, velocity and time stamp of the event
+     *  @param iLayer              - layer index for the new voice (optional - only
+     *                               in case of layered sounds of course)
+     *  @param ReleaseTriggerVoice - if new voice is a release triggered voice
+     *                               (optional, default = false)
      */
-    void Engine::LaunchVoice(Event* pNoteOnEvent, int iLayer) {
+    void Engine::LaunchVoice(Event* pNoteOnEvent, int iLayer, bool ReleaseTriggerVoice) {
         midi_key_info_t* pKey = &pMIDIKeyInfo[pNoteOnEvent->Key];
 
         // allocate a new voice for the key
         Voice* pNewVoice = pKey->pActiveVoices->alloc();
         if (pNewVoice) {
             // launch the new voice
-            if (pNewVoice->Trigger(pNoteOnEvent, this->Pitch, this->pInstrument, iLayer) < 0) {
+            if (pNewVoice->Trigger(pNoteOnEvent, this->Pitch, this->pInstrument, iLayer, ReleaseTriggerVoice) < 0) {
                 dmsg(1,("Triggering new voice failed!\n"));
                 pKey->pActiveVoices->free(pNewVoice);
             }
@@ -608,8 +620,12 @@ namespace LinuxSampler { namespace gig {
                         midi_key_info_t* pOtherKey = &pMIDIKeyInfo[**ppKeyGroup];
                         // kill all voices on the (other) key
                         Voice* pVoiceToBeKilled = pOtherKey->pActiveVoices->first();
-                        for (; pVoiceToBeKilled; pVoiceToBeKilled = pOtherKey->pActiveVoices->next())
-                            if (pVoiceToBeKilled != pNewVoice) pVoiceToBeKilled->Kill(pNoteOnEvent);
+                        while (pVoiceToBeKilled) {
+                            Voice* pVoiceToBeKilledNext = pOtherKey->pActiveVoices->next();
+                            if (pVoiceToBeKilled->Type != Voice::type_release_trigger) pVoiceToBeKilled->Kill(pNoteOnEvent);
+                            pOtherKey->pActiveVoices->set_current(pVoiceToBeKilled);
+                            pVoiceToBeKilled = pVoiceToBeKilledNext;
+                        }
                     }
                 }
                 if (!pKey->Active) { // mark as active key
@@ -620,6 +636,7 @@ namespace LinuxSampler { namespace gig {
                 if (pNewVoice->KeyGroup) {
                     *ppKeyGroup = pKey->pSelf; // put key as the (new) active key to its key group
                 }
+                if (pNewVoice->Type == Voice::type_release_trigger_required) pKey->ReleaseTrigger = true; // mark key for the need of release triggered voice(s)
             }
         }
         else std::cerr << "No free voice!" << std::endl << std::flush;
@@ -650,6 +667,7 @@ namespace LinuxSampler { namespace gig {
                 pKey->Active = false;
                 pActiveKeys->free(pKey->pSelf); // remove key from list of active keys
                 pKey->pSelf = NULL;
+                pKey->ReleaseTrigger = false;
                 dmsg(3,("Key has no more voices now\n"));
             }
         }
@@ -822,7 +840,7 @@ namespace LinuxSampler { namespace gig {
     }
 
     String Engine::Version() {
-        String s = "$Revision: 1.10 $";
+        String s = "$Revision: 1.11 $";
         return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
 

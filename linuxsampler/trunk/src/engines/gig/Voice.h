@@ -80,7 +80,15 @@ namespace LinuxSampler { namespace gig {
      */
     class Voice {
         public:
+            // Types
+            enum type_t {
+                type_normal,
+                type_release_trigger_required,  ///< If the key of this voice will be released, it causes a release triggered voice to be spawned
+                type_release_trigger            ///< Release triggered voice which cannot be killed by releasing its key
+            };
+
             // Attributes
+            type_t       Type;         ///< Voice Type
             int          MIDIKey;      ///< MIDI key number of the key that triggered the voice
             uint         KeyGroup;
             DiskThread*  pDiskThread;  ///< Pointer to the disk thread, to be able to order a disk stream and later to delete the stream again
@@ -94,7 +102,7 @@ namespace LinuxSampler { namespace gig {
             void Reset();
             void SetOutput(AudioOutputDevice* pAudioOutputDevice);
             void SetEngine(Engine* pEngine);
-            int  Trigger(Event* pNoteOnEvent, int PitchBend, ::gig::Instrument* pInstrument, int iLayer = 0);
+            int  Trigger(Event* pNoteOnEvent, int PitchBend, ::gig::Instrument* pInstrument, int iLayer = 0, bool ReleaseTriggerVoice = false);
             inline bool IsActive() { return Active; }
         private:
             // Types

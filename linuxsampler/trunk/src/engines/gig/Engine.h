@@ -98,11 +98,12 @@ namespace LinuxSampler { namespace gig {
             virtual void ResourceUpdated(::gig::Instrument* pOldResource, ::gig::Instrument* pNewResource, void* pUpdateArg);
         protected:
             struct midi_key_info_t {
-                RTEList<Voice>* pActiveVoices; ///< Contains the active voices associated with the MIDI key.
-                bool            KeyPressed;    ///< Is true if the respective MIDI key is currently pressed.
-                bool            Active;        ///< If the key contains active voices.
-                uint*           pSelf;         ///< hack to allow fast deallocation of the key from the list of active keys
-                RTEList<Event>* pEvents;       ///< Key specific events (only Note-on, Note-off and sustain pedal currently)
+                RTEList<Voice>* pActiveVoices;  ///< Contains the active voices associated with the MIDI key.
+                bool            KeyPressed;     ///< Is true if the respective MIDI key is currently pressed.
+                bool            Active;         ///< If the key contains active voices.
+                bool            ReleaseTrigger; ///< If we have to launch release triggered voice(s) when the key is released
+                uint*           pSelf;          ///< hack to allow fast deallocation of the key from the list of active keys
+                RTEList<Event>* pEvents;        ///< Key specific events (only Note-on, Note-off and sustain pedal currently)
             };
 
             static InstrumentResourceManager Instruments;
@@ -147,7 +148,7 @@ namespace LinuxSampler { namespace gig {
             void ProcessNoteOff(Event* pNoteOffEvent);
             void ProcessPitchbend(Event* pPitchbendEvent);
             void ProcessControlChange(Event* pControlChangeEvent);
-            void LaunchVoice(Event* pNoteOnEvent, int iLayer = 0);
+            void LaunchVoice(Event* pNoteOnEvent, int iLayer = 0, bool ReleaseTriggerVoice = false);
             void KillVoiceImmediately(Voice* pVoice);
             void ResetSynthesisParameters(Event::destination_t dst, float val);
             void ResetInternal();

@@ -680,7 +680,7 @@ namespace gig {
         if (!pVelocityTables) pVelocityTables = new VelocityTableMap;
 
         RIFF::Chunk* _3ewa = _3ewl->GetSubChunk(CHUNK_ID_3EWA);
-        _3ewa->ReadInt32(); // unknown, allways 0x0000008C ?
+        _3ewa->ReadInt32(); // unknown, always 0x0000008C ?
         LFO3Frequency = (double) GIG_EXP_DECODE(_3ewa->ReadInt32());
         EG3Attack     = (double) GIG_EXP_DECODE(_3ewa->ReadInt32());
         _3ewa->ReadInt16(); // unknown
@@ -1053,8 +1053,9 @@ namespace gig {
                     pDimensionDefinitions[i].bits      = bits;
                     pDimensionDefinitions[i].zones     = 0x01 << bits; // = pow(2,bits)
                     pDimensionDefinitions[i].split_type = (dimension == dimension_layer ||
-                                                           dimension == dimension_samplechannel) ? split_type_bit
-                                                                                                 : split_type_normal;
+                                                           dimension == dimension_samplechannel ||
+                                                           dimension == dimension_releasetrigger) ? split_type_bit
+                                                                                                  : split_type_normal;
                     pDimensionDefinitions[i].ranges = NULL; // it's not possible to check velocity dimensions for custom defined ranges at this point
                     pDimensionDefinitions[i].zone_size  =
                         (pDimensionDefinitions[i].split_type == split_type_normal) ? 128 / pDimensionDefinitions[i].zones
@@ -1152,7 +1153,7 @@ namespace gig {
      * @see             Dimensions
      */
     DimensionRegion* Region::GetDimensionRegionByValue(uint Dim4Val, uint Dim3Val, uint Dim2Val, uint Dim1Val, uint Dim0Val) {
-        unsigned int bits[5] = {Dim0Val,Dim1Val,Dim2Val,Dim3Val,Dim4Val};
+        uint8_t bits[5] = {Dim0Val,Dim1Val,Dim2Val,Dim3Val,Dim4Val};
         for (uint i = 0; i < Dimensions; i++) {
             switch (pDimensionDefinitions[i].split_type) {
                 case split_type_normal:
@@ -1161,7 +1162,10 @@ namespace gig {
                 case split_type_customvelocity:
                     bits[i] = VelocityTable[bits[i]];
                     break;
-                // else the value is already the sought dimension bit number
+                case split_type_bit: // the value is already the sought dimension bit number
+                    const uint8_t limiter_mask = (0xff << pDimensionDefinitions[i].bits) ^ 0xff;
+                    bits[i] = bits[i] & limiter_mask; // just make sure the value don't uses more bits than allowed
+                    break;
             }
         }
         return GetDimensionRegionByBit(bits[4],bits[3],bits[2],bits[1],bits[0]);
