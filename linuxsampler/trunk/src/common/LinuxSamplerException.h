@@ -50,8 +50,12 @@ namespace LinuxSampler {
                 return what();
             }
 
+            /**
+             * Print the cause of the exception to the standard error
+             * output channel.
+             */
             void PrintMessage() {
-                std::cout << what() << std::endl;
+                std::cerr << what() << std::endl << std::flush;
             }
     };
 
