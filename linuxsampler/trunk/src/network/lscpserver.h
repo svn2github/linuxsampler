@@ -117,6 +117,7 @@ class LSCPServer : public Thread {
         String SetMIDIInput(uint MIDIDeviceId, uint MIDIPort, uint MIDIChannel, uint uiSamplerChannel);
         String SetVolume(double Volume, uint uiSamplerChannel);
         String ResetChannel(uint uiSamplerChannel);
+        String ResetSampler();
         String SubscribeNotification(LSCPEvent::event_t);
         String UnsubscribeNotification(LSCPEvent::event_t);
         String SetEcho(yyparse_param_t* pSession, double boolean_value);

@@ -696,7 +696,7 @@ namespace LinuxSampler {
 
     void DeviceCreationParameterString::InitWithDefault() {
         std::map<String,String> Parameters; // empty parameters vector
-        optional<String> defaulval = Default(Parameters);
+        optional<String> defaulval = DefaultAsString(Parameters);
         if (defaulval) this->sVal = *defaulval;
         else           this->sVal = "";
     }
@@ -707,6 +707,12 @@ namespace LinuxSampler {
 
     bool DeviceCreationParameterString::Multiplicity() {
         return false;
+    }
+
+    optional<String> DeviceCreationParameterString::Default(std::map<String,String> Parameters) {
+        optional<String> defaultval = DefaultAsString(Parameters);
+        if (!defaultval) return optional<String>::nothing;
+        return "'" + *defaultval + "'";
     }
 
     optional<String> DeviceCreationParameterString::RangeMin(std::map<String,String> Parameters) {
@@ -768,6 +774,18 @@ namespace LinuxSampler {
 
     bool DeviceCreationParameterStrings::Multiplicity() {
         return true;
+    }
+
+    optional<String> DeviceCreationParameterStrings::Default(std::map<String,String> Parameters) {
+        std::vector<String> defaultval = DefaultAsStrings(Parameters);
+        if (defaultval.empty()) return optional<String>::nothing;
+        String result;
+        std::vector<String>::iterator iter = defaultval.begin();
+        for (; iter != defaultval.end(); iter++) {
+            if (result != "") result += ",";
+            result += ("'" + *iter + "'");
+        }
+        return result;
     }
 
     optional<String> DeviceCreationParameterStrings::RangeMin(std::map<String,String> Parameters) {

@@ -252,12 +252,14 @@ namespace LinuxSampler {
             DeviceCreationParameterString(String sVal = String());
             virtual String Type();
             virtual bool   Multiplicity();
+            virtual optional<String> Default(std::map<String,String> Parameters);
             virtual optional<String> RangeMin(std::map<String,String> Parameters);
             virtual optional<String> RangeMax(std::map<String,String> Parameters);
             virtual optional<String> Possibilities(std::map<String,String> Parameters);
             virtual String Value();
             virtual void   SetValue(String val) throw (LinuxSamplerException);
 
+            virtual optional<String>    DefaultAsString(std::map<String,String> Parameters) = 0;
             virtual std::vector<String> PossibilitiesAsString(std::map<String,String> Parameters) = 0;
             virtual void OnSetValue(String s) throw (LinuxSamplerException) = 0;
         protected:
@@ -273,6 +275,7 @@ namespace LinuxSampler {
             DeviceCreationParameterStrings(String val) throw (LinuxSamplerException);
             virtual String Type();
             virtual bool   Multiplicity();
+            virtual optional<String> Default(std::map<String,String> Parameters);
             virtual optional<String> RangeMin(std::map<String,String> Parameters);
             virtual optional<String> RangeMax(std::map<String,String> Parameters);
             virtual optional<String> Possibilities(std::map<String,String> Parameters);
@@ -282,7 +285,7 @@ namespace LinuxSampler {
             virtual std::vector<String> ValueAsStrings();
             virtual void                SetValue(std::vector<String> vS);
 
-            virtual optional<std::vector<String> > DefaultAsStrings(std::map<String,String> Parameters) = 0;
+            virtual std::vector<String> DefaultAsStrings(std::map<String,String> Parameters) = 0;
             virtual std::vector<String> PossibilitiesAsString(std::map<String,String> Parameters) = 0;
             virtual void OnSetValue(std::vector<String> vS) throw (LinuxSamplerException) = 0;
         protected:

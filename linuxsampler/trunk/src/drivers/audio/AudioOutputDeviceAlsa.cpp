@@ -37,6 +37,192 @@ namespace LinuxSampler {
     REGISTER_AUDIO_OUTPUT_DRIVER_PARAMETER(AudioOutputDeviceAlsa, ParameterFragments);
     REGISTER_AUDIO_OUTPUT_DRIVER_PARAMETER(AudioOutputDeviceAlsa, ParameterFragmentSize);
 
+
+
+// *************** ParameterCard ***************
+// *
+
+    AudioOutputDeviceAlsa::ParameterCard::ParameterCard() : DeviceCreationParameterString() {
+        InitWithDefault(); // use default card
+    }
+
+    AudioOutputDeviceAlsa::ParameterCard::ParameterCard(String s) throw (LinuxSamplerException) : DeviceCreationParameterString(s) {
+        SetValue(s); // try to use given card
+    }
+
+    String AudioOutputDeviceAlsa::ParameterCard::Description() {
+        return "Sound card to be used";
+    }
+
+    bool AudioOutputDeviceAlsa::ParameterCard::Fix() {
+        return true;
+    }
+
+    bool AudioOutputDeviceAlsa::ParameterCard::Mandatory() {
+        return false;
+    }
+
+    std::map<String,DeviceCreationParameter*> AudioOutputDeviceAlsa::ParameterCard::DependsAsParameters() {
+        return std::map<String,DeviceCreationParameter*>(); // no dependencies
+    }
+
+    optional<String> AudioOutputDeviceAlsa::ParameterCard::DefaultAsString(std::map<String,String> Parameters) {
+        std::vector<String> cards = PossibilitiesAsString(Parameters);
+        if (cards.empty()) throw LinuxSamplerException("AudioOutputDeviceAlsa: Can't find any card");
+        return cards[0]; // first card by default
+    }
+
+    std::vector<String> AudioOutputDeviceAlsa::ParameterCard::PossibilitiesAsString(std::map<String,String> Parameters) {
+        int err;
+        std::vector<String> CardNames;
+
+        // iterate through all cards
+        int card_index = -1;
+        while (snd_card_next(&card_index) >= 0 && card_index >= 0) {
+            String hw_name = "hw:" + ToString(card_index);
+            snd_ctl_t* hCardCtrl;
+            if ((err = snd_ctl_open(&hCardCtrl, hw_name.c_str(), 0)) < 0) {
+                std::cerr << "AudioOutputDeviceAlsa: Cannot open sound control for card " << card_index << " - " << snd_strerror(err) << std::endl;
+                continue;
+            }
+
+            // iterate through all devices of that card
+            int device_index = -1;
+            while (!snd_ctl_pcm_next_device(hCardCtrl, &device_index) && device_index >= 0) {
+                String name = ToString(card_index) + "," + ToString(device_index);
+                //dmsg(1,("[possibility:%s]", name.c_str()));
+                CardNames.push_back(name);
+            }
+
+            snd_ctl_close(hCardCtrl);
+        }
+
+        return CardNames;
+    }
+
+    void AudioOutputDeviceAlsa::ParameterCard::OnSetValue(String s) throw (LinuxSamplerException) {
+        // not posssible, as parameter is fix
+    }
+
+    String AudioOutputDeviceAlsa::ParameterCard::Name() {
+        return "card";
+    }
+
+
+
+// *************** ParameterFragments ***************
+// *
+
+    AudioOutputDeviceAlsa::ParameterFragments::ParameterFragments() : DeviceCreationParameterInt() {
+        InitWithDefault();
+    }
+
+    AudioOutputDeviceAlsa::ParameterFragments::ParameterFragments(String s) throw (LinuxSamplerException) : DeviceCreationParameterInt(s) {
+    }
+
+    String AudioOutputDeviceAlsa::ParameterFragments::Description() {
+        return "Number of buffer fragments";
+    }
+
+    bool AudioOutputDeviceAlsa::ParameterFragments::Fix() {
+        return true;
+    }
+
+    bool AudioOutputDeviceAlsa::ParameterFragments::Mandatory() {
+        return false;
+    }
+
+    std::map<String,DeviceCreationParameter*> AudioOutputDeviceAlsa::ParameterFragments::DependsAsParameters() {
+        static ParameterCard card;
+        std::map<String,DeviceCreationParameter*> dependencies;
+        dependencies[card.Name()] = &card;
+        return dependencies;
+    }
+
+    optional<int> AudioOutputDeviceAlsa::ParameterFragments::DefaultAsInt(std::map<String,String> Parameters) {
+        return 2; // until done
+    }
+
+    optional<int> AudioOutputDeviceAlsa::ParameterFragments::RangeMinAsInt(std::map<String,String> Parameters) {
+        return optional<int>::nothing;
+    }
+
+    optional<int> AudioOutputDeviceAlsa::ParameterFragments::RangeMaxAsInt(std::map<String,String> Parameters) {
+        return optional<int>::nothing;
+    }
+
+    std::vector<int> AudioOutputDeviceAlsa::ParameterFragments::PossibilitiesAsInt(std::map<String,String> Parameters) {
+        return std::vector<int>();
+    }
+
+    void AudioOutputDeviceAlsa::ParameterFragments::OnSetValue(int i) throw (LinuxSamplerException) {
+        // not posssible, as parameter is fix
+    }
+
+    String AudioOutputDeviceAlsa::ParameterFragments::Name() {
+        return "fragments";
+    }
+
+
+
+// *************** ParameterFragmentSize ***************
+// *
+
+    AudioOutputDeviceAlsa::ParameterFragmentSize::ParameterFragmentSize() : DeviceCreationParameterInt() {
+        InitWithDefault();
+    }
+
+    AudioOutputDeviceAlsa::ParameterFragmentSize::ParameterFragmentSize(String s) throw (LinuxSamplerException) : DeviceCreationParameterInt(s) {
+    }
+
+    String AudioOutputDeviceAlsa::ParameterFragmentSize::Description() {
+        return "Size of each buffer fragment";
+    }
+
+    bool AudioOutputDeviceAlsa::ParameterFragmentSize::Fix() {
+        return true;
+    }
+
+    bool AudioOutputDeviceAlsa::ParameterFragmentSize::Mandatory() {
+        return false;
+    }
+
+    std::map<String,DeviceCreationParameter*> AudioOutputDeviceAlsa::ParameterFragmentSize::DependsAsParameters() {
+        static ParameterCard card;
+        std::map<String,DeviceCreationParameter*> dependencies;
+        dependencies[card.Name()] = &card;
+        return dependencies;
+    }
+
+    optional<int> AudioOutputDeviceAlsa::ParameterFragmentSize::DefaultAsInt(std::map<String,String> Parameters) {
+        return 128; // until done
+    }
+
+    optional<int> AudioOutputDeviceAlsa::ParameterFragmentSize::RangeMinAsInt(std::map<String,String> Parameters) {
+        return optional<int>::nothing;
+    }
+
+    optional<int> AudioOutputDeviceAlsa::ParameterFragmentSize::RangeMaxAsInt(std::map<String,String> Parameters) {
+        return optional<int>::nothing;
+    }
+
+    std::vector<int> AudioOutputDeviceAlsa::ParameterFragmentSize::PossibilitiesAsInt(std::map<String,String> Parameters) {
+        return std::vector<int>();
+    }
+
+    void AudioOutputDeviceAlsa::ParameterFragmentSize::OnSetValue(int i) throw (LinuxSamplerException) {
+        // not posssible, as parameter is fix
+    }
+
+    String AudioOutputDeviceAlsa::ParameterFragmentSize::Name() {
+        return "fragmentsize";
+    }
+
+
+
+// *************** AudioOutputDeviceAlsa ***************
+// *
+
     /**
      * Create and initialize Alsa audio output device with given parameters.
      *
@@ -273,7 +459,7 @@ namespace LinuxSampler {
     }
 
     String AudioOutputDeviceAlsa::Version() {
-       String s = "$Revision: 1.10 $";
+       String s = "$Revision: 1.11 $";
        return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
 

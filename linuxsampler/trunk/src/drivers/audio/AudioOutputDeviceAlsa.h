@@ -60,48 +60,48 @@ namespace LinuxSampler {
 
             class ParameterCard : public DeviceCreationParameterString {
                 public:
-                    ParameterCard( void ) : DeviceCreationParameterString ()                              { InitWithDefault();                                             }
-                    ParameterCard( String s ) : DeviceCreationParameterString (s)                         {}
-                    virtual String Description()                                                          { return "Sound card to be used";                                }
-                    virtual bool   Fix()                                                                  { return true;                                                   }
-                    virtual bool   Mandatory()                                                            { return false;                                                  }
-                    virtual std::map<String,DeviceCreationParameter*> DependsAsParameters()               { return std::map<String,DeviceCreationParameter*>();            }
-                    virtual optional<String>    Default(std::map<String,String> Parameters)               { return "0,0"; /* first card by default */                      }
-                    virtual std::vector<String> PossibilitiesAsString(std::map<String,String> Parameters) { return std::vector<String>(); /*TODO: return possible cards*/  }
-                    virtual void                OnSetValue(String s) throw (LinuxSamplerException)        { /* not posssible, as parameter is fix */                       }
-		    static String Name( void ) { return "card"; }
+                    ParameterCard();
+                    ParameterCard(String s) throw (LinuxSamplerException);
+                    virtual String Description();
+                    virtual bool   Fix();
+                    virtual bool   Mandatory();
+                    virtual std::map<String,DeviceCreationParameter*> DependsAsParameters();
+                    virtual optional<String>    DefaultAsString(std::map<String,String> Parameters);
+                    virtual std::vector<String> PossibilitiesAsString(std::map<String,String> Parameters);
+                    virtual void                OnSetValue(String s) throw (LinuxSamplerException);
+                    static String Name();
             };
 
             class ParameterFragments : public DeviceCreationParameterInt {
                 public:
-                    ParameterFragments( void ) : DeviceCreationParameterInt ()                      { InitWithDefault();                                  }
-                    ParameterFragments( String s ) : DeviceCreationParameterInt (s)                 {}
-                    virtual String Description()                                                    { return "Number of buffer fragments";                }
-                    virtual bool   Fix()                                                            { return true;                                        }
-                    virtual bool   Mandatory()                                                      { return false;                                       }
-                    virtual std::map<String,DeviceCreationParameter*> DependsAsParameters()         { return std::map<String,DeviceCreationParameter*>(); } //TODO: should return dependency to CARD
-                    virtual optional<int>    DefaultAsInt(std::map<String,String> Parameters)       { return 2; /* until done */                          }
-                    virtual optional<int>    RangeMinAsInt(std::map<String,String> Parameters)      { return optional<int>::nothing;                      }
-                    virtual optional<int>    RangeMaxAsInt(std::map<String,String> Parameters)      { return optional<int>::nothing;                      }
-                    virtual std::vector<int> PossibilitiesAsInt(std::map<String,String> Parameters) { return std::vector<int>();                          }
-                    virtual void             OnSetValue(int i) throw (LinuxSamplerException)        { /* not posssible, as parameter is fix */            }
-		    static String Name( void ) { return "fragments"; }
+                    ParameterFragments();
+                    ParameterFragments(String s) throw (LinuxSamplerException);
+                    virtual String Description();
+                    virtual bool   Fix();
+                    virtual bool   Mandatory();
+                    virtual std::map<String,DeviceCreationParameter*> DependsAsParameters();
+                    virtual optional<int>    DefaultAsInt(std::map<String,String> Parameters);
+                    virtual optional<int>    RangeMinAsInt(std::map<String,String> Parameters);
+                    virtual optional<int>    RangeMaxAsInt(std::map<String,String> Parameters);
+                    virtual std::vector<int> PossibilitiesAsInt(std::map<String,String> Parameters);
+                    virtual void             OnSetValue(int i) throw (LinuxSamplerException);
+                    static String Name();
             };
 
             class ParameterFragmentSize : public DeviceCreationParameterInt {
                 public:
-                    ParameterFragmentSize( void ) : DeviceCreationParameterInt ()                   { InitWithDefault();                                  }
-                    ParameterFragmentSize( String s ) : DeviceCreationParameterInt (s)              {}
-                    virtual String Description()                                                    { return "Size of each buffer fragment";              }
-                    virtual bool   Fix()                                                            { return true;                                        }
-                    virtual bool   Mandatory()                                                      { return false;                                       }
-                    virtual std::map<String,DeviceCreationParameter*> DependsAsParameters()         { return std::map<String,DeviceCreationParameter*>(); } //TODO: should return dependency to CARD
-                    virtual optional<int>    DefaultAsInt(std::map<String,String> Parameters)       { return 128; /* until done */                        }
-                    virtual optional<int>    RangeMinAsInt(std::map<String,String> Parameters)      { return optional<int>::nothing;                      }
-                    virtual optional<int>    RangeMaxAsInt(std::map<String,String> Parameters)      { return optional<int>::nothing;                      }
-                    virtual std::vector<int> PossibilitiesAsInt(std::map<String,String> Parameters) { return std::vector<int>();                          }
-                    virtual void             OnSetValue(int i) throw (LinuxSamplerException)        { /* not posssible, as parameter is fix */            }
-		    static String Name( void ) { return "fragmentsize"; }
+                    ParameterFragmentSize();
+                    ParameterFragmentSize(String s) throw (LinuxSamplerException);
+                    virtual String Description();
+                    virtual bool   Fix();
+                    virtual bool   Mandatory();
+                    virtual std::map<String,DeviceCreationParameter*> DependsAsParameters();
+                    virtual optional<int>    DefaultAsInt(std::map<String,String> Parameters);
+                    virtual optional<int>    RangeMinAsInt(std::map<String,String> Parameters);
+                    virtual optional<int>    RangeMaxAsInt(std::map<String,String> Parameters);
+                    virtual std::vector<int> PossibilitiesAsInt(std::map<String,String> Parameters);
+                    virtual void             OnSetValue(int i) throw (LinuxSamplerException);
+                    static String Name();
             };
 
         protected:

@@ -160,6 +160,8 @@ namespace LinuxSampler {
         return pMidiInputPort;
     }
 
+
+
     // ******************************************************************
     // * Sampler
 
@@ -167,31 +169,7 @@ namespace LinuxSampler {
     }
 
     Sampler::~Sampler() {
-        // delete sampler channels
-        {
-            SamplerChannelMap::iterator iter = mSamplerChannels.begin();
-            for (; iter != mSamplerChannels.end(); iter++) delete iter->second;
-        }
-
-        // delete midi input devices
-        {
-            MidiInputDeviceMap::iterator iter = mMidiInputDevices.begin();
-            for (; iter != mMidiInputDevices.end(); iter++) {
-                MidiInputDevice* pDevice = iter->second;
-                pDevice->StopListen();
-                delete pDevice;
-            }
-        }
-
-        // delete audio output devices
-        {
-            AudioOutputDeviceMap::iterator iter = mAudioOutputDevices.begin();
-            for (; iter != mAudioOutputDevices.end(); iter++) {
-                AudioOutputDevice* pDevice = iter->second;
-                pDevice->Stop();
-                delete pDevice;
-            }
-        }
+        Reset();
     }
 
     uint Sampler::SamplerChannels() {
@@ -341,6 +319,44 @@ namespace LinuxSampler {
 	}
 
         return pDevice;
+    }
+
+    void Sampler::Reset() {
+        // delete sampler channels
+        try {
+            SamplerChannelMap::iterator iter = mSamplerChannels.begin();
+            for (; iter != mSamplerChannels.end(); iter++) {
+                RemoveSamplerChannel(iter->second);
+            }
+        }
+        catch(...) {
+            std::cerr << "Sampler::Reset(): Exception occured while trying to delete all sampler channels, exiting.\n" << std::flush;
+            exit(EXIT_FAILURE);
+        }
+
+        // delete midi input devices
+        try {
+            MidiInputDeviceMap::iterator iter = mMidiInputDevices.begin();
+            for (; iter != mMidiInputDevices.end(); iter++) {
+                DestroyMidiInputDevice(iter->second);
+            }
+        }
+        catch(...) {
+            std::cerr << "Sampler::Reset(): Exception occured while trying to delete all MIDI input devices, exiting.\n" << std::flush;
+            exit(EXIT_FAILURE);
+        }
+
+        // delete audio output devices
+        try {
+            AudioOutputDeviceMap::iterator iter = mAudioOutputDevices.begin();
+            for (; iter != mAudioOutputDevices.end(); iter++) {
+                DestroyAudioOutputDevice(iter->second);
+            }
+        }
+        catch(...) {
+            std::cerr << "Sampler::Reset(): Exception occured while trying to delete all audio output devices, exiting.\n" << std::flush;
+            exit(EXIT_FAILURE);
+        }
     }
 
 } // namespace LinuxSampler

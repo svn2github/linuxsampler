@@ -2967,10 +2967,42 @@ Schoenebeck'>
                     LinuxSampler than really useful for a front-end implementation.</t>
                 </section>
             </section>
+
+            <section title="Global commands">
+                <t>The following commands have global impact on the sampler.</t>
+
+                <section title="Reset sampler">
+                    <t>The front-end can reset the whole sampler by sending the following command:</t>
+                    <t>
+                        <list>
+                            <t>RESET</t>
+                        </list>
+                    </t>
+
+                    <t>Possible Answers:</t>
+                    <t>
+                        <list>
+                            <t>"OK" -
+                                <list>
+                                    <t>always</t>
+                                </list>
+                            </t>
+                        </list>
+                    </t>
+                    <t>Examples:</t>
+                    <t>
+                        <list>
+                            <t></t>
+                        </list>
+                    </t>
+                </section>
+            </section>
         </section>
 
         <section title="Command Syntax">
-            <t>TODO: will soon automatically included from src/network/lscp.y</t>
+            <t>TODO: will soon automatically included from src/network/lscp.y,
+            meanwhile have a look at that file to get the exact definition of
+            the command syntax.</t>
         </section>
 
         <section title="Events">

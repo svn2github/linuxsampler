@@ -335,6 +335,12 @@ namespace LinuxSampler {
              */
             void DestroyMidiInputDevice(MidiInputDevice* pDevice) throw (LinuxSamplerException);
 
+            /**
+             * Reset the whole sampler. Destroy all engines, sampler
+             * channels, MIDI input devices and audio output devices.
+             */
+            void Reset();
+
         protected:
             typedef std::map<uint, AudioOutputDevice*> AudioOutputDeviceMap;
             typedef std::map<uint, MidiInputDevice*> MidiInputDeviceMap;

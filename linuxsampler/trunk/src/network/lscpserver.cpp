@@ -743,14 +743,14 @@ String LSCPServer::GetMidiInputDriverParameterInfo(String Driver, String Paramet
         DeviceCreationParameter* pParameter = MidiInputDeviceFactory::GetDriverParameter(Driver, Parameter);
         result.Add("TYPE",         pParameter->Type());
         result.Add("DESCRIPTION",  pParameter->Description());
-        result.Add("MANDATORY",    pParameter->Mandatory());
-        result.Add("FIX",          pParameter->Fix());
-        result.Add("MULTIPLICITY", pParameter->Multiplicity());
-        if (pParameter->Depends())       result.Add("DEPENDS",       pParameter->Depends());
-        if (pParameter->Default())       result.Add("DEFAULT",       pParameter->Default());
-        if (pParameter->RangeMin())      result.Add("RANGE_MIN",     pParameter->RangeMin());
-        if (pParameter->RangeMax())      result.Add("RANGE_MAX",     pParameter->RangeMax());
-        if (pParameter->Possibilities()) result.Add("POSSIBILITIES", pParameter->Possibilities());
+        result.Add("MANDATORY",    (pParameter->Mandatory())    ? "true" : "false");
+        result.Add("FIX",          (pParameter->Fix())          ? "true" : "false");
+        result.Add("MULTIPLICITY", (pParameter->Multiplicity()) ? "true" : "false");
+        if (pParameter->Depends())       result.Add("DEPENDS",       *pParameter->Depends());
+        if (pParameter->Default())       result.Add("DEFAULT",       *pParameter->Default());
+        if (pParameter->RangeMin())      result.Add("RANGE_MIN",     *pParameter->RangeMin());
+        if (pParameter->RangeMax())      result.Add("RANGE_MAX",     *pParameter->RangeMax());
+        if (pParameter->Possibilities()) result.Add("POSSIBILITIES", *pParameter->Possibilities());
     }
     catch (LinuxSamplerException e) {
         result.Error(e);
@@ -765,14 +765,14 @@ String LSCPServer::GetAudioOutputDriverParameterInfo(String Driver, String Param
         DeviceCreationParameter* pParameter = AudioOutputDeviceFactory::GetDriverParameter(Driver, Parameter);
         result.Add("TYPE",         pParameter->Type());
         result.Add("DESCRIPTION",  pParameter->Description());
-        result.Add("MANDATORY",    pParameter->Mandatory());
-        result.Add("FIX",          pParameter->Fix());
-        result.Add("MULTIPLICITY", pParameter->Multiplicity());
-        if (pParameter->Depends())       result.Add("DEPENDS",       pParameter->Depends());
-        if (pParameter->Default())       result.Add("DEFAULT",       pParameter->Default());
-        if (pParameter->RangeMin())      result.Add("RANGE_MIN",     pParameter->RangeMin());
-        if (pParameter->RangeMax())      result.Add("RANGE_MAX",     pParameter->RangeMax());
-        if (pParameter->Possibilities()) result.Add("POSSIBILITIES", pParameter->Possibilities());
+        result.Add("MANDATORY",    (pParameter->Mandatory())    ? "true" : "false");
+        result.Add("FIX",          (pParameter->Fix())          ? "true" : "false");
+        result.Add("MULTIPLICITY", (pParameter->Multiplicity()) ? "true" : "false");
+        if (pParameter->Depends())       result.Add("DEPENDS",       *pParameter->Depends());
+        if (pParameter->Default())       result.Add("DEFAULT",       *pParameter->Default());
+        if (pParameter->RangeMin())      result.Add("RANGE_MIN",     *pParameter->RangeMin());
+        if (pParameter->RangeMax())      result.Add("RANGE_MAX",     *pParameter->RangeMax());
+        if (pParameter->Possibilities()) result.Add("POSSIBILITIES", *pParameter->Possibilities());
     }
     catch (LinuxSamplerException e) {
         result.Error(e);
@@ -1280,6 +1280,16 @@ String LSCPServer::ResetChannel(uint uiSamplerChannel) {
     catch (LinuxSamplerException e) {
          result.Error(e);
     }
+    return result.Produce();
+}
+
+/**
+ * Will be called by the parser to reset the whole sampler.
+ */
+String LSCPServer::ResetSampler() {
+    dmsg(2,("LSCPServer: ResetSampler()\n"));
+    pSampler->Reset();
+    LSCPResultSet result;
     return result.Produce();
 }
 

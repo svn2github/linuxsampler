@@ -105,6 +105,7 @@ command               :  ADD SP CHANNEL                             { $$ = LSCPS
                       |  SUBSCRIBE SP subscribe_event               { $$ = $3;                                        }
                       |  UNSUBSCRIBE SP unsubscribe_event           { $$ = $3;                                        }
                       |  RESET SP CHANNEL SP sampler_channel        { $$ = LSCPSERVER->ResetChannel($5);              }
+                      |  RESET                                      { $$ = LSCPSERVER->ResetSampler();                }
                       |  QUIT                                       { LSCPSERVER->AnswerClient("Bye!\r\n"); return LSCP_QUIT; }
                       ;
 

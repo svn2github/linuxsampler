@@ -64,7 +64,7 @@ namespace LinuxSampler {
 					    virtual bool   Fix()                                                            { return false;   }
 					    virtual bool   Mandatory()                                                      { return false;   }
 					    virtual std::map<String,DeviceCreationParameter*> DependsAsParameters()         { return std::map<String,DeviceCreationParameter*>(); }
-					    virtual optional<String>    Default(std::map<String,String> Parameters)         { return ""; }
+					    virtual optional<String>    DefaultAsString(std::map<String,String> Parameters)         { return ""; }
 					    virtual std::vector<String> PossibilitiesAsString(std::map<String,String> Parameters) { return std::vector<String>(); } //TODO
 					    virtual void             OnSetValue(String s) throw (LinuxSamplerException)     { pPort->ConnectToAlsaMidiSource(s.c_str()); }
 				    protected:
