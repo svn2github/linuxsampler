@@ -234,9 +234,6 @@ namespace LinuxSampler {
         // create new device
         AudioOutputDevice* pDevice = AudioOutputDeviceFactory::Create(AudioDriver, Parameters);
 
-        // activate device
-        pDevice->Play();
-
         // add new audio device to the audio device list
         for (uint i = 0; ; i++) { // seek for a free place starting from the beginning
             if (!mAudioOutputDevices[i]) {
@@ -307,9 +304,6 @@ namespace LinuxSampler {
     MidiInputDevice* Sampler::CreateMidiInputDevice(String MidiDriver, std::map<String,String> Parameters) throw (LinuxSamplerException) {
         // create new device
         MidiInputDevice* pDevice = MidiInputDeviceFactory::Create(MidiDriver, Parameters);
-
-        // activate device
-        pDevice->Listen();
 
 	// add new device to the midi device list
 	for (uint i = 0; ; i++) { // seek for a free place starting from the beginning
