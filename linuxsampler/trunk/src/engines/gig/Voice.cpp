@@ -255,8 +255,9 @@ namespace LinuxSampler { namespace gig {
                 CrossfadeVolume = 1.0f;
         }
 
-        PanLeft  = float(RTMath::Max(pDimRgn->Pan, 0)) / -64.0f;
-        PanRight = float(RTMath::Min(pDimRgn->Pan, 0)) /  63.0f;
+	const float fpan = float(RTMath::Max(RTMath::Min(pDimRgn->Pan, 63), -64)) / 64.0f;
+        PanLeft  = 1.0f - fpan;
+        PanRight = 1.0f + fpan;
 
         pSample = pDimRgn->pSample; // sample won't change until the voice is finished
 
