@@ -92,24 +92,24 @@ namespace LinuxSampler { namespace gig {
             int          MIDIKey;      ///< MIDI key number of the key that triggered the voice
             uint         KeyGroup;
             DiskThread*  pDiskThread;  ///< Pointer to the disk thread, to be able to order a disk stream and later to delete the stream again
+            RTList<Voice>::Iterator itChildVoice; ///< Points to the next layer voice (if any). This field is currently only used by the voice stealing algorithm.
 
             // Methods
             Voice();
            ~Voice();
             void Kill(Pool<Event>::Iterator& itKillEvent);
-            void KillImmediately();
             void Render(uint Samples);
             void Reset();
             void SetOutput(AudioOutputDevice* pAudioOutputDevice);
             void SetEngine(Engine* pEngine);
             int  Trigger(Pool<Event>::Iterator& itNoteOnEvent, int PitchBend, ::gig::Instrument* pInstrument, int iLayer = 0, bool ReleaseTriggerVoice = false);
-            inline bool IsActive() { return Active; }
+            inline bool IsActive() { return PlaybackState; }
         private:
             // Types
             enum playback_state_t {
-                playback_state_ram,
-                playback_state_disk,
-                playback_state_end
+                playback_state_end  = 0,
+                playback_state_ram  = 1,
+                playback_state_disk = 2
             };
 
             // Attributes
@@ -124,7 +124,6 @@ namespace LinuxSampler { namespace gig {
             ::gig::Sample*              pSample;            ///< Pointer to the sample to be played back
             ::gig::Region*              pRegion;            ///< Pointer to the articulation information of the respective keyboard region of this voice
             ::gig::DimensionRegion*     pDimRgn;            ///< Pointer to the articulation information of current dimension region of this voice
-            bool                        Active;             ///< If this voice object is currently in usage
             playback_state_t            PlaybackState;      ///< When a sample will be triggered, it will be first played from RAM cache and after a couple of sample points it will switch to disk streaming and at the end of a disk stream we have to add null samples, so the interpolator can do it's work correctly
             bool                        DiskVoice;          ///< If the sample is very short it completely fits into the RAM cache and doesn't need to be streamed from disk, in that case this flag is set to false
             Stream::reference_t         DiskStreamRef;      ///< Reference / link to the disk stream
@@ -156,6 +155,7 @@ namespace LinuxSampler { namespace gig {
             static int   CalculateFilterUpdateMask();
 
             // Methods
+            void        KillImmediately();
             void        ProcessEvents(uint Samples);
             #if ENABLE_FILTER
             void        CalculateBiquadParameters(uint Samples);

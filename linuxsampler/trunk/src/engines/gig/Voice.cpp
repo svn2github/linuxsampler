@@ -45,7 +45,7 @@ namespace LinuxSampler { namespace gig {
     Voice::Voice() {
         pEngine     = NULL;
         pDiskThread = NULL;
-        Active = false;
+        PlaybackState = playback_state_end;
         pEG1   = NULL;
         pEG2   = NULL;
         pEG3   = NULL;
@@ -117,13 +117,13 @@ namespace LinuxSampler { namespace gig {
         }
 
         Type            = type_normal;
-        Active          = true;
         MIDIKey         = itNoteOnEvent->Param.Note.Key;
         pRegion         = pInstrument->GetRegion(MIDIKey);
         PlaybackState   = playback_state_ram; // we always start playback from RAM cache and switch then to disk if needed
         Delay           = itNoteOnEvent->FragmentPos();
         itTriggerEvent  = itNoteOnEvent;
         itKillEvent     = Pool<Event>::Iterator();
+        itChildVoice    = Pool<Voice>::Iterator();
 
         if (!pRegion) {
             std::cerr << "gig::Voice: No Region defined for MIDI key " << MIDIKey << std::endl << std::flush;
@@ -146,7 +146,7 @@ namespace LinuxSampler { namespace gig {
                     // if this is the 1st layer then spawn further voices for all the other layers
                     if (iLayer == 0)
                         for (int iNewLayer = 1; iNewLayer < pRegion->pDimensionDefinitions[i].zones; iNewLayer++)
-                            pEngine->LaunchVoice(itNoteOnEvent, iNewLayer, ReleaseTriggerVoice);
+                            itChildVoice = pEngine->LaunchVoice(itNoteOnEvent, iNewLayer, ReleaseTriggerVoice);
                     break;
                 case ::gig::dimension_velocity:
                     DimValues[i] = itNoteOnEvent->Param.Note.Velocity;
@@ -701,7 +701,7 @@ namespace LinuxSampler { namespace gig {
                 break;
 
             case playback_state_end:
-                KillImmediately(); // free voice
+                std::cerr << "gig::Voice::Render(): entered with playback_state_end, this is a bug!\n" << std::flush;
                 break;
         }
 
@@ -718,8 +718,8 @@ namespace LinuxSampler { namespace gig {
 
         itTriggerEvent = Pool<Event>::Iterator();
 
-        // If release stage finished, let the voice be killed
-        if (pEG1->GetStage() == EGADSR::stage_end) this->PlaybackState = playback_state_end;
+        // If sample stream or release stage finished, kill the voice
+        if (PlaybackState == playback_state_end || pEG1->GetStage() == EGADSR::stage_end) KillImmediately();
     }
 
     /**
@@ -734,7 +734,9 @@ namespace LinuxSampler { namespace gig {
         DiskStreamRef.hStream = 0;
         DiskStreamRef.State   = Stream::state_unused;
         DiskStreamRef.OrderID = 0;
-        Active = false;
+        PlaybackState = playback_state_end;
+        itTriggerEvent = Pool<Event>::Iterator();
+        itKillEvent    = Pool<Event>::Iterator();
     }
 
     /**

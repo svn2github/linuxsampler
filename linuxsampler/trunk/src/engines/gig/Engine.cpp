@@ -23,6 +23,7 @@
 #include <sstream>
 #include "DiskThread.h"
 #include "Voice.h"
+#include "EGADSR.h"
 
 #include "Engine.h"
 
@@ -313,6 +314,11 @@ namespace LinuxSampler { namespace gig {
         this->MaxSamplesPerCycle      = pAudioOutputDevice->MaxSamplesPerCycle();
         this->SampleRate              = pAudioOutputDevice->SampleRate();
 
+        // FIXME: audio drivers with varying fragment sizes might be a problem here
+        MaxFadeOutPos = MaxSamplesPerCycle - int(double(SampleRate) * EG_MIN_RELEASE_TIME) - 1;
+        if (MaxFadeOutPos < 0)
+            throw LinuxSamplerException("EG_MIN_RELEASE_TIME in EGADSR.h to big for current audio fragment size / sampling rate!");
+
         // (re)create disk thread
         if (this->pDiskThread) {
             this->pDiskThread->StopThread();
@@ -466,7 +472,7 @@ namespace LinuxSampler { namespace gig {
                     itVoice->Render(Samples);
                     if (itVoice->IsActive()) active_voices++; // still active
                     else { // voice reached end, is now inactive
-                        KillVoiceImmediately(itVoice); // remove voice from the list of active voices
+                        FreeVoice(itVoice); // remove voice from the list of active voices
                     }
                 }
             }
@@ -480,10 +486,12 @@ namespace LinuxSampler { namespace gig {
             for (; itVoiceStealEvent != end; ++itVoiceStealEvent) {
                 Pool<Voice>::Iterator itNewVoice = LaunchVoice(itVoiceStealEvent, itVoiceStealEvent->Param.Note.Layer, itVoiceStealEvent->Param.Note.ReleaseTrigger, false);
                 if (itNewVoice) {
-                    itNewVoice->Render(Samples);
-                    if (itNewVoice->IsActive()) active_voices++; // still active
-                    else { // voice reached end, is now inactive
-                        KillVoiceImmediately(itNewVoice); // remove voice from the list of active voices
+                    for (; itNewVoice; itNewVoice = itNewVoice->itChildVoice) {
+                        itNewVoice->Render(Samples);
+                        if (itNewVoice->IsActive()) active_voices++; // still active
+                        else { // voice reached end, is now inactive
+                            FreeVoice(itNewVoice); // remove voice from the list of active voices
+                        }
                     }
                 }
                 else dmsg(1,("Ouch, voice stealing didn't work out!\n"));
@@ -716,7 +724,25 @@ namespace LinuxSampler { namespace gig {
                 return itNewVoice; // success
             }
         }
-        else if (VoiceStealing) StealVoice(itNoteOnEvent, iLayer, ReleaseTriggerVoice); // no free voice left, so steal one
+        else if (VoiceStealing) {
+            // first, get total amount of required voices (dependant on amount of layers)
+            ::gig::Region* pRegion = pInstrument->GetRegion(itNoteOnEvent->Param.Note.Key);
+            if (!pRegion) return Pool<Voice>::Iterator(); // nothing defined for this MIDI key, so no voice needed
+            int voicesRequired = pRegion->Layers;
+
+            // now steal the (remaining) amount of voices
+            for (int i = iLayer; i < voicesRequired; i++)
+                StealVoice(itNoteOnEvent);
+
+            // put note-on event into voice-stealing queue, so it will be reprocessed after killed voice died
+            RTList<Event>::Iterator itStealEvent = pVoiceStealingQueue->allocAppend();
+            if (itStealEvent) {
+                *itStealEvent = *itNoteOnEvent; // copy event
+                itStealEvent->Param.Note.Layer = iLayer;
+                itStealEvent->Param.Note.ReleaseTrigger = ReleaseTriggerVoice;
+            }
+            else dmsg(1,("Voice stealing queue full!\n"));
+        }
 
         return Pool<Voice>::Iterator(); // no free voice or error
     }
@@ -727,11 +753,9 @@ namespace LinuxSampler { namespace gig {
      *  voice stealing and postpone the note-on event until the selected
      *  voice actually died.
      *
-     *  @param itNoteOnEvent       - key, velocity and time stamp of the event
-     *  @param iLayer              - layer index for the new voice
-     *  @param ReleaseTriggerVoice - if new voice is a release triggered voice
+     *  @param itNoteOnEvent - key, velocity and time stamp of the event
      */
-    void Engine::StealVoice(Pool<Event>::Iterator& itNoteOnEvent, int iLayer, bool ReleaseTriggerVoice) {
+    void Engine::StealVoice(Pool<Event>::Iterator& itNoteOnEvent) {
         if (!pEventPool->poolIsEmpty()) {
 
             RTList<uint>::Iterator  iuiOldestKey;
@@ -773,8 +797,8 @@ namespace LinuxSampler { namespace gig {
                                 midi_key_info_t* pOldestKey = &pMIDIKeyInfo[*iuiOldestKey];
                                 itOldestVoice = pOldestKey->pActiveVoices->first();
                             }
-                            else { // too less voices, even for voice stealing
-                                dmsg(1,("Voice overflow! - You might recompile with higher MAX_AUDIO_VOICES!\n"));
+                            else {
+                                dmsg(1,("gig::Engine: Warning, too less voices, even for voice stealing! - Better recompile with higher MAX_AUDIO_VOICES.\n"));
                                 return;
                             }
                         }
@@ -801,29 +825,20 @@ namespace LinuxSampler { namespace gig {
             // remember which voice on which key we stole, so we can simply proceed for the next voice stealing
             this->itLastStolenVoice = itOldestVoice;
             this->iuiLastStolenKey = iuiOldestKey;
-            // put note-on event into voice-stealing queue, so it will be reprocessed after killed voice died
-            RTList<Event>::Iterator itStealEvent = pVoiceStealingQueue->allocAppend();
-            if (itStealEvent) {
-                *itStealEvent = *itNoteOnEvent; // copy event
-                itStealEvent->Param.Note.Layer = iLayer;
-                itStealEvent->Param.Note.ReleaseTrigger = ReleaseTriggerVoice;
-            }
-            else dmsg(1,("Voice stealing queue full!\n"));
         }
         else dmsg(1,("Event pool emtpy!\n"));
     }
 
     /**
-     *  Immediately kills the voice given with pVoice (no matter if sustain is
-     *  pressed or not) and removes it from the MIDI key's list of active voice.
-     *  This method will e.g. be called if a voice went inactive by itself.
+     *  Removes the given voice from the MIDI key's list of active voices.
+     *  This method will be called when a voice went inactive, e.g. because
+     *  it finished to playback its sample, finished its release stage or
+     *  just was killed.
      *
-     *  @param itVoice - points to the voice to be killed
+     *  @param itVoice - points to the voice to be freed
      */
-    void Engine::KillVoiceImmediately(Pool<Voice>::Iterator& itVoice) {
+    void Engine::FreeVoice(Pool<Voice>::Iterator& itVoice) {
         if (itVoice) {
-            if (itVoice->IsActive()) itVoice->KillImmediately();
-
             midi_key_info_t* pKey = &pMIDIKeyInfo[itVoice->MIDIKey];
 
             uint keygroup = itVoice->KeyGroup;
@@ -845,7 +860,7 @@ namespace LinuxSampler { namespace gig {
                 dmsg(3,("Key has no more voices now\n"));
             }
         }
-        else std::cerr << "Couldn't release voice! (pVoice == NULL)\n" << std::flush;
+        else std::cerr << "Couldn't release voice! (!itVoice)\n" << std::flush;
     }
 
     /**
@@ -1095,7 +1110,7 @@ namespace LinuxSampler { namespace gig {
     }
 
     String Engine::Version() {
-        String s = "$Revision: 1.15 $";
+        String s = "$Revision: 1.16 $";
         return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
 

@@ -158,6 +158,7 @@ namespace LinuxSampler { namespace gig {
             int8_t                  ScaleTuning[12];       ///< contains optional detune factors (-64..+63 cents) for all 12 semitones of an octave
             RTList<Voice>::Iterator itLastStolenVoice;      ///< Only for voice stealing: points to the last voice which was theft in current audio fragment, NULL otherwise.
             RTList<uint>::Iterator  iuiLastStolenKey;      ///< Only for voice stealing: key number of last key on which the last voice was theft in current audio fragment, NULL otherwise.
+            int                     MaxFadeOutPos;         ///< The last position in an audio fragment to allow a instant fade out (e.g. for voice stealing) without leading to clicks.
 
             void ProcessNoteOn(Pool<Event>::Iterator& itNoteOnEvent);
             void ProcessNoteOff(Pool<Event>::Iterator& itNoteOffEvent);
@@ -165,8 +166,8 @@ namespace LinuxSampler { namespace gig {
             void ProcessControlChange(Pool<Event>::Iterator& itControlChangeEvent);
             void ProcessSysex(Pool<Event>::Iterator& itSysexEvent);
             Pool<Voice>::Iterator LaunchVoice(Pool<Event>::Iterator& itNoteOnEvent, int iLayer = 0, bool ReleaseTriggerVoice = false, bool VoiceStealing = true);
-            void StealVoice(Pool<Event>::Iterator& itNoteOnEvent, int iLayer, bool ReleaseTriggerVoice);
-            void KillVoiceImmediately(Pool<Voice>::Iterator& itVoice);
+            void StealVoice(Pool<Event>::Iterator& itNoteOnEvent);
+            void FreeVoice(Pool<Voice>::Iterator& itVoice);
             void ResetSynthesisParameters(Event::destination_t dst, float val);
             void ResetInternal();
 

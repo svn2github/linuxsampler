@@ -29,7 +29,7 @@ namespace LinuxSampler { namespace gig {
     float EGADSR::CalculateFadeOutCoeff() {
         const float sampleRate = 44100.0; // even if the sample rate will be 192kHz it won't hurt at all
         const float killSteps  = EG_MIN_RELEASE_TIME * sampleRate;
-        return 1.0f / killSteps;
+        return -1.0f / killSteps;
     }
 
     EGADSR::EGADSR(gig::Engine* pEngine, Event::destination_t ModulationDestination) {
@@ -58,7 +58,7 @@ namespace LinuxSampler { namespace gig {
         RTList<Event>::Iterator itTransitionEvent = (itTriggerEvent) ? ++itTriggerEvent : pEvents->first();
 
         // if the voice was killed in this fragment we only process the time before this kill event, then switch to 'stage_fadeout'
-        int Samples = (itKillEvent) ? itKillEvent->FragmentPos() : (int) TotalSamples;
+        int Samples = (itKillEvent) ? RTMath::Min(itKillEvent->FragmentPos(), pEngine->MaxFadeOutPos) : (int) TotalSamples;
 
         int iSample = TriggerDelay;
         while (iSample < TotalSamples) {
@@ -170,7 +170,8 @@ namespace LinuxSampler { namespace gig {
                         Level += FadeOutCoeff;
                         pEngine->pSynthesisParameters[ModulationDestination][iSample++] *= Level;
                     }
-                    if (Level <= FadeOutCoeff) Stage = stage_end;
+                    Stage = stage_end;
+                    if (Level > -FadeOutCoeff) dmsg(1,("EGADSR: Warning, final fade out level too high, may result in click sound!\n"));
                 } //Fall through here instead of breaking otherwise we can get back into stage_fadeout and loop forever!
                 case stage_end: {
                     while (iSample < TotalSamples) {
@@ -179,6 +180,11 @@ namespace LinuxSampler { namespace gig {
                     break;
                 }
             }
+        }
+
+        if (itKillEvent && Stage != stage_end) {
+            dmsg(1,("EGADSR: VOICE KILLING NOT COMPLETED !!!\n"));
+            dmsg(1,("EGADSR: Stage=%d,iSample=%d,Samples=%d, TotalSamples=%d, MaxFadoutPos=%d\n",Stage,iSample,Samples,TotalSamples,pEngine->MaxFadeOutPos));
         }
     }
 
