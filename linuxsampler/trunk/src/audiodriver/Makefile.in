@@ -100,23 +100,23 @@ am__quote = @am__quote@
 install_sh = @install_sh@
 INCLUDES = $(all_includes)
 METASOURCES = AUTO
-noinst_LIBRARIES = liblinuxsampleraudiodriver.a
-liblinuxsampleraudiodriver_a_SOURCES = AudioChannel.cpp AudioChannel.h AudioOutputDevice.cpp AudioOutputDevice.h AudioOutputDeviceAlsa.cpp AudioOutputDeviceAlsa.h AudioOutputDeviceJack.cpp AudioOutputDeviceJack.h
 
-liblinuxsampleraudiodriver_a_DEPENDENCIES = $(JACK_LIBS)
+noinst_LTLIBRARIES = liblinuxsampleraudiodriver.la
+liblinuxsampleraudiodriver_la_SOURCES = AudioChannel.cpp AudioChannel.h AudioOutputDevice.cpp AudioOutputDevice.h AudioOutputDeviceAlsa.cpp AudioOutputDeviceAlsa.h AudioOutputDeviceJack.cpp AudioOutputDeviceJack.h
+liblinuxsampleraudiodriver_la_LDFLAGS = $(JACK_LIBS)
+liblinuxsampleraudiodriver_la_DEPENDENCIES = $(JACK_LIBS)
+liblinuxsampleraudiodriver_la_LIBADD = -lasound
 subdir = src/audiodriver
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
 CONFIG_HEADER = $(top_builddir)/config.h
 CONFIG_CLEAN_FILES =
-LIBRARIES = $(noinst_LIBRARIES)
+LTLIBRARIES = $(noinst_LTLIBRARIES)
 
-liblinuxsampleraudiodriver_a_AR = $(AR) cru
-liblinuxsampleraudiodriver_a_LIBADD =
-am_liblinuxsampleraudiodriver_a_OBJECTS = AudioChannel.$(OBJEXT) \
-	AudioOutputDevice.$(OBJEXT) AudioOutputDeviceAlsa.$(OBJEXT) \
-	AudioOutputDeviceJack.$(OBJEXT)
-liblinuxsampleraudiodriver_a_OBJECTS = \
-	$(am_liblinuxsampleraudiodriver_a_OBJECTS)
+am_liblinuxsampleraudiodriver_la_OBJECTS = AudioChannel.lo \
+	AudioOutputDevice.lo AudioOutputDeviceAlsa.lo \
+	AudioOutputDeviceJack.lo
+liblinuxsampleraudiodriver_la_OBJECTS = \
+	$(am_liblinuxsampleraudiodriver_la_OBJECTS)
 
 DEFS = @DEFS@
 DEFAULT_INCLUDES =  -I. -I$(srcdir) -I$(top_builddir)
@@ -125,10 +125,10 @@ LDFLAGS = @LDFLAGS@
 LIBS = @LIBS@
 depcomp = $(SHELL) $(top_srcdir)/depcomp
 am__depfiles_maybe = depfiles
-@AMDEP_TRUE@DEP_FILES = ./$(DEPDIR)/AudioChannel.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/AudioOutputDevice.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/AudioOutputDeviceAlsa.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/AudioOutputDeviceJack.Po
+@AMDEP_TRUE@DEP_FILES = ./$(DEPDIR)/AudioChannel.Plo \
+@AMDEP_TRUE@	./$(DEPDIR)/AudioOutputDevice.Plo \
+@AMDEP_TRUE@	./$(DEPDIR)/AudioOutputDeviceAlsa.Plo \
+@AMDEP_TRUE@	./$(DEPDIR)/AudioOutputDeviceJack.Plo
 CXXCOMPILE = $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
 	$(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS)
 LTCXXCOMPILE = $(LIBTOOL) --mode=compile $(CXX) $(DEFS) \
@@ -146,9 +146,9 @@ LTCOMPILE = $(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) \
 CCLD = $(CC)
 LINK = $(LIBTOOL) --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
 	$(AM_LDFLAGS) $(LDFLAGS) -o $@
-DIST_SOURCES = $(liblinuxsampleraudiodriver_a_SOURCES)
+DIST_SOURCES = $(liblinuxsampleraudiodriver_la_SOURCES)
 DIST_COMMON = Makefile.am Makefile.in
-SOURCES = $(liblinuxsampleraudiodriver_a_SOURCES)
+SOURCES = $(liblinuxsampleraudiodriver_la_SOURCES)
 
 all: all-am
 
@@ -160,12 +160,16 @@ $(srcdir)/Makefile.in:  Makefile.am  $(top_srcdir)/configure.in $(ACLOCAL_M4)
 Makefile:  $(srcdir)/Makefile.in  $(top_builddir)/config.status
 	cd $(top_builddir) && $(SHELL) ./config.status $(subdir)/$@ $(am__depfiles_maybe)
 
-clean-noinstLIBRARIES:
-	-test -z "$(noinst_LIBRARIES)" || rm -f $(noinst_LIBRARIES)
-liblinuxsampleraudiodriver.a: $(liblinuxsampleraudiodriver_a_OBJECTS) $(liblinuxsampleraudiodriver_a_DEPENDENCIES) 
-	-rm -f liblinuxsampleraudiodriver.a
-	$(liblinuxsampleraudiodriver_a_AR) liblinuxsampleraudiodriver.a $(liblinuxsampleraudiodriver_a_OBJECTS) $(liblinuxsampleraudiodriver_a_LIBADD)
-	$(RANLIB) liblinuxsampleraudiodriver.a
+clean-noinstLTLIBRARIES:
+	-test -z "$(noinst_LTLIBRARIES)" || rm -f $(noinst_LTLIBRARIES)
+	@list='$(noinst_LTLIBRARIES)'; for p in $$list; do \
+	  dir="`echo $$p | sed -e 's|/[^/]*$$||'`"; \
+	  test -z "$dir" && dir=.; \
+	  echo "rm -f \"$${dir}/so_locations\""; \
+	  rm -f "$${dir}/so_locations"; \
+	done
+liblinuxsampleraudiodriver.la: $(liblinuxsampleraudiodriver_la_OBJECTS) $(liblinuxsampleraudiodriver_la_DEPENDENCIES) 
+	$(CXXLINK)  $(liblinuxsampleraudiodriver_la_LDFLAGS) $(liblinuxsampleraudiodriver_la_OBJECTS) $(liblinuxsampleraudiodriver_la_LIBADD) $(LIBS)
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT) core *.core
@@ -173,10 +177,10 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/AudioChannel.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/AudioOutputDevice.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/AudioOutputDeviceAlsa.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/AudioOutputDeviceJack.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/AudioChannel.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/AudioOutputDevice.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/AudioOutputDeviceAlsa.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/AudioOutputDeviceJack.Plo@am__quote@
 
 distclean-depend:
 	-rm -rf ./$(DEPDIR)
@@ -273,7 +277,7 @@ distdir: $(DISTFILES)
 	done
 check-am: all-am
 check: check-am
-all-am: Makefile $(LIBRARIES)
+all-am: Makefile $(LTLIBRARIES)
 
 installdirs:
 
@@ -303,7 +307,7 @@ maintainer-clean-generic:
 	@echo "it deletes files that may require special tools to rebuild."
 clean: clean-am
 
-clean-am: clean-generic clean-libtool clean-noinstLIBRARIES \
+clean-am: clean-generic clean-libtool clean-noinstLTLIBRARIES \
 	mostlyclean-am
 
 distclean: distclean-am
@@ -341,15 +345,16 @@ mostlyclean-am: mostlyclean-compile mostlyclean-generic \
 uninstall-am: uninstall-info-am
 
 .PHONY: GTAGS all all-am check check-am clean clean-generic \
-	clean-libtool clean-noinstLIBRARIES distclean distclean-compile \
-	distclean-depend distclean-generic distclean-libtool \
-	distclean-tags distdir dvi dvi-am info info-am install \
-	install-am install-data install-data-am install-exec \
-	install-exec-am install-info install-info-am install-man \
-	install-strip installcheck installcheck-am installdirs \
-	maintainer-clean maintainer-clean-generic mostlyclean \
-	mostlyclean-compile mostlyclean-generic mostlyclean-libtool \
-	tags uninstall uninstall-am uninstall-info-am
+	clean-libtool clean-noinstLTLIBRARIES distclean \
+	distclean-compile distclean-depend distclean-generic \
+	distclean-libtool distclean-tags distdir dvi dvi-am info \
+	info-am install install-am install-data install-data-am \
+	install-exec install-exec-am install-info install-info-am \
+	install-man install-strip installcheck installcheck-am \
+	installdirs maintainer-clean maintainer-clean-generic \
+	mostlyclean mostlyclean-compile mostlyclean-generic \
+	mostlyclean-libtool tags uninstall uninstall-am \
+	uninstall-info-am
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

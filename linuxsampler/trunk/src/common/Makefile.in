@@ -100,20 +100,20 @@ am__quote = @am__quote@
 install_sh = @install_sh@
 INCLUDES = $(all_includes)
 METASOURCES = AUTO
-noinst_LIBRARIES = liblinuxsamplercommon.a
-liblinuxsamplercommon_a_SOURCES = atomic.h Condition.cpp Condition.h ConditionServer.cpp ConditionServer.h global.h LinuxSamplerException.h Mutex.cpp Mutex.h ResourceManager.h RingBuffer.h RTELMemoryPool.h RTMath.cpp RTMath.h Thread.cpp Thread.h
+noinst_LTLIBRARIES = liblinuxsamplercommon.la
+liblinuxsamplercommon_la_SOURCES = atomic.h Condition.cpp Condition.h ConditionServer.cpp ConditionServer.h global.h LinuxSamplerException.h Mutex.cpp Mutex.h ResourceManager.h RingBuffer.h RTELMemoryPool.h RTMath.cpp RTMath.h Thread.cpp Thread.h
 subdir = src/common
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
 CONFIG_HEADER = $(top_builddir)/config.h
 CONFIG_CLEAN_FILES =
-LIBRARIES = $(noinst_LIBRARIES)
+LTLIBRARIES = $(noinst_LTLIBRARIES)
 
-liblinuxsamplercommon_a_AR = $(AR) cru
-liblinuxsamplercommon_a_LIBADD =
-am_liblinuxsamplercommon_a_OBJECTS = Condition.$(OBJEXT) \
-	ConditionServer.$(OBJEXT) Mutex.$(OBJEXT) RTMath.$(OBJEXT) \
-	Thread.$(OBJEXT)
-liblinuxsamplercommon_a_OBJECTS = $(am_liblinuxsamplercommon_a_OBJECTS)
+liblinuxsamplercommon_la_LDFLAGS =
+liblinuxsamplercommon_la_LIBADD =
+am_liblinuxsamplercommon_la_OBJECTS = Condition.lo ConditionServer.lo \
+	Mutex.lo RTMath.lo Thread.lo
+liblinuxsamplercommon_la_OBJECTS = \
+	$(am_liblinuxsamplercommon_la_OBJECTS)
 
 DEFS = @DEFS@
 DEFAULT_INCLUDES =  -I. -I$(srcdir) -I$(top_builddir)
@@ -122,9 +122,10 @@ LDFLAGS = @LDFLAGS@
 LIBS = @LIBS@
 depcomp = $(SHELL) $(top_srcdir)/depcomp
 am__depfiles_maybe = depfiles
-@AMDEP_TRUE@DEP_FILES = ./$(DEPDIR)/Condition.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/ConditionServer.Po ./$(DEPDIR)/Mutex.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/RTMath.Po ./$(DEPDIR)/Thread.Po
+@AMDEP_TRUE@DEP_FILES = ./$(DEPDIR)/Condition.Plo \
+@AMDEP_TRUE@	./$(DEPDIR)/ConditionServer.Plo \
+@AMDEP_TRUE@	./$(DEPDIR)/Mutex.Plo ./$(DEPDIR)/RTMath.Plo \
+@AMDEP_TRUE@	./$(DEPDIR)/Thread.Plo
 CXXCOMPILE = $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
 	$(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS)
 LTCXXCOMPILE = $(LIBTOOL) --mode=compile $(CXX) $(DEFS) \
@@ -142,9 +143,9 @@ LTCOMPILE = $(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) \
 CCLD = $(CC)
 LINK = $(LIBTOOL) --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
 	$(AM_LDFLAGS) $(LDFLAGS) -o $@
-DIST_SOURCES = $(liblinuxsamplercommon_a_SOURCES)
+DIST_SOURCES = $(liblinuxsamplercommon_la_SOURCES)
 DIST_COMMON = Makefile.am Makefile.in
-SOURCES = $(liblinuxsamplercommon_a_SOURCES)
+SOURCES = $(liblinuxsamplercommon_la_SOURCES)
 
 all: all-am
 
@@ -156,12 +157,16 @@ $(srcdir)/Makefile.in:  Makefile.am  $(top_srcdir)/configure.in $(ACLOCAL_M4)
 Makefile:  $(srcdir)/Makefile.in  $(top_builddir)/config.status
 	cd $(top_builddir) && $(SHELL) ./config.status $(subdir)/$@ $(am__depfiles_maybe)
 
-clean-noinstLIBRARIES:
-	-test -z "$(noinst_LIBRARIES)" || rm -f $(noinst_LIBRARIES)
-liblinuxsamplercommon.a: $(liblinuxsamplercommon_a_OBJECTS) $(liblinuxsamplercommon_a_DEPENDENCIES) 
-	-rm -f liblinuxsamplercommon.a
-	$(liblinuxsamplercommon_a_AR) liblinuxsamplercommon.a $(liblinuxsamplercommon_a_OBJECTS) $(liblinuxsamplercommon_a_LIBADD)
-	$(RANLIB) liblinuxsamplercommon.a
+clean-noinstLTLIBRARIES:
+	-test -z "$(noinst_LTLIBRARIES)" || rm -f $(noinst_LTLIBRARIES)
+	@list='$(noinst_LTLIBRARIES)'; for p in $$list; do \
+	  dir="`echo $$p | sed -e 's|/[^/]*$$||'`"; \
+	  test -z "$dir" && dir=.; \
+	  echo "rm -f \"$${dir}/so_locations\""; \
+	  rm -f "$${dir}/so_locations"; \
+	done
+liblinuxsamplercommon.la: $(liblinuxsamplercommon_la_OBJECTS) $(liblinuxsamplercommon_la_DEPENDENCIES) 
+	$(CXXLINK)  $(liblinuxsamplercommon_la_LDFLAGS) $(liblinuxsamplercommon_la_OBJECTS) $(liblinuxsamplercommon_la_LIBADD) $(LIBS)
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT) core *.core
@@ -169,11 +174,11 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Condition.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ConditionServer.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Mutex.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/RTMath.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Thread.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Condition.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ConditionServer.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Mutex.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/RTMath.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Thread.Plo@am__quote@
 
 distclean-depend:
 	-rm -rf ./$(DEPDIR)
@@ -270,7 +275,7 @@ distdir: $(DISTFILES)
 	done
 check-am: all-am
 check: check-am
-all-am: Makefile $(LIBRARIES)
+all-am: Makefile $(LTLIBRARIES)
 
 installdirs:
 
@@ -300,7 +305,7 @@ maintainer-clean-generic:
 	@echo "it deletes files that may require special tools to rebuild."
 clean: clean-am
 
-clean-am: clean-generic clean-libtool clean-noinstLIBRARIES \
+clean-am: clean-generic clean-libtool clean-noinstLTLIBRARIES \
 	mostlyclean-am
 
 distclean: distclean-am
@@ -338,15 +343,16 @@ mostlyclean-am: mostlyclean-compile mostlyclean-generic \
 uninstall-am: uninstall-info-am
 
 .PHONY: GTAGS all all-am check check-am clean clean-generic \
-	clean-libtool clean-noinstLIBRARIES distclean distclean-compile \
-	distclean-depend distclean-generic distclean-libtool \
-	distclean-tags distdir dvi dvi-am info info-am install \
-	install-am install-data install-data-am install-exec \
-	install-exec-am install-info install-info-am install-man \
-	install-strip installcheck installcheck-am installdirs \
-	maintainer-clean maintainer-clean-generic mostlyclean \
-	mostlyclean-compile mostlyclean-generic mostlyclean-libtool \
-	tags uninstall uninstall-am uninstall-info-am
+	clean-libtool clean-noinstLTLIBRARIES distclean \
+	distclean-compile distclean-depend distclean-generic \
+	distclean-libtool distclean-tags distdir dvi dvi-am info \
+	info-am install install-am install-data install-data-am \
+	install-exec install-exec-am install-info install-info-am \
+	install-man install-strip installcheck installcheck-am \
+	installdirs maintainer-clean maintainer-clean-generic \
+	mostlyclean mostlyclean-compile mostlyclean-generic \
+	mostlyclean-libtool tags uninstall uninstall-am \
+	uninstall-info-am
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

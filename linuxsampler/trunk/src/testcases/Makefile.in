@@ -36,7 +36,7 @@ oldincludedir = /usr/include
 pkgdatadir = $(datadir)/@PACKAGE@
 pkglibdir = $(libdir)/@PACKAGE@
 pkgincludedir = $(includedir)/@PACKAGE@
-top_builddir = ../../..
+top_builddir = ../..
 
 ACLOCAL = @ACLOCAL@
 AUTOCONF = @AUTOCONF@
@@ -100,21 +100,20 @@ am__quote = @am__quote@
 install_sh = @install_sh@
 INCLUDES = $(all_includes)
 METASOURCES = AUTO
-noinst_LTLIBRARIES = liblinuxsamplergigengine.la
-liblinuxsamplergigengine_la_SOURCES = DiskThread.cpp DiskThread.h EGADSR.cpp EGADSR.h EGDecay.cpp EGDecay.h Engine.cpp Engine.h Filter.h InstrumentResourceManager.cpp InstrumentResourceManager.h Manipulator.h Stream.cpp Stream.h Voice.cpp Voice.h
-subdir = src/engines/gig
+
+EXTRA_PROGRAMS = linuxsamplertest
+linuxsamplertest_SOURCES = linuxsamplertest.cpp ThreadTest.cpp MutexTest.cpp MutexTest.h ThreadTest.h
+linuxsamplertest_LDADD = $(top_builddir)/src/liblinuxsampler.la -lcppunit
+subdir = src/testcases
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
 CONFIG_HEADER = $(top_builddir)/config.h
 CONFIG_CLEAN_FILES =
-LTLIBRARIES = $(noinst_LTLIBRARIES)
-
-liblinuxsamplergigengine_la_LDFLAGS =
-liblinuxsamplergigengine_la_LIBADD =
-am_liblinuxsamplergigengine_la_OBJECTS = DiskThread.lo EGADSR.lo \
-	EGDecay.lo Engine.lo InstrumentResourceManager.lo Stream.lo \
-	Voice.lo
-liblinuxsamplergigengine_la_OBJECTS = \
-	$(am_liblinuxsamplergigengine_la_OBJECTS)
+EXTRA_PROGRAMS = linuxsamplertest$(EXEEXT)
+am_linuxsamplertest_OBJECTS = linuxsamplertest.$(OBJEXT) \
+	ThreadTest.$(OBJEXT) MutexTest.$(OBJEXT)
+linuxsamplertest_OBJECTS = $(am_linuxsamplertest_OBJECTS)
+linuxsamplertest_DEPENDENCIES = $(top_builddir)/src/liblinuxsampler.la
+linuxsamplertest_LDFLAGS =
 
 DEFS = @DEFS@
 DEFAULT_INCLUDES =  -I. -I$(srcdir) -I$(top_builddir)
@@ -123,11 +122,9 @@ LDFLAGS = @LDFLAGS@
 LIBS = @LIBS@
 depcomp = $(SHELL) $(top_srcdir)/depcomp
 am__depfiles_maybe = depfiles
-@AMDEP_TRUE@DEP_FILES = ./$(DEPDIR)/DiskThread.Plo \
-@AMDEP_TRUE@	./$(DEPDIR)/EGADSR.Plo ./$(DEPDIR)/EGDecay.Plo \
-@AMDEP_TRUE@	./$(DEPDIR)/Engine.Plo \
-@AMDEP_TRUE@	./$(DEPDIR)/InstrumentResourceManager.Plo \
-@AMDEP_TRUE@	./$(DEPDIR)/Stream.Plo ./$(DEPDIR)/Voice.Plo
+@AMDEP_TRUE@DEP_FILES = ./$(DEPDIR)/MutexTest.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/ThreadTest.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/linuxsamplertest.Po
 CXXCOMPILE = $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
 	$(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS)
 LTCXXCOMPILE = $(LIBTOOL) --mode=compile $(CXX) $(DEFS) \
@@ -145,9 +142,9 @@ LTCOMPILE = $(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) \
 CCLD = $(CC)
 LINK = $(LIBTOOL) --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
 	$(AM_LDFLAGS) $(LDFLAGS) -o $@
-DIST_SOURCES = $(liblinuxsamplergigengine_la_SOURCES)
+DIST_SOURCES = $(linuxsamplertest_SOURCES)
 DIST_COMMON = Makefile.am Makefile.in
-SOURCES = $(liblinuxsamplergigengine_la_SOURCES)
+SOURCES = $(linuxsamplertest_SOURCES)
 
 all: all-am
 
@@ -155,20 +152,12 @@ all: all-am
 .SUFFIXES: .cpp .lo .o .obj
 $(srcdir)/Makefile.in:  Makefile.am  $(top_srcdir)/configure.in $(ACLOCAL_M4)
 	cd $(top_srcdir) && \
-	  $(AUTOMAKE) --gnu  src/engines/gig/Makefile
+	  $(AUTOMAKE) --gnu  src/testcases/Makefile
 Makefile:  $(srcdir)/Makefile.in  $(top_builddir)/config.status
 	cd $(top_builddir) && $(SHELL) ./config.status $(subdir)/$@ $(am__depfiles_maybe)
-
-clean-noinstLTLIBRARIES:
-	-test -z "$(noinst_LTLIBRARIES)" || rm -f $(noinst_LTLIBRARIES)
-	@list='$(noinst_LTLIBRARIES)'; for p in $$list; do \
-	  dir="`echo $$p | sed -e 's|/[^/]*$$||'`"; \
-	  test -z "$dir" && dir=.; \
-	  echo "rm -f \"$${dir}/so_locations\""; \
-	  rm -f "$${dir}/so_locations"; \
-	done
-liblinuxsamplergigengine.la: $(liblinuxsamplergigengine_la_OBJECTS) $(liblinuxsamplergigengine_la_DEPENDENCIES) 
-	$(CXXLINK)  $(liblinuxsamplergigengine_la_LDFLAGS) $(liblinuxsamplergigengine_la_OBJECTS) $(liblinuxsamplergigengine_la_LIBADD) $(LIBS)
+linuxsamplertest$(EXEEXT): $(linuxsamplertest_OBJECTS) $(linuxsamplertest_DEPENDENCIES) 
+	@rm -f linuxsamplertest$(EXEEXT)
+	$(CXXLINK) $(linuxsamplertest_LDFLAGS) $(linuxsamplertest_OBJECTS) $(linuxsamplertest_LDADD) $(LIBS)
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT) core *.core
@@ -176,13 +165,9 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/DiskThread.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/EGADSR.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/EGDecay.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Engine.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/InstrumentResourceManager.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Stream.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Voice.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/MutexTest.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ThreadTest.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/linuxsamplertest.Po@am__quote@
 
 distclean-depend:
 	-rm -rf ./$(DEPDIR)
@@ -253,7 +238,7 @@ distclean-tags:
 	-rm -f TAGS ID GTAGS GRTAGS GSYMS GPATH
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
 
-top_distdir = ../../..
+top_distdir = ../..
 distdir = $(top_distdir)/$(PACKAGE)-$(VERSION)
 
 distdir: $(DISTFILES)
@@ -279,7 +264,7 @@ distdir: $(DISTFILES)
 	done
 check-am: all-am
 check: check-am
-all-am: Makefile $(LTLIBRARIES)
+all-am: Makefile
 
 installdirs:
 
@@ -309,8 +294,7 @@ maintainer-clean-generic:
 	@echo "it deletes files that may require special tools to rebuild."
 clean: clean-am
 
-clean-am: clean-generic clean-libtool clean-noinstLTLIBRARIES \
-	mostlyclean-am
+clean-am: clean-generic clean-libtool mostlyclean-am
 
 distclean: distclean-am
 
@@ -347,16 +331,15 @@ mostlyclean-am: mostlyclean-compile mostlyclean-generic \
 uninstall-am: uninstall-info-am
 
 .PHONY: GTAGS all all-am check check-am clean clean-generic \
-	clean-libtool clean-noinstLTLIBRARIES distclean \
-	distclean-compile distclean-depend distclean-generic \
-	distclean-libtool distclean-tags distdir dvi dvi-am info \
-	info-am install install-am install-data install-data-am \
-	install-exec install-exec-am install-info install-info-am \
-	install-man install-strip installcheck installcheck-am \
-	installdirs maintainer-clean maintainer-clean-generic \
-	mostlyclean mostlyclean-compile mostlyclean-generic \
-	mostlyclean-libtool tags uninstall uninstall-am \
-	uninstall-info-am
+	clean-libtool distclean distclean-compile distclean-depend \
+	distclean-generic distclean-libtool distclean-tags distdir dvi \
+	dvi-am info info-am install install-am install-data \
+	install-data-am install-exec install-exec-am install-info \
+	install-info-am install-man install-strip installcheck \
+	installcheck-am installdirs maintainer-clean \
+	maintainer-clean-generic mostlyclean mostlyclean-compile \
+	mostlyclean-generic mostlyclean-libtool tags uninstall \
+	uninstall-am uninstall-info-am
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

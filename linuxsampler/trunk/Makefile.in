@@ -451,11 +451,15 @@ uninstall-info: uninstall-info-recursive
 	uninstall-info-recursive uninstall-recursive
 
 
-.PHONY: parser
+.PHONY: parser testcases
 
 # generate parser with lex and yacc
 parser:
 	@cd $(srcdir)/src/network && make $@
+
+# compile test cases for the LinuxSampler codebase
+testcases:
+	@cd $(srcdir)/src/testcases && make linuxsamplertest
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
 .NOEXPORT:

@@ -39,6 +39,7 @@ class Thread {
         virtual ~Thread();
         virtual int  StartThread();
         virtual int  StopThread();
+        virtual int  SignalStartThread();
         virtual int  SignalStopThread();
         virtual bool IsRunning() { return Running; }
         virtual int  SetSchedulingPriority(); //FIXME: should be private
@@ -49,6 +50,7 @@ class Thread {
         pthread_t       __thread_id;
         pthread_key_t   __thread_destructor_key;
         pthread_mutex_t __thread_state_mutex;
+        pthread_cond_t  __thread_start_condition;
         pthread_cond_t  __thread_exit_condition;
         int             PriorityMax;
         int             PriorityDelta;

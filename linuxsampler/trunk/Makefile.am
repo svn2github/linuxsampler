@@ -4,8 +4,12 @@ AUTOMAKE_OPTIONS = foreign 1.4
 
 SUBDIRS = src
 
-.PHONY: parser
+.PHONY: parser testcases
 
 # generate parser with lex and yacc
 parser:
 	@cd $(srcdir)/src/network && make $@
+
+# compile test cases for the LinuxSampler codebase
+testcases:
+	@cd $(srcdir)/src/testcases && make linuxsamplertest

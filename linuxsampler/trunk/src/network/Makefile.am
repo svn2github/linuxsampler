@@ -1,7 +1,7 @@
 INCLUDES = $(all_includes)
 METASOURCES = AUTO
-noinst_LIBRARIES = liblinuxsamplernetwork.a
-liblinuxsamplernetwork_a_SOURCES = lscp.h lscpparser.cpp lscpparser.h lscpscanner.cpp lscpserver.cpp lscpserver.h lscpsymbols.h
+noinst_LTLIBRARIES = liblinuxsamplernetwork.la
+liblinuxsamplernetwork_la_SOURCES = lscp.h lscpparser.cpp lscpparser.h lscpscanner.cpp lscpserver.cpp lscpserver.h lscpsymbols.h
 
 .PHONY: parser
 
@@ -18,4 +18,3 @@ parser:
 	else \
 	    echo "You need lex (or flex) and yacc (or bison) to generate the parser."; \
 	fi;
-
