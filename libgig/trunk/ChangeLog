@@ -12,7 +12,7 @@ Version CVS HEAD (?)
       initialization)
     - fixed crossfade points order (structure for big endian and little
       endian systems was interchanged)
-    - fixed some memory leaks (patch by Gene Anders)
+    - fixed some memory leaks (patch by 'Gene', a.k.a Anders Alm)
     - fixed crash which occured when patches did not have a sample assigned
       to their region or dimension region (patch by Andreas Persson)
 
