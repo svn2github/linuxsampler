@@ -4,5 +4,4 @@ debian/tmp/usr/lib/lib*.la usr/lib
 debian/tmp/usr/lib/lib*.so usr/lib
 debian/tmp/usr/lib/pkgconfig/gig.pc usr/lib/pkgconfig
 debian/tmp/usr/share/aclocal/* usr/share/aclocal
-doc/*.html usr/share/doc/libgig-dev/html
-doc/*.jpg usr/share/doc/libgig-dev/html
+doc/html/* usr/share/doc/libgig-dev/html
