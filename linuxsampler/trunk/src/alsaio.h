@@ -20,35 +20,39 @@
  *   MA  02111-1307  USA                                                   *
  ***************************************************************************/
 
-#include "modulationsystem.h"
+#ifndef __ALSAIO_H__
+#define __ALSAIO_H__
 
-float** ModulationSystem::pDestinationParameter = NULL;
-uint    ModulationSystem::uiSampleRate;
-uint    ModulationSystem::uiMaxSamplesPerCycle;
+#include <string.h>
+#include <alsa/asoundlib.h>
 
-void ModulationSystem::Initialize(uint SampleRate, uint MaxSamplesPerCycle) {
-    ModulationSystem::uiMaxSamplesPerCycle = MaxSamplesPerCycle;
-    ModulationSystem::uiSampleRate         = SampleRate;
-    if (!pDestinationParameter) {
-        pDestinationParameter    = new float*[destination_count];
-        pDestinationParameter[0] = new float[destination_count * MaxSamplesPerCycle];
-        for (int i = 1; i < destination_count; i++) {
-            pDestinationParameter[i] = pDestinationParameter[i - 1] + MaxSamplesPerCycle;
-        }
-    }
-}
+#include "global.h"
+#include "audioio.h"
+#include "thread.h"
+#include "audiothread.h"
 
-void ModulationSystem::Close() {
-    if (pDestinationParameter) {
-        delete[] ModulationSystem::pDestinationParameter[0];
-        delete[] ModulationSystem::pDestinationParameter;
-    }
-}
+class AlsaIO : public AudioIO, protected Thread {
+    public:
+        AlsaIO();
+        int   Initialize(uint Channels, uint Samplerate, uint Fragments, uint FragmentSize);
+        void  Activate();
+        void  Close();
+        void* GetInterleavedOutputBuffer();
+        void* GetChannelOutputBufer(uint Channel);
+    protected:
+        int   Main();  ///< Implementation of virtual method from class Thread
+    private:
+        typedef std::string String;
 
-/**
- * Initialize the parameter sequence for the modulation destination given by
- * by 'dst' with the constant value given by val.
- */
-void ModulationSystem::ResetDestinationParameter(ModulationSystem::destination_t dst, float val) {
-    for (int i = 0; i < uiMaxSamplesPerCycle; i++) pDestinationParameter[dst][i] = val;
-}
+        int16_t*             pOutputBuffer;     ///< This is the buffer where the final mix will be copied to and send to the sound card
+        String               pcm_name;          ///< Name of the PCM device, like plughw:0,0 the first number is the number of the soundcard, the second number is the number of the device.
+        snd_pcm_t*           pcm_handle;        ///< Handle for the PCM device
+        snd_pcm_stream_t     stream;
+        snd_pcm_hw_params_t* hwparams;          ///< This structure contains information about the hardware and can be used to specify the configuration to be used for the PCM stream.
+        snd_pcm_sw_params_t* swparams;
+
+        int  Output();
+        bool HardwareParametersSupported(uint channels, int samplerate, uint numfragments, uint fragmentsize);
+};
+
+#endif // __ALSAIO_H__

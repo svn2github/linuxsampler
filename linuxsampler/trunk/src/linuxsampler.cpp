@@ -30,9 +30,10 @@
 #include <string>
 
 #include "global.h"
-#include "audioio.h"
 #include "diskthread.h"
 #include "audiothread.h"
+#include "alsaio.h"
+#include "jackio.h"
 #include "midiin.h"
 #include "stream.h"
 #include "RIFF.h"
@@ -90,11 +91,25 @@ int main(int argc, char **argv) {
         return EXIT_FAILURE;
     }
 
-    dmsg(1,("Initializing audio output..."));
-    pAudioIO = new AudioIO();
-    int error = pAudioIO->Initialize(AUDIO_CHANNELS, AUDIO_SAMPLERATE, num_fragments, fragmentsize);
+#if HAVE_JACK
+    dmsg(1,("Initializing audio output (Jack)..."));
+    pAudioIO = new JackIO();
+    int error = ((JackIO*)pAudioIO)->Initialize(AUDIO_CHANNELS);
+    if (error) {
+        dmsg(1,("Trying Alsa output instead.\n"));
+        dmsg(1,("Initializing audio output (Alsa)..."));
+        pAudioIO = new AlsaIO();
+        int error = ((AlsaIO*)pAudioIO)->Initialize(AUDIO_CHANNELS, AUDIO_SAMPLERATE, num_fragments, fragmentsize);
+        if (error) return EXIT_FAILURE;
+    }
+    dmsg(1,("OK\n"));
+#else // Alsa only
+    dmsg(1,("Initializing audio output (Alsa)..."));
+    pAudioIO = new AlsaIO();
+    int error = ((AlsaIO*)pAudioIO)->Initialize(AUDIO_CHANNELS, AUDIO_SAMPLERATE, num_fragments, fragmentsize);
     if (error) return EXIT_FAILURE;
     dmsg(1,("OK\n"));
+#endif // HAVE_JACK
 
     // Loading gig file
     try {
@@ -120,7 +135,7 @@ int main(int argc, char **argv) {
         return EXIT_FAILURE;
     }
 
-    DiskThread*  pDiskThread   = new DiskThread(((pAudioIO->FragmentSize << MAX_PITCH) << 1) + 6); //FIXME: assuming stereo
+    DiskThread*  pDiskThread   = new DiskThread(((pAudioIO->MaxSamplesPerCycle() << MAX_PITCH) << 1) + 6); //FIXME: assuming stereo
     AudioThread* pAudioThread  = new AudioThread(pAudioIO, pDiskThread, pInstrument);
     MidiIn*      pMidiInThread = new MidiIn(pAudioThread);
 
@@ -135,7 +150,8 @@ int main(int argc, char **argv) {
     sleep(1);
     dmsg(1,("Starting audio thread..."));
     pAudioThread->Volume = volume;
-    pAudioThread->StartThread();
+    pAudioIO->AssignEngine(pAudioThread);
+    pAudioIO->Activate();
     dmsg(1,("OK\n"));
 
     printf("LinuxSampler initialization completed.\n");
@@ -154,8 +170,8 @@ int main(int argc, char **argv) {
 void signal_handler(int signal) {
     if (pthread_equal(pthread_self(), signalhandlerthread) && signal == SIGINT) {
         // stop all threads
+        if (pAudioIO)      pAudioIO->Close();
         if (pMidiInThread) pMidiInThread->StopThread();
-        if (pAudioThread)  pAudioThread->StopThread();
         if (pDiskThread)   pDiskThread->StopThread();
 
         // free all resources

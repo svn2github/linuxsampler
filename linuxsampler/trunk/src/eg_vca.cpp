@@ -31,10 +31,10 @@ EG_VCA::EG_VCA() {
  * Will be called by the voice for every audio fragment to let the EG
  * queue it's modulation changes for the current audio fragment.
  */
-void EG_VCA::ProcessFragment() {
+void EG_VCA::Process(uint Samples) {
     if (Stage == stage_sustain) return; // nothing to do
 
-    for (int to_process_total = ModulationSystem::GetFragmentSize(); to_process_total;) {
+    for (int to_process_total = Samples; to_process_total;) {
         int iSample = 0;
         switch (Stage) {
             case stage_attack: {

@@ -39,14 +39,14 @@ class ModulationSystem {
         static float** pDestinationParameter;
         //static bool    DestinationParameterModified;
 
-        static        void Initialize(uint SampleRate, uint FragmentSize);
+        static        void Initialize(uint SampleRate, uint MaxSamplesPerCycle);
         static        void Close();
         static        void ResetDestinationParameter(ModulationSystem::destination_t dst, float val);
-        static inline uint GetFragmentSize() { return FragmentSize; };
-        static inline uint GetSampleRate()   { return SampleRate;   };
+        static inline uint GetMaxSamplesPerCycle() { return uiMaxSamplesPerCycle; };
+        static inline uint GetSampleRate()         { return uiSampleRate;         };
     protected:
-        static uint FragmentSize;
-        static uint SampleRate;
+        static uint uiMaxSamplesPerCycle;
+        static uint uiSampleRate;
 };
 
 #endif // __MODULATION_SYSTEM_H__

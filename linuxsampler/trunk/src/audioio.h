@@ -23,43 +23,37 @@
 #ifndef __AUDIO_H__
 #define __AUDIO_H__
 
-// We only support Alsa at the moment
-
-#include <string>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
-#include <alsa/asoundlib.h>
-#include <sched.h>
-#include <sys/mman.h>
-
 #include "global.h"
 
+// just symbol prototyping
+class AudioThread;
+
+/**
+ * Abstract class for audio output in LinuxSampler. This class will be
+ * derived by specialized classes which implement the connection to a
+ * specific audio output system (e.g. Alsa, Jack).
+ */
 class AudioIO {
     public:
-        bool     Initialized;
-        int16_t* pOutputBuffer;  ///< This is the buffer where the final mix will be copied to and send to the sound card
-        uint     Channels;
-        uint     Samplerate;
-        uint     Fragments;
-        uint     FragmentSize;   ///< in sample points
-
         AudioIO();
-       ~AudioIO();
-        int  Initialize(uint channels, uint samplerate, uint numfragments, uint fragmentsize);
-        int  Output();
-        void Close();
-    private:
-        typedef std::string  String;
-
-        String               pcm_name;    ///< Name of the PCM device, like plughw:0,0 the first number is the number of the soundcard, the second number is the number of the device.
-        snd_pcm_t*           pcm_handle;  ///< Handle for the PCM device
-        snd_pcm_stream_t     stream;
-        snd_pcm_hw_params_t* hwparams;    ///< This structure contains information about the hardware and can be used to specify the configuration to be used for the PCM stream.
-        snd_pcm_sw_params_t* swparams;
-
-        bool HardwareParametersSupported(uint channels, int samplerate, uint numfragments, uint fragmentsize);
+        virtual ~AudioIO();
+        virtual void  Activate() = 0;
+        virtual void  Close() = 0;
+        virtual void* GetInterleavedOutputBuffer() = 0;
+        virtual void* GetChannelOutputBufer(uint Channel) = 0;
+        inline  void  AssignEngine(AudioThread* pAudioThread) { pEngine = pAudioThread;      };
+        inline  bool  Initialized()                           { return bInitialized;         };
+        inline  bool  Interleaved()                           { return bInterleaved;         };
+        inline  uint  Channels()                              { return uiChannels;           };
+        inline  uint  SampleRate()                            { return uiSamplerate;         };
+        inline  uint  MaxSamplesPerCycle()                    { return uiMaxSamplesPerCycle; };
+    protected:
+        bool bInitialized;
+        bool bInterleaved;
+        uint uiChannels;
+        uint uiSamplerate;
+        uint uiMaxSamplesPerCycle;   ///< in sample points
+        AudioThread* pEngine;
 };
 
 #endif // __AUDIO_H__

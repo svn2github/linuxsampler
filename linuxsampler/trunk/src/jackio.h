@@ -20,35 +20,39 @@
  *   MA  02111-1307  USA                                                   *
  ***************************************************************************/
 
-#include "modulationsystem.h"
+#ifndef __JACKIO_H__
+#define __JACKIO_H__
 
-float** ModulationSystem::pDestinationParameter = NULL;
-uint    ModulationSystem::uiSampleRate;
-uint    ModulationSystem::uiMaxSamplesPerCycle;
+#include "global.h"
+#include "audioio.h"
+#include "audiothread.h"
 
-void ModulationSystem::Initialize(uint SampleRate, uint MaxSamplesPerCycle) {
-    ModulationSystem::uiMaxSamplesPerCycle = MaxSamplesPerCycle;
-    ModulationSystem::uiSampleRate         = SampleRate;
-    if (!pDestinationParameter) {
-        pDestinationParameter    = new float*[destination_count];
-        pDestinationParameter[0] = new float[destination_count * MaxSamplesPerCycle];
-        for (int i = 1; i < destination_count; i++) {
-            pDestinationParameter[i] = pDestinationParameter[i - 1] + MaxSamplesPerCycle;
-        }
-    }
-}
+#if HAVE_JACK
 
-void ModulationSystem::Close() {
-    if (pDestinationParameter) {
-        delete[] ModulationSystem::pDestinationParameter[0];
-        delete[] ModulationSystem::pDestinationParameter;
-    }
-}
+#include <jack/jack.h>
 
-/**
- * Initialize the parameter sequence for the modulation destination given by
- * by 'dst' with the constant value given by val.
- */
-void ModulationSystem::ResetDestinationParameter(ModulationSystem::destination_t dst, float val) {
-    for (int i = 0; i < uiMaxSamplesPerCycle; i++) pDestinationParameter[dst][i] = val;
-}
+//TODO: only stereo (2 ports / channels) at the moment
+
+// Callback functions for the libjack API
+int  __libjack_process_callback(jack_nframes_t nframes, void* arg);
+void __libjack_shutdown_callback(void* arg);
+
+class JackIO : public AudioIO {
+    public:
+        JackIO();
+        int   Initialize(uint Channels);
+        void  Activate();
+        void  Close();
+        void* GetInterleavedOutputBuffer();
+        void* GetChannelOutputBufer(uint Channel);
+        int   Process(uint Samples);  // FIXME: should be private
+    private:
+        typedef std::string String;
+
+        jack_client_t* Client;
+        jack_port_t*   Ports[2];
+        uint           PendingSamples;
+};
+
+#endif // HAVE_JACK
+#endif // __JACKIO_H__

@@ -23,8 +23,6 @@
 #ifndef __AUDIOTHREAD_H__
 #define __AUDIOTHREAD_H__
 
-#include <stdio.h>
-#include <stdlib.h>
 #include <math.h>
 #include <unistd.h>
 #include <fcntl.h>
@@ -32,8 +30,8 @@
 #include "global.h"
 #include "thread.h"
 #include "ringbuffer.h"
-#include "voice.h"
 #include "audioio.h"
+#include "voice.h"
 #include "gig.h"
 #include "rtelmemorypool.h"
 #include "modulationsystem.h"
@@ -44,7 +42,8 @@
 // preload 64k samples = 128kB of data in RAM for 16 bit mono samples
 #define NUM_RAM_PRELOAD_SAMPLES 32768
 
-class AudioThread : public Thread {
+//FIXME: Class name "AudioThread" is now misleading, because there is no thread anymore, but the name will change soon to "Engine" when we restructure the source tree
+class AudioThread {
     public:
         double Volume;               ///< overall volume (a value < 1.0 means attenuation, a value > 1.0 means amplification)
         int    ActiveVoiceCount;     ///< number of currently active voices
@@ -52,11 +51,13 @@ class AudioThread : public Thread {
 
         AudioThread(AudioIO* pAudioIO, DiskThread* pDiskThread, gig::Instrument* pInstrument);
        ~AudioThread();
-        void SendNoteOn(uint8_t Pitch, uint8_t Velocity);
-        void SendNoteOff(uint8_t Pitch, uint8_t Velocity);
-        void SendControlChange(uint8_t Channel, uint8_t Number, uint8_t Value);
-    protected:
-        int Main(); ///< Implementation of virtual method from class Thread
+        void          SendNoteOn(uint8_t Pitch, uint8_t Velocity);
+        void          SendNoteOff(uint8_t Pitch, uint8_t Velocity);
+        void          SendControlChange(uint8_t Channel, uint8_t Number, uint8_t Value);
+        int           RenderAudio(uint Samples);
+        inline float* GetAudioSumBuffer(uint Channel) {
+            return pAudioSumBuffer[Channel];
+        };
     private:
         enum command_type_t {
             command_type_note_on,
@@ -72,28 +73,28 @@ class AudioThread : public Thread {
             uint8_t        value;
         } command;
         struct midi_key_info_t {
-            RTEList<Voice*>*             pActiveVoices;      ///< Contains the active voices associated with the MIDI key.
-            RTEList<Voice*>::NodeHandle  hSustainPtr;        ///< Points to the voice element in the active voice list which has not received a note-off yet (this pointer is needed for sustain pedal handling)
-            bool                         Sustained;          ///< Is true if the MIDI key is currently sustained, thus if Note-off arrived while sustain pedal pressed.
-            bool                         KeyPressed;         ///< Is true if the respective MIDI key is currently pressed.
-            uint*                        pSustainPoolNode;   ///< FIXME: hack to allow fast deallocation of the key from the sustained key pool
+            RTEList<Voice*>*             pActiveVoices;         ///< Contains the active voices associated with the MIDI key.
+            RTEList<Voice*>::NodeHandle  hSustainPtr;           ///< Points to the voice element in the active voice list which has not received a note-off yet (this pointer is needed for sustain pedal handling)
+            bool                         Sustained;             ///< Is true if the MIDI key is currently sustained, thus if Note-off arrived while sustain pedal pressed.
+            bool                         KeyPressed;            ///< Is true if the respective MIDI key is currently pressed.
+            uint*                        pSustainPoolNode;      ///< FIXME: hack to allow fast deallocation of the key from the sustained key pool
         };
 
         RingBuffer<command_t>*           pCommandQueue;
-        float*                           pAudioSumBuffer;    ///< Audio sum of all voices (32 bit)
-        Voice**                          pVoices;            ///< The voice pool, containing all Voices (active and inactice voices) in unsorted order
-        midi_key_info_t                  pMIDIKeyInfo[128];  ///< Contains all active voices sorted by MIDI key number and other informations to the respective MIDI key
+        float*                           pAudioSumBuffer[2];    ///< Audio sum of all voices (32 bit, index 0 = left channel, index 1 = right channel)
+        Voice**                          pVoices;               ///< The voice pool, containing all Voices (active and inactice voices) in unsorted order
+        midi_key_info_t                  pMIDIKeyInfo[128];     ///< Contains all active voices sorted by MIDI key number and other informations to the respective MIDI key
         /* ActiveVoicePool is a memory pool of limited size (size=MAX VOICES) of active voices.
            it can be allocated dynamically in real time and the allocated elements can be added to
            the linked lists represented by ActiveVoices[MIDIKey]. This means we can have unlimited
            active voices per key. This if for example useful to manage the sustain pedal messages
          */
         RTELMemoryPool<Voice*>*          ActiveVoicePool;
-        RTELMemoryPool<uint>*            SustainedKeyPool;   ///< Contains the MIDI key numbers of all currently sustained keys.
+        RTELMemoryPool<uint>*            SustainedKeyPool;      ///< Contains the MIDI key numbers of all currently sustained keys.
         AudioIO*                         pAudioIO;
         DiskThread*                      pDiskThread;
         gig::Instrument*                 pInstrument;
-        bool                             SustainPedal;       ///< true if sustain pedal is down
+        bool                             SustainPedal;          ///< true if sustain pedal is down
         uint8_t                          PrevHoldCCValue;
 
         void ProcessNoteOn(uint8_t MIDIKey, uint8_t Velocity);

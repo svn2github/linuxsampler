@@ -75,7 +75,7 @@ int Voice::Trigger(int MIDIKey, uint8_t Velocity, gig::Instrument* Instrument) {
     DiskVoice          = cachedsamples < pSample->SamplesTotal;
 
     if (DiskVoice) { // voice to be streamed from disk
-        MaxRAMPos = cachedsamples - (OutputBufferSize << MAX_PITCH) / pSample->Channels;
+        MaxRAMPos = cachedsamples - (MaxSamplesPerCycle << MAX_PITCH) / pSample->Channels;
 
         // check if there's a loop defined which completely fits into the cached (RAM) part of the sample
         if (pSample->Loops && pSample->LoopEnd <= MaxRAMPos) {
@@ -89,7 +89,7 @@ int Voice::Trigger(int MIDIKey, uint8_t Velocity, gig::Instrument* Instrument) {
             Kill();
             return -1;
         }
-        dmsg(4,("Disk voice launched (cached samples: %d, total Samples: %d, MaxRAMPos: %d, RAMLooping: %s\n", cachedsamples, pSample->SamplesTotal, MaxRAMPos, (RAMLoop) ? "yes" : "no"));
+        dmsg(4,("Disk voice launched (cached samples: %d, total Samples: %d, MaxRAMPos: %d, RAMLooping: %s)\n", cachedsamples, pSample->SamplesTotal, MaxRAMPos, (RAMLoop) ? "yes" : "no"));
     }
     else { // RAM only voice
         MaxRAMPos = cachedsamples;
@@ -126,18 +126,18 @@ int Voice::Trigger(int MIDIKey, uint8_t Velocity, gig::Instrument* Instrument) {
  *  will automatically switch to disk playback for the next RenderAudio()
  *  call.
  */
-void Voice::RenderAudio() {
+void Voice::Render(uint Samples) {
 
     // Let all modulators throw their parameter changes for the current audio fragment
     ModulationSystem::ResetDestinationParameter(ModulationSystem::destination_vca, this->Volume);
-    EG1.ProcessFragment();
+    EG1.Process(Samples);
 
 
     switch (this->PlaybackState) {
 
         case playback_state_ram: {
-                if (RAMLoop) InterpolateAndLoop((sample_t*) pSample->GetCache().pStart);
-                else         Interpolate((sample_t*) pSample->GetCache().pStart);
+                if (RAMLoop) InterpolateAndLoop(Samples, (sample_t*) pSample->GetCache().pStart);
+                else         Interpolate(Samples, (sample_t*) pSample->GetCache().pStart);
                 if (DiskVoice) {
                     // check if we reached the allowed limit of the sample RAM cache
                     if (Pos > MaxRAMPos) {
@@ -165,13 +165,13 @@ void Voice::RenderAudio() {
                 }
 
                 // add silence sample at the end if we reached the end of the stream (for the interpolator)
-                if (DiskStreamRef.State == Stream::state_end && DiskStreamRef.pStream->GetReadSpace() < (OutputBufferSize << MAX_PITCH) / pSample->Channels) {
-                    DiskStreamRef.pStream->WriteSilence((OutputBufferSize << MAX_PITCH) / pSample->Channels);
+                if (DiskStreamRef.State == Stream::state_end && DiskStreamRef.pStream->GetReadSpace() < (MaxSamplesPerCycle << MAX_PITCH) / pSample->Channels) {
+                    DiskStreamRef.pStream->WriteSilence((MaxSamplesPerCycle << MAX_PITCH) / pSample->Channels);
                     this->PlaybackState = playback_state_end;
                 }
 
                 sample_t* ptr = DiskStreamRef.pStream->GetReadPtr(); // get the current read_ptr within the ringbuffer where we read the samples from
-                Interpolate(ptr);
+                Interpolate(Samples, ptr);
                 DiskStreamRef.pStream->IncrementReadPos(double_to_int(Pos) * pSample->Channels);
                 Pos -= double_to_int(Pos);
             }
@@ -191,19 +191,18 @@ void Voice::RenderAudio() {
  *
  *  @param pSrc - pointer to input sample data
  */
-void Voice::Interpolate(sample_t* pSrc) {
+void Voice::Interpolate(uint Samples, sample_t* pSrc) {
     int i = 0;
-    float e = 1.0;
 
     // FIXME: assuming either mono or stereo
     if (this->pSample->Channels == 2) { // Stereo Sample
-        while (i < this->OutputBufferSize) {
-            InterpolateOneStep_Stereo(pSrc, i, ModulationSystem::pDestinationParameter[ModulationSystem::destination_vca][i>>1]);
+        while (i < Samples) {
+            InterpolateOneStep_Stereo(pSrc, i, ModulationSystem::pDestinationParameter[ModulationSystem::destination_vca][i]);
         }
     }
     else { // Mono Sample
-        while (i < this->OutputBufferSize) {
-            InterpolateOneStep_Mono(pSrc, i, ModulationSystem::pDestinationParameter[ModulationSystem::destination_vca][i>>1]);
+        while (i < Samples) {
+            InterpolateOneStep_Mono(pSrc, i, ModulationSystem::pDestinationParameter[ModulationSystem::destination_vca][i]);
         }
     }
 }
@@ -213,28 +212,28 @@ void Voice::Interpolate(sample_t* pSrc) {
  *
  *  @param pSrc - pointer to input sample data
  */
-void Voice::InterpolateAndLoop(sample_t* pSrc) {
+void Voice::InterpolateAndLoop(uint Samples, sample_t* pSrc) {
     int i = 0;
 
     // FIXME: assuming either mono or stereo
     if (pSample->Channels == 2) { // Stereo Sample
         if (pSample->LoopPlayCount) {
             // render loop (loop count limited)
-            while (i < OutputBufferSize && LoopCyclesLeft) {
-                InterpolateOneStep_Stereo(pSrc, i, ModulationSystem::pDestinationParameter[ModulationSystem::destination_vca][i>>1]);
+            while (i < Samples && LoopCyclesLeft) {
+                InterpolateOneStep_Stereo(pSrc, i, ModulationSystem::pDestinationParameter[ModulationSystem::destination_vca][i]);
                 if (Pos > pSample->LoopEnd) {
                     Pos = pSample->LoopStart + fmod(Pos - pSample->LoopEnd, pSample->LoopSize);;
                     LoopCyclesLeft--;
                 }
             }
             // render on without loop
-            while (i < OutputBufferSize) {
-                InterpolateOneStep_Stereo(pSrc, i, ModulationSystem::pDestinationParameter[ModulationSystem::destination_vca][i>>1]);
+            while (i < Samples) {
+                InterpolateOneStep_Stereo(pSrc, i, ModulationSystem::pDestinationParameter[ModulationSystem::destination_vca][i]);
             }
         }
         else { // render loop (endless loop)
-            while (i < OutputBufferSize) {
-                InterpolateOneStep_Stereo(pSrc, i, ModulationSystem::pDestinationParameter[ModulationSystem::destination_vca][i>>1]);
+            while (i < Samples) {
+                InterpolateOneStep_Stereo(pSrc, i, ModulationSystem::pDestinationParameter[ModulationSystem::destination_vca][i]);
                 if (Pos > pSample->LoopEnd) {
                     Pos = pSample->LoopStart + fmod(Pos - pSample->LoopEnd, pSample->LoopSize);
                 }
@@ -244,21 +243,21 @@ void Voice::InterpolateAndLoop(sample_t* pSrc) {
     else { // Mono Sample
         if (pSample->LoopPlayCount) {
             // render loop (loop count limited)
-            while (i < OutputBufferSize && LoopCyclesLeft) {
-                InterpolateOneStep_Mono(pSrc, i, ModulationSystem::pDestinationParameter[ModulationSystem::destination_vca][i>>1]);
+            while (i < Samples && LoopCyclesLeft) {
+                InterpolateOneStep_Mono(pSrc, i, ModulationSystem::pDestinationParameter[ModulationSystem::destination_vca][i]);
                 if (Pos > pSample->LoopEnd) {
                     Pos = pSample->LoopStart + fmod(Pos - pSample->LoopEnd, pSample->LoopSize);;
                     LoopCyclesLeft--;
                 }
             }
             // render on without loop
-            while (i < OutputBufferSize) {
-                InterpolateOneStep_Mono(pSrc, i, ModulationSystem::pDestinationParameter[ModulationSystem::destination_vca][i>>1]);
+            while (i < Samples) {
+                InterpolateOneStep_Mono(pSrc, i, ModulationSystem::pDestinationParameter[ModulationSystem::destination_vca][i]);
             }
         }
         else { // render loop (endless loop)
-            while (i < OutputBufferSize) {
-                InterpolateOneStep_Mono(pSrc, i, ModulationSystem::pDestinationParameter[ModulationSystem::destination_vca][i>>1]);
+            while (i < Samples) {
+                InterpolateOneStep_Mono(pSrc, i, ModulationSystem::pDestinationParameter[ModulationSystem::destination_vca][i]);
                 if (Pos > pSample->LoopEnd) {
                     Pos = pSample->LoopStart + fmod(Pos - pSample->LoopEnd, pSample->LoopSize);;
                 }

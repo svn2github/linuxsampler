@@ -48,7 +48,7 @@ class Thread {
         virtual int  SetSchedulingPriority(); //FIXME: should be private
         virtual void EnableDestructor();      //FIXME: should be private
         virtual int  Destructor();            //FIXME: should be private
-        virtual int  Main() = 0; ///< This method needs to be implemented by the descendant and is the entry point for the new thread.
+        virtual int  Main() = 0; ///< This method needs to be implemented by the descendant and is the entry point for the new thread. FIXME: should be protected
     private:
         pthread_t       __thread_id;
         pthread_key_t   __thread_destructor_key;

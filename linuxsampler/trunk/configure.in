@@ -83,6 +83,13 @@ AC_DEFINE_UNQUOTED(ALSA_MINOR,$alsa_minor,[Define to the minor version number of
 AC_DEFINE_UNQUOTED(ALSA_SUBMINOR,$alsa_subminor,[Define to the subminor version number of your Alsa installation.])
 
 
+# JACK
+PKG_CHECK_MODULES(JACK, jack, HAVE_JACK=true, HAVE_JACK=false)
+AC_SUBST(JACK_LIBS)
+AC_SUBST(JACK_CFLAGS)
+AC_DEFINE_UNQUOTED(HAVE_JACK,$HAVE_JACK,[Define to 1 if you have JACK installed.])
+
+
 AM_CONFIG_HEADER(config.h)
 AM_INIT_AUTOMAKE(linuxsampler, 0.1)
 

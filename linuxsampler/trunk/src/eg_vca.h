@@ -48,7 +48,7 @@ class EG_VCA {
         static const double Limit;
 
         EG_VCA();
-        void ProcessFragment();
+        void Process(uint Samples);
         void Trigger(uint PreAttack, double Attack, double Release);
         void Release();
         inline EG_VCA::stage_t GetStage() { return Stage; };
