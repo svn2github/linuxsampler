@@ -153,11 +153,13 @@ int Thread::SetSchedulingPriority() {
  * Locks the memory so it will not be swapped out by the operating system.
  */
 int Thread::LockMemory() {
+#if !defined(__APPLE__)
     if (!bLockedMemory) return 0;
     if (mlockall(MCL_CURRENT | MCL_FUTURE) < 0) {
         perror("Thread: WARNING, can't mlockall() memory!");
         return -1;
     }
+#endif
     return 0;
 }
 
