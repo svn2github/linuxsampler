@@ -21,42 +21,42 @@
  ***************************************************************************/
 
 #include "MidiInputDeviceAlsa.h"
+#include "MidiInputDeviceFactory.h"
 
 namespace LinuxSampler {
 
-    /**
-     * Create Alsa MIDI input device for LinuxSampler. Opens and initializes
-     * Alsa sequencer client and creates one Alsa MIDI input port for
-     * LinuxSampler. The optional argument allows to auto connect to a Alsa
-     * MIDI source (e.g. a software sequencer or a hardware MIDI input
-     * port).
-     *
-     * @param AutoConnectPortID - (optional) Alsa client and port ID of a
-     *                            MIDI source we should auto connect to
-     *                            (e.g. "64:0")
-     * @throws MidiInputException  if initialization failed
-     */
-    MidiInputDeviceAlsa::MidiInputDeviceAlsa(char* AutoConnectPortID) : MidiInputDevice(MidiInputDevice::type_alsa), Thread(true, 1, -1) {
+	REGISTER_MIDI_INPUT_DRIVER("Alsa",MidiInputDeviceAlsa);
+
+    MidiInputDeviceAlsa::MidiInputDeviceAlsa(std::map<String,String> Parameters) : MidiInputDevice(CreateParameters(Parameters)), Thread(true, 1, -1) {
         if (snd_seq_open(&hAlsaSeq, "default", SND_SEQ_OPEN_INPUT, 0) < 0) {
             throw MidiInputException("Error opening ALSA sequencer");
         }
         this->hAlsaSeqClient = snd_seq_client_id(hAlsaSeq);
         snd_seq_set_client_name(hAlsaSeq, "LinuxSampler");
-        if ((this->hAlsaSeqPort = snd_seq_create_simple_port(hAlsaSeq, "LinuxSampler",
-                                                             SND_SEQ_PORT_CAP_WRITE|SND_SEQ_PORT_CAP_SUBS_WRITE,
-                                                             SND_SEQ_PORT_TYPE_APPLICATION)) < 0) {
-            throw MidiInputException("Error creating sequencer port");
-        }
-
-        if (AutoConnectPortID) ConnectToAlsaMidiSource(AutoConnectPortID);
-    }
-
-    void MidiInputDeviceAlsa::SetInputPort(const char * MidiSource) {
-	    ConnectToAlsaMidiSource(MidiSource);
     }
 
     MidiInputDeviceAlsa::~MidiInputDeviceAlsa() {
-        //TODO: close Alsa seq
+	    snd_seq_close(hAlsaSeq);
+    }
+
+    MidiInputDeviceAlsa::MidiInputPortAlsa::MidiInputPortAlsa(MidiInputDeviceAlsa* pDevice, int alsaPort) : MidiInputPort(pDevice, alsaPort) {
+	    this->pDevice = pDevice;
+	    Parameters = MidiInputDevice::MidiInputPort::AvailableParameters();
+	    Parameters["alsa_seq_bindings"] = new ParameterAlsaSeqBindings(this);
+    }
+
+    MidiInputDeviceAlsa::MidiInputPortAlsa::~MidiInputPortAlsa() {
+	    snd_seq_delete_simple_port(pDevice->hAlsaSeq, portNumber);
+    }
+
+    MidiInputDeviceAlsa::MidiInputPortAlsa* MidiInputDeviceAlsa::CreateMidiPort() {
+	    int alsaPort;
+	    if ((alsaPort = snd_seq_create_simple_port(hAlsaSeq, "LinuxSampler",
+					    SND_SEQ_PORT_CAP_WRITE|SND_SEQ_PORT_CAP_SUBS_WRITE,
+					    SND_SEQ_PORT_TYPE_APPLICATION)) < 0) {
+		    throw MidiInputException("Error creating sequencer port");
+	    }
+	    return ( new MidiInputPortAlsa(this, alsaPort) );
     }
 
     void MidiInputDeviceAlsa::Listen() {
@@ -74,7 +74,7 @@ namespace LinuxSampler {
     *                (e.g. "64:0")
     * @throws MidiInputException  if connection cannot be established
     */
-    void MidiInputDeviceAlsa::ConnectToAlsaMidiSource(const char* MidiSource) {
+    void MidiInputDeviceAlsa::MidiInputPortAlsa::ConnectToAlsaMidiSource(const char* MidiSource) {
         snd_seq_addr_t sender, dest;
         snd_seq_port_subscribe_t* subs;
         int hExtClient, hExtPort;
@@ -82,16 +82,32 @@ namespace LinuxSampler {
         sscanf(MidiSource, "%d:%d", &hExtClient, &hExtPort);
         sender.client = (char) hExtClient;
         sender.port   = (char) hExtPort;
-        dest.client   = (char) this->hAlsaSeqClient;
-        dest.port     = (char) this->hAlsaSeqPort;
+        dest.client   = (char) pDevice->hAlsaSeqClient;
+        dest.port     = (char) portNumber;
         snd_seq_port_subscribe_alloca(&subs);
         snd_seq_port_subscribe_set_sender(subs, &sender);
         snd_seq_port_subscribe_set_dest(subs, &dest);
         snd_seq_port_subscribe_set_queue(subs, 1);
         snd_seq_port_subscribe_set_time_update(subs, 1);
         snd_seq_port_subscribe_set_time_real(subs, 1);
-        if (snd_seq_subscribe_port(this->hAlsaSeq, subs) < 0)
+        if (snd_seq_subscribe_port(pDevice->hAlsaSeq, subs) < 0)
             throw MidiInputException(String("Unable to connect to Alsa seq client \'") + MidiSource + "\' (" + snd_strerror(errno) + ")");
+    }
+
+    String MidiInputDeviceAlsa::Description() {
+	    return "Advanced Linux Sound Architecture";
+    }
+
+    String MidiInputDeviceAlsa::Version() {
+	    String s = "$Revision: 1.5 $";
+	    return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
+    }
+
+    std::map<String,DeviceCreationParameter*> MidiInputDeviceAlsa::CreateParameters(std::map<String,String> Parameters) {
+	     std::map<String,DeviceCreationParameter*> result;
+	     result["active"] = OptionalParameter<ParameterActive>::New(this, Parameters["active"]);
+	     result["ports"] = OptionalParameter<ParameterPorts>::New(this, Parameters["ports"]);
+	     return result;
     }
 
     int MidiInputDeviceAlsa::Main() {
@@ -106,28 +122,31 @@ namespace LinuxSampler {
             if (poll(pfd, npfd, 100000) > 0) {
                 do {
                     snd_seq_event_input(hAlsaSeq, &ev);
+		    int port = (int) ev->dest.port;
+		    MidiInputPort* pMidiInputPort = Ports[port];
+
                     switch (ev->type) {
                         case SND_SEQ_EVENT_CONTROLLER:
-                            DispatchControlChange(ev->data.control.param, ev->data.control.value, ev->data.control.channel);
+                            pMidiInputPort->DispatchControlChange(ev->data.control.param, ev->data.control.value, ev->data.control.channel);
                             break;
 
                         case SND_SEQ_EVENT_PITCHBEND:
                           //  fprintf(stderr, "Pitchbender event on Channel %2d: %5d   \n",
                           //          ev->data.control.channel, ev->data.control.value);
-                            DispatchPitchbend(ev->data.control.value, ev->data.control.channel);
+                            pMidiInputPort->DispatchPitchbend(ev->data.control.value, ev->data.control.channel);
                             break;
 
                         case SND_SEQ_EVENT_NOTEON:
                             if (ev->data.note.velocity != 0) {
-                                DispatchNoteOn(ev->data.note.note, ev->data.note.velocity, ev->data.control.channel);
+                                pMidiInputPort->DispatchNoteOn(ev->data.note.note, ev->data.note.velocity, ev->data.control.channel);
                             }
                             else {
-                                DispatchNoteOff(ev->data.note.note, 0, ev->data.control.channel);
+                                pMidiInputPort->DispatchNoteOff(ev->data.note.note, 0, ev->data.control.channel);
                             }
                             break;
 
                         case SND_SEQ_EVENT_NOTEOFF:
-                            DispatchNoteOff(ev->data.note.note, ev->data.note.velocity, ev->data.control.channel);
+                            pMidiInputPort->DispatchNoteOff(ev->data.note.note, ev->data.note.velocity, ev->data.control.channel);
                             break;
                     }
                     snd_seq_free_event(ev);

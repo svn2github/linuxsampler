@@ -39,22 +39,52 @@ namespace LinuxSampler {
      */
     class MidiInputDeviceAlsa : public MidiInputDevice, public Thread {
         public:
-            MidiInputDeviceAlsa(char* AutoConnectPortID = NULL);
+            MidiInputDeviceAlsa(std::map<String,String> Parameters);
             ~MidiInputDeviceAlsa();
 
             // derived abstract methods from class 'MidiInputDevice'
             void Listen();
             void StopListen();
-	    void SetInputPort(const char *);
+	    String Driver() { return "Alsa"; };
 
-            // own methods
-            void ConnectToAlsaMidiSource(const char* MidiSource);
+	    static String Description();
+	    static String Version();
+
+	    class MidiInputPortAlsa : public MidiInputPort {
+		    public:
+			    void ConnectToAlsaMidiSource(const char* MidiSource);
+
+			    class ParameterAlsaSeqBindings : public DeviceCreationParameterString {
+				    public:
+					    ParameterAlsaSeqBindings(MidiInputPortAlsa* pPort) { this->pPort = pPort; InitWithDefault();}
+					    virtual String Description()                                                    { return "Bindings to other Alsa sequencer clients";   }
+					    virtual bool   Fix()                                                            { return false;   }
+					    virtual bool   Mandatory()                                                      { return false;   }
+					    virtual std::map<String,DeviceCreationParameter*> DependsAsParameters()         { return std::map<String,DeviceCreationParameter*>(); }
+					    virtual optional<String>    Default(std::map<String,String> Parameters)         { return ""; }
+					    virtual std::vector<String> PossibilitiesAsString(std::map<String,String> Parameters) { return std::vector<String>(); } //TODO
+					    virtual void             OnSetValue(String s) throw (LinuxSamplerException)     { pPort->ConnectToAlsaMidiSource(s.c_str()); }
+				    protected:
+					    MidiInputPortAlsa* pPort;
+			    };
+
+		    protected:
+			    MidiInputPortAlsa(MidiInputDeviceAlsa* pDevice, int portNumber);
+			    ~MidiInputPortAlsa();
+			    friend class MidiInputDeviceAlsa;
+		    private:
+			    MidiInputDeviceAlsa* pDevice;
+	    };
+
+	    MidiInputPortAlsa* CreateMidiPort( void );
+
         protected:
+	    std::map<String,DeviceCreationParameter*> CreateParameters(std::map<String,String> Parameters);
             int Main(); ///< Implementation of virtual method from class Thread
         private:
+	    static std::map<String,DeviceCreationParameter*> CreateAvailableParameters();
             snd_seq_t* hAlsaSeq;
             int        hAlsaSeqClient;       ///< Alsa Sequencer client ID
-            int        hAlsaSeqPort;     ///< Alsa Sequencer client port number
     };
 }
 
