@@ -47,7 +47,6 @@ namespace LinuxSampler {
     }
 
     AudioOutputDeviceAlsa::ParameterCard::ParameterCard(String s) throw (LinuxSamplerException) : DeviceCreationParameterString(s) {
-        SetValue(s); // try to use given card
     }
 
     String AudioOutputDeviceAlsa::ParameterCard::Description() {
@@ -527,7 +526,7 @@ namespace LinuxSampler {
     }
 
     String AudioOutputDeviceAlsa::Version() {
-       String s = "$Revision: 1.14 $";
+       String s = "$Revision: 1.15 $";
        return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
 

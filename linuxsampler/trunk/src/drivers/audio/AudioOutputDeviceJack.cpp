@@ -43,8 +43,7 @@ namespace LinuxSampler {
     }
 
     void AudioOutputDeviceJack::AudioChannelJack::ParameterName::OnSetValue(String s) {
-        String name = "LinuxSampler:" + s;
-        if (jack_port_set_name(pChannel->hJackPort, name.c_str())) throw AudioOutputException("Failed to rename JACK port");
+        if (jack_port_set_name(pChannel->hJackPort, s.c_str())) throw AudioOutputException("Failed to rename JACK port");
     }
 
 
@@ -65,7 +64,7 @@ namespace LinuxSampler {
     }
 
     std::vector<String> AudioOutputDeviceJack::AudioChannelJack::ParameterJackBindings::PossibilitiesAsString() {
-        const char** pPortNames = jack_get_ports(pChannel->pDevice->hJackClient, NULL, NULL, 0);
+        const char** pPortNames = jack_get_ports(pChannel->pDevice->hJackClient, NULL, NULL, JackPortIsInput);
         if (!pPortNames) return std::vector<String>();
         std::vector<String> result;
         for (int i = 0; pPortNames[i]; i++) result.push_back(pPortNames[i]);
@@ -74,12 +73,13 @@ namespace LinuxSampler {
     }
 
     void AudioOutputDeviceJack::AudioChannelJack::ParameterJackBindings::OnSetValue(std::vector<String> vS) {
-        String src_name = "LinuxSampler:" + pChannel->Parameters["NAME"]->Value();
+        // TODO: we should remove all existing bindings before we connect new ones here
+        String src_name = "LinuxSampler:" + ((DeviceRuntimeParameterString*)pChannel->Parameters["NAME"])->ValueAsString();
         for (int i = 0; i < vS.size(); i++) {
             String dst_name = vS[i];
-            if (jack_connect(pChannel->pDevice->hJackClient, src_name.c_str(), dst_name.c_str())) {
-                throw AudioOutputException("Jack: Cannot connect to port '" + dst_name + "'");
-            }
+            int res = jack_connect(pChannel->pDevice->hJackClient, src_name.c_str(), dst_name.c_str());
+            if (res == EEXIST) throw AudioOutputException("Jack: Connection to port '" + dst_name + "' already established");
+            else if (res)      throw AudioOutputException("Jack: Cannot connect port '" + src_name + "' to port '" + dst_name + "'");
         }
     }
 
@@ -104,7 +104,7 @@ namespace LinuxSampler {
     }
 
     float* AudioOutputDeviceJack::AudioChannelJack::CreateJackPort(uint ChannelNr, AudioOutputDeviceJack* pDevice) throw (AudioOutputException) {
-        String port_id = "LinuxSampler:" + ToString(ChannelNr);
+        String port_id = ToString(ChannelNr);
         hJackPort = jack_port_register(pDevice->hJackClient, port_id.c_str(), JACK_DEFAULT_AUDIO_TYPE, JackPortIsOutput, 0);
         if (!hJackPort) throw AudioOutputException("Jack: Cannot register Jack output port.");
         return (float*) jack_port_get_buffer(hJackPort, pDevice->uiMaxSamplesPerCycle);
@@ -135,6 +135,9 @@ namespace LinuxSampler {
 
         // create audio channels
         AcquireChannels(((DeviceCreationParameterInt*)Parameters["CHANNELS"])->ValueAsInt());
+
+        // finally activate device if desired
+        if (((DeviceCreationParameterBool*)Parameters["ACTIVE"])->ValueAsBool()) Play();
     }
 
     AudioOutputDeviceJack::~AudioOutputDeviceJack() {
@@ -194,7 +197,7 @@ namespace LinuxSampler {
     }
 
     String AudioOutputDeviceJack::Version() {
-       String s = "$Revision: 1.11 $";
+       String s = "$Revision: 1.12 $";
        return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
 

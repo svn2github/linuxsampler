@@ -88,10 +88,19 @@ int LSCPServer::Main() {
     SocketAddress.sin_addr.s_addr = htonl(INADDR_ANY);
 
     if (bind(hSocket, (sockaddr*) &SocketAddress, sizeof(sockaddr_in)) < 0) {
-        std::cerr << "LSCPServer: Could not bind server socket." << std::endl;
-        close(hSocket);
-        //return -1;
-        exit(EXIT_FAILURE);
+        std::cerr << "LSCPServer: Could not bind server socket, retrying for " << ToString(LSCP_SERVER_BIND_TIMEOUT) << " seconds...";
+        for (int trial = 0; true; trial++) { // retry for LSCP_SERVER_BIND_TIMEOUT seconds
+            if (bind(hSocket, (sockaddr*) &SocketAddress, sizeof(sockaddr_in)) < 0) {
+                if (trial > LSCP_SERVER_BIND_TIMEOUT) {
+                    std::cerr << "gave up!" << std::endl;
+                    close(hSocket);
+                    //return -1;
+                    exit(EXIT_FAILURE);
+                }
+                else sleep(1); // sleep 1s
+            }
+            else break; // success
+        }
     }
 
     listen(hSocket, 1);

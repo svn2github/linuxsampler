@@ -47,6 +47,9 @@
 /// TCP Port on which the server should listen for connection requests.
 #define LSCP_PORT 8888
 
+/// try up to 3 minutes to bind server socket
+#define LSCP_SERVER_BIND_TIMEOUT 180
+
 using namespace LinuxSampler;
 
 // External references to the main scanner and parser functions
