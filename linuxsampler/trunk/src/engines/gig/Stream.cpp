@@ -76,7 +76,7 @@ namespace LinuxSampler { namespace gig {
 
     void Stream::WriteSilence(unsigned long SilenceSampleWords) {
         memset(pRingBuffer->get_write_ptr(), 0, SilenceSampleWords * 2);
-        pRingBuffer->increment_write_ptr_with_wrap(SilenceSampleWords * 2);
+        pRingBuffer->increment_write_ptr_with_wrap(SilenceSampleWords);
     }
 
     Stream::Stream( ::gig::buffer_t* pDecompressionBuffer, uint BufferSize, uint BufferWrapElements) {
