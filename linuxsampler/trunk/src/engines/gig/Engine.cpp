@@ -398,6 +398,10 @@ namespace LinuxSampler { namespace gig {
         }
 
 
+        // update time of start and end of this audio fragment (as events' time stamps relate to this)
+        pEventGenerator->UpdateFragmentTime(Samples);
+
+
         // empty the event lists for the new fragment
         pEvents->clear();
         pCCEvents->clear();
@@ -412,16 +416,30 @@ namespace LinuxSampler { namespace gig {
             }
         }
 
-        // read and copy events from input queue
-        Event event = pEventGenerator->CreateEvent();
-        while (true) {
-            if (!pEventQueue->pop(&event) || pEvents->poolIsEmpty()) break;
-            *pEvents->allocAppend() = event;
+
+        // get all events from the input event queue which belong to the current fragment
+        {
+            RingBuffer<Event>::NonVolatileReader eventQueueReader = pEventQueue->get_non_volatile_reader();
+            Event* pEvent;
+            while (true) {
+                // get next event from input event queue
+                if (!(pEvent = eventQueueReader.pop())) break;
+                // if younger event reached, ignore that and all subsequent ones for now
+                if (pEvent->FragmentPos() >= Samples) {
+                    eventQueueReader--;
+                    dmsg(2,("Younger Event, pos=%d ,Samples=%d!\n",pEvent->FragmentPos(),Samples));
+                    pEvent->ResetFragmentPos();
+                    break;
+                }
+                // copy event to internal event list
+                if (pEvents->poolIsEmpty()) {
+                    dmsg(1,("Event pool emtpy!\n"));
+                    break;
+                }
+                *pEvents->allocAppend() = *pEvent;
+            }
+            eventQueueReader.free(); // free all copied events from input queue
         }
-
-
-        // update time of start and end of this audio fragment (as events' time stamps relate to this)
-        pEventGenerator->UpdateFragmentTime(Samples);
 
 
         // process events
@@ -1146,7 +1164,7 @@ namespace LinuxSampler { namespace gig {
     }
 
     String Engine::Version() {
-        String s = "$Revision: 1.17 $";
+        String s = "$Revision: 1.18 $";
         return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
 

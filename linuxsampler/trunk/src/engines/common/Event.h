@@ -41,8 +41,8 @@ namespace LinuxSampler {
             Event CreateEvent();
         protected:
             typedef uint32_t time_stamp_t; ///< We read the processor's cycle count register as a reference for the real time. These are of course only abstract values with arbitrary time entity, but that's not a problem as we calculate relatively.
-            inline uint ToFragmentPos(time_stamp_t TimeStamp) {
-                return uint ((TimeStamp - FragmentTime.begin) * FragmentTime.sample_ratio);
+            inline int32_t ToFragmentPos(time_stamp_t TimeStamp) {
+                return int32_t (int32_t(TimeStamp - FragmentTime.begin) * FragmentTime.sample_ratio);
             }
             friend class Event;
         private:
@@ -105,9 +105,14 @@ namespace LinuxSampler {
                 } Sysex;
             } Param;
 
-            inline uint FragmentPos() {
-                if (iFragmentPos >= 0) return (uint) iFragmentPos;
-                return (uint) (iFragmentPos = pEventGenerator->ToFragmentPos(TimeStamp));
+            inline int32_t FragmentPos() {
+                if (iFragmentPos >= 0) return iFragmentPos;
+                iFragmentPos = pEventGenerator->ToFragmentPos(TimeStamp);
+                if (iFragmentPos < 0) iFragmentPos = 0; // if event arrived shortly before the beginning of current fragment
+                return iFragmentPos;
+            }
+            inline void ResetFragmentPos() {
+                iFragmentPos = -1;
             }
         protected:
             typedef EventGenerator::time_stamp_t time_stamp_t;
@@ -116,7 +121,7 @@ namespace LinuxSampler {
         private:
             EventGenerator* pEventGenerator; ///< Creator of the event.
             time_stamp_t    TimeStamp;       ///< Time stamp of the event's occurence.
-            int             iFragmentPos;    ///< Position in the current fragment this event refers to.
+            int32_t         iFragmentPos;    ///< Position in the current fragment this event refers to.
     };
 
 } // namespace LinuxSampler
