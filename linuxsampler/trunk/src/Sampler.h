@@ -67,20 +67,15 @@ namespace LinuxSampler {
             void SetAudioOutputDevice(AudioOutputDevice* pDevice);
 
             /**
-             * Connect this sampler channel to and MIDI input device (that
-             * is MIDI input driver) of the given type. If the MIDI input
-             * driver for the desired MIDI input system is not yet created,
-             * then it will be created automatically, but with default
-             * settings though. If this sampler channel was already
-             * connected to a MIDI input device, then the old connection
-             * will automatically be removed before.
+             * Connect this sampler channel to and MIDI input port
              *
-             * @param MidiType    - MIDI input system to connect to
+             * @param MidiInputDevice - MIDI input device to connect to
+	     * @param MidiInputPort - MIDI port to connect to
              * @param MidiChannel - optional: MIDI channel on which the
              *                      sampler channel should listen to
              *                      (default: listen on all MIDI channels)
              */
-            void SetMidiInputDevice(MidiInputDevice::type_t MidiType, MidiInputDevice::midi_chan_t MidiChannel = MidiInputDevice::midi_chan_all); // TODO: 'MidiType' type to be changed to 'MidiInputDevice*'
+            void SetMidiInputPort(MidiInputDevice* pDevice, int midiPort, MidiInputDevice::MidiInputPort::midi_chan_t MidiChannel = MidiInputDevice::MidiInputPort::midi_chan_all);
 
             /**
              * Returns the engine that was deployed on this sampler channel.
@@ -96,7 +91,7 @@ namespace LinuxSampler {
              * @returns  pointer to MIDI input device or NULL if not
              *           connected
              */
-            MidiInputDevice* GetMidiInputDevice();
+	    MidiInputDevice::MidiInputPort* GetMidiInputPort();
 
             /**
              * Returns the audio output device to which this sampler channel
@@ -108,10 +103,24 @@ namespace LinuxSampler {
             AudioOutputDevice* GetAudioOutputDevice();
 
             /**
+             * Returns the audio output device to which this sampler channel
+             * is currently connected to.
+             *
+             * @returns  pointer to audio output device or NULL if not
+             *           connected
+             */
+            MidiInputDevice* GetMidiInputDevice();
+
+            /**
              * Returns the index number of this sampler channel within the
              * Sampler instance.
              */
             uint Index();
+
+	    /**
+	     * Returns midi channel
+	     */
+	    MidiInputDevice::MidiInputPort::midi_chan_t GetMidiInputChannel() { return midiChannel; }
 
         protected:
             SamplerChannel(Sampler* pS);
@@ -119,9 +128,10 @@ namespace LinuxSampler {
 
             Sampler*           pSampler;
             Engine*            pEngine;
-            MidiInputDevice*   pMidiInputDevice;
+	    MidiInputDevice::MidiInputPort*     pMidiInputPort;
             AudioOutputDevice* pAudioOutputDevice;
             int                iIndex;
+	    MidiInputDevice::MidiInputPort::midi_chan_t midiChannel;
 
             friend class Sampler;
     };
@@ -226,7 +236,7 @@ namespace LinuxSampler {
             std::vector<String> AvailableAudioOutputDrivers();
 
             /**
-             * Create an audio output device of the given type.
+             * Create an audio output device.
              *
              * @param AudioDriver - name of the audio driver
              * @param Parameters - eventually needed driver parameters to
@@ -236,36 +246,34 @@ namespace LinuxSampler {
              */
             AudioOutputDevice* CreateAudioOutputDevice(String AudioDriver, std::map<String,String> Parameters) throw (LinuxSamplerException);
 
+            /**
+             * Create a midi input device.
+             *
+             * @param MidiDriver - name of the midi driver
+             * @param Parameters - eventually needed driver parameters to
+             *                     create the device
+             * @returns  pointer to created midi input device
+             * @throws LinuxSamplerException  if device could not be created
+             */
+            MidiInputDevice* CreateMidiInputDevice(String MidiDriver, std::map<String,String> Parameters) throw (LinuxSamplerException);
+
             uint AudioOutputDevices();
+            uint MidiInputDevices();
 
             std::map<uint, AudioOutputDevice*> GetAudioOutputDevices();
 
+            std::map<uint, MidiInputDevice*> GetMidiInputDevices();
+
             void DestroyAudioOutputDevice(AudioOutputDevice* pDevice) throw (LinuxSamplerException);
-
-            /**
-             * Create a MIDI input device of the given type.
-             *
-             * @param MidiType - desired MIDI input system to use
-             * @returns  pointer to created MIDI input device
-             */
-            MidiInputDevice* CreateMidiInputDevice(MidiInputDevice::type_t MidiType); //TODO: to be changed to 'MidiInputDevice* CreateMidiInputDevice(String MidiDriver, std::map<String,String> Parameters) throw (LinuxSamplerException);'
-
-            /**
-             * Returns the MIDI input device of the given type.
-             *
-             * @param MidiType - desired MIDI input system to use
-             * @returns  pointer to MIDI input device or NULL if device of
-             *           desired type is not yet created
-             */
-            MidiInputDevice* GetMidiInputDevice(MidiInputDevice::type_t MidiType);
+	    void DestroyMidiInputDevice(MidiInputDevice* pDevice) throw (LinuxSamplerException);
 
         protected:
             typedef std::map<uint, AudioOutputDevice*> AudioOutputDeviceMap;
-            typedef std::map<MidiInputDevice::type_t, MidiInputDevice*> MidiInputDeviceMap;
+            typedef std::map<uint, MidiInputDevice*> MidiInputDeviceMap;
 
             std::vector<SamplerChannel*> vSamplerChannels;   ///< contains all created sampler channels
             AudioOutputDeviceMap         mAudioOutputDevices; ///< contains all created audio output devices
-            MidiInputDeviceMap           MidiInputDevices;
+            MidiInputDeviceMap           mMidiInputDevices;
 
             template<class T> inline String ToString(T o) {
                 std::stringstream ss;

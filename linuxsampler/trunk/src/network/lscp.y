@@ -58,13 +58,14 @@ void yyerror(const char* s);
 %token CHANNEL NOTIFICATION
 %token AVAILABLE_ENGINES AVAILABLE_AUDIO_OUTPUT_DRIVERS CHANNELS INFO BUFFER_FILL STREAM_COUNT VOICE_COUNT
 %token INSTRUMENT ENGINE
-%token AUDIO_OUTPUT_CHANNEL AUDIO_OUTPUT_CHANNEL_PARAMETER AUDIO_OUTPUT_DEVICE AUDIO_OUTPUT_DEVICES AUDIO_OUTPUT_DEVICE_PARAMETER AUDIO_OUTPUT_DRIVER AUDIO_OUTPUT_DRIVER_PARAMETER AUDIO_OUTPUT_TYPE MIDI_INPUT_PORT MIDI_INPUT_CHANNEL MIDI_INPUT_TYPE VOLUME
+%token AUDIO_OUTPUT_CHANNEL AUDIO_OUTPUT_CHANNEL_PARAMETER AUDIO_OUTPUT_DEVICE AUDIO_OUTPUT_DEVICES AUDIO_OUTPUT_DEVICE_PARAMETER AUDIO_OUTPUT_DRIVER AUDIO_OUTPUT_DRIVER_PARAMETER AUDIO_OUTPUT_TYPE MIDI_INPUT MIDI_INPUT_TYPE MIDI_INPUT_PORT MIDI_INPUT_CHANNEL VOLUME
+%token MIDI_INPUT_DRIVER MIDI_INPUT_DRIVER_PARAMETER AVAILABLE_MIDI_INPUT_DRIVERS MIDI_INPUT_DEVICE MIDI_INPUT_DEVICES MIDI_INPUT_DEVICE_PARAMETER MIDI_INPUT_PORT_PARAMETER
 %token BYTES PERCENTAGE
 %token MISCELLANEOUS
 
 %type <Dotnum> volume
-%type <Number> sampler_channel instrument_index audio_output_channel midi_input_channel
-%type <String> string param_val filename engine_name midi_input_port command create_instruction destroy_instruction get_instruction list_instruction load_instruction set_chan_instruction load_instr_args load_engine_args audio_output_type midi_input_type set_instruction subscribe_event unsubscribe_event
+%type <Number> sampler_channel instrument_index audio_output_channel midi_input_channel midi_input_port midi_input_device
+%type <String> string param_val filename engine_name command create_instruction destroy_instruction get_instruction list_instruction load_instruction set_chan_instruction load_instr_args load_engine_args audio_output_type midi_input_type set_instruction subscribe_event unsubscribe_event
 %type <FillResponse> buffer_size_type
 %type <KeyValList> key_val_list
 
@@ -123,12 +124,19 @@ unsubscribe_event     :  CHANNELS                                   { $$ = LSCPS
                       ;
 
 get_instruction       :  AVAILABLE_ENGINES                                                          { $$ = LSCPSERVER->GetAvailableEngines();                          }
+                      |  AVAILABLE_MIDI_INPUT_DRIVERS                                               { $$ = LSCPSERVER->GetAvailableMidiInputDrivers();               }
+                      |  MIDI_INPUT_DRIVER SP INFO SP string                                        { $$ = LSCPSERVER->GetMidiInputDriverInfo($5);                   }
+                      |  MIDI_INPUT_DRIVER_PARAMETER SP INFO SP string SP string                    { $$ = LSCPSERVER->GetMidiInputDriverParameterInfo($5, $7);      }
+                      |  MIDI_INPUT_DRIVER_PARAMETER SP INFO SP string SP string SP key_val_list    { $$ = LSCPSERVER->GetMidiInputDriverParameterInfo($5, $7, $9);  }
                       |  AVAILABLE_AUDIO_OUTPUT_DRIVERS                                             { $$ = LSCPSERVER->GetAvailableAudioOutputDrivers();               }
                       |  AUDIO_OUTPUT_DRIVER SP INFO SP string                                      { $$ = LSCPSERVER->GetAudioOutputDriverInfo($5);                   }
                       |  AUDIO_OUTPUT_DRIVER_PARAMETER SP INFO SP string SP string                  { $$ = LSCPSERVER->GetAudioOutputDriverParameterInfo($5, $7);      }
                       |  AUDIO_OUTPUT_DRIVER_PARAMETER SP INFO SP string SP string SP key_val_list  { $$ = LSCPSERVER->GetAudioOutputDriverParameterInfo($5, $7, $9);  }
                       |  AUDIO_OUTPUT_DEVICES                                                       { $$ = LSCPSERVER->GetAudioOutputDeviceCount();                    }
+                      |  MIDI_INPUT_DEVICES                                                         { $$ = LSCPSERVER->GetMidiInputDeviceCount();                    }
                       |  AUDIO_OUTPUT_DEVICE SP INFO SP NUMBER                                      { $$ = LSCPSERVER->GetAudioOutputDeviceInfo($5);                   }
+                      |  MIDI_INPUT_DEVICE SP INFO SP NUMBER                                        { $$ = LSCPSERVER->GetMidiInputDeviceInfo($5);                   }
+                      |  MIDI_INPUT_PORT SP INFO SP NUMBER SP NUMBER                                { $$ = LSCPSERVER->GetMidiInputPortInfo($5, $7);                   }
                       |  AUDIO_OUTPUT_CHANNEL SP INFO SP NUMBER SP NUMBER                           { $$ = LSCPSERVER->GetAudioOutputChannelInfo($5, $7);              }
                       |  AUDIO_OUTPUT_CHANNEL_PARAMETER SP INFO SP NUMBER SP NUMBER SP string       { $$ = LSCPSERVER->GetAudioOutputChannelParameterInfo($5, $7, $9); }
                       |  CHANNELS                                                                   { $$ = LSCPSERVER->GetChannels();                                  }
@@ -141,14 +149,18 @@ get_instruction       :  AVAILABLE_ENGINES                                      
 
 set_instruction       :  AUDIO_OUTPUT_DEVICE_PARAMETER SP NUMBER SP string EQ param_val             { $$ = LSCPSERVER->SetAudioOutputDeviceParameter($3, $5, $7);      }
                       |  AUDIO_OUTPUT_CHANNEL_PARAMETER SP NUMBER SP NUMBER SP string EQ param_val  { $$ = LSCPSERVER->SetAudioOutputChannelParameter($3, $5, $7, $9); }
-                      |  CHANNEL SP set_chan_instruction                                                   { $$ = $3;                                                         }
+                      |  MIDI_INPUT_DEVICE_PARAMETER SP NUMBER SP string EQ param_val               { $$ = LSCPSERVER->SetMidiInputDeviceParameter($3, $5, $7); }
+                      |  MIDI_INPUT_PORT_PARAMETER SP NUMBER SP NUMBER SP string EQ param_val       { $$ = LSCPSERVER->SetMidiInputPortParameter($3, $5, $7, $9); }
+                      |  CHANNEL SP set_chan_instruction                                            { $$ = $3;                                                         }
                       ;
 
 create_instruction    :  AUDIO_OUTPUT_DEVICE SP string SP key_val_list { $$ = LSCPSERVER->CreateAudioOutputDevice($3,$5); }
                       |  AUDIO_OUTPUT_DEVICE SP string                 { $$ = LSCPSERVER->CreateAudioOutputDevice($3); }
+                      |  MIDI_INPUT_DEVICE SP string                   { $$ = LSCPSERVER->CreateMidiInputDevice($3); }
                       ;
 
 destroy_instruction   :  AUDIO_OUTPUT_DEVICE SP NUMBER  { $$ = LSCPSERVER->DestroyAudioOutputDevice($3); }
+                      |  MIDI_INPUT_DEVICE SP NUMBER    { $$ = LSCPSERVER->DestroyMidiInputDevice($3); }
                       ;
 
 load_instruction      :  INSTRUMENT SP load_instr_args  { $$ = $3; }
@@ -158,8 +170,7 @@ load_instruction      :  INSTRUMENT SP load_instr_args  { $$ = $3; }
 set_chan_instruction  :  AUDIO_OUTPUT_DEVICE SP sampler_channel SP NUMBER                                         { $$ = LSCPSERVER->SetAudioOutputDevice($5, $3);      }
                       |  AUDIO_OUTPUT_CHANNEL SP sampler_channel SP audio_output_channel SP audio_output_channel  { $$ = LSCPSERVER->SetAudioOutputChannel($5, $7, $3); }
                       |  AUDIO_OUTPUT_TYPE SP sampler_channel SP audio_output_type                                { $$ = LSCPSERVER->SetAudioOutputType($5, $3);        }
-                      |  MIDI_INPUT_PORT SP sampler_channel SP midi_input_port                                    { $$ = LSCPSERVER->SetMIDIInputPort($5, $3);          }
-                      |  MIDI_INPUT_CHANNEL SP sampler_channel SP midi_input_channel                              { $$ = LSCPSERVER->SetMIDIInputChannel($5, $3);       }
+                      |  MIDI_INPUT SP sampler_channel SP midi_input_device SP midi_input_port SP midi_input_channel  { $$ = LSCPSERVER->SetMIDIInput($5, $7, $9, $3);          }
                       |  MIDI_INPUT_TYPE SP sampler_channel SP midi_input_type                                    { $$ = LSCPSERVER->SetMIDIInputType($5, $3);          }
                       |  VOLUME SP sampler_channel SP volume                                                      { $$ = LSCPSERVER->SetVolume($5, $3);                 }
                       ;
@@ -173,6 +184,7 @@ buffer_size_type      :  BYTES       { $$ = fill_response_bytes;      }
                       ;
 
 list_instruction      :  AUDIO_OUTPUT_DEVICES  { $$ = LSCPSERVER->GetAudioOutputDevices(); }
+                      |  MIDI_INPUT_DEVICES    { $$ = LSCPSERVER->GetMidiInputDevices(); }
                       ;
 
 load_instr_args       :  filename SP instrument_index SP sampler_channel  { $$ = LSCPSERVER->LoadInstrument($1, $3, $5); }
@@ -183,6 +195,15 @@ load_engine_args      :  engine_name SP sampler_channel  { $$ = LSCPSERVER->Load
                       ;
 
 audio_output_type     :  string
+                      ;
+
+midi_input_device     :  NUMBER
+                      ;
+
+midi_input_port       :  NUMBER
+                      ;
+
+midi_input_channel    :  NUMBER
                       ;
 
 midi_input_type       :  string
@@ -201,13 +222,7 @@ instrument_index      :  NUMBER
 audio_output_channel  :  NUMBER
                       ;
 
-midi_input_channel    :  NUMBER
-                      ;
-
 engine_name           :  string
-                      ;
-
-midi_input_port       :  STRINGVAL
                       ;
 
 filename              :  STRINGVAL

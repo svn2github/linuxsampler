@@ -25,7 +25,7 @@
 #include "Sampler.h"
 
 #include "audiodriver/AudioOutputDeviceFactory.h"
-#include "mididriver/MidiInputDeviceAlsa.h"
+#include "mididriver/MidiInputDeviceFactory.h"
 #include "engines/gig/Engine.h"
 
 namespace LinuxSampler {
@@ -36,14 +36,15 @@ namespace LinuxSampler {
     SamplerChannel::SamplerChannel(Sampler* pS) {
         pSampler           = pS;
         pEngine            = NULL;
-        pMidiInputDevice   = NULL;
+        pMidiInputPort     = NULL;
         pAudioOutputDevice = NULL;
         iIndex             = -1;
+	midiChannel        = MidiInputDevice::MidiInputPort::midi_chan_all;
     }
 
     SamplerChannel::~SamplerChannel() {
         if (pEngine) {
-            if (pMidiInputDevice) pMidiInputDevice->Disconnect(pEngine);
+            if (pMidiInputPort) pMidiInputPort->Disconnect(pEngine);
             if (pAudioOutputDevice) pAudioOutputDevice->Disconnect(pEngine);
             delete pEngine;
         }
@@ -64,14 +65,14 @@ namespace LinuxSampler {
 
         // disconnect old engine
         if (pEngine) {
-            if (pMidiInputDevice) pMidiInputDevice->Disconnect(pEngine);
+            if (pMidiInputPort) pMidiInputPort->Disconnect(pEngine);
             if (pAudioOutputDevice) pAudioOutputDevice->Disconnect(pEngine);
             delete pEngine;
         }
 
         // connect new engine
         pEngine = pNewEngine;
-        if (pMidiInputDevice) pMidiInputDevice->Connect(pNewEngine, (MidiInputDevice::midi_chan_t) Index());
+        if (pMidiInputPort) pMidiInputPort->Connect(pNewEngine, (MidiInputDevice::MidiInputPort::midi_chan_t) Index());
         if (pAudioOutputDevice) pAudioOutputDevice->Connect(pNewEngine);
         dmsg(2,("OK\n"));
     }
@@ -85,29 +86,37 @@ namespace LinuxSampler {
         if (pEngine) pAudioOutputDevice->Connect(pEngine);
     }
 
-    void SamplerChannel::SetMidiInputDevice(MidiInputDevice::type_t MidiType, MidiInputDevice::midi_chan_t MidiChannel) {
-        // get / create desired midi device
-        MidiInputDevice* pDevice = pSampler->GetMidiInputDevice(MidiType);
-        if (!pDevice) pDevice = pSampler->CreateMidiInputDevice(MidiType);
+    void SamplerChannel::SetMidiInputPort(MidiInputDevice* pDevice, int midiPort, MidiInputDevice::MidiInputPort::midi_chan_t MidiChannel) {
+        // disconnect old port
+        if (pMidiInputPort && pEngine) pMidiInputPort->Disconnect(pEngine);
 
-        // disconnect old device
-        if (pMidiInputDevice && pEngine) pMidiInputDevice->Disconnect(pEngine);
-
-        // connect new device
-        pMidiInputDevice = pDevice;
-        if (pEngine) pMidiInputDevice->Connect(pEngine, MidiChannel);
+        // connect new port
+        pMidiInputPort = pDevice->GetPort(midiPort);
+	if (!pMidiInputPort)
+		throw LinuxSamplerException("MIDI port doesn't exist");
+        if (pEngine) {
+		pMidiInputPort->Connect(pEngine, MidiChannel);
+		this->midiChannel = MidiChannel;
+	}
     }
 
     Engine* SamplerChannel::GetEngine() {
         return pEngine;
     }
 
-    MidiInputDevice* SamplerChannel::GetMidiInputDevice() {
-        return pMidiInputDevice;
+    MidiInputDevice::MidiInputPort* SamplerChannel::GetMidiInputPort() {
+        return pMidiInputPort;
     }
 
     AudioOutputDevice* SamplerChannel::GetAudioOutputDevice() {
         return pAudioOutputDevice;
+    }
+
+    MidiInputDevice* SamplerChannel::GetMidiInputDevice() {
+	MidiInputDevice::MidiInputPort* port = GetMidiInputPort();
+	if (!port)
+		return NULL;
+        return port->GetDevice();
     }
 
     uint SamplerChannel::Index() {
@@ -140,8 +149,8 @@ namespace LinuxSampler {
 
         // delete midi input devices
         {
-            MidiInputDeviceMap::iterator iter = MidiInputDevices.begin();
-            for (; iter != MidiInputDevices.end(); iter++) {
+            MidiInputDeviceMap::iterator iter = mMidiInputDevices.begin();
+            for (; iter != mMidiInputDevices.end(); iter++) {
                 MidiInputDevice* pDevice = iter->second;
                 pDevice->StopListen();
                 delete pDevice;
@@ -217,8 +226,16 @@ namespace LinuxSampler {
         return mAudioOutputDevices.size();
     }
 
+    uint Sampler::MidiInputDevices() {
+        return mMidiInputDevices.size();
+    }
+
     std::map<uint, AudioOutputDevice*> Sampler::GetAudioOutputDevices() {
         return mAudioOutputDevices;
+    }
+
+    std::map<uint, MidiInputDevice*> Sampler::GetMidiInputDevices() {
+        return mMidiInputDevices;
     }
 
     void Sampler::DestroyAudioOutputDevice(AudioOutputDevice* pDevice) throw (LinuxSamplerException) {
@@ -241,32 +258,42 @@ namespace LinuxSampler {
         }
     }
 
-    MidiInputDevice* Sampler::CreateMidiInputDevice(MidiInputDevice::type_t MidiType) {
-        // check if device already created
-        MidiInputDevice* pDevice = GetMidiInputDevice(MidiType);
-        if (pDevice) return pDevice;
+    void Sampler::DestroyMidiInputDevice(MidiInputDevice* pDevice) throw (LinuxSamplerException) {
+        MidiInputDeviceMap::iterator iter = mMidiInputDevices.begin();
+        for (; iter != mMidiInputDevices.end(); iter++) {
+            if (iter->second == pDevice) {
+                // check if there are still sampler engines connected to this device
+                for (uint i = 0; i < SamplerChannels(); i++)
+                    if (GetSamplerChannel(i)->GetMidiInputDevice() == pDevice) throw LinuxSamplerException("Sampler channel " + ToString(i) + " is still connected to the midi input device.");
 
-        // create new device
-        switch (MidiType) {
-            case MidiInputDevice::type_alsa:
-                pDevice = new MidiInputDeviceAlsa;
-                break;
-            default:
-                throw LinuxSamplerException("Unknown audio output device type");
+                // disable device
+                pDevice->StopListen();
+
+                // remove device from the device list
+                mMidiInputDevices.erase(iter);
+
+                // destroy and free device from memory
+                delete pDevice;
+            }
         }
+    }
+
+    MidiInputDevice* Sampler::CreateMidiInputDevice(String MidiDriver, std::map<String,String> Parameters) throw (LinuxSamplerException) {
+        // create new device
+        MidiInputDevice* pDevice = MidiInputDeviceFactory::Create(MidiDriver, Parameters);
 
         // activate device
         pDevice->Listen();
 
-        // add new MIDI device to the MIDI device list
-        MidiInputDevices[MidiType] = pDevice;
+	// add new device to the midi device list
+	for (uint i = 0; ; i++) { // seek for a free place starting from the beginning
+		if (!mMidiInputDevices[i]) {
+			mMidiInputDevices[i] = pDevice;
+			break;
+		}
+	}
 
         return pDevice;
-    }
-
-    MidiInputDevice* Sampler::GetMidiInputDevice(MidiInputDevice::type_t MidiType) {
-        MidiInputDeviceMap::iterator iter = MidiInputDevices.find(MidiType);
-        return (iter != MidiInputDevices.end()) ? iter->second : NULL;
     }
 
 } // namespace LinuxSampler
