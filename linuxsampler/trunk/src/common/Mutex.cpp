@@ -27,6 +27,7 @@
 #include "Mutex.h"
 
 Mutex::Mutex() {
+    // the following function call only works on UNIX98 compatible systems
     if (pthread_mutexattr_settype(&__posix_mutexattr, PTHREAD_MUTEX_ERRORCHECK)) {
         std::cout << "Mutex Constructor: Fatal error - unable to pthread_mutexattr_settype(PTHREAD_MUTEX_ERRORCHECK)\n" << std::flush;
         exit(-1);

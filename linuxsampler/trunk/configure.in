@@ -8,6 +8,11 @@ AC_SUBST(target_cpu)
 AC_SUBST(target_os)
 AC_SUBST(target_vendor)
 
+
+# TODO: Check for UNIX98 compatibility (needed for pthread_mutexattr_settype() call in Mutex.cpp)
+#       checking macro _XOPEN_SOURCE >= 500 from features.h recommended for this
+
+
 echo -n "checking whether x86 architecture... "
 def_arch_x86=0
 case $target_cpu in
