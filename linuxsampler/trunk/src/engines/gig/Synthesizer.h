@@ -70,6 +70,8 @@ namespace LinuxSampler { namespace gig {
         public:
             template<typename VOICE_T>
             inline static void SynthesizeFragment(VOICE_T& Voice, uint Samples, sample_t* pSrc, uint i) {
+                const float panLeft  = Mul(Voice.PanLeft,  Voice.pEngineChannel->GlobalPanLeft);
+                const float panRight = Mul(Voice.PanRight, Voice.pEngineChannel->GlobalPanRight);
                 if (IMPLEMENTATION == ASM_X86_MMX_SSE) {
                     float fPos = (float) Voice.Pos;
                     SynthesizeFragment(Voice, Samples, pSrc, i, Voice.pSample->LoopPlayCount,
@@ -79,7 +81,8 @@ namespace LinuxSampler { namespace gig {
                                        Voice.LoopCyclesLeft,
                                        (void *)&fPos,
                                        Voice.PitchBase,
-                                       Voice.PitchBend);
+                                       Voice.PitchBend,
+                                       &panLeft, &panRight);
                     #if  ARCH_X86
                     if (INTERPOLATE) EMMS;
                     #endif
@@ -92,14 +95,15 @@ namespace LinuxSampler { namespace gig {
                                        Voice.LoopCyclesLeft,
                                        (void *)&Voice.Pos,
                                        Voice.PitchBase,
-                                       Voice.PitchBend);
+                                       Voice.PitchBend,
+                                       &panLeft, &panRight);
                 }
             }
 
         //protected:
 
             template<typename VOICE_T>
-            inline static void SynthesizeFragment(VOICE_T& Voice, uint Samples, sample_t* pSrc, uint& i, uint& LoopPlayCount, uint LoopStart, uint LoopEnd, uint LoopSize, uint& LoopCyclesLeft, void* Pos, float& PitchBase, float& PitchBend) {
+            inline static void SynthesizeFragment(VOICE_T& Voice, uint Samples, sample_t* pSrc, uint& i, uint& LoopPlayCount, uint LoopStart, uint LoopEnd, uint LoopSize, uint& LoopCyclesLeft, void* Pos, float& PitchBase, float& PitchBend, const float* PanLeft, const float* PanRight) {
                 const float loopEnd = Float(LoopEnd);
                 const float PBbyPB = Mul(PitchBase, PitchBend);
                 const float f_LoopStart = Float(LoopStart);
@@ -110,40 +114,40 @@ namespace LinuxSampler { namespace gig {
                         while (i < Samples && LoopCyclesLeft) {
                             if (CONSTPITCH) {
                                 const uint processEnd = Min(Samples, i + DiffToLoopEnd(loopEnd,Pos, PBbyPB) + 1); //TODO: instead of +1 we could also round up
-                                while (i < processEnd) Synthesize(Voice, Pos, pSrc, i);
+                                while (i < processEnd) Synthesize(Voice, Pos, pSrc, i, PanLeft, PanRight);
                             }
-                            else Synthesize(Voice, Pos, pSrc, i);
+                            else Synthesize(Voice, Pos, pSrc, i, PanLeft, PanRight);
                             if (WrapLoop(f_LoopStart, f_LoopSize, loopEnd, Pos)) LoopCyclesLeft--;
                         }
                         // render on without loop
-                        while (i < Samples) Synthesize(Voice, Pos, pSrc, i);
+                        while (i < Samples) Synthesize(Voice, Pos, pSrc, i, PanLeft, PanRight);
                     }
                     else { // render loop (endless loop)
                         while (i < Samples) {
                             if (CONSTPITCH) {
                                 const uint processEnd = Min(Samples, i + DiffToLoopEnd(loopEnd, Pos, PBbyPB) + 1); //TODO: instead of +1 we could also round up
-                                while (i < processEnd) Synthesize(Voice, Pos, pSrc, i);
+                                while (i < processEnd) Synthesize(Voice, Pos, pSrc, i, PanLeft, PanRight);
                             }
-                            else Synthesize(Voice, Pos, pSrc, i);
+                            else Synthesize(Voice, Pos, pSrc, i, PanLeft, PanRight);
                             WrapLoop(f_LoopStart, f_LoopSize, loopEnd, Pos);
                         }
                     }
                 }
                 else { // no looping
-                    while (i < Samples) { Synthesize(Voice, Pos, pSrc, i);}
+                    while (i < Samples) { Synthesize(Voice, Pos, pSrc, i, PanLeft, PanRight);}
                 }
             }
 
             template<typename VOICE_T>
-            inline static void Synthesize(VOICE_T& Voice, void* Pos, sample_t* pSrc, uint& i) {
+            inline static void Synthesize(VOICE_T& Voice, void* Pos, sample_t* pSrc, uint& i, const float* PanLeft, const float* PanRight) {
                 Synthesize(pSrc, Pos,
                            Voice.pEngine->pSynthesisParameters[Event::destination_vco][i],
                            Voice.pEngineChannel->pOutputLeft,
                            Voice.pEngineChannel->pOutputRight,
                            i,
                            Voice.pEngine->pSynthesisParameters[Event::destination_vca],
-                           &Voice.PanLeft,
-                           &Voice.PanRight,
+                           PanLeft,
+                           PanRight,
                            Voice.FilterLeft,
                            Voice.FilterRight,
                            Voice.pEngine->pBasicFilterParameters[i],
@@ -220,7 +224,7 @@ namespace LinuxSampler { namespace gig {
                 }
             }
 
-            inline static void Synthesize(sample_t* pSrc, void* Pos, float& Pitch, float* pOutL, float* pOutR, uint& i, float* Volume, float* PanL, float* PanR, Filter& FilterL, Filter& FilterR, biquad_param_t& bqBase, biquad_param_t& bqMain) {
+            inline static void Synthesize(sample_t* pSrc, void* Pos, float& Pitch, float* pOutL, float* pOutR, uint& i, float* Volume, const float* PanL, const float* PanR, Filter& FilterL, Filter& FilterR, biquad_param_t& bqBase, biquad_param_t& bqMain) {
                 switch (IMPLEMENTATION) {
                     // pure C++ implementation (thus platform independent)
                     case CPP: {

@@ -68,6 +68,8 @@ namespace LinuxSampler { namespace gig {
         Pitch               = 0;
         SustainPedal        = false;
         GlobalVolume        = 1.0;
+        GlobalPanLeft       = 1.0f;
+        GlobalPanRight      = 1.0f;
         CurrentKeyDimension = 0;
 
         // set all MIDI controller values to zero

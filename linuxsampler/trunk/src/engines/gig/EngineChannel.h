@@ -84,6 +84,8 @@ namespace LinuxSampler { namespace gig {
             ::gig::Instrument*      pInstrument;
             bool                    SustainPedal;             ///< true if sustain pedal is down
             double                  GlobalVolume;             ///< overall volume (a value < 1.0 means attenuation, a value > 1.0 means amplification)
+            float                   GlobalPanLeft;
+            float                   GlobalPanRight;
             int                     Pitch;                    ///< Current (absolute) MIDI pitch value.
             int                     CurrentKeyDimension;      ///< Current value (0-127) for the keyboard dimension, altered by pressing a keyswitching key.
             String                  InstrumentFile;

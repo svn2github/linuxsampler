@@ -834,7 +834,19 @@ namespace LinuxSampler { namespace gig {
         dmsg(4,("Engine::ContinuousController cc=%d v=%d\n", itControlChangeEvent->Param.CC.Controller, itControlChangeEvent->Param.CC.Value));
 
         switch (itControlChangeEvent->Param.CC.Controller) {
-            case 64: {
+            case 7: { // volume
+                //TODO: not sample accurate yet
+                pEngineChannel->GlobalVolume = (float) itControlChangeEvent->Param.CC.Value / 127.0f;
+                break;
+            }
+            case 10: { // panpot
+                //TODO: not sample accurate yet
+                const int pan = (int) itControlChangeEvent->Param.CC.Value - 64;
+                pEngineChannel->GlobalPanLeft  = 1.0f - float(RTMath::Max(pan, 0)) /  63.0f;
+                pEngineChannel->GlobalPanRight = 1.0f - float(RTMath::Min(pan, 0)) / -64.0f;
+                break;
+            }
+            case 64: { // sustain
                 if (itControlChangeEvent->Param.CC.Value >= 64 && !pEngineChannel->SustainPedal) {
                     dmsg(4,("PEDAL DOWN\n"));
                     pEngineChannel->SustainPedal = true;
@@ -1019,7 +1031,7 @@ namespace LinuxSampler { namespace gig {
     }
 
     String Engine::Version() {
-        String s = "$Revision: 1.28 $";
+        String s = "$Revision: 1.29 $";
         return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
 
