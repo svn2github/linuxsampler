@@ -129,7 +129,7 @@ namespace LinuxSampler {
             snd_pcm_sw_params_t* swparams;
 
             int  Output();
-            bool HardwareParametersSupported(String card, uint channels, int samplerate, uint numfragments, uint fragmentsize);
+            bool HardwareParametersSupported(String card, uint channels, int samplerate, uint numfragments, uint fragmentsize) throw (AudioOutputException);
     };
 }
 

@@ -134,7 +134,7 @@ namespace LinuxSampler {
         // obtain information from given sound card
         String pcm_name       = "hw:" + Parameters["CARD"];
         snd_pcm_t* pcm_handle = NULL;
-        if (snd_pcm_open(&pcm_handle, pcm_name.c_str(), SND_PCM_STREAM_PLAYBACK, 0) < 0) return optional<int>::nothing;
+        if (snd_pcm_open(&pcm_handle, pcm_name.c_str(), SND_PCM_STREAM_PLAYBACK, SND_PCM_NONBLOCK) < 0) return optional<int>::nothing;
         snd_pcm_hw_params_t* hwparams;
         snd_pcm_hw_params_alloca(&hwparams);
         if (snd_pcm_hw_params_any(pcm_handle, hwparams) < 0) {
@@ -157,7 +157,7 @@ namespace LinuxSampler {
         // obtain information from given sound card
         String pcm_name       = "hw:" + Parameters["CARD"];
         snd_pcm_t* pcm_handle = NULL;
-        if (snd_pcm_open(&pcm_handle, pcm_name.c_str(), SND_PCM_STREAM_PLAYBACK, 0) < 0) return optional<int>::nothing;
+        if (snd_pcm_open(&pcm_handle, pcm_name.c_str(), SND_PCM_STREAM_PLAYBACK, SND_PCM_NONBLOCK) < 0) return optional<int>::nothing;
         snd_pcm_hw_params_t* hwparams;
         snd_pcm_hw_params_alloca(&hwparams);
         if (snd_pcm_hw_params_any(pcm_handle, hwparams) < 0) {
@@ -227,7 +227,7 @@ namespace LinuxSampler {
         // obtain information from given sound card
         String pcm_name       = "hw:" + Parameters["CARD"];
         snd_pcm_t* pcm_handle = NULL;
-        if (snd_pcm_open(&pcm_handle, pcm_name.c_str(), SND_PCM_STREAM_PLAYBACK, 0) < 0) return optional<int>::nothing;
+        if (snd_pcm_open(&pcm_handle, pcm_name.c_str(), SND_PCM_STREAM_PLAYBACK, SND_PCM_NONBLOCK) < 0) return optional<int>::nothing;
         snd_pcm_hw_params_t* hwparams;
         snd_pcm_hw_params_alloca(&hwparams);
         if (snd_pcm_hw_params_any(pcm_handle, hwparams) < 0) {
@@ -250,7 +250,7 @@ namespace LinuxSampler {
         // obtain information from given sound card
         String pcm_name       = "hw:" + Parameters["CARD"];
         snd_pcm_t* pcm_handle = NULL;
-        if (snd_pcm_open(&pcm_handle, pcm_name.c_str(), SND_PCM_STREAM_PLAYBACK, 0) < 0) return optional<int>::nothing;
+        if (snd_pcm_open(&pcm_handle, pcm_name.c_str(), SND_PCM_STREAM_PLAYBACK, SND_PCM_NONBLOCK) < 0) return optional<int>::nothing;
         snd_pcm_hw_params_t* hwparams;
         snd_pcm_hw_params_alloca(&hwparams);
         if (snd_pcm_hw_params_any(pcm_handle, hwparams) < 0) {
@@ -430,10 +430,14 @@ namespace LinuxSampler {
      *  Checks if sound card supports the chosen parameters.
      *
      *  @returns  true if hardware supports it
+     *  @throws AudioOutputException - if device cannot be accessed
      */
-    bool AudioOutputDeviceAlsa::HardwareParametersSupported(String card, uint channels, int samplerate, uint numfragments, uint fragmentsize) {
+    bool AudioOutputDeviceAlsa::HardwareParametersSupported(String card, uint channels, int samplerate, uint numfragments, uint fragmentsize) throw (AudioOutputException) {
         pcm_name = "hw:" + card;
-        if (snd_pcm_open(&pcm_handle, pcm_name.c_str(), stream, 0) < 0) return false;
+        int err;
+        if ((err = snd_pcm_open(&pcm_handle, pcm_name.c_str(), stream, 0)) < 0) {
+            throw AudioOutputException(String("Error opening PCM device ") + pcm_name + ": " + snd_strerror(err));
+        }
         snd_pcm_hw_params_alloca(&hwparams);
         if (snd_pcm_hw_params_any(pcm_handle, hwparams) < 0) {
             snd_pcm_close(pcm_handle);
@@ -512,7 +516,7 @@ namespace LinuxSampler {
     }
 
     String AudioOutputDeviceAlsa::Version() {
-       String s = "$Revision: 1.17 $";
+       String s = "$Revision: 1.18 $";
        return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
 
