@@ -491,8 +491,14 @@ namespace gig {
 // *************** DimensionRegion ***************
 // *
 
+    uint                               DimensionRegion::Instances       = 0;
+    DimensionRegion::VelocityTableMap* DimensionRegion::pVelocityTables = NULL;
+
     DimensionRegion::DimensionRegion(RIFF::List* _3ewl) : DLS::Sampler(_3ewl) {
+        Instances++;
+
         memcpy(&Crossfade, &SamplerOptions, 4);
+        if (!pVelocityTables) pVelocityTables = new VelocityTableMap;
 
         RIFF::Chunk* _3ewa = _3ewl->GetSubChunk(CHUNK_ID_3EWA);
         _3ewa->ReadInt32(); // unknown, allways 0x0000008C ?
@@ -644,6 +650,75 @@ namespace gig {
         VCFVelocityDynamicRange = vcfvelocity % 5;
         VCFVelocityCurve        = static_cast<curve_type_t>(vcfvelocity / 5);
         VCFType = static_cast<vcf_type_t>(_3ewa->ReadUint8());
+
+        // get the corresponding velocity->volume table from the table map or create & calculate that table if it doesn't exist yet
+        uint32_t tableKey = (VelocityResponseCurve<<16) | (VelocityResponseDepth<<8) | VelocityResponseCurveScaling;
+        if (pVelocityTables->count(tableKey)) { // if key exists
+            pVelocityAttenuationTable = (*pVelocityTables)[tableKey];
+        }
+        else {
+            pVelocityAttenuationTable = new double[128];
+            switch (VelocityResponseCurve) { // calculate the new table
+                case curve_type_nonlinear:
+                    for (int velocity = 0; velocity < 128; velocity++) {
+                        pVelocityAttenuationTable[velocity] =
+                            GIG_VELOCITY_TRANSFORM_NONLINEAR((double)(velocity+1),(double)(VelocityResponseDepth+1),(double)VelocityResponseCurveScaling);
+                        if      (pVelocityAttenuationTable[velocity] > 1.0) pVelocityAttenuationTable[velocity] = 1.0;
+                        else if (pVelocityAttenuationTable[velocity] < 0.0) pVelocityAttenuationTable[velocity] = 0.0;
+                     }
+                     break;
+                case curve_type_linear:
+                    for (int velocity = 0; velocity < 128; velocity++) {
+                        pVelocityAttenuationTable[velocity] =
+                            GIG_VELOCITY_TRANSFORM_LINEAR((double)velocity,(double)(VelocityResponseDepth+1),(double)VelocityResponseCurveScaling);
+                        if      (pVelocityAttenuationTable[velocity] > 1.0) pVelocityAttenuationTable[velocity] = 1.0;
+                        else if (pVelocityAttenuationTable[velocity] < 0.0) pVelocityAttenuationTable[velocity] = 0.0;
+                    }
+                    break;
+                case curve_type_special:
+                    for (int velocity = 0; velocity < 128; velocity++) {
+                        pVelocityAttenuationTable[velocity] =
+                            GIG_VELOCITY_TRANSFORM_SPECIAL((double)(velocity+1),(double)(VelocityResponseDepth+1),(double)VelocityResponseCurveScaling);
+                        if      (pVelocityAttenuationTable[velocity] > 1.0) pVelocityAttenuationTable[velocity] = 1.0;
+                        else if (pVelocityAttenuationTable[velocity] < 0.0) pVelocityAttenuationTable[velocity] = 0.0;
+                    }
+                    break;
+                case curve_type_unknown:
+                default:
+                    throw gig::Exception("Unknown transform curve type.");
+            }
+            (*pVelocityTables)[tableKey] = pVelocityAttenuationTable; // put the new table into the tables map
+        }
+    }
+
+    DimensionRegion::~DimensionRegion() {
+        Instances--;
+        if (!Instances) {
+            // delete the velocity->volume tables
+            VelocityTableMap::iterator iter;
+            for (iter = pVelocityTables->begin(); iter != pVelocityTables->end(); iter++) {
+                double* pTable = iter->second;
+                if (pTable) delete[] pTable;
+            }
+            pVelocityTables->clear();
+            delete pVelocityTables;
+            pVelocityTables = NULL;
+        }
+    }
+
+    /**
+     * Returns the correct amplitude factor for the given \a MIDIKeyVelocity.
+     * All involved parameters (VelocityResponseCurve, VelocityResponseDepth
+     * and VelocityResponseCurveScaling) involved are taken into account to
+     * calculate the amplitude factor. Use this method when a key was
+     * triggered to get the volume with which the sample should be played
+     * back.
+     *
+     * @param    MIDI velocity value of the triggered key (between 0 and 127)
+     * @returns  amplitude factor (between 0.0 and 1.0)
+     */
+    double DimensionRegion::GetVelocityAttenuation(uint8_t MIDIKeyVelocity) {
+        return pVelocityAttenuationTable[MIDIKeyVelocity];
     }
 
 
