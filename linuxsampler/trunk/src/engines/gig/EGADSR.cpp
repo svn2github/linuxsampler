@@ -24,9 +24,9 @@
 
 namespace LinuxSampler { namespace gig {
 
-    const float EGADSR::EndCoeff(CalculateEndCoeff());
+    const float EGADSR::FadeOutCoeff(CalculateFadeOutCoeff());
 
-    float EGADSR::CalculateEndCoeff() {
+    float EGADSR::CalculateFadeOutCoeff() {
         const float sampleRate = 44100.0; // even if the sample rate will be 192kHz it won't hurt at all
         const float killSteps  = EG_MIN_RELEASE_TIME * sampleRate;
         return 1.0f / killSteps;
@@ -63,14 +63,14 @@ namespace LinuxSampler { namespace gig {
             pTransitionEvent = pEvents->first();
         }
 
-        // if the voice was killed in this fragment we only process the time before this kill event and then switch to 'stage_end'
+        // if the voice was killed in this fragment we only process the time before this kill event, then switch to 'stage_fadeout'
         int Samples = (pKillEvent) ? pKillEvent->FragmentPos() : (int) TotalSamples;
 
         int iSample = TriggerDelay;
         while (iSample < TotalSamples) {
 
             // if the voice was killed in this fragment and we already processed the time before this kill event
-            if (pKillEvent && iSample >= Samples) Stage = stage_end;
+            if (pKillEvent && iSample >= Samples) Stage = stage_fadeout;
 
             switch (Stage) {
                 case stage_attack: {
@@ -138,7 +138,7 @@ namespace LinuxSampler { namespace gig {
                         Level += Level * Decay2Coeff;
                         pEngine->pSynthesisParameters[ModulationDestination][iSample++] *= Level;
                     }
-                    if (Level <= EG_ENVELOPE_LIMIT) Stage = stage_end;
+                    if (Level <= EG_ENVELOPE_LIMIT) Stage = stage_fadeout;
                     break;
                 }
                 case stage_sustain: {
@@ -166,16 +166,20 @@ namespace LinuxSampler { namespace gig {
                         Level += Level * ReleaseCoeff;
                         pEngine->pSynthesisParameters[ModulationDestination][iSample++] *= Level;
                     }
-                    if (Level <= EG_ENVELOPE_LIMIT) Stage = stage_end;
+                    if (Level <= EG_ENVELOPE_LIMIT) Stage = stage_fadeout;
+                    break;
+                }
+                case stage_fadeout: {
+                    int to_process   = RTMath::Min(int(Level / (-FadeOutCoeff)), TotalSamples - iSample);
+                    int process_end  = iSample + to_process;
+                    while (iSample < process_end) {
+                        Level += FadeOutCoeff;
+                        pEngine->pSynthesisParameters[ModulationDestination][iSample++] *= Level;
+                    }
+                    if (Level <= FadeOutCoeff) Stage = stage_end;
                     break;
                 }
                 case stage_end: {
-                    int to_process   = RTMath::Min(int(Level / EndCoeff), TotalSamples - iSample);
-                    int process_end  = iSample + to_process;
-                    while (iSample < process_end) {
-                        Level += EndCoeff;
-                        pEngine->pSynthesisParameters[ModulationDestination][iSample++] *= Level;
-                    }
                     while (iSample < TotalSamples) {
                         pEngine->pSynthesisParameters[ModulationDestination][iSample++] = 0.0f;
                     }

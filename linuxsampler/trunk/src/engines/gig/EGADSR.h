@@ -53,6 +53,7 @@ class EGADSR {
             stage_decay2,
             stage_sustain,
             stage_release,
+            stage_fadeout,
             stage_end
         };
 
@@ -78,9 +79,9 @@ class EGADSR {
         float   ReleaseCoeff;
         long    ReleaseStepsLeft;  ///< number of sample points til end of release stage
         bool    ReleasePostponed;  ///< If a "release" event occured in the previous audio fragment, but wasn't processed yet.
-        const static float EndCoeff;
+        const static float FadeOutCoeff;
     private:
-        static float CalculateEndCoeff();
+        static float CalculateFadeOutCoeff();
 };
 
 }} // namespace LinuxSampler::gig
