@@ -175,6 +175,16 @@ namespace LinuxSampler {
              */
             void DispatchControlChange(uint8_t Controller, uint8_t Value, uint MidiChannel);
 
+            /**
+             * Should be called by the implementing MIDI input device
+             * whenever a system exclusive message arrived, this will cause
+             * the message to be forwarded to all connected engines.
+             *
+             * @param pData - pointer to the sysex data
+             * @param Size  - length of the sysex data (in bytes)
+             */
+            void DispatchSysex(void* pData, uint Size);
+
         protected:
             MidiInputDevice* pDevice;
             int portNumber;

@@ -71,6 +71,7 @@ namespace LinuxSampler {
                 type_note_off,
                 type_pitchbend,
                 type_control_change,
+                type_sysex,           ///< MIDI system exclusive message
                 type_cancel_release,  ///< transformed either from a note-on or sustain-pedal-down event
                 type_release          ///< transformed either from a note-off or sustain-pedal-up event
             } Type;
@@ -89,7 +90,10 @@ namespace LinuxSampler {
                 uint8_t Velocity;     ///< Trigger or release velocity for note-on or note-off events.
                 uint8_t Value;        ///< Value for control change events.
             };
-            int16_t Pitch;            ///< Pitch value for pitchbend events.
+            union {
+                int16_t Pitch;        ///< Pitch value for pitchbend events.
+                uint    Size;         ///< Data length (in bytes) for MIDI system exclusive messages.
+            };
 
             inline uint FragmentPos() {
                 if (iFragmentPos >= 0) return (uint) iFragmentPos;

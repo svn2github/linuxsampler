@@ -43,6 +43,7 @@
 
 #define PITCHBEND_SEMITONES		12
 #define MAX_AUDIO_VOICES		128
+#define SYSEX_BUFFER_SIZE		2048  // 2kB
 
 namespace LinuxSampler { namespace gig {
 
@@ -71,6 +72,7 @@ namespace LinuxSampler { namespace gig {
             virtual void   SendNoteOff(uint8_t Key, uint8_t Velocity);
             virtual void   SendPitchbend(int Pitch);
             virtual void   SendControlChange(uint8_t Controller, uint8_t Value);
+            virtual void   SendSysex(void* pData, uint Size);
             virtual float  Volume();
             virtual void   Volume(float f);
             virtual uint   Channels();
@@ -118,6 +120,7 @@ namespace LinuxSampler { namespace gig {
             DiskThread*             pDiskThread;
             uint8_t                 ControllerTable[128];  ///< Reflects the current values (0-127) of all MIDI controllers for this engine / sampler channel.
             RingBuffer<Event>*      pEventQueue;           ///< Input event queue.
+            RingBuffer<uint8_t>*    pSysexBuffer;          ///< Input buffer for MIDI system exclusive messages.
             midi_key_info_t         pMIDIKeyInfo[128];     ///< Contains all active voices sorted by MIDI key number and other informations to the respective MIDI key
             RTELMemoryPool<Voice>*  pVoicePool;            ///< Contains all voices that can be activated.
             RTELMemoryPool<uint>*   pActiveKeys;           ///< Holds all keys in it's allocation list with active voices.
@@ -143,11 +146,13 @@ namespace LinuxSampler { namespace gig {
 	    String                  InstrumentFile;
 	    int                     InstrumentIdx;
 	    int                     InstrumentStat;
+            int8_t                  ScaleTuning[12];       ///< contains optional detune factors (-64..+63 cents) for all 12 semitones of an octave
 
             void ProcessNoteOn(Event* pNoteOnEvent);
             void ProcessNoteOff(Event* pNoteOffEvent);
             void ProcessPitchbend(Event* pPitchbendEvent);
             void ProcessControlChange(Event* pControlChangeEvent);
+            void ProcessSysex(Event* pSysexEvent);
             void LaunchVoice(Event* pNoteOnEvent, int iLayer = 0, bool ReleaseTriggerVoice = false);
             void KillVoiceImmediately(Voice* pVoice);
             void ResetSynthesisParameters(Event::destination_t dst, float val);
@@ -161,7 +166,9 @@ namespace LinuxSampler { namespace gig {
             friend class VCOManipulator;
             friend class InstrumentResourceManager;
         private:
-            void DisableAndLock();
+            void    DisableAndLock();
+            uint8_t GSCheckSum(const RingBuffer<uint8_t>::NonVolatileReader AddrReader, uint DataSize);
+            void    AdjustScale(int8_t ScaleTunes[12]);
     };
 
 }} // namespace LinuxSampler::gig

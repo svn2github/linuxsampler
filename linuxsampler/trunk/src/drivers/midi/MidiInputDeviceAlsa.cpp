@@ -193,7 +193,7 @@ namespace LinuxSampler {
     }
 
     String MidiInputDeviceAlsa::Version() {
-	    String s = "$Revision: 1.10 $";
+	    String s = "$Revision: 1.11 $";
 	    return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
 
@@ -234,6 +234,10 @@ namespace LinuxSampler {
 
                         case SND_SEQ_EVENT_NOTEOFF:
                             pMidiInputPort->DispatchNoteOff(ev->data.note.note, ev->data.note.velocity, ev->data.control.channel);
+                            break;
+
+                        case SND_SEQ_EVENT_SYSEX:
+                            pMidiInputPort->DispatchSysex(ev->data.ext.ptr, ev->data.ext.len);
                             break;
                     }
                     snd_seq_free_event(ev);

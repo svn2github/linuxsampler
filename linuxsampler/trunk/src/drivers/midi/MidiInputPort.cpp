@@ -107,6 +107,14 @@ namespace LinuxSampler {
         for (; engineiter != end; engineiter++) (*engineiter)->SendControlChange(Controller, Value);
     }
 
+    void MidiInputPort::DispatchSysex(void* pData, uint Size) {
+        for (uint MidiChannel = 0; MidiChannel <= 16; MidiChannel++) {
+            std::set<Engine*>::iterator engineiter = MidiChannelMap[MidiChannel].begin();
+            std::set<Engine*>::iterator end        = MidiChannelMap[MidiChannel].end();
+            for (; engineiter != end; engineiter++) (*engineiter)->SendSysex(pData, Size);
+        }
+    }
+
     void MidiInputPort::Connect(Engine* pEngine, midi_chan_t MidiChannel) {
         if (MidiChannel < 0 || MidiChannel > 16)
             throw MidiInputException("MIDI channel index out of bounds");

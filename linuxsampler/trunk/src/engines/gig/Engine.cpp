@@ -37,7 +37,8 @@ namespace LinuxSampler { namespace gig {
         pAudioOutputDevice = NULL;
         pDiskThread        = NULL;
         pEventGenerator    = NULL;
-        pEventQueue        = new RingBuffer<Event>(MAX_EVENTS_PER_FRAGMENT);
+        pSysexBuffer       = new RingBuffer<uint8_t>(SYSEX_BUFFER_SIZE, 0);
+        pEventQueue        = new RingBuffer<Event>(MAX_EVENTS_PER_FRAGMENT, 0);
         pEventPool         = new RTELMemoryPool<Event>(MAX_EVENTS_PER_FRAGMENT);
         pVoicePool         = new RTELMemoryPool<Voice>(MAX_AUDIO_VOICES);
         pActiveKeys        = new RTELMemoryPool<uint>(128);
@@ -93,6 +94,7 @@ namespace LinuxSampler { namespace gig {
         if (pEventPool)  delete pEventPool;
         if (pVoicePool)  delete pVoicePool;
         if (pActiveKeys) delete pActiveKeys;
+        if (pSysexBuffer) delete pSysexBuffer;
         if (pEventGenerator) delete pEventGenerator;
         if (pMainFilterParameters) delete[] pMainFilterParameters;
         if (pBasicFilterParameters) delete[] pBasicFilterParameters;
@@ -154,6 +156,9 @@ namespace LinuxSampler { namespace gig {
         ActiveVoiceCount    = 0;
         ActiveVoiceCountMax = 0;
         GlobalVolume        = 1.0;
+
+        // reset to normal chromatic scale (means equal temper)
+        memset(&ScaleTuning[0], 0x00, 12);
 
         // set all MIDI controller values to zero
         memset(ControllerTable, 0x00, 128);
@@ -408,20 +413,24 @@ namespace LinuxSampler { namespace gig {
             pNextEvent = pEvents->next();
             switch (pEvent->Type) {
                 case Event::type_note_on:
-                    dmsg(5,("Audio Thread: Note on received\n"));
+                    dmsg(5,("Engine: Note on received\n"));
                     ProcessNoteOn(pEvent);
                     break;
                 case Event::type_note_off:
-                    dmsg(5,("Audio Thread: Note off received\n"));
+                    dmsg(5,("Engine: Note off received\n"));
                     ProcessNoteOff(pEvent);
                     break;
                 case Event::type_control_change:
-                    dmsg(5,("Audio Thread: MIDI CC received\n"));
+                    dmsg(5,("Engine: MIDI CC received\n"));
                     ProcessControlChange(pEvent);
                     break;
                 case Event::type_pitchbend:
-                    dmsg(5,("Audio Thread: Pitchbend received\n"));
+                    dmsg(5,("Engine: Pitchbend received\n"));
                     ProcessPitchbend(pEvent);
+                    break;
+                case Event::type_sysex:
+                    dmsg(5,("Engine: Sysex received\n"));
+                    ProcessSysex(pEvent);
                     break;
             }
         }
@@ -521,6 +530,37 @@ namespace LinuxSampler { namespace gig {
         event.Controller = Controller;
         event.Value      = Value;
         if (this->pEventQueue->write_space() > 0) this->pEventQueue->push(&event);
+        else dmsg(1,("Engine: Input event queue full!"));
+    }
+
+    /**
+     *  Will be called by the MIDI input device whenever a MIDI system
+     *  exclusive message has arrived.
+     *
+     *  @param pData - pointer to sysex data
+     *  @param Size  - lenght of sysex data (in bytes)
+     */
+    void Engine::SendSysex(void* pData, uint Size) {
+        Event event = pEventGenerator->CreateEvent();
+        event.Type  = Event::type_sysex;
+        event.Size  = Size;
+        if (pEventQueue->write_space() > 0) {
+            if (pSysexBuffer->write_space() >= Size) {
+                // copy sysex data to input buffer
+                uint toWrite = Size;
+                uint8_t* pPos = (uint8_t*) pData;
+                while (toWrite) {
+                    const uint writeNow = RTMath::Min(toWrite, pSysexBuffer->write_space_to_end());
+                    pSysexBuffer->write(pPos, writeNow);
+                    toWrite -= writeNow;
+                    pPos    += writeNow;
+
+                }
+                // finally place sysex event into input event queue
+                pEventQueue->push(&event);
+            }
+            else dmsg(1,("Engine: Sysex message too large (%d byte) for input buffer (%d byte)!",Size,SYSEX_BUFFER_SIZE));
+        }
         else dmsg(1,("Engine: Input event queue full!"));
     }
 
@@ -737,6 +777,89 @@ namespace LinuxSampler { namespace gig {
     }
 
     /**
+     *  Reacts on MIDI system exclusive messages.
+     *
+     *  @param pSysexEvent - sysex data size and time stamp of the sysex event
+     */
+    void Engine::ProcessSysex(Event* pSysexEvent) {
+        RingBuffer<uint8_t>::NonVolatileReader reader = pSysexBuffer->get_non_volatile_reader();
+
+        uint8_t exclusive_status, id;
+        if (!reader.pop(&exclusive_status)) goto free_sysex_data;
+        if (!reader.pop(&id))               goto free_sysex_data;
+        if (exclusive_status != 0xF0)       goto free_sysex_data;
+
+        switch (id) {
+            case 0x41: { // Roland
+                uint8_t device_id, model_id, cmd_id;
+                if (!reader.pop(&device_id)) goto free_sysex_data;
+                if (!reader.pop(&model_id))  goto free_sysex_data;
+                if (!reader.pop(&cmd_id))    goto free_sysex_data;
+                if (model_id != 0x42 /*GS*/) goto free_sysex_data;
+                if (cmd_id != 0x12 /*DT1*/)  goto free_sysex_data;
+
+                // command address
+                uint8_t addr[3]; // 2 byte addr MSB, followed by 1 byte addr LSB)
+                const RingBuffer<uint8_t>::NonVolatileReader checksum_reader = reader; // so we can calculate the check sum later
+                if (reader.read(&addr[0], 3) != 3) goto free_sysex_data;
+                if (addr[0] == 0x40 && addr[1] == 0x00) { // System Parameters
+                }
+                else if (addr[0] == 0x40 && addr[1] == 0x01) { // Common Parameters
+                }
+                else if (addr[0] == 0x40 && (addr[1] & 0xf0) == 0x10) { // Part Parameters (1)
+                    switch (addr[3]) {
+                        case 0x40: { // scale tuning
+                            uint8_t scale_tunes[12]; // detuning of all 12 semitones of an octave
+                            if (reader.read(&scale_tunes[0], 12) != 12) goto free_sysex_data;
+                            uint8_t checksum;
+                            if (!reader.pop(&checksum))                      goto free_sysex_data;
+                            if (GSCheckSum(checksum_reader, 12) != checksum) goto free_sysex_data;
+                            for (int i = 0; i < 12; i++) scale_tunes[i] -= 64;
+                            AdjustScale((int8_t*) scale_tunes);
+                            break;
+                        }
+                    }
+                }
+                else if (addr[0] == 0x40 && (addr[1] & 0xf0) == 0x20) { // Part Parameters (2)
+                }
+                else if (addr[0] == 0x41) { // Drum Setup Parameters
+                }
+                break;
+            }
+        }
+
+        free_sysex_data: // finally free sysex data
+        pSysexBuffer->increment_read_ptr(pSysexEvent->Size);
+    }
+
+    /**
+     * Calculates the Roland GS sysex check sum.
+     *
+     * @param AddrReader - reader which currently points to the first GS
+     *                     command address byte of the GS sysex message in
+     *                     question
+     * @param DataSize   - size of the GS message data (in bytes)
+     */
+    uint8_t Engine::GSCheckSum(const RingBuffer<uint8_t>::NonVolatileReader AddrReader, uint DataSize) {
+        RingBuffer<uint8_t>::NonVolatileReader reader = AddrReader;
+        uint bytes = 3 /*addr*/ + DataSize;
+        uint8_t addr_and_data[bytes];
+        reader.read(&addr_and_data[0], bytes);
+        uint8_t sum = 0;
+        for (uint i = 0; i < bytes; i++) sum += addr_and_data[i];
+        return 128 - sum % 128;
+    }
+
+    /**
+     * Allows to tune each of the twelve semitones of an octave.
+     *
+     * @param ScaleTunes - detuning of all twelve semitones (in cents)
+     */
+    void Engine::AdjustScale(int8_t ScaleTunes[12]) {
+        memcpy(&this->ScaleTuning[0], &ScaleTunes[0], 12); //TODO: currently not sample accurate
+    }
+
+    /**
      * Initialize the parameter sequence for the modulation destination given by
      * by 'dst' with the constant value given by val.
      */
@@ -840,7 +963,7 @@ namespace LinuxSampler { namespace gig {
     }
 
     String Engine::Version() {
-        String s = "$Revision: 1.11 $";
+        String s = "$Revision: 1.12 $";
         return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
 

@@ -62,6 +62,7 @@ namespace LinuxSampler {
             virtual void   SendNoteOff(uint8_t Key, uint8_t Velocity) = 0;
             virtual void   SendPitchbend(int Pitch) = 0;
             virtual void   SendControlChange(uint8_t Controller, uint8_t Value) = 0;
+            virtual void   SendSysex(void* pData, uint Size) = 0;
             virtual float  Volume() = 0;
             virtual void   Volume(float f) = 0;
             virtual uint   Channels() = 0;
