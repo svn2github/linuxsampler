@@ -1420,8 +1420,7 @@ String LSCPServer::QueryDatabase(String query) {
     }
     if ( rc != SQLITE_OK )
     {
-	    //result.Error(String(zErrMsg), rc);
-	    result.Error(selectStr, 666);
+	    result.Error(String(zErrMsg), rc);
     }
     sqlite3_close(db);
 #else
