@@ -158,11 +158,14 @@ void LSCPTest::sendCommandToLSCPServer(string cmd) {
     send(hSocket, cmd.c_str(), cmd.length(), 0);
 }
 
-// wait until LSCP server answers with a single line answer
-string LSCPTest::receiveSingleLineAnswerFromLSCPServer() {
-    string msg = receiveAnswerFromLSCPServer("\n");
+// wait until LSCP server answers with a single line answer (throws LinuxSamplerException if optional timeout exceeded)
+string LSCPTest::receiveSingleLineAnswerFromLSCPServer(uint timeout_seconds) throw (LinuxSamplerException) {
+    string msg = receiveAnswerFromLSCPServer("\n", timeout_seconds);
+    // remove carriage return characters
+    string::size_type p = msg.find('\r');
+    for (; p != string::npos; p = msg.find(p, '\r')) msg.erase(p, 1);
     // remove the line feed at the end
-    static const string linedelimiter = "\r\n";
+    static const string linedelimiter = "\n";
     string::size_type pos = msg.rfind(linedelimiter);
     return msg.substr(0, pos);
 }
@@ -171,6 +174,11 @@ string LSCPTest::receiveSingleLineAnswerFromLSCPServer() {
 vector<string> LSCPTest::receiveMultiLineAnswerFromLSCPServer(uint timeout_seconds) throw (LinuxSamplerException) {
     string msg = receiveAnswerFromLSCPServer("\n.\r\n", timeout_seconds);
     return __ConvertMultiLineMessage(msg);
+}
+
+void LSCPTest::clearInputBuffer() {
+    char c;
+    while (recv(hSocket, &c, 1, 0) > 0);
 }
 
 /// wait until LSCP server answers with the given \a delimiter token at the end (throws LinuxSamplerException if optional timeout exceeded or socket error occured)
@@ -241,6 +249,7 @@ void LSCPTest::setUp() {
 }
 
 void LSCPTest::tearDown() {
+    clearInputBuffer(); // to avoid that the next test reads an answer from a previous test
 }
 
 
@@ -348,7 +357,7 @@ void LSCPTest::test_GET_AUDIO_OUTPUT_CHANNEL_PARAMETER_INFO() {
             CPPUNIT_ASSERT(driver);
 
             sendCommandToLSCPServer("CREATE AUDIO_OUTPUT_DEVICE " + *driver);
-            answer = receiveSingleLineAnswerFromLSCPServer();
+            answer = receiveSingleLineAnswerFromLSCPServer(120); // wait 2 minutes for an answer
         } while (answer != "OK[0]");
     }
 
@@ -361,6 +370,27 @@ void LSCPTest::test_GET_AUDIO_OUTPUT_CHANNEL_PARAMETER_INFO() {
     sendCommandToLSCPServer("GET AUDIO_OUTPUT_CHANNEL_PARAMETER INFO 0 0 IS_MIX_CHANNEL");
     vAnswer = receiveMultiLineAnswerFromLSCPServer(timeout_seconds);
     CPPUNIT_ASSERT(vAnswer.size() >= 4); // should at least contain tags TYPE, DESCRIPTION, FIX and MULTIPLICITY
+}
+
+// Check "SET ECHO" LSCP command.
+void LSCPTest::test_SET_ECHO() {
+    // enable echo mode
+    sendCommandToLSCPServer("SET ECHO 1");
+    CPPUNIT_ASSERT(receiveSingleLineAnswerFromLSCPServer() == "OK");
+
+    // check if commands will actually be echoed now
+    sendCommandToLSCPServer("GET CHANNELS"); // send an arbitrary command
+    CPPUNIT_ASSERT(receiveSingleLineAnswerFromLSCPServer(2) == "GET CHANNELS");
+    receiveSingleLineAnswerFromLSCPServer(2); // throws exception if no answer received after 2s (usually we expect the answer from our command here)
+
+    // disable echo mode
+    sendCommandToLSCPServer("SET ECHO 0");
+    CPPUNIT_ASSERT(receiveSingleLineAnswerFromLSCPServer() == "SET ECHO 0"); // this will be echoed though
+    CPPUNIT_ASSERT(receiveSingleLineAnswerFromLSCPServer() == "OK");
+
+    // check if commands will not be echoed now
+    sendCommandToLSCPServer("GET CHANNELS");
+    CPPUNIT_ASSERT(receiveSingleLineAnswerFromLSCPServer() != "GET CHANNELS");
 }
 
 // Check if we can shutdown the LSCP Server without problems.

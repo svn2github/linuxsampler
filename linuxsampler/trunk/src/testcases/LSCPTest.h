@@ -29,6 +29,7 @@ class LSCPTest : public CppUnit::TestFixture {
     CPPUNIT_TEST(test_GET_CHANNELS);
     CPPUNIT_TEST(test_REMOVE_CHANNEL);
     CPPUNIT_TEST(test_GET_AUDIO_OUTPUT_CHANNEL_PARAMETER_INFO);
+    CPPUNIT_TEST(test_SET_ECHO);
     CPPUNIT_TEST(testShutdownLSCPServer);
     CPPUNIT_TEST_SUITE_END();
 
@@ -40,9 +41,10 @@ class LSCPTest : public CppUnit::TestFixture {
         bool closeConnectionToLSCPServer();
 
         void sendCommandToLSCPServer(string cmd);
-        string receiveSingleLineAnswerFromLSCPServer();
+        string receiveSingleLineAnswerFromLSCPServer(uint timeout_seconds = 0) throw (LinuxSamplerException);
         vector<string> receiveMultiLineAnswerFromLSCPServer(uint timeout_seconds = 0) throw (LinuxSamplerException);
         string receiveAnswerFromLSCPServer(string delimiter, uint timeout_seconds = 0) throw (LinuxSamplerException);
+        void clearInputBuffer();
     public:
         void setUp();
         void tearDown();
@@ -55,6 +57,7 @@ class LSCPTest : public CppUnit::TestFixture {
         void test_GET_CHANNELS();
         void test_REMOVE_CHANNEL();
         void test_GET_AUDIO_OUTPUT_CHANNEL_PARAMETER_INFO();
+        void test_SET_ECHO();
         void testShutdownLSCPServer();
 };
 
