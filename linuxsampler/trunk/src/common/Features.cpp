@@ -49,4 +49,6 @@ void Features::detect() {
     bMMX = (edx & 0x00800000);
     bSSE = (edx & 0x02000000);
 }
+#else
+void Features::detect() {}
 #endif // ARCH_X86

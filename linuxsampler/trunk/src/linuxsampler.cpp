@@ -216,7 +216,11 @@ void parse_options(int argc, char **argv) {
         };
 
     while (true) {
-        res = getopt_long_only(argc, argv, "", long_options, &option_index);
+        /*
+          Stephane Letz : letz@grame.fr
+          getopt_long_only does not exist on OSX : replaced by getopt_long for now.
+        */
+        res = getopt_long(argc, argv, "", long_options, &option_index);
         if(res == -1) break;
         if (res == 0) {
             switch(option_index) {

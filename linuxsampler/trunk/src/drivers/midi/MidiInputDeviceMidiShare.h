@@ -37,29 +37,32 @@ namespace LinuxSampler {
      */
     class MidiInputDeviceMidiShare : public MidiInputDevice {
         public:
-            MidiInputDeviceMidiShare(char* AutoConnectPortID = NULL);
+            MidiInputDeviceMidiShare(std::map<String,DeviceCreationParameter*> Parameters);
             ~MidiInputDeviceMidiShare();
 
             // derived abstract methods from class 'MidiInputDevice'
             void Listen(){}
             void StopListen(){}
-			void SetInputPort(const char *);
+            virtual String Driver();
+            static String Name();
+            static String Description();
+            static String Version();
 
             // own methods
             void ConnectToCoreMidiSource(const char* MidiSource);
-			
-			void OpenAppl(); 
+
+			void OpenAppl();
 			void CloseAppl();
-			void OpenDriver(); 
+			void OpenDriver();
 			void CloseDriver();
-			
+
 			// MidiShare callback
 			static void ApplAlarm(short ref, long code);
 			static void ReceiveEvents(short ref);
 			static void KeyOffTask(long date, short ref, long a1, long a2, long a3);
 			static void WakeUp(short r);
 			static void Sleep(short r);
-			
+
         private:
 			short			hRefnum;
 			MidiFilterPtr   hMidiFilter;

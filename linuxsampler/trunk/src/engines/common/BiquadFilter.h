@@ -438,8 +438,8 @@ namespace LinuxSampler {
                     ::
                 );
             }
-    };
 #endif // ARCH_X86
+    };
 
     class LowpassFilter : public BiquadFilter {
         public:

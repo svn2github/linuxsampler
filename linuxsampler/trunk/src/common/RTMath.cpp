@@ -25,6 +25,14 @@
 float  RTMathBase::CentsToFreqTable[MAX_PITCH * 1200 * 2 + 1]; // +-1200 cents per octave
 float* RTMathBase::pCentsToFreqTable(InitCentsToFreqTable());
 
+#if defined(__APPLE__)
+#include <mach/mach_time.h>
+typedef uint64_t time_stamp_t;
+static inline time_stamp_t GetMachTime() {
+    return (time_stamp_t) mach_absolute_time();
+}
+#endif
+
 /*
  * Creates a real time stamp for the current moment. Out of efficiency this
  * is implemented in inline assembly for each CPU independently; we currently
@@ -59,6 +67,8 @@ RTMathBase::time_stamp_t RTMathBase::CreateTimeStamp() {
     time_stamp_t t;
     __asm__ __volatile__ ("rpcc %0" : "=r"(t));
     return t;
+    #elif defined(__APPLE__)
+    return GetMachTime();
     #else // we don't want to use a slow generic solution
     #  error "Sorry, LinuxSampler lacks time stamp code for your system."
     #  error "Please report this error and the CPU you are using to the LinuxSampler developers mailing list!"

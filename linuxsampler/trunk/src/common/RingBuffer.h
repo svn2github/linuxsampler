@@ -254,7 +254,7 @@ public:
      * allows to read from a RingBuffer without being forced to free read
      * data while reading / positioning.
      */
-    template<class _T>
+    template<class T1>
     class _NonVolatileReader {
         public:
             int read_space() {
@@ -363,15 +363,15 @@ public:
             }
 
         protected:
-            _NonVolatileReader(RingBuffer<_T>* pBuf) {
+            _NonVolatileReader(RingBuffer<T1>* pBuf) {
                 this->pBuf     = pBuf;
                 this->read_ptr = atomic_read(&pBuf->read_ptr);
             }
 
-            RingBuffer<_T>* pBuf;
+            RingBuffer<T1>* pBuf;
             int read_ptr;
 
-            friend class RingBuffer<_T>;
+            friend class RingBuffer<T1>;
     };
 
     typedef _NonVolatileReader<T> NonVolatileReader;

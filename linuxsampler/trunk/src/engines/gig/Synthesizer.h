@@ -79,7 +79,9 @@ namespace LinuxSampler { namespace gig {
                                        (void *)&fPos,
                                        Voice.PitchBase,
                                        Voice.PitchBend);
+                    #if  ARCH_X86
                     if (INTERPOLATE) EMMS;
+                    #endif
                     Voice.Pos = (double) fPos;
                 } else {
                     SynthesizeFragment(Voice, Samples, pSrc, i, Voice.pSample->LoopPlayCount,

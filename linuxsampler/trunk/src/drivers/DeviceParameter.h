@@ -114,6 +114,7 @@ namespace LinuxSampler {
     class DeviceRuntimeParameterString : public DeviceRuntimeParameter {
         public:
             DeviceRuntimeParameterString(String sVal);
+            virtual ~DeviceRuntimeParameterString(){}
             virtual String           Type();
             virtual bool             Multiplicity();
             virtual optional<String> RangeMin();
@@ -134,6 +135,7 @@ namespace LinuxSampler {
     class DeviceRuntimeParameterStrings : public DeviceRuntimeParameter {
         public:
             DeviceRuntimeParameterStrings(std::vector<String> vS);
+            virtual ~DeviceRuntimeParameterStrings(){}
             virtual String           Type();
             virtual bool             Multiplicity();
             virtual optional<String> RangeMin();
@@ -253,6 +255,7 @@ namespace LinuxSampler {
     class DeviceCreationParameterString : public DeviceCreationParameter {
         public:
             DeviceCreationParameterString(String sVal = String());
+            virtual ~DeviceCreationParameterString(){}
             virtual String Type();
             virtual bool   Multiplicity();
             virtual optional<String> Default(std::map<String,String> Parameters);
@@ -279,6 +282,7 @@ namespace LinuxSampler {
             DeviceCreationParameterStrings();
             DeviceCreationParameterStrings(std::vector<String> sVals);
             DeviceCreationParameterStrings(String val) throw (LinuxSamplerException);
+            virtual ~DeviceCreationParameterStrings(){}
             virtual String Type();
             virtual bool   Multiplicity();
             virtual optional<String> Default(std::map<String,String> Parameters);

@@ -31,10 +31,8 @@
 #define TWELVEHUNDREDTH_ROOT_OF_TWO	1.000577789506555
 
 enum implementation_t {
-    CPP
-    #if ARCH_X86
-    ,ASM_X86_MMX_SSE
-    #endif // ARCH_X86
+    CPP,
+    ASM_X86_MMX_SSE
 };
 
 class RTMathBase {

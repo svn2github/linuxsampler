@@ -1,6 +1,6 @@
 /*************************************************************************
  *
- * $Id: stacktrace.c,v 1.1 2004-10-08 20:30:25 schoenebeck Exp $
+ * $Id: stacktrace.c,v 1.2 2005-02-09 01:22:17 schoenebeck Exp $
  *
  * Copyright (c) 1998 by Bjorn Reese <breese@mail1.stofanet.dk>
  *
@@ -63,6 +63,7 @@
 #include <limits.h>
 #include <errno.h>
 #include <signal.h>
+#include <unistd.h>
 #if defined(PLATFORM_UNIX)
 # include <unistd.h>
 # include <sys/types.h>

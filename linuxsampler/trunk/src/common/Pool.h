@@ -45,13 +45,13 @@ template<typename T> class RTList;
 template<typename T>
 class RTListBase {
     protected:
-        template<typename _T>
+        template<typename T1>
         struct _Node {
-            _Node<_T>* next;
-            _Node<_T>* prev;
-            _T* data;
+            _Node<T1>* next;
+            _Node<T1>* prev;
+            T1* data;
             #if DEVMODE
-            RTListBase<_T>* list; // list to which this node currently belongs to
+            RTListBase<T1>* list; // list to which this node currently belongs to
             #endif // DEVMODE
 
             _Node() {
@@ -66,7 +66,7 @@ class RTListBase {
         typedef _Node<T> Node;
 
     public:
-        template<typename _T>
+        template<typename T1>
         class _Iterator {
             public:
                 _Iterator() {
@@ -119,37 +119,37 @@ class RTListBase {
                     return preval;
                 }
 
-                inline _T& operator*() {
+                inline T1& operator*() {
                     #if DEVMODE
                     #if USE_EXCEPTIONS
                     if (isValid()) return *current->data;
                     else throw std::runtime_error(__err_msg_iterator_invalidated);
                     #else
-                    return *(isValid() ? current->data : (_T*)NULL); // force segfault if iterator became invalidated
+                    return *(isValid() ? current->data : (T1*)NULL); // force segfault if iterator became invalidated
                     #endif // USE_EXCEPTIONS
                     #else
                     return *current->data;
                     #endif // DEVMODE
                 }
 
-                inline _T* operator->() {
+                inline T1* operator->() {
                     #if DEVMODE
                     #if USE_EXCEPTIONS
                     if (isValid()) return current->data;
                     else throw std::runtime_error(__err_msg_iterator_invalidated);
                     #else
-                    return isValid() ? current->data : (_T*)NULL; // force segfault if iterator became invalidated
+                    return isValid() ? current->data : (T1*)NULL; // force segfault if iterator became invalidated
                     #endif // USE_EXCEPTIONS
                     #else
                     return current->data;
                     #endif // DEVMODE
                 }
 
-                inline bool operator==(const _Iterator<_T> other) {
+                inline bool operator==(const _Iterator<T1> other) {
                     return current == other.current;
                 }
 
-                inline bool operator!=(const _Iterator<_T> other) {
+                inline bool operator!=(const _Iterator<T1> other) {
                     return current != other.current;
                 }
 
@@ -161,7 +161,7 @@ class RTListBase {
                     return !(current && current->data);
                 }
 
-                inline _Iterator moveToEndOf(RTListBase<_T>* pDstList) {
+                inline _Iterator moveToEndOf(RTListBase<T1>* pDstList) {
                     detach();
                     pDstList->append(*this);
                     _Iterator iterOnDstList = _Iterator(current);
@@ -169,7 +169,7 @@ class RTListBase {
                     return iterOnDstList;
                 }
 
-                inline _Iterator moveToBeginOf(RTListBase<_T>* pDstList) {
+                inline _Iterator moveToBeginOf(RTListBase<T1>* pDstList) {
                     detach();
                     pDstList->prepend(*this);
                     _Iterator iterOnDstList = _Iterator(current);
@@ -191,7 +191,7 @@ class RTListBase {
                     dir_backward
                 };
                 #if DEVMODE
-                RTListBase<_T>* list;
+                RTListBase<T1>* list;
                 #endif // DEVMODE
 
                 _Iterator(Node* pNode, dir_t direction = dir_forward) {
@@ -216,12 +216,12 @@ class RTListBase {
                 }
 
                 inline void detach() {
-                    RTListBase<_T>::detach(*this);
+                    RTListBase<T1>::detach(*this);
                 }
 
-                friend class RTListBase<_T>;
-                friend class RTList<_T>;
-                friend class Pool<_T>;
+                friend class RTListBase<T1>;
+                friend class RTList<T1>;
+                friend class Pool<T1>;
         };
         typedef _Iterator<T> Iterator;
 

@@ -26,7 +26,12 @@
 #include "EGADSR.h"
 
 #include "Engine.h"
-#include <malloc.h>
+
+#if defined(__APPLE__)
+# include <stdlib.h>
+#else
+# include <malloc.h>
+#endif
 
 namespace LinuxSampler { namespace gig {
 
@@ -353,7 +358,12 @@ namespace LinuxSampler { namespace gig {
 
         // (re)allocate synthesis parameter matrix
         if (pSynthesisParameters[0]) free(pSynthesisParameters[0]);
+
+        #if defined(__APPLE__)
+        pSynthesisParameters[0] = (float *) malloc(Event::destination_count * sizeof(float) * pAudioOut->MaxSamplesPerCycle());
+        #else
         pSynthesisParameters[0] = (float *) memalign(16,(Event::destination_count * sizeof(float) * pAudioOut->MaxSamplesPerCycle()));
+        #endif
         for (int dst = 1; dst < Event::destination_count; dst++)
             pSynthesisParameters[dst] = pSynthesisParameters[dst - 1] + pAudioOut->MaxSamplesPerCycle();
 
@@ -1184,7 +1194,7 @@ namespace LinuxSampler { namespace gig {
     }
 
     String Engine::Version() {
-        String s = "$Revision: 1.22 $";
+        String s = "$Revision: 1.23 $";
         return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
 

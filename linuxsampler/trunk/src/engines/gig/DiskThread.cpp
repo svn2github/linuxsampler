@@ -210,6 +210,7 @@ namespace LinuxSampler { namespace gig {
     int DiskThread::Main() {
         dmsg(3,("Disk thread running\n"));
         while (true) {
+            pthread_testcancel(); // mandatory for OSX
             IsIdle = true; // will be set to false if a stream got filled
 
             // if there are ghost streams, delete them

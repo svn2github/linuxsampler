@@ -21,7 +21,13 @@
  ***************************************************************************/
 
 #include "AudioChannel.h"
-#include <malloc.h>
+
+#if defined(__APPLE__)
+# include <stdlib.h>
+#else
+# include <malloc.h>
+#endif
+
 
 namespace LinuxSampler {
 
@@ -33,7 +39,11 @@ namespace LinuxSampler {
      */
     AudioChannel::AudioChannel(uint ChannelNr, uint BufferSize) {
         this->ChannelNr          = ChannelNr;
+        #if defined(__APPLE__)
+        this->pBuffer            = (float *) malloc(BufferSize*sizeof(float));
+        #else
         this->pBuffer            = (float *) memalign(16,BufferSize*sizeof(float));
+        #endif
         this->uiBufferSize       = BufferSize;
         this->pMixChannel        = NULL;
         this->UsesExternalBuffer = false;

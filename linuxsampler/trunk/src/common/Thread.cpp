@@ -124,6 +124,7 @@ int Thread::SignalStopThread() {
  *  current priority).
  */
 int Thread::SetSchedulingPriority() {
+#if !defined(__APPLE__)
     struct sched_param schp;
 
     if (!isRealTime) return 0;
@@ -147,7 +148,7 @@ int Thread::SetSchedulingPriority() {
         perror("sched_setscheduler");
         return -1;
     }
-
+#endif
     return 0;
 }
 

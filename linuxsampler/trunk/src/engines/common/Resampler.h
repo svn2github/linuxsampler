@@ -396,8 +396,8 @@ namespace LinuxSampler {
                       "%xmm3"  /* holds linear interpolated sample of right channel (of all 4 samples) at the end */
                 );
             }
-    };
 #endif // ARCH_X86
+    };
 
 } // namespace LinuxSampler
 
