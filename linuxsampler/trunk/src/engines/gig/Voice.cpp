@@ -103,14 +103,14 @@ namespace LinuxSampler { namespace gig {
      *  Initializes and triggers the voice, a disk stream will be launched if
      *  needed.
      *
-     *  @param pNoteOnEvent        - event that caused triggering of this voice
+     *  @param itNoteOnEvent       - event that caused triggering of this voice
      *  @param PitchBend           - MIDI detune factor (-8192 ... +8191)
      *  @param pInstrument         - points to the loaded instrument which provides sample wave(s) and articulation data
      *  @param iLayer              - layer number this voice refers to (only if this is a layered sound of course)
      *  @param ReleaseTriggerVoice - if this new voice is a release trigger voice (optional, default = false)
      *  @returns 0 on success, a value < 0 if something failed
      */
-    int Voice::Trigger(Event* pNoteOnEvent, int PitchBend, ::gig::Instrument* pInstrument, int iLayer, bool ReleaseTriggerVoice) {
+    int Voice::Trigger(Pool<Event>::Iterator& itNoteOnEvent, int PitchBend, ::gig::Instrument* pInstrument, int iLayer, bool ReleaseTriggerVoice) {
         if (!pInstrument) {
            dmsg(1,("voice::trigger: !pInstrument\n"));
            exit(EXIT_FAILURE);
@@ -118,12 +118,12 @@ namespace LinuxSampler { namespace gig {
 
         Type            = type_normal;
         Active          = true;
-        MIDIKey         = pNoteOnEvent->Param.Note.Key;
+        MIDIKey         = itNoteOnEvent->Param.Note.Key;
         pRegion         = pInstrument->GetRegion(MIDIKey);
         PlaybackState   = playback_state_ram; // we always start playback from RAM cache and switch then to disk if needed
-        Delay           = pNoteOnEvent->FragmentPos();
-        pTriggerEvent   = pNoteOnEvent;
-        pKillEvent      = NULL;
+        Delay           = itNoteOnEvent->FragmentPos();
+        itTriggerEvent  = itNoteOnEvent;
+        itKillEvent     = Pool<Event>::Iterator();
 
         if (!pRegion) {
             std::cerr << "gig::Voice: No Region defined for MIDI key " << MIDIKey << std::endl << std::flush;
@@ -146,10 +146,10 @@ namespace LinuxSampler { namespace gig {
                     // if this is the 1st layer then spawn further voices for all the other layers
                     if (iLayer == 0)
                         for (int iNewLayer = 1; iNewLayer < pRegion->pDimensionDefinitions[i].zones; iNewLayer++)
-                            pEngine->LaunchVoice(pNoteOnEvent, iNewLayer, ReleaseTriggerVoice);
+                            pEngine->LaunchVoice(itNoteOnEvent, iNewLayer, ReleaseTriggerVoice);
                     break;
                 case ::gig::dimension_velocity:
-                    DimValues[i] = pNoteOnEvent->Param.Note.Velocity;
+                    DimValues[i] = itNoteOnEvent->Param.Note.Velocity;
                     break;
                 case ::gig::dimension_channelaftertouch:
                     DimValues[i] = 0; //TODO: we currently ignore this dimension
@@ -159,7 +159,7 @@ namespace LinuxSampler { namespace gig {
                     DimValues[i] = (uint) ReleaseTriggerVoice;
                     break;
                 case ::gig::dimension_keyboard:
-                    DimValues[i] = (uint) pNoteOnEvent->Param.Note.Key;
+                    DimValues[i] = (uint) itNoteOnEvent->Param.Note.Key;
                     break;
                 case ::gig::dimension_modwheel:
                     DimValues[i] = pEngine->ControllerTable[1];
@@ -245,7 +245,7 @@ namespace LinuxSampler { namespace gig {
                 CrossfadeVolume = 1.0f; //TODO: aftertouch not supported yet
                 break;
             case ::gig::attenuation_ctrl_t::type_velocity:
-                CrossfadeVolume = CrossfadeAttenuation(pNoteOnEvent->Param.Note.Velocity);
+                CrossfadeVolume = CrossfadeAttenuation(itNoteOnEvent->Param.Note.Velocity);
                 break;
             case ::gig::attenuation_ctrl_t::type_controlchange: //FIXME: currently not sample accurate
                 CrossfadeVolume = CrossfadeAttenuation(pEngine->ControllerTable[pDimRgn->AttenuationController.controller_number]);
@@ -255,9 +255,8 @@ namespace LinuxSampler { namespace gig {
                 CrossfadeVolume = 1.0f;
         }
 
-	const float fpan = float(RTMath::Max(RTMath::Min(pDimRgn->Pan, 63), -64)) / 64.0f;
-        PanLeft  = 1.0f - fpan;
-        PanRight = 1.0f + fpan;
+        PanLeft  = 1.0f - float(RTMath::Max(pDimRgn->Pan, 0)) /  63.0f;
+        PanRight = 1.0f - float(RTMath::Min(pDimRgn->Pan, 0)) / -64.0f;
 
         pSample = pDimRgn->pSample; // sample won't change until the voice is finished
 
@@ -304,7 +303,7 @@ namespace LinuxSampler { namespace gig {
         }
 
 
-        Volume = pDimRgn->GetVelocityAttenuation(pNoteOnEvent->Param.Note.Velocity) / 32768.0f; // we downscale by 32768 to convert from int16 value range to DSP value range (which is -1.0..1.0)
+        Volume = pDimRgn->GetVelocityAttenuation(itNoteOnEvent->Param.Note.Velocity) / 32768.0f; // we downscale by 32768 to convert from int16 value range to DSP value range (which is -1.0..1.0)
 
 
         // setup EG 1 (VCA EG)
@@ -319,7 +318,7 @@ namespace LinuxSampler { namespace gig {
                     eg1controllervalue = 0; // TODO: aftertouch not yet supported
                     break;
                 case ::gig::eg1_ctrl_t::type_velocity:
-                    eg1controllervalue = pNoteOnEvent->Param.Note.Velocity;
+                    eg1controllervalue = itNoteOnEvent->Param.Note.Velocity;
                     break;
                 case ::gig::eg1_ctrl_t::type_controlchange: // MIDI control change controller
                     eg1controllervalue = pEngine->ControllerTable[pDimRgn->EG1Controller.controller_number];
@@ -358,7 +357,7 @@ namespace LinuxSampler { namespace gig {
                     eg2controllervalue = 0; // TODO: aftertouch not yet supported
                     break;
                 case ::gig::eg2_ctrl_t::type_velocity:
-                    eg2controllervalue = pNoteOnEvent->Param.Note.Velocity;
+                    eg2controllervalue = itNoteOnEvent->Param.Note.Velocity;
                     break;
                 case ::gig::eg2_ctrl_t::type_controlchange: // MIDI control change controller
                     eg2controllervalue = pEngine->ControllerTable[pDimRgn->EG2Controller.controller_number];
@@ -586,13 +585,13 @@ namespace LinuxSampler { namespace gig {
 
             // calculate cutoff frequency
             float cutoff = (!VCFCutoffCtrl.controller)
-                ? exp((float) (127 - pNoteOnEvent->Param.Note.Velocity) * (float) pDimRgn->VCFVelocityScale * 6.2E-5f * FILTER_CUTOFF_COEFF) * FILTER_CUTOFF_MAX
+                ? exp((float) (127 - itNoteOnEvent->Param.Note.Velocity) * (float) pDimRgn->VCFVelocityScale * 6.2E-5f * FILTER_CUTOFF_COEFF) * FILTER_CUTOFF_MAX
                 : exp((float) VCFCutoffCtrl.value * 0.00787402f * FILTER_CUTOFF_COEFF) * FILTER_CUTOFF_MAX;
 
             // calculate resonance
             float resonance = (float) VCFResonanceCtrl.value * 0.00787f;   // 0.0..1.0
             if (pDimRgn->VCFKeyboardTracking) {
-                resonance += (float) (pNoteOnEvent->Param.Note.Key - pDimRgn->VCFKeyboardTrackingBreakpoint) * 0.00787f;
+                resonance += (float) (itNoteOnEvent->Param.Note.Key - pDimRgn->VCFKeyboardTrackingBreakpoint) * 0.00787f;
             }
             Constrain(resonance, 0.0, 1.0); // correct resonance if outside allowed value range (0.0..1.0)
 
@@ -640,9 +639,9 @@ namespace LinuxSampler { namespace gig {
 
 
         // Let all modulators write their parameter changes to the synthesis parameter matrix for the current audio fragment
-        pEG1->Process(Samples, pEngine->pMIDIKeyInfo[MIDIKey].pEvents, pTriggerEvent, this->Pos, this->PitchBase * this->PitchBend, pKillEvent);
+        pEG1->Process(Samples, pEngine->pMIDIKeyInfo[MIDIKey].pEvents, itTriggerEvent, this->Pos, this->PitchBase * this->PitchBend, itKillEvent);
     #if ENABLE_FILTER
-        pEG2->Process(Samples, pEngine->pMIDIKeyInfo[MIDIKey].pEvents, pTriggerEvent, this->Pos, this->PitchBase * this->PitchBend);
+        pEG2->Process(Samples, pEngine->pMIDIKeyInfo[MIDIKey].pEvents, itTriggerEvent, this->Pos, this->PitchBase * this->PitchBend);
     #endif // ENABLE_FILTER
         pEG3->Process(Samples);
         pLFO1->Process(Samples);
@@ -717,7 +716,7 @@ namespace LinuxSampler { namespace gig {
         // Reset delay
         Delay = 0;
 
-        pTriggerEvent = NULL;
+        itTriggerEvent = Pool<Event>::Iterator();
 
         // If release stage finished, let the voice be killed
         if (pEG1->GetStage() == EGADSR::stage_end) this->PlaybackState = playback_state_end;
@@ -748,156 +747,160 @@ namespace LinuxSampler { namespace gig {
     void Voice::ProcessEvents(uint Samples) {
 
         // dispatch control change events
-        Event* pCCEvent = pEngine->pCCEvents->first();
+        RTList<Event>::Iterator itCCEvent = pEngine->pCCEvents->first();
         if (Delay) { // skip events that happened before this voice was triggered
-            while (pCCEvent && pCCEvent->FragmentPos() <= Delay) pCCEvent = pEngine->pCCEvents->next();
+            while (itCCEvent && itCCEvent->FragmentPos() <= Delay) ++itCCEvent;
         }
-        while (pCCEvent) {
-            if (pCCEvent->Param.CC.Controller) { // if valid MIDI controller
+        while (itCCEvent) {
+            if (itCCEvent->Param.CC.Controller) { // if valid MIDI controller
                 #if ENABLE_FILTER
-                if (pCCEvent->Param.CC.Controller == VCFCutoffCtrl.controller) {
-                    pEngine->pSynthesisEvents[Event::destination_vcfc]->alloc_assign(*pCCEvent);
+                if (itCCEvent->Param.CC.Controller == VCFCutoffCtrl.controller) {
+                    *pEngine->pSynthesisEvents[Event::destination_vcfc]->allocAppend() = *itCCEvent;
                 }
-                if (pCCEvent->Param.CC.Controller == VCFResonanceCtrl.controller) {
-                    pEngine->pSynthesisEvents[Event::destination_vcfr]->alloc_assign(*pCCEvent);
+                if (itCCEvent->Param.CC.Controller == VCFResonanceCtrl.controller) {
+                    *pEngine->pSynthesisEvents[Event::destination_vcfr]->allocAppend() = *itCCEvent;
                 }
                 #endif // ENABLE_FILTER
-                if (pCCEvent->Param.CC.Controller == pLFO1->ExtController) {
-                    pLFO1->SendEvent(pCCEvent);
+                if (itCCEvent->Param.CC.Controller == pLFO1->ExtController) {
+                    pLFO1->SendEvent(itCCEvent);
                 }
                 #if ENABLE_FILTER
-                if (pCCEvent->Param.CC.Controller == pLFO2->ExtController) {
-                    pLFO2->SendEvent(pCCEvent);
+                if (itCCEvent->Param.CC.Controller == pLFO2->ExtController) {
+                    pLFO2->SendEvent(itCCEvent);
                 }
                 #endif // ENABLE_FILTER
-                if (pCCEvent->Param.CC.Controller == pLFO3->ExtController) {
-                    pLFO3->SendEvent(pCCEvent);
+                if (itCCEvent->Param.CC.Controller == pLFO3->ExtController) {
+                    pLFO3->SendEvent(itCCEvent);
                 }
                 if (pDimRgn->AttenuationController.type == ::gig::attenuation_ctrl_t::type_controlchange &&
-                    pCCEvent->Param.CC.Controller == pDimRgn->AttenuationController.controller_number) { // if crossfade event
-                    pEngine->pSynthesisEvents[Event::destination_vca]->alloc_assign(*pCCEvent);
+                    itCCEvent->Param.CC.Controller == pDimRgn->AttenuationController.controller_number) { // if crossfade event
+                    *pEngine->pSynthesisEvents[Event::destination_vca]->allocAppend() = *itCCEvent;
                 }
             }
 
-            pCCEvent = pEngine->pCCEvents->next();
+            ++itCCEvent;
         }
 
 
         // process pitch events
         {
-            RTEList<Event>* pVCOEventList = pEngine->pSynthesisEvents[Event::destination_vco];
-            Event* pVCOEvent = pVCOEventList->first();
+            RTList<Event>* pVCOEventList = pEngine->pSynthesisEvents[Event::destination_vco];
+            RTList<Event>::Iterator itVCOEvent = pVCOEventList->first();
             if (Delay) { // skip events that happened before this voice was triggered
-                while (pVCOEvent && pVCOEvent->FragmentPos() <= Delay) pVCOEvent = pVCOEventList->next();
+                while (itVCOEvent && itVCOEvent->FragmentPos() <= Delay) ++itVCOEvent;
             }
             // apply old pitchbend value until first pitch event occurs
             if (this->PitchBend != 1.0) {
-                uint end = (pVCOEvent) ? pVCOEvent->FragmentPos() : Samples;
+                uint end = (itVCOEvent) ? itVCOEvent->FragmentPos() : Samples;
                 for (uint i = Delay; i < end; i++) {
                     pEngine->pSynthesisParameters[Event::destination_vco][i] *= this->PitchBend;
                 }
             }
             float pitch;
-            while (pVCOEvent) {
-                Event* pNextVCOEvent = pVCOEventList->next();
+            while (itVCOEvent) {
+                RTList<Event>::Iterator itNextVCOEvent = itVCOEvent;
+                ++itNextVCOEvent;
 
                 // calculate the influence length of this event (in sample points)
-                uint end = (pNextVCOEvent) ? pNextVCOEvent->FragmentPos() : Samples;
+                uint end = (itNextVCOEvent) ? itNextVCOEvent->FragmentPos() : Samples;
 
-                pitch = RTMath::CentsToFreqRatio(((double) pVCOEvent->Param.Pitch.Pitch / 8192.0) * 200.0); // +-two semitones = +-200 cents
+                pitch = RTMath::CentsToFreqRatio(((double) itVCOEvent->Param.Pitch.Pitch / 8192.0) * 200.0); // +-two semitones = +-200 cents
 
                 // apply pitch value to the pitch parameter sequence
-                for (uint i = pVCOEvent->FragmentPos(); i < end; i++) {
+                for (uint i = itVCOEvent->FragmentPos(); i < end; i++) {
                     pEngine->pSynthesisParameters[Event::destination_vco][i] *= pitch;
                 }
 
-                pVCOEvent = pNextVCOEvent;
+                itVCOEvent = itNextVCOEvent;
             }
-            if (pVCOEventList->last()) this->PitchBend = pitch;
+            if (!pVCOEventList->isEmpty()) this->PitchBend = pitch;
         }
 
         // process volume / attenuation events (TODO: we only handle and _expect_ crossfade events here ATM !)
         {
-            RTEList<Event>* pVCAEventList = pEngine->pSynthesisEvents[Event::destination_vca];
-            Event* pVCAEvent = pVCAEventList->first();
+            RTList<Event>* pVCAEventList = pEngine->pSynthesisEvents[Event::destination_vca];
+            RTList<Event>::Iterator itVCAEvent = pVCAEventList->first();
             if (Delay) { // skip events that happened before this voice was triggered
-                while (pVCAEvent && pVCAEvent->FragmentPos() <= Delay) pVCAEvent = pVCAEventList->next();
+                while (itVCAEvent && itVCAEvent->FragmentPos() <= Delay) ++itVCAEvent;
             }
             float crossfadevolume;
-            while (pVCAEvent) {
-                Event* pNextVCAEvent = pVCAEventList->next();
+            while (itVCAEvent) {
+                RTList<Event>::Iterator itNextVCAEvent = itVCAEvent;
+                ++itNextVCAEvent;
 
                 // calculate the influence length of this event (in sample points)
-                uint end = (pNextVCAEvent) ? pNextVCAEvent->FragmentPos() : Samples;
+                uint end = (itNextVCAEvent) ? itNextVCAEvent->FragmentPos() : Samples;
 
-                crossfadevolume = CrossfadeAttenuation(pVCAEvent->Param.CC.Value);
+                crossfadevolume = CrossfadeAttenuation(itVCAEvent->Param.CC.Value);
 
                 float effective_volume = crossfadevolume * this->Volume * pEngine->GlobalVolume;
 
                 // apply volume value to the volume parameter sequence
-                for (uint i = pVCAEvent->FragmentPos(); i < end; i++) {
+                for (uint i = itVCAEvent->FragmentPos(); i < end; i++) {
                     pEngine->pSynthesisParameters[Event::destination_vca][i] = effective_volume;
                 }
 
-                pVCAEvent = pNextVCAEvent;
+                itVCAEvent = itNextVCAEvent;
             }
-            if (pVCAEventList->last()) this->CrossfadeVolume = crossfadevolume;
+            if (!pVCAEventList->isEmpty()) this->CrossfadeVolume = crossfadevolume;
         }
 
     #if ENABLE_FILTER
         // process filter cutoff events
         {
-            RTEList<Event>* pCutoffEventList = pEngine->pSynthesisEvents[Event::destination_vcfc];
-            Event* pCutoffEvent = pCutoffEventList->first();
+            RTList<Event>* pCutoffEventList = pEngine->pSynthesisEvents[Event::destination_vcfc];
+            RTList<Event>::Iterator itCutoffEvent = pCutoffEventList->first();
             if (Delay) { // skip events that happened before this voice was triggered
-                while (pCutoffEvent && pCutoffEvent->FragmentPos() <= Delay) pCutoffEvent = pCutoffEventList->next();
+                while (itCutoffEvent && itCutoffEvent->FragmentPos() <= Delay) ++itCutoffEvent;
             }
             float cutoff;
-            while (pCutoffEvent) {
-                Event* pNextCutoffEvent = pCutoffEventList->next();
+            while (itCutoffEvent) {
+                RTList<Event>::Iterator itNextCutoffEvent = itCutoffEvent;
+                ++itNextCutoffEvent;
 
                 // calculate the influence length of this event (in sample points)
-                uint end = (pNextCutoffEvent) ? pNextCutoffEvent->FragmentPos() : Samples;
+                uint end = (itNextCutoffEvent) ? itNextCutoffEvent->FragmentPos() : Samples;
 
-                cutoff = exp((float) pCutoffEvent->Param.CC.Value * 0.00787402f * FILTER_CUTOFF_COEFF) * FILTER_CUTOFF_MAX - FILTER_CUTOFF_MIN;
+                cutoff = exp((float) itCutoffEvent->Param.CC.Value * 0.00787402f * FILTER_CUTOFF_COEFF) * FILTER_CUTOFF_MAX - FILTER_CUTOFF_MIN;
 
                 // apply cutoff frequency to the cutoff parameter sequence
-                for (uint i = pCutoffEvent->FragmentPos(); i < end; i++) {
+                for (uint i = itCutoffEvent->FragmentPos(); i < end; i++) {
                     pEngine->pSynthesisParameters[Event::destination_vcfc][i] = cutoff;
                 }
 
-                pCutoffEvent = pNextCutoffEvent;
+                itCutoffEvent = itNextCutoffEvent;
             }
-            if (pCutoffEventList->last()) VCFCutoffCtrl.fvalue = cutoff; // needed for initialization of parameter matrix next time
+            if (!pCutoffEventList->isEmpty()) VCFCutoffCtrl.fvalue = cutoff; // needed for initialization of parameter matrix next time
         }
 
         // process filter resonance events
         {
-            RTEList<Event>* pResonanceEventList = pEngine->pSynthesisEvents[Event::destination_vcfr];
-            Event* pResonanceEvent = pResonanceEventList->first();
+            RTList<Event>* pResonanceEventList = pEngine->pSynthesisEvents[Event::destination_vcfr];
+            RTList<Event>::Iterator itResonanceEvent = pResonanceEventList->first();
             if (Delay) { // skip events that happened before this voice was triggered
-                while (pResonanceEvent && pResonanceEvent->FragmentPos() <= Delay) pResonanceEvent = pResonanceEventList->next();
+                while (itResonanceEvent && itResonanceEvent->FragmentPos() <= Delay) ++itResonanceEvent;
             }
-            while (pResonanceEvent) {
-                Event* pNextResonanceEvent = pResonanceEventList->next();
+            while (itResonanceEvent) {
+                RTList<Event>::Iterator itNextResonanceEvent = itResonanceEvent;
+                ++itNextResonanceEvent;
 
                 // calculate the influence length of this event (in sample points)
-                uint end = (pNextResonanceEvent) ? pNextResonanceEvent->FragmentPos() : Samples;
+                uint end = (itNextResonanceEvent) ? itNextResonanceEvent->FragmentPos() : Samples;
 
                 // convert absolute controller value to differential
-                int ctrldelta = pResonanceEvent->Param.CC.Value - VCFResonanceCtrl.value;
-                VCFResonanceCtrl.value = pResonanceEvent->Param.CC.Value;
+                int ctrldelta = itResonanceEvent->Param.CC.Value - VCFResonanceCtrl.value;
+                VCFResonanceCtrl.value = itResonanceEvent->Param.CC.Value;
 
                 float resonancedelta = (float) ctrldelta * 0.00787f; // 0.0..1.0
 
                 // apply cutoff frequency to the cutoff parameter sequence
-                for (uint i = pResonanceEvent->FragmentPos(); i < end; i++) {
+                for (uint i = itResonanceEvent->FragmentPos(); i < end; i++) {
                     pEngine->pSynthesisParameters[Event::destination_vcfr][i] += resonancedelta;
                 }
 
-                pResonanceEvent = pNextResonanceEvent;
+                itResonanceEvent = itNextResonanceEvent;
             }
-            if (pResonanceEventList->last()) VCFResonanceCtrl.fvalue = pResonanceEventList->last()->Param.CC.Value * 0.00787f; // needed for initialization of parameter matrix next time
+            if (!pResonanceEventList->isEmpty()) VCFResonanceCtrl.fvalue = pResonanceEventList->last()->Param.CC.Value * 0.00787f; // needed for initialization of parameter matrix next time
         }
     #endif // ENABLE_FILTER
     }
@@ -1048,11 +1051,11 @@ namespace LinuxSampler { namespace gig {
      *  of a voice, a kill process cannot be cancalled and is therefore
      *  usually used for voice stealing and key group conflicts.
      *
-     *  @param pKillEvent - event which caused the voice to be killed
+     *  @param itKillEvent - event which caused the voice to be killed
      */
-    void Voice::Kill(Event* pKillEvent) {
-        if (pTriggerEvent && pKillEvent->FragmentPos() <= pTriggerEvent->FragmentPos()) return;
-        this->pKillEvent = pKillEvent;
+    void Voice::Kill(Pool<Event>::Iterator& itKillEvent) {
+        if (itTriggerEvent && itKillEvent->FragmentPos() <= itTriggerEvent->FragmentPos()) return;
+        this->itKillEvent = itKillEvent;
     }
 
 }} // namespace LinuxSampler::gig

@@ -42,6 +42,10 @@
 #  include <config.h>
 #endif
 
+#define DEVMODE		1  ///< in development mode we do some extra sanity checks here and there, so if LS is stable this can be disabled to improve efficiency
+
+#define USE_EXCEPTIONS	0  ///< wether if we should use exceptions in the _REALTIME_THREAD_ for runtime critical errors or force segfaults instead
+
 #define LS_DEBUG_LEVEL	1  ///< the higher this value the higher verbosity, 0 means no debug messages at all
 
 #if LS_DEBUG_LEVEL > 0

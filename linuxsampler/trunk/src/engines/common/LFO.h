@@ -85,9 +85,9 @@ namespace LinuxSampler {
              * @param Propagation - defines from which level the wave starts and which direction it grows with growing oscillator depth
              * @param pEventPool  - reference to an event pool which will be used to allocate Event objects
              */
-            LFO(float Min, float Max, propagation_t Propagation, T_Manipulator* pManipulator, RTELMemoryPool<Event>* pEventPool) {
+            LFO(float Min, float Max, propagation_t Propagation, T_Manipulator* pManipulator, Pool<Event>* pEventPool) {
                 this->Propagation   = Propagation;
-                this->pEvents       = new RTEList<Event>(pEventPool);
+                this->pEvents       = new RTList<Event>(pEventPool);
                 this->ExtController = 0;
                 this->Min           = Min;
                 this->Max           = Max;
@@ -106,11 +106,11 @@ namespace LinuxSampler {
              *                  this audio fragment cycle by the audio engine
              */
             void Process(uint Samples) {
-                Event* pCtrlEvent = pEvents->first();
+                RTList<Event>::Iterator itCtrlEvent = pEvents->first();
                 int iSample = TriggerDelay;
                 while (iSample < Samples) {
                     int process_break = Samples;
-                    if (pCtrlEvent && pCtrlEvent->FragmentPos() <= process_break) process_break = pCtrlEvent->FragmentPos();
+                    if (itCtrlEvent && itCtrlEvent->FragmentPos() <= process_break) process_break = itCtrlEvent->FragmentPos();
 
                     if (Coeff > 0.0f) { // level going up
                         while (iSample < process_break && Level <= CurrentMax) {
@@ -152,9 +152,9 @@ namespace LinuxSampler {
                         }
                     }
 
-                    if (pCtrlEvent) {
-                        RecalculateCoeff(pCtrlEvent->Param.CC.Value);
-                        pCtrlEvent = pEvents->next();
+                    if (itCtrlEvent) {
+                        RecalculateCoeff(itCtrlEvent->Param.CC.Value);
+                        ++itCtrlEvent;
                     }
                 }
                 TriggerDelay = 0;
@@ -223,8 +223,8 @@ namespace LinuxSampler {
              *
              * @param pEvent - control change event of external controller
              */
-            inline void SendEvent(Event* pEvent) {
-                if (ExtController && pEvent->FragmentPos() >= this->TriggerDelay) pEvents->alloc_assign(*pEvent);
+            inline void SendEvent(Pool<Event>::Iterator itEvent) {
+                if (ExtController && itEvent->FragmentPos() >= this->TriggerDelay && !pEvents->poolIsEmpty()) *pEvents->allocAppend() = *itEvent;
             }
 
             /**
@@ -235,7 +235,7 @@ namespace LinuxSampler {
             }
 
         protected:
-            RTEList<Event>* pEvents;
+            RTList<Event>*  pEvents;
             propagation_t   Propagation;
             int             TriggerDelay;
             float           Min;

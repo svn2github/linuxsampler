@@ -39,25 +39,24 @@ namespace LinuxSampler { namespace gig {
         pEventGenerator    = NULL;
         pSysexBuffer       = new RingBuffer<uint8_t>(SYSEX_BUFFER_SIZE, 0);
         pEventQueue        = new RingBuffer<Event>(MAX_EVENTS_PER_FRAGMENT, 0);
-        pEventPool         = new RTELMemoryPool<Event>(MAX_EVENTS_PER_FRAGMENT);
-        pVoicePool         = new RTELMemoryPool<Voice>(MAX_AUDIO_VOICES);
-        pActiveKeys        = new RTELMemoryPool<uint>(128);
-        pVoiceStealingQueue = new RTEList<Event>(pEventPool);
-        pEvents            = new RTEList<Event>(pEventPool);
-        pCCEvents          = new RTEList<Event>(pEventPool);
+        pEventPool         = new Pool<Event>(MAX_EVENTS_PER_FRAGMENT);
+        pVoicePool         = new Pool<Voice>(MAX_AUDIO_VOICES);
+        pActiveKeys        = new Pool<uint>(128);
+        pVoiceStealingQueue = new RTList<Event>(pEventPool);
+        pEvents            = new RTList<Event>(pEventPool);
+        pCCEvents          = new RTList<Event>(pEventPool);
         for (uint i = 0; i < Event::destination_count; i++) {
-            pSynthesisEvents[i] = new RTEList<Event>(pEventPool);
+            pSynthesisEvents[i] = new RTList<Event>(pEventPool);
         }
         for (uint i = 0; i < 128; i++) {
-            pMIDIKeyInfo[i].pActiveVoices  = new RTEList<Voice>(pVoicePool);
+            pMIDIKeyInfo[i].pActiveVoices  = new RTList<Voice>(pVoicePool);
             pMIDIKeyInfo[i].KeyPressed     = false;
             pMIDIKeyInfo[i].Active         = false;
             pMIDIKeyInfo[i].ReleaseTrigger = false;
-            pMIDIKeyInfo[i].pSelf          = NULL;
-            pMIDIKeyInfo[i].pEvents        = new RTEList<Event>(pEventPool);
+            pMIDIKeyInfo[i].pEvents        = new RTList<Event>(pEventPool);
         }
-        for (Voice* pVoice = pVoicePool->alloc(); pVoice; pVoice = pVoicePool->alloc()) {
-            pVoice->SetEngine(this);
+        for (RTList<Voice>::Iterator iterVoice = pVoicePool->allocAppend(); iterVoice == pVoicePool->last(); iterVoice = pVoicePool->allocAppend()) {
+            iterVoice->SetEngine(this);
         }
         pVoicePool->clear();
 
@@ -160,8 +159,8 @@ namespace LinuxSampler { namespace gig {
         GlobalVolume        = 1.0;
 
         // reset voice stealing parameters
-        pLastStolenVoice = NULL;
-        puiLastStolenKey = NULL;
+        itLastStolenVoice = RTList<Voice>::Iterator();
+        iuiLastStolenKey  = RTList<uint>::Iterator();
         pVoiceStealingQueue->clear();
 
         // reset to normal chromatic scale (means equal temper)
@@ -177,7 +176,7 @@ namespace LinuxSampler { namespace gig {
             pMIDIKeyInfo[i].KeyPressed     = false;
             pMIDIKeyInfo[i].Active         = false;
             pMIDIKeyInfo[i].ReleaseTrigger = false;
-            pMIDIKeyInfo[i].pSelf          = NULL;
+            pMIDIKeyInfo[i].itSelf         = Pool<uint>::Iterator();
         }
 
         // reset all key groups
@@ -185,8 +184,8 @@ namespace LinuxSampler { namespace gig {
         for (; iter != ActiveKeyGroups.end(); iter++) iter->second = NULL;
 
         // reset all voices
-        for (Voice* pVoice = pVoicePool->alloc(); pVoice; pVoice = pVoicePool->alloc()) {
-            pVoice->Reset();
+        for (RTList<Voice>::Iterator iterVoice = pVoicePool->allocAppend(); iterVoice == pVoicePool->last(); iterVoice = pVoicePool->allocAppend()) {
+            iterVoice->Reset();
         }
         pVoicePool->clear();
 
@@ -325,8 +324,8 @@ namespace LinuxSampler { namespace gig {
             exit(EXIT_FAILURE);
         }
 
-        for (Voice* pVoice = pVoicePool->alloc(); pVoice; pVoice = pVoicePool->alloc()) {
-            pVoice->pDiskThread = this->pDiskThread;
+        for (RTList<Voice>::Iterator iterVoice = pVoicePool->allocAppend(); iterVoice == pVoicePool->last(); iterVoice = pVoicePool->allocAppend()) {
+            iterVoice->pDiskThread = this->pDiskThread;
             dmsg(3,("d"));
         }
         pVoicePool->clear();
@@ -351,8 +350,8 @@ namespace LinuxSampler { namespace gig {
         pDiskThread->StartThread();
         dmsg(1,("OK\n"));
 
-        for (Voice* pVoice = pVoicePool->first(); pVoice; pVoice = pVoicePool->next()) {
-            if (!pVoice->pDiskThread) {
+        for (RTList<Voice>::Iterator iterVoice = pVoicePool->allocAppend(); iterVoice == pVoicePool->last(); iterVoice = pVoicePool->allocAppend()) {
+            if (!iterVoice->pDiskThread) {
                 dmsg(0,("Engine -> voice::trigger: !pDiskThread\n"));
                 exit(EXIT_FAILURE);
             }
@@ -399,16 +398,19 @@ namespace LinuxSampler { namespace gig {
         for (uint i = 0; i < Event::destination_count; i++) {
             pSynthesisEvents[i]->clear();
         }
-        for (uint* puiKey = pActiveKeys->first(); puiKey; puiKey = pActiveKeys->next()) {
-            midi_key_info_t* pKey = &pMIDIKeyInfo[*puiKey];
-            pKey->pEvents->clear(); // free all events on the key
+        {
+            RTList<uint>::Iterator iuiKey = pActiveKeys->first();
+            RTList<uint>::Iterator end    = pActiveKeys->end();
+            for(; iuiKey != end; ++iuiKey) {
+                pMIDIKeyInfo[*iuiKey].pEvents->clear(); // free all events on the key
+            }
         }
 
         // read and copy events from input queue
         Event event = pEventGenerator->CreateEvent();
         while (true) {
-            if (!pEventQueue->pop(&event)) break;
-            pEvents->alloc_assign(event);
+            if (!pEventQueue->pop(&event) || pEvents->poolIsEmpty()) break;
+            *pEvents->allocAppend() = event;
         }
 
 
@@ -417,79 +419,80 @@ namespace LinuxSampler { namespace gig {
 
 
         // process events
-        Event* pNextEvent = pEvents->first();
-        while (pNextEvent) {
-            Event* pEvent = pNextEvent;
-            pEvents->set_current(pEvent);
-            pNextEvent = pEvents->next();
-            switch (pEvent->Type) {
-                case Event::type_note_on:
-                    dmsg(5,("Engine: Note on received\n"));
-                    ProcessNoteOn(pEvent);
-                    break;
-                case Event::type_note_off:
-                    dmsg(5,("Engine: Note off received\n"));
-                    ProcessNoteOff(pEvent);
-                    break;
-                case Event::type_control_change:
-                    dmsg(5,("Engine: MIDI CC received\n"));
-                    ProcessControlChange(pEvent);
-                    break;
-                case Event::type_pitchbend:
-                    dmsg(5,("Engine: Pitchbend received\n"));
-                    ProcessPitchbend(pEvent);
-                    break;
-                case Event::type_sysex:
-                    dmsg(5,("Engine: Sysex received\n"));
-                    ProcessSysex(pEvent);
-                    break;
+        {
+            RTList<Event>::Iterator itEvent = pEvents->first();
+            RTList<Event>::Iterator end     = pEvents->end();
+            for (; itEvent != end; ++itEvent) {
+                switch (itEvent->Type) {
+                    case Event::type_note_on:
+                        dmsg(5,("Engine: Note on received\n"));
+                        ProcessNoteOn(itEvent);
+                        break;
+                    case Event::type_note_off:
+                        dmsg(5,("Engine: Note off received\n"));
+                        ProcessNoteOff(itEvent);
+                        break;
+                    case Event::type_control_change:
+                        dmsg(5,("Engine: MIDI CC received\n"));
+                        ProcessControlChange(itEvent);
+                        break;
+                    case Event::type_pitchbend:
+                        dmsg(5,("Engine: Pitchbend received\n"));
+                        ProcessPitchbend(itEvent);
+                        break;
+                    case Event::type_sysex:
+                        dmsg(5,("Engine: Sysex received\n"));
+                        ProcessSysex(itEvent);
+                        break;
+                }
             }
         }
 
 
-        // render audio from all active voices
         int active_voices = 0;
-        uint* piKey = pActiveKeys->first();
-        while (piKey) { // iterate through all active keys
-            midi_key_info_t* pKey = &pMIDIKeyInfo[*piKey];
-            pActiveKeys->set_current(piKey);
-            piKey = pActiveKeys->next();
 
-            Voice* pVoiceNext = pKey->pActiveVoices->first();
-            while (pVoiceNext) { // iterate through all voices on this key
-                // already get next voice on key
-                Voice* pVoice = pVoiceNext;
-                pKey->pActiveVoices->set_current(pVoice);
-                pVoiceNext = pKey->pActiveVoices->next();
+        // render audio from all active voices
+        {
+            RTList<uint>::Iterator iuiKey = pActiveKeys->first();
+            RTList<uint>::Iterator end    = pActiveKeys->end();
+            while (iuiKey != end) { // iterate through all active keys
+                midi_key_info_t* pKey = &pMIDIKeyInfo[*iuiKey];
+                ++iuiKey;
 
-                // now render current voice
-                pVoice->Render(Samples);
-                if (pVoice->IsActive()) active_voices++; // still active
-                else { // voice reached end, is now inactive
-                    KillVoiceImmediately(pVoice); // remove voice from the list of active voices
+                RTList<Voice>::Iterator itVoice     = pKey->pActiveVoices->first();
+                RTList<Voice>::Iterator itVoicesEnd = pKey->pActiveVoices->end();
+                for (; itVoice != itVoicesEnd; ++itVoice) { // iterate through all voices on this key
+                    // now render current voice
+                    itVoice->Render(Samples);
+                    if (itVoice->IsActive()) active_voices++; // still active
+                    else { // voice reached end, is now inactive
+                        KillVoiceImmediately(itVoice); // remove voice from the list of active voices
+                    }
                 }
             }
         }
 
 
         // now render all postponed voices from voice stealing
-        Event* pVoiceStealEvent = pVoiceStealingQueue->first();
-        while (pVoiceStealEvent) {
-            Voice* pNewVoice = LaunchVoice(pVoiceStealEvent, pVoiceStealEvent->Param.Note.Layer, pVoiceStealEvent->Param.Note.ReleaseTrigger, false);
-            if (pNewVoice) {
-                pNewVoice->Render(Samples);
-                if (pNewVoice->IsActive()) active_voices++; // still active
-                else { // voice reached end, is now inactive
-                    KillVoiceImmediately(pNewVoice); // remove voice from the list of active voices
+        {
+            RTList<Event>::Iterator itVoiceStealEvent = pVoiceStealingQueue->first();
+            RTList<Event>::Iterator end               = pVoiceStealingQueue->end();
+            for (; itVoiceStealEvent != end; ++itVoiceStealEvent) {
+                Pool<Voice>::Iterator itNewVoice = LaunchVoice(itVoiceStealEvent, itVoiceStealEvent->Param.Note.Layer, itVoiceStealEvent->Param.Note.ReleaseTrigger, false);
+                if (itNewVoice) {
+                    itNewVoice->Render(Samples);
+                    if (itNewVoice->IsActive()) active_voices++; // still active
+                    else { // voice reached end, is now inactive
+                        KillVoiceImmediately(itNewVoice); // remove voice from the list of active voices
+                    }
                 }
+                else dmsg(1,("Ouch, voice stealing didn't work out!\n"));
             }
-            else dmsg(1,("Ouch, voice stealing didn't work out!\n"));
-            pVoiceStealEvent = pVoiceStealingQueue->next();
         }
         // reset voice stealing for the new fragment
         pVoiceStealingQueue->clear();
-        pLastStolenVoice = NULL;
-        puiLastStolenKey = NULL;
+        itLastStolenVoice = RTList<Voice>::Iterator();
+        iuiLastStolenKey  = RTList<uint>::Iterator();
 
 
         // write that to the disk thread class so that it can print it
@@ -597,28 +600,28 @@ namespace LinuxSampler { namespace gig {
     /**
      *  Assigns and triggers a new voice for the respective MIDI key.
      *
-     *  @param pNoteOnEvent - key, velocity and time stamp of the event
+     *  @param itNoteOnEvent - key, velocity and time stamp of the event
      */
-    void Engine::ProcessNoteOn(Event* pNoteOnEvent) {
-        midi_key_info_t* pKey = &pMIDIKeyInfo[pNoteOnEvent->Param.Note.Key];
+    void Engine::ProcessNoteOn(Pool<Event>::Iterator& itNoteOnEvent) {
+        midi_key_info_t* pKey = &pMIDIKeyInfo[itNoteOnEvent->Param.Note.Key];
 
         pKey->KeyPressed = true; // the MIDI key was now pressed down
 
         // cancel release process of voices on this key if needed
         if (pKey->Active && !SustainPedal) {
-            Event* pCancelReleaseEvent = pKey->pEvents->alloc();
-            if (pCancelReleaseEvent) {
-                *pCancelReleaseEvent = *pNoteOnEvent;
-                pCancelReleaseEvent->Type = Event::type_cancel_release; // transform event type
+            RTList<Event>::Iterator itCancelReleaseEvent = pKey->pEvents->allocAppend();
+            if (itCancelReleaseEvent) {
+                *itCancelReleaseEvent = *itNoteOnEvent;                  // copy event
+                itCancelReleaseEvent->Type = Event::type_cancel_release; // transform event type
             }
             else dmsg(1,("Event pool emtpy!\n"));
         }
 
-        // allocate and trigger a new voice for the key
-        LaunchVoice(pNoteOnEvent);
+        // move note on event to the key's own event list
+        RTList<Event>::Iterator itNoteOnEventOnKeyList = itNoteOnEvent.moveToEndOf(pKey->pEvents);
 
-        // finally move note on event to the key's own event list
-        pEvents->move(pNoteOnEvent, pKey->pEvents);
+        // allocate and trigger a new voice for the key
+        LaunchVoice(itNoteOnEventOnKeyList);
     }
 
     /**
@@ -627,37 +630,37 @@ namespace LinuxSampler { namespace gig {
      *  sustain pedal will be released or voice turned inactive by itself (e.g.
      *  due to completion of sample playback).
      *
-     *  @param pNoteOffEvent - key, velocity and time stamp of the event
+     *  @param itNoteOffEvent - key, velocity and time stamp of the event
      */
-    void Engine::ProcessNoteOff(Event* pNoteOffEvent) {
-        midi_key_info_t* pKey = &pMIDIKeyInfo[pNoteOffEvent->Param.Note.Key];
+    void Engine::ProcessNoteOff(Pool<Event>::Iterator& itNoteOffEvent) {
+        midi_key_info_t* pKey = &pMIDIKeyInfo[itNoteOffEvent->Param.Note.Key];
 
         pKey->KeyPressed = false; // the MIDI key was now released
 
         // release voices on this key if needed
         if (pKey->Active && !SustainPedal) {
-            pNoteOffEvent->Type = Event::type_release; // transform event type
-        }
-
-        // spawn release triggered voice(s) if needed
-        if (pKey->ReleaseTrigger) {
-            LaunchVoice(pNoteOffEvent, 0, true);
-            pKey->ReleaseTrigger = false;
+            itNoteOffEvent->Type = Event::type_release; // transform event type
         }
 
         // move event to the key's own event list
-        pEvents->move(pNoteOffEvent, pKey->pEvents);
+        RTList<Event>::Iterator itNoteOffEventOnKeyList = itNoteOffEvent.moveToEndOf(pKey->pEvents);
+
+        // spawn release triggered voice(s) if needed
+        if (pKey->ReleaseTrigger) {
+            LaunchVoice(itNoteOffEventOnKeyList, 0, true);
+            pKey->ReleaseTrigger = false;
+        }
     }
 
     /**
      *  Moves pitchbend event from the general (input) event list to the pitch
      *  event list.
      *
-     *  @param pPitchbendEvent - absolute pitch value and time stamp of the event
+     *  @param itPitchbendEvent - absolute pitch value and time stamp of the event
      */
-    void Engine::ProcessPitchbend(Event* pPitchbendEvent) {
-        this->Pitch = pPitchbendEvent->Param.Pitch.Pitch; // store current pitch value
-        pEvents->move(pPitchbendEvent, pSynthesisEvents[Event::destination_vco]);
+    void Engine::ProcessPitchbend(Pool<Event>::Iterator& itPitchbendEvent) {
+        this->Pitch = itPitchbendEvent->Param.Pitch.Pitch; // store current pitch value
+        itPitchbendEvent.moveToEndOf(pSynthesisEvents[Event::destination_vco]);
     }
 
     /**
@@ -665,7 +668,7 @@ namespace LinuxSampler { namespace gig {
      *  called by the ProcessNoteOn() method and by the voices itself
      *  (e.g. to spawn further voices on the same key for layered sounds).
      *
-     *  @param pNoteOnEvent        - key, velocity and time stamp of the event
+     *  @param itNoteOnEvent       - key, velocity and time stamp of the event
      *  @param iLayer              - layer index for the new voice (optional - only
      *                               in case of layered sounds of course)
      *  @param ReleaseTriggerVoice - if new voice is a release triggered voice
@@ -676,48 +679,46 @@ namespace LinuxSampler { namespace gig {
      *  @returns pointer to new voice or NULL if there was no free voice or
      *           if an error occured while trying to trigger the new voice
      */
-    Voice* Engine::LaunchVoice(Event* pNoteOnEvent, int iLayer, bool ReleaseTriggerVoice, bool VoiceStealing) {
-        midi_key_info_t* pKey = &pMIDIKeyInfo[pNoteOnEvent->Param.Note.Key];
+    Pool<Voice>::Iterator Engine::LaunchVoice(Pool<Event>::Iterator& itNoteOnEvent, int iLayer, bool ReleaseTriggerVoice, bool VoiceStealing) {
+        midi_key_info_t* pKey = &pMIDIKeyInfo[itNoteOnEvent->Param.Note.Key];
 
         // allocate a new voice for the key
-        Voice* pNewVoice = pKey->pActiveVoices->alloc();
-        if (pNewVoice) {
+        Pool<Voice>::Iterator itNewVoice = pKey->pActiveVoices->allocAppend();
+        if (itNewVoice) {
             // launch the new voice
-            if (pNewVoice->Trigger(pNoteOnEvent, this->Pitch, this->pInstrument, iLayer, ReleaseTriggerVoice) < 0) {
+            if (itNewVoice->Trigger(itNoteOnEvent, this->Pitch, this->pInstrument, iLayer, ReleaseTriggerVoice) < 0) {
                 dmsg(1,("Triggering new voice failed!\n"));
-                pKey->pActiveVoices->free(pNewVoice);
+                pKey->pActiveVoices->free(itNewVoice);
             }
             else { // on success
                 uint** ppKeyGroup = NULL;
-                if (pNewVoice->KeyGroup) { // if this voice / key belongs to a key group
-                    ppKeyGroup = &ActiveKeyGroups[pNewVoice->KeyGroup];
+                if (itNewVoice->KeyGroup) { // if this voice / key belongs to a key group
+                    ppKeyGroup = &ActiveKeyGroups[itNewVoice->KeyGroup];
                     if (*ppKeyGroup) { // if there's already an active key in that key group
                         midi_key_info_t* pOtherKey = &pMIDIKeyInfo[**ppKeyGroup];
                         // kill all voices on the (other) key
-                        Voice* pVoiceToBeKilled = pOtherKey->pActiveVoices->first();
-                        while (pVoiceToBeKilled) {
-                            Voice* pVoiceToBeKilledNext = pOtherKey->pActiveVoices->next();
-                            if (pVoiceToBeKilled->Type != Voice::type_release_trigger) pVoiceToBeKilled->Kill(pNoteOnEvent);
-                            pOtherKey->pActiveVoices->set_current(pVoiceToBeKilled);
-                            pVoiceToBeKilled = pVoiceToBeKilledNext;
+                        RTList<Voice>::Iterator itVoiceToBeKilled = pOtherKey->pActiveVoices->first();
+                        RTList<Voice>::Iterator end               = pOtherKey->pActiveVoices->end();
+                        for (; itVoiceToBeKilled != end; ++itVoiceToBeKilled) {
+                            if (itVoiceToBeKilled->Type != Voice::type_release_trigger) itVoiceToBeKilled->Kill(itNoteOnEvent);
                         }
                     }
                 }
                 if (!pKey->Active) { // mark as active key
                     pKey->Active = true;
-                    pKey->pSelf  = pActiveKeys->alloc();
-                    *pKey->pSelf = pNoteOnEvent->Param.Note.Key;
+                    pKey->itSelf = pActiveKeys->allocAppend();
+                    *pKey->itSelf = itNoteOnEvent->Param.Note.Key;
                 }
-                if (pNewVoice->KeyGroup) {
-                    *ppKeyGroup = pKey->pSelf; // put key as the (new) active key to its key group
+                if (itNewVoice->KeyGroup) {
+                    *ppKeyGroup = &*pKey->itSelf; // put key as the (new) active key to its key group
                 }
-                if (pNewVoice->Type == Voice::type_release_trigger_required) pKey->ReleaseTrigger = true; // mark key for the need of release triggered voice(s)
-                return pNewVoice; // success
+                if (itNewVoice->Type == Voice::type_release_trigger_required) pKey->ReleaseTrigger = true; // mark key for the need of release triggered voice(s)
+                return itNewVoice; // success
             }
         }
-        else if (VoiceStealing) StealVoice(pNoteOnEvent, iLayer, ReleaseTriggerVoice); // no free voice left, so steal one
+        else if (VoiceStealing) StealVoice(itNoteOnEvent, iLayer, ReleaseTriggerVoice); // no free voice left, so steal one
 
-        return NULL; // no free voice or error
+        return Pool<Voice>::Iterator(); // no free voice or error
     }
 
     /**
@@ -726,15 +727,15 @@ namespace LinuxSampler { namespace gig {
      *  voice stealing and postpone the note-on event until the selected
      *  voice actually died.
      *
-     *  @param pNoteOnEvent        - key, velocity and time stamp of the event
+     *  @param itNoteOnEvent       - key, velocity and time stamp of the event
      *  @param iLayer              - layer index for the new voice
      *  @param ReleaseTriggerVoice - if new voice is a release triggered voice
      */
-    void Engine::StealVoice(Event* pNoteOnEvent, int iLayer, bool ReleaseTriggerVoice) {
-        if (!pEventPool->pool_is_empty()) {
+    void Engine::StealVoice(Pool<Event>::Iterator& itNoteOnEvent, int iLayer, bool ReleaseTriggerVoice) {
+        if (!pEventPool->poolIsEmpty()) {
 
-            uint*  puiOldestKey;
-            Voice* pOldestVoice;
+            RTList<uint>::Iterator  iuiOldestKey;
+            RTList<Voice>::Iterator itOldestVoice;
 
             // Select one voice for voice stealing
             switch (VOICE_STEAL_ALGORITHM) {
@@ -744,16 +745,16 @@ namespace LinuxSampler { namespace gig {
                 // key, or no voice left to kill there, then procceed with
                 // 'oldestkey' algorithm
                 case voice_steal_algo_keymask: {
-                    midi_key_info_t* pOldestKey = &pMIDIKeyInfo[pNoteOnEvent->Param.Note.Key];
-                    if (pLastStolenVoice) {
-                        pOldestKey->pActiveVoices->set_current(pLastStolenVoice);
-                        pOldestVoice = pOldestKey->pActiveVoices->next();
+                    midi_key_info_t* pOldestKey = &pMIDIKeyInfo[itNoteOnEvent->Param.Note.Key];
+                    if (itLastStolenVoice) {
+                        itOldestVoice = itLastStolenVoice;
+                        ++itOldestVoice;
                     }
                     else { // no voice stolen in this audio fragment cycle yet
-                        pOldestVoice = pOldestKey->pActiveVoices->first();
+                        itOldestVoice = pOldestKey->pActiveVoices->first();
                     }
-                    if (pOldestVoice) {
-                        puiOldestKey = pOldestKey->pSelf;
+                    if (itOldestVoice) {
+                        iuiOldestKey = pOldestKey->itSelf;
                         break; // selection succeeded
                     }
                 } // no break - intentional !
@@ -761,28 +762,28 @@ namespace LinuxSampler { namespace gig {
                 // try to pick the oldest voice on the oldest active key
                 // (caution: must stay after 'keymask' algorithm !)
                 case voice_steal_algo_oldestkey: {
-                    if (pLastStolenVoice) {
-                        midi_key_info_t* pOldestKey = &pMIDIKeyInfo[*puiLastStolenKey];
-                        pOldestKey->pActiveVoices->set_current(pLastStolenVoice);
-                        pOldestVoice = pOldestKey->pActiveVoices->next();
-                        if (!pOldestVoice) {
-                            pActiveKeys->set_current(puiLastStolenKey);
-                            puiOldestKey = pActiveKeys->next();
-                            if (puiOldestKey) {
-                                midi_key_info_t* pOldestKey = &pMIDIKeyInfo[*puiOldestKey];
-                                pOldestVoice = pOldestKey->pActiveVoices->first();
+                    if (itLastStolenVoice) {
+                        midi_key_info_t* pOldestKey = &pMIDIKeyInfo[*iuiLastStolenKey];
+                        itOldestVoice = itLastStolenVoice;
+                        ++itOldestVoice;
+                        if (!itOldestVoice) {
+                            iuiOldestKey = iuiLastStolenKey;
+                            ++iuiOldestKey;
+                            if (iuiOldestKey) {
+                                midi_key_info_t* pOldestKey = &pMIDIKeyInfo[*iuiOldestKey];
+                                itOldestVoice = pOldestKey->pActiveVoices->first();
                             }
                             else { // too less voices, even for voice stealing
                                 dmsg(1,("Voice overflow! - You might recompile with higher MAX_AUDIO_VOICES!\n"));
                                 return;
                             }
                         }
-                        else puiOldestKey = puiLastStolenKey;
+                        else iuiOldestKey = iuiLastStolenKey;
                     }
                     else { // no voice stolen in this audio fragment cycle yet
-                        puiOldestKey = pActiveKeys->first();
-                        midi_key_info_t* pOldestKey = &pMIDIKeyInfo[*puiOldestKey];
-                        pOldestVoice = pOldestKey->pActiveVoices->first();
+                        iuiOldestKey = pActiveKeys->first();
+                        midi_key_info_t* pOldestKey = &pMIDIKeyInfo[*iuiOldestKey];
+                        itOldestVoice = pOldestKey->pActiveVoices->first();
                     }
                     break;
                 }
@@ -796,15 +797,18 @@ namespace LinuxSampler { namespace gig {
             }
 
             // now kill the selected voice
-            pOldestVoice->Kill(pNoteOnEvent);
+            itOldestVoice->Kill(itNoteOnEvent);
             // remember which voice on which key we stole, so we can simply proceed for the next voice stealing
-            this->pLastStolenVoice = pOldestVoice;
-            this->puiLastStolenKey = puiOldestKey;
+            this->itLastStolenVoice = itOldestVoice;
+            this->iuiLastStolenKey = iuiOldestKey;
             // put note-on event into voice-stealing queue, so it will be reprocessed after killed voice died
-            Event* pStealEvent = pVoiceStealingQueue->alloc();
-            *pStealEvent = *pNoteOnEvent;
-            pStealEvent->Param.Note.Layer = iLayer;
-            pStealEvent->Param.Note.ReleaseTrigger = ReleaseTriggerVoice;
+            RTList<Event>::Iterator itStealEvent = pVoiceStealingQueue->allocAppend();
+            if (itStealEvent) {
+                *itStealEvent = *itNoteOnEvent; // copy event
+                itStealEvent->Param.Note.Layer = iLayer;
+                itStealEvent->Param.Note.ReleaseTrigger = ReleaseTriggerVoice;
+            }
+            else dmsg(1,("Voice stealing queue full!\n"));
         }
         else dmsg(1,("Event pool emtpy!\n"));
     }
@@ -814,26 +818,28 @@ namespace LinuxSampler { namespace gig {
      *  pressed or not) and removes it from the MIDI key's list of active voice.
      *  This method will e.g. be called if a voice went inactive by itself.
      *
-     *  @param pVoice - points to the voice to be killed
+     *  @param itVoice - points to the voice to be killed
      */
-    void Engine::KillVoiceImmediately(Voice* pVoice) {
-        if (pVoice) {
-            if (pVoice->IsActive()) pVoice->KillImmediately();
+    void Engine::KillVoiceImmediately(Pool<Voice>::Iterator& itVoice) {
+        if (itVoice) {
+            if (itVoice->IsActive()) itVoice->KillImmediately();
 
-            midi_key_info_t* pKey = &pMIDIKeyInfo[pVoice->MIDIKey];
+            midi_key_info_t* pKey = &pMIDIKeyInfo[itVoice->MIDIKey];
+
+            uint keygroup = itVoice->KeyGroup;
 
             // free the voice object
-            pVoicePool->free(pVoice);
+            pVoicePool->free(itVoice);
 
             // check if there are no voices left on the MIDI key and update the key info if so
-            if (pKey->pActiveVoices->is_empty()) {
-                if (pVoice->KeyGroup) { // if voice / key belongs to a key group
-                    uint** ppKeyGroup = &ActiveKeyGroups[pVoice->KeyGroup];
-                    if (*ppKeyGroup == pKey->pSelf) *ppKeyGroup = NULL; // remove key from key group
+            if (pKey->pActiveVoices->isEmpty()) {
+                if (keygroup) { // if voice / key belongs to a key group
+                    uint** ppKeyGroup = &ActiveKeyGroups[keygroup];
+                    if (*ppKeyGroup == &*pKey->itSelf) *ppKeyGroup = NULL; // remove key from key group
                 }
                 pKey->Active = false;
-                pActiveKeys->free(pKey->pSelf); // remove key from list of active keys
-                pKey->pSelf = NULL;
+                pActiveKeys->free(pKey->itSelf); // remove key from list of active keys
+                pKey->itSelf = RTList<uint>::Iterator();
                 pKey->ReleaseTrigger = false;
                 pKey->pEvents->clear();
                 dmsg(3,("Key has no more voices now\n"));
@@ -846,48 +852,46 @@ namespace LinuxSampler { namespace gig {
      *  Reacts on supported control change commands (e.g. pitch bend wheel,
      *  modulation wheel, aftertouch).
      *
-     *  @param pControlChangeEvent - controller, value and time stamp of the event
+     *  @param itControlChangeEvent - controller, value and time stamp of the event
      */
-    void Engine::ProcessControlChange(Event* pControlChangeEvent) {
-        dmsg(4,("Engine::ContinuousController cc=%d v=%d\n", pControlChangeEvent->Param.CC.Controller, pControlChangeEvent->Param.CC.Value));
+    void Engine::ProcessControlChange(Pool<Event>::Iterator& itControlChangeEvent) {
+        dmsg(4,("Engine::ContinuousController cc=%d v=%d\n", itControlChangeEvent->Param.CC.Controller, itControlChangeEvent->Param.CC.Value));
 
-        switch (pControlChangeEvent->Param.CC.Controller) {
+        switch (itControlChangeEvent->Param.CC.Controller) {
             case 64: {
-                if (pControlChangeEvent->Param.CC.Value >= 64 && !SustainPedal) {
+                if (itControlChangeEvent->Param.CC.Value >= 64 && !SustainPedal) {
                     dmsg(4,("PEDAL DOWN\n"));
                     SustainPedal = true;
 
                     // cancel release process of voices if necessary
-                    uint* piKey = pActiveKeys->first();
-                    if (piKey) {
-                        pControlChangeEvent->Type = Event::type_cancel_release; // transform event type
-                        while (piKey) {
-                            midi_key_info_t* pKey = &pMIDIKeyInfo[*piKey];
-                            pActiveKeys->set_current(piKey);
-                            piKey = pActiveKeys->next();
+                    RTList<uint>::Iterator iuiKey = pActiveKeys->first();
+                    if (iuiKey) {
+                        itControlChangeEvent->Type = Event::type_cancel_release; // transform event type
+                        while (iuiKey) {
+                            midi_key_info_t* pKey = &pMIDIKeyInfo[*iuiKey];
+                            ++iuiKey;
                             if (!pKey->KeyPressed) {
-                                Event* pNewEvent = pKey->pEvents->alloc();
-                                if (pNewEvent) *pNewEvent = *pControlChangeEvent; // copy event to the key's own event list
+                                RTList<Event>::Iterator itNewEvent = pKey->pEvents->allocAppend();
+                                if (itNewEvent) *itNewEvent = *itControlChangeEvent; // copy event to the key's own event list
                                 else dmsg(1,("Event pool emtpy!\n"));
                             }
                         }
                     }
                 }
-                if (pControlChangeEvent->Param.CC.Value < 64 && SustainPedal) {
+                if (itControlChangeEvent->Param.CC.Value < 64 && SustainPedal) {
                     dmsg(4,("PEDAL UP\n"));
                     SustainPedal = false;
 
                     // release voices if their respective key is not pressed
-                    uint* piKey = pActiveKeys->first();
-                    if (piKey) {
-                        pControlChangeEvent->Type = Event::type_release; // transform event type
-                        while (piKey) {
-                            midi_key_info_t* pKey = &pMIDIKeyInfo[*piKey];
-                            pActiveKeys->set_current(piKey);
-                            piKey = pActiveKeys->next();
+                    RTList<uint>::Iterator iuiKey = pActiveKeys->first();
+                    if (iuiKey) {
+                        itControlChangeEvent->Type = Event::type_release; // transform event type
+                        while (iuiKey) {
+                            midi_key_info_t* pKey = &pMIDIKeyInfo[*iuiKey];
+                            ++iuiKey;
                             if (!pKey->KeyPressed) {
-                                Event* pNewEvent = pKey->pEvents->alloc();
-                                if (pNewEvent) *pNewEvent = *pControlChangeEvent; // copy event to the key's own event list
+                                RTList<Event>::Iterator itNewEvent = pKey->pEvents->allocAppend();
+                                if (itNewEvent) *itNewEvent = *itControlChangeEvent; // copy event to the key's own event list
                                 else dmsg(1,("Event pool emtpy!\n"));
                             }
                         }
@@ -898,18 +902,18 @@ namespace LinuxSampler { namespace gig {
         }
 
         // update controller value in the engine's controller table
-        ControllerTable[pControlChangeEvent->Param.CC.Controller] = pControlChangeEvent->Param.CC.Value;
+        ControllerTable[itControlChangeEvent->Param.CC.Controller] = itControlChangeEvent->Param.CC.Value;
 
         // move event from the unsorted event list to the control change event list
-        pEvents->move(pControlChangeEvent, pCCEvents);
+        itControlChangeEvent.moveToEndOf(pCCEvents);
     }
 
     /**
      *  Reacts on MIDI system exclusive messages.
      *
-     *  @param pSysexEvent - sysex data size and time stamp of the sysex event
+     *  @param itSysexEvent - sysex data size and time stamp of the sysex event
      */
-    void Engine::ProcessSysex(Event* pSysexEvent) {
+    void Engine::ProcessSysex(Pool<Event>::Iterator& itSysexEvent) {
         RingBuffer<uint8_t>::NonVolatileReader reader = pSysexBuffer->get_non_volatile_reader();
 
         uint8_t exclusive_status, id;
@@ -957,7 +961,7 @@ namespace LinuxSampler { namespace gig {
         }
 
         free_sysex_data: // finally free sysex data
-        pSysexBuffer->increment_read_ptr(pSysexEvent->Param.Sysex.Size);
+        pSysexBuffer->increment_read_ptr(itSysexEvent->Param.Sysex.Size);
     }
 
     /**
@@ -1091,7 +1095,7 @@ namespace LinuxSampler { namespace gig {
     }
 
     String Engine::Version() {
-        String s = "$Revision: 1.14 $";
+        String s = "$Revision: 1.15 $";
         return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
 

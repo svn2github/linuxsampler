@@ -27,21 +27,40 @@
 #include "drivers/midi/MidiInputDeviceFactory.h"
 #include "drivers/audio/AudioOutputDeviceFactory.h"
 #include "network/lscpserver.h"
+#include "common/stacktrace.h"
 
 using namespace LinuxSampler;
 
 Sampler*    pSampler    = NULL;
 LSCPServer* pLSCPServer = NULL;
-pthread_t   signalhandlerthread;
+pthread_t   main_thread;
 
 void parse_options(int argc, char **argv);
 void signal_handler(int signal);
+void kill_app();
 
 int main(int argc, char **argv) {
 
+    // initialize the stack trace mechanism with our binary file
+    StackTraceInit(argv[0], -1);
+
+    main_thread = pthread_self();
+
     // setting signal handler for catching SIGINT (thus e.g. <CTRL><C>)
-    signalhandlerthread = pthread_self();
     signal(SIGINT, signal_handler);
+
+    // register signal handler for all unusual signals
+    // (we will print the stack trace and exit)
+    struct sigaction sact;
+    sigemptyset(&sact.sa_mask);
+    sact.sa_flags   = 0;
+    sact.sa_handler = signal_handler;
+    sigaction(SIGSEGV, &sact, NULL);
+    sigaction(SIGBUS,  &sact, NULL);
+    sigaction(SIGILL,  &sact, NULL);
+    sigaction(SIGFPE,  &sact, NULL);
+    sigaction(SIGUSR1, &sact, NULL);
+    sigaction(SIGUSR2, &sact, NULL);
 
     // parse and assign command line options
     //parse_options(argc, argv);
@@ -77,16 +96,53 @@ int main(int argc, char **argv) {
     return EXIT_SUCCESS;
 }
 
-void signal_handler(int signal) {
-    if (pthread_equal(pthread_self(), signalhandlerthread) && signal == SIGINT) {
-        if (pLSCPServer) {
-            pLSCPServer->StopThread();
-            delete pLSCPServer;
+void signal_handler(int iSignal) {
+    switch (iSignal) {
+        case SIGINT: {
+            if (pthread_equal(pthread_self(), main_thread)) {
+                if (pLSCPServer) {
+                    pLSCPServer->StopThread();
+                    delete pLSCPServer;
+                }
+                if (pSampler) delete pSampler;
+                printf("LinuxSampler stopped due to SIGINT.\n");
+                exit(EXIT_SUCCESS);
+            }
+            return;
         }
-        if (pSampler) delete pSampler;
-        printf("LinuxSampler stopped due to SIGINT\n");
-        exit(EXIT_SUCCESS);
+        case SIGSEGV:
+            std::cerr << ">>> FATAL ERROR: Segmentation fault (SIGSEGV) occured! <<<\n" << std::flush;
+            break;
+        case SIGBUS:
+            std::cerr << ">>> FATAL ERROR: Access to undefined portion of a memory object (SIGBUS) occured! <<<\n" << std::flush;
+            break;
+        case SIGILL:
+            std::cerr << ">>> FATAL ERROR: Illegal instruction (SIGILL) occured! <<<\n" << std::flush;
+            break;
+        case SIGFPE:
+            std::cerr << ">>> FATAL ERROR: Erroneous arithmetic operation (SIGFPE) occured! <<<\n" << std::flush;
+            break;
+        case SIGUSR1:
+            std::cerr << ">>> User defined signal 1 (SIGUSR1) received <<<\n" << std::flush;
+            break;
+        case SIGUSR2:
+            std::cerr << ">>> User defined signal 2 (SIGUSR2) received <<<\n" << std::flush;
+            break;
+        default: { // this should never happen, as we register for the signals we want
+            std::cerr << ">>> FATAL ERROR: Unknown signal received! <<<\n" << std::flush;
+            break;
+        }
     }
+    signal(iSignal, SIG_DFL); // Reinstall default handler to prevent race conditions
+    std::cerr << "Showing stack trace...\n" << std::flush;
+    StackTrace();
+    sleep(2);
+    std::cerr << "Killing LinuxSampler...\n" << std::flush;
+    kill_app(); // Use abort() if we want to generate a core dump.
+}
+
+void kill_app() {
+    kill(main_thread, SIGKILL);
 }
 
 /*void parse_options(int argc, char **argv) {

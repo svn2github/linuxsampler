@@ -46,31 +46,25 @@ namespace LinuxSampler { namespace gig {
      * @param TotalSamples  - total number of sample points to be rendered in this
      *                        audio fragment cycle by the audio engine
      * @param pEvents       - event list with "release" and "cancel release" events
-     * @param pTriggerEvent - event that caused triggering of the voice (only if
+     * @param itTriggerEvent - event that caused triggering of the voice (only if
      *                        the voice was triggered in the current audio
      *                        fragment, NULL otherwise)
      * @param SamplePos     - current playback position
      * @param CurrentPitch  - current pitch value for playback
-     * @param pKillEvent    - (optional) event which caused this voice to be killed
+     * @param itKillEvent   - (optional) event which caused this voice to be killed
      */
-    void EGADSR::Process(uint TotalSamples, RTEList<Event>* pEvents, Event* pTriggerEvent, double SamplePos, double CurrentPitch, Event* pKillEvent) {
-        Event* pTransitionEvent;
-        if (pTriggerEvent) { // skip all events which occured before this voice was triggered
-            pEvents->set_current(pTriggerEvent);
-            pTransitionEvent = pEvents->next();
-        }
-        else {
-            pTransitionEvent = pEvents->first();
-        }
+    void EGADSR::Process(uint TotalSamples, RTList<Event>* pEvents, RTList<Event>::Iterator itTriggerEvent, double SamplePos, double CurrentPitch, RTList<Event>::Iterator itKillEvent) {
+        // skip all events which occured before this voice was triggered
+        RTList<Event>::Iterator itTransitionEvent = (itTriggerEvent) ? ++itTriggerEvent : pEvents->first();
 
         // if the voice was killed in this fragment we only process the time before this kill event, then switch to 'stage_fadeout'
-        int Samples = (pKillEvent) ? pKillEvent->FragmentPos() : (int) TotalSamples;
+        int Samples = (itKillEvent) ? itKillEvent->FragmentPos() : (int) TotalSamples;
 
         int iSample = TriggerDelay;
         while (iSample < TotalSamples) {
 
             // if the voice was killed in this fragment and we already processed the time before this kill event
-            if (pKillEvent && iSample >= Samples) Stage = stage_fadeout;
+            if (itKillEvent && iSample >= Samples) Stage = stage_fadeout;
 
             switch (Stage) {
                 case stage_attack: {
@@ -83,8 +77,8 @@ namespace LinuxSampler { namespace gig {
                         pEngine->pSynthesisParameters[ModulationDestination][iSample++] *= Level;
                     }
                     if (iSample == TotalSamples) { // postpone last transition event for the next audio fragment
-                        Event* pLastEvent = pEvents->last();
-                        if (pLastEvent) ReleasePostponed = (pLastEvent->Type == Event::type_release);
+                        RTList<Event>::Iterator itLastEvent = pEvents->last();
+                        if (itLastEvent) ReleasePostponed = (itLastEvent->Type == Event::type_release);
                     }
                     if (!AttackStepsLeft) Stage = (ReleasePostponed) ? stage_release : (HoldAttack) ? stage_attack_hold : stage_decay1;
                     break;
@@ -97,10 +91,10 @@ namespace LinuxSampler { namespace gig {
                     int holdstepsleft = (int) (LoopStart - SamplePos / CurrentPitch); // FIXME: just an approximation, inaccuracy grows with higher audio fragment size, sufficient for usual fragment sizes though
                     int to_process    = RTMath::Min(holdstepsleft, Samples - iSample);
                     int process_end   = iSample + to_process;
-                    if (pTransitionEvent && pTransitionEvent->FragmentPos() <= process_end) {
-                        process_end      = pTransitionEvent->FragmentPos();
-                        Stage            = (pTransitionEvent->Type == Event::type_release) ? stage_release : (InfiniteSustain) ? stage_sustain : stage_decay2;
-                        pTransitionEvent = pEvents->next();
+                    if (itTransitionEvent && itTransitionEvent->FragmentPos() <= process_end) {
+                        process_end       = itTransitionEvent->FragmentPos();
+                        Stage             = (itTransitionEvent->Type == Event::type_release) ? stage_release : (InfiniteSustain) ? stage_sustain : stage_decay2;
+                        ++itTransitionEvent;
                     }
                     else if (to_process == holdstepsleft) Stage = stage_decay1;
                     while (iSample < process_end) {
@@ -111,10 +105,10 @@ namespace LinuxSampler { namespace gig {
                 case stage_decay1: {
                     int to_process   = RTMath::Min(Samples - iSample, Decay1StepsLeft);
                     int process_end  = iSample + to_process;
-                    if (pTransitionEvent && pTransitionEvent->FragmentPos() <= process_end) {
-                        process_end      = pTransitionEvent->FragmentPos();
-                        Stage            = (pTransitionEvent->Type == Event::type_release) ? stage_release : (InfiniteSustain) ? stage_sustain : stage_decay2;
-                        pTransitionEvent = pEvents->next();
+                    if (itTransitionEvent && itTransitionEvent->FragmentPos() <= process_end) {
+                        process_end       = itTransitionEvent->FragmentPos();
+                        Stage             = (itTransitionEvent->Type == Event::type_release) ? stage_release : (InfiniteSustain) ? stage_sustain : stage_decay2;
+                        ++itTransitionEvent;
                     }
                     else {
                         Decay1StepsLeft -= to_process;
@@ -128,10 +122,10 @@ namespace LinuxSampler { namespace gig {
                 }
                 case stage_decay2: {
                     int process_end;
-                    if (pTransitionEvent && pTransitionEvent->Type == Event::type_release && pTransitionEvent->FragmentPos() <= Samples) {
-                        process_end      = pTransitionEvent->FragmentPos();
-                        pTransitionEvent = pEvents->next();
-                        Stage            = stage_release; // switch to release stage soon
+                    if (itTransitionEvent && itTransitionEvent->Type == Event::type_release && itTransitionEvent->FragmentPos() <= Samples) {
+                        process_end       = itTransitionEvent->FragmentPos();
+                        ++itTransitionEvent;
+                        Stage             = stage_release; // switch to release stage soon
                     }
                     else process_end = Samples;
                     while (iSample < process_end) {
@@ -143,10 +137,10 @@ namespace LinuxSampler { namespace gig {
                 }
                 case stage_sustain: {
                     int process_end;
-                    if (pTransitionEvent && pTransitionEvent->Type == Event::type_release && pTransitionEvent->FragmentPos() <= Samples) {
-                        process_end      = pTransitionEvent->FragmentPos();
-                        pTransitionEvent = pEvents->next();
-                        Stage            = stage_release; // switch to release stage soon
+                    if (itTransitionEvent && itTransitionEvent->Type == Event::type_release && itTransitionEvent->FragmentPos() <= Samples) {
+                        process_end       = itTransitionEvent->FragmentPos();
+                        ++itTransitionEvent;
+                        Stage             = stage_release; // switch to release stage soon
                     }
                     else process_end = Samples;
                     while (iSample < process_end) {
@@ -156,10 +150,10 @@ namespace LinuxSampler { namespace gig {
                 }
                 case stage_release: {
                     int process_end;
-                    if (pTransitionEvent && pTransitionEvent->Type == Event::type_cancel_release && pTransitionEvent->FragmentPos() <= Samples) {
-                        process_end      = pTransitionEvent->FragmentPos();
-                        pTransitionEvent = pEvents->next();
-                        Stage            = (InfiniteSustain) ? stage_sustain : stage_decay2; // switch back to sustain / decay2 stage soon
+                    if (itTransitionEvent && itTransitionEvent->Type == Event::type_cancel_release && itTransitionEvent->FragmentPos() <= Samples) {
+                        process_end       = itTransitionEvent->FragmentPos();
+                        ++itTransitionEvent;
+                        Stage             = (InfiniteSustain) ? stage_sustain : stage_decay2; // switch back to sustain / decay2 stage soon
                     }
                     else process_end = Samples;
                     while (iSample < process_end) {

@@ -58,7 +58,7 @@ class EGADSR {
         };
 
         EGADSR(gig::Engine* pEngine, Event::destination_t ModulationDestination);
-        void Process(uint TotalSamples, RTEList<Event>* pEvents, Event* pTriggerEvent, double SamplePos, double CurrentPitch, Event* pKillEvent = NULL);
+        void Process(uint TotalSamples, RTList<Event>* pEvents, RTList<Event>::Iterator itTriggerEvent, double SamplePos, double CurrentPitch, RTList<Event>::Iterator itKillEvent = RTList<Event>::Iterator());
         void Trigger(uint PreAttack, double AttackTime, bool HoldAttack, long LoopStart, double Decay1Time, double Decay2Time, bool InfiniteSustain, uint SustainLevel, double ReleaseTime, uint Delay);
         inline EGADSR::stage_t GetStage() { return Stage; }
     protected:

@@ -32,7 +32,7 @@
 #include <map>
 
 #include "../../common/RingBuffer.h"
-#include "../../common/RTELMemoryPool.h"
+#include "../../common/Pool.h"
 #include "../../common/ConditionServer.h"
 #include "../common/Engine.h"
 #include "../common/Event.h"
@@ -108,12 +108,12 @@ namespace LinuxSampler { namespace gig {
             virtual void ResourceUpdated(::gig::Instrument* pOldResource, ::gig::Instrument* pNewResource, void* pUpdateArg);
         protected:
             struct midi_key_info_t {
-                RTEList<Voice>* pActiveVoices;  ///< Contains the active voices associated with the MIDI key.
+                RTList<Voice>*  pActiveVoices;  ///< Contains the active voices associated with the MIDI key.
                 bool            KeyPressed;     ///< Is true if the respective MIDI key is currently pressed.
                 bool            Active;         ///< If the key contains active voices.
                 bool            ReleaseTrigger; ///< If we have to launch release triggered voice(s) when the key is released
-                uint*           pSelf;          ///< hack to allow fast deallocation of the key from the list of active keys
-                RTEList<Event>* pEvents;        ///< Key specific events (only Note-on, Note-off and sustain pedal currently)
+                Pool<uint>::Iterator itSelf;         ///< hack to allow fast deallocation of the key from the list of active keys
+                RTList<Event>*  pEvents;        ///< Key specific events (only Note-on, Note-off and sustain pedal currently)
             };
 
             static InstrumentResourceManager Instruments;
@@ -130,14 +130,14 @@ namespace LinuxSampler { namespace gig {
             RingBuffer<Event>*      pEventQueue;           ///< Input event queue.
             RingBuffer<uint8_t>*    pSysexBuffer;          ///< Input buffer for MIDI system exclusive messages.
             midi_key_info_t         pMIDIKeyInfo[128];     ///< Contains all active voices sorted by MIDI key number and other informations to the respective MIDI key
-            RTELMemoryPool<Voice>*  pVoicePool;            ///< Contains all voices that can be activated.
-            RTELMemoryPool<uint>*   pActiveKeys;           ///< Holds all keys in it's allocation list with active voices.
-            RTELMemoryPool<Event>*  pEventPool;            ///< Contains all Event objects that can be used.
+            Pool<Voice>*            pVoicePool;            ///< Contains all voices that can be activated.
+            Pool<uint>*             pActiveKeys;           ///< Holds all keys in it's allocation list with active voices.
+            Pool<Event>*            pEventPool;            ///< Contains all Event objects that can be used.
             EventGenerator*         pEventGenerator;
-            RTEList<Event>*         pVoiceStealingQueue;   ///< All voice-launching events which had to be postponed due to free voice shortage.
-            RTEList<Event>*         pEvents;               ///< All events for the current audio fragment.
-            RTEList<Event>*         pCCEvents;             ///< All control change events for the current audio fragment.
-            RTEList<Event>*         pSynthesisEvents[Event::destination_count];     ///< Events directly affecting synthesis parameter (like pitch, volume and filter).
+            RTList<Event>*          pVoiceStealingQueue;   ///< All voice-launching events which had to be postponed due to free voice shortage.
+            RTList<Event>*          pEvents;               ///< All events for the current audio fragment.
+            RTList<Event>*          pCCEvents;             ///< All control change events for the current audio fragment.
+            RTList<Event>*          pSynthesisEvents[Event::destination_count];     ///< Events directly affecting synthesis parameter (like pitch, volume and filter).
             float*                  pSynthesisParameters[Event::destination_count]; ///< Matrix with final synthesis parameters for the current audio fragment which will be used in the main synthesis loop.
             biquad_param_t*         pBasicFilterParameters; ///< Biquad parameters of the basic bandpass filter.
             biquad_param_t*         pMainFilterParameters;  ///< Main biquad parameters of the individual filter (lowpass / bandpass / highpass).
@@ -156,17 +156,17 @@ namespace LinuxSampler { namespace gig {
 	    int                     InstrumentIdx;
 	    int                     InstrumentStat;
             int8_t                  ScaleTuning[12];       ///< contains optional detune factors (-64..+63 cents) for all 12 semitones of an octave
-            Voice*                  pLastStolenVoice;      ///< Only for voice stealing: points to the last voice which was theft in current audio fragment, NULL otherwise.
-            uint*                   puiLastStolenKey;      ///< Only for voice stealing: key number of last key on which the last voice was theft in current audio fragment, NULL otherwise.
+            RTList<Voice>::Iterator itLastStolenVoice;      ///< Only for voice stealing: points to the last voice which was theft in current audio fragment, NULL otherwise.
+            RTList<uint>::Iterator  iuiLastStolenKey;      ///< Only for voice stealing: key number of last key on which the last voice was theft in current audio fragment, NULL otherwise.
 
-            void ProcessNoteOn(Event* pNoteOnEvent);
-            void ProcessNoteOff(Event* pNoteOffEvent);
-            void ProcessPitchbend(Event* pPitchbendEvent);
-            void ProcessControlChange(Event* pControlChangeEvent);
-            void ProcessSysex(Event* pSysexEvent);
-            Voice* LaunchVoice(Event* pNoteOnEvent, int iLayer = 0, bool ReleaseTriggerVoice = false, bool VoiceStealing = true);
-            void StealVoice(Event* pNoteOnEvent, int iLayer, bool ReleaseTriggerVoice);
-            void KillVoiceImmediately(Voice* pVoice);
+            void ProcessNoteOn(Pool<Event>::Iterator& itNoteOnEvent);
+            void ProcessNoteOff(Pool<Event>::Iterator& itNoteOffEvent);
+            void ProcessPitchbend(Pool<Event>::Iterator& itPitchbendEvent);
+            void ProcessControlChange(Pool<Event>::Iterator& itControlChangeEvent);
+            void ProcessSysex(Pool<Event>::Iterator& itSysexEvent);
+            Pool<Voice>::Iterator LaunchVoice(Pool<Event>::Iterator& itNoteOnEvent, int iLayer = 0, bool ReleaseTriggerVoice = false, bool VoiceStealing = true);
+            void StealVoice(Pool<Event>::Iterator& itNoteOnEvent, int iLayer, bool ReleaseTriggerVoice);
+            void KillVoiceImmediately(Pool<Voice>::Iterator& itVoice);
             void ResetSynthesisParameters(Event::destination_t dst, float val);
             void ResetInternal();
 

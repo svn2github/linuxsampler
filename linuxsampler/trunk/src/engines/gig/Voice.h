@@ -96,13 +96,13 @@ namespace LinuxSampler { namespace gig {
             // Methods
             Voice();
            ~Voice();
-            void Kill(Event* pKillEvent);
+            void Kill(Pool<Event>::Iterator& itKillEvent);
             void KillImmediately();
             void Render(uint Samples);
             void Reset();
             void SetOutput(AudioOutputDevice* pAudioOutputDevice);
             void SetEngine(Engine* pEngine);
-            int  Trigger(Event* pNoteOnEvent, int PitchBend, ::gig::Instrument* pInstrument, int iLayer = 0, bool ReleaseTriggerVoice = false);
+            int  Trigger(Pool<Event>::Iterator& itNoteOnEvent, int PitchBend, ::gig::Instrument* pInstrument, int iLayer = 0, bool ReleaseTriggerVoice = false);
             inline bool IsActive() { return Active; }
         private:
             // Types
@@ -148,8 +148,8 @@ namespace LinuxSampler { namespace gig {
             LFO<gig::VCAManipulator>*   pLFO1;              ///< Low Frequency Oscillator 1 (Amplification)
             LFO<gig::VCFCManipulator>*  pLFO2;             ///< Low Frequency Oscillator 2 (Filter cutoff frequency)
             LFO<gig::VCOManipulator>*   pLFO3;              ///< Low Frequency Oscillator 3 (Pitch)
-            Event*                      pTriggerEvent;      ///< First event on the key's list the voice should process (only needed for the first audio fragment in which voice was triggered, after that it will be set to NULL).
-            Event*                      pKillEvent;         ///< Event which caused this voice to be killed
+            Pool<Event>::Iterator       itTriggerEvent;      ///< First event on the key's list the voice should process (only needed for the first audio fragment in which voice was triggered, after that it will be set to NULL).
+            Pool<Event>::Iterator       itKillEvent;         ///< Event which caused this voice to be killed
 
             // Static Methods
             static float CalculateFilterCutoffCoeff();
