@@ -40,6 +40,12 @@ void Mutex::Lock() {
     pthread_mutex_lock(&__posix_mutex);
 }
 
+bool Mutex::Trylock() {
+    if (pthread_mutex_trylock(&__posix_mutex) == EBUSY)
+	    return false;
+    return true;
+}
+
 void Mutex::Unlock() {
     pthread_mutex_unlock(&__posix_mutex);
 }

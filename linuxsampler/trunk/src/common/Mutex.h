@@ -30,6 +30,7 @@ class Mutex {
         Mutex();
        ~Mutex();
         void Lock();
+        bool Trylock();
         void Unlock();
     protected:
         pthread_mutex_t     __posix_mutex;
