@@ -1,11 +1,11 @@
-# set the include path found by configure
-INCLUDES= $(all_includes)
-
 # to prevent compile errors on some systems
 AM_CXXFLAGS = -pedantic
 
-pkglib_LTLIBRARIES = libgig.la
-libgig_la_SOURCES = RIFF.cpp RIFF.h DLS.cpp DLS.h gig.cpp gig.h
+libgigincludedir = $(includedir)
+libgiginclude_HEADERS = RIFF.h DLS.h gig.h
+
+lib_LTLIBRARIES = libgig.la
+libgig_la_SOURCES = RIFF.cpp DLS.cpp gig.cpp
 libgig_la_LDFLAGS = -module
 
 bin_PROGRAMS = rifftree dlsdump gigdump gigextract

@@ -1,11 +1,12 @@
 AC_INIT(configure.in)
-AC_C_BIGENDIAN
-
 AM_CONFIG_HEADER(config.h)
-AM_INIT_AUTOMAKE(libgig, 0.1)
+
+AM_INIT_AUTOMAKE(libgig, 0.7.1)
+
+AC_C_BIGENDIAN
 
 AC_LANG_CPLUSPLUS
 AC_PROG_CXX
 AM_PROG_LIBTOOL
 
-AC_OUTPUT(Makefile src/Makefile)
+AC_OUTPUT(Makefile src/Makefile libgig.spec libgig.pc Doxyfile)

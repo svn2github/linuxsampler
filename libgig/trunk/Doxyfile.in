@@ -3,9 +3,9 @@
 #---------------------------------------------------------------------------
 # Project related configuration options
 #---------------------------------------------------------------------------
-PROJECT_NAME           = libgig
-PROJECT_NUMBER         = 0.7.0
-OUTPUT_DIRECTORY       = 
+PROJECT_NAME           = @PACKAGE@
+PROJECT_NUMBER         = @VERSION@
+OUTPUT_DIRECTORY       = doc
 OUTPUT_LANGUAGE        = English
 USE_WINDOWS_ENCODING   = NO
 BRIEF_MEMBER_DESC      = YES
@@ -62,7 +62,7 @@ WARN_LOGFILE           =
 #---------------------------------------------------------------------------
 # configuration options related to the input files
 #---------------------------------------------------------------------------
-INPUT                  = /home/cuse/CVS/libgig/src
+INPUT                  = @top_srcdir@/src
 FILE_PATTERNS          = *.c \
                          *.cpp \
                          *.h \
