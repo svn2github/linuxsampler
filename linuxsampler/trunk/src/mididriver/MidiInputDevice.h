@@ -101,7 +101,7 @@ namespace LinuxSampler {
              */
             virtual void StopListen() = 0;
 
-
+            virtual void SetInputPort(const char *) = 0;
 
             /////////////////////////////////////////////////////////////////
             // normal methods

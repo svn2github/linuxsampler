@@ -51,6 +51,10 @@ namespace LinuxSampler {
         if (AutoConnectPortID) ConnectToAlsaMidiSource(AutoConnectPortID);
     }
 
+    void MidiInputDeviceAlsa::SetInputPort(const char * MidiSource) {
+	    ConnectToAlsaMidiSource(MidiSource);
+    }
+
     MidiInputDeviceAlsa::~MidiInputDeviceAlsa() {
         //TODO: close Alsa seq
     }

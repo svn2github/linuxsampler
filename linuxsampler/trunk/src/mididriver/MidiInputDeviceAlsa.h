@@ -45,6 +45,7 @@ namespace LinuxSampler {
             // derived abstract methods from class 'NidiInputDevice'
             void Listen();
             void StopListen();
+	    void SetInputPort(const char *);
 
             // own methods
             void ConnectToAlsaMidiSource(const char* MidiSource);

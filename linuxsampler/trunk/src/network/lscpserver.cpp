@@ -332,9 +332,23 @@ String LSCPServer::SetMIDIInputType(MidiInputDevice::type_t MidiInputType, uint 
  * Will be called by the parser to change the MIDI input port on which the
  * engine of a particular sampler channel should listen to.
  */
-String LSCPServer::SetMIDIInputPort(String MIDIInputPort, uint uiSamplerchannel) {
-    dmsg(2,("LSCPServer: SetMIDIInputPort(MIDIInputPort=%s, Samplerchannel=%d)\n", MIDIInputPort.c_str(), uiSamplerchannel));
-    return "ERR:0:Not implemented yet.\r\n";
+String LSCPServer::SetMIDIInputPort(String MIDIInputPort, uint uiSamplerChannel) {
+    dmsg(2,("LSCPServer: SetMIDIInputPort(MIDIInputPort=%s, Samplerchannel=%d)\n", MIDIInputPort.c_str(), uiSamplerChannel));
+    result_t result;
+    try {
+        SamplerChannel* pSamplerChannel = pSampler->GetSamplerChannel(uiSamplerChannel);
+        if (!pSamplerChannel) throw LinuxSamplerException("Index out of bounds");
+        if (!pSamplerChannel->GetMidiInputDevice()) throw LinuxSamplerException("No MIDI input device connected yet");
+        pSamplerChannel->GetMidiInputDevice()->SetInputPort(MIDIInputPort.c_str());
+        result.type = result_type_success;
+    }
+    catch (LinuxSamplerException e) {
+         e.PrintMessage();
+         result.type    = result_type_error;
+         result.code    = LSCP_ERR_UNKNOWN;
+         result.message = e.Message();
+    }
+    return ConvertResult(result);
 }
 
 /**
