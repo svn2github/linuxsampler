@@ -25,9 +25,12 @@
 namespace LinuxSampler {
 
     AudioOutputDevice::AudioOutputDevice(std::map<String,DeviceCreationParameter*> DriverParameters) {
+//FIXME: Is this is redundant?
+#if 0
         if (!DriverParameters["active"])     DriverParameters["active"]     = new ParameterActive(this);
         if (!DriverParameters["samplerate"]) DriverParameters["samplerate"] = new ParameterSampleRate(this);
         if (!DriverParameters["channels"])   DriverParameters["channels"]   = new ParameterChannels(this);
+#endif
         this->Parameters = DriverParameters;
     }
 

@@ -170,9 +170,18 @@ namespace LinuxSampler {
 
     std::map<String,DeviceCreationParameter*> AudioOutputDeviceAlsa::CreateParameters(std::map<String,String> Parameters) {
         std::map<String,DeviceCreationParameter*> result;
-        result["card"]         = new ParameterCard(this, Parameters["card"]);                 // additional parameter, individually for this driver
-        result["fragments"]    = new ParameterFragments(this, Parameters["fragments"]);       // additional parameter, individually for this driver
-        result["fragmentsize"] = new ParameterFragmentSize(this, Parameters["fragmentsize"]); // additional parameter, individually for this driver
+	//FIXME: common stuff still has to be created somewhere.
+	// AND filled with values, but we are only passing result
+	// of this method to base, so common stuff will be part
+	// of this result for now.
+	result["channels"]     = OptionalParameter<ParameterChannels>::New(this, Parameters["channels"]);
+	result["samplerate"]   = OptionalParameter<ParameterSampleRate>::New(this, Parameters["samplerate"]);
+	result["active"]       = OptionalParameter<ParameterActive>::New(this, Parameters["active"]);
+
+	//Alsa specific
+        result["card"]         = OptionalParameter<ParameterCard>::New(this, Parameters["card"]);                 // additional parameter, individually for this driver
+        result["fragments"]    = OptionalParameter<ParameterFragments>::New(this, Parameters["fragments"]);       // additional parameter, individually for this driver
+        result["fragmentsize"] = OptionalParameter<ParameterFragmentSize>::New(this, Parameters["fragmentsize"]); // additional parameter, individually for this driver
         return result;
     }
 
@@ -259,7 +268,7 @@ namespace LinuxSampler {
     }
 
     String AudioOutputDeviceAlsa::Version() {
-       String s = "$Revision: 1.5 $";
+       String s = "$Revision: 1.6 $";
        return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
 

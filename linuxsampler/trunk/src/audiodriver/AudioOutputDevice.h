@@ -55,11 +55,12 @@ namespace LinuxSampler {
             class ParameterActive : public DeviceCreationParameterBool {
                 public:
                     ParameterActive(AudioOutputDevice* pDevice)                              { this->pDevice = pDevice; InitWithDefault();         }
+                    ParameterActive(AudioOutputDevice* pDevice, String active) throw (LinuxSamplerException) : DeviceCreationParameterBool(active) { this->pDevice = pDevice; }
                     virtual String Description()                                             { return "Enable / disable device";                   }
                     virtual bool   Fix()                                                     { return false;                                       }
                     virtual bool   Mandatory()                                               { return false;                                       }
                     virtual std::map<String,DeviceCreationParameter*> DependsAsParameters()  { return std::map<String,DeviceCreationParameter*>(); }
-                    virtual optional<bool> DefaultAsBool(std::map<String,String> Parameters) { return optional<bool>::nothing;                     }
+                    virtual optional<bool> DefaultAsBool(std::map<String,String> Parameters) { return true;                                        }
                     virtual void OnSetValue(bool b) throw (LinuxSamplerException)            { if (b) pDevice->Play(); else pDevice->Stop();       }
                 protected:
                     AudioOutputDevice* pDevice;
@@ -68,11 +69,12 @@ namespace LinuxSampler {
             class ParameterSampleRate : public DeviceCreationParameterInt {
                 public:
                     ParameterSampleRate(AudioOutputDevice* pDevice)                                 { this->pDevice = pDevice; InitWithDefault();         }
+                    ParameterSampleRate(AudioOutputDevice* pDevice, String samplerate) throw (LinuxSamplerException) : DeviceCreationParameterInt(samplerate) { this->pDevice = pDevice; }
                     virtual String Description()                                                    { return "Output sample rate";                        }
                     virtual bool   Fix()                                                            { return true;                                        }
                     virtual bool   Mandatory()                                                      { return false;                                       }
                     virtual std::map<String,DeviceCreationParameter*> DependsAsParameters()         { return std::map<String,DeviceCreationParameter*>(); }
-                    virtual optional<int>    DefaultAsInt(std::map<String,String> Parameters)       { return optional<int>::nothing;                      }
+                    virtual optional<int>    DefaultAsInt(std::map<String,String> Parameters)       { return 44100;                                       }
                     virtual optional<int>    RangeMinAsInt(std::map<String,String> Parameters)      { return optional<int>::nothing;                      }
                     virtual optional<int>    RangeMaxAsInt(std::map<String,String> Parameters)      { return optional<int>::nothing;                      }
                     virtual std::vector<int> PossibilitiesAsInt(std::map<String,String> Parameters) { return std::vector<int>();                          }
@@ -84,11 +86,12 @@ namespace LinuxSampler {
             class ParameterChannels : public DeviceCreationParameterInt {
                 public:
                     ParameterChannels(AudioOutputDevice* pDevice)                                   { this->pDevice = pDevice; InitWithDefault();         }
+                    ParameterChannels(AudioOutputDevice* pDevice, String channels) throw (LinuxSamplerException) : DeviceCreationParameterInt(channels) { this->pDevice = pDevice; }
                     virtual String Description()                                                    { return "Number of output channels";                 }
                     virtual bool   Fix()                                                            { return false;                                       }
                     virtual bool   Mandatory()                                                      { return false;                                       }
                     virtual std::map<String,DeviceCreationParameter*> DependsAsParameters()         { return std::map<String,DeviceCreationParameter*>(); }
-                    virtual optional<int>    DefaultAsInt(std::map<String,String> Parameters)       { return optional<int>::nothing;                      }
+                    virtual optional<int>    DefaultAsInt(std::map<String,String> Parameters)       { return 2;                                           }
                     virtual optional<int>    RangeMinAsInt(std::map<String,String> Parameters)      { return optional<int>::nothing;                      }
                     virtual optional<int>    RangeMaxAsInt(std::map<String,String> Parameters)      { return optional<int>::nothing;                      }
                     virtual std::vector<int> PossibilitiesAsInt(std::map<String,String> Parameters) { return std::vector<int>();                          }
@@ -97,7 +100,11 @@ namespace LinuxSampler {
                     AudioOutputDevice* pDevice;
             };
 
-
+            template <class Parameter_T>
+            class OptionalParameter {
+		    public:
+		    static Parameter_T* New(AudioOutputDevice* pDevice, String val)                               { if (val == "") return (new Parameter_T(pDevice)); return (new Parameter_T(pDevice, val)); }
+	    };
 
             /////////////////////////////////////////////////////////////////
             // abstract methods
