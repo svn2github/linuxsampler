@@ -36,6 +36,7 @@
 #include "stream.h"
 #include "RIFF.h"
 #include "gig.h"
+#include "network/lscpserver.h"
 
 #define AUDIO_CHANNELS		2     // stereo
 #define AUDIO_FRAGMENTS		3     // 3 fragments, if it does not work set it to 2
@@ -46,48 +47,32 @@ enum patch_format_t {
     patch_format_unknown,
     patch_format_gig,
     patch_format_dls
-} patch_format;
+} patch_format = patch_format_unknown;
 
-AudioIO*         pAudioIO;
-DiskThread*      pDiskThread;
-AudioThread*     pAudioThread;
-MidiIn*          pMidiInThread;
-RIFF::File*      pRIFF;
-gig::File*       pGig;
-gig::Instrument* pInstrument;
-uint             instrument_index;
-double           volume;
-int              num_fragments;
-int              fragmentsize;
-String           input_client;
-String           alsaout;
-String           jack_playback[2];
-bool             use_jack;
-pthread_t        signalhandlerthread;
-uint             samplerate;
+AudioIO*     pAudioIO         = NULL;
+MidiIn*      pMidiInThread    = NULL;
+LSCPServer*  pLSCPServer      = NULL;
+AudioThread* pEngine          = NULL;
+uint         instrument_index = 0;
+double       volume           = 0.25;
+int          num_fragments    = AUDIO_FRAGMENTS;
+int          fragmentsize     = AUDIO_FRAGMENTSIZE;
+uint         samplerate       = AUDIO_SAMPLERATE;
+String       input_client;
+String       alsaout          = "0,0"; // default card
+String       jack_playback[2] = { "", "" };
+bool         use_jack         = true;
+bool         run_server       = false;
+pthread_t    signalhandlerthread;
 
 void parse_options(int argc, char **argv);
 void signal_handler(int signal);
 
 int main(int argc, char **argv) {
-    pAudioIO = NULL;
-    pRIFF    = NULL;
-    pGig     = NULL;
 
     // setting signal handler for catching SIGINT (thus e.g. <CTRL><C>)
     signalhandlerthread = pthread_self();
     signal(SIGINT, signal_handler);
-
-    patch_format      = patch_format_unknown;
-    instrument_index  = 0;
-    num_fragments     = AUDIO_FRAGMENTS;
-    fragmentsize      = AUDIO_FRAGMENTSIZE;
-    volume            = 0.25; // default volume
-    alsaout           = "0,0"; // default card
-    jack_playback[0]  = "";
-    jack_playback[1]  = "";
-    samplerate        = AUDIO_SAMPLERATE;
-    use_jack          = true;
 
     // parse and assign command line options
     parse_options(argc, argv);
@@ -115,55 +100,39 @@ int main(int argc, char **argv) {
     }
     dmsg(1,("OK\n"));
 
+    AudioThread* pEngine       = new AudioThread(pAudioIO);
+    MidiIn*      pMidiInThread = new MidiIn(pEngine);
+
     // Loading gig file
-    try {
-        printf("Loading gig file...");
-        fflush(stdout);
-        pRIFF       = new RIFF::File(argv[argc - 1]);
-        pGig        = new gig::File(pRIFF);
-        pInstrument = pGig->GetInstrument(instrument_index);
-        if (!pInstrument) {
-            printf("there's no instrument with index %d.\n", instrument_index);
-            exit(EXIT_FAILURE);
-        }
-        pGig->GetFirstSample(); // just to complete instrument loading before we enter the realtime part
-        printf("OK\n");
-        fflush(stdout);
-    }
-    catch (RIFF::Exception e) {
-        e.PrintMessage();
-        return EXIT_FAILURE;
-    }
-    catch (...) {
-        printf("Unknown exception while trying to parse gig file.\n");
-        return EXIT_FAILURE;
-    }
+    result_t result = pEngine->LoadInstrument(argv[argc - 1], instrument_index);
+    if (result.type == result_type_error) return EXIT_FAILURE;
+    pEngine->Volume = volume;
 
-    DiskThread*  pDiskThread   = new DiskThread(((pAudioIO->MaxSamplesPerCycle() << MAX_PITCH) << 1) + 6); //FIXME: assuming stereo
-    AudioThread* pAudioThread  = new AudioThread(pAudioIO, pDiskThread, pInstrument);
-    MidiIn*      pMidiInThread = new MidiIn(pAudioThread);
-
-    dmsg(1,("Starting disk thread..."));
-    pDiskThread->StartThread();
-    dmsg(1,("OK\n"));
     dmsg(1,("Starting MIDI in thread..."));
     if (input_client.size() > 0) pMidiInThread->SubscribeToClient(input_client.c_str());
     pMidiInThread->StartThread();
     dmsg(1,("OK\n"));
 
     sleep(1);
+
     dmsg(1,("Starting audio thread..."));
-    pAudioThread->Volume = volume;
-    pAudioIO->AssignEngine(pAudioThread);
+    pAudioIO->AssignEngine(pEngine);
     pAudioIO->Activate();
     dmsg(1,("OK\n"));
+
+    if (run_server) {
+        dmsg(1,("Starting network server..."));
+        pLSCPServer = new LSCPServer(pEngine);
+        pLSCPServer->StartThread();
+        dmsg(1,("OK\n"));
+    }
 
     printf("LinuxSampler initialization completed.\n");
 
     while(true)  {
       printf("Voices: %3.3d (Max: %3.3d) Streams: %3.3d (Max: %3.3d, Unused: %3.3d)\r",
-            pAudioThread->ActiveVoiceCount, pAudioThread->ActiveVoiceCountMax,
-            pDiskThread->ActiveStreamCount, pDiskThread->ActiveStreamCountMax, Stream::GetUnusedStreams());
+            pEngine->ActiveVoiceCount, pEngine->ActiveVoiceCountMax,
+            pEngine->pDiskThread->ActiveStreamCount, pEngine->pDiskThread->ActiveStreamCountMax, Stream::GetUnusedStreams());
       fflush(stdout);
       usleep(500000);
     }
@@ -176,14 +145,10 @@ void signal_handler(int signal) {
         // stop all threads
         if (pAudioIO)      pAudioIO->Close();
         if (pMidiInThread) pMidiInThread->StopThread();
-        if (pDiskThread)   pDiskThread->StopThread();
 
         // free all resources
         if (pMidiInThread) delete pMidiInThread;
-        if (pAudioThread)  delete pAudioThread;
-        if (pDiskThread)   delete pDiskThread;
-        if (pGig)          delete pGig;
-        if (pRIFF)         delete pRIFF;
+        if (pEngine)       delete pEngine;
         if (pAudioIO)      delete pAudioIO;
 
         printf("LinuxSampler stopped due to SIGINT\n");
@@ -206,6 +171,7 @@ void parse_options(int argc, char **argv) {
             {"alsaout",1,0,0},
             {"jackout",1,0,0},
             {"samplerate",1,0,0},
+            {"server",0,0,0},
             {"help",0,0,0},
             {0,0,0,0}
         };
@@ -263,7 +229,10 @@ void parse_options(int argc, char **argv) {
                 case 9: // --samplerate
                     samplerate = atoi(optarg);
                     break;
-                case 10: // --help
+                case 10: // --server
+                    run_server = true;
+                    break;
+                case 11: // --help
                     printf("usage: linuxsampler [OPTIONS] <INSTRUMENTFILE>\n\n");
                     printf("--gig              loads a Gigasampler instrument\n");
                     printf("--dls              loads a DLS instrument\n");
@@ -283,6 +252,7 @@ void parse_options(int argc, char **argv) {
                     printf("                   in case of stereo output)\n");
                     printf("--samplerate       sets sample rate if supported by audio output system\n");
                     printf("                   (e.g. 44100)\n");
+                    printf("--server           launch network server for remote control\n");
                     exit(EXIT_SUCCESS);
                     break;
             }

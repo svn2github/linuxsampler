@@ -11,5 +11,6 @@ AM_CXXFLAGS = -pedantic
 linuxsampler_LDFLAGS = $(all_libraries) $(JACK_LIBS)
 lib_LIBRARIES =  libgig.a
 libgig_a_SOURCES =  DLS.cpp DLS.h gig.cpp gig.h RIFF.cpp RIFF.h
-linuxsampler_LDADD = $(top_builddir)/src/libgig.a -lpthread -lasound
+linuxsampler_LDADD = $(top_builddir)/src/network/liblscpserver.a $(top_builddir)/src/libgig.a -lpthread -lasound
 noinst_HEADERS = modulationsystem.h eg_vca.h
+SUBDIRS =  network

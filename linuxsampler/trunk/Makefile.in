@@ -450,6 +450,12 @@ uninstall-info: uninstall-info-recursive
 	tags tags-recursive uninstall uninstall-am uninstall-info-am \
 	uninstall-info-recursive uninstall-recursive
 
+
+.PHONY: parser
+
+# generate parser with lex and yacc
+parser:
+	@cd $(srcdir)/src/network && make $@
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
 .NOEXPORT:

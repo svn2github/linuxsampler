@@ -22,12 +22,12 @@
 
 #include "audiothread.h"
 
-AudioThread::AudioThread(AudioIO* pAudioIO, DiskThread* pDiskThread, gig::Instrument* pInstrument) {
+AudioThread::AudioThread(AudioIO* pAudioIO) {
     this->pAudioIO     = pAudioIO;
-    this->pDiskThread  = pDiskThread;
-    this->pInstrument  = pInstrument;
+    this->pDiskThread  = new DiskThread(((pAudioIO->MaxSamplesPerCycle() << MAX_PITCH) << 1) + 6); //FIXME: assuming stereo
+    this->pInstrument  = NULL;
     this->Pitch        = 0;
-    Voice::pDiskThread = pDiskThread;
+    Voice::pDiskThread = this->pDiskThread;
     Voice::pEngine     = this;
     pEventQueue        = new RingBuffer<ModulationSystem::Event>(MAX_EVENTS_PER_FRAGMENT);
     pEventPool         = new RTELMemoryPool<ModulationSystem::Event>(MAX_EVENTS_PER_FRAGMENT);
@@ -38,11 +38,11 @@ AudioThread::AudioThread(AudioIO* pAudioIO, DiskThread* pDiskThread, gig::Instru
         pCCEvents[i] = new RTEList<ModulationSystem::Event>(pEventPool);
     }
     for (uint i = 0; i < 128; i++) {
-        pMIDIKeyInfo[i].pActiveVoices    = new RTEList<Voice>(pVoicePool);
-        pMIDIKeyInfo[i].KeyPressed       = false;
-        pMIDIKeyInfo[i].Active           = false;
-        pMIDIKeyInfo[i].pSelf            = NULL;
-        pMIDIKeyInfo[i].pEvents          = new RTEList<ModulationSystem::Event>(pEventPool);
+        pMIDIKeyInfo[i].pActiveVoices = new RTEList<Voice>(pVoicePool);
+        pMIDIKeyInfo[i].KeyPressed    = false;
+        pMIDIKeyInfo[i].Active        = false;
+        pMIDIKeyInfo[i].pSelf         = NULL;
+        pMIDIKeyInfo[i].pEvents       = new RTEList<ModulationSystem::Event>(pEventPool);
     }
 
     // FIXME: assuming stereo output
@@ -56,20 +56,9 @@ AudioThread::AudioThread(AudioIO* pAudioIO, DiskThread* pDiskThread, gig::Instru
     }
     pVoicePool->clear();
 
-    // cache initial samples points (for actually needed samples)
-    dmsg(1,("Caching initial samples..."));
-    gig::Region* pRgn = this->pInstrument->GetFirstRegion();
-    while (pRgn) {
-        if (!pRgn->GetSample()->GetCache().Size) {
-            dmsg(2,("C"));
-            CacheInitialSamples(pRgn->GetSample());
-        }
-        for (uint i = 0; i < pRgn->DimensionRegions; i++) {
-            CacheInitialSamples(pRgn->pDimensionRegions[i]->pSample);
-        }
-
-        pRgn = this->pInstrument->GetNextRegion();
-    }
+    pRIFF       = NULL;
+    pGig        = NULL;
+    pInstrument = NULL;
 
     // initialize modulation system
     ModulationSystem::Initialize(pAudioIO->SampleRate(), pAudioIO->MaxSamplesPerCycle());
@@ -78,10 +67,22 @@ AudioThread::AudioThread(AudioIO* pAudioIO, DiskThread* pDiskThread, gig::Instru
     PrevHoldCCValue = 0;
     SustainPedal    = 0;
 
+    SuspensionRequested = false;
+    pthread_mutex_init(&__render_state_mutex, NULL);
+    pthread_cond_init(&__render_exit_condition, NULL);
+
+    dmsg(1,("Starting disk thread..."));
+    pDiskThread->StartThread();
     dmsg(1,("OK\n"));
 }
 
 AudioThread::~AudioThread() {
+    if (pDiskThread) {
+        pDiskThread->StopThread();
+        delete pDiskThread;
+    }
+    if (pGig)  delete pGig;
+    if (pRIFF) delete pRIFF;
     ModulationSystem::Close();
     for (uint i = 0; i < 128; i++) {
         if (pMIDIKeyInfo[i].pActiveVoices) delete pMIDIKeyInfo[i].pActiveVoices;
@@ -97,6 +98,8 @@ AudioThread::~AudioThread() {
     if (pVoicePool)  delete pVoicePool;
     if (pActiveKeys) delete pActiveKeys;
     delete[] pAudioSumBuffer[0]; // this also frees the right channel buffer
+    pthread_cond_destroy(&__render_exit_condition);
+    pthread_mutex_destroy(&__render_state_mutex);
 }
 
 /**
@@ -110,6 +113,17 @@ AudioThread::~AudioThread() {
  *  @returns       0 on success
  */
 int AudioThread::RenderAudio(uint Samples) {
+
+    // zero out the output sum buffer (left and right channel)
+    memset(pAudioSumBuffer[0], 0, Samples * pAudioIO->Channels() * sizeof(float));
+
+
+    // check if rendering process was requested to be interrupted (e.g. to load another instrument)
+    if (SuspensionRequested) {
+        pthread_cond_broadcast(&__render_exit_condition); // wake up anybody waiting for us
+        return 0;
+    }
+
 
     // empty the event lists for the new fragment
     pEvents->clear();
@@ -154,10 +168,6 @@ int AudioThread::RenderAudio(uint Samples) {
                 break;
         }
     }
-
-
-    // zero out the output sum buffer (left and right channel)
-    memset(pAudioSumBuffer[0], 0, Samples * pAudioIO->Channels() * sizeof(float));
 
 
     // render audio from all active voices
@@ -434,4 +444,143 @@ void AudioThread::CacheInitialSamples(gig::Sample* pSample) {
     }
 
     if (!pSample->GetCache().Size) std::cerr << "Unable to cache sample - maybe memory full!" << std::endl << std::flush;
+}
+
+/**
+ *  Load an instrument from a .gig file.
+ *
+ *  @param FileName   - file name of the Gigasampler instrument file
+ *  @param Instrument - index of the instrument in the .gig file
+ *  @returns          detailed description of the result of the method call
+ */
+result_t AudioThread::LoadInstrument(const char* FileName, uint Instrument) {
+    result_t result;
+
+    if (pInstrument) { // if already running
+        // signal audio thread not to enter render part anymore
+        SuspensionRequested = true;
+        // sleep until wakened by audio thread
+        pthread_mutex_lock(&__render_state_mutex);
+        pthread_cond_wait(&__render_exit_condition, &__render_state_mutex);
+        pthread_mutex_unlock(&__render_state_mutex);
+
+        dmsg(1,("Freeing old instrument from memory..."));
+        delete pGig;
+        delete pRIFF;
+        pInstrument = NULL;
+        dmsg(1,("OK\n"));
+    }
+
+    // loading gig file
+    try {
+        dmsg(1,("Loading gig file..."));
+        pRIFF       = new RIFF::File(FileName);
+        pGig        = new gig::File(pRIFF);
+        pInstrument = pGig->GetInstrument(Instrument);
+        if (!pInstrument) {
+            std::stringstream msg;
+            msg << "There's no instrument with index " << Instrument << ".";
+            std::cerr << msg << std::endl;
+            result.type    = result_type_error;
+            result.code    = LSCP_ERR_UNKNOWN;
+            result.message = msg.str();
+            return result;
+        }
+        pGig->GetFirstSample(); // just to complete instrument loading before we enter the realtime part
+        dmsg(1,("OK\n"));
+    }
+    catch (RIFF::Exception e) {
+        e.PrintMessage();
+        result.type    = result_type_error;
+        result.code    = LSCP_ERR_UNKNOWN;
+        result.message = e.Message;
+        return result;
+    }
+    catch (...) {
+        dmsg(1,("Unknown exception while trying to parse gig file.\n"));
+        result.type    = result_type_error;
+        result.code    = LSCP_ERR_UNKNOWN;
+        result.message = "Unknown exception while trying to parse gig file.";
+        return result;
+    }
+
+    // cache initial samples points (for actually needed samples)
+    dmsg(1,("Caching initial samples..."));
+    gig::Region* pRgn = this->pInstrument->GetFirstRegion();
+    while (pRgn) {
+        if (!pRgn->GetSample()->GetCache().Size) {
+            dmsg(2,("C"));
+            CacheInitialSamples(pRgn->GetSample());
+        }
+        for (uint i = 0; i < pRgn->DimensionRegions; i++) {
+            CacheInitialSamples(pRgn->pDimensionRegions[i]->pSample);
+        }
+
+        pRgn = this->pInstrument->GetNextRegion();
+    }
+    dmsg(1,("OK\n"));
+
+    ResetInternal(); // reset engine
+
+    // signal audio thread to continue with rendering
+    SuspensionRequested = false;
+
+    // success
+    result.type = result_type_success;
+    return result;
+}
+
+/**
+ *  Reset all voices and disk thread and clear input event queue and all
+ *  control and status variables.
+ */
+void AudioThread::Reset() {
+    if (pInstrument) { // if already running
+        // signal audio thread not to enter render part anymore
+        SuspensionRequested = true;
+        // sleep until wakened by audio thread
+        pthread_mutex_lock(&__render_state_mutex);
+        pthread_cond_wait(&__render_exit_condition, &__render_state_mutex);
+        pthread_mutex_unlock(&__render_state_mutex);
+    }
+
+    ResetInternal();
+
+    // signal audio thread to continue with rendering
+    SuspensionRequested = false;
+}
+
+/**
+ *  Reset all voices and disk thread and clear input event queue and all
+ *  control and status variables. This method is not thread safe!
+ */
+void AudioThread::ResetInternal() {
+    this->Pitch         = 0;
+    PrevHoldCCValue     = 0; // sustain pedal value
+    SustainPedal        = 0;
+    ActiveVoiceCount    = 0;
+    ActiveVoiceCountMax = 0;
+
+    // reset key info
+    for (uint i = 0; i < 128; i++) {
+        pMIDIKeyInfo[i].pActiveVoices->clear();
+        pMIDIKeyInfo[i].pEvents->clear();
+        pMIDIKeyInfo[i].KeyPressed = false;
+        pMIDIKeyInfo[i].Active     = false;
+        pMIDIKeyInfo[i].pSelf      = NULL;
+    }
+
+    // reset all voices
+    for (Voice* pVoice = pVoicePool->first(); pVoice; pVoice = pVoicePool->next()) {
+        pVoice->Reset();
+    }
+
+    // free all active keys
+    pActiveKeys->clear();
+
+    // reset disk thread
+    pDiskThread->Reset();
+
+    // delete all input events
+    pEventQueue->init();
 }

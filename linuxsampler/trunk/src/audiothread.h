@@ -26,6 +26,8 @@
 #include <math.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <pthread.h>
+#include <sstream>
 
 #include "global.h"
 #include "thread.h"
@@ -35,6 +37,7 @@
 #include "gig.h"
 #include "rtelmemorypool.h"
 #include "modulationsystem.h"
+#include "network/lscp.h"
 
 #define PITCHBEND_SEMITONES		12
 #define MAX_AUDIO_VOICES		64
@@ -48,12 +51,15 @@ class Voice;
 //FIXME: Class name "AudioThread" is now misleading, because there is no thread anymore, but the name will change soon to "Engine" when we restructure the source tree
 class AudioThread {
     public:
-        double Volume;               ///< overall volume (a value < 1.0 means attenuation, a value > 1.0 means amplification)
-        int    ActiveVoiceCount;     ///< number of currently active voices
-        int    ActiveVoiceCountMax;  ///< the maximum voice usage since application start
+        double       Volume;               ///< overall volume (a value < 1.0 means attenuation, a value > 1.0 means amplification)
+        int          ActiveVoiceCount;     ///< number of currently active voices
+        int          ActiveVoiceCountMax;  ///< the maximum voice usage since application start
+        DiskThread*  pDiskThread;
 
-        AudioThread(AudioIO* pAudioIO, DiskThread* pDiskThread, gig::Instrument* pInstrument);
+        AudioThread(AudioIO* pAudioIO);
        ~AudioThread();
+        result_t      LoadInstrument(const char* FileName, uint Instrument);
+        void          Reset();
         void          SendNoteOn(uint8_t Key, uint8_t Velocity);
         void          SendNoteOff(uint8_t Key, uint8_t Velocity);
         void          SendPitchbend(int Pitch);
@@ -80,11 +86,15 @@ class AudioThread {
         RTEList<ModulationSystem::Event>*        pEvents;               ///< All events for the current audio fragment.
         RTEList<ModulationSystem::Event>*        pCCEvents[ModulationSystem::destination_count];  ///< Control change events for the current audio fragment.
         AudioIO*                                 pAudioIO;
-        DiskThread*                              pDiskThread;
+        RIFF::File*                              pRIFF;
+        gig::File*                               pGig;
         gig::Instrument*                         pInstrument;
         bool                                     SustainPedal;          ///< true if sustain pedal is down
         uint8_t                                  PrevHoldCCValue;
         int                                      Pitch;                 ///< Current (absolute) MIDI pitch value.
+        bool                                     SuspensionRequested;
+        pthread_mutex_t                          __render_state_mutex;
+        pthread_cond_t                           __render_exit_condition;
 
         void ProcessNoteOn(ModulationSystem::Event* pNoteOnEvent);
         void ProcessNoteOff(ModulationSystem::Event* pNoteOffEvent);
@@ -92,6 +102,7 @@ class AudioThread {
         void ProcessControlChange(ModulationSystem::Event* pControlChangeEvent);
         void KillVoice(Voice* pVoice);
         void CacheInitialSamples(gig::Sample* pSample);
+        void ResetInternal();
 
         friend class Voice;
 };

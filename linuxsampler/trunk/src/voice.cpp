@@ -217,6 +217,18 @@ void Voice::Render(uint Samples) {
 }
 
 /**
+ *  Resets voice variables. Should only be called if rendering process is
+ *  suspended / not running.
+ */
+void Voice::Reset() {
+    DiskStreamRef.pStream = NULL;
+    DiskStreamRef.hStream = 0;
+    DiskStreamRef.State   = Stream::state_unused;
+    DiskStreamRef.OrderID = 0;
+    Active = false;
+}
+
+/**
  *  Process the control change event lists of the engine for the current
  *  audio fragment. Event values will be applied to the synthesis parameter
  *  matrix.
@@ -359,9 +371,5 @@ void Voice::Kill() {
     if (DiskVoice && DiskStreamRef.State != Stream::state_unused) {
         pDiskThread->OrderDeletionOfStream(&DiskStreamRef);
     }
-    DiskStreamRef.pStream = NULL;
-    DiskStreamRef.hStream = 0;
-    DiskStreamRef.State   = Stream::state_unused;
-    DiskStreamRef.OrderID = 0;
-    Active = false;
+    Reset();
 }

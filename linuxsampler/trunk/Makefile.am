@@ -3,3 +3,9 @@
 AUTOMAKE_OPTIONS = foreign 1.4
 
 SUBDIRS = src
+
+.PHONY: parser
+
+# generate parser with lex and yacc
+parser:
+	@cd $(srcdir)/src/network && make $@

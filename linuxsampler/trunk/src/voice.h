@@ -50,6 +50,7 @@ class Voice {
        ~Voice();
         void Kill();
         void Render(uint Samples);
+        void Reset();
         int  Trigger(ModulationSystem::Event* pNoteOnEvent, int Pitch, gig::Instrument* pInstrument);
         inline bool IsActive()                                              { return Active; }
         inline void SetOutputLeft(float* pOutput, uint MaxSamplesPerCycle)  { this->pOutputLeft  = pOutput; this->MaxSamplesPerCycle = MaxSamplesPerCycle; }

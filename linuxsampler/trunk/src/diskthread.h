@@ -47,6 +47,9 @@ class DiskThread : public Thread {
         // Methods
         DiskThread(uint BufferWrapElements);
        ~DiskThread();
+        void    Reset();
+        String  GetBufferFillBytes();
+        String  GetBufferFillPercentage();
         int     OrderNewStream(Stream::reference_t* pStreamRef, gig::Sample* pSample, unsigned long SampleOffset, bool DoLoop);
         int     OrderDeletionOfStream(Stream::reference_t* pStreamRef);
         Stream* AskForCreatedStream(Stream::OrderID_t StreamOrderID);

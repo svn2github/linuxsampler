@@ -20,54 +20,19 @@
  *   MA  02111-1307  USA                                                   *
  ***************************************************************************/
 
-// All application global declarations are defined here.
+#ifndef __LSCP_H__
+#define __LSCP_H__
 
-#ifndef __GLOBAL_H__
-#define __GLOBAL_H__
+//TODO: obvious ;) all error and warning codes have to be defined
 
-#include <stdlib.h>
-#include <stdint.h>
-#include <stdio.h>
+// Error Codes
 
-#include <string>
+#define LSCP_ERR_UNKNOWN		0  ///< unknown error type
 
-#ifdef HAVE_CONFIG_H
-#  include <config.h>
-#endif
 
-#define LS_DEBUG_LEVEL	1  ///< the higher this value the higher verbosity, 0 means no debug messages at all
+// Warning Codes
 
-#if LS_DEBUG_LEVEL > 0
-#  define dmsg(debuglevel,x)	if (LS_DEBUG_LEVEL >= debuglevel) {printf x; fflush(stdout);}
-#else
-#  define dmsg(debuglevel,x)
-#endif // LS_DEBUG
+#define LSCP_WRN_UNKNOWN		0  ///< unknown warning type
 
-#define MAX_EVENTS_PER_FRAGMENT		1024
 
-// defines globally the bit depth of used samples
-typedef int16_t sample_t;
-
-typedef std::string String;
-
-/**
- * Wether a function / method call was successful, or if warnings or even an
- * error occured.
- */
-enum result_type_t {
-    result_type_success,
-    result_type_warning,
-    result_type_error
-};
-
-/**
- * Used whenever a detailed description of the result of a function / method
- * call is needed.
- */
-struct result_t {
-    result_type_t type;     ///< success, warning or error
-    int           code;     ///< warning or error code
-    String        message;  ///< detailed warning or error message
-};
-
-#endif // __GLOBAL_H__
+#endif // __LSCP_H__

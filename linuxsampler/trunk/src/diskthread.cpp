@@ -37,6 +37,65 @@ Stream* DiskThread::SLOT_RESERVED = (Stream*) &SLOT_RESERVED;
 
 
 /**
+ * Suspend disk thread, kill all active streams, clear all queues and the
+ * pickup array and reset all streams. Call this method to bring everything
+ * in the disk thread to day one. If the disk thread was running, it will be
+ * respawned right after everything was reset.
+ */
+void DiskThread::Reset() {
+    bool running = this->IsRunning();
+    if (running) this->StopThread();
+    for (int i = 0; i < MAX_INPUT_STREAMS; i++) {
+        pStreams[i]->Kill();
+    }
+    for (int i = 1; i <= MAX_INPUT_STREAMS; i++) {
+        pCreatedStreams[i] = NULL;
+    }
+    GhostQueue->init();
+    CreationQueue->init();
+    DeletionQueue->init();
+    ActiveStreamCount = 0;
+    ActiveStreamCountMax = 0;
+    if (running) this->StartThread(); // start thread only if it was running before
+}
+
+String DiskThread::GetBufferFillBytes() {
+    bool activestreams = false;
+    std::stringstream ss;
+    for (uint i = 0; i < this->Streams; i++) {
+        if (pStreams[i]->GetState() == Stream::state_unused) continue;
+        uint bufferfill = pStreams[i]->GetReadSpace() * sizeof(sample_t);
+        uint streamid   = (uint) pStreams[i]->GetHandle();
+        if (!streamid) continue;
+
+        if (activestreams) ss << ",[" << streamid << ']' << bufferfill;
+        else {
+            ss << '[' << streamid << ']' << bufferfill;
+            activestreams = true;
+        }
+    }
+    return ss.str();
+}
+
+String DiskThread::GetBufferFillPercentage() {
+    bool activestreams = false;
+    std::stringstream ss;
+    for (uint i = 0; i < this->Streams; i++) {
+        if (pStreams[i]->GetState() == Stream::state_unused) continue;
+        uint bufferfill = (uint) ((float) pStreams[i]->GetReadSpace() / (float) STREAM_BUFFER_SIZE * 100);
+        uint streamid   = (uint) pStreams[i]->GetHandle();
+        if (!streamid) continue;
+
+        if (activestreams) ss << ",[" << streamid << ']' << bufferfill << '%';
+        else {
+            ss << '[' << streamid << ']' << bufferfill;
+            activestreams = true;
+        }
+    }
+    return ss.str();
+}
+
+/**
  * Returns -1 if command queue or pickup pool is full, 0 on success (will be
  * called by audio thread within the voice class).
  */
