@@ -8,6 +8,9 @@ Version CVS HEAD (?)
     - added support for libsndfile (if libaudiofile and libsndfile are
       available then libsndfile is preferred)
 
+  * src/gigdump.cpp:
+    - added printout for dimension informations (amount, type, bits, zones)
+
 Version 0.7.1 (2 Jul 2004)
 
   * packaging changes:

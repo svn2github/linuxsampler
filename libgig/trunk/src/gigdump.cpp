@@ -133,6 +133,108 @@ void PrintRegions(gig::Instrument* instr) {
         cout << "            KeyRange=" << pRegion->KeyRange.low << "-" << pRegion->KeyRange.high << ", ";
         cout << "VelocityRange=" << pRegion->VelocityRange.low << "-" << pRegion->VelocityRange.high << ", Layer=" << pRegion->Layer << endl;
         cout << "            Loops=" << pRegion->SampleLoops << endl;
+        cout << "            Dimensions=" << pRegion->Dimensions << endl;
+        for (int iDimension = 0; iDimension < pRegion->Dimensions; iDimension++) {
+            cout << "            Dimension[" << iDimension << "]: Type=";
+            gig::dimension_def_t DimensionDef = pRegion->pDimensionDefinitions[iDimension];
+            switch (DimensionDef.dimension) {
+                case gig::dimension_none:
+                    cout << "NONE";
+                    break;
+                case gig::dimension_samplechannel: // If used sample has more than one channel (thus is not mono).
+                    cout << "SAMPLECHANNEL";
+                    break;
+                case gig::dimension_layer: // For layering of up to 8 instruments (and eventually crossfading of 2 or 4 layers).
+                    cout << "LAYER";
+                    break;
+                case gig::dimension_velocity: // Key Velocity (this is the only dimension where the ranges can exactly be defined).
+                    cout << "VELOCITY";
+                    break;
+                case gig::dimension_channelaftertouch: // Channel Key Pressure
+                    cout << "AFTERTOUCH";
+                    break;
+                case gig::dimension_releasetrigger: // Special dimension for triggering samples on releasing a key.
+                    cout << "RELEASETRIGGER";
+                    break;
+                case gig::dimension_keyboard: // Key Position
+                    cout << "KEYBOARD";
+                    break;
+                case gig::dimension_modwheel: // Modulation Wheel (MIDI Controller 1)
+                    cout << "MODWHEEL";
+                    break;
+                case gig::dimension_breath: // Breath Controller (Coarse, MIDI Controller 2)
+                    cout << "BREATH";
+                    break;
+                case gig::dimension_foot: // Foot Pedal (Coarse, MIDI Controller 4)
+                    cout << "FOOT";
+                    break;
+                case gig::dimension_portamentotime: // Portamento Time (Coarse, MIDI Controller 5)
+                    cout << "PORTAMENTOTIME";
+                    break;
+                case gig::dimension_effect1: // Effect Controller 1 (Coarse, MIDI Controller 12)
+                    cout << "EFFECT1";
+                    break;
+                case gig::dimension_effect2: // Effect Controller 2 (Coarse, MIDI Controller 13)
+                    cout << "EFFECT2";
+                    break;
+                case gig::dimension_genpurpose1: // General Purpose Controller 1 (Slider, MIDI Controller 16)
+                    cout << "GENPURPOSE1";
+                    break;
+                case gig::dimension_genpurpose2: // General Purpose Controller 2 (Slider, MIDI Controller 17)
+                    cout << "GENPURPOSE2";
+                    break;
+                case gig::dimension_genpurpose3: // General Purpose Controller 3 (Slider, MIDI Controller 18)
+                    cout << "GENPURPOSE3";
+                    break;
+                case gig::dimension_genpurpose4: // General Purpose Controller 4 (Slider, MIDI Controller 19)
+                    cout << "GENPURPOSE4";
+                    break;
+                case gig::dimension_sustainpedal: // Sustain Pedal (MIDI Controller 64)
+                    cout << "SUSTAINPEDAL";
+                    break;
+                case gig::dimension_portamento: // Portamento (MIDI Controller 65)
+                    cout << "PORTAMENTO";
+                    break;
+                case gig::dimension_sostenutopedal: // Sostenuto Pedal (MIDI Controller 66)
+                    cout << "SOSTENUTOPEDAL";
+                    break;
+                case gig::dimension_softpedal: // Soft Pedal (MIDI Controller 67)
+                    cout << "SOFTPEDAL";
+                    break;
+                case gig::dimension_genpurpose5: // General Purpose Controller 5 (Button, MIDI Controller 80)
+                    cout << "GENPURPOSE5";
+                    break;
+                case gig::dimension_genpurpose6: // General Purpose Controller 6 (Button, MIDI Controller 81)
+                    cout << "GENPURPOSE6";
+                    break;
+                case gig::dimension_genpurpose7: // General Purpose Controller 7 (Button, MIDI Controller 82)
+                    cout << "GENPURPOSE7";
+                    break;
+                case gig::dimension_genpurpose8: // General Purpose Controller 8 (Button, MIDI Controller 83)
+                    cout << "GENPURPOSE8";
+                    break;
+                case gig::dimension_effect1depth: // Effect 1 Depth (MIDI Controller 91)
+                    cout << "EFFECT1DEPTH";
+                    break;
+                case gig::dimension_effect2depth: // Effect 2 Depth (MIDI Controller 92)
+                    cout << "EFFECT2DEPTH";
+                    break;
+                case gig::dimension_effect3depth: // Effect 3 Depth (MIDI Controller 93)
+                    cout << "EFFECT3DEPTH";
+                    break;
+                case gig::dimension_effect4depth: // Effect 4 Depth (MIDI Controller 94)
+                    cout << "EFFECT4DEPTH";
+                    break;
+                case gig::dimension_effect5depth:  // Effect 5 Depth (MIDI Controller 95)
+                    cout << "EFFECT5DEPTH";
+                    break;
+                default:
+                    cout << "UNKNOWN - please report this !";
+                    break;
+            }
+            cout << ", Bits=" << (uint) DimensionDef.bits << ", Zones=" << (uint) DimensionDef.zones << endl;
+        }
+
         PrintDimensionRegions(pRegion);
 
         pRegion = instr->GetNextRegion();
