@@ -27,9 +27,9 @@ namespace LinuxSampler { namespace gig {
     const float EGADSR::EndCoeff(CalculateEndCoeff());
 
     float EGADSR::CalculateEndCoeff() {
-        const double sampleRate = 44100.0; // even if the sample rate will be 192kHz it won't hurt at all
-        const double killSteps  = EG_MIN_RELEASE_TIME * sampleRate;
-        return float(exp(1.0 / killSteps) - 1.0);
+        const float sampleRate = 44100.0; // even if the sample rate will be 192kHz it won't hurt at all
+        const float killSteps  = EG_MIN_RELEASE_TIME * sampleRate;
+        return 1.0f / killSteps;
     }
 
     EGADSR::EGADSR(gig::Engine* pEngine, Event::destination_t ModulationDestination) {
@@ -170,9 +170,14 @@ namespace LinuxSampler { namespace gig {
                     break;
                 }
                 case stage_end: {
-                    while (iSample < TotalSamples) {
-                        Level += Level * EndCoeff;
+                    int to_process   = RTMath::Min(int(Level / EndCoeff), TotalSamples - iSample);
+                    int process_end  = iSample + to_process;
+                    while (iSample < process_end) {
+                        Level += EndCoeff;
                         pEngine->pSynthesisParameters[ModulationDestination][iSample++] *= Level;
+                    }
+                    while (iSample < TotalSamples) {
+                        pEngine->pSynthesisParameters[ModulationDestination][iSample++] = 0.0f;
                     }
                     break;
                 }
