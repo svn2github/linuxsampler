@@ -73,9 +73,7 @@ namespace gig {
         }
 	FrameOffset = 0; // just for streaming compressed samples
 
-        LoopStart /= FrameSize; // convert to sample points
-        LoopEnd   /= FrameSize; // convert to sample points
-        LoopSize   = LoopEnd - LoopStart;
+        LoopSize = LoopEnd - LoopStart;
     }
 
     /// Scans compressed samples for mandatory informations (e.g. actual number of total sample points).
