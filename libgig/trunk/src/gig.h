@@ -649,7 +649,7 @@ namespace gig {
             Instrument* GetFirstInstrument(); ///< Returns a pointer to the first <i>Instrument</i> object of the file, <i>NULL</i> otherwise.
             Instrument* GetNextInstrument();  ///< Returns a pointer to the next <i>Instrument</i> object of the file, <i>NULL</i> otherwise.
             Instrument* GetInstrument(uint index);
-           ~File() {};
+           ~File();
         protected:
             typedef std::list<Sample*>     SampleList;
             typedef std::list<Instrument*> InstrumentList;
