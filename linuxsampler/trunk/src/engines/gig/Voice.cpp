@@ -694,6 +694,7 @@ namespace LinuxSampler { namespace gig {
                         }
                         DiskStreamRef.pStream->IncrementReadPos(pSample->Channels * (int(Pos) - MaxRAMPos));
                         Pos -= int(Pos);
+                        RealSampleWordsLeftToRead = -1; // -1 means no silence has been added yet
                     }
 
                     const int sampleWordsLeftToRead = DiskStreamRef.pStream->GetReadSpace();
@@ -702,6 +703,8 @@ namespace LinuxSampler { namespace gig {
                     if (DiskStreamRef.State == Stream::state_end) {
                         const int maxSampleWordsPerCycle = (pEngine->MaxSamplesPerCycle << MAX_PITCH) * pSample->Channels + 6; // +6 for the interpolator algorithm
                         if (sampleWordsLeftToRead <= maxSampleWordsPerCycle) {
+                            // remember how many sample words there are before any silence has been added
+                            if (RealSampleWordsLeftToRead < 0) RealSampleWordsLeftToRead = sampleWordsLeftToRead;
                             DiskStreamRef.pStream->WriteSilence(maxSampleWordsPerCycle - sampleWordsLeftToRead);
                         }
                     }
@@ -717,7 +720,10 @@ namespace LinuxSampler { namespace gig {
                     Pos -= iPos; // just keep fractional part of Pos
 
                     // change state of voice to 'end' if we really reached the end of the sample data
-                    if (DiskStreamRef.State == Stream::state_end && readSampleWords >= sampleWordsLeftToRead) this->PlaybackState = playback_state_end;
+                    if (RealSampleWordsLeftToRead >= 0) {
+                        RealSampleWordsLeftToRead -= readSampleWords;
+                        if (RealSampleWordsLeftToRead <= 0) this->PlaybackState = playback_state_end;
+                    }
                 }
                 break;
 
