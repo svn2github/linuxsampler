@@ -93,8 +93,9 @@ MISCELLANEOUS                           { return MISCELLANEOUS; }
 ECHO                                    { return ECHO; }
 QUIT                                    { return QUIT; }
 0|([1-9]{DIGIT}*)                       { yylval->Number = atoi(yytext); return NUMBER; }
-"\'"                                    { yylval->String = "";  BEGIN(INSTRING); }
-<INSTRING>[^\'\\]+                      { yylval->String += yytext; }
+"\'"                                    { yylval->String = ""; BEGIN(INSTRING); }
+"\""                                    { yylval->String = ""; BEGIN(INSTRING); }
+<INSTRING>[^\'\"\\]+                    { yylval->String += yytext; }
 <INSTRING>"\\n"                         { yylval->String += '\n'; }
 <INSTRING>"\\r"                         { yylval->String += '\r'; }
 <INSTRING>"\\t"                         { yylval->String += '\t'; }
@@ -103,6 +104,7 @@ QUIT                                    { return QUIT; }
 <INSTRING>"\\\'"                        { yylval->String += '\''; }
 <INSTRING>"\\"[^nrt\"\\]                { yylval->String += yytext; }
 <INSTRING>"\'"                          { BEGIN(INITIAL); return STRINGVAL; }
+<INSTRING>"\""                          { BEGIN(INITIAL); return STRINGVAL; }
 .                                       { yylval->Char = yytext[0]; return CHAR; }
 
 %%
