@@ -50,20 +50,14 @@ AudioIO*         pAudioIO;
 DiskThread*      pDiskThread;
 AudioThread*     pAudioThread;
 MidiIn*          pMidiInThread;
-
 RIFF::File*      pRIFF;
 gig::File*       pGig;
 gig::Instrument* pInstrument;
+int              num_fragments;
+int              fragmentsize;
 
 void parse_options(int argc, char **argv);
 void signal_handler(int signal);
-
-int midi_non_blocking;
-int num_fragments;
-int fragmentsize;
-bool instrument_is_DLS;
-bool instruemtn_is_gig;
-char midi_device[40];
 
 int main(int argc, char **argv) {
     pAudioIO = NULL;
@@ -74,25 +68,22 @@ int main(int argc, char **argv) {
     signal(SIGINT, signal_handler);
 
     patch_format      = patch_format_unknown;
-    midi_non_blocking = 1;
     num_fragments     = AUDIO_FRAGMENTS;
     fragmentsize      = AUDIO_FRAGMENTSIZE;
-    strcpy(midi_device, "/dev/midi00");
 
     // parse and assign command line options
     parse_options(argc, argv);
 
     if (patch_format != patch_format_gig) {
-        printf("Sorry only Gigasampler loading migrated in LinuxSampler so far, use --gig\n");
-        printf("to load a .gig file!\n");
+        printf("Sorry only Gigasampler loading migrated in LinuxSampler so far, use --gig to load a .gig file!\n");
         return EXIT_FAILURE;
     }
 
-    dmsg(("Initializing audio output..."));
+    dmsg(1,("Initializing audio output..."));
     pAudioIO = new AudioIO();
     int error = pAudioIO->Initialize(AUDIO_CHANNELS, AUDIO_SAMPLERATE, num_fragments, fragmentsize);
     if (error) return EXIT_FAILURE;
-    dmsg(("OK\n"));
+    dmsg(1,("OK\n"));
 
     // Loading gig file
     try {
@@ -118,17 +109,17 @@ int main(int argc, char **argv) {
     AudioThread* pAudioThread  = new AudioThread(pAudioIO, pDiskThread, pInstrument);
     MidiIn*      pMidiInThread = new MidiIn(pAudioThread);
 
-    dmsg(("Starting disk thread..."));
+    dmsg(1,("Starting disk thread..."));
     pDiskThread->StartThread();
-    dmsg(("OK\n"));
-    dmsg(("Starting MIDI in thread..."));
+    dmsg(1,("OK\n"));
+    dmsg(1,("Starting MIDI in thread..."));
     pMidiInThread->StartThread();
-    dmsg(("OK\n"));
+    dmsg(1,("OK\n"));
 
     sleep(1);
-    dmsg(("Starting audio thread..."));
+    dmsg(1,("Starting audio thread..."));
     pAudioThread->StartThread();
-    dmsg(("OK\n"));
+    dmsg(1,("OK\n"));
 
     printf("LinuxSampler initialization completed.\n");
 

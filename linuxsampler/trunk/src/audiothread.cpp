@@ -29,18 +29,15 @@ AudioThread::AudioThread(AudioIO* pAudioIO, DiskThread* pDiskThread, gig::Instru
     pCommandQueue     = new RingBuffer<command_t>(1024);
     pVoices           = new Voice*[MAX_AUDIO_VOICES];
     // allocate the ActiveVoicePool (for each midi key there is a variable size linked list
-    // of pointers to Voice classes)
-    ActiveVoicePool=new RTELMemoryPool<Voice *>(MAX_AUDIO_VOICES);
+    // of pointers to Voice objects)
+    ActiveVoicePool = new RTELMemoryPool<Voice*>(MAX_AUDIO_VOICES);
     for (uint i = 0; i < MAX_AUDIO_VOICES; i++) {
         pVoices[i] = new Voice(pDiskThread);
     }
     for (uint i = 0; i < 128; i++) {
-        pActiveVoices[i] = new RTEList<Voice *>;
+        pActiveVoices[i] = new RTEList<Voice*>;
     }
-
-    SustainedKeyPool=new RTELMemoryPool<sustained_key_t>(200);
-
-
+    SustainedKeyPool = new RTELMemoryPool<sustained_key_t>(200);
 
     pAudioSumBuffer = new float[pAudioIO->FragmentSize * pAudioIO->Channels];
 
@@ -50,11 +47,11 @@ AudioThread::AudioThread(AudioIO* pAudioIO, DiskThread* pDiskThread, gig::Instru
     }
 
     // cache initial samples points (for actually needed samples)
-    dmsg(("Caching initial samples..."));
+    dmsg(1,("Caching initial samples..."));
     gig::Region* pRgn = this->pInstrument->GetFirstRegion();
     while (pRgn) {
         if (!pRgn->GetSample()->GetCache().Size) {
-//printf("C");
+            dmsg(2,("C"));
             CacheInitialSamples(pRgn->GetSample());
         }
         for (uint i = 0; i < pRgn->DimensionRegions; i++) {
@@ -65,10 +62,10 @@ AudioThread::AudioThread(AudioIO* pAudioIO, DiskThread* pDiskThread, gig::Instru
     }
 
     // sustain pedal value
-    PrevHoldCCValue=0;
-    SustainPedal=0;
+    PrevHoldCCValue = 0;
+    SustainPedal    = 0;
 
-    dmsg(("OK\n"));
+    dmsg(1,("OK\n"));
 }
 
 AudioThread::~AudioThread() {
@@ -82,8 +79,7 @@ AudioThread::~AudioThread() {
 }
 
 int AudioThread::Main() {
-    dmsg(("Audio thread running\n"));
-    //int fifofd=open("/tmp/fifo1",O_WRONLY);
+    dmsg(2,("Audio thread running\n"));
 
     while (true) {
 
@@ -94,15 +90,15 @@ int AudioThread::Main() {
 
             switch (command.type) {
                 case command_type_note_on:
-                    dmsg(("Audio Thread: Note on received\n"));
+                    dmsg(5,("Audio Thread: Note on received\n"));
                     ActivateVoice(command.pitch, command.velocity);
                     break;
                 case command_type_note_off:
-                    dmsg(("Audio Thread: Note off received\n"));
+                    dmsg(5,("Audio Thread: Note off received\n"));
                     ReleaseVoice(command.pitch, command.velocity);
                     break;
                 case command_type_continuous_controller:
-                    dmsg(("Audio Thread: MIDI CC received\n"));
+                    dmsg(5,("Audio Thread: MIDI CC received\n"));
                     ContinuousController(command.channel, command.number, command.value);
                     break;
             }
@@ -116,16 +112,19 @@ int AudioThread::Main() {
 
 
         // render audio from all active voices
-        int act_voices=0;
+        int active_voices = 0;
         for (uint i = 0; i < MAX_AUDIO_VOICES; i++) {
             if (pVoices[i]->IsActive()) {
                 pVoices[i]->RenderAudio();
-                act_voices++;
+                if (pVoices[i]->IsActive()) active_voices++; // still active
+                else { // voice reached end, is now inactive
+                    ReleaseVoice(pVoices[i]); // remove voice from the list of active voices
+                }
             }
         }
-        // write that to the disk thread class so that it can print it 
+        // write that to the disk thread class so that it can print it
         // on the console for debugging purposes
-        ActiveVoiceCount=act_voices;
+        ActiveVoiceCount = active_voices;
 
 
         // check clipping in the audio sum, convert to sample_type
@@ -142,10 +141,6 @@ int AudioThread::Main() {
         // call audio driver to output sound
         int res = this->pAudioIO->Output();
         if (res < 0) exit(EXIT_FAILURE);
-
-        // FIXME remove because we use it only to write to a fifo to save the audio
-        //write(fifofd, pAudioIO->pOutputBuffer, pAudioIO->FragmentSize * pAudioIO->Channels * sizeof(short));
-        
     }
 }
 
@@ -177,70 +172,65 @@ void AudioThread::ProcessContinuousController(uint8_t Channel, uint8_t Number, u
     this->pCommandQueue->write(&cmd, 1);
 }
 
-
 void AudioThread::ActivateVoice(uint8_t MIDIKey, uint8_t Velocity) {
     for (int i = 0; i < MAX_AUDIO_VOICES; i++) {
         if (pVoices[i]->IsActive()) continue;
         pVoices[i]->Trigger(MIDIKey, Velocity, this->pInstrument);
         // add (append) a new voice to the corresponding MIDIKey active voices list
-        Voice **new_voice_ptr=ActiveVoicePool->alloc_append(pActiveVoices[MIDIKey]);
-        *new_voice_ptr=pVoices[i]; 
+        Voice** new_voice_ptr = ActiveVoicePool->alloc_append(pActiveVoices[MIDIKey]);
+        *new_voice_ptr = pVoices[i];
+        pVoices[i]->pSelfPtr = new_voice_ptr; // FIXME: hack to allow fast deallocation
         return;
     }
     std::cerr << "No free voice!" << std::endl << std::flush;
 }
 
 void AudioThread::ReleaseVoice(uint8_t MIDIKey, uint8_t Velocity) {
+    // if sustain pedal is pressed postpone the Note-Off
+    if (SustainPedal) {
+        // alloc an element in the SustainedKeyPool and add the current midikey to it
+        sustained_key_t* key = SustainedKeyPool->alloc();
+        if (key == NULL) printf("ERROR: SustainedKeyPool FULL ! exiting\n"); // FIXME
+        key->midikey  = MIDIKey;
+        key->velocity = Velocity;
+    }
+    else {
+        // get the first voice in the list of active voices on the MIDI Key
+        Voice** pVoicePtr = pActiveVoices[MIDIKey]->first();
+        if (pVoicePtr) ReleaseVoice(*pVoicePtr);
+        else std::cerr << "Couldn't find active voice for note off command!" << std::endl << std::flush;
+    }
+}
 
-
-    // get the first voice in the list of active voices on the MIDI Key
-    Voice** pVoicePtr = pActiveVoices[MIDIKey]->first();
-    Voice *pVoice=*pVoicePtr;
-    
+void AudioThread::ReleaseVoice(Voice* pVoice) {
     if (pVoice) {
-
-        // if sustain pedal is pressed postpone the Note-Off
-        if(SustainPedal) {
-            // alloc an element in the SustainedKeyPool and add the current midikey to it
-            sustained_key_t *key=SustainedKeyPool->alloc();
-            if(key == NULL) { /* FIXME */ printf("ERROR: SustainedKeyPool FULL ! exiting\n"); exit(0); }
-            key->midikey=MIDIKey;
-            key->velocity=Velocity;
-          return;
-        }
-
-        pVoice->Kill(); //TODO: for now we're rude and just kill the poor, poor voice immediately :), later we add a Release() method to the Voice class and call it here to let the voice go through it's release phase
+        if (pVoice->IsActive()) pVoice->Kill(); //TODO: for now we're rude and just kill the poor, poor voice immediately :), later we add a Release() method to the Voice class and call it here to let the voice go through it's release phase
 
         // remove the voice from the list associated to this MIDI key
-        ActiveVoicePool->free(pVoicePtr);
+        ActiveVoicePool->free(pVoice->pSelfPtr);
     }
-    else std::cerr << "Couldn't find active voice for note off command!" << std::endl << std::flush;
+    else std::cerr << "Couldn't find active voice to release!" << std::endl << std::flush;
 }
 
 void AudioThread::ContinuousController(uint8_t Channel, uint8_t Number, uint8_t Value) {
-//printf("AudioThread::ContinuousController c=%d n=%d v=%d\n",Channel, Number, Value);
-  if(Number == 64) {
-    if(Value >=64 && PrevHoldCCValue < 64) {
-      //printf("PEDAL DOWN\n");
-      SustainPedal=1;
+    dmsg(4,("AudioThread::ContinuousController c=%d n=%d v=%d\n", Channel, Number, Value));
+    if (Number == 64) {
+        if (Value >= 64 && PrevHoldCCValue < 64) {
+            dmsg(4,("PEDAL DOWN\n"));
+            SustainPedal = true;
+        }
+        if (Value < 64 && PrevHoldCCValue >= 64) {
+            dmsg(4,("PEDAL UP\n"));
+            SustainPedal = false;
+            for (sustained_key_t* key = SustainedKeyPool->first(); key; key = SustainedKeyPool->next()) {
+                ReleaseVoice(key->midikey, key->velocity);
+            }
+            // empty the SustainedKeyPool (free all the elements)
+            SustainedKeyPool->empty();
+        }
+        PrevHoldCCValue = Value;
     }
-    if(Value < 64 && PrevHoldCCValue >=64) {
-      //printf("PEDAL UP\n");
-      SustainPedal=0;
-      sustained_key_t *key;
-      for(key = SustainedKeyPool->first(); key ; key=SustainedKeyPool->next() ) {
-        ReleaseVoice(key->midikey, key->velocity);
-      }
-      // empty the SustainedKeyPool (free all the elements)
-      SustainedKeyPool->empty();
-
-      
-    }
-    PrevHoldCCValue=Value;
-  }
-
 }
-
 
 void AudioThread::CacheInitialSamples(gig::Sample* pSample) {
     if (!pSample || pSample->GetCache().Size) return;
@@ -251,7 +241,7 @@ void AudioThread::CacheInitialSamples(gig::Sample* pSample) {
         // border, to allow the interpolator do it's work even at the end of
         // the sample.
         gig::buffer_t buf = pSample->LoadSampleDataWithNullSamplesExtension(pAudioIO->FragmentSize << MAX_PITCH);
-        dmsg(("Cached %d Bytes, %d silence bytes.\n", buf.Size, buf.NullExtensionSize));
+        dmsg(4,("Cached %d Bytes, %d silence bytes.\n", buf.Size, buf.NullExtensionSize));
     }
     else { // we only cache NUM_RAM_PRELOAD_SAMPLES and stream the other sample points from disk
         pSample->LoadSampleData(NUM_RAM_PRELOAD_SAMPLES);

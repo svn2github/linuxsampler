@@ -37,7 +37,7 @@
  * thread within the voice class).
  */
 int DiskThread::OrderNewStream(Stream::reference_t* pStreamRef, gig::Sample* pSample, unsigned long SampleOffset) {
-    dmsg(("Disk Thread: new stream ordered\n"));
+    dmsg(4,("Disk Thread: new stream ordered\n"));
     if (CreationQueue->write_space() < 1) return -1;
 
     pStreamRef->State   = Stream::state_active;
@@ -59,7 +59,7 @@ int DiskThread::OrderNewStream(Stream::reference_t* pStreamRef, gig::Sample* pSa
  * thread within the voice class).
  */
 int DiskThread::OrderDeletionOfStream(Stream::reference_t* pStreamRef) {
-    dmsg(("Disk Thread: stream deletion ordered\n"));
+    dmsg(4,("Disk Thread: stream deletion ordered\n"));
     if (DeletionQueue->write_space() < 1) return -1;
 
     delete_command_t cmd;
@@ -85,10 +85,10 @@ int DiskThread::OrderDeletionOfStream(Stream::reference_t* pStreamRef) {
  * @returns               pointer to created stream object, NULL otherwise
  */
 Stream* DiskThread::AskForCreatedStream(Stream::OrderID_t StreamOrderID) {
-    dmsg(("Disk Thread: been asked if stream already created, OrderID=%x ", StreamOrderID));
+    dmsg(4,("Disk Thread: been asked if stream already created, OrderID=%x ", StreamOrderID));
     Stream* pStream = pCreatedStreams[StreamOrderID];
-    if (pStream) { dmsg(("(yes created)")) }
-    else         { dmsg(("(no not yet created)")) }
+    if (pStream) { dmsg(4,("(yes created)")) }
+    else         { dmsg(4,("(no not yet created)")) }
     pCreatedStreams[StreamOrderID] = NULL; // free the slot for a new order
     return pStream;
 }
@@ -122,7 +122,7 @@ DiskThread::~DiskThread() {
 }
 
 int DiskThread::Main() {
-    dmsg(("Disk thread running\n"));
+    dmsg(3,("Disk thread running\n"));
     while (true) {
         IsIdle = true; // will be set to false if a stream got filled
 
@@ -167,10 +167,10 @@ void DiskThread::CreateStream(create_command_t& Command) {
         }
     }
     if (!newstream) {
-        dmsg(("No unused stream found (OrderID:%x) - report if this happens, this is a bug!\n", Command.pStreamRef->OrderID));
+        dmsg(1,("No unused stream found (OrderID:%x) - report if this happens, this is a bug!\n", Command.pStreamRef->OrderID));
         return;
     }
-    dmsg(("new Stream launched by disk thread (OrderID:%x,StreamHandle:%x)\n", Command.pStreamRef->OrderID, Command.pStreamRef->hStream));
+    dmsg(4,("new Stream launched by disk thread (OrderID:%x,StreamHandle:%x)\n", Command.pStreamRef->OrderID, Command.pStreamRef->hStream));
     newstream->Launch(Command.pStreamRef, Command.pSample, Command.SampleOffset);
     pCreatedStreams[Command.pStreamRef->OrderID] = newstream;
 }

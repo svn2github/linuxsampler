@@ -1,5 +1,5 @@
 bin_PROGRAMS = linuxsampler
-linuxsampler_SOURCES = linuxsampler.cpp audioio.cpp audioio.h audiothread.cpp audiothread.h diskthread.cpp diskthread.h global.cpp global.h midiin.cpp midiin.h ringbuffer.h stream.cpp stream.h thread.cpp thread.h voice.cpp voice.h
+linuxsampler_SOURCES = linuxsampler.cpp audioio.cpp audioio.h audiothread.cpp audiothread.h diskthread.cpp diskthread.h global.cpp global.h midiin.cpp midiin.h ringbuffer.h stream.cpp stream.h thread.cpp thread.h voice.cpp voice.h rtelmemorypool.h
 
 # set the include path found by configure
 INCLUDES= $(all_includes)

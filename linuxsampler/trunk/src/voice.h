@@ -35,6 +35,10 @@
 
 class Voice {
     public:
+        // Attributes
+        int      MIDIKey;   ///< MIDI key number of the key that triggered the voice
+        Voice**  pSelfPtr;  ///< FIXME: hack to be able to remove the voice from the active voices list within the audio thread, ugly but fast
+
         // Methods
         Voice(DiskThread* pDiskThread);
        ~Voice();

@@ -36,6 +36,7 @@ Voice::~Voice() {
 
 void Voice::Trigger(int MIDIKey, uint8_t Velocity, gig::Instrument* Instrument) {
     Active        = true;
+    this->MIDIKey = MIDIKey;
     pRegion       = Instrument->GetRegion(MIDIKey);
     PlaybackState = playback_state_ram; // we always start playback from RAM cache and switch then to disk if needed
     Pos           = 0;
@@ -69,11 +70,11 @@ void Voice::Trigger(int MIDIKey, uint8_t Velocity, gig::Instrument* Instrument) 
     if (DiskVoice) {
         MaxRAMPos = cachedsamples - (OutputBufferSize << MAX_PITCH) / pSample->Channels;
         pDiskThread->OrderNewStream(&DiskStreamRef, pSample, MaxRAMPos);
-        dmsg(("Disk voice launched (cached samples: %d, total Samples: %d, MaxRAMPos: %d\n", cachedsamples, pSample->SamplesTotal, MaxRAMPos));
+        dmsg(5,("Disk voice launched (cached samples: %d, total Samples: %d, MaxRAMPos: %d\n", cachedsamples, pSample->SamplesTotal, MaxRAMPos));
     }
     else {
         MaxRAMPos = cachedsamples;
-        dmsg(("RAM only voice launched\n"));
+        dmsg(5,("RAM only voice launched\n"));
     }
 
     CurrentPitch = pow(2, (double) (MIDIKey - (int) pSample->MIDIUnityNote) / (double) 12);
@@ -92,7 +93,7 @@ void Voice::RenderAudio() {
                 if (DiskVoice) {
                     // check if we reached the allowed limit of the sample RAM cache
                     if (Pos > MaxRAMPos) {
-                        dmsg(("Voice: switching to disk playback (Pos=%f)\n", Pos));
+                        dmsg(5,("Voice: switching to disk playback (Pos=%f)\n", Pos));
                         this->PlaybackState = playback_state_disk;
                     }
                 }

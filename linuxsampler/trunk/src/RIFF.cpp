@@ -71,10 +71,6 @@ namespace RIFF {
             fread(&ChunkID, 4, 1, hFile);
             fread(&ChunkSize, 4, 1, hFile);
         #endif // POSIX
-        #if DEBUG
-        std::cout << "ckID=" << convertToString(ChunkID) << " ";
-        std::cout << "ckSize=" << ChunkSize << std::endl;
-        #endif // DEBUG
             #if WORDS_BIGENDIAN
             if (ChunkID == CHUNK_ID_RIFF) {
                 bEndianNative = false;
@@ -86,16 +82,34 @@ namespace RIFF {
             }
             #endif // WORDS_BIGENDIAN
             if (!bEndianNative) {
-                swapBytes_32(&ChunkID);
+                //swapBytes_32(&ChunkID);
                 swapBytes_32(&ChunkSize);
             }
+            #if DEBUG
+            std::cout << "ckID=" << convertToString(ChunkID) << " ";
+            std::cout << "ckSize=" << ChunkSize << " ";
+            std::cout << "bEndianNative=" << bEndianNative << std::endl;
+            #endif // DEBUG
         }
     }
 
+    /**
+     *  Returns the String representation of the chunk's ID (e.g. "RIFF",
+     *  "LIST").
+     */
     String Chunk::GetChunkIDString() {
         return convertToString(ChunkID);
     }
 
+    /**
+     *  Sets the position within the chunk body, thus within the data portion
+     *  of the chunk (in bytes).
+     *
+     *  @param Where  - position offset (in bytes)
+     *  @param Whence - optional: defines to what <i>\a Where</i> relates to,
+     *                  if omitted \a Where relates to beginning of the chunk
+     *                  data
+     */
     unsigned long Chunk::SetPos(unsigned long Where, stream_whence_t Whence) {
      #if DEBUG
      std::cout << "Chunk::SetPos(ulong)" << std::endl;
@@ -118,6 +132,16 @@ namespace RIFF {
         return ulPos;
     }
 
+    /**
+     *  Returns the number of bytes left to read in the chunk body.
+     *  When reading data from the chunk using the Read*() Methods, the
+     *  position within the chunk data (that is the chunk body) will be
+     *  incremented by the number of read bytes and RemainingBytes() returns
+     *  how much data is left to read from the current position to the end
+     *  of the chunk data.
+     *
+     *  @returns  number of bytes left to read
+     */
     unsigned long Chunk::RemainingBytes() {
        #if DEBUG
        std::cout << "Chunk::Remainingbytes()=" << ChunkSize - ulPos << std::endl;
@@ -125,6 +149,17 @@ namespace RIFF {
         return ChunkSize - ulPos;
     }
 
+    /**
+     *  Returns the current state of the chunk object.
+     *  Following values are possible:
+     *  - RIFF::stream_ready :
+     *    chunk data can be read (this is the usual case)
+     *  - RIFF::stream_closed :
+     *    the data stream was closed somehow, no more reading possible
+     *  - RIFF::stream_end_reached :
+     *    alreaady reached the end of the chunk data, no more reading
+     *    possible without SetPos()
+     */
     stream_state_t Chunk::GetState() {
       #if DEBUG
       std::cout << "Chunk::GetState()" << std::endl;
@@ -480,6 +515,17 @@ namespace RIFF {
         if (pSubChunksMap) delete pSubChunksMap;
     }
 
+    /**
+     *  Returns subchunk with chunk ID <i>\a ChunkID</i> within this chunk
+     *  list. Use this method if you expect only one subchunk of that type in
+     *  the list. It there are more than one, it's undetermined which one of
+     *  them will be returned! If there are no subchunks with that desired
+     *  chunk ID, NULL will be returned.
+     *
+     *  @param ChunkID - chunk ID of the sought subchunk
+     *  @returns         pointer to the subchunk or NULL if there is none of
+     *                   that ID
+     */
     Chunk* List::GetSubChunk(uint32_t ChunkID) {
       #if DEBUG
       std::cout << "List::GetSubChunk(uint32_t)" << std::endl;
@@ -488,6 +534,17 @@ namespace RIFF {
         return (*pSubChunksMap)[ChunkID];
     }
 
+    /**
+     *  Returns sublist chunk with list type <i>\a ListType</i> within this
+     *  chunk list. Use this method if you expect only one sublist chunk of
+     *  that type in the list. It there are more than one, it's undetermined
+     *  which one of them will be returned! If there are no sublists with
+     *  that desired list type, NULL will be returned.
+     *
+     *  @param ListType - list type of the sought sublist
+     *  @returns          pointer to the sublist or NULL if there is none of
+     *                    that type
+     */
     List* List::GetSubList(uint32_t ListType) {
         #if DEBUG
         std::cout << "List::GetSubList(uint32_t)" << std::endl;
@@ -505,6 +562,14 @@ namespace RIFF {
         return NULL;
     }
 
+    /**
+     *  Returns the first subchunk within the list. You have to call this
+     *  method before you can call GetNextSubChunk(). Recall it when you want
+     *  to start from the beginning of the list again.
+     *
+     *  @returns  pointer to the first subchunk within the list, NULL
+     *            otherwise
+     */
     Chunk* List::GetFirstSubChunk() {
         #if DEBUG
         std::cout << "List::GetFirstSubChunk()" << std::endl;
@@ -514,6 +579,13 @@ namespace RIFF {
         return (ChunksIterator != pSubChunks->end()) ? *ChunksIterator : NULL;
     }
 
+    /**
+     *  Returns the next subchunk within the list. You have to call
+     *  GetFirstSubChunk() before you can use this method!
+     *
+     *  @returns  pointer to the next subchunk within the list or NULL if
+     *            end of list is reached
+     */
     Chunk* List::GetNextSubChunk() {
         #if DEBUG
         std::cout << "List::GetNextSubChunk()" << std::endl;
@@ -523,6 +595,15 @@ namespace RIFF {
         return (ChunksIterator != pSubChunks->end()) ? *ChunksIterator : NULL;
     }
 
+    /**
+     *  Returns the first sublist within the list (that is a subchunk with
+     *  chunk ID "LIST"). You have to call this method before you can call
+     *  GetNextSubList(). Recall it when you want to start from the beginning
+     *  of the list again.
+     *
+     *  @returns  pointer to the first sublist within the list, NULL
+     *            otherwise
+     */
     List* List::GetFirstSubList() {
         #if DEBUG
         std::cout << "List::GetFirstSubList()" << std::endl;
@@ -537,6 +618,14 @@ namespace RIFF {
         return NULL;
     }
 
+    /**
+     *  Returns the next sublist (that is a subchunk with chunk ID "LIST")
+     *  within the list. You have to call GetFirstSubList() before you can
+     *  use this method!
+     *
+     *  @returns  pointer to the next sublist within the list, NULL if
+     *            end of list is reached
+     */
     List* List::GetNextSubList() {
         #if DEBUG
         std::cout << "List::GetNextSubList()" << std::endl;
@@ -552,11 +641,18 @@ namespace RIFF {
         return NULL;
     }
 
+    /**
+     *  Returns number subchunks within the list.
+     */
     unsigned int List::CountSubChunks() {
         if (!pSubChunks) LoadSubChunks();
         return pSubChunks->size();
     }
 
+    /**
+     *  Returns number of subchunks within the list with chunk ID
+     *  <i>\a ChunkId</i>.
+     */
     unsigned int List::CountSubChunks(uint32_t ChunkID) {
         unsigned int result = 0;
         if (!pSubChunks) LoadSubChunks();
@@ -571,10 +667,17 @@ namespace RIFF {
         return result;
     }
 
+    /**
+     *  Returns number of sublists within the list.
+     */
     unsigned int List::CountSubLists() {
         return CountSubChunks(CHUNK_ID_LIST);
     }
 
+    /**
+     *  Returns number of sublists within the list with list type
+     *  <i>\a ListType</i>
+     */
     unsigned int List::CountSubLists(uint32_t ListType) {
         unsigned int result = 0;
         if (!pSubChunks) LoadSubChunks();
@@ -607,7 +710,7 @@ namespace RIFF {
       std::cout << "listType=" << convertToString(ListType) << std::endl;
       #endif // DEBUG
         if (!bEndianNative) {
-            swapBytes_32(&ListType);
+            //swapBytes_32(&ListType);
         }
     }
 
@@ -620,7 +723,8 @@ namespace RIFF {
             pSubChunksMap = new ChunkMap();
             while (RemainingBytes() >= CHUNK_HEADER_SIZE) {
                 Chunk* ck;
-                uint32_t ckid = ReadUint32();
+                uint32_t ckid;
+                Read(&ckid, 4, 1);
        #if DEBUG
        std::cout << " ckid=" << convertToString(ckid) << std::endl;
        #endif // DEBUG
@@ -639,6 +743,9 @@ namespace RIFF {
         }
     }
 
+    /**
+     *  Returns string representation of the lists's id
+     */
     String List::GetListTypeString() {
         return convertToString(ListType);
     }

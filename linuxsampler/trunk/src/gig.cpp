@@ -323,8 +323,9 @@ namespace gig {
      * @see                SetPos()
      */
     unsigned long Sample::Read(void* pBuffer, unsigned long SampleCount) {
-        if (!Compressed) return pCkData->Read(pBuffer, SampleCount, FrameSize);
+        if (!Compressed) return pCkData->Read(pBuffer, SampleCount, FrameSize); //FIXME: channel inversion due to endian correction?
         else { //FIXME: no support for mono compressed samples yet, are there any?
+            if (this->SamplePos >= this->SamplesTotal) return 0;
             //TODO: efficiency: we simply assume here that all frames are compressed, maybe we should test for an average compression rate
             // best case needed buffer size (all frames compressed)
             unsigned long assumedsize      = (SampleCount << 1)  + // *2 (16 Bit, stereo, but assume all frames compressed)
@@ -353,8 +354,7 @@ namespace gig {
                 // reload from disk to local buffer if needed
                 if (remainingbytes < 8194) {
                     if (pCkData->GetState() != RIFF::stream_ready) {
-                        this->SamplePos += (SampleCount - remainingsamples);
-                        //if (this->SamplePos > this->SamplesTotal) this->SamplePos = this->SamplesTotal;
+                        this->SamplePos = this->SamplesTotal;
                         return (SampleCount - remainingsamples);
                     }
                     assumedsize    = remainingsamples;
@@ -474,7 +474,7 @@ namespace gig {
                 }
             }
             this->SamplePos += (SampleCount - remainingsamples);
-            //if (this->SamplePos > this->SamplesTotal) this->SamplePos = this->SamplesTotal;
+            if (this->SamplePos > this->SamplesTotal) this->SamplePos = this->SamplesTotal;
             return (SampleCount - remainingsamples);
         }
     }

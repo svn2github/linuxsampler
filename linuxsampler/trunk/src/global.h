@@ -32,12 +32,12 @@
 #include <config.h>
 #endif
 
-#define LS_DEBUG	0
+#define LS_DEBUG_LEVEL	1  ///< the higher this value the higher verbosity, 0 means no debug messages at all
 
-#if LS_DEBUG
-#  define dmsg(x)	printf x; fflush(stdout);
+#if LS_DEBUG_LEVEL > 0
+#  define dmsg(debuglevel,x)	if (LS_DEBUG_LEVEL >= debuglevel) {printf x; fflush(stdout);}
 #else
-#  define dmsg(x)
+#  define dmsg(debuglevel,x)
 #endif // LS_DEBUG
 
 // defines globally the bit depth of used samples

@@ -1,5 +1,5 @@
 AC_INIT(configure.in)
-
+AC_C_BIGENDIAN
 AC_CANONICAL_SYSTEM
 
 echo -n "Checking whether x86 architecture... "

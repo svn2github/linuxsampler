@@ -63,7 +63,7 @@ int Stream::ReadAhead(unsigned long SampleCount) {
     if (endofsamplereached) SetState(state_end);
     else                    SetState(state_active);
 
-    // dmsg(("Refilled stream with %d (SamplePos: %d)", SampleCount - samplestoread, this->SampleOffset));
+    dmsg(5,("Refilled stream with %d (SamplePos: %d)", SampleCount - samplestoread, this->SampleOffset));
     return (SampleCount - samplestoread);
 }
 
