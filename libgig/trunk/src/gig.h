@@ -63,9 +63,6 @@
 #define GIG_EG_CTR_ATTACK_INFLUENCE_EXTRACT(x)			((x >> 1) & 0x03)
 #define GIG_EG_CTR_DECAY_INFLUENCE_EXTRACT(x)			((x >> 3) & 0x03)
 #define GIG_EG_CTR_RELEASE_INFLUENCE_EXTRACT(x)			((x >> 5) & 0x03)
-#define GIG_VELOCITY_TRANSFORM_NONLINEAR(x,dynamic,scale)	(-0.1666235937e0+0.5143775427e-4*x*x+0.5318278732e-1*dynamic*dynamic-0.3560390502e-4*scale*scale+0.4683631221e-2*x-0.9484386143e-1*dynamic+0.8030068910e-2*scale)
-#define GIG_VELOCITY_TRANSFORM_LINEAR(x,dynamic,scale)		(((1.0+scale*3.0/128.0)/110.0)*x+dynamic/5.0+dynamic*scale)
-#define GIG_VELOCITY_TRANSFORM_SPECIAL(x,dynamic,scale)		(-0.1630504921e0+0.5794551347e-4*x*x+0.8361491099e-2*dynamic*dynamic-0.4303475615e-5*scale*scale+0.2085522765e-2*x+0.1313747345e-1*dynamic+0.3220916836e-2*scale)
 
 /** Gigasampler specific classes and definitions */
 namespace gig {
@@ -449,6 +446,7 @@ namespace gig {
             double*                  pVelocityAttenuationTable;  ///< Points to the velocity table corresponding to the velocity parameters of this DimensionRegion.
 
             leverage_ctrl_t DecodeLeverageController(_lev_ctrl_t EncodedController);
+            double* CreateVelocityTable(curve_type_t curveType, uint8_t depth, uint8_t scaling);
     };
 
     /** Encapsulates sample waves used for playback. */
