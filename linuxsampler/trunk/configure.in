@@ -62,18 +62,18 @@ have_audio_output_driver="false"
 
 AC_CHECK_HEADER(alsa/asoundlib.h,
     AC_CHECK_LIB(asound, main,
-                             have_alsa="true"
+                             have_alsa=1
                              ,
-                             have_alsa="false"
+                             have_alsa=0
                 )
                 ,
-                have_alsa="false"
+                have_alsa=0
 )
-if test "$have_alsa" = "true"; then
+if test "$have_alsa" = "1"; then
     have_midi_input_driver="true"
     have_audio_output_driver="true";
 fi
-AM_CONDITIONAL(HAVE_ALSA, test $have_alsa = "true")
+AM_CONDITIONAL(HAVE_ALSA, test $have_alsa = "1")
 AC_DEFINE_UNQUOTED(HAVE_ALSA,$have_alsa,[Define to 1 if you have ALSA installed.])
 
 
@@ -143,12 +143,12 @@ AM_CONDITIONAL(HAVE_JACK, test $HAVE_JACK = 1)
 AC_DEFINE_UNQUOTED(HAVE_JACK,$HAVE_JACK,[Define to 1 if you have JACK installed.])
 
 
-if test "$have_midi_input_driver=" = "false"; then
+if test "$have_midi_input_driver" = "false"; then
     echo "No supported MIDI input system found!"
     echo "Sorry, LinuxSampler only supports ALSA as MIDI input driver at the moment!"
     exit -1;
 fi
-if test "$have_audio_output_driver=" = "false"; then
+if test "$have_audio_output_driver" = "false"; then
     echo "No supported audio output system found!"
     echo "Sorry, LinuxSampler only supports ALSA and JACK as audio output driver at the moment!"
     exit -1;
