@@ -47,7 +47,7 @@ class DiskThread : public Thread {
         // Methods
         DiskThread(uint BufferWrapElements);
        ~DiskThread();
-        int     OrderNewStream(Stream::reference_t* pStreamRef, gig::Sample* pSample, unsigned long SampleOffset);
+        int     OrderNewStream(Stream::reference_t* pStreamRef, gig::Sample* pSample, unsigned long SampleOffset, bool DoLoop);
         int     OrderDeletionOfStream(Stream::reference_t* pStreamRef);
         Stream* AskForCreatedStream(Stream::OrderID_t StreamOrderID);
 
@@ -66,6 +66,7 @@ class DiskThread : public Thread {
             Stream::reference_t* pStreamRef;
             gig::Sample*         pSample;
             unsigned long        SampleOffset;
+            bool                 DoLoop;
         };
         struct delete_command_t {
             Stream*           pStream;

@@ -74,18 +74,31 @@ int Voice::Trigger(int MIDIKey, uint8_t Velocity, gig::Instrument* Instrument) {
     long cachedsamples = pSample->GetCache().Size / pSample->FrameSize;
     DiskVoice          = cachedsamples < pSample->SamplesTotal;
 
-    if (DiskVoice) {
+    if (DiskVoice) { // voice to be streamed from disk
         MaxRAMPos = cachedsamples - (OutputBufferSize << MAX_PITCH) / pSample->Channels;
-        if (pDiskThread->OrderNewStream(&DiskStreamRef, pSample, MaxRAMPos) < 0) {
+
+        // check if there's a loop defined which completely fits into the cached (RAM) part of the sample
+        if (pSample->Loops && pSample->LoopEnd <= MaxRAMPos) {
+            RAMLoop        = true;
+            LoopCyclesLeft = pSample->LoopPlayCount;
+        }
+        else RAMLoop = false;
+
+        if (pDiskThread->OrderNewStream(&DiskStreamRef, pSample, MaxRAMPos, !RAMLoop) < 0) {
             dmsg(1,("Disk stream order failed!\n"));
             Kill();
             return -1;
         }
-        dmsg(5,("Disk voice launched (cached samples: %d, total Samples: %d, MaxRAMPos: %d\n", cachedsamples, pSample->SamplesTotal, MaxRAMPos));
+        dmsg(4,("Disk voice launched (cached samples: %d, total Samples: %d, MaxRAMPos: %d, RAMLooping: %s\n", cachedsamples, pSample->SamplesTotal, MaxRAMPos, (RAMLoop) ? "yes" : "no"));
     }
-    else {
+    else { // RAM only voice
         MaxRAMPos = cachedsamples;
-        dmsg(5,("RAM only voice launched\n"));
+        if (pSample->Loops) {
+            RAMLoop        = true;
+            LoopCyclesLeft = pSample->LoopPlayCount;
+        }
+        else RAMLoop = false;
+        dmsg(4,("RAM only voice launched (Looping: %s)\n", (RAMLoop) ? "yes" : "no"));
     }
 
     CurrentPitch = pow(2, (double) (MIDIKey - (int) pSample->MIDIUnityNote) / (double) 12);
@@ -98,12 +111,22 @@ int Voice::Trigger(int MIDIKey, uint8_t Velocity, gig::Instrument* Instrument) {
     return 0; // success
 }
 
+/**
+ *  Renders the audio data for this voice for the current audio fragment.
+ *  The sample input data can either come from RAM (cached sample or sample
+ *  part) or directly from disk. The output signal will be rendered by
+ *  resampling / interpolation. If this voice is a disk streaming voice and
+ *  the voice completely played back the cached RAM part of the sample, it
+ *  will automatically switch to disk playback for the next RenderAudio()
+ *  call.
+ */
 void Voice::RenderAudio() {
 
     switch (this->PlaybackState) {
 
         case playback_state_ram: {
-                Interpolate((sample_t*) pSample->GetCache().pStart);
+                if (RAMLoop) InterpolateAndLoop((sample_t*) pSample->GetCache().pStart);
+                else         Interpolate((sample_t*) pSample->GetCache().pStart);
                 if (DiskVoice) {
                     // check if we reached the allowed limit of the sample RAM cache
                     if (Pos > MaxRAMPos) {
@@ -149,6 +172,11 @@ void Voice::RenderAudio() {
     }
 }
 
+/**
+ *  Interpolates the input audio data (no loop).
+ *
+ *  @param pSrc - pointer to input sample data
+ */
 void Voice::Interpolate(sample_t* pSrc) {
     float effective_volume = this->Volume;
     int   i = 0;
@@ -160,66 +188,83 @@ void Voice::Interpolate(sample_t* pSrc) {
     // FIXME: assuming either mono or stereo
     if (this->pSample->Channels == 2) { // Stereo Sample
         while (i < this->OutputBufferSize) {
-            int   pos_int   = double_to_int(this->Pos);  // integer position
-            float pos_fract = this->Pos - pos_int;       // fractional part of position
-            pos_int <<= 1;
-
-            #if USE_LINEAR_INTERPOLATION
-                // left channel
-                this->pOutput[i++] += effective_volume * (pSrc[pos_int]   + pos_fract * (pSrc[pos_int+2] - pSrc[pos_int]));
-                // right channel
-                this->pOutput[i++] += effective_volume * (pSrc[pos_int+1] + pos_fract * (pSrc[pos_int+3] - pSrc[pos_int+1]));
-            #else // polynomial interpolation
-                // calculate left channel
-                float xm1 = pSrc[pos_int];
-                float x0  = pSrc[pos_int+2];
-                float x1  = pSrc[pos_int+4];
-                float x2  = pSrc[pos_int+6];
-                float a   = (3 * (x0 - x1) - xm1 + x2) / 2;
-                float b   = 2 * x1 + xm1 - (5 * x0 + x2) / 2;
-                float c   = (x1 - xm1) / 2;
-                this->pOutput[i++] += effective_volume * ((((a * pos_fract) + b) * pos_fract + c) * pos_fract + x0);
-
-                //calculate right channel
-                xm1 = pSrc[pos_int+1];
-                x0  = pSrc[pos_int+3];
-                x1  = pSrc[pos_int+5];
-                x2  = pSrc[pos_int+7];
-                a   = (3 * (x0 - x1) - xm1 + x2) / 2;
-                b   = 2 * x1 + xm1 - (5 * x0 + x2) / 2;
-                c   = (x1 - xm1) / 2;
-                this->pOutput[i++] += effective_volume * ((((a * pos_fract) + b) * pos_fract + c) * pos_fract + x0);
-            #endif // USE_LINEAR_INTERPOLATION
-
-            this->Pos += this->CurrentPitch;
+            InterpolateOneStep_Stereo(pSrc, i, effective_volume);
         }
     }
     else { // Mono Sample
         while (i < this->OutputBufferSize) {
-            int   pos_int   = double_to_int(this->Pos);  // integer position
-            float pos_fract = this->Pos - pos_int;       // fractional part of position
-
-            #if USE_LINEAR_INTERPOLATION
-                float sample_point  = effective_volume * (pSrc[pos_int] + pos_fract * (pSrc[pos_int+1] - pSrc[pos_int]));
-            #else // polynomial interpolation
-                float xm1 = pSrc[pos_int];
-                float x0  = pSrc[pos_int+1];
-                float x1  = pSrc[pos_int+2];
-                float x2  = pSrc[pos_int+3];
-                float a   = (3 * (x0 - x1) - xm1 + x2) / 2;
-                float b   = 2 * x1 + xm1 - (5 * x0 + x2) / 2;
-                float c   = (x1 - xm1) / 2;
-                float sample_point = effective_volume * ((((a * pos_fract) + b) * pos_fract + c) * pos_fract + x0);
-            #endif // USE_LINEAR_INTERPOLATION
-
-            this->pOutput[i++] += sample_point;
-            this->pOutput[i++] += sample_point;
-
-            this->Pos += this->CurrentPitch;
+            InterpolateOneStep_Mono(pSrc, i, effective_volume);
         }
     }
 }
 
+/**
+ *  Interpolates the input audio data, this method honors looping.
+ *
+ *  @param pSrc - pointer to input sample data
+ */
+void Voice::InterpolateAndLoop(sample_t* pSrc) {
+    float effective_volume = this->Volume;
+    int   i = 0;
+
+    // ************************************************
+    // TODO: ARTICULATION DATA HANDLING IS MISSING HERE
+    // ************************************************
+
+    // FIXME: assuming either mono or stereo
+    if (pSample->Channels == 2) { // Stereo Sample
+        if (pSample->LoopPlayCount) {
+            // render loop (loop count limited)
+            while (i < OutputBufferSize && LoopCyclesLeft) {
+                InterpolateOneStep_Stereo(pSrc, i, effective_volume);
+                if (Pos > pSample->LoopEnd) {
+                    Pos = pSample->LoopStart + fmod(Pos - pSample->LoopEnd, pSample->LoopSize);;
+                    LoopCyclesLeft--;
+                }
+            }
+            // render on without loop
+            while (i < OutputBufferSize) {
+                InterpolateOneStep_Stereo(pSrc, i, effective_volume);
+            }
+        }
+        else { // render loop (endless loop)
+            while (i < OutputBufferSize) {
+                InterpolateOneStep_Stereo(pSrc, i, effective_volume);
+                if (Pos > pSample->LoopEnd) {
+                    Pos = pSample->LoopStart + fmod(Pos - pSample->LoopEnd, pSample->LoopSize);
+                }
+            }
+        }
+    }
+    else { // Mono Sample
+        if (pSample->LoopPlayCount) {
+            // render loop (loop count limited)
+            while (i < OutputBufferSize && LoopCyclesLeft) {
+                InterpolateOneStep_Mono(pSrc, i, effective_volume);
+                if (Pos > pSample->LoopEnd) {
+                    Pos = pSample->LoopStart + fmod(Pos - pSample->LoopEnd, pSample->LoopSize);;
+                    LoopCyclesLeft--;
+                }
+            }
+            // render on without loop
+            while (i < OutputBufferSize) {
+                InterpolateOneStep_Mono(pSrc, i, effective_volume);
+            }
+        }
+        else { // render loop (endless loop)
+            while (i < OutputBufferSize) {
+                InterpolateOneStep_Mono(pSrc, i, effective_volume);
+                if (Pos > pSample->LoopEnd) {
+                    Pos = pSample->LoopStart + fmod(Pos - pSample->LoopEnd, pSample->LoopSize);;
+                }
+            }
+        }
+    }
+}
+
+/**
+ *  Immediately kill the voice.
+ */
 void Voice::Kill() {
     if (DiskVoice && DiskStreamRef.State != Stream::state_unused) {
         pDiskThread->OrderDeletionOfStream(&DiskStreamRef);

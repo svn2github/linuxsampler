@@ -40,7 +40,7 @@ Stream* DiskThread::SLOT_RESERVED = (Stream*) &SLOT_RESERVED;
  * Returns -1 if command queue or pickup pool is full, 0 on success (will be
  * called by audio thread within the voice class).
  */
-int DiskThread::OrderNewStream(Stream::reference_t* pStreamRef, gig::Sample* pSample, unsigned long SampleOffset) {
+int DiskThread::OrderNewStream(Stream::reference_t* pStreamRef, gig::Sample* pSample, unsigned long SampleOffset, bool DoLoop) {
     dmsg(4,("Disk Thread: new stream ordered\n"));
     if (CreationQueue->write_space() < 1) {
         dmsg(1,("DiskThread: Order queue full!\n"));
@@ -60,6 +60,7 @@ int DiskThread::OrderNewStream(Stream::reference_t* pStreamRef, gig::Sample* pSa
     cmd.pStreamRef   = pStreamRef;
     cmd.pSample      = pSample;
     cmd.SampleOffset = SampleOffset;
+    cmd.DoLoop       = DoLoop;
 
     CreationQueue->push(&cmd);
     return 0;
@@ -203,7 +204,7 @@ void DiskThread::CreateStream(create_command_t& Command) {
         std::cerr << "No unused stream found (OrderID:" << Command.OrderID << ") - report if this happens, this is a bug!\n" << std::flush;
         return;
     }
-    newstream->Launch(Command.hStream, Command.pStreamRef, Command.pSample, Command.SampleOffset);
+    newstream->Launch(Command.hStream, Command.pStreamRef, Command.pSample, Command.SampleOffset, Command.DoLoop);
     dmsg(4,("new Stream launched by disk thread (OrderID:%d,StreamHandle:%d)\n", Command.OrderID, Command.hStream));
     if (pCreatedStreams[Command.OrderID] != SLOT_RESERVED) {
         std::cerr << "DiskThread: Slot " << Command.OrderID << " already occupied! Please report this!\n" << std::flush;

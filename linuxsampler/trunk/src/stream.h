@@ -100,7 +100,7 @@ class Stream {
         inline static uint       GetUnusedStreams() { return UnusedStreams; }
     protected:
         // Methods
-        void                     Launch(Stream::Handle hStream, reference_t* pExportReference, gig::Sample* pSample, unsigned long SampleOffset);
+        void                     Launch(Stream::Handle hStream, reference_t* pExportReference, gig::Sample* pSample, unsigned long SampleOffset, bool DoLoop);
         inline void              Kill()      { pExportReference = NULL; Reset(); } ///< Will be called by disk thread after a 'deletion' command from the audio thread (within the voice class)
         inline Stream::Handle    GetHandle() { return hThis; }
         inline Stream::state_t   GetState()  { return State; }
@@ -110,18 +110,22 @@ class Stream {
         reference_t*             pExportReference;
         state_t                  State;
         Stream::Handle           hThis;
-        gig::Sample*             pSample;
         unsigned long            SampleOffset;
+        gig::Sample*             pSample;
+        gig::playback_state_t    PlaybackState;
         RingBuffer<sample_t>*    pRingBuffer;
+        bool                     DoLoop;
 
         // Static Attributes
         static uint              UnusedStreams; //< Reflects how many stream objects of all stream instances are currently not in use.
 
         // Methods
         inline void Reset() {
-            pSample      = NULL;
-            SampleOffset = 0;
-            hThis        = 0;
+            SampleOffset                   = 0;
+            pSample                        = NULL;
+            PlaybackState.position         = 0;
+            PlaybackState.reverse          = false;
+            hThis                          = 0;
             pRingBuffer->init(); // reset ringbuffer
             if (State != state_unused) {
                 // we can't do 'SetPos(state_unused)' here, due to possible race conditions)

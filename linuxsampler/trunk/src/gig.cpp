@@ -315,6 +315,181 @@ namespace gig {
     }
 
     /**
+     * Reads \a SampleCount number of sample points from the position stored
+     * in \a pPlaybackState into the buffer pointed by \a pBuffer and moves
+     * the position within the sample respectively, this method honors the
+     * looping informations of the sample (if any). The sample wave stream
+     * will be decompressed on the fly if using a compressed sample. Use this
+     * method if you don't want to load the sample into RAM, thus for disk
+     * streaming. All this methods needs to know to proceed with streaming
+     * for the next time you call this method is stored in \a pPlaybackState.
+     * You have to allocate and initialize the playback_state_t structure by
+     * yourself before you use it to stream a sample:
+     *
+     * <i>
+     * gig::playback_state_t playbackstate;                           <br>
+     * playbackstate.position         = 0;                            <br>
+     * playbackstate.reverse          = false;                        <br>
+     * playbackstate.loop_cycles_left = pSample->LoopPlayCount;       <br>
+     * </i>
+     *
+     * You don't have to take care of things like if there is actually a loop
+     * defined or if the current read position is located within a loop area.
+     * The method already handles such cases by itself.
+     *
+     * @param pBuffer          destination buffer
+     * @param SampleCount      number of sample points to read
+     * @param pPlaybackState   will be used to store and reload the playback
+     *                         state for the next ReadAndLoop() call
+     * @returns                number of successfully read sample points
+     */
+    unsigned long Sample::ReadAndLoop(void* pBuffer, unsigned long SampleCount, playback_state_t* pPlaybackState) {
+        unsigned long samplestoread = SampleCount, totalreadsamples = 0, readsamples, samplestoloopend;
+        uint8_t* pDst = (uint8_t*) pBuffer;
+
+        SetPos(pPlaybackState->position); // recover position from the last time
+
+        if (this->Loops && GetPos() <= this->LoopEnd) { // honor looping if there are loop points defined
+
+            switch (this->LoopType) {
+
+                case loop_type_bidirectional: { //TODO: not tested yet!
+                    do {
+                        // if not endless loop check if max. number of loop cycles have been passed
+                        if (this->LoopPlayCount && !pPlaybackState->loop_cycles_left) break;
+
+                        if (!pPlaybackState->reverse) { // forward playback
+                            do {
+                                samplestoloopend  = this->LoopEnd - GetPos();
+                                readsamples       = Read(&pDst[totalreadsamples * this->FrameSize], Min(samplestoread, samplestoloopend));
+                                samplestoread    -= readsamples;
+                                totalreadsamples += readsamples;
+                                if (readsamples == samplestoloopend) {
+                                    pPlaybackState->reverse = true;
+                                    break;
+                                }
+                            } while (samplestoread && readsamples);
+                        }
+                        else { // backward playback
+
+                            // as we can only read forward from disk, we have to
+                            // determine the end position within the loop first,
+                            // read forward from that 'end' and finally after
+                            // reading, swap all sample frames so it reflects
+                            // backward playback
+
+                            unsigned long swapareastart       = totalreadsamples;
+                            unsigned long loopoffset          = GetPos() - this->LoopStart;
+                            unsigned long samplestoreadinloop = Min(samplestoread, loopoffset);
+                            unsigned long reverseplaybackend  = GetPos() - samplestoreadinloop;
+
+                            SetPos(reverseplaybackend);
+
+                            // read samples for backward playback
+                            do {
+                                readsamples          = Read(&pDst[totalreadsamples * this->FrameSize], samplestoreadinloop);
+                                samplestoreadinloop -= readsamples;
+                                samplestoread       -= readsamples;
+                                totalreadsamples    += readsamples;
+                            } while (samplestoreadinloop && readsamples);
+
+                            SetPos(reverseplaybackend); // pretend we really read backwards
+
+                            if (reverseplaybackend == this->LoopStart) {
+                                pPlaybackState->loop_cycles_left--;
+                                pPlaybackState->reverse = false;
+                            }
+
+                            // reverse the sample frames for backward playback
+                            SwapMemoryArea(&pDst[swapareastart * this->FrameSize], (totalreadsamples - swapareastart) * this->FrameSize, this->FrameSize);
+                        }
+                    } while (samplestoread && readsamples);
+                    break;
+                }
+
+                case loop_type_backward: { // TODO: not tested yet!
+                    // forward playback (not entered the loop yet)
+                    if (!pPlaybackState->reverse) do {
+                        samplestoloopend  = this->LoopEnd - GetPos();
+                        readsamples       = Read(&pDst[totalreadsamples * this->FrameSize], Min(samplestoread, samplestoloopend));
+                        samplestoread    -= readsamples;
+                        totalreadsamples += readsamples;
+                        if (readsamples == samplestoloopend) {
+                            pPlaybackState->reverse = true;
+                            break;
+                        }
+                    } while (samplestoread && readsamples);
+
+                    if (!samplestoread) break;
+
+                    // as we can only read forward from disk, we have to
+                    // determine the end position within the loop first,
+                    // read forward from that 'end' and finally after
+                    // reading, swap all sample frames so it reflects
+                    // backward playback
+
+                    unsigned long swapareastart       = totalreadsamples;
+                    unsigned long loopoffset          = GetPos() - this->LoopStart;
+                    unsigned long samplestoreadinloop = (this->LoopPlayCount) ? Min(samplestoread, pPlaybackState->loop_cycles_left * LoopSize - loopoffset)
+                                                                              : samplestoread;
+                    unsigned long reverseplaybackend  = this->LoopStart + Abs((loopoffset - samplestoreadinloop) % this->LoopSize);
+
+                    SetPos(reverseplaybackend);
+
+                    // read samples for backward playback
+                    do {
+                        // if not endless loop check if max. number of loop cycles have been passed
+                        if (this->LoopPlayCount && !pPlaybackState->loop_cycles_left) break;
+                        samplestoloopend     = this->LoopEnd - GetPos();
+                        readsamples          = Read(&pDst[totalreadsamples * this->FrameSize], Min(samplestoreadinloop, samplestoloopend));
+                        samplestoreadinloop -= readsamples;
+                        samplestoread       -= readsamples;
+                        totalreadsamples    += readsamples;
+                        if (readsamples == samplestoloopend) {
+                            pPlaybackState->loop_cycles_left--;
+                            SetPos(this->LoopStart);
+                        }
+                    } while (samplestoreadinloop && readsamples);
+
+                    SetPos(reverseplaybackend); // pretend we really read backwards
+
+                    // reverse the sample frames for backward playback
+                    SwapMemoryArea(&pDst[swapareastart * this->FrameSize], (totalreadsamples - swapareastart) * this->FrameSize, this->FrameSize);
+                    break;
+                }
+
+                default: case loop_type_normal: {
+                    do {
+                        // if not endless loop check if max. number of loop cycles have been passed
+                        if (this->LoopPlayCount && !pPlaybackState->loop_cycles_left) break;
+                        samplestoloopend  = this->LoopEnd - GetPos();
+                        readsamples       = Read(&pDst[totalreadsamples * this->FrameSize], Min(samplestoread, samplestoloopend));
+                        samplestoread    -= readsamples;
+                        totalreadsamples += readsamples;
+                        if (readsamples == samplestoloopend) {
+                            pPlaybackState->loop_cycles_left--;
+                            SetPos(this->LoopStart);
+                        }
+                    } while (samplestoread && readsamples);
+                    break;
+                }
+            }
+        }
+
+        // read on without looping
+        if (samplestoread) do {
+            readsamples = Read(&pDst[totalreadsamples * this->FrameSize], samplestoread);
+            samplestoread    -= readsamples;
+            totalreadsamples += readsamples;
+        } while (readsamples && samplestoread);
+
+        // store current position
+        pPlaybackState->position = GetPos();
+
+        return totalreadsamples;
+    }
+
+    /**
      * Reads \a SampleCount number of sample points from the current
      * position into the buffer pointed by \a pBuffer and increments the
      * position within the sample. The sample wave stream will be

@@ -39,32 +39,41 @@ int Stream::ReadAhead(unsigned long SampleCount) {
 
     long total_readsamples = 0, readsamples = 0;
     long samplestoread = SampleCount / pSample->Channels;
+    sample_t* pBuf = pRingBuffer->get_write_ptr();
+    bool endofsamplereached;
 
     // refill the disk stream buffer
-    pSample->SetPos(this->SampleOffset);
+    if (this->DoLoop) { // honor looping
+        total_readsamples  = pSample->ReadAndLoop(pBuf, samplestoread, &this->PlaybackState);
+        endofsamplereached = (this->PlaybackState.position >= pSample->SamplesTotal);
+        dmsg(5,("Refilled stream %d with %d (SamplePos: %d)", this->hThis, total_readsamples, this->PlaybackState.position));
+    }
+    else { // normal forward playback
 
-    sample_t* ptr = pRingBuffer->get_write_ptr();
-    do {
-        readsamples    = pSample->Read(&ptr[total_readsamples * pSample->Channels], samplestoread);
-        samplestoread -= readsamples;
-        total_readsamples += readsamples;
-    } while (samplestoread && readsamples > 0);
+        pSample->SetPos(this->SampleOffset); // recover old position
+
+        do {
+            readsamples        = pSample->Read(&pBuf[total_readsamples * pSample->Channels], samplestoread);
+            samplestoread     -= readsamples;
+            total_readsamples += readsamples;
+        } while (samplestoread && readsamples > 0);
+
+        // we have to store the position within the sample, because other streams might use the same sample
+        this->SampleOffset = pSample->GetPos();
+
+        endofsamplereached = (SampleOffset >= pSample->SamplesTotal);
+        dmsg(5,("Refilled stream %d with %d (SamplePos: %d)", this->hThis, total_readsamples, this->SampleOffset));
+    }
 
     // we must delay the increment_write_ptr_with_wrap() after the while() loop because we need to
     // ensure that we read exactly SampleCount sample, otherwise the buffer wrapping code will fail
     pRingBuffer->increment_write_ptr_with_wrap(total_readsamples * pSample->Channels);
 
-    // we have to store the position within the sample, because other streams might use the same sample
-    this->SampleOffset = pSample->GetPos();
-
-    bool endofsamplereached = (SampleOffset >= pSample->SamplesTotal);
-
     // update stream state
     if (endofsamplereached) SetState(state_end);
     else                    SetState(state_active);
 
-    dmsg(5,("Refilled stream %d with %d (SamplePos: %d)", this->hThis, SampleCount - samplestoread, this->SampleOffset));
-    return (SampleCount - samplestoread);
+    return total_readsamples;
 }
 
 void Stream::WriteSilence(unsigned long SilenceSampleWords) {
@@ -73,12 +82,14 @@ void Stream::WriteSilence(unsigned long SilenceSampleWords) {
 }
 
 Stream::Stream(uint BufferSize, uint BufferWrapElements) {
-    this->pExportReference = NULL;
-    this->State            = state_unused;
-    this->hThis            = 0;
-    this->pSample          = NULL;
-    this->SampleOffset     = 0;
-    this->pRingBuffer      = new RingBuffer<sample_t>(BufferSize, BufferWrapElements);
+    this->pExportReference               = NULL;
+    this->State                          = state_unused;
+    this->hThis                          = 0;
+    this->pSample                        = NULL;
+    this->SampleOffset                   = 0;
+    this->PlaybackState.position         = 0;
+    this->PlaybackState.reverse          = false;
+    this->pRingBuffer                    = new RingBuffer<sample_t>(BufferSize, BufferWrapElements);
     UnusedStreams++;
 }
 
@@ -88,11 +99,15 @@ Stream::~Stream() {
 }
 
 /// Called by disk thread to activate the disk stream.
-void Stream::Launch(Stream::Handle hStream, reference_t* pExportReference, gig::Sample* pSample, unsigned long SampleOffset) {
+void Stream::Launch(Stream::Handle hStream, reference_t* pExportReference, gig::Sample* pSample, unsigned long SampleOffset, bool DoLoop) {
     UnusedStreams--;
-    this->pExportReference = pExportReference;
-    this->hThis        = hStream;
-    this->pSample      = pSample;
-    this->SampleOffset = SampleOffset;
+    this->pExportReference               = pExportReference;
+    this->hThis                          = hStream;
+    this->pSample                        = pSample;
+    this->SampleOffset                   = SampleOffset;
+    this->PlaybackState.position         = SampleOffset;
+    this->PlaybackState.reverse          = false;
+    this->PlaybackState.loop_cycles_left = pSample->LoopPlayCount;
+    this->DoLoop                         = DoLoop;
     SetState(state_active);
 }
