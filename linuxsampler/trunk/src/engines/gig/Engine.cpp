@@ -1027,6 +1027,7 @@ namespace LinuxSampler { namespace gig {
 
         switch (id) {
             case 0x41: { // Roland
+                dmsg(3,("Roland Sysex\n"));
                 uint8_t device_id, model_id, cmd_id;
                 if (!reader.pop(&device_id)) goto free_sysex_data;
                 if (!reader.pop(&model_id))  goto free_sysex_data;
@@ -1039,19 +1040,25 @@ namespace LinuxSampler { namespace gig {
                 const RingBuffer<uint8_t>::NonVolatileReader checksum_reader = reader; // so we can calculate the check sum later
                 if (reader.read(&addr[0], 3) != 3) goto free_sysex_data;
                 if (addr[0] == 0x40 && addr[1] == 0x00) { // System Parameters
+                    dmsg(3,("\tSystem Parameter\n"));
                 }
                 else if (addr[0] == 0x40 && addr[1] == 0x01) { // Common Parameters
+                    dmsg(3,("\tCommon Parameter\n"));
                 }
                 else if (addr[0] == 0x40 && (addr[1] & 0xf0) == 0x10) { // Part Parameters (1)
-                    switch (addr[3]) {
+                    dmsg(3,("\tPart Parameter\n"));
+                    switch (addr[2]) {
                         case 0x40: { // scale tuning
+                            dmsg(3,("\t\tScale Tuning\n"));
                             uint8_t scale_tunes[12]; // detuning of all 12 semitones of an octave
                             if (reader.read(&scale_tunes[0], 12) != 12) goto free_sysex_data;
                             uint8_t checksum;
-                            if (!reader.pop(&checksum))                      goto free_sysex_data;
-                            if (GSCheckSum(checksum_reader, 12) != checksum) goto free_sysex_data;
+                            if (!reader.pop(&checksum)) goto free_sysex_data;
+                            // some are not sending a GS checksum, so we ignore it for now
+                            //if (GSCheckSum(checksum_reader, 12)) goto free_sysex_data;
                             for (int i = 0; i < 12; i++) scale_tunes[i] -= 64;
                             AdjustScale((int8_t*) scale_tunes);
+                            dmsg(3,("\t\t\tNew scale applied.\n"));
                             break;
                         }
                     }
@@ -1192,7 +1199,7 @@ namespace LinuxSampler { namespace gig {
     }
 
     String Engine::Version() {
-        String s = "$Revision: 1.34 $";
+        String s = "$Revision: 1.35 $";
         return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
 
