@@ -92,7 +92,7 @@ namespace LinuxSampler { namespace gig {
             void Reset();
             void SetOutput(AudioOutputDevice* pAudioOutputDevice);
             void SetEngine(Engine* pEngine);
-            int  Trigger(Event* pNoteOnEvent, int PitchBend, ::gig::Instrument* pInstrument);
+            int  Trigger(Event* pNoteOnEvent, int PitchBend, ::gig::Instrument* pInstrument, int iLayer = 0);
             inline bool IsActive() { return Active; }
         private:
             // Types

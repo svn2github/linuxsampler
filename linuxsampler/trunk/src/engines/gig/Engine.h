@@ -142,6 +142,7 @@ namespace LinuxSampler { namespace gig {
             void ProcessNoteOff(Event* pNoteOffEvent);
             void ProcessPitchbend(Event* pPitchbendEvent);
             void ProcessControlChange(Event* pControlChangeEvent);
+            void LaunchVoice(Event* pNoteOnEvent, int iLayer = 0);
             void KillVoice(Voice* pVoice);
             void ResetSynthesisParameters(Event::destination_t dst, float val);
             void ResetInternal();

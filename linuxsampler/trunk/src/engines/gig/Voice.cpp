@@ -27,7 +27,7 @@
 
 namespace LinuxSampler { namespace gig {
 
-    // FIXME: no support for layers (nor crossfades) yet
+    // TODO: no support for crossfades yet
 
     const float Voice::FILTER_CUTOFF_COEFF(CalculateFilterCutoffCoeff());
 
@@ -107,9 +107,10 @@ namespace LinuxSampler { namespace gig {
      *  @param pNoteOnEvent - event that caused triggering of this voice
      *  @param PitchBend    - MIDI detune factor (-8192 ... +8191)
      *  @param pInstrument  - points to the loaded instrument which provides sample wave(s) and articulation data
+     *  @param iLayer       - layer number this voice refers to (only if this is a layered sound of course)
      *  @returns            0 on success, a value < 0 if something failed
      */
-    int Voice::Trigger(Event* pNoteOnEvent, int PitchBend, ::gig::Instrument* pInstrument) {
+    int Voice::Trigger(Event* pNoteOnEvent, int PitchBend, ::gig::Instrument* pInstrument, int iLayer) {
         if (!pInstrument) {
            dmsg(1,("voice::trigger: !pInstrument\n"));
            exit(EXIT_FAILURE);
@@ -138,7 +139,11 @@ namespace LinuxSampler { namespace gig {
                     DimValues[i] = 0; //TODO: we currently ignore this dimension
                     break;
                 case ::gig::dimension_layer:
-                    DimValues[i] = 0; //TODO: we currently ignore this dimension
+                    DimValues[i] = iLayer;
+                    // if this is the 1st layer then spawn further voices for all the other layers
+                    if (iLayer == 0)
+                        for (int iNewLayer = 1; iNewLayer < pRegion->pDimensionDefinitions[i].zones; iNewLayer++)
+                            pEngine->LaunchVoice(pNoteOnEvent, iNewLayer);
                     break;
                 case ::gig::dimension_velocity:
                     DimValues[i] = pNoteOnEvent->Velocity;
@@ -268,7 +273,7 @@ namespace LinuxSampler { namespace gig {
         {
             double pitchbasecents = pDimRgn->FineTune * 10;
             if (pDimRgn->PitchTrack) pitchbasecents += (MIDIKey - (int) pDimRgn->UnityNote) * 100;
-            this->PitchBase = RTMath::CentsToFreqRatio(pitchbasecents);
+            this->PitchBase = RTMath::CentsToFreqRatio(pitchbasecents) * (double(pSample->SamplesPerSecond) / double(pEngine->pAudioOutputDevice->SampleRate()));
             this->PitchBend = RTMath::CentsToFreqRatio(((double) PitchBend / 8192.0) * 200.0); // pitchbend wheel +-2 semitones = 200 cents
         }
 

@@ -527,21 +527,8 @@ namespace LinuxSampler { namespace gig {
             pEvents->move(pNoteOnEvent, pKey->pEvents); // move event to the key's own event list
         }
 
-        // allocate a new voice for the key
-        Voice* pNewVoice = pKey->pActiveVoices->alloc();
-        if (pNewVoice) {
-            // launch the new voice
-            if (pNewVoice->Trigger(pNoteOnEvent, this->Pitch, this->pInstrument) < 0) {
-                dmsg(1,("Triggering new voice failed!\n"));
-                pKey->pActiveVoices->free(pNewVoice);
-            }
-            else if (!pKey->Active) { // mark as active key
-                pKey->Active = true;
-                pKey->pSelf  = pActiveKeys->alloc();
-                *pKey->pSelf = pNoteOnEvent->Key;
-            }
-        }
-        else std::cerr << "No free voice!" << std::endl << std::flush;
+        // allocate and trigger a new voice for the key
+        LaunchVoice(pNoteOnEvent);
     }
 
     /**
@@ -573,6 +560,35 @@ namespace LinuxSampler { namespace gig {
     void Engine::ProcessPitchbend(Event* pPitchbendEvent) {
         this->Pitch = pPitchbendEvent->Pitch; // store current pitch value
         pEvents->move(pPitchbendEvent, pSynthesisEvents[Event::destination_vco]);
+    }
+
+    /**
+     *  Allocates and triggers a new voice. This method will usually be
+     *  called by the ProcessNoteOn() method and by the voices itself
+     *  (e.g. to spawn further voices on the same key for layered sounds).
+     *
+     *  @param pNoteOnEvent - key, velocity and time stamp of the event
+     *  @param iLayer       - layer index for the new voice (optional - only
+     *                        in case of layered sounds of course)
+     */
+    void Engine::LaunchVoice(Event* pNoteOnEvent, int iLayer) {
+        midi_key_info_t* pKey = &pMIDIKeyInfo[pNoteOnEvent->Key];
+
+        // allocate a new voice for the key
+        Voice* pNewVoice = pKey->pActiveVoices->alloc();
+        if (pNewVoice) {
+            // launch the new voice
+            if (pNewVoice->Trigger(pNoteOnEvent, this->Pitch, this->pInstrument, iLayer) < 0) {
+                dmsg(1,("Triggering new voice failed!\n"));
+                pKey->pActiveVoices->free(pNewVoice);
+            }
+            else if (!pKey->Active) { // mark as active key
+                pKey->Active = true;
+                pKey->pSelf  = pActiveKeys->alloc();
+                *pKey->pSelf = pNoteOnEvent->Key;
+            }
+        }
+        else std::cerr << "No free voice!" << std::endl << std::flush;
     }
 
     /**
@@ -768,7 +784,7 @@ namespace LinuxSampler { namespace gig {
     }
 
     String Engine::Version() {
-        String s = "$Revision: 1.8 $";
+        String s = "$Revision: 1.9 $";
         return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
 
