@@ -138,6 +138,7 @@ if test $HAVE_JACK = false; then
 else
     HAVE_JACK=1
     have_audio_output_driver="true";
+    AC_CHECK_LIB(jack, jack_client_name_size, [AC_DEFINE(HAVE_JACK_CLIENT_NAME_SIZE, 1, [Define to 1 if you have the `jack_client_name_size' function.])], , $JACK_LIBS)
 fi
 AM_CONDITIONAL(HAVE_JACK, test $HAVE_JACK = 1)
 AC_DEFINE_UNQUOTED(HAVE_JACK,$HAVE_JACK,[Define to 1 if you have JACK installed.])

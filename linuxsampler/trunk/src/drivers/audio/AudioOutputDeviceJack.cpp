@@ -27,6 +27,10 @@
 
 #if HAVE_JACK
 
+#ifndef HAVE_JACK_CLIENT_NAME_SIZE
+#define jack_client_name_size() 33
+#endif
+
 namespace LinuxSampler {
 
     /// number of currently existing JACK audio output devices in LinuxSampler
@@ -244,7 +248,7 @@ namespace LinuxSampler {
     }
 
     String AudioOutputDeviceJack::Version() {
-       String s = "$Revision: 1.15 $";
+       String s = "$Revision: 1.16 $";
        return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
 
