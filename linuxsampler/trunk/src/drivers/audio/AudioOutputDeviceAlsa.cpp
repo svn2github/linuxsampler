@@ -236,7 +236,7 @@ namespace LinuxSampler {
         this->uiSamplerate   = ((DeviceCreationParameterInt*)Parameters["samplerate"])->ValueAsInt();
         this->FragmentSize   = ((DeviceCreationParameterInt*)Parameters["fragmentsize"])->ValueAsInt();
         uint Fragments       = ((DeviceCreationParameterInt*)Parameters["fragments"])->ValueAsInt();
-        String Card          = Parameters["card"]->Value();
+        String Card          = ((DeviceCreationParameterString*)Parameters["card"])->ValueAsString();
 
         dmsg(1,("Checking if hw parameters supported...\n"));
         if (HardwareParametersSupported(Card, uiAlsaChannels, uiSamplerate, Fragments, FragmentSize)) {
@@ -459,7 +459,7 @@ namespace LinuxSampler {
     }
 
     String AudioOutputDeviceAlsa::Version() {
-       String s = "$Revision: 1.11 $";
+       String s = "$Revision: 1.12 $";
        return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
 

@@ -60,7 +60,7 @@ namespace LinuxSampler {
             virtual void             SetValue(String val) throw (LinuxSamplerException);
 
             virtual bool ValueAsBool();
-            virtual void SetValue(bool b);
+            virtual void SetValue(bool b) throw (LinuxSamplerException);
 
             virtual void OnSetValue(bool b) throw (LinuxSamplerException) = 0;
         protected:
@@ -79,7 +79,7 @@ namespace LinuxSampler {
             virtual void             SetValue(String val) throw (LinuxSamplerException);
 
             virtual int  ValueAsInt();
-            virtual void SetValue(int i);
+            virtual void SetValue(int i) throw (LinuxSamplerException);
 
             virtual optional<int>    RangeMinAsInt()      = 0;
             virtual optional<int>    RangeMaxAsInt()      = 0;
@@ -101,7 +101,7 @@ namespace LinuxSampler {
             virtual void             SetValue(String val) throw (LinuxSamplerException);
 
             virtual float ValueAsFloat();
-            virtual void  SetValue(float f);
+            virtual void  SetValue(float f) throw (LinuxSamplerException);
 
             virtual optional<float>     RangeMinAsFloat()      = 0;
             virtual optional<float>     RangeMaxAsFloat()      = 0;
@@ -122,6 +122,9 @@ namespace LinuxSampler {
             virtual String           Value();
             virtual void             SetValue(String val) throw (LinuxSamplerException);
 
+            virtual String ValueAsString();
+            virtual void   SetValueAsString(String s) throw (LinuxSamplerException);
+
             virtual std::vector<String> PossibilitiesAsString() = 0;
             virtual void                OnSetValue(String s)    = 0;
         protected:
@@ -140,7 +143,7 @@ namespace LinuxSampler {
             virtual void             SetValue(String val) throw (LinuxSamplerException);
 
             virtual std::vector<String> ValueAsStrings();
-            virtual void                SetValue(std::vector<String> vS);
+            virtual void                SetValue(std::vector<String> vS) throw (LinuxSamplerException);
 
             virtual std::vector<String> PossibilitiesAsString()            = 0;
             virtual void                OnSetValue(std::vector<String> vS) = 0;
@@ -183,7 +186,7 @@ namespace LinuxSampler {
             virtual void   SetValue(String val) throw (LinuxSamplerException);
 
             virtual bool ValueAsBool();
-            virtual void SetValue(bool b);
+            virtual void SetValue(bool b) throw (LinuxSamplerException);
 
             virtual optional<bool> DefaultAsBool(std::map<String,String> Parameters) = 0;
             virtual void OnSetValue(bool b) throw (LinuxSamplerException)  = 0;
@@ -207,7 +210,7 @@ namespace LinuxSampler {
             virtual void   SetValue(String val) throw (LinuxSamplerException);
 
             virtual int  ValueAsInt();
-            virtual void SetValue(int i);
+            virtual void SetValue(int i) throw (LinuxSamplerException);
 
             virtual optional<int>    DefaultAsInt(std::map<String,String> Parameters)  = 0;
             virtual optional<int>    RangeMinAsInt(std::map<String,String> Parameters) = 0;
@@ -234,7 +237,7 @@ namespace LinuxSampler {
             virtual void   SetValue(String val) throw (LinuxSamplerException);
 
             virtual float ValueAsFloat();
-            virtual void  SetValue(float f);
+            virtual void  SetValue(float f) throw (LinuxSamplerException);
 
             virtual optional<float>    DefaultAsFloat(std::map<String,String> Parameters)  = 0;
             virtual optional<float>    RangeMinAsFloat(std::map<String,String> Parameters) = 0;
@@ -258,6 +261,9 @@ namespace LinuxSampler {
             virtual optional<String> Possibilities(std::map<String,String> Parameters);
             virtual String Value();
             virtual void   SetValue(String val) throw (LinuxSamplerException);
+
+            virtual String ValueAsString();
+            virtual void   SetValueAsString(String s) throw (LinuxSamplerException);
 
             virtual optional<String>    DefaultAsString(std::map<String,String> Parameters) = 0;
             virtual std::vector<String> PossibilitiesAsString(std::map<String,String> Parameters) = 0;
@@ -283,7 +289,7 @@ namespace LinuxSampler {
             virtual void   SetValue(String val) throw (LinuxSamplerException);
 
             virtual std::vector<String> ValueAsStrings();
-            virtual void                SetValue(std::vector<String> vS);
+            virtual void                SetValue(std::vector<String> vS) throw (LinuxSamplerException);
 
             virtual std::vector<String> DefaultAsStrings(std::map<String,String> Parameters) = 0;
             virtual std::vector<String> PossibilitiesAsString(std::map<String,String> Parameters) = 0;

@@ -58,7 +58,7 @@ int main(int argc, char **argv) {
     dmsg(1,("Registered audio output drivers: %s\n", AudioOutputDeviceFactory::AvailableDriversAsString().c_str()));
 
     // start LSCP network server
-    dmsg(1,("Starting LSCP network server..."));
+    dmsg(1,("Starting LSCP network server (on TCP port %d)...", LSCP_PORT));
     pLSCPServer = new LSCPServer(pSampler);
     pLSCPServer->StartThread();
     pLSCPServer->WaitUntilInitialized();

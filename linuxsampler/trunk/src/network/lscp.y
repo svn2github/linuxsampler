@@ -240,7 +240,8 @@ engine_name           :  string
 filename              :  STRINGVAL
                       ;
 
-param_val             :  STRINGVAL                { $$ = $1;                                             }
+param_val             :  string
+                      |  STRINGVAL
                       |  NUMBER                   { std::stringstream ss; ss << $1; $$ = ss.str();       }
                       |  DOTNUM                   { std::stringstream ss; ss << $1; $$ = ss.str();       }
                       ;
