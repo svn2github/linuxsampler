@@ -1,6 +1,16 @@
 # to prevent compile errors on some systems
 AM_CXXFLAGS = -pedantic
 
+# link gigextract either against libaudiofile or libsndfile
+# (if both exist on the system, prefer libsndfile)
+if HAVE_SNDFILE
+gigextract_libs = $(SNDFILE_LIBS)
+gigextract_flags = $(SNDFILE_CFLAGS)
+else
+gigextract_libs = $(AUDIOFILE_LIBS)
+gigextract_flags = $(AUDIOFILE_CFLAGS)
+endif
+
 libgigincludedir = $(includedir)
 libgiginclude_HEADERS = RIFF.h DLS.h gig.h
 
@@ -16,5 +26,5 @@ dlsdump_LDADD = $(top_builddir)/src/libgig.la
 gigdump_SOURCES = gigdump.cpp
 gigdump_LDADD = $(top_builddir)/src/libgig.la
 gigextract_SOURCES = gigextract.cpp
-gigextract_LDADD = $(top_builddir)/src/libgig.la $(SNDFILE_LIBS) -ldl
-gigextract_CFLAGS = $(SNDFILE_CFLAGS)
+gigextract_LDADD = $(top_builddir)/src/libgig.la $(gigextract_libs) -ldl
+gigextract_CFLAGS = $(gigextract_flags)

@@ -1,5 +1,9 @@
 Version CVS HEAD (?)
 
+  * packaging changes:
+    - fixed conditional linkage of either libsndfile or libaudiofile
+      (if none of the two exist, configure script will abort)
+
   * src/gig.cpp, src/gig.h:
     - experimental support for Gigasampler v3 format;
       64 bit file offsets are truncated to 32 bit, 24 bit samples are
