@@ -124,24 +124,111 @@ namespace LinuxSampler { namespace gig {
         pTriggerEvent   = pNoteOnEvent;
 
         if (!pRegion) {
-            std::cerr << "Audio Thread: No Region defined for MIDI key " << MIDIKey << std::endl << std::flush;
+            std::cerr << "gig::Voice: No Region defined for MIDI key " << MIDIKey << std::endl << std::flush;
             Kill();
             return -1;
         }
 
-        //TODO: current MIDI controller values are not taken into account yet
-        ::gig::DimensionRegion* pDimRgn = NULL;
-        for (int i = pRegion->Dimensions - 1; i >= 0; i--) { // Check if instrument has a velocity split
-            if (pRegion->pDimensionDefinitions[i].dimension == ::gig::dimension_velocity) {
-                uint DimValues[5] = {0,0,0,0,0};
+        // get current dimension values to select the right dimension region
+        //FIXME: controller values for selecting the dimension region here are currently not sample accurate
+        uint DimValues[5] = {0,0,0,0,0};
+        for (int i = pRegion->Dimensions - 1; i >= 0; i--) {
+            switch (pRegion->pDimensionDefinitions[i].dimension) {
+                case ::gig::dimension_samplechannel:
+                    DimValues[i] = 0; //TODO: we currently ignore this dimension
+                    break;
+                case ::gig::dimension_layer:
+                    DimValues[i] = 0; //TODO: we currently ignore this dimension
+                    break;
+                case ::gig::dimension_velocity:
                     DimValues[i] = pNoteOnEvent->Velocity;
-                pDimRgn = pRegion->GetDimensionRegionByValue(DimValues[4],DimValues[3],DimValues[2],DimValues[1],DimValues[0]);
-                break;
+                    break;
+                case ::gig::dimension_channelaftertouch:
+                    DimValues[i] = 0; //TODO: we currently ignore this dimension
+                    break;
+                case ::gig::dimension_releasetrigger:
+                    DimValues[i] = 0; //TODO: we currently ignore this dimension
+                    break;
+                case ::gig::dimension_keyboard:
+                    DimValues[i] = (uint) pNoteOnEvent->Key;
+                    break;
+                case ::gig::dimension_modwheel:
+                    DimValues[i] = pEngine->ControllerTable[1];
+                    break;
+                case ::gig::dimension_breath:
+                    DimValues[i] = pEngine->ControllerTable[2];
+                    break;
+                case ::gig::dimension_foot:
+                    DimValues[i] = pEngine->ControllerTable[4];
+                    break;
+                case ::gig::dimension_portamentotime:
+                    DimValues[i] = pEngine->ControllerTable[5];
+                    break;
+                case ::gig::dimension_effect1:
+                    DimValues[i] = pEngine->ControllerTable[12];
+                    break;
+                case ::gig::dimension_effect2:
+                    DimValues[i] = pEngine->ControllerTable[13];
+                    break;
+                case ::gig::dimension_genpurpose1:
+                    DimValues[i] = pEngine->ControllerTable[16];
+                    break;
+                case ::gig::dimension_genpurpose2:
+                    DimValues[i] = pEngine->ControllerTable[17];
+                    break;
+                case ::gig::dimension_genpurpose3:
+                    DimValues[i] = pEngine->ControllerTable[18];
+                    break;
+                case ::gig::dimension_genpurpose4:
+                    DimValues[i] = pEngine->ControllerTable[19];
+                    break;
+                case ::gig::dimension_sustainpedal:
+                    DimValues[i] = pEngine->ControllerTable[64];
+                    break;
+                case ::gig::dimension_portamento:
+                    DimValues[i] = pEngine->ControllerTable[65];
+                    break;
+                case ::gig::dimension_sostenutopedal:
+                    DimValues[i] = pEngine->ControllerTable[66];
+                    break;
+                case ::gig::dimension_softpedal:
+                    DimValues[i] = pEngine->ControllerTable[67];
+                    break;
+                case ::gig::dimension_genpurpose5:
+                    DimValues[i] = pEngine->ControllerTable[80];
+                    break;
+                case ::gig::dimension_genpurpose6:
+                    DimValues[i] = pEngine->ControllerTable[81];
+                    break;
+                case ::gig::dimension_genpurpose7:
+                    DimValues[i] = pEngine->ControllerTable[82];
+                    break;
+                case ::gig::dimension_genpurpose8:
+                    DimValues[i] = pEngine->ControllerTable[83];
+                    break;
+                case ::gig::dimension_effect1depth:
+                    DimValues[i] = pEngine->ControllerTable[91];
+                    break;
+                case ::gig::dimension_effect2depth:
+                    DimValues[i] = pEngine->ControllerTable[92];
+                    break;
+                case ::gig::dimension_effect3depth:
+                    DimValues[i] = pEngine->ControllerTable[93];
+                    break;
+                case ::gig::dimension_effect4depth:
+                    DimValues[i] = pEngine->ControllerTable[94];
+                    break;
+                case ::gig::dimension_effect5depth:
+                    DimValues[i] = pEngine->ControllerTable[95];
+                    break;
+                case ::gig::dimension_none:
+                    std::cerr << "gig::Voice::Trigger() Error: dimension=none\n" << std::flush;
+                    break;
+                default:
+                    std::cerr << "gig::Voice::Trigger() Error: Unknown dimension\n" << std::flush;
             }
         }
-        if (!pDimRgn) { // if there was no velocity split
-            pDimRgn = pRegion->GetDimensionRegionByValue(0,0,0,0,0);
-        }
+        ::gig::DimensionRegion* pDimRgn = pRegion->GetDimensionRegionByValue(DimValues[4],DimValues[3],DimValues[2],DimValues[1],DimValues[0]);
 
         pSample = pDimRgn->pSample; // sample won't change until the voice is finished
 
