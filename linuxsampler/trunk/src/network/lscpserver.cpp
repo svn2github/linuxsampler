@@ -1123,6 +1123,8 @@ String LSCPServer::SetAudioOutputChannel(uint ChannelAudioOutputChannel, uint Au
         if (!pSamplerChannel) throw LinuxSamplerException("Invalid channel number " + ToString(uiSamplerChannel));
         Engine* pEngine = pSamplerChannel->GetEngine();
         if (!pEngine) throw LinuxSamplerException("No engine deployed on sampler channel " + ToString(uiSamplerChannel));
+        std::map<uint, AudioOutputDevice*> devices = pSampler->GetAudioOutputDevices();
+        if (!devices.count(ChannelAudioOutputChannel)) throw LinuxSamplerException("There is no audio output device with index " + ToString(ChannelAudioOutputChannel));
         pEngine->SetOutputChannel(ChannelAudioOutputChannel, AudioOutputDeviceInputChannel);
     }
     catch (LinuxSamplerException e) {
