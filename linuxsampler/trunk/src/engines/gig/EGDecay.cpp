@@ -35,9 +35,10 @@ namespace LinuxSampler { namespace gig {
      *
      * @param Samples - total number of sample points to be rendered in this
      *                  audio fragment cycle by the audio engine
+     * @returns true if there was something to process
      */
-    void EGDecay::Process(uint Samples) {
-        if (!DecayStepsLeft) return;
+    bool EGDecay::Process(uint Samples) {
+        if (!DecayStepsLeft) return false;
 
         int iSample     = TriggerDelay;
         int to_process  = RTMath::Min(Samples - iSample, DecayStepsLeft);
@@ -48,6 +49,8 @@ namespace LinuxSampler { namespace gig {
             Level += DecayCoeff;
         }
         TriggerDelay = 0;
+
+        return true;
     }
 
     /**

@@ -104,10 +104,12 @@ namespace LinuxSampler {
              *
              * @param Samples - total number of sample points to be rendered in
              *                  this audio fragment cycle by the audio engine
+             * @returns true if modulation is active (LFO depth <> 0.0)
              */
-            void Process(uint Samples) {
+            bool Process(uint Samples) {
                 RTList<Event>::Iterator itCtrlEvent = pEvents->first();
                 int iSample = TriggerDelay;
+                bool result;
                 while (iSample < Samples) {
                     int process_break = Samples;
                     if (itCtrlEvent && itCtrlEvent->FragmentPos() <= process_break) process_break = itCtrlEvent->FragmentPos();
@@ -122,6 +124,7 @@ namespace LinuxSampler {
                             Coeff = -Coeff; // invert direction
                             Level += 2.0f * Coeff;
                         }
+                        result = true; // modulation active
                     }
                     else if (Coeff < 0.0f) { // level going down
                         while (iSample < process_break && Level >= CurrentMin) {
@@ -133,6 +136,7 @@ namespace LinuxSampler {
                             Coeff = -Coeff; // invert direction
                             Level += 2.0f * Coeff;
                         }
+                        result = true; // modulation active
                     }
                     else { // no modulation at all (Coeff = 0.0)
                         switch (Propagation) {
@@ -150,6 +154,7 @@ namespace LinuxSampler {
                             pManipulator->ApplyLevel(Level, iSample);
                             iSample++;
                         }
+                        result = false; // modulation inactive
                     }
 
                     if (itCtrlEvent) {
@@ -159,6 +164,7 @@ namespace LinuxSampler {
                 }
                 TriggerDelay = 0;
                 pEvents->clear();
+                return result;
             }
 
             /**

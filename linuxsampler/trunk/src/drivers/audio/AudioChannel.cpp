@@ -21,6 +21,7 @@
  ***************************************************************************/
 
 #include "AudioChannel.h"
+#include <malloc.h>
 
 namespace LinuxSampler {
 
@@ -32,7 +33,7 @@ namespace LinuxSampler {
      */
     AudioChannel::AudioChannel(uint ChannelNr, uint BufferSize) {
         this->ChannelNr          = ChannelNr;
-        this->pBuffer            = new float[BufferSize];
+        this->pBuffer            = (float *) memalign(16,BufferSize*sizeof(float));
         this->uiBufferSize       = BufferSize;
         this->pMixChannel        = NULL;
         this->UsesExternalBuffer = false;
@@ -90,7 +91,7 @@ namespace LinuxSampler {
     AudioChannel::~AudioChannel() {
         std::map<String,DeviceRuntimeParameter*>::iterator iter = Parameters.begin();
         while (iter != Parameters.end()) { delete iter->second; iter++; }
-        if (!UsesExternalBuffer) delete[] pBuffer;
+        if (!UsesExternalBuffer) free(pBuffer);
     }
 
     std::map<String,DeviceRuntimeParameter*> AudioChannel::ChannelParameters() {

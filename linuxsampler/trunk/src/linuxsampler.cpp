@@ -28,6 +28,7 @@
 #include "drivers/audio/AudioOutputDeviceFactory.h"
 #include "network/lscpserver.h"
 #include "common/stacktrace.h"
+#include "common/Features.h"
 
 using namespace LinuxSampler;
 
@@ -67,6 +68,16 @@ int main(int argc, char **argv) {
 
     dmsg(1,("LinuxSampler %s\n", VERSION));
     dmsg(1,("Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck\n"));
+
+    // detect and print system / CPU specific features
+    String sFeatures;
+    Features::detect();
+    #if ARCH_X86
+    if (Features::supportsMMX()) sFeatures += " MMX";
+    if (Features::supportsSSE()) sFeatures += " SSE";
+    #endif // ARCH_X86
+    if (!sFeatures.size()) sFeatures = " None";
+    dmsg(1,("Detected features:%s\n",sFeatures.c_str()));
 
     // create LinuxSampler instance
     dmsg(1,("Creating Sampler..."));

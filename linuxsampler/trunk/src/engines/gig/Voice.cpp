@@ -22,6 +22,8 @@
 
 #include "EGADSR.h"
 #include "Manipulator.h"
+#include "../../common/Features.h"
+#include "Synthesizer.h"
 
 #include "Voice.h"
 
@@ -56,6 +58,9 @@ namespace LinuxSampler { namespace gig {
         pLFO2  = NULL;
         pLFO3  = NULL;
         KeyGroup = 0;
+
+        // select synthesis implementation (currently either pure C++ or MMX+SSE(1))
+        SYNTHESIS_MODE_SET_IMPLEMENTATION(SynthesisMode, Features::supportsMMX() && Features::supportsSSE());
     }
 
     Voice::~Voice() {
@@ -115,6 +120,9 @@ namespace LinuxSampler { namespace gig {
         if (!pInstrument) {
            dmsg(1,("voice::trigger: !pInstrument\n"));
            exit(EXIT_FAILURE);
+        }
+        if (itNoteOnEvent->FragmentPos() > pEngine->MaxSamplesPerCycle) { // FIXME: should be removed before the final release (purpose: just a sanity check for debugging)
+            dmsg(1,("Voice::Trigger(): ERROR, TriggerDelay > Totalsamples\n"));
         }
 
         Type            = type_normal;
@@ -240,6 +248,11 @@ namespace LinuxSampler { namespace gig {
         }
         pDimRgn = pRegion->GetDimensionRegionByValue(DimValues[4],DimValues[3],DimValues[2],DimValues[1],DimValues[0]);
 
+        pSample = pDimRgn->pSample; // sample won't change until the voice is finished
+
+        // select channel mode (mono or stereo)
+        SYNTHESIS_MODE_SET_CHANNELS(SynthesisMode, pSample->Channels == 2);
+
         // get starting crossfade volume level
         switch (pDimRgn->AttenuationController.type) {
             case ::gig::attenuation_ctrl_t::type_channelaftertouch:
@@ -258,8 +271,6 @@ namespace LinuxSampler { namespace gig {
 
         PanLeft  = 1.0f - float(RTMath::Max(pDimRgn->Pan, 0)) /  63.0f;
         PanRight = 1.0f - float(RTMath::Min(pDimRgn->Pan, 0)) / -64.0f;
-
-        pSample = pDimRgn->pSample; // sample won't change until the voice is finished
 
         Pos = pDimRgn->SampleStartOffset; // offset where we should start playback of sample (0 - 2000 sample points)
 
@@ -303,9 +314,7 @@ namespace LinuxSampler { namespace gig {
             this->PitchBend = RTMath::CentsToFreqRatio(((double) PitchBend / 8192.0) * 200.0); // pitchbend wheel +-2 semitones = 200 cents
         }
 
-
         Volume = pDimRgn->GetVelocityAttenuation(itNoteOnEvent->Param.Note.Velocity) / 32768.0f; // we downscale by 32768 to convert from int16 value range to DSP value range (which is -1.0..1.0)
-
 
         // setup EG 1 (VCA EG)
         {
@@ -345,7 +354,6 @@ namespace LinuxSampler { namespace gig {
         }
 
 
-    #if ENABLE_FILTER
         // setup EG 2 (VCF Cutoff EG)
         {
             // get current value of EG2 controller
@@ -382,7 +390,6 @@ namespace LinuxSampler { namespace gig {
                           pDimRgn->EG2Release + eg2release,
                           Delay);
         }
-    #endif // ENABLE_FILTER
 
 
         // setup EG 3 (VCO EG)
@@ -429,7 +436,7 @@ namespace LinuxSampler { namespace gig {
                           Delay);
         }
 
-    #if ENABLE_FILTER
+
         // setup LFO 2 (VCF Cutoff LFO)
         {
             uint16_t lfo2_internal_depth;
@@ -466,7 +473,7 @@ namespace LinuxSampler { namespace gig {
                           pEngine->SampleRate,
                           Delay);
         }
-    #endif // ENABLE_FILTER
+
 
         // setup LFO 3 (VCO LFO)
         {
@@ -505,11 +512,11 @@ namespace LinuxSampler { namespace gig {
                           Delay);
         }
 
-    #if ENABLE_FILTER
+
         #if FORCE_FILTER_USAGE
-        FilterLeft.Enabled = FilterRight.Enabled = true;
+        SYNTHESIS_MODE_SET_FILTER(SynthesisMode, true);
         #else // use filter only if instrument file told so
-        FilterLeft.Enabled = FilterRight.Enabled = pDimRgn->VCFEnabled;
+        SYNTHESIS_MODE_SET_FILTER(SynthesisMode, pDimRgn->VCFEnabled);
         #endif // FORCE_FILTER_USAGE
         if (pDimRgn->VCFEnabled) {
             #ifdef OVERRIDE_FILTER_CUTOFF_CTRL
@@ -599,16 +606,12 @@ namespace LinuxSampler { namespace gig {
             VCFCutoffCtrl.fvalue    = cutoff - FILTER_CUTOFF_MIN;
             VCFResonanceCtrl.fvalue = resonance;
 
-            FilterLeft.SetParameters(cutoff,  resonance, pEngine->SampleRate);
-            FilterRight.SetParameters(cutoff, resonance, pEngine->SampleRate);
-
             FilterUpdateCounter = -1;
         }
         else {
             VCFCutoffCtrl.controller    = 0;
             VCFResonanceCtrl.controller = 0;
         }
-    #endif // ENABLE_FILTER
 
         return 0; // success
     }
@@ -626,42 +629,46 @@ namespace LinuxSampler { namespace gig {
      */
     void Voice::Render(uint Samples) {
 
+        // select default values for synthesis mode bits
+        SYNTHESIS_MODE_SET_INTERPOLATE(SynthesisMode, (PitchBase * PitchBend) != 1.0f);
+        SYNTHESIS_MODE_SET_CONSTPITCH(SynthesisMode, true);
+        SYNTHESIS_MODE_SET_LOOP(SynthesisMode, false);
+
         // Reset the synthesis parameter matrix
+
         pEngine->ResetSynthesisParameters(Event::destination_vca, this->Volume * this->CrossfadeVolume * pEngine->GlobalVolume);
         pEngine->ResetSynthesisParameters(Event::destination_vco, this->PitchBase);
-    #if ENABLE_FILTER
         pEngine->ResetSynthesisParameters(Event::destination_vcfc, VCFCutoffCtrl.fvalue);
         pEngine->ResetSynthesisParameters(Event::destination_vcfr, VCFResonanceCtrl.fvalue);
-    #endif // ENABLE_FILTER
-
 
         // Apply events to the synthesis parameter matrix
         ProcessEvents(Samples);
 
-
         // Let all modulators write their parameter changes to the synthesis parameter matrix for the current audio fragment
         pEG1->Process(Samples, pEngine->pMIDIKeyInfo[MIDIKey].pEvents, itTriggerEvent, this->Pos, this->PitchBase * this->PitchBend, itKillEvent);
-    #if ENABLE_FILTER
         pEG2->Process(Samples, pEngine->pMIDIKeyInfo[MIDIKey].pEvents, itTriggerEvent, this->Pos, this->PitchBase * this->PitchBend);
-    #endif // ENABLE_FILTER
-        pEG3->Process(Samples);
+        if (pEG3->Process(Samples)) { // if pitch EG is active
+            SYNTHESIS_MODE_SET_INTERPOLATE(SynthesisMode, true);
+            SYNTHESIS_MODE_SET_CONSTPITCH(SynthesisMode, false);
+        }
         pLFO1->Process(Samples);
-    #if ENABLE_FILTER
         pLFO2->Process(Samples);
-    #endif // ENABLE_FILTER
-        pLFO3->Process(Samples);
+        if (pLFO3->Process(Samples)) { // if pitch LFO modulation is active
+            SYNTHESIS_MODE_SET_INTERPOLATE(SynthesisMode, true);
+            SYNTHESIS_MODE_SET_CONSTPITCH(SynthesisMode, false);
+        }
 
-
-    #if ENABLE_FILTER
-        CalculateBiquadParameters(Samples); // calculate the final biquad filter parameters
-    #endif // ENABLE_FILTER
-
+        if (SYNTHESIS_MODE_GET_FILTER(SynthesisMode))
+        	CalculateBiquadParameters(Samples); // calculate the final biquad filter parameters
 
         switch (this->PlaybackState) {
 
             case playback_state_ram: {
-                    if (RAMLoop) InterpolateAndLoop(Samples, (sample_t*) pSample->GetCache().pStart, Delay);
-                    else         InterpolateNoLoop(Samples, (sample_t*) pSample->GetCache().pStart, Delay);
+                    if (RAMLoop) SYNTHESIS_MODE_SET_LOOP(SynthesisMode, true); // enable looping
+
+                    // render current fragment
+                    Synthesize(Samples, (sample_t*) pSample->GetCache().pStart, Delay);
+
                     if (DiskVoice) {
                         // check if we reached the allowed limit of the sample RAM cache
                         if (Pos > MaxRAMPos) {
@@ -684,8 +691,8 @@ namespace LinuxSampler { namespace gig {
                             KillImmediately();
                             return;
                         }
-                        DiskStreamRef.pStream->IncrementReadPos(pSample->Channels * (RTMath::DoubleToInt(Pos) - MaxRAMPos));
-                        Pos -= RTMath::DoubleToInt(Pos);
+                        DiskStreamRef.pStream->IncrementReadPos(pSample->Channels * (int(Pos) - MaxRAMPos));
+                        Pos -= int(Pos);
                     }
 
                     // add silence sample at the end if we reached the end of the stream (for the interpolator)
@@ -695,9 +702,12 @@ namespace LinuxSampler { namespace gig {
                     }
 
                     sample_t* ptr = DiskStreamRef.pStream->GetReadPtr(); // get the current read_ptr within the ringbuffer where we read the samples from
-                    InterpolateNoLoop(Samples, ptr, Delay);
-                    DiskStreamRef.pStream->IncrementReadPos(RTMath::DoubleToInt(Pos) * pSample->Channels);
-                    Pos -= RTMath::DoubleToInt(Pos);
+
+                    // render current audio fragment
+                    Synthesize(Samples, ptr, Delay);
+
+                    DiskStreamRef.pStream->IncrementReadPos(int(Pos) * pSample->Channels);
+                    Pos -= int(Pos);
                 }
                 break;
 
@@ -706,13 +716,10 @@ namespace LinuxSampler { namespace gig {
                 break;
         }
 
-
         // Reset synthesis event lists (except VCO, as VCO events apply channel wide currently)
         pEngine->pSynthesisEvents[Event::destination_vca]->clear();
-    #if ENABLE_FILTER
         pEngine->pSynthesisEvents[Event::destination_vcfc]->clear();
         pEngine->pSynthesisEvents[Event::destination_vcfr]->clear();
-    #endif // ENABLE_FILTER
 
         // Reset delay
         Delay = 0;
@@ -731,6 +738,8 @@ namespace LinuxSampler { namespace gig {
         pLFO1->Reset();
         pLFO2->Reset();
         pLFO3->Reset();
+        FilterLeft.Reset();
+        FilterRight.Reset();
         DiskStreamRef.pStream = NULL;
         DiskStreamRef.hStream = 0;
         DiskStreamRef.State   = Stream::state_unused;
@@ -756,22 +765,18 @@ namespace LinuxSampler { namespace gig {
         }
         while (itCCEvent) {
             if (itCCEvent->Param.CC.Controller) { // if valid MIDI controller
-                #if ENABLE_FILTER
                 if (itCCEvent->Param.CC.Controller == VCFCutoffCtrl.controller) {
                     *pEngine->pSynthesisEvents[Event::destination_vcfc]->allocAppend() = *itCCEvent;
                 }
                 if (itCCEvent->Param.CC.Controller == VCFResonanceCtrl.controller) {
                     *pEngine->pSynthesisEvents[Event::destination_vcfr]->allocAppend() = *itCCEvent;
                 }
-                #endif // ENABLE_FILTER
                 if (itCCEvent->Param.CC.Controller == pLFO1->ExtController) {
                     pLFO1->SendEvent(itCCEvent);
                 }
-                #if ENABLE_FILTER
                 if (itCCEvent->Param.CC.Controller == pLFO2->ExtController) {
                     pLFO2->SendEvent(itCCEvent);
                 }
-                #endif // ENABLE_FILTER
                 if (itCCEvent->Param.CC.Controller == pLFO3->ExtController) {
                     pLFO3->SendEvent(itCCEvent);
                 }
@@ -816,7 +821,11 @@ namespace LinuxSampler { namespace gig {
 
                 itVCOEvent = itNextVCOEvent;
             }
-            if (!pVCOEventList->isEmpty()) this->PitchBend = pitch;
+            if (!pVCOEventList->isEmpty()) {
+                this->PitchBend = pitch;
+                SYNTHESIS_MODE_SET_INTERPOLATE(SynthesisMode, true);
+                SYNTHESIS_MODE_SET_CONSTPITCH(SynthesisMode, false);
+            }
         }
 
         // process volume / attenuation events (TODO: we only handle and _expect_ crossfade events here ATM !)
@@ -848,7 +857,6 @@ namespace LinuxSampler { namespace gig {
             if (!pVCAEventList->isEmpty()) this->CrossfadeVolume = crossfadevolume;
         }
 
-    #if ENABLE_FILTER
         // process filter cutoff events
         {
             RTList<Event>* pCutoffEventList = pEngine->pSynthesisEvents[Event::destination_vcfc];
@@ -905,18 +913,14 @@ namespace LinuxSampler { namespace gig {
             }
             if (!pResonanceEventList->isEmpty()) VCFResonanceCtrl.fvalue = pResonanceEventList->last()->Param.CC.Value * 0.00787f; // needed for initialization of parameter matrix next time
         }
-    #endif // ENABLE_FILTER
     }
 
-    #if ENABLE_FILTER
     /**
      * Calculate all necessary, final biquad filter parameters.
      *
      * @param Samples - number of samples to be rendered in this audio fragment cycle
      */
     void Voice::CalculateBiquadParameters(uint Samples) {
-        if (!FilterLeft.Enabled) return;
-
         biquad_param_t bqbase;
         biquad_param_t bqmain;
         float prev_cutoff = pEngine->pSynthesisParameters[Event::destination_vcfc][0];
@@ -928,11 +932,14 @@ namespace LinuxSampler { namespace gig {
         float* bq;
         for (int i = 1; i < Samples; i++) {
             // recalculate biquad parameters if cutoff or resonance differ from previous sample point
-            if (!(i & FILTER_UPDATE_MASK)) if (pEngine->pSynthesisParameters[Event::destination_vcfr][i] != prev_res ||
-                                               pEngine->pSynthesisParameters[Event::destination_vcfc][i] != prev_cutoff) {
-                prev_cutoff = pEngine->pSynthesisParameters[Event::destination_vcfc][i];
-                prev_res    = pEngine->pSynthesisParameters[Event::destination_vcfr][i];
-                FilterLeft.SetParameters(&bqbase, &bqmain, prev_cutoff, prev_res, pEngine->SampleRate);
+            if (!(i & FILTER_UPDATE_MASK)) {
+                if (pEngine->pSynthesisParameters[Event::destination_vcfr][i] != prev_res ||
+                    pEngine->pSynthesisParameters[Event::destination_vcfc][i] != prev_cutoff)
+                {
+                    prev_cutoff = pEngine->pSynthesisParameters[Event::destination_vcfc][i];
+                    prev_res    = pEngine->pSynthesisParameters[Event::destination_vcfr][i];
+                    FilterLeft.SetParameters(&bqbase, &bqmain, prev_cutoff, prev_res, pEngine->SampleRate);
+                }
             }
 
             //same as 'pEngine->pBasicFilterParameters[i] = bqbase;'
@@ -952,84 +959,27 @@ namespace LinuxSampler { namespace gig {
             bq[4] = bqmain.b2;
         }
     }
-    #endif // ENABLE_FILTER
 
     /**
-     *  Interpolates the input audio data (without looping).
+     *  Synthesizes the current audio fragment for this voice.
      *
      *  @param Samples - number of sample points to be rendered in this audio
      *                   fragment cycle
      *  @param pSrc    - pointer to input sample data
      *  @param Skip    - number of sample points to skip in output buffer
      */
-    void Voice::InterpolateNoLoop(uint Samples, sample_t* pSrc, uint Skip) {
-        int i = Skip;
-
-        // FIXME: assuming either mono or stereo
-        if (this->pSample->Channels == 2) { // Stereo Sample
-            while (i < Samples) InterpolateStereo(pSrc, i);
-        }
-        else { // Mono Sample
-            while (i < Samples) InterpolateMono(pSrc, i);
-        }
+    void Voice::Synthesize(uint Samples, sample_t* pSrc, int Skip) {
+        UpdateSynthesisMode();
+        SynthesizeFragment_Fn* f = (SynthesizeFragment_Fn*) SynthesizeFragmentFnPtr;
+        f(*this, Samples, pSrc, Skip);
     }
 
     /**
-     *  Interpolates the input audio data, this method honors looping.
-     *
-     *  @param Samples - number of sample points to be rendered in this audio
-     *                   fragment cycle
-     *  @param pSrc    - pointer to input sample data
-     *  @param Skip    - number of sample points to skip in output buffer
+     *  Determine the respective synthesis function for the given synthesis
+     *  mode.
      */
-    void Voice::InterpolateAndLoop(uint Samples, sample_t* pSrc, uint Skip) {
-        int i = Skip;
-
-        // FIXME: assuming either mono or stereo
-        if (pSample->Channels == 2) { // Stereo Sample
-            if (pSample->LoopPlayCount) {
-                // render loop (loop count limited)
-                while (i < Samples && LoopCyclesLeft) {
-                    InterpolateStereo(pSrc, i);
-                    if (Pos > pSample->LoopEnd) {
-                        Pos = pSample->LoopStart + fmod(Pos - pSample->LoopEnd, pSample->LoopSize);;
-                        LoopCyclesLeft--;
-                    }
-                }
-                // render on without loop
-                while (i < Samples) InterpolateStereo(pSrc, i);
-            }
-            else { // render loop (endless loop)
-                while (i < Samples) {
-                    InterpolateStereo(pSrc, i);
-                    if (Pos > pSample->LoopEnd) {
-                        Pos = pSample->LoopStart + fmod(Pos - pSample->LoopEnd, pSample->LoopSize);
-                    }
-                }
-            }
-        }
-        else { // Mono Sample
-            if (pSample->LoopPlayCount) {
-                // render loop (loop count limited)
-                while (i < Samples && LoopCyclesLeft) {
-                    InterpolateMono(pSrc, i);
-                    if (Pos > pSample->LoopEnd) {
-                        Pos = pSample->LoopStart + fmod(Pos - pSample->LoopEnd, pSample->LoopSize);;
-                        LoopCyclesLeft--;
-                    }
-                }
-                // render on without loop
-                while (i < Samples) InterpolateMono(pSrc, i);
-            }
-            else { // render loop (endless loop)
-                while (i < Samples) {
-                    InterpolateMono(pSrc, i);
-                    if (Pos > pSample->LoopEnd) {
-                        Pos = pSample->LoopStart + fmod(Pos - pSample->LoopEnd, pSample->LoopSize);;
-                    }
-                }
-            }
-        }
+    void Voice::UpdateSynthesisMode() {
+        SynthesizeFragmentFnPtr = GetSynthesisFunction(SynthesisMode);
     }
 
     /**

@@ -69,6 +69,8 @@ namespace LinuxSampler {
             bq_t y1;
             bq_t y2;
 
+            const static float fbc = 0.98;
+
             /**
              * Prevent \a f from going into denormal mode which would slow down
              * subsequent floating point calculations, we achieve that by setting
@@ -80,7 +82,11 @@ namespace LinuxSampler {
                 f -= 1e-18f;
             }
         public:
-            inline BiquadFilter() {
+            BiquadFilter() {
+                Reset();
+            }
+
+            void Reset() {
                 x1 = 0.0f;
                 x2 = 0.0f;
                 y1 = 0.0f;
@@ -115,6 +121,93 @@ namespace LinuxSampler {
                 return y;
             }
 
+            // expects to find input in xmm0 (xmm0 stays unmodified) and finally leaves output in xmm6
+            inline void Apply4StepsSSE(biquad_param_t* param) {
+                __asm__ __volatile__ (
+                    "movss (%2),%%xmm4                # b0\n\t"
+                    "shufps   $0x00,%%xmm4,%%xmm4     # copy b0 to other cells\n\t"
+                    "mulps  %%xmm0,%%xmm4             # xmm4 = x*b0\n\t"
+                    "movups (%0),%%xmm2               # load b1,b2,a1,a2\n\t"
+                    "movups (%1),%%xmm5               # load x1,x2,y1,y2\n\t"
+                    /* sample 0 */
+                    "movaps %%xmm5,%%xmm3\n\t"
+                    "mulps  %%xmm2,%%xmm5             # xmm5 = [b1,b2,a1,a2] * [x1,x2,y1,y2]\n\t"
+                    "shufps $0x0a,%%xmm3,%%xmm3       # x2 = x1, y2 = y1\n\t"
+                    "movss  %%xmm4,%%xmm6\n\t"
+                    "addss  %%xmm5,%%xmm6\n\t"
+                    "shufps $0x39,%%xmm5,%%xmm5\n\t"
+                    "addss  %%xmm5,%%xmm6\n\t"
+                    "shufps $0x39,%%xmm5,%%xmm5\n\t"
+                    "addss  %%xmm5,%%xmm6\n\t"
+                    "shufps $0x39,%%xmm5,%%xmm5\n\t"
+                    "addss  %%xmm5,%%xmm6             # xmm6 = b0*x + b1*x1 + b2*x2 + a1*y1 + a2*y2\n\t"
+                    /* sample 1 */
+                    "shufps $0x39,%%xmm4,%%xmm4       # rotate xmm4 down 1 cell\n\t"
+                    "movss  %%xmm6,%%xmm3             # y1 = y\n\t"
+                    "shufps $0x4e,%%xmm3,%%xmm3       # rotate 2 cells\n\t"
+                    "movss  %%xmm0,%%xmm3             # x1 = x\n\t"
+                    "shufps $0x93,%%xmm6,%%xmm6       # rotate output up 1 cell\n\t"
+                    "movaps %%xmm3,%%xmm5\n\t"
+                    "shufps $0x39,%%xmm0,%%xmm0       # rotate input down 1 cell\n\t"
+                    "mulps  %%xmm2,%%xmm5             # xmm5 = [b1,b2,a1,a2] * [x1,x2,y1,y2]\n\t"
+                    "movss  %%xmm5,%%xmm6\n\t"
+                    "addss  %%xmm4,%%xmm6\n\t"
+                    "shufps $0x39,%%xmm5,%%xmm5\n\t"
+                    "addss  %%xmm5,%%xmm6\n\t"
+                    "shufps $0x39,%%xmm5,%%xmm5\n\t"
+                    "addss  %%xmm5,%%xmm6\n\t"
+                    "shufps $0x39,%%xmm5,%%xmm5\n\t"
+                    "addss  %%xmm5,%%xmm6             # xmm6 = b0*x + b1*x1 + b2*x2 + a1*y1 + a2*y2\n\t"
+                    /* sample 2 */
+                    "shufps $0x0a,%%xmm3,%%xmm3       # x2 = x1, y2 = y1\n\t"
+                    "shufps $0x39,%%xmm4,%%xmm4       # rotate xmm4 down 1 cell\n\t"
+                    "movss  %%xmm6,%%xmm3             # y1 = y\n\t"
+                    "shufps $0x4e,%%xmm3,%%xmm3       # rotate 2 cells\n\t"
+                    "movss  %%xmm0,%%xmm3             # x1 = x\n\t"
+                    "shufps $0x93,%%xmm6,%%xmm6       # rotate output up 1 cell\n\t"
+                    "movaps %%xmm3,%%xmm5\n\t"
+                    "shufps $0x39,%%xmm0,%%xmm0       # rotate input down 1 cell\n\t"
+                    "mulps  %%xmm2,%%xmm5             # xmm5 = [b1,b2,a1,a2] * [x1,x2,y1,y2]\n\t"
+                    "movss  %%xmm5,%%xmm6\n\t"
+                    "addss  %%xmm4,%%xmm6\n\t"
+                    "shufps $0x39,%%xmm5,%%xmm5\n\t"
+                    "addss  %%xmm5,%%xmm6\n\t"
+                    "shufps $0x39,%%xmm5,%%xmm5\n\t"
+                    "addss  %%xmm5,%%xmm6\n\t"
+                    "shufps $0x39,%%xmm5,%%xmm5\n\t"
+                    "addss  %%xmm5,%%xmm6             # xmm6 = b0*x + b1*x1 + b2*x2 + a1*y1 + a2*y2\n\t"
+                    /* sample 3 */
+                    "shufps $0x0a,%%xmm3,%%xmm3       # x2 = x1, y2 = y1\n\t"
+                    "shufps $0x39,%%xmm4,%%xmm4       # rotate xmm4 down 1 cell\n\t"
+                    "movss  %%xmm6,%%xmm3             # y1 = y\n\t"
+                    "shufps $0x4e,%%xmm3,%%xmm3       # rotate 2 cells\n\t"
+                    "movss  %%xmm0,%%xmm3             # x1 = x\n\t"
+                    "shufps $0x93,%%xmm6,%%xmm6       # rotate output up 1 cell\n\t"
+                    "mulps  %%xmm3,%%xmm2             # xmm5 = [b1,b2,a1,a2] * [x1,x2,y1,y2]\n\t"
+                    "shufps $0x39,%%xmm0,%%xmm0       # rotate input down 1 cell\n\t"
+                    "movss  %%xmm2,%%xmm6\n\t"
+                    "shufps $0x39,%%xmm2,%%xmm2\n\t"
+                    "addss  %%xmm2,%%xmm6\n\t"
+                    "shufps $0x39,%%xmm2,%%xmm2\n\t"
+                    "addss  %%xmm2,%%xmm6\n\t"
+                    "shufps $0x39,%%xmm2,%%xmm2\n\t"
+                    "addss  %%xmm2,%%xmm6\n\t"
+                    "addss  %%xmm4,%%xmm6             # xmm6 = b0*x + b1*x1 + b2*x2 + a1*y1 + a2*y2\n\t"
+                    /* done */
+                    "shufps $0x0a,%%xmm3,%%xmm3       # x2 = x1, y2 = y1\n\t"
+                    "movss  %%xmm6,%%xmm3             # y1 = y\n\t"
+                    "shufps $0x4e,%%xmm3,%%xmm3       # rotate 2 cells\n\t"
+                    "movss  %%xmm0,%%xmm3             # x1 = x\n\t"
+                    "shufps $0x1b,%%xmm6,%%xmm6       # swap output to correct order\n\t"
+                    "shufps $0x39,%%xmm0,%%xmm0       # rotate input down 1 cell, to restore original input\n\t"
+                    "movups %%xmm3,(%1)               # store x1,x2,y1,y2\n\t"
+                    : /* no output */
+                    : "r" (&param->b1), /* %0 - [b1,b2,a1,a2] */
+                      "r" (&x1),        /* %1 - [x1,x2,y1,y2] */
+                      "r" (&param->b0)  /* %2 */
+                );
+            }
+
             inline bq_t ApplyFB(bq_t x, const bq_t fb) {
                 bq_t y;
 
@@ -143,6 +236,202 @@ namespace LinuxSampler {
                 this->y1 = y;
 
                 return y;
+            }
+
+            // expects to find input in xmm0 (xmm0 stays unmodified) and finally leaves output in xmm7
+            inline void ApplyFB4StepsSSE(biquad_param_t* param, const bq_t &fb) {
+                float xs, ys;
+                float t0, t1, t2, t3, t4, t5, t6, t7, t8; // temporary stack space
+                __asm__ __volatile__ (
+                    /* prepare input */
+                    "movss  %15,%%xmm5\n\t"
+                    "movss  %%xmm0,(%14)\n\t"
+                    /* sample 0 */
+                    "movss   %0, %%xmm3\n\t"
+                    "movss   %1, %%xmm4\n\t"
+                    "mulss   %%xmm4, %%xmm5\n\t"
+                    "movss   %%xmm3, %2\n\t"
+                    "movss   %%xmm5, %16\n\t"
+                    "mulss   %%xmm3, %%xmm5\n\t"
+                    "movss   %19, %%xmm2\n\t"
+                    "movss   %3, %%xmm6\n\t"
+                    "movss   %21, %%xmm3\n\t"
+                    "addss   %%xmm5, %%xmm6\n\t"
+                    "movss  %%xmm2, %%xmm5\n\t"
+                    "movss   %20, %%xmm4\n\t"
+                    "movss   %%xmm6, %4\n\t"
+                    "mulss   %%xmm6, %%xmm5\n\t"
+                    "movss   %5, %%xmm6\n\t"
+                    "movss   %%xmm2, %6\n\t"
+                    "movss   %%xmm4, %7\n\t"
+                    "movss   %%xmm3, %%xmm2\n\t"
+                    "mulss   %%xmm6, %%xmm4\n\t"
+                    "mulss   %8, %%xmm2\n\t"
+                    "movss   %%xmm3, %9\n\t"
+                    "addss   %%xmm4, %%xmm5\n\t"
+                    "movss   %18, %%xmm3\n\t"
+                    "movss   %17, %%xmm4\n\t"
+                    "addss   %%xmm2, %%xmm5\n\t"
+                    "movss   %%xmm4, %10\n\t"
+                    "movss   %%xmm3, %%xmm2\n\t"
+                    "mulss   %11, %%xmm4\n\t"
+                    "mulss   %12, %%xmm2\n\t"
+                    "movss   %%xmm3, %13\n\t"
+                    "addss   %%xmm4, %%xmm5\n\t"
+                    "movss   %11, %%xmm3\n\t"
+                    "movss   %4, %%xmm4\n\t"
+                    "addss   %%xmm2, %%xmm5\n\t"
+                    :: "m" (y1),  /* %0 */
+                       "m" (fbc), /* %1 */
+                       "m" (t0),  /* %2 */
+                       "m" (xs),  /* %3 */
+                       "m" (t7),  /* %4 */
+                       "m" (x1),  /* %5 */
+                       "m" (t1),  /* %6 */
+                       "m" (t2),  /* %7 */
+                       "m" (x2),  /* %8 */
+                       "m" (t3),  /* %9 */
+                       "m" (t4),  /* %10 */
+                       "m" (t0),  /* %11 */
+                       "m" (y2),  /* %12 */
+                       "m" (t5),  /* %13 */
+                       "r" (&xs),  /* %14 */
+                       "m" (fb),   /* %15 */
+                       "m" (ys),   /* %16 */
+                       "m" (param->a1), /* %17 */
+                       "m" (param->a2), /* %18 */
+                       "m" (param->b0), /* %19 */
+                       "m" (param->b1), /* %20 */
+                       "m" (param->b2) /* %21 */
+                );
+                __asm__ __volatile__ (
+                    "shufps $0x39,%%xmm0,%%xmm0  # rotate down one cell\n\t"
+                    "movss  %%xmm5,%%xmm7\n\t"
+                    ::
+                );
+                /* sample 1 */
+                __asm__ __volatile__ (
+                    "movss   %0, %%xmm4\n\t"
+                    "movss   %%xmm0, %%xmm3\n\t"
+                    "mulss   %%xmm5, %%xmm4\n\t"
+                    "mulss   %3, %%xmm6\n\t"
+                    "movss   %5, %%xmm2\n\t"
+                    "addss   %%xmm4, %%xmm3\n\t"
+                    "mulss   %7, %%xmm2\n\t"
+                    "movss   %6, %%xmm4\n\t"
+                    "movss   %%xmm3, %8\n\t"
+                    "mulss   %%xmm3, %%xmm4\n\t"
+                    "addss   %%xmm2, %%xmm4\n\t"
+                    "movss   %9, %%xmm3\n\t"
+                    "mulss   %%xmm5, %%xmm3\n\t"
+                    "movss   %10, %%xmm2\n\t"
+                    "addss   %%xmm6, %%xmm4\n\t"
+                    "mulss   %11, %%xmm2\n\t"
+                    "addss   %%xmm3, %%xmm4\n\t"
+                    "addss   %%xmm2, %%xmm4\n\t"
+                    :: "m" (ys),  /* %0 */
+                       "m" (fbc), /* %1 */
+                       "m" (xs),  /* %2 */
+                       "m" (t3),  /* %3 */
+                       "m" (y2),  /* %4 */
+                       "m" (t2),  /* %5 */
+                       "m" (t1),  /* %6 */
+                       "m" (t7),  /* %7 */
+                       "m" (t8),  /* %8 */
+                       "m" (t4),  /* %9 */
+                       "m" (t5),  /* %10 */
+                       "m" (t0),  /* %11 */
+                       "m" (x2),  /* %12 */
+                       "m" (x1),  /* %13 */
+                       "m" (y1)   /* %14 */
+                );
+                __asm__ __volatile__ (
+                    "shufps $0x93,%%xmm7,%%xmm7  # rotate up one cell\n\t"
+                    "shufps $0x39,%%xmm0,%%xmm0  # rotate down one cell\n\t"
+                    "movss  %%xmm4,%%xmm7\n\t"
+                    ::
+                );
+                /* sample 2 */
+                __asm__ __volatile__ (
+                    "movss   %2, %%xmm6\n\t"
+                    "movss   %3, %%xmm3\n\t"
+                    "mulss   %%xmm4, %%xmm6\n\t"
+                    "movss   %4, %%xmm2\n\t"
+                    "mulss   %9, %%xmm2\n\t"
+                    "addss   %%xmm0, %%xmm6\n\t"
+                    "mulss   %7, %%xmm5\n\t"
+                    "mulss   %%xmm6, %%xmm3\n\t"
+                    "addss   %%xmm2, %%xmm3\n\t"
+                    "movss   %5, %%xmm2\n\t"
+                    "mulss   %8, %%xmm2\n\t"
+                    "addss   %%xmm2, %%xmm3\n\t"
+                    "movss   %6, %%xmm2\n\t"
+                    "mulss   %%xmm4, %%xmm2\n\t"
+                    "addss   %%xmm5, %%xmm2\n\t"
+                    "addss   %%xmm2, %%xmm3\n\t"
+                    :: "m" (xs),  /* %0 */
+                       "m" (fb),  /* %1 */
+                       "m" (ys), /* %2 */
+                       "m" (t1),  /* %3 */
+                       "m" (t2),  /* %4 */
+                       "m" (t3),  /* %5 */
+                       "m" (t4),  /* %6 */
+                       "m" (t5),  /* %7 */
+                       "m" (t7),  /* %8 */
+                       "m" (t8),  /* %9 */
+                       "m" (x1),  /* %10 */
+                       "m" (x2),  /* %11 */
+                       "m" (y1),  /* %12 */
+                       "m" (y2)   /* %13 */
+                );
+                __asm__ __volatile__ (
+                    "shufps $0x39,%%xmm0,%%xmm0  # rotate down one cell\n\t"
+                    "shufps $0x93,%%xmm7,%%xmm7  # rotate up one cell\n\t"
+                    "movss  %%xmm3,%%xmm7\n\t"
+                    ::
+                );
+                /* sample 3 */
+                __asm__ __volatile__ (
+                    "movss   %1, %%xmm2\n\t"
+                    "mulss   %7, %%xmm4\n\t"
+                    "mulss   %%xmm3, %%xmm2\n\t"
+                    "movss   %3, %%xmm5\n\t"
+                    "movss   %%xmm6, %11\n\t"
+                    "addss   %%xmm0, %%xmm2\n\t"
+                    "movss   %%xmm3, %13\n\t"
+                    "mulss   %%xmm2, %%xmm5\n\t"
+                    "mulss   %4, %%xmm6\n\t"
+                    "movss   %%xmm2, %10\n\t"
+                    "addss   %%xmm6, %%xmm5\n\t"
+                    "movss   %5, %%xmm2\n\t"
+                    "mulss   %9, %%xmm2\n\t"
+                    "mulss   %6, %%xmm3\n\t"
+                    "addss   %%xmm2, %%xmm5\n\t"
+                    "addss   %%xmm3, %%xmm4\n\t"
+                    "addss   %%xmm4, %%xmm5\n\t"
+                    "movss   %%xmm5, %12\n\t"
+                    :: "m" (xs),  /* %0 */
+                       "m" (ys),  /* %1 */
+                       "m" (fbc), /* %2 */
+                       "m" (t1),  /* %3 */
+                       "m" (t2),  /* %4 */
+                       "m" (t3),  /* %5 */
+                       "m" (t4),  /* %6 */
+                       "m" (t5),  /* %7 */
+                       "m" (t6),  /* %8 */
+                       "m" (t8),  /* %9 */
+                       "m" (x1),  /* %10 */
+                       "m" (x2),  /* %11 */
+                       "m" (y1),  /* %12 */
+                       "m" (y2)   /* %13 */
+                );
+                __asm__ __volatile__ (
+                    "shufps $0x93,%%xmm7,%%xmm7  # rotate up one cell\n\t"
+                    "shufps $0x39,%%xmm0,%%xmm0  # rotate down one cell to restore original input\n\t"
+                    "movss  %%xmm5,%%xmm7\n\t"
+                    "shufps $0x1b,%%xmm7,%%xmm7  # swap output to correct order\n\t"
+                    ::
+                );
             }
     };
 

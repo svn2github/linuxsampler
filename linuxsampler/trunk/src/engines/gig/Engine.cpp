@@ -26,6 +26,7 @@
 #include "EGADSR.h"
 
 #include "Engine.h"
+#include <malloc.h>
 
 namespace LinuxSampler { namespace gig {
 
@@ -99,7 +100,7 @@ namespace LinuxSampler { namespace gig {
         if (pEventGenerator) delete pEventGenerator;
         if (pMainFilterParameters) delete[] pMainFilterParameters;
         if (pBasicFilterParameters) delete[] pBasicFilterParameters;
-        if (pSynthesisParameters[0]) delete[] pSynthesisParameters[0];
+        if (pSynthesisParameters[0]) free(pSynthesisParameters[0]);
         if (pVoiceStealingQueue) delete pVoiceStealingQueue;
     }
 
@@ -341,8 +342,8 @@ namespace LinuxSampler { namespace gig {
         pEventGenerator = new EventGenerator(pAudioOut->SampleRate());
 
         // (re)allocate synthesis parameter matrix
-        if (pSynthesisParameters[0]) delete[] pSynthesisParameters[0];
-        pSynthesisParameters[0] = new float[Event::destination_count * pAudioOut->MaxSamplesPerCycle()];
+        if (pSynthesisParameters[0]) free(pSynthesisParameters[0]);
+        pSynthesisParameters[0] = (float *) memalign(16,(Event::destination_count * sizeof(float) * pAudioOut->MaxSamplesPerCycle()));
         for (int dst = 1; dst < Event::destination_count; dst++)
             pSynthesisParameters[dst] = pSynthesisParameters[dst - 1] + pAudioOut->MaxSamplesPerCycle();
 
@@ -1164,7 +1165,7 @@ namespace LinuxSampler { namespace gig {
     }
 
     String Engine::Version() {
-        String s = "$Revision: 1.18 $";
+        String s = "$Revision: 1.19 $";
         return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
 

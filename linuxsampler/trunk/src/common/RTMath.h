@@ -29,25 +29,13 @@
 /// Needed for calculating frequency ratio used to pitch a sample
 #define TWELVEHUNDREDTH_ROOT_OF_TWO	1.000577789506555
 
-/** Real Time Math
- *
- * Math functions for real time operation.
- */
-class RTMath {
-    public:
-        /**
-         * Converts a double to integer type.
-         */
-        inline static int DoubleToInt(double f) {
-            #if ARCH_X86
-            int i;
-            __asm__ ("fistl %0" : "=m"(i) : "st"(f - 0.5) );
-            return i;
-            #else
-            return (int) f;
-            #endif // ARCH_X86
-        }
+enum implementation_t {
+    CPP,
+    ASM_X86_MMX_SSE
+};
 
+class RTMathBase {
+    public:
         /**
          * Calculates the frequency ratio for a pitch value given in cents
          * (assuming equal tempered scale of course, divided into 12
@@ -62,23 +50,239 @@ class RTMath {
          * @returns  frequency ratio (e.g. +2.0 for +1 octave)
          */
         inline static double CentsToFreqRatio(double Cents) {
-            int   index_int   = DoubleToInt(Cents); // integer index
+            int   index_int   = (int) (Cents);      // integer index
             float index_fract = Cents - index_int;  // fractional part of index
             return pCentsToFreqTable[index_int] + index_fract * (pCentsToFreqTable[index_int+1] - pCentsToFreqTable[index_int]);
         }
 
-        template<class T_a, class T_b> inline static T_a Min(T_a a, T_b b) {
-            return (b < a) ? b : a;
-        }
-
-        template<class T_a, class T_b> inline static T_a Max(T_a a, T_b b) {
-            return (b > a) ? b : a;
-        }
     private:
         static float  CentsToFreqTable[MAX_PITCH * 1200 * 2 + 1];
         static float* pCentsToFreqTable;
 
         static float* InitCentsToFreqTable();
 };
+
+/** Real Time Math
+ *
+ * Math functions for real time operation.
+ */
+template<implementation_t IMPL = CPP>
+class __RTMath : public RTMathBase {
+    public:
+        // conversion using truncate
+        inline static int Int(const float a) {
+            switch (IMPL) {
+                case CPP: {
+                    return (int) a;
+                }
+                case ASM_X86_MMX_SSE: {
+                    int ret;
+                    asm (
+                        "cvttss2si %1, %0  # convert to int\n\t"
+                        : "=r" (ret)
+                        : "m" (a)
+                    );
+                    return ret;
+                }
+            }
+        }
+
+	//for doubles and everything else except floats
+        template<class T_a> inline static int Int(const T_a a) {
+            return (int) a;
+        }
+
+        inline static float Float(const int a) {
+            switch (IMPL) {
+                case CPP: {
+                    return (float) a;
+                }
+                case ASM_X86_MMX_SSE: {
+                    float ret;
+                    asm (
+                        "cvtsi2ss %1, %%xmm0  # convert to float\n\t"
+                        "movss    %%xmm0,%0   # output\n\t"
+                        : "=m" (ret)
+                        : "r" (a)
+                    );
+                    return ret;
+                }
+            }
+        }
+
+#if 0
+        //for everything except ints
+        template<class T_a> inline static float Float(T_a a) {
+            return (float) a;
+        }
+#endif
+
+	inline static float Sum(const float& a, const float& b) {
+            switch (IMPL) {
+                case CPP: {
+                    return (a + b);
+                }
+                case ASM_X86_MMX_SSE: {
+                    float ret;
+                    asm (
+                        "movss    %1, %%xmm0  # load a\n\t"
+                        "addss    %2, %%xmm0  # a + b\n\t"
+                        "movss    %%xmm0, %0  # output\n\t"
+                        : "=m" (ret)
+                        : "m" (a), "m" (b)
+                    );
+                    return ret;
+                }
+            }
+        }
+
+        template<class T_a, class T_b> inline static T_a Sum(const T_a a, const T_b b) {
+            return (a + b);
+        }
+
+        inline static float Sub(const float& a, const float& b) {
+            switch (IMPL) {
+                case CPP: {
+                    return (a - b);
+                }
+                case ASM_X86_MMX_SSE: {
+                    float ret;
+                    asm (
+                        "movss    %1, %%xmm0  # load a\n\t"
+                        "subss    %2, %%xmm0  # a - b\n\t"
+                        "movss    %%xmm0, %0  # output\n\t"
+                        : "=m" (ret)
+                        : "m" (a), "m" (b)
+                    );
+                    return ret;
+                }
+            }
+        }
+
+        template<class T_a, class T_b> inline static T_a Sub(const T_a a, const T_b b) {
+            return (a - b);
+        }
+
+        inline static float Mul(const float a, const float b) {
+            switch (IMPL) {
+                case CPP: {
+                    return (a * b);
+                }
+                case ASM_X86_MMX_SSE: {
+                    float ret;
+                    asm (
+                        "movss    %1, %%xmm0  # load a\n\t"
+                        "mulss    %2, %%xmm0  # a * b\n\t"
+                        "movss    %%xmm0, %0  # output\n\t"
+                        : "=m" (ret)
+                        : "m" (a), "m" (b)
+                    );
+                    return ret;
+                }
+            }
+        }
+
+        template<class T_a, class T_b> inline static T_a Mul(const T_a a, const T_b b) {
+            return (a * b);
+        }
+
+        inline static float Div(const float a, const float b) {
+            switch (IMPL) {
+                case CPP: {
+                    return (a / b);
+                }
+                case ASM_X86_MMX_SSE: {
+                    float ret;
+                    asm (
+                        "movss    %1, %%xmm0  # load a\n\t"
+                        "divss    %2, %%xmm0  # a / b\n\t"
+                        "movss    %%xmm0, %0  # output\n\t"
+                        : "=m" (ret)
+                        : "m" (a), "m" (b)
+                    );
+                    return ret;
+                }
+            }
+        }
+
+        template<class T_a, class T_b> inline static T_a Div(const T_a a, const T_b b) {
+            return (a / b);
+        }
+
+        inline static float Min(const float a, const float b) {
+            switch (IMPL) {
+                case CPP: {
+                    return (b < a) ? b : a;
+                }
+                case ASM_X86_MMX_SSE: {
+                    float ret;
+                    asm (
+                        "movss    %1, %%xmm0  # load a\n\t"
+                        "minss    %2, %%xmm0  # Minimum(a, b)\n\t"
+                        "movss    %%xmm0, %0  # output\n\t"
+                        : "=m" (ret)
+                        : "m" (a), "m" (b)
+                    );
+                    return ret;
+                }
+            }
+        }
+
+        template<class T_a, class T_b> inline static T_a Min(const T_a a, const T_b b) {
+            return (b < a) ? b : a;
+        }
+
+        inline static float Max(const float a, const float b) {
+            switch (IMPL) {
+                case CPP: {
+                    return (b > a) ? b : a;
+                }
+                case ASM_X86_MMX_SSE: {
+                    float ret;
+                    asm (
+                        "movss    %1, %%xmm0  # load a\n\t"
+                        "maxss    %2, %%xmm0  # Maximum(a, b)\n\t"
+                        "movss    %%xmm0, %0  # output\n\t"
+                        : "=m" (ret)
+                        : "m" (a), "m" (b)
+                    );
+                    return ret;
+                }
+            }
+        }
+
+        template<class T_a, class T_b> inline static T_a Max(const T_a a, const T_b b) {
+            return (b > a) ? b : a;
+        }
+
+        inline static float Fmodf(const float &a, const float &b) {
+            switch (IMPL) {
+                case CPP: {
+                    return fmodf(a, b);
+                }
+                case ASM_X86_MMX_SSE: {
+                    float ret;
+                    asm (
+                        "movss    %1, %%xmm0  # load a\n\t"
+                        "movss    %2, %%xmm1  # load b\n\t"
+                        "movss    %%xmm0,%%xmm2\n\t"
+                        "divss    %%xmm1, %%xmm2  # xmm2 = a / b\n\t"
+                        "cvttss2si %%xmm2, %%ecx  #convert to int\n\t"
+                        "cvtsi2ss %%ecx, %%xmm2  #convert back to float\n\t"
+                        "mulss    %%xmm1, %%xmm2  # xmm2 = b * int(a/b)\n\t"
+                        "subss    %%xmm2, %%xmm0  #sub a\n\t"
+                        "movss    %%xmm0, %0  # output\n\t"
+                        : "=m" (ret)
+                        : "m" (a), "m" (b)
+                        : "%ecx"
+                    );
+                    return ret;
+                }
+            }
+        }
+};
+
+/// convenience typedef for using the default implementation (which is CPP)
+typedef __RTMath<> RTMath;
 
 #endif // __RT_MATH_H__

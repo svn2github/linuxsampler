@@ -48,7 +48,7 @@ namespace LinuxSampler { namespace gig {
     class EGDecay {
         public:
             EGDecay(gig::Engine* pEngine, Event::destination_t ModulationDestination);
-            void Process(uint Samples);
+            bool Process(uint Samples);
             void Trigger(float Depth, double DecayTime, uint Delay);
         protected:
             gig::Engine* pEngine;

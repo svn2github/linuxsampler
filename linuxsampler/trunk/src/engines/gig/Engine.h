@@ -106,7 +106,7 @@ namespace LinuxSampler { namespace gig {
             // abstract methods derived from interface class 'InstrumentConsumer'
             virtual void ResourceToBeUpdated(::gig::Instrument* pResource, void*& pUpdateArg);
             virtual void ResourceUpdated(::gig::Instrument* pOldResource, ::gig::Instrument* pNewResource, void* pUpdateArg);
-        protected:
+        //protected:
             struct midi_key_info_t {
                 RTList<Voice>*  pActiveVoices;  ///< Contains the active voices associated with the MIDI key.
                 bool            KeyPressed;     ///< Is true if the respective MIDI key is currently pressed.

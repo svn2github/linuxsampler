@@ -22,14 +22,14 @@
 
 #include "RTMath.h"
 
-float  RTMath::CentsToFreqTable[MAX_PITCH * 1200 * 2 + 1]; // +-1200 cents per octave
-float* RTMath::pCentsToFreqTable(InitCentsToFreqTable());
+float  RTMathBase::CentsToFreqTable[MAX_PITCH * 1200 * 2 + 1]; // +-1200 cents per octave
+float* RTMathBase::pCentsToFreqTable(InitCentsToFreqTable());
 
 /**
  * Will automatically be called once to initialize the 'Cents to frequency
  * ratio' table.
  */
-float* RTMath::InitCentsToFreqTable() {
+float* RTMathBase::InitCentsToFreqTable() {
     float* pMiddleOfTable = &CentsToFreqTable[MAX_PITCH * 1200];
     for (int i = -1200; i <= 1200; i++) {
         pMiddleOfTable[i] = pow(TWELVEHUNDREDTH_ROOT_OF_TWO, i);

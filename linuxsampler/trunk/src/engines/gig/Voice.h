@@ -43,8 +43,6 @@
 #include "Filter.h"
 #include "../common/LFO.h"
 
-#define USE_LINEAR_INTERPOLATION	0  ///< set to 0 if you prefer cubic interpolation (slower, better quality)
-#define ENABLE_FILTER			1  ///< if set to 0 then filter (VCF) code is ignored on compile time
 #define FILTER_UPDATE_PERIOD		64 ///< amount of sample points after which filter parameters (cutoff, resonance) are going to be updated (higher value means less CPU load, but also worse parameter resolution, this value will be aligned to a power of two)
 #define FORCE_FILTER_USAGE		0  ///< if set to 1 then filter is always used, if set to 0 filter is used only in case the instrument file defined one
 #define FILTER_CUTOFF_MAX		10000.0f ///< maximum cutoff frequency (10kHz)
@@ -104,7 +102,7 @@ namespace LinuxSampler { namespace gig {
             void SetEngine(Engine* pEngine);
             int  Trigger(Pool<Event>::Iterator& itNoteOnEvent, int PitchBend, ::gig::Instrument* pInstrument, int iLayer, bool ReleaseTriggerVoice, bool VoiceStealing);
             inline bool IsActive() { return PlaybackState; }
-        private:
+        //private:
             // Types
             enum playback_state_t {
                 playback_state_end  = 0,
@@ -119,8 +117,8 @@ namespace LinuxSampler { namespace gig {
             float                       PanRight;
             float                       CrossfadeVolume;    ///< Current attenuation level caused by a crossfade (only if a crossfade is defined of course)
             double                      Pos;                ///< Current playback position in sample
-            double                      PitchBase;          ///< Basic pitch depth, stays the same for the whole life time of the voice
-            double                      PitchBend;          ///< Current pitch value of the pitchbend wheel
+            float                       PitchBase;          ///< Basic pitch depth, stays the same for the whole life time of the voice
+            float                       PitchBend;          ///< Current pitch value of the pitchbend wheel
             ::gig::Sample*              pSample;            ///< Pointer to the sample to be played back
             ::gig::Region*              pRegion;            ///< Pointer to the articulation information of the respective keyboard region of this voice
             ::gig::DimensionRegion*     pDimRgn;            ///< Pointer to the articulation information of current dimension region of this voice
@@ -129,7 +127,7 @@ namespace LinuxSampler { namespace gig {
             Stream::reference_t         DiskStreamRef;      ///< Reference / link to the disk stream
             unsigned long               MaxRAMPos;          ///< The upper allowed limit (not actually the end) in the RAM sample cache, after that point it's not safe to chase the interpolator another time over over the current cache position, instead we switch to disk then.
             bool                        RAMLoop;            ///< If this voice has a loop defined which completely fits into the cached RAM part of the sample, in this case we handle the looping within the voice class, else if the loop is located in the disk stream part, we let the disk stream handle the looping
-            int                         LoopCyclesLeft;     ///< In case there is a RAMLoop and it's not an endless loop; reflects number of loop cycles left to be passed
+            uint                        LoopCyclesLeft;     ///< In case there is a RAMLoop and it's not an endless loop; reflects number of loop cycles left to be passed
             uint                        Delay;              ///< Number of sample points the rendering process of this voice should be delayed (jitter correction), will be set to 0 after the first audio fragment cycle
             EGADSR*                     pEG1;               ///< Envelope Generator 1 (Amplification)
             EGADSR*                     pEG2;               ///< Envelope Generator 2 (Filter cutoff frequency)
@@ -148,118 +146,22 @@ namespace LinuxSampler { namespace gig {
             LFO<gig::VCFCManipulator>*  pLFO2;             ///< Low Frequency Oscillator 2 (Filter cutoff frequency)
             LFO<gig::VCOManipulator>*   pLFO3;              ///< Low Frequency Oscillator 3 (Pitch)
             Pool<Event>::Iterator       itTriggerEvent;      ///< First event on the key's list the voice should process (only needed for the first audio fragment in which voice was triggered, after that it will be set to NULL).
-        public: // FIXME: just made public for debugging (sanity check in Engine::RenderAudio()), should be changed to private before the final release
+        //public: // FIXME: just made public for debugging (sanity check in Engine::RenderAudio()), should be changed to private before the final release
             Pool<Event>::Iterator       itKillEvent;         ///< Event which caused this voice to be killed
-        private:
-
+        //private:
+            int                         SynthesisMode;
+            void*                       SynthesizeFragmentFnPtr; ///< Points to the respective synthesis function for the current synthesis mode.
 
             // Static Methods
             static float CalculateFilterCutoffCoeff();
             static int   CalculateFilterUpdateMask();
 
             // Methods
-            void        KillImmediately();
-            void        ProcessEvents(uint Samples);
-            #if ENABLE_FILTER
-            void        CalculateBiquadParameters(uint Samples);
-            #endif // ENABLE_FILTER
-            void        InterpolateNoLoop(uint Samples, sample_t* pSrc, uint Skip);
-            void        InterpolateAndLoop(uint Samples, sample_t* pSrc, uint Skip);
-
-            inline void InterpolateMono(sample_t* pSrc, int& i) {
-                InterpolateOneStep_Mono(pSrc, i,
-                                        pEngine->pSynthesisParameters[Event::destination_vca][i] * PanLeft,
-                                        pEngine->pSynthesisParameters[Event::destination_vca][i] * PanRight,
-                                        pEngine->pSynthesisParameters[Event::destination_vco][i],
-                                        pEngine->pBasicFilterParameters[i],
-                                        pEngine->pMainFilterParameters[i]);
-            }
-
-            inline void InterpolateStereo(sample_t* pSrc, int& i) {
-                InterpolateOneStep_Stereo(pSrc, i,
-                                          pEngine->pSynthesisParameters[Event::destination_vca][i] * PanLeft,
-                                          pEngine->pSynthesisParameters[Event::destination_vca][i] * PanRight,
-                                          pEngine->pSynthesisParameters[Event::destination_vco][i],
-                                          pEngine->pBasicFilterParameters[i],
-                                          pEngine->pMainFilterParameters[i]);
-            }
-
-            inline void InterpolateOneStep_Stereo(sample_t* pSrc, int& i, float volume_left, float volume_right, float& pitch, biquad_param_t& bq_base, biquad_param_t& bq_main) {
-                int   pos_int   = RTMath::DoubleToInt(this->Pos);  // integer position
-                float pos_fract = this->Pos - pos_int;             // fractional part of position
-                pos_int <<= 1;
-
-                #if USE_LINEAR_INTERPOLATION
-                    #if ENABLE_FILTER
-                        // left channel
-                        pEngine->pOutputLeft[i]    += this->FilterLeft.Apply(&bq_base, &bq_main, volume_left * (pSrc[pos_int]   + pos_fract * (pSrc[pos_int+2] - pSrc[pos_int])));
-                        // right channel
-                        pEngine->pOutputRight[i++] += this->FilterRight.Apply(&bq_base, &bq_main, volume_right * (pSrc[pos_int+1] + pos_fract * (pSrc[pos_int+3] - pSrc[pos_int+1])));
-                    #else // no filter
-                        // left channel
-                        pEngine->pOutputLeft[i]    += volume_left * (pSrc[pos_int]   + pos_fract * (pSrc[pos_int+2] - pSrc[pos_int]));
-                        // right channel
-                        pEngine->pOutputRight[i++] += volume_right * (pSrc[pos_int+1] + pos_fract * (pSrc[pos_int+3] - pSrc[pos_int+1]));
-                    #endif // ENABLE_FILTER
-                #else // polynomial interpolation
-                    // calculate left channel
-                    float xm1 = pSrc[pos_int];
-                    float x0  = pSrc[pos_int+2];
-                    float x1  = pSrc[pos_int+4];
-                    float x2  = pSrc[pos_int+6];
-                    float a   = (3.0f * (x0 - x1) - xm1 + x2) * 0.5f;
-                    float b   = 2.0f * x1 + xm1 - (5.0f * x0 + x2) * 0.5f;
-                    float c   = (x1 - xm1) * 0.5f;
-                    #if ENABLE_FILTER
-                        pEngine->pOutputLeft[i] += this->FilterLeft.Apply(&bq_base, &bq_main, volume_left * ((((a * pos_fract) + b) * pos_fract + c) * pos_fract + x0));
-                    #else // no filter
-                        pEngine->pOutputLeft[i] += volume_left * ((((a * pos_fract) + b) * pos_fract + c) * pos_fract + x0);
-                    #endif // ENABLE_FILTER
-
-                    //calculate right channel
-                    xm1 = pSrc[pos_int+1];
-                    x0  = pSrc[pos_int+3];
-                    x1  = pSrc[pos_int+5];
-                    x2  = pSrc[pos_int+7];
-                    a   = (3.0f * (x0 - x1) - xm1 + x2) * 0.5f;
-                    b   = 2.0f * x1 + xm1 - (5.0f * x0 + x2) * 0.5f;
-                    c   = (x1 - xm1) * 0.5f;
-                    #if ENABLE_FILTER
-                        pEngine->pOutputRight[i++] += this->FilterRight.Apply(&bq_base, &bq_main, volume_right * ((((a * pos_fract) + b) * pos_fract + c) * pos_fract + x0));
-                    #else // no filter
-                        pEngine->pOutputRight[i++] += volume_right * ((((a * pos_fract) + b) * pos_fract + c) * pos_fract + x0);
-                    #endif // ENABLE_FILTER
-                #endif // USE_LINEAR_INTERPOLATION
-
-                this->Pos += pitch;
-            }
-
-            inline void InterpolateOneStep_Mono(sample_t* pSrc, int& i, float volume_left, float volume_right, float& pitch,  biquad_param_t& bq_base, biquad_param_t& bq_main) {
-                int   pos_int   = RTMath::DoubleToInt(this->Pos);  // integer position
-                float pos_fract = this->Pos - pos_int;             // fractional part of position
-
-                #if USE_LINEAR_INTERPOLATION
-                    float sample_point  = pSrc[pos_int] + pos_fract * (pSrc[pos_int+1] - pSrc[pos_int]);
-                #else // polynomial interpolation
-                    float xm1 = pSrc[pos_int];
-                    float x0  = pSrc[pos_int+1];
-                    float x1  = pSrc[pos_int+2];
-                    float x2  = pSrc[pos_int+3];
-                    float a   = (3.0f * (x0 - x1) - xm1 + x2) * 0.5f;
-                    float b   = 2.0f * x1 + xm1 - (5.0f * x0 + x2) * 0.5f;
-                    float c   = (x1 - xm1) * 0.5f;
-                    float sample_point =  (((a * pos_fract) + b) * pos_fract + c) * pos_fract + x0;
-                #endif // USE_LINEAR_INTERPOLATION
-
-                #if ENABLE_FILTER
-                    sample_point = this->FilterLeft.Apply(&bq_base, &bq_main, sample_point);
-                #endif // ENABLE_FILTER
-
-                pEngine->pOutputLeft[i]    += sample_point * volume_left;
-                pEngine->pOutputRight[i++] += sample_point * volume_right;
-
-                this->Pos += pitch;
-            }
+            void KillImmediately();
+            void ProcessEvents(uint Samples);
+            void CalculateBiquadParameters(uint Samples);
+            void UpdateSynthesisMode();
+            void Synthesize(uint Samples, sample_t* pSrc, int Skip);
 
             inline float CrossfadeAttenuation(uint8_t& CrossfadeControllerValue) {
                 return (CrossfadeControllerValue <= pDimRgn->Crossfade.in_start)  ? 0.0f

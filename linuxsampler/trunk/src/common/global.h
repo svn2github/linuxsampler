@@ -60,6 +60,8 @@
 /// Defines how many event objects the modulation system allocates
 #define MAX_EVENTS_PER_FRAGMENT		1024
 
+#define EMMS __asm__ __volatile__ ("emms" ::: "st", "st(1)", "st(2)", "st(3)", "st(4)", "st(5)", "st(6)", "st(7)", "mm0", "mm1", "mm2", "mm3", "mm4", "mm5", "mm6", "mm7")
+
 /// defines globally the bit depth of used samples
 typedef int16_t sample_t;
 

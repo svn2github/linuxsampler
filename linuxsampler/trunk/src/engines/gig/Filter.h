@@ -54,10 +54,10 @@ namespace LinuxSampler { namespace gig {
             bq_t              resonance;
             bq_t              cutoff;
             ::gig::vcf_type_t Type;
+            static const float fFB = LSF_FB;
         public:
-            bool Enabled;
 
-            inline Filter() {
+            Filter() {
                 // set filter type to 'lowpass' by default
                 pFilter = &LPFilter;
                 Type    = ::gig::vcf_type_lowpass;
@@ -123,16 +123,49 @@ namespace LinuxSampler { namespace gig {
                 this->cutoff    = cutoff;
             }
 
+            void Reset() {
+                BasicBPFilter.Reset();
+                HPFilter.Reset();
+                BPFilter.Reset();
+                LPFilter.Reset();
+            }
+
             inline bq_t Apply(const bq_t in) {
-                return (Enabled) ? pFilter->Apply(in) * this->scale +
-                                  BasicBPFilter.ApplyFB(in, this->resonance * LSF_FB) * this->resonance
-                                : in;
+                return pFilter->Apply(in) * this->scale +
+                        BasicBPFilter.ApplyFB(in, this->resonance * LSF_FB) * this->resonance;
             }
 
             inline bq_t Apply(biquad_param_t* base, biquad_param_t* main, const bq_t in) {
-                return (Enabled) ? pFilter->Apply(main, in) * this->scale +
-                                  BasicBPFilter.ApplyFB(base, in, this->resonance * LSF_FB) * this->resonance
-                                : in;
+                return pFilter->Apply(main, in) * this->scale +
+                        BasicBPFilter.ApplyFB(base, in, this->resonance * LSF_FB) * this->resonance;
+            }
+
+            // expects to find input in xmm0 and leaves output in xmm7
+            inline void Apply4StepsSSE(biquad_param_t* base, biquad_param_t* main) {
+                float fb;
+                __asm__ __volatile__ (
+                    "movss %0, %%xmm4\n\t"
+                    "mulss %1, %%xmm4      # this->resonance * LSF_FB\n\t"
+                    "movss %%xmm4, %2\n\t"
+                    :: "m" (fFB),       /* %0 */
+                       "m" (resonance), /* %1 */
+                       "m" (fb)         /* %2 */
+                );
+                BasicBPFilter.ApplyFB4StepsSSE(base, fb); // leaves output in xmm7
+                __asm__ __volatile__ (
+                    "movss  %0, %%xmm4\n\t"
+                    "shufps $0, %%xmm4, %%xmm4     # copy to other 3 cells\n\t"
+                    "mulps  %%xmm4, %%xmm7         # ApplyFB() * this->resonance\n\t"
+                    :: "m" (resonance) /* %0 */
+                );
+                pFilter->Apply4StepsSSE(main); // leaves output in xmm6
+                __asm__ __volatile__ (
+                    "movss  %0, %%xmm5\n\t"
+                    "shufps $0, %%xmm5, %%xmm5     # copy to other 3 cells\n\t"
+                    "mulps  %%xmm5, %%xmm6         # Apply() * this->scale\n\t"
+                    "addps  %%xmm6, %%xmm7         # xmm7 = result\n\t"
+                    :: "m" (scale) /* %0 */
+                );
             }
     };
 
