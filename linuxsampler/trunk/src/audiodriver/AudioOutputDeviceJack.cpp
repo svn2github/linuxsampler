@@ -27,7 +27,7 @@
 
 namespace LinuxSampler {
 
-    REGISTER_AUDIO_OUTPUT_DRIVER("JACK",AudioOutputDeviceJack);
+    REGISTER_AUDIO_OUTPUT_DRIVER("Jack",AudioOutputDeviceJack);
 
     /**
      * Open and initialize connection to the JACK system.
@@ -136,7 +136,7 @@ namespace LinuxSampler {
     }
 
     String AudioOutputDeviceJack::Version() {
-       String s = "$Revision: 1.5 $";
+       String s = "$Revision: 1.6 $";
        return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
 

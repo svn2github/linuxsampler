@@ -25,7 +25,7 @@
 
 namespace LinuxSampler {
 
-    REGISTER_AUDIO_OUTPUT_DRIVER("ALSA",AudioOutputDeviceAlsa);
+    REGISTER_AUDIO_OUTPUT_DRIVER("Alsa",AudioOutputDeviceAlsa);
 
     /**
      * Create and initialize Alsa audio output device with given parameters.
@@ -36,11 +36,11 @@ namespace LinuxSampler {
     AudioOutputDeviceAlsa::AudioOutputDeviceAlsa(std::map<String,String> Parameters) : AudioOutputDevice(CreateParameters(Parameters)), Thread(true, 1, 0) {
         pcm_handle           = NULL;
         stream               = SND_PCM_STREAM_PLAYBACK;
-        this->uiAlsaChannels = ((DeviceCreationParameterInt*)this->Parameters["CHANNELS"])->ValueAsInt();
-        this->uiSamplerate   = ((DeviceCreationParameterInt*)this->Parameters["SAMPLERATE"])->ValueAsInt();
-        this->FragmentSize   = ((DeviceCreationParameterInt*)this->Parameters["FRAGMENTSIZE"])->ValueAsInt();
-        uint Fragments       = ((DeviceCreationParameterInt*)this->Parameters["FRAGMENTS"])->ValueAsInt();
-        String Card          = this->Parameters["CARD"]->Value();
+        this->uiAlsaChannels = ((DeviceCreationParameterInt*)this->Parameters["channels"])->ValueAsInt();
+        this->uiSamplerate   = ((DeviceCreationParameterInt*)this->Parameters["samplerate"])->ValueAsInt();
+        this->FragmentSize   = ((DeviceCreationParameterInt*)this->Parameters["fragmentsize"])->ValueAsInt();
+        uint Fragments       = ((DeviceCreationParameterInt*)this->Parameters["fragments"])->ValueAsInt();
+        String Card          = this->Parameters["card"]->Value();
 
         dmsg(1,("Checking if hw parameters supported...\n"));
         if (HardwareParametersSupported(Card, uiAlsaChannels, uiSamplerate, Fragments, FragmentSize)) {
@@ -170,9 +170,9 @@ namespace LinuxSampler {
 
     std::map<String,DeviceCreationParameter*> AudioOutputDeviceAlsa::CreateParameters(std::map<String,String> Parameters) {
         std::map<String,DeviceCreationParameter*> result;
-        result["CARD"]         = new ParameterCard(this, Parameters["CARD"]);                 // additional parameter, individually for this driver
-        result["FRAGMENTS"]    = new ParameterFragments(this, Parameters["FRAGMENTS"]);       // additional parameter, individually for this driver
-        result["FRAGMENTSIZE"] = new ParameterFragmentSize(this, Parameters["FRAGMENTSIZE"]); // additional parameter, individually for this driver
+        result["card"]         = new ParameterCard(this, Parameters["card"]);                 // additional parameter, individually for this driver
+        result["fragments"]    = new ParameterFragments(this, Parameters["fragments"]);       // additional parameter, individually for this driver
+        result["fragmentsize"] = new ParameterFragmentSize(this, Parameters["fragmentsize"]); // additional parameter, individually for this driver
         return result;
     }
 
@@ -259,7 +259,7 @@ namespace LinuxSampler {
     }
 
     String AudioOutputDeviceAlsa::Version() {
-       String s = "$Revision: 1.4 $";
+       String s = "$Revision: 1.5 $";
        return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
 
@@ -269,9 +269,9 @@ namespace LinuxSampler {
         static ParameterCard         param_card(NULL);
         static ParameterFragments    param_fragments(NULL);
         static ParameterFragmentSize param_fragmentsize(NULL);
-        available_parameters["CARD"]         = &param_card;         // additional parameter, individually for this driver
-        available_parameters["FRAGMENTS"]    = &param_fragments;    // additional parameter, individually for this driver
-        available_parameters["FRAGMENTSIZE"] = &param_fragmentsize; // additional parameter, individually for this driver
+        available_parameters["card"]         = &param_card;         // additional parameter, individually for this driver
+        available_parameters["fragments"]    = &param_fragments;    // additional parameter, individually for this driver
+        available_parameters["fragmentsize"] = &param_fragmentsize; // additional parameter, individually for this driver
         return available_parameters;
     }
 

@@ -25,9 +25,9 @@
 namespace LinuxSampler {
 
     AudioOutputDevice::AudioOutputDevice(std::map<String,DeviceCreationParameter*> DriverParameters) {
-        if (!DriverParameters["ACTIVE"])     DriverParameters["ACTIVE"]     = new ParameterActive(this);
-        if (!DriverParameters["SAMPLERATE"]) DriverParameters["SAMPLERATE"] = new ParameterSampleRate(this);
-        if (!DriverParameters["CHANNELS"])   DriverParameters["CHANNELS"]   = new ParameterChannels(this);
+        if (!DriverParameters["active"])     DriverParameters["active"]     = new ParameterActive(this);
+        if (!DriverParameters["samplerate"]) DriverParameters["samplerate"] = new ParameterSampleRate(this);
+        if (!DriverParameters["channels"])   DriverParameters["channels"]   = new ParameterChannels(this);
         this->Parameters = DriverParameters;
     }
 
@@ -49,9 +49,9 @@ namespace LinuxSampler {
         static ParameterSampleRate param_samplerate(NULL);
         static ParameterChannels   param_channels(NULL);
         std::map<String,DeviceCreationParameter*> result;
-        result["ACTIVE"]     = &param_active;
-        result["SAMPLERATE"] = &param_samplerate;
-        result["CHANNELS"]   = &param_channels;
+        result["active"]     = &param_active;
+        result["samplerate"] = &param_samplerate;
+        result["channels"]   = &param_channels;
         return result;
     }
 
