@@ -58,7 +58,7 @@ namespace LinuxSampler { namespace gig {
             void WriteSilence(unsigned long SilenceSampleWords);
 
             inline int GetReadSpace() {
-                return (pRingBuffer && State == state_active) ? pRingBuffer->read_space()  : 0;
+                return (pRingBuffer && State != state_unused) ? pRingBuffer->read_space()  : 0;
             }
 
             inline int GetWriteSpace() {

@@ -695,10 +695,14 @@ namespace LinuxSampler { namespace gig {
                         Pos -= int(Pos);
                     }
 
+                    const int sampleWordsLeftToRead = DiskStreamRef.pStream->GetReadSpace();
+
                     // add silence sample at the end if we reached the end of the stream (for the interpolator)
-                    if (DiskStreamRef.State == Stream::state_end && DiskStreamRef.pStream->GetReadSpace() < (pEngine->MaxSamplesPerCycle << MAX_PITCH) / pSample->Channels) {
-                        DiskStreamRef.pStream->WriteSilence((pEngine->MaxSamplesPerCycle << MAX_PITCH) / pSample->Channels);
-                        this->PlaybackState = playback_state_end;
+                    if (DiskStreamRef.State == Stream::state_end) {
+                        const int maxSampleWordsPerCycle = (pEngine->MaxSamplesPerCycle << MAX_PITCH) * pSample->Channels + 6; // +6 for the interpolator algorithm
+                        if (sampleWordsLeftToRead <= maxSampleWordsPerCycle) {
+                            DiskStreamRef.pStream->WriteSilence(maxSampleWordsPerCycle - sampleWordsLeftToRead);
+                        }
                     }
 
                     sample_t* ptr = DiskStreamRef.pStream->GetReadPtr(); // get the current read_ptr within the ringbuffer where we read the samples from
@@ -706,8 +710,13 @@ namespace LinuxSampler { namespace gig {
                     // render current audio fragment
                     Synthesize(Samples, ptr, Delay);
 
-                    DiskStreamRef.pStream->IncrementReadPos(int(Pos) * pSample->Channels);
-                    Pos -= int(Pos);
+                    const int iPos = (int) Pos;
+                    const int readSampleWords = iPos * pSample->Channels; // amount of sample words actually been read
+                    DiskStreamRef.pStream->IncrementReadPos(readSampleWords);
+                    Pos -= iPos; // just keep fractional part of Pos
+
+                    // change state of voice to 'end' if we really reached the end of the sample data
+                    if (DiskStreamRef.State == Stream::state_end && readSampleWords >= sampleWordsLeftToRead) this->PlaybackState = playback_state_end;
                 }
                 break;
 
