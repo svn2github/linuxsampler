@@ -1083,10 +1083,12 @@ namespace gig {
     Region::Region(Instrument* pInstrument, RIFF::List* rgnList) : DLS::Region((DLS::Instrument*) pInstrument, rgnList) {
         // Initialization
         Dimensions = 0;
-        for (int i = 0; i < 32; i++) {
+        for (int i = 0; i < 256; i++) {
             pDimensionRegions[i] = NULL;
         }
         Layers = 1;
+        File* file = (File*) GetParent()->GetParent();
+        int dimensionBits = (file->pVersion && file->pVersion->major == 3) ? 8 : 5;
 
         // Actual Loading
 
@@ -1095,7 +1097,7 @@ namespace gig {
         RIFF::Chunk* _3lnk = rgnList->GetSubChunk(CHUNK_ID_3LNK);
         if (_3lnk) {
             DimensionRegions = _3lnk->ReadUint32();
-            for (int i = 0; i < 5; i++) {
+            for (int i = 0; i < dimensionBits; i++) {
                 dimension_t dimension = static_cast<dimension_t>(_3lnk->ReadUint8());
                 uint8_t     bits      = _3lnk->ReadUint8();
                 if (dimension == dimension_none) { // inactive dimension
@@ -1138,11 +1140,11 @@ namespace gig {
                     else { // custom defined ranges
                         pDimDef->split_type = split_type_customvelocity;
                         pDimDef->ranges     = new range_t[pDimDef->zones];
-                        unsigned int bits[5] = {0,0,0,0,0};
+                        uint8_t bits[8] = { 0 };
                         int previousUpperLimit = -1;
                         for (int velocityZone = 0; velocityZone < pDimDef->zones; velocityZone++) {
                             bits[i] = velocityZone;
-                            DimensionRegion* pDimRegion = GetDimensionRegionByBit(bits[4],bits[3],bits[2],bits[1],bits[0]);
+                            DimensionRegion* pDimRegion = GetDimensionRegionByBit(bits);
 
                             pDimDef->ranges[velocityZone].low  = previousUpperLimit + 1;
                             pDimDef->ranges[velocityZone].high = pDimRegion->VelocityUpperLimit;
@@ -1210,18 +1212,15 @@ namespace gig {
      * left channel, 1 for right channel or 0 for layer 0, 1 for layer 1,
      * etc.).
      *
-     * @param  Dim4Val  MIDI controller value (0-127) for dimension 4
-     * @param  Dim3Val  MIDI controller value (0-127) for dimension 3
-     * @param  Dim2Val  MIDI controller value (0-127) for dimension 2
-     * @param  Dim1Val  MIDI controller value (0-127) for dimension 1
-     * @param  Dim0Val  MIDI controller value (0-127) for dimension 0
+     * @param  DimValues  MIDI controller values (0-127) for dimension 0 to 7
      * @returns         adress to the DimensionRegion for the given situation
      * @see             pDimensionDefinitions
      * @see             Dimensions
      */
-    DimensionRegion* Region::GetDimensionRegionByValue(uint Dim4Val, uint Dim3Val, uint Dim2Val, uint Dim1Val, uint Dim0Val) {
-        uint8_t bits[5] = {Dim0Val,Dim1Val,Dim2Val,Dim3Val,Dim4Val};
+    DimensionRegion* Region::GetDimensionRegionByValue(const uint DimValues[8]) {
+        uint8_t bits[8] = { 0 };
         for (uint i = 0; i < Dimensions; i++) {
+            bits[i] = DimValues[i];
             switch (pDimensionDefinitions[i].split_type) {
                 case split_type_normal:
                     bits[i] /= pDimensionDefinitions[i].zone_size;
@@ -1235,7 +1234,7 @@ namespace gig {
                     break;
             }
         }
-        return GetDimensionRegionByBit(bits[4],bits[3],bits[2],bits[1],bits[0]);
+        return GetDimensionRegionByBit(bits);
     }
 
     /**
@@ -1243,20 +1242,19 @@ namespace gig {
      * numbers (zone index). You usually use <i>GetDimensionRegionByValue</i>
      * instead of calling this method directly!
      *
-     * @param Dim4Bit  Bit number for dimension 4
-     * @param Dim3Bit  Bit number for dimension 3
-     * @param Dim2Bit  Bit number for dimension 2
-     * @param Dim1Bit  Bit number for dimension 1
-     * @param Dim0Bit  Bit number for dimension 0
+     * @param DimBits  Bit numbers for dimension 0 to 7
      * @returns        adress to the DimensionRegion for the given dimension
      *                 bit numbers
      * @see            GetDimensionRegionByValue()
      */
-    DimensionRegion* Region::GetDimensionRegionByBit(uint8_t Dim4Bit, uint8_t Dim3Bit, uint8_t Dim2Bit, uint8_t Dim1Bit, uint8_t Dim0Bit) {
-        return *(pDimensionRegions + ((((((((Dim4Bit << pDimensionDefinitions[3].bits) | Dim3Bit)
-                                                     << pDimensionDefinitions[2].bits) | Dim2Bit)
-                                                     << pDimensionDefinitions[1].bits) | Dim1Bit)
-                                                     << pDimensionDefinitions[0].bits) | Dim0Bit) );
+    DimensionRegion* Region::GetDimensionRegionByBit(const uint8_t DimBits[8]) {
+        return pDimensionRegions[((((((DimBits[7] << pDimensionDefinitions[6].bits | DimBits[6])
+                                                  << pDimensionDefinitions[5].bits | DimBits[5])
+                                                  << pDimensionDefinitions[4].bits | DimBits[4])
+                                                  << pDimensionDefinitions[3].bits | DimBits[3])
+                                                  << pDimensionDefinitions[2].bits | DimBits[2])
+                                                  << pDimensionDefinitions[1].bits | DimBits[1])
+                                                  << pDimensionDefinitions[0].bits | DimBits[0]];
     }
 
     /**

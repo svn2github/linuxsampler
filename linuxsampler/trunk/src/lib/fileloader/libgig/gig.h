@@ -572,13 +572,13 @@ namespace gig {
     class Region : public DLS::Region {
         public:
             unsigned int            Dimensions;               ///< Number of defined dimensions.
-            dimension_def_t         pDimensionDefinitions[5]; ///< Defines the five possible dimensions (the dimension's controller and number of bits/splits).
+            dimension_def_t         pDimensionDefinitions[8]; ///< Defines the five (gig2) or eight (gig3) possible dimensions (the dimension's controller and number of bits/splits).
             uint32_t                DimensionRegions;         ///< Total number of DimensionRegions this Region contains.
-            DimensionRegion*        pDimensionRegions[32];    ///< Pointer array to the 32 possible dimension regions (reflects NULL for dimension regions not in use). Avoid to access the array directly and better use GetDimensionRegionByValue() instead, but of course in some cases it makes sense to use the array (e.g. iterating through all DimensionRegions).
+            DimensionRegion*        pDimensionRegions[256];   ///< Pointer array to the 32 (gig2) or 256 (gig3) possible dimension regions (reflects NULL for dimension regions not in use). Avoid to access the array directly and better use GetDimensionRegionByValue() instead, but of course in some cases it makes sense to use the array (e.g. iterating through all DimensionRegions).
             unsigned int            Layers;                   ///< Amount of defined layers (1 - 32). A value of 1 actually means no layering, a value > 1 means there is Layer dimension. The same information can of course also be obtained by accessing pDimensionDefinitions.
 
-            DimensionRegion* GetDimensionRegionByValue(uint Dim4Val, uint Dim3Val, uint Dim2Val, uint Dim1Val, uint Dim0Val);
-            DimensionRegion* GetDimensionRegionByBit(uint8_t Dim4Bit, uint8_t Dim3Bit, uint8_t Dim2Bit, uint8_t Dim1Bit, uint8_t Dim0Bit);
+            DimensionRegion* GetDimensionRegionByValue(const uint DimValues[8]);
+            DimensionRegion* GetDimensionRegionByBit(const uint8_t DimBits[8]);
             Sample*          GetSample();
         protected:
             uint8_t VelocityTable[128]; ///< For velocity dimensions with custom defined zone ranges only: used for fast converting from velocity MIDI value to dimension bit number.

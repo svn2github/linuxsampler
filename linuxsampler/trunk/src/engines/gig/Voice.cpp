@@ -146,7 +146,7 @@ namespace LinuxSampler { namespace gig {
 
         // get current dimension values to select the right dimension region
         //FIXME: controller values for selecting the dimension region here are currently not sample accurate
-        uint DimValues[5] = {0,0,0,0,0};
+        uint DimValues[8] = { 0 };
         for (int i = pRegion->Dimensions - 1; i >= 0; i--) {
             switch (pRegion->pDimensionDefinitions[i].dimension) {
                 case ::gig::dimension_samplechannel:
@@ -248,7 +248,7 @@ namespace LinuxSampler { namespace gig {
                     std::cerr << "gig::Voice::Trigger() Error: Unknown dimension\n" << std::flush;
             }
         }
-        pDimRgn = pRegion->GetDimensionRegionByValue(DimValues[4],DimValues[3],DimValues[2],DimValues[1],DimValues[0]);
+        pDimRgn = pRegion->GetDimensionRegionByValue(DimValues);
 
         pSample = pDimRgn->pSample; // sample won't change until the voice is finished
 
