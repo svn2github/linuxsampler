@@ -3,6 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
+ *   Copyright (C) 2005 Christian Schoenebeck                              *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -65,9 +66,10 @@ namespace LinuxSampler {
         else { // if multiple strings or a string encapsulated into apostrophes
             char* pStart = (char*) val.c_str();
             char* pC     = pStart;
-            if (*pC != '\'' && *pC != '\"') throw LinuxSamplerException("Invalid form, all individual strings should be encapsulated into apostrophes, separated by commas");
 
             while (true) {
+                if (*pC != '\'' && *pC != '\"') throw LinuxSamplerException("Invalid form, all individual strings should be encapsulated into apostrophes, separated by commas");
+
                 // search for token end
                 char* pTokenStart = pC + 1;
                 do {
@@ -75,11 +77,13 @@ namespace LinuxSampler {
                     if (*pC == '\0') throw LinuxSamplerException("Invalid form, all individual strings should be encapsulated into apostrophes, separated by commas");
                 }
                 while (*pC != '\'' && *pC != '\"');
-                vS.push_back(val.substr((int)(pTokenStart - pStart), (int)(pC - pTokenStart))); // we found the token's end
+                String token = val.substr((int)(pTokenStart - pStart), (int)(pC - pTokenStart));
+                vS.push_back(token); // we found the token's end
 
                 // now there should be either a comma or the end of the total string
                 if (*(++pC) == '\0') break;
                 if (*pC != ',') throw LinuxSamplerException("Invalid form, all individual strings should be encapsulated into apostrophes, separated by commas");
+                pC++;
             }
         }
 

@@ -3,6 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
+ *   Copyright (C) 2005 Christian Schoenebeck                              *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -68,7 +69,7 @@ int yylex(YYSTYPE* yylval) {
 %type <Char> char digit
 %type <Dotnum> dotnum volume_value boolean
 %type <Number> number sampler_channel instrument_index audio_channel_index device_index midi_input_channel_index midi_input_port_index
-%type <String> string text stringval digits param_val filename engine_name command create_instruction destroy_instruction get_instruction list_instruction load_instruction set_chan_instruction load_instr_args load_engine_args audio_output_type_name midi_input_type_name set_instruction subscribe_event unsubscribe_event
+%type <String> string text stringval digits param_val_list param_val filename engine_name command create_instruction destroy_instruction get_instruction list_instruction load_instruction set_chan_instruction load_instr_args load_engine_args audio_output_type_name midi_input_type_name set_instruction subscribe_event unsubscribe_event
 %type <FillResponse> buffer_size_type
 %type <KeyValList> key_val_list
 
@@ -152,12 +153,12 @@ get_instruction       :  AVAILABLE_ENGINES                                      
                       |  ENGINE SP INFO SP engine_name                                              { $$ = LSCPSERVER->GetEngineInfo($5);                              }
                       ;
 
-set_instruction       :  AUDIO_OUTPUT_DEVICE_PARAMETER SP number SP string '=' param_val             { $$ = LSCPSERVER->SetAudioOutputDeviceParameter($3, $5, $7);      }
-                      |  AUDIO_OUTPUT_CHANNEL_PARAMETER SP number SP number SP string '=' param_val  { $$ = LSCPSERVER->SetAudioOutputChannelParameter($3, $5, $7, $9); }
-                      |  MIDI_INPUT_DEVICE_PARAMETER SP number SP string '=' param_val               { $$ = LSCPSERVER->SetMidiInputDeviceParameter($3, $5, $7);        }
-                      |  MIDI_INPUT_PORT_PARAMETER SP number SP number SP string '=' param_val       { $$ = LSCPSERVER->SetMidiInputPortParameter($3, $5, $7, $9);      }
-                      |  CHANNEL SP set_chan_instruction                                             { $$ = $3;                                                         }
-                      |  ECHO SP boolean                                                             { $$ = LSCPSERVER->SetEcho((yyparse_param_t*) yyparse_param, $3);  }
+set_instruction       :  AUDIO_OUTPUT_DEVICE_PARAMETER SP number SP string '=' param_val_list             { $$ = LSCPSERVER->SetAudioOutputDeviceParameter($3, $5, $7);      }
+                      |  AUDIO_OUTPUT_CHANNEL_PARAMETER SP number SP number SP string '=' param_val_list  { $$ = LSCPSERVER->SetAudioOutputChannelParameter($3, $5, $7, $9); }
+                      |  MIDI_INPUT_DEVICE_PARAMETER SP number SP string '=' param_val_list               { $$ = LSCPSERVER->SetMidiInputDeviceParameter($3, $5, $7);        }
+                      |  MIDI_INPUT_PORT_PARAMETER SP number SP number SP string '=' param_val_list       { $$ = LSCPSERVER->SetMidiInputPortParameter($3, $5, $7, $9);      }
+                      |  CHANNEL SP set_chan_instruction                                                  { $$ = $3;                                                         }
+                      |  ECHO SP boolean                                                                  { $$ = LSCPSERVER->SetEcho((yyparse_param_t*) yyparse_param, $3);  }
                       ;
 
 create_instruction    :  AUDIO_OUTPUT_DEVICE SP string SP key_val_list  { $$ = LSCPSERVER->CreateAudioOutputDevice($3,$5); }
@@ -185,8 +186,8 @@ set_chan_instruction  :  AUDIO_OUTPUT_DEVICE SP sampler_channel SP device_index 
                       |  VOLUME SP sampler_channel SP volume_value                                                           { $$ = LSCPSERVER->SetVolume($5, $3);                 }
                       ;
 
-key_val_list          :  string '=' param_val                  { $$[$1] = $3;          }
-                      |  key_val_list SP string '=' param_val  { $$ = $1; $$[$3] = $5; }
+key_val_list          :  string '=' param_val_list                  { $$[$1] = $3;          }
+                      |  key_val_list SP string '=' param_val_list  { $$ = $1; $$[$3] = $5; }
                       ;
 
 buffer_size_type      :  BYTES       { $$ = fill_response_bytes;      }
@@ -240,10 +241,15 @@ engine_name               :  string
 filename                  :  stringval
                           ;
 
+param_val_list            :  param_val
+                          |  param_val_list','param_val  { $$ = $1 + "," + $3; }
+                          ;
+
 param_val                 :  string
-                          |  stringval
-                          |  number     { std::stringstream ss; ss << $1; $$ = ss.str(); }
-                          |  dotnum     { std::stringstream ss; ss << $1; $$ = ss.str(); }
+                          |  '\'' string '\''  { $$ = "\'" + $2 + "\'"; }  // we eleminate encapsulating (apostrophe) limiters later
+                          |  '\"' string '\"'  { $$ = "\"" + $2 + "\""; }  // s.a.
+                          |  number            { std::stringstream ss; ss << "\'" << $1 << "\'"; $$ = ss.str(); }
+                          |  dotnum            { std::stringstream ss; ss << "\'" << $1 << "\'"; $$ = ss.str(); }
                           ;
 
 

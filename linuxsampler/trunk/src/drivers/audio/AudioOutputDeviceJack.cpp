@@ -3,6 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
+ *   Copyright (C) 2005 Christian Schoenebeck                              *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -74,15 +75,22 @@ namespace LinuxSampler {
     }
 
     void AudioOutputDeviceJack::AudioChannelJack::ParameterJackBindings::OnSetValue(std::vector<String> vS) {
-        // TODO: we should remove all existing bindings before we connect new ones here
         String src_name = ((DeviceCreationParameterString*)pChannel->pDevice->Parameters["NAME"])->ValueAsString() + ":" +
                           ((DeviceRuntimeParameterString*)pChannel->Parameters["NAME"])->ValueAsString();
+        // disconnect all current bindings first
+        for (int i = 0; i < Bindings.size(); i++) {
+            String dst_name = Bindings[i];
+            int res = jack_disconnect(pChannel->pDevice->hJackClient, src_name.c_str(), dst_name.c_str());
+        }
+        // connect new bindings
         for (int i = 0; i < vS.size(); i++) {
             String dst_name = vS[i];
             int res = jack_connect(pChannel->pDevice->hJackClient, src_name.c_str(), dst_name.c_str());
             if (res == EEXIST) throw AudioOutputException("Jack: Connection to port '" + dst_name + "' already established");
             else if (res)      throw AudioOutputException("Jack: Cannot connect port '" + src_name + "' to port '" + dst_name + "'");
         }
+        // remember bindings
+        Bindings = vS;
     }
 
     String AudioOutputDeviceJack::AudioChannelJack::ParameterJackBindings::Name() {
@@ -249,7 +257,7 @@ namespace LinuxSampler {
     }
 
     String AudioOutputDeviceJack::Version() {
-       String s = "$Revision: 1.17 $";
+       String s = "$Revision: 1.18 $";
        return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
 

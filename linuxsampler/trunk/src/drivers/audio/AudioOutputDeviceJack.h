@@ -3,6 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
+ *   Copyright (C) 2005 Christian Schoenebeck                              *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -75,7 +76,8 @@ namespace LinuxSampler {
                             virtual void                OnSetValue(std::vector<String> vS);
                             static String Name();
                         protected:
-                            AudioChannelJack* pChannel;
+                            AudioChannelJack*   pChannel;
+                            std::vector<String> Bindings;
                     };
                 protected:
                     AudioChannelJack(uint ChannelNr, AudioOutputDeviceJack* pDevice) throw (AudioOutputException);
