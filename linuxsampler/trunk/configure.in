@@ -143,6 +143,18 @@ fi
 AM_CONDITIONAL(HAVE_JACK, test $HAVE_JACK = 1)
 AC_DEFINE_UNQUOTED(HAVE_JACK,$HAVE_JACK,[Define to 1 if you have JACK installed.])
 
+# SQLITE3
+PKG_CHECK_MODULES(SQLITE3, sqlite3, HAVE_SQLITE3=true, HAVE_SQLITE3=false)
+AC_SUBST(SQLITE3_LIBS)
+AC_SUBST(SQLITE3_CFLAGS)
+if test $HAVE_SQLITE3 = false; then
+    HAVE_SQLITE3=0;
+else
+    HAVE_SQLITE3=1
+fi
+AM_CONDITIONAL(HAVE_SQLITE3, test $HAVE_SQLITE3 = 1)
+AC_DEFINE_UNQUOTED(HAVE_SQLITE3,$HAVE_SQLITE3,[Define to 1 if you have SQLITE3 installed.])
+
 
 if test "$have_midi_input_driver" = "false"; then
     echo "No supported MIDI input system found!"

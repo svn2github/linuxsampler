@@ -70,6 +70,18 @@ void LSCPResultSet::Add(String Label, const char* pValue) {
     Add(Label, String(pValue));
 }
 
+//Add SQL resultset row
+void LSCPResultSet::Add(int columns, char** argv) {
+	for (int i = 0; i < columns; i++)
+	{
+		storage += argv[i];
+		if ((i+1) < columns)
+			storage += "|";
+	}
+	storage += "\r\n";
+	count = 2; //This result is always multiline.
+}
+
 void LSCPResultSet::Add(int Value) {
 	Add(ToString(Value));
 }

@@ -105,6 +105,7 @@ command               :  ADD SP CHANNEL                        { $$ = LSCPSERVER
                       |  SET SP set_instruction                { $$ = $3;                                                }
                       |  SUBSCRIBE SP subscribe_event          { $$ = $3;                                                }
                       |  UNSUBSCRIBE SP unsubscribe_event      { $$ = $3;                                                }
+                      |  SELECT SP text                        { $$ = LSCPSERVER->QueryDatabase($3);                     }
                       |  RESET SP CHANNEL SP sampler_channel   { $$ = LSCPSERVER->ResetChannel($5);                      }
                       |  RESET                                 { $$ = LSCPSERVER->ResetSampler();                        }
                       |  QUIT                                  { LSCPSERVER->AnswerClient("Bye!\r\n"); return LSCP_QUIT; }
@@ -397,6 +398,9 @@ SUBSCRIBE             :  'S''U''B''S''C''R''I''B''E'
                       ;
 
 UNSUBSCRIBE           :  'U''N''S''U''B''S''C''R''I''B''E'
+                      ;
+
+SELECT                :  'S''E''L''E''C''T'
                       ;
 
 CHANNEL               :  'C''H''A''N''N''E''L'

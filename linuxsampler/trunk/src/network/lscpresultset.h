@@ -41,6 +41,7 @@ class LSCPResultSet {
 	void Add(String);
 	void Add(String, String);
         void Add(String, const char*);
+	void Add(int columns, char** argv);
 	void Add(String, float);
 	void Add(String, int);
         void Add(String, bool);

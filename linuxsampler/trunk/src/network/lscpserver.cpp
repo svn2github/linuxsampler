@@ -24,6 +24,11 @@
 #include "lscpserver.h"
 #include "lscpresultset.h"
 #include "lscpevent.h"
+//#include "../common/global.h"
+
+#ifdef HAVE_SQLITE3
+#include "sqlite3.h"
+#endif
 
 #include "../engines/gig/Engine.h"
 #include "../drivers/audio/AudioOutputDeviceFactory.h"
@@ -1390,6 +1395,38 @@ String LSCPServer::UnsubscribeNotification(LSCPEvent::event_t type) {
     SubscriptionMutex.Lock();
     eventSubscriptions[type].remove(currentSocket);
     SubscriptionMutex.Unlock();
+    return result.Produce();
+}
+
+static int select_callback(void * lscpResultSet, int argc,
+			char **argv, char **azColName)
+{
+    LSCPResultSet* resultSet = (LSCPResultSet*) lscpResultSet;
+    resultSet->Add(argc, argv);
+    return 0;
+}
+
+String LSCPServer::QueryDatabase(String query) {
+    LSCPResultSet result;
+#ifdef HAVE_SQLITE3
+    char* zErrMsg = NULL;
+    sqlite3 *db;
+    String selectStr = "SELECT " + query;
+
+    int rc = sqlite3_open("linuxsampler.db", &db);
+    if (rc == SQLITE_OK)
+    {
+	    rc = sqlite3_exec(db, selectStr.c_str(), select_callback, &result, &zErrMsg);
+    }
+    if ( rc != SQLITE_OK )
+    {
+	    //result.Error(String(zErrMsg), rc);
+	    result.Error(selectStr, 666);
+    }
+    sqlite3_close(db);
+#else
+    result.Error(String("SQLITE3 was not installed when linuxsampler was built. SELECT statement is not available."), 0);
+#endif
     return result.Produce();
 }
 

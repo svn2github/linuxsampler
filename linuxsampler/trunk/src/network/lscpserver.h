@@ -124,6 +124,7 @@ class LSCPServer : public Thread {
         String ResetSampler();
         String SubscribeNotification(LSCPEvent::event_t);
         String UnsubscribeNotification(LSCPEvent::event_t);
+	String QueryDatabase(String query);
         String SetEcho(yyparse_param_t* pSession, double boolean_value);
         void   AnswerClient(String ReturnMessage);
 
