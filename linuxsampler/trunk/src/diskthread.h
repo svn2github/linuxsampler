@@ -33,6 +33,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <time.h>
 
 #include "global.h"
 #include "thread.h"
@@ -50,6 +51,11 @@ class DiskThread : public Thread {
         int     OrderNewStream(Stream::reference_t* pStreamRef, gig::Sample* pSample, unsigned long SampleOffset);
         int     OrderDeletionOfStream(Stream::reference_t* pStreamRef);
         Stream* AskForCreatedStream(Stream::OrderID_t StreamOrderID);
+
+        // the number of currently active streams 
+        // printed on the console the main thread (along with the active voice count)
+        int ActiveStreamCount;
+
     protected:
         int Main(); ///< Implementation of virtual method from class Thread
     private:

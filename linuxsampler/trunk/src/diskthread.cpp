@@ -145,6 +145,13 @@ int DiskThread::Main() {
         // if nothing was done during this iteration (eg no streambuffer
         // filled with data) then sleep for 50ms
         if (IsIdle) usleep(30000);
+
+        int act_streams=0;
+        for (int i = Streams - 1; i >= 0; i--) {
+            if (pStreams[i]->GetState() == Stream::state_active) act_streams++;
+        }
+        ActiveStreamCount=act_streams;
+
     }
 
     return EXIT_FAILURE;

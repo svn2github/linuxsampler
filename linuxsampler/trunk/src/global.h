@@ -32,7 +32,7 @@
 #include <config.h>
 #endif
 
-#define LS_DEBUG	1
+#define LS_DEBUG	0
 
 #if LS_DEBUG
 #  define dmsg(x)	printf x; fflush(stdout);

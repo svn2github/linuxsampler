@@ -23,6 +23,7 @@
 #ifndef __VOICE_H__
 #define __VOICE_H__
 
+
 #include "global.h"
 #include "diskthread.h"
 #include "ringbuffer.h"

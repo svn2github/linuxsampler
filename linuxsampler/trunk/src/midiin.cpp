@@ -75,18 +75,21 @@ int MidiIn::Main() {
 
                 switch (ev->type) {
                     case SND_SEQ_EVENT_CONTROLLER:
-                        fprintf(stderr, "Control event on Channel %2d: %5d       \n",
-                                ev->data.control.channel, ev->data.control.value);
+                     //   fprintf(stderr, "Control event on Channel %2d: num=%5d val=%5d       \n",
+                     //           ev->data.control.channel, ev->data.control.param, ev->data.control.value);
+
+                          pAudioThread->ProcessContinuousController(ev->data.control.channel, ev->data.control.param, ev->data.control.value);
+
                         break;
 
                     case SND_SEQ_EVENT_PITCHBEND:
-                        fprintf(stderr, "Pitchbender event on Channel %2d: %5d   \n",
-                                ev->data.control.channel, ev->data.control.value);
+                      //  fprintf(stderr, "Pitchbender event on Channel %2d: %5d   \n",
+                      //          ev->data.control.channel, ev->data.control.value);
                         break;
 
                     case SND_SEQ_EVENT_NOTEON:
-                        fprintf(stderr, "Note On event on Channel %2d: note=%5d velocity=%d      \n",
-                                ev->data.control.channel, ev->data.note.note, ev->data.note.velocity);
+                        //fprintf(stderr, "Note On event on Channel %2d: note=%5d velocity=%d      \n",
+                        //        ev->data.control.channel, ev->data.note.note, ev->data.note.velocity);
                         if (ev->data.note.velocity != 0) {
                             pAudioThread->ProcessNoteOn(ev->data.note.note, ev->data.note.velocity);
                         }
@@ -96,8 +99,8 @@ int MidiIn::Main() {
                         break;
 
                     case SND_SEQ_EVENT_NOTEOFF:
-                        fprintf(stderr, "Note Off event on Channel %2d: note=%5d velocity=%d      \n",
-                                ev->data.control.channel, ev->data.note.note, ev->data.note.velocity);
+                        //fprintf(stderr, "Note Off event on Channel %2d: note=%5d velocity=%d      \n",
+                        //        ev->data.control.channel, ev->data.note.note, ev->data.note.velocity);
                         pAudioThread->ProcessNoteOff(ev->data.note.note, ev->data.note.velocity);
                         break;
                 }
@@ -106,3 +109,4 @@ int MidiIn::Main() {
         } // end of if(poll...)
     }  // end of while
 }
+

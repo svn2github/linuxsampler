@@ -132,7 +132,11 @@ int main(int argc, char **argv) {
 
     printf("LinuxSampler initialization completed.\n");
 
-    while(true) sleep(1000);
+    while(true)  {
+      printf("Voices: %3.3d  Streams: %3.3d  \r",pAudioThread->ActiveVoiceCount, pDiskThread->ActiveStreamCount); fflush(stdout);
+      usleep(500000);
+    }
+
     return EXIT_SUCCESS;
 }
 
