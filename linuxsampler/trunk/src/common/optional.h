@@ -91,7 +91,7 @@ namespace LinuxSampler {
             }
 
             operator bool()   const { return initialized; }
-            bool operator !() const { return initialized; }
+            bool operator !() const { return !initialized; }
 
         protected:
             T    data;
