@@ -125,6 +125,7 @@ int AudioThread::Main() {
         // write that to the disk thread class so that it can print it
         // on the console for debugging purposes
         ActiveVoiceCount = active_voices;
+        if (ActiveVoiceCount > ActiveVoiceCountMax) ActiveVoiceCountMax = ActiveVoiceCount;
 
 
         // check clipping in the audio sum, convert to sample_type

@@ -23,19 +23,27 @@
 #include "thread.h"
 
 Thread::Thread(bool RealTime, int PriorityMax, int PriorityDelta) {
-    this->isRealTime=RealTime;
-    this->Running       = false;
-    this->PriorityDelta = PriorityDelta;
-    this->PriorityMax   = PriorityMax;
+    this->isRealTime        = RealTime;
+    this->Running           = false;
+    this->PriorityDelta     = PriorityDelta;
+    this->PriorityMax       = PriorityMax;
+    __thread_destructor_key = 0;
+    pthread_mutex_init(&__thread_state_mutex, NULL);
+    pthread_cond_init(&__thread_exit_condition, NULL);
 }
 
 Thread::~Thread() {
     if (this->Running) StopThread();
+    pthread_cond_destroy(&__thread_exit_condition);
+    pthread_mutex_destroy(&__thread_state_mutex);
 }
 
+/**
+ *  Start the thread. The Main() method is the entry point for the new
+ *  thread. You have to implement the Main() method in your subclass.
+ */
 int Thread::StartThread() {
     // Create and run the thread
-    this->Running = true;
     int res = pthread_create(&this->__thread_id, NULL, __pthread_launcher, this);
     switch (res) {
         case 0: // Success
@@ -59,9 +67,27 @@ int Thread::StartThread() {
     return res;
 }
 
+/**
+ *  Stops the thread. This method will wait until the thread actually stopped
+ *  it's execution before it will return.
+ */
 int Thread::StopThread() {
+    pthread_mutex_lock(&__thread_state_mutex);
+    if (Running) {
+        SignalStopThread();
+        pthread_cond_wait(&__thread_exit_condition, &__thread_state_mutex);
+    }
+    pthread_mutex_unlock(&__thread_state_mutex);
+    return 0;
+}
+
+/**
+ *  Stops the thread. This method will signal to stop the thread and return
+ *  immediately. Note that the thread might still run when this method
+ *  returns!
+ */
+int Thread::SignalStopThread() {
     pthread_cancel(__thread_id);
-    Running = false;
     return 0;
 }
 
@@ -100,10 +126,43 @@ int Thread::SetSchedulingPriority() {
     return 0;
 }
 
+/**
+ *  Registers thread destructor callback function which will be executed when
+ *  the thread stops it's execution and sets the 'Running' flag to true. This
+ *  method will be called by the __pthread_launcher callback function, DO NOT
+ *  CALL THIS METHOD YOURSELF!
+ */
+void Thread::EnableDestructor() {
+    pthread_mutex_lock(&__thread_state_mutex);
+    pthread_key_create(&__thread_destructor_key, __pthread_destructor);
+    pthread_setspecific(__thread_destructor_key, this);
+    Running = true;
+    pthread_mutex_unlock(&__thread_state_mutex);
+}
+
+/**
+ *  Will be called by the kernel when the thread stops it's execution.
+ */
+int Thread::Destructor() {
+    pthread_key_delete(__thread_destructor_key);
+    pthread_mutex_lock(&__thread_state_mutex);
+    Running = false;
+    pthread_mutex_unlock(&__thread_state_mutex);
+    pthread_cond_broadcast(&__thread_exit_condition);
+}
+
 /// Callback function for the POSIX thread API
 void* __pthread_launcher(void* thread) {
     Thread* t;
     t = (Thread*) thread;
+    t->EnableDestructor();
     t->SetSchedulingPriority();
     t->Main();
-};
+}
+
+/// Callback function for the POSIX thread API
+void __pthread_destructor(void* thread) {
+    Thread* t;
+    t = (Thread*) thread;
+    t->Destructor();
+}

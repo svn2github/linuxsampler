@@ -131,7 +131,7 @@ void Voice::RenderAudio() {
             break;
 
         case playback_state_end:
-            this->Active = false; // free voice
+            Kill(); // free voice
             break;
     }
 }

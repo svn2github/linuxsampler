@@ -25,6 +25,7 @@
 #include <unistd.h>
 #include <getopt.h>
 #include <signal.h>
+#include <pthread.h>
 
 #include "global.h"
 #include "audioio.h"
@@ -55,6 +56,7 @@ gig::File*       pGig;
 gig::Instrument* pInstrument;
 int              num_fragments;
 int              fragmentsize;
+pthread_t        signalhandlerthread;
 
 void parse_options(int argc, char **argv);
 void signal_handler(int signal);
@@ -65,6 +67,7 @@ int main(int argc, char **argv) {
     pGig     = NULL;
 
     // setting signal handler for catching SIGINT (thus e.g. <CTRL><C>)
+    signalhandlerthread = pthread_self();
     signal(SIGINT, signal_handler);
 
     patch_format      = patch_format_unknown;
@@ -124,7 +127,10 @@ int main(int argc, char **argv) {
     printf("LinuxSampler initialization completed.\n");
 
     while(true)  {
-      printf("Voices: %3.3d  Streams: %3.3d  \r",pAudioThread->ActiveVoiceCount, pDiskThread->ActiveStreamCount); fflush(stdout);
+      printf("Voices: %3.3d (Max: %3.3d) Streams: %3.3d (Max: %3.3d, Unused: %3.3d)\r",
+            pAudioThread->ActiveVoiceCount, pAudioThread->ActiveVoiceCountMax,
+            pDiskThread->ActiveStreamCount, pDiskThread->ActiveStreamCountMax, Stream::GetUnusedStreams());
+      fflush(stdout);
       usleep(500000);
     }
 
@@ -132,13 +138,11 @@ int main(int argc, char **argv) {
 }
 
 void signal_handler(int signal) {
-    if (signal == SIGINT) {
+    if (pthread_equal(pthread_self(), signalhandlerthread) && signal == SIGINT) {    
         // stop all threads
         if (pMidiInThread) pMidiInThread->StopThread();
         if (pAudioThread)  pAudioThread->StopThread();
         if (pDiskThread)   pDiskThread->StopThread();
-
-        sleep(1);
 
         // free all resources
         if (pMidiInThread) delete pMidiInThread;

@@ -25,6 +25,8 @@
 AudioIO::AudioIO() {
     pcm_handle    = NULL;
     pOutputBuffer = NULL;
+    Initialized   = false;
+    stream        = SND_PCM_STREAM_PLAYBACK;
 }
 
 AudioIO::~AudioIO() {
@@ -32,34 +34,24 @@ AudioIO::~AudioIO() {
 }
 
 int AudioIO::Initialize(uint channels, uint samplerate, uint numfragments, uint fragmentsize) {
-    this->Channels         = channels;
-    this->Samplerate       = samplerate;
-    this->Fragments        = numfragments;
-    this->FragmentSize     = fragmentsize;
+    this->Channels     = channels;
+    this->Samplerate   = samplerate;
+    this->Fragments    = numfragments;
+    this->FragmentSize = fragmentsize;
 
-    /* Playback stream */
-    snd_pcm_stream_t stream = SND_PCM_STREAM_PLAYBACK;
-
-    /* This structure contains information about    */
-    /* the hardware and can be used to specify the  */
-    /* configuration to be used for the PCM stream. */
-    snd_pcm_hw_params_t* hwparams;
-
-    snd_pcm_sw_params_t* swparams;
-
-    /* Name of the PCM device, like plughw:0,0          */
-    /* The first number is the number of the soundcard, */
-    /* the second number is the number of the device.   */
-    char* pcm_name;
-
-    /* Init pcm_name. Of course, later you */
+    if (HardwareParametersSupported(channels, samplerate, numfragments, fragmentsize)) {
+        pcm_name = "hw:0,0";
+    }
+    else {
+        printf("Warning: your soundcard doesn't support chosen hardware parameters; ");
+        printf("trying to compensate support lack with plughw...");
+        fflush(stdout);
+        pcm_name = "plughw:0,0";
+    }
 
     int err;
 
-    pcm_name = strdup("hw:0,0");
-
-    /* Allocate the snd_pcm_hw_params_t structure on the stack. */
-    snd_pcm_hw_params_alloca(&hwparams);
+    snd_pcm_hw_params_alloca(&hwparams);  // Allocate the snd_pcm_hw_params_t structure on the stack.
 
     /* Open PCM. The last parameter of this function is the mode. */
     /* If this is set to 0, the standard mode is used. Possible   */
@@ -68,8 +60,8 @@ int AudioIO::Initialize(uint channels, uint samplerate, uint numfragments, uint 
     /* PCM device will return immediately. If SND_PCM_ASYNC is    */
     /* specified, SIGIO will be emitted whenever a period has     */
     /* been completely processed by the soundcard.                */
-    if ((err = snd_pcm_open(&pcm_handle, pcm_name, stream, 0)) < 0) {
-        fprintf(stderr, "Error opening PCM device %s: %s\n", pcm_name, snd_strerror(err));
+    if ((err = snd_pcm_open(&pcm_handle, pcm_name.c_str(), stream, 0)) < 0) {
+        fprintf(stderr, "Error opening PCM device %s: %s\n", pcm_name.c_str(), snd_strerror(err));
         return EXIT_FAILURE;
     }
 
@@ -151,8 +143,52 @@ int AudioIO::Initialize(uint channels, uint samplerate, uint numfragments, uint 
 
     // allocate the audio output buffer
     pOutputBuffer = new int16_t[channels * fragmentsize];
+    
+    this->Initialized = true;
 
     return EXIT_SUCCESS;
+}
+
+/**
+ *  Checks if sound card supports the chosen parameters.
+ *
+ *  @returns  true if hardware supports it
+ */
+bool AudioIO::HardwareParametersSupported(uint channels, int samplerate, uint numfragments, uint fragmentsize) {
+    pcm_name = "hw:0,0";
+    if (snd_pcm_open(&pcm_handle, pcm_name.c_str(), stream, 0) < 0) return false;
+    snd_pcm_hw_params_alloca(&hwparams);
+    if (snd_pcm_hw_params_any(pcm_handle, hwparams) < 0) {
+        snd_pcm_close(pcm_handle);
+        return false;
+    }
+    if (snd_pcm_hw_params_test_access(pcm_handle, hwparams, SND_PCM_ACCESS_RW_INTERLEAVED) < 0) {
+        snd_pcm_close(pcm_handle);
+        return false;
+    }
+    if (snd_pcm_hw_params_test_format(pcm_handle, hwparams, SND_PCM_FORMAT_S16_LE) < 0) {
+        snd_pcm_close(pcm_handle);
+        return false;
+    }
+    if (snd_pcm_hw_params_test_rate(pcm_handle, hwparams, samplerate, 0) < 0) {
+        snd_pcm_close(pcm_handle);
+        return false;
+    }
+    if (snd_pcm_hw_params_test_channels(pcm_handle, hwparams, channels) < 0) {
+        snd_pcm_close(pcm_handle);
+        return false;
+    }
+    if (snd_pcm_hw_params_test_periods(pcm_handle, hwparams, numfragments, 0) < 0) {
+        snd_pcm_close(pcm_handle);
+        return false;
+    }
+    if (snd_pcm_hw_params_test_buffer_size(pcm_handle, hwparams, (fragmentsize * numfragments)) < 0) {
+        snd_pcm_close(pcm_handle);
+        return false;
+    }
+
+    snd_pcm_close(pcm_handle);
+    return true;
 }
 
 int AudioIO::Output() {
@@ -165,12 +201,17 @@ int AudioIO::Output() {
 }
 
 void AudioIO::Close(void) {
-    if (pcm_handle) {
-        snd_pcm_close(pcm_handle);
-        pcm_handle = NULL;
-    }
-    if (pOutputBuffer) {
-        delete[] pOutputBuffer;
-        pOutputBuffer = NULL;
+    if (Initialized) {
+        if (pcm_handle) {
+            //FIXME: currently commented out due to segfault
+            //snd_pcm_close(pcm_handle);
+            pcm_handle = NULL;
+        }
+        if (pOutputBuffer) {
+            //FIXME: currently commented out due to segfault
+            //delete[] pOutputBuffer;
+            pOutputBuffer = NULL;
+        }
+        Initialized = false;
     }
 }

@@ -32,8 +32,9 @@
 #include <pthread.h>
 #include <errno.h>
 
-/// Callback function for the POSIX thread API
+// Callback functions for the POSIX thread API
 void* __pthread_launcher(void* thread);
+void  __pthread_destructor(void* thread);
 
 /// Abstract base class for classes that need to run in an own thread.
 class Thread {
@@ -42,15 +43,21 @@ class Thread {
         virtual ~Thread();
         virtual int  StartThread();
         virtual int  StopThread();
+        virtual int  SignalStopThread();
         virtual bool IsRunning() { return Running; }
         virtual int  SetSchedulingPriority(); //FIXME: should be private
-        virtual int Main() = 0; ///< This method needs to be implemented by the descendant and is the entry point for the new thread.
+        virtual void EnableDestructor();      //FIXME: should be private
+        virtual int  Destructor();            //FIXME: should be private
+        virtual int  Main() = 0; ///< This method needs to be implemented by the descendant and is the entry point for the new thread.
     private:
-        pthread_t __thread_id;
-        int       PriorityMax;
-        int       PriorityDelta;
-        bool      Running;
-        bool      isRealTime;
+        pthread_t       __thread_id;
+        pthread_key_t   __thread_destructor_key;
+        pthread_mutex_t __thread_state_mutex;
+        pthread_cond_t  __thread_exit_condition;
+        int             PriorityMax;
+        int             PriorityDelta;
+        bool            Running;
+        bool            isRealTime;
 };
 
 #endif // __THREAD_H__

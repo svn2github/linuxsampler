@@ -38,7 +38,6 @@
 
 #include "rtelmemorypool.h"
 
-#define DEBUG			0
 #define PITCHBEND_SEMITONES	12
 #define MAX_AUDIO_VOICES	64
 
@@ -48,6 +47,7 @@
 class AudioThread : public Thread {
     public:
         int ActiveVoiceCount;  ///< number of currently active voices
+        int ActiveVoiceCountMax;
 
         AudioThread(AudioIO* pAudioIO, DiskThread* pDiskThread, gig::Instrument* pInstrument);
        ~AudioThread();

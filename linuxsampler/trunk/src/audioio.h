@@ -25,6 +25,7 @@
 
 // We only support Alsa at the moment
 
+#include <string>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -33,13 +34,16 @@
 #include <sched.h>
 #include <sys/mman.h>
 
+#include "global.h"
+
 class AudioIO {
     public:
-        int16_t* pOutputBuffer;    ///< This is the buffer where the final mix will be copied to and send to the sound card
+        bool     Initialized;
+        int16_t* pOutputBuffer;  ///< This is the buffer where the final mix will be copied to and send to the sound card
         uint     Channels;
         uint     Samplerate;
         uint     Fragments;
-        uint     FragmentSize;     ///< in sample points
+        uint     FragmentSize;   ///< in sample points
 
         AudioIO();
        ~AudioIO();
@@ -47,7 +51,15 @@ class AudioIO {
         int  Output();
         void Close();
     private:
-        snd_pcm_t* pcm_handle; ///< Handle for the PCM device
+        typedef std::string  String;
+
+        String               pcm_name;    ///< Name of the PCM device, like plughw:0,0 the first number is the number of the soundcard, the second number is the number of the device.
+        snd_pcm_t*           pcm_handle;  ///< Handle for the PCM device
+        snd_pcm_stream_t     stream;
+        snd_pcm_hw_params_t* hwparams;    ///< This structure contains information about the hardware and can be used to specify the configuration to be used for the PCM stream.
+        snd_pcm_sw_params_t* swparams;
+
+        bool HardwareParametersSupported(uint channels, int samplerate, uint numfragments, uint fragmentsize);
 };
 
 #endif // __AUDIO_H__

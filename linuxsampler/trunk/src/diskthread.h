@@ -52,9 +52,10 @@ class DiskThread : public Thread {
         int     OrderDeletionOfStream(Stream::reference_t* pStreamRef);
         Stream* AskForCreatedStream(Stream::OrderID_t StreamOrderID);
 
-        // the number of currently active streams 
+        // the number of streams currently in usage
         // printed on the console the main thread (along with the active voice count)
         int ActiveStreamCount;
+        int ActiveStreamCountMax;
 
     protected:
         int Main(); ///< Implementation of virtual method from class Thread

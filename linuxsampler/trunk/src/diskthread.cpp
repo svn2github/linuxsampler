@@ -146,12 +146,12 @@ int DiskThread::Main() {
         // filled with data) then sleep for 50ms
         if (IsIdle) usleep(30000);
 
-        int act_streams=0;
+        int streamsInUsage = 0;
         for (int i = Streams - 1; i >= 0; i--) {
-            if (pStreams[i]->GetState() == Stream::state_active) act_streams++;
+            if (pStreams[i]->GetState() != Stream::state_unused) streamsInUsage++;
         }
-        ActiveStreamCount=act_streams;
-
+        ActiveStreamCount = streamsInUsage;
+        if (streamsInUsage > ActiveStreamCountMax) ActiveStreamCountMax = streamsInUsage;
     }
 
     return EXIT_FAILURE;
