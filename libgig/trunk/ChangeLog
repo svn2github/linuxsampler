@@ -4,12 +4,18 @@ Version CVS HEAD (?)
     - renamed 'libgig.pc.in' -> 'gig.pc.in' and renamed pkg-config lib name
       'libgig' -> 'gig' as it's common practice to omit the 'lib' prefix
 
+  * src/gig.cpp, src/gig.h:
+    - fixed / improved accuracy of all three velocity to volume
+      transformation functions (a.k.a. 'nonlinear','linear','special')
+    - denormals are filtered from the velocity to volume tables
+
   * src/gigextract.cpp:
     - added support for libsndfile (if libaudiofile and libsndfile are
       available then libsndfile is preferred)
 
   * src/gigdump.cpp:
     - added printout for dimension informations (amount, type, bits, zones)
+    - added printout for velocity response curve parameters
 
 Version 0.7.1 (2 Jul 2004)
 
