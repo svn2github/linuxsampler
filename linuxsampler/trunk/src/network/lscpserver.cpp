@@ -634,10 +634,17 @@ String LSCPServer::SetMIDIInputChannel(uint MIDIChannel, uint uiSamplerChannel) 
     return result.Produce();
 }
 
-String LSCPServer::SetAudioOutputDevice(uint AudioDeviceId, uint SamplerChannel) {
+String LSCPServer::SetAudioOutputDevice(uint AudioDeviceId, uint uiSamplerChannel) {
     LSCPResultSet result;
     try {
-        throw LinuxSamplerException("Command not yet implemented");
+	SamplerChannel* pSamplerChannel = pSampler->GetSamplerChannel(uiSamplerChannel);
+	if (!pSamplerChannel) throw LinuxSamplerException("Invalid channel number " + ToString(uiSamplerChannel));
+        Engine* pEngine = pSamplerChannel->GetEngine();
+        if (!pEngine) throw LinuxSamplerException("No engine loaded on channel");
+        std::map<uint, AudioOutputDevice*> devices = pSampler->GetAudioOutputDevices();
+        if (!devices[AudioDeviceId]) throw LinuxSamplerException("There is no audio output device with index " + ToString(AudioDeviceId));
+        AudioOutputDevice* pDevice = devices[AudioDeviceId];
+        pSamplerChannel->SetAudioOutputDevice(pDevice);
     }
     catch (LinuxSamplerException e) {
          result.Error(e);
