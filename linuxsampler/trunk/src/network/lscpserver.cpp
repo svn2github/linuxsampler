@@ -579,6 +579,7 @@ String LSCPServer::GetChannelInfo(uint uiSamplerChannel) {
 	String EngineName = "NONE";
         float Volume = 0.0f;
 	String InstrumentFileName = "NONE";
+	String InstrumentName = "NONE";
 	int InstrumentIndex = -1;
 	int InstrumentStatus = -1;
         int AudioOutputChannels = 0;
@@ -591,7 +592,10 @@ String LSCPServer::GetChannelInfo(uint uiSamplerChannel) {
 	    InstrumentStatus = pEngine->InstrumentStatus();
 	    InstrumentIndex = pEngine->InstrumentIndex();
 	    if (InstrumentIndex != -1)
+	    {
 	        InstrumentFileName = pEngine->InstrumentFileName();
+	        InstrumentName = pEngine->InstrumentName();
+	    }
             for (int chan = 0; chan < pEngine->Channels(); chan++) {
                 if (AudioRouting != "") AudioRouting += ",";
                 AudioRouting += ToString(pEngine->OutputChannel(chan));
@@ -613,6 +617,7 @@ String LSCPServer::GetChannelInfo(uint uiSamplerChannel) {
 
         result.Add("INSTRUMENT_FILE", InstrumentFileName);
         result.Add("INSTRUMENT_NR", InstrumentIndex);
+        result.Add("INSTRUMENT_NAME", InstrumentName);
         result.Add("INSTRUMENT_STATUS", InstrumentStatus);
     }
     catch (LinuxSamplerException e) {

@@ -100,6 +100,7 @@ namespace LinuxSampler { namespace gig {
             virtual String Version();
             virtual String EngineName();
             virtual String InstrumentFileName();
+            virtual String InstrumentName();
             virtual int    InstrumentIndex();
             virtual int    InstrumentStatus();
 
@@ -155,6 +156,7 @@ namespace LinuxSampler { namespace gig {
             ConditionServer         EngineDisabled;
 	    String                  InstrumentFile;
 	    int                     InstrumentIdx;
+	    String                  InstrumentIdxName;
 	    int                     InstrumentStat;
             int8_t                  ScaleTuning[12];       ///< contains optional detune factors (-64..+63 cents) for all 12 semitones of an octave
             RTList<Voice>::Iterator itLastStolenVoice;      ///< Only for voice stealing: points to the last voice which was theft in current audio fragment, NULL otherwise.

@@ -272,6 +272,7 @@ namespace LinuxSampler { namespace gig {
         for (::gig::Region* pRegion = pInstrument->GetFirstRegion(); pRegion; pRegion = pInstrument->GetNextRegion())
             if (pRegion->KeyGroup) ActiveKeyGroups[pRegion->KeyGroup] = NULL;
 
+	InstrumentIdxName = pInstrument->pInfo->Name;
 	InstrumentStat = 100;
 
         // inform audio driver for the need of two channels
@@ -1181,6 +1182,10 @@ namespace LinuxSampler { namespace gig {
         return InstrumentFile;
     }
 
+    String Engine::InstrumentName() {
+        return InstrumentIdxName;
+    }
+
     int Engine::InstrumentIndex() {
         return InstrumentIdx;
     }
@@ -1194,7 +1199,7 @@ namespace LinuxSampler { namespace gig {
     }
 
     String Engine::Version() {
-        String s = "$Revision: 1.23 $";
+        String s = "$Revision: 1.24 $";
         return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
 
