@@ -479,10 +479,10 @@ namespace LinuxSampler { namespace gig {
      *  @param Velocity - MIDI velocity value of the triggered key
      */
     void Engine::SendNoteOn(uint8_t Key, uint8_t Velocity) {
-        Event event    = pEventGenerator->CreateEvent();
-        event.Type     = Event::type_note_on;
-        event.Key      = Key;
-        event.Velocity = Velocity;
+        Event event               = pEventGenerator->CreateEvent();
+        event.Type                = Event::type_note_on;
+        event.Param.Note.Key      = Key;
+        event.Param.Note.Velocity = Velocity;
         if (this->pEventQueue->write_space() > 0) this->pEventQueue->push(&event);
         else dmsg(1,("Engine: Input event queue full!"));
     }
@@ -495,10 +495,10 @@ namespace LinuxSampler { namespace gig {
      *  @param Velocity - MIDI release velocity value of the released key
      */
     void Engine::SendNoteOff(uint8_t Key, uint8_t Velocity) {
-        Event event    = pEventGenerator->CreateEvent();
-        event.Type     = Event::type_note_off;
-        event.Key      = Key;
-        event.Velocity = Velocity;
+        Event event               = pEventGenerator->CreateEvent();
+        event.Type                = Event::type_note_off;
+        event.Param.Note.Key      = Key;
+        event.Param.Note.Velocity = Velocity;
         if (this->pEventQueue->write_space() > 0) this->pEventQueue->push(&event);
         else dmsg(1,("Engine: Input event queue full!"));
     }
@@ -510,9 +510,9 @@ namespace LinuxSampler { namespace gig {
      *  @param Pitch - MIDI pitch value (-8192 ... +8191)
      */
     void Engine::SendPitchbend(int Pitch) {
-        Event event = pEventGenerator->CreateEvent();
-        event.Type  = Event::type_pitchbend;
-        event.Pitch = Pitch;
+        Event event             = pEventGenerator->CreateEvent();
+        event.Type              = Event::type_pitchbend;
+        event.Param.Pitch.Pitch = Pitch;
         if (this->pEventQueue->write_space() > 0) this->pEventQueue->push(&event);
         else dmsg(1,("Engine: Input event queue full!"));
     }
@@ -525,10 +525,10 @@ namespace LinuxSampler { namespace gig {
      *  @param Value      - value of the control change
      */
     void Engine::SendControlChange(uint8_t Controller, uint8_t Value) {
-        Event event      = pEventGenerator->CreateEvent();
-        event.Type       = Event::type_control_change;
-        event.Controller = Controller;
-        event.Value      = Value;
+        Event event               = pEventGenerator->CreateEvent();
+        event.Type                = Event::type_control_change;
+        event.Param.CC.Controller = Controller;
+        event.Param.CC.Value      = Value;
         if (this->pEventQueue->write_space() > 0) this->pEventQueue->push(&event);
         else dmsg(1,("Engine: Input event queue full!"));
     }
@@ -541,9 +541,9 @@ namespace LinuxSampler { namespace gig {
      *  @param Size  - lenght of sysex data (in bytes)
      */
     void Engine::SendSysex(void* pData, uint Size) {
-        Event event = pEventGenerator->CreateEvent();
-        event.Type  = Event::type_sysex;
-        event.Size  = Size;
+        Event event             = pEventGenerator->CreateEvent();
+        event.Type              = Event::type_sysex;
+        event.Param.Sysex.Size  = Size;
         if (pEventQueue->write_space() > 0) {
             if (pSysexBuffer->write_space() >= Size) {
                 // copy sysex data to input buffer
@@ -570,7 +570,7 @@ namespace LinuxSampler { namespace gig {
      *  @param pNoteOnEvent - key, velocity and time stamp of the event
      */
     void Engine::ProcessNoteOn(Event* pNoteOnEvent) {
-        midi_key_info_t* pKey = &pMIDIKeyInfo[pNoteOnEvent->Key];
+        midi_key_info_t* pKey = &pMIDIKeyInfo[pNoteOnEvent->Param.Note.Key];
 
         pKey->KeyPressed = true; // the MIDI key was now pressed down
 
@@ -600,7 +600,7 @@ namespace LinuxSampler { namespace gig {
      *  @param pNoteOffEvent - key, velocity and time stamp of the event
      */
     void Engine::ProcessNoteOff(Event* pNoteOffEvent) {
-        midi_key_info_t* pKey = &pMIDIKeyInfo[pNoteOffEvent->Key];
+        midi_key_info_t* pKey = &pMIDIKeyInfo[pNoteOffEvent->Param.Note.Key];
 
         pKey->KeyPressed = false; // the MIDI key was now released
 
@@ -626,7 +626,7 @@ namespace LinuxSampler { namespace gig {
      *  @param pPitchbendEvent - absolute pitch value and time stamp of the event
      */
     void Engine::ProcessPitchbend(Event* pPitchbendEvent) {
-        this->Pitch = pPitchbendEvent->Pitch; // store current pitch value
+        this->Pitch = pPitchbendEvent->Param.Pitch.Pitch; // store current pitch value
         pEvents->move(pPitchbendEvent, pSynthesisEvents[Event::destination_vco]);
     }
 
@@ -642,7 +642,7 @@ namespace LinuxSampler { namespace gig {
      *                               (optional, default = false)
      */
     void Engine::LaunchVoice(Event* pNoteOnEvent, int iLayer, bool ReleaseTriggerVoice) {
-        midi_key_info_t* pKey = &pMIDIKeyInfo[pNoteOnEvent->Key];
+        midi_key_info_t* pKey = &pMIDIKeyInfo[pNoteOnEvent->Param.Note.Key];
 
         // allocate a new voice for the key
         Voice* pNewVoice = pKey->pActiveVoices->alloc();
@@ -671,7 +671,7 @@ namespace LinuxSampler { namespace gig {
                 if (!pKey->Active) { // mark as active key
                     pKey->Active = true;
                     pKey->pSelf  = pActiveKeys->alloc();
-                    *pKey->pSelf = pNoteOnEvent->Key;
+                    *pKey->pSelf = pNoteOnEvent->Param.Note.Key;
                 }
                 if (pNewVoice->KeyGroup) {
                     *ppKeyGroup = pKey->pSelf; // put key as the (new) active key to its key group
@@ -721,11 +721,11 @@ namespace LinuxSampler { namespace gig {
      *  @param pControlChangeEvent - controller, value and time stamp of the event
      */
     void Engine::ProcessControlChange(Event* pControlChangeEvent) {
-        dmsg(4,("Engine::ContinuousController cc=%d v=%d\n", pControlChangeEvent->Controller, pControlChangeEvent->Value));
+        dmsg(4,("Engine::ContinuousController cc=%d v=%d\n", pControlChangeEvent->Param.CC.Controller, pControlChangeEvent->Param.CC.Value));
 
-        switch (pControlChangeEvent->Controller) {
+        switch (pControlChangeEvent->Param.CC.Controller) {
             case 64: {
-                if (pControlChangeEvent->Value >= 64 && !SustainPedal) {
+                if (pControlChangeEvent->Param.CC.Value >= 64 && !SustainPedal) {
                     dmsg(4,("PEDAL DOWN\n"));
                     SustainPedal = true;
 
@@ -745,7 +745,7 @@ namespace LinuxSampler { namespace gig {
                         }
                     }
                 }
-                if (pControlChangeEvent->Value < 64 && SustainPedal) {
+                if (pControlChangeEvent->Param.CC.Value < 64 && SustainPedal) {
                     dmsg(4,("PEDAL UP\n"));
                     SustainPedal = false;
 
@@ -770,7 +770,7 @@ namespace LinuxSampler { namespace gig {
         }
 
         // update controller value in the engine's controller table
-        ControllerTable[pControlChangeEvent->Controller] = pControlChangeEvent->Value;
+        ControllerTable[pControlChangeEvent->Param.CC.Controller] = pControlChangeEvent->Param.CC.Value;
 
         // move event from the unsorted event list to the control change event list
         pEvents->move(pControlChangeEvent, pCCEvents);
@@ -829,7 +829,7 @@ namespace LinuxSampler { namespace gig {
         }
 
         free_sysex_data: // finally free sysex data
-        pSysexBuffer->increment_read_ptr(pSysexEvent->Size);
+        pSysexBuffer->increment_read_ptr(pSysexEvent->Param.Sysex.Size);
     }
 
     /**
@@ -963,7 +963,7 @@ namespace LinuxSampler { namespace gig {
     }
 
     String Engine::Version() {
-        String s = "$Revision: 1.12 $";
+        String s = "$Revision: 1.13 $";
         return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
 

@@ -153,7 +153,7 @@ namespace LinuxSampler {
                     }
 
                     if (pCtrlEvent) {
-                        RecalculateCoeff(pCtrlEvent->Value);
+                        RecalculateCoeff(pCtrlEvent->Param.CC.Value);
                         pCtrlEvent = pEvents->next();
                     }
                 }

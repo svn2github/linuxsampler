@@ -118,7 +118,7 @@ namespace LinuxSampler { namespace gig {
 
         Type            = type_normal;
         Active          = true;
-        MIDIKey         = pNoteOnEvent->Key;
+        MIDIKey         = pNoteOnEvent->Param.Note.Key;
         pRegion         = pInstrument->GetRegion(MIDIKey);
         PlaybackState   = playback_state_ram; // we always start playback from RAM cache and switch then to disk if needed
         Delay           = pNoteOnEvent->FragmentPos();
@@ -149,7 +149,7 @@ namespace LinuxSampler { namespace gig {
                             pEngine->LaunchVoice(pNoteOnEvent, iNewLayer, ReleaseTriggerVoice);
                     break;
                 case ::gig::dimension_velocity:
-                    DimValues[i] = pNoteOnEvent->Velocity;
+                    DimValues[i] = pNoteOnEvent->Param.Note.Velocity;
                     break;
                 case ::gig::dimension_channelaftertouch:
                     DimValues[i] = 0; //TODO: we currently ignore this dimension
@@ -159,7 +159,7 @@ namespace LinuxSampler { namespace gig {
                     DimValues[i] = (uint) ReleaseTriggerVoice;
                     break;
                 case ::gig::dimension_keyboard:
-                    DimValues[i] = (uint) pNoteOnEvent->Key;
+                    DimValues[i] = (uint) pNoteOnEvent->Param.Note.Key;
                     break;
                 case ::gig::dimension_modwheel:
                     DimValues[i] = pEngine->ControllerTable[1];
@@ -245,7 +245,7 @@ namespace LinuxSampler { namespace gig {
                 CrossfadeVolume = 1.0f; //TODO: aftertouch not supported yet
                 break;
             case ::gig::attenuation_ctrl_t::type_velocity:
-                CrossfadeVolume = CrossfadeAttenuation(pNoteOnEvent->Velocity);
+                CrossfadeVolume = CrossfadeAttenuation(pNoteOnEvent->Param.Note.Velocity);
                 break;
             case ::gig::attenuation_ctrl_t::type_controlchange: //FIXME: currently not sample accurate
                 CrossfadeVolume = CrossfadeAttenuation(pEngine->ControllerTable[pDimRgn->AttenuationController.controller_number]);
@@ -303,7 +303,7 @@ namespace LinuxSampler { namespace gig {
         }
 
 
-        Volume = pDimRgn->GetVelocityAttenuation(pNoteOnEvent->Velocity) / 32768.0f; // we downscale by 32768 to convert from int16 value range to DSP value range (which is -1.0..1.0)
+        Volume = pDimRgn->GetVelocityAttenuation(pNoteOnEvent->Param.Note.Velocity) / 32768.0f; // we downscale by 32768 to convert from int16 value range to DSP value range (which is -1.0..1.0)
 
 
         // setup EG 1 (VCA EG)
@@ -318,7 +318,7 @@ namespace LinuxSampler { namespace gig {
                     eg1controllervalue = 0; // TODO: aftertouch not yet supported
                     break;
                 case ::gig::eg1_ctrl_t::type_velocity:
-                    eg1controllervalue = pNoteOnEvent->Velocity;
+                    eg1controllervalue = pNoteOnEvent->Param.Note.Velocity;
                     break;
                 case ::gig::eg1_ctrl_t::type_controlchange: // MIDI control change controller
                     eg1controllervalue = pEngine->ControllerTable[pDimRgn->EG1Controller.controller_number];
@@ -357,7 +357,7 @@ namespace LinuxSampler { namespace gig {
                     eg2controllervalue = 0; // TODO: aftertouch not yet supported
                     break;
                 case ::gig::eg2_ctrl_t::type_velocity:
-                    eg2controllervalue = pNoteOnEvent->Velocity;
+                    eg2controllervalue = pNoteOnEvent->Param.Note.Velocity;
                     break;
                 case ::gig::eg2_ctrl_t::type_controlchange: // MIDI control change controller
                     eg2controllervalue = pEngine->ControllerTable[pDimRgn->EG2Controller.controller_number];
@@ -585,13 +585,13 @@ namespace LinuxSampler { namespace gig {
 
             // calculate cutoff frequency
             float cutoff = (!VCFCutoffCtrl.controller)
-                ? exp((float) (127 - pNoteOnEvent->Velocity) * (float) pDimRgn->VCFVelocityScale * 6.2E-5f * FILTER_CUTOFF_COEFF) * FILTER_CUTOFF_MAX
+                ? exp((float) (127 - pNoteOnEvent->Param.Note.Velocity) * (float) pDimRgn->VCFVelocityScale * 6.2E-5f * FILTER_CUTOFF_COEFF) * FILTER_CUTOFF_MAX
                 : exp((float) VCFCutoffCtrl.value * 0.00787402f * FILTER_CUTOFF_COEFF) * FILTER_CUTOFF_MAX;
 
             // calculate resonance
             float resonance = (float) VCFResonanceCtrl.value * 0.00787f;   // 0.0..1.0
             if (pDimRgn->VCFKeyboardTracking) {
-                resonance += (float) (pNoteOnEvent->Key - pDimRgn->VCFKeyboardTrackingBreakpoint) * 0.00787f;
+                resonance += (float) (pNoteOnEvent->Param.Note.Key - pDimRgn->VCFKeyboardTrackingBreakpoint) * 0.00787f;
             }
             Constrain(resonance, 0.0, 1.0); // correct resonance if outside allowed value range (0.0..1.0)
 
@@ -752,28 +752,28 @@ namespace LinuxSampler { namespace gig {
             while (pCCEvent && pCCEvent->FragmentPos() <= Delay) pCCEvent = pEngine->pCCEvents->next();
         }
         while (pCCEvent) {
-            if (pCCEvent->Controller) { // if valid MIDI controller
+            if (pCCEvent->Param.CC.Controller) { // if valid MIDI controller
                 #if ENABLE_FILTER
-                if (pCCEvent->Controller == VCFCutoffCtrl.controller) {
+                if (pCCEvent->Param.CC.Controller == VCFCutoffCtrl.controller) {
                     pEngine->pSynthesisEvents[Event::destination_vcfc]->alloc_assign(*pCCEvent);
                 }
-                if (pCCEvent->Controller == VCFResonanceCtrl.controller) {
+                if (pCCEvent->Param.CC.Controller == VCFResonanceCtrl.controller) {
                     pEngine->pSynthesisEvents[Event::destination_vcfr]->alloc_assign(*pCCEvent);
                 }
                 #endif // ENABLE_FILTER
-                if (pCCEvent->Controller == pLFO1->ExtController) {
+                if (pCCEvent->Param.CC.Controller == pLFO1->ExtController) {
                     pLFO1->SendEvent(pCCEvent);
                 }
                 #if ENABLE_FILTER
-                if (pCCEvent->Controller == pLFO2->ExtController) {
+                if (pCCEvent->Param.CC.Controller == pLFO2->ExtController) {
                     pLFO2->SendEvent(pCCEvent);
                 }
                 #endif // ENABLE_FILTER
-                if (pCCEvent->Controller == pLFO3->ExtController) {
+                if (pCCEvent->Param.CC.Controller == pLFO3->ExtController) {
                     pLFO3->SendEvent(pCCEvent);
                 }
                 if (pDimRgn->AttenuationController.type == ::gig::attenuation_ctrl_t::type_controlchange &&
-                    pCCEvent->Controller == pDimRgn->AttenuationController.controller_number) { // if crossfade event
+                    pCCEvent->Param.CC.Controller == pDimRgn->AttenuationController.controller_number) { // if crossfade event
                     pEngine->pSynthesisEvents[Event::destination_vca]->alloc_assign(*pCCEvent);
                 }
             }
@@ -803,7 +803,7 @@ namespace LinuxSampler { namespace gig {
                 // calculate the influence length of this event (in sample points)
                 uint end = (pNextVCOEvent) ? pNextVCOEvent->FragmentPos() : Samples;
 
-                pitch = RTMath::CentsToFreqRatio(((double) pVCOEvent->Pitch / 8192.0) * 200.0); // +-two semitones = +-200 cents
+                pitch = RTMath::CentsToFreqRatio(((double) pVCOEvent->Param.Pitch.Pitch / 8192.0) * 200.0); // +-two semitones = +-200 cents
 
                 // apply pitch value to the pitch parameter sequence
                 for (uint i = pVCOEvent->FragmentPos(); i < end; i++) {
@@ -829,7 +829,7 @@ namespace LinuxSampler { namespace gig {
                 // calculate the influence length of this event (in sample points)
                 uint end = (pNextVCAEvent) ? pNextVCAEvent->FragmentPos() : Samples;
 
-                crossfadevolume = CrossfadeAttenuation(pVCAEvent->Value);
+                crossfadevolume = CrossfadeAttenuation(pVCAEvent->Param.CC.Value);
 
                 float effective_volume = crossfadevolume * this->Volume * pEngine->GlobalVolume;
 
@@ -858,7 +858,7 @@ namespace LinuxSampler { namespace gig {
                 // calculate the influence length of this event (in sample points)
                 uint end = (pNextCutoffEvent) ? pNextCutoffEvent->FragmentPos() : Samples;
 
-                cutoff = exp((float) pCutoffEvent->Value * 0.00787402f * FILTER_CUTOFF_COEFF) * FILTER_CUTOFF_MAX - FILTER_CUTOFF_MIN;
+                cutoff = exp((float) pCutoffEvent->Param.CC.Value * 0.00787402f * FILTER_CUTOFF_COEFF) * FILTER_CUTOFF_MAX - FILTER_CUTOFF_MIN;
 
                 // apply cutoff frequency to the cutoff parameter sequence
                 for (uint i = pCutoffEvent->FragmentPos(); i < end; i++) {
@@ -884,8 +884,8 @@ namespace LinuxSampler { namespace gig {
                 uint end = (pNextResonanceEvent) ? pNextResonanceEvent->FragmentPos() : Samples;
 
                 // convert absolute controller value to differential
-                int ctrldelta = pResonanceEvent->Value - VCFResonanceCtrl.value;
-                VCFResonanceCtrl.value = pResonanceEvent->Value;
+                int ctrldelta = pResonanceEvent->Param.CC.Value - VCFResonanceCtrl.value;
+                VCFResonanceCtrl.value = pResonanceEvent->Param.CC.Value;
 
                 float resonancedelta = (float) ctrldelta * 0.00787f; // 0.0..1.0
 
@@ -896,7 +896,7 @@ namespace LinuxSampler { namespace gig {
 
                 pResonanceEvent = pNextResonanceEvent;
             }
-            if (pResonanceEventList->last()) VCFResonanceCtrl.fvalue = pResonanceEventList->last()->Value * 0.00787f; // needed for initialization of parameter matrix next time
+            if (pResonanceEventList->last()) VCFResonanceCtrl.fvalue = pResonanceEventList->last()->Param.CC.Value * 0.00787f; // needed for initialization of parameter matrix next time
         }
     #endif // ENABLE_FILTER
     }

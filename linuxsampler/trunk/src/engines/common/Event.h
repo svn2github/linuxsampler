@@ -83,17 +83,25 @@ namespace LinuxSampler {
                 destination_count  ///< Total number of modulation destinations (this has to stay the last element in the enum)
             };
             union {
-                uint8_t Key;          ///< MIDI key number for note-on and note-off events.
-                uint8_t Controller;   ///< MIDI controller number for control change events.
-            };
-            union {
-                uint8_t Velocity;     ///< Trigger or release velocity for note-on or note-off events.
-                uint8_t Value;        ///< Value for control change events.
-            };
-            union {
-                int16_t Pitch;        ///< Pitch value for pitchbend events.
-                uint    Size;         ///< Data length (in bytes) for MIDI system exclusive messages.
-            };
+                /// Note-on and note-off event specifics
+                struct _Note {
+                    uint8_t Key;         ///< MIDI key number of note-on / note-off event.
+                    uint8_t Velocity;    ///< Trigger or release velocity of note-on / note-off event.
+                } Note;
+                /// Control change event specifics
+                struct _CC {
+                    uint8_t Controller;  ///< MIDI controller number of control change event.
+                    uint8_t Value;       ///< Controller Value of control change event.
+                } CC;
+                /// Pitchbend event specifics
+                struct _Pitch {
+                    int16_t Pitch;       ///< Pitch value of pitchbend event.
+                } Pitch;
+                /// MIDI system exclusive event specifics
+                struct _Sysex {
+                    uint Size;           ///< Data length (in bytes) of MIDI system exclusive message.
+                } Sysex;
+            } Param;
 
             inline uint FragmentPos() {
                 if (iFragmentPos >= 0) return (uint) iFragmentPos;
