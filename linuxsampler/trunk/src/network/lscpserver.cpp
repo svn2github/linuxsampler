@@ -363,7 +363,7 @@ String LSCPServer::SetMIDIInputChannel(uint MIDIChannel, uint uiSamplerChannel) 
         if (!pSamplerChannel) throw LinuxSamplerException("Index out of bounds");
         if (!pSamplerChannel->GetMidiInputDevice()) throw LinuxSamplerException("No MIDI input device connected yet");
         MidiInputDevice::type_t oldtype = pSamplerChannel->GetMidiInputDevice()->Type();
-        pSamplerChannel->SetMidiInputDevice(oldtype, (MidiInputDevice::midi_chan_t) uiSamplerChannel);
+        pSamplerChannel->SetMidiInputDevice(oldtype, (MidiInputDevice::midi_chan_t) MIDIChannel);
 
         result.type = result_type_success;
     }
