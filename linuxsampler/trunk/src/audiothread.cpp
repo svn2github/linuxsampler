@@ -109,10 +109,8 @@ int AudioThread::Main() {
         }
 
 
-        // zero out the sum buffer
-        for (uint u = 0; u < pAudioIO->FragmentSize * pAudioIO->Channels; u++) {
-            pAudioSumBuffer[u] = 0.0;
-        }
+        // zero out the output sum buffer
+        memset(pAudioSumBuffer, 0, pAudioIO->FragmentSize * pAudioIO->Channels * sizeof(float));
 
 
         // render audio from all active voices
@@ -136,7 +134,7 @@ int AudioThread::Main() {
         // (from 32bit to 16bit sample) and copy to output buffer
         float sample_point;
         for (uint u = 0; u < pAudioIO->FragmentSize * pAudioIO->Channels; u++) {
-            sample_point = this->pAudioSumBuffer[u] / 4; // FIXME division by 4 just for testing purposes (to give a bit of head room when mixing multiple voices together)
+            sample_point = this->pAudioSumBuffer[u] * this->Volume;
             if (sample_point < -32768.0) sample_point = -32768.0;
             if (sample_point > 32767.0)  sample_point = 32767.0;
             this->pAudioIO->pOutputBuffer[u] = (sample_t) sample_point;

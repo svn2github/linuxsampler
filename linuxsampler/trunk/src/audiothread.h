@@ -45,8 +45,9 @@
 
 class AudioThread : public Thread {
     public:
-        int ActiveVoiceCount;     ///< number of currently active voices
-        int ActiveVoiceCountMax;  ///< the maximum voice usage since application start
+        double Volume;               ///< overall volume (a value < 1.0 means attenuation, a value > 1.0 means amplification)
+        int    ActiveVoiceCount;     ///< number of currently active voices
+        int    ActiveVoiceCountMax;  ///< the maximum voice usage since application start
 
         AudioThread(AudioIO* pAudioIO, DiskThread* pDiskThread, gig::Instrument* pInstrument);
        ~AudioThread();

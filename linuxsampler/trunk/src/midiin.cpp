@@ -32,15 +32,15 @@ MidiIn::~MidiIn() {
 }
 
 int MidiIn::open_alsa_midi_seq(void) {
-    int portid;
     if (snd_seq_open(&seq_handle, "default", SND_SEQ_OPEN_INPUT, 0) < 0) {
         fprintf(stderr, "Error opening ALSA sequencer.\n");
         exit(1);
     }
+    this->AlsaID = snd_seq_client_id(seq_handle);
     snd_seq_set_client_name(seq_handle, "LinuxSampler");
-    if ((portid = snd_seq_create_simple_port(seq_handle, "LinuxSampler",
-                                             SND_SEQ_PORT_CAP_WRITE|SND_SEQ_PORT_CAP_SUBS_WRITE,
-                                             SND_SEQ_PORT_TYPE_APPLICATION)) < 0) {
+    if ((this->AlsaPort = snd_seq_create_simple_port(seq_handle, "LinuxSampler",
+                                                     SND_SEQ_PORT_CAP_WRITE|SND_SEQ_PORT_CAP_SUBS_WRITE,
+                                                     SND_SEQ_PORT_TYPE_APPLICATION)) < 0) {
         fprintf(stderr, "Error creating sequencer port.\n");
         exit(1);
     }
@@ -48,6 +48,31 @@ int MidiIn::open_alsa_midi_seq(void) {
 }
 
 void MidiIn::close_alsa_midi_seq(void) {
+}
+
+/**
+ * Makes a connection to another Alsa sequencer client, so that all MIDI
+ * events from e.g. a keyboard are always delivered to us.
+ *
+ * @param Client - Alsa sequencer client ID and port string to connect to
+ *                (e.g. "64:0")
+ */
+void MidiIn::SubscribeToClient(const char* Client) {
+    snd_seq_addr_t sender, dest;
+    snd_seq_port_subscribe_t* subs;
+    sscanf(Client, "%d:%d", sender.client, sender.port);
+    dest.client = this->AlsaID;
+    dest.port   = this->AlsaPort;
+    snd_seq_port_subscribe_alloca(&subs);
+    snd_seq_port_subscribe_set_sender(subs, &sender);
+    snd_seq_port_subscribe_set_dest(subs, &dest);
+    snd_seq_port_subscribe_set_queue(subs, 1);
+    snd_seq_port_subscribe_set_time_update(subs, 1);
+    snd_seq_port_subscribe_set_time_real(subs, 1);
+    int res = snd_seq_subscribe_port(this->seq_handle, subs);
+    if (!res) {
+        fprintf(stderr, "Unable to subscribe to client \'%s\'\n", Client);
+    }
 }
 
 int MidiIn::Main() {

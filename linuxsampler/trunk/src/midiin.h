@@ -38,8 +38,12 @@ extern uint8_t MIDIControllerTable[128];
 
 class MidiIn : public Thread {
     public:
+        int AlsaID;    ///< Alsa Sequencer client ID
+        int AlsaPort;  ///< Alsa Sequencer client port number
+
         MidiIn(AudioThread* pAudioThread);
        ~MidiIn();
+        void SubscribeToClient(const char* Client);
     protected:
         int  Main(); ///< Implementation of virtual method from class Thread
         int  open_alsa_midi_seq(void);
