@@ -216,6 +216,25 @@ Schoenebeck'>
                     &lt;warning-message&gt; and &lt;error-message&gt; are
                     human readable descriptions of the warning or error
                     respectively.</t>
+                    <t>Examples:</t>
+                    <t>
+                        <list>
+                            <t>C: "LOAD INSTRUMENT '/home/me/Boesendorfer24bit.gig" 0 0</t>
+                            <t>S: "WRN:32:This is a 24 bit patch which is not supported natively yet."</t>
+                        </list>
+                    </t>
+                    <t>
+                        <list>
+                            <t>C: "GET AUDIO_OUTPUT_DRIVER_PARAMETER INFO ALSA EAR"</t>
+                            <t>S: "ERR:3456:Audio output driver 'ALSA' does not have a parameter 'EAR'."</t>
+                        </list>
+                    </t>
+                    <t>
+                        <list>
+                            <t>C: "GET AUDIO_OUTPUT_DEVICE INFO 123456"</t>
+                            <t>S: "ERR:9:There is no audio output device with index 123456."</t>
+                        </list>
+                    </t>                    
                     <t>Normal result sets could be:</t>
                     <t>
                         <list style="numbers">
@@ -234,6 +253,13 @@ Schoenebeck'>
                             <t>"OK"</t>
                         </list>
                     </t>
+                    <t>Example:</t>
+                    <t>
+                        <list>
+                            <t>C: "SET AUDIO_OUTPUT_DEVICE_PARAMETER 0 CHANNELS=4"</t>
+                            <t>S: "OK"</t>
+                        </list>
+                    </t>
                     <t>Single line result sets are command specific. One
                     example of a single line result set is an empty line.
                     Multi-line result sets are command specific and may
@@ -242,6 +268,20 @@ Schoenebeck'>
                     <t>
                         <list>
                             <t>"."</t>
+                        </list>
+                    </t>
+                    <t>Example:</t>
+                    <t>
+                        <list>
+                            <t>C: "GET AUDIO_OUTPUT_DEVICE INFO 0"</t>
+                            <t>S: "DRIVER: ALSA"</t>
+                            <t>&nbsp;&nbsp;&nbsp;"CHANNELS: 2"</t>
+                            <t>&nbsp;&nbsp;&nbsp;"SAMPLERATE: 44100"</t>
+                            <t>&nbsp;&nbsp;&nbsp;"ACTIVE: true"</t>
+                            <t>&nbsp;&nbsp;&nbsp;"FRAGMENTS: 2"</t>
+                            <t>&nbsp;&nbsp;&nbsp;"FRAGMENTSIZE: 128"</t>
+                            <t>&nbsp;&nbsp;&nbsp;"CARD: '0,0'"</t>
+                            <t>&nbsp;&nbsp;&nbsp;"."</t>
                         </list>
                     </t>
                     <t>In addition to above mentioned formats, warnings and
@@ -258,6 +298,19 @@ Schoenebeck'>
                     related to or other integer value.</t>
                     <t>Each line of the result set MUST end with
                     &lt;CRLF&gt;.</t>
+                    <t>Examples:</t>
+                    <t>
+                        <list>
+                            <t>C: "ADD CHANNEL"</t>
+                            <t>S: "OK[12]"</t>
+                        </list>
+                    </t>
+                    <t>
+                        <list>
+                            <t>C: "CREATE AUDIO_OUTPUT_DEVICE ALSA SAMPLERATE=96000"</t>
+                            <t>S: "WRN[0]:32:Sample rate not supported, using 44100 instead."</t>
+                        </list>
+                    </t>
                 </section>
             </section>
             <section title="Subscribe/notify communication method">
@@ -542,7 +595,7 @@ Schoenebeck'>
                     <t>
                         <list>
                             <t>LinuxSampler will answer by sending a
-                            &lz;CRLF&gt; separated list.
+                            &lt;CRLF&gt; separated list.
                             Each answer line begins with the information category name
                             followed by a colon and then a space character &lt;SP&gt; and
                             finally
@@ -647,7 +700,7 @@ Schoenebeck'>
                               </list>
                             </t>
 
-                            <t>POSSIBILITES -
+                            <t>POSSIBILITIES -
                               <list>
                                 <t>comma separated list of possible values for this
                                 parameter, character strings are encapsulated into
@@ -670,7 +723,7 @@ Schoenebeck'>
                             <t>&nbsp;&nbsp;&nbsp;"FIX: true"</t>
                             <t>&nbsp;&nbsp;&nbsp;"MULTIPLICITY: false"</t>
                             <t>&nbsp;&nbsp;&nbsp;"DEFAULT: '0,0'"</t>
-                            <t>&nbsp;&nbsp;&nbsp;"POSSIBILITES: '0,0','1,0','2,0'"</t>
+                            <t>&nbsp;&nbsp;&nbsp;"POSSIBILITIES: '0,0','1,0','2,0'"</t>
                             <t>&nbsp;&nbsp;&nbsp;"."</t>
                         </list>
                     </t>
@@ -859,9 +912,9 @@ Schoenebeck'>
                             <t>GET AUDIO_OUTPUT_DEVICE INFO &lt;device-id&gt;</t>
                         </list>
                     </t>
-                    <t>Where &lt;device-id&gt; should be replaced by be numerical ID
+                    <t>Where &lt;device-id&gt; should be replaced by numerical ID
                     of the audio output device as e.g. returned by the
-                    "GET AUDIO_OUTPUT_DEVICES" command.</t>
+                    "LIST AUDIO_OUTPUT_DEVICES" command.</t>
                     <t>Possible Answers:</t>
                     <t>LinuxSampler will answer by sending a &lt;CRLF&gt; separated list.
                     Each answer line begins with the information category name
@@ -1003,7 +1056,8 @@ Schoenebeck'>
                                     </t>
                                     <t>MIX_CHANNEL_DESTINATION -
                                         <list>
-                                            <t>reflects the real audio channel (of the same audio
+                                            <t>numerical ID (positive integer including 0)
+                                            which reflects the real audio channel (of the same audio
                                             output device) this mix channel refers to, means where
                                             the audio signal actually will be routed / added to
                                             (only returned in case the audio channel is mix channel)</t>
@@ -1137,7 +1191,7 @@ Schoenebeck'>
                                             parameter)</t>
                                         </list>
                                     </t>
-                                    <t>POSSIBILITES -
+                                    <t>POSSIBILITIES -
                                         <list>
                                             <t>comma separated list of possible values for this
                                             parameter, character strings are encapsulated into
@@ -1159,7 +1213,7 @@ Schoenebeck'>
                             <t>&nbsp;&nbsp;&nbsp;"TYPE: STRING"</t>
                             <t>&nbsp;&nbsp;&nbsp;"FIX: false"</t>
                             <t>&nbsp;&nbsp;&nbsp;"MULTIPLICITY: true"</t>
-                            <t>&nbsp;&nbsp;&nbsp;"POSSIBILITES: 'PCM:0','PCM:1','ardour:0','ardour:1'"</t>
+                            <t>&nbsp;&nbsp;&nbsp;"POSSIBILITIES: 'PCM:0','PCM:1','ardour:0','ardour:1'"</t>
                             <t>&nbsp;&nbsp;&nbsp;"."</t>
                         </list>
                     </t>
@@ -1441,7 +1495,7 @@ Schoenebeck'>
                               </list>
                             </t>
 
-                            <t>POSSIBILITES -
+                            <t>POSSIBILITIES -
                               <list>
                                 <t>comma separated list of possible values for this
                                 parameter, character strings are encapsulated into
@@ -1670,7 +1724,7 @@ Schoenebeck'>
                     </t>
                 </section>
 
-                <section title="Changing settings of audio output devices">
+                <section title="Changing settings of MIDI input devices">
                     <t>Use the following command to alter a specific setting of a created MIDI input device:</t>
                     <t>
                         <list>
@@ -1707,7 +1761,7 @@ Schoenebeck'>
                     <t>Example:</t>
                     <t>
                         <list>
-                            <t>C: "SET MIDI_INPUT_DEVICE PARAMETER 0 ACTIVE=false"</t>
+                            <t>C: "SET MIDI_INPUT_DEVICE_PARAMETER 0 ACTIVE=false"</t>
                             <t>S: "OK"</t>
                         </list>
                     </t>
@@ -1764,7 +1818,7 @@ Schoenebeck'>
                     </t>
 
                     <t>Where &lt;dev-id&gt; is the numerical ID of the MIDI input device as returned
-                    by the "GET MIDI_INPUT_DEVICES" command, &lt;port&gt; the MIDI port number and
+                    by the "LIST MIDI_INPUT_DEVICES" command, &lt;port&gt; the MIDI port number and
                     &lt;param&gt; a specific port parameter name for which information should be
                     obtained (as returned by the "GET MIDI_INPUT_PORT INFO" command).</t>
 
@@ -1829,7 +1883,7 @@ Schoenebeck'>
                                     parameter)</t>
                                 </list>
                             </t>
-                            <t>POSSIBILITES -
+                            <t>POSSIBILITIES -
                                 <list>
                                     <t>comma separated list of possible values for this
                                     parameter, character strings are encapsulated into
@@ -1851,7 +1905,7 @@ Schoenebeck'>
                             <t>&nbsp;&nbsp;&nbsp;"TYPE: STRING"</t>
                             <t>&nbsp;&nbsp;&nbsp;"FIX: false"</t>
                             <t>&nbsp;&nbsp;&nbsp;"MULTIPLICITY: true"</t>
-                            <t>&nbsp;&nbsp;&nbsp;"POSSIBILITES: '64:0','68:0','68:1'"</t>
+                            <t>&nbsp;&nbsp;&nbsp;"POSSIBILITIES: '64:0','68:0','68:1'"</t>
                             <t>&nbsp;&nbsp;&nbsp;"."</t>
                         </list>
                     </t>
@@ -1970,8 +2024,8 @@ Schoenebeck'>
                         </list>
                     </t>
 
-                    <t>Where &lt;engine-name&gt; is usually the C++ class name of the engine
-                    implementation and &lt;sampler-channel&gt; the sampler channel the
+                    <t>Where &lt;engine-name&gt; is an engine name as obtained by the
+                    "GET AVAILABLE_ENGINES" command and &lt;sampler-channel&gt; the sampler channel the
                     deployed engine should be assigned to. Even if the respective
                     sampler channel has already a deployed engine with that engine
                     name, a new engine instance will be assigned to the sampler channel.</t>
@@ -2162,7 +2216,8 @@ Schoenebeck'>
                     <t>
                         <list>
                             <t>LinuxSampler will answer by sending a comma separated character
-                            string of the engines' C++ class names.</t>
+                            string of the engines' names. Engine names can consist of lower and
+                            upper cases, digits and underlines ("_" character).</t>
                         </list>
                     </t>
                     <t>Example:</t>
@@ -2182,11 +2237,12 @@ Schoenebeck'>
                             <t>GET ENGINE INFO &lt;engine-name&gt;</t>
                         </list>
                     </t>
-                    <t>Where &lt;engine-name&gt; is usually the C++ class name of the engine implementation.</t>
+                    <t>Where &lt;engine-name&gt; is an engine name as obtained by the
+                    "GET AVAILABLE_ENGINES" command.</t>
                     <t>Possible Answers:</t>
                     <t>
                         <list>
-                            <t>LinuxSampler will answer by sending &lt;&gt; separated list.
+                            <t>LinuxSampler will answer by sending a &lt;CRLF&gt; separated list.
                             Each answer line begins with the information category name
                             followed by a colon and then a space character &lt;SP&gt; and finally
                             the info character string to that info category. At the moment
