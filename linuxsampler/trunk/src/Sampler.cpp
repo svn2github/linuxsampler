@@ -204,9 +204,11 @@ namespace LinuxSampler {
             case AudioOutputDevice::type_alsa:
                 pDevice = new AudioOutputDeviceAlsa;
                 break;
+#if HAVE_JACK
             case AudioOutputDevice::type_jack:
                 pDevice = new AudioOutputDeviceJack;
                 break;
+#endif
             default:
                 throw LinuxSamplerException("Unknown audio output device type");
         }
