@@ -492,10 +492,13 @@ namespace gig {
         protected:
             static unsigned int  Instances;               ///< Number of instances of class Sample.
             static unsigned long DecompressionBufferSize; ///< Current size of the decompression buffer.
-            static void*         pDecompressionBuffer;    ///< Small buffer used for decompression only.
+            static unsigned char* pDecompressionBuffer;   ///< Small buffer used for decompression only.
             unsigned long        FrameOffset;             ///< Current offset (sample points) in current sample frame (for decompression only).
             unsigned long*       FrameTable;              ///< For positioning within compressed samples only: stores the offset values for each frame.
             unsigned long        SamplePos;               ///< For compressed samples only: stores the current position (in sample points).
+            unsigned long        SamplesInLastFrame;      ///< For compressed samples only: length of the last sample frame.
+            unsigned long        WorstCaseFrameSize;      ///< For compressed samples only: size (in bytes) of the largest possible sample frame.
+            unsigned long        SamplesPerFrame;         ///< For compressed samples only: number of samples in a full sample frame.
             buffer_t             RAMCache;                ///< Buffers samples (already uncompressed) in RAM.
 
             Sample(File* pFile, RIFF::List* waveList, unsigned long WavePoolOffset);
@@ -560,6 +563,22 @@ namespace gig {
                 return (A > B) ? B : A;
             }
             inline long Abs(long val) { return (val > 0) ? val : -val; }
+
+            // Guess size (in bytes) of a compressed sample
+            inline unsigned long GuessSize(unsigned long samples) {
+                // 16 bit: assume all frames are compressed - 1 byte
+                // per sample and 5 bytes header per 2048 samples
+
+                // 24 bit: assume next best compression rate - 1.5
+                // bytes per sample and 13 bytes header per 256
+                // samples
+                const unsigned long size =
+                    BitDepth == 24 ? samples + (samples >> 1) + (samples >> 8) * 13
+                                   : samples + (samples >> 10) * 5;
+                // Double for stereo and add one worst case sample
+                // frame
+                return (Channels == 2 ? size << 1 : size) + WorstCaseFrameSize;
+            }
         private:
             void ScanCompressedSample();
             friend class File;

@@ -23,13 +23,185 @@
 
 #include "gig.h"
 
-namespace gig {
+namespace gig { namespace {
+
+// *************** Internal functions for sample decopmression ***************
+// *
+
+    inline int get12lo(const unsigned char* pSrc)
+    {
+        const int x = pSrc[0] | (pSrc[1] & 0x0f) << 8;
+        return x & 0x800 ? x - 0x1000 : x;
+    }
+
+    inline int get12hi(const unsigned char* pSrc)
+    {
+        const int x = pSrc[1] >> 4 | pSrc[2] << 4;
+        return x & 0x800 ? x - 0x1000 : x;
+    }
+
+    inline int16_t get16(const unsigned char* pSrc)
+    {
+        return int16_t(pSrc[0] | pSrc[1] << 8);
+    }
+
+    inline int get24(const unsigned char* pSrc)
+    {
+        const int x = pSrc[0] | pSrc[1] << 8 | pSrc[2] << 16;
+        return x & 0x800000 ? x - 0x1000000 : x;
+    }
+
+    void Decompress16(int compressionmode, const unsigned char* params,
+                      int srcStep, const unsigned char* pSrc, int16_t* pDst,
+                      unsigned long currentframeoffset,
+                      unsigned long copysamples)
+    {
+        switch (compressionmode) {
+            case 0: // 16 bit uncompressed
+                pSrc += currentframeoffset * srcStep;
+                while (copysamples) {
+                    *pDst = get16(pSrc);
+                    pDst += 2;
+                    pSrc += srcStep;
+                    copysamples--;
+                }
+                break;
+
+            case 1: // 16 bit compressed to 8 bit
+                int y  = get16(params);
+                int dy = get16(params + 2);
+                while (currentframeoffset) {
+                    dy -= int8_t(*pSrc);
+                    y  -= dy;
+                    pSrc += srcStep;
+                    currentframeoffset--;
+                }
+                while (copysamples) {
+                    dy -= int8_t(*pSrc);
+                    y  -= dy;
+                    *pDst = y;
+                    pDst += 2;
+                    pSrc += srcStep;
+                    copysamples--;
+                }
+                break;
+        }
+    }
+
+    void Decompress24(int compressionmode, const unsigned char* params,
+                      const unsigned char* pSrc, int16_t* pDst,
+                      unsigned long currentframeoffset,
+                      unsigned long copysamples)
+    {
+        // Note: The 24 bits are truncated to 16 bits for now.
+
+        // Note: The calculation of the initial value of y is strange
+        // and not 100% correct. What should the first two parameters
+        // really be used for? Why are they two? The correct value for
+        // y seems to lie somewhere between the values of the first
+        // two parameters.
+        //
+        // Strange thing #2: The formula in SKIP_ONE gives values for
+        // y that are twice as high as they should be. That's why
+        // COPY_ONE shifts 9 steps instead of 8, and also why y is
+        // initialized with a sum instead of a mean value.
+
+        int y, dy, ddy;
+
+#define GET_PARAMS(params)                              \
+        y = (get24(params) + get24((params) + 3));      \
+        dy  = get24((params) + 6);                      \
+        ddy = get24((params) + 9)
+
+#define SKIP_ONE(x)                             \
+        ddy -= (x);                             \
+        dy -= ddy;                              \
+        y -= dy
+
+#define COPY_ONE(x)                             \
+        SKIP_ONE(x);                            \
+        *pDst = y >> 9;                         \
+        pDst += 2
+
+        switch (compressionmode) {
+            case 2: // 24 bit uncompressed
+                pSrc += currentframeoffset * 3;
+                while (copysamples) {
+                    *pDst = get24(pSrc) >> 8;
+                    pDst += 2;
+                    pSrc += 3;
+                    copysamples--;
+                }
+                break;
+
+            case 3: // 24 bit compressed to 16 bit
+                GET_PARAMS(params);
+                while (currentframeoffset) {
+                    SKIP_ONE(get16(pSrc));
+                    pSrc += 2;
+                    currentframeoffset--;
+                }
+                while (copysamples) {
+                    COPY_ONE(get16(pSrc));
+                    pSrc += 2;
+                    copysamples--;
+                }
+                break;
+
+            case 4: // 24 bit compressed to 12 bit
+                GET_PARAMS(params);
+                while (currentframeoffset > 1) {
+                    SKIP_ONE(get12lo(pSrc));
+                    SKIP_ONE(get12hi(pSrc));
+                    pSrc += 3;
+                    currentframeoffset -= 2;
+                }
+                if (currentframeoffset) {
+                    SKIP_ONE(get12lo(pSrc));
+                    currentframeoffset--;
+                    if (copysamples) {
+                        COPY_ONE(get12hi(pSrc));
+                        pSrc += 3;
+                        copysamples--;
+                    }
+                }
+                while (copysamples > 1) {
+                    COPY_ONE(get12lo(pSrc));
+                    COPY_ONE(get12hi(pSrc));
+                    pSrc += 3;
+                    copysamples -= 2;
+                }
+                if (copysamples) {
+                    COPY_ONE(get12lo(pSrc));
+                }
+                break;
+
+            case 5: // 24 bit compressed to 8 bit
+                GET_PARAMS(params);
+                while (currentframeoffset) {
+                    SKIP_ONE(int8_t(*pSrc++));
+                    currentframeoffset--;
+                }
+                while (copysamples) {
+                    COPY_ONE(int8_t(*pSrc++));
+                    copysamples--;
+                }
+                break;
+        }
+    }
+
+    const int bytesPerFrame[] =      { 4096, 2052, 768, 524, 396, 268 };
+    const int bytesPerFrameNoHdr[] = { 4096, 2048, 768, 512, 384, 256 };
+    const int headerSize[] =         { 0, 4, 0, 12, 12, 12 };
+    const int bitsPerSample[] =      { 16, 8, 24, 16, 12, 8 };
+}
+
 
 // *************** Sample ***************
 // *
 
     unsigned int  Sample::Instances               = 0;
-    void*         Sample::pDecompressionBuffer    = NULL;
+    unsigned char* Sample::pDecompressionBuffer    = NULL;
     unsigned long Sample::DecompressionBufferSize = 0;
 
     Sample::Sample(File* pFile, RIFF::List* waveList, unsigned long WavePoolOffset) : DLS::Sample((DLS::File*) pFile, waveList, WavePoolOffset) {
@@ -49,7 +221,7 @@ namespace gig {
         smpl->Read(&SMPTEFormat, 1, 4);
         SMPTEOffset       = smpl->ReadInt32();
         Loops             = smpl->ReadInt32();
-        uint32_t manufByt = smpl->ReadInt32();
+        smpl->ReadInt32(); // manufByt
         LoopID            = smpl->ReadInt32();
         smpl->Read(&LoopType, 1, 4);
         LoopStart         = smpl->ReadInt32();
@@ -63,18 +235,16 @@ namespace gig {
         RAMCache.pStart            = NULL;
         RAMCache.NullExtensionSize = 0;
 
+        if (BitDepth > 24) throw gig::Exception("Only samples up to 24 bit supported");
+
         Compressed = (waveList->GetSubChunk(CHUNK_ID_EWAV));
         if (Compressed) {
             ScanCompressedSample();
         }
 
-        if (BitDepth > 24)                throw gig::Exception("Only samples up to 24 bit supported");
-        if (Compressed && Channels == 1)  throw gig::Exception("Mono compressed samples not yet supported");
-        if (Compressed && BitDepth == 24) throw gig::Exception("24 bit compressed samples not yet supported");
-
         // we use a buffer for decompression and for truncating 24 bit samples to 16 bit
         if ((Compressed || BitDepth == 24) && !pDecompressionBuffer) {
-            pDecompressionBuffer    = new int8_t[INITIAL_SAMPLE_BUFFER_SIZE];
+            pDecompressionBuffer    = new unsigned char[INITIAL_SAMPLE_BUFFER_SIZE];
             DecompressionBufferSize = INITIAL_SAMPLE_BUFFER_SIZE;
         }
 	FrameOffset = 0; // just for streaming compressed samples
@@ -88,29 +258,52 @@ namespace gig {
         this->SamplesTotal = 0;
         std::list<unsigned long> frameOffsets;
 
+        SamplesPerFrame = BitDepth == 24 ? 256 : 2048;
+        WorstCaseFrameSize = SamplesPerFrame * FrameSize + Channels;
+
         // Scanning
         pCkData->SetPos(0);
-        while (pCkData->GetState() == RIFF::stream_ready) {
-            frameOffsets.push_back(pCkData->GetPos());
-            int16_t compressionmode = pCkData->ReadInt16();
-            this->SamplesTotal += 2048;
-            switch (compressionmode) {
-                case 1:   // left channel compressed
-                case 256: // right channel compressed
-                    pCkData->SetPos(6148, RIFF::stream_curpos);
+        if (Channels == 2) { // Stereo
+            for (int i = 0 ; ; i++) {
+                // for 24 bit samples every 8:th frame offset is
+                // stored, to save some memory
+                if (BitDepth != 24 || (i & 7) == 0) frameOffsets.push_back(pCkData->GetPos());
+
+                const int mode_l = pCkData->ReadUint8();
+                const int mode_r = pCkData->ReadUint8();
+                if (mode_l > 5 || mode_r > 5) throw gig::Exception("Unknown compression mode");
+                const unsigned long frameSize = bytesPerFrame[mode_l] + bytesPerFrame[mode_r];
+
+                if (pCkData->RemainingBytes() <= frameSize) {
+                    SamplesInLastFrame =
+                        ((pCkData->RemainingBytes() - headerSize[mode_l] - headerSize[mode_r]) << 3) /
+                        (bitsPerSample[mode_l] + bitsPerSample[mode_r]);
+                    SamplesTotal += SamplesInLastFrame;
                     break;
-                case 257: // both channels compressed
-                    pCkData->SetPos(4104, RIFF::stream_curpos);
+                }
+                SamplesTotal += SamplesPerFrame;
+                pCkData->SetPos(frameSize, RIFF::stream_curpos);
+            }
+        }
+        else { // Mono
+            for (int i = 0 ; ; i++) {
+                if (BitDepth != 24 || (i & 7) == 0) frameOffsets.push_back(pCkData->GetPos());
+
+                const int mode = pCkData->ReadUint8();
+                if (mode > 5) throw gig::Exception("Unknown compression mode");
+                const unsigned long frameSize = bytesPerFrame[mode];
+
+                if (pCkData->RemainingBytes() <= frameSize) {
+                    SamplesInLastFrame =
+                        ((pCkData->RemainingBytes() - headerSize[mode]) << 3) / bitsPerSample[mode];
+                    SamplesTotal += SamplesInLastFrame;
                     break;
-                default: // both channels uncompressed
-                    pCkData->SetPos(8192, RIFF::stream_curpos);
+                }
+                SamplesTotal += SamplesPerFrame;
+                pCkData->SetPos(frameSize, RIFF::stream_curpos);
             }
         }
         pCkData->SetPos(0);
-
-        //FIXME: only seen compressed samples with 16 bit stereo so far
-        this->FrameSize = 4;
-        this->BitDepth  = 16;
 
         // Build the frames table (which is used for fast resolving of a frame's chunk offset)
         if (FrameTable) delete[] FrameTable;
@@ -511,168 +704,176 @@ namespace gig {
         if (!Compressed) {
             if (BitDepth == 24) {
                 // 24 bit sample. For now just truncate to 16 bit.
-                int8_t* pSrc = (int8_t*)this->pDecompressionBuffer;
-                int8_t* pDst = (int8_t*)pBuffer;
-                unsigned long n = pCkData->Read(pSrc, SampleCount, FrameSize);
-                for (int i = SampleCount * (FrameSize / 3) ; i > 0 ; i--) {
+                unsigned char* pSrc = this->pDecompressionBuffer;
+                int16_t* pDst = static_cast<int16_t*>(pBuffer);
+                if (Channels == 2) { // Stereo
+                    unsigned long readBytes = pCkData->Read(pSrc, SampleCount * 6, 1);
                     pSrc++;
-                    *pDst++ = *pSrc++;
-                    *pDst++ = *pSrc++;
+                    for (unsigned long i = readBytes ; i > 0 ; i -= 3) {
+                        *pDst++ = get16(pSrc);
+                        pSrc += 3;
+                    }
+                    return (pDst - static_cast<int16_t*>(pBuffer)) >> 1;
                 }
-                return SampleCount;
-            } else {
-                return pCkData->Read(pBuffer, SampleCount, FrameSize); //FIXME: channel inversion due to endian correction?
+                else { // Mono
+                    unsigned long readBytes = pCkData->Read(pSrc, SampleCount * 3, 1);
+                    pSrc++;
+                    for (unsigned long i = readBytes ; i > 0 ; i -= 3) {
+                        *pDst++ = get16(pSrc);
+                        pSrc += 3;
+                    }
+                    return pDst - static_cast<int16_t*>(pBuffer);
+                }
+            }
+            else { // 16 bit
+                // (pCkData->Read does endian correction)
+                return Channels == 2 ? pCkData->Read(pBuffer, SampleCount << 1, 2) >> 1
+                                     : pCkData->Read(pBuffer, SampleCount, 2);
             }
         }
-        else { //FIXME: no support for mono compressed samples yet, are there any?
+        else {
             if (this->SamplePos >= this->SamplesTotal) return 0;
-            //TODO: efficiency: we simply assume here that all frames are compressed, maybe we should test for an average compression rate
-            // best case needed buffer size (all frames compressed)
-            unsigned long assumedsize      = (SampleCount << 1)  + // *2 (16 Bit, stereo, but assume all frames compressed)
-                                             (SampleCount >> 10) + // 10 bytes header per 2048 sample points
-                                             8194,                 // at least one worst case sample frame
+            //TODO: efficiency: maybe we should test for an average compression rate
+            unsigned long assumedsize      = GuessSize(SampleCount),
                           remainingbytes   = 0,           // remaining bytes in the local buffer
                           remainingsamples = SampleCount,
-                          copysamples;
-            int currentframeoffset = this->FrameOffset;   // offset in current sample frame since last Read()
+                          copysamples, skipsamples,
+                          currentframeoffset = this->FrameOffset;  // offset in current sample frame since last Read()
             this->FrameOffset = 0;
 
             if (assumedsize > this->DecompressionBufferSize) {
                 // local buffer reallocation - hope this won't happen
-                if (this->pDecompressionBuffer) delete[] (int8_t*) this->pDecompressionBuffer;
-                this->pDecompressionBuffer    = new int8_t[assumedsize << 1]; // double of current needed size
+                if (this->pDecompressionBuffer) delete[] this->pDecompressionBuffer;
+                this->pDecompressionBuffer    = new unsigned char[assumedsize << 1]; // double of current needed size
                 this->DecompressionBufferSize = assumedsize << 1;
             }
 
-            int16_t  compressionmode, left, dleft, right, dright;
-            int8_t*  pSrc = (int8_t*)  this->pDecompressionBuffer;
-            int16_t* pDst = (int16_t*) pBuffer;
+            unsigned char* pSrc = this->pDecompressionBuffer;
+            int16_t* pDst = static_cast<int16_t*>(pBuffer);
             remainingbytes = pCkData->Read(pSrc, assumedsize, 1);
 
-            while (remainingsamples) {
+            while (remainingsamples && remainingbytes) {
+                unsigned long framesamples = SamplesPerFrame;
+                unsigned long framebytes, rightChannelOffset = 0, nextFrameOffset;
 
-                // reload from disk to local buffer if needed
-                if (remainingbytes < 8194) {
-                    if (pCkData->GetState() != RIFF::stream_ready) {
-                        this->SamplePos = this->SamplesTotal;
-                        return (SampleCount - remainingsamples);
+                int mode_l = *pSrc++, mode_r = 0;
+
+                if (Channels == 2) {
+                    mode_r = *pSrc++;
+                    framebytes = bytesPerFrame[mode_l] + bytesPerFrame[mode_r] + 2;
+                    rightChannelOffset = bytesPerFrameNoHdr[mode_l];
+                    nextFrameOffset = rightChannelOffset + bytesPerFrameNoHdr[mode_r];
+                    if (remainingbytes < framebytes) { // last frame in sample
+                        framesamples = SamplesInLastFrame;
+                        if (mode_l == 4 && (framesamples & 1)) {
+                            rightChannelOffset = ((framesamples + 1) * bitsPerSample[mode_l]) >> 3;
+                        }
+                        else {
+                            rightChannelOffset = (framesamples * bitsPerSample[mode_l]) >> 3;
+                        }
                     }
-                    assumedsize    = remainingsamples;
-                    assumedsize    = (assumedsize << 1)  + // *2 (16 Bit, stereo, but assume all frames compressed)
-                                     (assumedsize >> 10) + // 10 bytes header per 2048 sample points
-                                     8194;                 // at least one worst case sample frame
-                    pCkData->SetPos(remainingbytes, RIFF::stream_backward);
-                    if (pCkData->RemainingBytes() < assumedsize) assumedsize = pCkData->RemainingBytes();
-                    remainingbytes = pCkData->Read(this->pDecompressionBuffer, assumedsize, 1);
-                    pSrc = (int8_t*) this->pDecompressionBuffer;
+                }
+                else {
+                    framebytes = bytesPerFrame[mode_l] + 1;
+                    nextFrameOffset = bytesPerFrameNoHdr[mode_l];
+                    if (remainingbytes < framebytes) {
+                        framesamples = SamplesInLastFrame;
+                    }
                 }
 
                 // determine how many samples in this frame to skip and read
-                if (remainingsamples >= 2048) {
-                    copysamples       = 2048 - currentframeoffset;
-                    remainingsamples -= copysamples;
-                }
-                else {
-                    copysamples = remainingsamples;
-                    if (currentframeoffset + copysamples > 2048) {
-                        copysamples = 2048 - currentframeoffset;
-                        remainingsamples -= copysamples;
+                if (currentframeoffset + remainingsamples >= framesamples) {
+                    if (currentframeoffset <= framesamples) {
+                        copysamples = framesamples - currentframeoffset;
+                        skipsamples = currentframeoffset;
                     }
                     else {
-                        pCkData->SetPos(remainingbytes, RIFF::stream_backward);
-                        remainingsamples = 0;
-                        this->FrameOffset = currentframeoffset + copysamples;
+                        copysamples = 0;
+                        skipsamples = framesamples;
                     }
                 }
-
-                // decompress and copy current frame from local buffer to destination buffer
-                compressionmode = *(int16_t*)pSrc; pSrc+=2;
-                switch (compressionmode) {
-                    case 1: // left channel compressed
-                        remainingbytes -= 6150; // (left 8 bit, right 16 bit, +6 byte header)
-                        if (!remainingsamples && copysamples == 2048)
-                            pCkData->SetPos(remainingbytes, RIFF::stream_backward);
-
-                        left  = *(int16_t*)pSrc; pSrc+=2;
-                        dleft = *(int16_t*)pSrc; pSrc+=2;
-                        while (currentframeoffset) {
-                            dleft -= *pSrc;
-                            left  -= dleft;
-                            pSrc+=3; // 8 bit left channel, skip uncompressed right channel (16 bit)
-                            currentframeoffset--;
-                        }
-                        while (copysamples) {
-                            dleft -= *pSrc; pSrc++;
-                            left  -= dleft;
-                            *pDst = left; pDst++;
-                            *pDst = *(int16_t*)pSrc; pDst++; pSrc+=2;
-                            copysamples--;
-                        }
-                        break;
-                    case 256: // right channel compressed
-                        remainingbytes -= 6150; // (left 16 bit, right 8 bit, +6 byte header)
-                        if (!remainingsamples && copysamples == 2048)
-                            pCkData->SetPos(remainingbytes, RIFF::stream_backward);
-
-                        right  = *(int16_t*)pSrc; pSrc+=2;
-                        dright = *(int16_t*)pSrc; pSrc+=2;
-                        if (currentframeoffset) {
-                            pSrc+=2; // skip uncompressed left channel, now we can increment by 3
-                            while (currentframeoffset) {
-                                dright -= *pSrc;
-                                right  -= dright;
-                                pSrc+=3; // 8 bit right channel, skip uncompressed left channel (16 bit)
-                                currentframeoffset--;
-                            }
-                            pSrc-=2; // back aligned to left channel
-                        }
-                        while (copysamples) {
-                            *pDst = *(int16_t*)pSrc; pDst++; pSrc+=2;
-                            dright -= *pSrc; pSrc++;
-                            right  -= dright;
-                            *pDst = right; pDst++;
-                            copysamples--;
-                        }
-                        break;
-                    case 257: // both channels compressed
-                        remainingbytes -= 4106; // (left 8 bit, right 8 bit, +10 byte header)
-                        if (!remainingsamples && copysamples == 2048)
-                            pCkData->SetPos(remainingbytes, RIFF::stream_backward);
-
-                        left   = *(int16_t*)pSrc; pSrc+=2;
-                        dleft  = *(int16_t*)pSrc; pSrc+=2;
-                        right  = *(int16_t*)pSrc; pSrc+=2;
-                        dright = *(int16_t*)pSrc; pSrc+=2;
-                        while (currentframeoffset) {
-                            dleft  -= *pSrc; pSrc++;
-                            left   -= dleft;
-                            dright -= *pSrc; pSrc++;
-                            right  -= dright;
-                            currentframeoffset--;
-                        }
-                        while (copysamples) {
-                            dleft  -= *pSrc; pSrc++;
-                            left   -= dleft;
-                            dright -= *pSrc; pSrc++;
-                            right  -= dright;
-                            *pDst = left;  pDst++;
-                            *pDst = right; pDst++;
-                            copysamples--;
-                        }
-                        break;
-                    default: // both channels uncompressed
-                        remainingbytes -= 8194; // (left 16 bit, right 16 bit, +2 byte header)
-                        if (!remainingsamples && copysamples == 2048)
-                            pCkData->SetPos(remainingbytes, RIFF::stream_backward);
-
-                        pSrc += currentframeoffset << 2;
-                        currentframeoffset = 0;
-                        memcpy(pDst, pSrc, copysamples << 2);
-                        pDst += copysamples << 1;
-                        pSrc += copysamples << 2;
-                        break;
+                else {
+                    // This frame has enough data for pBuffer, but not
+                    // all of the frame is needed. Set file position
+                    // to start of this frame for next call to Read.
+                    copysamples = remainingsamples;
+                    skipsamples = currentframeoffset;
+                    pCkData->SetPos(remainingbytes, RIFF::stream_backward);
+                    this->FrameOffset = currentframeoffset + copysamples;
                 }
-            }
+                remainingsamples -= copysamples;
+
+                if (remainingbytes > framebytes) {
+                    remainingbytes -= framebytes;
+                    if (remainingsamples == 0 &&
+                        currentframeoffset + copysamples == framesamples) {
+                        // This frame has enough data for pBuffer, and
+                        // all of the frame is needed. Set file
+                        // position to start of next frame for next
+                        // call to Read. FrameOffset is 0.
+                        pCkData->SetPos(remainingbytes, RIFF::stream_backward);
+                    }
+                }
+                else remainingbytes = 0;
+
+                currentframeoffset -= skipsamples;
+
+                if (copysamples == 0) {
+                    // skip this frame
+                    pSrc += framebytes - Channels;
+                }
+                else {
+                    const unsigned char* const param_l = pSrc;
+                    if (BitDepth == 24) {
+                        if (mode_l != 2) pSrc += 12;
+
+                        if (Channels == 2) { // Stereo
+                            const unsigned char* const param_r = pSrc;
+                            if (mode_r != 2) pSrc += 12;
+
+                            Decompress24(mode_l, param_l, pSrc, pDst, skipsamples, copysamples);
+                            Decompress24(mode_r, param_r, pSrc + rightChannelOffset, pDst + 1,
+                                         skipsamples, copysamples);
+                            pDst += copysamples << 1;
+                        }
+                        else { // Mono
+                            Decompress24(mode_l, param_l, pSrc, pDst, skipsamples, copysamples);
+                            pDst += copysamples;
+                        }
+                    }
+                    else { // 16 bit
+                        if (mode_l) pSrc += 4;
+
+                        int step;
+                        if (Channels == 2) { // Stereo
+                            const unsigned char* const param_r = pSrc;
+                            if (mode_r) pSrc += 4;
+
+                            step = (2 - mode_l) + (2 - mode_r);
+                            Decompress16(mode_l, param_l, step, pSrc, pDst, skipsamples, copysamples);
+                            Decompress16(mode_r, param_r, step, pSrc + (2 - mode_l), pDst + 1,
+                                         skipsamples, copysamples);
+                            pDst += copysamples << 1;
+                        }
+                        else { // Mono
+                            step = 2 - mode_l;
+                            Decompress16(mode_l, param_l, step, pSrc, pDst, skipsamples, copysamples);
+                            pDst += copysamples;
+                        }
+                    }
+                    pSrc += nextFrameOffset;
+                }
+
+                // reload from disk to local buffer if needed
+                if (remainingsamples && remainingbytes < WorstCaseFrameSize && pCkData->GetState() == RIFF::stream_ready) {
+                    assumedsize    = GuessSize(remainingsamples);
+                    pCkData->SetPos(remainingbytes, RIFF::stream_backward);
+                    if (pCkData->RemainingBytes() < assumedsize) assumedsize = pCkData->RemainingBytes();
+                    remainingbytes = pCkData->Read(this->pDecompressionBuffer, assumedsize, 1);
+                    pSrc = this->pDecompressionBuffer;
+                }
+            } // while
+
             this->SamplePos += (SampleCount - remainingsamples);
             if (this->SamplePos > this->SamplesTotal) this->SamplePos = this->SamplesTotal;
             return (SampleCount - remainingsamples);
@@ -682,7 +883,7 @@ namespace gig {
     Sample::~Sample() {
         Instances--;
         if (!Instances && pDecompressionBuffer) {
-            delete[] (int8_t*) pDecompressionBuffer;
+            delete[] pDecompressionBuffer;
             pDecompressionBuffer = NULL;
         }
         if (FrameTable) delete[] FrameTable;
@@ -1384,7 +1585,7 @@ namespace gig {
      * @see      GetFirstRegion()
      */
     Region* Instrument::GetNextRegion() {
-        if (RegionIndex < 0 || RegionIndex >= Regions) return NULL;
+        if (RegionIndex < 0 || uint32_t(RegionIndex) >= Regions) return NULL;
         return pRegions[RegionIndex++];
     }
 
