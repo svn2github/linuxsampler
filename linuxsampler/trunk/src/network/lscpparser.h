@@ -48,6 +48,18 @@ enum fill_response_t {
 };
 
 /**
+ * Event types
+ */
+enum event_t {
+    event_channels,
+    event_voice_count,
+    event_stream_count,
+    event_channel_buffer_fill,
+    event_channel_info,
+    event_misc
+};
+
+/**
  * Semantic value of the lookahead symbol.
  *
  * Structure that is used by the parser to process and return values from the
@@ -61,6 +73,7 @@ struct YYSTYPE {
         unsigned int    Number;
         double          Dotnum;
         fill_response_t FillResponse;
+	event_t	        Event;
     };
     std::string                       String;
     std::map<std::string,std::string> KeyValList;

@@ -92,8 +92,8 @@ class LSCPServer : public Thread {
         String SetAudioOutputDevice(uint AudioDeviceId, uint SamplerChannel);
         String SetVolume(double Volume, uint uiSamplerChannel);
         String ResetChannel(uint uiSamplerChannel);
-        String SubscribeNotification(uint UDPPort);
-        String UnsubscribeNotification(String SessionID);
+        String SubscribeNotification(event_t Event);
+        String UnsubscribeNotification(event_t Event);
         void   AnswerClient(String ReturnMessage);
     protected:
         int            hSocket;

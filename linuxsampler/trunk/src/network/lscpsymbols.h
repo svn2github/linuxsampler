@@ -1,7 +1,7 @@
-/* A Bison parser, made by GNU Bison 1.875a.  */
+/* A Bison parser, made by GNU Bison 1.875.  */
 
 /* Skeleton parser for Yacc-like parsing with Bison,
-   Copyright (C) 1984, 1989, 1990, 2000, 2001, 2002, 2003 Free Software Foundation, Inc.
+   Copyright (C) 1984, 1989, 1990, 2000, 2001, 2002 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -32,93 +32,99 @@
      CHAR = 258,
      DOTNUM = 259,
      NUMBER = 260,
-     SP = 261,
-     LF = 262,
-     CR = 263,
-     HASH = 264,
-     EQ = 265,
-     ADD = 266,
-     GET = 267,
-     CREATE = 268,
-     DESTROY = 269,
-     LIST = 270,
-     LOAD = 271,
-     REMOVE = 272,
-     SET = 273,
-     SUBSCRIBE = 274,
-     UNSUBSCRIBE = 275,
-     RESET = 276,
-     QUIT = 277,
-     CHANNEL = 278,
-     NOTIFICATION = 279,
-     AVAILABLE_ENGINES = 280,
-     AVAILABLE_AUDIO_OUTPUT_DRIVERS = 281,
-     CHANNELS = 282,
-     INFO = 283,
-     BUFFER_FILL = 284,
-     STREAM_COUNT = 285,
-     VOICE_COUNT = 286,
-     INSTRUMENT = 287,
-     ENGINE = 288,
-     AUDIO_OUTPUT_CHANNEL = 289,
-     AUDIO_OUTPUT_CHANNEL_PARAMETER = 290,
-     AUDIO_OUTPUT_DEVICE = 291,
-     AUDIO_OUTPUT_DEVICES = 292,
-     AUDIO_OUTPUT_DEVICE_PARAMETER = 293,
-     AUDIO_OUTPUT_DRIVER = 294,
-     AUDIO_OUTPUT_DRIVER_PARAMETER = 295,
-     MIDI_INPUT_PORT = 296,
-     MIDI_INPUT_CHANNEL = 297,
-     MIDI_INPUT_TYPE = 298,
-     VOLUME = 299,
-     BYTES = 300,
-     PERCENTAGE = 301
+     STRINGVAL = 261,
+     SP = 262,
+     LF = 263,
+     CR = 264,
+     HASH = 265,
+     EQ = 266,
+     ADD = 267,
+     GET = 268,
+     CREATE = 269,
+     DESTROY = 270,
+     LIST = 271,
+     LOAD = 272,
+     LOAD_BACKGROUND = 273,
+     REMOVE = 274,
+     SET = 275,
+     SUBSCRIBE = 276,
+     UNSUBSCRIBE = 277,
+     RESET = 278,
+     QUIT = 279,
+     CHANNEL = 280,
+     NOTIFICATION = 281,
+     AVAILABLE_ENGINES = 282,
+     AVAILABLE_AUDIO_OUTPUT_DRIVERS = 283,
+     CHANNELS = 284,
+     INFO = 285,
+     BUFFER_FILL = 286,
+     STREAM_COUNT = 287,
+     VOICE_COUNT = 288,
+     INSTRUMENT = 289,
+     ENGINE = 290,
+     AUDIO_OUTPUT_CHANNEL = 291,
+     AUDIO_OUTPUT_CHANNEL_PARAMETER = 292,
+     AUDIO_OUTPUT_DEVICE = 293,
+     AUDIO_OUTPUT_DEVICES = 294,
+     AUDIO_OUTPUT_DEVICE_PARAMETER = 295,
+     AUDIO_OUTPUT_DRIVER = 296,
+     AUDIO_OUTPUT_DRIVER_PARAMETER = 297,
+     MIDI_INPUT_PORT = 298,
+     MIDI_INPUT_CHANNEL = 299,
+     MIDI_INPUT_TYPE = 300,
+     VOLUME = 301,
+     BYTES = 302,
+     PERCENTAGE = 303,
+     MISCELLANEOUS = 304
    };
 #endif
 #define CHAR 258
 #define DOTNUM 259
 #define NUMBER 260
-#define SP 261
-#define LF 262
-#define CR 263
-#define HASH 264
-#define EQ 265
-#define ADD 266
-#define GET 267
-#define CREATE 268
-#define DESTROY 269
-#define LIST 270
-#define LOAD 271
-#define REMOVE 272
-#define SET 273
-#define SUBSCRIBE 274
-#define UNSUBSCRIBE 275
-#define RESET 276
-#define QUIT 277
-#define CHANNEL 278
-#define NOTIFICATION 279
-#define AVAILABLE_ENGINES 280
-#define AVAILABLE_AUDIO_OUTPUT_DRIVERS 281
-#define CHANNELS 282
-#define INFO 283
-#define BUFFER_FILL 284
-#define STREAM_COUNT 285
-#define VOICE_COUNT 286
-#define INSTRUMENT 287
-#define ENGINE 288
-#define AUDIO_OUTPUT_CHANNEL 289
-#define AUDIO_OUTPUT_CHANNEL_PARAMETER 290
-#define AUDIO_OUTPUT_DEVICE 291
-#define AUDIO_OUTPUT_DEVICES 292
-#define AUDIO_OUTPUT_DEVICE_PARAMETER 293
-#define AUDIO_OUTPUT_DRIVER 294
-#define AUDIO_OUTPUT_DRIVER_PARAMETER 295
-#define MIDI_INPUT_PORT 296
-#define MIDI_INPUT_CHANNEL 297
-#define MIDI_INPUT_TYPE 298
-#define VOLUME 299
-#define BYTES 300
-#define PERCENTAGE 301
+#define STRINGVAL 261
+#define SP 262
+#define LF 263
+#define CR 264
+#define HASH 265
+#define EQ 266
+#define ADD 267
+#define GET 268
+#define CREATE 269
+#define DESTROY 270
+#define LIST 271
+#define LOAD 272
+#define LOAD_BACKGROUND 273
+#define REMOVE 274
+#define SET 275
+#define SUBSCRIBE 276
+#define UNSUBSCRIBE 277
+#define RESET 278
+#define QUIT 279
+#define CHANNEL 280
+#define NOTIFICATION 281
+#define AVAILABLE_ENGINES 282
+#define AVAILABLE_AUDIO_OUTPUT_DRIVERS 283
+#define CHANNELS 284
+#define INFO 285
+#define BUFFER_FILL 286
+#define STREAM_COUNT 287
+#define VOICE_COUNT 288
+#define INSTRUMENT 289
+#define ENGINE 290
+#define AUDIO_OUTPUT_CHANNEL 291
+#define AUDIO_OUTPUT_CHANNEL_PARAMETER 292
+#define AUDIO_OUTPUT_DEVICE 293
+#define AUDIO_OUTPUT_DEVICES 294
+#define AUDIO_OUTPUT_DEVICE_PARAMETER 295
+#define AUDIO_OUTPUT_DRIVER 296
+#define AUDIO_OUTPUT_DRIVER_PARAMETER 297
+#define MIDI_INPUT_PORT 298
+#define MIDI_INPUT_CHANNEL 299
+#define MIDI_INPUT_TYPE 300
+#define VOLUME 301
+#define BYTES 302
+#define PERCENTAGE 303
+#define MISCELLANEOUS 304
 
 
 

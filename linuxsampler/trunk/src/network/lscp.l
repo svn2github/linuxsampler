@@ -32,6 +32,8 @@ int hSession;
 
 %option reentrant
 
+%x INSTRING
+
 DIGIT           [0-9]
 
 %%
@@ -48,6 +50,7 @@ CREATE                                  { return CREATE; }
 DESTROY                                 { return DESTROY; }
 LIST                                    { return LIST; }
 LOAD                                    { return LOAD; }
+LOAD_BACKGROUND                         { return LOAD_BACKGROUND; }
 REMOVE                                  { return REMOVE; }
 SET                                     { return SET; }
 SUBSCRIBE                               { return SUBSCRIBE; }
@@ -77,8 +80,19 @@ VOLUME                                  { return VOLUME; }
 BYTES                                   { return BYTES; }
 PERCENTAGE                              { return PERCENTAGE; }
 RESET                                   { return RESET; }
+MISCELLANEOUS                           { return MISCELLANEOUS; }
 QUIT                                    { return QUIT; }
 0|([1-9]{DIGIT}*)                       { yylval->Number = atoi(yytext); return NUMBER; }
+"\'"                                    { yylval->String = "";  BEGIN(INSTRING); }
+<INSTRING>[^\'\\]+                      { yylval->String += yytext; }
+<INSTRING>"\\n"                         { yylval->String += '\n'; }
+<INSTRING>"\\r"                         { yylval->String += '\r'; }
+<INSTRING>"\\t"                         { yylval->String += '\t'; }
+<INSTRING>"\\\\"                        { yylval->String += '\\'; }
+<INSTRING>"\\\""                        { yylval->String += '\"'; }
+<INSTRING>"\\\'"                        { yylval->String += '\''; }
+<INSTRING>"\\"[^nrt\"\\]                { yylval->String += yytext; }
+<INSTRING>"\'"                          { BEGIN(INITIAL); return STRINGVAL; }
 .                                       { yylval->Char = yytext[0]; return CHAR; }
 
 %%

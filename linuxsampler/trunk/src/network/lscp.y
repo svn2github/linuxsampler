@@ -52,17 +52,19 @@ void yyerror(const char* s);
 %token <Char>   CHAR
 %token <Dotnum> DOTNUM
 %token <Number> NUMBER
+%token <String> STRINGVAL
 %token SP LF CR HASH EQ
-%token ADD GET CREATE DESTROY LIST LOAD REMOVE SET SUBSCRIBE UNSUBSCRIBE RESET QUIT
+%token ADD GET CREATE DESTROY LIST LOAD LOAD_BACKGROUND REMOVE SET SUBSCRIBE UNSUBSCRIBE RESET QUIT
 %token CHANNEL NOTIFICATION
 %token AVAILABLE_ENGINES AVAILABLE_AUDIO_OUTPUT_DRIVERS CHANNELS INFO BUFFER_FILL STREAM_COUNT VOICE_COUNT
 %token INSTRUMENT ENGINE
 %token AUDIO_OUTPUT_CHANNEL AUDIO_OUTPUT_CHANNEL_PARAMETER AUDIO_OUTPUT_DEVICE AUDIO_OUTPUT_DEVICES AUDIO_OUTPUT_DEVICE_PARAMETER AUDIO_OUTPUT_DRIVER AUDIO_OUTPUT_DRIVER_PARAMETER MIDI_INPUT_PORT MIDI_INPUT_CHANNEL MIDI_INPUT_TYPE VOLUME
 %token BYTES PERCENTAGE
+%token MISCELLANEOUS
 
 %type <Dotnum> volume
-%type <Number> sampler_channel instrument_index udp_port audio_output_channel midi_input_channel
-%type <String> string alpha_num_string filename engine_name session_id midi_input_port command create_instruction destroy_instruction get_instruction list_instruction load_instruction set_chan_instruction load_instr_args load_engine_args midi_input_type set_instruction
+%type <Number> sampler_channel instrument_index audio_output_channel midi_input_channel
+%type <String> string param_val filename engine_name midi_input_port command create_instruction destroy_instruction get_instruction list_instruction load_instruction set_chan_instruction load_instr_args load_engine_args midi_input_type set_instruction subscribe_event unsubscribe_event
 %type <FillResponse> buffer_size_type
 %type <KeyValList> key_val_list
 
@@ -96,12 +98,29 @@ command               :  ADD SP CHANNEL                             { $$ = LSCPS
                       |  DESTROY SP destroy_instruction             { $$ = $3;                                        }
                       |  LIST SP list_instruction                   { $$ = $3;                                        }
                       |  LOAD SP load_instruction                   { $$ = $3;                                        }
+                      |  LOAD_BACKGROUND SP load_instruction        { $$ = $3;                                        }
                       |  REMOVE SP CHANNEL SP sampler_channel       { $$ = LSCPSERVER->RemoveChannel($5);             }
                       |  SET SP set_instruction                     { $$ = $3;                                        }
-                      |  SUBSCRIBE SP NOTIFICATION SP udp_port      { $$ = LSCPSERVER->SubscribeNotification($5);     }
-                      |  UNSUBSCRIBE SP NOTIFICATION SP session_id  { $$ = LSCPSERVER->UnsubscribeNotification($5);   }
+                      |  SUBSCRIBE SP subscribe_event               { $$ = $3;                                        }
+                      |  UNSUBSCRIBE SP unsubscribe_event           { $$ = $3;                                        }
                       |  RESET SP CHANNEL SP sampler_channel        { $$ = LSCPSERVER->ResetChannel($5);              }
                       |  QUIT                                       { LSCPSERVER->AnswerClient("Bye!\r\n"); return 0; }
+                      ;
+
+subscribe_event       :  CHANNELS                                   { $$ = LSCPSERVER->SubscribeNotification(event_channels); }
+                      |  VOICE_COUNT                                { $$ = LSCPSERVER->SubscribeNotification(event_voice_count); }
+                      |  STREAM_COUNT                               { $$ = LSCPSERVER->SubscribeNotification(event_stream_count); }
+                      |  BUFFER_FILL                                { $$ = LSCPSERVER->SubscribeNotification(event_channel_buffer_fill); }
+                      |  INFO                                       { $$ = LSCPSERVER->SubscribeNotification(event_channel_info); }
+                      |  MISCELLANEOUS                              { $$ = LSCPSERVER->SubscribeNotification(event_misc); }
+                      ;
+
+unsubscribe_event     :  CHANNELS                                   { $$ = LSCPSERVER->UnsubscribeNotification(event_channels); }
+                      |  VOICE_COUNT                                { $$ = LSCPSERVER->UnsubscribeNotification(event_voice_count); }
+                      |  STREAM_COUNT                               { $$ = LSCPSERVER->UnsubscribeNotification(event_stream_count); }
+                      |  BUFFER_FILL                                { $$ = LSCPSERVER->UnsubscribeNotification(event_channel_buffer_fill); }
+                      |  INFO                                       { $$ = LSCPSERVER->UnsubscribeNotification(event_channel_info); }
+                      |  MISCELLANEOUS                              { $$ = LSCPSERVER->UnsubscribeNotification(event_misc); }
                       ;
 
 get_instruction       :  AVAILABLE_ENGINES                                                          { $$ = LSCPSERVER->GetAvailableEngines();                          }
@@ -121,14 +140,12 @@ get_instruction       :  AVAILABLE_ENGINES                                      
                       |  ENGINE SP INFO SP engine_name                                              { $$ = LSCPSERVER->GetEngineInfo($5);                              }
                       ;
 
-set_instruction       :  AUDIO_OUTPUT_DEVICE_PARAMETER SP NUMBER SP string SP alpha_num_string             { $$ = LSCPSERVER->SetAudioOutputDeviceParameter($3, $5, $7);      }
-                      |  AUDIO_OUTPUT_DEVICE_PARAMETER SP NUMBER SP string EQ alpha_num_string             { $$ = LSCPSERVER->SetAudioOutputDeviceParameter($3, $5, $7);      }
-                      |  AUDIO_OUTPUT_CHANNEL_PARAMETER SP NUMBER SP NUMBER SP string SP alpha_num_string  { $$ = LSCPSERVER->SetAudioOutputChannelParameter($3, $5, $7, $9); }
-                      |  AUDIO_OUTPUT_CHANNEL_PARAMETER SP NUMBER SP NUMBER SP string EQ alpha_num_string  { $$ = LSCPSERVER->SetAudioOutputChannelParameter($3, $5, $7, $9); }
+set_instruction       :  AUDIO_OUTPUT_DEVICE_PARAMETER SP NUMBER SP string EQ param_val             { $$ = LSCPSERVER->SetAudioOutputDeviceParameter($3, $5, $7);      }
+                      |  AUDIO_OUTPUT_CHANNEL_PARAMETER SP NUMBER SP NUMBER SP string EQ param_val  { $$ = LSCPSERVER->SetAudioOutputChannelParameter($3, $5, $7, $9); }
                       |  CHANNEL SP set_chan_instruction                                                   { $$ = $3;                                                         }
                       ;
 
-create_instruction    :  AUDIO_OUTPUT_DEVICE SP string SP key_val_list  { $$ = LSCPSERVER->CreateAudioOutputDevice($3,$5); }
+create_instruction    :  AUDIO_OUTPUT_DEVICE SP string SP key_val_list { $$ = LSCPSERVER->CreateAudioOutputDevice($3,$5); }
                       ;
 
 destroy_instruction   :  AUDIO_OUTPUT_DEVICE SP NUMBER  { $$ = LSCPSERVER->DestroyAudioOutputDevice($3); }
@@ -146,8 +163,9 @@ set_chan_instruction  :  AUDIO_OUTPUT_DEVICE SP sampler_channel SP NUMBER       
                       |  VOLUME SP sampler_channel SP volume                                                      { $$ = LSCPSERVER->SetVolume($5, $3);                 }
                       ;
 
-key_val_list          :  string EQ alpha_num_string                  { $$[$1] = $3;          }
-                      |  key_val_list SP string EQ alpha_num_string  { $$ = $1; $$[$3] = $5; }
+key_val_list          :  string EQ param_val                  { $$[$1] = $3;          }
+                      |  key_val_list SP string EQ param_val  { $$ = $1; $$[$3] = $5; }
+                      ;
 
 buffer_size_type      :  BYTES       { $$ = fill_response_bytes;      }
                       |  PERCENTAGE  { $$ = fill_response_percentage; }
@@ -175,32 +193,24 @@ sampler_channel       :  NUMBER
 instrument_index      :  NUMBER
                       ;
 
-udp_port              :  NUMBER
-                      ;
-
 audio_output_channel  :  NUMBER
                       ;
 
 midi_input_channel    :  NUMBER
                       ;
 
-session_id            :  alpha_num_string
-                      ;
-
 engine_name           :  string
                       ;
 
-midi_input_port       :  alpha_num_string
+midi_input_port       :  STRINGVAL
                       ;
 
-filename              :  alpha_num_string
-                      |  filename SP alpha_num_string  { $$ = $1 + ' ' + $3; }
+filename              :  STRINGVAL
                       ;
 
-alpha_num_string      :  string                   { $$ = $1;                                             }
+param_val             :  STRINGVAL                { $$ = $1;                                             }
                       |  NUMBER                   { std::stringstream ss; ss << $1; $$ = ss.str();       }
-                      |  alpha_num_string string  { $$ = $1 + $2;                                        }
-                      |  alpha_num_string NUMBER  { std::stringstream ss; ss << $1 << $2; $$ = ss.str(); }
+                      |  DOTNUM                   { std::stringstream ss; ss << $1; $$ = ss.str();       }
                       ;
 
 string                :  CHAR          { std::string s; s = $1; $$ = s; }

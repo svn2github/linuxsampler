@@ -582,7 +582,7 @@ String LSCPServer::SetMIDIInputType(String MidiInputDriver, uint uiSamplerChanne
         SamplerChannel* pSamplerChannel = pSampler->GetSamplerChannel(uiSamplerChannel);
         if (!pSamplerChannel) throw LinuxSamplerException("Index out of bounds");
         // FIXME: workaround until MIDI driver configuration is implemented (using a Factory class for the MIDI input drivers then, like its already done for audio output drivers)
-        if (MidiInputDriver != "ALSA") throw LinuxSamplerException("Unknown MIDI input driver '" + MidiInputDriver + "'.");
+        if (MidiInputDriver != "Alsa") throw LinuxSamplerException("Unknown MIDI input driver '" + MidiInputDriver + "'.");
         MidiInputDevice::type_t MidiInputType = MidiInputDevice::type_alsa;
         pSamplerChannel->SetMidiInputDevice(MidiInputType);
     }
@@ -685,8 +685,8 @@ String LSCPServer::ResetChannel(uint uiSamplerChannel) {
  * Will be called by the parser to subscribe a client (frontend) on the
  * server for receiving event messages.
  */
-String LSCPServer::SubscribeNotification(uint UDPPort) {
-    dmsg(2,("LSCPServer: SubscribeNotification(UDPPort=%d)\n", UDPPort));
+String LSCPServer::SubscribeNotification(event_t Event) {
+    dmsg(2,("LSCPServer: SubscribeNotification(Event=%d)\n", Event));
     return "ERR:0:Not implemented yet.\r\n";
 }
 
@@ -694,8 +694,8 @@ String LSCPServer::SubscribeNotification(uint UDPPort) {
  * Will be called by the parser to unsubscribe a client on the server
  * for not receiving further event messages.
  */
-String LSCPServer::UnsubscribeNotification(String SessionID) {
-    dmsg(2,("LSCPServer: UnsubscribeNotification(SessionID=%s)\n", SessionID.c_str()));
+String LSCPServer::UnsubscribeNotification(event_t Event) {
+    dmsg(2,("LSCPServer: UnsubscribeNotification(Event=%d)\n", Event));
     return "ERR:0:Not implemented yet.\r\n";
 }
 
