@@ -22,10 +22,22 @@
 
 #include "MidiInputDeviceFactory.h"
 
+// just to avoid linker problems
+#include "MidiInputDeviceAlsa.h"
+
 namespace LinuxSampler {
 
     std::map<String, MidiInputDeviceFactory::InnerFactory*> MidiInputDeviceFactory::InnerFactories;
     std::map<String, DeviceParameterFactory*> MidiInputDeviceFactory::ParameterFactories;
+
+    // just a little hack to avoid linker problems
+    static int ___init___foo___() {
+        #if HAVE_ALSA
+        MidiInputDeviceAlsa::Name().c_str();
+        #endif // HAVE_ALSA
+        return 0;
+    }
+    static int ___foo___ = ___init___foo___();
 
     MidiInputDevice* MidiInputDeviceFactory::Create(String DriverName, std::map<String,String> Parameters) throw (LinuxSamplerException) {
         if (!InnerFactories.count(DriverName)) throw LinuxSamplerException("There is no midi input driver '" + DriverName + "'.");
