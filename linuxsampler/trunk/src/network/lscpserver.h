@@ -117,6 +117,7 @@ class LSCPServer : public Thread {
         String ResetChannel(uint uiSamplerChannel);
         String SubscribeNotification(LSCPEvent::event_t);
         String UnsubscribeNotification(LSCPEvent::event_t);
+        String SetEcho(yyparse_param_t* pSession, double boolean_value);
         void   AnswerClient(String ReturnMessage);
 
 	static int currentSocket;
@@ -146,9 +147,9 @@ class LSCPServer : public Thread {
 	static std::map<int,String> bufferedNotifies;
 	static Mutex NotifyMutex;
 	static Mutex NotifyBufferMutex;
-	static bool GetLSCPCommand( std::vector<int>::iterator iter );
-	static void CloseConnection( std::vector<int>::iterator iter );
-	static std::vector<int> hSessions;
+	static bool GetLSCPCommand( std::vector<yyparse_param_t>::iterator iter );
+	static void CloseConnection( std::vector<yyparse_param_t>::iterator iter );
+	static std::vector<yyparse_param_t> Sessions;
 	static Mutex SubscriptionMutex;
 	static std::map< LSCPEvent::event_t, std::list<int> > eventSubscriptions;
 	static fd_set fdSet;

@@ -83,7 +83,16 @@ typedef void* yyscan_t;
  */
 struct yyparse_param_t {
     LSCPServer* pServer;
+    int         hSession;
     yyscan_t    pScanner;
+    bool        bVerbose; ///< if true then all commands will immediately sent back (echo)
+
+    yyparse_param_t() {
+        pServer  = NULL;
+        hSession = -1;
+        pScanner = NULL;
+        bVerbose = false;
+    }
 };
 #define YYPARSE_PARAM yyparse_param
 
@@ -98,6 +107,6 @@ struct yyparse_param_t {
  */
 extern int GetLSCPCommand( void *buf, int max_size);
 #define YY_INPUT(buf,result,max_size) \
-	result = GetLSCPCommand(buf, max_size) 
+	result = GetLSCPCommand(buf, max_size)
 
 #endif // __LSCPPARSER_H__

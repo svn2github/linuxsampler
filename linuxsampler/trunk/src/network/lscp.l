@@ -20,6 +20,9 @@
  *   MA  02111-1307  USA                                                   *
  ***************************************************************************/
 
+/* Note: don't forget to run 'make parser' after you changed this file, */
+/*       otherwise the parser will not be regenerated!                  */
+
 %{
 
 #include "lscpparser.h"
@@ -87,6 +90,7 @@ BYTES                                   { return BYTES; }
 PERCENTAGE                              { return PERCENTAGE; }
 RESET                                   { return RESET; }
 MISCELLANEOUS                           { return MISCELLANEOUS; }
+ECHO                                    { return ECHO; }
 QUIT                                    { return QUIT; }
 0|([1-9]{DIGIT}*)                       { yylval->Number = atoi(yytext); return NUMBER; }
 "\'"                                    { yylval->String = "";  BEGIN(INSTRING); }

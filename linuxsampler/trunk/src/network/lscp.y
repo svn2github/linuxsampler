@@ -20,6 +20,9 @@
  *   MA  02111-1307  USA                                                   *
  ***************************************************************************/
 
+/* Note: don't forget to run 'make parser' after you changed this file, */
+/*       otherwise the parser will not be regenerated!                  */
+
 %{
 
 #include "lscpparser.h"
@@ -55,7 +58,7 @@ void yyerror(const char* s);
 %token <Number> NUMBER
 %token <String> STRINGVAL
 %token SP LF CR HASH EQ
-%token ADD GET CREATE DESTROY LIST LOAD NON_MODAL REMOVE SET SUBSCRIBE UNSUBSCRIBE RESET QUIT
+%token ADD GET CREATE DESTROY LIST LOAD NON_MODAL REMOVE SET SUBSCRIBE UNSUBSCRIBE RESET ECHO QUIT
 %token CHANNEL NOTIFICATION
 %token AVAILABLE_ENGINES AVAILABLE_AUDIO_OUTPUT_DRIVERS CHANNELS INFO BUFFER_FILL STREAM_COUNT VOICE_COUNT
 %token INSTRUMENT ENGINE
@@ -64,7 +67,7 @@ void yyerror(const char* s);
 %token BYTES PERCENTAGE
 %token MISCELLANEOUS
 
-%type <Dotnum> volume
+%type <Dotnum> volume boolean
 %type <Number> sampler_channel instrument_index audio_output_channel audio_output_device midi_input_channel midi_input_port midi_input_device
 %type <String> string param_val filename engine_name command create_instruction destroy_instruction get_instruction list_instruction load_instruction set_chan_instruction load_instr_args load_engine_args audio_output_type midi_input_type set_instruction subscribe_event unsubscribe_event
 %type <FillResponse> buffer_size_type
@@ -151,6 +154,7 @@ set_instruction       :  AUDIO_OUTPUT_DEVICE_PARAMETER SP NUMBER SP string EQ pa
                       |  MIDI_INPUT_DEVICE_PARAMETER SP NUMBER SP string EQ param_val               { $$ = LSCPSERVER->SetMidiInputDeviceParameter($3, $5, $7);       }
                       |  MIDI_INPUT_PORT_PARAMETER SP NUMBER SP NUMBER SP string EQ param_val       { $$ = LSCPSERVER->SetMidiInputPortParameter($3, $5, $7, $9);       }
                       |  CHANNEL SP set_chan_instruction                                            { $$ = $3;                                                         }
+                      |  ECHO SP boolean                                                            { $$ = LSCPSERVER->SetEcho((yyparse_param_t*) yyparse_param, $3);  }
                       ;
 
 create_instruction    :  AUDIO_OUTPUT_DEVICE SP string SP key_val_list { $$ = LSCPSERVER->CreateAudioOutputDevice($3,$5); }
@@ -238,6 +242,10 @@ filename              :  STRINGVAL
 param_val             :  STRINGVAL                { $$ = $1;                                             }
                       |  NUMBER                   { std::stringstream ss; ss << $1; $$ = ss.str();       }
                       |  DOTNUM                   { std::stringstream ss; ss << $1; $$ = ss.str();       }
+                      ;
+
+boolean               :  NUMBER  { $$ = $1; }
+                      |  string  { $$ = -1; }
                       ;
 
 string                :  CHAR          { std::string s; s = $1; $$ = s; }

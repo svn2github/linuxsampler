@@ -43,7 +43,7 @@
  */
 fd_set LSCPServer::fdSet;
 int LSCPServer::currentSocket = -1;
-std::vector<int> LSCPServer::hSessions = std::vector<int>();
+std::vector<yyparse_param_t> LSCPServer::Sessions = std::vector<yyparse_param_t>();
 std::map<int,String> LSCPServer::bufferedNotifies = std::map<int,String>();
 std::map<int,String> LSCPServer::bufferedCommands = std::map<int,String>();
 std::map< LSCPEvent::event_t, std::list<int> > LSCPServer::eventSubscriptions = std::map< LSCPEvent::event_t, std::list<int> >();
@@ -90,10 +90,6 @@ int LSCPServer::Main() {
     FD_SET(hSocket, &fdSet);
     int maxSessions = hSocket;
 
-    // Parser initialization
-    yyparse_param_t yyparse_param;
-    yyparse_param.pServer = this;
-
     while (true) {
 	fd_set selectSet = fdSet;
 	int retval = select(maxSessions+1, &selectSet, NULL, NULL, NULL);
@@ -118,7 +114,12 @@ int LSCPServer::Main() {
 			exit(EXIT_FAILURE);
 		}
 
-		hSessions.push_back(socket);
+                // Parser initialization
+                yyparse_param_t yyparse_param;
+                yyparse_param.pServer  = this;
+                yyparse_param.hSession = socket;
+
+		Sessions.push_back(yyparse_param);
 		FD_SET(socket, &fdSet);
 		if (socket > maxSessions)
 			maxSessions = socket;
@@ -128,13 +129,16 @@ int LSCPServer::Main() {
 	}
 
 	//Something was selected and it was not the hSocket, so it must be some command(s) coming.
-	for (std::vector<int>::iterator iter = hSessions.begin(); iter !=  hSessions.end(); iter++) {
-		if (FD_ISSET(*iter, &selectSet)) {	//Was it this socket?
+	for (std::vector<yyparse_param_t>::iterator iter = Sessions.begin(); iter != Sessions.end(); iter++) {
+		if (FD_ISSET((*iter).hSession, &selectSet)) {	//Was it this socket?
 			if (GetLSCPCommand(iter)) {	//Have we read the entire command?
 				dmsg(3,("LSCPServer: Got command on socket %d, calling parser.\n", currentSocket));
-				yylex_init(&yyparse_param.pScanner);
-				currentSocket = *iter;  //a hack
-				int result = yyparse(&yyparse_param);
+                                yylex_init(&((*iter).pScanner)); //FIXME: should me moved out of this loop and initialized only when a new session is created
+				currentSocket = (*iter).hSession;  //a hack
+                                if ((*iter).bVerbose) { // if echo mode enabled
+                                    AnswerClient(bufferedCommands[currentSocket]);
+                                }
+				int result = yyparse(&(*iter));
 				currentSocket = -1;	//continuation of a hack
 				dmsg(3,("LSCPServer: Done parsing on socket %d.\n", currentSocket));
 				if (result == LSCP_QUIT) { //Was it a quit command by any chance?
@@ -159,11 +163,11 @@ int LSCPServer::Main() {
     //yylex_destroy(yyparse_param.pScanner);
 }
 
-void LSCPServer::CloseConnection( std::vector<int>::iterator iter ) {
-	int socket = *iter;
+void LSCPServer::CloseConnection( std::vector<yyparse_param_t>::iterator iter ) {
+	int socket = (*iter).hSession;
 	dmsg(1,("LSCPServer: Client connection terminated on socket:%d.\n",socket));
 	LSCPServer::SendLSCPNotify(LSCPEvent(LSCPEvent::event_misc, "Client connection terminated on socket", socket));
-	hSessions.erase(iter);
+	Sessions.erase(iter);
 	FD_CLR(socket,  &fdSet);
 	SubscriptionMutex.Lock(); //Must unsubscribe this socket from all events (if any)
 	for (std::map< LSCPEvent::event_t, std::list<int> >::iterator iter = eventSubscriptions.begin(); iter != eventSubscriptions.end(); iter++) {
@@ -175,6 +179,7 @@ void LSCPServer::CloseConnection( std::vector<int>::iterator iter ) {
 	bufferedNotifies.erase(socket);
 	close(socket);
 	NotifyMutex.Unlock();
+        //yylex_destroy((*iter).pScanner);
 }
 
 void LSCPServer::SendLSCPNotify( LSCPEvent event ) {
@@ -227,8 +232,8 @@ extern int GetLSCPCommand( void *buf, int max_size ) {
  * If command is read, it will return true. Otherwise false is returned.
  * In any case the received portion (complete or incomplete) is saved into bufferedCommand map.
  */
-bool LSCPServer::GetLSCPCommand( std::vector<int>::iterator iter ) {
-	int socket = *iter;
+bool LSCPServer::GetLSCPCommand( std::vector<yyparse_param_t>::iterator iter ) {
+	int socket = (*iter).hSession;
 	char c;
 	int i = 0;
 	while (true) {
@@ -1290,6 +1295,24 @@ String LSCPServer::UnsubscribeNotification(LSCPEvent::event_t type) {
     return result.Produce();
 }
 
+/**
+ * Will be called by the parser to enable or disable echo mode; if echo
+ * mode is enabled, all commands from the client will (immediately) be
+ * echoed back to the client.
+ */
+String LSCPServer::SetEcho(yyparse_param_t* pSession, double boolean_value) {
+    dmsg(2,("LSCPServer: SetEcho(val=%f)\n", boolean_value));
+    LSCPResultSet result;
+    try {
+        if      (boolean_value == 0) pSession->bVerbose = false;
+        else if (boolean_value == 1) pSession->bVerbose = true;
+        else throw LinuxSamplerException("Not a boolean value, must either be 0 or 1");
+    }
+    catch (LinuxSamplerException e) {
+         result.Error(e);
+    }
+    return result.Produce();
+}
 
 // Instrument loader constructor.
 LSCPLoadInstrument::LSCPLoadInstrument(Engine* pEngine, String Filename, uint uiInstrument)
