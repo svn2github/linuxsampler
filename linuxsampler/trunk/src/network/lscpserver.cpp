@@ -244,6 +244,7 @@ bool LSCPServer::GetLSCPCommand( std::vector<int>::iterator iter ) {
 			if (c == '\r') 
 				continue; //Ignore CR
 			if (c == '\n') {
+				LSCPServer::SendLSCPNotify(LSCPEvent(LSCPEvent::event_misc, "Received \'" + bufferedCommands[socket] + "\' on socket", socket));
 				bufferedCommands[socket] += "\n";
 				return true; //Complete command was read
 			}

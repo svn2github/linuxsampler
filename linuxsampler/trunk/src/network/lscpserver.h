@@ -119,14 +119,15 @@ class LSCPServer : public Thread {
 
 	static int currentSocket;
 	static std::map<int,String> bufferedCommands;
+
+	static void SendLSCPNotify( LSCPEvent Event );
+
     protected:
         int            hSocket;
         sockaddr_in    SocketAddress;
         Sampler*       pSampler;
 
         int Main(); ///< Implementation of virtual method from class Thread
-
-	static void SendLSCPNotify( LSCPEvent Event );
 
     private:
         
