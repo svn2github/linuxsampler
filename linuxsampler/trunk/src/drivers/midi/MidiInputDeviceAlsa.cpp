@@ -3,6 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
+ *   Copyright (C) 2005 Christian Schoenebeck                              *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -91,6 +92,31 @@ namespace LinuxSampler {
 
 
 
+// *************** ParameterAlsaSeqId ***************
+// *
+
+    MidiInputDeviceAlsa::MidiInputPortAlsa::ParameterAlsaSeqId::ParameterAlsaSeqId(MidiInputPortAlsa* pPort)
+        : DeviceRuntimeParameterString(ToString(pPort->pDevice->hAlsaSeqClient) + ":" + ToString(pPort->portNumber)) {
+    }
+
+    String MidiInputDeviceAlsa::MidiInputPortAlsa::ParameterAlsaSeqId::Description() {
+        return "ALSA Sequencer ID";
+    }
+
+    bool MidiInputDeviceAlsa::MidiInputPortAlsa::ParameterAlsaSeqId::Fix() {
+        return true;
+    }
+
+    std::vector<String> MidiInputDeviceAlsa::MidiInputPortAlsa::ParameterAlsaSeqId::PossibilitiesAsString() {
+        return std::vector<String>(); // nothing
+    }
+
+    void MidiInputDeviceAlsa::MidiInputPortAlsa::ParameterAlsaSeqId::OnSetValue(String s) {
+        // not possible as parameter is 'fix'
+    }
+
+
+
 // *************** MidiInputPortAlsa ***************
 // *
 
@@ -106,6 +132,7 @@ namespace LinuxSampler {
 
         Parameters["NAME"]              = new ParameterName(this);
         Parameters["ALSA_SEQ_BINDINGS"] = new ParameterAlsaSeqBindings(this);
+        Parameters["ALSA_SEQ_ID"]       = new ParameterAlsaSeqId(this);
     }
 
     MidiInputDeviceAlsa::MidiInputPortAlsa::~MidiInputPortAlsa() {
@@ -185,7 +212,7 @@ namespace LinuxSampler {
     }
 
     String MidiInputDeviceAlsa::Version() {
-	    String s = "$Revision: 1.13 $";
+	    String s = "$Revision: 1.14 $";
 	    return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
 
