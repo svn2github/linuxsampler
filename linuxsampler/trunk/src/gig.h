@@ -57,12 +57,16 @@
 #endif // WORDS_BIGENDIAN
 
 /** (so far) every exponential paramater in the gig format has a basis of 1.000000008813822 */
-#define GIG_EXP_DECODE(x)			(pow(1.000000008813822, x))
-#define GIG_PITCH_TRACK_EXTRACT(x)		(!(x & 0x01))
-#define GIG_VCF_RESONANCE_CTRL_EXTRACT(x)	((x >> 4) & 0x03)
-#define GIG_EG_CTR_ATTACK_INFLUENCE_EXTRACT(x)	((x >> 1) & 0x03)
-#define GIG_EG_CTR_DECAY_INFLUENCE_EXTRACT(x)	((x >> 3) & 0x03)
-#define GIG_EG_CTR_RELEASE_INFLUENCE_EXTRACT(x)	((x >> 5) & 0x03)
+#define GIG_EXP_DECODE(x)					(pow(1.000000008813822, x))
+#define GIG_PITCH_TRACK_EXTRACT(x)				(!(x & 0x01))
+#define GIG_VCF_RESONANCE_CTRL_EXTRACT(x)			((x >> 4) & 0x03)
+#define GIG_EG_CTR_ATTACK_INFLUENCE_EXTRACT(x)			((x >> 1) & 0x03)
+#define GIG_EG_CTR_DECAY_INFLUENCE_EXTRACT(x)			((x >> 3) & 0x03)
+#define GIG_EG_CTR_RELEASE_INFLUENCE_EXTRACT(x)			((x >> 5) & 0x03)
+//TODO: the transformation functions are not very accurate compared to the original ones
+#define GIG_VELOCITY_TRANSFORM_NONLINEAR(x,dynamic,scale)	((1.0-1.0/pow(x,1.0/(129.0-x))) * (1.0+scale/20.0) + (5.0-dynamic)*pow(x/300.0* (1.0+2.0*scale/128.0),2))
+#define GIG_VELOCITY_TRANSFORM_LINEAR(x,dynamic,scale)		((1.0+scale*3.0/128.0)/110.0*x+(5.0-dynamic)/5.0+(5.0-dynamic)*scale)
+#define GIG_VELOCITY_TRANSFORM_SPECIAL(x,dynamic,scale)		((1.0+9.0*scale/129.0)*(1.0-1.0/pow(x,1.0/(129.0-x))+pow(3.0*x/pow(129,2),2)+pow((5.0-dynamic)*x/500.0,2)))
 
 /** Gigasampler specific classes and definitions */
 namespace gig {
@@ -362,7 +366,7 @@ namespace gig {
             // Key Velocity Transformations
             curve_type_t       VelocityResponseCurve;         ///< Defines a transformation curve to the incoming velocity values affecting amplitude.
             uint8_t            VelocityResponseDepth;         ///< Dynamic range of velocity affecting amplitude (0 - 4).
-            uint8_t            VelocityResponseCurveScaling;
+            uint8_t            VelocityResponseCurveScaling;  ///< 0 - 127
             curve_type_t       ReleaseVelocityResponseCurve;  ///< Defines a transformation curve to the incoming release veloctiy values affecting envelope times.
             uint8_t            ReleaseVelocityResponseDepth;  ///< Dynamic range of release velocity affecting envelope time (0 - 4).
             uint8_t            ReleaseTriggerDecay;           ///< 0 - 8
@@ -386,7 +390,18 @@ namespace gig {
             DLS::Sampler::SampleLoops;
             DLS::Sampler::pSampleLoops;
 
+            // Methods
+            double GetVelocityAttenuation(uint8_t MIDIKeyVelocity);
+        protected:
             DimensionRegion(RIFF::List* _3ewl);
+           ~DimensionRegion();
+            friend class Region;
+        private:
+            typedef std::map<uint32_t, double*> VelocityTableMap;
+
+            static uint              Instances;                  ///< Number of DimensionRegion instances.
+            static VelocityTableMap* pVelocityTables;            ///< Contains the tables corresponding to the various velocity parameters (VelocityResponseCurve and VelocityResponseDepth).
+            double*                  pVelocityAttenuationTable;  ///< Points to the velocity table corresponding to the velocity parameters of this DimensionRegion.
     };
 
     /** Encapsulates sample waves used for playback. */

@@ -57,6 +57,7 @@ class Voice {
         };
 
         // Attributes
+        float                Volume;
         float*               pOutput;           ///< Audio output buffer
         uint                 OutputBufferSize;  ///< Fragment size of the audio output buffer
         double               Pos;

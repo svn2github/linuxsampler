@@ -79,6 +79,7 @@ void Voice::Trigger(int MIDIKey, uint8_t Velocity, gig::Instrument* Instrument) 
     }
 
     CurrentPitch = pow(2, (double) (MIDIKey - (int) pSample->MIDIUnityNote) / (double) 12);
+    Volume       = pDimRgn->GetVelocityAttenuation(Velocity);
 
     // ************************************************
     // TODO: ARTICULATION DATA HANDLING IS MISSING HERE
@@ -138,7 +139,7 @@ void Voice::RenderAudio() {
 }
 
 void Voice::Interpolate(sample_t* pSrc) {
-    float effective_volume = 1;  // TODO: use the art. data instead
+    float effective_volume = this->Volume;
     int   i = 0;
 
     // ************************************************
