@@ -56,9 +56,11 @@ if [ -d $RPM_BUILD_ROOT ]; then rm -rf $RPM_BUILD_ROOT; fi
 %doc doc/html/*
 %{prefix}/lib/libgig.a
 %{prefix}/lib/libgig.la
-%{prefix}/lib/pkgconfig/libgig.pc
+%{prefix}/lib/pkgconfig/gig.pc
 %{prefix}/include/*
 
 %changelog
+* Sat Jul 10 2004 Christian Schoenebeck <cuse@users.sourceforge.net>
+- renamed 'libgig.pc' to 'gig.pc' as well as the pkg-config lib name
 * Wed Jul 02 2004 Rui Nuno Capela <rncbc@users.sourceforge.net>
 - Created and corrected initial libgig.spec

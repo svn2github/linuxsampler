@@ -4,7 +4,7 @@ SUBDIRS = doc man src
 AM_CXXFLAGS = -pedantic
 
 pkgconfigdir = $(libdir)/pkgconfig
-pkgconfig_DATA = libgig.pc
+pkgconfig_DATA = gig.pc
 
 doc: Doxyfile
 	@echo '*** Running doxygen ***'

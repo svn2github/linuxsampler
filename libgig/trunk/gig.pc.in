@@ -3,7 +3,7 @@ exec_prefix=@exec_prefix@
 libdir=@libdir@
 includedir=@includedir@
 
-Name: @PACKAGE@
+Name: gig
 Description: C++ library for loading Gigasampler files and DLS Level 1/2 files
 Version: @VERSION@
 Libs: -L${libdir} -lgig
