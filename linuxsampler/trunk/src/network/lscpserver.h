@@ -42,6 +42,7 @@
 #include "../Sampler.h"
 #include "../common/Thread.h"
 #include "../common/Mutex.h"
+#include "../common/Condition.h"
 
 /// TCP Port on which the server should listen for connection requests.
 #define LSCP_PORT 8888
@@ -59,6 +60,7 @@ extern int yylex_destroy(yyscan_t yyscanner);
 class LSCPServer : public Thread {
     public:
         LSCPServer(Sampler* pSampler);
+        int WaitUntilInitialized(long TimeoutSeconds = 0L, long TimeoutNanoSeconds = 0L);
 
         // Methods called by the parser
         String DestroyAudioOutputDevice(uint DeviceIndex);
@@ -129,6 +131,7 @@ class LSCPServer : public Thread {
         int            hSocket;
         sockaddr_in    SocketAddress;
         Sampler*       pSampler;
+        Condition      Initialized;
 
         int Main(); ///< Implementation of virtual method from class Thread
 

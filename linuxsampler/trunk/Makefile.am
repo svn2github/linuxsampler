@@ -13,3 +13,5 @@ parser:
 # compile test cases for the LinuxSampler codebase
 testcases:
 	@cd $(srcdir)/src/testcases && make linuxsamplertest
+
+tests: testcases

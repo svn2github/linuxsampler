@@ -16,6 +16,7 @@
 class MutexTest : public CppUnit::TestFixture {
 
     CPPUNIT_TEST_SUITE(MutexTest);
+    CPPUNIT_TEST(printTestSuiteName);
     CPPUNIT_TEST(testLockAndUnlockBySingleThread);
     CPPUNIT_TEST(testLock);
     CPPUNIT_TEST(testUnlock);
@@ -49,6 +50,8 @@ class MutexTest : public CppUnit::TestFixture {
     public:
         void setUp();
         void tearDown();
+
+        void printTestSuiteName();
 
         void testLockAndUnlockBySingleThread();
         void testLock();

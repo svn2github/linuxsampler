@@ -28,36 +28,11 @@
 #include "drivers/audio/AudioOutputDeviceFactory.h"
 #include "network/lscpserver.h"
 
-#if 0
-#define AUDIO_CHANNELS		2     // stereo
-#define AUDIO_FRAGMENTS		3     // 3 fragments, if it does not work set it to 2
-#define AUDIO_FRAGMENTSIZE	512   // each fragment has 512 frames
-#define AUDIO_SAMPLERATE	44100 // Hz
-#endif
-
 using namespace LinuxSampler;
 
-/*enum patch_format_t {
-    patch_format_unknown,
-    patch_format_gig,
-    patch_format_dls
-} patch_format = patch_format_unknown;*/
-
-Sampler*     pSampler         = NULL;
-LSCPServer*  pLSCPServer      = NULL;
-pthread_t    signalhandlerthread;
-/*AudioThread* pEngine          = NULL;
-uint         instrument_index = 0;
-double       volume           = 0.25;
-int          num_fragments    = AUDIO_FRAGMENTS;
-int          fragmentsize     = AUDIO_FRAGMENTSIZE;
-uint         samplerate       = AUDIO_SAMPLERATE;
-String       input_client;
-String       alsaout          = "0,0"; // default card
-String       jack_playback[2] = { "", "" };
-bool         use_jack         = true;
-bool         run_server       = false;*/
-
+Sampler*    pSampler    = NULL;
+LSCPServer* pLSCPServer = NULL;
+pthread_t   signalhandlerthread;
 
 void parse_options(int argc, char **argv);
 void signal_handler(int signal);
@@ -71,12 +46,6 @@ int main(int argc, char **argv) {
     // parse and assign command line options
     //parse_options(argc, argv);
 
-    /*if (patch_format != patch_format_gig) {
-        printf("Sorry only Gigasampler loading migrated in LinuxSampler so far, use --gig to load a .gig file!\n");
-        printf("Use 'linuxsampler --help' to see all available options.\n");
-        return EXIT_FAILURE;
-    }*/
-
     dmsg(1,("LinuxSampler %s\n", VERSION));
     dmsg(1,("Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck\n"));
 
@@ -88,38 +57,11 @@ int main(int argc, char **argv) {
     dmsg(1,("Registered MIDI input drivers: %s\n", MidiInputDeviceFactory::AvailableDriversAsString().c_str()));
     dmsg(1,("Registered audio output drivers: %s\n", AudioOutputDeviceFactory::AvailableDriversAsString().c_str()));
 
-    // create an audio output device
-   /* bool no_jack = true;
-#if HAVE_JACK
-    if (use_jack) {
-        dmsg(1,("Creating audio output device (Jack)..."));
-        try {
-            pSampler->CreateAudioOutputDevice(audio_output_type_jack);
-            no_jack = false;
-        }
-        catch (AudioOutputException aoe) {
-            aoe.PrintMessage();
-            dmsg(1,("Trying to create Alsa output device instead.\n"));
-        }
-    }
-#endif // HAVE_JACK
-    if (no_jack) {
-        dmsg(1,("Creating audio output device (Alsa)..."));
-        try {
-            pSampler->CreateAudioOutputDevice(audio_output_type_alsa);
-        }
-        catch (AudioOutputException aoe) {
-            aoe.PrintMessage();
-            dmsg(1,("Trying to create Alsa output device instead.\n"));
-            return EXIT_FAILURE;
-        }
-    }
-    dmsg(1,("OK\n"));*/
-
     // start LSCP network server
     dmsg(1,("Starting LSCP network server..."));
     pLSCPServer = new LSCPServer(pSampler);
     pLSCPServer->StartThread();
+    pLSCPServer->WaitUntilInitialized();
     dmsg(1,("OK\n"));
 
     printf("LinuxSampler initialization completed.\n");

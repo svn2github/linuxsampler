@@ -4,6 +4,8 @@
 
 CPPUNIT_TEST_SUITE_REGISTRATION(MutexTest);
 
+using namespace std;
+
 
 // ConcurrentThread
 
@@ -33,6 +35,10 @@ int MutexTest::DummyThread::Main() {
 
 
 // MutexTest
+
+void MutexTest::printTestSuiteName() {
+    cout << "\b \nRunning Mutex Tests: " << flush;
+}
 
 void MutexTest::setUp() {
 }

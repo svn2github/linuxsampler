@@ -16,6 +16,7 @@
 class ConditionTest : public CppUnit::TestFixture {
 
     CPPUNIT_TEST_SUITE(ConditionTest);
+    CPPUNIT_TEST(printTestSuiteName);
     CPPUNIT_TEST(testDoesntBlockOnDesiredCondtion);
     CPPUNIT_TEST(testBlocksIfNotDesiredCondition);
     CPPUNIT_TEST(testBlocksUntilDesiredCondition);
@@ -59,6 +60,8 @@ class ConditionTest : public CppUnit::TestFixture {
     public:
         void setUp();
         void tearDown();
+
+        void printTestSuiteName();
 
         void testDoesntBlockOnDesiredCondtion();
         void testBlocksIfNotDesiredCondition();

@@ -464,6 +464,8 @@ parser:
 # compile test cases for the LinuxSampler codebase
 testcases:
 	@cd $(srcdir)/src/testcases && make linuxsamplertest
+
+tests: testcases
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
 .NOEXPORT:

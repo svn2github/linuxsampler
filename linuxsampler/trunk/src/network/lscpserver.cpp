@@ -61,6 +61,20 @@ LSCPServer::LSCPServer(Sampler* pSampler) : Thread(false, 0, -4) {
     LSCPEvent::RegisterEvent(LSCPEvent::event_misc, "MISCELLANEOUS");
 }
 
+/**
+ * Blocks the calling thread until the LSCP Server is initialized and
+ * accepting socket connections, if the server is already initialized then
+ * this method will return immediately.
+ * @param TimeoutSeconds     - optional: max. wait time in seconds
+ *                             (default: 0s)
+ * @param TimeoutNanoSeconds - optional: max wait time in nano seconds
+ *                             (default: 0ns)
+ * @returns  0 on success, a value less than 0 if timeout exceeded
+ */
+int LSCPServer::WaitUntilInitialized(long TimeoutSeconds, long TimeoutNanoSeconds) {
+    return Initialized.WaitAndUnlockIf(false, TimeoutSeconds, TimeoutNanoSeconds);
+}
+
 int LSCPServer::Main() {
     int hSocket = socket(AF_INET, SOCK_STREAM, 0);
     if (hSocket < 0) {
@@ -81,7 +95,7 @@ int LSCPServer::Main() {
     }
 
     listen(hSocket, 1);
-    dmsg(1,("LSCPServer: Server running.\n")); // server running
+    Initialized.Set(true);
 
     // now wait for client connections and handle their requests
     sockaddr_in client;

@@ -4,6 +4,8 @@
 
 CPPUNIT_TEST_SUITE_REGISTRATION(ConditionTest);
 
+using namespace std;
+
 
 // ConditionChecker
 
@@ -49,6 +51,10 @@ int ConditionTest::ConditionCheckerLocking::Main() {
 
 
 // ConditionTest
+
+void ConditionTest::printTestSuiteName() {
+    cout << "\b \nRunning Condition Tests: " << flush;
+}
 
 void ConditionTest::setUp() {
 }

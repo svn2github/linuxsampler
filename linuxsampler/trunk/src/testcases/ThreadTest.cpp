@@ -4,6 +4,8 @@
 
 CPPUNIT_TEST_SUITE_REGISTRATION(ThreadTest);
 
+using namespace std;
+
 
 // DummyThread
 
@@ -13,7 +15,7 @@ ThreadTest::DummyThread::DummyThread() : Thread(false, 0, -4) {
 
 int ThreadTest::DummyThread::Main() {
     wasRunning = true;
-    while (true) sleep (1000);
+    while (true) someVariable = -1;
 }
 
 
@@ -26,7 +28,12 @@ ThreadTest::HelperThread::HelperThread(DummyThread* pDummyThread) : Thread(false
 
 int ThreadTest::HelperThread::Main() {
     pDummyThread->StopThread();
+    pDummyThread->someVariable = 0; // we set this to another value than -1 so we can check if the DummyThread was still running
     returnedFromDummyStop = true;
+}
+
+bool ThreadTest::HelperThread::dummyThreadWasNotRunningAnymoreAfter_StopThread_call() {
+    return (pDummyThread->someVariable == 0);
 }
 
 
@@ -41,6 +48,10 @@ int ThreadTest::WaitingThread::Main() {
 
 
 // ThreadTest
+
+void ThreadTest::printTestSuiteName() {
+    cout << "\b \nRunning Thread Tests: " << flush;
+}
 
 // Check if Thread class actually deploys a thread
 void ThreadTest::testThreadRunning() {
@@ -72,23 +83,34 @@ void ThreadTest::testRelaunchThread() {
     CPPUNIT_ASSERT(dummythread.IsRunning());
 }
 
-// Check if the StopThread() method actually stops the thread and doesn't freeze the calling thread which wants to stop it
+// Check if the StopThread() method actually stops the thread and doesn't freeze the calling thread which wants to stop it and also check if the thread was still running after the StopThread() method was called.
 void ThreadTest::testStopThread() {
     HelperThread* phelper = new HelperThread(&dummythread);
     phelper->StartThread(); // let the helper thread kill the dummy thread
     usleep(25000); // wait 25ms
     CPPUNIT_ASSERT(!dummythread.IsRunning());
     CPPUNIT_ASSERT(phelper->returnedFromDummyStop);
-    if (phelper) delete phelper;
+    bool wasnotrunning = phelper->dummyThreadWasNotRunningAnymoreAfter_StopThread_call();
+    if (wasnotrunning && phelper) delete phelper;
+    CPPUNIT_ASSERT(wasnotrunning);
 }
 
 // Check if the thread can be stopped even when it's waiting for a condition
 void ThreadTest::testThreadKillableWhenWaiting() {
-    WaitingThread waitingthread;
-    waitingthread.SignalStartThread();
-    usleep(50000); // wait 50ms
-    CPPUNIT_ASSERT(waitingthread.IsRunning());
-    waitingthread.SignalStopThread();
-    usleep(40000); // wait 40ms
-    CPPUNIT_ASSERT(!waitingthread.IsRunning());
+    WaitingThread* pwaitingthread = new WaitingThread;
+    pwaitingthread->SignalStartThread();
+    usleep(150000); // wait 150ms
+    CPPUNIT_ASSERT(pwaitingthread->IsRunning());
+    pwaitingthread->SignalStopThread();
+    for (uint trials = 400; trials; trials--) {
+        bool success = !pwaitingthread->IsRunning();
+        if (success) {
+            usleep(15000); // wait 15ms
+            delete pwaitingthread;
+            CPPUNIT_ASSERT(true); // success
+            return;
+        }
+        else usleep(150000); // wait 150ms and try again
+    }
+    CPPUNIT_ASSERT(false); // failure
 }

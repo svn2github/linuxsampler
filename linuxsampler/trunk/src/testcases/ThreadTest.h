@@ -16,6 +16,7 @@
 class ThreadTest : public CppUnit::TestFixture {
 
     CPPUNIT_TEST_SUITE(ThreadTest);
+    CPPUNIT_TEST(printTestSuiteName);
     CPPUNIT_TEST(testThreadRunning);
     CPPUNIT_TEST(testSignalStopThread);
     CPPUNIT_TEST(testRelaunchThread);
@@ -28,6 +29,7 @@ class ThreadTest : public CppUnit::TestFixture {
         class DummyThread : public Thread {
             public:
                 bool wasRunning; // this variable is false on startup and will be switched to true by the thread, so we can check if the thread actually runs
+                int  someVariable; // we constantly set this variable to -1 in the DummyThread Main() loop, so we can check in our main test thread if the DummyThread is still running by changing that value to something else than -1
 
                 DummyThread();
                 int Main();
@@ -42,6 +44,7 @@ class ThreadTest : public CppUnit::TestFixture {
 
                 HelperThread(DummyThread* pDummyThread);
                 int Main();
+                bool dummyThreadWasNotRunningAnymoreAfter_StopThread_call();
         };
 
         // this simulates a thread that is waiting for a condition (thus sleeping til then)
@@ -58,6 +61,8 @@ class ThreadTest : public CppUnit::TestFixture {
 
         void tearDown() {
         }
+
+        void printTestSuiteName();
 
         void testThreadRunning();
         void testSignalStopThread();
