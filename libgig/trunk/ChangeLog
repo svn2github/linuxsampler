@@ -16,6 +16,7 @@ Version CVS HEAD (?)
   * src/gigdump.cpp:
     - added printout for dimension informations (amount, type, bits, zones)
     - added printout for velocity response curve parameters
+    - added printout for crossfade definitions
 
 Version 0.7.1 (2 Jul 2004)
 

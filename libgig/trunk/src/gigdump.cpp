@@ -145,7 +145,8 @@ void PrintRegions(gig::Instrument* instr) {
                     cout << "SAMPLECHANNEL";
                     break;
                 case gig::dimension_layer: // For layering of up to 8 instruments (and eventually crossfading of 2 or 4 layers).
-                    cout << "LAYER";
+                    gig::crossfade_t crossfade = pRegion->pDimensionRegions[iDimension]->Crossfade;
+                    cout << "LAYER (Crossfade in_start=" << (int) crossfade.in_start << ",in_end=" << (int) crossfade.in_end << ",out_start=" << (int) crossfade.out_start << ",out_end=" << (int) crossfade.out_end << ")";
                     break;
                 case gig::dimension_velocity: // Key Velocity (this is the only dimension where the ranges can exactly be defined).
                     cout << "VELOCITY";
