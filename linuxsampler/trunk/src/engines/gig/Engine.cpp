@@ -494,13 +494,36 @@ namespace LinuxSampler { namespace gig {
                         }
                     }
                 }
-                else dmsg(1,("Ouch, voice stealing didn't work out!\n"));
+                else dmsg(1,("gig::Engine: ERROR, voice stealing didn't work out!\n"));
             }
         }
         // reset voice stealing for the new fragment
         pVoiceStealingQueue->clear();
         itLastStolenVoice = RTList<Voice>::Iterator();
         iuiLastStolenKey  = RTList<uint>::Iterator();
+
+
+        // free all keys which have no active voices left
+        {
+            RTList<uint>::Iterator iuiKey = pActiveKeys->first();
+            RTList<uint>::Iterator end    = pActiveKeys->end();
+            while (iuiKey != end) { // iterate through all active keys
+                midi_key_info_t* pKey = &pMIDIKeyInfo[*iuiKey];
+                ++iuiKey;
+                if (pKey->pActiveVoices->isEmpty()) FreeKey(pKey);
+                #if DEVMODE
+                else { // FIXME: should be removed before the final release (purpose: just a sanity check for debugging)
+                    RTList<Voice>::Iterator itVoice     = pKey->pActiveVoices->first();
+                    RTList<Voice>::Iterator itVoicesEnd = pKey->pActiveVoices->end();
+                    for (; itVoice != itVoicesEnd; ++itVoice) { // iterate through all voices on this key
+                        if (itVoice->itKillEvent) {
+                            dmsg(1,("gig::Engine: ERROR, killed voice survived !!!\n"));
+                        }
+                    }
+                }
+                #endif // DEVMODE
+            }
+        }
 
 
         // write that to the disk thread class so that it can print it
@@ -629,7 +652,7 @@ namespace LinuxSampler { namespace gig {
         RTList<Event>::Iterator itNoteOnEventOnKeyList = itNoteOnEvent.moveToEndOf(pKey->pEvents);
 
         // allocate and trigger a new voice for the key
-        LaunchVoice(itNoteOnEventOnKeyList);
+        LaunchVoice(itNoteOnEventOnKeyList, 0, false, true);
     }
 
     /**
@@ -655,7 +678,7 @@ namespace LinuxSampler { namespace gig {
 
         // spawn release triggered voice(s) if needed
         if (pKey->ReleaseTrigger) {
-            LaunchVoice(itNoteOffEventOnKeyList, 0, true);
+            LaunchVoice(itNoteOffEventOnKeyList, 0, true, false); //FIXME: for the moment we don't perform voice stealing for release triggered samples
             pKey->ReleaseTrigger = false;
         }
     }
@@ -694,7 +717,7 @@ namespace LinuxSampler { namespace gig {
         Pool<Voice>::Iterator itNewVoice = pKey->pActiveVoices->allocAppend();
         if (itNewVoice) {
             // launch the new voice
-            if (itNewVoice->Trigger(itNoteOnEvent, this->Pitch, this->pInstrument, iLayer, ReleaseTriggerVoice) < 0) {
+            if (itNewVoice->Trigger(itNoteOnEvent, this->Pitch, this->pInstrument, iLayer, ReleaseTriggerVoice, VoiceStealing) < 0) {
                 dmsg(1,("Triggering new voice failed!\n"));
                 pKey->pActiveVoices->free(itNewVoice);
             }
@@ -820,6 +843,9 @@ namespace LinuxSampler { namespace gig {
                 }
             }
 
+            //FIXME: can be removed, just a sanity check for debugging
+            if (!itOldestVoice->IsActive()) dmsg(1,("gig::Engine: ERROR, tried to steal a voice which was not active !!!\n"));
+
             // now kill the selected voice
             itOldestVoice->Kill(itNoteOnEvent);
             // remember which voice on which key we stole, so we can simply proceed for the next voice stealing
@@ -846,21 +872,31 @@ namespace LinuxSampler { namespace gig {
             // free the voice object
             pVoicePool->free(itVoice);
 
-            // check if there are no voices left on the MIDI key and update the key info if so
-            if (pKey->pActiveVoices->isEmpty()) {
-                if (keygroup) { // if voice / key belongs to a key group
-                    uint** ppKeyGroup = &ActiveKeyGroups[keygroup];
-                    if (*ppKeyGroup == &*pKey->itSelf) *ppKeyGroup = NULL; // remove key from key group
-                }
-                pKey->Active = false;
-                pActiveKeys->free(pKey->itSelf); // remove key from list of active keys
-                pKey->itSelf = RTList<uint>::Iterator();
-                pKey->ReleaseTrigger = false;
-                pKey->pEvents->clear();
-                dmsg(3,("Key has no more voices now\n"));
+            // if no other voices left and member of a key group, remove from key group
+            if (pKey->pActiveVoices->isEmpty() && keygroup) {
+                uint** ppKeyGroup = &ActiveKeyGroups[keygroup];
+                if (*ppKeyGroup == &*pKey->itSelf) *ppKeyGroup = NULL; // remove key from key group
             }
         }
         else std::cerr << "Couldn't release voice! (!itVoice)\n" << std::flush;
+    }
+
+    /**
+     *  Called when there's no more voice left on a key, this call will
+     *  update the key info respectively.
+     *
+     *  @param pKey - key which is now inactive
+     */
+    void Engine::FreeKey(midi_key_info_t* pKey) {
+        if (pKey->pActiveVoices->isEmpty()) {
+            pKey->Active = false;
+            pActiveKeys->free(pKey->itSelf); // remove key from list of active keys
+            pKey->itSelf = RTList<uint>::Iterator();
+            pKey->ReleaseTrigger = false;
+            pKey->pEvents->clear();
+            dmsg(3,("Key has no more voices now\n"));
+        }
+        else dmsg(1,("gig::Engine: Oops, tried to free a key which contains voices.\n"));
     }
 
     /**
@@ -1110,7 +1146,7 @@ namespace LinuxSampler { namespace gig {
     }
 
     String Engine::Version() {
-        String s = "$Revision: 1.16 $";
+        String s = "$Revision: 1.17 $";
         return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
 

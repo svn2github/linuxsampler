@@ -108,9 +108,10 @@ namespace LinuxSampler { namespace gig {
      *  @param pInstrument         - points to the loaded instrument which provides sample wave(s) and articulation data
      *  @param iLayer              - layer number this voice refers to (only if this is a layered sound of course)
      *  @param ReleaseTriggerVoice - if this new voice is a release trigger voice (optional, default = false)
+     *  @param VoiceStealing       - wether the voice is allowed to steal voices for further subvoices
      *  @returns 0 on success, a value < 0 if something failed
      */
-    int Voice::Trigger(Pool<Event>::Iterator& itNoteOnEvent, int PitchBend, ::gig::Instrument* pInstrument, int iLayer, bool ReleaseTriggerVoice) {
+    int Voice::Trigger(Pool<Event>::Iterator& itNoteOnEvent, int PitchBend, ::gig::Instrument* pInstrument, int iLayer, bool ReleaseTriggerVoice, bool VoiceStealing) {
         if (!pInstrument) {
            dmsg(1,("voice::trigger: !pInstrument\n"));
            exit(EXIT_FAILURE);
@@ -146,7 +147,7 @@ namespace LinuxSampler { namespace gig {
                     // if this is the 1st layer then spawn further voices for all the other layers
                     if (iLayer == 0)
                         for (int iNewLayer = 1; iNewLayer < pRegion->pDimensionDefinitions[i].zones; iNewLayer++)
-                            itChildVoice = pEngine->LaunchVoice(itNoteOnEvent, iNewLayer, ReleaseTriggerVoice);
+                            itChildVoice = pEngine->LaunchVoice(itNoteOnEvent, iNewLayer, ReleaseTriggerVoice, VoiceStealing);
                     break;
                 case ::gig::dimension_velocity:
                     DimValues[i] = itNoteOnEvent->Param.Note.Velocity;
@@ -1056,6 +1057,10 @@ namespace LinuxSampler { namespace gig {
      *  @param itKillEvent - event which caused the voice to be killed
      */
     void Voice::Kill(Pool<Event>::Iterator& itKillEvent) {
+        //FIXME: just two sanity checks for debugging, can be removed
+        if (!itKillEvent) dmsg(1,("gig::Voice::Kill(): ERROR, !itKillEvent !!!\n"));
+        if (itKillEvent && !itKillEvent.isValid()) dmsg(1,("gig::Voice::Kill(): ERROR, itKillEvent invalid !!!\n"));
+
         if (itTriggerEvent && itKillEvent->FragmentPos() <= itTriggerEvent->FragmentPos()) return;
         this->itKillEvent = itKillEvent;
     }

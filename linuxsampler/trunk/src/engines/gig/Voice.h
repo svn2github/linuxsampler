@@ -102,7 +102,7 @@ namespace LinuxSampler { namespace gig {
             void Reset();
             void SetOutput(AudioOutputDevice* pAudioOutputDevice);
             void SetEngine(Engine* pEngine);
-            int  Trigger(Pool<Event>::Iterator& itNoteOnEvent, int PitchBend, ::gig::Instrument* pInstrument, int iLayer = 0, bool ReleaseTriggerVoice = false);
+            int  Trigger(Pool<Event>::Iterator& itNoteOnEvent, int PitchBend, ::gig::Instrument* pInstrument, int iLayer, bool ReleaseTriggerVoice, bool VoiceStealing);
             inline bool IsActive() { return PlaybackState; }
         private:
             // Types
@@ -148,7 +148,10 @@ namespace LinuxSampler { namespace gig {
             LFO<gig::VCFCManipulator>*  pLFO2;             ///< Low Frequency Oscillator 2 (Filter cutoff frequency)
             LFO<gig::VCOManipulator>*   pLFO3;              ///< Low Frequency Oscillator 3 (Pitch)
             Pool<Event>::Iterator       itTriggerEvent;      ///< First event on the key's list the voice should process (only needed for the first audio fragment in which voice was triggered, after that it will be set to NULL).
+        public: // FIXME: just made public for debugging (sanity check in Engine::RenderAudio()), should be changed to private before the final release
             Pool<Event>::Iterator       itKillEvent;         ///< Event which caused this voice to be killed
+        private:
+
 
             // Static Methods
             static float CalculateFilterCutoffCoeff();
