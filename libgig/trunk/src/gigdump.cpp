@@ -131,7 +131,7 @@ void PrintRegions(gig::Instrument* instr) {
             cout << "<NO_VALID_SAMPLE_REFERENCE> ";
         }
         cout << "            KeyRange=" << pRegion->KeyRange.low << "-" << pRegion->KeyRange.high << ", ";
-        cout << "VelocityRange=" << pRegion->VelocityRange.low << "-" << pRegion->VelocityRange.high << ", Layer=" << pRegion->Layer << endl;
+        cout << "VelocityRange=" << pRegion->VelocityRange.low << "-" << pRegion->VelocityRange.high << ", Layers=" << pRegion->Layers << endl;
         cout << "            Loops=" << pRegion->SampleLoops << endl;
         cout << "            Dimensions=" << pRegion->Dimensions << endl;
         for (int iDimension = 0; iDimension < pRegion->Dimensions; iDimension++) {

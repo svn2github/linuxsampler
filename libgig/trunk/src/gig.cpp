@@ -1029,6 +1029,7 @@ namespace gig {
         for (int i = 0; i < 32; i++) {
             pDimensionRegions[i] = NULL;
         }
+        Layers = 1;
 
         // Actual Loading
 
@@ -1061,6 +1062,9 @@ namespace gig {
                         (pDimensionDefinitions[i].split_type == split_type_normal) ? 128 / pDimensionDefinitions[i].zones
                                                                                    : 0;
                     Dimensions++;
+
+                    // if this is a layer dimension, remember the amount of layers
+                    if (dimension == dimension_layer) Layers = pDimensionDefinitions[i].zones;
                 }
                 _3lnk->SetPos(6, RIFF::stream_curpos); // jump forward to next dimension definition
             }

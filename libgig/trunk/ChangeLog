@@ -13,6 +13,7 @@ Version CVS HEAD (?)
       'split_type_bit')
     - fixed panorama value in DimensionRegion (invalid conversion from
       signed 7 bit to signed 8 bit)
+    - added class attribute 'Layers' to class 'gig::Region'
 
   * src/gigextract.cpp:
     - added support for libsndfile (if libaudiofile and libsndfile are
@@ -23,6 +24,8 @@ Version CVS HEAD (?)
     - added printout for velocity response curve parameters
     - added printout for crossfade definitions
     - added printout for panorama value for each DimensionRegion
+    - replaced printout of DLS Region layer by printout of amount of
+      Gigasampler layers
 
 Version 0.7.1 (2 Jul 2004)
 
