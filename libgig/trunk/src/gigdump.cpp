@@ -298,6 +298,7 @@ void PrintDimensionRegions(gig::Region* rgn) {
                 cout << "UNKNOWN - please report this !";
         }
         cout << ", VelocityResponseDepth=" << (int) pDimensionRegion->VelocityResponseDepth << ", VelocityResponseCurveScaling=" << (int) pDimensionRegion->VelocityResponseCurveScaling << endl;
+        cout << "                Pan=" << (int) pDimensionRegion->Pan << endl;
 
         dimensionRegions++;
     }

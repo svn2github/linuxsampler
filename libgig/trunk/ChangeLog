@@ -11,6 +11,8 @@ Version CVS HEAD (?)
     - bugfix for dimension region switching (wrong handling of the release
       trigger dimension, no bit range check for dimensions of split type
       'split_type_bit')
+    - fixed panorama value in DimensionRegion (invalid conversion from
+      signed 7 bit to signed 8 bit)
 
   * src/gigextract.cpp:
     - added support for libsndfile (if libaudiofile and libsndfile are
@@ -20,6 +22,7 @@ Version CVS HEAD (?)
     - added printout for dimension informations (amount, type, bits, zones)
     - added printout for velocity response curve parameters
     - added printout for crossfade definitions
+    - added printout for panorama value for each DimensionRegion
 
 Version 0.7.1 (2 Jul 2004)
 

@@ -774,7 +774,7 @@ namespace gig {
         else if (pitchTrackDimensionBypass & 0x20) DimensionBypass = dim_bypass_ctrl_95;
         else                                       DimensionBypass = dim_bypass_ctrl_none;
         uint8_t pan = _3ewa->ReadUint8();
-        Pan         = (pan < 64) ? pan : (-1) * (int8_t)pan - 63;
+        Pan         = (pan < 64) ? pan : -((int)pan - 63); // signed 7 bit -> signed 8 bit
         SelfMask = _3ewa->ReadInt8() & 0x01;
         _3ewa->ReadInt8(); // unknown
         uint8_t lfo3ctrl = _3ewa->ReadUint8();
