@@ -19,3 +19,48 @@
  *   Foundation, Inc., 59 Temple Place, Suite 330, Boston,                 *
  *   MA  02111-1307  USA                                                   *
  ***************************************************************************/
+
+#include "eg_d.h"
+
+EG_D::EG_D(ModulationSystem::destination_t ModulationDestination) {
+    this->ModulationDestination = ModulationDestination;
+}
+
+/**
+ * Will be called by the voice for every audio fragment to let the EG
+ * queue it's modulation changes for the current audio fragment.
+ *
+ * @param Samples - total number of sample points to be rendered in this
+ *                  audio fragment cycle by the audio engine
+ */
+void EG_D::Process(uint Samples) {
+    if (!DecayStepsLeft) return;
+
+    int iSample     = TriggerDelay;
+    int to_process  = Min(Samples - iSample, DecayStepsLeft);
+    int process_end = iSample + to_process;
+    DecayStepsLeft -= to_process;
+    while (iSample < to_process) {
+        ModulationSystem::pDestinationParameter[ModulationDestination][iSample++] *= Level;
+        Level += DecayCoeff;
+    }
+    TriggerDelay = 0;
+}
+
+/**
+ * Will be called by the voice when the key / voice was triggered.
+ *
+ * @param Depth     - Initial level of the envelope
+ * @param DecayTime - Decay time of the envelope (0.000 - 10.000s)
+ * @param Delay     - Number of sample points triggering should be delayed.
+ */
+void EG_D::Trigger(float Depth, double DecayTime, uint Delay) {
+    this->TriggerDelay = Delay;
+    this->Level        = Depth;
+
+    // calculate decay parameters (lin. curve)
+    DecayStepsLeft = (long) (DecayTime * ModulationSystem::SampleRate());
+    DecayCoeff     = (1.0 - Depth) / DecayStepsLeft;
+
+    dmsg(4,("Depth=%d, DecayTime=%f\n", Depth, DecayTime));
+}

@@ -24,6 +24,7 @@
 #define __LFO_H__
 
 #include "global.h"
+#include "rtmath.h"
 #include "rtelmemorypool.h"
 #include "modulationsystem.h"
 #include "gig.h"
@@ -31,19 +32,25 @@
 /**
  * Low Frequency Oscillator
  *
- * Synthesizes a triangular wave for modulating arbitrary synthesis
- * parameters.
+ * Synthesizes a triangular wave for arbitrary usage. This LFO class is a
+ * generalization; it takes a class as template parameter (T_Manipulator)
+ * which is actually responsible to do something with the wave levels of the
+ * oscillator. The class given with T_Manipulator has to provide a
+ *
+ * 	void ApplyLevel(float Level, int iSample);
+ *
+ * method. This method will be called by the LFO whenever the level of the
+ * oscillator wave changes, where parameter 'Level' is the new level of the
+ * wave and 'iSample' is the index of the corresponding sample point in the
+ * current audio fragment.
  */
+template<class T_Manipulator>
 class LFO {
     public:
-        /**
-         * Defines how the LFO applies it's values to the synthesis
-         * parameter matrix.
-         */
-        enum manipulation_type_t {
-            manipulation_type_add,      ///< Add LFO's values to the synthesis paramter matrix.
-            manipulation_type_multiply  ///< Multiply LFO's values with the ones from the synthesis parameter matrix.
-        };
+
+        // *************** types ***************
+        // *
+
         /**
          * Defines the position of the LFO wave within the given value range
          * and from which value to start when the LFO is triggered.
@@ -54,12 +61,154 @@ class LFO {
             propagation_bottom_up        ///< Wave level starts from given min. and grows up with growing oscillator depth.
         };
 
-        uint8_t ExtController; ///< MIDI control change controller number if the LFO is controlled by an external controller, 0 otherwise.
 
-        LFO(ModulationSystem::destination_t ModulationDestination, manipulation_type_t ManipulationType, float Min, float Max, propagation_t Propagation, RTELMemoryPool<ModulationSystem::Event>* pEventPool);
-        void Process(uint Samples);
-        void Trigger(float Frequency, uint16_t InternalDepth, uint16_t ExtControlDepth, uint16_t ExtControlValue, bool FlipPhase, uint Delay);
-        void Reset();
+        // *************** attributes ***************
+        // *
+
+        T_Manipulator Manipulator;   ///< Instance of the specific manipulator class given by template parameter T_Manipulator.
+        uint8_t       ExtController; ///< MIDI control change controller number if the LFO is controlled by an external controller, 0 otherwise.
+
+
+        // *************** methods ***************
+        // *
+
+        /**
+         * Constructor
+         *
+         * @param Min         - minimum value of the output level
+         * @param Max         - maximum value of the output level
+         * @param Propagation - defines from which level the wave starts and which direction it grows with growing oscillator depth
+         * @param pEventPool  - reference to an event pool which will be used to allocate Event objects
+         */
+        LFO(float Min, float Max, propagation_t Propagation, RTELMemoryPool<ModulationSystem::Event>* pEventPool) {
+            this->Propagation   = Propagation;
+            this->pEvents       = new RTEList<ModulationSystem::Event>(pEventPool);
+            this->ExtController = 0;
+            this->Min           = Min;
+            this->Max           = Max;
+            this->Range         = Max - Min;
+        }
+
+        ~LFO() {
+            if (pEvents) delete pEvents;
+        }
+
+        /**
+         * Will be called by the voice for every audio fragment to let the LFO write it's modulation changes to the synthesis parameter matrix for the current audio fragment.
+         *
+         * @param Samples - total number of sample points to be rendered in
+         *                  this audio fragment cycle by the audio engine
+         */
+        void Process(uint Samples) {
+            ModulationSystem::Event* pCtrlEvent = pEvents->first();
+            int iSample = TriggerDelay;
+            while (iSample < Samples) {
+                int process_break = Samples;
+                if (pCtrlEvent && pCtrlEvent->FragmentPos() <= process_break) process_break = pCtrlEvent->FragmentPos();
+
+                if (Coeff > 0.0f) { // level going up
+                    while (iSample < process_break && Level <= CurrentMax) {
+                        Manipulator.ApplyLevel(Level, iSample);
+                        iSample++;
+                        Level += Coeff;
+                    }
+                    if (Level > CurrentMax) {
+                        Coeff = -Coeff; // invert direction
+                        Level += 2.0f * Coeff;
+                    }
+                }
+                else if (Coeff < 0.0f) { // level going down
+                    while (iSample < process_break && Level >= CurrentMin) {
+                        Manipulator.ApplyLevel(Level, iSample);
+                        iSample++;
+                        Level += Coeff;
+                    }
+                    if (Level < CurrentMin) {
+                        Coeff = -Coeff; // invert direction
+                        Level += 2.0f * Coeff;
+                    }
+                }
+                else { // no modulation at all (Coeff = 0.0)
+                    switch (Propagation) {
+                        case propagation_top_down:
+                            Level = Max;
+                            break;
+                        case propagation_middle_balanced:
+                            Level = Min + 0.5f * Range;
+                            break;
+                        case propagation_bottom_up:
+                            Level = Min;
+                            break;
+                    }
+                    while (iSample < process_break) {
+                        Manipulator.ApplyLevel(Level, iSample);
+                        iSample++;
+                    }
+                }
+
+                if (pCtrlEvent) {
+                    RecalculateCoeff(pCtrlEvent->Value);
+                    pCtrlEvent = pEvents->next();
+                }
+            }
+            TriggerDelay = 0;
+            pEvents->clear();
+        }
+
+        /**
+         * Will be called by the voice when the key / voice was triggered.
+         *
+         * @param Frequency       - frequency of the oscillator in Hz
+         * @param InternalDepth   - firm, internal oscillator amplitude
+         * @param ExtControlDepth - defines how strong the external MIDI
+         *                          controller has influence on the
+         *                          oscillator amplitude
+         * @param ExtControlValue - current MIDI value of the external
+         *                          controller for the time when the voice
+         *                          was triggered
+         * @param FlipPhase       - inverts the oscillator wave
+         * @param Delay           - number of sample points triggering should
+         *                          be delayed
+         */
+        void Trigger(float Frequency, uint16_t InternalDepth, uint16_t ExtControlDepth, uint16_t ExtControlValue, bool FlipPhase, uint Delay) {
+            this->Coeff                = 0.0f;
+            this->InternalDepth        = (InternalDepth / 1200.0f) * Range;
+            this->ExtControlDepthCoeff = (((float) ExtControlDepth / 1200.0f) / 127.0f) * Range;
+            this->TriggerDelay         = Delay;
+            this->FrequencyCoeff       = (2.0f * Frequency) / (float) ModulationSystem::SampleRate();
+
+            if (ExtController) RecalculateCoeff(ExtControlValue);
+            else               RecalculateCoeff(0);
+
+            switch (Propagation) {
+                case propagation_top_down: {
+                    if (FlipPhase) {
+                        Level = CurrentMin;
+                    }
+                    else { // normal case
+                        Level = Max;
+                        Coeff = -Coeff; // level starts at max. thus has to go down now
+                    }
+                    break;
+                }
+                case propagation_middle_balanced: {
+                    Level = Min + 0.5f * Range;
+                    if (FlipPhase) Coeff = -Coeff; // invert direction (going down)
+                    break;
+                }
+                case propagation_bottom_up: {
+                    if (FlipPhase) {
+                        Level = CurrentMax;
+                        Coeff = -Coeff; // level starts at max. thus has to go down now
+                    }
+                    else { // normal case
+                        Level = Min;
+                    }
+                    break;
+                }
+            }
+        }
+
         /**
          * Will be called by the voice to inform the LFO about a change of
          * the external controller's value.
@@ -69,11 +218,16 @@ class LFO {
         inline void SendEvent(ModulationSystem::Event* pEvent) {
             if (ExtController && pEvent->FragmentPos() >= this->TriggerDelay) pEvents->alloc_assign(*pEvent);
         }
-        ~LFO();
+
+        /**
+         * Should always be called when the voice was killed.
+         */
+        void Reset() {
+            pEvents->clear();
+        }
+
     protected:
         RTEList<ModulationSystem::Event>* pEvents;
-        ModulationSystem::destination_t   ModulationDestination;
-        manipulation_type_t               ManipulationType;
         propagation_t                     Propagation;
         int                               TriggerDelay;
         float                             Min;
@@ -110,6 +264,42 @@ class LFO {
                     break;
                 }
             }
+        }
+};
+
+/** Amplification Manipulator
+ *
+ * Specialized manipulator for writing volume parameters to the synthesis
+ * parameter matrix.
+ */
+class VCAManipulator {
+     public:
+        inline void ApplyLevel(float& Level, int& iSample) {
+            ModulationSystem::pDestinationParameter[ModulationSystem::destination_vca][iSample] *= Level;
+        }
+};
+
+/** Filter Cutoff Frequency Manipulator
+ *
+ * Specialized manipulator for writing filter cutoff frequency parameters to
+ * the synthesis parameter matrix.
+ */
+class VCFCManipulator {
+     public:
+        inline void ApplyLevel(float& Level, int& iSample) {
+            ModulationSystem::pDestinationParameter[ModulationSystem::destination_vcfc][iSample] *= Level;
+        }
+};
+
+/** Pitch Manipulator
+ *
+ * Specialized manipulator for writing pitch parameters to the synthesis
+ * parameter matrix.
+ */
+class VCOManipulator {
+     public:
+        inline void ApplyLevel(float& Level, int& iSample) {
+            ModulationSystem::pDestinationParameter[ModulationSystem::destination_vco][iSample] *= RTMath::CentsToFreqRatio(Level);
         }
 };
 

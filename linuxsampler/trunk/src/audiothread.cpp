@@ -325,14 +325,12 @@ void AudioThread::ProcessNoteOff(ModulationSystem::Event* pNoteOffEvent) {
 
 /**
  *  Moves pitchbend event from the general (input) event list to the pitch
- *  event list and converts absolute pitch value to delta pitch value.
+ *  event list.
  *
  *  @param pPitchbendEvent - absolute pitch value and time stamp of the event
  */
 void AudioThread::ProcessPitchbend(ModulationSystem::Event* pPitchbendEvent) {
-    int currentPitch        = pPitchbendEvent->Pitch;
-    pPitchbendEvent->Pitch -= this->Pitch;  // convert to delta
-    this->Pitch             = currentPitch; // store current absolute pitch value
+    this->Pitch = pPitchbendEvent->Pitch; // store current pitch value
     pEvents->move(pPitchbendEvent, pSynthesisEvents[ModulationSystem::destination_vco]);
 }
 

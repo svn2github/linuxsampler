@@ -22,7 +22,8 @@
 
 #include "eg_vca.h"
 
-EG_VCA::EG_VCA() {
+EG_VCA::EG_VCA(ModulationSystem::destination_t ModulationDestination) {
+    this->ModulationDestination = ModulationDestination;
     Stage = stage_end;
     Level = 0.0;
 }
@@ -60,8 +61,8 @@ void EG_VCA::Process(uint Samples, RTEList<ModulationSystem::Event>* pEvents, Mo
                 AttackStepsLeft -= to_process;
                 while (iSample < process_end) {
                     Level += AttackCoeff;
-                    ModulationSystem::pDestinationParameter[ModulationSystem::destination_vca][iSample++] *= Level;
-                }                                
+                    ModulationSystem::pDestinationParameter[ModulationDestination][iSample++] *= Level;
+                }
                 if (iSample == Samples) { // postpone last transition event for the next audio fragment
                     ModulationSystem::Event* pLastEvent = pEvents->last();
                     if (pLastEvent) ReleasePostponed = (pLastEvent->Type == ModulationSystem::event_type_release);
@@ -75,24 +76,24 @@ void EG_VCA::Process(uint Samples, RTEList<ModulationSystem::Event>* pEvents, Mo
                     break;
                 }
                 int holdstepsleft = (int) (LoopStart - SamplePos / CurrentPitch); // FIXME: just an approximation, inaccuracy grows with higher audio fragment size, sufficient for usual fragment sizes though
-                int to_process    = Min(Samples - iSample, holdstepsleft);                                                                
-                int process_end   = iSample + to_process;                
+                int to_process    = Min(Samples - iSample, holdstepsleft);
+                int process_end   = iSample + to_process;
                 if (pTransitionEvent && pTransitionEvent->FragmentPos() <= process_end) {
-                    process_end      = pTransitionEvent->FragmentPos();                    
+                    process_end      = pTransitionEvent->FragmentPos();
                     Stage            = (pTransitionEvent->Type == ModulationSystem::event_type_release) ? stage_release : (InfiniteSustain) ? stage_sustain : stage_decay2;
                     pTransitionEvent = pEvents->next();
                 }
-                else if (to_process == holdstepsleft) Stage = stage_decay1;                
+                else if (to_process == holdstepsleft) Stage = stage_decay1;
                 while (iSample < process_end) {
-                    ModulationSystem::pDestinationParameter[ModulationSystem::destination_vca][iSample++] *= Level;
-                }                
+                    ModulationSystem::pDestinationParameter[ModulationDestination][iSample++] *= Level;
+                }
                 break;
             }
             case stage_decay1: {
                 int to_process   = Min(Samples - iSample, Decay1StepsLeft);
                 int process_end  = iSample + to_process;
                 if (pTransitionEvent && pTransitionEvent->FragmentPos() <= process_end) {
-                    process_end      = pTransitionEvent->FragmentPos();                    
+                    process_end      = pTransitionEvent->FragmentPos();
                     Stage            = (pTransitionEvent->Type == ModulationSystem::event_type_release) ? stage_release : (InfiniteSustain) ? stage_sustain : stage_decay2;
                     pTransitionEvent = pEvents->next();
                 }
@@ -102,8 +103,8 @@ void EG_VCA::Process(uint Samples, RTEList<ModulationSystem::Event>* pEvents, Mo
                 }
                 while (iSample < process_end) {
                     Level += Level * Decay1Coeff;
-                    ModulationSystem::pDestinationParameter[ModulationSystem::destination_vca][iSample++] *= Level;
-                }                
+                    ModulationSystem::pDestinationParameter[ModulationDestination][iSample++] *= Level;
+                }
                 break;
             }
             case stage_decay2: {
@@ -116,7 +117,7 @@ void EG_VCA::Process(uint Samples, RTEList<ModulationSystem::Event>* pEvents, Mo
                 else process_end = Samples;
                 while (iSample < process_end) {
                     Level += Level * Decay2Coeff;
-                    ModulationSystem::pDestinationParameter[ModulationSystem::destination_vca][iSample++] *= Level;
+                    ModulationSystem::pDestinationParameter[ModulationDestination][iSample++] *= Level;
                 }
                 if (Level <= EG_ENVELOPE_LIMIT) Stage = stage_end;
                 break;
@@ -130,7 +131,7 @@ void EG_VCA::Process(uint Samples, RTEList<ModulationSystem::Event>* pEvents, Mo
                 }
                 else process_end = Samples;
                 while (iSample < process_end) {
-                    ModulationSystem::pDestinationParameter[ModulationSystem::destination_vca][iSample++] *= Level;
+                    ModulationSystem::pDestinationParameter[ModulationDestination][iSample++] *= Level;
                 }
                 break;
             }
@@ -144,7 +145,7 @@ void EG_VCA::Process(uint Samples, RTEList<ModulationSystem::Event>* pEvents, Mo
                 else process_end = Samples;
                 while (iSample < process_end) {
                     Level += Level * ReleaseCoeff;
-                    ModulationSystem::pDestinationParameter[ModulationSystem::destination_vca][iSample++] *= Level;
+                    ModulationSystem::pDestinationParameter[ModulationDestination][iSample++] *= Level;
                 }
                 if (Level <= EG_ENVELOPE_LIMIT) Stage = stage_end;
                 break;
@@ -152,7 +153,7 @@ void EG_VCA::Process(uint Samples, RTEList<ModulationSystem::Event>* pEvents, Mo
             case stage_end: {
                 while (iSample < Samples) {
                     Level += Level * ReleaseCoeff;
-                    ModulationSystem::pDestinationParameter[ModulationSystem::destination_vca][iSample++] *= Level;
+                    ModulationSystem::pDestinationParameter[ModulationDestination][iSample++] *= Level;
                 }
                 break;
             }

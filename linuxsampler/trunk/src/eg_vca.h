@@ -33,10 +33,14 @@
 #define EG_ENVELOPE_LIMIT	0.001
 #define EG_MIN_RELEASE_TIME	0.005
 
+//FIXME: class should be renamed to 'EG_ADSR' or something, as it's not only a VCA EG anymore; we do that when we restructure the source tree
+
 /**
- * VCA Envelope Generator
+ * ADSR Envelope Generator
  *
- * This EG controls volume attenuation.
+ * Envelope Generator with stage 'Attack', 'Attack_Hold', 'Decay_1',
+ * 'Decay_2', 'Sustain' and 'Release' for modulating arbitrary synthesis
+ * parameters.
  */
 class EG_VCA {
     public:
@@ -50,11 +54,12 @@ class EG_VCA {
             stage_end
         };
 
-        EG_VCA();
+        EG_VCA(ModulationSystem::destination_t ModulationDestination);
         void Process(uint Samples, RTEList<ModulationSystem::Event>* pEvents, ModulationSystem::Event* pTriggerEvent, double SamplePos, double CurrentPitch);
         void Trigger(uint PreAttack, double AttackTime, bool HoldAttack, long LoopStart, double Decay1Time, double Decay2Time, bool InfiniteSustain, uint SustainLevel, double ReleaseTime, uint Delay);
         inline EG_VCA::stage_t GetStage() { return Stage; }
     protected:
+        ModulationSystem::destination_t ModulationDestination;
         uint    TriggerDelay;      ///< number of sample points triggering should be delayed
         float   Level;
         stage_t Stage;

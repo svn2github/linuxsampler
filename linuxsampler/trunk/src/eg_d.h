@@ -19,3 +19,38 @@
  *   Foundation, Inc., 59 Temple Place, Suite 330, Boston,                 *
  *   MA  02111-1307  USA                                                   *
  ***************************************************************************/
+
+#ifndef __EG_D_H__
+#define __EG_D_H__
+
+#include "global.h"
+#include "modulationsystem.h"
+
+/**
+ * Decay Envelope Generator
+ *
+ * Simple Envelope Generator with only one stage: 'Decay'. We currently use
+ * this specific EG only for pitch and thus it's not generalized yet, means
+ * the initial envelope level (given by 'Depth') will raise / drop in
+ * 'DecayTime' seconds to a level of exactly 1.0. If the initial level
+ * ('Depth') is already 1.0, nothing happens. Beside that, the EG just
+ * multiplies it's levels to the synthesis parameter sequence.
+ */
+class EG_D {
+    public:
+        EG_D(ModulationSystem::destination_t ModulationDestination);
+        void Process(uint Samples);
+        void Trigger(float Depth, double DecayTime, uint Delay);
+    protected:
+        ModulationSystem::destination_t ModulationDestination;
+        uint    TriggerDelay;    ///< number of sample points triggering should be delayed
+        float   Level;
+        float   DecayCoeff;
+        long    DecayStepsLeft;
+
+        inline long Min(long A, long B) {
+            return (A > B) ? B : A;
+        }
+};
+
+#endif // __EG_D_H__

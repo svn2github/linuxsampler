@@ -43,9 +43,13 @@
 #  define dmsg(debuglevel,x)
 #endif // LS_DEBUG
 
+/// Defines the max. pitch value used in the application (in octaves)
+#define MAX_PITCH			4
+
+/// Defines how many event objects the modulation system allocates
 #define MAX_EVENTS_PER_FRAGMENT		1024
 
-// defines globally the bit depth of used samples
+/// defines globally the bit depth of used samples
 typedef int16_t sample_t;
 
 typedef std::string String;

@@ -26,15 +26,26 @@
 
 DiskThread*  Voice::pDiskThread = NULL;
 AudioThread* Voice::pEngine     = NULL;
+const float  Voice::FILTER_CUTOFF_COEFF(CalculateFilterCutoffCoeff());
+
+float Voice::CalculateFilterCutoffCoeff() {
+    return log(FILTER_CUTOFF_MIN / FILTER_CUTOFF_MAX);
+}
 
 Voice::Voice() {
     Active = false;
-    pLFO1  = new LFO(ModulationSystem::destination_vca, LFO::manipulation_type_multiply, 0.0f, 1.0f, LFO::propagation_top_down, pEngine->pEventPool);
-    pLFO2  = new LFO(ModulationSystem::destination_vcfc, LFO::manipulation_type_multiply, 0.0f, 1.0f, LFO::propagation_top_down, pEngine->pEventPool);
-    pLFO3  = new LFO(ModulationSystem::destination_vco, LFO::manipulation_type_add, -1.0f, 1.0f, LFO::propagation_middle_balanced, pEngine->pEventPool);
+    pEG1   = new EG_VCA(ModulationSystem::destination_vca);
+    pEG2   = new EG_VCA(ModulationSystem::destination_vcfc);
+    pEG3   = new EG_D(ModulationSystem::destination_vco);
+    pLFO1  = new LFO<VCAManipulator>(0.0f, 1.0f, LFO<VCAManipulator>::propagation_top_down, pEngine->pEventPool);
+    pLFO2  = new LFO<VCFCManipulator>(0.0f, 1.0f, LFO<VCFCManipulator>::propagation_top_down, pEngine->pEventPool);
+    pLFO3  = new LFO<VCOManipulator>(-1200.0f, 1200.0f, LFO<VCOManipulator>::propagation_middle_balanced, pEngine->pEventPool); // +-1 octave (+-1200 cents) max.
 }
 
 Voice::~Voice() {
+    if (pEG1)  delete pEG1;
+    if (pEG2)  delete pEG2;
+    if (pEG3)  delete pEG3;
     if (pLFO1) delete pLFO1;
     if (pLFO2) delete pLFO2;
     if (pLFO3) delete pLFO3;
@@ -45,11 +56,11 @@ Voice::~Voice() {
  *  needed.
  *
  *  @param pNoteOnEvent - event that caused triggering of this voice
- *  @param Pitch        - MIDI detune factor (-8192 ... +8191)
+ *  @param PitchBend    - MIDI detune factor (-8192 ... +8191)
  *  @param pInstrument  - points to the loaded instrument which provides sample wave(s) and articulation data
  *  @returns            0 on success, a value < 0 if something failed
  */
-int Voice::Trigger(ModulationSystem::Event* pNoteOnEvent, int Pitch, gig::Instrument* pInstrument) {
+int Voice::Trigger(ModulationSystem::Event* pNoteOnEvent, int PitchBend, gig::Instrument* pInstrument) {
     Active          = true;
     MIDIKey         = pNoteOnEvent->Key;
     pRegion         = pInstrument->GetRegion(MIDIKey);
@@ -113,45 +124,102 @@ int Voice::Trigger(ModulationSystem::Event* pNoteOnEvent, int Pitch, gig::Instru
     }
 
 
-    // Pitch according to keyboard position (if 'PitchTrack' is set) and given detune factor
-    this->Pitch = ((double) Pitch / 8192.0) / 12.0 + ((pDimRgn->PitchTrack) ? pow(2, ((double) (MIDIKey - (int) pDimRgn->UnityNote) + (double) pDimRgn->FineTune / 100.0) / 12.0)
-                                                                            : pow(2, ((double) pDimRgn->FineTune / 100.0) / 12.0));
+    // calculate initial pitch value
+    {
+        double pitchbasecents = pDimRgn->FineTune * 10;
+        if (pDimRgn->PitchTrack) pitchbasecents += (MIDIKey - (int) pDimRgn->UnityNote) * 100;
+        this->PitchBase = RTMath::CentsToFreqRatio(pitchbasecents);
+        this->PitchBend = RTMath::CentsToFreqRatio(((double) PitchBend / 8192.0) * 200.0); // pitchbend wheel +-2 semitones = 200 cents
+    }
+
 
     Volume = pDimRgn->GetVelocityAttenuation(pNoteOnEvent->Velocity);
 
-    // get current value of EG1 controller
-    double eg1controllervalue;
-    switch (pDimRgn->EG1Controller.type) {
-        case gig::eg1_ctrl_t::type_none: // no controller defined
-            eg1controllervalue = 0;
-            break;
-        case gig::eg1_ctrl_t::type_channelaftertouch:
-            eg1controllervalue = 0; // TODO: aftertouch not yet supported
-            break;
-        case gig::eg1_ctrl_t::type_velocity:
-            eg1controllervalue = pNoteOnEvent->Velocity;
-            break;
-        case gig::eg1_ctrl_t::type_controlchange: // MIDI control change controller
-            eg1controllervalue = pEngine->ControllerTable[pDimRgn->EG1Controller.controller_number];
-            break;
+
+    // setup EG 1 (VCA EG)
+    {
+        // get current value of EG1 controller
+        double eg1controllervalue;
+        switch (pDimRgn->EG1Controller.type) {
+            case gig::eg1_ctrl_t::type_none: // no controller defined
+                eg1controllervalue = 0;
+                break;
+            case gig::eg1_ctrl_t::type_channelaftertouch:
+                eg1controllervalue = 0; // TODO: aftertouch not yet supported
+                break;
+            case gig::eg1_ctrl_t::type_velocity:
+                eg1controllervalue = pNoteOnEvent->Velocity;
+                break;
+            case gig::eg1_ctrl_t::type_controlchange: // MIDI control change controller
+                eg1controllervalue = pEngine->ControllerTable[pDimRgn->EG1Controller.controller_number];
+                break;
+        }
+        if (pDimRgn->EG1ControllerInvert) eg1controllervalue = 127 - eg1controllervalue;
+
+        // calculate influence of EG1 controller on EG1's parameters (TODO: needs to be fine tuned)
+        double eg1attack  = (pDimRgn->EG1ControllerAttackInfluence)  ? 0.0001 * (double) (1 << pDimRgn->EG1ControllerAttackInfluence)  * eg1controllervalue : 0.0;
+        double eg1decay   = (pDimRgn->EG1ControllerDecayInfluence)   ? 0.0001 * (double) (1 << pDimRgn->EG1ControllerDecayInfluence)   * eg1controllervalue : 0.0;
+        double eg1release = (pDimRgn->EG1ControllerReleaseInfluence) ? 0.0001 * (double) (1 << pDimRgn->EG1ControllerReleaseInfluence) * eg1controllervalue : 0.0;
+
+        pEG1->Trigger(pDimRgn->EG1PreAttack,
+                      pDimRgn->EG1Attack + eg1attack,
+                      pDimRgn->EG1Hold,
+                      pSample->LoopStart,
+                      pDimRgn->EG1Decay1 + eg1decay,
+                      pDimRgn->EG1Decay2 + eg1decay,
+                      pDimRgn->EG1InfiniteSustain,
+                      pDimRgn->EG1Sustain,
+                      pDimRgn->EG1Release + eg1release,
+                      Delay);
     }
-    if (pDimRgn->EG1ControllerInvert) eg1controllervalue = 127 - eg1controllervalue;
 
-    // calculate influence of EG1 controller on EG1's parameters (TODO: needs to be fine tuned)
-    double eg1attack  = (pDimRgn->EG1ControllerAttackInfluence)  ? 0.0001 * (double) (1 << pDimRgn->EG1ControllerAttackInfluence)  * eg1controllervalue : 0.0;
-    double eg1decay   = (pDimRgn->EG1ControllerDecayInfluence)   ? 0.0001 * (double) (1 << pDimRgn->EG1ControllerDecayInfluence)   * eg1controllervalue : 0.0;
-    double eg1release = (pDimRgn->EG1ControllerReleaseInfluence) ? 0.0001 * (double) (1 << pDimRgn->EG1ControllerReleaseInfluence) * eg1controllervalue : 0.0;
 
-    EG1.Trigger(pDimRgn->EG1PreAttack,
-                pDimRgn->EG1Attack + eg1attack,
-                pDimRgn->EG1Hold,
-                pSample->LoopStart,
-                pDimRgn->EG1Decay1 + eg1decay,
-                pDimRgn->EG1Decay2 + eg1decay,
-                pDimRgn->EG1InfiniteSustain,
-                pDimRgn->EG1Sustain,
-                pDimRgn->EG1Release + eg1release,
-                Delay);
+#if ENABLE_FILTER
+    // setup EG 2 (VCF Cutoff EG)
+    {
+        // get current value of EG2 controller
+        double eg2controllervalue;
+        switch (pDimRgn->EG2Controller.type) {
+            case gig::eg2_ctrl_t::type_none: // no controller defined
+                eg2controllervalue = 0;
+                break;
+            case gig::eg2_ctrl_t::type_channelaftertouch:
+                eg2controllervalue = 0; // TODO: aftertouch not yet supported
+                break;
+            case gig::eg2_ctrl_t::type_velocity:
+                eg2controllervalue = pNoteOnEvent->Velocity;
+                break;
+            case gig::eg2_ctrl_t::type_controlchange: // MIDI control change controller
+                eg2controllervalue = pEngine->ControllerTable[pDimRgn->EG2Controller.controller_number];
+                break;
+        }
+        if (pDimRgn->EG2ControllerInvert) eg2controllervalue = 127 - eg2controllervalue;
+
+        // calculate influence of EG2 controller on EG2's parameters (TODO: needs to be fine tuned)
+        double eg2attack  = (pDimRgn->EG2ControllerAttackInfluence)  ? 0.0001 * (double) (1 << pDimRgn->EG2ControllerAttackInfluence)  * eg2controllervalue : 0.0;
+        double eg2decay   = (pDimRgn->EG2ControllerDecayInfluence)   ? 0.0001 * (double) (1 << pDimRgn->EG2ControllerDecayInfluence)   * eg2controllervalue : 0.0;
+        double eg2release = (pDimRgn->EG2ControllerReleaseInfluence) ? 0.0001 * (double) (1 << pDimRgn->EG2ControllerReleaseInfluence) * eg2controllervalue : 0.0;
+
+        pEG2->Trigger(pDimRgn->EG2PreAttack,
+                      pDimRgn->EG2Attack + eg2attack,
+                      false,
+                      pSample->LoopStart,
+                      pDimRgn->EG2Decay1 + eg2decay,
+                      pDimRgn->EG2Decay2 + eg2decay,
+                      pDimRgn->EG2InfiniteSustain,
+                      pDimRgn->EG2Sustain,
+                      pDimRgn->EG2Release + eg2release,
+                      Delay);
+    }
+#endif // ENABLE_FILTER
+
+
+    // setup EG 3 (VCO EG)
+    {
+       double eg3depth = RTMath::CentsToFreqRatio(pDimRgn->EG3Depth);
+       pEG3->Trigger(eg3depth, pDimRgn->EG3Attack, Delay);
+    }
+
 
     // setup LFO 1 (VCA LFO)
     {
@@ -343,9 +411,9 @@ int Voice::Trigger(ModulationSystem::Event* pNoteOnEvent, int Pitch, gig::Instru
         VCFResonanceCtrl.value = pEngine->ControllerTable[VCFResonanceCtrl.controller];
 
         // calculate cutoff frequency
-        float cutoff = (!VCFCutoffCtrl.controller && pDimRgn->VCFVelocityScale)
-            ? (float) pNoteOnEvent->Velocity * pDimRgn->VCFVelocityScale * 0.31f // up to 5kHz
-            : (float) (127 - VCFCutoffCtrl.value) * 39.4f;                       // up to 5kHz (inverted)
+        float cutoff = (!VCFCutoffCtrl.controller)
+            ? exp((float) (127 - pNoteOnEvent->Velocity) * (float) pDimRgn->VCFVelocityScale * 6.2E-5f * FILTER_CUTOFF_COEFF) * FILTER_CUTOFF_MAX
+            : exp((float) VCFCutoffCtrl.value * 0.00787402f * FILTER_CUTOFF_COEFF) * FILTER_CUTOFF_MAX;
 
         // calculate resonance
         float resonance = (float) VCFResonanceCtrl.value * 0.00787f;   // 0.0..1.0
@@ -354,11 +422,13 @@ int Voice::Trigger(ModulationSystem::Event* pNoteOnEvent, int Pitch, gig::Instru
         }
         Constrain(resonance, 0.0, 1.0); // correct resonance if outside allowed value range (0.0..1.0)
 
-        VCFCutoffCtrl.fvalue    = cutoff;
+        VCFCutoffCtrl.fvalue    = cutoff - FILTER_CUTOFF_MIN;
         VCFResonanceCtrl.fvalue = resonance;
 
-        FilterLeft.SetParameters(cutoff + 20.0f,  resonance, ModulationSystem::SampleRate()); // 20Hz min.
-        FilterRight.SetParameters(cutoff + 20.0f, resonance, ModulationSystem::SampleRate()); // 20Hz min.
+        FilterLeft.SetParameters(cutoff,  resonance, ModulationSystem::SampleRate());
+        FilterRight.SetParameters(cutoff, resonance, ModulationSystem::SampleRate());
+
+        FilterUpdateCounter = -1;
     }
     else {
         VCFCutoffCtrl.controller    = 0;
@@ -388,7 +458,7 @@ void Voice::Render(uint Samples) {
 
     // Reset the synthesis parameter matrix
     ModulationSystem::ResetDestinationParameter(ModulationSystem::destination_vca, this->Volume);
-    ModulationSystem::ResetDestinationParameter(ModulationSystem::destination_vco, this->Pitch);
+    ModulationSystem::ResetDestinationParameter(ModulationSystem::destination_vco, this->PitchBase);
 #if ENABLE_FILTER
     ModulationSystem::ResetDestinationParameter(ModulationSystem::destination_vcfc, VCFCutoffCtrl.fvalue);
     ModulationSystem::ResetDestinationParameter(ModulationSystem::destination_vcfr, VCFResonanceCtrl.fvalue);
@@ -400,7 +470,11 @@ void Voice::Render(uint Samples) {
 
 
     // Let all modulators write their parameter changes to the synthesis parameter matrix for the current audio fragment
-    EG1.Process(Samples, pEngine->pMIDIKeyInfo[MIDIKey].pEvents, pTriggerEvent, this->Pos, this->Pitch);
+    pEG1->Process(Samples, pEngine->pMIDIKeyInfo[MIDIKey].pEvents, pTriggerEvent, this->Pos, this->PitchBase * this->PitchBend);
+#if ENABLE_FILTER
+    pEG2->Process(Samples, pEngine->pMIDIKeyInfo[MIDIKey].pEvents, pTriggerEvent, this->Pos, this->PitchBase * this->PitchBend);
+#endif // ENABLE_FILTER
+    pEG3->Process(Samples);
     pLFO1->Process(Samples);
 #if ENABLE_FILTER
     pLFO2->Process(Samples);
@@ -435,8 +509,8 @@ void Voice::Render(uint Samples) {
                         Kill();
                         return;
                     }
-                    DiskStreamRef.pStream->IncrementReadPos(pSample->Channels * (double_to_int(Pos) - MaxRAMPos));
-                    Pos -= double_to_int(Pos);
+                    DiskStreamRef.pStream->IncrementReadPos(pSample->Channels * (RTMath::DoubleToInt(Pos) - MaxRAMPos));
+                    Pos -= RTMath::DoubleToInt(Pos);
                 }
 
                 // add silence sample at the end if we reached the end of the stream (for the interpolator)
@@ -447,8 +521,8 @@ void Voice::Render(uint Samples) {
 
                 sample_t* ptr = DiskStreamRef.pStream->GetReadPtr(); // get the current read_ptr within the ringbuffer where we read the samples from
                 Interpolate(Samples, ptr, Delay);
-                DiskStreamRef.pStream->IncrementReadPos(double_to_int(Pos) * pSample->Channels);
-                Pos -= double_to_int(Pos);
+                DiskStreamRef.pStream->IncrementReadPos(RTMath::DoubleToInt(Pos) * pSample->Channels);
+                Pos -= RTMath::DoubleToInt(Pos);
             }
             break;
 
@@ -470,7 +544,7 @@ void Voice::Render(uint Samples) {
     pTriggerEvent = NULL;
 
     // If release stage finished, let the voice be killed
-    if (EG1.GetStage() == EG_VCA::stage_end) this->PlaybackState = playback_state_end;
+    if (pEG1->GetStage() == EG_VCA::stage_end) this->PlaybackState = playback_state_end;
 }
 
 /**
@@ -499,6 +573,9 @@ void Voice::ProcessEvents(uint Samples) {
 
     // dispatch control change events
     ModulationSystem::Event* pCCEvent = pEngine->pCCEvents->first();
+    if (Delay) { // skip events that happened before this voice was triggered
+        while (pCCEvent && pCCEvent->FragmentPos() <= Delay) pCCEvent = pEngine->pCCEvents->next();
+    }
     while (pCCEvent) {
         if (pCCEvent->Controller) { // if valid MIDI controller
             #if ENABLE_FILTER
@@ -525,73 +602,96 @@ void Voice::ProcessEvents(uint Samples) {
         pCCEvent = pEngine->pCCEvents->next();
     }
 
+
     // process pitch events
-    RTEList<ModulationSystem::Event>* pVCOEventList = pEngine->pSynthesisEvents[ModulationSystem::destination_vco];
-    ModulationSystem::Event* pVCOEvent = pVCOEventList->first();
-    while (pVCOEvent) {
-        ModulationSystem::Event* pNextVCOEvent = pVCOEventList->next();
-
-        // calculate the influence length of this event (in sample points)
-        uint end = (pNextVCOEvent) ? pNextVCOEvent->FragmentPos() : Samples;
-
-        this->Pitch += ((double) pVCOEvent->Pitch / 8192.0) / 12.0; // +- one semitone
-
-        // apply pitch value to the pitch parameter sequence
-        for (uint i = pVCOEvent->FragmentPos(); i < end; i++) {
-            ModulationSystem::pDestinationParameter[ModulationSystem::destination_vco][i] = this->Pitch;
+    {
+        RTEList<ModulationSystem::Event>* pVCOEventList = pEngine->pSynthesisEvents[ModulationSystem::destination_vco];
+        ModulationSystem::Event* pVCOEvent = pVCOEventList->first();
+        if (Delay) { // skip events that happened before this voice was triggered
+            while (pVCOEvent && pVCOEvent->FragmentPos() <= Delay) pVCOEvent = pVCOEventList->next();
         }
+        // apply old pitchbend value until first pitch event occurs
+        if (this->PitchBend != 1.0) {
+            uint end = (pVCOEvent) ? pVCOEvent->FragmentPos() : Samples;
+            for (uint i = Delay; i < end; i++) {
+                ModulationSystem::pDestinationParameter[ModulationSystem::destination_vco][i] *= this->PitchBend;
+            }
+        }
+        float pitch;
+        while (pVCOEvent) {
+            ModulationSystem::Event* pNextVCOEvent = pVCOEventList->next();
 
-        pVCOEvent = pNextVCOEvent;
+            // calculate the influence length of this event (in sample points)
+            uint end = (pNextVCOEvent) ? pNextVCOEvent->FragmentPos() : Samples;
+
+            pitch = RTMath::CentsToFreqRatio(((double) pVCOEvent->Pitch / 8192.0) * 200.0); // +-two semitones = +-200 cents
+
+            // apply pitch value to the pitch parameter sequence
+            for (uint i = pVCOEvent->FragmentPos(); i < end; i++) {
+                ModulationSystem::pDestinationParameter[ModulationSystem::destination_vco][i] *= pitch;
+            }
+
+            pVCOEvent = pNextVCOEvent;
+        }
+        if (pVCOEventList->last()) this->PitchBend = pitch;
     }
+
 
 #if ENABLE_FILTER
     // process filter cutoff events
-    RTEList<ModulationSystem::Event>* pCutoffEventList = pEngine->pSynthesisEvents[ModulationSystem::destination_vcfc];
-    ModulationSystem::Event* pCutoffEvent = pCutoffEventList->first();
-    while (pCutoffEvent) {
-        ModulationSystem::Event* pNextCutoffEvent = pCutoffEventList->next();
-
-        // calculate the influence length of this event (in sample points)
-        uint end = (pNextCutoffEvent) ? pNextCutoffEvent->FragmentPos() : Samples;
-
-        // convert absolute controller value to differential
-        int ctrldelta = pCutoffEvent->Value - VCFCutoffCtrl.value;
-        VCFCutoffCtrl.value = pCutoffEvent->Value;
-
-        float cutoffdelta = (float) ctrldelta * -39.4f; // (20Hz)..5kHz (inverted)
-
-        // apply cutoff frequency to the cutoff parameter sequence
-        for (uint i = pCutoffEvent->FragmentPos(); i < end; i++) {
-            ModulationSystem::pDestinationParameter[ModulationSystem::destination_vcfc][i] += cutoffdelta;
+    {
+        RTEList<ModulationSystem::Event>* pCutoffEventList = pEngine->pSynthesisEvents[ModulationSystem::destination_vcfc];
+        ModulationSystem::Event* pCutoffEvent = pCutoffEventList->first();
+        if (Delay) { // skip events that happened before this voice was triggered
+            while (pCutoffEvent && pCutoffEvent->FragmentPos() <= Delay) pCutoffEvent = pCutoffEventList->next();
         }
+        float cutoff;
+        while (pCutoffEvent) {
+            ModulationSystem::Event* pNextCutoffEvent = pCutoffEventList->next();
 
-        pCutoffEvent = pNextCutoffEvent;
+            // calculate the influence length of this event (in sample points)
+            uint end = (pNextCutoffEvent) ? pNextCutoffEvent->FragmentPos() : Samples;
+
+            cutoff = exp((float) pCutoffEvent->Value * 0.00787402f * FILTER_CUTOFF_COEFF) * FILTER_CUTOFF_MAX - FILTER_CUTOFF_MIN;
+
+            // apply cutoff frequency to the cutoff parameter sequence
+            for (uint i = pCutoffEvent->FragmentPos(); i < end; i++) {
+                ModulationSystem::pDestinationParameter[ModulationSystem::destination_vcfc][i] = cutoff;
+            }
+
+            pCutoffEvent = pNextCutoffEvent;
+        }
+        if (pCutoffEventList->last()) VCFCutoffCtrl.fvalue = cutoff; // needed for initialization of parameter matrix next time
     }
-    if (pCutoffEventList->last()) VCFCutoffCtrl.fvalue = (float) (127 - pCutoffEventList->last()->Value) * 39.4f; // needed for initialization of parameter matrix next time
 
     // process filter resonance events
-    RTEList<ModulationSystem::Event>* pResonanceEventList = pEngine->pSynthesisEvents[ModulationSystem::destination_vcfr];
-    ModulationSystem::Event* pResonanceEvent = pResonanceEventList->first();
-    while (pResonanceEvent) {
-        ModulationSystem::Event* pNextResonanceEvent = pResonanceEventList->next();
-
-        // calculate the influence length of this event (in sample points)
-        uint end = (pNextResonanceEvent) ? pNextResonanceEvent->FragmentPos() : Samples;
-
-        // convert absolute controller value to differential
-        int ctrldelta = pResonanceEvent->Value - VCFResonanceCtrl.value;
-        VCFResonanceCtrl.value = pResonanceEvent->Value;
-
-        float resonancedelta = (float) ctrldelta * 0.00787f; // 0.0..1.0
-
-        // apply cutoff frequency to the cutoff parameter sequence
-        for (uint i = pResonanceEvent->FragmentPos(); i < end; i++) {
-            ModulationSystem::pDestinationParameter[ModulationSystem::destination_vcfr][i] += resonancedelta;
+    {
+        RTEList<ModulationSystem::Event>* pResonanceEventList = pEngine->pSynthesisEvents[ModulationSystem::destination_vcfr];
+        ModulationSystem::Event* pResonanceEvent = pResonanceEventList->first();
+        if (Delay) { // skip events that happened before this voice was triggered
+            while (pResonanceEvent && pResonanceEvent->FragmentPos() <= Delay) pResonanceEvent = pResonanceEventList->next();
         }
+        while (pResonanceEvent) {
+            ModulationSystem::Event* pNextResonanceEvent = pResonanceEventList->next();
 
-        pResonanceEvent = pNextResonanceEvent;
+            // calculate the influence length of this event (in sample points)
+            uint end = (pNextResonanceEvent) ? pNextResonanceEvent->FragmentPos() : Samples;
+
+            // convert absolute controller value to differential
+            int ctrldelta = pResonanceEvent->Value - VCFResonanceCtrl.value;
+            VCFResonanceCtrl.value = pResonanceEvent->Value;
+
+            float resonancedelta = (float) ctrldelta * 0.00787f; // 0.0..1.0
+
+            // apply cutoff frequency to the cutoff parameter sequence
+            for (uint i = pResonanceEvent->FragmentPos(); i < end; i++) {
+                ModulationSystem::pDestinationParameter[ModulationSystem::destination_vcfr][i] += resonancedelta;
+            }
+
+            pResonanceEvent = pNextResonanceEvent;
+        }
+        if (pResonanceEventList->last()) VCFResonanceCtrl.fvalue = pResonanceEventList->last()->Value * 0.00787f; // needed for initialization of parameter matrix next time
     }
-    if (pResonanceEventList->last()) VCFResonanceCtrl.fvalue = pResonanceEventList->last()->Value * 0.00787f; // needed for initialization of parameter matrix next time
 #endif // ENABLE_FILTER
 }
 
@@ -615,12 +715,6 @@ void Voice::Interpolate(uint Samples, sample_t* pSrc, uint Skip) {
                                       ModulationSystem::pDestinationParameter[ModulationSystem::destination_vcfc][i],
                                       ModulationSystem::pDestinationParameter[ModulationSystem::destination_vcfr][i]);
         }
-
-#if ENABLE_FILTER
-        // to save the last filter setting for the next render cycle (only needed when we update the filter not-sample-accurate)
-        ForceUpdateFilter_Stereo(ModulationSystem::pDestinationParameter[ModulationSystem::destination_vcfc][Samples - 1],
-                                 ModulationSystem::pDestinationParameter[ModulationSystem::destination_vcfr][Samples - 1]);
-#endif // ENABLE_FILTER
     }
     else { // Mono Sample
         while (i < Samples) {
@@ -630,12 +724,6 @@ void Voice::Interpolate(uint Samples, sample_t* pSrc, uint Skip) {
                                     ModulationSystem::pDestinationParameter[ModulationSystem::destination_vcfc][i],
                                     ModulationSystem::pDestinationParameter[ModulationSystem::destination_vcfr][i]);
         }
-
-#if ENABLE_FILTER
-        // to save the last filter setting for the next render cycle (only needed when we update the filter not-sample-accurate)
-        ForceUpdateFilter_Mono(ModulationSystem::pDestinationParameter[ModulationSystem::destination_vcfc][Samples - 1],
-                               ModulationSystem::pDestinationParameter[ModulationSystem::destination_vcfr][Samples - 1]);
-#endif // ENABLE_FILTER
     }
 }
 
@@ -686,11 +774,6 @@ void Voice::InterpolateAndLoop(uint Samples, sample_t* pSrc, uint Skip) {
                 }
             }
         }
-#if ENABLE_FILTER
-        // to save the last filter setting for the next render cycle (only needed when we update the filter not-sample-accurate)
-        ForceUpdateFilter_Stereo(ModulationSystem::pDestinationParameter[ModulationSystem::destination_vcfc][Samples - 1],
-                                 ModulationSystem::pDestinationParameter[ModulationSystem::destination_vcfr][Samples - 1]);
-#endif // ENABLE_FILTER
     }
     else { // Mono Sample
         if (pSample->LoopPlayCount) {
@@ -727,11 +810,6 @@ void Voice::InterpolateAndLoop(uint Samples, sample_t* pSrc, uint Skip) {
                 }
             }
         }
-#if ENABLE_FILTER
-        // to save the last filter setting for the next render cycle (only needed when we update the filter not-sample-accurate)
-        ForceUpdateFilter_Mono(ModulationSystem::pDestinationParameter[ModulationSystem::destination_vcfc][Samples - 1],
-                               ModulationSystem::pDestinationParameter[ModulationSystem::destination_vcfr][Samples - 1]);
-#endif // ENABLE_FILTER
     }
 }
 
