@@ -166,6 +166,10 @@ namespace LinuxSampler { namespace gig {
             pMIDIKeyInfo[i].pSelf      = NULL;
         }
 
+        // reset all key groups
+        map<uint,uint*>::iterator iter = ActiveKeyGroups.begin();
+        for (; iter != ActiveKeyGroups.end(); iter++) iter->second = NULL;
+
         // reset all voices
         for (Voice* pVoice = pVoicePool->alloc(); pVoice; pVoice = pVoicePool->alloc()) {
             pVoice->Reset();
@@ -206,6 +210,9 @@ namespace LinuxSampler { namespace gig {
 	InstrumentIdx = Instrument;
 	InstrumentStat = 0;
 
+        // delete all key groups
+        ActiveKeyGroups.clear();
+
         // request gig instrument from instrument manager
         try {
             instrument_id_t instrid;
@@ -232,6 +239,10 @@ namespace LinuxSampler { namespace gig {
             InstrumentStat = -4;
             throw LinuxSamplerException("gig::Engine error: Failed to load instrument, cause: Unknown exception while trying to parse gig file.");
         }
+
+        // rebuild ActiveKeyGroups map with key groups of current instrument
+        for (::gig::Region* pRegion = pInstrument->GetFirstRegion(); pRegion; pRegion = pInstrument->GetNextRegion())
+            if (pRegion->KeyGroup) ActiveKeyGroups[pRegion->KeyGroup] = NULL;
 
 	InstrumentStat = 100;
 
@@ -264,7 +275,7 @@ namespace LinuxSampler { namespace gig {
      * update process was completed, so we can continue with playback.
      */
     void Engine::ResourceUpdated(::gig::Instrument* pOldResource, ::gig::Instrument* pNewResource, void* pUpdateArg) {
-        this->pInstrument = pNewResource;
+        this->pInstrument = pNewResource; //TODO: there are couple of engine parameters we should update here as well if the instrument was updated (see LoadInstrument())
         Enable();
     }
 
@@ -433,7 +444,7 @@ namespace LinuxSampler { namespace gig {
                 pVoice->Render(Samples);
                 if (pVoice->IsActive()) active_voices++; // still active
                 else { // voice reached end, is now inactive
-                    KillVoice(pVoice); // remove voice from the list of active voices
+                    KillVoiceImmediately(pVoice); // remove voice from the list of active voices
                 }
             }
             pKey->pEvents->clear(); // free all events on the key
@@ -523,12 +534,19 @@ namespace LinuxSampler { namespace gig {
 
         // cancel release process of voices on this key if needed
         if (pKey->Active && !SustainPedal) {
-            pNoteOnEvent->Type = Event::type_cancel_release; // transform event type
-            pEvents->move(pNoteOnEvent, pKey->pEvents); // move event to the key's own event list
+            Event* pCancelReleaseEvent = pKey->pEvents->alloc();
+            if (pCancelReleaseEvent) {
+                *pCancelReleaseEvent = *pNoteOnEvent;
+                pCancelReleaseEvent->Type = Event::type_cancel_release; // transform event type
+            }
+            else dmsg(1,("Event pool emtpy!\n"));
         }
 
         // allocate and trigger a new voice for the key
         LaunchVoice(pNoteOnEvent);
+
+        // finally move note on event to the key's own event list
+        pEvents->move(pNoteOnEvent, pKey->pEvents);
     }
 
     /**
@@ -582,10 +600,26 @@ namespace LinuxSampler { namespace gig {
                 dmsg(1,("Triggering new voice failed!\n"));
                 pKey->pActiveVoices->free(pNewVoice);
             }
-            else if (!pKey->Active) { // mark as active key
-                pKey->Active = true;
-                pKey->pSelf  = pActiveKeys->alloc();
-                *pKey->pSelf = pNoteOnEvent->Key;
+            else { // on success
+                uint** ppKeyGroup = NULL;
+                if (pNewVoice->KeyGroup) { // if this voice / key belongs to a key group
+                    ppKeyGroup = &ActiveKeyGroups[pNewVoice->KeyGroup];
+                    if (*ppKeyGroup) { // if there's already an active key in that key group
+                        midi_key_info_t* pOtherKey = &pMIDIKeyInfo[**ppKeyGroup];
+                        // kill all voices on the (other) key
+                        Voice* pVoiceToBeKilled = pOtherKey->pActiveVoices->first();
+                        for (; pVoiceToBeKilled; pVoiceToBeKilled = pOtherKey->pActiveVoices->next())
+                            if (pVoiceToBeKilled != pNewVoice) pVoiceToBeKilled->Kill(pNoteOnEvent);
+                    }
+                }
+                if (!pKey->Active) { // mark as active key
+                    pKey->Active = true;
+                    pKey->pSelf  = pActiveKeys->alloc();
+                    *pKey->pSelf = pNoteOnEvent->Key;
+                }
+                if (pNewVoice->KeyGroup) {
+                    *ppKeyGroup = pKey->pSelf; // put key as the (new) active key to its key group
+                }
             }
         }
         else std::cerr << "No free voice!" << std::endl << std::flush;
@@ -598,9 +632,9 @@ namespace LinuxSampler { namespace gig {
      *
      *  @param pVoice - points to the voice to be killed
      */
-    void Engine::KillVoice(Voice* pVoice) {
+    void Engine::KillVoiceImmediately(Voice* pVoice) {
         if (pVoice) {
-            if (pVoice->IsActive()) pVoice->Kill();
+            if (pVoice->IsActive()) pVoice->KillImmediately();
 
             midi_key_info_t* pKey = &pMIDIKeyInfo[pVoice->MIDIKey];
 
@@ -609,6 +643,10 @@ namespace LinuxSampler { namespace gig {
 
             // check if there are no voices left on the MIDI key and update the key info if so
             if (pKey->pActiveVoices->is_empty()) {
+                if (pVoice->KeyGroup) { // if voice / key belongs to a key group
+                    uint** ppKeyGroup = &ActiveKeyGroups[pVoice->KeyGroup];
+                    if (*ppKeyGroup == pKey->pSelf) *ppKeyGroup = NULL; // remove key from key group
+                }
                 pKey->Active = false;
                 pActiveKeys->free(pKey->pSelf); // remove key from list of active keys
                 pKey->pSelf = NULL;
@@ -784,7 +822,7 @@ namespace LinuxSampler { namespace gig {
     }
 
     String Engine::Version() {
-        String s = "$Revision: 1.9 $";
+        String s = "$Revision: 1.10 $";
         return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
 

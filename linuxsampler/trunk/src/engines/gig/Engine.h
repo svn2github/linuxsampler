@@ -29,6 +29,8 @@
 # warning Engine.h included
 #endif // DEBUG_HEADERS
 
+#include <map>
+
 #include "../../common/RingBuffer.h"
 #include "../../common/RTELMemoryPool.h"
 #include "../../common/ConditionServer.h"
@@ -43,6 +45,8 @@
 #define MAX_AUDIO_VOICES		128
 
 namespace LinuxSampler { namespace gig {
+
+    using std::map;
 
     // just symbol prototyping
     class Voice;
@@ -124,6 +128,7 @@ namespace LinuxSampler { namespace gig {
             float*                  pSynthesisParameters[Event::destination_count]; ///< Matrix with final synthesis parameters for the current audio fragment which will be used in the main synthesis loop.
             biquad_param_t*         pBasicFilterParameters; ///< Biquad parameters of the basic bandpass filter.
             biquad_param_t*         pMainFilterParameters;  ///< Main biquad parameters of the individual filter (lowpass / bandpass / highpass).
+            map<uint,uint*>         ActiveKeyGroups;        ///< Contains active keys (in case they belong to a key group) ordered by key group ID.
             RIFF::File*             pRIFF;
             ::gig::File*            pGig;
             ::gig::Instrument*      pInstrument;
@@ -143,7 +148,7 @@ namespace LinuxSampler { namespace gig {
             void ProcessPitchbend(Event* pPitchbendEvent);
             void ProcessControlChange(Event* pControlChangeEvent);
             void LaunchVoice(Event* pNoteOnEvent, int iLayer = 0);
-            void KillVoice(Voice* pVoice);
+            void KillVoiceImmediately(Voice* pVoice);
             void ResetSynthesisParameters(Event::destination_t dst, float val);
             void ResetInternal();
 

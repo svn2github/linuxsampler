@@ -24,6 +24,14 @@
 
 namespace LinuxSampler { namespace gig {
 
+    const float EGADSR::EndCoeff(CalculateEndCoeff());
+
+    float EGADSR::CalculateEndCoeff() {
+        const double sampleRate = 44100.0; // even if the sample rate will be 192kHz it won't hurt at all
+        const double killSteps  = EG_MIN_RELEASE_TIME * sampleRate;
+        return float(exp(1.0 / killSteps) - 1.0);
+    }
+
     EGADSR::EGADSR(gig::Engine* pEngine, Event::destination_t ModulationDestination) {
         this->pEngine = pEngine;
         this->ModulationDestination = ModulationDestination;
@@ -35,18 +43,19 @@ namespace LinuxSampler { namespace gig {
      * Will be called by the voice for every audio fragment to let the EG
      * queue it's modulation changes for the current audio fragment.
      *
-     * @param Samples       - total number of sample points to be rendered in this
+     * @param TotalSamples  - total number of sample points to be rendered in this
      *                        audio fragment cycle by the audio engine
      * @param pEvents       - event list with "release" and "cancel release" events
      * @param pTriggerEvent - event that caused triggering of the voice (only if
-     *                        the voices was triggered in the current audio
+     *                        the voice was triggered in the current audio
      *                        fragment, NULL otherwise)
      * @param SamplePos     - current playback position
      * @param CurrentPitch  - current pitch value for playback
+     * @param pKillEvent    - (optional) event which caused this voice to be killed
      */
-    void EGADSR::Process(uint Samples, RTEList<Event>* pEvents, Event* pTriggerEvent, double SamplePos, double CurrentPitch) {
+    void EGADSR::Process(uint TotalSamples, RTEList<Event>* pEvents, Event* pTriggerEvent, double SamplePos, double CurrentPitch, Event* pKillEvent) {
         Event* pTransitionEvent;
-        if (pTriggerEvent) {
+        if (pTriggerEvent) { // skip all events which occured before this voice was triggered
             pEvents->set_current(pTriggerEvent);
             pTransitionEvent = pEvents->next();
         }
@@ -54,8 +63,15 @@ namespace LinuxSampler { namespace gig {
             pTransitionEvent = pEvents->first();
         }
 
+        // if the voice was killed in this fragment we only process the time before this kill event and then switch to 'stage_end'
+        int Samples = (pKillEvent) ? pKillEvent->FragmentPos() : (int) TotalSamples;
+
         int iSample = TriggerDelay;
-        while (iSample < Samples) {
+        while (iSample < TotalSamples) {
+
+            // if the voice was killed in this fragment and we already processed the time before this kill event
+            if (pKillEvent && iSample >= Samples) Stage = stage_end;
+
             switch (Stage) {
                 case stage_attack: {
                     TriggerDelay = 0;
@@ -66,7 +82,7 @@ namespace LinuxSampler { namespace gig {
                         Level += AttackCoeff;
                         pEngine->pSynthesisParameters[ModulationDestination][iSample++] *= Level;
                     }
-                    if (iSample == Samples) { // postpone last transition event for the next audio fragment
+                    if (iSample == TotalSamples) { // postpone last transition event for the next audio fragment
                         Event* pLastEvent = pEvents->last();
                         if (pLastEvent) ReleasePostponed = (pLastEvent->Type == Event::type_release);
                     }
@@ -154,8 +170,8 @@ namespace LinuxSampler { namespace gig {
                     break;
                 }
                 case stage_end: {
-                    while (iSample < Samples) {
-                        Level += Level * ReleaseCoeff;
+                    while (iSample < TotalSamples) {
+                        Level += Level * EndCoeff;
                         pEngine->pSynthesisParameters[ModulationDestination][iSample++] *= Level;
                     }
                     break;
@@ -208,10 +224,10 @@ namespace LinuxSampler { namespace gig {
             if (Decay2Time < EG_MIN_RELEASE_TIME) Decay2Time = EG_MIN_RELEASE_TIME;
             long Decay2Steps = (long) (Decay2Time * pEngine->pAudioOutputDevice->SampleRate());
             Decay2Coeff      = (Decay2Steps) ? exp((log(EG_ENVELOPE_LIMIT) - log(this->SustainLevel)) / Decay2Steps + log(this->SustainLevel)) - this->SustainLevel
-                                            : 0.0;
+                                             : 0.0;
         }
 
-        // calcuate release stage parameters (exp. curve)
+        // calculate release stage parameters (exp. curve)
         if (ReleaseTime < EG_MIN_RELEASE_TIME) ReleaseTime = EG_MIN_RELEASE_TIME;  // to avoid click sounds at the end of the sample playback
         ReleaseStepsLeft = (long) (ReleaseTime * pEngine->pAudioOutputDevice->SampleRate());
         ReleaseCoeff     = exp((log(EG_ENVELOPE_LIMIT) - log(this->SustainLevel)) / ReleaseStepsLeft + log(this->SustainLevel)) - this->SustainLevel;

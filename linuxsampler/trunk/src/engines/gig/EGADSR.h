@@ -57,7 +57,7 @@ class EGADSR {
         };
 
         EGADSR(gig::Engine* pEngine, Event::destination_t ModulationDestination);
-        void Process(uint Samples, RTEList<Event>* pEvents, Event* pTriggerEvent, double SamplePos, double CurrentPitch);
+        void Process(uint TotalSamples, RTEList<Event>* pEvents, Event* pTriggerEvent, double SamplePos, double CurrentPitch, Event* pKillEvent = NULL);
         void Trigger(uint PreAttack, double AttackTime, bool HoldAttack, long LoopStart, double Decay1Time, double Decay2Time, bool InfiniteSustain, uint SustainLevel, double ReleaseTime, uint Delay);
         inline EGADSR::stage_t GetStage() { return Stage; }
     protected:
@@ -78,6 +78,9 @@ class EGADSR {
         float   ReleaseCoeff;
         long    ReleaseStepsLeft;  ///< number of sample points til end of release stage
         bool    ReleasePostponed;  ///< If a "release" event occured in the previous audio fragment, but wasn't processed yet.
+        const static float EndCoeff;
+    private:
+        static float CalculateEndCoeff();
 };
 
 }} // namespace LinuxSampler::gig

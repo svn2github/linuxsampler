@@ -57,6 +57,7 @@ namespace LinuxSampler { namespace gig {
         pLFO1  = NULL;
         pLFO2  = NULL;
         pLFO3  = NULL;
+        KeyGroup = 0;
     }
 
     Voice::~Voice() {
@@ -122,12 +123,15 @@ namespace LinuxSampler { namespace gig {
         PlaybackState   = playback_state_ram; // we always start playback from RAM cache and switch then to disk if needed
         Delay           = pNoteOnEvent->FragmentPos();
         pTriggerEvent   = pNoteOnEvent;
+        pKillEvent      = NULL;
 
         if (!pRegion) {
             std::cerr << "gig::Voice: No Region defined for MIDI key " << MIDIKey << std::endl << std::flush;
-            Kill();
+            KillImmediately();
             return -1;
         }
+
+        KeyGroup = pRegion->KeyGroup;
 
         // get current dimension values to select the right dimension region
         //FIXME: controller values for selecting the dimension region here are currently not sample accurate
@@ -270,7 +274,7 @@ namespace LinuxSampler { namespace gig {
 
             if (pDiskThread->OrderNewStream(&DiskStreamRef, pSample, MaxRAMPos, !RAMLoop) < 0) {
                 dmsg(1,("Disk stream order failed!\n"));
-                Kill();
+                KillImmediately();
                 return -1;
             }
             dmsg(4,("Disk voice launched (cached samples: %d, total Samples: %d, MaxRAMPos: %d, RAMLooping: %s)\n", cachedsamples, pSample->SamplesTotal, MaxRAMPos, (RAMLoop) ? "yes" : "no"));
@@ -601,10 +605,6 @@ namespace LinuxSampler { namespace gig {
         }
     #endif // ENABLE_FILTER
 
-        // ************************************************
-        // TODO: ARTICULATION DATA HANDLING IS MISSING HERE
-        // ************************************************
-
         return 0; // success
     }
 
@@ -635,7 +635,7 @@ namespace LinuxSampler { namespace gig {
 
 
         // Let all modulators write their parameter changes to the synthesis parameter matrix for the current audio fragment
-        pEG1->Process(Samples, pEngine->pMIDIKeyInfo[MIDIKey].pEvents, pTriggerEvent, this->Pos, this->PitchBase * this->PitchBend);
+        pEG1->Process(Samples, pEngine->pMIDIKeyInfo[MIDIKey].pEvents, pTriggerEvent, this->Pos, this->PitchBase * this->PitchBend, pKillEvent);
     #if ENABLE_FILTER
         pEG2->Process(Samples, pEngine->pMIDIKeyInfo[MIDIKey].pEvents, pTriggerEvent, this->Pos, this->PitchBase * this->PitchBend);
     #endif // ENABLE_FILTER
@@ -676,7 +676,7 @@ namespace LinuxSampler { namespace gig {
                         DiskStreamRef.pStream = pDiskThread->AskForCreatedStream(DiskStreamRef.OrderID);
                         if (!DiskStreamRef.pStream) {
                             std::cout << stderr << "Disk stream not available in time!" << std::endl << std::flush;
-                            Kill();
+                            KillImmediately();
                             return;
                         }
                         DiskStreamRef.pStream->IncrementReadPos(pSample->Channels * (RTMath::DoubleToInt(Pos) - MaxRAMPos));
@@ -697,7 +697,7 @@ namespace LinuxSampler { namespace gig {
                 break;
 
             case playback_state_end:
-                Kill(); // free voice
+                KillImmediately(); // free voice
                 break;
         }
 
@@ -1062,13 +1062,31 @@ namespace LinuxSampler { namespace gig {
     }
 
     /**
-     *  Immediately kill the voice.
+     *  Immediately kill the voice. This method should not be used to kill
+     *  a normal, active voice, because it doesn't take care of things like
+     *  fading down the volume level to avoid clicks and regular processing
+     *  until the kill event actually occured!
+     *
+     *  @see Kill()
      */
-    void Voice::Kill() {
+    void Voice::KillImmediately() {
         if (DiskVoice && DiskStreamRef.State != Stream::state_unused) {
             pDiskThread->OrderDeletionOfStream(&DiskStreamRef);
         }
         Reset();
+    }
+
+    /**
+     *  Kill the voice in regular sense. Let the voice render audio until
+     *  the kill event actually occured and then fade down the volume level
+     *  very quickly and let the voice die finally. Unlike a normal release
+     *  of a voice, a kill process cannot be cancalled and is therefore
+     *  usually used for voice stealing and key group conflicts.
+     *
+     *  @param pKillEvent - event which caused the voice to be killed
+     */
+    void Voice::Kill(Event* pKillEvent) {
+        this->pKillEvent = pKillEvent;
     }
 
 }} // namespace LinuxSampler::gig

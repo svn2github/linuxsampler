@@ -82,12 +82,14 @@ namespace LinuxSampler { namespace gig {
         public:
             // Attributes
             int          MIDIKey;      ///< MIDI key number of the key that triggered the voice
+            uint         KeyGroup;
             DiskThread*  pDiskThread;  ///< Pointer to the disk thread, to be able to order a disk stream and later to delete the stream again
 
             // Methods
             Voice();
            ~Voice();
-            void Kill();
+            void Kill(Event* pKillEvent);
+            void KillImmediately();
             void Render(uint Samples);
             void Reset();
             void SetOutput(AudioOutputDevice* pAudioOutputDevice);
@@ -137,6 +139,7 @@ namespace LinuxSampler { namespace gig {
             LFO<gig::VCFCManipulator>*  pLFO2;             ///< Low Frequency Oscillator 2 (Filter cutoff frequency)
             LFO<gig::VCOManipulator>*   pLFO3;              ///< Low Frequency Oscillator 3 (Pitch)
             Event*                      pTriggerEvent;      ///< First event on the key's list the voice should process (only needed for the first audio fragment in which voice was triggered, after that it will be set to NULL).
+            Event*                      pKillEvent;         ///< Event which caused this voice to be killed
 
             // Static Methods
             static float CalculateFilterCutoffCoeff();

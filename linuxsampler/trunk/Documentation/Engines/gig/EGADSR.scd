@@ -9,7 +9,7 @@ Storage
 Document 
 {
 	{ Type "Statechart Diagram" }
-	{ Name eg1.scd }
+	{ Name EGADSR.scd }
 	{ Author cuse }
 	{ CreatedOn "" }
 	{ Annotation "" }
@@ -98,7 +98,39 @@ SDCDefaultState 8
 
 Comment 40
 {
-	{ Name "gig::Engine\rEnvelope Generator 1 (Amplitude / VCA EG)" }
+	{ Name "gig::Engine\rADSR Envelope Generator (EG1 = Amplitude EG, EG2 = Filter Cutoff Freq. EG)" }
+	{ Annotation "" }
+	{ Parent 0 }
+	{ Index "" }
+}
+
+SCDFinalState 48
+{
+	{ Name "" }
+	{ Annotation "" }
+	{ Parent 0 }
+	{ Index "" }
+}
+
+SCDFinalState 49
+{
+	{ Name "" }
+	{ Annotation "" }
+	{ Parent 0 }
+	{ Index "" }
+}
+
+SCDFinalState 50
+{
+	{ Name "" }
+	{ Annotation "" }
+	{ Parent 0 }
+	{ Index "" }
+}
+
+SCDFinalState 51
+{
+	{ Name "" }
 	{ Annotation "" }
 	{ Parent 0 }
 	{ Index "" }
@@ -232,6 +264,60 @@ SCDTransitionEdge 45
 	{ Subject2 6 }
 }
 
+SCDTransitionEdge 52
+{
+	{ Name "Killed" }
+	{ Annotation "" }
+	{ Parent 0 }
+	{ Subject1 1 }
+	{ Subject2 48 }
+}
+
+SCDTransitionEdge 53
+{
+	{ Name "Killed" }
+	{ Annotation "" }
+	{ Parent 0 }
+	{ Subject1 3 }
+	{ Subject2 48 }
+}
+
+SCDTransitionEdge 54
+{
+	{ Name "Killed" }
+	{ Annotation "" }
+	{ Parent 0 }
+	{ Subject1 2 }
+	{ Subject2 49 }
+}
+
+SCDTransitionEdge 55
+{
+	{ Name "Killed" }
+	{ Annotation "" }
+	{ Parent 0 }
+	{ Subject1 5 }
+	{ Subject2 50 }
+}
+
+SCDTransitionEdge 56
+{
+	{ Name "Killed" }
+	{ Annotation "" }
+	{ Parent 0 }
+	{ Subject1 6 }
+	{ Subject2 50 }
+}
+
+SCDTransitionEdge 57
+{
+	{ Name "Killed" }
+	{ Annotation "" }
+	{ Parent 0 }
+	{ Subject1 4 }
+	{ Subject2 51 }
+}
+
 # VIEWS AND GRAPHICAL SHAPES
 
 View 18
@@ -245,14 +331,14 @@ RoundedBox 19
 	{ View 18 }
 	{ Subject 1 }
 	{ Position 230 190 }
-	{ Size 172 60 }
+	{ Size 193 76 }
 	{ Color "black" }
 	{ LineWidth 1 }
 	{ LineStyle Solid }
 	{ FillStyle Unfilled }
 	{ FillColor "white" }
 	{ FixedName False }
-	{ Font "-*-courier-medium-r-normal--10*" }
+	{ Font "-*-courier-medium-r-normal--8*" }
 	{ TextAlignment Center }
 	{ TextColor "black" }
 	{ NameUnderlined False }
@@ -263,14 +349,14 @@ RoundedBox 20
 	{ View 18 }
 	{ Subject 2 }
 	{ Position 580 190 }
-	{ Size 116 46 }
+	{ Size 130 58 }
 	{ Color "black" }
 	{ LineWidth 1 }
 	{ LineStyle Solid }
 	{ FillStyle Unfilled }
 	{ FillColor "white" }
 	{ FixedName False }
-	{ Font "-*-courier-medium-r-normal--10*" }
+	{ Font "-*-courier-medium-r-normal--8*" }
 	{ TextAlignment Center }
 	{ TextColor "black" }
 	{ NameUnderlined False }
@@ -281,14 +367,14 @@ RoundedBox 21
 	{ View 18 }
 	{ Subject 3 }
 	{ Position 230 330 }
-	{ Size 180 68 }
+	{ Size 202 76 }
 	{ Color "black" }
 	{ LineWidth 1 }
 	{ LineStyle Solid }
 	{ FillStyle Unfilled }
 	{ FillColor "white" }
 	{ FixedName False }
-	{ Font "-*-courier-medium-r-normal--10*" }
+	{ Font "-*-courier-medium-r-normal--8*" }
 	{ TextAlignment Center }
 	{ TextColor "black" }
 	{ NameUnderlined False }
@@ -299,14 +385,14 @@ RoundedBox 22
 	{ View 18 }
 	{ Subject 4 }
 	{ Position 530 460 }
-	{ Size 172 46 }
+	{ Size 193 58 }
 	{ Color "black" }
 	{ LineWidth 1 }
 	{ LineStyle Solid }
 	{ FillStyle Unfilled }
 	{ FillColor "white" }
 	{ FixedName False }
-	{ Font "-*-courier-medium-r-normal--10*" }
+	{ Font "-*-courier-medium-r-normal--8*" }
 	{ TextAlignment Center }
 	{ TextColor "black" }
 	{ NameUnderlined False }
@@ -317,14 +403,14 @@ RoundedBox 23
 	{ View 18 }
 	{ Subject 5 }
 	{ Position 90 460 }
-	{ Size 116 46 }
+	{ Size 130 58 }
 	{ Color "black" }
 	{ LineWidth 1 }
 	{ LineStyle Solid }
 	{ FillStyle Unfilled }
 	{ FillColor "white" }
 	{ FixedName False }
-	{ Font "-*-courier-medium-r-normal--10*" }
+	{ Font "-*-courier-medium-r-normal--8*" }
 	{ TextAlignment Center }
 	{ TextColor "black" }
 	{ NameUnderlined False }
@@ -335,14 +421,14 @@ RoundedBox 24
 	{ View 18 }
 	{ Subject 6 }
 	{ Position 310 620 }
-	{ Size 172 46 }
+	{ Size 193 58 }
 	{ Color "black" }
 	{ LineWidth 1 }
 	{ LineStyle Solid }
 	{ FillStyle Unfilled }
 	{ FillColor "white" }
 	{ FixedName False }
-	{ Font "-*-courier-medium-r-normal--10*" }
+	{ Font "-*-courier-medium-r-normal--8*" }
 	{ TextAlignment Center }
 	{ TextColor "black" }
 	{ NameUnderlined False }
@@ -360,7 +446,7 @@ BullsEye 25
 	{ FillStyle Unfilled }
 	{ FillColor "white" }
 	{ FixedName True }
-	{ Font "-*-courier-medium-r-normal--10*" }
+	{ Font "-*-courier-medium-r-normal--8*" }
 	{ TextAlignment Center }
 	{ TextColor "black" }
 	{ NameUnderlined False }
@@ -378,7 +464,7 @@ BlackDot 26
 	{ FillStyle Unfilled }
 	{ FillColor "white" }
 	{ FixedName True }
-	{ Font "-*-courier-medium-r-normal--10*" }
+	{ Font "-*-courier-medium-r-normal--8*" }
 	{ TextAlignment Center }
 	{ TextColor "black" }
 	{ NameUnderlined False }
@@ -395,13 +481,13 @@ Line 27
 	{ End2 FilledArrow }
 	{ Points 2 }
 	{ Point 230 94 }
-	{ Point 230 160 }
-	{ NamePosition 220 125 }
+	{ Point 230 152 }
+	{ NamePosition 216 123 }
 	{ Color "black" }
 	{ LineWidth 1 }
 	{ LineStyle Solid }
 	{ FixedName False }
-	{ Font "-*-courier-medium-r-normal--10*" }
+	{ Font "-*-courier-medium-r-normal--8*" }
 	{ TextAlignment Center }
 	{ TextColor "black" }
 	{ NameUnderlined False }
@@ -417,14 +503,14 @@ Line 28
 	{ End1 Empty }
 	{ End2 FilledArrow }
 	{ Points 2 }
-	{ Point 316 190 }
-	{ Point 522 190 }
-	{ NamePosition 421 190 }
+	{ Point 326 190 }
+	{ Point 515 190 }
+	{ NamePosition 424 190 }
 	{ Color "black" }
 	{ LineWidth 1 }
 	{ LineStyle Solid }
 	{ FixedName False }
-	{ Font "-*-courier-medium-r-normal--10*" }
+	{ Font "-*-courier-medium-r-normal--8*" }
 	{ TextAlignment Center }
 	{ TextColor "black" }
 	{ NameUnderlined False }
@@ -440,14 +526,14 @@ Line 29
 	{ End1 Empty }
 	{ End2 FilledArrow }
 	{ Points 2 }
-	{ Point 230 220 }
-	{ Point 230 296 }
-	{ NamePosition 216 258 }
+	{ Point 230 228 }
+	{ Point 230 292 }
+	{ NamePosition 216 260 }
 	{ Color "black" }
 	{ LineWidth 1 }
 	{ LineStyle Solid }
 	{ FixedName False }
-	{ Font "-*-courier-medium-r-normal--10*" }
+	{ Font "-*-courier-medium-r-normal--8*" }
 	{ TextAlignment Center }
 	{ TextColor "black" }
 	{ NameUnderlined False }
@@ -463,16 +549,16 @@ Line 30
 	{ End1 Empty }
 	{ End2 FilledArrow }
 	{ Points 4 }
-	{ Point 550 213 }
+	{ Point 550 219 }
 	{ Point 550 280 }
 	{ Point 460 300 }
-	{ Point 320 318 }
-	{ NamePosition 489 286 }
+	{ Point 331 317 }
+	{ NamePosition 479 285 }
 	{ Color "black" }
 	{ LineWidth 1 }
 	{ LineStyle Solid }
 	{ FixedName False }
-	{ Font "-*-courier-medium-r-normal--10*" }
+	{ Font "-*-courier-medium-r-normal--8*" }
 	{ TextAlignment Center }
 	{ TextColor "black" }
 	{ NameUnderlined False }
@@ -488,16 +574,16 @@ Line 31
 	{ End1 Empty }
 	{ End2 FilledArrow }
 	{ Points 4 }
-	{ Point 320 340 }
+	{ Point 331 340 }
 	{ Point 450 340 }
 	{ Point 520 380 }
-	{ Point 520 437 }
-	{ NamePosition 476 368 }
+	{ Point 520 431 }
+	{ NamePosition 465 371 }
 	{ Color "black" }
 	{ LineWidth 1 }
 	{ LineStyle Solid }
 	{ FixedName False }
-	{ Font "-*-courier-medium-r-normal--10*" }
+	{ Font "-*-courier-medium-r-normal--8*" }
 	{ TextAlignment Center }
 	{ TextColor "black" }
 	{ NameUnderlined False }
@@ -513,16 +599,16 @@ Line 32
 	{ End1 Empty }
 	{ End2 FilledArrow }
 	{ Points 4 }
-	{ Point 140 340 }
+	{ Point 129 340 }
 	{ Point 100 340 }
 	{ Point 70 390 }
-	{ Point 70 437 }
-	{ NamePosition 105 386 }
+	{ Point 70 431 }
+	{ NamePosition 118 385 }
 	{ Color "black" }
 	{ LineWidth 1 }
 	{ LineStyle Solid }
 	{ FixedName False }
-	{ Font "-*-courier-medium-r-normal--10*" }
+	{ Font "-*-courier-medium-r-normal--8*" }
 	{ TextAlignment Center }
 	{ TextColor "black" }
 	{ NameUnderlined False }
@@ -538,16 +624,16 @@ Line 33
 	{ End1 Empty }
 	{ End2 FilledArrow }
 	{ Points 4 }
-	{ Point 60 483 }
+	{ Point 60 489 }
 	{ Point 60 560 }
 	{ Point 120 630 }
-	{ Point 224 630 }
-	{ NamePosition 101 581 }
+	{ Point 214 630 }
+	{ NamePosition 116 588 }
 	{ Color "black" }
 	{ LineWidth 1 }
 	{ LineStyle Solid }
 	{ FixedName False }
-	{ Font "-*-courier-medium-r-normal--10*" }
+	{ Font "-*-courier-medium-r-normal--8*" }
 	{ TextAlignment Center }
 	{ TextColor "black" }
 	{ NameUnderlined False }
@@ -563,16 +649,16 @@ Line 34
 	{ End1 Empty }
 	{ End2 FilledArrow }
 	{ Points 4 }
-	{ Point 542 483 }
+	{ Point 540 489 }
 	{ Point 540 550 }
 	{ Point 480 610 }
-	{ Point 396 610 }
-	{ NamePosition 486 577 }
+	{ Point 407 610 }
+	{ NamePosition 497 581 }
 	{ Color "black" }
 	{ LineWidth 1 }
 	{ LineStyle Solid }
 	{ FixedName False }
-	{ Font "-*-courier-medium-r-normal--10*" }
+	{ Font "-*-courier-medium-r-normal--8*" }
 	{ TextAlignment Center }
 	{ TextColor "black" }
 	{ NameUnderlined False }
@@ -588,14 +674,14 @@ Line 35
 	{ End1 Empty }
 	{ End2 FilledArrow }
 	{ Points 2 }
-	{ Point 310 643 }
+	{ Point 310 649 }
 	{ Point 310 700 }
-	{ NamePosition 334 674 }
+	{ NamePosition 329 676 }
 	{ Color "black" }
 	{ LineWidth 1 }
 	{ LineStyle Solid }
 	{ FixedName False }
-	{ Font "-*-courier-medium-r-normal--10*" }
+	{ Font "-*-courier-medium-r-normal--8*" }
 	{ TextAlignment Center }
 	{ TextColor "black" }
 	{ NameUnderlined False }
@@ -611,16 +697,16 @@ Line 38
 	{ End1 Empty }
 	{ End2 FilledArrow }
 	{ Points 4 }
-	{ Point 270 597 }
+	{ Point 270 591 }
 	{ Point 270 550 }
 	{ Point 220 470 }
-	{ Point 148 470 }
-	{ NamePosition 195 507 }
+	{ Point 155 470 }
+	{ NamePosition 197 507 }
 	{ Color "black" }
 	{ LineWidth 1 }
 	{ LineStyle Solid }
 	{ FixedName False }
-	{ Font "-*-courier-medium-r-normal--10*" }
+	{ Font "-*-courier-medium-r-normal--8*" }
 	{ TextAlignment Center }
 	{ TextColor "black" }
 	{ NameUnderlined False }
@@ -636,16 +722,16 @@ Line 39
 	{ End1 Empty }
 	{ End2 FilledArrow }
 	{ Points 4 }
-	{ Point 360 597 }
+	{ Point 360 591 }
 	{ Point 360 540 }
 	{ Point 390 480 }
-	{ Point 444 472 }
-	{ NamePosition 399 536 }
+	{ Point 434 474 }
+	{ NamePosition 404 533 }
 	{ Color "black" }
 	{ LineWidth 1 }
 	{ LineStyle Solid }
 	{ FixedName False }
-	{ Font "-*-courier-medium-r-normal--10*" }
+	{ Font "-*-courier-medium-r-normal--8*" }
 	{ TextAlignment Center }
 	{ TextColor "black" }
 	{ NameUnderlined False }
@@ -655,7 +741,7 @@ TextBox 41
 {
 	{ View 18 }
 	{ Subject 40 }
-	{ Position 180 40 }
+	{ Position 300 40 }
 	{ Size 20 20 }
 	{ Color "black" }
 	{ LineWidth 1 }
@@ -663,7 +749,7 @@ TextBox 41
 	{ FillStyle Unfilled }
 	{ FillColor "white" }
 	{ FixedName False }
-	{ Font "-*-courier-bold-r-normal--10*" }
+	{ Font "-*-courier-bold-r-normal--8*" }
 	{ TextAlignment Left }
 	{ TextColor "black" }
 	{ NameUnderlined False }
@@ -679,16 +765,16 @@ Line 43
 	{ End1 Empty }
 	{ End2 FilledArrow }
 	{ Points 4 }
-	{ Point 580 483 }
+	{ Point 580 489 }
 	{ Point 580 630 }
 	{ Point 430 700 }
 	{ Point 320 709 }
-	{ NamePosition 484 643 }
+	{ NamePosition 485 661 }
 	{ Color "black" }
 	{ LineWidth 1 }
 	{ LineStyle Solid }
 	{ FixedName False }
-	{ Font "-*-courier-medium-r-normal--10*" }
+	{ Font "-*-courier-medium-r-normal--8*" }
 	{ TextAlignment Center }
 	{ TextColor "black" }
 	{ NameUnderlined False }
@@ -704,16 +790,16 @@ Line 46
 	{ End1 Empty }
 	{ End2 FilledArrow }
 	{ Points 4 }
-	{ Point 615 213 }
-	{ Point 720 870 }
+	{ Point 586 219 }
+	{ Point 830 820 }
 	{ Point 190 820 }
-	{ Point 264 643 }
-	{ NamePosition 474 732 }
+	{ Point 293 649 }
+	{ NamePosition 584 630 }
 	{ Color "black" }
 	{ LineWidth 1 }
 	{ LineStyle Solid }
 	{ FixedName False }
-	{ Font "-*-courier-medium-r-normal--10*" }
+	{ Font "-*-courier-medium-r-normal--8*" }
 	{ TextAlignment Center }
 	{ TextColor "black" }
 	{ NameUnderlined False }
@@ -729,16 +815,236 @@ Line 47
 	{ End1 Empty }
 	{ End2 FilledArrow }
 	{ Points 4 }
-	{ Point 241 364 }
+	{ Point 290 368 }
 	{ Point 290 410 }
 	{ Point 310 480 }
-	{ Point 310 597 }
-	{ NamePosition 300 445 }
+	{ Point 310 591 }
+	{ NamePosition 301 462 }
 	{ Color "black" }
 	{ LineWidth 1 }
 	{ LineStyle Solid }
 	{ FixedName False }
-	{ Font "-*-courier-medium-r-normal--10*" }
+	{ Font "-*-courier-medium-r-normal--8*" }
+	{ TextAlignment Center }
+	{ TextColor "black" }
+	{ NameUnderlined False }
+}
+
+BullsEye 58
+{
+	{ View 18 }
+	{ Subject 48 }
+	{ Position 30 230 }
+	{ Size 20 20 }
+	{ Color "black" }
+	{ LineWidth 1 }
+	{ LineStyle Solid }
+	{ FillStyle Unfilled }
+	{ FillColor "white" }
+	{ FixedName True }
+	{ Font "-*-courier-medium-r-normal--8*" }
+	{ TextAlignment Center }
+	{ TextColor "black" }
+	{ NameUnderlined False }
+}
+
+Line 59
+{
+	{ View 18 }
+	{ Subject 52 }
+	{ FromShape 19 }
+	{ ToShape 58 }
+	{ Curved True }
+	{ End1 Empty }
+	{ End2 FilledArrow }
+	{ Points 4 }
+	{ Point 134 170 }
+	{ Point 90 170 }
+	{ Point 50 180 }
+	{ Point 34 221 }
+	{ NamePosition 57 173 }
+	{ Color "black" }
+	{ LineWidth 1 }
+	{ LineStyle Solid }
+	{ FixedName False }
+	{ Font "-*-courier-medium-r-normal--8*" }
+	{ TextAlignment Center }
+	{ TextColor "black" }
+	{ NameUnderlined False }
+}
+
+Line 60
+{
+	{ View 18 }
+	{ Subject 53 }
+	{ FromShape 21 }
+	{ ToShape 58 }
+	{ Curved True }
+	{ End1 Empty }
+	{ End2 FilledArrow }
+	{ Points 4 }
+	{ Point 129 310 }
+	{ Point 70 310 }
+	{ Point 30 280 }
+	{ Point 30 240 }
+	{ NamePosition 49 301 }
+	{ Color "black" }
+	{ LineWidth 1 }
+	{ LineStyle Solid }
+	{ FixedName False }
+	{ Font "-*-courier-medium-r-normal--8*" }
+	{ TextAlignment Center }
+	{ TextColor "black" }
+	{ NameUnderlined False }
+}
+
+BullsEye 61
+{
+	{ View 18 }
+	{ Subject 49 }
+	{ Position 580 90 }
+	{ Size 20 20 }
+	{ Color "black" }
+	{ LineWidth 1 }
+	{ LineStyle Solid }
+	{ FillStyle Unfilled }
+	{ FillColor "white" }
+	{ FixedName True }
+	{ Font "-*-courier-medium-r-normal--8*" }
+	{ TextAlignment Center }
+	{ TextColor "black" }
+	{ NameUnderlined False }
+}
+
+Line 62
+{
+	{ View 18 }
+	{ Subject 54 }
+	{ FromShape 20 }
+	{ ToShape 61 }
+	{ Curved False }
+	{ End1 Empty }
+	{ End2 FilledArrow }
+	{ Points 2 }
+	{ Point 580 161 }
+	{ Point 580 100 }
+	{ NamePosition 579 132 }
+	{ Color "black" }
+	{ LineWidth 1 }
+	{ LineStyle Solid }
+	{ FixedName False }
+	{ Font "-*-courier-medium-r-normal--8*" }
+	{ TextAlignment Center }
+	{ TextColor "black" }
+	{ NameUnderlined False }
+}
+
+BullsEye 63
+{
+	{ View 18 }
+	{ Subject 50 }
+	{ Position 80 690 }
+	{ Size 20 20 }
+	{ Color "black" }
+	{ LineWidth 1 }
+	{ LineStyle Solid }
+	{ FillStyle Unfilled }
+	{ FillColor "white" }
+	{ FixedName True }
+	{ Font "-*-courier-medium-r-normal--8*" }
+	{ TextAlignment Center }
+	{ TextColor "black" }
+	{ NameUnderlined False }
+}
+
+Line 64
+{
+	{ View 18 }
+	{ Subject 55 }
+	{ FromShape 23 }
+	{ ToShape 63 }
+	{ Curved True }
+	{ End1 Empty }
+	{ End2 FilledArrow }
+	{ Points 4 }
+	{ Point 42 489 }
+	{ Point 30 550 }
+	{ Point 30 610 }
+	{ Point 75 682 }
+	{ NamePosition 36 572 }
+	{ Color "black" }
+	{ LineWidth 1 }
+	{ LineStyle Solid }
+	{ FixedName False }
+	{ Font "-*-courier-medium-r-normal--8*" }
+	{ TextAlignment Center }
+	{ TextColor "black" }
+	{ NameUnderlined False }
+}
+
+Line 65
+{
+	{ View 18 }
+	{ Subject 56 }
+	{ FromShape 24 }
+	{ ToShape 63 }
+	{ Curved True }
+	{ End1 Empty }
+	{ End2 FilledArrow }
+	{ Points 4 }
+	{ Point 242 649 }
+	{ Point 220 680 }
+	{ Point 140 700 }
+	{ Point 90 690 }
+	{ NamePosition 159 679 }
+	{ Color "black" }
+	{ LineWidth 1 }
+	{ LineStyle Solid }
+	{ FixedName False }
+	{ Font "-*-courier-medium-r-normal--8*" }
+	{ TextAlignment Center }
+	{ TextColor "black" }
+	{ NameUnderlined False }
+}
+
+BullsEye 66
+{
+	{ View 18 }
+	{ Subject 51 }
+	{ Position 380 400 }
+	{ Size 20 20 }
+	{ Color "black" }
+	{ LineWidth 1 }
+	{ LineStyle Solid }
+	{ FillStyle Unfilled }
+	{ FillColor "white" }
+	{ FixedName True }
+	{ Font "-*-courier-medium-r-normal--8*" }
+	{ TextAlignment Center }
+	{ TextColor "black" }
+	{ NameUnderlined False }
+}
+
+Line 67
+{
+	{ View 18 }
+	{ Subject 57 }
+	{ FromShape 22 }
+	{ ToShape 66 }
+	{ Curved True }
+	{ End1 Empty }
+	{ End2 FilledArrow }
+	{ Points 4 }
+	{ Point 434 444 }
+	{ Point 410 440 }
+	{ Point 390 430 }
+	{ Point 383 409 }
+	{ NamePosition 419 421 }
+	{ Color "black" }
+	{ LineWidth 1 }
+	{ LineStyle Solid }
+	{ FixedName False }
+	{ Font "-*-courier-medium-r-normal--8*" }
 	{ TextAlignment Center }
 	{ TextColor "black" }
 	{ NameUnderlined False }
