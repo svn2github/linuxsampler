@@ -26,8 +26,8 @@
 #include "lscpevent.h"
 //#include "../common/global.h"
 
-#ifdef HAVE_SQLITE3
-#include "sqlite3.h"
+#if HAVE_SQLITE3
+# include "sqlite3.h"
 #endif
 
 #include "../engines/gig/Engine.h"
@@ -1408,7 +1408,7 @@ static int select_callback(void * lscpResultSet, int argc,
 
 String LSCPServer::QueryDatabase(String query) {
     LSCPResultSet result;
-#ifdef HAVE_SQLITE3
+#if HAVE_SQLITE3
     char* zErrMsg = NULL;
     sqlite3 *db;
     String selectStr = "SELECT " + query;
