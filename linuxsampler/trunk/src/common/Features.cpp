@@ -25,6 +25,7 @@
 #if ARCH_X86
 bool Features::bMMX(false);
 bool Features::bSSE(false);
+bool Features::bSSE2(false);
 
 unsigned int edx = 0;
 unsigned int eax_temp = 0;
@@ -48,6 +49,7 @@ void Features::detect() {
                          );
     bMMX = (edx & 0x00800000);
     bSSE = (edx & 0x02000000);
+    bSSE2 = (edx & 0x04000000);
 }
 #else
 void Features::detect() {}

@@ -365,7 +365,10 @@ namespace LinuxSampler { namespace gig {
                           pDimRgn->EG1InfiniteSustain,
                           pDimRgn->EG1Sustain,
                           pDimRgn->EG1Release + eg1release,
-                          Delay);
+                          // the SSE synthesis implementation requires
+                          // the vca start to be 16 byte aligned
+                          SYNTHESIS_MODE_GET_IMPLEMENTATION(SynthesisMode) ?
+                          Delay & 0xfffffffc : Delay);
         }
 
 
@@ -675,7 +678,7 @@ namespace LinuxSampler { namespace gig {
         }
 
         if (SYNTHESIS_MODE_GET_FILTER(SynthesisMode))
-        	CalculateBiquadParameters(Samples); // calculate the final biquad filter parameters
+            CalculateBiquadParameters(Samples); // calculate the final biquad filter parameters
 
         switch (this->PlaybackState) {
 

@@ -35,11 +35,13 @@ class Features {
         #if ARCH_X86
         inline static bool supportsMMX() { return bMMX; }
         inline static bool supportsSSE() { return bSSE; }
+        inline static bool supportsSSE2() { return bSSE2; }
         #endif // ARCH_X86
     private:
         #if ARCH_X86
         static bool bMMX;
         static bool bSSE;
+        static bool bSSE2;
         #endif // ARCH_X86
 };
 

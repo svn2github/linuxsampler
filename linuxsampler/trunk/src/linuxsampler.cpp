@@ -78,15 +78,30 @@ int main(int argc, char **argv) {
 
     if (tune)
     {
-	    // detect and print system / CPU specific features
-	    String sFeatures;
-	    Features::detect();
+        // detect and print system / CPU specific features
+        String sFeatures;
+        Features::detect();
 #if ARCH_X86
-	    if (Features::supportsMMX()) sFeatures += " MMX";
-	    if (Features::supportsSSE()) sFeatures += " SSE";
+        if (Features::supportsMMX()) sFeatures += " MMX";
+        if (Features::supportsSSE()) sFeatures += " SSE";
+        if (Features::supportsSSE2()) {
+            sFeatures += " SSE2";
+
+            // enable denormals-are-zeros mode
+            int x;
+            __asm__ __volatile__ (
+                "stmxcsr %0\n\t"
+                "movl    %0, %%eax\n\t"
+                "orl     $0x40, %%eax\n\t"
+                "movl    %%eax, %0\n\t"
+                "ldmxcsr %0\n\t"
+                :: "m" (x)
+                : "%eax"
+                );
+        }
 #endif // ARCH_X86
-	    if (!sFeatures.size()) sFeatures = " None";
-	    dmsg(1,("Detected features:%s\n",sFeatures.c_str()));
+        if (!sFeatures.size()) sFeatures = " None";
+        dmsg(1,("Detected features:%s\n",sFeatures.c_str()));
     }
 
     // create LinuxSampler instance
@@ -106,10 +121,10 @@ int main(int argc, char **argv) {
 
     if (profile)
     {
-	    dmsg(1,("Calibrating profiler..."));
-	    gig::Profiler::Calibrate();
-	    gig::Profiler::Reset();
-	    dmsg(1,("OK\n"));
+        dmsg(1,("Calibrating profiler..."));
+        gig::Profiler::Calibrate();
+        gig::Profiler::Reset();
+        dmsg(1,("OK\n"));
     }
 
     printf("LinuxSampler initialization completed.\n");
@@ -132,35 +147,35 @@ int main(int argc, char **argv) {
                 fflush(stdout);
             }
         }
-        
+
       sleep(1);
       if (profile)
       {
-	      unsigned int samplingFreq = 48000; //FIXME: hardcoded for now
-	      unsigned int bv = gig::Profiler::GetBogoVoices(samplingFreq);
-	      if (bv != 0)
-	      {
-		      printf("       BogoVoices: %i         \r", bv);
-		      fflush(stdout);
-	      }
+          unsigned int samplingFreq = 48000; //FIXME: hardcoded for now
+          unsigned int bv = gig::Profiler::GetBogoVoices(samplingFreq);
+          if (bv != 0)
+          {
+              printf("       BogoVoices: %i         \r", bv);
+              fflush(stdout);
+          }
       }
-      
+
       if (LSCPServer::EventSubscribers(rtEvents))
       {
-	      LSCPServer::LockRTNotify();
-	      std::map<uint,SamplerChannel*> channels = pSampler->GetSamplerChannels();
-	      std::map<uint,SamplerChannel*>::iterator iter = channels.begin();
-	      for (; iter != channels.end(); iter++) {
-		      SamplerChannel* pSamplerChannel = iter->second;
-                      EngineChannel* pEngineChannel = pSamplerChannel->GetEngineChannel();
-                      if (!pEngineChannel) continue;
-		      Engine* pEngine = pEngineChannel->GetEngine();
-		      if (!pEngine) continue;
-		      LSCPServer::SendLSCPNotify(LSCPEvent(LSCPEvent::event_voice_count, iter->first, pEngine->VoiceCount()));
-		      LSCPServer::SendLSCPNotify(LSCPEvent(LSCPEvent::event_stream_count, iter->first, pEngine->DiskStreamCount()));
-		      LSCPServer::SendLSCPNotify(LSCPEvent(LSCPEvent::event_buffer_fill, iter->first, pEngine->DiskStreamBufferFillPercentage()));
-	      }
-	      LSCPServer::UnlockRTNotify();
+          LSCPServer::LockRTNotify();
+          std::map<uint,SamplerChannel*> channels = pSampler->GetSamplerChannels();
+          std::map<uint,SamplerChannel*>::iterator iter = channels.begin();
+          for (; iter != channels.end(); iter++) {
+              SamplerChannel* pSamplerChannel = iter->second;
+              EngineChannel* pEngineChannel = pSamplerChannel->GetEngineChannel();
+              if (!pEngineChannel) continue;
+              Engine* pEngine = pEngineChannel->GetEngine();
+              if (!pEngine) continue;
+              LSCPServer::SendLSCPNotify(LSCPEvent(LSCPEvent::event_voice_count, iter->first, pEngine->VoiceCount()));
+              LSCPServer::SendLSCPNotify(LSCPEvent(LSCPEvent::event_stream_count, iter->first, pEngine->DiskStreamCount()));
+              LSCPServer::SendLSCPNotify(LSCPEvent(LSCPEvent::event_buffer_fill, iter->first, pEngine->DiskStreamBufferFillPercentage()));
+          }
+          LSCPServer::UnlockRTNotify();
       }
 
     }
@@ -253,10 +268,10 @@ void parse_options(int argc, char **argv) {
                     exit(EXIT_SUCCESS);
                     break;
                 case 2: // --profile
-		    profile = true;
+                    profile = true;
                     break;
                 case 3: // --no-tune
-		    tune = false;
+                    tune = false;
                     break;
                 case 4: // --statistics
                     bPrintStatistics = true;
