@@ -20,8 +20,8 @@
  *   MA  02111-1307  USA                                                   *
  ***************************************************************************/
 
-#ifndef __LS_IO_DEVICE_H__
-#define __LS_IO_DEVICE_H__
+#ifndef __LS_DEVICE_H__
+#define __LS_DEVICE_H__
 
 #include <map>
 #include <vector>
@@ -32,10 +32,13 @@
 
 namespace LinuxSampler {
 
-    class InputOutputDevice {
+    /**
+     * Abstract base class for all kind of drivers in LinuxSampler.
+     */
+    class Device {
         public:
     };
 
 } // namespace LinuxSampler
 
-#endif // __LS_IO_DEVICE_H__
+#endif // __DEVICE_H__

@@ -24,6 +24,7 @@
 #include <signal.h>
 
 #include "Sampler.h"
+#include "drivers/midi/MidiInputDeviceFactory.h"
 #include "drivers/audio/AudioOutputDeviceFactory.h"
 #include "network/lscpserver.h"
 
@@ -76,12 +77,15 @@ int main(int argc, char **argv) {
         return EXIT_FAILURE;
     }*/
 
+    dmsg(1,("LinuxSampler %s\n", VERSION));
+    dmsg(1,("Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck\n"));
 
     // create LinuxSampler instance
     dmsg(1,("Creating Sampler..."));
     pSampler = new Sampler;
     dmsg(1,("OK\n"));
 
+    dmsg(1,("Registered MIDI input drivers: %s\n", MidiInputDeviceFactory::AvailableDriversAsString().c_str()));
     dmsg(1,("Registered audio output drivers: %s\n", AudioOutputDeviceFactory::AvailableDriversAsString().c_str()));
 
     // create an audio output device
@@ -113,7 +117,7 @@ int main(int argc, char **argv) {
     dmsg(1,("OK\n"));*/
 
     // start LSCP network server
-    dmsg(1,("Starting network server..."));
+    dmsg(1,("Starting LSCP network server..."));
     pLSCPServer = new LSCPServer(pSampler);
     pLSCPServer->StartThread();
     dmsg(1,("OK\n"));

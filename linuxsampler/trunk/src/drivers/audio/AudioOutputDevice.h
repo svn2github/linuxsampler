@@ -30,7 +30,7 @@
 
 #include "../../common/global.h"
 #include "../../common/LinuxSamplerException.h"
-#include "../InputOutputDevice.h"
+#include "../Device.h"
 #include "../DeviceParameter.h"
 #include "../../engines/common/Engine.h"
 #include "AudioChannel.h"
@@ -46,7 +46,7 @@ namespace LinuxSampler {
      * connection to a specific audio output system (e.g. Alsa, Jack,
      * CoreAudio).
      */
-    class AudioOutputDevice : public InputOutputDevice {
+    class AudioOutputDevice : public Device {
         public:
 
             /////////////////////////////////////////////////////////////////

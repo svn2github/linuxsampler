@@ -29,7 +29,7 @@
 #include "../common/global.h"
 #include "../common/optional.h"
 #include "../common/LinuxSamplerException.h"
-#include "InputOutputDevice.h"
+#include "Device.h"
 
 namespace LinuxSampler {
 
@@ -164,9 +164,9 @@ namespace LinuxSampler {
             virtual optional<String>                          RangeMax(std::map<String,String> Parameters) = 0;
             virtual optional<String>                          Possibilities();
             virtual optional<String>                          Possibilities(std::map<String,String> Parameters) = 0;
-	    void                                              Attach(InputOutputDevice* pDevice) { this->pDevice = pDevice; }
+	    void                                              Attach(Device* pDevice) { this->pDevice = pDevice; }
 	protected:
-	    InputOutputDevice*       pDevice;
+	    Device* pDevice;
     };
 
     class DeviceCreationParameterBool : public DeviceCreationParameter {

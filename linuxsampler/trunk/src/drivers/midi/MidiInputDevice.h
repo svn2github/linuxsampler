@@ -47,7 +47,7 @@ namespace LinuxSampler {
      * occured. The dispatch* methods here will automatically forward the
      * MIDI event to the appropriate, connected sampler engines.
      */
-    class MidiInputDevice : public InputOutputDevice {
+    class MidiInputDevice : public Device {
         public:
 
             /////////////////////////////////////////////////////////////////
