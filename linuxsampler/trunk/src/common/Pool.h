@@ -35,8 +35,11 @@
 #if USE_EXCEPTIONS
 # include <stdexcept>
 # include <string>
-const std::string __err_msg_iterator_invalidated = "Pool/RTList iterator invalidated";
 #endif // USE_EXCEPTIONS
+
+#if DEVMODE
+const std::string __err_msg_iterator_invalidated = "Pool/RTList iterator invalidated";
+#endif
 
 // just symbol prototyping
 template<typename T> class Pool;
@@ -79,12 +82,15 @@ class RTListBase {
 
                 /// prefix increment op.
                 inline _Iterator& operator++() {
-                    #if DEVMODE
-                    #if USE_EXCEPTIONS
-                    if (!isValid()) throw std::runtime_error(__err_msg_iterator_invalidated);
-                    #else
-                    if (!isValid()) return *(_Iterator*)NULL; // force segfault if iterator became invalidated
-                    #endif // USE_EXCEPTIONS
+                    #if DEVMODE                    
+                    if (!isValid()) {
+                        #if USE_EXCEPTIONS
+                        throw std::runtime_error(__err_msg_iterator_invalidated);
+                        #else
+                        std::cerr << __err_msg_iterator_invalidated << std::endl << std::flush;
+                        return *(_Iterator*)NULL; // force segfault if iterator became invalidated
+                        #endif // USE_EXCEPTIONS
+                    }
                     #endif // DEVMODE
                     fallback = current;
                     current  = current->next;
@@ -94,18 +100,21 @@ class RTListBase {
                 /// postfix increment op.
                 inline _Iterator operator++(int) {
                     _Iterator preval = *this;
-                    ++*this;
+                    ++*this; // use prefix operator implementation
                     return preval;
                 }
 
                 /// prefix decrement op.
                 inline _Iterator& operator--() {
-                    #if DEVMODE
-                    #if USE_EXCEPTIONS
-                    if (!isValid()) throw std::runtime_error(__err_msg_iterator_invalidated);
-                    #else
-                    if (!isValid()) return *(_Iterator*)NULL; // force segfault if iterator became invalidated
-                    #endif // USE_EXCEPTIONS
+                    #if DEVMODE                    
+                    if (!isValid()) {
+                        #if USE_EXCEPTIONS
+                        throw std::runtime_error(__err_msg_iterator_invalidated);
+                        #else
+                        std::cerr << __err_msg_iterator_invalidated << std::endl << std::flush;
+                        return *(_Iterator*)NULL; // force segfault if iterator became invalidated
+                        #endif // USE_EXCEPTIONS
+                    }                    
                     #endif // DEVMODE
                     fallback = current;
                     current  = current->prev;
@@ -115,34 +124,37 @@ class RTListBase {
                 /// postfix decrement op.
                 inline _Iterator operator--(int) {
                     _Iterator preval = *this;
-                    --*this;
+                    --*this; // use prefix operator implementation
                     return preval;
                 }
 
                 inline T1& operator*() {
-                    #if DEVMODE
-                    #if USE_EXCEPTIONS
-                    if (isValid()) return *current->data;
-                    else throw std::runtime_error(__err_msg_iterator_invalidated);
-                    #else
-                    return *(isValid() ? current->data : (T1*)NULL); // force segfault if iterator became invalidated
-                    #endif // USE_EXCEPTIONS
-                    #else
-                    return *current->data;
+                    #if DEVMODE                    
+                    if (!isValid()) { // if iterator became invalidated
+                        #if USE_EXCEPTIONS
+                        throw std::runtime_error(__err_msg_iterator_invalidated);
+                        #else
+                        std::cerr << __err_msg_iterator_invalidated << std::endl << std::flush;
+                        return *((T1*)NULL); // force segfault if iterator became invalidated
+                        #endif // USE_EXCEPTIONS
+                    }
                     #endif // DEVMODE
+                    return *current->data;
+                    
                 }
 
                 inline T1* operator->() {
                     #if DEVMODE
-                    #if USE_EXCEPTIONS
-                    if (isValid()) return current->data;
-                    else throw std::runtime_error(__err_msg_iterator_invalidated);
-                    #else
-                    return isValid() ? current->data : (T1*)NULL; // force segfault if iterator became invalidated
-                    #endif // USE_EXCEPTIONS
-                    #else
-                    return current->data;
+                    if (!isValid()) { // if iterator became invalidated
+                        #if USE_EXCEPTIONS
+                        throw std::runtime_error(__err_msg_iterator_invalidated);
+                        #else
+                        std::cerr << __err_msg_iterator_invalidated << std::endl << std::flush;
+                        return (T1*)NULL; // force segfault if iterator became invalidated
+                        #endif // USE_EXCEPTIONS
+                    }
                     #endif // DEVMODE
+                    return current->data;                    
                 }
 
                 inline bool operator==(const _Iterator<T1> other) {
