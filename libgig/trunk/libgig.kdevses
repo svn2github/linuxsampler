@@ -1,28 +1,7 @@
 <?xml version = '1.0' encoding = 'UTF-8'?>
 <!DOCTYPE KDevPrjSession>
 <KDevPrjSession>
- <DocsAndViews NumberOfDocuments="4" >
-  <Doc0 NumberOfViews="1" URL="file:/home/cuse/libgig/src/RIFF.h" >
-   <View0 line="210" Type="???" >
-    <AdditionalSettings/>
-   </View0>
-  </Doc0>
-  <Doc1 NumberOfViews="1" URL="file:/home/cuse/libgig/src/RIFF.cpp" >
-   <View0 line="754" Type="???" >
-    <AdditionalSettings/>
-   </View0>
-  </Doc1>
-  <Doc2 NumberOfViews="1" URL="file:/home/cuse/libgig/src/DLS.h" >
-   <View0 line="0" Type="???" >
-    <AdditionalSettings/>
-   </View0>
-  </Doc2>
-  <Doc3 NumberOfViews="1" URL="file:/home/cuse/libgig/src/gig.cpp" >
-   <View0 line="476" Type="???" >
-    <AdditionalSettings/>
-   </View0>
-  </Doc3>
- </DocsAndViews>
+ <DocsAndViews NumberOfDocuments="0" />
  <pluginList>
   <kdevbookmarks>
    <bookmarks/>

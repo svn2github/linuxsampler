@@ -1,7 +1,3 @@
-Portability:
-  - finish endian dependent macros and structures
-  - test library on non intel machines
-
 DLS Part:
   - support for conditional chunks
   - check for ZSTR terminated strings in DLS::Info::LoadString()

@@ -1,24 +1,19 @@
-bin_PROGRAMS = rifftree gigdump dlsdump gigextract
-
 # set the include path found by configure
 INCLUDES= $(all_includes)
 
 # to prevent compile errors on some systems
 AM_CXXFLAGS = -pedantic
 
-# the library search path.
-rifftree_SOURCES =  rifftree.cpp
-lib_LIBRARIES =  libgig.a
-libgig_a_SOURCES = RIFF.cpp RIFF.h DLS.cpp DLS.h gig.cpp gig.h
-rifftree_LDADD = $(top_builddir)/src/libgig.a
-gigdump_SOURCES =  gigdump.cpp
-gigdump_LDADD = $(top_builddir)/src/libgig.a
+pkglib_LTLIBRARIES = libgig.la
+libgig_la_SOURCES = RIFF.cpp RIFF.h DLS.cpp DLS.h gig.cpp gig.h
+libgig_la_LDFLAGS = -module
 
-
-dlsdump_SOURCES =  dlsdump.cpp
-dlsdump_LDADD = $(top_builddir)/src/libgig.a
-
-
-applnkApplicationdir = $(kde_appsdir)/Application
-gigextract_SOURCES =  gigextract.cpp
-gigextract_LDADD = $(top_builddir)/src/libgig.a -ldl
+bin_PROGRAMS = rifftree dlsdump gigdump gigextract
+rifftree_SOURCES = rifftree.cpp
+rifftree_LDADD = $(top_builddir)/src/libgig.la
+dlsdump_SOURCES = dlsdump.cpp
+dlsdump_LDADD = $(top_builddir)/src/libgig.la
+gigdump_SOURCES = gigdump.cpp
+gigdump_LDADD = $(top_builddir)/src/libgig.la
+gigextract_SOURCES = gigextract.cpp
+gigextract_LDADD = $(top_builddir)/src/libgig.la -ldl

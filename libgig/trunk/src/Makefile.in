@@ -91,7 +91,6 @@ VERSION = @VERSION@
 am__include = @am__include@
 am__quote = @am__quote@
 install_sh = @install_sh@
-bin_PROGRAMS = rifftree gigdump dlsdump gigextract
 
 # set the include path found by configure
 INCLUDES = $(all_includes)
@@ -99,49 +98,47 @@ INCLUDES = $(all_includes)
 # to prevent compile errors on some systems
 AM_CXXFLAGS = -pedantic
 
-# the library search path.
+pkglib_LTLIBRARIES = libgig.la
+libgig_la_SOURCES = RIFF.cpp RIFF.h DLS.cpp DLS.h gig.cpp gig.h
+libgig_la_LDFLAGS = -module
+
+bin_PROGRAMS = rifftree dlsdump gigdump gigextract
 rifftree_SOURCES = rifftree.cpp
-lib_LIBRARIES = libgig.a
-libgig_a_SOURCES = RIFF.cpp RIFF.h DLS.cpp DLS.h gig.cpp gig.h
-rifftree_LDADD = $(top_builddir)/src/libgig.a
-gigdump_SOURCES = gigdump.cpp
-gigdump_LDADD = $(top_builddir)/src/libgig.a
-
+rifftree_LDADD = $(top_builddir)/src/libgig.la
 dlsdump_SOURCES = dlsdump.cpp
-dlsdump_LDADD = $(top_builddir)/src/libgig.a
-
-applnkApplicationdir = $(kde_appsdir)/Application
+dlsdump_LDADD = $(top_builddir)/src/libgig.la
+gigdump_SOURCES = gigdump.cpp
+gigdump_LDADD = $(top_builddir)/src/libgig.la
 gigextract_SOURCES = gigextract.cpp
-gigextract_LDADD = $(top_builddir)/src/libgig.a -ldl
+gigextract_LDADD = $(top_builddir)/src/libgig.la -ldl
 subdir = src
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
 CONFIG_HEADER = $(top_builddir)/config.h
 CONFIG_CLEAN_FILES =
-LIBRARIES = $(lib_LIBRARIES)
+LTLIBRARIES = $(pkglib_LTLIBRARIES)
 
-libgig_a_AR = $(AR) cru
-libgig_a_LIBADD =
-am_libgig_a_OBJECTS = RIFF.$(OBJEXT) DLS.$(OBJEXT) gig.$(OBJEXT)
-libgig_a_OBJECTS = $(am_libgig_a_OBJECTS)
-bin_PROGRAMS = rifftree$(EXEEXT) gigdump$(EXEEXT) dlsdump$(EXEEXT) \
+libgig_la_LIBADD =
+am_libgig_la_OBJECTS = RIFF.lo DLS.lo gig.lo
+libgig_la_OBJECTS = $(am_libgig_la_OBJECTS)
+bin_PROGRAMS = rifftree$(EXEEXT) dlsdump$(EXEEXT) gigdump$(EXEEXT) \
 	gigextract$(EXEEXT)
 PROGRAMS = $(bin_PROGRAMS)
 
 am_dlsdump_OBJECTS = dlsdump.$(OBJEXT)
 dlsdump_OBJECTS = $(am_dlsdump_OBJECTS)
-dlsdump_DEPENDENCIES = $(top_builddir)/src/libgig.a
+dlsdump_DEPENDENCIES = $(top_builddir)/src/libgig.la
 dlsdump_LDFLAGS =
 am_gigdump_OBJECTS = gigdump.$(OBJEXT)
 gigdump_OBJECTS = $(am_gigdump_OBJECTS)
-gigdump_DEPENDENCIES = $(top_builddir)/src/libgig.a
+gigdump_DEPENDENCIES = $(top_builddir)/src/libgig.la
 gigdump_LDFLAGS =
 am_gigextract_OBJECTS = gigextract.$(OBJEXT)
 gigextract_OBJECTS = $(am_gigextract_OBJECTS)
-gigextract_DEPENDENCIES = $(top_builddir)/src/libgig.a
+gigextract_DEPENDENCIES = $(top_builddir)/src/libgig.la
 gigextract_LDFLAGS =
 am_rifftree_OBJECTS = rifftree.$(OBJEXT)
 rifftree_OBJECTS = $(am_rifftree_OBJECTS)
-rifftree_DEPENDENCIES = $(top_builddir)/src/libgig.a
+rifftree_DEPENDENCIES = $(top_builddir)/src/libgig.la
 rifftree_LDFLAGS =
 
 DEFS = @DEFS@
@@ -151,8 +148,8 @@ LDFLAGS = @LDFLAGS@
 LIBS = @LIBS@
 depcomp = $(SHELL) $(top_srcdir)/depcomp
 am__depfiles_maybe = depfiles
-@AMDEP_TRUE@DEP_FILES = ./$(DEPDIR)/DLS.Po ./$(DEPDIR)/RIFF.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/dlsdump.Po ./$(DEPDIR)/gig.Po \
+@AMDEP_TRUE@DEP_FILES = ./$(DEPDIR)/DLS.Plo ./$(DEPDIR)/RIFF.Plo \
+@AMDEP_TRUE@	./$(DEPDIR)/dlsdump.Po ./$(DEPDIR)/gig.Plo \
 @AMDEP_TRUE@	./$(DEPDIR)/gigdump.Po ./$(DEPDIR)/gigextract.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/rifftree.Po
 CXXCOMPILE = $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
@@ -172,10 +169,10 @@ LTCOMPILE = $(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) \
 CCLD = $(CC)
 LINK = $(LIBTOOL) --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
 	$(AM_LDFLAGS) $(LDFLAGS) -o $@
-DIST_SOURCES = $(libgig_a_SOURCES) $(dlsdump_SOURCES) $(gigdump_SOURCES) \
-	$(gigextract_SOURCES) $(rifftree_SOURCES)
+DIST_SOURCES = $(libgig_la_SOURCES) $(dlsdump_SOURCES) \
+	$(gigdump_SOURCES) $(gigextract_SOURCES) $(rifftree_SOURCES)
 DIST_COMMON = Makefile.am Makefile.in
-SOURCES = $(libgig_a_SOURCES) $(dlsdump_SOURCES) $(gigdump_SOURCES) $(gigextract_SOURCES) $(rifftree_SOURCES)
+SOURCES = $(libgig_la_SOURCES) $(dlsdump_SOURCES) $(gigdump_SOURCES) $(gigextract_SOURCES) $(rifftree_SOURCES)
 
 all: all-am
 
@@ -186,40 +183,36 @@ $(srcdir)/Makefile.in:  Makefile.am  $(top_srcdir)/configure.in $(ACLOCAL_M4)
 	  $(AUTOMAKE) --gnu  src/Makefile
 Makefile:  $(srcdir)/Makefile.in  $(top_builddir)/config.status
 	cd $(top_builddir) && $(SHELL) ./config.status $(subdir)/$@ $(am__depfiles_maybe)
-libLIBRARIES_INSTALL = $(INSTALL_DATA)
-install-libLIBRARIES: $(lib_LIBRARIES)
+pkglibLTLIBRARIES_INSTALL = $(INSTALL)
+install-pkglibLTLIBRARIES: $(pkglib_LTLIBRARIES)
 	@$(NORMAL_INSTALL)
-	$(mkinstalldirs) $(DESTDIR)$(libdir)
-	@list='$(lib_LIBRARIES)'; for p in $$list; do \
+	$(mkinstalldirs) $(DESTDIR)$(pkglibdir)
+	@list='$(pkglib_LTLIBRARIES)'; for p in $$list; do \
 	  if test -f $$p; then \
 	    f="`echo $$p | sed -e 's|^.*/||'`"; \
-	    echo " $(libLIBRARIES_INSTALL) $$p $(DESTDIR)$(libdir)/$$f"; \
-	    $(libLIBRARIES_INSTALL) $$p $(DESTDIR)$(libdir)/$$f; \
-	  else :; fi; \
-	done
-	@$(POST_INSTALL)
-	@list='$(lib_LIBRARIES)'; for p in $$list; do \
-	  if test -f $$p; then \
-	    p="`echo $$p | sed -e 's|^.*/||'`"; \
-	    echo " $(RANLIB) $(DESTDIR)$(libdir)/$$p"; \
-	    $(RANLIB) $(DESTDIR)$(libdir)/$$p; \
+	    echo " $(LIBTOOL) --mode=install $(pkglibLTLIBRARIES_INSTALL) $(INSTALL_STRIP_FLAG) $$p $(DESTDIR)$(pkglibdir)/$$f"; \
+	    $(LIBTOOL) --mode=install $(pkglibLTLIBRARIES_INSTALL) $(INSTALL_STRIP_FLAG) $$p $(DESTDIR)$(pkglibdir)/$$f; \
 	  else :; fi; \
 	done
 
-uninstall-libLIBRARIES:
+uninstall-pkglibLTLIBRARIES:
 	@$(NORMAL_UNINSTALL)
-	@list='$(lib_LIBRARIES)'; for p in $$list; do \
-	  p="`echo $$p | sed -e 's|^.*/||'`"; \
-	  echo " rm -f $(DESTDIR)$(libdir)/$$p"; \
-	  rm -f $(DESTDIR)$(libdir)/$$p; \
+	@list='$(pkglib_LTLIBRARIES)'; for p in $$list; do \
+	    p="`echo $$p | sed -e 's|^.*/||'`"; \
+	  echo " $(LIBTOOL) --mode=uninstall rm -f $(DESTDIR)$(pkglibdir)/$$p"; \
+	  $(LIBTOOL) --mode=uninstall rm -f $(DESTDIR)$(pkglibdir)/$$p; \
 	done
 
-clean-libLIBRARIES:
-	-test -z "$(lib_LIBRARIES)" || rm -f $(lib_LIBRARIES)
-libgig.a: $(libgig_a_OBJECTS) $(libgig_a_DEPENDENCIES) 
-	-rm -f libgig.a
-	$(libgig_a_AR) libgig.a $(libgig_a_OBJECTS) $(libgig_a_LIBADD)
-	$(RANLIB) libgig.a
+clean-pkglibLTLIBRARIES:
+	-test -z "$(pkglib_LTLIBRARIES)" || rm -f $(pkglib_LTLIBRARIES)
+	@list='$(pkglib_LTLIBRARIES)'; for p in $$list; do \
+	  dir="`echo $$p | sed -e 's|/[^/]*$$||'`"; \
+	  test -z "$dir" && dir=.; \
+	  echo "rm -f \"$${dir}/so_locations\""; \
+	  rm -f "$${dir}/so_locations"; \
+	done
+libgig.la: $(libgig_la_OBJECTS) $(libgig_la_DEPENDENCIES) 
+	$(CXXLINK) -rpath $(pkglibdir) $(libgig_la_LDFLAGS) $(libgig_la_OBJECTS) $(libgig_la_LIBADD) $(LIBS)
 binPROGRAMS_INSTALL = $(INSTALL_PROGRAM)
 install-binPROGRAMS: $(bin_PROGRAMS)
 	@$(NORMAL_INSTALL)
@@ -268,10 +261,10 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/DLS.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/RIFF.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/DLS.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/RIFF.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/dlsdump.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gig.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gig.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gigdump.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gigextract.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/rifftree.Po@am__quote@
@@ -371,10 +364,10 @@ distdir: $(DISTFILES)
 	done
 check-am: all-am
 check: check-am
-all-am: Makefile $(LIBRARIES) $(PROGRAMS)
+all-am: Makefile $(LTLIBRARIES) $(PROGRAMS)
 
 installdirs:
-	$(mkinstalldirs) $(DESTDIR)$(libdir) $(DESTDIR)$(bindir)
+	$(mkinstalldirs) $(DESTDIR)$(pkglibdir) $(DESTDIR)$(bindir)
 
 install: install-am
 install-exec: install-exec-am
@@ -402,8 +395,8 @@ maintainer-clean-generic:
 	@echo "it deletes files that may require special tools to rebuild."
 clean: clean-am
 
-clean-am: clean-binPROGRAMS clean-generic clean-libLIBRARIES \
-	clean-libtool mostlyclean-am
+clean-am: clean-binPROGRAMS clean-generic clean-libtool \
+	clean-pkglibLTLIBRARIES mostlyclean-am
 
 distclean: distclean-am
 
@@ -420,7 +413,7 @@ info-am:
 
 install-data-am:
 
-install-exec-am: install-binPROGRAMS install-libLIBRARIES
+install-exec-am: install-binPROGRAMS install-pkglibLTLIBRARIES
 
 install-info: install-info-am
 
@@ -438,20 +431,20 @@ mostlyclean-am: mostlyclean-compile mostlyclean-generic \
 	mostlyclean-libtool
 
 uninstall-am: uninstall-binPROGRAMS uninstall-info-am \
-	uninstall-libLIBRARIES
+	uninstall-pkglibLTLIBRARIES
 
 .PHONY: GTAGS all all-am check check-am clean clean-binPROGRAMS \
-	clean-generic clean-libLIBRARIES clean-libtool distclean \
+	clean-generic clean-libtool clean-pkglibLTLIBRARIES distclean \
 	distclean-compile distclean-depend distclean-generic \
 	distclean-libtool distclean-tags distdir dvi dvi-am info \
 	info-am install install-am install-binPROGRAMS install-data \
 	install-data-am install-exec install-exec-am install-info \
-	install-info-am install-libLIBRARIES install-man install-strip \
-	installcheck installcheck-am installdirs maintainer-clean \
-	maintainer-clean-generic mostlyclean mostlyclean-compile \
-	mostlyclean-generic mostlyclean-libtool tags uninstall \
-	uninstall-am uninstall-binPROGRAMS uninstall-info-am \
-	uninstall-libLIBRARIES
+	install-info-am install-man install-pkglibLTLIBRARIES \
+	install-strip installcheck installcheck-am installdirs \
+	maintainer-clean maintainer-clean-generic mostlyclean \
+	mostlyclean-compile mostlyclean-generic mostlyclean-libtool \
+	tags uninstall uninstall-am uninstall-binPROGRAMS \
+	uninstall-info-am uninstall-pkglibLTLIBRARIES
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
