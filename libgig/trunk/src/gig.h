@@ -219,7 +219,7 @@ namespace gig {
         dimension_velocity          = 0x82, ///< Key Velocity (this is the only dimension where the ranges can exactly be defined).
         dimension_channelaftertouch = 0x83, ///< Channel Key Pressure
         dimension_releasetrigger    = 0x84, ///< Special dimension for triggering samples on releasing a key.
-        dimension_keyboard          = 0x85, ///< Key Position
+        dimension_keyboard          = 0x85, ///< Dimension for keyswitching
         dimension_modwheel          = 0x01, ///< Modulation Wheel (MIDI Controller 1)
         dimension_breath            = 0x02, ///< Breath Controller (Coarse, MIDI Controller 2)
         dimension_foot              = 0x04, ///< Foot Pedal (Coarse, MIDI Controller 4)
@@ -279,8 +279,7 @@ namespace gig {
      *
      * Note: The default value for crossfade points is 0,0,0,0. Layers with
      * such a default value should be treated as if they would not have a
-     * crossfade, that is the crossfade volume factor should <b>always</b>
-     * be 1.0f for such layers.
+     * crossfade.
      */
     struct crossfade_t {
         #if WORDS_BIGENDIAN
