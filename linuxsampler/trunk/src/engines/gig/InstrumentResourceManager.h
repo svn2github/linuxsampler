@@ -77,6 +77,8 @@ namespace LinuxSampler { namespace gig {
      * in use by any engine anymore, then it will be freed from memory.
      */
     class InstrumentResourceManager : public ResourceManager<instrument_id_t, ::gig::Instrument> {
+		public:
+			virtual ~InstrumentResourceManager() {}
         protected:
             virtual ::gig::Instrument* Create(instrument_id_t Key, InstrumentConsumer* pConsumer, void*& pArg);
             virtual void               Destroy(::gig::Instrument* pResource, void* pArg);
@@ -95,6 +97,8 @@ namespace LinuxSampler { namespace gig {
                     virtual ::gig::File* Create(String Key, GigConsumer* pConsumer, void*& pArg);
                     virtual void         Destroy(::gig::File* pResource, void* pArg);
                     virtual void         OnBorrow(::gig::File* pResource, GigConsumer* pConsumer, void*& pArg) {} // ignore
+				public:
+					virtual ~GigResourceManager() {}
             } Gigs;
 
             void CacheInitialSamples(::gig::Sample* pSample, gig::Engine* pEngine);

@@ -86,6 +86,7 @@ class ResourceManager {
         ResourceMap ResourceEntries;
 
     public:
+		virtual ~ResourceManager() {}
         /**
          * Borrow a resource identified by \a Key. The ResourceManager will
          * mark the resource as in usage by the consumer given with
