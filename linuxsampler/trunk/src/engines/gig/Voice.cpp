@@ -955,19 +955,19 @@ namespace LinuxSampler { namespace gig {
 
             //same as 'pEngine->pBasicFilterParameters[i] = bqbase;'
             bq    = (float*) &pEngine->pBasicFilterParameters[i];
-            bq[0] = bqbase.a1;
-            bq[1] = bqbase.a2;
-            bq[2] = bqbase.b0;
-            bq[3] = bqbase.b1;
-            bq[4] = bqbase.b2;
+            bq[0] = bqbase.b0;
+            bq[1] = bqbase.b1;
+            bq[2] = bqbase.b2;
+            bq[3] = bqbase.a1;
+            bq[4] = bqbase.a2;
 
             // same as 'pEngine->pMainFilterParameters[i] = bqmain;'
             bq    = (float*) &pEngine->pMainFilterParameters[i];
-            bq[0] = bqmain.a1;
-            bq[1] = bqmain.a2;
-            bq[2] = bqmain.b0;
-            bq[3] = bqmain.b1;
-            bq[4] = bqmain.b2;
+            bq[0] = bqmain.b0;
+            bq[1] = bqmain.b1;
+            bq[2] = bqmain.b2;
+            bq[3] = bqmain.a1;
+            bq[4] = bqmain.a2;
         }
     }
 

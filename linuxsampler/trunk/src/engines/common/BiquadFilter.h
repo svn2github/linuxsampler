@@ -44,11 +44,11 @@ namespace LinuxSampler {
      * between multiple filters.
      */
     struct biquad_param_t {
-        bq_t a1;
-        bq_t a2;
         bq_t b0;
         bq_t b1;
         bq_t b2;
+        bq_t a1;
+        bq_t a2;
     };
 
     /**
@@ -58,11 +58,11 @@ namespace LinuxSampler {
     class BiquadFilter {
         protected:
             // following five variables are only used if no external biquad_param_t reference is used
-            bq_t a1;
-            bq_t a2;
             bq_t b0;
             bq_t b1;
             bq_t b2;
+            bq_t a1;
+            bq_t a2;
             // following four variables are used to buffer the feedback
             bq_t x1;
             bq_t x2;
