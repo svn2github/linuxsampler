@@ -57,7 +57,6 @@ class LSCPServer : public Thread {
         LSCPServer(Sampler* pSampler);
 
         // Methods called by the parser
-        String CreateAudioOutputDevice(String Driver, std::map<String,String> Parameters = StringMap());
         String DestroyAudioOutputDevice(uint DeviceIndex);
         String LoadInstrument(String Filename, uint uiInstrument, uint uiSamplerChannel, bool bBackground = false);
         String LoadEngine(String EngineName, uint uiSamplerChannel);
@@ -75,8 +74,10 @@ class LSCPServer : public Thread {
 #ifdef __GNUC__
         typedef std::map<String,String> StringMap; // nasty workaround for a GCC bug (see GCC bug #15980, #57)
         String GetAudioOutputDriverParameterInfo(String Driver, String Parameter, std::map<String,String> DependencyList = StringMap());
+        String CreateAudioOutputDevice(String Driver, std::map<String,String> Parameters = StringMap());
 #else
         String GetAudioOutputDriverParameterInfo(String Driver, String Parameter, std::map<String,String> DependencyList = std::map<String,String>());
+        String CreateAudioOutputDevice(String Driver, std::map<String,String> Parameters = std::map<String,String>());
 #endif // __GNUC__
         String GetAudioOutputDeviceCount();
         String GetAudioOutputDevices();
