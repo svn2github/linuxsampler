@@ -34,4 +34,10 @@ AM_PROG_LIBTOOL
 AC_SUBST(SHLIB_VERSION_ARG)
 AC_SUBST(SHARED_VERSION_INFO)
 
+// check for presence of libsndfile
+PKG_CHECK_MODULES(SNDFILE, sndfile >= 1.0.2, ac_cv_sndfile=1, ac_cv_sndfile=0)
+AC_DEFINE_UNQUOTED([HAVE_SNDFILE],${ac_cv_sndfile}, [Set to 1 if you have libsndfile.])
+AC_SUBST(SNDFILE_CFLAGS)
+AC_SUBST(SNDFILE_LIBS)
+
 AC_OUTPUT(Makefile doc/Makefile man/Makefile src/Makefile libgig.spec gig.pc Doxyfile)

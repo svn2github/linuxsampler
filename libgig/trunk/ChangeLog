@@ -4,6 +4,10 @@ Version CVS HEAD (?)
     - renamed 'libgig.pc.in' -> 'gig.pc.in' and renamed pkg-config lib name
       'libgig' -> 'gig' as it's common practice to omit the 'lib' prefix
 
+  * src/gigextract.cpp:
+    - added support for libsndfile (if libaudiofile and libsndfile are
+      available then libsndfile is preferred)
+
 Version 0.7.1 (2 Jul 2004)
 
   * packaging changes:

@@ -16,4 +16,5 @@ dlsdump_LDADD = $(top_builddir)/src/libgig.la
 gigdump_SOURCES = gigdump.cpp
 gigdump_LDADD = $(top_builddir)/src/libgig.la
 gigextract_SOURCES = gigextract.cpp
-gigextract_LDADD = $(top_builddir)/src/libgig.la -ldl
+gigextract_LDADD = $(top_builddir)/src/libgig.la $(SNDFILE_LIBS) -ldl
+gigextract_CFLAGS = $(SNDFILE_CFLAGS)

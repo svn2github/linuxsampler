@@ -21,8 +21,9 @@ Requirements
     autoconf  2.57
 
   If you want to compile the 'gigextract' application that comes with these
-  sources then you will additionally need to have libaudiofile installed (I
-  used version 0.2.3).
+  sources then you will additionally need to have libaudiofile (>= 0.2.3)
+  or libsndfile (>= 1.0.2) installed. Note: for Windows systems only
+  libsndfile is available.
 
 Non-POSIX systems
 =================
@@ -45,8 +46,8 @@ Compiling
 
   b) Creating Debian packages
 
-  Use 'make -f Makefile.cvs && dpkg-buildpackage -rfakeroot' to compile and
-  create the Debian packages. This will generate 3 Debian packages:
+  Use 'make -f Makefile.cvs && dpkg-buildpackage -rfakeroot -b' to compile
+  and create the Debian packages. This will generate 3 Debian packages:
 
     libgig:      Contains the shared library files.
     libgig-dev:  Contains the header files and documentation for building

@@ -39,13 +39,26 @@
 
 #include <iostream>
 #include <cstdlib>
+#include <string.h>
 #include <stdlib.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <dirent.h>
 #include <errno.h>
 #include <dlfcn.h>
-#include <audiofile.h>
+
+// only libsndfile is available for Windows, so we use that for writing the sound files
+#ifdef WIN32
+# define HAVE_SNDFILE 1
+#endif // WIN32
+
+// we prefer libsndfile before libaudiofile
+#if HAVE_SNDFILE
+# include <sndfile.h>
+#else
+# include <audiofile.h>
+#endif // HAVE_SNDFILE
+
 #include "gig.h"
 
 using namespace std;
@@ -56,6 +69,9 @@ OrderMap* pOrderedSamples = NULL;
 void PrintUsage();
 void ExtractSamples(gig::File* gig, char* destdir, OrderMap* ordered);
 int writeWav(const char* filename, void* samples, long samplecount, int channels, int bitdepth, long rate);
+string ToString(int i);
+
+#ifndef HAVE_SNDFILE
 void* hAFlib; // handle to libaudiofile
 void openAFlib(void);
 void closeAFlib(void);
@@ -69,7 +85,7 @@ void(*_afInitRate)(AFfilesetup,int,double);
 int(*_afWriteFrames)(AFfilehandle,int,const void*,int);
 AFfilehandle(*_afOpenFile)(const char*,const char*,AFfilesetup);
 int(*_afCloseFile)(AFfilehandle file);
-string ToString(int i);
+#endif // !HAVE_SNDFILE
 
 int main(int argc, char *argv[]) {
     if (argc < 3) {
@@ -133,8 +149,10 @@ int main(int argc, char *argv[]) {
 }
 
 void ExtractSamples(gig::File* gig, char* destdir, OrderMap* ordered) {
+#ifndef HAVE_SNDFILE
     hAFlib = NULL;
     openAFlib();
+#endif // !HAVE_SNDFILE
     uint8_t* pWave  = NULL;
     long BufferSize = 0;
     int samples     = 0;
@@ -226,10 +244,53 @@ void ExtractSamples(gig::File* gig, char* destdir, OrderMap* ordered) {
         pSample = gig->GetNextSample();
     }
     if (pWave) delete[] (uint8_t*) pWave;
+#ifndef HAVE_SNDFILE
     closeAFlib();
+#endif // !HAVE_SNDFILE
 }
 
 int writeWav(const char* filename, void* samples, long samplecount, int channels, int bitdepth, long rate) {
+#if HAVE_SNDFILE
+    SNDFILE* hfile;
+    SF_INFO  sfinfo;
+    int format = SF_FORMAT_WAV;
+    switch (bitdepth) {
+        case 8:
+            format |= SF_FORMAT_PCM_S8;
+            cout << "8 bit" << endl << flush;
+            break;
+        case 16:
+            format |= SF_FORMAT_PCM_16;
+            cout << "16 bit" << endl << flush;
+            break;
+        case 24:
+            format |= SF_FORMAT_PCM_24;
+            cout << "24 bit" << endl << flush;
+            break;
+        case 32:
+            format |= SF_FORMAT_PCM_32;
+            cout << "32 bit" << endl << flush;
+            break;
+        default:
+            cerr << "Error: Bithdepth " << ToString(bitdepth) << " not supported by libsndfile, ignoring sample!\n" << flush;
+            return -1;
+    }
+    memset(&sfinfo, 0, sizeof (sfinfo));
+    sfinfo.samplerate = rate;
+    sfinfo.frames     = samplecount;
+    sfinfo.channels   = channels;
+    sfinfo.format     = format;
+    if (!(hfile = sf_open(filename, SFM_WRITE, &sfinfo))) {
+        cerr << "Error: Unable to open output file \'" << filename << "\'.\n" << flush;
+        return -1;
+    }
+    if (sf_write_short(hfile, (short*)samples, channels * samplecount) != channels * samplecount) {
+        cerr << sf_strerror(hfile) << endl << flush;
+        sf_close(hfile);
+        return -1;
+    }
+    sf_close(hfile);
+#else
     AFfilesetup setup = _afNewFileSetup();
     _afInitFileFormat(setup, AF_FILE_WAVE);
     _afInitChannels(setup, AF_DEFAULT_TRACK, channels);
@@ -241,10 +302,12 @@ int writeWav(const char* filename, void* samples, long samplecount, int channels
     if (_afWriteFrames(hFile, AF_DEFAULT_TRACK, samples, samplecount) < 0) return -1;
     _afCloseFile(hFile);
     _afFreeFileSetup(setup);
+#endif // HAVE_SNDFILE
 
-    return 0;
+    return 0; // success
 }
 
+#ifndef HAVE_SNDFILE
 void openAFlib() {
     hAFlib = dlopen("libaudiofile.so", RTLD_NOW);
     if (!hAFlib) {
@@ -266,6 +329,7 @@ void openAFlib() {
 void closeAFlib() {
     if (hAFlib) dlclose(hAFlib);
 }
+#endif // !HAVE_SNDFILE
 
 void PrintUsage() {
     cout << "gigextract - extracts samples from a Gigasampler file." << endl;
