@@ -122,12 +122,12 @@ Schoenebeck'>
             referred in this document as "sampler channels". The channels
             are in such way virtual as they can be connected to an
             arbitrary MIDI input method and arbitrary MIDI channel (e.g.
-            sampler channel 17 could be connected to an Alsa sequencer
+            sampler channel 17 could be connected to an ALSA sequencer
             device 64:0 and listening to MIDI channel 1 there). Each sampler
             engine will be assigned an own instance of one of the available
             sampler engines (e.g. GigEngine, DLSEngine). The audio output of
             each sampler channel can be routed to an arbitrary audio output
-            method (Alsa / Jack) and an arbitrary audio output channel
+            method (ALSA / JACK) and an arbitrary audio output channel
             there.</t>
         </section>
 
@@ -390,11 +390,11 @@ Schoenebeck'>
             <section title="Configuring audio drivers">
                 <t>Instances of drivers in LinuxSampler are called devices.
                 You can use multiple audio devices simultaneously, e.g. to
-                output the sound of one sampler channel using the Alsa audio
+                output the sound of one sampler channel using the ALSA audio
                 output driver, and on another sampler channel you might want
-                to use the Jack audio output driver. For particular audio
+                to use the JACK audio output driver. For particular audio
                 output systems it's also possible to create several devices
-                of the same audio output driver, e.g. two separate Alsa
+                of the same audio output driver, e.g. two separate ALSA
                 audio output devices for using two different sound cards at
                 the same time. This chapter describes all commands to
                 configure LinuxSampler's audio output devices and their
@@ -440,7 +440,7 @@ Schoenebeck'>
                     <t>
                         <list>
                             <t>C: "GET AVAILABLE_AUDIO_OUTPUT_DRIVERS"</t>
-                            <t>S: "Alsa,Jack"</t>
+                            <t>S: "ALSA,JACK"</t>
                         </list>
                     </t>
                 </section>
@@ -506,13 +506,13 @@ Schoenebeck'>
                     <t>Example:</t>
                     <t>
                       <list>
-                          <t>C: "GET AUDIO_OUTPUT_DRIVER INFO Alsa"</t>
+                          <t>C: "GET AUDIO_OUTPUT_DRIVER INFO ALSA"</t>
                           <t>S: "DESCRIPTION: Advanced Linux Sound
                           Architecture"</t>
                           <t>&nbsp;&nbsp;&nbsp;"VERSION: 1.0"</t>
                           <t>&nbsp;&nbsp;&nbsp;"PARAMETERS:
-                          driver,channels,samplerate,active,fragments,
-                          fragmentsize,card"</t>
+                          DRIVER,CHANNELS,SAMPLERATE,ACTIVE,FRAGMENTS,
+                          FRAGMENTSIZE,CARD"</t>
                           <t>&nbsp;&nbsp;&nbsp;"."</t>
                       </list>
                     </t>
@@ -606,7 +606,7 @@ Schoenebeck'>
                                 on, means the values for fields 'DEFAULT', 'RANGE_MIN',
                                 'RANGE_MAX' and 'POSSIBILITIES' might depend on these
                                 listed parameters, for example assuming that an audio
-                                driver (like the Alsa driver) offers parameters 'card'
+                                driver (like the ALSA driver) offers parameters 'card'
                                 and 'samplerate' then parameter 'samplerate' would
                                 depend on 'card' because the possible values for
                                 'samplerate' depends on the sound card which can be
@@ -663,7 +663,7 @@ Schoenebeck'>
                     <t>Examples:</t>
                     <t>
                         <list>
-                            <t>C: "GET AUDIO_OUTPUT_DRIVER_PARAMETER INFO Alsa card"</t>
+                            <t>C: "GET AUDIO_OUTPUT_DRIVER_PARAMETER INFO ALSA CARD"</t>
                             <t>S: "DESCRIPTION: sound card to be used"</t>
                             <t>&nbsp;&nbsp;&nbsp;"TYPE: STRING"</t>
                             <t>&nbsp;&nbsp;&nbsp;"MANDATORY: false"</t>
@@ -676,7 +676,7 @@ Schoenebeck'>
                     </t>
                     <t>
                         <list>
-                            <t>C: "GET AUDIO_OUTPUT_DRIVER_PARAMETER INFO Alsa samplerate"</t>
+                            <t>C: "GET AUDIO_OUTPUT_DRIVER_PARAMETER INFO ALSA SAMPLERATE"</t>
                             <t>S: "DESCRIPTION: output sample rate in Hz"</t>
                             <t>&nbsp;&nbsp;&nbsp;"TYPE: INT"</t>
                             <t>&nbsp;&nbsp;&nbsp;"MANDATORY: false"</t>
@@ -689,7 +689,7 @@ Schoenebeck'>
                     </t>
                     <t>
                         <list>
-                            <t>C: "GET AUDIO_OUTPUT_DRIVER_PARAMETER INFO Alsa samplerate card='0,0'"</t>
+                            <t>C: "GET AUDIO_OUTPUT_DRIVER_PARAMETER INFO ALSA SAMPLERATE CARD='0,0'"</t>
                             <t>S: "DESCRIPTION: output sample rate in Hz"</t>
                             <t>&nbsp;&nbsp;&nbsp;"TYPE: INT"</t>
                             <t>&nbsp;&nbsp;&nbsp;"MANDATORY: false"</t>
@@ -750,13 +750,13 @@ Schoenebeck'>
                     <t>Examples:</t>
                     <t>
                         <list>
-                            <t>C: "CREATE AUDIO_OUTPUT_DEVICE Alsa"</t>
+                            <t>C: "CREATE AUDIO_OUTPUT_DEVICE ALSA"</t>
                             <t>S: "OK[0]"</t>
                         </list>
                     </t>
                     <t>
                         <list>
-                            <t>C: "CREATE AUDIO_OUTPUT_DEVICE Alsa card='2,0' samplerate=96000"</t>
+                            <t>C: "CREATE AUDIO_OUTPUT_DEVICE ALSA CARD='2,0' SAMPLERATE=96000"</t>
                             <t>S: "OK[1]"</t>
                         </list>
                     </t>
@@ -872,25 +872,25 @@ Schoenebeck'>
                     information categories are defined (independently of device):</t>
                     <t>
                         <list>
-                            <t>driver -
+                            <t>DRIVER -
                                 <list>
                                     <t>identifier of the used audio output driver, as also
                                     returned by the "GET AVAILABLE_AUDIO_OUTPUT_DRIVERS"
                                     command</t>
                                 </list>
                             </t>
-                            <t>channels -
+                            <t>CHANNELS -
                                 <list>
                                     <t>amount of audio output channels this device currently
                                     offers</t>
                                 </list>
                             </t>
-                            <t>samplerate -
+                            <t>SAMPLERATE -
                                 <list>
                                     <t>playback sample rate the device uses</t>
                                 </list>
                             </t>
-                            <t>active -
+                            <t>ACTIVE -
                                 <list>
                                     <t>either true or false, if false then the audio device is
                                     inactive and doesn't output any sound, nor do the
@@ -910,13 +910,13 @@ Schoenebeck'>
                     <t>
                         <list>
                             <t>C: "GET AUDIO_OUTPUT_DEVICE INFO 0"</t>
-                            <t>S: "driver: Alsa"</t>
-                            <t>&nbsp;&nbsp;&nbsp;"channels: 2"</t>
-                            <t>&nbsp;&nbsp;&nbsp;"samplerate: 44100"</t>
-                            <t>&nbsp;&nbsp;&nbsp;"active: true"</t>
-                            <t>&nbsp;&nbsp;&nbsp;"fragments: 2"</t>
-                            <t>&nbsp;&nbsp;&nbsp;"fragmentsize: 128"</t>
-                            <t>&nbsp;&nbsp;&nbsp;"card: '0,0'"</t>
+                            <t>S: "DRIVER: ALSA"</t>
+                            <t>&nbsp;&nbsp;&nbsp;"CHANNELS: 2"</t>
+                            <t>&nbsp;&nbsp;&nbsp;"SAMPLERATE: 44100"</t>
+                            <t>&nbsp;&nbsp;&nbsp;"ACTIVE: true"</t>
+                            <t>&nbsp;&nbsp;&nbsp;"FRAGMENTS: 2"</t>
+                            <t>&nbsp;&nbsp;&nbsp;"FRAGMENTSIZE: 128"</t>
+                            <t>&nbsp;&nbsp;&nbsp;"CARD: '0,0'"</t>
                             <t>&nbsp;&nbsp;&nbsp;"."</t>
                         </list>
                     </t>
@@ -959,7 +959,7 @@ Schoenebeck'>
                     <t>Example:</t>
                     <t>
                         <list>
-                            <t>C: "SET AUDIO_OUTPUT_DEVICE_PARAMETER 0 fragmentsize=128"</t>
+                            <t>C: "SET AUDIO_OUTPUT_DEVICE_PARAMETER 0 FRAGMENTSIZE=128"</t>
                             <t>S: "OK"</t>
                         </list>
                     </t>
@@ -1056,7 +1056,7 @@ Schoenebeck'>
                             <t>C: "GET AUDIO_OUTPUT_CHANNEL INFO 1 0"</t>
                             <t>S: "NAME: 'ardour (left)'"</t>
                             <t>&nbsp;&nbsp;&nbsp;"IS_MIX_CHANNEL: false"</t>
-                            <t>&nbsp;&nbsp;&nbsp;"jack_bindings: 'ardour:0'"</t>
+                            <t>&nbsp;&nbsp;&nbsp;"JACK_BINDINGS: 'ardour:0'"</t>
                             <t>&nbsp;&nbsp;&nbsp;"."</t>
                         </list>
                     </t>
@@ -1154,8 +1154,8 @@ Schoenebeck'>
                     <t>Example:</t>
                     <t>
                         <list>
-                            <t>C: "GET AUDIO_OUTPUT_CHANNEL_PARAMETER INFO 1 0 jack_bindings"</t>
-                            <t>S: "DESCRIPTION: bindings to other Jack clients"</t>
+                            <t>C: "GET AUDIO_OUTPUT_CHANNEL_PARAMETER INFO 1 0 JACK_BINDINGS"</t>
+                            <t>S: "DESCRIPTION: bindings to other JACK clients"</t>
                             <t>&nbsp;&nbsp;&nbsp;"TYPE: STRING"</t>
                             <t>&nbsp;&nbsp;&nbsp;"FIX: false"</t>
                             <t>&nbsp;&nbsp;&nbsp;"MULTIPLICITY: true"</t>
@@ -1201,7 +1201,7 @@ Schoenebeck'>
                     <t>Example:</t>
                     <t>
                         <list>
-                            <t>C: "SET AUDIO_OUTPUT_CHANNEL PARAMETER 0 0 jack_bindings='PCM:0'"</t>
+                            <t>C: "SET AUDIO_OUTPUT_CHANNEL PARAMETER 0 0 JACK_BINDINGS='PCM:0'"</t>
                             <t>S: "OK"</t>
                         </list>
                     </t>
@@ -1217,7 +1217,7 @@ Schoenebeck'>
             <section title="Configuring MIDI input drivers">
                 <t>Instances of drivers in LinuxSampler are called devices. You can use
                 multiple MIDI devices simultaneously, e.g. to use MIDI over ethernet as
-                MIDI input on one sampler channel and Alsa as MIDI input on another sampler
+                MIDI input on one sampler channel and ALSA as MIDI input on another sampler
                 channel. For particular MIDI input systems it's also possible to create
                 several devices of the same MIDI input type. This chapter describes all
                 commands to configure LinuxSampler's MIDI input devices and their parameters.</t>
@@ -1260,7 +1260,7 @@ Schoenebeck'>
                     <t>
                         <list>
                             <t>C: "GET AVAILABLE_MIDI_INPUT_DRIVERS"</t>
-                            <t>S: "Alsa,Jack"</t>
+                            <t>S: "ALSA,JACK"</t>
                         </list>
                     </t>
                 </section>
@@ -1310,10 +1310,10 @@ Schoenebeck'>
 
                     <t>
                         <list>
-                            <t>C: "GET MIDI_INPUT_DRIVER INFO Alsa"</t>
+                            <t>C: "GET MIDI_INPUT_DRIVER INFO ALSA"</t>
                             <t>S: "DESCRIPTION: Advanced Linux Sound Architecture"</t>
                             <t>&nbsp;&nbsp;&nbsp;"VERSION: 1.0"</t>
-                            <t>&nbsp;&nbsp;&nbsp;"PARAMETERS: driver,active"</t>
+                            <t>&nbsp;&nbsp;&nbsp;"PARAMETERS: DRIVER,ACTIVE"</t>
                             <t>&nbsp;&nbsp;&nbsp;"."</t>
                         </list>
                     </t>
@@ -1400,7 +1400,7 @@ Schoenebeck'>
                                 on, means the values for fields 'DEFAULT', 'RANGE_MIN',
                                 'RANGE_MAX' and 'POSSIBILITIES' might depend on these
                                 listed parameters, for example assuming that an audio
-                                driver (like the Alsa driver) offers parameters 'card'
+                                driver (like the ALSA driver) offers parameters 'card'
                                 and 'samplerate' then parameter 'samplerate' would
                                 depend on 'card' because the possible values for
                                 'samplerate' depends on the sound card which can be
@@ -1457,7 +1457,7 @@ Schoenebeck'>
                     <t>Example:</t>
                     <t>
                         <list>
-                            <t>C: "GET MIDI_INPUT_DRIVER_PARAMETER INFO Alsa active"</t>
+                            <t>C: "GET MIDI_INPUT_DRIVER_PARAMETER INFO ALSA ACTIVE"</t>
                             <t>S: "DESCRIPTION: Whether device is enabled"</t>
                             <t>&nbsp;&nbsp;&nbsp;"TYPE: BOOL"</t>
                             <t>&nbsp;&nbsp;&nbsp;"MANDATORY: false"</t>
@@ -1511,7 +1511,7 @@ Schoenebeck'>
                     <t>Example:</t>
                     <t>
                         <list>
-                            <t>C: "CREATE MIDI_INPUT_DEVICE Alsa"</t>
+                            <t>C: "CREATE MIDI_INPUT_DEVICE ALSA"</t>
                             <t>S: "OK[0]"</t>
                         </list>
                     </t>
@@ -1663,8 +1663,8 @@ Schoenebeck'>
                     <t>
                         <list>
                             <t>C: "GET MIDI_INPUT_DEVICE INFO 0"</t>
-                            <t>S: "driver: Alsa"</t>
-                            <t>&nbsp;&nbsp;&nbsp;"active: true"</t>
+                            <t>S: "DRIVER: ALSA"</t>
+                            <t>&nbsp;&nbsp;&nbsp;"ACTIVE: true"</t>
                             <t>&nbsp;&nbsp;&nbsp;"."</t>
                         </list>
                     </t>
@@ -1748,8 +1748,8 @@ Schoenebeck'>
                     <t>
                         <list>
                             <t>C: "GET MIDI_INPUT_PORT INFO 0 0"</t>
-                            <t>S: "name: 'Masterkeyboard'"</t>
-                            <t>&nbsp;&nbsp;&nbsp;"alsa_seq_bindings: '64:0'"</t>
+                            <t>S: "NAME: 'Masterkeyboard'"</t>
+                            <t>&nbsp;&nbsp;&nbsp;"ALSA_SEQ_BINDINGS: '64:0'"</t>
                             <t>&nbsp;&nbsp;&nbsp;"."</t>
                         </list>
                     </t>
@@ -1846,9 +1846,9 @@ Schoenebeck'>
                     <t>Example:</t>
                     <t>
                         <list>
-                            <t>C: "GET MIDI_INPUT_PORT_PARAMETER INFO 0 0 alsa_seq_bindings"</t>
-                            <t>S: "DESCRIPTION: bindings to other Alsa sequencer clients"</t>
-                            <t>"TYPE: STRING"</t>
+                            <t>C: "GET MIDI_INPUT_PORT_PARAMETER INFO 0 0 ALSA_SEQ_BINDINGS"</t>
+                            <t>S: "DESCRIPTION: bindings to other ALSA sequencer clients"</t>
+                            <t>&nbsp;&nbsp;&nbsp;"TYPE: STRING"</t>
                             <t>&nbsp;&nbsp;&nbsp;"FIX: false"</t>
                             <t>&nbsp;&nbsp;&nbsp;"MULTIPLICITY: true"</t>
                             <t>&nbsp;&nbsp;&nbsp;"POSSIBILITES: '64:0','68:0','68:1'"</t>
@@ -2500,7 +2500,7 @@ Schoenebeck'>
                             <t>SET CHANNEL AUDIO_OUTPUT_TYPE &lt;sampler-channel&gt; &lt;audio-output-type&gt;</t>
                         </list>
                     </t>
-                    <t>Where &lt;audio-output-type&gt; is currently either "Alsa" or "Jack" and
+                    <t>Where &lt;audio-output-type&gt; is currently either "ALSA" or "JACK" and
                     &lt;sampler-channel&gt; is the respective sampler channel number.</t>
 
                     <t>Possible Answers:</t>
@@ -2626,7 +2626,7 @@ Schoenebeck'>
                             <t>SET CHANNEL MIDI_INPUT_TYPE &lt;sampler-channel&gt; &lt;midi-input-type&gt;</t>
                         </list>
                     </t>
-                    <t>Where &lt;midi-input-type&gt; is currently only "Alsa" and
+                    <t>Where &lt;midi-input-type&gt; is currently only "ALSA" and
                     &lt;sampler-channel&gt; is the respective sampler channel number.</t>
 
                     <t>Possible Answers:</t>
