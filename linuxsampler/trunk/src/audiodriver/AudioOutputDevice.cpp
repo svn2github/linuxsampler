@@ -37,8 +37,9 @@ namespace LinuxSampler {
     AudioOutputDevice::~AudioOutputDevice() {
         std::map<String,DeviceCreationParameter*>::iterator iter = Parameters.begin();
         while (iter != Parameters.end()) {
-            delete iter->second;
             Parameters.erase(iter);
+            delete iter->second;
+	    iter++;
         }
     }
 

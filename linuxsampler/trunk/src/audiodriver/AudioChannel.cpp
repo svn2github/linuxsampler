@@ -86,7 +86,7 @@ namespace LinuxSampler {
      */
     AudioChannel::~AudioChannel() {
         std::map<String,DeviceRuntimeParameter*>::iterator iter = mParameters.begin();
-        while (iter != mParameters.end()) delete iter->second;
+        while (iter != mParameters.end()) { delete iter->second; iter++; }
         if (!UsesExternalBuffer)          delete[] pBuffer;
     }
 
