@@ -1,42 +1,47 @@
 <?xml version = '1.0' encoding = 'UTF-8'?>
 <!DOCTYPE KDevPrjSession>
 <KDevPrjSession>
- <DocsAndViews NumberOfDocuments="7" >
-  <Doc0 NumberOfViews="1" URL="file:/home/cuse/CVS/linuxsampler/src/linuxsampler.cpp" >
-   <View0 line="221" Type="???" >
+ <DocsAndViews NumberOfDocuments="8" >
+  <Doc0 NumberOfViews="1" URL="file:/home/cuse/CVS/linuxsampler/src/modulationsystem.h" >
+   <View0 line="52" Type="???" >
     <AdditionalSettings/>
    </View0>
   </Doc0>
-  <Doc1 NumberOfViews="1" URL="file:/home/cuse/CVS/linuxsampler/src/voice.cpp" >
-   <View0 line="103" Type="???" >
+  <Doc1 NumberOfViews="1" URL="file:/home/cuse/CVS/linuxsampler/src/voice.h" >
+   <View0 line="23" Type="???" >
     <AdditionalSettings/>
    </View0>
   </Doc1>
-  <Doc2 NumberOfViews="1" URL="file:/home/cuse/CVS/linuxsampler/src/voice.h" >
-   <View0 line="70" Type="???" >
+  <Doc2 NumberOfViews="1" URL="file:/home/cuse/CVS/linuxsampler/src/voice.cpp" >
+   <View0 line="105" Type="???" >
     <AdditionalSettings/>
    </View0>
   </Doc2>
-  <Doc3 NumberOfViews="1" URL="file:/home/cuse/CVS/linuxsampler/src/audioio.cpp" >
-   <View0 line="181" Type="???" >
+  <Doc3 NumberOfViews="1" URL="file:/home/cuse/CVS/linuxsampler/src/modulationsystem.cpp" >
+   <View0 line="54" Type="???" >
     <AdditionalSettings/>
    </View0>
   </Doc3>
-  <Doc4 NumberOfViews="1" URL="file:/home/cuse/CVS/linuxsampler/src/audioio.h" >
-   <View0 line="37" Type="???" >
+  <Doc4 NumberOfViews="1" URL="file:/home/cuse/CVS/linuxsampler/src/audiothread.cpp" >
+   <View0 line="327" Type="???" >
     <AdditionalSettings/>
    </View0>
   </Doc4>
-  <Doc5 NumberOfViews="1" URL="file:/home/cuse/CVS/linuxsampler/src/audiothread.cpp" >
-   <View0 line="306" Type="???" >
+  <Doc5 NumberOfViews="1" URL="file:/home/cuse/CVS/linuxsampler/src/audiothread.h" >
+   <View0 line="75" Type="???" >
     <AdditionalSettings/>
    </View0>
   </Doc5>
-  <Doc6 NumberOfViews="1" URL="file:/home/cuse/CVS/linuxsampler/src/rtelmemorypool.h" >
-   <View0 line="0" Type="???" >
+  <Doc6 NumberOfViews="1" URL="file:/home/cuse/CVS/linuxsampler/src/eg_vca.cpp" >
+   <View0 line="31" Type="???" >
     <AdditionalSettings/>
    </View0>
   </Doc6>
+  <Doc7 NumberOfViews="1" URL="file:/home/cuse/CVS/linuxsampler/src/eg_vca.h" >
+   <View0 line="31" Type="???" >
+    <AdditionalSettings/>
+   </View0>
+  </Doc7>
  </DocsAndViews>
  <pluginList>
   <kdevbookmarks>

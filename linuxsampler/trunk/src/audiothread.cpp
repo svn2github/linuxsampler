@@ -65,6 +65,9 @@ AudioThread::AudioThread(AudioIO* pAudioIO, DiskThread* pDiskThread, gig::Instru
         pRgn = this->pInstrument->GetNextRegion();
     }
 
+    // initialize modulation system
+    ModulationSystem::Initialize(pAudioIO->Samplerate, pAudioIO->FragmentSize);
+
     // sustain pedal value
     PrevHoldCCValue = 0;
     SustainPedal    = 0;
@@ -73,6 +76,7 @@ AudioThread::AudioThread(AudioIO* pAudioIO, DiskThread* pDiskThread, gig::Instru
 }
 
 AudioThread::~AudioThread() {
+    ModulationSystem::Close();
     if (pCommandQueue) delete pCommandQueue;
     if (pVoices) {
         for (uint i = 0; i < MAX_AUDIO_VOICES; i++) {
@@ -120,7 +124,7 @@ int AudioThread::Main() {
                 pVoices[i]->RenderAudio();
                 if (pVoices[i]->IsActive()) active_voices++; // still active
                 else { // voice reached end, is now inactive
-                    ReleaseVoice(pVoices[i]); // remove voice from the list of active voices
+                    KillVoice(pVoices[i]); // remove voice from the list of active voices
                 }
             }
         }
@@ -242,24 +246,25 @@ void AudioThread::ProcessNoteOff(uint8_t MIDIKey, uint8_t Velocity) {
         Voice** pVoicePtr = pmidikey->pActiveVoices->first();
         while (pVoicePtr) {
             Voice** pVoicePtrNext = pMIDIKeyInfo[MIDIKey].pActiveVoices->next();
-            ReleaseVoice(*pVoicePtr);
+            (*pVoicePtr)->Release();
             pVoicePtr = pVoicePtrNext;
         }
     }
 }
 
 /**
- *  Releases the voice given with pVoice (no matter if sustain is pressed or
- *  not). This method will e.g. be directly called if a voice went inactive
- *  by itself. If sustain pedal is pressed the method takes care to free
- *  those sustain informations of the voice.
+ *  Immediately kills the voice given with pVoice (no matter if sustain is
+ *  pressed or not) and removes it from the MIDI key's list of active voice.
+ *  This method will e.g. be called if a voice went inactive by itself. If
+ *  sustain pedal is pressed the method takes care to free those sustain
+ *  informations of the voice.
  */
-void AudioThread::ReleaseVoice(Voice* pVoice) {
+void AudioThread::KillVoice(Voice* pVoice) {
     if (pVoice) {
-        if (pVoice->IsActive()) pVoice->Kill(); //TODO: for now we're rude and just kill the poor, poor voice immediately :), later we add a Release() method to the Voice class and call it here to let the voice go through it's release phase
+        if (pVoice->IsActive()) pVoice->Kill();
 
         if (pMIDIKeyInfo[pVoice->MIDIKey].Sustained) {
-            // check if the sustain pointer has to be moved, now that we release the voice
+            // check if the sustain pointer has to be moved, now that we kill the voice
             RTEList<Voice*>::NodeHandle hSustainPtr = pMIDIKeyInfo[pVoice->MIDIKey].hSustainPtr;
             if (hSustainPtr) {
                 Voice** pVoicePtr = pMIDIKeyInfo[pVoice->MIDIKey].pActiveVoices->set_current(hSustainPtr);
@@ -311,11 +316,16 @@ void AudioThread::ProcessControlChange(uint8_t Channel, uint8_t Number, uint8_t 
                     while (pVoicePtr) {
                         Voice** pVoicePtrNext = pMIDIKeyInfo[*key].pActiveVoices->next();
                         dmsg(3,("Sustain CC: releasing voice on midi key %d\n", *key));
-                        ReleaseVoice(*pVoicePtr);
+                        (*pVoicePtr)->Release();
                         pVoicePtr = pVoicePtrNext;
                     }
                 }
+                SustainedKeyPool->free(pMIDIKeyInfo[*key].pSustainPoolNode);
+                pMIDIKeyInfo[*key].pSustainPoolNode = NULL;
+                pMIDIKeyInfo[*key].Sustained   = false;
+                pMIDIKeyInfo[*key].hSustainPtr = NULL;
             }
+            //SustainedKeyPool->empty();
         }
         PrevHoldCCValue = Value;
     }

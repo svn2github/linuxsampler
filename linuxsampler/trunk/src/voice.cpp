@@ -101,10 +101,14 @@ int Voice::Trigger(int MIDIKey, uint8_t Velocity, gig::Instrument* Instrument) {
         dmsg(4,("RAM only voice launched (Looping: %s)\n", (RAMLoop) ? "yes" : "no"));
     }
 
-    // Pitch according to keyboard position (if keyrange > 1 key)
-    CurrentPitch = (pRegion->KeyRange.high != pRegion->KeyRange.low) ?
-                           pow(2, (double) (MIDIKey - (int) pSample->MIDIUnityNote) / (double) 12) : 1.0;
-    Volume       = pDimRgn->GetVelocityAttenuation(Velocity);
+
+    // Pitch according to keyboard position (if 'PitchTrack' is set)
+    CurrentPitch = (pDimRgn->PitchTrack) ? pow(2, ((double) (MIDIKey - (int) pDimRgn->UnityNote) + (double) pDimRgn->FineTune / 100.0) / 12.0)
+                                         : pow(2, ((double) pDimRgn->FineTune / 100.0) / 12.0);
+
+    Volume = pDimRgn->GetVelocityAttenuation(Velocity);
+
+    EG1.Trigger(pDimRgn->EG1PreAttack, pDimRgn->EG1Attack, pDimRgn->EG1Release);
 
     // ************************************************
     // TODO: ARTICULATION DATA HANDLING IS MISSING HERE
@@ -123,6 +127,11 @@ int Voice::Trigger(int MIDIKey, uint8_t Velocity, gig::Instrument* Instrument) {
  *  call.
  */
 void Voice::RenderAudio() {
+
+    // Let all modulators throw their parameter changes for the current audio fragment
+    ModulationSystem::ResetDestinationParameter(ModulationSystem::destination_vca, this->Volume);
+    EG1.ProcessFragment();
+
 
     switch (this->PlaybackState) {
 
@@ -172,6 +181,9 @@ void Voice::RenderAudio() {
             Kill(); // free voice
             break;
     }
+
+    // If release stage finished, let the voice be killed
+    if (EG1.GetStage() == EG_VCA::stage_end) this->PlaybackState = playback_state_end;
 }
 
 /**
@@ -180,22 +192,18 @@ void Voice::RenderAudio() {
  *  @param pSrc - pointer to input sample data
  */
 void Voice::Interpolate(sample_t* pSrc) {
-    float effective_volume = this->Volume;
-    int   i = 0;
-
-    // ************************************************
-    // TODO: ARTICULATION DATA HANDLING IS MISSING HERE
-    // ************************************************
+    int i = 0;
+    float e = 1.0;
 
     // FIXME: assuming either mono or stereo
     if (this->pSample->Channels == 2) { // Stereo Sample
         while (i < this->OutputBufferSize) {
-            InterpolateOneStep_Stereo(pSrc, i, effective_volume);
+            InterpolateOneStep_Stereo(pSrc, i, ModulationSystem::pDestinationParameter[ModulationSystem::destination_vca][i>>1]);
         }
     }
     else { // Mono Sample
         while (i < this->OutputBufferSize) {
-            InterpolateOneStep_Mono(pSrc, i, effective_volume);
+            InterpolateOneStep_Mono(pSrc, i, ModulationSystem::pDestinationParameter[ModulationSystem::destination_vca][i>>1]);
         }
     }
 }
@@ -206,19 +214,14 @@ void Voice::Interpolate(sample_t* pSrc) {
  *  @param pSrc - pointer to input sample data
  */
 void Voice::InterpolateAndLoop(sample_t* pSrc) {
-    float effective_volume = this->Volume;
-    int   i = 0;
-
-    // ************************************************
-    // TODO: ARTICULATION DATA HANDLING IS MISSING HERE
-    // ************************************************
+    int i = 0;
 
     // FIXME: assuming either mono or stereo
     if (pSample->Channels == 2) { // Stereo Sample
         if (pSample->LoopPlayCount) {
             // render loop (loop count limited)
             while (i < OutputBufferSize && LoopCyclesLeft) {
-                InterpolateOneStep_Stereo(pSrc, i, effective_volume);
+                InterpolateOneStep_Stereo(pSrc, i, ModulationSystem::pDestinationParameter[ModulationSystem::destination_vca][i>>1]);
                 if (Pos > pSample->LoopEnd) {
                     Pos = pSample->LoopStart + fmod(Pos - pSample->LoopEnd, pSample->LoopSize);;
                     LoopCyclesLeft--;
@@ -226,12 +229,12 @@ void Voice::InterpolateAndLoop(sample_t* pSrc) {
             }
             // render on without loop
             while (i < OutputBufferSize) {
-                InterpolateOneStep_Stereo(pSrc, i, effective_volume);
+                InterpolateOneStep_Stereo(pSrc, i, ModulationSystem::pDestinationParameter[ModulationSystem::destination_vca][i>>1]);
             }
         }
         else { // render loop (endless loop)
             while (i < OutputBufferSize) {
-                InterpolateOneStep_Stereo(pSrc, i, effective_volume);
+                InterpolateOneStep_Stereo(pSrc, i, ModulationSystem::pDestinationParameter[ModulationSystem::destination_vca][i>>1]);
                 if (Pos > pSample->LoopEnd) {
                     Pos = pSample->LoopStart + fmod(Pos - pSample->LoopEnd, pSample->LoopSize);
                 }
@@ -242,7 +245,7 @@ void Voice::InterpolateAndLoop(sample_t* pSrc) {
         if (pSample->LoopPlayCount) {
             // render loop (loop count limited)
             while (i < OutputBufferSize && LoopCyclesLeft) {
-                InterpolateOneStep_Mono(pSrc, i, effective_volume);
+                InterpolateOneStep_Mono(pSrc, i, ModulationSystem::pDestinationParameter[ModulationSystem::destination_vca][i>>1]);
                 if (Pos > pSample->LoopEnd) {
                     Pos = pSample->LoopStart + fmod(Pos - pSample->LoopEnd, pSample->LoopSize);;
                     LoopCyclesLeft--;
@@ -250,12 +253,12 @@ void Voice::InterpolateAndLoop(sample_t* pSrc) {
             }
             // render on without loop
             while (i < OutputBufferSize) {
-                InterpolateOneStep_Mono(pSrc, i, effective_volume);
+                InterpolateOneStep_Mono(pSrc, i, ModulationSystem::pDestinationParameter[ModulationSystem::destination_vca][i>>1]);
             }
         }
         else { // render loop (endless loop)
             while (i < OutputBufferSize) {
-                InterpolateOneStep_Mono(pSrc, i, effective_volume);
+                InterpolateOneStep_Mono(pSrc, i, ModulationSystem::pDestinationParameter[ModulationSystem::destination_vca][i>>1]);
                 if (Pos > pSample->LoopEnd) {
                     Pos = pSample->LoopStart + fmod(Pos - pSample->LoopEnd, pSample->LoopSize);;
                 }
@@ -276,4 +279,12 @@ void Voice::Kill() {
     DiskStreamRef.State   = Stream::state_unused;
     DiskStreamRef.OrderID = 0;
     Active = false;
+}
+
+/**
+ *  Release the voice in an appropriate time range, the voice will go through
+ *  it's release stage before it will be killed.
+ */
+void Voice::Release() {
+   EG1.Release();
 }

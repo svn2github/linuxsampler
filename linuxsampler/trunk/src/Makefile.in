@@ -96,7 +96,7 @@ am__include = @am__include@
 am__quote = @am__quote@
 install_sh = @install_sh@
 bin_PROGRAMS = linuxsampler
-linuxsampler_SOURCES = linuxsampler.cpp audioio.cpp audioio.h audiothread.cpp audiothread.h diskthread.cpp diskthread.h global.cpp global.h midiin.cpp midiin.h ringbuffer.h stream.cpp stream.h thread.cpp thread.h voice.cpp voice.h rtelmemorypool.h atomic.h
+linuxsampler_SOURCES = linuxsampler.cpp audioio.cpp audioio.h audiothread.cpp audiothread.h diskthread.cpp diskthread.h global.cpp global.h midiin.cpp midiin.h ringbuffer.h stream.cpp stream.h thread.cpp thread.h voice.cpp voice.h rtelmemorypool.h atomic.h modulationsystem.cpp eg_vca.cpp
 
 # set the include path found by configure
 INCLUDES = $(all_includes)
@@ -109,6 +109,7 @@ linuxsampler_LDFLAGS = $(all_libraries)
 lib_LIBRARIES = libgig.a
 libgig_a_SOURCES = DLS.cpp DLS.h gig.cpp gig.h RIFF.cpp RIFF.h
 linuxsampler_LDADD = $(top_builddir)/src/libgig.a -lpthread -lasound
+noinst_HEADERS = modulationsystem.h eg_vca.h
 subdir = src
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
 CONFIG_HEADER = $(top_builddir)/config.h
@@ -125,7 +126,7 @@ PROGRAMS = $(bin_PROGRAMS)
 am_linuxsampler_OBJECTS = linuxsampler.$(OBJEXT) audioio.$(OBJEXT) \
 	audiothread.$(OBJEXT) diskthread.$(OBJEXT) global.$(OBJEXT) \
 	midiin.$(OBJEXT) stream.$(OBJEXT) thread.$(OBJEXT) \
-	voice.$(OBJEXT)
+	voice.$(OBJEXT) modulationsystem.$(OBJEXT) eg_vca.$(OBJEXT)
 linuxsampler_OBJECTS = $(am_linuxsampler_OBJECTS)
 linuxsampler_DEPENDENCIES = $(top_builddir)/src/libgig.a
 
@@ -138,10 +139,12 @@ depcomp = $(SHELL) $(top_srcdir)/depcomp
 am__depfiles_maybe = depfiles
 @AMDEP_TRUE@DEP_FILES = ./$(DEPDIR)/DLS.Po ./$(DEPDIR)/RIFF.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/audioio.Po ./$(DEPDIR)/audiothread.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/diskthread.Po ./$(DEPDIR)/gig.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/global.Po ./$(DEPDIR)/linuxsampler.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/midiin.Po ./$(DEPDIR)/stream.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/thread.Po ./$(DEPDIR)/voice.Po
+@AMDEP_TRUE@	./$(DEPDIR)/diskthread.Po ./$(DEPDIR)/eg_vca.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/gig.Po ./$(DEPDIR)/global.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/linuxsampler.Po ./$(DEPDIR)/midiin.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/modulationsystem.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/stream.Po ./$(DEPDIR)/thread.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/voice.Po
 CXXCOMPILE = $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
 	$(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS)
 LTCXXCOMPILE = $(LIBTOOL) --mode=compile $(CXX) $(DEFS) \
@@ -160,7 +163,9 @@ CCLD = $(CC)
 LINK = $(LIBTOOL) --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
 	$(AM_LDFLAGS) $(LDFLAGS) -o $@
 DIST_SOURCES = $(libgig_a_SOURCES) $(linuxsampler_SOURCES)
-DIST_COMMON = Makefile.am Makefile.in
+HEADERS = $(noinst_HEADERS)
+
+DIST_COMMON = $(noinst_HEADERS) Makefile.am Makefile.in
 SOURCES = $(libgig_a_SOURCES) $(linuxsampler_SOURCES)
 
 all: all-am
@@ -250,10 +255,12 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/audioio.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/audiothread.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/diskthread.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/eg_vca.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gig.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/global.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/linuxsampler.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/midiin.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/modulationsystem.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/stream.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/thread.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/voice.Po@am__quote@
@@ -353,7 +360,7 @@ distdir: $(DISTFILES)
 	done
 check-am: all-am
 check: check-am
-all-am: Makefile $(LIBRARIES) $(PROGRAMS)
+all-am: Makefile $(LIBRARIES) $(PROGRAMS) $(HEADERS)
 
 installdirs:
 	$(mkinstalldirs) $(DESTDIR)$(libdir) $(DESTDIR)$(bindir)

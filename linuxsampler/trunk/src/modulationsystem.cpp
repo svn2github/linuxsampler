@@ -20,28 +20,35 @@
  *   MA  02111-1307  USA                                                   *
  ***************************************************************************/
 
-// All application global declarations are defined here.
+#include "modulationsystem.h"
 
-#ifndef __GLOBAL_H__
-#define __GLOBAL_H__
+float** ModulationSystem::pDestinationParameter = NULL;
+uint    ModulationSystem::SampleRate;
+uint    ModulationSystem::FragmentSize;
 
-#include <stdlib.h>
-#include <stdint.h>
-#include <stdio.h>
+void ModulationSystem::Initialize(uint SampleRate, uint FragmentSize) {
+    ModulationSystem::FragmentSize = FragmentSize;
+    ModulationSystem::SampleRate   = SampleRate;
+    if (!pDestinationParameter) {
+        pDestinationParameter    = new float*[destination_count];
+        pDestinationParameter[0] = new float[destination_count * FragmentSize];
+        for (int i = 1; i < destination_count; i++) {
+            pDestinationParameter[i] = pDestinationParameter[i - 1] + FragmentSize;
+        }
+    }
+}
 
-#ifdef HAVE_CONFIG_H
-#  include <config.h>
-#endif
+void ModulationSystem::Close() {
+    if (pDestinationParameter) {
+        delete[] ModulationSystem::pDestinationParameter[0];
+        delete[] ModulationSystem::pDestinationParameter;
+    }
+}
 
-#define LS_DEBUG_LEVEL	1  ///< the higher this value the higher verbosity, 0 means no debug messages at all
-
-#if LS_DEBUG_LEVEL > 0
-#  define dmsg(debuglevel,x)	if (LS_DEBUG_LEVEL >= debuglevel) {printf x; fflush(stdout);}
-#else
-#  define dmsg(debuglevel,x)
-#endif // LS_DEBUG
-
-// defines globally the bit depth of used samples
-typedef int16_t sample_t;
-
-#endif // __GLOBAL_H__
+/**
+ * Initialize the parameter sequence for the modulation destination given by
+ * by 'dst' with the constant value given by val.
+ */
+void ModulationSystem::ResetDestinationParameter(ModulationSystem::destination_t dst, float val) {
+    for (int i = 0; i < FragmentSize; i++) pDestinationParameter[dst][i] = val;
+}

@@ -20,28 +20,50 @@
  *   MA  02111-1307  USA                                                   *
  ***************************************************************************/
 
-// All application global declarations are defined here.
+#ifndef __EG_VCA_H__
+#define __EG_VCA_H__
 
-#ifndef __GLOBAL_H__
-#define __GLOBAL_H__
+#include <math.h>
 
-#include <stdlib.h>
-#include <stdint.h>
-#include <stdio.h>
+#include "global.h"
+#include "modulationsystem.h"
 
-#ifdef HAVE_CONFIG_H
-#  include <config.h>
-#endif
+#define EG_ENVELOPE_LIMIT	0.001
+#define EG_MIN_RELEASE_TIME	0.005
 
-#define LS_DEBUG_LEVEL	1  ///< the higher this value the higher verbosity, 0 means no debug messages at all
+/**
+ * VCA Envelope Generator
+ *
+ * This EG controls volume attenuation.
+ */
+class EG_VCA {
+    public:
+        enum stage_t {
+            stage_attack,
+            stage_sustain,
+            stage_release,
+            stage_end
+        };
 
-#if LS_DEBUG_LEVEL > 0
-#  define dmsg(debuglevel,x)	if (LS_DEBUG_LEVEL >= debuglevel) {printf x; fflush(stdout);}
-#else
-#  define dmsg(debuglevel,x)
-#endif // LS_DEBUG
+        static const double Limit;
 
-// defines globally the bit depth of used samples
-typedef int16_t sample_t;
+        EG_VCA();
+        void ProcessFragment();
+        void Trigger(uint PreAttack, double Attack, double Release);
+        void Release();
+        inline EG_VCA::stage_t GetStage() { return Stage; };
+    protected:
+        float   Level;
+        bool    ReleaseSignalReceived;
+        stage_t Stage;
+        float   AttackCoeff;
+        long    AttackStepsLeft;   ///< number of sample points til end of attack stage
+        float   ReleaseCoeff;
+        long    ReleaseStepsLeft;  ///< number of sample points til end of release stage
 
-#endif // __GLOBAL_H__
+        inline long Min(long A, long B) {
+            return (A > B) ? B : A;
+        }
+};
+
+#endif // __EG_VCA_H__

@@ -28,6 +28,7 @@
 #include "ringbuffer.h"
 #include "stream.h"
 #include "gig.h"
+#include "eg_vca.h"
 
 #define MAX_PITCH			4  //FIXME: at the moment in octaves, should be changed into semitones
 #define USE_LINEAR_INTERPOLATION	1  ///< set to 0 if you prefer cubic interpolation (slower, better quality)
@@ -43,6 +44,7 @@ class Voice {
         Voice(DiskThread* pDiskThread);
        ~Voice();
         void Kill();
+        void Release();
         void RenderAudio();
         int  Trigger(int MIDIKey, uint8_t Velocity, gig::Instrument* Instrument);
         inline bool IsActive()                                       { return Active; }
@@ -70,6 +72,7 @@ class Voice {
         unsigned long        MaxRAMPos;         ///< The upper allowed limit (not actually the end) in the RAM sample cache, after that point it's not safe to chase the interpolator another time over over the current cache position, instead we switch to disk then.
         bool                 RAMLoop;           ///< If this voice has a loop defined which completely fits into the cached RAM part of the sample, in this case we handle the looping within the voice class, else if the loop is located in the disk stream part, we let the disk stream handle the looping
         int                  LoopCyclesLeft;    ///< In case there is a RAMLoop and it's not an endless loop; reflects number of loop cycles left to be passed
+        EG_VCA               EG1;
 
         // Static Attributes
         static DiskThread*   pDiskThread;       ///< Pointer to the disk thread, to be able to order a disk stream and later to delete the stream again

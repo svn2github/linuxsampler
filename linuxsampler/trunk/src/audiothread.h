@@ -36,6 +36,7 @@
 #include "audioio.h"
 #include "gig.h"
 #include "rtelmemorypool.h"
+#include "modulationsystem.h"
 
 #define PITCHBEND_SEMITONES	12
 #define MAX_AUDIO_VOICES	64
@@ -98,7 +99,7 @@ class AudioThread : public Thread {
         void ProcessNoteOn(uint8_t MIDIKey, uint8_t Velocity);
         void ProcessNoteOff(uint8_t MIDIKey, uint8_t Velocity);
         void ProcessControlChange(uint8_t Channel, uint8_t Number, uint8_t Value);
-        void ReleaseVoice(Voice* pVoice);
+        void KillVoice(Voice* pVoice);
         void CacheInitialSamples(gig::Sample* pSample);
 };
 
