@@ -23,6 +23,7 @@
 #include "midiin.h"
 
 MidiIn::MidiIn(AudioThread* pAudioThread) : Thread(true, 1, -1) {
+    this->seq_handle   = NULL;
     this->pAudioThread = pAudioThread;
     memset(MIDIControllerTable, 0x00, 128); // set all controller values to zero
 }
@@ -58,28 +59,41 @@ void MidiIn::close_alsa_midi_seq(void) {
  *                (e.g. "64:0")
  */
 void MidiIn::SubscribeToClient(const char* Client) {
+    if (!this->seq_handle) {  // if we haven't registered our seq client yet
+        int res = open_alsa_midi_seq();
+        if (res < 0) {
+            fprintf(stderr,"Opening of MIDI in device failed, exiting.\n");
+            exit(EXIT_FAILURE);
+        }
+    }
+
     snd_seq_addr_t sender, dest;
     snd_seq_port_subscribe_t* subs;
-    sscanf(Client, "%d:%d", sender.client, sender.port);
-    dest.client = this->AlsaID;
-    dest.port   = this->AlsaPort;
+    int extClientID, extPortID;
+
+    sscanf(Client, "%d:%d", &extClientID, &extPortID);
+    sender.client = (char) extClientID;
+    sender.port   = (char) extPortID;
+    dest.client   = (char) this->AlsaID;
+    dest.port     = (char) this->AlsaPort;
     snd_seq_port_subscribe_alloca(&subs);
     snd_seq_port_subscribe_set_sender(subs, &sender);
     snd_seq_port_subscribe_set_dest(subs, &dest);
     snd_seq_port_subscribe_set_queue(subs, 1);
     snd_seq_port_subscribe_set_time_update(subs, 1);
     snd_seq_port_subscribe_set_time_real(subs, 1);
-    int res = snd_seq_subscribe_port(this->seq_handle, subs);
-    if (!res) {
-        fprintf(stderr, "Unable to subscribe to client \'%s\'\n", Client);
+    if (snd_seq_subscribe_port(this->seq_handle, subs) < 0) {
+        fprintf(stderr, "Unable to subscribe to client \'%s\' (%s)\n", Client, snd_strerror(errno));
     }
 }
 
 int MidiIn::Main() {
-    int res = open_alsa_midi_seq();
-    if (res < 0) {
-        fprintf(stderr,"opening of MIDI in device failed, exiting.\n");
-        exit(1);
+    if (!this->seq_handle) {  // if we haven't registered our seq client yet
+        int res = open_alsa_midi_seq();
+        if (res < 0) {
+            fprintf(stderr,"Opening of MIDI in device failed, exiting.\n");
+            exit(EXIT_FAILURE);
+        }
     }
 
     int npfd;
