@@ -20,6 +20,8 @@
  *   MA  02111-1307  USA                                                   *
  ***************************************************************************/
 
+#include <sys/time.h>
+
 #include "Condition.h"
 
 #include "global.h"
@@ -43,9 +45,11 @@ int Condition::WaitIf(bool bCondition, long TimeoutSeconds, long TimeoutNanoSeco
     if (this->bCondition == bCondition) {
         if (bCondition) { // wait until condition turned 'false'
             if (TimeoutSeconds || TimeoutNanoSeconds) { // wait with timeout
+                struct timeval now;
+                gettimeofday(&now, 0);
                 timespec timeout;
-                timeout.tv_sec  = TimeoutSeconds;
-                timeout.tv_nsec = TimeoutNanoSeconds;
+                timeout.tv_sec  = now.tv_sec + TimeoutSeconds;
+                timeout.tv_nsec = now.tv_usec * 1000 + TimeoutNanoSeconds;
                 dmsg(7,("Condition::Waitif() -> waiting for 'false' condition with timeout\n"));
                 res = pthread_cond_timedwait(&__posix_false_condition, &__posix_mutex, &timeout);
                 dmsg(7,("Condition::Waitif() -> awakened from 'false' condition waiting\n"));
@@ -58,9 +62,11 @@ int Condition::WaitIf(bool bCondition, long TimeoutSeconds, long TimeoutNanoSeco
         }
         else { // wait until condition turned 'true'
             if (TimeoutSeconds || TimeoutNanoSeconds) { // wait with timeout
+                struct timeval now;
+                gettimeofday(&now, 0);
                 timespec timeout;
-                timeout.tv_sec  = TimeoutSeconds;
-                timeout.tv_nsec = TimeoutNanoSeconds;
+                timeout.tv_sec  = now.tv_sec + TimeoutSeconds;
+                timeout.tv_nsec = now.tv_usec * 1000 + TimeoutNanoSeconds;
                 dmsg(7,("Condition::Waitif() -> waiting for 'true' condition with timeout\n"));
                 res = pthread_cond_timedwait(&__posix_true_condition, &__posix_mutex, &timeout);
                 dmsg(7,("Condition::Waitif() -> awakened from 'true' condition waiting\n"));
