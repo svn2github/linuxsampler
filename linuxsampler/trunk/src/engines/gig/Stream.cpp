@@ -25,6 +25,7 @@
 namespace LinuxSampler { namespace gig {
 
     uint Stream::UnusedStreams = 0;
+    uint Stream::TotalStreams = 0;
 
     /// Returns number of refilled sample points or a value < 0 on error.
     int Stream::ReadAhead(unsigned long SampleCount) {
@@ -87,12 +88,14 @@ namespace LinuxSampler { namespace gig {
         this->PlaybackState.reverse          = false;
         this->pRingBuffer                    = new RingBuffer<sample_t>(BufferSize, BufferWrapElements);
         UnusedStreams++;
+	TotalStreams++;
     }
 
     Stream::~Stream() {
         Reset();
         if (pRingBuffer) delete pRingBuffer;
 	UnusedStreams--;
+	TotalStreams--;
     }
 
     /// Called by disk thread to activate the disk stream.

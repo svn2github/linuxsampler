@@ -115,6 +115,7 @@ namespace LinuxSampler { namespace gig {
 
             // Static Attributes
             static uint              UnusedStreams; //< Reflects how many stream objects of all stream instances are currently not in use.
+            static uint              TotalStreams; //< Reflects how many stream objects currently exist.
 
             // Methods
             inline void Reset() {

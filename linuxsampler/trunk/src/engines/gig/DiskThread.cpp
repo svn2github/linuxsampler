@@ -235,7 +235,7 @@ namespace LinuxSampler { namespace gig {
             }
 
             // if there are deletion commands, delete those streams
-            while (Stream::UnusedStreams < Streams && DeletionQueue->read_space() > 0) {
+            while (Stream::UnusedStreams < Stream::TotalStreams && DeletionQueue->read_space() > 0) {
                 delete_command_t command;
                 DeletionQueue->pop(&command);
                 DeleteStream(command);
