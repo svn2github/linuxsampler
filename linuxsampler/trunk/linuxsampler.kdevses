@@ -1,0 +1,114 @@
+<?xml version = '1.0' encoding = 'UTF-8'?>
+<!DOCTYPE KDevPrjSession>
+<KDevPrjSession>
+ <DocsAndViews NumberOfDocuments="20" >
+  <Doc0 NumberOfViews="1" URL="file:/home/cuse/linuxsampler/src/linuxsampler.cpp" >
+   <View0 line="67" Type="???" >
+    <AdditionalSettings/>
+   </View0>
+  </Doc0>
+  <Doc1 NumberOfViews="1" URL="file:/home/cuse/linuxsampler/src/audioio.cpp" >
+   <View0 line="0" Type="???" >
+    <AdditionalSettings/>
+   </View0>
+  </Doc1>
+  <Doc2 NumberOfViews="1" URL="file:/home/cuse/linuxsampler/src/audioio.h" >
+   <View0 line="9" Type="???" >
+    <AdditionalSettings/>
+   </View0>
+  </Doc2>
+  <Doc3 NumberOfViews="1" URL="file:/home/cuse/linuxsampler/src/global.h" >
+   <View0 line="10" Type="???" >
+    <AdditionalSettings/>
+   </View0>
+  </Doc3>
+  <Doc4 NumberOfViews="1" URL="file:/home/cuse/linuxsampler/src/global.cpp" >
+   <View0 line="0" Type="???" >
+    <AdditionalSettings/>
+   </View0>
+  </Doc4>
+  <Doc5 NumberOfViews="1" URL="file:/home/cuse/linuxsampler/src/audiothread.cpp" >
+   <View0 line="0" Type="???" >
+    <AdditionalSettings/>
+   </View0>
+  </Doc5>
+  <Doc6 NumberOfViews="1" URL="file:/home/cuse/linuxsampler/src/audiothread.h" >
+   <View0 line="0" Type="???" >
+    <AdditionalSettings/>
+   </View0>
+  </Doc6>
+  <Doc7 NumberOfViews="1" URL="file:/home/cuse/linuxsampler/src/diskthread.cpp" >
+   <View0 line="0" Type="???" >
+    <AdditionalSettings/>
+   </View0>
+  </Doc7>
+  <Doc8 NumberOfViews="1" URL="file:/home/cuse/linuxsampler/src/diskthread.h" >
+   <View0 line="0" Type="???" >
+    <AdditionalSettings/>
+   </View0>
+  </Doc8>
+  <Doc9 NumberOfViews="1" URL="file:/home/cuse/linuxsampler/src/gig.h" >
+   <View0 line="0" Type="???" >
+    <AdditionalSettings/>
+   </View0>
+  </Doc9>
+  <Doc10 NumberOfViews="1" URL="file:/home/cuse/linuxsampler/src/Makefile.am" >
+   <View0 line="14" Type="???" >
+    <AdditionalSettings/>
+   </View0>
+  </Doc10>
+  <Doc11 NumberOfViews="1" URL="file:/home/cuse/linuxsampler/src/midiin.cpp" >
+   <View0 line="0" Type="???" >
+    <AdditionalSettings/>
+   </View0>
+  </Doc11>
+  <Doc12 NumberOfViews="1" URL="file:/home/cuse/linuxsampler/src/midiin.h" >
+   <View0 line="0" Type="???" >
+    <AdditionalSettings/>
+   </View0>
+  </Doc12>
+  <Doc13 NumberOfViews="1" URL="file:/home/cuse/linuxsampler/src/ringbuffer.h" >
+   <View0 line="0" Type="???" >
+    <AdditionalSettings/>
+   </View0>
+  </Doc13>
+  <Doc14 NumberOfViews="1" URL="file:/home/cuse/linuxsampler/src/stream.cpp" >
+   <View0 line="0" Type="???" >
+    <AdditionalSettings/>
+   </View0>
+  </Doc14>
+  <Doc15 NumberOfViews="1" URL="file:/home/cuse/linuxsampler/src/stream.h" >
+   <View0 line="121" Type="???" >
+    <AdditionalSettings/>
+   </View0>
+  </Doc15>
+  <Doc16 NumberOfViews="1" URL="file:/home/cuse/linuxsampler/src/thread.cpp" >
+   <View0 line="0" Type="???" >
+    <AdditionalSettings/>
+   </View0>
+  </Doc16>
+  <Doc17 NumberOfViews="1" URL="file:/home/cuse/linuxsampler/src/thread.h" >
+   <View0 line="0" Type="???" >
+    <AdditionalSettings/>
+   </View0>
+  </Doc17>
+  <Doc18 NumberOfViews="1" URL="file:/home/cuse/linuxsampler/src/voice.cpp" >
+   <View0 line="0" Type="???" >
+    <AdditionalSettings/>
+   </View0>
+  </Doc18>
+  <Doc19 NumberOfViews="1" URL="file:/home/cuse/linuxsampler/src/voice.h" >
+   <View0 line="71" Type="???" >
+    <AdditionalSettings/>
+   </View0>
+  </Doc19>
+ </DocsAndViews>
+ <pluginList>
+  <kdevbookmarks>
+   <bookmarks/>
+  </kdevbookmarks>
+  <kdevdebugger>
+   <breakpointList/>
+  </kdevdebugger>
+ </pluginList>
+</KDevPrjSession>

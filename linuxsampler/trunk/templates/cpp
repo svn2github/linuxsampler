@@ -19,24 +19,3 @@
  *   Foundation, Inc., 59 Temple Place, Suite 330, Boston,                 *
  *   MA  02111-1307  USA                                                   *
  ***************************************************************************/
-
-// All application global declarations are defined here.
-
-#ifndef __GLOBAL_H__
-#define __GLOBAL_H__
-
-#include <stdint.h>
-#include <stdio.h>
-
-#define LS_DEBUG	1
-
-#if LS_DEBUG
-#  define dmsg(x)	printf x; fflush(stdout);
-#else
-#  define dmsg(x)
-#endif // LS_DEBUG
-
-// defines globally the bit depth of used samples
-typedef int16_t sample_t;
-
-#endif // __GLOBAL_H__

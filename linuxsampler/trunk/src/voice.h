@@ -69,9 +69,13 @@ class Voice {
         // Methods
         void       Interpolate(sample_t* pSrc);
         inline int double_to_int(double f) {
+            #if ARCH_X86
             int i;
             __asm__ ("fistl %0" : "=m"(i) : "st"(f - 0.5) );
             return i;
+            #else
+            return (int) f;
+            #endif // ARCH_X86
         }
 };
 
