@@ -33,7 +33,7 @@
 #include "Engine.h"
 
 #define EG_ENVELOPE_LIMIT	0.001
-#define EG_MIN_RELEASE_TIME	0.005
+#define EG_MIN_RELEASE_TIME	0.0001
 
 namespace LinuxSampler { namespace gig {
 
