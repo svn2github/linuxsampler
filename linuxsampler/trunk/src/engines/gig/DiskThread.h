@@ -33,7 +33,7 @@
 #define MIN_REFILL_SIZE			1024    ///< if no buffer was filled up more than this bottom limit, the disk thread will go to sleep
 #define MAX_REFILL_SIZE			65536   ///< maximum of samples a buffer should be refilled in one cycle (256kB, as 16 bit stereo)
 #define STREAM_BUFFER_SIZE		131072  ///< the diskstream ringbuffer size (256kB as sample_t is 16bit)
-#define MAX_INPUT_STREAMS		100     ///< number of streams that should be allocated
+#define MAX_INPUT_STREAMS		150     ///< number of streams that should be allocated
 
 #include "../../common/Thread.h"
 #include "../../common/RingBuffer.h"

@@ -2,6 +2,11 @@ AC_INIT(configure.in)
 AC_C_BIGENDIAN
 AC_CANONICAL_SYSTEM
 
+AC_SUBST(target)
+AC_SUBST(target_alias)
+AC_SUBST(target_cpu)
+AC_SUBST(target_os)
+AC_SUBST(target_vendor)
 
 echo -n "checking whether x86 architecture... "
 def_arch_x86=0

@@ -98,6 +98,10 @@ VERSION = @VERSION@
 am__include = @am__include@
 am__quote = @am__quote@
 install_sh = @install_sh@
+target = @target@
+target_cpu = @target_cpu@
+target_os = @target_os@
+target_vendor = @target_vendor@
 
 # set the include path found by configure
 INCLUDES = $(all_includes)
@@ -105,7 +109,7 @@ INCLUDES = $(all_includes)
 METASOURCES = AUTO
 
 # to prevent compile errors on some systems
-AM_CXXFLAGS = -pedantic
+AM_CXXFLAGS = -pedantic -march=$(target_cpu) -mcpu=$(target_cpu)
 
 pkglib_LTLIBRARIES = libgig.la
 libgig_la_SOURCES = RIFF.cpp RIFF.h DLS.cpp DLS.h gig.cpp gig.h

@@ -59,6 +59,8 @@ namespace LinuxSampler { namespace gig {
         pVoicePool->clear();
 
         pSynthesisParameters[0] = NULL; // we allocate when an audio device is connected
+        pBasicFilterParameters  = NULL;
+        pMainFilterParameters   = NULL;
 
         ResetInternal();
     }
@@ -85,6 +87,8 @@ namespace LinuxSampler { namespace gig {
         if (pVoicePool)  delete pVoicePool;
         if (pActiveKeys) delete pActiveKeys;
         if (pEventGenerator) delete pEventGenerator;
+        if (pMainFilterParameters) delete[] pMainFilterParameters;
+        if (pBasicFilterParameters) delete[] pBasicFilterParameters;
         if (pSynthesisParameters[0]) delete[] pSynthesisParameters[0];
     }
 
@@ -288,6 +292,12 @@ namespace LinuxSampler { namespace gig {
         pSynthesisParameters[0] = new float[Event::destination_count * pAudioOut->MaxSamplesPerCycle()];
         for (int dst = 1; dst < Event::destination_count; dst++)
             pSynthesisParameters[dst] = pSynthesisParameters[dst - 1] + pAudioOut->MaxSamplesPerCycle();
+
+        // (re)allocate biquad filter parameter sequence
+        if (pBasicFilterParameters) delete[] pBasicFilterParameters;
+        if (pMainFilterParameters)  delete[] pMainFilterParameters;
+        pBasicFilterParameters = new biquad_param_t[pAudioOut->MaxSamplesPerCycle()];
+        pMainFilterParameters  = new biquad_param_t[pAudioOut->MaxSamplesPerCycle()];
 
         dmsg(1,("Starting disk thread..."));
         pDiskThread->StartThread();
@@ -635,7 +645,13 @@ namespace LinuxSampler { namespace gig {
      */
     void Engine::ResetSynthesisParameters(Event::destination_t dst, float val) {
         int maxsamples = pAudioOutputDevice->MaxSamplesPerCycle();
-        for (int i = 0; i < maxsamples; i++) pSynthesisParameters[dst][i] = val;
+        float* m = &pSynthesisParameters[dst][0];
+        for (int i = 0; i < maxsamples; i += 4) {
+           m[i]   = val;
+           m[i+1] = val;
+           m[i+2] = val;
+           m[i+3] = val;
+        }
     }
 
     float Engine::Volume() {

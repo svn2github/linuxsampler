@@ -1,8 +1,7 @@
 # set the include path found by configure
 INCLUDES= $(all_includes)
 
-# to prevent compile errors on some systems
-AM_CXXFLAGS = -pedantic
+AM_CXXFLAGS = -ffast-math -march=$(target_cpu) -mcpu=$(target_cpu)
 
 SUBDIRS = network engines common audiodriver mididriver lib testcases
 

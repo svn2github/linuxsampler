@@ -41,7 +41,7 @@
 namespace LinuxSampler { namespace gig {
 
     /**
-     * This is a filter similar to the ones from Gigasampler.
+     * These are filters similar to the ones from Gigasampler.
      */
     class Filter {
         protected:
@@ -105,9 +105,33 @@ namespace LinuxSampler { namespace gig {
                 this->cutoff    = cutoff;
             }
 
+            inline void SetParameters(biquad_param_t* base, biquad_param_t* main, bq_t cutoff, bq_t resonance, bq_t fs) {
+                BasicBPFilter.SetParameters(base, cutoff, 0.7, fs);
+                switch (Type) {
+                    case ::gig::vcf_type_highpass:
+                        HPFilter.SetParameters(main, cutoff, 1.0 - resonance * LSF_BW, fs);
+                        break;
+                    case ::gig::vcf_type_bandpass:
+                        BPFilter.SetParameters(main, cutoff, 1.0 - resonance * LSF_BW, fs);
+                        break;
+                    case ::gig::vcf_type_lowpass:
+                        LPFilter.SetParameters(main, cutoff, 1.0 - resonance * LSF_BW, fs);
+                        break;
+                }
+                this->scale     = 1.0f - resonance * 0.7f;
+                this->resonance = resonance;
+                this->cutoff    = cutoff;
+            }
+
             inline bq_t Apply(const bq_t in) {
                 return (Enabled) ? pFilter->Apply(in) * this->scale +
                                   BasicBPFilter.ApplyFB(in, this->resonance * LSF_FB) * this->resonance
+                                : in;
+            }
+
+            inline bq_t Apply(biquad_param_t* base, biquad_param_t* main, const bq_t in) {
+                return (Enabled) ? pFilter->Apply(main, in) * this->scale +
+                                  BasicBPFilter.ApplyFB(base, in, this->resonance * LSF_FB) * this->resonance
                                 : in;
             }
     };

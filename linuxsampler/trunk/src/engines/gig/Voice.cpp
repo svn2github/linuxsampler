@@ -31,8 +31,17 @@ namespace LinuxSampler { namespace gig {
 
     const float Voice::FILTER_CUTOFF_COEFF(CalculateFilterCutoffCoeff());
 
+    const int Voice::FILTER_UPDATE_MASK(CalculateFilterUpdateMask());
+
     float Voice::CalculateFilterCutoffCoeff() {
         return log(FILTER_CUTOFF_MIN / FILTER_CUTOFF_MAX);
+    }
+
+    int Voice::CalculateFilterUpdateMask() {
+        if (FILTER_UPDATE_PERIOD <= 0) return 0;
+        int power_of_two;
+        for (power_of_two = 0; 1<<power_of_two < FILTER_UPDATE_PERIOD; power_of_two++);
+        return (1 << power_of_two) - 1;
     }
 
     Voice::Voice() {
@@ -343,6 +352,7 @@ namespace LinuxSampler { namespace gig {
                           pDimRgn->LFO2ControlDepth,
                           pEngine->ControllerTable[pLFO2->ExtController],
                           pDimRgn->LFO2FlipPhase,
+                          this->SampleRate,
                           Delay);
         }
     #endif // ENABLE_FILTER
@@ -533,6 +543,11 @@ namespace LinuxSampler { namespace gig {
         pLFO2->Process(Samples);
     #endif // ENABLE_FILTER
         pLFO3->Process(Samples);
+
+
+    #if ENABLE_FILTER
+        CalculateBiquadParameters(Samples); // calculate the final biquad filter parameters
+    #endif // ENABLE_FILTER
 
 
         switch (this->PlaybackState) {
@@ -748,6 +763,53 @@ namespace LinuxSampler { namespace gig {
     #endif // ENABLE_FILTER
     }
 
+    #if ENABLE_FILTER
+    /**
+     * Calculate all necessary, final biquad filter parameters.
+     *
+     * @param Samples - number of samples to be rendered in this audio fragment cycle
+     */
+    void Voice::CalculateBiquadParameters(uint Samples) {
+        if (!FilterLeft.Enabled) return;
+
+        biquad_param_t bqbase;
+        biquad_param_t bqmain;
+        float prev_cutoff = pEngine->pSynthesisParameters[Event::destination_vcfc][0];
+        float prev_res    = pEngine->pSynthesisParameters[Event::destination_vcfr][0];
+        FilterLeft.SetParameters(&bqbase, &bqmain, prev_cutoff, prev_res, SampleRate);
+        pEngine->pBasicFilterParameters[0] = bqbase;
+        pEngine->pMainFilterParameters[0]  = bqmain;
+
+        float* bq;
+        for (int i = 1; i < Samples; i++) {
+            // recalculate biquad parameters if cutoff or resonance differ from previous sample point
+            if (!(i & FILTER_UPDATE_MASK)) if (pEngine->pSynthesisParameters[Event::destination_vcfr][i] != prev_res ||
+                                               pEngine->pSynthesisParameters[Event::destination_vcfc][i] != prev_cutoff) {
+                prev_cutoff = pEngine->pSynthesisParameters[Event::destination_vcfc][i];
+                prev_res    = pEngine->pSynthesisParameters[Event::destination_vcfr][i];
+                FilterLeft.SetParameters(&bqbase, &bqmain, prev_cutoff, prev_res, SampleRate);
+            }
+            pEngine->pBasicFilterParameters[i] = bqbase;
+
+            //same as 'pEngine->pBasicFilterParameters[i] = bqbase;'
+            bq    = (float*) &pEngine->pBasicFilterParameters[i];
+            bq[0] = bqbase.a1;
+            bq[1] = bqbase.a2;
+            bq[2] = bqbase.b0;
+            bq[3] = bqbase.b1;
+            bq[4] = bqbase.b2;
+
+            // same as 'pEngine->pMainFilterParameters[i] = bqmain;'
+            bq    = (float*) &pEngine->pMainFilterParameters[i];
+            bq[0] = bqmain.a1;
+            bq[1] = bqmain.a2;
+            bq[2] = bqmain.b0;
+            bq[3] = bqmain.b1;
+            bq[4] = bqmain.b2;
+        }
+    }
+    #endif // ENABLE_FILTER
+
     /**
      *  Interpolates the input audio data (no loop).
      *
@@ -765,8 +827,8 @@ namespace LinuxSampler { namespace gig {
                 InterpolateOneStep_Stereo(pSrc, i,
                                           pEngine->pSynthesisParameters[Event::destination_vca][i],
                                           pEngine->pSynthesisParameters[Event::destination_vco][i],
-                                          pEngine->pSynthesisParameters[Event::destination_vcfc][i],
-                                          pEngine->pSynthesisParameters[Event::destination_vcfr][i]);
+                                          pEngine->pBasicFilterParameters[i],
+                                          pEngine->pMainFilterParameters[i]);
             }
         }
         else { // Mono Sample
@@ -774,8 +836,8 @@ namespace LinuxSampler { namespace gig {
                 InterpolateOneStep_Mono(pSrc, i,
                                         pEngine->pSynthesisParameters[Event::destination_vca][i],
                                         pEngine->pSynthesisParameters[Event::destination_vco][i],
-                                        pEngine->pSynthesisParameters[Event::destination_vcfc][i],
-                                        pEngine->pSynthesisParameters[Event::destination_vcfr][i]);
+                                        pEngine->pBasicFilterParameters[i],
+                                        pEngine->pMainFilterParameters[i]);
             }
         }
     }
@@ -799,8 +861,8 @@ namespace LinuxSampler { namespace gig {
                     InterpolateOneStep_Stereo(pSrc, i,
                                               pEngine->pSynthesisParameters[Event::destination_vca][i],
                                               pEngine->pSynthesisParameters[Event::destination_vco][i],
-                                              pEngine->pSynthesisParameters[Event::destination_vcfc][i],
-                                              pEngine->pSynthesisParameters[Event::destination_vcfr][i]);
+                                              pEngine->pBasicFilterParameters[i],
+                                              pEngine->pMainFilterParameters[i]);
                     if (Pos > pSample->LoopEnd) {
                         Pos = pSample->LoopStart + fmod(Pos - pSample->LoopEnd, pSample->LoopSize);;
                         LoopCyclesLeft--;
@@ -811,8 +873,8 @@ namespace LinuxSampler { namespace gig {
                     InterpolateOneStep_Stereo(pSrc, i,
                                               pEngine->pSynthesisParameters[Event::destination_vca][i],
                                               pEngine->pSynthesisParameters[Event::destination_vco][i],
-                                              pEngine->pSynthesisParameters[Event::destination_vcfc][i],
-                                              pEngine->pSynthesisParameters[Event::destination_vcfr][i]);
+                                              pEngine->pBasicFilterParameters[i],
+                                              pEngine->pMainFilterParameters[i]);
                 }
             }
             else { // render loop (endless loop)
@@ -820,8 +882,8 @@ namespace LinuxSampler { namespace gig {
                     InterpolateOneStep_Stereo(pSrc, i,
                                               pEngine->pSynthesisParameters[Event::destination_vca][i],
                                               pEngine->pSynthesisParameters[Event::destination_vco][i],
-                                              pEngine->pSynthesisParameters[Event::destination_vcfc][i],
-                                              pEngine->pSynthesisParameters[Event::destination_vcfr][i]);
+                                              pEngine->pBasicFilterParameters[i],
+                                              pEngine->pMainFilterParameters[i]);
                     if (Pos > pSample->LoopEnd) {
                         Pos = pSample->LoopStart + fmod(Pos - pSample->LoopEnd, pSample->LoopSize);
                     }
@@ -835,8 +897,8 @@ namespace LinuxSampler { namespace gig {
                     InterpolateOneStep_Mono(pSrc, i,
                                             pEngine->pSynthesisParameters[Event::destination_vca][i],
                                             pEngine->pSynthesisParameters[Event::destination_vco][i],
-                                            pEngine->pSynthesisParameters[Event::destination_vcfc][i],
-                                            pEngine->pSynthesisParameters[Event::destination_vcfr][i]);
+                                            pEngine->pBasicFilterParameters[i],
+                                            pEngine->pMainFilterParameters[i]);
                     if (Pos > pSample->LoopEnd) {
                         Pos = pSample->LoopStart + fmod(Pos - pSample->LoopEnd, pSample->LoopSize);;
                         LoopCyclesLeft--;
@@ -847,8 +909,8 @@ namespace LinuxSampler { namespace gig {
                     InterpolateOneStep_Mono(pSrc, i,
                                             pEngine->pSynthesisParameters[Event::destination_vca][i],
                                             pEngine->pSynthesisParameters[Event::destination_vco][i],
-                                            pEngine->pSynthesisParameters[Event::destination_vcfc][i],
-                                            pEngine->pSynthesisParameters[Event::destination_vcfr][i]);
+                                            pEngine->pBasicFilterParameters[i],
+                                            pEngine->pMainFilterParameters[i]);
                 }
             }
             else { // render loop (endless loop)
@@ -856,8 +918,8 @@ namespace LinuxSampler { namespace gig {
                     InterpolateOneStep_Mono(pSrc, i,
                                             pEngine->pSynthesisParameters[Event::destination_vca][i],
                                             pEngine->pSynthesisParameters[Event::destination_vco][i],
-                                            pEngine->pSynthesisParameters[Event::destination_vcfc][i],
-                                            pEngine->pSynthesisParameters[Event::destination_vcfr][i]);
+                                            pEngine->pBasicFilterParameters[i],
+                                            pEngine->pMainFilterParameters[i]);
                     if (Pos > pSample->LoopEnd) {
                         Pos = pSample->LoopStart + fmod(Pos - pSample->LoopEnd, pSample->LoopSize);;
                     }

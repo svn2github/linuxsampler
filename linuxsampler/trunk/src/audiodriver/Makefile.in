@@ -98,8 +98,14 @@ VERSION = @VERSION@
 am__include = @am__include@
 am__quote = @am__quote@
 install_sh = @install_sh@
+target = @target@
+target_cpu = @target_cpu@
+target_os = @target_os@
+target_vendor = @target_vendor@
 INCLUDES = $(all_includes)
 METASOURCES = AUTO
+
+AM_CXXFLAGS = -ffast-math -march=$(target_cpu) -mcpu=$(target_cpu)
 
 noinst_LTLIBRARIES = liblinuxsampleraudiodriver.la
 liblinuxsampleraudiodriver_la_SOURCES = AudioChannel.cpp AudioChannel.h AudioOutputDevice.cpp AudioOutputDevice.h AudioOutputDeviceAlsa.cpp AudioOutputDeviceAlsa.h AudioOutputDeviceJack.cpp AudioOutputDeviceJack.h
@@ -112,6 +118,7 @@ CONFIG_HEADER = $(top_builddir)/config.h
 CONFIG_CLEAN_FILES =
 LTLIBRARIES = $(noinst_LTLIBRARIES)
 
+liblinuxsampleraudiodriver_la_DEPENDENCIES =
 am_liblinuxsampleraudiodriver_la_OBJECTS = AudioChannel.lo \
 	AudioOutputDevice.lo AudioOutputDeviceAlsa.lo \
 	AudioOutputDeviceJack.lo

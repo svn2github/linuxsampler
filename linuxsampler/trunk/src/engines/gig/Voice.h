@@ -34,6 +34,7 @@
 #include "../../common/RTELMemoryPool.h"
 #include "../../audiodriver/AudioOutputDevice.h"
 #include "../../lib/fileloader/libgig/gig.h"
+#include "../common/BiquadFilter.h"
 #include "Engine.h"
 #include "Stream.h"
 #include "DiskThread.h"
@@ -42,9 +43,9 @@
 #include "Filter.h"
 #include "../common/LFO.h"
 
-#define USE_LINEAR_INTERPOLATION	1  ///< set to 0 if you prefer cubic interpolation (slower, better quality)
-#define ENABLE_FILTER			0  ///< if set to 0 then filter (VCF) code is ignored on compile time
-#define FILTER_UPDATE_PERIOD		64 ///< amount of sample points after which filter parameters (cutoff, resonance) are going to be updated (higher value means less CPU load, but also worse parameter resolution)
+#define USE_LINEAR_INTERPOLATION	0  ///< set to 0 if you prefer cubic interpolation (slower, better quality)
+#define ENABLE_FILTER			1  ///< if set to 0 then filter (VCF) code is ignored on compile time
+#define FILTER_UPDATE_PERIOD		64 ///< amount of sample points after which filter parameters (cutoff, resonance) are going to be updated (higher value means less CPU load, but also worse parameter resolution, this value will be aligned to a power of two)
 #define FORCE_FILTER_USAGE		0  ///< if set to 1 then filter is always used, if set to 0 filter is used only in case the instrument file defined one
 #define FILTER_CUTOFF_MAX		10000.0f ///< maximum cutoff frequency (10kHz)
 #define FILTER_CUTOFF_MIN		100.0f   ///< minimum cutoff frequency (100Hz)
@@ -130,6 +131,7 @@ namespace LinuxSampler { namespace gig {
             midi_ctrl                   VCFResonanceCtrl;
             int                         FilterUpdateCounter; ///< Used to update filter parameters all FILTER_UPDATE_PERIOD samples
             static const float          FILTER_CUTOFF_COEFF;
+            static const int            FILTER_UPDATE_MASK;
             VCAManipulator*             pVCAManipulator;
             VCFCManipulator*            pVCFCManipulator;
             VCOManipulator*             pVCOManipulator;
@@ -140,26 +142,30 @@ namespace LinuxSampler { namespace gig {
 
             // Static Methods
             static float CalculateFilterCutoffCoeff();
+            static int   CalculateFilterUpdateMask();
 
             // Methods
             void        ProcessEvents(uint Samples);
+            #if ENABLE_FILTER
+            void        CalculateBiquadParameters(uint Samples);
+            #endif // ENABLE_FILTER
             void        Interpolate(uint Samples, sample_t* pSrc, uint Skip);
             void        InterpolateAndLoop(uint Samples, sample_t* pSrc, uint Skip);
-            inline void InterpolateOneStep_Stereo(sample_t* pSrc, int& i, float& effective_volume, float& pitch, float& cutoff, float& resonance) {
+            inline void InterpolateOneStep_Stereo(sample_t* pSrc, int& i, float& effective_volume, float& pitch, biquad_param_t& bq_base, biquad_param_t& bq_main) {
                 int   pos_int   = RTMath::DoubleToInt(this->Pos);  // integer position
                 float pos_fract = this->Pos - pos_int;             // fractional part of position
                 pos_int <<= 1;
 
-                #if ENABLE_FILTER
+                #if 0 //ENABLE_FILTER
                     UpdateFilter_Stereo(cutoff + FILTER_CUTOFF_MIN, resonance);
                 #endif // ENABLE_FILTER
 
                 #if USE_LINEAR_INTERPOLATION
                     #if ENABLE_FILTER
                         // left channel
-                        pOutputLeft[i]    += this->FilterLeft.Apply(effective_volume * (pSrc[pos_int]   + pos_fract * (pSrc[pos_int+2] - pSrc[pos_int])));
+                        pOutputLeft[i]    += this->FilterLeft.Apply(&bq_base, &bq_main, effective_volume * (pSrc[pos_int]   + pos_fract * (pSrc[pos_int+2] - pSrc[pos_int])));
                         // right channel
-                        pOutputRight[i++] += this->FilterRight.Apply(effective_volume * (pSrc[pos_int+1] + pos_fract * (pSrc[pos_int+3] - pSrc[pos_int+1])));
+                        pOutputRight[i++] += this->FilterRight.Apply(&bq_base, &bq_main, effective_volume * (pSrc[pos_int+1] + pos_fract * (pSrc[pos_int+3] - pSrc[pos_int+1])));
                     #else // no filter
                         // left channel
                         pOutputLeft[i]    += effective_volume * (pSrc[pos_int]   + pos_fract * (pSrc[pos_int+2] - pSrc[pos_int]));
@@ -176,7 +182,7 @@ namespace LinuxSampler { namespace gig {
                     float b   = 2 * x1 + xm1 - (5 * x0 + x2) / 2;
                     float c   = (x1 - xm1) / 2;
                     #if ENABLE_FILTER
-                        pOutputLeft[i] += this->FilterLeft.Apply(effective_volume * ((((a * pos_fract) + b) * pos_fract + c) * pos_fract + x0));
+                        pOutputLeft[i] += this->FilterLeft.Apply(&bq_base, &bq_main, effective_volume * ((((a * pos_fract) + b) * pos_fract + c) * pos_fract + x0));
                     #else // no filter
                         pOutputRight[i] += effective_volume * ((((a * pos_fract) + b) * pos_fract + c) * pos_fract + x0);
                     #endif // ENABLE_FILTER
@@ -190,7 +196,7 @@ namespace LinuxSampler { namespace gig {
                     b   = 2 * x1 + xm1 - (5 * x0 + x2) / 2;
                     c   = (x1 - xm1) / 2;
                     #if ENABLE_FILTER
-                        pOutputLeft[i++] += this->FilterRight.Apply(effective_volume * ((((a * pos_fract) + b) * pos_fract + c) * pos_fract + x0));
+                        pOutputLeft[i++] += this->FilterRight.Apply(&bq_base, &bq_main, effective_volume * ((((a * pos_fract) + b) * pos_fract + c) * pos_fract + x0));
                     #else // no filter
                         pOutputRight[i++] += effective_volume * ((((a * pos_fract) + b) * pos_fract + c) * pos_fract + x0);
                     #endif // ENABLE_FILTER
@@ -198,11 +204,11 @@ namespace LinuxSampler { namespace gig {
 
                 this->Pos += pitch;
             }
-            inline void InterpolateOneStep_Mono(sample_t* pSrc, int& i, float& effective_volume, float& pitch, float& cutoff, float& resonance) {
+            inline void InterpolateOneStep_Mono(sample_t* pSrc, int& i, float& effective_volume, float& pitch,  biquad_param_t& bq_base, biquad_param_t& bq_main) {
                 int   pos_int   = RTMath::DoubleToInt(this->Pos);  // integer position
                 float pos_fract = this->Pos - pos_int;             // fractional part of position
 
-                #if ENABLE_FILTER
+                #if 0 //ENABLE_FILTER
                     UpdateFilter_Mono(cutoff + FILTER_CUTOFF_MIN, resonance);
                 #endif // ENABLE_FILTER
 
@@ -220,7 +226,7 @@ namespace LinuxSampler { namespace gig {
                 #endif // USE_LINEAR_INTERPOLATION
 
                 #if ENABLE_FILTER
-                    sample_point = this->FilterLeft.Apply(sample_point);
+                    sample_point = this->FilterLeft.Apply(&bq_base, &bq_main, sample_point);
                 #endif // ENABLE_FILTER
 
                 pOutputLeft[i]    += sample_point;
@@ -228,6 +234,7 @@ namespace LinuxSampler { namespace gig {
 
                 this->Pos += pitch;
             }
+#if 0
             inline void UpdateFilter_Stereo(float cutoff, float& resonance) {
                 if (!(++FilterUpdateCounter % FILTER_UPDATE_PERIOD) && (cutoff != FilterLeft.Cutoff() || resonance != FilterLeft.Resonance())) {
                     FilterLeft.SetParameters(cutoff, resonance, SampleRate);
@@ -239,6 +246,7 @@ namespace LinuxSampler { namespace gig {
                     FilterLeft.SetParameters(cutoff, resonance, SampleRate);
                 }
             }
+#endif
             inline float Constrain(float ValueToCheck, float Min, float Max) {
                 if      (ValueToCheck > Max) ValueToCheck = Max;
                 else if (ValueToCheck < Min) ValueToCheck = Min;

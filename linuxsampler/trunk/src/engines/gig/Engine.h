@@ -34,12 +34,13 @@
 #include "../../common/ConditionServer.h"
 #include "../common/Engine.h"
 #include "../common/Event.h"
+#include "../common/BiquadFilter.h"
 #include "../../lib/fileloader/libgig/gig.h"
 #include "InstrumentResourceManager.h"
 #include "../../network/lscp.h"
 
 #define PITCHBEND_SEMITONES		12
-#define MAX_AUDIO_VOICES		64
+#define MAX_AUDIO_VOICES		128
 
 namespace LinuxSampler { namespace gig {
 
@@ -108,6 +109,8 @@ namespace LinuxSampler { namespace gig {
             RTEList<Event>*         pCCEvents;             ///< All control change events for the current audio fragment.
             RTEList<Event>*         pSynthesisEvents[Event::destination_count];     ///< Events directly affecting synthesis parameter (like pitch, volume and filter).
             float*                  pSynthesisParameters[Event::destination_count]; ///< Matrix with final synthesis parameters for the current audio fragment which will be used in the main synthesis loop.
+            biquad_param_t*         pBasicFilterParameters; ///< Biquad parameters of the basic bandpass filter.
+            biquad_param_t*         pMainFilterParameters;  ///< Main biquad parameters of the individual filter (lowpass / bandpass / highpass).
             RIFF::File*             pRIFF;
             ::gig::File*            pGig;
             ::gig::Instrument*      pInstrument;
@@ -135,8 +138,6 @@ namespace LinuxSampler { namespace gig {
             friend class VCOManipulator;
             friend class InstrumentResourceManager;
         private:
-            //static void AllocateSynthesisParametersMatrix();
-
             void DisableAndLock();
     };
 
