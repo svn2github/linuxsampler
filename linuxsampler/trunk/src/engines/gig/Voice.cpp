@@ -66,6 +66,9 @@ namespace LinuxSampler { namespace gig {
         SYNTHESIS_MODE_SET_IMPLEMENTATION(SynthesisMode, false);
         #endif
         SYNTHESIS_MODE_SET_PROFILING(SynthesisMode, true);
+
+        FilterLeft.Reset();
+        FilterRight.Reset();
     }
 
     Voice::~Voice() {
@@ -521,11 +524,12 @@ namespace LinuxSampler { namespace gig {
 
 
         #if FORCE_FILTER_USAGE
-        SYNTHESIS_MODE_SET_FILTER(SynthesisMode, true);
+        const bool bUseFilter = true;
         #else // use filter only if instrument file told so
-        SYNTHESIS_MODE_SET_FILTER(SynthesisMode, pDimRgn->VCFEnabled);
+        const bool bUseFilter = pDimRgn->VCFEnabled;
         #endif // FORCE_FILTER_USAGE
-        if (pDimRgn->VCFEnabled) {
+        SYNTHESIS_MODE_SET_FILTER(SynthesisMode, bUseFilter);
+        if (bUseFilter) {
             #ifdef OVERRIDE_FILTER_CUTOFF_CTRL
             VCFCutoffCtrl.controller = OVERRIDE_FILTER_CUTOFF_CTRL;
             #else // use the one defined in the instrument file
@@ -947,8 +951,8 @@ namespace LinuxSampler { namespace gig {
         biquad_param_t bqmain;
         float prev_cutoff = pEngine->pSynthesisParameters[Event::destination_vcfc][0];
         float prev_res    = pEngine->pSynthesisParameters[Event::destination_vcfr][0];
-        FilterLeft.SetParameters(&bqbase, &bqmain, prev_cutoff, prev_res, pEngine->SampleRate);
-        FilterRight.SetParameters(&bqbase, &bqmain, prev_cutoff, prev_res, pEngine->SampleRate);
+        FilterLeft.SetParameters( &bqbase, &bqmain, prev_cutoff + FILTER_CUTOFF_MIN, prev_res, pEngine->SampleRate);
+        FilterRight.SetParameters(&bqbase, &bqmain, prev_cutoff + FILTER_CUTOFF_MIN, prev_res, pEngine->SampleRate);
         pEngine->pBasicFilterParameters[0] = bqbase;
         pEngine->pMainFilterParameters[0]  = bqmain;
 
@@ -961,8 +965,8 @@ namespace LinuxSampler { namespace gig {
                 {
                     prev_cutoff = pEngine->pSynthesisParameters[Event::destination_vcfc][i];
                     prev_res    = pEngine->pSynthesisParameters[Event::destination_vcfr][i];
-                    FilterLeft.SetParameters(&bqbase, &bqmain, prev_cutoff, prev_res, pEngine->SampleRate);
-                    FilterRight.SetParameters(&bqbase, &bqmain, prev_cutoff, prev_res, pEngine->SampleRate);
+                    FilterLeft.SetParameters( &bqbase, &bqmain, prev_cutoff + FILTER_CUTOFF_MIN, prev_res, pEngine->SampleRate);
+                    FilterRight.SetParameters(&bqbase, &bqmain, prev_cutoff + FILTER_CUTOFF_MIN, prev_res, pEngine->SampleRate);
                 }
             }
 

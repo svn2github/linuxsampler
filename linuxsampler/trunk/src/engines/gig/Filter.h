@@ -73,13 +73,13 @@ namespace LinuxSampler { namespace gig {
                         pFilter = &HPFilter;
                         break;
                     case ::gig::vcf_type_bandreject: //TODO: not implemented yet
-                        Type = ::gig::vcf_type_bandpass;
+                        FilterType = ::gig::vcf_type_bandpass;
                     case ::gig::vcf_type_bandpass:
                         pFilter = &BPFilter;
                         break;
                     case ::gig::vcf_type_lowpassturbo: //TODO: not implemented yet
                     default:
-                        Type = ::gig::vcf_type_lowpass;
+                        FilterType = ::gig::vcf_type_lowpass;
                     case ::gig::vcf_type_lowpass:
                         pFilter = &LPFilter;
 
