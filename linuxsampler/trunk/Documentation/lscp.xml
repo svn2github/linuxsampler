@@ -2286,6 +2286,11 @@ Schoenebeck'>
                                             <t>the instrument index number of the loaded instrument</t>
                                         </list>
                                     </t>
+                                    <t>INSTRUMENT_NAME -
+                                        <list>
+                                            <t>the instrument name of the loaded instrument</t>
+                                        </list>
+                                    </t>
                                     <t>INSTRUMENT_STATUS -
                                         <list>
                                             <t>integer values 0 to 100 indicating loading progress percentage for the instrument. Negative
@@ -2336,6 +2341,7 @@ Schoenebeck'>
                             <t>&nbsp;&nbsp;&nbsp;"AUDIO_OUTPUT_ROUTING: 0,1"</t>
                             <t>&nbsp;&nbsp;&nbsp;"INSTRUMENT_FILE: /home/joe/FazioliPiano.gig"</t>
                             <t>&nbsp;&nbsp;&nbsp;"INSTRUMENT_NR: 0"</t>
+                            <t>&nbsp;&nbsp;&nbsp;"INSTRUMENT_NAME: Fazioli Piano"</t>
                             <t>&nbsp;&nbsp;&nbsp;"INSTRUMENT_STATUS: 100"</t>
                             <t>&nbsp;&nbsp;&nbsp;"MIDI_INPUT_DEVICE: 0"</t>
                             <t>&nbsp;&nbsp;&nbsp;"MIDI_INPUT_PORT: 0"</t>
