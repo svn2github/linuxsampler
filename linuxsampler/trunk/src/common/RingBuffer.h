@@ -249,6 +249,91 @@ public:
     int size;
     int wrap_elements;
 
+    /**
+     * Independent, random access reading from a RingBuffer. This class
+     * allows to read from a RingBuffer without being forced to free read
+     * data while reading / positioning.
+     */
+    template<class _T>
+    class _NonVolatileReader {
+        public:
+            int read_space() {
+                int r = read_ptr;
+                int w = atomic_read(&pBuf->write_ptr);
+                return (w >= r) ? w - r : (w - r + pBuf->size) & pBuf->size_mask;
+            }
+
+            /**
+             * Reads one element from the NonVolatileReader's current read
+             * position and copies it to the variable pointed by \a dst and
+             * finally increments the NonVolatileReader's read position by
+             * one.
+             *
+             * @param dst - where the element is copied to
+             * @returns 1 on success, 0 otherwise
+             */
+            int pop(T* dst) { return read(dst,1); }
+
+            /**
+             * Reads \a cnt elements from the NonVolatileReader's current
+             * read position and copies it to the buffer pointed by \a dest
+             * and finally increments the NonVolatileReader's read position
+             * by the number of read elements.
+             *
+             * @param dest - destination buffer
+             * @param cnt  - number of elements to read
+             * @returns number of read elements
+             */
+            int read(T* dest, int cnt) {
+                int free_cnt;
+                int cnt2;
+                int to_read;
+                int n1, n2;
+                int priv_read_ptr;
+
+                priv_read_ptr = read_ptr;
+
+                if ((free_cnt = read_space()) == 0) return 0;
+
+                to_read = cnt > free_cnt ? free_cnt : cnt;
+
+                cnt2 = priv_read_ptr + to_read;
+
+                if (cnt2 > pBuf->size) {
+                    n1 = pBuf->size - priv_read_ptr;
+                    n2 = cnt2 & pBuf->size_mask;
+                } else {
+                    n1 = to_read;
+                    n2 = 0;
+                }
+
+                memcpy(dest, &pBuf->buf[priv_read_ptr], n1 * sizeof(T));
+                priv_read_ptr = (priv_read_ptr + n1) & pBuf->size_mask;
+
+                if (n2) {
+                    memcpy(dest+n1, pBuf->buf, n2 * sizeof(T));
+                    priv_read_ptr = n2;
+                }
+
+                this->read_ptr = priv_read_ptr;
+                return to_read;
+            }
+        protected:
+            _NonVolatileReader(RingBuffer<_T>* pBuf) {
+                this->pBuf     = pBuf;
+                this->read_ptr = atomic_read(&pBuf->read_ptr);
+            }
+
+            RingBuffer<_T>* pBuf;
+            int read_ptr;
+
+            friend class RingBuffer<_T>;
+    };
+
+    typedef _NonVolatileReader<T> NonVolatileReader;
+
+    NonVolatileReader get_non_volatile_reader() { return NonVolatileReader(this); }
+
   protected:
     T *buf;
     atomic_t write_ptr;
