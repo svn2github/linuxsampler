@@ -1318,17 +1318,17 @@ yyreduce:
 
   case 36:
 #line 129 "lscp.y"
-    { yyval.AudioOutput = audio_output_type_alsa; }
+    { yyval.AudioOutput = AudioOutputDevice::type_alsa; }
     break;
 
   case 37:
 #line 130 "lscp.y"
-    { yyval.AudioOutput = audio_output_type_jack; }
+    { yyval.AudioOutput = AudioOutputDevice::type_jack; }
     break;
 
   case 38:
 #line 133 "lscp.y"
-    { yyval.MidiInput = midi_input_type_alsa; }
+    { yyval.MidiInput = MidiInputDevice::type_alsa; }
     break;
 
   case 40:

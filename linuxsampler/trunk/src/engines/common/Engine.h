@@ -37,6 +37,23 @@ namespace LinuxSampler {
      */
     class Engine {
         public:
+
+            /////////////////////////////////////////////////////////////////
+            // type definitions
+
+            /**
+             * List with all currently implemented sampler engines.
+             */
+            enum type_t {
+                type_gig
+            };
+
+
+
+            /////////////////////////////////////////////////////////////////
+            // abstract methods
+            //     (these have to be implemented by the descendant)
+
             virtual void   LoadInstrument(const char* FileName, uint Instrument) = 0;
             virtual void   Reset() = 0;
             virtual void   Enable() = 0;

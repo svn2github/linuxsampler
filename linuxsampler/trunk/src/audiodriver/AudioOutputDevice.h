@@ -47,6 +47,19 @@ namespace LinuxSampler {
         public:
 
             /////////////////////////////////////////////////////////////////
+            // type definitions
+
+            /**
+             * List of all currently implemented audio output drivers.
+             */
+            enum type_t {
+                type_alsa,
+                type_jack
+            };
+
+
+
+            /////////////////////////////////////////////////////////////////
             // abstract methods
             //     (these have to be implemented by the descendant)
 
@@ -150,9 +163,25 @@ namespace LinuxSampler {
              */
             AudioChannel* Channel(uint ChannelIndex);
 
+            /**
+             * Returns the ID that identifies the implementing audio output
+             * driver.
+             */
+            type_t Type();
+
         protected:
             std::set<Engine*>          Engines;  ///< All sampler engines that are connected to the audio output device.
             std::vector<AudioChannel*> Channels; ///< All audio channels of the audio output device. This is just a container; the descendant has to create channels by himself.
+            type_t                     AudioOutputType;
+
+            /**
+             * Constructor. Has to be called by the implementing audio
+             * output driver to define the ID of the driver. When a new
+             * audio output driver is implemented, the
+             * AudioOutputDevice::type_t enumeration has to be extended with
+             * a new ID for the new audio output driver.
+             */
+            AudioOutputDevice(type_t Type);
 
             /**
              * This method should be called by the AudioOutputDevice

@@ -33,7 +33,7 @@ namespace LinuxSampler {
      * @param Card         - Alsa soundcard ID (optional)
      * @throws AudioOutputException  if output device cannot be opened
      */
-    AudioOutputDeviceAlsa::AudioOutputDeviceAlsa(uint Channels, uint Samplerate, uint Fragments, uint FragmentSize, String Card) : Thread(true, 1, 0) {
+    AudioOutputDeviceAlsa::AudioOutputDeviceAlsa(uint Channels, uint Samplerate, uint Fragments, uint FragmentSize, String Card) : AudioOutputDevice(AudioOutputDevice::type_alsa), Thread(true, 1, 0) {
         pcm_handle           = NULL;
         stream               = SND_PCM_STREAM_PLAYBACK;
         this->uiAlsaChannels = Channels;

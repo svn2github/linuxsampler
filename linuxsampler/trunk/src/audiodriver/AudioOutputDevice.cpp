@@ -24,6 +24,10 @@
 
 namespace LinuxSampler {
 
+    AudioOutputDevice::AudioOutputDevice(type_t Type) {
+        AudioOutputType = Type;
+    }
+
     void AudioOutputDevice::Connect(Engine* pEngine) {
         if (Engines.find(pEngine) == Engines.end()) {
             pEngine->Connect(this);
@@ -80,6 +84,10 @@ namespace LinuxSampler {
         }
 
         return 0;
+    }
+
+    AudioOutputDevice::type_t AudioOutputDevice::Type() {
+        return AudioOutputType;
     }
 
 } // namespace LinuxSampler

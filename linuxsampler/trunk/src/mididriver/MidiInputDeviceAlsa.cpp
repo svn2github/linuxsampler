@@ -36,7 +36,7 @@ namespace LinuxSampler {
      *                            (e.g. "64:0")
      * @throws MidiInputException  if initialization failed
      */
-    MidiInputDeviceAlsa::MidiInputDeviceAlsa(char* AutoConnectPortID) : Thread(true, 1, -1) {
+    MidiInputDeviceAlsa::MidiInputDeviceAlsa(char* AutoConnectPortID) : MidiInputDevice(MidiInputDevice::type_alsa), Thread(true, 1, -1) {
         if (snd_seq_open(&hAlsaSeq, "default", SND_SEQ_OPEN_INPUT, 0) < 0) {
             throw MidiInputException("Error opening ALSA sequencer");
         }

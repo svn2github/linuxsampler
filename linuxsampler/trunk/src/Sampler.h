@@ -33,28 +33,6 @@
 
 namespace LinuxSampler {
 
-    /**
-     * Which sampler engine to be used.
-     */
-    enum engine_type_t {
-        engine_type_gig
-    };
-
-    /**
-     * Which audio output system to be used.
-     */
-    enum audio_output_type_t {
-        audio_output_type_alsa,
-        audio_output_type_jack
-    };
-
-    /**
-     * Which MIDI input system to be used.
-     */
-    enum midi_input_type_t {
-        midi_input_type_alsa
-    };
-
     // just symbol prototyping
     class Sampler;
 
@@ -76,7 +54,7 @@ namespace LinuxSampler {
              *
              * @param EngineType - type of the engine to deploy
              */
-            void LoadEngine(engine_type_t EngineType);
+            void LoadEngine(Engine::type_t EngineType);
 
             /**
              * Connect this sampler channel to an audio output device (that
@@ -89,7 +67,7 @@ namespace LinuxSampler {
              *
              * @param AudioType - audio output system to connect to
              */
-            void SetAudioOutputDevice(audio_output_type_t AudioType);
+            void SetAudioOutputDevice(AudioOutputDevice::type_t AudioType);
 
             /**
              * Connect this sampler channel to and MIDI input device (that
@@ -105,7 +83,7 @@ namespace LinuxSampler {
              *                      sampler channel should listen to
              *                      (default: listen on all MIDI channels)
              */
-            void SetMidiInputDevice(midi_input_type_t MidiType, MidiInputDevice::midi_chan_t MidiChannel = MidiInputDevice::midi_chan_all);
+            void SetMidiInputDevice(MidiInputDevice::type_t MidiType, MidiInputDevice::midi_chan_t MidiChannel = MidiInputDevice::midi_chan_all);
 
             /**
              * Returns the engine that was deployed on this sampler channel.
@@ -254,7 +232,7 @@ namespace LinuxSampler {
              * @param AudioType - desired audio output system to use
              * @returns  pointer to created audio output device
              */
-            AudioOutputDevice* CreateAudioOutputDevice(audio_output_type_t AudioType);
+            AudioOutputDevice* CreateAudioOutputDevice(AudioOutputDevice::type_t AudioType);
 
             /**
              * Returns the audio output device of the given type.
@@ -263,7 +241,7 @@ namespace LinuxSampler {
              * @returns  pointer to audio output device or NULL if device of
              *           desired type is not yet created
              */
-            AudioOutputDevice* GetAudioOutputDevice(audio_output_type_t AudioType);
+            AudioOutputDevice* GetAudioOutputDevice(AudioOutputDevice::type_t AudioType);
 
             /**
              * Create a MIDI input device of the given type.
@@ -271,7 +249,7 @@ namespace LinuxSampler {
              * @param MidiType - desired MIDI input system to use
              * @returns  pointer to created MIDI input device
              */
-            MidiInputDevice* CreateMidiInputDevice(midi_input_type_t MidiType);
+            MidiInputDevice* CreateMidiInputDevice(MidiInputDevice::type_t MidiType);
 
             /**
              * Returns the MIDI input device of the given type.
@@ -280,11 +258,11 @@ namespace LinuxSampler {
              * @returns  pointer to MIDI input device or NULL if device of
              *           desired type is not yet created
              */
-            MidiInputDevice* GetMidiInputDevice(midi_input_type_t MidiType);
+            MidiInputDevice* GetMidiInputDevice(MidiInputDevice::type_t MidiType);
 
         protected:
-            typedef std::map<audio_output_type_t, AudioOutputDevice*> AudioOutputDeviceMap;
-            typedef std::map<midi_input_type_t, MidiInputDevice*> MidiInputDeviceMap;
+            typedef std::map<AudioOutputDevice::type_t, AudioOutputDevice*> AudioOutputDeviceMap;
+            typedef std::map<MidiInputDevice::type_t, MidiInputDevice*> MidiInputDeviceMap;
 
             std::vector<SamplerChannel*> vSamplerChannels;   ///< contains all created sampler channels
             AudioOutputDeviceMap         AudioOutputDevices; ///< contains all created audio output devices

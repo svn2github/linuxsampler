@@ -50,6 +50,16 @@ namespace LinuxSampler {
             /////////////////////////////////////////////////////////////////
             // type definitions
 
+            /**
+             * List of all currently implemented MIDI input drivers.
+             */
+            enum type_t {
+                type_alsa
+            };
+
+            /**
+             * MIDI channels
+             */
             enum midi_chan_t {
                 midi_chan_all = 0,
                 midi_chan_1   = 1,
@@ -67,8 +77,7 @@ namespace LinuxSampler {
                 midi_chan_13  = 13,
                 midi_chan_14  = 14,
                 midi_chan_15  = 15,
-                midi_chan_16  = 16,
-                midi_chan_17  = 17
+                midi_chan_16  = 16
             };
 
 
@@ -118,8 +127,26 @@ namespace LinuxSampler {
              */
             void Disconnect(Engine* pEngine);
 
+            /**
+             * Returns the ID that identifies the implementing MIDI input
+             * driver.
+             */
+            type_t Type();
+
         protected:
             std::set<Engine*> MidiChannelMap[17]; ///< Contains the list of connected engines for each MIDI channel, where index 0 points to the list of engines which are connected to all MIDI channels. Usually it's not necessary for the descendant to use this map, instead it should just use the Dispatch* methods.
+            type_t            MidiInputType;
+
+
+            /**
+             * Constructor. Has to be called by the implementing MIDI
+             * input driver to define the ID of the driver. When a new MIDI
+             * input driver is implemented, the
+             * MidiInputDevice::midi_input_type_t enumeration has to be
+             * extended with a new ID for the new MIDI input driver.
+             */
+            MidiInputDevice(type_t Type);
+
 
 
             /////////////////////////////////////////////////////////////////

@@ -95,7 +95,7 @@ namespace LinuxSampler { namespace gig {
         pLFO3  = new LFO<gig::VCOManipulator>(-1200.0f, 1200.0f, LFO<VCOManipulator>::propagation_middle_balanced, pVCOManipulator, pEngine->pEventPool); // +-1 octave (+-1200 cents) max.
 
         this->pDiskThread = pEngine->pDiskThread;
-        dmsg(1,("Voice::SetEngine()\n"));
+        dmsg(6,("Voice::SetEngine()\n"));
     }
 
     /**

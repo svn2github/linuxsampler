@@ -91,7 +91,7 @@ namespace LinuxSampler { namespace gig {
     void Engine::Enable() {
         dmsg(3,("gig::Engine: enabling\n"));
         EngineDisabled.PushAndUnlock(false, 2); // set condition object 'EngineDisabled' to false (wait max. 2s)
-        dmsg(1,("gig::Engine: enabled (val=%d)\n", EngineDisabled.GetUnsafe()));
+        dmsg(3,("gig::Engine: enabled (val=%d)\n", EngineDisabled.GetUnsafe()));
     }
 
     void Engine::Disable() {

@@ -57,12 +57,12 @@ enum fill_response_t {
  */
 struct YYSTYPE {
     union {
-        char                Char;
-        unsigned int        Number;
-        double              Dotnum;
-        fill_response_t     FillResponse;
-        audio_output_type_t AudioOutput;
-        midi_input_type_t   MidiInput;
+        char                      Char;
+        unsigned int              Number;
+        double                    Dotnum;
+        fill_response_t           FillResponse;
+        AudioOutputDevice::type_t AudioOutput;
+        MidiInputDevice::type_t   MidiInput;
     };
     std::string  String;
 };

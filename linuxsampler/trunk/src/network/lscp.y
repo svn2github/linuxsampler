@@ -126,11 +126,11 @@ load_instr_args       :  filename SP instrument_index SP sampler_channel  { $$ =
 load_engine_args      :  engine_name SP sampler_channel  { $$ = LSCPSERVER->LoadEngine($1, $3); }
                       ;
 
-audio_output_type     :  ALSA  { $$ = audio_output_type_alsa; }
-                      |  JACK  { $$ = audio_output_type_jack; }
+audio_output_type     :  ALSA  { $$ = AudioOutputDevice::type_alsa; }
+                      |  JACK  { $$ = AudioOutputDevice::type_jack; }
                       ;
 
-midi_input_type       :  ALSA  { $$ = midi_input_type_alsa; }
+midi_input_type       :  ALSA  { $$ = MidiInputDevice::type_alsa; }
                       ;
 
 volume                :  DOTNUM

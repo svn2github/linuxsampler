@@ -68,9 +68,9 @@ class LSCPServer : public Thread {
         String GetVoiceCount(uint uiSamplerChannel);
         String GetStreamCount(uint uiSamplerChannel);
         String GetBufferFill(fill_response_t ResponseType, uint uiSamplerChannel);
-        String SetAudioOutputType(audio_output_type_t AudioOutputType, uint uiSamplerChannel);
+        String SetAudioOutputType(AudioOutputDevice::type_t AudioOutputType, uint uiSamplerChannel);
         String SetAudioOutputChannel(uint AudioOutputChannel, uint uiSamplerChannel);
-        String SetMIDIInputType(midi_input_type_t MidiInputType, uint uiSamplerChannel);
+        String SetMIDIInputType(MidiInputDevice::type_t MidiInputType, uint uiSamplerChannel);
         String SetMIDIInputPort(String MIDIInputPort, uint uiSamplerchannel);
         String SetMIDIInputChannel(uint MIDIChannel, uint uiSamplerChannel);
         String SetVolume(double Volume, uint uiSamplerChannel);

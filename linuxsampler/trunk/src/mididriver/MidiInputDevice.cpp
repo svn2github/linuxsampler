@@ -24,6 +24,10 @@
 
 namespace LinuxSampler {
 
+    MidiInputDevice::MidiInputDevice(type_t Type) {
+        MidiInputType = Type;
+    }
+
     void MidiInputDevice::DispatchNoteOn(uint8_t Key, uint8_t Velocity, uint MidiChannel) {
         std::set<Engine*>::iterator engineiter = MidiChannelMap[MidiChannel].begin();
         std::set<Engine*>::iterator end        = MidiChannelMap[MidiChannel].end();
@@ -58,6 +62,10 @@ namespace LinuxSampler {
     void MidiInputDevice::Disconnect(Engine* pEngine) {
         try { for (int i = 0; i <= 16; i++) MidiChannelMap[i].erase(pEngine); }
         catch(...) { /* NOOP */ }
+    }
+
+    MidiInputDevice::type_t MidiInputDevice::Type() {
+        return MidiInputType;
     }
 
 } // namespace LinuxSampler

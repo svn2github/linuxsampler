@@ -41,7 +41,7 @@ namespace LinuxSampler {
      * @throws AudioOutputException  on error
      * @see AcquireChannels()
      */
-    AudioOutputDeviceJack::AudioOutputDeviceJack(String* AutoConnectPortIDs, uint AutoConnectPorts) : AudioOutputDevice() {
+    AudioOutputDeviceJack::AudioOutputDeviceJack(String* AutoConnectPortIDs, uint AutoConnectPorts) : AudioOutputDevice(AudioOutputDevice::type_jack) {
         if ((hJackClient = jack_client_new("LinuxSampler")) == 0)
             throw AudioOutputException("Seems Jack server not running.");
 

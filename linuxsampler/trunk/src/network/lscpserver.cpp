@@ -118,8 +118,8 @@ String LSCPServer::LoadEngine(String EngineName, uint uiSamplerChannel) {
     dmsg(2,("LSCPServer: LoadEngine(EngineName=%s,SamplerChannel=%d)\n", EngineName.c_str(), uiSamplerChannel));
     result_t result;
     try {
-        engine_type_t type;
-        if (EngineName == "gig") type = engine_type_gig;
+        Engine::type_t type;
+        if (EngineName == "gig") type = Engine::type_gig;
         else throw LinuxSamplerException("Unknown engine type");
         SamplerChannel* pSamplerChannel = pSampler->GetSamplerChannel(uiSamplerChannel);
         if (!pSamplerChannel) throw LinuxSamplerException("Index out of bounds");
@@ -283,7 +283,7 @@ String LSCPServer::GetBufferFill(fill_response_t ResponseType, uint uiSamplerCha
  * Will be called by the parser to change the audio output type on a
  * particular sampler channel.
  */
-String LSCPServer::SetAudioOutputType(audio_output_type_t AudioOutputType, uint uiSamplerChannel) {
+String LSCPServer::SetAudioOutputType(AudioOutputDevice::type_t AudioOutputType, uint uiSamplerChannel) {
     dmsg(2,("LSCPServer: SetAudioOutputType(AudioOutputType=%d, SamplerChannel=%d)\n", AudioOutputType, uiSamplerChannel));
     result_t result;
     try {
@@ -310,7 +310,7 @@ String LSCPServer::SetAudioOutputChannel(uint AudioOutputChannel, uint uiSampler
     return "ERR:0:Not implemented yet.\r\n";
 }
 
-String LSCPServer::SetMIDIInputType(midi_input_type_t MidiInputType, uint uiSamplerChannel) {
+String LSCPServer::SetMIDIInputType(MidiInputDevice::type_t MidiInputType, uint uiSamplerChannel) {
     dmsg(2,("LSCPServer: SetMIDIInputType(MidiInputType=%d, SamplerChannel=%d)\n", MidiInputType, uiSamplerChannel));
     result_t result;
     try {
@@ -343,7 +343,23 @@ String LSCPServer::SetMIDIInputPort(String MIDIInputPort, uint uiSamplerchannel)
  */
 String LSCPServer::SetMIDIInputChannel(uint MIDIChannel, uint uiSamplerChannel) {
     dmsg(2,("LSCPServer: SetMIDIInputChannel(MIDIChannel=%d, SamplerChannel=%d)\n", MIDIChannel, uiSamplerChannel));
-    return "ERR:0:Not implemented yet.\r\n";
+    result_t result;
+    try {
+        SamplerChannel* pSamplerChannel = pSampler->GetSamplerChannel(uiSamplerChannel);
+        if (!pSamplerChannel) throw LinuxSamplerException("Index out of bounds");
+        if (!pSamplerChannel->GetMidiInputDevice()) throw LinuxSamplerException("No MIDI input device connected yet");
+        MidiInputDevice::type_t oldtype = pSamplerChannel->GetMidiInputDevice()->Type();
+        pSamplerChannel->SetMidiInputDevice(oldtype, (MidiInputDevice::midi_chan_t) uiSamplerChannel);
+
+        result.type = result_type_success;
+    }
+    catch (LinuxSamplerException e) {
+         e.PrintMessage();
+         result.type    = result_type_error;
+         result.code    = LSCP_ERR_UNKNOWN;
+         result.message = e.Message();
+    }
+    return ConvertResult(result);
 }
 
 /**

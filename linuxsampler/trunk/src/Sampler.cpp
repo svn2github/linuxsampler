@@ -48,13 +48,13 @@ namespace LinuxSampler {
         }
     }
 
-    void SamplerChannel::LoadEngine(engine_type_t EngineType) {
-        dmsg(1,("SamplerChannel: Loading engine\n"));
+    void SamplerChannel::LoadEngine(Engine::type_t EngineType) {
+        dmsg(2,("SamplerChannel: Loading engine..."));
 
         // create new engine
         Engine* pNewEngine = NULL;
         switch (EngineType) {
-            case engine_type_gig:
+            case Engine::type_gig:
                 pNewEngine = new gig::Engine;
                 break;
             default:
@@ -72,10 +72,10 @@ namespace LinuxSampler {
         pEngine = pNewEngine;
         if (pMidiInputDevice) pMidiInputDevice->Connect(pNewEngine, (MidiInputDevice::midi_chan_t) Index());
         if (pAudioOutputDevice) pAudioOutputDevice->Connect(pNewEngine);
-        dmsg(1,("SamplerChannel: Engine loaded.\n"));
+        dmsg(2,("OK\n"));
     }
 
-    void SamplerChannel::SetAudioOutputDevice(audio_output_type_t AudioType) {
+    void SamplerChannel::SetAudioOutputDevice(AudioOutputDevice::type_t AudioType) {
         // get / create desired audio device
         AudioOutputDevice* pDevice = pSampler->GetAudioOutputDevice(AudioType);
         if (!pDevice) pDevice = pSampler->CreateAudioOutputDevice(AudioType);
@@ -88,7 +88,7 @@ namespace LinuxSampler {
         if (pEngine) pAudioOutputDevice->Connect(pEngine);
     }
 
-    void SamplerChannel::SetMidiInputDevice(midi_input_type_t MidiType, MidiInputDevice::midi_chan_t MidiChannel) {
+    void SamplerChannel::SetMidiInputDevice(MidiInputDevice::type_t MidiType, MidiInputDevice::midi_chan_t MidiChannel) {
         // get / create desired midi device
         MidiInputDevice* pDevice = pSampler->GetMidiInputDevice(MidiType);
         if (!pDevice) pDevice = pSampler->CreateMidiInputDevice(MidiType);
@@ -163,7 +163,7 @@ namespace LinuxSampler {
     }
 
     uint Sampler::SamplerChannels() {
-        vSamplerChannels.size();
+        return vSamplerChannels.size();
     }
 
     SamplerChannel* Sampler::AddSamplerChannel() {
@@ -194,17 +194,17 @@ namespace LinuxSampler {
         RemoveSamplerChannel(pChannel);
     }
 
-    AudioOutputDevice* Sampler::CreateAudioOutputDevice(audio_output_type_t AudioType) {
+    AudioOutputDevice* Sampler::CreateAudioOutputDevice(AudioOutputDevice::type_t AudioType) {
         // check if device already created
         AudioOutputDevice* pDevice = GetAudioOutputDevice(AudioType);
         if (pDevice) return pDevice;
 
         // create new device
         switch (AudioType) {
-            case audio_output_type_alsa:
+            case AudioOutputDevice::type_alsa:
                 pDevice = new AudioOutputDeviceAlsa;
                 break;
-            case audio_output_type_jack:
+            case AudioOutputDevice::type_jack:
                 pDevice = new AudioOutputDeviceJack;
                 break;
             default:
@@ -214,22 +214,25 @@ namespace LinuxSampler {
         // activate device
         pDevice->Play();
 
+        // add new audio device to the audio device list
+        AudioOutputDevices[AudioType] = pDevice;
+
         return pDevice;
     }
 
-    AudioOutputDevice* Sampler::GetAudioOutputDevice(audio_output_type_t AudioType) {
+    AudioOutputDevice* Sampler::GetAudioOutputDevice(AudioOutputDevice::type_t AudioType) {
         AudioOutputDeviceMap::iterator iter = AudioOutputDevices.find(AudioType);
         return (iter != AudioOutputDevices.end()) ? iter->second : NULL;
     }
 
-    MidiInputDevice* Sampler::CreateMidiInputDevice(midi_input_type_t MidiType) {
+    MidiInputDevice* Sampler::CreateMidiInputDevice(MidiInputDevice::type_t MidiType) {
         // check if device already created
         MidiInputDevice* pDevice = GetMidiInputDevice(MidiType);
         if (pDevice) return pDevice;
 
         // create new device
         switch (MidiType) {
-            case midi_input_type_alsa:
+            case MidiInputDevice::type_alsa:
                 pDevice = new MidiInputDeviceAlsa;
                 break;
             default:
@@ -239,10 +242,13 @@ namespace LinuxSampler {
         // activate device
         pDevice->Listen();
 
+        // add new MIDI device to the MIDI device list
+        MidiInputDevices[MidiType] = pDevice;
+
         return pDevice;
     }
 
-    MidiInputDevice* Sampler::GetMidiInputDevice(midi_input_type_t MidiType) {
+    MidiInputDevice* Sampler::GetMidiInputDevice(MidiInputDevice::type_t MidiType) {
         MidiInputDeviceMap::iterator iter = MidiInputDevices.find(MidiType);
         return (iter != MidiInputDevices.end()) ? iter->second : NULL;
     }
