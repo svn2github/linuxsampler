@@ -1,8 +1,12 @@
 #include "LSCPTest.h"
 
+#include "../common/global.h"
+#include "../common/optional.h"
+
 #include <iostream>
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 
 CPPUNIT_TEST_SUITE_REGISTRATION(LSCPTest);
 
@@ -15,6 +19,25 @@ static Sampler*    pSampler    = NULL;
 static LSCPServer* pLSCPServer = NULL;
 static int         hSocket     = -1;
 static FILE*       hServerIn   = NULL;
+
+/// Returns first token from \a sentence and removes that token (and evtl. delimiter) from \a sentence.
+static optional<string> __ExtractFirstToken(string* pSentence, const string Delimiter) {
+    if (*pSentence == "") return optional<string>::nothing;
+
+    string::size_type pos = pSentence->find(Delimiter);
+
+    // if sentence has only one token
+    if (pos == string::npos) {
+        string token = *pSentence;
+        *pSentence = "";
+        return token;
+    }
+
+    // sentence has more than one token, so extract the first token
+    string token = pSentence->substr(0, pos);
+    *pSentence   = pSentence->replace(0, pos + 1, "");
+    return token;
+}
 
 // split the multi line response string into the individual lines and remove the last (delimiter) line and the line feed characters in all lines
 static vector<string> __ConvertMultiLineMessage(string msg) {
@@ -141,27 +164,44 @@ string LSCPTest::receiveSingleLineAnswerFromLSCPServer() {
     return msg.substr(0, pos);
 }
 
-// wait until LSCP server answers with a multi line answer
-vector<string> LSCPTest::receiveMultiLineAnswerFromLSCPServer() {
-    string msg = receiveAnswerFromLSCPServer("\n.\r\n");
+/// wait until LSCP server answers with a multi line answer (throws LinuxSamplerException if optional timeout exceeded)
+vector<string> LSCPTest::receiveMultiLineAnswerFromLSCPServer(uint timeout_seconds) throw (LinuxSamplerException) {
+    string msg = receiveAnswerFromLSCPServer("\n.\r\n", timeout_seconds);
     return __ConvertMultiLineMessage(msg);
 }
 
-// wait until LSCP server answers with the given \a delimiter token at the end
-string LSCPTest::receiveAnswerFromLSCPServer(string delimiter) {
+/// wait until LSCP server answers with the given \a delimiter token at the end (throws LinuxSamplerException if optional timeout exceeded or socket error occured)
+string LSCPTest::receiveAnswerFromLSCPServer(string delimiter, uint timeout_seconds) throw (LinuxSamplerException) {
     if (!hServerIn) {
         cout << "receiveAnswerFromLSCPServer() error: client socket not ready\n" << flush;
         return "";
     }
     string message;
     char c;
-    while ((c = fgetc(hServerIn)) != EOF) {
+    fd_set sockSet;
+    timeval timeout;
+
+    while (true) {
+        if (timeout_seconds) {
+            FD_ZERO(&sockSet);
+            FD_SET(hSocket, &sockSet);
+            timeout.tv_sec  = timeout_seconds;
+            timeout.tv_usec = 0;
+            int res = select(hSocket + 1, &sockSet, NULL, NULL, &timeout);
+            if (!res)         throw LinuxSamplerException("LSCPTest::receiveAnswerFromLSCPServer(): timeout (" + ToString(timeout_seconds) + "s) exceeded waiting for expected answer (end)");
+            else if (res < 0) throw LinuxSamplerException("LSCPTest::receiveAnswerFromLSCPServer(): select error");
+        }
+
+        // there's something to read, so read one character
+        c = fgetc(hServerIn);
+        if (c == EOF) {
+            cout << "receiveAnswerFromLSCPServer() error: EOF reached\n" << flush;
+            return "";
+        }
         message += c;
         string::size_type pos = message.rfind(delimiter); // ouch, but this is only a test case, right? ;)
         if (pos != string::npos) return message;
     }
-    cout << "receiveAnswerFromLSCPServer() error: EOF reached\n" << flush;
-    return "";
 }
 
 
@@ -261,6 +301,39 @@ void LSCPTest::test_REMOVE_CHANNEL() {
         CPPUNIT_ASSERT(answer == "OK");
     }
     CPPUNIT_ASSERT(true); // success
+}
+
+// Check "GET AUDIO_OUTPUT_CHANNEL_PARAMETER INFO" LSCP command.
+void LSCPTest::test_GET_AUDIO_OUTPUT_CHANNEL_PARAMETER_INFO() {
+    // first check if there's already an audio output device created
+    sendCommandToLSCPServer("GET AUDIO_OUTPUT_DEVICES");
+    string answer = receiveSingleLineAnswerFromLSCPServer();
+    int devices   = atoi(answer.c_str());
+    CPPUNIT_ASSERT(devices >= 0);
+    if (!devices) { // if there's no audio output device yet, try to create one
+        sendCommandToLSCPServer("GET AVAILABLE_AUDIO_OUTPUT_DRIVERS");
+        string drivers = receiveSingleLineAnswerFromLSCPServer();
+        CPPUNIT_ASSERT(drivers.size());
+
+        // iterate through all available drivers until device creation was successful
+        do {
+            optional<string> driver = __ExtractFirstToken(&drivers, ",");
+            CPPUNIT_ASSERT(driver);
+
+            sendCommandToLSCPServer("CREATE AUDIO_OUTPUT_DEVICE " + *driver);
+            answer = receiveSingleLineAnswerFromLSCPServer();
+        } while (answer != "OK[0]");
+    }
+
+    // now we can check the "GET AUDIO_OUTPUT_CHANNEL_PARAMETER INFO" command
+    const uint timeout_seconds = 2;
+    sendCommandToLSCPServer("GET AUDIO_OUTPUT_CHANNEL_PARAMETER INFO 0 0 NAME");
+    vector<string> vAnswer = receiveMultiLineAnswerFromLSCPServer(timeout_seconds);
+    CPPUNIT_ASSERT(vAnswer.size() >= 4); // should at least contain tags TYPE, DESCRIPTION, FIX and MULTIPLICITY
+
+    sendCommandToLSCPServer("GET AUDIO_OUTPUT_CHANNEL_PARAMETER INFO 0 0 IS_MIX_CHANNEL");
+    vAnswer = receiveMultiLineAnswerFromLSCPServer(timeout_seconds);
+    CPPUNIT_ASSERT(vAnswer.size() >= 4); // should at least contain tags TYPE, DESCRIPTION, FIX and MULTIPLICITY
 }
 
 // Check if we can shutdown the LSCP Server without problems.
