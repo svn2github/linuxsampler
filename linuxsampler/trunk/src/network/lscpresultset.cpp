@@ -20,19 +20,38 @@
  *   MA  02111-1307  USA                                                   *
  ***************************************************************************/
 
+/*********************************************************
+ * This class helps to constuct valid resultsets per
+ * LSCP protocol specification
+ *
+ * Valid results include:
+ * OK - to ack the request
+ * Single line to ack the requests and give status
+ * Several lines of information in the following format:
+ * LABEL0: VALUE0
+ * LABEL1: VALUE1
+ * VALELx: VALUEx
+ * .
+ *
+ * ******************************************************/
+
 #include "lscpresultset.h"
 #include "../common/LinuxSamplerException.h"
 
+//Construct an empty resultset
 LSCPResultSet::LSCPResultSet(void) {
 	count = 0;
 	storage = "";
 }
 
+//Construct a resultset with a single line
 LSCPResultSet::LSCPResultSet(String Value) {
 	count = 1;
 	storage = Value + "\r\n";
 }
 
+//Add a label/value pair to the resultset
+//Values could be of different types for now supports String, int and float.
 void LSCPResultSet::Add(String Label, String Value) {
 	if (count == -1)
         	throw LinuxSamplerException("Attempting to change already produced resultset");
@@ -52,6 +71,7 @@ void LSCPResultSet::Add(String Label, float Value) {
 	Add(Label, temp);
 }
 
+//Add a single string to the resultset
 void LSCPResultSet::Add(String Value) {
 	if (count == -1)
         	throw LinuxSamplerException("Attempting to change already produced resultset");
@@ -61,10 +81,12 @@ void LSCPResultSet::Add(String Value) {
         count = 1;
 }
 
+//Produce resultset
 String LSCPResultSet::Produce(void) {
-	if (count == 0)
+	if (count == 0) //When there is nothing in the resultset we just send "OK" to ack the request
 		return "OK\r\n";
-	if (count == 1)
+	if (count == 1) //Single line results are just that, single line
 		return storage;
+	//Multiline results MUST end with a line with a single dot
 	return storage + ".\r\n";
 }
