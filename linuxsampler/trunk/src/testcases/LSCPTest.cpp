@@ -7,6 +7,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <fcntl.h>
+#include <sys/types.h>
+#include <sys/socket.h>
 
 CPPUNIT_TEST_SUITE_REGISTRATION(LSCPTest);
 
@@ -18,7 +21,6 @@ CPPUNIT_TEST_SUITE_REGISTRATION(LSCPTest);
 static Sampler*    pSampler    = NULL;
 static LSCPServer* pLSCPServer = NULL;
 static int         hSocket     = -1;
-static FILE*       hServerIn   = NULL;
 
 /// Returns first token from \a sentence and removes that token (and evtl. delimiter) from \a sentence.
 static optional<string> __ExtractFirstToken(string* pSentence, const string Delimiter) {
@@ -130,14 +132,15 @@ bool LSCPTest::connectToLSCPServer() {
         return false;
     }
 
-    hServerIn = fdopen(hSocket, "r");
+    // set non-blocking mode
+    int socket_flags = fcntl(hSocket, F_GETFL, 0);
+    fcntl(hSocket, F_SETFL, socket_flags | O_NONBLOCK);
 
     return true;
 }
 
 bool LSCPTest::closeConnectionToLSCPServer() {
     //cout << "closeConnectionToLSCPServer()\n" << flush;
-    hServerIn = NULL;
     if (hSocket >= 0) {
         close(hSocket);
         hSocket = -1;
@@ -172,10 +175,6 @@ vector<string> LSCPTest::receiveMultiLineAnswerFromLSCPServer(uint timeout_secon
 
 /// wait until LSCP server answers with the given \a delimiter token at the end (throws LinuxSamplerException if optional timeout exceeded or socket error occured)
 string LSCPTest::receiveAnswerFromLSCPServer(string delimiter, uint timeout_seconds) throw (LinuxSamplerException) {
-    if (!hServerIn) {
-        cout << "receiveAnswerFromLSCPServer() error: client socket not ready\n" << flush;
-        return "";
-    }
     string message;
     char c;
     fd_set sockSet;
@@ -188,16 +187,44 @@ string LSCPTest::receiveAnswerFromLSCPServer(string delimiter, uint timeout_seco
             timeout.tv_sec  = timeout_seconds;
             timeout.tv_usec = 0;
             int res = select(hSocket + 1, &sockSet, NULL, NULL, &timeout);
-            if (!res)         throw LinuxSamplerException("LSCPTest::receiveAnswerFromLSCPServer(): timeout (" + ToString(timeout_seconds) + "s) exceeded waiting for expected answer (end)");
-            else if (res < 0) throw LinuxSamplerException("LSCPTest::receiveAnswerFromLSCPServer(): select error");
+            if (!res) { // if timeout exceeded
+                if (!message.size()) throw LinuxSamplerException("LSCPTest::receiveAnswerFromLSCPServer(): timeout (" + ToString(timeout_seconds) + "s) exceeded, no answer received");
+                else                 throw LinuxSamplerException("LSCPTest::receiveAnswerFromLSCPServer(): timeout (" + ToString(timeout_seconds) + "s) exceeded waiting for expected answer (end), received answer: \'" + message + "\'");
+            }
+            else if (res < 0) {
+                throw LinuxSamplerException("LSCPTest::receiveAnswerFromLSCPServer(): select error");
+            }
         }
 
         // there's something to read, so read one character
-        c = fgetc(hServerIn);
-        if (c == EOF) {
-            cout << "receiveAnswerFromLSCPServer() error: EOF reached\n" << flush;
-            return "";
+        int res = recv(hSocket, &c, 1, 0);
+        if (!res) throw LinuxSamplerException("LSCPTest::receiveAnswerFromLSCPServer(): connection to LSCP server closed");
+        else if (res < 0) {
+            switch(errno) {
+                case EBADF:
+                    throw LinuxSamplerException("The argument s is an invalid descriptor");
+                case ECONNREFUSED:
+                    throw LinuxSamplerException("A remote host refused to allow the network connection (typically because it is not running the requested service).");
+                case ENOTCONN:
+                    throw LinuxSamplerException("The socket is associated with a connection-oriented protocol and has not been connected (see connect(2) and accept(2)).");
+                case ENOTSOCK:
+                    throw LinuxSamplerException("The argument s does not refer to a socket.");
+                case EAGAIN:
+                    continue;
+                    //throw LinuxSamplerException("The socket is marked non-blocking and the receive operation would block, or a receive timeout had been set and the timeout expired before data was received.");
+                case EINTR:
+                    throw LinuxSamplerException("The receive was interrupted by delivery of a signal before any data were available.");
+                case EFAULT:
+                    throw LinuxSamplerException("The receive buffer pointer(s) point outside the process's address space.");
+                case EINVAL:
+                    throw LinuxSamplerException("Invalid argument passed.");
+                case ENOMEM:
+                    throw LinuxSamplerException("Could not allocate memory for recvmsg.");
+                default:
+                    throw LinuxSamplerException("Unknown recv() error.");
+            }
         }
+
         message += c;
         string::size_type pos = message.rfind(delimiter); // ouch, but this is only a test case, right? ;)
         if (pos != string::npos) return message;
