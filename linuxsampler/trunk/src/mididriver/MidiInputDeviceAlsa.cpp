@@ -40,8 +40,6 @@ namespace LinuxSampler {
     }
 
     MidiInputDeviceAlsa::MidiInputPortAlsa::MidiInputPortAlsa(MidiInputDeviceAlsa* pDevice, int alsaPort) : MidiInputPort(pDevice, alsaPort) {
-	    this->pDevice = pDevice;
-	    Parameters = MidiInputDevice::MidiInputPort::AvailableParameters();
 	    Parameters["alsa_seq_bindings"] = new ParameterAlsaSeqBindings(this);
     }
 
@@ -99,7 +97,7 @@ namespace LinuxSampler {
     }
 
     String MidiInputDeviceAlsa::Version() {
-	    String s = "$Revision: 1.5 $";
+	    String s = "$Revision: 1.6 $";
 	    return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
 

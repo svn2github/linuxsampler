@@ -60,24 +60,18 @@ namespace LinuxSampler {
 	    }
     }
 
+    MidiInputDevice::MidiInputPort::MidiInputPort(MidiInputDevice* pDevice, int portNumber) {
+	    this->pDevice = pDevice;
+	    this->portNumber = portNumber;
+	    Parameters["name"] = new ParameterName(this);
+    }
+
     MidiInputDevice* MidiInputDevice::MidiInputPort::GetDevice() {
 	    return pDevice;
     }
 
     uint MidiInputDevice::MidiInputPort::GetPortNumber() {
 	    return portNumber;
-    }
-
-    std::map<String,DeviceCreationParameter*> MidiInputDevice::MidiInputPort::AvailableParameters() {
-	    static const std::map<String,DeviceCreationParameter*> available_parameters = CreateAvailableParameters();
-	    return available_parameters;
-    }
-                                                                                                                                                            
-    std::map<String,DeviceCreationParameter*> MidiInputDevice::MidiInputPort::CreateAvailableParameters() {
-	    static ParameterName     param_name(NULL);
-	    std::map<String,DeviceCreationParameter*> result;
-	    result["name"]     = &param_name;
-	    return result;
     }
 
     std::map<String,DeviceCreationParameter*> MidiInputDevice::DeviceParameters() {

@@ -149,10 +149,9 @@ namespace LinuxSampler {
 			     */
 			    void Disconnect(Engine* pEngine);
 
-			    static std::map<String,DeviceCreationParameter*> AvailableParameters();
-			    std::map<String,DeviceCreationParameter*> DeviceParameters();
 			    MidiInputDevice* GetDevice();
 			    uint GetPortNumber();
+			    std::map<String,DeviceCreationParameter*> DeviceParameters();
 
 			    /////////////////////////////////////////////////////////////////
 			    // dispatch methods
@@ -204,8 +203,9 @@ namespace LinuxSampler {
 			     */
 			    void DispatchControlChange(uint8_t Controller, uint8_t Value, uint MidiChannel);
 
+			    MidiInputPort(MidiInputDevice* pDevice, int portNumber);
+
 		    protected:
-			    MidiInputPort(MidiInputDevice* pDevice, int portNumber) { this->pDevice = pDevice; this->portNumber = portNumber;}
 			    MidiInputDevice* pDevice;
 			    int portNumber;
 			    std::map<String,DeviceCreationParameter*> Parameters;  ///< All port parameters.
@@ -213,9 +213,6 @@ namespace LinuxSampler {
 			    virtual ~MidiInputPort();
 
 			    friend class MidiInputDevice;
-
-		    private:
-			    static std::map<String,DeviceCreationParameter*> CreateAvailableParameters();
 	    };
 
 	    /**
