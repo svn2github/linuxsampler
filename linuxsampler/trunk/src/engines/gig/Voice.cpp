@@ -116,7 +116,9 @@ namespace LinuxSampler { namespace gig {
      *  @param iLayer              - layer number this voice refers to (only if this is a layered sound of course)
      *  @param ReleaseTriggerVoice - if this new voice is a release trigger voice (optional, default = false)
      *  @param VoiceStealing       - wether the voice is allowed to steal voices for further subvoices
-     *  @returns 0 on success, a value < 0 if something failed
+     *  @returns 0 on success, a value < 0 if the voice wasn't triggered
+     *           (either due to an error or e.g. because no region is
+     *           defined for the given key)
      */
     int Voice::Trigger(Pool<Event>::Iterator& itNoteOnEvent, int PitchBend, ::gig::Instrument* pInstrument, int iLayer, bool ReleaseTriggerVoice, bool VoiceStealing) {
         if (!pInstrument) {
@@ -137,8 +139,7 @@ namespace LinuxSampler { namespace gig {
         itChildVoice    = Pool<Voice>::Iterator();
 
         if (!pRegion) {
-            std::cerr << "gig::Voice: No Region defined for MIDI key " << MIDIKey << std::endl << std::flush;
-            KillImmediately();
+            dmsg(4, ("gig::Voice: No Region defined for MIDI key %d\n", MIDIKey));
             return -1;
         }
 
@@ -170,7 +171,7 @@ namespace LinuxSampler { namespace gig {
                     DimValues[i] = (uint) ReleaseTriggerVoice;
                     break;
                 case ::gig::dimension_keyboard:
-                    DimValues[i] = (uint) itNoteOnEvent->Param.Note.Key;
+                    DimValues[i] = (uint) pEngine->CurrentKeyDimension;
                     break;
                 case ::gig::dimension_modwheel:
                     DimValues[i] = pEngine->ControllerTable[1];
@@ -251,6 +252,7 @@ namespace LinuxSampler { namespace gig {
         pDimRgn = pRegion->GetDimensionRegionByValue(DimValues);
 
         pSample = pDimRgn->pSample; // sample won't change until the voice is finished
+        if (!pSample || !pSample->SamplesTotal) return -1; // no need to continue if sample is silent
 
         // select channel mode (mono or stereo)
         SYNTHESIS_MODE_SET_CHANNELS(SynthesisMode, pSample->Channels == 2);

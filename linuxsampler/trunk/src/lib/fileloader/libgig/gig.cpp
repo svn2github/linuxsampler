@@ -1272,6 +1272,7 @@ namespace gig {
     }
 
     Sample* Region::GetSampleFromWavePool(unsigned int WavePoolTableIndex) {
+        if ((int32_t)WavePoolTableIndex == -1) return NULL;
         File* file = (File*) GetParent()->GetParent();
         unsigned long soughtoffset = file->pWavePoolTable[WavePoolTableIndex];
         Sample* sample = file->GetFirstSample();

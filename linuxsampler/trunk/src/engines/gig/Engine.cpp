@@ -166,6 +166,7 @@ namespace LinuxSampler { namespace gig {
         ActiveVoiceCount    = 0;
         ActiveVoiceCountMax = 0;
         GlobalVolume        = 1.0;
+        CurrentKeyDimension = 0;
 
         // reset voice stealing parameters
         itLastStolenVoice = RTList<Voice>::Iterator();
@@ -662,7 +663,15 @@ namespace LinuxSampler { namespace gig {
      *  @param itNoteOnEvent - key, velocity and time stamp of the event
      */
     void Engine::ProcessNoteOn(Pool<Event>::Iterator& itNoteOnEvent) {
-        midi_key_info_t* pKey = &pMIDIKeyInfo[itNoteOnEvent->Param.Note.Key];
+
+        const int key = itNoteOnEvent->Param.Note.Key;
+
+        // Change key dimension value if key is in keyswitching area
+        if (key >= pInstrument->DimensionKeyRange.low && key <= pInstrument->DimensionKeyRange.high)
+            CurrentKeyDimension = ((key - pInstrument->DimensionKeyRange.low) * 128) /
+                (pInstrument->DimensionKeyRange.high - pInstrument->DimensionKeyRange.low + 1);
+
+        midi_key_info_t* pKey = &pMIDIKeyInfo[key];
 
         pKey->KeyPressed = true; // the MIDI key was now pressed down
 
@@ -736,7 +745,8 @@ namespace LinuxSampler { namespace gig {
      *                               when there is no free voice
      *                               (optional, default = true)
      *  @returns pointer to new voice or NULL if there was no free voice or
-     *           if an error occured while trying to trigger the new voice
+     *           if the voice wasn't triggered (for example when no region is
+     *           defined for the given key).
      */
     Pool<Voice>::Iterator Engine::LaunchVoice(Pool<Event>::Iterator& itNoteOnEvent, int iLayer, bool ReleaseTriggerVoice, bool VoiceStealing) {
         midi_key_info_t* pKey = &pMIDIKeyInfo[itNoteOnEvent->Param.Note.Key];
@@ -746,7 +756,7 @@ namespace LinuxSampler { namespace gig {
         if (itNewVoice) {
             // launch the new voice
             if (itNewVoice->Trigger(itNoteOnEvent, this->Pitch, this->pInstrument, iLayer, ReleaseTriggerVoice, VoiceStealing) < 0) {
-                dmsg(1,("Triggering new voice failed!\n"));
+                dmsg(4,("Voice not triggered\n"));
                 pKey->pActiveVoices->free(itNewVoice);
             }
             else { // on success
@@ -1174,7 +1184,7 @@ namespace LinuxSampler { namespace gig {
     }
 
     String Engine::Version() {
-        String s = "$Revision: 1.21 $";
+        String s = "$Revision: 1.22 $";
         return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
 

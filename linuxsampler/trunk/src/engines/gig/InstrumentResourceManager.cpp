@@ -44,7 +44,7 @@ namespace LinuxSampler { namespace gig {
         dmsg(1,("Caching initial samples..."));
         ::gig::Region* pRgn = pInstrument->GetFirstRegion();
         while (pRgn) {
-            if (!pRgn->GetSample()->GetCache().Size) {
+            if (pRgn->GetSample() && !pRgn->GetSample()->GetCache().Size) {
                 dmsg(2,("C"));
                 CacheInitialSamples(pRgn->GetSample(), dynamic_cast<gig::Engine*>(pConsumer));
             }
@@ -90,7 +90,7 @@ namespace LinuxSampler { namespace gig {
      *  @param pEngine - pointer to Gig Engine which caused this call
      */
     void InstrumentResourceManager::CacheInitialSamples(::gig::Sample* pSample, gig::Engine* pEngine) {
-        if (!pSample || pSample->GetCache().Size) return;
+        if (!pSample || pSample->GetCache().Size || !pSample->SamplesTotal) return;
         if (pSample->SamplesTotal <= NUM_RAM_PRELOAD_SAMPLES) {
             // Sample is too short for disk streaming, so we load the whole
             // sample into RAM and place 'pAudioIO->FragmentSize << MAX_PITCH'
