@@ -161,6 +161,12 @@ void PrintRegions(gig::Instrument* instr) {
                 case gig::dimension_keyboard: // Key Position
                     cout << "KEYBOARD";
                     break;
+                case gig::dimension_roundrobin: // Different samples triggered each time a note is played, dimension regions selected in sequence
+                    cout << "ROUNDROBIN";
+                    break;
+                case gig::dimension_random: // Different samples triggered each time a note is played, random order
+                    cout << "RANDOM";
+                    break;
                 case gig::dimension_modwheel: // Modulation Wheel (MIDI Controller 1)
                     cout << "MODWHEEL";
                     break;

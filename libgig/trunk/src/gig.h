@@ -225,6 +225,8 @@ namespace gig {
         dimension_channelaftertouch = 0x83, ///< Channel Key Pressure
         dimension_releasetrigger    = 0x84, ///< Special dimension for triggering samples on releasing a key.
         dimension_keyboard          = 0x85, ///< Dimension for keyswitching
+        dimension_roundrobin        = 0x86, ///< Different samples triggered each time a note is played, dimension regions selected in sequence
+        dimension_random            = 0x87, ///< Different samples triggered each time a note is played, random order
         dimension_modwheel          = 0x01, ///< Modulation Wheel (MIDI Controller 1)
         dimension_breath            = 0x02, ///< Breath Controller (Coarse, MIDI Controller 2)
         dimension_foot              = 0x04, ///< Foot Pedal (Coarse, MIDI Controller 4)
@@ -483,6 +485,8 @@ namespace gig {
             uint32_t       LoopFraction;      ///< The fractional value specifies a fraction of a sample at which to loop (only if Loops > 0). This allows a loop to be fine tuned at a resolution greater than one sample. A value of 0 means no fraction, a value of 0x80000000 means 1/2 of a sample length. 0xFFFFFFFF is the smallest fraction of a sample that can be represented.
             uint32_t       LoopPlayCount;     ///< Number of times the loop should be played (only if Loops > 0, a value of 0 = infinite).
             bool           Compressed;        ///< If the sample wave is compressed (probably just interesting for instrument and sample editors, as this library already handles the decompression in it's sample access methods anyway).
+            uint32_t       TruncatedBits;     ///< For 24-bit compressed samples only: number of bits truncated during compression (0, 4 or 6)
+            bool           Dithered;          ///< For 24-bit compressed samples only: if dithering was used during compression with bit reduction
 
             // own methods
             buffer_t      LoadSampleData();

@@ -26,6 +26,7 @@ Version CVS HEAD (?)
     - external decompression buffers can now be used for streaming samples
       to avoid race conditions in case of multiple streaming threads
     - added pre-calculated sample attenuation parameter
+    - added v3 "random" and "round robin" dimensions
 
   * src/gigdump.cpp:
     - added output of UnityNote and FineTune
