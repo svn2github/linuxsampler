@@ -412,14 +412,15 @@ namespace gig {
             uint32_t       Product;           ///< Specifies the MIDI model ID defined by the manufacturer corresponding to the Manufacturer field. If no particular manufacturer's product is to be specified, a value of 0 should be used.
             uint32_t       SamplePeriod;      ///< Specifies the duration of time that passes during the playback of one sample in nanoseconds (normally equal to 1 / Samplers Per Second, where Samples Per Second is the value found in the format chunk).
             uint32_t       MIDIUnityNote;     ///< Specifies the musical note at which the sample will be played at it's original sample rate.
-            uint32_t       MIDIPitchFraction; ///< Specifies the fraction of a semitone up from the specified MIDI unity note field. A value of 0x80000000 means 1/2 semitone (50 cents) and a value of 0x00000000 means no fine tuning between semitones.
+            uint32_t       FineTune;          ///< Specifies the fraction of a semitone up from the specified MIDI unity note field. A value of 0x80000000 means 1/2 semitone (50 cents) and a value of 0x00000000 means no fine tuning between semitones.
             smpte_format_t SMPTEFormat;       ///< Specifies the Society of Motion Pictures and Television E time format used in the following <i>SMPTEOffset</i> field. If a value of 0 is set, <i>SMPTEOffset</i> should also be set to 0.
             uint32_t       SMPTEOffset;       ///< The SMPTE Offset value specifies the time offset to be used for the synchronization / calibration to the first sample in the waveform. This value uses a format of 0xhhmmssff where hh is a signed value that specifies the number of hours (-23 to 23), mm is an unsigned value that specifies the number of minutes (0 to 59), ss is an unsigned value that specifies the number of seconds (0 to 59) and ff is an unsigned value that specifies the number of frames (0 to -1).
             uint32_t       Loops;             ///< Number of defined sample loops (so far only seen single loops in gig files - please report me if you encounter more!).
-            uint32_t       LoopID;            ///< Specifies the unique ID that corresponds to one of the defined cue points in the cue point list (only if Loops > 0).
+            uint32_t       LoopID;            ///< Specifies the unique ID that corresponds to one of the defined cue points in the cue point list (only if Loops > 0), as the Gigasampler format only allows one loop definition at the moment, this attribute isn't really useful for anything.
             loop_type_t    LoopType;          ///< The type field defines how the waveform samples will be looped (only if Loops > 0).
-            uint32_t       LoopStart;         ///< The start value specifies the byte offset into the waveform data of the first sample to be played in the loop (only if Loops > 0).
-            uint32_t       LoopEnd;           ///< The end value specifies the byte offset into the waveform data of the last sample to be played in the loop (only if Loops > 0).
+            uint32_t       LoopStart;         ///< The start value specifies the offset (in sample points) in the waveform data of the first sample to be played in the loop (only if Loops > 0).
+            uint32_t       LoopEnd;           ///< The end value specifies the offset (in sample points) in the waveform data which represents the end of the loop (only if Loops > 0).
+            uint32_t       LoopSize;          ///< Length of the looping area (in sample points) which is equivalent to <i>LoopEnd - LoopStart</i>.
             uint32_t       LoopFraction;      ///< The fractional value specifies a fraction of a sample at which to loop (only if Loops > 0). This allows a loop to be fine tuned at a resolution greater than one sample. A value of 0 means no fraction, a value of 0x80000000 means 1/2 of a sample length. 0xFFFFFFFF is the smallest fraction of a sample that can be represented.
             uint32_t       LoopPlayCount;     ///< Number of times the loop should be played (only if Loops > 0, a value of 0 = infinite).
             bool           Compressed;        ///< If the sample wave is compressed (probably just interesting for instrument and sample editors, as this library already handles the decompression in it's sample access methods anyway).
@@ -532,6 +533,7 @@ namespace gig {
             Sample*     GetNextSample();      ///< Returns a pointer to the next <i>Sample</i> object of the file, <i>NULL</i> otherwise.
             Instrument* GetFirstInstrument(); ///< Returns a pointer to the first <i>Instrument</i> object of the file, <i>NULL</i> otherwise.
             Instrument* GetNextInstrument();  ///< Returns a pointer to the next <i>Instrument</i> object of the file, <i>NULL</i> otherwise.
+            Instrument* GetInstrument(uint index);
            ~File() {};
         protected:
             typedef std::list<Sample*>     SampleList;
