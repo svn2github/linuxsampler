@@ -4,7 +4,7 @@ METASOURCES = AUTO
 AM_CXXFLAGS = -ffast-math -march=$(target_cpu) -mcpu=$(target_cpu)
 
 noinst_LTLIBRARIES = liblinuxsamplernetwork.la
-liblinuxsamplernetwork_la_SOURCES = lscp.h lscpparser.cpp lscpparser.h lscpscanner.cpp lscpserver.cpp lscpserver.h lscpsymbols.h lscpresultset.cpp lscpresultset.h
+liblinuxsamplernetwork_la_SOURCES = lscp.h lscpparser.cpp lscpparser.h lscpscanner.cpp lscpserver.cpp lscpserver.h lscpsymbols.h lscpresultset.cpp lscpresultset.h lscpevent.cpp lscpevent.h
 
 .PHONY: parser
 

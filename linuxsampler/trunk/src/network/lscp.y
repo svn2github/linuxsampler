@@ -24,6 +24,7 @@
 
 #include "lscpparser.h"
 #include "lscpserver.h"
+#include "lscpevent.h"
 
 // as we need an reentrant scanner, we have to pass the pointer to the scanner with each yylex() call
 #define YYLEX_PARAM ((yyparse_param_t*) yyparse_param)->pScanner
@@ -75,14 +76,11 @@ void yyerror(const char* s);
 
 //TODO: return more meaningful error messages
 
-input                 :  line
-                      |  input LF line
-                      |  input CR LF line
-                      ;
+input                 : line LF
 
-line                  :  /* epsilon (empty line ignored) */
-                      |  comment
-                      |  command  { LSCPSERVER->AnswerClient($1); }
+line                  :  /* epsilon (empty line ignored) */ { return LSCP_DONE; }
+                      |  comment  { return LSCP_DONE; }
+                      |  command  { LSCPSERVER->AnswerClient($1); return LSCP_DONE; }
                       |  error    { LSCPSERVER->AnswerClient("Err:0:Unknown command.\r\n"); RESTART; return LSCP_SYNTAX_ERROR; }
                       ;
 
@@ -104,53 +102,53 @@ command               :  ADD SP CHANNEL                             { $$ = LSCPS
                       |  SUBSCRIBE SP subscribe_event               { $$ = $3;                                        }
                       |  UNSUBSCRIBE SP unsubscribe_event           { $$ = $3;                                        }
                       |  RESET SP CHANNEL SP sampler_channel        { $$ = LSCPSERVER->ResetChannel($5);              }
-                      |  QUIT                                       { LSCPSERVER->AnswerClient("Bye!\r\n"); return 0; }
+                      |  QUIT                                       { LSCPSERVER->AnswerClient("Bye!\r\n"); return LSCP_QUIT; }
                       ;
 
-subscribe_event       :  CHANNELS                                   { $$ = LSCPSERVER->SubscribeNotification(event_channels); }
-                      |  VOICE_COUNT                                { $$ = LSCPSERVER->SubscribeNotification(event_voice_count); }
-                      |  STREAM_COUNT                               { $$ = LSCPSERVER->SubscribeNotification(event_stream_count); }
-                      |  BUFFER_FILL                                { $$ = LSCPSERVER->SubscribeNotification(event_channel_buffer_fill); }
-                      |  INFO                                       { $$ = LSCPSERVER->SubscribeNotification(event_channel_info); }
-                      |  MISCELLANEOUS                              { $$ = LSCPSERVER->SubscribeNotification(event_misc); }
+subscribe_event       :  CHANNELS                                   { $$ = LSCPSERVER->SubscribeNotification(LSCPEvent::event_channels); }
+                      |  VOICE_COUNT                                { $$ = LSCPSERVER->SubscribeNotification(LSCPEvent::event_voice_count); }
+                      |  STREAM_COUNT                               { $$ = LSCPSERVER->SubscribeNotification(LSCPEvent::event_stream_count); }
+                      |  BUFFER_FILL                                { $$ = LSCPSERVER->SubscribeNotification(LSCPEvent::event_buffer_fill); }
+                      |  INFO                                       { $$ = LSCPSERVER->SubscribeNotification(LSCPEvent::event_info); }
+                      |  MISCELLANEOUS                              { $$ = LSCPSERVER->SubscribeNotification(LSCPEvent::event_misc); }
                       ;
 
-unsubscribe_event     :  CHANNELS                                   { $$ = LSCPSERVER->UnsubscribeNotification(event_channels); }
-                      |  VOICE_COUNT                                { $$ = LSCPSERVER->UnsubscribeNotification(event_voice_count); }
-                      |  STREAM_COUNT                               { $$ = LSCPSERVER->UnsubscribeNotification(event_stream_count); }
-                      |  BUFFER_FILL                                { $$ = LSCPSERVER->UnsubscribeNotification(event_channel_buffer_fill); }
-                      |  INFO                                       { $$ = LSCPSERVER->UnsubscribeNotification(event_channel_info); }
-                      |  MISCELLANEOUS                              { $$ = LSCPSERVER->UnsubscribeNotification(event_misc); }
+unsubscribe_event     :  CHANNELS                                   { $$ = LSCPSERVER->UnsubscribeNotification(LSCPEvent::event_channels); }
+                      |  VOICE_COUNT                                { $$ = LSCPSERVER->UnsubscribeNotification(LSCPEvent::event_voice_count); }
+                      |  STREAM_COUNT                               { $$ = LSCPSERVER->UnsubscribeNotification(LSCPEvent::event_stream_count); }
+                      |  BUFFER_FILL                                { $$ = LSCPSERVER->UnsubscribeNotification(LSCPEvent::event_buffer_fill); }
+                      |  INFO                                       { $$ = LSCPSERVER->UnsubscribeNotification(LSCPEvent::event_info); }
+                      |  MISCELLANEOUS                              { $$ = LSCPSERVER->UnsubscribeNotification(LSCPEvent::event_misc); }
                       ;
 
-get_instruction       :  AVAILABLE_ENGINES                                                          { $$ = LSCPSERVER->GetAvailableEngines();                          }
-                      |  AVAILABLE_MIDI_INPUT_DRIVERS                                               { $$ = LSCPSERVER->GetAvailableMidiInputDrivers();               }
-                      |  MIDI_INPUT_DRIVER SP INFO SP string                                        { $$ = LSCPSERVER->GetMidiInputDriverInfo($5);                   }
-                      |  MIDI_INPUT_DRIVER_PARAMETER SP INFO SP string SP string                    { $$ = LSCPSERVER->GetMidiInputDriverParameterInfo($5, $7);      }
-                      |  MIDI_INPUT_DRIVER_PARAMETER SP INFO SP string SP string SP key_val_list    { $$ = LSCPSERVER->GetMidiInputDriverParameterInfo($5, $7, $9);  }
-                      |  AVAILABLE_AUDIO_OUTPUT_DRIVERS                                             { $$ = LSCPSERVER->GetAvailableAudioOutputDrivers();               }
-                      |  AUDIO_OUTPUT_DRIVER SP INFO SP string                                      { $$ = LSCPSERVER->GetAudioOutputDriverInfo($5);                   }
-                      |  AUDIO_OUTPUT_DRIVER_PARAMETER SP INFO SP string SP string                  { $$ = LSCPSERVER->GetAudioOutputDriverParameterInfo($5, $7);      }
-                      |  AUDIO_OUTPUT_DRIVER_PARAMETER SP INFO SP string SP string SP key_val_list  { $$ = LSCPSERVER->GetAudioOutputDriverParameterInfo($5, $7, $9);  }
-                      |  AUDIO_OUTPUT_DEVICES                                                       { $$ = LSCPSERVER->GetAudioOutputDeviceCount();                    }
-                      |  MIDI_INPUT_DEVICES                                                         { $$ = LSCPSERVER->GetMidiInputDeviceCount();                    }
-                      |  AUDIO_OUTPUT_DEVICE SP INFO SP NUMBER                                      { $$ = LSCPSERVER->GetAudioOutputDeviceInfo($5);                   }
-                      |  MIDI_INPUT_DEVICE SP INFO SP NUMBER                                        { $$ = LSCPSERVER->GetMidiInputDeviceInfo($5);                   }
-                      |  MIDI_INPUT_PORT SP INFO SP NUMBER SP NUMBER                                { $$ = LSCPSERVER->GetMidiInputPortInfo($5, $7);                   }
-                      |  AUDIO_OUTPUT_CHANNEL SP INFO SP NUMBER SP NUMBER                           { $$ = LSCPSERVER->GetAudioOutputChannelInfo($5, $7);              }
-                      |  AUDIO_OUTPUT_CHANNEL_PARAMETER SP INFO SP NUMBER SP NUMBER SP string       { $$ = LSCPSERVER->GetAudioOutputChannelParameterInfo($5, $7, $9); }
-                      |  CHANNELS                                                                   { $$ = LSCPSERVER->GetChannels();                                  }
-                      |  CHANNEL SP INFO SP sampler_channel                                         { $$ = LSCPSERVER->GetChannelInfo($5);                             }
-                      |  CHANNEL SP BUFFER_FILL SP buffer_size_type SP sampler_channel              { $$ = LSCPSERVER->GetBufferFill($5, $7);                          }
-                      |  CHANNEL SP STREAM_COUNT SP sampler_channel                                 { $$ = LSCPSERVER->GetStreamCount($5);                             }
-                      |  CHANNEL SP VOICE_COUNT SP sampler_channel                                  { $$ = LSCPSERVER->GetVoiceCount($5);                              }
-                      |  ENGINE SP INFO SP engine_name                                              { $$ = LSCPSERVER->GetEngineInfo($5);                              }
+get_instruction       :  AVAILABLE_ENGINES                          { $$ = LSCPSERVER->GetAvailableEngines();       }
+                      |  AVAILABLE_MIDI_INPUT_DRIVERS               { $$ = LSCPSERVER->GetAvailableMidiInputDrivers();       }
+                      |  MIDI_INPUT_DRIVER SP INFO SP string        { $$ = LSCPSERVER->GetMidiInputDriverInfo($5);       }
+                      |  MIDI_INPUT_DRIVER_PARAMETER SP INFO SP string SP string     { $$ = LSCPSERVER->GetMidiInputDriverParameterInfo($5, $7);       }
+                      |  MIDI_INPUT_DRIVER_PARAMETER SP INFO SP string SP string SP key_val_list    { $$ = LSCPSERVER->GetMidiInputDriverParameterInfo($5, $7, $9);       }
+                      |  AVAILABLE_AUDIO_OUTPUT_DRIVERS                                             { $$ = LSCPSERVER->GetAvailableAudioOutputDrivers();       }
+                      |  AUDIO_OUTPUT_DRIVER SP INFO SP string                                      { $$ = LSCPSERVER->GetAudioOutputDriverInfo($5);       }
+                      |  AUDIO_OUTPUT_DRIVER_PARAMETER SP INFO SP string SP string                  { $$ = LSCPSERVER->GetAudioOutputDriverParameterInfo($5, $7);       }
+                      |  AUDIO_OUTPUT_DRIVER_PARAMETER SP INFO SP string SP string SP key_val_list  { $$ = LSCPSERVER->GetAudioOutputDriverParameterInfo($5, $7, $9);       }
+                      |  AUDIO_OUTPUT_DEVICES                                                       { $$ = LSCPSERVER->GetAudioOutputDeviceCount();       }
+                      |  MIDI_INPUT_DEVICES                                                         { $$ = LSCPSERVER->GetMidiInputDeviceCount();       }
+                      |  AUDIO_OUTPUT_DEVICE SP INFO SP NUMBER                                      { $$ = LSCPSERVER->GetAudioOutputDeviceInfo($5);       }
+                      |  MIDI_INPUT_DEVICE SP INFO SP NUMBER                                        { $$ = LSCPSERVER->GetMidiInputDeviceInfo($5);       }
+                      |  MIDI_INPUT_PORT SP INFO SP NUMBER SP NUMBER                                { $$ = LSCPSERVER->GetMidiInputPortInfo($5, $7);       }
+                      |  AUDIO_OUTPUT_CHANNEL SP INFO SP NUMBER SP NUMBER                           { $$ = LSCPSERVER->GetAudioOutputChannelInfo($5, $7);       }
+                      |  AUDIO_OUTPUT_CHANNEL_PARAMETER SP INFO SP NUMBER SP NUMBER SP string       { $$ = LSCPSERVER->GetAudioOutputChannelParameterInfo($5, $7, $9);       }
+                      |  CHANNELS                                                                   { $$ = LSCPSERVER->GetChannels();       }
+                      |  CHANNEL SP INFO SP sampler_channel                                         { $$ = LSCPSERVER->GetChannelInfo($5);       }
+                      |  CHANNEL SP BUFFER_FILL SP buffer_size_type SP sampler_channel              { $$ = LSCPSERVER->GetBufferFill($5, $7);       }
+                      |  CHANNEL SP STREAM_COUNT SP sampler_channel                                 { $$ = LSCPSERVER->GetStreamCount($5);       }
+                      |  CHANNEL SP VOICE_COUNT SP sampler_channel                                  { $$ = LSCPSERVER->GetVoiceCount($5);       }
+                      |  ENGINE SP INFO SP engine_name                                              { $$ = LSCPSERVER->GetEngineInfo($5);       }
                       ;
 
-set_instruction       :  AUDIO_OUTPUT_DEVICE_PARAMETER SP NUMBER SP string EQ param_val             { $$ = LSCPSERVER->SetAudioOutputDeviceParameter($3, $5, $7);      }
-                      |  AUDIO_OUTPUT_CHANNEL_PARAMETER SP NUMBER SP NUMBER SP string EQ param_val  { $$ = LSCPSERVER->SetAudioOutputChannelParameter($3, $5, $7, $9); }
-                      |  MIDI_INPUT_DEVICE_PARAMETER SP NUMBER SP string EQ param_val               { $$ = LSCPSERVER->SetMidiInputDeviceParameter($3, $5, $7); }
-                      |  MIDI_INPUT_PORT_PARAMETER SP NUMBER SP NUMBER SP string EQ param_val       { $$ = LSCPSERVER->SetMidiInputPortParameter($3, $5, $7, $9); }
+set_instruction       :  AUDIO_OUTPUT_DEVICE_PARAMETER SP NUMBER SP string EQ param_val             { $$ = LSCPSERVER->SetAudioOutputDeviceParameter($3, $5, $7);       }
+                      |  AUDIO_OUTPUT_CHANNEL_PARAMETER SP NUMBER SP NUMBER SP string EQ param_val  { $$ = LSCPSERVER->SetAudioOutputChannelParameter($3, $5, $7, $9);       }
+                      |  MIDI_INPUT_DEVICE_PARAMETER SP NUMBER SP string EQ param_val               { $$ = LSCPSERVER->SetMidiInputDeviceParameter($3, $5, $7);       }
+                      |  MIDI_INPUT_PORT_PARAMETER SP NUMBER SP NUMBER SP string EQ param_val       { $$ = LSCPSERVER->SetMidiInputPortParameter($3, $5, $7, $9);       }
                       |  CHANNEL SP set_chan_instruction                                            { $$ = $3;                                                         }
                       ;
 
@@ -160,8 +158,8 @@ create_instruction    :  AUDIO_OUTPUT_DEVICE SP string SP key_val_list { $$ = LS
                       |  MIDI_INPUT_DEVICE SP string                   { $$ = LSCPSERVER->CreateMidiInputDevice($3);      }
                       ;
 
-destroy_instruction   :  AUDIO_OUTPUT_DEVICE SP NUMBER  { $$ = LSCPSERVER->DestroyAudioOutputDevice($3); }
-                      |  MIDI_INPUT_DEVICE SP NUMBER    { $$ = LSCPSERVER->DestroyMidiInputDevice($3); }
+destroy_instruction   :  AUDIO_OUTPUT_DEVICE SP NUMBER  { $$ = LSCPSERVER->DestroyAudioOutputDevice($3);       }
+                      |  MIDI_INPUT_DEVICE SP NUMBER    { $$ = LSCPSERVER->DestroyMidiInputDevice($3);         }
                       ;
 
 load_instruction      :  INSTRUMENT SP load_instr_args  { $$ = $3; }
@@ -187,15 +185,15 @@ buffer_size_type      :  BYTES       { $$ = fill_response_bytes;      }
                       |  PERCENTAGE  { $$ = fill_response_percentage; }
                       ;
 
-list_instruction      :  AUDIO_OUTPUT_DEVICES  { $$ = LSCPSERVER->GetAudioOutputDevices(); }
-                      |  MIDI_INPUT_DEVICES    { $$ = LSCPSERVER->GetMidiInputDevices(); }
+list_instruction      :  AUDIO_OUTPUT_DEVICES  { $$ = LSCPSERVER->GetAudioOutputDevices();       }
+                      |  MIDI_INPUT_DEVICES    { $$ = LSCPSERVER->GetMidiInputDevices();       }
                       ;
 
-load_instr_args       :  filename SP instrument_index SP sampler_channel  { $$ = LSCPSERVER->LoadInstrument($1, $3, $5); }
-                      |  NON_MODAL SP filename SP instrument_index SP sampler_channel  { $$ = LSCPSERVER->LoadInstrument($3, $5, $7, true); }
+load_instr_args       :  filename SP instrument_index SP sampler_channel  { $$ = LSCPSERVER->LoadInstrument($1, $3, $5);       }
+                      |  NON_MODAL SP filename SP instrument_index SP sampler_channel  { $$ = LSCPSERVER->LoadInstrument($3, $5, $7, true);       }
                       ;
 
-load_engine_args      :  engine_name SP sampler_channel  { $$ = LSCPSERVER->LoadEngine($1, $3); }
+load_engine_args      :  engine_name SP sampler_channel  { $$ = LSCPSERVER->LoadEngine($1, $3);       }
                       ;
 
 audio_output_device   :  NUMBER
@@ -259,9 +257,6 @@ void yyerror(const char* s) {
 void restart(yyparse_param_t* pparam, int& yychar) {
     // restart scanner
     yyrestart(stdin, pparam->pScanner);
-    // flush input buffer
-    static char buf[1024];
-    while(recv(hSession, buf, 1024, MSG_DONTWAIT) > 0);
     // reset lookahead symbol
     yyclearin;
 }

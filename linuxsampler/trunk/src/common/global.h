@@ -36,6 +36,7 @@
 #include <stdio.h>
 
 #include <string>
+#include <sstream>
 
 #ifdef HAVE_CONFIG_H
 #  include <config.h>
@@ -79,5 +80,11 @@ struct result_t {
     int           code;     ///< warning or error code
     String        message;  ///< detailed warning or error message
 };
+
+template<class T> inline String ToString(T o) {
+	std::stringstream ss;
+	ss << o;
+	return ss.str();
+}
 
 #endif // __GLOBAL_H__

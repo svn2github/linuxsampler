@@ -26,23 +26,27 @@
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/socket.h>
+#include <sys/select.h>
+#include <sys/time.h>
 #include <netinet/in.h>
 #include <netinet/tcp.h>
 #include <arpa/inet.h>
 #include <netdb.h>
 
+#include <list>
+
 #include "lscp.h"
 #include "lscpparser.h"
+#include "lscp.h"
+#include "lscpevent.h"
 #include "../Sampler.h"
 #include "../common/Thread.h"
+#include "../common/Mutex.h"
 
 /// TCP Port on which the server should listen for connection requests.
 #define LSCP_PORT 8888
 
 using namespace LinuxSampler;
-
-/// Handle for a client connection (FIXME: doesn't work for more than one network connections of course, thus has to be included to the yyparse() parameters instead).
-extern int hSession;
 
 // External references to the main scanner and parser functions
 extern int yyparse(void* YYPARSE_PARAM);
@@ -109,15 +113,21 @@ class LSCPServer : public Thread {
         String SetMIDIInput(uint MIDIDeviceId, uint MIDIPort, uint MIDIChannel, uint uiSamplerChannel);
         String SetVolume(double Volume, uint uiSamplerChannel);
         String ResetChannel(uint uiSamplerChannel);
-        String SubscribeNotification(event_t Event);
-        String UnsubscribeNotification(event_t Event);
+        String SubscribeNotification(LSCPEvent::event_t);
+        String UnsubscribeNotification(LSCPEvent::event_t);
         void   AnswerClient(String ReturnMessage);
+
+	static int currentSocket;
+	static std::map<int,String> bufferedCommands;
     protected:
         int            hSocket;
         sockaddr_in    SocketAddress;
         Sampler*       pSampler;
 
         int Main(); ///< Implementation of virtual method from class Thread
+
+	static void SendLSCPNotify( LSCPEvent Event );
+
     private:
         
         /**
@@ -130,34 +140,16 @@ class LSCPServer : public Thread {
          */
         int GetMidiInputDeviceIndex (MidiInputDevice *pDevice);
 
-        /**
-         * Converts a result_t structure into a valid LSCP answer message.
-         */
-        inline String ConvertResult(result_t result) {
-            switch (result.type) {
-                case result_type_success: {
-                    return "OK\r\n";
-                }
-                case result_type_warning: {
-                    std::stringstream ss;
-                    ss << "WRN:" << result.code << ":" << result.message << "\r\n";
-                    return ss.str();
-                }
-                case result_type_error: {
-                    std::stringstream ss;
-                    ss << "ERR:" << result.code << ":" << result.message << "\r\n";
-                    return ss.str();
-                }
-            }
-        }
-
-        template<class T> inline String ToString(T o) {
-            std::stringstream ss;
-            ss << o;
-            return ss.str();
-        }
+	static std::map<int,String> bufferedNotifies;
+	static Mutex NotifyMutex;
+	static Mutex NotifyBufferMutex;
+	static bool GetLSCPCommand( std::vector<int>::iterator iter );
+	static void CloseConnection( std::vector<int>::iterator iter );
+	static std::vector<int> hSessions;
+	static Mutex SubscriptionMutex;
+	static std::map< LSCPEvent::event_t, std::list<int> > eventSubscriptions;
+	static fd_set fdSet;
 };
-
 
 /**
  * Instrument loader thread for the LinuxSampler Control Protocol (LSCP).

@@ -32,12 +32,18 @@
 #include <string>
 
 #include "../common/global.h"
+#include "lscpevent.h"
 #include "../Sampler.h"
 
 /// Will be returned by the parser in case of syntax errors.
 #define LSCP_SYNTAX_ERROR	-69
+#define LSCP_QUIT		-1
+#define LSCP_DONE		0
 
 using namespace LinuxSampler;
+
+// just symbol prototyping
+class LSCPServer;
 
 /**
  * How the fill states of disk stream buffers should be reflected.
@@ -45,18 +51,6 @@ using namespace LinuxSampler;
 enum fill_response_t {
     fill_response_bytes,      ///< The returned values are meant in bytes.
     fill_response_percentage  ///< The returned values are meant in percentage.
-};
-
-/**
- * Event types
- */
-enum event_t {
-    event_channels,
-    event_voice_count,
-    event_stream_count,
-    event_channel_buffer_fill,
-    event_channel_info,
-    event_misc
 };
 
 /**
@@ -73,16 +67,13 @@ struct YYSTYPE {
         unsigned int    Number;
         double          Dotnum;
         fill_response_t FillResponse;
-	event_t	        Event;
+	LSCPEvent::event_t Event;
     };
     std::string                       String;
     std::map<std::string,std::string> KeyValList;
 };
 #define yystype YYSTYPE		///< For backward compatibility.
 #define YYSTYPE_IS_DECLARED	///< We tell the lexer / parser that we use our own data structure as defined above.
-
-// just symbol prototyping
-class LSCPServer;
 
 // pointer to an (reentrant) scanner / lexical analyzer
 typedef void* yyscan_t;
@@ -105,50 +96,8 @@ struct yyparse_param_t {
  * Override lex's input function which just reads from stdin by default.
  * We read from a socket instead.
  */
+extern int GetLSCPCommand( void *buf, int max_size);
 #define YY_INPUT(buf,result,max_size) \
-	errno=0; \
-	while ( (result = recv(hSession, buf, max_size, 0)) < 0 ) \
-	{ \
-		if(errno != EINTR) \
-		{ \
-			switch(errno) { \
-				case EBADF: \
-					dmsg(2,("LSCPScanner: The argument s is an invalid descriptor.\n")); \
-					break; \
-				case ECONNREFUSED: \
-					dmsg(2,("LSCPScanner: A remote host refused to allow the network connection (typically because it is not running the requested service).\n")); \
-					break; \
-				case ENOTCONN: \
-					dmsg(2,("LSCPScanner: The socket is associated with a connection-oriented protocol and has not been connected (see connect(2) and accept(2)).\n")); \
-					break; \
-				case ENOTSOCK: \
-					dmsg(2,("LSCPScanner: The argument s does not refer to a socket.\n")); \
-					break; \
-				case EAGAIN: \
-					dmsg(2,("LSCPScanner: The socket is marked non-blocking and the receive operation would block, or a receive timeout had been set and the timeout expired before data was received.\n")); \
-					break; \
-				case EINTR: \
-					dmsg(2,("LSCPScanner: The receive was interrupted by delivery of a signal before any data were available.\n")); \
-					break; \
-				case EFAULT: \
-					dmsg(2,("LSCPScanner: The receive buffer pointer(s) point outside the process's address space.\n")); \
-					break; \
-				case EINVAL: \
-					dmsg(2,("LSCPScanner: Invalid argument passed.\n")); \
-					break; \
-				case ENOMEM: \
-					dmsg(2,("LSCPScanner: Could not allocate memory for recvmsg.\n")); \
-					break; \
-				default: \
-					dmsg(2,("LSCPScanner: Unknown recv() error.\n")); \
-					break; \
-			} \
-			YY_FATAL_ERROR( "input in flex scanner failed" ); \
-			break; \
-		} \
-		errno=0; \
-		clearerr(yyin); \
-	}\
-
+	result = GetLSCPCommand(buf, max_size) 
 
 #endif // __LSCPPARSER_H__

@@ -25,9 +25,6 @@
 #include "lscpparser.h"
 #include "lscpsymbols.h"
 
-/// handle for a client connection (FIXME: doesn't work for more than one network connections of course)
-int hSession;
-
 %}
 
 %option reentrant

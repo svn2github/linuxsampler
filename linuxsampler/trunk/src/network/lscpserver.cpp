@@ -22,17 +22,47 @@
 
 #include "lscpserver.h"
 #include "lscpresultset.h"
+#include "lscpevent.h"
 
 #include "../engines/gig/Engine.h"
 #include "../audiodriver/AudioOutputDeviceFactory.h"
 #include "../mididriver/MidiInputDeviceFactory.h"
 
+/**
+ * Below are a few static members of the LSCPServer class.
+ * The big assumption here is that LSCPServer is going to remain a singleton.
+ * These members are used to support client connections.
+ * Class handles multiple connections at the same time using select() and non-blocking recv()
+ * Commands are processed by a single LSCPServer thread.
+ * Notifications are delivered either by the thread that originated them
+ * or (if the resultset is currently in progress) by the LSCPServer thread
+ * after the resultset was sent out.
+ * This makes sure that resultsets can not be interrupted by notifications.
+ * This also makes sure that the thread sending notification is not blocked
+ * by the LSCPServer thread.
+ */
+fd_set LSCPServer::fdSet;
+int LSCPServer::currentSocket = -1;
+std::vector<int> LSCPServer::hSessions = std::vector<int>();
+std::map<int,String> LSCPServer::bufferedNotifies = std::map<int,String>();
+std::map<int,String> LSCPServer::bufferedCommands = std::map<int,String>();
+std::map< LSCPEvent::event_t, std::list<int> > LSCPServer::eventSubscriptions = std::map< LSCPEvent::event_t, std::list<int> >();
+Mutex LSCPServer::NotifyMutex = Mutex();
+Mutex LSCPServer::NotifyBufferMutex = Mutex();
+Mutex LSCPServer::SubscriptionMutex = Mutex();
+
 LSCPServer::LSCPServer(Sampler* pSampler) : Thread(false, 0, -4) {
     this->pSampler = pSampler;
+    LSCPEvent::RegisterEvent(LSCPEvent::event_channels, "CHANNELS");
+    LSCPEvent::RegisterEvent(LSCPEvent::event_voice_count, "VOICE_COUNT");
+    LSCPEvent::RegisterEvent(LSCPEvent::event_stream_count, "STREAM_COUNT");
+    LSCPEvent::RegisterEvent(LSCPEvent::event_buffer_fill, "BUFFER_FILL");
+    LSCPEvent::RegisterEvent(LSCPEvent::event_info, "INFO");
+    LSCPEvent::RegisterEvent(LSCPEvent::event_misc, "MISCELLANEOUS");
 }
 
 int LSCPServer::Main() {
-    hSocket = socket(AF_INET, SOCK_STREAM, 0);
+    int hSocket = socket(AF_INET, SOCK_STREAM, 0);
     if (hSocket < 0) {
         std::cerr << "LSCPServer: Could not create server socket." << std::endl;
         //return -1;
@@ -56,28 +86,209 @@ int LSCPServer::Main() {
     // now wait for client connections and handle their requests
     sockaddr_in client;
     int length = sizeof(client);
+    struct timeval tv;
+    tv.tv_sec = 30;
+    tv.tv_usec = 0;
+    FD_ZERO(&fdSet);
+    FD_SET(hSocket, &fdSet);
+    int maxSessions = hSocket;
+ 
+    // Parser initialization
+    yyparse_param_t yyparse_param;
+    yyparse_param.pServer = this;
+
     while (true) {
-        hSession = accept(hSocket, (sockaddr*) &client, (socklen_t*) &length);
-        if (hSession < 0) {
-            std::cerr << "LSCPServer: Client connection failed." << std::endl;
-            close(hSocket);
-            //return -1;
-            exit(EXIT_FAILURE);
-        }
+	fd_set selectSet = fdSet;
+	int retval = select(maxSessions+1, &selectSet, NULL, NULL, &tv);
+	if (retval == 0)
+		continue; //Nothing in 30 seconds, try again
+	if (retval == -1) {
+		std::cerr << "LSCPServer: Socket select error." << std::endl;
+		close(hSocket);
+		exit(EXIT_FAILURE);
+	}
+	
+	//Accept new connections now (if any)
+	if (FD_ISSET(hSocket, &selectSet)) {
+		int socket = accept(hSocket, (sockaddr*) &client, (socklen_t*) &length);
+		if (socket < 0) {
+			std::cerr << "LSCPServer: Client connection failed." << std::endl;
+			exit(EXIT_FAILURE);
+		}
 
-        dmsg(1,("LSCPServer: Client connection established.\n"));
-        //send(hSession, "Welcome!\r\n", 10, 0);
+		if (fcntl(socket, F_SETFL, O_NONBLOCK)) {
+			std::cerr << "LSCPServer: F_SETFL O_NONBLOCK failed." << std::endl;
+			exit(EXIT_FAILURE);
+		}
 
-        // Parser invocation
-        yyparse_param_t yyparse_param;
-        yyparse_param.pServer = this;
-        yylex_init(&yyparse_param.pScanner);
-        while (yyparse(&yyparse_param) == LSCP_SYNTAX_ERROR); // recall parser in case of syntax error
-        yylex_destroy(yyparse_param.pScanner);
+		hSessions.push_back(socket);
+		FD_SET(socket, &fdSet);
+		if (socket > maxSessions)
+			maxSessions = socket;
+		dmsg(1,("LSCPServer: Client connection established on socket:%d.\n", socket));
+		LSCPServer::SendLSCPNotify(LSCPEvent(LSCPEvent::event_misc, "Client connection established on socket", socket));
+		continue; //Maybe this was the only selected socket, better select again
+	}
 
-        close(hSession);
-        dmsg(1,("LSCPServer: Client connection terminated.\n"));
+	//Something was selected and it was not the hSocket, so it must be some command(s) coming.
+	for (std::vector<int>::iterator iter = hSessions.begin(); iter !=  hSessions.end(); iter++) {
+		if (FD_ISSET(*iter, &selectSet)) {	//Was it this socket?
+			if (GetLSCPCommand(iter)) {	//Have we read the entire command?
+				dmsg(3,("LSCPServer: Got command on socket %d, calling parser.\n", currentSocket));
+				yylex_init(&yyparse_param.pScanner);
+				currentSocket = *iter;  //a hack
+				int result = yyparse(&yyparse_param);
+				currentSocket = -1;	//continuation of a hack
+				dmsg(3,("LSCPServer: Done parsing on socket %d.\n", currentSocket));
+				if (result == LSCP_QUIT) { //Was it a quit command by any chance?
+					CloseConnection(iter);
+				}
+			}
+			//socket may have been closed, iter may be invalid, get out of the loop for now.
+			//we'll be back if there is data.
+			break; 
+		}
+	}
+
+	//Now let's deliver late notifies (if any)
+	NotifyBufferMutex.Lock();
+	for (std::map<int,String>::iterator iterNotify = bufferedNotifies.begin(); iterNotify != bufferedNotifies.end(); iterNotify++) {
+		send(iterNotify->first, iterNotify->second.c_str(), iterNotify->second.size(), 0);
+		bufferedNotifies.erase(iterNotify);
+	}
+	NotifyBufferMutex.Unlock();
     }
+    //It will never get here anyway
+    //yylex_destroy(yyparse_param.pScanner);
+}
+
+void LSCPServer::CloseConnection( std::vector<int>::iterator iter ) {
+	int socket = *iter;
+	dmsg(1,("LSCPServer: Client connection terminated on socket:%d.\n",socket));
+	LSCPServer::SendLSCPNotify(LSCPEvent(LSCPEvent::event_misc, "Client connection terminated on socket", socket));
+	hSessions.erase(iter);
+	FD_CLR(socket,  &fdSet);
+	SubscriptionMutex.Lock(); //Must unsubscribe this socket from all events (if any)
+	for (std::map< LSCPEvent::event_t, std::list<int> >::iterator iter = eventSubscriptions.begin(); iter != eventSubscriptions.end(); iter++) {
+		iter->second.remove(socket);
+	}
+	SubscriptionMutex.Unlock();
+	NotifyMutex.Lock();
+	bufferedCommands.erase(socket);
+	bufferedNotifies.erase(socket);
+	close(socket);
+	NotifyMutex.Unlock();
+}
+
+void LSCPServer::SendLSCPNotify( LSCPEvent event ) {
+	SubscriptionMutex.Lock();
+	if (eventSubscriptions.count(event.GetType()) == 0) {
+		SubscriptionMutex.Unlock();	//Nobody is subscribed to this event
+		return;
+	}
+	std::list<int>::iterator iter = eventSubscriptions[event.GetType()].begin();
+	std::list<int>::iterator end = eventSubscriptions[event.GetType()].end();
+	String notify = event.Produce();
+
+	while (true) {
+		if (NotifyMutex.Trylock()) {
+			for(;iter != end; iter++)
+				send(*iter, notify.c_str(), notify.size(), 0);
+			NotifyMutex.Unlock();
+			break;
+		} else {
+			if (NotifyBufferMutex.Trylock()) {
+				for(;iter != end; iter++)
+					bufferedNotifies[*iter] += notify;
+				NotifyBufferMutex.Unlock();
+				break;
+			}
+		}
+	}
+	SubscriptionMutex.Unlock();
+}
+
+extern int GetLSCPCommand( void *buf, int max_size ) {
+	String command = LSCPServer::bufferedCommands[LSCPServer::currentSocket];
+	if (command.size() == 0) { 		//Parser wants input but we have nothing.
+		strcpy((char*) buf, "\n"); 	//So give it an empty command
+		return 1;			//to keep it happy.
+	}
+
+	if (max_size < command.size()) {
+		std::cerr << "getLSCPCommand: Flex buffer too small, ignoring the command." << std::endl;
+		return 0;	//This will never happen
+	}
+
+	strcpy((char*) buf, command.c_str());
+	LSCPServer::bufferedCommands.erase(LSCPServer::currentSocket);
+	return command.size();
+}
+
+/**
+ * Will be called to try to read the command from the socket
+ * If command is read, it will return true. Otherwise false is returned.
+ * In any case the received portion (complete or incomplete) is saved into bufferedCommand map.
+ */
+bool LSCPServer::GetLSCPCommand( std::vector<int>::iterator iter ) {
+	int socket = *iter;
+	char c;
+	int i = 0;
+	while (true) {
+		int result = recv(socket, (void *)&c, 1, 0); //Read one character at a time for now
+		if (result == 0) { //socket was selected, so 0 here means client has closed the connection
+			CloseConnection(iter);
+			break;
+		}
+		if (result == 1) {
+			if (c == '\r') 
+				continue; //Ignore CR
+			if (c == '\n') {
+				bufferedCommands[socket] += "\n";
+				return true; //Complete command was read
+			}
+			bufferedCommands[socket] += c;
+		}
+		if (result == -1) {
+			if (errno == EAGAIN) //Would block, try again later.
+				return false;
+			switch(errno) {
+				case EBADF:
+					dmsg(2,("LSCPScanner: The argument s is an invalid descriptor.\n"));
+					break;
+				case ECONNREFUSED:
+					dmsg(2,("LSCPScanner: A remote host refused to allow the network connection (typically because it is not running the requested service).\n"));
+					break;
+				case ENOTCONN:
+					dmsg(2,("LSCPScanner: The socket is associated with a connection-oriented protocol and has not been connected (see connect(2) and accept(2)).\n"));
+					break;
+				case ENOTSOCK:
+					dmsg(2,("LSCPScanner: The argument s does not refer to a socket.\n"));
+					break;
+				case EAGAIN:
+					dmsg(2,("LSCPScanner: The socket is marked non-blocking and the receive operation would block, or a receive timeout had been set and the timeout expired before data was received.\n"));
+					break; 
+				case EINTR: 
+					dmsg(2,("LSCPScanner: The receive was interrupted by delivery of a signal before any data were available.\n"));
+					break; 
+				case EFAULT: 
+					dmsg(2,("LSCPScanner: The receive buffer pointer(s) point outside the process's address space.\n")); 
+					break; 
+				case EINVAL: 
+					dmsg(2,("LSCPScanner: Invalid argument passed.\n")); 
+					break; 
+				case ENOMEM: 
+					dmsg(2,("LSCPScanner: Could not allocate memory for recvmsg.\n")); 
+					break; 
+				default: 
+					dmsg(2,("LSCPScanner: Unknown recv() error.\n")); 
+					break; 
+			} 
+			CloseConnection(iter);
+			break;
+		}
+	}
+	return false;
 }
 
 /**
@@ -88,7 +299,11 @@ int LSCPServer::Main() {
  */
 void LSCPServer::AnswerClient(String ReturnMessage) {
     dmsg(2,("LSCPServer::AnswerClient(ReturnMessage=%s)", ReturnMessage.c_str()));
-    send(hSession, ReturnMessage.c_str(), ReturnMessage.size(), 0);
+    if (currentSocket != -1) {
+	    NotifyMutex.Lock();
+	    send(currentSocket, ReturnMessage.c_str(), ReturnMessage.size(), 0);
+	    NotifyMutex.Unlock();
+    }
 }
 
 /**
@@ -1005,18 +1220,26 @@ String LSCPServer::ResetChannel(uint uiSamplerChannel) {
  * Will be called by the parser to subscribe a client (frontend) on the
  * server for receiving event messages.
  */
-String LSCPServer::SubscribeNotification(event_t Event) {
-    dmsg(2,("LSCPServer: SubscribeNotification(Event=%d)\n", Event));
-    return "ERR:0:Not implemented yet.\r\n";
+String LSCPServer::SubscribeNotification(LSCPEvent::event_t type) {
+    dmsg(2,("LSCPServer: SubscribeNotification(Event=%s)\n", LSCPEvent::Name(type).c_str()));
+    LSCPResultSet result;
+    SubscriptionMutex.Lock();
+    eventSubscriptions[type].push_back(currentSocket);
+    SubscriptionMutex.Unlock();
+    return result.Produce();
 }
 
 /**
  * Will be called by the parser to unsubscribe a client on the server
  * for not receiving further event messages.
  */
-String LSCPServer::UnsubscribeNotification(event_t Event) {
-    dmsg(2,("LSCPServer: UnsubscribeNotification(Event=%d)\n", Event));
-    return "ERR:0:Not implemented yet.\r\n";
+String LSCPServer::UnsubscribeNotification(LSCPEvent::event_t type) {
+    dmsg(2,("LSCPServer: UnsubscribeNotification(Event=%s)\n", LSCPEvent::Name(type).c_str()));
+    LSCPResultSet result;
+    SubscriptionMutex.Lock();
+    eventSubscriptions[type].remove(currentSocket);
+    SubscriptionMutex.Unlock();
+    return result.Produce();
 }
 
 

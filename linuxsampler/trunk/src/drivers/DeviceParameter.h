@@ -25,7 +25,6 @@
 
 #include <map>
 #include <vector>
-#include <sstream>
 
 #include "../common/global.h"
 #include "../common/optional.h"
@@ -290,13 +289,6 @@ namespace LinuxSampler {
             void InitWithDefault();
         private:
     };
-
-    template <class T>
-    inline String ToString(T o) {
-        std::stringstream ss;
-        ss << o;
-        return ss.str();
-    }
 
 } // namespace LinuxSampler
 

@@ -1164,11 +1164,8 @@ static yyconst struct yy_trans_info *yy_start_state_list[5] =
 #include "lscpparser.h"
 #include "lscpsymbols.h"
 
-/// handle for a client connection (FIXME: doesn't work for more than one network connections of course)
-int hSession;
 
-
-#line 1172 "lex.yy.c"
+#line 1169 "lex.yy.c"
 
 #define INITIAL 0
 #define INSTRING 1
@@ -1366,10 +1363,10 @@ YY_DECL
 	register int yy_act;
     struct yyguts_t * yyg = (struct yyguts_t*)yyscanner;
 
-#line 39 "lscp.l"
+#line 36 "lscp.l"
 
 
-#line 1373 "lex.yy.c"
+#line 1370 "lex.yy.c"
 
 	if ( yyg->yy_init )
 		{
@@ -1449,338 +1446,338 @@ do_action:	/* This label is used only to access EOF actions. */
 
 case 1:
 YY_RULE_SETUP
-#line 41 "lscp.l"
+#line 38 "lscp.l"
 { return SP; }
 	YY_BREAK
 case 2:
 /* rule 2 can match eol */
 YY_RULE_SETUP
-#line 42 "lscp.l"
+#line 39 "lscp.l"
 { return LF; }
 	YY_BREAK
 case 3:
 YY_RULE_SETUP
-#line 43 "lscp.l"
+#line 40 "lscp.l"
 { return CR; }
 	YY_BREAK
 case 4:
 YY_RULE_SETUP
-#line 44 "lscp.l"
+#line 41 "lscp.l"
 { return HASH; }
 	YY_BREAK
 case 5:
 YY_RULE_SETUP
-#line 45 "lscp.l"
+#line 42 "lscp.l"
 { return EQ; }
 	YY_BREAK
 case 6:
 YY_RULE_SETUP
-#line 46 "lscp.l"
+#line 43 "lscp.l"
 { yylval->Dotnum = atof(yytext); return DOTNUM; }
 	YY_BREAK
 case 7:
 YY_RULE_SETUP
-#line 47 "lscp.l"
+#line 44 "lscp.l"
 { return ADD; }
 	YY_BREAK
 case 8:
 YY_RULE_SETUP
-#line 48 "lscp.l"
+#line 45 "lscp.l"
 { return GET; }
 	YY_BREAK
 case 9:
 YY_RULE_SETUP
-#line 49 "lscp.l"
+#line 46 "lscp.l"
 { return CREATE; }
 	YY_BREAK
 case 10:
 YY_RULE_SETUP
-#line 50 "lscp.l"
+#line 47 "lscp.l"
 { return DESTROY; }
 	YY_BREAK
 case 11:
 YY_RULE_SETUP
-#line 51 "lscp.l"
+#line 48 "lscp.l"
 { return LIST; }
 	YY_BREAK
 case 12:
 YY_RULE_SETUP
-#line 52 "lscp.l"
+#line 49 "lscp.l"
 { return LOAD; }
 	YY_BREAK
 case 13:
 YY_RULE_SETUP
-#line 53 "lscp.l"
+#line 50 "lscp.l"
 { return NON_MODAL; }
 	YY_BREAK
 case 14:
 YY_RULE_SETUP
-#line 54 "lscp.l"
+#line 51 "lscp.l"
 { return REMOVE; }
 	YY_BREAK
 case 15:
 YY_RULE_SETUP
-#line 55 "lscp.l"
+#line 52 "lscp.l"
 { return SET; }
 	YY_BREAK
 case 16:
 YY_RULE_SETUP
-#line 56 "lscp.l"
+#line 53 "lscp.l"
 { return SUBSCRIBE; }
 	YY_BREAK
 case 17:
 YY_RULE_SETUP
-#line 57 "lscp.l"
+#line 54 "lscp.l"
 { return UNSUBSCRIBE; }
 	YY_BREAK
 case 18:
 YY_RULE_SETUP
-#line 58 "lscp.l"
+#line 55 "lscp.l"
 { return CHANNEL; }
 	YY_BREAK
 case 19:
 YY_RULE_SETUP
-#line 59 "lscp.l"
+#line 56 "lscp.l"
 { return NOTIFICATION; }
 	YY_BREAK
 case 20:
 YY_RULE_SETUP
-#line 60 "lscp.l"
+#line 57 "lscp.l"
 { return AVAILABLE_ENGINES; }
 	YY_BREAK
 case 21:
 YY_RULE_SETUP
-#line 61 "lscp.l"
+#line 58 "lscp.l"
 { return AVAILABLE_AUDIO_OUTPUT_DRIVERS; }
 	YY_BREAK
 case 22:
 YY_RULE_SETUP
-#line 62 "lscp.l"
+#line 59 "lscp.l"
 { return CHANNELS; }
 	YY_BREAK
 case 23:
 YY_RULE_SETUP
-#line 63 "lscp.l"
+#line 60 "lscp.l"
 { return INFO; }
 	YY_BREAK
 case 24:
 YY_RULE_SETUP
-#line 64 "lscp.l"
+#line 61 "lscp.l"
 { return BUFFER_FILL; }
 	YY_BREAK
 case 25:
 YY_RULE_SETUP
-#line 65 "lscp.l"
+#line 62 "lscp.l"
 { return STREAM_COUNT; }
 	YY_BREAK
 case 26:
 YY_RULE_SETUP
-#line 66 "lscp.l"
+#line 63 "lscp.l"
 { return VOICE_COUNT; }
 	YY_BREAK
 case 27:
 YY_RULE_SETUP
-#line 67 "lscp.l"
+#line 64 "lscp.l"
 { return INSTRUMENT; }
 	YY_BREAK
 case 28:
 YY_RULE_SETUP
-#line 68 "lscp.l"
+#line 65 "lscp.l"
 { return ENGINE; }
 	YY_BREAK
 case 29:
 YY_RULE_SETUP
-#line 69 "lscp.l"
+#line 66 "lscp.l"
 { return AUDIO_OUTPUT_DEVICE_PARAMETER; }
 	YY_BREAK
 case 30:
 YY_RULE_SETUP
-#line 70 "lscp.l"
+#line 67 "lscp.l"
 { return AUDIO_OUTPUT_DEVICES; }
 	YY_BREAK
 case 31:
 YY_RULE_SETUP
-#line 71 "lscp.l"
+#line 68 "lscp.l"
 { return AUDIO_OUTPUT_DEVICE; }
 	YY_BREAK
 case 32:
 YY_RULE_SETUP
-#line 72 "lscp.l"
+#line 69 "lscp.l"
 { return AUDIO_OUTPUT_DRIVER_PARAMETER; }
 	YY_BREAK
 case 33:
 YY_RULE_SETUP
-#line 73 "lscp.l"
+#line 70 "lscp.l"
 { return AUDIO_OUTPUT_DRIVER; }
 	YY_BREAK
 case 34:
 YY_RULE_SETUP
-#line 74 "lscp.l"
+#line 71 "lscp.l"
 { return AUDIO_OUTPUT_CHANNEL_PARAMETER; }
 	YY_BREAK
 case 35:
 YY_RULE_SETUP
-#line 75 "lscp.l"
+#line 72 "lscp.l"
 { return AUDIO_OUTPUT_CHANNEL; }
 	YY_BREAK
 case 36:
 YY_RULE_SETUP
-#line 76 "lscp.l"
+#line 73 "lscp.l"
 { return AUDIO_OUTPUT_TYPE; }
 	YY_BREAK
 case 37:
 YY_RULE_SETUP
-#line 77 "lscp.l"
+#line 74 "lscp.l"
 { return AVAILABLE_MIDI_INPUT_DRIVERS; }
 	YY_BREAK
 case 38:
 YY_RULE_SETUP
-#line 78 "lscp.l"
+#line 75 "lscp.l"
 { return MIDI_INPUT_DEVICE_PARAMETER; }
 	YY_BREAK
 case 39:
 YY_RULE_SETUP
-#line 79 "lscp.l"
+#line 76 "lscp.l"
 { return MIDI_INPUT_PORT_PARAMETER; }
 	YY_BREAK
 case 40:
 YY_RULE_SETUP
-#line 80 "lscp.l"
+#line 77 "lscp.l"
 { return MIDI_INPUT_DEVICES; }
 	YY_BREAK
 case 41:
 YY_RULE_SETUP
-#line 81 "lscp.l"
+#line 78 "lscp.l"
 { return MIDI_INPUT_DEVICE; }
 	YY_BREAK
 case 42:
 YY_RULE_SETUP
-#line 82 "lscp.l"
+#line 79 "lscp.l"
 { return MIDI_INPUT_DRIVER_PARAMETER; }
 	YY_BREAK
 case 43:
 YY_RULE_SETUP
-#line 83 "lscp.l"
+#line 80 "lscp.l"
 { return MIDI_INPUT_DRIVER; }
 	YY_BREAK
 case 44:
 YY_RULE_SETUP
-#line 84 "lscp.l"
+#line 81 "lscp.l"
 { return MIDI_INPUT_PORT; }
 	YY_BREAK
 case 45:
 YY_RULE_SETUP
-#line 85 "lscp.l"
+#line 82 "lscp.l"
 { return MIDI_INPUT_CHANNEL; }
 	YY_BREAK
 case 46:
 YY_RULE_SETUP
-#line 86 "lscp.l"
+#line 83 "lscp.l"
 { return MIDI_INPUT_TYPE; }
 	YY_BREAK
 case 47:
 YY_RULE_SETUP
-#line 87 "lscp.l"
+#line 84 "lscp.l"
 { return MIDI_INPUT; }
 	YY_BREAK
 case 48:
 YY_RULE_SETUP
-#line 88 "lscp.l"
+#line 85 "lscp.l"
 { return VOLUME; }
 	YY_BREAK
 case 49:
 YY_RULE_SETUP
-#line 89 "lscp.l"
+#line 86 "lscp.l"
 { return BYTES; }
 	YY_BREAK
 case 50:
 YY_RULE_SETUP
-#line 90 "lscp.l"
+#line 87 "lscp.l"
 { return PERCENTAGE; }
 	YY_BREAK
 case 51:
 YY_RULE_SETUP
-#line 91 "lscp.l"
+#line 88 "lscp.l"
 { return RESET; }
 	YY_BREAK
 case 52:
 YY_RULE_SETUP
-#line 92 "lscp.l"
+#line 89 "lscp.l"
 { return MISCELLANEOUS; }
 	YY_BREAK
 case 53:
 YY_RULE_SETUP
-#line 93 "lscp.l"
+#line 90 "lscp.l"
 { return QUIT; }
 	YY_BREAK
 case 54:
 YY_RULE_SETUP
-#line 94 "lscp.l"
+#line 91 "lscp.l"
 { yylval->Number = atoi(yytext); return NUMBER; }
 	YY_BREAK
 case 55:
 YY_RULE_SETUP
-#line 95 "lscp.l"
+#line 92 "lscp.l"
 { yylval->String = "";  BEGIN(INSTRING); }
 	YY_BREAK
 case 56:
 /* rule 56 can match eol */
 YY_RULE_SETUP
-#line 96 "lscp.l"
+#line 93 "lscp.l"
 { yylval->String += yytext; }
 	YY_BREAK
 case 57:
 YY_RULE_SETUP
-#line 97 "lscp.l"
+#line 94 "lscp.l"
 { yylval->String += '\n'; }
 	YY_BREAK
 case 58:
 YY_RULE_SETUP
-#line 98 "lscp.l"
+#line 95 "lscp.l"
 { yylval->String += '\r'; }
 	YY_BREAK
 case 59:
 YY_RULE_SETUP
-#line 99 "lscp.l"
+#line 96 "lscp.l"
 { yylval->String += '\t'; }
 	YY_BREAK
 case 60:
 YY_RULE_SETUP
-#line 100 "lscp.l"
+#line 97 "lscp.l"
 { yylval->String += '\\'; }
 	YY_BREAK
 case 61:
 YY_RULE_SETUP
-#line 101 "lscp.l"
+#line 98 "lscp.l"
 { yylval->String += '\"'; }
 	YY_BREAK
 case 62:
 YY_RULE_SETUP
-#line 102 "lscp.l"
+#line 99 "lscp.l"
 { yylval->String += '\''; }
 	YY_BREAK
 case 63:
 /* rule 63 can match eol */
 YY_RULE_SETUP
-#line 103 "lscp.l"
+#line 100 "lscp.l"
 { yylval->String += yytext; }
 	YY_BREAK
 case 64:
 YY_RULE_SETUP
-#line 104 "lscp.l"
+#line 101 "lscp.l"
 { BEGIN(INITIAL); return STRINGVAL; }
 	YY_BREAK
 case 65:
 YY_RULE_SETUP
-#line 105 "lscp.l"
+#line 102 "lscp.l"
 { yylval->Char = yytext[0]; return CHAR; }
 	YY_BREAK
 case 66:
 YY_RULE_SETUP
-#line 107 "lscp.l"
+#line 104 "lscp.l"
 ECHO;
 	YY_BREAK
-#line 1784 "lex.yy.c"
+#line 1781 "lex.yy.c"
 case YY_STATE_EOF(INITIAL):
 case YY_STATE_EOF(INSTRING):
 	yyterminate();
@@ -2326,10 +2323,6 @@ static void yy_load_buffer_state  (yyscan_t yyscanner)
 	yyfree((void *) b ,yyscanner );
 }
 
-#ifndef __cplusplus
-extern int isatty (int );
-#endif /* __cplusplus */
-    
 /* Initializes or reinitializes a buffer.
  * This function is sometimes called more than once on the same buffer,
  * such as during a yyrestart() or at EOF.
@@ -2881,14 +2874,13 @@ void yyfree (void * ptr , yyscan_t yyscanner)
 #undef yy_set_bol
 #undef yy_new_buffer
 #undef yy_set_interactive
-#undef yytext_ptr
 #undef YY_DO_BEFORE_ACTION
 
 #ifdef YY_DECL_IS_OURS
 #undef YY_DECL_IS_OURS
 #undef YY_DECL
 #endif
-#line 107 "lscp.l"
+#line 104 "lscp.l"
 
 
 

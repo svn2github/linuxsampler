@@ -20,40 +20,69 @@
  *   MA  02111-1307  USA                                                   *
  ***************************************************************************/
 
-#ifndef __LSCPRESULTSET_H_
-#define __LSCPRESULTSET_H_
+#ifndef __LSCPEVENT_H_
+#define __LSCPEVENT_H_
 #include <iostream>
 #include <sstream>
 #include <string>
+#include <list>
 #include "../Sampler.h"
 #include "../common/global.h"
 #include "../common/LinuxSamplerException.h"
 
 using namespace LinuxSampler;
 
+
 /**
  * Helper class for producing result sets
  */
-class LSCPResultSet {
+class LSCPEvent {
     public:
-        LSCPResultSet(int index = -1);
-        LSCPResultSet(String, int index = -1);
-	void Add(String);
-	void Add(String, String);
-	void Add(String, float);
-	void Add(String, int);
-	void Add(int);
-	void Error(String message = "Undefined Error", int code = 0);
-	void Error(LinuxSamplerException e);
-	void Warning(String message = "Undefined Warning", int code = 0);
-	String Produce(void);
+	    /**
+	     * Event types
+	     **/
+	    enum event_t {
+		    event_channels,
+		    event_voice_count,
+		    event_stream_count,
+		    event_buffer_fill,
+		    event_info,
+		    event_misc
+	    };
+
+	    /* This constructor will do type lookup based on name
+	     **/ 
+	    LSCPEvent(String eventName) throw (LinuxSamplerException);
+
+	    /* These constructors are used to create event and fill it with data for sending
+	     * These will be used by the thread that wants to send an event to all clients
+	     * that are subscribed to it
+	     **/
+	    LSCPEvent(event_t eventType, int uiData);
+	    LSCPEvent(event_t eventType, String sData);
+	    LSCPEvent(event_t eventType, int uiData1, int uiData2);
+	    LSCPEvent(event_t eventType, String sData, int uiData);
+	    LSCPEvent(event_t eventType, int uiData, String sData);
+	    String Produce( void );
+
+	    /* Returns event type */
+	    event_t GetType( void ) { return type; }
+
+	    /* These methods are used to registed and unregister an event */
+	    static void RegisterEvent(event_t eventType, String EventName);
+	    static void UnregisterEvent(event_t eventType);
+
+	    /* This method returns a name for events of a given type */
+	    static String Name(event_t eventType);
+
+	    /* This method returs a list of all event types registered */
+	    static std::list<event_t> List( void );
 
     private:
-	String storage;
-	int count;
-	int result_type;
-	int result_index;
+	    String storage;
+	    event_t type;
 
+	    static std::map<event_t, String> EventNames;
 };
 
-#endif // __LSCPRESULTSET_H_
+#endif // __LSCPEVENT_H_
