@@ -27,8 +27,6 @@
 #include <signal.h>
 #include <pthread.h>
 
-#include <string>
-
 #include "global.h"
 #include "diskthread.h"
 #include "audiothread.h"
@@ -61,8 +59,12 @@ uint             instrument_index;
 double           volume;
 int              num_fragments;
 int              fragmentsize;
-std::string      input_client;
+String           input_client;
+String           alsaout;
+String           jack_playback[2];
+bool             use_jack;
 pthread_t        signalhandlerthread;
+uint             samplerate;
 
 void parse_options(int argc, char **argv);
 void signal_handler(int signal);
@@ -81,6 +83,11 @@ int main(int argc, char **argv) {
     num_fragments     = AUDIO_FRAGMENTS;
     fragmentsize      = AUDIO_FRAGMENTSIZE;
     volume            = 0.25; // default volume
+    alsaout           = "0,0"; // default card
+    jack_playback[0]  = "";
+    jack_playback[1]  = "";
+    samplerate        = AUDIO_SAMPLERATE;
+    use_jack          = true;
 
     // parse and assign command line options
     parse_options(argc, argv);
@@ -91,25 +98,22 @@ int main(int argc, char **argv) {
         return EXIT_FAILURE;
     }
 
+    int error = 1;
 #if HAVE_JACK
-    dmsg(1,("Initializing audio output (Jack)..."));
-    pAudioIO = new JackIO();
-    int error = ((JackIO*)pAudioIO)->Initialize(AUDIO_CHANNELS);
+    if (use_jack) {
+        dmsg(1,("Initializing audio output (Jack)..."));
+        pAudioIO = new JackIO();
+        error = ((JackIO*)pAudioIO)->Initialize(AUDIO_CHANNELS, jack_playback);
+        if (error) dmsg(1,("Trying Alsa output instead.\n"));
+    }
+#endif // HAVE_JACK
     if (error) {
-        dmsg(1,("Trying Alsa output instead.\n"));
         dmsg(1,("Initializing audio output (Alsa)..."));
         pAudioIO = new AlsaIO();
-        int error = ((AlsaIO*)pAudioIO)->Initialize(AUDIO_CHANNELS, AUDIO_SAMPLERATE, num_fragments, fragmentsize);
+        int error = ((AlsaIO*)pAudioIO)->Initialize(AUDIO_CHANNELS, samplerate, num_fragments, fragmentsize, alsaout);
         if (error) return EXIT_FAILURE;
     }
     dmsg(1,("OK\n"));
-#else // Alsa only
-    dmsg(1,("Initializing audio output (Alsa)..."));
-    pAudioIO = new AlsaIO();
-    int error = ((AlsaIO*)pAudioIO)->Initialize(AUDIO_CHANNELS, AUDIO_SAMPLERATE, num_fragments, fragmentsize);
-    if (error) return EXIT_FAILURE;
-    dmsg(1,("OK\n"));
-#endif // HAVE_JACK
 
     // Loading gig file
     try {
@@ -199,6 +203,9 @@ void parse_options(int argc, char **argv) {
             {"gig",0,0,0},
             {"instrument",1,0,0},
             {"inputclient",1,0,0},
+            {"alsaout",1,0,0},
+            {"jackout",1,0,0},
+            {"samplerate",1,0,0},
             {"help",0,0,0},
             {0,0,0,0}
         };
@@ -208,28 +215,55 @@ void parse_options(int argc, char **argv) {
         if(res == -1) break;
         if (res == 0) {
             switch(option_index) {
-                case 0:
+                case 0: // --numfragments
                     num_fragments = atoi(optarg);
                     break;
-                case 1:
+                case 1: // --fragmentsize
                     fragmentsize = atoi(optarg);
                     break;
-                case 2:
+                case 2: // --volume
                     volume = atof(optarg);
                     break;
-                case 3:
+                case 3: // --dls
                     patch_format = patch_format_dls;
                     break;
-                case 4:
+                case 4: // --gig
                     patch_format = patch_format_gig;
                     break;
-                case 5:
+                case 5: // --instrument
                     instrument_index = atoi(optarg);
                     break;
-                case 6:
+                case 6: // --inputclient
                     input_client = optarg;
                     break;
-                case 7:
+                case 7: // --alsaout
+                    alsaout = optarg;
+                    use_jack = false; // If this option is specified do not connect to jack
+                    break;
+                case 8: { // --jackout
+                    try {
+                        String arg(optarg);
+                        // remove outer apostrophes
+                        arg = arg.substr(arg.find('\'') + 1, arg.rfind('\'') - (arg.find('\'') + 1));
+                        // split in two arguments
+                        jack_playback[0] = arg.substr(0, arg.find("\' "));
+                        jack_playback[1] = arg.substr(arg.find("\' ") + 2, arg.size() - (arg.find("\' ") + 2));
+                        // remove inner apostrophes
+                        jack_playback[0] = jack_playback[0].substr(0, jack_playback[0].find('\''));
+                        jack_playback[1] = jack_playback[1].substr(jack_playback[1].find('\'') + 1, jack_playback[1].size() - jack_playback[1].find('\''));
+                        // this is the default but set it up anyway in case alsa_card was also used.
+                        use_jack = true;
+                    }
+                    catch (...) {
+                        fprintf(stderr, "Invalid argument '%s' for parameter --jackout\n", optarg);
+                        exit(EXIT_FAILURE);
+                    }
+                    break;
+                }
+                case 9: // --samplerate
+                    samplerate = atoi(optarg);
+                    break;
+                case 10: // --help
                     printf("usage: linuxsampler [OPTIONS] <INSTRUMENTFILE>\n\n");
                     printf("--gig              loads a Gigasampler instrument\n");
                     printf("--dls              loads a DLS instrument\n");
@@ -242,7 +276,14 @@ void parse_options(int argc, char **argv) {
                     printf("                   default: 0.25)\n");
                     printf("--inputclient      connects to an Alsa sequencer input client on startup\n");
                     printf("                   (e.g. 64:0 to connect to a client with ID 64 and port 0)\n");
-                    exit(0);
+                    printf("--alsaout          connects to the given Alsa sound device on startup\n");
+                    printf("                   (e.g. 0,0 to connect to hw:0,0 or plughw:0,0)\n");
+                    printf("--jackout          connects to the given Jack playback ports on startup\n");
+                    printf("                   (e.g. \"\'alsa_pcm:playback_1\' \'alsa_pcm:playback_2\'\"\n");
+                    printf("                   in case of stereo output)\n");
+                    printf("--samplerate       sets sample rate if supported by audio output system\n");
+                    printf("                   (e.g. 44100)\n");
+                    exit(EXIT_SUCCESS);
                     break;
             }
         }

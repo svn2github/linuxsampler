@@ -26,6 +26,8 @@
 #include <math.h>
 
 #include "global.h"
+#include "gig.h"
+#include "rtelmemorypool.h"
 #include "modulationsystem.h"
 
 #define EG_ENVELOPE_LIMIT	0.001
@@ -40,28 +42,34 @@ class EG_VCA {
     public:
         enum stage_t {
             stage_attack,
+            stage_attack_hold,
+            stage_decay1,
+            stage_decay2,
             stage_sustain,
             stage_release,
             stage_end
         };
 
-        static const double Limit;
-
         EG_VCA();
-        void Process(uint Samples);
-        void Trigger(uint PreAttack, double Attack, double Release, uint Delay);
-        void Release(uint Delay);
-        inline EG_VCA::stage_t GetStage() { return Stage; };
+        void Process(uint Samples, RTEList<ModulationSystem::Event>* pEvents, ModulationSystem::Event* pTriggerEvent, double SamplePos, double CurrentPitch);
+        void Trigger(uint PreAttack, double AttackTime, bool HoldAttack, long LoopStart, double Decay1Time, double Decay2Time, bool InfiniteSustain, uint SustainLevel, double ReleaseTime, uint Delay);
+        inline EG_VCA::stage_t GetStage() { return Stage; }
     protected:
+        uint    TriggerDelay;      ///< number of sample points triggering should be delayed
         float   Level;
-        bool    ReleaseSignalReceived;
         stage_t Stage;
         float   AttackCoeff;
         long    AttackStepsLeft;   ///< number of sample points til end of attack stage
+        bool    HoldAttack;
+        long    LoopStart;
+        float   Decay1Coeff;
+        long    Decay1StepsLeft;   ///< number of sample points in Decay1 stage
+        float   Decay2Coeff;
+        bool	InfiniteSustain;
+        float   SustainLevel;
         float   ReleaseCoeff;
         long    ReleaseStepsLeft;  ///< number of sample points til end of release stage
-        uint    TriggerDelay;      ///< number of sample points to triggering should be delayed
-        uint    ReleaseDelay;      ///< number of sample points the release stage should be delayed
+        bool    ReleasePostponed;  ///< If a "release" event occured in the previous audio fragment, but wasn't processed yet.
 
         inline long Min(long A, long B) {
             return (A > B) ? B : A;

@@ -38,7 +38,6 @@
 
 #define PITCHBEND_SEMITONES		12
 #define MAX_AUDIO_VOICES		64
-#define MAX_EVENTS_PER_FRAGMENT		1024
 
 // preload 64k samples = 128kB of data in RAM for 16 bit mono samples
 #define NUM_RAM_PRELOAD_SAMPLES 32768
@@ -66,22 +65,17 @@ class AudioThread {
     protected:
         struct midi_key_info_t {
             RTEList<Voice>*                      pActiveVoices;         ///< Contains the active voices associated with the MIDI key.
-            Voice*                               pSustainPtr;           ///< Points to the voice element in the active voice list which has not received a note-off yet (this pointer is needed for sustain pedal handling)
-            bool                                 Sustained;             ///< Is true if the MIDI key is currently sustained, thus if Note-off arrived while sustain pedal pressed.
             bool                                 KeyPressed;            ///< Is true if the respective MIDI key is currently pressed.
-            uint*                                pSustainPoolNode;      ///< FIXME: hack to allow fast deallocation of the key from the sustained key pool
+            bool                                 Active;                ///< If the key contains active voices.
+            uint*                                pSelf;                 ///< hack to allow fast deallocation of the key from the list of active keys
+            RTEList<ModulationSystem::Event>*    pEvents;               ///< Key specific events (only Note-on, Note-off and sustain pedal currently)
         };
 
         RingBuffer<ModulationSystem::Event>*     pEventQueue;           ///< Input event queue.
         float*                                   pAudioSumBuffer[2];    ///< Audio sum of all voices (32 bit, index 0 = left channel, index 1 = right channel)
         midi_key_info_t                          pMIDIKeyInfo[128];     ///< Contains all active voices sorted by MIDI key number and other informations to the respective MIDI key
-        /* ActiveVoicePool is a memory pool of limited size (size=MAX VOICES) of active voices.
-           it can be allocated dynamically in real time and the allocated elements can be added to
-           the linked lists represented by ActiveVoices[MIDIKey]. This means we can have unlimited
-           active voices per key. This if for example useful to manage the sustain pedal messages
-         */
         RTELMemoryPool<Voice>*                   pVoicePool;            ///< Contains all voices that can be activated.
-        RTELMemoryPool<uint>*                    pSustainedKeyPool;     ///< Contains the MIDI key numbers of all currently sustained keys.
+        RTELMemoryPool<uint>*                    pActiveKeys;           ///< Holds all keys in it's allocation list with active voices.
         RTELMemoryPool<ModulationSystem::Event>* pEventPool;            ///< Contains all Event objects that can be used.
         RTEList<ModulationSystem::Event>*        pEvents;               ///< All events for the current audio fragment.
         RTEList<ModulationSystem::Event>*        pCCEvents[ModulationSystem::destination_count];  ///< Control change events for the current audio fragment.

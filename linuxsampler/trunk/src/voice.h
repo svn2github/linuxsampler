@@ -49,9 +49,8 @@ class Voice {
         Voice();
        ~Voice();
         void Kill();
-        void Release(uint Delay);
         void Render(uint Samples);
-        int  Trigger(int MIDIKey, uint8_t Velocity, int Pitch, gig::Instrument* pInstrument, uint Delay);
+        int  Trigger(ModulationSystem::Event* pNoteOnEvent, int Pitch, gig::Instrument* pInstrument);
         inline bool IsActive()                                              { return Active; }
         inline void SetOutputLeft(float* pOutput, uint MaxSamplesPerCycle)  { this->pOutputLeft  = pOutput; this->MaxSamplesPerCycle = MaxSamplesPerCycle; }
         inline void SetOutputRight(float* pOutput, uint MaxSamplesPerCycle) { this->pOutputRight = pOutput; this->MaxSamplesPerCycle = MaxSamplesPerCycle; }
@@ -81,7 +80,7 @@ class Voice {
         int                  LoopCyclesLeft;     ///< In case there is a RAMLoop and it's not an endless loop; reflects number of loop cycles left to be passed
         uint                 Delay;              ///< Number of sample points the rendering process of this voice should be delayed (jitter correction), will be set to 0 after the first audio fragment cycle
         EG_VCA               EG1;
-        bool                 ReleaseSignalReceived;
+        ModulationSystem::Event* pTriggerEvent;    ///< First event on the key's list the voice should process (only needed for the first audio fragment in which voice was triggered, after that it will be set to NULL).
 
         // Methods
         void        ProcessEvents(uint Samples);

@@ -28,20 +28,20 @@ AlsaIO::AlsaIO() : AudioIO(), Thread(true, 1, 0) {
     stream        = SND_PCM_STREAM_PLAYBACK;
 }
 
-int AlsaIO::Initialize(uint Channels, uint Samplerate, uint Fragments, uint FragmentSize) {
+int AlsaIO::Initialize(uint Channels, uint Samplerate, uint Fragments, uint FragmentSize, String Card) {
     this->uiChannels           = Channels;
     this->uiSamplerate         = Samplerate;
     this->uiMaxSamplesPerCycle = FragmentSize;
     this->bInterleaved         = true;
 
     if (HardwareParametersSupported(Channels, Samplerate, Fragments, FragmentSize)) {
-        pcm_name = "hw:0,0";
+        pcm_name = "hw:" + Card;
     }
     else {
         printf("Warning: your soundcard doesn't support chosen hardware parameters; ");
         printf("trying to compensate support lack with plughw...");
         fflush(stdout);
-        pcm_name = "plughw:0,0";
+        pcm_name = "plughw:" + Card;
     }
 
     int err;

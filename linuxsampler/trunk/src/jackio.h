@@ -40,17 +40,16 @@ void __libjack_shutdown_callback(void* arg);
 class JackIO : public AudioIO {
     public:
         JackIO();
-        int   Initialize(uint Channels);
+        int   Initialize(uint Channels, String OutputPorts[2]);
         void  Activate();
         void  Close();
         void* GetInterleavedOutputBuffer();
         void* GetChannelOutputBufer(uint Channel);
         int   Process(uint Samples);  // FIXME: should be private
     private:
-        typedef std::string String;
-
         jack_client_t* Client;
         jack_port_t*   Ports[2];
+        jack_port_t*   playback_port[2];
         uint           PendingSamples;
 };
 

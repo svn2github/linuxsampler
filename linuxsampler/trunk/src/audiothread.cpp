@@ -32,17 +32,17 @@ AudioThread::AudioThread(AudioIO* pAudioIO, DiskThread* pDiskThread, gig::Instru
     pEventQueue        = new RingBuffer<ModulationSystem::Event>(MAX_EVENTS_PER_FRAGMENT);
     pEventPool         = new RTELMemoryPool<ModulationSystem::Event>(MAX_EVENTS_PER_FRAGMENT);
     pVoicePool         = new RTELMemoryPool<Voice>(MAX_AUDIO_VOICES);
-    pSustainedKeyPool  = new RTELMemoryPool<uint>(128);
+    pActiveKeys        = new RTELMemoryPool<uint>(128);
     pEvents            = new RTEList<ModulationSystem::Event>(pEventPool);
     for (uint i = 0; i < ModulationSystem::destination_count; i++) {
         pCCEvents[i] = new RTEList<ModulationSystem::Event>(pEventPool);
     }
     for (uint i = 0; i < 128; i++) {
         pMIDIKeyInfo[i].pActiveVoices    = new RTEList<Voice>(pVoicePool);
-        pMIDIKeyInfo[i].pSustainPtr      = NULL;
-        pMIDIKeyInfo[i].Sustained        = false;
         pMIDIKeyInfo[i].KeyPressed       = false;
-        pMIDIKeyInfo[i].pSustainPoolNode = NULL;
+        pMIDIKeyInfo[i].Active           = false;
+        pMIDIKeyInfo[i].pSelf            = NULL;
+        pMIDIKeyInfo[i].pEvents          = new RTEList<ModulationSystem::Event>(pEventPool);
     }
 
     // FIXME: assuming stereo output
@@ -85,16 +85,17 @@ AudioThread::~AudioThread() {
     ModulationSystem::Close();
     for (uint i = 0; i < 128; i++) {
         if (pMIDIKeyInfo[i].pActiveVoices) delete pMIDIKeyInfo[i].pActiveVoices;
+        if (pMIDIKeyInfo[i].pEvents)       delete pMIDIKeyInfo[i].pEvents;
     }
     for (uint i = 0; i < ModulationSystem::destination_count; i++) {
         if (pCCEvents[i]) delete pCCEvents[i];
     }
     delete[] pCCEvents;
-    if (pEvents)           delete pEvents;
-    if (pEventQueue)       delete pEventQueue;
-    if (pEventPool)        delete pEventPool;
-    if (pVoicePool)        delete pVoicePool;
-    if (pSustainedKeyPool) delete pSustainedKeyPool;
+    if (pEvents)     delete pEvents;
+    if (pEventQueue) delete pEventQueue;
+    if (pEventPool)  delete pEventPool;
+    if (pVoicePool)  delete pVoicePool;
+    if (pActiveKeys) delete pActiveKeys;
     delete[] pAudioSumBuffer[0]; // this also frees the right channel buffer
 }
 
@@ -161,10 +162,14 @@ int AudioThread::RenderAudio(uint Samples) {
 
     // render audio from all active voices
     int active_voices = 0;
-    for (uint i = 0; i < 128; i++) {
-        midi_key_info_t* pKey = &pMIDIKeyInfo[i];
+    uint* piKey = pActiveKeys->first();
+    while (piKey) { // iterate through all active keys
+        midi_key_info_t* pKey = &pMIDIKeyInfo[*piKey];
+        pActiveKeys->set_current(piKey);
+        piKey = pActiveKeys->next();
+
         Voice* pVoiceNext = pKey->pActiveVoices->first();
-        while (pVoiceNext) {
+        while (pVoiceNext) { // iterate through all voices on this key
             // already get next voice on key
             Voice* pVoice = pVoiceNext;
             pKey->pActiveVoices->set_current(pVoice);
@@ -177,7 +182,9 @@ int AudioThread::RenderAudio(uint Samples) {
                 KillVoice(pVoice); // remove voice from the list of active voices
             }
         }
+        pKey->pEvents->clear(); // free all events on the key
     }
+
 
     // write that to the disk thread class so that it can print it
     // on the console for debugging purposes
@@ -259,17 +266,25 @@ void AudioThread::ProcessNoteOn(ModulationSystem::Event* pNoteOnEvent) {
     midi_key_info_t* pKey = &pMIDIKeyInfo[pNoteOnEvent->Key];
 
     pKey->KeyPressed = true; // the MIDI key was now pressed down
-    Voice* pNewVoice = pKey->pActiveVoices->alloc(); // allocate a new voice for the key
+
+    // cancel release process of voices on this key if needed
+    if (pKey->Active && !SustainPedal) {
+        pNoteOnEvent->Type = ModulationSystem::event_type_cancel_release; // transform event type
+        pEvents->move(pNoteOnEvent, pKey->pEvents); // move event to the key's own event list
+    }
+
+    // allocate a new voice for the key
+    Voice* pNewVoice = pKey->pActiveVoices->alloc();
     if (pNewVoice) {
         // launch the new voice
-        if (pNewVoice->Trigger(pNoteOnEvent->Key, pNoteOnEvent->Velocity, this->Pitch, this->pInstrument, pNoteOnEvent->FragmentPos()) < 0) {
-            return; // failed to trigger the new voice
+        if (pNewVoice->Trigger(pNoteOnEvent, this->Pitch, this->pInstrument) < 0) {
+            dmsg(1,("Triggering new voice failed!\n"));
+            pKey->pActiveVoices->free(pNewVoice);
         }
-
-        // update key info
-        if (!pKey->pSustainPtr) {
-            dmsg(4,("ProcessNoteOn(): pSustainPtr == null, setting release pointer to the last voice on the key...\n"));
-            pKey->pSustainPtr = pKey->pActiveVoices->last();
+        else if (!pKey->Active) { // mark as active key
+            pKey->Active = true;
+            pKey->pSelf  = pActiveKeys->alloc();
+            *pKey->pSelf = pNoteOnEvent->Key;
         }
     }
     else std::cerr << "No free voice!" << std::endl << std::flush;
@@ -287,35 +302,11 @@ void AudioThread::ProcessNoteOff(ModulationSystem::Event* pNoteOffEvent) {
     midi_key_info_t* pKey = &pMIDIKeyInfo[pNoteOffEvent->Key];
 
     pKey->KeyPressed = false; // the MIDI key was now released
-    if (SustainPedal) { // if sustain pedal is pressed postpone the Note-Off
-        if (pKey->pSustainPtr) {
-            // stick the note-off information to the respective voice
-            Voice* pVoiceToRelease = pKey->pSustainPtr;
-            pVoiceToRelease->ReleaseVelocity = pNoteOffEvent->Velocity;
 
-            // now increment the sustain pointer
-            pKey->pActiveVoices->set_current(pVoiceToRelease);
-            pKey->pSustainPtr = pKey->pActiveVoices->next();
-
-            // if the key was not marked as sustained yet, add it's MIDI key number to the sustained key pool
-            if (!pKey->Sustained) {
-                uint* puiSustainedKey  = pSustainedKeyPool->alloc();
-                *puiSustainedKey       = pNoteOffEvent->Key;
-                pKey->pSustainPoolNode = puiSustainedKey;
-                pKey->Sustained        = true;
-            }
-        }
-        else dmsg(3,("Ignoring NOTE OFF, seems like more Note-Offs than Note-Ons or no free voices available?\n"));
-    }
-    else {
-        // release all active voices on the midi key
-        Voice* pVoiceNext = pKey->pActiveVoices->first();
-        while (pVoiceNext) {
-            Voice* pVoiceToRelease = pVoiceNext;
-            pKey->pActiveVoices->set_current(pVoiceToRelease);
-            pVoiceNext = pKey->pActiveVoices->next();
-            pVoiceToRelease->Release(pNoteOffEvent->FragmentPos());
-        }
+    // release voices on this key if needed
+    if (pKey->Active && !SustainPedal) {
+        pNoteOffEvent->Type = ModulationSystem::event_type_release; // transform event type
+        pEvents->move(pNoteOffEvent, pKey->pEvents); // move event to the key's own event list
     }
 }
 
@@ -335,9 +326,7 @@ void AudioThread::ProcessPitchbend(ModulationSystem::Event* pPitchbendEvent) {
 /**
  *  Immediately kills the voice given with pVoice (no matter if sustain is
  *  pressed or not) and removes it from the MIDI key's list of active voice.
- *  This method will e.g. be called if a voice went inactive by itself. If
- *  sustain pedal is pressed the method takes care to free those sustain
- *  informations of the voice.
+ *  This method will e.g. be called if a voice went inactive by itself.
  *
  *  @param pVoice - points to the voice to be killed
  */
@@ -347,31 +336,14 @@ void AudioThread::KillVoice(Voice* pVoice) {
 
         midi_key_info_t* pKey = &pMIDIKeyInfo[pVoice->MIDIKey];
 
-        if (pKey->Sustained) {
-            // check if the sustain pointer has to be moved, now that we kill the voice
-            if (pKey->pSustainPtr) {
-                if (pKey->pSustainPtr == pVoice) {
-                    // move sustain pointer to the next sustained voice
-                    dmsg(3,("Correcting sustain pointer\n"));
-                    pKey->pActiveVoices->set_current(pVoice);
-                    pKey->pSustainPtr = pKey->pActiveVoices->next();
-                }
-                else dmsg(4,("KillVoice(Voice*): pSustainPtr != pVoice\n"));
-            }
-            else dmsg(3,("KillVoice(Voice*): pSustainPtr == null\n"));
-        }
-
         // free the voice object
         pVoicePool->free(pVoice);
 
         // check if there are no voices left on the MIDI key and update the key info if so
         if (pKey->pActiveVoices->is_empty()) {
-            pKey->pSustainPtr = NULL;
-            if (pKey->Sustained) {
-                pSustainedKeyPool->free(pKey->pSustainPoolNode);
-                pKey->pSustainPoolNode = NULL;
-                pKey->Sustained        = false;
-            }
+            pKey->Active = false;
+            pActiveKeys->free(pKey->pSelf); // remove key from list of active keys
+            pKey->pSelf = NULL;
             dmsg(3,("Key has no more voices now\n"));
         }
     }
@@ -392,29 +364,45 @@ void AudioThread::ProcessControlChange(ModulationSystem::Event* pControlChangeEv
             if (pControlChangeEvent->Value >= 64 && PrevHoldCCValue < 64) {
                 dmsg(4,("PEDAL DOWN\n"));
                 SustainPedal = true;
+
+                // cancel release process of voices if necessary
+                uint* piKey = pActiveKeys->first();
+                if (piKey) {
+                    pControlChangeEvent->Type = ModulationSystem::event_type_cancel_release; // transform event type
+                    while (piKey) {
+                        midi_key_info_t* pKey = &pMIDIKeyInfo[*piKey];
+                        pActiveKeys->set_current(piKey);
+                        piKey = pActiveKeys->next();
+                        if (!pKey->KeyPressed) {
+                            ModulationSystem::Event* pNewEvent = pKey->pEvents->alloc();
+                            if (pNewEvent) *pNewEvent = *pControlChangeEvent; // copy event to the key's own event list
+                            else dmsg(1,("Event pool emtpy!\n"));
+                        }
+                    }
+                    pEvents->free(pControlChangeEvent); // free the original event
+                }
             }
             if (pControlChangeEvent->Value < 64 && PrevHoldCCValue >= 64) {
                 dmsg(4,("PEDAL UP\n"));
                 SustainPedal = false;
-                // iterate through all keys that are currently sustained
-                for (uint* key = pSustainedKeyPool->first(); key; key = pSustainedKeyPool->next()) {
-                    if (!pMIDIKeyInfo[*key].KeyPressed) { // release the voices on the key, if the key is not pressed anymore
-                        // release all active voices on the midi key
-                        Voice* pNextVoice = pMIDIKeyInfo[*key].pActiveVoices->first();
-                        while (pNextVoice) {
-                            Voice* pVoiceToRelease = pNextVoice;
-                            pMIDIKeyInfo[*key].pActiveVoices->set_current(pVoiceToRelease);
-                            pNextVoice = pMIDIKeyInfo[*key].pActiveVoices->next();
-                            dmsg(3,("Sustain CC: releasing voice on midi key %d\n", *key));
-                            pVoiceToRelease->Release(pControlChangeEvent->FragmentPos());
+
+                // release voices if their respective key is not pressed
+                uint* piKey = pActiveKeys->first();
+                if (piKey) {
+                    pControlChangeEvent->Type = ModulationSystem::event_type_release; // transform event type
+                    while (piKey) {
+                        midi_key_info_t* pKey = &pMIDIKeyInfo[*piKey];
+                        pActiveKeys->set_current(piKey);
+                        piKey = pActiveKeys->next();
+                        if (!pKey->KeyPressed) {
+                            ModulationSystem::Event* pNewEvent = pKey->pEvents->alloc();
+                            if (pNewEvent) *pNewEvent = *pControlChangeEvent; // copy event to the key's own event list
+                            else dmsg(1,("Event pool emtpy!\n"));
                         }
-                        pSustainedKeyPool->free(pMIDIKeyInfo[*key].pSustainPoolNode);
-                        pMIDIKeyInfo[*key].pSustainPoolNode = NULL;
-                        pMIDIKeyInfo[*key].Sustained        = false;
-                        pMIDIKeyInfo[*key].pSustainPtr      = NULL;
                     }
+                    pEvents->free(pControlChangeEvent); // free the original event
                 }
-                //SustainedKeyPool->empty();
+
             }
             PrevHoldCCValue = pControlChangeEvent->Value;
             break;

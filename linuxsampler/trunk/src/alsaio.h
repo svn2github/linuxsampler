@@ -34,7 +34,7 @@
 class AlsaIO : public AudioIO, protected Thread {
     public:
         AlsaIO();
-        int   Initialize(uint Channels, uint Samplerate, uint Fragments, uint FragmentSize);
+        int   Initialize(uint Channels, uint Samplerate, uint Fragments, uint FragmentSize, String Card);
         void  Activate();
         void  Close();
         void* GetInterleavedOutputBuffer();
@@ -42,8 +42,6 @@ class AlsaIO : public AudioIO, protected Thread {
     protected:
         int   Main();  ///< Implementation of virtual method from class Thread
     private:
-        typedef std::string String;
-
         int16_t*             pOutputBuffer;     ///< This is the buffer where the final mix will be copied to and send to the sound card
         String               pcm_name;          ///< Name of the PCM device, like plughw:0,0 the first number is the number of the soundcard, the second number is the number of the device.
         snd_pcm_t*           pcm_handle;        ///< Handle for the PCM device

@@ -29,6 +29,8 @@
 #include <stdint.h>
 #include <stdio.h>
 
+#include <string>
+
 #ifdef HAVE_CONFIG_H
 #  include <config.h>
 #endif
@@ -41,7 +43,11 @@
 #  define dmsg(debuglevel,x)
 #endif // LS_DEBUG
 
+#define MAX_EVENTS_PER_FRAGMENT		1024
+
 // defines globally the bit depth of used samples
 typedef int16_t sample_t;
+
+typedef std::string String;
 
 #endif // __GLOBAL_H__

@@ -87,6 +87,11 @@ AC_DEFINE_UNQUOTED(ALSA_SUBMINOR,$alsa_subminor,[Define to the subminor version 
 PKG_CHECK_MODULES(JACK, jack, HAVE_JACK=true, HAVE_JACK=false)
 AC_SUBST(JACK_LIBS)
 AC_SUBST(JACK_CFLAGS)
+if test $HAVE_JACK = false; then
+    HAVE_JACK=0;
+else
+    HAVE_JACK=1;
+fi
 AC_DEFINE_UNQUOTED(HAVE_JACK,$HAVE_JACK,[Define to 1 if you have JACK installed.])
 
 

@@ -38,22 +38,20 @@ Voice::~Voice() {
  *  Initializes and triggers the voice, a disk stream will be launched if
  *  needed.
  *
- *  @param MIDIKey     - MIDI key number of the triggered key
- *  @param Velocity    - MIDI velocity value of the triggered key
- *  @param Pitch       - MIDI detune factor (-8192 ... +8191)
- *  @param pInstrument - points to the loaded instrument which provides sample wave(s) and articulation data
- *  @param Delay       - number of sample points triggering should be delayed
- *  @returns           0 on success, a value < 0 if something failed
+ *  @param pNoteOnEvent - event that caused triggering of this voice
+ *  @param Pitch        - MIDI detune factor (-8192 ... +8191)
+ *  @param pInstrument  - points to the loaded instrument which provides sample wave(s) and articulation data
+ *  @returns            0 on success, a value < 0 if something failed
  */
-int Voice::Trigger(int MIDIKey, uint8_t Velocity, int Pitch, gig::Instrument* pInstrument, uint Delay) {
-    Active                = true;
-    this->MIDIKey         = MIDIKey;
-    pRegion               = pInstrument->GetRegion(MIDIKey);
-    PlaybackState         = playback_state_ram; // we always start playback from RAM cache and switch then to disk if needed
-    Pos                   = 0;
-    ReleaseVelocity       = 127; // default release velocity value
-    this->Delay           = Delay;
-    ReleaseSignalReceived = false;
+int Voice::Trigger(ModulationSystem::Event* pNoteOnEvent, int Pitch, gig::Instrument* pInstrument) {
+    Active          = true;
+    MIDIKey         = pNoteOnEvent->Key;
+    pRegion         = pInstrument->GetRegion(MIDIKey);
+    PlaybackState   = playback_state_ram; // we always start playback from RAM cache and switch then to disk if needed
+    Pos             = 0;
+    ReleaseVelocity = 127; // default release velocity value
+    Delay           = pNoteOnEvent->FragmentPos();
+    pTriggerEvent   = pNoteOnEvent;
 
     if (!pRegion) {
         std::cerr << "Audio Thread: No Region defined for MIDI key " << MIDIKey << std::endl << std::flush;
@@ -66,7 +64,7 @@ int Voice::Trigger(int MIDIKey, uint8_t Velocity, int Pitch, gig::Instrument* pI
     for (int i = pRegion->Dimensions - 1; i >= 0; i--) { // Check if instrument has a velocity split
         if (pRegion->pDimensionDefinitions[i].dimension == gig::dimension_velocity) {
             uint DimValues[5] = {0,0,0,0,0};
-                 DimValues[i] = Velocity;
+                 DimValues[i] = pNoteOnEvent->Velocity;
             pDimRgn = pRegion->GetDimensionRegionByValue(DimValues[4],DimValues[3],DimValues[2],DimValues[1],DimValues[0]);
             break;
         }
@@ -113,9 +111,18 @@ int Voice::Trigger(int MIDIKey, uint8_t Velocity, int Pitch, gig::Instrument* pI
     this->Pitch = ((double) Pitch / 8192.0) / 12.0 + (pDimRgn->PitchTrack) ? pow(2, ((double) (MIDIKey - (int) pDimRgn->UnityNote) + (double) pDimRgn->FineTune / 100.0) / 12.0)
                                                                            : pow(2, ((double) pDimRgn->FineTune / 100.0) / 12.0);
 
-    Volume = pDimRgn->GetVelocityAttenuation(Velocity);
+    Volume = pDimRgn->GetVelocityAttenuation(pNoteOnEvent->Velocity);
 
-    EG1.Trigger(pDimRgn->EG1PreAttack, pDimRgn->EG1Attack, pDimRgn->EG1Release, Delay);
+    EG1.Trigger(pDimRgn->EG1PreAttack,
+                pDimRgn->EG1Attack,
+                pDimRgn->EG1Hold,
+                pSample->LoopStart,
+                pDimRgn->EG1Decay1,
+                pDimRgn->EG1Decay2,
+                pDimRgn->EG1InfiniteSustain,
+                pDimRgn->EG1Sustain,
+                pDimRgn->EG1Release,
+                Delay);
 
     // ************************************************
     // TODO: ARTICULATION DATA HANDLING IS MISSING HERE
@@ -147,7 +154,7 @@ void Voice::Render(uint Samples) {
 
 
     // Let all modulators throw their parameter changes for the current audio fragment
-    EG1.Process(Samples);
+    EG1.Process(Samples, pEngine->pMIDIKeyInfo[MIDIKey].pEvents, pTriggerEvent, this->Pos, this->Pitch);
 
 
     switch (this->PlaybackState) {
@@ -203,6 +210,7 @@ void Voice::Render(uint Samples) {
     // Reset delay
     Delay = 0;
 
+    pTriggerEvent = NULL;
 
     // If release stage finished, let the voice be killed
     if (EG1.GetStage() == EG_VCA::stage_end) this->PlaybackState = playback_state_end;
@@ -356,17 +364,4 @@ void Voice::Kill() {
     DiskStreamRef.State   = Stream::state_unused;
     DiskStreamRef.OrderID = 0;
     Active = false;
-}
-
-/**
- *  Release the voice in an appropriate time range, the voice will go through
- *  it's release stage before it will be killed.
- *
- *  @param Delay - number of sample points releasing should be delayed (for jitter correction)
- */
-void Voice::Release(uint Delay) {
-   if (!ReleaseSignalReceived) {
-       EG1.Release(Delay);
-       ReleaseSignalReceived = true;
-   }
 }

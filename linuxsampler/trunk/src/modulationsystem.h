@@ -42,7 +42,9 @@ class ModulationSystem {
             event_type_note_on,
             event_type_note_off,
             event_type_pitchbend,
-            event_type_control_change
+            event_type_control_change,
+            event_type_cancel_release,  ///< transformed either from a note-on or sustain-pedal-down event
+            event_type_release          ///< transformed either from a note-off or sustain-pedal-up event
         };
         class Event {
             public:
@@ -60,11 +62,11 @@ class ModulationSystem {
                 Event() {
                     TimeStamp = ModulationSystem::CreateTimeStamp();
                     iFragmentPos = -1;
-                };
-                uint FragmentPos() {
+                }
+                inline uint FragmentPos() {
                     if (iFragmentPos >= 0) return (uint) iFragmentPos;
                     return (uint) (iFragmentPos = ModulationSystem::ToFragmentPos(TimeStamp));
-                };
+                }
             private:
                 real_time_t TimeStamp;    ///< Time stamp of the event's occurence.
                 int         iFragmentPos; ///< Position in the current fragment this event refers to.
@@ -77,11 +79,11 @@ class ModulationSystem {
         static        void  ResetDestinationParameter(ModulationSystem::destination_t dst, float val);
         static        void  UpdateFragmentTime();
         static real_time_t  CreateTimeStamp();
-        static inline uint  MaxSamplesPerCycle()                  { return uiMaxSamplesPerCycle; };
-        static inline uint  SampleRate()                          { return uiSampleRate;         };
+        static inline uint  MaxSamplesPerCycle()                  { return uiMaxSamplesPerCycle; }
+        static inline uint  SampleRate()                          { return uiSampleRate;         }
         static inline uint  ToFragmentPos(real_time_t time_stamp) {
             return uint ((time_stamp - FragmentTime.begin) * FragmentTime.sample_ratio);
-        };
+        }
     protected:
         static uint uiMaxSamplesPerCycle;
         static uint uiSampleRate;

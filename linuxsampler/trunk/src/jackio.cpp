@@ -28,7 +28,7 @@ JackIO::JackIO() : AudioIO() {
     PendingSamples = 0;
 }
 
-int JackIO::Initialize(uint Channels) {
+int JackIO::Initialize(uint Channels, String OutputPorts[2]) {
     this->uiChannels   = Channels;
     this->bInterleaved = false;
 
@@ -43,6 +43,14 @@ int JackIO::Initialize(uint Channels) {
     this->uiMaxSamplesPerCycle = jack_get_buffer_size(Client);
     this->uiSamplerate         = jack_get_sample_rate(Client);
     this->bInitialized         = true;
+
+    // Acquire given output ports
+    if(OutputPorts[0] != "")
+        if ((this->playback_port[0] = jack_port_by_name(Client, OutputPorts[0].c_str())) == 0)
+            fprintf (stderr, "JackIO: Invalid playback port %s.\n", OutputPorts[0].c_str());
+    if(OutputPorts[1] != "")
+        if ((this->playback_port[1] = jack_port_by_name(Client, OutputPorts[1].c_str())) == 0)
+            fprintf (stderr, "JackIO: Invalid playback port %s.\n", OutputPorts[1].c_str());
 
     return 0;
 }
@@ -64,6 +72,14 @@ void JackIO::Activate() {
         Close();
         exit(-1);
     }
+
+    // Connect to given output ports
+    if (playback_port[0])
+        if (jack_connect(Client, jack_port_name(Ports[0]), jack_port_name(playback_port[0])))
+            fprintf (stderr, "JackIO: Cannot connect port 0.\n");
+    if (playback_port[1])
+        if (jack_connect(Client, jack_port_name(Ports[1]), jack_port_name(playback_port[1])))
+            fprintf (stderr, "JackIO: Cannot connect port 1.\n");
 }
 
 int JackIO::Process(uint Samples) {
