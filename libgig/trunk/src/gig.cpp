@@ -802,10 +802,6 @@ namespace gig {
         LFO3Controller           = static_cast<lfo3_ctrl_t>(lfo3ctrl & 0x07); // lower 3 bits
         LFO3Sync                 = lfo3ctrl & 0x20; // bit 5
         InvertAttenuationController = lfo3ctrl & 0x80; // bit 7
-        if (VCFType == vcf_type_lowpass) {
-            if (lfo3ctrl & 0x40) // bit 6
-                VCFType = vcf_type_lowpassturbo;
-        }
         AttenuationController  = DecodeLeverageController(static_cast<_lev_ctrl_t>(_3ewa->ReadUint8()));
         uint8_t lfo2ctrl       = _3ewa->ReadUint8();
         LFO2Controller         = static_cast<lfo2_ctrl_t>(lfo2ctrl & 0x07); // lower 3 bits
@@ -850,6 +846,10 @@ namespace gig {
         VCFVelocityDynamicRange = vcfvelocity % 5;
         VCFVelocityCurve        = static_cast<curve_type_t>(vcfvelocity / 5);
         VCFType = static_cast<vcf_type_t>(_3ewa->ReadUint8());
+        if (VCFType == vcf_type_lowpass) {
+            if (lfo3ctrl & 0x40) // bit 6
+                VCFType = vcf_type_lowpassturbo;
+        }
 
         // get the corresponding velocity->volume table from the table map or create & calculate that table if it doesn't exist yet
         uint32_t tableKey = (VelocityResponseCurve<<16) | (VelocityResponseDepth<<8) | VelocityResponseCurveScaling;

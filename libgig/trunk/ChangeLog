@@ -6,6 +6,11 @@ Version CVS HEAD (?)
       truncated to 16 bit and additional articulation informations are
       ignored at the moment (patch by Andreas Persson)
     - added some file format compatibility checks
+    - fixed vcf_type_lowpassturbo value (vcf_type_lowpassturbo was actually
+      never used, because the necessary check was made before
+      initialization)
+    - fixed crossfade points order (structure for big endian and little
+      endian systems was interchanged)
 
   * src/gigdump.cpp:
     - added output of UnityNote and FineTune

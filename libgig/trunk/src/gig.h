@@ -274,18 +274,25 @@ namespace gig {
         vcf_type_bandreject   = 0x03
     } vcf_type_t;
 
-    /** Defines the envelope of a crossfade. */
+    /**
+     * Defines the envelope of a crossfade.
+     *
+     * Note: The default value for crossfade points is 0,0,0,0. Layers with
+     * such a default value should be treated as if they would not have a
+     * crossfade, that is the crossfade volume factor should <b>always</b>
+     * be 1.0f for such layers.
+     */
     struct crossfade_t {
         #if WORDS_BIGENDIAN
-        uint8_t in_start;   ///< Start position of fade in.
-        uint8_t in_end;     ///< End position of fade in.
-        uint8_t out_start;  ///< Start position of fade out.
         uint8_t out_end;    ///< End postition of fade out.
+        uint8_t out_start;  ///< Start position of fade out.
+        uint8_t in_end;     ///< End position of fade in.
+        uint8_t in_start;   ///< Start position of fade in.
         #else // little endian
-        uint8_t out_end;    ///< End postition of fade out.
-        uint8_t out_start;  ///< Start position of fade out.
-        uint8_t in_end;     ///< End position of fade in.
         uint8_t in_start;   ///< Start position of fade in.
+        uint8_t in_end;     ///< End position of fade in.
+        uint8_t out_start;  ///< Start position of fade out.
+        uint8_t out_end;    ///< End postition of fade out.
         #endif // WORDS_BIGENDIAN
     };
 
