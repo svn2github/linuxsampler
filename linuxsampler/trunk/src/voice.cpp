@@ -108,20 +108,43 @@ int Voice::Trigger(ModulationSystem::Event* pNoteOnEvent, int Pitch, gig::Instru
 
 
     // Pitch according to keyboard position (if 'PitchTrack' is set) and given detune factor
-    this->Pitch = ((double) Pitch / 8192.0) / 12.0 + (pDimRgn->PitchTrack) ? pow(2, ((double) (MIDIKey - (int) pDimRgn->UnityNote) + (double) pDimRgn->FineTune / 100.0) / 12.0)
-                                                                           : pow(2, ((double) pDimRgn->FineTune / 100.0) / 12.0);
+    this->Pitch = ((double) Pitch / 8192.0) / 12.0 + ((pDimRgn->PitchTrack) ? pow(2, ((double) (MIDIKey - (int) pDimRgn->UnityNote) + (double) pDimRgn->FineTune / 100.0) / 12.0)
+                                                                            : pow(2, ((double) pDimRgn->FineTune / 100.0) / 12.0));
 
     Volume = pDimRgn->GetVelocityAttenuation(pNoteOnEvent->Velocity);
-
+    
+    // get current value of EG1 controller
+    double eg1controllervalue;
+    switch (pDimRgn->EG1Controller.type) {
+        case gig::eg1_ctrl_t::type_none: // no controller defined
+            eg1controllervalue = 0;
+            break;
+        case gig::eg1_ctrl_t::type_channelaftertouch:
+            eg1controllervalue = 0; // TODO: aftertouch not yet supported
+            break;
+        case gig::eg1_ctrl_t::type_velocity:
+            eg1controllervalue = pNoteOnEvent->Velocity;
+            break;
+        case gig::eg1_ctrl_t::type_controlchange: // MIDI control change controller
+            eg1controllervalue = pEngine->ControllerTable[pDimRgn->EG1Controller.controller_number];
+            break;
+    }
+    if (pDimRgn->EG1ControllerInvert) eg1controllervalue = 127 - eg1controllervalue;
+    
+    // calculate influence of EG1 controller on EG1's parameters (TODO: needs to be fine tuned)
+    double eg1attack  = (pDimRgn->EG1ControllerAttackInfluence)  ? 0.0001 * (double) (1 << pDimRgn->EG1ControllerAttackInfluence)  * eg1controllervalue : 0.0;
+    double eg1decay   = (pDimRgn->EG1ControllerDecayInfluence)   ? 0.0001 * (double) (1 << pDimRgn->EG1ControllerDecayInfluence)   * eg1controllervalue : 0.0;
+    double eg1release = (pDimRgn->EG1ControllerReleaseInfluence) ? 0.0001 * (double) (1 << pDimRgn->EG1ControllerReleaseInfluence) * eg1controllervalue : 0.0;
+    
     EG1.Trigger(pDimRgn->EG1PreAttack,
-                pDimRgn->EG1Attack,
+                pDimRgn->EG1Attack + eg1attack,
                 pDimRgn->EG1Hold,
                 pSample->LoopStart,
-                pDimRgn->EG1Decay1,
-                pDimRgn->EG1Decay2,
+                pDimRgn->EG1Decay1 + eg1decay,
+                pDimRgn->EG1Decay2 + eg1decay,
                 pDimRgn->EG1InfiniteSustain,
                 pDimRgn->EG1Sustain,
-                pDimRgn->EG1Release,
+                pDimRgn->EG1Release + eg1release,
                 Delay);
 
     // ************************************************
@@ -237,7 +260,7 @@ void Voice::Reset() {
  */
 void Voice::ProcessEvents(uint Samples) {
     // process pitch events
-    RTEList<ModulationSystem::Event>* pEventList = pEngine->pCCEvents[ModulationSystem::destination_vco];
+    RTEList<ModulationSystem::Event>* pEventList = pEngine->pSynthesisEvents[ModulationSystem::destination_vco];
     ModulationSystem::Event* pEvent = pEventList->first();;
     while (pEvent) {
         ModulationSystem::Event* pNextEvent = pEventList->next();

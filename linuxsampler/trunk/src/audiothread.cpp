@@ -27,6 +27,7 @@ AudioThread::AudioThread(AudioIO* pAudioIO) {
     this->pDiskThread  = new DiskThread(((pAudioIO->MaxSamplesPerCycle() << MAX_PITCH) << 1) + 6); //FIXME: assuming stereo
     this->pInstrument  = NULL;
     this->Pitch        = 0;
+    this->SustainPedal = 0;
     Voice::pDiskThread = this->pDiskThread;
     Voice::pEngine     = this;
     pEventQueue        = new RingBuffer<ModulationSystem::Event>(MAX_EVENTS_PER_FRAGMENT);
@@ -34,8 +35,9 @@ AudioThread::AudioThread(AudioIO* pAudioIO) {
     pVoicePool         = new RTELMemoryPool<Voice>(MAX_AUDIO_VOICES);
     pActiveKeys        = new RTELMemoryPool<uint>(128);
     pEvents            = new RTEList<ModulationSystem::Event>(pEventPool);
+    pCCEvents          = new RTEList<ModulationSystem::Event>(pEventPool);
     for (uint i = 0; i < ModulationSystem::destination_count; i++) {
-        pCCEvents[i] = new RTEList<ModulationSystem::Event>(pEventPool);
+        pSynthesisEvents[i] = new RTEList<ModulationSystem::Event>(pEventPool);
     }
     for (uint i = 0; i < 128; i++) {
         pMIDIKeyInfo[i].pActiveVoices = new RTEList<Voice>(pVoicePool);
@@ -62,10 +64,9 @@ AudioThread::AudioThread(AudioIO* pAudioIO) {
 
     // initialize modulation system
     ModulationSystem::Initialize(pAudioIO->SampleRate(), pAudioIO->MaxSamplesPerCycle());
-
-    // sustain pedal value
-    PrevHoldCCValue = 0;
-    SustainPedal    = 0;
+    
+    // set all MIDI controller values to zero
+    memset(ControllerTable, 0x00, 128);
 
     SuspensionRequested = false;
     pthread_mutex_init(&__render_state_mutex, NULL);
@@ -89,10 +90,11 @@ AudioThread::~AudioThread() {
         if (pMIDIKeyInfo[i].pEvents)       delete pMIDIKeyInfo[i].pEvents;
     }
     for (uint i = 0; i < ModulationSystem::destination_count; i++) {
-        if (pCCEvents[i]) delete pCCEvents[i];
+        if (pSynthesisEvents[i]) delete pSynthesisEvents[i];
     }
-    delete[] pCCEvents;
+    delete[] pSynthesisEvents;
     if (pEvents)     delete pEvents;
+    if (pCCEvents)   delete pCCEvents;
     if (pEventQueue) delete pEventQueue;
     if (pEventPool)  delete pEventPool;
     if (pVoicePool)  delete pVoicePool;
@@ -127,8 +129,9 @@ int AudioThread::RenderAudio(uint Samples) {
 
     // empty the event lists for the new fragment
     pEvents->clear();
+    pCCEvents->clear();
     for (uint i = 0; i < ModulationSystem::destination_count; i++) {
-        pCCEvents[i]->clear();
+        pSynthesisEvents[i]->clear();
     }
 
     // read and copy events from input queue
@@ -330,7 +333,7 @@ void AudioThread::ProcessPitchbend(ModulationSystem::Event* pPitchbendEvent) {
     int currentPitch        = pPitchbendEvent->Pitch;
     pPitchbendEvent->Pitch -= this->Pitch;  // convert to delta
     this->Pitch             = currentPitch; // store current absolute pitch value
-    pEvents->move(pPitchbendEvent, pCCEvents[ModulationSystem::destination_vco]);
+    pEvents->move(pPitchbendEvent, pSynthesisEvents[ModulationSystem::destination_vco]);
 }
 
 /**
@@ -371,7 +374,7 @@ void AudioThread::ProcessControlChange(ModulationSystem::Event* pControlChangeEv
 
     switch (pControlChangeEvent->Controller) {
         case 64: {
-            if (pControlChangeEvent->Value >= 64 && PrevHoldCCValue < 64) {
+            if (pControlChangeEvent->Value >= 64 && !SustainPedal) {
                 dmsg(4,("PEDAL DOWN\n"));
                 SustainPedal = true;
 
@@ -389,10 +392,9 @@ void AudioThread::ProcessControlChange(ModulationSystem::Event* pControlChangeEv
                             else dmsg(1,("Event pool emtpy!\n"));
                         }
                     }
-                    pEvents->free(pControlChangeEvent); // free the original event
                 }
             }
-            if (pControlChangeEvent->Value < 64 && PrevHoldCCValue >= 64) {
+            if (pControlChangeEvent->Value < 64 && SustainPedal) {
                 dmsg(4,("PEDAL UP\n"));
                 SustainPedal = false;
 
@@ -410,14 +412,17 @@ void AudioThread::ProcessControlChange(ModulationSystem::Event* pControlChangeEv
                             else dmsg(1,("Event pool emtpy!\n"));
                         }
                     }
-                    pEvents->free(pControlChangeEvent); // free the original event
                 }
-
             }
-            PrevHoldCCValue = pControlChangeEvent->Value;
             break;
         }
     }
+    
+    // update controller value in the engine's controller table
+    ControllerTable[pControlChangeEvent->Controller] = pControlChangeEvent->Value;
+    
+    // move event from the unsorted event list to the control change event list
+    pEvents->move(pControlChangeEvent, pCCEvents);
 }
 
 /**
@@ -556,7 +561,6 @@ void AudioThread::Reset() {
  */
 void AudioThread::ResetInternal() {
     this->Pitch         = 0;
-    PrevHoldCCValue     = 0; // sustain pedal value
     SustainPedal        = 0;
     ActiveVoiceCount    = 0;
     ActiveVoiceCountMax = 0;

@@ -41,32 +41,32 @@ EG_VCA::EG_VCA() {
  * @param CurrentPitch  - current pitch value for playback
  */
 void EG_VCA::Process(uint Samples, RTEList<ModulationSystem::Event>* pEvents, ModulationSystem::Event* pTriggerEvent, double SamplePos, double CurrentPitch) {
-    ModulationSystem::Event* pReleaseTransitionEvent;
+    ModulationSystem::Event* pTransitionEvent;
     if (pTriggerEvent) {
         pEvents->set_current(pTriggerEvent);
-        pReleaseTransitionEvent = pEvents->next();
+        pTransitionEvent = pEvents->next();
     }
     else {
-        pReleaseTransitionEvent = pEvents->first();
+        pTransitionEvent = pEvents->first();
     }
 
     int iSample = TriggerDelay;
     while (iSample < Samples) {
         switch (Stage) {
             case stage_attack: {
+                TriggerDelay = 0;
                 int to_process   = Min(Samples - iSample, AttackStepsLeft);
                 int process_end  = iSample + to_process;
                 AttackStepsLeft -= to_process;
                 while (iSample < process_end) {
                     Level += AttackCoeff;
                     ModulationSystem::pDestinationParameter[ModulationSystem::destination_vca][iSample++] *= Level;
-                }
-                TriggerDelay = 0;
-                if (!AttackStepsLeft) Stage = (HoldAttack) ? stage_attack_hold : stage_decay1;
+                }                                
                 if (iSample == Samples) { // postpone last transition event for the next audio fragment
                     ModulationSystem::Event* pLastEvent = pEvents->last();
                     if (pLastEvent) ReleasePostponed = (pLastEvent->Type == ModulationSystem::event_type_release);
                 }
+                if (!AttackStepsLeft) Stage = (ReleasePostponed) ? stage_release : (HoldAttack) ? stage_attack_hold : stage_decay1;
                 break;
             }
             case stage_attack_hold: {
@@ -75,43 +75,43 @@ void EG_VCA::Process(uint Samples, RTEList<ModulationSystem::Event>* pEvents, Mo
                     break;
                 }
                 int holdstepsleft = (int) (LoopStart - SamplePos / CurrentPitch); // FIXME: just an approximation, inaccuracy grows with higher audio fragment size, sufficient for usual fragment sizes though
-                int to_process    = Min(Samples - iSample, holdstepsleft);
-                int process_end   = iSample + to_process;
+                int to_process    = Min(Samples - iSample, holdstepsleft);                                                                
+                int process_end   = iSample + to_process;                
+                if (pTransitionEvent && pTransitionEvent->FragmentPos() <= process_end) {
+                    process_end      = pTransitionEvent->FragmentPos();                    
+                    Stage            = (pTransitionEvent->Type == ModulationSystem::event_type_release) ? stage_release : (InfiniteSustain) ? stage_sustain : stage_decay2;
+                    pTransitionEvent = pEvents->next();
+                }
+                else if (to_process == holdstepsleft) Stage = stage_decay1;                
                 while (iSample < process_end) {
                     ModulationSystem::pDestinationParameter[ModulationSystem::destination_vca][iSample++] *= Level;
-                }
-                if (to_process == holdstepsleft) Stage = stage_decay1;
-                if (iSample == Samples) { // postpone last transition event for the next audio fragment
-                    ModulationSystem::Event* pLastEvent = pEvents->last();
-                    if (pLastEvent) ReleasePostponed = (pLastEvent->Type == ModulationSystem::event_type_release);
-                }
+                }                
                 break;
             }
             case stage_decay1: {
                 int to_process   = Min(Samples - iSample, Decay1StepsLeft);
                 int process_end  = iSample + to_process;
-                Decay1StepsLeft -= to_process;
+                if (pTransitionEvent && pTransitionEvent->FragmentPos() <= process_end) {
+                    process_end      = pTransitionEvent->FragmentPos();                    
+                    Stage            = (pTransitionEvent->Type == ModulationSystem::event_type_release) ? stage_release : (InfiniteSustain) ? stage_sustain : stage_decay2;
+                    pTransitionEvent = pEvents->next();
+                }
+                else {
+                    Decay1StepsLeft -= to_process;
+                    if (!Decay1StepsLeft) Stage = (InfiniteSustain) ? stage_sustain : stage_decay2;
+                }
                 while (iSample < process_end) {
                     Level += Decay1Coeff;
                     ModulationSystem::pDestinationParameter[ModulationSystem::destination_vca][iSample++] *= Level;
-                }
-                if (iSample == Samples) { // postpone last transition event for the next audio fragment
-                    ModulationSystem::Event* pLastEvent = pEvents->last();
-                    if (pLastEvent) ReleasePostponed = (pLastEvent->Type == ModulationSystem::event_type_release);
-                }
-                if (!Decay1StepsLeft) {
-                    Stage = (ReleasePostponed) ? stage_release
-                                               : (InfiniteSustain) ? stage_sustain
-                                                                   : stage_decay2;
-                }
+                }                
                 break;
             }
             case stage_decay2: {
                 int process_end;
-                if (pReleaseTransitionEvent && pReleaseTransitionEvent->Type == ModulationSystem::event_type_release) {
-                    process_end             = pReleaseTransitionEvent->FragmentPos();
-                    pReleaseTransitionEvent = pEvents->next();
-                    Stage                   = stage_release; // switch to release stage soon
+                if (pTransitionEvent && pTransitionEvent->Type == ModulationSystem::event_type_release) {
+                    process_end      = pTransitionEvent->FragmentPos();
+                    pTransitionEvent = pEvents->next();
+                    Stage            = stage_release; // switch to release stage soon
                 }
                 else process_end = Samples;
                 while (iSample < process_end) {
@@ -123,10 +123,10 @@ void EG_VCA::Process(uint Samples, RTEList<ModulationSystem::Event>* pEvents, Mo
             }
             case stage_sustain: {
                 int process_end;
-                if (pReleaseTransitionEvent && pReleaseTransitionEvent->Type == ModulationSystem::event_type_release) {
-                    process_end             = pReleaseTransitionEvent->FragmentPos();
-                    pReleaseTransitionEvent = pEvents->next();
-                    Stage                   = stage_release; // switch to release stage soon
+                if (pTransitionEvent && pTransitionEvent->Type == ModulationSystem::event_type_release) {
+                    process_end      = pTransitionEvent->FragmentPos();
+                    pTransitionEvent = pEvents->next();
+                    Stage            = stage_release; // switch to release stage soon
                 }
                 else process_end = Samples;
                 while (iSample < process_end) {
@@ -136,10 +136,10 @@ void EG_VCA::Process(uint Samples, RTEList<ModulationSystem::Event>* pEvents, Mo
             }
             case stage_release: {
                 int process_end;
-                if (pReleaseTransitionEvent && pReleaseTransitionEvent->Type == ModulationSystem::event_type_cancel_release) {
-                    process_end             = pReleaseTransitionEvent->FragmentPos();
-                    pReleaseTransitionEvent = pEvents->next();
-                    Stage                   = (InfiniteSustain) ? stage_sustain : stage_decay2; // switch back to sustain / decay2 stage soon
+                if (pTransitionEvent && pTransitionEvent->Type == ModulationSystem::event_type_cancel_release) {
+                    process_end      = pTransitionEvent->FragmentPos();
+                    pTransitionEvent = pEvents->next();
+                    Stage            = (InfiniteSustain) ? stage_sustain : stage_decay2; // switch back to sustain / decay2 stage soon
                 }
                 else process_end = Samples;
                 while (iSample < process_end) {

@@ -696,13 +696,13 @@ namespace gig {
         _3ewa->ReadInt16(); // unknown
         EG1Sustain          = _3ewa->ReadUint16();
         EG1Release          = (double) GIG_EXP_DECODE(_3ewa->ReadInt32());
-        EG1Controller       = static_cast<eg1_ctrl_t>(_3ewa->ReadUint8());
+        EG1Controller       = DecodeLeverageController(static_cast<_lev_ctrl_t>(_3ewa->ReadUint8()));
         uint8_t eg1ctrloptions        = _3ewa->ReadUint8();
         EG1ControllerInvert           = eg1ctrloptions & 0x01;
         EG1ControllerAttackInfluence  = GIG_EG_CTR_ATTACK_INFLUENCE_EXTRACT(eg1ctrloptions);
         EG1ControllerDecayInfluence   = GIG_EG_CTR_DECAY_INFLUENCE_EXTRACT(eg1ctrloptions);
         EG1ControllerReleaseInfluence = GIG_EG_CTR_RELEASE_INFLUENCE_EXTRACT(eg1ctrloptions);
-        EG2Controller       = static_cast<eg2_ctrl_t>(_3ewa->ReadUint8());
+        EG2Controller       = DecodeLeverageController(static_cast<_lev_ctrl_t>(_3ewa->ReadUint8()));
         uint8_t eg2ctrloptions        = _3ewa->ReadUint8();
         EG2ControllerInvert           = eg2ctrloptions & 0x01;
         EG2ControllerAttackInfluence  = GIG_EG_CTR_ATTACK_INFLUENCE_EXTRACT(eg2ctrloptions);
@@ -764,7 +764,7 @@ namespace gig {
             ReleaseVelocityResponseDepth = 0;
         }
         VelocityResponseCurveScaling = _3ewa->ReadUint8();
-        AttenuationControlTreshold   = _3ewa->ReadInt8();
+        AttenuationControllerThreshold = _3ewa->ReadInt8();
         _3ewa->ReadInt32(); // unknown
         SampleStartOffset = (uint16_t) _3ewa->ReadInt16();
         _3ewa->ReadInt16(); // unknown
@@ -780,12 +780,12 @@ namespace gig {
         uint8_t lfo3ctrl = _3ewa->ReadUint8();
         LFO3Controller           = static_cast<lfo3_ctrl_t>(lfo3ctrl & 0x07); // lower 3 bits
         LFO3Sync                 = lfo3ctrl & 0x20; // bit 5
-        InvertAttenuationControl = lfo3ctrl & 0x80; // bit 7
+        InvertAttenuationController = lfo3ctrl & 0x80; // bit 7
         if (VCFType == vcf_type_lowpass) {
             if (lfo3ctrl & 0x40) // bit 6
                 VCFType = vcf_type_lowpassturbo;
         }
-        AttenuationControl = static_cast<attenuation_ctrl_t>(_3ewa->ReadUint8());
+        AttenuationController  = DecodeLeverageController(static_cast<_lev_ctrl_t>(_3ewa->ReadUint8()));
         uint8_t lfo2ctrl       = _3ewa->ReadUint8();
         LFO2Controller         = static_cast<lfo2_ctrl_t>(lfo2ctrl & 0x07); // lower 3 bits
         LFO2FlipPhase          = lfo2ctrl & 0x80; // bit 7
@@ -869,6 +869,124 @@ namespace gig {
             (*pVelocityTables)[tableKey] = pVelocityAttenuationTable; // put the new table into the tables map
         }
     }
+    
+    leverage_ctrl_t DimensionRegion::DecodeLeverageController(_lev_ctrl_t EncodedController) {
+        leverage_ctrl_t decodedcontroller;
+        switch (EncodedController) {
+            // special controller
+            case _lev_ctrl_none:
+                decodedcontroller.type = leverage_ctrl_t::type_none;
+                decodedcontroller.controller_number = 0;
+                break;
+            case _lev_ctrl_velocity:
+                decodedcontroller.type = leverage_ctrl_t::type_velocity;
+                decodedcontroller.controller_number = 0;
+                break;
+            case _lev_ctrl_channelaftertouch:
+                decodedcontroller.type = leverage_ctrl_t::type_channelaftertouch;
+                decodedcontroller.controller_number = 0;
+                break;
+            
+            // ordinary MIDI control change controller
+            case _lev_ctrl_modwheel:
+                decodedcontroller.type = leverage_ctrl_t::type_controlchange;
+                decodedcontroller.controller_number = 1;
+                break;
+            case _lev_ctrl_breath:
+                decodedcontroller.type = leverage_ctrl_t::type_controlchange;
+                decodedcontroller.controller_number = 2;
+                break;
+            case _lev_ctrl_foot:
+                decodedcontroller.type = leverage_ctrl_t::type_controlchange;
+                decodedcontroller.controller_number = 4;
+                break;
+            case _lev_ctrl_effect1:
+                decodedcontroller.type = leverage_ctrl_t::type_controlchange;
+                decodedcontroller.controller_number = 12;
+                break;
+            case _lev_ctrl_effect2:
+                decodedcontroller.type = leverage_ctrl_t::type_controlchange;
+                decodedcontroller.controller_number = 13;
+                break;
+            case _lev_ctrl_genpurpose1:
+                decodedcontroller.type = leverage_ctrl_t::type_controlchange;
+                decodedcontroller.controller_number = 16;
+                break;
+            case _lev_ctrl_genpurpose2:
+                decodedcontroller.type = leverage_ctrl_t::type_controlchange;
+                decodedcontroller.controller_number = 17;
+                break;
+            case _lev_ctrl_genpurpose3:
+                decodedcontroller.type = leverage_ctrl_t::type_controlchange;
+                decodedcontroller.controller_number = 18;
+                break;
+            case _lev_ctrl_genpurpose4:
+                decodedcontroller.type = leverage_ctrl_t::type_controlchange;
+                decodedcontroller.controller_number = 19;
+                break;
+            case _lev_ctrl_portamentotime:
+                decodedcontroller.type = leverage_ctrl_t::type_controlchange;
+                decodedcontroller.controller_number = 5;
+                break;
+            case _lev_ctrl_sustainpedal:
+                decodedcontroller.type = leverage_ctrl_t::type_controlchange;
+                decodedcontroller.controller_number = 64;
+                break;
+            case _lev_ctrl_portamento:
+                decodedcontroller.type = leverage_ctrl_t::type_controlchange;
+                decodedcontroller.controller_number = 65;
+                break;
+            case _lev_ctrl_sostenutopedal:
+                decodedcontroller.type = leverage_ctrl_t::type_controlchange;
+                decodedcontroller.controller_number = 66;
+                break;
+            case _lev_ctrl_softpedal:
+                decodedcontroller.type = leverage_ctrl_t::type_controlchange;
+                decodedcontroller.controller_number = 67;
+                break;
+            case _lev_ctrl_genpurpose5:
+                decodedcontroller.type = leverage_ctrl_t::type_controlchange;
+                decodedcontroller.controller_number = 80;
+                break;
+            case _lev_ctrl_genpurpose6:
+                decodedcontroller.type = leverage_ctrl_t::type_controlchange;
+                decodedcontroller.controller_number = 81;
+                break;
+            case _lev_ctrl_genpurpose7:
+                decodedcontroller.type = leverage_ctrl_t::type_controlchange;
+                decodedcontroller.controller_number = 82;
+                break;
+            case _lev_ctrl_genpurpose8:
+                decodedcontroller.type = leverage_ctrl_t::type_controlchange;
+                decodedcontroller.controller_number = 83;
+                break;
+            case _lev_ctrl_effect1depth:
+                decodedcontroller.type = leverage_ctrl_t::type_controlchange;
+                decodedcontroller.controller_number = 91;
+                break;
+            case _lev_ctrl_effect2depth:
+                decodedcontroller.type = leverage_ctrl_t::type_controlchange;
+                decodedcontroller.controller_number = 92;
+                break;
+            case _lev_ctrl_effect3depth:
+                decodedcontroller.type = leverage_ctrl_t::type_controlchange;
+                decodedcontroller.controller_number = 93;
+                break;
+            case _lev_ctrl_effect4depth:
+                decodedcontroller.type = leverage_ctrl_t::type_controlchange;
+                decodedcontroller.controller_number = 94;
+                break;
+            case _lev_ctrl_effect5depth:
+                decodedcontroller.type = leverage_ctrl_t::type_controlchange;
+                decodedcontroller.controller_number = 95;
+                break;
+            
+            // unknown controller type
+            default:
+                throw gig::Exception("Unknown leverage controller type.");
+        }
+        return decodedcontroller;
+    }
 
     DimensionRegion::~DimensionRegion() {
         Instances--;
@@ -893,8 +1011,8 @@ namespace gig {
      * triggered to get the volume with which the sample should be played
      * back.
      *
-     * @param    MIDI velocity value of the triggered key (between 0 and 127)
-     * @returns  amplitude factor (between 0.0 and 1.0)
+     * @param MIDIKeyVelocity  MIDI velocity value of the triggered key (between 0 and 127)
+     * @returns                amplitude factor (between 0.0 and 1.0)
      */
     double DimensionRegion::GetVelocityAttenuation(uint8_t MIDIKeyVelocity) {
         return pVelocityAttenuationTable[MIDIKeyVelocity];

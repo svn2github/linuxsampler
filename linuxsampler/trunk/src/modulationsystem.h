@@ -35,9 +35,9 @@ class ModulationSystem {
         enum destination_t {
             destination_vca,   ///< Volume level
             destination_vco,   ///< Pitch depth
-            destination_count  ///< Total number of modulation sources (this has to stay the last element in the enum)
+            destination_count  ///< Total number of modulation destinations (this has to stay the last element in the enum)
         };
-        typedef uint32_t real_time_t; ///< We read the processor's cycle count register as an reference for the real time. These are of course only abstract values with arbitrary time entity, but that's not a problem as we calculate relatively.
+        typedef uint32_t real_time_t; ///< We read the processor's cycle count register as a reference for the real time. These are of course only abstract values with arbitrary time entity, but that's not a problem as we calculate relatively.
         enum event_type_t {
             event_type_note_on,
             event_type_note_off,

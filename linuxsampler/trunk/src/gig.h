@@ -167,36 +167,47 @@ namespace gig {
         vcf_res_ctrl_genpurpose5 = 2,           ///< General Purpose Controller 5 (Button, MIDI Controller 80)
         vcf_res_ctrl_genpurpose6 = 3            ///< General Purpose Controller 6 (Button, MIDI Controller 81)
     } vcf_res_ctrl_t;
-
-    /** Defines how attenuation (=gain / VCA) is controlled by. */
-    typedef enum {
-        attenuation_ctrl_none              = 0x00,
-        attenuation_ctrl_modwheel          = 0x03, ///< Modulation Wheel (MIDI Controller 1)
-        attenuation_ctrl_breath            = 0x05, ///< Breath Controller (Coarse, MIDI Controller 2)
-        attenuation_ctrl_foot              = 0x07, ///< Foot Pedal (Coarse, MIDI Controller 4)
-        attenuation_ctrl_effect1           = 0x0d, ///< Effect Controller 1 (Coarse, MIDI Controller 12)
-        attenuation_ctrl_effect2           = 0x0f, ///< Effect Controller 2 (Coarse, MIDI Controller 13)
-        attenuation_ctrl_genpurpose1       = 0x11, ///< General Purpose Controller 1 (Slider, MIDI Controller 16)
-        attenuation_ctrl_genpurpose2       = 0x13, ///< General Purpose Controller 2 (Slider, MIDI Controller 17)
-        attenuation_ctrl_genpurpose3       = 0x15, ///< General Purpose Controller 3 (Slider, MIDI Controller 18)
-        attenuation_ctrl_genpurpose4       = 0x17, ///< General Purpose Controller 4 (Slider, MIDI Controller 19)
-        attenuation_ctrl_portamentotime    = 0x0b, ///< Portamento Time (Coarse, MIDI Controller 5)
-        attenuation_ctrl_sustainpedal      = 0x01, ///< Sustain Pedal (MIDI Controller 64)
-        attenuation_ctrl_portamento        = 0x19, ///< Portamento (MIDI Controller 65)
-        attenuation_ctrl_sostenutopedal    = 0x1b, ///< Sostenuto Pedal (MIDI Controller 66)
-        attenuation_ctrl_softpedal         = 0x09, ///< Soft Pedal (MIDI Controller 67)
-        attenuation_ctrl_genpurpose5       = 0x1d, ///< General Purpose Controller 5 (Button, MIDI Controller 80)
-        attenuation_ctrl_genpurpose6       = 0x1f, ///< General Purpose Controller 6 (Button, MIDI Controller 81)
-        attenuation_ctrl_genpurpose7       = 0x21, ///< General Purpose Controller 7 (Button, MIDI Controller 82)
-        attenuation_ctrl_genpurpose8       = 0x23, ///< General Purpose Controller 8 (Button, MIDI Controller 83)
-        attenuation_ctrl_effect1depth      = 0x25, ///< Effect 1 Depth (MIDI Controller 91)
-        attenuation_ctrl_effect2depth      = 0x27, ///< Effect 2 Depth (MIDI Controller 92)
-        attenuation_ctrl_effect3depth      = 0x29, ///< Effect 3 Depth (MIDI Controller 93)
-        attenuation_ctrl_effect4depth      = 0x2b, ///< Effect 4 Depth (MIDI Controller 94)
-        attenuation_ctrl_effect5depth      = 0x2d, ///< Effect 5 Depth (MIDI Controller 95)
-        attenuation_ctrl_channelaftertouch = 0x2f, ///< Channel Key Pressure
-        attenuation_ctrl_velocity          = 0xff  ///< Key Velocity
-    } attenuation_ctrl_t, eg1_ctrl_t, eg2_ctrl_t;
+    
+    /**
+     * Defines a controller that has a certain contrained influence on a
+     * particular synthesis parameter (used to define attenuation controller,
+     * EG1 controller and EG2 controller).
+     *
+     * You should use the respective <i>typedef</i> (means either
+     * attenuation_ctrl_t, eg1_ctrl_t or eg2_ctrl_t) in your code!
+     */
+    struct leverage_ctrl_t {
+        typedef enum {
+            type_none              = 0x00, ///< No controller defined
+            type_channelaftertouch = 0x2f, ///< Channel Key Pressure
+            type_velocity          = 0xff, ///< Key Velocity
+            type_controlchange     = 0xfe  ///< Ordinary MIDI control change controller, see field 'controller_number'
+        } type_t;
+        
+        type_t type;              ///< Controller type
+        uint   controller_number; ///< MIDI controller number if this controller is a control change controller, 0 otherwise
+    };
+    
+    /**
+     * Defines controller influencing attenuation.
+     *
+     * @see leverage_ctrl_t
+     */
+    typedef leverage_ctrl_t attenuation_ctrl_t;
+    
+    /**
+     * Defines controller influencing envelope generator 1.
+     *
+     * @see leverage_ctrl_t
+     */
+    typedef leverage_ctrl_t eg1_ctrl_t;
+    
+    /**
+     * Defines controller influencing envelope generator 2.
+     *
+     * @see leverage_ctrl_t
+     */
+    typedef leverage_ctrl_t eg2_ctrl_t;
 
     /**
      * Defines the type of dimension, that is how the dimension zones (and
@@ -321,9 +332,9 @@ namespace gig {
             bool               EG1Hold;                       ///< If <i>true</i>, Decay1 stage should be postponed until the sample reached the sample loop start.
             eg1_ctrl_t         EG1Controller;                 ///< MIDI Controller which has influence on sample amplitude EG parameters (attack, decay, release).
             bool               EG1ControllerInvert;           ///< Invert values coming from defined EG1 controller.
-            uint8_t            EG1ControllerAttackInfluence;  ///< Amount EG1 Controller has influence on the EG1 Attack time.
-            uint8_t            EG1ControllerDecayInfluence;   ///< Amount EG1 Controller has influence on the EG1 Decay time.
-            uint8_t            EG1ControllerReleaseInfluence; ///< Amount EG1 Controller has influence on the EG1 Release time.
+            uint8_t            EG1ControllerAttackInfluence;  ///< Amount EG1 Controller has influence on the EG1 Attack time (0 - 3, where 0 means off).
+            uint8_t            EG1ControllerDecayInfluence;   ///< Amount EG1 Controller has influence on the EG1 Decay time (0 - 3, where 0 means off).
+            uint8_t            EG1ControllerReleaseInfluence; ///< Amount EG1 Controller has influence on the EG1 Release time (0 - 3, where 0 means off).
             double             LFO1Frequency;                 ///< Frequency of the sample amplitude LFO (0.10 - 10.00 Hz).
             uint16_t           LFO1InternalDepth;             ///< Firm pitch of the sample amplitude LFO (0 - 1200 cents).
             uint16_t           LFO1ControlDepth;              ///< Controller depth influencing sample amplitude LFO pitch (0 - 1200 cents).
@@ -340,9 +351,9 @@ namespace gig {
             double             EG2Release;                    ///< Release time of the filter cutoff EG (0.000 - 60.000s).
             eg2_ctrl_t         EG2Controller;                 ///< MIDI Controller which has influence on filter cutoff EG parameters (attack, decay, release).
             bool               EG2ControllerInvert;           ///< Invert values coming from defined EG2 controller.
-            uint8_t            EG2ControllerAttackInfluence;  ///< Amount EG2 Controller has influence on the EG2 Attack time.
-            uint8_t            EG2ControllerDecayInfluence;   ///< Amount EG2 Controller has influence on the EG2 Decay time.
-            uint8_t            EG2ControllerReleaseInfluence; ///< Amount EG2 Controller has influence on the EG2 Release time.
+            uint8_t            EG2ControllerAttackInfluence;  ///< Amount EG2 Controller has influence on the EG2 Attack time (0 - 3, where 0 means off).
+            uint8_t            EG2ControllerDecayInfluence;   ///< Amount EG2 Controller has influence on the EG2 Decay time (0 - 3, where 0 means off).
+            uint8_t            EG2ControllerReleaseInfluence; ///< Amount EG2 Controller has influence on the EG2 Release time (0 - 3, where 0 means off).
             double             LFO2Frequency;                 ///< Frequency of the filter cutoff LFO (0.10 - 10.00 Hz).
             uint16_t           LFO2InternalDepth;             ///< Firm pitch of the filter cutoff LFO (0 - 1200 cents).
             uint16_t           LFO2ControlDepth;              ///< Controller depth influencing filter cutoff LFO pitch (0 - 1200).
@@ -383,9 +394,9 @@ namespace gig {
             dim_bypass_ctrl_t  DimensionBypass;               ///< If defined, the MIDI controller can switch on/off the dimension in realtime.
             int8_t             Pan;                           ///< Panorama / Balance (-64..0..63 <-> left..middle..right)
             bool               SelfMask;                      ///< If <i>true</i>: high velocity notes will stop low velocity notes at the same note, with that you can save voices that wouldn't be audible anyway.
-            attenuation_ctrl_t AttenuationControl;            ///< MIDI Controller which has influence on the volume level of the sample (or entire sample group).
-            bool               InvertAttenuationControl;      ///< Inverts the values coming from the defined Attenuation Controller.
-            uint8_t            AttenuationControlTreshold;    ///< 0-127
+            attenuation_ctrl_t AttenuationController;         ///< MIDI Controller which has influence on the volume level of the sample (or entire sample group).
+            bool               InvertAttenuationController;   ///< Inverts the values coming from the defined Attenuation Controller.
+            uint8_t            AttenuationControllerThreshold;///< 0-127
             uint8_t            ChannelOffset;                 ///< Audio output where the audio signal of the dimension region should be routed to (0 - 9).
             bool               SustainDefeat;                 ///< If <i>true</i>: Sustain pedal will not hold a note.
             bool               MSDecode;                      ///< Gigastudio flag: defines if Mid Side Recordings should be decoded.
@@ -404,11 +415,41 @@ namespace gig {
            ~DimensionRegion();
             friend class Region;
         private:
+            typedef enum { ///< Used to decode attenuation, EG1 and EG2 controller
+                _lev_ctrl_none              = 0x00,
+                _lev_ctrl_modwheel          = 0x03, ///< Modulation Wheel (MIDI Controller 1)
+                _lev_ctrl_breath            = 0x05, ///< Breath Controller (Coarse, MIDI Controller 2)
+                _lev_ctrl_foot              = 0x07, ///< Foot Pedal (Coarse, MIDI Controller 4)
+                _lev_ctrl_effect1           = 0x0d, ///< Effect Controller 1 (Coarse, MIDI Controller 12)
+                _lev_ctrl_effect2           = 0x0f, ///< Effect Controller 2 (Coarse, MIDI Controller 13)
+                _lev_ctrl_genpurpose1       = 0x11, ///< General Purpose Controller 1 (Slider, MIDI Controller 16)
+                _lev_ctrl_genpurpose2       = 0x13, ///< General Purpose Controller 2 (Slider, MIDI Controller 17)
+                _lev_ctrl_genpurpose3       = 0x15, ///< General Purpose Controller 3 (Slider, MIDI Controller 18)
+                _lev_ctrl_genpurpose4       = 0x17, ///< General Purpose Controller 4 (Slider, MIDI Controller 19)
+                _lev_ctrl_portamentotime    = 0x0b, ///< Portamento Time (Coarse, MIDI Controller 5)
+                _lev_ctrl_sustainpedal      = 0x01, ///< Sustain Pedal (MIDI Controller 64)
+                _lev_ctrl_portamento        = 0x19, ///< Portamento (MIDI Controller 65)
+                _lev_ctrl_sostenutopedal    = 0x1b, ///< Sostenuto Pedal (MIDI Controller 66)
+                _lev_ctrl_softpedal         = 0x09, ///< Soft Pedal (MIDI Controller 67)
+                _lev_ctrl_genpurpose5       = 0x1d, ///< General Purpose Controller 5 (Button, MIDI Controller 80)
+                _lev_ctrl_genpurpose6       = 0x1f, ///< General Purpose Controller 6 (Button, MIDI Controller 81)
+                _lev_ctrl_genpurpose7       = 0x21, ///< General Purpose Controller 7 (Button, MIDI Controller 82)
+                _lev_ctrl_genpurpose8       = 0x23, ///< General Purpose Controller 8 (Button, MIDI Controller 83)
+                _lev_ctrl_effect1depth      = 0x25, ///< Effect 1 Depth (MIDI Controller 91)
+                _lev_ctrl_effect2depth      = 0x27, ///< Effect 2 Depth (MIDI Controller 92)
+                _lev_ctrl_effect3depth      = 0x29, ///< Effect 3 Depth (MIDI Controller 93)
+                _lev_ctrl_effect4depth      = 0x2b, ///< Effect 4 Depth (MIDI Controller 94)
+                _lev_ctrl_effect5depth      = 0x2d, ///< Effect 5 Depth (MIDI Controller 95)
+                _lev_ctrl_channelaftertouch = 0x2f, ///< Channel Key Pressure
+                _lev_ctrl_velocity          = 0xff  ///< Key Velocity
+            } _lev_ctrl_t;        
             typedef std::map<uint32_t, double*> VelocityTableMap;
 
             static uint              Instances;                  ///< Number of DimensionRegion instances.
             static VelocityTableMap* pVelocityTables;            ///< Contains the tables corresponding to the various velocity parameters (VelocityResponseCurve and VelocityResponseDepth).
             double*                  pVelocityAttenuationTable;  ///< Points to the velocity table corresponding to the velocity parameters of this DimensionRegion.
+            
+            leverage_ctrl_t DecodeLeverageController(_lev_ctrl_t EncodedController);
     };
 
     /** Encapsulates sample waves used for playback. */

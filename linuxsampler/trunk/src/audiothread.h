@@ -76,7 +76,8 @@ class AudioThread {
             uint*                                pSelf;                 ///< hack to allow fast deallocation of the key from the list of active keys
             RTEList<ModulationSystem::Event>*    pEvents;               ///< Key specific events (only Note-on, Note-off and sustain pedal currently)
         };
-
+        
+        uint8_t                                  ControllerTable[128];  ///< Reflects the current values (0-127) of all MIDI controllers for this engine / sampler channel.
         RingBuffer<ModulationSystem::Event>*     pEventQueue;           ///< Input event queue.
         float*                                   pAudioSumBuffer[2];    ///< Audio sum of all voices (32 bit, index 0 = left channel, index 1 = right channel)
         midi_key_info_t                          pMIDIKeyInfo[128];     ///< Contains all active voices sorted by MIDI key number and other informations to the respective MIDI key
@@ -84,13 +85,13 @@ class AudioThread {
         RTELMemoryPool<uint>*                    pActiveKeys;           ///< Holds all keys in it's allocation list with active voices.
         RTELMemoryPool<ModulationSystem::Event>* pEventPool;            ///< Contains all Event objects that can be used.
         RTEList<ModulationSystem::Event>*        pEvents;               ///< All events for the current audio fragment.
-        RTEList<ModulationSystem::Event>*        pCCEvents[ModulationSystem::destination_count];  ///< Control change events for the current audio fragment.
+	RTEList<ModulationSystem::Event>*        pCCEvents;             ///< All control change events for the current audio fragment.
+        RTEList<ModulationSystem::Event>*        pSynthesisEvents[ModulationSystem::destination_count];  ///< Events directly affecting synthesis parameter (like pitch, volume and filter).
         AudioIO*                                 pAudioIO;
         RIFF::File*                              pRIFF;
         gig::File*                               pGig;
         gig::Instrument*                         pInstrument;
         bool                                     SustainPedal;          ///< true if sustain pedal is down
-        uint8_t                                  PrevHoldCCValue;
         int                                      Pitch;                 ///< Current (absolute) MIDI pitch value.
         bool                                     SuspensionRequested;
         pthread_mutex_t                          __render_state_mutex;
