@@ -326,6 +326,8 @@ namespace LinuxSampler { namespace gig {
 
         Volume = pDimRgn->GetVelocityAttenuation(itNoteOnEvent->Param.Note.Velocity) / 32768.0f; // we downscale by 32768 to convert from int16 value range to DSP value range (which is -1.0..1.0)
 
+        Volume *= pDimRgn->SampleAttenuation;
+
         // setup EG 1 (VCA EG)
         {
             // get current value of EG1 controller

@@ -1125,6 +1125,8 @@ namespace gig { namespace {
                                     VelocityResponseCurveScaling);
             (*pVelocityTables)[tableKey] = pVelocityAttenuationTable; // put the new table into the tables map
         }
+
+        SampleAttenuation = pow(10.0, -Gain / (20.0 * 655360));
     }
 
     leverage_ctrl_t DimensionRegion::DecodeLeverageController(_lev_ctrl_t EncodedController) {
