@@ -23,6 +23,8 @@
 #include "MidiInputDeviceAlsa.h"
 #include "MidiInputDeviceFactory.h"
 
+#define perm_ok(pinfo,bits) ((snd_seq_port_info_get_capability(pinfo) & (bits)) == (bits))
+
 namespace LinuxSampler {
 
     REGISTER_MIDI_INPUT_DRIVER(MidiInputDeviceAlsa);
@@ -68,7 +70,26 @@ namespace LinuxSampler {
     }
 
     std::vector<String> MidiInputDeviceAlsa::MidiInputPortAlsa::ParameterAlsaSeqBindings::PossibilitiesAsString() {
-        return std::vector<String>(); //TODO
+        std::vector<String> res;
+        snd_seq_client_info_t* cinfo;
+        snd_seq_port_info_t* pinfo;
+
+        snd_seq_client_info_alloca(&cinfo);
+        snd_seq_port_info_alloca(&pinfo);
+        snd_seq_client_info_set_client(cinfo, -1);
+        while (snd_seq_query_next_client(pPort->pDevice->hAlsaSeq, cinfo) >= 0) {
+            snd_seq_port_info_set_client(pinfo, snd_seq_client_info_get_client(cinfo));
+            snd_seq_port_info_set_port(pinfo, -1);
+            while (snd_seq_query_next_port(pPort->pDevice->hAlsaSeq, pinfo) >= 0) {
+                if (perm_ok(pinfo, SND_SEQ_PORT_CAP_READ|SND_SEQ_PORT_CAP_SUBS_READ)) {
+                        String seq_id = ToString(snd_seq_client_info_get_client(cinfo)) + ":" +
+                                        ToString(snd_seq_port_info_get_port(pinfo));
+                        res.push_back(seq_id);
+                }
+            }
+        }
+
+        return res;
     }
 
     void MidiInputDeviceAlsa::MidiInputPortAlsa::ParameterAlsaSeqBindings::OnSetValue(std::vector<String> vS) throw (LinuxSamplerException) {
@@ -172,7 +193,7 @@ namespace LinuxSampler {
     }
 
     String MidiInputDeviceAlsa::Version() {
-	    String s = "$Revision: 1.9 $";
+	    String s = "$Revision: 1.10 $";
 	    return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
 

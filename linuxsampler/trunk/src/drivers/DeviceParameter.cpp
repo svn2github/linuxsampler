@@ -561,13 +561,13 @@ namespace LinuxSampler {
     optional<String> DeviceCreationParameterInt::RangeMin(std::map<String,String> Parameters) {
         optional<int> rangemin = RangeMinAsInt(Parameters);
         if (!rangemin) return optional<String>::nothing;
-        return ToString(rangemin);
+        return ToString(*rangemin);
     }
 
     optional<String> DeviceCreationParameterInt::RangeMax(std::map<String,String> Parameters) {
         optional<int> rangemax = RangeMaxAsInt(Parameters);
         if (!rangemax) return optional<String>::nothing;
-        return ToString(rangemax);
+        return ToString(*rangemax);
     }
 
     optional<String> DeviceCreationParameterInt::Possibilities(std::map<String,String> Parameters) {

@@ -58,15 +58,15 @@ namespace LinuxSampler {
              */
             class ParameterActive : public DeviceCreationParameterBool {
                 public:
-                    ParameterActive( void ) : DeviceCreationParameterBool()                  { InitWithDefault();                                  }
-                    ParameterActive( String s ) : DeviceCreationParameterBool(s)             {}
-                    virtual String Description()                                             { return "Enable / disable device";                   }
-                    virtual bool   Fix()                                                     { return false;                                       }
-                    virtual bool   Mandatory()                                               { return false;                                       }
-                    virtual std::map<String,DeviceCreationParameter*> DependsAsParameters()  { return std::map<String,DeviceCreationParameter*>(); }
-                    virtual optional<bool> DefaultAsBool(std::map<String,String> Parameters) { return true;                                        }
-                    virtual void OnSetValue(bool b) throw (LinuxSamplerException)            { if (b) ((AudioOutputDevice*)pDevice)->Play(); else ((AudioOutputDevice*)pDevice)->Stop();       }
-                    static String Name() { return "ACTIVE"; }
+                    ParameterActive();
+                    ParameterActive(String s);
+                    virtual String Description();
+                    virtual bool   Fix();
+                    virtual bool   Mandatory();
+                    virtual std::map<String,DeviceCreationParameter*> DependsAsParameters();
+                    virtual optional<bool> DefaultAsBool(std::map<String,String> Parameters);
+                    virtual void OnSetValue(bool b) throw (LinuxSamplerException);
+                    static String Name();
             };
 
             /** Device Parameter 'SAMPLERATE'
@@ -75,18 +75,18 @@ namespace LinuxSampler {
              */
             class ParameterSampleRate : public DeviceCreationParameterInt {
                 public:
-                    ParameterSampleRate() : DeviceCreationParameterInt()                            { InitWithDefault();                                  }
-                    ParameterSampleRate( String s ) : DeviceCreationParameterInt(s)                 {}
-                    virtual String Description()                                                    { return "Output sample rate";                        }
-                    virtual bool   Fix()                                                            { return true;                                        }
-                    virtual bool   Mandatory()                                                      { return false;                                       }
-                    virtual std::map<String,DeviceCreationParameter*> DependsAsParameters()         { return std::map<String,DeviceCreationParameter*>(); }
-                    virtual optional<int>    DefaultAsInt(std::map<String,String> Parameters)       { return 44100;                                       }
-                    virtual optional<int>    RangeMinAsInt(std::map<String,String> Parameters)      { return optional<int>::nothing;                      }
-                    virtual optional<int>    RangeMaxAsInt(std::map<String,String> Parameters)      { return optional<int>::nothing;                      }
-                    virtual std::vector<int> PossibilitiesAsInt(std::map<String,String> Parameters) { return std::vector<int>();                          }
-                    virtual void             OnSetValue(int i) throw (LinuxSamplerException)        { /* cannot happen, as parameter is fix */            }
-                    static String Name() { return "SAMPLERATE"; }
+                    ParameterSampleRate();
+                    ParameterSampleRate(String s);
+                    virtual String Description();
+                    virtual bool   Fix();
+                    virtual bool   Mandatory();
+                    virtual std::map<String,DeviceCreationParameter*> DependsAsParameters();
+                    virtual optional<int>    DefaultAsInt(std::map<String,String> Parameters);
+                    virtual optional<int>    RangeMinAsInt(std::map<String,String> Parameters);
+                    virtual optional<int>    RangeMaxAsInt(std::map<String,String> Parameters);
+                    virtual std::vector<int> PossibilitiesAsInt(std::map<String,String> Parameters);
+                    virtual void             OnSetValue(int i) throw (LinuxSamplerException);
+                    static String Name();
             };
 
             /** Device Parameters 'CHANNELS'
@@ -96,18 +96,18 @@ namespace LinuxSampler {
              */
             class ParameterChannels : public DeviceCreationParameterInt {
                 public:
-                    ParameterChannels() : DeviceCreationParameterInt()                              { InitWithDefault();                                  }
-                    ParameterChannels( String s ) : DeviceCreationParameterInt(s)                   {}
-                    virtual String Description()                                                    { return "Number of output channels";                 }
-                    virtual bool   Fix()                                                            { return false;                                       }
-                    virtual bool   Mandatory()                                                      { return false;                                       }
-                    virtual std::map<String,DeviceCreationParameter*> DependsAsParameters()         { return std::map<String,DeviceCreationParameter*>(); }
-                    virtual optional<int>    DefaultAsInt(std::map<String,String> Parameters)       { return 2;                                           }
-                    virtual optional<int>    RangeMinAsInt(std::map<String,String> Parameters)      { return optional<int>::nothing;                      }
-                    virtual optional<int>    RangeMaxAsInt(std::map<String,String> Parameters)      { return optional<int>::nothing;                      }
-                    virtual std::vector<int> PossibilitiesAsInt(std::map<String,String> Parameters) { return std::vector<int>();                          }
-                    virtual void             OnSetValue(int i) throw (LinuxSamplerException)        { ((AudioOutputDevice*)pDevice)->AcquireChannels(i);    }
-                    static String Name() { return "CHANNELS"; }
+                    ParameterChannels();
+                    ParameterChannels(String s);
+                    virtual String Description();
+                    virtual bool   Fix();
+                    virtual bool   Mandatory();
+                    virtual std::map<String,DeviceCreationParameter*> DependsAsParameters();
+                    virtual optional<int>    DefaultAsInt(std::map<String,String> Parameters);
+                    virtual optional<int>    RangeMinAsInt(std::map<String,String> Parameters);
+                    virtual optional<int>    RangeMaxAsInt(std::map<String,String> Parameters);
+                    virtual std::vector<int> PossibilitiesAsInt(std::map<String,String> Parameters);
+                    virtual void             OnSetValue(int i) throw (LinuxSamplerException);
+                    static String Name();
             };
 
 
@@ -146,26 +146,6 @@ namespace LinuxSampler {
             virtual void Stop() = 0;
 
             /**
-             * This method will usually be called by the sampler engines that
-             * are connected to this audio device to inform the audio device
-             * how much audio channels the engine(s) need. It's the
-             * responsibility of the audio device to offer that amount of
-             * audio channels - again: this is not an option this is a must!
-             * The engines will assume to be able to access those audio
-             * channels right after. If the audio driver is not able to offer
-             * that much channels, it can simply create mix channels which
-             * are then just mixed to the 'real' audio channels. See
-             * AudioChannel.h for details about channels and mix channels.
-             *
-             * @param Channels - amount of output channels required by
-             *                   a sampler engine
-             * @throws AudioOutputException  if desired amount of channels
-             *                               cannot be offered
-             * @see AudioChannel
-             */
-            virtual void AcquireChannels(uint Channels) = 0;
-
-            /**
              * Maximum amount of sample points the implementing audio
              * device will ever demand the sampler engines to write in one
              * fragment cycle / period. Simple audio device drivers usually
@@ -186,9 +166,17 @@ namespace LinuxSampler {
             virtual uint SampleRate() = 0;
 
             /**
-             * Return the audio output device driver type name.
+             * Return the audio output device driver name.
              */
             virtual String Driver() = 0;
+
+            /**
+             * Create new audio channel. This will be called by
+             * AcquireChannels(). Each driver must implement it.
+             */
+            virtual AudioChannel* CreateChannel(uint ChannelNr) = 0;
+
+
 
             /////////////////////////////////////////////////////////////////
             // normal methods
@@ -218,6 +206,26 @@ namespace LinuxSampler {
              * index out of bounds.
              */
             AudioChannel* Channel(uint ChannelIndex);
+
+            /**
+             * This method will usually be called by the sampler engines that
+             * are connected to this audio device to inform the audio device
+             * how much audio channels the engine(s) need. It's the
+             * responsibility of the audio device to offer that amount of
+             * audio channels - again: this is not an option this is a must!
+             * The engines will assume to be able to access those audio
+             * channels right after. If the audio driver is not able to offer
+             * that much channels, it can simply create mix channels which
+             * are then just mixed to the 'real' audio channels. See
+             * AudioChannel.h for details about channels and mix channels.
+             *
+             * @param Channels - amount of output channels required by
+             *                   a sampler engine
+             * @throws AudioOutputException  if desired amount of channels
+             *                               cannot be offered
+             * @see AudioChannel
+             */
+            void AcquireChannels(uint Channels);
 
             /**
              * Returns all device parameter settings.

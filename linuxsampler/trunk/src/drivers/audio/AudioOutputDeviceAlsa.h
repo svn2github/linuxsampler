@@ -47,9 +47,9 @@ namespace LinuxSampler {
             virtual void Play();
             virtual bool IsPlaying();
             virtual void Stop();
-            virtual void AcquireChannels(uint Channels);
             virtual uint MaxSamplesPerCycle();
             virtual uint SampleRate();
+            virtual AudioChannel* CreateChannel(uint ChannelNr);
 
             virtual String Driver();
             static String Name();

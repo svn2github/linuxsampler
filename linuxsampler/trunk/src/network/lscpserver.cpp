@@ -743,7 +743,7 @@ String LSCPServer::GetAudioOutputDriverInfo(String Driver) {
 }
 
 String LSCPServer::GetMidiInputDriverParameterInfo(String Driver, String Parameter, std::map<String,String> DependencyList) {
-    dmsg(2,("LSCPServer: GetMidiInputDriverParameterInfo(Driver=%s,Parameter=%s)\n",Driver.c_str(),Parameter.c_str()));
+    dmsg(2,("LSCPServer: GetMidiInputDriverParameterInfo(Driver=%s,Parameter=%s,DependencyListSize=%d)\n",Driver.c_str(),Parameter.c_str(),DependencyList.size()));
     LSCPResultSet result;
     try {
         DeviceCreationParameter* pParameter = MidiInputDeviceFactory::GetDriverParameter(Driver, Parameter);
@@ -752,11 +752,16 @@ String LSCPServer::GetMidiInputDriverParameterInfo(String Driver, String Paramet
         result.Add("MANDATORY",    pParameter->Mandatory());
         result.Add("FIX",          pParameter->Fix());
         result.Add("MULTIPLICITY", pParameter->Multiplicity());
-        if (pParameter->Depends())       result.Add("DEPENDS",       *pParameter->Depends());
-        if (pParameter->Default())       result.Add("DEFAULT",       *pParameter->Default());
-        if (pParameter->RangeMin())      result.Add("RANGE_MIN",     *pParameter->RangeMin());
-        if (pParameter->RangeMax())      result.Add("RANGE_MAX",     *pParameter->RangeMax());
-        if (pParameter->Possibilities()) result.Add("POSSIBILITIES", *pParameter->Possibilities());
+        optional<String> oDepends       = pParameter->Depends();
+        optional<String> oDefault       = pParameter->Default(DependencyList);
+        optional<String> oRangeMin      = pParameter->RangeMin(DependencyList);
+        optional<String> oRangeMax      = pParameter->RangeMax(DependencyList);
+        optional<String> oPossibilities = pParameter->Possibilities(DependencyList);
+        if (oDepends)       result.Add("DEPENDS",       *oDepends);
+        if (oDefault)       result.Add("DEFAULT",       *oDefault);
+        if (oRangeMin)      result.Add("RANGE_MIN",     *oRangeMin);
+        if (oRangeMax)      result.Add("RANGE_MAX",     *oRangeMax);
+        if (oPossibilities) result.Add("POSSIBILITIES", *oPossibilities);
     }
     catch (LinuxSamplerException e) {
         result.Error(e);
@@ -765,7 +770,7 @@ String LSCPServer::GetMidiInputDriverParameterInfo(String Driver, String Paramet
 }
 
 String LSCPServer::GetAudioOutputDriverParameterInfo(String Driver, String Parameter, std::map<String,String> DependencyList) {
-    dmsg(2,("LSCPServer: GetAudioOutputDriverParameterInfo(Driver=%s,Parameter=%s)\n",Driver.c_str(),Parameter.c_str()));
+    dmsg(2,("LSCPServer: GetAudioOutputDriverParameterInfo(Driver=%s,Parameter=%s,DependencyListSize=%d)\n",Driver.c_str(),Parameter.c_str(),DependencyList.size()));
     LSCPResultSet result;
     try {
         DeviceCreationParameter* pParameter = AudioOutputDeviceFactory::GetDriverParameter(Driver, Parameter);
@@ -774,11 +779,16 @@ String LSCPServer::GetAudioOutputDriverParameterInfo(String Driver, String Param
         result.Add("MANDATORY",    pParameter->Mandatory());
         result.Add("FIX",          pParameter->Fix());
         result.Add("MULTIPLICITY", pParameter->Multiplicity());
-        if (pParameter->Depends())       result.Add("DEPENDS",       *pParameter->Depends());
-        if (pParameter->Default())       result.Add("DEFAULT",       *pParameter->Default());
-        if (pParameter->RangeMin())      result.Add("RANGE_MIN",     *pParameter->RangeMin());
-        if (pParameter->RangeMax())      result.Add("RANGE_MAX",     *pParameter->RangeMax());
-        if (pParameter->Possibilities()) result.Add("POSSIBILITIES", *pParameter->Possibilities());
+        optional<String> oDepends       = pParameter->Depends();
+        optional<String> oDefault       = pParameter->Default(DependencyList);
+        optional<String> oRangeMin      = pParameter->RangeMin(DependencyList);
+        optional<String> oRangeMax      = pParameter->RangeMax(DependencyList);
+        optional<String> oPossibilities = pParameter->Possibilities(DependencyList);
+        if (oDepends)       result.Add("DEPENDS",       *oDepends);
+        if (oDefault)       result.Add("DEFAULT",       *oDefault);
+        if (oRangeMin)      result.Add("RANGE_MIN",     *oRangeMin);
+        if (oRangeMax)      result.Add("RANGE_MAX",     *oRangeMax);
+        if (oPossibilities) result.Add("POSSIBILITIES", *oPossibilities);
     }
     catch (LinuxSamplerException e) {
         result.Error(e);
@@ -1136,8 +1146,8 @@ String LSCPServer::SetAudioOutputType(String AudioOutputDriver, uint uiSamplerCh
         SamplerChannel* pSamplerChannel = pSampler->GetSamplerChannel(uiSamplerChannel);
         if (!pSamplerChannel) throw LinuxSamplerException("Invalid channel number " + ToString(uiSamplerChannel));
         // Driver type name aliasing...
-        if (AudioOutputDriver == "ALSA") AudioOutputDriver = "Alsa";
-        if (AudioOutputDriver == "JACK") AudioOutputDriver = "Jack";
+        if (AudioOutputDriver == "Alsa") AudioOutputDriver = "ALSA";
+        if (AudioOutputDriver == "Jack") AudioOutputDriver = "JACK";
         // Check if there's one audio output device already created
         // for the intended audio driver type (AudioOutputDriver)...
         AudioOutputDevice *pDevice = NULL;
@@ -1218,7 +1228,7 @@ String LSCPServer::SetMIDIInputType(String MidiInputDriver, uint uiSamplerChanne
         SamplerChannel* pSamplerChannel = pSampler->GetSamplerChannel(uiSamplerChannel);
         if (!pSamplerChannel) throw LinuxSamplerException("Invalid channel number " + ToString(uiSamplerChannel));
         // Driver type name aliasing...
-        if (MidiInputDriver == "ALSA") MidiInputDriver = "Alsa";
+        if (MidiInputDriver == "Alsa") MidiInputDriver = "ALSA";
         // Check if there's one MIDI input device already created
         // for the intended MIDI driver type (MidiInputDriver)...
         MidiInputDevice *pDevice = NULL;

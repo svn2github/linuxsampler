@@ -53,7 +53,6 @@ namespace LinuxSampler {
      */
     class AudioChannel {
         public:
-
             class ParameterName : public DeviceRuntimeParameterString {
                 public:
                     ParameterName(String s) : DeviceRuntimeParameterString(s) {}
@@ -85,30 +84,25 @@ namespace LinuxSampler {
             // attributes
             //String Name;  ///< Arbitrary name of this audio channel
 
-            // constructors / destructor
-#ifdef __GNUC__
-            typedef std::map<String,DeviceRuntimeParameter*> DeviceRuntimeParameterMap; // nasty workaround for a GCC bug (see GCC bug #15980, #57)
-            AudioChannel(uint BufferSize, String Name = "unnamed", std::map<String,DeviceRuntimeParameter*> ChannelParameters = DeviceRuntimeParameterMap());
-            AudioChannel(float* pBuffer, uint BufferSize, String Name = "unnamed", std::map<String,DeviceRuntimeParameter*> ChannelParameters = DeviceRuntimeParameterMap());
-            AudioChannel(AudioChannel* pMixChannel, String Name = "unnamed", std::map<String,DeviceRuntimeParameter*> ChannelParameters = DeviceRuntimeParameterMap());
-#else
-            AudioChannel(uint BufferSize, String Name = "unnamed", std::map<String,DeviceRuntimeParameter*> ChannelParameters = std::map<String,DeviceRuntimeParameter*>());
-            AudioChannel(float* pBuffer, uint BufferSize, String Name = "unnamed", std::map<String,DeviceRuntimeParameter*> ChannelParameters = std::map<String,DeviceRuntimeParameter*>());
-            AudioChannel(AudioChannel* pMixChannel, String Name = "unnamed", std::map<String,DeviceRuntimeParameter*> ChannelParameters = std::map<String,DeviceRuntimeParameter*>());
-#endif // __GNUC__
-            virtual ~AudioChannel();
-
             // methods
             inline float*        Buffer()     { return pBuffer;      } ///< Audio signal buffer
             inline AudioChannel* MixChannel() { return pMixChannel;  } ///< In case this channel is a mix channel, then it will return a pointer to the real channel this channel refers to, NULL otherwise.
             inline void          Clear()      { memset(pBuffer, 0, uiBufferSize * sizeof(float)); } ///< Reset audio buffer with silence
             std::map<String,DeviceRuntimeParameter*> ChannelParameters();
+
+            // constructors / destructor
+            AudioChannel(uint ChannelNr, uint BufferSize);
+            AudioChannel(uint ChannelNr, float* pBuffer, uint BufferSize);
+            AudioChannel(uint ChannelNr, AudioChannel* pMixChannelDestination);
+            virtual ~AudioChannel();
+        protected:
+            uint ChannelNr;
+            std::map<String,DeviceRuntimeParameter*> Parameters;
         private:
             float*        pBuffer;
             uint          uiBufferSize;
             AudioChannel* pMixChannel;
             bool          UsesExternalBuffer;
-            std::map<String,DeviceRuntimeParameter*> mParameters;
     };
 }
 

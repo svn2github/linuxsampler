@@ -27,18 +27,18 @@ namespace LinuxSampler {
     /**
      * Create real channel.
      *
+     * @param ChannelNr  - channel number of this new channel
      * @param BufferSize - desired audio data buffer size
-     * @param Name       - arbitrary name for this channel (optional)
      */
-    AudioChannel::AudioChannel(uint BufferSize, String Name, std::map<String,DeviceRuntimeParameter*> ChannelParameters) {
+    AudioChannel::AudioChannel(uint ChannelNr, uint BufferSize) {
+        this->ChannelNr          = ChannelNr;
         this->pBuffer            = new float[BufferSize];
         this->uiBufferSize       = BufferSize;
         this->pMixChannel        = NULL;
         this->UsesExternalBuffer = false;
 
-        if (!ChannelParameters["NAME"])           ChannelParameters["NAME"]           = new ParameterName(Name);
-        if (!ChannelParameters["IS_MIX_CHANNEL"]) ChannelParameters["IS_MIX_CHANNEL"] = new ParameterIsMixChannel(false);
-        this->mParameters = ChannelParameters;
+        Parameters["NAME"]           = new ParameterName("Channel " + ToString(ChannelNr));
+        Parameters["IS_MIX_CHANNEL"] = new ParameterIsMixChannel(false);
 
         Clear();
     }
@@ -46,18 +46,19 @@ namespace LinuxSampler {
     /**
      * Create channel with external (already existing) audio buffer.
      *
+     * @param ChannelNr  - channel number of this new channel
      * @param pBuffer    - external audio buffer
      * @param BufferSIze - size of the external buffer
-     * @param Name       - arbitrary name for this channel (optional)
      */
-    AudioChannel::AudioChannel(float* pBuffer, uint BufferSize, String Name, std::map<String,DeviceRuntimeParameter*> ChannelParameters) {
+    AudioChannel::AudioChannel(uint ChannelNr, float* pBuffer, uint BufferSize) {
+        this->ChannelNr          = ChannelNr;
         this->pBuffer            = pBuffer;
         this->uiBufferSize       = BufferSize;
         this->pMixChannel        = NULL;
         this->UsesExternalBuffer = true;
 
-        if (!ChannelParameters["NAME"])           ChannelParameters["NAME"]           = new ParameterName(Name);
-        if (!ChannelParameters["IS_MIX_CHANNEL"]) ChannelParameters["IS_MIX_CHANNEL"] = new ParameterIsMixChannel(false);
+        Parameters["NAME"]           = new ParameterName("Channel " + ToString(ChannelNr));
+        Parameters["IS_MIX_CHANNEL"] = new ParameterIsMixChannel(false);
 
         Clear();
     }
@@ -65,18 +66,20 @@ namespace LinuxSampler {
     /**
      * Create mix channel.
      *
-     * @param pMixChannel - the real channel this new mix channel refers to
-     * @param Name        - arbitrary name for this channel (optional)
+     * @param ChannelNr              - channel number of this new channel
+     * @param pMixChannelDestination - a real audio channel this new mix
+     *                                 channel refers to
      */
-    AudioChannel::AudioChannel(AudioChannel* pMixChannel, String Name, std::map<String,DeviceRuntimeParameter*> ChannelParameters) {
+    AudioChannel::AudioChannel(uint ChannelNr, AudioChannel* pMixChannelDestination) {
+        this->ChannelNr          = ChannelNr;
         this->pBuffer            = pMixChannel->Buffer();
         this->uiBufferSize       = pMixChannel->uiBufferSize;
         this->pMixChannel        = pMixChannel;
         this->UsesExternalBuffer = true;
 
-        if (!ChannelParameters["NAME"])                    ChannelParameters["NAME"]                    = new ParameterName(Name);
-        if (!ChannelParameters["IS_MIX_CHANNEL"])          ChannelParameters["IS_MIX_CHANNEL"]          = new ParameterIsMixChannel(true);
-        //TODO: if (!ChannelParameters["MIX_CHANNEL_DESTINATION"]) ChannelParameters["MIX_CHANNEL_DESTINATION"] = new ParameterMixChannelDestination(dest_chan);
+        Parameters["NAME"]           = new ParameterName("Channel " + ToString(ChannelNr));
+        Parameters["IS_MIX_CHANNEL"] = new ParameterIsMixChannel(true);
+        //TODO: Parameters["MIX_CHANNEL_DESTINATION"] = new ParameterMixChannelDestination(dest_chan);
 
         Clear();
     }
@@ -85,12 +88,12 @@ namespace LinuxSampler {
      * Destructor
      */
     AudioChannel::~AudioChannel() {
-        std::map<String,DeviceRuntimeParameter*>::iterator iter = mParameters.begin();
-        while (iter != mParameters.end()) { delete iter->second; iter++; }
-        if (!UsesExternalBuffer)          delete[] pBuffer;
+        std::map<String,DeviceRuntimeParameter*>::iterator iter = Parameters.begin();
+        while (iter != Parameters.end()) { delete iter->second; iter++; }
+        if (!UsesExternalBuffer) delete[] pBuffer;
     }
 
     std::map<String,DeviceRuntimeParameter*> AudioChannel::ChannelParameters() {
-        return mParameters;
+        return Parameters;
     }
 }

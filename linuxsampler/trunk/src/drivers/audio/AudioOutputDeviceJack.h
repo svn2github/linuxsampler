@@ -45,28 +45,58 @@ namespace LinuxSampler {
             AudioOutputDeviceJack(std::map<String,DeviceCreationParameter*> Parameters);
             ~AudioOutputDeviceJack();
 
-            /** Audio Channel Parameter 'JACK_BINDINGS'
-             *
-             * Used to connect to other JACK clients.
+            /**
+             * Audio channel implementation for the JACK audio driver.
              */
-            class ParameterJackBindings : public DeviceRuntimeParameterStrings {
+            class AudioChannelJack : public AudioChannel {
                 public:
-                    ParameterJackBindings(AudioChannel* pChannel, std::vector<String> InitialBindings) : DeviceRuntimeParameterStrings(InitialBindings) { this->pChannel = pChannel; }
-                    virtual String              Description()                      { return "Bindings to other JACK clients";                     }
-                    virtual bool                Fix()                              { return false;                                                }
-                    virtual std::vector<String> PossibilitiesAsString()            { return std::vector<String>(); /* TODO: to be implemented */  }
-                    virtual void                OnSetValue(std::vector<String> vS) { /* TODO: code to connect to other jack clients */            }
+                    /** Audio Channel Parameter 'NAME'
+                     *
+                     * Used to assign an arbitrary name to an audio channel.
+                     */
+                    class ParameterName : public AudioChannel::ParameterName {
+                        public:
+                            ParameterName(AudioChannelJack* pChannel);
+                            virtual void OnSetValue(String s);
+                        protected:
+                            AudioChannelJack* pChannel;
+                    };
+
+                    /** Audio Channel Parameter 'JACK_BINDINGS'
+                     *
+                     * Used to connect to other JACK clients.
+                     */
+                    class ParameterJackBindings : public DeviceRuntimeParameterStrings {
+                        public:
+                            ParameterJackBindings(AudioChannelJack* pChannel);
+                            virtual String              Description();
+                            virtual bool                Fix();
+                            virtual std::vector<String> PossibilitiesAsString();
+                            virtual void                OnSetValue(std::vector<String> vS);
+                            static String Name();
+                        protected:
+                            AudioChannelJack* pChannel;
+                    };
                 protected:
-                    AudioChannel* pChannel;
+                    AudioChannelJack(uint ChannelNr, AudioOutputDeviceJack* pDevice) throw (AudioOutputException);
+                    ~AudioChannelJack();
+                    friend class AudioOutputDeviceJack;
+                private:
+                    AudioOutputDeviceJack* pDevice;
+                    jack_port_t*           hJackPort;
+                    uint                   ChannelNr;
+
+                    float* CreateJackPort(uint ChannelNr, AudioOutputDeviceJack* pDevice) throw (AudioOutputException);
             };
 
             // derived abstract methods from class 'AudioOutputDevice'
             virtual void Play();
             virtual bool IsPlaying();
             virtual void Stop();
-            virtual void AcquireChannels(uint uiChannels);
             virtual uint MaxSamplesPerCycle();
             virtual uint SampleRate();
+            virtual AudioChannel* CreateChannel(uint ChannelNr);
+
 
 	    static String Name();
 
@@ -74,16 +104,14 @@ namespace LinuxSampler {
 
             static String Description();
             static String Version();
-            static std::map<String,DeviceCreationParameter*> AvailableParameters();
 
             int Process(uint Samples);  // FIXME: should be private
         protected:
             AudioOutputDeviceJack(String* AutoConnectPortIDs = NULL, uint AutoConnectPorts = 0);
         private:
-            ConditionServer           csIsPlaying;
-            uint                      uiMaxSamplesPerCycle;
-            jack_client_t*            hJackClient;
-            std::vector<jack_port_t*> hJackPorts;
+            ConditionServer csIsPlaying;
+            uint            uiMaxSamplesPerCycle;
+            jack_client_t*  hJackClient;
     };
 
     // Callback functions for the libjack API

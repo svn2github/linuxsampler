@@ -92,7 +92,7 @@ namespace LinuxSampler {
     }
 
     optional<int> MidiInputDevice::ParameterPorts::DefaultAsInt(std::map<String,String> Parameters) {
-        return 0;
+        return 1;
     }
 
     optional<int> MidiInputDevice::ParameterPorts::RangeMinAsInt(std::map<String,String> Parameters) {

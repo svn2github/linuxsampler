@@ -25,16 +25,178 @@
 
 namespace LinuxSampler {
 
+// *************** ParameterActive ***************
+// *
+
+    AudioOutputDevice::ParameterActive::ParameterActive() : DeviceCreationParameterBool() {
+        InitWithDefault();
+    }
+
+    AudioOutputDevice::ParameterActive::ParameterActive(String s) : DeviceCreationParameterBool(s) {
+    }
+
+    String AudioOutputDevice::ParameterActive::Description() {
+        return "Enable / disable device";
+    }
+
+    bool AudioOutputDevice::ParameterActive::Fix() {
+        return false;
+    }
+
+    bool AudioOutputDevice::ParameterActive::Mandatory() {
+        return false;
+    }
+
+    std::map<String,DeviceCreationParameter*> AudioOutputDevice::ParameterActive::DependsAsParameters() {
+        return std::map<String,DeviceCreationParameter*>();
+    }
+
+    optional<bool> AudioOutputDevice::ParameterActive::DefaultAsBool(std::map<String,String> Parameters) {
+        return true;
+    }
+
+    void AudioOutputDevice::ParameterActive::OnSetValue(bool b) throw (LinuxSamplerException) {
+        if (b) ((AudioOutputDevice*)pDevice)->Play();
+        else ((AudioOutputDevice*)pDevice)->Stop();
+    }
+
+    String AudioOutputDevice::ParameterActive::Name() {
+        return "ACTIVE";
+    }
+
+
+
+// *************** ParameterSampleRate ***************
+// *
+
+    AudioOutputDevice::ParameterSampleRate::ParameterSampleRate() : DeviceCreationParameterInt() {
+        InitWithDefault();
+    }
+
+    AudioOutputDevice::ParameterSampleRate::ParameterSampleRate(String s) : DeviceCreationParameterInt(s) {
+    }
+
+    String AudioOutputDevice::ParameterSampleRate::Description() {
+        return "Output sample rate";
+    }
+
+    bool AudioOutputDevice::ParameterSampleRate::Fix() {
+        return true;
+    }
+
+    bool AudioOutputDevice::ParameterSampleRate::Mandatory() {
+        return false;
+    }
+
+    std::map<String,DeviceCreationParameter*> AudioOutputDevice::ParameterSampleRate::DependsAsParameters() {
+        return std::map<String,DeviceCreationParameter*>();
+    }
+
+    optional<int> AudioOutputDevice::ParameterSampleRate::DefaultAsInt(std::map<String,String> Parameters) {
+        return 44100;
+    }
+
+    optional<int> AudioOutputDevice::ParameterSampleRate::RangeMinAsInt(std::map<String,String> Parameters) {
+        return optional<int>::nothing;
+    }
+
+    optional<int> AudioOutputDevice::ParameterSampleRate::RangeMaxAsInt(std::map<String,String> Parameters) {
+        return optional<int>::nothing;
+    }
+
+    std::vector<int> AudioOutputDevice::ParameterSampleRate::PossibilitiesAsInt(std::map<String,String> Parameters) {
+        return std::vector<int>();
+    }
+
+    void AudioOutputDevice::ParameterSampleRate::OnSetValue(int i) throw (LinuxSamplerException) {
+        /* cannot happen, as parameter is fix */
+    }
+
+    String AudioOutputDevice::ParameterSampleRate::Name() {
+        return "SAMPLERATE";
+    }
+
+
+
+// *************** ParameterChannels ***************
+// *
+
+    AudioOutputDevice::ParameterChannels::ParameterChannels() : DeviceCreationParameterInt() {
+       InitWithDefault();
+    }
+
+    AudioOutputDevice::ParameterChannels::ParameterChannels(String s) : DeviceCreationParameterInt(s) {
+    }
+
+    String AudioOutputDevice::ParameterChannels::Description() {
+        return "Number of output channels";
+    }
+
+    bool AudioOutputDevice::ParameterChannels::Fix() {
+        return false;
+    }
+
+    bool AudioOutputDevice::ParameterChannels::Mandatory() {
+        return false;
+    }
+
+    std::map<String,DeviceCreationParameter*> AudioOutputDevice::ParameterChannels::DependsAsParameters() {
+        return std::map<String,DeviceCreationParameter*>();
+    }
+
+    optional<int> AudioOutputDevice::ParameterChannels::DefaultAsInt(std::map<String,String> Parameters) {
+        return 2;
+    }
+
+    optional<int> AudioOutputDevice::ParameterChannels::RangeMinAsInt(std::map<String,String> Parameters) {
+        return optional<int>::nothing;
+    }
+
+    optional<int> AudioOutputDevice::ParameterChannels::RangeMaxAsInt(std::map<String,String> Parameters) {
+        return optional<int>::nothing;
+    }
+
+    std::vector<int> AudioOutputDevice::ParameterChannels::PossibilitiesAsInt(std::map<String,String> Parameters) {
+        return std::vector<int>();
+    }
+
+    void AudioOutputDevice::ParameterChannels::OnSetValue(int i) throw (LinuxSamplerException) {
+        ((AudioOutputDevice*)pDevice)->AcquireChannels(i);
+    }
+
+    String AudioOutputDevice::ParameterChannels::Name() {
+        return "CHANNELS";
+    }
+
+
+
+// *************** AudioOutputDevice ***************
+// *
+
     AudioOutputDevice::AudioOutputDevice(std::map<String,DeviceCreationParameter*> DriverParameters) {
         this->Parameters = DriverParameters;
     }
 
     AudioOutputDevice::~AudioOutputDevice() {
-        std::map<String,DeviceCreationParameter*>::iterator iter = Parameters.begin();
-        while (iter != Parameters.end()) {
-            Parameters.erase(iter);
-            delete iter->second;
-	    iter++;
+        // delete all audio channels
+        {
+            std::vector<AudioChannel*>::iterator iter = Channels.begin();
+            while (iter != Channels.end()) {
+                Channels.erase(iter);
+                delete *iter;
+                iter++;
+            }
+
+        }
+
+        // delete all device parameters
+        {
+            std::map<String,DeviceCreationParameter*>::iterator iter = Parameters.begin();
+            while (iter != Parameters.end()) {
+                Parameters.erase(iter);
+                delete iter->second;
+                iter++;
+            }
         }
     }
 
@@ -54,6 +216,14 @@ namespace LinuxSampler {
 
     AudioChannel* AudioOutputDevice::Channel(uint ChannelIndex) {
         return (ChannelIndex < Channels.size()) ? Channels[ChannelIndex] : NULL;
+    }
+
+    void AudioOutputDevice::AcquireChannels(uint Channels) {
+        if (Channels > this->Channels.size()) {
+            for (int c = this->Channels.size(); c < Channels; c++) {
+                this->Channels.push_back(CreateChannel(c));
+            }
+        }
     }
 
     std::map<String,DeviceCreationParameter*> AudioOutputDevice::DeviceParameters() {

@@ -31,8 +31,89 @@ namespace LinuxSampler {
 
     /* Common parameters for now they'll have to be registered here. */
     REGISTER_AUDIO_OUTPUT_DRIVER_PARAMETER(AudioOutputDeviceJack, ParameterActive);
-    REGISTER_AUDIO_OUTPUT_DRIVER_PARAMETER(AudioOutputDeviceJack, ParameterSampleRate);
     REGISTER_AUDIO_OUTPUT_DRIVER_PARAMETER(AudioOutputDeviceJack, ParameterChannels);
+
+
+
+// *************** ParameterName ***************
+// *
+
+    AudioOutputDeviceJack::AudioChannelJack::ParameterName::ParameterName(AudioChannelJack* pChannel) : AudioChannel::ParameterName(ToString(pChannel->ChannelNr)) {
+        this->pChannel = pChannel;
+    }
+
+    void AudioOutputDeviceJack::AudioChannelJack::ParameterName::OnSetValue(String s) {
+        String name = "LinuxSampler:" + s;
+        if (jack_port_set_name(pChannel->hJackPort, name.c_str())) throw AudioOutputException("Failed to rename JACK port");
+    }
+
+
+
+// *************** ParameterJackBindings ***************
+// *
+
+    AudioOutputDeviceJack::AudioChannelJack::ParameterJackBindings::ParameterJackBindings(AudioChannelJack* pChannel) : DeviceRuntimeParameterStrings(std::vector<String>()) {
+        this->pChannel = pChannel;
+    }
+
+    String AudioOutputDeviceJack::AudioChannelJack::ParameterJackBindings::Description() {
+        return "Bindings to other JACK clients";
+    }
+
+    bool AudioOutputDeviceJack::AudioChannelJack::ParameterJackBindings::Fix() {
+        return false;
+    }
+
+    std::vector<String> AudioOutputDeviceJack::AudioChannelJack::ParameterJackBindings::PossibilitiesAsString() {
+        const char** pPortNames = jack_get_ports(pChannel->pDevice->hJackClient, NULL, NULL, 0);
+        if (!pPortNames) return std::vector<String>();
+        std::vector<String> result;
+        for (int i = 0; pPortNames[i]; i++) result.push_back(pPortNames[i]);
+        //free(pPortNames); FIXME: pPortNames should be freed here
+        return result;
+    }
+
+    void AudioOutputDeviceJack::AudioChannelJack::ParameterJackBindings::OnSetValue(std::vector<String> vS) {
+        String src_name = "LinuxSampler:" + pChannel->Parameters["NAME"]->Value();
+        for (int i = 0; i < vS.size(); i++) {
+            String dst_name = vS[i];
+            if (jack_connect(pChannel->pDevice->hJackClient, src_name.c_str(), dst_name.c_str())) {
+                throw AudioOutputException("Jack: Cannot connect to port '" + dst_name + "'");
+            }
+        }
+    }
+
+    String AudioOutputDeviceJack::AudioChannelJack::ParameterJackBindings::Name() {
+        return "JACK_BINDINGS";
+    }
+
+
+
+// *************** AudioChannelJack ***************
+// *
+
+    AudioOutputDeviceJack::AudioChannelJack::AudioChannelJack(uint ChannelNr, AudioOutputDeviceJack* pDevice) throw (AudioOutputException) : AudioChannel(ChannelNr, CreateJackPort(ChannelNr, pDevice), pDevice->uiMaxSamplesPerCycle) {
+        this->pDevice   = pDevice;
+        this->ChannelNr = ChannelNr;
+        Parameters["NAME"]          = new ParameterName(this);
+        Parameters["JACK_BINDINGS"] = new ParameterJackBindings(this);
+    }
+
+    AudioOutputDeviceJack::AudioChannelJack::~AudioChannelJack() {
+        //TODO: delete JACK port
+    }
+
+    float* AudioOutputDeviceJack::AudioChannelJack::CreateJackPort(uint ChannelNr, AudioOutputDeviceJack* pDevice) throw (AudioOutputException) {
+        String port_id = "LinuxSampler:" + ToString(ChannelNr);
+        hJackPort = jack_port_register(pDevice->hJackClient, port_id.c_str(), JACK_DEFAULT_AUDIO_TYPE, JackPortIsOutput, 0);
+        if (!hJackPort) throw AudioOutputException("Jack: Cannot register Jack output port.");
+        return (float*) jack_port_get_buffer(hJackPort, pDevice->uiMaxSamplesPerCycle);
+    }
+
+
+
+// *************** AudioOutputDeviceJack ***************
+// *
 
     /**
      * Open and initialize connection to the JACK system.
@@ -41,7 +122,7 @@ namespace LinuxSampler {
      * @throws AudioOutputException  on error
      * @see AcquireChannels()
      */
-    AudioOutputDeviceJack::AudioOutputDeviceJack(std::map<String,DeviceCreationParameter*> Parameters) : AudioOutputDevice(std::map<String,DeviceCreationParameter*>()) {
+    AudioOutputDeviceJack::AudioOutputDeviceJack(std::map<String,DeviceCreationParameter*> Parameters) : AudioOutputDevice(Parameters) {
         if ((hJackClient = jack_client_new("LinuxSampler")) == 0)
             throw AudioOutputException("Seems Jack server not running.");
 
@@ -52,33 +133,11 @@ namespace LinuxSampler {
 
         uiMaxSamplesPerCycle = jack_get_buffer_size(hJackClient);
 
-#if 0
-        // create amount of audio channels and jack output ports we need for autoconnect
-        for (uint p = 0; p < AutoConnectPorts; p++) {
-            // create jack output port
-            std::stringstream portid; portid << "LinuxSampler:" << p;
-            jack_port_t* newport;
-            if (newport = jack_port_register(hJackClient, portid.str().c_str(), JACK_DEFAULT_AUDIO_TYPE, JackPortIsOutput, 0)) {
-                hJackPorts.push_back(newport);
-            }
-            else throw AudioOutputException("Jack: Cannot register Jack output port.");
-
-            // create LS audio channel
-            std::stringstream chanid; chanid << "Jack:" << p;
-            Channels.push_back(new AudioChannel((float*) jack_port_get_buffer(newport, uiMaxSamplesPerCycle), uiMaxSamplesPerCycle, chanid.str()));
-
-            // autoconnect port
-            if (jack_connect(hJackClient, portid.str().c_str(), AutoConnectPortIDs[p].c_str())) {
-                std::stringstream err; err << "Jack: Cannot auto connect port " << p;
-                throw AudioOutputException(err.str());
-            }
-        }
-#endif
+        // create audio channels
+        AcquireChannels(((DeviceCreationParameterInt*)Parameters["CHANNELS"])->ValueAsInt());
     }
 
     AudioOutputDeviceJack::~AudioOutputDeviceJack() {
-        // destroy all audio channels
-        for (int c = 0; c < Channels.size(); c++) delete Channels[c];
         // destroy jack client
         jack_client_close(hJackClient);
     }
@@ -110,22 +169,8 @@ namespace LinuxSampler {
         csIsPlaying.PushAndUnlock(false);
     }
 
-    void AudioOutputDeviceJack::AcquireChannels(uint uiChannels) {
-        if (uiChannels > this->Channels.size()) {
-            for (int c = this->Channels.size(); c < uiChannels; c++) {
-                // create new jack output port
-                std::stringstream portid; portid << "LinuxSampler:" << c;
-                jack_port_t* newport;
-                if (newport = jack_port_register(hJackClient, portid.str().c_str(), JACK_DEFAULT_AUDIO_TYPE, JackPortIsOutput, 0)) {
-                    hJackPorts.push_back(newport);
-                }
-                else throw AudioOutputException("Jack: Cannot register Jack output port.");
-
-                // create LS audio channel
-                std::stringstream chanid; chanid << "Jack:" << c;
-                Channels.push_back(new AudioChannel((float*) jack_port_get_buffer(newport, uiMaxSamplesPerCycle), uiMaxSamplesPerCycle, chanid.str()));
-            }
-        }
+    AudioChannel* AudioOutputDeviceJack::CreateChannel(uint ChannelNr) {
+        return new AudioChannelJack(ChannelNr, this);
     }
 
     uint AudioOutputDeviceJack::MaxSamplesPerCycle() {
@@ -149,7 +194,7 @@ namespace LinuxSampler {
     }
 
     String AudioOutputDeviceJack::Version() {
-       String s = "$Revision: 1.10 $";
+       String s = "$Revision: 1.11 $";
        return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
 
