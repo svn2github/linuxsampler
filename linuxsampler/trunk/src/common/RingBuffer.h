@@ -264,6 +264,38 @@ public:
             }
 
             /**
+             * Prefix decrement operator, for reducing NonVolatileReader's
+             * read position by one.
+             */
+            inline void operator--() {
+                if (read_ptr == atomic_read(&pBuf->read_ptr)) return; //TODO: or should we react oh this case (e.g. force segfault), as this is a very odd case?
+                --read_ptr & pBuf->size_mask;
+            }
+
+            /**
+             * Postfix decrement operator, for reducing NonVolatileReader's
+             * read position by one.
+             */
+            inline void operator--(int) {
+                --*this;
+            }
+
+            /**
+             * Returns pointer to the RingBuffer data of current
+             * NonVolatileReader's read position and increments
+             * NonVolatileReader's read position by one.
+             *
+             * @returns pointer to element of current read position
+             */
+            T* pop() {
+                if (!read_space()) return NULL;
+                T* pData = &pBuf->buf[read_ptr];
+                read_ptr++;
+                read_ptr &= pBuf->size_mask;
+                return pData;
+            }
+
+            /**
              * Reads one element from the NonVolatileReader's current read
              * position and copies it to the variable pointed by \a dst and
              * finally increments the NonVolatileReader's read position by
@@ -318,6 +350,18 @@ public:
                 this->read_ptr = priv_read_ptr;
                 return to_read;
             }
+
+            /**
+             * Finally when the read data is not needed anymore, this method
+             * should be called to free the data in the RingBuffer up to the
+             * current read position of this NonVolatileReader.
+             *
+             * @see RingBuffer::increment_read_ptr()
+             */
+            void free() {
+                atomic_set(&pBuf->read_ptr, read_ptr);
+            }
+
         protected:
             _NonVolatileReader(RingBuffer<_T>* pBuf) {
                 this->pBuf     = pBuf;
