@@ -205,23 +205,35 @@ String LSCPServer::GetChannelInfo(uint uiSamplerChannel) {
         SamplerChannel* pSamplerChannel = pSampler->GetSamplerChannel(uiSamplerChannel);
         if (!pSamplerChannel) throw LinuxSamplerException("Index out of bounds");
         Engine* pEngine = pSamplerChannel->GetEngine();
+	
+	//Defaults values
+	String EngineName = "NONE";
+	float Volume = 0;
+	String InstrumentFileName = "NONE";
+	int InstrumentIndex = 0;
+	
         if (pEngine) {
-	    result.Add("ENGINE_NAME", pEngine->EngineName());
-	    result.Add("VOLUME", pEngine->Volume());
+	    EngineName =  pEngine->EngineName();
+	    Volume = pEngine->Volume();
+            int iIdx = pEngine->InstrumentIndex();
+            if (iIdx != -1) {
+	        InstrumentFileName = pEngine->InstrumentFileName();
+		InstrumentIndex = iIdx;
+            }
 	}
+
+        result.Add("ENGINE_NAME", EngineName);
+        result.Add("VOLUME", Volume);
+
 	//Some hardcoded stuff for now to make GUI look good
         result.Add("AUDIO_OUTPUT_DEVICE", "0");
         result.Add("AUDIO_OUTPUT_CHANNELS", "2");
         result.Add("AUDIO_OUTPUT_ROUTING", "0,1");
 
-        if (pEngine) {
-            int iIdx = pEngine->InstrumentIndex();
-            if (iIdx != -1) {
-	        result.Add("INSTRUMENT_FILE", pEngine->InstrumentFileName());
-	        result.Add("INSTRUMENT_NR", iIdx);
-            }
-	}
-	//Some hardcoded stuff for now to make GUI look good
+        result.Add("INSTRUMENT_FILE", InstrumentFileName);
+        result.Add("INSTRUMENT_NR", InstrumentIndex);
+	
+	//Some more hardcoded stuff for now to make GUI look good
         result.Add("MIDI_INPUT_DEVICE", "0");
         result.Add("MIDI_INPUT_PORT", "0");
         result.Add("MIDI_INPUT_CHANNEL", "1");
