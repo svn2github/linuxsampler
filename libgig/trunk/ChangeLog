@@ -4,7 +4,9 @@ Version 0.7.1 (2 Jul 2004)
     - added libgig.spec and libgig.pc package configurations.
     - header files included on installation.
     - autotools-generated files removed from CVS repository.
-  
+    - added support for generating Debian packages
+    - version of shared library can be set in configure.in
+
 Version 0.7.0 (3 May 2004)
 
   * general changes:

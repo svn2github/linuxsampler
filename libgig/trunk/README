@@ -30,12 +30,40 @@ Non-POSIX systems
   Instead of using POSIX calls then standard C calls will be used for file
   access. This applies e.g. to Windows systems.
 
-Compiling:
-==========
- - Use './configure && make all' to compile the library and all tools and
-   demo applications.
+Compiling
+=========
 
- - Beside the actual library there are four applications:
+  You can either compile the sources and install the library directly on
+  your system or you can create Redhat or Debian packages.
+
+  a) Compiling and installing directly
+
+  Use 'make -f Makefile.cvs && ./configure && make' to compile the library,
+  all tools, demo applications, documentation and install them with
+  'make install'. You can use 'make distclean && make -f Makefile.cvs clean'
+  to clean up everything again.
+
+  b) Creating Debian packages
+
+  Use 'make -f Makefile.cvs && dpkg-buildpackage -rfakeroot' to compile and
+  create the Debian packages. This will generate 3 Debian packages:
+
+    libgig:      Contains the shared library files.
+    libgig-dev:  Contains the header files and documentation for building
+                 applications using libgig.
+    gigtools:    Contains the tools and demo applications.
+
+  You can use 'fakeroot debian/rules clean && make -f Makefile.cvs clean'
+  to clean up everything again.
+
+  c) Creating Redhat packages
+
+  TODO
+
+Tools
+=====
+
+ Beside the actual library there are four applications:
 
      gigdump:     Demo app that prints out the content of a .gig file.
      gigextract:  Extracts samples from a .gig file.
@@ -43,10 +71,12 @@ Compiling:
      rifftree:    Tool that prints out the RIFF tree of an arbitrary RIFF
                   file.
 
- - If you have Doxygen installed you can generate the API documentation by
-   just running 'doxygen' in the sources' top level directory.
+API Documentation
+=================
 
- - 'make distclean' to clean up everything again
+ If you have Doxygen installed you can generate the API documentation by
+ just running 'doxygen' in the sources' top level directory. The API
+ documentation will be generated in the 'html' subdirectory.
 
 Patches
 =======
