@@ -7,6 +7,9 @@ Version CVS HEAD (?)
       ignored at the moment (patch by Andreas Persson)
     - added some file format compatibility checks
 
+  * src/gigdump.cpp:
+    - added output of UnityNote and FineTune
+
 Version 1.0.0 (26 Nov 2004)
 
   * packaging changes:
