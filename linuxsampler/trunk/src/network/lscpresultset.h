@@ -22,8 +22,12 @@
 
 #ifndef __LSCPRESULTSET_H_
 #define __LSCPRESULTSET_H_
+#include <iostream>
+#include <sstream>
+#include <string>
 #include "../Sampler.h"
 #include "../common/global.h"
+#include "../common/LinuxSamplerException.h"
 
 using namespace LinuxSampler;
 
@@ -32,17 +36,29 @@ using namespace LinuxSampler;
  */
 class LSCPResultSet {
     public:
-        LSCPResultSet(void);
-        LSCPResultSet(String);
+        LSCPResultSet(int index = -1);
+        LSCPResultSet(String, int index = -1);
 	void Add(String);
 	void Add(String, String);
 	void Add(String, float);
 	void Add(String, int);
+	void Add(int);
+	void Error(String message = "Undefined Error", int code = 0);
+	void Error(LinuxSamplerException e);
+	void Warning(String message = "Undefined Warning", int code = 0);
 	String Produce(void);
 
     private:
 	String storage;
 	int count;
+	int result_type;
+	int result_index;
+
+	template<class T> inline String ToString(T o) {
+            std::stringstream ss;
+            ss << o;
+            return ss.str();
+	}
 };
 
 #endif // __LSCPRESULTSET_H_
