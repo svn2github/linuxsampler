@@ -1,7 +1,8 @@
 Version 0.7.1 (2 Jul 2004)
 
   * packaging changes:
-    - added libgig.spec and libgig.pc package configurations.
+    - added libgig.spec and libgig.pc package configurations for generating
+      Redhat packages
     - header files included on installation.
     - autotools-generated files removed from CVS repository.
     - added support for generating Debian packages
