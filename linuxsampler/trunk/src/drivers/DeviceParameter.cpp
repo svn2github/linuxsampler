@@ -28,7 +28,19 @@
 
 namespace LinuxSampler {
 
+    // if string is encapsulated into apostrophes or quotation marks, then remove those apostrophes / quotation marks
+    static void __eliminate_quotation(String& s) {
+        if (s.size()) {
+            const char cBegin = s[0];
+            const char cEnd   = s[s.size() - 1];
+            if ( (cBegin == '\'' && cEnd == '\'') || (cBegin == '\"' && cEnd == '\"') ) {
+                s = s.substr(1, s.size() - 2);
+            }
+        }
+    }
+
     static bool __parse_bool(String val) throw (LinuxSamplerException) {
+        __eliminate_quotation(val);
         int b;
         if      (val == "1" || !strcasecmp(val.c_str(),"true"))  b = true;
         else if (val == "0" || !strcasecmp(val.c_str(),"false")) b = false;
@@ -37,22 +49,17 @@ namespace LinuxSampler {
     }
 
     static int __parse_int(String val) throw (LinuxSamplerException) {
+        __eliminate_quotation(val);
         return atoi(val.c_str()); // TODO: format check is missing
     }
 
     static float __parse_float(String val) throw (LinuxSamplerException) {
+        __eliminate_quotation(val);
         return atof(val.c_str()); // TODO: format check is missing
     }
 
-    static String __parse_string(String val) {
-        // if string is encapsulated into apostrophes or quotation marks, then remove those apostrophes / quotation marks
-        if (val.size()) {
-            char cBegin = val[0];
-            char cEnd   = val[val.size() - 1];
-            if ( (cBegin == '\'' && cEnd == '\'') || (cBegin == '\"' && cEnd == '\"') ) {
-                val = val.substr(1, val.size() - 2);
-            }
-        }
+    static String __parse_string(String val) {        
+        __eliminate_quotation(val);
         return val;
     }
 
@@ -723,7 +730,7 @@ namespace LinuxSampler {
 // *
 
     DeviceCreationParameterString::DeviceCreationParameterString(String sVal) : DeviceCreationParameter() {
-        this->sVal = sVal;
+        this->sVal = __parse_string(sVal);
     }
 
     void DeviceCreationParameterString::InitWithDefault() {
