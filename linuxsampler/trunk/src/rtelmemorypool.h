@@ -88,6 +88,8 @@ typedef struct _RTEListNode {
                } RTEListNode;
 
 public:
+  typedef RTEListNode* NodeHandle;
+
   RTEList (void) {
     // initialize alloclist fistnode and lastnode pointers
     firstnode.aprev=&firstnode;
@@ -141,6 +143,24 @@ inline T *prev(void) {
     // return NULL to signal begin of list
     if(acurrentnode->aprev == acurrentnode) return(NULL);
     return(&acurrentnode->data);
+}
+
+/// Returns a handle for the currently selected node or NULL if the list is empty.
+inline NodeHandle current(void) {
+    if (acurrentnode->anext == acurrentnode) return NULL;
+    return acurrentnode;
+}
+
+/// Selects the node in the list respective to the node handle and returns it's data.
+inline T* set_current(NodeHandle hNode) {
+    acurrentnode = (RTEListNode*) hNode;
+    return &acurrentnode->data;
+    //FIXME: there should be a check if the node could be selected and a return value of NULL if failed
+}
+
+/// Returns true if the list is empty.
+inline bool is_empty() {
+    return !first();
 }
 
   RTEListNode firstnode;
@@ -384,7 +404,7 @@ inline  void free(T *element) {
     RTEListNode *prevelem;
     RTEListNode *nextelem;
     RTEListNode *node;
-    
+
     char *node_to_free=(char *)element;
     // calculate the offset of the RTEListNode (see free_offset calculation in the constructor)
     node_to_free -= free_offset;
@@ -399,6 +419,20 @@ inline  void free(T *element) {
     nextelem->aprev=prevelem;
     //printf("free returning elem=%d\n",&currentnode->data);
   }
+
+/// Selects the current element node by providing the pointer to the sought
+/// element's data.
+inline void set_current(T* element) {
+    char* node    = (char*) element;
+    node         -= free_offset;  // calculate the offset of the RTEListNode (see free_offset calculation in the constructor)
+    acurrentnode  = (RTEListNode*) node;
+    //FIXME: there should be a check if the element could be selected and a respective return value
+}
+
+/// Returns true if there's no allocated element.
+inline bool is_empty() {
+    return !first();
+}
 
 // empty the whole list
 inline void empty(void) {

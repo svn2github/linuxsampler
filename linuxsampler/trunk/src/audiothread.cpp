@@ -35,9 +35,11 @@ AudioThread::AudioThread(AudioIO* pAudioIO, DiskThread* pDiskThread, gig::Instru
         pVoices[i] = new Voice(pDiskThread);
     }
     for (uint i = 0; i < 128; i++) {
-        pActiveVoices[i] = new RTEList<Voice*>;
+        pMIDIKeyInfo[i].pActiveVoices = new RTEList<Voice*>;
+        pMIDIKeyInfo[i].hSustainPtr   = NULL;
+        pMIDIKeyInfo[i].Sustained     = false;
     }
-    SustainedKeyPool = new RTELMemoryPool<sustained_key_t>(MAX_AUDIO_VOICES);
+    SustainedKeyPool = new RTELMemoryPool<uint>(128);
 
     pAudioSumBuffer = new float[pAudioIO->FragmentSize * pAudioIO->Channels];
 
@@ -176,41 +178,104 @@ void AudioThread::ProcessContinuousController(uint8_t Channel, uint8_t Number, u
 void AudioThread::ActivateVoice(uint8_t MIDIKey, uint8_t Velocity) {
     for (int i = 0; i < MAX_AUDIO_VOICES; i++) {
         if (pVoices[i]->IsActive()) continue;
-        pVoices[i]->Trigger(MIDIKey, Velocity, this->pInstrument);
+
         // add (append) a new voice to the corresponding MIDIKey active voices list
-        Voice** new_voice_ptr = ActiveVoicePool->alloc_append(pActiveVoices[MIDIKey]);
+        Voice** new_voice_ptr = ActiveVoicePool->alloc_append(pMIDIKeyInfo[MIDIKey].pActiveVoices);
         *new_voice_ptr = pVoices[i];
         pVoices[i]->pSelfPtr = new_voice_ptr; // FIXME: hack to allow fast deallocation
+        pVoices[i]->Trigger(MIDIKey, Velocity, this->pInstrument);
+
+        if (!pMIDIKeyInfo[MIDIKey].hSustainPtr) {
+            dmsg(4,("ActivateVoice(uint,uint): hSustainPtr == null, setting release pointer to the last voice on the key...\n"));
+            pMIDIKeyInfo[MIDIKey].pActiveVoices->last();
+            pMIDIKeyInfo[MIDIKey].hSustainPtr = pMIDIKeyInfo[MIDIKey].pActiveVoices->current();
+        }
         return;
     }
     std::cerr << "No free voice!" << std::endl << std::flush;
 }
 
+/**
+ *  Releases the voices on the given key if sustain pedal is not pressed.
+ *  If sustain is pressed, the release of the note will be postponed until
+ *  sustain pedal will be released or voice turned inactive by itself (e.g.
+ *  due to completion of sample playback).
+ */
 void AudioThread::ReleaseVoice(uint8_t MIDIKey, uint8_t Velocity) {
-    // if sustain pedal is pressed postpone the Note-Off
-    if (SustainPedal) {
-        // alloc an element in the SustainedKeyPool and add the current midikey to it
-        sustained_key_t* key = SustainedKeyPool->alloc();
-        if (key == NULL) printf("ERROR: SustainedKeyPool FULL ! exiting\n"); // FIXME
-        key->midikey  = MIDIKey;
-        key->velocity = Velocity;
+    midi_key_info_t* pmidikey = &pMIDIKeyInfo[MIDIKey];
+    if (SustainPedal) { // if sustain pedal is pressed postpone the Note-Off
+        if (pmidikey->hSustainPtr) {
+            // stick the note-off information to the respective voice
+            Voice** pVoiceToRelease = pmidikey->pActiveVoices->set_current(pmidikey->hSustainPtr);
+            if (pVoiceToRelease) {
+                (*pVoiceToRelease)->ReleaseVelocity = Velocity;
+                // now increment the sustain pointer
+                pmidikey->pActiveVoices->next();
+                pmidikey->hSustainPtr = pmidikey->pActiveVoices->current();
+                // if the key was not sustained yet, add it's MIDI key number to the sustained key pool
+                if (!pmidikey->Sustained) {
+                    uint* sustainedmidikey = SustainedKeyPool->alloc();
+                    *sustainedmidikey      = MIDIKey;
+                    pmidikey->Sustained    = true;
+                }
+            }
+            else dmsg(3,("Ignoring NOTE OFF --> pVoiceToRelease == null!\n"));
+        }
+        else dmsg(3,("Ignoring NOTE OFF, seems like more Note-Offs than Note-Ons or no free voices available?\n"));
     }
     else {
         // get the first voice in the list of active voices on the MIDI Key
-        Voice** pVoicePtr = pActiveVoices[MIDIKey]->first();
+        Voice** pVoicePtr = pmidikey->pActiveVoices->first();
         if (pVoicePtr) ReleaseVoice(*pVoicePtr);
-        else std::cerr << "Couldn't find active voice for note off command!" << std::endl << std::flush;
+        else dmsg(2,("Couldn't find active voice for note off command, maybe already released.\n"));
     }
 }
 
+/**
+ *  Releases the voice given with pVoice (no matter if sustain is pressed or
+ *  not). This method will e.g. be directly called if a voice went inactive
+ *  by itself. If susatain pedal is pressed the method takes care to free
+ *  those sustain informations of the voice.
+ */
 void AudioThread::ReleaseVoice(Voice* pVoice) {
     if (pVoice) {
         if (pVoice->IsActive()) pVoice->Kill(); //TODO: for now we're rude and just kill the poor, poor voice immediately :), later we add a Release() method to the Voice class and call it here to let the voice go through it's release phase
 
-        // remove the voice from the list associated to this MIDI key
-        ActiveVoicePool->free(pVoice->pSelfPtr);
+        if (pMIDIKeyInfo[pVoice->MIDIKey].Sustained) {
+
+            // check if the sustain pointer has to be moved, now that we release the voice
+            RTEList<Voice*>::NodeHandle hSustainPtr = pMIDIKeyInfo[pVoice->MIDIKey].hSustainPtr;
+            if (hSustainPtr) {
+                Voice** pVoicePtr = pMIDIKeyInfo[pVoice->MIDIKey].pActiveVoices->set_current(hSustainPtr);
+                if (pVoicePtr) {
+                    if (*pVoicePtr == pVoice) { // move sustain pointer to the next sustained voice
+                        dmsg(3,("Correcting sustain pointer\n"));
+                        pMIDIKeyInfo[pVoice->MIDIKey].pActiveVoices->next();
+                        pMIDIKeyInfo[pVoice->MIDIKey].hSustainPtr = pMIDIKeyInfo[pVoice->MIDIKey].pActiveVoices->current();
+                    }
+                    else dmsg(4,("ReleaseVoice(Voice*): *hSustain != pVoice\n"));
+                }
+                else dmsg(3,("ReleaseVoice(Voice*): pVoicePtr == null\n"));
+            }
+            else dmsg(3,("ReleaseVoice(Voice*): hSustainPtr == null\n"));
+
+            // remove the voice from the list associated with this MIDI key
+            ActiveVoicePool->free(pVoice->pSelfPtr);
+
+            // check if there are no sustained voices left on the MIDI key and update the key info if so
+            if (pMIDIKeyInfo[pVoice->MIDIKey].pActiveVoices->is_empty()) {
+                pMIDIKeyInfo[pVoice->MIDIKey].hSustainPtr = NULL;
+                pMIDIKeyInfo[pVoice->MIDIKey].Sustained   = false;
+                dmsg(3,("Key now not sustained\n"));
+            }
+        }
+        else {
+            // remove the voice from the list associated with this MIDI key
+            ActiveVoicePool->free(pVoice->pSelfPtr);
+            dmsg(4,("Key was not sustained\n"));
+        }
     }
-    else std::cerr << "Couldn't find active voice to release!" << std::endl << std::flush;
+    else std::cerr << "Couldn't release voice! (pVoice == NULL)\n" << std::flush;
 }
 
 void AudioThread::ContinuousController(uint8_t Channel, uint8_t Number, uint8_t Value) {
@@ -223,8 +288,16 @@ void AudioThread::ContinuousController(uint8_t Channel, uint8_t Number, uint8_t 
         if (Value < 64 && PrevHoldCCValue >= 64) {
             dmsg(4,("PEDAL UP\n"));
             SustainPedal = false;
-            for (sustained_key_t* key = SustainedKeyPool->first(); key; key = SustainedKeyPool->next()) {
-                ReleaseVoice(key->midikey, key->velocity);
+            // iterate through all keys that are currently sustained
+            for (uint* key = SustainedKeyPool->first(); key; key = SustainedKeyPool->next()) {
+                // release all active voices on the midi key
+                Voice** pVoicePtr = pMIDIKeyInfo[*key].pActiveVoices->first();
+                while (pVoicePtr) {
+                    Voice** pVoicePtrNext = pMIDIKeyInfo[*key].pActiveVoices->next();
+                    dmsg(3,("Sustain CC: releasing voice on midi key %d\n", *key));
+                    ReleaseVoice(*pVoicePtr);
+                    pVoicePtr = pVoicePtrNext;
+                }
             }
             // empty the SustainedKeyPool (free all the elements)
             SustainedKeyPool->empty();

@@ -35,11 +35,12 @@ Voice::~Voice() {
 }
 
 void Voice::Trigger(int MIDIKey, uint8_t Velocity, gig::Instrument* Instrument) {
-    Active        = true;
-    this->MIDIKey = MIDIKey;
-    pRegion       = Instrument->GetRegion(MIDIKey);
-    PlaybackState = playback_state_ram; // we always start playback from RAM cache and switch then to disk if needed
-    Pos           = 0;
+    Active          = true;
+    this->MIDIKey   = MIDIKey;
+    pRegion         = Instrument->GetRegion(MIDIKey);
+    PlaybackState   = playback_state_ram; // we always start playback from RAM cache and switch then to disk if needed
+    Pos             = 0;
+    ReleaseVelocity = 127; // default release velocity value
 
     if (!pRegion) {
         std::cerr << "Audio Thread: No Region defined for MIDI key " << MIDIKey << std::endl << std::flush;

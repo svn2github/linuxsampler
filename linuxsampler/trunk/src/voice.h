@@ -36,8 +36,9 @@
 class Voice {
     public:
         // Attributes
-        int      MIDIKey;   ///< MIDI key number of the key that triggered the voice
-        Voice**  pSelfPtr;  ///< FIXME: hack to be able to remove the voice from the active voices list within the audio thread, ugly but fast
+        int      MIDIKey;          ///< MIDI key number of the key that triggered the voice
+        Voice**  pSelfPtr;         ///< FIXME: hack to be able to remove the voice from the active voices list within the audio thread, ugly but fast
+        uint     ReleaseVelocity;  ///< Reflects the release velocity value if a note-off command arrived for the voice.
 
         // Methods
         Voice(DiskThread* pDiskThread);

@@ -35,7 +35,6 @@
 #include "voice.h"
 #include "audioio.h"
 #include "gig.h"
-
 #include "rtelmemorypool.h"
 
 #define PITCHBEND_SEMITONES	12
@@ -46,8 +45,8 @@
 
 class AudioThread : public Thread {
     public:
-        int ActiveVoiceCount;  ///< number of currently active voices
-        int ActiveVoiceCountMax;
+        int ActiveVoiceCount;     ///< number of currently active voices
+        int ActiveVoiceCountMax;  ///< the maximum voice usage since application start
 
         AudioThread(AudioIO* pAudioIO, DiskThread* pDiskThread, gig::Instrument* pInstrument);
        ~AudioThread();
@@ -70,36 +69,27 @@ class AudioThread : public Thread {
             uint8_t        number;
             uint8_t        value;
         } command;
-        struct sustained_key_t {
-            int midikey;
-            int velocity;
+        struct midi_key_info_t {
+            RTEList<Voice*>*             pActiveVoices; ///< Contains the active voices associated with the MIDI key.
+            RTEList<Voice*>::NodeHandle  hSustainPtr;   ///< Points to the voice element in the active voice list which has not received a note-off yet (this pointer is needed for sustain pedal handling)
+            bool                         Sustained;     ///< Is true if the MIDI key is currently sustained, thus if Note-off arrived while sustain pedal pressed.
         };
 
         RingBuffer<command_t>*           pCommandQueue;
         float*                           pAudioSumBuffer;    ///< Audio sum of all voices (32 bit)
         Voice**                          pVoices;            ///< The voice pool, containing all Voices (active and inactice voices) in unsorted order
-        RTEList<Voice *>*                pActiveVoices[128]; ///< Contains all active voices sorted by MIDI key number
+        midi_key_info_t                  pMIDIKeyInfo[128];  ///< Contains all active voices sorted by MIDI key number and other informations to the respective MIDI key
         /* ActiveVoicePool is a memory pool of limited size (size=MAX VOICES) of active voices.
            it can be allocated dynamically in real time and the allocated elements can be added to
            the linked lists represented by ActiveVoices[MIDIKey]. This means we can have unlimited
            active voices per key. This if for example useful to manage the sustain pedal messages
          */
-        RTELMemoryPool<Voice *>*         ActiveVoicePool;
-        /* SustainedVoicePool is a dynamically allocated pool (size=MAX VOICES) and list of notes
-           notes that were sustained and where the corresponding MIDI note-off arrived
-           but cannot processed yet. Basically when the sustain pedal is pressed and the
-           note-off on a certain midi key arrives. notes are not deleted from the
-           ActiveVoices[MIDIKey] list but an element is added in the SustainedVoicePool,
-           which is a dynamically allocated pool with a builtin list.
-           Then the pedal is finally released, this list is traversed and all elements
-           in the lists ActiveVoices[MIDIKey] ( where MIDIKey is contained in the list of
-           sustained voices) are processed (voices are released)
-        */
-        RTELMemoryPool<sustained_key_t>* SustainedKeyPool;
+        RTELMemoryPool<Voice*>*          ActiveVoicePool;
+        RTELMemoryPool<uint>*            SustainedKeyPool;   ///< Contains the MIDI key numbers of all currently sustained keys.
         AudioIO*                         pAudioIO;
         DiskThread*                      pDiskThread;
         gig::Instrument*                 pInstrument;
-        bool                             SustainPedal;  ///< true if sustain pedal is down
+        bool                             SustainPedal;       ///< true if sustain pedal is down
         uint8_t                          PrevHoldCCValue;
 
         void ActivateVoice(uint8_t MIDIKey, uint8_t Velocity);
