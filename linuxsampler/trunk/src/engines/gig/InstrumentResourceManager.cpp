@@ -97,7 +97,9 @@ namespace LinuxSampler { namespace gig {
             // number of '0' samples (silence samples) behind the official buffer
             // border, to allow the interpolator do it's work even at the end of
             // the sample.
-            ::gig::buffer_t buf = pSample->LoadSampleDataWithNullSamplesExtension((pEngine->pAudioOutputDevice->MaxSamplesPerCycle() << MAX_PITCH) + 3);
+            dmsg(3,("Caching whole sample (sample name: \"%s\", sample size: %d)\n", pSample->pInfo->Name.c_str(), pSample->SamplesTotal));
+            const uint silenceSamples = (pEngine->pAudioOutputDevice->MaxSamplesPerCycle() << MAX_PITCH) + 3;
+            ::gig::buffer_t buf = pSample->LoadSampleDataWithNullSamplesExtension(silenceSamples);
             dmsg(4,("Cached %d Bytes, %d silence bytes.\n", buf.Size, buf.NullExtensionSize));
         }
         else { // we only cache NUM_RAM_PRELOAD_SAMPLES and stream the other sample points from disk
