@@ -1,6 +1,7 @@
 DLS Part:
   - support for conditional chunks
   - check for ZSTR terminated strings in DLS::Info::LoadString()
+  - real support for 64 bit offsets (used by Gigasampler v3 files)
 
 Gig Part:
   - support for <3dnl> chunk in gig::Region class which provides optional
@@ -14,3 +15,6 @@ Gig Part:
   - low level optimization in decompression algorithm
   - optional writing of frame table to disk to speed up loading of compressed
     samples
+  - real support for 24 bit samples (introduced by Gigasampler v3 format)
+  - support for additional articulation informations introduced by the
+    Gigasampler v3 format

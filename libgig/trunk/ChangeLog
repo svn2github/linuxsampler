@@ -1,3 +1,12 @@
+Version CVS HEAD (?)
+
+  * src/gig.cpp, src/gig.h:
+    - experimental support for Gigasampler v3 format;
+      64 bit file offsets are truncated to 32 bit, 24 bit samples are
+      truncated to 16 bit and additional articulation informations are
+      ignored at the moment (patch by Andreas Persson)
+    - added some file format compatibility checks
+
 Version 1.0.0 (26 Nov 2004)
 
   * packaging changes:
