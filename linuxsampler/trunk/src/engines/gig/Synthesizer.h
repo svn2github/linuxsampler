@@ -30,12 +30,12 @@
 #include "Filter.h"
 #include "Voice.h"
 
-#define SYNTHESIS_MODE_SET_CONSTPITCH(iMode,bVal)       if (bVal) iMode |= 0x01; else iMode &= 0xfe   /* (un)set mode bit 0 */
-#define SYNTHESIS_MODE_SET_LOOP(iMode,bVal)             if (bVal) iMode |= 0x02; else iMode &= 0xfd   /* (un)set mode bit 1 */
-#define SYNTHESIS_MODE_SET_INTERPOLATE(iMode,bVal)      if (bVal) iMode |= 0x04; else iMode &= 0xfb   /* (un)set mode bit 2 */
-#define SYNTHESIS_MODE_SET_FILTER(iMode,bVal)           if (bVal) iMode |= 0x08; else iMode &= 0xf7   /* (un)set mode bit 3 */
-#define SYNTHESIS_MODE_SET_CHANNELS(iMode,bVal)         if (bVal) iMode |= 0x10; else iMode &= 0xef   /* (un)set mode bit 4 */
-#define SYNTHESIS_MODE_SET_IMPLEMENTATION(iMode,bVal)   if (bVal) iMode |= 0x20; else iMode &= 0xdf   /* (un)set mode bit 5 */
+#define SYNTHESIS_MODE_SET_CONSTPITCH(iMode,bVal)       if (bVal) iMode |= 0x01; else iMode &= ~0x01   /* (un)set mode bit 0 */
+#define SYNTHESIS_MODE_SET_LOOP(iMode,bVal)             if (bVal) iMode |= 0x02; else iMode &= ~0x02   /* (un)set mode bit 1 */
+#define SYNTHESIS_MODE_SET_INTERPOLATE(iMode,bVal)      if (bVal) iMode |= 0x04; else iMode &= ~0x04   /* (un)set mode bit 2 */
+#define SYNTHESIS_MODE_SET_FILTER(iMode,bVal)           if (bVal) iMode |= 0x08; else iMode &= ~0x08   /* (un)set mode bit 3 */
+#define SYNTHESIS_MODE_SET_CHANNELS(iMode,bVal)         if (bVal) iMode |= 0x10; else iMode &= ~0x10   /* (un)set mode bit 4 */
+#define SYNTHESIS_MODE_SET_IMPLEMENTATION(iMode,bVal)   if (bVal) iMode |= 0x20; else iMode &= ~0x20   /* (un)set mode bit 5 */
 #define SYNTHESIS_MODE_SET_PROFILING(iMode,bVal)   	if (bVal) iMode |= 0x40; else iMode &= ~0x40   /* (un)set mode bit 6 */
 
 #define SYNTHESIS_MODE_GET_CONSTPITCH(iMode)            iMode & 0x01

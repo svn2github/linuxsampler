@@ -58,6 +58,7 @@ namespace LinuxSampler { namespace gig {
         pLFO2  = NULL;
         pLFO3  = NULL;
         KeyGroup = 0;
+	SynthesisMode = 0; //Set all mode bits to 0 first
 
         // select synthesis implementation (currently either pure C++ or MMX+SSE(1))
         SYNTHESIS_MODE_SET_IMPLEMENTATION(SynthesisMode, Features::supportsMMX() && Features::supportsSSE());
