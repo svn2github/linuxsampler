@@ -65,6 +65,7 @@ namespace LinuxSampler {
             virtual int     InstrumentIndex() = 0;
             virtual int     InstrumentStatus() = 0;
             virtual Engine* GetEngine() = 0;
+            virtual String  EngineName() = 0;
 
             virtual ~EngineChannel() {};
     };

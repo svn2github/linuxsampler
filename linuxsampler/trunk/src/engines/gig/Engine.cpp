@@ -1184,7 +1184,7 @@ namespace LinuxSampler { namespace gig {
     }
 
     String Engine::EngineName() {
-        return "GigEngine";
+        return LS_GIG_ENGINE_NAME;
     }
 
     String Engine::Description() {
@@ -1192,7 +1192,7 @@ namespace LinuxSampler { namespace gig {
     }
 
     String Engine::Version() {
-        String s = "$Revision: 1.33 $";
+        String s = "$Revision: 1.34 $";
         return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
 

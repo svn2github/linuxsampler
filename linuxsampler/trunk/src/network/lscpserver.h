@@ -64,6 +64,7 @@ extern void restart(yyparse_param_t* pparam, int& yychar);
 class LSCPServer : public Thread {
     public:
         LSCPServer(Sampler* pSampler);
+        virtual ~LSCPServer();
         int WaitUntilInitialized(long TimeoutSeconds = 0L, long TimeoutNanoSeconds = 0L);
 
         // Methods called by the parser

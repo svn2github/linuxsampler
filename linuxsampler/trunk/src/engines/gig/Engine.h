@@ -44,6 +44,9 @@
 #include "../../network/lscp.h"
 #include "EngineChannel.h"
 
+// identifier of this sampler engine
+#define LS_GIG_ENGINE_NAME "GigEngine"
+
 namespace LinuxSampler { namespace gig {
 
     // just symbol prototyping

@@ -65,6 +65,7 @@ namespace LinuxSampler { namespace gig {
             virtual int     InstrumentIndex();
             virtual int     InstrumentStatus();
             virtual LinuxSampler::Engine* GetEngine();
+            virtual String  EngineName();
 
             // implementation of abstract methods derived from interface class 'InstrumentConsumer'
             virtual void ResourceToBeUpdated(::gig::Instrument* pResource, void*& pUpdateArg);

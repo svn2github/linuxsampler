@@ -457,4 +457,8 @@ namespace LinuxSampler { namespace gig {
         return InstrumentStat;
     }
 
+    String EngineChannel::EngineName() {
+        return LS_GIG_ENGINE_NAME;
+    }
+    
 }} // namespace LinuxSampler::gig

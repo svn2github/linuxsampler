@@ -68,6 +68,11 @@ LSCPServer::LSCPServer(Sampler* pSampler) : Thread(true, false, 0, -4) {
     LSCPEvent::RegisterEvent(LSCPEvent::event_buffer_fill, "BUFFER_FILL");
     LSCPEvent::RegisterEvent(LSCPEvent::event_info, "INFO");
     LSCPEvent::RegisterEvent(LSCPEvent::event_misc, "MISCELLANEOUS");
+    hSocket = -1;
+}
+
+LSCPServer::~LSCPServer() {
+    if (hSocket >= 0) close(hSocket);
 }
 
 /**
@@ -85,7 +90,7 @@ int LSCPServer::WaitUntilInitialized(long TimeoutSeconds, long TimeoutNanoSecond
 }
 
 int LSCPServer::Main() {
-    int hSocket = socket(AF_INET, SOCK_STREAM, 0);
+    hSocket = socket(AF_INET, SOCK_STREAM, 0);
     if (hSocket < 0) {
         std::cerr << "LSCPServer: Could not create server socket." << std::endl;
         //return -1;
@@ -168,6 +173,7 @@ int LSCPServer::Main() {
                                 int dummy; // just a temporary hack to fulfill the restart() function prototype
                                 restart(NULL, dummy); // restart the 'scanner'
 				currentSocket = (*iter).hSession;  //a hack
+				dmsg(2,("LSCPServer: [%s]\n",bufferedCommands[currentSocket].c_str()));
                                 if ((*iter).bVerbose) { // if echo mode enabled
                                     AnswerClient(bufferedCommands[currentSocket]);
                                 }
@@ -481,7 +487,7 @@ String LSCPServer::LoadInstrument(String Filename, uint uiInstrument, uint uiSam
 String LSCPServer::SetEngineType(String EngineName, uint uiSamplerChannel) {
     dmsg(2,("LSCPServer: LoadEngine(EngineName=%s,SamplerChannel=%d)\n", EngineName.c_str(), uiSamplerChannel));
     LSCPResultSet result;
-    try {        
+    try {
         SamplerChannel* pSamplerChannel = pSampler->GetSamplerChannel(uiSamplerChannel);
         if (!pSamplerChannel) throw LinuxSamplerException("Invalid sampler channel number " + ToString(uiSamplerChannel));
 	LockRTNotify();
@@ -593,8 +599,8 @@ String LSCPServer::GetChannelInfo(uint uiSamplerChannel) {
         int AudioOutputChannels = 0;
         String AudioRouting;
 
-        if (pEngineChannel) {                               
-            EngineName          = pEngineChannel->GetEngine()->EngineName();
+        if (pEngineChannel) {
+            EngineName          = pEngineChannel->EngineName();
             AudioOutputChannels = pEngineChannel->Channels();
             Volume              = pEngineChannel->Volume();
             InstrumentStatus    = pEngineChannel->InstrumentStatus();
