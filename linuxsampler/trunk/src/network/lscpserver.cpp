@@ -21,6 +21,7 @@
  ***************************************************************************/
 
 #include "lscpserver.h"
+#include "lscpresultset.h"
 
 #include "../engines/gig/Engine.h"
 
@@ -199,7 +200,42 @@ String LSCPServer::GetEngineInfo(String EngineName) {
  */
 String LSCPServer::GetChannelInfo(uint uiSamplerChannel) {
     dmsg(2,("LSCPServer: GetChannelInfo(SamplerChannel=%d)\n", uiSamplerChannel));
-    return "ERR:0:Not implemented yet.\r\n";
+    try {
+        LSCPResultSet result;
+        SamplerChannel* pSamplerChannel = pSampler->GetSamplerChannel(uiSamplerChannel);
+        if (!pSamplerChannel) throw LinuxSamplerException("Index out of bounds");
+        Engine* pEngine = pSamplerChannel->GetEngine();
+        if (pEngine) {
+	    result.Add("ENGINE_NAME", pEngine->EngineName());
+	    result.Add("VOLUME", pEngine->Volume());
+	}
+	//Some hardcoded stuff for now to make GUI look good
+        result.Add("AUDIO_OUTPUT_DEVICE", "0");
+        result.Add("AUDIO_OUTPUT_CHANNELS", "2");
+        result.Add("AUDIO_OUTPUT_ROUTING", "0,1");
+
+        if (pEngine) {
+            int iIdx = pEngine->InstrumentIndex();
+            if (iIdx != -1) {
+	        result.Add("INSTRUMENT_FILE", pEngine->InstrumentFileName());
+	        result.Add("INSTRUMENT_NR", iIdx);
+            }
+	}
+	//Some hardcoded stuff for now to make GUI look good
+        result.Add("MIDI_INPUT_DEVICE", "0");
+        result.Add("MIDI_INPUT_PORT", "0");
+        result.Add("MIDI_INPUT_CHANNEL", "1");
+
+        return result.Produce();
+    }
+    catch (LinuxSamplerException e) {
+         result_t result;
+         e.PrintMessage();
+         result.type    = result_type_error;
+         result.code    = LSCP_ERR_UNKNOWN;
+         result.message = e.Message();
+         return ConvertResult(result);
+    }
 }
 
 /**
