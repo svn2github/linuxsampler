@@ -39,6 +39,7 @@ namespace LinuxSampler { namespace gig {
             pMIDIKeyInfo[i].Active         = false;
             pMIDIKeyInfo[i].ReleaseTrigger = false;
             pMIDIKeyInfo[i].pEvents        = NULL; // we allocate when we retrieve the right Engine object
+            pMIDIKeyInfo[i].VoiceTheftsQueued = 0;
             pMIDIKeyInfo[i].RoundRobinIndex = 0;
         }
         for (uint i = 0; i < Event::destination_count; i++) {
@@ -69,8 +70,7 @@ namespace LinuxSampler { namespace gig {
         GlobalPanRight      = 1.0f;
         CurrentKeyDimension = 0;
 
-        // set all MIDI controller values to zero
-        memset(ControllerTable, 0x00, 128);
+        ResetControllers();
 
         // reset key info
         for (uint i = 0; i < 128; i++) {
@@ -82,6 +82,7 @@ namespace LinuxSampler { namespace gig {
             pMIDIKeyInfo[i].Active         = false;
             pMIDIKeyInfo[i].ReleaseTrigger = false;
             pMIDIKeyInfo[i].itSelf         = Pool<uint>::Iterator();
+            pMIDIKeyInfo[i].VoiceTheftsQueued = 0;
         }
 
         // reset all key groups
@@ -385,6 +386,11 @@ namespace LinuxSampler { namespace gig {
                 pMIDIKeyInfo[*iuiKey].pEvents->clear(); // free all events on the key
             }
         }
+    }
+
+    void EngineChannel::ResetControllers() {
+        // set all MIDI controller values to zero
+        memset(ControllerTable, 0x00, 128);
     }
 
     /**

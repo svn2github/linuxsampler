@@ -122,7 +122,7 @@ namespace LinuxSampler { namespace gig {
             void ProcessControlChange(EngineChannel* pEngineChannel, Pool<Event>::Iterator& itControlChangeEvent);
             void ProcessSysex(Pool<Event>::Iterator& itSysexEvent);
             Pool<Voice>::Iterator LaunchVoice(EngineChannel* pEngineChannel, Pool<Event>::Iterator& itNoteOnEvent, int iLayer, bool ReleaseTriggerVoice, bool VoiceStealing);
-            void StealVoice(EngineChannel* pEngineChannel, Pool<Event>::Iterator& itNoteOnEvent);
+            int  StealVoice(EngineChannel* pEngineChannel, Pool<Event>::Iterator& itNoteOnEvent);
             void FreeVoice(EngineChannel* pEngineChannel, Pool<Voice>::Iterator& itVoice);
             void FreeKey(EngineChannel* pEngineChannel, midi_key_info_t* pKey);
             void ResetSynthesisParameters(Event::destination_t dst, float val);
@@ -146,6 +146,8 @@ namespace LinuxSampler { namespace gig {
 
             uint8_t GSCheckSum(const RingBuffer<uint8_t>::NonVolatileReader AddrReader, uint DataSize);
             void    AdjustScale(int8_t ScaleTunes[12]);
+            void    ReleaseAllVoices(EngineChannel* pEngineChannel, Pool<Event>::Iterator& itReleaseEvent);
+            void    KillAllVoices(EngineChannel* pEngineChannel, Pool<Event>::Iterator& itKillEvent);
     };
 
 }} // namespace LinuxSampler::gig

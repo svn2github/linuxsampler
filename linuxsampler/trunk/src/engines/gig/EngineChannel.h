@@ -97,6 +97,7 @@ namespace LinuxSampler { namespace gig {
             int                     InstrumentStat;
             int                     iEngineIndexSelf;         ///< Reflects the index of this EngineChannel in the Engine's ArrayList.
 
+            void ResetControllers();
             void ClearEventLists();
             void ImportEvents(uint Samples);
 

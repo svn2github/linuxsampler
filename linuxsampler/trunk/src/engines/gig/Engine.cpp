@@ -96,6 +96,9 @@ namespace LinuxSampler { namespace gig {
         else dmsg(4,("This gig::Engine has now %d EngineChannels.\n",pEngine->engineChannels.size()));
     }
 
+    /**
+     * Constructor
+     */
     Engine::Engine() {
         pAudioOutputDevice = NULL;
         pDiskThread        = NULL;
@@ -118,6 +121,9 @@ namespace LinuxSampler { namespace gig {
         ResetInternal();
     }
 
+    /**
+     * Destructor
+     */
     Engine::~Engine() {
         if (pDiskThread) {
             dmsg(1,("Stopping disk thread..."));
@@ -198,6 +204,15 @@ namespace LinuxSampler { namespace gig {
         pEventQueue->init();
     }
 
+    /**
+     * Connect this engine instance with the given audio output device.
+     * This method will be called when an Engine instance is created.
+     * All of the engine's data structures which are dependant to the used
+     * audio output device / driver will be (re)allocated and / or
+     * adjusted appropriately.
+     *
+     * @param pAudioOut - audio output device to connect to
+     */
     void Engine::Connect(AudioOutputDevice* pAudioOut) {
         pAudioOutputDevice = pAudioOut;
 
@@ -272,6 +287,9 @@ namespace LinuxSampler { namespace gig {
         }
     }
 
+    /**
+     * Clear all engine global event lists.
+     */
     void Engine::ClearEventLists() {
         pGlobalEvents->clear();
     }
@@ -399,6 +417,15 @@ namespace LinuxSampler { namespace gig {
         return 0;
     }
 
+    /**
+     * Dispatch and handle all events in this audio fragment for the given
+     * engine channel.
+     *
+     * @param pEngineChannel - engine channel on which events should be
+     *                         processed
+     * @param Samples        - amount of sample points to be processed in
+     *                         this audio fragment cycle
+     */
     void Engine::ProcessEvents(EngineChannel* pEngineChannel, uint Samples) {
         // get all events from the engine channels's input event queue which belong to the current fragment
         // (these are the common events like NoteOn, NoteOff, ControlChange, etc.)
@@ -431,6 +458,15 @@ namespace LinuxSampler { namespace gig {
         }
     }
 
+    /**
+     * Render all 'normal' voices (that is voices which were not stolen in
+     * this fragment) on the given engine channel.
+     *
+     * @param pEngineChannel - engine channel on which audio should be
+     *                         rendered
+     * @param Samples        - amount of sample points to be rendered in
+     *                         this audio fragment cycle
+     */
     void Engine::RenderActiveVoices(EngineChannel* pEngineChannel, uint Samples) {
         RTList<uint>::Iterator iuiKey = pEngineChannel->pActiveKeys->first();
         RTList<uint>::Iterator end    = pEngineChannel->pActiveKeys->end();
@@ -451,6 +487,19 @@ namespace LinuxSampler { namespace gig {
         }
     }
 
+    /**
+     * Render all stolen voices (only voices which were stolen in this
+     * fragment) on the given engine channel. Stolen voices are rendered
+     * after all normal voices have been rendered; this is needed to render
+     * audio of those voices which were selected for voice stealing until
+     * the point were the stealing (that is the take over of the voice)
+     * actually happened.
+     *
+     * @param pEngineChannel - engine channel on which audio should be
+     *                         rendered
+     * @param Samples        - amount of sample points to be rendered in
+     *                         this audio fragment cycle
+     */
     void Engine::RenderStolenVoices(uint Samples) {
         RTList<Event>::Iterator itVoiceStealEvent = pVoiceStealingQueue->first();
         RTList<Event>::Iterator end               = pVoiceStealingQueue->end();
@@ -466,9 +515,21 @@ namespace LinuxSampler { namespace gig {
                 }
             }
             else dmsg(1,("gig::Engine: ERROR, voice stealing didn't work out!\n"));
+
+            // we need to clear the key's event list explicitly here in case key was never active
+            midi_key_info_t* pKey = &pEngineChannel->pMIDIKeyInfo[itVoiceStealEvent->Param.Note.Key];
+            pKey->VoiceTheftsQueued--;
+            if (!pKey->Active && !pKey->VoiceTheftsQueued) pKey->pEvents->clear();
         }
     }
 
+    /**
+     * Free all keys which have turned inactive in this audio fragment, from
+     * the list of active keys and clear all event lists on that engine
+     * channel.
+     *
+     * @param pEngineChannel - engine channel to cleanup
+     */
     void Engine::PostProcess(EngineChannel* pEngineChannel) {
         // free all keys which have no active voices left
         {
@@ -575,6 +636,10 @@ namespace LinuxSampler { namespace gig {
             }
         }
 
+        // if neither a voice was spawned or postponed then remove note on event from key again
+        if (!pKey->Active && !pKey->VoiceTheftsQueued)
+            pKey->pEvents->free(itNoteOnEventOnKeyList);
+
         pKey->RoundRobinIndex++;
     }
 
@@ -612,6 +677,10 @@ namespace LinuxSampler { namespace gig {
             }
             pKey->ReleaseTrigger = false;
         }
+
+        // if neither a voice was spawned or postponed then remove note off event from key again
+        if (!pKey->Active && !pKey->VoiceTheftsQueued)
+            pKey->pEvents->free(itNoteOffEventOnKeyList);
     }
 
     /**
@@ -682,18 +751,19 @@ namespace LinuxSampler { namespace gig {
             }
         }
         else if (VoiceStealing) {
-
             // try to steal one voice
-            StealVoice(pEngineChannel, itNoteOnEvent);
-
-            // put note-on event into voice-stealing queue, so it will be reprocessed after killed voice died
-            RTList<Event>::Iterator itStealEvent = pVoiceStealingQueue->allocAppend();
-            if (itStealEvent) {
-                *itStealEvent = *itNoteOnEvent; // copy event
-                itStealEvent->Param.Note.Layer = iLayer;
-                itStealEvent->Param.Note.ReleaseTrigger = ReleaseTriggerVoice;
+            int result = StealVoice(pEngineChannel, itNoteOnEvent);
+            if (!result) { // voice stolen successfully
+                // put note-on event into voice-stealing queue, so it will be reprocessed after killed voice died
+                RTList<Event>::Iterator itStealEvent = pVoiceStealingQueue->allocAppend();
+                if (itStealEvent) {
+                    *itStealEvent = *itNoteOnEvent; // copy event
+                    itStealEvent->Param.Note.Layer = iLayer;
+                    itStealEvent->Param.Note.ReleaseTrigger = ReleaseTriggerVoice;
+                    pKey->VoiceTheftsQueued++;
+                }
+                else dmsg(1,("Voice stealing queue full!\n"));
             }
-            else dmsg(1,("Voice stealing queue full!\n"));
         }
 
         return Pool<Voice>::Iterator(); // no free voice or error
@@ -707,11 +777,12 @@ namespace LinuxSampler { namespace gig {
      *
      *  @param pEngineChannel - engine channel on which this event occured on
      *  @param itNoteOnEvent - key, velocity and time stamp of the event
+     *  @returns 0 on success, a value < 0 if no active voice could be picked for voice stealing
      */
-    void Engine::StealVoice(EngineChannel* pEngineChannel, Pool<Event>::Iterator& itNoteOnEvent) {
+    int Engine::StealVoice(EngineChannel* pEngineChannel, Pool<Event>::Iterator& itNoteOnEvent) {
         if (!VoiceTheftsLeft) {
             dmsg(1,("Max. voice thefts per audio fragment reached (you may raise MAX_AUDIO_VOICES).\n"));
-            return;
+            return -1;
         }
         if (!pEventPool->poolIsEmpty()) {
 
@@ -764,7 +835,7 @@ namespace LinuxSampler { namespace gig {
                 case voice_steal_algo_none:
                 default: {
                     dmsg(1,("No free voice (voice stealing disabled)!\n"));
-                    return;
+                    return -1;
                 }
             }
 
@@ -787,7 +858,10 @@ namespace LinuxSampler { namespace gig {
             }
 
             //FIXME: can be removed, just a sanity check for debugging
-            if (!itSelectedVoice->IsActive()) dmsg(1,("gig::Engine: ERROR, tried to steal a voice which was not active !!!\n"));
+            if (!itSelectedVoice->IsActive()) {
+                dmsg(1,("gig::Engine: ERROR, tried to steal a voice which was not active !!!\n"));
+                return -1;
+            }
 
             // now kill the selected voice
             itSelectedVoice->Kill(itNoteOnEvent);
@@ -796,8 +870,13 @@ namespace LinuxSampler { namespace gig {
             itLastStolenVoice = itSelectedVoice;
 
             --VoiceTheftsLeft;
+
+            return 0; // success
         }
-        else dmsg(1,("Event pool emtpy!\n"));
+        else {
+            dmsg(1,("Event pool emtpy!\n"));
+            return -1;
+        }
     }
 
     /**
@@ -856,67 +935,81 @@ namespace LinuxSampler { namespace gig {
     void Engine::ProcessControlChange(EngineChannel* pEngineChannel, Pool<Event>::Iterator& itControlChangeEvent) {
         dmsg(4,("Engine::ContinuousController cc=%d v=%d\n", itControlChangeEvent->Param.CC.Controller, itControlChangeEvent->Param.CC.Value));
 
-        switch (itControlChangeEvent->Param.CC.Controller) {
+        // update controller value in the engine channel's controller table
+        pEngineChannel->ControllerTable[itControlChangeEvent->Param.CC.Controller] = itControlChangeEvent->Param.CC.Value;
+
+        // move event from the unsorted event list to the control change event list
+        Pool<Event>::Iterator itControlChangeEventOnCCList = itControlChangeEvent.moveToEndOf(pEngineChannel->pCCEvents);
+
+        switch (itControlChangeEventOnCCList->Param.CC.Controller) {
             case 7: { // volume
                 //TODO: not sample accurate yet
-                pEngineChannel->GlobalVolume = (float) itControlChangeEvent->Param.CC.Value / 127.0f;
+                pEngineChannel->GlobalVolume = (float) itControlChangeEventOnCCList->Param.CC.Value / 127.0f;
                 break;
             }
             case 10: { // panpot
                 //TODO: not sample accurate yet
-                const int pan = (int) itControlChangeEvent->Param.CC.Value - 64;
+                const int pan = (int) itControlChangeEventOnCCList->Param.CC.Value - 64;
                 pEngineChannel->GlobalPanLeft  = 1.0f - float(RTMath::Max(pan, 0)) /  63.0f;
                 pEngineChannel->GlobalPanRight = 1.0f - float(RTMath::Min(pan, 0)) / -64.0f;
                 break;
             }
             case 64: { // sustain
-                if (itControlChangeEvent->Param.CC.Value >= 64 && !pEngineChannel->SustainPedal) {
+                if (itControlChangeEventOnCCList->Param.CC.Value >= 64 && !pEngineChannel->SustainPedal) {
                     dmsg(4,("PEDAL DOWN\n"));
                     pEngineChannel->SustainPedal = true;
 
                     // cancel release process of voices if necessary
                     RTList<uint>::Iterator iuiKey = pEngineChannel->pActiveKeys->first();
-                    if (iuiKey) {
-                        itControlChangeEvent->Type = Event::type_cancel_release; // transform event type
-                        while (iuiKey) {
-                            midi_key_info_t* pKey = &pEngineChannel->pMIDIKeyInfo[*iuiKey];
-                            ++iuiKey;
-                            if (!pKey->KeyPressed) {
-                                RTList<Event>::Iterator itNewEvent = pKey->pEvents->allocAppend();
-                                if (itNewEvent) *itNewEvent = *itControlChangeEvent; // copy event to the key's own event list
-                                else dmsg(1,("Event pool emtpy!\n"));
+                    for (; iuiKey; ++iuiKey) {
+                        midi_key_info_t* pKey = &pEngineChannel->pMIDIKeyInfo[*iuiKey];
+                        if (!pKey->KeyPressed) {
+                            RTList<Event>::Iterator itNewEvent = pKey->pEvents->allocAppend();
+                            if (itNewEvent) {
+                                *itNewEvent = *itControlChangeEventOnCCList; // copy event to the key's own event list
+                                itNewEvent->Type = Event::type_cancel_release; // transform event type
                             }
+                            else dmsg(1,("Event pool emtpy!\n"));
                         }
                     }
                 }
-                if (itControlChangeEvent->Param.CC.Value < 64 && pEngineChannel->SustainPedal) {
+                if (itControlChangeEventOnCCList->Param.CC.Value < 64 && pEngineChannel->SustainPedal) {
                     dmsg(4,("PEDAL UP\n"));
                     pEngineChannel->SustainPedal = false;
 
                     // release voices if their respective key is not pressed
                     RTList<uint>::Iterator iuiKey = pEngineChannel->pActiveKeys->first();
-                    if (iuiKey) {
-                        itControlChangeEvent->Type = Event::type_release; // transform event type
-                        while (iuiKey) {
-                            midi_key_info_t* pKey = &pEngineChannel->pMIDIKeyInfo[*iuiKey];
-                            ++iuiKey;
-                            if (!pKey->KeyPressed) {
-                                RTList<Event>::Iterator itNewEvent = pKey->pEvents->allocAppend();
-                                if (itNewEvent) *itNewEvent = *itControlChangeEvent; // copy event to the key's own event list
-                                else dmsg(1,("Event pool emtpy!\n"));
+                    for (; iuiKey; ++iuiKey) {
+                        midi_key_info_t* pKey = &pEngineChannel->pMIDIKeyInfo[*iuiKey];
+                        if (!pKey->KeyPressed) {
+                            RTList<Event>::Iterator itNewEvent = pKey->pEvents->allocAppend();
+                            if (itNewEvent) {
+                                *itNewEvent = *itControlChangeEventOnCCList; // copy event to the key's own event list
+                                itNewEvent->Type = Event::type_release; // transform event type
                             }
+                            else dmsg(1,("Event pool emtpy!\n"));
                         }
                     }
                 }
                 break;
             }
+
+
+            // Channel Mode Messages
+
+            case 120: { // all sound off
+                KillAllVoices(pEngineChannel, itControlChangeEventOnCCList);
+                break;
+            }
+            case 121: { // reset all controllers
+                pEngineChannel->ResetControllers();
+                break;
+            }
+            case 123: { // all notes off
+                ReleaseAllVoices(pEngineChannel, itControlChangeEventOnCCList);
+                break;
+            }
         }
-
-        // update controller value in the engine's controller table
-        pEngineChannel->ControllerTable[itControlChangeEvent->Param.CC.Controller] = itControlChangeEvent->Param.CC.Value;
-
-        // move event from the unsorted event list to the control change event list
-        itControlChangeEvent.moveToEndOf(pEngineChannel->pCCEvents);
     }
 
     /**
@@ -1003,6 +1096,51 @@ namespace LinuxSampler { namespace gig {
     }
 
     /**
+     * Releases all voices on an engine channel. All voices will go into
+     * the release stage and thus it might take some time (e.g. dependant to
+     * their envelope release time) until they actually die.
+     *
+     * @param pEngineChannel - engine channel on which all voices should be released
+     * @param itReleaseEvent - event which caused this releasing of all voices
+     */
+    void Engine::ReleaseAllVoices(EngineChannel* pEngineChannel, Pool<Event>::Iterator& itReleaseEvent) {
+        RTList<uint>::Iterator iuiKey = pEngineChannel->pActiveKeys->first();
+        while (iuiKey) {
+            midi_key_info_t* pKey = &pEngineChannel->pMIDIKeyInfo[*iuiKey];
+            ++iuiKey;
+            // append a 'release' event to the key's own event list
+            RTList<Event>::Iterator itNewEvent = pKey->pEvents->allocAppend();
+            if (itNewEvent) {
+                *itNewEvent = *itReleaseEvent; // copy original event (to the key's event list)
+                itNewEvent->Type = Event::type_release; // transform event type
+            }
+            else dmsg(1,("Event pool emtpy!\n"));
+        }
+    }
+
+    /**
+     * Kills all voices on an engine channel as soon as possible. Voices
+     * won't get into release state, their volume level will be ramped down
+     * as fast as possible.
+     *
+     * @param pEngineChannel - engine channel on which all voices should be killed
+     * @param itKillEvent    - event which caused this killing of all voices
+     */
+    void Engine::KillAllVoices(EngineChannel* pEngineChannel, Pool<Event>::Iterator& itKillEvent) {
+        RTList<uint>::Iterator iuiKey = pEngineChannel->pActiveKeys->first();
+        RTList<uint>::Iterator end    = pEngineChannel->pActiveKeys->end();
+        while (iuiKey != end) { // iterate through all active keys
+            midi_key_info_t* pKey = &pEngineChannel->pMIDIKeyInfo[*iuiKey];
+            ++iuiKey;
+            RTList<Voice>::Iterator itVoice     = pKey->pActiveVoices->first();
+            RTList<Voice>::Iterator itVoicesEnd = pKey->pActiveVoices->end();
+            for (; itVoice != itVoicesEnd; ++itVoice) { // iterate through all voices on this key
+                itVoice->Kill(itKillEvent);
+            }
+        }
+    }
+
+    /**
      * Initialize the parameter sequence for the modulation destination given by
      * by 'dst' with the constant value given by val.
      */
@@ -1054,7 +1192,7 @@ namespace LinuxSampler { namespace gig {
     }
 
     String Engine::Version() {
-        String s = "$Revision: 1.32 $";
+        String s = "$Revision: 1.33 $";
         return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
 
