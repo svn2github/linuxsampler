@@ -255,6 +255,9 @@ namespace LinuxSampler { namespace gig {
                 CrossfadeVolume = 1.0f;
         }
 
+        PanLeft  = float(RTMath::Max(pDimRgn->Pan, 0)) / -64.0f;
+        PanRight = float(RTMath::Min(pDimRgn->Pan, 0)) /  63.0f;
+
         pSample = pDimRgn->pSample; // sample won't change until the voice is finished
 
         Pos = pDimRgn->SampleStartOffset; // offset where we should start playback of sample (0 - 2000 sample points)
@@ -657,7 +660,7 @@ namespace LinuxSampler { namespace gig {
 
             case playback_state_ram: {
                     if (RAMLoop) InterpolateAndLoop(Samples, (sample_t*) pSample->GetCache().pStart, Delay);
-                    else         Interpolate(Samples, (sample_t*) pSample->GetCache().pStart, Delay);
+                    else         InterpolateNoLoop(Samples, (sample_t*) pSample->GetCache().pStart, Delay);
                     if (DiskVoice) {
                         // check if we reached the allowed limit of the sample RAM cache
                         if (Pos > MaxRAMPos) {
@@ -691,7 +694,7 @@ namespace LinuxSampler { namespace gig {
                     }
 
                     sample_t* ptr = DiskStreamRef.pStream->GetReadPtr(); // get the current read_ptr within the ringbuffer where we read the samples from
-                    Interpolate(Samples, ptr, Delay);
+                    InterpolateNoLoop(Samples, ptr, Delay);
                     DiskStreamRef.pStream->IncrementReadPos(RTMath::DoubleToInt(Pos) * pSample->Channels);
                     Pos -= RTMath::DoubleToInt(Pos);
                 }
@@ -945,34 +948,22 @@ namespace LinuxSampler { namespace gig {
     #endif // ENABLE_FILTER
 
     /**
-     *  Interpolates the input audio data (no loop).
+     *  Interpolates the input audio data (without looping).
      *
      *  @param Samples - number of sample points to be rendered in this audio
      *                   fragment cycle
      *  @param pSrc    - pointer to input sample data
      *  @param Skip    - number of sample points to skip in output buffer
      */
-    void Voice::Interpolate(uint Samples, sample_t* pSrc, uint Skip) {
+    void Voice::InterpolateNoLoop(uint Samples, sample_t* pSrc, uint Skip) {
         int i = Skip;
 
         // FIXME: assuming either mono or stereo
         if (this->pSample->Channels == 2) { // Stereo Sample
-            while (i < Samples) {
-                InterpolateOneStep_Stereo(pSrc, i,
-                                          pEngine->pSynthesisParameters[Event::destination_vca][i],
-                                          pEngine->pSynthesisParameters[Event::destination_vco][i],
-                                          pEngine->pBasicFilterParameters[i],
-                                          pEngine->pMainFilterParameters[i]);
-            }
+            while (i < Samples) InterpolateStereo(pSrc, i);
         }
         else { // Mono Sample
-            while (i < Samples) {
-                InterpolateOneStep_Mono(pSrc, i,
-                                        pEngine->pSynthesisParameters[Event::destination_vca][i],
-                                        pEngine->pSynthesisParameters[Event::destination_vco][i],
-                                        pEngine->pBasicFilterParameters[i],
-                                        pEngine->pMainFilterParameters[i]);
-            }
+            while (i < Samples) InterpolateMono(pSrc, i);
         }
     }
 
@@ -992,32 +983,18 @@ namespace LinuxSampler { namespace gig {
             if (pSample->LoopPlayCount) {
                 // render loop (loop count limited)
                 while (i < Samples && LoopCyclesLeft) {
-                    InterpolateOneStep_Stereo(pSrc, i,
-                                              pEngine->pSynthesisParameters[Event::destination_vca][i],
-                                              pEngine->pSynthesisParameters[Event::destination_vco][i],
-                                              pEngine->pBasicFilterParameters[i],
-                                              pEngine->pMainFilterParameters[i]);
+                    InterpolateStereo(pSrc, i);
                     if (Pos > pSample->LoopEnd) {
                         Pos = pSample->LoopStart + fmod(Pos - pSample->LoopEnd, pSample->LoopSize);;
                         LoopCyclesLeft--;
                     }
                 }
                 // render on without loop
-                while (i < Samples) {
-                    InterpolateOneStep_Stereo(pSrc, i,
-                                              pEngine->pSynthesisParameters[Event::destination_vca][i],
-                                              pEngine->pSynthesisParameters[Event::destination_vco][i],
-                                              pEngine->pBasicFilterParameters[i],
-                                              pEngine->pMainFilterParameters[i]);
-                }
+                while (i < Samples) InterpolateStereo(pSrc, i);
             }
             else { // render loop (endless loop)
                 while (i < Samples) {
-                    InterpolateOneStep_Stereo(pSrc, i,
-                                              pEngine->pSynthesisParameters[Event::destination_vca][i],
-                                              pEngine->pSynthesisParameters[Event::destination_vco][i],
-                                              pEngine->pBasicFilterParameters[i],
-                                              pEngine->pMainFilterParameters[i]);
+                    InterpolateStereo(pSrc, i);
                     if (Pos > pSample->LoopEnd) {
                         Pos = pSample->LoopStart + fmod(Pos - pSample->LoopEnd, pSample->LoopSize);
                     }
@@ -1028,32 +1005,18 @@ namespace LinuxSampler { namespace gig {
             if (pSample->LoopPlayCount) {
                 // render loop (loop count limited)
                 while (i < Samples && LoopCyclesLeft) {
-                    InterpolateOneStep_Mono(pSrc, i,
-                                            pEngine->pSynthesisParameters[Event::destination_vca][i],
-                                            pEngine->pSynthesisParameters[Event::destination_vco][i],
-                                            pEngine->pBasicFilterParameters[i],
-                                            pEngine->pMainFilterParameters[i]);
+                    InterpolateMono(pSrc, i);
                     if (Pos > pSample->LoopEnd) {
                         Pos = pSample->LoopStart + fmod(Pos - pSample->LoopEnd, pSample->LoopSize);;
                         LoopCyclesLeft--;
                     }
                 }
                 // render on without loop
-                while (i < Samples) {
-                    InterpolateOneStep_Mono(pSrc, i,
-                                            pEngine->pSynthesisParameters[Event::destination_vca][i],
-                                            pEngine->pSynthesisParameters[Event::destination_vco][i],
-                                            pEngine->pBasicFilterParameters[i],
-                                            pEngine->pMainFilterParameters[i]);
-                }
+                while (i < Samples) InterpolateMono(pSrc, i);
             }
             else { // render loop (endless loop)
                 while (i < Samples) {
-                    InterpolateOneStep_Mono(pSrc, i,
-                                            pEngine->pSynthesisParameters[Event::destination_vca][i],
-                                            pEngine->pSynthesisParameters[Event::destination_vco][i],
-                                            pEngine->pBasicFilterParameters[i],
-                                            pEngine->pMainFilterParameters[i]);
+                    InterpolateMono(pSrc, i);
                     if (Pos > pSample->LoopEnd) {
                         Pos = pSample->LoopStart + fmod(Pos - pSample->LoopEnd, pSample->LoopSize);;
                     }

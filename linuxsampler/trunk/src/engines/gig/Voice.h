@@ -115,6 +115,8 @@ namespace LinuxSampler { namespace gig {
             // Attributes
             gig::Engine*                pEngine;            ///< Pointer to the sampler engine, to be able to access the event lists.
             float                       Volume;             ///< Volume level of the voice
+            float                       PanLeft;
+            float                       PanRight;
             float                       CrossfadeVolume;    ///< Current attenuation level caused by a crossfade (only if a crossfade is defined of course)
             double                      Pos;                ///< Current playback position in sample
             double                      PitchBase;          ///< Basic pitch depth, stays the same for the whole life time of the voice
@@ -158,9 +160,28 @@ namespace LinuxSampler { namespace gig {
             #if ENABLE_FILTER
             void        CalculateBiquadParameters(uint Samples);
             #endif // ENABLE_FILTER
-            void        Interpolate(uint Samples, sample_t* pSrc, uint Skip);
+            void        InterpolateNoLoop(uint Samples, sample_t* pSrc, uint Skip);
             void        InterpolateAndLoop(uint Samples, sample_t* pSrc, uint Skip);
-            inline void InterpolateOneStep_Stereo(sample_t* pSrc, int& i, float& effective_volume, float& pitch, biquad_param_t& bq_base, biquad_param_t& bq_main) {
+
+            inline void InterpolateMono(sample_t* pSrc, int& i) {
+                InterpolateOneStep_Mono(pSrc, i,
+                                        pEngine->pSynthesisParameters[Event::destination_vca][i] * PanLeft,
+                                        pEngine->pSynthesisParameters[Event::destination_vca][i] * PanRight,
+                                        pEngine->pSynthesisParameters[Event::destination_vco][i],
+                                        pEngine->pBasicFilterParameters[i],
+                                        pEngine->pMainFilterParameters[i]);
+            }
+
+            inline void InterpolateStereo(sample_t* pSrc, int& i) {
+                InterpolateOneStep_Stereo(pSrc, i,
+                                          pEngine->pSynthesisParameters[Event::destination_vca][i] * PanLeft,
+                                          pEngine->pSynthesisParameters[Event::destination_vca][i] * PanRight,
+                                          pEngine->pSynthesisParameters[Event::destination_vco][i],
+                                          pEngine->pBasicFilterParameters[i],
+                                          pEngine->pMainFilterParameters[i]);
+            }
+
+            inline void InterpolateOneStep_Stereo(sample_t* pSrc, int& i, float volume_left, float volume_right, float& pitch, biquad_param_t& bq_base, biquad_param_t& bq_main) {
                 int   pos_int   = RTMath::DoubleToInt(this->Pos);  // integer position
                 float pos_fract = this->Pos - pos_int;             // fractional part of position
                 pos_int <<= 1;
@@ -168,14 +189,14 @@ namespace LinuxSampler { namespace gig {
                 #if USE_LINEAR_INTERPOLATION
                     #if ENABLE_FILTER
                         // left channel
-                        pEngine->pOutputLeft[i]    += this->FilterLeft.Apply(&bq_base, &bq_main, effective_volume * (pSrc[pos_int]   + pos_fract * (pSrc[pos_int+2] - pSrc[pos_int])));
+                        pEngine->pOutputLeft[i]    += this->FilterLeft.Apply(&bq_base, &bq_main, volume_left * (pSrc[pos_int]   + pos_fract * (pSrc[pos_int+2] - pSrc[pos_int])));
                         // right channel
-                        pEngine->pOutputRight[i++] += this->FilterRight.Apply(&bq_base, &bq_main, effective_volume * (pSrc[pos_int+1] + pos_fract * (pSrc[pos_int+3] - pSrc[pos_int+1])));
+                        pEngine->pOutputRight[i++] += this->FilterRight.Apply(&bq_base, &bq_main, volume_right * (pSrc[pos_int+1] + pos_fract * (pSrc[pos_int+3] - pSrc[pos_int+1])));
                     #else // no filter
                         // left channel
-                        pEngine->pOutputLeft[i]    += effective_volume * (pSrc[pos_int]   + pos_fract * (pSrc[pos_int+2] - pSrc[pos_int]));
+                        pEngine->pOutputLeft[i]    += volume_left * (pSrc[pos_int]   + pos_fract * (pSrc[pos_int+2] - pSrc[pos_int]));
                         // right channel
-                        pEngine->pOutputRight[i++] += effective_volume * (pSrc[pos_int+1] + pos_fract * (pSrc[pos_int+3] - pSrc[pos_int+1]));
+                        pEngine->pOutputRight[i++] += volume_right * (pSrc[pos_int+1] + pos_fract * (pSrc[pos_int+3] - pSrc[pos_int+1]));
                     #endif // ENABLE_FILTER
                 #else // polynomial interpolation
                     // calculate left channel
@@ -187,9 +208,9 @@ namespace LinuxSampler { namespace gig {
                     float b   = 2.0f * x1 + xm1 - (5.0f * x0 + x2) * 0.5f;
                     float c   = (x1 - xm1) * 0.5f;
                     #if ENABLE_FILTER
-                        pEngine->pOutputLeft[i] += this->FilterLeft.Apply(&bq_base, &bq_main, effective_volume * ((((a * pos_fract) + b) * pos_fract + c) * pos_fract + x0));
+                        pEngine->pOutputLeft[i] += this->FilterLeft.Apply(&bq_base, &bq_main, volume_left * ((((a * pos_fract) + b) * pos_fract + c) * pos_fract + x0));
                     #else // no filter
-                        pEngine->pOutputLeft[i] += effective_volume * ((((a * pos_fract) + b) * pos_fract + c) * pos_fract + x0);
+                        pEngine->pOutputLeft[i] += volume_left * ((((a * pos_fract) + b) * pos_fract + c) * pos_fract + x0);
                     #endif // ENABLE_FILTER
 
                     //calculate right channel
@@ -201,21 +222,21 @@ namespace LinuxSampler { namespace gig {
                     b   = 2.0f * x1 + xm1 - (5.0f * x0 + x2) * 0.5f;
                     c   = (x1 - xm1) * 0.5f;
                     #if ENABLE_FILTER
-                        pEngine->pOutputRight[i++] += this->FilterRight.Apply(&bq_base, &bq_main, effective_volume * ((((a * pos_fract) + b) * pos_fract + c) * pos_fract + x0));
+                        pEngine->pOutputRight[i++] += this->FilterRight.Apply(&bq_base, &bq_main, volume_right * ((((a * pos_fract) + b) * pos_fract + c) * pos_fract + x0));
                     #else // no filter
-                        pEngine->pOutputRight[i++] += effective_volume * ((((a * pos_fract) + b) * pos_fract + c) * pos_fract + x0);
+                        pEngine->pOutputRight[i++] += volume_right * ((((a * pos_fract) + b) * pos_fract + c) * pos_fract + x0);
                     #endif // ENABLE_FILTER
                 #endif // USE_LINEAR_INTERPOLATION
 
                 this->Pos += pitch;
             }
 
-            inline void InterpolateOneStep_Mono(sample_t* pSrc, int& i, float& effective_volume, float& pitch,  biquad_param_t& bq_base, biquad_param_t& bq_main) {
+            inline void InterpolateOneStep_Mono(sample_t* pSrc, int& i, float volume_left, float volume_right, float& pitch,  biquad_param_t& bq_base, biquad_param_t& bq_main) {
                 int   pos_int   = RTMath::DoubleToInt(this->Pos);  // integer position
                 float pos_fract = this->Pos - pos_int;             // fractional part of position
 
                 #if USE_LINEAR_INTERPOLATION
-                    float sample_point  = effective_volume * (pSrc[pos_int] + pos_fract * (pSrc[pos_int+1] - pSrc[pos_int]));
+                    float sample_point  = pSrc[pos_int] + pos_fract * (pSrc[pos_int+1] - pSrc[pos_int]);
                 #else // polynomial interpolation
                     float xm1 = pSrc[pos_int];
                     float x0  = pSrc[pos_int+1];
@@ -224,15 +245,15 @@ namespace LinuxSampler { namespace gig {
                     float a   = (3.0f * (x0 - x1) - xm1 + x2) * 0.5f;
                     float b   = 2.0f * x1 + xm1 - (5.0f * x0 + x2) * 0.5f;
                     float c   = (x1 - xm1) * 0.5f;
-                    float sample_point = effective_volume * ((((a * pos_fract) + b) * pos_fract + c) * pos_fract + x0);
+                    float sample_point =  (((a * pos_fract) + b) * pos_fract + c) * pos_fract + x0;
                 #endif // USE_LINEAR_INTERPOLATION
 
                 #if ENABLE_FILTER
                     sample_point = this->FilterLeft.Apply(&bq_base, &bq_main, sample_point);
                 #endif // ENABLE_FILTER
 
-                pEngine->pOutputLeft[i]    += sample_point;
-                pEngine->pOutputRight[i++] += sample_point;
+                pEngine->pOutputLeft[i]    += sample_point * volume_left;
+                pEngine->pOutputRight[i++] += sample_point * volume_right;
 
                 this->Pos += pitch;
             }
