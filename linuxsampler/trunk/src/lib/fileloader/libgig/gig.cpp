@@ -2,8 +2,8 @@
  *                                                                         *
  *   libgig - C++ cross-platform Gigasampler format file loader library    *
  *                                                                         *
- *   Copyright (C) 2003 by Christian Schoenebeck                           *
- *                         <cuse@users.sourceforge.net>                    *
+ *   Copyright (C) 2003, 2004 by Christian Schoenebeck                     *
+ *                               <cuse@users.sourceforge.net>              *
  *                                                                         *
  *   This library is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -869,7 +869,7 @@ namespace gig {
             (*pVelocityTables)[tableKey] = pVelocityAttenuationTable; // put the new table into the tables map
         }
     }
-    
+
     leverage_ctrl_t DimensionRegion::DecodeLeverageController(_lev_ctrl_t EncodedController) {
         leverage_ctrl_t decodedcontroller;
         switch (EncodedController) {
@@ -886,7 +886,7 @@ namespace gig {
                 decodedcontroller.type = leverage_ctrl_t::type_channelaftertouch;
                 decodedcontroller.controller_number = 0;
                 break;
-            
+
             // ordinary MIDI control change controller
             case _lev_ctrl_modwheel:
                 decodedcontroller.type = leverage_ctrl_t::type_controlchange;
@@ -980,7 +980,7 @@ namespace gig {
                 decodedcontroller.type = leverage_ctrl_t::type_controlchange;
                 decodedcontroller.controller_number = 95;
                 break;
-            
+
             // unknown controller type
             default:
                 throw gig::Exception("Unknown leverage controller type.");

@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2003 by Benno Senoner ( benno@gardena.net )
+  Copyright (C) 2003, 2004 by Benno Senoner ( benno@gardena.net )
   http://www.linuxaudiodev.org
 
   For questions, suggestions, improvements contact me via E-Mail.
