@@ -64,7 +64,7 @@ void yyerror(const char* s);
 %token MISCELLANEOUS
 
 %type <Dotnum> volume
-%type <Number> sampler_channel instrument_index audio_output_channel midi_input_channel midi_input_port midi_input_device
+%type <Number> sampler_channel instrument_index audio_output_channel audio_output_device midi_input_channel midi_input_port midi_input_device
 %type <String> string param_val filename engine_name command create_instruction destroy_instruction get_instruction list_instruction load_instruction set_chan_instruction load_instr_args load_engine_args audio_output_type midi_input_type set_instruction subscribe_event unsubscribe_event
 %type <FillResponse> buffer_size_type
 %type <KeyValList> key_val_list
@@ -155,8 +155,9 @@ set_instruction       :  AUDIO_OUTPUT_DEVICE_PARAMETER SP NUMBER SP string EQ pa
                       ;
 
 create_instruction    :  AUDIO_OUTPUT_DEVICE SP string SP key_val_list { $$ = LSCPSERVER->CreateAudioOutputDevice($3,$5); }
-                      |  AUDIO_OUTPUT_DEVICE SP string                 { $$ = LSCPSERVER->CreateAudioOutputDevice($3); }
-                      |  MIDI_INPUT_DEVICE SP string                   { $$ = LSCPSERVER->CreateMidiInputDevice($3); }
+                      |  AUDIO_OUTPUT_DEVICE SP string                 { $$ = LSCPSERVER->CreateAudioOutputDevice($3);    }
+                      |  MIDI_INPUT_DEVICE SP string SP key_val_list   { $$ = LSCPSERVER->CreateMidiInputDevice($3,$5);   }
+                      |  MIDI_INPUT_DEVICE SP string                   { $$ = LSCPSERVER->CreateMidiInputDevice($3);      }
                       ;
 
 destroy_instruction   :  AUDIO_OUTPUT_DEVICE SP NUMBER  { $$ = LSCPSERVER->DestroyAudioOutputDevice($3); }
@@ -167,10 +168,13 @@ load_instruction      :  INSTRUMENT SP load_instr_args  { $$ = $3; }
                       |  ENGINE SP load_engine_args     { $$ = $3; }
                       ;
 
-set_chan_instruction  :  AUDIO_OUTPUT_DEVICE SP sampler_channel SP NUMBER                                         { $$ = LSCPSERVER->SetAudioOutputDevice($5, $3);      }
+set_chan_instruction  :  AUDIO_OUTPUT_DEVICE SP sampler_channel SP audio_output_device                            { $$ = LSCPSERVER->SetAudioOutputDevice($5, $3);      }
                       |  AUDIO_OUTPUT_CHANNEL SP sampler_channel SP audio_output_channel SP audio_output_channel  { $$ = LSCPSERVER->SetAudioOutputChannel($5, $7, $3); }
                       |  AUDIO_OUTPUT_TYPE SP sampler_channel SP audio_output_type                                { $$ = LSCPSERVER->SetAudioOutputType($5, $3);        }
-                      |  MIDI_INPUT SP sampler_channel SP midi_input_device SP midi_input_port SP midi_input_channel  { $$ = LSCPSERVER->SetMIDIInput($5, $7, $9, $3);          }
+                      |  MIDI_INPUT SP sampler_channel SP midi_input_device SP midi_input_port SP midi_input_channel  { $$ = LSCPSERVER->SetMIDIInput($5, $7, $9, $3);  }
+                      |  MIDI_INPUT_DEVICE SP sampler_channel SP midi_input_device                                { $$ = LSCPSERVER->SetMIDIInputDevice($5, $3);        }
+                      |  MIDI_INPUT_PORT SP sampler_channel SP midi_input_port                                    { $$ = LSCPSERVER->SetMIDIInputPort($5, $3);          }
+                      |  MIDI_INPUT_CHANNEL SP sampler_channel SP midi_input_channel                              { $$ = LSCPSERVER->SetMIDIInputChannel($5, $3);       }
                       |  MIDI_INPUT_TYPE SP sampler_channel SP midi_input_type                                    { $$ = LSCPSERVER->SetMIDIInputType($5, $3);          }
                       |  VOLUME SP sampler_channel SP volume                                                      { $$ = LSCPSERVER->SetVolume($5, $3);                 }
                       ;
@@ -192,6 +196,12 @@ load_instr_args       :  filename SP instrument_index SP sampler_channel  { $$ =
                       ;
 
 load_engine_args      :  engine_name SP sampler_channel  { $$ = LSCPSERVER->LoadEngine($1, $3); }
+                      ;
+
+audio_output_device   :  NUMBER
+                      ;
+
+audio_output_channel  :  NUMBER
                       ;
 
 audio_output_type     :  string
@@ -219,14 +229,10 @@ sampler_channel       :  NUMBER
 instrument_index      :  NUMBER
                       ;
 
-audio_output_channel  :  NUMBER
-                      ;
-
 engine_name           :  string
                       ;
 
 filename              :  STRINGVAL
-                      |  string
                       ;
 
 param_val             :  STRINGVAL                { $$ = $1;                                             }

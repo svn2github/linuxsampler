@@ -67,15 +67,36 @@ namespace LinuxSampler {
             void SetAudioOutputDevice(AudioOutputDevice* pDevice);
 
             /**
-             * Connect this sampler channel to and MIDI input port
+             * Connect this sampler channel to and MIDI input device.
              *
-             * @param MidiInputDevice - MIDI input device to connect to
-	     * @param MidiInputPort - MIDI port to connect to
+             * @param pDevice - MIDI input device to connect to
+             */
+            void SetMidiInputDevice(MidiInputDevice *pDevice);
+
+            /**
+             * Connect this sampler channel to and MIDI input port.
+             *
+             * @param MidiPort - MIDI port to connect to
+             */
+            void SetMidiInputPort(int MidiPort);
+
+            /**
+             * Connect this sampler channel to and MIDI input channel.
+             *
+             * @param MidiChannel - MIDI channel to connect to
+             */
+            void SetMidiInputChannel(MidiInputDevice::MidiInputPort::midi_chan_t MidiChannel);
+
+            /**
+             * Connect this sampler channel to a MIDI input triplet.
+             *
+             * @param pDevice - MIDI input device to connect to
+             * @param MidiPort - MIDI port to connect to
              * @param MidiChannel - optional: MIDI channel on which the
              *                      sampler channel should listen to
              *                      (default: listen on all MIDI channels)
              */
-            void SetMidiInputPort(MidiInputDevice* pDevice, int midiPort, MidiInputDevice::MidiInputPort::midi_chan_t MidiChannel = MidiInputDevice::MidiInputPort::midi_chan_all);
+            void SetMidiInput(MidiInputDevice* pDevice, int MidiPort, MidiInputDevice::MidiInputPort::midi_chan_t MidiChannel = MidiInputDevice::MidiInputPort::midi_chan_all);
 
             /**
              * Returns the engine that was deployed on this sampler channel.
@@ -85,13 +106,21 @@ namespace LinuxSampler {
             Engine* GetEngine();
 
             /**
-             * Returns the MIDI input device to which this sampler channel
-             * is currently connected to.
+             * Returns the MIDI input channel to which this sampler
+             * channel is currently connected to.
              *
-             * @returns  pointer to MIDI input device or NULL if not
-             *           connected
+             * @returns  The MIDI input channel on which the sampler
+             *           channel is listening to.
              */
-	    MidiInputDevice::MidiInputPort* GetMidiInputPort();
+            MidiInputDevice::MidiInputPort::midi_chan_t GetMidiInputChannel();
+
+            /**
+             * Returns the MIDI input port number to which this sampler
+             * channel is currently connected to.
+             *
+             * @returns  MIDI input port number or -1 if not connected
+             */
+            int GetMidiInputPort();
 
             /**
              * Returns the audio output device to which this sampler channel
@@ -103,10 +132,10 @@ namespace LinuxSampler {
             AudioOutputDevice* GetAudioOutputDevice();
 
             /**
-             * Returns the audio output device to which this sampler channel
+             * Returns the MIDI input device to which this sampler channel
              * is currently connected to.
              *
-             * @returns  pointer to audio output device or NULL if not
+             * @returns  pointer to MIDI input device or NULL if not
              *           connected
              */
             MidiInputDevice* GetMidiInputDevice();
@@ -117,21 +146,20 @@ namespace LinuxSampler {
              */
             uint Index();
 
-	    /**
-	     * Returns midi channel
-	     */
-	    MidiInputDevice::MidiInputPort::midi_chan_t GetMidiInputChannel() { return midiChannel; }
-
         protected:
             SamplerChannel(Sampler* pS);
            ~SamplerChannel();
 
+            /** Getting MIDI input device port given its index number. */
+            MidiInputDevice::MidiInputPort* GetMidiInputDevicePort(int MidiPort);
+            
             Sampler*           pSampler;
             Engine*            pEngine;
-	    MidiInputDevice::MidiInputPort*     pMidiInputPort;
             AudioOutputDevice* pAudioOutputDevice;
+            MidiInputDevice*   pMidiInputDevice;
+            int                midiPort;
+            MidiInputDevice::MidiInputPort::midi_chan_t midiChannel;
             int                iIndex;
-	    MidiInputDevice::MidiInputPort::midi_chan_t midiChannel;
 
             friend class Sampler;
     };
