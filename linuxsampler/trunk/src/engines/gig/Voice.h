@@ -163,7 +163,8 @@ namespace LinuxSampler { namespace gig {
             void Synthesize(uint Samples, sample_t* pSrc, uint Skip);
 
             inline float CrossfadeAttenuation(uint8_t& CrossfadeControllerValue) {
-                return (CrossfadeControllerValue <= pDimRgn->Crossfade.in_start)  ? 0.0f
+                return (!pDimRgn->Crossfade.out_end) ? 1.0f /* 0,0,0,0 means no crossfade defined */
+                     : (CrossfadeControllerValue <= pDimRgn->Crossfade.in_start)  ? 0.0f
                      : (CrossfadeControllerValue < pDimRgn->Crossfade.in_end)     ? float(CrossfadeControllerValue - pDimRgn->Crossfade.in_start) / float(pDimRgn->Crossfade.in_end - pDimRgn->Crossfade.in_start)
                      : (CrossfadeControllerValue <= pDimRgn->Crossfade.out_start) ? 1.0f
                      : (CrossfadeControllerValue < pDimRgn->Crossfade.out_end)    ? float(CrossfadeControllerValue - pDimRgn->Crossfade.out_start) / float(pDimRgn->Crossfade.out_end - pDimRgn->Crossfade.out_start)
