@@ -8,6 +8,9 @@ Version CVS HEAD (?)
     - fixed / improved accuracy of all three velocity to volume
       transformation functions (a.k.a. 'nonlinear','linear','special')
     - denormals are filtered from the velocity to volume tables
+    - bugfix for dimension region switching (wrong handling of the release
+      trigger dimension, no bit range check for dimensions of split type
+      'split_type_bit')
 
   * src/gigextract.cpp:
     - added support for libsndfile (if libaudiofile and libsndfile are
