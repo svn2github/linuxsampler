@@ -361,12 +361,15 @@ namespace LinuxSampler { namespace gig {
         ActiveVoiceCountTemp = 0;
 
 
-        // render audio on all engine channels
+        // handle events on all engine channels
         for (int i = 0; i < engineChannels.size(); i++) {
             if (!engineChannels[i]->pInstrument) continue; // ignore if no instrument loaded
-            // handle events on that engine channel
             ProcessEvents(engineChannels[i], Samples);
-            // render all 'normal', active voices
+        }
+
+        // render all 'normal', active voices on all engine channels
+        for (int i = 0; i < engineChannels.size(); i++) {
+            if (!engineChannels[i]->pInstrument) continue; // ignore if no instrument loaded
             RenderActiveVoices(engineChannels[i], Samples);
         }
 
@@ -1051,7 +1054,7 @@ namespace LinuxSampler { namespace gig {
     }
 
     String Engine::Version() {
-        String s = "$Revision: 1.31 $";
+        String s = "$Revision: 1.32 $";
         return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
 
