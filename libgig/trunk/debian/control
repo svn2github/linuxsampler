@@ -1,7 +1,7 @@
 Source: libgig
 Section: devel
 Priority: optional
-Maintainer: Christian Schoenebeck <cuse@users.sourceforge.net>
+Maintainer: Matt Flax <flatmax@pgb.unsw.edu.au>
 Build-Depends: debhelper (>= 4.0.0)
 Standards-Version: 3.6.1
 
@@ -9,7 +9,7 @@ Package: libgig-dev
 Section: libdevel
 Architecture: any
 Depends: libgig (= ${Source-Version})
-Description: Library for loading Gigasampler files and DLS Level 1/2 files
+Description: library for loading Gigasampler files and DLS Level 1/2 files
  libgig is a C++ library for loading Gigasampler files and
  DLS (Downloadable Sounds) Level 1/2 files.
  .
@@ -24,7 +24,7 @@ Package: libgig
 Section: libs
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
-Description: Library for loading Gigasampler files and DLS Level 1/2 files
+Description: library for loading Gigasampler files and DLS Level 1/2 files
  libgig is a C++ library for loading Gigasampler files and
  DLS (Downloadable Sounds) Level 1/2 files.
  .
@@ -35,15 +35,15 @@ Package: gigtools
 Section: utils
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}, libaudiofile0 (>= 0.2.3)
-Description: Command line tools for Gigasampler and DLS Level 1/2 files
+Description: command line tools for Gigasampler and DLS Level 1/2 files
  This package contains the following command line tools:
  .
- * gigdump:
+ gigdump:
    Prints out the content of a .gig file.
- * gigextract:
+ gigextract:
    Extracts samples from a .gig file.
- * dlsdump:
+ dlsdump:
    Prints out the content of a DLS file.
- * rifftree:
+ rifftree:
    Prints out the RIFF tree of an arbitrary RIFF file.
 

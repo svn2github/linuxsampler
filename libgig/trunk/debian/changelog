@@ -1,9 +1,19 @@
+libgig (1.0.cvs02032005-1) unstable; urgency=low
+
+  * Updated to cvs version
+	
+ -- Matt Flax <flatmax@pgb.unsw.edu.au>  Wed, 2 Mar 2005 11:40:49 +0100
+	
 libgig (1.0.0-1) unstable; urgency=low
 
-  * New upstream release
+  * New upstream release (Closes: #279932)
   * Doxygen API documentation included with libgig-dev
-
- -- Christian Schoenebeck <cuse@users.sourceforge.net>  Fri, 26 Nov 2004 20:02:26 +0100
+  * Changed maintainer names from Christian Schoenebeck to MAtt Flax. Note
+    That the original packaging was done by Christian
+  * altered the rules file
+  * fixed various lintian errors
+	
+ -- Matt Flax <flatmax@pgb.unsw.edu.au>  Sat, 5 Feb 2005 20:02:26 +0100
 
 libgig (0.7.1-1) unstable; urgency=low
 
