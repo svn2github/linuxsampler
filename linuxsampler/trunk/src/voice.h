@@ -32,6 +32,7 @@
 #include "rtelmemorypool.h"
 #include "audiothread.h"
 #include "filter.h"
+#include "lfo.h"
 
 #define MAX_PITCH			4  //FIXME: at the moment in octaves, should be changed into semitones
 #define USE_LINEAR_INTERPOLATION	1  ///< set to 0 if you prefer cubic interpolation (slower, better quality)
@@ -52,7 +53,8 @@
 /// Reflects a MIDI controller
 struct midi_ctrl {
     uint8_t controller; ///< MIDI control change controller number
-    uint8_t value;      ///< Current controller value
+    uint8_t value;      ///< Current MIDI controller value
+    float   fvalue;     ///< Transformed / effective value (e.g. volume level or filter cutoff frequency)
 };
 
 class Voice {
@@ -105,7 +107,10 @@ class Voice {
         GigFilter            FilterRight;
         midi_ctrl            VCFCutoffCtrl;
         midi_ctrl            VCFResonanceCtrl;
-        ModulationSystem::Event* pTriggerEvent;    ///< First event on the key's list the voice should process (only needed for the first audio fragment in which voice was triggered, after that it will be set to NULL).        
+        LFO*                 pLFO1;
+        LFO*                 pLFO2;
+        LFO*                 pLFO3;
+        ModulationSystem::Event* pTriggerEvent;    ///< First event on the key's list the voice should process (only needed for the first audio fragment in which voice was triggered, after that it will be set to NULL).
 
         // Methods
         void        ProcessEvents(uint Samples);
@@ -115,9 +120,9 @@ class Voice {
             int   pos_int   = double_to_int(this->Pos);  // integer position
             float pos_fract = this->Pos - pos_int;       // fractional part of position
             pos_int <<= 1;
-            
+
             #if ENABLE_FILTER
-                UpdateFilter_Stereo(cutoff, resonance);
+                UpdateFilter_Stereo(cutoff + 20.0f, resonance); // 20Hz min.
             #endif // ENABLE_FILTER
 
             #if USE_LINEAR_INTERPOLATION
@@ -126,7 +131,7 @@ class Voice {
                     this->pOutputLeft[i]    += this->FilterLeft.Apply(effective_volume * (pSrc[pos_int]   + pos_fract * (pSrc[pos_int+2] - pSrc[pos_int])));
                     // right channel
                     this->pOutputRight[i++] += this->FilterRight.Apply(effective_volume * (pSrc[pos_int+1] + pos_fract * (pSrc[pos_int+3] - pSrc[pos_int+1])));
-                #else // no filter                
+                #else // no filter
                     // left channel
                     this->pOutputLeft[i]    += effective_volume * (pSrc[pos_int]   + pos_fract * (pSrc[pos_int+2] - pSrc[pos_int]));
                     // right channel
@@ -145,7 +150,7 @@ class Voice {
                     this->pOutputLeft[i] += this->FilterLeft.Apply(effective_volume * ((((a * pos_fract) + b) * pos_fract + c) * pos_fract + x0));
                 #else // no filter
                     this->pOutputLeft[i] += effective_volume * ((((a * pos_fract) + b) * pos_fract + c) * pos_fract + x0);
-                #endif // ENABLE_FILTER                
+                #endif // ENABLE_FILTER
 
                 //calculate right channel
                 xm1 = pSrc[pos_int+1];
@@ -167,9 +172,9 @@ class Voice {
         inline void InterpolateOneStep_Mono(sample_t* pSrc, int& i, float& effective_volume, float& pitch, float& cutoff, float& resonance) {
             int   pos_int   = double_to_int(this->Pos);  // integer position
             float pos_fract = this->Pos - pos_int;       // fractional part of position
-            
+
             #if ENABLE_FILTER
-                UpdateFilter_Mono(cutoff, resonance);
+                UpdateFilter_Mono(cutoff + 20.0f, resonance); // 20Hz min.
             #endif // ENABLE_FILTER
 
             #if USE_LINEAR_INTERPOLATION
@@ -183,9 +188,9 @@ class Voice {
                 float b   = 2 * x1 + xm1 - (5 * x0 + x2) / 2;
                 float c   = (x1 - xm1) / 2;
                 float sample_point = effective_volume * ((((a * pos_fract) + b) * pos_fract + c) * pos_fract + x0);
-            #endif // USE_LINEAR_INTERPOLATION            
+            #endif // USE_LINEAR_INTERPOLATION
 
-            #if ENABLE_FILTER                                                
+            #if ENABLE_FILTER
                 sample_point = this->FilterLeft.Apply(sample_point);
             #endif // ENABLE_FILTER
 
@@ -194,26 +199,26 @@ class Voice {
 
             this->Pos += pitch;
         }
-        inline void UpdateFilter_Stereo(float& cutoff, float& resonance) {
+        inline void UpdateFilter_Stereo(float cutoff, float& resonance) {
             static int updatecounter = 0; // we update the filter all FILTER_UPDATE_PERIOD samples
-            if (!(++updatecounter % FILTER_UPDATE_PERIOD) && cutoff != FilterLeft.Cutoff() || resonance != FilterLeft.Resonance()) {
+            if (!(++updatecounter % FILTER_UPDATE_PERIOD) && (cutoff != FilterLeft.Cutoff() || resonance != FilterLeft.Resonance())) {
                 FilterLeft.SetParameters(cutoff, resonance, ModulationSystem::SampleRate());
                 FilterRight.SetParameters(cutoff, resonance, ModulationSystem::SampleRate());
             }
         }
-        inline void UpdateFilter_Mono(float& cutoff, float& resonance) {
+        inline void UpdateFilter_Mono(float cutoff, float& resonance) {
             static int updatecounter = 0; // we update the filter all FILTER_UPDATE_PERIOD samples
-            if (!(++updatecounter % FILTER_UPDATE_PERIOD) && cutoff != FilterLeft.Cutoff() || resonance != FilterLeft.Resonance()) {
+            if (!(++updatecounter % FILTER_UPDATE_PERIOD) && (cutoff != FilterLeft.Cutoff() || resonance != FilterLeft.Resonance())) {
                 FilterLeft.SetParameters(cutoff, resonance, ModulationSystem::SampleRate());
             }
         }
-        inline void ForceUpdateFilter_Stereo(float& cutoff, float& resonance) {
+        inline void ForceUpdateFilter_Stereo(float cutoff, float& resonance) {
             if (cutoff != FilterLeft.Cutoff() || resonance != FilterLeft.Resonance()) {
                 FilterLeft.SetParameters(cutoff, resonance, ModulationSystem::SampleRate());
-                FilterRight.SetParameters(cutoff, resonance, ModulationSystem::SampleRate());            
-            }        
+                FilterRight.SetParameters(cutoff, resonance, ModulationSystem::SampleRate());
+            }
         }
-        inline void ForceUpdateFilter_Mono(float& cutoff, float& resonance) {
+        inline void ForceUpdateFilter_Mono(float cutoff, float& resonance) {
             if (cutoff != FilterLeft.Cutoff() || resonance != FilterLeft.Resonance()) {
                 FilterLeft.SetParameters(cutoff, resonance, ModulationSystem::SampleRate());
             }
@@ -221,7 +226,7 @@ class Voice {
         inline float Constrain(float ValueToCheck, float Min, float Max) {
             if      (ValueToCheck > Max) ValueToCheck = Max;
             else if (ValueToCheck < Min) ValueToCheck = Min;
-            return ValueToCheck;                      
+            return ValueToCheck;
         }
         inline int double_to_int(double f) {
             #if ARCH_X86

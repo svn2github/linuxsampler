@@ -29,9 +29,15 @@ AudioThread* Voice::pEngine     = NULL;
 
 Voice::Voice() {
     Active = false;
+    pLFO1  = new LFO(ModulationSystem::destination_vca, LFO::manipulation_type_multiply, 0.0f, 1.0f, LFO::propagation_top_down, pEngine->pEventPool);
+    pLFO2  = new LFO(ModulationSystem::destination_vcfc, LFO::manipulation_type_multiply, 0.0f, 1.0f, LFO::propagation_top_down, pEngine->pEventPool);
+    pLFO3  = new LFO(ModulationSystem::destination_vco, LFO::manipulation_type_add, -1.0f, 1.0f, LFO::propagation_middle_balanced, pEngine->pEventPool);
 }
 
 Voice::~Voice() {
+    if (pLFO1) delete pLFO1;
+    if (pLFO2) delete pLFO2;
+    if (pLFO3) delete pLFO3;
 }
 
 /**
@@ -112,7 +118,7 @@ int Voice::Trigger(ModulationSystem::Event* pNoteOnEvent, int Pitch, gig::Instru
                                                                             : pow(2, ((double) pDimRgn->FineTune / 100.0) / 12.0));
 
     Volume = pDimRgn->GetVelocityAttenuation(pNoteOnEvent->Velocity);
-    
+
     // get current value of EG1 controller
     double eg1controllervalue;
     switch (pDimRgn->EG1Controller.type) {
@@ -130,12 +136,12 @@ int Voice::Trigger(ModulationSystem::Event* pNoteOnEvent, int Pitch, gig::Instru
             break;
     }
     if (pDimRgn->EG1ControllerInvert) eg1controllervalue = 127 - eg1controllervalue;
-    
+
     // calculate influence of EG1 controller on EG1's parameters (TODO: needs to be fine tuned)
     double eg1attack  = (pDimRgn->EG1ControllerAttackInfluence)  ? 0.0001 * (double) (1 << pDimRgn->EG1ControllerAttackInfluence)  * eg1controllervalue : 0.0;
     double eg1decay   = (pDimRgn->EG1ControllerDecayInfluence)   ? 0.0001 * (double) (1 << pDimRgn->EG1ControllerDecayInfluence)   * eg1controllervalue : 0.0;
     double eg1release = (pDimRgn->EG1ControllerReleaseInfluence) ? 0.0001 * (double) (1 << pDimRgn->EG1ControllerReleaseInfluence) * eg1controllervalue : 0.0;
-    
+
     EG1.Trigger(pDimRgn->EG1PreAttack,
                 pDimRgn->EG1Attack + eg1attack,
                 pDimRgn->EG1Hold,
@@ -147,6 +153,116 @@ int Voice::Trigger(ModulationSystem::Event* pNoteOnEvent, int Pitch, gig::Instru
                 pDimRgn->EG1Release + eg1release,
                 Delay);
 
+    // setup LFO 1 (VCA LFO)
+    {
+        uint16_t lfo1_internal_depth;
+        switch (pDimRgn->LFO1Controller) {
+            case gig::lfo1_ctrl_internal:
+                lfo1_internal_depth  = pDimRgn->LFO1InternalDepth;
+                pLFO1->ExtController = 0; // no external controller
+                break;
+            case gig::lfo1_ctrl_modwheel:
+                lfo1_internal_depth  = 0;
+                pLFO1->ExtController = 1; // MIDI controller 1
+                break;
+            case gig::lfo1_ctrl_breath:
+                lfo1_internal_depth  = 0;
+                pLFO1->ExtController = 2; // MIDI controller 2
+                break;
+            case gig::lfo1_ctrl_internal_modwheel:
+                lfo1_internal_depth  = pDimRgn->LFO1InternalDepth;
+                pLFO1->ExtController = 1; // MIDI controller 1
+                break;
+            case gig::lfo1_ctrl_internal_breath:
+                lfo1_internal_depth  = pDimRgn->LFO1InternalDepth;
+                pLFO1->ExtController = 2; // MIDI controller 2
+                break;
+            default:
+                lfo1_internal_depth  = 0;
+                pLFO1->ExtController = 0; // no external controller
+        }
+        pLFO1->Trigger(pDimRgn->LFO1Frequency,
+                       lfo1_internal_depth,
+                       pDimRgn->LFO1ControlDepth,
+                       pEngine->ControllerTable[pLFO1->ExtController],
+                       pDimRgn->LFO1FlipPhase,
+                       Delay);
+    }
+
+#if ENABLE_FILTER
+    // setup LFO 2 (VCF Cutoff LFO)
+    {
+        uint16_t lfo2_internal_depth;
+        switch (pDimRgn->LFO2Controller) {
+            case gig::lfo2_ctrl_internal:
+                lfo2_internal_depth  = pDimRgn->LFO2InternalDepth;
+                pLFO2->ExtController = 0; // no external controller
+                break;
+            case gig::lfo2_ctrl_modwheel:
+                lfo2_internal_depth  = 0;
+                pLFO2->ExtController = 1; // MIDI controller 1
+                break;
+            case gig::lfo2_ctrl_foot:
+                lfo2_internal_depth  = 0;
+                pLFO2->ExtController = 4; // MIDI controller 4
+                break;
+            case gig::lfo2_ctrl_internal_modwheel:
+                lfo2_internal_depth  = pDimRgn->LFO2InternalDepth;
+                pLFO2->ExtController = 1; // MIDI controller 1
+                break;
+            case gig::lfo2_ctrl_internal_foot:
+                lfo2_internal_depth  = pDimRgn->LFO2InternalDepth;
+                pLFO2->ExtController = 4; // MIDI controller 4
+                break;
+            default:
+                lfo2_internal_depth  = 0;
+                pLFO2->ExtController = 0; // no external controller
+        }
+        pLFO2->Trigger(pDimRgn->LFO2Frequency,
+                       lfo2_internal_depth,
+                       pDimRgn->LFO2ControlDepth,
+                       pEngine->ControllerTable[pLFO2->ExtController],
+                       pDimRgn->LFO2FlipPhase,
+                       Delay);
+    }
+#endif // ENABLE_FILTER
+
+    // setup LFO 3 (VCO LFO)
+    {
+        uint16_t lfo3_internal_depth;
+        switch (pDimRgn->LFO3Controller) {
+            case gig::lfo3_ctrl_internal:
+                lfo3_internal_depth  = pDimRgn->LFO3InternalDepth;
+                pLFO3->ExtController = 0; // no external controller
+                break;
+            case gig::lfo3_ctrl_modwheel:
+                lfo3_internal_depth  = 0;
+                pLFO3->ExtController = 1; // MIDI controller 1
+                break;
+            case gig::lfo3_ctrl_aftertouch:
+                lfo3_internal_depth  = 0;
+                pLFO3->ExtController = 0; // TODO: aftertouch not implemented yet
+                break;
+            case gig::lfo3_ctrl_internal_modwheel:
+                lfo3_internal_depth  = pDimRgn->LFO3InternalDepth;
+                pLFO3->ExtController = 1; // MIDI controller 1
+                break;
+            case gig::lfo3_ctrl_internal_aftertouch:
+                lfo3_internal_depth  = pDimRgn->LFO3InternalDepth;
+                pLFO1->ExtController = 0; // TODO: aftertouch not implemented yet
+                break;
+            default:
+                lfo3_internal_depth  = 0;
+                pLFO3->ExtController = 0; // no external controller
+        }
+        pLFO3->Trigger(pDimRgn->LFO3Frequency,
+                       lfo3_internal_depth,
+                       pDimRgn->LFO3ControlDepth,
+                       pEngine->ControllerTable[pLFO3->ExtController],
+                       false,
+                       Delay);
+    }
+
 #if ENABLE_FILTER
     #if FORCE_FILTER_USAGE
     FilterLeft.Enabled = FilterRight.Enabled = true;
@@ -157,7 +273,7 @@ int Voice::Trigger(ModulationSystem::Event* pNoteOnEvent, int Pitch, gig::Instru
         #ifdef OVERRIDE_FILTER_CUTOFF_CTRL
         VCFCutoffCtrl.controller = OVERRIDE_FILTER_CUTOFF_CTRL;
         #else // use the one defined in the instrument file
-        switch (pDimRgn->VCFCutoffController) {            
+        switch (pDimRgn->VCFCutoffController) {
             case gig::vcf_cutoff_ctrl_modwheel:
                 VCFCutoffCtrl.controller = 1;
                 break;
@@ -192,7 +308,7 @@ int Voice::Trigger(ModulationSystem::Event* pNoteOnEvent, int Pitch, gig::Instru
                 break;
         }
         #endif // OVERRIDE_FILTER_CUTOFF_CTRL
-        
+
         #ifdef OVERRIDE_FILTER_RES_CTRL
         VCFResonanceCtrl.controller = OVERRIDE_FILTER_RES_CTRL;
         #else // use the one defined in the instrument file
@@ -214,7 +330,7 @@ int Voice::Trigger(ModulationSystem::Event* pNoteOnEvent, int Pitch, gig::Instru
                 VCFResonanceCtrl.controller = 0;
         }
         #endif // OVERRIDE_FILTER_RES_CTRL
-        
+
         #ifndef OVERRIDE_FILTER_TYPE
         FilterLeft.SetType(pDimRgn->VCFType);
         FilterRight.SetType(pDimRgn->VCFType);
@@ -222,24 +338,27 @@ int Voice::Trigger(ModulationSystem::Event* pNoteOnEvent, int Pitch, gig::Instru
         FilterLeft.SetType(OVERRIDE_FILTER_TYPE);
         FilterRight.SetType(OVERRIDE_FILTER_TYPE);
         #endif // OVERRIDE_FILTER_TYPE
-        
+
         VCFCutoffCtrl.value    = pEngine->ControllerTable[VCFCutoffCtrl.controller];
         VCFResonanceCtrl.value = pEngine->ControllerTable[VCFResonanceCtrl.controller];
-        
+
         // calculate cutoff frequency
         float cutoff = (!VCFCutoffCtrl.controller && pDimRgn->VCFVelocityScale)
-            ? (float) pNoteOnEvent->Velocity * pDimRgn->VCFVelocityScale * 0.31f + 20.0f // 20Hz..5kHz
-            : (float) (127 - VCFCutoffCtrl.value) * 39.4f + 20.0f;                       // 20Hz..5kHz (inverted)
-        
+            ? (float) pNoteOnEvent->Velocity * pDimRgn->VCFVelocityScale * 0.31f // up to 5kHz
+            : (float) (127 - VCFCutoffCtrl.value) * 39.4f;                       // up to 5kHz (inverted)
+
         // calculate resonance
         float resonance = (float) VCFResonanceCtrl.value * 0.00787f;   // 0.0..1.0
         if (pDimRgn->VCFKeyboardTracking) {
             resonance += (float) (pNoteOnEvent->Key - pDimRgn->VCFKeyboardTrackingBreakpoint) * 0.00787f;
         }
         Constrain(resonance, 0.0, 1.0); // correct resonance if outside allowed value range (0.0..1.0)
-        
-        FilterLeft.SetParameters(cutoff,  resonance, ModulationSystem::SampleRate());
-        FilterRight.SetParameters(cutoff, resonance, ModulationSystem::SampleRate());
+
+        VCFCutoffCtrl.fvalue    = cutoff;
+        VCFResonanceCtrl.fvalue = resonance;
+
+        FilterLeft.SetParameters(cutoff + 20.0f,  resonance, ModulationSystem::SampleRate()); // 20Hz min.
+        FilterRight.SetParameters(cutoff + 20.0f, resonance, ModulationSystem::SampleRate()); // 20Hz min.
     }
     else {
         VCFCutoffCtrl.controller    = 0;
@@ -270,15 +389,10 @@ void Voice::Render(uint Samples) {
     // Reset the synthesis parameter matrix
     ModulationSystem::ResetDestinationParameter(ModulationSystem::destination_vca, this->Volume);
     ModulationSystem::ResetDestinationParameter(ModulationSystem::destination_vco, this->Pitch);
-#if ENABLE_FILTER    
-    ModulationSystem::ResetDestinationParameter(ModulationSystem::destination_vcfc, FilterLeft.Cutoff());    // intialize with last cutoff value from previous render cycle
-    ModulationSystem::ResetDestinationParameter(ModulationSystem::destination_vcfr, FilterLeft.Resonance()); // intialize with last resonance value from previous render cycle
-    
-    
-    // Reset synthesis event lists (except VCO, as VCO events apply channel wide currently)
-    pEngine->pSynthesisEvents[ModulationSystem::destination_vcfc]->clear();
-    pEngine->pSynthesisEvents[ModulationSystem::destination_vcfr]->clear();
-#endif // ENABLE_FILTER    
+#if ENABLE_FILTER
+    ModulationSystem::ResetDestinationParameter(ModulationSystem::destination_vcfc, VCFCutoffCtrl.fvalue);
+    ModulationSystem::ResetDestinationParameter(ModulationSystem::destination_vcfr, VCFResonanceCtrl.fvalue);
+#endif // ENABLE_FILTER
 
 
     // Apply events to the synthesis parameter matrix
@@ -286,7 +400,12 @@ void Voice::Render(uint Samples) {
 
 
     // Let all modulators write their parameter changes to the synthesis parameter matrix for the current audio fragment
-    EG1.Process(Samples, pEngine->pMIDIKeyInfo[MIDIKey].pEvents, pTriggerEvent, this->Pos, this->Pitch);    
+    EG1.Process(Samples, pEngine->pMIDIKeyInfo[MIDIKey].pEvents, pTriggerEvent, this->Pos, this->Pitch);
+    pLFO1->Process(Samples);
+#if ENABLE_FILTER
+    pLFO2->Process(Samples);
+#endif // ENABLE_FILTER
+    pLFO3->Process(Samples);
 
 
     switch (this->PlaybackState) {
@@ -339,6 +458,12 @@ void Voice::Render(uint Samples) {
     }
 
 
+#if ENABLE_FILTER
+    // Reset synthesis event lists (except VCO, as VCO events apply channel wide currently)
+    pEngine->pSynthesisEvents[ModulationSystem::destination_vcfc]->clear();
+    pEngine->pSynthesisEvents[ModulationSystem::destination_vcfr]->clear();
+#endif // ENABLE_FILTER
+
     // Reset delay
     Delay = 0;
 
@@ -353,6 +478,9 @@ void Voice::Render(uint Samples) {
  *  suspended / not running.
  */
 void Voice::Reset() {
+    pLFO1->Reset();
+    pLFO2->Reset();
+    pLFO3->Reset();
     DiskStreamRef.pStream = NULL;
     DiskStreamRef.hStream = 0;
     DiskStreamRef.State   = Stream::state_unused;
@@ -368,20 +496,34 @@ void Voice::Reset() {
  *  @param Samples - number of samples to be rendered in this audio fragment cycle
  */
 void Voice::ProcessEvents(uint Samples) {
-#if ENABLE_FILTER
+
     // dispatch control change events
     ModulationSystem::Event* pCCEvent = pEngine->pCCEvents->first();
     while (pCCEvent) {
-        if (pCCEvent->Controller == VCFCutoffCtrl.controller) {
-            pEngine->pSynthesisEvents[ModulationSystem::destination_vcfc]->alloc_assign(*pCCEvent);
-        }
-        if (pCCEvent->Controller == VCFResonanceCtrl.controller) {
-            pEngine->pSynthesisEvents[ModulationSystem::destination_vcfr]->alloc_assign(*pCCEvent);
+        if (pCCEvent->Controller) { // if valid MIDI controller
+            #if ENABLE_FILTER
+            if (pCCEvent->Controller == VCFCutoffCtrl.controller) {
+                pEngine->pSynthesisEvents[ModulationSystem::destination_vcfc]->alloc_assign(*pCCEvent);
+            }
+            if (pCCEvent->Controller == VCFResonanceCtrl.controller) {
+                pEngine->pSynthesisEvents[ModulationSystem::destination_vcfr]->alloc_assign(*pCCEvent);
+            }
+            #endif // ENABLE_FILTER
+            if (pCCEvent->Controller == pLFO1->ExtController) {
+                pLFO1->SendEvent(pCCEvent);
+            }
+            #if ENABLE_FILTER
+            if (pCCEvent->Controller == pLFO2->ExtController) {
+                pLFO2->SendEvent(pCCEvent);
+            }
+            #endif // ENABLE_FILTER
+            if (pCCEvent->Controller == pLFO3->ExtController) {
+                pLFO3->SendEvent(pCCEvent);
+            }
         }
 
         pCCEvent = pEngine->pCCEvents->next();
     }
-#endif // ENABLE_FILTER
 
     // process pitch events
     RTEList<ModulationSystem::Event>* pVCOEventList = pEngine->pSynthesisEvents[ModulationSystem::destination_vco];
@@ -391,7 +533,7 @@ void Voice::ProcessEvents(uint Samples) {
 
         // calculate the influence length of this event (in sample points)
         uint end = (pNextVCOEvent) ? pNextVCOEvent->FragmentPos() : Samples;
-                                        
+
         this->Pitch += ((double) pVCOEvent->Pitch / 8192.0) / 12.0; // +- one semitone
 
         // apply pitch value to the pitch parameter sequence
@@ -415,9 +557,9 @@ void Voice::ProcessEvents(uint Samples) {
         // convert absolute controller value to differential
         int ctrldelta = pCutoffEvent->Value - VCFCutoffCtrl.value;
         VCFCutoffCtrl.value = pCutoffEvent->Value;
-        
+
         float cutoffdelta = (float) ctrldelta * -39.4f; // (20Hz)..5kHz (inverted)
-        
+
         // apply cutoff frequency to the cutoff parameter sequence
         for (uint i = pCutoffEvent->FragmentPos(); i < end; i++) {
             ModulationSystem::pDestinationParameter[ModulationSystem::destination_vcfc][i] += cutoffdelta;
@@ -425,7 +567,8 @@ void Voice::ProcessEvents(uint Samples) {
 
         pCutoffEvent = pNextCutoffEvent;
     }
-    
+    if (pCutoffEventList->last()) VCFCutoffCtrl.fvalue = (float) (127 - pCutoffEventList->last()->Value) * 39.4f; // needed for initialization of parameter matrix next time
+
     // process filter resonance events
     RTEList<ModulationSystem::Event>* pResonanceEventList = pEngine->pSynthesisEvents[ModulationSystem::destination_vcfr];
     ModulationSystem::Event* pResonanceEvent = pResonanceEventList->first();
@@ -434,13 +577,13 @@ void Voice::ProcessEvents(uint Samples) {
 
         // calculate the influence length of this event (in sample points)
         uint end = (pNextResonanceEvent) ? pNextResonanceEvent->FragmentPos() : Samples;
-        
+
         // convert absolute controller value to differential
         int ctrldelta = pResonanceEvent->Value - VCFResonanceCtrl.value;
         VCFResonanceCtrl.value = pResonanceEvent->Value;
 
         float resonancedelta = (float) ctrldelta * 0.00787f; // 0.0..1.0
-        
+
         // apply cutoff frequency to the cutoff parameter sequence
         for (uint i = pResonanceEvent->FragmentPos(); i < end; i++) {
             ModulationSystem::pDestinationParameter[ModulationSystem::destination_vcfr][i] += resonancedelta;
@@ -448,6 +591,7 @@ void Voice::ProcessEvents(uint Samples) {
 
         pResonanceEvent = pNextResonanceEvent;
     }
+    if (pResonanceEventList->last()) VCFResonanceCtrl.fvalue = pResonanceEventList->last()->Value * 0.00787f; // needed for initialization of parameter matrix next time
 #endif // ENABLE_FILTER
 }
 
@@ -471,8 +615,8 @@ void Voice::Interpolate(uint Samples, sample_t* pSrc, uint Skip) {
                                       ModulationSystem::pDestinationParameter[ModulationSystem::destination_vcfc][i],
                                       ModulationSystem::pDestinationParameter[ModulationSystem::destination_vcfr][i]);
         }
-        
-#if ENABLE_FILTER        
+
+#if ENABLE_FILTER
         // to save the last filter setting for the next render cycle (only needed when we update the filter not-sample-accurate)
         ForceUpdateFilter_Stereo(ModulationSystem::pDestinationParameter[ModulationSystem::destination_vcfc][Samples - 1],
                                  ModulationSystem::pDestinationParameter[ModulationSystem::destination_vcfr][Samples - 1]);
@@ -486,13 +630,13 @@ void Voice::Interpolate(uint Samples, sample_t* pSrc, uint Skip) {
                                     ModulationSystem::pDestinationParameter[ModulationSystem::destination_vcfc][i],
                                     ModulationSystem::pDestinationParameter[ModulationSystem::destination_vcfr][i]);
         }
-        
-#if ENABLE_FILTER        
+
+#if ENABLE_FILTER
         // to save the last filter setting for the next render cycle (only needed when we update the filter not-sample-accurate)
         ForceUpdateFilter_Mono(ModulationSystem::pDestinationParameter[ModulationSystem::destination_vcfc][Samples - 1],
                                ModulationSystem::pDestinationParameter[ModulationSystem::destination_vcfr][Samples - 1]);
 #endif // ENABLE_FILTER
-    }        
+    }
 }
 
 /**
@@ -542,11 +686,11 @@ void Voice::InterpolateAndLoop(uint Samples, sample_t* pSrc, uint Skip) {
                 }
             }
         }
-#if ENABLE_FILTER        
+#if ENABLE_FILTER
         // to save the last filter setting for the next render cycle (only needed when we update the filter not-sample-accurate)
         ForceUpdateFilter_Stereo(ModulationSystem::pDestinationParameter[ModulationSystem::destination_vcfc][Samples - 1],
                                  ModulationSystem::pDestinationParameter[ModulationSystem::destination_vcfr][Samples - 1]);
-#endif // ENABLE_FILTER                                 
+#endif // ENABLE_FILTER
     }
     else { // Mono Sample
         if (pSample->LoopPlayCount) {
@@ -583,12 +727,12 @@ void Voice::InterpolateAndLoop(uint Samples, sample_t* pSrc, uint Skip) {
                 }
             }
         }
-#if ENABLE_FILTER        
+#if ENABLE_FILTER
         // to save the last filter setting for the next render cycle (only needed when we update the filter not-sample-accurate)
         ForceUpdateFilter_Mono(ModulationSystem::pDestinationParameter[ModulationSystem::destination_vcfc][Samples - 1],
                                ModulationSystem::pDestinationParameter[ModulationSystem::destination_vcfr][Samples - 1]);
-#endif // ENABLE_FILTER                               
-    }    
+#endif // ENABLE_FILTER
+    }
 }
 
 /**
