@@ -54,7 +54,9 @@ namespace LinuxSampler {
              * List of all currently implemented MIDI input drivers.
              */
             enum type_t {
-                type_alsa
+                type_alsa,
+				type_core_midi,
+				type_midishare
             };
 
             /**
