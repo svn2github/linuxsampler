@@ -110,7 +110,13 @@ int main(int argc, char **argv) {
 
     printf("LinuxSampler initialization completed.\n");
 
-    while(true)  {
+    std::list<LSCPEvent::event_t> rtEvents;
+    rtEvents.push_back(LSCPEvent::event_voice_count);
+    rtEvents.push_back(LSCPEvent::event_stream_count);
+    rtEvents.push_back(LSCPEvent::event_buffer_fill);
+
+    while(true)
+    {
       /*printf("Voices: %3.3d (Max: %3.3d) Streams: %3.3d (Max: %3.3d, Unused: %3.3d)\r",
             pEngine->ActiveVoiceCount, pEngine->ActiveVoiceCountMax,
             pEngine->pDiskThread->ActiveStreamCount, pEngine->pDiskThread->ActiveStreamCountMax, Stream::GetUnusedStreams());
@@ -126,6 +132,23 @@ int main(int argc, char **argv) {
 		      fflush(stdout);
 	      }
       }
+      
+      if (LSCPServer::EventSubscribers(rtEvents))
+      {
+	      LSCPServer::LockRTNotify();
+	      std::map<uint,SamplerChannel*> channels = pSampler->GetSamplerChannels();
+	      std::map<uint,SamplerChannel*>::iterator iter = channels.begin();
+	      for (; iter != channels.end(); iter++) {
+		      SamplerChannel* pSamplerChannel = iter->second;
+		      Engine* pEngine = pSamplerChannel->GetEngine();
+		      if (!pEngine) continue;
+		      LSCPServer::SendLSCPNotify(LSCPEvent(LSCPEvent::event_voice_count, iter->first, pEngine->VoiceCount()));
+		      LSCPServer::SendLSCPNotify(LSCPEvent(LSCPEvent::event_stream_count, iter->first, pEngine->DiskStreamCount()));
+		      LSCPServer::SendLSCPNotify(LSCPEvent(LSCPEvent::event_buffer_fill, iter->first, pEngine->DiskStreamBufferFillPercentage()));
+	      }
+	      LSCPServer::UnlockRTNotify();
+      }
+
     }
 
     return EXIT_SUCCESS;

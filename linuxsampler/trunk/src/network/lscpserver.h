@@ -129,6 +129,9 @@ class LSCPServer : public Thread {
 	static std::map<int,String> bufferedCommands;
 
 	static void SendLSCPNotify( LSCPEvent Event );
+	static int EventSubscribers( std::list<LSCPEvent::event_t> events );
+	static void LockRTNotify( void ) { RTNotifyMutex.Lock(); }
+	static void UnlockRTNotify( void ) { RTNotifyMutex.Unlock(); }
 
     protected:
         int            hSocket;
@@ -159,6 +162,11 @@ class LSCPServer : public Thread {
 	static Mutex SubscriptionMutex;
 	static std::map< LSCPEvent::event_t, std::list<int> > eventSubscriptions;
 	static fd_set fdSet;
+
+	//Protect main thread that generates real time notify messages
+	//like voice count, stream count and buffer fill
+	//from LSCP server removing engines and channels from underneath
+	static Mutex RTNotifyMutex;
 };
 
 /**

@@ -50,6 +50,7 @@ std::map< LSCPEvent::event_t, std::list<int> > LSCPServer::eventSubscriptions = 
 Mutex LSCPServer::NotifyMutex = Mutex();
 Mutex LSCPServer::NotifyBufferMutex = Mutex();
 Mutex LSCPServer::SubscriptionMutex = Mutex();
+Mutex LSCPServer::RTNotifyMutex = Mutex();
 
 LSCPServer::LSCPServer(Sampler* pSampler) : Thread(false, 0, -4) {
     this->pSampler = pSampler;
@@ -201,6 +202,18 @@ void LSCPServer::CloseConnection( std::vector<yyparse_param_t>::iterator iter ) 
 	bufferedNotifies.erase(socket);
 	close(socket);
 	NotifyMutex.Unlock();
+}
+
+int LSCPServer::EventSubscribers( std::list<LSCPEvent::event_t> events ) {
+	int subs = 0;
+	SubscriptionMutex.Lock();
+	for( std::list<LSCPEvent::event_t>::iterator iter = events.begin();
+			iter != events.end(); iter++)
+	{
+		subs += eventSubscriptions.count(*iter);
+	}
+	SubscriptionMutex.Unlock();
+	return subs;
 }
 
 void LSCPServer::SendLSCPNotify( LSCPEvent event ) {
@@ -461,7 +474,9 @@ String LSCPServer::LoadEngine(String EngineName, uint uiSamplerChannel) {
         else throw LinuxSamplerException("Unknown engine type");
         SamplerChannel* pSamplerChannel = pSampler->GetSamplerChannel(uiSamplerChannel);
         if (!pSamplerChannel) throw LinuxSamplerException("Index out of bounds");
+	LockRTNotify();
         pSamplerChannel->LoadEngine(type);
+	UnlockRTNotify();
     }
     catch (LinuxSamplerException e) {
          result.Error(e);
@@ -512,7 +527,9 @@ String LSCPServer::AddChannel() {
 String LSCPServer::RemoveChannel(uint uiSamplerChannel) {
     dmsg(2,("LSCPServer: RemoveChannel(SamplerChannel=%d)\n", uiSamplerChannel));
     LSCPResultSet result;
+    LockRTNotify();
     pSampler->RemoveSamplerChannel(uiSamplerChannel);
+    UnlockRTNotify();
     return result.Produce();
 }
 
