@@ -4242,7 +4242,7 @@ static yyconst yy_state_type yy_NUL_trans[221] =
  *                                                                         *
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
- *   Copyright (C) 2003 by Benno Senoner and Christian Schoenebeck         *
+ *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
