@@ -300,6 +300,7 @@ namespace gig {
     class File;
     class Instrument;
     class Sample;
+    class Region;
 
     /** Encapsulates articulation information of a dimension region.
      *
