@@ -24,11 +24,11 @@
 
 // FIXME: no support for layers (nor crossfades) yet
 
-DiskThread* Voice::pDiskThread = NULL;
+DiskThread*  Voice::pDiskThread = NULL;
+AudioThread* Voice::pEngine     = NULL;
 
-Voice::Voice(DiskThread* pDiskThread) {
-    Active             = false;
-    Voice::pDiskThread = pDiskThread;
+Voice::Voice() {
+    Active = false;
 }
 
 Voice::~Voice() {
@@ -38,15 +38,22 @@ Voice::~Voice() {
  *  Initializes and triggers the voice, a disk stream will be launched if
  *  needed.
  *
- *  @returns  0 on success, a value < 0 if something failed
+ *  @param MIDIKey     - MIDI key number of the triggered key
+ *  @param Velocity    - MIDI velocity value of the triggered key
+ *  @param Pitch       - MIDI detune factor (-8192 ... +8191)
+ *  @param pInstrument - points to the loaded instrument which provides sample wave(s) and articulation data
+ *  @param Delay       - number of sample points triggering should be delayed
+ *  @returns           0 on success, a value < 0 if something failed
  */
-int Voice::Trigger(int MIDIKey, uint8_t Velocity, gig::Instrument* Instrument) {
-    Active          = true;
-    this->MIDIKey   = MIDIKey;
-    pRegion         = Instrument->GetRegion(MIDIKey);
-    PlaybackState   = playback_state_ram; // we always start playback from RAM cache and switch then to disk if needed
-    Pos             = 0;
-    ReleaseVelocity = 127; // default release velocity value
+int Voice::Trigger(int MIDIKey, uint8_t Velocity, int Pitch, gig::Instrument* pInstrument, uint Delay) {
+    Active                = true;
+    this->MIDIKey         = MIDIKey;
+    pRegion               = pInstrument->GetRegion(MIDIKey);
+    PlaybackState         = playback_state_ram; // we always start playback from RAM cache and switch then to disk if needed
+    Pos                   = 0;
+    ReleaseVelocity       = 127; // default release velocity value
+    this->Delay           = Delay;
+    ReleaseSignalReceived = false;
 
     if (!pRegion) {
         std::cerr << "Audio Thread: No Region defined for MIDI key " << MIDIKey << std::endl << std::flush;
@@ -75,7 +82,7 @@ int Voice::Trigger(int MIDIKey, uint8_t Velocity, gig::Instrument* Instrument) {
     DiskVoice          = cachedsamples < pSample->SamplesTotal;
 
     if (DiskVoice) { // voice to be streamed from disk
-        MaxRAMPos = cachedsamples - (MaxSamplesPerCycle << MAX_PITCH) / pSample->Channels;
+        MaxRAMPos = cachedsamples - (MaxSamplesPerCycle << MAX_PITCH) / pSample->Channels; //TODO: this calculation is too pessimistic and may better be moved to Render() method, so it calculates MaxRAMPos dependent to the current demand of sample points to be rendered (e.g. in case of JACK)
 
         // check if there's a loop defined which completely fits into the cached (RAM) part of the sample
         if (pSample->Loops && pSample->LoopEnd <= MaxRAMPos) {
@@ -102,13 +109,13 @@ int Voice::Trigger(int MIDIKey, uint8_t Velocity, gig::Instrument* Instrument) {
     }
 
 
-    // Pitch according to keyboard position (if 'PitchTrack' is set)
-    CurrentPitch = (pDimRgn->PitchTrack) ? pow(2, ((double) (MIDIKey - (int) pDimRgn->UnityNote) + (double) pDimRgn->FineTune / 100.0) / 12.0)
-                                         : pow(2, ((double) pDimRgn->FineTune / 100.0) / 12.0);
+    // Pitch according to keyboard position (if 'PitchTrack' is set) and given detune factor
+    this->Pitch = ((double) Pitch / 8192.0) / 12.0 + (pDimRgn->PitchTrack) ? pow(2, ((double) (MIDIKey - (int) pDimRgn->UnityNote) + (double) pDimRgn->FineTune / 100.0) / 12.0)
+                                                                           : pow(2, ((double) pDimRgn->FineTune / 100.0) / 12.0);
 
     Volume = pDimRgn->GetVelocityAttenuation(Velocity);
 
-    EG1.Trigger(pDimRgn->EG1PreAttack, pDimRgn->EG1Attack, pDimRgn->EG1Release);
+    EG1.Trigger(pDimRgn->EG1PreAttack, pDimRgn->EG1Attack, pDimRgn->EG1Release, Delay);
 
     // ************************************************
     // TODO: ARTICULATION DATA HANDLING IS MISSING HERE
@@ -125,19 +132,29 @@ int Voice::Trigger(int MIDIKey, uint8_t Velocity, gig::Instrument* Instrument) {
  *  the voice completely played back the cached RAM part of the sample, it
  *  will automatically switch to disk playback for the next RenderAudio()
  *  call.
+ *
+ *  @param Samples - number of samples to be rendered in this audio fragment cycle
  */
 void Voice::Render(uint Samples) {
 
-    // Let all modulators throw their parameter changes for the current audio fragment
+    // Reset the synthesis parameter matrix
     ModulationSystem::ResetDestinationParameter(ModulationSystem::destination_vca, this->Volume);
+    ModulationSystem::ResetDestinationParameter(ModulationSystem::destination_vco, this->Pitch);
+
+
+    // Apply events to the synthesis parameter matrix
+    ProcessEvents(Samples);
+
+
+    // Let all modulators throw their parameter changes for the current audio fragment
     EG1.Process(Samples);
 
 
     switch (this->PlaybackState) {
 
         case playback_state_ram: {
-                if (RAMLoop) InterpolateAndLoop(Samples, (sample_t*) pSample->GetCache().pStart);
-                else         Interpolate(Samples, (sample_t*) pSample->GetCache().pStart);
+                if (RAMLoop) InterpolateAndLoop(Samples, (sample_t*) pSample->GetCache().pStart, Delay);
+                else         Interpolate(Samples, (sample_t*) pSample->GetCache().pStart, Delay);
                 if (DiskVoice) {
                     // check if we reached the allowed limit of the sample RAM cache
                     if (Pos > MaxRAMPos) {
@@ -171,7 +188,7 @@ void Voice::Render(uint Samples) {
                 }
 
                 sample_t* ptr = DiskStreamRef.pStream->GetReadPtr(); // get the current read_ptr within the ringbuffer where we read the samples from
-                Interpolate(Samples, ptr);
+                Interpolate(Samples, ptr, Delay);
                 DiskStreamRef.pStream->IncrementReadPos(double_to_int(Pos) * pSample->Channels);
                 Pos -= double_to_int(Pos);
             }
@@ -182,27 +199,73 @@ void Voice::Render(uint Samples) {
             break;
     }
 
+
+    // Reset delay
+    Delay = 0;
+
+
     // If release stage finished, let the voice be killed
     if (EG1.GetStage() == EG_VCA::stage_end) this->PlaybackState = playback_state_end;
 }
 
 /**
+ *  Process the control change event lists of the engine for the current
+ *  audio fragment. Event values will be applied to the synthesis parameter
+ *  matrix.
+ *
+ *  @param Samples - number of samples to be rendered in this audio fragment cycle
+ */
+void Voice::ProcessEvents(uint Samples) {
+    // process pitch events
+    RTEList<ModulationSystem::Event>* pEventList = pEngine->pCCEvents[ModulationSystem::destination_vco];
+    ModulationSystem::Event* pEvent = pEventList->first();;
+    while (pEvent) {
+        ModulationSystem::Event* pNextEvent = pEventList->next();
+
+        // calculate the influence length of this event (in sample points)
+        uint duration = (pNextEvent) ? pNextEvent->FragmentPos() - pEvent->FragmentPos()
+                                     : Samples                   - pEvent->FragmentPos();
+
+        // calculate actual pitch value
+        switch (pEvent->Type) {
+            case ModulationSystem::event_type_pitchbend:
+                this->Pitch += ((double) pEvent->Pitch / 8192.0) / 12.0; // +- one semitone
+                break;
+        }
+
+        // apply pitch value to the pitch parameter sequence
+        for (uint i = pEvent->FragmentPos(); i < duration; i++) {
+            ModulationSystem::pDestinationParameter[ModulationSystem::destination_vco][i] = this->Pitch;
+        }
+
+        pEvent = pNextEvent;
+    }
+}
+
+/**
  *  Interpolates the input audio data (no loop).
  *
- *  @param pSrc - pointer to input sample data
+ *  @param Samples - number of sample points to be rendered in this audio
+ *                   fragment cycle
+ *  @param pSrc    - pointer to input sample data
+ *  @param Skip    - number of sample points to skip in output buffer
  */
-void Voice::Interpolate(uint Samples, sample_t* pSrc) {
-    int i = 0;
+void Voice::Interpolate(uint Samples, sample_t* pSrc, uint Skip) {
+    int i = Skip;
 
     // FIXME: assuming either mono or stereo
     if (this->pSample->Channels == 2) { // Stereo Sample
         while (i < Samples) {
-            InterpolateOneStep_Stereo(pSrc, i, ModulationSystem::pDestinationParameter[ModulationSystem::destination_vca][i]);
+            InterpolateOneStep_Stereo(pSrc, i,
+                                      ModulationSystem::pDestinationParameter[ModulationSystem::destination_vca][i],
+                                      ModulationSystem::pDestinationParameter[ModulationSystem::destination_vco][i]);
         }
     }
     else { // Mono Sample
         while (i < Samples) {
-            InterpolateOneStep_Mono(pSrc, i, ModulationSystem::pDestinationParameter[ModulationSystem::destination_vca][i]);
+            InterpolateOneStep_Mono(pSrc, i,
+                                    ModulationSystem::pDestinationParameter[ModulationSystem::destination_vca][i],
+                                    ModulationSystem::pDestinationParameter[ModulationSystem::destination_vco][i]);
         }
     }
 }
@@ -210,17 +273,22 @@ void Voice::Interpolate(uint Samples, sample_t* pSrc) {
 /**
  *  Interpolates the input audio data, this method honors looping.
  *
- *  @param pSrc - pointer to input sample data
+ *  @param Samples - number of sample points to be rendered in this audio
+ *                   fragment cycle
+ *  @param pSrc    - pointer to input sample data
+ *  @param Skip    - number of sample points to skip in output buffer
  */
-void Voice::InterpolateAndLoop(uint Samples, sample_t* pSrc) {
-    int i = 0;
+void Voice::InterpolateAndLoop(uint Samples, sample_t* pSrc, uint Skip) {
+    int i = Skip;
 
     // FIXME: assuming either mono or stereo
     if (pSample->Channels == 2) { // Stereo Sample
         if (pSample->LoopPlayCount) {
             // render loop (loop count limited)
             while (i < Samples && LoopCyclesLeft) {
-                InterpolateOneStep_Stereo(pSrc, i, ModulationSystem::pDestinationParameter[ModulationSystem::destination_vca][i]);
+                InterpolateOneStep_Stereo(pSrc, i,
+                                          ModulationSystem::pDestinationParameter[ModulationSystem::destination_vca][i],
+                                          ModulationSystem::pDestinationParameter[ModulationSystem::destination_vco][i]);
                 if (Pos > pSample->LoopEnd) {
                     Pos = pSample->LoopStart + fmod(Pos - pSample->LoopEnd, pSample->LoopSize);;
                     LoopCyclesLeft--;
@@ -228,12 +296,16 @@ void Voice::InterpolateAndLoop(uint Samples, sample_t* pSrc) {
             }
             // render on without loop
             while (i < Samples) {
-                InterpolateOneStep_Stereo(pSrc, i, ModulationSystem::pDestinationParameter[ModulationSystem::destination_vca][i]);
+                InterpolateOneStep_Stereo(pSrc, i,
+                                          ModulationSystem::pDestinationParameter[ModulationSystem::destination_vca][i],
+                                          ModulationSystem::pDestinationParameter[ModulationSystem::destination_vco][i]);
             }
         }
         else { // render loop (endless loop)
             while (i < Samples) {
-                InterpolateOneStep_Stereo(pSrc, i, ModulationSystem::pDestinationParameter[ModulationSystem::destination_vca][i]);
+                InterpolateOneStep_Stereo(pSrc, i,
+                                          ModulationSystem::pDestinationParameter[ModulationSystem::destination_vca][i],
+                                          ModulationSystem::pDestinationParameter[ModulationSystem::destination_vco][i]);
                 if (Pos > pSample->LoopEnd) {
                     Pos = pSample->LoopStart + fmod(Pos - pSample->LoopEnd, pSample->LoopSize);
                 }
@@ -244,7 +316,9 @@ void Voice::InterpolateAndLoop(uint Samples, sample_t* pSrc) {
         if (pSample->LoopPlayCount) {
             // render loop (loop count limited)
             while (i < Samples && LoopCyclesLeft) {
-                InterpolateOneStep_Mono(pSrc, i, ModulationSystem::pDestinationParameter[ModulationSystem::destination_vca][i]);
+                InterpolateOneStep_Mono(pSrc, i,
+                                        ModulationSystem::pDestinationParameter[ModulationSystem::destination_vca][i],
+                                        ModulationSystem::pDestinationParameter[ModulationSystem::destination_vco][i]);
                 if (Pos > pSample->LoopEnd) {
                     Pos = pSample->LoopStart + fmod(Pos - pSample->LoopEnd, pSample->LoopSize);;
                     LoopCyclesLeft--;
@@ -252,12 +326,16 @@ void Voice::InterpolateAndLoop(uint Samples, sample_t* pSrc) {
             }
             // render on without loop
             while (i < Samples) {
-                InterpolateOneStep_Mono(pSrc, i, ModulationSystem::pDestinationParameter[ModulationSystem::destination_vca][i]);
+                InterpolateOneStep_Mono(pSrc, i,
+                                        ModulationSystem::pDestinationParameter[ModulationSystem::destination_vca][i],
+                                        ModulationSystem::pDestinationParameter[ModulationSystem::destination_vco][i]);
             }
         }
         else { // render loop (endless loop)
             while (i < Samples) {
-                InterpolateOneStep_Mono(pSrc, i, ModulationSystem::pDestinationParameter[ModulationSystem::destination_vca][i]);
+                InterpolateOneStep_Mono(pSrc, i,
+                                        ModulationSystem::pDestinationParameter[ModulationSystem::destination_vca][i],
+                                        ModulationSystem::pDestinationParameter[ModulationSystem::destination_vco][i]);
                 if (Pos > pSample->LoopEnd) {
                     Pos = pSample->LoopStart + fmod(Pos - pSample->LoopEnd, pSample->LoopSize);;
                 }
@@ -283,7 +361,12 @@ void Voice::Kill() {
 /**
  *  Release the voice in an appropriate time range, the voice will go through
  *  it's release stage before it will be killed.
+ *
+ *  @param Delay - number of sample points releasing should be delayed (for jitter correction)
  */
-void Voice::Release() {
-   EG1.Release();
+void Voice::Release(uint Delay) {
+   if (!ReleaseSignalReceived) {
+       EG1.Release(Delay);
+       ReleaseSignalReceived = true;
+   }
 }

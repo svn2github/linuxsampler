@@ -109,12 +109,13 @@ int MidiIn::Main() {
                 snd_seq_event_input(seq_handle, &ev);
                 switch (ev->type) {
                     case SND_SEQ_EVENT_CONTROLLER:
-                        pAudioThread->SendControlChange(ev->data.control.channel, ev->data.control.param, ev->data.control.value);
+                        pAudioThread->SendControlChange(ev->data.control.param, ev->data.control.value);
                         break;
 
                     case SND_SEQ_EVENT_PITCHBEND:
                       //  fprintf(stderr, "Pitchbender event on Channel %2d: %5d   \n",
                       //          ev->data.control.channel, ev->data.control.value);
+                        pAudioThread->SendPitchbend(ev->data.control.value);
                         break;
 
                     case SND_SEQ_EVENT_NOTEON:

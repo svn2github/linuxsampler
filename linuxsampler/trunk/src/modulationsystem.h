@@ -25,28 +25,71 @@
 
 #include "global.h"
 
+/**
+ * Handles modulation parameters and events for the current audio fragment.
+ *
+ * TODO: class should better be renamed to 'EventSystem' or even better: most of the attributes here could be moved into the engine and everything left would just be class Event (thus -> event.h and event.cpp), but that can wait until we restructe the source tree for multi engine support
+ */
 class ModulationSystem {
     public:
         enum destination_t {
             destination_vca,   ///< Volume level
+            destination_vco,   ///< Pitch depth
             destination_count  ///< Total number of modulation sources (this has to stay the last element in the enum)
         };
-        enum source_t {
-            source_eg1,   ///< Envelope Generator 1
-            source_count  ///< Total number of modulation sources (this has to stay the last element in the enum)
+        typedef uint32_t real_time_t; ///< We read the processor's cycle count register as an reference for the real time. These are of course only abstract values with arbitrary time entity, but that's not a problem as we calculate relatively.
+        enum event_type_t {
+            event_type_note_on,
+            event_type_note_off,
+            event_type_pitchbend,
+            event_type_control_change
+        };
+        class Event {
+            public:
+                event_type_t Type;
+                union {
+                    uint8_t Key;          ///< MIDI key number for note-on and note-off events.
+                    uint8_t Controller;   ///< MIDI controller number for control change events.
+                };
+                union {
+                    uint8_t Velocity;     ///< Trigger or release velocity for note-on or note-off events.
+                    uint8_t Value;        ///< Value for control change events.
+                };
+                int16_t Pitch;            ///< Pitch value for pitchbend events.
+
+                Event() {
+                    TimeStamp = ModulationSystem::CreateTimeStamp();
+                    iFragmentPos = -1;
+                };
+                uint FragmentPos() {
+                    if (iFragmentPos >= 0) return (uint) iFragmentPos;
+                    return (uint) (iFragmentPos = ModulationSystem::ToFragmentPos(TimeStamp));
+                };
+            private:
+                real_time_t TimeStamp;    ///< Time stamp of the event's occurence.
+                int         iFragmentPos; ///< Position in the current fragment this event refers to.
         };
 
         static float** pDestinationParameter;
-        //static bool    DestinationParameterModified;
 
-        static        void Initialize(uint SampleRate, uint MaxSamplesPerCycle);
-        static        void Close();
-        static        void ResetDestinationParameter(ModulationSystem::destination_t dst, float val);
-        static inline uint GetMaxSamplesPerCycle() { return uiMaxSamplesPerCycle; };
-        static inline uint GetSampleRate()         { return uiSampleRate;         };
+        static        void  Initialize(uint SampleRate, uint MaxSamplesPerCycle);
+        static        void  Close();
+        static        void  ResetDestinationParameter(ModulationSystem::destination_t dst, float val);
+        static        void  UpdateFragmentTime();
+        static real_time_t  CreateTimeStamp();
+        static inline uint  MaxSamplesPerCycle()                  { return uiMaxSamplesPerCycle; };
+        static inline uint  SampleRate()                          { return uiSampleRate;         };
+        static inline uint  ToFragmentPos(real_time_t time_stamp) {
+            return uint ((time_stamp - FragmentTime.begin) * FragmentTime.sample_ratio);
+        };
     protected:
         static uint uiMaxSamplesPerCycle;
         static uint uiSampleRate;
+        static struct __FragmentTime__ {
+            real_time_t begin;         ///< Real time stamp of the beginning of this audio fragment cycle.
+            real_time_t end;           ///< Real time stamp of the end of this audio fragment cycle.
+            float       sample_ratio;  ///< (Samples per cycle) / (Real time duration of cycle)
+        } FragmentTime;
 };
 
 #endif // __MODULATION_SYSTEM_H__

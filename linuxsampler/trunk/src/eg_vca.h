@@ -49,8 +49,8 @@ class EG_VCA {
 
         EG_VCA();
         void Process(uint Samples);
-        void Trigger(uint PreAttack, double Attack, double Release);
-        void Release();
+        void Trigger(uint PreAttack, double Attack, double Release, uint Delay);
+        void Release(uint Delay);
         inline EG_VCA::stage_t GetStage() { return Stage; };
     protected:
         float   Level;
@@ -60,6 +60,8 @@ class EG_VCA {
         long    AttackStepsLeft;   ///< number of sample points til end of attack stage
         float   ReleaseCoeff;
         long    ReleaseStepsLeft;  ///< number of sample points til end of release stage
+        uint    TriggerDelay;      ///< number of sample points to triggering should be delayed
+        uint    ReleaseDelay;      ///< number of sample points the release stage should be delayed
 
         inline long Min(long A, long B) {
             return (A > B) ? B : A;

@@ -29,6 +29,8 @@
 #include "stream.h"
 #include "gig.h"
 #include "eg_vca.h"
+#include "rtelmemorypool.h"
+#include "audiothread.h"
 
 #define MAX_PITCH			4  //FIXME: at the moment in octaves, should be changed into semitones
 #define USE_LINEAR_INTERPOLATION	1  ///< set to 0 if you prefer cubic interpolation (slower, better quality)
@@ -36,17 +38,20 @@
 class Voice {
     public:
         // Attributes
-        int      MIDIKey;          ///< MIDI key number of the key that triggered the voice
-        Voice**  pSelfPtr;         ///< FIXME: hack to be able to remove the voice from the active voices list within the audio thread, ugly but fast
-        uint     ReleaseVelocity;  ///< Reflects the release velocity value if a note-off command arrived for the voice.
+        int                 MIDIKey;          ///< MIDI key number of the key that triggered the voice
+        uint                ReleaseVelocity;  ///< Reflects the release velocity value if a note-off command arrived for the voice.
+
+        // Static Attributes
+        static DiskThread*  pDiskThread;  ///< Pointer to the disk thread, to be able to order a disk stream and later to delete the stream again
+        static AudioThread* pEngine;      ///< Pointer to the engine, to be able to access the event lists.
 
         // Methods
-        Voice(DiskThread* pDiskThread);
+        Voice();
        ~Voice();
         void Kill();
-        void Release();
+        void Release(uint Delay);
         void Render(uint Samples);
-        int  Trigger(int MIDIKey, uint8_t Velocity, gig::Instrument* Instrument);
+        int  Trigger(int MIDIKey, uint8_t Velocity, int Pitch, gig::Instrument* pInstrument, uint Delay);
         inline bool IsActive()                                              { return Active; }
         inline void SetOutputLeft(float* pOutput, uint MaxSamplesPerCycle)  { this->pOutputLeft  = pOutput; this->MaxSamplesPerCycle = MaxSamplesPerCycle; }
         inline void SetOutputRight(float* pOutput, uint MaxSamplesPerCycle) { this->pOutputRight = pOutput; this->MaxSamplesPerCycle = MaxSamplesPerCycle; }
@@ -64,7 +69,7 @@ class Voice {
         float*               pOutputRight;       ///< Audio output buffer (right channel)
         uint                 MaxSamplesPerCycle; ///< Size of each audio output buffer
         double               Pos;                ///< Current playback position in sample
-        double               CurrentPitch;       ///< Current pitch depth (number of sample points to move on with each render step)
+        double               Pitch;              ///< Current pitch depth (number of sample points to move on with each render step)
         gig::Sample*         pSample;            ///< Pointer to the sample to be played back
         gig::Region*         pRegion;            ///< Pointer to the articulation information of the respective keyboard region of this voice
         bool                 Active;             ///< If this voice object is currently in usage
@@ -74,15 +79,15 @@ class Voice {
         unsigned long        MaxRAMPos;          ///< The upper allowed limit (not actually the end) in the RAM sample cache, after that point it's not safe to chase the interpolator another time over over the current cache position, instead we switch to disk then.
         bool                 RAMLoop;            ///< If this voice has a loop defined which completely fits into the cached RAM part of the sample, in this case we handle the looping within the voice class, else if the loop is located in the disk stream part, we let the disk stream handle the looping
         int                  LoopCyclesLeft;     ///< In case there is a RAMLoop and it's not an endless loop; reflects number of loop cycles left to be passed
+        uint                 Delay;              ///< Number of sample points the rendering process of this voice should be delayed (jitter correction), will be set to 0 after the first audio fragment cycle
         EG_VCA               EG1;
-
-        // Static Attributes
-        static DiskThread*   pDiskThread;        ///< Pointer to the disk thread, to be able to order a disk stream and later to delete the stream again
+        bool                 ReleaseSignalReceived;
 
         // Methods
-        void        Interpolate(uint Samples, sample_t* pSrc);
-        void        InterpolateAndLoop(uint Samples, sample_t* pSrc);
-        inline void InterpolateOneStep_Stereo(sample_t* pSrc, int& i, float& effective_volume) {
+        void        ProcessEvents(uint Samples);
+        void        Interpolate(uint Samples, sample_t* pSrc, uint Skip);
+        void        InterpolateAndLoop(uint Samples, sample_t* pSrc, uint Skip);
+        inline void InterpolateOneStep_Stereo(sample_t* pSrc, int& i, float& effective_volume, float& pitch) {
             int   pos_int   = double_to_int(this->Pos);  // integer position
             float pos_fract = this->Pos - pos_int;       // fractional part of position
             pos_int <<= 1;
@@ -114,9 +119,9 @@ class Voice {
                 this->pOutputRight[i++] += effective_volume * ((((a * pos_fract) + b) * pos_fract + c) * pos_fract + x0);
             #endif // USE_LINEAR_INTERPOLATION
 
-            this->Pos += this->CurrentPitch;
+            this->Pos += pitch;
         }
-        inline void InterpolateOneStep_Mono(sample_t* pSrc, int& i, float& effective_volume) {
+        inline void InterpolateOneStep_Mono(sample_t* pSrc, int& i, float& effective_volume, float& pitch) {
             int   pos_int   = double_to_int(this->Pos);  // integer position
             float pos_fract = this->Pos - pos_int;       // fractional part of position
 
@@ -136,7 +141,7 @@ class Voice {
             this->pOutputLeft[i]    += sample_point;
             this->pOutputRight[i++] += sample_point;
 
-            this->Pos += this->CurrentPitch;
+            this->Pos += pitch;
         }
         inline int double_to_int(double f) {
             #if ARCH_X86
