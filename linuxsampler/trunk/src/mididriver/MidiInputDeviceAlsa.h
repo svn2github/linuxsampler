@@ -42,7 +42,7 @@ namespace LinuxSampler {
             MidiInputDeviceAlsa(char* AutoConnectPortID = NULL);
             ~MidiInputDeviceAlsa();
 
-            // derived abstract methods from class 'NidiInputDevice'
+            // derived abstract methods from class 'MidiInputDevice'
             void Listen();
             void StopListen();
 	    void SetInputPort(const char *);
