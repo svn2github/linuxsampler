@@ -8,3 +8,4 @@ liblinuxsamplerdrivers_la_SOURCES = DeviceParameter.cpp DeviceParameter.h InputO
 liblinuxsamplerdrivers_la_LDFLAGS =
 #liblinuxsamplerdrivers_la_DEPENDENCIES =
 liblinuxsamplerdrivers_la_LIBADD =
+SUBDIRS =  audio midi
