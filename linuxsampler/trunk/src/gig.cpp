@@ -45,10 +45,11 @@ namespace gig {
         Product           = smpl->ReadInt32();
         SamplePeriod      = smpl->ReadInt32();
         MIDIUnityNote     = smpl->ReadInt32();
-        MIDIPitchFraction = smpl->ReadInt32();
+        FineTune          = smpl->ReadInt32();
         smpl->Read(&SMPTEFormat, 1, 4);
         SMPTEOffset       = smpl->ReadInt32();
         Loops             = smpl->ReadInt32();
+        uint32_t manufByt = smpl->ReadInt32();
         LoopID            = smpl->ReadInt32();
         smpl->Read(&LoopType, 1, 4);
         LoopStart         = smpl->ReadInt32();
@@ -71,6 +72,10 @@ namespace gig {
             }
         }
 	FrameOffset = 0; // just for streaming compressed samples
+
+        LoopStart /= FrameSize; // convert to sample points
+        LoopEnd   /= FrameSize; // convert to sample points
+        LoopSize   = LoopEnd - LoopStart;
     }
 
     /// Scans compressed samples for mandatory informations (e.g. actual number of total sample points).
@@ -323,6 +328,7 @@ namespace gig {
      * @see                SetPos()
      */
     unsigned long Sample::Read(void* pBuffer, unsigned long SampleCount) {
+        if (SampleCount == 0) return 0;
         if (!Compressed) return pCkData->Read(pBuffer, SampleCount, FrameSize); //FIXME: channel inversion due to endian correction?
         else { //FIXME: no support for mono compressed samples yet, are there any?
             if (this->SamplePos >= this->SamplesTotal) return 0;
@@ -1068,6 +1074,22 @@ namespace gig {
         if (!pInstruments) return NULL;
         InstrumentsIterator++;
         return (InstrumentsIterator != pInstruments->end()) ? *InstrumentsIterator : NULL;
+    }
+
+    /**
+     * Returns the instrument with the given index.
+     *
+     * @returns  sought instrument or NULL if there's no such instrument
+     */
+    Instrument* File::GetInstrument(uint index) {
+        if (!pInstruments) LoadInstruments();
+        if (!pInstruments) return NULL;
+        InstrumentsIterator = pInstruments->begin();
+        for (uint i = 0; InstrumentsIterator != pInstruments->end(); i++) {
+            if (i == index) return *InstrumentsIterator;
+            InstrumentsIterator++;
+        }
+        return NULL;
     }
 
     void File::LoadInstruments() {
