@@ -21,26 +21,29 @@
  ***************************************************************************/
 
 #include "AudioOutputDeviceAlsa.h"
+#include "AudioOutputDeviceFactory.h"
 
 namespace LinuxSampler {
 
+    REGISTER_AUDIO_OUTPUT_DRIVER("ALSA",AudioOutputDeviceAlsa);
+
     /**
-     * Open and initialize Alsa output device with given parameters.
+     * Create and initialize Alsa audio output device with given parameters.
      *
-     * @param Channels     - number of audio channels
-     * @param Fragments    - number of audio fragments
-     * @param FragmentSize - size of each fragment (in sample points)
-     * @param Card         - Alsa soundcard ID (optional)
+     * @param Parameters - optional parameters
      * @throws AudioOutputException  if output device cannot be opened
      */
-    AudioOutputDeviceAlsa::AudioOutputDeviceAlsa(uint Channels, uint Samplerate, uint Fragments, uint FragmentSize, String Card) : AudioOutputDevice(AudioOutputDevice::type_alsa), Thread(true, 1, 0) {
+    AudioOutputDeviceAlsa::AudioOutputDeviceAlsa(std::map<String,String> Parameters) : AudioOutputDevice(CreateParameters(Parameters)), Thread(true, 1, 0) {
         pcm_handle           = NULL;
         stream               = SND_PCM_STREAM_PLAYBACK;
-        this->uiAlsaChannels = Channels;
-        this->uiSamplerate   = Samplerate;
-        this->FragmentSize   = FragmentSize;
+        this->uiAlsaChannels = ((DeviceCreationParameterInt*)this->Parameters["CHANNELS"])->ValueAsInt();
+        this->uiSamplerate   = ((DeviceCreationParameterInt*)this->Parameters["SAMPLERATE"])->ValueAsInt();
+        this->FragmentSize   = ((DeviceCreationParameterInt*)this->Parameters["FRAGMENTSIZE"])->ValueAsInt();
+        uint Fragments       = ((DeviceCreationParameterInt*)this->Parameters["FRAGMENTS"])->ValueAsInt();
+        String Card          = this->Parameters["CARD"]->Value();
 
-        if (HardwareParametersSupported(Channels, Samplerate, Fragments, FragmentSize)) {
+        dmsg(1,("Checking if hw parameters supported...\n"));
+        if (HardwareParametersSupported(Card, uiAlsaChannels, uiSamplerate, Fragments, FragmentSize)) {
             pcm_name = "hw:" + Card;
         }
         else {
@@ -49,6 +52,7 @@ namespace LinuxSampler {
             fflush(stdout);
             pcm_name = "plughw:" + Card;
         }
+	dmsg(1,("HW check completed.\n"));
 
         int err;
 
@@ -91,15 +95,15 @@ namespace LinuxSampler {
         /* Set sample rate. If the exact rate is not supported */
         /* by the hardware, use nearest possible rate.         */
         #if ALSA_MAJOR > 0
-        if((err = snd_pcm_hw_params_set_rate_near(pcm_handle, hwparams, &Samplerate, &dir)) < 0)
+        if((err = snd_pcm_hw_params_set_rate_near(pcm_handle, hwparams, &uiSamplerate, &dir)) < 0)
         #else
-        if((err = snd_pcm_hw_params_set_rate_near(pcm_handle, hwparams, Samplerate, &dir)) < 0)
+        if((err = snd_pcm_hw_params_set_rate_near(pcm_handle, hwparams, uiSamplerate, &dir)) < 0)
         #endif
         {
             throw AudioOutputException(String("Error setting sample rate: ") + snd_strerror(err));
         }
 
-        if ((err = snd_pcm_hw_params_set_channels(pcm_handle, hwparams, Channels)) < 0) {
+        if ((err = snd_pcm_hw_params_set_channels(pcm_handle, hwparams, uiAlsaChannels)) < 0) {
             throw AudioOutputException(String("Error setting number of channels: ") + snd_strerror(err));
         }
 
@@ -141,10 +145,10 @@ namespace LinuxSampler {
         }
 
         // allocate Alsa output buffer
-        pAlsaOutputBuffer = new int16_t[Channels * FragmentSize];
+        pAlsaOutputBuffer = new int16_t[uiAlsaChannels * FragmentSize];
 
         // create audio channels for this audio device to which the sampler engines can write to
-        for (int i = 0; i < Channels; i++) this->Channels.push_back(new AudioChannel(FragmentSize));
+        for (int i = 0; i < uiAlsaChannels; i++) this->Channels.push_back(new AudioChannel(FragmentSize));
     }
 
     AudioOutputDeviceAlsa::~AudioOutputDeviceAlsa() {
@@ -164,13 +168,21 @@ namespace LinuxSampler {
         }
     }
 
+    std::map<String,DeviceCreationParameter*> AudioOutputDeviceAlsa::CreateParameters(std::map<String,String> Parameters) {
+        std::map<String,DeviceCreationParameter*> result;
+        result["CARD"]         = new ParameterCard(this, Parameters["CARD"]);                 // additional parameter, individually for this driver
+        result["FRAGMENTS"]    = new ParameterFragments(this, Parameters["FRAGMENTS"]);       // additional parameter, individually for this driver
+        result["FRAGMENTSIZE"] = new ParameterFragmentSize(this, Parameters["FRAGMENTSIZE"]); // additional parameter, individually for this driver
+        return result;
+    }
+
     /**
      *  Checks if sound card supports the chosen parameters.
      *
      *  @returns  true if hardware supports it
      */
-    bool AudioOutputDeviceAlsa::HardwareParametersSupported(uint channels, int samplerate, uint numfragments, uint fragmentsize) {
-        pcm_name = "hw:0,0";
+    bool AudioOutputDeviceAlsa::HardwareParametersSupported(String card, uint channels, int samplerate, uint numfragments, uint fragmentsize) {
+        pcm_name = "hw:" + card;
         if (snd_pcm_open(&pcm_handle, pcm_name.c_str(), stream, 0) < 0) return false;
         snd_pcm_hw_params_alloca(&hwparams);
         if (snd_pcm_hw_params_any(pcm_handle, hwparams) < 0) {
@@ -242,6 +254,30 @@ namespace LinuxSampler {
         return uiSamplerate;
     }
 
+    String AudioOutputDeviceAlsa::Description() {
+        return "Advanced Linux Sound Architecture";
+    }
+
+    String AudioOutputDeviceAlsa::Version() {
+       String s = "$Revision: 1.4 $";
+       return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
+    }
+
+    std::map<String,DeviceCreationParameter*> AudioOutputDeviceAlsa::AvailableParameters() {
+        // FIXME: not a good solution to get the commot parameters (ACTIVE,SAMPERATE,CHANNELS which have to be offered by all audio output drivers)
+        std::map<String,DeviceCreationParameter*> available_parameters = AudioOutputDevice::AvailableParameters();
+        static ParameterCard         param_card(NULL);
+        static ParameterFragments    param_fragments(NULL);
+        static ParameterFragmentSize param_fragmentsize(NULL);
+        available_parameters["CARD"]         = &param_card;         // additional parameter, individually for this driver
+        available_parameters["FRAGMENTS"]    = &param_fragments;    // additional parameter, individually for this driver
+        available_parameters["FRAGMENTSIZE"] = &param_fragmentsize; // additional parameter, individually for this driver
+        return available_parameters;
+    }
+
+    /**
+     * Entry point for the thread.
+     */
     int AudioOutputDeviceAlsa::Main() {
         while (true) {
 

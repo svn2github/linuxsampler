@@ -61,7 +61,7 @@ namespace LinuxSampler { namespace gig {
         pSynthesisParameters[0] = NULL; // we allocate when an audio device is connected
         pBasicFilterParameters  = NULL;
         pMainFilterParameters   = NULL;
- 
+
 	InstrumentIdx = -1;
 
         ResetInternal();
@@ -714,7 +714,8 @@ namespace LinuxSampler { namespace gig {
     }
 
     String Engine::Version() {
-        return "0.0.1-0cvs20040423";
+        String s = "$Revision: 1.6 $";
+        return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
 
 }} // namespace LinuxSampler::gig

@@ -30,6 +30,7 @@
 #include "../common/Thread.h"
 #include "AudioOutputDevice.h"
 #include "AudioChannel.h"
+#include "../drivers/DeviceParameter.h"
 
 namespace LinuxSampler {
 
@@ -39,7 +40,7 @@ namespace LinuxSampler {
      */
     class AudioOutputDeviceAlsa : public AudioOutputDevice, protected Thread {
         public:
-            AudioOutputDeviceAlsa(uint Channels = 2, uint Samplerate = 44100, uint Fragments = 3, uint FragmentSize = 512, String Card = "0,0");
+            AudioOutputDeviceAlsa(std::map<String,String> Parameters);
             ~AudioOutputDeviceAlsa();
 
             // derived abstract methods from class 'AudioOutputDevice'
@@ -49,8 +50,66 @@ namespace LinuxSampler {
             virtual void AcquireChannels(uint Channels);
             virtual uint MaxSamplesPerCycle();
             virtual uint SampleRate();
+
+            static String Description();
+            static String Version();
+
+            static std::map<String,DeviceCreationParameter*> AvailableParameters();
+
+            class ParameterCard : public DeviceCreationParameterString {
+                public:
+                    ParameterCard(AudioOutputDevice* pDevice) { this->pDevice = pDevice; }
+                    ParameterCard(AudioOutputDevice* pDevice, String card) throw (LinuxSamplerException) : DeviceCreationParameterString(card) { this->pDevice = pDevice; }
+                    virtual String Description()                                                          { return "Sound card to be used";                                }
+                    virtual bool   Fix()                                                                  { return true;                                                   }
+                    virtual bool   Mandatory()                                                            { return false;                                                  }
+                    virtual std::map<String,DeviceCreationParameter*> DependsAsParameters()               { return std::map<String,DeviceCreationParameter*>();            }
+                    virtual optional<String>    Default(std::map<String,String> Parameters)               { return "0,0"; /* first card by default */                      }
+                    virtual std::vector<String> PossibilitiesAsString(std::map<String,String> Parameters) { return std::vector<String>(); /*TODO: return possible cards*/  }
+                    virtual void                OnSetValue(String s) throw (LinuxSamplerException)        { /* not posssible, as parameter is fix */                       }
+                protected:
+                    AudioOutputDevice* pDevice;
+            };
+
+            class ParameterFragments : public DeviceCreationParameterInt {
+                public:
+                    ParameterFragments(AudioOutputDevice* pDevice) { this->pDevice = pDevice; }
+                    ParameterFragments(AudioOutputDevice* pDevice, String val) throw (LinuxSamplerException) : DeviceCreationParameterInt(val) { this->pDevice = pDevice; }
+                    virtual String Description()                                                    { return "Number of buffer fragments";                }
+                    virtual bool   Fix()                                                            { return true;                                        }
+                    virtual bool   Mandatory()                                                      { return false;                                       }
+                    virtual std::map<String,DeviceCreationParameter*> DependsAsParameters()         { return std::map<String,DeviceCreationParameter*>(); } //TODO: should return dependency to CARD
+                    virtual optional<int>    DefaultAsInt(std::map<String,String> Parameters)       { return optional<int>::nothing;                      }
+                    virtual optional<int>    RangeMinAsInt(std::map<String,String> Parameters)      { return optional<int>::nothing;                      }
+                    virtual optional<int>    RangeMaxAsInt(std::map<String,String> Parameters)      { return optional<int>::nothing;                      }
+                    virtual std::vector<int> PossibilitiesAsInt(std::map<String,String> Parameters) { return std::vector<int>();                          }
+                    virtual void             OnSetValue(int i) throw (LinuxSamplerException)        { /* not posssible, as parameter is fix */            }
+                protected:
+                    AudioOutputDevice* pDevice;
+            };
+
+            class ParameterFragmentSize : public DeviceCreationParameterInt {
+                public:
+                    ParameterFragmentSize(AudioOutputDevice* pDevice) { this->pDevice = pDevice; }
+                    ParameterFragmentSize(AudioOutputDevice* pDevice, String val) throw (LinuxSamplerException) : DeviceCreationParameterInt(val) { this->pDevice = pDevice; }
+                    virtual String Description()                                                    { return "Size of each buffer fragment";              }
+                    virtual bool   Fix()                                                            { return true;                                        }
+                    virtual bool   Mandatory()                                                      { return false;                                       }
+                    virtual std::map<String,DeviceCreationParameter*> DependsAsParameters()         { return std::map<String,DeviceCreationParameter*>(); } //TODO: should return dependency to CARD
+                    virtual optional<int>    DefaultAsInt(std::map<String,String> Parameters)       { return optional<int>::nothing;                      }
+                    virtual optional<int>    RangeMinAsInt(std::map<String,String> Parameters)      { return optional<int>::nothing;                      }
+                    virtual optional<int>    RangeMaxAsInt(std::map<String,String> Parameters)      { return optional<int>::nothing;                      }
+                    virtual std::vector<int> PossibilitiesAsInt(std::map<String,String> Parameters) { return std::vector<int>();                          }
+                    virtual void             OnSetValue(int i) throw (LinuxSamplerException)        { /* not posssible, as parameter is fix */            }
+                protected:
+                    AudioOutputDevice* pDevice;
+            };
+
         protected:
             int Main();  ///< Implementation of virtual method from class Thread
+            AudioOutputDeviceAlsa(uint Channels = 2, uint Samplerate = 44100, uint Fragments = 2, uint FragmentSize = 128, String Card = "0,0");
+
+            std::map<String,DeviceCreationParameter*> CreateParameters(std::map<String,String> Parameters);
         private:
             uint                 uiAlsaChannels;
             uint                 uiSamplerate;
@@ -63,7 +122,7 @@ namespace LinuxSampler {
             snd_pcm_sw_params_t* swparams;
 
             int  Output();
-            bool HardwareParametersSupported(uint channels, int samplerate, uint numfragments, uint fragmentsize);
+            bool HardwareParametersSupported(String card, uint channels, int samplerate, uint numfragments, uint fragmentsize);
     };
 }
 

@@ -52,21 +52,19 @@ void yyerror(const char* s);
 %token <Char>   CHAR
 %token <Dotnum> DOTNUM
 %token <Number> NUMBER
-%token SP LF CR HASH
-%token ADD GET LOAD REMOVE SET SUBSCRIBE UNSUBSCRIBE RESET QUIT
+%token SP LF CR HASH EQ
+%token ADD GET CREATE DESTROY LIST LOAD REMOVE SET SUBSCRIBE UNSUBSCRIBE RESET QUIT
 %token CHANNEL NOTIFICATION
-%token AVAILABLE_ENGINES CHANNELS INFO BUFFER_FILL STREAM_COUNT VOICE_COUNT
+%token AVAILABLE_ENGINES AVAILABLE_AUDIO_OUTPUT_DRIVERS CHANNELS INFO BUFFER_FILL STREAM_COUNT VOICE_COUNT
 %token INSTRUMENT ENGINE
-%token AUDIO_OUTPUT_CHANNEL AUDIO_OUTPUT_TYPE MIDI_INPUT_PORT MIDI_INPUT_CHANNEL MIDI_INPUT_TYPE VOLUME
+%token AUDIO_OUTPUT_CHANNEL AUDIO_OUTPUT_CHANNEL_PARAMETER AUDIO_OUTPUT_DEVICE AUDIO_OUTPUT_DEVICES AUDIO_OUTPUT_DEVICE_PARAMETER AUDIO_OUTPUT_DRIVER AUDIO_OUTPUT_DRIVER_PARAMETER MIDI_INPUT_PORT MIDI_INPUT_CHANNEL MIDI_INPUT_TYPE VOLUME
 %token BYTES PERCENTAGE
-%token ALSA JACK
 
 %type <Dotnum> volume
 %type <Number> sampler_channel instrument_index udp_port audio_output_channel midi_input_channel
-%type <String> string alpha_num_string filename engine_name session_id midi_input_port command get_instruction load_instruction set_chan_instruction load_instr_args load_engine_args
+%type <String> string alpha_num_string filename engine_name session_id midi_input_port command create_instruction destroy_instruction get_instruction list_instruction load_instruction set_chan_instruction load_instr_args load_engine_args midi_input_type set_instruction
 %type <FillResponse> buffer_size_type
-%type <AudioOutput> audio_output_type
-%type <MidiInput> midi_input_type
+%type <KeyValList> key_val_list
 
 %start input
 
@@ -94,38 +92,68 @@ comment               :  HASH
 
 command               :  ADD SP CHANNEL                             { $$ = LSCPSERVER->AddChannel();                  }
                       |  GET SP get_instruction                     { $$ = $3;                                        }
+                      |  CREATE SP create_instruction               { $$ = $3;                                        }
+                      |  DESTROY SP destroy_instruction             { $$ = $3;                                        }
+                      |  LIST SP list_instruction                   { $$ = $3;                                        }
                       |  LOAD SP load_instruction                   { $$ = $3;                                        }
                       |  REMOVE SP CHANNEL SP sampler_channel       { $$ = LSCPSERVER->RemoveChannel($5);             }
-                      |  SET SP CHANNEL SP set_chan_instruction     { $$ = $5;                                        }
+                      |  SET SP set_instruction                     { $$ = $3;                                        }
                       |  SUBSCRIBE SP NOTIFICATION SP udp_port      { $$ = LSCPSERVER->SubscribeNotification($5);     }
                       |  UNSUBSCRIBE SP NOTIFICATION SP session_id  { $$ = LSCPSERVER->UnsubscribeNotification($5);   }
                       |  RESET SP CHANNEL SP sampler_channel        { $$ = LSCPSERVER->ResetChannel($5);              }
                       |  QUIT                                       { LSCPSERVER->AnswerClient("Bye!\r\n"); return 0; }
                       ;
 
-get_instruction       :  AVAILABLE_ENGINES                                              { $$ = LSCPSERVER->GetAvailableEngines(); }
-                      |  CHANNELS                                                       { $$ = LSCPSERVER->GetChannels();         }
-                      |  CHANNEL SP INFO SP sampler_channel                             { $$ = LSCPSERVER->GetChannelInfo($5);    }
-                      |  CHANNEL SP BUFFER_FILL SP buffer_size_type SP sampler_channel  { $$ = LSCPSERVER->GetBufferFill($5, $7); }
-                      |  CHANNEL SP STREAM_COUNT SP sampler_channel                     { $$ = LSCPSERVER->GetStreamCount($5);    }
-                      |  CHANNEL SP VOICE_COUNT SP sampler_channel                      { $$ = LSCPSERVER->GetVoiceCount($5);     }
-                      |  ENGINE SP INFO SP engine_name                                  { $$ = LSCPSERVER->GetEngineInfo($5);     }
+get_instruction       :  AVAILABLE_ENGINES                                                          { $$ = LSCPSERVER->GetAvailableEngines();                          }
+                      |  AVAILABLE_AUDIO_OUTPUT_DRIVERS                                             { $$ = LSCPSERVER->GetAvailableAudioOutputDrivers();               }
+                      |  AUDIO_OUTPUT_DRIVER SP INFO SP string                                      { $$ = LSCPSERVER->GetAudioOutputDriverInfo($5);                   }
+                      |  AUDIO_OUTPUT_DRIVER_PARAMETER SP INFO SP string SP string                  { $$ = LSCPSERVER->GetAudioOutputDriverParameterInfo($5, $7);      }
+                      |  AUDIO_OUTPUT_DRIVER_PARAMETER SP INFO SP string SP string SP key_val_list  { $$ = LSCPSERVER->GetAudioOutputDriverParameterInfo($5, $7, $9);  }
+                      |  AUDIO_OUTPUT_DEVICES                                                       { $$ = LSCPSERVER->GetAudioOutputDeviceCount();                    }
+                      |  AUDIO_OUTPUT_DEVICE SP INFO SP NUMBER                                      { $$ = LSCPSERVER->GetAudioOutputDeviceInfo($5);                   }
+                      |  AUDIO_OUTPUT_CHANNEL SP INFO SP NUMBER SP NUMBER                           { $$ = LSCPSERVER->GetAudioOutputChannelInfo($5, $7);              }
+                      |  AUDIO_OUTPUT_CHANNEL_PARAMETER SP INFO SP NUMBER SP NUMBER SP string       { $$ = LSCPSERVER->GetAudioOutputChannelParameterInfo($5, $7, $9); }
+                      |  CHANNELS                                                                   { $$ = LSCPSERVER->GetChannels();                                  }
+                      |  CHANNEL SP INFO SP sampler_channel                                         { $$ = LSCPSERVER->GetChannelInfo($5);                             }
+                      |  CHANNEL SP BUFFER_FILL SP buffer_size_type SP sampler_channel              { $$ = LSCPSERVER->GetBufferFill($5, $7);                          }
+                      |  CHANNEL SP STREAM_COUNT SP sampler_channel                                 { $$ = LSCPSERVER->GetStreamCount($5);                             }
+                      |  CHANNEL SP VOICE_COUNT SP sampler_channel                                  { $$ = LSCPSERVER->GetVoiceCount($5);                              }
+                      |  ENGINE SP INFO SP engine_name                                              { $$ = LSCPSERVER->GetEngineInfo($5);                              }
+                      ;
+
+set_instruction       :  AUDIO_OUTPUT_DEVICE_PARAMETER SP NUMBER SP string SP alpha_num_string             { $$ = LSCPSERVER->SetAudioOutputDeviceParameter($3, $5, $7);      }
+                      |  AUDIO_OUTPUT_DEVICE_PARAMETER SP NUMBER SP string EQ alpha_num_string             { $$ = LSCPSERVER->SetAudioOutputDeviceParameter($3, $5, $7);      }
+                      |  AUDIO_OUTPUT_CHANNEL_PARAMETER SP NUMBER SP NUMBER SP string SP alpha_num_string  { $$ = LSCPSERVER->SetAudioOutputChannelParameter($3, $5, $7, $9); }
+                      |  AUDIO_OUTPUT_CHANNEL_PARAMETER SP NUMBER SP NUMBER SP string EQ alpha_num_string  { $$ = LSCPSERVER->SetAudioOutputChannelParameter($3, $5, $7, $9); }
+                      |  CHANNEL SP set_chan_instruction                                                   { $$ = $3;                                                         }
+                      ;
+
+create_instruction    :  AUDIO_OUTPUT_DEVICE SP string SP key_val_list  { $$ = LSCPSERVER->CreateAudioOutputDevice($3,$5); }
+                      ;
+
+destroy_instruction   :  AUDIO_OUTPUT_DEVICE SP NUMBER  { $$ = LSCPSERVER->DestroyAudioOutputDevice($3); }
                       ;
 
 load_instruction      :  INSTRUMENT SP load_instr_args  { $$ = $3; }
                       |  ENGINE SP load_engine_args     { $$ = $3; }
                       ;
 
-set_chan_instruction  :  AUDIO_OUTPUT_CHANNEL SP sampler_channel SP audio_output_channel  { $$ = LSCPSERVER->SetAudioOutputChannel($5, $3); }
-                      |  AUDIO_OUTPUT_TYPE SP sampler_channel SP audio_output_type        { $$ = LSCPSERVER->SetAudioOutputType($5, $3);    }
-                      |  MIDI_INPUT_PORT SP sampler_channel SP midi_input_port            { $$ = LSCPSERVER->SetMIDIInputPort($5, $3);      }
-                      |  MIDI_INPUT_CHANNEL SP sampler_channel SP midi_input_channel      { $$ = LSCPSERVER->SetMIDIInputChannel($5, $3);   }
-                      |  MIDI_INPUT_TYPE SP sampler_channel SP midi_input_type            { $$ = LSCPSERVER->SetMIDIInputType($5, $3);      }
-                      |  VOLUME SP sampler_channel SP volume                              { $$ = LSCPSERVER->SetVolume($5, $3);             }
+set_chan_instruction  :  AUDIO_OUTPUT_DEVICE SP sampler_channel SP NUMBER                                         { $$ = LSCPSERVER->SetAudioOutputDevice($5, $3);      }
+                      |  AUDIO_OUTPUT_CHANNEL SP sampler_channel SP audio_output_channel SP audio_output_channel  { $$ = LSCPSERVER->SetAudioOutputChannel($5, $7, $3); }
+                      |  MIDI_INPUT_PORT SP sampler_channel SP midi_input_port                                    { $$ = LSCPSERVER->SetMIDIInputPort($5, $3);          }
+                      |  MIDI_INPUT_CHANNEL SP sampler_channel SP midi_input_channel                              { $$ = LSCPSERVER->SetMIDIInputChannel($5, $3);       }
+                      |  MIDI_INPUT_TYPE SP sampler_channel SP midi_input_type                                    { $$ = LSCPSERVER->SetMIDIInputType($5, $3);          }
+                      |  VOLUME SP sampler_channel SP volume                                                      { $$ = LSCPSERVER->SetVolume($5, $3);                 }
                       ;
+
+key_val_list          :  string EQ alpha_num_string                  { $$[$1] = $3;          }
+                      |  key_val_list SP string EQ alpha_num_string  { $$ = $1; $$[$3] = $5; }
 
 buffer_size_type      :  BYTES       { $$ = fill_response_bytes;      }
                       |  PERCENTAGE  { $$ = fill_response_percentage; }
+                      ;
+
+list_instruction      :  AUDIO_OUTPUT_DEVICES  { $$ = LSCPSERVER->GetAudioOutputDevices(); }
                       ;
 
 load_instr_args       :  filename SP instrument_index SP sampler_channel  { $$ = LSCPSERVER->LoadInstrument($1, $3, $5); }
@@ -134,11 +162,7 @@ load_instr_args       :  filename SP instrument_index SP sampler_channel  { $$ =
 load_engine_args      :  engine_name SP sampler_channel  { $$ = LSCPSERVER->LoadEngine($1, $3); }
                       ;
 
-audio_output_type     :  ALSA  { $$ = AudioOutputDevice::type_alsa; }
-                      |  JACK  { $$ = AudioOutputDevice::type_jack; }
-                      ;
-
-midi_input_type       :  ALSA  { $$ = MidiInputDevice::type_alsa; }
+midi_input_type       :  string
                       ;
 
 volume                :  DOTNUM

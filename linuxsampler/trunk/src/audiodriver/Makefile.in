@@ -108,7 +108,7 @@ METASOURCES = AUTO
 AM_CXXFLAGS = -ffast-math -march=$(target_cpu) -mcpu=$(target_cpu)
 
 noinst_LTLIBRARIES = liblinuxsampleraudiodriver.la
-liblinuxsampleraudiodriver_la_SOURCES = AudioChannel.cpp AudioChannel.h AudioOutputDevice.cpp AudioOutputDevice.h AudioOutputDeviceAlsa.cpp AudioOutputDeviceAlsa.h AudioOutputDeviceJack.cpp AudioOutputDeviceJack.h
+liblinuxsampleraudiodriver_la_SOURCES = AudioChannel.cpp AudioChannel.h AudioOutputDevice.cpp AudioOutputDevice.h AudioOutputDeviceAlsa.cpp AudioOutputDeviceAlsa.h AudioOutputDeviceJack.cpp AudioOutputDeviceJack.h AudioOutputDeviceFactory.h AudioOutputDeviceFactory.cpp
 liblinuxsampleraudiodriver_la_LDFLAGS = $(JACK_LIBS)
 #liblinuxsampleraudiodriver_la_DEPENDENCIES = $(JACK_LIBS)
 liblinuxsampleraudiodriver_la_LIBADD = -lasound
@@ -121,7 +121,7 @@ LTLIBRARIES = $(noinst_LTLIBRARIES)
 liblinuxsampleraudiodriver_la_DEPENDENCIES =
 am_liblinuxsampleraudiodriver_la_OBJECTS = AudioChannel.lo \
 	AudioOutputDevice.lo AudioOutputDeviceAlsa.lo \
-	AudioOutputDeviceJack.lo
+	AudioOutputDeviceJack.lo AudioOutputDeviceFactory.lo
 liblinuxsampleraudiodriver_la_OBJECTS = \
 	$(am_liblinuxsampleraudiodriver_la_OBJECTS)
 
@@ -135,6 +135,7 @@ am__depfiles_maybe = depfiles
 @AMDEP_TRUE@DEP_FILES = ./$(DEPDIR)/AudioChannel.Plo \
 @AMDEP_TRUE@	./$(DEPDIR)/AudioOutputDevice.Plo \
 @AMDEP_TRUE@	./$(DEPDIR)/AudioOutputDeviceAlsa.Plo \
+@AMDEP_TRUE@	./$(DEPDIR)/AudioOutputDeviceFactory.Plo \
 @AMDEP_TRUE@	./$(DEPDIR)/AudioOutputDeviceJack.Plo
 CXXCOMPILE = $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
 	$(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS)
@@ -187,6 +188,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/AudioChannel.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/AudioOutputDevice.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/AudioOutputDeviceAlsa.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/AudioOutputDeviceFactory.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/AudioOutputDeviceJack.Plo@am__quote@
 
 distclean-depend:

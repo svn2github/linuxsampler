@@ -21,27 +21,22 @@
  ***************************************************************************/
 
 #include "AudioOutputDeviceJack.h"
+#include "AudioOutputDeviceFactory.h"
 
 #if HAVE_JACK
 
 namespace LinuxSampler {
 
+    REGISTER_AUDIO_OUTPUT_DRIVER("JACK",AudioOutputDeviceJack);
+
     /**
-     * Open and initialize connection to the JACK system. The two arguments
-     * are optional; they allow auto connection to already existing Jack
-     * playback ports. If there are no playback ports to which we should
-     * autoconnect to, then no output ports will be created and the
-     * AcquireChannels() method has to be called to order a minimum amount
-     * of output channels which will then be created.
+     * Open and initialize connection to the JACK system.
      *
-     * @param AutoConnectPortIDs - (optional) array of Jack IDs of ports to
-     *                             which we should autoconnect to
-     * @param AutoConnectPorts   - (optional) size of the AutoConnectPortIDs
-     *                             array
+     * @param Parameters - optional parameters
      * @throws AudioOutputException  on error
      * @see AcquireChannels()
      */
-    AudioOutputDeviceJack::AudioOutputDeviceJack(String* AutoConnectPortIDs, uint AutoConnectPorts) : AudioOutputDevice(AudioOutputDevice::type_jack) {
+    AudioOutputDeviceJack::AudioOutputDeviceJack(std::map<String,String> Parameters) : AudioOutputDevice(std::map<String,DeviceCreationParameter*>()) {
         if ((hJackClient = jack_client_new("LinuxSampler")) == 0)
             throw AudioOutputException("Seems Jack server not running.");
 
@@ -52,6 +47,7 @@ namespace LinuxSampler {
 
         uiMaxSamplesPerCycle = jack_get_buffer_size(hJackClient);
 
+#if 0
         // create amount of audio channels and jack output ports we need for autoconnect
         for (uint p = 0; p < AutoConnectPorts; p++) {
             // create jack output port
@@ -72,6 +68,7 @@ namespace LinuxSampler {
                 throw AudioOutputException(err.str());
             }
         }
+#endif
     }
 
     AudioOutputDeviceJack::~AudioOutputDeviceJack() {
@@ -134,6 +131,20 @@ namespace LinuxSampler {
         return jack_get_sample_rate(hJackClient);
     }
 
+    String AudioOutputDeviceJack::Description() {
+        return "JACK Audio Connection Kit";
+    }
+
+    String AudioOutputDeviceJack::Version() {
+       String s = "$Revision: 1.5 $";
+       return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
+    }
+
+    std::map<String,DeviceCreationParameter*> AudioOutputDeviceJack::AvailableParameters() {
+        // FIXME: not a good solution to get the commot parameters (ACTIVE,SAMPERATE,CHANNELS which have to be offered by all audio output drivers)
+        std::map<String,DeviceCreationParameter*> available_parameters = AudioOutputDevice::AvailableParameters();
+        return available_parameters; // this driver currently does not have additional, individual device parameters
+    }
 
 
     // libjack callback functions

@@ -40,9 +40,13 @@ DIGIT           [0-9]
 \n                                      { return LF; }
 \r                                      { return CR; }
 "#"                                     { return HASH; }
+"="                                     { return EQ; }
 ("+"|"-")?{DIGIT}+"."{DIGIT}+           { yylval->Dotnum = atof(yytext); return DOTNUM; }
 ADD                                     { return ADD; }
 GET                                     { return GET; }
+CREATE                                  { return CREATE; }
+DESTROY                                 { return DESTROY; }
+LIST                                    { return LIST; }
 LOAD                                    { return LOAD; }
 REMOVE                                  { return REMOVE; }
 SET                                     { return SET; }
@@ -51,6 +55,7 @@ UNSUBSCRIBE                             { return UNSUBSCRIBE; }
 CHANNEL                                 { return CHANNEL; }
 NOTIFICATION                            { return NOTIFICATION; }
 AVAILABLE_ENGINES                       { return AVAILABLE_ENGINES; }
+AVAILABLE_AUDIO_OUTPUT_DRIVERS          { return AVAILABLE_AUDIO_OUTPUT_DRIVERS; }
 CHANNELS                                { return CHANNELS; }
 INFO                                    { return INFO; }
 BUFFER_FILL                             { return BUFFER_FILL; }
@@ -58,16 +63,19 @@ STREAM_COUNT                            { return STREAM_COUNT; }
 VOICE_COUNT                             { return VOICE_COUNT; }
 INSTRUMENT                              { return INSTRUMENT; }
 ENGINE                                  { return ENGINE; }
+AUDIO_OUTPUT_DEVICE                     { return AUDIO_OUTPUT_DEVICE; }
+AUDIO_OUTPUT_DEVICES                    { return AUDIO_OUTPUT_DEVICES; }
+AUDIO_OUTPUT_DEVICE_PARAMETER           { return AUDIO_OUTPUT_DEVICE_PARAMETER; }
+AUDIO_OUTPUT_DRIVER                     { return AUDIO_OUTPUT_DRIVER; }
+AUDIO_OUTPUT_DRIVER_PARAMETER           { return AUDIO_OUTPUT_DRIVER_PARAMETER; }
 AUDIO_OUTPUT_CHANNEL                    { return AUDIO_OUTPUT_CHANNEL; }
-AUDIO_OUTPUT_TYPE                       { return AUDIO_OUTPUT_TYPE; }
+AUDIO_OUTPUT_CHANNEL_PARAMETER          { return AUDIO_OUTPUT_CHANNEL_PARAMETER; }
 MIDI_INPUT_PORT                         { return MIDI_INPUT_PORT; }
 MIDI_INPUT_CHANNEL                      { return MIDI_INPUT_CHANNEL; }
 MIDI_INPUT_TYPE                         { return MIDI_INPUT_TYPE; }
 VOLUME                                  { return VOLUME; }
 BYTES                                   { return BYTES; }
 PERCENTAGE                              { return PERCENTAGE; }
-ALSA                                    { return ALSA; }
-JACK                                    { return JACK; }
 RESET                                   { return RESET; }
 QUIT                                    { return QUIT; }
 0|([1-9]{DIGIT}*)                       { yylval->Number = atoi(yytext); return NUMBER; }

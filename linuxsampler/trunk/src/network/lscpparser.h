@@ -57,14 +57,13 @@ enum fill_response_t {
  */
 struct YYSTYPE {
     union {
-        char                      Char;
-        unsigned int              Number;
-        double                    Dotnum;
-        fill_response_t           FillResponse;
-        AudioOutputDevice::type_t AudioOutput;
-        MidiInputDevice::type_t   MidiInput;
+        char            Char;
+        unsigned int    Number;
+        double          Dotnum;
+        fill_response_t FillResponse;
     };
-    std::string  String;
+    std::string                       String;
+    std::map<std::string,std::string> KeyValList;
 };
 #define yystype YYSTYPE		///< For backward compatibility.
 #define YYSTYPE_IS_DECLARED	///< We tell the lexer / parser that we use our own data structure as defined above.

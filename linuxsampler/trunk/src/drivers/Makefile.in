@@ -107,20 +107,21 @@ METASOURCES = AUTO
 
 AM_CXXFLAGS = -ffast-math -march=$(target_cpu) -mcpu=$(target_cpu)
 
-noinst_LTLIBRARIES = liblinuxsamplernetwork.la
-liblinuxsamplernetwork_la_SOURCES = lscp.h lscpparser.cpp lscpparser.h lscpscanner.cpp lscpserver.cpp lscpserver.h lscpsymbols.h lscpresultset.cpp lscpresultset.h
-subdir = src/network
+noinst_LTLIBRARIES = liblinuxsamplerdrivers.la
+liblinuxsamplerdrivers_la_SOURCES = DeviceParameter.cpp DeviceParameter.h
+liblinuxsamplerdrivers_la_LDFLAGS = 
+#liblinuxsamplerdrivers_la_DEPENDENCIES =
+liblinuxsamplerdrivers_la_LIBADD = 
+subdir = src/drivers
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
 CONFIG_HEADER = $(top_builddir)/config.h
 CONFIG_CLEAN_FILES =
 LTLIBRARIES = $(noinst_LTLIBRARIES)
 
-liblinuxsamplernetwork_la_LDFLAGS =
-liblinuxsamplernetwork_la_LIBADD =
-am_liblinuxsamplernetwork_la_OBJECTS = lscpparser.lo lscpscanner.lo \
-	lscpserver.lo lscpresultset.lo
-liblinuxsamplernetwork_la_OBJECTS = \
-	$(am_liblinuxsamplernetwork_la_OBJECTS)
+liblinuxsamplerdrivers_la_DEPENDENCIES =
+am_liblinuxsamplerdrivers_la_OBJECTS = DeviceParameter.lo
+liblinuxsamplerdrivers_la_OBJECTS = \
+	$(am_liblinuxsamplerdrivers_la_OBJECTS)
 
 DEFS = @DEFS@
 DEFAULT_INCLUDES =  -I. -I$(srcdir) -I$(top_builddir)
@@ -129,10 +130,7 @@ LDFLAGS = @LDFLAGS@
 LIBS = @LIBS@
 depcomp = $(SHELL) $(top_srcdir)/depcomp
 am__depfiles_maybe = depfiles
-@AMDEP_TRUE@DEP_FILES = ./$(DEPDIR)/lscpparser.Plo \
-@AMDEP_TRUE@	./$(DEPDIR)/lscpresultset.Plo \
-@AMDEP_TRUE@	./$(DEPDIR)/lscpscanner.Plo \
-@AMDEP_TRUE@	./$(DEPDIR)/lscpserver.Plo
+@AMDEP_TRUE@DEP_FILES = ./$(DEPDIR)/DeviceParameter.Plo
 CXXCOMPILE = $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
 	$(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS)
 LTCXXCOMPILE = $(LIBTOOL) --mode=compile $(CXX) $(DEFS) \
@@ -150,9 +148,9 @@ LTCOMPILE = $(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) \
 CCLD = $(CC)
 LINK = $(LIBTOOL) --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
 	$(AM_LDFLAGS) $(LDFLAGS) -o $@
-DIST_SOURCES = $(liblinuxsamplernetwork_la_SOURCES)
+DIST_SOURCES = $(liblinuxsamplerdrivers_la_SOURCES)
 DIST_COMMON = Makefile.am Makefile.in
-SOURCES = $(liblinuxsamplernetwork_la_SOURCES)
+SOURCES = $(liblinuxsamplerdrivers_la_SOURCES)
 
 all: all-am
 
@@ -160,7 +158,7 @@ all: all-am
 .SUFFIXES: .cpp .lo .o .obj
 $(srcdir)/Makefile.in:  Makefile.am  $(top_srcdir)/configure.in $(ACLOCAL_M4)
 	cd $(top_srcdir) && \
-	  $(AUTOMAKE) --gnu  src/network/Makefile
+	  $(AUTOMAKE) --gnu  src/drivers/Makefile
 Makefile:  $(srcdir)/Makefile.in  $(top_builddir)/config.status
 	cd $(top_builddir) && $(SHELL) ./config.status $(subdir)/$@ $(am__depfiles_maybe)
 
@@ -172,8 +170,8 @@ clean-noinstLTLIBRARIES:
 	  echo "rm -f \"$${dir}/so_locations\""; \
 	  rm -f "$${dir}/so_locations"; \
 	done
-liblinuxsamplernetwork.la: $(liblinuxsamplernetwork_la_OBJECTS) $(liblinuxsamplernetwork_la_DEPENDENCIES) 
-	$(CXXLINK)  $(liblinuxsamplernetwork_la_LDFLAGS) $(liblinuxsamplernetwork_la_OBJECTS) $(liblinuxsamplernetwork_la_LIBADD) $(LIBS)
+liblinuxsamplerdrivers.la: $(liblinuxsamplerdrivers_la_OBJECTS) $(liblinuxsamplerdrivers_la_DEPENDENCIES) 
+	$(CXXLINK)  $(liblinuxsamplerdrivers_la_LDFLAGS) $(liblinuxsamplerdrivers_la_OBJECTS) $(liblinuxsamplerdrivers_la_LIBADD) $(LIBS)
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT) core *.core
@@ -181,10 +179,7 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/lscpparser.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/lscpresultset.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/lscpscanner.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/lscpserver.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/DeviceParameter.Plo@am__quote@
 
 distclean-depend:
 	-rm -rf ./$(DEPDIR)
@@ -360,22 +355,6 @@ uninstall-am: uninstall-info-am
 	mostlyclean-libtool tags uninstall uninstall-am \
 	uninstall-info-am
 
-
-.PHONY: parser
-
-# generate parser with lex and yacc
-parser:
-	@echo "Generating LSCP parser..."
-	@if which "lex" > /dev/null && which "yacc" > /dev/null; then \
-	    yacc -d lscp.y && \
-	    lex --fast --8bit lscp.l && \
-	    yacc lscp.y && \
-	    mv -f y.tab.h lscpsymbols.h && \
-	    mv -f y.tab.c lscpparser.cpp && \
-	    mv -f lex.yy.c lscpscanner.cpp; \
-	else \
-	    echo "You need lex (or flex) and yacc (or bison) to generate the parser."; \
-	fi;
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
 .NOEXPORT:

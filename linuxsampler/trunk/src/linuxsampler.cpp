@@ -24,6 +24,7 @@
 #include <signal.h>
 
 #include "Sampler.h"
+#include "audiodriver/AudioOutputDeviceFactory.h"
 #include "network/lscpserver.h"
 
 #if 0
@@ -75,8 +76,13 @@ int main(int argc, char **argv) {
         return EXIT_FAILURE;
     }*/
 
+
     // create LinuxSampler instance
+    dmsg(1,("Creating Sampler..."));
     pSampler = new Sampler;
+    dmsg(1,("OK\n"));
+
+    dmsg(1,("Registered audio output drivers: %s\n", AudioOutputDeviceFactory::AvailableDriversAsString().c_str()));
 
     // create an audio output device
    /* bool no_jack = true;

@@ -24,6 +24,7 @@
 #include "lscpresultset.h"
 
 #include "../engines/gig/Engine.h"
+#include "../audiodriver/AudioOutputDeviceFactory.h"
 
 LSCPServer::LSCPServer(Sampler* pSampler) : Thread(false, 0, -4) {
     this->pSampler = pSampler;
@@ -87,6 +88,45 @@ int LSCPServer::Main() {
 void LSCPServer::AnswerClient(String ReturnMessage) {
     dmsg(2,("LSCPServer::AnswerClient(ReturnMessage=%s)", ReturnMessage.c_str()));
     send(hSession, ReturnMessage.c_str(), ReturnMessage.size(), 0);
+}
+
+String LSCPServer::CreateAudioOutputDevice(String Driver, std::map<String,String> Parameters) {
+    dmsg(2,("LSCPServer: CreateAudioOutputDevice(Driver=%s)\n", Driver.c_str()));
+    LSCPResultSet result;
+    try {
+        AudioOutputDevice* pDevice = pSampler->CreateAudioOutputDevice(Driver, Parameters);
+        std::map<uint, AudioOutputDevice*> devices = pSampler->GetAudioOutputDevices();
+        // search for the created device to get its index
+        int index = -1;
+        std::map<uint, AudioOutputDevice*>::iterator iter = devices.begin();
+        for (; iter != devices.end(); iter++) {
+            if (iter->second == pDevice) {
+                index = iter->first;
+                break;
+            }
+        }
+        if (index == -1) throw LinuxSamplerException("Internal error: could not find created audio output device.");
+        result = index; // success
+    }
+    catch (LinuxSamplerException e) {
+        result.Error(e);
+    }
+    return result.Produce();
+}
+
+String LSCPServer::DestroyAudioOutputDevice(uint DeviceIndex) {
+    dmsg(2,("LSCPServer: DestroyAudioOutputDevice(DeviceIndex=%d)\n", DeviceIndex));
+    LSCPResultSet result;
+    try {
+        std::map<uint, AudioOutputDevice*> devices = pSampler->GetAudioOutputDevices();
+        if (!devices[DeviceIndex]) throw LinuxSamplerException("There is no audio output device with index " + ToString(DeviceIndex) + ".");
+        AudioOutputDevice* pDevice = devices[DeviceIndex];
+        pSampler->DestroyAudioOutputDevice(pDevice);
+    }
+    catch (LinuxSamplerException e) {
+        result.Error(e);
+    }
+    return result.Produce();
 }
 
 /**
@@ -177,6 +217,7 @@ String LSCPServer::GetEngineInfo(String EngineName) {
         if ((EngineName == "GigEngine") || (EngineName == "gig")) {
             Engine* pEngine = new LinuxSampler::gig::Engine;
 	    result.Add(pEngine->Description());
+            result.Add(pEngine->Version());
             delete pEngine;
         }
         else throw LinuxSamplerException("Unknown engine type");
@@ -198,13 +239,13 @@ String LSCPServer::GetChannelInfo(uint uiSamplerChannel) {
         SamplerChannel* pSamplerChannel = pSampler->GetSamplerChannel(uiSamplerChannel);
         if (!pSamplerChannel) throw LinuxSamplerException("Index out of bounds");
         Engine* pEngine = pSamplerChannel->GetEngine();
-	
+
 	//Defaults values
 	String EngineName = "NONE";
 	float Volume = 0;
 	String InstrumentFileName = "NONE";
 	int InstrumentIndex = 0;
-	
+
         if (pEngine) {
 	    EngineName =  pEngine->EngineName();
 	    Volume = pEngine->Volume();
@@ -225,7 +266,7 @@ String LSCPServer::GetChannelInfo(uint uiSamplerChannel) {
 
         result.Add("INSTRUMENT_FILE", InstrumentFileName);
         result.Add("INSTRUMENT_NR", InstrumentIndex);
-	
+
 	//Some more hardcoded stuff for now to make GUI look good
         result.Add("MIDI_INPUT_DEVICE", "0");
         result.Add("MIDI_INPUT_PORT", "0");
@@ -307,20 +348,215 @@ String LSCPServer::GetBufferFill(fill_response_t ResponseType, uint uiSamplerCha
     return result.Produce();
 }
 
-/**
- * Will be called by the parser to change the audio output type on a
- * particular sampler channel.
- */
-String LSCPServer::SetAudioOutputType(AudioOutputDevice::type_t AudioOutputType, uint uiSamplerChannel) {
-    dmsg(2,("LSCPServer: SetAudioOutputType(AudioOutputType=%d, SamplerChannel=%d)\n", AudioOutputType, uiSamplerChannel));
+String LSCPServer::GetAvailableAudioOutputDrivers() {
+    dmsg(2,("LSCPServer: GetAvailableAudioOutputDrivers()\n"));
     LSCPResultSet result;
     try {
-        SamplerChannel* pSamplerChannel = pSampler->GetSamplerChannel(uiSamplerChannel);
-        if (!pSamplerChannel) throw LinuxSamplerException("Index out of bounds");
-        pSamplerChannel->SetAudioOutputDevice(AudioOutputType);
+        String s = AudioOutputDeviceFactory::AvailableDriversAsString();
+        result.Add(s);
     }
     catch (LinuxSamplerException e) {
-         result.Error(e);
+        result.Error(e);
+    }
+    return result.Produce();
+}
+
+String LSCPServer::GetAudioOutputDriverInfo(String Driver) {
+    dmsg(2,("LSCPServer: GetAudioOutputDriverInfo(Driver=%s)\n",Driver.c_str()));
+    LSCPResultSet result;
+    try {
+        result.Add("DESCRIPTION", AudioOutputDeviceFactory::GetDriverDescription(Driver));
+        result.Add("VERSION",     AudioOutputDeviceFactory::GetDriverVersion(Driver));
+
+        std::map<String,DeviceCreationParameter*> parameters = AudioOutputDeviceFactory::GetAvailableDriverParameters(Driver);
+        if (parameters.size()) { // if there are parameters defined for this driver
+            String s;
+            std::map<String,DeviceCreationParameter*>::iterator iter = parameters.begin();
+            for (;iter != parameters.end(); iter++) {
+                if (s != "") s += ",";
+                s += iter->first;
+            }
+            result.Add("PARAMETERS", s);
+        }
+    }
+    catch (LinuxSamplerException e) {
+        result.Error(e);
+    }
+    return result.Produce();
+}
+
+String LSCPServer::GetAudioOutputDriverParameterInfo(String Driver, String Parameter, std::map<String,String> DependencyList) {
+    dmsg(2,("LSCPServer: GetAudioOutputDriverParameterInfo(Driver=%s,Parameter=%s)\n",Driver.c_str(),Parameter.c_str()));
+    LSCPResultSet result;
+    try {
+        DeviceCreationParameter* pParameter = AudioOutputDeviceFactory::GetDriverParameter(Driver, Parameter);
+        result.Add("TYPE",         pParameter->Type());
+        result.Add("DESCRIPTION",  pParameter->Description());
+        result.Add("MANDATORY",    pParameter->Mandatory());
+        result.Add("FIX",          pParameter->Fix());
+        result.Add("MULTIPLICITY", pParameter->Multiplicity());
+        if (pParameter->Depends())       result.Add("DEPENDS",       pParameter->Depends());
+        if (pParameter->Default())       result.Add("DEFAULT",       pParameter->Default());
+        if (pParameter->RangeMin())      result.Add("RANGE_MIN",     pParameter->RangeMin());
+        if (pParameter->RangeMax())      result.Add("RANGE_MAX",     pParameter->RangeMax());
+        if (pParameter->Possibilities()) result.Add("POSSIBILITIES", pParameter->Possibilities());
+    }
+    catch (LinuxSamplerException e) {
+        result.Error(e);
+    }
+    return result.Produce();
+}
+
+String LSCPServer::GetAudioOutputDeviceCount() {
+    dmsg(2,("LSCPServer: GetAudioOutputDeviceCount()\n"));
+    LSCPResultSet result;
+    try {
+        uint count = pSampler->AudioOutputDevices();
+        result = count; // success
+    }
+    catch (LinuxSamplerException e) {
+        result.Error(e);
+    }
+    return result.Produce();
+}
+
+String LSCPServer::GetAudioOutputDevices() {
+    dmsg(2,("LSCPServer: GetAudioOutputDevices()\n"));
+    LSCPResultSet result;
+    try {
+        String s;
+        std::map<uint, AudioOutputDevice*> devices = pSampler->GetAudioOutputDevices();
+        std::map<uint, AudioOutputDevice*>::iterator iter = devices.begin();
+        for (; iter != devices.end(); iter++) {
+            if (s != "") s += ",";
+            s += ToString(iter->first);
+        }
+        result.Add(s);
+    }
+    catch (LinuxSamplerException e) {
+        result.Error(e);
+    }
+    return result.Produce();
+}
+
+String LSCPServer::GetAudioOutputDeviceInfo(uint DeviceIndex) {
+    dmsg(2,("LSCPServer: GetAudioOutputDeviceInfo(DeviceIndex=%d)\n",DeviceIndex));
+    LSCPResultSet result;
+    try {
+        std::map<uint,AudioOutputDevice*> devices = pSampler->GetAudioOutputDevices();
+        if (!devices[DeviceIndex]) throw LinuxSamplerException("There is no audio output device with index " + ToString(DeviceIndex) + ".");
+        AudioOutputDevice* pDevice = devices[DeviceIndex];
+        std::map<String,DeviceCreationParameter*> parameters = pDevice->DeviceParameters();
+        std::map<String,DeviceCreationParameter*>::iterator iter = parameters.begin();
+        for (; iter != parameters.end(); iter++) {
+            result.Add(iter->first, iter->second->Value());
+        }
+    }
+    catch (LinuxSamplerException e) {
+        result.Error(e);
+    }
+    return result.Produce();
+}
+
+String LSCPServer::GetAudioOutputChannelInfo(uint DeviceId, uint ChannelId) {
+    dmsg(2,("LSCPServer: GetAudioOutputChannelInfo(DeviceId=%d,ChannelId)\n",DeviceId,ChannelId));
+    LSCPResultSet result;
+    try {
+        // get audio output device
+        std::map<uint,AudioOutputDevice*> devices = pSampler->GetAudioOutputDevices();
+        if (!devices[DeviceId]) throw LinuxSamplerException("There is no audio output device with index " + ToString(DeviceId) + ".");
+        AudioOutputDevice* pDevice = devices[DeviceId];
+
+        // get audio channel
+        AudioChannel* pChannel = pDevice->Channel(ChannelId);
+        if (!pChannel) throw LinuxSamplerException("Audio ouotput device does not have channel " + ToString(ChannelId) + ".");
+
+        // return the values of all audio channel parameters
+        std::map<String,DeviceRuntimeParameter*> parameters = pChannel->ChannelParameters();
+        std::map<String,DeviceRuntimeParameter*>::iterator iter = parameters.begin();
+        for (; iter != parameters.end(); iter++) {
+            result.Add(iter->first, iter->second->Value());
+        }
+    }
+    catch (LinuxSamplerException e) {
+        result.Error(e);
+    }
+    return result.Produce();
+}
+
+String LSCPServer::GetAudioOutputChannelParameterInfo(uint DeviceId, uint ChannelId, String ParameterName) {
+    dmsg(2,("LSCPServer: GetAudioOutputChannelParameterInfo(DeviceId=%d,ChannelId=%d,ParameterName=%s)\n",DeviceId,ChannelId,ParameterName.c_str()));
+    LSCPResultSet result;
+    try {
+        // get audio output device
+        std::map<uint,AudioOutputDevice*> devices = pSampler->GetAudioOutputDevices();
+        if (!devices[DeviceId]) throw LinuxSamplerException("There is no audio output device with index " + ToString(DeviceId) + ".");
+        AudioOutputDevice* pDevice = devices[DeviceId];
+
+        // get audio channel
+        AudioChannel* pChannel = pDevice->Channel(ChannelId);
+        if (!pChannel) throw LinuxSamplerException("Audio output device does not have channel " + ToString(ChannelId) + ".");
+
+        // get desired audio channel parameter
+        std::map<String,DeviceRuntimeParameter*> parameters = pChannel->ChannelParameters();
+        if (!parameters[ParameterName]) throw LinuxSamplerException("Audio channel does not provide a parameter '" + ParameterName + "'.");
+        DeviceRuntimeParameter* pParameter = parameters[ParameterName];
+
+        // return all fields of this audio channel parameter
+        result.Add("TYPE",         pParameter->Type());
+        result.Add("DESCRIPTION",  pParameter->Description());
+        result.Add("FIX",          pParameter->Fix());
+        result.Add("MULTIPLICITY", pParameter->Multiplicity());
+        if (pParameter->RangeMin())      result.Add("RANGE_MIN",     pParameter->RangeMin());
+        if (pParameter->RangeMax())      result.Add("RANGE_MAX",     pParameter->RangeMax());
+        if (pParameter->Possibilities()) result.Add("POSSIBILITIES", pParameter->Possibilities());
+    }
+    catch (LinuxSamplerException e) {
+        result.Error(e);
+    }
+    return result.Produce();
+}
+
+String LSCPServer::SetAudioOutputChannelParameter(uint DeviceId, uint ChannelId, String ParamKey, String ParamVal) {
+    dmsg(2,("LSCPServer: SetAudioOutputChannelParameter(DeviceId=%d,ChannelId=%d,ParamKey=%s,ParamVal=%s)\n",DeviceId,ChannelId,ParamKey.c_str(),ParamVal.c_str()));
+    LSCPResultSet result;
+    try {
+        // get audio output device
+        std::map<uint,AudioOutputDevice*> devices = pSampler->GetAudioOutputDevices();
+        if (!devices[DeviceId]) throw LinuxSamplerException("There is no audio output device with index " + ToString(DeviceId) + ".");
+        AudioOutputDevice* pDevice = devices[DeviceId];
+
+        // get audio channel
+        AudioChannel* pChannel = pDevice->Channel(ChannelId);
+        if (!pChannel) throw LinuxSamplerException("Audio output device does not have channel " + ToString(ChannelId) + ".");
+
+        // get desired audio channel parameter
+        std::map<String,DeviceRuntimeParameter*> parameters = pChannel->ChannelParameters();
+        if (!parameters[ParamKey]) throw LinuxSamplerException("Audio channel does not provide a parameter '" + ParamKey + "'.");
+        DeviceRuntimeParameter* pParameter = parameters[ParamKey];
+
+        // set new channel parameter value
+        pParameter->SetValue(ParamVal);
+    }
+    catch (LinuxSamplerException e) {
+        result.Error(e);
+    }
+    return result.Produce();
+}
+
+String LSCPServer::SetAudioOutputDeviceParameter(uint DeviceIndex, String ParamKey, String ParamVal) {
+    dmsg(2,("LSCPServer: SetAudioOutputDeviceParameter(DeviceIndex=%d,ParamKey=%s,ParamVal=%s)\n",DeviceIndex,ParamKey.c_str(),ParamVal.c_str()));
+    LSCPResultSet result;
+    try {
+        std::map<uint,AudioOutputDevice*> devices = pSampler->GetAudioOutputDevices();
+        if (!devices[DeviceIndex]) throw LinuxSamplerException("There is no audio output device with index " + ToString(DeviceIndex) + ".");
+        AudioOutputDevice* pDevice = devices[DeviceIndex];
+        std::map<String,DeviceCreationParameter*> parameters = pDevice->DeviceParameters();
+        if (!parameters[ParamKey]) throw LinuxSamplerException("Audio output device " + ToString(DeviceIndex) + " does not have a device parameter '" + ParamKey + "'");
+        parameters[ParamKey]->SetValue(ParamVal);
+    }
+    catch (LinuxSamplerException e) {
+        result.Error(e);
     }
     return result.Produce();
 }
@@ -329,17 +565,20 @@ String LSCPServer::SetAudioOutputType(AudioOutputDevice::type_t AudioOutputType,
  * Will be called by the parser to change the audio output channel for
  * playback on a particular sampler channel.
  */
-String LSCPServer::SetAudioOutputChannel(uint AudioOutputChannel, uint uiSamplerChannel) {
-    dmsg(2,("LSCPServer: SetAudioOutputChannel(AudioOutputChannel=%d, SamplerChannel=%d)\n", AudioOutputChannel, uiSamplerChannel));
+String LSCPServer::SetAudioOutputChannel(uint ChannelAudioOutputChannel, uint AudioOutputDeviceInputChannel, uint uiSamplerChannel) {
+    dmsg(2,("LSCPServer: SetAudioOutputChannel(ChannelAudioOutputChannel=%d, AudioOutputDeviceInputChannel=%d, SamplerChannel=%d)\n",ChannelAudioOutputChannel,AudioOutputDeviceInputChannel,uiSamplerChannel));
     return "ERR:0:Not implemented yet.\r\n"; //FIXME: Add support for this in resultset class?
 }
 
-String LSCPServer::SetMIDIInputType(MidiInputDevice::type_t MidiInputType, uint uiSamplerChannel) {
-    dmsg(2,("LSCPServer: SetMIDIInputType(MidiInputType=%d, SamplerChannel=%d)\n", MidiInputType, uiSamplerChannel));
+String LSCPServer::SetMIDIInputType(String MidiInputDriver, uint uiSamplerChannel) {
+    dmsg(2,("LSCPServer: SetMIDIInputType(String MidiInputDriver=%s, SamplerChannel=%d)\n",MidiInputDriver.c_str(),uiSamplerChannel));
     LSCPResultSet result;
     try {
         SamplerChannel* pSamplerChannel = pSampler->GetSamplerChannel(uiSamplerChannel);
         if (!pSamplerChannel) throw LinuxSamplerException("Index out of bounds");
+        // FIXME: workaround until MIDI driver configuration is implemented (using a Factory class for the MIDI input drivers then, like its already done for audio output drivers)
+        if (MidiInputDriver != "ALSA") throw LinuxSamplerException("Unknown MIDI input driver '" + MidiInputDriver + "'.");
+        MidiInputDevice::type_t MidiInputType = MidiInputDevice::type_alsa;
         pSamplerChannel->SetMidiInputDevice(MidiInputType);
     }
     catch (LinuxSamplerException e) {
@@ -380,6 +619,17 @@ String LSCPServer::SetMIDIInputChannel(uint MIDIChannel, uint uiSamplerChannel) 
         if (!pSamplerChannel->GetMidiInputDevice()) throw LinuxSamplerException("No MIDI input device connected yet");
         MidiInputDevice::type_t oldtype = pSamplerChannel->GetMidiInputDevice()->Type();
         pSamplerChannel->SetMidiInputDevice(oldtype, (MidiInputDevice::midi_chan_t) MIDIChannel);
+    }
+    catch (LinuxSamplerException e) {
+         result.Error(e);
+    }
+    return result.Produce();
+}
+
+String LSCPServer::SetAudioOutputDevice(uint AudioDeviceId, uint SamplerChannel) {
+    LSCPResultSet result;
+    try {
+        throw LinuxSamplerException("Command not yet implemented");
     }
     catch (LinuxSamplerException e) {
          result.Error(e);

@@ -24,11 +24,13 @@
 #define __LS_AUDIOOUTPUTDEVICE_H__
 
 #include <set>
+#include <map>
 #include <vector>
 #include <stdexcept>
 
 #include "../common/global.h"
 #include "../common/LinuxSamplerException.h"
+#include "../drivers/DeviceParameter.h"
 #include "../engines/common/Engine.h"
 #include "AudioChannel.h"
 
@@ -46,15 +48,53 @@ namespace LinuxSampler {
     class AudioOutputDevice {
         public:
 
+
             /////////////////////////////////////////////////////////////////
             // type definitions
 
-            /**
-             * List of all currently implemented audio output drivers.
-             */
-            enum type_t {
-                type_alsa,
-                type_jack
+            class ParameterActive : public DeviceCreationParameterBool {
+                public:
+                    ParameterActive(AudioOutputDevice* pDevice)                              { this->pDevice = pDevice;                            }
+                    virtual String Description()                                             { return "Enable / disable device";                   }
+                    virtual bool   Fix()                                                     { return false;                                       }
+                    virtual bool   Mandatory()                                               { return false;                                       }
+                    virtual std::map<String,DeviceCreationParameter*> DependsAsParameters()  { return std::map<String,DeviceCreationParameter*>(); }
+                    virtual optional<bool> DefaultAsBool(std::map<String,String> Parameters) { return optional<bool>::nothing;                     }
+                    virtual void OnSetValue(bool b) throw (LinuxSamplerException)            { if (b) pDevice->Play(); else pDevice->Stop();       }
+                protected:
+                    AudioOutputDevice* pDevice;
+            };
+
+            class ParameterSampleRate : public DeviceCreationParameterInt {
+                public:
+                    ParameterSampleRate(AudioOutputDevice* pDevice)                                 { this->pDevice = pDevice;                            }
+                    virtual String Description()                                                    { return "Output sample rate";                        }
+                    virtual bool   Fix()                                                            { return true;                                        }
+                    virtual bool   Mandatory()                                                      { return false;                                       }
+                    virtual std::map<String,DeviceCreationParameter*> DependsAsParameters()         { return std::map<String,DeviceCreationParameter*>(); }
+                    virtual optional<int>    DefaultAsInt(std::map<String,String> Parameters)       { return optional<int>::nothing;                      }
+                    virtual optional<int>    RangeMinAsInt(std::map<String,String> Parameters)      { return optional<int>::nothing;                      }
+                    virtual optional<int>    RangeMaxAsInt(std::map<String,String> Parameters)      { return optional<int>::nothing;                      }
+                    virtual std::vector<int> PossibilitiesAsInt(std::map<String,String> Parameters) { return std::vector<int>();                          }
+                    virtual void             OnSetValue(int i) throw (LinuxSamplerException)        { /* cannot happen, as parameter is fix */            }
+                protected:
+                    AudioOutputDevice* pDevice;
+            };
+
+            class ParameterChannels : public DeviceCreationParameterInt {
+                public:
+                    ParameterChannels(AudioOutputDevice* pDevice)                                   { this->pDevice = pDevice;                            }
+                    virtual String Description()                                                    { return "Number of output channels";                 }
+                    virtual bool   Fix()                                                            { return false;                                       }
+                    virtual bool   Mandatory()                                                      { return false;                                       }
+                    virtual std::map<String,DeviceCreationParameter*> DependsAsParameters()         { return std::map<String,DeviceCreationParameter*>(); }
+                    virtual optional<int>    DefaultAsInt(std::map<String,String> Parameters)       { return optional<int>::nothing;                      }
+                    virtual optional<int>    RangeMinAsInt(std::map<String,String> Parameters)      { return optional<int>::nothing;                      }
+                    virtual optional<int>    RangeMaxAsInt(std::map<String,String> Parameters)      { return optional<int>::nothing;                      }
+                    virtual std::vector<int> PossibilitiesAsInt(std::map<String,String> Parameters) { return std::vector<int>();                          }
+                    virtual void             OnSetValue(int i) throw (LinuxSamplerException)        { pDevice->AcquireChannels(i);                        }
+                protected:
+                    AudioOutputDevice* pDevice;
             };
 
 
@@ -132,6 +172,8 @@ namespace LinuxSampler {
              */
             virtual uint SampleRate() = 0;
 
+            static std::map<String,DeviceCreationParameter*> AvailableParameters();
+
 
 
             /////////////////////////////////////////////////////////////////
@@ -163,25 +205,17 @@ namespace LinuxSampler {
              */
             AudioChannel* Channel(uint ChannelIndex);
 
-            /**
-             * Returns the ID that identifies the implementing audio output
-             * driver.
-             */
-            type_t Type();
+            std::map<String,DeviceCreationParameter*> DeviceParameters();
+
 
         protected:
-            std::set<Engine*>          Engines;  ///< All sampler engines that are connected to the audio output device.
-            std::vector<AudioChannel*> Channels; ///< All audio channels of the audio output device. This is just a container; the descendant has to create channels by himself.
-            type_t                     AudioOutputType;
+            std::set<Engine*>                         Engines;     ///< All sampler engines that are connected to the audio output device.
+            std::vector<AudioChannel*>                Channels;    ///< All audio channels of the audio output device. This is just a container; the descendant has to create channels by himself.
+            std::map<String,DeviceCreationParameter*> Parameters;  ///< All device parameters.
 
-            /**
-             * Constructor. Has to be called by the implementing audio
-             * output driver to define the ID of the driver. When a new
-             * audio output driver is implemented, the
-             * AudioOutputDevice::type_t enumeration has to be extended with
-             * a new ID for the new audio output driver.
-             */
-            AudioOutputDevice(type_t Type);
+            AudioOutputDevice(std::map<String,DeviceCreationParameter*> DriverParameters);
+
+            virtual ~AudioOutputDevice();
 
             /**
              * This method should be called by the AudioOutputDevice
@@ -207,6 +241,11 @@ namespace LinuxSampler {
              * @returns  0 on success
              */
             int RenderSilence(uint Samples);
+
+            friend class Sampler; // allow Sampler class to destroy audio devices
+
+        private:
+             static std::map<String,DeviceCreationParameter*> CreateAvailableParameters();
     };
 
     /**

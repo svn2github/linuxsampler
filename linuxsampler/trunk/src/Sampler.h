@@ -40,7 +40,7 @@ namespace LinuxSampler {
      *
      * Encapsulates one sampler engine, one connection to a MIDI input
      * device and one connection to an audio output device. You cannot
-     * create an instance of this class on you own, you have to use the
+     * create an instance of this class on your own, you have to use the
      * AddSamplerChannel() method of the Sampler object to create a new
      * sampler channel.
      */
@@ -54,20 +54,17 @@ namespace LinuxSampler {
              *
              * @param EngineType - type of the engine to deploy
              */
-            void LoadEngine(Engine::type_t EngineType);
+            void LoadEngine(Engine::type_t EngineType); // TODO: to be changed to 'void LoadEngine(String EngineType) throws (LinuxSamplerException);'
 
             /**
-             * Connect this sampler channel to an audio output device (that
-             * is audio output driver) of the given type. If the audio
-             * output for the desired audio output system is not yet
-             * created, then it will be created automatically, but with
-             * default settings though. If this sampler channel was already
-             * connected to an audio output device, then the old connection
-             * will automatically be removed before.
+             * Connect this sampler channel to an audio output device, that
+             * is an instance of an audio output driver. If this sampler
+             * channel was already connected to an audio output device, then
+             * the old connection will automatically be removed before.
              *
-             * @param AudioType - audio output system to connect to
+             * @param pDevice - audio output device to connect to
              */
-            void SetAudioOutputDevice(AudioOutputDevice::type_t AudioType);
+            void SetAudioOutputDevice(AudioOutputDevice* pDevice);
 
             /**
              * Connect this sampler channel to and MIDI input device (that
@@ -83,7 +80,7 @@ namespace LinuxSampler {
              *                      sampler channel should listen to
              *                      (default: listen on all MIDI channels)
              */
-            void SetMidiInputDevice(MidiInputDevice::type_t MidiType, MidiInputDevice::midi_chan_t MidiChannel = MidiInputDevice::midi_chan_all);
+            void SetMidiInputDevice(MidiInputDevice::type_t MidiType, MidiInputDevice::midi_chan_t MidiChannel = MidiInputDevice::midi_chan_all); // TODO: 'MidiType' type to be changed to 'MidiInputDevice*'
 
             /**
              * Returns the engine that was deployed on this sampler channel.
@@ -226,22 +223,24 @@ namespace LinuxSampler {
              */
             void RemoveSamplerChannel(uint uiSamplerChannel);
 
+            std::vector<String> AvailableAudioOutputDrivers();
+
             /**
              * Create an audio output device of the given type.
              *
-             * @param AudioType - desired audio output system to use
+             * @param AudioDriver - name of the audio driver
+             * @param Parameters - eventually needed driver parameters to
+             *                     create the device
              * @returns  pointer to created audio output device
+             * @throws LinuxSamplerException  if device could not be created
              */
-            AudioOutputDevice* CreateAudioOutputDevice(AudioOutputDevice::type_t AudioType);
+            AudioOutputDevice* CreateAudioOutputDevice(String AudioDriver, std::map<String,String> Parameters) throw (LinuxSamplerException);
 
-            /**
-             * Returns the audio output device of the given type.
-             *
-             * @param AudioType - desired audio output system to use
-             * @returns  pointer to audio output device or NULL if device of
-             *           desired type is not yet created
-             */
-            AudioOutputDevice* GetAudioOutputDevice(AudioOutputDevice::type_t AudioType);
+            uint AudioOutputDevices();
+
+            std::map<uint, AudioOutputDevice*> GetAudioOutputDevices();
+
+            void DestroyAudioOutputDevice(AudioOutputDevice* pDevice) throw (LinuxSamplerException);
 
             /**
              * Create a MIDI input device of the given type.
@@ -249,7 +248,7 @@ namespace LinuxSampler {
              * @param MidiType - desired MIDI input system to use
              * @returns  pointer to created MIDI input device
              */
-            MidiInputDevice* CreateMidiInputDevice(MidiInputDevice::type_t MidiType);
+            MidiInputDevice* CreateMidiInputDevice(MidiInputDevice::type_t MidiType); //TODO: to be changed to 'MidiInputDevice* CreateMidiInputDevice(String MidiDriver, std::map<String,String> Parameters) throw (LinuxSamplerException);'
 
             /**
              * Returns the MIDI input device of the given type.
@@ -261,12 +260,18 @@ namespace LinuxSampler {
             MidiInputDevice* GetMidiInputDevice(MidiInputDevice::type_t MidiType);
 
         protected:
-            typedef std::map<AudioOutputDevice::type_t, AudioOutputDevice*> AudioOutputDeviceMap;
+            typedef std::map<uint, AudioOutputDevice*> AudioOutputDeviceMap;
             typedef std::map<MidiInputDevice::type_t, MidiInputDevice*> MidiInputDeviceMap;
 
             std::vector<SamplerChannel*> vSamplerChannels;   ///< contains all created sampler channels
-            AudioOutputDeviceMap         AudioOutputDevices; ///< contains all created audio output devices
+            AudioOutputDeviceMap         mAudioOutputDevices; ///< contains all created audio output devices
             MidiInputDeviceMap           MidiInputDevices;
+
+            template<class T> inline String ToString(T o) {
+                std::stringstream ss;
+                ss << o;
+                return ss.str();
+            }
 
             friend class SamplerChannel;
     };

@@ -24,8 +24,35 @@
 
 namespace LinuxSampler {
 
-    AudioOutputDevice::AudioOutputDevice(type_t Type) {
-        AudioOutputType = Type;
+    AudioOutputDevice::AudioOutputDevice(std::map<String,DeviceCreationParameter*> DriverParameters) {
+        if (!DriverParameters["ACTIVE"])     DriverParameters["ACTIVE"]     = new ParameterActive(this);
+        if (!DriverParameters["SAMPLERATE"]) DriverParameters["SAMPLERATE"] = new ParameterSampleRate(this);
+        if (!DriverParameters["CHANNELS"])   DriverParameters["CHANNELS"]   = new ParameterChannels(this);
+        this->Parameters = DriverParameters;
+    }
+
+    AudioOutputDevice::~AudioOutputDevice() {
+        std::map<String,DeviceCreationParameter*>::iterator iter = Parameters.begin();
+        while (iter != Parameters.end()) {
+            delete iter->second;
+            Parameters.erase(iter);
+        }
+    }
+
+    std::map<String,DeviceCreationParameter*> AudioOutputDevice::AvailableParameters() {
+        static const std::map<String,DeviceCreationParameter*> available_parameters = CreateAvailableParameters();
+        return available_parameters;
+    }
+
+    std::map<String,DeviceCreationParameter*> AudioOutputDevice::CreateAvailableParameters() {
+        static ParameterActive     param_active(NULL);
+        static ParameterSampleRate param_samplerate(NULL);
+        static ParameterChannels   param_channels(NULL);
+        std::map<String,DeviceCreationParameter*> result;
+        result["ACTIVE"]     = &param_active;
+        result["SAMPLERATE"] = &param_samplerate;
+        result["CHANNELS"]   = &param_channels;
+        return result;
     }
 
     void AudioOutputDevice::Connect(Engine* pEngine) {
@@ -44,6 +71,10 @@ namespace LinuxSampler {
 
     AudioChannel* AudioOutputDevice::Channel(uint ChannelIndex) {
         return (ChannelIndex < Channels.size()) ? Channels[ChannelIndex] : NULL;
+    }
+
+    std::map<String,DeviceCreationParameter*> AudioOutputDevice::DeviceParameters() {
+        return Parameters;
     }
 
     int AudioOutputDevice::RenderAudio(uint Samples) {
@@ -84,10 +115,6 @@ namespace LinuxSampler {
         }
 
         return 0;
-    }
-
-    AudioOutputDevice::type_t AudioOutputDevice::Type() {
-        return AudioOutputType;
     }
 
 } // namespace LinuxSampler

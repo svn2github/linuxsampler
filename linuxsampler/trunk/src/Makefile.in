@@ -108,12 +108,12 @@ INCLUDES = $(all_includes)
 
 AM_CXXFLAGS = -ffast-math -march=$(target_cpu) -mcpu=$(target_cpu)
 
-SUBDIRS = network engines common audiodriver mididriver lib testcases
+SUBDIRS = network engines common audiodriver mididriver lib testcases drivers
 
 pkglib_LTLIBRARIES = liblinuxsampler.la
 liblinuxsampler_la_SOURCES = Sampler.cpp Sampler.h
-liblinuxsampler_la_LIBADD = $(top_builddir)/src/network/liblinuxsamplernetwork.la $(top_builddir)/src/mididriver/liblinuxsamplermididriver.la $(top_builddir)/src/lib/fileloader/libgig/libgig.la $(top_builddir)/src/engines/gig/liblinuxsamplergigengine.la $(top_builddir)/src/engines/common/liblinuxsamplercommonengine.la $(top_builddir)/src/common/liblinuxsamplercommon.la $(top_builddir)/src/audiodriver/liblinuxsampleraudiodriver.la
-liblinuxsampler_la_LDFLAGS = -module
+liblinuxsampler_la_LIBADD = $(top_builddir)/src/network/liblinuxsamplernetwork.la $(top_builddir)/src/mididriver/liblinuxsamplermididriver.la $(top_builddir)/src/lib/fileloader/libgig/libgig.la $(top_builddir)/src/engines/gig/liblinuxsamplergigengine.la $(top_builddir)/src/engines/common/liblinuxsamplercommonengine.la $(top_builddir)/src/drivers/liblinuxsamplerdrivers.la $(top_builddir)/src/common/liblinuxsamplercommon.la $(top_builddir)/src/audiodriver/liblinuxsampleraudiodriver.la
+liblinuxsampler_la_LDFLAGS = -module 
 
 bin_PROGRAMS = linuxsampler
 linuxsampler_SOURCES = linuxsampler.cpp
@@ -130,6 +130,7 @@ liblinuxsampler_la_DEPENDENCIES = \
 	$(top_builddir)/src/lib/fileloader/libgig/libgig.la \
 	$(top_builddir)/src/engines/gig/liblinuxsamplergigengine.la \
 	$(top_builddir)/src/engines/common/liblinuxsamplercommonengine.la \
+	$(top_builddir)/src/drivers/liblinuxsamplerdrivers.la \
 	$(top_builddir)/src/common/liblinuxsamplercommon.la \
 	$(top_builddir)/src/audiodriver/liblinuxsampleraudiodriver.la
 am_liblinuxsampler_la_OBJECTS = Sampler.lo

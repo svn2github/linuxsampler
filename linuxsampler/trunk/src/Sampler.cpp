@@ -20,10 +20,11 @@
  *   MA  02111-1307  USA                                                   *
  ***************************************************************************/
 
+#include <sstream>
+
 #include "Sampler.h"
 
-#include "audiodriver/AudioOutputDeviceAlsa.h"
-#include "audiodriver/AudioOutputDeviceJack.h"
+#include "audiodriver/AudioOutputDeviceFactory.h"
 #include "mididriver/MidiInputDeviceAlsa.h"
 #include "engines/gig/Engine.h"
 
@@ -75,11 +76,7 @@ namespace LinuxSampler {
         dmsg(2,("OK\n"));
     }
 
-    void SamplerChannel::SetAudioOutputDevice(AudioOutputDevice::type_t AudioType) {
-        // get / create desired audio device
-        AudioOutputDevice* pDevice = pSampler->GetAudioOutputDevice(AudioType);
-        if (!pDevice) pDevice = pSampler->CreateAudioOutputDevice(AudioType);
-
+    void SamplerChannel::SetAudioOutputDevice(AudioOutputDevice* pDevice) {
         // disconnect old device
         if (pAudioOutputDevice && pEngine) pAudioOutputDevice->Disconnect(pEngine);
 
@@ -153,8 +150,8 @@ namespace LinuxSampler {
 
         // delete audio output devices
         {
-            AudioOutputDeviceMap::iterator iter = AudioOutputDevices.begin();
-            for (; iter != AudioOutputDevices.end(); iter++) {
+            AudioOutputDeviceMap::iterator iter = mAudioOutputDevices.begin();
+            for (; iter != mAudioOutputDevices.end(); iter++) {
                 AudioOutputDevice* pDevice = iter->second;
                 pDevice->Stop();
                 delete pDevice;
@@ -194,37 +191,54 @@ namespace LinuxSampler {
         RemoveSamplerChannel(pChannel);
     }
 
-    AudioOutputDevice* Sampler::CreateAudioOutputDevice(AudioOutputDevice::type_t AudioType) {
-        // check if device already created
-        AudioOutputDevice* pDevice = GetAudioOutputDevice(AudioType);
-        if (pDevice) return pDevice;
+    std::vector<String> Sampler::AvailableAudioOutputDrivers() {
+        return AudioOutputDeviceFactory::AvailableDrivers();
+    }
 
+    AudioOutputDevice* Sampler::CreateAudioOutputDevice(String AudioDriver, std::map<String,String> Parameters) throw (LinuxSamplerException) {
         // create new device
-        switch (AudioType) {
-            case AudioOutputDevice::type_alsa:
-                pDevice = new AudioOutputDeviceAlsa;
-                break;
-#if HAVE_JACK
-            case AudioOutputDevice::type_jack:
-                pDevice = new AudioOutputDeviceJack;
-                break;
-#endif
-            default:
-                throw LinuxSamplerException("Unknown audio output device type");
-        }
+        AudioOutputDevice* pDevice = AudioOutputDeviceFactory::Create(AudioDriver, Parameters);
 
         // activate device
         pDevice->Play();
 
         // add new audio device to the audio device list
-        AudioOutputDevices[AudioType] = pDevice;
+        for (uint i = 0; ; i++) { // seek for a free place starting from the beginning
+            if (!mAudioOutputDevices[i]) {
+                mAudioOutputDevices[i] = pDevice;
+                break;
+            }
+        }
 
         return pDevice;
     }
 
-    AudioOutputDevice* Sampler::GetAudioOutputDevice(AudioOutputDevice::type_t AudioType) {
-        AudioOutputDeviceMap::iterator iter = AudioOutputDevices.find(AudioType);
-        return (iter != AudioOutputDevices.end()) ? iter->second : NULL;
+    uint Sampler::AudioOutputDevices() {
+        return mAudioOutputDevices.size();
+    }
+
+    std::map<uint, AudioOutputDevice*> Sampler::GetAudioOutputDevices() {
+        return mAudioOutputDevices;
+    }
+
+    void Sampler::DestroyAudioOutputDevice(AudioOutputDevice* pDevice) throw (LinuxSamplerException) {
+        AudioOutputDeviceMap::iterator iter = mAudioOutputDevices.begin();
+        for (; iter != mAudioOutputDevices.end(); iter++) {
+            if (iter->second == pDevice) {
+                // check if there are still sampler engines connected to this device
+                for (uint i = 0; i < SamplerChannels(); i++)
+                    if (GetSamplerChannel(i)->GetAudioOutputDevice() == pDevice) throw LinuxSamplerException("Sampler channel " + ToString(i) + " is still connected to the audio output device.");
+
+                // disable device
+                pDevice->Stop();
+
+                // remove device from the device list
+                mAudioOutputDevices.erase(iter);
+
+                // destroy and free device from memory
+                delete pDevice;
+            }
+        }
     }
 
     MidiInputDevice* Sampler::CreateMidiInputDevice(MidiInputDevice::type_t MidiType) {

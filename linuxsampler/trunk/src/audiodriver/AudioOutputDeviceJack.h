@@ -42,8 +42,20 @@ namespace LinuxSampler {
      */
     class AudioOutputDeviceJack : public AudioOutputDevice {
         public:
-            AudioOutputDeviceJack(String* AutoConnectPortIDs = NULL, uint AutoConnectPorts = 0);
+            AudioOutputDeviceJack(std::map<String,String> Parameters);
             ~AudioOutputDeviceJack();
+
+            // Audio channel parameter to connect to other Jack clients
+            class ParameterJackBindings : public DeviceRuntimeParameterStrings {
+                public:
+                    ParameterJackBindings(AudioChannel* pChannel, std::vector<String> InitialBindings) : DeviceRuntimeParameterStrings(InitialBindings) { this->pChannel = pChannel; }
+                    virtual String              Description()                      { return "Bindings to other JACK clients";                     }
+                    virtual bool                Fix()                              { return false;                                                }
+                    virtual std::vector<String> PossibilitiesAsString()            { return std::vector<String>(); /* TODO: to be implemented */  }
+                    virtual void                OnSetValue(std::vector<String> vS) { /* TODO: code to connect to other jack clients */            }
+                protected:
+                    AudioChannel* pChannel;
+            };
 
             // derived abstract methods from class 'AudioOutputDevice'
             virtual void Play();
@@ -53,7 +65,13 @@ namespace LinuxSampler {
             virtual uint MaxSamplesPerCycle();
             virtual uint SampleRate();
 
+            static String Description();
+            static String Version();
+            static std::map<String,DeviceCreationParameter*> AvailableParameters();
+
             int Process(uint Samples);  // FIXME: should be private
+        protected:
+            AudioOutputDeviceJack(String* AutoConnectPortIDs = NULL, uint AutoConnectPorts = 0);
         private:
             ConditionServer           csIsPlaying;
             uint                      uiMaxSamplesPerCycle;

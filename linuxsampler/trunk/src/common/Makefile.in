@@ -108,7 +108,7 @@ METASOURCES = AUTO
 AM_CXXFLAGS = -ffast-math -march=$(target_cpu) -mcpu=$(target_cpu)
 
 noinst_LTLIBRARIES = liblinuxsamplercommon.la
-liblinuxsamplercommon_la_SOURCES = atomic.h Condition.cpp Condition.h ConditionServer.cpp ConditionServer.h global.h LinuxSamplerException.h Mutex.cpp Mutex.h ResourceManager.h RingBuffer.h RTELMemoryPool.h RTMath.cpp RTMath.h Thread.cpp Thread.h
+liblinuxsamplercommon_la_SOURCES = atomic.h Condition.cpp Condition.h ConditionServer.cpp ConditionServer.h global.h LinuxSamplerException.h Mutex.cpp Mutex.h ResourceManager.h RingBuffer.h RTELMemoryPool.h RTMath.cpp RTMath.h Thread.cpp Thread.h optional.h optional.cpp
 subdir = src/common
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
 CONFIG_HEADER = $(top_builddir)/config.h
@@ -118,7 +118,7 @@ LTLIBRARIES = $(noinst_LTLIBRARIES)
 liblinuxsamplercommon_la_LDFLAGS =
 liblinuxsamplercommon_la_LIBADD =
 am_liblinuxsamplercommon_la_OBJECTS = Condition.lo ConditionServer.lo \
-	Mutex.lo RTMath.lo Thread.lo
+	Mutex.lo RTMath.lo Thread.lo optional.lo
 liblinuxsamplercommon_la_OBJECTS = \
 	$(am_liblinuxsamplercommon_la_OBJECTS)
 
@@ -132,7 +132,7 @@ am__depfiles_maybe = depfiles
 @AMDEP_TRUE@DEP_FILES = ./$(DEPDIR)/Condition.Plo \
 @AMDEP_TRUE@	./$(DEPDIR)/ConditionServer.Plo \
 @AMDEP_TRUE@	./$(DEPDIR)/Mutex.Plo ./$(DEPDIR)/RTMath.Plo \
-@AMDEP_TRUE@	./$(DEPDIR)/Thread.Plo
+@AMDEP_TRUE@	./$(DEPDIR)/Thread.Plo ./$(DEPDIR)/optional.Plo
 CXXCOMPILE = $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
 	$(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS)
 LTCXXCOMPILE = $(LIBTOOL) --mode=compile $(CXX) $(DEFS) \
@@ -186,6 +186,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Mutex.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/RTMath.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Thread.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/optional.Plo@am__quote@
 
 distclean-depend:
 	-rm -rf ./$(DEPDIR)

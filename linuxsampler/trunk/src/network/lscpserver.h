@@ -57,6 +57,8 @@ class LSCPServer : public Thread {
         LSCPServer(Sampler* pSampler);
 
         // Methods called by the parser
+        String CreateAudioOutputDevice(String Driver, std::map<String,String> Parameters);
+        String DestroyAudioOutputDevice(uint DeviceIndex);
         String LoadInstrument(String Filename, uint uiInstrument, uint uiSamplerChannel);
         String LoadEngine(String EngineName, uint uiSamplerChannel);
         String GetChannels();
@@ -68,11 +70,26 @@ class LSCPServer : public Thread {
         String GetVoiceCount(uint uiSamplerChannel);
         String GetStreamCount(uint uiSamplerChannel);
         String GetBufferFill(fill_response_t ResponseType, uint uiSamplerChannel);
-        String SetAudioOutputType(AudioOutputDevice::type_t AudioOutputType, uint uiSamplerChannel);
-        String SetAudioOutputChannel(uint AudioOutputChannel, uint uiSamplerChannel);
-        String SetMIDIInputType(MidiInputDevice::type_t MidiInputType, uint uiSamplerChannel);
+        String GetAvailableAudioOutputDrivers();
+        String GetAudioOutputDriverInfo(String Driver);
+#ifdef __GNUC__
+        typedef std::map<String,String> StringMap; // nasty workaround for a GCC bug (see GCC bug #15980, #57)
+        String GetAudioOutputDriverParameterInfo(String Driver, String Parameter, std::map<String,String> DependencyList = StringMap());
+#else
+        String GetAudioOutputDriverParameterInfo(String Driver, String Parameter, std::map<String,String> DependencyList = std::map<String,String>());
+#endif // __GNUC__
+        String GetAudioOutputDeviceCount();
+        String GetAudioOutputDevices();
+        String GetAudioOutputDeviceInfo(uint DeviceIndex);
+        String GetAudioOutputChannelInfo(uint DeviceId, uint ChannelId);
+        String GetAudioOutputChannelParameterInfo(uint DeviceId, uint ChannelId, String ParameterName);
+        String SetAudioOutputChannelParameter(uint DeviceId, uint ChannelId, String ParamKey, String ParamVal);
+        String SetAudioOutputDeviceParameter(uint DeviceIndex, String ParamKey, String ParamVal);
+        String SetAudioOutputChannel(uint ChannelAudioOutputChannel, uint AudioOutputDeviceInputChannel, uint uiSamplerChannel);
+        String SetMIDIInputType(String MidiInputDriver, uint uiSamplerChannel);
         String SetMIDIInputPort(String MIDIInputPort, uint uiSamplerchannel);
         String SetMIDIInputChannel(uint MIDIChannel, uint uiSamplerChannel);
+        String SetAudioOutputDevice(uint AudioDeviceId, uint SamplerChannel);
         String SetVolume(double Volume, uint uiSamplerChannel);
         String ResetChannel(uint uiSamplerChannel);
         String SubscribeNotification(uint UDPPort);
