@@ -310,7 +310,7 @@ namespace LinuxSampler { namespace gig {
 
         // calculate initial pitch value
         {
-            double pitchbasecents = pDimRgn->FineTune * 10 + (int) pEngine->ScaleTuning[MIDIKey % 12];
+            double pitchbasecents = pDimRgn->FineTune + (int) pEngine->ScaleTuning[MIDIKey % 12];
             if (pDimRgn->PitchTrack) pitchbasecents += (MIDIKey - (int) pDimRgn->UnityNote) * 100;
             this->PitchBase = RTMath::CentsToFreqRatio(pitchbasecents) * (double(pSample->SamplesPerSecond) / double(pEngine->pAudioOutputDevice->SampleRate()));
             this->PitchBend = RTMath::CentsToFreqRatio(((double) PitchBend / 8192.0) * 200.0); // pitchbend wheel +-2 semitones = 200 cents
