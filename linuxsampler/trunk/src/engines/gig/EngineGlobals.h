@@ -67,6 +67,7 @@ namespace LinuxSampler { namespace gig {
         bool            ReleaseTrigger; ///< If we have to launch release triggered voice(s) when the key is released
         Pool<uint>::Iterator itSelf;    ///< hack to allow fast deallocation of the key from the list of active keys
         RTList<Event>*  pEvents;        ///< Key specific events (only Note-on, Note-off and sustain pedal currently)
+        int             VoiceTheftsQueued; ///< Amount of voices postponed due to shortage of voices.
         uint8_t         RoundRobinIndex; ///< For the round robin dimension: current articulation for this key, will be incremented for each note on
     };
 
