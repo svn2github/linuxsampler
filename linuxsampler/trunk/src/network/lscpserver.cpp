@@ -86,9 +86,6 @@ int LSCPServer::Main() {
     // now wait for client connections and handle their requests
     sockaddr_in client;
     int length = sizeof(client);
-    struct timeval tv;
-    tv.tv_sec = 30;
-    tv.tv_usec = 0;
     FD_ZERO(&fdSet);
     FD_SET(hSocket, &fdSet);
     int maxSessions = hSocket;
@@ -99,9 +96,9 @@ int LSCPServer::Main() {
 
     while (true) {
 	fd_set selectSet = fdSet;
-	int retval = select(maxSessions+1, &selectSet, NULL, NULL, &tv);
+	int retval = select(maxSessions+1, &selectSet, NULL, NULL, NULL);
 	if (retval == 0)
-		continue; //Nothing in 30 seconds, try again
+		continue; //Nothing try again
 	if (retval == -1) {
 		std::cerr << "LSCPServer: Socket select error." << std::endl;
 		close(hSocket);
