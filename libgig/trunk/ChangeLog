@@ -15,9 +15,16 @@ Version CVS HEAD (?)
     - fixed some memory leaks (patch by 'Gene', a.k.a Anders Alm)
     - fixed crash which occured when patches did not have a sample assigned
       to their region or dimension region (patch by Andreas Persson)
+    - support for compressed mono samples
+    - experimental support for compressed 24 bit samples
+    - fixed decompression on big-endian CPUs
+    - fixed decompression bug that truncated the last block of samples
 
   * src/gigdump.cpp:
     - added output of UnityNote and FineTune
+
+  * src/gigextract.cpp:
+    - support for compressed mono samples and compressed 24 bit samples
 
 Version 1.0.0 (26 Nov 2004)
 

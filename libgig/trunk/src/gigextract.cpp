@@ -188,11 +188,6 @@ void ExtractSamples(gig::File* gig, char* destdir, OrderMap* ordered) {
 
 
 #if USE_DISK_STREAMING
-        if (pSample->Compressed) { // hack
-            pSample->BitDepth  = 16;
-            pSample->FrameSize = 4;
-        }
-
         long neededsize = (pSample->Compressed) ? 10485760 /* 10 MB buffer */
                                                 : pSample->SamplesTotal * pSample->FrameSize;
         if (BufferSize < neededsize) {
@@ -207,12 +202,14 @@ void ExtractSamples(gig::File* gig, char* destdir, OrderMap* ordered) {
         uint8_t* pSamplePiece = pWave;
         do { // we read the sample in small pieces and increment the size with each run just to test streaming capability
             readinthisrun = pSample->Read(pSamplePiece, ++samplepiecesize);
-            pSamplePiece += readinthisrun * pSample->FrameSize;
+            // 24 bit is truncated to 16 by Sample::Read at the moment
+            pSamplePiece += readinthisrun * (2 * pSample->Channels); // readinthisrun * pSample->FrameSize;
             readsamples  += readinthisrun;
         } while (readinthisrun == samplepiecesize);
 
         if (pSample->Compressed) { // hack
             pSample->SamplesTotal = readsamples;
+            pSample->BitDepth = 16;
         }
 #  else // read in one piece
         if (pSample->Compressed) {
