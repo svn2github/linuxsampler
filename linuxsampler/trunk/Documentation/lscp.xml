@@ -2350,10 +2350,11 @@ Schoenebeck'>
                     sampler channel by sending the following command:</t>
                     <t>
                         <list>
-                            <t>Where &lt;sampler-channel&gt; is the sampler channel number the front-end
-                            is interested in.</t>
+                            <t>GET CHANNEL VOICE_COUNT &lt;sampler-channel&gt;</t>
                         </list>
                     </t>
+                    <t>Where &lt;sampler-channel&gt; is the sampler channel number the front-end is interested in.</t>
+
                     <t>Possible Answers:</t>
                     <t>
                         <list>
