@@ -164,9 +164,10 @@ Stream* DiskThread::AskForCreatedStream(Stream::OrderID_t StreamOrderID) {
     if (pStream && pStream != SLOT_RESERVED) {
         dmsg(4,("(yes created)\n"));
         pCreatedStreams[StreamOrderID] = NULL; // free the slot for a new order
+	return pStream;
     }
-    else dmsg(4,("(no not yet created)\n"));
-    return pStream;
+    dmsg(4,("(no not yet created)\n"));
+    return NULL;
 }
 
 
