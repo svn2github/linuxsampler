@@ -66,10 +66,16 @@ namespace gig {
         Compressed = (waveList->GetSubChunk(CHUNK_ID_EWAV));
         if (Compressed) {
             ScanCompressedSample();
-            if (!pDecompressionBuffer) {
-                pDecompressionBuffer    = new int8_t[INITIAL_SAMPLE_BUFFER_SIZE];
-                DecompressionBufferSize = INITIAL_SAMPLE_BUFFER_SIZE;
-            }
+        }
+
+        if (BitDepth > 24)                throw gig::Exception("Only samples up to 24 bit supported");
+        if (Compressed && Channels == 1)  throw gig::Exception("Mono compressed samples not yet supported");
+        if (Compressed && BitDepth == 24) throw gig::Exception("24 bit compressed samples not yet supported");
+
+        // we use a buffer for decompression and for truncating 24 bit samples to 16 bit
+        if ((Compressed || BitDepth == 24) && !pDecompressionBuffer) {
+            pDecompressionBuffer    = new int8_t[INITIAL_SAMPLE_BUFFER_SIZE];
+            DecompressionBufferSize = INITIAL_SAMPLE_BUFFER_SIZE;
         }
 	FrameOffset = 0; // just for streaming compressed samples
 
@@ -502,7 +508,22 @@ namespace gig {
      */
     unsigned long Sample::Read(void* pBuffer, unsigned long SampleCount) {
         if (SampleCount == 0) return 0;
-        if (!Compressed) return pCkData->Read(pBuffer, SampleCount, FrameSize); //FIXME: channel inversion due to endian correction?
+        if (!Compressed) {
+            if (BitDepth == 24) {
+                // 24 bit sample. For now just truncate to 16 bit.
+                int8_t* pSrc = (int8_t*)this->pDecompressionBuffer;
+                int8_t* pDst = (int8_t*)pBuffer;
+                unsigned long n = pCkData->Read(pSrc, SampleCount, FrameSize);
+                for (int i = SampleCount * (FrameSize / 3) ; i > 0 ; i--) {
+                    pSrc++;
+                    *pDst++ = *pSrc++;
+                    *pDst++ = *pSrc++;
+                }
+                return SampleCount;
+            } else {
+                return pCkData->Read(pBuffer, SampleCount, FrameSize); //FIXME: channel inversion due to endian correction?
+            }
+        }
         else { //FIXME: no support for mono compressed samples yet, are there any?
             if (this->SamplePos >= this->SamplesTotal) return 0;
             //TODO: efficiency: we simply assume here that all frames are compressed, maybe we should test for an average compression rate
@@ -836,7 +857,7 @@ namespace gig {
             pVelocityAttenuationTable = (*pVelocityTables)[tableKey];
         }
         else {
-            pVelocityAttenuationTable = 
+            pVelocityAttenuationTable =
                 CreateVelocityTable(VelocityResponseCurve,
                                     VelocityResponseDepth,
                                     VelocityResponseCurveScaling);
@@ -993,7 +1014,7 @@ namespace gig {
     }
 
     double* DimensionRegion::CreateVelocityTable(curve_type_t curveType, uint8_t depth, uint8_t scaling) {
-        
+
         // line-segment approximations of the 15 velocity curves
 
         // linear
@@ -1005,40 +1026,40 @@ namespace gig {
 
         // non-linear
         const int non0[] = { 1, 4, 24, 5, 57, 17, 92, 57, 122, 127, 127, 127 };
-        const int non1[] = { 1, 4, 46, 9, 93, 56, 118, 106, 123, 127, 
+        const int non1[] = { 1, 4, 46, 9, 93, 56, 118, 106, 123, 127,
                              127, 127 };
         const int non2[] = { 1, 4, 46, 9, 57, 20, 102, 107, 107, 127,
                              127, 127 };
         const int non3[] = { 1, 15, 10, 19, 67, 73, 80, 80, 90, 98, 98, 127,
                              127, 127 };
         const int non4[] = { 1, 25, 33, 57, 82, 81, 92, 127, 127, 127 };
-        
+
         // special
-        const int spe0[] = { 1, 2, 76, 10, 90, 15, 95, 20, 99, 28, 103, 44, 
+        const int spe0[] = { 1, 2, 76, 10, 90, 15, 95, 20, 99, 28, 103, 44,
                              113, 127, 127, 127 };
         const int spe1[] = { 1, 2, 27, 5, 67, 18, 89, 29, 95, 35, 107, 67,
                              118, 127, 127, 127 };
-        const int spe2[] = { 1, 1, 33, 1, 53, 5, 61, 13, 69, 32, 79, 74, 
+        const int spe2[] = { 1, 1, 33, 1, 53, 5, 61, 13, 69, 32, 79, 74,
                              85, 90, 91, 127, 127, 127 };
-        const int spe3[] = { 1, 32, 28, 35, 66, 48, 89, 59, 95, 65, 99, 73, 
+        const int spe3[] = { 1, 32, 28, 35, 66, 48, 89, 59, 95, 65, 99, 73,
                              117, 127, 127, 127 };
-        const int spe4[] = { 1, 4, 23, 5, 49, 13, 57, 17, 92, 57, 122, 127, 
+        const int spe4[] = { 1, 4, 23, 5, 49, 13, 57, 17, 92, 57, 122, 127,
                              127, 127 };
-        
+
         const int* const curves[] = { non0, non1, non2, non3, non4,
-                                      lin0, lin1, lin2, lin3, lin4, 
+                                      lin0, lin1, lin2, lin3, lin4,
                                       spe0, spe1, spe2, spe3, spe4 };
-        
+
         double* const table = new double[128];
 
         const int* curve = curves[curveType * 5 + depth];
         const int s = scaling == 0 ? 20 : scaling; // 0 or 20 means no scaling
-        
+
         table[0] = 0;
         for (int x = 1 ; x < 128 ; x++) {
 
             if (x > curve[2]) curve += 2;
-            double y = curve[1] + (x - curve[0]) * 
+            double y = curve[1] + (x - curve[0]) *
                 (double(curve[3] - curve[1]) / (curve[2] - curve[0]));
             y = y / 127;
 
@@ -1135,8 +1156,14 @@ namespace gig {
                 }
             }
 
+            // jump to start of the wave pool indices (if not already there)
+            File* file = (File*) GetParent()->GetParent();
+            if (file->pVersion && file->pVersion->major == 3)
+                _3lnk->SetPos(68); // version 3 has a different 3lnk structure
+            else
+                _3lnk->SetPos(44);
+
             // load sample references
-            _3lnk->SetPos(44); // jump to start of the wave pool indices (if not already there)
             for (uint i = 0; i < DimensionRegions; i++) {
                 uint32_t wavepoolindex = _3lnk->ReadUint32();
                 pDimensionRegions[i]->pSample = GetSampleFromWavePool(wavepoolindex);
