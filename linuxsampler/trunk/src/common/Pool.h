@@ -39,6 +39,7 @@
 
 #if DEVMODE
 const std::string __err_msg_iterator_invalidated = "Pool/RTList iterator invalidated";
+# include <iostream>
 #endif
 
 // just symbol prototyping
