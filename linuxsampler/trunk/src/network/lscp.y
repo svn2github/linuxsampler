@@ -255,7 +255,7 @@ string                :  char          { std::string s; s = $1; $$ = s; }
                       |  string char   { $$ = $1 + $2;                  }
                       ;
 
-dotnum                :      digits '.' digits  { $$ = atoi(String($1 + "." + $3).c_str());                         }
+dotnum                :      digits '.' digits  { $$ = atof(String($1 + "." + $3).c_str());                         }
                       |  '+' digits '.' digits  { String s = "+"; s += $2; s += "."; s += $4; $$ = atof(s.c_str()); }
                       |  '-' digits '.' digits  { $$ = atof(String("-" + $2 + "." + $4).c_str());                   }
                       ;
@@ -346,8 +346,8 @@ text                  :  SP           { $$ = " ";      }
                       |  text string  { $$ = $1 + $2;  }
                       ;
 
-stringval             :  '\'' text '\''  { $$ = '\'' + $2 + '\''; }
-                      |  '\"' text '\"'  { $$ = '\"' + $2 + '\"'; }
+stringval             :  '\'' text '\''  { $$ = $2; }
+                      |  '\"' text '\"'  { $$ = $2; }
                       ;
 
 

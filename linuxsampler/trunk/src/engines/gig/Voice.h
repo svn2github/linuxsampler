@@ -105,10 +105,6 @@ namespace LinuxSampler { namespace gig {
             // Attributes
             gig::Engine*                pEngine;            ///< Pointer to the sampler engine, to be able to access the event lists.
             float                       Volume;             ///< Volume level of the voice
-            float*                      pOutputLeft;        ///< Audio output channel buffer (left)
-            float*                      pOutputRight;       ///< Audio output channel buffer (right)
-            uint                        SampleRate;         ///< Sample rate of the engines output audio signal (in Hz)
-            uint                        MaxSamplesPerCycle; ///< Size of each audio output buffer
             double                      Pos;                ///< Current playback position in sample
             double                      PitchBase;          ///< Basic pitch depth, stays the same for the whole life time of the voice
             double                      PitchBend;          ///< Current pitch value of the pitchbend wheel
@@ -159,14 +155,14 @@ namespace LinuxSampler { namespace gig {
                 #if USE_LINEAR_INTERPOLATION
                     #if ENABLE_FILTER
                         // left channel
-                        pOutputLeft[i]    += this->FilterLeft.Apply(&bq_base, &bq_main, effective_volume * (pSrc[pos_int]   + pos_fract * (pSrc[pos_int+2] - pSrc[pos_int])));
+                        pEngine->pOutputLeft[i]    += this->FilterLeft.Apply(&bq_base, &bq_main, effective_volume * (pSrc[pos_int]   + pos_fract * (pSrc[pos_int+2] - pSrc[pos_int])));
                         // right channel
-                        pOutputRight[i++] += this->FilterRight.Apply(&bq_base, &bq_main, effective_volume * (pSrc[pos_int+1] + pos_fract * (pSrc[pos_int+3] - pSrc[pos_int+1])));
+                        pEngine->pOutputRight[i++] += this->FilterRight.Apply(&bq_base, &bq_main, effective_volume * (pSrc[pos_int+1] + pos_fract * (pSrc[pos_int+3] - pSrc[pos_int+1])));
                     #else // no filter
                         // left channel
-                        pOutputLeft[i]    += effective_volume * (pSrc[pos_int]   + pos_fract * (pSrc[pos_int+2] - pSrc[pos_int]));
+                        pEngine->pOutputLeft[i]    += effective_volume * (pSrc[pos_int]   + pos_fract * (pSrc[pos_int+2] - pSrc[pos_int]));
                         // right channel
-                        pOutputRight[i++] += effective_volume * (pSrc[pos_int+1] + pos_fract * (pSrc[pos_int+3] - pSrc[pos_int+1]));
+                        pEngine->pOutputRight[i++] += effective_volume * (pSrc[pos_int+1] + pos_fract * (pSrc[pos_int+3] - pSrc[pos_int+1]));
                     #endif // ENABLE_FILTER
                 #else // polynomial interpolation
                     // calculate left channel
@@ -178,9 +174,9 @@ namespace LinuxSampler { namespace gig {
                     float b   = 2.0f * x1 + xm1 - (5.0f * x0 + x2) * 0.5f;
                     float c   = (x1 - xm1) * 0.5f;
                     #if ENABLE_FILTER
-                        pOutputLeft[i] += this->FilterLeft.Apply(&bq_base, &bq_main, effective_volume * ((((a * pos_fract) + b) * pos_fract + c) * pos_fract + x0));
+                        pEngine->pOutputLeft[i] += this->FilterLeft.Apply(&bq_base, &bq_main, effective_volume * ((((a * pos_fract) + b) * pos_fract + c) * pos_fract + x0));
                     #else // no filter
-                        pOutputLeft[i] += effective_volume * ((((a * pos_fract) + b) * pos_fract + c) * pos_fract + x0);
+                        pEngine->pOutputLeft[i] += effective_volume * ((((a * pos_fract) + b) * pos_fract + c) * pos_fract + x0);
                     #endif // ENABLE_FILTER
 
                     //calculate right channel
@@ -192,9 +188,9 @@ namespace LinuxSampler { namespace gig {
                     b   = 2.0f * x1 + xm1 - (5.0f * x0 + x2) * 0.5f;
                     c   = (x1 - xm1) * 0.5f;
                     #if ENABLE_FILTER
-                        pOutputRight[i++] += this->FilterRight.Apply(&bq_base, &bq_main, effective_volume * ((((a * pos_fract) + b) * pos_fract + c) * pos_fract + x0));
+                        pEngine->pOutputRight[i++] += this->FilterRight.Apply(&bq_base, &bq_main, effective_volume * ((((a * pos_fract) + b) * pos_fract + c) * pos_fract + x0));
                     #else // no filter
-                        pOutputRight[i++] += effective_volume * ((((a * pos_fract) + b) * pos_fract + c) * pos_fract + x0);
+                        pEngine->pOutputRight[i++] += effective_volume * ((((a * pos_fract) + b) * pos_fract + c) * pos_fract + x0);
                     #endif // ENABLE_FILTER
                 #endif // USE_LINEAR_INTERPOLATION
 
@@ -222,8 +218,8 @@ namespace LinuxSampler { namespace gig {
                     sample_point = this->FilterLeft.Apply(&bq_base, &bq_main, sample_point);
                 #endif // ENABLE_FILTER
 
-                pOutputLeft[i]    += sample_point;
-                pOutputRight[i++] += sample_point;
+                pEngine->pOutputLeft[i]    += sample_point;
+                pEngine->pOutputRight[i++] += sample_point;
 
                 this->Pos += pitch;
             }

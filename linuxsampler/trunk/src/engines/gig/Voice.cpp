@@ -71,13 +71,6 @@ namespace LinuxSampler { namespace gig {
         if (pVCOManipulator)  delete pVCOManipulator;
     }
 
-    void Voice::SetOutput(AudioOutputDevice* pAudioOutputDevice) {
-        this->pOutputLeft        = pAudioOutputDevice->Channel(0)->Buffer();
-        this->pOutputRight       = pAudioOutputDevice->Channel(1)->Buffer();
-        this->MaxSamplesPerCycle = pAudioOutputDevice->MaxSamplesPerCycle();
-        this->SampleRate         = pAudioOutputDevice->SampleRate();
-    }
-
     void Voice::SetEngine(Engine* pEngine) {
         this->pEngine = pEngine;
 
@@ -157,7 +150,7 @@ namespace LinuxSampler { namespace gig {
         DiskVoice          = cachedsamples < pSample->SamplesTotal;
 
         if (DiskVoice) { // voice to be streamed from disk
-            MaxRAMPos = cachedsamples - (MaxSamplesPerCycle << MAX_PITCH) / pSample->Channels; //TODO: this calculation is too pessimistic and may better be moved to Render() method, so it calculates MaxRAMPos dependent to the current demand of sample points to be rendered (e.g. in case of JACK)
+            MaxRAMPos = cachedsamples - (pEngine->MaxSamplesPerCycle << MAX_PITCH) / pSample->Channels; //TODO: this calculation is too pessimistic and may better be moved to Render() method, so it calculates MaxRAMPos dependent to the current demand of sample points to be rendered (e.g. in case of JACK)
 
             // check if there's a loop defined which completely fits into the cached (RAM) part of the sample
             if (pSample->Loops && pSample->LoopEnd <= MaxRAMPos) {
@@ -314,7 +307,7 @@ namespace LinuxSampler { namespace gig {
                           pDimRgn->LFO1ControlDepth,
                           pEngine->ControllerTable[pLFO1->ExtController],
                           pDimRgn->LFO1FlipPhase,
-                          this->SampleRate,
+                          pEngine->SampleRate,
                           Delay);
         }
 
@@ -352,7 +345,7 @@ namespace LinuxSampler { namespace gig {
                           pDimRgn->LFO2ControlDepth,
                           pEngine->ControllerTable[pLFO2->ExtController],
                           pDimRgn->LFO2FlipPhase,
-                          this->SampleRate,
+                          pEngine->SampleRate,
                           Delay);
         }
     #endif // ENABLE_FILTER
@@ -390,7 +383,7 @@ namespace LinuxSampler { namespace gig {
                           pDimRgn->LFO3ControlDepth,
                           pEngine->ControllerTable[pLFO3->ExtController],
                           false,
-                          this->SampleRate,
+                          pEngine->SampleRate,
                           Delay);
         }
 
@@ -488,8 +481,8 @@ namespace LinuxSampler { namespace gig {
             VCFCutoffCtrl.fvalue    = cutoff - FILTER_CUTOFF_MIN;
             VCFResonanceCtrl.fvalue = resonance;
 
-            FilterLeft.SetParameters(cutoff,  resonance, SampleRate);
-            FilterRight.SetParameters(cutoff, resonance, SampleRate);
+            FilterLeft.SetParameters(cutoff,  resonance, pEngine->SampleRate);
+            FilterRight.SetParameters(cutoff, resonance, pEngine->SampleRate);
 
             FilterUpdateCounter = -1;
         }
@@ -582,8 +575,8 @@ namespace LinuxSampler { namespace gig {
                     }
 
                     // add silence sample at the end if we reached the end of the stream (for the interpolator)
-                    if (DiskStreamRef.State == Stream::state_end && DiskStreamRef.pStream->GetReadSpace() < (MaxSamplesPerCycle << MAX_PITCH) / pSample->Channels) {
-                        DiskStreamRef.pStream->WriteSilence((MaxSamplesPerCycle << MAX_PITCH) / pSample->Channels);
+                    if (DiskStreamRef.State == Stream::state_end && DiskStreamRef.pStream->GetReadSpace() < (pEngine->MaxSamplesPerCycle << MAX_PITCH) / pSample->Channels) {
+                        DiskStreamRef.pStream->WriteSilence((pEngine->MaxSamplesPerCycle << MAX_PITCH) / pSample->Channels);
                         this->PlaybackState = playback_state_end;
                     }
 
@@ -776,7 +769,7 @@ namespace LinuxSampler { namespace gig {
         biquad_param_t bqmain;
         float prev_cutoff = pEngine->pSynthesisParameters[Event::destination_vcfc][0];
         float prev_res    = pEngine->pSynthesisParameters[Event::destination_vcfr][0];
-        FilterLeft.SetParameters(&bqbase, &bqmain, prev_cutoff, prev_res, SampleRate);
+        FilterLeft.SetParameters(&bqbase, &bqmain, prev_cutoff, prev_res, pEngine->SampleRate);
         pEngine->pBasicFilterParameters[0] = bqbase;
         pEngine->pMainFilterParameters[0]  = bqmain;
 
@@ -787,7 +780,7 @@ namespace LinuxSampler { namespace gig {
                                                pEngine->pSynthesisParameters[Event::destination_vcfc][i] != prev_cutoff) {
                 prev_cutoff = pEngine->pSynthesisParameters[Event::destination_vcfc][i];
                 prev_res    = pEngine->pSynthesisParameters[Event::destination_vcfr][i];
-                FilterLeft.SetParameters(&bqbase, &bqmain, prev_cutoff, prev_res, SampleRate);
+                FilterLeft.SetParameters(&bqbase, &bqmain, prev_cutoff, prev_res, pEngine->SampleRate);
             }
 
             //same as 'pEngine->pBasicFilterParameters[i] = bqbase;'

@@ -69,8 +69,11 @@ namespace LinuxSampler { namespace gig {
             virtual void   SendControlChange(uint8_t Controller, uint8_t Value);
             virtual float  Volume();
             virtual void   Volume(float f);
+            virtual uint   Channels();
             virtual void   Connect(AudioOutputDevice* pAudioOut);
             virtual void   DisconnectAudioOutputDevice();
+            virtual void   SetOutputChannel(uint EngineAudioChannel, uint AudioDeviceChannel);
+            virtual int    OutputChannel(uint EngineAudioChannel);
             virtual int    RenderAudio(uint Samples);
             virtual uint   VoiceCount();
             virtual uint   VoiceCountMax();
@@ -101,6 +104,12 @@ namespace LinuxSampler { namespace gig {
             static InstrumentResourceManager Instruments;
 
             AudioOutputDevice*      pAudioOutputDevice;
+            float*                  pOutputLeft;           ///< Audio output channel buffer (left)
+            float*                  pOutputRight;          ///< Audio output channel buffer (right)
+            int                     AudioDeviceChannelLeft;  ///< audio device channel number to which the left channel is connected to
+            int                     AudioDeviceChannelRight; ///< audio device channel number to which the right channel is connected to
+            uint                    SampleRate;            ///< Sample rate of the engines output audio signal (in Hz)
+            uint                    MaxSamplesPerCycle;    ///< Size of each audio output buffer
             DiskThread*             pDiskThread;
             uint8_t                 ControllerTable[128];  ///< Reflects the current values (0-127) of all MIDI controllers for this engine / sampler channel.
             RingBuffer<Event>*      pEventQueue;           ///< Input event queue.

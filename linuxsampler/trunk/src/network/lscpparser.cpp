@@ -2984,7 +2984,7 @@ yyreduce:
 
   case 114:
 #line 258 "lscp.y"
-    { yyval.Dotnum = atoi(String(yyvsp[-2].String + "." + yyvsp[0].String).c_str());                         }
+    { yyval.Dotnum = atof(String(yyvsp[-2].String + "." + yyvsp[0].String).c_str());                         }
     break;
 
   case 115:
@@ -4214,12 +4214,12 @@ yyreduce:
 
   case 361:
 #line 349 "lscp.y"
-    { yyval.String = '\'' + yyvsp[-1].String + '\''; }
+    { yyval.String = yyvsp[-1].String; }
     break;
 
   case 362:
 #line 350 "lscp.y"
-    { yyval.String = '\"' + yyvsp[-1].String + '\"'; }
+    { yyval.String = yyvsp[-1].String; }
     break;
 
 

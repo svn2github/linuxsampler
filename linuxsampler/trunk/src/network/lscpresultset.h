@@ -40,6 +40,7 @@ class LSCPResultSet {
         LSCPResultSet(String, int index = -1);
 	void Add(String);
 	void Add(String, String);
+        void Add(String, const char*);
 	void Add(String, float);
 	void Add(String, int);
         void Add(String, bool);

@@ -525,8 +525,8 @@ String LSCPServer::GetEngineInfo(String EngineName) {
     try {
         if ((EngineName == "GigEngine") || (EngineName == "gig")) {
             Engine* pEngine = new LinuxSampler::gig::Engine;
-	    result.Add(pEngine->Description());
-            result.Add(pEngine->Version());
+	    result.Add("DESCRIPTION", pEngine->Description());
+            result.Add("VERSION",     pEngine->Version());
             delete pEngine;
         }
         else throw LinuxSamplerException("Unknown engine type");
@@ -551,18 +551,25 @@ String LSCPServer::GetChannelInfo(uint uiSamplerChannel) {
 
 	//Defaults values
 	String EngineName = "NONE";
-	float Volume = 0;
+        float Volume = 0.0f;
 	String InstrumentFileName = "NONE";
 	int InstrumentIndex = -1;
 	int InstrumentStatus = -1;
+        int AudioOutputChannels = 0;
+        String AudioRouting;
 
         if (pEngine) {
 	    EngineName =  pEngine->EngineName();
+            AudioOutputChannels = pEngine->Channels();
 	    Volume = pEngine->Volume();
 	    InstrumentStatus = pEngine->InstrumentStatus();
 	    InstrumentIndex = pEngine->InstrumentIndex();
 	    if (InstrumentIndex != -1)
 	        InstrumentFileName = pEngine->InstrumentFileName();
+            for (int chan = 0; chan < pEngine->Channels(); chan++) {
+                if (AudioRouting != "") AudioRouting += ",";
+                AudioRouting += ToString(pEngine->OutputChannel(chan));
+            }
 	}
 
         result.Add("ENGINE_NAME", EngineName);
@@ -570,12 +577,13 @@ String LSCPServer::GetChannelInfo(uint uiSamplerChannel) {
 
 	//Some not-so-hardcoded stuff to make GUI look good
         result.Add("AUDIO_OUTPUT_DEVICE", GetAudioOutputDeviceIndex(pSamplerChannel->GetAudioOutputDevice()));
-        result.Add("AUDIO_OUTPUT_CHANNELS", "2");
-        result.Add("AUDIO_OUTPUT_ROUTING", "0,1");
+        result.Add("AUDIO_OUTPUT_CHANNELS", AudioOutputChannels);
+        result.Add("AUDIO_OUTPUT_ROUTING", AudioRouting);
 
         result.Add("MIDI_INPUT_DEVICE", GetMidiInputDeviceIndex(pSamplerChannel->GetMidiInputDevice()));
         result.Add("MIDI_INPUT_PORT", pSamplerChannel->GetMidiInputPort());
-        result.Add("MIDI_INPUT_CHANNEL", pSamplerChannel->GetMidiInputChannel());
+        if (pSamplerChannel->GetMidiInputChannel()) result.Add("MIDI_INPUT_CHANNEL", pSamplerChannel->GetMidiInputChannel());
+        else                                        result.Add("MIDI_INPUT_CHANNEL", "ALL");
 
         result.Add("INSTRUMENT_FILE", InstrumentFileName);
         result.Add("INSTRUMENT_NR", InstrumentIndex);
@@ -1090,7 +1098,18 @@ String LSCPServer::SetMidiInputPortParameter(uint DeviceIndex, uint PortIndex, S
  */
 String LSCPServer::SetAudioOutputChannel(uint ChannelAudioOutputChannel, uint AudioOutputDeviceInputChannel, uint uiSamplerChannel) {
     dmsg(2,("LSCPServer: SetAudioOutputChannel(ChannelAudioOutputChannel=%d, AudioOutputDeviceInputChannel=%d, SamplerChannel=%d)\n",ChannelAudioOutputChannel,AudioOutputDeviceInputChannel,uiSamplerChannel));
-    return "ERR:0:Not implemented yet.\r\n"; //FIXME: Add support for this in resultset class?
+    LSCPResultSet result;
+    try {
+        SamplerChannel* pSamplerChannel = pSampler->GetSamplerChannel(uiSamplerChannel);
+        if (!pSamplerChannel) throw LinuxSamplerException("Invalid channel number " + ToString(uiSamplerChannel));
+        Engine* pEngine = pSamplerChannel->GetEngine();
+        if (!pEngine) throw LinuxSamplerException("No engine deployed on sampler channel " + ToString(uiSamplerChannel));
+        pEngine->SetOutputChannel(ChannelAudioOutputChannel, AudioOutputDeviceInputChannel);
+    }
+    catch (LinuxSamplerException e) {
+         result.Error(e);
+    }
+    return result.Produce();
 }
 
 String LSCPServer::SetAudioOutputDevice(uint AudioDeviceId, uint uiSamplerChannel) {
@@ -1256,15 +1275,15 @@ String LSCPServer::SetMIDIInput(uint MIDIDeviceId, uint MIDIPort, uint MIDIChann
  * Will be called by the parser to change the global volume factor on a
  * particular sampler channel.
  */
-String LSCPServer::SetVolume(double Volume, uint uiSamplerChannel) {
-    dmsg(2,("LSCPServer: SetVolume(Volume=%f, SamplerChannel=%d)\n", Volume, uiSamplerChannel));
+String LSCPServer::SetVolume(double dVolume, uint uiSamplerChannel) {
+    dmsg(2,("LSCPServer: SetVolume(Volume=%f, SamplerChannel=%d)\n", dVolume, uiSamplerChannel));
     LSCPResultSet result;
     try {
         SamplerChannel* pSamplerChannel = pSampler->GetSamplerChannel(uiSamplerChannel);
         if (!pSamplerChannel) throw LinuxSamplerException("Index out of bounds");
         Engine* pEngine = pSamplerChannel->GetEngine();
         if (!pEngine) throw LinuxSamplerException("No engine loaded on channel");
-        pEngine->Volume(Volume);
+        pEngine->Volume(dVolume);
     }
     catch (LinuxSamplerException e) {
          result.Error(e);

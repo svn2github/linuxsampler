@@ -65,6 +65,9 @@ namespace LinuxSampler { namespace gig {
 	InstrumentIdx = -1;
 	InstrumentStat = -1;
 
+        AudioDeviceChannelLeft  = -1;
+        AudioDeviceChannelRight = -1;
+
         ResetInternal();
     }
 
@@ -149,6 +152,7 @@ namespace LinuxSampler { namespace gig {
         SustainPedal        = false;
         ActiveVoiceCount    = 0;
         ActiveVoiceCountMax = 0;
+        GlobalVolume        = 1.0;
 
         // set all MIDI controller values to zero
         memset(ControllerTable, 0x00, 128);
@@ -278,6 +282,13 @@ namespace LinuxSampler { namespace gig {
             throw LinuxSamplerException(msg);
         }
 
+        this->AudioDeviceChannelLeft  = 0;
+        this->AudioDeviceChannelRight = 1;
+        this->pOutputLeft             = pAudioOutputDevice->Channel(0)->Buffer();
+        this->pOutputRight            = pAudioOutputDevice->Channel(1)->Buffer();
+        this->MaxSamplesPerCycle      = pAudioOutputDevice->MaxSamplesPerCycle();
+        this->SampleRate              = pAudioOutputDevice->SampleRate();
+
         // (re)create disk thread
         if (this->pDiskThread) {
             this->pDiskThread->StopThread();
@@ -291,7 +302,6 @@ namespace LinuxSampler { namespace gig {
 
         for (Voice* pVoice = pVoicePool->alloc(); pVoice; pVoice = pVoicePool->alloc()) {
             pVoice->pDiskThread = this->pDiskThread;
-            pVoice->SetOutput(pAudioOut);
             dmsg(3,("d"));
         }
         pVoicePool->clear();
@@ -329,6 +339,8 @@ namespace LinuxSampler { namespace gig {
             AudioOutputDevice* olddevice = pAudioOutputDevice;
             pAudioOutputDevice = NULL;
             olddevice->Disconnect(this);
+            AudioDeviceChannelLeft  = -1;
+            AudioDeviceChannelRight = -1;
         }
     }
 
@@ -675,6 +687,38 @@ namespace LinuxSampler { namespace gig {
         GlobalVolume = f;
     }
 
+    uint Engine::Channels() {
+        return 2;
+    }
+
+    void Engine::SetOutputChannel(uint EngineAudioChannel, uint AudioDeviceChannel) {
+        AudioChannel* pChannel = pAudioOutputDevice->Channel(AudioDeviceChannel);
+        if (!pChannel) throw AudioOutputException("Invalid audio output device channel " + ToString(AudioDeviceChannel));
+        switch (EngineAudioChannel) {
+            case 0: // left output channel
+                pOutputLeft = pChannel->Buffer();
+                AudioDeviceChannelLeft = AudioDeviceChannel;
+                break;
+            case 1: // right output channel
+                pOutputRight = pChannel->Buffer();
+                AudioDeviceChannelRight = AudioDeviceChannel;
+                break;
+            default:
+                throw AudioOutputException("Invalid engine audio channel " + ToString(EngineAudioChannel));
+        }
+    }
+
+    int Engine::OutputChannel(uint EngineAudioChannel) {
+        switch (EngineAudioChannel) {
+            case 0: // left channel
+                return AudioDeviceChannelLeft;
+            case 1: // right channel
+                return AudioDeviceChannelRight;
+            default:
+                throw AudioOutputException("Invalid engine audio channel " + ToString(EngineAudioChannel));
+        }
+    }
+
     uint Engine::VoiceCount() {
         return ActiveVoiceCount;
     }
@@ -724,7 +768,7 @@ namespace LinuxSampler { namespace gig {
     }
 
     String Engine::Version() {
-        String s = "$Revision: 1.7 $";
+        String s = "$Revision: 1.8 $";
         return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
 

@@ -66,6 +66,10 @@ void LSCPResultSet::Add(String Label, String Value) {
         count++;
 }
 
+void LSCPResultSet::Add(String Label, const char* pValue) {
+    Add(Label, String(pValue));
+}
+
 void LSCPResultSet::Add(int Value) {
 	Add(ToString(Value));
 }
@@ -75,9 +79,9 @@ void LSCPResultSet::Add(String Label, int Value) {
 }
 
 void LSCPResultSet::Add(String Label, float Value) {
-	std::stringstream ss; //fixme: had issues with template and float?!
-	ss << Value;
-	Add(Label, ss.str());
+    char s[1024];
+    snprintf(s, 1023, "%.3f", Value);
+    Add(Label, String(s));
 }
 
 void LSCPResultSet::Add(String Label, bool Value) {

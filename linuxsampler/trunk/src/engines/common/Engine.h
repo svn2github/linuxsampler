@@ -64,8 +64,11 @@ namespace LinuxSampler {
             virtual void   SendControlChange(uint8_t Controller, uint8_t Value) = 0;
             virtual float  Volume() = 0;
             virtual void   Volume(float f) = 0;
+            virtual uint   Channels() = 0;
             virtual void   Connect(AudioOutputDevice* pAudioOut) = 0;
             virtual void   DisconnectAudioOutputDevice() = 0;
+            virtual void   SetOutputChannel(uint EngineAudioChannel, uint AudioDeviceChannel) = 0;
+            virtual int    OutputChannel(uint EngineAudioChannel) = 0;
             virtual int    RenderAudio(uint Samples) = 0;
             virtual uint   VoiceCount() = 0;
             virtual uint   VoiceCountMax() = 0;
