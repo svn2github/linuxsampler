@@ -25,9 +25,7 @@
 
 #include "global.h"
 #include "rtmath.h"
-#include "rtelmemorypool.h"
 #include "modulationsystem.h"
-#include "gig.h"
 
 /**
  * Low Frequency Oscillator

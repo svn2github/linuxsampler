@@ -26,7 +26,6 @@
 #include <math.h>
 
 #include "global.h"
-#include "gig.h"
 #include "rtelmemorypool.h"
 #include "modulationsystem.h"
 

@@ -23,14 +23,9 @@
 #ifndef __AUDIOTHREAD_H__
 #define __AUDIOTHREAD_H__
 
-#include <math.h>
-#include <unistd.h>
-#include <fcntl.h>
-#include <pthread.h>
 #include <sstream>
 
 #include "global.h"
-#include "thread.h"
 #include "ringbuffer.h"
 #include "audioio.h"
 #include "voice.h"
@@ -76,7 +71,7 @@ class AudioThread {
             uint*                                pSelf;                 ///< hack to allow fast deallocation of the key from the list of active keys
             RTEList<ModulationSystem::Event>*    pEvents;               ///< Key specific events (only Note-on, Note-off and sustain pedal currently)
         };
-        
+
         uint8_t                                  ControllerTable[128];  ///< Reflects the current values (0-127) of all MIDI controllers for this engine / sampler channel.
         RingBuffer<ModulationSystem::Event>*     pEventQueue;           ///< Input event queue.
         float*                                   pAudioSumBuffer[2];    ///< Audio sum of all voices (32 bit, index 0 = left channel, index 1 = right channel)

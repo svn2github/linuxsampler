@@ -26,10 +26,6 @@
 #define DEFAULT_WRAP_ELEMENTS 1024
 
 #include <string.h>
-#include <stdio.h>
-
-#include <sys/types.h>
-#include <pthread.h>
 
 #include "atomic.h"
 
@@ -101,14 +97,14 @@ public:
     __inline T *get_write_ptr();
     __inline void increment_read_ptr(int cnt) {
                atomic_set(&read_ptr , (atomic_read(&read_ptr) + cnt) & size_mask);
-             }                
+             }
     __inline void set_read_ptr(int val) {
                atomic_set(&read_ptr , val);
-             }                
+             }
 
     __inline void increment_write_ptr(int cnt) {
                atomic_set(&write_ptr,  (atomic_read(&write_ptr) + cnt) & size_mask);
-             }                
+             }
 
     /* this function increments the write_ptr by cnt, if the buffer wraps then
        subtract size from the write_ptr value so that it stays within 0<write_ptr<size
@@ -119,7 +115,7 @@ public:
        interpolation. So that the audio thread sees the ringbuffer like a linear space
        which allows us to use faster routines.
        When the buffer wraps the wrap part is memcpy()ied to the beginning of the buffer
-       and the write ptr incremented accordingly.       
+       and the write ptr incremented accordingly.
     */
     __inline void increment_write_ptr_with_wrap(int cnt) {
                int w=atomic_read(&write_ptr);
@@ -128,9 +124,9 @@ public:
                  w -= size;
                  memcpy(&buf[0], &buf[size], w*sizeof(T));
 //printf("DEBUG !!!! increment_write_ptr_with_wrap: buffer wrapped, elements wrapped = %d (wrap_elements %d)\n",w,wrap_elements);
-               } 
+               }
                atomic_set(&write_ptr, w);
-             }                
+             }
 
     /* this function returns the available write space in the buffer
        when the read_ptr > write_ptr it returns the space inbetween, otherwise
@@ -171,19 +167,19 @@ public:
            /* this function adjusts the number of elements to write into the ringbuffer
               in a way that the size boundary is avoided and that the wrap space always gets
               entirely filled.
-              cnt contains the write_space_to_end_with_wrap() amount while 
-              capped_cnt contains a capped amount of samples to read. 
+              cnt contains the write_space_to_end_with_wrap() amount while
+              capped_cnt contains a capped amount of samples to read.
               normally capped_cnt == cnt but in some cases eg when the disk thread needs
               to refill tracks with smaller blocks because lots of streams require immediate
               refill because lots of notes were started simultaneously.
               In that case we set for example capped_cnt to a fixed amount (< cnt, eg 64k),
               which helps to reduce the buffer refill latencies that occur between streams.
               the first if() checks if the current write_ptr + capped_cnt resides within
-              the wrap area but is < size+wrap_elements. in that case we cannot return 
+              the wrap area but is < size+wrap_elements. in that case we cannot return
               capped_cnt because it would lead to a write_ptr wrapping and only a partial fill
               of wrap space which would lead to errors. So we simply return cnt which ensures
               that the the entire wrap space will get filled correctly.
-              In all other cases (which are not problematic because no write_ptr wrapping 
+              In all other cases (which are not problematic because no write_ptr wrapping
               occurs) we simply return capped_cnt.
            */
     __inline int adjust_write_space_to_avoid_boundary(int cnt, int capped_cnt) {
@@ -289,7 +285,7 @@ RingBuffer<T>::read (T *dest, int cnt)
         }
 
         to_read = cnt > free_cnt ? free_cnt : cnt;
-        
+
         cnt2 = priv_read_ptr + to_read;
 
         if (cnt2 > size) {
@@ -299,7 +295,7 @@ RingBuffer<T>::read (T *dest, int cnt)
                 n1 = to_read;
                 n2 = 0;
         }
-        
+
         memcpy (dest, &buf[priv_read_ptr], n1 * sizeof (T));
         priv_read_ptr = (priv_read_ptr + n1) & size_mask;
 
@@ -329,7 +325,7 @@ RingBuffer<T>::write (T *src, int cnt)
         }
 
         to_write = cnt > free_cnt ? free_cnt : cnt;
-        
+
         cnt2 = priv_write_ptr + to_write;
 
         if (cnt2 > size) {

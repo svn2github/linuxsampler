@@ -23,20 +23,10 @@
 #ifndef __STREAM_H__
 #define __STREAM_H__
 
-#include <unistd.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <sys/mman.h>
-#include <asm/page.h>
-#include <unistd.h>
-#include <fcntl.h>
-#include <sys/stat.h>
-
 #include "global.h"
 #include "ringbuffer.h"
 #include "gig.h"
-	
+
 class Stream {
     public:
         // Member Types

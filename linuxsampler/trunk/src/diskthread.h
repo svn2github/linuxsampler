@@ -29,11 +29,6 @@
 #define STREAM_BUFFER_SIZE		131072  ///< the diskstream ringbuffer size (256kB as sample_t is 16bit)
 #define MAX_INPUT_STREAMS		100     ///< number of streams that should be allocated
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <time.h>
-
 #include "global.h"
 #include "thread.h"
 #include "voice.h"
