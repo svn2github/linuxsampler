@@ -65,6 +65,8 @@ namespace LinuxSampler {
             virtual uint MaxSamplesPerCycle();
             virtual uint SampleRate();
 
+            virtual String Driver();
+
             static String Description();
             static String Version();
             static std::map<String,DeviceCreationParameter*> AvailableParameters();

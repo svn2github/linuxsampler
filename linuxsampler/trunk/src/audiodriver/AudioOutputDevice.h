@@ -181,6 +181,11 @@ namespace LinuxSampler {
 
             static std::map<String,DeviceCreationParameter*> AvailableParameters();
 
+            /**
+             * Return the audio output device driver type name.
+             */
+            virtual String Driver() = 0;
+
 
 
             /////////////////////////////////////////////////////////////////

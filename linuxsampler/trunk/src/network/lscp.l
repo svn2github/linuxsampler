@@ -73,6 +73,7 @@ AUDIO_OUTPUT_DRIVER                     { return AUDIO_OUTPUT_DRIVER; }
 AUDIO_OUTPUT_DRIVER_PARAMETER           { return AUDIO_OUTPUT_DRIVER_PARAMETER; }
 AUDIO_OUTPUT_CHANNEL                    { return AUDIO_OUTPUT_CHANNEL; }
 AUDIO_OUTPUT_CHANNEL_PARAMETER          { return AUDIO_OUTPUT_CHANNEL_PARAMETER; }
+AUDIO_OUTPUT_TYPE                       { return AUDIO_OUTPUT_TYPE; }
 MIDI_INPUT_PORT                         { return MIDI_INPUT_PORT; }
 MIDI_INPUT_CHANNEL                      { return MIDI_INPUT_CHANNEL; }
 MIDI_INPUT_TYPE                         { return MIDI_INPUT_TYPE; }

@@ -90,21 +90,29 @@ void LSCPServer::AnswerClient(String ReturnMessage) {
     send(hSession, ReturnMessage.c_str(), ReturnMessage.size(), 0);
 }
 
+/**
+ * Find a created audio output device index.
+ */
+int LSCPServer::GetAudioOutputDeviceIndex ( AudioOutputDevice *pDevice )
+{
+    // Search for the created device to get its index
+    std::map<uint, AudioOutputDevice*> devices = pSampler->GetAudioOutputDevices();
+    std::map<uint, AudioOutputDevice*>::iterator iter = devices.begin();
+    for (; iter != devices.end(); iter++) {
+        if (iter->second == pDevice)
+            return iter->first;
+    }
+    // Not found.
+    return -1;
+}
+
 String LSCPServer::CreateAudioOutputDevice(String Driver, std::map<String,String> Parameters) {
     dmsg(2,("LSCPServer: CreateAudioOutputDevice(Driver=%s)\n", Driver.c_str()));
     LSCPResultSet result;
     try {
         AudioOutputDevice* pDevice = pSampler->CreateAudioOutputDevice(Driver, Parameters);
-        std::map<uint, AudioOutputDevice*> devices = pSampler->GetAudioOutputDevices();
         // search for the created device to get its index
-        int index = -1;
-        std::map<uint, AudioOutputDevice*>::iterator iter = devices.begin();
-        for (; iter != devices.end(); iter++) {
-            if (iter->second == pDevice) {
-                index = iter->first;
-                break;
-            }
-        }
+        int index = GetAudioOutputDeviceIndex(pDevice);
         if (index == -1) throw LinuxSamplerException("Internal error: could not find created audio output device.");
         result = index; // success
     }
@@ -140,6 +148,8 @@ String LSCPServer::LoadInstrument(String Filename, uint uiInstrument, uint uiSam
         if (!pSamplerChannel) throw LinuxSamplerException("Index out of bounds");
         Engine* pEngine = pSamplerChannel->GetEngine();
         if (!pEngine) throw LinuxSamplerException("No engine loaded on channel");
+        if (pSamplerChannel->GetAudioOutputDevice() == NULL)
+            throw LinuxSamplerException("No audio output device on channel");
         if (bBackground) {
             LSCPLoadInstrument *pLoadInstrument = new LSCPLoadInstrument(pEngine, Filename.c_str(), uiInstrument);
             pLoadInstrument->StartThread();
@@ -263,8 +273,8 @@ String LSCPServer::GetChannelInfo(uint uiSamplerChannel) {
         result.Add("ENGINE_NAME", EngineName);
         result.Add("VOLUME", Volume);
 
-	//Some hardcoded stuff for now to make GUI look good
-        result.Add("AUDIO_OUTPUT_DEVICE", "0");
+	//Some not-so-hardcoded stuff to make GUI look good
+        result.Add("AUDIO_OUTPUT_DEVICE", GetAudioOutputDeviceIndex(pSamplerChannel->GetAudioOutputDevice()));
         result.Add("AUDIO_OUTPUT_CHANNELS", "2");
         result.Add("AUDIO_OUTPUT_ROUTING", "0,1");
 
@@ -454,6 +464,7 @@ String LSCPServer::GetAudioOutputDeviceInfo(uint DeviceIndex) {
         std::map<uint,AudioOutputDevice*> devices = pSampler->GetAudioOutputDevices();
         if (!devices[DeviceIndex]) throw LinuxSamplerException("There is no audio output device with index " + ToString(DeviceIndex) + ".");
         AudioOutputDevice* pDevice = devices[DeviceIndex];
+        result.Add("driver", pDevice->Driver());
         std::map<String,DeviceCreationParameter*> parameters = pDevice->DeviceParameters();
         std::map<String,DeviceCreationParameter*>::iterator iter = parameters.begin();
         for (; iter != parameters.end(); iter++) {
@@ -578,6 +589,44 @@ String LSCPServer::SetAudioOutputChannel(uint ChannelAudioOutputChannel, uint Au
     return "ERR:0:Not implemented yet.\r\n"; //FIXME: Add support for this in resultset class?
 }
 
+String LSCPServer::SetAudioOutputType(String AudioOutputDriver, uint uiSamplerChannel) {
+    dmsg(2,("LSCPServer: SetAudioOutputType(String AudioOutputDriver=%s, SamplerChannel=%d)\n",AudioOutputDriver.c_str(),uiSamplerChannel));
+    LSCPResultSet result;
+    try {
+        SamplerChannel* pSamplerChannel = pSampler->GetSamplerChannel(uiSamplerChannel);
+        if (!pSamplerChannel) throw LinuxSamplerException("Invalid channel number " + ToString(uiSamplerChannel));
+        // Driver type name aliasing...
+        if (AudioOutputDriver == "ALSA") AudioOutputDriver = "Alsa";
+        if (AudioOutputDriver == "JACK") AudioOutputDriver = "Jack";        
+        // Check if there's one audio output device already created
+        // for the intended audio driver type (AudioOutputDriver)...
+        AudioOutputDevice *pDevice = NULL;
+        std::map<uint, AudioOutputDevice*> devices = pSampler->GetAudioOutputDevices();
+        std::map<uint, AudioOutputDevice*>::iterator iter = devices.begin();
+        for (; iter != devices.end(); iter++) {
+            if ((iter->second)->Driver() == AudioOutputDriver) {
+                pDevice = iter->second;
+                break;
+            }
+        }
+        // If it doesn't exist, create a new one with default parameters...
+        if (pDevice == NULL) {
+            std::map<String,String> params;
+            pDevice = pSampler->CreateAudioOutputDevice(AudioOutputDriver, params);
+        }
+        // Must have a device...
+        if (pDevice == NULL)
+            throw LinuxSamplerException("Internal error: could not create audio output device.");
+        // Set it as the current channel device...
+        pSamplerChannel->SetAudioOutputDevice(pDevice);
+    }
+    catch (LinuxSamplerException e) {
+         result.Error(e);
+    }
+    return result.Produce();
+}
+
+
 String LSCPServer::SetMIDIInputType(String MidiInputDriver, uint uiSamplerChannel) {
     dmsg(2,("LSCPServer: SetMIDIInputType(String MidiInputDriver=%s, SamplerChannel=%d)\n",MidiInputDriver.c_str(),uiSamplerChannel));
     LSCPResultSet result;
@@ -585,6 +634,7 @@ String LSCPServer::SetMIDIInputType(String MidiInputDriver, uint uiSamplerChanne
         SamplerChannel* pSamplerChannel = pSampler->GetSamplerChannel(uiSamplerChannel);
         if (!pSamplerChannel) throw LinuxSamplerException("Index out of bounds");
         // FIXME: workaround until MIDI driver configuration is implemented (using a Factory class for the MIDI input drivers then, like its already done for audio output drivers)
+        if (MidiInputDriver == "ALSA") MidiInputDriver = "Alsa";
         if (MidiInputDriver != "Alsa") throw LinuxSamplerException("Unknown MIDI input driver '" + MidiInputDriver + "'.");
         MidiInputDevice::type_t MidiInputType = MidiInputDevice::type_alsa;
         pSamplerChannel->SetMidiInputDevice(MidiInputType);
@@ -639,8 +689,6 @@ String LSCPServer::SetAudioOutputDevice(uint AudioDeviceId, uint uiSamplerChanne
     try {
 	SamplerChannel* pSamplerChannel = pSampler->GetSamplerChannel(uiSamplerChannel);
 	if (!pSamplerChannel) throw LinuxSamplerException("Invalid channel number " + ToString(uiSamplerChannel));
-        Engine* pEngine = pSamplerChannel->GetEngine();
-        if (!pEngine) throw LinuxSamplerException("No engine loaded on channel");
         std::map<uint, AudioOutputDevice*> devices = pSampler->GetAudioOutputDevices();
         if (!devices[AudioDeviceId]) throw LinuxSamplerException("There is no audio output device with index " + ToString(AudioDeviceId));
         AudioOutputDevice* pDevice = devices[AudioDeviceId];

@@ -131,12 +131,16 @@ namespace LinuxSampler {
         return jack_get_sample_rate(hJackClient);
     }
 
+    String AudioOutputDeviceJack::Driver() {
+        return "Jack";
+    }
+
     String AudioOutputDeviceJack::Description() {
         return "JACK Audio Connection Kit";
     }
 
     String AudioOutputDeviceJack::Version() {
-       String s = "$Revision: 1.6 $";
+       String s = "$Revision: 1.7 $";
        return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
 

@@ -87,6 +87,7 @@ class LSCPServer : public Thread {
         String SetAudioOutputChannelParameter(uint DeviceId, uint ChannelId, String ParamKey, String ParamVal);
         String SetAudioOutputDeviceParameter(uint DeviceIndex, String ParamKey, String ParamVal);
         String SetAudioOutputChannel(uint ChannelAudioOutputChannel, uint AudioOutputDeviceInputChannel, uint uiSamplerChannel);
+        String SetAudioOutputType(String AudioOutputDriver, uint uiSamplerChannel);
         String SetMIDIInputType(String MidiInputDriver, uint uiSamplerChannel);
         String SetMIDIInputPort(String MIDIInputPort, uint uiSamplerchannel);
         String SetMIDIInputChannel(uint MIDIChannel, uint uiSamplerChannel);
@@ -103,6 +104,12 @@ class LSCPServer : public Thread {
 
         int Main(); ///< Implementation of virtual method from class Thread
     private:
+        
+        /**
+         * Find a created audio output device index.
+         */
+        int GetAudioOutputDeviceIndex (AudioOutputDevice *pDevice);
+
         /**
          * Converts a result_t structure into a valid LSCP answer message.
          */

@@ -58,13 +58,13 @@ void yyerror(const char* s);
 %token CHANNEL NOTIFICATION
 %token AVAILABLE_ENGINES AVAILABLE_AUDIO_OUTPUT_DRIVERS CHANNELS INFO BUFFER_FILL STREAM_COUNT VOICE_COUNT
 %token INSTRUMENT ENGINE
-%token AUDIO_OUTPUT_CHANNEL AUDIO_OUTPUT_CHANNEL_PARAMETER AUDIO_OUTPUT_DEVICE AUDIO_OUTPUT_DEVICES AUDIO_OUTPUT_DEVICE_PARAMETER AUDIO_OUTPUT_DRIVER AUDIO_OUTPUT_DRIVER_PARAMETER MIDI_INPUT_PORT MIDI_INPUT_CHANNEL MIDI_INPUT_TYPE VOLUME
+%token AUDIO_OUTPUT_CHANNEL AUDIO_OUTPUT_CHANNEL_PARAMETER AUDIO_OUTPUT_DEVICE AUDIO_OUTPUT_DEVICES AUDIO_OUTPUT_DEVICE_PARAMETER AUDIO_OUTPUT_DRIVER AUDIO_OUTPUT_DRIVER_PARAMETER AUDIO_OUTPUT_TYPE MIDI_INPUT_PORT MIDI_INPUT_CHANNEL MIDI_INPUT_TYPE VOLUME
 %token BYTES PERCENTAGE
 %token MISCELLANEOUS
 
 %type <Dotnum> volume
 %type <Number> sampler_channel instrument_index audio_output_channel midi_input_channel
-%type <String> string param_val filename engine_name midi_input_port command create_instruction destroy_instruction get_instruction list_instruction load_instruction set_chan_instruction load_instr_args load_engine_args midi_input_type set_instruction subscribe_event unsubscribe_event
+%type <String> string param_val filename engine_name midi_input_port command create_instruction destroy_instruction get_instruction list_instruction load_instruction set_chan_instruction load_instr_args load_engine_args audio_output_type midi_input_type set_instruction subscribe_event unsubscribe_event
 %type <FillResponse> buffer_size_type
 %type <KeyValList> key_val_list
 
@@ -157,6 +157,7 @@ load_instruction      :  INSTRUMENT SP load_instr_args  { $$ = $3; }
 
 set_chan_instruction  :  AUDIO_OUTPUT_DEVICE SP sampler_channel SP NUMBER                                         { $$ = LSCPSERVER->SetAudioOutputDevice($5, $3);      }
                       |  AUDIO_OUTPUT_CHANNEL SP sampler_channel SP audio_output_channel SP audio_output_channel  { $$ = LSCPSERVER->SetAudioOutputChannel($5, $7, $3); }
+                      |  AUDIO_OUTPUT_TYPE SP sampler_channel SP audio_output_type                                { $$ = LSCPSERVER->SetAudioOutputType($5, $3);        }
                       |  MIDI_INPUT_PORT SP sampler_channel SP midi_input_port                                    { $$ = LSCPSERVER->SetMIDIInputPort($5, $3);          }
                       |  MIDI_INPUT_CHANNEL SP sampler_channel SP midi_input_channel                              { $$ = LSCPSERVER->SetMIDIInputChannel($5, $3);       }
                       |  MIDI_INPUT_TYPE SP sampler_channel SP midi_input_type                                    { $$ = LSCPSERVER->SetMIDIInputType($5, $3);          }
@@ -179,6 +180,9 @@ load_instr_args       :  filename SP instrument_index SP sampler_channel  { $$ =
                       ;
 
 load_engine_args      :  engine_name SP sampler_channel  { $$ = LSCPSERVER->LoadEngine($1, $3); }
+                      ;
+
+audio_output_type     :  string
                       ;
 
 midi_input_type       :  string
@@ -207,6 +211,7 @@ midi_input_port       :  STRINGVAL
                       ;
 
 filename              :  STRINGVAL
+                      |  string
                       ;
 
 param_val             :  STRINGVAL                { $$ = $1;                                             }
