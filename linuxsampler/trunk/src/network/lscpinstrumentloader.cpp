@@ -36,14 +36,14 @@ LSCPInstrumentLoader::~LSCPInstrumentLoader() {
  *
  * @param Filename - file name of the instrument
  * @param uiInstrumentIndex - index of the instrument within the file
- * @param pEngine - engine on which the instrument should be loaded
+ * @param pEngineChannel - engine channel on which the instrument should be loaded
  */
-void LSCPInstrumentLoader::StartNewLoad(String Filename, uint uiInstrumentIndex, Engine* pEngine) {
+void LSCPInstrumentLoader::StartNewLoad(String Filename, uint uiInstrumentIndex, EngineChannel* pEngineChannel) {
     // already tell the engine which instrument to load
-    pEngine->PrepareLoadInstrument(Filename.c_str(), uiInstrumentIndex);
+    pEngineChannel->PrepareLoadInstrument(Filename.c_str(), uiInstrumentIndex);
 
     command_t cmd;
-    cmd.pEngine = pEngine;
+    cmd.pEngineChannel = pEngineChannel;
     pQueue->push(&cmd);
     StartThread(); // ensure thread is running
     conditionJobsLeft.Set(true); // wake up thread
@@ -56,13 +56,11 @@ int LSCPInstrumentLoader::Main() {
             command_t cmd;
             pQueue->pop(&cmd);
             try {
-                cmd.pEngine->LoadInstrument();
+                cmd.pEngineChannel->LoadInstrument();
             }
             catch (LinuxSamplerException e) {
                 e.PrintMessage();
             }
-            // Always re-enable the engine.
-            cmd.pEngine->Enable();
         }
 
         // nothing left to do, sleep until new jobs arrive

@@ -3,6 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
+ *   Copyright (C) 2005 Christian Schoenebeck                              *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -46,12 +47,13 @@ namespace LinuxSampler { namespace gig {
 
 }} // namespace LinuxSampler::gig
 
+#include "EngineChannel.h"
 #include "Engine.h"
 
 namespace LinuxSampler { namespace gig {
 
     // just symbol prototyping
-    class Engine;
+    class EngineChannel;
 
     /**
      * Explicitly identifies a Gigasampler instrument.
@@ -69,16 +71,17 @@ namespace LinuxSampler { namespace gig {
     /** Gig instrument manager
      *
      * Manager to share gig instruments between multiple Gigasampler
-     * engines. The engines Borrow() instruments when they need them and
-     * HandBack() when they don't need them anymore. The
+     * engine channels. The engine channels Borrow() instruments when they
+     * need them and HandBack() when they don't need them anymore. The
      * InstrumentResourceManager loads the corresponding gig file and gig
-     * instrument if needed, if it's already in use by another engine, then
-     * it just returns the same resource, if an gig instrument / file is not
-     * in use by any engine anymore, then it will be freed from memory.
+     * instrument if needed, if it's already in use by another engine
+     * channel, then it just returns the same resource, if an gig
+     * instrument / file is not in use by any engine channel anymore, then
+     * it will be freed from memory.
      */
     class InstrumentResourceManager : public ResourceManager<instrument_id_t, ::gig::Instrument> {
-		public:
-			virtual ~InstrumentResourceManager() {}
+        public:
+            virtual ~InstrumentResourceManager() {}
         protected:
             virtual ::gig::Instrument* Create(instrument_id_t Key, InstrumentConsumer* pConsumer, void*& pArg);
             virtual void               Destroy(::gig::Instrument* pResource, void* pArg);
@@ -97,11 +100,11 @@ namespace LinuxSampler { namespace gig {
                     virtual ::gig::File* Create(String Key, GigConsumer* pConsumer, void*& pArg);
                     virtual void         Destroy(::gig::File* pResource, void* pArg);
                     virtual void         OnBorrow(::gig::File* pResource, GigConsumer* pConsumer, void*& pArg) {} // ignore
-				public:
-					virtual ~GigResourceManager() {}
+                public:
+                    virtual ~GigResourceManager() {}
             } Gigs;
 
-            void CacheInitialSamples(::gig::Sample* pSample, gig::Engine* pEngine);
+            void CacheInitialSamples(::gig::Sample* pSample, gig::EngineChannel* pEngineChannel);
     };
 
     /**

@@ -3,6 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
+ *   Copyright (C) 2005 Christian Schoenebeck                              *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -200,17 +201,17 @@ namespace LinuxSampler {
         }
     }
 
-    void AudioOutputDevice::Connect(Engine* pEngine) {
-        if (Engines.find(pEngine) == Engines.end()) {
-            pEngine->Connect(this);
-            Engines.insert(pEngine);
+    void AudioOutputDevice::Connect(EngineChannel* pEngineChannel) {
+        if (EngineChannels.find(pEngineChannel) == EngineChannels.end()) {
+            pEngineChannel->Connect(this);
+            EngineChannels.insert(pEngineChannel);
         }
     }
 
-    void AudioOutputDevice::Disconnect(Engine* pEngine) {
-        if (Engines.find(pEngine) != Engines.end()) { // if clause to prevent disconnect loop
-            Engines.erase(pEngine);
-            pEngine->DisconnectAudioOutputDevice();
+    void AudioOutputDevice::Disconnect(EngineChannel* pEngineChannel) {
+        if (EngineChannels.find(pEngineChannel) != EngineChannels.end()) { // if clause to prevent disconnect loop
+            EngineChannels.erase(pEngineChannel);
+            pEngineChannel->DisconnectAudioOutputDevice();
         }
     }
 
@@ -248,10 +249,10 @@ namespace LinuxSampler {
         try
         #endif // USE_EXCEPTIONS
         {
-            std::set<Engine*>::iterator iterEngine = Engines.begin();
-            std::set<Engine*>::iterator end        = Engines.end();
-            for (; iterEngine != end; iterEngine++) {
-                int res = (*iterEngine)->RenderAudio(Samples);
+            std::set<EngineChannel*>::iterator iterEngineCh = EngineChannels.begin();
+            std::set<EngineChannel*>::iterator end          = EngineChannels.end();
+            for (; iterEngineCh != end; iterEngineCh++) {
+                int res = (*iterEngineCh)->RenderAudio(Samples);
                 if (res != 0) result = res;
             }
         }

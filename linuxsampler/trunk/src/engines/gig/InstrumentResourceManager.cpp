@@ -3,6 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
+ *   Copyright (C) 2005 Christian Schoenebeck                              *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -23,6 +24,13 @@
 #include <sstream>
 
 #include "InstrumentResourceManager.h"
+
+// We need to know the maximum number of sample points which are going to
+// be processed for each render cycle of the audio output driver, to know
+// how much initial sample points we need to cache into RAM. If the given
+// sampler channel does not have an audio output device assigned yet
+// though, we simply use this default value.
+#define GIG_RESOURCE_MANAGER_DEFAULT_MAX_SAMPLES_PER_CYCLE     128
 
 namespace LinuxSampler { namespace gig {
 
@@ -46,10 +54,10 @@ namespace LinuxSampler { namespace gig {
         while (pRgn) {
             if (pRgn->GetSample() && !pRgn->GetSample()->GetCache().Size) {
                 dmsg(2,("C"));
-                CacheInitialSamples(pRgn->GetSample(), dynamic_cast<gig::Engine*>(pConsumer));
+                CacheInitialSamples(pRgn->GetSample(), dynamic_cast<gig::EngineChannel*>(pConsumer));
             }
             for (uint i = 0; i < pRgn->DimensionRegions; i++) {
-                CacheInitialSamples(pRgn->pDimensionRegions[i]->pSample, dynamic_cast<gig::Engine*>(pConsumer));
+                CacheInitialSamples(pRgn->pDimensionRegions[i]->pSample, dynamic_cast<gig::EngineChannel*>(pConsumer));
             }
 
             pRgn = pInstrument->GetNextRegion();
@@ -60,8 +68,12 @@ namespace LinuxSampler { namespace gig {
         instr_entry_t* pEntry = new instr_entry_t;
         pEntry->iInstrument   = Key.iInstrument;
         pEntry->pGig          = pGig;
-        // and this to check if we need to reallocate for a engine with higher value of 'MaxSamplesPerSecond'
-        pEntry->MaxSamplesPerCycle = dynamic_cast<gig::Engine*>(pConsumer)->pAudioOutputDevice->MaxSamplesPerCycle();
+        
+        gig::EngineChannel* pEngineChannel = dynamic_cast<gig::EngineChannel*>(pConsumer);
+        // and we save this to check if we need to reallocate for a engine with higher value of 'MaxSamplesPerSecond'
+        pEntry->MaxSamplesPerCycle =
+            (pEngineChannel->GetEngine()) ? dynamic_cast<gig::Engine*>(pEngineChannel->GetEngine())->pAudioOutputDevice->MaxSamplesPerCycle()
+                                          : GIG_RESOURCE_MANAGER_DEFAULT_MAX_SAMPLES_PER_CYCLE;
         pArg = pEntry;
 
         return pInstrument;
@@ -75,7 +87,11 @@ namespace LinuxSampler { namespace gig {
 
     void InstrumentResourceManager::OnBorrow(::gig::Instrument* pResource, InstrumentConsumer* pConsumer, void*& pArg) {
         instr_entry_t* pEntry = (instr_entry_t*) pArg;
-        if (pEntry->MaxSamplesPerCycle < dynamic_cast<gig::Engine*>(pConsumer)->pAudioOutputDevice->MaxSamplesPerCycle()) {
+        gig::EngineChannel* pEngineChannel = dynamic_cast<gig::EngineChannel*>(pConsumer);
+        uint maxSamplesPerCycle =
+            (pEngineChannel->GetEngine()) ? dynamic_cast<gig::Engine*>(pEngineChannel->GetEngine())->pAudioOutputDevice->MaxSamplesPerCycle()
+                                          : GIG_RESOURCE_MANAGER_DEFAULT_MAX_SAMPLES_PER_CYCLE;
+        if (pEntry->MaxSamplesPerCycle < maxSamplesPerCycle) {
             Update(pResource, pConsumer);
         }
     }
@@ -87,9 +103,9 @@ namespace LinuxSampler { namespace gig {
      *  samples is needed to compensate disk reading latency.
      *
      *  @param pSample - points to the sample to be cached
-     *  @param pEngine - pointer to Gig Engine which caused this call
+     *  @param pEngineChannel - pointer to Gig Engine Channel which caused this call
      */
-    void InstrumentResourceManager::CacheInitialSamples(::gig::Sample* pSample, gig::Engine* pEngine) {
+    void InstrumentResourceManager::CacheInitialSamples(::gig::Sample* pSample, gig::EngineChannel* pEngineChannel) {
         if (!pSample || pSample->GetCache().Size || !pSample->SamplesTotal) return;
         if (pSample->SamplesTotal <= NUM_RAM_PRELOAD_SAMPLES) {
             // Sample is too short for disk streaming, so we load the whole
@@ -98,7 +114,10 @@ namespace LinuxSampler { namespace gig {
             // border, to allow the interpolator do it's work even at the end of
             // the sample.
             dmsg(3,("Caching whole sample (sample name: \"%s\", sample size: %d)\n", pSample->pInfo->Name.c_str(), pSample->SamplesTotal));
-            const uint silenceSamples = (pEngine->pAudioOutputDevice->MaxSamplesPerCycle() << MAX_PITCH) + 3;
+            const uint maxSamplesPerCycle =
+                (pEngineChannel->GetEngine()) ? dynamic_cast<gig::Engine*>(pEngineChannel->GetEngine())->pAudioOutputDevice->MaxSamplesPerCycle()
+                                              : GIG_RESOURCE_MANAGER_DEFAULT_MAX_SAMPLES_PER_CYCLE;
+            const uint silenceSamples = (maxSamplesPerCycle << MAX_PITCH) + 3;
             ::gig::buffer_t buf = pSample->LoadSampleDataWithNullSamplesExtension(silenceSamples);
             dmsg(4,("Cached %d Bytes, %d silence bytes.\n", buf.Size, buf.NullExtensionSize));
         }

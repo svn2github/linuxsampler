@@ -43,11 +43,11 @@ using namespace LinuxSampler;
 class LSCPInstrumentLoader : public Thread {
     public:
         LSCPInstrumentLoader();
-        void StartNewLoad(String Filename, uint uiInstrumentIndex, Engine* pEngine);
+        void StartNewLoad(String Filename, uint uiInstrumentIndex, EngineChannel* pEngineChannel);
         virtual ~LSCPInstrumentLoader();
     protected:
         struct command_t {
-            Engine* pEngine;
+            EngineChannel* pEngineChannel;
         };
 
         // Instance variables.

@@ -3,6 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
+ *   Copyright (C) 2005 Christian Schoenebeck                              *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -116,6 +117,7 @@ namespace LinuxSampler { namespace gig {
      *  Initializes and triggers the voice, a disk stream will be launched if
      *  needed.
      *
+     *  @param pEngineChannel      - engine channel on which this voice was ordered
      *  @param itNoteOnEvent       - event that caused triggering of this voice
      *  @param PitchBend           - MIDI detune factor (-8192 ... +8191)
      *  @param pInstrument         - points to the loaded instrument which provides sample wave(s) and articulation data
@@ -126,7 +128,8 @@ namespace LinuxSampler { namespace gig {
      *           (either due to an error or e.g. because no region is
      *           defined for the given key)
      */
-    int Voice::Trigger(Pool<Event>::Iterator& itNoteOnEvent, int PitchBend, ::gig::Instrument* pInstrument, int iLayer, bool ReleaseTriggerVoice, bool VoiceStealing) {
+    int Voice::Trigger(EngineChannel* pEngineChannel, Pool<Event>::Iterator& itNoteOnEvent, int PitchBend, ::gig::Instrument* pInstrument, int iLayer, bool ReleaseTriggerVoice, bool VoiceStealing) {
+        this->pEngineChannel = pEngineChannel;
         if (!pInstrument) {
            dmsg(1,("voice::trigger: !pInstrument\n"));
            exit(EXIT_FAILURE);
@@ -164,7 +167,7 @@ namespace LinuxSampler { namespace gig {
                     // if this is the 1st layer then spawn further voices for all the other layers
                     if (iLayer == 0)
                         for (int iNewLayer = 1; iNewLayer < pRegion->pDimensionDefinitions[i].zones; iNewLayer++)
-                            itChildVoice = pEngine->LaunchVoice(itNoteOnEvent, iNewLayer, ReleaseTriggerVoice, VoiceStealing);
+                            itChildVoice = pEngine->LaunchVoice(pEngineChannel, itNoteOnEvent, iNewLayer, ReleaseTriggerVoice, VoiceStealing);
                     break;
                 case ::gig::dimension_velocity:
                     DimValues[i] = itNoteOnEvent->Param.Note.Velocity;
@@ -177,76 +180,76 @@ namespace LinuxSampler { namespace gig {
                     DimValues[i] = (uint) ReleaseTriggerVoice;
                     break;
                 case ::gig::dimension_keyboard:
-                    DimValues[i] = (uint) pEngine->CurrentKeyDimension;
+                    DimValues[i] = (uint) pEngineChannel->CurrentKeyDimension;
                     break;
                 case ::gig::dimension_modwheel:
-                    DimValues[i] = pEngine->ControllerTable[1];
+                    DimValues[i] = pEngineChannel->ControllerTable[1];
                     break;
                 case ::gig::dimension_breath:
-                    DimValues[i] = pEngine->ControllerTable[2];
+                    DimValues[i] = pEngineChannel->ControllerTable[2];
                     break;
                 case ::gig::dimension_foot:
-                    DimValues[i] = pEngine->ControllerTable[4];
+                    DimValues[i] = pEngineChannel->ControllerTable[4];
                     break;
                 case ::gig::dimension_portamentotime:
-                    DimValues[i] = pEngine->ControllerTable[5];
+                    DimValues[i] = pEngineChannel->ControllerTable[5];
                     break;
                 case ::gig::dimension_effect1:
-                    DimValues[i] = pEngine->ControllerTable[12];
+                    DimValues[i] = pEngineChannel->ControllerTable[12];
                     break;
                 case ::gig::dimension_effect2:
-                    DimValues[i] = pEngine->ControllerTable[13];
+                    DimValues[i] = pEngineChannel->ControllerTable[13];
                     break;
                 case ::gig::dimension_genpurpose1:
-                    DimValues[i] = pEngine->ControllerTable[16];
+                    DimValues[i] = pEngineChannel->ControllerTable[16];
                     break;
                 case ::gig::dimension_genpurpose2:
-                    DimValues[i] = pEngine->ControllerTable[17];
+                    DimValues[i] = pEngineChannel->ControllerTable[17];
                     break;
                 case ::gig::dimension_genpurpose3:
-                    DimValues[i] = pEngine->ControllerTable[18];
+                    DimValues[i] = pEngineChannel->ControllerTable[18];
                     break;
                 case ::gig::dimension_genpurpose4:
-                    DimValues[i] = pEngine->ControllerTable[19];
+                    DimValues[i] = pEngineChannel->ControllerTable[19];
                     break;
                 case ::gig::dimension_sustainpedal:
-                    DimValues[i] = pEngine->ControllerTable[64];
+                    DimValues[i] = pEngineChannel->ControllerTable[64];
                     break;
                 case ::gig::dimension_portamento:
-                    DimValues[i] = pEngine->ControllerTable[65];
+                    DimValues[i] = pEngineChannel->ControllerTable[65];
                     break;
                 case ::gig::dimension_sostenutopedal:
-                    DimValues[i] = pEngine->ControllerTable[66];
+                    DimValues[i] = pEngineChannel->ControllerTable[66];
                     break;
                 case ::gig::dimension_softpedal:
-                    DimValues[i] = pEngine->ControllerTable[67];
+                    DimValues[i] = pEngineChannel->ControllerTable[67];
                     break;
                 case ::gig::dimension_genpurpose5:
-                    DimValues[i] = pEngine->ControllerTable[80];
+                    DimValues[i] = pEngineChannel->ControllerTable[80];
                     break;
                 case ::gig::dimension_genpurpose6:
-                    DimValues[i] = pEngine->ControllerTable[81];
+                    DimValues[i] = pEngineChannel->ControllerTable[81];
                     break;
                 case ::gig::dimension_genpurpose7:
-                    DimValues[i] = pEngine->ControllerTable[82];
+                    DimValues[i] = pEngineChannel->ControllerTable[82];
                     break;
                 case ::gig::dimension_genpurpose8:
-                    DimValues[i] = pEngine->ControllerTable[83];
+                    DimValues[i] = pEngineChannel->ControllerTable[83];
                     break;
                 case ::gig::dimension_effect1depth:
-                    DimValues[i] = pEngine->ControllerTable[91];
+                    DimValues[i] = pEngineChannel->ControllerTable[91];
                     break;
                 case ::gig::dimension_effect2depth:
-                    DimValues[i] = pEngine->ControllerTable[92];
+                    DimValues[i] = pEngineChannel->ControllerTable[92];
                     break;
                 case ::gig::dimension_effect3depth:
-                    DimValues[i] = pEngine->ControllerTable[93];
+                    DimValues[i] = pEngineChannel->ControllerTable[93];
                     break;
                 case ::gig::dimension_effect4depth:
-                    DimValues[i] = pEngine->ControllerTable[94];
+                    DimValues[i] = pEngineChannel->ControllerTable[94];
                     break;
                 case ::gig::dimension_effect5depth:
-                    DimValues[i] = pEngine->ControllerTable[95];
+                    DimValues[i] = pEngineChannel->ControllerTable[95];
                     break;
                 case ::gig::dimension_none:
                     std::cerr << "gig::Voice::Trigger() Error: dimension=none\n" << std::flush;
@@ -272,7 +275,7 @@ namespace LinuxSampler { namespace gig {
                 CrossfadeVolume = CrossfadeAttenuation(itNoteOnEvent->Param.Note.Velocity);
                 break;
             case ::gig::attenuation_ctrl_t::type_controlchange: //FIXME: currently not sample accurate
-                CrossfadeVolume = CrossfadeAttenuation(pEngine->ControllerTable[pDimRgn->AttenuationController.controller_number]);
+                CrossfadeVolume = CrossfadeAttenuation(pEngineChannel->ControllerTable[pDimRgn->AttenuationController.controller_number]);
                 break;
             case ::gig::attenuation_ctrl_t::type_none: // no crossfade defined
             default:
@@ -343,7 +346,7 @@ namespace LinuxSampler { namespace gig {
                     eg1controllervalue = itNoteOnEvent->Param.Note.Velocity;
                     break;
                 case ::gig::eg1_ctrl_t::type_controlchange: // MIDI control change controller
-                    eg1controllervalue = pEngine->ControllerTable[pDimRgn->EG1Controller.controller_number];
+                    eg1controllervalue = pEngineChannel->ControllerTable[pDimRgn->EG1Controller.controller_number];
                     break;
             }
             if (pDimRgn->EG1ControllerInvert) eg1controllervalue = 127 - eg1controllervalue;
@@ -381,7 +384,7 @@ namespace LinuxSampler { namespace gig {
                     eg2controllervalue = itNoteOnEvent->Param.Note.Velocity;
                     break;
                 case ::gig::eg2_ctrl_t::type_controlchange: // MIDI control change controller
-                    eg2controllervalue = pEngine->ControllerTable[pDimRgn->EG2Controller.controller_number];
+                    eg2controllervalue = pEngineChannel->ControllerTable[pDimRgn->EG2Controller.controller_number];
                     break;
             }
             if (pDimRgn->EG2ControllerInvert) eg2controllervalue = 127 - eg2controllervalue;
@@ -442,7 +445,7 @@ namespace LinuxSampler { namespace gig {
             pLFO1->Trigger(pDimRgn->LFO1Frequency,
                           lfo1_internal_depth,
                           pDimRgn->LFO1ControlDepth,
-                          pEngine->ControllerTable[pLFO1->ExtController],
+                          pEngineChannel->ControllerTable[pLFO1->ExtController],
                           pDimRgn->LFO1FlipPhase,
                           pEngine->SampleRate,
                           Delay);
@@ -480,7 +483,7 @@ namespace LinuxSampler { namespace gig {
             pLFO2->Trigger(pDimRgn->LFO2Frequency,
                           lfo2_internal_depth,
                           pDimRgn->LFO2ControlDepth,
-                          pEngine->ControllerTable[pLFO2->ExtController],
+                          pEngineChannel->ControllerTable[pLFO2->ExtController],
                           pDimRgn->LFO2FlipPhase,
                           pEngine->SampleRate,
                           Delay);
@@ -518,7 +521,7 @@ namespace LinuxSampler { namespace gig {
             pLFO3->Trigger(pDimRgn->LFO3Frequency,
                           lfo3_internal_depth,
                           pDimRgn->LFO3ControlDepth,
-                          pEngine->ControllerTable[pLFO3->ExtController],
+                          pEngineChannel->ControllerTable[pLFO3->ExtController],
                           false,
                           pEngine->SampleRate,
                           Delay);
@@ -601,8 +604,8 @@ namespace LinuxSampler { namespace gig {
             FilterRight.SetType(OVERRIDE_FILTER_TYPE);
             #endif // OVERRIDE_FILTER_TYPE
 
-            VCFCutoffCtrl.value    = pEngine->ControllerTable[VCFCutoffCtrl.controller];
-            VCFResonanceCtrl.value = pEngine->ControllerTable[VCFResonanceCtrl.controller];
+            VCFCutoffCtrl.value    = pEngineChannel->ControllerTable[VCFCutoffCtrl.controller];
+            VCFResonanceCtrl.value = pEngineChannel->ControllerTable[VCFResonanceCtrl.controller];
 
             // calculate cutoff frequency
             float cutoff = (!VCFCutoffCtrl.controller)
@@ -649,7 +652,7 @@ namespace LinuxSampler { namespace gig {
 
         // Reset the synthesis parameter matrix
 
-        pEngine->ResetSynthesisParameters(Event::destination_vca, this->Volume * this->CrossfadeVolume * pEngine->GlobalVolume);
+        pEngine->ResetSynthesisParameters(Event::destination_vca, this->Volume * this->CrossfadeVolume * pEngineChannel->GlobalVolume);
         pEngine->ResetSynthesisParameters(Event::destination_vco, this->PitchBase);
         pEngine->ResetSynthesisParameters(Event::destination_vcfc, VCFCutoffCtrl.fvalue);
         pEngine->ResetSynthesisParameters(Event::destination_vcfr, VCFResonanceCtrl.fvalue);
@@ -658,8 +661,8 @@ namespace LinuxSampler { namespace gig {
         ProcessEvents(Samples);
 
         // Let all modulators write their parameter changes to the synthesis parameter matrix for the current audio fragment
-        pEG1->Process(Samples, pEngine->pMIDIKeyInfo[MIDIKey].pEvents, itTriggerEvent, this->Pos, this->PitchBase * this->PitchBend, itKillEvent);
-        pEG2->Process(Samples, pEngine->pMIDIKeyInfo[MIDIKey].pEvents, itTriggerEvent, this->Pos, this->PitchBase * this->PitchBend);
+        pEG1->Process(Samples, pEngineChannel->pMIDIKeyInfo[MIDIKey].pEvents, itTriggerEvent, this->Pos, this->PitchBase * this->PitchBend, itKillEvent);
+        pEG2->Process(Samples, pEngineChannel->pMIDIKeyInfo[MIDIKey].pEvents, itTriggerEvent, this->Pos, this->PitchBase * this->PitchBend);
         if (pEG3->Process(Samples)) { // if pitch EG is active
             SYNTHESIS_MODE_SET_INTERPOLATE(SynthesisMode, true);
             SYNTHESIS_MODE_SET_CONSTPITCH(SynthesisMode, false);
@@ -873,7 +876,7 @@ namespace LinuxSampler { namespace gig {
 
                 crossfadevolume = CrossfadeAttenuation(itVCAEvent->Param.CC.Value);
 
-                float effective_volume = crossfadevolume * this->Volume * pEngine->GlobalVolume;
+                float effective_volume = crossfadevolume * this->Volume * pEngineChannel->GlobalVolume;
 
                 // apply volume value to the volume parameter sequence
                 for (uint i = itVCAEvent->FragmentPos(); i < end; i++) {

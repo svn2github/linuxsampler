@@ -3,6 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
+ *   Copyright (C) 2005 Christian Schoenebeck                              *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -35,7 +36,9 @@
 #include "../../drivers/audio/AudioOutputDevice.h"
 #include "../../lib/fileloader/libgig/gig.h"
 #include "../common/BiquadFilter.h"
+//#include "EngineGlobals.h"
 #include "Engine.h"
+#include "EngineChannel.h"
 #include "Stream.h"
 #include "DiskThread.h"
 
@@ -43,24 +46,11 @@
 #include "Filter.h"
 #include "../common/LFO.h"
 
-#define FILTER_UPDATE_PERIOD		64 ///< amount of sample points after which filter parameters (cutoff, resonance) are going to be updated (higher value means less CPU load, but also worse parameter resolution, this value will be aligned to a power of two)
-#define FORCE_FILTER_USAGE		0  ///< if set to 1 then filter is always used, if set to 0 filter is used only in case the instrument file defined one
-#define FILTER_CUTOFF_MAX		10000.0f ///< maximum cutoff frequency (10kHz)
-#define FILTER_CUTOFF_MIN		100.0f   ///< minimum cutoff frequency (100Hz)
-
-// Uncomment following line to override external cutoff controller
-//#define OVERRIDE_FILTER_CUTOFF_CTRL	1  ///< set to an arbitrary MIDI control change controller (e.g. 1 for 'modulation wheel')
-
-// Uncomment following line to override external resonance controller
-//#define OVERRIDE_FILTER_RES_CTRL	91  ///< set to an arbitrary MIDI control change controller (e.g. 91 for 'effect 1 depth')
-
-// Uncomment following line to override filter type
-//#define OVERRIDE_FILTER_TYPE		::gig::vcf_type_lowpass  ///< either ::gig::vcf_type_lowpass, ::gig::vcf_type_bandpass or ::gig::vcf_type_highpass
-
 namespace LinuxSampler { namespace gig {
 
     class Engine;
     class EGADSR;
+    class EGDecay;
     class VCAManipulator;
     class VCFCManipulator;
     class VCOManipulator;
@@ -100,7 +90,7 @@ namespace LinuxSampler { namespace gig {
             void Reset();
             void SetOutput(AudioOutputDevice* pAudioOutputDevice);
             void SetEngine(Engine* pEngine);
-            int  Trigger(Pool<Event>::Iterator& itNoteOnEvent, int PitchBend, ::gig::Instrument* pInstrument, int iLayer, bool ReleaseTriggerVoice, bool VoiceStealing);
+            int  Trigger(EngineChannel* pEngineChannel, Pool<Event>::Iterator& itNoteOnEvent, int PitchBend, ::gig::Instrument* pInstrument, int iLayer, bool ReleaseTriggerVoice, bool VoiceStealing);
             inline bool IsActive() { return PlaybackState; }
         //private:
             // Types
@@ -111,7 +101,8 @@ namespace LinuxSampler { namespace gig {
             };
 
             // Attributes
-            gig::Engine*                pEngine;            ///< Pointer to the sampler engine, to be able to access the event lists.
+            EngineChannel*              pEngineChannel;
+            Engine*                     pEngine;            ///< Pointer to the sampler engine, to be able to access the event lists.
             float                       Volume;             ///< Volume level of the voice
             float                       PanLeft;
             float                       PanRight;

@@ -3,6 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
+ *   Copyright (C) 2005 Christian Schoenebeck                              *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -24,9 +25,9 @@
 
 #include "Sampler.h"
 
+#include "engines/EngineChannelFactory.h"
 #include "drivers/audio/AudioOutputDeviceFactory.h"
 #include "drivers/midi/MidiInputDeviceFactory.h"
-#include "engines/gig/Engine.h"
 #include "network/lscpserver.h"
 
 namespace LinuxSampler {
@@ -36,7 +37,7 @@ namespace LinuxSampler {
 
     SamplerChannel::SamplerChannel(Sampler* pS) {
         pSampler           = pS;
-        pEngine            = NULL;
+        pEngineChannel     = NULL;
         pMidiInputDevice   = NULL;
         pAudioOutputDevice = NULL;
         midiPort           = 0;
@@ -45,49 +46,43 @@ namespace LinuxSampler {
     }
 
     SamplerChannel::~SamplerChannel() {
-        if (pEngine) {
+        if (pEngineChannel) {
             MidiInputPort* pMidiInputPort = GetMidiInputDevicePort(this->midiPort);
-            if (pMidiInputPort) pMidiInputPort->Disconnect(pEngine);
-            if (pAudioOutputDevice) pAudioOutputDevice->Disconnect(pEngine);
-            delete pEngine;
+            if (pMidiInputPort) pMidiInputPort->Disconnect(pEngineChannel);
+            if (pAudioOutputDevice) pAudioOutputDevice->Disconnect(pEngineChannel);
+            delete pEngineChannel;
         }
     }
 
-    void SamplerChannel::LoadEngine(Engine::type_t EngineType) {
-        dmsg(2,("SamplerChannel: Loading engine..."));
+    void SamplerChannel::SetEngineType(String EngineType) throw (LinuxSamplerException) {
+        dmsg(2,("SamplerChannel: Assigning engine type..."));
 
-        // create new engine
-        Engine* pNewEngine = NULL;
-        switch (EngineType) {
-            case Engine::type_gig:
-                pNewEngine = new gig::Engine;
-                break;
-            default:
-                throw LinuxSamplerException("Unknown engine type");
-        }
+        // create new engine channel
+        EngineChannel* pNewEngineChannel = EngineChannelFactory::Create(EngineType);
+        if (!pNewEngineChannel) throw LinuxSamplerException("Unknown engine type");
 
         // dereference midi input port.
         MidiInputPort* pMidiInputPort = GetMidiInputDevicePort(this->midiPort);
         // disconnect old engine
-        if (pEngine) {
-            if (pMidiInputPort) pMidiInputPort->Disconnect(pEngine);
-            if (pAudioOutputDevice) pAudioOutputDevice->Disconnect(pEngine);
-            delete pEngine;
+        if (pEngineChannel) {
+            if (pMidiInputPort) pMidiInputPort->Disconnect(pEngineChannel);
+            if (pAudioOutputDevice) pAudioOutputDevice->Disconnect(pEngineChannel);
+            delete pEngineChannel;
         }
 
-        // connect new engine
-        pEngine = pNewEngine;
-        if (pMidiInputPort) pMidiInputPort->Connect(pNewEngine, this->midiChannel);
-        if (pAudioOutputDevice) pAudioOutputDevice->Connect(pNewEngine);
+        // connect new engine channel
+        pEngineChannel = pNewEngineChannel;
+        if (pMidiInputPort) pMidiInputPort->Connect(pNewEngineChannel, this->midiChannel);
+        if (pAudioOutputDevice) pAudioOutputDevice->Connect(pNewEngineChannel);
         dmsg(2,("OK\n"));
     }
 
     void SamplerChannel::SetAudioOutputDevice(AudioOutputDevice* pDevice) {
         // disconnect old device
-        if (pAudioOutputDevice && pEngine) pAudioOutputDevice->Disconnect(pEngine);
+        if (pAudioOutputDevice && pEngineChannel) pAudioOutputDevice->Disconnect(pEngineChannel);
         // connect new device
         pAudioOutputDevice = pDevice;
-        if (pEngine) pAudioOutputDevice->Connect(pEngine);
+        if (pEngineChannel) pAudioOutputDevice->Connect(pEngineChannel);
     }
 
     void SamplerChannel::SetMidiInputDevice(MidiInputDevice* pDevice) {
@@ -106,21 +101,21 @@ namespace LinuxSampler {
         // dereference old midi input port.
         MidiInputPort* pMidiInputPort = GetMidiInputDevicePort(this->midiPort);
         // disconnect old device port
-        if (pMidiInputPort && pEngine) pMidiInputPort->Disconnect(pEngine);
+        if (pMidiInputPort && pEngineChannel) pMidiInputPort->Disconnect(pEngineChannel);
         // new device, port and channel
         pMidiInputDevice = pDevice;
         this->midiPort = iMidiPort;
         this->midiChannel = MidiChannel;
         // connect new device port
         pMidiInputPort = GetMidiInputDevicePort(this->midiPort);
-        if (pMidiInputPort && pEngine) pMidiInputPort->Connect(pEngine, MidiChannel);
+        if (pMidiInputPort && pEngineChannel) pMidiInputPort->Connect(pEngineChannel, MidiChannel);
         // Ooops.
         if (pMidiInputPort == NULL)
             throw LinuxSamplerException("There is no MIDI input port with index " + ToString(iMidiPort) + ".");
     }
 
-    Engine* SamplerChannel::GetEngine() {
-        return pEngine;
+    EngineChannel* SamplerChannel::GetEngineChannel() {
+        return pEngineChannel;
     }
 
     MidiInputPort::midi_chan_t SamplerChannel::GetMidiInputChannel() {

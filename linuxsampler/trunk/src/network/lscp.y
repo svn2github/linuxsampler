@@ -202,7 +202,7 @@ load_instr_args       :  filename SP instrument_index SP sampler_channel        
                       |  NON_MODAL SP filename SP instrument_index SP sampler_channel  { $$ = LSCPSERVER->LoadInstrument($3, $5, $7, true); }
                       ;
 
-load_engine_args      :  engine_name SP sampler_channel  { $$ = LSCPSERVER->LoadEngine($1, $3); }
+load_engine_args      :  engine_name SP sampler_channel  { $$ = LSCPSERVER->SetEngineType($1, $3); }
                       ;
 
 device_index              :  number

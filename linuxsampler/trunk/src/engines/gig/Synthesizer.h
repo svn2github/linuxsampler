@@ -3,6 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
+ *   Copyright (C) 2005 Christian Schoenebeck                              *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -137,8 +138,8 @@ namespace LinuxSampler { namespace gig {
             inline static void Synthesize(VOICE_T& Voice, void* Pos, sample_t* pSrc, uint& i) {
                 Synthesize(pSrc, Pos,
                            Voice.pEngine->pSynthesisParameters[Event::destination_vco][i],
-                           Voice.pEngine->pOutputLeft,
-                           Voice.pEngine->pOutputRight,
+                           Voice.pEngineChannel->pOutputLeft,
+                           Voice.pEngineChannel->pOutputRight,
                            i,
                            Voice.pEngine->pSynthesisParameters[Event::destination_vca],
                            &Voice.PanLeft,

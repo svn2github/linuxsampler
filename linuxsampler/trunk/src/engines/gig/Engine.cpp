@@ -3,6 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
+ *   Copyright (C) 2005 Christian Schoenebeck                              *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -35,32 +36,42 @@
 
 namespace LinuxSampler { namespace gig {
 
-    InstrumentResourceManager Engine::Instruments;
+    InstrumentResourceManager Engine::instruments;
+
+    std::map<AudioOutputDevice*,Engine*> Engine::engines;
+
+    Engine* Engine::AcquireEngine(LinuxSampler::gig::EngineChannel* pChannel, AudioOutputDevice* pDevice) {
+        Engine* pEngine;
+        if (engines.count(pDevice)) {
+            pEngine = engines[pDevice];
+        } else {
+            pEngine = new Engine;
+            pEngine->Connect(pDevice);
+        }
+        pEngine->samplerChannels.push_back(pChannel);
+        return pEngine;
+    }
+
+    void Engine::FreeEngine(LinuxSampler::gig::EngineChannel* pChannel, AudioOutputDevice* pDevice) {
+        Engine* pEngine = engines[pDevice];
+        pEngine->samplerChannels.remove(pChannel);
+        if (pEngine->samplerChannels.empty()) delete pEngine;
+    }
 
     Engine::Engine() {
-        pRIFF              = NULL;
-        pGig               = NULL;
-        pInstrument        = NULL;
         pAudioOutputDevice = NULL;
         pDiskThread        = NULL;
         pEventGenerator    = NULL;
         pSysexBuffer       = new RingBuffer<uint8_t>(SYSEX_BUFFER_SIZE, 0);
         pEventQueue        = new RingBuffer<Event>(MAX_EVENTS_PER_FRAGMENT, 0);
         pEventPool         = new Pool<Event>(MAX_EVENTS_PER_FRAGMENT);
-        pVoicePool         = new Pool<Voice>(MAX_AUDIO_VOICES);
-        pActiveKeys        = new Pool<uint>(128);
+        pVoicePool         = new Pool<Voice>(MAX_AUDIO_VOICES);        
         pVoiceStealingQueue = new RTList<Event>(pEventPool);
         pEvents            = new RTList<Event>(pEventPool);
         pCCEvents          = new RTList<Event>(pEventPool);
+        
         for (uint i = 0; i < Event::destination_count; i++) {
             pSynthesisEvents[i] = new RTList<Event>(pEventPool);
-        }
-        for (uint i = 0; i < 128; i++) {
-            pMIDIKeyInfo[i].pActiveVoices  = new RTList<Voice>(pVoicePool);
-            pMIDIKeyInfo[i].KeyPressed     = false;
-            pMIDIKeyInfo[i].Active         = false;
-            pMIDIKeyInfo[i].ReleaseTrigger = false;
-            pMIDIKeyInfo[i].pEvents        = new RTList<Event>(pEventPool);
         }
         for (RTList<Voice>::Iterator iterVoice = pVoicePool->allocAppend(); iterVoice == pVoicePool->last(); iterVoice = pVoicePool->allocAppend()) {
             iterVoice->SetEngine(this);
@@ -70,12 +81,6 @@ namespace LinuxSampler { namespace gig {
         pSynthesisParameters[0] = NULL; // we allocate when an audio device is connected
         pBasicFilterParameters  = NULL;
         pMainFilterParameters   = NULL;
-
-	InstrumentIdx = -1;
-	InstrumentStat = -1;
-
-        AudioDeviceChannelLeft  = -1;
-        AudioDeviceChannelRight = -1;
 
         ResetInternal();
     }
@@ -87,15 +92,6 @@ namespace LinuxSampler { namespace gig {
             delete pDiskThread;
             dmsg(1,("OK\n"));
         }
-
-        if (pInstrument) Instruments.HandBack(pInstrument, this);
-
-        if (pGig)  delete pGig;
-        if (pRIFF) delete pRIFF;
-        for (uint i = 0; i < 128; i++) {
-            if (pMIDIKeyInfo[i].pActiveVoices) delete pMIDIKeyInfo[i].pActiveVoices;
-            if (pMIDIKeyInfo[i].pEvents)       delete pMIDIKeyInfo[i].pEvents;
-        }
         for (uint i = 0; i < Event::destination_count; i++) {
             if (pSynthesisEvents[i]) delete pSynthesisEvents[i];
         }
@@ -103,17 +99,16 @@ namespace LinuxSampler { namespace gig {
         if (pCCEvents)   delete pCCEvents;
         if (pEventQueue) delete pEventQueue;
         if (pEventPool)  delete pEventPool;
-	if (pVoicePool) {
-		pVoicePool->clear();
-		delete pVoicePool;
-	}
-        if (pActiveKeys) delete pActiveKeys;
-        if (pSysexBuffer) delete pSysexBuffer;
+        if (pVoicePool) {
+            pVoicePool->clear();
+            delete pVoicePool;
+        }
         if (pEventGenerator) delete pEventGenerator;
         if (pMainFilterParameters) delete[] pMainFilterParameters;
         if (pBasicFilterParameters) delete[] pBasicFilterParameters;
         if (pSynthesisParameters[0]) free(pSynthesisParameters[0]);
         if (pVoiceStealingQueue) delete pVoiceStealingQueue;
+        if (pSysexBuffer) delete pSysexBuffer;
     }
 
     void Engine::Enable() {
@@ -140,24 +135,7 @@ namespace LinuxSampler { namespace gig {
      */
     void Engine::Reset() {
         DisableAndLock();
-
-        //if (pAudioOutputDevice->IsPlaying()) { // if already running
-            /*
-            // signal audio thread not to enter render part anymore
-            SuspensionRequested = true;
-            // sleep until wakened by audio thread
-            pthread_mutex_lock(&__render_state_mutex);
-            pthread_cond_wait(&__render_exit_condition, &__render_state_mutex);
-            pthread_mutex_unlock(&__render_state_mutex);
-            */
-        //}
-
-        //if (wasplaying) pAudioOutputDevice->Stop();
-
         ResetInternal();
-
-        // signal audio thread to continue with rendering
-        //SuspensionRequested = false;
         Enable();
     }
 
@@ -166,12 +144,8 @@ namespace LinuxSampler { namespace gig {
      *  control and status variables. This method is not thread safe!
      */
     void Engine::ResetInternal() {
-        Pitch               = 0;
-        SustainPedal        = false;
         ActiveVoiceCount    = 0;
         ActiveVoiceCountMax = 0;
-        GlobalVolume        = 1.0;
-        CurrentKeyDimension = 0;
 
         // reset voice stealing parameters
         itLastStolenVoice = RTList<Voice>::Iterator();
@@ -181,144 +155,17 @@ namespace LinuxSampler { namespace gig {
         // reset to normal chromatic scale (means equal temper)
         memset(&ScaleTuning[0], 0x00, 12);
 
-        // set all MIDI controller values to zero
-        memset(ControllerTable, 0x00, 128);
-
-        // reset key info
-        for (uint i = 0; i < 128; i++) {
-            pMIDIKeyInfo[i].pActiveVoices->clear();
-            pMIDIKeyInfo[i].pEvents->clear();
-            pMIDIKeyInfo[i].KeyPressed     = false;
-            pMIDIKeyInfo[i].Active         = false;
-            pMIDIKeyInfo[i].ReleaseTrigger = false;
-            pMIDIKeyInfo[i].itSelf         = Pool<uint>::Iterator();
-        }
-
-        // reset all key groups
-        map<uint,uint*>::iterator iter = ActiveKeyGroups.begin();
-        for (; iter != ActiveKeyGroups.end(); iter++) iter->second = NULL;
-
         // reset all voices
         for (RTList<Voice>::Iterator iterVoice = pVoicePool->allocAppend(); iterVoice == pVoicePool->last(); iterVoice = pVoicePool->allocAppend()) {
             iterVoice->Reset();
         }
         pVoicePool->clear();
 
-        // free all active keys
-        pActiveKeys->clear();
-
         // reset disk thread
         if (pDiskThread) pDiskThread->Reset();
 
         // delete all input events
         pEventQueue->init();
-    }
-
-    /**
-     * More or less a workaround to set the instrument name, index and load
-     * status variable to zero percent immediately, that is without blocking
-     * the calling thread. It might be used in future for other preparations
-     * as well though.
-     *
-     * @param FileName   - file name of the Gigasampler instrument file
-     * @param Instrument - index of the instrument in the .gig file
-     * @see LoadInstrument()
-     */
-    void Engine::PrepareLoadInstrument(const char* FileName, uint Instrument) {
-        InstrumentFile = FileName;
-        InstrumentIdx  = Instrument;
-        InstrumentStat = 0;
-    }
-
-    /**
-     * Load an instrument from a .gig file. PrepareLoadInstrument() has to
-     * be called first to provide the information which instrument to load.
-     * This method will then actually start to load the instrument and block
-     * the calling thread until loading was completed.
-     *
-     * @returns detailed description of the method call result
-     * @see PrepareLoadInstrument()
-     */
-    void Engine::LoadInstrument() {
-
-        DisableAndLock();
-
-        ResetInternal(); // reset engine
-
-        // free old instrument
-        if (pInstrument) {
-            // give old instrument back to instrument manager
-            Instruments.HandBack(pInstrument, this);
-        }
-
-        // delete all key groups
-        ActiveKeyGroups.clear();
-
-        // request gig instrument from instrument manager
-        try {
-            instrument_id_t instrid;
-            instrid.FileName    = InstrumentFile;
-            instrid.iInstrument = InstrumentIdx;
-            pInstrument = Instruments.Borrow(instrid, this);
-            if (!pInstrument) {
-                InstrumentStat = -1;
-                dmsg(1,("no instrument loaded!!!\n"));
-                exit(EXIT_FAILURE);
-            }
-        }
-        catch (RIFF::Exception e) {
-            InstrumentStat = -2;
-            String msg = "gig::Engine error: Failed to load instrument, cause: " + e.Message;
-            throw LinuxSamplerException(msg);
-        }
-        catch (InstrumentResourceManagerException e) {
-            InstrumentStat = -3;
-            String msg = "gig::Engine error: Failed to load instrument, cause: " + e.Message();
-            throw LinuxSamplerException(msg);
-        }
-        catch (...) {
-            InstrumentStat = -4;
-            throw LinuxSamplerException("gig::Engine error: Failed to load instrument, cause: Unknown exception while trying to parse gig file.");
-        }
-
-        // rebuild ActiveKeyGroups map with key groups of current instrument
-        for (::gig::Region* pRegion = pInstrument->GetFirstRegion(); pRegion; pRegion = pInstrument->GetNextRegion())
-            if (pRegion->KeyGroup) ActiveKeyGroups[pRegion->KeyGroup] = NULL;
-
-	InstrumentIdxName = pInstrument->pInfo->Name;
-	InstrumentStat = 100;
-
-        // inform audio driver for the need of two channels
-        try {
-            if (pAudioOutputDevice) pAudioOutputDevice->AcquireChannels(2); // gig Engine only stereo
-        }
-        catch (AudioOutputException e) {
-            String msg = "Audio output device unable to provide 2 audio channels, cause: " + e.Message();
-            throw LinuxSamplerException(msg);
-        }
-
-        Enable();
-    }
-
-    /**
-     * Will be called by the InstrumentResourceManager when the instrument
-     * we are currently using in this engine is going to be updated, so we
-     * can stop playback before that happens.
-     */
-    void Engine::ResourceToBeUpdated(::gig::Instrument* pResource, void*& pUpdateArg) {
-        dmsg(3,("gig::Engine: Received instrument update message.\n"));
-        DisableAndLock();
-        ResetInternal();
-        this->pInstrument = NULL;
-    }
-
-    /**
-     * Will be called by the InstrumentResourceManager when the instrument
-     * update process was completed, so we can continue with playback.
-     */
-    void Engine::ResourceUpdated(::gig::Instrument* pOldResource, ::gig::Instrument* pNewResource, void* pUpdateArg) {
-        this->pInstrument = pNewResource; //TODO: there are couple of engine parameters we should update here as well if the instrument was updated (see LoadInstrument())
-        Enable();
     }
 
     void Engine::Connect(AudioOutputDevice* pAudioOut) {
@@ -334,18 +181,14 @@ namespace LinuxSampler { namespace gig {
             String msg = "Audio output device unable to provide 2 audio channels, cause: " + e.Message();
             throw LinuxSamplerException(msg);
         }
-
-        this->AudioDeviceChannelLeft  = 0;
-        this->AudioDeviceChannelRight = 1;
-        this->pOutputLeft             = pAudioOutputDevice->Channel(0)->Buffer();
-        this->pOutputRight            = pAudioOutputDevice->Channel(1)->Buffer();
+        
         this->MaxSamplesPerCycle      = pAudioOutputDevice->MaxSamplesPerCycle();
         this->SampleRate              = pAudioOutputDevice->SampleRate();
 
         // FIXME: audio drivers with varying fragment sizes might be a problem here
         MaxFadeOutPos = MaxSamplesPerCycle - int(double(SampleRate) * EG_MIN_RELEASE_TIME) - 1;
         if (MaxFadeOutPos < 0)
-            throw LinuxSamplerException("EG_MIN_RELEASE_TIME in EGADSR.h to big for current audio fragment size / sampling rate!");
+            throw LinuxSamplerException("EG_MIN_RELEASE_TIME in EGADSR.h too big for current audio fragment size / sampling rate!");
 
         // (re)create disk thread
         if (this->pDiskThread) {
@@ -399,16 +242,6 @@ namespace LinuxSampler { namespace gig {
         }
     }
 
-    void Engine::DisconnectAudioOutputDevice() {
-        if (pAudioOutputDevice) { // if clause to prevent disconnect loops
-            AudioOutputDevice* olddevice = pAudioOutputDevice;
-            pAudioOutputDevice = NULL;
-            olddevice->Disconnect(this);
-            AudioDeviceChannelLeft  = -1;
-            AudioDeviceChannelRight = -1;
-        }
-    }
-
     /**
      *  Let this engine proceed to render the given amount of sample points. The
      *  calculated audio data of all voices of this engine will be placed into
@@ -416,10 +249,11 @@ namespace LinuxSampler { namespace gig {
      *  converted to the appropriate value range by the audio output class (e.g.
      *  AlsaIO or JackIO) right after.
      *
+     *  @param pEngineChannel - the engine's channel to be rendered
      *  @param Samples - number of sample points to be rendered
      *  @returns       0 on success
      */
-    int Engine::RenderAudio(uint Samples) {
+    int Engine::RenderAudio(LinuxSampler::gig::EngineChannel* pEngineChannel, uint Samples) {
         dmsg(5,("RenderAudio(Samples=%d)\n", Samples));
 
         // return if no instrument loaded or engine disabled
@@ -427,7 +261,7 @@ namespace LinuxSampler { namespace gig {
             dmsg(5,("gig::Engine: engine disabled (val=%d)\n",EngineDisabled.GetUnsafe()));
             return 0;
         }
-        if (!pInstrument) {
+        if (!pEngineChannel->pInstrument) {
             dmsg(5,("gig::Engine: no instrument loaded\n"));
             return 0;
         }
@@ -444,10 +278,10 @@ namespace LinuxSampler { namespace gig {
             pSynthesisEvents[i]->clear();
         }
         {
-            RTList<uint>::Iterator iuiKey = pActiveKeys->first();
-            RTList<uint>::Iterator end    = pActiveKeys->end();
+            RTList<uint>::Iterator iuiKey = pEngineChannel->pActiveKeys->first();
+            RTList<uint>::Iterator end    = pEngineChannel->pActiveKeys->end();
             for(; iuiKey != end; ++iuiKey) {
-                pMIDIKeyInfo[*iuiKey].pEvents->clear(); // free all events on the key
+                pEngineChannel->pMIDIKeyInfo[*iuiKey].pEvents->clear(); // free all events on the key
             }
         }
 
@@ -485,19 +319,19 @@ namespace LinuxSampler { namespace gig {
                 switch (itEvent->Type) {
                     case Event::type_note_on:
                         dmsg(5,("Engine: Note on received\n"));
-                        ProcessNoteOn(itEvent);
+                        ProcessNoteOn(pEngineChannel, itEvent);
                         break;
                     case Event::type_note_off:
                         dmsg(5,("Engine: Note off received\n"));
-                        ProcessNoteOff(itEvent);
+                        ProcessNoteOff(pEngineChannel, itEvent);
                         break;
                     case Event::type_control_change:
                         dmsg(5,("Engine: MIDI CC received\n"));
-                        ProcessControlChange(itEvent);
+                        ProcessControlChange(pEngineChannel, itEvent);
                         break;
                     case Event::type_pitchbend:
                         dmsg(5,("Engine: Pitchbend received\n"));
-                        ProcessPitchbend(itEvent);
+                        ProcessPitchbend(pEngineChannel, itEvent);
                         break;
                     case Event::type_sysex:
                         dmsg(5,("Engine: Sysex received\n"));
@@ -512,10 +346,10 @@ namespace LinuxSampler { namespace gig {
 
         // render audio from all active voices
         {
-            RTList<uint>::Iterator iuiKey = pActiveKeys->first();
-            RTList<uint>::Iterator end    = pActiveKeys->end();
+            RTList<uint>::Iterator iuiKey = pEngineChannel->pActiveKeys->first();
+            RTList<uint>::Iterator end    = pEngineChannel->pActiveKeys->end();
             while (iuiKey != end) { // iterate through all active keys
-                midi_key_info_t* pKey = &pMIDIKeyInfo[*iuiKey];
+                midi_key_info_t* pKey = &pEngineChannel->pMIDIKeyInfo[*iuiKey];
                 ++iuiKey;
 
                 RTList<Voice>::Iterator itVoice     = pKey->pActiveVoices->first();
@@ -525,7 +359,7 @@ namespace LinuxSampler { namespace gig {
                     itVoice->Render(Samples);
                     if (itVoice->IsActive()) active_voices++; // still active
                     else { // voice reached end, is now inactive
-                        FreeVoice(itVoice); // remove voice from the list of active voices
+                        FreeVoice(pEngineChannel, itVoice); // remove voice from the list of active voices
                     }
                 }
             }
@@ -537,13 +371,14 @@ namespace LinuxSampler { namespace gig {
             RTList<Event>::Iterator itVoiceStealEvent = pVoiceStealingQueue->first();
             RTList<Event>::Iterator end               = pVoiceStealingQueue->end();
             for (; itVoiceStealEvent != end; ++itVoiceStealEvent) {
-                Pool<Voice>::Iterator itNewVoice = LaunchVoice(itVoiceStealEvent, itVoiceStealEvent->Param.Note.Layer, itVoiceStealEvent->Param.Note.ReleaseTrigger, false);
+                Pool<Voice>::Iterator itNewVoice =
+                    LaunchVoice(pEngineChannel, itVoiceStealEvent, itVoiceStealEvent->Param.Note.Layer, itVoiceStealEvent->Param.Note.ReleaseTrigger, false);
                 if (itNewVoice) {
                     for (; itNewVoice; itNewVoice = itNewVoice->itChildVoice) {
                         itNewVoice->Render(Samples);
                         if (itNewVoice->IsActive()) active_voices++; // still active
                         else { // voice reached end, is now inactive
-                            FreeVoice(itNewVoice); // remove voice from the list of active voices
+                            FreeVoice(pEngineChannel, itNewVoice); // remove voice from the list of active voices
                         }
                     }
                 }
@@ -558,12 +393,12 @@ namespace LinuxSampler { namespace gig {
 
         // free all keys which have no active voices left
         {
-            RTList<uint>::Iterator iuiKey = pActiveKeys->first();
-            RTList<uint>::Iterator end    = pActiveKeys->end();
+            RTList<uint>::Iterator iuiKey = pEngineChannel->pActiveKeys->first();
+            RTList<uint>::Iterator end    = pEngineChannel->pActiveKeys->end();
             while (iuiKey != end) { // iterate through all active keys
-                midi_key_info_t* pKey = &pMIDIKeyInfo[*iuiKey];
+                midi_key_info_t* pKey = &pEngineChannel->pMIDIKeyInfo[*iuiKey];
                 ++iuiKey;
-                if (pKey->pActiveVoices->isEmpty()) FreeKey(pKey);
+                if (pKey->pActiveVoices->isEmpty()) FreeKey(pEngineChannel, pKey);
                 #if DEVMODE
                 else { // FIXME: should be removed before the final release (purpose: just a sanity check for debugging)
                     RTList<Voice>::Iterator itVoice     = pKey->pActiveVoices->first();
@@ -586,69 +421,7 @@ namespace LinuxSampler { namespace gig {
 
 
         return 0;
-    }
-
-    /**
-     *  Will be called by the MIDIIn Thread to let the audio thread trigger a new
-     *  voice for the given key.
-     *
-     *  @param Key      - MIDI key number of the triggered key
-     *  @param Velocity - MIDI velocity value of the triggered key
-     */
-    void Engine::SendNoteOn(uint8_t Key, uint8_t Velocity) {
-        Event event               = pEventGenerator->CreateEvent();
-        event.Type                = Event::type_note_on;
-        event.Param.Note.Key      = Key;
-        event.Param.Note.Velocity = Velocity;
-        if (this->pEventQueue->write_space() > 0) this->pEventQueue->push(&event);
-        else dmsg(1,("Engine: Input event queue full!"));
-    }
-
-    /**
-     *  Will be called by the MIDIIn Thread to signal the audio thread to release
-     *  voice(s) on the given key.
-     *
-     *  @param Key      - MIDI key number of the released key
-     *  @param Velocity - MIDI release velocity value of the released key
-     */
-    void Engine::SendNoteOff(uint8_t Key, uint8_t Velocity) {
-        Event event               = pEventGenerator->CreateEvent();
-        event.Type                = Event::type_note_off;
-        event.Param.Note.Key      = Key;
-        event.Param.Note.Velocity = Velocity;
-        if (this->pEventQueue->write_space() > 0) this->pEventQueue->push(&event);
-        else dmsg(1,("Engine: Input event queue full!"));
-    }
-
-    /**
-     *  Will be called by the MIDIIn Thread to signal the audio thread to change
-     *  the pitch value for all voices.
-     *
-     *  @param Pitch - MIDI pitch value (-8192 ... +8191)
-     */
-    void Engine::SendPitchbend(int Pitch) {
-        Event event             = pEventGenerator->CreateEvent();
-        event.Type              = Event::type_pitchbend;
-        event.Param.Pitch.Pitch = Pitch;
-        if (this->pEventQueue->write_space() > 0) this->pEventQueue->push(&event);
-        else dmsg(1,("Engine: Input event queue full!"));
-    }
-
-    /**
-     *  Will be called by the MIDIIn Thread to signal the audio thread that a
-     *  continuous controller value has changed.
-     *
-     *  @param Controller - MIDI controller number of the occured control change
-     *  @param Value      - value of the control change
-     */
-    void Engine::SendControlChange(uint8_t Controller, uint8_t Value) {
-        Event event               = pEventGenerator->CreateEvent();
-        event.Type                = Event::type_control_change;
-        event.Param.CC.Controller = Controller;
-        event.Param.CC.Value      = Value;
-        if (this->pEventQueue->write_space() > 0) this->pEventQueue->push(&event);
-        else dmsg(1,("Engine: Input event queue full!"));
-    }
+    }    
 
     /**
      *  Will be called by the MIDI input device whenever a MIDI system
@@ -684,23 +457,27 @@ namespace LinuxSampler { namespace gig {
     /**
      *  Assigns and triggers a new voice for the respective MIDI key.
      *
+     *  @param pEngineChannel - engine channel on which this event occured on
      *  @param itNoteOnEvent - key, velocity and time stamp of the event
      */
-    void Engine::ProcessNoteOn(Pool<Event>::Iterator& itNoteOnEvent) {
-
+    void Engine::ProcessNoteOn(EngineChannel* pEngineChannel, Pool<Event>::Iterator& itNoteOnEvent) {
+        
         const int key = itNoteOnEvent->Param.Note.Key;
 
         // Change key dimension value if key is in keyswitching area
-        if (key >= pInstrument->DimensionKeyRange.low && key <= pInstrument->DimensionKeyRange.high)
-            CurrentKeyDimension = ((key - pInstrument->DimensionKeyRange.low) * 128) /
-                (pInstrument->DimensionKeyRange.high - pInstrument->DimensionKeyRange.low + 1);
+        {
+            const ::gig::Instrument* pInstrument = pEngineChannel->pInstrument;
+            if (key >= pInstrument->DimensionKeyRange.low && key <= pInstrument->DimensionKeyRange.high)
+                pEngineChannel->CurrentKeyDimension = ((key - pInstrument->DimensionKeyRange.low) * 128) /
+                    (pInstrument->DimensionKeyRange.high - pInstrument->DimensionKeyRange.low + 1);
+        }
 
-        midi_key_info_t* pKey = &pMIDIKeyInfo[key];
+        midi_key_info_t* pKey = &pEngineChannel->pMIDIKeyInfo[key];
 
         pKey->KeyPressed = true; // the MIDI key was now pressed down
 
         // cancel release process of voices on this key if needed
-        if (pKey->Active && !SustainPedal) {
+        if (pKey->Active && !pEngineChannel->SustainPedal) {
             RTList<Event>::Iterator itCancelReleaseEvent = pKey->pEvents->allocAppend();
             if (itCancelReleaseEvent) {
                 *itCancelReleaseEvent = *itNoteOnEvent;                  // copy event
@@ -713,7 +490,7 @@ namespace LinuxSampler { namespace gig {
         RTList<Event>::Iterator itNoteOnEventOnKeyList = itNoteOnEvent.moveToEndOf(pKey->pEvents);
 
         // allocate and trigger a new voice for the key
-        LaunchVoice(itNoteOnEventOnKeyList, 0, false, true);
+        LaunchVoice(pEngineChannel, itNoteOnEventOnKeyList, 0, false, true);
     }
 
     /**
@@ -722,15 +499,16 @@ namespace LinuxSampler { namespace gig {
      *  sustain pedal will be released or voice turned inactive by itself (e.g.
      *  due to completion of sample playback).
      *
+     *  @param pEngineChannel - engine channel on which this event occured on
      *  @param itNoteOffEvent - key, velocity and time stamp of the event
      */
-    void Engine::ProcessNoteOff(Pool<Event>::Iterator& itNoteOffEvent) {
-        midi_key_info_t* pKey = &pMIDIKeyInfo[itNoteOffEvent->Param.Note.Key];
+    void Engine::ProcessNoteOff(EngineChannel* pEngineChannel, Pool<Event>::Iterator& itNoteOffEvent) {
+        midi_key_info_t* pKey = &pEngineChannel->pMIDIKeyInfo[itNoteOffEvent->Param.Note.Key];
 
         pKey->KeyPressed = false; // the MIDI key was now released
 
         // release voices on this key if needed
-        if (pKey->Active && !SustainPedal) {
+        if (pKey->Active && !pEngineChannel->SustainPedal) {
             itNoteOffEvent->Type = Event::type_release; // transform event type
         }
 
@@ -739,7 +517,7 @@ namespace LinuxSampler { namespace gig {
 
         // spawn release triggered voice(s) if needed
         if (pKey->ReleaseTrigger) {
-            LaunchVoice(itNoteOffEventOnKeyList, 0, true, false); //FIXME: for the moment we don't perform voice stealing for release triggered samples
+            LaunchVoice(pEngineChannel, itNoteOffEventOnKeyList, 0, true, false); //FIXME: for the moment we don't perform voice stealing for release triggered samples
             pKey->ReleaseTrigger = false;
         }
     }
@@ -748,10 +526,11 @@ namespace LinuxSampler { namespace gig {
      *  Moves pitchbend event from the general (input) event list to the pitch
      *  event list.
      *
+     *  @param pEngineChannel - engine channel on which this event occured on
      *  @param itPitchbendEvent - absolute pitch value and time stamp of the event
      */
-    void Engine::ProcessPitchbend(Pool<Event>::Iterator& itPitchbendEvent) {
-        this->Pitch = itPitchbendEvent->Param.Pitch.Pitch; // store current pitch value
+    void Engine::ProcessPitchbend(EngineChannel* pEngineChannel, Pool<Event>::Iterator& itPitchbendEvent) {
+        pEngineChannel->Pitch = itPitchbendEvent->Param.Pitch.Pitch; // store current pitch value
         itPitchbendEvent.moveToEndOf(pSynthesisEvents[Event::destination_vco]);
     }
 
@@ -760,6 +539,7 @@ namespace LinuxSampler { namespace gig {
      *  called by the ProcessNoteOn() method and by the voices itself
      *  (e.g. to spawn further voices on the same key for layered sounds).
      *
+     *  @param pEngineChannel      - engine channel on which this event occured on
      *  @param itNoteOnEvent       - key, velocity and time stamp of the event
      *  @param iLayer              - layer index for the new voice (optional - only
      *                               in case of layered sounds of course)
@@ -772,23 +552,23 @@ namespace LinuxSampler { namespace gig {
      *           if the voice wasn't triggered (for example when no region is
      *           defined for the given key).
      */
-    Pool<Voice>::Iterator Engine::LaunchVoice(Pool<Event>::Iterator& itNoteOnEvent, int iLayer, bool ReleaseTriggerVoice, bool VoiceStealing) {
-        midi_key_info_t* pKey = &pMIDIKeyInfo[itNoteOnEvent->Param.Note.Key];
+    Pool<Voice>::Iterator Engine::LaunchVoice(EngineChannel* pEngineChannel, Pool<Event>::Iterator& itNoteOnEvent, int iLayer, bool ReleaseTriggerVoice, bool VoiceStealing) {
+        midi_key_info_t* pKey = &pEngineChannel->pMIDIKeyInfo[itNoteOnEvent->Param.Note.Key];
 
         // allocate a new voice for the key
         Pool<Voice>::Iterator itNewVoice = pKey->pActiveVoices->allocAppend();
         if (itNewVoice) {
             // launch the new voice
-            if (itNewVoice->Trigger(itNoteOnEvent, this->Pitch, this->pInstrument, iLayer, ReleaseTriggerVoice, VoiceStealing) < 0) {
+            if (itNewVoice->Trigger(pEngineChannel, itNoteOnEvent, pEngineChannel->Pitch, pEngineChannel->pInstrument, iLayer, ReleaseTriggerVoice, VoiceStealing) < 0) {
                 dmsg(4,("Voice not triggered\n"));
                 pKey->pActiveVoices->free(itNewVoice);
             }
             else { // on success
                 uint** ppKeyGroup = NULL;
                 if (itNewVoice->KeyGroup) { // if this voice / key belongs to a key group
-                    ppKeyGroup = &ActiveKeyGroups[itNewVoice->KeyGroup];
+                    ppKeyGroup = &pEngineChannel->ActiveKeyGroups[itNewVoice->KeyGroup];
                     if (*ppKeyGroup) { // if there's already an active key in that key group
-                        midi_key_info_t* pOtherKey = &pMIDIKeyInfo[**ppKeyGroup];
+                        midi_key_info_t* pOtherKey = &pEngineChannel->pMIDIKeyInfo[**ppKeyGroup];
                         // kill all voices on the (other) key
                         RTList<Voice>::Iterator itVoiceToBeKilled = pOtherKey->pActiveVoices->first();
                         RTList<Voice>::Iterator end               = pOtherKey->pActiveVoices->end();
@@ -799,7 +579,7 @@ namespace LinuxSampler { namespace gig {
                 }
                 if (!pKey->Active) { // mark as active key
                     pKey->Active = true;
-                    pKey->itSelf = pActiveKeys->allocAppend();
+                    pKey->itSelf = pEngineChannel->pActiveKeys->allocAppend();
                     *pKey->itSelf = itNoteOnEvent->Param.Note.Key;
                 }
                 if (itNewVoice->KeyGroup) {
@@ -811,13 +591,13 @@ namespace LinuxSampler { namespace gig {
         }
         else if (VoiceStealing) {
             // first, get total amount of required voices (dependant on amount of layers)
-            ::gig::Region* pRegion = pInstrument->GetRegion(itNoteOnEvent->Param.Note.Key);
+            ::gig::Region* pRegion = pEngineChannel->pInstrument->GetRegion(itNoteOnEvent->Param.Note.Key);
             if (!pRegion) return Pool<Voice>::Iterator(); // nothing defined for this MIDI key, so no voice needed
             int voicesRequired = pRegion->Layers;
 
             // now steal the (remaining) amount of voices
             for (int i = iLayer; i < voicesRequired; i++)
-                StealVoice(itNoteOnEvent);
+                StealVoice(pEngineChannel, itNoteOnEvent);
 
             // put note-on event into voice-stealing queue, so it will be reprocessed after killed voice died
             RTList<Event>::Iterator itStealEvent = pVoiceStealingQueue->allocAppend();
@@ -838,9 +618,10 @@ namespace LinuxSampler { namespace gig {
      *  voice stealing and postpone the note-on event until the selected
      *  voice actually died.
      *
+     *  @param pEngineChannel - engine channel on which this event occured on
      *  @param itNoteOnEvent - key, velocity and time stamp of the event
      */
-    void Engine::StealVoice(Pool<Event>::Iterator& itNoteOnEvent) {
+    void Engine::StealVoice(EngineChannel* pEngineChannel, Pool<Event>::Iterator& itNoteOnEvent) {
         if (!pEventPool->poolIsEmpty()) {
 
             RTList<uint>::Iterator  iuiOldestKey;
@@ -854,7 +635,7 @@ namespace LinuxSampler { namespace gig {
                 // key, or no voice left to kill there, then procceed with
                 // 'oldestkey' algorithm
                 case voice_steal_algo_keymask: {
-                    midi_key_info_t* pOldestKey = &pMIDIKeyInfo[itNoteOnEvent->Param.Note.Key];
+                    midi_key_info_t* pOldestKey = &pEngineChannel->pMIDIKeyInfo[itNoteOnEvent->Param.Note.Key];
                     if (itLastStolenVoice) {
                         itOldestVoice = itLastStolenVoice;
                         ++itOldestVoice;
@@ -872,14 +653,14 @@ namespace LinuxSampler { namespace gig {
                 // (caution: must stay after 'keymask' algorithm !)
                 case voice_steal_algo_oldestkey: {
                     if (itLastStolenVoice) {
-                        midi_key_info_t* pOldestKey = &pMIDIKeyInfo[*iuiLastStolenKey];
+                        midi_key_info_t* pOldestKey = &pEngineChannel->pMIDIKeyInfo[*iuiLastStolenKey];
                         itOldestVoice = itLastStolenVoice;
                         ++itOldestVoice;
                         if (!itOldestVoice) {
                             iuiOldestKey = iuiLastStolenKey;
                             ++iuiOldestKey;
                             if (iuiOldestKey) {
-                                midi_key_info_t* pOldestKey = &pMIDIKeyInfo[*iuiOldestKey];
+                                midi_key_info_t* pOldestKey = &pEngineChannel->pMIDIKeyInfo[*iuiOldestKey];
                                 itOldestVoice = pOldestKey->pActiveVoices->first();
                             }
                             else {
@@ -890,8 +671,8 @@ namespace LinuxSampler { namespace gig {
                         else iuiOldestKey = iuiLastStolenKey;
                     }
                     else { // no voice stolen in this audio fragment cycle yet
-                        iuiOldestKey = pActiveKeys->first();
-                        midi_key_info_t* pOldestKey = &pMIDIKeyInfo[*iuiOldestKey];
+                        iuiOldestKey = pEngineChannel->pActiveKeys->first();
+                        midi_key_info_t* pOldestKey = &pEngineChannel->pMIDIKeyInfo[*iuiOldestKey];
                         itOldestVoice = pOldestKey->pActiveVoices->first();
                     }
                     break;
@@ -923,11 +704,12 @@ namespace LinuxSampler { namespace gig {
      *  it finished to playback its sample, finished its release stage or
      *  just was killed.
      *
+     *  @param pEngineChannel - engine channel on which this event occured on
      *  @param itVoice - points to the voice to be freed
      */
-    void Engine::FreeVoice(Pool<Voice>::Iterator& itVoice) {
+    void Engine::FreeVoice(EngineChannel* pEngineChannel, Pool<Voice>::Iterator& itVoice) {
         if (itVoice) {
-            midi_key_info_t* pKey = &pMIDIKeyInfo[itVoice->MIDIKey];
+            midi_key_info_t* pKey = &pEngineChannel->pMIDIKeyInfo[itVoice->MIDIKey];
 
             uint keygroup = itVoice->KeyGroup;
 
@@ -936,7 +718,7 @@ namespace LinuxSampler { namespace gig {
 
             // if no other voices left and member of a key group, remove from key group
             if (pKey->pActiveVoices->isEmpty() && keygroup) {
-                uint** ppKeyGroup = &ActiveKeyGroups[keygroup];
+                uint** ppKeyGroup = &pEngineChannel->ActiveKeyGroups[keygroup];
                 if (*ppKeyGroup == &*pKey->itSelf) *ppKeyGroup = NULL; // remove key from key group
             }
         }
@@ -947,12 +729,13 @@ namespace LinuxSampler { namespace gig {
      *  Called when there's no more voice left on a key, this call will
      *  update the key info respectively.
      *
+     *  @param pEngineChannel - engine channel on which this event occured on
      *  @param pKey - key which is now inactive
      */
-    void Engine::FreeKey(midi_key_info_t* pKey) {
+    void Engine::FreeKey(EngineChannel* pEngineChannel, midi_key_info_t* pKey) {
         if (pKey->pActiveVoices->isEmpty()) {
             pKey->Active = false;
-            pActiveKeys->free(pKey->itSelf); // remove key from list of active keys
+            pEngineChannel->pActiveKeys->free(pKey->itSelf); // remove key from list of active keys
             pKey->itSelf = RTList<uint>::Iterator();
             pKey->ReleaseTrigger = false;
             pKey->pEvents->clear();
@@ -965,23 +748,24 @@ namespace LinuxSampler { namespace gig {
      *  Reacts on supported control change commands (e.g. pitch bend wheel,
      *  modulation wheel, aftertouch).
      *
+     *  @param pEngineChannel - engine channel on which this event occured on
      *  @param itControlChangeEvent - controller, value and time stamp of the event
      */
-    void Engine::ProcessControlChange(Pool<Event>::Iterator& itControlChangeEvent) {
+    void Engine::ProcessControlChange(EngineChannel* pEngineChannel, Pool<Event>::Iterator& itControlChangeEvent) {
         dmsg(4,("Engine::ContinuousController cc=%d v=%d\n", itControlChangeEvent->Param.CC.Controller, itControlChangeEvent->Param.CC.Value));
 
         switch (itControlChangeEvent->Param.CC.Controller) {
             case 64: {
-                if (itControlChangeEvent->Param.CC.Value >= 64 && !SustainPedal) {
+                if (itControlChangeEvent->Param.CC.Value >= 64 && !pEngineChannel->SustainPedal) {
                     dmsg(4,("PEDAL DOWN\n"));
-                    SustainPedal = true;
+                    pEngineChannel->SustainPedal = true;
 
                     // cancel release process of voices if necessary
-                    RTList<uint>::Iterator iuiKey = pActiveKeys->first();
+                    RTList<uint>::Iterator iuiKey = pEngineChannel->pActiveKeys->first();
                     if (iuiKey) {
                         itControlChangeEvent->Type = Event::type_cancel_release; // transform event type
                         while (iuiKey) {
-                            midi_key_info_t* pKey = &pMIDIKeyInfo[*iuiKey];
+                            midi_key_info_t* pKey = &pEngineChannel->pMIDIKeyInfo[*iuiKey];
                             ++iuiKey;
                             if (!pKey->KeyPressed) {
                                 RTList<Event>::Iterator itNewEvent = pKey->pEvents->allocAppend();
@@ -991,16 +775,16 @@ namespace LinuxSampler { namespace gig {
                         }
                     }
                 }
-                if (itControlChangeEvent->Param.CC.Value < 64 && SustainPedal) {
+                if (itControlChangeEvent->Param.CC.Value < 64 && pEngineChannel->SustainPedal) {
                     dmsg(4,("PEDAL UP\n"));
-                    SustainPedal = false;
+                    pEngineChannel->SustainPedal = false;
 
                     // release voices if their respective key is not pressed
-                    RTList<uint>::Iterator iuiKey = pActiveKeys->first();
+                    RTList<uint>::Iterator iuiKey = pEngineChannel->pActiveKeys->first();
                     if (iuiKey) {
                         itControlChangeEvent->Type = Event::type_release; // transform event type
                         while (iuiKey) {
-                            midi_key_info_t* pKey = &pMIDIKeyInfo[*iuiKey];
+                            midi_key_info_t* pKey = &pEngineChannel->pMIDIKeyInfo[*iuiKey];
                             ++iuiKey;
                             if (!pKey->KeyPressed) {
                                 RTList<Event>::Iterator itNewEvent = pKey->pEvents->allocAppend();
@@ -1015,7 +799,7 @@ namespace LinuxSampler { namespace gig {
         }
 
         // update controller value in the engine's controller table
-        ControllerTable[itControlChangeEvent->Param.CC.Controller] = itControlChangeEvent->Param.CC.Value;
+        pEngineChannel->ControllerTable[itControlChangeEvent->Param.CC.Controller] = itControlChangeEvent->Param.CC.Value;
 
         // move event from the unsorted event list to the control change event list
         itControlChangeEvent.moveToEndOf(pCCEvents);
@@ -1117,47 +901,7 @@ namespace LinuxSampler { namespace gig {
            m[i+2] = val;
            m[i+3] = val;
         }
-    }
-
-    float Engine::Volume() {
-        return GlobalVolume;
-    }
-
-    void Engine::Volume(float f) {
-        GlobalVolume = f;
-    }
-
-    uint Engine::Channels() {
-        return 2;
-    }
-
-    void Engine::SetOutputChannel(uint EngineAudioChannel, uint AudioDeviceChannel) {
-        AudioChannel* pChannel = pAudioOutputDevice->Channel(AudioDeviceChannel);
-        if (!pChannel) throw AudioOutputException("Invalid audio output device channel " + ToString(AudioDeviceChannel));
-        switch (EngineAudioChannel) {
-            case 0: // left output channel
-                pOutputLeft = pChannel->Buffer();
-                AudioDeviceChannelLeft = AudioDeviceChannel;
-                break;
-            case 1: // right output channel
-                pOutputRight = pChannel->Buffer();
-                AudioDeviceChannelRight = AudioDeviceChannel;
-                break;
-            default:
-                throw AudioOutputException("Invalid engine audio channel " + ToString(EngineAudioChannel));
-        }
-    }
-
-    int Engine::OutputChannel(uint EngineAudioChannel) {
-        switch (EngineAudioChannel) {
-            case 0: // left channel
-                return AudioDeviceChannelLeft;
-            case 1: // right channel
-                return AudioDeviceChannelRight;
-            default:
-                throw AudioOutputException("Invalid engine audio channel " + ToString(EngineAudioChannel));
-        }
-    }
+    }    
 
     uint Engine::VoiceCount() {
         return ActiveVoiceCount;
@@ -1191,28 +935,12 @@ namespace LinuxSampler { namespace gig {
         return "GigEngine";
     }
 
-    String Engine::InstrumentFileName() {
-        return InstrumentFile;
-    }
-
-    String Engine::InstrumentName() {
-        return InstrumentIdxName;
-    }
-
-    int Engine::InstrumentIndex() {
-        return InstrumentIdx;
-    }
-
-    int Engine::InstrumentStatus() {
-        return InstrumentStat;
-    }
-
     String Engine::Description() {
         return "Gigasampler Engine";
     }
 
     String Engine::Version() {
-        String s = "$Revision: 1.25 $";
+        String s = "$Revision: 1.26 $";
         return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
 

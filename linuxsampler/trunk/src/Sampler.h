@@ -3,6 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
+ *   Copyright (C) 2005 Christian Schoenebeck                              *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -27,7 +28,7 @@
 #include <map>
 #include "common/global.h"
 #include "common/LinuxSamplerException.h"
-#include "engines/common/Engine.h"
+#include "engines/common/EngineChannel.h"
 #include "drivers/midi/MidiInputDevice.h"
 #include "drivers/audio/AudioOutputDevice.h"
 
@@ -36,25 +37,23 @@ namespace LinuxSampler {
     // just symbol prototyping
     class Sampler;
 
-    /** LinuxSampler sampler channel
+    /** @brief LinuxSampler sampler channel
      *
-     * Encapsulates one sampler engine, one connection to a MIDI input
-     * device and one connection to an audio output device. You cannot
-     * create an instance of this class on your own, you have to use the
-     * AddSamplerChannel() method of the Sampler object to create a new
-     * sampler channel.
+     * Encapsulates a channel of a specific sampler engine typ, one
+     * connection to a MIDI input device and one connection to an audio
+     * output device. You cannot create an instance of this class on your
+     * own, you have to use the AddSamplerChannel() method of the Sampler
+     * object to create a new sampler channel.
      */
     class SamplerChannel {
         public:
             /**
-             * Deploy a sampler engine of the given type for this sampler
-             * channnel. If there was already a sampler engine deployed on
-             * this sampler channel, then the old engine will automatically
-             * be destroyed.
+             * Assign a sampler engine type to this sampler channel.
              *
-             * @param EngineType - type of the engine to deploy
+             * @param EngineType - type of the engine to use
+             * @throws LinuxSamplerException - if \a EngineType is invalid
              */
-            void LoadEngine(Engine::type_t EngineType); // TODO: to be changed to 'void LoadEngine(String EngineType) throws (LinuxSamplerException);'
+            void SetEngineType(String EngineType) throw (LinuxSamplerException);
 
             /**
              * Connect this sampler channel to an audio output device, that
@@ -67,23 +66,26 @@ namespace LinuxSampler {
             void SetAudioOutputDevice(AudioOutputDevice* pDevice);
 
             /**
-             * Connect this sampler channel to and MIDI input device.
+             * Connect this sampler channel to a MIDI input device.
              *
              * @param pDevice - MIDI input device to connect to
              */
             void SetMidiInputDevice(MidiInputDevice *pDevice);
 
             /**
-             * Connect this sampler channel to and MIDI input port.
+             * Connect this sampler channel to a MIDI input port.
              *
              * @param MidiPort - MIDI port to connect to
              */
             void SetMidiInputPort(int MidiPort);
 
             /**
-             * Connect this sampler channel to and MIDI input channel.
+             * Define on which MIDI channel(s) this sampler channel should
+             * listen to. By default, that is after creation of a new
+             * sampler channel, the sampler channel will listen to all MIDI
+             * channels.
              *
-             * @param MidiChannel - MIDI channel to connect to
+             * @param MidiChannel - MIDI channel to listen
              */
             void SetMidiInputChannel(MidiInputPort::midi_chan_t MidiChannel);
 
@@ -99,11 +101,12 @@ namespace LinuxSampler {
             void SetMidiInput(MidiInputDevice* pDevice, int iMidiPort, MidiInputPort::midi_chan_t MidiChannel = MidiInputPort::midi_chan_all);
 
             /**
-             * Returns the engine that was deployed on this sampler channel.
+             * Returns the EngineChannel object that was deployed on this
+             * sampler channel appropriate to the given sampler engine type.
              *
              * @returns  pointer to engine or NULL if no engine deployed
              */
-            Engine* GetEngine();
+            EngineChannel* GetEngineChannel();
 
             /**
              * Returns the MIDI input channel to which this sampler
@@ -154,7 +157,7 @@ namespace LinuxSampler {
             MidiInputPort* GetMidiInputDevicePort(int iMidiPort);
 
             Sampler*           pSampler;
-            Engine*            pEngine;
+            EngineChannel*     pEngineChannel;
             AudioOutputDevice* pAudioOutputDevice;
             MidiInputDevice*   pMidiInputDevice;
             int                midiPort;
@@ -164,7 +167,7 @@ namespace LinuxSampler {
             friend class Sampler;
     };
 
-    /** LinuxSampler main class
+    /** @brief LinuxSampler main class
      *
      * This is the toplevel class for a LinuxSampler instance.
      *

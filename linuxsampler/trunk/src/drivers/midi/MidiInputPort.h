@@ -3,6 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
+ *   Copyright (C) 2005 Christian Schoenebeck                              *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -27,7 +28,7 @@
 #include "../../common/LinuxSamplerException.h"
 #include "../DeviceParameter.h"
 #include "MidiInputDevice.h"
-#include "../../engines/common/Engine.h"
+#include "../../engines/common/EngineChannel.h"
 
 namespace LinuxSampler {
 
@@ -96,14 +97,14 @@ namespace LinuxSampler {
              * @param MidiChannel - MIDI channel to connect to
              * @throws MidiInputException  if MidiChannel argument invalid
              */
-            void Connect(Engine* pEngine, midi_chan_t MidiChannel);
+            void Connect(EngineChannel* pEngineChannel, midi_chan_t MidiChannel);
 
             /**
              * Disconnect given sampler engine from this MIDI input device.
              *
              * @param pEngine - sampler engine
              */
-            void Disconnect(Engine* pEngine);
+            void Disconnect(EngineChannel* pEngineChannel);
 
             /**
              * Return MIDI device where this MIDI port belongs to.
@@ -193,7 +194,7 @@ namespace LinuxSampler {
             MidiInputDevice* pDevice;
             int portNumber;
             std::map<String,DeviceRuntimeParameter*> Parameters;  ///< All port parameters.
-            std::set<Engine*> MidiChannelMap[17]; ///< Contains the list of connected engines for each MIDI channel, where index 0 points to the list of engines which are connected to all MIDI channels. Usually it's not necessary for the descendant to use this map, instead it should just use the Dispatch* methods.
+            std::set<EngineChannel*> MidiChannelMap[17]; ///< Contains the list of connected engines for each MIDI channel, where index 0 points to the list of engines which are connected to all MIDI channels. Usually it's not necessary for the descendant to use this map, instead it should just use the Dispatch* methods.
 
             /**
              * Constructor

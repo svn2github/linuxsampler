@@ -3,6 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
+ *   Copyright (C) 2005 Christian Schoenebeck                              *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -24,56 +25,26 @@
 #define __LS_ENGINE_H__
 
 #include "../../common/global.h"
-#include "../../drivers/audio/AudioOutputDevice.h"
 
 namespace LinuxSampler {
 
-    // just symbol prototyping
-    class AudioOutputDevice;
-
-    /** LinuxSampler Sampler Engine
+    /** @brief LinuxSampler Sampler Engine Interface
      *
-     * Abstract base class for all LinuxSampler engines.
+     * Abstract base interface class for all LinuxSampler engines which
+     * defines all mandatory methods which have to be implemented by all
+     * sampler engine implementations.
      */
     class Engine {
-        public:
-
-	    virtual ~Engine() {};
-
-            /////////////////////////////////////////////////////////////////
-            // type definitions
-
-            /**
-             * List with all currently implemented sampler engines.
-             */
-            enum type_t {
-                type_gig
-            };
-
-
+        public:            
 
             /////////////////////////////////////////////////////////////////
             // abstract methods
             //     (these have to be implemented by the descendant)
 
-            virtual void   PrepareLoadInstrument(const char* FileName, uint Instrument) = 0;
-            virtual void   LoadInstrument() = 0;
+            virtual void   SendSysex(void* pData, uint Size) = 0;
             virtual void   Reset() = 0;
             virtual void   Enable() = 0;
             virtual void   Disable() = 0;
-            virtual void   SendNoteOn(uint8_t Key, uint8_t Velocity) = 0;
-            virtual void   SendNoteOff(uint8_t Key, uint8_t Velocity) = 0;
-            virtual void   SendPitchbend(int Pitch) = 0;
-            virtual void   SendControlChange(uint8_t Controller, uint8_t Value) = 0;
-            virtual void   SendSysex(void* pData, uint Size) = 0;
-            virtual float  Volume() = 0;
-            virtual void   Volume(float f) = 0;
-            virtual uint   Channels() = 0;
-            virtual void   Connect(AudioOutputDevice* pAudioOut) = 0;
-            virtual void   DisconnectAudioOutputDevice() = 0;
-            virtual void   SetOutputChannel(uint EngineAudioChannel, uint AudioDeviceChannel) = 0;
-            virtual int    OutputChannel(uint EngineAudioChannel) = 0;
-            virtual int    RenderAudio(uint Samples) = 0;
             virtual uint   VoiceCount() = 0;
             virtual uint   VoiceCountMax() = 0;
             virtual bool   DiskStreamSupported() = 0;
@@ -84,11 +55,10 @@ namespace LinuxSampler {
             virtual String Description() = 0;
             virtual String Version() = 0;
             virtual String EngineName() = 0;
-            virtual String InstrumentFileName() = 0;
-            virtual String InstrumentName() = 0;
-            virtual int    InstrumentIndex() = 0;
-            virtual int    InstrumentStatus() = 0;
+
+            virtual ~Engine() {};
     };
-}
+    
+} // namespace LinuxSampler
 
 #endif // __LS_ENGINE_H__

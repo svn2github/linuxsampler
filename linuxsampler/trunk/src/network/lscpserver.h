@@ -70,7 +70,7 @@ class LSCPServer : public Thread {
         String DestroyAudioOutputDevice(uint DeviceIndex);
         String DestroyMidiInputDevice(uint DeviceIndex);
         String LoadInstrument(String Filename, uint uiInstrument, uint uiSamplerChannel, bool bBackground = false);
-        String LoadEngine(String EngineName, uint uiSamplerChannel);
+        String SetEngineType(String EngineName, uint uiSamplerChannel);
         String GetChannels();
         String ListChannels();
         String AddChannel();

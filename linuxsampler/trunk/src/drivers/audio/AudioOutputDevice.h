@@ -3,6 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
+ *   Copyright (C) 2005 Christian Schoenebeck                              *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -32,13 +33,13 @@
 #include "../../common/LinuxSamplerException.h"
 #include "../Device.h"
 #include "../DeviceParameter.h"
-#include "../../engines/common/Engine.h"
+#include "../../engines/common/EngineChannel.h"
 #include "AudioChannel.h"
 
 namespace LinuxSampler {
 
     // just symbol prototyping
-    class Engine;
+    class EngineChannel;
 
     /** Abstract base class for audio output drivers in LinuxSampler
      *
@@ -188,18 +189,18 @@ namespace LinuxSampler {
              * device and the engine will also automatically be informed
              * about the connection.
              *
-             * @param pEngine - sampler engine
+             * @param pEngineChannel - sampler engine channel
              */
-            void Connect(Engine* pEngine);
+            void Connect(EngineChannel* pEngineChannel);
 
             /**
              * Disconnect given sampler engine from this audio output device.
              * Removes given sampler engine reference from the Engines
              * container of this audio device.
              *
-             * @param pEngine - sampler engine
+             * @param pEngineChannel - sampler engine channel
              */
-            void Disconnect(Engine* pEngine);
+            void Disconnect(EngineChannel* pEngineChannel);
 
             /**
              * Returns audio channel with index \a ChannelIndex or NULL if
@@ -233,7 +234,7 @@ namespace LinuxSampler {
             std::map<String,DeviceCreationParameter*> DeviceParameters();
 
         protected:
-            std::set<Engine*>                         Engines;     ///< All sampler engines that are connected to the audio output device.
+            std::set<EngineChannel*>                  EngineChannels; ///< All sampler engine channels that are connected to the audio output device.
             std::vector<AudioChannel*>                Channels;    ///< All audio channels of the audio output device. This is just a container; the descendant has to create channels by himself.
             std::map<String,DeviceCreationParameter*> Parameters;  ///< All device parameters.
 

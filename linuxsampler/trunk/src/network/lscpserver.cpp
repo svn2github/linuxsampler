@@ -26,11 +26,13 @@
 #include "lscpevent.h"
 //#include "../common/global.h"
 
+#include <fcntl.h>
+
 #if HAVE_SQLITE3
 # include "sqlite3.h"
 #endif
 
-#include "../engines/gig/Engine.h"
+#include "../engines/EngineFactory.h"
 #include "../drivers/audio/AudioOutputDeviceFactory.h"
 #include "../drivers/midi/MidiInputDeviceFactory.h"
 
@@ -452,18 +454,18 @@ String LSCPServer::LoadInstrument(String Filename, uint uiInstrument, uint uiSam
     try {
         SamplerChannel* pSamplerChannel = pSampler->GetSamplerChannel(uiSamplerChannel);
         if (!pSamplerChannel) throw LinuxSamplerException("Invalid sampler channel number " + ToString(uiSamplerChannel));
-        Engine* pEngine = pSamplerChannel->GetEngine();
-        if (!pEngine) throw LinuxSamplerException("No engine loaded on sampler channel");
+        EngineChannel* pEngineChannel = pSamplerChannel->GetEngineChannel();
+        if (!pEngineChannel) throw LinuxSamplerException("No engine type assigned to sampler channel yet");
         if (!pSamplerChannel->GetAudioOutputDevice())
             throw LinuxSamplerException("No audio output device connected to sampler channel");
         if (bBackground) {
-            InstrumentLoader.StartNewLoad(Filename, uiInstrument, pEngine);
+            InstrumentLoader.StartNewLoad(Filename, uiInstrument, pEngineChannel);
         }
         else {
-            // tell the engine which instrument to load
-            pEngine->PrepareLoadInstrument(Filename.c_str(), uiInstrument);
+            // tell the engine channel which instrument to load
+            pEngineChannel->PrepareLoadInstrument(Filename.c_str(), uiInstrument);
             // actually start to load the instrument (blocks until completed)
-            pEngine->LoadInstrument();
+            pEngineChannel->LoadInstrument();
         }
     }
     catch (LinuxSamplerException e) {
@@ -473,19 +475,17 @@ String LSCPServer::LoadInstrument(String Filename, uint uiInstrument, uint uiSam
 }
 
 /**
- * Will be called by the parser to load and deploy an engine.
+ * Will be called by the parser to assign a sampler engine type to a
+ * sampler channel.
  */
-String LSCPServer::LoadEngine(String EngineName, uint uiSamplerChannel) {
+String LSCPServer::SetEngineType(String EngineName, uint uiSamplerChannel) {
     dmsg(2,("LSCPServer: LoadEngine(EngineName=%s,SamplerChannel=%d)\n", EngineName.c_str(), uiSamplerChannel));
     LSCPResultSet result;
-    try {
-        Engine::type_t type;
-        if ((EngineName == "GigEngine") || (EngineName == "gig")) type = Engine::type_gig;
-        else throw LinuxSamplerException("Unknown engine type");
+    try {        
         SamplerChannel* pSamplerChannel = pSampler->GetSamplerChannel(uiSamplerChannel);
         if (!pSamplerChannel) throw LinuxSamplerException("Invalid sampler channel number " + ToString(uiSamplerChannel));
 	LockRTNotify();
-        pSamplerChannel->LoadEngine(type);
+        pSamplerChannel->SetEngineType(EngineName);
 	UnlockRTNotify();
     }
     catch (LinuxSamplerException e) {
@@ -553,19 +553,17 @@ String LSCPServer::GetAvailableEngines() {
 }
 
 /**
- * Will be called by the parser to get descriptions for a particular engine.
+ * Will be called by the parser to get descriptions for a particular
+ * sampler engine.
  */
 String LSCPServer::GetEngineInfo(String EngineName) {
     dmsg(2,("LSCPServer: GetEngineInfo(EngineName=%s)\n", EngineName.c_str()));
     LSCPResultSet result;
     try {
-        if ((EngineName == "GigEngine") || (EngineName == "gig")) {
-            Engine* pEngine = new LinuxSampler::gig::Engine;
-	    result.Add("DESCRIPTION", pEngine->Description());
-            result.Add("VERSION",     pEngine->Version());
-            delete pEngine;
-        }
-        else throw LinuxSamplerException("Unknown engine type");
+        Engine* pEngine = EngineFactory::Create(EngineName);
+        result.Add("DESCRIPTION", pEngine->Description());
+        result.Add("VERSION",     pEngine->Version());
+        delete pEngine;
     }
     catch (LinuxSamplerException e) {
          result.Error(e);
@@ -583,7 +581,7 @@ String LSCPServer::GetChannelInfo(uint uiSamplerChannel) {
     try {
         SamplerChannel* pSamplerChannel = pSampler->GetSamplerChannel(uiSamplerChannel);
         if (!pSamplerChannel) throw LinuxSamplerException("Invalid sampler channel number " + ToString(uiSamplerChannel));
-        Engine* pEngine = pSamplerChannel->GetEngine();
+        EngineChannel* pEngineChannel = pSamplerChannel->GetEngineChannel();
 
 	//Defaults values
 	String EngineName = "NONE";
@@ -595,20 +593,19 @@ String LSCPServer::GetChannelInfo(uint uiSamplerChannel) {
         int AudioOutputChannels = 0;
         String AudioRouting;
 
-        if (pEngine) {
-	    EngineName =  pEngine->EngineName();
-            AudioOutputChannels = pEngine->Channels();
-	    Volume = pEngine->Volume();
-	    InstrumentStatus = pEngine->InstrumentStatus();
-	    InstrumentIndex = pEngine->InstrumentIndex();
-	    if (InstrumentIndex != -1)
-	    {
-	        InstrumentFileName = pEngine->InstrumentFileName();
-	        InstrumentName = pEngine->InstrumentName();
-	    }
-            for (int chan = 0; chan < pEngine->Channels(); chan++) {
+        if (pEngineChannel) {                               
+            EngineName          = pEngineChannel->GetEngine()->EngineName();
+            AudioOutputChannels = pEngineChannel->Channels();
+            Volume              = pEngineChannel->Volume();
+            InstrumentStatus    = pEngineChannel->InstrumentStatus();
+            InstrumentIndex     = pEngineChannel->InstrumentIndex();
+            if (InstrumentIndex != -1) {
+                InstrumentFileName = pEngineChannel->InstrumentFileName();
+                InstrumentName     = pEngineChannel->InstrumentName();
+            }
+            for (int chan = 0; chan < pEngineChannel->Channels(); chan++) {
                 if (AudioRouting != "") AudioRouting += ",";
-                AudioRouting += ToString(pEngine->OutputChannel(chan));
+                AudioRouting += ToString(pEngineChannel->OutputChannel(chan));
             }
 	}
 
@@ -646,9 +643,9 @@ String LSCPServer::GetVoiceCount(uint uiSamplerChannel) {
     try {
         SamplerChannel* pSamplerChannel = pSampler->GetSamplerChannel(uiSamplerChannel);
         if (!pSamplerChannel) throw LinuxSamplerException("Invalid sampler channel number " + ToString(uiSamplerChannel));
-        Engine* pEngine = pSamplerChannel->GetEngine();
-        if (!pEngine) throw LinuxSamplerException("No engine loaded on sampler channel");
-	result.Add(pEngine->VoiceCount());
+        EngineChannel* pEngineChannel = pSamplerChannel->GetEngineChannel();
+        if (!pEngineChannel) throw LinuxSamplerException("No engine loaded on sampler channel");
+	result.Add(pEngineChannel->GetEngine()->VoiceCount());
     }
     catch (LinuxSamplerException e) {
          result.Error(e);
@@ -666,9 +663,9 @@ String LSCPServer::GetStreamCount(uint uiSamplerChannel) {
     try {
         SamplerChannel* pSamplerChannel = pSampler->GetSamplerChannel(uiSamplerChannel);
         if (!pSamplerChannel) throw LinuxSamplerException("Invalid sampler channel number " + ToString(uiSamplerChannel));
-        Engine* pEngine = pSamplerChannel->GetEngine();
-        if (!pEngine) throw LinuxSamplerException("No engine loaded on sampler channel");
-	result.Add(pEngine->DiskStreamCount());
+        EngineChannel* pEngineChannel = pSamplerChannel->GetEngineChannel();
+        if (!pEngineChannel) throw LinuxSamplerException("No engine type assigned to sampler channel");
+        result.Add(pEngineChannel->GetEngine()->DiskStreamCount());
     }
     catch (LinuxSamplerException e) {
          result.Error(e);
@@ -686,18 +683,17 @@ String LSCPServer::GetBufferFill(fill_response_t ResponseType, uint uiSamplerCha
     try {
         SamplerChannel* pSamplerChannel = pSampler->GetSamplerChannel(uiSamplerChannel);
         if (!pSamplerChannel) throw LinuxSamplerException("Invalid sampler channel number " + ToString(uiSamplerChannel));
-        Engine* pEngine = pSamplerChannel->GetEngine();
-        if (!pEngine) throw LinuxSamplerException("No engine loaded on sampler channel");
-        if (!pEngine->DiskStreamSupported())
-	    result.Add("NA");
+        EngineChannel* pEngineChannel = pSamplerChannel->GetEngineChannel();
+        if (!pEngineChannel) throw LinuxSamplerException("No engine type assigned to sampler channel");
+        if (!pEngineChannel->GetEngine()->DiskStreamSupported()) result.Add("NA");
         else {
             switch (ResponseType) {
                 case fill_response_bytes:
-	    	    result.Add(pEngine->DiskStreamBufferFillBytes());
-	    	    break;
+                    result.Add(pEngineChannel->GetEngine()->DiskStreamBufferFillBytes());
+                    break;
                 case fill_response_percentage:
-		    result.Add(pEngine->DiskStreamBufferFillPercentage());
-		    break;
+                    result.Add(pEngineChannel->GetEngine()->DiskStreamBufferFillPercentage());
+                    break;
                 default:
                     throw LinuxSamplerException("Unknown fill response type");
             }
@@ -1153,10 +1149,10 @@ String LSCPServer::SetAudioOutputChannel(uint ChannelAudioOutputChannel, uint Au
     try {
         SamplerChannel* pSamplerChannel = pSampler->GetSamplerChannel(uiSamplerChannel);
         if (!pSamplerChannel) throw LinuxSamplerException("Invalid sampler channel number " + ToString(uiSamplerChannel));
-        Engine* pEngine = pSamplerChannel->GetEngine();
-        if (!pEngine) throw LinuxSamplerException("No engine deployed on sampler channel " + ToString(uiSamplerChannel));
+        EngineChannel* pEngineChannel = pSamplerChannel->GetEngineChannel();
+        if (!pEngineChannel) throw LinuxSamplerException("No engine type yet assigned to sampler channel " + ToString(uiSamplerChannel));
         if (!pSamplerChannel->GetAudioOutputDevice()) throw LinuxSamplerException("No audio output device connected to sampler channel " + ToString(uiSamplerChannel));
-        pEngine->SetOutputChannel(ChannelAudioOutputChannel, AudioOutputDeviceInputChannel);
+        pEngineChannel->SetOutputChannel(ChannelAudioOutputChannel, AudioOutputDeviceInputChannel);
     }
     catch (LinuxSamplerException e) {
          result.Error(e);
@@ -1333,9 +1329,9 @@ String LSCPServer::SetVolume(double dVolume, uint uiSamplerChannel) {
     try {
         SamplerChannel* pSamplerChannel = pSampler->GetSamplerChannel(uiSamplerChannel);
         if (!pSamplerChannel) throw LinuxSamplerException("Invalid sampler channel number " + ToString(uiSamplerChannel));
-        Engine* pEngine = pSamplerChannel->GetEngine();
-        if (!pEngine) throw LinuxSamplerException("No engine loaded on sampler channel");
-        pEngine->Volume(dVolume);
+        EngineChannel* pEngineChannel = pSamplerChannel->GetEngineChannel();
+        if (!pEngineChannel) throw LinuxSamplerException("No engine type assigned to sampler channel");
+        pEngineChannel->Volume(dVolume);
     }
     catch (LinuxSamplerException e) {
          result.Error(e);
@@ -1352,9 +1348,9 @@ String LSCPServer::ResetChannel(uint uiSamplerChannel) {
     try {
         SamplerChannel* pSamplerChannel = pSampler->GetSamplerChannel(uiSamplerChannel);
         if (!pSamplerChannel) throw LinuxSamplerException("Invalid sampler channel number " + ToString(uiSamplerChannel));
-        Engine* pEngine = pSamplerChannel->GetEngine();
-        if (!pEngine) throw LinuxSamplerException("No engine loaded on sampler channel");
-        pEngine->Reset();
+        EngineChannel* pEngineChannel = pSamplerChannel->GetEngineChannel();
+        if (!pEngineChannel) throw LinuxSamplerException("No engine type assigned to sampler channel");
+        pEngineChannel->GetEngine()->Reset();
     }
     catch (LinuxSamplerException e) {
          result.Error(e);
