@@ -22,7 +22,7 @@
  ***************************************************************************/
 
 #ifdef HAVE_CONFIG_H
-#include <config.h>
+# include <config.h>
 #endif
 
 #include <iostream>
@@ -81,8 +81,17 @@ void PrintSamples(gig::File* gig) {
         if (name == "") name = "<NO NAME>";
         else            name = '\"' + name + '\"';
         cout << "    Sample " << samples << ") " << name << ", ";
-        cout << pSample->SamplesPerSecond << "Hz, " << pSample->Channels << " Channels, " << pSample->Loops
-             << " Loops, LoopFraction=" << pSample->LoopFraction << ", Length=" << pSample->SamplesTotal << " Compressed=" << pSample->Compressed << endl;
+        cout << pSample->SamplesPerSecond << "Hz, " << pSample->Channels << " Channels, " << pSample->Loops << " Loops";
+        if (pSample->Loops) {
+            cout << " (Type: ";
+            switch (pSample->LoopType) {
+                case gig::loop_type_normal:         cout << "normal)";   break;
+                case gig::loop_type_bidirectional:  cout << "pingpong)"; break;
+                case gig::loop_type_backward:       cout << "reverse)";  break;
+            }
+            cout << ", LoopFraction=" << pSample->LoopFraction << ", Start=" << pSample->LoopStart << ", End=" << pSample->LoopEnd;
+        }
+        cout << ", Length=" << pSample->SamplesTotal << " Compressed=" << ((pSample->Compressed) ? "true" : "false") << endl;
         pSample = gig->GetNextSample();
     }
 }

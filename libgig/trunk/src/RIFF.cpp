@@ -192,7 +192,7 @@ namespace RIFF {
        #if DEBUG
        std::cout << "Chunk::Read(void*,ulong,ulong)" << std::endl;
        #endif // DEBUG
-        if (ChunkSize - ulPos <= 0) return 0;
+        if (ulPos >= ChunkSize) return 0;
         if (ulPos + WordCount * WordSize >= ChunkSize) WordCount = (ChunkSize - ulPos) / WordSize;
         #if POSIX
         if (lseek(hFile, ulStartPos + ulPos, SEEK_SET) < 0) return 0;

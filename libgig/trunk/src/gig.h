@@ -282,6 +282,13 @@ namespace gig {
         #endif // WORDS_BIGENDIAN
     };
 
+    /** Reflects the current playback state for a sample. */
+    struct playback_state_t {
+        unsigned long position;          ///< Current position within the sample.
+        bool          reverse;           ///< If playback direction is currently backwards (in case there is a pingpong or reverse loop defined).
+        unsigned long loop_cycles_left;  ///< How many times the loop has still to be passed, this value will be decremented with each loop cycle.
+    };
+
     // just symbol prototyping
     class File;
     class Instrument;
@@ -436,6 +443,7 @@ namespace gig {
             unsigned long SetPos(unsigned long SampleCount, RIFF::stream_whence_t Whence = RIFF::stream_start);
             unsigned long GetPos();
             unsigned long Read(void* pBuffer, unsigned long SampleCount);
+            unsigned long ReadAndLoop(void* pBuffer, unsigned long SampleCount, playback_state_t* pPlaybackState);
         protected:
             static unsigned int  Instances;               ///< Number of instances of class Sample.
             static unsigned long DecompressionBufferSize; ///< Current size of the decompression buffer.
@@ -447,6 +455,66 @@ namespace gig {
 
             Sample(File* pFile, RIFF::List* waveList, unsigned long WavePoolOffset);
            ~Sample();
+            /**
+             * Swaps the order of the data words in the given memory area
+             * with a granularity given by \a WordSize.
+             *
+             * @param pData    - pointer to the memory area to be swapped
+             * @param AreaSize - size of the memory area to be swapped (in bytes)
+             * @param WordSize - size of the data words (in bytes)
+             */
+            inline void SwapMemoryArea(void* pData, unsigned long AreaSize, uint WordSize) {
+                switch (WordSize) { // TODO: unefficient
+                    case 1: {
+                        uint8_t* pDst = (uint8_t*) pData;
+                        uint8_t  cache;
+                        unsigned long lo = 0, hi = AreaSize - 1;
+                        for (; lo < hi; hi--, lo++) {
+                            cache    = pDst[lo];
+                            pDst[lo] = pDst[hi];
+                            pDst[hi] = cache;
+                        }
+                        break;
+                    }
+                    case 2: {
+                        uint16_t* pDst = (uint16_t*) pData;
+                        uint16_t  cache;
+                        unsigned long lo = 0, hi = (AreaSize >> 1) - 1;
+                        for (; lo < hi; hi--, lo++) {
+                            cache    = pDst[lo];
+                            pDst[lo] = pDst[hi];
+                            pDst[hi] = cache;
+                        }
+                        break;
+                    }
+                    case 4: {
+                        uint32_t* pDst = (uint32_t*) pData;
+                        uint32_t  cache;
+                        unsigned long lo = 0, hi = (AreaSize >> 2) - 1;
+                        for (; lo < hi; hi--, lo++) {
+                            cache    = pDst[lo];
+                            pDst[lo] = pDst[hi];
+                            pDst[hi] = cache;
+                        }
+                        break;
+                    }
+                    default: {
+                        uint8_t* pCache = new uint8_t[WordSize]; // TODO: unefficient
+                        unsigned long lo = 0, hi = AreaSize - WordSize;
+                        for (; lo < hi; hi -= WordSize, lo += WordSize) {
+                            memcpy(pCache, (uint8_t*) pData + lo, WordSize);
+                            memcpy((uint8_t*) pData + lo, (uint8_t*) pData + hi, WordSize);
+                            memcpy((uint8_t*) pData + hi, pCache, WordSize);
+                        }
+                        delete[] pCache;
+                        break;
+                    }
+                }
+            }
+            inline long Min(long A, long B) {
+                return (A > B) ? B : A;
+            }
+            inline long Abs(long val) { return (val > 0) ? val : -val; }
         private:
             void ScanCompressedSample();
             friend class File;
