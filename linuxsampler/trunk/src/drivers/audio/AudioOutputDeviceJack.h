@@ -43,7 +43,7 @@ namespace LinuxSampler {
     class AudioOutputDeviceJack : public AudioOutputDevice {
         public:
             AudioOutputDeviceJack(std::map<String,DeviceCreationParameter*> Parameters);
-            ~AudioOutputDeviceJack();
+            virtual ~AudioOutputDeviceJack();
 
             /**
              * Audio channel implementation for the JACK audio driver.
@@ -87,6 +87,25 @@ namespace LinuxSampler {
                     uint                   ChannelNr;
 
                     float* CreateJackPort(uint ChannelNr, AudioOutputDeviceJack* pDevice) throw (AudioOutputException);
+            };
+
+            /** Audio Device Parameter 'NAME'
+             *
+             * Used to assign an arbitrary name to the JACK client of this
+             * audio device.
+             */
+            class ParameterName : public DeviceCreationParameterString {
+                public:
+                    ParameterName();
+                    ParameterName(String s) throw (LinuxSamplerException);
+                    virtual String              Description();
+                    virtual bool                Fix();
+                    virtual bool                Mandatory();
+                    virtual std::map<String,DeviceCreationParameter*> DependsAsParameters();
+                    virtual std::vector<String> PossibilitiesAsString(std::map<String,String> Parameters);
+                    virtual optional<String>    DefaultAsString(std::map<String,String> Parameters);
+                    virtual void                OnSetValue(String s) throw (LinuxSamplerException);
+                    static String Name();
             };
 
             // derived abstract methods from class 'AudioOutputDevice'

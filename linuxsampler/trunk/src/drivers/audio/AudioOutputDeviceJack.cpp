@@ -29,7 +29,10 @@
 
 namespace LinuxSampler {
 
-// *************** ParameterName ***************
+    /// number of currently existing JACK audio output devices in LinuxSampler
+    static int existingJackDevices = 0;
+
+// *************** AudioChannelJack::ParameterName ***************
 // *
 
     AudioOutputDeviceJack::AudioChannelJack::ParameterName::ParameterName(AudioChannelJack* pChannel) : AudioChannel::ParameterName(ToString(pChannel->ChannelNr)) {
@@ -42,7 +45,7 @@ namespace LinuxSampler {
 
 
 
-// *************** ParameterJackBindings ***************
+// *************** AudioChannelJack::ParameterJackBindings ***************
 // *
 
     AudioOutputDeviceJack::AudioChannelJack::ParameterJackBindings::ParameterJackBindings(AudioChannelJack* pChannel) : DeviceRuntimeParameterStrings(std::vector<String>()) {
@@ -106,6 +109,50 @@ namespace LinuxSampler {
 
 
 
+// *************** AudioOutputDeviceJack::ParameterName ***************
+// *
+
+    AudioOutputDeviceJack::ParameterName::ParameterName() : DeviceCreationParameterString() {
+        InitWithDefault(); // use default name
+    }
+
+    AudioOutputDeviceJack::ParameterName::ParameterName(String s) throw (LinuxSamplerException) : DeviceCreationParameterString(s) {
+    }
+
+    String AudioOutputDeviceJack::ParameterName::Description() {
+        return "Arbitrary JACK client name";
+    }
+
+    bool AudioOutputDeviceJack::ParameterName::Fix() {
+        return true;
+    }
+
+    bool AudioOutputDeviceJack::ParameterName::Mandatory() {
+        return false;
+    }
+
+    std::map<String,DeviceCreationParameter*> AudioOutputDeviceJack::ParameterName::DependsAsParameters() {
+        return std::map<String,DeviceCreationParameter*>(); // no dependencies
+    }
+
+    std::vector<String> AudioOutputDeviceJack::ParameterName::PossibilitiesAsString(std::map<String,String> Parameters) {
+        return std::vector<String>();
+    }
+
+    optional<String> AudioOutputDeviceJack::ParameterName::DefaultAsString(std::map<String,String> Parameters) {
+        return (existingJackDevices) ? "LinuxSampler" + ToString(existingJackDevices) : "LinuxSampler";
+    }
+
+    void AudioOutputDeviceJack::ParameterName::OnSetValue(String s) throw (LinuxSamplerException) {
+        // not possible, as parameter is fix
+    }
+
+    String AudioOutputDeviceJack::ParameterName::Name() {
+        return "NAME";
+    }
+
+
+
 // *************** AudioOutputDeviceJack ***************
 // *
 
@@ -117,8 +164,13 @@ namespace LinuxSampler {
      * @see AcquireChannels()
      */
     AudioOutputDeviceJack::AudioOutputDeviceJack(std::map<String,DeviceCreationParameter*> Parameters) : AudioOutputDevice(Parameters) {
-        if ((hJackClient = jack_client_new("LinuxSampler")) == 0)
+        if (((DeviceCreationParameterString*)Parameters["NAME"])->ValueAsString().size() >= jack_client_name_size())
+            throw LinuxSamplerException("JACK client name too long");
+
+        if ((hJackClient = jack_client_new(((DeviceCreationParameterString*)Parameters["NAME"])->ValueAsString().c_str())) == 0)
             throw AudioOutputException("Seems Jack server not running.");
+
+        existingJackDevices++;
 
         jack_set_process_callback(hJackClient, __libjack_process_callback, this);
         jack_on_shutdown(hJackClient, __libjack_shutdown_callback, this);
@@ -137,6 +189,7 @@ namespace LinuxSampler {
     AudioOutputDeviceJack::~AudioOutputDeviceJack() {
         // destroy jack client
         jack_client_close(hJackClient);
+        existingJackDevices--;
     }
 
     /**
@@ -191,7 +244,7 @@ namespace LinuxSampler {
     }
 
     String AudioOutputDeviceJack::Version() {
-       String s = "$Revision: 1.14 $";
+       String s = "$Revision: 1.15 $";
        return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
 

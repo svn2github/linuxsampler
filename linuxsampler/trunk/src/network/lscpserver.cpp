@@ -445,11 +445,11 @@ String LSCPServer::LoadInstrument(String Filename, uint uiInstrument, uint uiSam
     LSCPResultSet result;
     try {
         SamplerChannel* pSamplerChannel = pSampler->GetSamplerChannel(uiSamplerChannel);
-        if (!pSamplerChannel) throw LinuxSamplerException("Index out of bounds");
+        if (!pSamplerChannel) throw LinuxSamplerException("Invalid sampler channel number " + ToString(uiSamplerChannel));
         Engine* pEngine = pSamplerChannel->GetEngine();
-        if (!pEngine) throw LinuxSamplerException("No engine loaded on channel");
+        if (!pEngine) throw LinuxSamplerException("No engine loaded on sampler channel");
         if (!pSamplerChannel->GetAudioOutputDevice())
-            throw LinuxSamplerException("No audio output device on channel");
+            throw LinuxSamplerException("No audio output device connected to sampler channel");
         if (bBackground) {
             LSCPLoadInstrument *pLoadInstrument = new LSCPLoadInstrument(pEngine, Filename.c_str(), uiInstrument);
             pLoadInstrument->StartThread();
@@ -473,7 +473,7 @@ String LSCPServer::LoadEngine(String EngineName, uint uiSamplerChannel) {
         if ((EngineName == "GigEngine") || (EngineName == "gig")) type = Engine::type_gig;
         else throw LinuxSamplerException("Unknown engine type");
         SamplerChannel* pSamplerChannel = pSampler->GetSamplerChannel(uiSamplerChannel);
-        if (!pSamplerChannel) throw LinuxSamplerException("Index out of bounds");
+        if (!pSamplerChannel) throw LinuxSamplerException("Invalid sampler channel number " + ToString(uiSamplerChannel));
 	LockRTNotify();
         pSamplerChannel->LoadEngine(type);
 	UnlockRTNotify();
@@ -572,7 +572,7 @@ String LSCPServer::GetChannelInfo(uint uiSamplerChannel) {
     LSCPResultSet result;
     try {
         SamplerChannel* pSamplerChannel = pSampler->GetSamplerChannel(uiSamplerChannel);
-        if (!pSamplerChannel) throw LinuxSamplerException("Index out of bounds");
+        if (!pSamplerChannel) throw LinuxSamplerException("Invalid sampler channel number " + ToString(uiSamplerChannel));
         Engine* pEngine = pSamplerChannel->GetEngine();
 
 	//Defaults values
@@ -630,9 +630,9 @@ String LSCPServer::GetVoiceCount(uint uiSamplerChannel) {
     LSCPResultSet result;
     try {
         SamplerChannel* pSamplerChannel = pSampler->GetSamplerChannel(uiSamplerChannel);
-        if (!pSamplerChannel) throw LinuxSamplerException("Index out of bounds");
+        if (!pSamplerChannel) throw LinuxSamplerException("Invalid sampler channel number " + ToString(uiSamplerChannel));
         Engine* pEngine = pSamplerChannel->GetEngine();
-        if (!pEngine) throw LinuxSamplerException("No engine loaded on channel");
+        if (!pEngine) throw LinuxSamplerException("No engine loaded on sampler channel");
 	result.Add(pEngine->VoiceCount());
     }
     catch (LinuxSamplerException e) {
@@ -650,9 +650,9 @@ String LSCPServer::GetStreamCount(uint uiSamplerChannel) {
     LSCPResultSet result;
     try {
         SamplerChannel* pSamplerChannel = pSampler->GetSamplerChannel(uiSamplerChannel);
-        if (!pSamplerChannel) throw LinuxSamplerException("Index out of bounds");
+        if (!pSamplerChannel) throw LinuxSamplerException("Invalid sampler channel number " + ToString(uiSamplerChannel));
         Engine* pEngine = pSamplerChannel->GetEngine();
-        if (!pEngine) throw LinuxSamplerException("No engine loaded on channel");
+        if (!pEngine) throw LinuxSamplerException("No engine loaded on sampler channel");
 	result.Add(pEngine->DiskStreamCount());
     }
     catch (LinuxSamplerException e) {
@@ -670,9 +670,9 @@ String LSCPServer::GetBufferFill(fill_response_t ResponseType, uint uiSamplerCha
     LSCPResultSet result;
     try {
         SamplerChannel* pSamplerChannel = pSampler->GetSamplerChannel(uiSamplerChannel);
-        if (!pSamplerChannel) throw LinuxSamplerException("Index out of bounds");
+        if (!pSamplerChannel) throw LinuxSamplerException("Invalid sampler channel number " + ToString(uiSamplerChannel));
         Engine* pEngine = pSamplerChannel->GetEngine();
-        if (!pEngine) throw LinuxSamplerException("No engine loaded on channel");
+        if (!pEngine) throw LinuxSamplerException("No engine loaded on sampler channel");
         if (!pEngine->DiskStreamSupported())
 	    result.Add("NA");
         else {
@@ -962,7 +962,7 @@ String LSCPServer::GetAudioOutputChannelInfo(uint DeviceId, uint ChannelId) {
 
         // get audio channel
         AudioChannel* pChannel = pDevice->Channel(ChannelId);
-        if (!pChannel) throw LinuxSamplerException("Audio ouotput device does not have channel " + ToString(ChannelId) + ".");
+        if (!pChannel) throw LinuxSamplerException("Audio output device does not have audio channel " + ToString(ChannelId) + ".");
 
         // return the values of all audio channel parameters
         std::map<String,DeviceRuntimeParameter*> parameters = pChannel->ChannelParameters();
@@ -1021,7 +1021,7 @@ String LSCPServer::GetAudioOutputChannelParameterInfo(uint DeviceId, uint Channe
 
         // get audio channel
         AudioChannel* pChannel = pDevice->Channel(ChannelId);
-        if (!pChannel) throw LinuxSamplerException("Audio output device does not have channel " + ToString(ChannelId) + ".");
+        if (!pChannel) throw LinuxSamplerException("Audio output device does not have audio channel " + ToString(ChannelId) + ".");
 
         // get desired audio channel parameter
         std::map<String,DeviceRuntimeParameter*> parameters = pChannel->ChannelParameters();
@@ -1054,7 +1054,7 @@ String LSCPServer::SetAudioOutputChannelParameter(uint DeviceId, uint ChannelId,
 
         // get audio channel
         AudioChannel* pChannel = pDevice->Channel(ChannelId);
-        if (!pChannel) throw LinuxSamplerException("Audio output device does not have channel " + ToString(ChannelId) + ".");
+        if (!pChannel) throw LinuxSamplerException("Audio output device does not have audio channel " + ToString(ChannelId) + ".");
 
         // get desired audio channel parameter
         std::map<String,DeviceRuntimeParameter*> parameters = pChannel->ChannelParameters();
@@ -1137,11 +1137,10 @@ String LSCPServer::SetAudioOutputChannel(uint ChannelAudioOutputChannel, uint Au
     LSCPResultSet result;
     try {
         SamplerChannel* pSamplerChannel = pSampler->GetSamplerChannel(uiSamplerChannel);
-        if (!pSamplerChannel) throw LinuxSamplerException("Invalid channel number " + ToString(uiSamplerChannel));
+        if (!pSamplerChannel) throw LinuxSamplerException("Invalid sampler channel number " + ToString(uiSamplerChannel));
         Engine* pEngine = pSamplerChannel->GetEngine();
         if (!pEngine) throw LinuxSamplerException("No engine deployed on sampler channel " + ToString(uiSamplerChannel));
-        std::map<uint, AudioOutputDevice*> devices = pSampler->GetAudioOutputDevices();
-        if (!devices.count(ChannelAudioOutputChannel)) throw LinuxSamplerException("There is no audio output device with index " + ToString(ChannelAudioOutputChannel));
+        if (!pSamplerChannel->GetAudioOutputDevice()) throw LinuxSamplerException("No audio output device connected to sampler channel " + ToString(uiSamplerChannel));
         pEngine->SetOutputChannel(ChannelAudioOutputChannel, AudioOutputDeviceInputChannel);
     }
     catch (LinuxSamplerException e) {
@@ -1155,7 +1154,7 @@ String LSCPServer::SetAudioOutputDevice(uint AudioDeviceId, uint uiSamplerChanne
     LSCPResultSet result;
     try {
         SamplerChannel* pSamplerChannel = pSampler->GetSamplerChannel(uiSamplerChannel);
-        if (!pSamplerChannel) throw LinuxSamplerException("Invalid channel number " + ToString(uiSamplerChannel));
+        if (!pSamplerChannel) throw LinuxSamplerException("Invalid sampler channel number " + ToString(uiSamplerChannel));
         std::map<uint, AudioOutputDevice*> devices = pSampler->GetAudioOutputDevices();
         if (!devices.count(AudioDeviceId)) throw LinuxSamplerException("There is no audio output device with index " + ToString(AudioDeviceId));
         AudioOutputDevice* pDevice = devices[AudioDeviceId];
@@ -1172,7 +1171,7 @@ String LSCPServer::SetAudioOutputType(String AudioOutputDriver, uint uiSamplerCh
     LSCPResultSet result;
     try {
         SamplerChannel* pSamplerChannel = pSampler->GetSamplerChannel(uiSamplerChannel);
-        if (!pSamplerChannel) throw LinuxSamplerException("Invalid channel number " + ToString(uiSamplerChannel));
+        if (!pSamplerChannel) throw LinuxSamplerException("Invalid sampler channel number " + ToString(uiSamplerChannel));
         // Driver type name aliasing...
         if (AudioOutputDriver == "Alsa") AudioOutputDriver = "ALSA";
         if (AudioOutputDriver == "Jack") AudioOutputDriver = "JACK";
@@ -1209,7 +1208,7 @@ String LSCPServer::SetMIDIInputPort(uint MIDIPort, uint uiSamplerChannel) {
     LSCPResultSet result;
     try {
         SamplerChannel* pSamplerChannel = pSampler->GetSamplerChannel(uiSamplerChannel);
-        if (!pSamplerChannel) throw LinuxSamplerException("Invalid channel number " + ToString(uiSamplerChannel));
+        if (!pSamplerChannel) throw LinuxSamplerException("Invalid sampler channel number " + ToString(uiSamplerChannel));
         pSamplerChannel->SetMidiInputPort(MIDIPort);
     }
     catch (LinuxSamplerException e) {
@@ -1223,7 +1222,7 @@ String LSCPServer::SetMIDIInputChannel(uint MIDIChannel, uint uiSamplerChannel) 
     LSCPResultSet result;
     try {
         SamplerChannel* pSamplerChannel = pSampler->GetSamplerChannel(uiSamplerChannel);
-        if (!pSamplerChannel) throw LinuxSamplerException("Invalid channel number " + ToString(uiSamplerChannel));
+        if (!pSamplerChannel) throw LinuxSamplerException("Invalid sampler channel number " + ToString(uiSamplerChannel));
         pSamplerChannel->SetMidiInputChannel((MidiInputPort::midi_chan_t) MIDIChannel);
     }
     catch (LinuxSamplerException e) {
@@ -1237,7 +1236,7 @@ String LSCPServer::SetMIDIInputDevice(uint MIDIDeviceId, uint uiSamplerChannel) 
     LSCPResultSet result;
     try {
         SamplerChannel* pSamplerChannel = pSampler->GetSamplerChannel(uiSamplerChannel);
-        if (!pSamplerChannel) throw LinuxSamplerException("Invalid channel number " + ToString(uiSamplerChannel));
+        if (!pSamplerChannel) throw LinuxSamplerException("Invalid sampler channel number " + ToString(uiSamplerChannel));
         std::map<uint, MidiInputDevice*> devices = pSampler->GetMidiInputDevices();
         if (!devices.count(MIDIDeviceId)) throw LinuxSamplerException("There is no MIDI input device with index " + ToString(MIDIDeviceId));
         MidiInputDevice* pDevice = devices[MIDIDeviceId];
@@ -1254,7 +1253,7 @@ String LSCPServer::SetMIDIInputType(String MidiInputDriver, uint uiSamplerChanne
     LSCPResultSet result;
     try {
         SamplerChannel* pSamplerChannel = pSampler->GetSamplerChannel(uiSamplerChannel);
-        if (!pSamplerChannel) throw LinuxSamplerException("Invalid channel number " + ToString(uiSamplerChannel));
+        if (!pSamplerChannel) throw LinuxSamplerException("Invalid sampler channel number " + ToString(uiSamplerChannel));
         // Driver type name aliasing...
         if (MidiInputDriver == "Alsa") MidiInputDriver = "ALSA";
         // Check if there's one MIDI input device already created
@@ -1297,7 +1296,7 @@ String LSCPServer::SetMIDIInput(uint MIDIDeviceId, uint MIDIPort, uint MIDIChann
     LSCPResultSet result;
     try {
         SamplerChannel* pSamplerChannel = pSampler->GetSamplerChannel(uiSamplerChannel);
-        if (!pSamplerChannel) throw LinuxSamplerException("Invalid channel number " + ToString(uiSamplerChannel));
+        if (!pSamplerChannel) throw LinuxSamplerException("Invalid sampler channel number " + ToString(uiSamplerChannel));
         std::map<uint, MidiInputDevice*> devices =  pSampler->GetMidiInputDevices();
         if (!devices.count(MIDIDeviceId)) throw LinuxSamplerException("There is no MIDI input device with index " + ToString(MIDIDeviceId));
         MidiInputDevice* pDevice = devices[MIDIDeviceId];
@@ -1318,9 +1317,9 @@ String LSCPServer::SetVolume(double dVolume, uint uiSamplerChannel) {
     LSCPResultSet result;
     try {
         SamplerChannel* pSamplerChannel = pSampler->GetSamplerChannel(uiSamplerChannel);
-        if (!pSamplerChannel) throw LinuxSamplerException("Index out of bounds");
+        if (!pSamplerChannel) throw LinuxSamplerException("Invalid sampler channel number " + ToString(uiSamplerChannel));
         Engine* pEngine = pSamplerChannel->GetEngine();
-        if (!pEngine) throw LinuxSamplerException("No engine loaded on channel");
+        if (!pEngine) throw LinuxSamplerException("No engine loaded on sampler channel");
         pEngine->Volume(dVolume);
     }
     catch (LinuxSamplerException e) {
@@ -1337,9 +1336,9 @@ String LSCPServer::ResetChannel(uint uiSamplerChannel) {
     LSCPResultSet result;
     try {
         SamplerChannel* pSamplerChannel = pSampler->GetSamplerChannel(uiSamplerChannel);
-        if (!pSamplerChannel) throw LinuxSamplerException("Index out of bounds");
+        if (!pSamplerChannel) throw LinuxSamplerException("Invalid sampler channel number " + ToString(uiSamplerChannel));
         Engine* pEngine = pSamplerChannel->GetEngine();
-        if (!pEngine) throw LinuxSamplerException("No engine loaded on channel");
+        if (!pEngine) throw LinuxSamplerException("No engine loaded on sampler channel");
         pEngine->Reset();
     }
     catch (LinuxSamplerException e) {
