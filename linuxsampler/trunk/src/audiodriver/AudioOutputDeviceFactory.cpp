@@ -27,7 +27,7 @@ namespace LinuxSampler {
     std::map<String, AudioOutputDeviceFactory::InnerFactory*> AudioOutputDeviceFactory::InnerFactories;
 
     AudioOutputDevice* AudioOutputDeviceFactory::Create(String DriverName, std::map<String,String>& Parameters) throw (LinuxSamplerException) {
-        if (!InnerFactories[DriverName]) throw LinuxSamplerException("There is no audio output driver '" + DriverName + "'.");
+        if (!InnerFactories.count(DriverName)) throw LinuxSamplerException("There is no audio output driver '" + DriverName + "'.");
         return InnerFactories[DriverName]->Create(Parameters);
     }
 
@@ -53,23 +53,23 @@ namespace LinuxSampler {
     }
 
     std::map<String,DeviceCreationParameter*> AudioOutputDeviceFactory::GetAvailableDriverParameters(String DriverName) throw (LinuxSamplerException) {
-        if (!InnerFactories[DriverName]) throw LinuxSamplerException("There is no audio output driver '" + DriverName + "'.");
+        if (!InnerFactories.count(DriverName)) throw LinuxSamplerException("There is no audio output driver '" + DriverName + "'.");
         return InnerFactories[DriverName]->AvailableParameters();
     }
 
     DeviceCreationParameter* AudioOutputDeviceFactory::GetDriverParameter(String DriverName, String ParameterName) throw (LinuxSamplerException) {
         std::map<String,DeviceCreationParameter*> parameters = GetAvailableDriverParameters(DriverName);
-        if (!parameters[ParameterName]) throw LinuxSamplerException("Audio output driver '" + DriverName + "' does not have a parameter '" + ParameterName + "'.");
+        if (!parameters.count(ParameterName)) throw LinuxSamplerException("Audio output driver '" + DriverName + "' does not have a parameter '" + ParameterName + "'.");
         return parameters[ParameterName];
     }
 
     String AudioOutputDeviceFactory::GetDriverDescription(String DriverName) throw (LinuxSamplerException) {
-        if (!InnerFactories[DriverName]) throw LinuxSamplerException("There is no audio output driver '" + DriverName + "'.");
+        if (!InnerFactories.count(DriverName)) throw LinuxSamplerException("There is no audio output driver '" + DriverName + "'.");
         return InnerFactories[DriverName]->Description();
     }
 
     String AudioOutputDeviceFactory::GetDriverVersion(String DriverName) throw (LinuxSamplerException) {
-        if (!InnerFactories[DriverName]) throw LinuxSamplerException("There is no audio output driver '" + DriverName + "'.");
+        if (!InnerFactories.count(DriverName)) throw LinuxSamplerException("There is no audio output driver '" + DriverName + "'.");
         return InnerFactories[DriverName]->Version();
     }
 

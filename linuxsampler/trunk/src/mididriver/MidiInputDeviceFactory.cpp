@@ -27,7 +27,7 @@ namespace LinuxSampler {
     std::map<String, MidiInputDeviceFactory::InnerFactory*> MidiInputDeviceFactory::InnerFactories;
 
     MidiInputDevice* MidiInputDeviceFactory::Create(String DriverName, std::map<String,String>& Parameters) throw (LinuxSamplerException) {
-        if (!InnerFactories[DriverName]) throw LinuxSamplerException("There is no midi input driver '" + DriverName + "'.");
+        if (!InnerFactories.count(DriverName)) throw LinuxSamplerException("There is no midi input driver '" + DriverName + "'.");
         return InnerFactories[DriverName]->Create(Parameters);
     }
 
@@ -53,23 +53,23 @@ namespace LinuxSampler {
     }
 
     std::map<String,DeviceCreationParameter*> MidiInputDeviceFactory::GetAvailableDriverParameters(String DriverName) throw (LinuxSamplerException) {
-        if (!InnerFactories[DriverName]) throw LinuxSamplerException("There is no midi input driver '" + DriverName + "'.");
+        if (!InnerFactories.count(DriverName)) throw LinuxSamplerException("There is no midi input driver '" + DriverName + "'.");
         return InnerFactories[DriverName]->AvailableParameters();
     }
 
     DeviceCreationParameter* MidiInputDeviceFactory::GetDriverParameter(String DriverName, String ParameterName) throw (LinuxSamplerException) {
         std::map<String,DeviceCreationParameter*> parameters = GetAvailableDriverParameters(DriverName);
-        if (!parameters[ParameterName]) throw LinuxSamplerException("Midi input driver '" + DriverName + "' does not have a parameter '" + ParameterName + "'.");
+        if (!parameters.count(ParameterName)) throw LinuxSamplerException("Midi input driver '" + DriverName + "' does not have a parameter '" + ParameterName + "'.");
         return parameters[ParameterName];
     }
 
     String MidiInputDeviceFactory::GetDriverDescription(String DriverName) throw (LinuxSamplerException) {
-        if (!InnerFactories[DriverName]) throw LinuxSamplerException("There is no midi input driver '" + DriverName + "'.");
+        if (!InnerFactories.count(DriverName)) throw LinuxSamplerException("There is no midi input driver '" + DriverName + "'.");
         return InnerFactories[DriverName]->Description();
     }
 
     String MidiInputDeviceFactory::GetDriverVersion(String DriverName) throw (LinuxSamplerException) {
-        if (!InnerFactories[DriverName]) throw LinuxSamplerException("There is no midi input driver '" + DriverName + "'.");
+        if (!InnerFactories.count(DriverName)) throw LinuxSamplerException("There is no midi input driver '" + DriverName + "'.");
         return InnerFactories[DriverName]->Version();
     }
 
