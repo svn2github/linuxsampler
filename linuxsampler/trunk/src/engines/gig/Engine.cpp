@@ -82,6 +82,9 @@ namespace LinuxSampler { namespace gig {
             delete pDiskThread;
             dmsg(1,("OK\n"));
         }
+
+        if (pInstrument) Instruments.HandBack(pInstrument, this);
+
         if (pGig)  delete pGig;
         if (pRIFF) delete pRIFF;
         for (uint i = 0; i < 128; i++) {
@@ -1171,7 +1174,7 @@ namespace LinuxSampler { namespace gig {
     }
 
     String Engine::Version() {
-        String s = "$Revision: 1.20 $";
+        String s = "$Revision: 1.21 $";
         return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
 

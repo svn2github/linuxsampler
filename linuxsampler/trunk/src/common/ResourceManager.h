@@ -127,7 +127,7 @@ class ResourceManager {
             typename ResourceMap::iterator iter = ResourceEntries.begin();
             typename ResourceMap::iterator end  = ResourceEntries.end();
             for (; iter != end; iter++) {
-                if (iter->second.resource = pResource) {
+                if (iter->second.resource == pResource) {
                     resource_entry_t& entry = iter->second;
                     entry.consumers.erase(pConsumer);
                     if (entry.consumers.empty()) {
@@ -149,7 +149,7 @@ class ResourceManager {
             typename ResourceMap::iterator iter = ResourceEntries.begin();
             typename ResourceMap::iterator end  = ResourceEntries.end();
             for (; iter != end; iter++) {
-                if (iter->second.resource = pResource) {
+                if (iter->second.resource == pResource) {
                     resource_entry_t& entry = iter->second;
                     // inform all consumers about pending update
                     std::map<ResourceConsumer<T_res>*,void*> updateargs;

@@ -1194,7 +1194,7 @@ namespace gig {
         for (uint i = 0; i < Dimensions; i++) {
             if (pDimensionDefinitions[i].ranges) delete[] pDimensionDefinitions[i].ranges;
         }
-        for (int i = 0; i < 32; i++) {
+        for (int i = 0; i < 256; i++) {
             if (pDimensionRegions[i]) delete pDimensionRegions[i];
         }
     }
@@ -1313,6 +1313,7 @@ namespace gig {
         RIFF::List* lrgn = insList->GetSubList(LIST_TYPE_LRGN);
         if (!lrgn) throw gig::Exception("Mandatory chunks in <ins > chunk not found.");
         pRegions = new Region*[Regions];
+        for (uint i = 0; i < Regions; i++) pRegions[i] = NULL;
         RIFF::List* rgn = lrgn->GetFirstSubList();
         unsigned int iRegion = 0;
         while (rgn) {
@@ -1336,8 +1337,8 @@ namespace gig {
             if (pRegions) {
                 if (pRegions[i]) delete (pRegions[i]);
             }
-            delete[] pRegions;
         }
+        if (pRegions) delete[] pRegions;
     }
 
     /**
@@ -1391,6 +1392,28 @@ namespace gig {
     File::File(RIFF::File* pRIFF) : DLS::File(pRIFF) {
         pSamples     = NULL;
         pInstruments = NULL;
+    }
+
+    File::~File() {
+        // free samples
+        if (pSamples) {
+            SamplesIterator = pSamples->begin();
+            while (SamplesIterator != pSamples->end() ) {
+                delete (*SamplesIterator);
+                SamplesIterator++;
+            }
+            pSamples->clear();
+
+        }
+        // free instruments
+        if (pInstruments) {
+            InstrumentsIterator = pInstruments->begin();
+            while (InstrumentsIterator != pInstruments->end() ) {
+                delete (*InstrumentsIterator);
+                InstrumentsIterator++;
+            }
+            pInstruments->clear();
+        }
     }
 
     Sample* File::GetFirstSample() {

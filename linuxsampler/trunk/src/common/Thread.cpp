@@ -98,6 +98,7 @@ int Thread::StopThread() {
     if (Running) {
         SignalStopThread();
         pthread_cond_wait(&__thread_exit_condition, &__thread_state_mutex);
+        pthread_detach(__thread_id);
     }
     pthread_mutex_unlock(&__thread_state_mutex);
     return 0;
