@@ -3,6 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
+ *   Copyright (C) 2005 Christian Schoenebeck                              *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -52,7 +53,7 @@ namespace LinuxSampler { namespace gig {
             };
 
             // Methods
-            Stream(uint BufferSize, uint BufferWrapElements);
+            Stream( ::gig::buffer_t* pDecompressionBuffer, uint BufferSize, uint BufferWrapElements);
            ~Stream();
             int  ReadAhead(unsigned long SampleCount);
             void WriteSilence(unsigned long SilenceSampleWords);
@@ -112,6 +113,7 @@ namespace LinuxSampler { namespace gig {
             ::gig::playback_state_t  PlaybackState;
             RingBuffer<sample_t>*    pRingBuffer;
             bool                     DoLoop;
+            ::gig::buffer_t*         pDecompressionBuffer;
 
             // Static Attributes
             static uint              UnusedStreams; //< Reflects how many stream objects of all stream instances are currently not in use.

@@ -3,6 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
+ *   Copyright (C) 2005 Christian Schoenebeck                              *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -41,7 +42,7 @@ namespace LinuxSampler { namespace gig {
 
         // refill the disk stream buffer
         if (this->DoLoop) { // honor looping
-            total_readsamples  = pSample->ReadAndLoop(pBuf, samplestoread, &this->PlaybackState);
+            total_readsamples  = pSample->ReadAndLoop(pBuf, samplestoread, &this->PlaybackState, pDecompressionBuffer);
             endofsamplereached = (this->PlaybackState.position >= pSample->SamplesTotal);
             dmsg(5,("Refilled stream %d with %d (SamplePos: %d)", this->hThis, total_readsamples, this->PlaybackState.position));
         }
@@ -50,7 +51,7 @@ namespace LinuxSampler { namespace gig {
             pSample->SetPos(this->SampleOffset); // recover old position
 
             do {
-                readsamples        = pSample->Read(&pBuf[total_readsamples * pSample->Channels], samplestoread);
+                readsamples        = pSample->Read(&pBuf[total_readsamples * pSample->Channels], samplestoread, pDecompressionBuffer);
                 samplestoread     -= readsamples;
                 total_readsamples += readsamples;
             } while (samplestoread && readsamples > 0);
@@ -78,15 +79,16 @@ namespace LinuxSampler { namespace gig {
         pRingBuffer->increment_write_ptr_with_wrap(SilenceSampleWords);
     }
 
-    Stream::Stream(uint BufferSize, uint BufferWrapElements) {
-        this->pExportReference               = NULL;
-        this->State                          = state_unused;
-        this->hThis                          = 0;
-        this->pSample                        = NULL;
-        this->SampleOffset                   = 0;
-        this->PlaybackState.position         = 0;
-        this->PlaybackState.reverse          = false;
-        this->pRingBuffer                    = new RingBuffer<sample_t>(BufferSize, BufferWrapElements);
+    Stream::Stream( ::gig::buffer_t* pDecompressionBuffer, uint BufferSize, uint BufferWrapElements) {
+        this->pExportReference       = NULL;
+        this->State                  = state_unused;
+        this->hThis                  = 0;
+        this->pSample                = NULL;
+        this->SampleOffset           = 0;
+        this->PlaybackState.position = 0;
+        this->PlaybackState.reverse  = false;
+        this->pRingBuffer            = new RingBuffer<sample_t>(BufferSize, BufferWrapElements);
+        this->pDecompressionBuffer   = pDecompressionBuffer;
         UnusedStreams++;
 	TotalStreams++;
     }

@@ -2,8 +2,8 @@
  *                                                                         *
  *   libgig - C++ cross-platform Gigasampler format file loader library    *
  *                                                                         *
- *   Copyright (C) 2003, 2004 by Christian Schoenebeck                     *
- *                               <cuse@users.sourceforge.net>              *
+ *   Copyright (C) 2003-2005 by Christian Schoenebeck                      *
+ *                              <cuse@users.sourceforge.net>               *
  *                                                                         *
  *   This library is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -290,7 +290,7 @@ namespace DLS {
             Connection*  pConnections; ///< Points to the beginning of a <i>Connection</i> array.
             uint32_t     Connections;  ///< Reflects the number of Connections.
             Articulation(RIFF::List* artList);
-           ~Articulation();
+            virtual ~Articulation();
     };
 
     /** Abstract base class for classes that provide articulation information (thus for <i>Instrument</i> and <i>Region</i> class). */
@@ -306,7 +306,7 @@ namespace DLS {
             ArticulationList::iterator  ArticulationsIterator;
 
             void LoadArticulations();
-           ~Articulator();
+            virtual ~Articulator();
     };
 
     /** Optional information for DLS files, instruments, samples, etc. */
@@ -352,7 +352,7 @@ namespace DLS {
             Resource* pParent;
 
             Resource(Resource* Parent, RIFF::List* lstResource);
-           ~Resource();
+            virtual ~Resource();
     };
 
     /** Abstract base class which provides mandatory informations about sample players in general. */
@@ -368,7 +368,7 @@ namespace DLS {
         protected:
             uint32_t       SamplerOptions;
             Sampler(RIFF::List* ParentList);
-           ~Sampler();
+            virtual ~Sampler();
     };
 
     /** Encapsulates sample waves used for playback. */
@@ -417,7 +417,7 @@ namespace DLS {
             Sample*     pSample;            // every region refers to exactly one sample
 
             Region(Instrument* pInstrument, RIFF::List* rgnList);
-           ~Region();
+            virtual ~Region();
             friend class Instrument;
     };
 
@@ -446,7 +446,7 @@ namespace DLS {
 
             Instrument(File* pFile, RIFF::List* insList);
             void LoadRegions();
-           ~Instrument();
+            virtual ~Instrument();
             friend class File;
     };
 
@@ -461,7 +461,7 @@ namespace DLS {
             Sample*     GetNextSample();      ///< Returns a pointer to the next <i>Sample</i> object of the file, <i>NULL</i> otherwise.
             Instrument* GetFirstInstrument(); ///< Returns a pointer to the first <i>Instrument</i> object of the file, <i>NULL</i> otherwise.
             Instrument* GetNextInstrument();  ///< Returns a pointer to the next <i>Instrument</i> object of the file, <i>NULL</i> otherwise.
-           ~File();
+            virtual ~File();
         protected:
             typedef std::list<Sample*>     SampleList;
             typedef std::list<Instrument*> InstrumentList;

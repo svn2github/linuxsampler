@@ -2,8 +2,8 @@
  *                                                                         *
  *   libgig - C++ cross-platform Gigasampler format file loader library    *
  *                                                                         *
- *   Copyright (C) 2003, 2004 by Christian Schoenebeck                     *
- *                               <cuse@users.sourceforge.net>              *
+ *   Copyright (C) 2003-2005 by Christian Schoenebeck                      *
+ *                              <cuse@users.sourceforge.net>               *
  *                                                                         *
  *   This library is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -22,6 +22,8 @@
  ***************************************************************************/
 
 #include "gig.h"
+
+#include <iostream>
 
 namespace gig { namespace {
 
@@ -201,9 +203,8 @@ namespace gig { namespace {
 // *************** Sample ***************
 // *
 
-    unsigned int  Sample::Instances               = 0;
-    unsigned char* Sample::pDecompressionBuffer    = NULL;
-    unsigned long Sample::DecompressionBufferSize = 0;
+    unsigned int Sample::Instances = 0;
+    buffer_t     Sample::InternalDecompressionBuffer;
 
     Sample::Sample(File* pFile, RIFF::List* waveList, unsigned long WavePoolOffset) : DLS::Sample((DLS::File*) pFile, waveList, WavePoolOffset) {
         Instances++;
@@ -244,9 +245,9 @@ namespace gig { namespace {
         }
 
         // we use a buffer for decompression and for truncating 24 bit samples to 16 bit
-        if ((Compressed || BitDepth == 24) && !pDecompressionBuffer) {
-            pDecompressionBuffer    = new unsigned char[INITIAL_SAMPLE_BUFFER_SIZE];
-            DecompressionBufferSize = INITIAL_SAMPLE_BUFFER_SIZE;
+        if ((Compressed || BitDepth == 24) && !InternalDecompressionBuffer.Size) {
+            InternalDecompressionBuffer.pStart = new unsigned char[INITIAL_SAMPLE_BUFFER_SIZE];
+            InternalDecompressionBuffer.Size   = INITIAL_SAMPLE_BUFFER_SIZE;
         }
 	FrameOffset = 0; // just for streaming compressed samples
 
@@ -260,7 +261,7 @@ namespace gig { namespace {
         std::list<unsigned long> frameOffsets;
 
         SamplesPerFrame = BitDepth == 24 ? 256 : 2048;
-        WorstCaseFrameSize = SamplesPerFrame * FrameSize + Channels;
+        WorstCaseFrameSize = SamplesPerFrame * FrameSize + Channels; // +Channels for compression flag
 
         // Scanning
         pCkData->SetPos(0);
@@ -341,9 +342,10 @@ namespace gig { namespace {
      * that will be returned to determine the actual cached samples, but note
      * that the size is given in bytes! You get the number of actually cached
      * samples by dividing it by the frame size of the sample:
-     *
+     * @code
      * 	buffer_t buf       = pSample->LoadSampleData(acquired_samples);
      * 	long cachedsamples = buf.Size / pSample->FrameSize;
+     * @endcode
      *
      * @param SampleCount - number of sample points to load into RAM
      * @returns             buffer_t structure with start address and size of
@@ -389,10 +391,10 @@ namespace gig { namespace {
      * that will be returned to determine the actual cached samples, but note
      * that the size is given in bytes! You get the number of actually cached
      * samples by dividing it by the frame size of the sample:
-     *
+     * @code
      * 	buffer_t buf       = pSample->LoadSampleDataWithNullSamplesExtension(acquired_samples, null_samples);
      * 	long cachedsamples = buf.Size / pSample->FrameSize;
-     *
+     * @endcode
      * The method will add \a NullSamplesCount silence samples past the
      * official buffer end (this won't affect the 'Size' member of the
      * buffer_t structure, that means 'Size' always reflects the size of the
@@ -523,25 +525,29 @@ namespace gig { namespace {
      * for the next time you call this method is stored in \a pPlaybackState.
      * You have to allocate and initialize the playback_state_t structure by
      * yourself before you use it to stream a sample:
-     *
-     * <i>
-     * gig::playback_state_t playbackstate;                           <br>
-     * playbackstate.position         = 0;                            <br>
-     * playbackstate.reverse          = false;                        <br>
-     * playbackstate.loop_cycles_left = pSample->LoopPlayCount;       <br>
-     * </i>
-     *
+     * @code
+     * gig::playback_state_t playbackstate;
+     * playbackstate.position         = 0;
+     * playbackstate.reverse          = false;
+     * playbackstate.loop_cycles_left = pSample->LoopPlayCount;
+     * @endcode
      * You don't have to take care of things like if there is actually a loop
      * defined or if the current read position is located within a loop area.
      * The method already handles such cases by itself.
+     *
+     * <b>Caution:</b> If you are using more than one streaming thread, you
+     * have to use an external decompression buffer for <b>EACH</b>
+     * streaming thread to avoid race conditions and crashes!
      *
      * @param pBuffer          destination buffer
      * @param SampleCount      number of sample points to read
      * @param pPlaybackState   will be used to store and reload the playback
      *                         state for the next ReadAndLoop() call
+     * @param pExternalDecompressionBuffer  (optional) external buffer to use for decompression
      * @returns                number of successfully read sample points
+     * @see                    CreateDecompressionBuffer()
      */
-    unsigned long Sample::ReadAndLoop(void* pBuffer, unsigned long SampleCount, playback_state_t* pPlaybackState) {
+    unsigned long Sample::ReadAndLoop(void* pBuffer, unsigned long SampleCount, playback_state_t* pPlaybackState, buffer_t* pExternalDecompressionBuffer) {
         unsigned long samplestoread = SampleCount, totalreadsamples = 0, readsamples, samplestoloopend;
         uint8_t* pDst = (uint8_t*) pBuffer;
 
@@ -559,7 +565,7 @@ namespace gig { namespace {
                         if (!pPlaybackState->reverse) { // forward playback
                             do {
                                 samplestoloopend  = this->LoopEnd - GetPos();
-                                readsamples       = Read(&pDst[totalreadsamples * this->FrameSize], Min(samplestoread, samplestoloopend));
+                                readsamples       = Read(&pDst[totalreadsamples * this->FrameSize], Min(samplestoread, samplestoloopend), pExternalDecompressionBuffer);
                                 samplestoread    -= readsamples;
                                 totalreadsamples += readsamples;
                                 if (readsamples == samplestoloopend) {
@@ -585,7 +591,7 @@ namespace gig { namespace {
 
                             // read samples for backward playback
                             do {
-                                readsamples          = Read(&pDst[totalreadsamples * this->FrameSize], samplestoreadinloop);
+                                readsamples          = Read(&pDst[totalreadsamples * this->FrameSize], samplestoreadinloop, pExternalDecompressionBuffer);
                                 samplestoreadinloop -= readsamples;
                                 samplestoread       -= readsamples;
                                 totalreadsamples    += readsamples;
@@ -609,7 +615,7 @@ namespace gig { namespace {
                     // forward playback (not entered the loop yet)
                     if (!pPlaybackState->reverse) do {
                         samplestoloopend  = this->LoopEnd - GetPos();
-                        readsamples       = Read(&pDst[totalreadsamples * this->FrameSize], Min(samplestoread, samplestoloopend));
+                        readsamples       = Read(&pDst[totalreadsamples * this->FrameSize], Min(samplestoread, samplestoloopend), pExternalDecompressionBuffer);
                         samplestoread    -= readsamples;
                         totalreadsamples += readsamples;
                         if (readsamples == samplestoloopend) {
@@ -639,7 +645,7 @@ namespace gig { namespace {
                         // if not endless loop check if max. number of loop cycles have been passed
                         if (this->LoopPlayCount && !pPlaybackState->loop_cycles_left) break;
                         samplestoloopend     = this->LoopEnd - GetPos();
-                        readsamples          = Read(&pDst[totalreadsamples * this->FrameSize], Min(samplestoreadinloop, samplestoloopend));
+                        readsamples          = Read(&pDst[totalreadsamples * this->FrameSize], Min(samplestoreadinloop, samplestoloopend), pExternalDecompressionBuffer);
                         samplestoreadinloop -= readsamples;
                         samplestoread       -= readsamples;
                         totalreadsamples    += readsamples;
@@ -661,7 +667,7 @@ namespace gig { namespace {
                         // if not endless loop check if max. number of loop cycles have been passed
                         if (this->LoopPlayCount && !pPlaybackState->loop_cycles_left) break;
                         samplestoloopend  = this->LoopEnd - GetPos();
-                        readsamples       = Read(&pDst[totalreadsamples * this->FrameSize], Min(samplestoread, samplestoloopend));
+                        readsamples       = Read(&pDst[totalreadsamples * this->FrameSize], Min(samplestoread, samplestoloopend), pExternalDecompressionBuffer);
                         samplestoread    -= readsamples;
                         totalreadsamples += readsamples;
                         if (readsamples == samplestoloopend) {
@@ -676,7 +682,7 @@ namespace gig { namespace {
 
         // read on without looping
         if (samplestoread) do {
-            readsamples = Read(&pDst[totalreadsamples * this->FrameSize], samplestoread);
+            readsamples = Read(&pDst[totalreadsamples * this->FrameSize], samplestoread, pExternalDecompressionBuffer);
             samplestoread    -= readsamples;
             totalreadsamples += readsamples;
         } while (readsamples && samplestoread);
@@ -695,17 +701,22 @@ namespace gig { namespace {
      * and <i>SetPos()</i> if you don't want to load the sample into RAM,
      * thus for disk streaming.
      *
+     * <b>Caution:</b> If you are using more than one streaming thread, you
+     * have to use an external decompression buffer for <b>EACH</b>
+     * streaming thread to avoid race conditions and crashes!
+     *
      * @param pBuffer      destination buffer
      * @param SampleCount  number of sample points to read
+     * @param pExternalDecompressionBuffer  (optional) external buffer to use for decompression
      * @returns            number of successfully read sample points
-     * @see                SetPos()
+     * @see                SetPos(), CreateDecompressionBuffer()
      */
-    unsigned long Sample::Read(void* pBuffer, unsigned long SampleCount) {
+    unsigned long Sample::Read(void* pBuffer, unsigned long SampleCount, buffer_t* pExternalDecompressionBuffer) {
         if (SampleCount == 0) return 0;
         if (!Compressed) {
             if (BitDepth == 24) {
                 // 24 bit sample. For now just truncate to 16 bit.
-                unsigned char* pSrc = this->pDecompressionBuffer;
+                unsigned char* pSrc = (unsigned char*) ((pExternalDecompressionBuffer) ? pExternalDecompressionBuffer->pStart : this->InternalDecompressionBuffer.pStart);
                 int16_t* pDst = static_cast<int16_t*>(pBuffer);
                 if (Channels == 2) { // Stereo
                     unsigned long readBytes = pCkData->Read(pSrc, SampleCount * 6, 1);
@@ -742,14 +753,17 @@ namespace gig { namespace {
                           currentframeoffset = this->FrameOffset;  // offset in current sample frame since last Read()
             this->FrameOffset = 0;
 
-            if (assumedsize > this->DecompressionBufferSize) {
-                // local buffer reallocation - hope this won't happen
-                if (this->pDecompressionBuffer) delete[] this->pDecompressionBuffer;
-                this->pDecompressionBuffer    = new unsigned char[assumedsize << 1]; // double of current needed size
-                this->DecompressionBufferSize = assumedsize << 1;
+            buffer_t* pDecompressionBuffer = (pExternalDecompressionBuffer) ? pExternalDecompressionBuffer : &InternalDecompressionBuffer;
+
+            // if decompression buffer too small, then reduce amount of samples to read
+            if (pDecompressionBuffer->Size < assumedsize) {
+                std::cerr << "gig::Read(): WARNING - decompression buffer size too small!" << std::endl;
+                SampleCount      = WorstCaseMaxSamples(pDecompressionBuffer);
+                remainingsamples = SampleCount;
+                assumedsize      = GuessSize(SampleCount);
             }
 
-            unsigned char* pSrc = this->pDecompressionBuffer;
+            unsigned char* pSrc = (unsigned char*) pDecompressionBuffer->pStart;
             int16_t* pDst = static_cast<int16_t*>(pBuffer);
             remainingbytes = pCkData->Read(pSrc, assumedsize, 1);
 
@@ -870,8 +884,8 @@ namespace gig { namespace {
                     assumedsize    = GuessSize(remainingsamples);
                     pCkData->SetPos(remainingbytes, RIFF::stream_backward);
                     if (pCkData->RemainingBytes() < assumedsize) assumedsize = pCkData->RemainingBytes();
-                    remainingbytes = pCkData->Read(this->pDecompressionBuffer, assumedsize, 1);
-                    pSrc = this->pDecompressionBuffer;
+                    remainingbytes = pCkData->Read(pDecompressionBuffer->pStart, assumedsize, 1);
+                    pSrc = (unsigned char*) pDecompressionBuffer->pStart;
                 }
             } // while
 
@@ -881,11 +895,54 @@ namespace gig { namespace {
         }
     }
 
+    /**
+     * Allocates a decompression buffer for streaming (compressed) samples
+     * with Sample::Read(). If you are using more than one streaming thread
+     * in your application you <b>HAVE</b> to create a decompression buffer
+     * for <b>EACH</b> of your streaming threads and provide it with the
+     * Sample::Read() call in order to avoid race conditions and crashes.
+     *
+     * You should free the memory occupied by the allocated buffer(s) once
+     * you don't need one of your streaming threads anymore by calling
+     * DestroyDecompressionBuffer().
+     *
+     * @param MaxReadSize - the maximum size (in sample points) you ever
+     *                      expect to read with one Read() call
+     * @returns allocated decompression buffer
+     * @see DestroyDecompressionBuffer()
+     */
+    buffer_t Sample::CreateDecompressionBuffer(unsigned long MaxReadSize) {
+        buffer_t result;
+        const double worstCaseHeaderOverhead =
+                (256.0 /*frame size*/ + 12.0 /*header*/ + 2.0 /*compression type flag (stereo)*/) / 256.0;
+        result.Size              = (unsigned long) (double(MaxReadSize) * 3.0 /*(24 Bit)*/ * 2.0 /*stereo*/ * worstCaseHeaderOverhead);
+        result.pStart            = new int8_t[result.Size];
+        result.NullExtensionSize = 0;
+        return result;
+    }
+
+    /**
+     * Free decompression buffer, previously created with
+     * CreateDecompressionBuffer().
+     *
+     * @param DecompressionBuffer - previously allocated decompression
+     *                              buffer to free
+     */
+    void Sample::DestroyDecompressionBuffer(buffer_t& DecompressionBuffer) {
+        if (DecompressionBuffer.Size && DecompressionBuffer.pStart) {
+            delete[] (int8_t*) DecompressionBuffer.pStart;
+            DecompressionBuffer.pStart = NULL;
+            DecompressionBuffer.Size   = 0;
+            DecompressionBuffer.NullExtensionSize = 0;
+        }
+    }
+
     Sample::~Sample() {
         Instances--;
-        if (!Instances && pDecompressionBuffer) {
-            delete[] pDecompressionBuffer;
-            pDecompressionBuffer = NULL;
+        if (!Instances && InternalDecompressionBuffer.Size) {
+            delete[] (unsigned char*) InternalDecompressionBuffer.pStart;
+            InternalDecompressionBuffer.pStart = NULL;
+            InternalDecompressionBuffer.Size   = 0;
         }
         if (FrameTable) delete[] FrameTable;
         if (RAMCache.pStart) delete[] (int8_t*) RAMCache.pStart;

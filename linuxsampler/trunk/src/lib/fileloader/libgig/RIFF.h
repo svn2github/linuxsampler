@@ -2,8 +2,8 @@
  *                                                                         *
  *   libgig - C++ cross-platform Gigasampler format file loader library    *
  *                                                                         *
- *   Copyright (C) 2003, 2004 by Christian Schoenebeck                     *
- *                               <cuse@users.sourceforge.net>              *
+ *   Copyright (C) 2003-2005 by Christian Schoenebeck                      *
+ *                              <cuse@users.sourceforge.net>               *
  *                                                                         *
  *   This library is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -122,7 +122,7 @@ namespace RIFF {
             uint32_t       ReadUint32();
             void*          LoadChunkData();     ///< Load the whole chunk body in memory (on success returns a pointer to the data in RAM, else NULL).
             void           ReleaseChunkData();  ///< Free loaded chunk body data from memory (RAM).
-           ~Chunk();
+            virtual ~Chunk();
         protected:
             uint32_t      ChunkID;
             uint32_t      ChunkSize;		/* in bytes */
@@ -193,7 +193,7 @@ namespace RIFF {
             unsigned int CountSubChunks(uint32_t ChunkID);
             unsigned int CountSubLists();
             unsigned int CountSubLists(uint32_t ListType);
-           ~List();
+            virtual ~List();
         protected:
             typedef std::map<uint32_t, RIFF::Chunk*>  ChunkMap;
             typedef std::list<Chunk*>                 ChunkList;
@@ -213,7 +213,7 @@ namespace RIFF {
     class File : public List {
         public:
             File(const String& path);
-           ~File();
+            virtual ~File();
         private:
             unsigned long GetFileSize();
     };

@@ -3,6 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
+ *   Copyright (C) 2005 Christian Schoenebeck                              *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -185,13 +186,14 @@ namespace LinuxSampler { namespace gig {
 
 
     DiskThread::DiskThread(uint BufferWrapElements) : Thread(false, 1, -2) {
+        DecompressionBuffer = ::gig::Sample::CreateDecompressionBuffer(MAX_REFILL_SIZE);
         CreationQueue       = new RingBuffer<create_command_t>(1024);
         DeletionQueue       = new RingBuffer<delete_command_t>(1024);
         GhostQueue          = new RingBuffer<Stream::Handle>(MAX_INPUT_STREAMS);
         Streams             = MAX_INPUT_STREAMS;
         RefillStreamsPerRun = REFILL_STREAMS_PER_RUN;
         for (int i = 0; i < MAX_INPUT_STREAMS; i++) {
-            pStreams[i] = new Stream(STREAM_BUFFER_SIZE, BufferWrapElements); // 131072 sample words
+            pStreams[i] = new Stream(&DecompressionBuffer, STREAM_BUFFER_SIZE, BufferWrapElements); // 131072 sample words
         }
         for (int i = 1; i <= MAX_INPUT_STREAMS; i++) {
             pCreatedStreams[i] = NULL;
@@ -205,6 +207,7 @@ namespace LinuxSampler { namespace gig {
         if (CreationQueue) delete CreationQueue;
         if (DeletionQueue) delete DeletionQueue;
         if (GhostQueue)    delete GhostQueue;
+        ::gig::Sample::DestroyDecompressionBuffer(DecompressionBuffer);
     }
 
     int DiskThread::Main() {

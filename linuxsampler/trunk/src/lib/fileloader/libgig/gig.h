@@ -2,8 +2,8 @@
  *                                                                         *
  *   libgig - C++ cross-platform Gigasampler format file loader library    *
  *                                                                         *
- *   Copyright (C) 2003, 2004 by Christian Schoenebeck                     *
- *                               <cuse@users.sourceforge.net>              *
+ *   Copyright (C) 2003-2005 by Christian Schoenebeck                      *
+ *                              <cuse@users.sourceforge.net>               *
  *                                                                         *
  *   This library is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -80,6 +80,11 @@ namespace gig {
         void*         pStart;            ///< Points to the beginning of the buffer.
         unsigned long Size;              ///< Size of the actual data in the buffer in bytes.
         unsigned long NullExtensionSize; ///< The buffer might be bigger than the actual data, if that's the case that unused space at the end of the buffer is filled with NULLs and NullExtensionSize reflects that unused buffer space in bytes. Those NULL extensions are mandatory for differential algorithms that have to take the following data words into account, thus have to access past the buffer's boundary. If you don't know what I'm talking about, just forget this variable. :)
+        buffer_t() {
+            pStart            = NULL;
+            Size              = 0;
+            NullExtensionSize = 0;
+        }
     };
 
     /** Standard types of sample loops. */
@@ -483,16 +488,18 @@ namespace gig {
             buffer_t      LoadSampleDataWithNullSamplesExtension(uint NullSamplesCount);
             buffer_t      LoadSampleDataWithNullSamplesExtension(unsigned long SampleCount, uint NullSamplesCount);
             buffer_t      GetCache();
+            // own static methods
+            static buffer_t CreateDecompressionBuffer(unsigned long MaxReadSize);
+            static void     DestroyDecompressionBuffer(buffer_t& DecompressionBuffer);
             // overridden methods
             void          ReleaseSampleData();
             unsigned long SetPos(unsigned long SampleCount, RIFF::stream_whence_t Whence = RIFF::stream_start);
             unsigned long GetPos();
-            unsigned long Read(void* pBuffer, unsigned long SampleCount);
-            unsigned long ReadAndLoop(void* pBuffer, unsigned long SampleCount, playback_state_t* pPlaybackState);
+            unsigned long Read(void* pBuffer, unsigned long SampleCount, buffer_t* pExternalDecompressionBuffer = NULL);
+            unsigned long ReadAndLoop(void* pBuffer, unsigned long SampleCount, playback_state_t* pPlaybackState, buffer_t* pExternalDecompressionBuffer = NULL);
         protected:
             static unsigned int  Instances;               ///< Number of instances of class Sample.
-            static unsigned long DecompressionBufferSize; ///< Current size of the decompression buffer.
-            static unsigned char* pDecompressionBuffer;   ///< Small buffer used for decompression only.
+            static buffer_t      InternalDecompressionBuffer; ///< Buffer used for decompression as well as for truncation of 24 Bit -> 16 Bit samples.
             unsigned long        FrameOffset;             ///< Current offset (sample points) in current sample frame (for decompression only).
             unsigned long*       FrameTable;              ///< For positioning within compressed samples only: stores the offset values for each frame.
             unsigned long        SamplePos;               ///< For compressed samples only: stores the current position (in sample points).
@@ -578,6 +585,12 @@ namespace gig {
                 // Double for stereo and add one worst case sample
                 // frame
                 return (Channels == 2 ? size << 1 : size) + WorstCaseFrameSize;
+            }
+
+            // Worst case amount of sample points that can be read with the
+            // given decompression buffer.
+            inline unsigned long WorstCaseMaxSamples(buffer_t* pDecompressionBuffer) {
+                return (unsigned long) ((float)pDecompressionBuffer->Size / (float)WorstCaseFrameSize * (float)SamplesPerFrame);
             }
         private:
             void ScanCompressedSample();

@@ -1,0 +1,67 @@
+/***************************************************************************
+ *                                                                         *
+ *   Copyright (C) 2005 Christian Schoenebeck                              *
+ *                                                                         *
+ *   This library is free software; you can redistribute it and/or modify  *
+ *   it under the terms of the GNU General Public License as published by  *
+ *   the Free Software Foundation; either version 2 of the License, or     *
+ *   (at your option) any later version.                                   *
+ *                                                                         *
+ *   This library is distributed in the hope that it will be useful,       *
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
+ *   GNU General Public License for more details.                          *
+ *                                                                         *
+ *   You should have received a copy of the GNU General Public License     *
+ *   along with this library; if not, write to the Free Software           *
+ *   Foundation, Inc., 59 Temple Place, Suite 330, Boston,                 *
+ *   MA  02111-1307  USA                                                   *
+ ***************************************************************************/
+
+#include "lscpinstrumentloader.h"
+
+LSCPInstrumentLoader::LSCPInstrumentLoader() : Thread(false, 0, -4) {
+    pQueue = new RingBuffer<command_t>(INSTRUMENT_LOADER_QUEUE_SIZE);
+}
+
+LSCPInstrumentLoader::~LSCPInstrumentLoader() {
+    if (pQueue) delete pQueue;
+}
+
+/**
+ * @brief Order loading of a new instrument.
+ * The request will go into a queue waiting to be processed by the loader
+ * thread. This method will immediately return and the instrument will be
+ * loaded in the background.
+ *
+ * @param Filename - file name of the instrument
+ * @param uiInstrumentIndex - index of the instrument within the file
+ * @param pEngine - engine on which the instrument should be loaded
+ */
+void LSCPInstrumentLoader::StartNewLoad(String Filename, uint uiInstrumentIndex, Engine* pEngine) {
+    command_t cmd;
+    cmd.Filename          = Filename;
+    cmd.uiInstrumentIndex = uiInstrumentIndex;
+    cmd.pEngine           = pEngine;
+    pQueue->push(&cmd);
+    StartThread(); // ensure the thread is running
+}
+
+// Entry point for the InstrumentLoader Thread.
+int LSCPInstrumentLoader::Main() {
+    while (pQueue->read_space()) {
+        command_t cmd;
+        pQueue->pop(&cmd);
+        try {
+            cmd.pEngine->LoadInstrument(cmd.Filename.c_str(), cmd.uiInstrumentIndex);
+        }
+        catch (LinuxSamplerException e) {
+            e.PrintMessage();
+        }
+        // Always re-enable the engine.
+        cmd.pEngine->Enable();
+    }
+
+    // nothing left to do
+    StopThread();
+}

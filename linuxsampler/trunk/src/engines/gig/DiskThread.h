@@ -3,6 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
+ *   Copyright (C) 2005 Christian Schoenebeck                              *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -37,6 +38,7 @@
 
 #include "../../common/Thread.h"
 #include "../../common/RingBuffer.h"
+#include "../../lib/fileloader/libgig/gig.h"
 #include "Stream.h"
 #include "Voice.h"
 
@@ -62,7 +64,11 @@ namespace LinuxSampler { namespace gig {
             int ActiveStreamCountMax;
 
         protected:
+            ::gig::buffer_t DecompressionBuffer; ///< Used for thread safe streaming.
+
             int Main(); ///< Implementation of virtual method from class Thread
+
+            friend class Stream;
         private:
             // Private Types
             struct create_command_t {

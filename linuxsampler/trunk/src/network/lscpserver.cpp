@@ -3,19 +3,20 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
+ *   Copyright (C) 2005 Christian Schoenebeck                              *
  *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
+ *   This library is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
  *   the Free Software Foundation; either version 2 of the License, or     *
  *   (at your option) any later version.                                   *
  *                                                                         *
- *   This program is distributed in the hope that it will be useful,       *
+ *   This library is distributed in the hope that it will be useful,       *
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
  *   GNU General Public License for more details.                          *
  *                                                                         *
  *   You should have received a copy of the GNU General Public License     *
- *   along with this program; if not, write to the Free Software           *
+ *   along with this library; if not, write to the Free Software           *
  *   Foundation, Inc., 59 Temple Place, Suite 330, Boston,                 *
  *   MA  02111-1307  USA                                                   *
  ***************************************************************************/
@@ -451,8 +452,7 @@ String LSCPServer::LoadInstrument(String Filename, uint uiInstrument, uint uiSam
         if (!pSamplerChannel->GetAudioOutputDevice())
             throw LinuxSamplerException("No audio output device connected to sampler channel");
         if (bBackground) {
-            LSCPLoadInstrument *pLoadInstrument = new LSCPLoadInstrument(pEngine, Filename.c_str(), uiInstrument);
-            pLoadInstrument->StartThread();
+            InstrumentLoader.StartNewLoad(Filename, uiInstrument, pEngine);
         }
         else pEngine->LoadInstrument(Filename.c_str(), uiInstrument);
     }
@@ -1405,31 +1405,4 @@ String LSCPServer::SetEcho(yyparse_param_t* pSession, double boolean_value) {
          result.Error(e);
     }
     return result.Produce();
-}
-
-// Instrument loader constructor.
-LSCPLoadInstrument::LSCPLoadInstrument(Engine* pEngine, String Filename, uint uiInstrument)
-    : Thread(false, 0, -4)
-{
-    this->pEngine = pEngine;
-    this->Filename = Filename;
-    this->uiInstrument = uiInstrument;
-}
-
-// Instrument loader process.
-int LSCPLoadInstrument::Main()
-{
-    try {
-        pEngine->LoadInstrument(Filename.c_str(), uiInstrument);
-    }
-
-    catch (LinuxSamplerException e) {
-        e.PrintMessage();
-    }
-
-    // Always re-enable the engine.
-    pEngine->Enable();
-
-    // FIXME: Shoot ourselves on the foot?
-    delete this;
 }

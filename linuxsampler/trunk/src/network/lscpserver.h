@@ -3,19 +3,20 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
+ *   Copyright (C) 2005 Christian Schoenebeck                              *
  *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
+ *   This library is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
  *   the Free Software Foundation; either version 2 of the License, or     *
  *   (at your option) any later version.                                   *
  *                                                                         *
- *   This program is distributed in the hope that it will be useful,       *
+ *   This library is distributed in the hope that it will be useful,       *
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
  *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
  *   GNU General Public License for more details.                          *
  *                                                                         *
  *   You should have received a copy of the GNU General Public License     *
- *   along with this program; if not, write to the Free Software           *
+ *   along with this library; if not, write to the Free Software           *
  *   Foundation, Inc., 59 Temple Place, Suite 330, Boston,                 *
  *   MA  02111-1307  USA                                                   *
  ***************************************************************************/
@@ -39,6 +40,7 @@
 #include "lscpparser.h"
 #include "lscp.h"
 #include "lscpevent.h"
+#include "lscpinstrumentloader.h"
 #include "../Sampler.h"
 #include "../common/Thread.h"
 #include "../common/Mutex.h"
@@ -138,6 +140,7 @@ class LSCPServer : public Thread {
         sockaddr_in    SocketAddress;
         Sampler*       pSampler;
         Condition      Initialized;
+        LSCPInstrumentLoader InstrumentLoader; ///< thread responsible for loading instruments in the background
 
         int Main(); ///< Implementation of virtual method from class Thread
 
@@ -167,24 +170,6 @@ class LSCPServer : public Thread {
 	//like voice count, stream count and buffer fill
 	//from LSCP server removing engines and channels from underneath
 	static Mutex RTNotifyMutex;
-};
-
-/**
- * Instrument loader thread for the LinuxSampler Control Protocol (LSCP).
- */
-class LSCPLoadInstrument : public Thread {
-
-    public:
-        LSCPLoadInstrument(Engine* pEngine, String Filename, uint uiInstrument);
-
-    protected:
-        // Instance variables.
-        Engine* pEngine;
-        String  Filename;
-        uint    uiInstrument;
-
-        // Implementation of virtual method from class Thread.
-        int Main();
 };
 
 #endif // __LSCPSERVER_H_
