@@ -1,0 +1,59 @@
+qsampler - A LinuxSampler Qt GUI Interface
+------------------------------------------
+
+ChangeLog
+
+0.0.3   2004-07-06  Work in progress...
+
+* Mon-modal intrument file loading and status support.
+
+* Effective MIDI input port setting on channel dialog,
+  and on session file save.
+
+* Channel dialog gets sensible engine and driver defaults
+  on create time.
+
+* Implied channel reset on successful instrument load.
+
+
+0.0.2   2004-06-15  Pre-revolutionary release.
+
+* The channel context menu is also accessible by right-clicking
+  over the empty workspace area.
+
+* Added small wait event loop on qsamplerMainForm::stopServer(),
+  so let local server terminate gracefully and stabilize, and
+  avoiding a probable segfault on exit, which was preventing the
+  correct salvage of settings and configuration.
+
+* Maximum channel volume percent setting is now a global option,
+  provided to override the default (which is 100%).
+
+* Client/server transaction timeout option upper limit has been
+  increased from 5000 to 60000 milliseconds.
+
+* A channel context menu is now featured, by right-clicking over
+  each sampler channel strip.
+
+* Commented SET CHANNEL MIDI_INPUT_PORT command from
+  qsamplerMainForm::saveSessionFile(), it has no effect.
+
+* Insert a n #include <unistd.h> on qsamplerMessages.cpp, between
+  a #if !defined(WIN32) clause.
+
+* An initial non zero value (0.8) is now set for volume of every
+  new sampler channel strip.
+
+* The order to load/save and setup channel settings is now as
+  suggested in the following lines:
+
+    SET CHANNEL AUDIO_OUTPUT_TYPE ...
+    SET CHANNEL MIDI_INPUT_TYPE ...
+    SET CHANNEL MIDI_INPUT_CHANNEL ...
+    LOAD ENGINE ...
+    LOAD INSTRUMENT ...
+    SET CHANNEL VOLUME ...
+
+
+0.0.1   2004-06-05  Primordial alpha release.
+
