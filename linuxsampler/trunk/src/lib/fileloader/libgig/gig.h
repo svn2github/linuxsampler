@@ -63,10 +63,9 @@
 #define GIG_EG_CTR_ATTACK_INFLUENCE_EXTRACT(x)			((x >> 1) & 0x03)
 #define GIG_EG_CTR_DECAY_INFLUENCE_EXTRACT(x)			((x >> 3) & 0x03)
 #define GIG_EG_CTR_RELEASE_INFLUENCE_EXTRACT(x)			((x >> 5) & 0x03)
-//TODO: the transformation functions are not very accurate compared to the original ones
-#define GIG_VELOCITY_TRANSFORM_NONLINEAR(x,dynamic,scale)	((1.0-1.0/pow(x,1.0/(129.0-x))) * (1.0+scale/20.0) + (5.0-dynamic)*pow(x/300.0* (1.0+2.0*scale/128.0),2))
-#define GIG_VELOCITY_TRANSFORM_LINEAR(x,dynamic,scale)		((1.0+scale*3.0/128.0)/110.0*x+(5.0-dynamic)/5.0+(5.0-dynamic)*scale)
-#define GIG_VELOCITY_TRANSFORM_SPECIAL(x,dynamic,scale)		((1.0+9.0*scale/129.0)*(1.0-1.0/pow(x,1.0/(129.0-x))+pow(3.0*x/pow(129,2),2)+pow((5.0-dynamic)*x/500.0,2)))
+#define GIG_VELOCITY_TRANSFORM_NONLINEAR(x,dynamic,scale)	(-0.1666235937e0+0.5143775427e-4*x*x+0.5318278732e-1*dynamic*dynamic-0.3560390502e-4*scale*scale+0.4683631221e-2*x-0.9484386143e-1*dynamic+0.8030068910e-2*scale)
+#define GIG_VELOCITY_TRANSFORM_LINEAR(x,dynamic,scale)		(((1.0+scale*3.0/128.0)/110.0)*x+dynamic/5.0+dynamic*scale)
+#define GIG_VELOCITY_TRANSFORM_SPECIAL(x,dynamic,scale)		(-0.1630504921e0+0.5794551347e-4*x*x+0.8361491099e-2*dynamic*dynamic-0.4303475615e-5*scale*scale+0.2085522765e-2*x+0.1313747345e-1*dynamic+0.3220916836e-2*scale)
 
 /** Gigasampler specific classes and definitions */
 namespace gig {
@@ -382,9 +381,9 @@ namespace gig {
             bool               VCFKeyboardTracking;           ///< If <i>true</i>: VCF cutoff frequence will be dependend to the note key position relative to the defined breakpoint value.
             uint8_t            VCFKeyboardTrackingBreakpoint; ///< See VCFKeyboardTracking (0 - 127).
             // Key Velocity Transformations
-            curve_type_t       VelocityResponseCurve;         ///< Defines a transformation curve to the incoming velocity values affecting amplitude.
-            uint8_t            VelocityResponseDepth;         ///< Dynamic range of velocity affecting amplitude (0 - 4).
-            uint8_t            VelocityResponseCurveScaling;  ///< 0 - 127
+            curve_type_t       VelocityResponseCurve;         ///< Defines a transformation curve to the incoming velocity values affecting amplitude (usually you don't have to interpret this parameter, use GetVelocityAttenuation() instead).
+            uint8_t            VelocityResponseDepth;         ///< Dynamic range of velocity affecting amplitude (0 - 4) (usually you don't have to interpret this parameter, use GetVelocityAttenuation() instead).
+            uint8_t            VelocityResponseCurveScaling;  ///< 0 - 127 (usually you don't have to interpret this parameter, use GetVelocityAttenuation() instead)
             curve_type_t       ReleaseVelocityResponseCurve;  ///< Defines a transformation curve to the incoming release veloctiy values affecting envelope times.
             uint8_t            ReleaseVelocityResponseDepth;  ///< Dynamic range of release velocity affecting envelope time (0 - 4).
             uint8_t            ReleaseTriggerDecay;           ///< 0 - 8

@@ -841,25 +841,25 @@ namespace gig {
                 case curve_type_nonlinear:
                     for (int velocity = 0; velocity < 128; velocity++) {
                         pVelocityAttenuationTable[velocity] =
-                            GIG_VELOCITY_TRANSFORM_NONLINEAR((double)(velocity+1),(double)(VelocityResponseDepth+1),(double)VelocityResponseCurveScaling);
-                        if      (pVelocityAttenuationTable[velocity] > 1.0) pVelocityAttenuationTable[velocity] = 1.0;
-                        else if (pVelocityAttenuationTable[velocity] < 0.0) pVelocityAttenuationTable[velocity] = 0.0;
+                            GIG_VELOCITY_TRANSFORM_NONLINEAR(((double)velocity),((double)VelocityResponseDepth),((double)VelocityResponseCurveScaling));
+                        if      (pVelocityAttenuationTable[velocity] > 1.0)   pVelocityAttenuationTable[velocity] = 1.0;
+                        else if (pVelocityAttenuationTable[velocity] < 1e-15) pVelocityAttenuationTable[velocity] = 0.0;
                      }
                      break;
                 case curve_type_linear:
                     for (int velocity = 0; velocity < 128; velocity++) {
                         pVelocityAttenuationTable[velocity] =
-                            GIG_VELOCITY_TRANSFORM_LINEAR((double)velocity,(double)(VelocityResponseDepth+1),(double)VelocityResponseCurveScaling);
-                        if      (pVelocityAttenuationTable[velocity] > 1.0) pVelocityAttenuationTable[velocity] = 1.0;
-                        else if (pVelocityAttenuationTable[velocity] < 0.0) pVelocityAttenuationTable[velocity] = 0.0;
+                            GIG_VELOCITY_TRANSFORM_LINEAR(((double)velocity),((double)VelocityResponseDepth),((double)VelocityResponseCurveScaling));
+                        if      (pVelocityAttenuationTable[velocity] > 1.0)   pVelocityAttenuationTable[velocity] = 1.0;
+                        else if (pVelocityAttenuationTable[velocity] < 1e-15) pVelocityAttenuationTable[velocity] = 0.0;
                     }
                     break;
                 case curve_type_special:
                     for (int velocity = 0; velocity < 128; velocity++) {
                         pVelocityAttenuationTable[velocity] =
-                            GIG_VELOCITY_TRANSFORM_SPECIAL((double)(velocity+1),(double)(VelocityResponseDepth+1),(double)VelocityResponseCurveScaling);
-                        if      (pVelocityAttenuationTable[velocity] > 1.0) pVelocityAttenuationTable[velocity] = 1.0;
-                        else if (pVelocityAttenuationTable[velocity] < 0.0) pVelocityAttenuationTable[velocity] = 0.0;
+                            GIG_VELOCITY_TRANSFORM_SPECIAL(((double)velocity),((double)VelocityResponseDepth),((double)VelocityResponseCurveScaling));
+                        if      (pVelocityAttenuationTable[velocity] > 1.0)   pVelocityAttenuationTable[velocity] = 1.0;
+                        else if (pVelocityAttenuationTable[velocity] < 1e-15) pVelocityAttenuationTable[velocity] = 0.0;
                     }
                     break;
                 case curve_type_unknown:
