@@ -84,34 +84,81 @@ namespace LinuxSampler {
     }
 
     void MidiInputPort::DispatchNoteOn(uint8_t Key, uint8_t Velocity, uint MidiChannel) {
-        std::set<Engine*>::iterator engineiter = MidiChannelMap[MidiChannel].begin();
-        std::set<Engine*>::iterator end        = MidiChannelMap[MidiChannel].end();
-        for (; engineiter != end; engineiter++) (*engineiter)->SendNoteOn(Key, Velocity);
+        // dispatch event for engines listening to the same MIDI channel
+        {
+            std::set<Engine*>::iterator engineiter = MidiChannelMap[MidiChannel].begin();
+            std::set<Engine*>::iterator end        = MidiChannelMap[MidiChannel].end();
+            for (; engineiter != end; engineiter++) (*engineiter)->SendNoteOn(Key, Velocity);
+        }
+        // dispatch event for engines listening to ALL MIDI channels
+        {
+            std::set<Engine*>::iterator engineiter = MidiChannelMap[midi_chan_all].begin();
+            std::set<Engine*>::iterator end        = MidiChannelMap[midi_chan_all].end();
+            for (; engineiter != end; engineiter++) (*engineiter)->SendNoteOn(Key, Velocity);
+        }
     }
 
     void MidiInputPort::DispatchNoteOff(uint8_t Key, uint8_t Velocity, uint MidiChannel) {
-        std::set<Engine*>::iterator engineiter = MidiChannelMap[MidiChannel].begin();
-        std::set<Engine*>::iterator end        = MidiChannelMap[MidiChannel].end();
-        for (; engineiter != end; engineiter++) (*engineiter)->SendNoteOff(Key, Velocity);
+        // dispatch event for engines listening to the same MIDI channel
+        {
+            std::set<Engine*>::iterator engineiter = MidiChannelMap[MidiChannel].begin();
+            std::set<Engine*>::iterator end        = MidiChannelMap[MidiChannel].end();
+            for (; engineiter != end; engineiter++) (*engineiter)->SendNoteOff(Key, Velocity);
+        }
+        // dispatch event for engines listening to ALL MIDI channels
+        {
+            std::set<Engine*>::iterator engineiter = MidiChannelMap[midi_chan_all].begin();
+            std::set<Engine*>::iterator end        = MidiChannelMap[midi_chan_all].end();
+            for (; engineiter != end; engineiter++) (*engineiter)->SendNoteOff(Key, Velocity);
+        }
     }
 
     void MidiInputPort::DispatchPitchbend(int Pitch, uint MidiChannel) {
-        std::set<Engine*>::iterator engineiter = MidiChannelMap[MidiChannel].begin();
-        std::set<Engine*>::iterator end        = MidiChannelMap[MidiChannel].end();
-        for (; engineiter != end; engineiter++) (*engineiter)->SendPitchbend(Pitch);
+        // dispatch event for engines listening to the same MIDI channel
+        {
+            std::set<Engine*>::iterator engineiter = MidiChannelMap[MidiChannel].begin();
+            std::set<Engine*>::iterator end        = MidiChannelMap[MidiChannel].end();
+            for (; engineiter != end; engineiter++) (*engineiter)->SendPitchbend(Pitch);
+        }
+        // dispatch event for engines listening to ALL MIDI channels
+        {
+            std::set<Engine*>::iterator engineiter = MidiChannelMap[midi_chan_all].begin();
+            std::set<Engine*>::iterator end        = MidiChannelMap[midi_chan_all].end();
+            for (; engineiter != end; engineiter++) (*engineiter)->SendPitchbend(Pitch);
+        }
     }
 
     void MidiInputPort::DispatchControlChange(uint8_t Controller, uint8_t Value, uint MidiChannel) {
-        std::set<Engine*>::iterator engineiter = MidiChannelMap[MidiChannel].begin();
-        std::set<Engine*>::iterator end        = MidiChannelMap[MidiChannel].end();
-        for (; engineiter != end; engineiter++) (*engineiter)->SendControlChange(Controller, Value);
+        // dispatch event for engines listening to the same MIDI channel
+        {
+            std::set<Engine*>::iterator engineiter = MidiChannelMap[MidiChannel].begin();
+            std::set<Engine*>::iterator end        = MidiChannelMap[MidiChannel].end();
+            for (; engineiter != end; engineiter++) (*engineiter)->SendControlChange(Controller, Value);
+        }
+        // dispatch event for engines listening to ALL MIDI channels
+        {
+            std::set<Engine*>::iterator engineiter = MidiChannelMap[midi_chan_all].begin();
+            std::set<Engine*>::iterator end        = MidiChannelMap[midi_chan_all].end();
+            for (; engineiter != end; engineiter++) (*engineiter)->SendControlChange(Controller, Value);
+        }
     }
 
     void MidiInputPort::DispatchSysex(void* pData, uint Size) {
-        for (uint MidiChannel = 0; MidiChannel <= 16; MidiChannel++) {
-            std::set<Engine*>::iterator engineiter = MidiChannelMap[MidiChannel].begin();
-            std::set<Engine*>::iterator end        = MidiChannelMap[MidiChannel].end();
-            for (; engineiter != end; engineiter++) (*engineiter)->SendSysex(pData, Size);
+        // dispatch event for engines listening to the same MIDI channel
+        {
+            for (uint MidiChannel = 0; MidiChannel <= 16; MidiChannel++) {
+                std::set<Engine*>::iterator engineiter = MidiChannelMap[MidiChannel].begin();
+                std::set<Engine*>::iterator end        = MidiChannelMap[MidiChannel].end();
+                for (; engineiter != end; engineiter++) (*engineiter)->SendSysex(pData, Size);
+            }
+        }
+        // dispatch event for engines listening to ALL MIDI channels
+        {
+            for (uint MidiChannel = 0; MidiChannel <= 16; MidiChannel++) {
+                std::set<Engine*>::iterator engineiter = MidiChannelMap[midi_chan_all].begin();
+                std::set<Engine*>::iterator end        = MidiChannelMap[midi_chan_all].end();
+                for (; engineiter != end; engineiter++) (*engineiter)->SendSysex(pData, Size);
+            }
         }
     }
 

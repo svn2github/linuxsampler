@@ -217,7 +217,7 @@ midi_input_port_index     :  number
                           ;
 
 midi_input_channel_index  :  number
-                          |  ALL  { $$ = 0; }
+                          |  ALL  { $$ = 16; }
                           ;
 
 midi_input_type_name      :  string

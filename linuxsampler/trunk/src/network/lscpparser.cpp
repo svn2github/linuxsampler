@@ -2954,7 +2954,7 @@ yyreduce:
 
   case 99:
 #line 220 "lscp.y"
-    { yyval.Number = 0; }
+    { yyval.Number = 16; }
     break;
 
   case 102:

@@ -44,23 +44,23 @@ namespace LinuxSampler {
              * MIDI channels
              */
             enum midi_chan_t {
-                midi_chan_all = 0,
-                midi_chan_1   = 1,
-                midi_chan_2   = 2,
-                midi_chan_3   = 3,
-                midi_chan_4   = 4,
-                midi_chan_5   = 5,
-                midi_chan_6   = 6,
-                midi_chan_7   = 7,
-                midi_chan_8   = 8,
-                midi_chan_9   = 9,
-                midi_chan_10  = 10,
-                midi_chan_11  = 11,
-                midi_chan_12  = 12,
-                midi_chan_13  = 13,
-                midi_chan_14  = 14,
-                midi_chan_15  = 15,
-                midi_chan_16  = 16
+                midi_chan_1   = 0,
+                midi_chan_2   = 1,
+                midi_chan_3   = 2,
+                midi_chan_4   = 3,
+                midi_chan_5   = 4,
+                midi_chan_6   = 5,
+                midi_chan_7   = 6,
+                midi_chan_8   = 7,
+                midi_chan_9   = 8,
+                midi_chan_10  = 9,
+                midi_chan_11  = 10,
+                midi_chan_12  = 11,
+                midi_chan_13  = 12,
+                midi_chan_14  = 13,
+                midi_chan_15  = 14,
+                midi_chan_16  = 15,
+                midi_chan_all = 16
             };
 
             /** MIDI Port Parameter 'NAME'
@@ -138,6 +138,7 @@ namespace LinuxSampler {
              * @param Key         - MIDI key number of the triggered key
              * @param Velocity    - MIDI velocity of the triggered key
              * @param MidiChannel - MIDI channel on which event occured on
+             *                      (low level indexing, means 0..15)
              */
             void DispatchNoteOn(uint8_t Key, uint8_t Velocity, uint MidiChannel);
 
@@ -150,6 +151,7 @@ namespace LinuxSampler {
              * @param Key         - MIDI key number of the released key
              * @param Velocity    - MIDI velocity of the released key
              * @param MidiChannel - MIDI channel on which event occured on
+             *                      (low level indexing, means 0..15)
              */
             void DispatchNoteOff(uint8_t Key, uint8_t Velocity, uint MidiChannel);
 
@@ -160,6 +162,7 @@ namespace LinuxSampler {
              *
              * @param Pitch       - MIDI pitch value
              * @param MidiChannel - MIDI channel on which event occured on
+             *                      (low level indexing, means 0..15)
              */
             void DispatchPitchbend(int Pitch, uint MidiChannel);
 
@@ -172,6 +175,7 @@ namespace LinuxSampler {
              * @param Controller  - MIDI controller number
              * @param Value       - MIDI control change value
              * @param MidiChannel - MIDI channel on which event occured on
+             *                      (low level indexing, means 0..15)
              */
             void DispatchControlChange(uint8_t Controller, uint8_t Value, uint MidiChannel);
 

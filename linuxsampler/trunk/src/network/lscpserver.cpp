@@ -591,8 +591,8 @@ String LSCPServer::GetChannelInfo(uint uiSamplerChannel) {
 
         result.Add("MIDI_INPUT_DEVICE", GetMidiInputDeviceIndex(pSamplerChannel->GetMidiInputDevice()));
         result.Add("MIDI_INPUT_PORT", pSamplerChannel->GetMidiInputPort());
-        if (pSamplerChannel->GetMidiInputChannel()) result.Add("MIDI_INPUT_CHANNEL", pSamplerChannel->GetMidiInputChannel());
-        else                                        result.Add("MIDI_INPUT_CHANNEL", "ALL");
+        if (pSamplerChannel->GetMidiInputChannel() == MidiInputPort::midi_chan_all) result.Add("MIDI_INPUT_CHANNEL", "ALL");
+        else result.Add("MIDI_INPUT_CHANNEL", pSamplerChannel->GetMidiInputChannel());
 
         result.Add("INSTRUMENT_FILE", InstrumentFileName);
         result.Add("INSTRUMENT_NR", InstrumentIndex);
