@@ -77,8 +77,10 @@ namespace LinuxSampler { namespace gig {
 
     Engine::~Engine() {
         if (pDiskThread) {
+            dmsg(1,("Stopping disk thread..."));
             pDiskThread->StopThread();
             delete pDiskThread;
+            dmsg(1,("OK\n"));
         }
         if (pGig)  delete pGig;
         if (pRIFF) delete pRIFF;
@@ -89,12 +91,14 @@ namespace LinuxSampler { namespace gig {
         for (uint i = 0; i < Event::destination_count; i++) {
             if (pSynthesisEvents[i]) delete pSynthesisEvents[i];
         }
-        delete[] pSynthesisEvents;
         if (pEvents)     delete pEvents;
         if (pCCEvents)   delete pCCEvents;
         if (pEventQueue) delete pEventQueue;
         if (pEventPool)  delete pEventPool;
-        if (pVoicePool)  delete pVoicePool;
+	if (pVoicePool) {
+		pVoicePool->clear();
+		delete pVoicePool;
+	}
         if (pActiveKeys) delete pActiveKeys;
         if (pSysexBuffer) delete pSysexBuffer;
         if (pEventGenerator) delete pEventGenerator;
@@ -322,8 +326,10 @@ namespace LinuxSampler { namespace gig {
 
         // (re)create disk thread
         if (this->pDiskThread) {
+            dmsg(1,("Stopping disk thread..."));
             this->pDiskThread->StopThread();
             delete this->pDiskThread;
+            dmsg(1,("OK\n"));
         }
         this->pDiskThread = new DiskThread(((pAudioOut->MaxSamplesPerCycle() << MAX_PITCH) << 1) + 6); //FIXME: assuming stereo
         if (!pDiskThread) {
@@ -1165,7 +1171,7 @@ namespace LinuxSampler { namespace gig {
     }
 
     String Engine::Version() {
-        String s = "$Revision: 1.19 $";
+        String s = "$Revision: 1.20 $";
         return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
 

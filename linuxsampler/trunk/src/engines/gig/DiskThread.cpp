@@ -109,12 +109,16 @@ namespace LinuxSampler { namespace gig {
             return -1;
         }
 
+	const Stream::OrderID_t newOrder = CreateOrderID();
+	if (!newOrder) {
+		dmsg(1,("DiskThread: there was no free slot\n"));
+		return -1; // there was no free slot
+	}
+
         pStreamRef->State   = Stream::state_active;
-        pStreamRef->OrderID = CreateOrderID();
+        pStreamRef->OrderID = newOrder;
         pStreamRef->hStream = CreateHandle();
         pStreamRef->pStream = NULL; // a stream has to be activated by the disk thread first
-
-        if (!pStreamRef->OrderID) return -1; // there was no free slot
 
         create_command_t cmd;
         cmd.OrderID      = pStreamRef->OrderID;
@@ -335,7 +339,7 @@ namespace LinuxSampler { namespace gig {
 
     /// order ID Generator
     Stream::OrderID_t DiskThread::CreateOrderID() {
-        static uint32_t counter = 0;
+        static Stream::OrderID_t counter(0);
         for (int i = 0; i < MAX_INPUT_STREAMS; i++) {
             if (counter == MAX_INPUT_STREAMS) counter = 1; // we use '0' as 'invalid order' only, so we skip 0
             else                              counter++;

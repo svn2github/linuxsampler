@@ -38,6 +38,8 @@ namespace LinuxSampler {
     class Engine {
         public:
 
+	    virtual ~Engine() {};
+
             /////////////////////////////////////////////////////////////////
             // type definitions
 

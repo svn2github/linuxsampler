@@ -324,9 +324,10 @@ namespace LinuxSampler {
     void Sampler::Reset() {
         // delete sampler channels
         try {
-            SamplerChannelMap::iterator iter = mSamplerChannels.begin();
-            for (; iter != mSamplerChannels.end(); iter++) {
-                RemoveSamplerChannel(iter->second);
+	    while (true) {
+		    SamplerChannelMap::iterator iter = mSamplerChannels.begin();
+		    if (iter == mSamplerChannels.end()) break;
+		    RemoveSamplerChannel(iter->second);
             }
         }
         catch(...) {
@@ -336,9 +337,10 @@ namespace LinuxSampler {
 
         // delete midi input devices
         try {
-            MidiInputDeviceMap::iterator iter = mMidiInputDevices.begin();
-            for (; iter != mMidiInputDevices.end(); iter++) {
-                DestroyMidiInputDevice(iter->second);
+	    while (true) {
+		    MidiInputDeviceMap::iterator iter = mMidiInputDevices.begin();
+		    if (iter == mMidiInputDevices.end()) break;
+		    DestroyMidiInputDevice(iter->second);
             }
         }
         catch(...) {
@@ -348,9 +350,10 @@ namespace LinuxSampler {
 
         // delete audio output devices
         try {
-            AudioOutputDeviceMap::iterator iter = mAudioOutputDevices.begin();
-            for (; iter != mAudioOutputDevices.end(); iter++) {
-                DestroyAudioOutputDevice(iter->second);
+	    while (true) {
+		    AudioOutputDeviceMap::iterator iter = mAudioOutputDevices.begin();
+		    if (iter == mAudioOutputDevices.end()) break;
+		    DestroyAudioOutputDevice(iter->second);
             }
         }
         catch(...) {

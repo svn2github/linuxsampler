@@ -92,6 +92,7 @@ namespace LinuxSampler { namespace gig {
     Stream::~Stream() {
         Reset();
         if (pRingBuffer) delete pRingBuffer;
+	UnusedStreams--;
     }
 
     /// Called by disk thread to activate the disk stream.
