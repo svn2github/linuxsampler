@@ -132,7 +132,7 @@ String LSCPServer::DestroyAudioOutputDevice(uint DeviceIndex) {
 /**
  * Will be called by the parser to load an instrument.
  */
-String LSCPServer::LoadInstrument(String Filename, uint uiInstrument, uint uiSamplerChannel) {
+String LSCPServer::LoadInstrument(String Filename, uint uiInstrument, uint uiSamplerChannel, bool bBackground) {
     dmsg(2,("LSCPServer: LoadInstrument(Filename=%s,Instrument=%d,SamplerChannel=%d)\n", Filename.c_str(), uiInstrument, uiSamplerChannel));
     LSCPResultSet result;
     try {
@@ -140,8 +140,11 @@ String LSCPServer::LoadInstrument(String Filename, uint uiInstrument, uint uiSam
         if (!pSamplerChannel) throw LinuxSamplerException("Index out of bounds");
         Engine* pEngine = pSamplerChannel->GetEngine();
         if (!pEngine) throw LinuxSamplerException("No engine loaded on channel");
-        LSCPLoadInstrument *pLoadInstrument = new LSCPLoadInstrument(pEngine, Filename.c_str(), uiInstrument);
-        pLoadInstrument->StartThread();
+        if (bBackground) {
+            LSCPLoadInstrument *pLoadInstrument = new LSCPLoadInstrument(pEngine, Filename.c_str(), uiInstrument);
+            pLoadInstrument->StartThread();
+        }
+        else pEngine->LoadInstrument(Filename.c_str(), uiInstrument);
     }
     catch (LinuxSamplerException e) {
          result.Error(e);
