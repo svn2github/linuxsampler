@@ -81,6 +81,9 @@ namespace LinuxSampler { namespace gig {
             virtual String DiskStreamBufferFillPercentage();
             virtual String Description();
             virtual String Version();
+            virtual String EngineName();
+            virtual String InstrumentFileName();
+            virtual int    InstrumentIndex();
 
             // abstract methods derived from interface class 'InstrumentConsumer'
             virtual void ResourceToBeUpdated(::gig::Instrument* pResource, void*& pUpdateArg);
@@ -121,6 +124,8 @@ namespace LinuxSampler { namespace gig {
             int                     ActiveVoiceCountMax;   ///< the maximum voice usage since application start
             bool                    SuspensionRequested;
             ConditionServer         EngineDisabled;
+	    String                  InstrumentFile;
+	    int                     InstrumentIdx;
 
             void ProcessNoteOn(Event* pNoteOnEvent);
             void ProcessNoteOff(Event* pNoteOffEvent);

@@ -61,6 +61,8 @@ namespace LinuxSampler { namespace gig {
         pSynthesisParameters[0] = NULL; // we allocate when an audio device is connected
         pBasicFilterParameters  = NULL;
         pMainFilterParameters   = NULL;
+ 
+	InstrumentIdx = -1;
 
         ResetInternal();
     }
@@ -195,6 +197,8 @@ namespace LinuxSampler { namespace gig {
             Instruments.HandBack(pInstrument, this);
         }
 
+	InstrumentIdx = -1;
+
         // request gig instrument from instrument manager
         try {
             instrument_id_t instrid;
@@ -217,6 +221,9 @@ namespace LinuxSampler { namespace gig {
         catch (...) {
             throw LinuxSamplerException("gig::Engine error: Failed to load instrument, cause: Unknown exception while trying to parse gig file.");
         }
+
+	InstrumentFile = FileName;
+	InstrumentIdx = Instrument;
 
         // inform audio driver for the need of two channels
         try {
@@ -688,6 +695,18 @@ namespace LinuxSampler { namespace gig {
 
     String Engine::DiskStreamBufferFillPercentage() {
         return pDiskThread->GetBufferFillPercentage();
+    }
+
+    String Engine::EngineName() {
+        return "GigEngine";
+    }
+
+    String Engine::InstrumentFileName() {
+        return InstrumentFile;
+    }
+
+    int Engine::InstrumentIndex() {
+        return InstrumentIdx;
     }
 
     String Engine::Description() {

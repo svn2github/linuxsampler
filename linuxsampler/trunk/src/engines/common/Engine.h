@@ -76,6 +76,9 @@ namespace LinuxSampler {
             virtual String DiskStreamBufferFillPercentage() = 0;
             virtual String Description() = 0;
             virtual String Version() = 0;
+            virtual String EngineName() = 0;
+            virtual String InstrumentFileName() = 0;
+            virtual int    InstrumentIndex() = 0;
     };
 }
 
