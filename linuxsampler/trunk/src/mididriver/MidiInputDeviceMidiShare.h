@@ -21,21 +21,19 @@
  *   MA  02111-1307  USA                                                   *
  ***************************************************************************/
 
-#ifndef __LS_MIDIINPUTDEVICEMIDISHARE1_H__
-#define __LS_MIDIINPUTDEVICEMIDISHARE1_H__
+#ifndef __LS_MIDIINPUTDEVICEMIDISHARE_H__
+#define __LS_MIDIINPUTDEVICEMIDISHARE_H__
 
 #include <MidiShare.h>
 
 #include "../common/global.h"
-#include "../common/Thread.h"
-#include "../common/RingBuffer.h"
 #include "MidiInputDevice.h"
 
 namespace LinuxSampler {
 
     /** MidiShare input driver
      *
-     * Implements MIDI input using MidiShare 
+     * Implements MIDI input using MidiShare (www.grame.fr/MidiShare)
      */
     class MidiInputDeviceMidiShare : public MidiInputDevice {
         public:
@@ -69,4 +67,4 @@ namespace LinuxSampler {
    };
 }
 
-#endif // __LS_MIDIINPUTDEVICEMIDISHARE1_H__
+#endif // __LS_MIDIINPUTDEVICEMIDISHARE_H__

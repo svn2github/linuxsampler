@@ -27,15 +27,13 @@
 #include <CoreMIDI/MIDIServices.h>
 
 #include "../common/global.h"
-#include "../common/Thread.h"
-#include "../common/RingBuffer.h"
 #include "MidiInputDevice.h"
 
 namespace LinuxSampler {
 
     /** Core MIDI input driver
      *
-     * Implements MIDI input for MacOSX CoreMid architecture
+     * Implements MIDI input for MacOSX CoreMidi architecture
      */
     class MidiInputDeviceCoreMidi : public MidiInputDevice {
         public:
