@@ -35,7 +35,7 @@
 /// Abstract base class for classes that need to run in an own thread.
 class Thread {
     public:
-        Thread(bool RealTime, int PriorityMax, int PriorityDelta);
+        Thread(bool LockMemory, bool RealTime, int PriorityMax, int PriorityDelta);
         virtual ~Thread();
         virtual int  StartThread();
         virtual int  StopThread();
@@ -43,6 +43,7 @@ class Thread {
         virtual int  SignalStopThread();
         virtual bool IsRunning() { return Running; }
         virtual int  SetSchedulingPriority(); //FIXME: should be private
+        virtual int  LockMemory();            //FIXME: should be private
         virtual void EnableDestructor();      //FIXME: should be private
         virtual int  Destructor();            //FIXME: should be private
         virtual int  Main() = 0; ///< This method needs to be implemented by the descendant and is the entry point for the new thread. FIXME: should be protected
@@ -56,6 +57,7 @@ class Thread {
         int             PriorityDelta;
         bool            Running;
         bool            isRealTime;
+        bool            bLockedMemory;
 };
 
 // Callback functions for the POSIX thread API

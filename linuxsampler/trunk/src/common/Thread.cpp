@@ -22,7 +22,8 @@
 
 #include "Thread.h"
 
-Thread::Thread(bool RealTime, int PriorityMax, int PriorityDelta) {
+Thread::Thread(bool LockMemory, bool RealTime, int PriorityMax, int PriorityDelta) {
+    this->bLockedMemory     = LockMemory;
     this->isRealTime        = RealTime;
     this->Running           = false;
     this->PriorityDelta     = PriorityDelta;
@@ -129,10 +130,6 @@ int Thread::SetSchedulingPriority() {
 
     if (!isRealTime) return 0;
 
-    if (mlockall(MCL_CURRENT | MCL_FUTURE) < 0) {
-        perror("WARNING, can't mlockall() memory!");
-    }
-
     /*
      * set the process to realtime privs
      */
@@ -145,10 +142,22 @@ int Thread::SetSchedulingPriority() {
     }
 
     if (sched_setscheduler(0, SCHED_FIFO, &schp) != 0) {
-        perror("sched_setscheduler");
+        perror("Thread: WARNING, can't assign realtime scheduling to thread!");
         return -1;
     }
 #endif
+    return 0;
+}
+
+/**
+ * Locks the memory so it will not be swapped out by the operating system.
+ */
+int Thread::LockMemory() {
+    if (!bLockedMemory) return 0;
+    if (mlockall(MCL_CURRENT | MCL_FUTURE) < 0) {
+        perror("Thread: WARNING, can't mlockall() memory!");
+        return -1;
+    }
     return 0;
 }
 
@@ -184,6 +193,7 @@ void* __pthread_launcher(void* thread) {
     Thread* t;
     t = (Thread*) thread;
     t->SetSchedulingPriority();
+    t->LockMemory();
     t->EnableDestructor();
     t->Main();
 }

@@ -185,7 +185,7 @@ namespace LinuxSampler { namespace gig {
     // #         (following code should only be executed by the disk thread)
 
 
-    DiskThread::DiskThread(uint BufferWrapElements) : Thread(false, 1, -2) {
+    DiskThread::DiskThread(uint BufferWrapElements) : Thread(true, false, 1, -2) {
         DecompressionBuffer = ::gig::Sample::CreateDecompressionBuffer(MAX_REFILL_SIZE);
         CreationQueue       = new RingBuffer<create_command_t>(1024);
         DeletionQueue       = new RingBuffer<delete_command_t>(1024);

@@ -290,7 +290,7 @@ namespace LinuxSampler {
      * @param Parameters - optional parameters
      * @throws AudioOutputException  if output device cannot be opened
      */
-    AudioOutputDeviceAlsa::AudioOutputDeviceAlsa(std::map<String,DeviceCreationParameter*> Parameters) : AudioOutputDevice(Parameters), Thread(true, 1, 0) {
+    AudioOutputDeviceAlsa::AudioOutputDeviceAlsa(std::map<String,DeviceCreationParameter*> Parameters) : AudioOutputDevice(Parameters), Thread(true, true, 1, 0) {
         pcm_handle           = NULL;
         stream               = SND_PCM_STREAM_PLAYBACK;
         this->uiAlsaChannels = ((DeviceCreationParameterInt*)Parameters["CHANNELS"])->ValueAsInt();
@@ -512,7 +512,7 @@ namespace LinuxSampler {
     }
 
     String AudioOutputDeviceAlsa::Version() {
-       String s = "$Revision: 1.16 $";
+       String s = "$Revision: 1.17 $";
        return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
 

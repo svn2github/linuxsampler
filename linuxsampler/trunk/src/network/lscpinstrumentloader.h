@@ -47,8 +47,6 @@ class LSCPInstrumentLoader : public Thread {
         virtual ~LSCPInstrumentLoader();
     protected:
         struct command_t {
-            String* pFilename;
-            uint    uiInstrumentIndex;
             Engine* pEngine;
         };
 

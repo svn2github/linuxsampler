@@ -144,7 +144,7 @@ namespace LinuxSampler {
 // *************** MidiInputDeviceAlsa ***************
 // *
 
-    MidiInputDeviceAlsa::MidiInputDeviceAlsa(std::map<String,DeviceCreationParameter*> Parameters) : MidiInputDevice(Parameters), Thread(true, 1, -1) {
+    MidiInputDeviceAlsa::MidiInputDeviceAlsa(std::map<String,DeviceCreationParameter*> Parameters) : MidiInputDevice(Parameters), Thread(true, true, 1, -1) {
         if (snd_seq_open(&hAlsaSeq, "default", SND_SEQ_OPEN_INPUT, 0) < 0) {
             throw MidiInputException("Error opening ALSA sequencer");
         }
@@ -185,7 +185,7 @@ namespace LinuxSampler {
     }
 
     String MidiInputDeviceAlsa::Version() {
-	    String s = "$Revision: 1.12 $";
+	    String s = "$Revision: 1.13 $";
 	    return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
 

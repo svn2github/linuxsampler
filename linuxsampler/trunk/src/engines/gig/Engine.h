@@ -72,7 +72,8 @@ namespace LinuxSampler { namespace gig {
            ~Engine();
 
             // abstract methods derived from class 'LinuxSampler::Engine'
-            virtual void   LoadInstrument(const char* FileName, uint Instrument);
+            virtual void   PrepareLoadInstrument(const char* FileName, uint Instrument);
+            virtual void   LoadInstrument();
             virtual void   Reset();
             virtual void   Enable();
             virtual void   Disable();

@@ -56,7 +56,8 @@ namespace LinuxSampler {
             // abstract methods
             //     (these have to be implemented by the descendant)
 
-            virtual void   LoadInstrument(const char* FileName, uint Instrument) = 0;
+            virtual void   PrepareLoadInstrument(const char* FileName, uint Instrument) = 0;
+            virtual void   LoadInstrument() = 0;
             virtual void   Reset() = 0;
             virtual void   Enable() = 0;
             virtual void   Disable() = 0;

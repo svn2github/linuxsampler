@@ -53,7 +53,7 @@ Mutex LSCPServer::NotifyBufferMutex = Mutex();
 Mutex LSCPServer::SubscriptionMutex = Mutex();
 Mutex LSCPServer::RTNotifyMutex = Mutex();
 
-LSCPServer::LSCPServer(Sampler* pSampler) : Thread(false, 0, -4) {
+LSCPServer::LSCPServer(Sampler* pSampler) : Thread(true, false, 0, -4) {
     this->pSampler = pSampler;
     LSCPEvent::RegisterEvent(LSCPEvent::event_channels, "CHANNELS");
     LSCPEvent::RegisterEvent(LSCPEvent::event_voice_count, "VOICE_COUNT");
@@ -454,7 +454,12 @@ String LSCPServer::LoadInstrument(String Filename, uint uiInstrument, uint uiSam
         if (bBackground) {
             InstrumentLoader.StartNewLoad(Filename, uiInstrument, pEngine);
         }
-        else pEngine->LoadInstrument(Filename.c_str(), uiInstrument);
+        else {
+            // tell the engine which instrument to load
+            pEngine->PrepareLoadInstrument(Filename.c_str(), uiInstrument);
+            // actually start to load the instrument (blocks until completed)
+            pEngine->LoadInstrument();
+        }
     }
     catch (LinuxSamplerException e) {
          result.Error(e);

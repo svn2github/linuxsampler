@@ -215,14 +215,31 @@ namespace LinuxSampler { namespace gig {
     }
 
     /**
-     *  Load an instrument from a .gig file.
+     * More or less a workaround to set the instrument name, index and load
+     * status variable to zero percent immediately, that is without blocking
+     * the calling thread. It might be used in future for other preparations
+     * as well though.
      *
-     *  @param FileName   - file name of the Gigasampler instrument file
-     *  @param Instrument - index of the instrument in the .gig file
-     *  @throws LinuxSamplerException  on error
-     *  @returns          detailed description of the method call result
+     * @param FileName   - file name of the Gigasampler instrument file
+     * @param Instrument - index of the instrument in the .gig file
+     * @see LoadInstrument()
      */
-    void Engine::LoadInstrument(const char* FileName, uint Instrument) {
+    void Engine::PrepareLoadInstrument(const char* FileName, uint Instrument) {
+        InstrumentFile = FileName;
+        InstrumentIdx  = Instrument;
+        InstrumentStat = 0;
+    }
+
+    /**
+     * Load an instrument from a .gig file. PrepareLoadInstrument() has to
+     * be called first to provide the information which instrument to load.
+     * This method will then actually start to load the instrument and block
+     * the calling thread until loading was completed.
+     *
+     * @returns detailed description of the method call result
+     * @see PrepareLoadInstrument()
+     */
+    void Engine::LoadInstrument() {
 
         DisableAndLock();
 
@@ -234,18 +251,14 @@ namespace LinuxSampler { namespace gig {
             Instruments.HandBack(pInstrument, this);
         }
 
-	InstrumentFile = FileName;
-	InstrumentIdx = Instrument;
-	InstrumentStat = 0;
-
         // delete all key groups
         ActiveKeyGroups.clear();
 
         // request gig instrument from instrument manager
         try {
             instrument_id_t instrid;
-            instrid.FileName    = FileName;
-            instrid.iInstrument = Instrument;
+            instrid.FileName    = InstrumentFile;
+            instrid.iInstrument = InstrumentIdx;
             pInstrument = Instruments.Borrow(instrid, this);
             if (!pInstrument) {
                 InstrumentStat = -1;
@@ -1199,7 +1212,7 @@ namespace LinuxSampler { namespace gig {
     }
 
     String Engine::Version() {
-        String s = "$Revision: 1.24 $";
+        String s = "$Revision: 1.25 $";
         return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
 

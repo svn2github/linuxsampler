@@ -20,7 +20,7 @@
 
 #include "lscpinstrumentloader.h"
 
-LSCPInstrumentLoader::LSCPInstrumentLoader() : Thread(false, 0, -4) {
+LSCPInstrumentLoader::LSCPInstrumentLoader() : Thread(true, false, 0, -4) {
     pQueue = new RingBuffer<command_t>(INSTRUMENT_LOADER_QUEUE_SIZE);
 }
 
@@ -39,10 +39,11 @@ LSCPInstrumentLoader::~LSCPInstrumentLoader() {
  * @param pEngine - engine on which the instrument should be loaded
  */
 void LSCPInstrumentLoader::StartNewLoad(String Filename, uint uiInstrumentIndex, Engine* pEngine) {
+    // already tell the engine which instrument to load
+    pEngine->PrepareLoadInstrument(Filename.c_str(), uiInstrumentIndex);
+
     command_t cmd;
-    cmd.pFilename         = new String(Filename);
-    cmd.uiInstrumentIndex = uiInstrumentIndex;
-    cmd.pEngine           = pEngine;
+    cmd.pEngine = pEngine;
     pQueue->push(&cmd);
     StartThread(); // ensure thread is running
     conditionJobsLeft.Set(true); // wake up thread
@@ -55,12 +56,11 @@ int LSCPInstrumentLoader::Main() {
             command_t cmd;
             pQueue->pop(&cmd);
             try {
-                cmd.pEngine->LoadInstrument(cmd.pFilename->c_str(), cmd.uiInstrumentIndex);
+                cmd.pEngine->LoadInstrument();
             }
             catch (LinuxSamplerException e) {
                 e.PrintMessage();
             }
-            delete cmd.pFilename;
             // Always re-enable the engine.
             cmd.pEngine->Enable();
         }
