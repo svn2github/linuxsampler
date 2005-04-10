@@ -173,6 +173,11 @@ AM_INIT_AUTOMAKE(linuxsampler, 0.3.0)
 
 AC_LANG_CPLUSPLUS
 AC_PROG_CXX
+
+# autoconf 2.59/libtool 1.5.12 bug? work-around. Without a check like
+# this, the dlfcn.h check in am_prog_libtool may fail.
+AC_CHECK_HEADER(stdlib.h)
+
 AM_PROG_LIBTOOL
 
 AC_OUTPUT(Makefile src/Makefile src/network/Makefile src/engines/Makefile src/engines/gig/Makefile src/engines/common/Makefile src/common/Makefile src/lib/Makefile src/lib/fileloader/Makefile src/lib/fileloader/libgig/Makefile src/testcases/Makefile src/drivers/Makefile src/drivers/audio/Makefile src/drivers/midi/Makefile)

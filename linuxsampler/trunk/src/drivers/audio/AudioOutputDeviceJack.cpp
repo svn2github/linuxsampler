@@ -225,7 +225,7 @@ namespace LinuxSampler {
     }
 
     bool AudioOutputDeviceJack::IsPlaying() {
-        csIsPlaying.GetUnsafe();
+        return csIsPlaying.GetUnsafe();
     }
 
     void AudioOutputDeviceJack::Stop() {
@@ -257,7 +257,7 @@ namespace LinuxSampler {
     }
 
     String AudioOutputDeviceJack::Version() {
-       String s = "$Revision: 1.18 $";
+       String s = "$Revision: 1.19 $";
        return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
 

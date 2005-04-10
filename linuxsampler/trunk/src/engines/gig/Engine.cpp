@@ -660,27 +660,27 @@ namespace LinuxSampler { namespace gig {
         // release voices on this key if needed
         if (pKey->Active && !pEngineChannel->SustainPedal) {
             itNoteOffEvent->Type = Event::type_release; // transform event type
-        }
 
-        // move event to the key's own event list
-        RTList<Event>::Iterator itNoteOffEventOnKeyList = itNoteOffEvent.moveToEndOf(pKey->pEvents);
+            // move event to the key's own event list
+            RTList<Event>::Iterator itNoteOffEventOnKeyList = itNoteOffEvent.moveToEndOf(pKey->pEvents);
 
-        // spawn release triggered voice(s) if needed
-        if (pKey->ReleaseTrigger) {
-            // first, get total amount of required voices (dependant on amount of layers)
-            ::gig::Region* pRegion = pEngineChannel->pInstrument->GetRegion(itNoteOffEventOnKeyList->Param.Note.Key);
-            if (pRegion) {
-                int voicesRequired = pRegion->Layers;
-                // now launch the required amount of voices
-                for (int i = 0; i < voicesRequired; i++)
-                    LaunchVoice(pEngineChannel, itNoteOffEventOnKeyList, i, true, false); //FIXME: for the moment we don't perform voice stealing for release triggered samples
+            // spawn release triggered voice(s) if needed
+            if (pKey->ReleaseTrigger) {
+                // first, get total amount of required voices (dependant on amount of layers)
+                ::gig::Region* pRegion = pEngineChannel->pInstrument->GetRegion(itNoteOffEventOnKeyList->Param.Note.Key);
+                if (pRegion) {
+                    int voicesRequired = pRegion->Layers;
+                    // now launch the required amount of voices
+                    for (int i = 0; i < voicesRequired; i++)
+                        LaunchVoice(pEngineChannel, itNoteOffEventOnKeyList, i, true, false); //FIXME: for the moment we don't perform voice stealing for release triggered samples
+                }
+                pKey->ReleaseTrigger = false;
             }
-            pKey->ReleaseTrigger = false;
-        }
 
-        // if neither a voice was spawned or postponed then remove note off event from key again
-        if (!pKey->Active && !pKey->VoiceTheftsQueued)
-            pKey->pEvents->free(itNoteOffEventOnKeyList);
+            // if neither a voice was spawned or postponed then remove note off event from key again
+            if (!pKey->Active && !pKey->VoiceTheftsQueued)
+                pKey->pEvents->free(itNoteOffEventOnKeyList);
+        }
     }
 
     /**
@@ -1199,7 +1199,7 @@ namespace LinuxSampler { namespace gig {
     }
 
     String Engine::Version() {
-        String s = "$Revision: 1.35 $";
+        String s = "$Revision: 1.36 $";
         return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
 

@@ -1,7 +1,7 @@
 INCLUDES = $(all_includes)
 METASOURCES = AUTO
 
-AM_CXXFLAGS = -ffast-math -fpermissive
+AM_CXXFLAGS = -ffast-math
 
 noinst_LTLIBRARIES = liblinuxsamplergigengine.la
 liblinuxsamplergigengine_la_SOURCES = DiskThread.cpp DiskThread.h EGADSR.cpp \

@@ -67,6 +67,20 @@ namespace LinuxSampler { namespace gig {
 
     template<implementation_t IMPLEMENTATION, channels_t CHANNELS, bool USEFILTER, bool INTERPOLATE, bool DOLOOP, bool CONSTPITCH>
     class Synthesizer : public __RTMath<IMPLEMENTATION>, public LinuxSampler::Resampler<INTERPOLATE> {
+
+            // declarations of derived functions (see "Name lookup,
+            // templates, and accessing members of base classes" in
+            // the gcc manual for an explanation of why this is
+            // needed).
+            using __RTMath<IMPLEMENTATION>::Mul;
+            using __RTMath<IMPLEMENTATION>::Float;
+            using LinuxSampler::Resampler<INTERPOLATE>::GetNextSampleMonoCPP;
+            using LinuxSampler::Resampler<INTERPOLATE>::GetNextSampleStereoCPP;
+#if ARCH_X86
+            using LinuxSampler::Resampler<INTERPOLATE>::GetNext4SamplesMonoMMXSSE;
+            using LinuxSampler::Resampler<INTERPOLATE>::GetNext4SamplesStereoMMXSSE;
+#endif
+
         public:
             template<typename VOICE_T>
             inline static void SynthesizeFragment(VOICE_T& Voice, uint Samples, sample_t* pSrc, uint i) {

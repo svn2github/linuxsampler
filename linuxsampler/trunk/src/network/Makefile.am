@@ -1,7 +1,7 @@
 INCLUDES = $(all_includes)
 METASOURCES = AUTO
 
-AM_CXXFLAGS = -ffast-math -march=$(target_cpu) -mcpu=$(target_cpu)
+AM_CXXFLAGS = -ffast-math -march=$(target_cpu)
 
 if HAVE_SQLITE3
 sqlite3_lflags = $(SQLITE3_LIBS)

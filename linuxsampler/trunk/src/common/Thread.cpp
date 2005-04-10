@@ -187,6 +187,7 @@ int Thread::Destructor() {
     Running = false;
     pthread_mutex_unlock(&__thread_state_mutex);
     pthread_cond_broadcast(&__thread_exit_condition);
+    return 0;
 }
 
 /// Callback function for the POSIX thread API
@@ -198,6 +199,7 @@ void* __pthread_launcher(void* thread) {
     t->LockMemory();
     t->EnableDestructor();
     t->Main();
+    return NULL;
 }
 
 /// Callback function for the POSIX thread API

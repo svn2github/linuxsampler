@@ -1,7 +1,7 @@
 # set the include path found by configure
 INCLUDES= $(all_includes)
 
-AM_CXXFLAGS = -ffast-math -march=$(target_cpu) -mcpu=$(target_cpu)
+AM_CXXFLAGS = -ffast-math -march=$(target_cpu)
 
 SUBDIRS = network engines common lib testcases drivers
 
@@ -13,7 +13,6 @@ liblinuxsampler_la_LIBADD = \
 	$(top_builddir)/src/engines/liblinuxsamplerengines.la $(top_builddir)/src/drivers/liblinuxsamplerdrivers.la \
 	$(top_builddir)/src/drivers/audio/liblinuxsampleraudiodriver.la $(top_builddir)/src/drivers/midi/liblinuxsamplermididriver.la \
 	$(top_builddir)/src/common/liblinuxsamplercommon.la
-liblinuxsampler_la_LDFLAGS = -module
 
 bin_PROGRAMS = linuxsampler
 linuxsampler_SOURCES = linuxsampler.cpp
