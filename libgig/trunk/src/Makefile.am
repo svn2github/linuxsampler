@@ -16,7 +16,7 @@ libgiginclude_HEADERS = RIFF.h DLS.h gig.h
 
 lib_LTLIBRARIES = libgig.la
 libgig_la_SOURCES = RIFF.cpp DLS.cpp gig.cpp
-libgig_la_LDFLAGS = -module -version-info @SHARED_VERSION_INFO@ @SHLIB_VERSION_ARG@
+libgig_la_LDFLAGS = -version-info @SHARED_VERSION_INFO@ @SHLIB_VERSION_ARG@
 
 bin_PROGRAMS = rifftree dlsdump gigdump gigextract
 rifftree_SOURCES = rifftree.cpp

@@ -35,7 +35,7 @@ AC_SUBST(SHARED_VERSION_INFO)
 
 have_audio_file_lib="false"
 
-// check for presence of libsndfile
+# check for presence of libsndfile
 PKG_CHECK_MODULES(SNDFILE, sndfile >= 1.0.2, ac_cv_sndfile=1, ac_cv_sndfile=0)
 AM_CONDITIONAL(HAVE_SNDFILE, test $ac_cv_sndfile = "1")
 AC_DEFINE_UNQUOTED([HAVE_SNDFILE],${ac_cv_sndfile}, [Set to 1 if you have libsndfile.])
@@ -45,7 +45,7 @@ if test "$ac_cv_sndfile" = "1"; then
     have_audio_file_lib="true";
 fi
 
-// check for presence of libaudiofile
+# check for presence of libaudiofile
 PKG_CHECK_MODULES(AUDIOFILE, audiofile >= 0.2.3, ac_cv_audiofile=1, ac_cv_audiofile=0)
 AC_DEFINE_UNQUOTED([HAVE_AUDIOFILE],${ac_cv_audiofile}, [Set to 1 if you have libaudiofile.])
 AC_SUBST(AUDIOFILE_CFLAGS)
