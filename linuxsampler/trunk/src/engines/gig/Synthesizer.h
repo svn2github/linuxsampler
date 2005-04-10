@@ -215,8 +215,8 @@ namespace LinuxSampler { namespace gig {
                             //now the fmodf
                             "movss    %%xmm1, %%xmm3    # xmm3 = (Pos - LoopEnd)\n\t"
                             "divss    %%xmm2, %%xmm1    # (Pos - LoopEnd) / LoopSize\n\t"
-                            "cvttss2si %%xmm1, %%eax    # convert to int\n\t"
-                            "cvtsi2ss  %%eax, %%xmm1    # convert back to float\n\t"
+                            "cvttss2si %%xmm1, %2    # convert to int\n\t"
+                            "cvtsi2ss  %2, %%xmm1    # convert back to float\n\t"
                             "movss    (%4), %%xmm0      # load LoopStart\n\t"
                             "mulss    %%xmm2, %%xmm1    # LoopSize * int((Pos-LoopEnd)/LoopSize)\n\t"
                             "subss    %%xmm1, %%xmm3    # xmm2 = fmodf(Pos - LoopEnd, LoopSize)\n\t"
