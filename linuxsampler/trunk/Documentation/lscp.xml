@@ -234,7 +234,7 @@ Schoenebeck'>
                             <t>C: "GET AUDIO_OUTPUT_DEVICE INFO 123456"</t>
                             <t>S: "ERR:9:There is no audio output device with index 123456."</t>
                         </list>
-                    </t>                    
+                    </t>
                     <t>Normal result sets could be:</t>
                     <t>
                         <list style="numbers">
@@ -2603,9 +2603,9 @@ Schoenebeck'>
                             <t>SET CHANNEL AUDIO_OUTPUT_CHANNEL &lt;sampler-chan&gt; &lt;audio-out&gt; &lt;audio-in&gt;</t>
                         </list>
                     </t>
-                    <t>Where &lt;sampler-chan&gt; is the sampler channel, &lt;audio-out&gt; is the
-                    sampler channel's audio output channel which should be
-                    rerouted and &lt;audio-in&gt; the audio channel of the selected audio
+                    <t>Where &lt;sampler-chan&gt; is the sampler channel number, &lt;audio-out&gt; is the
+                    numerical ID of the sampler channel's audio output channel which should be
+                    rerouted and &lt;audio-in&gt; is the numerical ID of the audio channel of the selected audio
                     output device where &lt;audio-out&gt; should be routed to.</t>
 
                     <t>Possible Answers:</t>
@@ -2646,7 +2646,8 @@ Schoenebeck'>
                             <t>SET CHANNEL MIDI_INPUT_DEVICE &lt;sampler-channel&gt; &lt;midi-device-id&gt;</t>
                         </list>
                     </t>
-                    <t></t>
+                    <t>Where &lt;sampler-channel&gt; is the sampler channel number and &lt;midi-device-id&gt; is the
+                    the numerical ID of the MIDI input device.</t>
 
                     <t>Possible Answers:</t>
                     <t>
@@ -2722,7 +2723,7 @@ Schoenebeck'>
                 </section>
 
                 <section title="Setting MIDI input port">
-                    <t>The front-end can alter the input MIDI port on a specific sampler
+                    <t>The front-end can alter the MIDI input port on a specific sampler
                     channel by sending the following command:</t>
                     <t>
                         <list>
@@ -2771,7 +2772,7 @@ Schoenebeck'>
                             <t>SET CHANNEL MIDI_INPUT_CHANNEL &lt;sampler-channel&gt; &lt;midi-input-chan&gt;</t>
                         </list>
                     </t>
-                    <t>Where &lt;midi-input-chan&gt; is the new MIDI input channel where
+                    <t>Where &lt;midi-input-chan&gt; is the number of the new MIDI input channel where
                     &lt;sampler-channel&gt; should listen to or "ALL" to listen on all 16 MIDI
                     channels.</t>
 
@@ -3099,11 +3100,11 @@ Schoenebeck'>
                 <t>Server will start sending the following notification messages:</t>
                 <t>
                     <list>
-                        <t>"NOTIFY:VOICE_COUNT:&lt;sampler-channel&gt; &lt;voices>&gt;</t>
+                        <t>"NOTIFY:VOICE_COUNT:&lt;sampler-channel&gt; &lt;voices&gt;</t>
                     </list>
                 </t>
                 <t>where &lt;sampler-channel&gt; will be replaced by the sampler channel the
-                voice count change occurred and &lt;voices>&gt; by the new number of
+                voice count change occurred and &lt;voices&gt; by the new number of
                 active voices on that channel.</t>
             </section>
 
@@ -3127,8 +3128,8 @@ Schoenebeck'>
             </section>
 
             <section title="Disk stream buffer fill state changed">
-                <t>Client may want to be notified when the number of streams on the back-end
-                changes by issuing the following command:</t>
+                <t>Client may want to be notified when the buffer fill state of a disk stream
+                on the back-end changes by issuing the following command:</t>
                 <t>
                     <list>
                         <t>SUBSCRIBE BUFFER_FILL</t>
@@ -3142,7 +3143,7 @@ Schoenebeck'>
                 </t>
                 <t>where &lt;sampler-channel&gt; will be replaced by the sampler channel the
                 buffer fill state change occurred and &lt;fill-data&gt; will be replaced by the
-                buffer fill data for this channel as described in 4.4.12 as if the
+                buffer fill data for this channel as described in 5.4.12 as if the
                 "GET CHANNEL BUFFER_FILL PERCENTAGE" was issued on this channel.</t>
             </section>
 
