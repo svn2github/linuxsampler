@@ -169,11 +169,11 @@
 		};
 		4B05563C07AFF919006F77BE = {
 			children = (
-				4BC608E307BB628C00D981F7,
-				4BC608E407BB628C00D981F7,
-				4BC608E507BB628C00D981F7,
-				4BC608E607BB628C00D981F7,
-				4BC608E707BB628C00D981F7,
+				4BEE662F081F81D100961A04,
+				4BEE6630081F81D100961A04,
+				4BEE6631081F81D100961A04,
+				4BEE6632081F81D100961A04,
+				4BEE6633081F81D100961A04,
 				4B05563D07AFF919006F77BE,
 				4B05564F07AFF919006F77BE,
 			);
@@ -218,6 +218,10 @@
 		};
 		4B05565D07AFF919006F77BE = {
 			children = (
+				4BB69B8C07D4E4C50097E8C5,
+				4BB69B8D07D4E4C50097E8C5,
+				4BB69B8E07D4E4C50097E8C5,
+				4BB69B8F07D4E4C50097E8C5,
 				4B05565E07AFF919006F77BE,
 				4B05566607AFF919006F77BE,
 			);
@@ -242,6 +246,9 @@
 		};
 		4B05566607AFF919006F77BE = {
 			children = (
+				4BB69B9707D4E5030097E8C5,
+				4BB69B9807D4E5030097E8C5,
+				4BB69B9907D4E5030097E8C5,
 				4BC6091207BB62E600D981F7,
 				4BC6091307BB62E600D981F7,
 				4BC6091407BB62E600D981F7,
@@ -376,18 +383,6 @@
 		};
 		4B80F97207BB644A0079F315 = {
 			fileRef = 4BC608B207BB5B5D00D981F7;
-			isa = PBXBuildFile;
-			settings = {
-			};
-		};
-		4B80F97307BB644A0079F315 = {
-			fileRef = 4BC608E507BB628C00D981F7;
-			isa = PBXBuildFile;
-			settings = {
-			};
-		};
-		4B80F97407BB644B0079F315 = {
-			fileRef = 4BC608E307BB628C00D981F7;
 			isa = PBXBuildFile;
 			settings = {
 			};
@@ -568,6 +563,87 @@
 		};
 		4B80F99307BB64630079F315 = {
 			fileRef = 4BC6091607BB62E600D981F7;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		4BB69B8C07D4E4C50097E8C5 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.cpp.cpp;
+			name = EngineChannelFactory.cpp;
+			path = ../src/engines/EngineChannelFactory.cpp;
+			refType = 2;
+			sourceTree = SOURCE_ROOT;
+		};
+		4BB69B8D07D4E4C50097E8C5 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.h;
+			name = EngineChannelFactory.h;
+			path = ../src/engines/EngineChannelFactory.h;
+			refType = 2;
+			sourceTree = SOURCE_ROOT;
+		};
+		4BB69B8E07D4E4C50097E8C5 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.cpp.cpp;
+			name = EngineFactory.cpp;
+			path = ../src/engines/EngineFactory.cpp;
+			refType = 2;
+			sourceTree = SOURCE_ROOT;
+		};
+		4BB69B8F07D4E4C50097E8C5 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.h;
+			name = EngineFactory.h;
+			path = ../src/engines/EngineFactory.h;
+			refType = 2;
+			sourceTree = SOURCE_ROOT;
+		};
+		4BB69B9307D4E4E10097E8C5 = {
+			fileRef = 4BB69B8C07D4E4C50097E8C5;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		4BB69B9407D4E4E20097E8C5 = {
+			fileRef = 4BB69B8E07D4E4C50097E8C5;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		4BB69B9707D4E5030097E8C5 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.cpp.cpp;
+			name = EngineChannel.cpp;
+			path = ../src/engines/gig/EngineChannel.cpp;
+			refType = 2;
+			sourceTree = SOURCE_ROOT;
+		};
+		4BB69B9807D4E5030097E8C5 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.h;
+			name = EngineChannel.h;
+			path = ../src/engines/gig/EngineChannel.h;
+			refType = 2;
+			sourceTree = SOURCE_ROOT;
+		};
+		4BB69B9907D4E5030097E8C5 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.h;
+			name = EngineGlobals.h;
+			path = ../src/engines/gig/EngineGlobals.h;
+			refType = 2;
+			sourceTree = SOURCE_ROOT;
+		};
+		4BB69B9A07D4E5070097E8C5 = {
+			fileRef = 4BB69B9707D4E5030097E8C5;
 			isa = PBXBuildFile;
 			settings = {
 			};
@@ -841,51 +917,6 @@
 			path = ../src/drivers/audio/AudioChannel.h;
 			refType = 2;
 			sourceTree = SOURCE_ROOT;
-		};
-		4BC608E307BB628C00D981F7 = {
-			fileEncoding = 30;
-			isa = PBXFileReference;
-			lastKnownFileType = sourcecode.cpp.cpp;
-			name = DeviceParameterFactory.cpp;
-			path = /Volumes/Document1/Developpement/ProjectsCVS/LinuxSamplerCVS/linuxsampler/src/drivers/DeviceParameterFactory.cpp;
-			refType = 0;
-			sourceTree = "<absolute>";
-		};
-		4BC608E407BB628C00D981F7 = {
-			fileEncoding = 30;
-			isa = PBXFileReference;
-			lastKnownFileType = sourcecode.c.h;
-			name = Device.h;
-			path = /Volumes/Document1/Developpement/ProjectsCVS/LinuxSamplerCVS/linuxsampler/src/drivers/Device.h;
-			refType = 0;
-			sourceTree = "<absolute>";
-		};
-		4BC608E507BB628C00D981F7 = {
-			fileEncoding = 30;
-			isa = PBXFileReference;
-			lastKnownFileType = sourcecode.cpp.cpp;
-			name = DeviceParameter.cpp;
-			path = /Volumes/Document1/Developpement/ProjectsCVS/LinuxSamplerCVS/linuxsampler/src/drivers/DeviceParameter.cpp;
-			refType = 0;
-			sourceTree = "<absolute>";
-		};
-		4BC608E607BB628C00D981F7 = {
-			fileEncoding = 30;
-			isa = PBXFileReference;
-			lastKnownFileType = sourcecode.c.h;
-			name = DeviceParameter.h;
-			path = /Volumes/Document1/Developpement/ProjectsCVS/LinuxSamplerCVS/linuxsampler/src/drivers/DeviceParameter.h;
-			refType = 0;
-			sourceTree = "<absolute>";
-		};
-		4BC608E707BB628C00D981F7 = {
-			fileEncoding = 30;
-			isa = PBXFileReference;
-			lastKnownFileType = sourcecode.c.h;
-			name = DeviceParameterFactory.h;
-			path = /Volumes/Document1/Developpement/ProjectsCVS/LinuxSamplerCVS/linuxsampler/src/drivers/DeviceParameterFactory.h;
-			refType = 0;
-			sourceTree = "<absolute>";
 		};
 		4BC608ED07BB62A600D981F7 = {
 			fileEncoding = 30;
@@ -1391,8 +1422,6 @@
 				4B80F97007BB64480079F315,
 				4B80F97107BB64490079F315,
 				4B80F97207BB644A0079F315,
-				4B80F97307BB644A0079F315,
-				4B80F97407BB644B0079F315,
 				4B80F97507BB644C0079F315,
 				4B80F97607BB644C0079F315,
 				4B80F97707BB644D0079F315,
@@ -1423,6 +1452,11 @@
 				4B80F99207BB64630079F315,
 				4B80F99307BB64630079F315,
 				4B8048B807C4AB6E00166D22,
+				4BB69B9307D4E4E10097E8C5,
+				4BB69B9407D4E4E20097E8C5,
+				4BB69B9A07D4E5070097E8C5,
+				4BEE6648081F858C00961A04,
+				4BEE6649081F858D00961A04,
 			);
 			isa = PBXSourcesBuildPhase;
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1443,10 +1477,12 @@
 			buildRules = (
 			);
 			buildSettings = {
-				GCC_MODEL_CPU = G5;
-				GCC_MODEL_TUNING = G5;
+				GCC_MODEL_CPU = G3;
+				GCC_MODEL_TUNING = G3;
+				GCC_OPTIMIZATION_LEVEL = 3;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = version.h;
+				HEADER_SEARCH_PATHS = .;
 				INSTALL_PATH = /usr/local/bin;
 				LIBRARY_SEARCH_PATHS = /usr/lib/gcc/darwin/3.3;
 				OTHER_CFLAGS = "";
@@ -1472,6 +1508,63 @@
 			path = linuxsampler;
 			refType = 3;
 			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		4BEE662F081F81D100961A04 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.h;
+			name = Device.h;
+			path = ../src/drivers/Device.h;
+			refType = 2;
+			sourceTree = SOURCE_ROOT;
+		};
+		4BEE6630081F81D100961A04 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.cpp.cpp;
+			name = DeviceParameter.cpp;
+			path = ../src/drivers/DeviceParameter.cpp;
+			refType = 2;
+			sourceTree = SOURCE_ROOT;
+		};
+		4BEE6631081F81D100961A04 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.h;
+			name = DeviceParameter.h;
+			path = ../src/drivers/DeviceParameter.h;
+			refType = 2;
+			sourceTree = SOURCE_ROOT;
+		};
+		4BEE6632081F81D100961A04 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.cpp.cpp;
+			name = DeviceParameterFactory.cpp;
+			path = ../src/drivers/DeviceParameterFactory.cpp;
+			refType = 2;
+			sourceTree = SOURCE_ROOT;
+		};
+		4BEE6633081F81D100961A04 = {
+			fileEncoding = 30;
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.c.h;
+			name = DeviceParameterFactory.h;
+			path = ../src/drivers/DeviceParameterFactory.h;
+			refType = 2;
+			sourceTree = SOURCE_ROOT;
+		};
+		4BEE6648081F858C00961A04 = {
+			fileRef = 4BEE6630081F81D100961A04;
+			isa = PBXBuildFile;
+			settings = {
+			};
+		};
+		4BEE6649081F858D00961A04 = {
+			fileRef = 4BEE6632081F81D100961A04;
+			isa = PBXBuildFile;
+			settings = {
+			};
 		};
 //4B0
 //4B1
