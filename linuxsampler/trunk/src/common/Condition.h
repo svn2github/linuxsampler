@@ -43,7 +43,7 @@ class Condition : public Mutex {
         /**
          * Destructor
          */
-        ~Condition();
+        virtual ~Condition();
 
         /**
          * Blocks the calling thread if current condition equals

@@ -95,7 +95,7 @@ namespace LinuxSampler {
                 this->pManipulator  = pManipulator;
             }
 
-            ~LFO() {
+            virtual ~LFO() {
                 if (pEvents) delete pEvents;
             }
 

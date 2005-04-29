@@ -83,7 +83,7 @@ namespace LinuxSampler { namespace gig {
 
             // Methods
             Voice();
-           ~Voice();
+            virtual ~Voice();
             void Kill(Pool<Event>::Iterator& itKillEvent);
             void Render(uint Samples);
             void Reset();

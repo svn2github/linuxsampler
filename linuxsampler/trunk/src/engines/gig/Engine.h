@@ -63,7 +63,7 @@ namespace LinuxSampler { namespace gig {
         public:
             // methods
             Engine();
-           ~Engine();
+            virtual ~Engine();
             void Connect(AudioOutputDevice* pAudioOut);
 
             // implementation of abstract methods derived from class 'LinuxSampler::Engine'

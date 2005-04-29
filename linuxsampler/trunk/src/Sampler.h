@@ -151,7 +151,7 @@ namespace LinuxSampler {
 
         protected:
             SamplerChannel(Sampler* pS);
-           ~SamplerChannel();
+            virtual ~SamplerChannel();
 
             /** Getting MIDI input device port given its index number. */
             MidiInputPort* GetMidiInputDevicePort(int iMidiPort);
@@ -225,7 +225,7 @@ namespace LinuxSampler {
             /**
              * Destructor.
              */
-           ~Sampler();
+            virtual ~Sampler();
 
             /**
              * Returns the number of sampler channels currently allocated.

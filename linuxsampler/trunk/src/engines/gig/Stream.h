@@ -54,7 +54,7 @@ namespace LinuxSampler { namespace gig {
 
             // Methods
             Stream( ::gig::buffer_t* pDecompressionBuffer, uint BufferSize, uint BufferWrapElements);
-           ~Stream();
+            virtual ~Stream();
             int  ReadAhead(unsigned long SampleCount);
             void WriteSilence(unsigned long SilenceSampleWords);
 
