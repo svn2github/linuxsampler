@@ -9,7 +9,7 @@ using namespace std;
 
 // ConcurrentThread
 
-MutexTest::ConcurrentThread::ConcurrentThread() : Thread(false, 0, -4) {
+MutexTest::ConcurrentThread::ConcurrentThread() : Thread(false, false, 0, -4) {
     resource = 0;
 }
 
@@ -22,7 +22,7 @@ int MutexTest::ConcurrentThread::Main() {
 
 // DummyThread
 
-MutexTest::DummyThread::DummyThread() : Thread(false, 0, -4) {
+MutexTest::DummyThread::DummyThread() : Thread(false, false, 0, -4) {
     resource = 0;
 }
 

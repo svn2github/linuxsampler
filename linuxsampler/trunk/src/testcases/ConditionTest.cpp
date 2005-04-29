@@ -9,7 +9,7 @@ using namespace std;
 
 // ConditionChecker
 
-ConditionTest::ConditionChecker::ConditionChecker(bool waitFor) : Thread(false, 0, -4) {
+ConditionTest::ConditionChecker::ConditionChecker(bool waitFor) : Thread(false, false, 0, -4) {
     resource = 0;
     this->waitFor = waitFor;
 }
@@ -22,7 +22,7 @@ int ConditionTest::ConditionChecker::Main() {
 
 // ConditionSetter
 
-ConditionTest::ConditionSetter::ConditionSetter(Condition* condition, bool toSet) : Thread(false, 0, -4) {
+ConditionTest::ConditionSetter::ConditionSetter(Condition* condition, bool toSet) : Thread(false, false, 0, -4) {
     resource = 0;
     this->toSet = toSet;
     this->condition = condition;

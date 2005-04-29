@@ -9,7 +9,7 @@ using namespace std;
 
 // DummyThread
 
-ThreadTest::DummyThread::DummyThread() : Thread(false, 0, -4) {
+ThreadTest::DummyThread::DummyThread() : Thread(false, false, 0, -4) {
     wasRunning = false;
 }
 
@@ -21,7 +21,7 @@ int ThreadTest::DummyThread::Main() {
 
 // HelperThread
 
-ThreadTest::HelperThread::HelperThread(DummyThread* pDummyThread) : Thread(false, 0, -4) {
+ThreadTest::HelperThread::HelperThread(DummyThread* pDummyThread) : Thread(false, false, 0, -4) {
     returnedFromDummyStop = false;
     this->pDummyThread = pDummyThread;
 }
@@ -39,7 +39,7 @@ bool ThreadTest::HelperThread::dummyThreadWasNotRunningAnymoreAfter_StopThread_c
 
 // WaitingThread
 
-ThreadTest::WaitingThread::WaitingThread() : Thread(false, 0, -4) {
+ThreadTest::WaitingThread::WaitingThread() : Thread(false, false, 0, -4) {
 }
 
 int ThreadTest::WaitingThread::Main() {
