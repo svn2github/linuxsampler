@@ -1,5 +1,5 @@
 # to prevent compile errors on some systems
-AM_CXXFLAGS = -pedantic
+AM_CXXFLAGS = -pedantic -Wreturn-type
 
 # link gigextract either against libaudiofile or libsndfile
 # (if both exist on the system, prefer libsndfile)
