@@ -8,6 +8,10 @@ configure: configure.in
 	@autoheader
 	@automake --add-missing --copy
 	@autoconf
+	######################################################################
+	# If you are compiling LinuxSampler from CVS, make sure to use the   #
+	# latest version of libgig from CVS as well !                        #
+	######################################################################
 
 clean:
 	@if [ -f Makefile ]; then make distclean; fi || true

@@ -143,6 +143,19 @@ fi
 AM_CONDITIONAL(HAVE_JACK, test $HAVE_JACK = 1)
 AC_DEFINE_UNQUOTED(HAVE_JACK,$HAVE_JACK,[Define to 1 if you have JACK installed.])
 
+
+# Check presence of libgig
+libgig_version="1.0.0"
+PKG_CHECK_MODULES(GIG, gig >= $libgig_version, HAVE_GIG=true, HAVE_GIG=false)
+if test "$HAVE_GIG" = "false"; then
+    echo "Required libgig version not found!"
+    echo "You need to have libgig version ${libgig_version} installed!"
+    exit -1;
+fi
+AC_SUBST(GIG_CFLAGS)
+AC_SUBST(GIG_LIBS)
+
+
 # SQLITE3
 PKG_CHECK_MODULES(SQLITE3, sqlite3, HAVE_SQLITE3=true, HAVE_SQLITE3=false)
 AC_SUBST(SQLITE3_LIBS)
