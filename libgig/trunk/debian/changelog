@@ -1,9 +1,9 @@
-libgig (1.0.cvs02032005-1) unstable; urgency=low
+libgig (1.0.0cvs20050503-1) unstable; urgency=low
 
   * Updated to cvs version
-	
+
  -- Matt Flax <flatmax@pgb.unsw.edu.au>  Wed, 2 Mar 2005 11:40:49 +0100
-	
+
 libgig (1.0.0-1) unstable; urgency=low
 
   * New upstream release (Closes: #279932)
@@ -12,7 +12,7 @@ libgig (1.0.0-1) unstable; urgency=low
     That the original packaging was done by Christian
   * altered the rules file
   * fixed various lintian errors
-	
+
  -- Matt Flax <flatmax@pgb.unsw.edu.au>  Sat, 5 Feb 2005 20:02:26 +0100
 
 libgig (0.7.1-1) unstable; urgency=low
