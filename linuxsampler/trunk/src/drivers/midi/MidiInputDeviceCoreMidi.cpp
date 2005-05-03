@@ -140,7 +140,7 @@ namespace LinuxSampler {
     }
 	
 	String MidiInputDeviceCoreMidi::Name() {
-	    return "CoreMidi";
+	    return "COREMIDI";
     }
 
 	String MidiInputDeviceCoreMidi::Driver() {
@@ -152,7 +152,7 @@ namespace LinuxSampler {
     }
 
     String MidiInputDeviceCoreMidi::Version() {
-	    String s = "$Revision: 1.4 $";
+	    String s = "$Revision: 1.5 $";
 	    return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
 
