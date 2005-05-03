@@ -3,6 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
+ *   Copyright (C) 2005 Christian Schoenebeck                              *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -29,11 +30,11 @@
 # warning Filter.h included
 #endif // DEBUG_HEADERS
 
+#include <gig.h>
+
 #include "../common/BiquadFilter.h"
 
 // TODO: Gigasampler's "Turbo Lowpass" and "Bandreject" filters not implemented yet
-
-#include "../../lib/fileloader/libgig/gig.h"
 
 #define LSF_BW 0.9
 #define LSF_FB 0.9f

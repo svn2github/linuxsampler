@@ -30,11 +30,12 @@
 # warning Voice.h included
 #endif // DEBUG_HEADERS
 
+#include <gig.h>
+
 #include "../../common/RTMath.h"
 #include "../../common/RingBuffer.h"
 #include "../../common/Pool.h"
 #include "../../drivers/audio/AudioOutputDevice.h"
-#include "../../lib/fileloader/libgig/gig.h"
 #include "../common/BiquadFilter.h"
 //#include "EngineGlobals.h"
 #include "Engine.h"

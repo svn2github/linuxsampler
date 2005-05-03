@@ -31,6 +31,7 @@
 #endif // DEBUG_HEADERS
 
 #include <map>
+#include <gig.h>
 
 #include "EngineGlobals.h"
 #include "../../common/RingBuffer.h"
@@ -40,7 +41,6 @@
 #include "../common/Engine.h"
 #include "../common/Event.h"
 #include "../common/BiquadFilter.h"
-#include "../../lib/fileloader/libgig/gig.h"
 #include "../../network/lscp.h"
 #include "EngineChannel.h"
 

@@ -30,8 +30,9 @@
 # warning Stream.h included
 #endif // DEBUG_HEADERS
 
+#include <gig.h>
+
 #include "../../common/RingBuffer.h"
-#include "../../lib/fileloader/libgig/gig.h"
 
 namespace LinuxSampler { namespace gig {
 

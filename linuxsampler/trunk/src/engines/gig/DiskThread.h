@@ -30,6 +30,8 @@
 # warning DiskThread.h included
 #endif // DEBUG_HEADERS
 
+#include <gig.h>
+
 #define REFILL_STREAMS_PER_RUN		4       ///< number of streams that should be refilled with each disk thread cycle
 #define MIN_REFILL_SIZE			1024    ///< if no buffer was filled up more than this bottom limit, the disk thread will go to sleep
 #define MAX_REFILL_SIZE			65536   ///< maximum of samples a buffer should be refilled in one cycle (256kB, as 16 bit stereo)
@@ -45,7 +47,6 @@
 
 #include "../../common/Thread.h"
 #include "../../common/RingBuffer.h"
-#include "../../lib/fileloader/libgig/gig.h"
 #include "Stream.h"
 #include "Voice.h"
 

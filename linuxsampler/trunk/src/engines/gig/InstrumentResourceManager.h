@@ -30,11 +30,12 @@
 # warning InstrumentResourceManager.h included
 #endif // DEBUG_HEADERS
 
+#include <gig.h>
+
 #include "../../common/global.h"
 #include "../../common/LinuxSamplerException.h"
 #include "../../common/ResourceManager.h"
 #include "../../drivers/audio/AudioOutputDevice.h"
-#include "../../lib/fileloader/libgig/gig.h"
 
 // preload 64k samples = 128kB of data in RAM for 16 bit mono samples
 #define NUM_RAM_PRELOAD_SAMPLES 32768
