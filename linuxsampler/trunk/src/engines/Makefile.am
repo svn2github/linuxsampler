@@ -1,5 +1,5 @@
 INCLUDES = $(all_includes)
-AM_CXXFLAGS = -Wreturn-type -ffast-math -march=$(target_cpu)
+AM_CXXFLAGS = -Wreturn-type -ffast-math $(CXX_CPU_SWITCH)
 METASOURCES = AUTO
 SUBDIRS = gig common
 noinst_LTLIBRARIES = liblinuxsamplerengines.la

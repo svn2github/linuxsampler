@@ -1,7 +1,7 @@
 # set the include path found by configure
 INCLUDES= $(all_includes)
 
-AM_CXXFLAGS = -Wreturn-type -ffast-math -march=$(target_cpu)
+AM_CXXFLAGS = -Wreturn-type -ffast-math $(CXX_CPU_SWITCH)
 
 SUBDIRS = network engines common lib testcases drivers
 

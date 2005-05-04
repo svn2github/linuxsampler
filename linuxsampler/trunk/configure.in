@@ -10,7 +10,7 @@ AC_SUBST(target_vendor)
 
 
 
-echo -n "checking whether x86 architecture... "
+AC_MSG_CHECKING([whether x86 architecture])
 def_arch_x86=0
 case $target_cpu in
   "i386" | "i486" | "i586" | "i686" | "i786")
@@ -20,6 +20,16 @@ case $target_cpu in
     echo "no";;
 esac
 AC_DEFINE_UNQUOTED(ARCH_X86,$def_arch_x86,[Define to 1 if you build for x86 architecture.])
+
+
+# determine the right gcc switch for CPU specific optimizations
+CXX_CPU_SWITCH=
+if test "$def_arch_x86" = 1; then
+  CXX_CPU_SWITCH="-march=$target_cpu"
+elif test "$target_cpu" = "powerpc"; then
+  CXX_CPU_SWITCH="-arch=$target_cpu"
+fi
+AC_SUBST([CXX_CPU_SWITCH])
 
 
 AC_MSG_CHECKING([whether UNIX98 compatible])

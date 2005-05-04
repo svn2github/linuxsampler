@@ -1,7 +1,7 @@
 INCLUDES = $(all_includes)
 METASOURCES = AUTO
 
-AM_CXXFLAGS = -Wreturn-type -ffast-math -march=$(target_cpu)
+AM_CXXFLAGS = -Wreturn-type -ffast-math $(CXX_CPU_SWITCH)
 
 if HAVE_ALSA
 alsa_src  = AudioOutputDeviceAlsa.cpp AudioOutputDeviceAlsa.h
