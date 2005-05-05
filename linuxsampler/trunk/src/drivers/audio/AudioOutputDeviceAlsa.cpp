@@ -299,17 +299,17 @@ namespace LinuxSampler {
         uint Fragments       = ((DeviceCreationParameterInt*)Parameters["FRAGMENTS"])->ValueAsInt();
         String Card          = ((DeviceCreationParameterString*)Parameters["CARD"])->ValueAsString();
 
-        dmsg(1,("Checking if hw parameters supported...\n"));
+        dmsg(2,("Checking if hw parameters supported...\n"));
         if (HardwareParametersSupported(Card, uiAlsaChannels, uiSamplerate, Fragments, FragmentSize)) {
             pcm_name = "hw:" + Card;
         }
         else {
-            printf("Warning: your soundcard doesn't support chosen hardware parameters; ");
-            printf("trying to compensate support lack with plughw...");
+            fprintf(stderr, "Warning: your soundcard doesn't support chosen hardware parameters; ");
+            fprintf(stderr, "trying to compensate support lack with plughw...");
             fflush(stdout);
             pcm_name = "plughw:" + Card;
         }
-	dmsg(1,("HW check completed.\n"));
+        dmsg(2,("HW check completed.\n"));
 
         int err;
 
@@ -322,7 +322,7 @@ namespace LinuxSampler {
         /* PCM device will return immediately. If SND_PCM_ASYNC is    */
         /* specified, SIGIO will be emitted whenever a period has     */
         /* been completely processed by the soundcard.                */
-        if ((err = snd_pcm_open(&pcm_handle, pcm_name.c_str(), stream, 0)) < 0) {
+        if ((err = snd_pcm_open(&pcm_handle, pcm_name.c_str(), stream, SND_PCM_NONBLOCK)) < 0) {
             throw AudioOutputException(String("Error opening PCM device ") + pcm_name + ": " + snd_strerror(err));
         }
 
@@ -435,7 +435,7 @@ namespace LinuxSampler {
     bool AudioOutputDeviceAlsa::HardwareParametersSupported(String card, uint channels, int samplerate, uint numfragments, uint fragmentsize) throw (AudioOutputException) {
         pcm_name = "hw:" + card;
         int err;
-        if ((err = snd_pcm_open(&pcm_handle, pcm_name.c_str(), stream, 0)) < 0) {
+        if ((err = snd_pcm_open(&pcm_handle, pcm_name.c_str(), stream, SND_PCM_NONBLOCK)) < 0) {
             throw AudioOutputException(String("Error opening PCM device ") + pcm_name + ": " + snd_strerror(err));
         }
         snd_pcm_hw_params_alloca(&hwparams);
@@ -516,7 +516,7 @@ namespace LinuxSampler {
     }
 
     String AudioOutputDeviceAlsa::Version() {
-       String s = "$Revision: 1.18 $";
+       String s = "$Revision: 1.19 $";
        return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
 
