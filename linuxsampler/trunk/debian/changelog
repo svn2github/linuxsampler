@@ -1,6 +1,6 @@
-linuxsampler (0.2.0~cvs20050212-1) unstable; urgency=low
+linuxsampler (0.3.0~cvs20050505-1) unstable; urgency=low
 
   * Initial Release.
 
- -- Christian Schoenebeck <cuse@users.sourceforge.net>  Sat, 12 Feb 2005 13:33:49 +0100
+ -- Christian Schoenebeck <cuse@users.sourceforge.net>  Thu, 05 May 2005 16:00:14 +0200
 
