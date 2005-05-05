@@ -31,6 +31,7 @@ Version CVS HEAD (?)
   * src/gigdump.cpp:
     - added output of UnityNote and FineTune
     - added output of Gain and SampleStartOffset
+    - added output of LoopPlayCount
 
   * src/gigextract.cpp:
     - support for compressed mono samples and compressed 24 bit samples

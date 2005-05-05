@@ -2,8 +2,8 @@
  *                                                                         *
  *   libgig - C++ cross-platform Gigasampler format file loader library    *
  *                                                                         *
- *   Copyright (C) 2003, 2004 by Christian Schoenebeck                     *
- *                               <cuse@users.sourceforge.net>              *
+ *   Copyright (C) 2003-2005 by Christian Schoenebeck                      *
+ *                              <cuse@users.sourceforge.net>               *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -90,6 +90,7 @@ void PrintSamples(gig::File* gig) {
                 case gig::loop_type_backward:       cout << "reverse)";  break;
             }
             cout << ", LoopFraction=" << pSample->LoopFraction << ", Start=" << pSample->LoopStart << ", End=" << pSample->LoopEnd;
+            cout << ", LoopPlayCount=" << pSample->LoopPlayCount;
         }
         cout << ", Length=" << pSample->SamplesTotal << " Compressed=" << ((pSample->Compressed) ? "true" : "false") << endl;
         pSample = gig->GetNextSample();
