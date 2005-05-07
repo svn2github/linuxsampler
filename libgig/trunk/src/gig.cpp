@@ -25,10 +25,41 @@
 
 #include <iostream>
 
-namespace gig { namespace {
+namespace gig {
+
+// *************** progress_t ***************
+// *
+
+    progress_t::progress_t() {
+        callback    = NULL;
+        __range_min = 0.0f;
+        __range_max = 1.0f;
+    }
+
+    // private helper function to convert progress of a subprocess into the global progress
+    static void __notify_progress(progress_t* pProgress, float subprogress) {
+        if (pProgress && pProgress->callback) {
+            const float totalrange    = pProgress->__range_max - pProgress->__range_min;
+            const float totalprogress = pProgress->__range_min + subprogress * totalrange;
+            pProgress->callback(totalprogress); // now actually notify about the progress
+        }
+    }
+
+    // private helper function to divide a progress into subprogresses
+    static void __divide_progress(progress_t* pParentProgress, progress_t* pSubProgress, float totalTasks, float currentTask) {
+        if (pParentProgress && pParentProgress->callback) {
+            const float totalrange    = pParentProgress->__range_max - pParentProgress->__range_min;
+            pSubProgress->callback    = pParentProgress->callback;
+            pSubProgress->__range_min = pParentProgress->__range_min + totalrange * currentTask / totalTasks;
+            pSubProgress->__range_max = pSubProgress->__range_min + totalrange / totalTasks;
+        }
+    }
+
 
 // *************** Internal functions for sample decopmression ***************
 // *
+
+namespace {
 
     inline int get12lo(const unsigned char* pSrc)
     {
@@ -1551,11 +1582,11 @@ namespace gig { namespace {
         else         return static_cast<gig::Sample*>(pSample = GetSampleFromWavePool(WavePoolTableIndex));
     }
 
-    Sample* Region::GetSampleFromWavePool(unsigned int WavePoolTableIndex) {
+    Sample* Region::GetSampleFromWavePool(unsigned int WavePoolTableIndex, progress_t* pProgress) {
         if ((int32_t)WavePoolTableIndex == -1) return NULL;
         File* file = (File*) GetParent()->GetParent();
         unsigned long soughtoffset = file->pWavePoolTable[WavePoolTableIndex];
-        Sample* sample = file->GetFirstSample();
+        Sample* sample = file->GetFirstSample(pProgress);
         while (sample) {
             if (sample->ulWavePoolOffset == soughtoffset) return static_cast<gig::Sample*>(pSample = sample);
             sample = file->GetNextSample();
@@ -1568,7 +1599,7 @@ namespace gig { namespace {
 // *************** Instrument ***************
 // *
 
-    Instrument::Instrument(File* pFile, RIFF::List* insList) : DLS::Instrument((DLS::File*)pFile, insList) {
+    Instrument::Instrument(File* pFile, RIFF::List* insList, progress_t* pProgress) : DLS::Instrument((DLS::File*)pFile, insList) {
         // Initialization
         for (int i = 0; i < 128; i++) RegionKeyTable[i] = NULL;
         RegionIndex = -1;
@@ -1599,6 +1630,7 @@ namespace gig { namespace {
         unsigned int iRegion = 0;
         while (rgn) {
             if (rgn->GetListType() == LIST_TYPE_RGN) {
+                __notify_progress(pProgress, (float) iRegion / (float) Regions);
                 pRegions[iRegion] = new Region(this, rgn);
                 iRegion++;
             }
@@ -1611,6 +1643,8 @@ namespace gig { namespace {
                 RegionKeyTable[iKey] = pRegions[iReg];
             }
         }
+
+        __notify_progress(pProgress, 1.0f); // notify done
     }
 
     Instrument::~Instrument() {
@@ -1699,8 +1733,8 @@ namespace gig { namespace {
         }
     }
 
-    Sample* File::GetFirstSample() {
-        if (!pSamples) LoadSamples();
+    Sample* File::GetFirstSample(progress_t* pProgress) {
+        if (!pSamples) LoadSamples(pProgress);
         if (!pSamples) return NULL;
         SamplesIterator = pSamples->begin();
         return static_cast<gig::Sample*>( (SamplesIterator != pSamples->end()) ? *SamplesIterator : NULL );
@@ -1712,19 +1746,30 @@ namespace gig { namespace {
         return static_cast<gig::Sample*>( (SamplesIterator != pSamples->end()) ? *SamplesIterator : NULL );
     }
 
-    void File::LoadSamples() {
+    void File::LoadSamples(progress_t* pProgress) {
         RIFF::List* wvpl = pRIFF->GetSubList(LIST_TYPE_WVPL);
         if (wvpl) {
+            // just for progress calculation
+            int iSampleIndex  = 0;
+            int iTotalSamples = wvpl->CountSubLists(LIST_TYPE_WAVE);
+
             unsigned long wvplFileOffset = wvpl->GetFilePos();
             RIFF::List* wave = wvpl->GetFirstSubList();
             while (wave) {
                 if (wave->GetListType() == LIST_TYPE_WAVE) {
+                    // notify current progress
+                    const float subprogress = (float) iSampleIndex / (float) iTotalSamples;
+                    __notify_progress(pProgress, subprogress);
+
                     if (!pSamples) pSamples = new SampleList;
                     unsigned long waveFileOffset = wave->GetFilePos();
                     pSamples->push_back(new Sample(this, wave, waveFileOffset - wvplFileOffset));
+
+                    iSampleIndex++;
                 }
                 wave = wvpl->GetNextSubList();
             }
+            __notify_progress(pProgress, 1.0); // notify done
         }
         else throw gig::Exception("Mandatory <wvpl> chunk not found.");
     }
@@ -1745,10 +1790,30 @@ namespace gig { namespace {
     /**
      * Returns the instrument with the given index.
      *
+     * @param index     - number of the sought instrument (0..n)
+     * @param pProgress - optional: callback function for progress notification
      * @returns  sought instrument or NULL if there's no such instrument
      */
-    Instrument* File::GetInstrument(uint index) {
-        if (!pInstruments) LoadInstruments();
+    Instrument* File::GetInstrument(uint index, progress_t* pProgress) {
+        if (!pInstruments) {
+            // TODO: hack - we simply load ALL samples here, it would have been done in the Region constructor anyway (ATM)
+
+            // sample loading subtask
+            progress_t subprogress;
+            __divide_progress(pProgress, &subprogress, 3.0f, 0.0f); // randomly schedule 33% for this subtask
+            __notify_progress(&subprogress, 0.0f);
+            GetFirstSample(&subprogress); // now force all samples to be loaded
+            __notify_progress(&subprogress, 1.0f);
+
+            // instrument loading subtask
+            if (pProgress && pProgress->callback) {
+                subprogress.__range_min = subprogress.__range_max;
+                subprogress.__range_max = pProgress->__range_max; // schedule remaining percentage for this subtask
+            }
+            __notify_progress(&subprogress, 0.0f);
+            LoadInstruments(&subprogress);
+            __notify_progress(&subprogress, 1.0f);
+        }
         if (!pInstruments) return NULL;
         InstrumentsIterator = pInstruments->begin();
         for (uint i = 0; InstrumentsIterator != pInstruments->end(); i++) {
@@ -1758,17 +1823,29 @@ namespace gig { namespace {
         return NULL;
     }
 
-    void File::LoadInstruments() {
+    void File::LoadInstruments(progress_t* pProgress) {
         RIFF::List* lstInstruments = pRIFF->GetSubList(LIST_TYPE_LINS);
         if (lstInstruments) {
+            int iInstrumentIndex = 0;
             RIFF::List* lstInstr = lstInstruments->GetFirstSubList();
             while (lstInstr) {
                 if (lstInstr->GetListType() == LIST_TYPE_INS) {
+                    // notify current progress
+                    const float localProgress = (float) iInstrumentIndex / (float) Instruments;
+                    __notify_progress(pProgress, localProgress);
+
+                    // divide local progress into subprogress for loading current Instrument
+                    progress_t subprogress;
+                    __divide_progress(pProgress, &subprogress, Instruments, iInstrumentIndex);
+
                     if (!pInstruments) pInstruments = new InstrumentList;
-                    pInstruments->push_back(new Instrument(this, lstInstr));
+                    pInstruments->push_back(new Instrument(this, lstInstr, &subprogress));
+
+                    iInstrumentIndex++;
                 }
                 lstInstr = lstInstruments->GetNextSubList();
             }
+            __notify_progress(pProgress, 1.0); // notify done
         }
         else throw gig::Exception("Mandatory <lins> list chunk not found.");
     }

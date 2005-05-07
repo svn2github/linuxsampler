@@ -642,7 +642,7 @@ namespace RIFF {
     }
 
     /**
-     *  Returns number subchunks within the list.
+     *  Returns number of subchunks within the list.
      */
     unsigned int List::CountSubChunks() {
         if (!pSubChunks) LoadSubChunks();
@@ -721,6 +721,8 @@ namespace RIFF {
         if (!pSubChunks) {
             pSubChunks    = new ChunkList();
             pSubChunksMap = new ChunkMap();
+            unsigned long uiOriginalPos = GetPos();
+            SetPos(0); // jump to beginning of list chunk body
             while (RemainingBytes() >= CHUNK_HEADER_SIZE) {
                 Chunk* ck;
                 uint32_t ckid;
@@ -740,6 +742,7 @@ namespace RIFF {
                 (*pSubChunksMap)[ckid] = ck;
                 if (GetPos() % 2 != 0) SetPos(1, RIFF::stream_curpos); // jump over pad byte
             }
+            SetPos(uiOriginalPos); // restore position before this call
         }
     }
 

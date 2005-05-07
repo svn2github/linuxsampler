@@ -309,6 +309,21 @@ namespace gig {
         unsigned long loop_cycles_left;  ///< How many times the loop has still to be passed, this value will be decremented with each loop cycle.
     };
 
+    /**
+     * @brief Used for indicating the progress of a certain task.
+     *
+     * The function pointer argument has to be supplied with a valid
+     * function of the given signature which will then be called on
+     * progress changes. The float argument of the callback function will
+     * then reflect the current progress as a value between 0.0 and 1.0.
+     */
+    struct progress_t {
+        void (*callback)(float); ///< Callback function pointer which has to be assigned to a function for progress notification.
+        float __range_min;
+        float __range_max;
+        progress_t();
+    };
+
     // just symbol prototyping
     class File;
     class Instrument;
@@ -622,7 +637,7 @@ namespace gig {
 
             Region(Instrument* pInstrument, RIFF::List* rgnList);
             void LoadDimensionRegions(RIFF::List* rgn);
-            Sample* GetSampleFromWavePool(unsigned int WavePoolTableIndex);
+            Sample* GetSampleFromWavePool(unsigned int WavePoolTableIndex, progress_t* pProgress = NULL);
            ~Region();
             friend class Instrument;
     };
@@ -661,7 +676,7 @@ namespace gig {
             Region*   RegionKeyTable[128]; ///< fast lookup for the corresponding Region of a MIDI key
             int       RegionIndex;
 
-            Instrument(File* pFile, RIFF::List* insList);
+            Instrument(File* pFile, RIFF::List* insList, progress_t* pProgress = NULL);
            ~Instrument();
             friend class File;
     };
@@ -681,11 +696,11 @@ namespace gig {
             DLS::Resource::GetParent;
             // overridden  methods
             File(RIFF::File* pRIFF);
-            Sample*     GetFirstSample();     ///< Returns a pointer to the first <i>Sample</i> object of the file, <i>NULL</i> otherwise.
+            Sample*     GetFirstSample(progress_t* pProgress = NULL); ///< Returns a pointer to the first <i>Sample</i> object of the file, <i>NULL</i> otherwise.
             Sample*     GetNextSample();      ///< Returns a pointer to the next <i>Sample</i> object of the file, <i>NULL</i> otherwise.
             Instrument* GetFirstInstrument(); ///< Returns a pointer to the first <i>Instrument</i> object of the file, <i>NULL</i> otherwise.
             Instrument* GetNextInstrument();  ///< Returns a pointer to the next <i>Instrument</i> object of the file, <i>NULL</i> otherwise.
-            Instrument* GetInstrument(uint index);
+            Instrument* GetInstrument(uint index, progress_t* pProgress = NULL);
            ~File();
         protected:
             typedef std::list<Sample*>     SampleList;
@@ -696,8 +711,8 @@ namespace gig {
             InstrumentList*          pInstruments;
             InstrumentList::iterator InstrumentsIterator;
 
-            void LoadSamples();
-            void LoadInstruments();
+            void LoadSamples(progress_t* pProgress = NULL);
+            void LoadInstruments(progress_t* pProgress = NULL);
             friend class Region;
     };
 

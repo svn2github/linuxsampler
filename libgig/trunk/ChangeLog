@@ -27,6 +27,16 @@ Version CVS HEAD (?)
       to avoid race conditions in case of multiple streaming threads
     - added pre-calculated sample attenuation parameter
     - added v3 "random" and "round robin" dimensions
+    - implemented progress indicator callback mechanism for loading
+      instruments and samples
+
+  * src/DLS.cpp:
+    - fixed File constructor which caused variable File::Instruments always
+      to be zero
+
+  * src/RIFF.cpp:
+    - fixed method List::LoadSubChunks() which did not restore the original
+      position within the body of the given list chunk
 
   * src/gigdump.cpp:
     - added output of UnityNote and FineTune

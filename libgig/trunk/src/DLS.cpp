@@ -429,7 +429,6 @@ namespace DLS {
 
         pSamples     = NULL;
         pInstruments = NULL;
-        Instruments  = 0;
     }
 
     File::~File() {
