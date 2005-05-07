@@ -314,13 +314,19 @@ namespace gig {
      *
      * The function pointer argument has to be supplied with a valid
      * function of the given signature which will then be called on
-     * progress changes. The float argument of the callback function will
-     * then reflect the current progress as a value between 0.0 and 1.0.
+     * progress changes. An equivalent progress_t structure will be passed
+     * back as argument to the callback function on each progress change.
+     * The factor field of the supplied progress_t structure will then
+     * reflect the current progress as value between 0.0 and 1.0. You might
+     * want to use the custom field for data needed in your callback
+     * function.
      */
     struct progress_t {
-        void (*callback)(float); ///< Callback function pointer which has to be assigned to a function for progress notification.
-        float __range_min;
-        float __range_max;
+        void (*callback)(progress_t*); ///< Callback function pointer which has to be assigned to a function for progress notification.
+        float factor;                  ///< Reflects current progress as value between 0.0 and 1.0.
+        void* custom;                  ///< This pointer can be used for arbitrary data.
+        float __range_min;             ///< Only for internal usage, do not modify!
+        float __range_max;             ///< Only for internal usage, do not modify!
         progress_t();
     };
 

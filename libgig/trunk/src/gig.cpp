@@ -32,6 +32,7 @@ namespace gig {
 
     progress_t::progress_t() {
         callback    = NULL;
+        custom      = NULL;
         __range_min = 0.0f;
         __range_max = 1.0f;
     }
@@ -41,7 +42,8 @@ namespace gig {
         if (pProgress && pProgress->callback) {
             const float totalrange    = pProgress->__range_max - pProgress->__range_min;
             const float totalprogress = pProgress->__range_min + subprogress * totalrange;
-            pProgress->callback(totalprogress); // now actually notify about the progress
+            pProgress->factor         = totalprogress;
+            pProgress->callback(pProgress); // now actually notify about the progress
         }
     }
 
@@ -50,6 +52,7 @@ namespace gig {
         if (pParentProgress && pParentProgress->callback) {
             const float totalrange    = pParentProgress->__range_max - pParentProgress->__range_min;
             pSubProgress->callback    = pParentProgress->callback;
+            pSubProgress->custom      = pParentProgress->custom;
             pSubProgress->__range_min = pParentProgress->__range_min + totalrange * currentTask / totalTasks;
             pSubProgress->__range_max = pSubProgress->__range_min + totalrange / totalTasks;
         }
