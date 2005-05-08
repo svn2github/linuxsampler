@@ -83,6 +83,7 @@ namespace LinuxSampler { namespace gig {
     class InstrumentResourceManager : public ResourceManager<instrument_id_t, ::gig::Instrument> {
         public:
             virtual ~InstrumentResourceManager() {}
+            static void OnInstrumentLoadingProgress(::gig::progress_t* pProgress);
         protected:
             virtual ::gig::Instrument* Create(instrument_id_t Key, InstrumentConsumer* pConsumer, void*& pArg);
             virtual void               Destroy(::gig::Instrument* pResource, void* pArg);

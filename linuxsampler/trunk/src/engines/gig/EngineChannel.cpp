@@ -191,8 +191,8 @@ namespace LinuxSampler { namespace gig {
 
     /**
      * Will be called by the InstrumentResourceManager when the instrument
-     * we are currently using in this engine is going to be updated, so we
-     * can stop playback before that happens.
+     * we are currently using on this EngineChannel is going to be updated,
+     * so we can stop playback before that happens.
      */
     void EngineChannel::ResourceToBeUpdated(::gig::Instrument* pResource, void*& pUpdateArg) {
         dmsg(3,("gig::Engine: Received instrument update message.\n"));
@@ -208,6 +208,17 @@ namespace LinuxSampler { namespace gig {
     void EngineChannel::ResourceUpdated(::gig::Instrument* pOldResource, ::gig::Instrument* pNewResource, void* pUpdateArg) {
         this->pInstrument = pNewResource; //TODO: there are couple of engine parameters we should update here as well if the instrument was updated (see LoadInstrument())
         if (pEngine) pEngine->Enable();
+    }
+
+    /**
+     * Will be called by the InstrumentResourceManager on progress changes
+     * while loading or realoading an instrument for this EngineChannel.
+     *
+     * @param fProgress - current progress as value between 0.0 and 1.0
+     */
+    void EngineChannel::OnResourceProgress(float fProgress) {
+        this->InstrumentStat = int(fProgress * 100.0f);
+        dmsg(7,("gig::EngineChannel: progress %d%", InstrumentStat));
     }
 
     void EngineChannel::Connect(AudioOutputDevice* pAudioOut) {

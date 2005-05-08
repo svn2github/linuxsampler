@@ -70,6 +70,7 @@ namespace LinuxSampler { namespace gig {
             // implementation of abstract methods derived from interface class 'InstrumentConsumer'
             virtual void ResourceToBeUpdated(::gig::Instrument* pResource, void*& pUpdateArg);
             virtual void ResourceUpdated(::gig::Instrument* pOldResource, ::gig::Instrument* pNewResource, void* pUpdateArg);
+            virtual void OnResourceProgress(float fProgress);
 
         //protected:
             Engine*                 pEngine;

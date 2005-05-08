@@ -34,12 +34,44 @@
 
 namespace LinuxSampler { namespace gig {
 
+    // some data needed for the libgig callback function
+    struct progress_callback_arg_t {
+        InstrumentResourceManager* pManager;
+        instrument_id_t*           pInstrumentKey;
+    };
+
+    /**
+     * Callback function which will be called by libgig during loading of
+     * instruments to inform about the current progress. Or to be more
+     * specific; it will be called during the GetInstrument() call.
+     *
+     * @param pProgress - contains current progress value, pointer to the
+     *                    InstrumentResourceManager instance and
+     *                    instrument ID
+     */
+    void InstrumentResourceManager::OnInstrumentLoadingProgress(::gig::progress_t* pProgress) {
+        dmsg(7,("gig::InstrumentResourceManager: progress %f%", pProgress->factor));
+        progress_callback_arg_t* pArg = static_cast<progress_callback_arg_t*>(pProgress->custom);
+        // we randomly schedule 90% for the .gig file loading and the remaining 10% later for sample caching
+        const float localProgress = 0.9f * pProgress->factor;
+        pArg->pManager->DispatchResourceProgressEvent(*pArg->pInstrumentKey, localProgress);
+    }
+
     ::gig::Instrument* InstrumentResourceManager::Create(instrument_id_t Key, InstrumentConsumer* pConsumer, void*& pArg) {
         // get gig file from inernal gig file manager
         ::gig::File* pGig = Gigs.Borrow(Key.FileName, (GigConsumer*) Key.iInstrument); // conversion kinda hackish :/
 
+        // we pass this to the progress callback mechanism of libgig
+        progress_callback_arg_t callbackArg;
+        callbackArg.pManager       = this;
+        callbackArg.pInstrumentKey = &Key;
+
+        ::gig::progress_t progress;
+        progress.callback = OnInstrumentLoadingProgress;
+        progress.custom   = &callbackArg;
+
         dmsg(1,("Loading gig instrument..."));
-        ::gig::Instrument* pInstrument = pGig->GetInstrument(Key.iInstrument);
+        ::gig::Instrument* pInstrument = pGig->GetInstrument(Key.iInstrument, &progress);
         if (!pInstrument) {
             std::stringstream msg;
             msg << "There's no instrument with index " << Key.iInstrument << ".";
@@ -50,8 +82,13 @@ namespace LinuxSampler { namespace gig {
 
         // cache initial samples points (for actually needed samples)
         dmsg(1,("Caching initial samples..."));
+        uint iRegion = 0; // just for progress calculation
         ::gig::Region* pRgn = pInstrument->GetFirstRegion();
         while (pRgn) {
+            // we randomly schedule 90% for the .gig file loading and the remaining 10% now for sample caching
+            const float localProgress = 0.9f + 0.1f * (float) iRegion / (float) pInstrument->Regions;
+            DispatchResourceProgressEvent(Key, localProgress);            
+            
             if (pRgn->GetSample() && !pRgn->GetSample()->GetCache().Size) {
                 dmsg(2,("C"));
                 CacheInitialSamples(pRgn->GetSample(), dynamic_cast<gig::EngineChannel*>(pConsumer));
@@ -61,8 +98,10 @@ namespace LinuxSampler { namespace gig {
             }
 
             pRgn = pInstrument->GetNextRegion();
+            iRegion++;
         }
         dmsg(1,("OK\n"));
+        DispatchResourceProgressEvent(Key, 1.0f); // done; notify all consumers about progress 100%
 
         // we need the following for destruction later
         instr_entry_t* pEntry = new instr_entry_t;

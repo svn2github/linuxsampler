@@ -61,6 +61,16 @@ class ResourceConsumer {
          *                       ResourceToBeUpdated() was called
          */
         virtual void ResourceUpdated(T_res* pOldResource, T_res* pNewResource, void* pUpdateArg) = 0;
+
+        /**
+         * Might be called by the ResourceManager periodically during an
+         * update / creation of a resource to inform the consumer about the
+         * current progress of that process. This method needs to be
+         * implemented by the consumer.
+         *
+         * @param fProgress - current progress as value between 0.0 and 1.0
+         */
+        virtual void OnResourceProgress(float fProgress) = 0;
 };
 
 /**
@@ -100,12 +110,17 @@ class ResourceManager {
         T_res* Borrow(T_key Key, ResourceConsumer<T_res>* pConsumer) {
             typename ResourceMap::iterator iterEntry = ResourceEntries.find(Key);
             if (iterEntry == ResourceEntries.end()) {
+                // already create an entry for the resource
                 resource_entry_t entry;
                 entry.key      = Key;
-                entry.resource = Create(Key, pConsumer, entry.arg);
+                entry.resource = NULL;
                 entry.consumers.insert(pConsumer);
-                OnBorrow(entry.resource, pConsumer, entry.arg);
                 ResourceEntries[Key] = entry;
+                // actually create the resource
+                entry.resource = Create(Key, pConsumer, entry.arg);
+                // now update the entry with the created resource
+                ResourceEntries[Key] = entry;
+                OnBorrow(entry.resource, pConsumer, entry.arg);
                 return entry.resource;
             }
             resource_entry_t& entry = iterEntry->second;
@@ -221,6 +236,30 @@ class ResourceManager {
          *                    updated by the descendant here
          */
         virtual void OnBorrow(T_res* pResource, ResourceConsumer<T_res>* pConsumer, void*& pArg) = 0;
+
+        /**
+         * Dispatcher method which should be periodically called by the
+         * descendant during update or creation of the resource associated
+         * with \a Key. This method will inform all associated consumers
+         * of the given resource about the current progress.
+         *
+         * @param Key       - unique identifier of the resource which is
+         *                    currently creating or updating
+         * @param fProgress - current progress of that creation / update
+         *                    process as value between 0.0 and 1.0
+         */
+        void DispatchResourceProgressEvent(T_key Key, float fProgress) {
+            typename ResourceMap::iterator iterEntry = ResourceEntries.find(Key);
+            if (iterEntry != ResourceEntries.end()) {
+                resource_entry_t& entry = iterEntry->second;
+                // inform all consumers of that resource about current progress
+                typename ConsumerSet::iterator iterCons = entry.consumers.begin();
+                typename ConsumerSet::iterator endCons  = entry.consumers.end();
+                for (; iterCons != endCons; iterCons++) {
+                    (*iterCons)->OnResourceProgress(fProgress);
+                }
+            }
+        }
 };
 
 #endif // __RESOURCE_MANAGER__
