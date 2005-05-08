@@ -228,5 +228,8 @@ namespace RIFF {
             virtual ~Exception() {};
     };
 
+    String libraryName();
+    String libraryVersion();
+
 } // namespace RIFF
 #endif // __RIFF_H__

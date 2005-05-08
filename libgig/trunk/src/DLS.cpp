@@ -539,4 +539,25 @@ namespace DLS {
         std::cout << "DLS::Exception: " << Message << std::endl;
     }
 
+
+// *************** functions ***************
+// *
+
+    /**
+     * Returns the name of this C++ library. This is usually "libgig" of
+     * course. This call is equivalent to RIFF::libraryName() and
+     * gig::libraryName().
+     */
+    String libraryName() {
+        return PACKAGE;
+    }
+
+    /**
+     * Returns version of this C++ library. This call is equivalent to
+     * RIFF::libraryVersion() and gig::libraryVersion().
+     */
+    String libraryVersion() {
+        return VERSION;
+    }
+
 } // namespace DLS

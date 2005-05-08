@@ -1865,4 +1865,25 @@ namespace {
         std::cout << "gig::Exception: " << Message << std::endl;
     }
 
+
+// *************** functions ***************
+// *
+
+    /**
+     * Returns the name of this C++ library. This is usually "libgig" of
+     * course. This call is equivalent to RIFF::libraryName() and
+     * DLS::libraryName().
+     */
+    String libraryName() {
+        return PACKAGE;
+    }
+
+    /**
+     * Returns version of this C++ library. This call is equivalent to
+     * RIFF::libraryVersion() and DLS::libraryVersion().
+     */
+    String libraryVersion() {
+        return VERSION;
+    }
+
 } // namespace gig

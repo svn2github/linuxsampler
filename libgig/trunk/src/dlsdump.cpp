@@ -2,8 +2,8 @@
  *                                                                         *
  *   libgig - C++ cross-platform Gigasampler format file loader library    *
  *                                                                         *
- *   Copyright (C) 2003, 2004 by Christian Schoenebeck                     *
- *                               <cuse@users.sourceforge.net>              *
+ *   Copyright (C) 2003-2005 by Christian Schoenebeck                      *
+ *                              <cuse@users.sourceforge.net>               *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -27,11 +27,14 @@
 
 #include <iostream>
 #include <cstdlib>
+#include <string>
 
 #include "DLS.h"
 
 using namespace std;
 
+string Revision();
+void PrintVersion();
 void PrintSamples(DLS::File* dls);
 void PrintInstruments(DLS::File* dls);
 void PrintRegions(DLS::Instrument* instr);
@@ -42,6 +45,13 @@ int main(int argc, char *argv[])
     if (argc <= 1) {
         PrintUsage();
         return EXIT_FAILURE;
+    }
+    if (argv[1][0] == '-') {
+        switch (argv[1][1]) {
+            case 'v':
+                PrintVersion();
+                return EXIT_SUCCESS;
+        }
     }
     FILE* hFile = fopen(argv[1], "r");
     if (!hFile) {
@@ -126,8 +136,21 @@ void PrintRegions(DLS::Instrument* instr) {
     }
 }
 
+string Revision() {
+    string s = "$Revision: 1.3 $";
+    return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
+}
+
+void PrintVersion() {
+    cout << "dlsdump revision " << Revision() << endl;
+    cout << "using " << DLS::libraryName() << " " << DLS::libraryVersion() << endl;
+}
+
 void PrintUsage() {
     cout << "dlsdump - parses DLS (Downloadable Sounds) Level 1 and Level 2 files and prints out the content." << endl;
     cout << endl;
-    cout << "Usage: dlsdump FILE" << endl;
+    cout << "Usage: dlsdump [-v] FILE" << endl;
+    cout << endl;
+    cout << "	-v  Print version and exit." << endl;
+    cout << endl;
 }

@@ -486,6 +486,9 @@ namespace DLS {
             void PrintMessage();
     };
 
+    String libraryName();
+    String libraryVersion();
+
 } // namespace DLS
 
 #endif // __DLS_H__

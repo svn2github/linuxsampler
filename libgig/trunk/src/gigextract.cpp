@@ -2,8 +2,8 @@
  *                                                                         *
  *   libgig - C++ cross-platform Gigasampler format file loader library    *
  *                                                                         *
- *   Copyright (C) 2003, 2004 by Christian Schoenebeck                     *
- *                               <cuse@users.sourceforge.net>              *
+ *   Copyright (C) 2003-2005 by Christian Schoenebeck                      *
+ *                              <cuse@users.sourceforge.net>               *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -40,6 +40,7 @@
 #include <iostream>
 #include <cstdlib>
 #include <string.h>
+#include <string>
 #include <stdlib.h>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -66,6 +67,8 @@ using namespace std;
 typedef map<unsigned int, bool> OrderMap;
 OrderMap* pOrderedSamples = NULL;
 
+string Revision();
+void PrintVersion();
 void PrintUsage();
 void ExtractSamples(gig::File* gig, char* destdir, OrderMap* ordered);
 int writeWav(const char* filename, void* samples, long samplecount, int channels, int bitdepth, long rate);
@@ -88,6 +91,15 @@ int(*_afCloseFile)(AFfilehandle file);
 #endif // !HAVE_SNDFILE
 
 int main(int argc, char *argv[]) {
+     if (argc >= 2) {
+        if (argv[1][0] == '-') {
+            switch (argv[1][1]) {
+                case 'v':
+                    PrintVersion();
+                    return EXIT_SUCCESS;
+            }
+        }
+    }
     if (argc < 3) {
         PrintUsage();
         return EXIT_FAILURE;
@@ -328,10 +340,20 @@ void closeAFlib() {
 }
 #endif // !HAVE_SNDFILE
 
+string Revision() {
+    string s = "$Revision: 1.5 $";
+    return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
+}
+
+void PrintVersion() {
+    cout << "gigextract revision " << Revision() << endl;
+    cout << "using " << gig::libraryName() << " " << gig::libraryVersion() << endl;
+}
+
 void PrintUsage() {
     cout << "gigextract - extracts samples from a Gigasampler file." << endl;
     cout << endl;
-    cout << "Usage: gigextract GIGFILE DESTDIR [SAMPLENR] [ [SAMPLENR] ...]" << endl;
+    cout << "Usage: gigextract [-v] GIGFILE DESTDIR [SAMPLENR] [ [SAMPLENR] ...]" << endl;
     cout << endl;
     cout << "	GIGFILE  Input Gigasampler (.gig) file." << endl;
     cout << endl;
@@ -340,6 +362,8 @@ void PrintUsage() {
     cout << "	SAMPLENR Index (/indices) of Sample(s) which should be extracted." << endl;
     cout << "	         If no sample indices are given, all samples will be extracted" << endl;
     cout << "	         (use gigdump to look for available samples)." << endl;
+    cout << endl;
+    cout << "	-v       Print version and exit." << endl;
     cout << endl;
 }
 

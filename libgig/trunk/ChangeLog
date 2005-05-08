@@ -3,6 +3,7 @@ Version CVS HEAD (?)
   * packaging changes:
     - fixed conditional linkage of either libsndfile or libaudiofile
       (if none of the two exist, configure script will abort)
+    - man pages are now auto generated with the correct libgig version
 
   * src/gig.cpp, src/gig.h:
     - experimental support for Gigasampler v3 format;
@@ -29,22 +30,37 @@ Version CVS HEAD (?)
     - added v3 "random" and "round robin" dimensions
     - implemented progress indicator callback mechanism for loading
       instruments and samples
+    - added functions libraryName() and libraryVersion()
 
-  * src/DLS.cpp:
+  * src/DLS.cpp, src/DLS.h:
     - fixed File constructor which caused variable File::Instruments always
       to be zero
+    - added functions libraryName() and libraryVersion()
 
-  * src/RIFF.cpp:
+  * src/RIFF.cpp, src/RIFF.h:
     - fixed method List::LoadSubChunks() which did not restore the original
       position within the body of the given list chunk
+    - added functions libraryName() and libraryVersion()
+
+  * src/rifftree.cpp:
+    - added command line switch -v to show rifftree's revision and the used
+      libgig version
+
+  * src/dlsdump.cpp:
+    - added command line switch -v to show dlsdump's revision and the used
+      libgig version
 
   * src/gigdump.cpp:
     - added output of UnityNote and FineTune
     - added output of Gain and SampleStartOffset
     - added output of LoopPlayCount
+    - added command line switch -v to show gigdump's revision and the used
+      libgig version
 
   * src/gigextract.cpp:
     - support for compressed mono samples and compressed 24 bit samples
+    - added command line switch -v to show gigextract's revision and the
+      used libgig version
 
 Version 1.0.0 (26 Nov 2004)
 

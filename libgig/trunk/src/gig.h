@@ -729,6 +729,9 @@ namespace gig {
             void PrintMessage();
     };
 
+    String libraryName();
+    String libraryVersion();
+
 } // namespace gig
 
 #endif // __GIG_H__

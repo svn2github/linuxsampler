@@ -814,5 +814,26 @@ namespace RIFF {
         std::cout << "RIFF::Exception: " << Message << std::endl;
     }
 
+
+// *************** functions ***************
+// *
+
+    /**
+     * Returns the name of this C++ library. This is usually "libgig" of
+     * course. This call is equivalent to DLS::libraryName() and
+     * gig::libraryName().
+     */
+    String libraryName() {
+        return PACKAGE;
+    }
+
+    /**
+     * Returns version of this C++ library. This call is equivalent to
+     * DLS::libraryVersion() and gig::libraryVersion().
+     */
+    String libraryVersion() {
+        return VERSION;
+    }
+
 } // namespace RIFF
 #endif

@@ -27,11 +27,14 @@
 
 #include <iostream>
 #include <cstdlib>
+#include <string>
 
 #include "gig.h"
 
 using namespace std;
 
+string Revision();
+void PrintVersion();
 void PrintSamples(gig::File* gig);
 void PrintInstruments(gig::File* gig);
 void PrintRegions(gig::Instrument* instr);
@@ -43,6 +46,13 @@ int main(int argc, char *argv[])
     if (argc <= 1) {
         PrintUsage();
         return EXIT_FAILURE;
+    }
+    if (argv[1][0] == '-') {
+        switch (argv[1][1]) {
+            case 'v':
+                PrintVersion();
+                return EXIT_SUCCESS;
+        }
     }
     FILE* hFile = fopen(argv[1], "r");
     if (!hFile) {
@@ -313,8 +323,21 @@ void PrintDimensionRegions(gig::Region* rgn) {
     }
 }
 
+string Revision() {
+    string s = "$Revision: 1.16 $";
+    return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
+}
+
+void PrintVersion() {
+    cout << "gigdump revision " << Revision() << endl;
+    cout << "using " << gig::libraryName() << " " << gig::libraryVersion() << endl;
+}
+
 void PrintUsage() {
     cout << "gigdump - parses Gigasampler files and prints out the content." << endl;
     cout << endl;
-    cout << "Usage: gigdump FILE" << endl;
+    cout << "Usage: gigdump [-v] FILE" << endl;
+    cout << endl;
+    cout << "	-v  Print version and exit." << endl;
+    cout << endl;
 }
