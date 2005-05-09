@@ -29,7 +29,10 @@ Non-POSIX systems
 =================
   If you don't have a POSIX system, you have to set 'POSIX' to '0' in RIFF.h.
   Instead of using POSIX calls then standard C calls will be used for file
-  access. This applies e.g. to Windows systems.
+  access. This applies e.g. to Windows systems. I would appreciate if
+  somebody sends me his MS Visual Studio / .NET, Borland C++ Builder or
+  Apple XCode project file! This might help others to conveniently compile
+  libgig on those platforms as well.
 
 Compiling
 =========
@@ -101,7 +104,9 @@ Patches
 
 Credits
 =======
-  This library is based on the reverse engineering work of Paul Kellett and
-  Ruben van Royen. Thanks for your great work!
+  The initial library was based on the reverse engineering effort of
+  Paul Kellett and Ruben van Royen. We owe current support for the quite new
+  Gigasampler v3 format to Andreas Persson. Please also have a look at the
+  ChangeLog for all those who contributed. Thanks for your great work!
 
  Christian Schoenebeck <cuse@users.sourceforge.net>

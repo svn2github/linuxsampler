@@ -1,3 +1,9 @@
+libgig (2.0.0-1) unstable; urgency=low
+
+  * New release.
+
+ -- Christian Schoenebeck <cuse@users.sourceforge.net>  Mon, 09 May 2005 16:10:58 +0200
+
 libgig (1.0.0cvs20050503-1) unstable; urgency=low
 
   * Updated to cvs version
