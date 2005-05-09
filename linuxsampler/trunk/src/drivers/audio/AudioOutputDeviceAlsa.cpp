@@ -3,6 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
+ *   Copyright (C) 2005 Christian Schoenebeck                              *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -322,7 +323,7 @@ namespace LinuxSampler {
         /* PCM device will return immediately. If SND_PCM_ASYNC is    */
         /* specified, SIGIO will be emitted whenever a period has     */
         /* been completely processed by the soundcard.                */
-        if ((err = snd_pcm_open(&pcm_handle, pcm_name.c_str(), stream, SND_PCM_NONBLOCK)) < 0) {
+        if ((err = snd_pcm_open(&pcm_handle, pcm_name.c_str(), stream, 0)) < 0) {
             throw AudioOutputException(String("Error opening PCM device ") + pcm_name + ": " + snd_strerror(err));
         }
 
@@ -516,7 +517,7 @@ namespace LinuxSampler {
     }
 
     String AudioOutputDeviceAlsa::Version() {
-       String s = "$Revision: 1.19 $";
+       String s = "$Revision: 1.20 $";
        return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
 
