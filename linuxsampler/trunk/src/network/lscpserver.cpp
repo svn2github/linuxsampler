@@ -550,11 +550,20 @@ String LSCPServer::RemoveChannel(uint uiSamplerChannel) {
 }
 
 /**
- * Will be called by the parser to get all available engines.
+ * Will be called by the parser to get the amount of all available engines.
  */
 String LSCPServer::GetAvailableEngines() {
     dmsg(2,("LSCPServer: GetAvailableEngines()\n"));
-    LSCPResultSet result("GigEngine");
+    LSCPResultSet result("1");
+    return result.Produce();
+}
+
+/**
+ * Will be called by the parser to get a list of all available engines.
+ */
+String LSCPServer::ListAvailableEngines() {
+    dmsg(2,("LSCPServer: ListAvailableEngines()\n"));
+    LSCPResultSet result("\'GIG\'");
     return result.Produce();
 }
 
@@ -715,6 +724,19 @@ String LSCPServer::GetAvailableAudioOutputDrivers() {
     dmsg(2,("LSCPServer: GetAvailableAudioOutputDrivers()\n"));
     LSCPResultSet result;
     try {
+        int n = AudioOutputDeviceFactory::AvailableDrivers().size();
+        result.Add(n);
+    }
+    catch (LinuxSamplerException e) {
+        result.Error(e);
+    }
+    return result.Produce();
+}
+
+String LSCPServer::ListAvailableAudioOutputDrivers() {
+    dmsg(2,("LSCPServer: ListAvailableAudioOutputDrivers()\n"));
+    LSCPResultSet result;
+    try {
         String s = AudioOutputDeviceFactory::AvailableDriversAsString();
         result.Add(s);
     }
@@ -726,6 +748,19 @@ String LSCPServer::GetAvailableAudioOutputDrivers() {
 
 String LSCPServer::GetAvailableMidiInputDrivers() {
     dmsg(2,("LSCPServer: GetAvailableMidiInputDrivers()\n"));
+    LSCPResultSet result;
+    try {
+        int n = MidiInputDeviceFactory::AvailableDrivers().size();
+        result.Add(n);
+    }
+    catch (LinuxSamplerException e) {
+        result.Error(e);
+    }
+    return result.Produce();
+}
+
+String LSCPServer::ListAvailableMidiInputDrivers() {
+    dmsg(2,("LSCPServer: ListAvailableMidiInputDrivers()\n"));
     LSCPResultSet result;
     try {
         String s = MidiInputDeviceFactory::AvailableDriversAsString();

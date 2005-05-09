@@ -194,9 +194,12 @@ buffer_size_type      :  BYTES       { $$ = fill_response_bytes;      }
                       |  PERCENTAGE  { $$ = fill_response_percentage; }
                       ;
 
-list_instruction      :  AUDIO_OUTPUT_DEVICES  { $$ = LSCPSERVER->GetAudioOutputDevices(); }
-                      |  MIDI_INPUT_DEVICES    { $$ = LSCPSERVER->GetMidiInputDevices();   }
-                      |  CHANNELS              { $$ = LSCPSERVER->ListChannels();          }
+list_instruction      :  AUDIO_OUTPUT_DEVICES            { $$ = LSCPSERVER->GetAudioOutputDevices();           }
+                      |  MIDI_INPUT_DEVICES              { $$ = LSCPSERVER->GetMidiInputDevices();             }
+                      |  CHANNELS                        { $$ = LSCPSERVER->ListChannels();                    }
+                      |  AVAILABLE_ENGINES               { $$ = LSCPSERVER->ListAvailableEngines();            }
+                      |  AVAILABLE_MIDI_INPUT_DRIVERS    { $$ = LSCPSERVER->ListAvailableMidiInputDrivers();   }
+                      |  AVAILABLE_AUDIO_OUTPUT_DRIVERS  { $$ = LSCPSERVER->ListAvailableAudioOutputDrivers(); }
                       ;
 
 load_instr_args       :  filename SP instrument_index SP sampler_channel               { $$ = LSCPSERVER->LoadInstrument($1, $3, $5);       }

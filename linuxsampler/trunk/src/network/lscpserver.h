@@ -77,13 +77,16 @@ class LSCPServer : public Thread {
         String AddChannel();
         String RemoveChannel(uint uiSamplerChannel);
         String GetAvailableEngines();
+        String ListAvailableEngines();
         String GetEngineInfo(String EngineName);
         String GetChannelInfo(uint uiSamplerChannel);
         String GetVoiceCount(uint uiSamplerChannel);
         String GetStreamCount(uint uiSamplerChannel);
         String GetBufferFill(fill_response_t ResponseType, uint uiSamplerChannel);
         String GetAvailableAudioOutputDrivers();
+        String ListAvailableAudioOutputDrivers();
         String GetAvailableMidiInputDrivers();
+        String ListAvailableMidiInputDrivers();
         String GetAudioOutputDriverInfo(String Driver);
         String GetMidiInputDriverInfo(String Driver);
 #ifdef __GNUC__
