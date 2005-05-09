@@ -31,7 +31,7 @@ Schoenebeck'>
                 <email>schoenebeck at software minus engineering dot org</email>
             </address>
         </author>
-        <date month="Apr" year="2005"/>
+        <date month="May" year="2005"/>
         <workgroup>LinuxSampler Developers</workgroup>
         <keyword>LSCP</keyword>
         <abstract>
@@ -379,7 +379,7 @@ Schoenebeck'>
 
                 <t>where &lt;event-id&gt; will be replace by the respective
                 event that client is no longer interested in receiving. For
-                a list of supported events see chapter 6.</t>
+                a list of supported events see <xref target="events" />.</t>
 
                 <t>Example: the fill states of disk stream buffers have
                 changed on sampler channel 4 and the LinuxSampler instance
@@ -428,7 +428,8 @@ Schoenebeck'>
         <section title="Description for control commands">
             <t>This chapter will describe the available control commands
             that can be sent on the TCP connection in detail. Some certain
-            commands (e.g. "GET CHANNEL INFO" or "GET ENGINE INFO") lead to
+            commands (e.g. <xref target="GET CHANNEL INFO">"GET CHANNEL INFO"</xref>
+            or <xref target="GET ENGINE INFO">"GET ENGINE INFO"</xref>) lead to
             multiple-line responses. In this case LinuxSampler signals the
             end of the response by a "." (single dot) line.</t>
 
@@ -472,13 +473,38 @@ Schoenebeck'>
                 what parameters drivers are offering, how to retrieve their
                 possible values, etc.</t>
 
-                <section title="Getting all available audio output drivers">
+                <section title="Getting amount of available audio output drivers" anchor="GET AVAILABLE_AUDIO_OUTPUT_DRIVERS">
+                    <t>Use the following command to get the number of
+                    audio output drivers currently available for the
+                    LinuxSampler instance:</t>
+                    <t>
+                        <list>
+                            <t>GET AVAILABLE_AUDIO_OUTPUT_DRIVERS</t>
+                        </list>
+                    </t>
+                    <t>Possible Answers:</t>
+                    <t>
+                        <list>
+                            <t>LinuxSampler will answer by sending the
+                            number of audio output drivers.</t>
+                        </list>
+                    </t>
+                    <t>Example:</t>
+                    <t>
+                        <list>
+                            <t>C: "GET AVAILABLE_AUDIO_OUTPUT_DRIVERS"</t>
+                            <t>S: "2"</t>
+                        </list>
+                    </t>
+                </section>
+
+                <section title="Getting all available audio output drivers" anchor="LIST AVAILABLE_AUDIO_OUTPUT_DRIVERS">
                     <t>Use the following command to list all audio output
                     drivers currently available for the LinuxSampler
                     instance:</t>
                     <t>
                         <list>
-                            <t>GET AVAILABLE_AUDIO_OUTPUT_DRIVERS</t>
+                            <t>LIST AVAILABLE_AUDIO_OUTPUT_DRIVERS</t>
                         </list>
                     </t>
                     <t>Possible Answers:</t>
@@ -492,14 +518,14 @@ Schoenebeck'>
                     <t>Example:</t>
                     <t>
                         <list>
-                            <t>C: "GET AVAILABLE_AUDIO_OUTPUT_DRIVERS"</t>
+                            <t>C: "LIST AVAILABLE_AUDIO_OUTPUT_DRIVERS"</t>
                             <t>S: "ALSA,JACK"</t>
                         </list>
                     </t>
                 </section>
 
                 <section title="Getting information about a specific audio
-                output driver">
+                output driver" anchor="GET AUDIO_OUTPUT_DRIVER INFO">
                     <t>Use the following command to get detailed information
                     about a specific audio output driver:</t>
                     <t>
@@ -509,8 +535,8 @@ Schoenebeck'>
                         </list>
                     </t>
                     <t>Where &lt;audio-output-driver&gt; is the name of the
-                    audio output driver, returned by the "GET
-                    AVAILABLE_AUDIO_OUTPUT_DRIVERS" command.</t>
+                    audio output driver, returned by the
+                    <xref target="LIST AVAILABLE_AUDIO_OUTPUT_DRIVERS">"LIST AVAILABLE_AUDIO_OUTPUT_DRIVERS"</xref> command.</t>
                     <t>Possible Answers:</t>
                     <t>
                         <list>
@@ -572,7 +598,7 @@ Schoenebeck'>
                 </section>
 
                 <section title="Getting information about specific audio
-                output driver parameter">
+                output driver parameter" anchor="GET AUDIO_OUTPUT_DRIVER_PARAMETER INFO">
                     <t>Use the following command to get detailed information
                     about a  specific audio output driver parameter:</t>
                     <t>
@@ -581,9 +607,11 @@ Schoenebeck'>
                         </list>
                     </t>
                     <t>Where &lt;audio&gt; is the name of the audio output
-                    driver as returned by the "GET AVAILABLE_AUDIO_OUTPUT_DRIVERS" command,
+                    driver as returned by the <xref target="LIST AVAILABLE_AUDIO_OUTPUT_DRIVERS">
+                    "LIST AVAILABLE_AUDIO_OUTPUT_DRIVERS"</xref> command,
                     &lt;prm&gt; a specific parameter name for which information should be
-                    obtained (as returned by the "GET AUDIO_OUTPUT_DRIVER INFO" command) and
+                    obtained (as returned by the
+                    <xref target="GET AUDIO_OUTPUT_DRIVER INFO">"GET AUDIO_OUTPUT_DRIVER INFO"</xref> command) and
                     &lt;deplist&gt; is an optional list of parameters on which the sought
                     parameter &lt;prm&gt; depends on, &lt;deplist&gt; is a list of key-value
                     pairs in form of "key1=val1 key2=val2 ...", where character string values
@@ -630,8 +658,8 @@ Schoenebeck'>
                               <list>
                                 <t>either true or false, defines if this parameter must be
                                 given when the device is to be created with the
-                                'CREATE AUDIO_OUTPUT_DEVICE' command
-                                (always returned, no matter which driver parameter)</t>
+                                <xref target="CREATE AUDIO_OUTPUT_DEVICE">'CREATE AUDIO_OUTPUT_DEVICE'</xref>
+                                command (always returned, no matter which driver parameter)</t>
                               </list>
                             </t>
 
@@ -639,8 +667,8 @@ Schoenebeck'>
                               <list>
                                 <t>either true or false, if false then this parameter can
                                 be changed at any time, once the device is created by
-                                the 'CREATE AUDIO_OUTPUT_DEVICE' command
-                                (always returned, no matter which driver parameter)</t>
+                                the <xref target="CREATE AUDIO_OUTPUT_DEVICE">'CREATE AUDIO_OUTPUT_DEVICE'</xref>
+                                command (always returned, no matter which driver parameter)</t>
                               </list>
                             </t>
 
@@ -672,7 +700,8 @@ Schoenebeck'>
                               <list>
                                 <t>reflects the default value for this parameter which is
                                 used when the device is created and not explicitly
-                                given with the 'CREATE AUDIO_OUTPUT_DEVICE' command,
+                                given with the <xref target="CREATE AUDIO_OUTPUT_DEVICE">
+                                'CREATE AUDIO_OUTPUT_DEVICE'</xref> command,
                                 in case of MULTIPLCITY=true, this is a comma separated
                                 list, that's why character strings are encapsulated into
                                 apostrophes (')
@@ -757,7 +786,7 @@ Schoenebeck'>
                     </t>
                 </section>
 
-                <section title="Creating an audio output device">
+                <section title="Creating an audio output device" anchor="CREATE AUDIO_OUTPUT_DEVICE">
                     <t>Use the following command to create a new audio output device for  the desired audio output system:</t>
 
                     <t>
@@ -815,7 +844,7 @@ Schoenebeck'>
                     </t>
                 </section>
 
-                <section title="Destroying an audio output device">
+                <section title="Destroying an audio output device" anchor="DESTROY AUDIO_OUTPUT_DEVICE">
                     <t>Use the following command to destroy a created output device:</t>
                     <t>
                         <list>
@@ -823,8 +852,10 @@ Schoenebeck'>
                         </list>
                     </t>
                     <t>Where &lt;device-id&gt; should be replaced by the numerical ID of the
-                    audio output device as given by the "CREATE AUDIO_OUTPUT_DEVICE" or
-                    "GET AUDIO_OUTPUT_DEVICES" command.</t>
+                    audio output device as given by the
+                    <xref target="CREATE AUDIO_OUTPUT_DEVICE">"CREATE AUDIO_OUTPUT_DEVICE"</xref>
+                    or <xref target="LIST AUDIO_OUTPUT_DEVICES">"LIST AUDIO_OUTPUT_DEVICES"</xref>
+                    command.</t>
                     <t>Possible Answers:</t>
                     <t>
                         <list>
@@ -859,7 +890,7 @@ Schoenebeck'>
                     </t>
                 </section>
 
-                <section title="Getting all created audio output device count">
+                <section title="Getting all created audio output device count" anchor="GET AUDIO_OUTPUT_DEVICES">
                     <t>Use the following command to count all created audio output devices:</t>
                     <t>
                         <list>
@@ -882,7 +913,7 @@ Schoenebeck'>
                     </t>
                 </section>
 
-                <section title="Getting all created audio output device list">
+                <section title="Getting all created audio output device list" anchor="LIST AUDIO_OUTPUT_DEVICES">
                     <t>Use the following command to list all created audio output devices:</t>
                     <t>
                         <list>
@@ -905,7 +936,7 @@ Schoenebeck'>
                     </t>
                 </section>
 
-                <section title="Getting current settings of an audio output device">
+                <section title="Getting current settings of an audio output device" anchor="GET AUDIO_OUTPUT_DEVICE INFO">
                     <t>Use the following command to get current settings of a specific, created audio output device:</t>
                     <t>
                         <list>
@@ -914,7 +945,7 @@ Schoenebeck'>
                     </t>
                     <t>Where &lt;device-id&gt; should be replaced by numerical ID
                     of the audio output device as e.g. returned by the
-                    "LIST AUDIO_OUTPUT_DEVICES" command.</t>
+                    <xref target="LIST AUDIO_OUTPUT_DEVICES">"LIST AUDIO_OUTPUT_DEVICES"</xref> command.</t>
                     <t>Possible Answers:</t>
                     <t>LinuxSampler will answer by sending a &lt;CRLF&gt; separated list.
                     Each answer line begins with the information category name
@@ -928,7 +959,9 @@ Schoenebeck'>
                             <t>DRIVER -
                                 <list>
                                     <t>identifier of the used audio output driver, as also
-                                    returned by the "GET AVAILABLE_AUDIO_OUTPUT_DRIVERS"
+                                    returned by the
+                                    <xref target="LIST AVAILABLE_AUDIO_OUTPUT_DRIVERS">
+                                    "LIST AVAILABLE_AUDIO_OUTPUT_DRIVERS"</xref>
                                     command</t>
                                 </list>
                             </t>
@@ -957,8 +990,8 @@ Schoenebeck'>
                     order. The fields above are only those fields which are
                     returned by all audio output devices. Every audio output driver
                     might have its own, additional driver specific parameters (see
-                    "GET AUDIO_OUTPUT_DRIVER INFO" command) which are also returned
-                    by this command.</t>
+                    <xref target="GET AUDIO_OUTPUT_DRIVER INFO" />)
+                    which are also returned by this command.</t>
                     <t>Example:</t>
                     <t>
                         <list>
@@ -976,7 +1009,7 @@ Schoenebeck'>
                 </section>
 
 
-                <section title="Changing settings of audio output devices">
+                <section title="Changing settings of audio output devices" anchor="SET AUDIO_OUTPUT_DEVICE_PARAMETER">
                     <t>Use the following command to alter a specific setting of a created audio output device:</t>
                     <t>
                         <list>
@@ -1018,7 +1051,7 @@ Schoenebeck'>
                     </t>
                 </section>
 
-                <section title="Getting information about an audio channel">
+                <section title="Getting information about an audio channel" anchor="GET AUDIO_OUTPUT_CHANNEL INFO">
                     <t>Use the following command to get information about an audio channel:</t>
                     <t>
                         <list>
@@ -1116,7 +1149,7 @@ Schoenebeck'>
                     </t>
                 </section>
 
-                <section title="Getting information about specific audio channel parameter">
+                <section title="Getting information about specific audio channel parameter" anchor="GET AUDIO_OUTPUT_CHANNEL_PARAMETER INFO">
                     <t>Use the following command to get detailed information about specific audio channel parameter:</t>
 
                     <t>
@@ -1126,9 +1159,11 @@ Schoenebeck'>
                     </t>
 
                     <t>Where &lt;dev-id&gt; is the numerical ID of the audio output device as returned
-                    by the "GET AUDIO_OUTPUT_DEVICES" command, &lt;chan&gt; the audio channel number
+                    by the <xref target="LIST AUDIO_OUTPUT_DEVICES">"LIST AUDIO_OUTPUT_DEVICES"</xref>
+                    command, &lt;chan&gt; the audio channel number
                     and &lt;param&gt; a specific channel parameter name for which information should
-                    be obtained (as returned by the "GET AUDIO_OUTPUT_CHANNEL INFO" command).</t>
+                    be obtained (as returned by the <xref target="GET AUDIO_OUTPUT_CHANNEL INFO">
+                    "GET AUDIO_OUTPUT_CHANNEL INFO"</xref> command).</t>
                     <t>Possible Answers:</t>
 
                     <t>
@@ -1219,7 +1254,7 @@ Schoenebeck'>
                     </t>
                 </section>
 
-                <section title="Changing settings of audio output channels">
+                <section title="Changing settings of audio output channels" anchor="SET AUDIO_OUTPUT_CHANNEL_PARAMETER">
                     <t>Use the following command to alter a specific setting of an audio output channel:</t>
                     <t>
                         <list>
@@ -1295,12 +1330,37 @@ Schoenebeck'>
                 showing how to retrieve what parameters drivers are offering, how to retrieve their
                 possible values, etc.</t>
 
-                <section title="Getting all available MIDI input drivers">
+                <section title="Getting amount of available MIDI input drivers" anchor="GET AVAILABLE_MIDI_INPUT_DRIVERS">
+                    <t>Use the following command to get the number of
+                    MIDI input drivers currently available for the
+                    LinuxSampler instance:</t>
+                    <t>
+                        <list>
+                            <t>GET AVAILABLE_MIDI_INPUT_DRIVERS</t>
+                        </list>
+                    </t>
+                    <t>Possible Answers:</t>
+                    <t>
+                        <list>
+                            <t>LinuxSampler will answer by sending the
+                            number of available MIDI input drivers.</t>
+                        </list>
+                    </t>
+                    <t>Example:</t>
+                    <t>
+                        <list>
+                            <t>C: "GET AVAILABLE_MIDI_INPUT_DRIVERS"</t>
+                            <t>S: "2"</t>
+                        </list>
+                    </t>
+                </section>
+
+                <section title="Getting all available MIDI input drivers" anchor="LIST AVAILABLE_MIDI_INPUT_DRIVERS">
                     <t>Use the following command to list all MIDI input drivers currently available
                     for the LinuxSampler instance:</t>
                     <t>
                         <list>
-                            <t>GET AVAILABLE_MIDI_INPUT_DRIVERS</t>
+                            <t>LIST AVAILABLE_MIDI_INPUT_DRIVERS</t>
                         </list>
                     </t>
                     <t>Possible Answers:</t>
@@ -1313,13 +1373,13 @@ Schoenebeck'>
                     <t>Example:</t>
                     <t>
                         <list>
-                            <t>C: "GET AVAILABLE_MIDI_INPUT_DRIVERS"</t>
+                            <t>C: "LIST AVAILABLE_MIDI_INPUT_DRIVERS"</t>
                             <t>S: "ALSA,JACK"</t>
                         </list>
                     </t>
                 </section>
 
-                <section title="Getting information about a specific MIDI input driver">
+                <section title="Getting information about a specific MIDI input driver" anchor="GET MIDI_INPUT_DRIVER INFO">
                     <t>Use the following command to get detailed information about a specific MIDI input driver:</t>
                     <t>
                         <list>
@@ -1373,7 +1433,7 @@ Schoenebeck'>
                     </t>
                 </section>
 
-                <section title="Getting information about specific MIDI input driver parameter">
+                <section title="Getting information about specific MIDI input driver parameter" anchor="GET MIDI_INPUT_DRIVER_PARAMETER INFO">
                     <t>Use the following command to get detailed information about a specific parameter of a specific MIDI input driver:</t>
                     <t>
                         <list>
@@ -1382,9 +1442,11 @@ Schoenebeck'>
                     </t>
 
                     <t>Where &lt;midi-t&gt; is the name of the MIDI input driver as returned
-                    by the "GET AVAILABLE_MIDI_INPUT_DRIVERS" command, &lt;param&gt; a specific
+                    by the <xref target="LIST AVAILABLE_MIDI_INPUT_DRIVERS">
+                    "LIST AVAILABLE_MIDI_INPUT_DRIVERS"</xref> command, &lt;param&gt; a specific
                     parameter name for which information should be obtained (as returned by the
-                    "GET MIDI_INPUT_DRIVER INFO" command) and &lt;deplist&gt; is an optional list
+                    <xref target="GET MIDI_INPUT_DRIVER INFO">
+                    "GET MIDI_INPUT_DRIVER INFO"</xref> command) and &lt;deplist&gt; is an optional list
                     of parameters on which the sought parameter &lt;param&gt; depends on,
                     &lt;deplist&gt; is a key-value pair list in form of "key1=val1 key2=val2 ...",
                     where character string values are encapsulated into apostrophes ('). Arguments
@@ -1425,7 +1487,8 @@ Schoenebeck'>
                               <list>
                                 <t>either true or false, defines if this parameter must be
                                 given when the device is to be created with the
-                                'CREATE MIDI_INPUT_DEVICE' command
+                                <xref target="CREATE MIDI_INPUT_DEVICE">
+                                'CREATE MIDI_INPUT_DEVICE'</xref> command
                                 (always returned, no matter which driver parameter)</t>
                               </list>
                             </t>
@@ -1434,7 +1497,8 @@ Schoenebeck'>
                               <list>
                                 <t>either true or false, if false then this parameter can
                                 be changed at any time, once the device is created by
-                                the 'CREATE MIDI_INPUT_DEVICE' command
+                                the <xref target="CREATE MIDI_INPUT_DEVICE">
+                                'CREATE MIDI_INPUT_DEVICE'</xref> command
                                 (always returned, no matter which driver parameter)</t>
                               </list>
                             </t>
@@ -1467,7 +1531,8 @@ Schoenebeck'>
                               <list>
                                 <t>reflects the default value for this parameter which is
                                 used when the device is created and not explicitly
-                                given with the 'CREATE MIDI_INPUT_DEVICE' command,
+                                given with the <xref target="CREATE MIDI_INPUT_DEVICE">
+                                'CREATE MIDI_INPUT_DEVICE'</xref> command,
                                 in case of MULTIPLCITY=true, this is a comma separated
                                 list, that's why character strings are encapsulated into
                                 apostrophes (')
@@ -1523,7 +1588,7 @@ Schoenebeck'>
                     </t>
                 </section>
 
-                <section title="Creating a MIDI input device">
+                <section title="Creating a MIDI input device" anchor="CREATE MIDI_INPUT_DEVICE">
                     <t>Use the following command to create a new MIDI input device for  the desired MIDI input system:</t>
                     <t>
                         <list>
@@ -1571,7 +1636,7 @@ Schoenebeck'>
                     </t>
                 </section>
 
-                <section title="Destroying a MIDI input device">
+                <section title="Destroying a MIDI input device" anchor="DESTROY MIDI_INPUT_DEVICE">
                     <t>Use the following command to destroy a created MIDI input device:</t>
                     <t>
                         <list>
@@ -1610,7 +1675,7 @@ Schoenebeck'>
                     </t>
                 </section>
 
-                <section title="Getting all created MIDI input device count">
+                <section title="Getting all created MIDI input device count" anchor="GET MIDI_INPUT_DEVICES">
                     <t>Use the following command to count all created MIDI input devices:</t>
                     <t>
                         <list>
@@ -1634,7 +1699,7 @@ Schoenebeck'>
                 </section>
 
 
-                <section title="Getting all created MIDI input device list">
+                <section title="Getting all created MIDI input device list" anchor="LIST MIDI_INPUT_DEVICES">
                     <t>Use the following command to list all created MIDI input devices:</t>
                     <t>
                         <list>
@@ -1663,7 +1728,7 @@ Schoenebeck'>
                     </t>
                 </section>
 
-                <section title="Getting current settings of a MIDI input device">
+                <section title="Getting current settings of a MIDI input device" anchor="GET MIDI_INPUT_DEVICE INFO">
                     <t>Use the following command to get current settings of a specific, created MIDI input device:</t>
                     <t>
                         <list>
@@ -1687,7 +1752,8 @@ Schoenebeck'>
                                     <t>DRIVER -
                                         <list>
                                             <t>identifier of the used MIDI input driver, as e.g.
-                                            returned by the "GET AVAILABLE_MIDI_INPUT_DRIVERS"
+                                            returned by the <xref target="LIST AVAILABLE_MIDI_INPUT_DRIVERS">
+                                            "LIST AVAILABLE_MIDI_INPUT_DRIVERS"</xref>
                                             command</t>
                                         </list>
                                     </t>
@@ -1710,7 +1776,8 @@ Schoenebeck'>
                     order. The fields above are only those fields which are
                     returned by all MIDI input devices. Every MIDI input driver
                     might have its own, additional driver specific parameters (see
-                    "GET MIDI_INPUT_DRIVER INFO" command) which are also returned
+                    <xref target="GET MIDI_INPUT_DRIVER INFO">
+                    "GET MIDI_INPUT_DRIVER INFO"</xref> command) which are also returned
                     by this command.</t>
 
                     <t>Example:</t>
@@ -1724,7 +1791,7 @@ Schoenebeck'>
                     </t>
                 </section>
 
-                <section title="Changing settings of MIDI input devices">
+                <section title="Changing settings of MIDI input devices" anchor="SET MIDI_INPUT_DEVICE_PARAMETER">
                     <t>Use the following command to alter a specific setting of a created MIDI input device:</t>
                     <t>
                         <list>
@@ -1767,7 +1834,7 @@ Schoenebeck'>
                     </t>
                 </section>
 
-                <section title="Getting information about a MIDI port">
+                <section title="Getting information about a MIDI port" anchor="GET MIDI_INPUT_PORT INFO">
                     <t>Use the following command to get information about a MIDI port:</t>
                     <t>
                         <list>
@@ -1809,7 +1876,7 @@ Schoenebeck'>
                     </t>
                 </section>
 
-                <section title="Getting information about specific MIDI port parameter">
+                <section title="Getting information about specific MIDI port parameter" anchor="GET MIDI_INPUT_PORT_PARAMETER INFO">
                     <t>Use the following command to get detailed information about specific MIDI port parameter:</t>
                     <t>
                         <list>
@@ -1818,9 +1885,11 @@ Schoenebeck'>
                     </t>
 
                     <t>Where &lt;dev-id&gt; is the numerical ID of the MIDI input device as returned
-                    by the "LIST MIDI_INPUT_DEVICES" command, &lt;port&gt; the MIDI port number and
+                    by the <xref target="LIST MIDI_INPUT_DEVICES">
+                    "LIST MIDI_INPUT_DEVICES"</xref> command, &lt;port&gt; the MIDI port number and
                     &lt;param&gt; a specific port parameter name for which information should be
-                    obtained (as returned by the "GET MIDI_INPUT_PORT INFO" command).</t>
+                    obtained (as returned by the <xref target="GET MIDI_INPUT_PORT INFO">
+                    "GET MIDI_INPUT_PORT INFO"</xref> command).</t>
 
                     <t>Possible Answers:</t>
                     <t>
@@ -1911,7 +1980,7 @@ Schoenebeck'>
                     </t>
                 </section>
 
-                <section title="Changing settings of MIDI input ports">
+                <section title="Changing settings of MIDI input ports" anchor="SET MIDI_INPUT_PORT_PARAMETER">
                     <t>Use the following command to alter a specific setting of a MIDI input port:</t>
                     <t>
                         <list>
@@ -1959,7 +2028,7 @@ Schoenebeck'>
                 <t>The following commands describe how to add and remove sampler channels, deploy
                 sampler engines, load instruments and connect sampler channels to MIDI and audio devices.</t>
 
-                <section title="Loading an instrument">
+                <section title="Loading an instrument" anchor="LOAD INSTRUMENT">
                     <t>An instrument file can be loaded and assigned to a sampler channel by one of the following commands:</t>
                     <t>
                         <list>
@@ -1977,7 +2046,8 @@ Schoenebeck'>
                     is that the regular command returns OK only after the instrument has been
                     fully loaded and the channel is ready to be used while NON_MODAL version
                     returns immediately and a background process is launched to load the instrument
-                    on the channel. GET CHANNEL INFO command can be used to obtain loading
+                    on the channel. The <xref target="GET CHANNEL INFO">GET CHANNEL INFO</xref>
+                    command can be used to obtain loading
                     progress from INSTRUMENT_STATUS field. LOAD command will perform sanity checks
                     such as making sure that the file could be read and it is of a proper format
                     and SHOULD return ERR and SHOULD not launch the background process should any
@@ -2015,7 +2085,7 @@ Schoenebeck'>
                     </t>
                 </section>
 
-                <section title="Loading a sampler engine">
+                <section title="Loading a sampler engine" anchor="LOAD ENGINE">
                     <t>A sample engine can be deployed and assigned to a specific sampler
                     channel by the following command:</t>
                     <t>
@@ -2025,7 +2095,8 @@ Schoenebeck'>
                     </t>
 
                     <t>Where &lt;engine-name&gt; is an engine name as obtained by the
-                    "GET AVAILABLE_ENGINES" command and &lt;sampler-channel&gt; the sampler channel the
+                    <xref target="LIST AVAILABLE_ENGINES">
+                    "LIST AVAILABLE_ENGINES"</xref> command and &lt;sampler-channel&gt; the sampler channel the
                     deployed engine should be assigned to. Even if the respective
                     sampler channel has already a deployed engine with that engine
                     name, a new engine instance will be assigned to the sampler channel.</t>
@@ -2061,7 +2132,7 @@ Schoenebeck'>
                     </t>
                 </section>
 
-                <section title="Getting all created sampler channel count">
+                <section title="Getting all created sampler channel count" anchor="GET CHANNELS">
                     <t>The number of sampler channels can change on runtime. To get the
                     current amount of sampler channels, the front-end can send the
                     following command:</t>
@@ -2085,7 +2156,7 @@ Schoenebeck'>
                     </t>
                 </section>
 
-                <section title="Getting all created sampler channel list">
+                <section title="Getting all created sampler channel list" anchor="LIST CHANNELS">
                     <t>The number of sampler channels can change on runtime. To get the
                     current list of sampler channels, the front-end can send the
                     following command:</t>
@@ -2110,7 +2181,7 @@ Schoenebeck'>
                     </t>
                 </section>
 
-                <section title="Adding a new sampler channel">
+                <section title="Adding a new sampler channel" anchor="ADD CHANNEL">
                     <t>A new sampler channel can be added to the end of the sampler
                     channel list by sending the following command:</t>
                     <t>
@@ -2162,7 +2233,7 @@ Schoenebeck'>
                     </t>
                 </section>
 
-                <section title="Removing a sampler channel">
+                <section title="Removing a sampler channel" anchor="REMOVE CHANNEL">
                     <t>A sampler channel can be removed by sending the following command:</t>
                     <t>
                         <list>
@@ -2205,11 +2276,33 @@ Schoenebeck'>
                     </t>
                 </section>
 
-                <section title="Getting all available engines">
-                    <t>The front-end can ask for all available engines by sending the following command:</t>
+                <section title="Getting amount of available engines" anchor="GET AVAILABLE_ENGINES">
+                    <t>The front-end can ask for the number of available engines by sending the following command:</t>
                     <t>
                         <list>
                             <t>GET AVAILABLE_ENGINES</t>
+                        </list>
+                    </t>
+                    <t>Possible Answers:</t>
+                    <t>
+                        <list>
+                            <t>LinuxSampler will answer by sending the number of available engines.</t>
+                        </list>
+                    </t>
+                    <t>Example:</t>
+                    <t>
+                        <list>
+                            <t>C: "GET AVAILABLE_ENGINES"</t>
+                            <t>S: "4"</t>
+                        </list>
+                    </t>
+                </section>
+
+                <section title="Getting all available engines" anchor="LIST AVAILABLE_ENGINES">
+                    <t>The front-end can ask for a list of all available engines by sending the following command:</t>
+                    <t>
+                        <list>
+                            <t>LIST AVAILABLE_ENGINES</t>
                         </list>
                     </t>
                     <t>Possible Answers:</t>
@@ -2223,13 +2316,13 @@ Schoenebeck'>
                     <t>Example:</t>
                     <t>
                         <list>
-                            <t>C: "GET AVAILABLE_ENGINES"</t>
+                            <t>C: "LIST AVAILABLE_ENGINES"</t>
                             <t>S: "GigEngine,AkaiEngine,DLSEngine,JoesCustomEngine"</t>
                         </list>
                     </t>
                 </section>
 
-                <section title="Getting information about an engine">
+                <section title="Getting information about an engine" anchor="GET ENGINE INFO">
                     <t>The front-end can ask for information about a specific engine by
                     sending the following command:</t>
                     <t>
@@ -2238,7 +2331,8 @@ Schoenebeck'>
                         </list>
                     </t>
                     <t>Where &lt;engine-name&gt; is an engine name as obtained by the
-                    "GET AVAILABLE_ENGINES" command.</t>
+                    <xref target="LIST AVAILABLE_ENGINES">
+                    "LIST AVAILABLE_ENGINES"</xref> command.</t>
                     <t>Possible Answers:</t>
                     <t>
                         <list>
@@ -2278,7 +2372,7 @@ Schoenebeck'>
                     </t>
                 </section>
 
-                <section title="Getting sampler channel information">
+                <section title="Getting sampler channel information" anchor="GET CHANNEL INFO">
                     <t>The front-end can ask for the current settings of a sampler channel
                     by sending the following command:</t>
                     <t>
@@ -2407,7 +2501,7 @@ Schoenebeck'>
                     </t>
                 </section>
 
-                <section title="Current number of active voices">
+                <section title="Current number of active voices" anchor="GET CHANNEL VOICE_COUNT">
                     <t>The front-end can ask for the current number of active voices on a
                     sampler channel by sending the following command:</t>
                     <t>
@@ -2432,7 +2526,7 @@ Schoenebeck'>
                     </t>
                 </section>
 
-                <section title="Current number of active disk streams">
+                <section title="Current number of active disk streams" anchor="GET CHANNEL STREAM_COUNT">
                     <t>The front-end can ask for the current number of active disk streams
                     on a sampler channel by sending the following command:</t>
                     <t>
@@ -2459,7 +2553,7 @@ Schoenebeck'>
                     </t>
                 </section>
 
-                <section title="Current fill state of disk stream buffers">
+                <section title="Current fill state of disk stream buffers" anchor="GET CHANNEL BUFFER_FILL">
                     <t>The front-end can ask for the current fill state of all disk streams
                     on a sampler channel by sending the following command:</t>
                     <t>
@@ -2510,7 +2604,7 @@ Schoenebeck'>
                     </t>
                 </section>
 
-                <section title="Setting audio output device">
+                <section title="Setting audio output device" anchor="SET CHANNEL AUDIO_OUTPUT_DEVICE">
                     <t>The front-end can set the audio output device on a specific sampler
                     channel by sending the following command:</t>
                     <t>
@@ -2552,7 +2646,7 @@ Schoenebeck'>
                     </t>
                 </section>
 
-                <section title="Setting audio output type">
+                <section title="Setting audio output type" anchor="SET CHANNEL AUDIO_OUTPUT_TYP">
                     <t>DEPRECATED: THIS COMMAND WILL DISAPPEAR SOON!</t>
 
                     <t>The front-end can alter the audio output type on a specific sampler
@@ -2595,7 +2689,7 @@ Schoenebeck'>
                     </t>
                 </section>
 
-                <section title="Setting audio output channel">
+                <section title="Setting audio output channel" anchor="SET CHANNEL AUDIO_OUTPUT_CHANNEL">
                     <t>The front-end can alter the audio output channel on a specific
                     sampler channel by sending the following command:</t>
                     <t>
@@ -2638,7 +2732,7 @@ Schoenebeck'>
                     </t>
                 </section>
 
-                <section title="Setting MIDI input device">
+                <section title="Setting MIDI input device" anchor="SET CHANNEL MIDI_INPUT_DEVICE">
                     <t>The front-end can set the MIDI input device on a specific sampler
                     channel by sending the following command:</t>
                     <t>
@@ -2679,7 +2773,7 @@ Schoenebeck'>
                     </t>
                 </section>
 
-                <section title="Setting MIDI input type">
+                <section title="Setting MIDI input type" anchor="SET CHANNEL MIDI_INPUT_TYPE">
                     <t>DEPRECATED: THIS COMMAND WILL DISAPPEAR SOON!</t>
 
                     <t>The front-end can alter the MIDI input type on a specific sampler
@@ -2722,7 +2816,7 @@ Schoenebeck'>
                     </t>
                 </section>
 
-                <section title="Setting MIDI input port">
+                <section title="Setting MIDI input port" anchor="SET CHANNEL MIDI_INPUT_PORT">
                     <t>The front-end can alter the MIDI input port on a specific sampler
                     channel by sending the following command:</t>
                     <t>
@@ -2764,7 +2858,7 @@ Schoenebeck'>
                     </t>
                 </section>
 
-                <section title="Setting MIDI input channel">
+                <section title="Setting MIDI input channel" anchor="SET CHANNEL MIDI_INPUT_CHANNEL">
                     <t>The front-end can alter the MIDI channel a sampler channel should
                     listen to by sending the following command:</t>
                     <t>
@@ -2806,7 +2900,7 @@ Schoenebeck'>
                     </t>
                 </section>
 
-                <section title="Setting channel volume">
+                <section title="Setting channel volume" anchor="SET CHANNEL VOLUME">
                     <t>The front-end can alter the volume of a sampler channel by sending
                     the following command:</t>
                     <t>
@@ -2849,7 +2943,7 @@ Schoenebeck'>
                     </t>
                 </section>
 
-                <section title="Resetting a sampler channel">
+                <section title="Resetting a sampler channel" anchor="RESET CHANNEL">
                     <t>The front-end can reset a particular sampler channel by sending the following command:</t>
                     <t>
                         <list>
@@ -2897,7 +2991,7 @@ Schoenebeck'>
             <section title="Controlling connection">
                 <t>The following commands are used to control the connection to LinuxSampler.</t>
 
-                <section title="Register front-end for receiving event messages">
+                <section title="Register front-end for receiving event messages" anchor="SUBSCRIBE">
                     <t>The front-end can register itself to the LinuxSampler application to
                     be informed about noteworthy events by sending this command:</t>
                     <t>
@@ -2939,7 +3033,7 @@ Schoenebeck'>
                     </t>
                 </section>
 
-                <section title="Unregister front-end for not receiving event messages">
+                <section title="Unregister front-end for not receiving event messages" anchor="UNSUBSCRIBE">
                     <t>The front-end can unregister itself if it doesn't want to receive event
                     messages anymore by sending the following command:</t>
                     <t>
@@ -2981,7 +3075,7 @@ Schoenebeck'>
                     </t>
                 </section>
 
-                <section title="Enable or disable echo of commands">
+                <section title="Enable or disable echo of commands" anchor="SET ECHO">
                     <t>To enable or disable back sending of commands to the client the following command can be used:</t>
                     <t>
                         <list>
@@ -3019,7 +3113,7 @@ Schoenebeck'>
                     </t>
                 </section>
 
-                <section title="Close client connection">
+                <section title="Close client connection" anchor="QUIT">
                     <t>The client can close its network connection to LinuxSampler by sending the following command:</t>
                     <t>
                         <list>
@@ -3034,7 +3128,7 @@ Schoenebeck'>
             <section title="Global commands">
                 <t>The following commands have global impact on the sampler.</t>
 
-                <section title="Reset sampler">
+                <section title="Reset sampler" anchor="RESET">
                     <t>The front-end can reset the whole sampler by sending the following command:</t>
                     <t>
                         <list>
@@ -3062,16 +3156,16 @@ Schoenebeck'>
             </section>
         </section>
 
-        <section title="Command Syntax">
+        <section title="Command Syntax" anchor="command_syntax">
             <t>TODO: will soon automatically included from src/network/lscp.y,
             meanwhile have a look at that file to get the exact definition of
             the command syntax.</t>
         </section>
 
-        <section title="Events">
+        <section title="Events" anchor="events">
             <t>This chapter will describe all currently defined events supported by LinuxSampler.</t>
 
-            <section title="Number of sampler channels changed">
+            <section title="Number of sampler channels changed" anchor="SUBSCRIBE CHANNEL">
                 <t>Client may want to be notified when the total number of channels on the
                 back-end changes by issuing the following command:</t>
                 <t>
@@ -3089,7 +3183,7 @@ Schoenebeck'>
                 of sampler channels.</t>
             </section>
 
-            <section title="Number of active voices changed">
+            <section title="Number of active voices changed" anchor="SUBSCRIBE VOICE_COUNT">
                 <t>Client may want to be notified when the number of voices on the
                 back-end changes by issuing the following command:</t>
                 <t>
@@ -3108,7 +3202,7 @@ Schoenebeck'>
                 active voices on that channel.</t>
             </section>
 
-            <section title="Number of active disk streams changed">
+            <section title="Number of active disk streams changed" anchor="SUBSCRIBE STREAM_COUNT">
                 <t>Client may want to be notified when the number of streams on the back-end
                 changes by issuing the following command: SUBSCRIBE STREAM_COUNT</t>
                 <t>
@@ -3127,7 +3221,7 @@ Schoenebeck'>
                 active disk streams on that channel.</t>
             </section>
 
-            <section title="Disk stream buffer fill state changed">
+            <section title="Disk stream buffer fill state changed" anchor="SUBSCRIBE BUFFER_FILL">
                 <t>Client may want to be notified when the buffer fill state of a disk stream
                 on the back-end changes by issuing the following command:</t>
                 <t>
@@ -3142,12 +3236,13 @@ Schoenebeck'>
                     </list>
                 </t>
                 <t>where &lt;sampler-channel&gt; will be replaced by the sampler channel the
-                buffer fill state change occurred and &lt;fill-data&gt; will be replaced by the
-                buffer fill data for this channel as described in 5.4.12 as if the
-                "GET CHANNEL BUFFER_FILL PERCENTAGE" was issued on this channel.</t>
+                buffer fill state change occurred on and &lt;fill-data&gt; will be replaced by the
+                buffer fill data for this channel as described in <xref target="GET CHANNEL BUFFER_FILL" />
+                as if the <xref target="GET CHANNEL BUFFER_FILL">
+                "GET CHANNEL BUFFER_FILL PERCENTAGE"</xref> command was issued on this channel.</t>
             </section>
 
-            <section title="Channel information changed">
+            <section title="Channel information changed" anchor="SUBSCRIBE INFO">
                 <t>Client may want to be notified when changes were made to sampler channels on the
                 back-end changes by issuing the following command:</t>
                 <t>
@@ -3169,7 +3264,7 @@ Schoenebeck'>
                 message is sufficient here.</t>
             </section>
 
-            <section title="Miscellaneous and debugging events">
+            <section title="Miscellaneous and debugging events" anchor="SUBSCRIBE MISCELLANEOUS">
                 <t>Client may want to be notified of miscellaneous and debugging events occurring at
                 the server by issuing the following command:</t>
                 <t>
