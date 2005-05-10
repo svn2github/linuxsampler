@@ -155,7 +155,7 @@ AC_DEFINE_UNQUOTED(HAVE_JACK,$HAVE_JACK,[Define to 1 if you have JACK installed.
 
 
 # Check presence of libgig
-libgig_version="1.0.0"
+libgig_version="2.0.0"
 PKG_CHECK_MODULES(GIG, gig >= $libgig_version, HAVE_GIG=true, HAVE_GIG=false)
 if test "$HAVE_GIG" = "false"; then
     echo "Required libgig version not found!"
