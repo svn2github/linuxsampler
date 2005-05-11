@@ -29,7 +29,7 @@
 #endif // DEBUG_HEADERS
 
 #define PITCHBEND_SEMITONES             12
-#define MAX_AUDIO_VOICES                128
+#define MAX_AUDIO_VOICES                64
 #define SYSEX_BUFFER_SIZE               2048  // 2kB
 #define VOICE_STEAL_ALGORITHM           voice_steal_algo_oldestkey  ///< @see voice_steal_algo_t for available voice stealing algorithms
 
