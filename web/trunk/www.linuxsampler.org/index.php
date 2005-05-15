@@ -239,6 +239,11 @@
 	  	</td></tr></table>
 
  </div>
+<CENTER>
+Last Sync: <?php readfile("date.txt"); ?>
+</CENTER>
+
+
 
 </body>
 </html>
