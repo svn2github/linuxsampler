@@ -1,0 +1,6 @@
+# Specifications for robots:
+# A Disallow field with no value indicates, that all URLs
+# can be retrieved
+
+User-agent: *
+Disallow:

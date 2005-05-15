@@ -1,0 +1,201 @@
+body    {
+	background: rgb(220,220,220);
+        }
+
+#mainwindow {
+	border: 1px solid black;
+	background: white;
+	overflow: hidden;
+	width: 100%;
+	padding: 0;
+	}
+
+#contents {
+	margin: 0;
+	}
+
+
+h2 	{
+	font-size: 14pt;
+	font-family: sans-serif;
+	border: none;
+	background: rgb(240,240,240);
+	margin: 0.8em 2em;
+	padding: 0.4em 0.4em;
+	}
+
+h3 	{
+	font-size: 14pt;
+	font-family: sans-serif;
+	font-weight: normal;
+	border: none;
+	background: rgb(240,240,240);
+	margin: 0.8em 2em;
+	padding: 0.4em 0.4em;
+	}
+
+.hidden
+{
+	display: none;
+}
+
+img {
+	border: none;
+	display: block;
+	}
+
+table th {
+	background: rgb(226,226,226);
+	}
+
+.code {
+	width: 100%;
+	background-color: #F6F6F6;
+	border: 2px outset GhostWhite;
+	padding-left: 3px;
+	padding-right: 3px;
+	padding-top: 3px;
+	padding-bottom: 3px;
+	}
+
+.formatmatrix {
+	font-size: 12pt;
+	font-family: sans-serif;
+	text-align: justify;
+	font-style: normal;
+	font-weight: normal;
+	}
+
+.formatmatrix th{
+	border: 1px solid rgb(200,200,200);
+	}
+
+.formatmatrix td {
+	padding: 0.6em;
+	}
+
+.formatmatrix tr.white td {
+	border: 1px solid rgb(240, 240, 240);
+	}
+
+.formatmatrix tr.grey td {
+	background: rgb(230, 230, 230);
+	border: none;
+	}
+
+.formatmatrix tr.green td {
+	background: rgb(180, 255, 180);
+	border: none;
+	}
+
+.formatmatrix tr.red td {
+	background: rgb(255, 180, 180);
+	border: none;
+	}
+
+.linkstable {
+	font-size: 12pt;
+	font-family: sans-serif;
+	text-align: justify;
+	font-style: normal;
+	font-weight: normal;
+	}
+
+.linkstable a {
+	text-decoration: none;
+	}
+
+.linkstable a:hover {
+	text-decoration: underline;
+	}
+
+table.default {
+	margin-left: 2cm
+	}
+
+p.default  {
+	font-size: 12pt;
+	font-family: sans-serif;
+	text-align: justify;
+	font-style: normal;
+	font-weight: normal;
+	padding: 1em 2.2em;
+	}
+
+table.pure {
+	font-size: 12pt;
+	font-family: sans-serif;
+	font-style: normal;
+	font-weight: normal;
+	}
+
+div.groupbox {
+	background: rgb(240, 240, 240);
+	font-size: 12pt;
+	font-family: sans-serif;
+	text-align: justify;
+	font-style: normal;
+	font-weight: normal;
+	margin: 1em 3em 1em 3em;
+	padding: 1em 1em 1em 2.2em;
+	}
+
+p.groupbox {
+	border: none;
+	background: rgb(240, 240, 240);
+	font-size: 12pt;
+	font-family: sans-serif;
+	text-align: justify;
+	font-style: normal;
+	font-weight: normal;
+	margin: 1em 3em 1em 3em;
+	padding: 1em 1em 1em 2.2em;
+	}
+
+span.default  {
+	font-size: 12pt;
+	font-family: sans-serif;
+	text-align: justify;
+	font-style: normal;
+	font-weight: normal;
+	}
+
+ul	{
+	/* list-style-type:circle; */
+	border: none;
+	background: rgb(240, 240, 240);
+	list-style-image: url("gfx/okay.png");
+	margin: 1em 3em 1em 3em;
+	padding: 1em 1em 1em 2.2em;
+	}
+
+li	{
+	padding: 0.2em 0.2em 0.2em 0.2em;
+	font-size: 12pt;
+	font-family: sans-serif;
+	text-align: justify;
+	}
+
+li.ok	{
+	list-style-image: url("gfx/okay_green.png");
+	padding: 0.2em 0.2em 0.2em 0.2em;
+	font-size: 12pt;
+	font-family: sans-serif;
+	text-align: justify;
+	}
+
+li.false	{
+	list-style-image: url("gfx/x.png");
+	padding: 0.2em 0.2em 0.2em 0.2em;
+	font-size: 12pt;
+	font-family: sans-serif;
+	text-align: justify;
+	}
+
+li.partly	{
+	list-style-image: url("gfx/yellow_light.png");
+	padding: 0.2em 0.2em 0.2em 0.2em;
+	font-size: 12pt;
+	font-family: sans-serif;
+	text-align: justify;
+	}

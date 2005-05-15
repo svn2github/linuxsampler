@@ -1,0 +1,4146 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html lang="en"><head><title>LinuxSampler Control Protocol</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta name="description" content="LinuxSampler Control Protocol">
+<meta name="keywords" content="LSCP">
+<meta name="generator" content="xml2rfc v1.24 (http://xml.resource.org/)">
+<style type='text/css'>
+<!--
+    body {
+        font-family: verdana, charcoal, helvetica, arial, sans-serif;
+        font-size: small ; color: #000000 ; background-color: #ffffff ; }
+    .title { color: #990000; font-size: x-large ;
+        font-weight: bold; text-align: right;
+        font-family: helvetica, monaco, "MS Sans Serif", arial, sans-serif;
+        background-color: transparent; }
+    .filename { color: #666666; font-size: 18px; line-height: 28px;
+        font-weight: bold; text-align: right;
+        font-family: helvetica, arial, sans-serif;
+        background-color: transparent; }
+    td.rfcbug { background-color: #000000 ; width: 30px ; height: 30px ; 
+        text-align: justify; vertical-align: middle ; padding-top: 2px ; }
+    td.rfcbug span.RFC { color: #666666; font-weight: bold; text-decoration: none;
+        background-color: #000000 ;
+        font-family: monaco, charcoal, geneva, "MS Sans Serif", helvetica, verdana, sans-serif;
+        font-size: x-small ; }
+    td.rfcbug span.hotText { color: #ffffff; font-weight: normal; text-decoration: none;
+        text-align: center ;
+        font-family: charcoal, monaco, geneva, "MS Sans Serif", helvetica, verdana, sans-serif;
+        font-size: x-small ; background-color: #000000; }
+/* info code from SantaKlauss at http://www.madaboutstyle.com/tooltip2.html */
+    div#counter{margin-top: 100px}
+
+    a.info{
+        position:relative; /*this is the key*/
+        z-index:24;
+        text-decoration:none}
+
+    a.info:hover{z-index:25; background-color:#990000 ; color: #ffffff ;}
+
+    a.info span{display: none}
+
+    a.info:hover span{ /*the span will display just on :hover state*/
+        display:block;
+        position:absolute;
+        font-size: smaller ;
+        top:2em; left:2em; width:15em;
+        padding: 2px ;
+        border:1px solid #333333;
+        background-color:#eeeeee; color:#990000;
+        text-align: left ;}
+
+     A { font-weight: bold; }
+     A:link { color: #990000; background-color: transparent ; }
+     A:visited { color: #333333; background-color: transparent ; }
+     A:active { color: #333333; background-color: transparent ; }
+
+    p { margin-left: 2em; margin-right: 2em; }
+    p.copyright { font-size: x-small ; }
+    p.toc { font-size: small ; font-weight: bold ; margin-left: 3em ;}
+
+    span.emph { font-style: italic; }
+    span.strong { font-weight: bold; }
+    span.verb { font-family: "Courier New", Courier, monospace ; }
+
+    ol.text { margin-left: 2em; margin-right: 2em; }
+    ul.text { margin-left: 2em; margin-right: 2em; }
+    li { margin-left: 3em;  }
+
+    pre { margin-left: 3em; color: #333333;  background-color: transparent;
+        font-family: "Courier New", Courier, monospace ; font-size: small ;
+        }
+
+    h3 { color: #333333; font-size: medium ;
+        font-family: helvetica, arial, sans-serif ;
+        background-color: transparent; }
+    h4 { font-size: small; font-family: helvetica, arial, sans-serif ; }
+
+    table.bug { width: 30px ; height: 15px ; }
+    td.bug { color: #ffffff ; background-color: #990000 ;
+        text-align: center ; width: 30px ; height: 15px ;
+         }
+    td.bug A.link2 { color: #ffffff ; font-weight: bold;
+        text-decoration: none;
+        font-family: monaco, charcoal, geneva, "MS Sans Serif", helvetica, sans-serif;
+        font-size: x-small ; background-color: transparent }
+
+    td.header { color: #ffffff; font-size: x-small ;
+        font-family: arial, helvetica, sans-serif; vertical-align: top;
+        background-color: #666666 ; width: 33% ; }
+    td.author { font-weight: bold; margin-left: 4em; font-size: x-small ; }
+    td.author-text { font-size: x-small; }
+    table.data { vertical-align: top ; border-collapse: collapse ;
+        border-style: solid solid solid solid ;
+        border-color: black black black black ;
+        font-size: small ; text-align: center ; }
+    table.data th { font-weight: bold ;
+        border-style: solid solid solid solid ;
+        border-color: black black black black ; }
+    table.data td {
+        border-style: solid solid solid solid ;
+        border-color: #333333 #333333 #333333 #333333 ; }
+
+    hr { height: 1px }
+-->
+</style>
+</head>
+<body>
+<table summary="layout" cellpadding="0" cellspacing="2" class="bug" align="right"><tr><td class="bug"><a href="#toc" class="link2">&nbsp;TOC&nbsp;</a></td></tr></table>
+<table summary="layout" width="66%" border="0" cellpadding="0" cellspacing="0"><tr><td><table summary="layout" width="100%" border="0" cellpadding="2" cellspacing="1">
+<tr><td class="header">LinuxSampler Developers</td><td class="header">C. Schoenebeck</td></tr>
+<tr><td class="header">Internet-Draft</td><td class="header">Interessengemeinschaft Software</td></tr>
+<tr><td class="header">Expires: November 30, 2004</td><td class="header">Engineering e. V.</td></tr>
+<tr><td class="header">&nbsp;</td><td class="header">June 2004</td></tr>
+</table></td></tr></table>
+<div align="right"><span class="title"><br />LinuxSampler Control Protocol</span></div>
+<div align="right"><span class="title"><br />lscp.txt</span></div>
+
+<h3>Status of this Memo</h3>
+<p>
+This document is an Internet-Draft and is
+in full conformance with all provisions of Section 10 of RFC2026.</p>
+<p>
+Internet-Drafts are working documents of the Internet Engineering
+Task Force (IETF), its areas, and its working groups.
+Note that other groups may also distribute working documents as
+Internet-Drafts.</p>
+<p>
+Internet-Drafts are draft documents valid for a maximum of six months
+and may be updated, replaced, or obsoleted by other documents at any time.
+It is inappropriate to use Internet-Drafts as reference material or to cite
+them other than as "work in progress."</p>
+<p>
+The list of current Internet-Drafts can be accessed at
+<a href='http://www.ietf.org/ietf/1id-abstracts.txt'>http://www.ietf.org/ietf/1id-abstracts.txt</a>.</p>
+<p>
+The list of Internet-Draft Shadow Directories can be accessed at
+<a href='http://www.ietf.org/shadow.html'>http://www.ietf.org/shadow.html</a>.</p>
+<p>
+This Internet-Draft will expire on November 30, 2004.</p>
+
+<h3>Copyright Notice</h3>
+<p>
+Copyright (C) The Internet Society (2004). All Rights Reserved.</p>
+
+<h3>Abstract</h3>
+
+<p>The LinuxSampler Control Protocol (LSCP) is an
+            application-level protocol primarily intended for local and
+            remote controlling the LinuxSampler main application, which is a
+            sophisticated console application essentially playing back audio
+            samples and manipulating the samples in real time to certain
+            extent.
+</p><a name="toc"></a><br /><hr />
+<h3>Table of Contents</h3>
+<p class="toc">
+<a href="#anchor1">1.</a>&nbsp;
+Requirements notation<br />
+<a href="#anchor2">2.</a>&nbsp;
+Introduction<br />
+<a href="#anchor3">3.</a>&nbsp;
+Focus of this protocol<br />
+<a href="#anchor4">4.</a>&nbsp;
+Communication Overview<br />
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#anchor5">4.1</a>&nbsp;
+Request/response communication method<br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#anchor6">4.1.1</a>&nbsp;
+Result format<br />
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#anchor7">4.2</a>&nbsp;
+Subscribe/notify communication method<br />
+<a href="#anchor8">5.</a>&nbsp;
+Description for control commands<br />
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#anchor9">5.1</a>&nbsp;
+Ignored lines and comments<br />
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#anchor10">5.2</a>&nbsp;
+Configuring audio drivers<br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#anchor11">5.2.1</a>&nbsp;
+Getting all available audio output drivers<br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#anchor12">5.2.2</a>&nbsp;
+Getting information about a specific audio
+                output driver<br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#anchor13">5.2.3</a>&nbsp;
+Getting information about specific audio
+                output driver parameter<br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#anchor14">5.2.4</a>&nbsp;
+Creating an audio output device<br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#anchor15">5.2.5</a>&nbsp;
+Destroying an audio output device<br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#anchor16">5.2.6</a>&nbsp;
+Getting all created audio output device count<br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#anchor17">5.2.7</a>&nbsp;
+Getting all created audio output device list<br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#anchor18">5.2.8</a>&nbsp;
+Getting current settings of an audio output device<br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#anchor19">5.2.9</a>&nbsp;
+Changing settings of audio output devices<br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#anchor20">5.2.10</a>&nbsp;
+Getting information about an audio channel<br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#anchor21">5.2.11</a>&nbsp;
+Getting information about specific audio channel parameter<br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#anchor22">5.2.12</a>&nbsp;
+Changing settings of audio output channels<br />
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#anchor23">5.3</a>&nbsp;
+Configuring MIDI input drivers<br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#anchor24">5.3.1</a>&nbsp;
+Getting all available MIDI input drivers<br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#anchor25">5.3.2</a>&nbsp;
+Getting information about a specific MIDI input driver<br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#anchor26">5.3.3</a>&nbsp;
+Getting information about specific MIDI input driver parameter<br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#anchor27">5.3.4</a>&nbsp;
+Creating a MIDI input device<br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#anchor28">5.3.5</a>&nbsp;
+Destroying a MIDI input device<br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#anchor29">5.3.6</a>&nbsp;
+Getting all created MIDI input device count<br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#anchor30">5.3.7</a>&nbsp;
+Getting all created MIDI input device list<br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#anchor31">5.3.8</a>&nbsp;
+Getting current settings of a MIDI input device<br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#anchor32">5.3.9</a>&nbsp;
+Changing settings of audio output devices<br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#anchor33">5.3.10</a>&nbsp;
+Getting information about a MIDI port<br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#anchor34">5.3.11</a>&nbsp;
+Getting information about specific MIDI port parameter<br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#anchor35">5.3.12</a>&nbsp;
+Changing settings of MIDI input ports<br />
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#anchor36">5.4</a>&nbsp;
+Configuring sampler channels<br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#anchor37">5.4.1</a>&nbsp;
+Loading an instrument<br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#anchor38">5.4.2</a>&nbsp;
+Loading a sampler engine<br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#anchor39">5.4.3</a>&nbsp;
+Getting all created sampler channel count<br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#anchor40">5.4.4</a>&nbsp;
+Getting all created sampler channel list<br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#anchor41">5.4.5</a>&nbsp;
+Adding a new sampler channel<br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#anchor42">5.4.6</a>&nbsp;
+Removing a sampler channel<br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#anchor43">5.4.7</a>&nbsp;
+Getting all available engines<br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#anchor44">5.4.8</a>&nbsp;
+Getting information about an engine<br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#anchor45">5.4.9</a>&nbsp;
+Getting sampler channel information<br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#anchor46">5.4.10</a>&nbsp;
+Current number of active voices<br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#anchor47">5.4.11</a>&nbsp;
+Current number of active disk streams<br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#anchor48">5.4.12</a>&nbsp;
+Current fill state of disk stream buffers<br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#anchor49">5.4.13</a>&nbsp;
+Setting audio output device<br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#anchor50">5.4.14</a>&nbsp;
+Setting audio output type<br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#anchor51">5.4.15</a>&nbsp;
+Setting audio output channel<br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#anchor52">5.4.16</a>&nbsp;
+Setting MIDI input device<br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#anchor53">5.4.17</a>&nbsp;
+Setting MIDI input type<br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#anchor54">5.4.18</a>&nbsp;
+Setting MIDI input port<br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#anchor55">5.4.19</a>&nbsp;
+Setting MIDI input channel<br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#anchor56">5.4.20</a>&nbsp;
+Setting channel volume<br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#anchor57">5.4.21</a>&nbsp;
+Resetting a sampler channel<br />
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#anchor58">5.5</a>&nbsp;
+Controlling connection<br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#anchor59">5.5.1</a>&nbsp;
+Register front-end for receiving event messages<br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#anchor60">5.5.2</a>&nbsp;
+Unregister front-end for not receiving UDP event messages anymore<br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#anchor61">5.5.3</a>&nbsp;
+Enable or disable echo of commands<br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#anchor62">5.5.4</a>&nbsp;
+Close client connection<br />
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#anchor63">5.6</a>&nbsp;
+Global commands<br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#anchor64">5.6.1</a>&nbsp;
+Reset sampler<br />
+<a href="#anchor65">6.</a>&nbsp;
+Command Syntax<br />
+<a href="#anchor66">7.</a>&nbsp;
+Events<br />
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#anchor67">7.1</a>&nbsp;
+Number of sampler channels changed<br />
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#anchor68">7.2</a>&nbsp;
+Number of active voices changed<br />
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#anchor69">7.3</a>&nbsp;
+Number of active disk streams changed<br />
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#anchor70">7.4</a>&nbsp;
+Disk stream buffer fill state changed<br />
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#anchor71">7.5</a>&nbsp;
+Channel information changed<br />
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#anchor72">7.6</a>&nbsp;
+Miscellaneous and debugging events<br />
+<a href="#anchor73">8.</a>&nbsp;
+Security Considerations<br />
+<a href="#anchor74">9.</a>&nbsp;
+Acknowledgments<br />
+<a href="#rfc.references1">&#167;.</a>&nbsp;
+References<br />
+<a href="#rfc.authors">&#167;</a>&nbsp;
+Author's Address<br />
+<a href="#rfc.copyright">&#167;</a>&nbsp;
+Intellectual Property and Copyright Statements<br />
+</p>
+<br clear="all" />
+
+<a name="anchor1"></a><br /><hr />
+<table summary="layout" cellpadding="0" cellspacing="2" class="bug" align="right"><tr><td class="bug"><a href="#toc" class="link2">&nbsp;TOC&nbsp;</a></td></tr></table>
+<a name="rfc.section.1"></a><h3>1.&nbsp;Requirements notation</h3>
+
+<p>The key words "MUST", "MUST NOT", "REQUIRED", "SHALL",
+            "SHALL NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY",
+            and "OPTIONAL" in this document are to be interpreted as
+            described in <a class="info" href="#RFC2119">[RFC2119]<span>Bradner, S., Key words for use in RFCs to Indicate Requirement Levels, March 1997.</span></a>.
+</p>
+<p>This protocol is always case-sensitive if not explicitly
+            claimed the opposite.
+</p>
+<p>In examples, "C:" and "S:" indicate lines sent by the client
+            (front-end) and server (LinuxSampler) respectively. Lines in
+            examples must be interpreted as every line being CRLF
+            terminated (carriage return character followed by line feed
+            character as defined in the ASCII standard), thus the following
+            example:
+</p>
+<p></p>
+<blockquote class="text">
+<p>C: "some line"
+</p>
+<p>&nbsp;&nbsp;&nbsp;"another line"
+</p>
+</blockquote>
+
+<p>must actually be interpreted as client sending the following
+            message:
+</p>
+<p></p>
+<blockquote class="text">
+<p>"some line&lt;CR&gt;&lt;LF&gt;another
+                    line&lt;CR&gt;&lt;LF&gt;"
+</p>
+</blockquote>
+
+<p>where &lt;CR&gt; symbolizes the carriage return character and
+            &lt;LF&gt; the line feed character as defined in the ASCII
+            standard.
+</p>
+<p>Due to technical reasons, messages can arbitrary be
+            fragmented, means the following example:
+</p>
+<p></p>
+<blockquote class="text">
+<p>S: "abcd"
+</p>
+</blockquote>
+
+<p>could also happen to be sent in three messages like in the
+            following sequence scenario:
+</p>
+<p></p>
+<ul class="text">
+<li>server sending message "a"
+</li>
+<li>followed by a delay (pause) with
+                    arbitrary duration
+</li>
+<li>followed by server sending message
+                    "bcd&lt;CR&gt;"
+</li>
+<li>again followed by a delay (pause) with arbitrary
+                    duration
+</li>
+<li>followed by server sending the message
+                    "&lt;LF&gt;"
+</li>
+</ul>
+
+<p>where again &lt;CR&gt; and &lt;LF&gt; symbolize the carriage
+            return and line feed characters respectively.
+</p>
+<a name="anchor2"></a><br /><hr />
+<table summary="layout" cellpadding="0" cellspacing="2" class="bug" align="right"><tr><td class="bug"><a href="#toc" class="link2">&nbsp;TOC&nbsp;</a></td></tr></table>
+<a name="rfc.section.2"></a><h3>2.&nbsp;Introduction</h3>
+
+<p>LinuxSampler is a so called software sampler application
+            capable to playback audio samples from a computer's Random
+            Access Memory (RAM) as well as directly streaming it from disk.
+            LinuxSampler is designed to be modular. It provides several so
+            called "sampler engines" where each engine is specialized for a
+            certain purpose. LinuxSampler has virtual channels which will be
+            referred in this document as "sampler channels". The channels
+            are in such way virtual as they can be connected to an
+            arbitrary MIDI input method and arbitrary MIDI channel (e.g.
+            sampler channel 17 could be connected to an Alsa sequencer
+            device 64:0 and listening to MIDI channel 1 there). Each sampler
+            engine will be assigned an own instance of one of the available
+            sampler engines (e.g. GigEngine, DLSEngine). The audio output of
+            each sampler channel can be routed to an arbitrary audio output
+            method (Alsa / Jack) and an arbitrary audio output channel
+            there.
+</p>
+<a name="anchor3"></a><br /><hr />
+<table summary="layout" cellpadding="0" cellspacing="2" class="bug" align="right"><tr><td class="bug"><a href="#toc" class="link2">&nbsp;TOC&nbsp;</a></td></tr></table>
+<a name="rfc.section.3"></a><h3>3.&nbsp;Focus of this protocol</h3>
+
+<p>Main focus of this protocol is to provide a way to configure
+            a running LinuxSampler instance and to retrieve information
+            about it. The focus of this protocol is not to provide a way to
+            control synthesis parameters or even to trigger or release
+            notes. Or in other words; the focus are those functionalities
+            which are not covered by MIDI or which may at most be handled
+            via MIDI System Exclusive Messages.
+</p>
+<a name="anchor4"></a><br /><hr />
+<table summary="layout" cellpadding="0" cellspacing="2" class="bug" align="right"><tr><td class="bug"><a href="#toc" class="link2">&nbsp;TOC&nbsp;</a></td></tr></table>
+<a name="rfc.section.4"></a><h3>4.&nbsp;Communication Overview</h3>
+
+<p>There are two distinct methods of communication between a
+            running instance of LinuxSampler and one or more control
+            applications, so called "front-ends": a simple request/response
+            communication method used by the clients to give commands to the
+            server as well as to inquire about server's status and a
+            subscribe/notify communication method used by the client to
+            subscribe to and receive notifications of certain events as they
+            happen on the server. The latter needs more effort to be
+            implemented in the front-end application. The two communication
+            methods will be described next.
+</p>
+<a name="rfc.section.4.1"></a><h4><a name="anchor5">4.1</a>&nbsp;Request/response communication method</h4>
+
+<p>This simple communication method is based on TCP. The
+                front-end application establishes a TCP connection to the
+                LinuxSampler instance on a certain host system. Then the
+                front-end application will send certain ASCII based commands
+                as defined in this document (every command line must be CRLF
+                terminated - see "Conventions used in this document" at the
+                beginning of this document) and the LinuxSampler application
+                will response after a certain process time with an
+                appropriate ASCII based answer, also as defined in this
+                document. So this TCP communication is simply based on query
+                and answer paradigm. That way LinuxSampler is only able to
+                answer on queries from front-ends, but not able to
+                automatically send messages to the client if it's not asked
+                to. The fronted should not reconnect to LinuxSampler for
+                every single command, instead it should keep the connection
+                established and simply resend message(s) for subsequent
+                commands. To keep information in the front-end up-to-date
+                the front-end has to periodically send new requests to get
+                the current information from the LinuxSampler instance. This
+                is often referred to as "polling". While polling is simple
+                to implement and may be OK to use in some cases, there may
+                be disadvantages to polling such as network traffic overhead
+                and information being out of date.
+                It is possible for a client or several clients to open more
+                than one connection to the server at the same time. It is
+                also possible to send more than one request to the server
+                at the same time but if those requests are sent over the
+                same connection server MUST execute them sequentially. Upon
+                executing a request server will produce a result set and
+                send it to the client. Each and every request made by the
+                client MUST result in a result set being sent back to the
+                client. No other data other than a result set may be sent by
+                a server to a client. No result set may be sent to a client
+                without the client sending request to the server first. On
+                any particular connection, result sets MUST be sent in their
+                entirety without being interrupted by other result sets. If
+                several requests got queued up at the server they MUST be
+                processed in the order they were received and result sets
+                MUST be sent back in the same order.
+</p>
+<a name="rfc.section.4.1.1"></a><h4><a name="anchor6">4.1.1</a>&nbsp;Result format</h4>
+
+<p>Result set could be one of the following types:
+</p>
+<p></p>
+<ol class="text">
+<li>Normal
+</li>
+<li>Warning
+</li>
+<li>Error
+</li>
+</ol>
+
+<p>Warning and Error result sets MUST be single line and
+                    have the following format:
+</p>
+<p></p>
+<ul class="text">
+<li>"WRN:&lt;warning-code&gt;:&lt;warning-message&gt;"
+</li>
+<li>"ERR:&lt;error-code&gt;:&lt;error-message&gt;"
+</li>
+</ul>
+
+<p>Where &lt;warning-code&gt; and &lt;error-code&gt; are
+                    numeric unique identifiers of the warning or error and
+                    &lt;warning-message&gt; and &lt;error-message&gt; are
+                    human readable descriptions of the warning or error
+                    respectively.
+</p>
+<p>Normal result sets could be:
+</p>
+<p></p>
+<ol class="text">
+<li>Empty
+</li>
+<li>Single line
+</li>
+<li>Multi-line
+</li>
+</ol>
+
+<p> Empty result set is issued when the server only
+                    needed to acknowledge the fact that the request was
+                    received and it was processed successfully and no
+                    additional information is available. This result set has
+                    the following format:
+</p>
+<p></p>
+<blockquote class="text">
+<p>"OK"
+</p>
+</blockquote>
+
+<p>Single line result sets are command specific. One
+                    example of a single line result set is an empty line.
+                    Multi-line result sets are command specific and may
+                    include one or more lines of information. They MUST
+                    always end with the following line:
+</p>
+<p></p>
+<blockquote class="text">
+<p>"."
+</p>
+</blockquote>
+
+<p>In addition to above mentioned formats, warnings and
+                    empty result sets MAY be indexed. In this case, they
+                    have the following formats respectively:
+</p>
+<p></p>
+<ul class="text">
+<li>"WRN[&lt;index&gt;]:&lt;warning-code&gt;:&lt;warning-message&gt;"
+</li>
+<li>"OK[&lt;index&gt;]"
+</li>
+</ul>
+
+<p>where &lt;index&gt; is command specific and is used
+                    to indicate channel number that the result set was
+                    related to or other integer value.
+</p>
+<p>Each line of the result set MUST end with
+                    &lt;CRLF&gt;.
+</p>
+<a name="rfc.section.4.2"></a><h4><a name="anchor7">4.2</a>&nbsp;Subscribe/notify communication method</h4>
+
+<p>This more sophisticated communication method is actually
+                only an extension of the simple request/response
+                communication method. The front-end still uses a TCP
+                connection and sends the same commands on the TCP
+                connection. Two extra commands are SUBSCRIBE and UNSUBSCRIBE
+                commands that allow a client to tell the server that it is
+                interested in receiving notifications about certain events
+                as they happen on the server. The SUBSCRIBE command has the
+                following syntax:
+</p>
+<p></p>
+<blockquote class="text">
+<p>SUBSCRIBE &lt;event-id&gt;
+</p>
+</blockquote>
+
+<p>where &lt;event-id&gt; will be replaced by the respective
+                event that client wants to subscribe to. Upon receiving such
+                request, server SHOULD respond with OK and start sending
+                EVENT notifications when a given even has occurred to the
+                front-end when an event has occurred. It MAY be possible
+                certain events may be sent before OK response during real
+                time nature of their generation. Event messages have the
+                following format:
+</p>
+<p></p>
+<blockquote class="text">
+<p>NOTIFY:&lt;event-id&gt;:&lt;custom-event-data&gt;
+</p>
+</blockquote>
+
+<p>where &lt;event-id&gt; uniquely identifies the event that
+                has occurred and &lt;custom-event-data&gt; is event
+                specific.
+</p>
+<p>Several rules must be followed by the server when
+                generating events:
+</p>
+<p></p>
+<ol class="text">
+<li>Events MUST NOT be sent to any client who has not
+                        issued an appropriate SUBSCRIBE command.
+</li>
+<li>Events MUST only be sent using the same
+                        connection that was used to subscribe to them.
+</li>
+<li>When response is being sent to the client, event
+                        MUST be inserted in the stream before or after the
+                        response, but NOT in the middle. Same is true about
+                        the response. It should never be inserted in the
+                        middle of the event message as well as any other
+                        response.
+</li>
+</ol>
+
+<p>If the client is not interested in a particular event
+                anymore it MAY issue UNSUBSCRIBE command using the following
+                syntax:
+</p>
+<p></p>
+<blockquote class="text">
+<p>UNSUBSCRIBE &lt;event-id&gt;
+</p>
+</blockquote>
+
+<p>where &lt;event-id&gt; will be replace by the respective
+                event that client is no longer interested in receiving. For
+                a list of supported events see chapter 6.
+</p>
+<p>Example: the fill states of disk stream buffers have
+                changed on sampler channel 4 and the LinuxSampler instance
+                will react by sending the following message to all clients
+                who subscribed to this event:
+</p>
+<p></p>
+<blockquote class="text">
+<p>NOTIFY:CHANNEL_BUFFER_FILL:4 [35]62%,[33]80%,[37]98%
+</p>
+</blockquote>
+
+<p>Which means there are currently three active streams on
+                sampler channel 4, where the stream with ID "35" is filled
+                by 62%, stream with ID 33 is filled by 80% and stream with
+                ID 37 is filled by 98%.
+</p>
+<p>Clients may choose to open more than one connection to
+                the server and use some connections to receive notifications
+                while using other connections to issue commands to the
+                back-end. This is entirely legal and up to the
+                implementation. This does not change the protocol in any way
+                and no special restrictions exist on the server to allow or
+                disallow this or to track what connections belong to what
+                front-ends. Server will listen on a single port, accept
+                multiple connections and support protocol described in this
+                specification in it's entirety on this single port on each
+                connection that it accepted.
+</p>
+<p>Due to the fact that TCP is used for this communication,
+                dead peers will be detected automatically by the OS TCP
+                stack. While it may take a while to detect dead peers if no
+                traffic is being sent from server to client (TCP keep-alive
+                timer is set to 2 hours on many OSes) it will not be an
+                issue here as when notifications are sent by the server,
+                dead client will be detected quickly.
+</p>
+<p>When connection is closed for any reason server MUST
+                forget all subscriptions that were made on this connection.
+                If client reconnects it MUST resubscribe to all events that
+                it wants to receive.
+</p>
+<a name="anchor8"></a><br /><hr />
+<table summary="layout" cellpadding="0" cellspacing="2" class="bug" align="right"><tr><td class="bug"><a href="#toc" class="link2">&nbsp;TOC&nbsp;</a></td></tr></table>
+<a name="rfc.section.5"></a><h3>5.&nbsp;Description for control commands</h3>
+
+<p>This chapter will describe the available control commands
+            that can be sent on the TCP connection in detail. Some certain
+            commands (e.g. "GET CHANNEL INFO" or "GET ENGINE INFO") lead to
+            multiple-line responses. In this case LinuxSampler signals the
+            end of the response by a "." (single dot) line.
+</p>
+<a name="rfc.section.5.1"></a><h4><a name="anchor9">5.1</a>&nbsp;Ignored lines and comments</h4>
+
+<p>White lines, that is lines which only contain space and
+                tabulator characters, and lines that start with a "#"
+                character are ignored, thus it's possible for example to
+                group commands and to place comments in a LSCP script
+                file.
+</p>
+<a name="rfc.section.5.2"></a><h4><a name="anchor10">5.2</a>&nbsp;Configuring audio drivers</h4>
+
+<p>Instances of drivers in LinuxSampler are called devices.
+                You can use multiple audio devices simultaneously, e.g. to
+                output the sound of one sampler channel using the Alsa audio
+                output driver, and on another sampler channel you might want
+                to use the Jack audio output driver. For particular audio
+                output systems it's also possible to create several devices
+                of the same audio output driver, e.g. two separate Alsa
+                audio output devices for using two different sound cards at
+                the same time. This chapter describes all commands to
+                configure LinuxSampler's audio output devices and their
+                parameters.
+</p>
+<p>Instead of defining commands and parameters for each
+                driver individually, all possible parameters, their meanings
+                and possible values have to be obtained at runtime. This
+                makes the protocol a bit abstract, but has the advantage,
+                that front-ends can be written independently of what drivers
+                are currently implemented and what parameters these drivers
+                are actually offering. This means front-ends can even handle
+                drivers which are implemented somewhere in future without
+                modifying the front-end at all.
+</p>
+<p>Note: examples in this chapter showing particular
+                parameters of drivers are not meant as specification of the
+                drivers' parameters. Driver implementations in LinuxSampler
+                might have complete different parameter names and meanings
+                than shown in these examples or might change in future, so
+                these examples are only meant for showing how to retrieve
+                what parameters drivers are offering, how to retrieve their
+                possible values, etc.
+</p>
+<a name="rfc.section.5.2.1"></a><h4><a name="anchor11">5.2.1</a>&nbsp;Getting all available audio output drivers</h4>
+
+<p>Use the following command to list all audio output
+                    drivers currently available for the LinuxSampler
+                    instance:
+</p>
+<p></p>
+<blockquote class="text">
+<p>GET AVAILABLE_AUDIO_OUTPUT_DRIVERS
+</p>
+</blockquote>
+
+<p>Possible Answers:
+</p>
+<p></p>
+<blockquote class="text">
+<p>LinuxSampler will answer by sending comma
+                            separated character strings, each symbolizing an
+                            audio output driver.
+</p>
+</blockquote>
+
+<p>Example:
+</p>
+<p></p>
+<blockquote class="text">
+<p>C: "GET AVAILABLE_AUDIO_OUTPUT_DRIVERS"
+</p>
+<p>S: "Alsa,Jack"
+</p>
+</blockquote>
+
+<a name="rfc.section.5.2.2"></a><h4><a name="anchor12">5.2.2</a>&nbsp;Getting information about a specific audio
+                output driver</h4>
+
+<p>Use the following command to get detailed information
+                    about a specific audio output driver:
+</p>
+<p></p>
+<blockquote class="text">
+<p>GET AUDIO_OUTPUT_DRIVER INFO
+                             &lt;audio-output-driver&gt;
+</p>
+</blockquote>
+
+<p>Where &lt;audio-output-driver&gt; is the name of the
+                    audio output driver, returned by the "GET
+                    AVAILABLE_AUDIO_OUTPUT_DRIVERS" command.
+</p>
+<p>Possible Answers:
+</p>
+<p></p>
+<blockquote class="text">
+<p>LinuxSampler will answer by sending a
+                            &lt;CRLF&gt; separated list. Each answer line
+                            begins with the information category name
+                            followed by a colon and then a space character
+                            &lt;SP&gt; and finally the info character string
+                            to that info category. At the moment the
+                            following information categories are
+                            defined:
+</p>
+<p></p>
+<blockquote class="text">
+<p>DESCRIPTION -
+                                    </p>
+<blockquote class="text">
+<p> character string describing the
+                                      audio output driver
+</p>
+</blockquote>
+
+<p>VERSION -
+                                    </p>
+<blockquote class="text">
+<p>character string reflecting the
+                                      driver's version
+</p>
+</blockquote>
+
+<p>PARAMETERS -
+                                    </p>
+<blockquote class="text">
+<p>comma separated list of all
+                                      parameters available for the given
+                                      audio output driver, at least
+                                      parameters 'channels', 'samplerate'
+                                      and 'active' are offered by all audio
+                                      output drivers
+</p>
+</blockquote>
+
+</blockquote>
+
+<p>The mentioned fields above don't have to be
+                            in particular order.
+</p>
+</blockquote>
+
+<p>Example:
+</p>
+<p></p>
+<blockquote class="text">
+<p>C: "GET AUDIO_OUTPUT_DRIVER INFO Alsa"
+</p>
+<p>S: "DESCRIPTION: Advanced Linux Sound
+                          Architecture"
+</p>
+<p>&nbsp;&nbsp;&nbsp;"VERSION: 1.0"
+</p>
+<p>&nbsp;&nbsp;&nbsp;"PARAMETERS:
+                          driver,channels,samplerate,active,fragments,
+                          fragmentsize,card"
+</p>
+<p>&nbsp;&nbsp;&nbsp;"."
+</p>
+</blockquote>
+
+<a name="rfc.section.5.2.3"></a><h4><a name="anchor13">5.2.3</a>&nbsp;Getting information about specific audio
+                output driver parameter</h4>
+
+<p>Use the following command to get detailed information
+                    about a  specific audio output driver parameter:
+</p>
+<p></p>
+<blockquote class="text">
+<p>GET AUDIO_OUTPUT_DRIVER_PARAMETER INFO &lt;audio&gt; &lt;prm&gt; [&lt;deplist&gt;]
+</p>
+</blockquote>
+
+<p>Where &lt;audio&gt; is the name of the audio output
+                    driver as returned by the "GET AVAILABLE_AUDIO_OUTPUT_DRIVERS" command,
+                    &lt;prm&gt; a specific parameter name for which information should be
+                    obtained (as returned by the "GET AUDIO_OUTPUT_DRIVER INFO" command) and
+                    &lt;deplist&gt; is an optional list of parameters on which the sought
+                    parameter &lt;prm&gt; depends on, &lt;deplist&gt; is a list of key-value
+                    pairs in form of "key1=val1 key2=val2 ...", where character string values
+                    are encapsulated into apostrophes ('). Arguments given with &lt;deplist&gt;
+                    which are not dependency parameters of &lt;prm&gt; will be ignored, means
+                    the front-end application can simply put all parameters into &lt;deplist&gt;
+                    with the values already selected by the user.
+</p>
+<p>Possible Answers:
+</p>
+<p></p>
+<blockquote class="text">
+<p>LinuxSampler will answer by sending a
+                            &lz;CRLF&gt; separated list.
+                            Each answer line begins with the information category name
+                            followed by a colon and then a space character &lt;SP&gt; and
+                            finally
+                            the info character string to that info category. There are
+                            information which is always returned, independently of the
+                            given driver parameter and there are optional information
+                            which is only shown dependently to given driver parameter. At
+                            the moment the following information categories are defined:
+</p>
+</blockquote>
+
+<p></p>
+<blockquote class="text">
+<p>TYPE -
+                              </p>
+<blockquote class="text">
+<p>either "BOOL" for boolean value(s) or
+                                "INT" for integer
+                                value(s) or "FLOAT" for dotted number(s) or "STRING" for
+                                character string(s)
+                                (always returned, no matter which driver parameter)
+</p>
+</blockquote>
+
+<p>DESCRIPTION -
+                              </p>
+<blockquote class="text">
+<p>arbitrary text describing the purpose of the parameter
+                                (always returned, no matter which driver parameter)
+</p>
+</blockquote>
+
+<p>MANDATORY -
+                              </p>
+<blockquote class="text">
+<p>either true or false, defines if this parameter must be
+                                given when the device is to be created with the
+                                'CREATE AUDIO_OUTPUT_DEVICE' command
+                                (always returned, no matter which driver parameter)
+</p>
+</blockquote>
+
+<p>FIX -
+                              </p>
+<blockquote class="text">
+<p>either true or false, if false then this parameter can
+                                be changed at any time, once the device is created by
+                                the 'CREATE AUDIO_OUTPUT_DEVICE' command
+                                (always returned, no matter which driver parameter)
+</p>
+</blockquote>
+
+<p>MULTIPLICITY -
+                              </p>
+<blockquote class="text">
+<p>either true or false, defines if this parameter allows
+                                only one value or a list of values, where true means
+                                multiple values and false only a single value allowed
+                                (always returned, no matter which driver parameter)
+</p>
+</blockquote>
+
+<p>DEPENDS -
+                              </p>
+<blockquote class="text">
+<p>comma separated list of paramters this parameter depends
+                                on, means the values for fields 'DEFAULT', 'RANGE_MIN',
+                                'RANGE_MAX' and 'POSSIBILITIES' might depend on these
+                                listed parameters, for example assuming that an audio
+                                driver (like the Alsa driver) offers parameters 'card'
+                                and 'samplerate' then parameter 'samplerate' would
+                                depend on 'card' because the possible values for
+                                'samplerate' depends on the sound card which can be
+                                chosen by the 'card' parameter
+                                (optionally returned, dependent to driver parameter)
+</p>
+</blockquote>
+
+<p>DEFAULT -
+                              </p>
+<blockquote class="text">
+<p>reflects the default value for this parameter which is
+                                used when the device is created and not explicitly
+                                given with the 'CREATE AUDIO_OUTPUT_DEVICE' command,
+                                in case of MULTIPLCITY=true, this is a comma separated
+                                list, that's why character strings are encapsulated into
+                                apostrophes (')
+                                (optionally returned, dependent to driver parameter)
+</p>
+</blockquote>
+
+<p>RANGE_MIN -
+                              </p>
+<blockquote class="text">
+<p>defines lower limit of the allowed value range for this
+                                parameter, can be an integer value as well as a dotted
+                                number, this parameter is often used in conjunction
+                                with RANGE_MAX, but may also appear without
+                                (optionally returned, dependent to driver parameter)
+</p>
+</blockquote>
+
+<p>RANGE_MAX -
+                              </p>
+<blockquote class="text">
+<p>defines upper limit of the allowed value range for this
+                                parameter, can be an integer value as well as a dotted
+                                number, this parameter is often used in conjunction with
+                                RANGE_MIN, but may also appear without
+                                (optionally returned, dependent to driver parameter)
+</p>
+</blockquote>
+
+<p>POSSIBILITES -
+                              </p>
+<blockquote class="text">
+<p>comma separated list of possible values for this
+                                parameter, character strings are encapsulated into
+                                apostrophes
+                                (optionally returned, dependent to driver parameter)
+</p>
+</blockquote>
+
+</blockquote>
+
+<p>The mentioned fields above don't have to be in particular order.
+</p>
+<p>Examples:
+</p>
+<p></p>
+<blockquote class="text">
+<p>C: "GET AUDIO_OUTPUT_DRIVER_PARAMETER INFO Alsa card"
+</p>
+<p>S: "DESCRIPTION: sound card to be used"
+</p>
+<p>&nbsp;&nbsp;&nbsp;"TYPE: STRING"
+</p>
+<p>&nbsp;&nbsp;&nbsp;"MANDATORY: false"
+</p>
+<p>&nbsp;&nbsp;&nbsp;"FIX: true"
+</p>
+<p>&nbsp;&nbsp;&nbsp;"MULTIPLICITY: false"
+</p>
+<p>&nbsp;&nbsp;&nbsp;"DEFAULT: '0,0'"
+</p>
+<p>&nbsp;&nbsp;&nbsp;"POSSIBILITES: '0,0','1,0','2,0'"
+</p>
+<p>&nbsp;&nbsp;&nbsp;"."
+</p>
+</blockquote>
+
+<p></p>
+<blockquote class="text">
+<p>C: "GET AUDIO_OUTPUT_DRIVER_PARAMETER INFO Alsa samplerate"
+</p>
+<p>S: "DESCRIPTION: output sample rate in Hz"
+</p>
+<p>&nbsp;&nbsp;&nbsp;"TYPE: INT"
+</p>
+<p>&nbsp;&nbsp;&nbsp;"MANDATORY: false"
+</p>
+<p>&nbsp;&nbsp;&nbsp;"FIX: false"
+</p>
+<p>&nbsp;&nbsp;&nbsp;"MULTIPLICITY: false"
+</p>
+<p>&nbsp;&nbsp;&nbsp;"DEPENDS: card"
+</p>
+<p>&nbsp;&nbsp;&nbsp;"DEFAULT: 44100"
+</p>
+<p>&nbsp;&nbsp;&nbsp;"."
+</p>
+</blockquote>
+
+<p></p>
+<blockquote class="text">
+<p>C: "GET AUDIO_OUTPUT_DRIVER_PARAMETER INFO Alsa samplerate card='0,0'"
+</p>
+<p>S: "DESCRIPTION: output sample rate in Hz"
+</p>
+<p>&nbsp;&nbsp;&nbsp;"TYPE: INT"
+</p>
+<p>&nbsp;&nbsp;&nbsp;"MANDATORY: false"
+</p>
+<p>&nbsp;&nbsp;&nbsp;"FIX: false"
+</p>
+<p>&nbsp;&nbsp;&nbsp;"MULTIPLICITY: false"
+</p>
+<p>&nbsp;&nbsp;&nbsp;"DEPENDS: card"
+</p>
+<p>&nbsp;&nbsp;&nbsp;"DEFAULT: 44100"
+</p>
+<p>&nbsp;&nbsp;&nbsp;"RANGE_MIN: 22050"
+</p>
+<p>&nbsp;&nbsp;&nbsp;"RANGE_MAX: 96000"
+</p>
+<p>&nbsp;&nbsp;&nbsp;"."
+</p>
+</blockquote>
+
+<a name="rfc.section.5.2.4"></a><h4><a name="anchor14">5.2.4</a>&nbsp;Creating an audio output device</h4>
+
+<p>Use the following command to create a new audio output device for  the desired audio output system:
+</p>
+<p></p>
+<blockquote class="text">
+<p>CREATE AUDIO_OUTPUT_DEVICE &lt;audio-output-driver&gt; [&lt;param-list&gt;]
+</p>
+</blockquote>
+
+<p>Where &lt;audio-output-driver&gt; should be replaced by the desired audio
+                    output system and &lt;param-list&gt; by an optional list of driver
+                    specific parameters in form of "key1=val1 key2=val2 ...", where
+                    character string values should be encapsulated into apostrophes (').
+                    Note that there might be drivers which require parameter(s) to be
+                    given with this command. Use the previously described commands in
+                    this chapter to get this information.
+</p>
+<p>Possible Answers:
+</p>
+<p></p>
+<blockquote class="text">
+<p>"OK[&lt;device-id&gt;]" -
+                                </p>
+<blockquote class="text">
+<p>in case the device was successfully created, where
+                                    &lt;device-id&gt; is the numerical ID of the new device
+</p>
+</blockquote>
+
+<p>"WRN[&lt;device-id&gt;]:&lt;warning-code&gt;:&lt;warning-message&gt;" -
+                                </p>
+<blockquote class="text">
+<p>in case the device was created successfully, where
+                                    &lt;device-id&gt; is the numerical ID of the new device, but there
+                                    are noteworthy issue(s) related (e.g. sound card doesn't
+                                    support given hardware parameters and the driver is using
+                                    fall-back values), providing an appropriate warning code and
+                                    warning message
+</p>
+</blockquote>
+
+<p>"ERR:&lt;error-code&gt;:&lt;error-message&gt;" -
+                                </p>
+<blockquote class="text">
+<p>in case it failed, providing an appropriate error code and error message
+</p>
+</blockquote>
+
+</blockquote>
+
+<p>Examples:
+</p>
+<p></p>
+<blockquote class="text">
+<p>C: "CREATE AUDIO_OUTPUT_DEVICE Alsa"
+</p>
+<p>S: "OK[0]"
+</p>
+</blockquote>
+
+<p></p>
+<blockquote class="text">
+<p>C: "CREATE AUDIO_OUTPUT_DEVICE Alsa card='2,0' samplerate=96000"
+</p>
+<p>S: "OK[1]"
+</p>
+</blockquote>
+
+<a name="rfc.section.5.2.5"></a><h4><a name="anchor15">5.2.5</a>&nbsp;Destroying an audio output device</h4>
+
+<p>Use the following command to destroy a created output device:
+</p>
+<p></p>
+<blockquote class="text">
+<p>DESTROY AUDIO_OUTPUT_DEVICE &lt;device-id&gt;
+</p>
+</blockquote>
+
+<p>Where &lt;device-id&gt; should be replaced by the numerical ID of the
+                    audio output device as given by the "CREATE AUDIO_OUTPUT_DEVICE" or
+                    "GET AUDIO_OUTPUT_DEVICES" command.
+</p>
+<p>Possible Answers:
+</p>
+<p></p>
+<blockquote class="text">
+<p>"OK" -
+                                </p>
+<blockquote class="text">
+<p>in case the device was successfully destroyed
+</p>
+</blockquote>
+
+<p>"WRN:&lt;warning-code&gt;:&lt;warning-message&gt;" -
+                                </p>
+<blockquote class="text">
+<p>in case the device was destroyed successfully, but there are
+                                    noteworthy issue(s) related (e.g. an audio over ethernet
+                                    driver was unloaded but the other host might not be
+                                    informed about this situation), providing an appropriate
+                                    warning code and warning message
+</p>
+</blockquote>
+
+<p>"ERR:&lt;error-code&gt;:&lt;error-message&gt;" -
+                                </p>
+<blockquote class="text">
+<p>in case it failed, providing an appropriate error code and
+                                    error message
+</p>
+</blockquote>
+
+</blockquote>
+
+<p>Example:
+</p>
+<p></p>
+<blockquote class="text">
+<p>C: "DESTROY AUDIO_OUTPUT_DEVICE 0"
+</p>
+<p>S: "OK"
+</p>
+</blockquote>
+
+<a name="rfc.section.5.2.6"></a><h4><a name="anchor16">5.2.6</a>&nbsp;Getting all created audio output device count</h4>
+
+<p>Use the following command to count all created audio output devices:
+</p>
+<p></p>
+<blockquote class="text">
+<p>GET AUDIO_OUTPUT_DEVICES
+</p>
+</blockquote>
+
+<p>Possible Answers:
+</p>
+<p></p>
+<blockquote class="text">
+<p>LinuxSampler will answer by sending the current number of all
+                            audio output devices.
+</p>
+</blockquote>
+
+<p>Example:
+</p>
+<p></p>
+<blockquote class="text">
+<p>C: "GET AUDIO_OUTPUT_DEVICES"
+</p>
+<p>S: "4"
+</p>
+</blockquote>
+
+<a name="rfc.section.5.2.7"></a><h4><a name="anchor17">5.2.7</a>&nbsp;Getting all created audio output device list</h4>
+
+<p>Use the following command to list all created audio output devices:
+</p>
+<p></p>
+<blockquote class="text">
+<p>LIST AUDIO_OUTPUT_DEVICES
+</p>
+</blockquote>
+
+<p>Possible Answers:
+</p>
+<p></p>
+<blockquote class="text">
+<p>LinuxSampler will answer by sending a comma separated list with
+                            the numerical IDs of all audio output devices.
+</p>
+</blockquote>
+
+<p>Example:
+</p>
+<p></p>
+<blockquote class="text">
+<p>C: "LIST AUDIO_OUTPUT_DEVICES"
+</p>
+<p>S: "0,1,4,5"
+</p>
+</blockquote>
+
+<a name="rfc.section.5.2.8"></a><h4><a name="anchor18">5.2.8</a>&nbsp;Getting current settings of an audio output device</h4>
+
+<p>Use the following command to get current settings of a specific, created audio output device:
+</p>
+<p></p>
+<blockquote class="text">
+<p>GET AUDIO_OUTPUT_DEVICE INFO &lt;device-id&gt;
+</p>
+</blockquote>
+
+<p>Where &lt;device-id&gt; should be replaced by be numerical ID
+                    of the audio output device as e.g. returned by the
+                    "GET AUDIO_OUTPUT_DEVICES" command.
+</p>
+<p>Possible Answers:
+</p>
+<p>LinuxSampler will answer by sending a &lt;CRLF&gt; separated list.
+                    Each answer line begins with the information category name
+                    followed by a colon and then a space character &lt;SP&gt; and finally
+                    the info character string to that info category. As some
+                    parameters might allow multiple values, character strings are
+                    encapsulated into apostrophes ('). At the moment the following
+                    information categories are defined (independently of device):
+</p>
+<p></p>
+<blockquote class="text">
+<p>driver -
+                                </p>
+<blockquote class="text">
+<p>identifier of the used audio output driver, as also
+                                    returned by the "GET AVAILABLE_AUDIO_OUTPUT_DRIVERS"
+                                    command
+</p>
+</blockquote>
+
+<p>channels -
+                                </p>
+<blockquote class="text">
+<p>amount of audio output channels this device currently
+                                    offers
+</p>
+</blockquote>
+
+<p>samplerate -
+                                </p>
+<blockquote class="text">
+<p>playback sample rate the device uses
+</p>
+</blockquote>
+
+<p>active -
+                                </p>
+<blockquote class="text">
+<p>either true or false, if false then the audio device is
+                                    inactive and doesn't output any sound, nor do the
+                                    sampler channels connected to this audio device render
+                                    any audio
+</p>
+</blockquote>
+
+</blockquote>
+
+<p>The mentioned fields above don't have to be in particular
+                    order. The fields above are only those fields which are
+                    returned by all audio output devices. Every audio output driver
+                    might have its own, additional driver specific parameters (see
+                    "GET AUDIO_OUTPUT_DRIVER INFO" command) which are also returned
+                    by this command.
+</p>
+<p>Example:
+</p>
+<p></p>
+<blockquote class="text">
+<p>C: "GET AUDIO_OUTPUT_DEVICE INFO 0"
+</p>
+<p>S: "driver: Alsa"
+</p>
+<p>&nbsp;&nbsp;&nbsp;"channels: 2"
+</p>
+<p>&nbsp;&nbsp;&nbsp;"samplerate: 44100"
+</p>
+<p>&nbsp;&nbsp;&nbsp;"active: true"
+</p>
+<p>&nbsp;&nbsp;&nbsp;"fragments: 2"
+</p>
+<p>&nbsp;&nbsp;&nbsp;"fragmentsize: 128"
+</p>
+<p>&nbsp;&nbsp;&nbsp;"card: '0,0'"
+</p>
+<p>&nbsp;&nbsp;&nbsp;"."
+</p>
+</blockquote>
+
+<a name="rfc.section.5.2.9"></a><h4><a name="anchor19">5.2.9</a>&nbsp;Changing settings of audio output devices</h4>
+
+<p>Use the following command to alter a specific setting of a created audio output device:
+</p>
+<p></p>
+<blockquote class="text">
+<p>SET AUDIO_OUTPUT_DEVICE_PARAMETER &lt;device-id&gt; &lt;key&gt;=&lt;value&gt;
+</p>
+</blockquote>
+
+<p>Where &lt;device-id&gt; should be replaced by the numerical ID of the
+                    audio output device, &lt;key&gt; by the name of the parameter to change
+                    and &lt;value&gt; by the new value for this parameter.
+</p>
+<p>Possible Answers:
+</p>
+<p></p>
+<blockquote class="text">
+<p>"OK" -
+                                </p>
+<blockquote class="text">
+<p>in case setting was successfully changed
+</p>
+</blockquote>
+
+<p>"WRN:&lt;warning-code&gt;:&lt;warning-message&gt;" -
+                                </p>
+<blockquote class="text">
+<p>in case setting was changed successfully, but there are
+                                    noteworthy issue(s) related, providing an appropriate
+                                    warning code and warning message
+</p>
+</blockquote>
+
+<p>"ERR:&lt;error-code&gt;:&lt;error-message&gt;" -
+                                </p>
+<blockquote class="text">
+<p>in case it failed, providing an appropriate error code and
+                                    error message
+</p>
+</blockquote>
+
+</blockquote>
+
+<p>Example:
+</p>
+<p></p>
+<blockquote class="text">
+<p>C: "SET AUDIO_OUTPUT_DEVICE_PARAMETER 0 fragmentsize=128"
+</p>
+<p>S: "OK"
+</p>
+</blockquote>
+
+<a name="rfc.section.5.2.10"></a><h4><a name="anchor20">5.2.10</a>&nbsp;Getting information about an audio channel</h4>
+
+<p>Use the following command to get information about an audio channel:
+</p>
+<p></p>
+<blockquote class="text">
+<p>GET AUDIO_OUTPUT_CHANNEL INFO &lt;device-id&gt; &lt;audio-chan&gt;
+</p>
+</blockquote>
+
+<p>Where &lt;device-id&gt; is the numerical ID of the audio output device
+                    and &lt;audio-chan&gt; the audio channel number.
+</p>
+<p>Possible Answers:
+</p>
+<p></p>
+<blockquote class="text">
+<p>LinuxSampler will answer by sending a &lt;CRLF&gt; separated list.
+                            Each answer line begins with the information category name
+                            followed by a colon and then a space character &lt;SP&gt; and finally
+                            the info character string to that info category. At the moment
+                            the following information categories are defined:
+</p>
+<p></p>
+<blockquote class="text">
+<p>NAME -
+                                        </p>
+<blockquote class="text">
+<p>arbitrary character string naming the channel, which
+                                            doesn't have to be unique (always returned by all audio channels)
+</p>
+</blockquote>
+
+<p>IS_MIX_CHANNEL -
+                                        </p>
+<blockquote class="text">
+<p>either true or false, a mix-channel is not a real,
+                                            independent audio channel, but a virtual channel which
+                                            is mixed to another real channel, this mechanism is
+                                            needed for sampler engines which need more audio
+                                            channels than the used audio system might be able to offer
+                                            (always returned by all audio channels)
+</p>
+</blockquote>
+
+<p>MIX_CHANNEL_DESTINATION -
+                                        </p>
+<blockquote class="text">
+<p>reflects the real audio channel (of the same audio
+                                            output device) this mix channel refers to, means where
+                                            the audio signal actually will be routed / added to
+                                            (only returned in case the audio channel is mix channel)
+</p>
+</blockquote>
+
+</blockquote>
+
+</blockquote>
+
+<p>The mentioned fields above don't have to be in particular
+                    order. The fields above are only those fields which are
+                    generally returned for the described cases by all audio
+                    channels regardless of the audio driver. Every audio channel
+                    might have its own, additional driver and channel specific
+                    parameters.
+</p>
+<p>Examples:
+</p>
+<p></p>
+<blockquote class="text">
+<p>C: "GET AUDIO_OUTPUT_CHANNEL INFO 0 0"
+</p>
+<p>S: "NAME: studio monitor left"
+</p>
+<p>&nbsp;&nbsp;&nbsp;"IS_MIX_CHANNEL: false"
+</p>
+<p>&nbsp;&nbsp;&nbsp;"."
+</p>
+</blockquote>
+
+<p></p>
+<blockquote class="text">
+<p>C: "GET AUDIO_OUTPUT_CHANNEL INFO 0 1"
+</p>
+<p>S: "NAME: studio monitor right"
+</p>
+<p>&nbsp;&nbsp;&nbsp;"IS_MIX_CHANNEL: false"
+</p>
+<p>&nbsp;&nbsp;&nbsp;"."
+</p>
+</blockquote>
+
+<p></p>
+<blockquote class="text">
+<p>C: "GET AUDIO_OUTPUT_CHANNEL INFO 0 2"
+</p>
+<p>S: "NAME: studio monitor left"
+</p>
+<p>&nbsp;&nbsp;&nbsp;"IS_MIX_CHANNEL: true"
+</p>
+<p>&nbsp;&nbsp;&nbsp;"MIX_CHANNEL_DESTINATION: 1"
+</p>
+<p>&nbsp;&nbsp;&nbsp;"."
+</p>
+</blockquote>
+
+<p></p>
+<blockquote class="text">
+<p>C: "GET AUDIO_OUTPUT_CHANNEL INFO 1 0"
+</p>
+<p>S: "NAME: 'ardour (left)'"
+</p>
+<p>&nbsp;&nbsp;&nbsp;"IS_MIX_CHANNEL: false"
+</p>
+<p>&nbsp;&nbsp;&nbsp;"jack_bindings: 'ardour:0'"
+</p>
+<p>&nbsp;&nbsp;&nbsp;"."
+</p>
+</blockquote>
+
+<a name="rfc.section.5.2.11"></a><h4><a name="anchor21">5.2.11</a>&nbsp;Getting information about specific audio channel parameter</h4>
+
+<p>Use the following command to get detailed information about specific audio channel parameter:
+</p>
+<p></p>
+<blockquote class="text">
+<p>GET AUDIO_OUTPUT_CHANNEL_PARAMETER INFO &lt;dev-id&gt; &lt;chan&gt; &lt;param&gt;
+</p>
+</blockquote>
+
+<p>Where &lt;dev-id&gt; is the numerical ID of the audio output device as returned
+                    by the "GET AUDIO_OUTPUT_DEVICES" command, &lt;chan&gt; the audio channel number
+                    and &lt;param&gt; a specific channel parameter name for which information should
+                    be obtained (as returned by the "GET AUDIO_OUTPUT_CHANNEL INFO" command).
+</p>
+<p>Possible Answers:
+</p>
+<p></p>
+<blockquote class="text">
+<p>LinuxSampler will answer by sending a &lt;CRLF&gt; separated list.
+                            Each answer line begins with the information category name
+                            followed by a colon and then a space character &lt;SP&gt; and finally
+                            the info character string to that info category. There are
+                            information which is always returned, independently of the
+                            given channel parameter and there is optional information
+                            which is only shown dependently to the given audio channel. At
+                            the moment the following information categories are defined:
+</p>
+<p></p>
+<blockquote class="text">
+<p>TYPE -
+                                        </p>
+<blockquote class="text">
+<p>either "BOOL" for boolean value(s) or "INT" for integer
+                                            value(s) or "FLOAT" for dotted number(s) or "STRING" for
+                                            character string(s)
+                                            (always returned)
+</p>
+</blockquote>
+
+<p>DESCRIPTION -
+                                        </p>
+<blockquote class="text">
+<p>arbitrary text describing the purpose of the parameter (always returned)
+</p>
+</blockquote>
+
+<p>FIX -
+                                        </p>
+<blockquote class="text">
+<p>either true or false, if true then this parameter is
+                                            read only, thus cannot be altered
+                                            (always returned)
+</p>
+</blockquote>
+
+<p>MULTIPLICITY -
+                                        </p>
+<blockquote class="text">
+<p>either true or false, defines if this parameter allows
+                                            only one value or a list of values, where true means
+                                            multiple values and false only a single value allowed
+                                            (always returned)
+</p>
+</blockquote>
+
+<p>RANGE_MIN -
+                                        </p>
+<blockquote class="text">
+<p>defines lower limit of the allowed value range for this
+                                            parameter, can be an integer value as well as a dotted
+                                            number, usually used in conjunction with 'RANGE_MAX',
+                                            but may also appear without
+                                            (optionally returned, dependent to driver and channel
+                                            parameter)
+</p>
+</blockquote>
+
+<p>RANGE_MAX -
+                                        </p>
+<blockquote class="text">
+<p>defines upper limit of the allowed value range for this
+                                            parameter, can be an integer value as well as a dotted
+                                            number, usually used in conjunction with 'RANGE_MIN',
+                                            but may also appear without
+                                            (optionally returned, dependent to driver and channel
+                                            parameter)
+</p>
+</blockquote>
+
+<p>POSSIBILITES -
+                                        </p>
+<blockquote class="text">
+<p>comma separated list of possible values for this
+                                            parameter, character strings are encapsulated into
+                                            apostrophes
+                                            (optionally returned, dependent to driver and channel
+                                            parameter)
+</p>
+</blockquote>
+
+</blockquote>
+
+<p>The mentioned fields above don't have to be in particular order.
+</p>
+</blockquote>
+
+<p>Example:
+</p>
+<p></p>
+<blockquote class="text">
+<p>C: "GET AUDIO_OUTPUT_CHANNEL_PARAMETER INFO 1 0 jack_bindings"
+</p>
+<p>S: "DESCRIPTION: bindings to other Jack clients"
+</p>
+<p>&nbsp;&nbsp;&nbsp;"TYPE: STRING"
+</p>
+<p>&nbsp;&nbsp;&nbsp;"FIX: false"
+</p>
+<p>&nbsp;&nbsp;&nbsp;"MULTIPLICITY: true"
+</p>
+<p>&nbsp;&nbsp;&nbsp;"POSSIBILITES: 'PCM:0','PCM:1','ardour:0','ardour:1'"
+</p>
+<p>&nbsp;&nbsp;&nbsp;"."
+</p>
+</blockquote>
+
+<a name="rfc.section.5.2.12"></a><h4><a name="anchor22">5.2.12</a>&nbsp;Changing settings of audio output channels</h4>
+
+<p>Use the following command to alter a specific setting of an audio output channel:
+</p>
+<p></p>
+<blockquote class="text">
+<p>SET AUDIO_OUTPUT_CHANNEL_PARAMETER &lt;dev-id&gt; &lt;chn&gt; &lt;key&gt;=&lt;value&gt;
+</p>
+</blockquote>
+
+<p>Where &lt;dev-id&gt; should be replaced by the numerical ID of the audio
+                    device, &lt;chn&gt; by the audio channel number, &lt;key&gt; by the name of the
+                    parameter to change and &lt;value&gt; by the new value for this parameter.
+</p>
+<p>Possible Answers:
+</p>
+<p></p>
+<blockquote class="text">
+<p>"OK" -
+                                </p>
+<blockquote class="text">
+<p>in case setting was successfully changed
+</p>
+</blockquote>
+
+<p>"WRN:&lt;warning-code&gt;:&lt;warning-message&gt;" -
+                                </p>
+<blockquote class="text">
+<p>in case setting was changed successfully, but there are
+                                   noteworthy issue(s) related, providing an appropriate
+                                   warning code and warning message
+</p>
+</blockquote>
+
+<p>"ERR:&lt;error-code&gt;:&lt;error-message&gt;" -
+                                </p>
+<blockquote class="text">
+<p>in case it failed, providing an appropriate error code and
+                                   error message
+</p>
+</blockquote>
+
+</blockquote>
+
+<p>Example:
+</p>
+<p></p>
+<blockquote class="text">
+<p>C: "SET AUDIO_OUTPUT_CHANNEL PARAMETER 0 0 jack_bindings='PCM:0'"
+</p>
+<p>S: "OK"
+</p>
+</blockquote>
+
+<p></p>
+<blockquote class="text">
+<p>C: "SET AUDIO_OUTPUT_CHANNEL PARAMETER 0 0 NAME='monitor left'"
+</p>
+<p>S: "OK"
+</p>
+</blockquote>
+
+<a name="rfc.section.5.3"></a><h4><a name="anchor23">5.3</a>&nbsp;Configuring MIDI input drivers</h4>
+
+<p>Instances of drivers in LinuxSampler are called devices. You can use
+                multiple MIDI devices simultaneously, e.g. to use MIDI over ethernet as
+                MIDI input on one sampler channel and Alsa as MIDI input on another sampler
+                channel. For particular MIDI input systems it's also possible to create
+                several devices of the same MIDI input type. This chapter describes all
+                commands to configure LinuxSampler's MIDI input devices and their parameters.
+</p>
+<p>Instead of defining commands and parameters for each driver individually,
+                all possible parameters, their meanings and possible values have to be obtained
+                at runtime. This makes the protocol a bit abstract, but has the advantage, that
+                front-ends can be written independently of what drivers are currently implemented
+                and what parameters these drivers are actually offering. This means front-ends can
+                even handle drivers which are implemented somewhere in future without modifying
+                the front-end at all.
+</p>
+<p>Commands for configuring MIDI input devices are pretty much the same as the
+                commands for configuring audio output drivers, already described in the last
+                chapter.
+</p>
+<p>Note: examples in this chapter showing particular parameters of drivers are
+                not meant as specification of the drivers' parameters. Driver implementations in
+                LinuxSampler might have complete different parameter names and meanings than shown
+                in these examples or might change in future, so these examples are only meant for
+                showing how to retrieve what parameters drivers are offering, how to retrieve their
+                possible values, etc.
+</p>
+<a name="rfc.section.5.3.1"></a><h4><a name="anchor24">5.3.1</a>&nbsp;Getting all available MIDI input drivers</h4>
+
+<p>Use the following command to list all MIDI input drivers currently available
+                    for the LinuxSampler instance:
+</p>
+<p></p>
+<blockquote class="text">
+<p>GET AVAILABLE_MIDI_INPUT_DRIVERS
+</p>
+</blockquote>
+
+<p>Possible Answers:
+</p>
+<p></p>
+<blockquote class="text">
+<p>LinuxSampler will answer by sending comma separated character
+                            strings, each symbolizing a MIDI input driver.
+</p>
+</blockquote>
+
+<p>Example:
+</p>
+<p></p>
+<blockquote class="text">
+<p>C: "GET AVAILABLE_MIDI_INPUT_DRIVERS"
+</p>
+<p>S: "Alsa,Jack"
+</p>
+</blockquote>
+
+<a name="rfc.section.5.3.2"></a><h4><a name="anchor25">5.3.2</a>&nbsp;Getting information about a specific MIDI input driver</h4>
+
+<p>Use the following command to get detailed information about a specific MIDI input driver:
+</p>
+<p></p>
+<blockquote class="text">
+<p>GET MIDI_INPUT_DRIVER INFO &lt;midi-input-driver&gt;
+</p>
+</blockquote>
+
+<p>Where &lt;midi-input-driver&gt; is the name of the MIDI input driver.
+</p>
+<p>Possible Answers:
+</p>
+<p></p>
+<blockquote class="text">
+<p>LinuxSampler will answer by sending a &lt;CRLF&gt; separated list.
+                            Each answer line begins with the information category name
+                            followed by a colon and then a space character &lt;SP&gt; and finally
+                            the info character string to that info category. At the moment
+                            the following information categories are defined:
+</p>
+<p></p>
+<blockquote class="text">
+<p>DESCRIPTION -
+                                        </p>
+<blockquote class="text">
+<p>arbitrary description text about the MIDI input driver
+</p>
+</blockquote>
+
+<p>VERSION -
+                                        </p>
+<blockquote class="text">
+<p>arbitrary character string regarding the driver's version
+</p>
+</blockquote>
+
+<p>PARAMETERS -
+                                        </p>
+<blockquote class="text">
+<p>comma separated list of all parameters available for the given MIDI input driver
+</p>
+</blockquote>
+
+</blockquote>
+
+<p>The mentioned fields above don't have to be in particular order.
+</p>
+</blockquote>
+
+<p>Example:
+</p>
+<p></p>
+<blockquote class="text">
+<p>C: "GET MIDI_INPUT_DRIVER INFO Alsa"
+</p>
+<p>S: "DESCRIPTION: Advanced Linux Sound Architecture"
+</p>
+<p>&nbsp;&nbsp;&nbsp;"VERSION: 1.0"
+</p>
+<p>&nbsp;&nbsp;&nbsp;"PARAMETERS: driver,active"
+</p>
+<p>&nbsp;&nbsp;&nbsp;"."
+</p>
+</blockquote>
+
+<a name="rfc.section.5.3.3"></a><h4><a name="anchor26">5.3.3</a>&nbsp;Getting information about specific MIDI input driver parameter</h4>
+
+<p>Use the following command to get detailed information about a specific parameter of a specific MIDI input driver:
+</p>
+<p></p>
+<blockquote class="text">
+<p>GET MIDI_INPUT_DRIVER_PARAMETER INFO &lt;midit&gt; &lt;param&gt; [&lt;deplist&gt;]
+</p>
+</blockquote>
+
+<p>Where &lt;midi-t&gt; is the name of the MIDI input driver as returned
+                    by the "GET AVAILABLE_MIDI_INPUT_DRIVERS" command, &lt;param&gt; a specific
+                    parameter name for which information should be obtained (as returned by the
+                    "GET MIDI_INPUT_DRIVER INFO" command) and &lt;deplist&gt; is an optional list
+                    of parameters on which the sought parameter &lt;param&gt; depends on,
+                    &lt;deplist&gt; is a key-value pair list in form of "key1=val1 key2=val2 ...",
+                    where character string values are encapsulated into apostrophes ('). Arguments
+                    given with &lt;deplist&gt; which are not dependency parameters of &lt;param&gt;
+                    will be ignored, means the front-end application can simply put all parameters
+                    in &lt;deplist&gt; with the values selected by the user.
+</p>
+<p>Possible Answers:
+</p>
+<p>LinuxSampler will answer by sending a &lt;CRLF> separated list.
+                    Each answer line begins with the information category name
+                    followed by a colon and then a space character &lt;SP> and finally
+                    the info character string to that info category. There is
+                    information which is always returned, independent of the
+                    given driver parameter and there is optional information
+                    which is only shown dependent to given driver parameter. At
+                    the moment the following information categories are defined:
+</p>
+<p></p>
+<blockquote class="text">
+<p>TYPE -
+                              </p>
+<blockquote class="text">
+<p>either "BOOL" for boolean value(s) or "INT" for integer
+                                value(s) or "FLOAT" for dotted number(s) or "STRING" for
+                                character string(s)
+                                (always returned, no matter which driver parameter)
+</p>
+</blockquote>
+
+<p>DESCRIPTION -
+                              </p>
+<blockquote class="text">
+<p>arbitrary text describing the purpose of the parameter
+                                (always returned, no matter which driver parameter)
+</p>
+</blockquote>
+
+<p>MANDATORY -
+                              </p>
+<blockquote class="text">
+<p>either true or false, defines if this parameter must be
+                                given when the device is to be created with the
+                                'CREATE MIDI_INPUT_DEVICE' command
+                                (always returned, no matter which driver parameter)
+</p>
+</blockquote>
+
+<p>FIX -
+                              </p>
+<blockquote class="text">
+<p>either true or false, if false then this parameter can
+                                be changed at any time, once the device is created by
+                                the 'CREATE MIDI_INPUT_DEVICE' command
+                                (always returned, no matter which driver parameter)
+</p>
+</blockquote>
+
+<p>MULTIPLICITY -
+                              </p>
+<blockquote class="text">
+<p>either true or false, defines if this parameter allows
+                                only one value or a list of values, where true means
+                                multiple values and false only a single value allowed
+                                (always returned, no matter which driver parameter)
+</p>
+</blockquote>
+
+<p>DEPENDS -
+                              </p>
+<blockquote class="text">
+<p>comma separated list of paramters this parameter depends
+                                on, means the values for fields 'DEFAULT', 'RANGE_MIN',
+                                'RANGE_MAX' and 'POSSIBILITIES' might depend on these
+                                listed parameters, for example assuming that an audio
+                                driver (like the Alsa driver) offers parameters 'card'
+                                and 'samplerate' then parameter 'samplerate' would
+                                depend on 'card' because the possible values for
+                                'samplerate' depends on the sound card which can be
+                                chosen by the 'card' parameter
+                                (optionally returned, dependent to driver parameter)
+</p>
+</blockquote>
+
+<p>DEFAULT -
+                              </p>
+<blockquote class="text">
+<p>reflects the default value for this parameter which is
+                                used when the device is created and not explicitly
+                                given with the 'CREATE MIDI_INPUT_DEVICE' command,
+                                in case of MULTIPLCITY=true, this is a comma separated
+                                list, that's why character strings are encapsulated into
+                                apostrophes (')
+                                (optionally returned, dependent to driver parameter)
+</p>
+</blockquote>
+
+<p>RANGE_MIN -
+                              </p>
+<blockquote class="text">
+<p>defines lower limit of the allowed value range for this
+                                parameter, can be an integer value as well as a dotted
+                                number, this parameter is often used in conjunction
+                                with RANGE_MAX, but may also appear without
+                                (optionally returned, dependent to driver parameter)
+</p>
+</blockquote>
+
+<p>RANGE_MAX -
+                              </p>
+<blockquote class="text">
+<p>defines upper limit of the allowed value range for this
+                                parameter, can be an integer value as well as a dotted
+                                number, this parameter is often used in conjunction with
+                                RANGE_MIN, but may also appear without
+                                (optionally returned, dependent to driver parameter)
+</p>
+</blockquote>
+
+<p>POSSIBILITES -
+                              </p>
+<blockquote class="text">
+<p>comma separated list of possible values for this
+                                parameter, character strings are encapsulated into
+                                apostrophes
+                                (optionally returned, dependent to driver parameter)
+</p>
+</blockquote>
+
+</blockquote>
+
+<p>The mentioned fields above don't have to be in particular order.
+</p>
+<p>Example:
+</p>
+<p></p>
+<blockquote class="text">
+<p>C: "GET MIDI_INPUT_DRIVER_PARAMETER INFO Alsa active"
+</p>
+<p>S: "DESCRIPTION: Whether device is enabled"
+</p>
+<p>&nbsp;&nbsp;&nbsp;"TYPE: BOOL"
+</p>
+<p>&nbsp;&nbsp;&nbsp;"MANDATORY: false"
+</p>
+<p>&nbsp;&nbsp;&nbsp;"FIX: false"
+</p>
+<p>&nbsp;&nbsp;&nbsp;"MULTIPLICITY: false"
+</p>
+<p>&nbsp;&nbsp;&nbsp;"DEFAULT: true"
+</p>
+<p>&nbsp;&nbsp;&nbsp;"."
+</p>
+</blockquote>
+
+<a name="rfc.section.5.3.4"></a><h4><a name="anchor27">5.3.4</a>&nbsp;Creating a MIDI input device</h4>
+
+<p>Use the following command to create a new MIDI input device for  the desired MIDI input system:
+</p>
+<p></p>
+<blockquote class="text">
+<p>CREATE MIDI_INPUT_DEVICE &lt;midi-input-driver&gt; [&lt;param-list&gt;]
+</p>
+</blockquote>
+
+<p>Where &lt;midi-input-driver&gt; should be replaced by the desired MIDI input system and &lt;param-list&gt; by an
+                    optional list of driver specific parameters in form of "key1=val1 key2=val2 ...", where
+                    character string values should be encapsulated into apostrophes (').
+                    Note that there might be drivers which require parameter(s) to be
+                    given with this command. Use the previously described commands in
+                    this chapter to get that information.
+</p>
+<p>Possible Answers:
+</p>
+<p></p>
+<blockquote class="text">
+<p>"OK[&lt;device-id&gt;]" -
+                                </p>
+<blockquote class="text">
+<p>in case the device was successfully created, where
+                                    &lt;device-id&gt; is the numerical ID of the new device
+</p>
+</blockquote>
+
+<p>"WRN[&lt;device-id&gt;]:&lt;warning-code&gt;:&lt;warning-message&gt;" -
+                                </p>
+<blockquote class="text">
+<p>in case the driver was loaded successfully, where
+                                    &lt;device-id&gt; is the numerical ID of the new device, but
+                                    there are noteworthy issue(s) related, providing an
+                                    appropriate warning code and warning message
+</p>
+</blockquote>
+
+<p>"ERR:&lt;error-code&gt;:&lt;error-message&gt;" -
+                                </p>
+<blockquote class="text">
+<p>in case it failed, providing an appropriate error code and error message
+</p>
+</blockquote>
+
+</blockquote>
+
+<p>Example:
+</p>
+<p></p>
+<blockquote class="text">
+<p>C: "CREATE MIDI_INPUT_DEVICE Alsa"
+</p>
+<p>S: "OK[0]"
+</p>
+</blockquote>
+
+<a name="rfc.section.5.3.5"></a><h4><a name="anchor28">5.3.5</a>&nbsp;Destroying a MIDI input device</h4>
+
+<p>Use the following command to destroy a created MIDI input device:
+</p>
+<p></p>
+<blockquote class="text">
+<p>DESTROY MIDI_INPUT_DEVICE &lt;device-id&gt;
+</p>
+</blockquote>
+
+<p>Where &lt;device-id&gt; should be replaced by the device's numerical ID.
+</p>
+<p>Possible Answers:
+</p>
+<p></p>
+<blockquote class="text">
+<p>"OK" -
+                                </p>
+<blockquote class="text">
+<p>in case the device was successfully destroyed
+</p>
+</blockquote>
+
+<p>"WRN:&lt;warning-code&gt;:&lt;warning-message&gt;" -
+                                </p>
+<blockquote class="text">
+<p>in case the device was destroyed, but there are noteworthy
+                                    issue(s) related, providing an appropriate warning code and
+                                    warning message
+</p>
+</blockquote>
+
+<p>"ERR:&lt;error-code&gt;:&lt;error-message&gt;" -
+                                </p>
+<blockquote class="text">
+<p>in case it failed, providing an appropriate error code and error message
+</p>
+</blockquote>
+
+</blockquote>
+
+<p>Example:
+</p>
+<p></p>
+<blockquote class="text">
+<p>C: "DESTROY MIDI_INPUT_DEVICE 0"
+</p>
+<p>S: "OK"
+</p>
+</blockquote>
+
+<a name="rfc.section.5.3.6"></a><h4><a name="anchor29">5.3.6</a>&nbsp;Getting all created MIDI input device count</h4>
+
+<p>Use the following command to count all created MIDI input devices:
+</p>
+<p></p>
+<blockquote class="text">
+<p>GET MIDI_INPUT_DEVICES
+</p>
+</blockquote>
+
+<p>Possible Answers:
+</p>
+<p></p>
+<blockquote class="text">
+<p>LinuxSampler will answer by sending the current number of all
+                            MIDI input devices.
+</p>
+</blockquote>
+
+<p>Example:
+</p>
+<p></p>
+<blockquote class="text">
+<p>C: "GET MIDI_INPUT_DEVICES"
+</p>
+<p>S: "3"
+</p>
+</blockquote>
+
+<a name="rfc.section.5.3.7"></a><h4><a name="anchor30">5.3.7</a>&nbsp;Getting all created MIDI input device list</h4>
+
+<p>Use the following command to list all created MIDI input devices:
+</p>
+<p></p>
+<blockquote class="text">
+<p>LIST MIDI_INPUT_DEVICES
+</p>
+</blockquote>
+
+<p>Possible Answers:
+</p>
+<p></p>
+<blockquote class="text">
+<p>LinuxSampler will answer by sending a comma separated list
+                            with the numerical Ids of all created MIDI input devices.
+</p>
+</blockquote>
+
+<p>Examples:
+</p>
+<p></p>
+<blockquote class="text">
+<p>C: "LIST MIDI_INPUT_DEVICES"
+</p>
+<p>S: "0,1,2"
+</p>
+</blockquote>
+
+<p></p>
+<blockquote class="text">
+<p>C: "LIST MIDI_INPUT_DEVICES"
+</p>
+<p>S: "1,3"
+</p>
+</blockquote>
+
+<a name="rfc.section.5.3.8"></a><h4><a name="anchor31">5.3.8</a>&nbsp;Getting current settings of a MIDI input device</h4>
+
+<p>Use the following command to get current settings of a specific, created MIDI input device:
+</p>
+<p></p>
+<blockquote class="text">
+<p>GET MIDI_INPUT_DEVICE INFO &lt;device-id&gt;
+</p>
+</blockquote>
+
+<p>Where &lt;device-id&gt; is the numerical ID of the MIDI input device.
+</p>
+<p>Possible Answers:
+</p>
+<p></p>
+<blockquote class="text">
+<p>LinuxSampler will answer by sending a &lt;CRLF&gt; separated list.
+                            Each answer line begins with the information category name
+                            followed by a colon and then a space character &lt;SP&gt; and finally
+                            the info character string to that info category. As some
+                            parameters might allow multiple values, character strings are
+                            encapsulated into apostrophes ('). At the moment the following
+                            information categories are defined (independent of driver):
+</p>
+<p></p>
+<blockquote class="text">
+<p>DRIVER -
+                                        </p>
+<blockquote class="text">
+<p>identifier of the used MIDI input driver, as e.g.
+                                            returned by the "GET AVAILABLE_MIDI_INPUT_DRIVERS"
+                                            command
+</p>
+</blockquote>
+
+</blockquote>
+<blockquote class="text">
+<p><p>ACTIVE -
+                                        </p>
+<blockquote class="text">
+<p>either true or false, if false then the MIDI device is
+                                            inactive and doesn't listen to any incoming MIDI events
+                                            and thus doesn't forward them to connected sampler
+                                            channels
+</p>
+</blockquote>
+
+</blockquote>
+
+</blockquote>
+
+<p>The mentioned fields above don't have to be in particular
+                    order. The fields above are only those fields which are
+                    returned by all MIDI input devices. Every MIDI input driver
+                    might have its own, additional driver specific parameters (see
+                    "GET MIDI_INPUT_DRIVER INFO" command) which are also returned
+                    by this command.
+</p>
+<p>Example:
+</p>
+<p></p>
+<blockquote class="text">
+<p>C: "GET MIDI_INPUT_DEVICE INFO 0"
+</p>
+<p>S: "driver: Alsa"
+</p>
+<p>&nbsp;&nbsp;&nbsp;"active: true"
+</p>
+<p>&nbsp;&nbsp;&nbsp;"."
+</p>
+</blockquote>
+
+<a name="rfc.section.5.3.9"></a><h4><a name="anchor32">5.3.9</a>&nbsp;Changing settings of audio output devices</h4>
+
+<p>Use the following command to alter a specific setting of a created MIDI input device:
+</p>
+<p></p>
+<blockquote class="text">
+<p>SET MIDI_INPUT_DEVICE_PARAMETER &lt;device-id&gt; &lt;key&gt;=&lt;value&gt;
+</p>
+</blockquote>
+
+<p>Where &lt;device-id&gt; should be replaced by the numerical ID of the
+                    MIDI input device, &lt;key&gt; by the name of the parameter to change and
+                    &lt;value&gt; by the new value for this parameter.
+</p>
+<p>Possible Answers:
+</p>
+<p></p>
+<blockquote class="text">
+<p>"OK" -
+                                </p>
+<blockquote class="text">
+<p>in case setting was successfully changed
+</p>
+</blockquote>
+
+<p>"WRN:&lt;warning-code&gt;:&lt;warning-message&gt;" -
+                                </p>
+<blockquote class="text">
+<p>in case setting was changed successfully, but there are
+                                    noteworthy issue(s) related, providing an appropriate
+                                    warning code and warning message
+</p>
+</blockquote>
+
+<p>"ERR:&lt;error-code&gt;:&lt;error-message&gt;" -
+                                </p>
+<blockquote class="text">
+<p>in case it failed, providing an appropriate error code and error message
+</p>
+</blockquote>
+
+</blockquote>
+
+<p>Example:
+</p>
+<p></p>
+<blockquote class="text">
+<p>C: "SET MIDI_INPUT_DEVICE PARAMETER 0 ACTIVE=false"
+</p>
+<p>S: "OK"
+</p>
+</blockquote>
+
+<a name="rfc.section.5.3.10"></a><h4><a name="anchor33">5.3.10</a>&nbsp;Getting information about a MIDI port</h4>
+
+<p>Use the following command to get information about a MIDI port:
+</p>
+<p></p>
+<blockquote class="text">
+<p>GET MIDI_INPUT_PORT INFO &lt;device-id&gt; &lt;midi-port&gt;
+</p>
+</blockquote>
+
+<p>Where &lt;device-id&gt; is the numerical ID of the MIDI input device
+                    and &lt;midi-port&gt; the MIDI input port number.
+</p>
+<p>Possible Answers:
+</p>
+<p></p>
+<blockquote class="text">
+<p>LinuxSampler will answer by sending a &lt;CRLF&gt; separated list.
+                            Each answer line begins with the information category name
+                            followed by a colon and then a space character &lt;SP&gt; and finally
+                            the info character string to that info category. At the moment
+                            the following information categories are defined:
+</p>
+<p>NAME -
+                                </p>
+<blockquote class="text">
+<p>arbitrary character string naming the port
+</p>
+</blockquote>
+
+</blockquote>
+
+<p>The field above is only the one which is returned by all MIDI
+                    ports regardless of the MIDI driver and port. Every MIDI port
+                    might have its own, additional driver and port specific
+                    parameters.
+</p>
+<p>Example:
+</p>
+<p></p>
+<blockquote class="text">
+<p>C: "GET MIDI_INPUT_PORT INFO 0 0"
+</p>
+<p>S: "name: 'Masterkeyboard'"
+</p>
+<p>&nbsp;&nbsp;&nbsp;"alsa_seq_bindings: '64:0'"
+</p>
+<p>&nbsp;&nbsp;&nbsp;"."
+</p>
+</blockquote>
+
+<a name="rfc.section.5.3.11"></a><h4><a name="anchor34">5.3.11</a>&nbsp;Getting information about specific MIDI port parameter</h4>
+
+<p>Use the following command to get detailed information about specific MIDI port parameter:
+</p>
+<p></p>
+<blockquote class="text">
+<p>GET MIDI_INPUT_PORT_PARAMETER INFO &lt;dev-id&gt; &lt;port&gt; &lt;param&gt;
+</p>
+</blockquote>
+
+<p>Where &lt;dev-id&gt; is the numerical ID of the MIDI input device as returned
+                    by the "GET MIDI_INPUT_DEVICES" command, &lt;port&gt; the MIDI port number and
+                    &lt;param&gt; a specific port parameter name for which information should be
+                    obtained (as returned by the "GET MIDI_INPUT_PORT INFO" command).
+</p>
+<p>Possible Answers:
+</p>
+<p></p>
+<blockquote class="text">
+<p>LinuxSampler will answer by sending a &lt;CRLF&gt; separated list.
+                            Each answer line begins with the information category name
+                            followed by a colon and then a space character &lt;SP&gt; and finally
+                            the info character string to that info category. There is
+                            information which is always returned, independently of the
+                            given channel parameter and there is optional information
+                            which are only shown dependently to the given MIDI port. At the
+                            moment the following information categories are defined:
+</p>
+<p>TYPE -
+                                </p>
+<blockquote class="text">
+<p>either "BOOL" for boolean value(s) or "INT" for integer
+                                    value(s) or "FLOAT" for dotted number(s) or "STRING" for
+                                    character string(s)
+                                    (always returned)
+</p>
+</blockquote>
+
+<p>DESCRIPTION -
+                                </p>
+<blockquote class="text">
+<p>arbitrary text describing the purpose of the parameter
+                                    (always returned)
+</p>
+</blockquote>
+
+<p>FIX -
+                                </p>
+<blockquote class="text">
+<p>either true or false, if true then this parameter is
+                                    read only, thus cannot be altered
+                                    (always returned)
+</p>
+</blockquote>
+
+<p>MULTIPLICITY -
+                                </p>
+<blockquote class="text">
+<p>either true or false, defines if this parameter allows
+                                    only one value or a list of values, where true means
+                                    multiple values and false only a single value allowed
+                                    (always returned)
+</p>
+</blockquote>
+
+<p>RANGE_MIN -
+                                </p>
+<blockquote class="text">
+<p>defines lower limit of the allowed value range for this
+                                    parameter, can be an integer value as well as a dotted
+                                    number, this parameter is usually used in conjunction
+                                    with 'RANGE_MAX' but may also appear without
+                                    (optionally returned, dependent to driver and port
+                                    parameter)
+</p>
+</blockquote>
+
+<p>RANGE_MAX -
+                                </p>
+<blockquote class="text">
+<p>defines upper limit of the allowed value range for this
+                                    parameter, can be an integer value as well as a dotted
+                                    number, this parameter is usually used in conjunction
+                                    with 'RANGE_MIN' but may also appear without
+                                    (optionally returned, dependent to driver and port
+                                    parameter)
+</p>
+</blockquote>
+
+<p>POSSIBILITES -
+                                </p>
+<blockquote class="text">
+<p>comma separated list of possible values for this
+                                    parameter, character strings are encapsulated into
+                                    apostrophes
+                                    (optionally returned, dependent to device and port
+                                    parameter)
+</p>
+</blockquote>
+
+</blockquote>
+
+<p>The mentioned fields above don't have to be in particular order.
+</p>
+<p>Example:
+</p>
+<p></p>
+<blockquote class="text">
+<p>C: "GET MIDI_INPUT_PORT_PARAMETER INFO 0 0 alsa_seq_bindings"
+</p>
+<p>S: "DESCRIPTION: bindings to other Alsa sequencer clients"
+</p>
+<p>"TYPE: STRING"
+</p>
+<p>&nbsp;&nbsp;&nbsp;"FIX: false"
+</p>
+<p>&nbsp;&nbsp;&nbsp;"MULTIPLICITY: true"
+</p>
+<p>&nbsp;&nbsp;&nbsp;"POSSIBILITES: '64:0','68:0','68:1'"
+</p>
+<p>&nbsp;&nbsp;&nbsp;"."
+</p>
+</blockquote>
+
+<a name="rfc.section.5.3.12"></a><h4><a name="anchor35">5.3.12</a>&nbsp;Changing settings of MIDI input ports</h4>
+
+<p>Use the following command to alter a specific setting of a MIDI input port:
+</p>
+<p></p>
+<blockquote class="text">
+<p>SET MIDI_INPUT_PORT PARAMETER &lt;device-id&gt; &lt;port&gt; &lt;key&gt;=&lt;value&gt;
+</p>
+</blockquote>
+
+<p>Where &lt;device-id&gt; should be replaced by the numerical ID of the
+                    MIDI device, &lt;port&gt; by the MIDI port number, &lt;key&gt; by the name of
+                    the parameter to change and &lt;value&gt; by the new value for this
+                    parameter.
+</p>
+<p>Possible Answers:
+</p>
+<p></p>
+<blockquote class="text">
+<p>"OK" -
+                                </p>
+<blockquote class="text">
+<p>in case setting was successfully changed
+</p>
+</blockquote>
+
+<p>"WRN:&lt;warning-code&gt;:&lt;warning-message&gt;" -
+                                </p>
+<blockquote class="text">
+<p>in case setting was changed successfully, but there are
+                                    noteworthy issue(s) related, providing an appropriate
+                                    warning code and warning message
+</p>
+</blockquote>
+
+<p>"ERR:&lt;error-code&gt;:&lt;error-message&gt;" -
+                                </p>
+<blockquote class="text">
+<p>in case it failed, providing an appropriate error code and error message
+</p>
+</blockquote>
+
+</blockquote>
+
+<p>Example:
+</p>
+<p></p>
+<blockquote class="text">
+<p>
+</p>
+</blockquote>
+
+<a name="rfc.section.5.4"></a><h4><a name="anchor36">5.4</a>&nbsp;Configuring sampler channels</h4>
+
+<p>The following commands describe how to add and remove sampler channels, deploy
+                sampler engines, load instruments and connect sampler channels to MIDI and audio devices.
+</p>
+<a name="rfc.section.5.4.1"></a><h4><a name="anchor37">5.4.1</a>&nbsp;Loading an instrument</h4>
+
+<p>An instrument file can be loaded and assigned to a sampler channel by one of the following commands:
+</p>
+<p></p>
+<blockquote class="text">
+<p>LOAD INSTRUMENT [NON_MODAL] '&lt;filename&gt;' &lt;instr-index&gt; &lt;sampler-channel&gt;
+</p>
+</blockquote>
+
+<p>Where &lt;filename&gt; is the name of the instrument file on the
+                    LinuxSampler instance's host system, &lt;instr-index&gt; the index of the
+                    instrument in the instrument file and &lt;sampler-channel> is the
+                    number of the sampler channel the instrument should be assigned to.
+                    Each sampler channel can only have one instrument.
+</p>
+<p>The difference between regular and NON_MODAL versions of the command
+                    is that the regular command returns OK only after the instrument has been
+                    fully loaded and the channel is ready to be used while NON_MODAL version
+                    returns immediately and a background process is launched to load the instrument
+                    on the channel. GET CHANNEL INFO command can be used to obtain loading
+                    progress from INSTRUMENT_STATUS field. LOAD command will perform sanity checks
+                    such as making sure that the file could be read and it is of a proper format
+                    and SHOULD return ERR and SHOULD not launch the background process should any
+                    errors be detected at that point.
+</p>
+<p>Possible Answers:
+</p>
+<p></p>
+<blockquote class="text">
+<p>"OK" -
+                                </p>
+<blockquote class="text">
+<p>in case the instrument was successfully loaded
+</p>
+</blockquote>
+
+<p>"WRN:&lt;warning-code&gt;:&lt;warning-message&gt;" -
+                                </p>
+<blockquote class="text">
+<p>in case the instrument was loaded successfully, but there
+                                    are noteworthy issue(s) related (e.g. Engine doesn't support
+                                    one or more patch parameters provided by the loaded
+                                    instrument file), providing an appropriate warning code and
+                                    warning message
+</p>
+</blockquote>
+
+<p>"ERR:&lt;error-code&gt;:&lt;error-message&gt;" -
+                                </p>
+<blockquote class="text">
+<p>in case it failed, providing an appropriate error code and error message
+</p>
+</blockquote>
+
+</blockquote>
+
+<p>Example:
+</p>
+<p></p>
+<blockquote class="text">
+<p>
+</p>
+</blockquote>
+
+<a name="rfc.section.5.4.2"></a><h4><a name="anchor38">5.4.2</a>&nbsp;Loading a sampler engine</h4>
+
+<p>A sample engine can be deployed and assigned to a specific sampler
+                    channel by the following command:
+</p>
+<p></p>
+<blockquote class="text">
+<p>LOAD ENGINE &lt;engine-name&gt; &lt;sampler-channel&gt;
+</p>
+</blockquote>
+
+<p>Where &lt;engine-name&gt; is usually the C++ class name of the engine
+                    implementation and &lt;sampler-channel&gt; the sampler channel the
+                    deployed engine should be assigned to. Even if the respective
+                    sampler channel has already a deployed engine with that engine
+                    name, a new engine instance will be assigned to the sampler channel.
+</p>
+<p>Possible Answers:
+</p>
+<p></p>
+<blockquote class="text">
+<p>"OK" -
+                                </p>
+<blockquote class="text">
+<p>in case the engine was successfully deployed
+</p>
+</blockquote>
+
+<p>"WRN:&lt;warning-code&gt;:&lt;warning-message&gt;" -
+                                </p>
+<blockquote class="text">
+<p>in case the engine was deployed successfully, but there
+                                    are noteworthy issue(s) related, providing an appropriate
+                                    warning code and warning message
+</p>
+</blockquote>
+
+<p>"ERR:&lt;error-code&gt;:&lt;error-message&gt;" -
+                                </p>
+<blockquote class="text">
+<p>in case it failed, providing an appropriate error code and
+                                    error message
+</p>
+</blockquote>
+
+</blockquote>
+
+<p>Example:
+</p>
+<p></p>
+<blockquote class="text">
+<p>
+</p>
+</blockquote>
+
+<a name="rfc.section.5.4.3"></a><h4><a name="anchor39">5.4.3</a>&nbsp;Getting all created sampler channel count</h4>
+
+<p>The number of sampler channels can change on runtime. To get the
+                    current amount of sampler channels, the front-end can send the
+                    following command:
+</p>
+<p></p>
+<blockquote class="text">
+<p>GET CHANNELS
+</p>
+</blockquote>
+
+<p>Possible Answers:
+</p>
+<p></p>
+<blockquote class="text">
+<p>LinuxSampler will answer by returning the current number of sampler channels.
+</p>
+</blockquote>
+
+<p>Example:
+</p>
+<p></p>
+<blockquote class="text">
+<p>C: "GET CHANNELS"
+</p>
+<p>S: "12"
+</p>
+</blockquote>
+
+<a name="rfc.section.5.4.4"></a><h4><a name="anchor40">5.4.4</a>&nbsp;Getting all created sampler channel list</h4>
+
+<p>The number of sampler channels can change on runtime. To get the
+                    current list of sampler channels, the front-end can send the
+                    following command:
+</p>
+<p></p>
+<blockquote class="text">
+<p>LIST CHANNELS
+</p>
+</blockquote>
+
+<p>Possible Answers:
+</p>
+<p></p>
+<blockquote class="text">
+<p>LinuxSampler will answer by returning a comma separated list
+                            with all sampler channels numerical IDs.
+</p>
+</blockquote>
+
+<p>Example:
+</p>
+<p></p>
+<blockquote class="text">
+<p>C: "LIST CHANNELS"
+</p>
+<p>S: "0,1,2,3,4,5,6,9,10,11,15,20"
+</p>
+</blockquote>
+
+<a name="rfc.section.5.4.5"></a><h4><a name="anchor41">5.4.5</a>&nbsp;Adding a new sampler channel</h4>
+
+<p>A new sampler channel can be added to the end of the sampler
+                    channel list by sending the following command:
+</p>
+<p></p>
+<blockquote class="text">
+<p>ADD CHANNEL
+</p>
+</blockquote>
+
+<p>This will increment the sampler channel count by one and the new
+                    sampler channel will be appended to the end of the sampler channel
+                    list. The front-end should send the respective, related commands
+                    right after to e.g. load an engine, load an instrument and setting
+                    input, output method and eventually other commands to initialize
+                    the new channel. The front-end should use the sampler channel
+                    returned by the answer of this command to perform the previously
+                    recommended commands, to avoid race conditions e.g. with other
+                    front-ends that might also have sent an "ADD CHANNEL" command.
+</p>
+<p>Possible Answers:
+</p>
+<p></p>
+<blockquote class="text">
+<p>"OK[&lt;sampler-channel&gt;]" -
+                                </p>
+<blockquote class="text">
+<p>in case a new sampler channel could be added, where
+                                    &lt;sampler-channel&gt; reflects the channel number of the new
+                                    created sampler channel which should the be used to set up
+                                    the sampler channel by sending subsequent intialization
+                                    commands
+</p>
+</blockquote>
+
+<p>"WRN:&lt;warning-code&gt;:&lt;warning-message&gt;" -
+                                </p>
+<blockquote class="text">
+<p>in case a new channel was added successfully, but there are
+                                    noteworthy issue(s) related, providing an appropriate
+                                    warning code and warning message
+</p>
+</blockquote>
+
+<p>"ERR:&lt;error-code&gt;:&lt;error-message&gt;" -
+                                </p>
+<blockquote class="text">
+<p>in case it failed, providing an appropriate error code and
+                                    error message
+</p>
+</blockquote>
+
+</blockquote>
+
+<p>Example:
+</p>
+<p></p>
+<blockquote class="text">
+<p>
+</p>
+</blockquote>
+
+<a name="rfc.section.5.4.6"></a><h4><a name="anchor42">5.4.6</a>&nbsp;Removing a sampler channel</h4>
+
+<p>A sampler channel can be removed by sending the following command:
+</p>
+<p></p>
+<blockquote class="text">
+<p>REMOVE CHANNEL &lt;sampler-channel&gt;
+</p>
+</blockquote>
+
+<p>This will decrement the sampler channel count by one and also
+                    decrement the channel numbers of all subsequent sampler channels by
+                    one.
+</p>
+<p>Possible Answers:
+</p>
+<p></p>
+<blockquote class="text">
+<p>"OK" -
+                                </p>
+<blockquote class="text">
+<p>in case the given sampler channel could be removed
+</p>
+</blockquote>
+
+<p>"WRN:&lt;warning-code&gt;:&lt;warning-message&gt;" -
+                                </p>
+<blockquote class="text">
+<p>in case the given channel was removed, but there are
+                                    noteworthy issue(s) related, providing an appropriate
+                                    warning code and warning message
+</p>
+</blockquote>
+
+<p>"ERR:&lt;error-code&gt;:&lt;error-message&gt;" -
+                                </p>
+<blockquote class="text">
+<p>in case it failed, providing an appropriate error code and
+                                    error message
+</p>
+</blockquote>
+
+</blockquote>
+
+<p>Example:
+</p>
+<p></p>
+<blockquote class="text">
+<p>
+</p>
+</blockquote>
+
+<a name="rfc.section.5.4.7"></a><h4><a name="anchor43">5.4.7</a>&nbsp;Getting all available engines</h4>
+
+<p>The front-end can ask for all available engines by sending the following command:
+</p>
+<p></p>
+<blockquote class="text">
+<p>GET AVAILABLE_ENGINES
+</p>
+</blockquote>
+
+<p>Possible Answers:
+</p>
+<p></p>
+<blockquote class="text">
+<p>LinuxSampler will answer by sending a comma separated character
+                            string of the engines' C++ class names.
+</p>
+</blockquote>
+
+<p>Example:
+</p>
+<p></p>
+<blockquote class="text">
+<p>C: "GET AVAILABLE_ENGINES"
+</p>
+<p>S: "GigEngine,AkaiEngine,DLSEngine,JoesCustomEngine"
+</p>
+</blockquote>
+
+<a name="rfc.section.5.4.8"></a><h4><a name="anchor44">5.4.8</a>&nbsp;Getting information about an engine</h4>
+
+<p>The front-end can ask for information about a specific engine by
+                    sending the following command:
+</p>
+<p></p>
+<blockquote class="text">
+<p>GET ENGINE INFO &lt;engine-name&gt;
+</p>
+</blockquote>
+
+<p>Where &lt;engine-name&gt; is usually the C++ class name of the engine implementation.
+</p>
+<p>Possible Answers:
+</p>
+<p></p>
+<blockquote class="text">
+<p>LinuxSampler will answer by sending &lt;&gt; separated list.
+                            Each answer line begins with the information category name
+                            followed by a colon and then a space character &lt;SP&gt; and finally
+                            the info character string to that info category. At the moment
+                            the following categories are defined:
+</p>
+<p></p>
+<blockquote class="text">
+<p>DESCRIPTION -
+                                        </p>
+<blockquote class="text">
+<p>arbitrary description text about the engine
+</p>
+</blockquote>
+
+<p>VERSION -
+                                        </p>
+<blockquote class="text">
+<p>arbitrary character string regarding the engine's version
+</p>
+</blockquote>
+
+</blockquote>
+
+</blockquote>
+
+<p>The mentioned fields above don't have to be in particular order.
+</p>
+<p>Example:
+</p>
+<p></p>
+<blockquote class="text">
+<p>C: "GET ENGINE INFO JoesCustomEngine"
+</p>
+<p>S: "DESCRIPTION: this is Joe's custom sampler engine"
+</p>
+<p>&nbsp;&nbsp;&nbsp;"VERSION: testing-1.0"
+</p>
+<p>&nbsp;&nbsp;&nbsp;"."
+</p>
+</blockquote>
+
+<a name="rfc.section.5.4.9"></a><h4><a name="anchor45">5.4.9</a>&nbsp;Getting sampler channel information</h4>
+
+<p>The front-end can ask for the current settings of a sampler channel
+                    by sending the following command:
+</p>
+<p></p>
+<blockquote class="text">
+<p>GET CHANNEL INFO &lt;sampler-channel&gt;
+</p>
+</blockquote>
+
+<p>Where &lt;sampler-channel&gt; is the sampler channel number the front-end is interested in.
+</p>
+<p>Possible Answers:
+</p>
+<p></p>
+<blockquote class="text">
+<p>LinuxSampler will answer by sending a &lt;CRLF&gt; separated list.
+                            Each answer line begins with the settings category name
+                            followed by a colon and then a space character &lt;SP&gt; and finally
+                            the info character string to that setting category. At the
+                            moment the following categories are defined:
+</p>
+<p></p>
+<blockquote class="text">
+<p>ENGINE_NAME -
+                                        </p>
+<blockquote class="text">
+<p>name of the engine that is deployed on the sampler
+                                            channel, "NONE" if there's no engine deployed yet for
+                                            this sampler channel
+</p>
+</blockquote>
+
+<p>AUDIO_OUTPUT_DEVICE -
+                                        </p>
+<blockquote class="text">
+<p>numerical ID of the audio output device which is
+                                            currently connected to this sampler channel to output
+                                            the audio signal, "NONE" if there's no device
+                                            connected to this sampler channel
+</p>
+</blockquote>
+
+<p>AUDIO_OUTPUT_CHANNELS -
+                                        </p>
+<blockquote class="text">
+<p>number of output channels the sampler channel offers
+                                            (dependent to used sampler engine and loaded instrument)
+</p>
+</blockquote>
+
+<p>AUDIO_OUTPUT_ROUTING -
+                                        </p>
+<blockquote class="text">
+<p>comma separated list which reflects to which audio
+                                            channel of the selected audio output device each
+                                            sampler output channel is routed to, e.g. "0,3" would
+                                            mean the engine's output channel 0 is routed to channel
+                                            0 of the audio output device and the engine's output
+                                            channel 1 is routed to the channel 3 of the audio
+                                            output device
+</p>
+</blockquote>
+
+<p>INSTRUMENT_FILE -
+                                        </p>
+<blockquote class="text">
+<p>the file name of the loaded instrument, "NONE" if
+                                            there's no instrument yet loaded for this sampler
+                                            channel
+</p>
+</blockquote>
+
+<p>INSTRUMENT_NR -
+                                        </p>
+<blockquote class="text">
+<p>the instrument index number of the loaded instrument
+</p>
+</blockquote>
+
+<p>INSTRUMENT_STATUS -
+                                        </p>
+<blockquote class="text">
+<p>integer values 0 to 100 indicating loading progress percentage for the instrument. Negative
+                                            value indicates a loading exception. Value of 100 indicates that the instrument is fully
+                                            loaded.
+</p>
+</blockquote>
+
+<p>MIDI_INPUT_DEVICE -
+                                        </p>
+<blockquote class="text">
+<p>numerical ID of the MIDI input device which is
+                                            currently connected to this sampler channel to deliver
+                                            MIDI input commands, "NONE" if there's no device
+                                            connected to this sampler channel
+</p>
+</blockquote>
+
+<p>MIDI_INPUT_PORT -
+                                        </p>
+<blockquote class="text">
+<p>port number of the MIDI input device
+</p>
+</blockquote>
+
+<p>MIDI_INPUT_CHANNEL -
+                                        </p>
+<blockquote class="text">
+<p>the MIDI input channel number this sampler channel
+                                            should listen to or "ALL" to listen on all MIDI channels
+</p>
+</blockquote>
+
+<p>VOLUME -
+                                        </p>
+<blockquote class="text">
+<p>optionally dotted number for the channel volume factor
+                                            (where a value < 1.0 means attenuation and a value >
+                                            1.0 means amplification)
+</p>
+</blockquote>
+
+</blockquote>
+
+</blockquote>
+
+<p>The mentioned fields above don't have to be in particular order.
+</p>
+<p>Example:
+</p>
+<p></p>
+<blockquote class="text">
+<p>C: "GET CHANNEL INFO 34"
+</p>
+<p>S: "ENGINE_NAME: GigEngine"
+</p>
+<p>&nbsp;&nbsp;&nbsp;"VOLUME: 1.0"
+</p>
+<p>&nbsp;&nbsp;&nbsp;"AUDIO_OUTPUT_DEVICE: 0"
+</p>
+<p>&nbsp;&nbsp;&nbsp;"AUDIO_OUTPUT_CHANNELS: 2"
+</p>
+<p>&nbsp;&nbsp;&nbsp;"AUDIO_OUTPUT_ROUTING: 0,1"
+</p>
+<p>&nbsp;&nbsp;&nbsp;"INSTRUMENT_FILE: /home/joe/FazioliPiano.gig"
+</p>
+<p>&nbsp;&nbsp;&nbsp;"INSTRUMENT_NR: 0"
+</p>
+<p>&nbsp;&nbsp;&nbsp;"INSTRUMENT_STATUS: 100"
+</p>
+<p>&nbsp;&nbsp;&nbsp;"MIDI_INPUT_DEVICE: 0"
+</p>
+<p>&nbsp;&nbsp;&nbsp;"MIDI_INPUT_PORT: 0"
+</p>
+<p>&nbsp;&nbsp;&nbsp;"MIDI_INPUT_CHANNEL: 5"
+</p>
+<p>&nbsp;&nbsp;&nbsp;"."
+</p>
+</blockquote>
+
+<a name="rfc.section.5.4.10"></a><h4><a name="anchor46">5.4.10</a>&nbsp;Current number of active voices</h4>
+
+<p>The front-end can ask for the current number of active voices on a
+                    sampler channel by sending the following command:
+</p>
+<p></p>
+<blockquote class="text">
+<p>GET CHANNEL VOICE_COUNT &lt;sampler-channel&gt;
+</p>
+</blockquote>
+
+<p>Where &lt;sampler-channel&gt; is the sampler channel number the front-end is interested in.
+</p>
+<p>Possible Answers:
+</p>
+<p></p>
+<blockquote class="text">
+<p>LinuxSampler will answer by returning the number of active
+                            voices on that channel.
+</p>
+</blockquote>
+
+<p>Example:
+</p>
+<p></p>
+<blockquote class="text">
+<p>
+</p>
+</blockquote>
+
+<a name="rfc.section.5.4.11"></a><h4><a name="anchor47">5.4.11</a>&nbsp;Current number of active disk streams</h4>
+
+<p>The front-end can ask for the current number of active disk streams
+                    on a sampler channel by sending the following command:
+</p>
+<p></p>
+<blockquote class="text">
+<p>GET CHANNEL STREAM_COUNT &lt;sampler-channel&gt;
+</p>
+</blockquote>
+
+<p>Where &lt;sampler-channel&gt; is the sampler channel number the front-end is interested in.
+</p>
+<p>Possible Answers:
+</p>
+<p></p>
+<blockquote class="text">
+<p>LinuxSampler will answer by returning the number of active
+                            disk streams on that channel in case the engine supports disk
+                            streaming, if the engine doesn't support disk streaming it will
+                            return "NA" for not available.
+</p>
+</blockquote>
+
+<p>Example:
+</p>
+<p></p>
+<blockquote class="text">
+<p>
+</p>
+</blockquote>
+
+<a name="rfc.section.5.4.12"></a><h4><a name="anchor48">5.4.12</a>&nbsp;Current fill state of disk stream buffers</h4>
+
+<p>The front-end can ask for the current fill state of all disk streams
+                    on a sampler channel by sending the following command:
+</p>
+<p></p>
+<blockquote class="text">
+<p>GET CHANNEL BUFFER_FILL BYTES &lt;sampler-channel&gt;
+</p>
+</blockquote>
+
+<p>to get the fill state in bytes or
+</p>
+<p></p>
+<blockquote class="text">
+<p>GET CHANNEL BUFFER_FILL PERCENTAGE &lt;sampler-channel&gt;
+</p>
+</blockquote>
+
+<p>to get the fill state in percent, where &lt;sampler-channel&gt; is the
+                    sampler channel number the front-end is interested in.
+</p>
+<p>Possible Answers:
+</p>
+<p></p>
+<blockquote class="text">
+<p>LinuxSampler will either answer by returning a comma separated
+                            string with the fill state of all disk stream buffers on that
+                            channel or an empty line if there are no active disk streams or
+                            "NA" for *not available* in case the engine which is deployed
+                            doesn't support disk streaming. Each entry in the answer list
+                            will begin with the stream's ID in brackets followed by the
+                            numerical representation of the fill size (either in bytes or
+                            percentage). Note: due to efficiency reasons the fill states in
+                            the response are not in particular order, thus the front-end has
+                            to sort them by itself if necessary.
+</p>
+</blockquote>
+
+<p>Examples:
+</p>
+<p></p>
+<blockquote class="text">
+<p>C: "GET CHANNEL BUFFER_FILL BYTES 4"
+</p>
+<p>S: "[115]420500,[116]510300,[75]110000,[120]230700"
+</p>
+</blockquote>
+<blockquote class="text">
+<p><p>C: "GET CHANNEL BUFFER_FILL PERCENTAGE 4"
+</p>
+<p>S: "[115]90%,[116]98%,[75]40%,[120]62%"
+</p>
+</blockquote>
+<blockquote class="text">
+<p><p>C: "GET CHANNEL BUFFER_FILL PERCENTAGE 4"
+</p>
+<p>S: ""
+</p>
+</blockquote>
+
+<a name="rfc.section.5.4.13"></a><h4><a name="anchor49">5.4.13</a>&nbsp;Setting audio output device</h4>
+
+<p>The front-end can set the audio output device on a specific sampler
+                    channel by sending the following command:
+</p>
+<p></p>
+<blockquote class="text">
+<p>SET CHANNEL AUDIO_OUTPUT_DEVICE &lt;sampler-channel&gt; &lt;audio-device-id&gt;
+</p>
+</blockquote>
+
+<p>Where &lt;audio-device-id&gt; is the numerical ID of the audio output
+                    device and &lt;sampler-channel&gt; is the respective sampler channel
+                    number.
+</p>
+<p>Possible Answers:
+</p>
+<p></p>
+<blockquote class="text">
+<p>"OK" -
+                                </p>
+<blockquote class="text">
+<p>on success
+</p>
+</blockquote>
+
+<p>"WRN:&lt;warning-code&gt;:&lt;warning-message&gt;" -
+                                </p>
+<blockquote class="text">
+<p>if audio output device was set, but there are noteworthy
+                                    issue(s) related, providing an appropriate warning code and
+                                    warning message
+</p>
+</blockquote>
+
+<p>"ERR:&lt;error-code&gt;:&lt;error-message&gt;" -
+                                </p>
+<blockquote class="text">
+<p>in case it failed, providing an appropriate error code and error message
+</p>
+</blockquote>
+
+</blockquote>
+
+<p>Examples:
+</p>
+<p></p>
+<blockquote class="text">
+<p>
+</p>
+</blockquote>
+
+<a name="rfc.section.5.4.14"></a><h4><a name="anchor50">5.4.14</a>&nbsp;Setting audio output type</h4>
+
+<p>DEPRECATED: THIS COMMAND WILL DISAPPEAR SOON!
+</p>
+<p>The front-end can alter the audio output type on a specific sampler
+                    channel by sending the following command:
+</p>
+<p></p>
+<blockquote class="text">
+<p>SET CHANNEL AUDIO_OUTPUT_TYPE &lt;sampler-channel&gt; &lt;audio-output-type&gt;
+</p>
+</blockquote>
+
+<p>Where &lt;audio-output-type&gt; is currently either "Alsa" or "Jack" and
+                    &lt;sampler-channel&gt; is the respective sampler channel number.
+</p>
+<p>Possible Answers:
+</p>
+<p></p>
+<blockquote class="text">
+<p>"OK" -
+                                </p>
+<blockquote class="text">
+<p>on success
+</p>
+</blockquote>
+
+<p>"WRN:&lt;warning-code&gt;:&lt;warning-message&gt;" -
+                                </p>
+<blockquote class="text">
+<p>if audio output type was set, but there are noteworthy
+                                    issue(s) related, providing an appropriate warning code and
+                                    warning message
+</p>
+</blockquote>
+
+<p>"ERR:&lt;error-code&gt;:&lt;error-message&gt;" -
+                                </p>
+<blockquote class="text">
+<p>in case it failed, providing an appropriate error code and error message
+</p>
+</blockquote>
+
+</blockquote>
+
+<p>Examples:
+</p>
+<p></p>
+<blockquote class="text">
+<p>
+</p>
+</blockquote>
+
+<a name="rfc.section.5.4.15"></a><h4><a name="anchor51">5.4.15</a>&nbsp;Setting audio output channel</h4>
+
+<p>The front-end can alter the audio output channel on a specific
+                    sampler channel by sending the following command:
+</p>
+<p></p>
+<blockquote class="text">
+<p>SET CHANNEL AUDIO_OUTPUT_CHANNEL &lt;sampler-chan&gt; &lt;audio-out&gt; &lt;audio-in&gt;
+</p>
+</blockquote>
+
+<p>Where &lt;sampler-chan&gt; is the sampler channel, &lt;audio-out&gt; is the
+                    sampler channel's audio output channel which should be
+                    rerouted and &lt;audio-in&gt; the audio channel of the selected audio
+                    output device where &lt;audio-out&gt; should be routed to.
+</p>
+<p>Possible Answers:
+</p>
+<p></p>
+<blockquote class="text">
+<p>"OK" -
+                                </p>
+<blockquote class="text">
+<p>on success
+</p>
+</blockquote>
+
+<p>"WRN:&lt;warning-code&gt;:&lt;warning-message&gt;" -
+                                </p>
+<blockquote class="text">
+<p>if audio output channel was set, but there are noteworthy
+                                    issue(s) related, providing an appropriate warning code and
+                                    warning message
+</p>
+</blockquote>
+
+<p>"ERR:&lt;error-code&gt;:&lt;error-message&gt;" -
+                                </p>
+<blockquote class="text">
+<p>in case it failed, providing an appropriate error code and error message
+</p>
+</blockquote>
+
+</blockquote>
+
+<p>Examples:
+</p>
+<p></p>
+<blockquote class="text">
+<p>
+</p>
+</blockquote>
+
+<a name="rfc.section.5.4.16"></a><h4><a name="anchor52">5.4.16</a>&nbsp;Setting MIDI input device</h4>
+
+<p>The front-end can set the MIDI input device on a specific sampler
+                    channel by sending the following command:
+</p>
+<p></p>
+<blockquote class="text">
+<p>SET CHANNEL MIDI_INPUT_DEVICE &lt;sampler-channel&gt; &lt;midi-device-id&gt;
+</p>
+</blockquote>
+
+<p>
+</p>
+<p>Possible Answers:
+</p>
+<p></p>
+<blockquote class="text">
+<p>"OK" -
+                                </p>
+<blockquote class="text">
+<p>on success
+</p>
+</blockquote>
+
+<p>"WRN:&lt;warning-code&gt;:&lt;warning-message&gt;" -
+                                </p>
+<blockquote class="text">
+<p>if MIDI input device was set, but there are noteworthy
+                                    issue(s) related, providing an appropriate warning code and
+                                    warning message
+</p>
+</blockquote>
+
+<p>"ERR:&lt;error-code&gt;:&lt;error-message&gt;" -
+                                </p>
+<blockquote class="text">
+<p>in case it failed, providing an appropriate error code and error message
+</p>
+</blockquote>
+
+</blockquote>
+
+<p>Examples:
+</p>
+<p></p>
+<blockquote class="text">
+<p>
+</p>
+</blockquote>
+
+<a name="rfc.section.5.4.17"></a><h4><a name="anchor53">5.4.17</a>&nbsp;Setting MIDI input type</h4>
+
+<p>DEPRECATED: THIS COMMAND WILL DISAPPEAR SOON!
+</p>
+<p>The front-end can alter the MIDI input type on a specific sampler
+                    channel by sending the following command:
+</p>
+<p></p>
+<blockquote class="text">
+<p>SET CHANNEL MIDI_INPUT_TYPE &lt;sampler-channel&gt; &lt;midi-input-type&gt;
+</p>
+</blockquote>
+
+<p>Where &lt;midi-input-type&gt; is currently only "Alsa" and
+                    &lt;sampler-channel&gt; is the respective sampler channel number.
+</p>
+<p>Possible Answers:
+</p>
+<p></p>
+<blockquote class="text">
+<p>"OK" -
+                                </p>
+<blockquote class="text">
+<p>on success
+</p>
+</blockquote>
+
+<p>"WRN:&lt;warning-code&gt;:&lt;warning-message&gt;" -
+                                </p>
+<blockquote class="text">
+<p>if MIDI input type was set, but there are noteworthy
+                                    issue(s) related, providing an appropriate warning code and
+                                    warning message
+</p>
+</blockquote>
+
+<p>"ERR:&lt;error-code&gt;:&lt;error-message&gt;" -
+                                </p>
+<blockquote class="text">
+<p>in case it failed, providing an appropriate error code and error message
+</p>
+</blockquote>
+
+</blockquote>
+
+<p>Examples:
+</p>
+<p></p>
+<blockquote class="text">
+<p>
+</p>
+</blockquote>
+
+<a name="rfc.section.5.4.18"></a><h4><a name="anchor54">5.4.18</a>&nbsp;Setting MIDI input port</h4>
+
+<p>The front-end can alter the input MIDI port on a specific sampler
+                    channel by sending the following command:
+</p>
+<p></p>
+<blockquote class="text">
+<p>SET CHANNEL MIDI_INPUT_PORT &lt;sampler-channel&gt; &lt;midi-input-port&gt;
+</p>
+</blockquote>
+
+<p>Where &lt;midi-input-port&gt; is a MIDI input port number of the
+                    MIDI input device connected to the sampler channel given by
+                    &lt;sampler-channel&gt;.
+</p>
+<p>Possible Answers:
+</p>
+<p></p>
+<blockquote class="text">
+<p>"OK" -
+                                </p>
+<blockquote class="text">
+<p>on success
+</p>
+</blockquote>
+
+<p>"WRN:&lt;warning-code&gt;:&lt;warning-message&gt;" -
+                                </p>
+<blockquote class="text">
+<p>if MIDI input port was set, but there are noteworthy
+                                    issue(s) related, providing an appropriate warning code and
+                                    warning message
+</p>
+</blockquote>
+
+<p>"ERR:&lt;error-code&gt;:&lt;error-message&gt;" -
+                                </p>
+<blockquote class="text">
+<p>in case it failed, providing an appropriate error code and error messag
+</p>
+</blockquote>
+
+</blockquote>
+
+<p>Examples:
+</p>
+<p></p>
+<blockquote class="text">
+<p>
+</p>
+</blockquote>
+
+<a name="rfc.section.5.4.19"></a><h4><a name="anchor55">5.4.19</a>&nbsp;Setting MIDI input channel</h4>
+
+<p>The front-end can alter the MIDI channel a sampler channel should
+                    listen to by sending the following command:
+</p>
+<p></p>
+<blockquote class="text">
+<p>SET CHANNEL MIDI_INPUT_CHANNEL &lt;sampler-channel&gt; &lt;midi-input-chan&gt;
+</p>
+</blockquote>
+
+<p>Where &lt;midi-input-chan&gt; is the new MIDI input channel where
+                    &lt;sampler-channel&gt; should listen to or "ALL" to listen on all 16 MIDI
+                    channels.
+</p>
+<p>Possible Answers:
+</p>
+<p></p>
+<blockquote class="text">
+<p>"OK" -
+                                </p>
+<blockquote class="text">
+<p>on success
+</p>
+</blockquote>
+
+<p>"WRN:&lt;warning-code&gt;:&lt;warning-message&gt;" -
+                                </p>
+<blockquote class="text">
+<p>if MIDI input channel was set, but there are noteworthy
+                                    issue(s) related, providing an appropriate warning code and
+                                    warning message
+</p>
+</blockquote>
+
+<p>"ERR:&lt;error-code&gt;:&lt;error-message&gt;" -
+                                </p>
+<blockquote class="text">
+<p>in case it failed, providing an appropriate error code and error message
+</p>
+</blockquote>
+
+</blockquote>
+
+<p>Examples:
+</p>
+<p></p>
+<blockquote class="text">
+<p>
+</p>
+</blockquote>
+
+<a name="rfc.section.5.4.20"></a><h4><a name="anchor56">5.4.20</a>&nbsp;Setting channel volume</h4>
+
+<p>The front-end can alter the volume of a sampler channel by sending
+                    the following command:
+</p>
+<p></p>
+<blockquote class="text">
+<p>SET CHANNEL VOLUME &lt;sampler-channel&gt; &lt;volume&gt;
+</p>
+</blockquote>
+
+<p>Where &lt;volume&gt; is an optionally dotted positive number (a value
+                    smaller than 1.0 means attenuation, whereas a value greater than
+                    1.0 means amplification) and &lt;sampler-channel&gt; defines the sampler
+                    channel where this volume factor should be set.
+</p>
+<p>Possible Answers:
+</p>
+<p></p>
+<blockquote class="text">
+<p>"OK" -
+                                </p>
+<blockquote class="text">
+<p>on success
+</p>
+</blockquote>
+
+<p>"WRN:&lt;warning-code&gt;:&lt;warning-message&gt;" -
+                                </p>
+<blockquote class="text">
+<p>if channel volume was set, but there are noteworthy
+                                    issue(s) related, providing an appropriate warning code and
+                                    warning message
+</p>
+</blockquote>
+
+<p>"ERR:&lt;error-code&gt;:&lt;error-message&gt;" -
+                                </p>
+<blockquote class="text">
+<p>in case it failed, providing an appropriate error code and error message
+</p>
+</blockquote>
+
+</blockquote>
+
+<p>Examples:
+</p>
+<p></p>
+<blockquote class="text">
+<p>
+</p>
+</blockquote>
+
+<a name="rfc.section.5.4.21"></a><h4><a name="anchor57">5.4.21</a>&nbsp;Resetting a sampler channel</h4>
+
+<p>The front-end can reset a particular sampler channel by sending the following command:
+</p>
+<p></p>
+<blockquote class="text">
+<p>RESET CHANNEL &lt;sampler-channel&gt;
+</p>
+</blockquote>
+
+<p>
+                    Where &lt;sampler-channel&gt; defines the sampler channel to be reset.
+                    This will cause the engine on that sampler channel, its voices and
+                    eventually disk streams and all control and status variables to be
+                    reset.
+</p>
+<p>Possible Answers:
+</p>
+<p></p>
+<blockquote class="text">
+<p>"OK" -
+                                </p>
+<blockquote class="text">
+<p>on success
+</p>
+</blockquote>
+
+<p>"WRN:&lt;warning-code&gt;:&lt;warning-message&gt;" -
+                                </p>
+<blockquote class="text">
+<p>if channel was reset, but there are noteworthy issue(s)
+                                    related, providing an appropriate warning code and warning
+                                    message
+</p>
+</blockquote>
+
+<p>"ERR:&lt;error-code&gt;:&lt;error-message&gt;" -
+                                </p>
+<blockquote class="text">
+<p>in case it failed, providing an appropriate error code and
+                                    error message
+</p>
+</blockquote>
+
+</blockquote>
+
+<p>Examples:
+</p>
+<p></p>
+<blockquote class="text">
+<p>
+</p>
+</blockquote>
+
+<a name="rfc.section.5.5"></a><h4><a name="anchor58">5.5</a>&nbsp;Controlling connection</h4>
+
+<p>The following commands are used to control the connection to LinuxSampler.
+</p>
+<a name="rfc.section.5.5.1"></a><h4><a name="anchor59">5.5.1</a>&nbsp;Register front-end for receiving event messages</h4>
+
+<p>The front-end can register itself to the LinuxSampler application to
+                    be informed about noteworthy events by sending this command:
+</p>
+<p></p>
+<blockquote class="text">
+<p>SUBSCRIBE &lt;event-id&gt;
+</p>
+</blockquote>
+
+<p>where &lt;event-id&gt; will be replaced by the respective event that
+                    client wants to subscribe to.
+</p>
+<p>Possible Answers:
+</p>
+<p></p>
+<blockquote class="text">
+<p>"OK" -
+                                </p>
+<blockquote class="text">
+<p>on success
+</p>
+</blockquote>
+
+<p>"WRN:&lt;warning-code&gt;:&lt;warning-message&gt;" -
+                                </p>
+<blockquote class="text">
+<p>if registration succeeded, but there are noteworthy
+                                    issue(s) related, providing an appropriate warning code and
+                                    warning message
+</p>
+</blockquote>
+
+<p>"ERR:&lt;error-code&gt;:&lt;error-message&gt;" -
+                                </p>
+<blockquote class="text">
+<p>in case it failed, providing an appropriate error code and
+                                    error message
+</p>
+</blockquote>
+
+</blockquote>
+
+<p>Examples:
+</p>
+<p></p>
+<blockquote class="text">
+<p>
+</p>
+</blockquote>
+
+<a name="rfc.section.5.5.2"></a><h4><a name="anchor60">5.5.2</a>&nbsp;Unregister front-end for not receiving UDP event messages anymore</h4>
+
+<p>The front-end can unregister itself if it doesn't want to receive event
+                    messages anymore by sending the following command:
+</p>
+<p></p>
+<blockquote class="text">
+<p>UNSUBSCRIBE &lt;event-id&gt;
+</p>
+</blockquote>
+
+<p>Where &lt;event-id&gt; will be replaced by the respective event that
+                    client doesn't want to receive anymore.
+</p>
+<p>Possible Answers:
+</p>
+<p></p>
+<blockquote class="text">
+<p>"OK" -
+                                </p>
+<blockquote class="text">
+<p>on success
+</p>
+</blockquote>
+
+<p>"WRN:&lt;warning-code&gt;:&lt;warning-message&gt;" -
+                                </p>
+<blockquote class="text">
+<p>if unregistration succeeded, but there are noteworthy
+                                    issue(s) related, providing an appropriate warning code and
+                                    warning message
+</p>
+</blockquote>
+
+<p>"ERR:&lt;error-code&gt;:&lt;error-message&gt;" -
+                                </p>
+<blockquote class="text">
+<p>in case it failed, providing an appropriate error code and
+                                    error message
+</p>
+</blockquote>
+
+</blockquote>
+
+<p>Examples:
+</p>
+<p></p>
+<blockquote class="text">
+<p>
+</p>
+</blockquote>
+
+<a name="rfc.section.5.5.3"></a><h4><a name="anchor61">5.5.3</a>&nbsp;Enable or disable echo of commands</h4>
+
+<p>To enable or disable back sending of commands to the client the following command can be used:
+</p>
+<p></p>
+<blockquote class="text">
+<p>SET ECHO &lt;value&gt;
+</p>
+</blockquote>
+
+<p>Where &lt;value&gt; should be replaced either by "1" to enable echo mode
+                    or "0" to disable echo mode. When echo mode is enabled, all
+                    commands send to LinuxSampler will be immediately send back and
+                    after this echo the actual response to the command will be
+                    returned. Echo mode will only be altered for the client connection
+                    that issued the "SET ECHO" command, not globally for all client
+                    connections.
+</p>
+<p>Possible Answers:
+</p>
+<p></p>
+<blockquote class="text">
+<p>"OK" -
+                                </p>
+<blockquote class="text">
+<p>usually
+</p>
+</blockquote>
+
+<p>"ERR:&lt;error-code&gt;:&lt;error-message&gt;" -
+                                </p>
+<blockquote class="text">
+<p>on syntax error, e.g. non boolean value
+</p>
+</blockquote>
+
+</blockquote>
+
+<p>Examples:
+</p>
+<p></p>
+<blockquote class="text">
+<p>
+</p>
+</blockquote>
+
+<a name="rfc.section.5.5.4"></a><h4><a name="anchor62">5.5.4</a>&nbsp;Close client connection</h4>
+
+<p>The client can close its network connection to LinuxSampler by sending the following command:
+</p>
+<p></p>
+<blockquote class="text">
+<p>QUIT
+</p>
+</blockquote>
+
+<p>This is probably more interesting for manual telnet connections to
+                    LinuxSampler than really useful for a front-end implementation.
+</p>
+<a name="rfc.section.5.6"></a><h4><a name="anchor63">5.6</a>&nbsp;Global commands</h4>
+
+<p>The following commands have global impact on the sampler.
+</p>
+<a name="rfc.section.5.6.1"></a><h4><a name="anchor64">5.6.1</a>&nbsp;Reset sampler</h4>
+
+<p>The front-end can reset the whole sampler by sending the following command:
+</p>
+<p></p>
+<blockquote class="text">
+<p>RESET
+</p>
+</blockquote>
+
+<p>Possible Answers:
+</p>
+<p></p>
+<blockquote class="text">
+<p>"OK" -
+                                </p>
+<blockquote class="text">
+<p>always
+</p>
+</blockquote>
+
+</blockquote>
+
+<p>Examples:
+</p>
+<p></p>
+<blockquote class="text">
+<p>
+</p>
+</blockquote>
+
+<a name="anchor65"></a><br /><hr />
+<table summary="layout" cellpadding="0" cellspacing="2" class="bug" align="right"><tr><td class="bug"><a href="#toc" class="link2">&nbsp;TOC&nbsp;</a></td></tr></table>
+<a name="rfc.section.6"></a><h3>6.&nbsp;Command Syntax</h3>
+
+<p>TODO: will soon automatically included from src/network/lscp.y,
+            meanwhile have a look at that file to get the exact definition of
+            the command syntax.
+</p>
+<a name="anchor66"></a><br /><hr />
+<table summary="layout" cellpadding="0" cellspacing="2" class="bug" align="right"><tr><td class="bug"><a href="#toc" class="link2">&nbsp;TOC&nbsp;</a></td></tr></table>
+<a name="rfc.section.7"></a><h3>7.&nbsp;Events</h3>
+
+<p>This chapter will describe all currently defined events supported by LinuxSampler.
+</p>
+<a name="rfc.section.7.1"></a><h4><a name="anchor67">7.1</a>&nbsp;Number of sampler channels changed</h4>
+
+<p>Client may want to be notified when the total number of channels on the
+                back-end changes by issuing the following command:
+</p>
+<p></p>
+<blockquote class="text">
+<p>SUBSCRIBE CHANNELS
+</p>
+</blockquote>
+
+<p>Server will start sending the following notification messages:
+</p>
+<p></p>
+<blockquote class="text">
+<p>"NOTIFY:CHANNELS:&lt;channels&gt;"
+</p>
+</blockquote>
+
+<p>where &lt;channels&gt; will be replaced by the new number
+                of sampler channels.
+</p>
+<a name="rfc.section.7.2"></a><h4><a name="anchor68">7.2</a>&nbsp;Number of active voices changed</h4>
+
+<p>Client may want to be notified when the number of voices on the
+                back-end changes by issuing the following command:
+</p>
+<p></p>
+<blockquote class="text">
+<p>SUBSCRIBE VOICE_COUNT
+</p>
+</blockquote>
+
+<p>Server will start sending the following notification messages:
+</p>
+<p></p>
+<blockquote class="text">
+<p>"NOTIFY:VOICE_COUNT:&lt;sampler-channel&gt; &lt;voices>&gt;
+</p>
+</blockquote>
+
+<p>where &lt;sampler-channel&gt; will be replaced by the sampler channel the
+                voice count change occurred and &lt;voices>&gt; by the new number of
+                active voices on that channel.
+</p>
+<a name="rfc.section.7.3"></a><h4><a name="anchor69">7.3</a>&nbsp;Number of active disk streams changed</h4>
+
+<p>Client may want to be notified when the number of streams on the back-end
+                changes by issuing the following command: SUBSCRIBE STREAM_COUNT
+</p>
+<p></p>
+<blockquote class="text">
+<p>SUBSCRIBE STREAM_COUNT
+</p>
+</blockquote>
+
+<p>Server will start sending the following notification messages:
+</p>
+<p></p>
+<blockquote class="text">
+<p>"NOTIFY:STREAM_COUNT:&lt;sampler-channel&gt; &lt;streams&gt;"
+</p>
+</blockquote>
+
+<p>where &lt;sampler-channel&gt; will be replaced by the sampler channel the
+                stream count change occurred and &lt;streams&gt; by the new number of
+                active disk streams on that channel.
+</p>
+<a name="rfc.section.7.4"></a><h4><a name="anchor70">7.4</a>&nbsp;Disk stream buffer fill state changed</h4>
+
+<p>Client may want to be notified when the number of streams on the back-end
+                changes by issuing the following command:
+</p>
+<p></p>
+<blockquote class="text">
+<p>SUBSCRIBE BUFFER_FILL
+</p>
+</blockquote>
+
+<p>Server will start sending the following notification messages:
+</p>
+<p></p>
+<blockquote class="text">
+<p>"NOTIFY:BUFFER_FILL:&lt;sampler-channel&gt; &lt;fill-data&gt;"
+</p>
+</blockquote>
+
+<p>where &lt;sampler-channel&gt; will be replaced by the sampler channel the
+                buffer fill state change occurred and &lt;fill-data&gt; will be replaced by the
+                buffer fill data for this channel as described in 4.4.12 as if the
+                "GET CHANNEL BUFFER_FILL PERCENTAGE" was issued on this channel.
+</p>
+<a name="rfc.section.7.5"></a><h4><a name="anchor71">7.5</a>&nbsp;Channel information changed</h4>
+
+<p>Client may want to be notified when changes were made to sampler channels on the
+                back-end changes by issuing the following command:
+</p>
+<p></p>
+<blockquote class="text">
+<p>SUBSCRIBE INFO
+</p>
+</blockquote>
+
+<p>Server will start sending the following notification messages:
+</p>
+<p></p>
+<blockquote class="text">
+<p>"NOTIFY:INFO:&lt;sampler-channel&gt;"
+</p>
+</blockquote>
+
+<p>where &lt;sampler-channel&gt; will be replaced by the sampler channel the
+                channel info change occurred. The front-end will have to send
+                the respective command to actually get the channel info. Because these messages
+                will be triggered by LSCP commands issued by other clients rather than real
+                time events happening on the server, it is believed that an empty notification
+                message is sufficient here.
+</p>
+<a name="rfc.section.7.6"></a><h4><a name="anchor72">7.6</a>&nbsp;Miscellaneous and debugging events</h4>
+
+<p>Client may want to be notified of miscellaneous and debugging events occurring at
+                the server by issuing the following command:
+</p>
+<p></p>
+<blockquote class="text">
+<p>SUBSCRIBE MISCELLANEOUS
+</p>
+</blockquote>
+
+<p>Server will start sending the following notification messages:
+</p>
+<p></p>
+<blockquote class="text">
+<p>"NOTIFY:MISCELLANEOUS:&lt;string&gt;"
+</p>
+</blockquote>
+
+<p>where &lt;string&gt; will be replaced by whatever data server
+                wants to send to the client. Client MAY display this data to the
+                user AS IS to facilitate debugging.
+</p>
+<a name="anchor73"></a><br /><hr />
+<table summary="layout" cellpadding="0" cellspacing="2" class="bug" align="right"><tr><td class="bug"><a href="#toc" class="link2">&nbsp;TOC&nbsp;</a></td></tr></table>
+<a name="rfc.section.8"></a><h3>8.&nbsp;Security Considerations</h3>
+
+<p>As there is so far no method of authentication and authorization
+            defined and so not required for a client applications to succeed to
+            connect, running LinuxSampler might be a security risk for the host
+            system the LinuxSampler instance is running on.
+</p>
+<a name="anchor74"></a><br /><hr />
+<table summary="layout" cellpadding="0" cellspacing="2" class="bug" align="right"><tr><td class="bug"><a href="#toc" class="link2">&nbsp;TOC&nbsp;</a></td></tr></table>
+<a name="rfc.section.9"></a><h3>9.&nbsp;Acknowledgments</h3>
+
+<p>This document has benefited greatly from the comments of the
+            following people, discussed on the LinuxSampler developer's mailing
+            list:
+</p>
+<p></p>
+<blockquote class="text">
+<p>Rui Nuno Capela
+</p>
+<p>Vladimir Senkov
+</p>
+<p>Mark Knecht
+</p>
+</blockquote>
+
+<a name="rfc.references1"></a><br /><hr />
+<table summary="layout" cellpadding="0" cellspacing="2" class="bug" align="right"><tr><td class="bug"><a href="#toc" class="link2">&nbsp;TOC&nbsp;</a></td></tr></table>
+<h3>10&nbsp;References</h3>
+<table width="99%" border="0">
+<tr><td class="author-text" valign="top"><a name="RFC2119">[RFC2119]</a></td>
+<td class="author-text"><a href="mailto:sob@harvard.edu">Bradner, S.</a>, "<a href="ftp://ftp.isi.edu/in-notes/rfc2119.txt">Key words for use in RFCs to Indicate Requirement Levels</a>", BCP 14, RFC 2119, March 1997 (<a href="ftp://ftp.isi.edu/in-notes/rfc2119.txt">TXT</a>, <a href="http://xml.resource.org/public/rfc/html/rfc2119.html">HTML</a>, <a href="http://xml.resource.org/public/rfc/xml/rfc2119.xml">XML</a>).</td></tr>
+</table>
+
+<a name="rfc.authors"></a><br /><hr />
+<table summary="layout" cellpadding="0" cellspacing="2" class="bug" align="right"><tr><td class="bug"><a href="#toc" class="link2">&nbsp;TOC&nbsp;</a></td></tr></table>
+<h3>Author's Address</h3>
+<table width="99%" border="0" cellpadding="0" cellspacing="0">
+<tr><td class="author-text">&nbsp;</td>
+<td class="author-text">C.
+Schoenebeck</td></tr>
+<tr><td class="author-text">&nbsp;</td>
+<td class="author-text">Interessengemeinschaft Software Engineering e. V.</td></tr>
+<tr><td class="author-text">&nbsp;</td>
+<td class="author-text">Max-Planck-Str. 39</td></tr>
+<tr><td class="author-text">&nbsp;</td>
+<td class="author-text">74081 Heilbronn</td></tr>
+<tr><td class="author-text">&nbsp;</td>
+<td class="author-text">Germany</td></tr>
+<tr><td class="author" align="right">EMail:&nbsp;</td>
+<td class="author-text"><a href="mailto:schoenebeck at software minus engineering dot org">schoenebeck at software minus engineering dot org</a></td></tr>
+</table>
+<a name="rfc.copyright"></a><br /><hr />
+<table summary="layout" cellpadding="0" cellspacing="2" class="bug" align="right"><tr><td class="bug"><a href="#toc" class="link2">&nbsp;TOC&nbsp;</a></td></tr></table>
+<h3>Intellectual Property Statement</h3>
+<p class='copyright'>
+The IETF takes no position regarding the validity or scope of
+any intellectual property or other rights that might be claimed
+to  pertain to the implementation or use of the technology
+described in this document or the extent to which any license
+under such rights might or might not be available; neither does
+it represent that it has made any effort to identify any such
+rights. Information on the IETF's procedures with respect to
+rights in standards-track and standards-related documentation
+can be found in BCP-11. Copies of claims of rights made
+available for publication and any assurances of licenses to
+be made available, or the result of an attempt made
+to obtain a general license or permission for the use of such
+proprietary rights by implementors or users of this
+specification can be obtained from the IETF Secretariat.</p>
+<p class='copyright'>
+The IETF invites any interested party to bring to its
+attention any copyrights, patents or patent applications, or
+other proprietary rights which may cover technology that may be
+required to practice this standard. Please address the
+information to the IETF Executive Director.</p>
+<h3>Full Copyright Statement</h3>
+<p class='copyright'>
+Copyright (C) The Internet Society (2004). All Rights Reserved.</p>
+<p class='copyright'>
+This document and translations of it may be copied and furnished to
+others, and derivative works that comment on or otherwise explain it
+or assist in its implementation may be prepared, copied, published and
+distributed, in whole or in part, without restriction of any kind,
+provided that the above copyright notice and this paragraph are
+included on all such copies and derivative works. However, this
+document itself may not be modified in any way, such as by removing
+the copyright notice or references to the Internet Society or other
+Internet organizations, except as needed for the purpose of
+developing Internet standards in which case the procedures for
+copyrights defined in the Internet Standards process must be
+followed, or as required to translate it into languages other than
+English.</p>
+<p class='copyright'>
+The limited permissions granted above are perpetual and will not be
+revoked by the Internet Society or its successors or assignees.</p>
+<p class='copyright'>
+This document and the information contained herein is provided on an
+&quot;AS IS&quot; basis and THE INTERNET SOCIETY AND THE INTERNET ENGINEERING
+TASK FORCE DISCLAIMS ALL WARRANTIES, EXPRESS OR IMPLIED, INCLUDING
+BUT NOT LIMITED TO ANY WARRANTY THAT THE USE OF THE INFORMATION
+HEREIN WILL NOT INFRINGE ANY RIGHTS OR ANY IMPLIED WARRANTIES OF
+MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE.</p>
+<h3>Acknowledgment</h3>
+<p class='copyright'>
+Funding for the RFC Editor function is currently provided by the
+Internet Society.</p>
+</body></html>
