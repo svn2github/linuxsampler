@@ -99,7 +99,7 @@ binary-arch: build install
 	dh_makeshlibs -plibgig
 	dh_installdeb -a
 	dh_shlibdeps -plibgig
-	dh_shlibdeps -pgigtools -ldebian/tmp/usr/lib
+	dh_shlibdeps -pgigtools
 	dh_gencontrol -a
 	dh_md5sums -a
 	dh_builddeb -a
