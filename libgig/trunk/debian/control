@@ -34,7 +34,7 @@ Description: library for loading Gigasampler files and DLS Level 1/2 files
 Package: gigtools
 Section: utils
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, libaudiofile0 (>= 0.2.3)
+Depends: ${shlibs:Depends}, ${misc:Depends}
 Description: command line tools for Gigasampler and DLS Level 1/2 files
  This package contains the following command line tools:
  .
