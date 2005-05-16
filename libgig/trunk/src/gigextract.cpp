@@ -341,13 +341,27 @@ void closeAFlib() {
 #endif // !HAVE_SNDFILE
 
 string Revision() {
-    string s = "$Revision: 1.5 $";
+    string s = "$Revision: 1.6 $";
     return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
 }
 
 void PrintVersion() {
     cout << "gigextract revision " << Revision() << endl;
-    cout << "using " << gig::libraryName() << " " << gig::libraryVersion() << endl;
+    cout << "using " << gig::libraryName() << " " << gig::libraryVersion();
+    #if HAVE_SNDFILE
+    char versionBuffer[128];
+    sf_command(NULL, SFC_GET_LIB_VERSION, versionBuffer, 128);
+    cout << ", " << versionBuffer;
+    #endif // HAVE_SNDFILE
+    cout << endl;
+    #if !HAVE_SNDFILE
+    cout << "built against libaudiofile "
+         << LIBAUDIOFILE_MAJOR_VERSION << "." << LIBAUDIOFILE_MINOR_VERSION
+    # ifdef LIBAUDIOFILE_MICRO_VERSION
+         << "." << LIBAUDIOFILE_MICRO_VERSION
+    # endif // LIBAUDIOFILE_MICRO_VERSION
+         << endl;
+    #endif // !HAVE_SNDFILE
 }
 
 void PrintUsage() {
