@@ -3,6 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
+ *   Copyright (C) 2005 Christian Schoenebeck                              *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -157,12 +158,19 @@ namespace LinuxSampler {
 
         protected:
             std::map<String,DeviceCreationParameter*> Parameters;  ///< All device parameters.
-            std::map<int,MidiInputPort*> Ports;                         ///< All MIDI ports.
+            std::map<int,MidiInputPort*> Ports;                    ///< All MIDI ports.
+            void* pSampler;                                        ///< Sampler instance. FIXME: should actually be of type Sampler*
 
             /**
              * Constructor
+             *
+             * FIXME: the pointer argument \a pSapmler should actually be of type Sampler*.
+             * Unfortunately the bidirectional relationship between this
+             * header and Sampler.h would clash on header file inclusion,
+             * so that's why I had to make it of type void* here. This is
+             * an annoying constraint of C++.
              */
-            MidiInputDevice(std::map<String,DeviceCreationParameter*> DriverParameters);
+            MidiInputDevice(std::map<String,DeviceCreationParameter*> DriverParameters, void* pSampler);
 
             /**
              * Destructor
@@ -182,6 +190,7 @@ namespace LinuxSampler {
             friend class ParameterActive;
             friend class ParameterPorts;
             friend class Sampler; // allow Sampler class to destroy midi devices
+            friend class MidiInputPort; // allow MidiInputPort to access pSampler
     };
 }
 

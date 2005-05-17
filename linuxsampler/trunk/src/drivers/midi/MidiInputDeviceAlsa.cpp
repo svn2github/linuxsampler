@@ -171,7 +171,7 @@ namespace LinuxSampler {
 // *************** MidiInputDeviceAlsa ***************
 // *
 
-    MidiInputDeviceAlsa::MidiInputDeviceAlsa(std::map<String,DeviceCreationParameter*> Parameters) : MidiInputDevice(Parameters), Thread(true, true, 1, -1) {
+    MidiInputDeviceAlsa::MidiInputDeviceAlsa(std::map<String,DeviceCreationParameter*> Parameters, void* pSampler) : MidiInputDevice(Parameters, pSampler), Thread(true, true, 1, -1) {
         if (snd_seq_open(&hAlsaSeq, "default", SND_SEQ_OPEN_INPUT, 0) < 0) {
             throw MidiInputException("Error opening ALSA sequencer");
         }
@@ -212,7 +212,7 @@ namespace LinuxSampler {
     }
 
     String MidiInputDeviceAlsa::Version() {
-	    String s = "$Revision: 1.14 $";
+	    String s = "$Revision: 1.15 $";
 	    return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
 
@@ -237,8 +237,6 @@ namespace LinuxSampler {
                             break;
 
                         case SND_SEQ_EVENT_PITCHBEND:
-                          //  fprintf(stderr, "Pitchbender event on Channel %2d: %5d   \n",
-                          //          ev->data.control.channel, ev->data.control.value);
                             pMidiInputPort->DispatchPitchbend(ev->data.control.value, ev->data.control.channel);
                             break;
 
@@ -257,6 +255,10 @@ namespace LinuxSampler {
 
                         case SND_SEQ_EVENT_SYSEX:
                             pMidiInputPort->DispatchSysex(ev->data.ext.ptr, ev->data.ext.len);
+                            break;
+
+                        case SND_SEQ_EVENT_PGMCHANGE:
+                            pMidiInputPort->DispatchProgramChange(ev->data.control.value, ev->data.control.channel);
                             break;
                     }
                     snd_seq_free_event(ev);

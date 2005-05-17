@@ -316,7 +316,7 @@ namespace LinuxSampler {
 
     MidiInputDevice* Sampler::CreateMidiInputDevice(String MidiDriver, std::map<String,String> Parameters) throw (LinuxSamplerException) {
         // create new device
-        MidiInputDevice* pDevice = MidiInputDeviceFactory::Create(MidiDriver, Parameters);
+        MidiInputDevice* pDevice = MidiInputDeviceFactory::Create(MidiDriver, Parameters, this);
 
 	// add new device to the midi device list
 	for (uint i = 0; ; i++) { // seek for a free place starting from the beginning

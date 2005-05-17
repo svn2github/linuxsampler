@@ -25,6 +25,7 @@
 #define __LS_MIDIINPUTPORT_H__
 
 #include "../../common/global.h"
+#include "../../common/Mutex.h"
 #include "../../common/LinuxSamplerException.h"
 #include "../DeviceParameter.h"
 #include "MidiInputDevice.h"
@@ -101,6 +102,8 @@ namespace LinuxSampler {
 
             /**
              * Disconnect given sampler engine from this MIDI input device.
+             * If the given engine was not connected with this device,
+             * nothing happens.
              *
              * @param pEngine - sampler engine
              */
@@ -182,6 +185,29 @@ namespace LinuxSampler {
 
             /**
              * Should be called by the implementing MIDI input device
+             * whenever a program change event arrived, this will cause the
+             * appropriate sampler channel to be connected with this MIDI
+             * device.
+             *
+             * For example consider a program change event on MIDI channel
+             * 3 for program number 18. This would cause this MIDI input
+             * device to be connected to sampler channel 18 and would cause
+             * sampler channel 18 to listen to MIDI channel 3.
+             *
+             * This is the current, general implementation of program
+             * change events. It might change in future, e.g to allow
+             * sampler engines to allow by themselfes how to act on a
+             * program change event.
+             *
+             * @param Program     - sampler channel to connect to this MIDI
+             *                      input device
+             * @param MidiChannel - MIDI channel on which sampler channel
+             *                      \a Program should listen to
+             */
+            void DispatchProgramChange(uint8_t Program, uint MidiChannel);
+
+            /**
+             * Should be called by the implementing MIDI input device
              * whenever a system exclusive message arrived, this will cause
              * the message to be forwarded to all connected engines.
              *
@@ -195,6 +221,7 @@ namespace LinuxSampler {
             int portNumber;
             std::map<String,DeviceRuntimeParameter*> Parameters;  ///< All port parameters.
             std::set<EngineChannel*> MidiChannelMap[17]; ///< Contains the list of connected engines for each MIDI channel, where index 0 points to the list of engines which are connected to all MIDI channels. Usually it's not necessary for the descendant to use this map, instead it should just use the Dispatch* methods.
+            Mutex MidiChannelMapMutex; ///< Used to protect the MidiChannelMap from being used at the same time by different threads.
 
             /**
              * Constructor
@@ -207,6 +234,9 @@ namespace LinuxSampler {
             virtual ~MidiInputPort();
 
             friend class MidiInputDevice;
+            
+        private:
+            EngineChannel* pPreviousProgramChangeEngineChannel; ///< Points to the engine channel which was connected by the previous DispatchProgramChange() call.
     };
 
 } // namsepace LinuxSampler

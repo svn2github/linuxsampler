@@ -97,7 +97,7 @@ namespace LinuxSampler {
                     friend class ParameterAlsaSeqBindings;
             };
 
-            MidiInputDeviceAlsa(std::map<String,DeviceCreationParameter*> Parameters);
+            MidiInputDeviceAlsa(std::map<String,DeviceCreationParameter*> Parameters, void* pSampler);
             ~MidiInputDeviceAlsa();
 
             // derived abstract methods from class 'MidiInputDevice'

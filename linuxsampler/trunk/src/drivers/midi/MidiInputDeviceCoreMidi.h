@@ -1,9 +1,6 @@
 /***************************************************************************
  *                                                                         *
- *   LinuxSampler - modular, streaming capable sampler                     *
- *                                                                         *
- *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2004 Grame											   *
+ *   Copyright (C) 2004, 2005 Grame                                        *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -36,7 +33,7 @@ namespace LinuxSampler {
      * Implements MIDI input for MacOSX CoreMidi architecture
      */
     class MidiInputDeviceCoreMidi : public MidiInputDevice {
-	
+
 		 public:
 			/**
              * MIDI Port implementation for the CoreMidi input driver.
@@ -57,7 +54,7 @@ namespace LinuxSampler {
                      *
                      * Used to connect to other Alsa sequencer clients.
                      */
-					 
+
                     class ParameterCoreMidiBindings : public DeviceRuntimeParameterStrings {
                         public:
                             ParameterCoreMidiBindings(MidiInputPortCoreMidi* pPort);
@@ -68,10 +65,10 @@ namespace LinuxSampler {
                         protected:
                             MidiInputPortCoreMidi* pPort;
                     };
-					
+
 					static void ReadProc(const MIDIPacketList *pktlist, void *refCon, void *connRefCon);
 					static int pPortID;
-					
+
                 protected:
                     MidiInputPortCoreMidi(MidiInputDeviceCoreMidi* pDevice) throw (MidiInputException);
                     ~MidiInputPortCoreMidi();
@@ -83,8 +80,8 @@ namespace LinuxSampler {
                     friend class ParameterName;
                     friend class ParameterCoreMidiBindings;
             };
- 
-            MidiInputDeviceCoreMidi(std::map<String,DeviceCreationParameter*> Parameters);
+
+            MidiInputDeviceCoreMidi(std::map<String,DeviceCreationParameter*> Parameters, void* pSampler);
             virtual ~MidiInputDeviceCoreMidi();
 
             // derived abstract methods from class 'MidiInputDevice'
@@ -96,10 +93,10 @@ namespace LinuxSampler {
             static String Version();
 
 			MidiInputPortCoreMidi* CreateMidiPort();
-			
+
 			// CoreMidi callback
 			static void NotifyProc(const MIDINotification* message, void* refCon);
-			
+
         private:
 			MIDIClientRef   hCoreMidiClient;
     };

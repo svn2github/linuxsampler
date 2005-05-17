@@ -3,6 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
+ *   Copyright (C) 2005 Christian Schoenebeck                              *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -60,7 +61,7 @@ namespace LinuxSampler {
     REGISTER_MIDI_INPUT_DRIVER_PARAMETER(MidiInputDeviceMidiShare, ParameterPorts);
 #endif // HAVE_MIDISHARE
 
-    MidiInputDevice* MidiInputDeviceFactory::Create(String DriverName, std::map<String,String> Parameters) throw (LinuxSamplerException) {
+    MidiInputDevice* MidiInputDeviceFactory::Create(String DriverName, std::map<String,String> Parameters, Sampler* pSampler) throw (LinuxSamplerException) {
         if (!InnerFactories.count(DriverName)) throw LinuxSamplerException("There is no midi input driver '" + DriverName + "'.");
 	//Let's see if we need to create parameters
 	std::map<String,DeviceCreationParameter*> thisDeviceParams;
@@ -72,7 +73,7 @@ namespace LinuxSampler {
 		if (Parameters.size() != 0) throw LinuxSamplerException("Driver '" + DriverName + "' does not have any parameters.");
 	}
 	//Now create the device using those parameters
-	MidiInputDevice* pDevice = InnerFactories[DriverName]->Create(thisDeviceParams);
+	MidiInputDevice* pDevice = InnerFactories[DriverName]->Create(thisDeviceParams, pSampler);
 	//Now attach all parameters to the newely created device.
 	for (std::map<String,DeviceCreationParameter*>::iterator iter = thisDeviceParams.begin(); iter != thisDeviceParams.end(); iter++) {
 		iter->second->Attach(pDevice);

@@ -3,6 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
+ *   Copyright (C) 2005 Christian Schoenebeck                              *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -29,6 +30,7 @@
 #include "../../common/LinuxSamplerException.h"
 #include "../DeviceParameterFactory.h"
 #include "MidiInputDevice.h"
+#include "../../Sampler.h"
 
 #define REGISTER_MIDI_INPUT_DRIVER(DriverClass)  static LinuxSampler::MidiInputDeviceFactory::InnerFactoryRegistrator<DriverClass> __auto_register_midi_input_driver__##DriverClass
 #define REGISTER_MIDI_INPUT_DRIVER_PARAMETER(DriverClass, ParameterClass)  static LinuxSampler::MidiInputDeviceFactory::ParameterRegistrator<DriverClass, DriverClass::ParameterClass> __auto_register_midi_input_driver_parameter__##DriverClass##ParameterClass
@@ -39,7 +41,7 @@ namespace LinuxSampler {
       public:
           class InnerFactory {
               public:
-                  virtual MidiInputDevice* Create(std::map<String,DeviceCreationParameter*>& Parameters)  = 0;
+                  virtual MidiInputDevice* Create(std::map<String,DeviceCreationParameter*>& Parameters, Sampler* pSampler) = 0;
                   virtual String Description() = 0;
                   virtual String Version() = 0;
           };
@@ -47,7 +49,7 @@ namespace LinuxSampler {
           template <class Driver_T>
           class InnerFactoryTemplate : public InnerFactory {
               public:
-                  virtual MidiInputDevice* Create(std::map<String,DeviceCreationParameter*>& Parameters)  { return new Driver_T(Parameters); }
+                  virtual MidiInputDevice* Create(std::map<String,DeviceCreationParameter*>& Parameters, Sampler* pSampler) { return new Driver_T(Parameters, pSampler); }
                   virtual String Description() { return Driver_T::Description(); }
                   virtual String Version()     { return Driver_T::Version();     }
           };
@@ -70,7 +72,7 @@ namespace LinuxSampler {
 	  };
 
 
-          static MidiInputDevice*                          Create(String DriverName, std::map<String,String> Parameters) throw (LinuxSamplerException);
+          static MidiInputDevice*                          Create(String DriverName, std::map<String,String> Parameters, Sampler* pSampler) throw (LinuxSamplerException);
           static std::vector<String>                       AvailableDrivers();
           static String                                    AvailableDriversAsString();
           static std::map<String,DeviceCreationParameter*> GetAvailableDriverParameters(String DriverName) throw (LinuxSamplerException);

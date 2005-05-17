@@ -1,9 +1,6 @@
 /***************************************************************************
  *                                                                         *
- *   LinuxSampler - modular, streaming capable sampler                     *
- *                                                                         *
- *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2004 Grame											   *
+ *   Copyright (C) 2004, 2005 Grame                                        *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -33,9 +30,9 @@ namespace LinuxSampler {
     }
 
     void MidiInputDeviceCoreMidi::MidiInputPortCoreMidi::ParameterName::OnSetValue(String s) throw (LinuxSamplerException) {
-        
-    }	
-	
+
+    }
+
 	// *************** ParameterCoreMidiBindings ***************
 	// *
 
@@ -66,11 +63,11 @@ namespace LinuxSampler {
 
     MidiInputDeviceCoreMidi::MidiInputPortCoreMidi::MidiInputPortCoreMidi(MidiInputDeviceCoreMidi* pDevice) throw (MidiInputException) : MidiInputPort(pDevice, -1) {
     	// create CoreMidi virtual destination
-		 
+
 		MIDIDestinationCreate(pDevice->hCoreMidiClient, CFSTR("LinuxSampler_in"), ReadProc, this, &pDestination);
 		if (!pDestination) throw MidiInputException("Error creating CoreMidi virtual destination");
 		this->portNumber = pPortID++;
-		
+
         Parameters["NAME"]	= new ParameterName(this);
         Parameters["CORE_MIDI_BINDINGS"] = new ParameterCoreMidiBindings(this);
     }
@@ -78,24 +75,24 @@ namespace LinuxSampler {
     MidiInputDeviceCoreMidi::MidiInputPortCoreMidi::~MidiInputPortCoreMidi() {
 		MIDIEndpointDispose(pDestination);
     }
-	
+
 	void MidiInputDeviceCoreMidi::MidiInputPortCoreMidi::ReadProc(const MIDIPacketList* pktlist, void* refCon, void* connRefCon)
 	{
 		MidiInputPortCoreMidi* port = (MidiInputPortCoreMidi*)refCon;
-		MIDIPacket *packet = (MIDIPacket *)pktlist->packet;	
+		MIDIPacket *packet = (MIDIPacket *)pktlist->packet;
 
 		for (unsigned int i = 0; i < pktlist->numPackets; ++i) {
-		
+
 			int cin = packet->data[0] & 0xF0;
-			
+
 			// To be checked : several events per packet
-		
+
 			switch(cin) { // status byte
-			
+
 				case 0xB0:
 					port->DispatchControlChange(packet->data[1],packet->data[2],packet->data[0]&0x0F);
 					break;
-					
+
 				case 0xE0:
 					port->DispatchPitchbend(packet->data[1],packet->data[0]&0x0F);
 					break;
@@ -109,36 +106,46 @@ namespace LinuxSampler {
 						}
 					}
 					break;
-				
+
 				case 0x80:
 					if (packet->data[1] < 0x80) {
 						port->DispatchNoteOff(packet->data[1],packet->data[2],packet->data[0]&0x0F);
 					}
 					break;
+
+				case 0xC0:
+					if (packet->data[1] < 0x80) {
+						port->DispatchProgramChange(packet->data[1], packet->data[0] & 0x0F);
+					}
+					break;
 			}
-			
+
 			packet = MIDIPacketNext(packet);
-		}	
+		}
 	}
 
-    MidiInputDeviceCoreMidi::MidiInputDeviceCoreMidi(std::map<String,DeviceCreationParameter*> Parameters) : MidiInputDevice(Parameters) 
+
+// *************** MidiInputDeviceCoreMidi ***************
+// *
+
+    MidiInputDeviceCoreMidi::MidiInputDeviceCoreMidi(std::map<String,DeviceCreationParameter*> Parameters, void* pSampler) : MidiInputDevice(Parameters, pSampler)
 	{
 		MIDIClientCreate(CFSTR("LinuxSampler"), NotifyProc, NULL, &hCoreMidiClient);
 		if (!hCoreMidiClient) throw MidiInputException("Error opening CoreMidi client");
 		AcquirePorts(((DeviceCreationParameterInt*)Parameters["PORTS"])->ValueAsInt());
 	}
 
-    MidiInputDeviceCoreMidi::~MidiInputDeviceCoreMidi() 
+    MidiInputDeviceCoreMidi::~MidiInputDeviceCoreMidi()
 	{
    		if (hCoreMidiClient) {
 			MIDIClientDispose(hCoreMidiClient);
 		}
     }
-	
+
 	MidiInputDeviceCoreMidi::MidiInputPortCoreMidi* MidiInputDeviceCoreMidi::CreateMidiPort() {
 		return new MidiInputPortCoreMidi(this);
     }
-	
+
 	String MidiInputDeviceCoreMidi::Name() {
 	    return "COREMIDI";
     }
@@ -146,13 +153,13 @@ namespace LinuxSampler {
 	String MidiInputDeviceCoreMidi::Driver() {
 	    return Name();
     }
-	
+
 	 String MidiInputDeviceCoreMidi::Description() {
 	    return "Apple CoreMidi";
     }
 
     String MidiInputDeviceCoreMidi::Version() {
-	    String s = "$Revision: 1.5 $";
+	    String s = "$Revision: 1.6 $";
 	    return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
 
@@ -163,6 +170,6 @@ namespace LinuxSampler {
 			printf("kMIDIMsgSetupChanged\n");
 		}
 	}
-	
+
 
 } // namespace LinuxSampler

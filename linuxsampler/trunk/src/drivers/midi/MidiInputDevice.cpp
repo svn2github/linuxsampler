@@ -3,6 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
+ *   Copyright (C) 2005 Christian Schoenebeck                              *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -120,8 +121,9 @@ namespace LinuxSampler {
 // *************** MidiInputDevice ***************
 // *
 
-    MidiInputDevice::MidiInputDevice(std::map<String,DeviceCreationParameter*> DriverParameters) {
-	    this->Parameters = DriverParameters;
+    MidiInputDevice::MidiInputDevice(std::map<String,DeviceCreationParameter*> DriverParameters, void* pSampler) {
+        this->Parameters = DriverParameters;
+        this->pSampler   = pSampler;
     }
 
     MidiInputDevice::~MidiInputDevice() {
