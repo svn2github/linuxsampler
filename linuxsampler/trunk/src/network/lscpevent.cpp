@@ -74,7 +74,7 @@ String LSCPEvent::Produce(void) {
 	result += EventNames[type];
 	result += ":";
 	result += storage;
-	result += "\n";
+	result += "\r\n";
 	return result;
 }
 
