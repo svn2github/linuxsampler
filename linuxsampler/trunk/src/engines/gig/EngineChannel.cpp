@@ -31,7 +31,7 @@ namespace LinuxSampler { namespace gig {
         pInstrument  = NULL;
         pEvents      = NULL; // we allocate when we retrieve the right Engine object
         pCCEvents    = NULL; // we allocate when we retrieve the right Engine object
-        pEventQueue  = new RingBuffer<Event>(MAX_EVENTS_PER_FRAGMENT, 0);
+        pEventQueue  = new RingBuffer<Event>(CONFIG_MAX_EVENTS_PER_FRAGMENT, 0);
         pActiveKeys  = new Pool<uint>(128);
         for (uint i = 0; i < 128; i++) {
             pMIDIKeyInfo[i].pActiveVoices  = NULL; // we allocate when we retrieve the right Engine object

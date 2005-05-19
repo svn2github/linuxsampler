@@ -3,6 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
+ *   Copyright (C) 2005 Christian Schoenebeck                              *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -25,12 +26,6 @@
 #ifndef __GLOBAL_H__
 #define __GLOBAL_H__
 
-//#define DEBUG_HEADERS 1
-
-#if DEBUG_HEADERS
-# warning global.h included
-#endif // DEBUG_HEADERS
-
 #include <stdlib.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -39,26 +34,62 @@
 #include <sstream>
 
 #ifdef HAVE_CONFIG_H
-#  include <config.h>
+# include <config.h>
 #endif
 
-#define DEVMODE		1  ///< in development mode we do some extra sanity checks here and there, so if LS is stable this can be disabled to improve efficiency
+// Make sure all mandatory configuration macros are defined.
+// We don't care about optional configuration macros though.
+#ifndef CONFIG_MAX_PITCH
+# error "Configuration macro CONFIG_MAX_PITCH not defined!"
+#endif // CONFIG_MAX_PITCH
+#ifndef CONFIG_MAX_EVENTS_PER_FRAGMENT
+# error "Configuration macro CONFIG_MAX_EVENTS_PER_FRAGMENT not defined!"
+#endif // CONFIG_MAX_EVENTS_PER_FRAGMENT
+#ifndef CONFIG_EG_BOTTOM
+# error "Configuration macro CONFIG_EG_BOTTOM not defined!"
+#endif // CONFIG_EG_BOTTOM
+#ifndef CONFIG_EG_MIN_RELEASE_TIME
+# error "Configuration macro CONFIG_EG_MIN_RELEASE_TIME not defined!"
+#endif // CONFIG_EG_MIN_RELEASE_TIME
+#ifndef CONFIG_REFILL_STREAMS_PER_RUN
+# error "Configuration macro CONFIG_REFILL_STREAMS_PER_RUN not defined!"
+#endif // CONFIG_REFILL_STREAMS_PER_RUN
+#ifndef CONFIG_STREAM_MIN_REFILL_SIZE
+# error "Configuration macro CONFIG_STREAM_MIN_REFILL_SIZE not defined!"
+#endif // CONFIG_STREAM_MIN_REFILL_SIZE
+#ifndef CONFIG_STREAM_MAX_REFILL_SIZE
+# error "Configuration macro CONFIG_STREAM_MAX_REFILL_SIZE not defined!"
+#endif // CONFIG_STREAM_MAX_REFILL_SIZE
+#ifndef CONFIG_STREAM_BUFFER_SIZE
+# error "Configuration macro CONFIG_STREAM_BUFFER_SIZE not defined!"
+#endif // CONFIG_STREAM_BUFFER_SIZE
+#ifndef CONFIG_MAX_STREAMS
+# error "Configuration macro CONFIG_MAX_STREAMS not defined!"
+#endif // CONFIG_MAX_STREAMS
+#ifndef CONFIG_MAX_VOICES
+# error "Configuration macro CONFIG_MAX_VOICES not defined!"
+#endif // CONFIG_MAX_VOICES
+#ifndef CONFIG_VOICE_STEAL_ALGO
+# error "Configuration macro CONFIG_VOICE_STEAL_ALGO not defined!"
+#endif // CONFIG_VOICE_STEAL_ALGO
+#ifndef CONFIG_SYSEX_BUFFER_SIZE
+# error "Configuration macro CONFIG_SYSEX_BUFFER_SIZE not defined!"
+#endif // CONFIG_SYSEX_BUFFER_SIZE
+#ifndef CONFIG_FILTER_UPDATE_STEPS
+# error "Configuration macro CONFIG_FILTER_UPDATE_STEPS not defined!"
+#endif // CONFIG_FILTER_UPDATE_STEPS
+#ifndef CONFIG_FILTER_CUTOFF_MIN
+# error "Configuration macro CONFIG_FILTER_CUTOFF_MIN not defined!"
+#endif // CONFIG_FILTER_CUTOFF_MIN
+#ifndef CONFIG_FILTER_CUTOFF_MAX
+# error "Configuration macro CONFIG_FILTER_CUTOFF_MAX not defined!"
+#endif // CONFIG_FILTER_CUTOFF_MAX
 
-#define USE_EXCEPTIONS	0  ///< wether if we should use exceptions in the _REALTIME_THREAD_ for runtime critical errors or force segfaults instead
-
-#define LS_DEBUG_LEVEL	1  ///< the higher this value the higher verbosity, 0 means no debug messages at all
-
-#if LS_DEBUG_LEVEL > 0
-#  define dmsg(debuglevel,x)	if (LS_DEBUG_LEVEL >= debuglevel) {printf x; fflush(stdout);}
+#if CONFIG_DEBUG_LEVEL > 0
+#  define dmsg(debuglevel,x)	if (CONFIG_DEBUG_LEVEL >= debuglevel) {printf x; fflush(stdout);}
 #else
 #  define dmsg(debuglevel,x)
-#endif // LS_DEBUG
-
-/// Defines the max. pitch value used in the application (in octaves)
-#define MAX_PITCH			4
-
-/// Defines how many event objects the modulation system allocates
-#define MAX_EVENTS_PER_FRAGMENT		1024
+#endif // CONFIG_DEBUG_LEVEL > 0
 
 #define EMMS __asm__ __volatile__ ("emms" ::: "st", "st(1)", "st(2)", "st(3)", "st(4)", "st(5)", "st(6)", "st(7)", "mm0", "mm1", "mm2", "mm3", "mm4", "mm5", "mm6", "mm7")
 

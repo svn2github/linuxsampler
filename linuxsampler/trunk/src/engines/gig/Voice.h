@@ -26,10 +26,6 @@
 
 #include "../../common/global.h"
 
-#if DEBUG_HEADERS
-# warning Voice.h included
-#endif // DEBUG_HEADERS
-
 #include <gig.h>
 
 #include "../../common/RTMath.h"

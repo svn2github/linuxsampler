@@ -3,6 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
+ *   Copyright (C) 2005 Christian Schoenebeck                              *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -55,9 +56,9 @@ class RTMathBase {
          * (assuming equal tempered scale of course, divided into 12
          * semitones per octave and 100 cents per semitone).
          *
-         * Note: MAX_PITCH (defined in global.h) has to be defined to an
+         * Note: CONFIG_MAX_PITCH (defined in config.h) has to be defined to an
          * appropriate value, otherwise the behavior of this function is
-         * undefined, but most probably if MAX_PITCH is too small, the
+         * undefined, but most probably if CONFIG_MAX_PITCH is too small, the
          * application will crash due to segmentation fault here.
          *
          * @param cents - pitch value in cents (+1200 cents means +1 octave)
@@ -70,7 +71,7 @@ class RTMathBase {
         }
 
     private:
-        static float  CentsToFreqTable[MAX_PITCH * 1200 * 2 + 1];
+        static float  CentsToFreqTable[CONFIG_MAX_PITCH * 1200 * 2 + 1];
         static float* pCentsToFreqTable;
 
         static float* InitCentsToFreqTable();

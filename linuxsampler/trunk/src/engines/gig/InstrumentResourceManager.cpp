@@ -151,16 +151,16 @@ namespace LinuxSampler { namespace gig {
         }
         if (!pSample->SamplesTotal) return; // skip zero size samples
 
-        if (pSample->SamplesTotal <= NUM_RAM_PRELOAD_SAMPLES) {
+        if (pSample->SamplesTotal <= CONFIG_PRELOAD_SAMPLES) {
             // Sample is too short for disk streaming, so we load the whole
-            // sample into RAM and place 'pAudioIO->FragmentSize << MAX_PITCH'
+            // sample into RAM and place 'pAudioIO->FragmentSize << CONFIG_MAX_PITCH'
             // number of '0' samples (silence samples) behind the official buffer
             // border, to allow the interpolator do it's work even at the end of
             // the sample.
             const uint maxSamplesPerCycle =
                 (pEngineChannel->GetEngine()) ? dynamic_cast<gig::Engine*>(pEngineChannel->GetEngine())->pAudioOutputDevice->MaxSamplesPerCycle()
                                               : GIG_RESOURCE_MANAGER_DEFAULT_MAX_SAMPLES_PER_CYCLE;
-            const uint neededSilenceSamples = (maxSamplesPerCycle << MAX_PITCH) + 3;
+            const uint neededSilenceSamples = (maxSamplesPerCycle << CONFIG_MAX_PITCH) + 3;
             const uint currentlyCachedSilenceSamples = pSample->GetCache().NullExtensionSize / pSample->FrameSize;
             if (currentlyCachedSilenceSamples < neededSilenceSamples) {
                 dmsg(3,("Caching whole sample (sample name: \"%s\", sample size: %d)\n", pSample->pInfo->Name.c_str(), pSample->SamplesTotal));
@@ -168,8 +168,8 @@ namespace LinuxSampler { namespace gig {
                 dmsg(4,("Cached %d Bytes, %d silence bytes.\n", buf.Size, buf.NullExtensionSize));
             }
         }
-        else { // we only cache NUM_RAM_PRELOAD_SAMPLES and stream the other sample points from disk
-            if (!pSample->GetCache().Size) pSample->LoadSampleData(NUM_RAM_PRELOAD_SAMPLES);
+        else { // we only cache CONFIG_PRELOAD_SAMPLES and stream the other sample points from disk
+            if (!pSample->GetCache().Size) pSample->LoadSampleData(CONFIG_PRELOAD_SAMPLES);
         }
 
         if (!pSample->GetCache().Size) std::cerr << "Unable to cache sample - maybe memory full!" << std::endl << std::flush;

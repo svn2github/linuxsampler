@@ -24,29 +24,6 @@
 #ifndef __LS_GIG_ENGINEGLOBALS_H__
 #define __LS_GIG_ENGINEGLOBALS_H__
 
-#if DEBUG_HEADERS
-# warning EngineGlobals.h included
-#endif // DEBUG_HEADERS
-
-#define PITCHBEND_SEMITONES             12
-#define MAX_AUDIO_VOICES                64
-#define SYSEX_BUFFER_SIZE               2048  // 2kB
-#define VOICE_STEAL_ALGORITHM           voice_steal_algo_oldestkey  ///< @see voice_steal_algo_t for available voice stealing algorithms
-
-#define FILTER_UPDATE_PERIOD            64 ///< amount of sample points after which filter parameters (cutoff, resonance) are going to be updated (higher value means less CPU load, but also worse parameter resolution, this value will be aligned to a power of two)
-#define FORCE_FILTER_USAGE              0  ///< if set to 1 then filter is always used, if set to 0 filter is used only in case the instrument file defined one
-#define FILTER_CUTOFF_MAX               10000.0f ///< maximum cutoff frequency (10kHz)
-#define FILTER_CUTOFF_MIN               100.0f   ///< minimum cutoff frequency (100Hz)
-
-// Uncomment following line to override external cutoff controller
-//#define OVERRIDE_FILTER_CUTOFF_CTRL   1  ///< set to an arbitrary MIDI control change controller (e.g. 1 for 'modulation wheel')
-
-// Uncomment following line to override external resonance controller
-//#define OVERRIDE_FILTER_RES_CTRL      91  ///< set to an arbitrary MIDI control change controller (e.g. 91 for 'effect 1 depth')
-
-// Uncomment following line to override filter type
-//#define OVERRIDE_FILTER_TYPE          ::gig::vcf_type_lowpass  ///< either ::gig::vcf_type_lowpass, ::gig::vcf_type_bandpass or ::gig::vcf_type_highpass
-
 #include "Voice.h"
 #include "../common/Event.h"
 

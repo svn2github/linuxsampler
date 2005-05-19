@@ -3,6 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
+ *   Copyright (C) 2005 Christian Schoenebeck                              *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -28,7 +29,7 @@ namespace LinuxSampler { namespace gig {
 
     float EGADSR::CalculateFadeOutCoeff() {
         const float sampleRate = 44100.0; // even if the sample rate will be 192kHz it won't hurt at all
-        const float killSteps  = EG_MIN_RELEASE_TIME * sampleRate;
+        const float killSteps  = CONFIG_EG_MIN_RELEASE_TIME * sampleRate;
         return -1.0f / killSteps;
     }
 
@@ -62,13 +63,13 @@ namespace LinuxSampler { namespace gig {
 
         int iSample = TriggerDelay;
 
-        #if DEVMODE
+        #if CONFIG_DEVMODE
         if (TriggerDelay > TotalSamples) { // FIXME: should be removed before the final release (purpose: just a sanity check for debugging)
             dmsg(1,("EGADSR: ERROR, TriggerDelay > Totalsamples\n"));
             int* i = NULL;
             (*i)++; // force a segfault
         }
-        #endif // DEVMODE
+        #endif // CONFIG_DEVMODE
 
         while (iSample < TotalSamples) {
 
@@ -141,7 +142,7 @@ namespace LinuxSampler { namespace gig {
                         Level += Level * Decay2Coeff;
                         pEngine->pSynthesisParameters[ModulationDestination][iSample++] *= Level;
                     }
-                    if (Level <= EG_ENVELOPE_LIMIT) Stage = stage_fadeout;
+                    if (Level <= CONFIG_EG_BOTTOM) Stage = stage_fadeout;
                     break;
                 }
                 case stage_sustain: {
@@ -169,7 +170,7 @@ namespace LinuxSampler { namespace gig {
                         Level += Level * ReleaseCoeff;
                         pEngine->pSynthesisParameters[ModulationDestination][iSample++] *= Level;
                     }
-                    if (Level <= EG_ENVELOPE_LIMIT) Stage = stage_fadeout;
+                    if (Level <= CONFIG_EG_BOTTOM) Stage = stage_fadeout;
                     break;
                 }
                 case stage_fadeout: {
@@ -191,12 +192,12 @@ namespace LinuxSampler { namespace gig {
             }
         }
 
-        #if DEVMODE
+        #if CONFIG_DEVMODE
         if (itKillEvent && Stage != stage_end) { // FIXME: should be removed before the final release (purpose: just a sanity check for debugging)
             dmsg(1,("EGADSR: ERROR, voice killing not completed !!!\n"));
             dmsg(1,("EGADSR: Stage=%d,iSample=%d,Samples=%d, TotalSamples=%d, MaxFadoutPos=%d\n",Stage,iSample,Samples,TotalSamples,pEngine->MaxFadeOutPos));
         }
-        #endif // DEVMODE
+        #endif // CONFIG_DEVMODE
     }
 
     /**
@@ -216,7 +217,7 @@ namespace LinuxSampler { namespace gig {
     void EGADSR::Trigger(uint PreAttack, double AttackTime, bool HoldAttack, long LoopStart, double Decay1Time, double Decay2Time, bool InfiniteSustain, uint SustainLevel, double ReleaseTime, uint Delay) {
         this->TriggerDelay     = Delay;
         this->Stage            = stage_attack;
-        this->SustainLevel     = (SustainLevel) ? (SustainLevel > EG_ENVELOPE_LIMIT) ? (float) SustainLevel / 1000.0 : EG_ENVELOPE_LIMIT : 1.0;
+        this->SustainLevel     = (SustainLevel) ? (SustainLevel > CONFIG_EG_BOTTOM) ? (float) SustainLevel / 1000.0 : CONFIG_EG_BOTTOM : 1.0;
         this->InfiniteSustain  = InfiniteSustain;
         this->HoldAttack       = HoldAttack;
         this->LoopStart        = LoopStart;
@@ -240,16 +241,16 @@ namespace LinuxSampler { namespace gig {
 
         // calculate decay2 stage parameters (exp. curve)
         if (!InfiniteSustain) {
-            if (Decay2Time < EG_MIN_RELEASE_TIME) Decay2Time = EG_MIN_RELEASE_TIME;
+            if (Decay2Time < CONFIG_EG_MIN_RELEASE_TIME) Decay2Time = CONFIG_EG_MIN_RELEASE_TIME;
             long Decay2Steps = (long) (Decay2Time * pEngine->pAudioOutputDevice->SampleRate());
-            Decay2Coeff      = (Decay2Steps) ? exp((log(EG_ENVELOPE_LIMIT) - log(this->SustainLevel)) / Decay2Steps + log(this->SustainLevel)) - this->SustainLevel
+            Decay2Coeff      = (Decay2Steps) ? exp((log(CONFIG_EG_BOTTOM) - log(this->SustainLevel)) / Decay2Steps + log(this->SustainLevel)) - this->SustainLevel
                                              : 0.0;
         }
 
         // calculate release stage parameters (exp. curve)
-        if (ReleaseTime < EG_MIN_RELEASE_TIME) ReleaseTime = EG_MIN_RELEASE_TIME;  // to avoid click sounds at the end of the sample playback
+        if (ReleaseTime < CONFIG_EG_MIN_RELEASE_TIME) ReleaseTime = CONFIG_EG_MIN_RELEASE_TIME;  // to avoid click sounds at the end of the sample playback
         ReleaseStepsLeft = (long) (ReleaseTime * pEngine->pAudioOutputDevice->SampleRate());
-        ReleaseCoeff     = exp((log(EG_ENVELOPE_LIMIT) - log(this->SustainLevel)) / ReleaseStepsLeft + log(this->SustainLevel)) - this->SustainLevel;
+        ReleaseCoeff     = exp((log(CONFIG_EG_BOTTOM) - log(this->SustainLevel)) / ReleaseStepsLeft + log(this->SustainLevel)) - this->SustainLevel;
 
         dmsg(4,("PreAttack=%d, AttackLength=%d, AttackCoeff=%f, Decay1Coeff=%f, Decay2Coeff=%f, ReleaseLength=%d, ReleaseCoeff=%f\n",
                 PreAttack, AttackStepsLeft, AttackCoeff, Decay1Coeff, Decay2Coeff, ReleaseStepsLeft, ReleaseCoeff));

@@ -49,10 +49,10 @@ namespace LinuxSampler { namespace gig {
     void DiskThread::Reset() {
         bool running = this->IsRunning();
         if (running) this->StopThread();
-        for (int i = 0; i < MAX_INPUT_STREAMS; i++) {
+        for (int i = 0; i < CONFIG_MAX_STREAMS; i++) {
             pStreams[i]->Kill();
         }
-        for (int i = 1; i <= MAX_INPUT_STREAMS; i++) {
+        for (int i = 1; i <= CONFIG_MAX_STREAMS; i++) {
             pCreatedStreams[i] = NULL;
         }
         GhostQueue->init();
@@ -86,7 +86,7 @@ namespace LinuxSampler { namespace gig {
         std::stringstream ss;
         for (uint i = 0; i < this->Streams; i++) {
             if (pStreams[i]->GetState() == Stream::state_unused) continue;
-            uint bufferfill = (uint) ((float) pStreams[i]->GetReadSpace() / (float) STREAM_BUFFER_SIZE * 100);
+            uint bufferfill = (uint) ((float) pStreams[i]->GetReadSpace() / (float) CONFIG_STREAM_BUFFER_SIZE * 100);
             uint streamid   = (uint) pStreams[i]->GetHandle();
             if (!streamid) continue;
 
@@ -186,22 +186,22 @@ namespace LinuxSampler { namespace gig {
 
 
     DiskThread::DiskThread(uint BufferWrapElements) : Thread(true, false, 1, -2) {
-        DecompressionBuffer = ::gig::Sample::CreateDecompressionBuffer(MAX_REFILL_SIZE);
+        DecompressionBuffer = ::gig::Sample::CreateDecompressionBuffer(CONFIG_STREAM_MAX_REFILL_SIZE);
         CreationQueue       = new RingBuffer<create_command_t>(1024);
         DeletionQueue       = new RingBuffer<delete_command_t>(1024);
-        GhostQueue          = new RingBuffer<Stream::Handle>(MAX_INPUT_STREAMS);
-        Streams             = MAX_INPUT_STREAMS;
-        RefillStreamsPerRun = REFILL_STREAMS_PER_RUN;
-        for (int i = 0; i < MAX_INPUT_STREAMS; i++) {
-            pStreams[i] = new Stream(&DecompressionBuffer, STREAM_BUFFER_SIZE, BufferWrapElements); // 131072 sample words
+        GhostQueue          = new RingBuffer<Stream::Handle>(CONFIG_MAX_STREAMS);
+        Streams             = CONFIG_MAX_STREAMS;
+        RefillStreamsPerRun = CONFIG_REFILL_STREAMS_PER_RUN;
+        for (int i = 0; i < CONFIG_MAX_STREAMS; i++) {
+            pStreams[i] = new Stream(&DecompressionBuffer, CONFIG_STREAM_BUFFER_SIZE, BufferWrapElements); // 131072 sample words
         }
-        for (int i = 1; i <= MAX_INPUT_STREAMS; i++) {
+        for (int i = 1; i <= CONFIG_MAX_STREAMS; i++) {
             pCreatedStreams[i] = NULL;
         }
     }
 
     DiskThread::~DiskThread() {
-        for (int i = 0; i < MAX_INPUT_STREAMS; i++) {
+        for (int i = 0; i < CONFIG_MAX_STREAMS; i++) {
             if (pStreams[i]) delete pStreams[i];
         }
         if (CreationQueue) delete CreationQueue;
@@ -321,14 +321,14 @@ namespace LinuxSampler { namespace gig {
 
                 int capped_writespace = writespace;
                 // if there is too much buffer space available then cut the read/write
-                // size to MAX_REFILL_SIZE which is by default 65536 samples = 256KBytes
-                if (writespace > MAX_REFILL_SIZE) capped_writespace = MAX_REFILL_SIZE;
+                // size to CONFIG_STREAM_MAX_REFILL_SIZE which is by default 65536 samples = 256KBytes
+                if (writespace > CONFIG_STREAM_MAX_REFILL_SIZE) capped_writespace = CONFIG_STREAM_MAX_REFILL_SIZE;
 
                 // adjust the amount to read in order to ensure that the buffer wraps correctly
                 int read_amount = pStreams[i]->AdjustWriteSpaceToAvoidBoundary(writespace, capped_writespace);
                 // if we wasn't able to refill one of the stream buffers by more than
-                // MIN_REFILL_SIZE we'll send the disk thread to sleep later
-                if (pStreams[i]->ReadAhead(read_amount) > MIN_REFILL_SIZE) this->IsIdle = false;
+                // CONFIG_STREAM_MIN_REFILL_SIZE we'll send the disk thread to sleep later
+                if (pStreams[i]->ReadAhead(read_amount) > CONFIG_STREAM_MIN_REFILL_SIZE) this->IsIdle = false;
             }
         }
     }
@@ -344,8 +344,8 @@ namespace LinuxSampler { namespace gig {
     /// order ID Generator
     Stream::OrderID_t DiskThread::CreateOrderID() {
         static Stream::OrderID_t counter(0);
-        for (int i = 0; i < MAX_INPUT_STREAMS; i++) {
-            if (counter == MAX_INPUT_STREAMS) counter = 1; // we use '0' as 'invalid order' only, so we skip 0
+        for (int i = 0; i < CONFIG_MAX_STREAMS; i++) {
+            if (counter == CONFIG_MAX_STREAMS) counter = 1; // we use '0' as 'invalid order' only, so we skip 0
             else                              counter++;
             if (!pCreatedStreams[counter]) {
                 pCreatedStreams[counter] = SLOT_RESERVED; // mark this slot as reserved

@@ -103,10 +103,10 @@ namespace LinuxSampler { namespace gig {
         pAudioOutputDevice = NULL;
         pDiskThread        = NULL;
         pEventGenerator    = NULL;
-        pSysexBuffer       = new RingBuffer<uint8_t>(SYSEX_BUFFER_SIZE, 0);
-        pEventQueue        = new RingBuffer<Event>(MAX_EVENTS_PER_FRAGMENT, 0);
-        pEventPool         = new Pool<Event>(MAX_EVENTS_PER_FRAGMENT);
-        pVoicePool         = new Pool<Voice>(MAX_AUDIO_VOICES);
+        pSysexBuffer       = new RingBuffer<uint8_t>(CONFIG_SYSEX_BUFFER_SIZE, 0);
+        pEventQueue        = new RingBuffer<Event>(CONFIG_MAX_EVENTS_PER_FRAGMENT, 0);
+        pEventPool         = new Pool<Event>(CONFIG_MAX_EVENTS_PER_FRAGMENT);
+        pVoicePool         = new Pool<Voice>(CONFIG_MAX_VOICES);
         pVoiceStealingQueue = new RTList<Event>(pEventPool);
         pGlobalEvents      = new RTList<Event>(pEventPool);
         for (RTList<Voice>::Iterator iterVoice = pVoicePool->allocAppend(); iterVoice == pVoicePool->last(); iterVoice = pVoicePool->allocAppend()) {
@@ -231,9 +231,9 @@ namespace LinuxSampler { namespace gig {
         this->SampleRate         = pAudioOutputDevice->SampleRate();
 
         // FIXME: audio drivers with varying fragment sizes might be a problem here
-        MaxFadeOutPos = MaxSamplesPerCycle - int(double(SampleRate) * EG_MIN_RELEASE_TIME) - 1;
+        MaxFadeOutPos = MaxSamplesPerCycle - int(double(SampleRate) * CONFIG_EG_MIN_RELEASE_TIME) - 1;
         if (MaxFadeOutPos < 0)
-            throw LinuxSamplerException("EG_MIN_RELEASE_TIME in EGADSR.h too big for current audio fragment size / sampling rate!");
+            throw LinuxSamplerException("CONFIG_EG_MIN_RELEASE_TIME too big for current audio fragment size / sampling rate!");
 
         // (re)create disk thread
         if (this->pDiskThread) {
@@ -242,7 +242,7 @@ namespace LinuxSampler { namespace gig {
             delete this->pDiskThread;
             dmsg(1,("OK\n"));
         }
-        this->pDiskThread = new DiskThread(((pAudioOut->MaxSamplesPerCycle() << MAX_PITCH) << 1) + 6); //FIXME: assuming stereo
+        this->pDiskThread = new DiskThread(((pAudioOut->MaxSamplesPerCycle() << CONFIG_MAX_PITCH) << 1) + 6); //FIXME: assuming stereo
         if (!pDiskThread) {
             dmsg(0,("gig::Engine  new diskthread = NULL\n"));
             exit(EXIT_FAILURE);
@@ -370,10 +370,10 @@ namespace LinuxSampler { namespace gig {
             }
         }
 
-        // We only allow a maximum of MAX_AUDIO_VOICES voices to be stolen
+        // We only allow a maximum of CONFIG_MAX_VOICES voices to be stolen
         // in each audio fragment. All subsequent request for spawning new
         // voices in the same audio fragment will be ignored.
-        VoiceTheftsLeft = MAX_AUDIO_VOICES;
+        VoiceTheftsLeft = CONFIG_MAX_VOICES;
 
         // reset internal voice counter (just for statistic of active voices)
         ActiveVoiceCountTemp = 0;
@@ -539,7 +539,7 @@ namespace LinuxSampler { namespace gig {
                 midi_key_info_t* pKey = &pEngineChannel->pMIDIKeyInfo[*iuiKey];
                 ++iuiKey;
                 if (pKey->pActiveVoices->isEmpty()) FreeKey(pEngineChannel, pKey);
-                #if DEVMODE
+                #if CONFIG_DEVMODE
                 else { // FIXME: should be removed before the final release (purpose: just a sanity check for debugging)
                     RTList<Voice>::Iterator itVoice     = pKey->pActiveVoices->first();
                     RTList<Voice>::Iterator itVoicesEnd = pKey->pActiveVoices->end();
@@ -549,7 +549,7 @@ namespace LinuxSampler { namespace gig {
                         }
                     }
                 }
-                #endif // DEVMODE
+                #endif // CONFIG_DEVMODE
             }
         }
 
@@ -584,7 +584,7 @@ namespace LinuxSampler { namespace gig {
                 // finally place sysex event into input event queue
                 pEventQueue->push(&event);
             }
-            else dmsg(1,("Engine: Sysex message too large (%d byte) for input buffer (%d byte)!",Size,SYSEX_BUFFER_SIZE));
+            else dmsg(1,("Engine: Sysex message too large (%d byte) for input buffer (%d byte)!",Size,CONFIG_SYSEX_BUFFER_SIZE));
         }
         else dmsg(1,("Engine: Input event queue full!"));
     }
@@ -781,7 +781,7 @@ namespace LinuxSampler { namespace gig {
      */
     int Engine::StealVoice(EngineChannel* pEngineChannel, Pool<Event>::Iterator& itNoteOnEvent) {
         if (!VoiceTheftsLeft) {
-            dmsg(1,("Max. voice thefts per audio fragment reached (you may raise MAX_AUDIO_VOICES).\n"));
+            dmsg(1,("Max. voice thefts per audio fragment reached (you may raise CONFIG_MAX_VOICES).\n"));
             return -1;
         }
         if (!pEventPool->poolIsEmpty()) {
@@ -789,7 +789,7 @@ namespace LinuxSampler { namespace gig {
             RTList<Voice>::Iterator itSelectedVoice;
 
             // Select one voice for voice stealing
-            switch (VOICE_STEAL_ALGORITHM) {
+            switch (CONFIG_VOICE_STEAL_ALGO) {
 
                 // try to pick the oldest voice on the key where the new
                 // voice should be spawned, if there is no voice on that
@@ -1199,7 +1199,7 @@ namespace LinuxSampler { namespace gig {
     }
 
     String Engine::Version() {
-        String s = "$Revision: 1.36 $";
+        String s = "$Revision: 1.37 $";
         return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
 

@@ -9,6 +9,8 @@ AC_SUBST(target_os)
 AC_SUBST(target_vendor)
 
 
+###########################################################################
+# General Checks
 
 AC_MSG_CHECKING([whether x86 architecture])
 def_arch_x86=0
@@ -21,7 +23,6 @@ case $target_cpu in
 esac
 AC_DEFINE_UNQUOTED(ARCH_X86,$def_arch_x86,[Define to 1 if you build for x86 architecture.])
 
-
 # determine the right gcc switch for CPU specific optimizations
 CXX_CPU_SWITCH=
 if test "$def_arch_x86" = 1; then
@@ -30,7 +31,6 @@ elif test "$target_cpu" = "powerpc"; then
   CXX_CPU_SWITCH="-arch=$target_cpu"
 fi
 AC_SUBST([CXX_CPU_SWITCH])
-
 
 AC_MSG_CHECKING([whether UNIX98 compatible])
 AC_LANG_SAVE
@@ -64,7 +64,6 @@ if test "$have_unix98" = "no"; then
     fi
 fi
 
-
 # Checks for available audio and MIDI systems / drivers
 # (we throw an error if there's not at least one system for audio output and MIDI input available)
 have_midi_input_driver="false"
@@ -85,7 +84,6 @@ if test "$have_alsa" = "1"; then
 fi
 AM_CONDITIONAL(HAVE_ALSA, test $have_alsa = "1")
 AC_DEFINE_UNQUOTED(HAVE_ALSA,$have_alsa,[Define to 1 if you have ALSA installed.])
-
 
 echo -n "checking Alsa version... "
 AC_LANG_SAVE
@@ -138,7 +136,6 @@ AC_DEFINE_UNQUOTED(ALSA_MAJOR,$alsa_major,[Define to the major version number of
 AC_DEFINE_UNQUOTED(ALSA_MINOR,$alsa_minor,[Define to the minor version number of your Alsa installation.])
 AC_DEFINE_UNQUOTED(ALSA_SUBMINOR,$alsa_subminor,[Define to the subminor version number of your Alsa installation.])
 
-
 # JACK
 PKG_CHECK_MODULES(JACK, jack, HAVE_JACK=true, HAVE_JACK=false)
 AC_SUBST(JACK_LIBS)
@@ -153,7 +150,6 @@ fi
 AM_CONDITIONAL(HAVE_JACK, test $HAVE_JACK = 1)
 AC_DEFINE_UNQUOTED(HAVE_JACK,$HAVE_JACK,[Define to 1 if you have JACK installed.])
 
-
 # Check presence of libgig
 libgig_version="2.0.0"
 PKG_CHECK_MODULES(GIG, gig >= $libgig_version, HAVE_GIG=true, HAVE_GIG=false)
@@ -164,7 +160,6 @@ if test "$HAVE_GIG" = "false"; then
 fi
 AC_SUBST(GIG_CFLAGS)
 AC_SUBST(GIG_LIBS)
-
 
 # SQLITE3
 PKG_CHECK_MODULES(SQLITE3, sqlite3, HAVE_SQLITE3=true, HAVE_SQLITE3=false)
@@ -178,7 +173,6 @@ fi
 AM_CONDITIONAL(HAVE_SQLITE3, test $HAVE_SQLITE3 = 1)
 AC_DEFINE_UNQUOTED(HAVE_SQLITE3,$HAVE_SQLITE3,[Define to 1 if you have SQLITE3 installed.])
 
-
 if test "$have_midi_input_driver" = "false"; then
     echo "No supported MIDI input system found!"
     echo "Sorry, LinuxSampler only supports ALSA as MIDI input driver at the moment!"
@@ -190,6 +184,311 @@ if test "$have_audio_output_driver" = "false"; then
     exit -1;
 fi
 
+
+###########################################################################
+# Handle Configuration Options
+
+# TODO: should we use AC_ARG_VAR(variable, description) instead?
+
+AC_ARG_ENABLE(dev-mode,
+  [  --enable-dev-mode
+                          Enable development mode (default=no). In that mode
+                          we do some extra sanity checks here and there.
+                          This helps to spot possible problems, but reduces
+                          efficiency a bit],
+  [config_dev_mode="yes"],
+  [config_dev_mode="no"]
+)
+if test "$config_dev_mode" = "yes"; then
+  AC_DEFINE_UNQUOTED(CONFIG_DEVMODE, 1, [Define to 1 if you want to enable development mode.])
+fi
+
+AC_ARG_ENABLE(debug-level,
+  [  --enable-debug-level
+                          Specify verbosity of console messages (default=1).
+                          The higher the value, the higher will be verbosity.
+                          A value of 0 means no console output at all.
+                          There's not really an upper limit but the usual
+                          level of all messages is currently somewhere less
+                          than 10.],
+  [config_debug_level="${enableval}"],
+  [config_debug_level="1"]
+)
+AC_DEFINE_UNQUOTED(CONFIG_DEBUG_LEVEL, $config_debug_level, [Define console verbosity.])
+
+AC_ARG_ENABLE(rt-exceptions,
+  [  --enable-rt-exceptions
+                          Enable exceptions in the realtime thread
+                          (default=no). If this is enabled, exceptions will
+                          be thrown on critical errors in the realtime
+                          context as well. Otherwise if disabled
+                          segmentation faults will be forced by the
+                          application on critical errors.],
+  [config_rt_exceptions="yes"],
+  [config_rt_exceptions="no"]
+)
+if test "$config_rt_exceptions" = "yes"; then
+  AC_DEFINE_UNQUOTED(CONFIG_RT_EXCEPTIONS, 1, [Define to 1 to allow exceptions in the realtime context.])
+fi
+
+AC_ARG_ENABLE(preload-samples,
+  [  --enable-preload-samples
+                          Due to seeking and latency issues with hard drives
+                          we have to cache a small part of samples' head in
+                          RAM (default=32768). The higher this value the
+                          more memory will be occupied for each sample, but
+                          the safer this will be in regards of possible
+                          droputs. A 'good' value depends on the running
+                          system and usage dependant factors.],
+  [config_preload_samples="${enableval}"],
+  [config_preload_samples="32768"]
+)
+AC_DEFINE_UNQUOTED(CONFIG_PRELOAD_SAMPLES, $config_preload_samples, [Define amount of sample points to be cached in RAM.])
+
+AC_ARG_ENABLE(max-pitch,
+  [  --enable-max-pitch
+                          Specify the maximum allowed pitch value in octaves
+                          (default=4). To lower memory usage you might want
+                          set a smaller value.],
+  [config_max_pitch="${enableval}"],
+  [config_max_pitch="4"]
+)
+AC_DEFINE_UNQUOTED(CONFIG_MAX_PITCH, $config_max_pitch, [Define max. allowed pitch.])
+
+AC_ARG_ENABLE(max-events,
+  [  --enable-max-events
+                          Specify the maximum allowed amount of events to be
+                          processed per fragment (default=1024).],
+  [config_max_events="${enableval}"],
+  [config_max_events="1024"]
+)
+AC_DEFINE_UNQUOTED(CONFIG_MAX_EVENTS_PER_FRAGMENT, $config_max_events, [Define max. allowed events per fragment.])
+
+AC_ARG_ENABLE(eg-bottom,
+  [  --enable-eg-bottom
+                          Bottom limit of envelope generators
+                          (default=0.001). Certain kinds of curve types like
+                          exponential curves converge against 0 but never
+                          reach 0. So we have to define a certain low value
+                          after which we should consider all smaller values
+                          to be 'almost zero'. The smaller this value, the
+                          longer will voices survive in EG's release stage
+                          and thus waste voices. If this value is too high
+                          will cause click sounds though.],
+  [config_eg_bottom="${enableval}"],
+  [config_eg_bottom="0.001"]
+)
+AC_DEFINE_UNQUOTED(CONFIG_EG_BOTTOM, $config_eg_bottom, [Define bottom limit of envelopes.])
+
+AC_ARG_ENABLE(eg-min-release-time,
+  [  --enable-eg-min-release-time
+                          Specify the lowest allowed release time in seconds
+                          (default=0.0025). This value will also be used to
+                          ramp down voices on voice stealing. This value
+                          should always be less than the period time of the
+                          used audio driver, as in case of voice stealing
+                          the killed voice needs to be completely ramped
+                          down in the same fragment.],
+  [config_eg_min_release_time="${enableval}"],
+  [config_eg_min_release_time="0.0025"]
+)
+AC_DEFINE_UNQUOTED(CONFIG_EG_MIN_RELEASE_TIME, $config_eg_min_release_time, [Define min. release time.])
+
+AC_ARG_ENABLE(refill-streams,
+  [  --enable-refill-streams
+                          Number of streams that should be refilled in each
+                          disk thread cycle (default=4).],
+  [config_refill_streams="${enableval}"],
+  [config_refill_streams="4"]
+)
+AC_DEFINE_UNQUOTED(CONFIG_REFILL_STREAMS_PER_RUN, $config_refill_streams, [Define amount of streams to be refilled per cycle.])
+
+AC_ARG_ENABLE(stream-min-refill,
+  [  --enable-stream-min-refill
+                          Minimum refill size for disk streams (default=1024).
+                          The disk thread will go to sleep for a while if no
+                          stream had to be refilled more than this value in
+                          a disk thread cycle.],
+  [config_stream_min_refill="${enableval}"],
+  [config_stream_min_refill="1024"]
+)
+AC_DEFINE_UNQUOTED(CONFIG_STREAM_MIN_REFILL_SIZE, $config_stream_min_refill, [Define min. stream refill size.])
+
+AC_ARG_ENABLE(stream-max-refill,
+  [  --enable-stream-max-refill
+                          Maximum refill size for disk streams
+                          (default=65536). The disk thread will refill
+                          each stream only by a size of this value per
+                          disk thread cycle.],
+  [config_stream_max_refill="${enableval}"],
+  [config_stream_max_refill="65536"]
+)
+AC_DEFINE_UNQUOTED(CONFIG_STREAM_MAX_REFILL_SIZE, $config_stream_max_refill, [Define max. stream refill size.])
+
+AC_ARG_ENABLE(stream-size,
+  [  --enable-stream-size
+                          Size of each stream's ring buffer in sample points
+                          (default=262144).],
+  [config_stream_size="${enableval}"],
+  [config_stream_size="262144"]
+)
+AC_DEFINE_UNQUOTED(CONFIG_STREAM_BUFFER_SIZE, $config_stream_size, [Define each stream's ring buffer size.])
+
+AC_ARG_ENABLE(max-streams,
+  [  --enable-max-streams
+                          Maximum amount of disk streams (default=90). This
+                          value should always be higher than the maximum
+                          amount of voices.],
+  [config_max_streams="${enableval}"],
+  [config_max_streams="90"]
+)
+AC_DEFINE_UNQUOTED(CONFIG_MAX_STREAMS, $config_max_streams, [Define max. streams.])
+
+AC_ARG_ENABLE(max-voices,
+  [  --enable-max-voices
+                          Maximum amount of voices (default=64). This value
+                          should always be lower than the maximum amount of
+                          disk streams.],
+  [config_max_voices="${enableval}"],
+  [config_max_voices="64"]
+)
+AC_DEFINE_UNQUOTED(CONFIG_MAX_VOICES, $config_max_voices, [Define max. voices.])
+
+AC_ARG_ENABLE(voice-steal-algo,
+  [  --enable-voice-steal-algo
+                          Voice stealing algorithm to be used. Currently
+                          available options:
+                            none:
+                              Disable voice stealing completely.
+                            oldestvoiceonkey:
+                              Try to kill a voice on the same key first,
+                              if no success, proceed with the oldest key.
+                            oldestkey (default):
+                              Try to kill a voice from the oldest active
+                              key.],
+  [ if test ! "(" "${enableval}" = "none" \
+              -o "${enableval}" = "oldestvoiceonkey" \
+              -o "${enableval}" = "oldestkey" ")" ; then
+      AC_MSG_ERROR([Unknown voice stealing algorithm for parameter --enable-voice-steal-algo])
+    else
+      config_voice_steal_algo="${enableval}"
+    fi  
+  ],
+  [config_voice_steal_algo="oldestkey"]
+)
+AC_DEFINE_UNQUOTED(CONFIG_VOICE_STEAL_ALGO, voice_steal_algo_${config_voice_steal_algo}, [Define voice stealing algorithm to be used.])
+
+AC_ARG_ENABLE(sysex-buffer-size,
+  [  --enable-sysex-buffer-size
+                          System Exclusive Message buffer size in kB
+                          (default=2048).],
+  [config_sysex_buffer_size="${enableval}"],
+  [config_sysex_buffer_size="2048"]
+)
+AC_DEFINE_UNQUOTED(CONFIG_SYSEX_BUFFER_SIZE, $config_sysex_buffer_size, [Define SysEx buffer size.])
+
+AC_ARG_ENABLE(filter-update-steps,
+  [  --enable-filter-update-steps
+                          Amount of sample points after which filter
+                          parameters (cutoff, resonance) are going to be
+                          updated (default=64). Higher value means less CPU
+                          load, but also worse parameter resolution, this
+                          value will be aligned to a power of two.],
+  [config_filter_update_steps="${enableval}"],
+  [config_filter_update_steps="64"]
+)
+AC_DEFINE_UNQUOTED(CONFIG_FILTER_UPDATE_STEPS, $config_filter_update_steps, [Define amount of steps to refresh filter coefficients.])
+
+AC_ARG_ENABLE(force-filter,
+  [  --enable-force-filter
+                          If enabled will force filter to be used even if
+                          no usage was define in instrument patch files.
+                          (default=no).],
+  [config_force_filter="yes"],
+  [config_force_filter="no"]
+)
+if test "$config_force_filter" = "yes"; then
+  AC_DEFINE_UNQUOTED(CONFIG_FORCE_FILTER, 1, [Define to 1 to force filter usage.])
+fi
+
+AC_ARG_ENABLE(filter-cutoff-min,
+  [  --enable-filter-cutoff-min
+                          Minimum filter cutoff frequency in Hz
+                          (default=100.0).],
+  [config_filter_cutoff_min="${enableval}"],
+  [config_filter_cutoff_min="100.0"]
+)
+AC_DEFINE_UNQUOTED(CONFIG_FILTER_CUTOFF_MIN, ${config_filter_cutoff_min}f, [Define min. filter cutoff frequency.])
+
+AC_ARG_ENABLE(filter-cutoff-max,
+  [  --enable-filter-cutoff-max
+                          Maximum filter cutoff frequency in Hz
+                          (default=10000.0).],
+  [config_filter_cutoff_max="${enableval}"],
+  [config_filter_cutoff_max="10000.0"]
+)
+AC_DEFINE_UNQUOTED(CONFIG_FILTER_CUTOFF_MAX, ${config_filter_cutoff_max}f, [Define max. filter cutoff frequency.])
+
+AC_ARG_ENABLE(override-cutoff-ctrl,
+  [  --enable-override-cutoff-ctrl
+                          Override filter cutoff MIDI controller (default=no).
+                          Note: you have to define the MIDI controller number
+                          here, it's not a boolean parameter type! If this
+                          option is used, controller number given by
+                          instrument patch will be ignored and instead this
+                          supplied value will be used.],
+  [config_override_cutoff_ctrl="${enableval}"],
+  [config_override_cutoff_ctrl="no"]
+)
+if test ! "$config_override_cutoff_ctrl" = "no"; then
+  AC_DEFINE_UNQUOTED(CONFIG_OVERRIDE_CUTOFF_CTRL, $config_override_cutoff_ctrl, [Define to a MIDI controller number to override cutoff control.])
+fi
+
+AC_ARG_ENABLE(override-resonance-ctrl,
+  [  --enable-override-resonance-ctrl
+                          Override filter resonance MIDI controller
+                          (default=no). Note: you have to define the MIDI
+                          controller number here, it's not a boolean
+                          parameter type! If this option is used, controller
+                          number given by instrument patch will be ignored
+                          and instead this supplied value will be used.],
+  [config_override_resonance_ctrl="${enableval}"],
+  [config_override_resonance_ctrl="no"]
+)
+if test ! "$config_override_resonance_ctrl" = "no"; then
+  AC_DEFINE_UNQUOTED(CONFIG_OVERRIDE_RESONANCE_CTRL, $config_override_resonance_ctrl, [Define to a MIDI controller number to override resonance control.])
+fi
+
+AC_ARG_ENABLE(override-filter-type,
+  [  --enable-override-filter-type
+                          Override filter type (default=no). Options:
+                          hp: for highpass
+                          bp: for bandpass
+                          br: for bandreject
+                          lp: for lowpass
+                          lpt: for lowpass turbo],
+  [ if   test "${enableval}" = "hp" ; then
+       config_override_filter_type="::gig::vcf_type_highpass"
+    elif test "${enableval}" = "bp" ; then
+       config_override_filter_type="::gig::vcf_type_bandpass"
+    elif test "${enableval}" = "br" ; then
+       config_override_filter_type="::gig::vcf_type_bandreject"
+    elif test "${enableval}" = "lp" ; then
+       config_override_filter_type="::gig::vcf_type_lowpass"
+    elif test "${enableval}" = "lpt" ; then
+       config_override_filter_type="::gig::vcf_type_lowpassturbo"
+    elif test ! "${enableval}" = "no"; then
+       AC_MSG_ERROR([Unknown filter type for parameter --enable-override-filter-type])
+    fi  
+  ],
+  [config_override_filter_type="no"]
+)
+if test ! "$config_override_filter_type" = "no"; then
+  AC_DEFINE_UNQUOTED(CONFIG_OVERRIDE_FILTER_TYPE, $config_override_filter_type, [Define to a filter type to always force that filter type.])
+fi
+
+###########################################################################
+# Create Build Files
 
 AM_CONFIG_HEADER(config.h)
 AM_INIT_AUTOMAKE(linuxsampler, 0.3.1)
@@ -204,3 +503,40 @@ AC_CHECK_HEADER(stdlib.h)
 AM_PROG_LIBTOOL
 
 AC_OUTPUT(Makefile src/Makefile src/network/Makefile src/engines/Makefile src/engines/gig/Makefile src/engines/common/Makefile src/common/Makefile src/lib/Makefile src/lib/fileloader/Makefile src/lib/fileloader/libgig/Makefile src/testcases/Makefile src/drivers/Makefile src/drivers/audio/Makefile src/drivers/midi/Makefile)
+
+
+###########################################################################
+# Output All Configuration Options
+
+echo ""
+echo "#####################################################################"
+echo "# LinuxSampler Configuration                                        #"
+echo "#-------------------------------------------------------------------#"
+echo "# Development Mode: ${config_dev_mode}"
+echo "# Debug Level: ${config_debug_level}"
+echo "# Use Exceptions in RT Context: ${config_rt_exceptions}"
+echo "# Preload Samples: ${config_preload_samples}"
+echo "# Maximum Pitch: ${config_max_pitch} (octaves)"
+echo "# Maximum Events: ${config_max_events}"
+echo "# Envelope Bottom Level: ${config_eg_bottom} (linear)"
+echo "# Envelope Minimum Release Time: ${config_eg_min_release_time} s"
+echo "# Streams to be refilled per Disk Thread Cycle: ${config_refill_streams}"
+echo "# Minimum Stream Refill Size: ${config_stream_min_refill}"
+echo "# Maximum Stream Refill Size: ${config_stream_max_refill}"
+echo "# Stream Size: ${config_stream_size}"
+echo "# Maximum Disk Streams: ${config_max_streams}"
+echo "# Maximum Voices: ${config_max_voices}"
+echo "# SysEx Buffer Size: ${config_sysex_buffer_size} Byte"
+echo "# Filter Update Steps: ${config_filter_update_steps}"
+echo "# Force Filter Usage: ${config_force_filter}"
+echo "# Filter Cutoff Minimum: ${config_filter_cutoff_min} Hz"
+echo "# Filter Cutoff Maximum: ${config_filter_cutoff_max} Hz"
+echo "# Override Filter Cutoff Controller: ${config_override_cutoff_ctrl}"
+echo "# Override Filter Resonance Controller: ${config_override_resonance_ctrl}"
+echo "# Override Filter Type: ${config_override_filter_type}"
+echo "#-------------------------------------------------------------------#"
+echo "# Read './configure --help' or file 'configure.in' for details.     #"
+echo "#####################################################################"
+echo ""
+echo "Good. Now type 'make' to compile, followed by 'make install' as root."
+echo ""

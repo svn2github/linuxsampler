@@ -4,9 +4,21 @@
 #include <cppunit/TestFixture.h>
 #include <cppunit/extensions/HelperMacros.h>
 
+#ifdef HAVE_CONFIG_H
+# include <config.h>
+#endif
+
 // set options for Pool.h
-#define DEVMODE 1
-#define USE_EXCEPTIONS 1
+
+#ifdef CONFIG_DEVMODE
+# undef CONFIG_DEVMODE
+#endif
+#define CONFIG_DEVMODE 1
+
+#ifdef CONFIG_RT_EXCEPTIONS
+# undef CONFIG_RT_EXCEPTIONS
+#endif
+#define CONFIG_RT_EXCEPTIONS 1
 
 #include "../common/Pool.h"
 

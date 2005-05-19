@@ -3,6 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
+ *   Copyright (C) 2005 Christian Schoenebeck                              *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -23,24 +24,25 @@
 #ifndef __LS_POOL_H__
 #define __LS_POOL_H__
 
-#ifndef DEVMODE
-# include "global.h" // just to check if we should compile in 'DEVMODE'
+#ifdef HAVE_CONFIG_H
+# include <config.h>
 #endif
 
 // we just use exceptions for debugging, better not in the final realtime thread !
-#ifndef USE_EXCEPTIONS
-# define USE_EXCEPTIONS 0
+#ifndef CONFIG_RT_EXCEPTIONS
+# define CONFIG_RT_EXCEPTIONS 0
 #endif
 
-#if USE_EXCEPTIONS
+#if CONFIG_RT_EXCEPTIONS
 # include <stdexcept>
 # include <string>
-#endif // USE_EXCEPTIONS
+#endif // CONFIG_RT_EXCEPTIONS
 
-#if DEVMODE
-const std::string __err_msg_iterator_invalidated = "Pool/RTList iterator invalidated";
+#if CONFIG_DEVMODE
+# include <string>
 # include <iostream>
-#endif
+const std::string __err_msg_iterator_invalidated = "Pool/RTList iterator invalidated";
+#endif // CONFIG_DEVMODE
 
 // just symbol prototyping
 template<typename T> class Pool;
@@ -54,17 +56,17 @@ class RTListBase {
             _Node<T1>* next;
             _Node<T1>* prev;
             T1* data;
-            #if DEVMODE
+            #if CONFIG_DEVMODE
             RTListBase<T1>* list; // list to which this node currently belongs to
-            #endif // DEVMODE
+            #endif // CONFIG_DEVMODE
 
             _Node() {
                 next = NULL;
                 prev = NULL;
                 data = NULL;
-                #if DEVMODE
+                #if CONFIG_DEVMODE
                 list = NULL;
-                #endif // DEVMODE
+                #endif // CONFIG_DEVMODE
             }
         };
         typedef _Node<T> Node;
@@ -76,23 +78,23 @@ class RTListBase {
                 _Iterator() {
                     current  = NULL;
                     fallback = NULL;
-                    #if DEVMODE
+                    #if CONFIG_DEVMODE
                     list = NULL;
-                    #endif // DEVMODE
+                    #endif // CONFIG_DEVMODE
                 }
 
                 /// prefix increment op.
                 inline _Iterator& operator++() {
-                    #if DEVMODE                    
+                    #if CONFIG_DEVMODE
                     if (!isValid()) {
-                        #if USE_EXCEPTIONS
+                        #if CONFIG_RT_EXCEPTIONS
                         throw std::runtime_error(__err_msg_iterator_invalidated);
                         #else
                         std::cerr << __err_msg_iterator_invalidated << std::endl << std::flush;
                         return *(_Iterator*)NULL; // force segfault if iterator became invalidated
-                        #endif // USE_EXCEPTIONS
+                        #endif // CONFIG_RT_EXCEPTIONS
                     }
-                    #endif // DEVMODE
+                    #endif // CONFIG_DEVMODE
                     fallback = current;
                     current  = current->next;
                     return *this;
@@ -107,16 +109,16 @@ class RTListBase {
 
                 /// prefix decrement op.
                 inline _Iterator& operator--() {
-                    #if DEVMODE                    
+                    #if CONFIG_DEVMODE
                     if (!isValid()) {
-                        #if USE_EXCEPTIONS
+                        #if CONFIG_RT_EXCEPTIONS
                         throw std::runtime_error(__err_msg_iterator_invalidated);
                         #else
                         std::cerr << __err_msg_iterator_invalidated << std::endl << std::flush;
                         return *(_Iterator*)NULL; // force segfault if iterator became invalidated
-                        #endif // USE_EXCEPTIONS
-                    }                    
-                    #endif // DEVMODE
+                        #endif // CONFIG_RT_EXCEPTIONS
+                    }
+                    #endif // CONFIG_DEVMODE
                     fallback = current;
                     current  = current->prev;
                     return *this;
@@ -130,32 +132,32 @@ class RTListBase {
                 }
 
                 inline T1& operator*() {
-                    #if DEVMODE                    
+                    #if CONFIG_DEVMODE
                     if (!isValid()) { // if iterator became invalidated
-                        #if USE_EXCEPTIONS
+                        #if CONFIG_RT_EXCEPTIONS
                         throw std::runtime_error(__err_msg_iterator_invalidated);
                         #else
                         std::cerr << __err_msg_iterator_invalidated << std::endl << std::flush;
                         return *((T1*)NULL); // force segfault if iterator became invalidated
-                        #endif // USE_EXCEPTIONS
+                        #endif // CONFIG_RT_EXCEPTIONS
                     }
-                    #endif // DEVMODE
+                    #endif // CONFIG_DEVMODE
                     return *current->data;
-                    
+
                 }
 
                 inline T1* operator->() {
-                    #if DEVMODE
+                    #if CONFIG_DEVMODE
                     if (!isValid()) { // if iterator became invalidated
-                        #if USE_EXCEPTIONS
+                        #if CONFIG_RT_EXCEPTIONS
                         throw std::runtime_error(__err_msg_iterator_invalidated);
                         #else
                         std::cerr << __err_msg_iterator_invalidated << std::endl << std::flush;
                         return (T1*)NULL; // force segfault if iterator became invalidated
-                        #endif // USE_EXCEPTIONS
+                        #endif // CONFIG_RT_EXCEPTIONS
                     }
-                    #endif // DEVMODE
-                    return current->data;                    
+                    #endif // CONFIG_DEVMODE
+                    return current->data;
                 }
 
                 inline bool operator==(const _Iterator<T1> other) {
@@ -190,11 +192,11 @@ class RTListBase {
                     return iterOnDstList;
                 }
 
-                #if DEVMODE
+                #if CONFIG_DEVMODE
                 inline bool isValid() {
                     return current->list == list;
                 }
-                #endif // DEVMODE
+                #endif // CONFIG_DEVMODE
 
             protected:
                 Node* current;
@@ -203,29 +205,29 @@ class RTListBase {
                     dir_forward,
                     dir_backward
                 };
-                #if DEVMODE
+                #if CONFIG_DEVMODE
                 RTListBase<T1>* list;
-                #endif // DEVMODE
+                #endif // CONFIG_DEVMODE
 
                 _Iterator(Node* pNode, dir_t direction = dir_forward) {
                     current  = pNode;
                     fallback = (direction == dir_forward) ? pNode->prev : pNode->next;
-                    #if DEVMODE
+                    #if CONFIG_DEVMODE
                     list = pNode->list;
-                    #endif // DEVMODE
+                    #endif // CONFIG_DEVMODE
                 }
 
                 inline Node* node() {
-                    #if DEVMODE
-                    #if USE_EXCEPTIONS
+                    #if CONFIG_DEVMODE
+                    #if CONFIG_RT_EXCEPTIONS
                     if (isValid()) return current;
                     else throw std::runtime_error(__err_msg_iterator_invalidated);
                     #else
                     return (isValid()) ? current : (Node*)NULL; // force segfault if iterator became invalidated
-                    #endif // USE_EXCEPTIONS
+                    #endif // CONFIG_RT_EXCEPTIONS
                     #else
                     return current;
-                    #endif // DEVMODE
+                    #endif // CONFIG_DEVMODE
                 }
 
                 inline void detach() {
@@ -270,10 +272,10 @@ class RTListBase {
             _end.next = &_end;
             _end.prev = &_begin;
             _end.data = NULL;
-            #if DEVMODE
+            #if CONFIG_DEVMODE
             _begin.list = this;
             _end.list   = this;
-            #endif // DEVMODE
+            #endif // CONFIG_DEVMODE
         }
 
         inline void append(Iterator itElement) {
@@ -283,9 +285,9 @@ class RTListBase {
             pNode->prev = last; // if a segfault happens here, then because 'itElement' Iterator became invalidated
             pNode->next = &_end;
             _end.prev   = pNode;
-            #if DEVMODE
+            #if CONFIG_DEVMODE
             pNode->list = this;
-            #endif // DEVMODE
+            #endif // CONFIG_DEVMODE
         }
 
         inline void append(Iterator itFirst, Iterator itLast) {
@@ -296,12 +298,12 @@ class RTListBase {
             pFirst->prev = last;  // if a segfault happens here, then because 'itFirst' Iterator became invalidated
             pLast->next  = &_end; // if a segfault happens here, then because 'itLast' Iterator became invalidated
             _end.prev    = pLast;
-            #if DEVMODE
+            #if CONFIG_DEVMODE
             for (Node* pNode = pFirst; true; pNode = pNode->next) {
                 pNode->list = this;
                 if (pNode == pLast) break;
             }
-            #endif // DEVMODE
+            #endif // CONFIG_DEVMODE
         }
 
         inline void prepend(Iterator itElement) {
@@ -311,9 +313,9 @@ class RTListBase {
             pNode->prev = &_begin; // if a segfault happens here, then because 'itElement' Iterator became invalidated
             pNode->next = first;
             first->prev = pNode;
-            #if DEVMODE
+            #if CONFIG_DEVMODE
             pNode->list = this;
-            #endif // DEVMODE
+            #endif // CONFIG_DEVMODE
         }
 
         inline void prepend(Iterator itFirst, Iterator itLast) {
@@ -324,12 +326,12 @@ class RTListBase {
             pFirst->prev = &_begin; // if a segfault happens here, then because 'itFirst' Iterator became invalidated
             pLast->next  = first;   // if a segfault happens here, then because 'itLast' Iterator became invalidated
             first->prev  = pLast;
-            #if DEVMODE
+            #if CONFIG_DEVMODE
             for (Node* pNode = pFirst; true; pNode = pNode->next) {
                 pNode->list = this;
                 if (pNode == pLast) break;
             }
-            #endif // DEVMODE
+            #endif // CONFIG_DEVMODE
         }
 
         static inline void detach(Iterator itElement) {
@@ -380,9 +382,9 @@ class RTList : public RTListBase<T> {
             if (pPool->poolIsEmpty()) return RTListBase<T>::begin();
             Iterator element = pPool->alloc();
             append(element);
-            #if DEVMODE
+            #if CONFIG_DEVMODE
             element.list = this;
-            #endif // DEVMODE
+            #endif // CONFIG_DEVMODE
             return element;
         }
 
@@ -390,9 +392,9 @@ class RTList : public RTListBase<T> {
             if (pPool->poolIsEmpty()) return RTListBase<T>::end();
             Iterator element = pPool->alloc();
             prepend(element);
-            #if DEVMODE
+            #if CONFIG_DEVMODE
             element.list = this;
-            #endif // DEVMODE
+            #endif // CONFIG_DEVMODE
             return element;
         }
 

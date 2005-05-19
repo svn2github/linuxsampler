@@ -3,6 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
+ *   Copyright (C) 2005 Christian Schoenebeck                              *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -22,7 +23,7 @@
 
 #include "RTMath.h"
 
-float  RTMathBase::CentsToFreqTable[MAX_PITCH * 1200 * 2 + 1]; // +-1200 cents per octave
+float  RTMathBase::CentsToFreqTable[CONFIG_MAX_PITCH * 1200 * 2 + 1]; // +-1200 cents per octave
 float* RTMathBase::pCentsToFreqTable(InitCentsToFreqTable());
 
 #if defined(__APPLE__)
@@ -80,7 +81,7 @@ RTMathBase::time_stamp_t RTMathBase::CreateTimeStamp() {
  * ratio' table.
  */
 float* RTMathBase::InitCentsToFreqTable() {
-    float* pMiddleOfTable = &CentsToFreqTable[MAX_PITCH * 1200];
+    float* pMiddleOfTable = &CentsToFreqTable[CONFIG_MAX_PITCH * 1200];
     for (int i = -1200; i <= 1200; i++) {
         pMiddleOfTable[i] = pow(TWELVEHUNDREDTH_ROOT_OF_TWO, i);
     }

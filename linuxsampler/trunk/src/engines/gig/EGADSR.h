@@ -3,6 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
+ *   Copyright (C) 2005 Christian Schoenebeck                              *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -31,9 +32,6 @@
 #include "../common/Event.h"
 #include "Manipulator.h"
 #include "Engine.h"
-
-#define EG_ENVELOPE_LIMIT	0.001
-#define EG_MIN_RELEASE_TIME	0.0025
 
 namespace LinuxSampler { namespace gig {
 

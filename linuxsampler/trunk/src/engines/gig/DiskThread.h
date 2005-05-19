@@ -26,17 +26,7 @@
 
 #include "../../common/global.h"
 
-#if DEBUG_HEADERS
-# warning DiskThread.h included
-#endif // DEBUG_HEADERS
-
 #include <gig.h>
-
-#define REFILL_STREAMS_PER_RUN		4       ///< number of streams that should be refilled with each disk thread cycle
-#define MIN_REFILL_SIZE			1024    ///< if no buffer was filled up more than this bottom limit, the disk thread will go to sleep
-#define MAX_REFILL_SIZE			65536   ///< maximum of samples a buffer should be refilled in one cycle (256kB, as 16 bit stereo)
-#define STREAM_BUFFER_SIZE		262144  ///< the diskstream ringbuffer size (512kB as sample_t is 16bit)
-#define MAX_INPUT_STREAMS		90      ///< number of streams that should be allocated
 
 #include "../../common/Thread.h"
 #include "../../common/RingBuffer.h"
@@ -93,8 +83,8 @@ namespace LinuxSampler { namespace gig {
             RingBuffer<delete_command_t>*  DeletionQueue;                          ///< Contains commands to delete streams
             RingBuffer<Stream::Handle>*    GhostQueue;                             ///< Contains handles to streams that are not used anymore and weren't deletable immediately
             unsigned int                   RefillStreamsPerRun;                    ///< How many streams should be refilled in each loop run
-            Stream*                        pStreams[MAX_INPUT_STREAMS];            ///< Contains all disk streams (wether used or unused)
-            Stream*                        pCreatedStreams[MAX_INPUT_STREAMS + 1]; ///< This is where the voice (audio thread) picks up it's meanwhile hopefully created disk stream.
+            Stream*                        pStreams[CONFIG_MAX_STREAMS];            ///< Contains all disk streams (wether used or unused)
+            Stream*                        pCreatedStreams[CONFIG_MAX_STREAMS + 1]; ///< This is where the voice (audio thread) picks up it's meanwhile hopefully created disk stream.
             static Stream*                 SLOT_RESERVED;                          ///< This value is used to mark an entry in pCreatedStreams[] as reserved.
 
             // Methods

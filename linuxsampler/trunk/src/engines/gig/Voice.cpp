@@ -35,13 +35,13 @@ namespace LinuxSampler { namespace gig {
     const int Voice::FILTER_UPDATE_MASK(CalculateFilterUpdateMask());
 
     float Voice::CalculateFilterCutoffCoeff() {
-        return log(FILTER_CUTOFF_MIN / FILTER_CUTOFF_MAX);
+        return log(CONFIG_FILTER_CUTOFF_MIN / CONFIG_FILTER_CUTOFF_MAX);
     }
 
     int Voice::CalculateFilterUpdateMask() {
-        if (FILTER_UPDATE_PERIOD <= 0) return 0;
+        if (CONFIG_FILTER_UPDATE_STEPS <= 0) return 0;
         int power_of_two;
-        for (power_of_two = 0; 1<<power_of_two < FILTER_UPDATE_PERIOD; power_of_two++);
+        for (power_of_two = 0; 1<<power_of_two < CONFIG_FILTER_UPDATE_STEPS; power_of_two++);
         return (1 << power_of_two) - 1;
     }
 
@@ -296,7 +296,7 @@ namespace LinuxSampler { namespace gig {
         DiskVoice          = cachedsamples < pSample->SamplesTotal;
 
         if (DiskVoice) { // voice to be streamed from disk
-            MaxRAMPos = cachedsamples - (pEngine->MaxSamplesPerCycle << MAX_PITCH) / pSample->Channels; //TODO: this calculation is too pessimistic and may better be moved to Render() method, so it calculates MaxRAMPos dependent to the current demand of sample points to be rendered (e.g. in case of JACK)
+            MaxRAMPos = cachedsamples - (pEngine->MaxSamplesPerCycle << CONFIG_MAX_PITCH) / pSample->Channels; //TODO: this calculation is too pessimistic and may better be moved to Render() method, so it calculates MaxRAMPos dependent to the current demand of sample points to be rendered (e.g. in case of JACK)
 
             // check if there's a loop defined which completely fits into the cached (RAM) part of the sample
             if (pSample->Loops && pSample->LoopEnd <= MaxRAMPos) {
@@ -535,15 +535,15 @@ namespace LinuxSampler { namespace gig {
         }
 
 
-        #if FORCE_FILTER_USAGE
+        #if CONFIG_FORCE_FILTER
         const bool bUseFilter = true;
         #else // use filter only if instrument file told so
         const bool bUseFilter = pDimRgn->VCFEnabled;
-        #endif // FORCE_FILTER_USAGE
+        #endif // CONFIG_FORCE_FILTER
         SYNTHESIS_MODE_SET_FILTER(SynthesisMode, bUseFilter);
         if (bUseFilter) {
-            #ifdef OVERRIDE_FILTER_CUTOFF_CTRL
-            VCFCutoffCtrl.controller = OVERRIDE_FILTER_CUTOFF_CTRL;
+            #ifdef CONFIG_OVERRIDE_CUTOFF_CTRL
+            VCFCutoffCtrl.controller = CONFIG_OVERRIDE_CUTOFF_CTRL;
             #else // use the one defined in the instrument file
             switch (pDimRgn->VCFCutoffController) {
                 case ::gig::vcf_cutoff_ctrl_modwheel:
@@ -579,10 +579,10 @@ namespace LinuxSampler { namespace gig {
                     VCFCutoffCtrl.controller = 0;
                     break;
             }
-            #endif // OVERRIDE_FILTER_CUTOFF_CTRL
+            #endif // CONFIG_OVERRIDE_CUTOFF_CTRL
 
-            #ifdef OVERRIDE_FILTER_RES_CTRL
-            VCFResonanceCtrl.controller = OVERRIDE_FILTER_RES_CTRL;
+            #ifdef CONFIG_OVERRIDE_RESONANCE_CTRL
+            VCFResonanceCtrl.controller = CONFIG_OVERRIDE_RESONANCE_CTRL;
             #else // use the one defined in the instrument file
             switch (pDimRgn->VCFResonanceController) {
                 case ::gig::vcf_res_ctrl_genpurpose3:
@@ -601,23 +601,23 @@ namespace LinuxSampler { namespace gig {
                 default:
                     VCFResonanceCtrl.controller = 0;
             }
-            #endif // OVERRIDE_FILTER_RES_CTRL
+            #endif // CONFIG_OVERRIDE_RESONANCE_CTRL
 
-            #ifndef OVERRIDE_FILTER_TYPE
+            #ifndef CONFIG_OVERRIDE_FILTER_TYPE
             FilterLeft.SetType(pDimRgn->VCFType);
             FilterRight.SetType(pDimRgn->VCFType);
             #else // override filter type
-            FilterLeft.SetType(OVERRIDE_FILTER_TYPE);
-            FilterRight.SetType(OVERRIDE_FILTER_TYPE);
-            #endif // OVERRIDE_FILTER_TYPE
+            FilterLeft.SetType(CONFIG_OVERRIDE_FILTER_TYPE);
+            FilterRight.SetType(CONFIG_OVERRIDE_FILTER_TYPE);
+            #endif // CONFIG_OVERRIDE_FILTER_TYPE
 
             VCFCutoffCtrl.value    = pEngineChannel->ControllerTable[VCFCutoffCtrl.controller];
             VCFResonanceCtrl.value = pEngineChannel->ControllerTable[VCFResonanceCtrl.controller];
 
             // calculate cutoff frequency
             float cutoff = (!VCFCutoffCtrl.controller)
-                ? exp((float) (127 - itNoteOnEvent->Param.Note.Velocity) * (float) pDimRgn->VCFVelocityScale * 6.2E-5f * FILTER_CUTOFF_COEFF) * FILTER_CUTOFF_MAX
-                : exp((float) VCFCutoffCtrl.value * 0.00787402f * FILTER_CUTOFF_COEFF) * FILTER_CUTOFF_MAX;
+                ? exp((float) (127 - itNoteOnEvent->Param.Note.Velocity) * (float) pDimRgn->VCFVelocityScale * 6.2E-5f * FILTER_CUTOFF_COEFF) * CONFIG_FILTER_CUTOFF_MAX
+                : exp((float) VCFCutoffCtrl.value * 0.00787402f * FILTER_CUTOFF_COEFF) * CONFIG_FILTER_CUTOFF_MAX;
 
             // calculate resonance
             float resonance = (float) VCFResonanceCtrl.value * 0.00787f;   // 0.0..1.0
@@ -626,7 +626,7 @@ namespace LinuxSampler { namespace gig {
             }
             Constrain(resonance, 0.0, 1.0); // correct resonance if outside allowed value range (0.0..1.0)
 
-            VCFCutoffCtrl.fvalue    = cutoff - FILTER_CUTOFF_MIN;
+            VCFCutoffCtrl.fvalue    = cutoff - CONFIG_FILTER_CUTOFF_MIN;
             VCFResonanceCtrl.fvalue = resonance;
 
             FilterUpdateCounter = -1;
@@ -723,7 +723,7 @@ namespace LinuxSampler { namespace gig {
 
                     // add silence sample at the end if we reached the end of the stream (for the interpolator)
                     if (DiskStreamRef.State == Stream::state_end) {
-                        const int maxSampleWordsPerCycle = (pEngine->MaxSamplesPerCycle << MAX_PITCH) * pSample->Channels + 6; // +6 for the interpolator algorithm
+                        const int maxSampleWordsPerCycle = (pEngine->MaxSamplesPerCycle << CONFIG_MAX_PITCH) * pSample->Channels + 6; // +6 for the interpolator algorithm
                         if (sampleWordsLeftToRead <= maxSampleWordsPerCycle) {
                             // remember how many sample words there are before any silence has been added
                             if (RealSampleWordsLeftToRead < 0) RealSampleWordsLeftToRead = sampleWordsLeftToRead;
@@ -910,7 +910,7 @@ namespace LinuxSampler { namespace gig {
                 // calculate the influence length of this event (in sample points)
                 uint end = (itNextCutoffEvent) ? itNextCutoffEvent->FragmentPos() : Samples;
 
-                cutoff = exp((float) itCutoffEvent->Param.CC.Value * 0.00787402f * FILTER_CUTOFF_COEFF) * FILTER_CUTOFF_MAX - FILTER_CUTOFF_MIN;
+                cutoff = exp((float) itCutoffEvent->Param.CC.Value * 0.00787402f * FILTER_CUTOFF_COEFF) * CONFIG_FILTER_CUTOFF_MAX - CONFIG_FILTER_CUTOFF_MIN;
 
                 // apply cutoff frequency to the cutoff parameter sequence
                 for (uint i = itCutoffEvent->FragmentPos(); i < end; i++) {
@@ -963,8 +963,8 @@ namespace LinuxSampler { namespace gig {
         biquad_param_t bqmain;
         float prev_cutoff = pEngine->pSynthesisParameters[Event::destination_vcfc][0];
         float prev_res    = pEngine->pSynthesisParameters[Event::destination_vcfr][0];
-        FilterLeft.SetParameters( &bqbase, &bqmain, prev_cutoff + FILTER_CUTOFF_MIN, prev_res, pEngine->SampleRate);
-        FilterRight.SetParameters(&bqbase, &bqmain, prev_cutoff + FILTER_CUTOFF_MIN, prev_res, pEngine->SampleRate);
+        FilterLeft.SetParameters( &bqbase, &bqmain, prev_cutoff + CONFIG_FILTER_CUTOFF_MIN, prev_res, pEngine->SampleRate);
+        FilterRight.SetParameters(&bqbase, &bqmain, prev_cutoff + CONFIG_FILTER_CUTOFF_MIN, prev_res, pEngine->SampleRate);
         pEngine->pBasicFilterParameters[0] = bqbase;
         pEngine->pMainFilterParameters[0]  = bqmain;
 
@@ -977,8 +977,8 @@ namespace LinuxSampler { namespace gig {
                 {
                     prev_cutoff = pEngine->pSynthesisParameters[Event::destination_vcfc][i];
                     prev_res    = pEngine->pSynthesisParameters[Event::destination_vcfr][i];
-                    FilterLeft.SetParameters( &bqbase, &bqmain, prev_cutoff + FILTER_CUTOFF_MIN, prev_res, pEngine->SampleRate);
-                    FilterRight.SetParameters(&bqbase, &bqmain, prev_cutoff + FILTER_CUTOFF_MIN, prev_res, pEngine->SampleRate);
+                    FilterLeft.SetParameters( &bqbase, &bqmain, prev_cutoff + CONFIG_FILTER_CUTOFF_MIN, prev_res, pEngine->SampleRate);
+                    FilterRight.SetParameters(&bqbase, &bqmain, prev_cutoff + CONFIG_FILTER_CUTOFF_MIN, prev_res, pEngine->SampleRate);
                 }
             }
 
@@ -1037,9 +1037,10 @@ namespace LinuxSampler { namespace gig {
      *  @param itKillEvent - event which caused the voice to be killed
      */
     void Voice::Kill(Pool<Event>::Iterator& itKillEvent) {
-        //FIXME: just two sanity checks for debugging, can be removed
+        #if CONFIG_DEVMODE
         if (!itKillEvent) dmsg(1,("gig::Voice::Kill(): ERROR, !itKillEvent !!!\n"));
         if (itKillEvent && !itKillEvent.isValid()) dmsg(1,("gig::Voice::Kill(): ERROR, itKillEvent invalid !!!\n"));
+        #endif // CONFIG_DEVMODE
 
         if (itTriggerEvent && itKillEvent->FragmentPos() <= itTriggerEvent->FragmentPos()) return;
         this->itKillEvent = itKillEvent;
