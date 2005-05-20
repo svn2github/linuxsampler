@@ -86,7 +86,7 @@ input                 : line LF
 line                  :  /* epsilon (empty line ignored) */ { return LSCP_DONE; }
                       |  comment  { return LSCP_DONE; }
                       |  command  { LSCPSERVER->AnswerClient($1); return LSCP_DONE; }
-                      |  error    { LSCPSERVER->AnswerClient("Err:0:Unknown command.\r\n"); RESTART; return LSCP_SYNTAX_ERROR; }
+                      |  error    { LSCPSERVER->AnswerClient("ERR:0:Unknown command.\r\n"); RESTART; return LSCP_SYNTAX_ERROR; }
                       ;
 
 comment               :  '#'

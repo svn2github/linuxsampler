@@ -2667,7 +2667,7 @@ yyreduce:
 
   case 7:
 #line 89 "lscp.y"
-    { LSCPSERVER->AnswerClient("Err:0:Unknown command.\r\n"); RESTART; return LSCP_SYNTAX_ERROR; }
+    { LSCPSERVER->AnswerClient("ERR:0:Unknown command.\r\n"); RESTART; return LSCP_SYNTAX_ERROR; }
     break;
 
   case 13:
