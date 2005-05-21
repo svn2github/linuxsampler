@@ -3170,13 +3170,13 @@ Schoenebeck'>
                 back-end changes by issuing the following command:</t>
                 <t>
                     <list>
-                        <t>SUBSCRIBE CHANNELS</t>
+                        <t>SUBSCRIBE CHANNEL_COUNT</t>
                     </list>
                 </t>
                 <t>Server will start sending the following notification messages:</t>
                 <t>
                     <list>
-                        <t>"NOTIFY:CHANNELS:&lt;channels&gt;"</t>
+                        <t>"NOTIFY:CHANNEL_COUNT:&lt;channels&gt;"</t>
                     </list>
                 </t>
                 <t>where &lt;channels&gt; will be replaced by the new number
@@ -3247,13 +3247,13 @@ Schoenebeck'>
                 back-end changes by issuing the following command:</t>
                 <t>
                     <list>
-                        <t>SUBSCRIBE INFO</t>
+                        <t>SUBSCRIBE CHANNEL_INFO</t>
                     </list>
                 </t>
                 <t>Server will start sending the following notification messages:</t>
                 <t>
                     <list>
-                        <t>"NOTIFY:INFO:&lt;sampler-channel&gt;"</t>
+                        <t>"NOTIFY:CHANNEL_INFO:&lt;sampler-channel&gt;"</t>
                     </list>
                 </t>
                 <t>where &lt;sampler-channel&gt; will be replaced by the sampler channel the

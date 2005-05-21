@@ -62,11 +62,11 @@ Mutex LSCPServer::RTNotifyMutex = Mutex();
 
 LSCPServer::LSCPServer(Sampler* pSampler) : Thread(true, false, 0, -4) {
     this->pSampler = pSampler;
-    LSCPEvent::RegisterEvent(LSCPEvent::event_channels, "CHANNELS");
+    LSCPEvent::RegisterEvent(LSCPEvent::event_channel_count, "CHANNEL_COUNT");
     LSCPEvent::RegisterEvent(LSCPEvent::event_voice_count, "VOICE_COUNT");
     LSCPEvent::RegisterEvent(LSCPEvent::event_stream_count, "STREAM_COUNT");
     LSCPEvent::RegisterEvent(LSCPEvent::event_buffer_fill, "BUFFER_FILL");
-    LSCPEvent::RegisterEvent(LSCPEvent::event_info, "INFO");
+    LSCPEvent::RegisterEvent(LSCPEvent::event_channel_info, "CHANNEL_INFO");
     LSCPEvent::RegisterEvent(LSCPEvent::event_misc, "MISCELLANEOUS");
     hSocket = -1;
 }

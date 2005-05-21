@@ -42,11 +42,11 @@ class LSCPEvent {
 	     * Event types
 	     **/
 	    enum event_t {
-		    event_channels,
+		    event_channel_count,
 		    event_voice_count,
 		    event_stream_count,
 		    event_buffer_fill,
-		    event_info,
+		    event_channel_info,
 		    event_misc
 	    };
 

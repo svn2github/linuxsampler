@@ -112,20 +112,20 @@ command               :  ADD SP CHANNEL                        { $$ = LSCPSERVER
                       |  QUIT                                  { LSCPSERVER->AnswerClient("Bye!\r\n"); return LSCP_QUIT; }
                       ;
 
-subscribe_event       :  CHANNELS                              { $$ = LSCPSERVER->SubscribeNotification(LSCPEvent::event_channels);     }
-                      |  VOICE_COUNT                           { $$ = LSCPSERVER->SubscribeNotification(LSCPEvent::event_voice_count);  }
-                      |  STREAM_COUNT                          { $$ = LSCPSERVER->SubscribeNotification(LSCPEvent::event_stream_count); }
-                      |  BUFFER_FILL                           { $$ = LSCPSERVER->SubscribeNotification(LSCPEvent::event_buffer_fill);  }
-                      |  INFO                                  { $$ = LSCPSERVER->SubscribeNotification(LSCPEvent::event_info);         }
-                      |  MISCELLANEOUS                         { $$ = LSCPSERVER->SubscribeNotification(LSCPEvent::event_misc);         }
+subscribe_event       :  CHANNEL_COUNT                         { $$ = LSCPSERVER->SubscribeNotification(LSCPEvent::event_channel_count); }
+                      |  VOICE_COUNT                           { $$ = LSCPSERVER->SubscribeNotification(LSCPEvent::event_voice_count);   }
+                      |  STREAM_COUNT                          { $$ = LSCPSERVER->SubscribeNotification(LSCPEvent::event_stream_count);  }
+                      |  BUFFER_FILL                           { $$ = LSCPSERVER->SubscribeNotification(LSCPEvent::event_buffer_fill);   }
+                      |  CHANNEL_INFO                          { $$ = LSCPSERVER->SubscribeNotification(LSCPEvent::event_channel_info);  }
+                      |  MISCELLANEOUS                         { $$ = LSCPSERVER->SubscribeNotification(LSCPEvent::event_misc);          }
                       ;
 
-unsubscribe_event     :  CHANNELS                              { $$ = LSCPSERVER->UnsubscribeNotification(LSCPEvent::event_channels);     }
-                      |  VOICE_COUNT                           { $$ = LSCPSERVER->UnsubscribeNotification(LSCPEvent::event_voice_count);  }
-                      |  STREAM_COUNT                          { $$ = LSCPSERVER->UnsubscribeNotification(LSCPEvent::event_stream_count); }
-                      |  BUFFER_FILL                           { $$ = LSCPSERVER->UnsubscribeNotification(LSCPEvent::event_buffer_fill);  }
-                      |  INFO                                  { $$ = LSCPSERVER->UnsubscribeNotification(LSCPEvent::event_info);         }
-                      |  MISCELLANEOUS                         { $$ = LSCPSERVER->UnsubscribeNotification(LSCPEvent::event_misc);         }
+unsubscribe_event     :  CHANNEL_COUNT                         { $$ = LSCPSERVER->UnsubscribeNotification(LSCPEvent::event_channel_count); }
+                      |  VOICE_COUNT                           { $$ = LSCPSERVER->UnsubscribeNotification(LSCPEvent::event_voice_count);   }
+                      |  STREAM_COUNT                          { $$ = LSCPSERVER->UnsubscribeNotification(LSCPEvent::event_stream_count);  }
+                      |  BUFFER_FILL                           { $$ = LSCPSERVER->UnsubscribeNotification(LSCPEvent::event_buffer_fill);   }
+                      |  CHANNEL_INFO                          { $$ = LSCPSERVER->UnsubscribeNotification(LSCPEvent::event_channel_info);  }
+                      |  MISCELLANEOUS                         { $$ = LSCPSERVER->UnsubscribeNotification(LSCPEvent::event_misc);          }
                       ;
 
 get_instruction       :  AVAILABLE_ENGINES                                                          { $$ = LSCPSERVER->GetAvailableEngines();                          }
@@ -425,6 +425,12 @@ CHANNELS             :  'C''H''A''N''N''E''L''S'
                      ;
 
 INFO                 :  'I''N''F''O'
+                     ;
+
+CHANNEL_COUNT        :  'C''H''A''N''N''E''L''_''C''O''U''N''T'
+                     ;
+
+CHANNEL_INFO         :  'C''H''A''N''N''E''L''_''I''N''F''O'
                      ;
 
 BUFFER_FILL          :  'B''U''F''F''E''R''_''F''I''L''L'
