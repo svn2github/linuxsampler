@@ -347,7 +347,7 @@ void LSCPTest::test_GET_AUDIO_OUTPUT_CHANNEL_PARAMETER_INFO() {
     int devices   = atoi(answer.c_str());
     CPPUNIT_ASSERT(devices >= 0);
     if (!devices) { // if there's no audio output device yet, try to create one
-        sendCommandToLSCPServer("GET AVAILABLE_AUDIO_OUTPUT_DRIVERS");
+        sendCommandToLSCPServer("LIST AVAILABLE_AUDIO_OUTPUT_DRIVERS");
         string drivers = receiveSingleLineAnswerFromLSCPServer();
         CPPUNIT_ASSERT(drivers.size());
 
