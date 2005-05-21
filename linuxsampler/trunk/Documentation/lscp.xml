@@ -683,7 +683,7 @@ Schoenebeck'>
 
                             <t>DEPENDS -
                               <list>
-                                <t>comma separated list of paramters this parameter depends
+                                <t>comma separated list of parameters this parameter depends
                                 on, means the values for fields 'DEFAULT', 'RANGE_MIN',
                                 'RANGE_MAX' and 'POSSIBILITIES' might depend on these
                                 listed parameters, for example assuming that an audio
@@ -1441,7 +1441,7 @@ Schoenebeck'>
                         </list>
                     </t>
 
-                    <t>Where &lt;midi-t&gt; is the name of the MIDI input driver as returned
+                    <t>Where &lt;midit&gt; is the name of the MIDI input driver as returned
                     by the <xref target="LIST AVAILABLE_MIDI_INPUT_DRIVERS">
                     "LIST AVAILABLE_MIDI_INPUT_DRIVERS"</xref> command, &lt;param&gt; a specific
                     parameter name for which information should be obtained (as returned by the
@@ -1514,7 +1514,7 @@ Schoenebeck'>
 
                             <t>DEPENDS -
                               <list>
-                                <t>comma separated list of paramters this parameter depends
+                                <t>comma separated list of parameters this parameter depends
                                 on, means the values for fields 'DEFAULT', 'RANGE_MIN',
                                 'RANGE_MAX' and 'POSSIBILITIES' might depend on these
                                 listed parameters, for example assuming that an audio
@@ -2205,8 +2205,8 @@ Schoenebeck'>
                                 <list>
                                     <t>in case a new sampler channel could be added, where
                                     &lt;sampler-channel&gt; reflects the channel number of the new
-                                    created sampler channel which should the be used to set up
-                                    the sampler channel by sending subsequent intialization
+                                    created sampler channel which should be used to set up
+                                    the sampler channel by sending subsequent initialization
                                     commands</t>
                                 </list>
                             </t>
@@ -2241,9 +2241,12 @@ Schoenebeck'>
                         </list>
                     </t>
 
-                    <t>This will decrement the sampler channel count by one and also
-                    decrement the channel numbers of all subsequent sampler channels by
-                    one.</t>
+                    <t>Where &lt;sampler-channel&gt; should be replaced by the
+                    number of the sampler channel as given by the
+                    <xref target="ADD CHANNEL">"ADD CHANNEL"</xref>
+                    or <xref target="LIST CHANNELS">"LIST CHANNELS"</xref>
+                    command. The channel numbers of all subsequent sampler channels
+                    remain the same.</t>
 
                     <t>Possible Answers:</t>
                     <t>
@@ -2308,16 +2311,17 @@ Schoenebeck'>
                     <t>Possible Answers:</t>
                     <t>
                         <list>
-                            <t>LinuxSampler will answer by sending a comma separated character
-                            string of the engines' names. Engine names can consist of lower and
-                            upper cases, digits and underlines ("_" character).</t>
+                            <t>LinuxSampler will answer by sending a comma separated list
+                            of the engines' names encapsulated into apostrophes (').
+                            Engine names can consist of lower and upper cases,
+                            digits and underlines ("_" character).</t>
                         </list>
                     </t>
                     <t>Example:</t>
                     <t>
                         <list>
                             <t>C: "LIST AVAILABLE_ENGINES"</t>
-                            <t>S: "GigEngine,AkaiEngine,DLSEngine,JoesCustomEngine"</t>
+                            <t>S: "'GigEngine','AkaiEngine','DLSEngine','JoesCustomEngine'"</t>
                         </list>
                     </t>
                 </section>
@@ -2845,7 +2849,7 @@ Schoenebeck'>
                             </t>
                             <t>"ERR:&lt;error-code&gt;:&lt;error-message&gt;" -
                                 <list>
-                                    <t>in case it failed, providing an appropriate error code and error messag</t>
+                                    <t>in case it failed, providing an appropriate error code and error message</t>
                                 </list>
                             </t>
                         </list>
@@ -3244,7 +3248,7 @@ Schoenebeck'>
 
             <section title="Channel information changed" anchor="SUBSCRIBE INFO">
                 <t>Client may want to be notified when changes were made to sampler channels on the
-                back-end changes by issuing the following command:</t>
+                back-end by issuing the following command:</t>
                 <t>
                     <list>
                         <t>SUBSCRIBE CHANNEL_INFO</t>
@@ -3300,6 +3304,7 @@ Schoenebeck'>
                     <t>Rui Nuno Capela</t>
                     <t>Vladimir Senkov</t>
                     <t>Mark Knecht</t>
+                    <t>Grigor Iliev</t>
                 </list>
             </t>
         </section>

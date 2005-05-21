@@ -1056,7 +1056,7 @@ Intellectual Property and Copyright Statements<br />
 <p>DEPENDS -
                               </p>
 <blockquote class="text">
-<p>comma separated list of paramters this parameter depends
+<p>comma separated list of parameters this parameter depends
                                 on, means the values for fields 'DEFAULT', 'RANGE_MIN',
                                 'RANGE_MAX' and 'POSSIBILITIES' might depend on these
                                 listed parameters, for example assuming that an audio
@@ -2000,7 +2000,7 @@ Intellectual Property and Copyright Statements<br />
 </p>
 </blockquote>
 
-<p>Where &lt;midi-t&gt; is the name of the MIDI input driver as returned
+<p>Where &lt;midit&gt; is the name of the MIDI input driver as returned
                     by the <a class="info" href="#LIST AVAILABLE_MIDI_INPUT_DRIVERS">"LIST AVAILABLE_MIDI_INPUT_DRIVERS"<span>Getting all available MIDI input drivers</span></a> command, &lt;param&gt; a specific
                     parameter name for which information should be obtained (as returned by the
                     <a class="info" href="#GET MIDI_INPUT_DRIVER INFO">"GET MIDI_INPUT_DRIVER INFO"<span>Getting information about a specific MIDI input driver</span></a> command) and &lt;deplist&gt; is an optional list
@@ -2075,7 +2075,7 @@ Intellectual Property and Copyright Statements<br />
 <p>DEPENDS -
                               </p>
 <blockquote class="text">
-<p>comma separated list of paramters this parameter depends
+<p>comma separated list of parameters this parameter depends
                                 on, means the values for fields 'DEFAULT', 'RANGE_MIN',
                                 'RANGE_MAX' and 'POSSIBILITIES' might depend on these
                                 listed parameters, for example assuming that an audio
@@ -2903,8 +2903,8 @@ Intellectual Property and Copyright Statements<br />
 <blockquote class="text">
 <p>in case a new sampler channel could be added, where
                                     &lt;sampler-channel&gt; reflects the channel number of the new
-                                    created sampler channel which should the be used to set up
-                                    the sampler channel by sending subsequent intialization
+                                    created sampler channel which should be used to set up
+                                    the sampler channel by sending subsequent initialization
                                     commands
 </p>
 </blockquote>
@@ -2946,9 +2946,12 @@ Intellectual Property and Copyright Statements<br />
 </p>
 </blockquote>
 
-<p>This will decrement the sampler channel count by one and also
-                    decrement the channel numbers of all subsequent sampler channels by
-                    one.
+<p>Where &lt;sampler-channel&gt; should be replaced by the
+                    number of the sampler channel as given by the
+                    <a class="info" href="#ADD CHANNEL">"ADD CHANNEL"<span>Adding a new sampler channel</span></a>
+                    or <a class="info" href="#LIST CHANNELS">"LIST CHANNELS"<span>Getting all created sampler channel list</span></a>
+                    command. The channel numbers of all subsequent sampler channels
+                    remain the same.
 </p>
 <p>Possible Answers:
 </p>
@@ -3030,9 +3033,10 @@ Intellectual Property and Copyright Statements<br />
 </p>
 <p></p>
 <blockquote class="text">
-<p>LinuxSampler will answer by sending a comma separated character
-                            string of the engines' names. Engine names can consist of lower and
-                            upper cases, digits and underlines ("_" character).
+<p>LinuxSampler will answer by sending a comma separated list
+                            of the engines' names encapsulated into apostrophes (').
+                            Engine names can consist of lower and upper cases,
+                            digits and underlines ("_" character).
 </p>
 </blockquote>
 
@@ -3042,7 +3046,7 @@ Intellectual Property and Copyright Statements<br />
 <blockquote class="text">
 <p>C: "LIST AVAILABLE_ENGINES"
 </p>
-<p>S: "GigEngine,AkaiEngine,DLSEngine,JoesCustomEngine"
+<p>S: "'GigEngine','AkaiEngine','DLSEngine','JoesCustomEngine'"
 </p>
 </blockquote>
 
@@ -3700,7 +3704,7 @@ Intellectual Property and Copyright Statements<br />
 <p>"ERR:&lt;error-code&gt;:&lt;error-message&gt;" -
                                 </p>
 <blockquote class="text">
-<p>in case it failed, providing an appropriate error code and error messag
+<p>in case it failed, providing an appropriate error code and error message
 </p>
 </blockquote>
 
@@ -4184,7 +4188,7 @@ Intellectual Property and Copyright Statements<br />
 <a name="rfc.section.7.5"></a><h4><a name="SUBSCRIBE INFO">7.5</a>&nbsp;Channel information changed</h4>
 
 <p>Client may want to be notified when changes were made to sampler channels on the
-                back-end changes by issuing the following command:
+                back-end by issuing the following command:
 </p>
 <p></p>
 <blockquote class="text">
@@ -4254,6 +4258,8 @@ Intellectual Property and Copyright Statements<br />
 <p>Vladimir Senkov
 </p>
 <p>Mark Knecht
+</p>
+<p>Grigor Iliev
 </p>
 </blockquote>
 
