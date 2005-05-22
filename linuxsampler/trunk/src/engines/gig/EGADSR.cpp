@@ -64,7 +64,7 @@ namespace LinuxSampler { namespace gig {
         int iSample = TriggerDelay;
 
         #if CONFIG_DEVMODE
-        if (TriggerDelay > TotalSamples) { // FIXME: should be removed before the final release (purpose: just a sanity check for debugging)
+        if (TriggerDelay > TotalSamples) { // just a sanity check for debugging
             dmsg(1,("EGADSR: ERROR, TriggerDelay > Totalsamples\n"));
             int* i = NULL;
             (*i)++; // force a segfault
@@ -193,7 +193,7 @@ namespace LinuxSampler { namespace gig {
         }
 
         #if CONFIG_DEVMODE
-        if (itKillEvent && Stage != stage_end) { // FIXME: should be removed before the final release (purpose: just a sanity check for debugging)
+        if (itKillEvent && Stage != stage_end) { // just a sanity check for debugging
             dmsg(1,("EGADSR: ERROR, voice killing not completed !!!\n"));
             dmsg(1,("EGADSR: Stage=%d,iSample=%d,Samples=%d, TotalSamples=%d, MaxFadoutPos=%d\n",Stage,iSample,Samples,TotalSamples,pEngine->MaxFadeOutPos));
         }

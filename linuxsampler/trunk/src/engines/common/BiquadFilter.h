@@ -441,6 +441,10 @@ namespace LinuxSampler {
 #endif // ARCH_X86
     };
 
+    /** @brief Lowpass Filter
+     *
+     * Lowpass filter based on biquad filter implementation.
+     */
     class LowpassFilter : public BiquadFilter {
         public:
             inline LowpassFilter() : BiquadFilter() {}
@@ -474,6 +478,10 @@ namespace LinuxSampler {
             }
     };
 
+    /** @brief Bandpass Filter
+     *
+     * Bandpass filter based on biquad filter implementation.
+     */
     class BandpassFilter : public BiquadFilter {
         public:
             inline BandpassFilter() : BiquadFilter() {}
@@ -507,6 +515,10 @@ namespace LinuxSampler {
             }
     };
 
+    /** @brief Highpass Filter
+     *
+     * Highpass filter based on biquad filter implementation.
+     */
     class HighpassFilter : public BiquadFilter {
         public:
             inline HighpassFilter() : BiquadFilter() {}

@@ -36,6 +36,11 @@ enum implementation_t {
     ASM_X86_MMX_SSE
 };
 
+/** @brief Real Time Math Base Class
+ *
+ * Math functions for real time operation. This base class contains all
+ * non-template methods.
+ */
 class RTMathBase {
     public:
         /**
@@ -77,9 +82,12 @@ class RTMathBase {
         static float* InitCentsToFreqTable();
 };
 
-/** Real Time Math
+/** @brief Real Time Math
  *
- * Math functions for real time operation.
+ * This is a template which provides customized methods for the desired low
+ * level implementation. The ASM_X86_MMX_SSE implementation of each method
+ * for example doesn't use 387 FPU instruction. This is needed for MMX
+ * algorithms which do not allow mixed MMX and 387 instructions.
  */
 template<implementation_t IMPL = CPP>
 class __RTMath : public RTMathBase {

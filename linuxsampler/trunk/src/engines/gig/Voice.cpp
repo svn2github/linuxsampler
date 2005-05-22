@@ -134,14 +134,16 @@ namespace LinuxSampler { namespace gig {
            dmsg(1,("voice::trigger: !pInstrument\n"));
            exit(EXIT_FAILURE);
         }
-        if (itNoteOnEvent->FragmentPos() > pEngine->MaxSamplesPerCycle) { // FIXME: should be removed before the final release (purpose: just a sanity check for debugging)
+        #if CONFIG_DEVMODE
+        if (itNoteOnEvent->FragmentPos() > pEngine->MaxSamplesPerCycle) { // just a sanity check for debugging
             dmsg(1,("Voice::Trigger(): ERROR, TriggerDelay > Totalsamples\n"));
         }
+        #endif // CONFIG_DEVMODE
 
         Type            = type_normal;
         MIDIKey         = itNoteOnEvent->Param.Note.Key;
         pRegion         = pInstrument->GetRegion(MIDIKey);
-        PlaybackState   = playback_state_ram; // we always start playback from RAM cache and switch then to disk if needed
+        PlaybackState   = playback_state_init; // mark voice as triggered, but no audio rendered yet
         Delay           = itNoteOnEvent->FragmentPos();
         itTriggerEvent  = itNoteOnEvent;
         itKillEvent     = Pool<Event>::Iterator();
@@ -685,6 +687,10 @@ namespace LinuxSampler { namespace gig {
             CalculateBiquadParameters(Samples); // calculate the final biquad filter parameters
 
         switch (this->PlaybackState) {
+
+            case playback_state_init:
+                this->PlaybackState = playback_state_ram; // we always start playback from RAM cache and switch then to disk if needed
+                // no break - continue with playback_state_ram
 
             case playback_state_ram: {
                     if (RAMLoop) SYNTHESIS_MODE_SET_LOOP(SynthesisMode, true); // enable looping

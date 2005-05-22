@@ -540,7 +540,7 @@ namespace LinuxSampler { namespace gig {
                 ++iuiKey;
                 if (pKey->pActiveVoices->isEmpty()) FreeKey(pEngineChannel, pKey);
                 #if CONFIG_DEVMODE
-                else { // FIXME: should be removed before the final release (purpose: just a sanity check for debugging)
+                else { // just a sanity check for debugging
                     RTList<Voice>::Iterator itVoice     = pKey->pActiveVoices->first();
                     RTList<Voice>::Iterator itVoicesEnd = pKey->pActiveVoices->end();
                     for (; itVoice != itVoicesEnd; ++itVoice) { // iterate through all voices on this key
@@ -793,26 +793,19 @@ namespace LinuxSampler { namespace gig {
 
                 // try to pick the oldest voice on the key where the new
                 // voice should be spawned, if there is no voice on that
-                // key, or no voice left to kill there, then procceed with
+                // key, or no voice left to kill, then procceed with
                 // 'oldestkey' algorithm
                 case voice_steal_algo_oldestvoiceonkey: {
-                #if 0 // FIXME: broken
                     midi_key_info_t* pSelectedKey = &pEngineChannel->pMIDIKeyInfo[itNoteOnEvent->Param.Note.Key];
-                    if (this->itLastStolenVoice) {
-                        itSelectedVoice = this->itLastStolenVoice;
-                        ++itSelectedVoice;
-                    }
-                    else { // no voice stolen in this audio fragment cycle yet
-                        itSelectedVoice = pSelectedKey->pActiveVoices->first();
-                    }
-                    if (itSelectedVoice) {
-                        iuiSelectedKey = pSelectedKey->itSelf;
-                        break; // selection succeeded
-                    }
-                #endif
+                    itSelectedVoice = pSelectedKey->pActiveVoices->first();
+                    // proceed iterating if voice was created in this fragment cycle
+                    while (itSelectedVoice && !itSelectedVoice->hasRendered()) ++itSelectedVoice;
+                    // if we haven't found a voice then proceed with algorithm 'oldestkey'
+                    if (itSelectedVoice && itSelectedVoice->hasRendered()) break;
                 } // no break - intentional !
 
                 // try to pick the oldest voice on the oldest active key
+                // from the same engine channel
                 // (caution: must stay after 'oldestvoiceonkey' algorithm !)
                 case voice_steal_algo_oldestkey: {
                     if (this->itLastStolenVoice) {
@@ -839,7 +832,8 @@ namespace LinuxSampler { namespace gig {
                 }
             }
 
-            // steal oldest voice on the oldest key from this or any other engine channel
+            // if we couldn't steal a voice from the same engine channel then
+            // steal oldest voice on the oldest key from any other engine channel
             if (!itSelectedVoice) {
                 EngineChannel* pSelectedChannel = (pLastStolenChannel) ? pLastStolenChannel : pEngineChannel;
                 int iChannelIndex = pSelectedChannel->iEngineIndexSelf;
@@ -857,11 +851,12 @@ namespace LinuxSampler { namespace gig {
                 }
             }
 
-            //FIXME: can be removed, just a sanity check for debugging
+            #if CONFIG_DEVMODE
             if (!itSelectedVoice->IsActive()) {
                 dmsg(1,("gig::Engine: ERROR, tried to steal a voice which was not active !!!\n"));
                 return -1;
             }
+            #endif // CONFIG_DEVMODE
 
             // now kill the selected voice
             itSelectedVoice->Kill(itNoteOnEvent);
@@ -1054,8 +1049,9 @@ namespace LinuxSampler { namespace gig {
                             if (reader.read(&scale_tunes[0], 12) != 12) goto free_sysex_data;
                             uint8_t checksum;
                             if (!reader.pop(&checksum)) goto free_sysex_data;
-                            // some are not sending a GS checksum, so we ignore it for now
-                            //if (GSCheckSum(checksum_reader, 12)) goto free_sysex_data;
+                            #if CONFIG_ASSERT_GS_SYSEX_CHECKSUM
+                            if (GSCheckSum(checksum_reader, 12)) goto free_sysex_data;
+                            #endif // CONFIG_ASSERT_GS_SYSEX_CHECKSUM
                             for (int i = 0; i < 12; i++) scale_tunes[i] -= 64;
                             AdjustScale((int8_t*) scale_tunes);
                             dmsg(3,("\t\t\tNew scale applied.\n"));
@@ -1199,7 +1195,7 @@ namespace LinuxSampler { namespace gig {
     }
 
     String Engine::Version() {
-        String s = "$Revision: 1.37 $";
+        String s = "$Revision: 1.38 $";
         return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
 

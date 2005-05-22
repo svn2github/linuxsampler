@@ -32,11 +32,22 @@
 
 namespace LinuxSampler {
 
+    /** @brief Stereo sample point
+     *
+     * Encapsulates one stereo sample point, thus signal value for one
+     * sample point for left and right channel.
+     */
     struct stereo_sample_t {
         float left;
         float right;
     };
 
+    /** @brief Resampler Template
+     *
+     * This template provides pure C++ and MMX/SSE assembly implementations
+     * for linear and cubic interpolation for pitching a mono or stereo
+     * input signal.
+     */
     template<bool INTERPOLATE>
     class Resampler {
         public:

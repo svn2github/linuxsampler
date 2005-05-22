@@ -31,12 +31,20 @@ namespace LinuxSampler { namespace gig {
 
     class Voice;
 
+    /** @brief Voice Stealing Algorithms
+     *
+     * Enumeration of all possible voice stealing algorithms.
+     */
     enum voice_steal_algo_t {
-        voice_steal_algo_none,
-        voice_steal_algo_oldestvoiceonkey,
-        voice_steal_algo_oldestkey
+        voice_steal_algo_none,              ///< Voice stealing disabled.
+        voice_steal_algo_oldestvoiceonkey,  ///< Try to kill the oldest voice from same key where the new voice should be spawned.
+        voice_steal_algo_oldestkey          ///< Try to kill the oldest voice from the oldest active key.
     };
 
+    /** @brief MIDI key runtime informations
+     *
+     * Reflects runtime informations for one MIDI key.
+     */
     struct midi_key_info_t {
         RTList<Voice>*  pActiveVoices;  ///< Contains the active voices associated with the MIDI key.
         bool            KeyPressed;     ///< Is true if the respective MIDI key is currently pressed.

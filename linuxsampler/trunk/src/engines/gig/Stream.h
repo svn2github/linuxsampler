@@ -36,6 +36,13 @@
 
 namespace LinuxSampler { namespace gig {
 
+    /** @brief Buffered Disk Stream
+     *
+     * This encapsulation of a disk stream uses a ring buffer to allow
+     * thread safe refilling the stream's buffer with one thread (disk
+     * thread) and actual use / extraction of the audio data from the
+     * stream's buffer with another thread (audio thread).
+     */
     class Stream {
         public:
             // Member Types

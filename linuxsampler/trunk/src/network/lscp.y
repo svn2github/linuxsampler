@@ -151,6 +151,7 @@ get_instruction       :  AVAILABLE_ENGINES                                      
                       |  CHANNEL SP STREAM_COUNT SP sampler_channel                                 { $$ = LSCPSERVER->GetStreamCount($5);                             }
                       |  CHANNEL SP VOICE_COUNT SP sampler_channel                                  { $$ = LSCPSERVER->GetVoiceCount($5);                              }
                       |  ENGINE SP INFO SP engine_name                                              { $$ = LSCPSERVER->GetEngineInfo($5);                              }
+                      |  SERVER SP INFO                                                             { $$ = LSCPSERVER->GetServerInfo();                                }
                       ;
 
 set_instruction       :  AUDIO_OUTPUT_DEVICE_PARAMETER SP number SP string '=' param_val_list             { $$ = LSCPSERVER->SetAudioOutputDeviceParameter($3, $5, $7);      }
@@ -503,6 +504,9 @@ MIDI_INPUT_TYPE       :  'M''I''D''I''_''I''N''P''U''T''_''T''Y''P''E'
                       ;
 
 MIDI_INPUT            :  'M''I''D''I''_''I''N''P''U''T'
+                      ;
+
+SERVER                :  'S''E''R''V''E''R'
                       ;
 
 VOLUME                :  'V''O''L''U''M''E'

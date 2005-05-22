@@ -41,6 +41,11 @@ namespace LinuxSampler { namespace gig {
     class midi_key_info_t;
     class Voice;
 
+    /** @brief Engine Channel of a gig::Engine
+     *
+     * Encapsulates a engine channel for the Gigasampler format capable
+     * sampler engine.
+     */
     class EngineChannel : public LinuxSampler::EngineChannel, public InstrumentConsumer {
         public:
             EngineChannel();

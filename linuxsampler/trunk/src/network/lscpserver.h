@@ -126,6 +126,7 @@ class LSCPServer : public Thread {
         String SetVolume(double dVolume, uint uiSamplerChannel);
         String ResetChannel(uint uiSamplerChannel);
         String ResetSampler();
+        String GetServerInfo();
         String SubscribeNotification(LSCPEvent::event_t);
         String UnsubscribeNotification(LSCPEvent::event_t);
 	String QueryDatabase(String query);

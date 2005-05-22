@@ -37,6 +37,11 @@ namespace LinuxSampler { namespace gig {
 
     int CompareStreamWriteSpace(const void* a, const void* b);
 
+    /** @brief Disk Reader Thread
+     *
+     * The disk reader thread is responsible for periodically refilling
+     * disk streams in parallel to the audio thread's rendering process.
+     */
     class DiskThread : public Thread {
         public:
             // Methods

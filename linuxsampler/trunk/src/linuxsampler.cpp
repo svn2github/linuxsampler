@@ -127,7 +127,7 @@ int main(int argc, char **argv) {
         dmsg(1,("OK\n"));
     }
 
-    printf("LinuxSampler initialization completed.\n");
+    printf("LinuxSampler initialization completed. :-)\n\n");
 
     std::list<LSCPEvent::event_t> rtEvents;
     rtEvents.push_back(LSCPEvent::event_voice_count);

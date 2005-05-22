@@ -88,12 +88,14 @@ namespace LinuxSampler { namespace gig {
             void SetEngine(Engine* pEngine);
             int  Trigger(EngineChannel* pEngineChannel, Pool<Event>::Iterator& itNoteOnEvent, int PitchBend, ::gig::Instrument* pInstrument, int iLayer, bool ReleaseTriggerVoice, bool VoiceStealingAllowed);
             inline bool IsActive() { return PlaybackState; }
+            inline bool hasRendered() { return PlaybackState >= playback_state_ram; }
         //private:
             // Types
             enum playback_state_t {
                 playback_state_end  = 0,
-                playback_state_ram  = 1,
-                playback_state_disk = 2
+                playback_state_init = 1,
+                playback_state_ram  = 2,
+                playback_state_disk = 3
             };
 
             // Attributes

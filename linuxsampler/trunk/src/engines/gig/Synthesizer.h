@@ -65,6 +65,12 @@ namespace LinuxSampler { namespace gig {
         STEREO
     };
 
+    /** @brief Main Synthesis algorithms for the gig::Engine
+     *
+     * Implementation of the main synthesis algorithms of the Gigasampler
+     * format capable sampler engine. This means resampling / interpolation
+     * for pitching the audio signal, looping, filter and amplification.
+     */
     template<implementation_t IMPLEMENTATION, channels_t CHANNELS, bool USEFILTER, bool INTERPOLATE, bool DOLOOP, bool CONSTPITCH>
     class Synthesizer : public __RTMath<IMPLEMENTATION>, public LinuxSampler::Resampler<INTERPOLATE> {
 
@@ -82,6 +88,10 @@ namespace LinuxSampler { namespace gig {
 #endif
 
         public:
+            /**
+             * Render audio for the current fragment for the given voice.
+             * This is the toplevel method of this class.
+             */             
             template<typename VOICE_T>
             inline static void SynthesizeFragment(VOICE_T& Voice, uint Samples, sample_t* pSrc, uint i) {
                 const float panLeft  = Mul(Voice.PanLeft,  Voice.pEngineChannel->GlobalPanLeft);
@@ -116,6 +126,10 @@ namespace LinuxSampler { namespace gig {
 
         //protected:
 
+            /**
+             * Render audio for the current fragment for the given voice.
+             * Will be called by the toplevel SynthesizeFragment() method.
+             */   
             template<typename VOICE_T>
             inline static void SynthesizeFragment(VOICE_T& Voice, uint Samples, sample_t* pSrc, uint& i, uint& LoopPlayCount, uint LoopStart, uint LoopEnd, uint LoopSize, uint& LoopCyclesLeft, void* Pos, float& PitchBase, float& PitchBend, const float* PanLeft, const float* PanRight) {
                 const float loopEnd = Float(LoopEnd);
@@ -152,6 +166,12 @@ namespace LinuxSampler { namespace gig {
                 }
             }
 
+            /**
+             * Atomicly render a piece for the voice. For the C++
+             * implementation this means rendering exactly one sample
+             * point, whereas for the MMX/SSE implementation this means
+             * rendering 4 sample points.
+             */
             template<typename VOICE_T>
             inline static void Synthesize(VOICE_T& Voice, void* Pos, sample_t* pSrc, uint& i, const float* PanLeft, const float* PanRight) {
                 Synthesize(pSrc, Pos,
@@ -168,6 +188,9 @@ namespace LinuxSampler { namespace gig {
                            Voice.pEngine->pMainFilterParameters[i]);
             }
 
+            /**
+             * Returns the difference to the sample's loop end.
+             */
             inline static int DiffToLoopEnd(const float& LoopEnd, const void* Pos, const float& Pitch) {
                 switch (IMPLEMENTATION) {
                     // pure C++ implementation (thus platform independent)
@@ -193,6 +216,13 @@ namespace LinuxSampler { namespace gig {
                 }
             }
 
+            /**
+             * This method handles looping of the RAM playback part of the
+             * sample, thus repositioning the playback position once the
+             * loop limit was reached. Note: looping of the disk streaming
+             * part is handled by libgig (ReadAndLoop() method which will
+             * be called by the DiskThread).
+             */
             inline static int WrapLoop(const float& LoopStart, const float& LoopSize, const float& LoopEnd, void* vPos) {
                 switch (IMPLEMENTATION) {
                     // pure C++ implementation (thus platform independent)
@@ -238,6 +268,12 @@ namespace LinuxSampler { namespace gig {
                 }
             }
 
+            /**
+             * Atomicly render a piece for the voice. For the C++
+             * implementation this means rendering exactly one sample
+             * point, whereas for the MMX/SSE implementation this means
+             * rendering 4 sample points.
+             */
             inline static void Synthesize(sample_t* pSrc, void* Pos, float& Pitch, float* pOutL, float* pOutR, uint& i, float* Volume, const float* PanL, const float* PanR, Filter& FilterL, Filter& FilterR, biquad_param_t& bqBase, biquad_param_t& bqMain) {
                 switch (IMPLEMENTATION) {
                     // pure C++ implementation (thus platform independent)

@@ -30,6 +30,14 @@
 
 namespace LinuxSampler { namespace gig {
 
+    /** @brief Synthesis Profiler
+     *
+     * Provides a benchmark algorithm to return a somewhat abstract Bogo
+     * Voices value to reflect the voice count limit of the running system
+     * with the given instrument patch und circumstances. Note that the
+     * real voice count limitation will in practice be lower than this Bogo
+     * Voice value.
+     */
     class Profiler {
         public:
 	    static void Reset( void )

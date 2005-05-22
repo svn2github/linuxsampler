@@ -1410,6 +1410,18 @@ String LSCPServer::ResetSampler() {
 }
 
 /**
+ * Will be called by the parser to return general informations about this
+ * sampler.
+ */
+String LSCPServer::GetServerInfo() {
+    dmsg(2,("LSCPServer: GetServerInfo()\n"));
+    LSCPResultSet result;
+    result.Add("DESCRIPTION", "LinuxSampler - modular, streaming capable sampler");
+    result.Add("VERSION", VERSION);    
+    return result.Produce();
+}
+
+/**
  * Will be called by the parser to subscribe a client (frontend) on the
  * server for receiving event messages.
  */
