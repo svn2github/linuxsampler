@@ -1417,7 +1417,8 @@ String LSCPServer::GetServerInfo() {
     dmsg(2,("LSCPServer: GetServerInfo()\n"));
     LSCPResultSet result;
     result.Add("DESCRIPTION", "LinuxSampler - modular, streaming capable sampler");
-    result.Add("VERSION", VERSION);    
+    result.Add("VERSION", VERSION);
+    result.Add("PROTOCOL_VERSION", "1.0");
     return result.Produce();
 }
 
