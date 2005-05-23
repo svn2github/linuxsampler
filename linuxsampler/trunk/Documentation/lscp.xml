@@ -37,10 +37,10 @@ Schoenebeck'>
         <abstract>
             <t>The LinuxSampler Control Protocol (LSCP) is an
             application-level protocol primarily intended for local and
-            remote controlling the LinuxSampler main application, which is a
-            sophisticated console application essentially playing back audio
-            samples and manipulating the samples in real time to certain
-            extent.</t>
+            remote controlling the LinuxSampler backend application, which is a
+            sophisticated server-like console application essentially playing
+            back audio samples and manipulating the samples in real time to
+            certain extent.</t>
 	</abstract>
     </front>
 
@@ -112,6 +112,43 @@ Schoenebeck'>
             return and line feed characters respectively.</t>
         </section>
 
+        <section title="Versioning of this specification" anchor="LSCP versioning">
+            <t>LSCP will certainly be extended and enhanced by-and-by. Each official
+            release of the LSCP specification will be tagged with a unique version
+            tuple. The version tuple consists at least of a major and minor version
+            number like:
+            </t>
+            <t>
+                <list>
+                    <t>"1.2"</t>
+                </list>
+            </t>
+            <t>
+            In this example the major version number would be "1" and the minor
+            version number would be "2". Note that the version tuple might also
+            have more than two elements. The major version number defines a
+            group of backward compatible versions. That means a frontend is
+            compatible to the connected sampler if and only if the LSCP versions
+            to which each of the two parties complies to, match both of the
+            following rule:
+            </t>
+            <t>Compatibility:</t>
+            <t>
+                <list style="numbers">
+                    <t>The frontend's LSCP major version and the sampler's LSCP
+                    major version are exactly equal.</t>
+                    <t>The frontend's LSCP minor version is less or equal than
+                    the sampler's LSCP minor version.</t>
+                </list>
+            </t>
+            <t>
+            Compatibility can only be claimed if both rules are true.
+            The frontend can use the
+            <xref target="GET SERVER INFO">"GET SERVER INFO"</xref> command to
+            get the version of the LSCP specification the sampler complies with.
+            </t>
+        </section>
+
         <section title="Introduction">
             <t>LinuxSampler is a so called software sampler application
             capable to playback audio samples from a computer's Random
@@ -124,7 +161,7 @@ Schoenebeck'>
             arbitrary MIDI input method and arbitrary MIDI channel (e.g.
             sampler channel 17 could be connected to an ALSA sequencer
             device 64:0 and listening to MIDI channel 1 there). Each sampler
-            engine will be assigned an own instance of one of the available
+            channel will be associated with an instance of one of the available
             sampler engines (e.g. GigEngine, DLSEngine). The audio output of
             each sampler channel can be routed to an arbitrary audio output
             method (ALSA / JACK) and an arbitrary audio output channel
@@ -154,7 +191,8 @@ Schoenebeck'>
             methods will be described next.</t>
 
             <section title="Request/response communication method">
-                <t>This simple communication method is based on TCP. The
+                <t>This simple communication method is based on
+                <xref target="RFC793">TCP</xref>. The
                 front-end application establishes a TCP connection to the
                 LinuxSampler instance on a certain host system. Then the
                 front-end application will send certain ASCII based commands
@@ -796,7 +834,9 @@ Schoenebeck'>
                     </t>
 
                     <t>Where &lt;audio-output-driver&gt; should be replaced by the desired audio
-                    output system and &lt;param-list&gt; by an optional list of driver
+                    output system as returned by the
+                    <xref target="LIST AVAILABLE_AUDIO_OUTPUT_DRIVERS">"LIST AVAILABLE_AUDIO_OUTPUT_DRIVERS"</xref>
+                    command and &lt;param-list&gt; by an optional list of driver
                     specific parameters in form of "key1=val1 key2=val2 ...", where
                     character string values should be encapsulated into apostrophes (').
                     Note that there might be drivers which require parameter(s) to be
@@ -1017,7 +1057,10 @@ Schoenebeck'>
                         </list>
                     </t>
                     <t>Where &lt;device-id&gt; should be replaced by the numerical ID of the
-                    audio output device, &lt;key&gt; by the name of the parameter to change
+                    audio output device as given by the
+                    <xref target="CREATE AUDIO_OUTPUT_DEVICE">"CREATE AUDIO_OUTPUT_DEVICE"</xref>
+                    or <xref target="LIST AUDIO_OUTPUT_DEVICES">"LIST AUDIO_OUTPUT_DEVICES"</xref>
+                    command, &lt;key&gt; by the name of the parameter to change
                     and &lt;value&gt; by the new value for this parameter.</t>
                     <t>Possible Answers:</t>
                     <t>
@@ -1058,8 +1101,10 @@ Schoenebeck'>
                             <t>GET AUDIO_OUTPUT_CHANNEL INFO &lt;device-id&gt; &lt;audio-chan&gt;</t>
                         </list>
                     </t>
-                    <t>Where &lt;device-id&gt; is the numerical ID of the audio output device
-                    and &lt;audio-chan&gt; the audio channel number.</t>
+                    <t>Where &lt;device-id&gt; is the numerical ID of the audio output device as given by the
+                    <xref target="CREATE AUDIO_OUTPUT_DEVICE">"CREATE AUDIO_OUTPUT_DEVICE"</xref>
+                    or <xref target="LIST AUDIO_OUTPUT_DEVICES">"LIST AUDIO_OUTPUT_DEVICES"</xref>
+                    command and &lt;audio-chan&gt; the audio channel number.</t>
                     <t>Possible Answers:</t>
                     <t>
                         <list>
@@ -1158,8 +1203,9 @@ Schoenebeck'>
                         </list>
                     </t>
 
-                    <t>Where &lt;dev-id&gt; is the numerical ID of the audio output device as returned
-                    by the <xref target="LIST AUDIO_OUTPUT_DEVICES">"LIST AUDIO_OUTPUT_DEVICES"</xref>
+                    <t>Where &lt;dev-id&gt; is the numerical ID of the audio output device as returned by the
+                    <xref target="CREATE AUDIO_OUTPUT_DEVICE">"CREATE AUDIO_OUTPUT_DEVICE"</xref>
+                    or <xref target="LIST AUDIO_OUTPUT_DEVICES">"LIST AUDIO_OUTPUT_DEVICES"</xref>
                     command, &lt;chan&gt; the audio channel number
                     and &lt;param&gt; a specific channel parameter name for which information should
                     be obtained (as returned by the <xref target="GET AUDIO_OUTPUT_CHANNEL INFO">
@@ -1261,8 +1307,10 @@ Schoenebeck'>
                             <t>SET AUDIO_OUTPUT_CHANNEL_PARAMETER &lt;dev-id&gt; &lt;chn&gt; &lt;key&gt;=&lt;value&gt;</t>
                         </list>
                     </t>
-                    <t>Where &lt;dev-id&gt; should be replaced by the numerical ID of the audio
-                    device, &lt;chn&gt; by the audio channel number, &lt;key&gt; by the name of the
+                    <t>Where &lt;dev-id&gt; should be replaced by the numerical ID of the audio output device as returned by the
+                    <xref target="CREATE AUDIO_OUTPUT_DEVICE">"CREATE AUDIO_OUTPUT_DEVICE"</xref>
+                    or <xref target="LIST AUDIO_OUTPUT_DEVICES">"LIST AUDIO_OUTPUT_DEVICES"</xref>
+                    command, &lt;chn&gt; by the audio channel number, &lt;key&gt; by the name of the
                     parameter to change and &lt;value&gt; by the new value for this parameter.</t>
                     <t>Possible Answers:</t>
                     <t>
@@ -1386,7 +1434,9 @@ Schoenebeck'>
                             <t>GET MIDI_INPUT_DRIVER INFO &lt;midi-input-driver&gt;</t>
                         </list>
                     </t>
-                    <t>Where &lt;midi-input-driver&gt; is the name of the MIDI input driver.</t>
+                    <t>Where &lt;midi-input-driver&gt; is the name of the MIDI input driver as returned
+                    by the <xref target="LIST AVAILABLE_MIDI_INPUT_DRIVERS">
+                    "LIST AVAILABLE_MIDI_INPUT_DRIVERS"</xref> command.</t>
                     <t>Possible Answers:</t>
                     <t>
                         <list>
@@ -1596,7 +1646,9 @@ Schoenebeck'>
                         </list>
                     </t>
 
-                    <t>Where &lt;midi-input-driver&gt; should be replaced by the desired MIDI input system and &lt;param-list&gt; by an
+                    <t>Where &lt;midi-input-driver&gt; should be replaced by the desired MIDI input system as returned
+                    by the <xref target="LIST AVAILABLE_MIDI_INPUT_DRIVERS">
+                    "LIST AVAILABLE_MIDI_INPUT_DRIVERS"</xref> command and &lt;param-list&gt; by an
                     optional list of driver specific parameters in form of "key1=val1 key2=val2 ...", where
                     character string values should be encapsulated into apostrophes (').
                     Note that there might be drivers which require parameter(s) to be
@@ -1643,7 +1695,10 @@ Schoenebeck'>
                             <t>DESTROY MIDI_INPUT_DEVICE &lt;device-id&gt;</t>
                         </list>
                     </t>
-                    <t>Where &lt;device-id&gt; should be replaced by the device's numerical ID.</t>
+                    <t>Where &lt;device-id&gt; should be replaced by the device's numerical ID as returned by the
+                    <xref target="CREATE MIDI_INPUT_DEVICE">"CREATE MIDI_INPUT_DEVICE"</xref>
+                    or <xref target="LIST MIDI_INPUT_DEVICES">"LIST MIDI_INPUT_DEVICES"</xref>
+                    command.</t>
                     <t>Possible Answers:</t>
                     <t>
                         <list>
@@ -1735,7 +1790,10 @@ Schoenebeck'>
                             <t>GET MIDI_INPUT_DEVICE INFO &lt;device-id&gt;</t>
                         </list>
                     </t>
-                    <t>Where &lt;device-id&gt; is the numerical ID of the MIDI input device.</t>
+                    <t>Where &lt;device-id&gt; is the numerical ID of the MIDI input device as returned by the
+                    <xref target="CREATE MIDI_INPUT_DEVICE">"CREATE MIDI_INPUT_DEVICE"</xref>
+                    or <xref target="LIST MIDI_INPUT_DEVICES">"LIST MIDI_INPUT_DEVICES"</xref>
+                    command.</t>
                     <t>Possible Answers:</t>
                     <t>
                         <list>
@@ -1800,7 +1858,10 @@ Schoenebeck'>
                     </t>
 
                     <t>Where &lt;device-id&gt; should be replaced by the numerical ID of the
-                    MIDI input device, &lt;key&gt; by the name of the parameter to change and
+                    MIDI input device as returned by the
+                    <xref target="CREATE MIDI_INPUT_DEVICE">"CREATE MIDI_INPUT_DEVICE"</xref>
+                    or <xref target="LIST MIDI_INPUT_DEVICES">"LIST MIDI_INPUT_DEVICES"</xref>
+                    command, &lt;key&gt; by the name of the parameter to change and
                     &lt;value&gt; by the new value for this parameter.</t>
 
                     <t>Possible Answers:</t>
@@ -1841,8 +1902,10 @@ Schoenebeck'>
                             <t>GET MIDI_INPUT_PORT INFO &lt;device-id&gt; &lt;midi-port&gt;</t>
                         </list>
                     </t>
-                    <t>Where &lt;device-id&gt; is the numerical ID of the MIDI input device
-                    and &lt;midi-port&gt; the MIDI input port number.</t>
+                    <t>Where &lt;device-id&gt; is the numerical ID of the MIDI input device as returned by the
+                    <xref target="CREATE MIDI_INPUT_DEVICE">"CREATE MIDI_INPUT_DEVICE"</xref>
+                    or <xref target="LIST MIDI_INPUT_DEVICES">"LIST MIDI_INPUT_DEVICES"</xref>
+                    command and &lt;midi-port&gt; the MIDI input port number.</t>
                     <t>Possible Answers:</t>
                     <t>
                         <list>
@@ -1884,9 +1947,10 @@ Schoenebeck'>
                         </list>
                     </t>
 
-                    <t>Where &lt;dev-id&gt; is the numerical ID of the MIDI input device as returned
-                    by the <xref target="LIST MIDI_INPUT_DEVICES">
-                    "LIST MIDI_INPUT_DEVICES"</xref> command, &lt;port&gt; the MIDI port number and
+                    <t>Where &lt;dev-id&gt; is the numerical ID of the MIDI input device as returned by the
+                    <xref target="CREATE MIDI_INPUT_DEVICE">"CREATE MIDI_INPUT_DEVICE"</xref>
+                    or <xref target="LIST MIDI_INPUT_DEVICES">"LIST MIDI_INPUT_DEVICES"</xref>
+                    command, &lt;port&gt; the MIDI port number and
                     &lt;param&gt; a specific port parameter name for which information should be
                     obtained (as returned by the <xref target="GET MIDI_INPUT_PORT INFO">
                     "GET MIDI_INPUT_PORT INFO"</xref> command).</t>
@@ -1989,7 +2053,10 @@ Schoenebeck'>
                     </t>
 
                     <t>Where &lt;device-id&gt; should be replaced by the numerical ID of the
-                    MIDI device, &lt;port&gt; by the MIDI port number, &lt;key&gt; by the name of
+                    MIDI device as returned by the
+                    <xref target="CREATE MIDI_INPUT_DEVICE">"CREATE MIDI_INPUT_DEVICE"</xref>
+                    or <xref target="LIST MIDI_INPUT_DEVICES">"LIST MIDI_INPUT_DEVICES"</xref>
+                    command, &lt;port&gt; by the MIDI port number, &lt;key&gt; by the name of
                     the parameter to change and &lt;value&gt; by the new value for this
                     parameter.</t>
 
@@ -2025,8 +2092,9 @@ Schoenebeck'>
             </section>
 
             <section title="Configuring sampler channels">
-                <t>The following commands describe how to add and remove sampler channels, deploy
-                sampler engines, load instruments and connect sampler channels to MIDI and audio devices.</t>
+                <t>The following commands describe how to add and remove sampler channels, associate a
+                sampler channel with a sampler engine, load instruments and connect sampler channels to
+                MIDI and audio devices.</t>
 
                 <section title="Loading an instrument" anchor="LOAD INSTRUMENT">
                     <t>An instrument file can be loaded and assigned to a sampler channel by one of the following commands:</t>
@@ -2086,7 +2154,7 @@ Schoenebeck'>
                 </section>
 
                 <section title="Loading a sampler engine" anchor="LOAD ENGINE">
-                    <t>A sample engine can be deployed and assigned to a specific sampler
+                    <t>A sampler engine type can be associated to a specific sampler
                     channel by the following command:</t>
                     <t>
                         <list>
@@ -2096,10 +2164,18 @@ Schoenebeck'>
 
                     <t>Where &lt;engine-name&gt; is an engine name as obtained by the
                     <xref target="LIST AVAILABLE_ENGINES">
-                    "LIST AVAILABLE_ENGINES"</xref> command and &lt;sampler-channel&gt; the sampler channel the
-                    deployed engine should be assigned to. Even if the respective
-                    sampler channel has already a deployed engine with that engine
-                    name, a new engine instance will be assigned to the sampler channel.</t>
+                    "LIST AVAILABLE_ENGINES"</xref> command and &lt;sampler-channel&gt;
+                    the sampler channel as returned by the
+                    <xref target="ADD CHANNEL">"ADD CHANNEL"</xref> or
+                    <xref target="LIST CHANNELS">"LIST CHANNELS"</xref> command where
+                    the engine type should be assigned to. This command should be issued
+                    after adding a new sampler channel and before any other control
+                    commands on the new sampler channel. It can also be used to change
+                    the engine type of a sampler channel. This command has (currently) no
+                    way to define or force if a new engine instance should be created and
+                    assigned to the given sampler channel or if an already existing
+                    instance of that engine type, shared with other sampler channels,
+                    should be used.</t>
 
                     <t>Possible Answers:</t>
                     <t>
@@ -2384,7 +2460,9 @@ Schoenebeck'>
                             <t>GET CHANNEL INFO &lt;sampler-channel&gt;</t>
                         </list>
                     </t>
-                    <t>Where &lt;sampler-channel&gt; is the sampler channel number the front-end is interested in.</t>
+                    <t>Where &lt;sampler-channel&gt; is the sampler channel number the front-end is interested in
+                    as returned by the <xref target="ADD CHANNEL">"ADD CHANNEL"</xref>
+                    or <xref target="LIST CHANNELS">"LIST CHANNELS"</xref> command.</t>
                     <t>Possible Answers:</t>
                     <t>
                         <list>
@@ -2398,8 +2476,8 @@ Schoenebeck'>
                                 <list>
                                     <t>ENGINE_NAME -
                                         <list>
-                                            <t>name of the engine that is deployed on the sampler
-                                            channel, "NONE" if there's no engine deployed yet for
+                                            <t>name of the engine that is associated with the sampler
+                                            channel, "NONE" if there's no engine associated yet for
                                             this sampler channel</t>
                                         </list>
                                     </t>
@@ -2513,7 +2591,9 @@ Schoenebeck'>
                             <t>GET CHANNEL VOICE_COUNT &lt;sampler-channel&gt;</t>
                         </list>
                     </t>
-                    <t>Where &lt;sampler-channel&gt; is the sampler channel number the front-end is interested in.</t>
+                    <t>Where &lt;sampler-channel&gt; is the sampler channel number the front-end is interested in
+                    as returned by the <xref target="ADD CHANNEL">"ADD CHANNEL"</xref>
+                    or <xref target="LIST CHANNELS">"LIST CHANNELS"</xref> command.</t>
 
                     <t>Possible Answers:</t>
                     <t>
@@ -2538,7 +2618,9 @@ Schoenebeck'>
                             <t>GET CHANNEL STREAM_COUNT &lt;sampler-channel&gt;</t>
                         </list>
                     </t>
-                    <t>Where &lt;sampler-channel&gt; is the sampler channel number the front-end is interested in.</t>
+                    <t>Where &lt;sampler-channel&gt; is the sampler channel number the front-end is interested in
+                    as returned by the <xref target="ADD CHANNEL">"ADD CHANNEL"</xref>
+                    or <xref target="LIST CHANNELS">"LIST CHANNELS"</xref> command.</t>
 
                     <t>Possible Answers:</t>
                     <t>
@@ -2572,7 +2654,9 @@ Schoenebeck'>
                         </list>
                     </t>
                     <t>to get the fill state in percent, where &lt;sampler-channel&gt; is the
-                    sampler channel number the front-end is interested in.</t>
+                    sampler channel number the front-end is interested in
+                    as returned by the <xref target="ADD CHANNEL">"ADD CHANNEL"</xref>
+                    or <xref target="LIST CHANNELS">"LIST CHANNELS"</xref> command.</t>
 
                     <t>Possible Answers:</t>
                     <t>
@@ -2616,9 +2700,13 @@ Schoenebeck'>
                             <t>SET CHANNEL AUDIO_OUTPUT_DEVICE &lt;sampler-channel&gt; &lt;audio-device-id&gt;</t>
                         </list>
                     </t>
-                    <t>Where &lt;audio-device-id&gt; is the numerical ID of the audio output
-                    device and &lt;sampler-channel&gt; is the respective sampler channel
-                    number.</t>
+                    <t>Where &lt;sampler-channel&gt; is the respective sampler channel
+                    number as returned by the <xref target="ADD CHANNEL">"ADD CHANNEL"</xref>
+                    or <xref target="LIST CHANNELS">"LIST CHANNELS"</xref> command and
+                    &lt;audio-device-id&gt; is the numerical ID of the audio output device as given by the
+                    <xref target="CREATE AUDIO_OUTPUT_DEVICE">"CREATE AUDIO_OUTPUT_DEVICE"</xref>
+                    or <xref target="LIST AUDIO_OUTPUT_DEVICES">"LIST AUDIO_OUTPUT_DEVICES"</xref>
+                    command.</t>
 
                     <t>Possible Answers:</t>
                     <t>
@@ -2701,7 +2789,9 @@ Schoenebeck'>
                             <t>SET CHANNEL AUDIO_OUTPUT_CHANNEL &lt;sampler-chan&gt; &lt;audio-out&gt; &lt;audio-in&gt;</t>
                         </list>
                     </t>
-                    <t>Where &lt;sampler-chan&gt; is the sampler channel number, &lt;audio-out&gt; is the
+                    <t>Where &lt;sampler-chan&gt; is the sampler channel number
+                    as returned by the <xref target="ADD CHANNEL">"ADD CHANNEL"</xref>
+                    or <xref target="LIST CHANNELS">"LIST CHANNELS"</xref> command, &lt;audio-out&gt; is the
                     numerical ID of the sampler channel's audio output channel which should be
                     rerouted and &lt;audio-in&gt; is the numerical ID of the audio channel of the selected audio
                     output device where &lt;audio-out&gt; should be routed to.</t>
@@ -2744,8 +2834,12 @@ Schoenebeck'>
                             <t>SET CHANNEL MIDI_INPUT_DEVICE &lt;sampler-channel&gt; &lt;midi-device-id&gt;</t>
                         </list>
                     </t>
-                    <t>Where &lt;sampler-channel&gt; is the sampler channel number and &lt;midi-device-id&gt; is the
-                    the numerical ID of the MIDI input device.</t>
+                    <t>Where &lt;sampler-channel&gt; is the sampler channel number
+                    as returned by the <xref target="ADD CHANNEL">"ADD CHANNEL"</xref>
+                    or <xref target="LIST CHANNELS">"LIST CHANNELS"</xref> command
+                    and &lt;midi-device-id&gt; is  the numerical ID of the MIDI input device as returned by the
+                    <xref target="CREATE MIDI_INPUT_DEVICE">"CREATE MIDI_INPUT_DEVICE"</xref>
+                    or <xref target="LIST MIDI_INPUT_DEVICES">"LIST MIDI_INPUT_DEVICES"</xref> command.</t>
 
                     <t>Possible Answers:</t>
                     <t>
@@ -3157,6 +3251,49 @@ Schoenebeck'>
                         </list>
                     </t>
                 </section>
+
+                <section title="General sampler informations" anchor="GET SERVER INFO">
+                    <t>The client can ask for general informations about the LinuxSampler
+                       instance by sending the following command:</t>
+                    <t>
+                        <list>
+                            <t>GET SERVER INFO</t>
+                        </list>
+                    </t>
+                    <t>Possible Answers:</t>
+                    <t>
+                        <list>
+                            <t>LinuxSampler will answer by sending a &lt;CRLF&gt; separated list.
+                               Each answer line begins with the settings category name
+                               followed by a colon and then a space character &lt;SP&gt; and finally
+                               the info character string to that information category. At the
+                               moment the following categories are defined:
+                            </t>
+                            <t>
+                                <list>
+                                    <t>DESCRIPTION -
+                                        <list>
+                                            <t>arbitrary textual description about the sampler</t>
+                                        </list>
+                                    </t>
+                                    <t>VERSION -
+                                        <list>
+                                            <t>version of the sampler</t>
+                                        </list>
+                                    </t>
+                                    <t>PROTOCOL_VERSION -
+                                        <list>
+                                            <t>version of the LSCP specification the sampler
+                                            complies with (see <xref target="LSCP versioning" /> for details)</t>
+                                        </list>
+                                    </t>
+                                </list>
+                            </t>
+                        </list>
+                    </t>
+                    <t>The mentioned fields above don't have to be in particular order.
+                    Other fields might be added in future.</t>
+                </section>
             </section>
         </section>
 
@@ -3312,7 +3449,30 @@ Schoenebeck'>
     </middle>
 
     <back>
-        <references>&rfc2119;</references>
+        <references>
+            <reference anchor="RFC2119">
+                <front>
+                    <title>Key words for use in RFCs to Indicate Requirement Levels</title>
+                    <author initials="S." surname="Bradner" fullname="Scott Bradner">
+                        <organization>Harvard University</organization>
+                    </author>
+                    <date year="1997"></date>
+                </front>
+                <seriesInfo name="RFC" value="2119" />
+                <seriesInfo name="STD" value="1" />
+            </reference>
+            <reference anchor="RFC793">
+                <front>
+                    <title>TRANSMISSION CONTROL PROTOCOL</title>
+                    <author>
+                        <organization>Defense Advanced Research Projects Agency</organization>
+                    </author>
+                    <date year="1981"></date>
+                </front>
+                <seriesInfo name="RFC" value="793" />
+                <seriesInfo name="STD" value="1" />
+            </reference>
+         </references>
     </back>
 
 </rfc>
