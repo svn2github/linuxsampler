@@ -1,0 +1,52 @@
+prefix  = @ac_prefix@
+qmake   = @ac_qmake@
+
+name    = qsampler
+
+headers = config.h \
+	src/qsamplerAbout.h \
+	src/qsamplerOptions.h \
+	src/qsamplerChannel.h \
+	src/qsamplerMessages.h \
+	src/qsamplerDevice.h \
+	src/qsamplerDeviceForm.ui.h \
+	src/qsamplerChannelStrip.ui.h \
+	src/qsamplerChannelForm.ui.h \
+	src/qsamplerOptionsForm.ui.h \
+	src/qsamplerMainForm.ui.h
+
+sources = src/main.cpp \
+	src/qsamplerOptions.cpp \
+	src/qsamplerChannel.cpp \
+	src/qsamplerMessages.cpp \
+	src/qsamplerDevice.cpp \
+	src/qsamplerDeviceForm.ui \
+	src/qsamplerChannelStrip.ui \
+	src/qsamplerChannelForm.ui \
+	src/qsamplerOptionsForm.ui \
+	src/qsamplerMainForm.ui
+
+all:	$(name)
+
+$(name).mak:	$(name).pro
+	@$(qmake) -o $(name).mak $(name).pro
+
+$(name):	$(name).mak $(sources) $(headers)
+	@make -f $(name).mak
+
+
+# NOTE: DO NOT DELETE $(DESTDIR) in install and uninstall rules !!!
+#       It is mandatory for Debian packaging.
+
+install:	$(name) icons/$(name).png
+	@install -vD $(name) $(DESTDIR)$(prefix)/bin/$(name)
+	@install -vD icons/$(name).png $(DESTDIR)$(prefix)/share/icons/$(name).png
+
+uninstall:	$(DESTDIR)$(prefix)/bin/$(name)
+	@rm -vf $(DESTDIR)$(prefix)/bin/$(name)
+	@rm -vf $(DESTDIR)$(prefix)/share/icons/$(name).png
+
+clean:	$(name).mak
+	@make -f $(name).mak clean
+	@rm -f $(name) $(name).mak
+	@rm -rf *.cache *.log *.status
