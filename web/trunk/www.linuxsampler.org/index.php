@@ -129,6 +129,11 @@
                 <tr>
                   <td valign=top>
                     <p class="default">
+		      <b>2005-05-23</b> After some time laying around in the backyard,
+		      <a href="http://qsampler.sourceforge.net">QSampler</a> 0.1.0 has
+		      been released, now with proper the promised Audio and MIDI device 
+		      configuration. Enjoy!<br>
+		      <br>
 		      <b>2005-03-15</b> Our bug tracking system is now online and available on
 			  <a href="http://bugs.linuxsampler.org">bugs.linuxsampler.org</a>.<br>
 		      <br>
