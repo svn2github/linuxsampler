@@ -75,4 +75,4 @@
 #define CONFIG_SYSEX_BUFFER_SIZE 2048
 
 /* Define voice stealing algorithm to be used. */
-#define CONFIG_VOICE_STEAL_ALGO voice_steal_algo_oldestkey
+#define CONFIG_VOICE_STEAL_ALGO voice_steal_algo_oldestvoiceonkey

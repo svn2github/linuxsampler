@@ -76,32 +76,12 @@ int main(int argc, char **argv) {
     dmsg(1,("Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck\n"));
     dmsg(1,("Copyright (C) 2005 Christian Schoenebeck\n"));
 
-    if (tune)
-    {
+    if (tune) {
         // detect and print system / CPU specific features
-        String sFeatures;
         Features::detect();
-#if ARCH_X86
-        if (Features::supportsMMX()) sFeatures += " MMX";
-        if (Features::supportsSSE()) sFeatures += " SSE";
-        if (Features::supportsSSE2()) {
-            sFeatures += " SSE2";
-
-            // enable denormals-are-zeros mode
-            int x;
-            __asm__ __volatile__ (
-                "stmxcsr %0\n\t"
-                "movl    %0, %%eax\n\t"
-                "orl     $0x40, %%eax\n\t"
-                "movl    %%eax, %0\n\t"
-                "ldmxcsr %0\n\t"
-                :: "m" (x)
-                : "%eax"
-                );
-        }
-#endif // ARCH_X86
-        if (!sFeatures.size()) sFeatures = " None";
-        dmsg(1,("Detected features:%s\n",sFeatures.c_str()));
+        dmsg(1,("Detected features: %s\n", Features::featuresAsString().c_str()));
+        // prevent slow denormal FPU modes
+        Features::enableDenormalsAreZeroMode();
     }
 
     // create LinuxSampler instance

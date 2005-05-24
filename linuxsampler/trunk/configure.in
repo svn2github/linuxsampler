@@ -372,7 +372,7 @@ AC_ARG_ENABLE(voice-steal-algo,
       AC_MSG_ERROR([Unknown voice stealing algorithm for parameter --enable-voice-steal-algo])
     else
       config_voice_steal_algo="${enableval}"
-    fi  
+    fi
   ],
   [config_voice_steal_algo="oldestvoiceonkey"]
 )
@@ -479,7 +479,7 @@ AC_ARG_ENABLE(override-filter-type,
        config_override_filter_type="::gig::vcf_type_lowpassturbo"
     elif test ! "${enableval}" = "no"; then
        AC_MSG_ERROR([Unknown filter type for parameter --enable-override-filter-type])
-    fi  
+    fi
   ],
   [config_override_filter_type="no"]
 )
@@ -517,7 +517,7 @@ AC_CHECK_HEADER(stdlib.h)
 
 AM_PROG_LIBTOOL
 
-AC_OUTPUT(Makefile src/Makefile src/network/Makefile src/engines/Makefile src/engines/gig/Makefile src/engines/common/Makefile src/common/Makefile src/lib/Makefile src/lib/fileloader/Makefile src/lib/fileloader/libgig/Makefile src/testcases/Makefile src/drivers/Makefile src/drivers/audio/Makefile src/drivers/midi/Makefile)
+AC_OUTPUT(Makefile man/Makefile man/linuxsampler.1 src/Makefile src/network/Makefile src/engines/Makefile src/engines/gig/Makefile src/engines/common/Makefile src/common/Makefile src/lib/Makefile src/lib/fileloader/Makefile src/lib/fileloader/libgig/Makefile src/testcases/Makefile src/drivers/Makefile src/drivers/audio/Makefile src/drivers/midi/Makefile)
 
 
 ###########################################################################
