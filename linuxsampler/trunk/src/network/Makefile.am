@@ -22,7 +22,10 @@ parser:
 	    yacc -d lscp.y && \
 	    yacc lscp.y && \
 	    mv -f y.tab.h lscpsymbols.h && \
-	    mv -f y.tab.c lscpparser.cpp; \
+	    mv -f y.tab.c lscpparser.cpp && \
+	    echo -n "Updating Documentation/lscp.xml..." && \
+	    (cd ../../scripts/ && ./update_grammar.pl) && \
+	    echo "OK"; \
 	else \
 	    echo "You need yacc (or bison) to generate the parser."; \
 	fi;

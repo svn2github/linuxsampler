@@ -79,6 +79,14 @@ int yylex(YYSTYPE* yylval) {
 
 //TODO: return more meaningful error messages
 
+/*
+  The LSCP specification input file (Documentation/lscp.xml) is automatically
+  updated with this file using the scripts/update_grammar.pl script. Do not
+  modify or delete the GRAMMAR_BNF_BEGIN and GRAMMAR_BNF_END lines !
+*/
+
+// GRAMMAR_BNF_BEGIN - do NOT delete or modify this line !!!
+
 input                 : line LF
                       | line CR LF
                       ;
@@ -255,6 +263,8 @@ param_val                 :  string
                           |  number            { std::stringstream ss; ss << "\'" << $1 << "\'"; $$ = ss.str(); }
                           |  dotnum            { std::stringstream ss; ss << "\'" << $1 << "\'"; $$ = ss.str(); }
                           ;
+
+// GRAMMAR_BNF_END - do NOT delete or modify this line !!!
 
 
 // atomic variable symbol rules

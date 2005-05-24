@@ -505,33 +505,30 @@ static const short int yyrhs[] =
 /* YYRLINE[YYN] -- source line where rule number YYN was defined.  */
 static const unsigned short int yyrline[] =
 {
-       0,    82,    82,    83,    86,    87,    88,    89,    92,    93,
-      94,    95,    96,    99,   100,   101,   102,   103,   104,   105,
-     106,   107,   108,   109,   110,   111,   112,   115,   116,   117,
-     118,   119,   120,   123,   124,   125,   126,   127,   128,   131,
-     132,   133,   134,   135,   136,   137,   138,   139,   140,   141,
-     142,   143,   144,   145,   146,   147,   148,   149,   150,   151,
-     152,   153,   154,   157,   158,   159,   160,   161,   162,   165,
-     166,   167,   168,   171,   172,   175,   176,   179,   180,   181,
-     182,   183,   184,   185,   186,   187,   190,   191,   194,   195,
-     198,   199,   200,   201,   202,   203,   206,   207,   210,   213,
-     216,   219,   222,   225,   226,   229,   232,   233,   236,   239,
-     242,   245,   248,   249,   252,   253,   254,   255,   256,   262,
-     263,   266,   267,   270,   271,   272,   276,   277,   280,   281,
-     282,   283,   284,   285,   286,   287,   288,   289,   292,   293,
-     294,   295,   296,   297,   298,   299,   300,   301,   303,   303,
-     303,   303,   303,   303,   303,   303,   303,   303,   303,   303,
-     303,   303,   303,   303,   303,   303,   303,   303,   303,   303,
-     303,   303,   303,   303,   304,   304,   304,   304,   304,   304,
-     304,   304,   304,   304,   304,   304,   304,   304,   304,   304,
-     304,   304,   304,   304,   304,   304,   304,   304,   304,   304,
-     305,   305,   305,   305,   305,   305,   305,   305,   305,   305,
-     306,   306,   306,   306,   306,   306,   306,   306,   306,   306,
-     306,   306,   306,   307,   307,   307,   307,   307,   307,   307,
-     308,   308,   308,   308,   308,   309,   309,   309,   309,   310,
-     310,   310,   311,   311,   311,   312,   312,   312,   313,   313,
-     313,   314,   314,   314,   315,   315,   315,   316,   316,   316,
-     317,   317,   317,   318,   318,   318,   319,   319,   319,   320,
+       0,    90,    90,    91,    94,    95,    96,    97,   100,   101,
+     102,   103,   104,   107,   108,   109,   110,   111,   112,   113,
+     114,   115,   116,   117,   118,   119,   120,   123,   124,   125,
+     126,   127,   128,   131,   132,   133,   134,   135,   136,   139,
+     140,   141,   142,   143,   144,   145,   146,   147,   148,   149,
+     150,   151,   152,   153,   154,   155,   156,   157,   158,   159,
+     160,   161,   162,   165,   166,   167,   168,   169,   170,   173,
+     174,   175,   176,   179,   180,   183,   184,   187,   188,   189,
+     190,   191,   192,   193,   194,   195,   198,   199,   202,   203,
+     206,   207,   208,   209,   210,   211,   214,   215,   218,   221,
+     224,   227,   230,   233,   234,   237,   240,   241,   244,   247,
+     250,   253,   256,   257,   260,   261,   262,   263,   264,   272,
+     273,   276,   277,   280,   281,   282,   286,   287,   290,   291,
+     292,   293,   294,   295,   296,   297,   298,   299,   302,   303,
+     304,   305,   306,   307,   308,   309,   310,   311,   313,   313,
+     313,   313,   313,   313,   313,   313,   313,   313,   313,   313,
+     313,   313,   313,   313,   313,   313,   313,   313,   313,   313,
+     313,   313,   313,   313,   314,   314,   314,   314,   314,   314,
+     314,   314,   314,   314,   314,   314,   314,   314,   314,   314,
+     314,   314,   314,   314,   314,   314,   314,   314,   314,   314,
+     315,   315,   315,   315,   315,   315,   315,   315,   315,   315,
+     316,   316,   316,   316,   316,   316,   316,   316,   316,   316,
+     316,   316,   316,   317,   317,   317,   317,   317,   317,   317,
+     318,   318,   318,   318,   318,   319,   319,   319,   319,   320,
      320,   320,   321,   321,   321,   322,   322,   322,   323,   323,
      323,   324,   324,   324,   325,   325,   325,   326,   326,   326,
      327,   327,   327,   328,   328,   328,   329,   329,   329,   330,
@@ -541,13 +538,16 @@ static const unsigned short int yyrline[] =
      340,   340,   341,   341,   341,   342,   342,   342,   343,   343,
      343,   344,   344,   344,   345,   345,   345,   346,   346,   346,
      347,   347,   347,   348,   348,   348,   349,   349,   349,   350,
-     350,   350,   351,   351,   351,   352,   352,   355,   356,   357,
-     358,   361,   362,   368,   371,   374,   377,   380,   383,   386,
-     389,   392,   395,   398,   401,   404,   407,   410,   413,   416,
-     419,   422,   425,   428,   431,   434,   437,   440,   443,   446,
-     449,   452,   455,   458,   461,   464,   467,   470,   473,   476,
-     479,   482,   485,   488,   491,   494,   497,   500,   503,   506,
-     509,   512,   515,   518,   521,   524,   527,   530
+     350,   350,   351,   351,   351,   352,   352,   352,   353,   353,
+     353,   354,   354,   354,   355,   355,   355,   356,   356,   356,
+     357,   357,   357,   358,   358,   358,   359,   359,   359,   360,
+     360,   360,   361,   361,   361,   362,   362,   365,   366,   367,
+     368,   371,   372,   378,   381,   384,   387,   390,   393,   396,
+     399,   402,   405,   408,   411,   414,   417,   420,   423,   426,
+     429,   432,   435,   438,   441,   444,   447,   450,   453,   456,
+     459,   462,   465,   468,   471,   474,   477,   480,   483,   486,
+     489,   492,   495,   498,   501,   504,   507,   510,   513,   516,
+     519,   522,   525,   528,   531,   534,   537,   540
 };
 #endif
 
@@ -2671,1752 +2671,1752 @@ yyreduce:
   switch (yyn)
     {
         case 4:
-#line 86 "lscp.y"
+#line 94 "lscp.y"
     { return LSCP_DONE; }
     break;
 
   case 5:
-#line 87 "lscp.y"
+#line 95 "lscp.y"
     { return LSCP_DONE; }
     break;
 
   case 6:
-#line 88 "lscp.y"
+#line 96 "lscp.y"
     { LSCPSERVER->AnswerClient(yyvsp[0].String); return LSCP_DONE; }
     break;
 
   case 7:
-#line 89 "lscp.y"
+#line 97 "lscp.y"
     { LSCPSERVER->AnswerClient("ERR:0:Unknown command.\r\n"); RESTART; return LSCP_SYNTAX_ERROR; }
     break;
 
   case 13:
-#line 99 "lscp.y"
+#line 107 "lscp.y"
     { yyval.String = LSCPSERVER->AddChannel();                          }
     break;
 
   case 14:
-#line 100 "lscp.y"
-    { yyval.String = yyvsp[0].String;                                                }
-    break;
-
-  case 15:
-#line 101 "lscp.y"
-    { yyval.String = yyvsp[0].String;                                                }
-    break;
-
-  case 16:
-#line 102 "lscp.y"
-    { yyval.String = yyvsp[0].String;                                                }
-    break;
-
-  case 17:
-#line 103 "lscp.y"
-    { yyval.String = yyvsp[0].String;                                                }
-    break;
-
-  case 18:
-#line 104 "lscp.y"
-    { yyval.String = yyvsp[0].String;                                                }
-    break;
-
-  case 19:
-#line 105 "lscp.y"
-    { yyval.String = LSCPSERVER->RemoveChannel(yyvsp[0].Number);                     }
-    break;
-
-  case 20:
-#line 106 "lscp.y"
-    { yyval.String = yyvsp[0].String;                                                }
-    break;
-
-  case 21:
-#line 107 "lscp.y"
-    { yyval.String = yyvsp[0].String;                                                }
-    break;
-
-  case 22:
 #line 108 "lscp.y"
     { yyval.String = yyvsp[0].String;                                                }
     break;
 
-  case 23:
+  case 15:
 #line 109 "lscp.y"
+    { yyval.String = yyvsp[0].String;                                                }
+    break;
+
+  case 16:
+#line 110 "lscp.y"
+    { yyval.String = yyvsp[0].String;                                                }
+    break;
+
+  case 17:
+#line 111 "lscp.y"
+    { yyval.String = yyvsp[0].String;                                                }
+    break;
+
+  case 18:
+#line 112 "lscp.y"
+    { yyval.String = yyvsp[0].String;                                                }
+    break;
+
+  case 19:
+#line 113 "lscp.y"
+    { yyval.String = LSCPSERVER->RemoveChannel(yyvsp[0].Number);                     }
+    break;
+
+  case 20:
+#line 114 "lscp.y"
+    { yyval.String = yyvsp[0].String;                                                }
+    break;
+
+  case 21:
+#line 115 "lscp.y"
+    { yyval.String = yyvsp[0].String;                                                }
+    break;
+
+  case 22:
+#line 116 "lscp.y"
+    { yyval.String = yyvsp[0].String;                                                }
+    break;
+
+  case 23:
+#line 117 "lscp.y"
     { yyval.String = LSCPSERVER->QueryDatabase(yyvsp[0].String);                     }
     break;
 
   case 24:
-#line 110 "lscp.y"
+#line 118 "lscp.y"
     { yyval.String = LSCPSERVER->ResetChannel(yyvsp[0].Number);                      }
     break;
 
   case 25:
-#line 111 "lscp.y"
+#line 119 "lscp.y"
     { yyval.String = LSCPSERVER->ResetSampler();                        }
     break;
 
   case 26:
-#line 112 "lscp.y"
+#line 120 "lscp.y"
     { LSCPSERVER->AnswerClient("Bye!\r\n"); return LSCP_QUIT; }
     break;
 
   case 27:
-#line 115 "lscp.y"
+#line 123 "lscp.y"
     { yyval.String = LSCPSERVER->SubscribeNotification(LSCPEvent::event_channel_count); }
     break;
 
   case 28:
-#line 116 "lscp.y"
+#line 124 "lscp.y"
     { yyval.String = LSCPSERVER->SubscribeNotification(LSCPEvent::event_voice_count);   }
     break;
 
   case 29:
-#line 117 "lscp.y"
+#line 125 "lscp.y"
     { yyval.String = LSCPSERVER->SubscribeNotification(LSCPEvent::event_stream_count);  }
     break;
 
   case 30:
-#line 118 "lscp.y"
+#line 126 "lscp.y"
     { yyval.String = LSCPSERVER->SubscribeNotification(LSCPEvent::event_buffer_fill);   }
     break;
 
   case 31:
-#line 119 "lscp.y"
+#line 127 "lscp.y"
     { yyval.String = LSCPSERVER->SubscribeNotification(LSCPEvent::event_channel_info);  }
     break;
 
   case 32:
-#line 120 "lscp.y"
+#line 128 "lscp.y"
     { yyval.String = LSCPSERVER->SubscribeNotification(LSCPEvent::event_misc);          }
     break;
 
   case 33:
-#line 123 "lscp.y"
+#line 131 "lscp.y"
     { yyval.String = LSCPSERVER->UnsubscribeNotification(LSCPEvent::event_channel_count); }
     break;
 
   case 34:
-#line 124 "lscp.y"
+#line 132 "lscp.y"
     { yyval.String = LSCPSERVER->UnsubscribeNotification(LSCPEvent::event_voice_count);   }
     break;
 
   case 35:
-#line 125 "lscp.y"
+#line 133 "lscp.y"
     { yyval.String = LSCPSERVER->UnsubscribeNotification(LSCPEvent::event_stream_count);  }
     break;
 
   case 36:
-#line 126 "lscp.y"
+#line 134 "lscp.y"
     { yyval.String = LSCPSERVER->UnsubscribeNotification(LSCPEvent::event_buffer_fill);   }
     break;
 
   case 37:
-#line 127 "lscp.y"
+#line 135 "lscp.y"
     { yyval.String = LSCPSERVER->UnsubscribeNotification(LSCPEvent::event_channel_info);  }
     break;
 
   case 38:
-#line 128 "lscp.y"
+#line 136 "lscp.y"
     { yyval.String = LSCPSERVER->UnsubscribeNotification(LSCPEvent::event_misc);          }
     break;
 
   case 39:
-#line 131 "lscp.y"
+#line 139 "lscp.y"
     { yyval.String = LSCPSERVER->GetAvailableEngines();                          }
     break;
 
   case 40:
-#line 132 "lscp.y"
+#line 140 "lscp.y"
     { yyval.String = LSCPSERVER->GetAvailableMidiInputDrivers();                 }
     break;
 
   case 41:
-#line 133 "lscp.y"
+#line 141 "lscp.y"
     { yyval.String = LSCPSERVER->GetMidiInputDriverInfo(yyvsp[0].String);                     }
     break;
 
   case 42:
-#line 134 "lscp.y"
+#line 142 "lscp.y"
     { yyval.String = LSCPSERVER->GetMidiInputDriverParameterInfo(yyvsp[-2].String, yyvsp[0].String);        }
     break;
 
   case 43:
-#line 135 "lscp.y"
+#line 143 "lscp.y"
     { yyval.String = LSCPSERVER->GetMidiInputDriverParameterInfo(yyvsp[-4].String, yyvsp[-2].String, yyvsp[0].KeyValList);    }
     break;
 
   case 44:
-#line 136 "lscp.y"
+#line 144 "lscp.y"
     { yyval.String = LSCPSERVER->GetAvailableAudioOutputDrivers();               }
     break;
 
   case 45:
-#line 137 "lscp.y"
+#line 145 "lscp.y"
     { yyval.String = LSCPSERVER->GetAudioOutputDriverInfo(yyvsp[0].String);                   }
     break;
 
   case 46:
-#line 138 "lscp.y"
+#line 146 "lscp.y"
     { yyval.String = LSCPSERVER->GetAudioOutputDriverParameterInfo(yyvsp[-2].String, yyvsp[0].String);      }
     break;
 
   case 47:
-#line 139 "lscp.y"
+#line 147 "lscp.y"
     { yyval.String = LSCPSERVER->GetAudioOutputDriverParameterInfo(yyvsp[-4].String, yyvsp[-2].String, yyvsp[0].KeyValList);  }
     break;
 
   case 48:
-#line 140 "lscp.y"
+#line 148 "lscp.y"
     { yyval.String = LSCPSERVER->GetAudioOutputDeviceCount();                    }
     break;
 
   case 49:
-#line 141 "lscp.y"
+#line 149 "lscp.y"
     { yyval.String = LSCPSERVER->GetMidiInputDeviceCount();                      }
     break;
 
   case 50:
-#line 142 "lscp.y"
+#line 150 "lscp.y"
     { yyval.String = LSCPSERVER->GetAudioOutputDeviceInfo(yyvsp[0].Number);                   }
     break;
 
   case 51:
-#line 143 "lscp.y"
+#line 151 "lscp.y"
     { yyval.String = LSCPSERVER->GetMidiInputDeviceInfo(yyvsp[0].Number);                     }
     break;
 
   case 52:
-#line 144 "lscp.y"
+#line 152 "lscp.y"
     { yyval.String = LSCPSERVER->GetMidiInputPortInfo(yyvsp[-2].Number, yyvsp[0].Number);                   }
     break;
 
   case 53:
-#line 145 "lscp.y"
+#line 153 "lscp.y"
     { yyval.String = LSCPSERVER->GetMidiInputPortParameterInfo(yyvsp[-4].Number, yyvsp[-2].Number, yyvsp[0].String);      }
     break;
 
   case 54:
-#line 146 "lscp.y"
+#line 154 "lscp.y"
     { yyval.String = LSCPSERVER->GetAudioOutputChannelInfo(yyvsp[-2].Number, yyvsp[0].Number);              }
     break;
 
   case 55:
-#line 147 "lscp.y"
+#line 155 "lscp.y"
     { yyval.String = LSCPSERVER->GetAudioOutputChannelParameterInfo(yyvsp[-4].Number, yyvsp[-2].Number, yyvsp[0].String); }
     break;
 
   case 56:
-#line 148 "lscp.y"
+#line 156 "lscp.y"
     { yyval.String = LSCPSERVER->GetChannels();                                  }
     break;
 
   case 57:
-#line 149 "lscp.y"
+#line 157 "lscp.y"
     { yyval.String = LSCPSERVER->GetChannelInfo(yyvsp[0].Number);                             }
     break;
 
   case 58:
-#line 150 "lscp.y"
+#line 158 "lscp.y"
     { yyval.String = LSCPSERVER->GetBufferFill(yyvsp[-2].FillResponse, yyvsp[0].Number);                          }
     break;
 
   case 59:
-#line 151 "lscp.y"
+#line 159 "lscp.y"
     { yyval.String = LSCPSERVER->GetStreamCount(yyvsp[0].Number);                             }
     break;
 
   case 60:
-#line 152 "lscp.y"
+#line 160 "lscp.y"
     { yyval.String = LSCPSERVER->GetVoiceCount(yyvsp[0].Number);                              }
     break;
 
   case 61:
-#line 153 "lscp.y"
+#line 161 "lscp.y"
     { yyval.String = LSCPSERVER->GetEngineInfo(yyvsp[0].String);                              }
     break;
 
   case 62:
-#line 154 "lscp.y"
+#line 162 "lscp.y"
     { yyval.String = LSCPSERVER->GetServerInfo();                                }
     break;
 
   case 63:
-#line 157 "lscp.y"
+#line 165 "lscp.y"
     { yyval.String = LSCPSERVER->SetAudioOutputDeviceParameter(yyvsp[-4].Number, yyvsp[-2].String, yyvsp[0].String);      }
     break;
 
   case 64:
-#line 158 "lscp.y"
+#line 166 "lscp.y"
     { yyval.String = LSCPSERVER->SetAudioOutputChannelParameter(yyvsp[-6].Number, yyvsp[-4].Number, yyvsp[-2].String, yyvsp[0].String); }
     break;
 
   case 65:
-#line 159 "lscp.y"
+#line 167 "lscp.y"
     { yyval.String = LSCPSERVER->SetMidiInputDeviceParameter(yyvsp[-4].Number, yyvsp[-2].String, yyvsp[0].String);        }
     break;
 
   case 66:
-#line 160 "lscp.y"
+#line 168 "lscp.y"
     { yyval.String = LSCPSERVER->SetMidiInputPortParameter(yyvsp[-6].Number, yyvsp[-4].Number, yyvsp[-2].String, yyvsp[0].String);      }
     break;
 
   case 67:
-#line 161 "lscp.y"
+#line 169 "lscp.y"
     { yyval.String = yyvsp[0].String;                                                         }
     break;
 
   case 68:
-#line 162 "lscp.y"
+#line 170 "lscp.y"
     { yyval.String = LSCPSERVER->SetEcho((yyparse_param_t*) yyparse_param, yyvsp[0].Dotnum);  }
     break;
 
   case 69:
-#line 165 "lscp.y"
+#line 173 "lscp.y"
     { yyval.String = LSCPSERVER->CreateAudioOutputDevice(yyvsp[-2].String,yyvsp[0].KeyValList); }
     break;
 
   case 70:
-#line 166 "lscp.y"
+#line 174 "lscp.y"
     { yyval.String = LSCPSERVER->CreateAudioOutputDevice(yyvsp[0].String);    }
     break;
 
   case 71:
-#line 167 "lscp.y"
+#line 175 "lscp.y"
     { yyval.String = LSCPSERVER->CreateMidiInputDevice(yyvsp[-2].String,yyvsp[0].KeyValList);   }
     break;
 
   case 72:
-#line 168 "lscp.y"
+#line 176 "lscp.y"
     { yyval.String = LSCPSERVER->CreateMidiInputDevice(yyvsp[0].String);      }
     break;
 
   case 73:
-#line 171 "lscp.y"
+#line 179 "lscp.y"
     { yyval.String = LSCPSERVER->DestroyAudioOutputDevice(yyvsp[0].Number); }
     break;
 
   case 74:
-#line 172 "lscp.y"
+#line 180 "lscp.y"
     { yyval.String = LSCPSERVER->DestroyMidiInputDevice(yyvsp[0].Number);   }
     break;
 
   case 75:
-#line 175 "lscp.y"
+#line 183 "lscp.y"
     { yyval.String = yyvsp[0].String; }
     break;
 
   case 76:
-#line 176 "lscp.y"
+#line 184 "lscp.y"
     { yyval.String = yyvsp[0].String; }
     break;
 
   case 77:
-#line 179 "lscp.y"
+#line 187 "lscp.y"
     { yyval.String = LSCPSERVER->SetAudioOutputDevice(yyvsp[0].Number, yyvsp[-2].Number);      }
     break;
 
   case 78:
-#line 180 "lscp.y"
+#line 188 "lscp.y"
     { yyval.String = LSCPSERVER->SetAudioOutputChannel(yyvsp[-2].Number, yyvsp[0].Number, yyvsp[-4].Number); }
     break;
 
   case 79:
-#line 181 "lscp.y"
+#line 189 "lscp.y"
     { yyval.String = LSCPSERVER->SetAudioOutputType(yyvsp[0].String, yyvsp[-2].Number);        }
     break;
 
   case 80:
-#line 182 "lscp.y"
+#line 190 "lscp.y"
     { yyval.String = LSCPSERVER->SetMIDIInput(yyvsp[-4].Number, yyvsp[-2].Number, yyvsp[0].Number, yyvsp[-6].Number);      }
     break;
 
   case 81:
-#line 183 "lscp.y"
+#line 191 "lscp.y"
     { yyval.String = LSCPSERVER->SetMIDIInputDevice(yyvsp[0].Number, yyvsp[-2].Number);        }
     break;
 
   case 82:
-#line 184 "lscp.y"
+#line 192 "lscp.y"
     { yyval.String = LSCPSERVER->SetMIDIInputPort(yyvsp[0].Number, yyvsp[-2].Number);          }
     break;
 
   case 83:
-#line 185 "lscp.y"
+#line 193 "lscp.y"
     { yyval.String = LSCPSERVER->SetMIDIInputChannel(yyvsp[0].Number, yyvsp[-2].Number);       }
     break;
 
   case 84:
-#line 186 "lscp.y"
+#line 194 "lscp.y"
     { yyval.String = LSCPSERVER->SetMIDIInputType(yyvsp[0].String, yyvsp[-2].Number);          }
     break;
 
   case 85:
-#line 187 "lscp.y"
+#line 195 "lscp.y"
     { yyval.String = LSCPSERVER->SetVolume(yyvsp[0].Dotnum, yyvsp[-2].Number);                 }
     break;
 
   case 86:
-#line 190 "lscp.y"
+#line 198 "lscp.y"
     { yyval.KeyValList[yyvsp[-2].String] = yyvsp[0].String;          }
     break;
 
   case 87:
-#line 191 "lscp.y"
+#line 199 "lscp.y"
     { yyval.KeyValList = yyvsp[-4].KeyValList; yyval.KeyValList[yyvsp[-2].String] = yyvsp[0].String; }
     break;
 
   case 88:
-#line 194 "lscp.y"
+#line 202 "lscp.y"
     { yyval.FillResponse = fill_response_bytes;      }
     break;
 
   case 89:
-#line 195 "lscp.y"
+#line 203 "lscp.y"
     { yyval.FillResponse = fill_response_percentage; }
     break;
 
   case 90:
-#line 198 "lscp.y"
+#line 206 "lscp.y"
     { yyval.String = LSCPSERVER->GetAudioOutputDevices();           }
     break;
 
   case 91:
-#line 199 "lscp.y"
+#line 207 "lscp.y"
     { yyval.String = LSCPSERVER->GetMidiInputDevices();             }
     break;
 
   case 92:
-#line 200 "lscp.y"
+#line 208 "lscp.y"
     { yyval.String = LSCPSERVER->ListChannels();                    }
     break;
 
   case 93:
-#line 201 "lscp.y"
+#line 209 "lscp.y"
     { yyval.String = LSCPSERVER->ListAvailableEngines();            }
     break;
 
   case 94:
-#line 202 "lscp.y"
+#line 210 "lscp.y"
     { yyval.String = LSCPSERVER->ListAvailableMidiInputDrivers();   }
     break;
 
   case 95:
-#line 203 "lscp.y"
+#line 211 "lscp.y"
     { yyval.String = LSCPSERVER->ListAvailableAudioOutputDrivers(); }
     break;
 
   case 96:
-#line 206 "lscp.y"
+#line 214 "lscp.y"
     { yyval.String = LSCPSERVER->LoadInstrument(yyvsp[-4].String, yyvsp[-2].Number, yyvsp[0].Number);       }
     break;
 
   case 97:
-#line 207 "lscp.y"
+#line 215 "lscp.y"
     { yyval.String = LSCPSERVER->LoadInstrument(yyvsp[-4].String, yyvsp[-2].Number, yyvsp[0].Number, true); }
     break;
 
   case 98:
-#line 210 "lscp.y"
+#line 218 "lscp.y"
     { yyval.String = LSCPSERVER->SetEngineType(yyvsp[-2].String, yyvsp[0].Number); }
     break;
 
   case 104:
-#line 226 "lscp.y"
+#line 234 "lscp.y"
     { yyval.Number = 16; }
     break;
 
   case 107:
-#line 233 "lscp.y"
+#line 241 "lscp.y"
     { yyval.Dotnum = yyvsp[0].Number; }
     break;
 
   case 113:
-#line 249 "lscp.y"
+#line 257 "lscp.y"
     { yyval.String = yyvsp[-2].String + "," + yyvsp[0].String; }
     break;
 
   case 115:
-#line 253 "lscp.y"
+#line 261 "lscp.y"
     { yyval.String = "\'" + yyvsp[-1].String + "\'"; }
     break;
 
   case 116:
-#line 254 "lscp.y"
+#line 262 "lscp.y"
     { yyval.String = "\"" + yyvsp[-1].String + "\""; }
     break;
 
   case 117:
-#line 255 "lscp.y"
+#line 263 "lscp.y"
     { std::stringstream ss; ss << "\'" << yyvsp[0].Number << "\'"; yyval.String = ss.str(); }
     break;
 
   case 118:
-#line 256 "lscp.y"
+#line 264 "lscp.y"
     { std::stringstream ss; ss << "\'" << yyvsp[0].Dotnum << "\'"; yyval.String = ss.str(); }
     break;
 
   case 119:
-#line 262 "lscp.y"
+#line 272 "lscp.y"
     { yyval.Dotnum = yyvsp[0].Number; }
     break;
 
   case 120:
-#line 263 "lscp.y"
+#line 273 "lscp.y"
     { yyval.Dotnum = -1; }
     break;
 
   case 121:
-#line 266 "lscp.y"
+#line 276 "lscp.y"
     { std::string s; s = yyvsp[0].Char; yyval.String = s; }
     break;
 
   case 122:
-#line 267 "lscp.y"
+#line 277 "lscp.y"
     { yyval.String = yyvsp[-1].String + yyvsp[0].Char;                  }
     break;
 
   case 123:
-#line 270 "lscp.y"
+#line 280 "lscp.y"
     { yyval.Dotnum = atof(String(yyvsp[-2].String + "." + yyvsp[0].String).c_str());                         }
     break;
 
   case 124:
-#line 271 "lscp.y"
+#line 281 "lscp.y"
     { String s = "+"; s += yyvsp[-2].String; s += "."; s += yyvsp[0].String; yyval.Dotnum = atof(s.c_str()); }
     break;
 
   case 125:
-#line 272 "lscp.y"
+#line 282 "lscp.y"
     { yyval.Dotnum = atof(String("-" + yyvsp[-2].String + "." + yyvsp[0].String).c_str());                   }
     break;
 
   case 126:
-#line 276 "lscp.y"
+#line 286 "lscp.y"
     { yyval.String = yyvsp[0].Char;      }
     break;
 
   case 127:
-#line 277 "lscp.y"
+#line 287 "lscp.y"
     { yyval.String = yyvsp[-1].String + yyvsp[0].Char; }
     break;
 
   case 128:
-#line 280 "lscp.y"
+#line 290 "lscp.y"
     { yyval.Char = '0'; }
     break;
 
   case 129:
-#line 281 "lscp.y"
+#line 291 "lscp.y"
     { yyval.Char = '1'; }
     break;
 
   case 130:
-#line 282 "lscp.y"
+#line 292 "lscp.y"
     { yyval.Char = '2'; }
     break;
 
   case 131:
-#line 283 "lscp.y"
+#line 293 "lscp.y"
     { yyval.Char = '3'; }
     break;
 
   case 132:
-#line 284 "lscp.y"
+#line 294 "lscp.y"
     { yyval.Char = '4'; }
     break;
 
   case 133:
-#line 285 "lscp.y"
+#line 295 "lscp.y"
     { yyval.Char = '5'; }
     break;
 
   case 134:
-#line 286 "lscp.y"
+#line 296 "lscp.y"
     { yyval.Char = '6'; }
     break;
 
   case 135:
-#line 287 "lscp.y"
+#line 297 "lscp.y"
     { yyval.Char = '7'; }
     break;
 
   case 136:
-#line 288 "lscp.y"
+#line 298 "lscp.y"
     { yyval.Char = '8'; }
     break;
 
   case 137:
-#line 289 "lscp.y"
+#line 299 "lscp.y"
     { yyval.Char = '9'; }
     break;
 
   case 138:
-#line 292 "lscp.y"
+#line 302 "lscp.y"
     { yyval.Number = atoi(String(1, yyvsp[0].Char).c_str());      }
     break;
 
   case 139:
-#line 293 "lscp.y"
+#line 303 "lscp.y"
     { yyval.Number = atoi(String(String("1") + yyvsp[0].String).c_str()); }
     break;
 
   case 140:
-#line 294 "lscp.y"
+#line 304 "lscp.y"
     { yyval.Number = atoi(String(String("2") + yyvsp[0].String).c_str()); }
     break;
 
   case 141:
-#line 295 "lscp.y"
+#line 305 "lscp.y"
     { yyval.Number = atoi(String(String("3") + yyvsp[0].String).c_str()); }
     break;
 
   case 142:
-#line 296 "lscp.y"
+#line 306 "lscp.y"
     { yyval.Number = atoi(String(String("4") + yyvsp[0].String).c_str()); }
     break;
 
   case 143:
-#line 297 "lscp.y"
+#line 307 "lscp.y"
     { yyval.Number = atoi(String(String("5") + yyvsp[0].String).c_str()); }
     break;
 
   case 144:
-#line 298 "lscp.y"
+#line 308 "lscp.y"
     { yyval.Number = atoi(String(String("6") + yyvsp[0].String).c_str()); }
     break;
 
   case 145:
-#line 299 "lscp.y"
+#line 309 "lscp.y"
     { yyval.Number = atoi(String(String("7") + yyvsp[0].String).c_str()); }
     break;
 
   case 146:
-#line 300 "lscp.y"
+#line 310 "lscp.y"
     { yyval.Number = atoi(String(String("8") + yyvsp[0].String).c_str()); }
     break;
 
   case 147:
-#line 301 "lscp.y"
+#line 311 "lscp.y"
     { yyval.Number = atoi(String(String("9") + yyvsp[0].String).c_str()); }
     break;
 
   case 148:
-#line 303 "lscp.y"
+#line 313 "lscp.y"
     { yyval.Char = 'A'; }
     break;
 
   case 149:
-#line 303 "lscp.y"
+#line 313 "lscp.y"
     { yyval.Char = 'B'; }
     break;
 
   case 150:
-#line 303 "lscp.y"
+#line 313 "lscp.y"
     { yyval.Char = 'C'; }
     break;
 
   case 151:
-#line 303 "lscp.y"
+#line 313 "lscp.y"
     { yyval.Char = 'D'; }
     break;
 
   case 152:
-#line 303 "lscp.y"
+#line 313 "lscp.y"
     { yyval.Char = 'E'; }
     break;
 
   case 153:
-#line 303 "lscp.y"
+#line 313 "lscp.y"
     { yyval.Char = 'F'; }
     break;
 
   case 154:
-#line 303 "lscp.y"
+#line 313 "lscp.y"
     { yyval.Char = 'G'; }
     break;
 
   case 155:
-#line 303 "lscp.y"
+#line 313 "lscp.y"
     { yyval.Char = 'H'; }
     break;
 
   case 156:
-#line 303 "lscp.y"
+#line 313 "lscp.y"
     { yyval.Char = 'I'; }
     break;
 
   case 157:
-#line 303 "lscp.y"
+#line 313 "lscp.y"
     { yyval.Char = 'J'; }
     break;
 
   case 158:
-#line 303 "lscp.y"
+#line 313 "lscp.y"
     { yyval.Char = 'K'; }
     break;
 
   case 159:
-#line 303 "lscp.y"
+#line 313 "lscp.y"
     { yyval.Char = 'L'; }
     break;
 
   case 160:
-#line 303 "lscp.y"
+#line 313 "lscp.y"
     { yyval.Char = 'M'; }
     break;
 
   case 161:
-#line 303 "lscp.y"
+#line 313 "lscp.y"
     { yyval.Char = 'N'; }
     break;
 
   case 162:
-#line 303 "lscp.y"
+#line 313 "lscp.y"
     { yyval.Char = 'O'; }
     break;
 
   case 163:
-#line 303 "lscp.y"
+#line 313 "lscp.y"
     { yyval.Char = 'P'; }
     break;
 
   case 164:
-#line 303 "lscp.y"
+#line 313 "lscp.y"
     { yyval.Char = 'Q'; }
     break;
 
   case 165:
-#line 303 "lscp.y"
+#line 313 "lscp.y"
     { yyval.Char = 'R'; }
     break;
 
   case 166:
-#line 303 "lscp.y"
+#line 313 "lscp.y"
     { yyval.Char = 'S'; }
     break;
 
   case 167:
-#line 303 "lscp.y"
+#line 313 "lscp.y"
     { yyval.Char = 'T'; }
     break;
 
   case 168:
-#line 303 "lscp.y"
+#line 313 "lscp.y"
     { yyval.Char = 'U'; }
     break;
 
   case 169:
-#line 303 "lscp.y"
+#line 313 "lscp.y"
     { yyval.Char = 'V'; }
     break;
 
   case 170:
-#line 303 "lscp.y"
+#line 313 "lscp.y"
     { yyval.Char = 'W'; }
     break;
 
   case 171:
-#line 303 "lscp.y"
+#line 313 "lscp.y"
     { yyval.Char = 'X'; }
     break;
 
   case 172:
-#line 303 "lscp.y"
+#line 313 "lscp.y"
     { yyval.Char = 'Y'; }
     break;
 
   case 173:
-#line 303 "lscp.y"
+#line 313 "lscp.y"
     { yyval.Char = 'Z'; }
     break;
 
   case 174:
-#line 304 "lscp.y"
+#line 314 "lscp.y"
     { yyval.Char = 'a'; }
     break;
 
   case 175:
-#line 304 "lscp.y"
+#line 314 "lscp.y"
     { yyval.Char = 'b'; }
     break;
 
   case 176:
-#line 304 "lscp.y"
+#line 314 "lscp.y"
     { yyval.Char = 'c'; }
     break;
 
   case 177:
-#line 304 "lscp.y"
+#line 314 "lscp.y"
     { yyval.Char = 'd'; }
     break;
 
   case 178:
-#line 304 "lscp.y"
+#line 314 "lscp.y"
     { yyval.Char = 'e'; }
     break;
 
   case 179:
-#line 304 "lscp.y"
+#line 314 "lscp.y"
     { yyval.Char = 'f'; }
     break;
 
   case 180:
-#line 304 "lscp.y"
+#line 314 "lscp.y"
     { yyval.Char = 'g'; }
     break;
 
   case 181:
-#line 304 "lscp.y"
+#line 314 "lscp.y"
     { yyval.Char = 'h'; }
     break;
 
   case 182:
-#line 304 "lscp.y"
+#line 314 "lscp.y"
     { yyval.Char = 'i'; }
     break;
 
   case 183:
-#line 304 "lscp.y"
+#line 314 "lscp.y"
     { yyval.Char = 'j'; }
     break;
 
   case 184:
-#line 304 "lscp.y"
+#line 314 "lscp.y"
     { yyval.Char = 'k'; }
     break;
 
   case 185:
-#line 304 "lscp.y"
+#line 314 "lscp.y"
     { yyval.Char = 'l'; }
     break;
 
   case 186:
-#line 304 "lscp.y"
+#line 314 "lscp.y"
     { yyval.Char = 'm'; }
     break;
 
   case 187:
-#line 304 "lscp.y"
+#line 314 "lscp.y"
     { yyval.Char = 'n'; }
     break;
 
   case 188:
-#line 304 "lscp.y"
+#line 314 "lscp.y"
     { yyval.Char = 'o'; }
     break;
 
   case 189:
-#line 304 "lscp.y"
+#line 314 "lscp.y"
     { yyval.Char = 'p'; }
     break;
 
   case 190:
-#line 304 "lscp.y"
+#line 314 "lscp.y"
     { yyval.Char = 'q'; }
     break;
 
   case 191:
-#line 304 "lscp.y"
+#line 314 "lscp.y"
     { yyval.Char = 'r'; }
     break;
 
   case 192:
-#line 304 "lscp.y"
+#line 314 "lscp.y"
     { yyval.Char = 's'; }
     break;
 
   case 193:
-#line 304 "lscp.y"
+#line 314 "lscp.y"
     { yyval.Char = 't'; }
     break;
 
   case 194:
-#line 304 "lscp.y"
+#line 314 "lscp.y"
     { yyval.Char = 'u'; }
     break;
 
   case 195:
-#line 304 "lscp.y"
+#line 314 "lscp.y"
     { yyval.Char = 'v'; }
     break;
 
   case 196:
-#line 304 "lscp.y"
+#line 314 "lscp.y"
     { yyval.Char = 'w'; }
     break;
 
   case 197:
-#line 304 "lscp.y"
+#line 314 "lscp.y"
     { yyval.Char = 'x'; }
     break;
 
   case 198:
-#line 304 "lscp.y"
+#line 314 "lscp.y"
     { yyval.Char = 'y'; }
     break;
 
   case 199:
-#line 304 "lscp.y"
+#line 314 "lscp.y"
     { yyval.Char = 'z'; }
     break;
 
   case 200:
-#line 305 "lscp.y"
+#line 315 "lscp.y"
     { yyval.Char = '0'; }
     break;
 
   case 201:
-#line 305 "lscp.y"
+#line 315 "lscp.y"
     { yyval.Char = '1'; }
     break;
 
   case 202:
-#line 305 "lscp.y"
+#line 315 "lscp.y"
     { yyval.Char = '2'; }
     break;
 
   case 203:
-#line 305 "lscp.y"
+#line 315 "lscp.y"
     { yyval.Char = '3'; }
     break;
 
   case 204:
-#line 305 "lscp.y"
+#line 315 "lscp.y"
     { yyval.Char = '4'; }
     break;
 
   case 205:
-#line 305 "lscp.y"
+#line 315 "lscp.y"
     { yyval.Char = '5'; }
     break;
 
   case 206:
-#line 305 "lscp.y"
+#line 315 "lscp.y"
     { yyval.Char = '6'; }
     break;
 
   case 207:
-#line 305 "lscp.y"
+#line 315 "lscp.y"
     { yyval.Char = '7'; }
     break;
 
   case 208:
-#line 305 "lscp.y"
+#line 315 "lscp.y"
     { yyval.Char = '8'; }
     break;
 
   case 209:
-#line 305 "lscp.y"
+#line 315 "lscp.y"
     { yyval.Char = '9'; }
     break;
 
   case 210:
-#line 306 "lscp.y"
+#line 316 "lscp.y"
     { yyval.Char = '!'; }
     break;
 
   case 211:
-#line 306 "lscp.y"
+#line 316 "lscp.y"
     { yyval.Char = '#'; }
     break;
 
   case 212:
-#line 306 "lscp.y"
+#line 316 "lscp.y"
     { yyval.Char = '$'; }
     break;
 
   case 213:
-#line 306 "lscp.y"
+#line 316 "lscp.y"
     { yyval.Char = '%'; }
     break;
 
   case 214:
-#line 306 "lscp.y"
+#line 316 "lscp.y"
     { yyval.Char = '&'; }
     break;
 
   case 215:
-#line 306 "lscp.y"
+#line 316 "lscp.y"
     { yyval.Char = '('; }
     break;
 
   case 216:
-#line 306 "lscp.y"
+#line 316 "lscp.y"
     { yyval.Char = ')'; }
     break;
 
   case 217:
-#line 306 "lscp.y"
+#line 316 "lscp.y"
     { yyval.Char = '*'; }
     break;
 
   case 218:
-#line 306 "lscp.y"
+#line 316 "lscp.y"
     { yyval.Char = '+'; }
     break;
 
   case 219:
-#line 306 "lscp.y"
+#line 316 "lscp.y"
     { yyval.Char = '-'; }
     break;
 
   case 220:
-#line 306 "lscp.y"
+#line 316 "lscp.y"
     { yyval.Char = '.'; }
     break;
 
   case 221:
-#line 306 "lscp.y"
+#line 316 "lscp.y"
     { yyval.Char = ','; }
     break;
 
   case 222:
-#line 306 "lscp.y"
+#line 316 "lscp.y"
     { yyval.Char = '/'; }
     break;
 
   case 223:
-#line 307 "lscp.y"
+#line 317 "lscp.y"
     { yyval.Char = ':'; }
     break;
 
   case 224:
-#line 307 "lscp.y"
+#line 317 "lscp.y"
     { yyval.Char = ';'; }
     break;
 
   case 225:
-#line 307 "lscp.y"
+#line 317 "lscp.y"
     { yyval.Char = '<'; }
     break;
 
   case 226:
-#line 307 "lscp.y"
+#line 317 "lscp.y"
     { yyval.Char = '='; }
     break;
 
   case 227:
-#line 307 "lscp.y"
+#line 317 "lscp.y"
     { yyval.Char = '>'; }
     break;
 
   case 228:
-#line 307 "lscp.y"
+#line 317 "lscp.y"
     { yyval.Char = '?'; }
     break;
 
   case 229:
-#line 307 "lscp.y"
+#line 317 "lscp.y"
     { yyval.Char = '@'; }
     break;
 
   case 230:
-#line 308 "lscp.y"
+#line 318 "lscp.y"
     { yyval.Char = '['; }
     break;
 
   case 231:
-#line 308 "lscp.y"
+#line 318 "lscp.y"
     { yyval.Char = '\\'; }
     break;
 
   case 232:
-#line 308 "lscp.y"
+#line 318 "lscp.y"
     { yyval.Char = ']'; }
     break;
 
   case 233:
-#line 308 "lscp.y"
+#line 318 "lscp.y"
     { yyval.Char = '^'; }
     break;
 
   case 234:
-#line 308 "lscp.y"
+#line 318 "lscp.y"
     { yyval.Char = '_'; }
     break;
 
   case 235:
-#line 309 "lscp.y"
+#line 319 "lscp.y"
     { yyval.Char = '{'; }
     break;
 
   case 236:
-#line 309 "lscp.y"
+#line 319 "lscp.y"
     { yyval.Char = '|'; }
     break;
 
   case 237:
-#line 309 "lscp.y"
+#line 319 "lscp.y"
     { yyval.Char = '}'; }
     break;
 
   case 238:
-#line 309 "lscp.y"
+#line 319 "lscp.y"
     { yyval.Char = '~'; }
     break;
 
   case 239:
-#line 310 "lscp.y"
+#line 320 "lscp.y"
     { yyval.Char = '\200'; }
     break;
 
   case 240:
-#line 310 "lscp.y"
+#line 320 "lscp.y"
     { yyval.Char = '\201'; }
     break;
 
   case 241:
-#line 310 "lscp.y"
+#line 320 "lscp.y"
     { yyval.Char = '\202'; }
     break;
 
   case 242:
-#line 311 "lscp.y"
+#line 321 "lscp.y"
     { yyval.Char = '\203'; }
     break;
 
   case 243:
-#line 311 "lscp.y"
+#line 321 "lscp.y"
     { yyval.Char = '\204'; }
     break;
 
   case 244:
-#line 311 "lscp.y"
+#line 321 "lscp.y"
     { yyval.Char = '\205'; }
     break;
 
   case 245:
-#line 312 "lscp.y"
+#line 322 "lscp.y"
     { yyval.Char = '\206'; }
     break;
 
   case 246:
-#line 312 "lscp.y"
+#line 322 "lscp.y"
     { yyval.Char = '\207'; }
     break;
 
   case 247:
-#line 312 "lscp.y"
+#line 322 "lscp.y"
     { yyval.Char = '\210'; }
     break;
 
   case 248:
-#line 313 "lscp.y"
+#line 323 "lscp.y"
     { yyval.Char = '\211'; }
     break;
 
   case 249:
-#line 313 "lscp.y"
+#line 323 "lscp.y"
     { yyval.Char = '\212'; }
     break;
 
   case 250:
-#line 313 "lscp.y"
+#line 323 "lscp.y"
     { yyval.Char = '\213'; }
     break;
 
   case 251:
-#line 314 "lscp.y"
+#line 324 "lscp.y"
     { yyval.Char = '\214'; }
     break;
 
   case 252:
-#line 314 "lscp.y"
+#line 324 "lscp.y"
     { yyval.Char = '\215'; }
     break;
 
   case 253:
-#line 314 "lscp.y"
+#line 324 "lscp.y"
     { yyval.Char = '\216'; }
     break;
 
   case 254:
-#line 315 "lscp.y"
+#line 325 "lscp.y"
     { yyval.Char = '\217'; }
     break;
 
   case 255:
-#line 315 "lscp.y"
+#line 325 "lscp.y"
     { yyval.Char = '\220'; }
     break;
 
   case 256:
-#line 315 "lscp.y"
+#line 325 "lscp.y"
     { yyval.Char = '\221'; }
     break;
 
   case 257:
-#line 316 "lscp.y"
+#line 326 "lscp.y"
     { yyval.Char = '\222'; }
     break;
 
   case 258:
-#line 316 "lscp.y"
+#line 326 "lscp.y"
     { yyval.Char = '\223'; }
     break;
 
   case 259:
-#line 316 "lscp.y"
+#line 326 "lscp.y"
     { yyval.Char = '\224'; }
     break;
 
   case 260:
-#line 317 "lscp.y"
+#line 327 "lscp.y"
     { yyval.Char = '\225'; }
     break;
 
   case 261:
-#line 317 "lscp.y"
+#line 327 "lscp.y"
     { yyval.Char = '\226'; }
     break;
 
   case 262:
-#line 317 "lscp.y"
+#line 327 "lscp.y"
     { yyval.Char = '\227'; }
     break;
 
   case 263:
-#line 318 "lscp.y"
+#line 328 "lscp.y"
     { yyval.Char = '\230'; }
     break;
 
   case 264:
-#line 318 "lscp.y"
+#line 328 "lscp.y"
     { yyval.Char = '\231'; }
     break;
 
   case 265:
-#line 318 "lscp.y"
+#line 328 "lscp.y"
     { yyval.Char = '\232'; }
     break;
 
   case 266:
-#line 319 "lscp.y"
+#line 329 "lscp.y"
     { yyval.Char = '\233'; }
     break;
 
   case 267:
-#line 319 "lscp.y"
+#line 329 "lscp.y"
     { yyval.Char = '\234'; }
     break;
 
   case 268:
-#line 319 "lscp.y"
+#line 329 "lscp.y"
     { yyval.Char = '\235'; }
     break;
 
   case 269:
-#line 320 "lscp.y"
+#line 330 "lscp.y"
     { yyval.Char = '\236'; }
     break;
 
   case 270:
-#line 320 "lscp.y"
+#line 330 "lscp.y"
     { yyval.Char = '\237'; }
     break;
 
   case 271:
-#line 320 "lscp.y"
+#line 330 "lscp.y"
     { yyval.Char = '\240'; }
     break;
 
   case 272:
-#line 321 "lscp.y"
+#line 331 "lscp.y"
     { yyval.Char = '\241'; }
     break;
 
   case 273:
-#line 321 "lscp.y"
+#line 331 "lscp.y"
     { yyval.Char = '\242'; }
     break;
 
   case 274:
-#line 321 "lscp.y"
+#line 331 "lscp.y"
     { yyval.Char = '\243'; }
     break;
 
   case 275:
-#line 322 "lscp.y"
+#line 332 "lscp.y"
     { yyval.Char = '\244'; }
     break;
 
   case 276:
-#line 322 "lscp.y"
+#line 332 "lscp.y"
     { yyval.Char = '\245'; }
     break;
 
   case 277:
-#line 322 "lscp.y"
+#line 332 "lscp.y"
     { yyval.Char = '\246'; }
     break;
 
   case 278:
-#line 323 "lscp.y"
+#line 333 "lscp.y"
     { yyval.Char = '\247'; }
     break;
 
   case 279:
-#line 323 "lscp.y"
+#line 333 "lscp.y"
     { yyval.Char = '\250'; }
     break;
 
   case 280:
-#line 323 "lscp.y"
+#line 333 "lscp.y"
     { yyval.Char = '\251'; }
     break;
 
   case 281:
-#line 324 "lscp.y"
+#line 334 "lscp.y"
     { yyval.Char = '\252'; }
     break;
 
   case 282:
-#line 324 "lscp.y"
+#line 334 "lscp.y"
     { yyval.Char = '\253'; }
     break;
 
   case 283:
-#line 324 "lscp.y"
+#line 334 "lscp.y"
     { yyval.Char = '\254'; }
     break;
 
   case 284:
-#line 325 "lscp.y"
+#line 335 "lscp.y"
     { yyval.Char = '\255'; }
     break;
 
   case 285:
-#line 325 "lscp.y"
+#line 335 "lscp.y"
     { yyval.Char = '\256'; }
     break;
 
   case 286:
-#line 325 "lscp.y"
+#line 335 "lscp.y"
     { yyval.Char = '\257'; }
     break;
 
   case 287:
-#line 326 "lscp.y"
+#line 336 "lscp.y"
     { yyval.Char = '\260'; }
     break;
 
   case 288:
-#line 326 "lscp.y"
+#line 336 "lscp.y"
     { yyval.Char = '\261'; }
     break;
 
   case 289:
-#line 326 "lscp.y"
+#line 336 "lscp.y"
     { yyval.Char = '\262'; }
     break;
 
   case 290:
-#line 327 "lscp.y"
+#line 337 "lscp.y"
     { yyval.Char = '\263'; }
     break;
 
   case 291:
-#line 327 "lscp.y"
+#line 337 "lscp.y"
     { yyval.Char = '\264'; }
     break;
 
   case 292:
-#line 327 "lscp.y"
+#line 337 "lscp.y"
     { yyval.Char = '\265'; }
     break;
 
   case 293:
-#line 328 "lscp.y"
+#line 338 "lscp.y"
     { yyval.Char = '\266'; }
     break;
 
   case 294:
-#line 328 "lscp.y"
+#line 338 "lscp.y"
     { yyval.Char = '\267'; }
     break;
 
   case 295:
-#line 328 "lscp.y"
+#line 338 "lscp.y"
     { yyval.Char = '\270'; }
     break;
 
   case 296:
-#line 329 "lscp.y"
+#line 339 "lscp.y"
     { yyval.Char = '\271'; }
     break;
 
   case 297:
-#line 329 "lscp.y"
+#line 339 "lscp.y"
     { yyval.Char = '\272'; }
     break;
 
   case 298:
-#line 329 "lscp.y"
+#line 339 "lscp.y"
     { yyval.Char = '\273'; }
     break;
 
   case 299:
-#line 330 "lscp.y"
+#line 340 "lscp.y"
     { yyval.Char = '\274'; }
     break;
 
   case 300:
-#line 330 "lscp.y"
+#line 340 "lscp.y"
     { yyval.Char = '\275'; }
     break;
 
   case 301:
-#line 330 "lscp.y"
+#line 340 "lscp.y"
     { yyval.Char = '\276'; }
     break;
 
   case 302:
-#line 331 "lscp.y"
+#line 341 "lscp.y"
     { yyval.Char = '\277'; }
     break;
 
   case 303:
-#line 331 "lscp.y"
+#line 341 "lscp.y"
     { yyval.Char = '\300'; }
     break;
 
   case 304:
-#line 331 "lscp.y"
+#line 341 "lscp.y"
     { yyval.Char = '\301'; }
     break;
 
   case 305:
-#line 332 "lscp.y"
+#line 342 "lscp.y"
     { yyval.Char = '\302'; }
     break;
 
   case 306:
-#line 332 "lscp.y"
+#line 342 "lscp.y"
     { yyval.Char = '\303'; }
     break;
 
   case 307:
-#line 332 "lscp.y"
+#line 342 "lscp.y"
     { yyval.Char = '\304'; }
     break;
 
   case 308:
-#line 333 "lscp.y"
+#line 343 "lscp.y"
     { yyval.Char = '\305'; }
     break;
 
   case 309:
-#line 333 "lscp.y"
+#line 343 "lscp.y"
     { yyval.Char = '\306'; }
     break;
 
   case 310:
-#line 333 "lscp.y"
+#line 343 "lscp.y"
     { yyval.Char = '\307'; }
     break;
 
   case 311:
-#line 334 "lscp.y"
+#line 344 "lscp.y"
     { yyval.Char = '\310'; }
     break;
 
   case 312:
-#line 334 "lscp.y"
+#line 344 "lscp.y"
     { yyval.Char = '\311'; }
     break;
 
   case 313:
-#line 334 "lscp.y"
+#line 344 "lscp.y"
     { yyval.Char = '\312'; }
     break;
 
   case 314:
-#line 335 "lscp.y"
+#line 345 "lscp.y"
     { yyval.Char = '\313'; }
     break;
 
   case 315:
-#line 335 "lscp.y"
+#line 345 "lscp.y"
     { yyval.Char = '\314'; }
     break;
 
   case 316:
-#line 335 "lscp.y"
+#line 345 "lscp.y"
     { yyval.Char = '\315'; }
     break;
 
   case 317:
-#line 336 "lscp.y"
+#line 346 "lscp.y"
     { yyval.Char = '\316'; }
     break;
 
   case 318:
-#line 336 "lscp.y"
+#line 346 "lscp.y"
     { yyval.Char = '\317'; }
     break;
 
   case 319:
-#line 336 "lscp.y"
+#line 346 "lscp.y"
     { yyval.Char = '\320'; }
     break;
 
   case 320:
-#line 337 "lscp.y"
+#line 347 "lscp.y"
     { yyval.Char = '\321'; }
     break;
 
   case 321:
-#line 337 "lscp.y"
+#line 347 "lscp.y"
     { yyval.Char = '\322'; }
     break;
 
   case 322:
-#line 337 "lscp.y"
+#line 347 "lscp.y"
     { yyval.Char = '\323'; }
     break;
 
   case 323:
-#line 338 "lscp.y"
+#line 348 "lscp.y"
     { yyval.Char = '\324'; }
     break;
 
   case 324:
-#line 338 "lscp.y"
+#line 348 "lscp.y"
     { yyval.Char = '\325'; }
     break;
 
   case 325:
-#line 338 "lscp.y"
+#line 348 "lscp.y"
     { yyval.Char = '\326'; }
     break;
 
   case 326:
-#line 339 "lscp.y"
+#line 349 "lscp.y"
     { yyval.Char = '\327'; }
     break;
 
   case 327:
-#line 339 "lscp.y"
+#line 349 "lscp.y"
     { yyval.Char = '\330'; }
     break;
 
   case 328:
-#line 339 "lscp.y"
+#line 349 "lscp.y"
     { yyval.Char = '\331'; }
     break;
 
   case 329:
-#line 340 "lscp.y"
+#line 350 "lscp.y"
     { yyval.Char = '\332'; }
     break;
 
   case 330:
-#line 340 "lscp.y"
+#line 350 "lscp.y"
     { yyval.Char = '\333'; }
     break;
 
   case 331:
-#line 340 "lscp.y"
+#line 350 "lscp.y"
     { yyval.Char = '\334'; }
     break;
 
   case 332:
-#line 341 "lscp.y"
+#line 351 "lscp.y"
     { yyval.Char = '\335'; }
     break;
 
   case 333:
-#line 341 "lscp.y"
+#line 351 "lscp.y"
     { yyval.Char = '\336'; }
     break;
 
   case 334:
-#line 341 "lscp.y"
+#line 351 "lscp.y"
     { yyval.Char = '\337'; }
     break;
 
   case 335:
-#line 342 "lscp.y"
+#line 352 "lscp.y"
     { yyval.Char = '\340'; }
     break;
 
   case 336:
-#line 342 "lscp.y"
+#line 352 "lscp.y"
     { yyval.Char = '\341'; }
     break;
 
   case 337:
-#line 342 "lscp.y"
+#line 352 "lscp.y"
     { yyval.Char = '\342'; }
     break;
 
   case 338:
-#line 343 "lscp.y"
+#line 353 "lscp.y"
     { yyval.Char = '\343'; }
     break;
 
   case 339:
-#line 343 "lscp.y"
+#line 353 "lscp.y"
     { yyval.Char = '\344'; }
     break;
 
   case 340:
-#line 343 "lscp.y"
+#line 353 "lscp.y"
     { yyval.Char = '\345'; }
     break;
 
   case 341:
-#line 344 "lscp.y"
+#line 354 "lscp.y"
     { yyval.Char = '\346'; }
     break;
 
   case 342:
-#line 344 "lscp.y"
+#line 354 "lscp.y"
     { yyval.Char = '\347'; }
     break;
 
   case 343:
-#line 344 "lscp.y"
+#line 354 "lscp.y"
     { yyval.Char = '\350'; }
     break;
 
   case 344:
-#line 345 "lscp.y"
+#line 355 "lscp.y"
     { yyval.Char = '\351'; }
     break;
 
   case 345:
-#line 345 "lscp.y"
+#line 355 "lscp.y"
     { yyval.Char = '\352'; }
     break;
 
   case 346:
-#line 345 "lscp.y"
+#line 355 "lscp.y"
     { yyval.Char = '\353'; }
     break;
 
   case 347:
-#line 346 "lscp.y"
+#line 356 "lscp.y"
     { yyval.Char = '\354'; }
     break;
 
   case 348:
-#line 346 "lscp.y"
+#line 356 "lscp.y"
     { yyval.Char = '\355'; }
     break;
 
   case 349:
-#line 346 "lscp.y"
+#line 356 "lscp.y"
     { yyval.Char = '\356'; }
     break;
 
   case 350:
-#line 347 "lscp.y"
+#line 357 "lscp.y"
     { yyval.Char = '\357'; }
     break;
 
   case 351:
-#line 347 "lscp.y"
+#line 357 "lscp.y"
     { yyval.Char = '\360'; }
     break;
 
   case 352:
-#line 347 "lscp.y"
+#line 357 "lscp.y"
     { yyval.Char = '\361'; }
     break;
 
   case 353:
-#line 348 "lscp.y"
+#line 358 "lscp.y"
     { yyval.Char = '\362'; }
     break;
 
   case 354:
-#line 348 "lscp.y"
+#line 358 "lscp.y"
     { yyval.Char = '\363'; }
     break;
 
   case 355:
-#line 348 "lscp.y"
+#line 358 "lscp.y"
     { yyval.Char = '\364'; }
     break;
 
   case 356:
-#line 349 "lscp.y"
+#line 359 "lscp.y"
     { yyval.Char = '\365'; }
     break;
 
   case 357:
-#line 349 "lscp.y"
+#line 359 "lscp.y"
     { yyval.Char = '\366'; }
     break;
 
   case 358:
-#line 349 "lscp.y"
+#line 359 "lscp.y"
     { yyval.Char = '\367'; }
     break;
 
   case 359:
-#line 350 "lscp.y"
+#line 360 "lscp.y"
     { yyval.Char = '\370'; }
     break;
 
   case 360:
-#line 350 "lscp.y"
+#line 360 "lscp.y"
     { yyval.Char = '\371'; }
     break;
 
   case 361:
-#line 350 "lscp.y"
+#line 360 "lscp.y"
     { yyval.Char = '\372'; }
     break;
 
   case 362:
-#line 351 "lscp.y"
+#line 361 "lscp.y"
     { yyval.Char = '\373'; }
     break;
 
   case 363:
-#line 351 "lscp.y"
+#line 361 "lscp.y"
     { yyval.Char = '\374'; }
     break;
 
   case 364:
-#line 351 "lscp.y"
+#line 361 "lscp.y"
     { yyval.Char = '\375'; }
     break;
 
   case 365:
-#line 352 "lscp.y"
+#line 362 "lscp.y"
     { yyval.Char = '\376'; }
     break;
 
   case 366:
-#line 352 "lscp.y"
+#line 362 "lscp.y"
     { yyval.Char = '\377'; }
     break;
 
   case 367:
-#line 355 "lscp.y"
+#line 365 "lscp.y"
     { yyval.String = " ";      }
     break;
 
   case 369:
-#line 357 "lscp.y"
+#line 367 "lscp.y"
     { yyval.String = yyvsp[-1].String + " "; }
     break;
 
   case 370:
-#line 358 "lscp.y"
+#line 368 "lscp.y"
     { yyval.String = yyvsp[-1].String + yyvsp[0].String;  }
     break;
 
   case 371:
-#line 361 "lscp.y"
+#line 371 "lscp.y"
     { yyval.String = yyvsp[-1].String; }
     break;
 
   case 372:
-#line 362 "lscp.y"
+#line 372 "lscp.y"
     { yyval.String = yyvsp[-1].String; }
     break;
 
@@ -4649,7 +4649,7 @@ yyreturn:
 }
 
 
-#line 533 "lscp.y"
+#line 543 "lscp.y"
 
 
 /**
