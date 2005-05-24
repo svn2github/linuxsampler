@@ -1,4 +1,5 @@
 #commands used to package liblscp
+MINORVERSION=cvs20050524
 cd ~/debian/debRelease/ls/liblscp
 rm -rf liblscp*
 cvs -z3 -d:pserver:anonymous@cvs.linuxsampler.org:/var/cvs/linuxsampler co liblscp
@@ -6,10 +7,14 @@ find . -name 'CVS' | xargs rm -rf
 rm -rf liblscp/debian
 cp -a debian liblscp
 rm liblscp/debian/*~
-tar zcpf liblscp-0.2.1.tar.gz liblscp
-mv liblscp liblscp-0.2.1
-cd liblscp-0.2.1
-dh_make -e flatmax@pgb.unsw.edu.au -f ../liblscp-0.2.1.tar.gz
+cp liblscp/ChangeLog liblscp/changelog
+cd liblscp
+gzip changelog
+cd ..
+tar zcpf liblscp-0.2.$MINORVERSION.tar.gz liblscp
+mv liblscp liblscp-0.2.$MINORVERSION
+cd liblscp-0.2.$MINORVERSION
+dh_make -e flatmax@Matt.Flax -f ../liblscp-0.2.$MINORVERSION.tar.gz
 m
 
 dpkg-buildpackage -rfakeroot

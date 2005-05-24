@@ -1,3 +1,9 @@
+liblscp (0.2.cvs20050524) unstable; urgency=low
+
+  * Incorperating new upstream changes (Closes: #280580)
+
+ -- Matt Flax <flatmax@pgb.unsw.edu.au>  Tue, 24 May 2005 15:20:23 +1000
+
 liblscp (0.2.1-1) unstable; urgency=low
 
   * renamed 'liblscp.pc' to 'lscp.pc' as well as the pkg-config lib name
