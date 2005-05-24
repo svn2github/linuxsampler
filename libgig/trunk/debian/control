@@ -2,7 +2,7 @@ Source: libgig
 Section: devel
 Priority: optional
 Maintainer: Matt Flax <flatmax@pgb.unsw.edu.au>
-Build-Depends: debhelper (>= 4.0.0), pkg-config, libsndfile1-dev | libaudiofile-dev, doxygen
+Build-Depends: debhelper (>= 4.0.0), pkg-config, libsndfile1-dev, doxygen
 Standards-Version: 3.6.1
 
 Package: libgig-dev
@@ -36,6 +36,9 @@ Section: utils
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
 Description: command line tools for Gigasampler and DLS Level 1/2 files
+ Raw file handling for audio sampler files based on DLS Level 1/2 and
+ Gigasampler.
+ These files are typically used in modern day audio waveform samplers.
  This package contains the following command line tools:
  .
  gigdump:
