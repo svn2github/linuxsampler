@@ -1,0 +1,33 @@
+.TH "linuxsampler" "1" "24 May 2005" "linuxsampler @VERSION@" "User Manuals"
+.SH NAME
+linuxsampler \- modular, streaming capable sampler
+.SH SYNOPSIS
+.B linuxsampler
+[OPTIONS]
+.SH DESCRIPTION
+LinuxSampler is a modular, streaming capable sampler. The sampler is designed as
+backend, that is server-like console application. You will need a frontend
+application like QSampler to control the sampler and manage sampler sessions. Or
+you have to send LSCP commands manually to the sampler e.g. by using telnet or
+netcat.
+.SH OPTIONS
+.IP \ --help
+print command line help and exit
+.TP
+.IP \ --version
+print version and exit
+.TP
+.IP \ --profile
+output benchmark messages on the console
+.TP
+.IP \ --no-tune
+disable assembly optimizations
+.TP
+.IP \ --statistics
+output voice and disk stream count periodically on the console
+.SH "SEE ALSO"
+qsampler(1)
+.SH "BUGS"
+Report bugs to http://bugs.linuxsampler.org
+.SH "Author"
+Written by Christian Schoenebeck <cuse@users.sf.net>
