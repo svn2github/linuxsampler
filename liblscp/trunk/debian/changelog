@@ -1,3 +1,9 @@
+liblscp (0.2.9-1) unstable; urgency=low
+
+ * New release.
+
+ -- Christian Schoenebeck <cuse@users.sourceforge.net>  Wed, 25 May 2005 03:18:05 +0200
+
 liblscp (0.2.cvs20050524) unstable; urgency=low
 
   * Incorperating new upstream changes (Closes: #280580)
@@ -9,5 +15,5 @@ liblscp (0.2.1-1) unstable; urgency=low
   * renamed 'liblscp.pc' to 'lscp.pc' as well as the pkg-config lib name
   * Altered Christian's original changelog (Closes: #280580)
   * altered rules to gen. configure script
-	
+
  -- Matt Flax <flatmax@pgb.unsw.edu.au>  Tue, 13 Jul 2004 20:19:13 +0200
