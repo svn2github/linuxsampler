@@ -133,7 +133,7 @@
 				qsampler, libgig and liblscp. linuxsampler is the core of the sampler, it includes the
 				sampler engines and audio and MIDI drivers. linuxsampler itself is decoupled from any
 				user interface. It offers a network server (LSCP server) to allow to be controlled by
-				an arbitrary user frontend from an arbitrary place over a netwrok connection or
+				an arbitrary user frontend from an arbitrary place over a network connection or
 				locally from the same machine as well.
 				qsampler is the first GUI frontend written for linuxsampler, it is written with the Qt
 				GUI library and thus can be compiled for various architectures and operating systems
@@ -149,13 +149,17 @@
 
 			<h3>What do I need to compile and install?</h3>
 			<p class="default">
-				You should compile and install at least linuxsampler. As a beginner you should
-				defintely as well compile and install qsampler, liblscp and libgig. qsampler is a
+				You should compile and install at least libgig and linuxsampler. As a beginner you should
+				definitely as well compile and install liblscp and qsampler. qsampler is a
 				convenient GUI frontend for linuxsampler. qsampler depends on liblscp, so you have to
-				compile and install liblscp before starting to build qsampler. It is recommended to
-				install libgig as well, you don't have to actually because libgig is at the moment
-				statically included with linuxsampler, but qsampler <b>can</b> use it to retrieve
-				additional informations from Gigasampler files.
+				compile and install liblscp before starting to build qsampler. The recommended order to
+				compile and install is:
+				<ol class="default">
+				  <li>libgig</li>
+				  <li>linuxsampler</li>
+				  <li>liblscp</li>
+				  <li>qsampler</li>
+				</ol>
 			</p>
 
 			<h3>How do I checkout from CVS?</h3>
@@ -167,7 +171,7 @@
   			<h3>How do I compile from CVS?</h3>
 			<p class="default">
 				The procedure for compiling from CVS is the same for all subprojects, that is no matter
-				if you are compiling linuxsampler, qsampler, libgig or liblscp from CVS, you have to
+				if you are compiling linuxsampler, qsampler, libgig or liblscp from CVS, you need to
 				have the autotools (automake, autoconf and libtool) installed and compile it that way:
 			</p>
 			<table class="default" border="0" cellpadding="1" cellspacing="5">

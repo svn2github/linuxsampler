@@ -129,6 +129,8 @@
                 <tr>
                   <td valign=top>
                     <p class="default">
+		      <b>2005-05-25</b>LinuxSampler 0.3.1, the first official release is finally out!<br>
+		      <br>
 		      <b>2005-05-23</b> After some time laying around in the backyard,
 		      <a href="http://qsampler.sourceforge.net">QSampler</a> 0.1.0 has
 		      been released, now with the promised Audio and MIDI device

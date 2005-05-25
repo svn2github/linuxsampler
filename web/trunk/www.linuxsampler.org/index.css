@@ -169,6 +169,14 @@ ul	{
 	padding: 1em 1em 1em 2.2em;
 	}
 
+ol.default	{
+	/* list-style-type:circle; */
+	border: none;
+	background: rgb(240, 240, 240);
+	margin: 1em 3em 1em 3em;
+	padding: 1em 1em 1em 2.2em;
+	}
+
 li	{
 	padding: 0.2em 0.2em 0.2em 0.2em;
 	font-size: 12pt;

@@ -121,17 +121,92 @@
 			</td><td valign=top width="100%">
 			<div id="contents">
 
-			<h2>Packages</h2>
+			<h2>Dependencies</h2>
 			<p class="default">
-  			There is no official release yet, only the following snapshot from CVS. Developers though might want to use latest version from CVS instead of this snapshot.<br>
-			<br>
-			<center>
-  			<a href="http://download.linuxsampler.org/packages/linuxsampler-0.3.0_cvs20050429.tar.bz2">
-			    linuxsampler-0.3.0_cvs20050429.tar.bz2
-			</a> (Engine without GUI)
-			</center>
+			The following figure illustrates the compile time / linker dependencies.
 			</p>
-			<br>
+			<div style="line-height: 1.2em">
+			  <pre>
+       <strong>QSampler</strong> ~~~(optional)~~~&gt; <strong>libgig</strong>
+           |                         A
+           |                         |
+      (mandatory)               (mandatory)
+           |                         |
+           V                         |
+        <strong>liblscp</strong>                 <strong>LinuxSampler</strong>
+			  </pre>
+			</div>
+			<p class="default">
+			Or again in words: you have to compile and install libgig before
+			being able to compile and use LinuxSampler. You don't need libgig
+			for compiling and using QSampler, but it's definitely recommended.
+			You cannot compile nor use QSampler without liblscp though. As
+			QSampler is communicating with LinuxSampler via TCP, there is no
+			linker dependency between them, but of course you still need to
+			have LinuxSampler installed to be able to use QSampler.
+			</p>
+
+			<h2>Source Packages</h2>
+			<table class="default">
+			  <tr>
+			    <td>
+				  <a href="http://download.linuxsampler.org/packages/libgig-2.0.0.tar.bz2">
+			      libgig-2.0.0.tar.bz2
+			      </a>
+				</td>
+				<td>
+				--&gt;
+				</td>
+				<td>
+				  Gigasampler file loader library
+				</td>
+			  </tr>
+			  <tr>
+			    <td>
+				  <a href="http://download.linuxsampler.org/packages/liblscp-0.2.9.tar.gz">
+			      liblscp-0.2.9.tar.gz
+			      </a>
+				</td>
+				<td>
+				--&gt;
+				</td>
+				<td>
+				  LinuxSampler Control Protocol (LSCP) wrapper library
+				</td>
+			  </tr>
+			  <tr>
+			    <td>
+				  <a href="http://download.linuxsampler.org/packages/linuxsampler-0.3.1.tar.bz2">
+			      linuxsampler-0.3.1.tar.bz2
+			      </a>
+				</td>
+				<td>
+				--&gt;
+				</td>
+				<td>
+				  sampler backend
+				</td>
+			  </tr>
+			  <tr>
+			    <td>
+				  <a href="http://download.linuxsampler.org/packages/qsampler-0.1.0.tar.gz">
+			      qsampler-0.1.0.tar.gz
+			      </a>
+				</td>
+				<td>
+				--&gt;
+				</td>
+				<td>
+				  graphical frontend to LinuxSampler
+				</td>
+			  </tr>
+			</table>
+
+			<h2>Binary Packages</h2>
+			<p class="default">
+			There are currently <a href="http://download.linuxsampler.org/packages/debian/">Debian packages</a>
+			and <a href="http://download.linuxsampler.org/packages/rpms/">RPM packages</a> for i386 only.
+			</p>
 
 			<h2>CVS</h2>
 			<p class="default">
