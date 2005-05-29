@@ -1,3 +1,9 @@
+liblscp (0.2.cvs20050524-2) unstable; urgency=low
+
+  * Fixed multiple port build error (Closes: #311062)
+
+ -- Matt Flax <flatmax@pgb.unsw.edu.au>  Sun, 29 May 2005 23:08:28 +1000
+
 liblscp (0.2.cvs20050524-1) unstable; urgency=low
 
   * Incorperating new upstream changes (Closes: #280580)

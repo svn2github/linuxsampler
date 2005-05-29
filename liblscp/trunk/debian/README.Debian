@@ -2,16 +2,19 @@
 MINORVERSION=cvs20050524
 cd ~/debian/debRelease/ls/liblscp
 rm -rf liblscp*
-cvs -z3 -d:pserver:anonymous@cvs.linuxsampler.org:/var/cvs/linuxsampler co liblscp
-find . -name 'CVS' | xargs rm -rf
+#cvs -z3 -d:pserver:anonymous@cvs.linuxsampler.org:/var/cvs/linuxsampler co liblscp
+#find . -name 'CVS' | xargs rm -rf
+#tar zcpf liblscp-0.2.$MINORVERSION.tar.gz liblscp
+
+cp -a /tmp/liblscp-0.2.$MINORVERSION.tar.gz .
+tar zxpvf liblscp-0.2.$MINORVERSION.tar.gz
 rm -rf liblscp/debian
 cp -a debian liblscp
 rm liblscp/debian/*~
-cp liblscp/ChangeLog liblscp/changelog
-cd liblscp
-gzip changelog
-cd ..
-tar zcpf liblscp-0.2.$MINORVERSION.tar.gz liblscp
+#cp liblscp/ChangeLog liblscp/changelog
+#cd liblscp
+#gzip changelog
+#cd ..
 mv liblscp liblscp-0.2.$MINORVERSION
 cd liblscp-0.2.$MINORVERSION
 dh_make -e flatmax@Matt.Flax -f ../liblscp-0.2.$MINORVERSION.tar.gz
