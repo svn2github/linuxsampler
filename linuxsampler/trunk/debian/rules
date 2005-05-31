@@ -22,6 +22,7 @@ configure-stamp:
 	dh_testdir
 	# Add here commands to configure the package.
 	$(MAKE) -f Makefile.cvs
+	chmod a+x configure
 	./configure --host=$(DEB_HOST_GNU_TYPE) --build=$(DEB_BUILD_GNU_TYPE) --prefix=/usr --mandir=\$${prefix}/share/man --infodir=\$${prefix}/share/info
 	touch configure-stamp
 
@@ -33,7 +34,9 @@ build-stamp: configure-stamp
 
 	# Add here commands to compile the package.
 	$(MAKE)
-	#docbook-to-man debian/linuxsampler.sgml > linuxsampler.1
+	#	docbook-to-man debian/linuxsampler.sgml > linuxsampler.1
+
+	#	$(MAKE)
 
 	touch build-stamp
 
@@ -79,7 +82,7 @@ binary-arch: build install
 #	dh_installinit
 #	dh_installcron
 #	dh_installinfo
-	dh_installman
+	dh_installman debian/linuxsampler.1
 	dh_link
 	dh_strip
 	dh_compress
@@ -88,7 +91,7 @@ binary-arch: build install
 #	dh_python
 #	dh_makeshlibs
 	dh_installdeb
-	dh_shlibdeps
+	dh_shlibdeps # -L linuxsampler -l debian/linuxsampler/usr/lib/linuxsampler
 	dh_gencontrol
 	dh_md5sums
 	dh_builddeb

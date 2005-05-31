@@ -1,6 +1,8 @@
-linuxsampler (0.3.1-1) unstable; urgency=low
+linuxsampler (0.3.cvs20050531-1) unstable; urgency=low
 
-  * Initial Release.
+  * Fixed libtool error by applying : 
+    http://lists.debian.org/debian-devel/1998/02/msg01322.html
+  * Fixed debian dir. for packaging (Closes: #279933)
+  * Initial Release (by Cristian S.).
 
- -- Christian Schoenebeck <cuse@users.sourceforge.net>  Tue, 24 May 2005 20:51:01 +0200
-
+ -- Matt Flax <flatmax@pgb.unsw.edu.au>  Mon, 21 Mar 2005 23:57:39 +1100

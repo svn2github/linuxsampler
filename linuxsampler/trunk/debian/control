@@ -1,13 +1,14 @@
 Source: linuxsampler
-Section: unknown
+Section: sound
 Priority: optional
-Maintainer: Christian Schoenebeck <cuse@users.sourceforge.net>
-Build-Depends: debhelper (>= 4.0.0)
+Maintainer: Matt Flax <flatmax@pgb.unsw.edu.au>
+Build-Depends: debhelper (>= 4.0.0), libgig-dev
 Standards-Version: 3.6.1
 
 Package: linuxsampler
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}
+Depends: ${shlibs:Depends}, ${misc:Depends}, libgig, gigtools
+Recommends: liblscp
 Description: realtime audio sampler
  LinuxSampler is a work in progress. It's goal is to produce a free
  software audio sampler with professional grade features.
