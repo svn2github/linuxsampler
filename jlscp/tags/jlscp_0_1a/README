@@ -1,0 +1,67 @@
+
+jlscp - A java LinuxSampler control protocol API
+
+by Grigor Iliev <gr.iliev@gmail.com>
+
+
+This library provides client API for retrieving information and
+configuring running LinuxSampler instance according to the LinuxSampler
+control protocol as specified in the LSCP protocol specification
+(http://www.linuxsampler.org/api/draft-linuxsampler-protocol.html)
+written by Christian Schoenebeck.
+
+For more information about LinuxSampler visit http://www.linuxsampler.org
+
+
+Requirements
+------------
+
+To use jlscp you need java version 1.5.0 or higher.
+
+
+Compilation
+-----------
+
+To compile the library and place the generated class files in the
+lib directory, cd to src directory and use the following command:
+
+javac org/linuxsampler/lscp/*.java org/linuxsampler/lscp/event/*.java -d ../lib
+
+To create the JAR file, cd to lib directory and use the following command:
+
+jar -cf jlscp.jar org
+
+
+Installation
+------------
+
+To install jlscp as an extension just copy jlscp.jar in the following directory:
+
+<JDK-home>/jre/lib/ext
+
+If you don't want to install jlscp as an extension, you may use the following
+option when compiling or running an application that depends on it:
+
+-cp .:/path/to/jlscp/jlscp.jar
+
+
+Documentation
+-------------
+
+The documentation is located in the doc directory. Also you can look at the
+examples directory.
+
+
+Running examples
+----------------
+
+To run the examples cd to examples directory
+and use one of the following commands:
+
+java -cp /path/to/jlscp/jlscp.jar:. Poll
+java -cp /path/to/jlscp/jlscp.jar:. Events
+java -cp /path/to/jlscp/jlscp.jar:. CreateChannel
+
+Notice that on Windows platforms class path entries are separated by
+semicolons (;) instead of colons (:).
+
