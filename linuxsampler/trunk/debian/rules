@@ -45,9 +45,12 @@ clean:
 	dh_testroot
 	rm -f build-stamp configure-stamp
 
+	-$(MAKE) -f Makefile.cvs
 	# Add here commands to clean up after the build process.
+	chmod a+x configure
+	./configure --host=$(DEB_HOST_GNU_TYPE) --build=$(DEB_BUILD_GNU_TYPE) --prefix=/usr --mandir=\$${prefix}/share/man --infodir=\$${prefix}/share/info
+
 	-$(MAKE) distclean
-	-$(MAKE) -f Makefile.cvs clean
 
 	dh_clean
 
@@ -82,7 +85,7 @@ binary-arch: build install
 #	dh_installinit
 #	dh_installcron
 #	dh_installinfo
-	dh_installman debian/linuxsampler.1
+	dh_installman man/linuxsampler.1.in
 	dh_link
 	dh_strip
 	dh_compress

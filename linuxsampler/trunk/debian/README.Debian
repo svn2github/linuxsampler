@@ -1,6 +1,6 @@
 # commands used to package linuxsampler
-MINORVERSION=cvs20050531
-cd ~/debian/debRelease/ls/linuxsampler
+MINORVERSION=cvs20050602
+cd ~/debian/debRelease/linuxsampler
 rm -rf linuxsampler*
 cvs -z3 -d:pserver:anonymous@cvs.linuxsampler.org:/var/cvs/linuxsampler co linuxsampler
 find . -name 'CVS' | xargs rm -rf

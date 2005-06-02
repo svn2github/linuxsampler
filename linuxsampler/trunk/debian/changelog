@@ -1,3 +1,10 @@
+linuxsampler (0.3.cvs20050602-1) unstable; urgency=low
+
+  * Fixed original make problems stopping multiport builds.
+  * fixed other man and depends issues (Closes: #311431)
+	
+ -- Matt Flax <flatmax@pgb.unsw.edu.au>  Thu,  2 Jun 2005 17:55:50 +1000
+
 linuxsampler (0.3.cvs20050531-1) unstable; urgency=low
 
   * Fixed libtool error by applying : 

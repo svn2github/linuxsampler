@@ -7,8 +7,8 @@ Standards-Version: 3.6.1
 
 Package: linuxsampler
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, libgig, gigtools
-Recommends: liblscp
+Depends: ${shlibs:Depends}, ${misc:Depends}, libgig
+Suggests: gigtools
 Description: realtime audio sampler
  LinuxSampler is a work in progress. It's goal is to produce a free
  software audio sampler with professional grade features.
