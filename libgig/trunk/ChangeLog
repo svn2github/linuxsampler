@@ -3,6 +3,7 @@ Version CVS HEAD (?)
   * src/gigextract.cpp:
     - show also version of libsndfile or build version of libaudiofile when
       using the -v switch
+    - fixed mutual link dependency to libsndfile / libaudiofile
 
 Version 2.0.0 (9 May 2005)
 

@@ -53,6 +53,12 @@
 # define HAVE_SNDFILE 1
 #endif // WIN32
 
+// abort compilation here if neither libsndfile nor libaudiofile are available
+#if !HAVE_SNDFILE && !HAVE_AUDIOFILE
+# error "Neither libsndfile nor libaudiofile seem to be available!"
+# error "(HAVE_SNDFILE and HAVE_AUDIOFILE are both false)"
+#endif
+
 // we prefer libsndfile before libaudiofile
 #if HAVE_SNDFILE
 # include <sndfile.h>
@@ -74,7 +80,7 @@ void ExtractSamples(gig::File* gig, char* destdir, OrderMap* ordered);
 int writeWav(const char* filename, void* samples, long samplecount, int channels, int bitdepth, long rate);
 string ToString(int i);
 
-#ifndef HAVE_SNDFILE
+#if !HAVE_SNDFILE // use libaudiofile
 void* hAFlib; // handle to libaudiofile
 void openAFlib(void);
 void closeAFlib(void);
@@ -161,7 +167,7 @@ int main(int argc, char *argv[]) {
 }
 
 void ExtractSamples(gig::File* gig, char* destdir, OrderMap* ordered) {
-#ifndef HAVE_SNDFILE
+#if !HAVE_SNDFILE // use libaudiofile
     hAFlib = NULL;
     openAFlib();
 #endif // !HAVE_SNDFILE
@@ -253,7 +259,7 @@ void ExtractSamples(gig::File* gig, char* destdir, OrderMap* ordered) {
         pSample = gig->GetNextSample();
     }
     if (pWave) delete[] (uint8_t*) pWave;
-#ifndef HAVE_SNDFILE
+#if !HAVE_SNDFILE // use libaudiofile
     closeAFlib();
 #endif // !HAVE_SNDFILE
 }
@@ -299,7 +305,7 @@ int writeWav(const char* filename, void* samples, long samplecount, int channels
         return -1;
     }
     sf_close(hfile);
-#else
+#else // use libaudiofile
     AFfilesetup setup = _afNewFileSetup();
     _afInitFileFormat(setup, AF_FILE_WAVE);
     _afInitChannels(setup, AF_DEFAULT_TRACK, channels);
@@ -316,7 +322,7 @@ int writeWav(const char* filename, void* samples, long samplecount, int channels
     return 0; // success
 }
 
-#ifndef HAVE_SNDFILE
+#if !HAVE_SNDFILE // use libaudiofile
 void openAFlib() {
     hAFlib = dlopen("libaudiofile.so", RTLD_NOW);
     if (!hAFlib) {
@@ -341,7 +347,7 @@ void closeAFlib() {
 #endif // !HAVE_SNDFILE
 
 string Revision() {
-    string s = "$Revision: 1.6 $";
+    string s = "$Revision: 1.7 $";
     return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
 }
 
@@ -352,16 +358,14 @@ void PrintVersion() {
     char versionBuffer[128];
     sf_command(NULL, SFC_GET_LIB_VERSION, versionBuffer, 128);
     cout << ", " << versionBuffer;
+    #else // use libaudiofile
+    cout << "\nbuilt against libaudiofile "
+         << LIBAUDIOFILE_MAJOR_VERSION << "." << LIBAUDIOFILE_MINOR_VERSION;
+    # ifdef LIBAUDIOFILE_MICRO_VERSION
+    cout << "." << LIBAUDIOFILE_MICRO_VERSION;
+    # endif // LIBAUDIOFILE_MICRO_VERSION
     #endif // HAVE_SNDFILE
     cout << endl;
-    #if !HAVE_SNDFILE
-    cout << "built against libaudiofile "
-         << LIBAUDIOFILE_MAJOR_VERSION << "." << LIBAUDIOFILE_MINOR_VERSION
-    # ifdef LIBAUDIOFILE_MICRO_VERSION
-         << "." << LIBAUDIOFILE_MICRO_VERSION
-    # endif // LIBAUDIOFILE_MICRO_VERSION
-         << endl;
-    #endif // !HAVE_SNDFILE
 }
 
 void PrintUsage() {
