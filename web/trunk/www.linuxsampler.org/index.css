@@ -58,6 +58,19 @@ table th {
 	padding-bottom: 3px;
 	}
 
+table.default {
+	font-size: 12pt;
+	font-family: sans-serif;
+	text-align: justify;
+	font-style: normal;
+	font-weight: normal;
+	padding: 1em 2.2em;
+	}
+
+td.default {
+	padding: 0.6em;
+	}
+
 .formatmatrix {
 	font-size: 12pt;
 	font-family: sans-serif;
