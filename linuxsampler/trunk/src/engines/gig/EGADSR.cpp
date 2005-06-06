@@ -90,12 +90,12 @@ namespace LinuxSampler { namespace gig {
                         RTList<Event>::Iterator itLastEvent = pEvents->last();
                         if (itLastEvent) ReleasePostponed = (itLastEvent->Type == Event::type_release);
                     }
-                    if (!AttackStepsLeft) Stage = (ReleasePostponed) ? stage_release : (HoldAttack) ? stage_attack_hold : stage_decay1;
+                    if (!AttackStepsLeft) Stage = (ReleasePostponed) ? stage_release_init : (HoldAttack) ? stage_attack_hold : stage_decay1_init;
                     break;
                 }
                 case stage_attack_hold: {
                     if (SamplePos >= LoopStart) {
-                        Stage = stage_decay1;
+                        Stage = stage_decay1_init;
                         break;
                     }
                     int holdstepsleft = (int) (LoopStart - SamplePos / CurrentPitch); // FIXME: just an approximation, inaccuracy grows with higher audio fragment size, sufficient for usual fragment sizes though
@@ -103,46 +103,88 @@ namespace LinuxSampler { namespace gig {
                     int process_end   = iSample + to_process;
                     if (itTransitionEvent && itTransitionEvent->FragmentPos() <= process_end) {
                         process_end       = itTransitionEvent->FragmentPos();
-                        Stage             = (itTransitionEvent->Type == Event::type_release) ? stage_release : (InfiniteSustain) ? stage_sustain : stage_decay2;
+                        Stage             = (itTransitionEvent->Type == Event::type_release) ? stage_release_init : (InfiniteSustain) ? stage_sustain : stage_decay2_init;
                         ++itTransitionEvent;
                     }
-                    else if (to_process == holdstepsleft) Stage = stage_decay1;
+                    else if (to_process == holdstepsleft) Stage = stage_decay1_init;
                     while (iSample < process_end) {
                         pEngine->pSynthesisParameters[ModulationDestination][iSample++] *= Level;
                     }
                     break;
+                }
+                case stage_decay1_init: {
+                    if (Decay1StepsLeft) {
+                        if (SustainLevel < 1.0) {
+                            Decay1StepsLeft = int((RTMath::Max(Decay1Level2, SustainLevel) - Level) / Decay1Coeff);
+                        } else {
+                            Stage = (InfiniteSustain) ? stage_sustain : stage_decay2_init;
+                            break;
+                        }
+                    } else {
+                        Level = SustainLevel;
+                        Stage = (InfiniteSustain) ? stage_sustain : stage_decay2_init;
+                        break;
+                    }
+                    Stage = stage_decay1;
                 }
                 case stage_decay1: {
                     int to_process   = RTMath::Min(Samples - iSample, Decay1StepsLeft);
                     int process_end  = iSample + to_process;
                     if (itTransitionEvent && itTransitionEvent->FragmentPos() <= process_end) {
                         process_end       = itTransitionEvent->FragmentPos();
-                        Stage             = (itTransitionEvent->Type == Event::type_release) ? stage_release : (InfiniteSustain) ? stage_sustain : stage_decay2;
+                        Stage             = (itTransitionEvent->Type == Event::type_release) ? stage_release_init : (InfiniteSustain) ? stage_sustain : stage_decay2_init;
                         ++itTransitionEvent;
                     }
                     else {
                         Decay1StepsLeft -= to_process;
-                        if (!Decay1StepsLeft) Stage = (InfiniteSustain) ? stage_sustain : stage_decay2;
+                        if (!Decay1StepsLeft) Stage = stage_decay1_part2_init;
                     }
                     while (iSample < process_end) {
-                        Level += Level * Decay1Coeff;
+                        Level += Decay1Coeff;
                         pEngine->pSynthesisParameters[ModulationDestination][iSample++] *= Level;
                     }
                     break;
                 }
-                case stage_decay2: {
-                    int process_end;
-                    if (itTransitionEvent && itTransitionEvent->Type == Event::type_release && itTransitionEvent->FragmentPos() <= Samples) {
+                case stage_decay1_part2_init:
+                    Decay1StepsLeft = int(log((SustainLevel - ExpOffset) / (Level - ExpOffset)) / Decay1Slope);
+                    Stage = stage_decay1_part2;
+                case stage_decay1_part2: {
+                    int to_process   = RTMath::Min(Samples - iSample, Decay1StepsLeft);
+                    int process_end  = iSample + to_process;
+                    if (itTransitionEvent && itTransitionEvent->FragmentPos() <= process_end) {
                         process_end       = itTransitionEvent->FragmentPos();
+                        Stage             = (itTransitionEvent->Type == Event::type_release) ? stage_release_init : (InfiniteSustain) ? stage_sustain : stage_decay2_init;
                         ++itTransitionEvent;
-                        Stage             = stage_release; // switch to release stage soon
                     }
-                    else process_end = Samples;
+                    else {
+                        Decay1StepsLeft -= to_process;
+                        if (!Decay1StepsLeft) Stage = (InfiniteSustain) ? stage_sustain : stage_decay2_init;
+                    }
                     while (iSample < process_end) {
-                        Level += Level * Decay2Coeff;
+                        Level = Level * Decay1Coeff2 + Decay1Coeff3;
                         pEngine->pSynthesisParameters[ModulationDestination][iSample++] *= Level;
                     }
-                    if (Level <= CONFIG_EG_BOTTOM) Stage = stage_fadeout;
+                    break;
+                }
+                case stage_decay2_init:
+                    Decay2StepsLeft = int((CONFIG_EG_BOTTOM - Level) / Decay2Coeff);
+                    Stage = stage_decay2;
+                case stage_decay2: {
+                    int to_process   = RTMath::Min(Samples - iSample, Decay2StepsLeft);
+                    int process_end  = iSample + to_process;
+                    if (itTransitionEvent && itTransitionEvent->Type == Event::type_release && itTransitionEvent->FragmentPos() <= process_end) {
+                        process_end       = itTransitionEvent->FragmentPos();
+                        ++itTransitionEvent;
+                        Stage             = stage_release_init; // switch to release stage soon
+                    }
+                    else {
+                        Decay2StepsLeft -= to_process;
+                        if (!Decay2StepsLeft) Stage = stage_fadeout;
+                    }
+                    while (iSample < process_end) {
+                        Level += Decay2Coeff;
+                        pEngine->pSynthesisParameters[ModulationDestination][iSample++] *= Level;
+                    }
                     break;
                 }
                 case stage_sustain: {
@@ -150,7 +192,7 @@ namespace LinuxSampler { namespace gig {
                     if (itTransitionEvent && itTransitionEvent->Type == Event::type_release && itTransitionEvent->FragmentPos() <= Samples) {
                         process_end       = itTransitionEvent->FragmentPos();
                         ++itTransitionEvent;
-                        Stage             = stage_release; // switch to release stage soon
+                        Stage             = stage_release_init; // switch to release stage soon
                     }
                     else process_end = Samples;
                     while (iSample < process_end) {
@@ -158,19 +200,46 @@ namespace LinuxSampler { namespace gig {
                     }
                     break;
                 }
+                case stage_release_init:
+                    ReleaseStepsLeft = int((ReleaseLevel2 - Level) / ReleaseCoeff);
+                    Stage = stage_release;
                 case stage_release: {
-                    int process_end;
-                    if (itTransitionEvent && itTransitionEvent->Type == Event::type_cancel_release && itTransitionEvent->FragmentPos() <= Samples) {
+                    int to_process   = RTMath::Min(Samples - iSample, ReleaseStepsLeft);
+                    int process_end  = iSample + to_process;
+                    if (itTransitionEvent && itTransitionEvent->Type == Event::type_cancel_release && itTransitionEvent->FragmentPos() <= process_end) {
                         process_end       = itTransitionEvent->FragmentPos();
                         ++itTransitionEvent;
-                        Stage             = (InfiniteSustain) ? stage_sustain : stage_decay2; // switch back to sustain / decay2 stage soon
+                        Stage             = (InfiniteSustain) ? stage_sustain : stage_decay2_init; // switch back to sustain / decay2 stage soon
                     }
-                    else process_end = Samples;
+                    else {
+                        ReleaseStepsLeft -= to_process;
+                        if (!ReleaseStepsLeft) Stage = stage_release_part2_init;
+                    }
                     while (iSample < process_end) {
-                        Level += Level * ReleaseCoeff;
+                        Level += ReleaseCoeff;
                         pEngine->pSynthesisParameters[ModulationDestination][iSample++] *= Level;
                     }
-                    if (Level <= CONFIG_EG_BOTTOM) Stage = stage_fadeout;
+                    break;
+                }
+                case stage_release_part2_init:
+                    ReleaseStepsLeft = int(log((CONFIG_EG_BOTTOM - ExpOffset) / (Level - ExpOffset)) / ReleaseSlope);
+                    Stage = stage_release_part2;
+                case stage_release_part2: {
+                    int to_process   = RTMath::Min(Samples - iSample, ReleaseStepsLeft);
+                    int process_end  = iSample + to_process;
+                    if (itTransitionEvent && itTransitionEvent->Type == Event::type_cancel_release && itTransitionEvent->FragmentPos() <= process_end) {
+                        process_end       = itTransitionEvent->FragmentPos();
+                        ++itTransitionEvent;
+                        Stage             = (InfiniteSustain) ? stage_sustain : stage_decay2_init; // switch back to sustain / decay2 stage soon
+                    }
+                    else {
+                        ReleaseStepsLeft -= to_process;
+                        if (!ReleaseStepsLeft) Stage = stage_fadeout;
+                    }
+                    while (iSample < process_end) {
+                        Level = Level * ReleaseCoeff2 + ReleaseCoeff3;
+                        pEngine->pSynthesisParameters[ModulationDestination][iSample++] *= Level;
+                    }
                     break;
                 }
                 case stage_fadeout: {
@@ -213,44 +282,78 @@ namespace LinuxSampler { namespace gig {
      * @param SustainLevel    - Sustain level of the sample amplitude EG (0 - 1000 permille).
      * @param ReleaseTIme     - Release time for the envelope (0.000 - 60.000s)
      * @param Delay           - Number of sample points triggering should be delayed.
+     * @param Volume          - Volume the sample will be played at (0.0 - 1.0). Used when calculating the exponential curve parameters.
      */
-    void EGADSR::Trigger(uint PreAttack, double AttackTime, bool HoldAttack, long LoopStart, double Decay1Time, double Decay2Time, bool InfiniteSustain, uint SustainLevel, double ReleaseTime, uint Delay) {
+    void EGADSR::Trigger(uint PreAttack, double AttackTime, bool HoldAttack, long LoopStart, double Decay1Time, double Decay2Time, bool InfiniteSustain, uint SustainLevel, double ReleaseTime, uint Delay, float Volume) {
         this->TriggerDelay     = Delay;
         this->Stage            = stage_attack;
-        this->SustainLevel     = (SustainLevel) ? (SustainLevel > CONFIG_EG_BOTTOM) ? (float) SustainLevel / 1000.0 : CONFIG_EG_BOTTOM : 1.0;
+        if (SustainLevel) {
+            this->SustainLevel = SustainLevel / 1000.0;
+        } else {
+            // sustain level 0 means that voice dies after decay 1
+            this->SustainLevel = CONFIG_EG_BOTTOM;
+            InfiniteSustain    = false;
+            Decay2Time         = CONFIG_EG_MIN_RELEASE_TIME;
+        }
         this->InfiniteSustain  = InfiniteSustain;
         this->HoldAttack       = HoldAttack;
         this->LoopStart        = LoopStart;
         this->ReleasePostponed = false;
 
         // calculate attack stage parameters (lin. curve)
-        AttackStepsLeft = (long) (AttackTime * pEngine->pAudioOutputDevice->SampleRate());
+
+        // Measurements of GSt output shows that the real attack time
+        // is about 65.5% of the value specified in the gig file.
+        AttackStepsLeft = (long) (0.655 * AttackTime * pEngine->pAudioOutputDevice->SampleRate());
         if (AttackStepsLeft) {
             Level       = (float) PreAttack / 1000.0;
-            AttackCoeff = (1.0 - Level) / AttackStepsLeft;
+            AttackCoeff = 0.896 * (1.0 - Level) / AttackStepsLeft; // max level is a bit lower if attack != 0
         }
         else {
             Level       = 1.0;
             AttackCoeff = 0.0;
         }
 
-        // calculate decay1 stage parameters (exp. curve)
-        Decay1StepsLeft = (long) (Decay1Time * pEngine->pAudioOutputDevice->SampleRate());
-        Decay1Coeff     = (Decay1StepsLeft) ? exp(log(this->SustainLevel) / (double) Decay1StepsLeft) - 1.0
-                                            : 0.0;
+        const float invVolume = 1 / Volume;
+        ExpOffset = (0.25 - 1 / 3.55) * invVolume;
 
-        // calculate decay2 stage parameters (exp. curve)
+        // The decay1 and release stage both consist of two parts,
+        // first a linear curve, f, followed by an exponential curve,
+        // g:
+        //
+        // f(x + d) = f(x) + Coeff
+        // g(x + d) = Coeff2 * g(x) + Coeff3
+        //
+        // (where d is 1/SampleRate). The transition from f to g is
+        // done when f(x) has reached Level2 = 25% of full volume.
+
+        // calculate decay1 stage parameters (lin+exp curve)
+        Decay1StepsLeft = (long) (Decay1Time * pEngine->pAudioOutputDevice->SampleRate());
+        if (Decay1StepsLeft) {
+            Decay1Slope  = 1.365 * (this->SustainLevel - 1.0) / Decay1StepsLeft;
+            Decay1Coeff  = Decay1Slope * invVolume;
+            Decay1Slope  *= 3.55;
+            Decay1Coeff2 = exp(Decay1Slope);
+            Decay1Coeff3 = ExpOffset * (1 - Decay1Coeff2);
+            Decay1Level2 = 0.25 * invVolume;
+        }
+
+        // calculate decay2 stage parameters (lin. curve)
         if (!InfiniteSustain) {
             if (Decay2Time < CONFIG_EG_MIN_RELEASE_TIME) Decay2Time = CONFIG_EG_MIN_RELEASE_TIME;
             long Decay2Steps = (long) (Decay2Time * pEngine->pAudioOutputDevice->SampleRate());
-            Decay2Coeff      = (Decay2Steps) ? exp((log(CONFIG_EG_BOTTOM) - log(this->SustainLevel)) / Decay2Steps + log(this->SustainLevel)) - this->SustainLevel
-                                             : 0.0;
+            Decay2Coeff = (-1.03 / Decay2Steps) * invVolume;
         }
 
-        // calculate release stage parameters (exp. curve)
+        // calculate release stage parameters (lin+exp curve)
         if (ReleaseTime < CONFIG_EG_MIN_RELEASE_TIME) ReleaseTime = CONFIG_EG_MIN_RELEASE_TIME;  // to avoid click sounds at the end of the sample playback
         ReleaseStepsLeft = (long) (ReleaseTime * pEngine->pAudioOutputDevice->SampleRate());
-        ReleaseCoeff     = exp((log(CONFIG_EG_BOTTOM) - log(this->SustainLevel)) / ReleaseStepsLeft + log(this->SustainLevel)) - this->SustainLevel;
+        ReleaseSlope  = 1.365 * (0 - 1) / ReleaseStepsLeft;
+        ReleaseCoeff  = ReleaseSlope * invVolume;
+        ReleaseSlope  *= 3.55;
+        ReleaseCoeff2 = exp(ReleaseSlope);
+        ReleaseCoeff3 = ExpOffset * (1 - ReleaseCoeff2);
+        ReleaseLevel2 = 0.25 * invVolume;
 
         dmsg(4,("PreAttack=%d, AttackLength=%d, AttackCoeff=%f, Decay1Coeff=%f, Decay2Coeff=%f, ReleaseLength=%d, ReleaseCoeff=%f\n",
                 PreAttack, AttackStepsLeft, AttackCoeff, Decay1Coeff, Decay2Coeff, ReleaseStepsLeft, ReleaseCoeff));

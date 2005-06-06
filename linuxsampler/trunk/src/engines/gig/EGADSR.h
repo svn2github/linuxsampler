@@ -47,17 +47,24 @@ class EGADSR {
         enum stage_t {
             stage_attack,
             stage_attack_hold,
+            stage_decay1_init,
             stage_decay1,
+            stage_decay1_part2_init,
+            stage_decay1_part2,
+            stage_decay2_init,
             stage_decay2,
             stage_sustain,
+            stage_release_init,
             stage_release,
+            stage_release_part2_init,
+            stage_release_part2,
             stage_fadeout,
             stage_end
         };
 
         EGADSR(gig::Engine* pEngine, Event::destination_t ModulationDestination);
         void Process(uint TotalSamples, RTList<Event>* pEvents, RTList<Event>::Iterator itTriggerEvent, double SamplePos, double CurrentPitch, RTList<Event>::Iterator itKillEvent = RTList<Event>::Iterator());
-        void Trigger(uint PreAttack, double AttackTime, bool HoldAttack, long LoopStart, double Decay1Time, double Decay2Time, bool InfiniteSustain, uint SustainLevel, double ReleaseTime, uint Delay);
+        void Trigger(uint PreAttack, double AttackTime, bool HoldAttack, long LoopStart, double Decay1Time, double Decay2Time, bool InfiniteSustain, uint SustainLevel, double ReleaseTime, uint Delay, float Volume);
         inline EGADSR::stage_t GetStage() { return Stage; }
     protected:
         gig::Engine* pEngine;
@@ -70,13 +77,23 @@ class EGADSR {
         bool    HoldAttack;
         long    LoopStart;
         float   Decay1Coeff;
+        float   Decay1Coeff2;
+        float   Decay1Coeff3;
+        float   Decay1Level2;
+        float   Decay1Slope;
         long    Decay1StepsLeft;   ///< number of sample points in Decay1 stage
         float   Decay2Coeff;
+        long    Decay2StepsLeft;
         bool	InfiniteSustain;
         float   SustainLevel;
         float   ReleaseCoeff;
+        float   ReleaseCoeff2;
+        float   ReleaseCoeff3;
+        float   ReleaseLevel2;
+        float   ReleaseSlope;
         long    ReleaseStepsLeft;  ///< number of sample points til end of release stage
         bool    ReleasePostponed;  ///< If a "release" event occured in the previous audio fragment, but wasn't processed yet.
+        float   ExpOffset;
         const static float FadeOutCoeff;
     private:
         static float CalculateFadeOutCoeff();

@@ -333,9 +333,14 @@ namespace LinuxSampler { namespace gig {
             this->PitchBend = RTMath::CentsToFreqRatio(((double) PitchBend / 8192.0) * 200.0); // pitchbend wheel +-2 semitones = 200 cents
         }
 
-        Volume = pDimRgn->GetVelocityAttenuation(itNoteOnEvent->Param.Note.Velocity) / 32768.0f; // we downscale by 32768 to convert from int16 value range to DSP value range (which is -1.0..1.0)
+        const double velocityAttenuation = pDimRgn->GetVelocityAttenuation(itNoteOnEvent->Param.Note.Velocity);
+
+        Volume = velocityAttenuation / 32768.0f; // we downscale by 32768 to convert from int16 value range to DSP value range (which is -1.0..1.0)
 
         Volume *= pDimRgn->SampleAttenuation;
+
+        // the length of the decay and release curves are dependent on the velocity
+        const double velrelease = 1 / pDimRgn->GetVelocityRelease(itNoteOnEvent->Param.Note.Velocity);
 
         // setup EG 1 (VCA EG)
         {
@@ -366,15 +371,16 @@ namespace LinuxSampler { namespace gig {
                           pDimRgn->EG1Attack + eg1attack,
                           pDimRgn->EG1Hold,
                           pSample->LoopStart,
-                          pDimRgn->EG1Decay1 + eg1decay,
-                          pDimRgn->EG1Decay2 + eg1decay,
+                          (pDimRgn->EG1Decay1 + eg1decay) * velrelease,
+                          (pDimRgn->EG1Decay2 + eg1decay) * velrelease,
                           pDimRgn->EG1InfiniteSustain,
                           pDimRgn->EG1Sustain,
-                          pDimRgn->EG1Release + eg1release,
+                          (pDimRgn->EG1Release + eg1release) * velrelease,
                           // the SSE synthesis implementation requires
                           // the vca start to be 16 byte aligned
                           SYNTHESIS_MODE_GET_IMPLEMENTATION(SynthesisMode) ?
-                          Delay & 0xfffffffc : Delay);
+                          Delay & 0xfffffffc : Delay,
+                          velocityAttenuation);
         }
 
 
@@ -407,12 +413,13 @@ namespace LinuxSampler { namespace gig {
                           pDimRgn->EG2Attack + eg2attack,
                           false,
                           pSample->LoopStart,
-                          pDimRgn->EG2Decay1 + eg2decay,
-                          pDimRgn->EG2Decay2 + eg2decay,
+                          (pDimRgn->EG2Decay1 + eg2decay) * velrelease,
+                          (pDimRgn->EG2Decay2 + eg2decay) * velrelease,
                           pDimRgn->EG2InfiniteSustain,
                           pDimRgn->EG2Sustain,
-                          pDimRgn->EG2Release + eg2release,
-                          Delay);
+                          (pDimRgn->EG2Release + eg2release) * velrelease,
+                          Delay,
+                          velocityAttenuation);
         }
 
 

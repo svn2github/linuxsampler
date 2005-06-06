@@ -665,7 +665,7 @@ namespace LinuxSampler { namespace gig {
             RTList<Event>::Iterator itNoteOffEventOnKeyList = itNoteOffEvent.moveToEndOf(pKey->pEvents);
 
             // spawn release triggered voice(s) if needed
-            if (pKey->ReleaseTrigger) {
+            if (pKey->ReleaseTrigger && itNoteOffEventOnKeyList->Param.Note.Velocity) {
                 // first, get total amount of required voices (dependant on amount of layers)
                 ::gig::Region* pRegion = pEngineChannel->pInstrument->GetRegion(itNoteOffEventOnKeyList->Param.Note.Key);
                 if (pRegion) {
@@ -1195,7 +1195,7 @@ namespace LinuxSampler { namespace gig {
     }
 
     String Engine::Version() {
-        String s = "$Revision: 1.38 $";
+        String s = "$Revision: 1.39 $";
         return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
 
