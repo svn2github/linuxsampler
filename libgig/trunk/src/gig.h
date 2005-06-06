@@ -443,6 +443,8 @@ namespace gig {
 
             // Methods
             double GetVelocityAttenuation(uint8_t MIDIKeyVelocity);
+            double GetVelocityRelease(uint8_t MIDIKeyVelocity);
+
         protected:
             DimensionRegion(RIFF::List* _3ewl);
            ~DimensionRegion();
@@ -481,8 +483,10 @@ namespace gig {
             static uint              Instances;                  ///< Number of DimensionRegion instances.
             static VelocityTableMap* pVelocityTables;            ///< Contains the tables corresponding to the various velocity parameters (VelocityResponseCurve and VelocityResponseDepth).
             double*                  pVelocityAttenuationTable;  ///< Points to the velocity table corresponding to the velocity parameters of this DimensionRegion.
+            double*                  pVelocityReleaseTable;      ///< Points to the velocity table corresponding to the release velocity parameters of this DimensionRegion
 
             leverage_ctrl_t DecodeLeverageController(_lev_ctrl_t EncodedController);
+            double* GetVelocityTable(curve_type_t curveType, uint8_t depth, uint8_t scaling);
             double* CreateVelocityTable(curve_type_t curveType, uint8_t depth, uint8_t scaling);
     };
 

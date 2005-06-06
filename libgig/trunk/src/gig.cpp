@@ -1161,20 +1161,40 @@ namespace {
                 VCFType = vcf_type_lowpassturbo;
         }
 
-        // get the corresponding velocity->volume table from the table map or create & calculate that table if it doesn't exist yet
-        uint32_t tableKey = (VelocityResponseCurve<<16) | (VelocityResponseDepth<<8) | VelocityResponseCurveScaling;
-        if (pVelocityTables->count(tableKey)) { // if key exists
-            pVelocityAttenuationTable = (*pVelocityTables)[tableKey];
+        pVelocityAttenuationTable = GetVelocityTable(VelocityResponseCurve,
+                                                     VelocityResponseDepth,
+                                                     VelocityResponseCurveScaling);
+
+        curve_type_t curveType = ReleaseVelocityResponseCurve;
+        uint8_t depth = ReleaseVelocityResponseDepth;
+
+        // this models a strange behaviour or bug in GSt: two of the
+        // velocity response curves for release time are not used even
+        // if specified, instead another curve is chosen.
+
+        if ((curveType == curve_type_nonlinear && depth == 0) ||
+            (curveType == curve_type_special   && depth == 4)) {
+            curveType = curve_type_nonlinear;
+            depth = 3;
         }
-        else {
-            pVelocityAttenuationTable =
-                CreateVelocityTable(VelocityResponseCurve,
-                                    VelocityResponseDepth,
-                                    VelocityResponseCurveScaling);
-            (*pVelocityTables)[tableKey] = pVelocityAttenuationTable; // put the new table into the tables map
-        }
+        pVelocityReleaseTable = GetVelocityTable(curveType, depth, 0);
 
         SampleAttenuation = pow(10.0, -Gain / (20.0 * 655360));
+    }
+
+    // get the corresponding velocity table from the table map or create & calculate that table if it doesn't exist yet
+    double* DimensionRegion::GetVelocityTable(curve_type_t curveType, uint8_t depth, uint8_t scaling)
+    {
+        double* table;
+        uint32_t tableKey = (curveType<<16) | (depth<<8) | scaling;
+        if (pVelocityTables->count(tableKey)) { // if key exists
+            table = (*pVelocityTables)[tableKey];
+        }
+        else {
+            table = CreateVelocityTable(curveType, depth, scaling);
+            (*pVelocityTables)[tableKey] = table; // put the new table into the tables map
+        }
+        return table;
     }
 
     leverage_ctrl_t DimensionRegion::DecodeLeverageController(_lev_ctrl_t EncodedController) {
@@ -1323,6 +1343,10 @@ namespace {
      */
     double DimensionRegion::GetVelocityAttenuation(uint8_t MIDIKeyVelocity) {
         return pVelocityAttenuationTable[MIDIKeyVelocity];
+    }
+
+    double DimensionRegion::GetVelocityRelease(uint8_t MIDIKeyVelocity) {
+        return pVelocityReleaseTable[MIDIKeyVelocity];
     }
 
     double* DimensionRegion::CreateVelocityTable(curve_type_t curveType, uint8_t depth, uint8_t scaling) {

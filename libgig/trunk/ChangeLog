@@ -5,6 +5,9 @@ Version CVS HEAD (?)
       using the -v switch
     - fixed mutual link dependency to libsndfile / libaudiofile
 
+  * src/gig.cpp, src/gig.h:
+    - added DimensionRegion::GetVelocityRelease function
+
 Version 2.0.0 (9 May 2005)
 
   * packaging changes:
