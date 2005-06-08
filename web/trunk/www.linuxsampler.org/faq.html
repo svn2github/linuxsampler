@@ -165,7 +165,35 @@
 			<h3>Compilation of LinuxSampler aborts with ... </h3>
 			<p class="default">
 				"<code>can't find a register in class `GENERAL_REGS' while reloading `asm'</code>"<br>
-				This is caused by the inline assembly code for SIMD optimization. You currently have to compile LinuxSampler with -O2 or -O3 to avoid this problem. Usually this done by default.
+				This is caused by the inline assembly code for SIMD optimization. You currently have to compile LinuxSampler with -O2 or -O3 to avoid this problem. Usually this done by default, if not try:
+			</p>
+			<table class="default" border="0" cellpadding="1" cellspacing="5">
+				<tr>
+				  <td><pre class="code">1
+2</pre>
+				  </td>
+				  <td width="100%">
+				    <pre class="code">CXXFLAGS="-O3" ./configure
+make</pre>
+				  </td>
+				</tr>
+			</table>
+			<p class="default">
+				Alternatively you could also disable all hand-crafted assembly optimization code by:
+			</p>
+			<table class="default" border="0" cellpadding="1" cellspacing="5">
+				<tr>
+				  <td><pre class="code">1
+2</pre>
+				  </td>
+				  <td width="100%">
+				    <pre class="code">./configure --disable-asm
+make</pre>
+				  </td>
+				</tr>
+			</table>
+			<p class="default">
+				but the latter is definitely not recommended!
 			</p>
 
 			<h3>How do I checkout from CVS?</h3>
