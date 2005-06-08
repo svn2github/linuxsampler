@@ -98,7 +98,7 @@ class __RTMath : public RTMathBase {
                 case CPP: {
                     return (int) a;
                 }
-                #if ARCH_X86
+                #if CONFIG_ASM && ARCH_X86
                 case ASM_X86_MMX_SSE: {
                     int ret;
                     asm (
@@ -108,7 +108,7 @@ class __RTMath : public RTMathBase {
                     );
                     return ret;
                 }
-                #endif // ARCH_X86
+                #endif // CONFIG_ASM && ARCH_X86
             }
         }
 
@@ -122,7 +122,7 @@ class __RTMath : public RTMathBase {
                 case CPP: {
                     return (float) a;
                 }
-                #if ARCH_X86
+                #if CONFIG_ASM && ARCH_X86
                 case ASM_X86_MMX_SSE: {
                     float ret;
                     asm (
@@ -133,7 +133,7 @@ class __RTMath : public RTMathBase {
                     );
                     return ret;
                 }
-                #endif // ARCH_X86
+                #endif // CONFIG_ASM && ARCH_X86
             }
         }
 
@@ -149,7 +149,7 @@ class __RTMath : public RTMathBase {
                 case CPP: {
                     return (a + b);
                 }
-                #if ARCH_X86
+                #if CONFIG_ASM && ARCH_X86
                 case ASM_X86_MMX_SSE: {
                     float ret;
                     asm (
@@ -161,7 +161,7 @@ class __RTMath : public RTMathBase {
                     );
                     return ret;
                 }
-                #endif // ARCH_X86
+                #endif // CONFIG_ASM && ARCH_X86
             }
         }
 
@@ -174,7 +174,7 @@ class __RTMath : public RTMathBase {
                 case CPP: {
                     return (a - b);
                 }
-                #if ARCH_X86
+                #if CONFIG_ASM && ARCH_X86
                 case ASM_X86_MMX_SSE: {
                     float ret;
                     asm (
@@ -186,7 +186,7 @@ class __RTMath : public RTMathBase {
                     );
                     return ret;
                 }
-                #endif // ARCH_X86
+                #endif // CONFIG_ASM && ARCH_X86
             }
         }
 
@@ -199,7 +199,7 @@ class __RTMath : public RTMathBase {
                 case CPP: {
                     return (a * b);
                 }
-                #if ARCH_X86
+                #if CONFIG_ASM && ARCH_X86
                 case ASM_X86_MMX_SSE: {
                     float ret;
                     asm (
@@ -211,7 +211,7 @@ class __RTMath : public RTMathBase {
                     );
                     return ret;
                 }
-                #endif // ARCH_X86
+                #endif // CONFIG_ASM && ARCH_X86
             }
         }
 
@@ -224,7 +224,7 @@ class __RTMath : public RTMathBase {
                 case CPP: {
                     return (a / b);
                 }
-                #if ARCH_X86
+                #if CONFIG_ASM && ARCH_X86
                 case ASM_X86_MMX_SSE: {
                     float ret;
                     asm (
@@ -236,7 +236,7 @@ class __RTMath : public RTMathBase {
                     );
                     return ret;
                 }
-                #endif // ARCH_X86
+                #endif // CONFIG_ASM && ARCH_X86
             }
         }
 
@@ -249,7 +249,7 @@ class __RTMath : public RTMathBase {
                 case CPP: {
                     return (b < a) ? b : a;
                 }
-                #if ARCH_X86
+                #if CONFIG_ASM && ARCH_X86
                 case ASM_X86_MMX_SSE: {
                     float ret;
                     asm (
@@ -261,7 +261,7 @@ class __RTMath : public RTMathBase {
                     );
                     return ret;
                 }
-                #endif // ARCH_X86
+                #endif // CONFIG_ASM && ARCH_X86
             }
         }
 
@@ -274,7 +274,7 @@ class __RTMath : public RTMathBase {
                 case CPP: {
                     return (b > a) ? b : a;
                 }
-                #if ARCH_X86
+                #if CONFIG_ASM && ARCH_X86
                 case ASM_X86_MMX_SSE: {
                     float ret;
                     asm (
@@ -286,7 +286,7 @@ class __RTMath : public RTMathBase {
                     );
                     return ret;
                 }
-                #endif // ARCH_X86
+                #endif // CONFIG_ASM && ARCH_X86
             }
         }
 
@@ -299,7 +299,7 @@ class __RTMath : public RTMathBase {
                 case CPP: {
                     return fmodf(a, b);
                 }
-                #if ARCH_X86
+                #if CONFIG_ASM && ARCH_X86
                 case ASM_X86_MMX_SSE: {
                     float ret;
                     asm (
@@ -318,7 +318,7 @@ class __RTMath : public RTMathBase {
                     );
                     return ret;
                 }
-                #endif // ARCH_X86
+                #endif // CONFIG_ASM && ARCH_X86
             }
         }
 };

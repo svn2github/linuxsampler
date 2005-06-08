@@ -219,6 +219,20 @@ fi
 
 # TODO: should we use AC_ARG_VAR(variable, description) instead?
 
+AC_ARG_ENABLE(asm,
+  [  --disable-asm
+                          Disable hand-crafted assembly optimizations
+                          (default=on). LinuxSampler provides CPU specific
+                          assembly optimizations for the most important
+                          synthesis algorithms. You usually don't want to
+                          diable that.],
+  [config_asm="no"],
+  [config_asm="yes"]
+)
+if test "$config_asm" = "yes"; then
+  AC_DEFINE_UNQUOTED(CONFIG_ASM, 1, [Define to 1 if you want to enable hand-crafted asm optimizations.])
+fi
+
 AC_ARG_ENABLE(dev-mode,
   [  --enable-dev-mode
                           Enable development mode (default=no). In that mode
@@ -556,6 +570,7 @@ echo ""
 echo "#####################################################################"
 echo "# LinuxSampler Configuration                                        #"
 echo "#-------------------------------------------------------------------#"
+echo "# Assembly Optimizations: ${config_asm}"
 echo "# Development Mode: ${config_dev_mode}"
 echo "# Debug Level: ${config_debug_level}"
 echo "# Use Exceptions in RT Context: ${config_rt_exceptions}"

@@ -3,6 +3,8 @@ Version CVS HEAD (?)
   * packaging changes:
     - updated autotools build files to compile on OS X
       (conditional compilation of CoreMIDI and MidiShare drivers)
+    - hand-crafted assembly optimization code can be disabled with
+      './configure --disable-asm' (definitely not recommended)
   * support for the gig parameters for "release velocity response"
     curves
   * fine tuning of the EGADSR envelope

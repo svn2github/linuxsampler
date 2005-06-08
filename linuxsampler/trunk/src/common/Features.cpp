@@ -23,7 +23,7 @@
 
 #include "Features.h"
 
-#if ARCH_X86
+#if CONFIG_ASM && ARCH_X86
 bool Features::bMMX(false);
 bool Features::bSSE(false);
 bool Features::bSSE2(false);
@@ -55,10 +55,10 @@ void Features::detect() {
 }
 #else
 void Features::detect() {}
-#endif // ARCH_X86
+#endif // CONFIG_ASM && ARCH_X86
 
 void Features::enableDenormalsAreZeroMode() {
-    #if ARCH_X86
+    #if CONFIG_ASM && ARCH_X86
     if (supportsSSE2()) {
         int x;
         __asm__ __volatile__ (
@@ -71,15 +71,17 @@ void Features::enableDenormalsAreZeroMode() {
             : "%eax"
         );
     }
-    #endif // ARCH_X86
+    #endif // CONFIG_ASM && ARCH_X86
 }
 
 String Features::featuresAsString() {
     String sFeatures = "none";
-    #if ARCH_X86    
+    #if CONFIG_ASM && ARCH_X86    
     if (supportsMMX())  sFeatures  =  "MMX";
     if (supportsSSE())  sFeatures += " SSE";
     if (supportsSSE2()) sFeatures += " SSE2";
-    #endif // ARCH_X86
+    #else
+    sFeatures = "disabled at compile time";
+    #endif // CONFIG_ASM && ARCH_X86
     return sFeatures;
 }

@@ -82,7 +82,7 @@ namespace LinuxSampler { namespace gig {
             using __RTMath<IMPLEMENTATION>::Float;
             using LinuxSampler::Resampler<INTERPOLATE>::GetNextSampleMonoCPP;
             using LinuxSampler::Resampler<INTERPOLATE>::GetNextSampleStereoCPP;
-#if ARCH_X86
+#if CONFIG_ASM && ARCH_X86
             using LinuxSampler::Resampler<INTERPOLATE>::GetNext4SamplesMonoMMXSSE;
             using LinuxSampler::Resampler<INTERPOLATE>::GetNext4SamplesStereoMMXSSE;
 #endif
@@ -107,7 +107,7 @@ namespace LinuxSampler { namespace gig {
                                        Voice.PitchBase,
                                        Voice.PitchBend,
                                        &panLeft, &panRight);
-                    #if  ARCH_X86
+                    #if CONFIG_ASM && ARCH_X86
                     if (INTERPOLATE) EMMS;
                     #endif
                     Voice.Pos = (double) fPos;
@@ -197,7 +197,7 @@ namespace LinuxSampler { namespace gig {
                     case CPP: {
                         return uint((LoopEnd - *((double *)Pos)) / Pitch);
                     }
-                    #if ARCH_X86
+                    #if CONFIG_ASM && ARCH_X86
                     case ASM_X86_MMX_SSE: {
                         int result;
                         __asm__ __volatile__ (
@@ -212,7 +212,7 @@ namespace LinuxSampler { namespace gig {
                         );
                         return result;
                     }
-                    #endif // ARCH_X86
+                    #endif // CONFIG_ASM && ARCH_X86
                 }
             }
 
@@ -232,7 +232,7 @@ namespace LinuxSampler { namespace gig {
                         *Pos = fmod(*Pos - LoopEnd, LoopSize) + LoopStart;
                         return 1;
                     }
-                    #if ARCH_X86
+                    #if CONFIG_ASM && ARCH_X86
                     case ASM_X86_MMX_SSE: {
                         int result = 0;
                         __asm__ __volatile__ (
@@ -264,7 +264,7 @@ namespace LinuxSampler { namespace gig {
                         );
                         return result;
                     }
-                    #endif // ARCH_X86
+                    #endif // CONFIG_ASM && ARCH_X86
                 }
             }
 
@@ -301,7 +301,7 @@ namespace LinuxSampler { namespace gig {
                         }
                         break;
                     }
-                    #if ARCH_X86
+                    #if CONFIG_ASM && ARCH_X86
                     // Assembly optimization using the MMX & SSE(1) instruction set (thus only for x86)
                     case ASM_X86_MMX_SSE: {
                         const int ii = i & 0xfffffffc;
@@ -387,7 +387,7 @@ namespace LinuxSampler { namespace gig {
                               "r" (&pOutR[ii])  /* %1 - must be 16 byte aligned ! */
                         );
                     }
-                    #endif // ARCH_X86
+                    #endif // CONFIG_ASM && ARCH_X86
                 }
             }
     };
