@@ -162,6 +162,12 @@
 				</ol>
 			</p>
 
+			<h3>Compilation of LinuxSampler aborts with ... </h3>
+			<p class="default">
+				"<code>can't find a register in class `GENERAL_REGS' while reloading `asm'</code>"<br>
+				This is caused by the inline assembly code for SIMD optimization. You currently have to compile LinuxSampler with -O2 or -O3 to avoid this problem. Usually this done by default.
+			</p>
+
 			<h3>How do I checkout from CVS?</h3>
 			<p class="default">
 				The procedure of checking out the newest version from CVS is described on the
