@@ -8,6 +8,8 @@ Version CVS HEAD (?)
   * support for the gig parameters for "release velocity response"
     curves
   * fine tuning of the EGADSR envelope
+  * LSCP server:
+    - fixed some crashs (patch by Grigor Iliev, fixes #19)
 
 Version 0.3.1 (24 May 2005)
 
