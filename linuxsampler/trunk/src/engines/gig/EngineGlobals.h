@@ -54,6 +54,8 @@ namespace LinuxSampler { namespace gig {
         RTList<Event>*  pEvents;        ///< Key specific events (only Note-on, Note-off and sustain pedal currently)
         int             VoiceTheftsQueued; ///< Amount of voices postponed due to shortage of voices.
         uint8_t         RoundRobinIndex; ///< For the round robin dimension: current articulation for this key, will be incremented for each note on
+        uint8_t         Velocity;       ///< Latest Note-on velocity for this key
+        unsigned long   NoteOnTime;     ///< Time for latest Note-on event for this key
     };
 
 }} // namespace LinuxSampler::gig

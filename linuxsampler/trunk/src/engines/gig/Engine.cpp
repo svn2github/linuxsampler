@@ -414,6 +414,8 @@ namespace LinuxSampler { namespace gig {
         ActiveVoiceCount = ActiveVoiceCountTemp;
         if (ActiveVoiceCount > ActiveVoiceCountMax) ActiveVoiceCountMax = ActiveVoiceCount;
 
+        FrameTime += Samples;
+
         return 0;
     }
 
@@ -610,6 +612,8 @@ namespace LinuxSampler { namespace gig {
         midi_key_info_t* pKey = &pEngineChannel->pMIDIKeyInfo[key];
 
         pKey->KeyPressed = true; // the MIDI key was now pressed down
+        pKey->Velocity   = itNoteOnEvent->Param.Note.Velocity;
+        pKey->NoteOnTime = FrameTime + itNoteOnEvent->FragmentPos(); // will be used to calculate note length
 
         // cancel release process of voices on this key if needed
         if (pKey->Active && !pEngineChannel->SustainPedal) {
@@ -665,11 +669,15 @@ namespace LinuxSampler { namespace gig {
             RTList<Event>::Iterator itNoteOffEventOnKeyList = itNoteOffEvent.moveToEndOf(pKey->pEvents);
 
             // spawn release triggered voice(s) if needed
-            if (pKey->ReleaseTrigger && itNoteOffEventOnKeyList->Param.Note.Velocity) {
+            if (pKey->ReleaseTrigger) {
                 // first, get total amount of required voices (dependant on amount of layers)
                 ::gig::Region* pRegion = pEngineChannel->pInstrument->GetRegion(itNoteOffEventOnKeyList->Param.Note.Key);
                 if (pRegion) {
                     int voicesRequired = pRegion->Layers;
+
+                    // MIDI note-on velocity is used instead of note-off velocity
+                    itNoteOffEventOnKeyList->Param.Note.Velocity = pKey->Velocity;
+
                     // now launch the required amount of voices
                     for (int i = 0; i < voicesRequired; i++)
                         LaunchVoice(pEngineChannel, itNoteOffEventOnKeyList, i, true, false); //FIXME: for the moment we don't perform voice stealing for release triggered samples
@@ -1195,7 +1203,7 @@ namespace LinuxSampler { namespace gig {
     }
 
     String Engine::Version() {
-        String s = "$Revision: 1.39 $";
+        String s = "$Revision: 1.40 $";
         return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
 

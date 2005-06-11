@@ -147,6 +147,8 @@ namespace LinuxSampler { namespace gig {
             void    AdjustScale(int8_t ScaleTunes[12]);
             void    ReleaseAllVoices(EngineChannel* pEngineChannel, Pool<Event>::Iterator& itReleaseEvent);
             void    KillAllVoices(EngineChannel* pEngineChannel, Pool<Event>::Iterator& itKillEvent);
+
+            unsigned long FrameTime; ///< Time in frames of the start of the current audio fragment
     };
 
 }} // namespace LinuxSampler::gig

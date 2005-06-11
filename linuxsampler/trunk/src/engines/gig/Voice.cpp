@@ -269,6 +269,22 @@ namespace LinuxSampler { namespace gig {
         pSample = pDimRgn->pSample; // sample won't change until the voice is finished
         if (!pSample || !pSample->SamplesTotal) return -1; // no need to continue if sample is silent
 
+        // calculate volume
+        const double velocityAttenuation = pDimRgn->GetVelocityAttenuation(itNoteOnEvent->Param.Note.Velocity);
+
+        Volume = velocityAttenuation / 32768.0f; // we downscale by 32768 to convert from int16 value range to DSP value range (which is -1.0..1.0)
+
+        Volume *= pDimRgn->SampleAttenuation;
+
+        // the volume of release triggered samples depends on note length
+        if (ReleaseTriggerVoice) {
+            float noteLength = float(pEngine->FrameTime + Delay -
+                                     pEngineChannel->pMIDIKeyInfo[MIDIKey].NoteOnTime) / pEngine->SampleRate;
+            float attenuation = 1 - 0.01053 * (256 >> pDimRgn->ReleaseTriggerDecay) * noteLength;
+            if (attenuation <= 0) return -1;
+            Volume *= attenuation;
+        }
+
         // select channel mode (mono or stereo)
         SYNTHESIS_MODE_SET_CHANNELS(SynthesisMode, pSample->Channels == 2);
 
@@ -332,12 +348,6 @@ namespace LinuxSampler { namespace gig {
             this->PitchBase = RTMath::CentsToFreqRatio(pitchbasecents) * (double(pSample->SamplesPerSecond) / double(pEngine->pAudioOutputDevice->SampleRate()));
             this->PitchBend = RTMath::CentsToFreqRatio(((double) PitchBend / 8192.0) * 200.0); // pitchbend wheel +-2 semitones = 200 cents
         }
-
-        const double velocityAttenuation = pDimRgn->GetVelocityAttenuation(itNoteOnEvent->Param.Note.Velocity);
-
-        Volume = velocityAttenuation / 32768.0f; // we downscale by 32768 to convert from int16 value range to DSP value range (which is -1.0..1.0)
-
-        Volume *= pDimRgn->SampleAttenuation;
 
         // the length of the decay and release curves are dependent on the velocity
         const double velrelease = 1 / pDimRgn->GetVelocityRelease(itNoteOnEvent->Param.Note.Velocity);
