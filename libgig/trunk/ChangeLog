@@ -1,4 +1,4 @@
-Version CVS HEAD (?)
+Version 2.0.1 (12 Jun 2005)
 
   * src/gigextract.cpp:
     - show also version of libsndfile or build version of libaudiofile when
