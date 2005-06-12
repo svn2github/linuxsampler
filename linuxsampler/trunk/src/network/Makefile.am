@@ -10,7 +10,7 @@ sqlite3_lflags =
 endif
 
 noinst_LTLIBRARIES = liblinuxsamplernetwork.la
-liblinuxsamplernetwork_la_SOURCES = lscp.h lscpparser.cpp lscpparser.h lscpserver.cpp lscpserver.h lscpsymbols.h lscpresultset.cpp lscpresultset.h lscpevent.cpp lscpevent.h lscpinstrumentloader.cpp
+liblinuxsamplernetwork_la_SOURCES = lscp.h lscpparser.cpp lscpparser.h lscpserver.cpp lscpserver.h lscpsymbols.h lscpresultset.cpp lscpresultset.h lscpevent.cpp lscpevent.h lscpinstrumentloader.h lscpinstrumentloader.cpp
 liblinuxsamplernetwork_la_LIBADD = $(sqlite3_lflags)
 
 .PHONY: parser

@@ -1,0 +1,62 @@
+
+%define name    @PACKAGE@
+%define version @VERSION@
+%define release 2
+%define prefix  @prefix@
+
+Summary:	LinuxSampler - modular, streaming capable, realtime audio sampler
+Name:		%{name}
+Version:	%{version}
+Release:	%{release}
+Prefix:	%{prefix}
+Copyright:	GPL
+Group:		Sound
+Source0:	%{name}-%{version}.tar.bz2
+URL:		http://www.linuxsampler.org/
+BuildRoot:	/var/tmp/%{name}-%{version}-buildroot
+Requires:	libgig >= 2.0.1
+
+%description
+LinuxSampler is a work in progress. It's goal is to produce a free
+software audio sampler with professional grade features.
+
+It offers disk streaming capability and supports the Gigasampler
+format which is currently considered to be the best sampler format
+in regards of possibilities and sound quality.
+
+This package provides the backend of LinuxSampler, that is the
+sampler engine together with audio and MIDI drivers. LinuxSampler
+can be controlled via network interface which uses an ASCII based
+protocol called LSCP. You might consider to install a GUI frontend
+for LinuxSampler as well.
+
+For more informations please visit http://www.linuxsampler.org
+
+%prep
+
+%setup
+[ -f Makefile.cvs ] && make -f Makefile.cvs
+
+%build
+./configure --prefix=%{prefix} --enable-optimize
+[ -f Makefile.cvs ] && make parser
+make
+
+%install
+if [ -d $RPM_BUILD_ROOT ]; then rm -rf $RPM_BUILD_ROOT; fi
+mkdir -p $RPM_BUILD_ROOT
+make prefix=$RPM_BUILD_ROOT%{prefix} install
+
+%clean
+if [ -d $RPM_BUILD_ROOT ]; then rm -rf $RPM_BUILD_ROOT; fi
+
+%files
+%defattr(-,root,root)
+%doc AUTHORS COPYING ChangeLog README
+%{prefix}/bin/linuxsampler
+%{prefix}/lib/linuxsampler/liblinuxsampler.*
+%{prefix}/man/man1/linuxsampler.*
+
+%changelog
+* Sun Jun 12 2005 Rui Nuno Capela <rncbc@users.sourceforge.net>
+- Created first official linuxsampler.spec
