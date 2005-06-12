@@ -11,7 +11,7 @@ Release:	%{release}
 Prefix:		%{prefix}
 Copyright:	GPL
 Group:		Sound
-Source0:	%{name}-%{version}.tar.gz
+Source0:	%{name}-%{version}.tar.bz2
 URL:		http://stud.fh-heilbronn.de/~cschoene/projects/libgig/
 BuildRoot:	/var/tmp/%{name}-%{version}-buildroot
 
