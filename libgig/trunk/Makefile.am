@@ -1,4 +1,6 @@
-SUBDIRS = doc man src
+AUTOMAKE_OPTIONS = dist-bzip2
+
+SUBDIRS = doc man src debian
 
 # to prevent compile errors on some systems
 AM_CXXFLAGS = -pedantic

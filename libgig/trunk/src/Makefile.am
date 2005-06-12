@@ -1,3 +1,5 @@
+AUTOMAKE_OPTIONS = dist-bzip2
+
 # to prevent compile errors on some systems
 AM_CXXFLAGS = -pedantic -Wreturn-type
 

@@ -1,5 +1,9 @@
 Version 2.0.1 (12 Jun 2005)
 
+  * packaging changes:
+    - include debian/ directory on 'make dist'
+    - create a bzip2 tarball on 'make dist'
+
   * src/gigextract.cpp:
     - show also version of libsndfile or build version of libaudiofile when
       using the -v switch
