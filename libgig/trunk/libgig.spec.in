@@ -1,7 +1,7 @@
 
 %define name    @PACKAGE@
 %define version @VERSION@
-%define release 3
+%define release 4
 %define prefix  @prefix@
 
 Summary:	C++ library for loading Gigasampler files and DLS Level 1/2 files.
@@ -60,7 +60,7 @@ if [ -d $RPM_BUILD_ROOT ]; then rm -rf $RPM_BUILD_ROOT; fi
 %{prefix}/include/*
 
 %changelog
-* Sun May 11 2005 Rui Nuno Capela <rncbc@users.sourceforge.net>
+* Mon Jun 13 2005 Rui Nuno Capela <rncbc@users.sourceforge.net>
 - prepared for 2.0.1
 * Mon May  9 2005 Rui Nuno Capela <rncbc@users.sourceforge.net>
 - prepared for 2.0.0
