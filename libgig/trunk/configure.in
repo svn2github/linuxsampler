@@ -1,7 +1,15 @@
 AC_INIT(configure.in)
 
 #------------------------------------------------------------------------------------
-# Rules for library version information:
+# Library's "official" release version:
+
+LIBGIG_RELEASE_MAJOR=2
+LIBGIG_RELEASE_MINOR=0
+LIBGIG_RELEASE_BUILD=1
+
+#------------------------------------------------------------------------------------
+# The following is the libtool / shared library version. This doesn't have to
+# do anything with the release version. It MUST conform to the following rules:
 #
 #  1. Start with version information of `0:0:0' for each libtool library.
 #  2. Update the version information only immediately before a public release of
@@ -16,10 +24,10 @@ AC_INIT(configure.in)
 #  6. If any interfaces have been removed since the last public release, then set age
 #     to 0.
 
-LIBGIG_CURRENT=3
-LIBGIG_REVISION=0
-LIBGIG_AGE=1
-SHARED_VERSION_INFO="$LIBGIG_CURRENT:$LIBGIG_REVISION:$LIBGIG_AGE"
+LIBGIG_LT_CURRENT=3
+LIBGIG_LT_REVISION=0
+LIBGIG_LT_AGE=1
+SHARED_VERSION_INFO="$LIBGIG_LT_CURRENT:$LIBGIG_LT_REVISION:$LIBGIG_LT_AGE"
 
 
 AC_C_BIGENDIAN
@@ -59,6 +67,6 @@ if test "$have_audio_file_lib" = "false"; then
 fi
 
 AM_CONFIG_HEADER(config.h)
-AM_INIT_AUTOMAKE(libgig, "$LIBGIG_CURRENT.$LIBGIG_REVISION.$LIBGIG_AGE")
+AM_INIT_AUTOMAKE(libgig, "$LIBGIG_RELEASE_MAJOR.$LIBGIG_RELEASE_MINOR.$LIBGIG_RELEASE_BUILD")
 
 AC_OUTPUT(Makefile doc/Makefile man/Makefile src/Makefile libgig.spec gig.pc Doxyfile man/dlsdump.1 man/gigdump.1 man/gigextract.1 man/rifftree.1 debian/Makefile)
