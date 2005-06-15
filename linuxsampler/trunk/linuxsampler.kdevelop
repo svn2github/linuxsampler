@@ -15,6 +15,7 @@
     <description/>
     <ignoreparts/>
     <secondaryLanguages/>
+    <versioncontrol/>
   </general>
   <kdevautoproject>
     <general>
@@ -26,7 +27,7 @@
       <terminal>true</terminal>
       <directoryradio>executable</directoryradio>
       <runarguments>
-        <linuxsampler></linuxsampler>
+        <linuxsampler/>
       </runarguments>
       <customdirectory>/</customdirectory>
       <programargs/>
@@ -47,7 +48,7 @@
         <ccompiler>kdevgccoptions</ccompiler>
         <cxxcompiler>kdevgppoptions</cxxcompiler>
         <f77compiler>kdevpgf77options</f77compiler>
-        <cxxflags>-O0 -g3</cxxflags>
+        <cxxflags>-O2 -g</cxxflags>
         <topsourcedir/>
         <cppflags/>
         <ldflags/>
@@ -56,6 +57,7 @@
         <f77compilerbinary/>
         <cflags/>
         <f77flags/>
+        <envvars/>
       </debug>
     </configurations>
     <make>
@@ -81,6 +83,7 @@
       <group pattern="*.h" name="Header files" />
       <group pattern="*.cpp" name="Source files" />
       <hidenonprojectfiles>false</hidenonprojectfiles>
+      <hidenonlocation>false</hidenonlocation>
     </groups>
     <tree>
       <hidenonprojectfiles>false</hidenonprojectfiles>
@@ -89,14 +92,14 @@
   </kdevfileview>
   <kdevcvs>
     <cvsoptions>-f</cvsoptions>
-    <commitoptions></commitoptions>
-    <addoptions></addoptions>
-    <logoptions></logoptions>
+    <commitoptions/>
+    <addoptions/>
+    <logoptions/>
     <updateoptions>-dP</updateoptions>
     <removeoptions>-f</removeoptions>
     <revertoptions>-C -d -P</revertoptions>
     <diffoptions>-u3 -p</diffoptions>
-    <rshoptions></rshoptions>
+    <rshoptions/>
   </kdevcvs>
   <kdevcppsupport>
     <references/>
@@ -112,6 +115,14 @@
       <argumentsHintDelay>400</argumentsHintDelay>
       <headerCompletionDelay>250</headerCompletionDelay>
     </codecompletion>
+    <creategettersetter>
+      <prefixGet/>
+      <prefixSet>set</prefixSet>
+      <prefixVariable>m_,_</prefixVariable>
+      <parameterName>theValue</parameterName>
+      <inlineGet>true</inlineGet>
+      <inlineSet>true</inlineSet>
+    </creategettersetter>
   </kdevcppsupport>
   <kdevdoctreeview>
     <projectdoc>
@@ -145,6 +156,23 @@
     <display>
       <staticmembers>false</staticmembers>
       <demanglenames>true</demanglenames>
+      <outputradix>10</outputradix>
     </display>
   </kdevdebugger>
+  <kdevvisualadvance>
+    <emulator>VisualBoyAdvance</emulator>
+    <binary/>
+    <addOptions/>
+    <terminal>false</terminal>
+    <fullscreen>false</fullscreen>
+    <graphicFilter>-f0</graphicFilter>
+    <scaling>-1</scaling>
+  </kdevvisualadvance>
+  <kdevdocumentation>
+    <projectdoc>
+      <docsystem/>
+      <docurl/>
+      <usermanualurl/>
+    </projectdoc>
+  </kdevdocumentation>
 </kdevelop>
