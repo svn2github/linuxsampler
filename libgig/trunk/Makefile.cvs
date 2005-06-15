@@ -16,3 +16,4 @@ clean:
 	@rm -rvf Makefile.in config.*
 	@rm -rvf missing install-sh mkinstalldirs depcomp ltmain.sh
 	@rm -rvf configure stamp-h.*
+	@rm -rvf Doxyfile
