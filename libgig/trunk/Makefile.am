@@ -9,6 +9,8 @@ AM_CXXFLAGS = -pedantic
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = gig.pc
 
+EXTRA_DIST = libgig.kdevelop
+
 docs: Doxyfile
 	@echo '*** Running doxygen ***'
 	doxygen Doxyfile
