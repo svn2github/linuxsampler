@@ -1,4 +1,5 @@
-AUTOMAKE_OPTIONS = dist-bzip2
+# require automake >= 1.5 (mandatory for option dist-bzip2)
+AUTOMAKE_OPTIONS = 1.5 dist-bzip2
 
 SUBDIRS = doc man src debian
 
