@@ -12,21 +12,38 @@ Content
                                      provide the necessary extensions for
                                      the Gigasampler file format.
 
+  Beside the actual library there are four example applications:
+
+    gigdump:     Demo app that prints out the content of a .gig file.
+    gigextract:  Extracts samples from a .gig file.
+    dlsdump:     Demo app that prints out the content of a DLS file.
+    rifftree:    Tool that prints out the RIFF tree of an arbitrary RIFF
+                 file.
+
 Requirements
 ============
-  I simply used automake & co this time so you will need to have automake,
-  autoconf and libtool installed. I used the following versions:
 
-    automake  1.6.3
-    autoconf  2.57
+  POSIX systems (e.g. Linux, OS X):
+  ---------------------------------
 
-  If you want to compile the 'gigextract' application that comes with these
-  sources then you will additionally need to have libaudiofile (>= 0.2.3)
-  or libsndfile (>= 1.0.2) installed. Note: for Windows systems only
-  libsndfile is available.
+  You need at least to have libtool installed to be able to build the
+  library with "./configure && make".
 
-Non-POSIX systems
-=================
+  Additionally you need to have either libaudiofile (>= 0.2.3) or
+  libsndfile (>= 1.0.2) installed which is mandatory to be able to compile
+  the 'gigextract' example application. But of course 'gigextract' is still
+  just an example application, so it would make sense to compile it only if
+  one of those libraries are available. That would remove that hard
+  dependency to those two libs. But that's not a priority for me now.
+  Note: for Windows systems only libsndfile is available.
+
+  If you want to regenerate all autotools build files (that is configure,
+  Makefile.in, etc.) then you need to have automake (>= 1.5) and autoconf
+  installed.  
+
+  Non-POSIX systems (e.g. Windows):
+  ---------------------------------
+  
   If you don't have a POSIX system, you have to set 'POSIX' to '0' in RIFF.h.
   Instead of using POSIX calls then standard C calls will be used for file
   access. This applies e.g. to Windows systems. I would appreciate if
@@ -42,23 +59,29 @@ Compiling
 
   a) Compiling and installing directly
 
-  Use 'make -f Makefile.cvs && ./configure && make' to compile the library,
-  all tools, demo applications, documentation and install them with
-  'make install'. You can use 'make distclean && make -f Makefile.cvs clean'
-  to clean up everything again.
+  Call './configure && make' on the console to compile the library, all
+  tools and demo applications, documentation and install them with
+  'make install'. The latter has to be called as root.
+
+  If you are compiling from CVS you have to call 'make -f Makefile.cvs'
+  to generate all autotools build files before calling
+  './configure && make'.
+
+  You can use 'make distclean' and probably 'make -f Makefile.cvs clean'
+  to clean up everything again. The latter will also delete all automatic
+  generated autools build files.
 
   b) Creating Debian packages
 
-  Use 'make -f Makefile.cvs && dpkg-buildpackage -rfakeroot -b' to compile
-  and create the Debian packages. This will generate 3 Debian packages:
+  Use 'dpkg-buildpackage -rfakeroot -b' to compile and create the Debian
+  packages. This will generate 3 Debian packages:
 
     libgig:      Contains the shared library files.
     libgig-dev:  Contains the header files and documentation for building
                  applications using libgig.
     gigtools:    Contains the tools and demo applications.
 
-  You can use 'fakeroot debian/rules clean && make -f Makefile.cvs clean'
-  to clean up everything again.
+  You can use 'fakeroot debian/rules clean' to clean up everything again.
 
   c) Creating Redhat packages
 
@@ -77,17 +100,6 @@ Compiling
 
   On success, the resulting rpm(s) can usually be found under the proper
   "/usr/src/<rpmdir>/RPMS/<arch>" directory.
-
-Tools
-=====
-
- Beside the actual library there are four applications:
-
-     gigdump:     Demo app that prints out the content of a .gig file.
-     gigextract:  Extracts samples from a .gig file.
-     dlsdump:     Demo app that prints out the content of a DLS file.
-     rifftree:    Tool that prints out the RIFF tree of an arbitrary RIFF
-                  file.
 
 API Documentation
 =================
