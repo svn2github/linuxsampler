@@ -26,24 +26,25 @@ Requirements on Linux
       (header) files as MIDI input and audio output drivers.
     o libgig and its development (header) files for loading Gigasampler
       format files.
+    o libtool
     o If you are compiling from CVS you need to have the autotools installed
-      (autoconf, automake and libtool).
+      (autoconf, automake (>= 1.5)).
 
 
 Compiling on Linux
 ------------------
 
     a) Compiling and installing directly
-    
+
     The general procedure by calling './configure && make' on the source's
     toplevel directory will compile and 'make install' as root will install
     LinuxSampler on your system.
-    
+
     Note: if you are compiling from CVS you have to explicitly call
           'make -f Makefile.cvs' before doing the above procedure. This will
           generate all autotools managed build files.
 
-          
+
     b) Creating Debian packages
 
     Simply calling 'dpkg-buildpackage -rfakeroot -b' from the source's
@@ -51,7 +52,7 @@ Compiling on Linux
     The Debian package will be placed one directory above the source's
     toplevel directory (thus ../).
 
-    
+
     c) Creating Redhat packages
 
     You need to have the rpmbuild tool installed and properly configured to
@@ -74,7 +75,7 @@ Compiling on Linux
 Compilation on OSX : Stephane Letz (letz@grame.fr)
 --------------------------------------------------
 
-The compilation on OSX currently uses an XCode project. 
+The compilation on OSX currently uses an XCode project.
 
 - Download and install the JackOSX package (www.jackosx.com)
 

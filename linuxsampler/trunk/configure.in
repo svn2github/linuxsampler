@@ -560,7 +560,32 @@ AC_CHECK_HEADER(stdlib.h)
 
 AM_PROG_LIBTOOL
 
-AC_OUTPUT(Makefile man/Makefile man/linuxsampler.1 src/Makefile src/network/Makefile src/engines/Makefile src/engines/gig/Makefile src/engines/common/Makefile src/common/Makefile src/lib/Makefile src/lib/fileloader/Makefile src/lib/fileloader/libgig/Makefile src/testcases/Makefile src/drivers/Makefile src/drivers/audio/Makefile src/drivers/midi/Makefile linuxsampler.spec)
+AC_OUTPUT( \
+    Makefile \
+    man/Makefile \
+    man/linuxsampler.1 \
+    src/Makefile \
+    src/network/Makefile \
+    src/engines/Makefile \
+    src/engines/gig/Makefile \
+    src/engines/common/Makefile \
+    src/common/Makefile src/lib/Makefile \
+    src/lib/fileloader/Makefile \
+    src/lib/fileloader/libgig/Makefile \
+    src/testcases/Makefile \
+    src/drivers/Makefile \
+    src/drivers/audio/Makefile \
+    src/drivers/midi/Makefile \
+    linuxsampler.spec \
+    debian/Makefile \
+    Artwork/Makefile \
+    scripts/Makefile \
+    osx/Makefile \
+    osx/LinuxSampler.xcode/Makefile \
+    Documentation/Makefile \
+    Documentation/Engines/Makefile \
+    Documentation/Engines/gig/Makefile \
+)
 
 
 ###########################################################################

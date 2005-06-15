@@ -20,6 +20,10 @@ jack_lflags =
 endif
 
 noinst_LTLIBRARIES = liblinuxsampleraudiodriver.la
-liblinuxsampleraudiodriver_la_SOURCES = AudioChannel.cpp AudioChannel.h AudioOutputDevice.cpp AudioOutputDevice.h AudioOutputDeviceFactory.h AudioOutputDeviceFactory.cpp $(alsa_src) $(jack_src)
+liblinuxsampleraudiodriver_la_SOURCES = \
+	AudioChannel.cpp AudioChannel.h \
+	AudioOutputDevice.cpp AudioOutputDevice.h \
+	AudioOutputDeviceFactory.cpp AudioOutputDeviceFactory.h \
+	$(alsa_src) $(jack_src)
 liblinuxsampleraudiodriver_la_LIBADD = $(alsa_ladd)
 liblinuxsampleraudiodriver_la_LDFLAGS = $(jack_lflags)

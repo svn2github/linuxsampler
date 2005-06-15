@@ -1,8 +1,10 @@
-# not a GNU package. You can remove this line, if
+# not a GNU package. You can remove 'foreign', if
 # have all needed files, that a GNU package needs
-AUTOMAKE_OPTIONS = foreign 1.4 dist-bzip2
+AUTOMAKE_OPTIONS = foreign 1.5 dist-bzip2
 
-SUBDIRS = man src
+SUBDIRS = man src scripts osx Artwork Documentation debian
+
+EXTRA_DIST = Doxyfile linuxsampler.kdevelop
 
 .PHONY: parser testcases
 

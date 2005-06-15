@@ -5,6 +5,9 @@ Version CVS HEAD (?)
       (conditional compilation of CoreMIDI and MidiShare drivers)
     - hand-crafted assembly optimization code can be disabled with
       './configure --disable-asm' (definitely not recommended)
+    - fixed 'make dist' rule to include all necessary files
+    - require automake (>= 1.5) for 'make -f Makefile.cvs'
+      (due to 'dist-bzip2' automake option)
 
   * Gigasampler format engine:
     - support for the gig parameters for "release velocity response" curves
@@ -13,9 +16,9 @@ Version CVS HEAD (?)
       note length and gig parameter "release trigger decay" instead of
       note-off velocity.
     - revised voice stealing (fixes crash caused by voice stealing)
-    
+
   * LSCP server:
-    - fixed some crashes (patch by Grigor Iliev, fixes #19)  
+    - fixed some crashes (patch by Grigor Iliev, fixes #19)
 
 Version 0.3.1 (24 May 2005)
 
