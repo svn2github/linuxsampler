@@ -1,6 +1,5 @@
-# not a GNU package. You can remove 'foreign', if
-# have all needed files, that a GNU package needs
-AUTOMAKE_OPTIONS = foreign 1.5 dist-bzip2
+# require automake (>= 1.5) due to 'dist-bzip2' option
+AUTOMAKE_OPTIONS = 1.5 dist-bzip2
 
 SUBDIRS = man src scripts osx Artwork Documentation debian
 
