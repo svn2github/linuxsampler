@@ -5,14 +5,17 @@ Version CVS HEAD (?)
       (conditional compilation of CoreMIDI and MidiShare drivers)
     - hand-crafted assembly optimization code can be disabled with
       './configure --disable-asm' (definitely not recommended)
-  * support for the gig parameters for "release velocity response"
-    curves
-  * fine tuning of the EGADSR envelope
+
+  * Gigasampler format engine:
+    - support for the gig parameters for "release velocity response" curves
+    - fine tuning of the EGADSR envelope
+    - volume of release triggered samples now depends on note-on velocity,
+      note length and gig parameter "release trigger decay" instead of
+      note-off velocity.
+    - revised voice stealing (fixes crash caused by voice stealing)
+    
   * LSCP server:
-    - fixed some crashes (patch by Grigor Iliev, fixes #19)
-  * volume of release triggered samples now depends on note-on
-    velocity, note length and gig parameter "release trigger decay"
-    instead of note-off velocity.
+    - fixed some crashes (patch by Grigor Iliev, fixes #19)  
 
 Version 0.3.1 (24 May 2005)
 

@@ -184,9 +184,11 @@ namespace LinuxSampler { namespace gig {
 
         // reset voice stealing parameters
         pVoiceStealingQueue->clear();
-        itLastStolenVoice  = RTList<Voice>::Iterator();
-        iuiLastStolenKey   = RTList<uint>::Iterator();
-        pLastStolenChannel = NULL;
+        itLastStolenVoice          = RTList<Voice>::Iterator();
+        itLastStolenVoiceGlobally  = RTList<Voice>::Iterator();
+        iuiLastStolenKey           = RTList<uint>::Iterator();
+        iuiLastStolenKeyGlobally   = RTList<uint>::Iterator();
+        pLastStolenChannel         = NULL;
 
         // reset to normal chromatic scale (means equal temper)
         memset(&ScaleTuning[0], 0x00, 12);
@@ -406,9 +408,6 @@ namespace LinuxSampler { namespace gig {
 
         // reset voice stealing for the next audio fragment
         pVoiceStealingQueue->clear();
-        itLastStolenVoice  = RTList<Voice>::Iterator();
-        iuiLastStolenKey   = RTList<uint>::Iterator();
-        pLastStolenChannel = NULL;
 
         // just some statistics about this engine instance
         ActiveVoiceCount = ActiveVoiceCountTemp;
@@ -458,6 +457,13 @@ namespace LinuxSampler { namespace gig {
                 }
             }
         }
+
+        // reset voice stealing for the next engine channel (or next audio fragment)
+        itLastStolenVoice         = RTList<Voice>::Iterator();
+        itLastStolenVoiceGlobally = RTList<Voice>::Iterator();
+        iuiLastStolenKey          = RTList<uint>::Iterator();
+        iuiLastStolenKeyGlobally  = RTList<uint>::Iterator();
+        pLastStolenChannel        = NULL;
     }
 
     /**
@@ -816,18 +822,34 @@ namespace LinuxSampler { namespace gig {
                 // from the same engine channel
                 // (caution: must stay after 'oldestvoiceonkey' algorithm !)
                 case voice_steal_algo_oldestkey: {
+                    // if we already stole in this fragment, try to proceed on same key
                     if (this->itLastStolenVoice) {
                         itSelectedVoice = this->itLastStolenVoice;
-                        ++itSelectedVoice;
-                        if (itSelectedVoice) break; // selection succeeded
-                        RTList<uint>::Iterator iuiSelectedKey = this->iuiLastStolenKey;
-                        ++iuiSelectedKey;
-                        if (iuiSelectedKey) {
-                            this->iuiLastStolenKey = iuiSelectedKey;
-                            midi_key_info_t* pSelectedKey = &pEngineChannel->pMIDIKeyInfo[*iuiSelectedKey];
-                            itSelectedVoice = pSelectedKey->pActiveVoices->first();
+                        do {
+                            ++itSelectedVoice;
+                        } while (itSelectedVoice && !itSelectedVoice->hasRendered()); // proceed iterating if voice was created in this fragment cycle
+                        // found a "stealable" voice ?
+                        if (itSelectedVoice && itSelectedVoice->hasRendered()) {
+                            // remember which voice we stole, so we can simply proceed on next voice stealing
+                            this->itLastStolenVoice = itSelectedVoice;
                             break; // selection succeeded
                         }
+                    }
+                    // get (next) oldest key
+                    RTList<uint>::Iterator iuiSelectedKey = (this->iuiLastStolenKey) ? ++this->iuiLastStolenKey : pEngineChannel->pActiveKeys->first();
+                    while (iuiSelectedKey) {
+                        midi_key_info_t* pSelectedKey = &pEngineChannel->pMIDIKeyInfo[*iuiSelectedKey];
+                        itSelectedVoice = pSelectedKey->pActiveVoices->first();                        
+                        // proceed iterating if voice was created in this fragment cycle
+                        while (itSelectedVoice && !itSelectedVoice->hasRendered()) ++itSelectedVoice;
+                        // found a "stealable" voice ?
+                        if (itSelectedVoice && itSelectedVoice->hasRendered()) {
+                            // remember which voice on which key we stole, so we can simply proceed on next voice stealing
+                            this->iuiLastStolenKey  = iuiSelectedKey;
+                            this->itLastStolenVoice = itSelectedVoice;
+                            break; // selection succeeded
+                        }
+                        ++iuiSelectedKey; // get next oldest key
                     }
                     break;
                 }
@@ -842,20 +864,53 @@ namespace LinuxSampler { namespace gig {
 
             // if we couldn't steal a voice from the same engine channel then
             // steal oldest voice on the oldest key from any other engine channel
-            if (!itSelectedVoice) {
-                EngineChannel* pSelectedChannel = (pLastStolenChannel) ? pLastStolenChannel : pEngineChannel;
-                int iChannelIndex = pSelectedChannel->iEngineIndexSelf;
+            // (the smaller engine channel number, the higher priority)
+            if (!itSelectedVoice || !itSelectedVoice->hasRendered()) {
+                EngineChannel* pSelectedChannel;
+                int            iChannelIndex;
+                // select engine channel
+                if (pLastStolenChannel) {
+                    pSelectedChannel = pLastStolenChannel;
+                    iChannelIndex    = pSelectedChannel->iEngineIndexSelf;
+                } else { // pick the engine channel followed by this engine channel
+                    iChannelIndex    = (pEngineChannel->iEngineIndexSelf + 1) % engineChannels.size();
+                    pSelectedChannel = engineChannels[iChannelIndex];
+                }
+                // iterate through engine channels
                 while (true) {
-                    RTList<uint>::Iterator iuiSelectedKey = pSelectedChannel->pActiveKeys->first();
-                    if (iuiSelectedKey) {
-                        midi_key_info_t* pSelectedKey = &pSelectedChannel->pMIDIKeyInfo[*iuiSelectedKey];
-                        itSelectedVoice    = pSelectedKey->pActiveVoices->first();
-                        iuiLastStolenKey   = iuiSelectedKey;
-                        pLastStolenChannel = pSelectedChannel;
-                        break; // selection succeeded
+                    // if we already stole in this fragment, try to proceed on same key
+                    if (this->itLastStolenVoiceGlobally) {
+                        itSelectedVoice = this->itLastStolenVoiceGlobally;
+                        do {
+                            ++itSelectedVoice;
+                        } while (itSelectedVoice && !itSelectedVoice->hasRendered()); // proceed iterating if voice was created in this fragment cycle
+                        // break if selection succeeded
+                        if (itSelectedVoice && itSelectedVoice->hasRendered()) {
+                            // remember which voice we stole, so we can simply proceed on next voice stealing
+                            this->itLastStolenVoiceGlobally = itSelectedVoice;
+                            break; // selection succeeded
+                        }
                     }
+                    // get (next) oldest key
+                    RTList<uint>::Iterator iuiSelectedKey = (this->iuiLastStolenKey) ? ++this->iuiLastStolenKey : pSelectedChannel->pActiveKeys->first();
+                    while (iuiSelectedKey) {
+                        midi_key_info_t* pSelectedKey = &pEngineChannel->pMIDIKeyInfo[*iuiSelectedKey];
+                        itSelectedVoice = pSelectedKey->pActiveVoices->first();
+                        // proceed iterating if voice was created in this fragment cycle
+                        while (itSelectedVoice && !itSelectedVoice->hasRendered()) ++itSelectedVoice;
+                        // found a "stealable" voice ?
+                        if (itSelectedVoice && itSelectedVoice->hasRendered()) {
+                            // remember which voice on which key on which engine channel we stole, so we can simply proceed on next voice stealing
+                            this->iuiLastStolenKeyGlobally  = iuiSelectedKey;
+                            this->itLastStolenVoiceGlobally = itSelectedVoice;
+                            this->pLastStolenChannel        = pSelectedChannel;
+                            break; // selection succeeded
+                        }
+                        ++iuiSelectedKey; // get next key on current engine channel
+                    }
+                    // get next engine channel
                     iChannelIndex    = (iChannelIndex + 1) % engineChannels.size();
-                    pSelectedChannel =  engineChannels[iChannelIndex];
+                    pSelectedChannel = engineChannels[iChannelIndex];
                 }
             }
 
@@ -867,10 +922,7 @@ namespace LinuxSampler { namespace gig {
             #endif // CONFIG_DEVMODE
 
             // now kill the selected voice
-            itSelectedVoice->Kill(itNoteOnEvent);
-
-            // remember which voice we stole, so we can simply proceed for the next voice stealing
-            itLastStolenVoice = itSelectedVoice;
+            itSelectedVoice->Kill(itNoteOnEvent);            
 
             --VoiceTheftsLeft;
 
@@ -1203,7 +1255,7 @@ namespace LinuxSampler { namespace gig {
     }
 
     String Engine::Version() {
-        String s = "$Revision: 1.40 $";
+        String s = "$Revision: 1.41 $";
         return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
 
