@@ -102,7 +102,7 @@ namespace LinuxSampler { namespace gig {
             int                     VoiceTheftsLeft;       ///< We only allow CONFIG_MAX_VOICES voices to be stolen per audio fragment, we use this variable to ensure this limit.
             RTList<Voice>::Iterator itLastStolenVoice;     ///< Only for voice stealing: points to the last voice which was theft in current audio fragment, NULL otherwise.
             RTList<uint>::Iterator  iuiLastStolenKey;      ///< Only for voice stealing: key number of last key on which the last voice was theft in current audio fragment, NULL otherwise.
-            EngineChannel*          pLastStolenChannel;    ///< Only for voice stealing: points to the engine channel on which the previous voice was stolen in this audio fragment.            
+            EngineChannel*          pLastStolenChannel;    ///< Only for voice stealing: points to the engine channel on which the previous voice was stolen in this audio fragment.
             RTList<Voice>::Iterator itLastStolenVoiceGlobally; ///< Same as itLastStolenVoice, but engine globally
             RTList<uint>::Iterator  iuiLastStolenKeyGlobally;  ///< Same as iuiLastStolenKey, but engine globally
             bool                    SuspensionRequested;
@@ -128,6 +128,7 @@ namespace LinuxSampler { namespace gig {
             void FreeKey(EngineChannel* pEngineChannel, midi_key_info_t* pKey);
             void ResetSynthesisParameters(Event::destination_t dst, float val);
             void ResetInternal();
+            void ResetScaleTuning();
 
             static Engine* AcquireEngine(LinuxSampler::gig::EngineChannel* pChannel, AudioOutputDevice* pDevice);
             static void    FreeEngine(LinuxSampler::gig::EngineChannel* pChannel, AudioOutputDevice* pDevice);

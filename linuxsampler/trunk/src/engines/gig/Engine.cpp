@@ -119,6 +119,7 @@ namespace LinuxSampler { namespace gig {
         pMainFilterParameters   = NULL;
 
         ResetInternal();
+        ResetScaleTuning();
     }
 
     /**
@@ -171,6 +172,7 @@ namespace LinuxSampler { namespace gig {
     void Engine::Reset() {
         DisableAndLock();
         ResetInternal();
+        ResetScaleTuning();
         Enable();
     }
 
@@ -190,9 +192,6 @@ namespace LinuxSampler { namespace gig {
         iuiLastStolenKeyGlobally   = RTList<uint>::Iterator();
         pLastStolenChannel         = NULL;
 
-        // reset to normal chromatic scale (means equal temper)
-        memset(&ScaleTuning[0], 0x00, 12);
-
         // reset all voices
         for (RTList<Voice>::Iterator iterVoice = pVoicePool->allocAppend(); iterVoice == pVoicePool->last(); iterVoice = pVoicePool->allocAppend()) {
             iterVoice->Reset();
@@ -204,6 +203,13 @@ namespace LinuxSampler { namespace gig {
 
         // delete all input events
         pEventQueue->init();
+    }
+
+    /**
+     * Reset to normal, chromatic scale (means equal tempered).
+     */
+    void Engine::ResetScaleTuning() {
+        memset(&ScaleTuning[0], 0x00, 12);
     }
 
     /**
@@ -839,7 +845,7 @@ namespace LinuxSampler { namespace gig {
                     RTList<uint>::Iterator iuiSelectedKey = (this->iuiLastStolenKey) ? ++this->iuiLastStolenKey : pEngineChannel->pActiveKeys->first();
                     while (iuiSelectedKey) {
                         midi_key_info_t* pSelectedKey = &pEngineChannel->pMIDIKeyInfo[*iuiSelectedKey];
-                        itSelectedVoice = pSelectedKey->pActiveVoices->first();                        
+                        itSelectedVoice = pSelectedKey->pActiveVoices->first();
                         // proceed iterating if voice was created in this fragment cycle
                         while (itSelectedVoice && !itSelectedVoice->hasRendered()) ++itSelectedVoice;
                         // found a "stealable" voice ?
@@ -922,7 +928,7 @@ namespace LinuxSampler { namespace gig {
             #endif // CONFIG_DEVMODE
 
             // now kill the selected voice
-            itSelectedVoice->Kill(itNoteOnEvent);            
+            itSelectedVoice->Kill(itNoteOnEvent);
 
             --VoiceTheftsLeft;
 
@@ -1255,7 +1261,7 @@ namespace LinuxSampler { namespace gig {
     }
 
     String Engine::Version() {
-        String s = "$Revision: 1.41 $";
+        String s = "$Revision: 1.42 $";
         return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
 

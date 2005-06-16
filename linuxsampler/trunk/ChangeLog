@@ -16,6 +16,7 @@ Version CVS HEAD (?)
       note length and gig parameter "release trigger decay" instead of
       note-off velocity.
     - revised voice stealing (fixes crash caused by voice stealing)
+    - don't reset scale tuning on instrument or audio output device change
 
   * LSCP server:
     - fixed some crashes (patch by Grigor Iliev, fixes #19)
