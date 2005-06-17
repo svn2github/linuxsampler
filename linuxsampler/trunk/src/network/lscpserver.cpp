@@ -33,6 +33,7 @@
 #endif
 
 #include "../engines/EngineFactory.h"
+#include "../engines/EngineChannelFactory.h"
 #include "../drivers/audio/AudioOutputDeviceFactory.h"
 #include "../drivers/midi/MidiInputDeviceFactory.h"
 
@@ -189,6 +190,18 @@ int LSCPServer::Main() {
 			break;
 		}
 	}
+
+        // check if some engine channel's parameter / status changed, if so notify the respective LSCP event subscribers
+        {
+            std::set<EngineChannel*> engineChannels = EngineChannelFactory::EngineChannelInstances();
+            std::set<EngineChannel*>::iterator itEngineChannel = engineChannels.begin();
+            std::set<EngineChannel*>::iterator itEnd           = engineChannels.end();
+            for (; itEngineChannel != itEnd; ++itEngineChannel) {
+                if ((*itEngineChannel)->StatusChanged()) {
+                    SendLSCPNotify(LSCPEvent(LSCPEvent::event_channel_info, (*itEngineChannel)->iSamplerChannelIndex));
+                }
+            }
+        }
 
 	//Now let's deliver late notifies (if any)
 	NotifyBufferMutex.Lock();
@@ -578,7 +591,7 @@ String LSCPServer::GetEngineInfo(String EngineName) {
         Engine* pEngine = EngineFactory::Create(EngineName);
         result.Add("DESCRIPTION", pEngine->Description());
         result.Add("VERSION",     pEngine->Version());
-        delete pEngine;
+        EngineFactory::Destroy(pEngine);
     }
     catch (LinuxSamplerException e) {
          result.Error(e);

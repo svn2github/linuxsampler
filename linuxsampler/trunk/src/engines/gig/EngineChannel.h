@@ -58,6 +58,7 @@ namespace LinuxSampler { namespace gig {
             virtual void    SendNoteOff(uint8_t Key, uint8_t Velocity);
             virtual void    SendPitchbend(int Pitch);
             virtual void    SendControlChange(uint8_t Controller, uint8_t Value);
+            virtual bool    StatusChanged();
             virtual float   Volume();
             virtual void    Volume(float f);
             virtual uint    Channels();
@@ -103,6 +104,7 @@ namespace LinuxSampler { namespace gig {
             String                  InstrumentIdxName;
             int                     InstrumentStat;
             int                     iEngineIndexSelf;         ///< Reflects the index of this EngineChannel in the Engine's ArrayList.
+            bool                    bStatusChanged;           ///< true in case an engine parameter has changed (e.g. new instrument, another volumet)
 
             void ResetControllers();
             void ClearEventLists();

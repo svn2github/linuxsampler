@@ -1006,6 +1006,7 @@ namespace LinuxSampler { namespace gig {
             case 7: { // volume
                 //TODO: not sample accurate yet
                 pEngineChannel->GlobalVolume = (float) itControlChangeEventOnCCList->Param.CC.Value / 127.0f;
+                pEngineChannel->bStatusChanged = true; // engine channel status has changed, so set notify flag
                 break;
             }
             case 10: { // panpot
@@ -1261,7 +1262,7 @@ namespace LinuxSampler { namespace gig {
     }
 
     String Engine::Version() {
-        String s = "$Revision: 1.42 $";
+        String s = "$Revision: 1.43 $";
         return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
 

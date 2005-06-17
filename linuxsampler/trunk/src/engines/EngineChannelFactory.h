@@ -21,6 +21,8 @@
 #ifndef __LS_ENGINECHANNELFACTORY_H__
 #define __LS_ENGINECHANNELFACTORY_H__
 
+#include <set>
+
 #include "common/EngineChannel.h"
 
 namespace LinuxSampler {
@@ -28,6 +30,8 @@ namespace LinuxSampler {
     class EngineChannelFactory {
         public:
             static EngineChannel* Create(String EngineType) throw (LinuxSamplerException);
+            static void Destroy(EngineChannel* pEngineChannel);
+            static std::set<EngineChannel*> EngineChannelInstances();
     };
 
 } // namepsace LinuxSampler

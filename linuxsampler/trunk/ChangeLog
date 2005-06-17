@@ -20,6 +20,8 @@ Version CVS HEAD (?)
 
   * LSCP server:
     - fixed some crashes (patch by Grigor Iliev, fixes #19)
+    - fixed LSCP event "CHANNEL_INFO" notification
+      (e.g. did not notify on volume changes)
 
 Version 0.3.1 (24 May 2005)
 

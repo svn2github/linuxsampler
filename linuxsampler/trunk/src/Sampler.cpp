@@ -51,7 +51,7 @@ namespace LinuxSampler {
             if (pMidiInputPort) pMidiInputPort->Disconnect(pEngineChannel);
             if (pEngineChannel) {
                 if (pAudioOutputDevice) pEngineChannel->DisconnectAudioOutputDevice();
-                delete pEngineChannel;
+                EngineChannelFactory::Destroy(pEngineChannel);
             }
         }
     }
@@ -63,13 +63,16 @@ namespace LinuxSampler {
         EngineChannel* pNewEngineChannel = EngineChannelFactory::Create(EngineType);
         if (!pNewEngineChannel) throw LinuxSamplerException("Unknown engine type");
 
+        //FIXME: hack to allow fast retrieval of engine channel's sampler channel index
+        pNewEngineChannel->iSamplerChannelIndex = Index();
+
         // dereference midi input port.
         MidiInputPort* pMidiInputPort = GetMidiInputDevicePort(this->midiPort);
         // disconnect old engine
         if (pEngineChannel) {
             if (pMidiInputPort) pMidiInputPort->Disconnect(pEngineChannel);
             if (pAudioOutputDevice) pEngineChannel->DisconnectAudioOutputDevice();
-            delete pEngineChannel;
+            EngineChannelFactory::Destroy(pEngineChannel);
         }
 
         // connect new engine channel

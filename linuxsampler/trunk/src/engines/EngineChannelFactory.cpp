@@ -26,11 +26,24 @@
 
 namespace LinuxSampler {
 
+    // all currently existing engine channel instances
+    static std::set<LinuxSampler::EngineChannel*> engineChannels;
+
     LinuxSampler::EngineChannel* EngineChannelFactory::Create(String EngineType) throw (LinuxSamplerException) {
         if (!strcasecmp(EngineType.c_str(),"GigEngine") || !strcasecmp(EngineType.c_str(),"gig")) {
-            return new gig::EngineChannel;
+            LinuxSampler::EngineChannel* pEngineChannel = new gig::EngineChannel;
+            engineChannels.insert(pEngineChannel);
+            return pEngineChannel;
         }
         throw LinuxSamplerException("Unknown engine type");
+    }
+
+    void EngineChannelFactory::Destroy(LinuxSampler::EngineChannel* pEngineChannel) {
+        engineChannels.erase(pEngineChannel);
+    }
+
+    std::set<LinuxSampler::EngineChannel*> EngineChannelFactory::EngineChannelInstances() {
+        return engineChannels;
     }
 
 } // namepsace LinuxSampler

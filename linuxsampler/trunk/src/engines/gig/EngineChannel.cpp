@@ -60,6 +60,24 @@ namespace LinuxSampler { namespace gig {
     }
 
     /**
+     * Implementation of virtual method from abstract EngineChannel interface.
+     * This method will periodically be polled (e.g. by the LSCP server) to
+     * check if some engine channel parameter has changed since the last
+     * StatusChanged() call.
+     *
+     * TODO: This "poll method" is just a lazy solution and might be
+     *       replaced in future.
+     *
+     * @returns true if engine channel status has changed since last
+     *          StatusChanged() call
+     */
+    bool EngineChannel::StatusChanged() {
+        bool b = bStatusChanged;
+        bStatusChanged = false;
+        return b;
+    }
+
+    /**
      * This method is not thread safe!
      */
     void EngineChannel::ResetInternal() {
@@ -96,6 +114,9 @@ namespace LinuxSampler { namespace gig {
         pEventQueue->init();
 
         if (pEngine) pEngine->ResetInternal();
+
+        // status of engine channel has changed, so set notify flag
+        bStatusChanged = true;
     }
 
     LinuxSampler::Engine* EngineChannel::GetEngine() {
@@ -208,6 +229,7 @@ namespace LinuxSampler { namespace gig {
     void EngineChannel::ResourceUpdated(::gig::Instrument* pOldResource, ::gig::Instrument* pNewResource, void* pUpdateArg) {
         this->pInstrument = pNewResource; //TODO: there are couple of engine parameters we should update here as well if the instrument was updated (see LoadInstrument())
         if (pEngine) pEngine->Enable();
+        bStatusChanged = true; // status of engine has changed, so set notify flag
     }
 
     /**
@@ -219,6 +241,7 @@ namespace LinuxSampler { namespace gig {
     void EngineChannel::OnResourceProgress(float fProgress) {
         this->InstrumentStat = int(fProgress * 100.0f);
         dmsg(7,("gig::EngineChannel: progress %d%", InstrumentStat));
+        bStatusChanged = true; // status of engine has changed, so set notify flag
     }
 
     void EngineChannel::Connect(AudioOutputDevice* pAudioOut) {
@@ -446,6 +469,7 @@ namespace LinuxSampler { namespace gig {
 
     void EngineChannel::Volume(float f) {
         GlobalVolume = f;
+        bStatusChanged = true; // status of engine channel has changed, so set notify flag
     }
 
     uint EngineChannel::Channels() {
@@ -471,5 +495,5 @@ namespace LinuxSampler { namespace gig {
     String EngineChannel::EngineName() {
         return LS_GIG_ENGINE_NAME;
     }
-    
+
 }} // namespace LinuxSampler::gig

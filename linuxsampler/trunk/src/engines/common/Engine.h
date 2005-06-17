@@ -35,7 +35,7 @@ namespace LinuxSampler {
      * sampler engine implementations.
      */
     class Engine {
-        public:            
+        public:
 
             /////////////////////////////////////////////////////////////////
             // abstract methods
@@ -57,9 +57,11 @@ namespace LinuxSampler {
             virtual String Version() = 0;
             virtual String EngineName() = 0;
 
-            virtual ~Engine() {};
+        protected:
+            virtual ~Engine() {}; // MUST only be destroyed by EngineFactory
+            friend class EngineFactory;
     };
-    
+
 } // namespace LinuxSampler
 
 #endif // __LS_ENGINE_H__

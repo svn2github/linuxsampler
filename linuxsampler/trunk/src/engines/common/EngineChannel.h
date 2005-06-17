@@ -42,24 +42,25 @@ namespace LinuxSampler {
      */
     class EngineChannel {
         public:
-    
+
             /////////////////////////////////////////////////////////////////
             // abstract methods
             //     (these have to be implemented by the descendant)
-            
+
             virtual void    PrepareLoadInstrument(const char* FileName, uint Instrument) = 0;
             virtual void    LoadInstrument() = 0;
             virtual void    SendNoteOn(uint8_t Key, uint8_t Velocity) = 0;
             virtual void    SendNoteOff(uint8_t Key, uint8_t Velocity) = 0;
             virtual void    SendPitchbend(int Pitch) = 0;
-            virtual void    SendControlChange(uint8_t Controller, uint8_t Value) = 0;            
+            virtual void    SendControlChange(uint8_t Controller, uint8_t Value) = 0;
+            virtual bool    StatusChanged() = 0;
             virtual float   Volume() = 0;
             virtual void    Volume(float f) = 0;
-            virtual uint    Channels() = 0;            
+            virtual uint    Channels() = 0;
             virtual void    Connect(AudioOutputDevice* pAudioOut) = 0;
             virtual void    DisconnectAudioOutputDevice() = 0;
             virtual void    SetOutputChannel(uint EngineAudioChannel, uint AudioDeviceChannel) = 0;
-            virtual int     OutputChannel(uint EngineAudioChannel) = 0;            
+            virtual int     OutputChannel(uint EngineAudioChannel) = 0;
             virtual String  InstrumentFileName() = 0;
             virtual String  InstrumentName() = 0;
             virtual int     InstrumentIndex() = 0;
@@ -67,9 +68,13 @@ namespace LinuxSampler {
             virtual Engine* GetEngine() = 0;
             virtual String  EngineName() = 0;
 
-            virtual ~EngineChannel() {};
+            int iSamplerChannelIndex; ///< FIXME: nasty hack, might be removed (should be 'virtual EngineChannel* EngineChannel() = 0;', but due to cyclic dependencies only a void* solution would be possible ATM)
+
+        protected:
+            virtual ~EngineChannel() {}; // MUST only be destroyed by EngineChannelFactory
+            friend class EngineChannelFactory;
     };
-    
+
 } // namespace LinuxSampler
- 
+
 #endif // __LS_ENGINECHANNEL_H__
