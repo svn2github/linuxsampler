@@ -88,7 +88,7 @@ namespace LinuxSampler { namespace gig {
             void SetEngine(Engine* pEngine);
             int  Trigger(EngineChannel* pEngineChannel, Pool<Event>::Iterator& itNoteOnEvent, int PitchBend, ::gig::Instrument* pInstrument, int iLayer, bool ReleaseTriggerVoice, bool VoiceStealingAllowed);
             inline bool IsActive() { return PlaybackState; }
-            inline bool hasRendered() { return PlaybackState >= playback_state_ram; }
+            inline bool IsStealable() { return !itKillEvent && PlaybackState >= playback_state_ram; }
         //private:
             // Types
             enum playback_state_t {

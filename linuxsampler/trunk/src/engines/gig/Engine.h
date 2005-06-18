@@ -99,7 +99,7 @@ namespace LinuxSampler { namespace gig {
             int                     ActiveVoiceCount;      ///< number of currently active voices (this value will be returned for public calls)
             int                     ActiveVoiceCountTemp;  ///< number of currently active voices (for internal usage, will be used for incrementation)
             int                     ActiveVoiceCountMax;   ///< the maximum voice usage since application start
-            int                     VoiceTheftsLeft;       ///< We only allow CONFIG_MAX_VOICES voices to be stolen per audio fragment, we use this variable to ensure this limit.
+            int                     VoiceSpawnsLeft;       ///< We only allow CONFIG_MAX_VOICES voices to be spawned per audio fragment, we use this variable to ensure this limit.
             RTList<Voice>::Iterator itLastStolenVoice;     ///< Only for voice stealing: points to the last voice which was theft in current audio fragment, NULL otherwise.
             RTList<uint>::Iterator  iuiLastStolenKey;      ///< Only for voice stealing: key number of last key on which the last voice was theft in current audio fragment, NULL otherwise.
             EngineChannel*          pLastStolenChannel;    ///< Only for voice stealing: points to the engine channel on which the previous voice was stolen in this audio fragment.

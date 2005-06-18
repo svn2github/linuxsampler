@@ -15,7 +15,8 @@ Version CVS HEAD (?)
     - volume of release triggered samples now depends on note-on velocity,
       note length and gig parameter "release trigger decay" instead of
       note-off velocity.
-    - revised voice stealing (fixes crash caused by voice stealing)
+    - revised voice stealing
+      (fixes crash and endless loop caused by voice stealing)
     - don't reset scale tuning on instrument or audio output device change
 
   * LSCP server:
