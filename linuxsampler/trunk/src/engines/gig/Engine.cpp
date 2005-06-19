@@ -917,7 +917,7 @@ namespace LinuxSampler { namespace gig {
                             this->iuiLastStolenKeyGlobally  = iuiSelectedKey;
                             this->itLastStolenVoiceGlobally = itSelectedVoice;
                             this->pLastStolenChannel        = pSelectedChannel;
-                            break; // selection succeeded
+                            goto stealable_voice_found; // selection succeeded
                         }
                         ++iuiSelectedKey; // get next key on current engine channel
                     }
@@ -935,6 +935,9 @@ namespace LinuxSampler { namespace gig {
                     #endif // CONFIG_DEVMODE
                 }
             }
+
+            // jump point if a 'stealable' voice was found
+            stealable_voice_found:
 
             #if CONFIG_DEVMODE
             if (!itSelectedVoice->IsActive()) {
@@ -1279,7 +1282,7 @@ namespace LinuxSampler { namespace gig {
     }
 
     String Engine::Version() {
-        String s = "$Revision: 1.44 $";
+        String s = "$Revision: 1.45 $";
         return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
 
