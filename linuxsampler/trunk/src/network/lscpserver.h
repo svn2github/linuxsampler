@@ -47,6 +47,7 @@
 #include "../common/Condition.h"
 
 /// TCP Port on which the server should listen for connection requests.
+#define LSCP_ADDR INADDR_ANY
 #define LSCP_PORT 8888
 
 /// try up to 3 minutes to bind server socket
@@ -63,7 +64,7 @@ extern void restart(yyparse_param_t* pparam, int& yychar);
  */
 class LSCPServer : public Thread {
     public:
-        LSCPServer(Sampler* pSampler);
+        LSCPServer(Sampler* pSampler, long int addr, short int port);
         virtual ~LSCPServer();
         int WaitUntilInitialized(long TimeoutSeconds = 0L, long TimeoutNanoSeconds = 0L);
 

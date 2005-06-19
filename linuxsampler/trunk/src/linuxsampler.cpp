@@ -41,6 +41,8 @@ pthread_t   main_thread;
 bool bPrintStatistics = false;
 bool profile = false;
 bool tune = true;
+unsigned long int lscp_addr;
+unsigned short int lscp_port;
 
 void parse_options(int argc, char **argv);
 void signal_handler(int signal);
@@ -69,6 +71,9 @@ int main(int argc, char **argv) {
     sigaction(SIGUSR1, &sact, NULL);
     sigaction(SIGUSR2, &sact, NULL);
 
+    lscp_addr = htonl(LSCP_ADDR);
+    lscp_port = htons(LSCP_PORT);
+
     // parse and assign command line options
     parse_options(argc, argv);
 
@@ -93,8 +98,10 @@ int main(int argc, char **argv) {
     dmsg(1,("Registered audio output drivers: %s\n", AudioOutputDeviceFactory::AvailableDriversAsString().c_str()));
 
     // start LSCP network server
-    dmsg(1,("Starting LSCP network server (on TCP port %d)...", LSCP_PORT));
-    pLSCPServer = new LSCPServer(pSampler);
+    struct in_addr addr;
+    addr.s_addr = lscp_addr;
+    dmsg(1,("Starting LSCP network server (%s:%d)...", inet_ntoa(addr), ntohs(lscp_port)));
+    pLSCPServer = new LSCPServer(pSampler, lscp_addr, lscp_port);
     pLSCPServer->StartThread();
     pLSCPServer->WaitUntilInitialized();
     dmsg(1,("OK\n"));
@@ -222,6 +229,8 @@ void parse_options(int argc, char **argv) {
             {"profile",0,0,0},
             {"no-tune",0,0,0},
             {"statistics",0,0,0},
+            {"lscp-addr",1,0,0},
+            {"lscp-port",1,0,0},
             {0,0,0,0}
         };
 
@@ -240,7 +249,9 @@ void parse_options(int argc, char **argv) {
                     printf("--version          prints version information\n");
                     printf("--profile          profile synthesis algorithms\n");
                     printf("--no-tune          disable assembly optimization\n");
-                    printf("--statistics       prints periodically statistics\n");
+                    printf("--statistics       periodically prints statistics\n");
+                    printf("--lscp-addr        set LSCP address (default: any)\n");
+                    printf("--lscp-port        set LSCP port (default: 8888)\n");
                     exit(EXIT_SUCCESS);
                     break;
                 case 1: // --version
@@ -255,6 +266,20 @@ void parse_options(int argc, char **argv) {
                     break;
                 case 4: // --statistics
                     bPrintStatistics = true;
+                    break;
+                case 5: // --lscp-addr
+		    struct in_addr addr;
+		    if (inet_aton(optarg, &addr) == 0)
+			    printf("WARNING: Failed to parse lscp-addr argument, ignoring!\n");
+		    else
+			    lscp_addr = addr.s_addr;
+                    break;
+                case 6: // --lscp-port
+		    long unsigned int port = 0;
+		    if ((sscanf(optarg, "%u", &port) != 1) || (port == 0) || (port > 65535))
+			    printf("WARNING: Failed to parse lscp-port argument, ignoring!\n");
+		    else
+			    lscp_port = htons(port);
                     break;
             }
         }

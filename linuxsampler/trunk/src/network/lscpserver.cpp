@@ -61,7 +61,10 @@ Mutex LSCPServer::NotifyBufferMutex = Mutex();
 Mutex LSCPServer::SubscriptionMutex = Mutex();
 Mutex LSCPServer::RTNotifyMutex = Mutex();
 
-LSCPServer::LSCPServer(Sampler* pSampler) : Thread(true, false, 0, -4) {
+LSCPServer::LSCPServer(Sampler* pSampler, long int addr, short int port) : Thread(true, false, 0, -4) {
+    SocketAddress.sin_family      = AF_INET;
+    SocketAddress.sin_addr.s_addr = addr;
+    SocketAddress.sin_port        = port;
     this->pSampler = pSampler;
     LSCPEvent::RegisterEvent(LSCPEvent::event_channel_count, "CHANNEL_COUNT");
     LSCPEvent::RegisterEvent(LSCPEvent::event_voice_count, "VOICE_COUNT");
@@ -97,10 +100,6 @@ int LSCPServer::Main() {
         //return -1;
         exit(EXIT_FAILURE);
     }
-
-    SocketAddress.sin_family      = AF_INET;
-    SocketAddress.sin_port        = htons(LSCP_PORT);
-    SocketAddress.sin_addr.s_addr = htonl(INADDR_ANY);
 
     if (bind(hSocket, (sockaddr*) &SocketAddress, sizeof(sockaddr_in)) < 0) {
         std::cerr << "LSCPServer: Could not bind server socket, retrying for " << ToString(LSCP_SERVER_BIND_TIMEOUT) << " seconds...";
