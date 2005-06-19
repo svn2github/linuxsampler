@@ -758,7 +758,7 @@ namespace RIFF {
 // *************** File ***************
 // *
 
-    File::File(const String& path) : List() {
+    File::File(const String& path) : List(), Filename(path) {
       #if DEBUG
       std::cout << "File::File("<<path<<")" << std::endl;
       #endif // DEBUG

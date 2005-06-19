@@ -4,6 +4,18 @@ Version CVS HEAD (?)
     - require automake (>= 1.5) for 'make -f Makefile.cvs'
       (mandatory for 'dist-bzip2' automake option)
 
+  * src/gig.cpp, src/gig.h:
+    - support for gig v3 multi-file format (.gig, .gx01, .gx02, ...),
+      the extension files are read automatically when the samples are
+      loaded
+
+  * src/DLS.cpp, src/DLS.h:
+    - the upper bits of the pool table indices are read (used as
+      extension file numbers for gig v3)
+
+  * src/RIFF.cpp, src/RIFF.h:
+    - the file name is remembered in the RIFF::File object
+
 Version 2.0.1 (12 Jun 2005)
 
   * packaging changes:

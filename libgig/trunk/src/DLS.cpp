@@ -413,19 +413,22 @@ namespace DLS {
         uint32_t headersize = ptbl->ReadUint32();
         WavePoolCount  = ptbl->ReadUint32();
         pWavePoolTable = new uint32_t[WavePoolCount];
+        pWavePoolTableHi = new uint32_t[WavePoolCount];
         ptbl->SetPos(headersize);
 
         // Check for 64 bit offsets (used in gig v3 files)
         if (ptbl->GetSize() - headersize == WavePoolCount * 8) {
             for (int i = 0 ; i < WavePoolCount ; i++) {
-                // Just ignore the upper bits for now
-                uint32_t upper = ptbl->ReadUint32();
+                pWavePoolTableHi[i] = ptbl->ReadUint32();
                 pWavePoolTable[i] = ptbl->ReadUint32();
-                if (upper || (pWavePoolTable[i] & 0x80000000))
+                if (pWavePoolTable[i] & 0x80000000)
                     throw DLS::Exception("Files larger than 2 GB not yet supported");
             }
         }
-        else ptbl->Read(pWavePoolTable, WavePoolCount, sizeof(uint32_t));
+        else {
+            ptbl->Read(pWavePoolTable, WavePoolCount, sizeof(uint32_t));
+            for (int i = 0 ; i < WavePoolCount ; i++) pWavePoolTableHi[i] = 0;
+        }
 
         pSamples     = NULL;
         pInstruments = NULL;
@@ -453,6 +456,7 @@ namespace DLS {
         }
 
         if (pWavePoolTable) delete[] pWavePoolTable;
+        if (pWavePoolTableHi) delete[] pWavePoolTableHi;
         if (pVersion) delete pVersion;
     }
 

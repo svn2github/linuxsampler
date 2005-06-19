@@ -538,8 +538,9 @@ namespace gig {
             unsigned long        WorstCaseFrameSize;      ///< For compressed samples only: size (in bytes) of the largest possible sample frame.
             unsigned long        SamplesPerFrame;         ///< For compressed samples only: number of samples in a full sample frame.
             buffer_t             RAMCache;                ///< Buffers samples (already uncompressed) in RAM.
+            unsigned long        FileNo;                  ///< File number (> 0 when sample is stored in an extension file, 0 when it's in the gig)
 
-            Sample(File* pFile, RIFF::List* waveList, unsigned long WavePoolOffset);
+            Sample(File* pFile, RIFF::List* waveList, unsigned long WavePoolOffset, unsigned long fileNo = 0);
            ~Sample();
             /**
              * Swaps the order of the data words in the given memory area
@@ -724,6 +725,8 @@ namespace gig {
             void LoadSamples(progress_t* pProgress = NULL);
             void LoadInstruments(progress_t* pProgress = NULL);
             friend class Region;
+
+            std::list<RIFF::File*> ExtensionFiles;
     };
 
     /** Will be thrown whenever a gig specific error occurs while trying to access a Gigasampler File. */

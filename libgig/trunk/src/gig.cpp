@@ -243,8 +243,9 @@ namespace {
     unsigned int Sample::Instances = 0;
     buffer_t     Sample::InternalDecompressionBuffer;
 
-    Sample::Sample(File* pFile, RIFF::List* waveList, unsigned long WavePoolOffset) : DLS::Sample((DLS::File*) pFile, waveList, WavePoolOffset) {
+    Sample::Sample(File* pFile, RIFF::List* waveList, unsigned long WavePoolOffset, unsigned long fileNo) : DLS::Sample((DLS::File*) pFile, waveList, WavePoolOffset) {
         Instances++;
+        FileNo = fileNo;
 
         RIFF::Chunk* _3gix = waveList->GetSubChunk(CHUNK_ID_3GIX);
         if (!_3gix) throw gig::Exception("Mandatory chunks in <wave> list chunk not found.");
@@ -1613,9 +1614,11 @@ namespace {
         if ((int32_t)WavePoolTableIndex == -1) return NULL;
         File* file = (File*) GetParent()->GetParent();
         unsigned long soughtoffset = file->pWavePoolTable[WavePoolTableIndex];
+        unsigned long soughtfileno = file->pWavePoolTableHi[WavePoolTableIndex];
         Sample* sample = file->GetFirstSample(pProgress);
         while (sample) {
-            if (sample->ulWavePoolOffset == soughtoffset) return static_cast<gig::Sample*>(pSample = sample);
+            if (sample->ulWavePoolOffset == soughtoffset &&
+                sample->FileNo == soughtfileno) return static_cast<gig::Sample*>(pSample = sample);
             sample = file->GetNextSample();
         }
         return NULL;
@@ -1758,6 +1761,9 @@ namespace {
             pInstruments->clear();
             delete pInstruments;
         }
+        // free extension files
+        for (std::list<RIFF::File*>::iterator i = ExtensionFiles.begin() ; i != ExtensionFiles.end() ; i++)
+            delete *i;
     }
 
     Sample* File::GetFirstSample(progress_t* pProgress) {
@@ -1774,31 +1780,55 @@ namespace {
     }
 
     void File::LoadSamples(progress_t* pProgress) {
-        RIFF::List* wvpl = pRIFF->GetSubList(LIST_TYPE_WVPL);
-        if (wvpl) {
-            // just for progress calculation
-            int iSampleIndex  = 0;
-            int iTotalSamples = wvpl->CountSubLists(LIST_TYPE_WAVE);
+        RIFF::File* file = pRIFF;
 
-            unsigned long wvplFileOffset = wvpl->GetFilePos();
-            RIFF::List* wave = wvpl->GetFirstSubList();
-            while (wave) {
-                if (wave->GetListType() == LIST_TYPE_WAVE) {
-                    // notify current progress
-                    const float subprogress = (float) iSampleIndex / (float) iTotalSamples;
-                    __notify_progress(pProgress, subprogress);
+        // just for progress calculation
+        int iSampleIndex  = 0;
+        int iTotalSamples = WavePoolCount;
 
-                    if (!pSamples) pSamples = new SampleList;
-                    unsigned long waveFileOffset = wave->GetFilePos();
-                    pSamples->push_back(new Sample(this, wave, waveFileOffset - wvplFileOffset));
-
-                    iSampleIndex++;
-                }
-                wave = wvpl->GetNextSubList();
-            }
-            __notify_progress(pProgress, 1.0); // notify done
+        // check if samples should be loaded from extension files
+        int lastFileNo = 0;
+        for (int i = 0 ; i < WavePoolCount ; i++) {
+            if (pWavePoolTableHi[i] > lastFileNo) lastFileNo = pWavePoolTableHi[i];
         }
-        else throw gig::Exception("Mandatory <wvpl> chunk not found.");
+        String name(pRIFF->Filename);
+        int nameLen = pRIFF->Filename.length();
+        char suffix[6];
+        if (nameLen > 4 && pRIFF->Filename.substr(nameLen - 4) == ".gig") nameLen -= 4;
+
+        for (int fileNo = 0 ; ; ) {
+            RIFF::List* wvpl = file->GetSubList(LIST_TYPE_WVPL);
+            if (wvpl) {
+                unsigned long wvplFileOffset = wvpl->GetFilePos();
+                RIFF::List* wave = wvpl->GetFirstSubList();
+                while (wave) {
+                    if (wave->GetListType() == LIST_TYPE_WAVE) {
+                        // notify current progress
+                        const float subprogress = (float) iSampleIndex / (float) iTotalSamples;
+                        __notify_progress(pProgress, subprogress);
+
+                        if (!pSamples) pSamples = new SampleList;
+                        unsigned long waveFileOffset = wave->GetFilePos();
+                        pSamples->push_back(new Sample(this, wave, waveFileOffset - wvplFileOffset, fileNo));
+
+                        iSampleIndex++;
+                    }
+                    wave = wvpl->GetNextSubList();
+                }
+
+                if (fileNo == lastFileNo) break;
+
+                // open extension file (*.gx01, *.gx02, ...)
+                fileNo++;
+                sprintf(suffix, ".gx%02d", fileNo);
+                name.replace(nameLen, 5, suffix);
+                file = new RIFF::File(name);
+                ExtensionFiles.push_back(file);
+            }
+            else throw gig::Exception("Mandatory <wvpl> chunk not found.");
+        }
+
+        __notify_progress(pProgress, 1.0); // notify done
     }
 
     Instrument* File::GetFirstInstrument() {

@@ -473,6 +473,7 @@ namespace DLS {
             InstrumentList::iterator InstrumentsIterator;
             uint32_t                 WavePoolCount;
             uint32_t*                pWavePoolTable;
+            uint32_t*                pWavePoolTableHi;
 
             void LoadSamples();
             void LoadInstruments();

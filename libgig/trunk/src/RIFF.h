@@ -214,6 +214,7 @@ namespace RIFF {
         public:
             File(const String& path);
             virtual ~File();
+            const String Filename;
         private:
             unsigned long GetFileSize();
     };
