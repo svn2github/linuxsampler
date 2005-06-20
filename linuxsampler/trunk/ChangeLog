@@ -18,11 +18,19 @@ Version CVS HEAD (?)
     - revised voice stealing
       (fixes crash and endless loop caused by voice stealing)
     - don't reset scale tuning on instrument or audio output device change
+    - handle key group conflicts right at the beginning of each fragment
+      instead of when the respective voice is actually launched
+      (fixes undefined behavior if stolen voices belonged to a key group -
+      this case was followed by a "killed voice survived" error message)
 
   * LSCP server:
     - fixed some crashes (patch by Grigor Iliev, fixes #19)
     - fixed LSCP event "CHANNEL_INFO" notification
       (e.g. did not notify on volume changes)
+
+  * linuxsampler application:
+    - added command line parameters --lscp-addr and --lscp-port to override
+      default IP address and port of LSCP server
 
 Version 0.3.1 (24 May 2005)
 

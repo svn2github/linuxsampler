@@ -122,7 +122,7 @@ namespace LinuxSampler { namespace gig {
             void ProcessPitchbend(EngineChannel* pEngineChannel, Pool<Event>::Iterator& itPitchbendEvent);
             void ProcessControlChange(EngineChannel* pEngineChannel, Pool<Event>::Iterator& itControlChangeEvent);
             void ProcessSysex(Pool<Event>::Iterator& itSysexEvent);
-            Pool<Voice>::Iterator LaunchVoice(EngineChannel* pEngineChannel, Pool<Event>::Iterator& itNoteOnEvent, int iLayer, bool ReleaseTriggerVoice, bool VoiceStealing);
+            Pool<Voice>::Iterator LaunchVoice(EngineChannel* pEngineChannel, Pool<Event>::Iterator& itNoteOnEvent, int iLayer, bool ReleaseTriggerVoice, bool VoiceStealing, bool HandleKeyGroupConflicts);
             int  StealVoice(EngineChannel* pEngineChannel, Pool<Event>::Iterator& itNoteOnEvent);
             void FreeVoice(EngineChannel* pEngineChannel, Pool<Voice>::Iterator& itVoice);
             void FreeKey(EngineChannel* pEngineChannel, midi_key_info_t* pKey);

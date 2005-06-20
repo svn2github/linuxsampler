@@ -519,7 +519,7 @@ namespace LinuxSampler { namespace gig {
         for (; itVoiceStealEvent != end; ++itVoiceStealEvent) {
             EngineChannel* pEngineChannel = (EngineChannel*) itVoiceStealEvent->pEngineChannel;
             Pool<Voice>::Iterator itNewVoice =
-                LaunchVoice(pEngineChannel, itVoiceStealEvent, itVoiceStealEvent->Param.Note.Layer, itVoiceStealEvent->Param.Note.ReleaseTrigger, false);
+                LaunchVoice(pEngineChannel, itVoiceStealEvent, itVoiceStealEvent->Param.Note.Layer, itVoiceStealEvent->Param.Note.ReleaseTrigger, false, false);
             if (itNewVoice) {
                 itNewVoice->Render(Samples);
                 if (itNewVoice->IsActive()) ActiveVoiceCountTemp++; // still active
@@ -647,7 +647,7 @@ namespace LinuxSampler { namespace gig {
                 int voicesRequired = pRegion->Layers;
                 // now launch the required amount of voices
                 for (int i = 0; i < voicesRequired; i++)
-                    LaunchVoice(pEngineChannel, itNoteOnEventOnKeyList, i, false, true);
+                    LaunchVoice(pEngineChannel, itNoteOnEventOnKeyList, i, false, true, true);
             }
         }
 
@@ -691,7 +691,7 @@ namespace LinuxSampler { namespace gig {
 
                     // now launch the required amount of voices
                     for (int i = 0; i < voicesRequired; i++)
-                        LaunchVoice(pEngineChannel, itNoteOffEventOnKeyList, i, true, false); //FIXME: for the moment we don't perform voice stealing for release triggered samples
+                        LaunchVoice(pEngineChannel, itNoteOffEventOnKeyList, i, true, false, false); //FIXME: for the moment we don't perform voice stealing for release triggered samples
                 }
                 pKey->ReleaseTrigger = false;
             }
@@ -728,12 +728,40 @@ namespace LinuxSampler { namespace gig {
      *  @param VoiceStealing       - if voice stealing should be performed
      *                               when there is no free voice
      *                               (optional, default = true)
+     *  @param HandleKeyGroupConflicts - if voices should be killed due to a
+     *                                   key group conflict
      *  @returns pointer to new voice or NULL if there was no free voice or
      *           if the voice wasn't triggered (for example when no region is
      *           defined for the given key).
      */
-    Pool<Voice>::Iterator Engine::LaunchVoice(EngineChannel* pEngineChannel, Pool<Event>::Iterator& itNoteOnEvent, int iLayer, bool ReleaseTriggerVoice, bool VoiceStealing) {
-        midi_key_info_t* pKey = &pEngineChannel->pMIDIKeyInfo[itNoteOnEvent->Param.Note.Key];
+    Pool<Voice>::Iterator Engine::LaunchVoice(EngineChannel* pEngineChannel, Pool<Event>::Iterator& itNoteOnEvent, int iLayer, bool ReleaseTriggerVoice, bool VoiceStealing, bool HandleKeyGroupConflicts) {
+        midi_key_info_t* pKey  = &pEngineChannel->pMIDIKeyInfo[itNoteOnEvent->Param.Note.Key];
+        ::gig::Region* pRegion = pEngineChannel->pInstrument->GetRegion(itNoteOnEvent->Param.Note.Key);
+
+        // if nothing defined for this key
+        if (!pRegion) return Pool<Voice>::Iterator(); // nothing to do
+
+        // handle key group (a.k.a. exclusive group) conflicts
+        if (HandleKeyGroupConflicts) {
+            // only mark the first voice of a layered voice (group) to be in a
+            // key group, so the layered voices won't kill each other
+            int iKeyGroup = (iLayer == 0 && !ReleaseTriggerVoice) ? pRegion->KeyGroup : 0;
+            if (iKeyGroup) { // if this voice / key belongs to a key group
+                uint** ppKeyGroup = &pEngineChannel->ActiveKeyGroups[iKeyGroup];
+                if (*ppKeyGroup) { // if there's already an active key in that key group
+                    midi_key_info_t* pOtherKey = &pEngineChannel->pMIDIKeyInfo[**ppKeyGroup];
+                    // kill all voices on the (other) key
+                    RTList<Voice>::Iterator itVoiceToBeKilled = pOtherKey->pActiveVoices->first();
+                    RTList<Voice>::Iterator end               = pOtherKey->pActiveVoices->end();
+                    for (; itVoiceToBeKilled != end; ++itVoiceToBeKilled) {
+                        if (itVoiceToBeKilled->Type != Voice::type_release_trigger) {
+                            itVoiceToBeKilled->Kill(itNoteOnEvent);
+                            --VoiceSpawnsLeft; //FIXME: just a hack, we should better check in StealVoice() if the voice was killed due to key conflict
+                        }
+                    }
+                }
+            }
+        }
 
         // allocate a new voice for the key
         Pool<Voice>::Iterator itNewVoice = pKey->pActiveVoices->allocAppend();
@@ -745,28 +773,13 @@ namespace LinuxSampler { namespace gig {
             }
             else { // on success
                 --VoiceSpawnsLeft;
-                uint** ppKeyGroup = NULL;
-                if (itNewVoice->KeyGroup) { // if this voice / key belongs to a key group
-                    ppKeyGroup = &pEngineChannel->ActiveKeyGroups[itNewVoice->KeyGroup];
-                    if (*ppKeyGroup) { // if there's already an active key in that key group
-                        midi_key_info_t* pOtherKey = &pEngineChannel->pMIDIKeyInfo[**ppKeyGroup];
-                        // kill all voices on the (other) key
-                        RTList<Voice>::Iterator itVoiceToBeKilled = pOtherKey->pActiveVoices->first();
-                        RTList<Voice>::Iterator end               = pOtherKey->pActiveVoices->end();
-                        for (; itVoiceToBeKilled != end; ++itVoiceToBeKilled) {
-                            if (itVoiceToBeKilled->Type != Voice::type_release_trigger) {
-                                itVoiceToBeKilled->Kill(itNoteOnEvent);
-                                --VoiceSpawnsLeft; //FIXME: just a hack, we should better check in StealVoice() if the voice was killed due to key conflict
-                            }
-                        }
-                    }
-                }
                 if (!pKey->Active) { // mark as active key
                     pKey->Active = true;
                     pKey->itSelf = pEngineChannel->pActiveKeys->allocAppend();
                     *pKey->itSelf = itNoteOnEvent->Param.Note.Key;
                 }
                 if (itNewVoice->KeyGroup) {
+                    uint** ppKeyGroup = &pEngineChannel->ActiveKeyGroups[itNewVoice->KeyGroup];
                     *ppKeyGroup = &*pKey->itSelf; // put key as the (new) active key to its key group
                 }
                 if (itNewVoice->Type == Voice::type_release_trigger_required) pKey->ReleaseTrigger = true; // mark key for the need of release triggered voice(s)
@@ -1282,7 +1295,7 @@ namespace LinuxSampler { namespace gig {
     }
 
     String Engine::Version() {
-        String s = "$Revision: 1.45 $";
+        String s = "$Revision: 1.46 $";
         return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
 
