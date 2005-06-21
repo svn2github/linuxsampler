@@ -1406,8 +1406,7 @@ String LSCPServer::ResetChannel(uint uiSamplerChannel) {
         if (!pSamplerChannel) throw LinuxSamplerException("Invalid sampler channel number " + ToString(uiSamplerChannel));
         EngineChannel* pEngineChannel = pSamplerChannel->GetEngineChannel();
         if (!pEngineChannel) throw LinuxSamplerException("No engine type assigned to sampler channel");
-        if (!pEngineChannel->GetEngine()) throw LinuxSamplerException("No audio output device connected to sampler channel");
-        pEngineChannel->GetEngine()->Reset();
+        pEngineChannel->Reset();
     }
     catch (LinuxSamplerException e) {
          result.Error(e);

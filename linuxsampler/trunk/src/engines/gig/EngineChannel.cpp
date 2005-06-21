@@ -49,6 +49,7 @@ namespace LinuxSampler { namespace gig {
         InstrumentStat = -1;
         AudioDeviceChannelLeft  = -1;
         AudioDeviceChannelRight = -1;
+        ResetControllers();
     }
 
     EngineChannel::~EngineChannel() {
@@ -65,30 +66,37 @@ namespace LinuxSampler { namespace gig {
      * check if some engine channel parameter has changed since the last
      * StatusChanged() call.
      *
+     * This method can also be used to mark the engine channel as changed
+     * from outside, e.g. by a MIDI input device. The optional argument
+     * \a nNewStatus can be used for this.
+     *
      * TODO: This "poll method" is just a lazy solution and might be
      *       replaced in future.
-     *
+     * @param bNewStatus - (optional, default: false) sets the new status flag
      * @returns true if engine channel status has changed since last
      *          StatusChanged() call
      */
-    bool EngineChannel::StatusChanged() {
+    bool EngineChannel::StatusChanged(bool bNewStatus) {
         bool b = bStatusChanged;
-        bStatusChanged = false;
+        bStatusChanged = bNewStatus;
         return b;
+    }
+
+    void EngineChannel::Reset() {
+        if (pEngine) pEngine->DisableAndLock();
+        ResetInternal();
+        ResetControllers();
+        if (pEngine) {
+            pEngine->Enable();
+            pEngine->Reset();
+        }
     }
 
     /**
      * This method is not thread safe!
      */
     void EngineChannel::ResetInternal() {
-        Pitch               = 0;
-        SustainPedal        = false;
-        GlobalVolume        = 1.0;
-        GlobalPanLeft       = 1.0f;
-        GlobalPanRight      = 1.0f;
         CurrentKeyDimension = 0;
-
-        ResetControllers();
 
         // reset key info
         for (uint i = 0; i < 128; i++) {
@@ -423,6 +431,11 @@ namespace LinuxSampler { namespace gig {
     }
 
     void EngineChannel::ResetControllers() {
+        Pitch          = 0;
+        SustainPedal   = false;
+        GlobalVolume   = 1.0;
+        GlobalPanLeft  = 1.0f;
+        GlobalPanRight = 1.0f;
         // set all MIDI controller values to zero
         memset(ControllerTable, 0x00, 128);
     }

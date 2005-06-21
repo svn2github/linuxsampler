@@ -54,11 +54,12 @@ namespace LinuxSampler { namespace gig {
             // implementation of abstract methods derived from interface class 'LinuxSampler::EngineChannel'
             virtual void    PrepareLoadInstrument(const char* FileName, uint Instrument);
             virtual void    LoadInstrument();
+            virtual void    Reset();
             virtual void    SendNoteOn(uint8_t Key, uint8_t Velocity);
             virtual void    SendNoteOff(uint8_t Key, uint8_t Velocity);
             virtual void    SendPitchbend(int Pitch);
             virtual void    SendControlChange(uint8_t Controller, uint8_t Value);
-            virtual bool    StatusChanged();
+            virtual bool    StatusChanged(bool bNewStatus = false);
             virtual float   Volume();
             virtual void    Volume(float f);
             virtual uint    Channels();

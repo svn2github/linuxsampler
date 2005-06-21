@@ -25,11 +25,13 @@ Version CVS HEAD (?)
     - fixed minor issue with null/silence samples
       (those stole voices even though they don't need a voice at all which
       resulted in "voice stealing didn't work out" messages)
+    - don't reset volume, pan, pitch and MIDI controller values on
+      instrument or audio output device change
 
   * LSCP server:
     - fixed some crashes (patch by Grigor Iliev, fixes #19)
     - fixed LSCP event "CHANNEL_INFO" notification
-      (e.g. did not notify on volume changes)
+      (e.g. did not notify on volume changes or MIDI program change events)
 
   * linuxsampler application:
     - added command line parameters --lscp-addr and --lscp-port to override

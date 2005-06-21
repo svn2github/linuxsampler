@@ -49,11 +49,12 @@ namespace LinuxSampler {
 
             virtual void    PrepareLoadInstrument(const char* FileName, uint Instrument) = 0;
             virtual void    LoadInstrument() = 0;
+            virtual void    Reset() = 0;
             virtual void    SendNoteOn(uint8_t Key, uint8_t Velocity) = 0;
             virtual void    SendNoteOff(uint8_t Key, uint8_t Velocity) = 0;
             virtual void    SendPitchbend(int Pitch) = 0;
             virtual void    SendControlChange(uint8_t Controller, uint8_t Value) = 0;
-            virtual bool    StatusChanged() = 0;
+            virtual bool    StatusChanged(bool bNewStatus = false) = 0;
             virtual float   Volume() = 0;
             virtual void    Volume(float f) = 0;
             virtual uint    Channels() = 0;

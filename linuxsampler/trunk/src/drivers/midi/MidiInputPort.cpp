@@ -172,7 +172,7 @@ namespace LinuxSampler {
         }
     }
 
-    void MidiInputPort::DispatchProgramChange(uint8_t Program, uint MidiChannel) {        
+    void MidiInputPort::DispatchProgramChange(uint8_t Program, uint MidiChannel) {
         if (!pDevice || !pDevice->pSampler) {
             std::cerr << "MidiInputPort: ERROR, no sampler instance to handle program change."
                       << "This is a bug, please report it!\n" << std::flush;
@@ -189,7 +189,7 @@ namespace LinuxSampler {
         // disconnect from the engine channel which was connected by the last PC event
         if (pPreviousProgramChangeEngineChannel)
             Disconnect(pPreviousProgramChangeEngineChannel);
-             
+
         // now connect to the new engine channel and remember it
         try {
             Connect(pEngineChannel, (midi_chan_t) MidiChannel);
@@ -201,12 +201,15 @@ namespace LinuxSampler {
     void MidiInputPort::Connect(EngineChannel* pEngineChannel, midi_chan_t MidiChannel) {
         if (MidiChannel < 0 || MidiChannel > 16)
             throw MidiInputException("MIDI channel index out of bounds");
-            
+
         Disconnect(pEngineChannel);
-        
+
         MidiChannelMapMutex.Lock();
         MidiChannelMap[MidiChannel].insert(pEngineChannel);
         MidiChannelMapMutex.Unlock();
+
+        // mark engine channel as changed
+        pEngineChannel->StatusChanged(true);
     }
 
     void MidiInputPort::Disconnect(EngineChannel* pEngineChannel) {
@@ -214,6 +217,8 @@ namespace LinuxSampler {
         try { for (int i = 0; i <= 16; i++) MidiChannelMap[i].erase(pEngineChannel); }
         catch(...) { /* NOOP */ }
         MidiChannelMapMutex.Unlock();
+        // mark engine channel as changed
+        pEngineChannel->StatusChanged(true);
     }
 
 } // namespace LinuxSampler
