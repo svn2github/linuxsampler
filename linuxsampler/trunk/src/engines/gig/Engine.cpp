@@ -735,17 +735,19 @@ namespace LinuxSampler { namespace gig {
      *           defined for the given key).
      */
     Pool<Voice>::Iterator Engine::LaunchVoice(EngineChannel* pEngineChannel, Pool<Event>::Iterator& itNoteOnEvent, int iLayer, bool ReleaseTriggerVoice, bool VoiceStealing, bool HandleKeyGroupConflicts) {
-        midi_key_info_t* pKey  = &pEngineChannel->pMIDIKeyInfo[itNoteOnEvent->Param.Note.Key];
-        ::gig::Region* pRegion = pEngineChannel->pInstrument->GetRegion(itNoteOnEvent->Param.Note.Key);
+        int MIDIKey            = itNoteOnEvent->Param.Note.Key;
+        midi_key_info_t* pKey  = &pEngineChannel->pMIDIKeyInfo[MIDIKey];
+        ::gig::Region* pRegion = pEngineChannel->pInstrument->GetRegion(MIDIKey);
 
         // if nothing defined for this key
         if (!pRegion) return Pool<Voice>::Iterator(); // nothing to do
 
+        // only mark the first voice of a layered voice (group) to be in a
+        // key group, so the layered voices won't kill each other
+        int iKeyGroup = (iLayer == 0 && !ReleaseTriggerVoice) ? pRegion->KeyGroup : 0;
+
         // handle key group (a.k.a. exclusive group) conflicts
         if (HandleKeyGroupConflicts) {
-            // only mark the first voice of a layered voice (group) to be in a
-            // key group, so the layered voices won't kill each other
-            int iKeyGroup = (iLayer == 0 && !ReleaseTriggerVoice) ? pRegion->KeyGroup : 0;
             if (iKeyGroup) { // if this voice / key belongs to a key group
                 uint** ppKeyGroup = &pEngineChannel->ActiveKeyGroups[iKeyGroup];
                 if (*ppKeyGroup) { // if there's already an active key in that key group
@@ -763,11 +765,126 @@ namespace LinuxSampler { namespace gig {
             }
         }
 
+        Voice::type_t VoiceType = Voice::type_normal;
+
+        // get current dimension values to select the right dimension region
+        //TODO: for stolen voices this dimension region selection block is processed twice, this should be changed
+        //FIXME: controller values for selecting the dimension region here are currently not sample accurate
+        uint DimValues[8] = { 0 };
+        for (int i = pRegion->Dimensions - 1; i >= 0; i--) {
+            switch (pRegion->pDimensionDefinitions[i].dimension) {
+                case ::gig::dimension_samplechannel:
+                    DimValues[i] = 0; //TODO: we currently ignore this dimension
+                    break;
+                case ::gig::dimension_layer:
+                    DimValues[i] = iLayer;
+                    break;
+                case ::gig::dimension_velocity:
+                    DimValues[i] = itNoteOnEvent->Param.Note.Velocity;
+                    break;
+                case ::gig::dimension_channelaftertouch:
+                    DimValues[i] = 0; //TODO: we currently ignore this dimension
+                    break;
+                case ::gig::dimension_releasetrigger:
+                    VoiceType = (ReleaseTriggerVoice) ? Voice::type_release_trigger : (!iLayer) ? Voice::type_release_trigger_required : Voice::type_normal;
+                    DimValues[i] = (uint) ReleaseTriggerVoice;
+                    break;
+                case ::gig::dimension_keyboard:
+                    DimValues[i] = (uint) pEngineChannel->CurrentKeyDimension;
+                    break;
+                case ::gig::dimension_roundrobin:
+                    DimValues[i] = (uint) pEngineChannel->pMIDIKeyInfo[MIDIKey].RoundRobinIndex; // incremented for each note on
+                    break;
+                case ::gig::dimension_random:
+                    RandomSeed   = RandomSeed * 1103515245 + 12345; // classic pseudo random number generator
+                    DimValues[i] = (uint) RandomSeed >> (32 - pRegion->pDimensionDefinitions[i].bits); // highest bits are most random
+                    break;
+                case ::gig::dimension_modwheel:
+                    DimValues[i] = pEngineChannel->ControllerTable[1];
+                    break;
+                case ::gig::dimension_breath:
+                    DimValues[i] = pEngineChannel->ControllerTable[2];
+                    break;
+                case ::gig::dimension_foot:
+                    DimValues[i] = pEngineChannel->ControllerTable[4];
+                    break;
+                case ::gig::dimension_portamentotime:
+                    DimValues[i] = pEngineChannel->ControllerTable[5];
+                    break;
+                case ::gig::dimension_effect1:
+                    DimValues[i] = pEngineChannel->ControllerTable[12];
+                    break;
+                case ::gig::dimension_effect2:
+                    DimValues[i] = pEngineChannel->ControllerTable[13];
+                    break;
+                case ::gig::dimension_genpurpose1:
+                    DimValues[i] = pEngineChannel->ControllerTable[16];
+                    break;
+                case ::gig::dimension_genpurpose2:
+                    DimValues[i] = pEngineChannel->ControllerTable[17];
+                    break;
+                case ::gig::dimension_genpurpose3:
+                    DimValues[i] = pEngineChannel->ControllerTable[18];
+                    break;
+                case ::gig::dimension_genpurpose4:
+                    DimValues[i] = pEngineChannel->ControllerTable[19];
+                    break;
+                case ::gig::dimension_sustainpedal:
+                    DimValues[i] = pEngineChannel->ControllerTable[64];
+                    break;
+                case ::gig::dimension_portamento:
+                    DimValues[i] = pEngineChannel->ControllerTable[65];
+                    break;
+                case ::gig::dimension_sostenutopedal:
+                    DimValues[i] = pEngineChannel->ControllerTable[66];
+                    break;
+                case ::gig::dimension_softpedal:
+                    DimValues[i] = pEngineChannel->ControllerTable[67];
+                    break;
+                case ::gig::dimension_genpurpose5:
+                    DimValues[i] = pEngineChannel->ControllerTable[80];
+                    break;
+                case ::gig::dimension_genpurpose6:
+                    DimValues[i] = pEngineChannel->ControllerTable[81];
+                    break;
+                case ::gig::dimension_genpurpose7:
+                    DimValues[i] = pEngineChannel->ControllerTable[82];
+                    break;
+                case ::gig::dimension_genpurpose8:
+                    DimValues[i] = pEngineChannel->ControllerTable[83];
+                    break;
+                case ::gig::dimension_effect1depth:
+                    DimValues[i] = pEngineChannel->ControllerTable[91];
+                    break;
+                case ::gig::dimension_effect2depth:
+                    DimValues[i] = pEngineChannel->ControllerTable[92];
+                    break;
+                case ::gig::dimension_effect3depth:
+                    DimValues[i] = pEngineChannel->ControllerTable[93];
+                    break;
+                case ::gig::dimension_effect4depth:
+                    DimValues[i] = pEngineChannel->ControllerTable[94];
+                    break;
+                case ::gig::dimension_effect5depth:
+                    DimValues[i] = pEngineChannel->ControllerTable[95];
+                    break;
+                case ::gig::dimension_none:
+                    std::cerr << "gig::Engine::LaunchVoice() Error: dimension=none\n" << std::flush;
+                    break;
+                default:
+                    std::cerr << "gig::Engine::LaunchVoice() Error: Unknown dimension\n" << std::flush;
+            }
+        }
+        ::gig::DimensionRegion* pDimRgn = pRegion->GetDimensionRegionByValue(DimValues);
+
+        // no need to continue if sample is silent
+        if (!pDimRgn->pSample || !pDimRgn->pSample->SamplesTotal) return Pool<Voice>::Iterator();
+
         // allocate a new voice for the key
         Pool<Voice>::Iterator itNewVoice = pKey->pActiveVoices->allocAppend();
         if (itNewVoice) {
             // launch the new voice
-            if (itNewVoice->Trigger(pEngineChannel, itNoteOnEvent, pEngineChannel->Pitch, pEngineChannel->pInstrument, iLayer, ReleaseTriggerVoice, VoiceStealing) < 0) {
+            if (itNewVoice->Trigger(pEngineChannel, itNoteOnEvent, pEngineChannel->Pitch, pDimRgn, VoiceType, iKeyGroup) < 0) {
                 dmsg(4,("Voice not triggered\n"));
                 pKey->pActiveVoices->free(itNewVoice);
             }
@@ -1295,7 +1412,7 @@ namespace LinuxSampler { namespace gig {
     }
 
     String Engine::Version() {
-        String s = "$Revision: 1.46 $";
+        String s = "$Revision: 1.47 $";
         return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
 

@@ -117,157 +117,34 @@ namespace LinuxSampler { namespace gig {
      *  Initializes and triggers the voice, a disk stream will be launched if
      *  needed.
      *
-     *  @param pEngineChannel       - engine channel on which this voice was ordered
-     *  @param itNoteOnEvent        - event that caused triggering of this voice
-     *  @param PitchBend            - MIDI detune factor (-8192 ... +8191)
-     *  @param pInstrument          - points to the loaded instrument which provides sample wave(s) and articulation data
-     *  @param iLayer               - layer number this voice refers to (only if this is a layered sound of course)
-     *  @param ReleaseTriggerVoice  - if this new voice is a release trigger voice (optional, default = false)
-     *  @param VoiceStealingAllowed - wether the voice is allowed to steal voices for further subvoices
+     *  @param pEngineChannel - engine channel on which this voice was ordered
+     *  @param itNoteOnEvent  - event that caused triggering of this voice
+     *  @param PitchBend      - MIDI detune factor (-8192 ... +8191)
+     *  @param pDimRgn        - points to the dimension region which provides sample wave(s) and articulation data
+     *  @param VoiceType      - type of this voice
+     *  @param iKeyGroup      - a value > 0 defines a key group in which this voice is member of
      *  @returns 0 on success, a value < 0 if the voice wasn't triggered
      *           (either due to an error or e.g. because no region is
      *           defined for the given key)
      */
-    int Voice::Trigger(EngineChannel* pEngineChannel, Pool<Event>::Iterator& itNoteOnEvent, int PitchBend, ::gig::Instrument* pInstrument, int iLayer, bool ReleaseTriggerVoice, bool VoiceStealingAllowed) {
+    int Voice::Trigger(EngineChannel* pEngineChannel, Pool<Event>::Iterator& itNoteOnEvent, int PitchBend, ::gig::DimensionRegion* pDimRgn, type_t VoiceType, int iKeyGroup) {
         this->pEngineChannel = pEngineChannel;
-        if (!pInstrument) {
-           dmsg(1,("voice::trigger: !pInstrument\n"));
-           exit(EXIT_FAILURE);
-        }
+        this->pDimRgn        = pDimRgn;
+
         #if CONFIG_DEVMODE
         if (itNoteOnEvent->FragmentPos() > pEngine->MaxSamplesPerCycle) { // just a sanity check for debugging
             dmsg(1,("Voice::Trigger(): ERROR, TriggerDelay > Totalsamples\n"));
         }
         #endif // CONFIG_DEVMODE
 
-        Type            = type_normal;
+        Type            = VoiceType;
         MIDIKey         = itNoteOnEvent->Param.Note.Key;
-        pRegion         = pInstrument->GetRegion(MIDIKey);
         PlaybackState   = playback_state_init; // mark voice as triggered, but no audio rendered yet
         Delay           = itNoteOnEvent->FragmentPos();
         itTriggerEvent  = itNoteOnEvent;
         itKillEvent     = Pool<Event>::Iterator();
-
-        if (!pRegion) {
-            dmsg(4, ("gig::Voice: No Region defined for MIDI key %d\n", MIDIKey));
-            return -1;
-        }
-
-        // only mark the first voice of a layered voice (group) to be in a
-        // key group, so the layered voices won't kill each other
-        KeyGroup = (iLayer == 0 && !ReleaseTriggerVoice) ? pRegion->KeyGroup : 0;
-
-        // get current dimension values to select the right dimension region
-        //FIXME: controller values for selecting the dimension region here are currently not sample accurate
-        uint DimValues[8] = { 0 };
-        for (int i = pRegion->Dimensions - 1; i >= 0; i--) {
-            switch (pRegion->pDimensionDefinitions[i].dimension) {
-                case ::gig::dimension_samplechannel:
-                    DimValues[i] = 0; //TODO: we currently ignore this dimension
-                    break;
-                case ::gig::dimension_layer:
-                    DimValues[i] = iLayer;
-                    break;
-                case ::gig::dimension_velocity:
-                    DimValues[i] = itNoteOnEvent->Param.Note.Velocity;
-                    break;
-                case ::gig::dimension_channelaftertouch:
-                    DimValues[i] = 0; //TODO: we currently ignore this dimension
-                    break;
-                case ::gig::dimension_releasetrigger:
-                    Type = (ReleaseTriggerVoice) ? type_release_trigger : (!iLayer) ? type_release_trigger_required : type_normal;
-                    DimValues[i] = (uint) ReleaseTriggerVoice;
-                    break;
-                case ::gig::dimension_keyboard:
-                    DimValues[i] = (uint) pEngineChannel->CurrentKeyDimension;
-                    break;
-                case ::gig::dimension_roundrobin:
-                    DimValues[i] = (uint) pEngineChannel->pMIDIKeyInfo[MIDIKey].RoundRobinIndex; // incremented for each note on
-                    break;
-                case ::gig::dimension_random:
-                    pEngine->RandomSeed = pEngine->RandomSeed * 1103515245 + 12345; // classic pseudo random number generator
-                    DimValues[i] = (uint) pEngine->RandomSeed >> (32 - pRegion->pDimensionDefinitions[i].bits); // highest bits are most random
-                    break;
-                case ::gig::dimension_modwheel:
-                    DimValues[i] = pEngineChannel->ControllerTable[1];
-                    break;
-                case ::gig::dimension_breath:
-                    DimValues[i] = pEngineChannel->ControllerTable[2];
-                    break;
-                case ::gig::dimension_foot:
-                    DimValues[i] = pEngineChannel->ControllerTable[4];
-                    break;
-                case ::gig::dimension_portamentotime:
-                    DimValues[i] = pEngineChannel->ControllerTable[5];
-                    break;
-                case ::gig::dimension_effect1:
-                    DimValues[i] = pEngineChannel->ControllerTable[12];
-                    break;
-                case ::gig::dimension_effect2:
-                    DimValues[i] = pEngineChannel->ControllerTable[13];
-                    break;
-                case ::gig::dimension_genpurpose1:
-                    DimValues[i] = pEngineChannel->ControllerTable[16];
-                    break;
-                case ::gig::dimension_genpurpose2:
-                    DimValues[i] = pEngineChannel->ControllerTable[17];
-                    break;
-                case ::gig::dimension_genpurpose3:
-                    DimValues[i] = pEngineChannel->ControllerTable[18];
-                    break;
-                case ::gig::dimension_genpurpose4:
-                    DimValues[i] = pEngineChannel->ControllerTable[19];
-                    break;
-                case ::gig::dimension_sustainpedal:
-                    DimValues[i] = pEngineChannel->ControllerTable[64];
-                    break;
-                case ::gig::dimension_portamento:
-                    DimValues[i] = pEngineChannel->ControllerTable[65];
-                    break;
-                case ::gig::dimension_sostenutopedal:
-                    DimValues[i] = pEngineChannel->ControllerTable[66];
-                    break;
-                case ::gig::dimension_softpedal:
-                    DimValues[i] = pEngineChannel->ControllerTable[67];
-                    break;
-                case ::gig::dimension_genpurpose5:
-                    DimValues[i] = pEngineChannel->ControllerTable[80];
-                    break;
-                case ::gig::dimension_genpurpose6:
-                    DimValues[i] = pEngineChannel->ControllerTable[81];
-                    break;
-                case ::gig::dimension_genpurpose7:
-                    DimValues[i] = pEngineChannel->ControllerTable[82];
-                    break;
-                case ::gig::dimension_genpurpose8:
-                    DimValues[i] = pEngineChannel->ControllerTable[83];
-                    break;
-                case ::gig::dimension_effect1depth:
-                    DimValues[i] = pEngineChannel->ControllerTable[91];
-                    break;
-                case ::gig::dimension_effect2depth:
-                    DimValues[i] = pEngineChannel->ControllerTable[92];
-                    break;
-                case ::gig::dimension_effect3depth:
-                    DimValues[i] = pEngineChannel->ControllerTable[93];
-                    break;
-                case ::gig::dimension_effect4depth:
-                    DimValues[i] = pEngineChannel->ControllerTable[94];
-                    break;
-                case ::gig::dimension_effect5depth:
-                    DimValues[i] = pEngineChannel->ControllerTable[95];
-                    break;
-                case ::gig::dimension_none:
-                    std::cerr << "gig::Voice::Trigger() Error: dimension=none\n" << std::flush;
-                    break;
-                default:
-                    std::cerr << "gig::Voice::Trigger() Error: Unknown dimension\n" << std::flush;
-            }
-        }
-        pDimRgn = pRegion->GetDimensionRegionByValue(DimValues);
-
-        pSample = pDimRgn->pSample; // sample won't change until the voice is finished
-        if (!pSample || !pSample->SamplesTotal) return -1; // no need to continue if sample is silent
+        KeyGroup        = iKeyGroup;
+        pSample         = pDimRgn->pSample; // sample won't change until the voice is finished
 
         // calculate volume
         const double velocityAttenuation = pDimRgn->GetVelocityAttenuation(itNoteOnEvent->Param.Note.Velocity);
@@ -277,7 +154,7 @@ namespace LinuxSampler { namespace gig {
         Volume *= pDimRgn->SampleAttenuation;
 
         // the volume of release triggered samples depends on note length
-        if (ReleaseTriggerVoice) {
+        if (Type == type_release_trigger) {
             float noteLength = float(pEngine->FrameTime + Delay -
                                      pEngineChannel->pMIDIKeyInfo[MIDIKey].NoteOnTime) / pEngine->SampleRate;
             float attenuation = 1 - 0.01053 * (256 >> pDimRgn->ReleaseTriggerDecay) * noteLength;

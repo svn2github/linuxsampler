@@ -86,7 +86,7 @@ namespace LinuxSampler { namespace gig {
             void Reset();
             void SetOutput(AudioOutputDevice* pAudioOutputDevice);
             void SetEngine(Engine* pEngine);
-            int  Trigger(EngineChannel* pEngineChannel, Pool<Event>::Iterator& itNoteOnEvent, int PitchBend, ::gig::Instrument* pInstrument, int iLayer, bool ReleaseTriggerVoice, bool VoiceStealingAllowed);
+            int  Trigger(EngineChannel* pEngineChannel, Pool<Event>::Iterator& itNoteOnEvent, int PitchBend, ::gig::DimensionRegion* pDimRgn, type_t VoiceType, int iKeyGroup);
             inline bool IsActive() { return PlaybackState; }
             inline bool IsStealable() { return !itKillEvent && PlaybackState >= playback_state_ram; }
         //private:
@@ -109,7 +109,6 @@ namespace LinuxSampler { namespace gig {
             float                       PitchBase;          ///< Basic pitch depth, stays the same for the whole life time of the voice
             float                       PitchBend;          ///< Current pitch value of the pitchbend wheel
             ::gig::Sample*              pSample;            ///< Pointer to the sample to be played back
-            ::gig::Region*              pRegion;            ///< Pointer to the articulation information of the respective keyboard region of this voice
             ::gig::DimensionRegion*     pDimRgn;            ///< Pointer to the articulation information of current dimension region of this voice
             playback_state_t            PlaybackState;      ///< When a sample will be triggered, it will be first played from RAM cache and after a couple of sample points it will switch to disk streaming and at the end of a disk stream we have to add null samples, so the interpolator can do it's work correctly
             bool                        DiskVoice;          ///< If the sample is very short it completely fits into the RAM cache and doesn't need to be streamed from disk, in that case this flag is set to false

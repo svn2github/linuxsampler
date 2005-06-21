@@ -22,6 +22,9 @@ Version CVS HEAD (?)
       instead of when the respective voice is actually launched
       (fixes undefined behavior if stolen voices belonged to a key group -
       this case was followed by a "killed voice survived" error message)
+    - fixed minor issue with null/silence samples
+      (those stole voices even though they don't need a voice at all which
+      resulted in "voice stealing didn't work out" messages)
 
   * LSCP server:
     - fixed some crashes (patch by Grigor Iliev, fixes #19)
