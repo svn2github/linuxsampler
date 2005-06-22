@@ -1,0 +1,18 @@
+jlscp v0.2a: 2005-06-14
+	* Added ant script to automate the build process
+	* Added Package Versioning
+	* Added LSCP protocol version compatibility check on connect
+	* getEngines() in Client class now returns SamplerEngine[] instance
+	  instead of String[] instance
+	* getAudioOutputDrivers() in Client class now returns
+	  AudioOutputDriver[] instance instead of String[] instance
+	* getMidiInputDrivers() in Client class now returns
+	  MidiInputDriver[] instance instead of String[] instance
+	* The following methods in Client class are now private:
+	  - getEngineInfo
+	  - getAudioOutputDriverInfo
+	  - getMidiInputDriverInfo
+	* Examples changes due to the changed methods in Client class
+	* Examples' class files moved from examples to examples/build directory
+	* Little documentation changes
+
