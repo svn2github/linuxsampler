@@ -6,34 +6,53 @@ by Grigor Iliev <gr.iliev@gmail.com>
 
 This library provides client API for retrieving information and
 configuring running LinuxSampler instance according to the LinuxSampler
-control protocol as specified in the LSCP protocol specification
-(http://www.linuxsampler.org/api/draft-linuxsampler-protocol.html)
-written by Christian Schoenebeck.
+control protocol version 1.0 as specified in the LSCP specification written
+by Christian Schoenebeck (http://www.linuxsampler.org/api/lscp-1.0.html).
 
 For more information about LinuxSampler visit http://www.linuxsampler.org
 
 
 Requirements
-------------
+============
 
 To use jlscp you need java version 1.5.0 or higher.
 
+To build the library, the documentation or the examples you need
+JDK version 1.5.0 or higher and the Ant tool (http://ant.apache.org/).
+
 
 Compilation
------------
+===========
 
-To compile the library and place the generated class files in the
-lib directory, cd to src directory and use the following command:
+Notice that the package contains both the source and the binary files.
+So you can skip this section unless you want to rebuild the library or
+you are using version downloaded from cvs.
+ 
+To build the library, examples or documentation follow the next steps.
 
-javac org/linuxsampler/lscp/*.java org/linuxsampler/lscp/event/*.java -d ../lib
+  1. Set the JAVA_HOME environment variable to point to your JDK directory.
+     If the JDK is installed in /opt/jdk1.5.0 directory, this can be done
+     with the following command:
 
-To create the JAR file, cd to lib directory and use the following command:
+     export JAVA_HOME=/opt/jdk1.5.0
 
-jar -cf jlscp.jar org
+     (Windows users must do something like `set JAVA_HOME=c:\jdk1.5.0')
+
+  2. Choose one or more of the following options.
+
+     - Building the library (jlscp.jar): `ant build-lib'
+
+     - Building the documentation: `ant build-doc'
+
+     - Building the examples: `ant build-examples'
+
+     - Building all (library, examples, documentation): `ant build-all'
+
+     Also you may specify more then one target: `ant build-lib build-examples'
 
 
 Installation
-------------
+============
 
 To install jlscp as an extension just copy jlscp.jar in the following directory:
 
@@ -46,16 +65,16 @@ option when compiling or running an application that depends on it:
 
 
 Documentation
--------------
+=============
 
 The documentation is located in the doc directory. Also you can look at the
 examples directory.
 
 
 Running examples
-----------------
+================
 
-To run the examples cd to examples directory
+To run the examples `cd' to examples/build directory
 and use one of the following commands:
 
 java -cp /path/to/jlscp/jlscp.jar:. Poll

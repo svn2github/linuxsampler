@@ -68,15 +68,14 @@ public class Poll {
 		System.out.println();
 		
 		System.out.println("Available audio output drivers: ");
-		String[] drivers = client.getAudioOutputDrivers();
-		showList(drivers);
+		AudioOutputDriver[] aodS = client.getAudioOutputDrivers();
+		showList(aodS);
 		
 		System.out.println();
 		
-		for(String s : drivers) {
-			AudioOutputDriver aoDrv = client.getAudioOutputDriverInfo(s);
-			showDriverInfo(aoDrv);
-			for(Parameter p : aoDrv.getParameters()) showParameterInfo(p);
+		for(AudioOutputDriver d : aodS) {
+			showDriverInfo(d);
+			for(Parameter p : d.getParameters()) showParameterInfo(p);
 			System.out.println();
 		}
 		
@@ -115,13 +114,12 @@ public class Poll {
 		System.out.println();
 		
 		System.out.println("Available MIDI input drivers: ");
-		drivers = client.getMidiInputDrivers();
-		showList(drivers);
+		MidiInputDriver[] midS = client.getMidiInputDrivers();
+		showList(midS);
 		
-		for(String s : drivers) {
-			MidiInputDriver miDrv = client.getMidiInputDriverInfo(s);
-			showDriverInfo(miDrv);
-			for(Parameter p : miDrv.getParameters()) showParameterInfo(p);
+		for(MidiInputDriver d : midS) {
+			showDriverInfo(d);
+			for(Parameter p : d.getParameters()) showParameterInfo(p);
 			System.out.println();
 		}
 		
@@ -161,10 +159,10 @@ public class Poll {
 		
 		System.out.println("Available engines:");
 		
-		String[] engines = client.getEngines();
+		SamplerEngine[] engines = client.getEngines();
 		showList(engines);
 		
-		for(String s : engines) showEngineInfo(client.getEngineInfo(s));
+		for(SamplerEngine se : engines) showEngineInfo(se);
 	}
 	
 	private static void

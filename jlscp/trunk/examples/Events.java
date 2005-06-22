@@ -41,7 +41,6 @@ public class Events {
 		MyListener myListener = new MyListener();
 		Client client = new Client();
 		
-		
 		try {
 			// Listeners can be added or removed regardless of the connection state.
 			client.addBufferFillListener(myListener);

@@ -39,10 +39,9 @@ import org.linuxsampler.lscp.event.*;
 
 /**
  * This class is the abstraction representing a client endpoint for communication with LinuxSampler
- * instance. Since it implements all commands specified in the LSCP protocol version 1.0, for more 
- * information look at
- * <a href=http://www.linuxsampler.org/api/draft-linuxsampler-protocol.html>LSCP</a>
- * specification.
+ * instance. Since it implements all commands specified in the LSCP protocol v1.0, for more 
+ * information look at the
+ * <a href=http://www.linuxsampler.org/api/lscp-1.0.html>LSCP</a> specification.
  *
  * <p> The following code establishes connection to LinuxSampler instance and gets the
  * LinuxSampler version:
@@ -66,9 +65,6 @@ import org.linuxsampler.lscp.event.*;
  * @author  Grigor Iliev
  */
 public class Client {
-	/** Specifies the current version of jlscp */
-	private final static String VERSION = "0.1a";
-	
 	private String address;
 	private int port;
 	private Socket sock = null;
@@ -141,7 +137,9 @@ public class Client {
 	 * @return The jlscp version. 
 	 */
 	public static String
-	getClientVersion() { return VERSION; }
+	getClientVersion() {
+		return Package.getPackage("org.linuxsampler.lscp").getImplementationVersion();
+	}
 	
 	/**
 	 * Gets the Linux Sampler address.
@@ -219,6 +217,36 @@ public class Client {
 				LscpI18n.getLogMsg("Client.connectionFailed!"), x
 			);
 		}
+		
+		String s = Package.getPackage("org.linuxsampler.lscp").getSpecificationVersion();
+		String s2, sv, sv2;
+		
+		try {
+			s2 = s.substring(0,  s.indexOf('.'));
+			sv = getServerInfo().getProtocolVersion();
+			sv2 = sv.substring(0,  sv.indexOf('.'));
+		} catch(Exception x) {
+			disconnect();
+			
+			throw new LscpException (
+				LscpI18n.getLogMsg("Client.connectionFailed!"), x
+			);
+		}
+		
+		if(!sv2.equals(s2)) {
+			disconnect();
+			
+			throw new LscpException (
+				LscpI18n.getLogMsg("Client.incompatibleLscpVersion!", sv)
+			);
+		}
+		
+		s2 = s.substring(s.indexOf('.'));
+		sv2 = sv.substring(sv.indexOf('.'));
+		
+		if(sv2.compareToIgnoreCase(s2) < 0) getLogger().info (
+			LscpI18n.getLogMsg("Client.incompatibleLscpMinVersion!", sv)
+		);
 		
 		if(hasSubscriptions()) eventThread.start();
 		
@@ -615,18 +643,39 @@ public class Client {
 		String s = getSingleLineResultSet().getResult();
 		return parseInt(s);
 	}
+	
 	/**
 	 * Gets all audio output drivers currently available for the LinuxSampler instance.
 	 * 
-	 * @return <code>String</code> array with all audio output drivers currently available for
-	 * the LinuxSampler instance.
+	 * @return <code>AudioOutputDriver</code> array containing all audio output drivers
+	 * currently available for the LinuxSampler instance.
 	 *
 	 * @throws IOException If an I/O error occurs.
 	 * @throws LscpException If LSCP protocol corruption occurs.
 	 * @throws LSException If some other error occurs.
 	 */
-	public synchronized String[]
+	public synchronized AudioOutputDriver[]
 	getAudioOutputDrivers() throws IOException, LscpException, LSException {
+		String[] drivers = getAudioOutputDriverNames();
+		AudioOutputDriver[] aod = new AudioOutputDriver[drivers.length];
+		
+		for(int i = 0; i < aod.length; i++) aod[i] = getAudioOutputDriverInfo(drivers[i]);
+		
+		return aod;
+	}
+	
+	/**
+	 * Gets all audio output drivers currently available for the LinuxSampler instance.
+	 * 
+	 * @return <code>String</code> array containing all audio output drivers currently
+	 * available for the LinuxSampler instance.
+	 *
+	 * @throws IOException If an I/O error occurs.
+	 * @throws LscpException If LSCP protocol corruption occurs.
+	 * @throws LSException If some other error occurs.
+	 */
+	private synchronized String[]
+	getAudioOutputDriverNames() throws IOException, LscpException, LSException {
 		verifyConnection();
 		out.writeLine("LIST AVAILABLE_AUDIO_OUTPUT_DRIVERS");
 		return parseList(getSingleLineResultSet().getResult());
@@ -643,9 +692,9 @@ public class Client {
 	 * @throws LscpException If LSCP protocol corruption occurs.
 	 * @throws LSException If there is no driver with name <code>driverName</code>.
 	 *
-	 * @see #getAudioOutputDrivers
+	 * @see #getAudioOutputDriverNames
 	 */
-	public synchronized AudioOutputDriver
+	private synchronized AudioOutputDriver
 	getAudioOutputDriverInfo(String driverName) throws IOException, LscpException, LSException {
 		verifyConnection();
 		out.writeLine("GET AUDIO_OUTPUT_DRIVER INFO " + driverName);
@@ -1075,16 +1124,35 @@ public class Client {
 	/**
 	 * Gets all MIDI input drivers currently available for the LinuxSampler instance.
 	 * 
-	 * @return <code>String</code> array with all MIDI input drivers currently available for
-	 * the LinuxSampler instance or <code>null</code> if there are no MIDI input drivers
-	 * currently available.
+	 * @return <code>MidiInputDriver</code> array containing all MIDI input drivers currently 
+	 * available for the LinuxSampler instance.
 	 *
 	 * @throws IOException If an I/O error occurs.
 	 * @throws LscpException If LSCP protocol corruption occurs.
 	 * @throws LSException If some other error occurs.
 	 */
-	public synchronized String[]
+	public synchronized MidiInputDriver[]
 	getMidiInputDrivers() throws IOException, LscpException, LSException {
+		String[] drivers = getMidiInputDriverNames();
+		MidiInputDriver[] mid = new MidiInputDriver[drivers.length];
+		
+		for(int i = 0; i < mid.length; i++) mid[i] = getMidiInputDriverInfo(drivers[i]);
+		
+		return mid;
+	}
+	
+	/**
+	 * Gets all MIDI input drivers currently available for the LinuxSampler instance.
+	 * 
+	 * @return <code>String</code> array containing all MIDI input drivers currently available
+	 * for the LinuxSampler instance.
+	 *
+	 * @throws IOException If an I/O error occurs.
+	 * @throws LscpException If LSCP protocol corruption occurs.
+	 * @throws LSException If some other error occurs.
+	 */
+	private synchronized String[]
+	getMidiInputDriverNames() throws IOException, LscpException, LSException {
 		verifyConnection();
 		out.writeLine("LIST AVAILABLE_MIDI_INPUT_DRIVERS");
 		return parseList(getSingleLineResultSet().getResult());
@@ -1094,16 +1162,16 @@ public class Client {
 	 * Gets detailed information about a specific MIDI input driver.
 	 * @param driverName The name of the MIDI input driver.
 	 *
-	 * @return An <code>MidiInputDriver</code> object containing
+	 * @return A <code>MidiInputDriver</code> object containing
 	 * information about the specified MIDI input driver.
 	 *
 	 * @throws IOException If an I/O error occurs.
 	 * @throws LscpException If LSCP protocol corruption occurs.
 	 * @throws LSException If there is no driver with name <code>driverName</code>.
 	 *
-	 * @see #getMidiInputDrivers
+	 * @see #getMidiInputDriverNames
 	 */
-	public synchronized MidiInputDriver
+	private synchronized MidiInputDriver
 	getMidiInputDriverInfo(String driverName) throws IOException, LscpException, LSException {
 		verifyConnection();
 		out.writeLine("GET MIDI_INPUT_DRIVER INFO " + driverName);
@@ -1127,7 +1195,7 @@ public class Client {
 	 * <code>param</code> depends on. <code>Parameter</code> instances can be 
 	 * easily created using {@link ParameterFactory} factory.
 	 *
-	 * @return An <code>Parameter</code> object containing
+	 * @return A <code>Parameter</code> object containing
 	 * information about the specified MIDI input driver parameter.
 	 *
 	 * @throws IOException If an I/O error occurs.
@@ -1654,6 +1722,24 @@ public class Client {
 	}
 	
 	/**
+	 * Gets a list of all available engines.
+	 *
+	 * @return <code>SamplerEngine</code> array containing all available engines.
+	 * @throws IOException If some I/O error occurs.
+	 * @throws LscpException If LSCP protocol corruption occurs.
+	 * @throws LSException If some other error occurs.
+	 */
+	public synchronized SamplerEngine[]
+	getEngines() throws IOException, LscpException, LSException {
+		String[] engines = getEngineNames();
+		SamplerEngine[] se = new SamplerEngine[engines.length];
+		
+		for(int i = 0; i < engines.length; i++) se[i] = getEngineInfo(engines[i]);
+		
+		return se;
+	}
+	
+	/**
 	 * Gets a list of all available engines' names.
 	 *
 	 * @return <code>String</code> array with all available engines' names.
@@ -1661,8 +1747,8 @@ public class Client {
 	 * @throws LscpException If LSCP protocol corruption occurs.
 	 * @throws LSException If some other error occurs.
 	 */
-	public synchronized String[]
-	getEngines() throws IOException, LscpException, LSException {
+	private synchronized String[]
+	getEngineNames() throws IOException, LscpException, LSException {
 		verifyConnection();
 		out.writeLine("LIST AVAILABLE_ENGINES");
 		return parseStringList(getSingleLineResultSet().getResult());
@@ -1678,9 +1764,9 @@ public class Client {
 	 * @throws IOException If an I/O error occurs.
 	 * @throws LscpException If LSCP protocol corruption occurs.
 	 * @throws LSException If there is no sampler engine with name <code>engineName</code>.
-	 * @see #getEngines
+	 * @see #getEngineNames
 	 */
-	public synchronized SamplerEngine
+	private synchronized SamplerEngine
 	getEngineInfo(String engineName) throws IOException, LscpException, LSException {
 		verifyConnection();
 		out.writeLine("GET ENGINE INFO " + engineName);

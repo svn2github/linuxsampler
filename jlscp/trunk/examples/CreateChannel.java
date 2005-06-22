@@ -51,10 +51,14 @@ public class CreateChannel {
 			int mDev, aDev, chn;
 			
 			// Creates new MIDI input device using the first availble MIDI driver
-			mDev = client.createMidiInputDevice(client.getMidiInputDrivers()[0]);
+			mDev =client.createMidiInputDevice (
+				client.getMidiInputDrivers()[0].getName()
+			);
 			
 			// Creates new audio output device using the first audio output driver
-			aDev = client.createAudioOutputDevice(client.getAudioOutputDrivers()[0]);
+			aDev = client.createAudioOutputDevice (
+				client.getAudioOutputDrivers()[0].getName()
+			);
 			
 			// Creates new sampler channel
 			chn = client.addSamplerChannel();
@@ -66,7 +70,7 @@ public class CreateChannel {
 			client.setChannelAudioOutputDevice(chn, aDev);
 			
 			// Setting the engine type 
-			client.loadSamplerEngine(client.getEngines()[0], chn);
+			client.loadSamplerEngine(client.getEngines()[0].getName(), chn);
 			
 			// Loading instrument
 			client.loadInstrument(args[0], Integer.parseInt(args[1]), chn);
