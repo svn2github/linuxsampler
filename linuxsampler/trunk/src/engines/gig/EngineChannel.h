@@ -67,6 +67,10 @@ namespace LinuxSampler { namespace gig {
             virtual void    DisconnectAudioOutputDevice();
             virtual void    SetOutputChannel(uint EngineAudioChannel, uint AudioDeviceChannel);
             virtual int     OutputChannel(uint EngineAudioChannel);
+            virtual void    Connect(MidiInputPort* pMidiPort, midi_chan_t MidiChannel);
+            virtual void    DisconnectMidiInputPort();
+            virtual MidiInputPort* GetMidiInputPort();
+            virtual midi_chan_t MidiChannel();
             virtual String  InstrumentFileName();
             virtual String  InstrumentName();
             virtual int     InstrumentIndex();
@@ -85,6 +89,8 @@ namespace LinuxSampler { namespace gig {
             float*                  pOutputRight;             ///< Audio output channel buffer (right)
             int                     AudioDeviceChannelLeft;   ///< audio device channel number to which the left channel is connected to
             int                     AudioDeviceChannelRight;  ///< audio device channel number to which the right channel is connected to
+            MidiInputPort*          pMidiInputPort;           ///< Points to the connected MIDI input port or NULL if none assigned.
+            midi_chan_t             midiChannel;              ///< MIDI channel(s) on which this engine channel listens to.
             RingBuffer<Event>*      pEventQueue;              ///< Input event queue.
             RTList<Event>*          pEvents;                  ///< All engine channel specific events for the current audio fragment.
             RTList<Event>*          pCCEvents;                ///< All control change events for the current audio fragment on this engine channel.

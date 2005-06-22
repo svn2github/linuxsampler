@@ -202,21 +202,46 @@ namespace LinuxSampler {
         if (MidiChannel < 0 || MidiChannel > 16)
             throw MidiInputException("MIDI channel index out of bounds");
 
+        // firt check if desired connection is already established
+        MidiChannelMapMutex.Lock();
+        bool bAlreadyDone = MidiChannelMap[MidiChannel].count(pEngineChannel);
+        MidiChannelMapMutex.Unlock();
+        if (bAlreadyDone) return;
+
+        // remove all other connections of that engine channel (if any)
         Disconnect(pEngineChannel);
 
+        // register engine channel on the desired MIDI channel
         MidiChannelMapMutex.Lock();
         MidiChannelMap[MidiChannel].insert(pEngineChannel);
         MidiChannelMapMutex.Unlock();
+
+        // inform engine channel about this connection
+        pEngineChannel->Connect(this, MidiChannel);
 
         // mark engine channel as changed
         pEngineChannel->StatusChanged(true);
     }
 
     void MidiInputPort::Disconnect(EngineChannel* pEngineChannel) {
+        if (!pEngineChannel) return;
+
+        bool bChannelFound = false;
+
+        // unregister engine channel from all MIDI channels
         MidiChannelMapMutex.Lock();
-        try { for (int i = 0; i <= 16; i++) MidiChannelMap[i].erase(pEngineChannel); }
+        try {
+            for (int i = 0; i <= 16; i++) {
+                bChannelFound |= MidiChannelMap[i].count(pEngineChannel);
+                MidiChannelMap[i].erase(pEngineChannel);
+            }
+        }
         catch(...) { /* NOOP */ }
         MidiChannelMapMutex.Unlock();
+
+        // inform engine channel about the disconnection (if there is one)
+        if (bChannelFound) pEngineChannel->DisconnectMidiInputPort();
+
         // mark engine channel as changed
         pEngineChannel->StatusChanged(true);
     }

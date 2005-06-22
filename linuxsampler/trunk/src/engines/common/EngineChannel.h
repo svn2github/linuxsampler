@@ -22,12 +22,16 @@
 #define __LS_ENGINECHANNEL_H__
 
 #include "../../drivers/audio/AudioOutputDevice.h"
+#include "../../drivers/midi/midi.h"
+#include "../../drivers/midi/MidiInputDevice.h"
+#include "../../drivers/midi/MidiInputPort.h"
 #include "Engine.h"
 
 namespace LinuxSampler {
 
     // just symbol prototyping
     class AudioOutputDevice;
+    class MidiInputPort;
 
     /** @brief Channel Interface for LinuxSampler Sampler Engines
      *
@@ -62,6 +66,10 @@ namespace LinuxSampler {
             virtual void    DisconnectAudioOutputDevice() = 0;
             virtual void    SetOutputChannel(uint EngineAudioChannel, uint AudioDeviceChannel) = 0;
             virtual int     OutputChannel(uint EngineAudioChannel) = 0;
+            virtual void    Connect(MidiInputPort* pMidiPort, midi_chan_t MidiChannel) = 0;
+            virtual void    DisconnectMidiInputPort() = 0;
+            virtual MidiInputPort* GetMidiInputPort() = 0;
+            virtual midi_chan_t MidiChannel() = 0;
             virtual String  InstrumentFileName() = 0;
             virtual String  InstrumentName() = 0;
             virtual int     InstrumentIndex() = 0;

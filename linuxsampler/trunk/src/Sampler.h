@@ -87,7 +87,7 @@ namespace LinuxSampler {
              *
              * @param MidiChannel - MIDI channel to listen
              */
-            void SetMidiInputChannel(MidiInputPort::midi_chan_t MidiChannel);
+            void SetMidiInputChannel(midi_chan_t MidiChannel);
 
             /**
              * Connect this sampler channel to a MIDI input triplet.
@@ -98,7 +98,7 @@ namespace LinuxSampler {
              *                      sampler channel should listen to
              *                      (default: listen on all MIDI channels)
              */
-            void SetMidiInput(MidiInputDevice* pDevice, int iMidiPort, MidiInputPort::midi_chan_t MidiChannel = MidiInputPort::midi_chan_all);
+            void SetMidiInput(MidiInputDevice* pDevice, int iMidiPort, midi_chan_t MidiChannel = midi_chan_all);
 
             /**
              * Returns the EngineChannel object that was deployed on this
@@ -115,7 +115,7 @@ namespace LinuxSampler {
              * @returns  The MIDI input channel on which the sampler
              *           channel is listening to.
              */
-            MidiInputPort::midi_chan_t GetMidiInputChannel();
+            midi_chan_t GetMidiInputChannel();
 
             /**
              * Returns the MIDI input port number to which this sampler
@@ -154,17 +154,19 @@ namespace LinuxSampler {
             virtual ~SamplerChannel();
 
             /** Getting MIDI input device port given its index number. */
-            MidiInputPort* GetMidiInputDevicePort(int iMidiPort);
+            MidiInputPort* __GetMidiInputDevicePort(int iMidiPort);
+            midi_chan_t    __GetMidiChannel();
 
             Sampler*           pSampler;
             EngineChannel*     pEngineChannel;
             AudioOutputDevice* pAudioOutputDevice;
             MidiInputDevice*   pMidiInputDevice;
-            int                midiPort;
-            MidiInputPort::midi_chan_t midiChannel;
             int                iIndex;
 
             friend class Sampler;
+        private:
+            int                iMidiPort;   ///< Don't access directly, read GetMidiInputPort() instead !
+            midi_chan_t        midiChannel; ///< Don't access directly, read GetMidiInputChannel() instead !
     };
 
     /** @brief LinuxSampler main class
@@ -175,15 +177,16 @@ namespace LinuxSampler {
      * sampler channel can individually be deployed with it's own sampler
      * engine, connected to an arbitrary MIDI input device and connected to
      * an arbitrary audio output device. Here an example setup:
+     * @code
+     * S.Channel.	MIDI in		S.Engine		Audio out
+     * -------------------------------------------------------------------
+     * 0		Alsa	->	gig::Engine	->	Jack
+     * 1		VSTi	->	Akai::Engine	->	VSTi
+     * 2		Jack	->	DLS::Engine	->	Jack
+     * 3		Jack	->	SF::Engine	->	Alsa
      *
-     *	S.Channel.	MIDI in		S.Engine		Audio out
-     *	-------------------------------------------------------------------
-     *	0		Alsa	->	gig::Engine	->	Jack
-     *	1		VSTi	->	Akai::Engine	->	VSTi
-     *	2		Jack	->	DLS::Engine	->	Jack
-     *	3		Jack	->	SF::Engine	->	Alsa
-     *
-     *	... (and so on) ...
+     * ... (and so on) ...
+     * @endcode
      *
      * Note that not all audio and MIDI backends and sampler engines listed
      * in the example above are already implemented!
@@ -192,24 +195,25 @@ namespace LinuxSampler {
      * several, different audio output and MIDI input systems
      * simultaniously at the same time. Here the example setup shown in the
      * ascpect of MIDI input and audio output devices / drivers:
-     *
-     *				  ######################### #########################
-     *				  # AudioOutputDeviceJack # # AudioOutputDeviceVSTi #
-     *				  ######################### #########################
-     *						^   ^		^
-     *	  /------------>|Sampler Channel 0|-----/   |		|
-     *	  |  /--------->|Sampler Channel 1|---------------------/
-     *	  |  |	  /---->|Sampler Channel 2|---------/
-     *	  |  |	  |  /->|Sampler Channel 3|------------>#########################
-     *	  |  |	  |  |	... (and so on) ...		# AudioOutputDeviceAlsa #
-     *	  |  |	  |  |					#########################
-     *	  |  |	  |  \----------------------------------------------------\
-     *	  |  |	  \-------------------------------------------\		  |
-     *	  |  \--------------------\			      |		  |
-     *	  |			  |			      |		  |
-     *	####################### ####################### #######################
-     *	# MidiInputDeviceAlsa # # MidiInputDeviceVSTi # # MidiInputDeviceJack #
-     *	####################### ####################### #######################
+     * @code
+     * 			  ######################### #########################
+     * 			  # AudioOutputDeviceJack # # AudioOutputDeviceVSTi #
+     * 			  ######################### #########################
+     * 					 ^   ^		 ^
+     *   /------------>|Sampler Channel 0|-----/   |		 |
+     *   |  /--------->|Sampler Channel 1|---------------------/
+     *   |  |	 /------>|Sampler Channel 2|---------/
+     *   |  |	 |  /--->|Sampler Channel 3|------------>#########################
+     *   |  |	 |  |	 ... (and so on) ...		 # AudioOutputDeviceAlsa #
+     *   |  |	 |  |					 #########################
+     *   |  |	 |  \-----------------------------------------------------\
+     *   |  |	 \--------------------------------------------\		  |
+     *   |  \--------------------\			      |		  |
+     *   |			   |			      |		  |
+     * ####################### ####################### #######################
+     * # MidiInputDeviceAlsa # # MidiInputDeviceVSTi # # MidiInputDeviceJack #
+     * ####################### ####################### #######################
+     * @endcode
      *
      * As you can see in this example setup, one device (that is midi input
      * driver / audio output driver) can be connected multiple times to

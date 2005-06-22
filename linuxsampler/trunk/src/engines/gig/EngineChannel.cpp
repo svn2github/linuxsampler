@@ -49,6 +49,8 @@ namespace LinuxSampler { namespace gig {
         InstrumentStat = -1;
         AudioDeviceChannelLeft  = -1;
         AudioDeviceChannelRight = -1;
+        pMidiInputPort = NULL;
+        midiChannel = midi_chan_all;
         ResetControllers();
     }
 
@@ -338,6 +340,28 @@ namespace LinuxSampler { namespace gig {
             default:
                 throw AudioOutputException("Invalid engine audio channel " + ToString(EngineAudioChannel));
         }
+    }
+
+    void EngineChannel::Connect(MidiInputPort* pMidiPort, midi_chan_t MidiChannel) {
+        if (!pMidiPort || pMidiPort == this->pMidiInputPort) return;
+        DisconnectMidiInputPort();
+        this->pMidiInputPort = pMidiPort;
+        this->midiChannel    = MidiChannel;
+        pMidiPort->Connect(this, MidiChannel);
+    }
+
+    void EngineChannel::DisconnectMidiInputPort() {
+        MidiInputPort* pOldPort = this->pMidiInputPort;
+        this->pMidiInputPort = NULL;
+        if (pOldPort) pOldPort->Disconnect(this);
+    }
+
+    MidiInputPort* EngineChannel::GetMidiInputPort() {
+        return pMidiInputPort;
+    }
+
+    midi_chan_t EngineChannel::MidiChannel() {
+        return midiChannel;
     }
 
     /**

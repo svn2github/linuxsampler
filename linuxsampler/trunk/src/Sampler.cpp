@@ -38,16 +38,16 @@ namespace LinuxSampler {
     SamplerChannel::SamplerChannel(Sampler* pS) {
         pSampler           = pS;
         pEngineChannel     = NULL;
-        pMidiInputDevice   = NULL;
         pAudioOutputDevice = NULL;
-        midiPort           = 0;
-        midiChannel        = MidiInputPort::midi_chan_all;
+        pMidiInputDevice   = NULL;
+        iMidiPort          = 0;
+        midiChannel        = midi_chan_all;
         iIndex             = -1;
     }
 
     SamplerChannel::~SamplerChannel() {
         if (pEngineChannel) {
-            MidiInputPort* pMidiInputPort = GetMidiInputDevicePort(this->midiPort);
+            MidiInputPort* pMidiInputPort = (pEngineChannel) ? pEngineChannel->GetMidiInputPort() : __GetMidiInputDevicePort(GetMidiInputChannel());
             if (pMidiInputPort) pMidiInputPort->Disconnect(pEngineChannel);
             if (pEngineChannel) {
                 if (pAudioOutputDevice) pEngineChannel->DisconnectAudioOutputDevice();
@@ -67,8 +67,8 @@ namespace LinuxSampler {
         pNewEngineChannel->iSamplerChannelIndex = Index();
 
         // dereference midi input port.
-        MidiInputPort* pMidiInputPort = GetMidiInputDevicePort(this->midiPort);
-        // disconnect old engine
+        MidiInputPort* pMidiInputPort = __GetMidiInputDevicePort(GetMidiInputPort());
+        // disconnect old engine channel
         if (pEngineChannel) {
             if (pMidiInputPort) pMidiInputPort->Disconnect(pEngineChannel);
             if (pAudioOutputDevice) pEngineChannel->DisconnectAudioOutputDevice();
@@ -76,12 +76,17 @@ namespace LinuxSampler {
         }
 
         // connect new engine channel
-        pEngineChannel = pNewEngineChannel;
-        if (pMidiInputPort) pMidiInputPort->Connect(pNewEngineChannel, this->midiChannel);
+        if (pMidiInputPort) pMidiInputPort->Connect(pNewEngineChannel, GetMidiInputChannel());
         if (pAudioOutputDevice) {
             pNewEngineChannel->Connect(pAudioOutputDevice);
             pAudioOutputDevice->Connect(pNewEngineChannel->GetEngine());
         }
+        pEngineChannel = pNewEngineChannel;
+
+        // from now on get MIDI device and port from EngineChannel object
+        this->pMidiInputDevice = NULL;
+        this->iMidiPort        = 0;
+
         dmsg(2,("OK\n"));
     }
 
@@ -97,31 +102,37 @@ namespace LinuxSampler {
     }
 
     void SamplerChannel::SetMidiInputDevice(MidiInputDevice* pDevice) {
-       SetMidiInput(pDevice, this->midiPort, this->midiChannel);
+       SetMidiInput(pDevice, 0, GetMidiInputChannel());
     }
 
     void SamplerChannel::SetMidiInputPort(int MidiPort) {
-       SetMidiInput(pMidiInputDevice, MidiPort, this->midiChannel);
+       SetMidiInput(GetMidiInputDevice(), MidiPort, GetMidiInputChannel());
     }
 
-    void SamplerChannel::SetMidiInputChannel(MidiInputPort::midi_chan_t MidiChannel) {
-       SetMidiInput(pMidiInputDevice, this->midiPort, MidiChannel);
+    void SamplerChannel::SetMidiInputChannel(midi_chan_t MidiChannel) {
+       SetMidiInput(GetMidiInputDevice(), GetMidiInputPort(), MidiChannel);
     }
 
-    void SamplerChannel::SetMidiInput(MidiInputDevice* pDevice, int iMidiPort, MidiInputPort::midi_chan_t MidiChannel) {
-        // dereference old midi input port.
-        MidiInputPort* pMidiInputPort = GetMidiInputDevicePort(this->midiPort);
+    void SamplerChannel::SetMidiInput(MidiInputDevice* pDevice, int iMidiPort, midi_chan_t MidiChannel) {
+        if (!pDevice) throw LinuxSamplerException("No MIDI input device assigned.");
+
+        // get old and new midi input port
+        MidiInputPort* pOldMidiInputPort = __GetMidiInputDevicePort(GetMidiInputPort());
+        MidiInputPort* pNewMidiInputPort = pDevice->GetPort(iMidiPort);
+
         // disconnect old device port
-        if (pMidiInputPort && pEngineChannel) pMidiInputPort->Disconnect(pEngineChannel);
-        // new device, port and channel
-        pMidiInputDevice = pDevice;
-        this->midiPort = iMidiPort;
-        this->midiChannel = MidiChannel;
+        if (pOldMidiInputPort && pEngineChannel) pOldMidiInputPort->Disconnect(pEngineChannel);
+        // remember new device, port and channel if not engine channel yet created
+        if (!pEngineChannel) {
+            this->pMidiInputDevice = pDevice;
+            this->iMidiPort        = iMidiPort;
+            this->midiChannel      = MidiChannel;
+        }
+
         // connect new device port
-        pMidiInputPort = GetMidiInputDevicePort(this->midiPort);
-        if (pMidiInputPort && pEngineChannel) pMidiInputPort->Connect(pEngineChannel, MidiChannel);
+        if (pNewMidiInputPort && pEngineChannel) pNewMidiInputPort->Connect(pEngineChannel, MidiChannel);
         // Ooops.
-        if (pMidiInputPort == NULL)
+        if (pNewMidiInputPort == NULL)
             throw LinuxSamplerException("There is no MIDI input port with index " + ToString(iMidiPort) + ".");
     }
 
@@ -129,13 +140,15 @@ namespace LinuxSampler {
         return pEngineChannel;
     }
 
-    MidiInputPort::midi_chan_t SamplerChannel::GetMidiInputChannel() {
+    midi_chan_t SamplerChannel::GetMidiInputChannel() {
+        if (pEngineChannel) this->midiChannel = pEngineChannel->MidiChannel();
         return this->midiChannel;
     }
 
     int SamplerChannel::GetMidiInputPort() {
-        MidiInputPort* pMidiInputPort = GetMidiInputDevicePort(this->midiPort);
-        return (pMidiInputPort ? (int) pMidiInputPort->GetPortNumber() : -1);
+        MidiInputPort* pMidiInputPort = (pEngineChannel) ? pEngineChannel->GetMidiInputPort() : NULL;
+        if (pMidiInputPort) this->iMidiPort = (int) pMidiInputPort->GetPortNumber();
+        return iMidiPort;
     }
 
     AudioOutputDevice* SamplerChannel::GetAudioOutputDevice() {
@@ -143,6 +156,8 @@ namespace LinuxSampler {
     }
 
     MidiInputDevice* SamplerChannel::GetMidiInputDevice() {
+        if (pEngineChannel)
+            pMidiInputDevice = (pEngineChannel->GetMidiInputPort()) ? pEngineChannel->GetMidiInputPort()->GetDevice() : NULL;
         return pMidiInputDevice;
     }
 
@@ -160,8 +175,9 @@ namespace LinuxSampler {
         throw LinuxSamplerException("Internal error: SamplerChannel index not found");
     }
 
-    MidiInputPort* SamplerChannel::GetMidiInputDevicePort(int iMidiPort) {
+    MidiInputPort* SamplerChannel::__GetMidiInputDevicePort(int iMidiPort) {
         MidiInputPort* pMidiInputPort = NULL;
+        MidiInputDevice* pMidiInputDevice = GetMidiInputDevice();
         if (pMidiInputDevice)
             pMidiInputPort = pMidiInputDevice->GetPort(iMidiPort);
         return pMidiInputPort;

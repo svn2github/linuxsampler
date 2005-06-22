@@ -646,7 +646,7 @@ String LSCPServer::GetChannelInfo(uint uiSamplerChannel) {
 
         result.Add("MIDI_INPUT_DEVICE", GetMidiInputDeviceIndex(pSamplerChannel->GetMidiInputDevice()));
         result.Add("MIDI_INPUT_PORT", pSamplerChannel->GetMidiInputPort());
-        if (pSamplerChannel->GetMidiInputChannel() == MidiInputPort::midi_chan_all) result.Add("MIDI_INPUT_CHANNEL", "ALL");
+        if (pSamplerChannel->GetMidiInputChannel() == midi_chan_all) result.Add("MIDI_INPUT_CHANNEL", "ALL");
         else result.Add("MIDI_INPUT_CHANNEL", pSamplerChannel->GetMidiInputChannel());
 
         result.Add("INSTRUMENT_FILE", InstrumentFileName);
@@ -1290,7 +1290,7 @@ String LSCPServer::SetMIDIInputChannel(uint MIDIChannel, uint uiSamplerChannel) 
     try {
         SamplerChannel* pSamplerChannel = pSampler->GetSamplerChannel(uiSamplerChannel);
         if (!pSamplerChannel) throw LinuxSamplerException("Invalid sampler channel number " + ToString(uiSamplerChannel));
-        pSamplerChannel->SetMidiInputChannel((MidiInputPort::midi_chan_t) MIDIChannel);
+        pSamplerChannel->SetMidiInputChannel((midi_chan_t) MIDIChannel);
     }
     catch (LinuxSamplerException e) {
          result.Error(e);
@@ -1367,7 +1367,7 @@ String LSCPServer::SetMIDIInput(uint MIDIDeviceId, uint MIDIPort, uint MIDIChann
         std::map<uint, MidiInputDevice*> devices =  pSampler->GetMidiInputDevices();
         if (!devices.count(MIDIDeviceId)) throw LinuxSamplerException("There is no MIDI input device with index " + ToString(MIDIDeviceId));
         MidiInputDevice* pDevice = devices[MIDIDeviceId];
-        pSamplerChannel->SetMidiInput(pDevice, MIDIPort, (MidiInputPort::midi_chan_t) MIDIChannel);
+        pSamplerChannel->SetMidiInput(pDevice, MIDIPort, (midi_chan_t) MIDIChannel);
     }
     catch (LinuxSamplerException e) {
          result.Error(e);
