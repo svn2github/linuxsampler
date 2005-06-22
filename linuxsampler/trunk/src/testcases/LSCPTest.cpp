@@ -77,7 +77,7 @@ bool LSCPTest::launchLSCPServer() {
     const long timeout_seconds = 10; // we give the server max. 10 seconds to startup, otherwise we declare the startup as failed
     try {
         pSampler    = new Sampler;
-        pLSCPServer = new LSCPServer(pSampler);
+        pLSCPServer = new LSCPServer(pSampler, htonl(LSCP_ADDR), htons(LSCP_PORT));
         pLSCPServer->StartThread();
         int res = pLSCPServer->WaitUntilInitialized(timeout_seconds);
         if (res < 0) throw;
