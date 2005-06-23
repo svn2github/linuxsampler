@@ -6,7 +6,10 @@
   define them manually here for now.
 */
 
-#define VERSION "0.3.1"
+#define VERSION "0.3.2"
+
+/* Define to 1 if you want to enable hand-crafted asm optimizations. */
+/* #undef CONFIG_ASM */
 
 /* Define console verbosity. */
 #define CONFIG_DEBUG_LEVEL 1

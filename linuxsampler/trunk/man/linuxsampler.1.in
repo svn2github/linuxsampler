@@ -1,4 +1,4 @@
-.TH "linuxsampler" "1" "24 May 2005" "linuxsampler @VERSION@" "User Manuals"
+.TH "linuxsampler" "1" "24 Jun 2005" "linuxsampler @VERSION@" "User Manuals"
 .SH NAME
 linuxsampler \- modular, streaming capable sampler
 .SH SYNOPSIS
@@ -25,6 +25,12 @@ disable assembly optimizations
 .TP
 .IP \ --statistics
 output voice and disk stream count periodically on the console
+.TP
+.IP \ --lscp-addr
+IP address on which the LSCP server should listen to (default: any)
+.TP
+.IP \ --lscp-port
+TCP port on which the LSCP server should listen to (default: 8888)
 .SH "SEE ALSO"
 qsampler(1)
 .SH "BUGS"

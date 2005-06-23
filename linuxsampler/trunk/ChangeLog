@@ -1,4 +1,4 @@
-Version CVS HEAD (?)
+Version 0.3.2 (24 June 2005)
 
   * packaging changes:
     - updated autotools build files to compile on OS X
