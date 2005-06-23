@@ -130,7 +130,8 @@
                   <td valign=top>
                     <p class="default">
 		      <b>2005-06-24</b> LinuxSampler 0.3.2 has been released. This is more or less just
-		      a bug fix release.<br>
+		      a bug fix release. Just by coincidence, <a href="http://qsampler.sourceforge.net">QSampler</a>
+		      0.1.2 has also been thrown out.<br>
 		      <br>
 		      <b>2005-06-12</b> <a href="http://qsampler.sourceforge.net">QSampler</a> 0.1.1 has
 		      been released, after a few bugfixes and a new logo icon.<br>
