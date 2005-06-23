@@ -1,7 +1,7 @@
 
 %define name    @PACKAGE@
 %define version @VERSION@
-%define release 2
+%define release 6
 %define prefix  @prefix@
 
 Summary:	LinuxSampler - modular, streaming capable, realtime audio sampler
@@ -58,5 +58,7 @@ if [ -d $RPM_BUILD_ROOT ]; then rm -rf $RPM_BUILD_ROOT; fi
 %{prefix}/man/man1/linuxsampler.*
 
 %changelog
+* Thu Jun 23 2005 Rui Nuno Capela <rncbc@users.sourceforge.net>
+- Ready for linuxsampler 0.3.2 bugfix release.
 * Sun Jun 12 2005 Rui Nuno Capela <rncbc@users.sourceforge.net>
 - Created first official linuxsampler.spec
