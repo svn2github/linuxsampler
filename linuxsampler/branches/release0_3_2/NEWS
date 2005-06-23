@@ -1,0 +1,5 @@
+Version 0.3.2 (24 June 2005)
+
+  This is more or less just a bug fix release. Beside a bunch of little
+  fixes it solves a serious crash in conjunction with voice stealing and
+  slightly improves Gigasampler format playback accuracy.

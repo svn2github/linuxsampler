@@ -1,0 +1,40 @@
+INCLUDES = $(all_includes)
+METASOURCES = AUTO
+
+AM_CXXFLAGS = -Wreturn-type -ffast-math $(CXX_CPU_SWITCH)
+
+if HAVE_ALSA
+alsa_src  = MidiInputDeviceAlsa.cpp MidiInputDeviceAlsa.h
+alsa_ladd = -lasound
+else
+alsa_src  =
+alsa_ladd =
+endif
+
+if HAVE_MIDISHARE
+midishare_src  = MidiInputDeviceMidiShare.cpp MidiInputDeviceMidiShare.h
+midishare_ladd = -lMidiShare
+else
+midishare_src  =
+midishare_ladd =
+endif
+
+if HAVE_COREMIDI
+coremidi_src  = MidiInputDeviceCoreMidi.cpp MidiInputDeviceCoreMidi.h
+coremidi_ldflags = -framework CoreMIDI
+else
+coremidi_src  =
+coremidi_ldflags =
+endif
+
+noinst_LTLIBRARIES = liblinuxsamplermididriver.la
+liblinuxsamplermididriver_la_SOURCES = \
+    midi.h \
+    MidiInputDevice.cpp MidiInputDevice.h \
+    MidiInputDeviceFactory.h MidiInputDeviceFactory.cpp \
+    MidiInputPort.cpp MidiInputPort.h \
+    $(alsa_src) \
+    $(midishare_src) \
+    $(coremidi_src)
+liblinuxsamplermididriver_la_LIBADD = $(alsa_ladd) $(midishare_ladd)
+liblinuxsamplermididriver_la_LDFLAGS = $(coremidi_ldflags)
