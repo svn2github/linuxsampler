@@ -95,9 +95,6 @@ class __RTMath : public RTMathBase {
         // conversion using truncate
         inline static int Int(const float a) {
             switch (IMPL) {
-                case CPP: {
-                    return (int) a;
-                }
                 #if CONFIG_ASM && ARCH_X86
                 case ASM_X86_MMX_SSE: {
                     int ret;
@@ -109,6 +106,9 @@ class __RTMath : public RTMathBase {
                     return ret;
                 }
                 #endif // CONFIG_ASM && ARCH_X86
+                default: {
+                    return (int) a;
+                }
             }
         }
 
@@ -119,9 +119,6 @@ class __RTMath : public RTMathBase {
 
         inline static float Float(const int a) {
             switch (IMPL) {
-                case CPP: {
-                    return (float) a;
-                }
                 #if CONFIG_ASM && ARCH_X86
                 case ASM_X86_MMX_SSE: {
                     float ret;
@@ -134,6 +131,9 @@ class __RTMath : public RTMathBase {
                     return ret;
                 }
                 #endif // CONFIG_ASM && ARCH_X86
+                default: {
+                    return (float) a;
+                }
             }
         }
 
@@ -146,9 +146,6 @@ class __RTMath : public RTMathBase {
 
 	inline static float Sum(const float& a, const float& b) {
             switch (IMPL) {
-                case CPP: {
-                    return (a + b);
-                }
                 #if CONFIG_ASM && ARCH_X86
                 case ASM_X86_MMX_SSE: {
                     float ret;
@@ -162,6 +159,9 @@ class __RTMath : public RTMathBase {
                     return ret;
                 }
                 #endif // CONFIG_ASM && ARCH_X86
+                default: {
+                    return (a + b);
+                }
             }
         }
 
@@ -171,9 +171,6 @@ class __RTMath : public RTMathBase {
 
         inline static float Sub(const float& a, const float& b) {
             switch (IMPL) {
-                case CPP: {
-                    return (a - b);
-                }
                 #if CONFIG_ASM && ARCH_X86
                 case ASM_X86_MMX_SSE: {
                     float ret;
@@ -187,6 +184,9 @@ class __RTMath : public RTMathBase {
                     return ret;
                 }
                 #endif // CONFIG_ASM && ARCH_X86
+                default: {
+                    return (a - b);
+                }
             }
         }
 
@@ -196,9 +196,6 @@ class __RTMath : public RTMathBase {
 
         inline static float Mul(const float a, const float b) {
             switch (IMPL) {
-                case CPP: {
-                    return (a * b);
-                }
                 #if CONFIG_ASM && ARCH_X86
                 case ASM_X86_MMX_SSE: {
                     float ret;
@@ -212,6 +209,9 @@ class __RTMath : public RTMathBase {
                     return ret;
                 }
                 #endif // CONFIG_ASM && ARCH_X86
+                default: {
+                    return (a * b);
+                }
             }
         }
 
@@ -221,9 +221,6 @@ class __RTMath : public RTMathBase {
 
         inline static float Div(const float a, const float b) {
             switch (IMPL) {
-                case CPP: {
-                    return (a / b);
-                }
                 #if CONFIG_ASM && ARCH_X86
                 case ASM_X86_MMX_SSE: {
                     float ret;
@@ -237,6 +234,9 @@ class __RTMath : public RTMathBase {
                     return ret;
                 }
                 #endif // CONFIG_ASM && ARCH_X86
+                default: {
+                    return (a / b);
+                }
             }
         }
 
@@ -246,9 +246,6 @@ class __RTMath : public RTMathBase {
 
         inline static float Min(const float a, const float b) {
             switch (IMPL) {
-                case CPP: {
-                    return (b < a) ? b : a;
-                }
                 #if CONFIG_ASM && ARCH_X86
                 case ASM_X86_MMX_SSE: {
                     float ret;
@@ -262,6 +259,9 @@ class __RTMath : public RTMathBase {
                     return ret;
                 }
                 #endif // CONFIG_ASM && ARCH_X86
+                default: {
+                    return (b < a) ? b : a;
+                }
             }
         }
 
@@ -271,9 +271,6 @@ class __RTMath : public RTMathBase {
 
         inline static float Max(const float a, const float b) {
             switch (IMPL) {
-                case CPP: {
-                    return (b > a) ? b : a;
-                }
                 #if CONFIG_ASM && ARCH_X86
                 case ASM_X86_MMX_SSE: {
                     float ret;
@@ -287,6 +284,9 @@ class __RTMath : public RTMathBase {
                     return ret;
                 }
                 #endif // CONFIG_ASM && ARCH_X86
+                default: {
+                    return (b > a) ? b : a;
+                }
             }
         }
 
@@ -296,9 +296,6 @@ class __RTMath : public RTMathBase {
 
         inline static float Fmodf(const float &a, const float &b) {
             switch (IMPL) {
-                case CPP: {
-                    return fmodf(a, b);
-                }
                 #if CONFIG_ASM && ARCH_X86
                 case ASM_X86_MMX_SSE: {
                     float ret;
@@ -319,6 +316,9 @@ class __RTMath : public RTMathBase {
                     return ret;
                 }
                 #endif // CONFIG_ASM && ARCH_X86
+                default: {
+                    return fmodf(a, b);
+                }
             }
         }
 };

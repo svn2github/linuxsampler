@@ -72,7 +72,11 @@ namespace LinuxSampler {
             bq_t y1;
             bq_t y2;
 
+#if __GNUC__ >= 4
+            float fbc;
+#else
             const static float fbc = 0.98;
+#endif
 
             /**
              * Prevent \a f from going into denormal mode which would slow down
@@ -87,6 +91,9 @@ namespace LinuxSampler {
         public:
             BiquadFilter() {
                 Reset();
+#if __GNUC__ >= 4
+                fbc = 0.98f;
+#endif
             }
 
             void Reset() {

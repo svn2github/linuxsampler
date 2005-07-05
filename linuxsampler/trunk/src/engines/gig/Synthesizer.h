@@ -193,10 +193,6 @@ namespace LinuxSampler { namespace gig {
              */
             inline static int DiffToLoopEnd(const float& LoopEnd, const void* Pos, const float& Pitch) {
                 switch (IMPLEMENTATION) {
-                    // pure C++ implementation (thus platform independent)
-                    case CPP: {
-                        return uint((LoopEnd - *((double *)Pos)) / Pitch);
-                    }
                     #if CONFIG_ASM && ARCH_X86
                     case ASM_X86_MMX_SSE: {
                         int result;
@@ -213,6 +209,10 @@ namespace LinuxSampler { namespace gig {
                         return result;
                     }
                     #endif // CONFIG_ASM && ARCH_X86
+                    // pure C++ implementation (thus platform independent)
+                    default: {
+                        return uint((LoopEnd - *((double *)Pos)) / Pitch);
+                    }
                 }
             }
 
@@ -225,13 +225,6 @@ namespace LinuxSampler { namespace gig {
              */
             inline static int WrapLoop(const float& LoopStart, const float& LoopSize, const float& LoopEnd, void* vPos) {
                 switch (IMPLEMENTATION) {
-                    // pure C++ implementation (thus platform independent)
-                    case CPP: {
-                        double * Pos = (double *)vPos;
-                        if (*Pos < LoopEnd) return 0;
-                        *Pos = fmod(*Pos - LoopEnd, LoopSize) + LoopStart;
-                        return 1;
-                    }
                     #if CONFIG_ASM && ARCH_X86
                     case ASM_X86_MMX_SSE: {
                         int result = 0;
@@ -265,6 +258,13 @@ namespace LinuxSampler { namespace gig {
                         return result;
                     }
                     #endif // CONFIG_ASM && ARCH_X86
+                    // pure C++ implementation (thus platform independent)
+                    default: {
+                        double * Pos = (double *)vPos;
+                        if (*Pos < LoopEnd) return 0;
+                        *Pos = fmod(*Pos - LoopEnd, LoopSize) + LoopStart;
+                        return 1;
+                    }
                 }
             }
 

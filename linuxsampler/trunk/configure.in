@@ -225,7 +225,7 @@ AC_ARG_ENABLE(asm,
                           (default=on). LinuxSampler provides CPU specific
                           assembly optimizations for the most important
                           synthesis algorithms. You usually don't want to
-                          diable that.],
+                          disable that.],
   [config_asm="no"],
   [config_asm="yes"]
 )
@@ -553,6 +553,13 @@ AM_INIT_AUTOMAKE(linuxsampler, 0.3.2)
 
 AC_LANG_CPLUSPLUS
 AC_PROG_CXX
+
+# some gcc 4.0 versions need -msse for SSE register allocations
+if test "$config_asm" = "yes"; then
+  if test "$def_arch_x86" = 1; then
+    CXXFLAGS="$CXXFLAGS -msse"
+  fi
+fi
 
 # autoconf 2.59/libtool 1.5.12 bug? work-around. Without a check like
 # this, the dlfcn.h check in am_prog_libtool may fail.

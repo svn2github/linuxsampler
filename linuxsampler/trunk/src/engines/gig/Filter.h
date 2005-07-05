@@ -51,13 +51,21 @@ namespace LinuxSampler { namespace gig {
             bq_t              resonance;
             bq_t              cutoff;
             ::gig::vcf_type_t Type;
+#if __GNUC__ >= 4
+            float fFB;
+#else
             static const float fFB = LSF_FB;
+#endif
+
         public:
 
             Filter() {
                 // set filter type to 'lowpass' by default
                 pFilter = &LPFilter;
                 Type    = ::gig::vcf_type_lowpass;
+#if __GNUC__ >= 4
+                fFB = LSF_FB;
+#endif
             }
 
             inline bq_t Cutoff()     { return cutoff; }
