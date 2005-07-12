@@ -324,34 +324,40 @@ namespace LinuxSampler { namespace gig {
                 case ::gig::lfo1_ctrl_internal:
                     lfo1_internal_depth  = pDimRgn->LFO1InternalDepth;
                     pLFO1->ExtController = 0; // no external controller
+                    bLFO1Enabled         = (lfo1_internal_depth > 0);
                     break;
                 case ::gig::lfo1_ctrl_modwheel:
                     lfo1_internal_depth  = 0;
                     pLFO1->ExtController = 1; // MIDI controller 1
+                    bLFO1Enabled         = (pDimRgn->LFO1ControlDepth > 0);
                     break;
                 case ::gig::lfo1_ctrl_breath:
                     lfo1_internal_depth  = 0;
                     pLFO1->ExtController = 2; // MIDI controller 2
+                    bLFO1Enabled         = (pDimRgn->LFO1ControlDepth > 0);
                     break;
                 case ::gig::lfo1_ctrl_internal_modwheel:
                     lfo1_internal_depth  = pDimRgn->LFO1InternalDepth;
                     pLFO1->ExtController = 1; // MIDI controller 1
+                    bLFO1Enabled         = (lfo1_internal_depth > 0 || pDimRgn->LFO1ControlDepth > 0);
                     break;
                 case ::gig::lfo1_ctrl_internal_breath:
                     lfo1_internal_depth  = pDimRgn->LFO1InternalDepth;
                     pLFO1->ExtController = 2; // MIDI controller 2
+                    bLFO1Enabled         = (lfo1_internal_depth > 0 || pDimRgn->LFO1ControlDepth > 0);
                     break;
                 default:
                     lfo1_internal_depth  = 0;
                     pLFO1->ExtController = 0; // no external controller
+                    bLFO1Enabled         = false;
             }
-            pLFO1->Trigger(pDimRgn->LFO1Frequency,
-                          lfo1_internal_depth,
-                          pDimRgn->LFO1ControlDepth,
-                          pEngineChannel->ControllerTable[pLFO1->ExtController],
-                          pDimRgn->LFO1FlipPhase,
-                          pEngine->SampleRate,
-                          Delay);
+            if (bLFO1Enabled) pLFO1->Trigger(pDimRgn->LFO1Frequency,
+                                             lfo1_internal_depth,
+                                             pDimRgn->LFO1ControlDepth,
+                                             pEngineChannel->ControllerTable[pLFO1->ExtController],
+                                             pDimRgn->LFO1FlipPhase,
+                                             pEngine->SampleRate,
+                                             Delay);
         }
 
 
@@ -362,34 +368,40 @@ namespace LinuxSampler { namespace gig {
                 case ::gig::lfo2_ctrl_internal:
                     lfo2_internal_depth  = pDimRgn->LFO2InternalDepth;
                     pLFO2->ExtController = 0; // no external controller
+                    bLFO2Enabled         = (lfo2_internal_depth > 0);
                     break;
                 case ::gig::lfo2_ctrl_modwheel:
                     lfo2_internal_depth  = 0;
                     pLFO2->ExtController = 1; // MIDI controller 1
+                    bLFO2Enabled         = (pDimRgn->LFO2ControlDepth > 0);
                     break;
                 case ::gig::lfo2_ctrl_foot:
                     lfo2_internal_depth  = 0;
                     pLFO2->ExtController = 4; // MIDI controller 4
+                    bLFO2Enabled         = (pDimRgn->LFO2ControlDepth > 0);
                     break;
                 case ::gig::lfo2_ctrl_internal_modwheel:
                     lfo2_internal_depth  = pDimRgn->LFO2InternalDepth;
                     pLFO2->ExtController = 1; // MIDI controller 1
+                    bLFO2Enabled         = (lfo2_internal_depth > 0 || pDimRgn->LFO2ControlDepth > 0);
                     break;
                 case ::gig::lfo2_ctrl_internal_foot:
                     lfo2_internal_depth  = pDimRgn->LFO2InternalDepth;
                     pLFO2->ExtController = 4; // MIDI controller 4
+                    bLFO2Enabled         = (lfo2_internal_depth > 0 || pDimRgn->LFO2ControlDepth > 0);
                     break;
                 default:
                     lfo2_internal_depth  = 0;
                     pLFO2->ExtController = 0; // no external controller
+                    bLFO2Enabled         = false;
             }
-            pLFO2->Trigger(pDimRgn->LFO2Frequency,
-                          lfo2_internal_depth,
-                          pDimRgn->LFO2ControlDepth,
-                          pEngineChannel->ControllerTable[pLFO2->ExtController],
-                          pDimRgn->LFO2FlipPhase,
-                          pEngine->SampleRate,
-                          Delay);
+            if (bLFO2Enabled) pLFO2->Trigger(pDimRgn->LFO2Frequency,
+                                             lfo2_internal_depth,
+                                             pDimRgn->LFO2ControlDepth,
+                                             pEngineChannel->ControllerTable[pLFO2->ExtController],
+                                             pDimRgn->LFO2FlipPhase,
+                                             pEngine->SampleRate,
+                                             Delay);
         }
 
 
@@ -400,34 +412,40 @@ namespace LinuxSampler { namespace gig {
                 case ::gig::lfo3_ctrl_internal:
                     lfo3_internal_depth  = pDimRgn->LFO3InternalDepth;
                     pLFO3->ExtController = 0; // no external controller
+                    bLFO3Enabled         = (lfo3_internal_depth > 0);
                     break;
                 case ::gig::lfo3_ctrl_modwheel:
                     lfo3_internal_depth  = 0;
                     pLFO3->ExtController = 1; // MIDI controller 1
+                    bLFO3Enabled         = (pDimRgn->LFO3ControlDepth > 0);
                     break;
                 case ::gig::lfo3_ctrl_aftertouch:
                     lfo3_internal_depth  = 0;
                     pLFO3->ExtController = 0; // TODO: aftertouch not implemented yet
+                    bLFO3Enabled         = false; // see TODO comment in line above
                     break;
                 case ::gig::lfo3_ctrl_internal_modwheel:
                     lfo3_internal_depth  = pDimRgn->LFO3InternalDepth;
                     pLFO3->ExtController = 1; // MIDI controller 1
+                    bLFO3Enabled         = (lfo3_internal_depth > 0 || pDimRgn->LFO3ControlDepth > 0);
                     break;
                 case ::gig::lfo3_ctrl_internal_aftertouch:
                     lfo3_internal_depth  = pDimRgn->LFO3InternalDepth;
                     pLFO1->ExtController = 0; // TODO: aftertouch not implemented yet
+                    bLFO3Enabled         = (lfo3_internal_depth > 0 /*|| pDimRgn->LFO3ControlDepth > 0*/); // see TODO comment in line above
                     break;
                 default:
                     lfo3_internal_depth  = 0;
                     pLFO3->ExtController = 0; // no external controller
+                    bLFO3Enabled         = false;
             }
-            pLFO3->Trigger(pDimRgn->LFO3Frequency,
-                          lfo3_internal_depth,
-                          pDimRgn->LFO3ControlDepth,
-                          pEngineChannel->ControllerTable[pLFO3->ExtController],
-                          false,
-                          pEngine->SampleRate,
-                          Delay);
+            if (bLFO3Enabled) pLFO3->Trigger(pDimRgn->LFO3Frequency,
+                                             lfo3_internal_depth,
+                                             pDimRgn->LFO3ControlDepth,
+                                             pEngineChannel->ControllerTable[pLFO3->ExtController],
+                                             false,
+                                             pEngine->SampleRate,
+                                             Delay);
         }
 
 
@@ -570,11 +588,13 @@ namespace LinuxSampler { namespace gig {
             SYNTHESIS_MODE_SET_INTERPOLATE(SynthesisMode, true);
             SYNTHESIS_MODE_SET_CONSTPITCH(SynthesisMode, false);
         }
-        pLFO1->Process(Samples);
-        pLFO2->Process(Samples);
-        if (pLFO3->Process(Samples)) { // if pitch LFO modulation is active
-            SYNTHESIS_MODE_SET_INTERPOLATE(SynthesisMode, true);
-            SYNTHESIS_MODE_SET_CONSTPITCH(SynthesisMode, false);
+        if (bLFO1Enabled) pLFO1->Process(Samples);
+        if (bLFO2Enabled) pLFO2->Process(Samples);
+        if (bLFO3Enabled) {
+            if (pLFO3->Process(Samples)) { // if pitch LFO modulation is active
+                SYNTHESIS_MODE_SET_INTERPOLATE(SynthesisMode, true);
+                SYNTHESIS_MODE_SET_CONSTPITCH(SynthesisMode, false);
+            }
         }
 
         if (SYNTHESIS_MODE_GET_FILTER(SynthesisMode))

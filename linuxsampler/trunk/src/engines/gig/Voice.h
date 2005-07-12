@@ -134,6 +134,9 @@ namespace LinuxSampler { namespace gig {
             LFO<gig::VCAManipulator>*   pLFO1;              ///< Low Frequency Oscillator 1 (Amplification)
             LFO<gig::VCFCManipulator>*  pLFO2;             ///< Low Frequency Oscillator 2 (Filter cutoff frequency)
             LFO<gig::VCOManipulator>*   pLFO3;              ///< Low Frequency Oscillator 3 (Pitch)
+            bool                        bLFO1Enabled;        ///< Should we use the Amplitude LFO for this voice?
+            bool                        bLFO2Enabled;        ///< Should we use the Filter Cutoff LFO for this voice?
+            bool                        bLFO3Enabled;        ///< Should we use the Pitch LFO for this voice?
             Pool<Event>::Iterator       itTriggerEvent;      ///< First event on the key's list the voice should process (only needed for the first audio fragment in which voice was triggered, after that it will be set to NULL).
         //public: // FIXME: just made public for debugging (sanity check in Engine::RenderAudio()), should be changed to private before the final release
             Pool<Event>::Iterator       itKillEvent;         ///< Event which caused this voice to be killed
