@@ -6,6 +6,11 @@ Version CVS HEAD (?)
   * Gigasampler format engine:
     - LFO preprocessing was performed even though the respective LFO was
       disabled by the instrument patch (minor efficiency fix)
+    - if period time of chosen audio device is too small (< MIN_RELEASE_TIME)
+      for volume ramp downs in the same fragment (needed for current voice
+      stealing implementation) then simply inform the user with a warning
+      about possible click sounds and reduce the volume ramp down
+      appropriately instead of cancelling the audio device connection
 
 Version 0.3.2 (24 June 2005)
 

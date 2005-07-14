@@ -240,8 +240,19 @@ namespace LinuxSampler { namespace gig {
 
         // FIXME: audio drivers with varying fragment sizes might be a problem here
         MaxFadeOutPos = MaxSamplesPerCycle - int(double(SampleRate) * CONFIG_EG_MIN_RELEASE_TIME) - 1;
-        if (MaxFadeOutPos < 0)
-            throw LinuxSamplerException("CONFIG_EG_MIN_RELEASE_TIME too big for current audio fragment size / sampling rate!");
+        if (MaxFadeOutPos < 0) {
+            std::cerr << "gig::Engine: WARNING, CONFIG_EG_MIN_RELEASE_TIME "
+                      << "too big for current audio fragment size & sampling rate! "
+                      << "May lead to click sounds!\n" << std::flush;
+            // force volume ramp downs at the beginning of each fragment
+            MaxFadeOutPos = 0;
+            // lower minimum release time
+            const float minReleaseTime = (float) MaxSamplesPerCycle / (float) SampleRate;
+            for (RTList<Voice>::Iterator iterVoice = pVoicePool->allocAppend(); iterVoice == pVoicePool->last(); iterVoice = pVoicePool->allocAppend()) {
+                iterVoice->pEG1->CalculateFadeOutCoeff(minReleaseTime, SampleRate);
+            }
+            pVoicePool->clear();
+        }
 
         // (re)create disk thread
         if (this->pDiskThread) {
@@ -1412,7 +1423,7 @@ namespace LinuxSampler { namespace gig {
     }
 
     String Engine::Version() {
-        String s = "$Revision: 1.47 $";
+        String s = "$Revision: 1.48 $";
         return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
 

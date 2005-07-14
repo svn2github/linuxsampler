@@ -65,6 +65,7 @@ class EGADSR {
         EGADSR(gig::Engine* pEngine, Event::destination_t ModulationDestination);
         void Process(uint TotalSamples, RTList<Event>* pEvents, RTList<Event>::Iterator itTriggerEvent, double SamplePos, double CurrentPitch, RTList<Event>::Iterator itKillEvent = RTList<Event>::Iterator());
         void Trigger(uint PreAttack, double AttackTime, bool HoldAttack, long LoopStart, double Decay1Time, double Decay2Time, bool InfiniteSustain, uint SustainLevel, double ReleaseTime, uint Delay, float Volume);
+        void CalculateFadeOutCoeff(float FadeOutTime, float SampleRate);
         inline EGADSR::stage_t GetStage() { return Stage; }
     protected:
         gig::Engine* pEngine;
@@ -94,9 +95,7 @@ class EGADSR {
         long    ReleaseStepsLeft;  ///< number of sample points til end of release stage
         bool    ReleasePostponed;  ///< If a "release" event occured in the previous audio fragment, but wasn't processed yet.
         float   ExpOffset;
-        const static float FadeOutCoeff;
-    private:
-        static float CalculateFadeOutCoeff();
+        float   FadeOutCoeff;      ///< very fast ramp down for e.g. voice stealing
 };
 
 }} // namespace LinuxSampler::gig

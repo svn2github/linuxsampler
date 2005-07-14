@@ -25,12 +25,9 @@
 
 namespace LinuxSampler { namespace gig {
 
-    const float EGADSR::FadeOutCoeff(CalculateFadeOutCoeff());
-
-    float EGADSR::CalculateFadeOutCoeff() {
-        const float sampleRate = 44100.0; // even if the sample rate will be 192kHz it won't hurt at all
-        const float killSteps  = CONFIG_EG_MIN_RELEASE_TIME * sampleRate;
-        return -1.0f / killSteps;
+    void EGADSR::CalculateFadeOutCoeff(float FadeOutTime, float SampleRate) {
+        const float killSteps = FadeOutTime * SampleRate;
+        FadeOutCoeff = -1.0f / killSteps;
     }
 
     EGADSR::EGADSR(gig::Engine* pEngine, Event::destination_t ModulationDestination) {
@@ -38,6 +35,7 @@ namespace LinuxSampler { namespace gig {
         this->ModulationDestination = ModulationDestination;
         Stage = stage_end;
         Level = 0.0;
+        CalculateFadeOutCoeff(CONFIG_EG_MIN_RELEASE_TIME, 44100.0); // even if the sample rate will be 192kHz it won't hurt at all
     }
 
     /**
@@ -250,7 +248,7 @@ namespace LinuxSampler { namespace gig {
                         pEngine->pSynthesisParameters[ModulationDestination][iSample++] *= Level;
                     }
                     Stage = stage_end;
-                    if (Level > -FadeOutCoeff) dmsg(1,("EGADSR: Warning, final fade out level too high, may result in click sound!\n"));
+                    if (Level > -FadeOutCoeff) dmsg(2,("EGADSR: Warning, final fade out level too high, may result in click sound!\n"));
                 } //Fall through here instead of breaking otherwise we can get back into stage_fadeout and loop forever!
                 case stage_end: {
                     while (iSample < TotalSamples) {
