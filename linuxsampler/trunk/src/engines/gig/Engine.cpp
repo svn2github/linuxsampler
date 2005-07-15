@@ -243,7 +243,7 @@ namespace LinuxSampler { namespace gig {
         if (MaxFadeOutPos < 0) {
             std::cerr << "gig::Engine: WARNING, CONFIG_EG_MIN_RELEASE_TIME "
                       << "too big for current audio fragment size & sampling rate! "
-                      << "May lead to click sounds!\n" << std::flush;
+                      << "May lead to click sounds if voice stealing chimes in!\n" << std::flush;
             // force volume ramp downs at the beginning of each fragment
             MaxFadeOutPos = 0;
             // lower minimum release time
@@ -1423,7 +1423,7 @@ namespace LinuxSampler { namespace gig {
     }
 
     String Engine::Version() {
-        String s = "$Revision: 1.48 $";
+        String s = "$Revision: 1.49 $";
         return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
 
