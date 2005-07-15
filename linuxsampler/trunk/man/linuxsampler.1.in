@@ -21,13 +21,16 @@ Print version and exit.
 Output benchmark messages on the console. This reflects the current
 efficiency as abstract BogoVoice count which is something like a
 theoretical limit of the amount of voices which can be rendered in the given
-scenario. It does not include all aspects of the sampler, thats why this
-value is usally higher than what you really can achieve on your box. Also
+scenario. It does not include all aspects of the sampler, that's why this
+value is usually higher than what you really can achieve on your box. Also
 note that this value is as well dependant on what instrument patch you are
 using and what you are playing.
 .TP
 .IP \ --no-tune
-Disable assembly optimizations.
+Disable assembly optimizations. Usually the sampler will detect CPU specific
+features like MMX and SSE at runtime and use an appropriate assembly
+optimized code in that case. With that switch you can disable this feature
+and force the sampler to skip the assembly optimizations at runtime.
 .TP
 .IP \ --statistics
 Output voice and disk stream count periodically on the console.
