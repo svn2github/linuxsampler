@@ -1,0 +1,26 @@
+Source: linuxsampler
+Section: sound
+Priority: optional
+Maintainer: Matt Flax <flatmax@pgb.unsw.edu.au>
+Build-Depends: debhelper (>= 4.0.0), libgig-dev
+Standards-Version: 3.6.1
+
+Package: linuxsampler
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}, libgig
+Suggests: gigtools
+Description: realtime audio sampler
+ LinuxSampler is a work in progress. It's goal is to produce a free
+ software audio sampler with professional grade features.
+ .
+ It offers disk streaming capability and supports the Gigasampler format
+ which is currently considered to be the best sampler format in regards of
+ possibilities and sound quality.
+ .
+ This package provides the backend of LinuxSampler, that is the sampler
+ engine together with audio and MIDI drivers. LinuxSampler can be
+ controlled via network interface which uses an ASCII based protocol called
+ LSCP. You might consider to install a GUI frontend for LinuxSampler as
+ well.
+ .
+ For more informations please visit http://www.linuxsampler.org

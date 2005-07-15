@@ -1,0 +1,56 @@
+Version 0.3.3 (15 July 2005)
+
+  * packaging changes:
+    - fixed compilation with gcc 4.0
+
+  * Gigasampler format engine:
+    - LFO preprocessing was performed even though the respective LFO was
+      disabled by the instrument patch (minor efficiency fix)
+    - if period time of chosen audio device is too small (< MIN_RELEASE_TIME)
+      for volume ramp downs in the same fragment (needed for current voice
+      stealing implementation) then simply inform the user with a warning
+      about possible click sounds and reduce the volume ramp down
+      appropriately instead of cancelling the audio device connection
+
+Version 0.3.2 (24 June 2005)
+
+  * packaging changes:
+    - updated autotools build files to compile on OS X
+      (conditional compilation of CoreMIDI and MidiShare drivers)
+    - hand-crafted assembly optimization code can be disabled with
+      './configure --disable-asm' (definitely not recommended)
+    - fixed 'make dist' rule to include all necessary files
+    - require automake (>= 1.5) for 'make -f Makefile.cvs'
+      (due to 'dist-bzip2' automake option)
+
+  * Gigasampler format engine:
+    - support for the gig parameters for "release velocity response" curves
+    - fine tuning of the EGADSR envelope
+    - volume of release triggered samples now depends on note-on velocity,
+      note length and gig parameter "release trigger decay" instead of
+      note-off velocity.
+    - revised voice stealing
+      (fixes crash and endless loop caused by voice stealing)
+    - don't reset scale tuning on instrument or audio output device change
+    - handle key group conflicts right at the beginning of each fragment
+      instead of when the respective voice is actually launched
+      (fixes undefined behavior if stolen voices belonged to a key group -
+      this case was followed by a "killed voice survived" error message)
+    - fixed minor issue with null/silence samples
+      (those stole voices even though they don't need a voice at all which
+      resulted in "voice stealing didn't work out" messages)
+    - don't reset volume, pan, pitch and MIDI controller values on
+      instrument or audio output device change
+
+  * LSCP server:
+    - fixed some crashes (patch by Grigor Iliev, fixes #19)
+    - fixed LSCP event "CHANNEL_INFO" notification
+      (e.g. did not notify on volume changes or MIDI program change events)
+
+  * linuxsampler application:
+    - added command line parameters --lscp-addr and --lscp-port to override
+      default IP address and port of LSCP server
+
+Version 0.3.1 (24 May 2005)
+
+  * initial release
