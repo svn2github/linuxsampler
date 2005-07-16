@@ -249,20 +249,23 @@ namespace LinuxSampler { namespace gig {
             }
             if (pDimRgn->EG1ControllerInvert) eg1controllervalue = 127 - eg1controllervalue;
 
-            // calculate influence of EG1 controller on EG1's parameters (TODO: needs to be fine tuned)
-            double eg1attack  = (pDimRgn->EG1ControllerAttackInfluence)  ? 0.0001 * (double) (1 << pDimRgn->EG1ControllerAttackInfluence)  * eg1controllervalue : 0.0;
-            double eg1decay   = (pDimRgn->EG1ControllerDecayInfluence)   ? 0.0001 * (double) (1 << pDimRgn->EG1ControllerDecayInfluence)   * eg1controllervalue : 0.0;
-            double eg1release = (pDimRgn->EG1ControllerReleaseInfluence) ? 0.0001 * (double) (1 << pDimRgn->EG1ControllerReleaseInfluence) * eg1controllervalue : 0.0;
+            // calculate influence of EG1 controller on EG1's parameters
+            // (eg1attack is different from the others)
+            double eg1attack  = (pDimRgn->EG1ControllerAttackInfluence)  ?
+                1 + 0.031 * (double) (pDimRgn->EG1ControllerAttackInfluence == 1 ?
+                                      1 : 1 << pDimRgn->EG1ControllerAttackInfluence) * eg1controllervalue : 1.0;
+            double eg1decay   = (pDimRgn->EG1ControllerDecayInfluence)   ? 1 + 0.00775 * (double) (1 << pDimRgn->EG1ControllerDecayInfluence)   * eg1controllervalue : 1.0;
+            double eg1release = (pDimRgn->EG1ControllerReleaseInfluence) ? 1 + 0.00775 * (double) (1 << pDimRgn->EG1ControllerReleaseInfluence) * eg1controllervalue : 1.0;
 
             pEG1->Trigger(pDimRgn->EG1PreAttack,
-                          pDimRgn->EG1Attack + eg1attack,
+                          pDimRgn->EG1Attack * eg1attack,
                           pDimRgn->EG1Hold,
                           pSample->LoopStart,
-                          (pDimRgn->EG1Decay1 + eg1decay) * velrelease,
-                          (pDimRgn->EG1Decay2 + eg1decay) * velrelease,
+                          pDimRgn->EG1Decay1 * eg1decay * velrelease,
+                          pDimRgn->EG1Decay2 * eg1decay * velrelease,
                           pDimRgn->EG1InfiniteSustain,
                           pDimRgn->EG1Sustain,
-                          (pDimRgn->EG1Release + eg1release) * velrelease,
+                          pDimRgn->EG1Release * eg1release * velrelease,
                           // the SSE synthesis implementation requires
                           // the vca start to be 16 byte aligned
                           SYNTHESIS_MODE_GET_IMPLEMENTATION(SynthesisMode) ?
@@ -291,20 +294,20 @@ namespace LinuxSampler { namespace gig {
             }
             if (pDimRgn->EG2ControllerInvert) eg2controllervalue = 127 - eg2controllervalue;
 
-            // calculate influence of EG2 controller on EG2's parameters (TODO: needs to be fine tuned)
-            double eg2attack  = (pDimRgn->EG2ControllerAttackInfluence)  ? 0.0001 * (double) (1 << pDimRgn->EG2ControllerAttackInfluence)  * eg2controllervalue : 0.0;
-            double eg2decay   = (pDimRgn->EG2ControllerDecayInfluence)   ? 0.0001 * (double) (1 << pDimRgn->EG2ControllerDecayInfluence)   * eg2controllervalue : 0.0;
-            double eg2release = (pDimRgn->EG2ControllerReleaseInfluence) ? 0.0001 * (double) (1 << pDimRgn->EG2ControllerReleaseInfluence) * eg2controllervalue : 0.0;
+            // calculate influence of EG2 controller on EG2's parameters
+            double eg2attack  = (pDimRgn->EG2ControllerAttackInfluence)  ? 1 + 0.00775 * (double) (1 << pDimRgn->EG2ControllerAttackInfluence)  * eg2controllervalue : 1.0;
+            double eg2decay   = (pDimRgn->EG2ControllerDecayInfluence)   ? 1 + 0.00775 * (double) (1 << pDimRgn->EG2ControllerDecayInfluence)   * eg2controllervalue : 1.0;
+            double eg2release = (pDimRgn->EG2ControllerReleaseInfluence) ? 1 + 0.00775 * (double) (1 << pDimRgn->EG2ControllerReleaseInfluence) * eg2controllervalue : 1.0;
 
             pEG2->Trigger(pDimRgn->EG2PreAttack,
-                          pDimRgn->EG2Attack + eg2attack,
+                          pDimRgn->EG2Attack * eg2attack,
                           false,
                           pSample->LoopStart,
-                          (pDimRgn->EG2Decay1 + eg2decay) * velrelease,
-                          (pDimRgn->EG2Decay2 + eg2decay) * velrelease,
+                          pDimRgn->EG2Decay1 * eg2decay * velrelease,
+                          pDimRgn->EG2Decay2 * eg2decay * velrelease,
                           pDimRgn->EG2InfiniteSustain,
                           pDimRgn->EG2Sustain,
-                          (pDimRgn->EG2Release + eg2release) * velrelease,
+                          pDimRgn->EG2Release * eg2release * velrelease,
                           Delay,
                           velocityAttenuation);
         }
