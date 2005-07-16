@@ -132,35 +132,24 @@ namespace {
     {
         // Note: The 24 bits are truncated to 16 bits for now.
 
-        // Note: The calculation of the initial value of y is strange
-        // and not 100% correct. What should the first two parameters
-        // really be used for? Why are they two? The correct value for
-        // y seems to lie somewhere between the values of the first
-        // two parameters.
-        //
-        // Strange thing #2: The formula in SKIP_ONE gives values for
-        // y that are twice as high as they should be. That's why
-        // COPY_ONE shifts an extra step, and also why y is
-        // initialized with a sum instead of a mean value.
-
-        int y, dy, ddy;
-
+        int y, dy, ddy, dddy;
         const int shift = 8 - truncatedBits;
-        const int shift1 = shift + 1;
 
-#define GET_PARAMS(params)                              \
-        y = (get24(params) + get24((params) + 3));      \
-        dy  = get24((params) + 6);                      \
-        ddy = get24((params) + 9)
+#define GET_PARAMS(params)                      \
+        y    = get24(params);                   \
+        dy   = y - get24((params) + 3);         \
+        ddy  = get24((params) + 6);             \
+        dddy = get24((params) + 9)
 
 #define SKIP_ONE(x)                             \
-        ddy -= (x);                             \
-        dy -= ddy;                              \
-        y -= dy
+        dddy -= (x);                            \
+        ddy  -= dddy;                           \
+        dy   =  -dy - ddy;                      \
+        y    += dy
 
 #define COPY_ONE(x)                             \
         SKIP_ONE(x);                            \
-        *pDst = y >> shift1;                    \
+        *pDst = y >> shift;                     \
         pDst += dstStep
 
         switch (compressionmode) {

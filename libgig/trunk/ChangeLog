@@ -8,6 +8,8 @@ Version CVS HEAD (?)
     - support for gig v3 multi-file format (.gig, .gx01, .gx02, ...),
       the extension files are read automatically when the samples are
       loaded
+    - fixed the 24 bit decompression, the result should now be exact
+      instead of an approximation
 
   * src/DLS.cpp, src/DLS.h:
     - the upper bits of the pool table indices are read (used as
