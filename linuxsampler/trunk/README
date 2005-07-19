@@ -1,11 +1,22 @@
 LinuxSampler - modular, streaming capable sampler
 
-by Benno Senoner (benno@gardena.net)
-and Christian Schoenebeck (cuse@users.sourceforge.net)
+Copyright (C) 2003, 2004 by Benno Senoner (benno@gardena.net)
+              and Christian Schoenebeck (cuse@users.sourceforge.net)
+Copyright (C) 2005 Christian Schoenebeck
 
-This software is distributed under the GNU General Public License (see
-COPYING file), and may not be used in commercial applications without asking
-the authors for permission.
+
+License
+-------
+
+The LinuxSampler library (liblinuxsampler) and its applications are
+distributed under the terms of the GNU General Public License (see COPYING
+file), and may NOT be used in commercial applications without asking the
+authors for permission. Also note that liblinuxsampler and its applications
+are linking against other libraries; respect their licenses as well!
+
+
+Description
+-----------
 
 LinuxSampler is sampler backend, thus server-like console application. It
 provides a TCP based network interface with a custom ASCII based protocol
