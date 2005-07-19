@@ -6,7 +6,9 @@ SUBDIRS = man src scripts osx Artwork Documentation debian
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = linuxsampler.pc
 
-EXTRA_DIST = Doxyfile linuxsampler.kdevelop
+EXTRA_DIST = Doxyfile.in \
+             linuxsampler.pc.in \
+             linuxsampler.kdevelop
 
 .PHONY: parser testcases
 
