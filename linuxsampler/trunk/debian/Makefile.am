@@ -7,6 +7,13 @@ EXTRA_DIST = changelog \
              copyright \
              dirs \
              docs \
+             debian/liblinuxsampler-dev.doc-base \
+             debian/liblinuxsampler-dev.docs \
+             debian/liblinuxsampler-dev.install \
+             debian/liblinuxsampler.docs \
+             debian/liblinuxsampler.install \
+             debian/linuxsampler.docs \
+             debian/linuxsampler.install \
              linuxsampler.1 \
              linuxsampler.sgml \
              postinst \
