@@ -3,6 +3,9 @@ AUTOMAKE_OPTIONS = 1.5 dist-bzip2
 
 SUBDIRS = man src scripts osx Artwork Documentation debian
 
+pkgconfigdir = $(libdir)/pkgconfig
+pkgconfig_DATA = linuxsampler.pc
+
 EXTRA_DIST = Doxyfile linuxsampler.kdevelop
 
 .PHONY: parser testcases
@@ -16,3 +19,7 @@ testcases:
 	@cd $(srcdir)/src/testcases && make linuxsamplertest
 
 tests: testcases
+
+docs: Doxyfile
+	@echo '*** Running doxygen ***'
+	doxygen Doxyfile

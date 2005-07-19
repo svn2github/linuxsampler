@@ -5,8 +5,11 @@ AM_CXXFLAGS = -Wreturn-type -ffast-math $(CXX_CPU_SWITCH)
 
 SUBDIRS = network engines common lib testcases drivers
 
+liblinuxsamplerincludedir = $(includedir)
+liblinuxsamplerinclude_HEADERS = Sampler.h
+
 pkglib_LTLIBRARIES = liblinuxsampler.la
-liblinuxsampler_la_SOURCES = Sampler.cpp Sampler.h
+liblinuxsampler_la_SOURCES = Sampler.cpp
 liblinuxsampler_la_LIBADD = \
 	$(top_builddir)/src/network/liblinuxsamplernetwork.la \
 	$(top_builddir)/src/engines/gig/liblinuxsamplergigengine.la \
@@ -16,6 +19,7 @@ liblinuxsampler_la_LIBADD = \
 	$(top_builddir)/src/drivers/audio/liblinuxsampleraudiodriver.la \
 	$(top_builddir)/src/drivers/midi/liblinuxsamplermididriver.la \
 	$(top_builddir)/src/common/liblinuxsamplercommon.la
+liblinuxsampler_la_LDFLAGS = -version-info @SHARED_VERSION_INFO@ @SHLIB_VERSION_ARG@
 
 bin_PROGRAMS = linuxsampler
 linuxsampler_SOURCES = linuxsampler.cpp

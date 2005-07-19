@@ -29,6 +29,8 @@ Requirements on Linux
     o libtool
     o If you are compiling from CVS you need to have the autotools installed
       (autoconf, automake (>= 1.5)).
+    o If you want to generate the liblinuxsampler API documentation you
+      need to have Doxygen installed.
 
 
 Compiling on Linux
@@ -43,6 +45,10 @@ Compiling on Linux
     Note: if you are compiling from CVS you have to explicitly call
           'make -f Makefile.cvs' before doing the above procedure. This will
           generate all autotools managed build files.
+
+    LinuxSampler itself is a library called liblinuxsampler. You can
+    generate the API documenation for liblinuxsampler by explicitly calling
+    'make docs'.
 
 
     b) Creating Debian packages

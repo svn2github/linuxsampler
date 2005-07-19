@@ -1,5 +1,11 @@
 Version CVS HEAD (?)
 
+  * packaging changes:
+    - install necessary development header files for allowing 3rd party
+      applications to link against liblinuxsampler
+    - liblinuxsampler's API documentation can be generated with 'make docs'
+      (Doxygen required)
+
   * Gigasampler format engine:
     - fine tuning of the EG modulation parameters
 

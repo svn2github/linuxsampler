@@ -18,3 +18,4 @@ clean:
 	@rm -rvf *.cache *.log *.status *.m4 stamp-h* config.*
 	@rm -rvf `find . -name Makefile.in`
 	@rm -rvf missing install-sh mkinstalldirs depcomp ltmain.sh configure
+	@rm -rvf Doxyfile
