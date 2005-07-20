@@ -10,9 +10,12 @@ License
 
 The LinuxSampler library (liblinuxsampler) and its applications are
 distributed under the terms of the GNU General Public License (see COPYING
-file), and may NOT be used in commercial applications without asking the
-authors for permission. Also note that liblinuxsampler and its applications
-are linking against other libraries; respect their licenses as well!
+file), but with the EXCEPTION that they may NOT be used in COMMERCIAL
+software or hardware products without prior written authorization by the
+authors.
+
+Also note that liblinuxsampler and its applications are linking against
+other libraries; respect their licenses as well!
 
 
 Description
