@@ -125,6 +125,8 @@ class LSCPServer : public Thread {
         String SetMIDIInputType(String MidiInputDriver, uint uiSamplerChannel);
         String SetMIDIInput(uint MIDIDeviceId, uint MIDIPort, uint MIDIChannel, uint uiSamplerChannel);
         String SetVolume(double dVolume, uint uiSamplerChannel);
+        String SetChannelMute(bool bMute, uint uiSamplerChannel);
+        String SetChannelSolo(bool bSolo, uint uiSamplerChannel);
         String ResetChannel(uint uiSamplerChannel);
         String ResetSampler();
         String GetServerInfo();
@@ -162,6 +164,10 @@ class LSCPServer : public Thread {
          * Find a created midi input device index.
          */
         int GetMidiInputDeviceIndex (MidiInputDevice *pDevice);
+
+        bool HasSoloChannel();
+        void MuteNonSoloChannels();
+        void UnmuteChannels();
 
 	static std::map<int,String> bufferedNotifies;
 	static Mutex NotifyMutex;

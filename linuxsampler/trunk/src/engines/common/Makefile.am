@@ -10,4 +10,4 @@ liblinuxsamplercommonengine_la_SOURCES = \
 	Event.cpp Event.h \
 	LFO.h \
 	Resampler.h \
-	EngineChannel.h
+	EngineChannel.cpp EngineChannel.h

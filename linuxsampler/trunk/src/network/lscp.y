@@ -193,6 +193,8 @@ set_chan_instruction  :  AUDIO_OUTPUT_DEVICE SP sampler_channel SP device_index 
                       |  MIDI_INPUT_CHANNEL SP sampler_channel SP midi_input_channel_index                                   { $$ = LSCPSERVER->SetMIDIInputChannel($5, $3);       }
                       |  MIDI_INPUT_TYPE SP sampler_channel SP midi_input_type_name                                          { $$ = LSCPSERVER->SetMIDIInputType($5, $3);          }
                       |  VOLUME SP sampler_channel SP volume_value                                                           { $$ = LSCPSERVER->SetVolume($5, $3);                 }
+                      |  MUTE SP sampler_channel SP boolean                                                                  { $$ = LSCPSERVER->SetChannelMute($5, $3);            }
+                      |  SOLO SP sampler_channel SP boolean                                                                  { $$ = LSCPSERVER->SetChannelSolo($5, $3);            }
                       ;
 
 key_val_list          :  string '=' param_val_list                  { $$[$1] = $3;          }
@@ -520,6 +522,12 @@ SERVER                :  'S''E''R''V''E''R'
                       ;
 
 VOLUME                :  'V''O''L''U''M''E'
+                      ;
+
+MUTE                  :  'M''U''T''E'
+                      ;
+
+SOLO                  :  'S''O''L''O'
                       ;
 
 BYTES                 :  'B''Y''T''E''S'

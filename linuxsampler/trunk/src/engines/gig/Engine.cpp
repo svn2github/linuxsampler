@@ -492,6 +492,8 @@ namespace LinuxSampler { namespace gig {
      *                         this audio fragment cycle
      */
     void Engine::RenderActiveVoices(EngineChannel* pEngineChannel, uint Samples) {
+        if (pEngineChannel->GetMute()) return; // skip if sampler channel is muted
+
         RTList<uint>::Iterator iuiKey = pEngineChannel->pActiveKeys->first();
         RTList<uint>::Iterator end    = pEngineChannel->pActiveKeys->end();
         while (iuiKey != end) { // iterate through all active keys
@@ -620,6 +622,7 @@ namespace LinuxSampler { namespace gig {
      *  @param itNoteOnEvent - key, velocity and time stamp of the event
      */
     void Engine::ProcessNoteOn(EngineChannel* pEngineChannel, Pool<Event>::Iterator& itNoteOnEvent) {
+       if (pEngineChannel->GetMute()) return; // skip if sampler channel is muted
 
         const int key = itNoteOnEvent->Param.Note.Key;
 
@@ -679,8 +682,9 @@ namespace LinuxSampler { namespace gig {
      *  @param itNoteOffEvent - key, velocity and time stamp of the event
      */
     void Engine::ProcessNoteOff(EngineChannel* pEngineChannel, Pool<Event>::Iterator& itNoteOffEvent) {
-        midi_key_info_t* pKey = &pEngineChannel->pMIDIKeyInfo[itNoteOffEvent->Param.Note.Key];
+        if (pEngineChannel->GetMute()) return; // skip if sampler channel is muted
 
+        midi_key_info_t* pKey = &pEngineChannel->pMIDIKeyInfo[itNoteOffEvent->Param.Note.Key];
         pKey->KeyPressed = false; // the MIDI key was now released
 
         // release voices on this key if needed
@@ -1181,6 +1185,8 @@ namespace LinuxSampler { namespace gig {
                     dmsg(4,("PEDAL DOWN\n"));
                     pEngineChannel->SustainPedal = true;
 
+                    if (pEngineChannel->GetMute()) return; // skip if sampler channel is muted
+
                     // cancel release process of voices if necessary
                     RTList<uint>::Iterator iuiKey = pEngineChannel->pActiveKeys->first();
                     for (; iuiKey; ++iuiKey) {
@@ -1198,6 +1204,8 @@ namespace LinuxSampler { namespace gig {
                 if (itControlChangeEventOnCCList->Param.CC.Value < 64 && pEngineChannel->SustainPedal) {
                     dmsg(4,("PEDAL UP\n"));
                     pEngineChannel->SustainPedal = false;
+
+                    if (pEngineChannel->GetMute()) return; // skip if sampler channel is muted
 
                     // release voices if their respective key is not pressed
                     RTList<uint>::Iterator iuiKey = pEngineChannel->pActiveKeys->first();
@@ -1423,7 +1431,7 @@ namespace LinuxSampler { namespace gig {
     }
 
     String Engine::Version() {
-        String s = "$Revision: 1.49 $";
+        String s = "$Revision: 1.50 $";
         return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
 

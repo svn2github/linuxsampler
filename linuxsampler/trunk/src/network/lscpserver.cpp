@@ -497,13 +497,14 @@ String LSCPServer::LoadInstrument(String Filename, uint uiInstrument, uint uiSam
  * sampler channel.
  */
 String LSCPServer::SetEngineType(String EngineName, uint uiSamplerChannel) {
-    dmsg(2,("LSCPServer: LoadEngine(EngineName=%s,SamplerChannel=%d)\n", EngineName.c_str(), uiSamplerChannel));
+    dmsg(2,("LSCPServer: SetEngineType(EngineName=%s,uiSamplerChannel=%d)\n", EngineName.c_str(), uiSamplerChannel));
     LSCPResultSet result;
     try {
         SamplerChannel* pSamplerChannel = pSampler->GetSamplerChannel(uiSamplerChannel);
         if (!pSamplerChannel) throw LinuxSamplerException("Invalid sampler channel number " + ToString(uiSamplerChannel));
 	LockRTNotify();
         pSamplerChannel->SetEngineType(EngineName);
+        if(HasSoloChannel()) pSamplerChannel->GetEngineChannel()->SetMute(-1);
 	UnlockRTNotify();
     }
     catch (LinuxSamplerException e) {
@@ -619,6 +620,8 @@ String LSCPServer::GetChannelInfo(uint uiSamplerChannel) {
 	int InstrumentStatus = -1;
         int AudioOutputChannels = 0;
         String AudioRouting;
+        int Mute = 0;
+        bool Solo = false;
 
         if (pEngineChannel) {
             EngineName          = pEngineChannel->EngineName();
@@ -634,6 +637,8 @@ String LSCPServer::GetChannelInfo(uint uiSamplerChannel) {
                 if (AudioRouting != "") AudioRouting += ",";
                 AudioRouting += ToString(pEngineChannel->OutputChannel(chan));
             }
+            Mute = pEngineChannel->GetMute();
+            Solo = pEngineChannel->GetSolo();
 	}
 
         result.Add("ENGINE_NAME", EngineName);
@@ -653,6 +658,8 @@ String LSCPServer::GetChannelInfo(uint uiSamplerChannel) {
         result.Add("INSTRUMENT_NR", InstrumentIndex);
         result.Add("INSTRUMENT_NAME", InstrumentName);
         result.Add("INSTRUMENT_STATUS", InstrumentStatus);
+        result.Add("MUTE", Mute == -1 ? "MUTED_BY_SOLO" : (Mute ? "true" : "false"));
+        result.Add("SOLO", Solo);
     }
     catch (LinuxSamplerException e) {
          result.Error(e);
@@ -1393,6 +1400,107 @@ String LSCPServer::SetVolume(double dVolume, uint uiSamplerChannel) {
          result.Error(e);
     }
     return result.Produce();
+}
+
+/**
+ * Will be called by the parser to mute/unmute particular sampler channel.
+ */
+String LSCPServer::SetChannelMute(bool bMute, uint uiSamplerChannel) {
+    dmsg(2,("LSCPServer: SetChannelMute(bMute=%d,uiSamplerChannel=%d)\n",bMute,uiSamplerChannel));
+    LSCPResultSet result;
+    try {
+        SamplerChannel* pSamplerChannel = pSampler->GetSamplerChannel(uiSamplerChannel);
+        if (!pSamplerChannel) throw LinuxSamplerException("Invalid sampler channel number " + ToString(uiSamplerChannel));
+
+        EngineChannel* pEngineChannel = pSamplerChannel->GetEngineChannel();
+        if (!pEngineChannel) throw LinuxSamplerException("No engine type assigned to sampler channel");
+
+        if(!bMute) pEngineChannel->SetMute((HasSoloChannel() && !pEngineChannel->GetSolo()) ? -1 : 0);
+        else pEngineChannel->SetMute(1);
+    } catch (LinuxSamplerException e) {
+        result.Error(e);
+    }
+    return result.Produce();
+}
+
+/**
+ * Will be called by the parser to solo particular sampler channel.
+ */
+String LSCPServer::SetChannelSolo(bool bSolo, uint uiSamplerChannel) {
+    dmsg(2,("LSCPServer: SetChannelSolo(bSolo=%d,uiSamplerChannel=%d)\n",bSolo,uiSamplerChannel));
+    LSCPResultSet result;
+    try {
+        SamplerChannel* pSamplerChannel = pSampler->GetSamplerChannel(uiSamplerChannel);
+        if (!pSamplerChannel) throw LinuxSamplerException("Invalid sampler channel number " + ToString(uiSamplerChannel));
+
+        EngineChannel* pEngineChannel = pSamplerChannel->GetEngineChannel();
+        if (!pEngineChannel) throw LinuxSamplerException("No engine type assigned to sampler channel");
+
+        bool oldSolo = pEngineChannel->GetSolo();
+        bool hadSoloChannel = HasSoloChannel();
+        
+        pEngineChannel->SetSolo(bSolo);
+        
+        if(!oldSolo && bSolo) {
+            if(pEngineChannel->GetMute() == -1) pEngineChannel->SetMute(0);
+            if(!hadSoloChannel) MuteNonSoloChannels();
+        }
+        
+        if(oldSolo && !bSolo) {
+            if(!HasSoloChannel()) UnmuteChannels();
+            else if(!pEngineChannel->GetMute()) pEngineChannel->SetMute(-1);
+        }
+    } catch (LinuxSamplerException e) {
+        result.Error(e);
+    }
+    return result.Produce();
+}
+
+/**
+ * Determines whether there is at least one solo channel in the channel list.
+ *
+ * @returns true if there is at least one solo channel in the channel list,
+ * false otherwise.
+ */
+bool LSCPServer::HasSoloChannel() {
+    std::map<uint,SamplerChannel*> channels = pSampler->GetSamplerChannels();
+    std::map<uint,SamplerChannel*>::iterator iter = channels.begin();
+    for (; iter != channels.end(); iter++) {
+        EngineChannel* c = iter->second->GetEngineChannel();
+        if(c && c->GetSolo()) return true;
+    }
+
+    return false;
+}
+
+/**
+ * Mutes all unmuted non-solo channels. Notice that the channels are muted
+ * with -1 which indicates that they are muted because of the presence
+ * of a solo channel(s). Channels muted with -1 will be automatically unmuted
+ * when there are no solo channels left.
+ */
+void LSCPServer::MuteNonSoloChannels() {
+    dmsg(2,("LSCPServer: MuteNonSoloChannels()\n"));
+    std::map<uint,SamplerChannel*> channels = pSampler->GetSamplerChannels();
+    std::map<uint,SamplerChannel*>::iterator iter = channels.begin();
+    for (; iter != channels.end(); iter++) {
+        EngineChannel* c = iter->second->GetEngineChannel();
+        if(c && !c->GetSolo() && !c->GetMute()) c->SetMute(-1);
+    }
+}
+
+/**
+ * Unmutes all channels that are muted because of the presence
+ * of a solo channel(s).
+ */
+void  LSCPServer::UnmuteChannels() {
+    dmsg(2,("LSCPServer: UnmuteChannels()\n"));
+    std::map<uint,SamplerChannel*> channels = pSampler->GetSamplerChannels();
+    std::map<uint,SamplerChannel*>::iterator iter = channels.begin();
+    for (; iter != channels.end(); iter++) {
+        EngineChannel* c = iter->second->GetEngineChannel();
+        if(c && c->GetMute() == -1) c->SetMute(0);
+    }
 }
 
 /**
