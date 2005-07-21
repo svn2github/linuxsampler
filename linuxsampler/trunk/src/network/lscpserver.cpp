@@ -205,7 +205,7 @@ int LSCPServer::Main() {
 	//Now let's deliver late notifies (if any)
 	NotifyBufferMutex.Lock();
 	for (std::map<int,String>::iterator iterNotify = bufferedNotifies.begin(); iterNotify != bufferedNotifies.end(); iterNotify++) {
-		send(iterNotify->first, iterNotify->second.c_str(), iterNotify->second.size(), 0);
+		send(iterNotify->first, iterNotify->second.c_str(), iterNotify->second.size(), MSG_NOSIGNAL);
 		bufferedNotifies.erase(iterNotify);
 	}
 	NotifyBufferMutex.Unlock();
@@ -255,7 +255,7 @@ void LSCPServer::SendLSCPNotify( LSCPEvent event ) {
 	while (true) {
 		if (NotifyMutex.Trylock()) {
 			for(;iter != end; iter++)
-				send(*iter, notify.c_str(), notify.size(), 0);
+				send(*iter, notify.c_str(), notify.size(), MSG_NOSIGNAL);
 			NotifyMutex.Unlock();
 			break;
 		} else {
@@ -364,7 +364,7 @@ void LSCPServer::AnswerClient(String ReturnMessage) {
     dmsg(2,("LSCPServer::AnswerClient(ReturnMessage=%s)", ReturnMessage.c_str()));
     if (currentSocket != -1) {
 	    NotifyMutex.Lock();
-	    send(currentSocket, ReturnMessage.c_str(), ReturnMessage.size(), 0);
+	    send(currentSocket, ReturnMessage.c_str(), ReturnMessage.size(), MSG_NOSIGNAL);
 	    NotifyMutex.Unlock();
     }
 }
