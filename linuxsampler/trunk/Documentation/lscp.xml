@@ -2556,6 +2556,21 @@ Schoenebeck'>
                                             1.0 means amplification)</t>
                                         </list>
                                     </t>
+                                    <t>MUTE -
+                                        <list>
+                                            <t>Determines whether the channel is muted, "true" if the
+                                            channel is muted, "false" if the channel is not muted, and
+                                            "MUTED_BY_SOLO" if the channel is muted because of the
+                                            presence of a solo channel and will be unmuted when
+                                            there are no solo channels left</t>
+                                        </list>
+                                    </t>
+                                    <t>SOLO -
+                                        <list>
+                                            <t>Determines whether this is a solo channel, "true" if
+                                            the channel is a solo channel; "false" otherwise</t>
+                                        </list>
+                                    </t>
                                 </list>
                             </t>
                         </list>
@@ -3022,6 +3037,94 @@ Schoenebeck'>
                             <t>"WRN:&lt;warning-code&gt;:&lt;warning-message&gt;" -
                                 <list>
                                     <t>if channel volume was set, but there are noteworthy
+                                    issue(s) related, providing an appropriate warning code and
+                                    warning message</t>
+                                </list>
+                            </t>
+                            <t>"ERR:&lt;error-code&gt;:&lt;error-message&gt;" -
+                                <list>
+                                    <t>in case it failed, providing an appropriate error code and error message</t>
+                                </list>
+                            </t>
+                        </list>
+                    </t>
+                    <t>Examples:</t>
+                    <t>
+                        <list>
+                            <t></t>
+                        </list>
+                    </t>
+                </section>
+
+                <section title="Muting a sampler channel" anchor="SET CHANNEL MUTE">
+                    <t>The front-end can mute/unmute a specific sampler
+                    channel by sending the following command:</t>
+                    <t>
+                        <list>
+                            <t>SET CHANNEL MUTE &lt;sampler-channel&gt; &lt;mute&gt;</t>
+                        </list>
+                    </t>
+                    <t>Where &lt;sampler-channel&gt; is the respective sampler channel
+                    number as returned by the <xref target="ADD CHANNEL">"ADD CHANNEL"</xref>
+                    or <xref target="LIST CHANNELS">"LIST CHANNELS"</xref> command and
+                    &lt;mute&gt; should be replaced either by "1" to mute the channel or "0"
+                    to unmute the channel.</t>
+
+                    <t>Possible Answers:</t>
+                    <t>
+                        <list>
+                            <t>"OK" -
+                                <list>
+                                    <t>on success</t>
+                                </list>
+                            </t>
+                            <t>"WRN:&lt;warning-code&gt;:&lt;warning-message&gt;" -
+                                <list>
+                                    <t>if the channel was muted/unmuted, but there are noteworthy
+                                    issue(s) related, providing an appropriate warning code and
+                                    warning message</t>
+                                </list>
+                            </t>
+                            <t>"ERR:&lt;error-code&gt;:&lt;error-message&gt;" -
+                                <list>
+                                    <t>in case it failed, providing an appropriate error code and error message</t>
+                                </list>
+                            </t>
+                        </list>
+                    </t>
+                    <t>Examples:</t>
+                    <t>
+                        <list>
+                            <t></t>
+                        </list>
+                    </t>
+                </section>
+
+                <section title="Soloing a sampler channel" anchor="SET CHANNEL SOLO">
+                    <t>The front-end can solo/unsolo a specific sampler channel
+                    by sending the following command:</t>
+                    <t>
+                        <list>
+                            <t>SET CHANNEL SOLO &lt;sampler-channel&gt; &lt;solo&gt;</t>
+                        </list>
+                    </t>
+                    <t>Where &lt;sampler-channel&gt; is the respective sampler channel
+                    number as returned by the <xref target="ADD CHANNEL">"ADD CHANNEL"</xref>
+                    or <xref target="LIST CHANNELS">"LIST CHANNELS"</xref> command and
+                    &lt;solo&gt; should be replaced either by "1" to solo the channel or "0"
+                    to unsolo the channel.</t>
+
+                    <t>Possible Answers:</t>
+                    <t>
+                        <list>
+                            <t>"OK" -
+                                <list>
+                                    <t>on success</t>
+                                </list>
+                            </t>
+                            <t>"WRN:&lt;warning-code&gt;:&lt;warning-message&gt;" -
+                                <list>
+                                    <t>if the channel was soloed/unsoloed, but there are noteworthy
                                     issue(s) related, providing an appropriate warning code and
                                     warning message</t>
                                 </list>
