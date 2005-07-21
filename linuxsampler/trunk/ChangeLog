@@ -9,6 +9,9 @@ Version CVS HEAD (?)
   * Gigasampler format engine:
     - fine tuning of the EG modulation parameters
 
+  * LSCP server:
+    - fixed application exit on broken pipe error (fixes bug #20)
+
   * general changes:
     - support for muting sampler channels and solo mode of the same, two new
       LSCP commands ("SET CHANNEL MUTE" and "SET CHANNEL SOLO") and two new
