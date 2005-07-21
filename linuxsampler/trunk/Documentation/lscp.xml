@@ -31,7 +31,7 @@ Schoenebeck'>
                 <email>schoenebeck at software minus engineering dot org</email>
             </address>
         </author>
-        <date month="May" year="2005"/>
+        <date month="July" year="2005"/>
         <workgroup>LinuxSampler Developers</workgroup>
         <keyword>LSCP</keyword>
         <abstract>
@@ -3422,13 +3422,13 @@ Schoenebeck'>
 </t>
 <t>line =
 	<list>
-		<t>/* epsilon (empty line ignored) */ 
+		<t>/* epsilon (empty line ignored) */
 		</t>
-		<t>/ comment  
+		<t>/ comment
 		</t>
-		<t>/ command  
+		<t>/ command
 		</t>
-		<t>/ error    
+		<t>/ error
 		</t>
 	</list>
 </t>
@@ -3448,233 +3448,233 @@ Schoenebeck'>
 </t>
 <t>command =
 	<list>
-		<t>ADD SP CHANNEL                        
+		<t>ADD SP CHANNEL
 		</t>
-		<t>/ GET SP get_instruction                
+		<t>/ GET SP get_instruction
 		</t>
-		<t>/ CREATE SP create_instruction          
+		<t>/ CREATE SP create_instruction
 		</t>
-		<t>/ DESTROY SP destroy_instruction        
+		<t>/ DESTROY SP destroy_instruction
 		</t>
-		<t>/ LIST SP list_instruction              
+		<t>/ LIST SP list_instruction
 		</t>
-		<t>/ LOAD SP load_instruction              
+		<t>/ LOAD SP load_instruction
 		</t>
-		<t>/ REMOVE SP CHANNEL SP sampler_channel  
+		<t>/ REMOVE SP CHANNEL SP sampler_channel
 		</t>
-		<t>/ SET SP set_instruction                
+		<t>/ SET SP set_instruction
 		</t>
-		<t>/ SUBSCRIBE SP subscribe_event          
+		<t>/ SUBSCRIBE SP subscribe_event
 		</t>
-		<t>/ UNSUBSCRIBE SP unsubscribe_event      
+		<t>/ UNSUBSCRIBE SP unsubscribe_event
 		</t>
-		<t>/ SELECT SP text                        
+		<t>/ SELECT SP text
 		</t>
-		<t>/ RESET SP CHANNEL SP sampler_channel   
+		<t>/ RESET SP CHANNEL SP sampler_channel
 		</t>
-		<t>/ RESET                                 
+		<t>/ RESET
 		</t>
-		<t>/ QUIT                                  
+		<t>/ QUIT
 		</t>
 	</list>
 </t>
 <t>subscribe_event =
 	<list>
-		<t>CHANNEL_COUNT                         
+		<t>CHANNEL_COUNT
 		</t>
-		<t>/ VOICE_COUNT                           
+		<t>/ VOICE_COUNT
 		</t>
-		<t>/ STREAM_COUNT                          
+		<t>/ STREAM_COUNT
 		</t>
-		<t>/ BUFFER_FILL                           
+		<t>/ BUFFER_FILL
 		</t>
-		<t>/ CHANNEL_INFO                          
+		<t>/ CHANNEL_INFO
 		</t>
-		<t>/ MISCELLANEOUS                         
+		<t>/ MISCELLANEOUS
 		</t>
 	</list>
 </t>
 <t>unsubscribe_event =
 	<list>
-		<t>CHANNEL_COUNT                         
+		<t>CHANNEL_COUNT
 		</t>
-		<t>/ VOICE_COUNT                           
+		<t>/ VOICE_COUNT
 		</t>
-		<t>/ STREAM_COUNT                          
+		<t>/ STREAM_COUNT
 		</t>
-		<t>/ BUFFER_FILL                           
+		<t>/ BUFFER_FILL
 		</t>
-		<t>/ CHANNEL_INFO                          
+		<t>/ CHANNEL_INFO
 		</t>
-		<t>/ MISCELLANEOUS                         
+		<t>/ MISCELLANEOUS
 		</t>
 	</list>
 </t>
 <t>get_instruction =
 	<list>
-		<t>AVAILABLE_ENGINES                                                          
+		<t>AVAILABLE_ENGINES
 		</t>
-		<t>/ AVAILABLE_MIDI_INPUT_DRIVERS                                               
+		<t>/ AVAILABLE_MIDI_INPUT_DRIVERS
 		</t>
-		<t>/ MIDI_INPUT_DRIVER SP INFO SP string                                        
+		<t>/ MIDI_INPUT_DRIVER SP INFO SP string
 		</t>
-		<t>/ MIDI_INPUT_DRIVER_PARAMETER SP INFO SP string SP string                    
+		<t>/ MIDI_INPUT_DRIVER_PARAMETER SP INFO SP string SP string
 		</t>
-		<t>/ MIDI_INPUT_DRIVER_PARAMETER SP INFO SP string SP string SP key_val_list    
+		<t>/ MIDI_INPUT_DRIVER_PARAMETER SP INFO SP string SP string SP key_val_list
 		</t>
-		<t>/ AVAILABLE_AUDIO_OUTPUT_DRIVERS                                             
+		<t>/ AVAILABLE_AUDIO_OUTPUT_DRIVERS
 		</t>
-		<t>/ AUDIO_OUTPUT_DRIVER SP INFO SP string                                      
+		<t>/ AUDIO_OUTPUT_DRIVER SP INFO SP string
 		</t>
-		<t>/ AUDIO_OUTPUT_DRIVER_PARAMETER SP INFO SP string SP string                  
+		<t>/ AUDIO_OUTPUT_DRIVER_PARAMETER SP INFO SP string SP string
 		</t>
-		<t>/ AUDIO_OUTPUT_DRIVER_PARAMETER SP INFO SP string SP string SP key_val_list  
+		<t>/ AUDIO_OUTPUT_DRIVER_PARAMETER SP INFO SP string SP string SP key_val_list
 		</t>
-		<t>/ AUDIO_OUTPUT_DEVICES                                                       
+		<t>/ AUDIO_OUTPUT_DEVICES
 		</t>
-		<t>/ MIDI_INPUT_DEVICES                                                         
+		<t>/ MIDI_INPUT_DEVICES
 		</t>
-		<t>/ AUDIO_OUTPUT_DEVICE SP INFO SP number                                      
+		<t>/ AUDIO_OUTPUT_DEVICE SP INFO SP number
 		</t>
-		<t>/ MIDI_INPUT_DEVICE SP INFO SP number                                        
+		<t>/ MIDI_INPUT_DEVICE SP INFO SP number
 		</t>
-		<t>/ MIDI_INPUT_PORT SP INFO SP number SP number                                
+		<t>/ MIDI_INPUT_PORT SP INFO SP number SP number
 		</t>
-		<t>/ MIDI_INPUT_PORT_PARAMETER SP INFO SP number SP number SP string            
+		<t>/ MIDI_INPUT_PORT_PARAMETER SP INFO SP number SP number SP string
 		</t>
-		<t>/ AUDIO_OUTPUT_CHANNEL SP INFO SP number SP number                           
+		<t>/ AUDIO_OUTPUT_CHANNEL SP INFO SP number SP number
 		</t>
-		<t>/ AUDIO_OUTPUT_CHANNEL_PARAMETER SP INFO SP number SP number SP string       
+		<t>/ AUDIO_OUTPUT_CHANNEL_PARAMETER SP INFO SP number SP number SP string
 		</t>
-		<t>/ CHANNELS                                                                   
+		<t>/ CHANNELS
 		</t>
-		<t>/ CHANNEL SP INFO SP sampler_channel                                         
+		<t>/ CHANNEL SP INFO SP sampler_channel
 		</t>
-		<t>/ CHANNEL SP BUFFER_FILL SP buffer_size_type SP sampler_channel              
+		<t>/ CHANNEL SP BUFFER_FILL SP buffer_size_type SP sampler_channel
 		</t>
-		<t>/ CHANNEL SP STREAM_COUNT SP sampler_channel                                 
+		<t>/ CHANNEL SP STREAM_COUNT SP sampler_channel
 		</t>
-		<t>/ CHANNEL SP VOICE_COUNT SP sampler_channel                                  
+		<t>/ CHANNEL SP VOICE_COUNT SP sampler_channel
 		</t>
-		<t>/ ENGINE SP INFO SP engine_name                                              
+		<t>/ ENGINE SP INFO SP engine_name
 		</t>
-		<t>/ SERVER SP INFO                                                             
+		<t>/ SERVER SP INFO
 		</t>
 	</list>
 </t>
 <t>set_instruction =
 	<list>
-		<t>AUDIO_OUTPUT_DEVICE_PARAMETER SP number SP string '=' param_val_list             
+		<t>AUDIO_OUTPUT_DEVICE_PARAMETER SP number SP string '=' param_val_list
 		</t>
-		<t>/ AUDIO_OUTPUT_CHANNEL_PARAMETER SP number SP number SP string '=' param_val_list  
+		<t>/ AUDIO_OUTPUT_CHANNEL_PARAMETER SP number SP number SP string '=' param_val_list
 		</t>
-		<t>/ MIDI_INPUT_DEVICE_PARAMETER SP number SP string '=' param_val_list               
+		<t>/ MIDI_INPUT_DEVICE_PARAMETER SP number SP string '=' param_val_list
 		</t>
-		<t>/ MIDI_INPUT_PORT_PARAMETER SP number SP number SP string '=' param_val_list       
+		<t>/ MIDI_INPUT_PORT_PARAMETER SP number SP number SP string '=' param_val_list
 		</t>
-		<t>/ CHANNEL SP set_chan_instruction                                                  
+		<t>/ CHANNEL SP set_chan_instruction
 		</t>
-		<t>/ ECHO SP boolean                                                                  
+		<t>/ ECHO SP boolean
 		</t>
 	</list>
 </t>
 <t>create_instruction =
 	<list>
-		<t>AUDIO_OUTPUT_DEVICE SP string SP key_val_list  
+		<t>AUDIO_OUTPUT_DEVICE SP string SP key_val_list
 		</t>
-		<t>/ AUDIO_OUTPUT_DEVICE SP string                  
+		<t>/ AUDIO_OUTPUT_DEVICE SP string
 		</t>
-		<t>/ MIDI_INPUT_DEVICE SP string SP key_val_list    
+		<t>/ MIDI_INPUT_DEVICE SP string SP key_val_list
 		</t>
-		<t>/ MIDI_INPUT_DEVICE SP string                    
+		<t>/ MIDI_INPUT_DEVICE SP string
 		</t>
 	</list>
 </t>
 <t>destroy_instruction =
 	<list>
-		<t>AUDIO_OUTPUT_DEVICE SP number  
+		<t>AUDIO_OUTPUT_DEVICE SP number
 		</t>
-		<t>/ MIDI_INPUT_DEVICE SP number    
+		<t>/ MIDI_INPUT_DEVICE SP number
 		</t>
 	</list>
 </t>
 <t>load_instruction =
 	<list>
-		<t>INSTRUMENT SP load_instr_args  
+		<t>INSTRUMENT SP load_instr_args
 		</t>
-		<t>/ ENGINE SP load_engine_args     
+		<t>/ ENGINE SP load_engine_args
 		</t>
 	</list>
 </t>
 <t>set_chan_instruction =
 	<list>
-		<t>AUDIO_OUTPUT_DEVICE SP sampler_channel SP device_index                                              
+		<t>AUDIO_OUTPUT_DEVICE SP sampler_channel SP device_index
 		</t>
-		<t>/ AUDIO_OUTPUT_CHANNEL SP sampler_channel SP audio_channel_index SP audio_channel_index               
+		<t>/ AUDIO_OUTPUT_CHANNEL SP sampler_channel SP audio_channel_index SP audio_channel_index
 		</t>
-		<t>/ AUDIO_OUTPUT_TYPE SP sampler_channel SP audio_output_type_name                                      
+		<t>/ AUDIO_OUTPUT_TYPE SP sampler_channel SP audio_output_type_name
 		</t>
-		<t>/ MIDI_INPUT SP sampler_channel SP device_index SP midi_input_port_index SP midi_input_channel_index  
+		<t>/ MIDI_INPUT SP sampler_channel SP device_index SP midi_input_port_index SP midi_input_channel_index
 		</t>
-		<t>/ MIDI_INPUT_DEVICE SP sampler_channel SP device_index                                                
+		<t>/ MIDI_INPUT_DEVICE SP sampler_channel SP device_index
 		</t>
-		<t>/ MIDI_INPUT_PORT SP sampler_channel SP midi_input_port_index                                         
+		<t>/ MIDI_INPUT_PORT SP sampler_channel SP midi_input_port_index
 		</t>
-		<t>/ MIDI_INPUT_CHANNEL SP sampler_channel SP midi_input_channel_index                                   
+		<t>/ MIDI_INPUT_CHANNEL SP sampler_channel SP midi_input_channel_index
 		</t>
-		<t>/ MIDI_INPUT_TYPE SP sampler_channel SP midi_input_type_name                                          
+		<t>/ MIDI_INPUT_TYPE SP sampler_channel SP midi_input_type_name
 		</t>
-		<t>/ VOLUME SP sampler_channel SP volume_value                                                           
+		<t>/ VOLUME SP sampler_channel SP volume_value
 		</t>
-		<t>/ MUTE SP sampler_channel SP boolean                                                                  
+		<t>/ MUTE SP sampler_channel SP boolean
 		</t>
-		<t>/ SOLO SP sampler_channel SP boolean                                                                  
+		<t>/ SOLO SP sampler_channel SP boolean
 		</t>
 	</list>
 </t>
 <t>key_val_list =
 	<list>
-		<t>string '=' param_val_list                  
+		<t>string '=' param_val_list
 		</t>
-		<t>/ key_val_list SP string '=' param_val_list  
+		<t>/ key_val_list SP string '=' param_val_list
 		</t>
 	</list>
 </t>
 <t>buffer_size_type =
 	<list>
-		<t>BYTES       
+		<t>BYTES
 		</t>
-		<t>/ PERCENTAGE  
+		<t>/ PERCENTAGE
 		</t>
 	</list>
 </t>
 <t>list_instruction =
 	<list>
-		<t>AUDIO_OUTPUT_DEVICES            
+		<t>AUDIO_OUTPUT_DEVICES
 		</t>
-		<t>/ MIDI_INPUT_DEVICES              
+		<t>/ MIDI_INPUT_DEVICES
 		</t>
-		<t>/ CHANNELS                        
+		<t>/ CHANNELS
 		</t>
-		<t>/ AVAILABLE_ENGINES               
+		<t>/ AVAILABLE_ENGINES
 		</t>
-		<t>/ AVAILABLE_MIDI_INPUT_DRIVERS    
+		<t>/ AVAILABLE_MIDI_INPUT_DRIVERS
 		</t>
-		<t>/ AVAILABLE_AUDIO_OUTPUT_DRIVERS  
+		<t>/ AVAILABLE_AUDIO_OUTPUT_DRIVERS
 		</t>
 	</list>
 </t>
 <t>load_instr_args =
 	<list>
-		<t>filename SP instrument_index SP sampler_channel               
+		<t>filename SP instrument_index SP sampler_channel
 		</t>
-		<t>/ NON_MODAL SP filename SP instrument_index SP sampler_channel  
+		<t>/ NON_MODAL SP filename SP instrument_index SP sampler_channel
 		</t>
 	</list>
 </t>
 <t>load_engine_args =
 	<list>
-		<t>engine_name SP sampler_channel  
+		<t>engine_name SP sampler_channel
 		</t>
 	</list>
 </t>
@@ -3706,7 +3706,7 @@ Schoenebeck'>
 	<list>
 		<t>number
 		</t>
-		<t>/ ALL  
+		<t>/ ALL
 		</t>
 	</list>
 </t>
@@ -3720,7 +3720,7 @@ Schoenebeck'>
 	<list>
 		<t>dotnum
 		</t>
-		<t>/ number  
+		<t>/ number
 		</t>
 	</list>
 </t>
@@ -3752,7 +3752,7 @@ Schoenebeck'>
 	<list>
 		<t>param_val
 		</t>
-		<t>/ param_val_list','param_val  
+		<t>/ param_val_list','param_val
 		</t>
 	</list>
 </t>
@@ -3760,13 +3760,13 @@ Schoenebeck'>
 	<list>
 		<t>string
 		</t>
-		<t>/ '\'' string '\''    
+		<t>/ '\'' string '\''
 		</t>
-		<t>/ '\"' string '\"'    
+		<t>/ '\"' string '\"'
 		</t>
-		<t>/ number            
+		<t>/ number
 		</t>
-		<t>/ dotnum            
+		<t>/ dotnum
 		</t>
 	</list>
 </t>
