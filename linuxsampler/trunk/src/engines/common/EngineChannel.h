@@ -80,35 +80,35 @@ namespace LinuxSampler {
             virtual String  EngineName() = 0;
 
             /**
-            * Sets the mute state of this channel.
-            *
-            * @param state - specifies the mute state of this sampler channel.
-            * @throws LinuxSamplerException - if state does not contain valid
-            * value.
-            */
+             * Sets the mute state of this channel.
+             *
+             * @param state - specifies the mute state of this sampler channel.
+             * @throws LinuxSamplerException - if state does not contain valid
+             * value.
+             */
             void SetMute(int state) throw (LinuxSamplerException);
 
             /**
-            * Determines whether this channel is muted.
-            *
-            * @returns 1 if the channel is muted, 0 if the channel is not muted
-            * and -1 if the channel is muted because of presence of at least
-            * one solo channel.
-            */
+             * Determines whether this channel is muted.
+             *
+             * @returns 1 if the channel is muted, 0 if the channel is not muted
+             * and -1 if the channel is muted because of presence of at least
+             * one solo channel.
+             */
             int GetMute();
 
             /**
-            * Sets the solo state of this channel.
-            *
-            * @param solo - specifies whether this is a solo channel.
-            */
+             * Sets the solo state of this channel.
+             *
+             * @param solo - specifies whether this is a solo channel.
+             */
             void SetSolo(bool solo);
 
             /**
-            * Determines whether this is a solo channel.
-            *
-            * @returns true if this is a solo channel, false otherwise.
-            */
+             * Determines whether this is a solo channel.
+             *
+             * @returns true if this is a solo channel, false otherwise.
+             */
             bool GetSolo();
 
             int iSamplerChannelIndex; ///< FIXME: nasty hack, might be removed (should be 'virtual EngineChannel* EngineChannel() = 0;', but due to cyclic dependencies only a void* solution would be possible ATM)
