@@ -5,6 +5,11 @@ Version CVS HEAD (?)
       applications to link against liblinuxsampler
     - liblinuxsampler's API documentation can be generated with 'make docs'
       (Doxygen required)
+    - added benchmark to automatically detect the best triangle LFO
+      implementation (currently either an integer math solution or a
+      di-harmonic approximation), automatic detection can be overriden
+      with --enable-signed-triang-algo=x and --enable-unsigned-triang-algo=x
+      configure script argument though (mandatory for cross-compilation)
 
   * Gigasampler format engine:
     - fine tuning of the EG modulation parameters
