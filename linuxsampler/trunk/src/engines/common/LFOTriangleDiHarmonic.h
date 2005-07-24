@@ -24,8 +24,7 @@
 #include "LFOBase.h"
 
 // amplitue of 2nd harmonic (to approximate the triangular wave)
-// TODO: this was just a quick head calculation, needs to be recalculated exactly (DFT)
-#define AMP2	0.1f
+#define AMP2	0.11425509f
 
 namespace LinuxSampler {
 
@@ -58,7 +57,7 @@ namespace LinuxSampler {
                 real2 -= c2 * imag2;
                 imag2 += c2 * real2;
                 if (RANGE == range_unsigned)
-                    return (real1 + real2 * AMP2) * normalizer + normalizer;
+                    return (real1 + real2 * AMP2) * normalizer + offset;
                 else /* signed range */
                     return (real1 + real2 * AMP2) * normalizer;
             }
@@ -70,10 +69,13 @@ namespace LinuxSampler {
              */
             inline void update(const uint16_t& ExtControlValue) {
                 const float max = this->InternalDepth + ExtControlValue * this->ExtControlDepthCoeff;
-                if (RANGE == range_unsigned)
+                if (RANGE == range_unsigned) {
+                    const float harmonicCompensation = 1.0f + AMP2; // to compensate the compensation ;) (see trigger())
                     normalizer = max * 0.5f;
-                else /* signed range */
+                    offset     = normalizer * harmonicCompensation;
+                } else { // signed range
                     normalizer = max;
+                }
             }
 
             /**
@@ -85,27 +87,30 @@ namespace LinuxSampler {
              * @param ExtControlDepth - defines how strong the external MIDI
              *                          controller has influence on the
              *                          oscillator amplitude
-             * @param FlipPhase       - inverts the oscillator wave
+             * @param FlipPhase       - inverts the oscillator wave against
+             *                          a horizontal axis
              * @param SampleRate      - current sample rate of the engines
              *                          audio output signal
              */
             void trigger(float Frequency, start_level_t StartLevel, uint16_t InternalDepth, uint16_t ExtControlDepth, bool FlipPhase, unsigned int SampleRate) {
-                this->InternalDepth        = (InternalDepth / 1200.0f) * this->Max;
-                this->ExtControlDepthCoeff = (((float) ExtControlDepth / 1200.0f) / 127.0f) * this->Max;
+                const float harmonicCompensation = 1.0f + AMP2; // to compensate the 2nd harmonic's amplitude overhead
+                this->InternalDepth        = (InternalDepth / 1200.0f) * this->Max / harmonicCompensation; 
+                this->ExtControlDepthCoeff = (((float) ExtControlDepth / 1200.0f) / 127.0f) * this->Max / harmonicCompensation;
 
                 c1 = 2.0f * M_PI * Frequency / (float) SampleRate;
                 c2 = 2.0f * M_PI * Frequency / (float) SampleRate * 3.0f;
 
-                float phi; // phase displacement
+                double phi; // phase displacement
                 switch (StartLevel) {
-                    case start_level_max:
-                        phi = 0.0f; // 0°
-                        break;
                     case start_level_mid:
-                        phi = (FlipPhase) ? 3.0f * M_PI : M_PI; // 270° or 90°
+                        //FIXME: direct jumping to 90° and 270° doesn't work out due to numeric accuracy problems (causes wave deformation)
+                        //phi = (FlipPhase) ? 0.5 * M_PI : 1.5 * M_PI; // 90° or 270°
+                        //break;
+                    case start_level_max:
+                        phi = (FlipPhase) ? M_PI : 0.0; // 180° or 0°
                         break;
                     case start_level_min:
-                        phi = 2.0f * M_PI; // 180°
+                        phi = (FlipPhase) ? 0.0 : M_PI; // 0° or 180°
                         break;
                 }
                 real1 = real2 = cos(phi);
@@ -120,6 +125,7 @@ namespace LinuxSampler {
             float real2;
             float imag2;
             float normalizer;
+            float offset;
     };
 
 } // namespace LinuxSampler
