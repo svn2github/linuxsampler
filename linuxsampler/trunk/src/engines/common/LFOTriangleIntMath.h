@@ -66,9 +66,9 @@ namespace LinuxSampler {
                 const unsigned int intLimit = (unsigned int) -1; // all 0xFFFF...
                 const float max = InternalDepth + ExtControlValue * ExtControlDepthCoeff;
                 if (RANGE == range_unsigned) {
-                    normalizer = max / (float) intLimit * 0.5f;
+                    normalizer = max / (float) intLimit;
                 } else { // signed range
-                    normalizer = max / (float) intLimit * 0.25f;
+                    normalizer = max / (float) intLimit * 4.0f;
                     offset     = -max;
                 }
             }
@@ -82,42 +82,34 @@ namespace LinuxSampler {
              * @param ExtControlDepth - defines how strong the external MIDI
              *                          controller has influence on the
              *                          oscillator amplitude
-             * @param FlipPhase       - inverts the oscillator wave
+             * @param FlipPhase       - inverts the oscillator wave against
+             *                          a horizontal axis
              * @param SampleRate      - current sample rate of the engines
              *                          audio output signal
              */
             void trigger(float Frequency, start_level_t StartLevel, uint16_t InternalDepth, uint16_t ExtControlDepth, bool FlipPhase, unsigned int SampleRate) {
                 this->InternalDepth        = (InternalDepth / 1200.0f) * Max;
                 this->ExtControlDepthCoeff = (((float) ExtControlDepth / 1200.0f) / 127.0f) * Max;
+                if (RANGE == range_unsigned) {
+                    this->InternalDepth        *= 2.0f;
+                    this->ExtControlDepthCoeff *= 2.0f;
+                }
 
                 const unsigned int intLimit = (unsigned int) -1; // all 0xFFFF...
                 const float r = Frequency / (float) SampleRate; // frequency alteration quotient
                 c = (int) (intLimit * r);
 
                 switch (StartLevel) {
-                    case start_level_max: {
-                        c = -c; // wave should go down
-                        if (RANGE == range_unsigned)
-                            iLevel = intLimit;
-                        else /* signed range */
-                            iLevel = intLimit >> 1;
+                    case start_level_max:
+                        iLevel = (FlipPhase) ? 0 : intLimit >> 1;
                         break;
-                    }
-                    case start_level_mid: {
+                    case start_level_mid:
                         if (FlipPhase) c = -c; // wave should go down
-                        if (RANGE == range_unsigned)
-                            iLevel = intLimit >> 1;
-                        else /* signed range */
-                            iLevel = 0;
+                        iLevel = intLimit >> 2;
                         break;
-                    }
-                    case start_level_min: {
-                        if (RANGE == range_unsigned)
-                            iLevel = 0;
-                        else /* signed range */
-                            iLevel = -(intLimit >> 1);
+                    case start_level_min:
+                        iLevel = (FlipPhase) ? intLimit >> 1 : 0;
                         break;
-                    }
                 }
             }
 
