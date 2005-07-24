@@ -591,6 +591,12 @@ AC_ARG_ENABLE(signed-triang-algo,
                               Uses integer math without any branch will then be
                               converted to floating point value for each sample point.
                               This int->float conversion might hurt on some systems.
+                            intmathabs:
+                              Similar to intmath but uses abs() function.
+                              Depending on compiler and platrofm this could
+                              perform better than integer math as it avoids
+			      an extra integer multiply instruction.
+
                             diharmonic:
                               The triangular wave will be approximated by adding two
                               sinusoidials. This solution might especially hurt on
@@ -602,6 +608,7 @@ AC_ARG_ENABLE(signed-triang-algo,
                               benchmark between the algorithms mentioned above.
                               This will NOT work for cross compilation!],
   [ if test ! "(" "${enableval}" = "intmath" \
+              -o "${enableval}" = "intmathabs" \
               -o "${enableval}" = "diharmonic" ")" ; then
       AC_MSG_ERROR([Unknown triangular wave algorithm for parameter --enable-signed-triang-algo])
     else
@@ -619,6 +626,12 @@ AC_ARG_ENABLE(unsigned-triang-algo,
                               Uses integer math without any branch will then be
                               converted to floating point value for each sample point.
                               This int->float conversion might hurt on some systems.
+                            intmathabs:
+                              Similar to intmath but uses abs() function.
+                              Depending on compiler and platrofm this could
+                              perform better than integer math as it avoids
+			      an extra integer multiply instruction.
+
                             diharmonic:
                               The triangular wave will be approximated by adding two
                               sinusoidials. This solution might especially hurt on
@@ -630,6 +643,7 @@ AC_ARG_ENABLE(unsigned-triang-algo,
                               benchmark between the algorithms mentioned above.
                               This will NOT work for cross compilation!],
   [ if test ! "(" "${enableval}" = "intmath" \
+              -o "${enableval}" = "intmathabs" \
               -o "${enableval}" = "diharmonic" ")" ; then
       AC_MSG_ERROR([Unknown triangular wave algorithm for parameter --enable-unsigned-triang-algo])
     else
@@ -679,6 +693,9 @@ if test "$config_signed_triang_algo" = "benchmark"; then
     elif test "$triang_signed" = "3"; then
         config_signed_triang_algo="diharmonic"
         echo "di harmonics"
+    elif test "$triang_signed" = "5"; then
+        config_signed_triang_algo="intmathabs"
+        echo "integer math using abs()"
     else
         echo "Benchmark of signed triangular wave algorithms failed!"
         echo "Maybe you are doing cross compilation? In that case you have to select"
@@ -707,6 +724,9 @@ if test "$config_unsigned_triang_algo" = "benchmark"; then
     elif test "$triang_unsigned" = "3"; then
         config_unsigned_triang_algo="diharmonic"
         echo "di harmonics"
+    elif test "$triang_unsigned" = "5"; then
+        config_signed_triang_algo="intmathabs"
+        echo "integer math using abs()"
     else
         echo "Benchmark of unsigned triangular wave algorithms failed!"
         echo "Maybe you are doing cross compilation? In that case you have to select"

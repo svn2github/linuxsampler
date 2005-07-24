@@ -113,7 +113,7 @@ namespace LinuxSampler {
                 }
             }
 
-        private:
+        protected:
             int   iLevel;
             int   c;
             float offset; ///< only needed for signed range

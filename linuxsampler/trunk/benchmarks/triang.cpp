@@ -12,6 +12,7 @@
 #include <stdio.h>
 
 #include "../src/engines/common/LFOTriangleIntMath.h"
+#include "../src/engines/common/LFOTriangleIntAbsMath.h"
 #include "../src/engines/common/LFOTriangleDiHarmonic.h"
 
 // whether we should not show any messages on the console
@@ -23,7 +24,7 @@
 // you can e.g. open it as RAW file in Rezound
 // (32 bit SP-FP PCM, mono, little endian, 44100kHz)
 #ifndef OUTPUT_AS_RAW_WAVE
-# define OUTPUT_AS_RAW_WAVE	0
+# define OUTPUT_AS_RAW_WAVE	1
 #endif
 
 // how many sample points should we calculate in one sequence
@@ -56,6 +57,7 @@
 #define INT_MATH_SOLUTION	2  /* we don't start with 1, as this is reserved for unknown errors */
 #define DI_HARMONIC_SOLUTION	3
 #define TABLE_LOOKUP_SOLUTION	4  /* table lookup solution is currently disabled in this benchmark, see below */
+#define INT_MATH_ABS_SOLUTION   5  /* integer math with abs() */
 #define INVALID_RESULT		-1
 
 // we use 32 bit single precision floating point as sample point format
@@ -65,9 +67,11 @@ using namespace LinuxSampler;
 
 #if SIGNED
 LFOTriangleIntMath<range_signed>*    pIntLFO        = NULL;
+LFOTriangleIntAbsMath<range_signed>* pIntAbsLFO     = NULL;
 LFOTriangleDiHarmonic<range_signed>* pDiHarmonicLFO = NULL;
 #else // unsigned
 LFOTriangleIntMath<range_unsigned>*    pIntLFO        = NULL;
+LFOTriangleIntAbsMath<range_unsigned>* pIntAbsLFO     = NULL;
 LFOTriangleDiHarmonic<range_unsigned>* pDiHarmonicLFO = NULL;
 #endif
 
@@ -90,6 +94,30 @@ float int_math(sample_t* pDestinationBuffer, float* pAmp, const int steps, const
     float elapsed_time = (stop_time - start_time) / (double(CLOCKS_PER_SEC) / 1000.0);
     #if ! SILENT
     printf("int math solution elapsed time: %1.0f ms\n", elapsed_time);
+    #endif
+
+    return elapsed_time;
+}
+
+// integer math abs solution
+float int_math_abs(sample_t* pDestinationBuffer, float* pAmp, const int steps, const float frequency) {
+    // pro forma
+    pIntAbsLFO->trigger(frequency, start_level_max, 1200 /* max. internal depth */, 0, false, (unsigned int) SAMPLING_RATE);
+
+    clock_t stop_time;
+    clock_t start_time = clock();
+
+    for (int run = 0; run < RUNS; run++) {
+        pIntAbsLFO->update(0); // pro forma
+        for (int i = 0; i < steps; ++i) {
+            pDestinationBuffer[i] = pIntAbsLFO->render() * pAmp[i]; // * pAmp[i] just to simulate some memory load
+        }
+    }
+
+    stop_time = clock();
+    float elapsed_time = (stop_time - start_time) / (double(CLOCKS_PER_SEC) / 1000.0);
+    #if ! SILENT
+    printf("int math abs solution elapsed time: %1.0f ms\n", elapsed_time);
     #endif
 
     return elapsed_time;
@@ -216,9 +244,11 @@ int main() {
 
     #if SIGNED
     pIntLFO        = new LFOTriangleIntMath<range_signed>(MAX);
+    pIntAbsLFO     = new LFOTriangleIntAbsMath<range_signed>(MAX);
     pDiHarmonicLFO = new LFOTriangleDiHarmonic<range_signed>(MAX);
     #else // unsigned
     pIntLFO        = new LFOTriangleIntMath<range_unsigned>(MAX);
+    pIntAbsLFO     = new LFOTriangleIntAbsMath<range_unsigned>(MAX);
     pDiHarmonicLFO = new LFOTriangleDiHarmonic<range_unsigned>(MAX);
     #endif
 
@@ -232,11 +262,16 @@ int main() {
         pAmplitude[i] = (float) i / (float) steps;
 
     // how long each solution took (in seconds)
-    float int_math_result, /*table_lookup_result,*/ numeric_di_harmonic_result;
+    float int_math_result, int_math_abs_result, /*table_lookup_result,*/ numeric_di_harmonic_result;
 
     int_math_result = int_math(pOutputBuffer, pAmplitude, steps, sinusoidFrequency);
     #if OUTPUT_AS_RAW_WAVE
       output_as_raw_file("bench_int_math.raw", pOutputBuffer, steps);
+    #endif
+
+    int_math_abs_result = int_math_abs(pOutputBuffer, pAmplitude, steps, sinusoidFrequency);
+    #if OUTPUT_AS_RAW_WAVE
+      output_as_raw_file("bench_int_math_abs.raw", pOutputBuffer, steps);
     #endif
     //table_lookup_result = table_lookup(pOutputBuffer, pAmplitude, steps, sinusoidFrequency);
     //#if OUTPUT_AS_RAW_WAVE
@@ -252,6 +287,7 @@ int main() {
     #endif
 
     int_math_result            += int_math(pOutputBuffer, pAmplitude, steps, sinusoidFrequency);
+    int_math_abs_result = int_math_abs(pOutputBuffer, pAmplitude, steps, sinusoidFrequency);
     //table_lookup_result        += table_lookup(pOutputBuffer, pAmplitude, steps, sinusoidFrequency);
     numeric_di_harmonic_result += numeric_di_harmonic_solution(pOutputBuffer, pAmplitude, steps, sinusoidFrequency);
 
@@ -261,9 +297,9 @@ int main() {
     if (pIntLFO)        delete pIntLFO;
     if (pDiHarmonicLFO) delete pDiHarmonicLFO;
 
-    if (/*int_math_result <= table_lookup_result &&*/ int_math_result <= numeric_di_harmonic_result) return INT_MATH_SOLUTION;
-    if (/*numeric_di_harmonic_result <= table_lookup_result &&*/ numeric_di_harmonic_result <= int_math_result) return DI_HARMONIC_SOLUTION;
-    //if (table_lookup_result <= int_math_result && table_lookup_result <= numeric_di_harmonic_result) return TABLE_LOOKUP_SOLUTION;
+    if (int_math_abs_result <= int_math_result && int_math_abs_result <= numeric_di_harmonic_result) return INT_MATH_ABS_SOLUTION;
+    if (int_math_result <= int_math_abs_result && int_math_result <= numeric_di_harmonic_result) return INT_MATH_SOLUTION;
+    if (numeric_di_harmonic_result <= int_math_abs_result && numeric_di_harmonic_result <= int_math_result) return DI_HARMONIC_SOLUTION;
 
     return INVALID_RESULT; // error
 }
