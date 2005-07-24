@@ -24,7 +24,7 @@
 // you can e.g. open it as RAW file in Rezound
 // (32 bit SP-FP PCM, mono, little endian, 44100kHz)
 #ifndef OUTPUT_AS_RAW_WAVE
-# define OUTPUT_AS_RAW_WAVE	1
+# define OUTPUT_AS_RAW_WAVE	0
 #endif
 
 // how many sample points should we calculate in one sequence
@@ -84,7 +84,7 @@ float int_math(sample_t* pDestinationBuffer, float* pAmp, const int steps, const
     clock_t start_time = clock();
 
     for (int run = 0; run < RUNS; run++) {
-        pIntLFO->update(0); // pro forma
+        pIntLFO->update(127); // pro forma
         for (int i = 0; i < steps; ++i) {
             pDestinationBuffer[i] = pIntLFO->render() * pAmp[i]; // * pAmp[i] just to simulate some memory load
         }
@@ -202,7 +202,7 @@ float numeric_di_harmonic_solution(sample_t* pDestinationBuffer, float* pAmp, co
     clock_t start_time = clock();
 
     for (int run = 0; run < RUNS; run++) {
-        pDiHarmonicLFO->update(0); // pro forma
+        pDiHarmonicLFO->update(127); // pro forma
         for (int i = 0; i < steps; ++i) {
             pDestinationBuffer[i] = pDiHarmonicLFO->render() * pAmp[i]; // * pAmp[i] just to simulate some memory load
         }
