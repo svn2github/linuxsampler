@@ -64,7 +64,7 @@ namespace LinuxSampler {
              */
             inline void update(const uint16_t& ExtControlValue) {
                 const unsigned int intLimit = (unsigned int) -1; // all 0xFFFF...
-                const float max = InternalDepth + ExtControlValue * ExtControlDepthCoeff;
+                const float max = this->InternalDepth + ExtControlValue * this->ExtControlDepthCoeff;
                 if (RANGE == range_unsigned) {
                     normalizer = max / (float) intLimit;
                 } else { // signed range
@@ -88,8 +88,8 @@ namespace LinuxSampler {
              *                          audio output signal
              */
             void trigger(float Frequency, start_level_t StartLevel, uint16_t InternalDepth, uint16_t ExtControlDepth, bool FlipPhase, unsigned int SampleRate) {
-                this->InternalDepth        = (InternalDepth / 1200.0f) * Max;
-                this->ExtControlDepthCoeff = (((float) ExtControlDepth / 1200.0f) / 127.0f) * Max;
+                this->InternalDepth        = (InternalDepth / 1200.0f) * this->Max;
+                this->ExtControlDepthCoeff = (((float) ExtControlDepth / 1200.0f) / 127.0f) * this->Max;
                 if (RANGE == range_unsigned) {
                     this->InternalDepth        *= 2.0f;
                     this->ExtControlDepthCoeff *= 2.0f;
