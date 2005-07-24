@@ -113,7 +113,8 @@ namespace LinuxSampler {
              * @param ExtControlDepth - defines how strong the external MIDI
              *                          controller has influence on the
              *                          oscillator amplitude
-             * @param FlipPhase       - inverts the oscillator wave
+             * @param FlipPhase       - inverts the oscillator wave against
+             *                          a horizontal axis
              * @param SampleRate      - current sample rate of the engines
              *                          audio output signal
              */
