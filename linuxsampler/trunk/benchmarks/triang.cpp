@@ -11,6 +11,9 @@
 #include <time.h>
 #include <stdio.h>
 
+#include "../src/engines/common/LFOTriangleIntMath.h"
+#include "../src/engines/common/LFOTriangleDiHarmonic.h"
+
 // whether we should not show any messages on the console
 #ifndef SILENT
 # define SILENT 0
@@ -38,6 +41,11 @@
 # define SIGNED			1
 #endif
 
+// maximum value of the LFO output (also depends on SIGNED above)
+#ifndef MAX
+# define MAX			1.0f
+#endif
+
 // pro forma
 #ifndef SAMPLING_RATE
 # define SAMPLING_RATE		44100.0f
@@ -53,34 +61,28 @@
 // we use 32 bit single precision floating point as sample point format
 typedef float sample_t;
 
+using namespace LinuxSampler;
+
+#if SIGNED
+LFOTriangleIntMath<range_signed>*    pIntLFO        = NULL;
+LFOTriangleDiHarmonic<range_signed>* pDiHarmonicLFO = NULL;
+#else // unsigned
+LFOTriangleIntMath<range_unsigned>*    pIntLFO        = NULL;
+LFOTriangleDiHarmonic<range_unsigned>* pDiHarmonicLFO = NULL;
+#endif
+
 // integer math solution
 float int_math(sample_t* pDestinationBuffer, float* pAmp, const int steps, const float frequency) {
     // pro forma
-    const float r = frequency / SAMPLING_RATE; // frequency alteration quotient
-    unsigned int maxvalue = (unsigned int) -1; // all 0xFFFF...
-    #if SIGNED
-    const float normalizer = 1.0f / ((float) maxvalue / 4.0f);
-    #else // unsigned
-    const float normalizer = 1.0f / ((float) maxvalue / 2.0f);
-    #endif
-    const int c = (int) (maxvalue * r);
-    const int signshifts = (sizeof(int) * 8) - 1;
-
-    int iSign;
+    pIntLFO->trigger(frequency, start_level_max, 1200 /* max. internal depth */, 0, false, (unsigned int) SAMPLING_RATE);
 
     clock_t stop_time;
     clock_t start_time = clock();
 
     for (int run = 0; run < RUNS; run++) {
-        int iLevel = 0;
+        pIntLFO->update(0); // pro forma
         for (int i = 0; i < steps; ++i) {
-            iLevel += c;
-            iSign  = (iLevel >> signshifts) | 1;
-            #if SIGNED
-            pDestinationBuffer[i] = (normalizer * (float) (iSign * iLevel) - 1.0f) * pAmp[i]; // * pAmp[i] just to simulate some memory load
-            #else // unsigned
-            pDestinationBuffer[i] = normalizer * (float) (iSign * iLevel) * pAmp[i]; // * pAmp[i] just to simulate some memory load
-            #endif
+            pDestinationBuffer[i] = pIntLFO->render() * pAmp[i]; // * pAmp[i] just to simulate some memory load
         }
     }
 
@@ -165,35 +167,16 @@ float table_lookup(sample_t* pDestinationBuffer, float* pAmp, const int steps, c
 
 // numeric, di-harmonic solution
 float numeric_di_harmonic_solution(sample_t* pDestinationBuffer, float* pAmp, const int steps, const float frequency) {
-    // we approximate the triangular wave by adding 2 harmonics
-    const float c1   = 2.0f * M_PI * frequency / SAMPLING_RATE;
-    const float phi1 = 0.0f; // phase displacement
-    const float c2   = 2.0f * M_PI * frequency / SAMPLING_RATE * 3.0f;
-    const float phi2 = 0.0f; // phase displacement
-
-    // amplitue for the 2nd harmonic (to approximate the triangular wave)
-    const float amp2 = 0.1f;
-
-    // initial values for real and imaginary part
-    float real1 = cos(phi1);
-    float imag1 = sin(phi1);
-    float real2 = cos(phi2);
-    float imag2 = sin(phi2);
+    // pro forma
+    pDiHarmonicLFO->trigger(frequency, start_level_max, 1200 /* max. internal depth */, 0, false, (unsigned int) SAMPLING_RATE);
 
     clock_t stop_time;
     clock_t start_time = clock();
 
     for (int run = 0; run < RUNS; run++) {
-        for (int i = 0; i < steps; i++) {
-            #if SIGNED
-            pDestinationBuffer[i] = (real1 + real2 * amp2) * pAmp[i]; // * pAmp[i] just to simulate some memory load
-            #else // unsigned
-            pDestinationBuffer[i] = ((real1 + real2 * amp2) * 0.5f + 0.5f) * pAmp[i]; // * pAmp[i] just to simulate some memory load
-            #endif
-            real1 -= c1 * imag1;
-            imag1 += c1 * real1;
-            real2 -= c2 * imag2;
-            imag2 += c2 * real2;
+        pDiHarmonicLFO->update(0); // pro forma
+        for (int i = 0; i < steps; ++i) {
+            pDestinationBuffer[i] = pDiHarmonicLFO->render() * pAmp[i]; // * pAmp[i] just to simulate some memory load
         }
     }
 
@@ -231,6 +214,14 @@ int main() {
     # endif
     #endif
 
+    #if SIGNED
+    pIntLFO        = new LFOTriangleIntMath<range_signed>(MAX);
+    pDiHarmonicLFO = new LFOTriangleDiHarmonic<range_signed>(MAX);
+    #else // unsigned
+    pIntLFO        = new LFOTriangleIntMath<range_unsigned>(MAX);
+    pDiHarmonicLFO = new LFOTriangleDiHarmonic<range_unsigned>(MAX);
+    #endif
+
     // output buffer for the calculated sinusoid wave
     sample_t* pOutputBuffer = new sample_t[steps];
     // just an arbitrary amplitude envelope to simulate a bit higher memory bandwidth
@@ -266,6 +257,9 @@ int main() {
 
     if (pAmplitude)    delete[] pAmplitude;
     if (pOutputBuffer) delete[] pOutputBuffer;
+
+    if (pIntLFO)        delete pIntLFO;
+    if (pDiHarmonicLFO) delete pDiHarmonicLFO;
 
     if (/*int_math_result <= table_lookup_result &&*/ int_math_result <= numeric_di_harmonic_result) return INT_MATH_SOLUTION;
     if (/*numeric_di_harmonic_result <= table_lookup_result &&*/ numeric_di_harmonic_result <= int_math_result) return DI_HARMONIC_SOLUTION;
