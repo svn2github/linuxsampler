@@ -576,7 +576,11 @@ namespace LinuxSampler { namespace gig {
 
         // Reset the synthesis parameter matrix
 
+        #if CONFIG_PROCESS_MUTED_CHANNELS
+        pEngine->ResetSynthesisParameters(Event::destination_vca, this->Volume * this->CrossfadeVolume * (pEngineChannel->GetMute() ? 0 : pEngineChannel->GlobalVolume));
+        #else
         pEngine->ResetSynthesisParameters(Event::destination_vca, this->Volume * this->CrossfadeVolume * pEngineChannel->GlobalVolume);
+        #endif
         pEngine->ResetSynthesisParameters(Event::destination_vco, this->PitchBase);
         pEngine->ResetSynthesisParameters(Event::destination_vcfc, VCFCutoffCtrl.fvalue);
         pEngine->ResetSynthesisParameters(Event::destination_vcfr, VCFResonanceCtrl.fvalue);
@@ -806,7 +810,11 @@ namespace LinuxSampler { namespace gig {
 
                 crossfadevolume = CrossfadeAttenuation(itVCAEvent->Param.CC.Value);
 
+                #if CONFIG_PROCESS_MUTED_CHANNELS
+                float effective_volume = crossfadevolume * this->Volume * (pEngineChannel->GetMute() ? 0 : pEngineChannel->GlobalVolume);
+                #else
                 float effective_volume = crossfadevolume * this->Volume * pEngineChannel->GlobalVolume;
+                #endif
 
                 // apply volume value to the volume parameter sequence
                 for (uint i = itVCAEvent->FragmentPos(); i < end; i++) {

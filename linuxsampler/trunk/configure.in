@@ -639,6 +639,22 @@ AC_ARG_ENABLE(unsigned-triang-algo,
   [config_unsigned_triang_algo="benchmark"]
 )
 
+AC_ARG_ENABLE(process-muted-channels,
+  [  --enable-process-muted-channels
+                          Enable processing of muted channels (default=no).
+                          In that mode all MIDI events in the muted channels
+                          will be processed. This will provide information
+                          about the active voices in the muted channels and
+                          will not discard notes, triggered in mute mode,
+                          when the channel is unmuted. But also will reduce
+                          the efficiency.],
+  [config_process_muted_channels="yes"],
+  [config_process_muted_channels="no"]
+)
+if test "$config_process_muted_channels" = "yes"; then
+  AC_DEFINE_UNQUOTED(CONFIG_PROCESS_MUTED_CHANNELS, 1, [Define to 1 if you want to enable processing of muted channels.])
+fi
+
 
 ###########################################################################
 # Automatic Benchmarks (to detect the best algorithms for the system)
@@ -788,6 +804,7 @@ echo "# Override Filter Cutoff Controller: ${config_override_cutoff_ctrl}"
 echo "# Override Filter Resonance Controller: ${config_override_resonance_ctrl}"
 echo "# Override Filter Type: ${config_override_filter_type}"
 echo "# Assert GS SysEx Checksum: ${config_assert_gs_sysex_checksum}"
+echo "# Process Muted Channels: ${config_process_muted_channels}"
 echo "#-------------------------------------------------------------------#"
 echo "# Read './configure --help' or file 'configure.in' for details.     #"
 echo "#####################################################################"
