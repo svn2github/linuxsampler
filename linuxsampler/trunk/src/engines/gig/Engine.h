@@ -41,7 +41,7 @@
 #include "EngineChannel.h"
 
 // identifier of this sampler engine
-#define LS_GIG_ENGINE_NAME "GigEngine"
+#define LS_GIG_ENGINE_NAME "GIG"
 
 namespace LinuxSampler { namespace gig {
 
