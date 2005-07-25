@@ -65,7 +65,7 @@ namespace LinuxSampler {
             class ParameterIsMixChannel : public DeviceRuntimeParameterBool {
                 public:
                     ParameterIsMixChannel(bool b) : DeviceRuntimeParameterBool(b) {}
-                    virtual String Description()                                    { return "Wether real channel or mixed to another channel"; }
+                    virtual String Description()                                    { return "Whether real channel or mixed to another channel"; }
                     virtual bool   Fix()                                            { return true;                                              }
                     virtual void   OnSetValue(bool b) throw (LinuxSamplerException) { /* cannot happen, as parameter is fix */                  }
             };

@@ -88,7 +88,7 @@ namespace LinuxSampler { namespace gig {
             RingBuffer<delete_command_t>*  DeletionQueue;                          ///< Contains commands to delete streams
             RingBuffer<Stream::Handle>*    GhostQueue;                             ///< Contains handles to streams that are not used anymore and weren't deletable immediately
             unsigned int                   RefillStreamsPerRun;                    ///< How many streams should be refilled in each loop run
-            Stream*                        pStreams[CONFIG_MAX_STREAMS];            ///< Contains all disk streams (wether used or unused)
+            Stream*                        pStreams[CONFIG_MAX_STREAMS];            ///< Contains all disk streams (whether used or unused)
             Stream*                        pCreatedStreams[CONFIG_MAX_STREAMS + 1]; ///< This is where the voice (audio thread) picks up it's meanwhile hopefully created disk stream.
             static Stream*                 SLOT_RESERVED;                          ///< This value is used to mark an entry in pCreatedStreams[] as reserved.
 

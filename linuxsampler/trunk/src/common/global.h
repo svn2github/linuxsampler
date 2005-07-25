@@ -99,7 +99,7 @@ typedef int16_t sample_t;
 typedef std::string String;
 
 /**
- * Wether a function / method call was successful, or if warnings or even an
+ * Whether a function / method call was successful, or if warnings or even an
  * error occured.
  */
 enum result_type_t {
