@@ -725,7 +725,7 @@ if test "$config_unsigned_triang_algo" = "benchmark"; then
         config_unsigned_triang_algo="diharmonic"
         echo "di harmonics"
     elif test "$triang_unsigned" = "5"; then
-        config_signed_triang_algo="intmathabs"
+        config_unsigned_triang_algo="intmathabs"
         echo "integer math using abs()"
     else
         echo "Benchmark of unsigned triangular wave algorithms failed!"
