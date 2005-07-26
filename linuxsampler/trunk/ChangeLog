@@ -13,6 +13,11 @@ Version CVS HEAD (?)
 
   * Gigasampler format engine:
     - fine tuning of the EG modulation parameters
+    - improved filter cutoff calculation by adding support for the
+      following gig parameters: Cutoff freq (used when no cutoff
+      controller is defined), Control invert, Minimum cutoff, Velocity
+      curve and Velocity range. The keyboard tracking now also scales
+      cutoff frequency, not just resonance.
 
   * LSCP server:
     - fixed application exit on broken pipe error (fixes bug #20)

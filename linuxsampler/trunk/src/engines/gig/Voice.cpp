@@ -35,7 +35,7 @@ namespace LinuxSampler { namespace gig {
     const int Voice::FILTER_UPDATE_MASK(CalculateFilterUpdateMask());
 
     float Voice::CalculateFilterCutoffCoeff() {
-        return log(CONFIG_FILTER_CUTOFF_MIN / CONFIG_FILTER_CUTOFF_MAX);
+        return log(CONFIG_FILTER_CUTOFF_MAX / CONFIG_FILTER_CUTOFF_MIN);
     }
 
     int Voice::CalculateFilterUpdateMask() {
@@ -532,9 +532,24 @@ namespace LinuxSampler { namespace gig {
             VCFResonanceCtrl.value = pEngineChannel->ControllerTable[VCFResonanceCtrl.controller];
 
             // calculate cutoff frequency
-            float cutoff = (!VCFCutoffCtrl.controller)
-                ? exp((float) (127 - itNoteOnEvent->Param.Note.Velocity) * (float) pDimRgn->VCFVelocityScale * 6.2E-5f * FILTER_CUTOFF_COEFF) * CONFIG_FILTER_CUTOFF_MAX
-                : exp((float) VCFCutoffCtrl.value * 0.00787402f * FILTER_CUTOFF_COEFF) * CONFIG_FILTER_CUTOFF_MAX;
+            float cutoff = pDimRgn->GetVelocityCutoff(itNoteOnEvent->Param.Note.Velocity);
+            if (pDimRgn->VCFKeyboardTracking) {
+                cutoff *= exp((itNoteOnEvent->Param.Note.Key - pDimRgn->VCFKeyboardTrackingBreakpoint) * 0.057762265f); // (ln(2) / 12)
+            }
+            CutoffBase = cutoff;
+
+            int cvalue;
+            if (VCFCutoffCtrl.controller) {
+                cvalue = pEngineChannel->ControllerTable[VCFCutoffCtrl.controller];
+                if (pDimRgn->VCFCutoffControllerInvert) cvalue = 127 - cvalue;
+                if (cvalue < pDimRgn->VCFVelocityScale) cvalue = pDimRgn->VCFVelocityScale;
+            }
+            else {
+                cvalue = pDimRgn->VCFCutoff;
+            }
+            cutoff *= float(cvalue) * 0.00787402f; // (1 / 127)
+            if (cutoff > 1.0) cutoff = 1.0;
+            cutoff = exp(cutoff * FILTER_CUTOFF_COEFF) * CONFIG_FILTER_CUTOFF_MIN;
 
             // calculate resonance
             float resonance = (float) VCFResonanceCtrl.value * 0.00787f;   // 0.0..1.0
@@ -841,7 +856,12 @@ namespace LinuxSampler { namespace gig {
                 // calculate the influence length of this event (in sample points)
                 uint end = (itNextCutoffEvent) ? itNextCutoffEvent->FragmentPos() : Samples;
 
-                cutoff = exp((float) itCutoffEvent->Param.CC.Value * 0.00787402f * FILTER_CUTOFF_COEFF) * CONFIG_FILTER_CUTOFF_MAX - CONFIG_FILTER_CUTOFF_MIN;
+                int cvalue = pEngineChannel->ControllerTable[VCFCutoffCtrl.controller];
+                if (pDimRgn->VCFCutoffControllerInvert) cvalue = 127 - cvalue;
+                if (cvalue < pDimRgn->VCFVelocityScale) cvalue = pDimRgn->VCFVelocityScale;
+                cutoff = CutoffBase * float(cvalue) * 0.00787402f; // (1 / 127)
+                if (cutoff > 1.0) cutoff = 1.0;
+                cutoff = exp(cutoff * FILTER_CUTOFF_COEFF) * CONFIG_FILTER_CUTOFF_MIN - CONFIG_FILTER_CUTOFF_MIN;
 
                 // apply cutoff frequency to the cutoff parameter sequence
                 for (uint i = itCutoffEvent->FragmentPos(); i < end; i++) {

@@ -108,6 +108,7 @@ namespace LinuxSampler { namespace gig {
             double                      Pos;                ///< Current playback position in sample
             float                       PitchBase;          ///< Basic pitch depth, stays the same for the whole life time of the voice
             float                       PitchBend;          ///< Current pitch value of the pitchbend wheel
+            float                       CutoffBase;         ///< Cutoff frequency before control change, EG and LFO are applied
             ::gig::Sample*              pSample;            ///< Pointer to the sample to be played back
             ::gig::DimensionRegion*     pDimRgn;            ///< Pointer to the articulation information of current dimension region of this voice
             playback_state_t            PlaybackState;      ///< When a sample will be triggered, it will be first played from RAM cache and after a couple of sample points it will switch to disk streaming and at the end of a disk stream we have to add null samples, so the interpolator can do it's work correctly
