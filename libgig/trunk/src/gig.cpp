@@ -1134,7 +1134,9 @@ namespace {
         VCFEnabled = vcfcutoff & 0x80; // bit 7
         VCFCutoff  = vcfcutoff & 0x7f; // lower 7 bits
         VCFCutoffController = static_cast<vcf_cutoff_ctrl_t>(_3ewa->ReadUint8());
-        VCFVelocityScale = _3ewa->ReadUint8();
+        uint8_t vcfvelscale = _3ewa->ReadUint8();
+        VCFCutoffControllerInvert = vcfvelscale & 0x80; // bit 7
+        VCFVelocityScale = vcfvelscale & 0x7f; // lower 7 bits
         _3ewa->ReadInt8(); // unknown
         uint8_t vcfresonance = _3ewa->ReadUint8();
         VCFResonance = vcfresonance & 0x7f; // lower 7 bits
@@ -1161,13 +1163,26 @@ namespace {
         // this models a strange behaviour or bug in GSt: two of the
         // velocity response curves for release time are not used even
         // if specified, instead another curve is chosen.
-
         if ((curveType == curve_type_nonlinear && depth == 0) ||
             (curveType == curve_type_special   && depth == 4)) {
             curveType = curve_type_nonlinear;
             depth = 3;
         }
         pVelocityReleaseTable = GetVelocityTable(curveType, depth, 0);
+
+        curveType = VCFVelocityCurve;
+        depth = VCFVelocityDynamicRange;
+
+        // even stranger GSt: two of the velocity response curves for
+        // filter cutoff are not used, instead another special curve
+        // is chosen. This curve is not used anywhere else.
+        if ((curveType == curve_type_nonlinear && depth == 0) ||
+            (curveType == curve_type_special   && depth == 4)) {
+            curveType = curve_type_special;
+            depth = 5;
+        }
+        pVelocityCutoffTable = GetVelocityTable(curveType, depth,
+                                                VCFCutoffController == vcf_cutoff_ctrl_none ? VCFVelocityScale : 0);
 
         SampleAttenuation = pow(10.0, -Gain / (20.0 * 655360));
     }
@@ -1339,6 +1354,10 @@ namespace {
         return pVelocityReleaseTable[MIDIKeyVelocity];
     }
 
+    double DimensionRegion::GetVelocityCutoff(uint8_t MIDIKeyVelocity) {
+        return pVelocityCutoffTable[MIDIKeyVelocity];
+    }
+
     double* DimensionRegion::CreateVelocityTable(curve_type_t curveType, uint8_t depth, uint8_t scaling) {
 
         // line-segment approximations of the 15 velocity curves
@@ -1372,9 +1391,13 @@ namespace {
         const int spe4[] = { 1, 4, 23, 5, 49, 13, 57, 17, 92, 57, 122, 127,
                              127, 127 };
 
+        // this is only used by the VCF velocity curve
+        const int spe5[] = { 1, 2, 30, 5, 60, 19, 77, 70, 83, 85, 88, 106,
+                             91, 127, 127, 127 };
+
         const int* const curves[] = { non0, non1, non2, non3, non4,
                                       lin0, lin1, lin2, lin3, lin4,
-                                      spe0, spe1, spe2, spe3, spe4 };
+                                      spe0, spe1, spe2, spe3, spe4, spe5 };
 
         double* const table = new double[128];
 

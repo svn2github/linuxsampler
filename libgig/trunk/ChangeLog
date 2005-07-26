@@ -10,6 +10,8 @@ Version CVS HEAD (?)
       loaded
     - fixed the 24 bit decompression, the result should now be exact
       instead of an approximation
+    - added VCFCutoffControllerInvert parameter and GetVelocityCutoff
+      function to DimensionRegion
 
   * src/DLS.cpp, src/DLS.h:
     - the upper bits of the pool table indices are read (used as

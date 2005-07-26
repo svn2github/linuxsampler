@@ -403,9 +403,10 @@ namespace gig {
             bool               VCFEnabled;                    ///< If filter should be used.
             vcf_type_t         VCFType;                       ///< Defines the general filter characteristic (lowpass, highpass, bandpass, etc.).
             vcf_cutoff_ctrl_t  VCFCutoffController;           ///< Specifies which external controller has influence on the filter cutoff frequency.
+            bool               VCFCutoffControllerInvert;     ///< Inverts values coming from the defined cutoff controller
             uint8_t            VCFCutoff;                     ///< Max. cutoff frequency.
             curve_type_t       VCFVelocityCurve;              ///< Defines a transformation curve for the incoming velocity values, affecting the VCF.
-            uint8_t            VCFVelocityScale;              ///< (0-127) Amount velocity controls VCF cutoff frequency (only if no other VCF cutoff controller is defined).
+            uint8_t            VCFVelocityScale;              ///< (0-127) Amount velocity controls VCF cutoff frequency (only if no other VCF cutoff controller is defined, otherwise this is the minimum cutoff).
             uint8_t            VCFVelocityDynamicRange;       ///< 0x04 = lowest, 0x00 = highest
             uint8_t            VCFResonance;                  ///< Firm internal filter resonance weight.
             bool               VCFResonanceDynamic;           ///< If <i>true</i>: Increases the resonance Q according to changes of controllers that actually control the VCF cutoff frequency (EG2, ext. VCF MIDI controller).
@@ -444,6 +445,7 @@ namespace gig {
             // Methods
             double GetVelocityAttenuation(uint8_t MIDIKeyVelocity);
             double GetVelocityRelease(uint8_t MIDIKeyVelocity);
+            double GetVelocityCutoff(uint8_t MIDIKeyVelocity);
 
         protected:
             DimensionRegion(RIFF::List* _3ewl);
@@ -484,6 +486,7 @@ namespace gig {
             static VelocityTableMap* pVelocityTables;            ///< Contains the tables corresponding to the various velocity parameters (VelocityResponseCurve and VelocityResponseDepth).
             double*                  pVelocityAttenuationTable;  ///< Points to the velocity table corresponding to the velocity parameters of this DimensionRegion.
             double*                  pVelocityReleaseTable;      ///< Points to the velocity table corresponding to the release velocity parameters of this DimensionRegion
+            double*                  pVelocityCutoffTable;       ///< Points to the velocity table corresponding to the filter velocity parameters of this DimensionRegion
 
             leverage_ctrl_t DecodeLeverageController(_lev_ctrl_t EncodedController);
             double* GetVelocityTable(curve_type_t curveType, uint8_t depth, uint8_t scaling);
