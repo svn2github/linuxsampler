@@ -87,6 +87,8 @@ namespace LinuxSampler {
         this->pMidiInputDevice = NULL;
         this->iMidiPort        = 0;
 
+        pEngineChannel->StatusChanged(true);
+
         dmsg(2,("OK\n"));
     }
 
