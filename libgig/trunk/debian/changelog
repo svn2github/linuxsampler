@@ -1,3 +1,9 @@
+libgig (2.0.2-1) unstable; urgency=low
+
+  * New release.
+
+ -- Christian Schoenebeck <cuse@users.sourceforge.net>  Mon, 15 Aug 2005 19:19:57 +0200
+
 libgig (2.0.1-1) unstable; urgency=low
 
   * New release.

@@ -1,4 +1,4 @@
-Version CVS HEAD (?)
+Version 2.0.2 (15 Aug 2005)
 
   * packaging changes:
     - require automake (>= 1.5) for 'make -f Makefile.cvs'
