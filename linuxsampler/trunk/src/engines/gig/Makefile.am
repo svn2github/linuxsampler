@@ -12,7 +12,6 @@ liblinuxsamplergigengine_la_SOURCES = \
 	Engine.cpp Engine.h \
 	Filter.h \
 	InstrumentResourceManager.cpp InstrumentResourceManager.h \
-	Manipulator.h \
 	Stream.cpp Stream.h \
 	Voice.cpp Voice.h \
 	Synthesizer.cpp Synthesizer.h \
