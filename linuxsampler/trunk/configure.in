@@ -212,7 +212,7 @@ AM_CONDITIONAL(HAVE_COREMIDI, test $have_coremidi = "1")
 AC_DEFINE_UNQUOTED(HAVE_COREMIDI,$have_coremidi,[Define to 1 if you have CoreMIDI installed.])
 
 # Check presence of libgig
-libgig_version="2.0.1"
+libgig_version="2.0.2"
 PKG_CHECK_MODULES(GIG, gig >= $libgig_version, HAVE_GIG=true, HAVE_GIG=false)
 if test "$HAVE_GIG" = "false"; then
     echo "Required libgig version not found!"
@@ -259,27 +259,27 @@ fi
 # TODO: should we use AC_ARG_VAR(variable, description) instead?
 
 AC_ARG_ENABLE(asm,
-  [  --disable-asm
-                          Disable hand-crafted assembly optimizations
-                          (default=on). LinuxSampler provides CPU specific
+  [  --enable-asm
+                          Enable hand-crafted assembly optimizations
+                          (default=off). LinuxSampler provides CPU specific
                           assembly optimizations for the most important
-                          synthesis algorithms. You usually don't want to
-                          disable that.],
-  [config_asm="no"],
-  [config_asm="yes"]
+                          synthesis algorithms. This is currently disabled
+                          by default since current asm code is broken.],
+  [config_asm="yes"],
+  [config_asm="no"]
 )
 if test "$config_asm" = "yes"; then
   AC_DEFINE_UNQUOTED(CONFIG_ASM, 1, [Define to 1 if you want to enable hand-crafted asm optimizations.])
 fi
 
 AC_ARG_ENABLE(dev-mode,
-  [  --enable-dev-mode
-                          Enable development mode (default=no). In that mode
+  [  --disable-dev-mode
+                          Disable development mode (default=on). In that mode
                           we do some extra sanity checks here and there.
                           This helps to spot possible problems, but reduces
                           efficiency a bit],
-  [config_dev_mode="yes"],
-  [config_dev_mode="no"]
+  [config_dev_mode="no"],
+  [config_dev_mode="yes"]
 )
 if test "$config_dev_mode" = "yes"; then
   AC_DEFINE_UNQUOTED(CONFIG_DEVMODE, 1, [Define to 1 if you want to enable development mode.])
@@ -436,6 +436,21 @@ AC_ARG_ENABLE(max-voices,
 )
 AC_DEFINE_UNQUOTED(CONFIG_MAX_VOICES, $config_max_voices, [Define max. voices.])
 
+AC_ARG_ENABLE(subfragment-size,
+  [  --enable-subfragment-size
+                          Every audio fragment will be splitted into
+                          subfragments. Where each subfragment renders
+                          audio with constant synthesis parameters. This is
+                          done for efficiency reasons. This parameter
+                          defines the default size of a subfragment in
+                          sample points. A large value means less CPU time
+                          whereas a low value means better audio quality
+                          (default=32).],
+  [config_subfragment_size="${enableval}"],
+  [config_subfragment_size="32"]
+)
+AC_DEFINE_UNQUOTED(CONFIG_DEFAULT_SUBFRAGMENT_SIZE, $config_subfragment_size, [Define default subfragment size (in sample points).])
+
 AC_ARG_ENABLE(voice-steal-algo,
   [  --enable-voice-steal-algo
                           Voice stealing algorithm to be used. Currently
@@ -468,18 +483,6 @@ AC_ARG_ENABLE(sysex-buffer-size,
   [config_sysex_buffer_size="2048"]
 )
 AC_DEFINE_UNQUOTED(CONFIG_SYSEX_BUFFER_SIZE, $config_sysex_buffer_size, [Define SysEx buffer size.])
-
-AC_ARG_ENABLE(filter-update-steps,
-  [  --enable-filter-update-steps
-                          Amount of sample points after which filter
-                          parameters (cutoff, resonance) are going to be
-                          updated (default=64). Higher value means less CPU
-                          load, but also worse parameter resolution, this
-                          value will be aligned to a power of two.],
-  [config_filter_update_steps="${enableval}"],
-  [config_filter_update_steps="64"]
-)
-AC_DEFINE_UNQUOTED(CONFIG_FILTER_UPDATE_STEPS, $config_filter_update_steps, [Define amount of steps to refresh filter coefficients.])
 
 AC_ARG_ENABLE(force-filter,
   [  --enable-force-filter
@@ -681,7 +684,7 @@ if test "$config_signed_triang_algo" = "benchmark"; then
     AC_TRY_RUN([
             #define SIGNED 1
             #define SILENT 1
-            #include "benchmarks/triang.cpp"
+            #include "${srcdir}/benchmarks/triang.cpp"
         ],
         triang_signed=0,
         triang_signed=$?,
@@ -704,7 +707,7 @@ if test "$config_signed_triang_algo" = "benchmark"; then
         exit -1;
     fi
 fi
-AC_DEFINE_UNQUOTED(CONFIG_SIGNED_TRIANG_ALGO, signed_triang_algo_${config_signed_triang_algo}, [Define signed triangular wave algorithm to be used.])
+AC_DEFINE_UNQUOTED(CONFIG_SIGNED_TRIANG_ALGO, ${triang_signed}, [Define signed triangular wave algorithm to be used.])
 
 if test "$config_unsigned_triang_algo" = "benchmark"; then
     echo -n "benchmarking for the best (unsigned) triangular oscillator algorithm... "
@@ -712,7 +715,7 @@ if test "$config_unsigned_triang_algo" = "benchmark"; then
     AC_TRY_RUN([
             #define SIGNED 0
             #define SILENT 1
-            #include "benchmarks/triang.cpp"
+            #include "${srcdir}/benchmarks/triang.cpp"
         ],
         triang_unsigned=0,
         triang_unsigned=$?,
@@ -735,7 +738,7 @@ if test "$config_unsigned_triang_algo" = "benchmark"; then
         exit -1;
     fi
 fi
-AC_DEFINE_UNQUOTED(CONFIG_UNSIGNED_TRIANG_ALGO, unsigned_triang_algo_${config_unsigned_triang_algo}, [Define unsigned triangular wave algorithm to be used.])
+AC_DEFINE_UNQUOTED(CONFIG_UNSIGNED_TRIANG_ALGO, ${triang_unsigned}, [Define unsigned triangular wave algorithm to be used.])
 
 AC_LANG_RESTORE
 
@@ -812,11 +815,11 @@ echo "# Maximum Stream Refill Size: ${config_stream_max_refill}"
 echo "# Stream Size: ${config_stream_size}"
 echo "# Maximum Disk Streams: ${config_max_streams}"
 echo "# Maximum Voices: ${config_max_voices}"
+echo "# Default Subfragment Size: ${config_subfragment_size}"
 echo "# Voice Stealing Algorithm: ${config_voice_steal_algo}"
 echo "# Signed Triangular Oscillator Algorithm: ${config_signed_triang_algo}"
 echo "# Unsigned Triangular Oscillator Algorithm: ${config_unsigned_triang_algo}"
 echo "# SysEx Buffer Size: ${config_sysex_buffer_size} Byte"
-echo "# Filter Update Steps: ${config_filter_update_steps}"
 echo "# Force Filter Usage: ${config_force_filter}"
 echo "# Filter Cutoff Minimum: ${config_filter_cutoff_min} Hz"
 echo "# Filter Cutoff Maximum: ${config_filter_cutoff_max} Hz"

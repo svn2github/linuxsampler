@@ -31,20 +31,19 @@
 #include "Filter.h"
 #include "Voice.h"
 
-#define SYNTHESIS_MODE_SET_CONSTPITCH(iMode,bVal)       if (bVal) iMode |= 0x01; else iMode &= ~0x01   /* (un)set mode bit 0 */
-#define SYNTHESIS_MODE_SET_LOOP(iMode,bVal)             if (bVal) iMode |= 0x02; else iMode &= ~0x02   /* (un)set mode bit 1 */
-#define SYNTHESIS_MODE_SET_INTERPOLATE(iMode,bVal)      if (bVal) iMode |= 0x04; else iMode &= ~0x04   /* (un)set mode bit 2 */
-#define SYNTHESIS_MODE_SET_FILTER(iMode,bVal)           if (bVal) iMode |= 0x08; else iMode &= ~0x08   /* (un)set mode bit 3 */
-#define SYNTHESIS_MODE_SET_CHANNELS(iMode,bVal)         if (bVal) iMode |= 0x10; else iMode &= ~0x10   /* (un)set mode bit 4 */
-#define SYNTHESIS_MODE_SET_IMPLEMENTATION(iMode,bVal)   if (bVal) iMode |= 0x20; else iMode &= ~0x20   /* (un)set mode bit 5 */
-#define SYNTHESIS_MODE_SET_PROFILING(iMode,bVal)   	if (bVal) iMode |= 0x40; else iMode &= ~0x40   /* (un)set mode bit 6 */
 
-#define SYNTHESIS_MODE_GET_CONSTPITCH(iMode)            iMode & 0x01
-#define SYNTHESIS_MODE_GET_LOOP(iMode)                  iMode & 0x02
-#define SYNTHESIS_MODE_GET_INTERPOLATE(iMode)           iMode & 0x04
-#define SYNTHESIS_MODE_GET_FILTER(iMode)                iMode & 0x08
-#define SYNTHESIS_MODE_GET_CHANNELS(iMode)              iMode & 0x10
-#define SYNTHESIS_MODE_GET_IMPLEMENTATION(iMode)        iMode & 0x20
+#define SYNTHESIS_MODE_SET_INTERPOLATE(iMode,bVal)      if (bVal) iMode |= 0x01; else iMode &= ~0x01   /* (un)set mode bit 0 */
+#define SYNTHESIS_MODE_SET_FILTER(iMode,bVal)           if (bVal) iMode |= 0x02; else iMode &= ~0x02   /* (un)set mode bit 1 */
+#define SYNTHESIS_MODE_SET_LOOP(iMode,bVal)             if (bVal) iMode |= 0x04; else iMode &= ~0x04   /* (un)set mode bit 2 */
+#define SYNTHESIS_MODE_SET_CHANNELS(iMode,bVal)         if (bVal) iMode |= 0x08; else iMode &= ~0x08   /* (un)set mode bit 3 */
+#define SYNTHESIS_MODE_SET_IMPLEMENTATION(iMode,bVal)   if (bVal) iMode |= 0x10; else iMode &= ~0x10   /* (un)set mode bit 4 */
+#define SYNTHESIS_MODE_SET_PROFILING(iMode,bVal)   	if (bVal) iMode |= 0x20; else iMode &= ~0x20   /* (un)set mode bit 5 */
+
+#define SYNTHESIS_MODE_GET_INTERPOLATE(iMode)           iMode & 0x01
+#define SYNTHESIS_MODE_GET_FILTER(iMode)                iMode & 0x02
+#define SYNTHESIS_MODE_GET_LOOP(iMode)                  iMode & 0x04
+#define SYNTHESIS_MODE_GET_CHANNELS(iMode)              iMode & 0x08
+#define SYNTHESIS_MODE_GET_IMPLEMENTATION(iMode)        iMode & 0x10
 
 // that's usually gig::Voice of course, but we make it a macro so we can
 // include this code for our synthesis benchmark which uses fake data
@@ -71,7 +70,7 @@ namespace LinuxSampler { namespace gig {
      * format capable sampler engine. This means resampling / interpolation
      * for pitching the audio signal, looping, filter and amplification.
      */
-    template<implementation_t IMPLEMENTATION, channels_t CHANNELS, bool USEFILTER, bool INTERPOLATE, bool DOLOOP, bool CONSTPITCH>
+    template<implementation_t IMPLEMENTATION, channels_t CHANNELS, bool DOLOOP, bool USEFILTER, bool INTERPOLATE>
     class Synthesizer : public __RTMath<IMPLEMENTATION>, public LinuxSampler::Resampler<INTERPOLATE> {
 
             // declarations of derived functions (see "Name lookup,
@@ -93,33 +92,31 @@ namespace LinuxSampler { namespace gig {
              * This is the toplevel method of this class.
              */             
             template<typename VOICE_T>
-            inline static void SynthesizeFragment(VOICE_T& Voice, uint Samples, sample_t* pSrc, uint i) {
-                const float panLeft  = Mul(Voice.PanLeft,  Voice.pEngineChannel->GlobalPanLeft);
-                const float panRight = Mul(Voice.PanRight, Voice.pEngineChannel->GlobalPanRight);
+            inline static void SynthesizeSubFragment(VOICE_T& Voice, uint Samples, sample_t* pSrc, uint i) {
+                const float panLeft  = Mul(Voice.fFinalVolume, Mul(Voice.PanLeft,  Voice.pEngineChannel->GlobalPanLeft));
+                const float panRight = Mul(Voice.fFinalVolume, Mul(Voice.PanRight, Voice.pEngineChannel->GlobalPanRight));
                 if (IMPLEMENTATION == ASM_X86_MMX_SSE) {
                     float fPos = (float) Voice.Pos;
-                    SynthesizeFragment(Voice, Samples, pSrc, i, Voice.pSample->LoopPlayCount,
+                    SynthesizeSubFragment(Voice, Samples, pSrc, i, Voice.pSample->LoopPlayCount,
                                        Voice.pSample->LoopStart,
                                        Voice.pSample->LoopEnd,
                                        Voice.pSample->LoopSize,
                                        Voice.LoopCyclesLeft,
                                        (void *)&fPos,
-                                       Voice.PitchBase,
-                                       Voice.PitchBend,
+                                       &Voice.fFinalPitch,
                                        &panLeft, &panRight);
                     #if CONFIG_ASM && ARCH_X86
                     if (INTERPOLATE) EMMS;
                     #endif
                     Voice.Pos = (double) fPos;
                 } else {
-                    SynthesizeFragment(Voice, Samples, pSrc, i, Voice.pSample->LoopPlayCount,
+                    SynthesizeSubFragment(Voice, Samples, pSrc, i, Voice.pSample->LoopPlayCount,
                                        Voice.pSample->LoopStart,
                                        Voice.pSample->LoopEnd,
                                        Voice.pSample->LoopSize,
                                        Voice.LoopCyclesLeft,
                                        (void *)&Voice.Pos,
-                                       Voice.PitchBase,
-                                       Voice.PitchBend,
+                                       &Voice.fFinalPitch,
                                        &panLeft, &panRight);
                 }
             }
@@ -131,38 +128,31 @@ namespace LinuxSampler { namespace gig {
              * Will be called by the toplevel SynthesizeFragment() method.
              */   
             template<typename VOICE_T>
-            inline static void SynthesizeFragment(VOICE_T& Voice, uint Samples, sample_t* pSrc, uint& i, uint& LoopPlayCount, uint LoopStart, uint LoopEnd, uint LoopSize, uint& LoopCyclesLeft, void* Pos, float& PitchBase, float& PitchBend, const float* PanLeft, const float* PanRight) {
+            inline static void SynthesizeSubFragment(VOICE_T& Voice, uint Samples, sample_t* pSrc, uint& i, uint& LoopPlayCount, uint LoopStart, uint LoopEnd, uint LoopSize, uint& LoopCyclesLeft, void* Pos, const float* Pitch, const float* PanLeft, const float* PanRight) {
                 const float loopEnd = Float(LoopEnd);
-                const float PBbyPB = Mul(PitchBase, PitchBend);
                 const float f_LoopStart = Float(LoopStart);
                 const float f_LoopSize = Float(LoopSize);
                 if (DOLOOP) {
                     if (LoopPlayCount) {
                         // render loop (loop count limited)
                         while (i < Samples && LoopCyclesLeft) {
-                            if (CONSTPITCH) {
-                                const uint processEnd = Min(Samples, i + DiffToLoopEnd(loopEnd,Pos, PBbyPB) + 1); //TODO: instead of +1 we could also round up
-                                while (i < processEnd) Synthesize(Voice, Pos, pSrc, i, PanLeft, PanRight);
-                            }
-                            else Synthesize(Voice, Pos, pSrc, i, PanLeft, PanRight);
-                            if (WrapLoop(f_LoopStart, f_LoopSize, loopEnd, Pos)) LoopCyclesLeft--;
+                            const uint processEnd = Min(Samples, i + DiffToLoopEnd(loopEnd,Pos, *Pitch) + 1); //TODO: instead of +1 we could also round up
+                            while (i < processEnd) Synthesize(Voice, Pos, pSrc, i, PanLeft, PanRight);
+                            LoopCyclesLeft -= WrapLoop(f_LoopStart, f_LoopSize, loopEnd, Pos);
                         }
                         // render on without loop
                         while (i < Samples) Synthesize(Voice, Pos, pSrc, i, PanLeft, PanRight);
                     }
                     else { // render loop (endless loop)
                         while (i < Samples) {
-                            if (CONSTPITCH) {
-                                const uint processEnd = Min(Samples, i + DiffToLoopEnd(loopEnd, Pos, PBbyPB) + 1); //TODO: instead of +1 we could also round up
-                                while (i < processEnd) Synthesize(Voice, Pos, pSrc, i, PanLeft, PanRight);
-                            }
-                            else Synthesize(Voice, Pos, pSrc, i, PanLeft, PanRight);
+                            const uint processEnd = Min(Samples, i + DiffToLoopEnd(loopEnd, Pos, *Pitch) + 1); //TODO: instead of +1 we could also round up
+                            while (i < processEnd) Synthesize(Voice, Pos, pSrc, i, PanLeft, PanRight);
                             WrapLoop(f_LoopStart, f_LoopSize, loopEnd, Pos);
                         }
                     }
                 }
                 else { // no looping
-                    while (i < Samples) { Synthesize(Voice, Pos, pSrc, i, PanLeft, PanRight);}
+                    while (i < Samples) { Synthesize(Voice, Pos, pSrc, i, PanLeft, PanRight); }
                 }
             }
 
@@ -175,17 +165,14 @@ namespace LinuxSampler { namespace gig {
             template<typename VOICE_T>
             inline static void Synthesize(VOICE_T& Voice, void* Pos, sample_t* pSrc, uint& i, const float* PanLeft, const float* PanRight) {
                 Synthesize(pSrc, Pos,
-                           Voice.pEngine->pSynthesisParameters[Event::destination_vco][i],
+                           Voice.fFinalPitch,
                            Voice.pEngineChannel->pOutputLeft,
                            Voice.pEngineChannel->pOutputRight,
                            i,
-                           Voice.pEngine->pSynthesisParameters[Event::destination_vca],
                            PanLeft,
                            PanRight,
                            Voice.FilterLeft,
-                           Voice.FilterRight,
-                           Voice.pEngine->pBasicFilterParameters[i],
-                           Voice.pEngine->pMainFilterParameters[i]);
+                           Voice.FilterRight);
             }
 
             /**
@@ -212,6 +199,18 @@ namespace LinuxSampler { namespace gig {
                     // pure C++ implementation (thus platform independent)
                     default: {
                         return uint((LoopEnd - *((double *)Pos)) / Pitch);
+                    }
+                }
+            }
+
+            //TODO: this method is not in use yet, it's intended to be used for pitch=x.0f where we could use integer instead of float as playback position variable
+            inline static int WrapLoop(const int& LoopStart, const int& LoopSize, const int& LoopEnd, int& Pos) {
+                switch (IMPLEMENTATION) {
+                    // pure C++ implementation (thus platform independent)
+                    default: { //TODO: we can easily eliminate the branch here
+                        if (Pos < LoopEnd) return 0;
+                        Pos = (Pos - LoopEnd) % LoopSize + LoopStart;
+                        return 1;
                     }
                 }
             }
@@ -274,27 +273,27 @@ namespace LinuxSampler { namespace gig {
              * point, whereas for the MMX/SSE implementation this means
              * rendering 4 sample points.
              */
-            inline static void Synthesize(sample_t* pSrc, void* Pos, float& Pitch, float* pOutL, float* pOutR, uint& i, float* Volume, const float* PanL, const float* PanR, Filter& FilterL, Filter& FilterR, biquad_param_t& bqBase, biquad_param_t& bqMain) {
+            inline static void Synthesize(sample_t* pSrc, void* Pos, float& Pitch, float* pOutL, float* pOutR, uint& i, const float* PanL, const float* PanR, Filter& FilterL, Filter& FilterR) {
                 switch (IMPLEMENTATION) {
                     // pure C++ implementation (thus platform independent)
                     case CPP: {
                         switch (CHANNELS) {
                             case MONO: {
                                 float samplePoint = GetNextSampleMonoCPP(pSrc, (double *)Pos, Pitch);
-                                if (USEFILTER) samplePoint = FilterL.Apply(&bqBase, &bqMain, samplePoint);
-                                pOutL[i] += samplePoint * Volume[i] * *PanL;
-                                pOutR[i] += samplePoint * Volume[i] * *PanR;
+                                if (USEFILTER) samplePoint = FilterL.Apply(samplePoint);
+                                pOutL[i] += samplePoint * *PanL;
+                                pOutR[i] += samplePoint * *PanR;
                                 i++;
                                 break;
                             }
                             case STEREO: {
                                 stereo_sample_t samplePoint = GetNextSampleStereoCPP(pSrc, (double *)Pos, Pitch);
                                 if (USEFILTER) {
-                                    samplePoint.left  = FilterL.Apply(&bqBase, &bqMain, samplePoint.left);
-                                    samplePoint.right = FilterR.Apply(&bqBase, &bqMain, samplePoint.right);
+                                    samplePoint.left  = FilterL.Apply(samplePoint.left);
+                                    samplePoint.right = FilterR.Apply(samplePoint.right);
                                 }
-                                pOutL[i] += samplePoint.left  * Volume[i] * *PanL;
-                                pOutR[i] += samplePoint.right * Volume[i] * *PanR;
+                                pOutL[i] += samplePoint.left  * *PanL;
+                                pOutR[i] += samplePoint.right * *PanR;
                                 i++;
                                 break;
                             }

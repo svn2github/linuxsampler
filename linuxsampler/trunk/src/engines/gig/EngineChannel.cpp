@@ -30,7 +30,6 @@ namespace LinuxSampler { namespace gig {
         pEngine      = NULL;
         pInstrument  = NULL;
         pEvents      = NULL; // we allocate when we retrieve the right Engine object
-        pCCEvents    = NULL; // we allocate when we retrieve the right Engine object
         pEventQueue  = new RingBuffer<Event>(CONFIG_MAX_EVENTS_PER_FRAGMENT, 0);
         pActiveKeys  = new Pool<uint>(128);
         for (uint i = 0; i < 128; i++) {
@@ -41,9 +40,6 @@ namespace LinuxSampler { namespace gig {
             pMIDIKeyInfo[i].pEvents        = NULL; // we allocate when we retrieve the right Engine object
             pMIDIKeyInfo[i].VoiceTheftsQueued = 0;
             pMIDIKeyInfo[i].RoundRobinIndex = 0;
-        }
-        for (uint i = 0; i < Event::destination_count; i++) {
-            pSynthesisEvents[i] = NULL; // we allocate when we retrieve the right Engine object
         }
         InstrumentIdx  = -1;
         InstrumentStat = -1;
@@ -261,11 +257,7 @@ namespace LinuxSampler { namespace gig {
         }
         pEngine = Engine::AcquireEngine(this, pAudioOut);
         ResetInternal();
-        pEvents   = new RTList<Event>(pEngine->pEventPool);
-        pCCEvents = new RTList<Event>(pEngine->pEventPool);
-        for (uint i = 0; i < Event::destination_count; i++) {
-            pSynthesisEvents[i] = new RTList<Event>(pEngine->pEventPool);
-        }
+        pEvents = new RTList<Event>(pEngine->pEventPool);
         for (uint i = 0; i < 128; i++) {
             pMIDIKeyInfo[i].pActiveVoices = new RTList<Voice>(pEngine->pVoicePool);
             pMIDIKeyInfo[i].pEvents       = new RTList<Event>(pEngine->pEventPool);
@@ -283,10 +275,6 @@ namespace LinuxSampler { namespace gig {
                 delete pEvents;
                 pEvents = NULL;
             }
-            if (pCCEvents) {
-                delete pCCEvents;
-                pCCEvents = NULL;
-            }
             for (uint i = 0; i < 128; i++) {
                 if (pMIDIKeyInfo[i].pActiveVoices) {
                     delete pMIDIKeyInfo[i].pActiveVoices;
@@ -295,12 +283,6 @@ namespace LinuxSampler { namespace gig {
                 if (pMIDIKeyInfo[i].pEvents) {
                     delete pMIDIKeyInfo[i].pEvents;
                     pMIDIKeyInfo[i].pEvents = NULL;
-                }
-            }
-            for (uint i = 0; i < Event::destination_count; i++) {
-                if (pSynthesisEvents[i]) {
-                    delete pSynthesisEvents[i];
-                    pSynthesisEvents[i] = NULL;
                 }
             }
             Engine* oldEngine = pEngine;
@@ -440,10 +422,6 @@ namespace LinuxSampler { namespace gig {
 
     void EngineChannel::ClearEventLists() {
         pEvents->clear();
-        pCCEvents->clear();
-        for (uint i = 0; i < Event::destination_count; i++) {
-            pSynthesisEvents[i]->clear();
-        }
         // empty MIDI key specific event lists
         {
             RTList<uint>::Iterator iuiKey = pActiveKeys->first();

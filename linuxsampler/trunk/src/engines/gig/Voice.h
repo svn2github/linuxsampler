@@ -33,24 +33,40 @@
 #include "../../common/Pool.h"
 #include "../../drivers/audio/AudioOutputDevice.h"
 #include "../common/BiquadFilter.h"
-//#include "EngineGlobals.h"
 #include "Engine.h"
 #include "EngineChannel.h"
 #include "Stream.h"
 #include "DiskThread.h"
-
+#include "EGADSR.h"
 #include "EGDecay.h"
 #include "Filter.h"
-#include "../common/LFO.h"
+#include "../common/LFOBase.h"
+
+// include the appropriate (unsigned) triangle LFO implementation
+#if CONFIG_UNSIGNED_TRIANG_ALGO == INT_MATH_SOLUTION
+# include "../common/LFOTriangleIntMath.h"
+#elif CONFIG_UNSIGNED_TRIANG_ALGO == INT_ABS_MATH_SOLUTION
+# include "../common/LFOTriangleIntAbsMath.h"
+#elif CONFIG_UNSIGNED_TRIANG_ALGO == DI_HARMONIC_SOLUTION
+# include "../common/LFOTriangleDiHarmonic.h"
+#else
+# error "Unknown or no (unsigned) triangle LFO implementation selected!"
+#endif
+
+// include the appropriate (signed) triangle LFO implementation
+#if CONFIG_SIGNED_TRIANG_ALGO == INT_MATH_SOLUTION
+# include "../common/LFOTriangleIntMath.h"
+#elif CONFIG_SIGNED_TRIANG_ALGO == INT_ABS_MATH_SOLUTION
+# include "../common/LFOTriangleIntAbsMath.h"
+#elif CONFIG_SIGNED_TRIANG_ALGO == DI_HARMONIC_SOLUTION
+# include "../common/LFOTriangleDiHarmonic.h"
+#else
+# error "Unknown or no (signed) triangle LFO implementation selected!"
+#endif
 
 namespace LinuxSampler { namespace gig {
 
     class Engine;
-    class EGADSR;
-    class EGDecay;
-    class VCAManipulator;
-    class VCFCManipulator;
-    class VCOManipulator;
 
     /// Reflects a MIDI controller
     struct midi_ctrl {
@@ -58,6 +74,22 @@ namespace LinuxSampler { namespace gig {
         uint8_t value;      ///< Current MIDI controller value
         float   fvalue;     ///< Transformed / effective value (e.g. volume level or filter cutoff frequency)
     };
+
+    #if CONFIG_UNSIGNED_TRIANG_ALGO == INT_MATH_SOLUTION
+    typedef LFOTriangleIntMath<range_unsigned> LFOUnsigned;
+    #elif CONFIG_UNSIGNED_TRIANG_ALGO == INT_ABS_MATH_SOLUTION
+    typedef LFOTriangleIntAbsMath<range_unsigned> LFOUnsigned;
+    #elif CONFIG_UNSIGNED_TRIANG_ALGO == DI_HARMONIC_SOLUTION
+    typedef LFOTriangleDiHarmonic<range_unsigned> LFOUnsigned;
+    #endif
+
+    #if CONFIG_SIGNED_TRIANG_ALGO == INT_MATH_SOLUTION
+    typedef LFOTriangleIntMath<range_signed> LFOSigned;
+    #elif CONFIG_SIGNED_TRIANG_ALGO == INT_ABS_MATH_SOLUTION
+    typedef LFOTriangleIntAbsMath<range_signed> LFOSigned;
+    #elif CONFIG_SIGNED_TRIANG_ALGO == DI_HARMONIC_SOLUTION
+    typedef LFOTriangleDiHarmonic<range_signed> LFOSigned;
+    #endif
 
     /** Gig Voice
      *
@@ -71,7 +103,7 @@ namespace LinuxSampler { namespace gig {
                 type_release_trigger_required,  ///< If the key of this voice will be released, it causes a release triggered voice to be spawned
                 type_release_trigger            ///< Release triggered voice which cannot be killed by releasing its key
             };
-
+            
             // Attributes
             type_t       Type;         ///< Voice Type
             int          MIDIKey;      ///< MIDI key number of the key that triggered the voice
@@ -119,22 +151,17 @@ namespace LinuxSampler { namespace gig {
             bool                        RAMLoop;            ///< If this voice has a loop defined which completely fits into the cached RAM part of the sample, in this case we handle the looping within the voice class, else if the loop is located in the disk stream part, we let the disk stream handle the looping
             uint                        LoopCyclesLeft;     ///< In case there is a RAMLoop and it's not an endless loop; reflects number of loop cycles left to be passed
             uint                        Delay;              ///< Number of sample points the rendering process of this voice should be delayed (jitter correction), will be set to 0 after the first audio fragment cycle
-            EGADSR*                     pEG1;               ///< Envelope Generator 1 (Amplification)
-            EGADSR*                     pEG2;               ///< Envelope Generator 2 (Filter cutoff frequency)
-            EGDecay*                    pEG3;               ///< Envelope Generator 3 (Pitch)
+            EGADSR                      EG1;                ///< Envelope Generator 1 (Amplification)
+            EGADSR                      EG2;                ///< Envelope Generator 2 (Filter cutoff frequency)
+            EGDecay                     EG3;                ///< Envelope Generator 3 (Pitch)
             Filter                      FilterLeft;
             Filter                      FilterRight;
             midi_ctrl                   VCFCutoffCtrl;
             midi_ctrl                   VCFResonanceCtrl;
-            int                         FilterUpdateCounter; ///< Used to update filter parameters all FILTER_UPDATE_PERIOD samples
             static const float          FILTER_CUTOFF_COEFF;
-            static const int            FILTER_UPDATE_MASK;
-            VCAManipulator*             pVCAManipulator;
-            VCFCManipulator*            pVCFCManipulator;
-            VCOManipulator*             pVCOManipulator;
-            LFO<gig::VCAManipulator>*   pLFO1;              ///< Low Frequency Oscillator 1 (Amplification)
-            LFO<gig::VCFCManipulator>*  pLFO2;             ///< Low Frequency Oscillator 2 (Filter cutoff frequency)
-            LFO<gig::VCOManipulator>*   pLFO3;              ///< Low Frequency Oscillator 3 (Pitch)
+            LFOUnsigned*                pLFO1;               ///< Low Frequency Oscillator 1 (Amplification)
+            LFOUnsigned*                pLFO2;               ///< Low Frequency Oscillator 2 (Filter cutoff frequency)
+            LFOSigned*                  pLFO3;               ///< Low Frequency Oscillator 3 (Pitch)
             bool                        bLFO1Enabled;        ///< Should we use the Amplitude LFO for this voice?
             bool                        bLFO2Enabled;        ///< Should we use the Filter Cutoff LFO for this voice?
             bool                        bLFO3Enabled;        ///< Should we use the Pitch LFO for this voice?
@@ -144,15 +171,25 @@ namespace LinuxSampler { namespace gig {
         //private:
             int                         SynthesisMode;
 
+
+            float                       fFinalPitch;
+            float                       fFinalVolume;
+            float                       fFinalCutoff;
+            float                       fFinalResonance;
+
             // Static Methods
             static float CalculateFilterCutoffCoeff();
-            static int   CalculateFilterUpdateMask();
 
             // Methods
             void KillImmediately();
             void ProcessEvents(uint Samples);
-            void CalculateBiquadParameters(uint Samples);
             void Synthesize(uint Samples, sample_t* pSrc, uint Skip);
+            void processTransitionEvents(RTList<Event>::Iterator& itEvent, uint End);
+            void processCCEvents(RTList<Event>::Iterator& itEvent, uint End);
+            void processPitchEvent(RTList<Event>::Iterator& itEvent);
+            void processCrossFadeEvent(RTList<Event>::Iterator& itEvent);
+            void processCutoffEvent(RTList<Event>::Iterator& itEvent);
+            void processResonanceEvent(RTList<Event>::Iterator& itEvent);
 
             inline float CrossfadeAttenuation(uint8_t& CrossfadeControllerValue) {
                 float att = (!pDimRgn->Crossfade.out_end) ? CrossfadeControllerValue / 127.0f /* 0,0,0,0 means no crossfade defined */

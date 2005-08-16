@@ -21,8 +21,6 @@
  *   MA  02111-1307  USA                                                   *
  ***************************************************************************/
 
-#include "EGADSR.h"
-#include "Manipulator.h"
 #include "../../common/Features.h"
 #include "Synthesizer.h"
 
@@ -32,32 +30,17 @@ namespace LinuxSampler { namespace gig {
 
     const float Voice::FILTER_CUTOFF_COEFF(CalculateFilterCutoffCoeff());
 
-    const int Voice::FILTER_UPDATE_MASK(CalculateFilterUpdateMask());
-
     float Voice::CalculateFilterCutoffCoeff() {
         return log(CONFIG_FILTER_CUTOFF_MAX / CONFIG_FILTER_CUTOFF_MIN);
-    }
-
-    int Voice::CalculateFilterUpdateMask() {
-        if (CONFIG_FILTER_UPDATE_STEPS <= 0) return 0;
-        int power_of_two;
-        for (power_of_two = 0; 1<<power_of_two < CONFIG_FILTER_UPDATE_STEPS; power_of_two++);
-        return (1 << power_of_two) - 1;
     }
 
     Voice::Voice() {
         pEngine     = NULL;
         pDiskThread = NULL;
         PlaybackState = playback_state_end;
-        pEG1   = NULL;
-        pEG2   = NULL;
-        pEG3   = NULL;
-        pVCAManipulator  = NULL;
-        pVCFCManipulator = NULL;
-        pVCOManipulator  = NULL;
-        pLFO1  = NULL;
-        pLFO2  = NULL;
-        pLFO3  = NULL;
+        pLFO1 = new LFOUnsigned(1.0f);  // amplitude EG (0..1 range)
+        pLFO2 = new LFOUnsigned(1.0f);  // filter EG (0..1 range)
+        pLFO3 = new LFOSigned(1200.0f); // pitch EG (-1200..+1200 range)
         KeyGroup = 0;
         SynthesisMode = 0; // set all mode bits to 0 first
         // select synthesis implementation (currently either pure C++ or MMX+SSE(1))
@@ -73,42 +56,13 @@ namespace LinuxSampler { namespace gig {
     }
 
     Voice::~Voice() {
-        if (pEG1)  delete pEG1;
-        if (pEG2)  delete pEG2;
-        if (pEG3)  delete pEG3;
         if (pLFO1) delete pLFO1;
         if (pLFO2) delete pLFO2;
         if (pLFO3) delete pLFO3;
-        if (pVCAManipulator)  delete pVCAManipulator;
-        if (pVCFCManipulator) delete pVCFCManipulator;
-        if (pVCOManipulator)  delete pVCOManipulator;
     }
 
     void Voice::SetEngine(Engine* pEngine) {
-        this->pEngine = pEngine;
-
-        // delete old objects
-        if (pEG1) delete pEG1;
-        if (pEG2) delete pEG2;
-        if (pEG3) delete pEG3;
-        if (pVCAManipulator)  delete pVCAManipulator;
-        if (pVCFCManipulator) delete pVCFCManipulator;
-        if (pVCOManipulator)  delete pVCOManipulator;
-        if (pLFO1) delete pLFO1;
-        if (pLFO2) delete pLFO2;
-        if (pLFO3) delete pLFO3;
-
-        // create new ones
-        pEG1   = new EGADSR(pEngine, Event::destination_vca);
-        pEG2   = new EGADSR(pEngine, Event::destination_vcfc);
-        pEG3   = new EGDecay(pEngine, Event::destination_vco);
-        pVCAManipulator  = new VCAManipulator(pEngine);
-        pVCFCManipulator = new VCFCManipulator(pEngine);
-        pVCOManipulator  = new VCOManipulator(pEngine);
-        pLFO1  = new LFO<gig::VCAManipulator>(0.0f, 1.0f, LFO<VCAManipulator>::propagation_top_down, pVCAManipulator, pEngine->pEventPool);
-        pLFO2  = new LFO<gig::VCFCManipulator>(0.0f, 1.0f, LFO<VCFCManipulator>::propagation_top_down, pVCFCManipulator, pEngine->pEventPool);
-        pLFO3  = new LFO<gig::VCOManipulator>(-1200.0f, 1200.0f, LFO<VCOManipulator>::propagation_middle_balanced, pVCOManipulator, pEngine->pEventPool); // +-1 octave (+-1200 cents) max.
-
+        this->pEngine     = pEngine;
         this->pDiskThread = pEngine->pDiskThread;
         dmsg(6,("Voice::SetEngine()\n"));
     }
@@ -222,7 +176,7 @@ namespace LinuxSampler { namespace gig {
         {
             double pitchbasecents = pDimRgn->FineTune + (int) pEngine->ScaleTuning[MIDIKey % 12];
             if (pDimRgn->PitchTrack) pitchbasecents += (MIDIKey - (int) pDimRgn->UnityNote) * 100;
-            this->PitchBase = RTMath::CentsToFreqRatio(pitchbasecents) * (double(pSample->SamplesPerSecond) / double(pEngine->pAudioOutputDevice->SampleRate()));
+            this->PitchBase = RTMath::CentsToFreqRatio(pitchbasecents) * (double(pSample->SamplesPerSecond) / double(pEngine->SampleRate));
             this->PitchBend = RTMath::CentsToFreqRatio(((double) PitchBend / 8192.0) * 200.0); // pitchbend wheel +-2 semitones = 200 cents
         }
 
@@ -257,20 +211,17 @@ namespace LinuxSampler { namespace gig {
             double eg1decay   = (pDimRgn->EG1ControllerDecayInfluence)   ? 1 + 0.00775 * (double) (1 << pDimRgn->EG1ControllerDecayInfluence)   * eg1controllervalue : 1.0;
             double eg1release = (pDimRgn->EG1ControllerReleaseInfluence) ? 1 + 0.00775 * (double) (1 << pDimRgn->EG1ControllerReleaseInfluence) * eg1controllervalue : 1.0;
 
-            pEG1->Trigger(pDimRgn->EG1PreAttack,
-                          pDimRgn->EG1Attack * eg1attack,
-                          pDimRgn->EG1Hold,
-                          pSample->LoopStart,
-                          pDimRgn->EG1Decay1 * eg1decay * velrelease,
-                          pDimRgn->EG1Decay2 * eg1decay * velrelease,
-                          pDimRgn->EG1InfiniteSustain,
-                          pDimRgn->EG1Sustain,
-                          pDimRgn->EG1Release * eg1release * velrelease,
-                          // the SSE synthesis implementation requires
-                          // the vca start to be 16 byte aligned
-                          SYNTHESIS_MODE_GET_IMPLEMENTATION(SynthesisMode) ?
-                          Delay & 0xfffffffc : Delay,
-                          velocityAttenuation);
+            EG1.trigger(pDimRgn->EG1PreAttack,
+                        pDimRgn->EG1Attack * eg1attack,
+                        pDimRgn->EG1Hold,
+                        pSample->LoopStart,
+                        pDimRgn->EG1Decay1 * eg1decay * velrelease,
+                        pDimRgn->EG1Decay2 * eg1decay * velrelease,
+                        pDimRgn->EG1InfiniteSustain,
+                        pDimRgn->EG1Sustain,
+                        pDimRgn->EG1Release * eg1release * velrelease,
+                        velocityAttenuation,
+                        pEngine->SampleRate / CONFIG_DEFAULT_SUBFRAGMENT_SIZE);
         }
 
 
@@ -299,24 +250,24 @@ namespace LinuxSampler { namespace gig {
             double eg2decay   = (pDimRgn->EG2ControllerDecayInfluence)   ? 1 + 0.00775 * (double) (1 << pDimRgn->EG2ControllerDecayInfluence)   * eg2controllervalue : 1.0;
             double eg2release = (pDimRgn->EG2ControllerReleaseInfluence) ? 1 + 0.00775 * (double) (1 << pDimRgn->EG2ControllerReleaseInfluence) * eg2controllervalue : 1.0;
 
-            pEG2->Trigger(pDimRgn->EG2PreAttack,
-                          pDimRgn->EG2Attack * eg2attack,
-                          false,
-                          pSample->LoopStart,
-                          pDimRgn->EG2Decay1 * eg2decay * velrelease,
-                          pDimRgn->EG2Decay2 * eg2decay * velrelease,
-                          pDimRgn->EG2InfiniteSustain,
-                          pDimRgn->EG2Sustain,
-                          pDimRgn->EG2Release * eg2release * velrelease,
-                          Delay,
-                          velocityAttenuation);
+            EG2.trigger(pDimRgn->EG2PreAttack,
+                        pDimRgn->EG2Attack * eg2attack,
+                        false,
+                        pSample->LoopStart,
+                        pDimRgn->EG2Decay1 * eg2decay * velrelease,
+                        pDimRgn->EG2Decay2 * eg2decay * velrelease,
+                        pDimRgn->EG2InfiniteSustain,
+                        pDimRgn->EG2Sustain,
+                        pDimRgn->EG2Release * eg2release * velrelease,
+                        velocityAttenuation,
+                        pEngine->SampleRate / CONFIG_DEFAULT_SUBFRAGMENT_SIZE);
         }
 
 
         // setup EG 3 (VCO EG)
         {
           double eg3depth = RTMath::CentsToFreqRatio(pDimRgn->EG3Depth);
-          pEG3->Trigger(eg3depth, pDimRgn->EG3Attack, Delay);
+          EG3.trigger(eg3depth, pDimRgn->EG3Attack, pEngine->SampleRate / CONFIG_DEFAULT_SUBFRAGMENT_SIZE);
         }
 
 
@@ -354,13 +305,12 @@ namespace LinuxSampler { namespace gig {
                     pLFO1->ExtController = 0; // no external controller
                     bLFO1Enabled         = false;
             }
-            if (bLFO1Enabled) pLFO1->Trigger(pDimRgn->LFO1Frequency,
+            if (bLFO1Enabled) pLFO1->trigger(pDimRgn->LFO1Frequency,
+                                             start_level_max,
                                              lfo1_internal_depth,
                                              pDimRgn->LFO1ControlDepth,
-                                             pEngineChannel->ControllerTable[pLFO1->ExtController],
                                              pDimRgn->LFO1FlipPhase,
-                                             pEngine->SampleRate,
-                                             Delay);
+                                             pEngine->SampleRate / CONFIG_DEFAULT_SUBFRAGMENT_SIZE);
         }
 
 
@@ -398,13 +348,12 @@ namespace LinuxSampler { namespace gig {
                     pLFO2->ExtController = 0; // no external controller
                     bLFO2Enabled         = false;
             }
-            if (bLFO2Enabled) pLFO2->Trigger(pDimRgn->LFO2Frequency,
+            if (bLFO2Enabled) pLFO2->trigger(pDimRgn->LFO2Frequency,
+                                             start_level_max,
                                              lfo2_internal_depth,
                                              pDimRgn->LFO2ControlDepth,
-                                             pEngineChannel->ControllerTable[pLFO2->ExtController],
                                              pDimRgn->LFO2FlipPhase,
-                                             pEngine->SampleRate,
-                                             Delay);
+                                             pEngine->SampleRate / CONFIG_DEFAULT_SUBFRAGMENT_SIZE);
         }
 
 
@@ -442,13 +391,12 @@ namespace LinuxSampler { namespace gig {
                     pLFO3->ExtController = 0; // no external controller
                     bLFO3Enabled         = false;
             }
-            if (bLFO3Enabled) pLFO3->Trigger(pDimRgn->LFO3Frequency,
+            if (bLFO3Enabled) pLFO3->trigger(pDimRgn->LFO3Frequency,
+                                             start_level_mid,
                                              lfo3_internal_depth,
                                              pDimRgn->LFO3ControlDepth,
-                                             pEngineChannel->ControllerTable[pLFO3->ExtController],
                                              false,
-                                             pEngine->SampleRate,
-                                             Delay);
+                                             pEngine->SampleRate / CONFIG_DEFAULT_SUBFRAGMENT_SIZE);
         }
 
 
@@ -560,8 +508,6 @@ namespace LinuxSampler { namespace gig {
 
             VCFCutoffCtrl.fvalue    = cutoff - CONFIG_FILTER_CUTOFF_MIN;
             VCFResonanceCtrl.fvalue = resonance;
-
-            FilterUpdateCounter = -1;
         }
         else {
             VCFCutoffCtrl.controller    = 0;
@@ -585,42 +531,7 @@ namespace LinuxSampler { namespace gig {
     void Voice::Render(uint Samples) {
 
         // select default values for synthesis mode bits
-        SYNTHESIS_MODE_SET_INTERPOLATE(SynthesisMode, (PitchBase * PitchBend) != 1.0f);
-        SYNTHESIS_MODE_SET_CONSTPITCH(SynthesisMode, true);
         SYNTHESIS_MODE_SET_LOOP(SynthesisMode, false);
-
-        // Reset the synthesis parameter matrix
-
-        #if CONFIG_PROCESS_MUTED_CHANNELS
-        pEngine->ResetSynthesisParameters(Event::destination_vca, this->Volume * this->CrossfadeVolume * (pEngineChannel->GetMute() ? 0 : pEngineChannel->GlobalVolume));
-        #else
-        pEngine->ResetSynthesisParameters(Event::destination_vca, this->Volume * this->CrossfadeVolume * pEngineChannel->GlobalVolume);
-        #endif
-        pEngine->ResetSynthesisParameters(Event::destination_vco, this->PitchBase);
-        pEngine->ResetSynthesisParameters(Event::destination_vcfc, VCFCutoffCtrl.fvalue);
-        pEngine->ResetSynthesisParameters(Event::destination_vcfr, VCFResonanceCtrl.fvalue);
-
-        // Apply events to the synthesis parameter matrix
-        ProcessEvents(Samples);
-
-        // Let all modulators write their parameter changes to the synthesis parameter matrix for the current audio fragment
-        pEG1->Process(Samples, pEngineChannel->pMIDIKeyInfo[MIDIKey].pEvents, itTriggerEvent, this->Pos, this->PitchBase * this->PitchBend, itKillEvent);
-        pEG2->Process(Samples, pEngineChannel->pMIDIKeyInfo[MIDIKey].pEvents, itTriggerEvent, this->Pos, this->PitchBase * this->PitchBend);
-        if (pEG3->Process(Samples)) { // if pitch EG is active
-            SYNTHESIS_MODE_SET_INTERPOLATE(SynthesisMode, true);
-            SYNTHESIS_MODE_SET_CONSTPITCH(SynthesisMode, false);
-        }
-        if (bLFO1Enabled) pLFO1->Process(Samples);
-        if (bLFO2Enabled) pLFO2->Process(Samples);
-        if (bLFO3Enabled) {
-            if (pLFO3->Process(Samples)) { // if pitch LFO modulation is active
-                SYNTHESIS_MODE_SET_INTERPOLATE(SynthesisMode, true);
-                SYNTHESIS_MODE_SET_CONSTPITCH(SynthesisMode, false);
-            }
-        }
-
-        if (SYNTHESIS_MODE_GET_FILTER(SynthesisMode))
-            CalculateBiquadParameters(Samples); // calculate the final biquad filter parameters
 
         switch (this->PlaybackState) {
 
@@ -696,10 +607,8 @@ namespace LinuxSampler { namespace gig {
                 break;
         }
 
-        // Reset synthesis event lists (except VCO, as VCO events apply channel wide currently)
-        pEngineChannel->pSynthesisEvents[Event::destination_vca]->clear();
-        pEngineChannel->pSynthesisEvents[Event::destination_vcfc]->clear();
-        pEngineChannel->pSynthesisEvents[Event::destination_vcfr]->clear();
+        // Reset synthesis event lists
+        pEngineChannel->pEvents->clear();
 
         // Reset delay
         Delay = 0;
@@ -707,7 +616,7 @@ namespace LinuxSampler { namespace gig {
         itTriggerEvent = Pool<Event>::Iterator();
 
         // If sample stream or release stage finished, kill the voice
-        if (PlaybackState == playback_state_end || pEG1->GetStage() == EGADSR::stage_end) KillImmediately();
+        if (PlaybackState == playback_state_end || EG1.getSegmentType() == EGADSR::segment_end) KillImmediately();
     }
 
     /**
@@ -715,9 +624,6 @@ namespace LinuxSampler { namespace gig {
      *  suspended / not running.
      */
     void Voice::Reset() {
-        pLFO1->Reset();
-        pLFO2->Reset();
-        pLFO3->Reset();
         FilterLeft.Reset();
         FilterRight.Reset();
         DiskStreamRef.pStream = NULL;
@@ -730,225 +636,96 @@ namespace LinuxSampler { namespace gig {
     }
 
     /**
-     *  Process the control change event lists of the engine for the current
-     *  audio fragment. Event values will be applied to the synthesis parameter
-     *  matrix.
+     * Process given list of MIDI note on, note off and sustain pedal events
+     * for the given time.
      *
-     *  @param Samples - number of samples to be rendered in this audio fragment cycle
+     * @param itEvent - iterator pointing to the next event to be processed
+     * @param End     - youngest time stamp where processing should be stopped 
      */
-    void Voice::ProcessEvents(uint Samples) {
-
-        // dispatch control change events
-        RTList<Event>::Iterator itCCEvent = pEngineChannel->pCCEvents->first();
-        if (Delay) { // skip events that happened before this voice was triggered
-            while (itCCEvent && itCCEvent->FragmentPos() <= Delay) ++itCCEvent;
-        }
-        while (itCCEvent) {
-            if (itCCEvent->Param.CC.Controller) { // if valid MIDI controller
-                if (itCCEvent->Param.CC.Controller == VCFCutoffCtrl.controller) {
-                    *pEngineChannel->pSynthesisEvents[Event::destination_vcfc]->allocAppend() = *itCCEvent;
-                }
-                if (itCCEvent->Param.CC.Controller == VCFResonanceCtrl.controller) {
-                    *pEngineChannel->pSynthesisEvents[Event::destination_vcfr]->allocAppend() = *itCCEvent;
-                }
-                if (itCCEvent->Param.CC.Controller == pLFO1->ExtController) {
-                    pLFO1->SendEvent(itCCEvent);
-                }
-                if (itCCEvent->Param.CC.Controller == pLFO2->ExtController) {
-                    pLFO2->SendEvent(itCCEvent);
-                }
-                if (itCCEvent->Param.CC.Controller == pLFO3->ExtController) {
-                    pLFO3->SendEvent(itCCEvent);
-                }
-                if (pDimRgn->AttenuationController.type == ::gig::attenuation_ctrl_t::type_controlchange &&
-                    itCCEvent->Param.CC.Controller == pDimRgn->AttenuationController.controller_number) { // if crossfade event
-                    *pEngineChannel->pSynthesisEvents[Event::destination_vca]->allocAppend() = *itCCEvent;
-                }
+    void Voice::processTransitionEvents(RTList<Event>::Iterator& itEvent, uint End) {
+        for (; itEvent && itEvent->FragmentPos() <= End; ++itEvent) {
+            if (itEvent->Type == Event::type_release) {
+                EG1.update(EGADSR::event_release, this->Pos, fFinalPitch, pEngine->SampleRate / CONFIG_DEFAULT_SUBFRAGMENT_SIZE);
+                EG2.update(EGADSR::event_release, this->Pos, fFinalPitch, pEngine->SampleRate / CONFIG_DEFAULT_SUBFRAGMENT_SIZE);
+            } else if (itEvent->Type == Event::type_cancel_release) {
+                EG1.update(EGADSR::event_cancel_release, this->Pos, fFinalPitch, pEngine->SampleRate / CONFIG_DEFAULT_SUBFRAGMENT_SIZE);
+                EG2.update(EGADSR::event_cancel_release, this->Pos, fFinalPitch, pEngine->SampleRate / CONFIG_DEFAULT_SUBFRAGMENT_SIZE);
             }
-
-            ++itCCEvent;
-        }
-
-
-        // process pitch events
-        {
-            RTList<Event>* pVCOEventList = pEngineChannel->pSynthesisEvents[Event::destination_vco];
-            RTList<Event>::Iterator itVCOEvent = pVCOEventList->first();
-            if (Delay) { // skip events that happened before this voice was triggered
-                while (itVCOEvent && itVCOEvent->FragmentPos() <= Delay) ++itVCOEvent;
-            }
-            // apply old pitchbend value until first pitch event occurs
-            if (this->PitchBend != 1.0) {
-                uint end = (itVCOEvent) ? itVCOEvent->FragmentPos() : Samples;
-                for (uint i = Delay; i < end; i++) {
-                    pEngine->pSynthesisParameters[Event::destination_vco][i] *= this->PitchBend;
-                }
-            }
-            float pitch;
-            while (itVCOEvent) {
-                RTList<Event>::Iterator itNextVCOEvent = itVCOEvent;
-                ++itNextVCOEvent;
-
-                // calculate the influence length of this event (in sample points)
-                uint end = (itNextVCOEvent) ? itNextVCOEvent->FragmentPos() : Samples;
-
-                pitch = RTMath::CentsToFreqRatio(((double) itVCOEvent->Param.Pitch.Pitch / 8192.0) * 200.0); // +-two semitones = +-200 cents
-
-                // apply pitch value to the pitch parameter sequence
-                for (uint i = itVCOEvent->FragmentPos(); i < end; i++) {
-                    pEngine->pSynthesisParameters[Event::destination_vco][i] *= pitch;
-                }
-
-                itVCOEvent = itNextVCOEvent;
-            }
-            if (!pVCOEventList->isEmpty()) {
-                this->PitchBend = pitch;
-                SYNTHESIS_MODE_SET_INTERPOLATE(SynthesisMode, true);
-                SYNTHESIS_MODE_SET_CONSTPITCH(SynthesisMode, false);
-            }
-        }
-
-        // process volume / attenuation events (TODO: we only handle and _expect_ crossfade events here ATM !)
-        {
-            RTList<Event>* pVCAEventList = pEngineChannel->pSynthesisEvents[Event::destination_vca];
-            RTList<Event>::Iterator itVCAEvent = pVCAEventList->first();
-            if (Delay) { // skip events that happened before this voice was triggered
-                while (itVCAEvent && itVCAEvent->FragmentPos() <= Delay) ++itVCAEvent;
-            }
-            float crossfadevolume;
-            while (itVCAEvent) {
-                RTList<Event>::Iterator itNextVCAEvent = itVCAEvent;
-                ++itNextVCAEvent;
-
-                // calculate the influence length of this event (in sample points)
-                uint end = (itNextVCAEvent) ? itNextVCAEvent->FragmentPos() : Samples;
-
-                crossfadevolume = CrossfadeAttenuation(itVCAEvent->Param.CC.Value);
-
-                #if CONFIG_PROCESS_MUTED_CHANNELS
-                float effective_volume = crossfadevolume * this->Volume * (pEngineChannel->GetMute() ? 0 : pEngineChannel->GlobalVolume);
-                #else
-                float effective_volume = crossfadevolume * this->Volume * pEngineChannel->GlobalVolume;
-                #endif
-
-                // apply volume value to the volume parameter sequence
-                for (uint i = itVCAEvent->FragmentPos(); i < end; i++) {
-                    pEngine->pSynthesisParameters[Event::destination_vca][i] = effective_volume;
-                }
-
-                itVCAEvent = itNextVCAEvent;
-            }
-            if (!pVCAEventList->isEmpty()) this->CrossfadeVolume = crossfadevolume;
-        }
-
-        // process filter cutoff events
-        {
-            RTList<Event>* pCutoffEventList = pEngineChannel->pSynthesisEvents[Event::destination_vcfc];
-            RTList<Event>::Iterator itCutoffEvent = pCutoffEventList->first();
-            if (Delay) { // skip events that happened before this voice was triggered
-                while (itCutoffEvent && itCutoffEvent->FragmentPos() <= Delay) ++itCutoffEvent;
-            }
-            float cutoff;
-            while (itCutoffEvent) {
-                RTList<Event>::Iterator itNextCutoffEvent = itCutoffEvent;
-                ++itNextCutoffEvent;
-
-                // calculate the influence length of this event (in sample points)
-                uint end = (itNextCutoffEvent) ? itNextCutoffEvent->FragmentPos() : Samples;
-
-                int cvalue = pEngineChannel->ControllerTable[VCFCutoffCtrl.controller];
-                if (pDimRgn->VCFCutoffControllerInvert) cvalue = 127 - cvalue;
-                if (cvalue < pDimRgn->VCFVelocityScale) cvalue = pDimRgn->VCFVelocityScale;
-                cutoff = CutoffBase * float(cvalue) * 0.00787402f; // (1 / 127)
-                if (cutoff > 1.0) cutoff = 1.0;
-                cutoff = exp(cutoff * FILTER_CUTOFF_COEFF) * CONFIG_FILTER_CUTOFF_MIN - CONFIG_FILTER_CUTOFF_MIN;
-
-                // apply cutoff frequency to the cutoff parameter sequence
-                for (uint i = itCutoffEvent->FragmentPos(); i < end; i++) {
-                    pEngine->pSynthesisParameters[Event::destination_vcfc][i] = cutoff;
-                }
-
-                itCutoffEvent = itNextCutoffEvent;
-            }
-            if (!pCutoffEventList->isEmpty()) VCFCutoffCtrl.fvalue = cutoff; // needed for initialization of parameter matrix next time
-        }
-
-        // process filter resonance events
-        {
-            RTList<Event>* pResonanceEventList = pEngineChannel->pSynthesisEvents[Event::destination_vcfr];
-            RTList<Event>::Iterator itResonanceEvent = pResonanceEventList->first();
-            if (Delay) { // skip events that happened before this voice was triggered
-                while (itResonanceEvent && itResonanceEvent->FragmentPos() <= Delay) ++itResonanceEvent;
-            }
-            while (itResonanceEvent) {
-                RTList<Event>::Iterator itNextResonanceEvent = itResonanceEvent;
-                ++itNextResonanceEvent;
-
-                // calculate the influence length of this event (in sample points)
-                uint end = (itNextResonanceEvent) ? itNextResonanceEvent->FragmentPos() : Samples;
-
-                // convert absolute controller value to differential
-                int ctrldelta = itResonanceEvent->Param.CC.Value - VCFResonanceCtrl.value;
-                VCFResonanceCtrl.value = itResonanceEvent->Param.CC.Value;
-
-                float resonancedelta = (float) ctrldelta * 0.00787f; // 0.0..1.0
-
-                // apply cutoff frequency to the cutoff parameter sequence
-                for (uint i = itResonanceEvent->FragmentPos(); i < end; i++) {
-                    pEngine->pSynthesisParameters[Event::destination_vcfr][i] += resonancedelta;
-                }
-
-                itResonanceEvent = itNextResonanceEvent;
-            }
-            if (!pResonanceEventList->isEmpty()) VCFResonanceCtrl.fvalue = pResonanceEventList->last()->Param.CC.Value * 0.00787f; // needed for initialization of parameter matrix next time
         }
     }
 
     /**
-     * Calculate all necessary, final biquad filter parameters.
+     * Process given list of MIDI control change and pitch bend events for
+     * the given time.
      *
-     * @param Samples - number of samples to be rendered in this audio fragment cycle
+     * @param itEvent - iterator pointing to the next event to be processed
+     * @param End     - youngest time stamp where processing should be stopped 
      */
-    void Voice::CalculateBiquadParameters(uint Samples) {
-        biquad_param_t bqbase;
-        biquad_param_t bqmain;
-        float prev_cutoff = pEngine->pSynthesisParameters[Event::destination_vcfc][0];
-        float prev_res    = pEngine->pSynthesisParameters[Event::destination_vcfr][0];
-        FilterLeft.SetParameters( &bqbase, &bqmain, prev_cutoff + CONFIG_FILTER_CUTOFF_MIN, prev_res, pEngine->SampleRate);
-        FilterRight.SetParameters(&bqbase, &bqmain, prev_cutoff + CONFIG_FILTER_CUTOFF_MIN, prev_res, pEngine->SampleRate);
-        pEngine->pBasicFilterParameters[0] = bqbase;
-        pEngine->pMainFilterParameters[0]  = bqmain;
-
-        float* bq;
-        for (int i = 1; i < Samples; i++) {
-            // recalculate biquad parameters if cutoff or resonance differ from previous sample point
-            if (!(i & FILTER_UPDATE_MASK)) {
-                if (pEngine->pSynthesisParameters[Event::destination_vcfr][i] != prev_res ||
-                    pEngine->pSynthesisParameters[Event::destination_vcfc][i] != prev_cutoff)
-                {
-                    prev_cutoff = pEngine->pSynthesisParameters[Event::destination_vcfc][i];
-                    prev_res    = pEngine->pSynthesisParameters[Event::destination_vcfr][i];
-                    FilterLeft.SetParameters( &bqbase, &bqmain, prev_cutoff + CONFIG_FILTER_CUTOFF_MIN, prev_res, pEngine->SampleRate);
-                    FilterRight.SetParameters(&bqbase, &bqmain, prev_cutoff + CONFIG_FILTER_CUTOFF_MIN, prev_res, pEngine->SampleRate);
+    void Voice::processCCEvents(RTList<Event>::Iterator& itEvent, uint End) {
+        for (; itEvent && itEvent->FragmentPos() <= End; ++itEvent) {
+            if (itEvent->Type == Event::type_control_change &&
+                itEvent->Param.CC.Controller) { // if (valid) MIDI control change event
+                if (itEvent->Param.CC.Controller == VCFCutoffCtrl.controller) {
+                    processCutoffEvent(itEvent);
                 }
+                if (itEvent->Param.CC.Controller == VCFResonanceCtrl.controller) {
+                    processResonanceEvent(itEvent);
+                }
+                if (itEvent->Param.CC.Controller == pLFO1->ExtController) {
+                    pLFO1->update(itEvent->Param.CC.Value);
+                }
+                if (itEvent->Param.CC.Controller == pLFO2->ExtController) {
+                    pLFO2->update(itEvent->Param.CC.Value);
+                }
+                if (itEvent->Param.CC.Controller == pLFO3->ExtController) {
+                    pLFO3->update(itEvent->Param.CC.Value);
+                }
+                if (pDimRgn->AttenuationController.type == ::gig::attenuation_ctrl_t::type_controlchange &&
+                    itEvent->Param.CC.Controller == pDimRgn->AttenuationController.controller_number) {
+                    processCrossFadeEvent(itEvent);
+                }
+            } else if (itEvent->Type == Event::type_pitchbend) { // if pitch bend event
+                processPitchEvent(itEvent);
             }
-
-            //same as 'pEngine->pBasicFilterParameters[i] = bqbase;'
-            bq    = (float*) &pEngine->pBasicFilterParameters[i];
-            bq[0] = bqbase.b0;
-            bq[1] = bqbase.b1;
-            bq[2] = bqbase.b2;
-            bq[3] = bqbase.a1;
-            bq[4] = bqbase.a2;
-
-            // same as 'pEngine->pMainFilterParameters[i] = bqmain;'
-            bq    = (float*) &pEngine->pMainFilterParameters[i];
-            bq[0] = bqmain.b0;
-            bq[1] = bqmain.b1;
-            bq[2] = bqmain.b2;
-            bq[3] = bqmain.a1;
-            bq[4] = bqmain.a2;
         }
+    }
+
+    void Voice::processPitchEvent(RTList<Event>::Iterator& itEvent) {
+        const float pitch = RTMath::CentsToFreqRatio(((double) itEvent->Param.Pitch.Pitch / 8192.0) * 200.0); // +-two semitones = +-200 cents
+        fFinalPitch *= pitch;
+    }
+
+    void Voice::processCrossFadeEvent(RTList<Event>::Iterator& itEvent) {
+        CrossfadeVolume = CrossfadeAttenuation(itEvent->Param.CC.Value);
+        #if CONFIG_PROCESS_MUTED_CHANNELS
+        const float effectiveVolume = CrossfadeVolume * Volume * (pEngineChannel->GetMute() ? 0 : pEngineChannel->GlobalVolume);
+        #else
+        const float effectiveVolume = CrossfadeVolume * Volume * pEngineChannel->GlobalVolume;
+        #endif
+        fFinalVolume = effectiveVolume;
+    }
+
+    void Voice::processCutoffEvent(RTList<Event>::Iterator& itEvent) {
+        int ccvalue = itEvent->Param.CC.Value;
+        if (VCFCutoffCtrl.value == ccvalue) return;
+        VCFCutoffCtrl.value == ccvalue;
+        if (pDimRgn->VCFCutoffControllerInvert)  ccvalue = 127 - ccvalue;
+        if (ccvalue < pDimRgn->VCFVelocityScale) ccvalue = pDimRgn->VCFVelocityScale;
+        float cutoff = CutoffBase * float(ccvalue) * 0.00787402f; // (1 / 127)
+        if (cutoff > 1.0) cutoff = 1.0;
+        cutoff = exp(cutoff * FILTER_CUTOFF_COEFF) * CONFIG_FILTER_CUTOFF_MIN - CONFIG_FILTER_CUTOFF_MIN;
+        VCFCutoffCtrl.fvalue = cutoff; // needed for initialization of fFinalCutoff next time
+        fFinalCutoff = cutoff;
+    }
+
+    void Voice::processResonanceEvent(RTList<Event>::Iterator& itEvent) {
+        // convert absolute controller value to differential
+        const int ctrldelta = itEvent->Param.CC.Value - VCFResonanceCtrl.value;
+        VCFResonanceCtrl.value = itEvent->Param.CC.Value;
+        const float resonancedelta = (float) ctrldelta * 0.00787f; // 0.0..1.0
+        fFinalResonance += resonancedelta;
+        // needed for initialization of parameter
+        VCFResonanceCtrl.fvalue = itEvent->Param.CC.Value * 0.00787f;
     }
 
     /**
@@ -960,7 +737,91 @@ namespace LinuxSampler { namespace gig {
      *  @param Skip    - number of sample points to skip in output buffer
      */
     void Voice::Synthesize(uint Samples, sample_t* pSrc, uint Skip) {
-        RunSynthesisFunction(SynthesisMode, *this, Samples, pSrc, Skip);
+        RTList<Event>::Iterator itCCEvent = pEngineChannel->pEvents->first();
+        RTList<Event>::Iterator itNoteEvent = pEngineChannel->pMIDIKeyInfo[MIDIKey].pEvents->first();
+                
+        if (Skip) { // skip events that happened before this voice was triggered
+            while (itCCEvent && itCCEvent->FragmentPos() <= Skip) ++itCCEvent;
+            while (itNoteEvent && itNoteEvent->FragmentPos() <= Skip) ++itNoteEvent;
+        }
+        
+        uint i = Skip;
+        while (i < Samples) {
+            int iSubFragmentEnd = RTMath::Min(i + CONFIG_DEFAULT_SUBFRAGMENT_SIZE, Samples);
+            
+            // initialize all final synthesis parameters
+            fFinalPitch = PitchBase * PitchBend;
+            #if CONFIG_PROCESS_MUTED_CHANNELS
+            fFinalVolume = this->Volume * this->CrossfadeVolume * (pEngineChannel->GetMute() ? 0 : pEngineChannel->GlobalVolume));
+            #else
+            fFinalVolume = this->Volume * this->CrossfadeVolume * pEngineChannel->GlobalVolume;
+            #endif
+            fFinalCutoff    = VCFCutoffCtrl.fvalue;
+            fFinalResonance = VCFResonanceCtrl.fvalue;
+            
+            // process MIDI control change and pitchbend events for this subfragment
+            processCCEvents(itCCEvent, iSubFragmentEnd);
+
+            // process transition events (note on, note off & sustain pedal)
+            processTransitionEvents(itNoteEvent, iSubFragmentEnd);
+            
+            // process envelope generators
+            switch (EG1.getSegmentType()) {
+                case EGADSR::segment_lin:
+                    fFinalVolume *= EG1.processLin();
+                    break;
+                case EGADSR::segment_exp:
+                    fFinalVolume *= EG1.processExp();
+                    break;
+                case EGADSR::segment_end:
+                    fFinalVolume *= EG1.getLevel();
+                    break; // noop
+            }
+            switch (EG2.getSegmentType()) {
+                case EGADSR::segment_lin:
+                    fFinalCutoff *= EG2.processLin();
+                    break;
+                case EGADSR::segment_exp:
+                    fFinalCutoff *= EG2.processExp();
+                    break;
+                case EGADSR::segment_end:
+                    fFinalCutoff *= EG2.getLevel();
+                    break; // noop
+            }
+            fFinalPitch *= RTMath::CentsToFreqRatio(EG3.render());
+            
+            // process low frequency oscillators
+            if (bLFO1Enabled) fFinalVolume *= pLFO1->render();
+            if (bLFO2Enabled) fFinalCutoff *= pLFO2->render();
+            if (bLFO3Enabled) fFinalPitch  *= RTMath::CentsToFreqRatio(pLFO3->render());
+
+            // if filter enabled then update filter coefficients
+            if (SYNTHESIS_MODE_GET_FILTER(SynthesisMode)) {
+                FilterLeft.SetParameters(fFinalCutoff, fFinalResonance, pEngine->SampleRate);
+                FilterRight.SetParameters(fFinalCutoff, fFinalResonance, pEngine->SampleRate);
+            }
+
+            // how many steps do we calculate for this next subfragment
+            const int steps = iSubFragmentEnd - i;
+            
+            // select the appropriate synthesis mode
+            SYNTHESIS_MODE_SET_INTERPOLATE(SynthesisMode, fFinalPitch != 1.0f);
+            
+            // render audio for one subfragment
+            RunSynthesisFunction(SynthesisMode, *this, iSubFragmentEnd, pSrc, i);
+
+            // increment envelopes' positions            
+            if (EG1.active()) {
+                EG1.increment(steps);
+                if (!EG1.toStageEndLeft()) EG1.update(EGADSR::event_stage_end, this->Pos, fFinalPitch, pEngine->SampleRate / CONFIG_DEFAULT_SUBFRAGMENT_SIZE);
+            }
+            if (EG2.active()) {
+                EG2.increment(steps);
+                if (!EG2.toStageEndLeft()) EG2.update(EGADSR::event_stage_end, this->Pos, fFinalPitch, pEngine->SampleRate / CONFIG_DEFAULT_SUBFRAGMENT_SIZE);
+            }
+            EG3.increment(steps);
+            if (!EG3.toEndLeft()) EG3.update(); // neutralize envelope coefficient if end reached
+        }
     }
 
     /**

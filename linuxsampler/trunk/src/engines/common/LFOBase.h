@@ -30,6 +30,7 @@
 // the implementation IDs should be the same like in benchmarks/triang.cpp !
 # define INT_MATH_SOLUTION		2
 # define DI_HARMONIC_SOLUTION	3
+# define INT_ABS_MATH_SOLUTION          5
 #else
 # include <math.h>
 # include <stdint.h>

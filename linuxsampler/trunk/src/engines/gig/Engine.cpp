@@ -29,12 +29,6 @@
 
 #include "Engine.h"
 
-#if defined(__APPLE__)
-# include <stdlib.h>
-#else
-# include <malloc.h>
-#endif
-
 namespace LinuxSampler { namespace gig {
 
     InstrumentResourceManager Engine::instruments;
@@ -114,10 +108,6 @@ namespace LinuxSampler { namespace gig {
         }
         pVoicePool->clear();
 
-        pSynthesisParameters[0] = NULL; // we allocate when an audio device is connected
-        pBasicFilterParameters  = NULL;
-        pMainFilterParameters   = NULL;
-
         ResetInternal();
         ResetScaleTuning();
     }
@@ -139,9 +129,6 @@ namespace LinuxSampler { namespace gig {
             delete pVoicePool;
         }
         if (pEventGenerator) delete pEventGenerator;
-        if (pMainFilterParameters) delete[] pMainFilterParameters;
-        if (pBasicFilterParameters) delete[] pBasicFilterParameters;
-        if (pSynthesisParameters[0]) free(pSynthesisParameters[0]);
         if (pVoiceStealingQueue) delete pVoiceStealingQueue;
         if (pSysexBuffer) delete pSysexBuffer;
         EngineFactory::Destroy(this);
@@ -249,7 +236,7 @@ namespace LinuxSampler { namespace gig {
             // lower minimum release time
             const float minReleaseTime = (float) MaxSamplesPerCycle / (float) SampleRate;
             for (RTList<Voice>::Iterator iterVoice = pVoicePool->allocAppend(); iterVoice == pVoicePool->last(); iterVoice = pVoicePool->allocAppend()) {
-                iterVoice->pEG1->CalculateFadeOutCoeff(minReleaseTime, SampleRate);
+                iterVoice->EG1.CalculateFadeOutCoeff(minReleaseTime, SampleRate);
             }
             pVoicePool->clear();
         }
@@ -276,23 +263,6 @@ namespace LinuxSampler { namespace gig {
         // (re)create event generator
         if (pEventGenerator) delete pEventGenerator;
         pEventGenerator = new EventGenerator(pAudioOut->SampleRate());
-
-        // (re)allocate synthesis parameter matrix
-        if (pSynthesisParameters[0]) free(pSynthesisParameters[0]);
-
-        #if defined(__APPLE__)
-        pSynthesisParameters[0] = (float *) malloc(Event::destination_count * sizeof(float) * pAudioOut->MaxSamplesPerCycle());
-        #else
-        pSynthesisParameters[0] = (float *) memalign(16,(Event::destination_count * sizeof(float) * pAudioOut->MaxSamplesPerCycle()));
-        #endif
-        for (int dst = 1; dst < Event::destination_count; dst++)
-            pSynthesisParameters[dst] = pSynthesisParameters[dst - 1] + pAudioOut->MaxSamplesPerCycle();
-
-        // (re)allocate biquad filter parameter sequence
-        if (pBasicFilterParameters) delete[] pBasicFilterParameters;
-        if (pMainFilterParameters)  delete[] pMainFilterParameters;
-        pBasicFilterParameters = new biquad_param_t[pAudioOut->MaxSamplesPerCycle()];
-        pMainFilterParameters  = new biquad_param_t[pAudioOut->MaxSamplesPerCycle()];
 
         dmsg(1,("Starting disk thread..."));
         pDiskThread->StartThread();
@@ -724,15 +694,16 @@ namespace LinuxSampler { namespace gig {
     }
 
     /**
-     *  Moves pitchbend event from the general (input) event list to the pitch
-     *  event list.
+     *  Moves pitchbend event from the general (input) event list to the engine
+     *  channel's event list. It will actually processed later by the
+     *  respective voice.
      *
      *  @param pEngineChannel - engine channel on which this event occured on
      *  @param itPitchbendEvent - absolute pitch value and time stamp of the event
      */
     void Engine::ProcessPitchbend(EngineChannel* pEngineChannel, Pool<Event>::Iterator& itPitchbendEvent) {
         pEngineChannel->Pitch = itPitchbendEvent->Param.Pitch.Pitch; // store current pitch value
-        itPitchbendEvent.moveToEndOf(pEngineChannel->pSynthesisEvents[Event::destination_vco]);
+        itPitchbendEvent.moveToEndOf(pEngineChannel->pEvents);
     }
 
     /**
@@ -1169,8 +1140,8 @@ namespace LinuxSampler { namespace gig {
         // update controller value in the engine channel's controller table
         pEngineChannel->ControllerTable[itControlChangeEvent->Param.CC.Controller] = itControlChangeEvent->Param.CC.Value;
 
-        // move event from the unsorted event list to the control change event list
-        Pool<Event>::Iterator itControlChangeEventOnCCList = itControlChangeEvent.moveToEndOf(pEngineChannel->pCCEvents);
+        // move event from the import event list to the engine channel's CC and pitchbend event list
+        Pool<Event>::Iterator itControlChangeEventOnCCList = itControlChangeEvent.moveToEndOf(pEngineChannel->pEvents);
 
         switch (itControlChangeEventOnCCList->Param.CC.Controller) {
             case 7: { // volume
@@ -1389,21 +1360,6 @@ namespace LinuxSampler { namespace gig {
         }
     }
 
-    /**
-     * Initialize the parameter sequence for the modulation destination given by
-     * by 'dst' with the constant value given by val.
-     */
-    void Engine::ResetSynthesisParameters(Event::destination_t dst, float val) {
-        int maxsamples = pAudioOutputDevice->MaxSamplesPerCycle();
-        float* m = &pSynthesisParameters[dst][0];
-        for (int i = 0; i < maxsamples; i += 4) {
-           m[i]   = val;
-           m[i+1] = val;
-           m[i+2] = val;
-           m[i+3] = val;
-        }
-    }
-
     uint Engine::VoiceCount() {
         return ActiveVoiceCount;
     }
@@ -1441,7 +1397,7 @@ namespace LinuxSampler { namespace gig {
     }
 
     String Engine::Version() {
-        String s = "$Revision: 1.51 $";
+        String s = "$Revision: 1.52 $";
         return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
 

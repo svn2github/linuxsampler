@@ -3,6 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
+ *   Copyright (C) 2005 Christian Schoenebeck                              *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -76,13 +77,6 @@ namespace LinuxSampler {
                 type_cancel_release,  ///< transformed either from a note-on or sustain-pedal-down event
                 type_release          ///< transformed either from a note-off or sustain-pedal-up event
             } Type;
-            enum destination_t {
-                destination_vca,   ///< Volume level
-                destination_vco,   ///< Pitch depth
-                destination_vcfc,  ///< Filter curoff frequency
-                destination_vcfr,  ///< Filter resonance
-                destination_count  ///< Total number of modulation destinations (this has to stay the last element in the enum)
-            };
             union {
                 /// Note-on and note-off event specifics
                 struct _Note {

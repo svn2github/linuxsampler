@@ -29,9 +29,6 @@
 /* Define min. filter cutoff frequency. */
 #define CONFIG_FILTER_CUTOFF_MIN 100.0f
 
-/* Define amount of steps to refresh filter coefficients. */
-#define CONFIG_FILTER_UPDATE_STEPS 64
-
 /* Define to 1 to force filter usage. */
 /* #undef CONFIG_FORCE_FILTER */
 
@@ -46,6 +43,9 @@
 
 /* Define max. voices. */
 #define CONFIG_MAX_VOICES 64
+
+/* Define default subfragment size (in sample points). */
+#define CONFIG_DEFAULT_SUBFRAGMENT_SIZE 32
 
 /* Define to a MIDI controller number to override cutoff control. */
 /* #undef CONFIG_OVERRIDE_CUTOFF_CTRL */

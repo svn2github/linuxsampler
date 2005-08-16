@@ -36,7 +36,6 @@
 #include "../../common/ConditionServer.h"
 #include "../common/Engine.h"
 #include "../common/Event.h"
-#include "../common/BiquadFilter.h"
 #include "../../network/lscp.h"
 #include "EngineChannel.h"
 
@@ -93,9 +92,6 @@ namespace LinuxSampler { namespace gig {
             RTList<Event>*          pGlobalEvents;         ///< All engine global events for the current audio fragment (usually only SysEx messages).
             Pool<Event>*            pEventPool;            ///< Contains all Event objects that can be used.
             RingBuffer<uint8_t>*    pSysexBuffer;          ///< Input buffer for MIDI system exclusive messages.
-            float*                  pSynthesisParameters[Event::destination_count]; ///< Matrix with final synthesis parameters for the current audio fragment which will be used in the main synthesis loop.
-            biquad_param_t*         pBasicFilterParameters; ///< Biquad parameters of the basic bandpass filter.
-            biquad_param_t*         pMainFilterParameters;  ///< Main biquad parameters of the individual filter (lowpass / bandpass / highpass).
             int                     ActiveVoiceCount;      ///< number of currently active voices (this value will be returned for public calls)
             int                     ActiveVoiceCountTemp;  ///< number of currently active voices (for internal usage, will be used for incrementation)
             int                     ActiveVoiceCountMax;   ///< the maximum voice usage since application start
@@ -126,7 +122,6 @@ namespace LinuxSampler { namespace gig {
             int  StealVoice(EngineChannel* pEngineChannel, Pool<Event>::Iterator& itNoteOnEvent);
             void FreeVoice(EngineChannel* pEngineChannel, Pool<Voice>::Iterator& itVoice);
             void FreeKey(EngineChannel* pEngineChannel, midi_key_info_t* pKey);
-            void ResetSynthesisParameters(Event::destination_t dst, float val);
             void ResetInternal();
             void ResetScaleTuning();
 
@@ -136,11 +131,6 @@ namespace LinuxSampler { namespace gig {
             void DisableAndLock(); // FIXME: should at least be protected
 
             friend class Voice;
-            friend class EGADSR;
-            friend class EGDecay;
-            friend class VCAManipulator;
-            friend class VCFCManipulator;
-            friend class VCOManipulator;
         private:
             ArrayList<EngineChannel*> engineChannels; ///< All engine channels of a gig::Engine instance.
 

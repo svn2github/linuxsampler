@@ -69,15 +69,15 @@
 #ifndef CONFIG_MAX_VOICES
 # error "Configuration macro CONFIG_MAX_VOICES not defined!"
 #endif // CONFIG_MAX_VOICES
+#ifndef CONFIG_DEFAULT_SUBFRAGMENT_SIZE
+# error "Configuration macro CONFIG_DEFAULT_SUBFRAGMENT_SIZE not defined!"
+#endif // CONFIG_DEFAULT_SUBFRAGMENT_SIZE
 #ifndef CONFIG_VOICE_STEAL_ALGO
 # error "Configuration macro CONFIG_VOICE_STEAL_ALGO not defined!"
 #endif // CONFIG_VOICE_STEAL_ALGO
 #ifndef CONFIG_SYSEX_BUFFER_SIZE
 # error "Configuration macro CONFIG_SYSEX_BUFFER_SIZE not defined!"
 #endif // CONFIG_SYSEX_BUFFER_SIZE
-#ifndef CONFIG_FILTER_UPDATE_STEPS
-# error "Configuration macro CONFIG_FILTER_UPDATE_STEPS not defined!"
-#endif // CONFIG_FILTER_UPDATE_STEPS
 #ifndef CONFIG_FILTER_CUTOFF_MIN
 # error "Configuration macro CONFIG_FILTER_CUTOFF_MIN not defined!"
 #endif // CONFIG_FILTER_CUTOFF_MIN

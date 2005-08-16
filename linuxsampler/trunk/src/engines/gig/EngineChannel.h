@@ -93,8 +93,6 @@ namespace LinuxSampler { namespace gig {
             midi_chan_t             midiChannel;              ///< MIDI channel(s) on which this engine channel listens to.
             RingBuffer<Event>*      pEventQueue;              ///< Input event queue.
             RTList<Event>*          pEvents;                  ///< All engine channel specific events for the current audio fragment.
-            RTList<Event>*          pCCEvents;                ///< All control change events for the current audio fragment on this engine channel.
-            RTList<Event>*          pSynthesisEvents[Event::destination_count]; ///< Events directly affecting synthesis parameters (like pitch, volume and filter).
             uint8_t                 ControllerTable[128];     ///< Reflects the current values (0-127) of all MIDI controllers for this engine / sampler channel.
             midi_key_info_t*        pMIDIKeyInfo;             ///< Contains all active voices sorted by MIDI key number and other informations to the respective MIDI key
             Pool<uint>*             pActiveKeys;              ///< Holds all keys in it's allocation list with active voices.
