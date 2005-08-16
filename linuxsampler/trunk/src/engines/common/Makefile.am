@@ -8,6 +8,9 @@ liblinuxsamplercommonengine_la_SOURCES = \
 	BiquadFilter.h \
 	Engine.h \
 	Event.cpp Event.h \
-	LFO.h \
+	LFOBase.h \
+	LFOTriangleDiHarmonic.h \
+	LFOTriangleIntAbsMath.h \
+	LFOTriangleIntMath.h \
 	Resampler.h \
 	EngineChannel.cpp EngineChannel.h
