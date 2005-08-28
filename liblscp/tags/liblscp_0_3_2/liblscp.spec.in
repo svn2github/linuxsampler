@@ -1,0 +1,106 @@
+
+%define name    @PACKAGE@
+%define version @VERSION@
+%define release 9
+%define prefix  @prefix@
+
+Summary:	LinuxSampler control protocol API.
+Name:		%{name}
+Version:	%{version}
+Release:	%{release}
+Prefix:		%{prefix}
+Copyright:	LGPL
+Group:		Sound
+Source0:	%{name}-%{version}.tar.gz
+URL:		http://www.linuxsampler.org/
+BuildRoot:	/var/tmp/%{name}-%{version}-buildroot
+
+%description
+LinuxSampler control protocol API.
+
+%package devel
+Summary:	LinuxSampler control protocol API libraries and include files.
+Group:		Development/Libraries
+Requires:	%{name} = %{version}
+
+%description devel
+LinuxSampler control protocol API libraries and include files.
+
+%prep
+
+%setup
+if [ -f Makefile.cvs ]; then make -f Makefile.cvs; fi
+
+%build
+./configure --prefix=%{prefix}
+make
+
+%install
+if [ -d $RPM_BUILD_ROOT ]; then rm -rf $RPM_BUILD_ROOT; fi
+mkdir -p $RPM_BUILD_ROOT
+make prefix=$RPM_BUILD_ROOT%{prefix} install
+
+%clean
+if [ -d $RPM_BUILD_ROOT ]; then rm -rf $RPM_BUILD_ROOT; fi
+
+%files
+%defattr(-,root,root)
+%doc AUTHORS COPYING ChangeLog NEWS README TODO
+%{prefix}/lib/liblscp.so*
+
+%files devel
+%defattr(-,root,root)
+%doc doc/html/*
+%{prefix}/lib/liblscp.a
+%{prefix}/lib/liblscp.la
+%{prefix}/lib/pkgconfig/lscp.pc
+%{prefix}/include/lscp
+
+%changelog
+* Mon Aug 29 2005 Rui Nuno Capela <rncbc@users.sourceforge.net>
+- Fixed for 0.3.2 release.
+
+* Tue Aug 10 2005 Rui Nuno Capela <rncbc@users.sourceforge.net>
+- Prepare 0.3.1 release for sampler channel mute/solo support.
+
+* Thu Jun 10 2005 Rui Nuno Capela <rncbc@users.sourceforge.net>
+- Prepare 0.3.0 release featuring timeout flush idiosyncrasies.
+
+* Sun May 22 2005 Rui Nuno Capela <rncbc@users.sourceforge.net>
+- Prepare 0.2.9 release due to event subscription LSCP command changes.
+
+* Tue May  6 2005 Rui Nuno Capela <rncbc@users.sourceforge.net>
+- Prepare 0.2.8 release in response to [bug #9].
+
+* Tue Mar 10 2005 Rui Nuno Capela <rncbc@users.sourceforge.net>
+- Prepare 0.2.7 yet another bug-fix release.
+
+* Tue Mar  1 2005 Rui Nuno Capela <rncbc@users.sourceforge.net>
+- Prepare 0.2.6 bug-fix release.
+
+* Tue Feb 14 2005 Rui Nuno Capela <rncbc@users.sourceforge.net>
+- Prepare 0.2.5 release.
+
+* Tue Oct 11 2004 Rui Nuno Capela <rncbc@users.sourceforge.net>
+- Fixed 0.2.4 release.
+
+* Tue Sep 28 2004 Rui Nuno Capela <rncbc@users.sourceforge.net>
+- Fixed 0.2.3 release.
+
+* Tue Jul 29 2004 Rui Nuno Capela <rncbc@users.sourceforge.net>
+- Prepare 0.2.2 release.
+
+* Tue Jul 13 2004 Christian Schoenebeck <cuse@users.sourceforge.net>
+- renamed 'liblscp.pc' to 'lscp.pc' as well as the pkg-config lib name
+
+* Thu Jul  8 2004 Rui Nuno Capela <rncbc@users.sourceforge.net>
+- Prepare 0.2.1 bugfix release.
+
+* Tue Jul  6 2004 Rui Nuno Capela <rncbc@users.sourceforge.net>
+- Catch up on 0.2.0 release.
+
+* Mon Apr 26 2004 Rui Nuno Capela <rncbc@users.sourceforge.net>
+- Server stuff moved out (stays on examples source package)
+
+* Sat Apr 24 2004 Rui Nuno Capela <rncbc@users.sourceforge.net>
+- Created initial liblscp.spec.in
