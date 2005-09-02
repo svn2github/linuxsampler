@@ -74,8 +74,8 @@ namespace LinuxSampler { namespace gig {
                 break;
             case stage_decay1_part1:
                 switch (Event) {
-                    case stage_end:
-                        enterDecay1Part2Stage();
+                    case event_stage_end:
+                        enterDecay1Part2Stage(SampleRate);
                         break;
                     case event_release:
                         enterReleasePart1Stage();
@@ -162,8 +162,6 @@ namespace LinuxSampler { namespace gig {
 
     void EGADSR::trigger(uint PreAttack, float AttackTime, bool HoldAttack, long LoopStart, float Decay1Time, double Decay2Time, bool InfiniteSustain, uint SustainLevel, float ReleaseTime, float Volume, uint SampleRate) {
 
-        enterAttackStage(PreAttack, AttackTime, SampleRate, 0.0, 1.0f);
-
         if (SustainLevel) {
             this->SustainLevel = SustainLevel / 1000.0;
         } else {
@@ -191,6 +189,8 @@ namespace LinuxSampler { namespace gig {
         ReleaseCoeff2 = exp(ReleaseSlope);
         ReleaseCoeff3 = ExpOffset * (1 - ReleaseCoeff2);
         ReleaseLevel2 = 0.25 * invVolume;
+
+        enterAttackStage(PreAttack, AttackTime, SampleRate, 0.0, 1.0f);
     }
 
     void EGADSR::enterAttackStage(const uint PreAttack, const float AttackTime, const uint SampleRate, const double SamplePos, const float CurrentPitch) {
@@ -203,6 +203,7 @@ namespace LinuxSampler { namespace gig {
             Level = (float) PreAttack / 1000.0;
             Coeff = 0.896f * (1.0f - Level) / StepsLeft; // max level is a bit lower if attack != 0
         } else { // immediately jump to the next stage
+            Level = 1.0;
             if (HoldAttack) enterAttackHoldStage(SamplePos, CurrentPitch);
             else            enterDecay1Part1Stage(SampleRate);
         }
@@ -233,22 +234,26 @@ namespace LinuxSampler { namespace gig {
             Decay1Slope  = 1.365 * (SustainLevel - 1.0) / StepsLeft;
             Coeff        = Decay1Slope * invVolume;
             Decay1Level2 = 0.25 * invVolume;
-            StepsLeft    = int((RTMath::Max(Decay1Level2, SustainLevel) - Level) / Coeff);
+            if (Level < Decay1Level2) enterDecay1Part2Stage(SampleRate);
+            else StepsLeft = int((RTMath::Max(Decay1Level2, SustainLevel) - Level) / Coeff);
         } else {
-            Level = SustainLevel;
             if (InfiniteSustain) enterSustainStage();
             else                 enterDecay2Stage(SampleRate);
         }
     }
 
-    void EGADSR::enterDecay1Part2Stage() {
-        Stage   = stage_decay1_part2;
-        Segment = segment_exp;
-        Decay1Slope *= 3.55;
-        Coeff  = exp(Decay1Slope);
-        Offset = ExpOffset * (1 - Coeff);
-        Level  = Decay1Level2;
-        StepsLeft = int(log((SustainLevel - ExpOffset) / (Level - ExpOffset)) / Decay1Slope);
+    void EGADSR::enterDecay1Part2Stage(const uint SampleRate) {
+        if (SustainLevel < Decay1Level2) {
+            Stage   = stage_decay1_part2;
+            Segment = segment_exp;
+            Decay1Slope *= 3.55;
+            Coeff  = exp(Decay1Slope);
+            Offset = ExpOffset * (1 - Coeff);
+            StepsLeft = int(log((SustainLevel - ExpOffset) / (Level - ExpOffset)) / Decay1Slope);
+        } else {
+            if (InfiniteSustain) enterSustainStage();
+            else                 enterDecay2Stage(SampleRate);
+        }
     }
 
     void EGADSR::enterDecay2Stage(const uint SampleRate) {
@@ -259,6 +264,7 @@ namespace LinuxSampler { namespace gig {
         Coeff      = (-1.03 / StepsLeft) * invVolume;
         //FIXME: do we really have to calculate 'StepsLeft' two times?
         StepsLeft  = int((CONFIG_EG_BOTTOM - Level) / Coeff);
+        if (StepsLeft == 0) enterEndStage();
     }
 
     void EGADSR::enterSustainStage() {
@@ -289,6 +295,7 @@ namespace LinuxSampler { namespace gig {
         Segment   = segment_lin;
         StepsLeft = int(Level / (-FadeOutCoeff));
         Coeff     = FadeOutCoeff;
+        if (StepsLeft == 0) enterEndStage();
     }
 
     void EGADSR::enterEndStage() {

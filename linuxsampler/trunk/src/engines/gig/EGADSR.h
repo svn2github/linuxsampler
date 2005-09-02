@@ -210,7 +210,7 @@ class EGADSR {
         void enterAttackStage(const uint PreAttack, const float AttackTime, const uint SampleRate, const double SamplePos, const float CurrentPitch);
         void enterAttackHoldStage(const double SamplePos, const float CurrentPitch);
         void enterDecay1Part1Stage(const uint SampleRate);
-        void enterDecay1Part2Stage();
+        void enterDecay1Part2Stage(const uint SampleRate);
         void enterDecay2Stage(const uint SampleRate);
         void enterSustainStage();
         void enterReleasePart1Stage();

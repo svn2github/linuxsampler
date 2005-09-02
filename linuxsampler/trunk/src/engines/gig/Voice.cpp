@@ -739,32 +739,32 @@ namespace LinuxSampler { namespace gig {
     void Voice::Synthesize(uint Samples, sample_t* pSrc, uint Skip) {
         RTList<Event>::Iterator itCCEvent = pEngineChannel->pEvents->first();
         RTList<Event>::Iterator itNoteEvent = pEngineChannel->pMIDIKeyInfo[MIDIKey].pEvents->first();
-                
+
         if (Skip) { // skip events that happened before this voice was triggered
             while (itCCEvent && itCCEvent->FragmentPos() <= Skip) ++itCCEvent;
             while (itNoteEvent && itNoteEvent->FragmentPos() <= Skip) ++itNoteEvent;
         }
-        
+
         uint i = Skip;
         while (i < Samples) {
             int iSubFragmentEnd = RTMath::Min(i + CONFIG_DEFAULT_SUBFRAGMENT_SIZE, Samples);
-            
+
             // initialize all final synthesis parameters
             fFinalPitch = PitchBase * PitchBend;
             #if CONFIG_PROCESS_MUTED_CHANNELS
-            fFinalVolume = this->Volume * this->CrossfadeVolume * (pEngineChannel->GetMute() ? 0 : pEngineChannel->GlobalVolume));
+            fFinalVolume = this->Volume * this->CrossfadeVolume * (pEngineChannel->GetMute() ? 0 : pEngineChannel->GlobalVolume);
             #else
             fFinalVolume = this->Volume * this->CrossfadeVolume * pEngineChannel->GlobalVolume;
             #endif
             fFinalCutoff    = VCFCutoffCtrl.fvalue;
             fFinalResonance = VCFResonanceCtrl.fvalue;
-            
+
             // process MIDI control change and pitchbend events for this subfragment
             processCCEvents(itCCEvent, iSubFragmentEnd);
 
             // process transition events (note on, note off & sustain pedal)
             processTransitionEvents(itNoteEvent, iSubFragmentEnd);
-            
+
             // process envelope generators
             switch (EG1.getSegmentType()) {
                 case EGADSR::segment_lin:
@@ -789,7 +789,7 @@ namespace LinuxSampler { namespace gig {
                     break; // noop
             }
             fFinalPitch *= RTMath::CentsToFreqRatio(EG3.render());
-            
+
             // process low frequency oscillators
             if (bLFO1Enabled) fFinalVolume *= pLFO1->render();
             if (bLFO2Enabled) fFinalCutoff *= pLFO2->render();
@@ -803,24 +803,26 @@ namespace LinuxSampler { namespace gig {
 
             // how many steps do we calculate for this next subfragment
             const int steps = iSubFragmentEnd - i;
-            
+
             // select the appropriate synthesis mode
             SYNTHESIS_MODE_SET_INTERPOLATE(SynthesisMode, fFinalPitch != 1.0f);
-            
+
             // render audio for one subfragment
             RunSynthesisFunction(SynthesisMode, *this, iSubFragmentEnd, pSrc, i);
 
-            // increment envelopes' positions            
+            // increment envelopes' positions
             if (EG1.active()) {
-                EG1.increment(steps);
+                EG1.increment(1);
                 if (!EG1.toStageEndLeft()) EG1.update(EGADSR::event_stage_end, this->Pos, fFinalPitch, pEngine->SampleRate / CONFIG_DEFAULT_SUBFRAGMENT_SIZE);
             }
             if (EG2.active()) {
-                EG2.increment(steps);
+                EG2.increment(1);
                 if (!EG2.toStageEndLeft()) EG2.update(EGADSR::event_stage_end, this->Pos, fFinalPitch, pEngine->SampleRate / CONFIG_DEFAULT_SUBFRAGMENT_SIZE);
             }
-            EG3.increment(steps);
+            EG3.increment(1);
             if (!EG3.toEndLeft()) EG3.update(); // neutralize envelope coefficient if end reached
+
+            i = iSubFragmentEnd;
         }
     }
 
