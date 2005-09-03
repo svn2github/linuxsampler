@@ -703,7 +703,6 @@ namespace LinuxSampler { namespace gig {
      */
     void Engine::ProcessPitchbend(EngineChannel* pEngineChannel, Pool<Event>::Iterator& itPitchbendEvent) {
         pEngineChannel->Pitch = itPitchbendEvent->Param.Pitch.Pitch; // store current pitch value
-        itPitchbendEvent.moveToEndOf(pEngineChannel->pEvents);
     }
 
     /**
@@ -1140,25 +1139,22 @@ namespace LinuxSampler { namespace gig {
         // update controller value in the engine channel's controller table
         pEngineChannel->ControllerTable[itControlChangeEvent->Param.CC.Controller] = itControlChangeEvent->Param.CC.Value;
 
-        // move event from the import event list to the engine channel's CC and pitchbend event list
-        Pool<Event>::Iterator itControlChangeEventOnCCList = itControlChangeEvent.moveToEndOf(pEngineChannel->pEvents);
-
-        switch (itControlChangeEventOnCCList->Param.CC.Controller) {
+        switch (itControlChangeEvent->Param.CC.Controller) {
             case 7: { // volume
                 //TODO: not sample accurate yet
-                pEngineChannel->GlobalVolume = (float) itControlChangeEventOnCCList->Param.CC.Value / 127.0f;
+                pEngineChannel->GlobalVolume = (float) itControlChangeEvent->Param.CC.Value / 127.0f;
                 pEngineChannel->bStatusChanged = true; // engine channel status has changed, so set notify flag
                 break;
             }
             case 10: { // panpot
                 //TODO: not sample accurate yet
-                const int pan = (int) itControlChangeEventOnCCList->Param.CC.Value - 64;
+                const int pan = (int) itControlChangeEvent->Param.CC.Value - 64;
                 pEngineChannel->GlobalPanLeft  = 1.0f - float(RTMath::Max(pan, 0)) /  63.0f;
                 pEngineChannel->GlobalPanRight = 1.0f - float(RTMath::Min(pan, 0)) / -64.0f;
                 break;
             }
             case 64: { // sustain
-                if (itControlChangeEventOnCCList->Param.CC.Value >= 64 && !pEngineChannel->SustainPedal) {
+                if (itControlChangeEvent->Param.CC.Value >= 64 && !pEngineChannel->SustainPedal) {
                     dmsg(4,("PEDAL DOWN\n"));
                     pEngineChannel->SustainPedal = true;
 
@@ -1173,14 +1169,14 @@ namespace LinuxSampler { namespace gig {
                         if (!pKey->KeyPressed) {
                             RTList<Event>::Iterator itNewEvent = pKey->pEvents->allocAppend();
                             if (itNewEvent) {
-                                *itNewEvent = *itControlChangeEventOnCCList; // copy event to the key's own event list
+                                *itNewEvent = *itControlChangeEvent; // copy event to the key's own event list
                                 itNewEvent->Type = Event::type_cancel_release; // transform event type
                             }
                             else dmsg(1,("Event pool emtpy!\n"));
                         }
                     }
                 }
-                if (itControlChangeEventOnCCList->Param.CC.Value < 64 && pEngineChannel->SustainPedal) {
+                if (itControlChangeEvent->Param.CC.Value < 64 && pEngineChannel->SustainPedal) {
                     dmsg(4,("PEDAL UP\n"));
                     pEngineChannel->SustainPedal = false;
 
@@ -1195,7 +1191,7 @@ namespace LinuxSampler { namespace gig {
                         if (!pKey->KeyPressed) {
                             RTList<Event>::Iterator itNewEvent = pKey->pEvents->allocAppend();
                             if (itNewEvent) {
-                                *itNewEvent = *itControlChangeEventOnCCList; // copy event to the key's own event list
+                                *itNewEvent = *itControlChangeEvent; // copy event to the key's own event list
                                 itNewEvent->Type = Event::type_release; // transform event type
                             }
                             else dmsg(1,("Event pool emtpy!\n"));
@@ -1209,7 +1205,7 @@ namespace LinuxSampler { namespace gig {
             // Channel Mode Messages
 
             case 120: { // all sound off
-                KillAllVoices(pEngineChannel, itControlChangeEventOnCCList);
+                KillAllVoices(pEngineChannel, itControlChangeEvent);
                 break;
             }
             case 121: { // reset all controllers
@@ -1217,7 +1213,7 @@ namespace LinuxSampler { namespace gig {
                 break;
             }
             case 123: { // all notes off
-                ReleaseAllVoices(pEngineChannel, itControlChangeEventOnCCList);
+                ReleaseAllVoices(pEngineChannel, itControlChangeEvent);
                 break;
             }
         }
@@ -1397,7 +1393,7 @@ namespace LinuxSampler { namespace gig {
     }
 
     String Engine::Version() {
-        String s = "$Revision: 1.52 $";
+        String s = "$Revision: 1.53 $";
         return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
 

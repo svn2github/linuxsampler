@@ -693,6 +693,7 @@ namespace LinuxSampler { namespace gig {
     void Voice::processPitchEvent(RTList<Event>::Iterator& itEvent) {
         const float pitch = RTMath::CentsToFreqRatio(((double) itEvent->Param.Pitch.Pitch / 8192.0) * 200.0); // +-two semitones = +-200 cents
         fFinalPitch *= pitch;
+        PitchBend = pitch;
     }
 
     void Voice::processCrossFadeEvent(RTList<Event>::Iterator& itEvent) {
