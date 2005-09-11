@@ -205,7 +205,7 @@
                     <table>
                       <thead>
                         <tr>
-                          <th scope=col><b>Latest Commits LinuxSampler (Engine)</b></th>
+                          <th scope=col>Latest Commits LinuxSampler (Engine)</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -227,7 +227,7 @@
                     <table>
                       <thead>
                         <tr>
-                          <th scope=col><b>Latest Commits QSampler (GUI)</b></th>
+                          <th scope=col>Latest Commits QSampler (GUI)</th>
                         </tr>
                       </thead>
                       <tbody>
