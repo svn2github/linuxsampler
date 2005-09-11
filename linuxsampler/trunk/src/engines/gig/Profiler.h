@@ -46,6 +46,14 @@ namespace LinuxSampler { namespace gig {
 		    profilingTime = 0;
 	    }
 
+		static void enable() {
+		    bEnabled = true;
+		}
+
+		static bool isEnabled() {
+		    return bEnabled;
+		}
+
 	    static unsigned int GetBogoVoices( unsigned int SamplingFreq );
 
 	    static RTMath::time_stamp_t Stamp( void )
@@ -67,6 +75,7 @@ namespace LinuxSampler { namespace gig {
 	    static unsigned long long profilingSamples;
 	    static unsigned long long profilingTime;
 	    static double tsPerSecond;
+	    static bool bEnabled;
     };
 
 }} // namespace LinuxSampler::gig

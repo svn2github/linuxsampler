@@ -41,6 +41,7 @@
 #include "EGDecay.h"
 #include "Filter.h"
 #include "../common/LFOBase.h"
+#include "SynthesisParam.h"
 
 // include the appropriate (unsigned) triangle LFO implementation
 #if CONFIG_UNSIGNED_TRIANG_ALGO == INT_MATH_SOLUTION
@@ -137,7 +138,7 @@ namespace LinuxSampler { namespace gig {
             float                       PanLeft;
             float                       PanRight;
             float                       CrossfadeVolume;    ///< Current attenuation level caused by a crossfade (only if a crossfade is defined of course)
-            double                      Pos;                ///< Current playback position in sample
+            //double                      Pos;                ///< Current playback position in sample
             float                       PitchBase;          ///< Basic pitch depth, stays the same for the whole life time of the voice
             float                       PitchBend;          ///< Current pitch value of the pitchbend wheel
             float                       CutoffBase;         ///< Cutoff frequency before control change, EG and LFO are applied
@@ -149,13 +150,11 @@ namespace LinuxSampler { namespace gig {
             int                         RealSampleWordsLeftToRead; ///< Number of samples left to read, not including the silence added for the interpolator
             unsigned long               MaxRAMPos;          ///< The upper allowed limit (not actually the end) in the RAM sample cache, after that point it's not safe to chase the interpolator another time over over the current cache position, instead we switch to disk then.
             bool                        RAMLoop;            ///< If this voice has a loop defined which completely fits into the cached RAM part of the sample, in this case we handle the looping within the voice class, else if the loop is located in the disk stream part, we let the disk stream handle the looping
-            uint                        LoopCyclesLeft;     ///< In case there is a RAMLoop and it's not an endless loop; reflects number of loop cycles left to be passed
+            //uint                        LoopCyclesLeft;     ///< In case there is a RAMLoop and it's not an endless loop; reflects number of loop cycles left to be passed
             uint                        Delay;              ///< Number of sample points the rendering process of this voice should be delayed (jitter correction), will be set to 0 after the first audio fragment cycle
             EGADSR                      EG1;                ///< Envelope Generator 1 (Amplification)
             EGADSR                      EG2;                ///< Envelope Generator 2 (Filter cutoff frequency)
             EGDecay                     EG3;                ///< Envelope Generator 3 (Pitch)
-            Filter                      FilterLeft;
-            Filter                      FilterRight;
             midi_ctrl                   VCFCutoffCtrl;
             midi_ctrl                   VCFResonanceCtrl;
             static const float          FILTER_CUTOFF_COEFF;
@@ -170,12 +169,11 @@ namespace LinuxSampler { namespace gig {
             Pool<Event>::Iterator       itKillEvent;         ///< Event which caused this voice to be killed
         //private:
             int                         SynthesisMode;
-
-
-            float                       fFinalPitch;
             float                       fFinalVolume;
             float                       fFinalCutoff;
             float                       fFinalResonance;
+            SynthesisParam              finalSynthesisParameters;
+            Loop                        loop;
 
             // Static Methods
             static float CalculateFilterCutoffCoeff();

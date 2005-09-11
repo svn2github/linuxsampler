@@ -28,6 +28,7 @@ namespace LinuxSampler { namespace gig {
 	unsigned long long Profiler::profilingSamples = 0;
 	unsigned long long Profiler::profilingTime = 0;
 	double Profiler::tsPerSecond = 0;
+	bool Profiler::bEnabled = false;
 
 	void Profiler::Calibrate( void )
 	{

@@ -23,6 +23,7 @@
 
 #include "../../common/Features.h"
 #include "Synthesizer.h"
+#include "Profiler.h"
 
 #include "Voice.h"
 
@@ -49,10 +50,10 @@ namespace LinuxSampler { namespace gig {
         #else
         SYNTHESIS_MODE_SET_IMPLEMENTATION(SynthesisMode, false);
         #endif
-        SYNTHESIS_MODE_SET_PROFILING(SynthesisMode, true);
+        SYNTHESIS_MODE_SET_PROFILING(SynthesisMode, Profiler::isEnabled());
 
-        FilterLeft.Reset();
-        FilterRight.Reset();
+        finalSynthesisParameters.filterLeft.Reset();
+        finalSynthesisParameters.filterRight.Reset();
     }
 
     Voice::~Voice() {
@@ -138,7 +139,7 @@ namespace LinuxSampler { namespace gig {
         PanLeft  = 1.0f - float(RTMath::Max(pDimRgn->Pan, 0)) /  63.0f;
         PanRight = 1.0f - float(RTMath::Min(pDimRgn->Pan, 0)) / -64.0f;
 
-        Pos = pDimRgn->SampleStartOffset; // offset where we should start playback of sample (0 - 2000 sample points)
+        finalSynthesisParameters.dPos = pDimRgn->SampleStartOffset; // offset where we should start playback of sample (0 - 2000 sample points)
 
         // Check if the sample needs disk streaming or is too short for that
         long cachedsamples = pSample->GetCache().Size / pSample->FrameSize;
@@ -149,8 +150,12 @@ namespace LinuxSampler { namespace gig {
 
             // check if there's a loop defined which completely fits into the cached (RAM) part of the sample
             if (pSample->Loops && pSample->LoopEnd <= MaxRAMPos) {
-                RAMLoop        = true;
-                LoopCyclesLeft = pSample->LoopPlayCount;
+                RAMLoop            = true;
+                loop.uiTotalCycles = pSample->LoopPlayCount;
+                loop.uiCyclesLeft  = pSample->LoopPlayCount;
+                loop.uiStart       = pSample->LoopStart;
+                loop.uiEnd         = pSample->LoopEnd;
+                loop.uiSize        = pSample->LoopSize;
             }
             else RAMLoop = false;
 
@@ -164,8 +169,8 @@ namespace LinuxSampler { namespace gig {
         else { // RAM only voice
             MaxRAMPos = cachedsamples;
             if (pSample->Loops) {
-                RAMLoop        = true;
-                LoopCyclesLeft = pSample->LoopPlayCount;
+                RAMLoop           = true;
+                loop.uiCyclesLeft = pSample->LoopPlayCount;
             }
             else RAMLoop = false;
             dmsg(4,("RAM only voice launched (Looping: %s)\n", (RAMLoop) ? "yes" : "no"));
@@ -469,8 +474,8 @@ namespace LinuxSampler { namespace gig {
             #endif // CONFIG_OVERRIDE_RESONANCE_CTRL
 
             #ifndef CONFIG_OVERRIDE_FILTER_TYPE
-            FilterLeft.SetType(pDimRgn->VCFType);
-            FilterRight.SetType(pDimRgn->VCFType);
+            finalSynthesisParameters.filterLeft.SetType(pDimRgn->VCFType);
+            finalSynthesisParameters.filterRight.SetType(pDimRgn->VCFType);
             #else // override filter type
             FilterLeft.SetType(CONFIG_OVERRIDE_FILTER_TYPE);
             FilterRight.SetType(CONFIG_OVERRIDE_FILTER_TYPE);
@@ -547,12 +552,11 @@ namespace LinuxSampler { namespace gig {
 
                     if (DiskVoice) {
                         // check if we reached the allowed limit of the sample RAM cache
-                        if (Pos > MaxRAMPos) {
-                            dmsg(5,("Voice: switching to disk playback (Pos=%f)\n", Pos));
+                        if (finalSynthesisParameters.dPos > MaxRAMPos) {
+                            dmsg(5,("Voice: switching to disk playback (Pos=%f)\n", finalSynthesisParameters.dPos));
                             this->PlaybackState = playback_state_disk;
                         }
-                    }
-                    else if (Pos >= pSample->GetCache().Size / pSample->FrameSize) {
+                    } else if (finalSynthesisParameters.dPos >= pSample->GetCache().Size / pSample->FrameSize) {
                         this->PlaybackState = playback_state_end;
                     }
                 }
@@ -567,8 +571,8 @@ namespace LinuxSampler { namespace gig {
                             KillImmediately();
                             return;
                         }
-                        DiskStreamRef.pStream->IncrementReadPos(pSample->Channels * (int(Pos) - MaxRAMPos));
-                        Pos -= int(Pos);
+                        DiskStreamRef.pStream->IncrementReadPos(pSample->Channels * (int(finalSynthesisParameters.dPos) - MaxRAMPos));
+                        finalSynthesisParameters.dPos -= int(finalSynthesisParameters.dPos);
                         RealSampleWordsLeftToRead = -1; // -1 means no silence has been added yet
                     }
 
@@ -589,10 +593,10 @@ namespace LinuxSampler { namespace gig {
                     // render current audio fragment
                     Synthesize(Samples, ptr, Delay);
 
-                    const int iPos = (int) Pos;
+                    const int iPos = (int) finalSynthesisParameters.dPos;
                     const int readSampleWords = iPos * pSample->Channels; // amount of sample words actually been read
                     DiskStreamRef.pStream->IncrementReadPos(readSampleWords);
-                    Pos -= iPos; // just keep fractional part of Pos
+                    finalSynthesisParameters.dPos -= iPos; // just keep fractional part of playback position
 
                     // change state of voice to 'end' if we really reached the end of the sample data
                     if (RealSampleWordsLeftToRead >= 0) {
@@ -624,8 +628,8 @@ namespace LinuxSampler { namespace gig {
      *  suspended / not running.
      */
     void Voice::Reset() {
-        FilterLeft.Reset();
-        FilterRight.Reset();
+        finalSynthesisParameters.filterLeft.Reset();
+        finalSynthesisParameters.filterRight.Reset();
         DiskStreamRef.pStream = NULL;
         DiskStreamRef.hStream = 0;
         DiskStreamRef.State   = Stream::state_unused;
@@ -645,11 +649,11 @@ namespace LinuxSampler { namespace gig {
     void Voice::processTransitionEvents(RTList<Event>::Iterator& itEvent, uint End) {
         for (; itEvent && itEvent->FragmentPos() <= End; ++itEvent) {
             if (itEvent->Type == Event::type_release) {
-                EG1.update(EGADSR::event_release, this->Pos, fFinalPitch, pEngine->SampleRate / CONFIG_DEFAULT_SUBFRAGMENT_SIZE);
-                EG2.update(EGADSR::event_release, this->Pos, fFinalPitch, pEngine->SampleRate / CONFIG_DEFAULT_SUBFRAGMENT_SIZE);
+                EG1.update(EGADSR::event_release, finalSynthesisParameters.dPos, finalSynthesisParameters.fFinalPitch, pEngine->SampleRate / CONFIG_DEFAULT_SUBFRAGMENT_SIZE);
+                EG2.update(EGADSR::event_release, finalSynthesisParameters.dPos, finalSynthesisParameters.fFinalPitch, pEngine->SampleRate / CONFIG_DEFAULT_SUBFRAGMENT_SIZE);
             } else if (itEvent->Type == Event::type_cancel_release) {
-                EG1.update(EGADSR::event_cancel_release, this->Pos, fFinalPitch, pEngine->SampleRate / CONFIG_DEFAULT_SUBFRAGMENT_SIZE);
-                EG2.update(EGADSR::event_cancel_release, this->Pos, fFinalPitch, pEngine->SampleRate / CONFIG_DEFAULT_SUBFRAGMENT_SIZE);
+                EG1.update(EGADSR::event_cancel_release, finalSynthesisParameters.dPos, finalSynthesisParameters.fFinalPitch, pEngine->SampleRate / CONFIG_DEFAULT_SUBFRAGMENT_SIZE);
+                EG2.update(EGADSR::event_cancel_release, finalSynthesisParameters.dPos, finalSynthesisParameters.fFinalPitch, pEngine->SampleRate / CONFIG_DEFAULT_SUBFRAGMENT_SIZE);
             }
         }
     }
@@ -692,7 +696,7 @@ namespace LinuxSampler { namespace gig {
 
     void Voice::processPitchEvent(RTList<Event>::Iterator& itEvent) {
         const float pitch = RTMath::CentsToFreqRatio(((double) itEvent->Param.Pitch.Pitch / 8192.0) * 200.0); // +-two semitones = +-200 cents
-        fFinalPitch *= pitch;
+        finalSynthesisParameters.fFinalPitch *= pitch;
         PitchBend = pitch;
     }
 
@@ -738,6 +742,10 @@ namespace LinuxSampler { namespace gig {
      *  @param Skip    - number of sample points to skip in output buffer
      */
     void Voice::Synthesize(uint Samples, sample_t* pSrc, uint Skip) {
+        finalSynthesisParameters.pOutLeft  = &pEngineChannel->pOutputLeft[Skip];
+        finalSynthesisParameters.pOutRight = &pEngineChannel->pOutputRight[Skip];
+        finalSynthesisParameters.pSrc      = pSrc;
+
         RTList<Event>::Iterator itCCEvent = pEngineChannel->pEvents->first();
         RTList<Event>::Iterator itNoteEvent = pEngineChannel->pMIDIKeyInfo[MIDIKey].pEvents->first();
 
@@ -751,7 +759,7 @@ namespace LinuxSampler { namespace gig {
             int iSubFragmentEnd = RTMath::Min(i + CONFIG_DEFAULT_SUBFRAGMENT_SIZE, Samples);
 
             // initialize all final synthesis parameters
-            fFinalPitch = PitchBase * PitchBend;
+            finalSynthesisParameters.fFinalPitch = PitchBase * PitchBend;
             #if CONFIG_PROCESS_MUTED_CHANNELS
             fFinalVolume = this->Volume * this->CrossfadeVolume * (pEngineChannel->GetMute() ? 0 : pEngineChannel->GlobalVolume);
             #else
@@ -789,36 +797,42 @@ namespace LinuxSampler { namespace gig {
                     fFinalCutoff *= EG2.getLevel();
                     break; // noop
             }
-            fFinalPitch *= RTMath::CentsToFreqRatio(EG3.render());
+            if (EG3.active()) finalSynthesisParameters.fFinalPitch *= RTMath::CentsToFreqRatio(EG3.render());
 
             // process low frequency oscillators
             if (bLFO1Enabled) fFinalVolume *= pLFO1->render();
             if (bLFO2Enabled) fFinalCutoff *= pLFO2->render();
-            if (bLFO3Enabled) fFinalPitch  *= RTMath::CentsToFreqRatio(pLFO3->render());
+            if (bLFO3Enabled) finalSynthesisParameters.fFinalPitch *= RTMath::CentsToFreqRatio(pLFO3->render());
 
             // if filter enabled then update filter coefficients
             if (SYNTHESIS_MODE_GET_FILTER(SynthesisMode)) {
-                FilterLeft.SetParameters(fFinalCutoff, fFinalResonance, pEngine->SampleRate);
-                FilterRight.SetParameters(fFinalCutoff, fFinalResonance, pEngine->SampleRate);
+                finalSynthesisParameters.filterLeft.SetParameters(fFinalCutoff, fFinalResonance, pEngine->SampleRate);
+                finalSynthesisParameters.filterRight.SetParameters(fFinalCutoff, fFinalResonance, pEngine->SampleRate);
             }
 
-            // how many steps do we calculate for this next subfragment
-            const int steps = iSubFragmentEnd - i;
+            // do we need resampling?
+            const float __PLUS_ONE_CENT  = 1.000577789506554859250142541782224725466f;
+            const float __MINUS_ONE_CENT = 0.9994225441413807496009516495583113737666f;
+            const bool bResamplingRequired = !(finalSynthesisParameters.fFinalPitch <= __PLUS_ONE_CENT &&
+                                               finalSynthesisParameters.fFinalPitch >= __MINUS_ONE_CENT);
+            SYNTHESIS_MODE_SET_INTERPOLATE(SynthesisMode, bResamplingRequired);
 
-            // select the appropriate synthesis mode
-            SYNTHESIS_MODE_SET_INTERPOLATE(SynthesisMode, fFinalPitch != 1.0f);
+            // prepare final synthesis parameters structure
+            finalSynthesisParameters.fFinalVolumeLeft  = fFinalVolume * PanLeft;
+            finalSynthesisParameters.fFinalVolumeRight = fFinalVolume * PanRight;
+            finalSynthesisParameters.uiToGo            = iSubFragmentEnd - i;
 
             // render audio for one subfragment
-            RunSynthesisFunction(SynthesisMode, *this, iSubFragmentEnd, pSrc, i);
+            RunSynthesisFunction(SynthesisMode, &finalSynthesisParameters, &loop);
 
             // increment envelopes' positions
             if (EG1.active()) {
                 EG1.increment(1);
-                if (!EG1.toStageEndLeft()) EG1.update(EGADSR::event_stage_end, this->Pos, fFinalPitch, pEngine->SampleRate / CONFIG_DEFAULT_SUBFRAGMENT_SIZE);
+                if (!EG1.toStageEndLeft()) EG1.update(EGADSR::event_stage_end, finalSynthesisParameters.dPos, finalSynthesisParameters.fFinalPitch, pEngine->SampleRate / CONFIG_DEFAULT_SUBFRAGMENT_SIZE);
             }
             if (EG2.active()) {
                 EG2.increment(1);
-                if (!EG2.toStageEndLeft()) EG2.update(EGADSR::event_stage_end, this->Pos, fFinalPitch, pEngine->SampleRate / CONFIG_DEFAULT_SUBFRAGMENT_SIZE);
+                if (!EG2.toStageEndLeft()) EG2.update(EGADSR::event_stage_end, finalSynthesisParameters.dPos, finalSynthesisParameters.fFinalPitch, pEngine->SampleRate / CONFIG_DEFAULT_SUBFRAGMENT_SIZE);
             }
             EG3.increment(1);
             if (!EG3.toEndLeft()) EG3.update(); // neutralize envelope coefficient if end reached

@@ -29,15 +29,14 @@
 #include "../common/Resampler.h"
 #include "../common/BiquadFilter.h"
 #include "Filter.h"
-#include "Voice.h"
-
+#include "SynthesisParam.h"
 
 #define SYNTHESIS_MODE_SET_INTERPOLATE(iMode,bVal)      if (bVal) iMode |= 0x01; else iMode &= ~0x01   /* (un)set mode bit 0 */
 #define SYNTHESIS_MODE_SET_FILTER(iMode,bVal)           if (bVal) iMode |= 0x02; else iMode &= ~0x02   /* (un)set mode bit 1 */
 #define SYNTHESIS_MODE_SET_LOOP(iMode,bVal)             if (bVal) iMode |= 0x04; else iMode &= ~0x04   /* (un)set mode bit 2 */
 #define SYNTHESIS_MODE_SET_CHANNELS(iMode,bVal)         if (bVal) iMode |= 0x08; else iMode &= ~0x08   /* (un)set mode bit 3 */
 #define SYNTHESIS_MODE_SET_IMPLEMENTATION(iMode,bVal)   if (bVal) iMode |= 0x10; else iMode &= ~0x10   /* (un)set mode bit 4 */
-#define SYNTHESIS_MODE_SET_PROFILING(iMode,bVal)   	if (bVal) iMode |= 0x20; else iMode &= ~0x20   /* (un)set mode bit 5 */
+#define SYNTHESIS_MODE_SET_PROFILING(iMode,bVal)        if (bVal) iMode |= 0x20; else iMode &= ~0x20   /* (un)set mode bit 5 */
 
 #define SYNTHESIS_MODE_GET_INTERPOLATE(iMode)           iMode & 0x01
 #define SYNTHESIS_MODE_GET_FILTER(iMode)                iMode & 0x02
@@ -45,19 +44,12 @@
 #define SYNTHESIS_MODE_GET_CHANNELS(iMode)              iMode & 0x08
 #define SYNTHESIS_MODE_GET_IMPLEMENTATION(iMode)        iMode & 0x10
 
-// that's usually gig::Voice of course, but we make it a macro so we can
-// include this code for our synthesis benchmark which uses fake data
-// structures
-#ifndef VOICE
-# define VOICE Voice
-#endif // VOICE
-
 namespace LinuxSampler { namespace gig {
 
-    typedef void SynthesizeFragment_Fn(VOICE&, uint, sample_t*, uint);
+    typedef void SynthesizeFragment_Fn(SynthesisParam* pFinalParam, Loop* pLoop);
 
     void* GetSynthesisFunction(const int SynthesisMode);
-    void RunSynthesisFunction(const int SynthesisMode, VOICE& voice, uint Samples, sample_t* pSrc, uint Skip);
+    void RunSynthesisFunction(const int SynthesisMode, SynthesisParam* pFinalParam, Loop* pLoop);
 
     enum channels_t {
         MONO,
@@ -70,150 +62,63 @@ namespace LinuxSampler { namespace gig {
      * format capable sampler engine. This means resampling / interpolation
      * for pitching the audio signal, looping, filter and amplification.
      */
-    template<implementation_t IMPLEMENTATION, channels_t CHANNELS, bool DOLOOP, bool USEFILTER, bool INTERPOLATE>
-    class Synthesizer : public __RTMath<IMPLEMENTATION>, public LinuxSampler::Resampler<INTERPOLATE> {
+    template<channels_t CHANNELS, bool DOLOOP, bool USEFILTER, bool INTERPOLATE>
+    class Synthesizer : public __RTMath<CPP>, public LinuxSampler::Resampler<INTERPOLATE> {
 
             // declarations of derived functions (see "Name lookup,
             // templates, and accessing members of base classes" in
             // the gcc manual for an explanation of why this is
             // needed).
-            using __RTMath<IMPLEMENTATION>::Mul;
-            using __RTMath<IMPLEMENTATION>::Float;
-            using LinuxSampler::Resampler<INTERPOLATE>::GetNextSampleMonoCPP;
-            using LinuxSampler::Resampler<INTERPOLATE>::GetNextSampleStereoCPP;
-#if CONFIG_ASM && ARCH_X86
-            using LinuxSampler::Resampler<INTERPOLATE>::GetNext4SamplesMonoMMXSSE;
-            using LinuxSampler::Resampler<INTERPOLATE>::GetNext4SamplesStereoMMXSSE;
-#endif
+            using __RTMath<CPP>::Mul;
+            using __RTMath<CPP>::Float;
+            //using LinuxSampler::Resampler<INTERPOLATE>::GetNextSampleMonoCPP;
+            //using LinuxSampler::Resampler<INTERPOLATE>::GetNextSampleStereoCPP;
+            using LinuxSampler::Resampler<INTERPOLATE>::Interpolate1StepMonoCPP;
+            using LinuxSampler::Resampler<INTERPOLATE>::Interpolate1StepStereoCPP;
 
         public:
-            /**
-             * Render audio for the current fragment for the given voice.
-             * This is the toplevel method of this class.
-             */             
-            template<typename VOICE_T>
-            inline static void SynthesizeSubFragment(VOICE_T& Voice, uint Samples, sample_t* pSrc, uint i) {
-                const float panLeft  = Mul(Voice.fFinalVolume, Mul(Voice.PanLeft,  Voice.pEngineChannel->GlobalPanLeft));
-                const float panRight = Mul(Voice.fFinalVolume, Mul(Voice.PanRight, Voice.pEngineChannel->GlobalPanRight));
-                if (IMPLEMENTATION == ASM_X86_MMX_SSE) {
-                    float fPos = (float) Voice.Pos;
-                    SynthesizeSubFragment(Voice, Samples, pSrc, i, Voice.pSample->LoopPlayCount,
-                                       Voice.pSample->LoopStart,
-                                       Voice.pSample->LoopEnd,
-                                       Voice.pSample->LoopSize,
-                                       Voice.LoopCyclesLeft,
-                                       (void *)&fPos,
-                                       &Voice.fFinalPitch,
-                                       &panLeft, &panRight);
-                    #if CONFIG_ASM && ARCH_X86
-                    if (INTERPOLATE) EMMS;
-                    #endif
-                    Voice.Pos = (double) fPos;
-                } else {
-                    SynthesizeSubFragment(Voice, Samples, pSrc, i, Voice.pSample->LoopPlayCount,
-                                       Voice.pSample->LoopStart,
-                                       Voice.pSample->LoopEnd,
-                                       Voice.pSample->LoopSize,
-                                       Voice.LoopCyclesLeft,
-                                       (void *)&Voice.Pos,
-                                       &Voice.fFinalPitch,
-                                       &panLeft, &panRight);
-                }
-            }
-
         //protected:
 
-            /**
-             * Render audio for the current fragment for the given voice.
-             * Will be called by the toplevel SynthesizeFragment() method.
-             */   
-            template<typename VOICE_T>
-            inline static void SynthesizeSubFragment(VOICE_T& Voice, uint Samples, sample_t* pSrc, uint& i, uint& LoopPlayCount, uint LoopStart, uint LoopEnd, uint LoopSize, uint& LoopCyclesLeft, void* Pos, const float* Pitch, const float* PanLeft, const float* PanRight) {
-                const float loopEnd = Float(LoopEnd);
-                const float f_LoopStart = Float(LoopStart);
-                const float f_LoopSize = Float(LoopSize);
+            static void SynthesizeSubFragment(SynthesisParam* pFinalParam, Loop* pLoop) {
                 if (DOLOOP) {
-                    if (LoopPlayCount) {
+                    const float fLoopEnd   = Float(pLoop->uiEnd);
+                    const float fLoopStart = Float(pLoop->uiStart);
+                    const float fLoopSize  = Float(pLoop->uiSize);
+                    if (pLoop->uiTotalCycles) {
                         // render loop (loop count limited)
-                        while (i < Samples && LoopCyclesLeft) {
-                            const uint processEnd = Min(Samples, i + DiffToLoopEnd(loopEnd,Pos, *Pitch) + 1); //TODO: instead of +1 we could also round up
-                            while (i < processEnd) Synthesize(Voice, Pos, pSrc, i, PanLeft, PanRight);
-                            LoopCyclesLeft -= WrapLoop(f_LoopStart, f_LoopSize, loopEnd, Pos);
+                        for (; pFinalParam->uiToGo > 0 && pLoop->uiCyclesLeft; pLoop->uiCyclesLeft -= WrapLoop(fLoopStart, fLoopSize, fLoopEnd, &pFinalParam->dPos)) {
+                            const uint uiToGo = Min(pFinalParam->uiToGo, DiffToLoopEnd(fLoopEnd, &pFinalParam->dPos, pFinalParam->fFinalPitch) + 1); //TODO: instead of +1 we could also round up
+                            SynthesizeSubSubFragment(pFinalParam, uiToGo);
                         }
                         // render on without loop
-                        while (i < Samples) Synthesize(Voice, Pos, pSrc, i, PanLeft, PanRight);
-                    }
-                    else { // render loop (endless loop)
-                        while (i < Samples) {
-                            const uint processEnd = Min(Samples, i + DiffToLoopEnd(loopEnd, Pos, *Pitch) + 1); //TODO: instead of +1 we could also round up
-                            while (i < processEnd) Synthesize(Voice, Pos, pSrc, i, PanLeft, PanRight);
-                            WrapLoop(f_LoopStart, f_LoopSize, loopEnd, Pos);
+                        SynthesizeSubSubFragment(pFinalParam, pFinalParam->uiToGo);
+                    } else { // render loop (endless loop)
+                        for (; pFinalParam->uiToGo > 0; WrapLoop(fLoopStart, fLoopSize, fLoopEnd, &pFinalParam->dPos)) {
+                            const uint uiToGo = Min(pFinalParam->uiToGo, DiffToLoopEnd(fLoopEnd, &pFinalParam->dPos, pFinalParam->fFinalPitch) + 1); //TODO: instead of +1 we could also round up
+                            SynthesizeSubSubFragment(pFinalParam, uiToGo);
                         }
                     }
+                } else { // no looping
+                    SynthesizeSubSubFragment(pFinalParam, pFinalParam->uiToGo);
                 }
-                else { // no looping
-                    while (i < Samples) { Synthesize(Voice, Pos, pSrc, i, PanLeft, PanRight); }
-                }
-            }
-
-            /**
-             * Atomicly render a piece for the voice. For the C++
-             * implementation this means rendering exactly one sample
-             * point, whereas for the MMX/SSE implementation this means
-             * rendering 4 sample points.
-             */
-            template<typename VOICE_T>
-            inline static void Synthesize(VOICE_T& Voice, void* Pos, sample_t* pSrc, uint& i, const float* PanLeft, const float* PanRight) {
-                Synthesize(pSrc, Pos,
-                           Voice.fFinalPitch,
-                           Voice.pEngineChannel->pOutputLeft,
-                           Voice.pEngineChannel->pOutputRight,
-                           i,
-                           PanLeft,
-                           PanRight,
-                           Voice.FilterLeft,
-                           Voice.FilterRight);
             }
 
             /**
              * Returns the difference to the sample's loop end.
              */
             inline static int DiffToLoopEnd(const float& LoopEnd, const void* Pos, const float& Pitch) {
-                switch (IMPLEMENTATION) {
-                    #if CONFIG_ASM && ARCH_X86
-                    case ASM_X86_MMX_SSE: {
-                        int result;
-                        __asm__ __volatile__ (
-                            "movss    (%1), %%xmm0  #read loopend\n\t"
-                            "subss    (%2), %%xmm0  #sub  pos\n\t"
-                            "divss    (%3), %%xmm0  #div  by pitch\n\t"
-                            "cvtss2si %%xmm0, %0    #convert to int\n\t"
-                            : "=r" (result)   /* %0 */
-                            : "r" (&LoopEnd), /* %1 */
-                              "r" (Pos),      /* %2 */
-                              "r" (&Pitch)    /* %3 */
-                        );
-                        return result;
-                    }
-                    #endif // CONFIG_ASM && ARCH_X86
-                    // pure C++ implementation (thus platform independent)
-                    default: {
-                        return uint((LoopEnd - *((double *)Pos)) / Pitch);
-                    }
-                }
+                return uint((LoopEnd - *((double *)Pos)) / Pitch);
             }
 
+#if 0
             //TODO: this method is not in use yet, it's intended to be used for pitch=x.0f where we could use integer instead of float as playback position variable
             inline static int WrapLoop(const int& LoopStart, const int& LoopSize, const int& LoopEnd, int& Pos) {
-                switch (IMPLEMENTATION) {
-                    // pure C++ implementation (thus platform independent)
-                    default: { //TODO: we can easily eliminate the branch here
-                        if (Pos < LoopEnd) return 0;
-                        Pos = (Pos - LoopEnd) % LoopSize + LoopStart;
-                        return 1;
-                    }
-                }
+                //TODO: we can easily eliminate the branch here
+                if (Pos < LoopEnd) return 0;
+                Pos = (Pos - LoopEnd) % LoopSize + LoopStart;
+                return 1;
             }
+#endif
 
             /**
              * This method handles looping of the RAM playback part of the
@@ -223,171 +128,164 @@ namespace LinuxSampler { namespace gig {
              * be called by the DiskThread).
              */
             inline static int WrapLoop(const float& LoopStart, const float& LoopSize, const float& LoopEnd, void* vPos) {
-                switch (IMPLEMENTATION) {
-                    #if CONFIG_ASM && ARCH_X86
-                    case ASM_X86_MMX_SSE: {
-                        int result = 0;
-                        __asm__ __volatile__ (
-                            "movss  (%2), %%xmm0          # load LoopEnd\n\t"
-                            "movss  (%1), %%xmm1          # load Pos\n\t"
-                            "comiss %%xmm0, %%xmm1      # LoopEnd <> Pos\n\t"
-                            "jb     1f                  # jump if no work needs to be done\n\t"
-                            "movss    (%3), %%xmm2        # load LoopSize\n\t"
-                            "subss    %%xmm0, %%xmm1    # Pos - LoopEnd\n\t"
-                            //now the fmodf
-                            "movss    %%xmm1, %%xmm3    # xmm3 = (Pos - LoopEnd)\n\t"
-                            "divss    %%xmm2, %%xmm1    # (Pos - LoopEnd) / LoopSize\n\t"
-                            "cvttss2si %%xmm1, %2    # convert to int\n\t"
-                            "cvtsi2ss  %2, %%xmm1    # convert back to float\n\t"
-                            "movss    (%4), %%xmm0      # load LoopStart\n\t"
-                            "mulss    %%xmm2, %%xmm1    # LoopSize * int((Pos-LoopEnd)/LoopSize)\n\t"
-                            "subss    %%xmm1, %%xmm3    # xmm2 = fmodf(Pos - LoopEnd, LoopSize)\n\t"
-                            //done with fmodf
-                            "addss    %%xmm0, %%xmm3      # add LoopStart\n\t"
-                            "movss    %%xmm3, (%1)        # update Pos\n\t"
-                            "movl    $1, (%0)             # result = 1\n\t"
-                            ".balign 16 \n\t"
-                            "1:\n\t"
-                            :: "r" (&result),   /* %0 */
-                              "r"  (vPos),      /* %1 */
-                              "r"  (&LoopEnd),  /* %2 */
-                              "r"  (&LoopSize), /* %3 */
-                              "r"  (&LoopStart) /* %4 */
-                        );
-                        return result;
-                    }
-                    #endif // CONFIG_ASM && ARCH_X86
-                    // pure C++ implementation (thus platform independent)
-                    default: {
-                        double * Pos = (double *)vPos;
-                        if (*Pos < LoopEnd) return 0;
-                        *Pos = fmod(*Pos - LoopEnd, LoopSize) + LoopStart;
-                        return 1;
-                    }
-                }
+                double * Pos = (double *)vPos;
+                if (*Pos < LoopEnd) return 0;
+                *Pos = fmod(*Pos - LoopEnd, LoopSize) + LoopStart;
+                return 1;
             }
 
-            /**
-             * Atomicly render a piece for the voice. For the C++
-             * implementation this means rendering exactly one sample
-             * point, whereas for the MMX/SSE implementation this means
-             * rendering 4 sample points.
-             */
-            inline static void Synthesize(sample_t* pSrc, void* Pos, float& Pitch, float* pOutL, float* pOutR, uint& i, const float* PanL, const float* PanR, Filter& FilterL, Filter& FilterR) {
-                switch (IMPLEMENTATION) {
-                    // pure C++ implementation (thus platform independent)
-                    case CPP: {
-                        switch (CHANNELS) {
-                            case MONO: {
-                                float samplePoint = GetNextSampleMonoCPP(pSrc, (double *)Pos, Pitch);
-                                if (USEFILTER) samplePoint = FilterL.Apply(samplePoint);
-                                pOutL[i] += samplePoint * *PanL;
-                                pOutR[i] += samplePoint * *PanR;
-                                i++;
-                                break;
-                            }
-                            case STEREO: {
-                                stereo_sample_t samplePoint = GetNextSampleStereoCPP(pSrc, (double *)Pos, Pitch);
-                                if (USEFILTER) {
-                                    samplePoint.left  = FilterL.Apply(samplePoint.left);
-                                    samplePoint.right = FilterR.Apply(samplePoint.right);
+            static void SynthesizeSubSubFragment(SynthesisParam* pFinalParam, uint uiToGo) {
+                switch (CHANNELS) {
+                    case MONO: {
+                        if (INTERPOLATE) {
+                            if (USEFILTER) {
+                                Filter filterL = pFinalParam->filterLeft;
+                                sample_t* pSrc = pFinalParam->pSrc;
+                                double dPos    = pFinalParam->dPos;
+                                float fPitch   = pFinalParam->fFinalPitch;
+                                float* pOutL   = pFinalParam->pOutLeft;
+                                float* pOutR   = pFinalParam->pOutRight;
+                                float fVolumeL = pFinalParam->fFinalVolumeLeft;
+                                float fVolumeR = pFinalParam->fFinalVolumeRight;
+                                float samplePoint;
+                                for (int i = 0; i < uiToGo; ++i) {
+                                    samplePoint = Interpolate1StepMonoCPP(pSrc, &dPos, fPitch);
+                                    samplePoint = filterL.Apply(samplePoint);
+                                    pOutL[i] += samplePoint * fVolumeL;
+                                    pOutR[i] += samplePoint * fVolumeR;
                                 }
-                                pOutL[i] += samplePoint.left  * *PanL;
-                                pOutR[i] += samplePoint.right * *PanR;
-                                i++;
-                                break;
+                                pFinalParam->dPos = dPos;
+                            } else { // no filter needed
+                                sample_t* pSrc = pFinalParam->pSrc;
+                                double dPos    = pFinalParam->dPos;
+                                float fPitch   = pFinalParam->fFinalPitch;
+                                float* pOutL   = pFinalParam->pOutLeft;
+                                float* pOutR   = pFinalParam->pOutRight;
+                                float fVolumeL = pFinalParam->fFinalVolumeLeft;
+                                float fVolumeR = pFinalParam->fFinalVolumeRight;
+                                float samplePoint;
+                                for (int i = 0; i < uiToGo; ++i) {
+                                    samplePoint = Interpolate1StepMonoCPP(pSrc, &dPos, fPitch);
+                                    pOutL[i] += samplePoint * fVolumeL;
+                                    pOutR[i] += samplePoint * fVolumeR;
+                                }
+                                pFinalParam->dPos = dPos;
+                            }
+                        } else { // no interpolation
+                            if (USEFILTER) {
+                                Filter filterL = pFinalParam->filterLeft;
+                                sample_t* pSrc  = pFinalParam->pSrc;
+                                float* pOutL   = pFinalParam->pOutLeft;
+                                float* pOutR   = pFinalParam->pOutRight;
+                                float fVolumeL = pFinalParam->fFinalVolumeLeft;
+                                float fVolumeR = pFinalParam->fFinalVolumeRight;
+                                int pos_offset = (int) pFinalParam->dPos;
+                                float samplePoint;
+                                for (int i = 0; i < uiToGo; ++i) {
+                                    samplePoint = pSrc[i + pos_offset];
+                                    samplePoint = filterL.Apply(samplePoint);
+                                    pOutL[i] += samplePoint * fVolumeL;
+                                    pOutR[i] += samplePoint * fVolumeR;
+                                }
+                                pFinalParam->dPos += uiToGo;
+                            } else { // no filter needed
+                                sample_t* pSrc  = pFinalParam->pSrc;
+                                float* pOutL   = pFinalParam->pOutLeft;
+                                float* pOutR   = pFinalParam->pOutRight;
+                                float fVolumeL = pFinalParam->fFinalVolumeLeft;
+                                float fVolumeR = pFinalParam->fFinalVolumeRight;
+                                int pos_offset = (int) pFinalParam->dPos;
+                                float samplePoint;
+                                for (int i = 0; i < uiToGo; ++i) {
+                                    samplePoint = pSrc[i + pos_offset];
+                                    pOutL[i] += samplePoint * fVolumeL;
+                                    pOutR[i] += samplePoint * fVolumeR;
+                                }
+                                pFinalParam->dPos += uiToGo;
                             }
                         }
                         break;
                     }
-                    #if CONFIG_ASM && ARCH_X86
-                    // Assembly optimization using the MMX & SSE(1) instruction set (thus only for x86)
-                    case ASM_X86_MMX_SSE: {
-                        const int ii = i & 0xfffffffc;
-                        i += 4;
-                        switch (CHANNELS) {
-                            case MONO: {
-                                GetNext4SamplesMonoMMXSSE(pSrc, (float *)Pos, Pitch); // outputs samples in xmm2
-                                if (USEFILTER) {
-                                    /* prepare filter input */
-                                    __asm__ __volatile__ (
-                                        "movaps %xmm2,%xmm0"
-                                    );
-                                    FilterL.Apply4StepsSSE(&bqBase, &bqMain); // xmm0 input, xmm7 output
-                                    __asm__ __volatile__ (
-                                        "movaps %xmm7,%xmm2       # mono filter result -> xmm2"
-                                    );
+                    case STEREO: {
+                        if (INTERPOLATE) {
+                            if (USEFILTER) {
+                                Filter filterL = pFinalParam->filterLeft;
+                                Filter filterR = pFinalParam->filterRight;
+                                sample_t* pSrc = pFinalParam->pSrc;
+                                double dPos    = pFinalParam->dPos;
+                                float fPitch   = pFinalParam->fFinalPitch;
+                                float* pOutL   = pFinalParam->pOutLeft;
+                                float* pOutR   = pFinalParam->pOutRight;
+                                float fVolumeL = pFinalParam->fFinalVolumeLeft;
+                                float fVolumeR = pFinalParam->fFinalVolumeRight;
+                                stereo_sample_t samplePoint;
+                                for (int i = 0; i < uiToGo; ++i) {
+                                    samplePoint = Interpolate1StepStereoCPP(pSrc, &dPos, fPitch);
+                                    samplePoint.left  = filterL.Apply(samplePoint.left);
+                                    samplePoint.right = filterR.Apply(samplePoint.right);
+                                    pOutL[i] += samplePoint.left  * fVolumeL;
+                                    pOutR[i] += samplePoint.right * fVolumeR;
                                 }
-                                /* apply panorama and volume factors */
-                                __asm__ __volatile__ (
-                                    "movss    (%1),%%xmm0             # load pan left\n\t"
-                                    "movss    (%2),%%xmm1             # load pan right\n\t"
-                                    "movaps   (%0),%%xmm4             # load vca\n\t"
-                                    "shufps   $0x00,%%xmm0,%%xmm0     # copy pan left to the other 3 cells\n\t"
-                                    "shufps   $0x00,%%xmm1,%%xmm1     # copy pan right to the other 3 cells\n\t"
-                                    "mulps    %%xmm2,%%xmm0           # left  = sample * pan_left\n\t"
-                                    "mulps    %%xmm2,%%xmm1           # right = sample * pan_right\n\t"
-                                    "mulps    %%xmm4,%%xmm0           # left  = vca * (sample * pan_left)\n\t"
-                                    "mulps    %%xmm4,%%xmm1           # right = vca * (sample * pan_right)\n\t"
-                                    : /* no output */
-                                    : "r" (&Volume[ii]), /* %0 */
-                                      "r" (PanL),   /* %1 */
-                                      "r" (PanR)    /* %2 */
-                                    : "xmm0", /* holds final left  sample (for the 4 samples) at the end */
-                                      "xmm1"  /* holds final right sample (for the 4 samples) at the end */
-                                );
-                                break;
+                                pFinalParam->dPos = dPos;
+                            } else { // no filter needed
+                                sample_t* pSrc = pFinalParam->pSrc;
+                                double dPos    = pFinalParam->dPos;
+                                float fPitch   = pFinalParam->fFinalPitch;
+                                float* pOutL   = pFinalParam->pOutLeft;
+                                float* pOutR   = pFinalParam->pOutRight;
+                                float fVolumeL = pFinalParam->fFinalVolumeLeft;
+                                float fVolumeR = pFinalParam->fFinalVolumeRight;
+                                stereo_sample_t samplePoint;
+                                for (int i = 0; i < uiToGo; ++i) {
+                                    samplePoint = Interpolate1StepStereoCPP(pSrc, &dPos, fPitch);
+                                    pOutL[i] += samplePoint.left  * fVolumeL;
+                                    pOutR[i] += samplePoint.right * fVolumeR;
+                                }
+                                pFinalParam->dPos = dPos;
                             }
-                            case STEREO: {
-                                GetNext4SamplesStereoMMXSSE(pSrc, (float *)Pos, Pitch); // outputs samples in xmm2 (left channel) and xmm3 (right channel)
-                                if (USEFILTER) {
-                                    __asm__ __volatile__ (
-                                        "movaps %xmm2,%xmm0     # prepare left channel for filter\n\t"
-                                        "movaps %xmm3,%xmm1     # save right channel not to get overwritten by filter algorithms\n\t"
-                                    );
-                                    FilterL.Apply4StepsSSE(&bqBase, &bqMain); // xmm0 input, xmm7 output
-                                    __asm__ __volatile__ (
-                                        "movaps %xmm1,%xmm0     # prepare right channel for filter\n\t"
-                                        "movaps %xmm7,%xmm1     # save filter output for left channel\n\t"
-                                    );
-                                    FilterR.Apply4StepsSSE(&bqBase, &bqMain); // xmm0 input, xmm7 output
-                                    __asm__ __volatile__ (
-                                        "movaps %xmm1,%xmm2     # result left channel -> xmm2\n\t"
-                                        "movaps %xmm7,%xmm3     # result right channel -> xmm3\n\t"
-                                    );
+                        } else { // no interpolation
+                            if (USEFILTER) {
+                                Filter filterL = pFinalParam->filterLeft;
+                                Filter filterR = pFinalParam->filterRight;
+                                sample_t* pSrc  = pFinalParam->pSrc;
+                                float* pOutL   = pFinalParam->pOutLeft;
+                                float* pOutR   = pFinalParam->pOutRight;
+                                float fVolumeL = pFinalParam->fFinalVolumeLeft;
+                                float fVolumeR = pFinalParam->fFinalVolumeRight;
+                                int pos_offset = ((int) pFinalParam->dPos) << 1;
+                                stereo_sample_t samplePoint;
+                                for (int i = 0, ii = 0; i < uiToGo; ++i, ii+=2) {
+                                    samplePoint.left  = pSrc[ii + pos_offset];
+                                    samplePoint.right = pSrc[ii + pos_offset + 1];
+                                    samplePoint.left  = filterL.Apply(samplePoint.left);
+                                    samplePoint.right = filterR.Apply(samplePoint.right);
+                                    pOutL[i] += samplePoint.left  * fVolumeL;
+                                    pOutR[i] += samplePoint.right * fVolumeR;
                                 }
-                                /* apply panorama and volume factors */
-                                __asm__ __volatile__ (
-                                    "movss    (%1),%%xmm0             # load pan left\n\t"
-                                    "movss    (%2),%%xmm1             # load pan right\n\t"
-                                    "movaps   (%0),%%xmm4             # load vca\n\t"
-                                    "shufps   $0x00,%%xmm0,%%xmm0     # copy pan left to the other 3 cells\n\t"
-                                    "shufps   $0x00,%%xmm1,%%xmm1     # copy pan right to the other 3 cells\n\t"
-                                    "mulps    %%xmm2,%%xmm0           # left  = sample_left  * pan_left\n\t"
-                                    "mulps    %%xmm3,%%xmm1           # right = sample_right * pan_right\n\t"
-                                    "mulps    %%xmm4,%%xmm0           # left  = vca * (sample_left  * pan_left)\n\t"
-                                    "mulps    %%xmm4,%%xmm1           # right = vca * (sample_right * pan_right)\n\t"
-                                    : /* no output */
-                                    : "r" (&Volume[ii]), /* %0 */
-                                      "r" (PanL),   /* %1 */
-                                      "r" (PanR)    /* %2 */
-                                );
-                                break;
+                                pFinalParam->dPos += uiToGo;
+                            } else { // no filter needed
+                                sample_t* pSrc  = pFinalParam->pSrc;
+                                float* pOutL   = pFinalParam->pOutLeft;
+                                float* pOutR   = pFinalParam->pOutRight;
+                                float fVolumeL = pFinalParam->fFinalVolumeLeft;
+                                float fVolumeR = pFinalParam->fFinalVolumeRight;
+                                int pos_offset = ((int) pFinalParam->dPos) << 1;
+                                stereo_sample_t samplePoint;
+                                for (int i = 0, ii = 0; i < uiToGo; ++i, ii+=2) {
+                                    samplePoint.left  = pSrc[ii + pos_offset];
+                                    samplePoint.right = pSrc[ii + pos_offset + 1];
+                                    pOutL[i] += samplePoint.left  * fVolumeL;
+                                    pOutR[i] += samplePoint.right * fVolumeR;
+                                }
+                                pFinalParam->dPos += uiToGo;
                             }
                         }
-                        /* mix the 4 samples to the output channels */
-                        __asm__ __volatile__ (
-                            "addps  (%0),%%xmm0       # mix calculated sample(s) to output left\n\t"
-                            "movaps %%xmm0,(%0)       # output to left channel\n\t"
-                            "addps  (%1),%%xmm1       # mix calculated sample(s) to output right\n\t"
-                            "movaps %%xmm1,(%1)       # output to right channel\n\t"
-                            : /* no output */
-                            : "r" (&pOutL[ii]), /* %0 - must be 16 byte aligned ! */
-                              "r" (&pOutR[ii])  /* %1 - must be 16 byte aligned ! */
-                        );
+                        break;
                     }
-                    #endif // CONFIG_ASM && ARCH_X86
                 }
+                pFinalParam->pOutRight += uiToGo;
+                pFinalParam->pOutLeft  += uiToGo;
+                pFinalParam->uiToGo    -= uiToGo;
             }
     };
 

@@ -111,6 +111,7 @@ int main(int argc, char **argv) {
         dmsg(1,("Calibrating profiler..."));
         gig::Profiler::Calibrate();
         gig::Profiler::Reset();
+        gig::Profiler::enable();
         dmsg(1,("OK\n"));
     }
 
