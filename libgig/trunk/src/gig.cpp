@@ -1182,7 +1182,7 @@ namespace {
             depth = 5;
         }
         pVelocityCutoffTable = GetVelocityTable(curveType, depth,
-                                                VCFCutoffController == vcf_cutoff_ctrl_none ? VCFVelocityScale : 0);
+                                                VCFCutoffController <= vcf_cutoff_ctrl_none2 ? VCFVelocityScale : 0);
 
         SampleAttenuation = pow(10.0, -Gain / (20.0 * 655360));
     }

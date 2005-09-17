@@ -148,6 +148,7 @@ namespace gig {
     /** Defines how the filter cutoff frequency is controlled by. */
     typedef enum {
         vcf_cutoff_ctrl_none         = 0x00,
+        vcf_cutoff_ctrl_none2        = 0x01,  ///< The difference betwheen none and none2 is unknown
         vcf_cutoff_ctrl_modwheel     = 0x81,  ///< Modulation Wheel (MIDI Controller 1)
         vcf_cutoff_ctrl_effect1      = 0x8c,  ///< Effect Controller 1 (Coarse, MIDI Controller 12)
         vcf_cutoff_ctrl_effect2      = 0x8d,  ///< Effect Controller 2 (Coarse, MIDI Controller 13)
