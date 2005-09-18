@@ -1449,6 +1449,9 @@ namespace {
             for (int i = 0; i < dimensionBits; i++) {
                 dimension_t dimension = static_cast<dimension_t>(_3lnk->ReadUint8());
                 uint8_t     bits      = _3lnk->ReadUint8();
+                _3lnk->ReadUint8(); // probably the position of the dimension
+                _3lnk->ReadUint8(); // unknown
+                uint8_t     zones     = _3lnk->ReadUint8(); // new for v3: number of zones doesn't have to be == pow(2,bits)
                 if (dimension == dimension_none) { // inactive dimension
                     pDimensionDefinitions[i].dimension  = dimension_none;
                     pDimensionDefinitions[i].bits       = 0;
@@ -1460,7 +1463,7 @@ namespace {
                 else { // active dimension
                     pDimensionDefinitions[i].dimension = dimension;
                     pDimensionDefinitions[i].bits      = bits;
-                    pDimensionDefinitions[i].zones     = 0x01 << bits; // = pow(2,bits)
+                    pDimensionDefinitions[i].zones     = zones ? zones : 0x01 << bits; // = pow(2,bits)
                     pDimensionDefinitions[i].split_type = (dimension == dimension_layer ||
                                                            dimension == dimension_samplechannel ||
                                                            dimension == dimension_releasetrigger ||
@@ -1469,14 +1472,14 @@ namespace {
                                                                                           : split_type_normal;
                     pDimensionDefinitions[i].ranges = NULL; // it's not possible to check velocity dimensions for custom defined ranges at this point
                     pDimensionDefinitions[i].zone_size  =
-                        (pDimensionDefinitions[i].split_type == split_type_normal) ? 128 / pDimensionDefinitions[i].zones
+                        (pDimensionDefinitions[i].split_type == split_type_normal) ? 128.0 / pDimensionDefinitions[i].zones
                                                                                    : 0;
                     Dimensions++;
 
                     // if this is a layer dimension, remember the amount of layers
                     if (dimension == dimension_layer) Layers = pDimensionDefinitions[i].zones;
                 }
-                _3lnk->SetPos(6, RIFF::stream_curpos); // jump forward to next dimension definition
+                _3lnk->SetPos(3, RIFF::stream_curpos); // jump forward to next dimension definition
             }
 
             // check velocity dimension (if there is one) for custom defined zone ranges
@@ -1574,7 +1577,7 @@ namespace {
             bits[i] = DimValues[i];
             switch (pDimensionDefinitions[i].split_type) {
                 case split_type_normal:
-                    bits[i] /= pDimensionDefinitions[i].zone_size;
+                    bits[i] = uint8_t(bits[i] / pDimensionDefinitions[i].zone_size);
                     break;
                 case split_type_customvelocity:
                     bits[i] = VelocityTable[bits[i]];

@@ -270,7 +270,7 @@ namespace gig {
         uint8_t      zones;      ///< Number of zones the dimension has.
         split_type_t split_type; ///< Intended for internal usage: will be used to convert a dimension value into the corresponding dimension bit number.
         range_t*     ranges;     ///< Intended for internal usage: Points to the beginning of a range_t array which reflects the value ranges of each dimension zone (only if custom defined ranges are defined, is NULL otherwise).
-        unsigned int zone_size;  ///< Intended for internal usage: reflects the size of each zone (128/zones) for normal split types only, 0 otherwise.
+        float        zone_size;  ///< Intended for internal usage: reflects the size of each zone (128/zones) for normal split types only, 0 otherwise.
     };
 
     /** Defines which frequencies are filtered by the VCF. */

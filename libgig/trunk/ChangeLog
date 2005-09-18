@@ -3,6 +3,8 @@ Version CVS HEAD (?)
   * src/gig.cpp, src/gig.h:
     - fixed the GetVelocityCutoff function, it wasn't always using the
       VCFVelocityScale parameter when no cutoff controller was defined
+    - support for the gig v3 feature to have a number of dimension
+      splits not equal to a power of two
 
 Version 2.0.2 (15 Aug 2005)
 
