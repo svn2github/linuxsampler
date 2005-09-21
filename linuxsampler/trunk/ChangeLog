@@ -24,9 +24,14 @@ Version CVS HEAD (?)
       controller is defined), Control invert, Minimum cutoff, Velocity
       curve and Velocity range. The keyboard tracking now also scales
       cutoff frequency, not just resonance.
+    - fixed bug in sysex handling (patch by Juan Linietsky)
 
   * LSCP server:
     - fixed application exit on broken pipe error (fixes bug #20)
+
+  * MIDI driver:
+    - fixed legacy sysex code which caused dispatching of MIDI SysEx
+      messages several times instead of once
 
   * general changes:
     - support for muting sampler channels and solo mode of the same, two new

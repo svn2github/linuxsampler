@@ -24,6 +24,7 @@
 #include "MidiInputPort.h"
 
 #include "../../Sampler.h"
+#include "../../engines/EngineFactory.h"
 
 namespace LinuxSampler {
 
@@ -148,28 +149,10 @@ namespace LinuxSampler {
     }
 
     void MidiInputPort::DispatchSysex(void* pData, uint Size) {
-        // dispatch event for engines listening to the same MIDI channel
-        {
-            for (uint MidiChannel = 0; MidiChannel <= 16; MidiChannel++) {
-                std::set<EngineChannel*>::iterator engineiter = MidiChannelMap[MidiChannel].begin();
-                std::set<EngineChannel*>::iterator end        = MidiChannelMap[MidiChannel].end();
-                for (; engineiter != end; engineiter++) {
-                    Engine* pEngine = (*engineiter)->GetEngine();
-                    if (pEngine) pEngine->SendSysex(pData, Size);
-                }
-            }
-        }
-        // dispatch event for engines listening to ALL MIDI channels
-        {
-            for (uint MidiChannel = 0; MidiChannel <= 16; MidiChannel++) {
-                std::set<EngineChannel*>::iterator engineiter = MidiChannelMap[midi_chan_all].begin();
-                std::set<EngineChannel*>::iterator end        = MidiChannelMap[midi_chan_all].end();
-                for (; engineiter != end; engineiter++) {
-                    Engine* pEngine = (*engineiter)->GetEngine();
-                    if (pEngine) pEngine->SendSysex(pData, Size);
-                }
-            }
-        }
+        // dispatch event to all engine instances
+        std::set<Engine*>::iterator engineiter = EngineFactory::EngineInstances().begin();
+        std::set<Engine*>::iterator end        = EngineFactory::EngineInstances().end();
+        for (; engineiter != end; engineiter++) (*engineiter)->SendSysex(pData, Size);
     }
 
     void MidiInputPort::DispatchProgramChange(uint8_t Program, uint MidiChannel) {

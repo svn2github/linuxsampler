@@ -190,6 +190,7 @@ namespace LinuxSampler { namespace gig {
 
         // delete all input events
         pEventQueue->init();
+        pSysexBuffer->init();
     }
 
     /**
@@ -1393,7 +1394,7 @@ namespace LinuxSampler { namespace gig {
     }
 
     String Engine::Version() {
-        String s = "$Revision: 1.53 $";
+        String s = "$Revision: 1.54 $";
         return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
 
