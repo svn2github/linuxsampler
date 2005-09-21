@@ -435,6 +435,7 @@ namespace LinuxSampler { namespace gig {
     void EngineChannel::ResetControllers() {
         Pitch          = 0;
         SustainPedal   = false;
+        SostenutoPedal = false;
         GlobalVolume   = 1.0;
         GlobalPanLeft  = 1.0f;
         GlobalPanRight = 1.0f;

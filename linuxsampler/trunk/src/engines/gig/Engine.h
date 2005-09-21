@@ -136,10 +136,14 @@ namespace LinuxSampler { namespace gig {
 
             static std::map<AudioOutputDevice*,Engine*> engines; ///< All instances of gig::Engine.
 
+            int SostenutoKeys[128];
+            int SostenutoKeyCount;
+
             uint8_t GSCheckSum(const RingBuffer<uint8_t>::NonVolatileReader AddrReader, uint DataSize);
             void    AdjustScale(int8_t ScaleTunes[12]);
             void    ReleaseAllVoices(EngineChannel* pEngineChannel, Pool<Event>::Iterator& itReleaseEvent);
             void    KillAllVoices(EngineChannel* pEngineChannel, Pool<Event>::Iterator& itKillEvent);
+            bool    ShouldReleaseVoice(EngineChannel* pEngineChannel, int Key);
 
             unsigned long FrameTime; ///< Time in frames of the start of the current audio fragment
     };

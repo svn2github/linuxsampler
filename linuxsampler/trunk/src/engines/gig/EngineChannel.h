@@ -99,6 +99,7 @@ namespace LinuxSampler { namespace gig {
             std::map<uint,uint*>    ActiveKeyGroups;          ///< Contains active keys (in case they belong to a key group) ordered by key group ID.
             ::gig::Instrument*      pInstrument;
             bool                    SustainPedal;             ///< true if sustain pedal is down
+            bool                    SostenutoPedal;           ///< true if sostenuto pedal is down
             double                  GlobalVolume;             ///< overall volume (a value < 1.0 means attenuation, a value > 1.0 means amplification)
             float                   GlobalPanLeft;
             float                   GlobalPanRight;

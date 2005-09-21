@@ -665,7 +665,7 @@ namespace LinuxSampler { namespace gig {
         pKey->KeyPressed = false; // the MIDI key was now released
 
         // release voices on this key if needed
-        if (pKey->Active && !pEngineChannel->SustainPedal) {
+        if (pKey->Active && ShouldReleaseVoice(pEngineChannel, itNoteOffEvent->Param.Note.Key)) {
             itNoteOffEvent->Type = Event::type_release; // transform event type
 
             // move event to the key's own event list
@@ -1156,7 +1156,7 @@ namespace LinuxSampler { namespace gig {
             }
             case 64: { // sustain
                 if (itControlChangeEvent->Param.CC.Value >= 64 && !pEngineChannel->SustainPedal) {
-                    dmsg(4,("PEDAL DOWN\n"));
+                    dmsg(4,("DAMPER (RIGHT) PEDAL DOWN\n"));
                     pEngineChannel->SustainPedal = true;
 
                     #if !CONFIG_PROCESS_MUTED_CHANNELS
@@ -1178,7 +1178,7 @@ namespace LinuxSampler { namespace gig {
                     }
                 }
                 if (itControlChangeEvent->Param.CC.Value < 64 && pEngineChannel->SustainPedal) {
-                    dmsg(4,("PEDAL UP\n"));
+                    dmsg(4,("DAMPER (RIGHT) PEDAL UP\n"));
                     pEngineChannel->SustainPedal = false;
 
                     #if !CONFIG_PROCESS_MUTED_CHANNELS
@@ -1189,7 +1189,47 @@ namespace LinuxSampler { namespace gig {
                     RTList<uint>::Iterator iuiKey = pEngineChannel->pActiveKeys->first();
                     for (; iuiKey; ++iuiKey) {
                         midi_key_info_t* pKey = &pEngineChannel->pMIDIKeyInfo[*iuiKey];
-                        if (!pKey->KeyPressed) {
+                        if (!pKey->KeyPressed && ShouldReleaseVoice(pEngineChannel, *iuiKey)) {
+                            RTList<Event>::Iterator itNewEvent = pKey->pEvents->allocAppend();
+                            if (itNewEvent) {
+                                *itNewEvent = *itControlChangeEvent; // copy event to the key's own event list
+                                itNewEvent->Type = Event::type_release; // transform event type
+                            }
+                            else dmsg(1,("Event pool emtpy!\n"));
+                        }
+                    }
+                }
+                break;
+            }
+            case 66: { // sostenuto
+                if (itControlChangeEvent->Param.CC.Value >= 64 && !pEngineChannel->SostenutoPedal) {
+                    dmsg(4,("SOSTENUTO (CENTER) PEDAL DOWN\n"));
+                    pEngineChannel->SostenutoPedal = true;
+
+                    #if !CONFIG_PROCESS_MUTED_CHANNELS
+                    if (pEngineChannel->GetMute()) return; // skip if sampler channel is muted
+                    #endif
+
+                    SostenutoKeyCount = 0;
+                    // Remeber the pressed keys
+                    RTList<uint>::Iterator iuiKey = pEngineChannel->pActiveKeys->first();
+                    for (; iuiKey; ++iuiKey) {
+                        midi_key_info_t* pKey = &pEngineChannel->pMIDIKeyInfo[*iuiKey];
+                        if (pKey->KeyPressed && SostenutoKeyCount < 128) SostenutoKeys[SostenutoKeyCount++] = *iuiKey;
+                    }
+                }
+                if (itControlChangeEvent->Param.CC.Value < 64 && pEngineChannel->SostenutoPedal) {
+                    dmsg(4,("SOSTENUTO (CENTER) PEDAL UP\n"));
+                    pEngineChannel->SostenutoPedal = false;
+
+                    #if !CONFIG_PROCESS_MUTED_CHANNELS
+                    if (pEngineChannel->GetMute()) return; // skip if sampler channel is muted
+                    #endif
+
+                    // release voices if the damper pedal is up and their respective key is not pressed
+                    for (int i = 0; i < SostenutoKeyCount; i++) {
+                        midi_key_info_t* pKey = &pEngineChannel->pMIDIKeyInfo[SostenutoKeys[i]];
+                        if (!pKey->KeyPressed && !pEngineChannel->SustainPedal) {
                             RTList<Event>::Iterator itNewEvent = pKey->pEvents->allocAppend();
                             if (itNewEvent) {
                                 *itNewEvent = *itControlChangeEvent; // copy event to the key's own event list
@@ -1357,6 +1397,24 @@ namespace LinuxSampler { namespace gig {
         }
     }
 
+    /**
+     * Determines whether the specified voice should be released.
+     *
+     * @param pEngineChannel - The engine channel on which the voice should be checked
+     * @param Key - The key number
+     * @returns true if the specified should be released, false otherwise.
+     */
+    bool Engine::ShouldReleaseVoice(EngineChannel* pEngineChannel, int Key) {
+        if (pEngineChannel->SustainPedal) return false;
+
+        if (pEngineChannel->SostenutoPedal) {
+            for (int i = 0; i < SostenutoKeyCount; i++)
+                if (Key == SostenutoKeys[i]) return false;
+        }
+
+        return true;
+    }
+
     uint Engine::VoiceCount() {
         return ActiveVoiceCount;
     }
@@ -1394,7 +1452,7 @@ namespace LinuxSampler { namespace gig {
     }
 
     String Engine::Version() {
-        String s = "$Revision: 1.54 $";
+        String s = "$Revision: 1.55 $";
         return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
 
