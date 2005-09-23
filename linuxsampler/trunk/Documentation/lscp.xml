@@ -31,7 +31,7 @@ Schoenebeck'>
                 <email>schoenebeck at software minus engineering dot org</email>
             </address>
         </author>
-        <date month="July" year="2005"/>
+        <date month="September" year="2005"/>
         <workgroup>LinuxSampler Developers</workgroup>
         <keyword>LSCP</keyword>
         <abstract>
@@ -3329,6 +3329,42 @@ Schoenebeck'>
             <section title="Global commands">
                 <t>The following commands have global impact on the sampler.</t>
 
+                <section title="Current number of active voices" anchor="GET TOTAL_VOICE_COUNT">
+                    <t>The front-end can ask for the current number of active voices on
+                    the sampler by sending the following command:</t>
+                    <t>
+                        <list>
+                            <t>GET TOTAL_VOICE_COUNT</t>
+                        </list>
+                    </t>
+
+                    <t>Possible Answers:</t>
+                    <t>
+                        <list>
+                            <t>LinuxSampler will answer by returning the number of all active
+                            voices on the sampler.</t>
+                        </list>
+                    </t>
+                </section>
+
+                <section title="Maximum amount of active voices" anchor="GET TOTAL_VOICE_COUNT_MAX">
+                    <t>The front-end can ask for the maximum number of active voices
+                    by sending the following command:</t>
+                    <t>
+                        <list>
+                            <t>GET TOTAL_VOICE_COUNT_MAX</t>
+                        </list>
+                    </t>
+
+                    <t>Possible Answers:</t>
+                    <t>
+                        <list>
+                            <t>LinuxSampler will answer by returning the maximum number
+                            of active voices.</t>
+                        </list>
+                    </t>
+                </section>
+
                 <section title="Reset sampler" anchor="RESET">
                     <t>The front-end can reset the whole sampler by sending the following command:</t>
                     <t>
@@ -3492,6 +3528,8 @@ Schoenebeck'>
 		</t>
 		<t>/ MISCELLANEOUS
 		</t>
+		<t>/ TOTAL_VOICE_COUNT
+		</t>
 	</list>
 </t>
 <t>unsubscribe_event =
@@ -3507,6 +3545,8 @@ Schoenebeck'>
 		<t>/ CHANNEL_INFO
 		</t>
 		<t>/ MISCELLANEOUS
+		</t>
+		<t>/ TOTAL_VOICE_COUNT
 		</t>
 	</list>
 </t>
@@ -3559,6 +3599,10 @@ Schoenebeck'>
 		<t>/ ENGINE SP INFO SP engine_name
 		</t>
 		<t>/ SERVER SP INFO
+		</t>
+		<t>/ TOTAL_VOICE_COUNT
+		</t>
+		<t>/ TOTAL_VOICE_COUNT_MAX
 		</t>
 	</list>
 </t>
@@ -3874,6 +3918,24 @@ Schoenebeck'>
                 will be triggered by LSCP commands issued by other clients rather than real
                 time events happening on the server, it is believed that an empty notification
                 message is sufficient here.</t>
+            </section>
+
+            <section title="Total number of active voices changed" anchor="SUBSCRIBE TOTAL_VOICE_COUNT">
+                <t>Client may want to be notified when the total number of voices on the
+                back-end changes by issuing the following command:</t>
+                <t>
+                    <list>
+                        <t>SUBSCRIBE TOTAL_VOICE_COUNT</t>
+                    </list>
+                </t>
+                <t>Server will start sending the following notification messages:</t>
+                <t>
+                    <list>
+                        <t>"NOTIFY:TOTAL_VOICE_COUNT:&lt;voices&gt;</t>
+                    </list>
+                </t>
+                <t>where &lt;voices&gt; will be replaced by the new number of
+                all currently active voices.</t>
             </section>
 
             <section title="Miscellaneous and debugging events" anchor="SUBSCRIBE MISCELLANEOUS">

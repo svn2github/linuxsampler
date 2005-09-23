@@ -25,6 +25,7 @@
 
 #include "Sampler.h"
 
+#include "engines/EngineFactory.h"
 #include "engines/EngineChannelFactory.h"
 #include "drivers/audio/AudioOutputDeviceFactory.h"
 #include "drivers/midi/MidiInputDeviceFactory.h"
@@ -348,6 +349,17 @@ namespace LinuxSampler {
 	}
 
         return pDevice;
+    }
+
+    int Sampler::GetVoiceCount() {
+        int count = 0;
+        std::set<Engine*>::iterator it = EngineFactory::EngineInstances().begin();
+
+        for(; it != EngineFactory::EngineInstances().end(); it++) {
+            count += (*it)->VoiceCount();
+        }
+
+        return count;
     }
 
     void Sampler::Reset() {

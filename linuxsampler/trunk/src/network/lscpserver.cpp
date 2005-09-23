@@ -72,6 +72,7 @@ LSCPServer::LSCPServer(Sampler* pSampler, long int addr, short int port) : Threa
     LSCPEvent::RegisterEvent(LSCPEvent::event_buffer_fill, "BUFFER_FILL");
     LSCPEvent::RegisterEvent(LSCPEvent::event_channel_info, "CHANNEL_INFO");
     LSCPEvent::RegisterEvent(LSCPEvent::event_misc, "MISCELLANEOUS");
+    LSCPEvent::RegisterEvent(LSCPEvent::event_total_voice_count, "TOTAL_VOICE_COUNT");
     hSocket = -1;
 }
 
@@ -1542,6 +1543,26 @@ String LSCPServer::GetServerInfo() {
     result.Add("DESCRIPTION", "LinuxSampler - modular, streaming capable sampler");
     result.Add("VERSION", VERSION);
     result.Add("PROTOCOL_VERSION", "1.0");
+    return result.Produce();
+}
+
+/**
+ * Will be called by the parser to return the current number of all active voices.
+ */
+String LSCPServer::GetTotalVoiceCount() {
+    dmsg(2,("LSCPServer: GetTotalVoiceCount()\n"));
+    LSCPResultSet result;
+    result.Add(pSampler->GetVoiceCount());
+    return result.Produce();
+}
+
+/**
+ * Will be called by the parser to return the maximum number of voices.
+ */
+String LSCPServer::GetTotalVoiceCountMax() {
+    dmsg(2,("LSCPServer: GetTotalVoiceCountMax()\n"));
+    LSCPResultSet result;
+    result.Add(EngineFactory::EngineInstances().size() * CONFIG_MAX_VOICES);
     return result.Produce();
 }
 

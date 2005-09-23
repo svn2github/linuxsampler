@@ -120,20 +120,22 @@ command               :  ADD SP CHANNEL                        { $$ = LSCPSERVER
                       |  QUIT                                  { LSCPSERVER->AnswerClient("Bye!\r\n"); return LSCP_QUIT; }
                       ;
 
-subscribe_event       :  CHANNEL_COUNT                         { $$ = LSCPSERVER->SubscribeNotification(LSCPEvent::event_channel_count); }
-                      |  VOICE_COUNT                           { $$ = LSCPSERVER->SubscribeNotification(LSCPEvent::event_voice_count);   }
-                      |  STREAM_COUNT                          { $$ = LSCPSERVER->SubscribeNotification(LSCPEvent::event_stream_count);  }
-                      |  BUFFER_FILL                           { $$ = LSCPSERVER->SubscribeNotification(LSCPEvent::event_buffer_fill);   }
-                      |  CHANNEL_INFO                          { $$ = LSCPSERVER->SubscribeNotification(LSCPEvent::event_channel_info);  }
-                      |  MISCELLANEOUS                         { $$ = LSCPSERVER->SubscribeNotification(LSCPEvent::event_misc);          }
+subscribe_event       :  CHANNEL_COUNT                         { $$ = LSCPSERVER->SubscribeNotification(LSCPEvent::event_channel_count);     }
+                      |  VOICE_COUNT                           { $$ = LSCPSERVER->SubscribeNotification(LSCPEvent::event_voice_count);       }
+                      |  STREAM_COUNT                          { $$ = LSCPSERVER->SubscribeNotification(LSCPEvent::event_stream_count);      }
+                      |  BUFFER_FILL                           { $$ = LSCPSERVER->SubscribeNotification(LSCPEvent::event_buffer_fill);       }
+                      |  CHANNEL_INFO                          { $$ = LSCPSERVER->SubscribeNotification(LSCPEvent::event_channel_info);      }
+                      |  MISCELLANEOUS                         { $$ = LSCPSERVER->SubscribeNotification(LSCPEvent::event_misc);              }
+                      |  TOTAL_VOICE_COUNT                     { $$ = LSCPSERVER->SubscribeNotification(LSCPEvent::event_total_voice_count); }
                       ;
 
-unsubscribe_event     :  CHANNEL_COUNT                         { $$ = LSCPSERVER->UnsubscribeNotification(LSCPEvent::event_channel_count); }
-                      |  VOICE_COUNT                           { $$ = LSCPSERVER->UnsubscribeNotification(LSCPEvent::event_voice_count);   }
-                      |  STREAM_COUNT                          { $$ = LSCPSERVER->UnsubscribeNotification(LSCPEvent::event_stream_count);  }
-                      |  BUFFER_FILL                           { $$ = LSCPSERVER->UnsubscribeNotification(LSCPEvent::event_buffer_fill);   }
-                      |  CHANNEL_INFO                          { $$ = LSCPSERVER->UnsubscribeNotification(LSCPEvent::event_channel_info);  }
-                      |  MISCELLANEOUS                         { $$ = LSCPSERVER->UnsubscribeNotification(LSCPEvent::event_misc);          }
+unsubscribe_event     :  CHANNEL_COUNT                         { $$ = LSCPSERVER->UnsubscribeNotification(LSCPEvent::event_channel_count);     }
+                      |  VOICE_COUNT                           { $$ = LSCPSERVER->UnsubscribeNotification(LSCPEvent::event_voice_count);       }
+                      |  STREAM_COUNT                          { $$ = LSCPSERVER->UnsubscribeNotification(LSCPEvent::event_stream_count);      }
+                      |  BUFFER_FILL                           { $$ = LSCPSERVER->UnsubscribeNotification(LSCPEvent::event_buffer_fill);       }
+                      |  CHANNEL_INFO                          { $$ = LSCPSERVER->UnsubscribeNotification(LSCPEvent::event_channel_info);      }
+                      |  MISCELLANEOUS                         { $$ = LSCPSERVER->UnsubscribeNotification(LSCPEvent::event_misc);              }
+                      |  TOTAL_VOICE_COUNT                     { $$ = LSCPSERVER->UnsubscribeNotification(LSCPEvent::event_total_voice_count); }
                       ;
 
 get_instruction       :  AVAILABLE_ENGINES                                                          { $$ = LSCPSERVER->GetAvailableEngines();                          }
@@ -160,6 +162,8 @@ get_instruction       :  AVAILABLE_ENGINES                                      
                       |  CHANNEL SP VOICE_COUNT SP sampler_channel                                  { $$ = LSCPSERVER->GetVoiceCount($5);                              }
                       |  ENGINE SP INFO SP engine_name                                              { $$ = LSCPSERVER->GetEngineInfo($5);                              }
                       |  SERVER SP INFO                                                             { $$ = LSCPSERVER->GetServerInfo();                                }
+                      |  TOTAL_VOICE_COUNT                                                          { $$ = LSCPSERVER->GetTotalVoiceCount();                                }
+                      |  TOTAL_VOICE_COUNT_MAX                                                      { $$ = LSCPSERVER->GetTotalVoiceCountMax();                        }
                       ;
 
 set_instruction       :  AUDIO_OUTPUT_DEVICE_PARAMETER SP number SP string '=' param_val_list             { $$ = LSCPSERVER->SetAudioOutputDeviceParameter($3, $5, $7);      }
@@ -453,6 +457,12 @@ STREAM_COUNT         :  'S''T''R''E''A''M''_''C''O''U''N''T'
                      ;
 
 VOICE_COUNT          :  'V''O''I''C''E''_''C''O''U''N''T'
+                     ;
+
+TOTAL_VOICE_COUNT    :  'T''O''T''A''L''_''V''O''I''C''E''_''C''O''U''N''T'
+                     ;
+
+TOTAL_VOICE_COUNT_MAX:  'T''O''T''A''L''_''V''O''I''C''E''_''C''O''U''N''T''_''M''A''X'
                      ;
 
 INSTRUMENT           :  'I''N''S''T''R''U''M''E''N''T'

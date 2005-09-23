@@ -47,7 +47,8 @@ class LSCPEvent {
 		    event_stream_count,
 		    event_buffer_fill,
 		    event_channel_info,
-		    event_misc
+		    event_misc,
+                    event_total_voice_count
 	    };
 
 	    /* This constructor will do type lookup based on name

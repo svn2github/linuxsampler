@@ -130,6 +130,8 @@ class LSCPServer : public Thread {
         String ResetChannel(uint uiSamplerChannel);
         String ResetSampler();
         String GetServerInfo();
+        String GetTotalVoiceCount();
+        String GetTotalVoiceCountMax();
         String SubscribeNotification(LSCPEvent::event_t);
         String UnsubscribeNotification(LSCPEvent::event_t);
 	String QueryDatabase(String query);

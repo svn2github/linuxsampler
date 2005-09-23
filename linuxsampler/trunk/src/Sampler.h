@@ -343,6 +343,12 @@ namespace LinuxSampler {
             void DestroyMidiInputDevice(MidiInputDevice* pDevice) throw (LinuxSamplerException);
 
             /**
+             * Gets the current number of all active voices.
+             * @returns The current number of all active voices.
+             */
+            int GetVoiceCount();
+
+            /**
              * Reset the whole sampler. Destroy all engines, sampler
              * channels, MIDI input devices and audio output devices.
              */

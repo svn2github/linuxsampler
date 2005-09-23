@@ -121,6 +121,7 @@ int main(int argc, char **argv) {
     rtEvents.push_back(LSCPEvent::event_voice_count);
     rtEvents.push_back(LSCPEvent::event_stream_count);
     rtEvents.push_back(LSCPEvent::event_buffer_fill);
+    rtEvents.push_back(LSCPEvent::event_total_voice_count);
 
     while (true) {
         if (bPrintStatistics) {
@@ -162,6 +163,7 @@ int main(int argc, char **argv) {
               LSCPServer::SendLSCPNotify(LSCPEvent(LSCPEvent::event_voice_count, iter->first, pEngine->VoiceCount()));
               LSCPServer::SendLSCPNotify(LSCPEvent(LSCPEvent::event_stream_count, iter->first, pEngine->DiskStreamCount()));
               LSCPServer::SendLSCPNotify(LSCPEvent(LSCPEvent::event_buffer_fill, iter->first, pEngine->DiskStreamBufferFillPercentage()));
+              LSCPServer::SendLSCPNotify(LSCPEvent(LSCPEvent::event_total_voice_count, pSampler->GetVoiceCount()));
           }
           LSCPServer::UnlockRTNotify();
       }
