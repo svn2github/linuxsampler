@@ -20,38 +20,59 @@
  *   Foundation, Inc., 59 Temple Place, Suite 330, Boston,                 *
  *   MA  02111-1307  USA                                                   *
  ***************************************************************************/
-#if 1
+
+#include <string.h>
+#include <sstream>
+
 #include "RIFF.h"
 
 namespace RIFF {
 
+// *************** Helper Functions **************
+// *
+
+    template<class T> inline String ToString(T o) {
+        std::stringstream ss;
+        ss << o;
+        return ss.str();
+    }
+
+
+
 // *************** Chunk **************
 // *
 
-    Chunk::Chunk() {
+    Chunk::Chunk(File* pFile) {
         #if DEBUG
-        std::cout << "Chunk::Chunk()" << std::endl;
+        std::cout << "Chunk::Chunk(File* pFile)" << std::endl;
         #endif // DEBUG
         ulPos      = 0;
         pParent    = NULL;
         pChunkData = NULL;
+        this->pFile = pFile;
     }
 
-    #if POSIX
-    Chunk::Chunk(int hFile, unsigned long StartPos, bool EndianNative, List* Parent) {
-    #else
-    Chunk::Chunk(FILE* hFile, unsigned long StartPos, bool EndianNative, List* Parent) {
-    #endif // POSIX
+    Chunk::Chunk(File* pFile, unsigned long StartPos, List* Parent) {
         #if DEBUG
-        std::cout << "Chunk::Chunk(FILE,ulong,bool,List*),StartPos=" << StartPos << std::endl;
+        std::cout << "Chunk::Chunk(File*,ulong,bool,List*),StartPos=" << StartPos << std::endl;
         #endif // DEBUG
-        Chunk::hFile  = hFile;
+        this->pFile   = pFile;
         ulStartPos    = StartPos + CHUNK_HEADER_SIZE;
-        bEndianNative = EndianNative;
         pParent       = Parent;
         ulPos         = 0;
         pChunkData    = NULL;
         ReadHeader(StartPos);
+    }
+
+    Chunk::Chunk(File* pFile, List* pParent, uint32_t uiChunkID, uint uiBodySize) {
+        this->pFile      = pFile;
+        ulStartPos       = 0; // arbitrary usually, since it will be updated when we write the chunk
+        this->pParent    = pParent;
+        ulPos            = 0;
+        pChunkData       = NULL;
+        ChunkID          = uiChunkID;
+        CurrentChunkSize = 0;
+        NewChunkSize     = uiBodySize;
     }
 
     Chunk::~Chunk() {
@@ -63,13 +84,13 @@ namespace RIFF {
         std::cout << "Chunk::Readheader(" << fPos << ") ";
         #endif // DEBUG
         #if POSIX
-        if (lseek(hFile, fPos, SEEK_SET) != -1) {
-            read(hFile, &ChunkID, 4);
-            read(hFile, &ChunkSize, 4);
+        if (lseek(pFile->hFileRead, fPos, SEEK_SET) != -1) {
+            read(pFile->hFileRead, &ChunkID, 4);
+            read(pFile->hFileRead, &CurrentChunkSize, 4);
         #else
-        if (!fseek(hFile, fPos, SEEK_SET)) {
-            fread(&ChunkID, 4, 1, hFile);
-            fread(&ChunkSize, 4, 1, hFile);
+        if (!fseek(pFile->hFileRead, fPos, SEEK_SET)) {
+            fread(&ChunkID, 4, 1, pFile->hFileRead);
+            fread(&CurrentChunkSize, 4, 1, pFile->hFileRead);
         #endif // POSIX
             #if WORDS_BIGENDIAN
             if (ChunkID == CHUNK_ID_RIFF) {
@@ -77,20 +98,49 @@ namespace RIFF {
             }
             #else // little endian
             if (ChunkID == CHUNK_ID_RIFX) {
-                bEndianNative = false;
+                pFile->bEndianNative = false;
                 ChunkID = CHUNK_ID_RIFF;
             }
             #endif // WORDS_BIGENDIAN
-            if (!bEndianNative) {
+            if (!pFile->bEndianNative) {
                 //swapBytes_32(&ChunkID);
-                swapBytes_32(&ChunkSize);
+                swapBytes_32(&CurrentChunkSize);
             }
             #if DEBUG
             std::cout << "ckID=" << convertToString(ChunkID) << " ";
             std::cout << "ckSize=" << ChunkSize << " ";
             std::cout << "bEndianNative=" << bEndianNative << std::endl;
             #endif // DEBUG
+            NewChunkSize = CurrentChunkSize;
         }
+    }
+
+    void Chunk::WriteHeader(unsigned long fPos) {
+        uint32_t uiNewChunkID = ChunkID;
+        if (ChunkID == CHUNK_ID_RIFF) {
+            #if WORDS_BIGENDIAN
+            if (pFile->bEndianNative) uiNewChunkID = CHUNK_ID_RIFX;
+            #else // little endian
+            if (!pFile->bEndianNative) uiNewChunkID = CHUNK_ID_RIFX;
+            #endif // WORDS_BIGENDIAN
+        }
+
+        uint32_t uiNewChunkSize = NewChunkSize;
+        if (!pFile->bEndianNative) {
+            swapBytes_32(&uiNewChunkSize);
+        }
+
+        #if POSIX
+        if (lseek(pFile->hFileWrite, fPos, SEEK_SET) != -1) {
+            write(pFile->hFileWrite, &uiNewChunkID, 4);
+            write(pFile->hFileWrite, &uiNewChunkSize, 4);
+        }
+        #else
+        if (!fseek(pFile->hFileWrite, fPos, SEEK_SET)) {
+            fwrite(&uiNewChunkID, 4, 1, pFile->hFileWrite);
+            fwrite(&uiNewChunkSize, 4, 1, pFile->hFileWrite);
+        }
+        #endif // POSIX
     }
 
     /**
@@ -104,6 +154,9 @@ namespace RIFF {
     /**
      *  Sets the position within the chunk body, thus within the data portion
      *  of the chunk (in bytes).
+     *
+     *  <b>Caution:</b> the position will be reset to zero whenever
+     *  File::Save() was called.
      *
      *  @param Where  - position offset (in bytes)
      *  @param Whence - optional: defines to what <i>\a Where</i> relates to,
@@ -119,7 +172,7 @@ namespace RIFF {
                 ulPos += Where;
                 break;
             case stream_end:
-                ulPos = ChunkSize - 1 - Where;
+                ulPos = CurrentChunkSize - 1 - Where;
                 break;
             case stream_backward:
                 ulPos -= Where;
@@ -128,7 +181,7 @@ namespace RIFF {
                 ulPos = Where;
                 break;
         }
-        if (ulPos > ChunkSize) ulPos = ChunkSize;
+        if (ulPos > CurrentChunkSize) ulPos = CurrentChunkSize;
         return ulPos;
     }
 
@@ -144,9 +197,9 @@ namespace RIFF {
      */
     unsigned long Chunk::RemainingBytes() {
        #if DEBUG
-       std::cout << "Chunk::Remainingbytes()=" << ChunkSize - ulPos << std::endl;
+       std::cout << "Chunk::Remainingbytes()=" << CurrentChunkSize - ulPos << std::endl;
        #endif // DEBUG
-        return ChunkSize - ulPos;
+        return CurrentChunkSize - ulPos;
     }
 
     /**
@@ -165,12 +218,12 @@ namespace RIFF {
       std::cout << "Chunk::GetState()" << std::endl;
       #endif // DEBUG
         #if POSIX
-        if (hFile == 0)        return stream_closed;
+        if (pFile->hFileRead == 0)    return stream_closed;
         #else
-        if (hFile == NULL)     return stream_closed;
+        if (pFile->hFileRead == NULL) return stream_closed;
         #endif // POSIX
-        if (ulPos < ChunkSize) return stream_ready;
-        else                   return stream_end_reached;
+        if (ulPos < CurrentChunkSize) return stream_ready;
+        else                          return stream_end_reached;
     }
 
     /**
@@ -192,18 +245,18 @@ namespace RIFF {
        #if DEBUG
        std::cout << "Chunk::Read(void*,ulong,ulong)" << std::endl;
        #endif // DEBUG
-        if (ulPos >= ChunkSize) return 0;
-        if (ulPos + WordCount * WordSize >= ChunkSize) WordCount = (ChunkSize - ulPos) / WordSize;
+        if (ulPos >= CurrentChunkSize) return 0;
+        if (ulPos + WordCount * WordSize >= CurrentChunkSize) WordCount = (CurrentChunkSize - ulPos) / WordSize;
         #if POSIX
-        if (lseek(hFile, ulStartPos + ulPos, SEEK_SET) < 0) return 0;
-        unsigned long readWords = read(hFile, pData, WordCount * WordSize);
+        if (lseek(pFile->hFileRead, ulStartPos + ulPos, SEEK_SET) < 0) return 0;
+        unsigned long readWords = read(pFile->hFileRead, pData, WordCount * WordSize);
         if (readWords < 1) return 0;
         readWords /= WordSize;
         #else // standard C functions
-        if (fseek(hFile, ulStartPos + ulPos, SEEK_SET)) return 0;
-        unsigned long readWords = fread(pData, WordSize, WordCount, hFile);
+        if (fseek(pFile->hFileRead, ulStartPos + ulPos, SEEK_SET)) return 0;
+        unsigned long readWords = fread(pData, WordSize, WordCount, pFile->hFileRead);
         #endif // POSIX
-        if (!bEndianNative && WordSize != 1) {
+        if (!pFile->bEndianNative && WordSize != 1) {
             switch (WordSize) {
                 case 2:
                     for (unsigned long iWord = 0; iWord < readWords; iWord++)
@@ -221,6 +274,62 @@ namespace RIFF {
         }
         SetPos(readWords * WordSize, stream_curpos);
         return readWords;
+    }
+
+    /**
+     *  Writes \a WordCount number of data words with given \a WordSize from
+     *  the buffer pointed by \a pData. Be sure to provide the correct
+     *  \a WordSize, as this will be important and taken into account for
+     *  eventual endian correction (swapping of bytes due to different
+     *  native byte order of a system). The position within the chunk will
+     *  automatically be incremented.
+     *
+     *  @param pData      source buffer (containing the data)
+     *  @param WordCount  number of data words to write
+     *  @param WordSize   size of each data word to write
+     *  @returns          number of successfully written data words
+     *  @throws RIFF::Exception  if write operation would exceed current
+     *                           chunk size or any IO error occured
+     *  @see Resize()
+     */
+    unsigned long Chunk::Write(void* pData, unsigned long WordCount, unsigned long WordSize) {
+        if (pFile->Mode == stream_mode_read)
+            throw Exception("Writing chunk data in read-only file access mode was attempted");
+        if (ulPos >= CurrentChunkSize || ulPos + WordCount * WordSize >= CurrentChunkSize)
+            throw Exception("End of chunk reached while trying to write data");
+        if (!pFile->bEndianNative && WordSize != 1) {
+            switch (WordSize) {
+                case 2:
+                    for (unsigned long iWord = 0; iWord < WordCount; iWord++)
+                        swapBytes_16((uint16_t*) pData + iWord);
+                    break;
+                case 4:
+                    for (unsigned long iWord = 0; iWord < WordCount; iWord++)
+                        swapBytes_32((uint32_t*) pData + iWord);
+                    break;
+                default:
+                    for (unsigned long iWord = 0; iWord < WordCount; iWord++)
+                        swapBytes((uint8_t*) pData + iWord * WordSize, WordSize);
+                    break;
+            }
+        }
+        #if POSIX
+        if (lseek(pFile->hFileWrite, ulStartPos + ulPos, SEEK_SET) < 0) {
+            throw Exception("Could not seek to position " + ToString(ulPos) +
+                            " in chunk (" + ToString(ulStartPos + ulPos) + " in file)");
+        }
+        unsigned long writtenWords = write(pFile->hFileWrite, pData, WordCount * WordSize);
+        if (writtenWords < 1) throw Exception("POSIX IO Error while trying to write chunk data");
+        writtenWords /= WordSize;
+        #else // standard C functions
+        if (fseek(pFile->hFileWrite, ulStartPos + ulPos, SEEK_SET)) {
+            throw Exception("Could not seek to position " + ToString(ulPos) +
+                            " in chunk (" + ToString(ulStartPos + ulPos) + " in file)");
+        }
+        unsigned long writtenWords = fwrite(pData, WordSize, WordCount, pFile->hFileWrite);
+        #endif // POSIX
+        SetPos(writtenWords * WordSize, stream_curpos);
+        return writtenWords;
     }
 
     /** Just an internal wrapper for the main <i>Read()</i> method with additional Exception throwing on errors. */
@@ -249,6 +358,24 @@ namespace RIFF {
     }
 
     /**
+     * Writes \a WordCount number of 8 Bit signed integer words from the
+     * buffer pointed by \a pData to the chunk's body, directly to the
+     * actual "physical" file. The position within the chunk will
+     * automatically be incremented. Note: you cannot write beyond the
+     * boundaries of the chunk, to append data to the chunk call Resize()
+     * before.
+     *
+     * @param pData             source buffer (containing the data)
+     * @param WordCount         number of 8 Bit signed integers to write
+     * @returns                 number of written integers
+     * @throws RIFF::Exception  if an IO error occured
+     * @see Resize()
+     */
+    unsigned long Chunk::WriteInt8(int8_t* pData, unsigned long WordCount) {
+        return Write(pData, WordCount, 1);
+    }
+
+    /**
      * Reads \a WordCount number of 8 Bit unsigned integer words and copies
      * it into the buffer pointed by \a pData. The buffer has to be
      * allocated. The position within the chunk will automatically be
@@ -265,6 +392,24 @@ namespace RIFF {
        std::cout << "Chunk::ReadUint8(uint8_t*,ulong)" << std::endl;
        #endif // DEBUG
         return ReadSceptical(pData, WordCount, 1);
+    }
+
+    /**
+     * Writes \a WordCount number of 8 Bit unsigned integer words from the
+     * buffer pointed by \a pData to the chunk's body, directly to the
+     * actual "physical" file. The position within the chunk will
+     * automatically be incremented. Note: you cannot write beyond the
+     * boundaries of the chunk, to append data to the chunk call Resize()
+     * before.
+     *
+     * @param pData             source buffer (containing the data)
+     * @param WordCount         number of 8 Bit unsigned integers to write
+     * @returns                 number of written integers
+     * @throws RIFF::Exception  if an IO error occured
+     * @see Resize()
+     */
+    unsigned long Chunk::WriteUint8(uint8_t* pData, unsigned long WordCount) {
+        return Write(pData, WordCount, 1);
     }
 
     /**
@@ -287,6 +432,24 @@ namespace RIFF {
     }
 
     /**
+     * Writes \a WordCount number of 16 Bit signed integer words from the
+     * buffer pointed by \a pData to the chunk's body, directly to the
+     * actual "physical" file. The position within the chunk will
+     * automatically be incremented. Note: you cannot write beyond the
+     * boundaries of the chunk, to append data to the chunk call Resize()
+     * before.
+     *
+     * @param pData             source buffer (containing the data)
+     * @param WordCount         number of 16 Bit signed integers to write
+     * @returns                 number of written integers
+     * @throws RIFF::Exception  if an IO error occured
+     * @see Resize()
+     */
+    unsigned long Chunk::WriteInt16(int16_t* pData, unsigned long WordCount) {
+        return Write(pData, WordCount, 2);
+    }
+
+    /**
      * Reads \a WordCount number of 16 Bit unsigned integer words and copies
      * it into the buffer pointed by \a pData. The buffer has to be
      * allocated. Endian correction will automatically be done if needed.
@@ -303,6 +466,24 @@ namespace RIFF {
       std::cout << "Chunk::ReadUint16(uint16_t*,ulong)" << std::endl;
       #endif // DEBUG
         return ReadSceptical(pData, WordCount, 2);
+    }
+
+    /**
+     * Writes \a WordCount number of 16 Bit unsigned integer words from the
+     * buffer pointed by \a pData to the chunk's body, directly to the
+     * actual "physical" file. The position within the chunk will
+     * automatically be incremented. Note: you cannot write beyond the
+     * boundaries of the chunk, to append data to the chunk call Resize()
+     * before.
+     *
+     * @param pData             source buffer (containing the data)
+     * @param WordCount         number of 16 Bit unsigned integers to write
+     * @returns                 number of written integers
+     * @throws RIFF::Exception  if an IO error occured
+     * @see Resize()
+     */
+    unsigned long Chunk::WriteUint16(uint16_t* pData, unsigned long WordCount) {
+        return Write(pData, WordCount, 2);
     }
 
     /**
@@ -325,6 +506,24 @@ namespace RIFF {
     }
 
     /**
+     * Writes \a WordCount number of 32 Bit signed integer words from the
+     * buffer pointed by \a pData to the chunk's body, directly to the
+     * actual "physical" file. The position within the chunk will
+     * automatically be incremented. Note: you cannot write beyond the
+     * boundaries of the chunk, to append data to the chunk call Resize()
+     * before.
+     *
+     * @param pData             source buffer (containing the data)
+     * @param WordCount         number of 32 Bit signed integers to write
+     * @returns                 number of written integers
+     * @throws RIFF::Exception  if an IO error occured
+     * @see Resize()
+     */
+    unsigned long Chunk::WriteInt32(int32_t* pData, unsigned long WordCount) {
+        return Write(pData, WordCount, 4);
+    }
+
+    /**
      * Reads \a WordCount number of 32 Bit unsigned integer words and copies
      * it into the buffer pointed by \a pData. The buffer has to be
      * allocated. Endian correction will automatically be done if needed.
@@ -341,6 +540,24 @@ namespace RIFF {
        std::cout << "Chunk::ReadUint32(uint32_t*,ulong)" << std::endl;
        #endif // DEBUG
         return ReadSceptical(pData, WordCount, 4);
+    }
+
+    /**
+     * Writes \a WordCount number of 32 Bit unsigned integer words from the
+     * buffer pointed by \a pData to the chunk's body, directly to the
+     * actual "physical" file. The position within the chunk will
+     * automatically be incremented. Note: you cannot write beyond the
+     * boundaries of the chunk, to append data to the chunk call Resize()
+     * before.
+     *
+     * @param pData             source buffer (containing the data)
+     * @param WordCount         number of 32 Bit unsigned integers to write
+     * @returns                 number of written integers
+     * @throws RIFF::Exception  if an IO error occured
+     * @see Resize()
+     */
+    unsigned long Chunk::WriteUint32(uint32_t* pData, unsigned long WordCount) {
+        return Write(pData, WordCount, 4);
     }
 
     /**
@@ -443,18 +660,30 @@ namespace RIFF {
         return word;
     }
 
+    /** @brief Load chunk body into RAM.
+     *
+     * Loads the whole chunk body into memory. You can modify the data in
+     * RAM and save the data by calling File::Save() afterwards.
+     *
+     * <b>Caution:</b> the buffer pointer will be invalidated once
+     * File::Save() was called. You have to call LoadChunkData() again to
+     * get a new pointer whenever File::Save() was called.
+     *
+     * @returns a pointer to the data in RAM on success, NULL otherwise
+     * @see ReleaseChunkData()
+     */
     void* Chunk::LoadChunkData() {
         if (!pChunkData) {
             #if POSIX
-            if (lseek(hFile, ulStartPos, SEEK_SET) == -1) return NULL;
+            if (lseek(pFile->hFileRead, ulStartPos, SEEK_SET) == -1) return NULL;
             pChunkData = new uint8_t[GetSize()];
             if (!pChunkData) return NULL;
-            unsigned long readWords = read(hFile, pChunkData, GetSize());
+            unsigned long readWords = read(pFile->hFileRead, pChunkData, GetSize());
             #else
-            if (fseek(hFile, ulStartPos, SEEK_SET)) return NULL;
+            if (fseek(pFile->hFileRead, ulStartPos, SEEK_SET)) return NULL;
             pChunkData = new uint8_t[GetSize()];
             if (!pChunkData) return NULL;
-            unsigned long readWords = fread(pChunkData, 1, GetSize(), hFile);
+            unsigned long readWords = fread(pChunkData, 1, GetSize(), pFile->hFileRead);
             #endif // POSIX
             if (readWords != GetSize()) {
                 delete[] pChunkData;
@@ -464,6 +693,12 @@ namespace RIFF {
         return pChunkData;
     }
 
+    /** @brief Free loaded chunk body from RAM.
+     *
+     * Frees loaded chunk body data from memory (RAM). You should call
+     * File::Save() before calling this method if you modified the data to
+     * make the changes persistent.
+     */
     void Chunk::ReleaseChunkData() {
         if (pChunkData) {
             delete[] pChunkData;
@@ -471,32 +706,151 @@ namespace RIFF {
         }
     }
 
+    /** @brief Resize chunk.
+     *
+     * Resizes this chunk's body, that is the actual size of data possible
+     * to be written to this chunk. This call will return immediately and
+     * just schedule the resize operation. You should call File::Save() to
+     * actually perform the resize operation(s) "physically" to the file.
+     * As this can take a while on large files, it is recommended to call
+     * Resize() first on all chunks which have to be resized and finally to
+     * call File::Save() to perform all those resize operations in one rush.
+     *
+     * <b>Caution:</b> You cannot directly write to enlarged chunks before
+     * calling File::Save() as this might exceed the current chunk's body
+     * boundary.
+     *
+     * @param iNewSize - new chunk body size in bytes (must be greater than zero)
+     * @throws RIFF::Exception  if \a iNewSize is less than 1
+     * @see File::Save()
+     */
+    void Chunk::Resize(int iNewSize) {
+        if (iNewSize <= 0) throw Exception("Chunk size must be at least one byte");
+        NewChunkSize = iNewSize;
+        pFile->LogAsResized(this);
+    }
+
+    /** @brief Write chunk persistently e.g. to disk.
+     *
+     * Stores the chunk persistently to its actual "physical" file.
+     *
+     * @param ulWritePos - position within the "physical" file where this
+     *                     chunk should be written to
+     * @param ulCurrentDataOffset - offset of current (old) data within
+     *                              the file
+     * @returns new write position in the "physical" file, that is
+     *          \a ulWritePos incremented by this chunk's new size
+     *          (including its header size of course)
+     */
+    unsigned long Chunk::WriteChunk(unsigned long ulWritePos, unsigned long ulCurrentDataOffset) {
+        unsigned long ulOriginalPos = ulWritePos;
+        ulWritePos += CHUNK_HEADER_SIZE;
+
+        // if the whole chunk body was loaded into RAM
+        if (pChunkData) {
+            // in case the chunk size was changed, reallocate the data in RAM with the chunk's new size
+            if (NewChunkSize != CurrentChunkSize) {
+                uint8_t* pNewBuffer = new uint8_t[NewChunkSize];
+                if (NewChunkSize > CurrentChunkSize) {
+                    memcpy(pNewBuffer, pChunkData, CurrentChunkSize);
+                    memset(pNewBuffer + CurrentChunkSize, 0, NewChunkSize - CurrentChunkSize);
+                } else {
+                    memcpy(pNewBuffer, pChunkData, NewChunkSize);
+                }
+                delete[] pChunkData;
+                pChunkData = pNewBuffer;
+            }
+
+            // write chunk data from RAM persistently to the file
+            #if POSIX
+            lseek(pFile->hFileWrite, ulWritePos, SEEK_SET);
+            if (write(pFile->hFileWrite, pChunkData, NewChunkSize) != NewChunkSize) {
+                throw Exception("Writing Chunk data (from RAM) failed");
+            }
+            #else
+            fseek(pFile->hFileWrite, ulWritePos, SEEK_SET);
+            if (fwrite(pChunkData, 1, NewChunkSize, pFile->hFileWrite) != NewChunkSize) {
+                throw Exception("Writing Chunk data (from RAM) failed");
+            }
+            #endif // POSIX
+        } else {
+            // move chunk data from the end of the file to the appropriate position
+            int8_t* pCopyBuffer = new int8_t[4096];
+            unsigned long ulToMove = (NewChunkSize < CurrentChunkSize) ? NewChunkSize : CurrentChunkSize;
+            int iBytesMoved = 1;
+            for (unsigned long ulOffset = 0; iBytesMoved > 0; ulOffset += iBytesMoved, ulToMove -= iBytesMoved) {
+                iBytesMoved = (ulToMove < 4096) ? ulToMove : 4096;
+                #if POSIX
+                lseek(pFile->hFileRead, ulStartPos + ulCurrentDataOffset + ulOffset, SEEK_SET);
+                iBytesMoved = read(pFile->hFileRead, pCopyBuffer, iBytesMoved);
+                lseek(pFile->hFileWrite, ulWritePos + ulOffset, SEEK_SET);
+                iBytesMoved = write(pFile->hFileWrite, pCopyBuffer, iBytesMoved);
+                #else
+                fseek(pFile->hFileRead, ulStartPos + ulCurrentDataOffset + ulOffset, SEEK_SET);
+                iBytesMoved = fread(pCopyBuffer, 1, iBytesMoved, pFile->hFileRead);
+                fseek(pFile->hFileWrite, ulWritePos + ulOffset, SEEK_SET);
+                iBytesMoved = fwrite(pCopyBuffer, 1, iBytesMoved, pFile->hFileWrite);
+                #endif
+            }
+            delete[] pCopyBuffer;
+            if (iBytesMoved < 0) throw Exception("Writing Chunk data (from file) failed");
+        }
+
+        // update this chunk's header
+        CurrentChunkSize = NewChunkSize;
+        WriteHeader(ulOriginalPos);
+
+        // update chunk's position pointers
+        ulStartPos = ulOriginalPos + CHUNK_HEADER_SIZE;
+        ulPos      = 0;
+
+        // add pad byte if needed
+        if ((ulStartPos + NewChunkSize) % 2 != 0) {
+            char cPadByte = 0;
+            #if POSIX
+            write(pFile->hFileWrite, &cPadByte, 1);
+            #else
+            fwrite(&cPadByte, 1, 1, pFile->hFileWrite);
+            #endif
+            return ulStartPos + NewChunkSize + 1;
+        }
+
+        return ulStartPos + NewChunkSize;
+    }
+
+    void Chunk::__resetPos() {
+        ulPos = 0;
+    }
+
 
 
 // *************** List ***************
 // *
 
-    List::List() : Chunk() {
+    List::List(File* pFile) : Chunk(pFile) {
       #if DEBUG
-      std::cout << "List::List()" << std::endl;
+      std::cout << "List::List(File* pFile)" << std::endl;
       #endif // DEBUG
         pSubChunks    = NULL;
         pSubChunksMap = NULL;
     }
 
-    #if POSIX
-    List::List(int hFile, unsigned long StartPos, bool EndianNative, List* Parent)
-    #else
-    List::List(FILE* hFile, unsigned long StartPos, bool EndianNative, List* Parent)
-    #endif // POSIX
-      : Chunk(hFile, StartPos, EndianNative, Parent) {
+    List::List(File* pFile, unsigned long StartPos, List* Parent)
+      : Chunk(pFile, StartPos, Parent) {
         #if DEBUG
-        std::cout << "List::List(FILE*,ulong,bool,List*)" << std::endl;
+        std::cout << "List::List(File*,ulong,bool,List*)" << std::endl;
         #endif // DEBUG
         pSubChunks    = NULL;
         pSubChunksMap = NULL;
         ReadHeader(StartPos);
         ulStartPos    = StartPos + LIST_HEADER_SIZE;
+    }
+
+    List::List(File* pFile, List* pParent, uint32_t uiListID)
+      : Chunk(pFile, pParent, CHUNK_ID_LIST, 0) {
+        pSubChunks    = NULL;
+        pSubChunksMap = NULL;
+        ListType      = uiListID;
     }
 
     List::~List() {
@@ -693,25 +1047,106 @@ namespace RIFF {
         return result;
     }
 
+    /** @brief Creates a new sub chunk.
+     *
+     * Creates and adds a new sub chunk to this list chunk. Note that the
+     * chunk's body size given by \a uiBodySize must be greater than zero.
+     * You have to call File::Save() to make this change persistent to the
+     * actual file and <b>before</b> performing any data write operations
+     * on the new chunk!
+     *
+     * @param uiChunkID  - chunk ID of the new chunk
+     * @param uiBodySize - size of the new chunk's body, that is its actual
+     *                     data size (without header)
+     * @throws RIFF::Exception if \a uiBodySize equals zero
+     */
+    Chunk* List::AddSubChunk(uint32_t uiChunkID, uint uiBodySize) {
+        if (uiBodySize == 0) throw Exception("Chunk body size must be at least 1 byte");
+        if (!pSubChunks) LoadSubChunks();
+        Chunk* pNewChunk = new Chunk(pFile, this, uiChunkID, uiBodySize);
+        pSubChunks->push_back(pNewChunk);
+        (*pSubChunksMap)[uiChunkID] = pNewChunk;
+        pFile->ResizedChunks.push_back(pNewChunk);
+        return pNewChunk;
+    }
+
+    /** @brief Creates a new list sub chunk.
+     *
+     * Creates and adds a new list sub chunk to this list chunk. Note that
+     * you have to add sub chunks / sub list chunks to the new created chunk
+     * <b>before</b> trying to make this change persisten to the actual
+     * file with File::Save()!
+     *
+     * @param uiListType - list ID of the new list chunk
+     */
+    List* List::AddSubList(uint32_t uiListType) {
+        if (!pSubChunks) LoadSubChunks();
+        List* pNewListChunk = new List(pFile, this, uiListType);
+        pSubChunks->push_back(pNewListChunk);
+        (*pSubChunksMap)[CHUNK_ID_LIST] = pNewListChunk;
+        return pNewListChunk;
+    }
+
+    /** @brief Removes a sub chunk.
+     *
+     * Removes the sub chunk given by \a pSubChunk from this list and frees
+     * it completely from RAM. The given chunk can either be a normal sub
+     * chunk or a list sub chunk. You should call File::Save() to make this
+     * change persistent at any time.
+     *
+     * @param pSubChunk - sub chunk or sub list chunk to be removed
+     */
+    void List::DeleteSubChunk(Chunk* pSubChunk) {
+        if (!pSubChunks) LoadSubChunks();
+        pSubChunks->remove(pSubChunk);
+        if ((*pSubChunksMap)[pSubChunk->GetChunkID()] == pSubChunk) {
+            pSubChunksMap->erase(pSubChunk->GetChunkID());
+            // try to find another chunk of the same chunk ID
+            ChunkList::iterator iter = pSubChunks->begin();
+            ChunkList::iterator end  = pSubChunks->end();
+            for (; iter != end; ++iter) {
+                if ((*iter)->GetChunkID() == pSubChunk->GetChunkID()) {
+                    (*pSubChunksMap)[pSubChunk->GetChunkID()] = *iter;
+                    break; // we're done, stop search
+                }
+            }
+        }
+        delete pSubChunk;
+    }
+
     void List::ReadHeader(unsigned long fPos) {
       #if DEBUG
       std::cout << "List::Readheader(ulong) ";
       #endif // DEBUG
         Chunk::ReadHeader(fPos);
-        ChunkSize -= 4;
+        NewChunkSize = CurrentChunkSize -= 4;
         #if POSIX
-        lseek(hFile, fPos + CHUNK_HEADER_SIZE, SEEK_SET);
-        read(hFile, &ListType, 4);
+        lseek(pFile->hFileRead, fPos + CHUNK_HEADER_SIZE, SEEK_SET);
+        read(pFile->hFileRead, &ListType, 4);
         #else
-        fseek(hFile, fPos + CHUNK_HEADER_SIZE, SEEK_SET);
-        fread(&ListType, 4, 1, hFile);
+        fseek(pFile->hFileRead, fPos + CHUNK_HEADER_SIZE, SEEK_SET);
+        fread(&ListType, 4, 1, pFile->hFileRead);
         #endif // POSIX
       #if DEBUG
       std::cout << "listType=" << convertToString(ListType) << std::endl;
       #endif // DEBUG
-        if (!bEndianNative) {
+        if (!pFile->bEndianNative) {
             //swapBytes_32(&ListType);
         }
+    }
+
+    void List::WriteHeader(unsigned long fPos) {
+        // the four list type bytes officially belong the chunk's body in the RIFF format
+        NewChunkSize += 4;
+        Chunk::WriteHeader(fPos);
+        NewChunkSize -= 4; // just revert the +4 incrementation
+        #if POSIX
+        lseek(pFile->hFileWrite, fPos + CHUNK_HEADER_SIZE, SEEK_SET);
+        write(pFile->hFileWrite, &ListType, 4);
+        #else
+        fseek(pFile->hFileWrite, fPos + CHUNK_HEADER_SIZE, SEEK_SET);
+        fwrite(&ListType, 4, 1, pFile->hFileWrite);
+        #endif // POSIX
     }
 
     void List::LoadSubChunks() {
@@ -721,6 +1156,7 @@ namespace RIFF {
         if (!pSubChunks) {
             pSubChunks    = new ChunkList();
             pSubChunksMap = new ChunkMap();
+            if (!pFile->hFileRead) return;
             unsigned long uiOriginalPos = GetPos();
             SetPos(0); // jump to beginning of list chunk body
             while (RemainingBytes() >= CHUNK_HEADER_SIZE) {
@@ -731,11 +1167,11 @@ namespace RIFF {
        std::cout << " ckid=" << convertToString(ckid) << std::endl;
        #endif // DEBUG
                 if (ckid == CHUNK_ID_LIST) {
-                    ck = new RIFF::List(hFile, ulStartPos + ulPos - 4, bEndianNative, this);
+                    ck = new RIFF::List(pFile, ulStartPos + ulPos - 4, this);
                     SetPos(ck->GetSize() + LIST_HEADER_SIZE - 4, RIFF::stream_curpos);
                 }
                 else { // simple chunk
-                    ck = new RIFF::Chunk(hFile, ulStartPos + ulPos - 4, bEndianNative, this);
+                    ck = new RIFF::Chunk(pFile, ulStartPos + ulPos - 4, this);
                     SetPos(ck->GetSize() + CHUNK_HEADER_SIZE - 4, RIFF::stream_curpos);
                 }
                 pSubChunks->push_back(ck);
@@ -743,6 +1179,47 @@ namespace RIFF {
                 if (GetPos() % 2 != 0) SetPos(1, RIFF::stream_curpos); // jump over pad byte
             }
             SetPos(uiOriginalPos); // restore position before this call
+        }
+    }
+
+    /** @brief Write list chunk persistently e.g. to disk.
+     *
+     * Stores the list chunk persistently to its actual "physical" file. All
+     * subchunks (including sub list chunks) will be stored recursively as
+     * well.
+     *
+     * @param ulWritePos - position within the "physical" file where this
+     *                     list chunk should be written to
+     * @param ulCurrentDataOffset - offset of current (old) data within
+     *                              the file
+     * @returns new write position in the "physical" file, that is
+     *          \a ulWritePos incremented by this list chunk's new size
+     *          (including its header size of course)
+     */
+    unsigned long List::WriteChunk(unsigned long ulWritePos, unsigned long ulCurrentDataOffset) {
+        unsigned long ulOriginalPos = ulWritePos;
+        ulWritePos += LIST_HEADER_SIZE;
+
+        // write all subchunks (including sub list chunks) recursively
+        if (pSubChunks) {
+            for (ChunkList::iterator iter = pSubChunks->begin(), end = pSubChunks->end(); iter != end; ++iter) {
+                ulWritePos = (*iter)->WriteChunk(ulWritePos, ulCurrentDataOffset);
+            }
+        }
+
+        // update this list chunk's header
+        CurrentChunkSize = NewChunkSize = ulWritePos - ulOriginalPos - LIST_HEADER_SIZE;
+        WriteHeader(ulOriginalPos);
+
+        return ulWritePos;
+    }
+
+    void List::__resetPos() {
+        Chunk::__resetPos();
+        if (pSubChunks) {
+            for (ChunkList::iterator iter = pSubChunks->begin(), end = pSubChunks->end(); iter != end; ++iter) {
+                (*iter)->__resetPos();
+            }
         }
     }
 
@@ -758,19 +1235,41 @@ namespace RIFF {
 // *************** File ***************
 // *
 
-    File::File(const String& path) : List(), Filename(path) {
+    /** @brief Create new RIFF file.
+     *
+     * Use this constructor if you want to create a new RIFF file completely
+     * "from scratch". Note: there must be no empty chunks or empty list
+     * chunks when trying to make the new RIFF file persistent with Save()!
+     *
+     * @see AddSubChunk(), AddSubList()
+     */
+    File::File() : List(this) {
+        hFileRead = hFileWrite = 0;
+        bEndianNative = true;
+        ulStartPos = RIFF_HEADER_SIZE;
+    }
+
+    /** @brief Load existing RIFF file.
+     *
+     * Loads an existing RIFF file with all its chunks.
+     *
+     * @param path - path and file name of the RIFF file to open
+     * @throws RIFF::Exception if error occured while trying to load the
+     *                         given RIFF file
+     */
+    File::File(const String& path) : List(this), Filename(path) {
       #if DEBUG
       std::cout << "File::File("<<path<<")" << std::endl;
       #endif // DEBUG
         bEndianNative = true;
         #if POSIX
-        hFile = open(path.c_str(), O_RDONLY | O_NONBLOCK);
-        if (hFile <= 0) {
-            hFile = 0;
+        hFileRead = hFileWrite = open(path.c_str(), O_RDONLY | O_NONBLOCK);
+        if (hFileRead <= 0) {
+            hFileRead = hFileWrite = 0;
             throw RIFF::Exception("Can't open \"" + path + "\"");
         }
         #else
-        hFile = fopen(path.c_str(), "rb");
+        hFileRead = hFileWrite = fopen(path.c_str(), "rb");
         if (!hFile) throw RIFF::Exception("Can't open \"" + path + "\"");
         #endif // POSIX
         ulStartPos = RIFF_HEADER_SIZE;
@@ -780,27 +1279,215 @@ namespace RIFF {
         }
     }
 
+    String File::GetFileName() {
+        return Filename;
+    }
+
+    stream_mode_t File::GetMode() {
+        return Mode;
+    }
+
+    /** @brief Change file access mode.
+     *
+     * Changes files access mode either to read-only mode or to read/write
+     * mode.
+     *
+     * @param NewMode - new file access mode
+     * @returns true if mode was changed, false if current mode already
+     *          equals new mode
+     * @throws RIFF::Exception if new file access mode is unknown
+     */
+    bool File::SetMode(stream_mode_t NewMode) {
+        if (NewMode != Mode) {
+            switch (NewMode) {
+                case stream_mode_read:
+                    #if POSIX
+                    if (hFileRead) close(hFileRead);
+                    hFileRead = hFileWrite = open(Filename.c_str(), O_RDONLY | O_NONBLOCK);
+                    if (hFileRead < 0) {
+                        hFileRead = hFileWrite = 0;
+                        throw Exception("Could not (re)open file \"" + Filename + "\" in read mode");
+                    }
+                    #else
+                    if (hFileRead) fclose(hFileRead);
+                    hFileRead = hFileWrite = fopen(path.c_str(), "rb");
+                    if (!hFileRead) throw Exception("Could not (re)open file \"" + Filename + "\" in read mode");
+                    #endif
+                    __resetPos(); // reset read/write position of ALL 'Chunk' objects
+                    return true;
+                case stream_mode_read_write:
+                    #if POSIX
+                    if (hFileRead) close(hFileRead);
+                    hFileRead = hFileWrite = open(Filename.c_str(), O_RDWR | O_NONBLOCK);
+                    if (hFileRead < 0) {
+                        hFileRead = hFileWrite = open(Filename.c_str(), O_RDONLY | O_NONBLOCK);
+                        throw Exception("Could not open file \"" + Filename + "\" in read+write mode");
+                    }
+                    #else
+                    if (hFileRead) fclose(hFileRead);
+                    hFileRead = hFileWrite = fopen(path.c_str(), "r+b");
+                    if (!hFileRead) {
+                        hFileRead = hFileWrite = fopen(path.c_str(), "rb");
+                        throw Exception("Could not open file \"" + Filename + "\" in read+write mode");
+                    }
+                    #endif
+                    __resetPos(); // reset read/write position of ALL 'Chunk' objects
+                    return true;
+                default:
+                    throw Exception("Unknown file access mode");
+            }
+        }
+        return false;
+    }
+
+    /** @brief Save changes to same file.
+     *
+     * Make all changes of all chunks persistent by writing them to the
+     * actual (same) file. The file might temporarily grow to a higher size
+     * than it will have at the end of the saving process, in case chunks
+     * were grown.
+     *
+     * @throws RIFF::Exception if there is an empty chunk or empty list
+     *                         chunk or any kind of IO error occured
+     */
+    void File::Save() {
+        // reopen file in write mode
+        bool bModeWasChanged = SetMode(stream_mode_read_write);
+
+        // to be able to save the whole file without loading everything into
+        // RAM and without having to store the data in a temporary file, we
+        // enlarge the file with the sum of all _positive_ chunk size
+        // changes, move current data towards the end of the file with the
+        // calculated sum and finally update / rewrite the file by copying
+        // the old data back to the right position at the beginning of the file
+
+        // first we sum up all positive chunk size changes (and skip all negative ones)
+        unsigned long ulPositiveSizeDiff = 0;
+        for (ChunkList::iterator iter = ResizedChunks.begin(), end = ResizedChunks.end(); iter != end; ++iter) {
+            if ((*iter)->GetNewSize() == 0) throw Exception("There is at least one empty chunk (zero size)");
+            unsigned long ulDiff = (*iter)->GetNewSize() - (*iter)->GetSize() + 1L; // +1 in case we have to add a pad byte
+            if (ulDiff > 0) ulPositiveSizeDiff += ulDiff;
+        }
+
+        unsigned long ulWorkingFileSize = GetFileSize();
+
+        // if there are positive size changes...
+        if (ulPositiveSizeDiff > 0) {
+            // ... we enlarge this file first ...
+            ulWorkingFileSize += ulPositiveSizeDiff;
+            ResizeFile(ulWorkingFileSize);
+            // ... and move current data by the same amount towards end of file.
+            int8_t* pCopyBuffer = new int8_t[4096];
+            const unsigned long ulFileSize = GetSize() + RIFF_HEADER_SIZE;
+            int iBytesMoved = 1;
+            for (unsigned long ulPos = 0; iBytesMoved > 0; ulPos += iBytesMoved) {
+                const unsigned long ulToMove = ulFileSize - ulPos;
+                iBytesMoved = (ulToMove < 4096) ? ulToMove : 4096;
+                #if POSIX
+                lseek(hFileRead, ulPos, SEEK_SET);
+                iBytesMoved = read(hFileRead, pCopyBuffer, iBytesMoved);
+                lseek(hFileWrite, ulPos + ulPositiveSizeDiff, SEEK_SET);
+                iBytesMoved = write(hFileWrite, pCopyBuffer, iBytesMoved);
+                #else
+                fseek(hFileRead, ulPos, SEEK_SET);
+                iBytesMoved = fread(pCopyBuffer, 1, iBytesMoved, hFileRead);
+                fseek(hFileWrite, ulPos + ulPositiveSizeDiff, SEEK_SET);
+                iBytesMoved = fwrite(pCopyBuffer, 1, iBytesMoved, hFileWrite);
+                #endif
+            }
+            delete[] pCopyBuffer;
+            if (iBytesMoved < 0) throw Exception("Could not modify file while trying to enlarge it");
+        }
+
+        // rebuild / rewrite complete RIFF tree
+        unsigned long ulTotalSize = WriteChunk(0, ulPositiveSizeDiff);
+
+        // resize file to the final size
+        if (ulTotalSize < ulWorkingFileSize) ResizeFile(ulTotalSize);
+
+        // forget all resized chunks
+        ResizedChunks.clear();
+
+        // reopen file in read mode
+        if (bModeWasChanged) SetMode(stream_mode_read);
+    }
+
+    /** @brief Save changes to another file.
+     *
+     * Make all changes of all chunks persistent by writing them to another
+     * file. <b>Caution:</b> this method is optimized for writing to
+     * <b>another</b> file, do not use it to save the changes to the same
+     * file! Use File::Save() in that case instead!
+     *
+     * After calling this method, this File object will be associated with
+     * the new file (given by \a path) afterwards.
+     *
+     * @param path - path and file name where everything should be written to
+     */
+    void File::Save(const String& path) {
+        // open the other (new) file for writing and truncate it to zero size
+        #if POSIX
+        hFileWrite = open(path.c_str(), O_RDWR | O_CREAT | O_TRUNC);
+        if (hFileWrite < 0) {
+            hFileWrite = hFileRead;
+            throw Exception("Could not open file \"" + path + "\" for writing");
+        }
+        #else
+        hFileWrite = fopen(path.c_str(), "w+b");
+        if (!hFileWrite) {
+            hFileWrite = hFileRead;
+            throw Exception("Could not open file \"" + path + "\" for writing");
+        }
+        #endif // POSIX
+
+        // write complete RIFF tree to the other (new) file
+        WriteChunk(0, 0);
+
+        // forget all resized chunks
+        ResizedChunks.clear();
+
+        // associate new file with this File object from now on
+        Filename = path;
+        stream_mode_t oldMode = Mode;
+        Mode = (stream_mode_t) -1; // Just set it to an undefined mode ...
+        SetMode(oldMode);          // ... so SetMode() has to reopen the file handles.
+    }
+
+    void File::ResizeFile(unsigned long ulNewSize) {
+        #if POSIX
+        if (ftruncate(hFileWrite, ulNewSize) < 0)
+            throw Exception("Could not resize file \"" + Filename + "\"");
+        #else
+        # error Sorry, this version of libgig only supports POSIX systems yet.
+        # error Reason: portable implementation of RIFF::File::ResizeFile() is missing!
+        #endif
+    }
+
     File::~File() {
        #if DEBUG
        std::cout << "File::~File()" << std::endl;
        #endif // DEBUG
         #if POSIX
-        if (hFile) close(hFile);
+        if (hFileRead) close(hFileRead);
         #else
-        if (hFile) fclose(hFile);
+        if (hFileRead) fclose(hFileRead);
         #endif // POSIX
+    }
+
+    void File::LogAsResized(Chunk* pResizedChunk) {
+        ResizedChunks.push_back(pResizedChunk);
     }
 
     unsigned long File::GetFileSize() {
         #if POSIX
         struct stat filestat;
-        fstat(hFile, &filestat);
+        fstat(hFileRead, &filestat);
         long size = filestat.st_size;
         #else // standard C functions
-        long curpos = ftell(hFile);
-        fseek(hFile, 0, SEEK_END);
-        long size = ftell(hFile);
-        fseek(hFile, curpos, SEEK_SET);
+        long curpos = ftell(hFileRead);
+        fseek(hFileRead, 0, SEEK_END);
+        long size = ftell(hFileRead);
+        fseek(hFileRead, curpos, SEEK_SET);
         #endif // POSIX
         return size;
     }
@@ -836,4 +1523,3 @@ namespace RIFF {
     }
 
 } // namespace RIFF
-#endif

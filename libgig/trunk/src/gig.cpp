@@ -1806,10 +1806,10 @@ namespace {
         for (int i = 0 ; i < WavePoolCount ; i++) {
             if (pWavePoolTableHi[i] > lastFileNo) lastFileNo = pWavePoolTableHi[i];
         }
-        String name(pRIFF->Filename);
-        int nameLen = pRIFF->Filename.length();
+        String name(pRIFF->GetFileName());
+        int nameLen = name.length();
         char suffix[6];
-        if (nameLen > 4 && pRIFF->Filename.substr(nameLen - 4) == ".gig") nameLen -= 4;
+        if (nameLen > 4 && name.substr(nameLen - 4) == ".gig") nameLen -= 4;
 
         for (int fileNo = 0 ; ; ) {
             RIFF::List* wvpl = file->GetSubList(LIST_TYPE_WVPL);

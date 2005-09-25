@@ -1,5 +1,8 @@
 Version CVS HEAD (?)
 
+  * general changes:
+    - added write support (only to the RIFF classes yet)
+
   * src/gig.cpp, src/gig.h:
     - fixed the GetVelocityCutoff function, it wasn't always using the
       VCFVelocityScale parameter when no cutoff controller was defined

@@ -72,8 +72,15 @@ namespace RIFF {
     /* just symbol prototyping */
     class Chunk;
     class List;
+    class File;
 
     typedef std::string String;
+
+    /** Whether file stream is open in read or in read/write mode. */
+    typedef enum {
+        stream_mode_read,
+        stream_mode_read_write
+    } stream_mode_t;
 
     /** Current state of the file stream. */
     typedef enum {
@@ -93,15 +100,12 @@ namespace RIFF {
     /** Provides convenient methods to access data of RIFF chunks in general. */
     class Chunk {
         public:
-            #if POSIX
-            Chunk(int hFile, unsigned long StartPos, bool EndianNative, List* Parent);
-            #else
-            Chunk(FILE* hFile, unsigned long StartPos, bool EndianNative, List* Parent);
-            #endif // POSIX
+            Chunk(File* pFile, unsigned long StartPos, List* Parent);
             String         GetChunkIDString();
             uint32_t       GetChunkID() { return ChunkID; };            ///< Chunk ID in unsigned integer representation.
             List*          GetParent()  { return pParent; };            ///< Returns pointer to the chunk's parent list chunk.
-            unsigned long  GetSize()    { return ChunkSize; };          ///< Chunk size in bytes (without header, thus the chunk data body)
+            unsigned long  GetSize()    { return CurrentChunkSize; };   ///< Chunk size in bytes (without header, thus the chunk data body)
+            unsigned long  GetNewSize() { return NewChunkSize;     };   ///< New chunk size if it was modified with Resize().
             unsigned long  GetPos()     { return ulPos; };              ///< Position within the chunk data body
             unsigned long  GetFilePos() { return ulStartPos + ulPos; }; ///< Current, actual offset in file.
             unsigned long  SetPos(unsigned long Where, stream_whence_t Whence = stream_start);
@@ -120,25 +124,31 @@ namespace RIFF {
             uint16_t       ReadUint16();
             int32_t        ReadInt32();
             uint32_t       ReadUint32();
-            void*          LoadChunkData();     ///< Load the whole chunk body in memory (on success returns a pointer to the data in RAM, else NULL).
-            void           ReleaseChunkData();  ///< Free loaded chunk body data from memory (RAM).
+            unsigned long  Write(void* pData, unsigned long WordCount, unsigned long WordSize);
+            unsigned long  WriteInt8(int8_t* pData,     unsigned long WordCount = 1);
+            unsigned long  WriteUint8(uint8_t* pData,   unsigned long WordCount = 1);
+            unsigned long  WriteInt16(int16_t* pData,   unsigned long WordCount = 1);
+            unsigned long  WriteUint16(uint16_t* pData, unsigned long WordCount = 1);
+            unsigned long  WriteInt32(int32_t* pData,   unsigned long WordCount = 1);
+            unsigned long  WriteUint32(uint32_t* pData, unsigned long WordCount = 1);
+            void*          LoadChunkData();
+            void           ReleaseChunkData();
+            void           Resize(int iNewSize);
             virtual ~Chunk();
         protected:
             uint32_t      ChunkID;
-            uint32_t      ChunkSize;		/* in bytes */
+            uint32_t      CurrentChunkSize;		/* in bytes */
+            uint32_t      NewChunkSize;			/* in bytes (if chunk was scheduled to be resized) */
             List*         pParent;
-            #if POSIX
-            int           hFile;
-            #else
-            FILE*         hFile;
-            #endif // POSIX
+            File*         pFile;
             unsigned long ulStartPos;		/* actual position in file where chunk (without header) starts */
             unsigned long ulPos; 		/* # of bytes from ulStartPos */
-            bool          bEndianNative;
             uint8_t*      pChunkData;
 
-            Chunk();
+            Chunk(File* pFile);
+            Chunk(File* pFile, List* pParent, uint32_t uiChunkID, uint uiBodySize);
             void          ReadHeader(unsigned long fPos);
+            void          WriteHeader(unsigned long fPos);
             unsigned long ReadSceptical(void* pData, unsigned long WordCount, unsigned long WordSize);
             inline void   swapBytes_16(void* Word) {
                 uint8_t byteCache = *((uint8_t*) Word);
@@ -171,16 +181,16 @@ namespace RIFF {
                 }
                 return result;
             }
+            virtual unsigned long WriteChunk(unsigned long ulWritePos, unsigned long ulCurrentDataOffset);
+            virtual void __resetPos(); ///< Sets Chunk's read/write position to zero.
+
+            friend class List;
     };
 
     /** Provides convenient methods to access data of RIFF list chunks and their subchunks. */
     class List : public Chunk {
         public:
-            #if POSIX
-            List(int hFile, unsigned long StartPos, bool EndianNative, List* Parent);
-            #else
-            List(FILE* hFile, unsigned long StartPos, bool EndianNative, List* Parent);
-            #endif // POSIX
+            List(File* pFile, unsigned long StartPos, List* Parent);
             String       GetListTypeString();
             uint32_t     GetListType() { return ListType; }   ///< Returns unsigned integer representation of the list's ID
             Chunk*       GetSubChunk(uint32_t ChunkID);
@@ -193,6 +203,9 @@ namespace RIFF {
             unsigned int CountSubChunks(uint32_t ChunkID);
             unsigned int CountSubLists();
             unsigned int CountSubLists(uint32_t ListType);
+            Chunk*       AddSubChunk(uint32_t uiChunkID, uint uiBodySize);
+            List*        AddSubList(uint32_t uiListType);
+            void         DeleteSubChunk(Chunk* pSubChunk);
             virtual ~List();
         protected:
             typedef std::map<uint32_t, RIFF::Chunk*>  ChunkMap;
@@ -204,19 +217,46 @@ namespace RIFF {
             ChunkList::iterator ChunksIterator;
             ChunkList::iterator ListIterator;
 
-            List();
+            List(File* pFile);
+            List(File* pFile, List* pParent, uint32_t uiListID);
             void ReadHeader(unsigned long fPos);
+            void WriteHeader(unsigned long fPos);
             void LoadSubChunks();
+            virtual unsigned long WriteChunk(unsigned long ulWritePos, unsigned long ulCurrentDataOffset);
+            virtual void __resetPos(); ///< Sets List Chunk's read/write position to zero and causes all sub chunks to do the same.
     };
 
     /** Parses arbitrary RIFF files and provides together with it's base classes convenient methods to walk through the RIFF tree. */
     class File : public List {
         public:
+            File();
             File(const String& path);
+            stream_mode_t GetMode();
+            bool          SetMode(stream_mode_t NewMode);
+            String GetFileName();
+            virtual void Save();
+            virtual void Save(const String& path);
             virtual ~File();
-            const String Filename;
+        protected:
+            #if POSIX
+            int    hFileRead;  ///< handle / descriptor for reading from file
+            int    hFileWrite; ///< handle / descriptor for writing to (some) file
+            #else
+            FILE*  hFileRead;  ///< handle / descriptor for reading from file
+            FILE*  hFileWrite; ///< handle / descriptor for writing to (some) file
+            #endif // POSIX
+            String Filename;
+            bool   bEndianNative;
+
+            void LogAsResized(Chunk* pResizedChunk);
+            friend class Chunk;
+            friend class List;
         private:
+            stream_mode_t  Mode;
+            ChunkList      ResizedChunks; ///< All chunks which have been resized (enlarged / shortened).
+
             unsigned long GetFileSize();
+            void ResizeFile(unsigned long ulNewSize);
     };
 
     /** Will be thrown whenever an error occurs while parsing a RIFF file. */
