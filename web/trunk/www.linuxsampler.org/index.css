@@ -5,7 +5,7 @@ body    {
 #mainwindow {
 	border: 1px solid black;
 	background: white;
-	overflow: hidden;
+	overflow: auto;
 	width: 100%;
 	padding: 0;
 	}
