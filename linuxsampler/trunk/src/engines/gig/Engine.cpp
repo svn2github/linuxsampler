@@ -1143,7 +1143,7 @@ namespace LinuxSampler { namespace gig {
         switch (itControlChangeEvent->Param.CC.Controller) {
             case 7: { // volume
                 //TODO: not sample accurate yet
-                pEngineChannel->GlobalVolume = (float) itControlChangeEvent->Param.CC.Value / 127.0f;
+                pEngineChannel->GlobalVolume = (float) itControlChangeEvent->Param.CC.Value / 127.0f *  CONFIG_GLOBAL_ATTENUATION;
                 pEngineChannel->bStatusChanged = true; // engine channel status has changed, so set notify flag
                 break;
             }
@@ -1452,7 +1452,7 @@ namespace LinuxSampler { namespace gig {
     }
 
     String Engine::Version() {
-        String s = "$Revision: 1.55 $";
+        String s = "$Revision: 1.56 $";
         return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
 

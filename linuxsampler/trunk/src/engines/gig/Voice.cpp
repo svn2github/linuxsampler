@@ -611,9 +611,6 @@ namespace LinuxSampler { namespace gig {
                 break;
         }
 
-        // Reset synthesis event lists
-        pEngineChannel->pEvents->clear();
-
         // Reset delay
         Delay = 0;
 

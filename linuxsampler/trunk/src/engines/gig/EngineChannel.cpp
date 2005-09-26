@@ -436,7 +436,7 @@ namespace LinuxSampler { namespace gig {
         Pitch          = 0;
         SustainPedal   = false;
         SostenutoPedal = false;
-        GlobalVolume   = 1.0;
+        GlobalVolume   = CONFIG_GLOBAL_ATTENUATION;
         GlobalPanLeft  = 1.0f;
         GlobalPanRight = 1.0f;
         // set all MIDI controller values to zero

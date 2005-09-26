@@ -451,6 +451,16 @@ AC_ARG_ENABLE(subfragment-size,
 )
 AC_DEFINE_UNQUOTED(CONFIG_DEFAULT_SUBFRAGMENT_SIZE, $config_subfragment_size, [Define default subfragment size (in sample points).])
 
+AC_ARG_ENABLE(global-attenuation,
+  [  --enable-global-attenuation
+                          To prevent clipping all samples will be lowered
+                          in amplitude by this given factor.
+                          (default=0.35)],
+  [config_global_attenuation="${enableval}"],
+  [config_global_attenuation="0.35"]
+)
+AC_DEFINE_UNQUOTED(CONFIG_GLOBAL_ATTENUATION, $config_global_attenuation, [Define global volume attenuation (as floating point factor).])
+
 AC_ARG_ENABLE(voice-steal-algo,
   [  --enable-voice-steal-algo
                           Voice stealing algorithm to be used. Currently
@@ -816,6 +826,7 @@ echo "# Stream Size: ${config_stream_size}"
 echo "# Maximum Disk Streams: ${config_max_streams}"
 echo "# Maximum Voices: ${config_max_voices}"
 echo "# Default Subfragment Size: ${config_subfragment_size}"
+echo "# Global Volume Attenuation: ${config_global_attenuation}"
 echo "# Voice Stealing Algorithm: ${config_voice_steal_algo}"
 echo "# Signed Triangular Oscillator Algorithm: ${config_signed_triang_algo}"
 echo "# Unsigned Triangular Oscillator Algorithm: ${config_unsigned_triang_algo}"

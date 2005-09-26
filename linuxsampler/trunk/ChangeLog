@@ -25,6 +25,8 @@ Version CVS HEAD (?)
       curve and Velocity range. The keyboard tracking now also scales
       cutoff frequency, not just resonance.
     - fixed bug in sysex handling (patch by Juan Linietsky)
+    - added global volume attenuation of -9 dB (0.35f) to prevent clipping
+      which can be overridden with --enable-global-attenuation
 
   * LSCP server:
     - fixed application exit on broken pipe error (fixes bug #20)
