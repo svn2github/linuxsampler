@@ -27,6 +27,10 @@ Version CVS HEAD (?)
     - fixed bug in sysex handling (patch by Juan Linietsky)
     - added global volume attenuation of -9 dB (0.35f) to prevent clipping
       which can be overridden with --enable-global-attenuation
+    - EG fixes: made the length of "attack hold" stage more
+      accurate. Release stage can now start before attack stage
+      ends. Cancel release didn't work when sustain was zero.
+
 
   * LSCP server:
     - fixed application exit on broken pipe error (fixes bug #20)

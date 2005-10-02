@@ -54,7 +54,8 @@ class EGADSR {
         enum event_t {
             event_stage_end,
             event_release,
-            event_cancel_release
+            event_cancel_release,
+            event_hold_end
         };
 
         /**
@@ -76,8 +77,6 @@ class EGADSR {
          *                          (0.000 - 60.000s)
          * @param HoldAttack      - if true, Decay1 will be postponed until the
          *                          sample reached the sample loop start.
-         * @param LoopStart       - sample position where sample loop starts
-         *                          (if any)
          * @param Decay1Time      - Decay1 time of the sample amplitude EG
          *                          (0.000 - 60.000s)
          * @param Decay2Time      - only if !InfiniteSustain: 2nd decay stage
@@ -95,7 +94,7 @@ class EGADSR {
          *                          exponential curve parameters.
          * @param SampleRate      - sample rate of used audio output driver
          */
-        void trigger(uint PreAttack, float AttackTime, bool HoldAttack, long LoopStart, float Decay1Time, double Decay2Time, bool InfiniteSustain, uint SustainLevel, float ReleaseTime, float Volume, uint SampleRate); //FIXME: we should better use 'float' for SampleRate
+        void trigger(uint PreAttack, float AttackTime, bool HoldAttack, float Decay1Time, double Decay2Time, bool InfiniteSustain, uint SustainLevel, float ReleaseTime, float Volume, uint SampleRate); //FIXME: we should better use 'float' for SampleRate
 
         /**
          * Returns true in case envelope hasn't reached its final end state yet.
@@ -131,10 +130,8 @@ class EGADSR {
          * the envelope's transition to the respective next stage.
          *
          * @param Event        - what happened
-         * @param SamplePos    - current sample playback position
-         * @param CurrentPitch - current frequency alternation quotient
          */
-        void update(event_t Event, double SamplePos, float CurrentPitch, uint SampleRate);
+        void update(event_t Event, uint SampleRate);
 
         /**
          * Calculates exactly one, the next sample point of EG
@@ -189,10 +186,8 @@ class EGADSR {
         int       StepsLeft;
         segment_t Segment;
         stage_t   Stage;
-        event_t   PostponedEvent; ///< only used in Attack stage to postpone transition events until attack time is reached
         bool      HoldAttack;
         bool      InfiniteSustain;
-        long      LoopStart;
         float     Decay1Time;
         float     Decay1Level2;
         float     Decay1Slope;
@@ -207,8 +202,8 @@ class EGADSR {
         float     ExpOffset;
         float     FadeOutCoeff; ///< very fast ramp down for e.g. voice stealing
 
-        void enterAttackStage(const uint PreAttack, const float AttackTime, const uint SampleRate, const double SamplePos, const float CurrentPitch);
-        void enterAttackHoldStage(const double SamplePos, const float CurrentPitch);
+        void enterAttackStage(const uint PreAttack, const float AttackTime, const uint SampleRate);
+        void enterAttackHoldStage();
         void enterDecay1Part1Stage(const uint SampleRate);
         void enterDecay1Part2Stage(const uint SampleRate);
         void enterDecay2Stage(const uint SampleRate);

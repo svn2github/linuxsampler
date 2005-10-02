@@ -140,6 +140,7 @@ namespace LinuxSampler { namespace gig {
         PanRight = 1.0f - float(RTMath::Min(pDimRgn->Pan, 0)) / -64.0f;
 
         finalSynthesisParameters.dPos = pDimRgn->SampleStartOffset; // offset where we should start playback of sample (0 - 2000 sample points)
+        Pos = pDimRgn->SampleStartOffset;
 
         // Check if the sample needs disk streaming or is too short for that
         long cachedsamples = pSample->GetCache().Size / pSample->FrameSize;
@@ -219,7 +220,6 @@ namespace LinuxSampler { namespace gig {
             EG1.trigger(pDimRgn->EG1PreAttack,
                         pDimRgn->EG1Attack * eg1attack,
                         pDimRgn->EG1Hold,
-                        pSample->LoopStart,
                         pDimRgn->EG1Decay1 * eg1decay * velrelease,
                         pDimRgn->EG1Decay2 * eg1decay * velrelease,
                         pDimRgn->EG1InfiniteSustain,
@@ -258,7 +258,6 @@ namespace LinuxSampler { namespace gig {
             EG2.trigger(pDimRgn->EG2PreAttack,
                         pDimRgn->EG2Attack * eg2attack,
                         false,
-                        pSample->LoopStart,
                         pDimRgn->EG2Decay1 * eg2decay * velrelease,
                         pDimRgn->EG2Decay2 * eg2decay * velrelease,
                         pDimRgn->EG2InfiniteSustain,
@@ -646,11 +645,11 @@ namespace LinuxSampler { namespace gig {
     void Voice::processTransitionEvents(RTList<Event>::Iterator& itEvent, uint End) {
         for (; itEvent && itEvent->FragmentPos() <= End; ++itEvent) {
             if (itEvent->Type == Event::type_release) {
-                EG1.update(EGADSR::event_release, finalSynthesisParameters.dPos, finalSynthesisParameters.fFinalPitch, pEngine->SampleRate / CONFIG_DEFAULT_SUBFRAGMENT_SIZE);
-                EG2.update(EGADSR::event_release, finalSynthesisParameters.dPos, finalSynthesisParameters.fFinalPitch, pEngine->SampleRate / CONFIG_DEFAULT_SUBFRAGMENT_SIZE);
+                EG1.update(EGADSR::event_release, pEngine->SampleRate / CONFIG_DEFAULT_SUBFRAGMENT_SIZE);
+                EG2.update(EGADSR::event_release, pEngine->SampleRate / CONFIG_DEFAULT_SUBFRAGMENT_SIZE);
             } else if (itEvent->Type == Event::type_cancel_release) {
-                EG1.update(EGADSR::event_cancel_release, finalSynthesisParameters.dPos, finalSynthesisParameters.fFinalPitch, pEngine->SampleRate / CONFIG_DEFAULT_SUBFRAGMENT_SIZE);
-                EG2.update(EGADSR::event_cancel_release, finalSynthesisParameters.dPos, finalSynthesisParameters.fFinalPitch, pEngine->SampleRate / CONFIG_DEFAULT_SUBFRAGMENT_SIZE);
+                EG1.update(EGADSR::event_cancel_release, pEngine->SampleRate / CONFIG_DEFAULT_SUBFRAGMENT_SIZE);
+                EG2.update(EGADSR::event_cancel_release, pEngine->SampleRate / CONFIG_DEFAULT_SUBFRAGMENT_SIZE);
             }
         }
     }
@@ -822,18 +821,27 @@ namespace LinuxSampler { namespace gig {
             // render audio for one subfragment
             RunSynthesisFunction(SynthesisMode, &finalSynthesisParameters, &loop);
 
+            const double newPos = Pos + (iSubFragmentEnd - i) * finalSynthesisParameters.fFinalPitch;
+
             // increment envelopes' positions
             if (EG1.active()) {
+
+                // if sample has a loop and loop start has been reached in this subfragment, send a special event to EG1 to let it finish the attack hold stage
+                if (pSample->Loops && Pos <= pSample->LoopStart && pSample->LoopStart < newPos) {
+                    EG1.update(EGADSR::event_hold_end, pEngine->SampleRate / CONFIG_DEFAULT_SUBFRAGMENT_SIZE);
+                }
+
                 EG1.increment(1);
-                if (!EG1.toStageEndLeft()) EG1.update(EGADSR::event_stage_end, finalSynthesisParameters.dPos, finalSynthesisParameters.fFinalPitch, pEngine->SampleRate / CONFIG_DEFAULT_SUBFRAGMENT_SIZE);
+                if (!EG1.toStageEndLeft()) EG1.update(EGADSR::event_stage_end, pEngine->SampleRate / CONFIG_DEFAULT_SUBFRAGMENT_SIZE);
             }
             if (EG2.active()) {
                 EG2.increment(1);
-                if (!EG2.toStageEndLeft()) EG2.update(EGADSR::event_stage_end, finalSynthesisParameters.dPos, finalSynthesisParameters.fFinalPitch, pEngine->SampleRate / CONFIG_DEFAULT_SUBFRAGMENT_SIZE);
+                if (!EG2.toStageEndLeft()) EG2.update(EGADSR::event_stage_end, pEngine->SampleRate / CONFIG_DEFAULT_SUBFRAGMENT_SIZE);
             }
             EG3.increment(1);
             if (!EG3.toEndLeft()) EG3.update(); // neutralize envelope coefficient if end reached
 
+            Pos = newPos;
             i = iSubFragmentEnd;
         }
     }

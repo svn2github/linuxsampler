@@ -138,7 +138,7 @@ namespace LinuxSampler { namespace gig {
             float                       PanLeft;
             float                       PanRight;
             float                       CrossfadeVolume;    ///< Current attenuation level caused by a crossfade (only if a crossfade is defined of course)
-            //double                      Pos;                ///< Current playback position in sample
+            double                      Pos;                ///< Current playback position in sample
             float                       PitchBase;          ///< Basic pitch depth, stays the same for the whole life time of the voice
             float                       PitchBend;          ///< Current pitch value of the pitchbend wheel
             float                       CutoffBase;         ///< Cutoff frequency before control change, EG and LFO are applied

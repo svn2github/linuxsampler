@@ -36,29 +36,34 @@ namespace LinuxSampler { namespace gig {
         FadeOutCoeff = -1.0f / killSteps;
     }
 
-    void EGADSR::update(event_t Event, double SamplePos, float CurrentPitch, uint SampleRate) {
+    void EGADSR::update(event_t Event, uint SampleRate) {
+        if (Event == event_hold_end) HoldAttack = false;
+
         switch (Stage) {
             case stage_attack:
-                if (StepsLeft) {
-                    PostponedEvent = Event;
-                } else {
-                    if (Event == event_release)
+                switch (Event) {
+                    case event_release:
                         enterReleasePart1Stage();
-                    else if (Event == event_cancel_release)
+                        break;
+                    case event_cancel_release:
                         enterSustainStage();
-                    else if (PostponedEvent == event_release)
-                        enterReleasePart1Stage();
-                    else if (PostponedEvent == event_cancel_release)
-                        enterSustainStage();
-                    else if (HoldAttack)
-                        enterAttackHoldStage(SamplePos, CurrentPitch);
-                    else
-                        enterDecay1Part1Stage(SampleRate);
+                        break;
+                    case event_stage_end:
+                        if (HoldAttack)
+                            enterAttackHoldStage();
+                        else
+                            enterDecay1Part1Stage(SampleRate);
+                        break;
                 }
                 break;
             case stage_attack_hold:
                 switch (Event) {
-                    case event_stage_end:
+                    case event_stage_end: {// just refresh time
+                        const int intMax = (unsigned int) -1 >> 1;
+                        StepsLeft = intMax; // we use the highest possible value
+                        break;
+                    }
+                    case event_hold_end:
                         enterDecay1Part1Stage(SampleRate);
                         break;
                     case event_release:
@@ -95,7 +100,9 @@ namespace LinuxSampler { namespace gig {
                         break;
                     case event_stage_end: // fall through
                     case event_cancel_release:
-                        if (InfiniteSustain)
+                        if (Level < CONFIG_EG_BOTTOM)
+                            enterEndStage();
+                        else if (InfiniteSustain)
                             enterSustainStage();
                         else
                             enterDecay2Stage(SampleRate);
@@ -110,6 +117,9 @@ namespace LinuxSampler { namespace gig {
                     case event_release:
                         enterReleasePart1Stage();
                         break;
+                    case event_hold_end:
+                        enterDecay1Part1Stage(SampleRate);
+                        break;
                 }
                 break;
             case stage_sustain:
@@ -121,6 +131,9 @@ namespace LinuxSampler { namespace gig {
                     }
                     case event_release:
                         enterReleasePart1Stage();
+                        break;
+                    case event_hold_end:
+                        enterDecay1Part1Stage(SampleRate);
                         break;
                 }
                 break;
@@ -160,19 +173,10 @@ namespace LinuxSampler { namespace gig {
         }
     }
 
-    void EGADSR::trigger(uint PreAttack, float AttackTime, bool HoldAttack, long LoopStart, float Decay1Time, double Decay2Time, bool InfiniteSustain, uint SustainLevel, float ReleaseTime, float Volume, uint SampleRate) {
-
-        if (SustainLevel) {
-            this->SustainLevel = SustainLevel / 1000.0;
-        } else {
-            // sustain level 0 means that voice dies after decay 1
-            this->SustainLevel = CONFIG_EG_BOTTOM;
-            InfiniteSustain    = false;
-            Decay2Time         = CONFIG_EG_MIN_RELEASE_TIME;
-        }
+    void EGADSR::trigger(uint PreAttack, float AttackTime, bool HoldAttack, float Decay1Time, double Decay2Time, bool InfiniteSustain, uint SustainLevel, float ReleaseTime, float Volume, uint SampleRate) {
+        this->SustainLevel     = SustainLevel / 1000.0;
         this->InfiniteSustain  = InfiniteSustain;
         this->HoldAttack       = HoldAttack;
-        this->LoopStart        = LoopStart;
 
         this->Decay1Time = Decay1Time;
         this->Decay2Time = Decay2Time;
@@ -190,10 +194,10 @@ namespace LinuxSampler { namespace gig {
         ReleaseCoeff3 = ExpOffset * (1 - ReleaseCoeff2);
         ReleaseLevel2 = 0.25 * invVolume;
 
-        enterAttackStage(PreAttack, AttackTime, SampleRate, 0.0, 1.0f);
+        enterAttackStage(PreAttack, AttackTime, SampleRate);
     }
 
-    void EGADSR::enterAttackStage(const uint PreAttack, const float AttackTime, const uint SampleRate, const double SamplePos, const float CurrentPitch) {
+    void EGADSR::enterAttackStage(const uint PreAttack, const float AttackTime, const uint SampleRate) {
         Stage   = stage_attack;
         Segment = segment_lin;
         // Measurements of GSt output shows that the real attack time
@@ -204,17 +208,17 @@ namespace LinuxSampler { namespace gig {
             Coeff = 0.896f * (1.0f - Level) / StepsLeft; // max level is a bit lower if attack != 0
         } else { // immediately jump to the next stage
             Level = 1.0;
-            if (HoldAttack) enterAttackHoldStage(SamplePos, CurrentPitch);
+            if (HoldAttack) enterAttackHoldStage();
             else            enterDecay1Part1Stage(SampleRate);
         }
-        PostponedEvent = (event_t) -1; // init with anything except release or cancel_release
     }
 
-    void EGADSR::enterAttackHoldStage(const double SamplePos, const float CurrentPitch) {
+    void EGADSR::enterAttackHoldStage() {
         Stage     = stage_attack_hold;
         Segment   = segment_lin;
         Coeff     = 0.0f; // don't rise anymore
-        StepsLeft = (int) (LoopStart - SamplePos / CurrentPitch); // FIXME: just an approximation, inaccuracy grows with higher audio fragment size, sufficient for usual fragment sizes though
+        const int intMax = (unsigned int) -1 >> 1;
+        StepsLeft = intMax; // we use the highest value possible (we refresh StepsLeft in update() in case)
     }
 
     void EGADSR::enterDecay1Part1Stage(const uint SampleRate) {
@@ -228,7 +232,7 @@ namespace LinuxSampler { namespace gig {
         // (where d is 1/SampleRate). The transition from f to g is
         // done when f(x) has reached Level2 = 25% of full volume.
         StepsLeft = (int) (Decay1Time * SampleRate);
-        if (StepsLeft && SustainLevel < 1.0) {
+        if (StepsLeft && SustainLevel < 1.0 && Level > SustainLevel) {
             Stage        = stage_decay1_part1;
             Segment      = segment_lin;
             Decay1Slope  = 1.365 * (SustainLevel - 1.0) / StepsLeft;
