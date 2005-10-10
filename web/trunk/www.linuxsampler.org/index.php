@@ -129,6 +129,9 @@
                 <tr>
                   <td valign=top>
                     <p class="default">
+		      <b>2005-10-10</b> <a href="http://prdownloads.sourceforge.net/jsampler/js-classic.jar?download">JS Classic 0.1a</a> has
+		      been released (the first distribution of the <a href="https://sourceforge.net/projects/jsampler/">JSampler</a> project).<br>
+		      <br>
 		      <b>2005-08-16</b> Due to ongoing synthesis optimizations, CVS version of LS might be broken for a while. Please use the tarball release in the meantime.<br>
 		      <br>
 		      <b>2005-07-15</b> LinuxSampler 0.3.3 has been released. Once again a bug fix release.<br>
