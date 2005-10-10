@@ -207,6 +207,7 @@ public class Client {
 			sock.bind(null);
 			sock.connect(sockAddr, soTimeout);
 			sock.setSoTimeout(soTimeout);
+			sock.setTcpNoDelay(true);
 			
 			in = new LscpInputStream(sock.getInputStream());
 			out = new LscpOutputStream(sock.getOutputStream());
@@ -256,6 +257,7 @@ public class Client {
 		if(!llCI.isEmpty()) subscribe("CHANNEL_INFO");
 		if(!llSC.isEmpty()) subscribe("STREAM_COUNT");
 		if(!llVC.isEmpty()) subscribe("VOICE_COUNT");
+		if(!llTVC.isEmpty()) subscribe("TOTAL_VOICE_COUNT");
 	}
 	
 	/**
@@ -370,11 +372,12 @@ public class Client {
 	private final Vector<MiscellaneousListener> llM = new Vector<MiscellaneousListener>();
 	private final Vector<StreamCountListener> llSC = new Vector<StreamCountListener>();
 	private final Vector<VoiceCountListener> llVC = new Vector<VoiceCountListener>();
+	private final Vector<TotalVoiceCountListener> llTVC = new Vector<TotalVoiceCountListener>();
 	
 	/**
 	 * Determines whether there is at least one subscription for notification events.
 	 * Do not forget to check for additional listeners if the LSCP specification 
-	 * extends in the future.
+	 * is extended in the future.
 	 * @return <code>true</code> if there is at least one subscription for notification events,
 	 * <code>false</code> otherwise.
 	 */
@@ -385,7 +388,8 @@ public class Client {
 			!llCI.isEmpty() ||
 			!llM.isEmpty()  ||
 			!llSC.isEmpty() ||
-			!llVC.isEmpty();
+			!llVC.isEmpty() ||
+			!llTVC.isEmpty();
 	}
 	
 	private void
@@ -453,6 +457,17 @@ public class Client {
 				for(ChannelInfoListener l : llCI) l.channelInfoChanged(e);
 			} catch(NumberFormatException x) {
 				getLogger().log(Level.WARNING, "Unknown STREAM_COUNT format", x);
+			}
+		} else if(s.startsWith("TOTAL_VOICE_COUNT:")) {
+			try {
+				s = s.substring("TOTAL_VOICE_COUNT:".length());
+				int i = Integer.parseInt(s);
+				TotalVoiceCountEvent e = new TotalVoiceCountEvent(this, i);
+				for(TotalVoiceCountListener l : llTVC) l.totalVoiceCountChanged(e);
+			} catch(NumberFormatException x) {
+				getLogger().log (
+					Level.WARNING, "Unknown TOTAL_VOICE_COUNT format", x
+				);
 			}
 		} else if(s.startsWith("MISCELLANEOUS:")) {
 			s = s.substring("MISCELLANEOUS:".length());
@@ -628,6 +643,28 @@ public class Client {
 	}
 	
 	/**
+	 * Registers the specified listener for receiving event messages.
+	 * Listeners can be registered regardless of the connection state.
+	 * @param l The <code>TotalVoiceCountListener</code> to register.
+	 */
+	public synchronized void
+	addTotalVoiceCountListener(TotalVoiceCountListener l) {
+		if(llTVC.isEmpty()) subscribe("TOTAL_VOICE_COUNT");
+		llTVC.add(l);
+	}
+	
+	/**
+	 * Removes the specified listener.
+	 * Listeners can be removed regardless of the connection state.
+	 * @param l The <code>TotalVoiceCountListener</code> to remove.
+	 */
+	public synchronized void
+	removeTotalVoiceCountListener(TotalVoiceCountListener l) {
+		boolean b = llTVC.remove(l);
+		if(b && llTVC.isEmpty()) unsubscribe("TOTAL_VOICE_COUNT");
+	}
+	
+	/**
 	 * Gets the number of all audio output drivers currently 
 	 * available for the LinuxSampler instance.
 	 * @return The number of all audio output drivers currently 
@@ -754,21 +791,25 @@ public class Client {
 			if(!multi) prm = new BoolParameter(lnS);
 			else prm = new BoolListParameter(lnS);
 			prm.setName(param);
+			prm.setValue(prm.getDefault());
 			return prm;
 		case INT:
 			if(!multi) prm = new IntParameter(lnS);
 			else prm = new IntListParameter(lnS);
 			prm.setName(param);
+			prm.setValue(prm.getDefault());
 			return prm;
 		case FLOAT:
 			if(!multi) prm = new FloatParameter(lnS);
 			else prm = new FloatListParameter(lnS);
 			prm.setName(param);
+			prm.setValue(prm.getDefault());
 			return prm;
 		case STRING:
 			if(!multi) prm = new StringParameter(lnS);
 			else prm = new StringListParameter(lnS);
 			prm.setName(param);
+			prm.setValue(prm.getDefault());
 			return prm;
 		default: throw new LscpException(LscpI18n.getLogMsg("Client.unknownPrmType!"));
 		}
@@ -818,6 +859,23 @@ public class Client {
 		ResultSet rs = getEmptyResultSet();
 	}
 	
+	/** 
+	 * Enables/disables the specified audio output device.
+	 * @param deviceID The ID of the audio output device to be enabled/disabled.
+	 * @param enable If <code>true</code> the audio output device is enabled,
+	 * else the device is disabled.
+	 * @throws IOException If some I/O error occurs.
+	 * @throws LSException If there is no audio output
+	 * device with numerical ID <code>deviceID</code>.
+	 * @throws LscpException If LSCP protocol corruption occurs.
+	 */
+	public void
+	enableAudioOutputDevice(int deviceID, boolean enable)
+				throws IOException, LSException, LscpException {
+		
+		setAudioOutputDeviceParameter(deviceID, new BoolParameter("ACTIVE", enable));
+	}
+	
 	/**
 	 * Gets the current number of all created audio output devices.
 	 * @return The current number of all created audio output devices.
@@ -834,15 +892,34 @@ public class Client {
 	}
 		
 	/**
+	 * Gets a list of all created audio output devices.
+	 * @return An <code>AudioOutputDevice</code> array 
+	 * providing all created audio output devices.
+	 * @throws IOException If some I/O error occurs.
+	 * @throws LscpException If LSCP protocol corruption occurs.
+	 * @throws LSException If some other error occurs.
+	 */
+	public synchronized AudioOutputDevice[]
+	getAudioOutputDevices() throws IOException, LscpException, LSException {
+		Integer[] idS = getAudioOutputDeviceIDs();
+		AudioOutputDevice[] devices = new AudioOutputDevice[idS.length];
+		
+		for(int i = 0; i < devices.length; i++)
+			devices[i] = getAudioOutputDeviceInfo(idS[i]);
+		
+		return devices;
+	}
+	
+	/**
 	 * Gets a list of numerical IDs of all created audio output devices.
-	 * @return An <code>Integer</code> array with numerical IDs of 
+	 * @return An <code>Integer</code> array providing the numerical IDs of 
 	 * all created audio output devices.
 	 * @throws IOException If some I/O error occurs.
 	 * @throws LscpException If LSCP protocol corruption occurs.
 	 * @throws LSException If some other error occurs.
 	 */
 	public synchronized Integer[]
-	getAudioOutputDevices() throws IOException, LscpException, LSException {
+	getAudioOutputDeviceIDs() throws IOException, LscpException, LSException {
 		verifyConnection();
 		out.writeLine("LIST AUDIO_OUTPUT_DEVICES");
 		return parseIntList(getSingleLineResultSet().getResult());
@@ -873,6 +950,7 @@ public class Client {
 		String[] lnS = rs.getMultiLineResult();
 		
 		AudioOutputDevice aod = new AudioOutputDevice();
+		aod.setDeviceID(deviceID);
 		Parameter<Integer> channels;
 		Parameter<Integer> samplerate;
 		
@@ -887,6 +965,12 @@ public class Client {
 				s = s.substring("CHANNELS: ".length(), s.length());
 				channels.parseValue(s);
 				aod.setChannelsParameter(channels);
+				int count = channels.getValue() > 0 ? channels.getValue() : 0;
+				AudioOutputChannel[] aoc = new AudioOutputChannel[count];
+				for(int i = 0; i < count; i++) {
+					aoc[i] = this.getAudioOutputChannelInfo(deviceID, i);
+				}
+				aod.setAudioChannels(aoc);
 			} else if(s.startsWith("SAMPLERATE: ")) {
 				samplerate = (Parameter<Integer>)
 					getAudioOutputDriverParameterInfo(drv, "SAMPLERATE");
@@ -950,6 +1034,25 @@ public class Client {
 	}
 	
 	/**
+	 * Changes the channels number of the speicifed audio output device.
+	 * @param deviceID The numerical ID of the audio output device.
+	 * @param channels The new number of audio output channels.
+	 *
+	 * @throws IOException If an I/O error occurs.
+	 * @throws LscpException If LSCP protocol corruption occurs.
+	 * @throws LSException If there is no device with ID <code>deviceID</code> or
+	 * if <code>channels</code> number is out of range.
+	 *
+	 * @see #getAudioOutputChannelInfo
+	 */
+	public synchronized void
+	setAudioOutputChannelCount(int deviceID, int channels)
+					throws IOException, LscpException, LSException {
+		
+		setAudioOutputDeviceParameter(deviceID, new IntParameter("CHANNELS", channels));
+	}
+	
+	/**
 	 * Gets information about an audio channel.
 	 *
 	 * @param deviceID The numerical ID of the audio output device.
@@ -983,14 +1086,26 @@ public class Client {
 		String[] lnS = rs.getMultiLineResult();
 		for(String s : lnS) {
 			if(s.startsWith("NAME: ")) {
-				aoc.setName(s.substring("NAME: ".length()));
+				s = s.substring("NAME: ".length());
+				Parameter<String> prm = getAudioOutputChannelParameterInfo (
+					deviceID, audioChn, "NAME"
+				);
+				prm.setValue(removeQuotation(s));
+				aoc.setNameParameter(prm);
 			} else if(s.startsWith("IS_MIX_CHANNEL: ")) {
 				s = s.substring("IS_MIX_CHANNEL: ".length());
-				
-				aoc.setMixChannel(Boolean.parseBoolean(s));
+				Parameter<Boolean> prm = getAudioOutputChannelParameterInfo (
+					deviceID, audioChn, "IS_MIX_CHANNEL"
+				);
+				prm.setValue(Boolean.parseBoolean(s));
+				aoc.setMixChannelParameter(prm);
 			} else if(s.startsWith("MIX_CHANNEL_DESTINATION: ")) {
 				s = s.substring("MIX_CHANNEL_DESTINATION: ".length());
-				aoc.setMixChannelDest(parseInt(s));
+				Parameter<Integer> prm = getAudioOutputChannelParameterInfo (
+					deviceID, audioChn, "MIX_CHANNEL_DESTINATION"
+				);
+				prm.setValue(parseInt(s));
+				aoc.setMixChannelDestParameter(prm);
 			} else {
 				int i = s.indexOf(": ");
 				if(i == -1) throw new LscpException (
@@ -1038,7 +1153,7 @@ public class Client {
 						throws IOException, LscpException, LSException {
 		
 		verifyConnection();
-		String args = devID + ' ' + chan + ' ' + param;
+		String args = devID + " " + chan + " " + param;
 		out.writeLine("GET AUDIO_OUTPUT_CHANNEL_PARAMETER INFO " + args);
 		
 		ResultSet rs = getMultiLineResultSet();
@@ -1100,7 +1215,7 @@ public class Client {
 						throws IOException, LscpException, LSException {
 		
 		verifyConnection();
-		String args = devID + ' ' + chn + ' ' + prm.getName() + '=' + prm.getStringValue();
+		String args = devID + " " + chn + " " + prm.getName() + '=' + prm.getStringValue();
 		out.writeLine("SET AUDIO_OUTPUT_CHANNEL_PARAMETER " + args);
 		
 		ResultSet rs = getEmptyResultSet();
@@ -1232,21 +1347,25 @@ public class Client {
 			if(!multi) prm = new BoolParameter(lnS);
 			else prm = new BoolListParameter(lnS);
 			prm.setName(param);
+			prm.setValue(prm.getDefault());
 			return prm;
 		case INT:
 			if(!multi) prm = new IntParameter(lnS);
 			else prm = new IntListParameter(lnS);
 			prm.setName(param);
+			prm.setValue(prm.getDefault());
 			return prm;
 		case FLOAT:
 			if(!multi) prm = new FloatParameter(lnS);
 			else prm = new FloatListParameter(lnS);
 			prm.setName(param);
+			prm.setValue(prm.getDefault());
 			return prm;
 		case STRING:
 			if(!multi) prm = new StringParameter(lnS);
 			else prm = new StringListParameter(lnS);
 			prm.setName(param);
+			prm.setValue(prm.getDefault());
 			return prm;
 		default: throw new LscpException(LscpI18n.getLogMsg("Client.unknownPrmType!"));
 		}
@@ -1298,6 +1417,23 @@ public class Client {
 		ResultSet rs = getEmptyResultSet();
 	}
 	
+	/** 
+	 * Enables/disables the specified MIDI input device.
+	 * @param deviceID The ID of the MIDI input device to be enabled/disabled.
+	 * @param enable If <code>true</code> the MIDI input device is enabled,
+	 * else the device is disabled.
+	 * @throws IOException If some I/O error occurs.
+	 * @throws LSException If there is no MIDI input
+	 * device with numerical ID <code>deviceID</code>.
+	 * @throws LscpException If LSCP protocol corruption occurs.
+	 */
+	public void
+	enableMidiInputDevice(int deviceID, boolean enable)
+				throws IOException, LSException, LscpException {
+		
+		setMidiInputDeviceParameter(deviceID, new BoolParameter("ACTIVE", enable));
+	}
+	
 	/**
 	 * Gets the current number of all created MIDI input devices.
 	 * @return The current number of all created MIDI input devices.
@@ -1314,8 +1450,30 @@ public class Client {
 	}
 	
 	/**
+	 * Gets a list of all created MIDI input devices.
+	 * @return A <code>MidiInputDevice</code> array 
+	 * providing all created MIDI input devices.
+	 * @throws IOException If some I/O error occurs.
+	 * @throws LscpException If LSCP protocol corruption occurs.
+	 * @throws LSException If some other error occurs.
+	 *
+	 * @see #createMidiInputDevice
+	 * @see #destroyMidiInputDevice
+	 */
+	public synchronized MidiInputDevice[]
+	getMidiInputDevices() throws IOException, LscpException, LSException {
+		Integer[] idS = getMidiInputDeviceIDs();
+		MidiInputDevice[] devices = new MidiInputDevice[idS.length];
+		
+		for(int i = 0; i < devices.length; i++)
+			devices[i] = getMidiInputDeviceInfo(idS[i]);
+		
+		return devices;
+	}
+	
+	/**
 	 * Gets a list of numerical IDs of all created MIDI input devices.
-	 * @return An <code>Integer</code> array with numerical IDs of 
+	 * @return An <code>Integer</code> array providing the numerical IDs of
 	 * all created MIDI input devices.
 	 * @throws IOException If some I/O error occurs.
 	 * @throws LscpException If LSCP protocol corruption occurs.
@@ -1325,7 +1483,7 @@ public class Client {
 	 * @see #destroyMidiInputDevice
 	 */
 	public synchronized Integer[]
-	getMidiInputDevices() throws IOException, LscpException, LSException {
+	getMidiInputDeviceIDs() throws IOException, LscpException, LSException {
 		verifyConnection();
 		out.writeLine("LIST MIDI_INPUT_DEVICES");
 		return parseIntList(getSingleLineResultSet().getResult());
@@ -1356,6 +1514,7 @@ public class Client {
 		String[] lnS = rs.getMultiLineResult();
 		
 		MidiInputDevice mid = new MidiInputDevice();
+		mid.setDeviceID(deviceID);
 		
 		String drv = getCategoryInfo(lnS, "DRIVER");
 		mid.setDriverName(drv);
@@ -1366,6 +1525,15 @@ public class Client {
 			} else if(s.startsWith("ACTIVE: ")) {
 				s = s.substring("ACTIVE: ".length());
 				mid.setActive(Boolean.parseBoolean(s));
+			} else if(s.startsWith("PORTS: ")) {
+				s = s.substring("PORTS: ".length());
+				int ports = Parser.parseInt(s);
+				MidiPort[] midiPorts = new MidiPort[ports > 0 ? ports : 0];
+				
+				for(int i = 0; i < midiPorts.length; i++)
+					midiPorts[i] = getMidiInputPortInfo(deviceID, i);
+				
+				mid.setMidiPorts(midiPorts);
 			} else {
 				int i = s.indexOf(": ");
 				if(i == -1) throw new LscpException (
@@ -1416,6 +1584,26 @@ public class Client {
 		ResultSet rs = getEmptyResultSet();
 	}
 	
+	
+	/**
+	 * Changes the ports number of the speicifed MIDI input device.
+	 * @param deviceID The numerical ID of the MIDI input device.
+	 * @param ports The new number of MIDI input ports.
+	 *
+	 * @throws IOException If an I/O error occurs.
+	 * @throws LscpException If LSCP protocol corruption occurs.
+	 * @throws LSException If there is no device with ID <code>deviceID</code> or
+	 * if <code>ports</code> number is out of range.
+	 *
+	 * @see #getMidiInputPortInfo
+	 */
+	public synchronized void
+	setMidiInputPortCount(int deviceID, int ports)
+					throws IOException, LscpException, LSException {
+		
+		setMidiInputDeviceParameter(deviceID, new IntParameter("PORTS", ports));
+	}
+	
 	/**
 	 * Gets detailed information about a specific MIDI input port.
 	 * @param deviceID The numerical ID of the MIDI input device.
@@ -1444,7 +1632,12 @@ public class Client {
 		
 		for(String s : lnS) {
 			if(s.startsWith("NAME: ")) {
-				mp.setName(s.substring("NAME: ".length()));
+				s = s.substring("NAME: ".length());
+				Parameter prm = getMidiInputPortParameterInfo (
+					deviceID, midiPort, "NAME"
+				);
+				prm.setValue(removeQuotation(s));
+				mp.setNameParameter(prm);
 			} else {
 				int i = s.indexOf(": ");
 				if(i == -1) throw new LscpException (
@@ -1554,7 +1747,7 @@ public class Client {
 						throws IOException, LscpException, LSException {
 		
 		verifyConnection();
-		String args = deviceID + ' ' + port + ' ' + 
+		String args = deviceID + " " + port + " " + 
 			prm.getName() + '=' + prm.getStringValue();
 		out.writeLine("SET MIDI_INPUT_PORT_PARAMETER " + args);
 		
@@ -1653,8 +1846,29 @@ public class Client {
 	}
 	
 	/**
+	 * Gets a list of all created sampler channels.
+	 * @return A <code>SamplerChannel</code> array providing all created sampler channels.
+	 * @throws IOException If some I/O error occurs.
+	 * @throws LscpException If LSCP protocol corruption occurs.
+	 * @throws LSException If some other error occurs.
+	 * @see #addSamplerChannel
+	 * @see #removeSamplerChannel
+	 */
+	public synchronized SamplerChannel[]
+	getSamplerChannels() throws IOException, LscpException, LSException {
+		Integer[] idS = getSamplerChannelIDs();
+		SamplerChannel[] channels = new SamplerChannel[idS.length];
+		
+		for(int i = 0; i < channels.length; i++)
+			channels[i] = getSamplerChannelInfo(idS[i]);
+		
+		return channels;
+	}
+	
+	/**
 	 * Gets a list with numerical IDs of all created sampler channels.
-	 * @return An <code>Integer</code> array with numerical IDs of all created sampler channels.
+	 * @return An <code>Integer</code> array providing
+	 * the numerical IDs of all created sampler channels.
 	 * @throws IOException If some I/O error occurs.
 	 * @throws LscpException If LSCP protocol corruption occurs.
 	 * @throws LSException If some other error occurs.
@@ -1662,7 +1876,7 @@ public class Client {
 	 * @see #removeSamplerChannel
 	 */
 	public synchronized Integer[]
-	getSamplerChannels() throws IOException, LscpException, LSException {
+	getSamplerChannelIDs() throws IOException, LscpException, LSException {
 		verifyConnection();
 		out.writeLine("LIST CHANNELS");
 		return parseIntList(getSingleLineResultSet().getResult());
@@ -1795,6 +2009,7 @@ public class Client {
 		ResultSet rs = getMultiLineResultSet();
 		SamplerChannel sc = new SamplerChannel(rs.getMultiLineResult());
 		sc.setChannelID(samplerChn);
+		if(sc.getEngine() != null) sc.setEngine(getEngineInfo(sc.getEngine().getName()));
 		
 		return sc;
 	}
@@ -2083,6 +2298,52 @@ public class Client {
 	}
 	
 	/**
+	 * Mute/unmute the specified sampler channel.
+	 *
+	 * @param samplerChn The sampler channel number.
+	 * @param mute If <code>true</code> the specified channel is muted, else the channel
+	 * is unmuted.
+	 * 
+	 * @throws IOException If some I/O error occurs.
+	 * @throws LscpException If LSCP protocol corruption occurs.
+	 * @throws LSException If <code>samplerChn</code> is not a valid channel number or if
+	 * there is no engine assigned yet to the specified sampler channel.
+	 * @see #getSamplerChannels
+	 */
+	public synchronized void
+	setChannelMute(int samplerChn, boolean mute)
+				throws IOException, LscpException, LSException {
+	
+		verifyConnection();
+		out.writeLine("SET CHANNEL MUTE " + samplerChn + ' ' + (mute ? 1 : 0));
+		
+		ResultSet rs = getEmptyResultSet();
+	}
+	
+	/**
+	 * Solo/unsolo the specified sampler channel.
+	 *
+	 * @param samplerChn The sampler channel number.
+	 * @param solo <code>true</code> to solo the specified channel, <code>false</code> 
+	 * otherwise.
+	 * 
+	 * @throws IOException If some I/O error occurs.
+	 * @throws LscpException If LSCP protocol corruption occurs.
+	 * @throws LSException If <code>samplerChn</code> is not a valid channel number or if
+	 * there is no engine assigned yet to the specified sampler channel.
+	 * @see #getSamplerChannels
+	 */
+	public synchronized void
+	setChannelSolo(int samplerChn, boolean solo)
+				throws IOException, LscpException, LSException {
+	
+		verifyConnection();
+		out.writeLine("SET CHANNEL SOLO " + samplerChn + ' ' + (solo ? 1 : 0));
+		
+		ResultSet rs = getEmptyResultSet();
+	}
+	
+	/**
 	 * Resets the specified sampler channel.
 	 *
 	 * @param samplerChn The sampler channel number.
@@ -2113,6 +2374,36 @@ public class Client {
 		out.writeLine("RESET");
 		try { ResultSet rs = getEmptyResultSet(); }
 		catch(LSException x) { getLogger().warning(x.getMessage()); }
+	}
+	
+	/**
+	 * Gets the current number of all active voices.
+	 * @return The current number of all active voices.
+	 * @throws IOException If some I/O error occurs.
+	 * @throws LscpException If LSCP protocol corruption occurs.
+	 * @throws LSException If some other error occurs.
+	 */
+	public synchronized int
+	getTotalVoiceCount() throws IOException, LscpException, LSException {
+		verifyConnection();
+		out.writeLine("GET TOTAL_VOICE_COUNT");
+		String s = getSingleLineResultSet().getResult();
+		return parseInt(s);
+	}
+	
+	/**
+	 * Gets the maximum number of active voices.
+	 * @return The maximum number of active voices.
+	 * @throws IOException If some I/O error occurs.
+	 * @throws LscpException If LSCP protocol corruption occurs.
+	 * @throws LSException If some other error occurs.
+	 */
+	public synchronized int
+	getTotalVoiceCountMax() throws IOException, LscpException, LSException {
+		verifyConnection();
+		out.writeLine("GET TOTAL_VOICE_COUNT_MAX");
+		String s = getSingleLineResultSet().getResult();
+		return parseInt(s);
 	}
 	
 	/**

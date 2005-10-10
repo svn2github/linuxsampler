@@ -93,9 +93,33 @@ public class SamplerEngine implements Parseable {
 	}
 	
 	/**
-	 * Returns the name of this sampler engine.
-	 * @return The name of this sampler engine.
+	 * Compares this <code>SamplerEngine</code> instance to the specified object.
+	 * The result is <code>true</code> if <code>obj</code> is reference to
+	 * <code>this</code>, or if <code>obj</code> is a <code>SamplerEngine</code> instance
+	 * and has non-<code>null</code> name equal to the name of this engine. 
+	 *
+	 * @return <code>true</code> if <code>obj</code> is reference to
+	 * <code>this</code>, or if <code>obj</code> is a <code>SamplerEngine</code> instance
+	 * and has non-<code>null</code> name equal to the name of this engine;
+	 * <code>false</code> otherwise.
+	 * @see #getName
+	 */
+	public boolean
+	equals(Object obj) {
+		if(this == obj) return true;
+		
+		if(getName() == null || obj == null) return false;
+		
+		if(obj instanceof SamplerEngine)
+			return getName().equals(((SamplerEngine)obj).getName());
+		
+		return false;
+	}
+	
+	/**
+	 * Returns the description of this sampler engine.
+	 * @return The description of this sampler engine.
 	 */
 	public String
-	toString() { return getName(); }
+	toString() { return getDescription(); }
 }

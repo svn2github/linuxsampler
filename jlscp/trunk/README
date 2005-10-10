@@ -12,6 +12,22 @@ by Christian Schoenebeck (http://www.linuxsampler.org/api/lscp-1.0.html).
 For more information about LinuxSampler visit http://www.linuxsampler.org
 
 
+The Latest Version
+==================
+
+The latest version can be downloaded from
+http://sourceforge.net/projects/jlscp/
+
+See also: http://www.linuxsampler.org/downloads.html
+
+
+License
+=======
+
+This software is licensed under the terms of
+the GNU General Public License Version 2 (see COPYING file).
+
+
 Requirements
 ============
 
@@ -83,4 +99,6 @@ java -cp /path/to/jlscp/jlscp.jar:. CreateChannel
 
 Notice that on Windows platforms class path entries are separated by
 semicolons (;) instead of colons (:).
+
+Thanks for using jlscp.
 

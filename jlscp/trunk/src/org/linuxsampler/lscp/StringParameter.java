@@ -22,6 +22,9 @@
 
 package org.linuxsampler.lscp;
 
+import static org.linuxsampler.lscp.Parser.removeQuotation;
+
+
 /**
  * This class implements the <code>Parameter&lt;String&gt;</code> interface.
  * @author  Grigor Iliev
@@ -77,10 +80,11 @@ public class StringParameter extends AbstractParameter<String> {
 	parse(String s) throws LscpException {
 		if(super.parse(s)) return true;
 		else if(s.startsWith("DEFAULT: ")) {
-			setDefault(s.substring("DEFAULT: ".length(), s.length()));
+			s = s.substring("DEFAULT: ".length());
+			setDefault(removeQuotation(s));
 			return true;
 		} else if(s.startsWith("POSSIBILITIES: ")) {
-			s = s.substring("POSSIBILITIES: ".length(), s.length());
+			s = s.substring("POSSIBILITIES: ".length());
 			setPossibilities(Parser.parseStringList(s));
 			return true;
 		}

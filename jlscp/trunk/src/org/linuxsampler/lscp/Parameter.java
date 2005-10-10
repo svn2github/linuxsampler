@@ -127,7 +127,8 @@ public interface Parameter<T> {
 	
 	/**
 	 * Gets the lower limit of the allowed value range for this parameter.
-	 * @return The lower limit of the allowed value range for this parameter.
+	 * @return The lower limit of the allowed value range for this
+	 * parameter or <code>null</code> if the parameter doesn't have lower limit.
 	 */
 	public Number getRangeMin();
 	
@@ -140,7 +141,8 @@ public interface Parameter<T> {
 	
 	/**
 	 * Gets the upper limit of the allowed value range for this parameter.
-	 * @return The upper limit of the allowed value range for this parameter.
+	 * @return The upper limit of the allowed value range for this
+	 * parameter or <code>null</code> if the parameter doesn't have upper limit.
 	 */
 	public Number getRangeMax();
 	

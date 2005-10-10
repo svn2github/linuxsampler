@@ -1,3 +1,52 @@
+jlscp v0.3a: 2005-10-10
+	* Significantly speeded up the transfer by setting the socket
+	  property TcpNoDelay to true
+
+	* Added Mute and Solo support for sampler channels
+	   - Client: setChannelMute, setChannelSolo
+	   - SamplerChannel: isMuted, isMutedBySolo, isSoloChannel
+
+	* Added support for monitoring the total number of active voices
+	   - New classes for handling events: TotalVoiceCountEvent and
+	     TotalVoiceCountListener
+	   - Client: added getTotalVoiceCount, getTotalVoiceCountMax,
+	     addTotalVoiceCountListener, removeTotalVoiceCountListener methods
+	
+	* API Changes
+	   - Client: getAudioOutputDevices now returns AudioOutputDevice[]
+	     instead of Integer[]; use getAudioOutputDeviceIDs instead
+	   - Client: getSamplerChannels now returns SamplerChannel[]
+	     instead of Integer[]; use getSamplerChannelIDs instead
+	   - Client: getMidiInputDevices now returns MidiInputDevice[]
+	     instead of Integer[]; use getMidiInputDeviceIDs instead
+	   - SamplerChannel: getEngineName is replaced with getEngine
+	     and returns SamplerEngine instance instead of String instance
+	   - SamplerChannel: getInstrumentName now returns null instead of
+	     "NONE" when there is no instrument loaded
+	   - SamplerEngine: equals method is overrided.
+	   - AbstractDevice: toString method is overrided
+	
+	* API additions
+	   - Client: added getAudioOutputDeviceIDs, getMidiInputDeviceIDs,
+	     getSamplerChannelIDs, enableAudioOutputDevice,
+	     enableMidiInputDevice, setMidiInputPortCount
+	     setAudioOutputChannelCount methods
+	   - SamplerChannel: added setEngine method
+	   - Device: getDeviceID method defined
+	   - AbstractDevice: added getDeviceID, setDeviceID methods
+	   - MidiInputDevice: added getMidiPorts, setMidiPorts,
+	     getMidiPort, getMidiPortCount methods
+	   - AudioOutputDevice: added getAudioChannels, setAudioChannels
+	     getAudioChannel, getAudioChannelCount methods
+	   - Parser: added removeQuotation method
+	   - AudioOutputChannel: added getAllParameters, getNameParameter
+	     setNameParameter, getMixChannelParameter, setMixChannelParameter,
+	     getMixChannelDestParameter, setMixChannelDestParameter methods
+	   - MidiPort: added getAllParameters, getNameParameter,
+	     setNameParameter methods
+	
+	* Examples changes due to changed methods in Client class
+
 jlscp v0.2a: 2005-06-14
 	* Added ant script to automate the build process
 	* Added Package Versioning
@@ -9,9 +58,9 @@ jlscp v0.2a: 2005-06-14
 	* getMidiInputDrivers() in Client class now returns
 	  MidiInputDriver[] instance instead of String[] instance
 	* The following methods in Client class are now private:
-	  - getEngineInfo
-	  - getAudioOutputDriverInfo
-	  - getMidiInputDriverInfo
+	   - getEngineInfo
+	   - getAudioOutputDriverInfo
+	   - getMidiInputDriverInfo
 	* Examples changes due to the changed methods in Client class
 	* Examples' class files moved from examples to examples/build directory
 	* Little documentation changes

@@ -30,15 +30,16 @@ import java.util.Vector;
  * @author  Grigor Iliev
  */
 public class AudioOutputChannel {
-	private String name = null;
-	private boolean mixChannel = false;
-	private int mcDst = 0;
+	private Parameter<String> name;
+	private Parameter<Boolean> mixChannel;
+	private Parameter<Integer> mcDst;
 	
 	private final Vector<Parameter> prmList = new Vector<Parameter>();
 	
 	
 	/** Creates a new instance of AudioOutputChannel */
-	public AudioOutputChannel() {
+	public
+	AudioOutputChannel() {
 	}
 	
 	/**
@@ -46,43 +47,65 @@ public class AudioOutputChannel {
 	 * @return The name of this audio output channel.
 	 */
 	public String
-	getName() { return name; }
+	getName() { return name == null ? null : name.getValue(); }
 	
 	/**
-	 * Sets the name of this audio output channel.
-	 * @param name A <code>String</code> object containing the new name
-	 * for this audio output channel.
+	 * Gets the <code>NAME</code> parameter.
+	 * @return A <code>Parameter<String></code> instance.
+	 */
+	public Parameter<String>
+	getNameParameter() { return name; }
+	
+	/**
+	 * Sets the <code>NAME</code> parameter.
+	 * @param name A <code>Parameter<String></code> instance.
 	 */
 	public void
-	setName(String name) { this.name = name; }
+	setNameParameter(Parameter<String> name) { this.name = name; }
 	
 	/**
 	 * Determines whether this channel is a mix-channel.
 	 * @return <code>true</code> if this is a mix-channel, <code>false</code> otherwise.
 	 */
 	public boolean
-	isMixChannel() { return mixChannel; }
+	isMixChannel() { return mixChannel == null ? false : mixChannel.getValue(); }
+	
+	/**
+	 * Gets the <code>IS_MIX_CHANNEL</code> parameter.
+	 * @return A <code>Parameter<Integer></code> instance.
+	 */
+	public Parameter<Boolean>
+	getMixChannelParameter() { return mixChannel; }
 	
 	/**
 	 * Sets whether this channel is a mix-channel.
 	 * @param mixChannel Specifies whether this channel is a mix-channel or not.
 	 */
 	public void
-	setMixChannel(boolean mixChannel) { this.mixChannel = mixChannel; }
+	setMixChannelParameter(Parameter<Boolean> mixChannel) {
+		this.mixChannel = mixChannel;
+	}
 	
 	/**
 	 * Gets the number of the real audio channel this mix channel refers to.
 	 * @return The number of the real audio channel this mix channel refers to.
 	 */
 	public int
-	getMixChannelDest() { return mcDst; }
+	getMixChannelDest() { return mcDst == null ? -1 : mcDst.getValue(); }
 	
 	/**
-	 * Sets the number of the real audio channel this mix channel refers to.
-	 * @param chNum The number of the real audio channel this mix channel refers to.
+	 * Gets the <code>MIX_CHANNEL_DESTINATION</code> parameter.
+	 * @return The <code>MIX_CHANNEL_DESTINATION</code> parameter.
+	 */
+	public Parameter<Integer>
+	getMixChannelDestParameter() { return mcDst; }
+	
+	/**
+	 * Sets the <code>MIX_CHANNEL_DESTINATION</code> parameter.
+	 * @param mcDst The new <code>MIX_CHANNEL_DESTINATION</code> parameter.
 	 */
 	public void
-	setMixChannelDest(int chNum) { mcDst = chNum; }
+	setMixChannelDestParameter(Parameter<Integer> mcDst) { this.mcDst = mcDst; }
 	
 	/**
 	 * Adds additional parameter to this audio output channel.
@@ -92,14 +115,40 @@ public class AudioOutputChannel {
 	addParameter(Parameter prm) { prmList.add(prm); }
 	
 	/**
-	 * Gets an <code>Parameter</code> array with the additional parameters
+	 * Gets a <code>Parameter</code> array with the additional parameters
 	 * of this audio output channel.
-	 * @return An <code>Parameter</code> array with the additional parameters
+	 * @return A <code>Parameter</code> array with the additional parameters
 	 * of this audio output channel.
 	 */
 	public Parameter[]
 	getAdditionalParameters() {
 		return prmList.toArray(new Parameter[prmList.size()]);
+	}
+	
+	/**
+	 * Gets a <code>Parameter</code> array providing all parameters
+	 * of this audio output channel (including <code>NAME</code>,
+	 * <code>IS_MIX_CHANNEL</code>, <code>MIX_CHANNEL_DESTINATION</code> parameters).
+	 * @return A <code>Parameter</code> array providing all parameters
+	 * of this audio output channel.
+	 */
+	public Parameter[]
+	getAllParameters() {
+		Parameter[] params;
+		
+		if(getMixChannelDestParameter() != null) {
+			params = new Parameter[prmList.size() + 3];
+			params[2] = getMixChannelDestParameter();
+			for(int i = 0; i < prmList.size(); i++) params[i + 3] = prmList.get(i);
+		} else {
+			params = new Parameter[prmList.size() + 2];
+			for(int i = 0; i < prmList.size(); i++) params[i + 2] = prmList.get(i);
+		}
+		
+		params[0] = getNameParameter();
+		params[1] = getMixChannelParameter();
+		
+		return params;
 	}
 	
 	/**

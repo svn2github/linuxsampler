@@ -30,6 +30,8 @@ public class AudioOutputDevice extends AbstractDevice {
 	private Parameter<Integer> channels = null;
 	private Parameter<Integer> samplerate = null;
 	
+	private AudioOutputChannel[] audioChannels = new AudioOutputChannel[0];
+	
 	
 	/** Creates a new instance of AudioOutputDevice */
 	public
@@ -78,4 +80,39 @@ public class AudioOutputDevice extends AbstractDevice {
 	 */
 	public void
 	setSampleRateParameter(Parameter<Integer> samplerate) { this.samplerate = samplerate; }
+	
+	/**
+	 * Gets the current non-<code>null</code>
+	 * list of audio channels this device offers.
+	 * @return An <code>AudioOutputChannel</code> array
+	 * providing all audio channels this device offers.
+	 */
+	public AudioOutputChannel[]
+	getAudioChannels() { return audioChannels; }
+	
+	/**
+	 * Sets the current list of audio output channels.
+	 * @param channels The new list of audio output channels.
+	 * @throws IllegalArgumentException If <code>channels</code> is <code>null</code>.
+	 */
+	public void
+	setAudioChannels(AudioOutputChannel[] channels) {
+		if(channels == null)
+			throw new IllegalArgumentException("channels must be non null");
+		audioChannels = channels;
+	}
+	
+	/**
+	 * Gets the audio output channel at the specified index.
+	 * @param index The index of the audio output channel to be retrieved.
+	 */
+	public AudioOutputChannel
+	getAudioChannel(int index) { return audioChannels[index]; }
+	
+	/**
+	 * Gets the current number of audio output channels this device offers.
+	 * @return The current number of audio output channels this device offers.
+	 */
+	public int
+	getAudioChannelCount() { return audioChannels.length; }
 }

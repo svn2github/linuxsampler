@@ -30,7 +30,7 @@ import java.util.Vector;
  * @author  Grigor Iliev
  */
 public class MidiPort {
-	private String name = null;
+	private Parameter<String> name;
 	private final Vector<Parameter> prmList = new Vector<Parameter>();
 	
 	/**
@@ -38,14 +38,21 @@ public class MidiPort {
 	 * @return The name of this MIDI port.
 	 */
 	public String
-	getName() { return name; }
+	getName() { return name == null ? null : name.getValue(); }
 	
 	/**
-	 * Sets the name of this MIDI port.
-	 * @param name A <code>String</code> object containing the new name for this MIDI port.
+	 * Gets the <code>NAME</code> parameter.
+	 * @return A <code>Parameter<String></code> instance.
+	 */
+	public Parameter<String>
+	getNameParameter() { return name; }
+	
+	/**
+	 * Sets the <code>NAME</code> parameter.
+	 * @param name A <code>Parameter<String></code> instance.
 	 */
 	public void
-	setName(String name) { this.name = name; }
+	setNameParameter(Parameter<String> name) { this.name = name; }
 	
 	/**
 	 * Adds additional parameter to this MIDI port.
@@ -68,6 +75,20 @@ public class MidiPort {
 	 */
 	public boolean
 	hasAdditionalParameters() { return !prmList.isEmpty(); }
+	
+	/**
+	 * Gets a <code>Parameter</code> array providing all parameters
+	 * of this MIDI port (including <code>NAME</code> parameter).
+	 * @return A <code>Parameter</code> array providing all parameters
+	 * of this MIDI port.
+	 */
+	public Parameter[]
+	getAllParameters() {
+		Parameter[] params = new Parameter[prmList.size() + 1];
+		params[0] = getNameParameter();
+		for(int i = 0; i < prmList.size(); i++) params[i + 1] = prmList.get(i);
+		return params;
+	}
 	
 	/**
 	 * Returns the name of this MIDI port.

@@ -30,15 +30,30 @@ import java.util.Vector;
  * @author  Grigor Iliev
  */
 public abstract class AbstractDevice implements Device {
+	private int id = -1;
 	private String driver = null;
 	private boolean active = false;
 	
 	private final Vector<Parameter> prmList = new Vector<Parameter>();
 	
-	
+	/** Creates new instance of <code>AbstractDevice</code> */
 	public
 	AbstractDevice() {
 	}
+	
+	/**
+	 * Gets the numerical ID of this device.
+	 * @return The numerical ID of this device or -1 if the device number is not set.
+	 */
+	public int
+	getDeviceID() { return id; }
+	
+	/**
+	 * Sets the numerical ID of this device.
+	 * @param id The new numerical ID of this device.
+	 */
+	public void
+	setDeviceID(int id) { this.id = id; }
 	
 	/**
 	 * Gets the driver name used by this device.
@@ -90,4 +105,11 @@ public abstract class AbstractDevice implements Device {
 	 */
 	public boolean
 	hasAdditionalParameters() { return !prmList.isEmpty(); }
+	
+	/**
+	 * Returns the numerical ID of the device.
+	 * @return The numerical ID of the device.
+	 */
+	public String
+	toString() { return String.valueOf(getDeviceID()); }
 }

@@ -29,6 +29,12 @@ package org.linuxsampler.lscp;
  */
 public interface Device {
 	/**
+	 * Gets the numerical ID of this device.
+	 * @return The numerical ID of this device or -1 if the device number is not set.
+	 */
+	public int getDeviceID();
+	
+	/**
 	 * Gets the driver name used by this device.
 	 * @return The driver name used by this device.
 	 */

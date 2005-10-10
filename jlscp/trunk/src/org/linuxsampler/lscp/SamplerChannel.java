@@ -27,9 +27,12 @@ package org.linuxsampler.lscp;
  * @author  Grigor Iliev
  */
 public class SamplerChannel implements Parseable {
+	/** Indicates that the channel is muted because of the presence of a solo channel. */
+	private final static int MUTED_BY_SOLO = -1;
+		
 	private int chnID = -1;
 	
-	private String engine = null;
+	private SamplerEngine engine = null;
 	private int aoDevice = -1;
 	private int aoChannels = 0;
 	private Integer[] aor = null;
@@ -41,6 +44,8 @@ public class SamplerChannel implements Parseable {
 	private int miPort = 0;
 	private int miChn = -1;
 	private float vol = 0;
+	private int mute = 0;
+	private boolean solo = false;
 	
 	/** Creates a new instance of SamplerChannel */
 	public
@@ -74,12 +79,20 @@ public class SamplerChannel implements Parseable {
 	setChannelID(int id) { chnID = id; }
 	
 	/**
-	 * Gets the name of the engine that is deployed on the sampler channel.
-	 * @return The name of the engine that is deployed on the sampler channel
+	 * Gets the engine that is deployed on the sampler channel.
+	 * @return The engine that is deployed on the sampler channel
 	 * or <code>null</code> if there is no engine deployed yet for this sampler channel.
 	 */
-	public String
-	getEngineName() { return engine; }
+	public SamplerEngine
+	getEngine() { return engine; }
+	
+	/**
+	 * Associates the specified sampler engine to this sampler channel.
+	 * @param engine A <code>SamplerEngine</code> instance containing the information
+	 * about the engine to be assigned to this channel.
+	 */
+	public void
+	setEngine(SamplerEngine engine) { this.engine = engine; }
 	
 	/**
 	 * Gets the numerical ID of the audio output device which is currently connected 
@@ -123,8 +136,9 @@ public class SamplerChannel implements Parseable {
 	getInstrumentIndex() { return instrIdx; }
 	
 	/**
-	 * Gets the instrument name of the loaded instrument.
-	 * @return The instrument name of the loaded instrument.
+	 * Gets the name of the loaded instrument.
+	 * @return The name of the loaded instrument or
+	 * <code>null</code> if there is no instrument loaded.
 	 */
 	public String
 	getInstrumentName() { return instrName; }
@@ -173,6 +187,30 @@ public class SamplerChannel implements Parseable {
 	getVolume() { return vol; }
 	
 	/**
+	 * Determines whether this channel is muted.
+	 * @return <code>true</code> if the channel is muted, <code>false</code> otherwise.
+	 */
+	public boolean
+	isMuted() { return mute != 0; }
+	
+	/**
+	 * Determines whether this channel is muted because of the presence of a solo channel.
+	 * All channels, muted because of the presence of a solo channel, will be 
+	 * automatically unmuted when there are no solo channels left.
+	 * @return <code>true</code> if the channel is muted because of the presence of a solo 
+	 * channel, <code>false</code> otherwise.
+	 */
+	public boolean
+	isMutedBySolo() { return mute == MUTED_BY_SOLO; }
+	
+	/**
+	 * Determines whether this channel is a solo channel.
+	 * @return <code>true</code> if the channel is a solo channel, <code>false</code> otherwise.
+	 */
+	public boolean
+	isSoloChannel() { return solo; }
+	
+	/**
 	 * Parses a line of text.
 	 * @param s The string to be parsed.
 	 * @return <code>true</code> if the line has been processed, <code>false</code> otherwise.
@@ -183,7 +221,10 @@ public class SamplerChannel implements Parseable {
 		if(s.startsWith("ENGINE_NAME: ")) {
 			s = s.substring("ENGINE_NAME: ".length());
 			if(s.equals("NONE")) engine = null;
-			else engine = s;
+			else {
+				engine = new SamplerEngine();
+				engine.setName(s);
+			}
 		} else if(s.startsWith("AUDIO_OUTPUT_DEVICE: ")) {
 			s = s.substring("AUDIO_OUTPUT_DEVICE: ".length());
 			if(s.equals("NONE")) aoDevice = -1;
@@ -204,7 +245,9 @@ public class SamplerChannel implements Parseable {
 			if(s.equals("NONE")) instrIdx = -1;
 			else instrIdx = Parser.parseInt(s);
 		} else if(s.startsWith("INSTRUMENT_NAME: ")) {
-			instrName = s.substring("INSTRUMENT_NAME: ".length());
+			s = s.substring("INSTRUMENT_NAME: ".length());
+			if(s.equals("NONE")) instrName = null;
+			else instrName = s;
 		} else if(s.startsWith("INSTRUMENT_STATUS: ")) {
 			s = s.substring("INSTRUMENT_STATUS: ".length());
 			instrStat = Parser.parseInt(s);
@@ -226,8 +269,22 @@ public class SamplerChannel implements Parseable {
 			catch(NumberFormatException x) { throw new LscpException (
 				LscpI18n.getLogMsg("CommandFailed!"), x
 			);}
+		} else if(s.startsWith("MUTE: ")) {
+			s = s.substring("MUTE: ".length());
+			if(s.equals("MUTED_BY_SOLO")) mute = MUTED_BY_SOLO;
+			else mute = Boolean.parseBoolean(s) ? 1 : 0;
+		} else if(s.startsWith("SOLO: ")) {
+			s = s.substring("SOLO: ".length());
+			solo = Boolean.parseBoolean(s);
 		} else return false;
 	
 		return true;
 	}
+	
+	/**
+	 * Returns the numerical ID of this sampler channel.
+	 * @return The numerical ID of this sampler channel.
+	 */
+	public String
+	toString() { return String.valueOf(getChannelID()); }
 }

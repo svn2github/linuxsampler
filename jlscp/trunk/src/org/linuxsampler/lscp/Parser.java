@@ -381,4 +381,20 @@ final class Parser {
 			
 		return null;
 	}
+	
+	/**
+	 * Eliminates the quotation marks if the string is quoted.
+	 * @return New string without quotation marks if the string is quoted; else
+	 * the same string is returned.
+	 */
+	protected static String
+	removeQuotation(String s) {
+		if(s == null || s.length() < 2) return s;
+		char q = s.charAt(0);
+		char q2 = s.charAt(s.length() - 1);
+		if((q == '\'' && q2 == '\'') || (q == '"' && q2 == '"'))
+			return s.substring(1, s.length() - 1);
+		
+		return s;
+	}
 }

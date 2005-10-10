@@ -84,18 +84,17 @@ public class Poll {
 		System.out.println(client.getAudioOutputDeviceCount());
 		
 		System.out.print("Numerical IDs of all created audio output devices: ");
-		Integer[] devices = client.getAudioOutputDevices();
-		showCommaList(devices);
+		AudioOutputDevice[] audioDevices = client.getAudioOutputDevices();
+		showCommaList(audioDevices);
 		System.out.println();
 		
-		for(Integer i : devices) {
+		for(AudioOutputDevice d : audioDevices) {
 			System.out.println();
-			System.out.println("Audio output device: " + i);
-			AudioOutputDevice aoDevice = client.getAudioOutputDeviceInfo(i);
-			showAODeviceInfo(aoDevice);
+			showAODeviceInfo(d);
 			
-			for(int j = 0; j < aoDevice.getChannelCount(); j++) {
-				AudioOutputChannel aoc = client.getAudioOutputChannelInfo(i, j);
+			for(int j = 0; j < d.getChannelCount(); j++) {
+				AudioOutputChannel aoc =
+					client.getAudioOutputChannelInfo(d.getDeviceID(), j);
 				System.out.println(" Channel: " + aoc.getName());
 				if(aoc.isMixChannel()) System.out.println (
 					" Mix channel destincation: " + aoc.getMixChannelDest()
@@ -127,15 +126,13 @@ public class Poll {
 		System.out.println(client.getMidiInputDeviceCount());
 		
 		System.out.print("Numerical IDs of all created MIDI input devices: ");
-		devices = client.getMidiInputDevices();
-		showCommaList(devices);
+		MidiInputDevice[] midiDevices = client.getMidiInputDevices();
+		showCommaList(midiDevices);
 		System.out.println();
 		
-		for(Integer i : devices) {
+		for(MidiInputDevice d : midiDevices) {
 			System.out.println();
-			System.out.println("MIDI input device: " + i);
-			MidiInputDevice miDevice = client.getMidiInputDeviceInfo(i);
-			showDeviceInfo(miDevice);
+			showDeviceInfo(d);
 		}
 		
 		System.out.print("Number of sampler channels: ");
@@ -143,7 +140,7 @@ public class Poll {
 		System.out.println();
 		
 		System.out.print("Numerical IDs of all created sampler channels: ");
-		Integer[] channels = client.getSamplerChannels();
+		Integer[] channels = client.getSamplerChannelIDs();
 		showCommaList(channels);
 		System.out.println();
 		System.out.println();
@@ -208,6 +205,7 @@ public class Poll {
 	
 	private static void
 	showDeviceInfo(Device device) {
+		System.out.println("Device ID: " + device.getDeviceID());
 		System.out.println(" Driver: " + device.getDriverName());
 		System.out.println(" Active: " + device.isActive());
 		for(Parameter p : device.getAdditionalParameters()) showParameterInfo(p);
