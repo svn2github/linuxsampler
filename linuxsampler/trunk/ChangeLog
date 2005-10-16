@@ -22,8 +22,12 @@ Version CVS HEAD (?)
     - improved filter cutoff calculation by adding support for the
       following gig parameters: Cutoff freq (used when no cutoff
       controller is defined), Control invert, Minimum cutoff, Velocity
-      curve and Velocity range. The keyboard tracking now also scales
-      cutoff frequency, not just resonance.
+      curve and Velocity range. The keyboard tracking now scales
+      cutoff frequency instead of resonance.
+    - filter fine tuning: calculation of cutoff frequency and
+      bandwidth improved. Removed use of "BasicBPFilter". Changed
+      bandpass filter from constant peak to constant skirt. Added
+      support for gig parameter Resonance.
     - fixed bug in sysex handling (patch by Juan Linietsky)
     - added global volume attenuation of -9 dB (0.35f) to prevent clipping
       which can be overridden with --enable-global-attenuation

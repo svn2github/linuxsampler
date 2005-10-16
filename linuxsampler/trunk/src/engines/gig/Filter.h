@@ -96,16 +96,16 @@ namespace LinuxSampler { namespace gig {
                 BasicBPFilter.SetParameters(cutoff, 0.7, fs);
                 switch (Type) {
                     case ::gig::vcf_type_highpass:
-                        HPFilter.SetParameters(cutoff, 1.0 - resonance * LSF_BW, fs);
+                        HPFilter.SetParameters(cutoff, 1.87 - resonance * 1.7526, fs);
                         break;
                     case ::gig::vcf_type_bandpass:
-                        BPFilter.SetParameters(cutoff, 1.0 - resonance * LSF_BW, fs);
+                        BPFilter.SetParameters(cutoff, 1.87 - resonance * 1.7526, fs);
                         break;
                     case ::gig::vcf_type_lowpass:
-                        LPFilter.SetParameters(cutoff, 1.0 - resonance * LSF_BW, fs);
+                        LPFilter.SetParameters(cutoff, 1.87 - resonance * 1.7526, fs);
                         break;
                 }
-                this->scale     = 1.0f - resonance * 0.7f;
+                this->scale     = resonance < 0.4 ? 1.0f : 1.4f - resonance * 1.016f;
                 this->resonance = resonance;
                 this->cutoff    = cutoff;
             }
@@ -114,16 +114,16 @@ namespace LinuxSampler { namespace gig {
                 BasicBPFilter.SetParameters(base, cutoff, 0.7, fs);
                 switch (Type) {
                     case ::gig::vcf_type_highpass:
-                        HPFilter.SetParameters(main, cutoff, 1.0 - resonance * LSF_BW, fs);
+                        HPFilter.SetParameters(main, cutoff, 1.87 - resonance * 1.7526, fs);
                         break;
                     case ::gig::vcf_type_bandpass:
-                        BPFilter.SetParameters(main, cutoff, 1.0 - resonance * LSF_BW, fs);
+                        BPFilter.SetParameters(main, cutoff, 1.87 - resonance * 1.7526, fs);
                         break;
                     case ::gig::vcf_type_lowpass:
-                        LPFilter.SetParameters(main, cutoff, 1.0 - resonance * LSF_BW, fs);
+                        LPFilter.SetParameters(main, cutoff, 1.87 - resonance * 1.7526, fs);
                         break;
                 }
-                this->scale     = 1.0f - resonance * 0.7f;
+                this->scale     = resonance < 0.4 ? 1.0f : 1.4f - resonance * 1.016f;
                 this->resonance = resonance;
                 this->cutoff    = cutoff;
             }
@@ -136,13 +136,13 @@ namespace LinuxSampler { namespace gig {
             }
 
             inline bq_t Apply(const bq_t in) {
-                return pFilter->Apply(in) * this->scale +
-                        BasicBPFilter.ApplyFB(in, this->resonance * LSF_FB) * this->resonance;
+                return pFilter->Apply(in) * this->scale;
+                // + BasicBPFilter.ApplyFB(in, this->resonance * LSF_FB) * this->resonance;
             }
 
             inline bq_t Apply(biquad_param_t* base, biquad_param_t* main, const bq_t in) {
-                return pFilter->Apply(main, in) * this->scale +
-                        BasicBPFilter.ApplyFB(base, in, this->resonance * LSF_FB) * this->resonance;
+                return pFilter->Apply(main, in) * this->scale;
+                // + BasicBPFilter.ApplyFB(base, in, this->resonance * LSF_FB) * this->resonance;
             }
 
 #if CONFIG_ASM && ARCH_X86

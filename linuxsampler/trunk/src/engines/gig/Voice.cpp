@@ -494,6 +494,7 @@ namespace LinuxSampler { namespace gig {
             if (VCFCutoffCtrl.controller) {
                 cvalue = pEngineChannel->ControllerTable[VCFCutoffCtrl.controller];
                 if (pDimRgn->VCFCutoffControllerInvert) cvalue = 127 - cvalue;
+                // VCFVelocityScale in this case means Minimum cutoff
                 if (cvalue < pDimRgn->VCFVelocityScale) cvalue = pDimRgn->VCFVelocityScale;
             }
             else {
@@ -501,16 +502,13 @@ namespace LinuxSampler { namespace gig {
             }
             cutoff *= float(cvalue) * 0.00787402f; // (1 / 127)
             if (cutoff > 1.0) cutoff = 1.0;
-            cutoff = exp(cutoff * FILTER_CUTOFF_COEFF) * CONFIG_FILTER_CUTOFF_MIN;
+            cutoff = (cutoff < 0.5 ? cutoff * 4826 - 1 : cutoff * 5715 - 449);
+            if (cutoff < 1.0) cutoff = 1.0;
 
             // calculate resonance
-            float resonance = (float) VCFResonanceCtrl.value * 0.00787f;   // 0.0..1.0
-            if (pDimRgn->VCFKeyboardTracking) {
-                resonance += (float) (itNoteOnEvent->Param.Note.Key - pDimRgn->VCFKeyboardTrackingBreakpoint) * 0.00787f;
-            }
-            Constrain(resonance, 0.0, 1.0); // correct resonance if outside allowed value range (0.0..1.0)
+            float resonance = (float) (VCFResonanceCtrl.controller ? VCFResonanceCtrl.value : pDimRgn->VCFResonance) * 0.00787f; // 0.0..1.0
 
-            VCFCutoffCtrl.fvalue    = cutoff - CONFIG_FILTER_CUTOFF_MIN;
+            VCFCutoffCtrl.fvalue    = cutoff - 1.0;
             VCFResonanceCtrl.fvalue = resonance;
         }
         else {
@@ -714,8 +712,10 @@ namespace LinuxSampler { namespace gig {
         if (ccvalue < pDimRgn->VCFVelocityScale) ccvalue = pDimRgn->VCFVelocityScale;
         float cutoff = CutoffBase * float(ccvalue) * 0.00787402f; // (1 / 127)
         if (cutoff > 1.0) cutoff = 1.0;
-        cutoff = exp(cutoff * FILTER_CUTOFF_COEFF) * CONFIG_FILTER_CUTOFF_MIN - CONFIG_FILTER_CUTOFF_MIN;
-        VCFCutoffCtrl.fvalue = cutoff; // needed for initialization of fFinalCutoff next time
+        cutoff = (cutoff < 0.5 ? cutoff * 4826 - 1 : cutoff * 5715 - 449);
+        if (cutoff < 1.0) cutoff = 1.0;
+
+        VCFCutoffCtrl.fvalue = cutoff - 1.0; // needed for initialization of fFinalCutoff next time
         fFinalCutoff = cutoff;
     }
 
@@ -802,8 +802,8 @@ namespace LinuxSampler { namespace gig {
 
             // if filter enabled then update filter coefficients
             if (SYNTHESIS_MODE_GET_FILTER(SynthesisMode)) {
-                finalSynthesisParameters.filterLeft.SetParameters(fFinalCutoff, fFinalResonance, pEngine->SampleRate);
-                finalSynthesisParameters.filterRight.SetParameters(fFinalCutoff, fFinalResonance, pEngine->SampleRate);
+                finalSynthesisParameters.filterLeft.SetParameters(fFinalCutoff + 1.0, fFinalResonance, pEngine->SampleRate);
+                finalSynthesisParameters.filterRight.SetParameters(fFinalCutoff + 1.0, fFinalResonance, pEngine->SampleRate);
             }
 
             // do we need resampling?

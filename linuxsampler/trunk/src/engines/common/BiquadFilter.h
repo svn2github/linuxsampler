@@ -501,9 +501,9 @@ namespace LinuxSampler {
                 bq_t alpha = sn * sinh(M_LN2 / 2.0 * bw * omega / sn);
 
                 const float a0r = 1.0 / (1.0 + alpha);
-                this->b0 = a0r * alpha;
+                this->b0 = a0r * sn * 0.71;
                 this->b1 = 0.0;
-                this->b2 = a0r * -alpha;
+                this->b2 = a0r * -sn * 0.71;
                 this->a1 = a0r * (2.0 * cs);
                 this->a2 = a0r * (alpha - 1.0);
             }
@@ -515,9 +515,9 @@ namespace LinuxSampler {
                 bq_t alpha = sn * sinh(M_LN2 / 2.0 * bw * omega / sn);
 
                 const float a0r = 1.0 / (1.0 + alpha);
-                param->b0 = a0r * alpha;
+                param->b0 = a0r * sn * 0.71;
                 param->b1 = 0.0;
-                param->b2 = a0r * -alpha;
+                param->b2 = a0r * -sn * 0.71;
                 param->a1 = a0r * (2.0 * cs);
                 param->a2 = a0r * (alpha - 1.0);
             }
