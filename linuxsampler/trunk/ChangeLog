@@ -38,6 +38,8 @@ Version CVS HEAD (?)
 
   * LSCP server:
     - fixed application exit on broken pipe error (fixes bug #20)
+    - fixed the notification messages delay due to lack of
+      network activity (fixes bug #26)
 
   * MIDI driver:
     - fixed legacy sysex code which caused dispatching of MIDI SysEx

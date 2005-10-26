@@ -128,9 +128,35 @@ int LSCPServer::Main() {
     FD_SET(hSocket, &fdSet);
     int maxSessions = hSocket;
 
+    timeval timeout;
+
     while (true) {
-	fd_set selectSet = fdSet;
-	int retval = select(maxSessions+1, &selectSet, NULL, NULL, NULL);
+        // check if some engine channel's parameter / status changed, if so notify the respective LSCP event subscribers
+        {
+            std::set<EngineChannel*> engineChannels = EngineChannelFactory::EngineChannelInstances();
+            std::set<EngineChannel*>::iterator itEngineChannel = engineChannels.begin();
+            std::set<EngineChannel*>::iterator itEnd           = engineChannels.end();
+            for (; itEngineChannel != itEnd; ++itEngineChannel) {
+                if ((*itEngineChannel)->StatusChanged()) {
+                    SendLSCPNotify(LSCPEvent(LSCPEvent::event_channel_info, (*itEngineChannel)->iSamplerChannelIndex));
+                }
+            }
+        }
+
+	//Now let's deliver late notifies (if any)
+	NotifyBufferMutex.Lock();
+	for (std::map<int,String>::iterator iterNotify = bufferedNotifies.begin(); iterNotify != bufferedNotifies.end(); iterNotify++) {
+		send(iterNotify->first, iterNotify->second.c_str(), iterNotify->second.size(), MSG_NOSIGNAL);
+		bufferedNotifies.erase(iterNotify);
+	}
+	NotifyBufferMutex.Unlock();
+
+        fd_set selectSet = fdSet;
+        timeout.tv_sec  = 0;
+        timeout.tv_usec = 100000;
+
+        int retval = select(maxSessions+1, &selectSet, NULL, NULL, &timeout);
+
 	if (retval == 0)
 		continue; //Nothing try again
 	if (retval == -1) {
@@ -190,26 +216,6 @@ int LSCPServer::Main() {
 			break;
 		}
 	}
-
-        // check if some engine channel's parameter / status changed, if so notify the respective LSCP event subscribers
-        {
-            std::set<EngineChannel*> engineChannels = EngineChannelFactory::EngineChannelInstances();
-            std::set<EngineChannel*>::iterator itEngineChannel = engineChannels.begin();
-            std::set<EngineChannel*>::iterator itEnd           = engineChannels.end();
-            for (; itEngineChannel != itEnd; ++itEngineChannel) {
-                if ((*itEngineChannel)->StatusChanged()) {
-                    SendLSCPNotify(LSCPEvent(LSCPEvent::event_channel_info, (*itEngineChannel)->iSamplerChannelIndex));
-                }
-            }
-        }
-
-	//Now let's deliver late notifies (if any)
-	NotifyBufferMutex.Lock();
-	for (std::map<int,String>::iterator iterNotify = bufferedNotifies.begin(); iterNotify != bufferedNotifies.end(); iterNotify++) {
-		send(iterNotify->first, iterNotify->second.c_str(), iterNotify->second.size(), MSG_NOSIGNAL);
-		bufferedNotifies.erase(iterNotify);
-	}
-	NotifyBufferMutex.Unlock();
     }
 }
 
