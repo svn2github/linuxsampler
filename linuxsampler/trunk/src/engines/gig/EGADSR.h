@@ -165,6 +165,8 @@ class EGADSR {
             return Level;
         }
 
+        void enterFadeOutStage();
+
     private:
 
         enum stage_t {
@@ -210,7 +212,6 @@ class EGADSR {
         void enterSustainStage();
         void enterReleasePart1Stage();
         void enterReleasePart2Stage();
-        void enterFadeOutStage();
         void enterEndStage();
 };
 

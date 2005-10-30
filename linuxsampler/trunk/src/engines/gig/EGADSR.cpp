@@ -32,7 +32,7 @@ namespace LinuxSampler { namespace gig {
     }
 
     void EGADSR::CalculateFadeOutCoeff(float FadeOutTime, float SampleRate) {
-        const float killSteps = FadeOutTime * SampleRate;
+        const float killSteps = FadeOutTime * SampleRate / CONFIG_DEFAULT_SUBFRAGMENT_SIZE;
         FadeOutCoeff = -1.0f / killSteps;
     }
 

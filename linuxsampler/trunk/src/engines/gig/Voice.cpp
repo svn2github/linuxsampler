@@ -750,6 +750,9 @@ namespace LinuxSampler { namespace gig {
             while (itNoteEvent && itNoteEvent->FragmentPos() <= Skip) ++itNoteEvent;
         }
 
+        uint killPos;
+        if (itKillEvent) killPos = RTMath::Min(itKillEvent->FragmentPos(), pEngine->MaxFadeOutPos);
+
         uint i = Skip;
         while (i < Samples) {
             int iSubFragmentEnd = RTMath::Min(i + CONFIG_DEFAULT_SUBFRAGMENT_SIZE, Samples);
@@ -769,6 +772,12 @@ namespace LinuxSampler { namespace gig {
 
             // process transition events (note on, note off & sustain pedal)
             processTransitionEvents(itNoteEvent, iSubFragmentEnd);
+
+            // if the voice was killed in this subfragment switch EG1 to fade out stage
+            if (itKillEvent && killPos <= iSubFragmentEnd) {
+                EG1.enterFadeOutStage();
+                itKillEvent = Pool<Event>::Iterator();
+            }
 
             // process envelope generators
             switch (EG1.getSegmentType()) {
