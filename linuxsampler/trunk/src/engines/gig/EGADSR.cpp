@@ -200,13 +200,15 @@ namespace LinuxSampler { namespace gig {
     void EGADSR::enterAttackStage(const uint PreAttack, const float AttackTime, const uint SampleRate) {
         Stage   = stage_attack;
         Segment = segment_lin;
-        // Measurements of GSt output shows that the real attack time
-        // is about 65.5% of the value specified in the gig file.
-        StepsLeft = (int) (0.655f * AttackTime * SampleRate);
-        if (StepsLeft) {
+
+        if (AttackTime >= 0.0005f) {
+            // Measurements of GSt output shows that the real attack time
+            // is about 65.5% of the value specified in the gig file.
+            // The minimum attack value used is 0.032.
+            StepsLeft = int(0.655f * RTMath::Max(AttackTime, 0.032f) * SampleRate);
             Level = (float) PreAttack / 1000.0;
             Coeff = 0.896f * (1.0f - Level) / StepsLeft; // max level is a bit lower if attack != 0
-        } else { // immediately jump to the next stage
+        } else { // attack is zero - immediately jump to the next stage
             Level = 1.0;
             if (HoldAttack) enterAttackHoldStage();
             else            enterDecay1Part1Stage(SampleRate);

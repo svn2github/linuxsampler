@@ -33,8 +33,8 @@ Version CVS HEAD (?)
       which can be overridden with --enable-global-attenuation
     - EG fixes: made the length of "attack hold" stage more
       accurate. Release stage can now start before attack stage
-      ends. Cancel release didn't work when sustain was zero.
-
+      ends. Cancel release didn't work when sustain was zero. Attack
+      time now has a minimal value to prevent clicks.
 
   * LSCP server:
     - fixed application exit on broken pipe error (fixes bug #20)
