@@ -78,8 +78,9 @@ namespace RIFF {
 
     /** Whether file stream is open in read or in read/write mode. */
     typedef enum {
-        stream_mode_read,
-        stream_mode_read_write
+        stream_mode_read       = 0,
+        stream_mode_read_write = 1,
+        stream_mode_closed     = 2
     } stream_mode_t;
 
     /** Current state of the file stream. */
@@ -229,7 +230,7 @@ namespace RIFF {
     /** Parses arbitrary RIFF files and provides together with it's base classes convenient methods to walk through the RIFF tree. */
     class File : public List {
         public:
-            File();
+            File(uint32_t FileType);
             File(const String& path);
             stream_mode_t GetMode();
             bool          SetMode(stream_mode_t NewMode);
@@ -257,6 +258,11 @@ namespace RIFF {
 
             unsigned long GetFileSize();
             void ResizeFile(unsigned long ulNewSize);
+            #if POSIX
+            unsigned long __GetFileSize(int hFile);
+            #else
+            unsigned long __GetFileSize(FILE* hFile);
+            #endif
     };
 
     /** Will be thrown whenever an error occurs while parsing a RIFF file. */

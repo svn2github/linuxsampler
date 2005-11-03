@@ -49,6 +49,7 @@ namespace RIFF {
         ulPos      = 0;
         pParent    = NULL;
         pChunkData = NULL;
+        ChunkID    = CHUNK_ID_RIFF;
         this->pFile = pFile;
     }
 
@@ -293,9 +294,9 @@ namespace RIFF {
      *  @see Resize()
      */
     unsigned long Chunk::Write(void* pData, unsigned long WordCount, unsigned long WordSize) {
-        if (pFile->Mode == stream_mode_read)
-            throw Exception("Writing chunk data in read-only file access mode was attempted");
-        if (ulPos >= CurrentChunkSize || ulPos + WordCount * WordSize >= CurrentChunkSize)
+        if (pFile->Mode != stream_mode_read_write)
+            throw Exception("Cannot write data to chunk, file has to be opened in read+write mode first");
+        if (ulPos >= CurrentChunkSize || ulPos + WordCount * WordSize > CurrentChunkSize)
             throw Exception("End of chunk reached while trying to write data");
         if (!pFile->bEndianNative && WordSize != 1) {
             switch (WordSize) {
@@ -743,8 +744,11 @@ namespace RIFF {
      *          (including its header size of course)
      */
     unsigned long Chunk::WriteChunk(unsigned long ulWritePos, unsigned long ulCurrentDataOffset) {
-        unsigned long ulOriginalPos = ulWritePos;
+        const unsigned long ulOriginalPos = ulWritePos;
         ulWritePos += CHUNK_HEADER_SIZE;
+
+        if (pFile->Mode != stream_mode_read_write)
+            throw Exception("Cannot write list chunk, file has to be opened in read+write mode");
 
         // if the whole chunk body was loaded into RAM
         if (pChunkData) {
@@ -806,10 +810,12 @@ namespace RIFF {
 
         // add pad byte if needed
         if ((ulStartPos + NewChunkSize) % 2 != 0) {
-            char cPadByte = 0;
+            const char cPadByte = 0;
             #if POSIX
+            lseek(pFile->hFileWrite, ulStartPos + NewChunkSize, SEEK_SET);
             write(pFile->hFileWrite, &cPadByte, 1);
             #else
+            fseek(pFile->hFileWrite, ulStartPos + NewChunkSize, SEEK_SET);
             fwrite(&cPadByte, 1, 1, pFile->hFileWrite);
             #endif
             return ulStartPos + NewChunkSize + 1;
@@ -1063,10 +1069,10 @@ namespace RIFF {
     Chunk* List::AddSubChunk(uint32_t uiChunkID, uint uiBodySize) {
         if (uiBodySize == 0) throw Exception("Chunk body size must be at least 1 byte");
         if (!pSubChunks) LoadSubChunks();
-        Chunk* pNewChunk = new Chunk(pFile, this, uiChunkID, uiBodySize);
+        Chunk* pNewChunk = new Chunk(pFile, this, uiChunkID, 0);
         pSubChunks->push_back(pNewChunk);
         (*pSubChunksMap)[uiChunkID] = pNewChunk;
-        pFile->ResizedChunks.push_back(pNewChunk);
+        pNewChunk->Resize(uiBodySize);
         return pNewChunk;
     }
 
@@ -1197,8 +1203,11 @@ namespace RIFF {
      *          (including its header size of course)
      */
     unsigned long List::WriteChunk(unsigned long ulWritePos, unsigned long ulCurrentDataOffset) {
-        unsigned long ulOriginalPos = ulWritePos;
+        const unsigned long ulOriginalPos = ulWritePos;
         ulWritePos += LIST_HEADER_SIZE;
+
+        if (pFile->Mode != stream_mode_read_write)
+            throw Exception("Cannot write list chunk, file has to be opened in read+write mode");
 
         // write all subchunks (including sub list chunks) recursively
         if (pSubChunks) {
@@ -1210,6 +1219,9 @@ namespace RIFF {
         // update this list chunk's header
         CurrentChunkSize = NewChunkSize = ulWritePos - ulOriginalPos - LIST_HEADER_SIZE;
         WriteHeader(ulOriginalPos);
+
+        // offset of this list chunk in new written file may have changed
+        ulStartPos = ulOriginalPos + LIST_HEADER_SIZE;
 
         return ulWritePos;
     }
@@ -1241,12 +1253,15 @@ namespace RIFF {
      * "from scratch". Note: there must be no empty chunks or empty list
      * chunks when trying to make the new RIFF file persistent with Save()!
      *
+     * @param FileType - four-byte identifier of the RIFF file type
      * @see AddSubChunk(), AddSubList()
      */
-    File::File() : List(this) {
+    File::File(uint32_t FileType) : List(this) {
         hFileRead = hFileWrite = 0;
+        Mode = stream_mode_closed;
         bEndianNative = true;
         ulStartPos = RIFF_HEADER_SIZE;
+        ListType = FileType;
     }
 
     /** @brief Load existing RIFF file.
@@ -1272,6 +1287,7 @@ namespace RIFF {
         hFileRead = hFileWrite = fopen(path.c_str(), "rb");
         if (!hFile) throw RIFF::Exception("Can't open \"" + path + "\"");
         #endif // POSIX
+        Mode = stream_mode_read;
         ulStartPos = RIFF_HEADER_SIZE;
         ReadHeader(0);
         if (ChunkID != CHUNK_ID_RIFF) {
@@ -1314,7 +1330,7 @@ namespace RIFF {
                     if (!hFileRead) throw Exception("Could not (re)open file \"" + Filename + "\" in read mode");
                     #endif
                     __resetPos(); // reset read/write position of ALL 'Chunk' objects
-                    return true;
+                    break;
                 case stream_mode_read_write:
                     #if POSIX
                     if (hFileRead) close(hFileRead);
@@ -1332,10 +1348,22 @@ namespace RIFF {
                     }
                     #endif
                     __resetPos(); // reset read/write position of ALL 'Chunk' objects
-                    return true;
+                    break;
+                case stream_mode_closed:
+                    #if POSIX
+                    if (hFileRead)  close(hFileRead);
+                    if (hFileWrite) close(hFileWrite);
+                    #else
+                    if (hFileRead)  fclose(hFileRead);
+                    if (hFileWrite) fclose(hFileWrite);
+                    #endif
+                    hFileRead = hFileWrite = 0;
+                    break;
                 default:
                     throw Exception("Unknown file access mode");
             }
+            Mode = NewMode;
+            return true;
         }
         return false;
     }
@@ -1352,7 +1380,7 @@ namespace RIFF {
      */
     void File::Save() {
         // reopen file in write mode
-        bool bModeWasChanged = SetMode(stream_mode_read_write);
+        SetMode(stream_mode_read_write);
 
         // to be able to save the whole file without loading everything into
         // RAM and without having to store the data in a temporary file, we
@@ -1365,8 +1393,10 @@ namespace RIFF {
         unsigned long ulPositiveSizeDiff = 0;
         for (ChunkList::iterator iter = ResizedChunks.begin(), end = ResizedChunks.end(); iter != end; ++iter) {
             if ((*iter)->GetNewSize() == 0) throw Exception("There is at least one empty chunk (zero size)");
-            unsigned long ulDiff = (*iter)->GetNewSize() - (*iter)->GetSize() + 1L; // +1 in case we have to add a pad byte
-            if (ulDiff > 0) ulPositiveSizeDiff += ulDiff;
+            if ((*iter)->GetNewSize() + 1L > (*iter)->GetSize()) {
+                unsigned long ulDiff = (*iter)->GetNewSize() - (*iter)->GetSize() + 1L; // +1 in case we have to add a pad byte
+                ulPositiveSizeDiff += ulDiff;
+            }
         }
 
         unsigned long ulWorkingFileSize = GetFileSize();
@@ -1400,16 +1430,14 @@ namespace RIFF {
         }
 
         // rebuild / rewrite complete RIFF tree
-        unsigned long ulTotalSize = WriteChunk(0, ulPositiveSizeDiff);
+        unsigned long ulTotalSize  = WriteChunk(0, ulPositiveSizeDiff);
+        unsigned long ulActualSize = __GetFileSize(hFileWrite);
 
         // resize file to the final size
-        if (ulTotalSize < ulWorkingFileSize) ResizeFile(ulTotalSize);
+        if (ulTotalSize < ulActualSize) ResizeFile(ulTotalSize);
 
         // forget all resized chunks
         ResizedChunks.clear();
-
-        // reopen file in read mode
-        if (bModeWasChanged) SetMode(stream_mode_read);
     }
 
     /** @brief Save changes to another file.
@@ -1417,7 +1445,8 @@ namespace RIFF {
      * Make all changes of all chunks persistent by writing them to another
      * file. <b>Caution:</b> this method is optimized for writing to
      * <b>another</b> file, do not use it to save the changes to the same
-     * file! Use File::Save() in that case instead!
+     * file! Use File::Save() in that case instead! Ignoring this might
+     * result in a corrupted file, especially in case chunks were resized!
      *
      * After calling this method, this File object will be associated with
      * the new file (given by \a path) afterwards.
@@ -1425,9 +1454,12 @@ namespace RIFF {
      * @param path - path and file name where everything should be written to
      */
     void File::Save(const String& path) {
+        //TODO: we should make a check here if somebody tries to write to the same file and automatically call the other Save() method in that case
+
+        if (Filename.length() > 0) SetMode(stream_mode_read);
         // open the other (new) file for writing and truncate it to zero size
         #if POSIX
-        hFileWrite = open(path.c_str(), O_RDWR | O_CREAT | O_TRUNC);
+        hFileWrite = open(path.c_str(), O_RDWR | O_CREAT, S_IRUSR | S_IWUSR | S_IRGRP);
         if (hFileWrite < 0) {
             hFileWrite = hFileRead;
             throw Exception("Could not open file \"" + path + "\" for writing");
@@ -1439,18 +1471,31 @@ namespace RIFF {
             throw Exception("Could not open file \"" + path + "\" for writing");
         }
         #endif // POSIX
+        Mode = stream_mode_read_write;
 
         // write complete RIFF tree to the other (new) file
-        WriteChunk(0, 0);
+        unsigned long ulTotalSize  = WriteChunk(0, 0);
+        unsigned long ulActualSize = __GetFileSize(hFileWrite);
+
+        // resize file to the final size (if the file was originally larger)
+        if (ulTotalSize < ulActualSize) ResizeFile(ulTotalSize);
 
         // forget all resized chunks
         ResizedChunks.clear();
 
+        if (Filename.length() > 0) {
+            #if POSIX
+            close(hFileWrite);
+            #else
+            fclose(hFileWrite);
+            #endif
+            hFileWrite = hFileRead;
+        }
+
         // associate new file with this File object from now on
         Filename = path;
-        stream_mode_t oldMode = Mode;
-        Mode = (stream_mode_t) -1; // Just set it to an undefined mode ...
-        SetMode(oldMode);          // ... so SetMode() has to reopen the file handles.
+        Mode = (stream_mode_t) -1;       // Just set it to an undefined mode ...
+        SetMode(stream_mode_read_write); // ... so SetMode() has to reopen the file handles.
     }
 
     void File::ResizeFile(unsigned long ulNewSize) {
@@ -1459,7 +1504,7 @@ namespace RIFF {
             throw Exception("Could not resize file \"" + Filename + "\"");
         #else
         # error Sorry, this version of libgig only supports POSIX systems yet.
-        # error Reason: portable implementation of RIFF::File::ResizeFile() is missing!
+        # error Reason: portable implementation of RIFF::File::ResizeFile() is missing (yet)!
         #endif
     }
 
@@ -1479,19 +1524,25 @@ namespace RIFF {
     }
 
     unsigned long File::GetFileSize() {
-        #if POSIX
-        struct stat filestat;
-        fstat(hFileRead, &filestat);
-        long size = filestat.st_size;
-        #else // standard C functions
-        long curpos = ftell(hFileRead);
-        fseek(hFileRead, 0, SEEK_END);
-        long size = ftell(hFileRead);
-        fseek(hFileRead, curpos, SEEK_SET);
-        #endif // POSIX
-        return size;
+        return __GetFileSize(hFileRead);
     }
 
+    #if POSIX
+    unsigned long File::__GetFileSize(int hFile) {
+        struct stat filestat;
+        fstat(hFile, &filestat);
+        long size = filestat.st_size;
+        return size;
+    }
+    #else // standard C functions
+    unsigned long File::__GetFileSize(FILE* hFile) {
+        long curpos = ftell(hFile);
+        fseek(hFile, 0, SEEK_END);
+        long size = ftell(hFile);
+        fseek(hFile, curpos, SEEK_SET);
+        return size;
+    }
+    #endif
 
 
 // *************** Exception ***************
