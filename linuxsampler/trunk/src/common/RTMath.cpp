@@ -82,7 +82,7 @@ RTMathBase::time_stamp_t RTMathBase::CreateTimeStamp() {
  */
 float* RTMathBase::InitCentsToFreqTable() {
     float* pMiddleOfTable = &CentsToFreqTable[CONFIG_MAX_PITCH * 1200];
-    for (int i = -1200; i <= 1200; i++) {
+    for (int i = -CONFIG_MAX_PITCH * 1200; i <= CONFIG_MAX_PITCH * 1200; i++) {
         pMiddleOfTable[i] = pow(TWELVEHUNDREDTH_ROOT_OF_TWO, i);
     }
     return pMiddleOfTable;

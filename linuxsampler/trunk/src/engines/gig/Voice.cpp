@@ -150,15 +150,7 @@ namespace LinuxSampler { namespace gig {
             MaxRAMPos = cachedsamples - (pEngine->MaxSamplesPerCycle << CONFIG_MAX_PITCH) / pSample->Channels; //TODO: this calculation is too pessimistic and may better be moved to Render() method, so it calculates MaxRAMPos dependent to the current demand of sample points to be rendered (e.g. in case of JACK)
 
             // check if there's a loop defined which completely fits into the cached (RAM) part of the sample
-            if (pSample->Loops && pSample->LoopEnd <= MaxRAMPos) {
-                RAMLoop            = true;
-                loop.uiTotalCycles = pSample->LoopPlayCount;
-                loop.uiCyclesLeft  = pSample->LoopPlayCount;
-                loop.uiStart       = pSample->LoopStart;
-                loop.uiEnd         = pSample->LoopEnd;
-                loop.uiSize        = pSample->LoopSize;
-            }
-            else RAMLoop = false;
+            RAMLoop = (pSample->Loops && pSample->LoopEnd <= MaxRAMPos);
 
             if (pDiskThread->OrderNewStream(&DiskStreamRef, pSample, MaxRAMPos, !RAMLoop) < 0) {
                 dmsg(1,("Disk stream order failed!\n"));
@@ -169,14 +161,16 @@ namespace LinuxSampler { namespace gig {
         }
         else { // RAM only voice
             MaxRAMPos = cachedsamples;
-            if (pSample->Loops) {
-                RAMLoop           = true;
-                loop.uiCyclesLeft = pSample->LoopPlayCount;
-            }
-            else RAMLoop = false;
+            RAMLoop = (pSample->Loops != 0);
             dmsg(4,("RAM only voice launched (Looping: %s)\n", (RAMLoop) ? "yes" : "no"));
         }
-
+        if (RAMLoop) {
+            loop.uiTotalCycles = pSample->LoopPlayCount;
+            loop.uiCyclesLeft  = pSample->LoopPlayCount;
+            loop.uiStart       = pSample->LoopStart;
+            loop.uiEnd         = pSample->LoopEnd;
+            loop.uiSize        = pSample->LoopSize;
+        }
 
         // calculate initial pitch value
         {

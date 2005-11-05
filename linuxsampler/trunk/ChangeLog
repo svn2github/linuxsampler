@@ -35,6 +35,7 @@ Version CVS HEAD (?)
       accurate. Release stage can now start before attack stage
       ends. Cancel release didn't work when sustain was zero. Attack
       time now has a minimal value to prevent clicks.
+    - fixed pitch changes larger than one octave
 
   * LSCP server:
     - fixed application exit on broken pipe error (fixes bug #20)
