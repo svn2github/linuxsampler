@@ -1,3 +1,7 @@
+In General:
+  - introduce 'iterator' design pattern as a replacement for the simple but
+    error-prone GetFirstFoo() / GetNextFoo() methods
+
 DLS Part:
   - support for conditional chunks
   - check for ZSTR terminated strings in DLS::Info::LoadString()
