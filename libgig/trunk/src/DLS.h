@@ -27,6 +27,7 @@
 #include "RIFF.h"
 
 #if WORDS_BIGENDIAN
+# define RIFF_TYPE_DLS	0x646C7320
 # define LIST_TYPE_INFO	0x494E464F
 # define LIST_TYPE_WVPL	0x7776706C
 # define LIST_TYPE_DWPL 0x6477706C  ///< Seen on some files instead of a wvpl list chunk.
@@ -38,8 +39,6 @@
 # define LIST_TYPE_LAR2	0x6C617232
 # define LIST_TYPE_RGN	0x72676E20
 # define LIST_TYPE_RGN2	0x72676E32
-# define LIST_TYPE_ART1	0x61727431
-# define LIST_TYPE_ART2	0x61727432
 # define CHUNK_ID_IARL	0x4941524C
 # define CHUNK_ID_IART	0x49415254
 # define CHUNK_ID_ICMS	0x49434D53
@@ -67,7 +66,10 @@
 # define CHUNK_ID_PTBL	0x7074626C
 # define CHUNK_ID_WSMP	0x77736D70
 # define CHUNK_ID_COLH	0x636F6C68
+# define CHUNK_ID_ARTL	0x6172746C
+# define CHUNK_ID_ART2	0x61727432
 #else  // little endian
+# define RIFF_TYPE_DLS	0x20736C64
 # define LIST_TYPE_INFO	0x4F464E49
 # define LIST_TYPE_WVPL	0x6C707677
 # define LIST_TYPE_DWPL 0x6C707764  ///< Seen on some files instead of a wvpl list chunk.
@@ -79,8 +81,6 @@
 # define LIST_TYPE_LAR2	0x3272616C
 # define LIST_TYPE_RGN	0x206E6772
 # define LIST_TYPE_RGN2	0x326E6772
-# define LIST_TYPE_ART1	0x31747261
-# define LIST_TYPE_ART2	0x32747261
 # define CHUNK_ID_IARL	0x4C524149
 # define CHUNK_ID_IART	0x54524149
 # define CHUNK_ID_ICMS	0x534D4349
@@ -108,31 +108,11 @@
 # define CHUNK_ID_PTBL	0x6C627470
 # define CHUNK_ID_WSMP	0x706D7377
 # define CHUNK_ID_COLH	0x686C6F63
+# define CHUNK_ID_ARTL	0x6C747261
+# define CHUNK_ID_ART2	0x32747261
 #endif // WORDS_BIGENDIAN
 
 #define WAVE_FORMAT_PCM			0x0001
-
-#define DRUM_TYPE_MASK			0x00000001
-
-#define F_RGN_OPTION_SELFNONEXCLUSIVE	0x0001
-
-#define F_WAVELINK_PHASE_MASTER		0x0001
-#define F_WAVELINK_MULTICHANNEL		0x0002
-
-#define F_WSMP_NO_TRUNCATION		0x0001
-#define F_WSMP_NO_COMPRESSION		0x0002
-
-#define MIDI_BANK_COARSE(x)		((x & 0x00007F00) >> 8)			// CC0
-#define MIDI_BANK_FINE(x)		(x & 0x0000007F)			// CC32
-#define MIDI_BANK_MERGE(coarse, fine)	((((uint16_t) coarse) << 7) | fine)	// CC0 + CC32
-#define CONN_TRANSFORM_SRC(x)		((x >> 10) & 0x000F)
-#define CONN_TRANSFORM_CTL(x)		((x >> 4) & 0x000F)
-#define CONN_TRANSFORM_DST(x)		(x & 0x000F)
-#define CONN_TRANSFORM_BIPOLAR_SRC(x)	(x & 0x4000)
-#define CONN_TRANSFORM_BIPOLAR_CTL(x)	(x & 0x0100)
-#define CONN_TRANSFORM_INVERT_SRC(x)	(x & 0x8000)
-#define CONN_TRANSFORM_INVERT_CTL(x)	(x & 0x0200)
-
 
 //TODO: no support for conditional chunks <cdl> yet
 
@@ -280,6 +260,7 @@ namespace DLS {
             };
             Connection() {};
             void Init(conn_block_t* Header);
+            conn_block_t ToConnBlock();
             virtual ~Connection() {};
             friend class Articulation;
     };
@@ -289,8 +270,13 @@ namespace DLS {
         public:
             Connection*  pConnections; ///< Points to the beginning of a <i>Connection</i> array.
             uint32_t     Connections;  ///< Reflects the number of Connections.
-            Articulation(RIFF::List* artList);
+
+            Articulation(RIFF::Chunk* artl);
             virtual ~Articulation();
+            virtual void UpdateChunks();
+        protected:
+            RIFF::Chunk* pArticulationCk;
+            uint32_t     HeaderSize;
     };
 
     /** Abstract base class for classes that provide articulation information (thus for <i>Instrument</i> and <i>Region</i> class). */
@@ -299,6 +285,7 @@ namespace DLS {
             Articulator(RIFF::List* ParentList);
             Articulation* GetFirstArticulation();
             Articulation* GetNextArticulation();
+            virtual void  UpdateChunks();
         protected:
             typedef std::list<Articulation*> ArticulationList;
             RIFF::List*                 pParentList;
@@ -330,26 +317,25 @@ namespace DLS {
             String Commissioned;     ///< <ICMS-ck>. Lists the name of the person or organization that commissioned the subject of the file, e.g., Pope Julian II.
 
             Info(RIFF::List* list);
+            virtual void UpdateChunks();
         private:
-            inline void LoadString(uint32_t ChunkID, RIFF::List* lstINFO, String& s) {
-                RIFF::Chunk* ck = lstINFO->GetSubChunk(ChunkID);
-                if (ck) {
-                    // TODO: no check for ZSTR terminated strings yet
-                    s = (char*) ck->LoadChunkData();
-                    ck->ReleaseChunkData();
-                }
-            }
+            RIFF::List* pResourceListChunk;
+
+            void LoadString(uint32_t ChunkID, RIFF::List* lstINFO, String& s);
+            void SaveString(uint32_t ChunkID, RIFF::List* lstINFO, const String& s, const String& sDefault);
     };
 
     /** Abstract base class which encapsulates data structures which all DLS resources are able to provide. */
     class Resource {
         public:
-            Info*    pInfo;        ///< Points (in any case) to an <i>Info</i> object, providing additional, optional infos and comments.
-            dlsid_t* pDLSID;       ///< Points to a <i>dlsid_t</i> structure if the file provided a DLS ID else is <i>NULL</i>.
+            Info*    pInfo;  ///< Points (in any case) to an <i>Info</i> object, providing additional, optional infos and comments.
+            dlsid_t* pDLSID; ///< Points to a <i>dlsid_t</i> structure if the file provided a DLS ID else is <i>NULL</i>.
 
             Resource* GetParent() { return pParent; };
+            virtual void UpdateChunks();
         protected:
             Resource* pParent;
+            RIFF::List* pResourceList;
 
             Resource(Resource* Parent, RIFF::List* lstResource);
             virtual ~Resource();
@@ -363,15 +349,24 @@ namespace DLS {
             int32_t        Gain;
             bool           NoSampleDepthTruncation;
             bool           NoSampleCompression;
-            uint32_t       SampleLoops;              ///< Reflects the number of sample loops.
-            sample_loop_t* pSampleLoops;             ///< Points to the beginning of a sample loop array, or is NULL if there are no loops defined.
+            uint32_t       SampleLoops;  ///< Reflects the number of sample loops.
+            sample_loop_t* pSampleLoops; ///< Points to the beginning of a sample loop array, or is NULL if there are no loops defined.
+
+            virtual void UpdateChunks();
         protected:
+            RIFF::List*    pParentList;
+            uint32_t       uiHeaderSize;
             uint32_t       SamplerOptions;
             Sampler(RIFF::List* ParentList);
             virtual ~Sampler();
     };
 
-    /** Encapsulates sample waves used for playback. */
+    /** @brief Encapsulates sample waves used for playback.
+     *
+     * In case you created a new sample with File::AddSample(), you should
+     * first call Resize() with the desired sample size. This will create
+     * the mandatory RIFF chunk which will hold the sample wave data.
+     */
     class Sample : public Resource {
         public:
             uint16_t      FormatTag;             ///< Format ID of the waveform data (should be WAVE_FORMAT_PCM for DLS1 compliant files).
@@ -380,19 +375,25 @@ namespace DLS {
             uint32_t      AverageBytesPerSecond; ///< The average number of bytes per second at which the waveform data should be transferred (Playback software can estimate the buffer size using this value).
             uint16_t      BlockAlign;            ///< The block alignment (in bytes) of the waveform data. Playback software needs to process a multiple of <i>BlockAlign</i> bytes of data at a time, so the value of <i>BlockAlign</i> can be used for buffer alignment.
             uint16_t      BitDepth;              ///< Size of each sample per channel (only if known sample data format is used, 0 otherwise).
-            unsigned long SamplesTotal;          ///< Reflects total number of samples (only if known sample data format is used, 0 otherwise).
-            uint          FrameSize;             ///< Reflects the size (in bytes) of one single sample (only if known sample data format is used, 0 otherwise).
+            unsigned long SamplesTotal;          ///< Reflects total number of sample points (only if known sample data format is used, 0 otherwise), do not bother to change this value, it will not be saved.
+            uint          FrameSize;             ///< Reflects the size (in bytes) of one single sample point (only if known sample data format is used, 0 otherwise).
 
-            void*         LoadSampleData();              ///< Load sample data into RAM. Returns a pointer to the data in RAM on success, <i>NULL</i> otherwise.
-            void          ReleaseSampleData();           ///< Release the samples once you used them if you don't want to be bothered to.
+            void*         LoadSampleData();
+            void          ReleaseSampleData();
+            unsigned long GetSize();
+            void          Resize(int iNewSize);
             unsigned long SetPos(unsigned long SampleCount, RIFF::stream_whence_t Whence = RIFF::stream_start);
             unsigned long Read(void* pBuffer, unsigned long SampleCount);
+            unsigned long Write(void* pBuffer, unsigned long SampleCount);
+            virtual void  UpdateChunks();
         protected:
+            RIFF::List*   pWaveList;
             RIFF::Chunk*  pCkData;
             RIFF::Chunk*  pCkFormat;
             unsigned long ulWavePoolOffset;  // needed for comparison with the wave pool link table, thus the link to instruments
 
             Sample(File* pFile, RIFF::List* waveList, unsigned long WavePoolOffset);
+            virtual ~Sample();
             friend class File;
             friend class Region; // Region has to compare the wave pool offset to get its sample
     };
@@ -411,10 +412,14 @@ namespace DLS {
             uint32_t    Channel;
 
             Sample*     GetSample();
+            void        SetSample(Sample* pSample);
+            virtual void UpdateChunks();
         protected:
             RIFF::List* pCkRegion;
             uint32_t    WavePoolTableIndex; // index in the wave pool table to the sample wave this region is linked to
             Sample*     pSample;            // every region refers to exactly one sample
+            uint16_t    FormatOptionFlags;
+            uint16_t    WaveLinkOptionFlags;
 
             Region(Instrument* pInstrument, RIFF::List* rgnList);
             virtual ~Region();
@@ -425,7 +430,7 @@ namespace DLS {
     class Instrument : public Resource, public Articulator {
         public:
             bool     IsDrum;         ///< Indicates if the <i>Instrument</i> is a drum type, as they differ in the synthesis model of DLS from melodic instruments.
-            uint16_t MIDIBank;       ///< Reflects combination of <i>MIDIBankCoarse</i> and <i>MIDIBankFine</i> (bank 1 - bank 16384).
+            uint16_t MIDIBank;       ///< Reflects combination of <i>MIDIBankCoarse</i> and <i>MIDIBankFine</i> (bank 1 - bank 16384). Do not change this value, it will not be saved! Change MIDIBankCoarse and MIDIBankFine instead (we might change that in future).
             uint8_t  MIDIBankCoarse; ///< Reflects the MIDI Bank number for MIDI Control Change 0 (bank 1 - 128).
             uint8_t  MIDIBankFine;   ///< Reflects the MIDI Bank number for MIDI Control Change 32 (bank 1 - 128).
             uint32_t MIDIProgram;    ///< Specifies the MIDI Program Change Number this Instrument should be assigned to.
@@ -433,6 +438,9 @@ namespace DLS {
 
             Region*  GetFirstRegion();
             Region*  GetNextRegion();
+            Region*  AddRegion();
+            void     DeleteRegion(Region* pRegion);
+            virtual void UpdateChunks();
         protected:
             typedef std::list<Region*> RegionList;
             struct midi_locale_t {
@@ -456,11 +464,19 @@ namespace DLS {
             version_t* pVersion;              ///< Points to a <i>version_t</i> structure if the file provided a version number else is set to <i>NULL</i>.
             uint32_t   Instruments;           ///< Reflects the number of available <i>Instrument</i> objects.
 
+            File();
             File(RIFF::File* pRIFF);
             Sample*     GetFirstSample();     ///< Returns a pointer to the first <i>Sample</i> object of the file, <i>NULL</i> otherwise.
             Sample*     GetNextSample();      ///< Returns a pointer to the next <i>Sample</i> object of the file, <i>NULL</i> otherwise.
+            Sample*     AddSample();
+            void        DeleteSample(Sample* pSample);
             Instrument* GetFirstInstrument(); ///< Returns a pointer to the first <i>Instrument</i> object of the file, <i>NULL</i> otherwise.
             Instrument* GetNextInstrument();  ///< Returns a pointer to the next <i>Instrument</i> object of the file, <i>NULL</i> otherwise.
+            Instrument* AddInstrument();
+            void        DeleteInstrument(Instrument* pInstrument);
+            virtual void UpdateChunks();
+            virtual void Save(const String& Path);
+            virtual void Save();
             virtual ~File();
         protected:
             typedef std::list<Sample*>     SampleList;
@@ -471,13 +487,19 @@ namespace DLS {
             SampleList::iterator     SamplesIterator;
             InstrumentList*          pInstruments;
             InstrumentList::iterator InstrumentsIterator;
+            uint32_t                 WavePoolHeaderSize;
             uint32_t                 WavePoolCount;
             uint32_t*                pWavePoolTable;
             uint32_t*                pWavePoolTableHi;
+            bool                     b64BitWavePoolOffsets;
 
             void LoadSamples();
             void LoadInstruments();
+            void __ensureMandatoryChunksExist();
             friend class Region; // Region has to look in the wave pool table to get its sample
+        private:
+            void __UpdateWavePoolTableChunk();
+            void __UpdateWavePoolTable();
     };
 
     /** Will be thrown whenever a DLS specific error occurs while trying to access a DLS File. */

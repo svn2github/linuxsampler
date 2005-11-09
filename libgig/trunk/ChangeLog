@@ -1,13 +1,25 @@
 Version CVS HEAD (?)
 
   * general changes:
-    - added write support (only to the RIFF classes yet)
+    - added write support (only to the RIFF and DLS classes yet)
 
   * src/gig.cpp, src/gig.h:
     - fixed the GetVelocityCutoff function, it wasn't always using the
       VCFVelocityScale parameter when no cutoff controller was defined
     - support for the gig v3 feature to have a number of dimension
       splits not equal to a power of two
+
+  * src/DLS.cpp, src/DLS.h:
+    - fixed loading of Articulation Connections (<artl> list chunks were
+      seeked instead of ordinary <artl> data chunks)
+    - added write support (highly experimental)
+
+  * src/RIFF.cpp, src/RIFF.h:
+    - added write support
+    - Chunk::LoadChunkData() can now be called again to resize the buffer
+      after a Chunk::Resize() and before the File::Save() call to allow
+      placing the new data in the chunk's write buffer and perform the
+      resize and write operations in one rush
 
 Version 2.0.2 (15 Aug 2005)
 

@@ -22,22 +22,12 @@
  ***************************************************************************/
 
 #include <string.h>
-#include <sstream>
 
 #include "RIFF.h"
 
+#include "helper.h"
+
 namespace RIFF {
-
-// *************** Helper Functions **************
-// *
-
-    template<class T> inline String ToString(T o) {
-        std::stringstream ss;
-        ss << o;
-        return ss.str();
-    }
-
-
 
 // *************** Chunk **************
 // *
@@ -49,6 +39,7 @@ namespace RIFF {
         ulPos      = 0;
         pParent    = NULL;
         pChunkData = NULL;
+        ulChunkDataSize = 0;
         ChunkID    = CHUNK_ID_RIFF;
         this->pFile = pFile;
     }
@@ -62,6 +53,7 @@ namespace RIFF {
         pParent       = Parent;
         ulPos         = 0;
         pChunkData    = NULL;
+        ulChunkDataSize = 0;
         ReadHeader(StartPos);
     }
 
@@ -71,6 +63,7 @@ namespace RIFF {
         this->pParent    = pParent;
         ulPos            = 0;
         pChunkData       = NULL;
+        ulChunkDataSize  = 0;
         ChunkID          = uiChunkID;
         CurrentChunkSize = 0;
         NewChunkSize     = uiBodySize;
@@ -668,28 +661,49 @@ namespace RIFF {
      *
      * <b>Caution:</b> the buffer pointer will be invalidated once
      * File::Save() was called. You have to call LoadChunkData() again to
-     * get a new pointer whenever File::Save() was called.
+     * get a new, valid pointer whenever File::Save() was called.
+     *
+     * You can call LoadChunkData() again if you previously scheduled to
+     * enlarge this chunk with a Resize() call. In that case the buffer will
+     * be enlarged to the new, scheduled chunk size and you can already
+     * place the new chunk data to the buffer and finally call File::Save()
+     * to enlarge the chunk physically and write the new data in one rush.
+     * This approach is definitely recommended if you have to enlarge and
+     * write new data to a lot of chunks.
      *
      * @returns a pointer to the data in RAM on success, NULL otherwise
+     * @throws Exception if data buffer could not be enlarged
      * @see ReleaseChunkData()
      */
     void* Chunk::LoadChunkData() {
         if (!pChunkData) {
             #if POSIX
             if (lseek(pFile->hFileRead, ulStartPos, SEEK_SET) == -1) return NULL;
-            pChunkData = new uint8_t[GetSize()];
-            if (!pChunkData) return NULL;
-            unsigned long readWords = read(pFile->hFileRead, pChunkData, GetSize());
             #else
             if (fseek(pFile->hFileRead, ulStartPos, SEEK_SET)) return NULL;
-            pChunkData = new uint8_t[GetSize()];
+            #endif // POSIX
+            unsigned long ulBufferSize = (CurrentChunkSize > NewChunkSize) ? CurrentChunkSize : NewChunkSize;
+            pChunkData = new uint8_t[ulBufferSize];
             if (!pChunkData) return NULL;
+            memset(pChunkData, 0, ulBufferSize);
+            #if POSIX
+            unsigned long readWords = read(pFile->hFileRead, pChunkData, GetSize());
+            #else
             unsigned long readWords = fread(pChunkData, 1, GetSize(), pFile->hFileRead);
             #endif // POSIX
             if (readWords != GetSize()) {
                 delete[] pChunkData;
                 return (pChunkData = NULL);
             }
+            ulChunkDataSize = ulBufferSize;
+        } else if (NewChunkSize > ulChunkDataSize) {
+            uint8_t* pNewBuffer = new uint8_t[NewChunkSize];
+            if (!pNewBuffer) throw Exception("Could not enlarge chunk data buffer to " + ToString(NewChunkSize) + " bytes");
+            memset(pNewBuffer, 0 , NewChunkSize);
+            memcpy(pNewBuffer, pChunkData, ulChunkDataSize);
+            delete[] pChunkData;
+            pChunkData      = pNewBuffer;
+            ulChunkDataSize = NewChunkSize;
         }
         return pChunkData;
     }
@@ -719,7 +733,7 @@ namespace RIFF {
      *
      * <b>Caution:</b> You cannot directly write to enlarged chunks before
      * calling File::Save() as this might exceed the current chunk's body
-     * boundary.
+     * boundary!
      *
      * @param iNewSize - new chunk body size in bytes (must be greater than zero)
      * @throws RIFF::Exception  if \a iNewSize is less than 1
@@ -727,6 +741,7 @@ namespace RIFF {
      */
     void Chunk::Resize(int iNewSize) {
         if (iNewSize <= 0) throw Exception("Chunk size must be at least one byte");
+        if (NewChunkSize == iNewSize) return;
         NewChunkSize = iNewSize;
         pFile->LogAsResized(this);
     }
@@ -752,19 +767,8 @@ namespace RIFF {
 
         // if the whole chunk body was loaded into RAM
         if (pChunkData) {
-            // in case the chunk size was changed, reallocate the data in RAM with the chunk's new size
-            if (NewChunkSize != CurrentChunkSize) {
-                uint8_t* pNewBuffer = new uint8_t[NewChunkSize];
-                if (NewChunkSize > CurrentChunkSize) {
-                    memcpy(pNewBuffer, pChunkData, CurrentChunkSize);
-                    memset(pNewBuffer + CurrentChunkSize, 0, NewChunkSize - CurrentChunkSize);
-                } else {
-                    memcpy(pNewBuffer, pChunkData, NewChunkSize);
-                }
-                delete[] pChunkData;
-                pChunkData = pNewBuffer;
-            }
-
+            // make sure chunk data buffer in RAM is at least as large as the new chunk size
+            LoadChunkData();
             // write chunk data from RAM persistently to the file
             #if POSIX
             lseek(pFile->hFileWrite, ulWritePos, SEEK_SET);

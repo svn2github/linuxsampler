@@ -145,6 +145,7 @@ namespace RIFF {
             unsigned long ulStartPos;		/* actual position in file where chunk (without header) starts */
             unsigned long ulPos; 		/* # of bytes from ulStartPos */
             uint8_t*      pChunkData;
+            unsigned long ulChunkDataSize;
 
             Chunk(File* pFile);
             Chunk(File* pFile, List* pParent, uint32_t uiChunkID, uint uiBodySize);

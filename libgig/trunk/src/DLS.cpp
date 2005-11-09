@@ -23,6 +23,43 @@
 
 #include "DLS.h"
 
+#include <time.h>
+
+#include "helper.h"
+
+// macros to decode connection transforms
+#define CONN_TRANSFORM_SRC(x)			((x >> 10) & 0x000F)
+#define CONN_TRANSFORM_CTL(x)			((x >> 4) & 0x000F)
+#define CONN_TRANSFORM_DST(x)			(x & 0x000F)
+#define CONN_TRANSFORM_BIPOLAR_SRC(x)	(x & 0x4000)
+#define CONN_TRANSFORM_BIPOLAR_CTL(x)	(x & 0x0100)
+#define CONN_TRANSFORM_INVERT_SRC(x)	(x & 0x8000)
+#define CONN_TRANSFORM_INVERT_CTL(x)	(x & 0x0200)
+
+// macros to encode connection transforms
+#define CONN_TRANSFORM_SRC_ENCODE(x)			((x & 0x000F) << 10)
+#define CONN_TRANSFORM_CTL_ENCODE(x)			((x & 0x000F) << 4)
+#define CONN_TRANSFORM_DST_ENCODE(x)			(x & 0x000F)
+#define CONN_TRANSFORM_BIPOLAR_SRC_ENCODE(x)	((x) ? 0x4000 : 0)
+#define CONN_TRANSFORM_BIPOLAR_CTL_ENCODE(x)	((x) ? 0x0100 : 0)
+#define CONN_TRANSFORM_INVERT_SRC_ENCODE(x)		((x) ? 0x8000 : 0)
+#define CONN_TRANSFORM_INVERT_CTL_ENCODE(x)		((x) ? 0x0200 : 0)
+
+#define DRUM_TYPE_MASK			0x00000001
+
+#define F_RGN_OPTION_SELFNONEXCLUSIVE	0x0001
+
+#define F_WAVELINK_PHASE_MASTER		0x0001
+#define F_WAVELINK_MULTICHANNEL		0x0002
+
+#define F_WSMP_NO_TRUNCATION		0x0001
+#define F_WSMP_NO_COMPRESSION		0x0002
+
+#define MIDI_BANK_COARSE(x)		((x & 0x00007F00) >> 8)			// CC0
+#define MIDI_BANK_FINE(x)		(x & 0x0000007F)			// CC32
+#define MIDI_BANK_MERGE(coarse, fine)	((((uint16_t) coarse) << 7) | fine)	// CC0 + CC32
+#define MIDI_BANK_ENCODE(coarse, fine)	(((coarse & 0x0000007F) << 8) | (fine & 0x0000007F))
+
 namespace DLS {
 
 // *************** Connection  ***************
@@ -42,34 +79,79 @@ namespace DLS {
         ControlBipolar       = CONN_TRANSFORM_BIPOLAR_CTL(Header->transform);
     }
 
+    Connection::conn_block_t Connection::ToConnBlock() {
+        conn_block_t c;
+        c.source = Source;
+        c.control = Control;
+        c.destination = Destination;
+        c.scale = Scale;
+        c.transform = CONN_TRANSFORM_SRC_ENCODE(SourceTransform) |
+                      CONN_TRANSFORM_CTL_ENCODE(ControlTransform) |
+                      CONN_TRANSFORM_DST_ENCODE(DestinationTransform) |
+                      CONN_TRANSFORM_INVERT_SRC_ENCODE(SourceInvert) |
+                      CONN_TRANSFORM_BIPOLAR_SRC_ENCODE(SourceBipolar) |
+                      CONN_TRANSFORM_INVERT_CTL_ENCODE(ControlInvert) |
+                      CONN_TRANSFORM_BIPOLAR_CTL_ENCODE(ControlBipolar);
+        return c;
+    }
+
 
 
 // *************** Articulation  ***************
 // *
 
-    Articulation::Articulation(RIFF::List* artList) {
-        if (artList->GetListType() != LIST_TYPE_ART2 &&
-            artList->GetListType() != LIST_TYPE_ART1) {
-              throw DLS::Exception("<art1-list> or <art2-list> chunk expected");
+    /** @brief Constructor.
+     *
+     * Expects an 'artl' or 'art2' chunk to be given where the articulation
+     * connections will be read from.
+     *
+     * @param artl - pointer to an 'artl' or 'art2' chunk
+     * @throws Exception if no 'artl' or 'art2' chunk was given
+     */
+    Articulation::Articulation(RIFF::Chunk* artl) {
+        pArticulationCk = artl;
+        if (artl->GetChunkID() != CHUNK_ID_ART2 &&
+            artl->GetChunkID() != CHUNK_ID_ARTL) {
+              throw DLS::Exception("<artl-ck> or <art2-ck> chunk expected");
         }
-        uint32_t headerSize = artList->ReadUint32();
-        Connections         = artList->ReadUint32();
-        artList->SetPos(headerSize);
+        HeaderSize  = artl->ReadUint32();
+        Connections = artl->ReadUint32();
+        artl->SetPos(HeaderSize);
 
         pConnections = new Connection[Connections];
         Connection::conn_block_t connblock;
-        for (uint32_t i = 0; i <= Connections; i++) {
-            artList->Read(&connblock.source, 1, 2);
-            artList->Read(&connblock.control, 1, 2);
-            artList->Read(&connblock.destination, 1, 2);
-            artList->Read(&connblock.transform, 1, 2);
-            artList->Read(&connblock.scale, 1, 4);
+        for (uint32_t i = 0; i < Connections; i++) {
+            artl->Read(&connblock.source, 1, 2);
+            artl->Read(&connblock.control, 1, 2);
+            artl->Read(&connblock.destination, 1, 2);
+            artl->Read(&connblock.transform, 1, 2);
+            artl->Read(&connblock.scale, 1, 4);
             pConnections[i].Init(&connblock);
         }
     }
 
     Articulation::~Articulation() {
        if (pConnections) delete[] pConnections;
+    }
+
+    /**
+     * Apply articulation connections to the respective RIFF chunks. You
+     * have to call File::Save() to make changes persistent.
+     */
+    void Articulation::UpdateChunks() {
+        const int iEntrySize = 12; // 12 bytes per connection block
+        pArticulationCk->Resize(HeaderSize + Connections * iEntrySize);
+        uint8_t* pData = (uint8_t*) pArticulationCk->LoadChunkData();
+        memccpy(&pData[0], &HeaderSize, 1, 2);
+        memccpy(&pData[2], &Connections, 1, 2);
+        for (uint32_t i = 0; i < Connections; i++) {
+            Connection::conn_block_t c = pConnections[i].ToConnBlock();
+            memccpy(&pData[HeaderSize + i * iEntrySize],     &c.source, 1, 2);
+            memccpy(&pData[HeaderSize + i * iEntrySize + 2], &c.control, 1, 2);
+            memccpy(&pData[HeaderSize + i * iEntrySize + 4], &c.destination, 1, 2);
+            memccpy(&pData[HeaderSize + i * iEntrySize + 6], &c.transform, 1, 2);
+            memccpy(&pData[HeaderSize + i * iEntrySize + 8], &c.scale, 1, 4);
+        }
     }
 
 
@@ -100,15 +182,15 @@ namespace DLS {
         RIFF::List* lart = pParentList->GetSubList(LIST_TYPE_LAR2);
         if (!lart)  lart = pParentList->GetSubList(LIST_TYPE_LART);
         if (lart) {
-            uint32_t artCkType = (lart->GetListType() == LIST_TYPE_LAR2) ? LIST_TYPE_ART2
-                                                                         : LIST_TYPE_ART1;
-            RIFF::List* art = lart->GetFirstSubList();
+            uint32_t artCkType = (lart->GetListType() == LIST_TYPE_LAR2) ? CHUNK_ID_ART2
+                                                                         : CHUNK_ID_ARTL;
+            RIFF::Chunk* art = lart->GetFirstSubChunk();
             while (art) {
-                if (art->GetListType() == artCkType) {
+                if (art->GetChunkID() == artCkType) {
                     if (!pArticulations) pArticulations = new ArticulationList;
                     pArticulations->push_back(new Articulation(art));
                 }
-                art = lart->GetNextSubList();
+                art = lart->GetNextSubChunk();
             }
         }
     }
@@ -125,12 +207,31 @@ namespace DLS {
         }
     }
 
+    /**
+     * Apply all articulations to the respective RIFF chunks. You have to
+     * call File::Save() to make changes persistent.
+     */
+    void Articulator::UpdateChunks() {
+        ArticulationList::iterator iter = pArticulations->begin();
+        ArticulationList::iterator end  = pArticulations->end();
+        for (; iter != end; ++iter) {
+            (*iter)->UpdateChunks();
+        }
+    }
+
 
 
 // *************** Info  ***************
 // *
 
+    /** @brief Constructor.
+     *
+     * Initializes the info strings with values provided by a INFO list chunk.
+     *
+     * @param list - pointer to a list chunk which contains a INFO list chunk
+     */
     Info::Info(RIFF::List* list) {
+        pResourceListChunk = list;
         if (list) {
             RIFF::List* lstINFO = list->GetSubList(LIST_TYPE_INFO);
             if (lstINFO) {
@@ -154,13 +255,105 @@ namespace DLS {
         }
     }
 
+    /** @brief Load given INFO field.
+     *
+     * Load INFO field from INFO chunk with chunk ID \a ChunkID from INFO
+     * list chunk \a lstINFO and save value to \a s.
+     */
+    void Info::LoadString(uint32_t ChunkID, RIFF::List* lstINFO, String& s) {
+        RIFF::Chunk* ck = lstINFO->GetSubChunk(ChunkID);
+        if (ck) {
+            // TODO: no check for ZSTR terminated strings yet
+            s = (char*) ck->LoadChunkData();
+            ck->ReleaseChunkData();
+        }
+    }
+
+    /** @brief Apply given INFO field to the respective chunk.
+     *
+     * Apply given info value to info chunk with ID \a ChunkID, which is a
+     * subchunk of INFO list chunk \a lstINFO. If the given chunk already
+     * exists, value \a s will be applied, otherwise if it doesn't exist yet
+     * and \a sDefault is not an empty string, such a chunk will be created
+     * and \a sDefault will be applied.
+     *
+     * @param ChunkID  - 32 bit RIFF chunk ID of INFO subchunk
+     * @param lstINFO  - parent (INFO) RIFF list chunk
+     * @param s        - current value of info field
+     * @param sDefault - default value
+     */
+    void Info::SaveString(uint32_t ChunkID, RIFF::List* lstINFO, const String& s, const String& sDefault) {
+        RIFF::Chunk* ck = lstINFO->GetSubChunk(ChunkID);
+        if (ck) { // if chunk exists already, use 's' as value
+            ck->Resize(s.size() + 1);
+            char* pData = (char*) ck->LoadChunkData();
+            memcpy(pData, s.c_str(), s.size() + 1);
+        } else if (sDefault != "") { // create chunk and use default value
+            ck = lstINFO->AddSubChunk(ChunkID, sDefault.size() + 1);
+            char* pData = (char*) ck->LoadChunkData();
+            memcpy(pData, sDefault.c_str(), sDefault.size() + 1);
+        }
+    }
+
+    /** @brief Update chunks with current info values.
+     *
+     * Apply current INFO field values to the respective INFO chunks. You
+     * have to call File::Save() to make changes persistent.
+     */
+    void Info::UpdateChunks() {
+        if (!pResourceListChunk) return;
+
+        // make sure INFO list chunk exists
+        RIFF::List* lstINFO   = pResourceListChunk->GetSubList(LIST_TYPE_INFO);
+        if (!lstINFO) lstINFO = pResourceListChunk->AddSubList(LIST_TYPE_INFO);
+
+        // assemble default values in case the respective chunk is missing yet
+        String defaultName = "NONAME";
+        // get current date
+        time_t now = time(NULL);
+        tm* pNowBroken = localtime(&now);
+        String defaultCreationDate = ToString(pNowBroken->tm_year) + "-" +
+                                     ToString(pNowBroken->tm_mon)  + "-" +
+                                     ToString(pNowBroken->tm_mday);
+        String defaultSoftware = libraryName() + " " + libraryVersion();
+        String defaultComments = "Created with " + libraryName() + " " + libraryVersion();
+
+        // save values
+        SaveString(CHUNK_ID_INAM, lstINFO, Name, defaultName);
+        SaveString(CHUNK_ID_IARL, lstINFO, ArchivalLocation, String(""));
+        SaveString(CHUNK_ID_ICRD, lstINFO, CreationDate, defaultCreationDate);
+        SaveString(CHUNK_ID_ICMT, lstINFO, Comments, defaultComments);
+        SaveString(CHUNK_ID_IPRD, lstINFO, Product, String(""));
+        SaveString(CHUNK_ID_ICOP, lstINFO, Copyright, String(""));
+        SaveString(CHUNK_ID_IART, lstINFO, Artists, String(""));
+        SaveString(CHUNK_ID_IGNR, lstINFO, Genre, String(""));
+        SaveString(CHUNK_ID_IKEY, lstINFO, Keywords, String(""));
+        SaveString(CHUNK_ID_IENG, lstINFO, Engineer, String(""));
+        SaveString(CHUNK_ID_ITCH, lstINFO, Technician, String(""));
+        SaveString(CHUNK_ID_ISFT, lstINFO, Software, defaultSoftware);
+        SaveString(CHUNK_ID_IMED, lstINFO, Medium, String(""));
+        SaveString(CHUNK_ID_ISRC, lstINFO, Source, String(""));
+        SaveString(CHUNK_ID_ISRF, lstINFO, SourceForm, String(""));
+        SaveString(CHUNK_ID_ICMS, lstINFO, Commissioned, String(""));
+    }
+
 
 
 // *************** Resource ***************
 // *
 
+    /** @brief Constructor.
+     *
+     * Initializes the 'Resource' object with values provided by a given
+     * INFO list chunk and a DLID chunk (the latter optional).
+     *
+     * @param Parent      - pointer to parent 'Resource', NULL if this is
+     *                      the toplevel 'Resource' object
+     * @param lstResource - pointer to an INFO list chunk
+     */
     Resource::Resource(Resource* Parent, RIFF::List* lstResource) {
         pParent = Parent;
+        pResourceList = lstResource;
 
         pInfo = new Info(lstResource);
 
@@ -180,28 +373,52 @@ namespace DLS {
         if (pInfo)  delete pInfo;
     }
 
+    /** @brief Update chunks with current Resource data.
+     *
+     * Apply Resource data persistently below the previously given resource
+     * list chunk. This will currently only include the INFO data. The DLSID
+     * will not be applied at the moment (yet).
+     *
+     * You have to call File::Save() to make changes persistent.
+     */
+    void Resource::UpdateChunks() {
+        pInfo->UpdateChunks();
+        //TODO: save DLSID
+    }
+
 
 
 // *************** Sampler ***************
 // *
 
     Sampler::Sampler(RIFF::List* ParentList) {
+        pParentList       = ParentList;
         RIFF::Chunk* wsmp = ParentList->GetSubChunk(CHUNK_ID_WSMP);
-        if (!wsmp) throw DLS::Exception("Mandatory <wsmp> chunk not found.");
-        uint32_t headersize = wsmp->ReadUint32();
-        UnityNote        = wsmp->ReadUint16();
-        FineTune         = wsmp->ReadInt16();
-        Gain             = wsmp->ReadInt32();
-        SamplerOptions   = wsmp->ReadUint32();
+        if (wsmp) {
+            uiHeaderSize   = wsmp->ReadUint32();
+            UnityNote      = wsmp->ReadUint16();
+            FineTune       = wsmp->ReadInt16();
+            Gain           = wsmp->ReadInt32();
+            SamplerOptions = wsmp->ReadUint32();
+            SampleLoops    = wsmp->ReadUint32();
+        } else { // 'wsmp' chunk missing
+            uiHeaderSize   = 0;
+            UnityNote      = 64;
+            FineTune       = 0; // +- 0 cents
+            Gain           = 0; // 0 dB
+            SamplerOptions = F_WSMP_NO_COMPRESSION;
+            SampleLoops    = 0;
+        }
         NoSampleDepthTruncation = SamplerOptions & F_WSMP_NO_TRUNCATION;
         NoSampleCompression     = SamplerOptions & F_WSMP_NO_COMPRESSION;
-        SampleLoops             = wsmp->ReadUint32();
         pSampleLoops            = (SampleLoops) ? new sample_loop_t[SampleLoops] : NULL;
-        wsmp->SetPos(headersize);
-        for (uint32_t i = 0; i < SampleLoops; i++) {
-            wsmp->Read(pSampleLoops + i, 4, 4);
-            if (pSampleLoops[i].Size > sizeof(sample_loop_t)) { // if loop struct was extended
-                wsmp->SetPos(pSampleLoops[i].Size - sizeof(sample_loop_t), RIFF::stream_curpos);
+        if (SampleLoops) {
+            wsmp->SetPos(uiHeaderSize);
+            for (uint32_t i = 0; i < SampleLoops; i++) {
+                wsmp->Read(pSampleLoops + i, 4, 4);
+                if (pSampleLoops[i].Size > sizeof(sample_loop_t)) { // if loop struct was extended
+                    wsmp->SetPos(pSampleLoops[i].Size - sizeof(sample_loop_t), RIFF::stream_curpos);
+                }
             }
         }
     }
@@ -210,45 +427,186 @@ namespace DLS {
         if (pSampleLoops) delete[] pSampleLoops;
     }
 
+    /**
+     * Apply all sample player options to the respective RIFF chunk. You
+     * have to call File::Save() to make changes persistent.
+     */
+    void Sampler::UpdateChunks() {
+        // make sure 'wsmp' chunk exists
+        RIFF::Chunk* wsmp = pParentList->GetSubChunk(CHUNK_ID_WSMP);
+        if (!wsmp) {
+            uiHeaderSize = 20;
+            wsmp = pParentList->AddSubChunk(CHUNK_ID_WSMP, uiHeaderSize + SampleLoops * 16);
+        }
+        uint8_t* pData = (uint8_t*) wsmp->LoadChunkData();
+        // update headers size
+        memccpy(&pData[0], &uiHeaderSize, 1, 4);
+        // update respective sampler options bits
+        SamplerOptions = (NoSampleDepthTruncation) ? SamplerOptions | F_WSMP_NO_TRUNCATION
+                                                   : SamplerOptions & (~F_WSMP_NO_TRUNCATION);
+        SamplerOptions = (NoSampleCompression) ? SamplerOptions | F_WSMP_NO_COMPRESSION
+                                               : SamplerOptions & (~F_WSMP_NO_COMPRESSION);
+        // update loop definitions
+        for (uint32_t i = 0; i < SampleLoops; i++) {
+            //FIXME: this does not handle extended loop structs correctly
+            memccpy(&pData[uiHeaderSize + i * 16], pSampleLoops + i, 4, 4);
+        }
+    }
+
 
 
 // *************** Sample ***************
 // *
 
+    /** @brief Constructor.
+     *
+     * Load an existing sample or create a new one. A 'wave' list chunk must
+     * be given to this constructor. In case the given 'wave' list chunk
+     * contains a 'fmt' and 'data' chunk, the format and sample data will be
+     * loaded from there, otherwise default values will be used and those
+     * chunks will be created when File::Save() will be called later on.
+     *
+     * @param pFile          - pointer to DLS::File where this sample is
+     *                         located (or will be located)
+     * @param waveList       - pointer to 'wave' list chunk which is (or
+     *                         will be) associated with this sample
+     * @param WavePoolOffset - offset of this sample data from wave pool
+     *                         ('wvpl') list chunk
+     */
     Sample::Sample(File* pFile, RIFF::List* waveList, unsigned long WavePoolOffset) : Resource(pFile, waveList) {
+        pWaveList = waveList;
         ulWavePoolOffset = WavePoolOffset - LIST_HEADER_SIZE;
         pCkFormat = waveList->GetSubChunk(CHUNK_ID_FMT);
         pCkData   = waveList->GetSubChunk(CHUNK_ID_DATA);
-        if (!pCkFormat || !pCkData) throw DLS::Exception("Mandatory chunks in wave list not found.");
-
-        // common fields
-        FormatTag              = pCkFormat->ReadUint16();
-        Channels               = pCkFormat->ReadUint16();
-        SamplesPerSecond       = pCkFormat->ReadUint32();
-        AverageBytesPerSecond  = pCkFormat->ReadUint32();
-        BlockAlign             = pCkFormat->ReadUint16();
-
-        // PCM format specific
-        if (FormatTag == WAVE_FORMAT_PCM) {
-            BitDepth     = pCkFormat->ReadUint16();
-            FrameSize    = (FormatTag == WAVE_FORMAT_PCM) ? (BitDepth / 8) * Channels
-                                                          : 0;
-            SamplesTotal = (FormatTag == WAVE_FORMAT_PCM) ? pCkData->GetSize() / FrameSize
-                                                          : 0;
+        if (pCkFormat) {
+            // common fields
+            FormatTag              = pCkFormat->ReadUint16();
+            Channels               = pCkFormat->ReadUint16();
+            SamplesPerSecond       = pCkFormat->ReadUint32();
+            AverageBytesPerSecond  = pCkFormat->ReadUint32();
+            BlockAlign             = pCkFormat->ReadUint16();
+            // PCM format specific
+            if (FormatTag == WAVE_FORMAT_PCM) {
+                BitDepth     = pCkFormat->ReadUint16();
+                FrameSize    = (FormatTag == WAVE_FORMAT_PCM) ? (BitDepth / 8) * Channels
+                                                            : 0;
+            } else { // unsupported sample data format
+                BitDepth     = 0;
+                FrameSize    = 0;
+            }
+        } else { // 'fmt' chunk missing
+            FormatTag              = WAVE_FORMAT_PCM;
+            BitDepth               = 16;
+            Channels               = 1;
+            SamplesPerSecond       = 44100;
+            AverageBytesPerSecond  = (BitDepth / 8) * SamplesPerSecond * Channels;
+            FrameSize              = (BitDepth / 8) * Channels;
+            BlockAlign             = FrameSize;
         }
-        else {
-            BitDepth     = 0;
-            FrameSize    = 0;
-            SamplesTotal = 0;
-        }
+        SamplesTotal = (pCkData) ? (FormatTag == WAVE_FORMAT_PCM) ? pCkData->GetSize() / FrameSize
+                                                                  : 0
+                                 : 0;
     }
 
+    /** @brief Destructor.
+     *
+     * Removes RIFF chunks associated with this Sample and frees all
+     * memory occupied by this sample.
+     */
+    Sample::~Sample() {
+        RIFF::List* pParent = pWaveList->GetParent();
+        pParent->DeleteSubChunk(pWaveList);
+    }
+
+    /** @brief Load sample data into RAM.
+     *
+     * In case the respective 'data' chunk exists, the sample data will be
+     * loaded into RAM (if not done already) and a pointer to the data in
+     * RAM will be returned. If this is a new sample, you have to call
+     * Resize() with the desired sample size to create the mandatory RIFF
+     * chunk for the sample wave data.
+     *
+     * You can call LoadChunkData() again if you previously scheduled to
+     * enlarge the sample data RIFF chunk with a Resize() call. In that case
+     * the buffer will be enlarged to the new, scheduled size and you can
+     * already place the sample wave data to the buffer and finally call
+     * File::Save() to enlarge the sample data's chunk physically and write
+     * the new sample wave data in one rush. This approach is definitely
+     * recommended if you have to enlarge and write new sample data to a lot
+     * of samples.
+     *
+     * <b>Caution:</b> the buffer pointer will be invalidated once
+     * File::Save() was called. You have to call LoadChunkData() again to
+     * get a new, valid pointer whenever File::Save() was called.
+     *
+     * @returns pointer to sample data in RAM, NULL in case respective
+     *          'data' chunk does not exist (yet)
+     * @throws Exception if data buffer could not be enlarged
+     * @see Resize(), File::Save()
+     */
     void* Sample::LoadSampleData() {
-        return pCkData->LoadChunkData();
+        return (pCkData) ? pCkData->LoadChunkData() : NULL;
     }
 
+    /** @brief Free sample data from RAM.
+     *
+     * In case sample data was previously successfully loaded into RAM with
+     * LoadSampleData(), this method will free the sample data from RAM.
+     */
     void Sample::ReleaseSampleData() {
-        pCkData->ReleaseChunkData();
+        if (pCkData) pCkData->ReleaseChunkData();
+    }
+
+    /** @brief Returns sample size.
+     *
+     * Returns the sample wave form's data size (in sample points). This is
+     * actually the current, physical size (converted to sample points) of
+     * the RIFF chunk which encapsulates the sample's wave data. The
+     * returned value is dependant to the current FrameSize value.
+     *
+     * @returns number of sample points or 0 if FormatTag != WAVE_FORMAT_PCM
+     * @see FrameSize, FormatTag
+     */
+    unsigned long Sample::GetSize() {
+        if (FormatTag != WAVE_FORMAT_PCM) return 0;
+        return (pCkData) ? pCkData->GetSize() / FrameSize : 0;
+    }
+
+    /** @brief Resize sample.
+     *
+     * Resizes the sample's wave form data, that is the actual size of
+     * sample wave data possible to be written for this sample. This call
+     * will return immediately and just schedule the resize operation. You
+     * should call File::Save() to actually perform the resize operation(s)
+     * "physically" to the file. As this can take a while on large files, it
+     * is recommended to call Resize() first on all samples which have to be
+     * resized and finally to call File::Save() to perform all those resize
+     * operations in one rush.
+     *
+     * The actual size (in bytes) is dependant to the current FrameSize
+     * value. You may want to set FrameSize before calling Resize().
+     *
+     * <b>Caution:</b> You cannot directly write to enlarged samples before
+     * calling File::Save() as this might exceed the current sample's
+     * boundary!
+     *
+     * Also note: only WAVE_FORMAT_PCM is currently supported, that is
+     * FormatTag must be WAVE_FORMAT_PCM. Trying to resize samples with
+     * other formats will fail!
+     *
+     * @param iNewSize - new sample wave data size in sample points (must be
+     *                   greater than zero)
+     * @throws Excecption if FormatTag != WAVE_FORMAT_PCM
+     * @throws Exception if \a iNewSize is less than 1
+     * @see File::Save(), FrameSize, FormatTag
+     */
+    void Sample::Resize(int iNewSize) {
+        if (FormatTag != WAVE_FORMAT_PCM) throw Exception("Sample's format is not WAVE_FORMAT_PCM");
+        if (iNewSize < 1) throw Exception("Sample size must be at least one sample point");
+        const int iSizeInBytes = iNewSize * FrameSize;
+        pCkData = pWaveList->GetSubChunk(CHUNK_ID_DATA);
+        if (pCkData) pCkData->Resize(iSizeInBytes);
+        else pCkData = pWaveList->AddSubChunk(CHUNK_ID_DATA, iSizeInBytes);
     }
 
     /**
@@ -256,11 +614,20 @@ namespace DLS {
      * bytes). Use this method and <i>Read()</i> if you don't want to load
      * the sample into RAM, thus for disk streaming.
      *
+     * Also note: only WAVE_FORMAT_PCM is currently supported, that is
+     * FormatTag must be WAVE_FORMAT_PCM. Trying to reposition the sample
+     * with other formats will fail!
+     *
      * @param SampleCount  number of sample points
      * @param Whence       to which relation \a SampleCount refers to
+     * @returns new position within the sample, 0 if
+     *          FormatTag != WAVE_FORMAT_PCM
+     * @throws Exception if no data RIFF chunk was created for the sample yet
+     * @see FrameSize, FormatTag
      */
     unsigned long Sample::SetPos(unsigned long SampleCount, RIFF::stream_whence_t Whence) {
         if (FormatTag != WAVE_FORMAT_PCM) return 0; // failed: wave data not PCM format
+        if (!pCkData) throw Exception("No data chunk created for sample yet, call Sample::Resize() to create one");
         unsigned long orderedBytes = SampleCount * FrameSize;
         unsigned long result = pCkData->SetPos(orderedBytes, Whence);
         return (result == orderedBytes) ? SampleCount
@@ -281,6 +648,55 @@ namespace DLS {
         return pCkData->Read(pBuffer, SampleCount, FrameSize); // FIXME: channel inversion due to endian correction?
     }
 
+    /** @brief Write sample wave data.
+     *
+     * Writes \a SampleCount number of sample points from the buffer pointed
+     * by \a pBuffer and increments the position within the sample. Use this
+     * method to directly write the sample data to disk, i.e. if you don't
+     * want or cannot load the whole sample data into RAM.
+     *
+     * You have to Resize() the sample to the desired size and call
+     * File::Save() <b>before</b> using Write().
+     *
+     * @param pBuffer     - source buffer
+     * @param SampleCount - number of sample points to write
+     * @throws Exception if current sample size is too small
+     * @see LoadSampleData()
+     */
+    unsigned long Sample::Write(void* pBuffer, unsigned long SampleCount) {
+        if (FormatTag != WAVE_FORMAT_PCM) return 0; // failed: wave data not PCM format
+        if (GetSize() < SampleCount) throw Exception("Could not write sample data, current sample size to small");
+        return pCkData->Write(pBuffer, SampleCount, FrameSize); // FIXME: channel inversion due to endian correction?
+    }
+
+    /**
+     * Apply sample and its settings to the respective RIFF chunks. You have
+     * to call File::Save() to make changes persistent.
+     *
+     * @throws Exception if FormatTag != WAVE_FORMAT_PCM or no sample data
+     *                   was provided yet
+     */
+    void Sample::UpdateChunks() {
+        if (FormatTag != WAVE_FORMAT_PCM)
+            throw Exception("Could not save sample, only PCM format is supported");
+        // we refuse to do anything if not sample wave form was provided yet
+        if (!pCkData)
+            throw Exception("Could not save sample, there is no sample data to save");
+        // update chunks of base class as well
+        Resource::UpdateChunks();
+        // make sure 'fmt' chunk exists
+        RIFF::Chunk* pCkFormat = pWaveList->GetSubChunk(CHUNK_ID_FMT);
+        if (!pCkFormat) pCkFormat = pWaveList->AddSubChunk(CHUNK_ID_FMT, 16); // assumes PCM format
+        uint8_t* pData = (uint8_t*) pCkFormat->LoadChunkData();
+        // update 'fmt' chunk
+        memccpy(&pData[0], &FormatTag, 1, 2);
+        memccpy(&pData[2], &Channels,  1, 2);
+        memccpy(&pData[4], &SamplesPerSecond, 1, 4);
+        memccpy(&pData[8], &AverageBytesPerSecond, 1, 4);
+        memccpy(&pData[12], &BlockAlign, 1, 2);
+        memccpy(&pData[14], &BitDepth, 1, 2); // assuming PCM format
+    }
+
 
 
 // *************** Region ***************
@@ -289,30 +705,54 @@ namespace DLS {
     Region::Region(Instrument* pInstrument, RIFF::List* rgnList) : Resource(pInstrument, rgnList), Articulator(rgnList), Sampler(rgnList) {
         pCkRegion = rgnList;
 
+        // articulation informations
         RIFF::Chunk* rgnh = rgnList->GetSubChunk(CHUNK_ID_RGNH);
-        rgnh->Read(&KeyRange, 2, 2);
-        rgnh->Read(&VelocityRange, 2, 2);
-        uint16_t optionflags = rgnh->ReadUint16();
-        SelfNonExclusive = optionflags & F_RGN_OPTION_SELFNONEXCLUSIVE;
-        KeyGroup = rgnh->ReadUint16();
-        // Layer is optional
-        if (rgnh->RemainingBytes() >= sizeof(uint16_t)) {
-            rgnh->Read(&Layer, 1, sizeof(uint16_t));
+        if (rgnh) {
+            rgnh->Read(&KeyRange, 2, 2);
+            rgnh->Read(&VelocityRange, 2, 2);
+            FormatOptionFlags = rgnh->ReadUint16();
+            KeyGroup = rgnh->ReadUint16();
+            // Layer is optional
+            if (rgnh->RemainingBytes() >= sizeof(uint16_t)) {
+                rgnh->Read(&Layer, 1, sizeof(uint16_t));
+            } else Layer = 0;
+        } else { // 'rgnh' chunk is missing
+            KeyRange.low  = 0;
+            KeyRange.high = 127;
+            VelocityRange.low  = 0;
+            VelocityRange.high = 127;
+            FormatOptionFlags = F_RGN_OPTION_SELFNONEXCLUSIVE;
+            KeyGroup = 0;
+            Layer = 0;
         }
-        else Layer = 0;
+        SelfNonExclusive = FormatOptionFlags & F_RGN_OPTION_SELFNONEXCLUSIVE;
 
+        // sample informations
         RIFF::Chunk* wlnk = rgnList->GetSubChunk(CHUNK_ID_WLNK);
-        optionflags  = wlnk->ReadUint16();
-        PhaseMaster  = optionflags & F_WAVELINK_PHASE_MASTER;
-        MultiChannel = optionflags & F_WAVELINK_MULTICHANNEL;
-        PhaseGroup         = wlnk->ReadUint16();
-        Channel            = wlnk->ReadUint32();
-        WavePoolTableIndex = wlnk->ReadUint32();
+        if (wlnk) {
+            WaveLinkOptionFlags = wlnk->ReadUint16();
+            PhaseGroup          = wlnk->ReadUint16();
+            Channel             = wlnk->ReadUint32();
+            WavePoolTableIndex  = wlnk->ReadUint32();
+        } else { // 'wlnk' chunk is missing
+            WaveLinkOptionFlags = 0;
+            PhaseGroup          = 0;
+            Channel             = 0; // mono
+            WavePoolTableIndex  = 0; // first entry in wave pool table
+        }
+        PhaseMaster  = WaveLinkOptionFlags & F_WAVELINK_PHASE_MASTER;
+        MultiChannel = WaveLinkOptionFlags & F_WAVELINK_MULTICHANNEL;
 
         pSample = NULL;
     }
 
+    /** @brief Destructor.
+     *
+     * Removes RIFF chunks associated with this Region.
+     */
     Region::~Region() {
+        RIFF::List* pParent = pCkRegion->GetParent();
+        pParent->DeleteSubChunk(pCkRegion);
     }
 
     Sample* Region::GetSample() {
@@ -327,26 +767,111 @@ namespace DLS {
         return NULL;
     }
 
+    /**
+     * Assign another sample to this Region.
+     *
+     * @param pSample - sample to be assigned
+     */
+    void Region::SetSample(Sample* pSample) {
+        this->pSample = pSample;
+        WavePoolTableIndex = 0; // we update this offset when we Save()
+    }
+
+    /**
+     * Apply Region settings to the respective RIFF chunks. You have to
+     * call File::Save() to make changes persistent.
+     *
+     * @throws Exception - if the Region's sample could not be found
+     */
+    void Region::UpdateChunks() {
+        // make sure 'rgnh' chunk exists
+        RIFF::Chunk* rgnh = pCkRegion->GetSubChunk(CHUNK_ID_RGNH);
+        if (!rgnh) rgnh = pCkRegion->AddSubChunk(CHUNK_ID_RGNH, 14);
+        uint8_t* pData = (uint8_t*) rgnh->LoadChunkData();
+        FormatOptionFlags = (SelfNonExclusive)
+                                ? FormatOptionFlags | F_RGN_OPTION_SELFNONEXCLUSIVE
+                                : FormatOptionFlags & (~F_RGN_OPTION_SELFNONEXCLUSIVE);
+        // update 'rgnh' chunk
+        memccpy(&pData[0], &KeyRange, 2, 2);
+        memccpy(&pData[4], &VelocityRange, 2, 2);
+        memccpy(&pData[8], &FormatOptionFlags, 1, 2);
+        memccpy(&pData[10], &KeyGroup, 1, 2);
+        memccpy(&pData[12], &Layer, 1, 2);
+
+        // update chunks of base classes as well
+        Resource::UpdateChunks();
+        Articulator::UpdateChunks();
+        Sampler::UpdateChunks();
+
+        // make sure 'wlnk' chunk exists
+        RIFF::Chunk* wlnk = pCkRegion->GetSubChunk(CHUNK_ID_WLNK);
+        if (!wlnk) wlnk = pCkRegion->AddSubChunk(CHUNK_ID_WLNK, 12);
+        pData = (uint8_t*) wlnk->LoadChunkData();
+        WaveLinkOptionFlags = (PhaseMaster)
+                                  ? WaveLinkOptionFlags | F_WAVELINK_PHASE_MASTER
+                                  : WaveLinkOptionFlags & (~F_WAVELINK_PHASE_MASTER);
+        WaveLinkOptionFlags = (MultiChannel)
+                                  ? WaveLinkOptionFlags | F_WAVELINK_MULTICHANNEL
+                                  : WaveLinkOptionFlags & (~F_WAVELINK_MULTICHANNEL);
+        // get sample's wave pool table index
+        int index = -1;
+        File* pFile = (File*) GetParent()->GetParent();
+        File::SampleList::iterator iter = pFile->pSamples->begin();
+        File::SampleList::iterator end  = pFile->pSamples->end();
+        for (int i = 0; iter != end; ++iter, i++) {
+            if (*iter == pSample) {
+                index = i;
+                break;
+            }
+        }
+        if (index < 0) throw Exception("Could not save Region, could not find Region's sample");
+        WavePoolTableIndex = index;
+        // update 'wlnk' chunk
+        memccpy(&pData[0], &WaveLinkOptionFlags, 1, 2);
+        memccpy(&pData[2], &PhaseGroup, 1, 2);
+        memccpy(&pData[4], &Channel, 1, 4);
+        memccpy(&pData[8], &WavePoolTableIndex, 1, 4);
+    }
+
 
 
 // *************** Instrument ***************
 // *
 
+    /** @brief Constructor.
+     *
+     * Load an existing instrument definition or create a new one. An 'ins'
+     * list chunk must be given to this constructor. In case this 'ins' list
+     * chunk contains a 'insh' chunk, the instrument data fields will be
+     * loaded from there, otherwise default values will be used and the
+     * 'insh' chunk will be created once File::Save() was called.
+     *
+     * @param pFile   - pointer to DLS::File where this instrument is
+     *                  located (or will be located)
+     * @param insList - pointer to 'ins' list chunk which is (or will be)
+     *                  associated with this instrument
+     */
     Instrument::Instrument(File* pFile, RIFF::List* insList) : Resource(pFile, insList), Articulator(insList) {
         pCkInstrument = insList;
 
-        RIFF::Chunk* insh = pCkInstrument->GetSubChunk(CHUNK_ID_INSH);
-        if (!insh) throw DLS::Exception("Mandatory chunks in <lins> list chunk not found.");
-        Regions = insh->ReadUint32();
         midi_locale_t locale;
-        insh->Read(&locale, 2, 4);
+        RIFF::Chunk* insh = pCkInstrument->GetSubChunk(CHUNK_ID_INSH);
+        if (insh) {
+            Regions = insh->ReadUint32();
+            insh->Read(&locale, 2, 4);
+        } else { // 'insh' chunk missing
+            Regions = 0;
+            locale.bank       = 0;
+            locale.instrument = 0;
+        }
+
         MIDIProgram    = locale.instrument;
         IsDrum         = locale.bank & DRUM_TYPE_MASK;
         MIDIBankCoarse = (uint8_t) MIDI_BANK_COARSE(locale.bank);
         MIDIBankFine   = (uint8_t) MIDI_BANK_FINE(locale.bank);
         MIDIBank       = MIDI_BANK_MERGE(MIDIBankCoarse, MIDIBankFine);
 
-        pRegions   = NULL;
+        pRegions = NULL;
     }
 
     Region* Instrument::GetFirstRegion() {
@@ -376,6 +901,59 @@ namespace DLS {
         }
     }
 
+    Region* Instrument::AddRegion() {
+        if (!pRegions) pRegions = new RegionList;
+        RIFF::List* lrgn = pCkInstrument->GetSubList(LIST_TYPE_LRGN);
+        if (!lrgn)  lrgn = pCkInstrument->AddSubList(LIST_TYPE_LRGN);
+        RIFF::List* rgn = lrgn->AddSubList(LIST_TYPE_RGN);
+        Region* pNewRegion = new Region(this, rgn);
+        pRegions->push_back(pNewRegion);
+        return pNewRegion;
+    }
+
+    void Instrument::DeleteRegion(Region* pRegion) {
+        RegionList::iterator iter = find(pRegions->begin(), pRegions->end(), pRegion);
+        if (iter == pRegions->end()) return;
+        pRegions->erase(iter);
+        delete pRegion;
+    }
+
+    /**
+     * Apply Instrument with all its Regions to the respective RIFF chunks.
+     * You have to call File::Save() to make changes persistent.
+     *
+     * @throws Exception - on errors
+     */
+    void Instrument::UpdateChunks() {
+        // first update base classes' chunks
+        Resource::UpdateChunks();
+        Articulator::UpdateChunks();
+        // make sure 'insh' chunk exists
+        RIFF::Chunk* insh = pCkInstrument->GetSubChunk(CHUNK_ID_INSH);
+        if (!insh) insh = pCkInstrument->AddSubChunk(CHUNK_ID_INSH, 12);
+        uint8_t* pData = (uint8_t*) insh->LoadChunkData();
+        // update 'insh' chunk
+        Regions = pRegions->size();
+        midi_locale_t locale;
+        locale.instrument = MIDIProgram;
+        locale.bank       = MIDI_BANK_ENCODE(MIDIBankCoarse, MIDIBankFine);
+        locale.bank       = (IsDrum) ? locale.bank | DRUM_TYPE_MASK : locale.bank & (~DRUM_TYPE_MASK);
+        MIDIBank          = MIDI_BANK_MERGE(MIDIBankCoarse, MIDIBankFine); // just a sync, when we're at it
+        memccpy(&pData[0], &Regions, 1, 4);
+        memccpy(&pData[4], &locale, 2, 4);
+        // update Region's chunks
+        RegionList::iterator iter = pRegions->begin();
+        RegionList::iterator end  = pRegions->end();
+        for (; iter != end; ++iter) {
+            (*iter)->UpdateChunks();
+        }
+    }
+
+    /** @brief Destructor.
+     *
+     * Removes RIFF chunks associated with this Instrument and frees all
+     * memory occupied by this instrument.
+     */
     Instrument::~Instrument() {
         if (pRegions) {
             RegionList::iterator iter = pRegions->begin();
@@ -386,6 +964,9 @@ namespace DLS {
             }
             delete pRegions;
         }
+        // remove instrument's chunks
+        RIFF::List* pParent = pCkInstrument->GetParent();
+        pParent->DeleteSubChunk(pCkInstrument);
     }
 
 
@@ -393,6 +974,40 @@ namespace DLS {
 // *************** File ***************
 // *
 
+    /** @brief Constructor.
+     *
+     * Default constructor, use this to create an empty DLS file. You have
+     * to add samples, instruments and finally call Save() to actually write
+     * a DLS file.
+     */
+    File::File() : pRIFF(new RIFF::File(RIFF_TYPE_DLS)), Resource(NULL, pRIFF) {
+        pVersion = new version_t;
+        pVersion->major   = 0;
+        pVersion->minor   = 0;
+        pVersion->release = 0;
+        pVersion->build   = 0;
+
+        Instruments      = 0;
+        WavePoolCount    = 0;
+        pWavePoolTable   = NULL;
+        pWavePoolTableHi = NULL;
+        WavePoolHeaderSize = 8;
+
+        pSamples     = NULL;
+        pInstruments = NULL;
+
+        b64BitWavePoolOffsets = false;
+    }
+
+    /** @brief Constructor.
+     *
+     * Load an existing DLS file.
+     *
+     * @param pRIFF - pointer to a RIFF file which is actually the DLS file
+     *                to load
+     * @throws Exception if given file is not a DLS file, expected chunks
+     *                   are missing
+     */
     File::File(RIFF::File* pRIFF) : Resource(NULL, pRIFF) {
         if (!pRIFF) throw DLS::Exception("NULL pointer reference to RIFF::File object.");
         this->pRIFF = pRIFF;
@@ -410,22 +1025,22 @@ namespace DLS {
 
         RIFF::Chunk* ptbl = pRIFF->GetSubChunk(CHUNK_ID_PTBL);
         if (!ptbl) throw DLS::Exception("Mandatory <ptbl> chunk not found.");
-        uint32_t headersize = ptbl->ReadUint32();
+        WavePoolHeaderSize = ptbl->ReadUint32();
         WavePoolCount  = ptbl->ReadUint32();
         pWavePoolTable = new uint32_t[WavePoolCount];
         pWavePoolTableHi = new uint32_t[WavePoolCount];
-        ptbl->SetPos(headersize);
+        ptbl->SetPos(WavePoolHeaderSize);
 
         // Check for 64 bit offsets (used in gig v3 files)
-        if (ptbl->GetSize() - headersize == WavePoolCount * 8) {
+        b64BitWavePoolOffsets = (ptbl->GetSize() - WavePoolHeaderSize == WavePoolCount * 8);
+        if (b64BitWavePoolOffsets) {
             for (int i = 0 ; i < WavePoolCount ; i++) {
                 pWavePoolTableHi[i] = ptbl->ReadUint32();
                 pWavePoolTable[i] = ptbl->ReadUint32();
                 if (pWavePoolTable[i] & 0x80000000)
                     throw DLS::Exception("Files larger than 2 GB not yet supported");
             }
-        }
-        else {
+        } else { // conventional 32 bit offsets
             ptbl->Read(pWavePoolTable, WavePoolCount, sizeof(uint32_t));
             for (int i = 0 ; i < WavePoolCount ; i++) pWavePoolTableHi[i] = 0;
         }
@@ -504,6 +1119,38 @@ namespace DLS {
         }
     }
 
+    /** @brief Add a new sample.
+     *
+     * This will create a new Sample object for the DLS file. You have to
+     * call Save() to make this persistent to the file.
+     *
+     * @returns pointer to new Sample object
+     */
+    Sample* File::AddSample() {
+       __ensureMandatoryChunksExist();
+       RIFF::List* wvpl = pRIFF->GetSubList(LIST_TYPE_WVPL);
+       // create new Sample object and its respective 'wave' list chunk
+       if (!pSamples) pSamples = new SampleList;
+       RIFF::List* wave = wvpl->AddSubList(LIST_TYPE_WAVE);
+       Sample* pSample = new Sample(this, wave, 0 /*arbitrary value, we update offsets when we save*/);
+       pSamples->push_back(pSample);
+       return pSample;
+    }
+
+    /** @brief Delete a sample.
+     *
+     * This will delete the given Sample object from the DLS file. You have
+     * to call Save() to make this persistent to the file.
+     *
+     * @param pSample - sample to delete
+     */
+    void File::DeleteSample(Sample* pSample) {
+        SampleList::iterator iter = find(pSamples->begin(), pSamples->end(), pSample);
+        if (iter == pSamples->end()) return;
+        pSamples->erase(iter);
+        delete pSample;
+    }
+
     Instrument* File::GetFirstInstrument() {
         if (!pInstruments) LoadInstruments();
         if (!pInstruments) return NULL;
@@ -527,6 +1174,217 @@ namespace DLS {
                     pInstruments->push_back(new Instrument(this, lstInstr));
                 }
                 lstInstr = lstInstruments->GetNextSubList();
+            }
+        }
+    }
+
+    /** @brief Add a new instrument definition.
+     *
+     * This will create a new Instrument object for the DLS file. You have
+     * to call Save() to make this persistent to the file.
+     *
+     * @returns pointer to new Instrument object
+     */
+    Instrument* File::AddInstrument() {
+       __ensureMandatoryChunksExist();
+       if (!pInstruments) pInstruments = new InstrumentList;
+       RIFF::List* lstInstruments = pRIFF->GetSubList(LIST_TYPE_LINS);
+       RIFF::List* lstInstr = lstInstruments->AddSubList(LIST_TYPE_INS);
+       Instrument* pInstrument = new Instrument(this, lstInstr);
+       pInstruments->push_back(pInstrument);
+       return pInstrument;
+    }
+
+    /** @brief Delete a instrument.
+     *
+     * This will delete the given Instrument object from the DLS file. You
+     * have to call Save() to make this persistent to the file.
+     *
+     * @param pInstrument - instrument to delete
+     */
+    void File::DeleteInstrument(Instrument* pInstrument) {
+        InstrumentList::iterator iter = find(pInstruments->begin(), pInstruments->end(), pInstrument);
+        if (iter == pInstruments->end()) return;
+        pInstruments->erase(iter);
+        delete pInstrument;
+    }
+
+    /**
+     * Apply all the DLS file's current instruments, samples and settings to
+     * the respective RIFF chunks. You have to call Save() to make changes
+     * persistent.
+     *
+     * @throws Exception - on errors
+     */
+    void File::UpdateChunks() {
+        // first update base class's chunks
+        Resource::UpdateChunks();
+
+        // if version struct exists, update 'vers' chunk
+        if (pVersion) {
+            RIFF::Chunk* ckVersion    = pRIFF->GetSubChunk(CHUNK_ID_VERS);
+            if (!ckVersion) ckVersion = pRIFF->AddSubChunk(CHUNK_ID_VERS, 8);
+            uint8_t* pData = (uint8_t*) ckVersion->LoadChunkData();
+            memccpy(pData, pVersion, 2, 4);
+        }
+
+        // update 'colh' chunk
+        Instruments = (pInstruments) ? pInstruments->size() : 0;
+        RIFF::Chunk* colh = pRIFF->GetSubChunk(CHUNK_ID_COLH);
+        if (!colh)   colh = pRIFF->AddSubChunk(CHUNK_ID_COLH, 4);
+        uint8_t* pData = (uint8_t*) colh->LoadChunkData();
+        memccpy(pData, &Instruments, 1, 4);
+
+        // update instrument's chunks
+        if (pInstruments) {
+            InstrumentList::iterator iter = pInstruments->begin();
+            InstrumentList::iterator end  = pInstruments->end();
+            for (; iter != end; ++iter) {
+                (*iter)->UpdateChunks();
+            }
+        }
+
+        // update 'ptbl' chunk
+        const int iSamples = (pSamples) ? pSamples->size() : 0;
+        const int iPtblOffsetSize = (b64BitWavePoolOffsets) ? 8 : 4;
+        RIFF::Chunk* ptbl = pRIFF->GetSubChunk(CHUNK_ID_PTBL);
+        if (!ptbl)   ptbl = pRIFF->AddSubChunk(CHUNK_ID_PTBL, 1 /*anything, we'll resize*/);
+        const int iPtblSize = WavePoolHeaderSize + iPtblOffsetSize * iSamples;
+        ptbl->Resize(iPtblSize);
+        pData = (uint8_t*) ptbl->LoadChunkData();
+        WavePoolCount = iSamples;
+        memccpy(&pData[4], &WavePoolCount, 1, 4);
+        // we actually update the sample offsets in the pool table when we Save()
+        memset(&pData[WavePoolHeaderSize], 0, iPtblSize - WavePoolHeaderSize);
+
+        // update sample's chunks
+        if (pSamples) {
+            SampleList::iterator iter = pSamples->begin();
+            SampleList::iterator end  = pSamples->end();
+            for (; iter != end; ++iter) {
+                (*iter)->UpdateChunks();
+            }
+        }
+    }
+
+    /** @brief Save changes to another file.
+     *
+     * Make all changes persistent by writing them to another file.
+     * <b>Caution:</b> this method is optimized for writing to
+     * <b>another</b> file, do not use it to save the changes to the same
+     * file! Use Save() (without path argument) in that case instead!
+     * Ignoring this might result in a corrupted file!
+     *
+     * After calling this method, this File object will be associated with
+     * the new file (given by \a Path) afterwards.
+     *
+     * @param Path - path and file name where everything should be written to
+     */
+    void File::Save(const String& Path) {
+        UpdateChunks();
+        pRIFF->Save(Path);
+        __UpdateWavePoolTableChunk();
+    }
+
+    /** @brief Save changes to same file.
+     *
+     * Make all changes persistent by writing them to the actual (same)
+     * file. The file might temporarily grow to a higher size than it will
+     * have at the end of the saving process.
+     *
+     * @throws RIFF::Exception if any kind of IO error occured
+     * @throws DLS::Exception  if any kind of DLS specific error occured
+     */
+    void File::Save() {
+        UpdateChunks();
+        pRIFF->Save();
+        __UpdateWavePoolTableChunk();
+    }
+
+    /**
+     * Checks if all (for DLS) mandatory chunks exist, if not they will be
+     * created. Note that those chunks will not be made persistent until
+     * Save() was called.
+     */
+    void File::__ensureMandatoryChunksExist() {
+       // enusre 'lins' list chunk exists (mandatory for instrument definitions)
+       RIFF::List* lstInstruments = pRIFF->GetSubList(LIST_TYPE_LINS);
+       if (!lstInstruments) pRIFF->AddSubList(LIST_TYPE_LINS);
+       // ensure 'ptbl' chunk exists (mandatory for samples)
+       RIFF::Chunk* ptbl = pRIFF->GetSubChunk(CHUNK_ID_PTBL);
+       if (!ptbl) {
+           const int iOffsetSize = (b64BitWavePoolOffsets) ? 8 : 4;
+           ptbl = pRIFF->AddSubChunk(CHUNK_ID_PTBL, WavePoolHeaderSize + iOffsetSize);
+       }
+       // enusre 'wvpl' list chunk exists (mandatory for samples)
+       RIFF::List* wvpl = pRIFF->GetSubList(LIST_TYPE_WVPL);
+       if (!wvpl) pRIFF->AddSubList(LIST_TYPE_WVPL);
+    }
+
+    /**
+     * Updates (persistently) the wave pool table with offsets to all
+     * currently available samples. <b>Caution:</b> this method assumes the
+     * 'ptbl' chunk to be already of the correct size, so usually this
+     * method is only called after a Save() call.
+     *
+     * @throws Exception - if 'ptbl' chunk is too small (should only occur
+     *                     if there's a bug)
+     */
+    void File::__UpdateWavePoolTableChunk() {
+        __UpdateWavePoolTable();
+        RIFF::Chunk* ptbl = pRIFF->GetSubChunk(CHUNK_ID_PTBL);
+        const int iOffsetSize = (b64BitWavePoolOffsets) ? 8 : 4;
+        // check if 'ptbl' chunk is large enough
+        WavePoolCount = pSamples->size();
+        const unsigned long ulRequiredSize = WavePoolHeaderSize + iOffsetSize * WavePoolCount;
+        if (ptbl->GetSize() < ulRequiredSize) throw Exception("Fatal error, 'ptbl' chunk too small");
+        uint8_t* pData = (uint8_t*) ptbl->LoadChunkData();
+        // update headers
+        memccpy(&pData[0], &WavePoolHeaderSize, 1, 4);
+        memccpy(&pData[4], &WavePoolCount, 1, 4);
+        // update offsets
+        if (b64BitWavePoolOffsets) {
+            for (int i = 0 ; i < WavePoolCount ; i++) {
+                memccpy(&pData[WavePoolHeaderSize + i*iOffsetSize], &pWavePoolTableHi[i], 1, 4);
+                memccpy(&pData[WavePoolHeaderSize + i*iOffsetSize], &pWavePoolTable[i],   1, 4);
+            }
+        } else { // conventional 32 bit offsets
+            for (int i = 0 ; i < WavePoolCount ; i++)
+                memccpy(&pData[WavePoolHeaderSize + i*iOffsetSize], &pWavePoolTable[i], 1, 4);
+        }
+    }
+
+    /**
+     * Updates the wave pool table with offsets to all currently available
+     * samples. <b>Caution:</b> this method assumes the 'wvpl' list chunk
+     * exists already.
+     */
+    void File::__UpdateWavePoolTable() {
+        WavePoolCount = pSamples->size();
+        // resize wave pool table arrays
+        if (pWavePoolTable)   delete[] pWavePoolTable;
+        if (pWavePoolTableHi) delete[] pWavePoolTableHi;
+        pWavePoolTable   = new uint32_t[WavePoolCount];
+        pWavePoolTableHi = new uint32_t[WavePoolCount];
+        // update offsets int wave pool table
+        RIFF::List* wvpl = pRIFF->GetSubList(LIST_TYPE_WVPL);
+        uint64_t wvplFileOffset = wvpl->GetFilePos();
+        if (b64BitWavePoolOffsets) {
+            SampleList::iterator iter = pSamples->begin();
+            SampleList::iterator end  = pSamples->end();
+            for (int i = 0 ; iter != end ; ++iter, i++) {
+                uint64_t _64BitOffset = wvplFileOffset - (*iter)->pWaveList->GetFilePos() - LIST_HEADER_SIZE;
+                (*iter)->ulWavePoolOffset = _64BitOffset;
+                pWavePoolTableHi[i] = (uint32_t) (_64BitOffset >> 32);
+                pWavePoolTable[i]   = (uint32_t) _64BitOffset;
+            }
+        } else { // conventional 32 bit offsets
+            SampleList::iterator iter = pSamples->begin();
+            SampleList::iterator end  = pSamples->end();
+            for (int i = 0 ; iter != end ; ++iter, i++) {
+                uint64_t _64BitOffset = wvplFileOffset - (*iter)->pWaveList->GetFilePos() - LIST_HEADER_SIZE;
+                (*iter)->ulWavePoolOffset = _64BitOffset;
+                pWavePoolTable[i] = (uint32_t) _64BitOffset;
             }
         }
     }
