@@ -27,7 +27,7 @@
 #include "RIFF.h"
 
 #if WORDS_BIGENDIAN
-# define RIFF_TYPE_DLS	0x646C7320
+# define RIFF_TYPE_DLS	0x444C5320
 # define LIST_TYPE_INFO	0x494E464F
 # define LIST_TYPE_WVPL	0x7776706C
 # define LIST_TYPE_DWPL 0x6477706C  ///< Seen on some files instead of a wvpl list chunk.
@@ -69,7 +69,7 @@
 # define CHUNK_ID_ARTL	0x6172746C
 # define CHUNK_ID_ART2	0x61727432
 #else  // little endian
-# define RIFF_TYPE_DLS	0x20736C64
+# define RIFF_TYPE_DLS	0x20534C44
 # define LIST_TYPE_INFO	0x4F464E49
 # define LIST_TYPE_WVPL	0x6C707677
 # define LIST_TYPE_DWPL 0x6C707764  ///< Seen on some files instead of a wvpl list chunk.

@@ -676,7 +676,7 @@ namespace RIFF {
      * @see ReleaseChunkData()
      */
     void* Chunk::LoadChunkData() {
-        if (!pChunkData) {
+        if (!pChunkData && pFile->Filename != "") {
             #if POSIX
             if (lseek(pFile->hFileRead, ulStartPos, SEEK_SET) == -1) return NULL;
             #else

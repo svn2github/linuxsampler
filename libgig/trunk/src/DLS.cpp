@@ -912,6 +912,7 @@ namespace DLS {
     }
 
     void Instrument::DeleteRegion(Region* pRegion) {
+        if (!pRegions) return;
         RegionList::iterator iter = find(pRegions->begin(), pRegions->end(), pRegion);
         if (iter == pRegions->end()) return;
         pRegions->erase(iter);
@@ -980,7 +981,7 @@ namespace DLS {
      * to add samples, instruments and finally call Save() to actually write
      * a DLS file.
      */
-    File::File() : pRIFF(new RIFF::File(RIFF_TYPE_DLS)), Resource(NULL, pRIFF) {
+    File::File() : Resource(NULL, pRIFF = new RIFF::File(RIFF_TYPE_DLS)) {
         pVersion = new version_t;
         pVersion->major   = 0;
         pVersion->minor   = 0;
@@ -1145,6 +1146,7 @@ namespace DLS {
      * @param pSample - sample to delete
      */
     void File::DeleteSample(Sample* pSample) {
+        if (!pSamples) return;
         SampleList::iterator iter = find(pSamples->begin(), pSamples->end(), pSample);
         if (iter == pSamples->end()) return;
         pSamples->erase(iter);
@@ -1203,6 +1205,7 @@ namespace DLS {
      * @param pInstrument - instrument to delete
      */
     void File::DeleteInstrument(Instrument* pInstrument) {
+        if (!pInstruments) return;
         InstrumentList::iterator iter = find(pInstruments->begin(), pInstruments->end(), pInstrument);
         if (iter == pInstruments->end()) return;
         pInstruments->erase(iter);
@@ -1335,7 +1338,7 @@ namespace DLS {
         RIFF::Chunk* ptbl = pRIFF->GetSubChunk(CHUNK_ID_PTBL);
         const int iOffsetSize = (b64BitWavePoolOffsets) ? 8 : 4;
         // check if 'ptbl' chunk is large enough
-        WavePoolCount = pSamples->size();
+        WavePoolCount = (pSamples) ? pSamples->size() : 0;
         const unsigned long ulRequiredSize = WavePoolHeaderSize + iOffsetSize * WavePoolCount;
         if (ptbl->GetSize() < ulRequiredSize) throw Exception("Fatal error, 'ptbl' chunk too small");
         uint8_t* pData = (uint8_t*) ptbl->LoadChunkData();
@@ -1360,12 +1363,13 @@ namespace DLS {
      * exists already.
      */
     void File::__UpdateWavePoolTable() {
-        WavePoolCount = pSamples->size();
+        WavePoolCount = (pSamples) ? pSamples->size() : 0;
         // resize wave pool table arrays
         if (pWavePoolTable)   delete[] pWavePoolTable;
         if (pWavePoolTableHi) delete[] pWavePoolTableHi;
         pWavePoolTable   = new uint32_t[WavePoolCount];
         pWavePoolTableHi = new uint32_t[WavePoolCount];
+        if (!pSamples) return;
         // update offsets int wave pool table
         RIFF::List* wvpl = pRIFF->GetSubList(LIST_TYPE_WVPL);
         uint64_t wvplFileOffset = wvpl->GetFilePos();
