@@ -21,6 +21,10 @@ Version CVS HEAD (?)
       placing the new data in the chunk's write buffer and perform the
       resize and write operations in one rush
 
+  * src/dlsdump.cpp:
+    - show for every region the name of the referenced sample
+    - show file name in quotation marks
+
 Version 2.0.2 (15 Aug 2005)
 
   * packaging changes:

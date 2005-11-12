@@ -212,10 +212,12 @@ namespace DLS {
      * call File::Save() to make changes persistent.
      */
     void Articulator::UpdateChunks() {
-        ArticulationList::iterator iter = pArticulations->begin();
-        ArticulationList::iterator end  = pArticulations->end();
-        for (; iter != end; ++iter) {
-            (*iter)->UpdateChunks();
+        if (pArticulations) {
+            ArticulationList::iterator iter = pArticulations->begin();
+            ArticulationList::iterator end  = pArticulations->end();
+            for (; iter != end; ++iter) {
+                (*iter)->UpdateChunks();
+            }
         }
     }
 
@@ -273,9 +275,11 @@ namespace DLS {
      *
      * Apply given info value to info chunk with ID \a ChunkID, which is a
      * subchunk of INFO list chunk \a lstINFO. If the given chunk already
-     * exists, value \a s will be applied, otherwise if it doesn't exist yet
-     * and \a sDefault is not an empty string, such a chunk will be created
-     * and \a sDefault will be applied.
+     * exists, value \a s will be applied. Otherwise if it doesn't exist yet
+     * and either \a s or \a sDefault is not an empty string, such a chunk
+     * will be created and either \a s or \a sDefault will be applied
+     * (depending on which one is not an empty string, if both are not an
+     * empty string \a s will be preferred).
      *
      * @param ChunkID  - 32 bit RIFF chunk ID of INFO subchunk
      * @param lstINFO  - parent (INFO) RIFF list chunk
@@ -288,10 +292,11 @@ namespace DLS {
             ck->Resize(s.size() + 1);
             char* pData = (char*) ck->LoadChunkData();
             memcpy(pData, s.c_str(), s.size() + 1);
-        } else if (sDefault != "") { // create chunk and use default value
-            ck = lstINFO->AddSubChunk(ChunkID, sDefault.size() + 1);
+        } else if (s != "" || sDefault != "") { // create chunk
+            const String& sToSave = (s != "") ? s : sDefault;
+            ck = lstINFO->AddSubChunk(ChunkID, sToSave.size() + 1);
             char* pData = (char*) ck->LoadChunkData();
-            memcpy(pData, sDefault.c_str(), sDefault.size() + 1);
+            memcpy(pData, sToSave.c_str(), sToSave.size() + 1);
         }
     }
 
@@ -312,8 +317,8 @@ namespace DLS {
         // get current date
         time_t now = time(NULL);
         tm* pNowBroken = localtime(&now);
-        String defaultCreationDate = ToString(pNowBroken->tm_year) + "-" +
-                                     ToString(pNowBroken->tm_mon)  + "-" +
+        String defaultCreationDate = ToString(1900 + pNowBroken->tm_year) + "-" +
+                                     ToString(pNowBroken->tm_mon + 1)  + "-" +
                                      ToString(pNowBroken->tm_mday);
         String defaultSoftware = libraryName() + " " + libraryVersion();
         String defaultComments = "Created with " + libraryName() + " " + libraryVersion();
@@ -816,12 +821,14 @@ namespace DLS {
         // get sample's wave pool table index
         int index = -1;
         File* pFile = (File*) GetParent()->GetParent();
-        File::SampleList::iterator iter = pFile->pSamples->begin();
-        File::SampleList::iterator end  = pFile->pSamples->end();
-        for (int i = 0; iter != end; ++iter, i++) {
-            if (*iter == pSample) {
-                index = i;
-                break;
+        if (pFile->pSamples) {
+            File::SampleList::iterator iter = pFile->pSamples->begin();
+            File::SampleList::iterator end  = pFile->pSamples->end();
+            for (int i = 0; iter != end; ++iter, i++) {
+                if (*iter == pSample) {
+                    index = i;
+                    break;
+                }
             }
         }
         if (index < 0) throw Exception("Could not save Region, could not find Region's sample");
@@ -889,7 +896,7 @@ namespace DLS {
 
     void Instrument::LoadRegions() {
         RIFF::List* lrgn = pCkInstrument->GetSubList(LIST_TYPE_LRGN);
-        if (!lrgn) throw DLS::Exception("Mandatory chunks in <ins > chunk not found.");
+        if (!lrgn) throw DLS::Exception("DLS::Instrument doesn't seem to have any Region (mandatory chunks in <ins > chunk not found)");
         uint32_t regionCkType = (lrgn->GetSubList(LIST_TYPE_RGN2)) ? LIST_TYPE_RGN2 : LIST_TYPE_RGN; // prefer regions level 2
         RIFF::List* rgn = lrgn->GetFirstSubList();
         while (rgn) {
@@ -934,7 +941,7 @@ namespace DLS {
         if (!insh) insh = pCkInstrument->AddSubChunk(CHUNK_ID_INSH, 12);
         uint8_t* pData = (uint8_t*) insh->LoadChunkData();
         // update 'insh' chunk
-        Regions = pRegions->size();
+        Regions = (pRegions) ? pRegions->size() : 0;
         midi_locale_t locale;
         locale.instrument = MIDIProgram;
         locale.bank       = MIDI_BANK_ENCODE(MIDIBankCoarse, MIDIBankFine);
@@ -943,6 +950,7 @@ namespace DLS {
         memccpy(&pData[0], &Regions, 1, 4);
         memccpy(&pData[4], &locale, 2, 4);
         // update Region's chunks
+        if (!pRegions) return;
         RegionList::iterator iter = pRegions->begin();
         RegionList::iterator end  = pRegions->end();
         for (; iter != end; ++iter) {
@@ -1327,8 +1335,8 @@ namespace DLS {
     /**
      * Updates (persistently) the wave pool table with offsets to all
      * currently available samples. <b>Caution:</b> this method assumes the
-     * 'ptbl' chunk to be already of the correct size, so usually this
-     * method is only called after a Save() call.
+     * 'ptbl' chunk to be already of the correct size and the file to be
+     * writable, so usually this method is only called after a Save() call.
      *
      * @throws Exception - if 'ptbl' chunk is too small (should only occur
      *                     if there's a bug)
@@ -1341,20 +1349,25 @@ namespace DLS {
         WavePoolCount = (pSamples) ? pSamples->size() : 0;
         const unsigned long ulRequiredSize = WavePoolHeaderSize + iOffsetSize * WavePoolCount;
         if (ptbl->GetSize() < ulRequiredSize) throw Exception("Fatal error, 'ptbl' chunk too small");
-        uint8_t* pData = (uint8_t*) ptbl->LoadChunkData();
+        // save the 'ptbl' chunk's current read/write position
+        unsigned long ulOriginalPos = ptbl->GetPos();
         // update headers
-        memccpy(&pData[0], &WavePoolHeaderSize, 1, 4);
-        memccpy(&pData[4], &WavePoolCount, 1, 4);
+        ptbl->SetPos(0);
+        ptbl->WriteUint32(&WavePoolHeaderSize);
+        ptbl->WriteUint32(&WavePoolCount);
         // update offsets
+        ptbl->SetPos(WavePoolHeaderSize);
         if (b64BitWavePoolOffsets) {
             for (int i = 0 ; i < WavePoolCount ; i++) {
-                memccpy(&pData[WavePoolHeaderSize + i*iOffsetSize], &pWavePoolTableHi[i], 1, 4);
-                memccpy(&pData[WavePoolHeaderSize + i*iOffsetSize], &pWavePoolTable[i],   1, 4);
+                ptbl->WriteUint32(&pWavePoolTableHi[i]);
+                ptbl->WriteUint32(&pWavePoolTable[i]);
             }
         } else { // conventional 32 bit offsets
             for (int i = 0 ; i < WavePoolCount ; i++)
-                memccpy(&pData[WavePoolHeaderSize + i*iOffsetSize], &pWavePoolTable[i], 1, 4);
+                ptbl->WriteUint32(&pWavePoolTable[i]);
         }
+        // restore 'ptbl' chunk's original read/write position
+        ptbl->SetPos(ulOriginalPos);
     }
 
     /**
@@ -1377,7 +1390,7 @@ namespace DLS {
             SampleList::iterator iter = pSamples->begin();
             SampleList::iterator end  = pSamples->end();
             for (int i = 0 ; iter != end ; ++iter, i++) {
-                uint64_t _64BitOffset = wvplFileOffset - (*iter)->pWaveList->GetFilePos() - LIST_HEADER_SIZE;
+                uint64_t _64BitOffset = (*iter)->pWaveList->GetFilePos() - wvplFileOffset - LIST_HEADER_SIZE;
                 (*iter)->ulWavePoolOffset = _64BitOffset;
                 pWavePoolTableHi[i] = (uint32_t) (_64BitOffset >> 32);
                 pWavePoolTable[i]   = (uint32_t) _64BitOffset;
@@ -1386,7 +1399,7 @@ namespace DLS {
             SampleList::iterator iter = pSamples->begin();
             SampleList::iterator end  = pSamples->end();
             for (int i = 0 ; iter != end ; ++iter, i++) {
-                uint64_t _64BitOffset = wvplFileOffset - (*iter)->pWaveList->GetFilePos() - LIST_HEADER_SIZE;
+                uint64_t _64BitOffset = (*iter)->pWaveList->GetFilePos() - wvplFileOffset - LIST_HEADER_SIZE;
                 (*iter)->ulWavePoolOffset = _64BitOffset;
                 pWavePoolTable[i] = (uint32_t) _64BitOffset;
             }

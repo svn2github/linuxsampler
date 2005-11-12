@@ -62,7 +62,7 @@ int main(int argc, char *argv[])
     try {
         RIFF::File* riff = new RIFF::File(argv[1]);
         DLS::File*  dls  = new DLS::File(riff);
-        if (dls->pInfo->Name != "") cout << "File Name: " << dls->pInfo->Name << endl;
+        if (dls->pInfo->Name != "") cout << "File Name: \"" << dls->pInfo->Name << "\"\n";
         PrintSamples(dls);
         cout << endl;
         PrintInstruments(dls);
@@ -123,7 +123,11 @@ void PrintRegions(DLS::Instrument* instr) {
         cout << "        Region " << regions << ") ";
         DLS::Sample* pSample = pRegion->GetSample();
         if (pSample) {
-            cout << "Sample: " << pSample->SamplesPerSecond << "Hz, ";
+            cout << "Sample: ";
+            if (pSample->pInfo->Name != "") {
+                cout << "\"" << pSample->pInfo->Name << "\", ";
+            }
+            cout << pSample->SamplesPerSecond << "Hz, ";
         }
         else {
             cout << "<NO_VALID_SAMPLE_REFERENCE> ";
@@ -137,7 +141,7 @@ void PrintRegions(DLS::Instrument* instr) {
 }
 
 string Revision() {
-    string s = "$Revision: 1.3 $";
+    string s = "$Revision: 1.4 $";
     return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
 }
 
