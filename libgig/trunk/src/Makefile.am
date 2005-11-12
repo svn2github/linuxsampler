@@ -28,3 +28,5 @@ gigdump_LDADD = $(top_builddir)/src/libgig.la
 gigextract_SOURCES = gigextract.cpp
 gigextract_LDADD = $(top_builddir)/src/libgig.la $(gigextract_libs) -ldl
 gigextract_CFLAGS = $(gigextract_flags)
+
+EXTRA_DIST = helper.h
