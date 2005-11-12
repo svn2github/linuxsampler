@@ -364,19 +364,21 @@ namespace DLS {
     /** @brief Encapsulates sample waves used for playback.
      *
      * In case you created a new sample with File::AddSample(), you should
-     * first call Resize() with the desired sample size. This will create
+     * first update all attributes with the desired meta informations
+     * (amount of channels, bit depth, sample rate, etc.), then call
+     * Resize() with the desired sample size. The latter will create
      * the mandatory RIFF chunk which will hold the sample wave data.
      */
     class Sample : public Resource {
         public:
-            uint16_t      FormatTag;             ///< Format ID of the waveform data (should be WAVE_FORMAT_PCM for DLS1 compliant files).
-            uint16_t      Channels;              ///< Number of channels represented in the waveform data, e.g. 1 for mono, 2 for stereo ().
-            uint32_t      SamplesPerSecond;      ///< Sampling rate at which each channel should be played.
+            uint16_t      FormatTag;             ///< Format ID of the waveform data (should be WAVE_FORMAT_PCM for DLS1 compliant files, this is also the default value if Sample was created with Instrument::AddSample()).
+            uint16_t      Channels;              ///< Number of channels represented in the waveform data, e.g. 1 for mono, 2 for stereo (defaults to 1=mono if Sample was created with Instrument::AddSample() previously).
+            uint32_t      SamplesPerSecond;      ///< Sampling rate at which each channel should be played (defaults to 44100 if Sample was created with Instrument::AddSample() previously).
             uint32_t      AverageBytesPerSecond; ///< The average number of bytes per second at which the waveform data should be transferred (Playback software can estimate the buffer size using this value).
             uint16_t      BlockAlign;            ///< The block alignment (in bytes) of the waveform data. Playback software needs to process a multiple of <i>BlockAlign</i> bytes of data at a time, so the value of <i>BlockAlign</i> can be used for buffer alignment.
             uint16_t      BitDepth;              ///< Size of each sample per channel (only if known sample data format is used, 0 otherwise).
             unsigned long SamplesTotal;          ///< Reflects total number of sample points (only if known sample data format is used, 0 otherwise), do not bother to change this value, it will not be saved.
-            uint          FrameSize;             ///< Reflects the size (in bytes) of one single sample point (only if known sample data format is used, 0 otherwise).
+            uint          FrameSize;             ///< Reflects the size (in bytes) of one single sample point (only if known sample data format is used, 0 otherwise). <b>Caution:</b> with the current version of libgig you have to upate this field by yourself whenever you change one of the following fields: Channels, BitDepth ! Ignoring this might lead to undesired behavior when i.e. calling Resize(), SetPos(), Write() or Read().
 
             void*         LoadSampleData();
             void          ReleaseSampleData();
