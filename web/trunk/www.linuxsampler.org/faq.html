@@ -198,8 +198,42 @@ make</pre>
 				</tr>
 			</table>
 			<p class="default">
-				but the latter is definitely not recommended!
+				but the latter is definitely not recommended, as it will increase CPU usage a lot!
 			</p>
+			<p class="default">
+				"<code>../common/Resampler.h:142: error: memory input 2 is not directly addressable</code>"<br>
+				This was reported (<a href="http://sourceforge.net/mailarchive/forum.php?thread_id=9018347&forum_id=12792">1</a>,
+				<a href="http://sourceforge.net/mailarchive/forum.php?thread_id=9019467&forum_id=12792">2</a>)
+				to be a gcc/g++ version problem. Make sure you got gcc and g++,
+				both of version 3.3 or higher installed. You can check this with:
+			</p>
+			<table class="default" border="0" cellpadding="1" cellspacing="5">
+				<tr>
+				  <td><pre class="code">1
+2</pre>
+				  </td>
+				  <td width="100%">
+				    <pre class="code">gcc --version
+g++ --version</pre>
+				  </td>
+				</tr>
+			</table>
+			<p class="default">
+				In case you already got gcc and g++ of version 3.3 or higher
+				installed and it still causes the compilation error mentioned
+				above, try the following:
+			</p>
+			<table class="default" border="0" cellpadding="1" cellspacing="5">
+				<tr>
+				  <td><pre class="code">1
+2</pre>
+				  </td>
+				  <td width="100%">
+				    <pre class="code">export CC=`which gcc`
+export CXX=`which g++`</pre>
+				  </td>
+				</tr>
+			</table>
 
 			<h3>How do I checkout from CVS?</h3>
 			<p class="default">
