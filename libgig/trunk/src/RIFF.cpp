@@ -88,7 +88,7 @@ namespace RIFF {
         #endif // POSIX
             #if WORDS_BIGENDIAN
             if (ChunkID == CHUNK_ID_RIFF) {
-                bEndianNative = false;
+                pFile->bEndianNative = false;
             }
             #else // little endian
             if (ChunkID == CHUNK_ID_RIFX) {

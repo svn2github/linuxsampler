@@ -277,7 +277,7 @@ void PrintRegions(gig::Instrument* instr) {
 void PrintDimensionRegions(gig::Region* rgn) {
     int dimensionRegions = 0;
     gig::DimensionRegion* pDimensionRegion;
-    while (dimensionRegions < 32) {
+    while (dimensionRegions < rgn->DimensionRegions) {
         pDimensionRegion = rgn->pDimensionRegions[dimensionRegions];
         if (!pDimensionRegion) break;
 
@@ -324,7 +324,7 @@ void PrintDimensionRegions(gig::Region* rgn) {
 }
 
 string Revision() {
-    string s = "$Revision: 1.16 $";
+    string s = "$Revision: 1.17 $";
     return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
 }
 
