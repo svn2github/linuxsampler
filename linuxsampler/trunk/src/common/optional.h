@@ -71,11 +71,13 @@ namespace LinuxSampler {
                 if (!arg.initialized) throw LinuxSamplerException("optional variable not initialized");
                 this->data  = arg.data;
                 initialized = true;
+                return *this;
             }
 
             optional& operator =(const T& arg) {
                 this->data  = arg;
                 initialized = true;
+                return *this;
             }
 
             const T& operator *() const throw (LinuxSamplerException) { return get(); }
