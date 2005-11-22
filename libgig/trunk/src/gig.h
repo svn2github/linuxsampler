@@ -26,16 +26,6 @@
 
 #include "DLS.h"
 
-#include <math.h>
-#include <string.h>
-
-/// Initial size of the sample buffer which is used for decompression of
-/// compressed sample wave streams - this value should always be bigger than
-/// the biggest sample piece expected to be read by the sampler engine,
-/// otherwise the buffer size will be raised at runtime and thus the buffer
-/// reallocated which is time consuming and unefficient.
-#define INITIAL_SAMPLE_BUFFER_SIZE		512000 // 512 kB
-
 #if WORDS_BIGENDIAN
 # define LIST_TYPE_3PRG	0x33707267
 # define LIST_TYPE_3EWL	0x3365776C
@@ -55,14 +45,6 @@
 # define CHUNK_ID_3EWG	0x67776533
 # define CHUNK_ID_EWAV	0x76617765
 #endif // WORDS_BIGENDIAN
-
-/** (so far) every exponential paramater in the gig format has a basis of 1.000000008813822 */
-#define GIG_EXP_DECODE(x)					(pow(1.000000008813822, x))
-#define GIG_PITCH_TRACK_EXTRACT(x)				(!(x & 0x01))
-#define GIG_VCF_RESONANCE_CTRL_EXTRACT(x)			((x >> 4) & 0x03)
-#define GIG_EG_CTR_ATTACK_INFLUENCE_EXTRACT(x)			((x >> 1) & 0x03)
-#define GIG_EG_CTR_DECAY_INFLUENCE_EXTRACT(x)			((x >> 3) & 0x03)
-#define GIG_EG_CTR_RELEASE_INFLUENCE_EXTRACT(x)			((x >> 5) & 0x03)
 
 /** Gigasampler specific classes and definitions */
 namespace gig {
@@ -271,6 +253,8 @@ namespace gig {
         split_type_t split_type; ///< Intended for internal usage: will be used to convert a dimension value into the corresponding dimension bit number.
         range_t*     ranges;     ///< Intended for internal usage: Points to the beginning of a range_t array which reflects the value ranges of each dimension zone (only if custom defined ranges are defined, is NULL otherwise).
         float        zone_size;  ///< Intended for internal usage: reflects the size of each zone (128/zones) for normal split types only, 0 otherwise.
+
+        dimension_def_t& operator=(const dimension_def_t& arg);
     };
 
     /** Defines which frequencies are filtered by the VCF. */
@@ -443,11 +427,12 @@ namespace gig {
             DLS::Sampler::SampleLoops;
             DLS::Sampler::pSampleLoops;
 
-            // Methods
+            // own methods
             double GetVelocityAttenuation(uint8_t MIDIKeyVelocity);
             double GetVelocityRelease(uint8_t MIDIKeyVelocity);
             double GetVelocityCutoff(uint8_t MIDIKeyVelocity);
-
+            // overridden methods
+            virtual void UpdateChunks();
         protected:
             DimensionRegion(RIFF::List* _3ewl);
            ~DimensionRegion();
@@ -490,17 +475,27 @@ namespace gig {
             double*                  pVelocityCutoffTable;       ///< Points to the velocity table corresponding to the filter velocity parameters of this DimensionRegion
 
             leverage_ctrl_t DecodeLeverageController(_lev_ctrl_t EncodedController);
+            _lev_ctrl_t     EncodeLeverageController(leverage_ctrl_t DecodedController);
             double* GetVelocityTable(curve_type_t curveType, uint8_t depth, uint8_t scaling);
             double* CreateVelocityTable(curve_type_t curveType, uint8_t depth, uint8_t scaling);
     };
 
-    /** Encapsulates sample waves used for playback. */
+    /** @brief Encapsulates sample waves used for playback.
+     *
+     * In case you created a new sample with File::AddSample(), you should
+     * first update all attributes with the desired meta informations
+     * (amount of channels, bit depth, sample rate, etc.), then call
+     * Resize() with the desired sample size, followed by File::Save(), this
+     * will create the mandatory RIFF chunk which will hold the sample wave
+     * data and / or resize the file so you will be able to Write() the
+     * sample data directly to disk.
+     */
     class Sample : public DLS::Sample {
         public:
             uint16_t       SampleGroup;
             uint32_t       Manufacturer;      ///< Specifies the MIDI Manufacturer's Association (MMA) Manufacturer code for the sampler intended to receive this file's waveform. If no particular manufacturer is to be specified, a value of 0 should be used.
             uint32_t       Product;           ///< Specifies the MIDI model ID defined by the manufacturer corresponding to the Manufacturer field. If no particular manufacturer's product is to be specified, a value of 0 should be used.
-            uint32_t       SamplePeriod;      ///< Specifies the duration of time that passes during the playback of one sample in nanoseconds (normally equal to 1 / Samplers Per Second, where Samples Per Second is the value found in the format chunk).
+            uint32_t       SamplePeriod;      ///< Specifies the duration of time that passes during the playback of one sample in nanoseconds (normally equal to 1 / Samples Per Second, where Samples Per Second is the value found in the format chunk), don't bother to update this attribute, it won't be saved.
             uint32_t       MIDIUnityNote;     ///< Specifies the musical note at which the sample will be played at it's original sample rate.
             uint32_t       FineTune;          ///< Specifies the fraction of a semitone up from the specified MIDI unity note field. A value of 0x80000000 means 1/2 semitone (50 cents) and a value of 0x00000000 means no fine tuning between semitones.
             smpte_format_t SMPTEFormat;       ///< Specifies the Society of Motion Pictures and Television E time format used in the following <i>SMPTEOffset</i> field. If a value of 0 is set, <i>SMPTEOffset</i> should also be set to 0.
@@ -528,10 +523,13 @@ namespace gig {
             static void     DestroyDecompressionBuffer(buffer_t& DecompressionBuffer);
             // overridden methods
             void          ReleaseSampleData();
+            void          Resize(int iNewSize);
             unsigned long SetPos(unsigned long SampleCount, RIFF::stream_whence_t Whence = RIFF::stream_start);
             unsigned long GetPos();
             unsigned long Read(void* pBuffer, unsigned long SampleCount, buffer_t* pExternalDecompressionBuffer = NULL);
             unsigned long ReadAndLoop(void* pBuffer, unsigned long SampleCount, playback_state_t* pPlaybackState, buffer_t* pExternalDecompressionBuffer = NULL);
+            unsigned long Write(void* pBuffer, unsigned long SampleCount);
+            virtual void  UpdateChunks();
         protected:
             static unsigned int  Instances;               ///< Number of instances of class Sample.
             static buffer_t      InternalDecompressionBuffer; ///< Buffer used for decompression as well as for truncation of 24 Bit -> 16 Bit samples.
@@ -543,69 +541,11 @@ namespace gig {
             unsigned long        SamplesPerFrame;         ///< For compressed samples only: number of samples in a full sample frame.
             buffer_t             RAMCache;                ///< Buffers samples (already uncompressed) in RAM.
             unsigned long        FileNo;                  ///< File number (> 0 when sample is stored in an extension file, 0 when it's in the gig)
+            RIFF::Chunk*         pCk3gix;
+            RIFF::Chunk*         pCkSmpl;
 
             Sample(File* pFile, RIFF::List* waveList, unsigned long WavePoolOffset, unsigned long fileNo = 0);
            ~Sample();
-            /**
-             * Swaps the order of the data words in the given memory area
-             * with a granularity given by \a WordSize.
-             *
-             * @param pData    - pointer to the memory area to be swapped
-             * @param AreaSize - size of the memory area to be swapped (in bytes)
-             * @param WordSize - size of the data words (in bytes)
-             */
-            inline void SwapMemoryArea(void* pData, unsigned long AreaSize, uint WordSize) {
-                switch (WordSize) { // TODO: unefficient
-                    case 1: {
-                        uint8_t* pDst = (uint8_t*) pData;
-                        uint8_t  cache;
-                        unsigned long lo = 0, hi = AreaSize - 1;
-                        for (; lo < hi; hi--, lo++) {
-                            cache    = pDst[lo];
-                            pDst[lo] = pDst[hi];
-                            pDst[hi] = cache;
-                        }
-                        break;
-                    }
-                    case 2: {
-                        uint16_t* pDst = (uint16_t*) pData;
-                        uint16_t  cache;
-                        unsigned long lo = 0, hi = (AreaSize >> 1) - 1;
-                        for (; lo < hi; hi--, lo++) {
-                            cache    = pDst[lo];
-                            pDst[lo] = pDst[hi];
-                            pDst[hi] = cache;
-                        }
-                        break;
-                    }
-                    case 4: {
-                        uint32_t* pDst = (uint32_t*) pData;
-                        uint32_t  cache;
-                        unsigned long lo = 0, hi = (AreaSize >> 2) - 1;
-                        for (; lo < hi; hi--, lo++) {
-                            cache    = pDst[lo];
-                            pDst[lo] = pDst[hi];
-                            pDst[hi] = cache;
-                        }
-                        break;
-                    }
-                    default: {
-                        uint8_t* pCache = new uint8_t[WordSize]; // TODO: unefficient
-                        unsigned long lo = 0, hi = AreaSize - WordSize;
-                        for (; lo < hi; hi -= WordSize, lo += WordSize) {
-                            memcpy(pCache, (uint8_t*) pData + lo, WordSize);
-                            memcpy((uint8_t*) pData + lo, (uint8_t*) pData + hi, WordSize);
-                            memcpy((uint8_t*) pData + hi, pCache, WordSize);
-                        }
-                        delete[] pCache;
-                        break;
-                    }
-                }
-            }
-            inline long Min(long A, long B) {
-                return (A > B) ? B : A;
-            }
-            inline long Abs(long val) { return (val > 0) ? val : -val; }
 
             // Guess size (in bytes) of a compressed sample
             inline unsigned long GuessSize(unsigned long samples) {
@@ -638,20 +578,27 @@ namespace gig {
     /** Defines <i>Region</i> information of an <i>Instrument</i>. */
     class Region : public DLS::Region {
         public:
-            unsigned int            Dimensions;               ///< Number of defined dimensions.
-            dimension_def_t         pDimensionDefinitions[8]; ///< Defines the five (gig2) or eight (gig3) possible dimensions (the dimension's controller and number of bits/splits).
-            uint32_t                DimensionRegions;         ///< Total number of DimensionRegions this Region contains.
-            DimensionRegion*        pDimensionRegions[256];   ///< Pointer array to the 32 (gig2) or 256 (gig3) possible dimension regions (reflects NULL for dimension regions not in use). Avoid to access the array directly and better use GetDimensionRegionByValue() instead, but of course in some cases it makes sense to use the array (e.g. iterating through all DimensionRegions).
-            unsigned int            Layers;                   ///< Amount of defined layers (1 - 32). A value of 1 actually means no layering, a value > 1 means there is Layer dimension. The same information can of course also be obtained by accessing pDimensionDefinitions.
+            unsigned int            Dimensions;               ///< Number of defined dimensions, do not alter!
+            dimension_def_t         pDimensionDefinitions[8]; ///< Defines the five (gig2) or eight (gig3) possible dimensions (the dimension's controller and number of bits/splits). Use AddDimension() and DeleteDimension() to create a new dimension ot delete an existing one.
+            uint32_t                DimensionRegions;         ///< Total number of DimensionRegions this Region contains, do not alter!
+            DimensionRegion*        pDimensionRegions[256];   ///< Pointer array to the 32 (gig2) or 256 (gig3) possible dimension regions (reflects NULL for dimension regions not in use). Avoid to access the array directly and better use GetDimensionRegionByValue() instead, but of course in some cases it makes sense to use the array (e.g. iterating through all DimensionRegions). Use AddDimension() and DeleteDimension() to create a new dimension ot delete an existing one (which will create or delete the respective dimension region(s) automatically).
+            unsigned int            Layers;                   ///< Amount of defined layers (1 - 32). A value of 1 actually means no layering, a value > 1 means there is Layer dimension. The same information can of course also be obtained by accessing pDimensionDefinitions. Do not alter this value!
 
             DimensionRegion* GetDimensionRegionByValue(const uint DimValues[8]);
             DimensionRegion* GetDimensionRegionByBit(const uint8_t DimBits[8]);
             Sample*          GetSample();
+            void             AddDimension(dimension_def_t* pDimDef);
+            void             DeleteDimension(dimension_def_t* pDimDef);
+            virtual void     UpdateChunks();
         protected:
+            typedef std::list<dimension_def_t*> DimensionList;
+
             uint8_t VelocityTable[128]; ///< For velocity dimensions with custom defined zone ranges only: used for fast converting from velocity MIDI value to dimension bit number.
+            DimensionList DimensionDefinitions;
 
             Region(Instrument* pInstrument, RIFF::List* rgnList);
             void LoadDimensionRegions(RIFF::List* rgn);
+            void UpdateVelocityTable(dimension_def_t* pDimDef);
             Sample* GetSampleFromWavePool(unsigned int WavePoolTableIndex, progress_t* pProgress = NULL);
            ~Region();
             friend class Instrument;
@@ -684,6 +631,9 @@ namespace gig {
             // overridden methods
             Region*   GetFirstRegion();
             Region*   GetNextRegion();
+            Region*   AddRegion();
+            void      DeleteRegion(Region* pRegion);
+            virtual void UpdateChunks();
             // own methods
             Region*   GetRegion(unsigned int Key);
         protected:
@@ -693,6 +643,7 @@ namespace gig {
 
             Instrument(File* pFile, RIFF::List* insList, progress_t* pProgress = NULL);
            ~Instrument();
+            void UpdateRegionKeyTable();
             friend class File;
     };
 
@@ -709,13 +660,20 @@ namespace gig {
 
             // derived methods from DLS::Resource
             DLS::Resource::GetParent;
+            // derived methods from DLS::File
+            DLS::File::Save;
             // overridden  methods
+            File();
             File(RIFF::File* pRIFF);
             Sample*     GetFirstSample(progress_t* pProgress = NULL); ///< Returns a pointer to the first <i>Sample</i> object of the file, <i>NULL</i> otherwise.
             Sample*     GetNextSample();      ///< Returns a pointer to the next <i>Sample</i> object of the file, <i>NULL</i> otherwise.
             Instrument* GetFirstInstrument(); ///< Returns a pointer to the first <i>Instrument</i> object of the file, <i>NULL</i> otherwise.
+            Sample*     AddSample();
+            void        DeleteSample(Sample* pSample);
             Instrument* GetNextInstrument();  ///< Returns a pointer to the next <i>Instrument</i> object of the file, <i>NULL</i> otherwise.
             Instrument* GetInstrument(uint index, progress_t* pProgress = NULL);
+            Instrument* AddInstrument();
+            void        DeleteInstrument(Instrument* pInstrument);
            ~File();
         protected:
             typedef std::list<Sample*>     SampleList;

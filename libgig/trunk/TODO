@@ -21,10 +21,6 @@ DLS Part:
     DLS::Connection objects
 
 Gig Part:
-  - Write support? Please let me know if you are interested to write an
-    instrument editor based on libgig. I'm not going to add write support
-    to libgig until somebody tells me his intention to seriously write such
-    a tool!
   - support for <3dnl> chunk in gig::Region class which provides optional
     textual descriptions for dimensions
   - support for <3gnm> chunk in gig::File class which contains names of
@@ -39,3 +35,4 @@ Gig Part:
   - real support for 24 bit samples (introduced by Gigasampler v3 format)
   - support for additional articulation informations introduced by the
     Gigasampler v3 format
+  - support for creating and modifying compressed samples

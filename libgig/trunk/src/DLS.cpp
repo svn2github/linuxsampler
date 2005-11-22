@@ -1136,6 +1136,7 @@ namespace DLS {
      * @returns pointer to new Sample object
      */
     Sample* File::AddSample() {
+       if (!pSamples) LoadSamples();
        __ensureMandatoryChunksExist();
        RIFF::List* wvpl = pRIFF->GetSubList(LIST_TYPE_WVPL);
        // create new Sample object and its respective 'wave' list chunk
@@ -1196,6 +1197,7 @@ namespace DLS {
      * @returns pointer to new Instrument object
      */
     Instrument* File::AddInstrument() {
+       if (!pInstruments) LoadInstruments();
        __ensureMandatoryChunksExist();
        if (!pInstruments) pInstruments = new InstrumentList;
        RIFF::List* lstInstruments = pRIFF->GetSubList(LIST_TYPE_LINS);
@@ -1205,7 +1207,7 @@ namespace DLS {
        return pInstrument;
     }
 
-    /** @brief Delete a instrument.
+    /** @brief Delete an instrument.
      *
      * This will delete the given Instrument object from the DLS file. You
      * have to call Save() to make this persistent to the file.

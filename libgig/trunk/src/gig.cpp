@@ -23,9 +23,53 @@
 
 #include "gig.h"
 
+#include "helper.h"
+
+#include <math.h>
 #include <iostream>
 
+/// Initial size of the sample buffer which is used for decompression of
+/// compressed sample wave streams - this value should always be bigger than
+/// the biggest sample piece expected to be read by the sampler engine,
+/// otherwise the buffer size will be raised at runtime and thus the buffer
+/// reallocated which is time consuming and unefficient.
+#define INITIAL_SAMPLE_BUFFER_SIZE              512000 // 512 kB
+
+/** (so far) every exponential paramater in the gig format has a basis of 1.000000008813822 */
+#define GIG_EXP_DECODE(x)                       (pow(1.000000008813822, x))
+#define GIG_EXP_ENCODE(x)                       (log(x) / log(1.000000008813822))
+#define GIG_PITCH_TRACK_EXTRACT(x)              (!(x & 0x01))
+#define GIG_PITCH_TRACK_ENCODE(x)               ((x) ? 0x00 : 0x01)
+#define GIG_VCF_RESONANCE_CTRL_EXTRACT(x)       ((x >> 4) & 0x03)
+#define GIG_VCF_RESONANCE_CTRL_ENCODE(x)        ((x & 0x03) << 4)
+#define GIG_EG_CTR_ATTACK_INFLUENCE_EXTRACT(x)  ((x >> 1) & 0x03)
+#define GIG_EG_CTR_DECAY_INFLUENCE_EXTRACT(x)   ((x >> 3) & 0x03)
+#define GIG_EG_CTR_RELEASE_INFLUENCE_EXTRACT(x) ((x >> 5) & 0x03)
+#define GIG_EG_CTR_ATTACK_INFLUENCE_ENCODE(x)   ((x & 0x03) << 1)
+#define GIG_EG_CTR_DECAY_INFLUENCE_ENCODE(x)    ((x & 0x03) << 3)
+#define GIG_EG_CTR_RELEASE_INFLUENCE_ENCODE(x)  ((x & 0x03) << 5)
+
 namespace gig {
+
+// *************** dimension_def_t ***************
+// *
+
+    dimension_def_t& dimension_def_t::operator=(const dimension_def_t& arg) {
+        dimension  = arg.dimension;
+        bits       = arg.bits;
+        zones      = arg.zones;
+        split_type = arg.split_type;
+        ranges     = arg.ranges;
+        zone_size  = arg.zone_size;
+        if (ranges) {
+            ranges = new range_t[zones];
+            for (int i = 0; i < zones; i++)
+                ranges[i] = arg.ranges[i];
+        }
+        return *this;
+    }
+
+
 
 // *************** progress_t ***************
 // *
@@ -59,7 +103,7 @@ namespace gig {
     }
 
 
-// *************** Internal functions for sample decopmression ***************
+// *************** Internal functions for sample decompression ***************
 // *
 
 namespace {
@@ -232,31 +276,68 @@ namespace {
     unsigned int Sample::Instances = 0;
     buffer_t     Sample::InternalDecompressionBuffer;
 
+    /** @brief Constructor.
+     *
+     * Load an existing sample or create a new one. A 'wave' list chunk must
+     * be given to this constructor. In case the given 'wave' list chunk
+     * contains a 'fmt', 'data' (and optionally a '3gix', 'smpl') chunk, the
+     * format and sample data will be loaded from there, otherwise default
+     * values will be used and those chunks will be created when
+     * File::Save() will be called later on.
+     *
+     * @param pFile          - pointer to gig::File where this sample is
+     *                         located (or will be located)
+     * @param waveList       - pointer to 'wave' list chunk which is (or
+     *                         will be) associated with this sample
+     * @param WavePoolOffset - offset of this sample data from wave pool
+     *                         ('wvpl') list chunk
+     * @param fileNo         - number of an extension file where this sample
+     *                         is located, 0 otherwise
+     */
     Sample::Sample(File* pFile, RIFF::List* waveList, unsigned long WavePoolOffset, unsigned long fileNo) : DLS::Sample((DLS::File*) pFile, waveList, WavePoolOffset) {
         Instances++;
         FileNo = fileNo;
 
-        RIFF::Chunk* _3gix = waveList->GetSubChunk(CHUNK_ID_3GIX);
-        if (!_3gix) throw gig::Exception("Mandatory chunks in <wave> list chunk not found.");
-        SampleGroup = _3gix->ReadInt16();
+        pCk3gix = waveList->GetSubChunk(CHUNK_ID_3GIX);
+        if (pCk3gix) {
+            SampleGroup = pCk3gix->ReadInt16();
+        } else { // '3gix' chunk missing
+            // use default value(s)
+            SampleGroup = 0;
+        }
 
-        RIFF::Chunk* smpl = waveList->GetSubChunk(CHUNK_ID_SMPL);
-        if (!smpl) throw gig::Exception("Mandatory chunks in <wave> list chunk not found.");
-        Manufacturer      = smpl->ReadInt32();
-        Product           = smpl->ReadInt32();
-        SamplePeriod      = smpl->ReadInt32();
-        MIDIUnityNote     = smpl->ReadInt32();
-        FineTune          = smpl->ReadInt32();
-        smpl->Read(&SMPTEFormat, 1, 4);
-        SMPTEOffset       = smpl->ReadInt32();
-        Loops             = smpl->ReadInt32();
-        smpl->ReadInt32(); // manufByt
-        LoopID            = smpl->ReadInt32();
-        smpl->Read(&LoopType, 1, 4);
-        LoopStart         = smpl->ReadInt32();
-        LoopEnd           = smpl->ReadInt32();
-        LoopFraction      = smpl->ReadInt32();
-        LoopPlayCount     = smpl->ReadInt32();
+        pCkSmpl = waveList->GetSubChunk(CHUNK_ID_SMPL);
+        if (pCkSmpl) {
+            Manufacturer  = pCkSmpl->ReadInt32();
+            Product       = pCkSmpl->ReadInt32();
+            SamplePeriod  = pCkSmpl->ReadInt32();
+            MIDIUnityNote = pCkSmpl->ReadInt32();
+            FineTune      = pCkSmpl->ReadInt32();
+            pCkSmpl->Read(&SMPTEFormat, 1, 4);
+            SMPTEOffset   = pCkSmpl->ReadInt32();
+            Loops         = pCkSmpl->ReadInt32();
+            pCkSmpl->ReadInt32(); // manufByt
+            LoopID        = pCkSmpl->ReadInt32();
+            pCkSmpl->Read(&LoopType, 1, 4);
+            LoopStart     = pCkSmpl->ReadInt32();
+            LoopEnd       = pCkSmpl->ReadInt32();
+            LoopFraction  = pCkSmpl->ReadInt32();
+            LoopPlayCount = pCkSmpl->ReadInt32();
+        } else { // 'smpl' chunk missing
+            // use default values
+            Manufacturer  = 0;
+            Product       = 0;
+            SamplePeriod  = 1 / SamplesPerSecond;
+            MIDIUnityNote = 64;
+            FineTune      = 0;
+            SMPTEOffset   = 0;
+            Loops         = 0;
+            LoopID        = 0;
+            LoopStart     = 0;
+            LoopEnd       = 0;
+            LoopFraction  = 0;
+            LoopPlayCount = 0;
+        }
 
         FrameTable                 = NULL;
         SamplePos                  = 0;
@@ -288,6 +369,53 @@ namespace {
         FrameOffset = 0; // just for streaming compressed samples
 
         LoopSize = LoopEnd - LoopStart;
+    }
+
+    /**
+     * Apply sample and its settings to the respective RIFF chunks. You have
+     * to call File::Save() to make changes persistent.
+     *
+     * Usually there is absolutely no need to call this method explicitly.
+     * It will be called automatically when File::Save() was called.
+     *
+     * @throws DLS::Exception if FormatTag != WAVE_FORMAT_PCM or no sample data
+     *                        was provided yet
+     * @throws gig::Exception if there is any invalid sample setting
+     */
+    void Sample::UpdateChunks() {
+        // first update base class's chunks
+        DLS::Sample::UpdateChunks();
+
+        // make sure 'smpl' chunk exists
+        pCkSmpl = pWaveList->GetSubChunk(CHUNK_ID_SMPL);
+        if (!pCkSmpl) pCkSmpl = pWaveList->AddSubChunk(CHUNK_ID_SMPL, 60);
+        // update 'smpl' chunk
+        uint8_t* pData = (uint8_t*) pCkSmpl->LoadChunkData();
+        SamplePeriod = 1 / SamplesPerSecond;
+        memcpy(&pData[0], &Manufacturer, 4);
+        memcpy(&pData[4], &Product, 4);
+        memcpy(&pData[8], &SamplePeriod, 4);
+        memcpy(&pData[12], &MIDIUnityNote, 4);
+        memcpy(&pData[16], &FineTune, 4);
+        memcpy(&pData[20], &SMPTEFormat, 4);
+        memcpy(&pData[24], &SMPTEOffset, 4);
+        memcpy(&pData[28], &Loops, 4);
+
+        // we skip 'manufByt' for now (4 bytes)
+
+        memcpy(&pData[36], &LoopID, 4);
+        memcpy(&pData[40], &LoopType, 4);
+        memcpy(&pData[44], &LoopStart, 4);
+        memcpy(&pData[48], &LoopEnd, 4);
+        memcpy(&pData[52], &LoopFraction, 4);
+        memcpy(&pData[56], &LoopPlayCount, 4);
+
+        // make sure '3gix' chunk exists
+        pCk3gix = pWaveList->GetSubChunk(CHUNK_ID_3GIX);
+        if (!pCk3gix) pCk3gix = pWaveList->AddSubChunk(CHUNK_ID_3GIX, 4);
+        // update '3gix' chunk
+        pData = (uint8_t*) pCk3gix->LoadChunkData();
+        memcpy(&pData[0], &SampleGroup, 2);
     }
 
     /// Scans compressed samples for mandatory informations (e.g. actual number of total sample points).
@@ -488,6 +616,41 @@ namespace {
         if (RAMCache.pStart) delete[] (int8_t*) RAMCache.pStart;
         RAMCache.pStart = NULL;
         RAMCache.Size   = 0;
+    }
+
+    /** @brief Resize sample.
+     *
+     * Resizes the sample's wave form data, that is the actual size of
+     * sample wave data possible to be written for this sample. This call
+     * will return immediately and just schedule the resize operation. You
+     * should call File::Save() to actually perform the resize operation(s)
+     * "physically" to the file. As this can take a while on large files, it
+     * is recommended to call Resize() first on all samples which have to be
+     * resized and finally to call File::Save() to perform all those resize
+     * operations in one rush.
+     *
+     * The actual size (in bytes) is dependant to the current FrameSize
+     * value. You may want to set FrameSize before calling Resize().
+     *
+     * <b>Caution:</b> You cannot directly write (i.e. with Write()) to
+     * enlarged samples before calling File::Save() as this might exceed the
+     * current sample's boundary!
+     *
+     * Also note: only WAVE_FORMAT_PCM is currently supported, that is
+     * FormatTag must be WAVE_FORMAT_PCM. Trying to resize samples with
+     * other formats will fail!
+     *
+     * @param iNewSize - new sample wave data size in sample points (must be
+     *                   greater than zero)
+     * @throws DLS::Excecption if FormatTag != WAVE_FORMAT_PCM
+     *                         or if \a iNewSize is less than 1
+     * @throws gig::Exception if existing sample is compressed
+     * @see DLS::Sample::GetSize(), DLS::Sample::FrameSize,
+     *      DLS::Sample::FormatTag, File::Save()
+     */
+    void Sample::Resize(int iNewSize) {
+        if (Compressed) throw gig::Exception("There is no support for modifying compressed samples (yet)");
+        DLS::Sample::Resize(iNewSize);
     }
 
     /**
@@ -933,6 +1096,29 @@ namespace {
         }
     }
 
+    /** @brief Write sample wave data.
+     *
+     * Writes \a SampleCount number of sample points from the buffer pointed
+     * by \a pBuffer and increments the position within the sample. Use this
+     * method to directly write the sample data to disk, i.e. if you don't
+     * want or cannot load the whole sample data into RAM.
+     *
+     * You have to Resize() the sample to the desired size and call
+     * File::Save() <b>before</b> using Write().
+     *
+     * Note: there is currently no support for writing compressed samples.
+     *
+     * @param pBuffer     - source buffer
+     * @param SampleCount - number of sample points to write
+     * @throws DLS::Exception if current sample size is too small
+     * @throws gig::Exception if sample is compressed
+     * @see DLS::LoadSampleData()
+     */
+    unsigned long Sample::Write(void* pBuffer, unsigned long SampleCount) {
+        if (Compressed) throw gig::Exception("There is no support for writing compressed gig samples (yet)");
+        return DLS::Sample::Write(pBuffer, SampleCount);
+    }
+
     /**
      * Allocates a decompression buffer for streaming (compressed) samples
      * with Sample::Read(). If you are using more than one streaming thread
@@ -1001,156 +1187,232 @@ namespace {
         if (!pVelocityTables) pVelocityTables = new VelocityTableMap;
 
         RIFF::Chunk* _3ewa = _3ewl->GetSubChunk(CHUNK_ID_3EWA);
-        _3ewa->ReadInt32(); // unknown, always 0x0000008C ?
-        LFO3Frequency = (double) GIG_EXP_DECODE(_3ewa->ReadInt32());
-        EG3Attack     = (double) GIG_EXP_DECODE(_3ewa->ReadInt32());
-        _3ewa->ReadInt16(); // unknown
-        LFO1InternalDepth = _3ewa->ReadUint16();
-        _3ewa->ReadInt16(); // unknown
-        LFO3InternalDepth = _3ewa->ReadInt16();
-        _3ewa->ReadInt16(); // unknown
-        LFO1ControlDepth = _3ewa->ReadUint16();
-        _3ewa->ReadInt16(); // unknown
-        LFO3ControlDepth = _3ewa->ReadInt16();
-        EG1Attack           = (double) GIG_EXP_DECODE(_3ewa->ReadInt32());
-        EG1Decay1           = (double) GIG_EXP_DECODE(_3ewa->ReadInt32());
-        _3ewa->ReadInt16(); // unknown
-        EG1Sustain          = _3ewa->ReadUint16();
-        EG1Release          = (double) GIG_EXP_DECODE(_3ewa->ReadInt32());
-        EG1Controller       = DecodeLeverageController(static_cast<_lev_ctrl_t>(_3ewa->ReadUint8()));
-        uint8_t eg1ctrloptions        = _3ewa->ReadUint8();
-        EG1ControllerInvert           = eg1ctrloptions & 0x01;
-        EG1ControllerAttackInfluence  = GIG_EG_CTR_ATTACK_INFLUENCE_EXTRACT(eg1ctrloptions);
-        EG1ControllerDecayInfluence   = GIG_EG_CTR_DECAY_INFLUENCE_EXTRACT(eg1ctrloptions);
-        EG1ControllerReleaseInfluence = GIG_EG_CTR_RELEASE_INFLUENCE_EXTRACT(eg1ctrloptions);
-        EG2Controller       = DecodeLeverageController(static_cast<_lev_ctrl_t>(_3ewa->ReadUint8()));
-        uint8_t eg2ctrloptions        = _3ewa->ReadUint8();
-        EG2ControllerInvert           = eg2ctrloptions & 0x01;
-        EG2ControllerAttackInfluence  = GIG_EG_CTR_ATTACK_INFLUENCE_EXTRACT(eg2ctrloptions);
-        EG2ControllerDecayInfluence   = GIG_EG_CTR_DECAY_INFLUENCE_EXTRACT(eg2ctrloptions);
-        EG2ControllerReleaseInfluence = GIG_EG_CTR_RELEASE_INFLUENCE_EXTRACT(eg2ctrloptions);
-        LFO1Frequency    = (double) GIG_EXP_DECODE(_3ewa->ReadInt32());
-        EG2Attack        = (double) GIG_EXP_DECODE(_3ewa->ReadInt32());
-        EG2Decay1        = (double) GIG_EXP_DECODE(_3ewa->ReadInt32());
-        _3ewa->ReadInt16(); // unknown
-        EG2Sustain       = _3ewa->ReadUint16();
-        EG2Release       = (double) GIG_EXP_DECODE(_3ewa->ReadInt32());
-        _3ewa->ReadInt16(); // unknown
-        LFO2ControlDepth = _3ewa->ReadUint16();
-        LFO2Frequency    = (double) GIG_EXP_DECODE(_3ewa->ReadInt32());
-        _3ewa->ReadInt16(); // unknown
-        LFO2InternalDepth = _3ewa->ReadUint16();
-        int32_t eg1decay2 = _3ewa->ReadInt32();
-        EG1Decay2          = (double) GIG_EXP_DECODE(eg1decay2);
-        EG1InfiniteSustain = (eg1decay2 == 0x7fffffff);
-        _3ewa->ReadInt16(); // unknown
-        EG1PreAttack      = _3ewa->ReadUint16();
-        int32_t eg2decay2 = _3ewa->ReadInt32();
-        EG2Decay2         = (double) GIG_EXP_DECODE(eg2decay2);
-        EG2InfiniteSustain = (eg2decay2 == 0x7fffffff);
-        _3ewa->ReadInt16(); // unknown
-        EG2PreAttack      = _3ewa->ReadUint16();
-        uint8_t velocityresponse = _3ewa->ReadUint8();
-        if (velocityresponse < 5) {
-            VelocityResponseCurve = curve_type_nonlinear;
-            VelocityResponseDepth = velocityresponse;
-        }
-        else if (velocityresponse < 10) {
-            VelocityResponseCurve = curve_type_linear;
-            VelocityResponseDepth = velocityresponse - 5;
-        }
-        else if (velocityresponse < 15) {
-            VelocityResponseCurve = curve_type_special;
-            VelocityResponseDepth = velocityresponse - 10;
-        }
-        else {
-            VelocityResponseCurve = curve_type_unknown;
-            VelocityResponseDepth = 0;
-        }
-        uint8_t releasevelocityresponse = _3ewa->ReadUint8();
-        if (releasevelocityresponse < 5) {
-            ReleaseVelocityResponseCurve = curve_type_nonlinear;
-            ReleaseVelocityResponseDepth = releasevelocityresponse;
-        }
-        else if (releasevelocityresponse < 10) {
-            ReleaseVelocityResponseCurve = curve_type_linear;
-            ReleaseVelocityResponseDepth = releasevelocityresponse - 5;
-        }
-        else if (releasevelocityresponse < 15) {
-            ReleaseVelocityResponseCurve = curve_type_special;
-            ReleaseVelocityResponseDepth = releasevelocityresponse - 10;
-        }
-        else {
-            ReleaseVelocityResponseCurve = curve_type_unknown;
-            ReleaseVelocityResponseDepth = 0;
-        }
-        VelocityResponseCurveScaling = _3ewa->ReadUint8();
-        AttenuationControllerThreshold = _3ewa->ReadInt8();
-        _3ewa->ReadInt32(); // unknown
-        SampleStartOffset = (uint16_t) _3ewa->ReadInt16();
-        _3ewa->ReadInt16(); // unknown
-        uint8_t pitchTrackDimensionBypass = _3ewa->ReadInt8();
-        PitchTrack = GIG_PITCH_TRACK_EXTRACT(pitchTrackDimensionBypass);
-        if      (pitchTrackDimensionBypass & 0x10) DimensionBypass = dim_bypass_ctrl_94;
-        else if (pitchTrackDimensionBypass & 0x20) DimensionBypass = dim_bypass_ctrl_95;
-        else                                       DimensionBypass = dim_bypass_ctrl_none;
-        uint8_t pan = _3ewa->ReadUint8();
-        Pan         = (pan < 64) ? pan : -((int)pan - 63); // signed 7 bit -> signed 8 bit
-        SelfMask = _3ewa->ReadInt8() & 0x01;
-        _3ewa->ReadInt8(); // unknown
-        uint8_t lfo3ctrl = _3ewa->ReadUint8();
-        LFO3Controller           = static_cast<lfo3_ctrl_t>(lfo3ctrl & 0x07); // lower 3 bits
-        LFO3Sync                 = lfo3ctrl & 0x20; // bit 5
-        InvertAttenuationController = lfo3ctrl & 0x80; // bit 7
-        AttenuationController  = DecodeLeverageController(static_cast<_lev_ctrl_t>(_3ewa->ReadUint8()));
-        uint8_t lfo2ctrl       = _3ewa->ReadUint8();
-        LFO2Controller         = static_cast<lfo2_ctrl_t>(lfo2ctrl & 0x07); // lower 3 bits
-        LFO2FlipPhase          = lfo2ctrl & 0x80; // bit 7
-        LFO2Sync               = lfo2ctrl & 0x20; // bit 5
-        bool extResonanceCtrl  = lfo2ctrl & 0x40; // bit 6
-        uint8_t lfo1ctrl       = _3ewa->ReadUint8();
-        LFO1Controller         = static_cast<lfo1_ctrl_t>(lfo1ctrl & 0x07); // lower 3 bits
-        LFO1FlipPhase          = lfo1ctrl & 0x80; // bit 7
-        LFO1Sync               = lfo1ctrl & 0x40; // bit 6
-        VCFResonanceController = (extResonanceCtrl) ? static_cast<vcf_res_ctrl_t>(GIG_VCF_RESONANCE_CTRL_EXTRACT(lfo1ctrl))
-                                                    : vcf_res_ctrl_none;
-        uint16_t eg3depth = _3ewa->ReadUint16();
-        EG3Depth = (eg3depth <= 1200) ? eg3depth /* positives */
-                                      : (-1) * (int16_t) ((eg3depth ^ 0xffff) + 1); /* binary complementary for negatives */
-        _3ewa->ReadInt16(); // unknown
-        ChannelOffset = _3ewa->ReadUint8() / 4;
-        uint8_t regoptions = _3ewa->ReadUint8();
-        MSDecode           = regoptions & 0x01; // bit 0
-        SustainDefeat      = regoptions & 0x02; // bit 1
-        _3ewa->ReadInt16(); // unknown
-        VelocityUpperLimit = _3ewa->ReadInt8();
-        _3ewa->ReadInt8(); // unknown
-        _3ewa->ReadInt16(); // unknown
-        ReleaseTriggerDecay = _3ewa->ReadUint8(); // release trigger decay
-        _3ewa->ReadInt8(); // unknown
-        _3ewa->ReadInt8(); // unknown
-        EG1Hold = _3ewa->ReadUint8() & 0x80; // bit 7
-        uint8_t vcfcutoff = _3ewa->ReadUint8();
-        VCFEnabled = vcfcutoff & 0x80; // bit 7
-        VCFCutoff  = vcfcutoff & 0x7f; // lower 7 bits
-        VCFCutoffController = static_cast<vcf_cutoff_ctrl_t>(_3ewa->ReadUint8());
-        uint8_t vcfvelscale = _3ewa->ReadUint8();
-        VCFCutoffControllerInvert = vcfvelscale & 0x80; // bit 7
-        VCFVelocityScale = vcfvelscale & 0x7f; // lower 7 bits
-        _3ewa->ReadInt8(); // unknown
-        uint8_t vcfresonance = _3ewa->ReadUint8();
-        VCFResonance = vcfresonance & 0x7f; // lower 7 bits
-        VCFResonanceDynamic = !(vcfresonance & 0x80); // bit 7
-        uint8_t vcfbreakpoint         = _3ewa->ReadUint8();
-        VCFKeyboardTracking           = vcfbreakpoint & 0x80; // bit 7
-        VCFKeyboardTrackingBreakpoint = vcfbreakpoint & 0x7f; // lower 7 bits
-        uint8_t vcfvelocity = _3ewa->ReadUint8();
-        VCFVelocityDynamicRange = vcfvelocity % 5;
-        VCFVelocityCurve        = static_cast<curve_type_t>(vcfvelocity / 5);
-        VCFType = static_cast<vcf_type_t>(_3ewa->ReadUint8());
-        if (VCFType == vcf_type_lowpass) {
-            if (lfo3ctrl & 0x40) // bit 6
-                VCFType = vcf_type_lowpassturbo;
+        if (_3ewa) { // if '3ewa' chunk exists
+            _3ewa->ReadInt32(); // unknown, always 0x0000008C ?
+            LFO3Frequency = (double) GIG_EXP_DECODE(_3ewa->ReadInt32());
+            EG3Attack     = (double) GIG_EXP_DECODE(_3ewa->ReadInt32());
+            _3ewa->ReadInt16(); // unknown
+            LFO1InternalDepth = _3ewa->ReadUint16();
+            _3ewa->ReadInt16(); // unknown
+            LFO3InternalDepth = _3ewa->ReadInt16();
+            _3ewa->ReadInt16(); // unknown
+            LFO1ControlDepth = _3ewa->ReadUint16();
+            _3ewa->ReadInt16(); // unknown
+            LFO3ControlDepth = _3ewa->ReadInt16();
+            EG1Attack           = (double) GIG_EXP_DECODE(_3ewa->ReadInt32());
+            EG1Decay1           = (double) GIG_EXP_DECODE(_3ewa->ReadInt32());
+            _3ewa->ReadInt16(); // unknown
+            EG1Sustain          = _3ewa->ReadUint16();
+            EG1Release          = (double) GIG_EXP_DECODE(_3ewa->ReadInt32());
+            EG1Controller       = DecodeLeverageController(static_cast<_lev_ctrl_t>(_3ewa->ReadUint8()));
+            uint8_t eg1ctrloptions        = _3ewa->ReadUint8();
+            EG1ControllerInvert           = eg1ctrloptions & 0x01;
+            EG1ControllerAttackInfluence  = GIG_EG_CTR_ATTACK_INFLUENCE_EXTRACT(eg1ctrloptions);
+            EG1ControllerDecayInfluence   = GIG_EG_CTR_DECAY_INFLUENCE_EXTRACT(eg1ctrloptions);
+            EG1ControllerReleaseInfluence = GIG_EG_CTR_RELEASE_INFLUENCE_EXTRACT(eg1ctrloptions);
+            EG2Controller       = DecodeLeverageController(static_cast<_lev_ctrl_t>(_3ewa->ReadUint8()));
+            uint8_t eg2ctrloptions        = _3ewa->ReadUint8();
+            EG2ControllerInvert           = eg2ctrloptions & 0x01;
+            EG2ControllerAttackInfluence  = GIG_EG_CTR_ATTACK_INFLUENCE_EXTRACT(eg2ctrloptions);
+            EG2ControllerDecayInfluence   = GIG_EG_CTR_DECAY_INFLUENCE_EXTRACT(eg2ctrloptions);
+            EG2ControllerReleaseInfluence = GIG_EG_CTR_RELEASE_INFLUENCE_EXTRACT(eg2ctrloptions);
+            LFO1Frequency    = (double) GIG_EXP_DECODE(_3ewa->ReadInt32());
+            EG2Attack        = (double) GIG_EXP_DECODE(_3ewa->ReadInt32());
+            EG2Decay1        = (double) GIG_EXP_DECODE(_3ewa->ReadInt32());
+            _3ewa->ReadInt16(); // unknown
+            EG2Sustain       = _3ewa->ReadUint16();
+            EG2Release       = (double) GIG_EXP_DECODE(_3ewa->ReadInt32());
+            _3ewa->ReadInt16(); // unknown
+            LFO2ControlDepth = _3ewa->ReadUint16();
+            LFO2Frequency    = (double) GIG_EXP_DECODE(_3ewa->ReadInt32());
+            _3ewa->ReadInt16(); // unknown
+            LFO2InternalDepth = _3ewa->ReadUint16();
+            int32_t eg1decay2 = _3ewa->ReadInt32();
+            EG1Decay2          = (double) GIG_EXP_DECODE(eg1decay2);
+            EG1InfiniteSustain = (eg1decay2 == 0x7fffffff);
+            _3ewa->ReadInt16(); // unknown
+            EG1PreAttack      = _3ewa->ReadUint16();
+            int32_t eg2decay2 = _3ewa->ReadInt32();
+            EG2Decay2         = (double) GIG_EXP_DECODE(eg2decay2);
+            EG2InfiniteSustain = (eg2decay2 == 0x7fffffff);
+            _3ewa->ReadInt16(); // unknown
+            EG2PreAttack      = _3ewa->ReadUint16();
+            uint8_t velocityresponse = _3ewa->ReadUint8();
+            if (velocityresponse < 5) {
+                VelocityResponseCurve = curve_type_nonlinear;
+                VelocityResponseDepth = velocityresponse;
+            } else if (velocityresponse < 10) {
+                VelocityResponseCurve = curve_type_linear;
+                VelocityResponseDepth = velocityresponse - 5;
+            } else if (velocityresponse < 15) {
+                VelocityResponseCurve = curve_type_special;
+                VelocityResponseDepth = velocityresponse - 10;
+            } else {
+                VelocityResponseCurve = curve_type_unknown;
+                VelocityResponseDepth = 0;
+            }
+            uint8_t releasevelocityresponse = _3ewa->ReadUint8();
+            if (releasevelocityresponse < 5) {
+                ReleaseVelocityResponseCurve = curve_type_nonlinear;
+                ReleaseVelocityResponseDepth = releasevelocityresponse;
+            } else if (releasevelocityresponse < 10) {
+                ReleaseVelocityResponseCurve = curve_type_linear;
+                ReleaseVelocityResponseDepth = releasevelocityresponse - 5;
+            } else if (releasevelocityresponse < 15) {
+                ReleaseVelocityResponseCurve = curve_type_special;
+                ReleaseVelocityResponseDepth = releasevelocityresponse - 10;
+            } else {
+                ReleaseVelocityResponseCurve = curve_type_unknown;
+                ReleaseVelocityResponseDepth = 0;
+            }
+            VelocityResponseCurveScaling = _3ewa->ReadUint8();
+            AttenuationControllerThreshold = _3ewa->ReadInt8();
+            _3ewa->ReadInt32(); // unknown
+            SampleStartOffset = (uint16_t) _3ewa->ReadInt16();
+            _3ewa->ReadInt16(); // unknown
+            uint8_t pitchTrackDimensionBypass = _3ewa->ReadInt8();
+            PitchTrack = GIG_PITCH_TRACK_EXTRACT(pitchTrackDimensionBypass);
+            if      (pitchTrackDimensionBypass & 0x10) DimensionBypass = dim_bypass_ctrl_94;
+            else if (pitchTrackDimensionBypass & 0x20) DimensionBypass = dim_bypass_ctrl_95;
+            else                                       DimensionBypass = dim_bypass_ctrl_none;
+            uint8_t pan = _3ewa->ReadUint8();
+            Pan         = (pan < 64) ? pan : -((int)pan - 63); // signed 7 bit -> signed 8 bit
+            SelfMask = _3ewa->ReadInt8() & 0x01;
+            _3ewa->ReadInt8(); // unknown
+            uint8_t lfo3ctrl = _3ewa->ReadUint8();
+            LFO3Controller           = static_cast<lfo3_ctrl_t>(lfo3ctrl & 0x07); // lower 3 bits
+            LFO3Sync                 = lfo3ctrl & 0x20; // bit 5
+            InvertAttenuationController = lfo3ctrl & 0x80; // bit 7
+            AttenuationController  = DecodeLeverageController(static_cast<_lev_ctrl_t>(_3ewa->ReadUint8()));
+            uint8_t lfo2ctrl       = _3ewa->ReadUint8();
+            LFO2Controller         = static_cast<lfo2_ctrl_t>(lfo2ctrl & 0x07); // lower 3 bits
+            LFO2FlipPhase          = lfo2ctrl & 0x80; // bit 7
+            LFO2Sync               = lfo2ctrl & 0x20; // bit 5
+            bool extResonanceCtrl  = lfo2ctrl & 0x40; // bit 6
+            uint8_t lfo1ctrl       = _3ewa->ReadUint8();
+            LFO1Controller         = static_cast<lfo1_ctrl_t>(lfo1ctrl & 0x07); // lower 3 bits
+            LFO1FlipPhase          = lfo1ctrl & 0x80; // bit 7
+            LFO1Sync               = lfo1ctrl & 0x40; // bit 6
+            VCFResonanceController = (extResonanceCtrl) ? static_cast<vcf_res_ctrl_t>(GIG_VCF_RESONANCE_CTRL_EXTRACT(lfo1ctrl))
+                                                        : vcf_res_ctrl_none;
+            uint16_t eg3depth = _3ewa->ReadUint16();
+            EG3Depth = (eg3depth <= 1200) ? eg3depth /* positives */
+                                        : (-1) * (int16_t) ((eg3depth ^ 0xffff) + 1); /* binary complementary for negatives */
+            _3ewa->ReadInt16(); // unknown
+            ChannelOffset = _3ewa->ReadUint8() / 4;
+            uint8_t regoptions = _3ewa->ReadUint8();
+            MSDecode           = regoptions & 0x01; // bit 0
+            SustainDefeat      = regoptions & 0x02; // bit 1
+            _3ewa->ReadInt16(); // unknown
+            VelocityUpperLimit = _3ewa->ReadInt8();
+            _3ewa->ReadInt8(); // unknown
+            _3ewa->ReadInt16(); // unknown
+            ReleaseTriggerDecay = _3ewa->ReadUint8(); // release trigger decay
+            _3ewa->ReadInt8(); // unknown
+            _3ewa->ReadInt8(); // unknown
+            EG1Hold = _3ewa->ReadUint8() & 0x80; // bit 7
+            uint8_t vcfcutoff = _3ewa->ReadUint8();
+            VCFEnabled = vcfcutoff & 0x80; // bit 7
+            VCFCutoff  = vcfcutoff & 0x7f; // lower 7 bits
+            VCFCutoffController = static_cast<vcf_cutoff_ctrl_t>(_3ewa->ReadUint8());
+            uint8_t vcfvelscale = _3ewa->ReadUint8();
+            VCFCutoffControllerInvert = vcfvelscale & 0x80; // bit 7
+            VCFVelocityScale = vcfvelscale & 0x7f; // lower 7 bits
+            _3ewa->ReadInt8(); // unknown
+            uint8_t vcfresonance = _3ewa->ReadUint8();
+            VCFResonance = vcfresonance & 0x7f; // lower 7 bits
+            VCFResonanceDynamic = !(vcfresonance & 0x80); // bit 7
+            uint8_t vcfbreakpoint         = _3ewa->ReadUint8();
+            VCFKeyboardTracking           = vcfbreakpoint & 0x80; // bit 7
+            VCFKeyboardTrackingBreakpoint = vcfbreakpoint & 0x7f; // lower 7 bits
+            uint8_t vcfvelocity = _3ewa->ReadUint8();
+            VCFVelocityDynamicRange = vcfvelocity % 5;
+            VCFVelocityCurve        = static_cast<curve_type_t>(vcfvelocity / 5);
+            VCFType = static_cast<vcf_type_t>(_3ewa->ReadUint8());
+            if (VCFType == vcf_type_lowpass) {
+                if (lfo3ctrl & 0x40) // bit 6
+                    VCFType = vcf_type_lowpassturbo;
+            }
+        } else { // '3ewa' chunk does not exist yet
+            // use default values
+            LFO3Frequency                   = 1.0;
+            EG3Attack                       = 0.0;
+            LFO1InternalDepth               = 0;
+            LFO3InternalDepth               = 0;
+            LFO1ControlDepth                = 0;
+            LFO3ControlDepth                = 0;
+            EG1Attack                       = 0.0;
+            EG1Decay1                       = 0.0;
+            EG1Sustain                      = 0;
+            EG1Release                      = 0.0;
+            EG1Controller.type              = eg1_ctrl_t::type_none;
+            EG1Controller.controller_number = 0;
+            EG1ControllerInvert             = false;
+            EG1ControllerAttackInfluence    = 0;
+            EG1ControllerDecayInfluence     = 0;
+            EG1ControllerReleaseInfluence   = 0;
+            EG2Controller.type              = eg2_ctrl_t::type_none;
+            EG2Controller.controller_number = 0;
+            EG2ControllerInvert             = false;
+            EG2ControllerAttackInfluence    = 0;
+            EG2ControllerDecayInfluence     = 0;
+            EG2ControllerReleaseInfluence   = 0;
+            LFO1Frequency                   = 1.0;
+            EG2Attack                       = 0.0;
+            EG2Decay1                       = 0.0;
+            EG2Sustain                      = 0;
+            EG2Release                      = 0.0;
+            LFO2ControlDepth                = 0;
+            LFO2Frequency                   = 1.0;
+            LFO2InternalDepth               = 0;
+            EG1Decay2                       = 0.0;
+            EG1InfiniteSustain              = false;
+            EG1PreAttack                    = 1000;
+            EG2Decay2                       = 0.0;
+            EG2InfiniteSustain              = false;
+            EG2PreAttack                    = 1000;
+            VelocityResponseCurve           = curve_type_nonlinear;
+            VelocityResponseDepth           = 3;
+            ReleaseVelocityResponseCurve    = curve_type_nonlinear;
+            ReleaseVelocityResponseDepth    = 3;
+            VelocityResponseCurveScaling    = 32;
+            AttenuationControllerThreshold  = 0;
+            SampleStartOffset               = 0;
+            PitchTrack                      = true;
+            DimensionBypass                 = dim_bypass_ctrl_none;
+            Pan                             = 0;
+            SelfMask                        = true;
+            LFO3Controller                  = lfo3_ctrl_modwheel;
+            LFO3Sync                        = false;
+            InvertAttenuationController     = false;
+            AttenuationController.type      = attenuation_ctrl_t::type_none;
+            AttenuationController.controller_number = 0;
+            LFO2Controller                  = lfo2_ctrl_internal;
+            LFO2FlipPhase                   = false;
+            LFO2Sync                        = false;
+            LFO1Controller                  = lfo1_ctrl_internal;
+            LFO1FlipPhase                   = false;
+            LFO1Sync                        = false;
+            VCFResonanceController          = vcf_res_ctrl_none;
+            EG3Depth                        = 0;
+            ChannelOffset                   = 0;
+            MSDecode                        = false;
+            SustainDefeat                   = false;
+            VelocityUpperLimit              = 0;
+            ReleaseTriggerDecay             = 0;
+            EG1Hold                         = false;
+            VCFEnabled                      = false;
+            VCFCutoff                       = 0;
+            VCFCutoffController             = vcf_cutoff_ctrl_none;
+            VCFCutoffControllerInvert       = false;
+            VCFVelocityScale                = 0;
+            VCFResonance                    = 0;
+            VCFResonanceDynamic             = false;
+            VCFKeyboardTracking             = false;
+            VCFKeyboardTrackingBreakpoint   = 0;
+            VCFVelocityDynamicRange         = 0x04;
+            VCFVelocityCurve                = curve_type_linear;
+            VCFType                         = vcf_type_lowpass;
         }
 
         pVelocityAttenuationTable = GetVelocityTable(VelocityResponseCurve,
@@ -1185,6 +1447,282 @@ namespace {
                                                 VCFCutoffController <= vcf_cutoff_ctrl_none2 ? VCFVelocityScale : 0);
 
         SampleAttenuation = pow(10.0, -Gain / (20.0 * 655360));
+    }
+
+    /**
+     * Apply dimension region settings to the respective RIFF chunks. You
+     * have to call File::Save() to make changes persistent.
+     *
+     * Usually there is absolutely no need to call this method explicitly.
+     * It will be called automatically when File::Save() was called.
+     */
+    void DimensionRegion::UpdateChunks() {
+        // first update base class's chunk
+        DLS::Sampler::UpdateChunks();
+
+        // make sure '3ewa' chunk exists
+        RIFF::Chunk* _3ewa = pParentList->GetSubChunk(CHUNK_ID_3EWA);
+        if (!_3ewa)  _3ewa = pParentList->AddSubChunk(CHUNK_ID_3EWA, 140);
+        uint8_t* pData = (uint8_t*) _3ewa->LoadChunkData();
+
+        // update '3ewa' chunk with DimensionRegion's current settings
+
+        const uint32_t unknown = 0x0000008C; // unknown, always 0x0000008C ?
+        memcpy(&pData[0], &unknown, 4);
+
+        const int32_t lfo3freq = (int32_t) GIG_EXP_ENCODE(LFO3Frequency);
+        memcpy(&pData[4], &lfo3freq, 4);
+
+        const int32_t eg3attack = (int32_t) GIG_EXP_ENCODE(EG3Attack);
+        memcpy(&pData[4], &eg3attack, 4);
+
+        // next 2 bytes unknown
+
+        memcpy(&pData[10], &LFO1InternalDepth, 2);
+
+        // next 2 bytes unknown
+
+        memcpy(&pData[14], &LFO3InternalDepth, 2);
+
+        // next 2 bytes unknown
+
+        memcpy(&pData[18], &LFO1ControlDepth, 2);
+
+        // next 2 bytes unknown
+
+        memcpy(&pData[22], &LFO3ControlDepth, 2);
+
+        const int32_t eg1attack = (int32_t) GIG_EXP_ENCODE(EG1Attack);
+        memcpy(&pData[24], &eg1attack, 4);
+
+        const int32_t eg1decay1 = (int32_t) GIG_EXP_ENCODE(EG1Decay1);
+        memcpy(&pData[28], &eg1decay1, 4);
+
+        // next 2 bytes unknown
+
+        memcpy(&pData[34], &EG1Sustain, 2);
+
+        const int32_t eg1release = (int32_t) GIG_EXP_ENCODE(EG1Release);
+        memcpy(&pData[36], &eg1release, 4);
+
+        const uint8_t eg1ctl = (uint8_t) EncodeLeverageController(EG1Controller);
+        memcpy(&pData[40], &eg1ctl, 1);
+
+        const uint8_t eg1ctrloptions =
+            (EG1ControllerInvert) ? 0x01 : 0x00 |
+            GIG_EG_CTR_ATTACK_INFLUENCE_ENCODE(EG1ControllerAttackInfluence) |
+            GIG_EG_CTR_DECAY_INFLUENCE_ENCODE(EG1ControllerDecayInfluence) |
+            GIG_EG_CTR_RELEASE_INFLUENCE_ENCODE(EG1ControllerReleaseInfluence);
+        memcpy(&pData[41], &eg1ctrloptions, 1);
+
+        const uint8_t eg2ctl = (uint8_t) EncodeLeverageController(EG2Controller);
+        memcpy(&pData[42], &eg2ctl, 1);
+
+        const uint8_t eg2ctrloptions =
+            (EG2ControllerInvert) ? 0x01 : 0x00 |
+            GIG_EG_CTR_ATTACK_INFLUENCE_ENCODE(EG2ControllerAttackInfluence) |
+            GIG_EG_CTR_DECAY_INFLUENCE_ENCODE(EG2ControllerDecayInfluence) |
+            GIG_EG_CTR_RELEASE_INFLUENCE_ENCODE(EG2ControllerReleaseInfluence);
+        memcpy(&pData[43], &eg2ctrloptions, 1);
+
+        const int32_t lfo1freq = (int32_t) GIG_EXP_ENCODE(LFO1Frequency);
+        memcpy(&pData[44], &lfo1freq, 4);
+
+        const int32_t eg2attack = (int32_t) GIG_EXP_ENCODE(EG2Attack);
+        memcpy(&pData[48], &eg2attack, 4);
+
+        const int32_t eg2decay1 = (int32_t) GIG_EXP_ENCODE(EG2Decay1);
+        memcpy(&pData[52], &eg2decay1, 4);
+
+        // next 2 bytes unknown
+
+        memcpy(&pData[58], &EG2Sustain, 2);
+
+        const int32_t eg2release = (int32_t) GIG_EXP_ENCODE(EG2Release);
+        memcpy(&pData[60], &eg2release, 4);
+
+        // next 2 bytes unknown
+
+        memcpy(&pData[66], &LFO2ControlDepth, 2);
+
+        const int32_t lfo2freq = (int32_t) GIG_EXP_ENCODE(LFO2Frequency);
+        memcpy(&pData[68], &lfo2freq, 4);
+
+        // next 2 bytes unknown
+
+        memcpy(&pData[72], &LFO2InternalDepth, 2);
+
+        const int32_t eg1decay2 = (int32_t) (EG1InfiniteSustain) ? 0x7fffffff : (int32_t) GIG_EXP_ENCODE(EG1Decay2);
+        memcpy(&pData[74], &eg1decay2, 4);
+
+        // next 2 bytes unknown
+
+        memcpy(&pData[80], &EG1PreAttack, 2);
+
+        const int32_t eg2decay2 = (int32_t) (EG2InfiniteSustain) ? 0x7fffffff : (int32_t) GIG_EXP_ENCODE(EG2Decay2);
+        memcpy(&pData[82], &eg2decay2, 4);
+
+        // next 2 bytes unknown
+
+        memcpy(&pData[88], &EG2PreAttack, 2);
+
+        {
+            if (VelocityResponseDepth > 4) throw Exception("VelocityResponseDepth must be between 0 and 4");
+            uint8_t velocityresponse = VelocityResponseDepth;
+            switch (VelocityResponseCurve) {
+                case curve_type_nonlinear:
+                    break;
+                case curve_type_linear:
+                    velocityresponse += 5;
+                    break;
+                case curve_type_special:
+                    velocityresponse += 10;
+                    break;
+                case curve_type_unknown:
+                default:
+                    throw Exception("Could not update DimensionRegion's chunk, unknown VelocityResponseCurve selected");
+            }
+            memcpy(&pData[90], &velocityresponse, 1);
+        }
+
+        {
+            if (ReleaseVelocityResponseDepth > 4) throw Exception("ReleaseVelocityResponseDepth must be between 0 and 4");
+            uint8_t releasevelocityresponse = ReleaseVelocityResponseDepth;
+            switch (ReleaseVelocityResponseCurve) {
+                case curve_type_nonlinear:
+                    break;
+                case curve_type_linear:
+                    releasevelocityresponse += 5;
+                    break;
+                case curve_type_special:
+                    releasevelocityresponse += 10;
+                    break;
+                case curve_type_unknown:
+                default:
+                    throw Exception("Could not update DimensionRegion's chunk, unknown ReleaseVelocityResponseCurve selected");
+            }
+            memcpy(&pData[91], &releasevelocityresponse, 1);
+        }
+
+        memcpy(&pData[92], &VelocityResponseCurveScaling, 1);
+
+        memcpy(&pData[93], &AttenuationControllerThreshold, 1);
+
+        // next 4 bytes unknown
+
+        memcpy(&pData[98], &SampleStartOffset, 2);
+
+        // next 2 bytes unknown
+
+        {
+            uint8_t pitchTrackDimensionBypass = GIG_PITCH_TRACK_ENCODE(PitchTrack);
+            switch (DimensionBypass) {
+                case dim_bypass_ctrl_94:
+                    pitchTrackDimensionBypass |= 0x10;
+                    break;
+                case dim_bypass_ctrl_95:
+                    pitchTrackDimensionBypass |= 0x20;
+                    break;
+                case dim_bypass_ctrl_none:
+                    //FIXME: should we set anything here?
+                    break;
+                default:
+                    throw Exception("Could not update DimensionRegion's chunk, unknown DimensionBypass selected");
+            }
+            memcpy(&pData[102], &pitchTrackDimensionBypass, 1);
+        }
+
+        const uint8_t pan = (Pan >= 0) ? Pan : ((-Pan) + 63); // signed 8 bit -> signed 7 bit
+        memcpy(&pData[103], &pan, 1);
+
+        const uint8_t selfmask = (SelfMask) ? 0x01 : 0x00;
+        memcpy(&pData[104], &selfmask, 1);
+
+        // next byte unknown
+
+        {
+            uint8_t lfo3ctrl = LFO3Controller & 0x07; // lower 3 bits
+            if (LFO3Sync) lfo3ctrl |= 0x20; // bit 5
+            if (InvertAttenuationController) lfo3ctrl |= 0x80; // bit 7
+            if (VCFType == vcf_type_lowpassturbo) lfo3ctrl |= 0x40; // bit 6
+            memcpy(&pData[106], &lfo3ctrl, 1);
+        }
+
+        const uint8_t attenctl = EncodeLeverageController(AttenuationController);
+        memcpy(&pData[107], &attenctl, 1);
+
+        {
+            uint8_t lfo2ctrl = LFO2Controller & 0x07; // lower 3 bits
+            if (LFO2FlipPhase) lfo2ctrl |= 0x80; // bit 7
+            if (LFO2Sync)      lfo2ctrl |= 0x20; // bit 5
+            if (VCFResonanceController != vcf_res_ctrl_none) lfo2ctrl |= 0x40; // bit 6
+            memcpy(&pData[108], &lfo2ctrl, 1);
+        }
+
+        {
+            uint8_t lfo1ctrl = LFO1Controller & 0x07; // lower 3 bits
+            if (LFO1FlipPhase) lfo1ctrl |= 0x80; // bit 7
+            if (LFO1Sync)      lfo1ctrl |= 0x40; // bit 6
+            if (VCFResonanceController != vcf_res_ctrl_none)
+                lfo1ctrl |= GIG_VCF_RESONANCE_CTRL_ENCODE(VCFResonanceController);
+            memcpy(&pData[109], &lfo1ctrl, 1);
+        }
+
+        const uint16_t eg3depth = (EG3Depth >= 0) ? EG3Depth
+                                                  : uint16_t(((-EG3Depth) - 1) ^ 0xffff); /* binary complementary for negatives */
+        memcpy(&pData[110], &eg3depth, 1);
+
+        // next 2 bytes unknown
+
+        const uint8_t channeloffset = ChannelOffset * 4;
+        memcpy(&pData[113], &channeloffset, 1);
+
+        {
+            uint8_t regoptions = 0;
+            if (MSDecode)      regoptions |= 0x01; // bit 0
+            if (SustainDefeat) regoptions |= 0x02; // bit 1
+            memcpy(&pData[114], &regoptions, 1);
+        }
+
+        // next 2 bytes unknown
+
+        memcpy(&pData[117], &VelocityUpperLimit, 1);
+
+        // next 3 bytes unknown
+
+        memcpy(&pData[121], &ReleaseTriggerDecay, 1);
+
+        // next 2 bytes unknown
+
+        const uint8_t eg1hold = (EG1Hold) ? 0x80 : 0x00; // bit 7
+        memcpy(&pData[124], &eg1hold, 1);
+
+        const uint8_t vcfcutoff = (VCFEnabled) ? 0x80 : 0x00 |  /* bit 7 */
+                                  (VCFCutoff)  ? 0x7f : 0x00;   /* lower 7 bits */
+        memcpy(&pData[125], &vcfcutoff, 1);
+
+        memcpy(&pData[126], &VCFCutoffController, 1);
+
+        const uint8_t vcfvelscale = (VCFCutoffControllerInvert) ? 0x80 : 0x00 | /* bit 7 */
+                                    (VCFVelocityScale) ? 0x7f : 0x00; /* lower 7 bits */
+        memcpy(&pData[127], &vcfvelscale, 1);
+
+        // next byte unknown
+
+        const uint8_t vcfresonance = (VCFResonanceDynamic) ? 0x00 : 0x80 | /* bit 7 */
+                                     (VCFResonance) ? 0x7f : 0x00; /* lower 7 bits */
+        memcpy(&pData[129], &vcfresonance, 1);
+
+        const uint8_t vcfbreakpoint = (VCFKeyboardTracking) ? 0x80 : 0x00 | /* bit 7 */
+                                      (VCFKeyboardTrackingBreakpoint) ? 0x7f : 0x00; /* lower 7 bits */
+        memcpy(&pData[130], &vcfbreakpoint, 1);
+
+        const uint8_t vcfvelocity = VCFVelocityDynamicRange % 5 |
+                                    VCFVelocityCurve * 5;
+        memcpy(&pData[131], &vcfvelocity, 1);
+
+        const uint8_t vcftype = (VCFType == vcf_type_lowpassturbo) ? vcf_type_lowpass : VCFType;
+        memcpy(&pData[132], &vcftype, 1);
     }
 
     // get the corresponding velocity table from the table map or create & calculate that table if it doesn't exist yet
@@ -1318,6 +1856,101 @@ namespace {
                 throw gig::Exception("Unknown leverage controller type.");
         }
         return decodedcontroller;
+    }
+
+    DimensionRegion::_lev_ctrl_t DimensionRegion::EncodeLeverageController(leverage_ctrl_t DecodedController) {
+        _lev_ctrl_t encodedcontroller;
+        switch (DecodedController.type) {
+            // special controller
+            case leverage_ctrl_t::type_none:
+                encodedcontroller = _lev_ctrl_none;
+                break;
+            case leverage_ctrl_t::type_velocity:
+                encodedcontroller = _lev_ctrl_velocity;
+                break;
+            case leverage_ctrl_t::type_channelaftertouch:
+                encodedcontroller = _lev_ctrl_channelaftertouch;
+                break;
+
+            // ordinary MIDI control change controller
+            case leverage_ctrl_t::type_controlchange:
+                switch (DecodedController.controller_number) {
+                    case 1:
+                        encodedcontroller = _lev_ctrl_modwheel;
+                        break;
+                    case 2:
+                        encodedcontroller = _lev_ctrl_breath;
+                        break;
+                    case 4:
+                        encodedcontroller = _lev_ctrl_foot;
+                        break;
+                    case 12:
+                        encodedcontroller = _lev_ctrl_effect1;
+                        break;
+                    case 13:
+                        encodedcontroller = _lev_ctrl_effect2;
+                        break;
+                    case 16:
+                        encodedcontroller = _lev_ctrl_genpurpose1;
+                        break;
+                    case 17:
+                        encodedcontroller = _lev_ctrl_genpurpose2;
+                        break;
+                    case 18:
+                        encodedcontroller = _lev_ctrl_genpurpose3;
+                        break;
+                    case 19:
+                        encodedcontroller = _lev_ctrl_genpurpose4;
+                        break;
+                    case 5:
+                        encodedcontroller = _lev_ctrl_portamentotime;
+                        break;
+                    case 64:
+                        encodedcontroller = _lev_ctrl_sustainpedal;
+                        break;
+                    case 65:
+                        encodedcontroller = _lev_ctrl_portamento;
+                        break;
+                    case 66:
+                        encodedcontroller = _lev_ctrl_sostenutopedal;
+                        break;
+                    case 67:
+                        encodedcontroller = _lev_ctrl_softpedal;
+                        break;
+                    case 80:
+                        encodedcontroller = _lev_ctrl_genpurpose5;
+                        break;
+                    case 81:
+                        encodedcontroller = _lev_ctrl_genpurpose6;
+                        break;
+                    case 82:
+                        encodedcontroller = _lev_ctrl_genpurpose7;
+                        break;
+                    case 83:
+                        encodedcontroller = _lev_ctrl_genpurpose8;
+                        break;
+                    case 91:
+                        encodedcontroller = _lev_ctrl_effect1depth;
+                        break;
+                    case 92:
+                        encodedcontroller = _lev_ctrl_effect2depth;
+                        break;
+                    case 93:
+                        encodedcontroller = _lev_ctrl_effect3depth;
+                        break;
+                    case 94:
+                        encodedcontroller = _lev_ctrl_effect4depth;
+                        break;
+                    case 95:
+                        encodedcontroller = _lev_ctrl_effect5depth;
+                        break;
+                    default:
+                        throw gig::Exception("leverage controller number is not supported by the gig format");
+                }
+            default:
+                throw gig::Exception("Unknown leverage controller type.");
+        }
+        return encodedcontroller;
     }
 
     DimensionRegion::~DimensionRegion() {
@@ -1494,20 +2127,7 @@ namespace {
                     else { // custom defined ranges
                         pDimDef->split_type = split_type_customvelocity;
                         pDimDef->ranges     = new range_t[pDimDef->zones];
-                        uint8_t bits[8] = { 0 };
-                        int previousUpperLimit = -1;
-                        for (int velocityZone = 0; velocityZone < pDimDef->zones; velocityZone++) {
-                            bits[i] = velocityZone;
-                            DimensionRegion* pDimRegion = GetDimensionRegionByBit(bits);
-
-                            pDimDef->ranges[velocityZone].low  = previousUpperLimit + 1;
-                            pDimDef->ranges[velocityZone].high = pDimRegion->VelocityUpperLimit;
-                            previousUpperLimit = pDimDef->ranges[velocityZone].high;
-                            // fill velocity table
-                            for (int i = pDimDef->ranges[velocityZone].low; i <= pDimDef->ranges[velocityZone].high; i++) {
-                                VelocityTable[i] = velocityZone;
-                            }
-                        }
+                        UpdateVelocityTable(pDimDef);
                     }
                 }
             }
@@ -1525,7 +2145,62 @@ namespace {
                 pDimensionRegions[i]->pSample = GetSampleFromWavePool(wavepoolindex);
             }
         }
-        else throw gig::Exception("Mandatory <3lnk> chunk not found.");
+    }
+
+    /**
+     * Apply Region settings and all its DimensionRegions to the respective
+     * RIFF chunks. You have to call File::Save() to make changes persistent.
+     *
+     * Usually there is absolutely no need to call this method explicitly.
+     * It will be called automatically when File::Save() was called.
+     *
+     * @throws gig::Exception if samples cannot be dereferenced
+     */
+    void Region::UpdateChunks() {
+        // first update base class's chunks
+        DLS::Region::UpdateChunks();
+
+        // update dimension region's chunks
+        for (int i = 0; i < Dimensions; i++)
+            pDimensionRegions[i]->UpdateChunks();
+
+        File* pFile = (File*) GetParent()->GetParent();
+        const int iMaxDimensions = (pFile->pVersion && pFile->pVersion->major == 3) ? 8 : 5;
+        const int iMaxDimensionRegions = (pFile->pVersion && pFile->pVersion->major == 3) ? 256 : 32;
+
+        // make sure '3lnk' chunk exists
+        RIFF::Chunk* _3lnk = pCkRegion->GetSubChunk(CHUNK_ID_3LNK);
+        if (!_3lnk) {
+            const int _3lnkChunkSize = (pFile->pVersion && pFile->pVersion->major == 3) ? 1092 : 172;
+            _3lnk = pCkRegion->AddSubChunk(CHUNK_ID_3LNK, _3lnkChunkSize);
+        }
+
+        // update dimension definitions in '3lnk' chunk
+        uint8_t* pData = (uint8_t*) _3lnk->LoadChunkData();
+        for (int i = 0; i < iMaxDimensions; i++) {
+            pData[i * 8]     = (uint8_t) pDimensionDefinitions[i].dimension;
+            pData[i * 8 + 1] = pDimensionDefinitions[i].bits;
+            // next 2 bytes unknown
+            pData[i * 8 + 4] = pDimensionDefinitions[i].zones;
+            // next 3 bytes unknown
+        }
+
+        // update wave pool table in '3lnk' chunk
+        const int iWavePoolOffset = (pFile->pVersion && pFile->pVersion->major == 3) ? 68 : 44;
+        for (uint i = 0; i < iMaxDimensionRegions; i++) {
+            int iWaveIndex = -1;
+            if (i < DimensionRegions) {
+                if (!pFile->pSamples) throw gig::Exception("Could not update gig::Region, there are no samples");
+                std::list<Sample*>::iterator iter = pFile->pSamples->begin();
+                std::list<Sample*>::iterator end  = pFile->pSamples->end();
+                for (int index = 0; iter != end; ++iter, ++index) {
+                    if (*iter == pDimensionRegions[i]->pSample) iWaveIndex = index;
+                    break;
+                }
+                if (iWaveIndex < 0) throw gig::Exception("Could not update gig::Region, could not find DimensionRegion's sample");
+            }
+            memcpy(&pData[iWavePoolOffset + i * 4], &iWaveIndex, 4);
+        }
     }
 
     void Region::LoadDimensionRegions(RIFF::List* rgn) {
@@ -1542,6 +2217,169 @@ namespace {
             }
             if (dimensionRegionNr == 0) throw gig::Exception("No dimension region found.");
         }
+    }
+
+    void Region::UpdateVelocityTable(dimension_def_t* pDimDef) {
+        // get dimension's index
+        int iDimensionNr = -1;
+        for (int i = 0; i < Dimensions; i++) {
+            if (&pDimensionDefinitions[i] == pDimDef) {
+                iDimensionNr = i;
+                break;
+            }
+        }
+        if (iDimensionNr < 0) throw gig::Exception("Invalid dimension_def_t pointer");
+
+        uint8_t bits[8] = { 0 };
+        int previousUpperLimit = -1;
+        for (int velocityZone = 0; velocityZone < pDimDef->zones; velocityZone++) {
+            bits[iDimensionNr] = velocityZone;
+            DimensionRegion* pDimRegion = GetDimensionRegionByBit(bits);
+
+            pDimDef->ranges[velocityZone].low  = previousUpperLimit + 1;
+            pDimDef->ranges[velocityZone].high = pDimRegion->VelocityUpperLimit;
+            previousUpperLimit = pDimDef->ranges[velocityZone].high;
+            // fill velocity table
+            for (int i = pDimDef->ranges[velocityZone].low; i <= pDimDef->ranges[velocityZone].high; i++) {
+                VelocityTable[i] = velocityZone;
+            }
+        }
+    }
+
+    /** @brief Einstein would have dreamed of it - create a new dimension.
+     *
+     * Creates a new dimension with the dimension definition given by
+     * \a pDimDef. The appropriate amount of DimensionRegions will be created.
+     * There is a hard limit of dimensions and total amount of "bits" all
+     * dimensions can have. This limit is dependant to what gig file format
+     * version this file refers to. The gig v2 (and lower) format has a
+     * dimension limit and total amount of bits limit of 5, whereas the gig v3
+     * format has a limit of 8.
+     *
+     * @param pDimDef - defintion of the new dimension
+     * @throws gig::Exception if dimension of the same type exists already
+     * @throws gig::Exception if amount of dimensions or total amount of
+     *                        dimension bits limit is violated
+     */
+    void Region::AddDimension(dimension_def_t* pDimDef) {
+        // check if max. amount of dimensions reached
+        File* file = (File*) GetParent()->GetParent();
+        const int iMaxDimensions = (file->pVersion && file->pVersion->major == 3) ? 8 : 5;
+        if (Dimensions >= iMaxDimensions)
+            throw gig::Exception("Could not add new dimension, max. amount of " + ToString(iMaxDimensions) + " dimensions already reached");
+        // check if max. amount of dimension bits reached
+        int iCurrentBits = 0;
+        for (int i = 0; i < Dimensions; i++)
+            iCurrentBits += pDimensionDefinitions[i].bits;
+        if (iCurrentBits >= iMaxDimensions)
+            throw gig::Exception("Could not add new dimension, max. amount of " + ToString(iMaxDimensions) + " dimension bits already reached");
+        const int iNewBits = iCurrentBits + pDimDef->bits;
+        if (iNewBits > iMaxDimensions)
+            throw gig::Exception("Could not add new dimension, new dimension would exceed max. amount of " + ToString(iMaxDimensions) + " dimension bits");
+        // check if there's already a dimensions of the same type
+        for (int i = 0; i < Dimensions; i++)
+            if (pDimensionDefinitions[i].dimension == pDimDef->dimension)
+                throw gig::Exception("Could not add new dimension, there is already a dimension of the same type");
+
+        // assign definition of new dimension
+        pDimensionDefinitions[Dimensions] = *pDimDef;
+
+        // create new dimension region(s) for this new dimension
+        for (int i = 1 << iCurrentBits; i < 1 << iNewBits; i++) {
+            //TODO: maybe we should copy existing dimension regions if possible instead of simply creating new ones with default values
+            RIFF::List* pNewDimRgnListChunk = pCkRegion->AddSubList(LIST_TYPE_3EWL);
+            pDimensionRegions[i] = new DimensionRegion(pNewDimRgnListChunk);
+            DimensionRegions++;
+        }
+
+        Dimensions++;
+
+        // if this is a layer dimension, update 'Layers' attribute
+        if (pDimDef->dimension == dimension_layer) Layers = pDimDef->zones;
+
+        // if this is velocity dimension and got custom defined ranges, update velocity table
+        if (pDimDef->dimension  == dimension_velocity &&
+            pDimDef->split_type == split_type_customvelocity) {
+            UpdateVelocityTable(pDimDef);
+        }
+    }
+
+    /** @brief Delete an existing dimension.
+     *
+     * Deletes the dimension given by \a pDimDef and deletes all respective
+     * dimension regions, that is all dimension regions where the dimension's
+     * bit(s) part is greater than 0. In case of a 'sustain pedal' dimension
+     * for example this would delete all dimension regions for the case(s)
+     * where the sustain pedal is pressed down.
+     *
+     * @param pDimDef - dimension to delete
+     * @throws gig::Exception if given dimension cannot be found
+     */
+    void Region::DeleteDimension(dimension_def_t* pDimDef) {
+        // get dimension's index
+        int iDimensionNr = -1;
+        for (int i = 0; i < Dimensions; i++) {
+            if (&pDimensionDefinitions[i] == pDimDef) {
+                iDimensionNr = i;
+                break;
+            }
+        }
+        if (iDimensionNr < 0) throw gig::Exception("Invalid dimension_def_t pointer");
+
+        // get amount of bits below the dimension to delete
+        int iLowerBits = 0;
+        for (int i = 0; i < iDimensionNr; i++)
+            iLowerBits += pDimensionDefinitions[i].bits;
+
+        // get amount ot bits above the dimension to delete
+        int iUpperBits = 0;
+        for (int i = iDimensionNr + 1; i < Dimensions; i++)
+            iUpperBits += pDimensionDefinitions[i].bits;
+
+        // delete dimension regions which belong to the given dimension
+        // (that is where the dimension's bit > 0)
+        for (int iUpperBit = 0; iUpperBit < 1 << iUpperBits; iUpperBit++) {
+            for (int iObsoleteBit = 1; iObsoleteBit < 1 << pDimensionDefinitions[iDimensionNr].bits; iObsoleteBit++) {
+                for (int iLowerBit = 0; iLowerBit < 1 << iLowerBits; iLowerBit++) {
+                    int iToDelete = iUpperBit    << (pDimensionDefinitions[iDimensionNr].bits + iLowerBits) |
+                                    iObsoleteBit << iLowerBits |
+                                    iLowerBit;
+                    delete pDimensionRegions[iToDelete];
+                    pDimensionRegions[iToDelete] = NULL;
+                    DimensionRegions--;
+                }
+            }
+        }
+
+        // defrag pDimensionRegions array
+        // (that is remove the NULL spaces within the pDimensionRegions array)
+        for (int iFrom = 2, iTo = 1; iFrom < 256 && iTo < 256 - 1; iTo++) {
+            if (!pDimensionRegions[iTo]) {
+                if (iFrom <= iTo) iFrom = iTo + 1;
+                while (!pDimensionRegions[iFrom] && iFrom < 256) iFrom++;
+                if (iFrom < 256 && pDimensionRegions[iFrom]) {
+                    pDimensionRegions[iTo]   = pDimensionRegions[iFrom];
+                    pDimensionRegions[iFrom] = NULL;
+                }
+            }
+        }
+
+        // 'remove' dimension definition
+        for (int i = iDimensionNr + 1; i < Dimensions; i++) {
+            pDimensionDefinitions[i - 1] = pDimensionDefinitions[i];
+        }
+        pDimensionDefinitions[Dimensions - 1].dimension = dimension_none;
+        pDimensionDefinitions[Dimensions - 1].bits      = 0;
+        pDimensionDefinitions[Dimensions - 1].zones     = 0;
+        if (pDimensionDefinitions[Dimensions - 1].ranges) {
+            delete[] pDimensionDefinitions[Dimensions - 1].ranges;
+            pDimensionDefinitions[Dimensions - 1].ranges = NULL;
+        }
+
+        Dimensions--;
+
+        // if this was a layer dimension, update 'Layers' attribute
+        if (pDimDef->dimension == dimension_layer) Layers = 1;
     }
 
     Region::~Region() {
@@ -1663,33 +2501,35 @@ namespace {
                 DimensionKeyRange.low  = dimkeystart >> 1;
                 DimensionKeyRange.high = _3ewg->ReadUint8();
             }
-            else throw gig::Exception("Mandatory <3ewg> chunk not found.");
         }
-        else throw gig::Exception("Mandatory <lart> list chunk not found.");
 
-        RIFF::List* lrgn = insList->GetSubList(LIST_TYPE_LRGN);
-        if (!lrgn) throw gig::Exception("Mandatory chunks in <ins > chunk not found.");
         pRegions = new Region*[Regions];
-        for (uint i = 0; i < Regions; i++) pRegions[i] = NULL;
-        RIFF::List* rgn = lrgn->GetFirstSubList();
-        unsigned int iRegion = 0;
-        while (rgn) {
-            if (rgn->GetListType() == LIST_TYPE_RGN) {
-                __notify_progress(pProgress, (float) iRegion / (float) Regions);
-                pRegions[iRegion] = new Region(this, rgn);
-                iRegion++;
+        RIFF::List* lrgn = insList->GetSubList(LIST_TYPE_LRGN);
+        if (lrgn) {
+            for (uint i = 0; i < Regions; i++) pRegions[i] = NULL;
+            RIFF::List* rgn = lrgn->GetFirstSubList();
+            unsigned int iRegion = 0;
+            while (rgn) {
+                if (rgn->GetListType() == LIST_TYPE_RGN) {
+                    __notify_progress(pProgress, (float) iRegion / (float) Regions);
+                    pRegions[iRegion] = new Region(this, rgn);
+                    iRegion++;
+                }
+                rgn = lrgn->GetNextSubList();
             }
-            rgn = lrgn->GetNextSubList();
+            // Creating Region Key Table for fast lookup
+            UpdateRegionKeyTable();
         }
 
-        // Creating Region Key Table for fast lookup
+        __notify_progress(pProgress, 1.0f); // notify done
+    }
+
+    void Instrument::UpdateRegionKeyTable() {
         for (uint iReg = 0; iReg < Regions; iReg++) {
             for (int iKey = pRegions[iReg]->KeyRange.low; iKey <= pRegions[iReg]->KeyRange.high; iKey++) {
                 RegionKeyTable[iKey] = pRegions[iReg];
             }
         }
-
-        __notify_progress(pProgress, 1.0f); // notify done
     }
 
     Instrument::~Instrument() {
@@ -1699,6 +2539,41 @@ namespace {
             }
         }
         if (pRegions) delete[] pRegions;
+    }
+
+    /**
+     * Apply Instrument with all its Regions to the respective RIFF chunks.
+     * You have to call File::Save() to make changes persistent.
+     *
+     * Usually there is absolutely no need to call this method explicitly.
+     * It will be called automatically when File::Save() was called.
+     *
+     * @throws gig::Exception if samples cannot be dereferenced
+     */
+    void Instrument::UpdateChunks() {
+        // first update base classes' chunks
+        DLS::Instrument::UpdateChunks();
+
+        // update Regions' chunks
+        for (int i = 0; i < Regions; i++)
+            pRegions[i]->UpdateChunks();
+
+        // make sure 'lart' RIFF list chunk exists
+        RIFF::List* lart = pCkInstrument->GetSubList(LIST_TYPE_LART);
+        if (!lart)  lart = pCkInstrument->AddSubList(LIST_TYPE_LART);
+        // make sure '3ewg' RIFF chunk exists
+        RIFF::Chunk* _3ewg = lart->GetSubChunk(CHUNK_ID_3EWG);
+        if (!_3ewg)  _3ewg = lart->AddSubChunk(CHUNK_ID_3EWG, 12);
+        // update '3ewg' RIFF chunk
+        uint8_t* pData = (uint8_t*) _3ewg->LoadChunkData();
+        memcpy(&pData[0], &EffectSend, 2);
+        memcpy(&pData[2], &Attenuation, 4);
+        memcpy(&pData[6], &FineTune, 2);
+        memcpy(&pData[8], &PitchbendRange, 2);
+        const uint8_t dimkeystart = (PianoReleaseMode) ? 0x01 : 0x00 |
+                                    DimensionKeyRange.low << 1;
+        memcpy(&pData[10], &dimkeystart, 1);
+        memcpy(&pData[11], &DimensionKeyRange.high, 1);
     }
 
     /**
@@ -1744,10 +2619,57 @@ namespace {
         return pRegions[RegionIndex++];
     }
 
+    Region* Instrument::AddRegion() {
+        // create new Region object (and its RIFF chunks)
+        RIFF::List* lrgn = pCkInstrument->GetSubList(LIST_TYPE_LRGN);
+        if (!lrgn)  lrgn = pCkInstrument->AddSubList(LIST_TYPE_LRGN);
+        RIFF::List* rgn = lrgn->AddSubList(LIST_TYPE_RGN);
+        Region* pNewRegion = new Region(this, rgn);
+        // resize 'pRegions' array (increase by one)
+        Region** pNewRegions = new Region*[Regions + 1];
+        memcpy(pNewRegions, pRegions, Regions * sizeof(Region*));
+        // add new Region object
+        pNewRegions[Regions] = pNewRegion;
+        // replace old 'pRegions' array by the new increased array
+        if (pRegions) delete[] pRegions;
+        pRegions = pNewRegions;
+        Regions++;
+        // update Region key table for fast lookup
+        UpdateRegionKeyTable();
+        // done
+        return pNewRegion;
+    }
+
+    void Instrument::DeleteRegion(Region* pRegion) {
+        if (!pRegions) return;
+        int iOffset = 0;
+        // resize 'pRegions' array (decrease by one)
+        Region** pNewRegions = new Region*[Regions - 1];
+        for (int i = 0; i < Regions; i++) {
+            if (pRegions[i] == pRegion) { // found Region to delete
+                iOffset = 1;
+                delete pRegion;
+            }
+            if (i < Regions - 1) pNewRegions[i] = pRegions[i + iOffset];
+        }
+        if (!iOffset) throw gig::Exception("There is no such gig::Region to delete");
+        // replace old 'pRegions' array by the new decreased array
+        if (pRegions) delete[] pRegions;
+        pRegions = pNewRegions;
+        Regions--;
+        // update Region key table for fast lookup
+        UpdateRegionKeyTable();
+    }
+
 
 
 // *************** File ***************
 // *
+
+    File::File() : DLS::File() {
+        pSamples     = NULL;
+        pInstruments = NULL;
+    }
 
     File::File(RIFF::File* pRIFF) : DLS::File(pRIFF) {
         pSamples     = NULL;
@@ -1792,6 +2714,41 @@ namespace {
         if (!pSamples) return NULL;
         SamplesIterator++;
         return static_cast<gig::Sample*>( (SamplesIterator != pSamples->end()) ? *SamplesIterator : NULL );
+    }
+
+    /** @brief Add a new sample.
+     *
+     * This will create a new Sample object for the gig file. You have to
+     * call Save() to make this persistent to the file.
+     *
+     * @returns pointer to new Sample object
+     */
+    Sample* File::AddSample() {
+       if (!pSamples) LoadSamples();
+       __ensureMandatoryChunksExist();
+       RIFF::List* wvpl = pRIFF->GetSubList(LIST_TYPE_WVPL);
+       // create new Sample object and its respective 'wave' list chunk
+       if (!pSamples) pSamples = new SampleList;
+       RIFF::List* wave = wvpl->AddSubList(LIST_TYPE_WAVE);
+       Sample* pSample = new Sample(this, wave, 0 /*arbitrary value, we update offsets when we save*/);
+       pSamples->push_back(pSample);
+       return pSample;
+    }
+
+    /** @brief Delete a sample.
+     *
+     * This will delete the given Sample object from the gig file. You have
+     * to call Save() to make this persistent to the file.
+     *
+     * @param pSample - sample to delete
+     * @throws gig::Exception if given sample could not be found
+     */
+    void File::DeleteSample(Sample* pSample) {
+        if (!pSamples) throw gig::Exception("Could not delete sample as there are no samples");
+        SampleList::iterator iter = find(pSamples->begin(), pSamples->end(), pSample);
+        if (iter == pSamples->end()) throw gig::Exception("Could not delete sample, could not find given sample");
+        pSamples->erase(iter);
+        delete pSample;
     }
 
     void File::LoadSamples(progress_t* pProgress) {
@@ -1893,6 +2850,40 @@ namespace {
             InstrumentsIterator++;
         }
         return NULL;
+    }
+
+    /** @brief Add a new instrument definition.
+     *
+     * This will create a new Instrument object for the gig file. You have
+     * to call Save() to make this persistent to the file.
+     *
+     * @returns pointer to new Instrument object
+     */
+    Instrument* File::AddInstrument() {
+       if (!pInstruments) LoadInstruments();
+       __ensureMandatoryChunksExist();
+       if (!pInstruments) pInstruments = new InstrumentList;
+       RIFF::List* lstInstruments = pRIFF->GetSubList(LIST_TYPE_LINS);
+       RIFF::List* lstInstr = lstInstruments->AddSubList(LIST_TYPE_INS);
+       Instrument* pInstrument = new Instrument(this, lstInstr);
+       pInstruments->push_back(pInstrument);
+       return pInstrument;
+    }
+
+    /** @brief Delete an instrument.
+     *
+     * This will delete the given Instrument object from the gig file. You
+     * have to call Save() to make this persistent to the file.
+     *
+     * @param pInstrument - instrument to delete
+     * @throws gig::Excption if given instrument could not be found
+     */
+    void File::DeleteInstrument(Instrument* pInstrument) {
+        if (!pInstruments) throw gig::Exception("Could not delete instrument as there are no instruments");
+        InstrumentList::iterator iter = find(pInstruments->begin(), pInstruments->end(), pInstrument);
+        if (iter == pInstruments->end()) throw gig::Exception("Could not delete instrument, could not find given instrument");
+        pInstruments->erase(iter);
+        delete pInstrument;
     }
 
     void File::LoadInstruments(progress_t* pProgress) {

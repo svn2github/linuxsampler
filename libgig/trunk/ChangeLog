@@ -1,13 +1,17 @@
 Version CVS HEAD (?)
 
   * general changes:
-    - added write support (only to the RIFF and DLS classes yet)
+    - added write support (that is for creating and modifying RIFF, DLS and
+      gig files)
+    - loading DLS and gig files is now much more permissive, DLS and gig
+      files are now loaded even if mandatory RIFF chunks are missing
 
   * src/gig.cpp, src/gig.h:
     - fixed the GetVelocityCutoff function, it wasn't always using the
       VCFVelocityScale parameter when no cutoff controller was defined
     - support for the gig v3 feature to have a number of dimension
       splits not equal to a power of two
+    - added write support (highly experimental)
 
   * src/DLS.cpp, src/DLS.h:
     - fixed loading of Articulation Connections (<artl> list chunks were
@@ -20,6 +24,10 @@ Version CVS HEAD (?)
       after a Chunk::Resize() and before the File::Save() call to allow
       placing the new data in the chunk's write buffer and perform the
       resize and write operations in one rush
+
+  * src/gigdump.cpp:
+    - fixed to show the correct amount of dimension regions instead of 32
+      (patch by James Wylder)
 
   * src/dlsdump.cpp:
     - show for every region the name of the referenced sample
