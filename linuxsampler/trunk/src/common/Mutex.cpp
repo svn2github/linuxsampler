@@ -24,7 +24,9 @@
 # define _GNU_SOURCE 1 /* so _XOPEN_SOURCE will be defined by features.h */
 #endif
 
-#include <features.h>
+#if defined(HAVE_FEATURES_H) && (HAVE_FEATURE  != 0)
+# include <features.h>
+#endif
 
 #if !defined(_XOPEN_SOURCE) || _XOPEN_SOURCE < 500
 # undef _XOPEN_SOURCE
