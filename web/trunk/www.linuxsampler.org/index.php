@@ -129,6 +129,13 @@
                 <tr>
                   <td valign=top>
                     <p class="default">
+			  <b>2005-11-24</b> Latest <a href="http://cvs.linuxsampler.org">CVS version</a>
+			  of <a href="http://stud.fh-heilbronn.de/~cschoene/projects/libgig/">libgig</a>
+			  now allows to create and modify Gigasampler files
+			  (<a href="http://sourceforge.net/mailarchive/forum.php?thread_id=9051147&forum_id=12792">read announcement</a>).
+			  Please let <a href="http://www.linuxsampler.org/developers.html">us</a>
+			  know if you are interested in writing an instrument patch editor.<br>
+		      <br>
 		      <b>2005-10-10</b> <a href="http://prdownloads.sourceforge.net/jsampler/js-classic.jar?download">JS Classic 0.1a</a> has
 		      been released (the first distribution of the <a href="https://sourceforge.net/projects/jsampler/">JSampler</a> project).<br>
 		      <br>
