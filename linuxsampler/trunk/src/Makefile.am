@@ -1,6 +1,15 @@
 # set the include path found by configure
 INCLUDES= $(all_includes)
 
+if HAVE_COREMIDI
+coremidi_ldflags = -framework CoreAudio \
+	-framework CoreMIDI \
+	-framework CoreServices \
+	-framework AudioUnit
+else
+coremidi_ldflags =
+endif
+
 AM_CXXFLAGS = -Wreturn-type -ffast-math $(CXX_CPU_SWITCH)
 
 SUBDIRS = network engines common lib testcases drivers
@@ -24,3 +33,4 @@ liblinuxsampler_la_LDFLAGS = -version-info @SHARED_VERSION_INFO@ @SHLIB_VERSION_
 bin_PROGRAMS = linuxsampler
 linuxsampler_SOURCES = linuxsampler.cpp
 linuxsampler_LDADD = $(top_builddir)/src/liblinuxsampler.la
+linuxsampler_LDFLAGS = $(coremidi_ldflags) 
