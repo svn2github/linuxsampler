@@ -38,6 +38,7 @@ using namespace LinuxSampler;
 Sampler*    pSampler    = NULL;
 LSCPServer* pLSCPServer = NULL;
 pthread_t   main_thread;
+pid_t       main_pid;
 bool bPrintStatistics = false;
 bool profile = false;
 bool tune = true;
@@ -53,7 +54,10 @@ int main(int argc, char **argv) {
     // initialize the stack trace mechanism with our binary file
     StackTraceInit(argv[0], -1);
 
+    main_pid = getpid();
     main_thread = pthread_self();
+
+
 
     // setting signal handler for catching SIGINT (thus e.g. <CTRL><C>)
     signal(SIGINT, signal_handler);
@@ -219,7 +223,7 @@ void signal_handler(int iSignal) {
 }
 
 void kill_app() {
-    kill(main_thread, SIGKILL);
+    kill(main_pid, SIGKILL);
 }
 
 void parse_options(int argc, char **argv) {
