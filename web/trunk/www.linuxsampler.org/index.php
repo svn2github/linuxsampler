@@ -129,6 +129,13 @@
                 <tr>
                   <td valign=top>
                     <p class="default">
+
+              <b>2005-12-22</b> Major services (CVS, downloads, Bug Tracking System) were
+              down in the last days due to a hardware defect on one of our servers. CVS is
+              finally up again and we are working on restoring all other services in the
+              next days as well. We are also establishing further backup facilities to
+              prevent this happening again. Sorry for any inconvenience!<br>
+              <br>
 			  <b>2005-11-24</b> Latest <a href="http://cvs.linuxsampler.org">CVS version</a>
 			  of <a href="http://stud.fh-heilbronn.de/~cschoene/projects/libgig/">libgig</a>
 			  now allows to create and modify Gigasampler files
