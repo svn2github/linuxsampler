@@ -27,7 +27,7 @@
 # include "MidiInputDeviceAlsa.h"
 #endif // HAVE_ALSA
 
-#if HAVE_CORE_MIDI
+#if HAVE_COREMIDI
 # include "MidiInputDeviceCoreMidi.h"
 #endif // HAVE_CORE_MIDI
 
@@ -47,12 +47,12 @@ namespace LinuxSampler {
     REGISTER_MIDI_INPUT_DRIVER_PARAMETER(MidiInputDeviceAlsa, ParameterPorts);
 #endif // HAVE_ALSA
 
-#if HAVE_CORE_MIDI
+#if HAVE_COREMIDI
     REGISTER_MIDI_INPUT_DRIVER(MidiInputDeviceCoreMidi);
     /* Common parameters */
     REGISTER_MIDI_INPUT_DRIVER_PARAMETER(MidiInputDeviceCoreMidi, ParameterActive);
     REGISTER_MIDI_INPUT_DRIVER_PARAMETER(MidiInputDeviceCoreMidi, ParameterPorts);
-#endif // HAVE_CORE_MIDI
+#endif // HAVE_COREMIDI
 
 #if HAVE_MIDISHARE
     REGISTER_MIDI_INPUT_DRIVER(MidiInputDeviceMidiShare);
