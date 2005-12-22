@@ -260,17 +260,13 @@ class __RTMath : public RTMathBase {
                 }
                 #endif // CONFIG_ASM && ARCH_X86
                 default: {
-                    return (b < a) ? b : a;
+                    return std::min(a, b);
                 }
             }
         }
 
         template<class T_a, class T_b> inline static T_a Min(const T_a a, const T_b b) {
-            #if __GNUC__
-            return b <? a;
-            #else
             return (b < a) ? b : a;
-            #endif
         }
 
         inline static float Max(const float a, const float b) {
@@ -289,17 +285,13 @@ class __RTMath : public RTMathBase {
                 }
                 #endif // CONFIG_ASM && ARCH_X86
                 default: {
-                    return (b > a) ? b : a;
+                    return std::max(a, b);
                 }
             }
         }
 
         template<class T_a, class T_b> inline static T_a Max(const T_a a, const T_b b) {
-            #if __GNUC__
-            return b >? a;
-            #else
             return (b > a) ? b : a;
-            #endif
         }
 
         inline static float Fmodf(const float &a, const float &b) {
