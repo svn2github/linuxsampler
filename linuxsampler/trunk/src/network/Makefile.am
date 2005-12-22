@@ -5,8 +5,10 @@ AM_CXXFLAGS = -Wreturn-type -ffast-math $(CXX_CPU_SWITCH)
 
 if HAVE_SQLITE3
 sqlite3_lflags = $(SQLITE3_LIBS)
+sqlite3_cflags = $(SQLITE3_CFLAGS)
 else
 sqlite3_lflags =
+sqlite3_cflags =
 endif
 
 noinst_LTLIBRARIES = liblinuxsamplernetwork.la
@@ -19,6 +21,8 @@ liblinuxsamplernetwork_la_SOURCES = \
 	lscpevent.cpp lscpevent.h \
 	lscpinstrumentloader.h lscpinstrumentloader.cpp
 liblinuxsamplernetwork_la_LIBADD = $(sqlite3_lflags)
+liblinuxsamplernetwork_la_CFLAGS = $(sqlite3_cflags)
+liblinuxsamplernetwork_la_CXXFLAGS = $(sqlite3_cflags)
 
 EXTRA_DIST = lscp.y
 
