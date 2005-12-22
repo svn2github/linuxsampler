@@ -99,6 +99,9 @@ if test "$have_unix98" = "no"; then
     fi
 fi
 
+# check for <feature.h>
+AC_CHECK_HEADERS(feature.h)
+
 # Checks for available audio and MIDI systems / drivers
 # (we throw an error if there's not at least one system for audio output and MIDI input available)
 have_midi_input_driver="false"
