@@ -257,6 +257,9 @@ namespace DLS {
         }
     }
 
+    Info::~Info() {
+    }
+
     /** @brief Load given INFO field.
      *
      * Load INFO field from INFO chunk with chunk ID \a ChunkID from INFO
@@ -895,26 +898,28 @@ namespace DLS {
     }
 
     void Instrument::LoadRegions() {
+        if (!pRegions) pRegions = new RegionList;
         RIFF::List* lrgn = pCkInstrument->GetSubList(LIST_TYPE_LRGN);
-        if (!lrgn) throw DLS::Exception("DLS::Instrument doesn't seem to have any Region (mandatory chunks in <ins > chunk not found)");
-        uint32_t regionCkType = (lrgn->GetSubList(LIST_TYPE_RGN2)) ? LIST_TYPE_RGN2 : LIST_TYPE_RGN; // prefer regions level 2
-        RIFF::List* rgn = lrgn->GetFirstSubList();
-        while (rgn) {
-            if (rgn->GetListType() == regionCkType) {
-                if (!pRegions) pRegions = new RegionList;
-                pRegions->push_back(new Region(this, rgn));
+        if (lrgn) {
+            uint32_t regionCkType = (lrgn->GetSubList(LIST_TYPE_RGN2)) ? LIST_TYPE_RGN2 : LIST_TYPE_RGN; // prefer regions level 2
+            RIFF::List* rgn = lrgn->GetFirstSubList();
+            while (rgn) {
+                if (rgn->GetListType() == regionCkType) {
+                    pRegions->push_back(new Region(this, rgn));
+                }
+                rgn = lrgn->GetNextSubList();
             }
-            rgn = lrgn->GetNextSubList();
         }
     }
 
     Region* Instrument::AddRegion() {
-        if (!pRegions) pRegions = new RegionList;
+        if (!pRegions) LoadRegions();
         RIFF::List* lrgn = pCkInstrument->GetSubList(LIST_TYPE_LRGN);
         if (!lrgn)  lrgn = pCkInstrument->AddSubList(LIST_TYPE_LRGN);
         RIFF::List* rgn = lrgn->AddSubList(LIST_TYPE_RGN);
         Region* pNewRegion = new Region(this, rgn);
         pRegions->push_back(pNewRegion);
+        Regions = pRegions->size();
         return pNewRegion;
     }
 
@@ -923,6 +928,7 @@ namespace DLS {
         RegionList::iterator iter = find(pRegions->begin(), pRegions->end(), pRegion);
         if (iter == pRegions->end()) return;
         pRegions->erase(iter);
+        Regions = pRegions->size();
         delete pRegion;
     }
 
@@ -1098,13 +1104,13 @@ namespace DLS {
     }
 
     void File::LoadSamples() {
+        if (!pSamples) pSamples = new SampleList;
         RIFF::List* wvpl = pRIFF->GetSubList(LIST_TYPE_WVPL);
         if (wvpl) {
             unsigned long wvplFileOffset = wvpl->GetFilePos();
             RIFF::List* wave = wvpl->GetFirstSubList();
             while (wave) {
                 if (wave->GetListType() == LIST_TYPE_WAVE) {
-                    if (!pSamples) pSamples = new SampleList;
                     unsigned long waveFileOffset = wave->GetFilePos();
                     pSamples->push_back(new Sample(this, wave, waveFileOffset - wvplFileOffset));
                 }
@@ -1118,7 +1124,6 @@ namespace DLS {
                 RIFF::List* wave = dwpl->GetFirstSubList();
                 while (wave) {
                     if (wave->GetListType() == LIST_TYPE_WAVE) {
-                        if (!pSamples) pSamples = new SampleList;
                         unsigned long waveFileOffset = wave->GetFilePos();
                         pSamples->push_back(new Sample(this, wave, waveFileOffset - dwplFileOffset));
                     }
@@ -1140,7 +1145,6 @@ namespace DLS {
        __ensureMandatoryChunksExist();
        RIFF::List* wvpl = pRIFF->GetSubList(LIST_TYPE_WVPL);
        // create new Sample object and its respective 'wave' list chunk
-       if (!pSamples) pSamples = new SampleList;
        RIFF::List* wave = wvpl->AddSubList(LIST_TYPE_WAVE);
        Sample* pSample = new Sample(this, wave, 0 /*arbitrary value, we update offsets when we save*/);
        pSamples->push_back(pSample);
@@ -1176,12 +1180,12 @@ namespace DLS {
     }
 
     void File::LoadInstruments() {
+        if (!pInstruments) pInstruments = new InstrumentList;
         RIFF::List* lstInstruments = pRIFF->GetSubList(LIST_TYPE_LINS);
         if (lstInstruments) {
             RIFF::List* lstInstr = lstInstruments->GetFirstSubList();
             while (lstInstr) {
                 if (lstInstr->GetListType() == LIST_TYPE_INS) {
-                    if (!pInstruments) pInstruments = new InstrumentList;
                     pInstruments->push_back(new Instrument(this, lstInstr));
                 }
                 lstInstr = lstInstruments->GetNextSubList();
@@ -1199,7 +1203,6 @@ namespace DLS {
     Instrument* File::AddInstrument() {
        if (!pInstruments) LoadInstruments();
        __ensureMandatoryChunksExist();
-       if (!pInstruments) pInstruments = new InstrumentList;
        RIFF::List* lstInstruments = pRIFF->GetSubList(LIST_TYPE_LINS);
        RIFF::List* lstInstr = lstInstruments->AddSubList(LIST_TYPE_INS);
        Instrument* pInstrument = new Instrument(this, lstInstr);

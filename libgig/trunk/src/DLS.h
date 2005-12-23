@@ -317,6 +317,7 @@ namespace DLS {
             String Commissioned;     ///< <ICMS-ck>. Lists the name of the person or organization that commissioned the subject of the file, e.g., Pope Julian II.
 
             Info(RIFF::List* list);
+            virtual ~Info();
             virtual void UpdateChunks();
         private:
             RIFF::List* pResourceListChunk;
@@ -455,7 +456,7 @@ namespace DLS {
             RegionList::iterator RegionsIterator;
 
             Instrument(File* pFile, RIFF::List* insList);
-            void LoadRegions();
+            virtual void LoadRegions();
             virtual ~Instrument();
             friend class File;
     };
@@ -495,8 +496,8 @@ namespace DLS {
             uint32_t*                pWavePoolTableHi;
             bool                     b64BitWavePoolOffsets;
 
-            void LoadSamples();
-            void LoadInstruments();
+            virtual void LoadSamples();
+            virtual void LoadInstruments();
             void __ensureMandatoryChunksExist();
             friend class Region; // Region has to look in the wave pool table to get its sample
         private:

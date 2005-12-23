@@ -591,10 +591,7 @@ namespace gig {
             void             DeleteDimension(dimension_def_t* pDimDef);
             virtual void     UpdateChunks();
         protected:
-            typedef std::list<dimension_def_t*> DimensionList;
-
             uint8_t VelocityTable[128]; ///< For velocity dimensions with custom defined zone ranges only: used for fast converting from velocity MIDI value to dimension bit number.
-            DimensionList DimensionDefinitions;
 
             Region(Instrument* pInstrument, RIFF::List* rgnList);
             void LoadDimensionRegions(RIFF::List* rgn);
@@ -637,9 +634,7 @@ namespace gig {
             // own methods
             Region*   GetRegion(unsigned int Key);
         protected:
-            Region**  pRegions;            ///< Pointer array to the regions
             Region*   RegionKeyTable[128]; ///< fast lookup for the corresponding Region of a MIDI key
-            int       RegionIndex;
 
             Instrument(File* pFile, RIFF::List* insList, progress_t* pProgress = NULL);
            ~Instrument();
@@ -676,19 +671,15 @@ namespace gig {
             void        DeleteInstrument(Instrument* pInstrument);
            ~File();
         protected:
-            typedef std::list<Sample*>     SampleList;
-            typedef std::list<Instrument*> InstrumentList;
-
-            SampleList*              pSamples;
-            SampleList::iterator     SamplesIterator;
-            InstrumentList*          pInstruments;
-            InstrumentList::iterator InstrumentsIterator;
-
-            void LoadSamples(progress_t* pProgress = NULL);
-            void LoadInstruments(progress_t* pProgress = NULL);
-            friend class Region;
-
             std::list<RIFF::File*> ExtensionFiles;
+
+            // overridden protected methods from DLS::File
+            virtual void LoadSamples();
+            virtual void LoadInstruments();
+            // own protected methods
+            virtual void LoadSamples(progress_t* pProgress);
+            virtual void LoadInstruments(progress_t* pProgress);
+            friend class Region;
     };
 
     /** Will be thrown whenever a gig specific error occurs while trying to access a Gigasampler File. */

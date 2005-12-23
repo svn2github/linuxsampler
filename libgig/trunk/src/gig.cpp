@@ -1183,6 +1183,8 @@ namespace {
     DimensionRegion::DimensionRegion(RIFF::List* _3ewl) : DLS::Sampler(_3ewl) {
         Instances++;
 
+        pSample = NULL;
+
         memcpy(&Crossfade, &SamplerOptions, 4);
         if (!pVelocityTables) pVelocityTables = new VelocityTableMap;
 
@@ -2145,6 +2147,15 @@ namespace {
                 pDimensionRegions[i]->pSample = GetSampleFromWavePool(wavepoolindex);
             }
         }
+
+        // make sure there is at least one dimension region
+        if (!DimensionRegions) {
+            RIFF::List* _3prg = rgnList->GetSubList(LIST_TYPE_3PRG);
+            if (!_3prg) _3prg = rgnList->AddSubList(LIST_TYPE_3PRG);
+            RIFF::List* _3ewl = _3prg->AddSubList(LIST_TYPE_3EWL);
+            pDimensionRegions[0] = new DimensionRegion(_3ewl);
+            DimensionRegions = 1;
+        }
     }
 
     /**
@@ -2161,8 +2172,9 @@ namespace {
         DLS::Region::UpdateChunks();
 
         // update dimension region's chunks
-        for (int i = 0; i < Dimensions; i++)
+        for (int i = 0; i < DimensionRegions; i++) {
             pDimensionRegions[i]->UpdateChunks();
+        }
 
         File* pFile = (File*) GetParent()->GetParent();
         const int iMaxDimensions = (pFile->pVersion && pFile->pVersion->major == 3) ? 8 : 5;
@@ -2190,12 +2202,14 @@ namespace {
         for (uint i = 0; i < iMaxDimensionRegions; i++) {
             int iWaveIndex = -1;
             if (i < DimensionRegions) {
-                if (!pFile->pSamples) throw gig::Exception("Could not update gig::Region, there are no samples");
-                std::list<Sample*>::iterator iter = pFile->pSamples->begin();
-                std::list<Sample*>::iterator end  = pFile->pSamples->end();
+                if (!pFile->pSamples || !pFile->pSamples->size()) throw gig::Exception("Could not update gig::Region, there are no samples");
+                File::SampleList::iterator iter = pFile->pSamples->begin();
+                File::SampleList::iterator end  = pFile->pSamples->end();
                 for (int index = 0; iter != end; ++iter, ++index) {
-                    if (*iter == pDimensionRegions[i]->pSample) iWaveIndex = index;
-                    break;
+                    if (*iter == pDimensionRegions[i]->pSample) {
+                        iWaveIndex = index;
+                        break;
+                    }
                 }
                 if (iWaveIndex < 0) throw gig::Exception("Could not update gig::Region, could not find DimensionRegion's sample");
             }
@@ -2485,7 +2499,6 @@ namespace {
     Instrument::Instrument(File* pFile, RIFF::List* insList, progress_t* pProgress) : DLS::Instrument((DLS::File*)pFile, insList) {
         // Initialization
         for (int i = 0; i < 128; i++) RegionKeyTable[i] = NULL;
-        RegionIndex = -1;
 
         // Loading
         RIFF::List* lart = insList->GetSubList(LIST_TYPE_LART);
@@ -2503,17 +2516,14 @@ namespace {
             }
         }
 
-        pRegions = new Region*[Regions];
+        if (!pRegions) pRegions = new RegionList;
         RIFF::List* lrgn = insList->GetSubList(LIST_TYPE_LRGN);
         if (lrgn) {
-            for (uint i = 0; i < Regions; i++) pRegions[i] = NULL;
             RIFF::List* rgn = lrgn->GetFirstSubList();
-            unsigned int iRegion = 0;
             while (rgn) {
                 if (rgn->GetListType() == LIST_TYPE_RGN) {
-                    __notify_progress(pProgress, (float) iRegion / (float) Regions);
-                    pRegions[iRegion] = new Region(this, rgn);
-                    iRegion++;
+                    __notify_progress(pProgress, (float) pRegions->size() / (float) Regions);
+                    pRegions->push_back(new Region(this, rgn));
                 }
                 rgn = lrgn->GetNextSubList();
             }
@@ -2525,20 +2535,17 @@ namespace {
     }
 
     void Instrument::UpdateRegionKeyTable() {
-        for (uint iReg = 0; iReg < Regions; iReg++) {
-            for (int iKey = pRegions[iReg]->KeyRange.low; iKey <= pRegions[iReg]->KeyRange.high; iKey++) {
-                RegionKeyTable[iKey] = pRegions[iReg];
+        RegionList::iterator iter = pRegions->begin();
+        RegionList::iterator end  = pRegions->end();
+        for (; iter != end; ++iter) {
+            gig::Region* pRegion = static_cast<gig::Region*>(*iter);
+            for (int iKey = pRegion->KeyRange.low; iKey <= pRegion->KeyRange.high; iKey++) {
+                RegionKeyTable[iKey] = pRegion;
             }
         }
     }
 
     Instrument::~Instrument() {
-        for (uint i = 0; i < Regions; i++) {
-            if (pRegions) {
-                if (pRegions[i]) delete (pRegions[i]);
-            }
-        }
-        if (pRegions) delete[] pRegions;
     }
 
     /**
@@ -2555,8 +2562,12 @@ namespace {
         DLS::Instrument::UpdateChunks();
 
         // update Regions' chunks
-        for (int i = 0; i < Regions; i++)
-            pRegions[i]->UpdateChunks();
+        {
+            RegionList::iterator iter = pRegions->begin();
+            RegionList::iterator end  = pRegions->end();
+            for (; iter != end; ++iter)
+                (*iter)->UpdateChunks();
+        }
 
         // make sure 'lart' RIFF list chunk exists
         RIFF::List* lart = pCkInstrument->GetSubList(LIST_TYPE_LART);
@@ -2584,8 +2595,9 @@ namespace {
      *             there is no Region defined for the given \a Key
      */
     Region* Instrument::GetRegion(unsigned int Key) {
-        if (!pRegions || Key > 127) return NULL;
+        if (!pRegions || !pRegions->size() || Key > 127) return NULL;
         return RegionKeyTable[Key];
+
         /*for (int i = 0; i < Regions; i++) {
             if (Key <= pRegions[i]->KeyRange.high &&
                 Key >= pRegions[i]->KeyRange.low) return pRegions[i];
@@ -2601,9 +2613,9 @@ namespace {
      * @see      GetNextRegion()
      */
     Region* Instrument::GetFirstRegion() {
-        if (!Regions) return NULL;
-        RegionIndex = 1;
-        return pRegions[0];
+        if (!pRegions) return NULL;
+        RegionsIterator = pRegions->begin();
+        return static_cast<gig::Region*>( (RegionsIterator != pRegions->end()) ? *RegionsIterator : NULL );
     }
 
     /**
@@ -2615,8 +2627,9 @@ namespace {
      * @see      GetFirstRegion()
      */
     Region* Instrument::GetNextRegion() {
-        if (RegionIndex < 0 || uint32_t(RegionIndex) >= Regions) return NULL;
-        return pRegions[RegionIndex++];
+        if (!pRegions) return NULL;
+        RegionsIterator++;
+        return static_cast<gig::Region*>( (RegionsIterator != pRegions->end()) ? *RegionsIterator : NULL );
     }
 
     Region* Instrument::AddRegion() {
@@ -2625,15 +2638,8 @@ namespace {
         if (!lrgn)  lrgn = pCkInstrument->AddSubList(LIST_TYPE_LRGN);
         RIFF::List* rgn = lrgn->AddSubList(LIST_TYPE_RGN);
         Region* pNewRegion = new Region(this, rgn);
-        // resize 'pRegions' array (increase by one)
-        Region** pNewRegions = new Region*[Regions + 1];
-        memcpy(pNewRegions, pRegions, Regions * sizeof(Region*));
-        // add new Region object
-        pNewRegions[Regions] = pNewRegion;
-        // replace old 'pRegions' array by the new increased array
-        if (pRegions) delete[] pRegions;
-        pRegions = pNewRegions;
-        Regions++;
+        pRegions->push_back(pNewRegion);
+        Regions = pRegions->size();
         // update Region key table for fast lookup
         UpdateRegionKeyTable();
         // done
@@ -2642,21 +2648,7 @@ namespace {
 
     void Instrument::DeleteRegion(Region* pRegion) {
         if (!pRegions) return;
-        int iOffset = 0;
-        // resize 'pRegions' array (decrease by one)
-        Region** pNewRegions = new Region*[Regions - 1];
-        for (int i = 0; i < Regions; i++) {
-            if (pRegions[i] == pRegion) { // found Region to delete
-                iOffset = 1;
-                delete pRegion;
-            }
-            if (i < Regions - 1) pNewRegions[i] = pRegions[i + iOffset];
-        }
-        if (!iOffset) throw gig::Exception("There is no such gig::Region to delete");
-        // replace old 'pRegions' array by the new decreased array
-        if (pRegions) delete[] pRegions;
-        pRegions = pNewRegions;
-        Regions--;
+        DLS::Instrument::DeleteRegion((DLS::Region*) pRegion);
         // update Region key table for fast lookup
         UpdateRegionKeyTable();
     }
@@ -2667,37 +2659,12 @@ namespace {
 // *
 
     File::File() : DLS::File() {
-        pSamples     = NULL;
-        pInstruments = NULL;
     }
 
     File::File(RIFF::File* pRIFF) : DLS::File(pRIFF) {
-        pSamples     = NULL;
-        pInstruments = NULL;
     }
 
     File::~File() {
-        // free samples
-        if (pSamples) {
-            SamplesIterator = pSamples->begin();
-            while (SamplesIterator != pSamples->end() ) {
-                delete (*SamplesIterator);
-                SamplesIterator++;
-            }
-            pSamples->clear();
-            delete pSamples;
-
-        }
-        // free instruments
-        if (pInstruments) {
-            InstrumentsIterator = pInstruments->begin();
-            while (InstrumentsIterator != pInstruments->end() ) {
-                delete (*InstrumentsIterator);
-                InstrumentsIterator++;
-            }
-            pInstruments->clear();
-            delete pInstruments;
-        }
         // free extension files
         for (std::list<RIFF::File*>::iterator i = ExtensionFiles.begin() ; i != ExtensionFiles.end() ; i++)
             delete *i;
@@ -2728,7 +2695,6 @@ namespace {
        __ensureMandatoryChunksExist();
        RIFF::List* wvpl = pRIFF->GetSubList(LIST_TYPE_WVPL);
        // create new Sample object and its respective 'wave' list chunk
-       if (!pSamples) pSamples = new SampleList;
        RIFF::List* wave = wvpl->AddSubList(LIST_TYPE_WAVE);
        Sample* pSample = new Sample(this, wave, 0 /*arbitrary value, we update offsets when we save*/);
        pSamples->push_back(pSample);
@@ -2744,14 +2710,20 @@ namespace {
      * @throws gig::Exception if given sample could not be found
      */
     void File::DeleteSample(Sample* pSample) {
-        if (!pSamples) throw gig::Exception("Could not delete sample as there are no samples");
-        SampleList::iterator iter = find(pSamples->begin(), pSamples->end(), pSample);
+        if (!pSamples || !pSamples->size()) throw gig::Exception("Could not delete sample as there are no samples");
+        SampleList::iterator iter = find(pSamples->begin(), pSamples->end(), (DLS::Sample*) pSample);
         if (iter == pSamples->end()) throw gig::Exception("Could not delete sample, could not find given sample");
         pSamples->erase(iter);
         delete pSample;
     }
 
+    void File::LoadSamples() {
+        LoadSamples(NULL);
+    }
+
     void File::LoadSamples(progress_t* pProgress) {
+        if (!pSamples) pSamples = new SampleList;
+
         RIFF::File* file = pRIFF;
 
         // just for progress calculation
@@ -2779,7 +2751,6 @@ namespace {
                         const float subprogress = (float) iSampleIndex / (float) iTotalSamples;
                         __notify_progress(pProgress, subprogress);
 
-                        if (!pSamples) pSamples = new SampleList;
                         unsigned long waveFileOffset = wave->GetFilePos();
                         pSamples->push_back(new Sample(this, wave, waveFileOffset - wvplFileOffset, fileNo));
 
@@ -2796,8 +2767,7 @@ namespace {
                 name.replace(nameLen, 5, suffix);
                 file = new RIFF::File(name);
                 ExtensionFiles.push_back(file);
-            }
-            else throw gig::Exception("Mandatory <wvpl> chunk not found.");
+            } else break;
         }
 
         __notify_progress(pProgress, 1.0); // notify done
@@ -2807,13 +2777,13 @@ namespace {
         if (!pInstruments) LoadInstruments();
         if (!pInstruments) return NULL;
         InstrumentsIterator = pInstruments->begin();
-        return (InstrumentsIterator != pInstruments->end()) ? *InstrumentsIterator : NULL;
+        return static_cast<gig::Instrument*>( (InstrumentsIterator != pInstruments->end()) ? *InstrumentsIterator : NULL );
     }
 
     Instrument* File::GetNextInstrument() {
         if (!pInstruments) return NULL;
         InstrumentsIterator++;
-        return (InstrumentsIterator != pInstruments->end()) ? *InstrumentsIterator : NULL;
+        return static_cast<gig::Instrument*>( (InstrumentsIterator != pInstruments->end()) ? *InstrumentsIterator : NULL );
     }
 
     /**
@@ -2846,7 +2816,7 @@ namespace {
         if (!pInstruments) return NULL;
         InstrumentsIterator = pInstruments->begin();
         for (uint i = 0; InstrumentsIterator != pInstruments->end(); i++) {
-            if (i == index) return *InstrumentsIterator;
+            if (i == index) return static_cast<gig::Instrument*>( *InstrumentsIterator );
             InstrumentsIterator++;
         }
         return NULL;
@@ -2862,7 +2832,6 @@ namespace {
     Instrument* File::AddInstrument() {
        if (!pInstruments) LoadInstruments();
        __ensureMandatoryChunksExist();
-       if (!pInstruments) pInstruments = new InstrumentList;
        RIFF::List* lstInstruments = pRIFF->GetSubList(LIST_TYPE_LINS);
        RIFF::List* lstInstr = lstInstruments->AddSubList(LIST_TYPE_INS);
        Instrument* pInstrument = new Instrument(this, lstInstr);
@@ -2880,13 +2849,18 @@ namespace {
      */
     void File::DeleteInstrument(Instrument* pInstrument) {
         if (!pInstruments) throw gig::Exception("Could not delete instrument as there are no instruments");
-        InstrumentList::iterator iter = find(pInstruments->begin(), pInstruments->end(), pInstrument);
+        InstrumentList::iterator iter = find(pInstruments->begin(), pInstruments->end(), (DLS::Instrument*) pInstrument);
         if (iter == pInstruments->end()) throw gig::Exception("Could not delete instrument, could not find given instrument");
         pInstruments->erase(iter);
         delete pInstrument;
     }
 
+    void File::LoadInstruments() {
+        LoadInstruments(NULL);
+    }
+
     void File::LoadInstruments(progress_t* pProgress) {
+        if (!pInstruments) pInstruments = new InstrumentList;
         RIFF::List* lstInstruments = pRIFF->GetSubList(LIST_TYPE_LINS);
         if (lstInstruments) {
             int iInstrumentIndex = 0;
@@ -2901,7 +2875,6 @@ namespace {
                     progress_t subprogress;
                     __divide_progress(pProgress, &subprogress, Instruments, iInstrumentIndex);
 
-                    if (!pInstruments) pInstruments = new InstrumentList;
                     pInstruments->push_back(new Instrument(this, lstInstr, &subprogress));
 
                     iInstrumentIndex++;
@@ -2910,7 +2883,6 @@ namespace {
             }
             __notify_progress(pProgress, 1.0); // notify done
         }
-        else throw gig::Exception("Mandatory <lins> list chunk not found.");
     }
 
 
