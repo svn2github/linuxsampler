@@ -64,6 +64,8 @@ foreach $line (@yacc_in) {
     s!^\s+\|\s*(\p{IsASCII}*)!\t\t</t>\n\t\t<t>/ $1!;
     s!^\s*;(\p{IsASCII}*)!\t\t</t>\n\t</list>\n</t>!;
     #s/:/<list>/g;
+    # remove space(s) at the end of each line
+    s/\s+$/\n/g;
     $yacc_in[$i] = $_;
     $i++;
 }
