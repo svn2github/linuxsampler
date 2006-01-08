@@ -41,6 +41,8 @@ Version CVS HEAD (?)
     - fixed application exit on broken pipe error (fixes bug #20)
     - fixed the notification messages delay due to lack of
       network activity (fixes bug #26)
+    - fixed parser bug which occured on space(s) within device parameters
+      (e.g. "SET AUDIO_OUTPUT_CHANNEL_PARAMETER 0 0 SOMEPARAM='foo bar'")
 
   * MIDI driver:
     - fixed legacy sysex code which caused dispatching of MIDI SysEx

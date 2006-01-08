@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 Christian Schoenebeck                              *
+ *   Copyright (C) 2005, 2006 Christian Schoenebeck                        *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -264,8 +264,7 @@ param_val_list            :  param_val
                           ;
 
 param_val                 :  string
-                          |  '\'' string '\''  { $$ = "\'" + $2 + "\'"; }  // we eleminate encapsulating (apostrophe) limiters later
-                          |  '\"' string '\"'  { $$ = "\"" + $2 + "\""; }  // s.a.
+                          |  stringval
                           |  number            { std::stringstream ss; ss << "\'" << $1 << "\'"; $$ = ss.str(); }
                           |  dotnum            { std::stringstream ss; ss << "\'" << $1 << "\'"; $$ = ss.str(); }
                           ;
