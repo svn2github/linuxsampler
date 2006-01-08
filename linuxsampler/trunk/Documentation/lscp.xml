@@ -3804,9 +3804,7 @@ Schoenebeck'>
 	<list>
 		<t>string
 		</t>
-		<t>/ '\'' string '\''
-		</t>
-		<t>/ '\"' string '\"'
+		<t>/ stringval
 		</t>
 		<t>/ number
 		</t>
