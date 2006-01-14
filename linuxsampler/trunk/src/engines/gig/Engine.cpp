@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 Christian Schoenebeck                              *
+ *   Copyright (C) 2005, 2006 Christian Schoenebeck                        *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -600,6 +600,35 @@ namespace LinuxSampler { namespace gig {
         #endif
 
         const int key = itNoteOnEvent->Param.Note.Key;
+        midi_key_info_t* pKey = &pEngineChannel->pMIDIKeyInfo[key];
+
+        // move note on event to the key's own event list
+        RTList<Event>::Iterator itNoteOnEventOnKeyList = itNoteOnEvent.moveToEndOf(pKey->pEvents);
+
+        // if Solo Mode then kill all already active voices
+        if (pEngineChannel->SoloMode) {
+            Pool<uint>::Iterator itYoungestKey = pEngineChannel->pActiveKeys->last();
+            if (itYoungestKey) {
+                const int iYoungestKey = *itYoungestKey;
+                const midi_key_info_t* pOtherKey = &pEngineChannel->pMIDIKeyInfo[iYoungestKey];
+                if (pOtherKey->Active) {
+                    // get final portamento position of currently active voice
+                    if (pEngineChannel->PortamentoMode) {
+                        RTList<Voice>::Iterator itVoice = pOtherKey->pActiveVoices->last();
+                        if (itVoice) itVoice->UpdatePortamentoPos(itNoteOnEventOnKeyList);
+                    }
+                    // kill all voices on the (other) key
+                    RTList<Voice>::Iterator itVoiceToBeKilled = pOtherKey->pActiveVoices->first();
+                    RTList<Voice>::Iterator end               = pOtherKey->pActiveVoices->end();
+                    for (; itVoiceToBeKilled != end; ++itVoiceToBeKilled) {
+                        if (itVoiceToBeKilled->Type != Voice::type_release_trigger)
+                            itVoiceToBeKilled->Kill(itNoteOnEventOnKeyList);
+                    }
+                }
+            }
+            // set this key as 'currently active solo key'
+            pEngineChannel->SoloKey = key;
+        }
 
         // Change key dimension value if key is in keyswitching area
         {
@@ -609,24 +638,19 @@ namespace LinuxSampler { namespace gig {
                     (pInstrument->DimensionKeyRange.high - pInstrument->DimensionKeyRange.low + 1);
         }
 
-        midi_key_info_t* pKey = &pEngineChannel->pMIDIKeyInfo[key];
-
         pKey->KeyPressed = true; // the MIDI key was now pressed down
-        pKey->Velocity   = itNoteOnEvent->Param.Note.Velocity;
-        pKey->NoteOnTime = FrameTime + itNoteOnEvent->FragmentPos(); // will be used to calculate note length
+        pKey->Velocity   = itNoteOnEventOnKeyList->Param.Note.Velocity;
+        pKey->NoteOnTime = FrameTime + itNoteOnEventOnKeyList->FragmentPos(); // will be used to calculate note length
 
         // cancel release process of voices on this key if needed
         if (pKey->Active && !pEngineChannel->SustainPedal) {
             RTList<Event>::Iterator itCancelReleaseEvent = pKey->pEvents->allocAppend();
             if (itCancelReleaseEvent) {
-                *itCancelReleaseEvent = *itNoteOnEvent;                  // copy event
+                *itCancelReleaseEvent = *itNoteOnEventOnKeyList;         // copy event
                 itCancelReleaseEvent->Type = Event::type_cancel_release; // transform event type
             }
             else dmsg(1,("Event pool emtpy!\n"));
         }
-
-        // move note on event to the key's own event list
-        RTList<Event>::Iterator itNoteOnEventOnKeyList = itNoteOnEvent.moveToEndOf(pKey->pEvents);
 
         // allocate and trigger new voice(s) for the key
         {
@@ -644,6 +668,7 @@ namespace LinuxSampler { namespace gig {
         if (!pKey->Active && !pKey->VoiceTheftsQueued)
             pKey->pEvents->free(itNoteOnEventOnKeyList);
 
+        if (!pEngineChannel->SoloMode || pEngineChannel->PortamentoPos < 0.0f) pEngineChannel->PortamentoPos = (float) key;
         pKey->RoundRobinIndex++;
     }
 
@@ -661,15 +686,77 @@ namespace LinuxSampler { namespace gig {
         if (pEngineChannel->GetMute()) return; // skip if sampler channel is muted
         #endif
 
-        midi_key_info_t* pKey = &pEngineChannel->pMIDIKeyInfo[itNoteOffEvent->Param.Note.Key];
+        const int iKey = itNoteOffEvent->Param.Note.Key;
+        midi_key_info_t* pKey = &pEngineChannel->pMIDIKeyInfo[iKey];
         pKey->KeyPressed = false; // the MIDI key was now released
 
-        // release voices on this key if needed
-        if (pKey->Active && ShouldReleaseVoice(pEngineChannel, itNoteOffEvent->Param.Note.Key)) {
-            itNoteOffEvent->Type = Event::type_release; // transform event type
+        // move event to the key's own event list
+        RTList<Event>::Iterator itNoteOffEventOnKeyList = itNoteOffEvent.moveToEndOf(pKey->pEvents);
 
-            // move event to the key's own event list
-            RTList<Event>::Iterator itNoteOffEventOnKeyList = itNoteOffEvent.moveToEndOf(pKey->pEvents);
+        bool bShouldRelease = pKey->Active && ShouldReleaseVoice(pEngineChannel, itNoteOffEventOnKeyList->Param.Note.Key);
+
+        // in case Solo Mode is enabled, kill all voices on this key and respawn a voice on the highest pressed key (if any)
+        if (pEngineChannel->SoloMode) { //TODO: this feels like too much code just for handling solo mode :P
+            bool bOtherKeysPressed = false;
+            if (iKey == pEngineChannel->SoloKey) {
+                pEngineChannel->SoloKey = -1;
+                // if there's still a key pressed down, respawn a voice (group) on the highest key
+                for (int i = 127; i > 0; i--) {
+                    midi_key_info_t* pOtherKey = &pEngineChannel->pMIDIKeyInfo[i];
+                    if (pOtherKey->KeyPressed) {
+                        bOtherKeysPressed = true;
+                        // make the other key the new 'currently active solo key'
+                        pEngineChannel->SoloKey = i;
+                        // get final portamento position of currently active voice
+                        if (pEngineChannel->PortamentoMode) {
+                            RTList<Voice>::Iterator itVoice = pKey->pActiveVoices->first();
+                            if (itVoice) itVoice->UpdatePortamentoPos(itNoteOffEventOnKeyList);
+                        }
+                        // create a pseudo note on event
+                        RTList<Event>::Iterator itPseudoNoteOnEvent = pOtherKey->pEvents->allocAppend();
+                        if (itPseudoNoteOnEvent) {
+                            // copy event
+                            *itPseudoNoteOnEvent = *itNoteOffEventOnKeyList;
+                            // transform event to a note on event
+                            itPseudoNoteOnEvent->Type                = Event::type_note_on;
+                            itPseudoNoteOnEvent->Param.Note.Key      = i;
+                            itPseudoNoteOnEvent->Param.Note.Velocity = pOtherKey->Velocity;
+                            // allocate and trigger new voice(s) for the other key
+                            {
+                                // first, get total amount of required voices (dependant on amount of layers)
+                                ::gig::Region* pRegion = pEngineChannel->pInstrument->GetRegion(i);
+                                if (pRegion) {
+                                    int voicesRequired = pRegion->Layers;
+                                    // now launch the required amount of voices
+                                    for (int iLayer = 0; iLayer < voicesRequired; iLayer++)
+                                        LaunchVoice(pEngineChannel, itPseudoNoteOnEvent, iLayer, false, true, false);
+                                }
+                            }
+                            // if neither a voice was spawned or postponed then remove note on event from key again
+                            if (!pOtherKey->Active && !pOtherKey->VoiceTheftsQueued)
+                                pOtherKey->pEvents->free(itPseudoNoteOnEvent);
+
+                        } else dmsg(1,("Could not respawn voice, no free event left\n"));
+                        break; // done
+                    }
+                }
+            }
+            if (bOtherKeysPressed) {
+                if (pKey->Active) { // kill all voices on this key
+                    bShouldRelease = false; // no need to release, as we kill it here
+                    RTList<Voice>::Iterator itVoiceToBeKilled = pKey->pActiveVoices->first();
+                    RTList<Voice>::Iterator end               = pKey->pActiveVoices->end();
+                    for (; itVoiceToBeKilled != end; ++itVoiceToBeKilled) {
+                        if (itVoiceToBeKilled->Type != Voice::type_release_trigger)
+                            itVoiceToBeKilled->Kill(itNoteOffEventOnKeyList);
+                    }
+                }
+            } else pEngineChannel->PortamentoPos = -1.0f;
+        }
+
+        // if no solo mode (the usual case) or if solo mode and no other key pressed, then release voices on this key if needed
+        if (bShouldRelease) {
+            itNoteOffEventOnKeyList->Type = Event::type_release; // transform event type
 
             // spawn release triggered voice(s) if needed
             if (pKey->ReleaseTrigger) {
@@ -687,11 +774,11 @@ namespace LinuxSampler { namespace gig {
                 }
                 pKey->ReleaseTrigger = false;
             }
-
-            // if neither a voice was spawned or postponed then remove note off event from key again
-            if (!pKey->Active && !pKey->VoiceTheftsQueued)
-                pKey->pEvents->free(itNoteOffEventOnKeyList);
         }
+
+        // if neither a voice was spawned or postponed on this key then remove note off event from key again
+        if (!pKey->Active && !pKey->VoiceTheftsQueued)
+            pKey->pEvents->free(itNoteOffEventOnKeyList);
     }
 
     /**
@@ -1141,6 +1228,10 @@ namespace LinuxSampler { namespace gig {
         pEngineChannel->ControllerTable[itControlChangeEvent->Param.CC.Controller] = itControlChangeEvent->Param.CC.Value;
 
         switch (itControlChangeEvent->Param.CC.Controller) {
+            case 5: { // portamento time
+                pEngineChannel->PortamentoTime = (float) itControlChangeEvent->Param.CC.Value / 127.0f * (float) CONFIG_PORTAMENTO_TIME_MAX + (float) CONFIG_PORTAMENTO_TIME_MIN;
+                break;
+            }
             case 7: { // volume
                 //TODO: not sample accurate yet
                 pEngineChannel->GlobalVolume = (float) itControlChangeEvent->Param.CC.Value / 127.0f *  CONFIG_GLOBAL_ATTENUATION;
@@ -1201,6 +1292,11 @@ namespace LinuxSampler { namespace gig {
                 }
                 break;
             }
+            case 65: { // portamento on / off
+                KillAllVoices(pEngineChannel, itControlChangeEvent);
+                pEngineChannel->PortamentoMode = itControlChangeEvent->Param.CC.Value >= 64;
+                break;
+            }
             case 66: { // sostenuto
                 if (itControlChangeEvent->Param.CC.Value >= 64 && !pEngineChannel->SostenutoPedal) {
                     dmsg(4,("SOSTENUTO (CENTER) PEDAL DOWN\n"));
@@ -1255,6 +1351,16 @@ namespace LinuxSampler { namespace gig {
             }
             case 123: { // all notes off
                 ReleaseAllVoices(pEngineChannel, itControlChangeEvent);
+                break;
+            }
+            case 126: { // mono mode on
+                KillAllVoices(pEngineChannel, itControlChangeEvent);
+                pEngineChannel->SoloMode = true;
+                break;
+            }
+            case 127: { // poly mode on
+                KillAllVoices(pEngineChannel, itControlChangeEvent);
+                pEngineChannel->SoloMode = false;
                 break;
             }
         }
@@ -1452,7 +1558,7 @@ namespace LinuxSampler { namespace gig {
     }
 
     String Engine::Version() {
-        String s = "$Revision: 1.56 $";
+        String s = "$Revision: 1.57 $";
         return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
 

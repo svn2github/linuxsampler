@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 Christian Schoenebeck                              *
+ *   Copyright (C) 2005, 2006 Christian Schoenebeck                        *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -122,6 +122,8 @@ namespace LinuxSampler { namespace gig {
             int  Trigger(EngineChannel* pEngineChannel, Pool<Event>::Iterator& itNoteOnEvent, int PitchBend, ::gig::DimensionRegion* pDimRgn, type_t VoiceType, int iKeyGroup);
             inline bool IsActive() { return PlaybackState; }
             inline bool IsStealable() { return !itKillEvent && PlaybackState >= playback_state_ram; }
+            void UpdatePortamentoPos(Pool<Event>::Iterator& itNoteOffEvent);
+
         //private:
             // Types
             enum playback_state_t {

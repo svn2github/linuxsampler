@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 Christian Schoenebeck                              *
+ *   Copyright (C) 2005, 2006 Christian Schoenebeck                        *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -264,8 +264,16 @@ namespace LinuxSampler { namespace gig {
 
         // setup EG 3 (VCO EG)
         {
-          double eg3depth = RTMath::CentsToFreqRatio(pDimRgn->EG3Depth);
-          EG3.trigger(eg3depth, pDimRgn->EG3Attack, pEngine->SampleRate / CONFIG_DEFAULT_SUBFRAGMENT_SIZE);
+            // if portamento mode is on, we dedicate EG3 purely for portamento, otherwise if portamento is off we do as told by the patch
+            bool  bPortamento = pEngineChannel->PortamentoMode && pEngineChannel->PortamentoPos >= 0.0f;
+            float eg3depth = (bPortamento)
+                                 ? RTMath::CentsToFreqRatio((pEngineChannel->PortamentoPos - (float) MIDIKey) * 100)
+                                 : RTMath::CentsToFreqRatio(pDimRgn->EG3Depth);
+            float eg3time = (bPortamento)
+                                ? pEngineChannel->PortamentoTime
+                                : pDimRgn->EG3Attack;
+            EG3.trigger(eg3depth, eg3time, pEngine->SampleRate / CONFIG_DEFAULT_SUBFRAGMENT_SIZE);
+            dmsg(5,("PortamentoPos=%f, depth=%f, time=%f\n", pEngineChannel->PortamentoPos, eg3depth, eg3time));
         }
 
 
@@ -796,7 +804,7 @@ namespace LinuxSampler { namespace gig {
                     fFinalCutoff *= EG2.getLevel();
                     break; // noop
             }
-            if (EG3.active()) finalSynthesisParameters.fFinalPitch *= RTMath::CentsToFreqRatio(EG3.render());
+            if (EG3.active()) finalSynthesisParameters.fFinalPitch *= EG3.render();
 
             // process low frequency oscillators
             if (bLFO1Enabled) fFinalVolume *= pLFO1->render();
@@ -847,6 +855,19 @@ namespace LinuxSampler { namespace gig {
             Pos = newPos;
             i = iSubFragmentEnd;
         }
+    }
+
+    /** @brief Update current portamento position.
+     *
+     * Will be called when portamento mode is enabled to get the final
+     * portamento position of this active voice from where the next voice(s)
+     * might continue to slide on.
+     *
+     * @param itNoteOffEvent - event which causes this voice to die soon
+     */
+    void Voice::UpdatePortamentoPos(Pool<Event>::Iterator& itNoteOffEvent) {
+        const float fFinalEG3Level = EG3.level(itNoteOffEvent->FragmentPos());
+        pEngineChannel->PortamentoPos = (float) MIDIKey + RTMath::FreqRatioToCents(fFinalEG3Level) * 0.01f;
     }
 
     /**

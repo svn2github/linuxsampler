@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 Christian Schoenebeck                              *
+ *   Copyright (C) 2005, 2006 Christian Schoenebeck                        *
  *                                                                         *
  *   This library is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -91,6 +91,14 @@ namespace LinuxSampler { namespace gig {
              */
             inline float render() {
                 return (Level += Coeff);
+            }
+
+            /**
+             * Returns the level which this envelope will have in
+             * \a SamplePoints steps. It will not alter anything.
+             */
+            inline float level(const int SamplePoints) const {
+                return Level + RTMath::Min(SamplePoints, StepsLeft) * Coeff;
             }
 
         private:

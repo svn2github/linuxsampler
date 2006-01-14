@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 Christian Schoenebeck                              *
+ *   Copyright (C) 2005, 2006 Christian Schoenebeck                        *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -48,6 +48,9 @@ namespace LinuxSampler { namespace gig {
         pMidiInputPort = NULL;
         midiChannel = midi_chan_all;
         ResetControllers();
+        SoloMode       = false;
+        PortamentoMode = false;
+        PortamentoTime = CONFIG_PORTAMENTO_TIME_DEFAULT;
     }
 
     EngineChannel::~EngineChannel() {
@@ -108,6 +111,8 @@ namespace LinuxSampler { namespace gig {
             pMIDIKeyInfo[i].itSelf         = Pool<uint>::Iterator();
             pMIDIKeyInfo[i].VoiceTheftsQueued = 0;
         }
+        SoloKey       = -1;    // no solo key active yet
+        PortamentoPos = -1.0f; // no portamento active yet
 
         // reset all key groups
         std::map<uint,uint*>::iterator iter = ActiveKeyGroups.begin();

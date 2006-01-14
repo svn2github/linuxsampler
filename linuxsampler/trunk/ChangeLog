@@ -10,6 +10,8 @@ Version CVS HEAD (?)
       di-harmonic approximation), automatic detection can be overriden
       with --enable-signed-triang-algo=x and --enable-unsigned-triang-algo=x
       configure script argument though (mandatory for cross-compilation)
+    - do not automatically pick optimized gcc flags if the user already
+      provided some on his own (as CXXFLAGS)
 
   * Gigasampler format engine:
     - extensive synthesis optimization
@@ -36,6 +38,11 @@ Version CVS HEAD (?)
       ends. Cancel release didn't work when sustain was zero. Attack
       time now has a minimal value to prevent clicks.
     - fixed pitch changes larger than one octave
+    - fixed EG3 (pitch envelope) synthesis which was neutral all the time
+    - implemented portamento mode and solo mode (a.k.a 'mono mode'):
+      all modes can be altered via standard GM messages, that is CC5 for
+      altering portamento time, CC65 for enabling / disabling portamento
+      mode, CC126 for enabling solo mode and CC127 for disabling solo mode
 
   * LSCP server:
     - fixed application exit on broken pipe error (fixes bug #20)

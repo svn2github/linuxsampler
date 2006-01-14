@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 Christian Schoenebeck                              *
+ *   Copyright (C) 2005, 2006 Christian Schoenebeck                        *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -84,6 +84,15 @@
 #ifndef CONFIG_FILTER_CUTOFF_MAX
 # error "Configuration macro CONFIG_FILTER_CUTOFF_MAX not defined!"
 #endif // CONFIG_FILTER_CUTOFF_MAX
+#ifndef CONFIG_PORTAMENTO_TIME_MIN
+# error "Configuration macro CONFIG_PORTAMENTO_TIME_MIN not defined!"
+#endif // CONFIG_PORTAMENTO_TIME_MIN
+#ifndef CONFIG_PORTAMENTO_TIME_MAX
+# error "Configuration macro CONFIG_PORTAMENTO_TIME_MAX not defined!"
+#endif // CONFIG_PORTAMENTO_TIME_MAX
+#ifndef CONFIG_PORTAMENTO_TIME_DEFAULT
+# error "Configuration macro CONFIG_PORTAMENTO_TIME_DEFAULT not defined!"
+#endif // CONFIG_PORTAMENTO_TIME_DEFAULT
 
 #if CONFIG_DEBUG_LEVEL > 0
 #  define dmsg(debuglevel,x)	if (CONFIG_DEBUG_LEVEL >= debuglevel) {printf x; fflush(stdout);}

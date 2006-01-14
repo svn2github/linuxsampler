@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 Christian Schoenebeck                              *
+ *   Copyright (C) 2005, 2006 Christian Schoenebeck                        *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -73,6 +73,14 @@ class RTMathBase {
             int   index_int   = (int) (Cents);      // integer index
             float index_fract = Cents - index_int;  // fractional part of index
             return pCentsToFreqTable[index_int] + index_fract * (pCentsToFreqTable[index_int+1] - pCentsToFreqTable[index_int]);
+        }
+
+        /**
+         * Inverse function to CentsToFreqRatio(). This function is a bit
+         * slow, so it should not be called too frequently.
+         */
+        static double FreqRatioToCents(double FreqRatio) {
+            return log(FreqRatio) / log(TWELVEHUNDREDTH_ROOT_OF_TWO);
         }
 
     private:

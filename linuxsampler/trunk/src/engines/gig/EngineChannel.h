@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 Christian Schoenebeck                              *
+ *   Copyright (C) 2005, 2006 Christian Schoenebeck                        *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -100,6 +100,11 @@ namespace LinuxSampler { namespace gig {
             ::gig::Instrument*      pInstrument;
             bool                    SustainPedal;             ///< true if sustain pedal is down
             bool                    SostenutoPedal;           ///< true if sostenuto pedal is down
+            bool                    SoloMode;                 ///< in Solo Mode we only play one voice (group) at a time
+            int                     SoloKey;                  ///< Currently 'active' solo key, that is the key to which the currently sounding voice belongs to (only if SoloMode is enabled)
+            bool                    PortamentoMode;           ///< in Portamento Mode we slide the pitch from the last note to the current note.
+            float                   PortamentoTime;           ///< How long it will take to glide from the previous note to the current (in seconds)
+            float                   PortamentoPos;            ///< Current position on the keyboard, that is integer and fractional part (only used if PortamentoMode is on)
             double                  GlobalVolume;             ///< overall volume (a value < 1.0 means attenuation, a value > 1.0 means amplification)
             float                   GlobalPanLeft;
             float                   GlobalPanRight;

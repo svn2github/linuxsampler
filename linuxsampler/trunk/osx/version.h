@@ -56,6 +56,15 @@
 /* Define to a MIDI controller number to override resonance control. */
 /* #undef CONFIG_OVERRIDE_RESONANCE_CTRL */
 
+/* Define default portamento time. */
+#define CONFIG_PORTAMENTO_TIME_DEFAULT 1
+
+/* Define max. portamento time. */
+#define CONFIG_PORTAMENTO_TIME_MAX 32
+
+/* Define min. portamento time. */
+#define CONFIG_PORTAMENTO_TIME_MIN 0.1
+
 /* Define amount of sample points to be cached in RAM. */
 #define CONFIG_PRELOAD_SAMPLES 32768
 
