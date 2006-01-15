@@ -24,6 +24,8 @@ namespace LinuxSampler { namespace gig {
         float     fFinalPitch;
         float     fFinalVolumeLeft;
         float     fFinalVolumeRight;
+        float     fFinalVolumeDeltaLeft;
+        float     fFinalVolumeDeltaRight;
         double    dPos;
         sample_t* pSrc;
         float*    pOutLeft;

@@ -20,11 +20,15 @@
  *   MA  02111-1307  USA                                                   *
  ***************************************************************************/
 
+#ifdef HAVE_CONFIG_H
+# include <config.h>
+#endif
+
 #ifndef _GNU_SOURCE
 # define _GNU_SOURCE 1 /* so _XOPEN_SOURCE will be defined by features.h */
 #endif
 
-#if defined(HAVE_FEATURES_H) && (HAVE_FEATURE  != 0)
+#ifdef HAVE_FEATURES_H
 # include <features.h>
 #endif
 

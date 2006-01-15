@@ -18,8 +18,9 @@ Version CVS HEAD (?)
       (reimplementation of EGs and LFO(s), removed synthesis parameter
       prerendering and the synthesis parameter matrix in general, splitting
       each audio fragment into subfragments now where each subfragment uses
-      constant synthesis parameters - that is volume, pitch and filter
-      coefficients)
+      constant pitch and filter coefficients. The volume coefficient is
+      linearly interpolated inside a subfragment, unless
+      --disable-interpolate-volume is set.)
     - fine tuning of the EG modulation parameters
     - improved filter cutoff calculation by adding support for the
       following gig parameters: Cutoff freq (used when no cutoff

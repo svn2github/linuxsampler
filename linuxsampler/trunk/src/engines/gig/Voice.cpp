@@ -223,6 +223,11 @@ namespace LinuxSampler { namespace gig {
                         pEngine->SampleRate / CONFIG_DEFAULT_SUBFRAGMENT_SIZE);
         }
 
+        // setup initial volume in synthesis parameters
+        fFinalVolume = getVolume() * EG1.getLevel();
+        finalSynthesisParameters.fFinalVolumeLeft  = fFinalVolume * PanLeft;
+        finalSynthesisParameters.fFinalVolumeRight = fFinalVolume * PanRight;
+
 
         // setup EG 2 (VCF Cutoff EG)
         {
@@ -698,12 +703,15 @@ namespace LinuxSampler { namespace gig {
 
     void Voice::processCrossFadeEvent(RTList<Event>::Iterator& itEvent) {
         CrossfadeVolume = CrossfadeAttenuation(itEvent->Param.CC.Value);
+        fFinalVolume = getVolume();
+    }
+
+    float Voice::getVolume() {
         #if CONFIG_PROCESS_MUTED_CHANNELS
-        const float effectiveVolume = CrossfadeVolume * Volume * (pEngineChannel->GetMute() ? 0 : pEngineChannel->GlobalVolume);
+        return pEngineChannel->GetMute() ? 0 : (Volume * CrossfadeVolume * pEngineChannel->GlobalVolume);
         #else
-        const float effectiveVolume = CrossfadeVolume * Volume * pEngineChannel->GlobalVolume;
+        return Volume * CrossfadeVolume * pEngineChannel->GlobalVolume;
         #endif
-        fFinalVolume = effectiveVolume;
     }
 
     void Voice::processCutoffEvent(RTList<Event>::Iterator& itEvent) {
@@ -761,11 +769,7 @@ namespace LinuxSampler { namespace gig {
 
             // initialize all final synthesis parameters
             finalSynthesisParameters.fFinalPitch = PitchBase * PitchBend;
-            #if CONFIG_PROCESS_MUTED_CHANNELS
-            fFinalVolume = this->Volume * this->CrossfadeVolume * (pEngineChannel->GetMute() ? 0 : pEngineChannel->GlobalVolume);
-            #else
-            fFinalVolume = this->Volume * this->CrossfadeVolume * pEngineChannel->GlobalVolume;
-            #endif
+            fFinalVolume    = getVolume();
             fFinalCutoff    = VCFCutoffCtrl.fvalue;
             fFinalResonance = VCFResonanceCtrl.fvalue;
 
@@ -825,12 +829,21 @@ namespace LinuxSampler { namespace gig {
             SYNTHESIS_MODE_SET_INTERPOLATE(SynthesisMode, bResamplingRequired);
 
             // prepare final synthesis parameters structure
+            finalSynthesisParameters.uiToGo            = iSubFragmentEnd - i;
+#ifdef CONFIG_INTERPOLATE_VOLUME
+            finalSynthesisParameters.fFinalVolumeDeltaLeft  =
+                (fFinalVolume * PanLeft - finalSynthesisParameters.fFinalVolumeLeft) / finalSynthesisParameters.uiToGo;
+            finalSynthesisParameters.fFinalVolumeDeltaRight =
+                (fFinalVolume * PanRight - finalSynthesisParameters.fFinalVolumeRight) / finalSynthesisParameters.uiToGo;
+#else
             finalSynthesisParameters.fFinalVolumeLeft  = fFinalVolume * PanLeft;
             finalSynthesisParameters.fFinalVolumeRight = fFinalVolume * PanRight;
-            finalSynthesisParameters.uiToGo            = iSubFragmentEnd - i;
-
+#endif
             // render audio for one subfragment
             RunSynthesisFunction(SynthesisMode, &finalSynthesisParameters, &loop);
+
+            // stop the rendering if volume EG is finished
+            if (EG1.getSegmentType() == EGADSR::segment_end) break;
 
             const double newPos = Pos + (iSubFragmentEnd - i) * finalSynthesisParameters.fFinalPitch;
 

@@ -190,6 +190,7 @@ namespace LinuxSampler { namespace gig {
             void processCrossFadeEvent(RTList<Event>::Iterator& itEvent);
             void processCutoffEvent(RTList<Event>::Iterator& itEvent);
             void processResonanceEvent(RTList<Event>::Iterator& itEvent);
+            float getVolume();
 
             inline float CrossfadeAttenuation(uint8_t& CrossfadeControllerValue) {
                 float att = (!pDimRgn->Crossfade.out_end) ? CrossfadeControllerValue / 127.0f /* 0,0,0,0 means no crossfade defined */

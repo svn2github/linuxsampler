@@ -307,6 +307,7 @@ namespace LinuxSampler { namespace gig {
     void EGADSR::enterEndStage() {
         Stage   = stage_end;
         Segment = segment_end;
+        Level   = 0;
     }
 
 }} // namespace LinuxSampler::gig

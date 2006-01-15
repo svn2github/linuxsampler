@@ -135,154 +135,141 @@ namespace LinuxSampler { namespace gig {
             }
 
             static void SynthesizeSubSubFragment(SynthesisParam* pFinalParam, uint uiToGo) {
+                float fVolumeL = pFinalParam->fFinalVolumeLeft;
+                float fVolumeR = pFinalParam->fFinalVolumeRight;
+                sample_t* pSrc = pFinalParam->pSrc;
+                float* pOutL   = pFinalParam->pOutLeft;
+                float* pOutR   = pFinalParam->pOutRight;
+#ifdef CONFIG_INTERPOLATE_VOLUME
+                float fDeltaL  = pFinalParam->fFinalVolumeDeltaLeft;
+                float fDeltaR  = pFinalParam->fFinalVolumeDeltaRight;
+#endif
                 switch (CHANNELS) {
                     case MONO: {
+                        float samplePoint;
                         if (INTERPOLATE) {
+                            double dPos    = pFinalParam->dPos;
+                            float fPitch   = pFinalParam->fFinalPitch;
                             if (USEFILTER) {
                                 Filter filterL = pFinalParam->filterLeft;
-                                sample_t* pSrc = pFinalParam->pSrc;
-                                double dPos    = pFinalParam->dPos;
-                                float fPitch   = pFinalParam->fFinalPitch;
-                                float* pOutL   = pFinalParam->pOutLeft;
-                                float* pOutR   = pFinalParam->pOutRight;
-                                float fVolumeL = pFinalParam->fFinalVolumeLeft;
-                                float fVolumeR = pFinalParam->fFinalVolumeRight;
-                                float samplePoint;
                                 for (int i = 0; i < uiToGo; ++i) {
                                     samplePoint = Interpolate1StepMonoCPP(pSrc, &dPos, fPitch);
                                     samplePoint = filterL.Apply(samplePoint);
+#ifdef CONFIG_INTERPOLATE_VOLUME
+                                    fVolumeL += fDeltaL;
+                                    fVolumeR += fDeltaR;
+#endif
                                     pOutL[i] += samplePoint * fVolumeL;
                                     pOutR[i] += samplePoint * fVolumeR;
                                 }
-                                pFinalParam->dPos = dPos;
                             } else { // no filter needed
-                                sample_t* pSrc = pFinalParam->pSrc;
-                                double dPos    = pFinalParam->dPos;
-                                float fPitch   = pFinalParam->fFinalPitch;
-                                float* pOutL   = pFinalParam->pOutLeft;
-                                float* pOutR   = pFinalParam->pOutRight;
-                                float fVolumeL = pFinalParam->fFinalVolumeLeft;
-                                float fVolumeR = pFinalParam->fFinalVolumeRight;
-                                float samplePoint;
                                 for (int i = 0; i < uiToGo; ++i) {
                                     samplePoint = Interpolate1StepMonoCPP(pSrc, &dPos, fPitch);
+#ifdef CONFIG_INTERPOLATE_VOLUME
+                                    fVolumeL += fDeltaL;
+                                    fVolumeR += fDeltaR;
+#endif
                                     pOutL[i] += samplePoint * fVolumeL;
                                     pOutR[i] += samplePoint * fVolumeR;
                                 }
-                                pFinalParam->dPos = dPos;
                             }
+                            pFinalParam->dPos = dPos;
                         } else { // no interpolation
+                            int pos_offset = (int) pFinalParam->dPos;
                             if (USEFILTER) {
                                 Filter filterL = pFinalParam->filterLeft;
-                                sample_t* pSrc  = pFinalParam->pSrc;
-                                float* pOutL   = pFinalParam->pOutLeft;
-                                float* pOutR   = pFinalParam->pOutRight;
-                                float fVolumeL = pFinalParam->fFinalVolumeLeft;
-                                float fVolumeR = pFinalParam->fFinalVolumeRight;
-                                int pos_offset = (int) pFinalParam->dPos;
-                                float samplePoint;
                                 for (int i = 0; i < uiToGo; ++i) {
                                     samplePoint = pSrc[i + pos_offset];
                                     samplePoint = filterL.Apply(samplePoint);
+#ifdef CONFIG_INTERPOLATE_VOLUME
+                                    fVolumeL += fDeltaL;
+                                    fVolumeR += fDeltaR;
+#endif
                                     pOutL[i] += samplePoint * fVolumeL;
                                     pOutR[i] += samplePoint * fVolumeR;
                                 }
-                                pFinalParam->dPos += uiToGo;
                             } else { // no filter needed
-                                sample_t* pSrc  = pFinalParam->pSrc;
-                                float* pOutL   = pFinalParam->pOutLeft;
-                                float* pOutR   = pFinalParam->pOutRight;
-                                float fVolumeL = pFinalParam->fFinalVolumeLeft;
-                                float fVolumeR = pFinalParam->fFinalVolumeRight;
-                                int pos_offset = (int) pFinalParam->dPos;
-                                float samplePoint;
                                 for (int i = 0; i < uiToGo; ++i) {
                                     samplePoint = pSrc[i + pos_offset];
+#ifdef CONFIG_INTERPOLATE_VOLUME
+                                    fVolumeL += fDeltaL;
+                                    fVolumeR += fDeltaR;
+#endif
                                     pOutL[i] += samplePoint * fVolumeL;
                                     pOutR[i] += samplePoint * fVolumeR;
                                 }
-                                pFinalParam->dPos += uiToGo;
                             }
+                            pFinalParam->dPos += uiToGo;
                         }
                         break;
                     }
                     case STEREO: {
+                        stereo_sample_t samplePoint;
                         if (INTERPOLATE) {
+                            double dPos    = pFinalParam->dPos;
+                            float fPitch   = pFinalParam->fFinalPitch;
                             if (USEFILTER) {
                                 Filter filterL = pFinalParam->filterLeft;
                                 Filter filterR = pFinalParam->filterRight;
-                                sample_t* pSrc = pFinalParam->pSrc;
-                                double dPos    = pFinalParam->dPos;
-                                float fPitch   = pFinalParam->fFinalPitch;
-                                float* pOutL   = pFinalParam->pOutLeft;
-                                float* pOutR   = pFinalParam->pOutRight;
-                                float fVolumeL = pFinalParam->fFinalVolumeLeft;
-                                float fVolumeR = pFinalParam->fFinalVolumeRight;
-                                stereo_sample_t samplePoint;
                                 for (int i = 0; i < uiToGo; ++i) {
                                     samplePoint = Interpolate1StepStereoCPP(pSrc, &dPos, fPitch);
                                     samplePoint.left  = filterL.Apply(samplePoint.left);
                                     samplePoint.right = filterR.Apply(samplePoint.right);
+#ifdef CONFIG_INTERPOLATE_VOLUME
+                                    fVolumeL += fDeltaL;
+                                    fVolumeR += fDeltaR;
+#endif
                                     pOutL[i] += samplePoint.left  * fVolumeL;
                                     pOutR[i] += samplePoint.right * fVolumeR;
                                 }
-                                pFinalParam->dPos = dPos;
                             } else { // no filter needed
-                                sample_t* pSrc = pFinalParam->pSrc;
-                                double dPos    = pFinalParam->dPos;
-                                float fPitch   = pFinalParam->fFinalPitch;
-                                float* pOutL   = pFinalParam->pOutLeft;
-                                float* pOutR   = pFinalParam->pOutRight;
-                                float fVolumeL = pFinalParam->fFinalVolumeLeft;
-                                float fVolumeR = pFinalParam->fFinalVolumeRight;
-                                stereo_sample_t samplePoint;
                                 for (int i = 0; i < uiToGo; ++i) {
                                     samplePoint = Interpolate1StepStereoCPP(pSrc, &dPos, fPitch);
+#ifdef CONFIG_INTERPOLATE_VOLUME
+                                    fVolumeL += fDeltaL;
+                                    fVolumeR += fDeltaR;
+#endif
                                     pOutL[i] += samplePoint.left  * fVolumeL;
                                     pOutR[i] += samplePoint.right * fVolumeR;
                                 }
-                                pFinalParam->dPos = dPos;
                             }
+                            pFinalParam->dPos = dPos;
                         } else { // no interpolation
+                            int pos_offset = ((int) pFinalParam->dPos) << 1;
                             if (USEFILTER) {
                                 Filter filterL = pFinalParam->filterLeft;
                                 Filter filterR = pFinalParam->filterRight;
-                                sample_t* pSrc  = pFinalParam->pSrc;
-                                float* pOutL   = pFinalParam->pOutLeft;
-                                float* pOutR   = pFinalParam->pOutRight;
-                                float fVolumeL = pFinalParam->fFinalVolumeLeft;
-                                float fVolumeR = pFinalParam->fFinalVolumeRight;
-                                int pos_offset = ((int) pFinalParam->dPos) << 1;
-                                stereo_sample_t samplePoint;
                                 for (int i = 0, ii = 0; i < uiToGo; ++i, ii+=2) {
                                     samplePoint.left  = pSrc[ii + pos_offset];
                                     samplePoint.right = pSrc[ii + pos_offset + 1];
                                     samplePoint.left  = filterL.Apply(samplePoint.left);
                                     samplePoint.right = filterR.Apply(samplePoint.right);
+#ifdef CONFIG_INTERPOLATE_VOLUME
+                                    fVolumeL += fDeltaL;
+                                    fVolumeR += fDeltaR;
+#endif
                                     pOutL[i] += samplePoint.left  * fVolumeL;
                                     pOutR[i] += samplePoint.right * fVolumeR;
                                 }
-                                pFinalParam->dPos += uiToGo;
                             } else { // no filter needed
-                                sample_t* pSrc  = pFinalParam->pSrc;
-                                float* pOutL   = pFinalParam->pOutLeft;
-                                float* pOutR   = pFinalParam->pOutRight;
-                                float fVolumeL = pFinalParam->fFinalVolumeLeft;
-                                float fVolumeR = pFinalParam->fFinalVolumeRight;
-                                int pos_offset = ((int) pFinalParam->dPos) << 1;
-                                stereo_sample_t samplePoint;
                                 for (int i = 0, ii = 0; i < uiToGo; ++i, ii+=2) {
                                     samplePoint.left  = pSrc[ii + pos_offset];
                                     samplePoint.right = pSrc[ii + pos_offset + 1];
+#ifdef CONFIG_INTERPOLATE_VOLUME
+                                    fVolumeL += fDeltaL;
+                                    fVolumeR += fDeltaR;
+#endif
                                     pOutL[i] += samplePoint.left  * fVolumeL;
                                     pOutR[i] += samplePoint.right * fVolumeR;
                                 }
-                                pFinalParam->dPos += uiToGo;
                             }
+                            pFinalParam->dPos += uiToGo;
                         }
                         break;
                     }
                 }
+                pFinalParam->fFinalVolumeLeft = fVolumeL;
+                pFinalParam->fFinalVolumeRight = fVolumeR;
                 pFinalParam->pOutRight += uiToGo;
                 pFinalParam->pOutLeft  += uiToGo;
                 pFinalParam->uiToGo    -= uiToGo;
