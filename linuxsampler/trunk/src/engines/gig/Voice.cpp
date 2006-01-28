@@ -136,8 +136,8 @@ namespace LinuxSampler { namespace gig {
                 CrossfadeVolume = 1.0f;
         }
 
-        PanLeft  = 1.0f - float(RTMath::Max(pDimRgn->Pan, 0)) /  63.0f;
-        PanRight = 1.0f - float(RTMath::Min(pDimRgn->Pan, 0)) / -64.0f;
+        PanLeft  = Engine::PanCurve[64 - pDimRgn->Pan];
+        PanRight = Engine::PanCurve[64 + pDimRgn->Pan];
 
         finalSynthesisParameters.dPos = pDimRgn->SampleStartOffset; // offset where we should start playback of sample (0 - 2000 sample points)
         Pos = pDimRgn->SampleStartOffset;
@@ -225,8 +225,8 @@ namespace LinuxSampler { namespace gig {
 
         // setup initial volume in synthesis parameters
         fFinalVolume = getVolume() * EG1.getLevel();
-        finalSynthesisParameters.fFinalVolumeLeft  = fFinalVolume * PanLeft;
-        finalSynthesisParameters.fFinalVolumeRight = fFinalVolume * PanRight;
+        finalSynthesisParameters.fFinalVolumeLeft  = fFinalVolume * PanLeft * pEngineChannel->GlobalPanLeft;
+        finalSynthesisParameters.fFinalVolumeRight = fFinalVolume * PanRight * pEngineChannel->GlobalPanRight;
 
 
         // setup EG 2 (VCF Cutoff EG)
@@ -763,6 +763,9 @@ namespace LinuxSampler { namespace gig {
         uint killPos;
         if (itKillEvent) killPos = RTMath::Min(itKillEvent->FragmentPos(), pEngine->MaxFadeOutPos);
 
+        float fFinalPanLeft = PanLeft * pEngineChannel->GlobalPanLeft;
+        float fFinalPanRight = PanRight * pEngineChannel->GlobalPanRight;
+
         uint i = Skip;
         while (i < Samples) {
             int iSubFragmentEnd = RTMath::Min(i + CONFIG_DEFAULT_SUBFRAGMENT_SIZE, Samples);
@@ -832,12 +835,12 @@ namespace LinuxSampler { namespace gig {
             finalSynthesisParameters.uiToGo            = iSubFragmentEnd - i;
 #ifdef CONFIG_INTERPOLATE_VOLUME
             finalSynthesisParameters.fFinalVolumeDeltaLeft  =
-                (fFinalVolume * PanLeft - finalSynthesisParameters.fFinalVolumeLeft) / finalSynthesisParameters.uiToGo;
+                (fFinalVolume * fFinalPanLeft - finalSynthesisParameters.fFinalVolumeLeft) / finalSynthesisParameters.uiToGo;
             finalSynthesisParameters.fFinalVolumeDeltaRight =
-                (fFinalVolume * PanRight - finalSynthesisParameters.fFinalVolumeRight) / finalSynthesisParameters.uiToGo;
+                (fFinalVolume * fFinalPanRight - finalSynthesisParameters.fFinalVolumeRight) / finalSynthesisParameters.uiToGo;
 #else
-            finalSynthesisParameters.fFinalVolumeLeft  = fFinalVolume * PanLeft;
-            finalSynthesisParameters.fFinalVolumeRight = fFinalVolume * PanRight;
+            finalSynthesisParameters.fFinalVolumeLeft  = fFinalVolume * fFinalPanLeft;
+            finalSynthesisParameters.fFinalVolumeRight = fFinalVolume * fFinalPanRight;
 #endif
             // render audio for one subfragment
             RunSynthesisFunction(SynthesisMode, &finalSynthesisParameters, &loop);

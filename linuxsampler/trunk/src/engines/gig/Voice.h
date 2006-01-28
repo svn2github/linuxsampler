@@ -193,12 +193,13 @@ namespace LinuxSampler { namespace gig {
             float getVolume();
 
             inline float CrossfadeAttenuation(uint8_t& CrossfadeControllerValue) {
-                float att = (!pDimRgn->Crossfade.out_end) ? CrossfadeControllerValue / 127.0f /* 0,0,0,0 means no crossfade defined */
-                          : (CrossfadeControllerValue < pDimRgn->Crossfade.in_end) ?
-                                ((CrossfadeControllerValue <= pDimRgn->Crossfade.in_start) ? 0.0f
-                                : float(CrossfadeControllerValue - pDimRgn->Crossfade.in_start) / float(pDimRgn->Crossfade.in_end - pDimRgn->Crossfade.in_start))
-                          : (CrossfadeControllerValue <= pDimRgn->Crossfade.out_start) ? 1.0f
-                          : (CrossfadeControllerValue < pDimRgn->Crossfade.out_end) ? float(pDimRgn->Crossfade.out_end - CrossfadeControllerValue) / float(pDimRgn->Crossfade.out_end - pDimRgn->Crossfade.out_start)
+                uint8_t c = std::max(CrossfadeControllerValue, pDimRgn->AttenuationControllerThreshold);
+                float att = (!pDimRgn->Crossfade.out_end) ? c / 127.0f /* 0,0,0,0 means no crossfade defined */
+                          : (c < pDimRgn->Crossfade.in_end) ?
+                                ((c <= pDimRgn->Crossfade.in_start) ? 0.0f
+                                : float(c - pDimRgn->Crossfade.in_start) / float(pDimRgn->Crossfade.in_end - pDimRgn->Crossfade.in_start))
+                          : (c <= pDimRgn->Crossfade.out_start) ? 1.0f
+                          : (c < pDimRgn->Crossfade.out_end) ? float(pDimRgn->Crossfade.out_end - c) / float(pDimRgn->Crossfade.out_end - pDimRgn->Crossfade.out_start)
                           : 0.0f;
                 return pDimRgn->InvertAttenuationController ? 1 - att : att;
             }

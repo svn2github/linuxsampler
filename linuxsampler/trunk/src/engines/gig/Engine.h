@@ -78,6 +78,9 @@ namespace LinuxSampler { namespace gig {
             virtual String Version();
             virtual String EngineName();
 
+            static const float* VolumeCurve; ///< Table that maps volume control change values 0..127 to amplitude. Unity gain is at 90.
+            static const float* PanCurve;    ///< Table that maps pan control change values 0..128 to right channel amplitude. Unity gain is at 64 (center).
+
         //protected:
             static InstrumentResourceManager instruments;
 
@@ -144,6 +147,9 @@ namespace LinuxSampler { namespace gig {
             void    ReleaseAllVoices(EngineChannel* pEngineChannel, Pool<Event>::Iterator& itReleaseEvent);
             void    KillAllVoices(EngineChannel* pEngineChannel, Pool<Event>::Iterator& itKillEvent);
             bool    ShouldReleaseVoice(EngineChannel* pEngineChannel, int Key);
+            static float* InitVolumeCurve();
+            static float* InitPanCurve();
+            static float* InitCurve(const float* segments, int size = 128);
 
             unsigned long FrameTime; ///< Time in frames of the start of the current audio fragment
     };

@@ -1234,15 +1234,14 @@ namespace LinuxSampler { namespace gig {
             }
             case 7: { // volume
                 //TODO: not sample accurate yet
-                pEngineChannel->GlobalVolume = (float) itControlChangeEvent->Param.CC.Value / 127.0f *  CONFIG_GLOBAL_ATTENUATION;
+                pEngineChannel->GlobalVolume = VolumeCurve[itControlChangeEvent->Param.CC.Value] *  CONFIG_GLOBAL_ATTENUATION;
                 pEngineChannel->bStatusChanged = true; // engine channel status has changed, so set notify flag
                 break;
             }
             case 10: { // panpot
                 //TODO: not sample accurate yet
-                const int pan = (int) itControlChangeEvent->Param.CC.Value - 64;
-                pEngineChannel->GlobalPanLeft  = 1.0f - float(RTMath::Max(pan, 0)) /  63.0f;
-                pEngineChannel->GlobalPanRight = 1.0f - float(RTMath::Min(pan, 0)) / -64.0f;
+                pEngineChannel->GlobalPanLeft  = PanCurve[128 - itControlChangeEvent->Param.CC.Value];
+                pEngineChannel->GlobalPanRight = PanCurve[itControlChangeEvent->Param.CC.Value];
                 break;
             }
             case 64: { // sustain
@@ -1558,8 +1557,41 @@ namespace LinuxSampler { namespace gig {
     }
 
     String Engine::Version() {
-        String s = "$Revision: 1.57 $";
+        String s = "$Revision: 1.58 $";
         return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
+    }
+
+    // static constant initializers
+    const float* Engine::VolumeCurve(InitVolumeCurve());
+    const float* Engine::PanCurve(InitPanCurve());
+
+    float* Engine::InitVolumeCurve() {
+        // line-segment approximation
+        const float segments[] = {
+            0, 0, 2, 0.0046, 16, 0.016, 31, 0.051, 45, 0.115, 54.5, 0.2,
+            64.5, 0.39, 74, 0.74, 92, 1.03, 114, 1.94, 119.2, 2.2, 127, 2.2
+        };
+        return InitCurve(segments);
+    }
+
+    float* Engine::InitPanCurve() {
+        // line-segment approximation
+        const float segments[] = {
+            0, 0, 1, 0,
+            2, 0.05, 31.5, 0.7, 51, 0.851, 74.5, 1.12,
+            127, 1.41, 128, 1.41
+        };
+        return InitCurve(segments, 129);
+    }
+
+    float* Engine::InitCurve(const float* segments, int size) {
+        float* y = new float[size];
+        for (int x = 0 ; x < size ; x++) {
+            if (x > segments[2]) segments += 2;
+            y[x] = segments[1] + (x - segments[0]) *
+                (segments[3] - segments[1]) / (segments[2] - segments[0]);
+        }
+        return y;
     }
 
 }} // namespace LinuxSampler::gig
