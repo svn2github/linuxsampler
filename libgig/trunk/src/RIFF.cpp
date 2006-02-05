@@ -1192,6 +1192,11 @@ namespace RIFF {
         }
     }
 
+    void List::LoadSubChunksRecursively() {
+        for (List* pList = GetFirstSubList(); pList; pList = GetNextSubList())
+            pList->LoadSubChunksRecursively();
+    }
+
     /** @brief Write list chunk persistently e.g. to disk.
      *
      * Stores the list chunk persistently to its actual "physical" file. All
@@ -1383,6 +1388,9 @@ namespace RIFF {
      *                         chunk or any kind of IO error occured
      */
     void File::Save() {
+        // make sure the RIFF tree is built (from the original file)
+        LoadSubChunksRecursively();
+
         // reopen file in write mode
         SetMode(stream_mode_read_write);
 
@@ -1459,6 +1467,9 @@ namespace RIFF {
      */
     void File::Save(const String& path) {
         //TODO: we should make a check here if somebody tries to write to the same file and automatically call the other Save() method in that case
+
+        // make sure the RIFF tree is built (from the original file)
+        LoadSubChunksRecursively();
 
         if (Filename.length() > 0) SetMode(stream_mode_read);
         // open the other (new) file for writing and truncate it to zero size

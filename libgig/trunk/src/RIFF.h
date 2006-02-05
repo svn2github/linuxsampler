@@ -224,6 +224,7 @@ namespace RIFF {
             void ReadHeader(unsigned long fPos);
             void WriteHeader(unsigned long fPos);
             void LoadSubChunks();
+            void LoadSubChunksRecursively();
             virtual unsigned long WriteChunk(unsigned long ulWritePos, unsigned long ulCurrentDataOffset);
             virtual void __resetPos(); ///< Sets List Chunk's read/write position to zero and causes all sub chunks to do the same.
     };
