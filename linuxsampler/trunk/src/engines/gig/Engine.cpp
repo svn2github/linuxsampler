@@ -1557,13 +1557,14 @@ namespace LinuxSampler { namespace gig {
     }
 
     String Engine::Version() {
-        String s = "$Revision: 1.58 $";
+        String s = "$Revision: 1.59 $";
         return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
 
     // static constant initializers
     const float* Engine::VolumeCurve(InitVolumeCurve());
     const float* Engine::PanCurve(InitPanCurve());
+    const float* Engine::CrossfadeCurve(InitCrossfadeCurve());
 
     float* Engine::InitVolumeCurve() {
         // line-segment approximation
@@ -1582,6 +1583,14 @@ namespace LinuxSampler { namespace gig {
             127, 1.41, 128, 1.41
         };
         return InitCurve(segments, 129);
+    }
+
+    float* Engine::InitCrossfadeCurve() {
+        // line-segment approximation
+        const float segments[] = {
+            0, 0, 1, 0.03, 10, 0.1, 51, 0.58, 127, 1
+        };
+        return InitCurve(segments);
     }
 
     float* Engine::InitCurve(const float* segments, int size) {

@@ -61,7 +61,6 @@ AC_DEFINE_UNQUOTED(ARCH_X86,$def_arch_x86,[Define to 1 if you build for x86 arch
 # determine the right gcc switch for CPU specific optimizations
 # (only if the user did not provide one)
 CXX_CPU_SWITCH=
-echo "X $CXXFLAGS "
 if ! echo "X $CXXFLAGS " | grep -q -- " \(-march=\|-mcpu=\|-mtune=\|-arch=\)" ; then
   if test "$def_arch_x86" = 1; then
     CXX_CPU_SWITCH="-march=$target_cpu"

@@ -44,10 +44,12 @@ Version CVS HEAD (?)
       all modes can be altered via standard GM messages, that is CC5 for
       altering portamento time, CC65 for enabling / disabling portamento
       mode, CC126 for enabling solo mode and CC127 for disabling solo mode
-    - fine tuning of the curves for volume (CC7) and pan (CC10 and gig
-      parameter)
+    - fine tuning of the curves for volume (CC7), pan (CC10 and gig
+      parameter) and crossfade
     - added support for the "attenuation controller threshold" gig
       parameter
+    - added smoothing of volume changes caused by control change
+      messages
 
   * LSCP server:
     - fixed application exit on broken pipe error (fixes bug #20)

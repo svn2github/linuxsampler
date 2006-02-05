@@ -42,6 +42,7 @@
 #include "Filter.h"
 #include "../common/LFOBase.h"
 #include "SynthesisParam.h"
+#include "SmoothVolume.h"
 
 // include the appropriate (unsigned) triangle LFO implementation
 #if CONFIG_UNSIGNED_TRIANG_ALGO == INT_MATH_SOLUTION
@@ -104,7 +105,7 @@ namespace LinuxSampler { namespace gig {
                 type_release_trigger_required,  ///< If the key of this voice will be released, it causes a release triggered voice to be spawned
                 type_release_trigger            ///< Release triggered voice which cannot be killed by releasing its key
             };
-            
+
             // Attributes
             type_t       Type;         ///< Voice Type
             int          MIDIKey;      ///< MIDI key number of the key that triggered the voice
@@ -136,10 +137,12 @@ namespace LinuxSampler { namespace gig {
             // Attributes
             EngineChannel*              pEngineChannel;
             Engine*                     pEngine;            ///< Pointer to the sampler engine, to be able to access the event lists.
-            float                       Volume;             ///< Volume level of the voice
-            float                       PanLeft;
-            float                       PanRight;
-            float                       CrossfadeVolume;    ///< Current attenuation level caused by a crossfade (only if a crossfade is defined of course)
+            float                       VolumeLeft;         ///< Left channel volume. This factor is calculated when the voice is triggered and doesn't change after that.
+            float                       VolumeRight;        ///< Right channel volume. This factor is calculated when the voice is triggered and doesn't change after that.
+            SmoothVolume                CrossfadeSmoother;  ///< Crossfade volume, updated by crossfade CC events
+            SmoothVolume                VolumeSmoother;     ///< Volume, updated by CC 7 (volume) events
+            SmoothVolume                PanLeftSmoother;    ///< Left channel volume, updated by CC 10 (pan) events
+            SmoothVolume                PanRightSmoother;   ///< Right channel volume, updated by CC 10 (pan) events
             double                      Pos;                ///< Current playback position in sample
             float                       PitchBase;          ///< Basic pitch depth, stays the same for the whole life time of the voice
             float                       PitchBend;          ///< Current pitch value of the pitchbend wheel
@@ -171,7 +174,6 @@ namespace LinuxSampler { namespace gig {
             Pool<Event>::Iterator       itKillEvent;         ///< Event which caused this voice to be killed
         //private:
             int                         SynthesisMode;
-            float                       fFinalVolume;
             float                       fFinalCutoff;
             float                       fFinalResonance;
             SynthesisParam              finalSynthesisParameters;
@@ -190,18 +192,17 @@ namespace LinuxSampler { namespace gig {
             void processCrossFadeEvent(RTList<Event>::Iterator& itEvent);
             void processCutoffEvent(RTList<Event>::Iterator& itEvent);
             void processResonanceEvent(RTList<Event>::Iterator& itEvent);
-            float getVolume();
 
-            inline float CrossfadeAttenuation(uint8_t& CrossfadeControllerValue) {
+            inline uint8_t CrossfadeAttenuation(uint8_t& CrossfadeControllerValue) {
                 uint8_t c = std::max(CrossfadeControllerValue, pDimRgn->AttenuationControllerThreshold);
-                float att = (!pDimRgn->Crossfade.out_end) ? c / 127.0f /* 0,0,0,0 means no crossfade defined */
+                c = (!pDimRgn->Crossfade.out_end) ? c /* 0,0,0,0 means no crossfade defined */
                           : (c < pDimRgn->Crossfade.in_end) ?
-                                ((c <= pDimRgn->Crossfade.in_start) ? 0.0f
-                                : float(c - pDimRgn->Crossfade.in_start) / float(pDimRgn->Crossfade.in_end - pDimRgn->Crossfade.in_start))
-                          : (c <= pDimRgn->Crossfade.out_start) ? 1.0f
-                          : (c < pDimRgn->Crossfade.out_end) ? float(pDimRgn->Crossfade.out_end - c) / float(pDimRgn->Crossfade.out_end - pDimRgn->Crossfade.out_start)
-                          : 0.0f;
-                return pDimRgn->InvertAttenuationController ? 1 - att : att;
+                                ((c <= pDimRgn->Crossfade.in_start) ? 0
+                                : 127 * (c - pDimRgn->Crossfade.in_start) / (pDimRgn->Crossfade.in_end - pDimRgn->Crossfade.in_start))
+                          : (c <= pDimRgn->Crossfade.out_start) ? 127
+                          : (c < pDimRgn->Crossfade.out_end) ? 127 * (pDimRgn->Crossfade.out_end - c) / (pDimRgn->Crossfade.out_end - pDimRgn->Crossfade.out_start)
+                          : 0;
+                return pDimRgn->InvertAttenuationController ? 127 - c : c;
             }
 
             inline float Constrain(float ValueToCheck, float Min, float Max) {

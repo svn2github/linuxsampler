@@ -104,9 +104,9 @@ namespace LinuxSampler { namespace gig {
         // calculate volume
         const double velocityAttenuation = pDimRgn->GetVelocityAttenuation(itNoteOnEvent->Param.Note.Velocity);
 
-        Volume = velocityAttenuation / 32768.0f; // we downscale by 32768 to convert from int16 value range to DSP value range (which is -1.0..1.0)
+        float volume = velocityAttenuation / 32768.0f; // we downscale by 32768 to convert from int16 value range to DSP value range (which is -1.0..1.0)
 
-        Volume *= pDimRgn->SampleAttenuation;
+        volume *= pDimRgn->SampleAttenuation;
 
         // the volume of release triggered samples depends on note length
         if (Type == type_release_trigger) {
@@ -114,30 +114,37 @@ namespace LinuxSampler { namespace gig {
                                      pEngineChannel->pMIDIKeyInfo[MIDIKey].NoteOnTime) / pEngine->SampleRate;
             float attenuation = 1 - 0.01053 * (256 >> pDimRgn->ReleaseTriggerDecay) * noteLength;
             if (attenuation <= 0) return -1;
-            Volume *= attenuation;
+            volume *= attenuation;
         }
 
         // select channel mode (mono or stereo)
         SYNTHESIS_MODE_SET_CHANNELS(SynthesisMode, pSample->Channels == 2);
 
         // get starting crossfade volume level
+        float crossfadeVolume;
         switch (pDimRgn->AttenuationController.type) {
             case ::gig::attenuation_ctrl_t::type_channelaftertouch:
-                CrossfadeVolume = 1.0f; //TODO: aftertouch not supported yet
+                crossfadeVolume = 1.0f; //TODO: aftertouch not supported yet
                 break;
             case ::gig::attenuation_ctrl_t::type_velocity:
-                CrossfadeVolume = CrossfadeAttenuation(itNoteOnEvent->Param.Note.Velocity);
+                crossfadeVolume = Engine::CrossfadeCurve[CrossfadeAttenuation(itNoteOnEvent->Param.Note.Velocity)];
                 break;
             case ::gig::attenuation_ctrl_t::type_controlchange: //FIXME: currently not sample accurate
-                CrossfadeVolume = CrossfadeAttenuation(pEngineChannel->ControllerTable[pDimRgn->AttenuationController.controller_number]);
+                crossfadeVolume = Engine::CrossfadeCurve[CrossfadeAttenuation(pEngineChannel->ControllerTable[pDimRgn->AttenuationController.controller_number])];
                 break;
             case ::gig::attenuation_ctrl_t::type_none: // no crossfade defined
             default:
-                CrossfadeVolume = 1.0f;
+                crossfadeVolume = 1.0f;
         }
 
-        PanLeft  = Engine::PanCurve[64 - pDimRgn->Pan];
-        PanRight = Engine::PanCurve[64 + pDimRgn->Pan];
+        VolumeLeft  = volume * Engine::PanCurve[64 - pDimRgn->Pan];
+        VolumeRight = volume * Engine::PanCurve[64 + pDimRgn->Pan];
+
+        float subfragmentRate = pEngine->SampleRate / CONFIG_DEFAULT_SUBFRAGMENT_SIZE;
+        CrossfadeSmoother.trigger(crossfadeVolume, subfragmentRate);
+        VolumeSmoother.trigger(pEngineChannel->GlobalVolume, subfragmentRate);
+        PanLeftSmoother.trigger(pEngineChannel->GlobalPanLeft, subfragmentRate);
+        PanRightSmoother.trigger(pEngineChannel->GlobalPanRight, subfragmentRate);
 
         finalSynthesisParameters.dPos = pDimRgn->SampleStartOffset; // offset where we should start playback of sample (0 - 2000 sample points)
         Pos = pDimRgn->SampleStartOffset;
@@ -223,11 +230,23 @@ namespace LinuxSampler { namespace gig {
                         pEngine->SampleRate / CONFIG_DEFAULT_SUBFRAGMENT_SIZE);
         }
 
+#ifdef CONFIG_INTERPOLATE_VOLUME
         // setup initial volume in synthesis parameters
-        fFinalVolume = getVolume() * EG1.getLevel();
-        finalSynthesisParameters.fFinalVolumeLeft  = fFinalVolume * PanLeft * pEngineChannel->GlobalPanLeft;
-        finalSynthesisParameters.fFinalVolumeRight = fFinalVolume * PanRight * pEngineChannel->GlobalPanRight;
+#ifdef CONFIG_PROCESS_MUTED_CHANNELS
+        if (pEngineChannel->GetMute()) {
+            finalSynthesisParameters.fFinalVolumeLeft  = 0;
+            finalSynthesisParameters.fFinalVolumeRight = 0;
+        }
+        else
+#else
+        {
+            float finalVolume = pEngineChannel->GlobalVolume * crossfadeVolume * EG1.getLevel();
 
+            finalSynthesisParameters.fFinalVolumeLeft  = finalVolume * VolumeLeft  * pEngineChannel->GlobalPanLeft;
+            finalSynthesisParameters.fFinalVolumeRight = finalVolume * VolumeRight * pEngineChannel->GlobalPanRight;
+        }
+#endif
+#endif
 
         // setup EG 2 (VCF Cutoff EG)
         {
@@ -645,7 +664,7 @@ namespace LinuxSampler { namespace gig {
      * for the given time.
      *
      * @param itEvent - iterator pointing to the next event to be processed
-     * @param End     - youngest time stamp where processing should be stopped 
+     * @param End     - youngest time stamp where processing should be stopped
      */
     void Voice::processTransitionEvents(RTList<Event>::Iterator& itEvent, uint End) {
         for (; itEvent && itEvent->FragmentPos() <= End; ++itEvent) {
@@ -664,7 +683,7 @@ namespace LinuxSampler { namespace gig {
      * the given time.
      *
      * @param itEvent - iterator pointing to the next event to be processed
-     * @param End     - youngest time stamp where processing should be stopped 
+     * @param End     - youngest time stamp where processing should be stopped
      */
     void Voice::processCCEvents(RTList<Event>::Iterator& itEvent, uint End) {
         for (; itEvent && itEvent->FragmentPos() <= End; ++itEvent) {
@@ -687,7 +706,13 @@ namespace LinuxSampler { namespace gig {
                 }
                 if (pDimRgn->AttenuationController.type == ::gig::attenuation_ctrl_t::type_controlchange &&
                     itEvent->Param.CC.Controller == pDimRgn->AttenuationController.controller_number) {
-                    processCrossFadeEvent(itEvent);
+                    CrossfadeSmoother.update(Engine::CrossfadeCurve[CrossfadeAttenuation(itEvent->Param.CC.Value)]);
+                }
+                if (itEvent->Param.CC.Controller == 7) { // volume
+                    VolumeSmoother.update(Engine::VolumeCurve[itEvent->Param.CC.Value] * CONFIG_GLOBAL_ATTENUATION);
+                } else if (itEvent->Param.CC.Controller == 10) { // panpot
+                    PanLeftSmoother.update(Engine::PanCurve[128 - itEvent->Param.CC.Value]);
+                    PanRightSmoother.update(Engine::PanCurve[itEvent->Param.CC.Value]);
                 }
             } else if (itEvent->Type == Event::type_pitchbend) { // if pitch bend event
                 processPitchEvent(itEvent);
@@ -699,19 +724,6 @@ namespace LinuxSampler { namespace gig {
         const float pitch = RTMath::CentsToFreqRatio(((double) itEvent->Param.Pitch.Pitch / 8192.0) * 200.0); // +-two semitones = +-200 cents
         finalSynthesisParameters.fFinalPitch *= pitch;
         PitchBend = pitch;
-    }
-
-    void Voice::processCrossFadeEvent(RTList<Event>::Iterator& itEvent) {
-        CrossfadeVolume = CrossfadeAttenuation(itEvent->Param.CC.Value);
-        fFinalVolume = getVolume();
-    }
-
-    float Voice::getVolume() {
-        #if CONFIG_PROCESS_MUTED_CHANNELS
-        return pEngineChannel->GetMute() ? 0 : (Volume * CrossfadeVolume * pEngineChannel->GlobalVolume);
-        #else
-        return Volume * CrossfadeVolume * pEngineChannel->GlobalVolume;
-        #endif
     }
 
     void Voice::processCutoffEvent(RTList<Event>::Iterator& itEvent) {
@@ -763,21 +775,22 @@ namespace LinuxSampler { namespace gig {
         uint killPos;
         if (itKillEvent) killPos = RTMath::Min(itKillEvent->FragmentPos(), pEngine->MaxFadeOutPos);
 
-        float fFinalPanLeft = PanLeft * pEngineChannel->GlobalPanLeft;
-        float fFinalPanRight = PanRight * pEngineChannel->GlobalPanRight;
-
         uint i = Skip;
         while (i < Samples) {
             int iSubFragmentEnd = RTMath::Min(i + CONFIG_DEFAULT_SUBFRAGMENT_SIZE, Samples);
 
             // initialize all final synthesis parameters
             finalSynthesisParameters.fFinalPitch = PitchBase * PitchBend;
-            fFinalVolume    = getVolume();
             fFinalCutoff    = VCFCutoffCtrl.fvalue;
             fFinalResonance = VCFResonanceCtrl.fvalue;
 
             // process MIDI control change and pitchbend events for this subfragment
             processCCEvents(itCCEvent, iSubFragmentEnd);
+
+            float fFinalVolume = VolumeSmoother.render() * CrossfadeSmoother.render();
+#ifdef CONFIG_PROCESS_MUTED_CHANNELS
+            if (pEngineChannel->GetMute()) fFinalVolume = 0;
+#endif
 
             // process transition events (note on, note off & sustain pedal)
             processTransitionEvents(itNoteEvent, iSubFragmentEnd);
@@ -835,12 +848,16 @@ namespace LinuxSampler { namespace gig {
             finalSynthesisParameters.uiToGo            = iSubFragmentEnd - i;
 #ifdef CONFIG_INTERPOLATE_VOLUME
             finalSynthesisParameters.fFinalVolumeDeltaLeft  =
-                (fFinalVolume * fFinalPanLeft - finalSynthesisParameters.fFinalVolumeLeft) / finalSynthesisParameters.uiToGo;
+                (fFinalVolume * VolumeLeft  * PanLeftSmoother.render() -
+                 finalSynthesisParameters.fFinalVolumeLeft) / finalSynthesisParameters.uiToGo;
             finalSynthesisParameters.fFinalVolumeDeltaRight =
-                (fFinalVolume * fFinalPanRight - finalSynthesisParameters.fFinalVolumeRight) / finalSynthesisParameters.uiToGo;
+                (fFinalVolume * VolumeRight * PanRightSmoother.render() -
+                 finalSynthesisParameters.fFinalVolumeRight) / finalSynthesisParameters.uiToGo;
 #else
-            finalSynthesisParameters.fFinalVolumeLeft  = fFinalVolume * fFinalPanLeft;
-            finalSynthesisParameters.fFinalVolumeRight = fFinalVolume * fFinalPanRight;
+            finalSynthesisParameters.fFinalVolumeLeft  =
+                fFinalVolume * VolumeLeft  * PanLeftSmoother.render();
+            finalSynthesisParameters.fFinalVolumeRight =
+                fFinalVolume * VolumeRight * PanRightSmoother.render();
 #endif
             // render audio for one subfragment
             RunSynthesisFunction(SynthesisMode, &finalSynthesisParameters, &loop);
