@@ -5,6 +5,8 @@ Version CVS HEAD (?)
       gig files)
     - loading DLS and gig files is now much more permissive, DLS and gig
       files are now loaded even if mandatory RIFF chunks are missing
+    - fixed some memory management errors, one of them was causing a
+      crash when a multi-file gig was deallocated
 
   * src/gig.cpp, src/gig.h:
     - fixed the GetVelocityCutoff function, it wasn't always using the

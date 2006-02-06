@@ -2116,6 +2116,7 @@ namespace {
                 }
                 _3lnk->SetPos(3, RIFF::stream_curpos); // jump forward to next dimension definition
             }
+            for (int i = dimensionBits ; i < 8 ; i++) pDimensionDefinitions[i].bits = 0;
 
             // check velocity dimension (if there is one) for custom defined zone ranges
             for (uint i = 0; i < Dimensions; i++) {
@@ -2662,12 +2663,6 @@ namespace {
     }
 
     File::File(RIFF::File* pRIFF) : DLS::File(pRIFF) {
-    }
-
-    File::~File() {
-        // free extension files
-        for (std::list<RIFF::File*>::iterator i = ExtensionFiles.begin() ; i != ExtensionFiles.end() ; i++)
-            delete *i;
     }
 
     Sample* File::GetFirstSample(progress_t* pProgress) {

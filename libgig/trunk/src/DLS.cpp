@@ -269,7 +269,7 @@ namespace DLS {
         RIFF::Chunk* ck = lstINFO->GetSubChunk(ChunkID);
         if (ck) {
             // TODO: no check for ZSTR terminated strings yet
-            s = (char*) ck->LoadChunkData();
+            s.assign((char*) ck->LoadChunkData(), ck->GetSize());
             ck->ReleaseChunkData();
         }
     }
@@ -1088,6 +1088,8 @@ namespace DLS {
         if (pWavePoolTable) delete[] pWavePoolTable;
         if (pWavePoolTableHi) delete[] pWavePoolTableHi;
         if (pVersion) delete pVersion;
+        for (std::list<RIFF::File*>::iterator i = ExtensionFiles.begin() ; i != ExtensionFiles.end() ; i++)
+            delete *i;
     }
 
     Sample* File::GetFirstSample() {

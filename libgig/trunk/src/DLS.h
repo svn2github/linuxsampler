@@ -486,6 +486,7 @@ namespace DLS {
             typedef std::list<Instrument*> InstrumentList;
 
             RIFF::File*              pRIFF;
+            std::list<RIFF::File*>   ExtensionFiles;
             SampleList*              pSamples;
             SampleList::iterator     SamplesIterator;
             InstrumentList*          pInstruments;
