@@ -198,6 +198,7 @@ namespace LinuxSampler { namespace gig {
         for (int i = 1; i <= CONFIG_MAX_STREAMS; i++) {
             pCreatedStreams[i] = NULL;
         }
+        ActiveStreamCountMax = 0;
     }
 
     DiskThread::~DiskThread() {

@@ -307,13 +307,12 @@ namespace LinuxSampler {
                 // disable device
                 pDevice->Stop();
 
-                // remove device from the device list
-                mAudioOutputDevices.erase(iter);
-
                 // destroy and free device from memory
                 delete pDevice;
             }
         }
+        // remove devices from the device list
+        mAudioOutputDevices.clear();
     }
 
     void Sampler::DestroyMidiInputDevice(MidiInputDevice* pDevice) throw (LinuxSamplerException) {
@@ -327,13 +326,12 @@ namespace LinuxSampler {
                 // disable device
                 pDevice->StopListen();
 
-                // remove device from the device list
-                mMidiInputDevices.erase(iter);
-
                 // destroy and free device from memory
                 delete pDevice;
             }
         }
+        // remove devices from the device list
+        mMidiInputDevices.clear();
     }
 
     MidiInputDevice* Sampler::CreateMidiInputDevice(String MidiDriver, std::map<String,String> Parameters) throw (LinuxSamplerException) {

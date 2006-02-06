@@ -147,8 +147,10 @@ class ResourceManager {
                     resource_entry_t& entry = iter->second;
                     entry.consumers.erase(pConsumer);
                     if (entry.consumers.empty()) {
+                        T_res* resource = entry.resource;
+                        void* arg = entry.arg;
                         ResourceEntries.erase(iter);
-                        Destroy(entry.resource, entry.arg);
+                        Destroy(resource, arg);
                     }
                     return;
                 }

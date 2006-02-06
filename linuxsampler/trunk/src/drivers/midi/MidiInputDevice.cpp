@@ -127,12 +127,12 @@ namespace LinuxSampler {
     }
 
     MidiInputDevice::~MidiInputDevice() {
-	    std::map<String,DeviceCreationParameter*>::iterator iter = Parameters.begin();
-	    while (iter != Parameters.end()) {
-		    Parameters.erase(iter);
-		    delete iter->second;
-		    iter++;
-	    }
+        std::map<String,DeviceCreationParameter*>::iterator iter = Parameters.begin();
+        while (iter != Parameters.end()) {
+            delete iter->second;
+            iter++;
+        }
+        Parameters.clear();
     }
 
     MidiInputPort* MidiInputDevice::GetPort(uint iPort) throw (MidiInputException) {

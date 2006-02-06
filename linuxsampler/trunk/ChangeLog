@@ -74,6 +74,7 @@ Version CVS HEAD (?)
     - support for monitoring the total number of active voices
       (new LSCP commands: GET TOTAL_VOICE_COUNT, GET TOTAL_VOICE_COUNT_MAX,
       SUBSCRIBE TOTAL_VOICE_COUNT, UNSUBSCRIBE TOTAL_VOICE_COUNT)
+    - fixed some memory management errors
 
 Version 0.3.3 (15 July 2005)
 

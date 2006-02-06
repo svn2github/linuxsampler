@@ -194,10 +194,10 @@ namespace LinuxSampler {
         {
             std::map<String,DeviceCreationParameter*>::iterator iter = Parameters.begin();
             while (iter != Parameters.end()) {
-                Parameters.erase(iter);
                 delete iter->second;
                 iter++;
             }
+            Parameters.clear();
         }
     }
 

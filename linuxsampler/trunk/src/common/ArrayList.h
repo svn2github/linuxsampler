@@ -51,7 +51,7 @@ namespace LinuxSampler {
                 if (pData) {
                     for (int i = 0; i < iSize; i++)
                         pNewArray[i] = pData[i];
-                    delete pData;
+                    delete[] pData;
                 }
                 pNewArray[iSize] = element;
                 pData = pNewArray;
@@ -74,7 +74,7 @@ namespace LinuxSampler {
                         pNewArray[iDst] = pData[iSrc];
                         ++iDst;
                     }
-                    delete pData;
+                    delete[] pData;
                     pData = pNewArray;
                     --iSize;
                 }
@@ -94,7 +94,7 @@ namespace LinuxSampler {
              */
             void clear() {
                 if (pData) {
-                    delete pData;
+                    delete[] pData;
                     pData = NULL;
                     iSize = 0;
                 }
