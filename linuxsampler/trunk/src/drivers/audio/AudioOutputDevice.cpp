@@ -183,11 +183,10 @@ namespace LinuxSampler {
         {
             std::vector<AudioChannel*>::iterator iter = Channels.begin();
             while (iter != Channels.end()) {
-                Channels.erase(iter);
                 delete *iter;
                 iter++;
             }
-
+            Channels.clear();
         }
 
         // delete all device parameters

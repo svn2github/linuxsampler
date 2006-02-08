@@ -153,8 +153,8 @@ namespace LinuxSampler {
 		 if (diff > 0) {	//We've got too many ports, remove one
 			 std::map<int,MidiInputPort*>::iterator portsIter = Ports.end();
 			 --portsIter;
-			 Ports.erase(portsIter);
 			 delete portsIter->second;
+			 Ports.erase(portsIter);
 			 diff--;
 		 }
 		 if (diff < 0) {       //We don't have enough ports, create one

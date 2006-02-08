@@ -151,8 +151,8 @@ int LSCPServer::Main() {
 #else
 		send(iterNotify->first, iterNotify->second.c_str(), iterNotify->second.size(), 0);
 #endif
-		bufferedNotifies.erase(iterNotify);
 	}
+        bufferedNotifies.clear();
 	NotifyBufferMutex.Unlock();
 
         fd_set selectSet = fdSet;

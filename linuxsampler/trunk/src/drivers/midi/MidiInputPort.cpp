@@ -63,10 +63,10 @@ namespace LinuxSampler {
     MidiInputPort::~MidiInputPort() {
         std::map<String,DeviceRuntimeParameter*>::iterator iter = Parameters.begin();
         while (iter != Parameters.end()) {
-            Parameters.erase(iter);
             delete iter->second;
             iter++;
         }
+        Parameters.clear();
     }
 
     MidiInputPort::MidiInputPort(MidiInputDevice* pDevice, int portNumber) {
