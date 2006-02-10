@@ -268,8 +268,12 @@ namespace DLS {
     void Info::LoadString(uint32_t ChunkID, RIFF::List* lstINFO, String& s) {
         RIFF::Chunk* ck = lstINFO->GetSubChunk(ChunkID);
         if (ck) {
-            // TODO: no check for ZSTR terminated strings yet
-            s.assign((char*) ck->LoadChunkData(), ck->GetSize());
+            const char* str = (char*)ck->LoadChunkData();
+            int size = ck->GetSize();
+            int len;
+            for (len = 0 ; len < size ; len++)
+                if (str[len] == '\0') break;
+            s.assign(str, len);
             ck->ReleaseChunkData();
         }
     }
