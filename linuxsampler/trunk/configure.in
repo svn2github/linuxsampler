@@ -191,6 +191,15 @@ fi
 AM_CONDITIONAL(HAVE_JACK, test $HAVE_JACK = 1)
 AC_DEFINE_UNQUOTED(HAVE_JACK,$HAVE_JACK,[Define to 1 if you have JACK installed.])
 
+# ARTS
+sinclude([m4/arts.m4])
+AM_PATH_ARTS(0.9.5, have_arts=1, have_arts=0)
+if test "$have_arts" = "1"; then
+    have_audio_output_driver="true"
+fi
+AM_CONDITIONAL(HAVE_ARTS, test "$have_arts" = "1")
+AC_DEFINE_UNQUOTED(HAVE_ARTS,$have_arts,[Define to 1 if you have aRts installed.])
+
 # MidiShare (Linux, OS X, Windows)
 AC_CHECK_HEADER(MidiShare.h,
     AC_CHECK_LIB(MidiShare, MidiCountEvs,

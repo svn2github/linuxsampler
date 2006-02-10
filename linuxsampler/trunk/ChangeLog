@@ -58,6 +58,9 @@ Version CVS HEAD (?)
     - fixed parser bug which occured on space(s) within device parameters
       (e.g. "SET AUDIO_OUTPUT_CHANNEL_PARAMETER 0 0 SOMEPARAM='foo bar'")
 
+  * audio driver:
+    - added aRts audio output driver (by no means RT safe)
+
   * MIDI driver:
     - fixed legacy sysex code which caused dispatching of MIDI SysEx
       messages several times instead of once
