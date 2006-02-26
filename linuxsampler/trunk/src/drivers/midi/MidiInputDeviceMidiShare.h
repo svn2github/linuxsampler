@@ -33,7 +33,7 @@ namespace LinuxSampler {
 
     /** MidiShare input driver
      *
-     * Implements MIDI input using MidiShare (www.grame.fr/MidiShare)
+     * Implements MIDI input using MidiShare (http://midishare.sourceforge.net/)
      */
     class MidiInputDeviceMidiShare : public MidiInputDevice {
         public:

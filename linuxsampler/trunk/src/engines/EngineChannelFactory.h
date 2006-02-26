@@ -31,9 +31,9 @@ namespace LinuxSampler {
         public:
             static EngineChannel* Create(String EngineType) throw (LinuxSamplerException);
             static void Destroy(EngineChannel* pEngineChannel);
-            static std::set<EngineChannel*> EngineChannelInstances();
+            static const std::set<EngineChannel*>& EngineChannelInstances();
     };
 
-} // namepsace LinuxSampler
+} // namespace LinuxSampler
 
 #endif // __LS_ENGINECHANNELFACTORY_H__

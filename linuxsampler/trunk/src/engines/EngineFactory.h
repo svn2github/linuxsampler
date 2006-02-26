@@ -33,9 +33,9 @@ namespace LinuxSampler {
         public:
             static Engine* Create(String EngineType) throw (LinuxSamplerException);
             static void Destroy(Engine* pEngine);
-            static std::set<Engine*> EngineInstances();
+            static const std::set<Engine*>& EngineInstances();
     };
 
-} // namepsace LinuxSampler
+} // namespace LinuxSampler
 
 #endif // __LS_ENGINEFACTORY_H__

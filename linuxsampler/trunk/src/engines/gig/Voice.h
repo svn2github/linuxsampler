@@ -29,7 +29,6 @@
 #include <gig.h>
 
 #include "../../common/RTMath.h"
-#include "../../common/RingBuffer.h"
 #include "../../common/Pool.h"
 #include "../../drivers/audio/AudioOutputDevice.h"
 #include "../common/BiquadFilter.h"

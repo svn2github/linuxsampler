@@ -30,6 +30,7 @@
 
 #include "../common/Event.h"
 #include "../common/EngineChannel.h"
+#include "../../common/RingBuffer.h"
 #include "EngineGlobals.h"
 #include "Engine.h"
 #include "Voice.h"

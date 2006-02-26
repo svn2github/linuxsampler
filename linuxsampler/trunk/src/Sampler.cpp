@@ -48,11 +48,18 @@ namespace LinuxSampler {
 
     SamplerChannel::~SamplerChannel() {
         if (pEngineChannel) {
+            Engine* engine = pEngineChannel->GetEngine();
+            if (pAudioOutputDevice) pAudioOutputDevice->Disconnect(engine);
+
             MidiInputPort* pMidiInputPort = (pEngineChannel) ? pEngineChannel->GetMidiInputPort() : __GetMidiInputDevicePort(GetMidiInputChannel());
             if (pMidiInputPort) pMidiInputPort->Disconnect(pEngineChannel);
             if (pEngineChannel) {
                 if (pAudioOutputDevice) pEngineChannel->DisconnectAudioOutputDevice();
                 EngineChannelFactory::Destroy(pEngineChannel);
+
+                // reconnect engine if it still exists
+                const std::set<Engine*>& engines = EngineFactory::EngineInstances();
+                if (engines.find(engine) != engines.end()) pAudioOutputDevice->Connect(engine);
             }
         }
     }
@@ -71,9 +78,16 @@ namespace LinuxSampler {
         MidiInputPort* pMidiInputPort = __GetMidiInputDevicePort(GetMidiInputPort());
         // disconnect old engine channel
         if (pEngineChannel) {
+            Engine* engine = pEngineChannel->GetEngine();
+            if (pAudioOutputDevice) pAudioOutputDevice->Disconnect(engine);
+
             if (pMidiInputPort) pMidiInputPort->Disconnect(pEngineChannel);
             if (pAudioOutputDevice) pEngineChannel->DisconnectAudioOutputDevice();
             EngineChannelFactory::Destroy(pEngineChannel);
+
+            // reconnect engine if it still exists
+            const std::set<Engine*>& engines = EngineFactory::EngineInstances();
+            if (engines.find(engine) != engines.end()) pAudioOutputDevice->Connect(engine);
         }
 
         // connect new engine channel
@@ -95,7 +109,17 @@ namespace LinuxSampler {
 
     void SamplerChannel::SetAudioOutputDevice(AudioOutputDevice* pDevice) {
         // disconnect old device
-        if (pAudioOutputDevice && pEngineChannel) pEngineChannel->DisconnectAudioOutputDevice();
+        if (pAudioOutputDevice && pEngineChannel) {
+            Engine* engine = pEngineChannel->GetEngine();
+            pAudioOutputDevice->Disconnect(engine);
+
+            pEngineChannel->DisconnectAudioOutputDevice();
+
+            // reconnect engine if it still exists
+            const std::set<Engine*>& engines = EngineFactory::EngineInstances();
+            if (engines.find(engine) != engines.end()) pAudioOutputDevice->Connect(engine);
+        }
+
         // connect new device
         pAudioOutputDevice = pDevice;
         if (pEngineChannel) {

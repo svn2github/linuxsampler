@@ -129,7 +129,7 @@ int main(int argc, char **argv) {
 
     while (true) {
         if (bPrintStatistics) {
-            std::set<Engine*> engines = EngineFactory::EngineInstances();
+            const std::set<Engine*>& engines = EngineFactory::EngineInstances();
             std::set<Engine*>::iterator itEngine = engines.begin();
             for (int i = 0; itEngine != engines.end(); itEngine++, i++) {
                 Engine* pEngine = *itEngine;

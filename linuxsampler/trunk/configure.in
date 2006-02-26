@@ -192,7 +192,10 @@ AM_CONDITIONAL(HAVE_JACK, test $HAVE_JACK = 1)
 AC_DEFINE_UNQUOTED(HAVE_JACK,$HAVE_JACK,[Define to 1 if you have JACK installed.])
 
 # ARTS
-sinclude([m4/arts.m4])
+
+m4_ifdef([m4_include(m4/arts.m4)],,
+        [sinclude([m4/arts.m4])])
+
 AM_PATH_ARTS(0.9.5, have_arts=1, have_arts=0)
 if test "$have_arts" = "1"; then
     have_audio_output_driver="true"

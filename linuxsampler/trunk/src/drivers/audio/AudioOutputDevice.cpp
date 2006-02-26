@@ -201,16 +201,20 @@ namespace LinuxSampler {
     }
 
     void AudioOutputDevice::Connect(Engine* pEngine) {
-        if (Engines.find(pEngine) == Engines.end()) {
-            Engines.insert(pEngine);
+        std::set<Engine*>& engines = Engines.GetConfigForUpdate();
+        if (engines.find(pEngine) == engines.end()) {
+            engines.insert(pEngine);
+            Engines.SwitchConfig().insert(pEngine);
             // make sure the engine knows about the connection
             //pEngine->Connect(this);
         }
     }
 
     void AudioOutputDevice::Disconnect(Engine* pEngine) {
-        if (Engines.find(pEngine) != Engines.end()) { // if clause to prevent disconnect loop
-            Engines.erase(pEngine);
+        std::set<Engine*>& engines = Engines.GetConfigForUpdate();
+        if (engines.find(pEngine) != engines.end()) { // if clause to prevent disconnect loop
+            engines.erase(pEngine);
+            Engines.SwitchConfig().erase(pEngine);
             // make sure the engine knows about the disconnection
             //pEngine->DisconnectAudioOutputDevice();
         }
@@ -246,12 +250,13 @@ namespace LinuxSampler {
         int result = 0;
 
         // let all connected engines render audio for the current audio fragment cycle
+        const std::set<Engine*>& engines = Engines.Lock();
         #if CONFIG_RT_EXCEPTIONS
         try
         #endif // CONFIG_RT_EXCEPTIONS
         {
-            std::set<Engine*>::iterator iterEngine = Engines.begin();
-            std::set<Engine*>::iterator end        = Engines.end();
+            std::set<Engine*>::iterator iterEngine = engines.begin();
+            std::set<Engine*>::iterator end        = engines.end();
             for (; iterEngine != end; iterEngine++) {
                 int res = (*iterEngine)->RenderAudio(Samples);
                 if (res != 0) result = res;
@@ -264,6 +269,7 @@ namespace LinuxSampler {
         }
         #endif // CONFIG_RT_EXCEPTIONS
 
+        Engines.Unlock();
         return result;
     }
 

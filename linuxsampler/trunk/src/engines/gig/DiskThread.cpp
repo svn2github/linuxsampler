@@ -249,7 +249,7 @@ namespace LinuxSampler { namespace gig {
             RefillStreams(); // refill the most empty streams
 
             // if nothing was done during this iteration (eg no streambuffer
-            // filled with data) then sleep for 50ms
+            // filled with data) then sleep for 30ms
             if (IsIdle) usleep(30000);
 
             int streamsInUsage = 0;

@@ -39,7 +39,7 @@ namespace LinuxSampler {
 
     /** @brief LinuxSampler sampler channel
      *
-     * Encapsulates a channel of a specific sampler engine typ, one
+     * Encapsulates a channel of a specific sampler engine type, one
      * connection to a MIDI input device and one connection to an audio
      * output device. You cannot create an instance of this class on your
      * own, you have to use the AddSamplerChannel() method of the Sampler
@@ -155,7 +155,6 @@ namespace LinuxSampler {
 
             /** Getting MIDI input device port given its index number. */
             MidiInputPort* __GetMidiInputDevicePort(int iMidiPort);
-            midi_chan_t    __GetMidiChannel();
 
             Sampler*           pSampler;
             EngineChannel*     pEngineChannel;

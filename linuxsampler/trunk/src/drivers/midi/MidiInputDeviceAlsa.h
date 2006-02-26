@@ -28,7 +28,6 @@
 
 #include "../../common/global.h"
 #include "../../common/Thread.h"
-#include "../../common/RingBuffer.h"
 #include "MidiInputDevice.h"
 
 namespace LinuxSampler {

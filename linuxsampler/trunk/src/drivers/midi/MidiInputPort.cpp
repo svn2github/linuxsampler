@@ -89,63 +89,71 @@ namespace LinuxSampler {
     }
 
     void MidiInputPort::DispatchNoteOn(uint8_t Key, uint8_t Velocity, uint MidiChannel) {
+        const MidiChannelMap_t& midiChannelMap = MidiChannelMap.Lock();
         // dispatch event for engines listening to the same MIDI channel
         {
-            std::set<EngineChannel*>::iterator engineiter = MidiChannelMap[MidiChannel].begin();
-            std::set<EngineChannel*>::iterator end        = MidiChannelMap[MidiChannel].end();
+            std::set<EngineChannel*>::iterator engineiter = midiChannelMap[MidiChannel].begin();
+            std::set<EngineChannel*>::iterator end        = midiChannelMap[MidiChannel].end();
             for (; engineiter != end; engineiter++) (*engineiter)->SendNoteOn(Key, Velocity);
         }
         // dispatch event for engines listening to ALL MIDI channels
         {
-            std::set<EngineChannel*>::iterator engineiter = MidiChannelMap[midi_chan_all].begin();
-            std::set<EngineChannel*>::iterator end        = MidiChannelMap[midi_chan_all].end();
+            std::set<EngineChannel*>::iterator engineiter = midiChannelMap[midi_chan_all].begin();
+            std::set<EngineChannel*>::iterator end        = midiChannelMap[midi_chan_all].end();
             for (; engineiter != end; engineiter++) (*engineiter)->SendNoteOn(Key, Velocity);
         }
+        MidiChannelMap.Unlock();
     }
 
     void MidiInputPort::DispatchNoteOff(uint8_t Key, uint8_t Velocity, uint MidiChannel) {
+        const MidiChannelMap_t& midiChannelMap = MidiChannelMap.Lock();
         // dispatch event for engines listening to the same MIDI channel
         {
-            std::set<EngineChannel*>::iterator engineiter = MidiChannelMap[MidiChannel].begin();
-            std::set<EngineChannel*>::iterator end        = MidiChannelMap[MidiChannel].end();
+            std::set<EngineChannel*>::iterator engineiter = midiChannelMap[MidiChannel].begin();
+            std::set<EngineChannel*>::iterator end        = midiChannelMap[MidiChannel].end();
             for (; engineiter != end; engineiter++) (*engineiter)->SendNoteOff(Key, Velocity);
         }
         // dispatch event for engines listening to ALL MIDI channels
         {
-            std::set<EngineChannel*>::iterator engineiter = MidiChannelMap[midi_chan_all].begin();
-            std::set<EngineChannel*>::iterator end        = MidiChannelMap[midi_chan_all].end();
+            std::set<EngineChannel*>::iterator engineiter = midiChannelMap[midi_chan_all].begin();
+            std::set<EngineChannel*>::iterator end        = midiChannelMap[midi_chan_all].end();
             for (; engineiter != end; engineiter++) (*engineiter)->SendNoteOff(Key, Velocity);
         }
+        MidiChannelMap.Unlock();
     }
 
     void MidiInputPort::DispatchPitchbend(int Pitch, uint MidiChannel) {
+        const MidiChannelMap_t& midiChannelMap = MidiChannelMap.Lock();
         // dispatch event for engines listening to the same MIDI channel
         {
-            std::set<EngineChannel*>::iterator engineiter = MidiChannelMap[MidiChannel].begin();
-            std::set<EngineChannel*>::iterator end        = MidiChannelMap[MidiChannel].end();
+            std::set<EngineChannel*>::iterator engineiter = midiChannelMap[MidiChannel].begin();
+            std::set<EngineChannel*>::iterator end        = midiChannelMap[MidiChannel].end();
             for (; engineiter != end; engineiter++) (*engineiter)->SendPitchbend(Pitch);
         }
         // dispatch event for engines listening to ALL MIDI channels
         {
-            std::set<EngineChannel*>::iterator engineiter = MidiChannelMap[midi_chan_all].begin();
-            std::set<EngineChannel*>::iterator end        = MidiChannelMap[midi_chan_all].end();
+            std::set<EngineChannel*>::iterator engineiter = midiChannelMap[midi_chan_all].begin();
+            std::set<EngineChannel*>::iterator end        = midiChannelMap[midi_chan_all].end();
             for (; engineiter != end; engineiter++) (*engineiter)->SendPitchbend(Pitch);
         }
+        MidiChannelMap.Unlock();
     }
 
     void MidiInputPort::DispatchControlChange(uint8_t Controller, uint8_t Value, uint MidiChannel) {
+        const MidiChannelMap_t& midiChannelMap = MidiChannelMap.Lock();
         // dispatch event for engines listening to the same MIDI channel
         {
-            std::set<EngineChannel*>::iterator engineiter = MidiChannelMap[MidiChannel].begin();
-            std::set<EngineChannel*>::iterator end        = MidiChannelMap[MidiChannel].end();
+            std::set<EngineChannel*>::iterator engineiter = midiChannelMap[MidiChannel].begin();
+            std::set<EngineChannel*>::iterator end        = midiChannelMap[MidiChannel].end();
             for (; engineiter != end; engineiter++) (*engineiter)->SendControlChange(Controller, Value);
         }
         // dispatch event for engines listening to ALL MIDI channels
         {
-            std::set<EngineChannel*>::iterator engineiter = MidiChannelMap[midi_chan_all].begin();
-            std::set<EngineChannel*>::iterator end        = MidiChannelMap[midi_chan_all].end();
+            std::set<EngineChannel*>::iterator engineiter = midiChannelMap[midi_chan_all].begin();
+            std::set<EngineChannel*>::iterator end        = midiChannelMap[midi_chan_all].end();
             for (; engineiter != end; engineiter++) (*engineiter)->SendControlChange(Controller, Value);
         }
+        MidiChannelMap.Unlock();
     }
 
     void MidiInputPort::DispatchSysex(void* pData, uint Size) {
@@ -185,9 +193,10 @@ namespace LinuxSampler {
         if (MidiChannel < 0 || MidiChannel > 16)
             throw MidiInputException("MIDI channel index out of bounds");
 
-        // firt check if desired connection is already established
+        // first check if desired connection is already established
         MidiChannelMapMutex.Lock();
-        bool bAlreadyDone = MidiChannelMap[MidiChannel].count(pEngineChannel);
+        MidiChannelMap_t& midiChannelMap = MidiChannelMap.GetConfigForUpdate();
+        bool bAlreadyDone = midiChannelMap[MidiChannel].count(pEngineChannel);
         MidiChannelMapMutex.Unlock();
         if (bAlreadyDone) return;
 
@@ -196,7 +205,8 @@ namespace LinuxSampler {
 
         // register engine channel on the desired MIDI channel
         MidiChannelMapMutex.Lock();
-        MidiChannelMap[MidiChannel].insert(pEngineChannel);
+        MidiChannelMap.GetConfigForUpdate()[MidiChannel].insert(pEngineChannel);
+        MidiChannelMap.SwitchConfig()[MidiChannel].insert(pEngineChannel);
         MidiChannelMapMutex.Unlock();
 
         // inform engine channel about this connection
@@ -214,9 +224,20 @@ namespace LinuxSampler {
         // unregister engine channel from all MIDI channels
         MidiChannelMapMutex.Lock();
         try {
-            for (int i = 0; i <= 16; i++) {
-                bChannelFound |= MidiChannelMap[i].count(pEngineChannel);
-                MidiChannelMap[i].erase(pEngineChannel);
+            {
+                MidiChannelMap_t& midiChannelMap = MidiChannelMap.GetConfigForUpdate();
+                for (int i = 0; i <= 16; i++) {
+                    bChannelFound |= midiChannelMap[i].count(pEngineChannel);
+                    midiChannelMap[i].erase(pEngineChannel);
+                }
+            }
+            // do the same update again, after switching to the other config
+            {
+                MidiChannelMap_t& midiChannelMap = MidiChannelMap.SwitchConfig();
+                for (int i = 0; i <= 16; i++) {
+                    bChannelFound |= midiChannelMap[i].count(pEngineChannel);
+                    midiChannelMap[i].erase(pEngineChannel);
+                }
             }
         }
         catch(...) { /* NOOP */ }

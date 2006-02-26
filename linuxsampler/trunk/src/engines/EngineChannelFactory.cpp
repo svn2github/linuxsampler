@@ -42,8 +42,8 @@ namespace LinuxSampler {
         engineChannels.erase(pEngineChannel);
     }
 
-    std::set<LinuxSampler::EngineChannel*> EngineChannelFactory::EngineChannelInstances() {
+    const std::set<LinuxSampler::EngineChannel*>& EngineChannelFactory::EngineChannelInstances() {
         return engineChannels;
     }
 
-} // namepsace LinuxSampler
+} // namespace LinuxSampler

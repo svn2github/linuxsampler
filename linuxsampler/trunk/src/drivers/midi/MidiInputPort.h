@@ -31,6 +31,7 @@
 #include "midi.h"
 #include "MidiInputDevice.h"
 #include "../../engines/common/EngineChannel.h"
+#include "../../common/SynchronizedConfig.h"
 
 namespace LinuxSampler {
 
@@ -199,7 +200,8 @@ namespace LinuxSampler {
             MidiInputDevice* pDevice;
             int portNumber;
             std::map<String,DeviceRuntimeParameter*> Parameters;  ///< All port parameters.
-            std::set<EngineChannel*> MidiChannelMap[17]; ///< Contains the list of connected engines for each MIDI channel, where index 0 points to the list of engines which are connected to all MIDI channels. Usually it's not necessary for the descendant to use this map, instead it should just use the Dispatch* methods.
+            typedef std::set<EngineChannel*> MidiChannelMap_t[17];
+            SynchronizedConfig<MidiChannelMap_t> MidiChannelMap; ///< Contains the list of connected engines for each MIDI channel, where index 0 points to the list of engines which are connected to all MIDI channels. Usually it's not necessary for the descendant to use this map, instead it should just use the Dispatch* methods.
             Mutex MidiChannelMapMutex; ///< Used to protect the MidiChannelMap from being used at the same time by different threads.
 
             /**

@@ -35,6 +35,7 @@
 #include "../DeviceParameter.h"
 #include "../../engines/common/Engine.h"
 #include "AudioChannel.h"
+#include "../../common/SynchronizedConfig.h"
 
 namespace LinuxSampler {
 
@@ -234,7 +235,7 @@ namespace LinuxSampler {
             std::map<String,DeviceCreationParameter*> DeviceParameters();
 
         protected:
-            std::set<Engine*>                         Engines;     ///< All sampler engines that are connected to the audio output device.
+            SynchronizedConfig<std::set<Engine*> >    Engines;     ///< All sampler engines that are connected to the audio output device.
             std::vector<AudioChannel*>                Channels;    ///< All audio channels of the audio output device. This is just a container; the descendant has to create channels by himself.
             std::map<String,DeviceCreationParameter*> Parameters;  ///< All device parameters.
 

@@ -37,15 +37,15 @@ namespace LinuxSampler {
             engines.insert(pEngine);
             return pEngine;
         }
-        throw LinuxSamplerException("Unknown engine type");        
+        throw LinuxSamplerException("Unknown engine type");
     }
 
     void EngineFactory::Destroy(LinuxSampler::Engine* pEngine) {
         engines.erase(pEngine);
     }
 
-    std::set<LinuxSampler::Engine*> EngineFactory::EngineInstances() {
+    const std::set<LinuxSampler::Engine*>& EngineFactory::EngineInstances() {
         return engines;
     }
 
-} // namepsace LinuxSampler
+} // namespace LinuxSampler
