@@ -564,7 +564,9 @@ String LSCPServer::ListChannels() {
  */
 String LSCPServer::AddChannel() {
     dmsg(2,("LSCPServer: AddChannel()\n"));
+    LockRTNotify();
     SamplerChannel* pSamplerChannel = pSampler->AddSamplerChannel();
+    UnlockRTNotify();
     LSCPResultSet result(pSamplerChannel->Index());
     return result.Produce();
 }
@@ -606,6 +608,7 @@ String LSCPServer::ListAvailableEngines() {
 String LSCPServer::GetEngineInfo(String EngineName) {
     dmsg(2,("LSCPServer: GetEngineInfo(EngineName=%s)\n", EngineName.c_str()));
     LSCPResultSet result;
+    LockRTNotify();
     try {
         Engine* pEngine = EngineFactory::Create(EngineName);
         result.Add("DESCRIPTION", pEngine->Description());
@@ -615,6 +618,7 @@ String LSCPServer::GetEngineInfo(String EngineName) {
     catch (LinuxSamplerException e) {
          result.Error(e);
     }
+    UnlockRTNotify();
     return result.Produce();
 }
 
@@ -1245,6 +1249,7 @@ String LSCPServer::SetAudioOutputChannel(uint ChannelAudioOutputChannel, uint Au
 String LSCPServer::SetAudioOutputDevice(uint AudioDeviceId, uint uiSamplerChannel) {
     dmsg(2,("LSCPServer: SetAudiotOutputDevice(AudioDeviceId=%d, SamplerChannel=%d)\n",AudioDeviceId,uiSamplerChannel));
     LSCPResultSet result;
+    LockRTNotify();
     try {
         SamplerChannel* pSamplerChannel = pSampler->GetSamplerChannel(uiSamplerChannel);
         if (!pSamplerChannel) throw LinuxSamplerException("Invalid sampler channel number " + ToString(uiSamplerChannel));
@@ -1256,12 +1261,14 @@ String LSCPServer::SetAudioOutputDevice(uint AudioDeviceId, uint uiSamplerChanne
     catch (LinuxSamplerException e) {
          result.Error(e);
     }
+    UnlockRTNotify();
     return result.Produce();
 }
 
 String LSCPServer::SetAudioOutputType(String AudioOutputDriver, uint uiSamplerChannel) {
     dmsg(2,("LSCPServer: SetAudioOutputType(String AudioOutputDriver=%s, SamplerChannel=%d)\n",AudioOutputDriver.c_str(),uiSamplerChannel));
     LSCPResultSet result;
+    LockRTNotify();
     try {
         SamplerChannel* pSamplerChannel = pSampler->GetSamplerChannel(uiSamplerChannel);
         if (!pSamplerChannel) throw LinuxSamplerException("Invalid sampler channel number " + ToString(uiSamplerChannel));
@@ -1293,6 +1300,7 @@ String LSCPServer::SetAudioOutputType(String AudioOutputDriver, uint uiSamplerCh
     catch (LinuxSamplerException e) {
          result.Error(e);
     }
+    UnlockRTNotify();
     return result.Produce();
 }
 

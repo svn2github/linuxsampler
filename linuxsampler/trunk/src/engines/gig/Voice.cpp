@@ -335,12 +335,15 @@ namespace LinuxSampler { namespace gig {
                     pLFO1->ExtController = 0; // no external controller
                     bLFO1Enabled         = false;
             }
-            if (bLFO1Enabled) pLFO1->trigger(pDimRgn->LFO1Frequency,
-                                             start_level_max,
-                                             lfo1_internal_depth,
-                                             pDimRgn->LFO1ControlDepth,
-                                             pDimRgn->LFO1FlipPhase,
-                                             pEngine->SampleRate / CONFIG_DEFAULT_SUBFRAGMENT_SIZE);
+            if (bLFO1Enabled) {
+                pLFO1->trigger(pDimRgn->LFO1Frequency,
+                               start_level_max,
+                               lfo1_internal_depth,
+                               pDimRgn->LFO1ControlDepth,
+                               pDimRgn->LFO1FlipPhase,
+                               pEngine->SampleRate / CONFIG_DEFAULT_SUBFRAGMENT_SIZE);
+                pLFO1->update(pLFO1->ExtController ? pEngineChannel->ControllerTable[pLFO1->ExtController] : 0);
+            }
         }
 
 
@@ -378,12 +381,15 @@ namespace LinuxSampler { namespace gig {
                     pLFO2->ExtController = 0; // no external controller
                     bLFO2Enabled         = false;
             }
-            if (bLFO2Enabled) pLFO2->trigger(pDimRgn->LFO2Frequency,
-                                             start_level_max,
-                                             lfo2_internal_depth,
-                                             pDimRgn->LFO2ControlDepth,
-                                             pDimRgn->LFO2FlipPhase,
-                                             pEngine->SampleRate / CONFIG_DEFAULT_SUBFRAGMENT_SIZE);
+            if (bLFO2Enabled) {
+                pLFO2->trigger(pDimRgn->LFO2Frequency,
+                               start_level_max,
+                               lfo2_internal_depth,
+                               pDimRgn->LFO2ControlDepth,
+                               pDimRgn->LFO2FlipPhase,
+                               pEngine->SampleRate / CONFIG_DEFAULT_SUBFRAGMENT_SIZE);
+                pLFO2->update(pLFO2->ExtController ? pEngineChannel->ControllerTable[pLFO2->ExtController] : 0);
+            }
         }
 
 
@@ -421,12 +427,15 @@ namespace LinuxSampler { namespace gig {
                     pLFO3->ExtController = 0; // no external controller
                     bLFO3Enabled         = false;
             }
-            if (bLFO3Enabled) pLFO3->trigger(pDimRgn->LFO3Frequency,
-                                             start_level_mid,
-                                             lfo3_internal_depth,
-                                             pDimRgn->LFO3ControlDepth,
-                                             false,
-                                             pEngine->SampleRate / CONFIG_DEFAULT_SUBFRAGMENT_SIZE);
+            if (bLFO3Enabled) {
+                pLFO3->trigger(pDimRgn->LFO3Frequency,
+                               start_level_mid,
+                               lfo3_internal_depth,
+                               pDimRgn->LFO3ControlDepth,
+                               false,
+                               pEngine->SampleRate / CONFIG_DEFAULT_SUBFRAGMENT_SIZE);
+                pLFO3->update(pLFO3->ExtController ? pEngineChannel->ControllerTable[pLFO3->ExtController] : 0);
+            }
         }
 
 

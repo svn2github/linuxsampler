@@ -78,8 +78,8 @@ Version CVS HEAD (?)
       (new LSCP commands: GET TOTAL_VOICE_COUNT, GET TOTAL_VOICE_COUNT_MAX,
       SUBSCRIBE TOTAL_VOICE_COUNT, UNSUBSCRIBE TOTAL_VOICE_COUNT)
     - fixed some memory management errors
-    - fixed some concurrency problems between the lscp thread and the
-      audio/midi threads
+    - fixed some concurrency problems that could lead to crashes when
+      LSCP commands were executed
 
 Version 0.3.3 (15 July 2005)
 
