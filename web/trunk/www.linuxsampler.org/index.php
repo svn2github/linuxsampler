@@ -129,7 +129,8 @@
                 <tr>
                   <td valign=top>
                     <p class="default">
-
+		      <b>2006-03-16</b> <a href="http://prdownloads.sourceforge.net/jsampler/JS_Classic-0.2a.jar?download">JS Classic 0.2a</a> has been released.<br>
+		      <br>
               <b>2005-12-22</b> Major services (CVS, downloads, Bug Tracking System) were
               down in the last days due to a hardware defect on one of our servers. CVS is
               finally up again and we are working on restoring all other services in the
