@@ -271,6 +271,7 @@ namespace LinuxSampler { namespace gig {
         AudioDeviceChannelRight = 1;
         pOutputLeft             = pAudioOut->Channel(0)->Buffer();
         pOutputRight            = pAudioOut->Channel(1)->Buffer();
+        MidiInputPort::AddSysexListener(pEngine);
     }
 
     void EngineChannel::DisconnectAudioOutputDevice() {

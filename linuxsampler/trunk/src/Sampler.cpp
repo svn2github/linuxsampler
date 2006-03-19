@@ -91,11 +91,11 @@ namespace LinuxSampler {
         }
 
         // connect new engine channel
-        if (pMidiInputPort) pMidiInputPort->Connect(pNewEngineChannel, GetMidiInputChannel());
         if (pAudioOutputDevice) {
             pNewEngineChannel->Connect(pAudioOutputDevice);
             pAudioOutputDevice->Connect(pNewEngineChannel->GetEngine());
         }
+        if (pMidiInputPort) pMidiInputPort->Connect(pNewEngineChannel, GetMidiInputChannel());
         pEngineChannel = pNewEngineChannel;
 
         // from now on get MIDI device and port from EngineChannel object

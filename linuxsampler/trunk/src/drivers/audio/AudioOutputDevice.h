@@ -236,6 +236,7 @@ namespace LinuxSampler {
 
         protected:
             SynchronizedConfig<std::set<Engine*> >    Engines;     ///< All sampler engines that are connected to the audio output device.
+            SynchronizedConfig<std::set<Engine*> >::Reader EnginesReader; ///< Audio thread access to Engines.
             std::vector<AudioChannel*>                Channels;    ///< All audio channels of the audio output device. This is just a container; the descendant has to create channels by himself.
             std::map<String,DeviceCreationParameter*> Parameters;  ///< All device parameters.
 

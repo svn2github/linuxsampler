@@ -69,7 +69,9 @@ namespace LinuxSampler {
         Parameters.clear();
     }
 
-    MidiInputPort::MidiInputPort(MidiInputDevice* pDevice, int portNumber) {
+    MidiInputPort::MidiInputPort(MidiInputDevice* pDevice, int portNumber)
+        : MidiChannelMapReader(MidiChannelMap),
+          SysexListenersReader(SysexListeners) {
         this->pDevice = pDevice;
         this->portNumber = portNumber;
         Parameters["NAME"] = new ParameterName(this);
@@ -89,7 +91,7 @@ namespace LinuxSampler {
     }
 
     void MidiInputPort::DispatchNoteOn(uint8_t Key, uint8_t Velocity, uint MidiChannel) {
-        const MidiChannelMap_t& midiChannelMap = MidiChannelMap.Lock();
+        const MidiChannelMap_t& midiChannelMap = MidiChannelMapReader.Lock();
         // dispatch event for engines listening to the same MIDI channel
         {
             std::set<EngineChannel*>::iterator engineiter = midiChannelMap[MidiChannel].begin();
@@ -102,11 +104,11 @@ namespace LinuxSampler {
             std::set<EngineChannel*>::iterator end        = midiChannelMap[midi_chan_all].end();
             for (; engineiter != end; engineiter++) (*engineiter)->SendNoteOn(Key, Velocity);
         }
-        MidiChannelMap.Unlock();
+        MidiChannelMapReader.Unlock();
     }
 
     void MidiInputPort::DispatchNoteOff(uint8_t Key, uint8_t Velocity, uint MidiChannel) {
-        const MidiChannelMap_t& midiChannelMap = MidiChannelMap.Lock();
+        const MidiChannelMap_t& midiChannelMap = MidiChannelMapReader.Lock();
         // dispatch event for engines listening to the same MIDI channel
         {
             std::set<EngineChannel*>::iterator engineiter = midiChannelMap[MidiChannel].begin();
@@ -119,11 +121,11 @@ namespace LinuxSampler {
             std::set<EngineChannel*>::iterator end        = midiChannelMap[midi_chan_all].end();
             for (; engineiter != end; engineiter++) (*engineiter)->SendNoteOff(Key, Velocity);
         }
-        MidiChannelMap.Unlock();
+        MidiChannelMapReader.Unlock();
     }
 
     void MidiInputPort::DispatchPitchbend(int Pitch, uint MidiChannel) {
-        const MidiChannelMap_t& midiChannelMap = MidiChannelMap.Lock();
+        const MidiChannelMap_t& midiChannelMap = MidiChannelMapReader.Lock();
         // dispatch event for engines listening to the same MIDI channel
         {
             std::set<EngineChannel*>::iterator engineiter = midiChannelMap[MidiChannel].begin();
@@ -136,11 +138,11 @@ namespace LinuxSampler {
             std::set<EngineChannel*>::iterator end        = midiChannelMap[midi_chan_all].end();
             for (; engineiter != end; engineiter++) (*engineiter)->SendPitchbend(Pitch);
         }
-        MidiChannelMap.Unlock();
+        MidiChannelMapReader.Unlock();
     }
 
     void MidiInputPort::DispatchControlChange(uint8_t Controller, uint8_t Value, uint MidiChannel) {
-        const MidiChannelMap_t& midiChannelMap = MidiChannelMap.Lock();
+        const MidiChannelMap_t& midiChannelMap = MidiChannelMapReader.Lock();
         // dispatch event for engines listening to the same MIDI channel
         {
             std::set<EngineChannel*>::iterator engineiter = midiChannelMap[MidiChannel].begin();
@@ -153,14 +155,16 @@ namespace LinuxSampler {
             std::set<EngineChannel*>::iterator end        = midiChannelMap[midi_chan_all].end();
             for (; engineiter != end; engineiter++) (*engineiter)->SendControlChange(Controller, Value);
         }
-        MidiChannelMap.Unlock();
+        MidiChannelMapReader.Unlock();
     }
 
     void MidiInputPort::DispatchSysex(void* pData, uint Size) {
+        const std::set<Engine*> allEngines = SysexListenersReader.Lock();
         // dispatch event to all engine instances
-        std::set<Engine*>::iterator engineiter = EngineFactory::EngineInstances().begin();
-        std::set<Engine*>::iterator end        = EngineFactory::EngineInstances().end();
+        std::set<Engine*>::iterator engineiter = allEngines.begin();
+        std::set<Engine*>::iterator end        = allEngines.end();
         for (; engineiter != end; engineiter++) (*engineiter)->SendSysex(pData, Size);
+        SysexListenersReader.Unlock();
     }
 
     void MidiInputPort::DispatchProgramChange(uint8_t Program, uint MidiChannel) {
@@ -248,6 +252,19 @@ namespace LinuxSampler {
 
         // mark engine channel as changed
         pEngineChannel->StatusChanged(true);
+    }
+
+    SynchronizedConfig<std::set<LinuxSampler::Engine*> > MidiInputPort::SysexListeners;
+
+    void MidiInputPort::AddSysexListener(Engine* engine) {
+        std::pair<std::set<Engine*>::iterator, bool> p = SysexListeners.GetConfigForUpdate().insert(engine);
+        if (p.second) SysexListeners.SwitchConfig().insert(engine);
+    }
+
+    bool MidiInputPort::RemoveSysexListener(Engine* engine) {
+        int count = SysexListeners.GetConfigForUpdate().erase(engine);
+        if (count) SysexListeners.SwitchConfig().erase(engine);
+        return count;
     }
 
 } // namespace LinuxSampler

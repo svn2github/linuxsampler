@@ -174,7 +174,8 @@ namespace LinuxSampler {
 // *************** AudioOutputDevice ***************
 // *
 
-    AudioOutputDevice::AudioOutputDevice(std::map<String,DeviceCreationParameter*> DriverParameters) {
+    AudioOutputDevice::AudioOutputDevice(std::map<String,DeviceCreationParameter*> DriverParameters)
+        : EnginesReader(Engines) {
         this->Parameters = DriverParameters;
     }
 
@@ -250,7 +251,7 @@ namespace LinuxSampler {
         int result = 0;
 
         // let all connected engines render audio for the current audio fragment cycle
-        const std::set<Engine*>& engines = Engines.Lock();
+        const std::set<Engine*>& engines = EnginesReader.Lock();
         #if CONFIG_RT_EXCEPTIONS
         try
         #endif // CONFIG_RT_EXCEPTIONS
@@ -269,7 +270,7 @@ namespace LinuxSampler {
         }
         #endif // CONFIG_RT_EXCEPTIONS
 
-        Engines.Unlock();
+        EnginesReader.Unlock();
         return result;
     }
 

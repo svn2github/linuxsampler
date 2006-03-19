@@ -22,26 +22,29 @@
 #define __SYNCHRONIZEDCONFIG_H__
 
 #include "atomic.h"
+#include <set>
 
 namespace LinuxSampler {
 
     /**
      * Thread safe management of configuration data, where the data is
-     * updated by a single non real time thread and read by a single
-     * real time thread.
+     * updated by a single non real time thread and read by a number
+     * of real time threads.
      *
      * The synchronization is achieved by using two instances of the
      * configuration data. The non real time thread gets access to the
-     * instance not currently in use by the real time thread by
+     * instance not currently in use by the real time threads by
      * calling GetConfigForUpdate(). After the data is updated, the
      * non real time thread must call SwitchConfig() and redo the
      * update on the other instance. SwitchConfig() blocks until it is
      * safe to modify the other instance.
      *
-     * The real time thread calls Lock() to get access to the data,
-     * and Unlock() when it is finished reading the data. (Neither
-     * Lock nor Unlock will block the real time thread, or use any
-     * system calls.)
+     * The real time threads need one Reader object each to access the
+     * confuration data. This object must be created outside the real
+     * time thread. The Lock() function returns a reference to the
+     * data to be read, and Unlock() must be called when finished
+     * reading the data. (Neither Lock nor Unlock will block the real
+     * time thread, or use any system calls.)
      */
     template<class T>
     class SynchronizedConfig {
@@ -50,28 +53,42 @@ namespace LinuxSampler {
 
             // methods for the real time thread
 
-            /**
-             * Gets the configuration object for use by the real time
-             * thread. The object is safe to use (read only) until
-             * Unlock() is called.
-             *
-             * @returns a reference to the configuration object to be
-             *          read by the real time thread
-             */
-            const T& Lock() {
-                atomic_set(&lock, 1);
-                return config[atomic_read(&indexAtomic)];
-            }
+            class Reader {
+                public:
+                    /**
+                     * Gets the configuration object for use by the
+                     * real time thread. The object is safe to use
+                     * (read only) until Unlock() is called.
+                     *
+                     * @returns a reference to the configuration
+                     *          object to be read by the real time
+                     *          thread
+                     */
+                    const T& Lock() {
+                        atomic_set(&lock, 1);
+                        return parent.config[atomic_read(&parent.indexAtomic)];
+                    }
 
-            /**
-             * Unlock the configuration object. Unlock() must be
-             * called by the real time thread after it has finished
-             * reading the configuration object. If the non real time
-             * thread is waiting in SwitchConfig() it will be awaken.
-             */
-            void Unlock() {
-                atomic_set(&lock, 0);
-            }
+                    /**
+                     * Unlock the configuration object. Unlock() must
+                     * be called by the real time thread after it has
+                     * finished reading the configuration object. If
+                     * the non real time thread is waiting in
+                     * SwitchConfig() it will be awaken when no real
+                     * time threads are locked anymore.
+                     */
+                    void Unlock() {
+                        atomic_set(&lock, 0);
+                    }
+
+                    Reader(SynchronizedConfig& config);
+                    ~Reader();
+                private:
+                    friend class SynchronizedConfig;
+                    SynchronizedConfig& parent;
+                    atomic_t lock;
+                    Reader *next; // only used locally in SwitchConfig
+            };
 
 
             // methods for the non real time thread
@@ -103,27 +120,61 @@ namespace LinuxSampler {
             T& SwitchConfig();
 
         private:
-            atomic_t lock;
             atomic_t indexAtomic;
             int updateIndex;
             T config[2];
+            std::set<Reader*> readers;
     };
 
     template<class T> SynchronizedConfig<T>::SynchronizedConfig() {
-        atomic_set(&lock, 0);
         atomic_set(&indexAtomic, 0);
+        updateIndex = 1;
     }
 
     template<class T> T& SynchronizedConfig<T>::GetConfigForUpdate() {
-        updateIndex = atomic_read(&indexAtomic) ^ 1;
         return config[updateIndex];
     }
 
     template<class T> T& SynchronizedConfig<T>::SwitchConfig() {
         atomic_set(&indexAtomic, updateIndex);
-        while (atomic_read(&lock))
+
+        // first put all locking readers in a linked list
+        Reader* lockingReaders = 0;
+        for (typename std::set<Reader*>::iterator iter = readers.begin() ;
+             iter != readers.end() ;
+             iter++) {
+            if (atomic_read(&(*iter)->lock)) {
+                (*iter)->next = lockingReaders;
+                lockingReaders = *iter;
+            }
+        }
+
+        // wait until there are no locking readers left
+        while (lockingReaders) {
             usleep(50000);
-        return config[updateIndex ^ 1];
+            Reader** prev = &lockingReaders;
+            for (Reader* p = lockingReaders ; p ; p = p->next) {
+                if (atomic_read(&p->lock)) prev = &p->next;
+                else *prev = p->next; // unlink
+            }
+        }
+
+        updateIndex ^= 1;
+        return config[updateIndex];
+    }
+
+
+    // ----- Reader ----
+
+    template <class T>
+    SynchronizedConfig<T>::Reader::Reader(SynchronizedConfig& config) : parent(config) {
+        atomic_set(&lock, 0);
+        parent.readers.insert(this);
+    }
+
+    template <class T>
+    SynchronizedConfig<T>::Reader::~Reader() {
+        parent.readers.erase(this);
     }
 
 } // namespace LinuxSampler

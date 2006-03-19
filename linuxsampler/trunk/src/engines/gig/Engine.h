@@ -110,6 +110,7 @@ namespace LinuxSampler { namespace gig {
             int8_t                  ScaleTuning[12];       ///< contains optional detune factors (-64..+63 cents) for all 12 semitones of an octave
             int                     MaxFadeOutPos;         ///< The last position in an audio fragment to allow an instant fade out (e.g. for voice stealing) without leading to clicks.
             uint32_t                RandomSeed;            ///< State of the random number generator used by the random dimension.
+            Mutex                   ResetInternalMutex;    ///< Mutex to protect the ResetInternal function for concurrent usage (e.g. by the lscp and instrument loader threads).
 
             void ProcessEvents(EngineChannel* pEngineChannel, uint Samples);
             void RenderActiveVoices(EngineChannel* pEngineChannel, uint Samples);

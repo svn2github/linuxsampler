@@ -105,8 +105,19 @@ namespace LinuxSampler {
              */
             std::map<String,DeviceRuntimeParameter*> PortParameters();
 
+            /**
+             * Registers that an engine wants to have sysex messages.
+             */
+            static void AddSysexListener(Engine* engine);
 
-
+            /**
+             * Removes engine from list of engines getting sysex
+             * messages.
+             *
+             * @returns true if engine was removed, false if it wasn't
+             *          present in the list.
+             */
+            static bool RemoveSysexListener(Engine* engine);
 
 
             /////////////////////////////////////////////////////////////////
@@ -202,7 +213,9 @@ namespace LinuxSampler {
             std::map<String,DeviceRuntimeParameter*> Parameters;  ///< All port parameters.
             typedef std::set<EngineChannel*> MidiChannelMap_t[17];
             SynchronizedConfig<MidiChannelMap_t> MidiChannelMap; ///< Contains the list of connected engines for each MIDI channel, where index 0 points to the list of engines which are connected to all MIDI channels. Usually it's not necessary for the descendant to use this map, instead it should just use the Dispatch* methods.
+            SynchronizedConfig<MidiChannelMap_t>::Reader MidiChannelMapReader; ///< MIDI thread access to MidiChannelMap
             Mutex MidiChannelMapMutex; ///< Used to protect the MidiChannelMap from being used at the same time by different threads.
+            SynchronizedConfig<std::set<Engine*> >::Reader SysexListenersReader; ///< MIDI thread access to SysexListeners
 
             /**
              * Constructor
@@ -218,6 +231,7 @@ namespace LinuxSampler {
 
         private:
             EngineChannel* pPreviousProgramChangeEngineChannel; ///< Points to the engine channel which was connected by the previous DispatchProgramChange() call.
+            static SynchronizedConfig<std::set<Engine*> > SysexListeners; ///< All engines that are listening to sysex messages.
     };
 
 } // namsepace LinuxSampler

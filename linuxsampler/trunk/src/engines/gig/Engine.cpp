@@ -116,6 +116,7 @@ namespace LinuxSampler { namespace gig {
      * Destructor
      */
     Engine::~Engine() {
+        MidiInputPort::RemoveSysexListener(this);
         if (pDiskThread) {
             dmsg(1,("Stopping disk thread..."));
             pDiskThread->StopThread();
@@ -165,9 +166,14 @@ namespace LinuxSampler { namespace gig {
 
     /**
      *  Reset all voices and disk thread and clear input event queue and all
-     *  control and status variables. This method is not thread safe!
+     *  control and status variables. This method is protected by a mutex.
      */
     void Engine::ResetInternal() {
+        ResetInternalMutex.Lock();
+
+        // make sure that the engine does not get any sysex messages
+        // while it's reseting
+        bool sysexDisabled = MidiInputPort::RemoveSysexListener(this);
         ActiveVoiceCount    = 0;
         ActiveVoiceCountMax = 0;
 
@@ -191,6 +197,8 @@ namespace LinuxSampler { namespace gig {
         // delete all input events
         pEventQueue->init();
         pSysexBuffer->init();
+        if (sysexDisabled) MidiInputPort::AddSysexListener(this);
+        ResetInternalMutex.Unlock();
     }
 
     /**
@@ -1557,7 +1565,7 @@ namespace LinuxSampler { namespace gig {
     }
 
     String Engine::Version() {
-        String s = "$Revision: 1.59 $";
+        String s = "$Revision: 1.60 $";
         return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
 
