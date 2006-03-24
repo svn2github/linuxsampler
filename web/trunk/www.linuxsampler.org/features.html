@@ -166,10 +166,46 @@
 						<ol>
 							<li class="partly"> Gigasampler Engine
 								<ol>
-									<li class="ok">Gig file loader</li>
+									<li class="ok">Gig file loader
+										<ol>
+											<li class="ok">Gig v2 format</li>
+											<li class="partly">Gig v3 format
+												<ol>
+													<li class="partly">large file support (64 bit file offsets are currently truncated to 32 bit)</li>
+													<li class="partly">24 bit samples (currently truncated to 16 bit), uncompressed as well as compressed</li>
+													<li class="ok">support for multi-file format (.gig, .gx01, .gx02, ...)</li>
+													<li class="ok">support for Dimension Splits not equal to two</li>
+													<li class="ok">up to 8 Dimensions or 256 Dimension Regions</li>
+												</ol>
+											</li>
+										</ol>
+									</li>
 									<li class="ok">Generic playback (RAM & disk streaming)</li>
-									<li class="partly">Dimension switching</li>
-									<li class="ok">Sustain pedal support</li>
+									<li class="ok">Dimension switching
+										<ol>
+											<li class="ok">Sample Channel</li>
+											<li class="ok">Layer</li>
+											<li class="ok">Velocity</li>
+											<li class="ok">Channel Aftertouch</li>
+											<li class="ok">Release Trigger</li>
+											<li class="ok">Keyboard Position</li>
+											<li class="ok">Round Robin</li>
+											<li class="ok">Random</li>
+											<li class="ok">Modulation Wheel</li>
+											<li class="ok">Breath Ctrl.</li>
+											<li class="ok">Foot Ctrl.</li>
+											<li class="ok">Portamento Time Ctrl.</li>
+											<li class="ok">Effect 1 &#038; 2 Ctrl.</li>
+											<li class="ok">Effect 1 - 5 Depth Ctrl.</li>
+											<li class="ok">General Purpose Ctrl. 1 - 8</li>
+											<li class="ok">Sustain Pedal</li>
+											<li class="ok">Portamento</li>
+											<li class="ok">Sostenuto Pedal</li>
+											<li class="ok">Soft Pedal</li>
+										</ol>
+									</li>
+									<li class="ok">Sustain pedal interpretation</li>
+									<li class="ok">Sostenuto pedal interpretation</li>
 									<li class="ok">Key velocity &#060;-&#062; volume mapping</li>
 									<li class="ok">Looping</li>
 									<li class="ok">Pitchbend wheel support</li>
@@ -197,6 +233,11 @@
 									<li class="ok">Release Triggered Voices</li>
 									<li class="ok">Key Switching</li>
 									<li class="ok">Voice Stealing</li>
+									<li class="ok">Portamento Mode and Solo Mode (a.k.a 'Mono Mode',
+										can be altered via standard GM messages, that is CC5 for
+										altering portamento time, CC65 for enabling / disabling
+										portamento mode, CC126 for enabling solo mode and CC127 for
+										disabling solo mode)</li>
 								</ol>
 							</li>
 							<li style="partly"><a href="http://www.midi.org/about-midi/dls/abtdls.shtml">DLS</a> Engine
@@ -273,7 +314,7 @@
 			</p>
 
 			<p>
-			 (Last page update on <b>$Date: 2005-08-16 18:03:48 $</b> by $Author: schoenebeck $,
+			 (Last page update on <b>$Date: 2006-03-24 15:48:14 $</b> by $Author: schoenebeck $,
 			 also see <a href="http://www.linuxsampler.org">CVS Log</a> for recent changes)
 			</p>
 
