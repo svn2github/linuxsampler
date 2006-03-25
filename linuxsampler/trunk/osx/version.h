@@ -68,6 +68,10 @@
 /* Define amount of sample points to be cached in RAM. */
 #define CONFIG_PRELOAD_SAMPLES 32768
 
+/* Define to 1 if you want to enable processing of All-Notes-Off MIDI
+   messages. */
+#define CONFIG_PROCESS_ALL_NOTES_OFF 1
+
 /* Define amount of streams to be refilled per cycle. */
 #define CONFIG_REFILL_STREAMS_PER_RUN 4
 

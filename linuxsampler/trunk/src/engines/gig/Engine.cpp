@@ -1357,7 +1357,9 @@ namespace LinuxSampler { namespace gig {
                 break;
             }
             case 123: { // all notes off
+                #if CONFIG_PROCESS_ALL_NOTES_OFF
                 ReleaseAllVoices(pEngineChannel, itControlChangeEvent);
+                #endif // CONFIG_PROCESS_ALL_NOTES_OFF
                 break;
             }
             case 126: { // mono mode on
@@ -1565,7 +1567,7 @@ namespace LinuxSampler { namespace gig {
     }
 
     String Engine::Version() {
-        String s = "$Revision: 1.60 $";
+        String s = "$Revision: 1.61 $";
         return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
 

@@ -727,6 +727,20 @@ if test "$config_process_muted_channels" = "yes"; then
   AC_DEFINE_UNQUOTED(CONFIG_PROCESS_MUTED_CHANNELS, 1, [Define to 1 if you want to enable processing of muted channels.])
 fi
 
+AC_ARG_ENABLE(process-all-notes-off,
+  [  --disable-process-all-notes-off
+                          Disable interpretation of All-Notes-Off MIDI
+                          messages (default=on). By default LS will release
+                          all voices whenever it receives an All-Notes-Off
+                          MIDI message. You can disable this behavior, so
+                          that LS simply ignores such messages.],
+  [config_process_all_notes_off="no"],
+  [config_process_all_notes_off="yes"]
+)
+if test "$config_process_all_notes_off" = "yes"; then
+  AC_DEFINE_UNQUOTED(CONFIG_PROCESS_ALL_NOTES_OFF, 1, [Define to 1 if you want to enable processing of All-Notes-Off MIDI messages.])
+fi
+
 AC_ARG_ENABLE(interpolate-volume,
   [  --disable-interpolate-volume
                           Disable interpolation of volume modulation
@@ -901,6 +915,7 @@ echo "# Override Filter Resonance Controller: ${config_override_resonance_ctrl}"
 echo "# Override Filter Type: ${config_override_filter_type}"
 echo "# Assert GS SysEx Checksum: ${config_assert_gs_sysex_checksum}"
 echo "# Process Muted Channels: ${config_process_muted_channels}"
+echo "# Process All-Notes-Off MIDI message: ${config_process_all_notes_off}"
 echo "# Interpolate Volume: ${config_interpolate_volume}"
 echo "#-------------------------------------------------------------------#"
 echo "# Read './configure --help' or file 'configure.in' for details.     #"

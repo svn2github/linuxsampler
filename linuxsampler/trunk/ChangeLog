@@ -12,6 +12,8 @@ Version CVS HEAD (?)
       configure script argument though (mandatory for cross-compilation)
     - do not automatically pick optimized gcc flags if the user already
       provided some on his own (as CXXFLAGS)
+    - added compile time option to disable processing of All-Notes-Off MIDI
+      messages
 
   * Gigasampler format engine:
     - extensive synthesis optimization
