@@ -105,126 +105,183 @@ fi
 # check for <features.h>
 AC_CHECK_HEADERS(features.h)
 
+
+###########################################################################
 # Checks for available audio and MIDI systems / drivers
 # (we throw an error if there's not at least one system for audio output and MIDI input available)
+
 have_midi_input_driver="false"
 have_audio_output_driver="false"
 
-AC_CHECK_HEADER(alsa/asoundlib.h,
-    AC_CHECK_LIB(asound, main,
-                             have_alsa=1
-                             ,
-                             have_alsa=0
-                )
-                ,
-                have_alsa=0
+# ALSA
+AC_ARG_ENABLE(alsa-driver,
+  [  --disable-alsa-driver
+                          Disable support for the Advanced Linux Sound
+                          Architecture (ALSA).],
+  [config_alsa_driver="no"],
+  [config_alsa_driver="yes"]
 )
-if test "$have_alsa" = "1"; then
-    have_midi_input_driver="true"
-    have_audio_output_driver="true";
+have_alsa=0
+if test "$config_alsa_driver" = "yes"; then
+    AC_CHECK_HEADER(alsa/asoundlib.h,
+        AC_CHECK_LIB(asound, main,
+                                 have_alsa=1
+                                 ,
+                                 have_alsa=0
+                    )
+                    ,
+                    have_alsa=0
+    )
+    if test "$have_alsa" = "1"; then
+        have_midi_input_driver="true"
+        have_audio_output_driver="true";
+    fi
+
+    echo -n "checking Alsa version... "
+    AC_LANG_SAVE
+    AC_LANG_C
+    AC_TRY_RUN([
+        #include <alsa/asoundlib.h>
+        void main(void) {
+            /* ensure backward compatibility */
+            #if !defined(SND_LIB_MAJOR) && defined(SOUNDLIB_VERSION_MAJOR)
+            #define SND_LIB_MAJOR SOUNDLIB_VERSION_MAJOR
+            #endif
+            exit(SND_LIB_MAJOR);
+        }
+    ],
+    alsa_major=0,
+    alsa_major=$?,
+    alsa_major=0
+    )
+    AC_TRY_RUN([
+        #include <alsa/asoundlib.h>
+        void main(void) {
+            /* ensure backward compatibility */
+            #if !defined(SND_LIB_MINOR) && defined(SOUNDLIB_VERSION_MINOR)
+            #define SND_LIB_MINOR SOUNDLIB_VERSION_MINOR
+            #endif
+            exit(SND_LIB_MINOR);
+        }
+    ],
+    alsa_minor=0,
+    alsa_minor=$?,
+    alsa_minor=0
+    )
+    AC_TRY_RUN([
+        #include <alsa/asoundlib.h>
+        void main(void) {
+            /* ensure backward compatibility */
+            #if !defined(SND_LIB_SUBMINOR) && defined(SOUNDLIB_VERSION_SUBMINOR)
+            #define SND_LIB_SUBMINOR SOUNDLIB_VERSION_SUBMINOR
+            #endif
+            exit(SND_LIB_SUBMINOR);
+        }
+    ],
+    alsa_subminor=0,
+    alsa_subminor=$?,
+    alsa_subminor=0
+    )
+    AC_LANG_RESTORE
+    echo "$alsa_major.$alsa_minor.$alsa_subminor";
+    AC_DEFINE_UNQUOTED(ALSA_MAJOR,$alsa_major,[Define to the major version number of your Alsa installation.])
+    AC_DEFINE_UNQUOTED(ALSA_MINOR,$alsa_minor,[Define to the minor version number of your Alsa installation.])
+    AC_DEFINE_UNQUOTED(ALSA_SUBMINOR,$alsa_subminor,[Define to the subminor version number of your Alsa installation.])
+else
+    echo "ALSA support disabled by configure script parameter"
 fi
 AM_CONDITIONAL(HAVE_ALSA, test $have_alsa = "1")
 AC_DEFINE_UNQUOTED(HAVE_ALSA,$have_alsa,[Define to 1 if you have ALSA installed.])
 
-echo -n "checking Alsa version... "
-AC_LANG_SAVE
-AC_LANG_C
-AC_TRY_RUN([
-#include <alsa/asoundlib.h>
-void main(void) {
-/* ensure backward compatibility */
-#if !defined(SND_LIB_MAJOR) && defined(SOUNDLIB_VERSION_MAJOR)
-#define SND_LIB_MAJOR SOUNDLIB_VERSION_MAJOR
-#endif
-exit(SND_LIB_MAJOR);
-}
-],
-alsa_major=0,
-alsa_major=$?,
-alsa_major=0
-)
-AC_TRY_RUN([
-#include <alsa/asoundlib.h>
-void main(void) {
-/* ensure backward compatibility */
-#if !defined(SND_LIB_MINOR) && defined(SOUNDLIB_VERSION_MINOR)
-#define SND_LIB_MINOR SOUNDLIB_VERSION_MINOR
-#endif
-exit(SND_LIB_MINOR);
-}
-],
-alsa_minor=0,
-alsa_minor=$?,
-alsa_minor=0
-)
-AC_TRY_RUN([
-#include <alsa/asoundlib.h>
-void main(void) {
-/* ensure backward compatibility */
-#if !defined(SND_LIB_SUBMINOR) && defined(SOUNDLIB_VERSION_SUBMINOR)
-#define SND_LIB_SUBMINOR SOUNDLIB_VERSION_SUBMINOR
-#endif
-exit(SND_LIB_SUBMINOR);
-}
-],
-alsa_subminor=0,
-alsa_subminor=$?,
-alsa_subminor=0
-)
-AC_LANG_RESTORE
-echo "$alsa_major.$alsa_minor.$alsa_subminor";
-AC_DEFINE_UNQUOTED(ALSA_MAJOR,$alsa_major,[Define to the major version number of your Alsa installation.])
-AC_DEFINE_UNQUOTED(ALSA_MINOR,$alsa_minor,[Define to the minor version number of your Alsa installation.])
-AC_DEFINE_UNQUOTED(ALSA_SUBMINOR,$alsa_subminor,[Define to the subminor version number of your Alsa installation.])
-
 # JACK
-PKG_CHECK_MODULES(JACK, jack, HAVE_JACK=true, HAVE_JACK=false)
-AC_SUBST(JACK_LIBS)
-AC_SUBST(JACK_CFLAGS)
-if test $HAVE_JACK = false; then
-    HAVE_JACK=0;
+AC_ARG_ENABLE(jack-driver,
+  [  --disable-jack-driver
+                          Disable support for the Jack Audio Connection Kit
+                          (JACK).],
+  [config_jack_driver="no"],
+  [config_jack_driver="yes"]
+)
+have_jack=0
+if test "$config_jack_driver" = "yes"; then
+    PKG_CHECK_MODULES(JACK, jack, have_jack=1, have_jack=0)
+    if test $have_jack = "1"; then
+        AC_SUBST(JACK_LIBS)
+        AC_SUBST(JACK_CFLAGS)
+        AC_CHECK_LIB(jack, jack_client_name_size, [AC_DEFINE(HAVE_JACK_CLIENT_NAME_SIZE, 1, [Define to 1 if you have the `jack_client_name_size' function.])], , $JACK_LIBS)
+        have_audio_output_driver="true";
+    fi
 else
-    HAVE_JACK=1
-    have_audio_output_driver="true";
-    AC_CHECK_LIB(jack, jack_client_name_size, [AC_DEFINE(HAVE_JACK_CLIENT_NAME_SIZE, 1, [Define to 1 if you have the `jack_client_name_size' function.])], , $JACK_LIBS)
+    echo "JACK support disabled by configure script parameter"
 fi
-AM_CONDITIONAL(HAVE_JACK, test $HAVE_JACK = 1)
-AC_DEFINE_UNQUOTED(HAVE_JACK,$HAVE_JACK,[Define to 1 if you have JACK installed.])
+AM_CONDITIONAL(HAVE_JACK, test $have_jack = "1")
+AC_DEFINE_UNQUOTED(HAVE_JACK,$have_jack,[Define to 1 if you have JACK installed.])
 
 # ARTS
-
-m4_ifdef([m4_include(m4/arts.m4)],,
-        [sinclude([m4/arts.m4])])
-
-AM_PATH_ARTS(0.9.5, have_arts=1, have_arts=0)
-if test "$have_arts" = "1"; then
-    have_audio_output_driver="true"
+AC_ARG_ENABLE(arts-driver,
+  [  --disable-arts-driver
+                          Disable support for the Analogue Realtime System
+                          (aRts).],
+  [config_arts_driver="no"],
+  [config_arts_driver="yes"]
+)
+have_arts=0
+if test "$config_arts_driver" = "yes"; then
+    m4_ifdef([m4_include(m4/arts.m4)],,
+             [sinclude([m4/arts.m4])])
+    AM_PATH_ARTS(0.9.5, have_arts=1, have_arts=0)
+    if test "$have_arts" = "1"; then
+        have_audio_output_driver="true"
+    fi
+else
+    echo "ARTS support disabled by configure script parameter"
 fi
 AM_CONDITIONAL(HAVE_ARTS, test "$have_arts" = "1")
 AC_DEFINE_UNQUOTED(HAVE_ARTS,$have_arts,[Define to 1 if you have aRts installed.])
 
 # MidiShare (Linux, OS X, Windows)
-AC_CHECK_HEADER(MidiShare.h,
-    AC_CHECK_LIB(MidiShare, MidiCountEvs,
-                            have_midishare=1,
-                            have_midishare=0
-                )
-                ,
-                have_midishare=0
+AC_ARG_ENABLE(midishare-driver,
+  [  --disable-midishare-driver
+                          Disable support for the MidiShare system.],
+  [config_midishare_driver="no"],
+  [config_midishare_driver="yes"]
 )
-if test "$have_midishare" = "1"; then
-    have_midi_input_driver="true"
+have_midishare=0
+if test "$config_midishare_driver" = "yes"; then
+    AC_CHECK_HEADER(MidiShare.h,
+        AC_CHECK_LIB(MidiShare, MidiCountEvs,
+                                have_midishare=1,
+                                have_midishare=0
+                    )
+                    ,
+                    have_midishare=0
+    )
+    if test "$have_midishare" = "1"; then
+        have_midi_input_driver="true"
+    fi
+else
+    echo "MidiShare support disabled by configure script parameter"
 fi
 AM_CONDITIONAL(HAVE_MIDISHARE, test $have_midishare = "1")
 AC_DEFINE_UNQUOTED(HAVE_MIDISHARE,$have_midishare,[Define to 1 if you have MidiShare installed.])
 
 # CoreMIDI (OS X)
-AC_CHECK_HEADER(CoreMIDI/CoreMIDI.h,
-                have_coremidi=1,
-                have_coremidi=0
+AC_ARG_ENABLE(coremidi-driver,
+  [  --disable-coremidi-driver
+                          Disable support for the Apple CoreMIDI system.],
+  [config_coremidi_driver="no"],
+  [config_coremidi_driver="yes"]
 )
-if test "$have_coremidi" = "1"; then
-    have_midi_input_driver="true"
+have_coremidi=0
+if test "$config_coremidi_driver" = "yes"; then
+    AC_CHECK_HEADER(CoreMIDI/CoreMIDI.h,
+        have_coremidi=1,
+        have_coremidi=0
+    )
+    if test "$have_coremidi" = "1"; then
+        have_midi_input_driver="true"
+    fi
+else
+    echo "CoreMIDI support disabled by configure script parameter"
 fi
 AM_CONDITIONAL(HAVE_COREMIDI, test $have_coremidi = "1")
 AC_DEFINE_UNQUOTED(HAVE_COREMIDI,$have_coremidi,[Define to 1 if you have CoreMIDI installed.])
