@@ -4,7 +4,7 @@ libdir=@libdir@
 includedir=@includedir@
 
 Name: gig
-Description: C++ library for loading Gigasampler files and DLS Level 1/2 files
+Description: C++ library for loading, creating and modifying Gigasampler files and DLS Level 1/2 files
 Version: @VERSION@
 Libs: -L${libdir} -lgig
 Cflags: -I${includedir}

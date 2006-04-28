@@ -1,4 +1,4 @@
-Version CVS HEAD (?)
+Version 3.0.0 (28 Apr 2006)
 
   * general changes:
     - added write support (that is for creating and modifying RIFF, DLS and

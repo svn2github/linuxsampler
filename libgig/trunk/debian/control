@@ -9,9 +9,9 @@ Package: libgig-dev
 Section: libdevel
 Architecture: any
 Depends: libgig (= ${Source-Version})
-Description: library for loading Gigasampler files and DLS Level 1/2 files
- libgig is a C++ library for loading Gigasampler files and
- DLS (Downloadable Sounds) Level 1/2 files.
+Description: library for loading and modifying Gigasampler and DLS files
+ libgig is a C++ library for loading, modifying and creating Gigasampler
+ files and DLS (Downloadable Sounds) Level 1/2 files.
  .
  For more information visit
  http://stud.fh-heilbronn.de/~cschoene/projects/libgig/
@@ -24,9 +24,9 @@ Package: libgig
 Section: libs
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
-Description: library for loading Gigasampler files and DLS Level 1/2 files
- libgig is a C++ library for loading Gigasampler files and
- DLS (Downloadable Sounds) Level 1/2 files.
+Description: library for loading and modifying Gigasampler and DLS files
+ libgig is a C++ library for loading, modifying and creating Gigasampler
+ files and DLS (Downloadable Sounds) Level 1/2 files.
  .
  For more information visit
  http://stud.fh-heilbronn.de/~cschoene/projects/libgig/
