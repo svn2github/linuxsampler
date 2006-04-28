@@ -129,6 +129,8 @@
                 <tr>
                   <td valign=top>
                     <p class="default">
+              <b>2006-04-28</b> libgig 3.0.0 has been released.<br>
+		      <br>
 		      <b>2006-03-16</b> <a href="http://prdownloads.sourceforge.net/jsampler/JS_Classic-0.2a.jar?download">JS Classic 0.2a</a> has been released.<br>
 		      <br>
               <b>2005-12-22</b> Major services (CVS, downloads, Bug Tracking System) were
