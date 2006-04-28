@@ -1,0 +1,76 @@
+
+%define name    @PACKAGE@
+%define version @VERSION@
+%define release 6
+%define prefix  @prefix@
+
+Summary:	C++ library for loading Gigasampler files and DLS Level 1/2 files.
+Name:		%{name}
+Version:	%{version}
+Release:	%{release}
+Prefix:		%{prefix}
+Copyright:	GPL
+Group:		Sound
+Source0:	%{name}-%{version}.tar.bz2
+URL:		http://stud.fh-heilbronn.de/~cschoene/projects/libgig/
+BuildRoot:	/var/tmp/%{name}-%{version}-buildroot
+
+%description
+C++ library for loading Gigasampler files and DLS Level 1/2 files.
+
+%package devel
+Summary:	C++ library for loading Gigasampler files and DLS Level 1/2 files.
+Group:		Development/Libraries
+Requires:	%{name} = %{version}
+
+%description devel
+C++ library for loading Gigasampler files and DLS Level 1/2 files.
+
+%prep
+
+%setup
+if [ -f Makefile.cvs ]; then make -f Makefile.cvs; fi
+
+%build
+./configure --prefix=%{prefix}
+make
+make docs
+
+%install
+if [ -d $RPM_BUILD_ROOT ]; then rm -rf $RPM_BUILD_ROOT; fi
+mkdir -p $RPM_BUILD_ROOT
+make prefix=$RPM_BUILD_ROOT%{prefix} install
+
+%clean
+if [ -d $RPM_BUILD_ROOT ]; then rm -rf $RPM_BUILD_ROOT; fi
+
+%files
+%defattr(-,root,root)
+%doc AUTHORS COPYING ChangeLog NEWS README TODO
+%{prefix}/bin/*
+%{prefix}/lib/libgig.so*
+%{prefix}/man/man1/*
+
+%files devel
+%defattr(-,root,root)
+%doc doc/html/*
+%{prefix}/lib/libgig.a
+%{prefix}/lib/libgig.la
+%{prefix}/lib/pkgconfig/gig.pc
+%{prefix}/include/*
+
+%changelog
+* Fri Apr 28 2006 Christian Schoenebeck <cuse@users.sourceforge.net>
+- prepared for 3.0.0
+* Mon Aug 15 2005 Christian Schoenebeck <cuse@users.sourceforge.net>
+- prepared for 2.0.2
+* Mon Jun 13 2005 Rui Nuno Capela <rncbc@users.sourceforge.net>
+- prepared for 2.0.1
+* Mon May  9 2005 Rui Nuno Capela <rncbc@users.sourceforge.net>
+- prepared for 2.0.0
+* Wed Nov 24 2004 Rui Nuno Capela <rncbc@users.sourceforge.net>
+- prepared for 1.0.0
+* Sat Jul 10 2004 Christian Schoenebeck <cuse@users.sourceforge.net>
+- renamed 'libgig.pc' to 'gig.pc' as well as the pkg-config lib name
+* Wed Jul 02 2004 Rui Nuno Capela <rncbc@users.sourceforge.net>
+- Created and corrected initial libgig.spec
