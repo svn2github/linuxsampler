@@ -1,3 +1,10 @@
+Version CVS HEAD (?)
+
+  * src/gig.cpp, src/gig.h:
+    - added support for more than one set of custom velocity splits
+      inside a region (for example different velocity split levels for
+      pedal up and pedal down)
+
 Version 3.0.0 (28 Apr 2006)
 
   * general changes:

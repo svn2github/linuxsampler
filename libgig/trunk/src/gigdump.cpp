@@ -257,9 +257,6 @@ void PrintRegions(gig::Instrument* instr) {
                 case gig::split_type_normal:
                     cout << "NORMAL" << endl;
                     break;
-                case gig::split_type_customvelocity:
-                    cout << "CUSTOMVELOCITY" << endl;
-                    break;
                 case gig::split_type_bit:
                     cout << "BIT" << endl;
                     break;
@@ -324,7 +321,7 @@ void PrintDimensionRegions(gig::Region* rgn) {
 }
 
 string Revision() {
-    string s = "$Revision: 1.17 $";
+    string s = "$Revision: 1.18 $";
     return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
 }
 

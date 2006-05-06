@@ -51,26 +51,6 @@
 
 namespace gig {
 
-// *************** dimension_def_t ***************
-// *
-
-    dimension_def_t& dimension_def_t::operator=(const dimension_def_t& arg) {
-        dimension  = arg.dimension;
-        bits       = arg.bits;
-        zones      = arg.zones;
-        split_type = arg.split_type;
-        ranges     = arg.ranges;
-        zone_size  = arg.zone_size;
-        if (ranges) {
-            ranges = new range_t[zones];
-            for (int i = 0; i < zones; i++)
-                ranges[i] = arg.ranges[i];
-        }
-        return *this;
-    }
-
-
-
 // *************** progress_t ***************
 // *
 
@@ -1449,6 +1429,7 @@ namespace {
                                                 VCFCutoffController <= vcf_cutoff_ctrl_none2 ? VCFVelocityScale : 0);
 
         SampleAttenuation = pow(10.0, -Gain / (20.0 * 655360));
+        VelocityTable = 0;
     }
 
     /**
@@ -1968,6 +1949,7 @@ namespace {
             delete pVelocityTables;
             pVelocityTables = NULL;
         }
+        if (VelocityTable) delete[] VelocityTable;
     }
 
     /**
@@ -2092,7 +2074,6 @@ namespace {
                     pDimensionDefinitions[i].bits       = 0;
                     pDimensionDefinitions[i].zones      = 0;
                     pDimensionDefinitions[i].split_type = split_type_bit;
-                    pDimensionDefinitions[i].ranges     = NULL;
                     pDimensionDefinitions[i].zone_size  = 0;
                 }
                 else { // active dimension
@@ -2105,7 +2086,6 @@ namespace {
                                                            dimension == dimension_roundrobin ||
                                                            dimension == dimension_random) ? split_type_bit
                                                                                           : split_type_normal;
-                    pDimensionDefinitions[i].ranges = NULL; // it's not possible to check velocity dimensions for custom defined ranges at this point
                     pDimensionDefinitions[i].zone_size  =
                         (pDimensionDefinitions[i].split_type == split_type_normal) ? 128.0 / pDimensionDefinitions[i].zones
                                                                                    : 0;
@@ -2118,25 +2098,11 @@ namespace {
             }
             for (int i = dimensionBits ; i < 8 ; i++) pDimensionDefinitions[i].bits = 0;
 
-            // check velocity dimension (if there is one) for custom defined zone ranges
-            for (uint i = 0; i < Dimensions; i++) {
-                dimension_def_t* pDimDef = pDimensionDefinitions + i;
-                if (pDimDef->dimension == dimension_velocity) {
-                    if (pDimensionRegions[0]->VelocityUpperLimit == 0) {
-                        // no custom defined ranges
-                        pDimDef->split_type = split_type_normal;
-                        pDimDef->ranges     = NULL;
-                    }
-                    else { // custom defined ranges
-                        pDimDef->split_type = split_type_customvelocity;
-                        pDimDef->ranges     = new range_t[pDimDef->zones];
-                        UpdateVelocityTable(pDimDef);
-                    }
-                }
-            }
+            // if there's a velocity dimension and custom velocity zone splits are used,
+            // update the VelocityTables in the dimension regions
+            UpdateVelocityTable();
 
             // jump to start of the wave pool indices (if not already there)
-            File* file = (File*) GetParent()->GetParent();
             if (file->pVersion && file->pVersion->major == 3)
                 _3lnk->SetPos(68); // version 3 has a different 3lnk structure
             else
@@ -2234,30 +2200,64 @@ namespace {
         }
     }
 
-    void Region::UpdateVelocityTable(dimension_def_t* pDimDef) {
-        // get dimension's index
-        int iDimensionNr = -1;
-        for (int i = 0; i < Dimensions; i++) {
-            if (&pDimensionDefinitions[i] == pDimDef) {
-                iDimensionNr = i;
+    void Region::UpdateVelocityTable() {
+        // get velocity dimension's index
+        int veldim = -1;
+        for (int i = 0 ; i < Dimensions ; i++) {
+            if (pDimensionDefinitions[i].dimension == gig::dimension_velocity) {
+                veldim = i;
                 break;
             }
         }
-        if (iDimensionNr < 0) throw gig::Exception("Invalid dimension_def_t pointer");
+        if (veldim == -1) return;
 
-        uint8_t bits[8] = { 0 };
-        int previousUpperLimit = -1;
-        for (int velocityZone = 0; velocityZone < pDimDef->zones; velocityZone++) {
-            bits[iDimensionNr] = velocityZone;
-            DimensionRegion* pDimRegion = GetDimensionRegionByBit(bits);
+        int step = 1;
+        for (int i = 0 ; i < veldim ; i++) step <<= pDimensionDefinitions[i].bits;
+        int skipveldim = (step << pDimensionDefinitions[veldim].bits) - step;
+        int end = step * pDimensionDefinitions[veldim].zones;
 
-            pDimDef->ranges[velocityZone].low  = previousUpperLimit + 1;
-            pDimDef->ranges[velocityZone].high = pDimRegion->VelocityUpperLimit;
-            previousUpperLimit = pDimDef->ranges[velocityZone].high;
-            // fill velocity table
-            for (int i = pDimDef->ranges[velocityZone].low; i <= pDimDef->ranges[velocityZone].high; i++) {
-                VelocityTable[i] = velocityZone;
+        // loop through all dimension regions for all dimensions except the velocity dimension
+        int dim[8] = { 0 };
+        for (int i = 0 ; i < DimensionRegions ; i++) {
+
+            if (pDimensionRegions[i]->VelocityUpperLimit) {
+                // create the velocity table
+                uint8_t* table = pDimensionRegions[i]->VelocityTable;
+                if (!table) {
+                    table = new uint8_t[128];
+                    pDimensionRegions[i]->VelocityTable = table;
+                }
+                int tableidx = 0;
+                int velocityZone = 0;
+                for (int k = i ; k < end ; k += step) {
+                    DimensionRegion *d = pDimensionRegions[k];
+                    for (; tableidx <= d->VelocityUpperLimit ; tableidx++) table[tableidx] = velocityZone;
+                    velocityZone++;
+                }
+            } else {
+                if (pDimensionRegions[i]->VelocityTable) {
+                    delete[] pDimensionRegions[i]->VelocityTable;
+                    pDimensionRegions[i]->VelocityTable = 0;
+                }
             }
+
+            int j;
+            int shift = 0;
+            for (j = 0 ; j < Dimensions ; j++) {
+                if (j == veldim) i += skipveldim; // skip velocity dimension
+                else {
+                    dim[j]++;
+                    if (dim[j] < pDimensionDefinitions[j].zones) break;
+                    else {
+                        // skip unused dimension regions
+                        dim[j] = 0;
+                        i += ((1 << pDimensionDefinitions[j].bits) -
+                              pDimensionDefinitions[j].zones) << shift;
+                    }
+                }
+                shift += pDimensionDefinitions[j].bits;
+            }
+            if (j == Dimensions) break;
         }
     }
 
@@ -2312,11 +2312,7 @@ namespace {
         // if this is a layer dimension, update 'Layers' attribute
         if (pDimDef->dimension == dimension_layer) Layers = pDimDef->zones;
 
-        // if this is velocity dimension and got custom defined ranges, update velocity table
-        if (pDimDef->dimension  == dimension_velocity &&
-            pDimDef->split_type == split_type_customvelocity) {
-            UpdateVelocityTable(pDimDef);
-        }
+        UpdateVelocityTable();
     }
 
     /** @brief Delete an existing dimension.
@@ -2386,10 +2382,6 @@ namespace {
         pDimensionDefinitions[Dimensions - 1].dimension = dimension_none;
         pDimensionDefinitions[Dimensions - 1].bits      = 0;
         pDimensionDefinitions[Dimensions - 1].zones     = 0;
-        if (pDimensionDefinitions[Dimensions - 1].ranges) {
-            delete[] pDimensionDefinitions[Dimensions - 1].ranges;
-            pDimensionDefinitions[Dimensions - 1].ranges = NULL;
-        }
 
         Dimensions--;
 
@@ -2398,9 +2390,6 @@ namespace {
     }
 
     Region::~Region() {
-        for (uint i = 0; i < Dimensions; i++) {
-            if (pDimensionDefinitions[i].ranges) delete[] pDimensionDefinitions[i].ranges;
-        }
         for (int i = 0; i < 256; i++) {
             if (pDimensionRegions[i]) delete pDimensionRegions[i];
         }
@@ -2425,23 +2414,42 @@ namespace {
      * @see             Dimensions
      */
     DimensionRegion* Region::GetDimensionRegionByValue(const uint DimValues[8]) {
-        uint8_t bits[8] = { 0 };
+        uint8_t bits;
+        int veldim = -1;
+        int velbitpos;
+        int bitpos = 0;
+        int dimregidx = 0;
         for (uint i = 0; i < Dimensions; i++) {
-            bits[i] = DimValues[i];
-            switch (pDimensionDefinitions[i].split_type) {
-                case split_type_normal:
-                    bits[i] = uint8_t(bits[i] / pDimensionDefinitions[i].zone_size);
-                    break;
-                case split_type_customvelocity:
-                    bits[i] = VelocityTable[bits[i]];
-                    break;
-                case split_type_bit: // the value is already the sought dimension bit number
-                    const uint8_t limiter_mask = (0xff << pDimensionDefinitions[i].bits) ^ 0xff;
-                    bits[i] = bits[i] & limiter_mask; // just make sure the value don't uses more bits than allowed
-                    break;
+            if (pDimensionDefinitions[i].dimension == dimension_velocity) {
+                // the velocity dimension must be handled after the other dimensions
+                veldim = i;
+                velbitpos = bitpos;
+            } else {
+                switch (pDimensionDefinitions[i].split_type) {
+                    case split_type_normal:
+                        bits = uint8_t(DimValues[i] / pDimensionDefinitions[i].zone_size);
+                        break;
+                    case split_type_bit: // the value is already the sought dimension bit number
+                        const uint8_t limiter_mask = (0xff << pDimensionDefinitions[i].bits) ^ 0xff;
+                        bits = DimValues[i] & limiter_mask; // just make sure the value doesn't use more bits than allowed
+                        break;
+                }
+                dimregidx |= bits << bitpos;
             }
+            bitpos += pDimensionDefinitions[i].bits;
         }
-        return GetDimensionRegionByBit(bits);
+        DimensionRegion* dimreg = pDimensionRegions[dimregidx];
+        if (veldim != -1) {
+            // (dimreg is now the dimension region for the lowest velocity)
+            if (dimreg->VelocityUpperLimit) // custom defined zone ranges
+                bits = dimreg->VelocityTable[DimValues[veldim]];
+            else // normal split type
+                bits = uint8_t(DimValues[veldim] / pDimensionDefinitions[veldim].zone_size);
+
+            dimregidx |= bits << velbitpos;
+            dimreg = pDimensionRegions[dimregidx];
+        }
+        return dimreg;
     }
 
     /**

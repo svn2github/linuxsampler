@@ -240,8 +240,7 @@ namespace gig {
      * into the corresponding dimension bit number.
      */
     typedef enum {
-        split_type_normal,         ///< dimension value between 0-127, no custom range of zones
-        split_type_customvelocity, ///< a velocity dimension split with custom range definition for each zone (if a velocity dimension split has no custom defined zone ranges then it's also just of type split_type_normal)
+        split_type_normal,         ///< dimension value between 0-127
         split_type_bit             ///< dimension values are already the sought bit number
     } split_type_t;
 
@@ -251,10 +250,7 @@ namespace gig {
         uint8_t      bits;       ///< Number of "bits" (1 bit = 2 splits/zones, 2 bit = 4 splits/zones, 3 bit = 8 splits/zones,...).
         uint8_t      zones;      ///< Number of zones the dimension has.
         split_type_t split_type; ///< Intended for internal usage: will be used to convert a dimension value into the corresponding dimension bit number.
-        range_t*     ranges;     ///< Intended for internal usage: Points to the beginning of a range_t array which reflects the value ranges of each dimension zone (only if custom defined ranges are defined, is NULL otherwise).
         float        zone_size;  ///< Intended for internal usage: reflects the size of each zone (128/zones) for normal split types only, 0 otherwise.
-
-        dimension_def_t& operator=(const dimension_def_t& arg);
     };
 
     /** Defines which frequencies are filtered by the VCF. */
@@ -434,6 +430,7 @@ namespace gig {
             // overridden methods
             virtual void UpdateChunks();
         protected:
+            uint8_t* VelocityTable; ///< For velocity dimensions with custom defined zone ranges only: used for fast converting from velocity MIDI value to dimension bit number.
             DimensionRegion(RIFF::List* _3ewl);
            ~DimensionRegion();
             friend class Region;
@@ -591,11 +588,9 @@ namespace gig {
             void             DeleteDimension(dimension_def_t* pDimDef);
             virtual void     UpdateChunks();
         protected:
-            uint8_t VelocityTable[128]; ///< For velocity dimensions with custom defined zone ranges only: used for fast converting from velocity MIDI value to dimension bit number.
-
             Region(Instrument* pInstrument, RIFF::List* rgnList);
             void LoadDimensionRegions(RIFF::List* rgn);
-            void UpdateVelocityTable(dimension_def_t* pDimDef);
+            void UpdateVelocityTable();
             Sample* GetSampleFromWavePool(unsigned int WavePoolTableIndex, progress_t* pProgress = NULL);
            ~Region();
             friend class Instrument;
