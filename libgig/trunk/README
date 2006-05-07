@@ -1,3 +1,8 @@
+Home
+====
+  You can always find the latest version of libgig at:
+  http://stud.hs-heilbronn.de/~cschoene/projects/libgig/
+
 Content
 =======
   libgig actually consists of three parts:
@@ -20,9 +25,11 @@ Content
     rifftree:    Tool that prints out the RIFF tree of an arbitrary RIFF
                  file.
 
+  Since version 3.0.0 libgig also provides write support, that is for
+  creating modifying .gig, DLS and RIFF files.
+
 Requirements
 ============
-
   POSIX systems (e.g. Linux, OS X):
   ---------------------------------
 
@@ -39,11 +46,11 @@ Requirements
 
   If you want to regenerate all autotools build files (that is configure,
   Makefile.in, etc.) then you need to have automake (>= 1.5) and autoconf
-  installed.  
+  installed.
 
   Non-POSIX systems (e.g. Windows):
   ---------------------------------
-  
+
   If you don't have a POSIX system, you have to set 'POSIX' to '0' in RIFF.h.
   Instead of using POSIX calls then standard C calls will be used for file
   access. This applies e.g. to Windows systems. I would appreciate if
@@ -53,7 +60,6 @@ Requirements
 
 Compiling
 =========
-
   You can either compile the sources and install the library directly on
   your system or you can create Redhat or Debian packages.
 
@@ -101,12 +107,15 @@ Compiling
   On success, the resulting rpm(s) can usually be found under the proper
   "/usr/src/<rpmdir>/RPMS/<arch>" directory.
 
+License
+=======
+  libgig and its tools are released under the GNU General Public License.
+
 API Documentation
 =================
-
- If you have Doxygen installed you can generate the API documentation by
- running 'make docs' in the sources' top level directory. The API
- documentation will be generated in the 'doc' subdirectory.
+  If you have Doxygen installed you can generate the API documentation by
+  running 'make docs' in the sources' top level directory. The API
+  documentation will be generated in the 'doc' subdirectory.
 
 Patches
 =======
@@ -119,6 +128,7 @@ Credits
   The initial library was based on the reverse engineering effort of
   Paul Kellett and Ruben van Royen. We owe current support for the quite new
   Gigasampler v3 format to Andreas Persson. Please also have a look at the
-  ChangeLog for all those who contributed. Thanks for your great work!
+  ChangeLog for all those who contributed. Thanks to all of you for your
+  great work!
 
  Christian Schoenebeck <cuse@users.sourceforge.net>
