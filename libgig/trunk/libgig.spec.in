@@ -12,7 +12,7 @@ Prefix:		%{prefix}
 Copyright:	GPL
 Group:		Sound
 Source0:	%{name}-%{version}.tar.bz2
-URL:		http://stud.fh-heilbronn.de/~cschoene/projects/libgig/
+URL:		http://stud.hs-heilbronn.de/~cschoene/projects/libgig/
 BuildRoot:	/var/tmp/%{name}-%{version}-buildroot
 
 %description
@@ -60,6 +60,9 @@ if [ -d $RPM_BUILD_ROOT ]; then rm -rf $RPM_BUILD_ROOT; fi
 %{prefix}/include/*
 
 %changelog
+* Sun May 07 2006 Christian Schoenebeck <cuse@users.sourceforge.net>
+- libgig's home has been slightly changed from stud.fh-heilbronn.de
+  to stud.hs-heilbronn.de
 * Fri Apr 28 2006 Christian Schoenebeck <cuse@users.sourceforge.net>
 - prepared for 3.0.0
 * Mon Aug 15 2005 Christian Schoenebeck <cuse@users.sourceforge.net>

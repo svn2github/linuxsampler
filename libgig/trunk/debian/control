@@ -14,7 +14,7 @@ Description: library for loading and modifying Gigasampler and DLS files
  files and DLS (Downloadable Sounds) Level 1/2 files.
  .
  For more information visit
- http://stud.fh-heilbronn.de/~cschoene/projects/libgig/
+ http://stud.hs-heilbronn.de/~cschoene/projects/libgig/
  .
  This package contains the header files needed for
  development with libgig. You will need this only if you
@@ -29,7 +29,7 @@ Description: library for loading and modifying Gigasampler and DLS files
  files and DLS (Downloadable Sounds) Level 1/2 files.
  .
  For more information visit
- http://stud.fh-heilbronn.de/~cschoene/projects/libgig/
+ http://stud.hs-heilbronn.de/~cschoene/projects/libgig/
 
 Package: gigtools
 Section: utils
