@@ -524,7 +524,7 @@ namespace gig {
             unsigned long SetPos(unsigned long SampleCount, RIFF::stream_whence_t Whence = RIFF::stream_start);
             unsigned long GetPos();
             unsigned long Read(void* pBuffer, unsigned long SampleCount, buffer_t* pExternalDecompressionBuffer = NULL);
-            unsigned long ReadAndLoop(void* pBuffer, unsigned long SampleCount, playback_state_t* pPlaybackState, buffer_t* pExternalDecompressionBuffer = NULL);
+            unsigned long ReadAndLoop(void* pBuffer, unsigned long SampleCount, playback_state_t* pPlaybackState, DimensionRegion* pDimRgn, buffer_t* pExternalDecompressionBuffer = NULL);
             unsigned long Write(void* pBuffer, unsigned long SampleCount);
             virtual void  UpdateChunks();
         protected:

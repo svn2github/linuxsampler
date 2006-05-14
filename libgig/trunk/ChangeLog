@@ -4,6 +4,10 @@ Version CVS HEAD (?)
     - added support for more than one set of custom velocity splits
       inside a region (for example different velocity split levels for
       pedal up and pedal down)
+    - sample loop parameters are now taken from the DimensionRegion
+      instead of the wave chunk
+    - keyswitching dimension is changed from split type "normal" to
+      "bit"
 
 Version 3.0.0 (28 Apr 2006)
 

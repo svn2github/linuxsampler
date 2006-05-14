@@ -348,7 +348,7 @@ namespace {
         }
         FrameOffset = 0; // just for streaming compressed samples
 
-        LoopSize = LoopEnd - LoopStart;
+        LoopSize = LoopEnd - LoopStart + 1;
     }
 
     /**
@@ -722,139 +722,146 @@ namespace {
      * @param SampleCount      number of sample points to read
      * @param pPlaybackState   will be used to store and reload the playback
      *                         state for the next ReadAndLoop() call
+     * @param pDimRgn          dimension region with looping information
      * @param pExternalDecompressionBuffer  (optional) external buffer to use for decompression
      * @returns                number of successfully read sample points
      * @see                    CreateDecompressionBuffer()
      */
-    unsigned long Sample::ReadAndLoop(void* pBuffer, unsigned long SampleCount, playback_state_t* pPlaybackState, buffer_t* pExternalDecompressionBuffer) {
+    unsigned long Sample::ReadAndLoop(void* pBuffer, unsigned long SampleCount, playback_state_t* pPlaybackState,
+                                      DimensionRegion* pDimRgn, buffer_t* pExternalDecompressionBuffer) {
         unsigned long samplestoread = SampleCount, totalreadsamples = 0, readsamples, samplestoloopend;
         uint8_t* pDst = (uint8_t*) pBuffer;
 
         SetPos(pPlaybackState->position); // recover position from the last time
 
-        if (this->Loops && GetPos() <= this->LoopEnd) { // honor looping if there are loop points defined
+        if (pDimRgn->SampleLoops) { // honor looping if there are loop points defined
 
-            switch (this->LoopType) {
+            const DLS::sample_loop_t& loop = pDimRgn->pSampleLoops[0];
+            const uint32_t loopEnd = loop.LoopStart + loop.LoopLength;
 
-                case loop_type_bidirectional: { //TODO: not tested yet!
-                    do {
-                        // if not endless loop check if max. number of loop cycles have been passed
-                        if (this->LoopPlayCount && !pPlaybackState->loop_cycles_left) break;
+            if (GetPos() <= loopEnd) {
+                switch (loop.LoopType) {
 
-                        if (!pPlaybackState->reverse) { // forward playback
-                            do {
-                                samplestoloopend  = this->LoopEnd - GetPos();
-                                readsamples       = Read(&pDst[totalreadsamples * this->FrameSize], Min(samplestoread, samplestoloopend), pExternalDecompressionBuffer);
-                                samplestoread    -= readsamples;
-                                totalreadsamples += readsamples;
-                                if (readsamples == samplestoloopend) {
-                                    pPlaybackState->reverse = true;
-                                    break;
-                                }
-                            } while (samplestoread && readsamples);
-                        }
-                        else { // backward playback
+                    case loop_type_bidirectional: { //TODO: not tested yet!
+                        do {
+                            // if not endless loop check if max. number of loop cycles have been passed
+                            if (this->LoopPlayCount && !pPlaybackState->loop_cycles_left) break;
 
-                            // as we can only read forward from disk, we have to
-                            // determine the end position within the loop first,
-                            // read forward from that 'end' and finally after
-                            // reading, swap all sample frames so it reflects
-                            // backward playback
-
-                            unsigned long swapareastart       = totalreadsamples;
-                            unsigned long loopoffset          = GetPos() - this->LoopStart;
-                            unsigned long samplestoreadinloop = Min(samplestoread, loopoffset);
-                            unsigned long reverseplaybackend  = GetPos() - samplestoreadinloop;
-
-                            SetPos(reverseplaybackend);
-
-                            // read samples for backward playback
-                            do {
-                                readsamples          = Read(&pDst[totalreadsamples * this->FrameSize], samplestoreadinloop, pExternalDecompressionBuffer);
-                                samplestoreadinloop -= readsamples;
-                                samplestoread       -= readsamples;
-                                totalreadsamples    += readsamples;
-                            } while (samplestoreadinloop && readsamples);
-
-                            SetPos(reverseplaybackend); // pretend we really read backwards
-
-                            if (reverseplaybackend == this->LoopStart) {
-                                pPlaybackState->loop_cycles_left--;
-                                pPlaybackState->reverse = false;
+                            if (!pPlaybackState->reverse) { // forward playback
+                                do {
+                                    samplestoloopend  = loopEnd - GetPos();
+                                    readsamples       = Read(&pDst[totalreadsamples * this->FrameSize], Min(samplestoread, samplestoloopend), pExternalDecompressionBuffer);
+                                    samplestoread    -= readsamples;
+                                    totalreadsamples += readsamples;
+                                    if (readsamples == samplestoloopend) {
+                                        pPlaybackState->reverse = true;
+                                        break;
+                                    }
+                                } while (samplestoread && readsamples);
                             }
+                            else { // backward playback
 
-                            // reverse the sample frames for backward playback
-                            SwapMemoryArea(&pDst[swapareastart * this->FrameSize], (totalreadsamples - swapareastart) * this->FrameSize, this->FrameSize);
-                        }
-                    } while (samplestoread && readsamples);
-                    break;
-                }
+                                // as we can only read forward from disk, we have to
+                                // determine the end position within the loop first,
+                                // read forward from that 'end' and finally after
+                                // reading, swap all sample frames so it reflects
+                                // backward playback
 
-                case loop_type_backward: { // TODO: not tested yet!
-                    // forward playback (not entered the loop yet)
-                    if (!pPlaybackState->reverse) do {
-                        samplestoloopend  = this->LoopEnd - GetPos();
-                        readsamples       = Read(&pDst[totalreadsamples * this->FrameSize], Min(samplestoread, samplestoloopend), pExternalDecompressionBuffer);
-                        samplestoread    -= readsamples;
-                        totalreadsamples += readsamples;
-                        if (readsamples == samplestoloopend) {
-                            pPlaybackState->reverse = true;
-                            break;
-                        }
-                    } while (samplestoread && readsamples);
+                                unsigned long swapareastart       = totalreadsamples;
+                                unsigned long loopoffset          = GetPos() - loop.LoopStart;
+                                unsigned long samplestoreadinloop = Min(samplestoread, loopoffset);
+                                unsigned long reverseplaybackend  = GetPos() - samplestoreadinloop;
 
-                    if (!samplestoread) break;
+                                SetPos(reverseplaybackend);
 
-                    // as we can only read forward from disk, we have to
-                    // determine the end position within the loop first,
-                    // read forward from that 'end' and finally after
-                    // reading, swap all sample frames so it reflects
-                    // backward playback
+                                // read samples for backward playback
+                                do {
+                                    readsamples          = Read(&pDst[totalreadsamples * this->FrameSize], samplestoreadinloop, pExternalDecompressionBuffer);
+                                    samplestoreadinloop -= readsamples;
+                                    samplestoread       -= readsamples;
+                                    totalreadsamples    += readsamples;
+                                } while (samplestoreadinloop && readsamples);
 
-                    unsigned long swapareastart       = totalreadsamples;
-                    unsigned long loopoffset          = GetPos() - this->LoopStart;
-                    unsigned long samplestoreadinloop = (this->LoopPlayCount) ? Min(samplestoread, pPlaybackState->loop_cycles_left * LoopSize - loopoffset)
-                                                                              : samplestoread;
-                    unsigned long reverseplaybackend  = this->LoopStart + Abs((loopoffset - samplestoreadinloop) % this->LoopSize);
+                                SetPos(reverseplaybackend); // pretend we really read backwards
 
-                    SetPos(reverseplaybackend);
+                                if (reverseplaybackend == loop.LoopStart) {
+                                    pPlaybackState->loop_cycles_left--;
+                                    pPlaybackState->reverse = false;
+                                }
 
-                    // read samples for backward playback
-                    do {
-                        // if not endless loop check if max. number of loop cycles have been passed
-                        if (this->LoopPlayCount && !pPlaybackState->loop_cycles_left) break;
-                        samplestoloopend     = this->LoopEnd - GetPos();
-                        readsamples          = Read(&pDst[totalreadsamples * this->FrameSize], Min(samplestoreadinloop, samplestoloopend), pExternalDecompressionBuffer);
-                        samplestoreadinloop -= readsamples;
-                        samplestoread       -= readsamples;
-                        totalreadsamples    += readsamples;
-                        if (readsamples == samplestoloopend) {
-                            pPlaybackState->loop_cycles_left--;
-                            SetPos(this->LoopStart);
-                        }
-                    } while (samplestoreadinloop && readsamples);
+                                // reverse the sample frames for backward playback
+                                SwapMemoryArea(&pDst[swapareastart * this->FrameSize], (totalreadsamples - swapareastart) * this->FrameSize, this->FrameSize);
+                            }
+                        } while (samplestoread && readsamples);
+                        break;
+                    }
 
-                    SetPos(reverseplaybackend); // pretend we really read backwards
+                    case loop_type_backward: { // TODO: not tested yet!
+                        // forward playback (not entered the loop yet)
+                        if (!pPlaybackState->reverse) do {
+                            samplestoloopend  = loopEnd - GetPos();
+                            readsamples       = Read(&pDst[totalreadsamples * this->FrameSize], Min(samplestoread, samplestoloopend), pExternalDecompressionBuffer);
+                            samplestoread    -= readsamples;
+                            totalreadsamples += readsamples;
+                            if (readsamples == samplestoloopend) {
+                                pPlaybackState->reverse = true;
+                                break;
+                            }
+                        } while (samplestoread && readsamples);
 
-                    // reverse the sample frames for backward playback
-                    SwapMemoryArea(&pDst[swapareastart * this->FrameSize], (totalreadsamples - swapareastart) * this->FrameSize, this->FrameSize);
-                    break;
-                }
+                        if (!samplestoread) break;
 
-                default: case loop_type_normal: {
-                    do {
-                        // if not endless loop check if max. number of loop cycles have been passed
-                        if (this->LoopPlayCount && !pPlaybackState->loop_cycles_left) break;
-                        samplestoloopend  = this->LoopEnd - GetPos();
-                        readsamples       = Read(&pDst[totalreadsamples * this->FrameSize], Min(samplestoread, samplestoloopend), pExternalDecompressionBuffer);
-                        samplestoread    -= readsamples;
-                        totalreadsamples += readsamples;
-                        if (readsamples == samplestoloopend) {
-                            pPlaybackState->loop_cycles_left--;
-                            SetPos(this->LoopStart);
-                        }
-                    } while (samplestoread && readsamples);
-                    break;
+                        // as we can only read forward from disk, we have to
+                        // determine the end position within the loop first,
+                        // read forward from that 'end' and finally after
+                        // reading, swap all sample frames so it reflects
+                        // backward playback
+
+                        unsigned long swapareastart       = totalreadsamples;
+                        unsigned long loopoffset          = GetPos() - loop.LoopStart;
+                        unsigned long samplestoreadinloop = (this->LoopPlayCount) ? Min(samplestoread, pPlaybackState->loop_cycles_left * loop.LoopLength - loopoffset)
+                                                                                  : samplestoread;
+                        unsigned long reverseplaybackend  = loop.LoopStart + Abs((loopoffset - samplestoreadinloop) % loop.LoopLength);
+
+                        SetPos(reverseplaybackend);
+
+                        // read samples for backward playback
+                        do {
+                            // if not endless loop check if max. number of loop cycles have been passed
+                            if (this->LoopPlayCount && !pPlaybackState->loop_cycles_left) break;
+                            samplestoloopend     = loopEnd - GetPos();
+                            readsamples          = Read(&pDst[totalreadsamples * this->FrameSize], Min(samplestoreadinloop, samplestoloopend), pExternalDecompressionBuffer);
+                            samplestoreadinloop -= readsamples;
+                            samplestoread       -= readsamples;
+                            totalreadsamples    += readsamples;
+                            if (readsamples == samplestoloopend) {
+                                pPlaybackState->loop_cycles_left--;
+                                SetPos(loop.LoopStart);
+                            }
+                        } while (samplestoreadinloop && readsamples);
+
+                        SetPos(reverseplaybackend); // pretend we really read backwards
+
+                        // reverse the sample frames for backward playback
+                        SwapMemoryArea(&pDst[swapareastart * this->FrameSize], (totalreadsamples - swapareastart) * this->FrameSize, this->FrameSize);
+                        break;
+                    }
+
+                    default: case loop_type_normal: {
+                        do {
+                            // if not endless loop check if max. number of loop cycles have been passed
+                            if (this->LoopPlayCount && !pPlaybackState->loop_cycles_left) break;
+                            samplestoloopend  = loopEnd - GetPos();
+                            readsamples       = Read(&pDst[totalreadsamples * this->FrameSize], Min(samplestoread, samplestoloopend), pExternalDecompressionBuffer);
+                            samplestoread    -= readsamples;
+                            totalreadsamples += readsamples;
+                            if (readsamples == samplestoloopend) {
+                                pPlaybackState->loop_cycles_left--;
+                                SetPos(loop.LoopStart);
+                            }
+                        } while (samplestoread && readsamples);
+                        break;
+                    }
                 }
             }
         }
@@ -2083,6 +2090,7 @@ namespace {
                     pDimensionDefinitions[i].split_type = (dimension == dimension_layer ||
                                                            dimension == dimension_samplechannel ||
                                                            dimension == dimension_releasetrigger ||
+                                                           dimension == dimension_keyboard ||
                                                            dimension == dimension_roundrobin ||
                                                            dimension == dimension_random) ? split_type_bit
                                                                                           : split_type_normal;
