@@ -103,7 +103,7 @@ namespace LinuxSampler { namespace gig {
      * Returns -1 if command queue or pickup pool is full, 0 on success (will be
      * called by audio thread within the voice class).
      */
-    int DiskThread::OrderNewStream(Stream::reference_t* pStreamRef, ::gig::Sample* pSample, unsigned long SampleOffset, bool DoLoop) {
+    int DiskThread::OrderNewStream(Stream::reference_t* pStreamRef, ::gig::DimensionRegion* pDimRgn, unsigned long SampleOffset, bool DoLoop) {
         dmsg(4,("Disk Thread: new stream ordered\n"));
         if (CreationQueue->write_space() < 1) {
             dmsg(1,("DiskThread: Order queue full!\n"));
@@ -125,7 +125,7 @@ namespace LinuxSampler { namespace gig {
         cmd.OrderID      = pStreamRef->OrderID;
         cmd.hStream      = pStreamRef->hStream;
         cmd.pStreamRef   = pStreamRef;
-        cmd.pSample      = pSample;
+        cmd.pDimRgn      = pDimRgn;
         cmd.SampleOffset = SampleOffset;
         cmd.DoLoop       = DoLoop;
 
@@ -276,7 +276,7 @@ namespace LinuxSampler { namespace gig {
             std::cerr << "No unused stream found (OrderID:" << Command.OrderID << ") - report if this happens, this is a bug!\n" << std::flush;
             return;
         }
-        newstream->Launch(Command.hStream, Command.pStreamRef, Command.pSample, Command.SampleOffset, Command.DoLoop);
+        newstream->Launch(Command.hStream, Command.pStreamRef, Command.pDimRgn, Command.SampleOffset, Command.DoLoop);
         dmsg(4,("new Stream launched by disk thread (OrderID:%d,StreamHandle:%d)\n", Command.OrderID, Command.hStream));
         if (pCreatedStreams[Command.OrderID] != SLOT_RESERVED) {
             std::cerr << "DiskThread: Slot " << Command.OrderID << " already occupied! Please report this!\n" << std::flush;

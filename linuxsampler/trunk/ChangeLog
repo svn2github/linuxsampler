@@ -54,6 +54,10 @@ Version CVS HEAD (?)
       parameter
     - added smoothing of volume changes caused by control change
       messages
+    - sample loop parameters are now taken from the DimensionRegion
+      instead of the wave chunk
+    - fixed keyswitching for v3 gigs with a number of keyswitch splits
+      not equal to a power of two
 
   * LSCP server:
     - fixed application exit on broken pipe error (fixes bug #20)

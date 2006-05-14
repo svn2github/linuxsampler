@@ -50,7 +50,7 @@ namespace LinuxSampler { namespace gig {
             void    Reset();
             String  GetBufferFillBytes();
             String  GetBufferFillPercentage();
-            int     OrderNewStream(Stream::reference_t* pStreamRef, ::gig::Sample* pSample, unsigned long SampleOffset, bool DoLoop);
+            int     OrderNewStream(Stream::reference_t* pStreamRef, ::gig::DimensionRegion* pDimRgn, unsigned long SampleOffset, bool DoLoop);
             int     OrderDeletionOfStream(Stream::reference_t* pStreamRef);
             Stream* AskForCreatedStream(Stream::OrderID_t StreamOrderID);
 
@@ -71,7 +71,7 @@ namespace LinuxSampler { namespace gig {
                 Stream::OrderID_t    OrderID;
                 Stream::Handle       hStream;
                 Stream::reference_t* pStreamRef;
-                ::gig::Sample*       pSample;
+                ::gig::DimensionRegion* pDimRgn;
                 unsigned long        SampleOffset;
                 bool                 DoLoop;
             };

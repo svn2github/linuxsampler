@@ -35,6 +35,7 @@ namespace LinuxSampler { namespace gig {
         if (!SampleCount)                return  0;
         if (!pRingBuffer->write_space()) return  0;
 
+        ::gig::Sample* pSample = pDimRgn->pSample;
         long total_readsamples = 0, readsamples = 0;
         long samplestoread = SampleCount / pSample->Channels;
         sample_t* pBuf = pRingBuffer->get_write_ptr();
@@ -42,7 +43,7 @@ namespace LinuxSampler { namespace gig {
 
         // refill the disk stream buffer
         if (this->DoLoop) { // honor looping
-            total_readsamples  = pSample->ReadAndLoop(pBuf, samplestoread, &this->PlaybackState, pDecompressionBuffer);
+            total_readsamples  = pSample->ReadAndLoop(pBuf, samplestoread, &this->PlaybackState, pDimRgn, pDecompressionBuffer);
             endofsamplereached = (this->PlaybackState.position >= pSample->SamplesTotal);
             dmsg(5,("Refilled stream %d with %d (SamplePos: %d)", this->hThis, total_readsamples, this->PlaybackState.position));
         }
@@ -83,7 +84,7 @@ namespace LinuxSampler { namespace gig {
         this->pExportReference       = NULL;
         this->State                  = state_unused;
         this->hThis                  = 0;
-        this->pSample                = NULL;
+        this->pDimRgn                = NULL;
         this->SampleOffset           = 0;
         this->PlaybackState.position = 0;
         this->PlaybackState.reverse  = false;
@@ -101,15 +102,15 @@ namespace LinuxSampler { namespace gig {
     }
 
     /// Called by disk thread to activate the disk stream.
-    void Stream::Launch(Stream::Handle hStream, reference_t* pExportReference, ::gig::Sample* pSample, unsigned long SampleOffset, bool DoLoop) {
+    void Stream::Launch(Stream::Handle hStream, reference_t* pExportReference, ::gig::DimensionRegion* pDimRgn, unsigned long SampleOffset, bool DoLoop) {
         UnusedStreams--;
         this->pExportReference               = pExportReference;
         this->hThis                          = hStream;
-        this->pSample                        = pSample;
+        this->pDimRgn                        = pDimRgn;
         this->SampleOffset                   = SampleOffset;
         this->PlaybackState.position         = SampleOffset;
         this->PlaybackState.reverse          = false;
-        this->PlaybackState.loop_cycles_left = pSample->LoopPlayCount;
+        this->PlaybackState.loop_cycles_left = pDimRgn->pSample->LoopPlayCount;
         this->DoLoop                         = DoLoop;
         SetState(state_active);
     }

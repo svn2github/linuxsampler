@@ -153,13 +153,15 @@ namespace LinuxSampler { namespace gig {
         long cachedsamples = pSample->GetCache().Size / pSample->FrameSize;
         DiskVoice          = cachedsamples < pSample->SamplesTotal;
 
+        const DLS::sample_loop_t& loopinfo = pDimRgn->pSampleLoops[0];
+
         if (DiskVoice) { // voice to be streamed from disk
             MaxRAMPos = cachedsamples - (pEngine->MaxSamplesPerCycle << CONFIG_MAX_PITCH) / pSample->Channels; //TODO: this calculation is too pessimistic and may better be moved to Render() method, so it calculates MaxRAMPos dependent to the current demand of sample points to be rendered (e.g. in case of JACK)
 
             // check if there's a loop defined which completely fits into the cached (RAM) part of the sample
-            RAMLoop = (pSample->Loops && pSample->LoopEnd <= MaxRAMPos);
+            RAMLoop = (pDimRgn->SampleLoops && (loopinfo.LoopStart + loopinfo.LoopLength) <= MaxRAMPos);
 
-            if (pDiskThread->OrderNewStream(&DiskStreamRef, pSample, MaxRAMPos, !RAMLoop) < 0) {
+            if (pDiskThread->OrderNewStream(&DiskStreamRef, pDimRgn, MaxRAMPos, !RAMLoop) < 0) {
                 dmsg(1,("Disk stream order failed!\n"));
                 KillImmediately();
                 return -1;
@@ -168,15 +170,15 @@ namespace LinuxSampler { namespace gig {
         }
         else { // RAM only voice
             MaxRAMPos = cachedsamples;
-            RAMLoop = (pSample->Loops != 0);
+            RAMLoop = (pDimRgn->SampleLoops != 0);
             dmsg(4,("RAM only voice launched (Looping: %s)\n", (RAMLoop) ? "yes" : "no"));
         }
         if (RAMLoop) {
             loop.uiTotalCycles = pSample->LoopPlayCount;
             loop.uiCyclesLeft  = pSample->LoopPlayCount;
-            loop.uiStart       = pSample->LoopStart;
-            loop.uiEnd         = pSample->LoopEnd;
-            loop.uiSize        = pSample->LoopSize;
+            loop.uiStart       = loopinfo.LoopStart;
+            loop.uiEnd         = loopinfo.LoopStart + loopinfo.LoopLength;
+            loop.uiSize        = loopinfo.LoopLength;
         }
 
         // calculate initial pitch value
@@ -880,7 +882,7 @@ namespace LinuxSampler { namespace gig {
             if (EG1.active()) {
 
                 // if sample has a loop and loop start has been reached in this subfragment, send a special event to EG1 to let it finish the attack hold stage
-                if (pSample->Loops && Pos <= pSample->LoopStart && pSample->LoopStart < newPos) {
+                if (pDimRgn->SampleLoops && Pos <= pDimRgn->pSampleLoops[0].LoopStart && pDimRgn->pSampleLoops[0].LoopStart < newPos) {
                     EG1.update(EGADSR::event_hold_end, pEngine->SampleRate / CONFIG_DEFAULT_SUBFRAGMENT_SIZE);
                 }
 

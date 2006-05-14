@@ -110,7 +110,7 @@ namespace LinuxSampler { namespace gig {
             float                   GlobalPanLeft;
             float                   GlobalPanRight;
             int                     Pitch;                    ///< Current (absolute) MIDI pitch value.
-            int                     CurrentKeyDimension;      ///< Current value (0-127) for the keyboard dimension, altered by pressing a keyswitching key.
+            float                   CurrentKeyDimension;      ///< Current value (0-1.0) for the keyboard dimension, altered by pressing a keyswitching key.
             String                  InstrumentFile;
             int                     InstrumentIdx;
             String                  InstrumentIdxName;

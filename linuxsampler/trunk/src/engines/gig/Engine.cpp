@@ -642,7 +642,7 @@ namespace LinuxSampler { namespace gig {
         {
             const ::gig::Instrument* pInstrument = pEngineChannel->pInstrument;
             if (key >= pInstrument->DimensionKeyRange.low && key <= pInstrument->DimensionKeyRange.high)
-                pEngineChannel->CurrentKeyDimension = ((key - pInstrument->DimensionKeyRange.low) * 128) /
+                pEngineChannel->CurrentKeyDimension = float(key - pInstrument->DimensionKeyRange.low) /
                     (pInstrument->DimensionKeyRange.high - pInstrument->DimensionKeyRange.low + 1);
         }
 
@@ -877,7 +877,7 @@ namespace LinuxSampler { namespace gig {
                     DimValues[i] = (uint) ReleaseTriggerVoice;
                     break;
                 case ::gig::dimension_keyboard:
-                    DimValues[i] = (uint) pEngineChannel->CurrentKeyDimension;
+                    DimValues[i] = (uint) (pEngineChannel->CurrentKeyDimension * pRegion->pDimensionDefinitions[i].zones);
                     break;
                 case ::gig::dimension_roundrobin:
                     DimValues[i] = (uint) pEngineChannel->pMIDIKeyInfo[MIDIKey].RoundRobinIndex; // incremented for each note on
@@ -1567,7 +1567,7 @@ namespace LinuxSampler { namespace gig {
     }
 
     String Engine::Version() {
-        String s = "$Revision: 1.61 $";
+        String s = "$Revision: 1.62 $";
         return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
 

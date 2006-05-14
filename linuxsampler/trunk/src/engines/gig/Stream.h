@@ -106,7 +106,7 @@ namespace LinuxSampler { namespace gig {
             inline static uint       GetUnusedStreams() { return UnusedStreams; }
         protected:
             // Methods
-            void                     Launch(Stream::Handle hStream, reference_t* pExportReference, ::gig::Sample* pSample, unsigned long SampleOffset, bool DoLoop);
+            void                     Launch(Stream::Handle hStream, reference_t* pExportReference, ::gig::DimensionRegion* pDimRgn, unsigned long SampleOffset, bool DoLoop);
             inline void              Kill()      { pExportReference = NULL; Reset(); } ///< Will be called by disk thread after a 'deletion' command from the audio thread (within the voice class)
             inline Stream::Handle    GetHandle() { return hThis; }
             inline Stream::state_t   GetState()  { return State; }
@@ -117,7 +117,7 @@ namespace LinuxSampler { namespace gig {
             state_t                  State;
             Stream::Handle           hThis;
             unsigned long            SampleOffset;
-            ::gig::Sample*           pSample;
+            ::gig::DimensionRegion*  pDimRgn;
             ::gig::playback_state_t  PlaybackState;
             RingBuffer<sample_t>*    pRingBuffer;
             bool                     DoLoop;
@@ -130,7 +130,7 @@ namespace LinuxSampler { namespace gig {
             // Methods
             inline void Reset() {
                 SampleOffset                   = 0;
-                pSample                        = NULL;
+                pDimRgn                        = NULL;
                 PlaybackState.position         = 0;
                 PlaybackState.reverse          = false;
                 hThis                          = 0;
