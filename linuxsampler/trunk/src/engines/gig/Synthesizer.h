@@ -69,8 +69,6 @@ namespace LinuxSampler { namespace gig {
             // templates, and accessing members of base classes" in
             // the gcc manual for an explanation of why this is
             // needed).
-            using __RTMath<CPP>::Mul;
-            using __RTMath<CPP>::Float;
             //using LinuxSampler::Resampler<INTERPOLATE>::GetNextSampleMonoCPP;
             //using LinuxSampler::Resampler<INTERPOLATE>::GetNextSampleStereoCPP;
             using LinuxSampler::Resampler<INTERPOLATE>::Interpolate1StepMonoCPP;
