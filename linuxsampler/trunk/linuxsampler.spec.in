@@ -1,7 +1,7 @@
 
 %define name    @PACKAGE@
 %define version @VERSION@
-%define release 7
+%define release 8
 %define prefix  @prefix@
 
 Summary:	LinuxSampler - modular, streaming capable, realtime audio sampler
@@ -9,7 +9,7 @@ Name:		%{name}
 Version:	%{version}
 Release:	%{release}
 Prefix:	%{prefix}
-Copyright:	GPL
+License:	GPL
 Group:		Sound
 Source0:	%{name}-%{version}.tar.bz2
 URL:		http://www.linuxsampler.org/
@@ -32,6 +32,15 @@ for LinuxSampler as well.
 
 For more informations please visit http://www.linuxsampler.org
 
+%package devel
+Summary:        Linuxsampler development files
+Group:          Development/Libraries
+Requires:       %{name} = %{version}
+
+%description devel
+Linuxsampler development files for allowing 3rd party applications
+to link against liblinuxsampler
+
 %prep
 
 %setup
@@ -41,11 +50,18 @@ For more informations please visit http://www.linuxsampler.org
 ./configure --prefix=%{prefix} --enable-optimize
 [ -f Makefile.cvs ] && make parser
 make
+make docs
 
 %install
 if [ -d $RPM_BUILD_ROOT ]; then rm -rf $RPM_BUILD_ROOT; fi
 mkdir -p $RPM_BUILD_ROOT
 make prefix=$RPM_BUILD_ROOT%{prefix} install
+
+%post
+/sbin/ldconfig
+
+%postun
+/sbin/ldconfig
 
 %clean
 if [ -d $RPM_BUILD_ROOT ]; then rm -rf $RPM_BUILD_ROOT; fi
@@ -54,10 +70,22 @@ if [ -d $RPM_BUILD_ROOT ]; then rm -rf $RPM_BUILD_ROOT; fi
 %defattr(-,root,root)
 %doc AUTHORS COPYING ChangeLog README
 %{prefix}/bin/linuxsampler
-%{prefix}/lib/linuxsampler/liblinuxsampler.*
+%{prefix}/lib/linuxsampler/liblinuxsampler.so*
 %{prefix}/man/man1/linuxsampler.*
 
+%files devel
+%defattr(-,root,root)
+%doc doc/html/*
+%{prefix}/lib/linuxsampler/liblinuxsampler.a
+%{prefix}/lib/linuxsampler/liblinuxsampler.la
+%{prefix}/lib/pkgconfig/linuxsampler.pc
+%{prefix}/include/*
+
 %changelog
+* Thu Jun 01 2006 Rui Nuno Capela <rncbc@users.sourceforge.net>
+- changed deprecated copyright attribute to license
+- added ldconfig to post-(un)install steps
+- added devel package for liblinuxsampler
 * Fri Jul 15 2005 Christian Schoenebeck <cuse@users.sourceforge.net>
 - Going for linuxsampler 0.3.3 bugfix release.
 * Thu Jun 23 2005 Rui Nuno Capela <rncbc@users.sourceforge.net>

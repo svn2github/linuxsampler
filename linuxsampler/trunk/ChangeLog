@@ -1,6 +1,9 @@
 Version CVS HEAD (?)
 
   * packaging changes:
+    - changed deprecated copyright attribute to license; added ldconfig
+      to post-(un)install steps; added devel package for liblinuxsampler;
+      to linuxsampler.spec (RPM)
     - install necessary development header files for allowing 3rd party
       applications to link against liblinuxsampler
     - liblinuxsampler's API documentation can be generated with 'make docs'
