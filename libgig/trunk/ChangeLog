@@ -1,5 +1,9 @@
 Version CVS HEAD (?)
 
+  * packaging changes:
+    - changed deprecated copyright attribute to license;
+      added ldconfig to post-(un)install steps on libgig.spec (RPM)
+ 
   * src/gig.cpp, src/gig.h:
     - added support for more than one set of custom velocity splits
       inside a region (for example different velocity split levels for

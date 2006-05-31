@@ -1,7 +1,7 @@
 
 %define name    @PACKAGE@
 %define version @VERSION@
-%define release 6
+%define release 7
 %define prefix  @prefix@
 
 Summary:	C++ library for loading Gigasampler files and DLS Level 1/2 files.
@@ -9,7 +9,7 @@ Name:		%{name}
 Version:	%{version}
 Release:	%{release}
 Prefix:		%{prefix}
-Copyright:	GPL
+License:	GPL
 Group:		Sound
 Source0:	%{name}-%{version}.tar.bz2
 URL:		http://stud.hs-heilbronn.de/~cschoene/projects/libgig/
@@ -41,6 +41,12 @@ if [ -d $RPM_BUILD_ROOT ]; then rm -rf $RPM_BUILD_ROOT; fi
 mkdir -p $RPM_BUILD_ROOT
 make prefix=$RPM_BUILD_ROOT%{prefix} install
 
+%post
+/sbin/ldconfig
+
+%postun
+/sbin/ldconfig
+
 %clean
 if [ -d $RPM_BUILD_ROOT ]; then rm -rf $RPM_BUILD_ROOT; fi
 
@@ -60,6 +66,9 @@ if [ -d $RPM_BUILD_ROOT ]; then rm -rf $RPM_BUILD_ROOT; fi
 %{prefix}/include/*
 
 %changelog
+* Thu Jun 01 2006 Rui Nuno Capela <rncbc@users.sourceforge.net>
+- changed deprecated copyright attribute to license
+- added ldconfig to post-(un)install steps
 * Sun May 07 2006 Christian Schoenebeck <cuse@users.sourceforge.net>
 - libgig's home has been slightly changed from stud.fh-heilbronn.de
   to stud.hs-heilbronn.de
