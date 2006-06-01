@@ -1,0 +1,223 @@
+Qsampler - A LinuxSampler Qt GUI Interface
+------------------------------------------
+
+ChangeLog
+
+CVS HEAD
+
+0.1.3   2006-06-01 Its been a long year isn't it?
+
+* Changed deprecated copyright attribute to license,
+  on qsampler.spec (RPM).
+
+* Added configure support for x86_64 libraries (UNTESTED).
+
+* Optional specification of alternate liblscp and libgig
+  installation paths have been added to configure command
+  arguments (--with-liblscp, --with-libgig).
+
+* Whenever the listing of actual instrument names is not an
+  option (e.g. due to lack of libgig support), the whole
+  number of selectable instrument items is now being graciously
+  increased from just the bare 8 (eight) right up through 100
+  (one hundred), on the sampler channel setup dialog.
+
+* The selection buttons, on the right of the Instrument, Audio
+  and MIDI devices combo-boxes, on the sampler channel dialog,
+  are now expected to be a little better looking than it was
+  before, at least for those Mac OS X eyes.
+
+* Minor fixing on the initial messages dock-window height.
+
+* Audio output channel routing configuration finally hits
+  the sampler channel dialog, at last! (EXPERIMENTAL).
+
+* All widget captions changed to include proper application
+  title name prefix.
+
+* Attempt to bring those aging autoconf templates to date;
+  sample SPEC file for RPM build is now being included and
+  generated at configure time.
+
+* Set to use QApplication::setMainWidget() instead of 
+  registering the traditional lastWindowClosed() signal 
+  to quit() slot, just to let the -geometry command line 
+  argument have some effect on X11.
+
+* Added MUTE/SOLO buttons to individual channel strips.
+
+* Fixed compilation error which occured when Qt was
+  compiled with -no-stl.
+
+
+0.1.2   2005-06-23 Even minor workings needs a rest.
+
+* Fixed output disability when messages limit option is 
+  turned off (thanks to Wolfgang Woehl for spotting this
+  one, while on qjackctl).
+
+* Added CHANNEL_INFO event feedback notification handling;
+  minor stream/voice usage auto-refresh cycle optimization.
+
+
+0.1.1   2005-06-12 The mantra of bugfixes.
+
+* New improved and full-featured application icon, thanks
+  to Christian Schoenebeck design.
+
+* Fixed refresh cycle of channel strips that are found
+  in an error state, which was preventing correct channel
+  info updates.
+
+* Device configuration now accessible on toolbar. Added
+  buddy text label to device port/channel combobox on the
+  device dialog.
+
+* Include libgig version info on command line request (-v).
+
+* Minor configure and Makefile install fixes, as Debian and
+  Mac OS X specialties. Also, install does the right thing
+  with target file modes (thanks to Matt Flax and Ebrahim
+  Mayat, for pointing these out).
+
+
+0.1.0   2005-05-23  Device configuration breakthrough.
+
+* Device configuration is now complete (EXPERIMENTAL).
+
+* [bug #9] Fixed for a LSCP command syntax convention
+  consistency, regarding the enumeration of available
+  sampler engines, Audio and MIDI drivers.
+
+* [bug #13] Update instrument names list when a new 
+  instrument file is select on the channel setup dialog.
+
+* Show appropriate message in channel strip while loading
+  an instrument. 
+
+* Show libgig version in About box (in case libgig is used).
+
+
+0.0.5   2005-03-04  Fifth alpha-release.
+
+* Fixed device driver type channel information gathering,
+  which was severely flawed, dropping all channel session
+  configurations to the default audio driver type (which
+  is ALSA) unexpectedly.
+
+* Channels are now properly renumbered when saving to a
+  session LSCP script, assuming that it should be always
+  loaded from scratch (i.e. zero channels).
+
+* Disabled MIDI port setting on channel dialog, and on
+  session file save, as its use is still troublesome.
+
+* Added new menu and toolbar option: Reset All Channels.
+
+* Channel setup changes are now properly filtered, as for
+  only those settings that are actually changed gets applied;
+  change information are now also posted to messages window.
+
+* Drag-and-drop of either session files (LSCP scripts) or
+  instrument files (GIG) are now supported. Multiple files
+  drop is allowed, but it only makes sense for instrument
+  files, each one prompting to create a new sampler channel.
+
+* Drag-and-drop to an existing channel strip is now also 
+  featured, allowing the in-place change of the channel 
+  sampler instrument file.
+
+* Actual instrument names are now optionally retrieved
+  from the instrument file, even though libgig is available,
+  avoiding excessively annoying load times while on the
+  channel dialog, when huge instrument files are selected.
+
+* Set to ignore the SIGPIPE ("Broken pipe") signal, where
+  available, as the default handler is usually fatal when
+  a JACK client is zombified abruptly.
+
+* Messages window limit is now enforced only when the line
+  count exceeds in one third the user configured line count
+  maximum; if Qt 3.2.0+ is in use, the QTextView widget is
+  otherwise set to the optimized Qt::LogText format.
+
+
+0.0.4   2004-11-19  Fourth alpha-release.
+
+* Instrument index selection now made via combo box widget;
+  actual instrument names are now properly retrieved from
+  the instrument file, provided if libgig is available.
+
+* Sampler channels strips are just created if, and only if,
+  the respective channel setup dialog is actually accepted,
+  following common user-interface guidelines.
+
+* Almost complete rewrite of sampler channel strips internal
+  control structures.
+
+* Sampler reset command action added to menu and toolbar.
+
+* MIDI channel selection is now a dropdown list, allowing
+  the explicit selection for "All" channels input per sampler
+  channel (omni mode).
+
+* Channel strip display glass effect has changed background
+  color to black (was green), being now an user option.
+
+* Minor configure fixes.
+
+
+0.0.3   2004-07-06  Third alpha-release.
+
+* Mon-modal intrument file loading and status support.
+
+* Effective MIDI input port setting on channel dialog,
+  and on session file save.
+
+* Channel dialog gets sensible engine and driver defaults
+  on create time.
+
+* Implied channel reset on successful instrument load.
+
+
+0.0.2   2004-06-15  Pre-revolutionary release.
+
+* The channel context menu is also accessible by right-clicking
+  over the empty workspace area.
+
+* Added small wait event loop on qsamplerMainForm::stopServer(),
+  so let local server terminate gracefully and stabilize, and
+  avoiding a probable segfault on exit, which was preventing the
+  correct salvage of settings and configuration.
+
+* Maximum channel volume percent setting is now a global option,
+  provided to override the default (which is 100%).
+
+* Client/server transaction timeout option upper limit has been
+  increased from 5000 to 60000 milliseconds.
+
+* A channel context menu is now featured, by right-clicking over
+  each sampler channel strip.
+
+* Commented SET CHANNEL MIDI_INPUT_PORT command from
+  qsamplerMainForm::saveSessionFile(), it has no effect.
+
+* Insert a n #include <unistd.h> on qsamplerMessages.cpp, between
+  a #if !defined(WIN32) clause.
+
+* An initial non zero value (0.8) is now set for volume of every
+  new sampler channel strip.
+
+* The order to load/save and setup channel settings is now as
+  suggested in the following lines:
+
+    SET CHANNEL AUDIO_OUTPUT_TYPE ...
+    SET CHANNEL MIDI_INPUT_TYPE ...
+    SET CHANNEL MIDI_INPUT_CHANNEL ...
+    LOAD ENGINE ...
+    LOAD INSTRUMENT ...
+    SET CHANNEL VOLUME ...
+
+
+0.0.1   2004-06-05  Primordial alpha release.
+
