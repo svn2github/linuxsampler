@@ -31,7 +31,6 @@
 #include "../../common/RTMath.h"
 #include "../../common/Pool.h"
 #include "../../drivers/audio/AudioOutputDevice.h"
-#include "../common/BiquadFilter.h"
 #include "Engine.h"
 #include "EngineChannel.h"
 #include "Stream.h"
@@ -161,7 +160,6 @@ namespace LinuxSampler { namespace gig {
             EGDecay                     EG3;                ///< Envelope Generator 3 (Pitch)
             midi_ctrl                   VCFCutoffCtrl;
             midi_ctrl                   VCFResonanceCtrl;
-            static const float          FILTER_CUTOFF_COEFF;
             LFOUnsigned*                pLFO1;               ///< Low Frequency Oscillator 1 (Amplification)
             LFOUnsigned*                pLFO2;               ///< Low Frequency Oscillator 2 (Filter cutoff frequency)
             LFOSigned*                  pLFO3;               ///< Low Frequency Oscillator 3 (Pitch)

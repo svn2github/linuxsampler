@@ -34,10 +34,7 @@ Version CVS HEAD (?)
       controller is defined), Control invert, Minimum cutoff, Velocity
       curve and Velocity range. The keyboard tracking now scales
       cutoff frequency instead of resonance.
-    - filter fine tuning: calculation of cutoff frequency and
-      bandwidth improved. Removed use of "BasicBPFilter". Changed
-      bandpass filter from constant peak to constant skirt. Added
-      support for gig parameter Resonance.
+    - added support for gig parameter Resonance.
     - fixed bug in sysex handling (patch by Juan Linietsky)
     - added global volume attenuation of -9 dB (0.35f) to prevent clipping
       which can be overridden with --enable-global-attenuation
@@ -61,6 +58,9 @@ Version CVS HEAD (?)
       instead of the wave chunk
     - fixed keyswitching for v3 gigs with a number of keyswitch splits
       not equal to a power of two
+    - reimplementation of the filter algorithm. The new filter is more
+      accurate and supports all gig filter types, including bandreject
+      and lowpass turbo.
 
   * LSCP server:
     - fixed application exit on broken pipe error (fixes bug #20)

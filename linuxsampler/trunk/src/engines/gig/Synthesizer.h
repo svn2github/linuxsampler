@@ -27,7 +27,6 @@
 #include "../../common/global.h"
 #include "../../common/RTMath.h"
 #include "../common/Resampler.h"
-#include "../common/BiquadFilter.h"
 #include "Filter.h"
 #include "SynthesisParam.h"
 

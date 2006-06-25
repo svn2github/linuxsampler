@@ -29,12 +29,6 @@
 
 namespace LinuxSampler { namespace gig {
 
-    const float Voice::FILTER_CUTOFF_COEFF(CalculateFilterCutoffCoeff());
-
-    float Voice::CalculateFilterCutoffCoeff() {
-        return log(CONFIG_FILTER_CUTOFF_MAX / CONFIG_FILTER_CUTOFF_MIN);
-    }
-
     Voice::Voice() {
         pEngine     = NULL;
         pDiskThread = NULL;
@@ -537,15 +531,13 @@ namespace LinuxSampler { namespace gig {
             else {
                 cvalue = pDimRgn->VCFCutoff;
             }
-            cutoff *= float(cvalue) * 0.00787402f; // (1 / 127)
-            if (cutoff > 1.0) cutoff = 1.0;
-            cutoff = (cutoff < 0.5 ? cutoff * 4826 - 1 : cutoff * 5715 - 449);
-            if (cutoff < 1.0) cutoff = 1.0;
+            cutoff *= float(cvalue);
+            if (cutoff > 127.0f) cutoff = 127.0f;
 
             // calculate resonance
-            float resonance = (float) (VCFResonanceCtrl.controller ? VCFResonanceCtrl.value : pDimRgn->VCFResonance) * 0.00787f; // 0.0..1.0
+            float resonance = (float) (VCFResonanceCtrl.controller ? VCFResonanceCtrl.value : pDimRgn->VCFResonance);
 
-            VCFCutoffCtrl.fvalue    = cutoff - 1.0;
+            VCFCutoffCtrl.fvalue    = cutoff;
             VCFResonanceCtrl.fvalue = resonance;
         }
         else {
@@ -743,12 +735,10 @@ namespace LinuxSampler { namespace gig {
         VCFCutoffCtrl.value == ccvalue;
         if (pDimRgn->VCFCutoffControllerInvert)  ccvalue = 127 - ccvalue;
         if (ccvalue < pDimRgn->VCFVelocityScale) ccvalue = pDimRgn->VCFVelocityScale;
-        float cutoff = CutoffBase * float(ccvalue) * 0.00787402f; // (1 / 127)
-        if (cutoff > 1.0) cutoff = 1.0;
-        cutoff = (cutoff < 0.5 ? cutoff * 4826 - 1 : cutoff * 5715 - 449);
-        if (cutoff < 1.0) cutoff = 1.0;
+        float cutoff = CutoffBase * float(ccvalue);
+        if (cutoff > 127.0f) cutoff = 127.0f;
 
-        VCFCutoffCtrl.fvalue = cutoff - 1.0; // needed for initialization of fFinalCutoff next time
+        VCFCutoffCtrl.fvalue = cutoff; // needed for initialization of fFinalCutoff next time
         fFinalCutoff = cutoff;
     }
 
@@ -756,10 +746,10 @@ namespace LinuxSampler { namespace gig {
         // convert absolute controller value to differential
         const int ctrldelta = itEvent->Param.CC.Value - VCFResonanceCtrl.value;
         VCFResonanceCtrl.value = itEvent->Param.CC.Value;
-        const float resonancedelta = (float) ctrldelta * 0.00787f; // 0.0..1.0
+        const float resonancedelta = (float) ctrldelta;
         fFinalResonance += resonancedelta;
         // needed for initialization of parameter
-        VCFResonanceCtrl.fvalue = itEvent->Param.CC.Value * 0.00787f;
+        VCFResonanceCtrl.fvalue = itEvent->Param.CC.Value;
     }
 
     /**
@@ -844,8 +834,8 @@ namespace LinuxSampler { namespace gig {
 
             // if filter enabled then update filter coefficients
             if (SYNTHESIS_MODE_GET_FILTER(SynthesisMode)) {
-                finalSynthesisParameters.filterLeft.SetParameters(fFinalCutoff + 1.0, fFinalResonance, pEngine->SampleRate);
-                finalSynthesisParameters.filterRight.SetParameters(fFinalCutoff + 1.0, fFinalResonance, pEngine->SampleRate);
+                finalSynthesisParameters.filterLeft.SetParameters(fFinalCutoff, fFinalResonance, pEngine->SampleRate);
+                finalSynthesisParameters.filterRight.SetParameters(fFinalCutoff, fFinalResonance, pEngine->SampleRate);
             }
 
             // do we need resampling?

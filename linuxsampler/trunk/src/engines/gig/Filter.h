@@ -4,6 +4,7 @@
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
  *   Copyright (C) 2005 Christian Schoenebeck                              *
+ *   Copyright (C) 2006 Christian Schoenebeck and Andreas Persson          *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -28,153 +29,194 @@
 
 #include <gig.h>
 
-#include "../common/BiquadFilter.h"
-
-// TODO: Gigasampler's "Turbo Lowpass" and "Bandreject" filters not implemented yet
-
-#define LSF_BW 0.9
-#define LSF_FB 0.9f
-
 namespace LinuxSampler { namespace gig {
+
+    class FilterBase {
+    public:
+        virtual float Apply(float x) = 0;
+        virtual void SetParameters(float f1, float f2, float scale) = 0;
+        virtual ~FilterBase() {}
+
+        virtual void Reset() {
+            y1 = y2 = y3 = x1 = x2 = x3 = 0;
+        }
+
+    private:
+        float y1, y2, y3;
+
+    protected:
+        float a1, a2, a3, x1, x2, x3;
+
+        void KillDenormal(float& f) {
+            f += 1e-18f;
+            f -= 1e-18f;
+        }
+
+        float ApplyA(float x) {
+            float y = x - a1 * y1 - a2 * y2 - a3 * y3;
+            KillDenormal(y);
+            y3 = y2;
+            y2 = y1;
+            y1 = y;
+            return y;
+        }
+    };
+
+    class LowpassFilter : public FilterBase {
+    protected:
+        float b0;
+    public:
+        float Apply(float x) {
+            return ApplyA(b0 * x);
+        }
+
+        void SetParameters(float f1, float f2, float scale) {
+            float f1_2 = f1 * f1;
+            b0 = f1_2 * scale;
+            a1 = f2;
+            a2 = f1_2 - 1;
+            a3 = -f2;
+        }
+    };
+
+    class BandpassFilter : public FilterBase {
+        float b0, b2;
+    public:
+        float Apply(float x) {
+            float y = ApplyA(b0 * x + b2 * x2);
+            x2 = x1;
+            x1 = x;
+            return y;
+        }
+
+        void SetParameters(float f1, float f2, float scale) {
+            b0 = f1 * scale;
+            b2 = -b0;
+            a1 = f2;
+            a2 = f1 * f1 - 1;
+            a3 = -f2;
+        }
+    };
+
+    class HighpassFilter : public FilterBase {
+        float scale;
+    public:
+        float Apply(float x) {
+            float y = ApplyA(-x + x1 + x2 - x3);
+            x3 = x2;
+            x2 = x1;
+            x1 = x;
+            return y * scale;
+        }
+
+        void SetParameters(float f1, float f2, float scale) {
+            a1 = f2;
+            a2 = f1 * f1 - 1;
+            a3 = -f2;
+            this->scale = scale;
+        }
+    };
+
+    class BandrejectFilter : public FilterBase {
+        float scale, b2;
+    public:
+        float Apply(float x) {
+            float y = ApplyA(x - x1 + b2 * x2 + x3);
+            x3 = x2;
+            x2 = x1;
+            x1 = x;
+            return y * scale;
+        }
+
+        void SetParameters(float f1, float f2, float scale) {
+            b2 = f1 * f1 - 1;
+            a1 = f2;
+            a2 = b2;
+            a3 = -f2;
+            this->scale = scale;
+        }
+    };
+
+    class LowpassTurboFilter : public LowpassFilter {
+        float b20, y21, y22, y23;
+    public:
+        float Apply(float x) {
+            float y = b20 * LowpassFilter::Apply(x)
+                - a1 * y21 - a2 * y22 - a3 * y23;
+            KillDenormal(y);
+            y23 = y22;
+            y22 = y21;
+            y21 = y;
+
+            return y;
+        }
+
+        void SetParameters(float f1, float f2, float scale) {
+            LowpassFilter::SetParameters(f1, f2, scale);
+            b20 = b0 * 0.5;
+        }
+
+        void Reset() {
+            LowpassFilter::Reset();
+            y21 = y22 = y23 = 0;
+        }
+    };
 
     /**
      * These are filters similar to the ones from Gigasampler.
      */
     class Filter {
         protected:
-            BandpassFilter    BasicBPFilter;
-            HighpassFilter    HPFilter;
-            BandpassFilter    BPFilter;
-            LowpassFilter     LPFilter;
-            BiquadFilter*     pFilter;
-            bq_t              scale;
-            bq_t              resonance;
-            bq_t              cutoff;
-            ::gig::vcf_type_t Type;
-#if __GNUC__ >= 4
-            float fFB;
-#else
-            static const float fFB = LSF_FB;
-#endif
+            HighpassFilter     HPFilter;
+            BandpassFilter     BPFilter;
+            LowpassFilter      LPFilter;
+            BandrejectFilter   BRFilter;
+            LowpassTurboFilter LPTFilter;
+            FilterBase*        pFilter;
 
         public:
-
             Filter() {
                 // set filter type to 'lowpass' by default
                 pFilter = &LPFilter;
-                Type    = ::gig::vcf_type_lowpass;
-#if __GNUC__ >= 4
-                fFB = LSF_FB;
-#endif
             }
 
-            inline bq_t Cutoff()     { return cutoff; }
-
-            inline bq_t Resonance()  { return resonance; }
-
-            inline void SetType(::gig::vcf_type_t FilterType) {
+            void SetType(::gig::vcf_type_t FilterType) {
                 switch (FilterType) {
                     case ::gig::vcf_type_highpass:
                         pFilter = &HPFilter;
                         break;
-                    case ::gig::vcf_type_bandreject: //TODO: not implemented yet
-                        FilterType = ::gig::vcf_type_bandpass;
+                    case ::gig::vcf_type_bandreject:
+                        pFilter = &BRFilter;
+                        break;
                     case ::gig::vcf_type_bandpass:
                         pFilter = &BPFilter;
                         break;
-                    case ::gig::vcf_type_lowpassturbo: //TODO: not implemented yet
+                    case ::gig::vcf_type_lowpassturbo:
+                        pFilter = &LPTFilter;
+                        break;
                     default:
-                        FilterType = ::gig::vcf_type_lowpass;
-                    case ::gig::vcf_type_lowpass:
                         pFilter = &LPFilter;
-
                 }
-                Type = FilterType;
             }
 
-            inline void SetParameters(bq_t cutoff, bq_t resonance, bq_t fs) {
-                BasicBPFilter.SetParameters(cutoff, 0.7, fs);
-                switch (Type) {
-                    case ::gig::vcf_type_highpass:
-                        HPFilter.SetParameters(cutoff, 1.87 - resonance * 1.7526, fs);
-                        break;
-                    case ::gig::vcf_type_bandpass:
-                        BPFilter.SetParameters(cutoff, 1.87 - resonance * 1.7526, fs);
-                        break;
-                    case ::gig::vcf_type_lowpass:
-                        LPFilter.SetParameters(cutoff, 1.87 - resonance * 1.7526, fs);
-                        break;
-                }
-                this->scale     = resonance < 0.4 ? 1.0f : 1.4f - resonance * 1.016f;
-                this->resonance = resonance;
-                this->cutoff    = cutoff;
-            }
-
-            inline void SetParameters(biquad_param_t* base, biquad_param_t* main, bq_t cutoff, bq_t resonance, bq_t fs) {
-                BasicBPFilter.SetParameters(base, cutoff, 0.7, fs);
-                switch (Type) {
-                    case ::gig::vcf_type_highpass:
-                        HPFilter.SetParameters(main, cutoff, 1.87 - resonance * 1.7526, fs);
-                        break;
-                    case ::gig::vcf_type_bandpass:
-                        BPFilter.SetParameters(main, cutoff, 1.87 - resonance * 1.7526, fs);
-                        break;
-                    case ::gig::vcf_type_lowpass:
-                        LPFilter.SetParameters(main, cutoff, 1.87 - resonance * 1.7526, fs);
-                        break;
-                }
-                this->scale     = resonance < 0.4 ? 1.0f : 1.4f - resonance * 1.016f;
-                this->resonance = resonance;
-                this->cutoff    = cutoff;
+            void SetParameters(float cutoff, float resonance, float fs) {
+                float f1 = cutoff * 0.0075279;
+                float f2 = f1 - 1 + resonance * cutoff * (-5.5389e-5 + 1.1982e-7 * cutoff);
+                float scale = resonance < 51 ? 1.0f : 1.3762f - 0.0075073f * resonance;
+                pFilter->SetParameters(f1, f2, scale);
             }
 
             void Reset() {
-                BasicBPFilter.Reset();
                 HPFilter.Reset();
                 BPFilter.Reset();
                 LPFilter.Reset();
+                BRFilter.Reset();
+                LPTFilter.Reset();
             }
 
-            inline bq_t Apply(const bq_t in) {
-                return pFilter->Apply(in) * this->scale;
-                // + BasicBPFilter.ApplyFB(in, this->resonance * LSF_FB) * this->resonance;
+            float Apply(float in) {
+                return pFilter->Apply(in);
             }
-
-            inline bq_t Apply(biquad_param_t* base, biquad_param_t* main, const bq_t in) {
-                return pFilter->Apply(main, in) * this->scale;
-                // + BasicBPFilter.ApplyFB(base, in, this->resonance * LSF_FB) * this->resonance;
-            }
-
-#if CONFIG_ASM && ARCH_X86
-            // expects to find input in xmm0 and leaves output in xmm7
-            inline void Apply4StepsSSE(biquad_param_t* base, biquad_param_t* main) {
-                float fb;
-                __asm__ __volatile__ (
-                    "movss %0, %%xmm4\n\t"
-                    "mulss %1, %%xmm4      # this->resonance * LSF_FB\n\t"
-                    "movss %%xmm4, %2\n\t"
-                    :: "m" (fFB),       /* %0 */
-                       "m" (resonance), /* %1 */
-                       "m" (fb)         /* %2 */
-                );
-                BasicBPFilter.ApplyFB4StepsSSE(base, fb); // leaves output in xmm7
-                __asm__ __volatile__ (
-                    "movss  %0, %%xmm4\n\t"
-                    "shufps $0, %%xmm4, %%xmm4     # copy to other 3 cells\n\t"
-                    "mulps  %%xmm4, %%xmm7         # ApplyFB() * this->resonance\n\t"
-                    :: "m" (resonance) /* %0 */
-                );
-                pFilter->Apply4StepsSSE(main); // leaves output in xmm6
-                __asm__ __volatile__ (
-                    "movss  %0, %%xmm5\n\t"
-                    "shufps $0, %%xmm5, %%xmm5     # copy to other 3 cells\n\t"
-                    "mulps  %%xmm5, %%xmm6         # Apply() * this->scale\n\t"
-                    "addps  %%xmm6, %%xmm7         # xmm7 = result\n\t"
-                    :: "m" (scale) /* %0 */
-                );
-            }
-#endif // CONFIG_ASM && ARCH_X86
-
     };
 
 }} //namespace LinuxSampler::gig
