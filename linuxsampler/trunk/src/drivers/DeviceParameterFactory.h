@@ -3,6 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
+ *   Copyright (C) 2005, 2006 Christian Schoenebeck                        *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -28,7 +29,7 @@
 
 #include "../common/global.h"
 #include "../common/optional.h"
-#include "../common/LinuxSamplerException.h"
+#include "../common/Exception.h"
 #include "DeviceParameter.h"
 
 namespace LinuxSampler {
@@ -56,8 +57,8 @@ namespace LinuxSampler {
 			std::map<String,DeviceCreationParameter*> CreateAllParams ( std::map<String,String> Parameters );
 			std::map<String,DeviceCreationParameter*> CreateAllParams ();
 
-			DeviceCreationParameter* Create(String ParameterName) throw (LinuxSamplerException);
-			DeviceCreationParameter* Create(String ParameterName, String val) throw (LinuxSamplerException);
+			DeviceCreationParameter* Create(String ParameterName) throw (Exception);
+			DeviceCreationParameter* Create(String ParameterName, String val) throw (Exception);
 
 		protected:
 			std::map<String, InnerFactory*> InnerFactories;

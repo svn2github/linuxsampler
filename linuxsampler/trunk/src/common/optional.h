@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 Christian Schoenebeck                              *
+ *   Copyright (C) 2005, 2006 Christian Schoenebeck                        *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -24,7 +24,7 @@
 #ifndef __LS_OPTIONAL_H__
 #define __LS_OPTIONAL_H__
 
-#include "LinuxSamplerException.h"
+#include "Exception.h"
 
 namespace LinuxSampler {
 
@@ -57,18 +57,18 @@ namespace LinuxSampler {
                 initialized = true;
             }
 
-            const T& get() const throw (LinuxSamplerException) {
-                if (!initialized) throw LinuxSamplerException("optional variable not initialized");
+            const T& get() const throw (Exception) {
+                if (!initialized) throw Exception("optional variable not initialized");
                 return data;
             }
 
-            T& get() throw (LinuxSamplerException) {
-                if (!initialized) throw LinuxSamplerException("optional variable not initialized");
+            T& get() throw (Exception) {
+                if (!initialized) throw Exception("optional variable not initialized");
                 return data;
             }
 
-            optional& operator =(const optional& arg) throw (LinuxSamplerException) {
-                if (!arg.initialized) throw LinuxSamplerException("optional variable not initialized");
+            optional& operator =(const optional& arg) throw (Exception) {
+                if (!arg.initialized) throw Exception("optional variable not initialized");
                 this->data  = arg.data;
                 initialized = true;
                 return *this;
@@ -80,16 +80,16 @@ namespace LinuxSampler {
                 return *this;
             }
 
-            const T& operator *() const throw (LinuxSamplerException) { return get(); }
-            T&       operator *()       throw (LinuxSamplerException) { return get(); }
+            const T& operator *() const throw (Exception) { return get(); }
+            T&       operator *()       throw (Exception) { return get(); }
 
-            const T* operator ->() const throw (LinuxSamplerException) {
-                if (!initialized) throw LinuxSamplerException("optional variable not initialized");
+            const T* operator ->() const throw (Exception) {
+                if (!initialized) throw Exception("optional variable not initialized");
                 return &data;
             }
 
-            T* operator ->() throw (LinuxSamplerException) {
-                if (!initialized) throw LinuxSamplerException("optional variable not initialized");
+            T* operator ->() throw (Exception) {
+                if (!initialized) throw Exception("optional variable not initialized");
                 return &data;
             }
 

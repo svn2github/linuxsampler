@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 Christian Schoenebeck                              *
+ *   Copyright (C) 2005, 2006 Christian Schoenebeck                        *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -27,7 +27,7 @@
 #include <vector>
 #include <map>
 #include "common/global.h"
-#include "common/LinuxSamplerException.h"
+#include "common/Exception.h"
 #include "engines/common/EngineChannel.h"
 #include "drivers/midi/MidiInputDevice.h"
 #include "drivers/audio/AudioOutputDevice.h"
@@ -51,9 +51,9 @@ namespace LinuxSampler {
              * Assign a sampler engine type to this sampler channel.
              *
              * @param EngineType - type of the engine to use
-             * @throws LinuxSamplerException - if \a EngineType is invalid
+             * @throws Exception - if \a EngineType is invalid
              */
-            void SetEngineType(String EngineType) throw (LinuxSamplerException);
+            void SetEngineType(String EngineType) throw (Exception);
 
             /**
              * Connect this sampler channel to an audio output device, that
@@ -288,9 +288,9 @@ namespace LinuxSampler {
              * @param Parameters - eventually needed driver parameters to
              *                     create the device
              * @returns  pointer to created audio output device
-             * @throws LinuxSamplerException  if device could not be created
+             * @throws Exception  if device could not be created
              */
-            AudioOutputDevice* CreateAudioOutputDevice(String AudioDriver, std::map<String,String> Parameters) throw (LinuxSamplerException);
+            AudioOutputDevice* CreateAudioOutputDevice(String AudioDriver, std::map<String,String> Parameters) throw (Exception);
 
             /**
              * Create a midi input device.
@@ -299,9 +299,9 @@ namespace LinuxSampler {
              * @param Parameters - eventually needed driver parameters to
              *                     create the device
              * @returns  pointer to created midi input device
-             * @throws LinuxSamplerException  if device could not be created
+             * @throws Exception  if device could not be created
              */
-            MidiInputDevice* CreateMidiInputDevice(String MidiDriver, std::map<String,String> Parameters) throw (LinuxSamplerException);
+            MidiInputDevice* CreateMidiInputDevice(String MidiDriver, std::map<String,String> Parameters) throw (Exception);
 
             /**
              * Returns the number of all created audio output devices.
@@ -327,19 +327,19 @@ namespace LinuxSampler {
              * Destroy the given audio output device and takes care if there
              * are still sampler angines connected to this device, etc.
              *
-             * @throws LinuxSamplerException  if sampler channels are still
-             *                                connected to the device
+             * @throws Exception  if sampler channels are still
+             *                    connected to the device
              */
-            void DestroyAudioOutputDevice(AudioOutputDevice* pDevice) throw (LinuxSamplerException);
+            void DestroyAudioOutputDevice(AudioOutputDevice* pDevice) throw (Exception);
 
             /**
              * Destroy the given MIDI input device and takes care if there
              * are still sampler angines connected to this device, etc.
              *
-             * @throws LinuxSamplerException  if sampler channels are still
-             *                                connected to the device
+             * @throws Exception  if sampler channels are still
+             *                    connected to the device
              */
-            void DestroyMidiInputDevice(MidiInputDevice* pDevice) throw (LinuxSamplerException);
+            void DestroyMidiInputDevice(MidiInputDevice* pDevice) throw (Exception);
 
             /**
              * Gets the current number of all active voices.

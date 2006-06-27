@@ -3,6 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
+ *   Copyright (C) 2005, 2006 Christian Schoenebeck                        *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -63,14 +64,14 @@ namespace LinuxSampler {
             class ParameterCard : public DeviceCreationParameterString {
                 public:
                     ParameterCard();
-                    ParameterCard(String s) throw (LinuxSamplerException);
+                    ParameterCard(String s) throw (Exception);
                     virtual String Description();
                     virtual bool   Fix();
                     virtual bool   Mandatory();
                     virtual std::map<String,DeviceCreationParameter*> DependsAsParameters();
                     virtual optional<String>    DefaultAsString(std::map<String,String> Parameters);
                     virtual std::vector<String> PossibilitiesAsString(std::map<String,String> Parameters);
-                    virtual void                OnSetValue(String s) throw (LinuxSamplerException);
+                    virtual void                OnSetValue(String s) throw (Exception);
                     static String Name();
             };
 
@@ -81,7 +82,7 @@ namespace LinuxSampler {
             class ParameterFragments : public DeviceCreationParameterInt {
                 public:
                     ParameterFragments();
-                    ParameterFragments(String s) throw (LinuxSamplerException);
+                    ParameterFragments(String s) throw (Exception);
                     virtual String Description();
                     virtual bool   Fix();
                     virtual bool   Mandatory();
@@ -90,7 +91,7 @@ namespace LinuxSampler {
                     virtual optional<int>    RangeMinAsInt(std::map<String,String> Parameters);
                     virtual optional<int>    RangeMaxAsInt(std::map<String,String> Parameters);
                     virtual std::vector<int> PossibilitiesAsInt(std::map<String,String> Parameters);
-                    virtual void             OnSetValue(int i) throw (LinuxSamplerException);
+                    virtual void             OnSetValue(int i) throw (Exception);
                     static String Name();
             };
 
@@ -101,7 +102,7 @@ namespace LinuxSampler {
             class ParameterFragmentSize : public DeviceCreationParameterInt {
                 public:
                     ParameterFragmentSize();
-                    ParameterFragmentSize(String s) throw (LinuxSamplerException);
+                    ParameterFragmentSize(String s) throw (Exception);
                     virtual String Description();
                     virtual bool   Fix();
                     virtual bool   Mandatory();
@@ -110,7 +111,7 @@ namespace LinuxSampler {
                     virtual optional<int>    RangeMinAsInt(std::map<String,String> Parameters);
                     virtual optional<int>    RangeMaxAsInt(std::map<String,String> Parameters);
                     virtual std::vector<int> PossibilitiesAsInt(std::map<String,String> Parameters);
-                    virtual void             OnSetValue(int i) throw (LinuxSamplerException);
+                    virtual void             OnSetValue(int i) throw (Exception);
                     static String Name();
             };
 

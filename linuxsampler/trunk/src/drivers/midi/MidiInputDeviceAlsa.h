@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 Christian Schoenebeck                              *
+ *   Copyright (C) 2005, 2006 Christian Schoenebeck                        *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -51,8 +51,8 @@ namespace LinuxSampler {
                      */
                     class ParameterName : public MidiInputPort::ParameterName {
                         public:
-                            ParameterName(MidiInputPort* pPort) throw (LinuxSamplerException);
-                            virtual void OnSetValue(String s) throw (LinuxSamplerException);
+                            ParameterName(MidiInputPort* pPort) throw (Exception);
+                            virtual void OnSetValue(String s) throw (Exception);
                     };
 
                     /** MIDI Port Parameter 'ALSA_SEQ_BINDINGS'
@@ -65,7 +65,7 @@ namespace LinuxSampler {
                             virtual String Description();
                             virtual bool Fix();
                             virtual std::vector<String> PossibilitiesAsString();
-                            virtual void OnSetValue(std::vector<String> vS) throw (LinuxSamplerException);
+                            virtual void OnSetValue(std::vector<String> vS) throw (Exception);
                         protected:
                             MidiInputPortAlsa* pPort;
                     };

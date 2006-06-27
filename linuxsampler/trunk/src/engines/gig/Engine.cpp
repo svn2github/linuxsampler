@@ -228,7 +228,7 @@ namespace LinuxSampler { namespace gig {
         }
         catch (AudioOutputException e) {
             String msg = "Audio output device unable to provide 2 audio channels, cause: " + e.Message();
-            throw LinuxSamplerException(msg);
+            throw Exception(msg);
         }
 
         this->MaxSamplesPerCycle = pAudioOutputDevice->MaxSamplesPerCycle();
@@ -1567,7 +1567,7 @@ namespace LinuxSampler { namespace gig {
     }
 
     String Engine::Version() {
-        String s = "$Revision: 1.62 $";
+        String s = "$Revision: 1.63 $";
         return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
 

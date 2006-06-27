@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 Christian Schoenebeck                              *
+ *   Copyright (C) 2005, 2006 Christian Schoenebeck                        *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -30,7 +30,7 @@
 #include <vector>
 
 #include "../../common/global.h"
-#include "../../common/LinuxSamplerException.h"
+#include "../../common/Exception.h"
 #include "../DeviceParameter.h"
 #include "MidiInputPort.h"
 #include "../../engines/common/Engine.h"
@@ -47,9 +47,9 @@ namespace LinuxSampler {
      * (which should be done in the constructor of the MidiInputDevice
      * descendant).
      */
-    class MidiInputException : public LinuxSamplerException {
+    class MidiInputException : public Exception {
         public:
-            MidiInputException(const std::string& msg) : LinuxSamplerException(msg) {}
+            MidiInputException(const std::string& msg) : Exception(msg) {}
     };
 
     /** Abstract base class for MIDI input drivers in LinuxSampler
@@ -80,7 +80,7 @@ namespace LinuxSampler {
                     virtual bool   Mandatory();
                     virtual std::map<String,DeviceCreationParameter*> DependsAsParameters();
                     virtual optional<bool> DefaultAsBool(std::map<String,String> Parameters);
-                    virtual void OnSetValue(bool b) throw (LinuxSamplerException);
+                    virtual void OnSetValue(bool b) throw (Exception);
                     static String Name();
             };
 
@@ -101,7 +101,7 @@ namespace LinuxSampler {
                     virtual optional<int>    RangeMinAsInt(std::map<String,String> Parameters);
                     virtual optional<int>    RangeMaxAsInt(std::map<String,String> Parameters);
                     virtual std::vector<int> PossibilitiesAsInt(std::map<String,String> Parameters);
-                    virtual void             OnSetValue(int i) throw (LinuxSamplerException);
+                    virtual void             OnSetValue(int i) throw (Exception);
                     static String Name();
             };
 

@@ -3,6 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
+ *   Copyright (C) 2005, 2006 Christian Schoenebeck                        *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -25,6 +26,8 @@
 #include "Condition.h"
 
 #include "global.h"
+
+namespace LinuxSampler {
 
 Condition::Condition(bool bInitialCondition) {
     pthread_cond_init(&__posix_true_condition, NULL);
@@ -106,3 +109,5 @@ void Condition::Set(bool bCondition) {
     }
     Unlock();
 }
+
+} // namespace LinuxSampler

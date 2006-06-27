@@ -189,16 +189,16 @@ namespace LinuxSampler { namespace gig {
         catch (RIFF::Exception e) {
             InstrumentStat = -2;
             String msg = "gig::Engine error: Failed to load instrument, cause: " + e.Message;
-            throw LinuxSamplerException(msg);
+            throw Exception(msg);
         }
         catch (InstrumentResourceManagerException e) {
             InstrumentStat = -3;
             String msg = "gig::Engine error: Failed to load instrument, cause: " + e.Message();
-            throw LinuxSamplerException(msg);
+            throw Exception(msg);
         }
         catch (...) {
             InstrumentStat = -4;
-            throw LinuxSamplerException("gig::Engine error: Failed to load instrument, cause: Unknown exception while trying to parse gig file.");
+            throw Exception("gig::Engine error: Failed to load instrument, cause: Unknown exception while trying to parse gig file.");
         }
 
         // rebuild ActiveKeyGroups map with key groups of current instrument
@@ -215,7 +215,7 @@ namespace LinuxSampler { namespace gig {
         }
         catch (AudioOutputException e) {
             String msg = "Audio output device unable to provide 2 audio channels, cause: " + e.Message();
-            throw LinuxSamplerException(msg);
+            throw Exception(msg);
         }
 
         if (pEngine) pEngine->Enable();

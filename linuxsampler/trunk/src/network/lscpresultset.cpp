@@ -3,6 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
+ *   Copyright (C) 2005, 2006 Christian Schoenebeck                        *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -59,9 +60,9 @@ LSCPResultSet::LSCPResultSet(String Value, int index) {
 //Values could be of different types for now supports String, int and float.
 void LSCPResultSet::Add(String Label, String Value) {
 	if (count == -1)
-        	throw LinuxSamplerException("Attempting to change already produced resultset");
+        	throw Exception("Attempting to change already produced resultset");
 	if (result_type != result_type_success)
-		throw LinuxSamplerException("Attempting to create illegal resultset");
+		throw Exception("Attempting to create illegal resultset");
 	storage = storage + Label + ": " + Value + "\r\n";
         count++;
 }
@@ -104,11 +105,11 @@ void LSCPResultSet::Add(String Label, bool Value) {
 //Add a single string to the resultset
 void LSCPResultSet::Add(String Value) {
 	if (result_type != result_type_success)
-		throw LinuxSamplerException("Attempting to create illegal resultset");
+		throw Exception("Attempting to create illegal resultset");
 	if (count == -1)
-        	throw LinuxSamplerException("Attempting to change already produced resultset");
+        	throw Exception("Attempting to change already produced resultset");
 	if (count != 0)
-		throw LinuxSamplerException("Attempting to create illegal resultset");
+		throw Exception("Attempting to create illegal resultset");
 	storage = Value + "\r\n";
         count = 1;
 }
@@ -119,7 +120,7 @@ void LSCPResultSet::Add(String Value) {
 //This method will be used to generate unknown errors only (code 0)
 //To generate errors with other codes as well as warnings use other methods (below).
 //Because this is an unknown error, this method will also print message to the stderr.
-void LSCPResultSet::Error(LinuxSamplerException e) {
+void LSCPResultSet::Error(Exception e) {
         e.PrintMessage();
 	Error(e.Message());
 }

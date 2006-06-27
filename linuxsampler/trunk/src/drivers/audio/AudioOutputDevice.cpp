@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 Christian Schoenebeck                              *
+ *   Copyright (C) 2005, 2006 Christian Schoenebeck                        *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -56,7 +56,7 @@ namespace LinuxSampler {
         return true;
     }
 
-    void AudioOutputDevice::ParameterActive::OnSetValue(bool b) throw (LinuxSamplerException) {
+    void AudioOutputDevice::ParameterActive::OnSetValue(bool b) throw (Exception) {
         if (b) ((AudioOutputDevice*)pDevice)->Play();
         else ((AudioOutputDevice*)pDevice)->Stop();
     }
@@ -109,7 +109,7 @@ namespace LinuxSampler {
         return std::vector<int>();
     }
 
-    void AudioOutputDevice::ParameterSampleRate::OnSetValue(int i) throw (LinuxSamplerException) {
+    void AudioOutputDevice::ParameterSampleRate::OnSetValue(int i) throw (Exception) {
         /* cannot happen, as parameter is fix */
     }
 
@@ -161,7 +161,7 @@ namespace LinuxSampler {
         return std::vector<int>();
     }
 
-    void AudioOutputDevice::ParameterChannels::OnSetValue(int i) throw (LinuxSamplerException) {
+    void AudioOutputDevice::ParameterChannels::OnSetValue(int i) throw (Exception) {
         ((AudioOutputDevice*)pDevice)->AcquireChannels(i);
     }
 

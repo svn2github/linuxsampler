@@ -3,6 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
+ *   Copyright (C) 2005, 2006 Christian Schoenebeck                        *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -24,13 +25,13 @@
 
 namespace LinuxSampler {
 
-    DeviceCreationParameter* DeviceParameterFactory::Create(String ParameterName, String val) throw (LinuxSamplerException) {
-        if (!InnerFactories.count(ParameterName)) throw LinuxSamplerException("No such parameter: '" + ParameterName + "'.");
+    DeviceCreationParameter* DeviceParameterFactory::Create(String ParameterName, String val) throw (Exception) {
+        if (!InnerFactories.count(ParameterName)) throw Exception("No such parameter: '" + ParameterName + "'.");
         return InnerFactories[ParameterName]->Create(val);
     }
 
-    DeviceCreationParameter* DeviceParameterFactory::Create(String ParameterName) throw (LinuxSamplerException) {
-        if (!InnerFactories.count(ParameterName)) throw LinuxSamplerException("No such parameter: '" + ParameterName + "'.");
+    DeviceCreationParameter* DeviceParameterFactory::Create(String ParameterName) throw (Exception) {
+        if (!InnerFactories.count(ParameterName)) throw Exception("No such parameter: '" + ParameterName + "'.");
         return InnerFactories[ParameterName]->Create();
     }
 

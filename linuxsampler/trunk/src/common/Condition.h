@@ -3,6 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
+ *   Copyright (C) 2005, 2006 Christian Schoenebeck                        *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -24,6 +25,8 @@
 #define __CONDITION_H__
 
 #include "Mutex.h"
+
+namespace LinuxSampler {
 
 /**
  * Thread safe boolean condition.
@@ -92,5 +95,7 @@ class Condition : public Mutex {
         pthread_cond_t __posix_false_condition;
         bool bCondition;
 };
+
+} // namespace LinuxSampler
 
 #endif // __CONDITION_H__

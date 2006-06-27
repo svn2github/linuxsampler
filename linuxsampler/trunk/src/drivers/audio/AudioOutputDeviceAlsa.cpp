@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 Christian Schoenebeck                              *
+ *   Copyright (C) 2005, 2006 Christian Schoenebeck                        *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -33,7 +33,7 @@ namespace LinuxSampler {
         InitWithDefault(); // use default card
     }
 
-    AudioOutputDeviceAlsa::ParameterCard::ParameterCard(String s) throw (LinuxSamplerException) : DeviceCreationParameterString(s) {
+    AudioOutputDeviceAlsa::ParameterCard::ParameterCard(String s) throw (Exception) : DeviceCreationParameterString(s) {
     }
 
     String AudioOutputDeviceAlsa::ParameterCard::Description() {
@@ -54,7 +54,7 @@ namespace LinuxSampler {
 
     optional<String> AudioOutputDeviceAlsa::ParameterCard::DefaultAsString(std::map<String,String> Parameters) {
         std::vector<String> cards = PossibilitiesAsString(Parameters);
-        if (cards.empty()) throw LinuxSamplerException("AudioOutputDeviceAlsa: Can't find any card");
+        if (cards.empty()) throw Exception("AudioOutputDeviceAlsa: Can't find any card");
         return cards[0]; // first card by default
     }
 
@@ -86,7 +86,7 @@ namespace LinuxSampler {
         return CardNames;
     }
 
-    void AudioOutputDeviceAlsa::ParameterCard::OnSetValue(String s) throw (LinuxSamplerException) {
+    void AudioOutputDeviceAlsa::ParameterCard::OnSetValue(String s) throw (Exception) {
         // not posssible, as parameter is fix
     }
 
@@ -103,7 +103,7 @@ namespace LinuxSampler {
         InitWithDefault();
     }
 
-    AudioOutputDeviceAlsa::ParameterFragments::ParameterFragments(String s) throw (LinuxSamplerException) : DeviceCreationParameterInt(s) {
+    AudioOutputDeviceAlsa::ParameterFragments::ParameterFragments(String s) throw (Exception) : DeviceCreationParameterInt(s) {
     }
 
     String AudioOutputDeviceAlsa::ParameterFragments::Description() {
@@ -179,7 +179,7 @@ namespace LinuxSampler {
         return std::vector<int>();
     }
 
-    void AudioOutputDeviceAlsa::ParameterFragments::OnSetValue(int i) throw (LinuxSamplerException) {
+    void AudioOutputDeviceAlsa::ParameterFragments::OnSetValue(int i) throw (Exception) {
         // not posssible, as parameter is fix
     }
 
@@ -196,7 +196,7 @@ namespace LinuxSampler {
         InitWithDefault();
     }
 
-    AudioOutputDeviceAlsa::ParameterFragmentSize::ParameterFragmentSize(String s) throw (LinuxSamplerException) : DeviceCreationParameterInt(s) {
+    AudioOutputDeviceAlsa::ParameterFragmentSize::ParameterFragmentSize(String s) throw (Exception) : DeviceCreationParameterInt(s) {
     }
 
     String AudioOutputDeviceAlsa::ParameterFragmentSize::Description() {
@@ -272,7 +272,7 @@ namespace LinuxSampler {
         return std::vector<int>();
     }
 
-    void AudioOutputDeviceAlsa::ParameterFragmentSize::OnSetValue(int i) throw (LinuxSamplerException) {
+    void AudioOutputDeviceAlsa::ParameterFragmentSize::OnSetValue(int i) throw (Exception) {
         // not posssible, as parameter is fix
     }
 
@@ -517,7 +517,7 @@ namespace LinuxSampler {
     }
 
     String AudioOutputDeviceAlsa::Version() {
-       String s = "$Revision: 1.20 $";
+       String s = "$Revision: 1.21 $";
        return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
 

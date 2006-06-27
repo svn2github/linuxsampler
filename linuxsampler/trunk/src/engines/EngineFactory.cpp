@@ -1,6 +1,6 @@
 /***************************************************************************
  *                                                                         *
- *   Copyright (C) 2005 Christian Schoenebeck                              *
+ *   Copyright (C) 2005, 2006 Christian Schoenebeck                        *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -31,13 +31,13 @@ namespace LinuxSampler {
     // all currently existing engine instances
     static std::set<LinuxSampler::Engine*> engines;
 
-    LinuxSampler::Engine* EngineFactory::Create(String EngineType) throw (LinuxSamplerException) {
+    LinuxSampler::Engine* EngineFactory::Create(String EngineType) throw (Exception) {
         if (!strcasecmp(EngineType.c_str(),"GigEngine") || !strcasecmp(EngineType.c_str(),"gig")) {
             Engine* pEngine = new gig::Engine;
             engines.insert(pEngine);
             return pEngine;
         }
-        throw LinuxSamplerException("Unknown engine type");
+        throw Exception("Unknown engine type");
     }
 
     void EngineFactory::Destroy(LinuxSampler::Engine* pEngine) {

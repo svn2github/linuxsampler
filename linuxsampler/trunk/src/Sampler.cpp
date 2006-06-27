@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 Christian Schoenebeck                              *
+ *   Copyright (C) 2005, 2006 Christian Schoenebeck                        *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -64,12 +64,12 @@ namespace LinuxSampler {
         }
     }
 
-    void SamplerChannel::SetEngineType(String EngineType) throw (LinuxSamplerException) {
+    void SamplerChannel::SetEngineType(String EngineType) throw (Exception) {
         dmsg(2,("SamplerChannel: Assigning engine type..."));
 
         // create new engine channel
         EngineChannel* pNewEngineChannel = EngineChannelFactory::Create(EngineType);
-        if (!pNewEngineChannel) throw LinuxSamplerException("Unknown engine type");
+        if (!pNewEngineChannel) throw Exception("Unknown engine type");
 
         //FIXME: hack to allow fast retrieval of engine channel's sampler channel index
         pNewEngineChannel->iSamplerChannelIndex = Index();
@@ -141,7 +141,7 @@ namespace LinuxSampler {
     }
 
     void SamplerChannel::SetMidiInput(MidiInputDevice* pDevice, int iMidiPort, midi_chan_t MidiChannel) {
-        if (!pDevice) throw LinuxSamplerException("No MIDI input device assigned.");
+        if (!pDevice) throw Exception("No MIDI input device assigned.");
 
         // get old and new midi input port
         MidiInputPort* pOldMidiInputPort = __GetMidiInputDevicePort(GetMidiInputPort());
@@ -160,7 +160,7 @@ namespace LinuxSampler {
         if (pNewMidiInputPort && pEngineChannel) pNewMidiInputPort->Connect(pEngineChannel, MidiChannel);
         // Ooops.
         if (pNewMidiInputPort == NULL)
-            throw LinuxSamplerException("There is no MIDI input port with index " + ToString(iMidiPort) + ".");
+            throw Exception("There is no MIDI input port with index " + ToString(iMidiPort) + ".");
     }
 
     EngineChannel* SamplerChannel::GetEngineChannel() {
@@ -199,7 +199,7 @@ namespace LinuxSampler {
             }
         }
 
-        throw LinuxSamplerException("Internal error: SamplerChannel index not found");
+        throw Exception("Internal error: SamplerChannel index not found");
     }
 
     MidiInputPort* SamplerChannel::__GetMidiInputDevicePort(int iMidiPort) {
@@ -249,7 +249,7 @@ namespace LinuxSampler {
 		LSCPServer::SendLSCPNotify(LSCPEvent(LSCPEvent::event_channel_count, i));
                 return pChannel;
             }
-            throw LinuxSamplerException("Internal error: could not find unoccupied sampler channel index.");
+            throw Exception("Internal error: could not find unoccupied sampler channel index.");
         }
 
         // we have not reached the index limit so we just add the channel past the highest index
@@ -289,7 +289,7 @@ namespace LinuxSampler {
         return AudioOutputDeviceFactory::AvailableDrivers();
     }
 
-    AudioOutputDevice* Sampler::CreateAudioOutputDevice(String AudioDriver, std::map<String,String> Parameters) throw (LinuxSamplerException) {
+    AudioOutputDevice* Sampler::CreateAudioOutputDevice(String AudioDriver, std::map<String,String> Parameters) throw (Exception) {
         // create new device
         AudioOutputDevice* pDevice = AudioOutputDeviceFactory::Create(AudioDriver, Parameters);
 
@@ -320,13 +320,13 @@ namespace LinuxSampler {
         return mMidiInputDevices;
     }
 
-    void Sampler::DestroyAudioOutputDevice(AudioOutputDevice* pDevice) throw (LinuxSamplerException) {
+    void Sampler::DestroyAudioOutputDevice(AudioOutputDevice* pDevice) throw (Exception) {
         AudioOutputDeviceMap::iterator iter = mAudioOutputDevices.begin();
         for (; iter != mAudioOutputDevices.end(); iter++) {
             if (iter->second == pDevice) {
                 // check if there are still sampler engines connected to this device
                 for (uint i = 0; i < SamplerChannels(); i++)
-                    if (GetSamplerChannel(i)->GetAudioOutputDevice() == pDevice) throw LinuxSamplerException("Sampler channel " + ToString(i) + " is still connected to the audio output device.");
+                    if (GetSamplerChannel(i)->GetAudioOutputDevice() == pDevice) throw Exception("Sampler channel " + ToString(i) + " is still connected to the audio output device.");
 
                 // disable device
                 pDevice->Stop();
@@ -342,13 +342,13 @@ namespace LinuxSampler {
         }
     }
 
-    void Sampler::DestroyMidiInputDevice(MidiInputDevice* pDevice) throw (LinuxSamplerException) {
+    void Sampler::DestroyMidiInputDevice(MidiInputDevice* pDevice) throw (Exception) {
         MidiInputDeviceMap::iterator iter = mMidiInputDevices.begin();
         for (; iter != mMidiInputDevices.end(); iter++) {
             if (iter->second == pDevice) {
                 // check if there are still sampler engines connected to this device
                 for (uint i = 0; i < SamplerChannels(); i++)
-                    if (GetSamplerChannel(i)->GetMidiInputDevice() == pDevice) throw LinuxSamplerException("Sampler channel " + ToString(i) + " is still connected to the midi input device.");
+                    if (GetSamplerChannel(i)->GetMidiInputDevice() == pDevice) throw Exception("Sampler channel " + ToString(i) + " is still connected to the midi input device.");
 
                 // disable device
                 pDevice->StopListen();
@@ -364,7 +364,7 @@ namespace LinuxSampler {
         }
     }
 
-    MidiInputDevice* Sampler::CreateMidiInputDevice(String MidiDriver, std::map<String,String> Parameters) throw (LinuxSamplerException) {
+    MidiInputDevice* Sampler::CreateMidiInputDevice(String MidiDriver, std::map<String,String> Parameters) throw (Exception) {
         // create new device
         MidiInputDevice* pDevice = MidiInputDeviceFactory::Create(MidiDriver, Parameters, this);
 

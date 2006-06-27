@@ -71,8 +71,8 @@ namespace LinuxSampler {
     REGISTER_AUDIO_OUTPUT_DRIVER_PARAMETER(AudioOutputDeviceArts, ParameterName);
 #endif // HAVE_ARTS
 
-    AudioOutputDevice* AudioOutputDeviceFactory::Create(String DriverName, std::map<String,String> Parameters) throw (LinuxSamplerException) {
-        if (!InnerFactories.count(DriverName)) throw LinuxSamplerException("There is no audio output driver '" + DriverName + "'.");
+    AudioOutputDevice* AudioOutputDeviceFactory::Create(String DriverName, std::map<String,String> Parameters) throw (Exception) {
+        if (!InnerFactories.count(DriverName)) throw Exception("There is no audio output driver '" + DriverName + "'.");
 	//Let's see if we need to create parameters
 	std::map<String,DeviceCreationParameter*> thisDeviceParams;
 	DeviceParameterFactory* pParamFactory = ParameterFactories[DriverName];
@@ -80,7 +80,7 @@ namespace LinuxSampler {
 		thisDeviceParams = pParamFactory->CreateAllParams(Parameters);
 	} else {
 	       	//No parameters are registered by the driver. Throw if any parameters were specified.
-		if (Parameters.size() != 0) throw LinuxSamplerException("Driver '" + DriverName + "' does not have any parameters.");
+		if (Parameters.size() != 0) throw Exception("Driver '" + DriverName + "' does not have any parameters.");
 	}
 	//Now create the device using those parameters
         AudioOutputDevice* pDevice = InnerFactories[DriverName]->Create(thisDeviceParams);
@@ -112,8 +112,8 @@ namespace LinuxSampler {
         return result;
     }
 
-    std::map<String,DeviceCreationParameter*> AudioOutputDeviceFactory::GetAvailableDriverParameters(String DriverName) throw (LinuxSamplerException) {
-        if (!InnerFactories.count(DriverName)) throw LinuxSamplerException("There is no audio output driver '" + DriverName + "'.");
+    std::map<String,DeviceCreationParameter*> AudioOutputDeviceFactory::GetAvailableDriverParameters(String DriverName) throw (Exception) {
+        if (!InnerFactories.count(DriverName)) throw Exception("There is no audio output driver '" + DriverName + "'.");
 	std::map<String,DeviceCreationParameter*> thisDeviceParams;
 	DeviceParameterFactory* pParamFactory = ParameterFactories[DriverName];
 	if (pParamFactory) {
@@ -122,19 +122,19 @@ namespace LinuxSampler {
         return thisDeviceParams;
     }
 
-    DeviceCreationParameter* AudioOutputDeviceFactory::GetDriverParameter(String DriverName, String ParameterName) throw (LinuxSamplerException) {
+    DeviceCreationParameter* AudioOutputDeviceFactory::GetDriverParameter(String DriverName, String ParameterName) throw (Exception) {
         std::map<String,DeviceCreationParameter*> parameters = GetAvailableDriverParameters(DriverName);
-        if (!parameters.count(ParameterName)) throw LinuxSamplerException("Audio output driver '" + DriverName + "' does not have a parameter '" + ParameterName + "'.");
+        if (!parameters.count(ParameterName)) throw Exception("Audio output driver '" + DriverName + "' does not have a parameter '" + ParameterName + "'.");
         return parameters[ParameterName];
     }
 
-    String AudioOutputDeviceFactory::GetDriverDescription(String DriverName) throw (LinuxSamplerException) {
-        if (!InnerFactories.count(DriverName)) throw LinuxSamplerException("There is no audio output driver '" + DriverName + "'.");
+    String AudioOutputDeviceFactory::GetDriverDescription(String DriverName) throw (Exception) {
+        if (!InnerFactories.count(DriverName)) throw Exception("There is no audio output driver '" + DriverName + "'.");
         return InnerFactories[DriverName]->Description();
     }
 
-    String AudioOutputDeviceFactory::GetDriverVersion(String DriverName) throw (LinuxSamplerException) {
-        if (!InnerFactories.count(DriverName)) throw LinuxSamplerException("There is no audio output driver '" + DriverName + "'.");
+    String AudioOutputDeviceFactory::GetDriverVersion(String DriverName) throw (Exception) {
+        if (!InnerFactories.count(DriverName)) throw Exception("There is no audio output driver '" + DriverName + "'.");
         return InnerFactories[DriverName]->Version();
     }
 

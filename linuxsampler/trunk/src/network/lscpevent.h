@@ -3,6 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
+ *   Copyright (C) 2005, 2006 Christian Schoenebeck                        *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -28,7 +29,7 @@
 #include <list>
 #include "../Sampler.h"
 #include "../common/global.h"
-#include "../common/LinuxSamplerException.h"
+#include "../common/Exception.h"
 
 using namespace LinuxSampler;
 
@@ -53,7 +54,7 @@ class LSCPEvent {
 
 	    /* This constructor will do type lookup based on name
 	     **/ 
-	    LSCPEvent(String eventName) throw (LinuxSamplerException);
+	    LSCPEvent(String eventName) throw (Exception);
 
 	    /* These constructors are used to create event and fill it with data for sending
 	     * These will be used by the thread that wants to send an event to all clients

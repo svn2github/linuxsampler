@@ -3,6 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
+ *   Copyright (C) 2005, 2006 Christian Schoenebeck                        *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -23,13 +24,6 @@
 #ifndef __LS_DEVICE_H__
 #define __LS_DEVICE_H__
 
-#include <map>
-#include <vector>
-
-#include "../common/global.h"
-#include "../common/optional.h"
-#include "../common/LinuxSamplerException.h"
-
 namespace LinuxSampler {
 
     /**
@@ -41,4 +35,4 @@ namespace LinuxSampler {
 
 } // namespace LinuxSampler
 
-#endif // __DEVICE_H__
+#endif // __LS_DEVICE_H__

@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 Christian Schoenebeck                              *
+ *   Copyright (C) 2005, 2006 Christian Schoenebeck                        *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -99,14 +99,14 @@ namespace LinuxSampler {
             class ParameterName : public DeviceCreationParameterString {
                 public:
                     ParameterName();
-                    ParameterName(String s) throw (LinuxSamplerException);
+                    ParameterName(String s) throw (Exception);
                     virtual String              Description();
                     virtual bool                Fix();
                     virtual bool                Mandatory();
                     virtual std::map<String,DeviceCreationParameter*> DependsAsParameters();
                     virtual std::vector<String> PossibilitiesAsString(std::map<String,String> Parameters);
                     virtual optional<String>    DefaultAsString(std::map<String,String> Parameters);
-                    virtual void                OnSetValue(String s) throw (LinuxSamplerException);
+                    virtual void                OnSetValue(String s) throw (Exception);
                     static String Name();
             };
 

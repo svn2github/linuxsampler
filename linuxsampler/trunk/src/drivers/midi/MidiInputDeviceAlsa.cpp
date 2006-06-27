@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 Christian Schoenebeck                              *
+ *   Copyright (C) 2005, 2006 Christian Schoenebeck                        *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -31,12 +31,12 @@ namespace LinuxSampler {
 // *************** ParameterName ***************
 // *
 
-    MidiInputDeviceAlsa::MidiInputPortAlsa::ParameterName::ParameterName(MidiInputPort* pPort) throw (LinuxSamplerException) : MidiInputPort::ParameterName(pPort, "Port " + ToString(pPort->GetPortNumber())) {
+    MidiInputDeviceAlsa::MidiInputPortAlsa::ParameterName::ParameterName(MidiInputPort* pPort) throw (Exception) : MidiInputPort::ParameterName(pPort, "Port " + ToString(pPort->GetPortNumber())) {
         OnSetValue(ValueAsString()); // initialize port name
     }
 
-    void MidiInputDeviceAlsa::MidiInputPortAlsa::ParameterName::OnSetValue(String s) throw (LinuxSamplerException) {
-        if (s.size() > 16) throw LinuxSamplerException("Name too long for ALSA MIDI input port (max. 16 characters)");
+    void MidiInputDeviceAlsa::MidiInputPortAlsa::ParameterName::OnSetValue(String s) throw (Exception) {
+        if (s.size() > 16) throw Exception("Name too long for ALSA MIDI input port (max. 16 characters)");
         snd_seq_port_info_t* hInfo;
         snd_seq_port_info_malloc(&hInfo);
         snd_seq_get_port_info(((MidiInputDeviceAlsa*)pPort->GetDevice())->hAlsaSeq, pPort->GetPortNumber(), hInfo);
@@ -85,7 +85,7 @@ namespace LinuxSampler {
         return res;
     }
 
-    void MidiInputDeviceAlsa::MidiInputPortAlsa::ParameterAlsaSeqBindings::OnSetValue(std::vector<String> vS) throw (LinuxSamplerException) {
+    void MidiInputDeviceAlsa::MidiInputPortAlsa::ParameterAlsaSeqBindings::OnSetValue(std::vector<String> vS) throw (Exception) {
         std::vector<String>::iterator iter = vS.begin();
         for (; iter != vS.end(); iter++) pPort->ConnectToAlsaMidiSource((*iter).c_str());
     }
@@ -212,7 +212,7 @@ namespace LinuxSampler {
     }
 
     String MidiInputDeviceAlsa::Version() {
-	    String s = "$Revision: 1.15 $";
+	    String s = "$Revision: 1.16 $";
 	    return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
 

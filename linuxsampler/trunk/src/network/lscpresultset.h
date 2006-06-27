@@ -3,6 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
+ *   Copyright (C) 2005, 2006 Christian Schoenebeck                        *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -27,7 +28,7 @@
 #include <string>
 #include "../Sampler.h"
 #include "../common/global.h"
-#include "../common/LinuxSamplerException.h"
+#include "../common/Exception.h"
 
 using namespace LinuxSampler;
 
@@ -47,7 +48,7 @@ class LSCPResultSet {
         void Add(String, bool);
 	void Add(int);
 	void Error(String message = "Undefined Error", int code = 0);
-	void Error(LinuxSamplerException e);
+	void Error(Exception e);
 	void Warning(String message = "Undefined Warning", int code = 0);
 	String Produce(void);
 

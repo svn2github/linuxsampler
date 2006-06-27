@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 Christian Schoenebeck                              *
+ *   Copyright (C) 2005, 2006 Christian Schoenebeck                        *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -129,7 +129,7 @@ namespace LinuxSampler {
         InitWithDefault(); // use default name
     }
 
-    AudioOutputDeviceJack::ParameterName::ParameterName(String s) throw (LinuxSamplerException) : DeviceCreationParameterString(s) {
+    AudioOutputDeviceJack::ParameterName::ParameterName(String s) throw (Exception) : DeviceCreationParameterString(s) {
     }
 
     String AudioOutputDeviceJack::ParameterName::Description() {
@@ -156,7 +156,7 @@ namespace LinuxSampler {
         return (existingJackDevices) ? "LinuxSampler" + ToString(existingJackDevices) : "LinuxSampler";
     }
 
-    void AudioOutputDeviceJack::ParameterName::OnSetValue(String s) throw (LinuxSamplerException) {
+    void AudioOutputDeviceJack::ParameterName::OnSetValue(String s) throw (Exception) {
         // not possible, as parameter is fix
     }
 
@@ -178,7 +178,7 @@ namespace LinuxSampler {
      */
     AudioOutputDeviceJack::AudioOutputDeviceJack(std::map<String,DeviceCreationParameter*> Parameters) : AudioOutputDevice(Parameters) {
         if (((DeviceCreationParameterString*)Parameters["NAME"])->ValueAsString().size() >= jack_client_name_size())
-            throw LinuxSamplerException("JACK client name too long");
+            throw Exception("JACK client name too long");
 
         if ((hJackClient = jack_client_new(((DeviceCreationParameterString*)Parameters["NAME"])->ValueAsString().c_str())) == 0)
             throw AudioOutputException("Seems Jack server not running.");
@@ -257,7 +257,7 @@ namespace LinuxSampler {
     }
 
     String AudioOutputDeviceJack::Version() {
-       String s = "$Revision: 1.19 $";
+       String s = "$Revision: 1.20 $";
        return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
 

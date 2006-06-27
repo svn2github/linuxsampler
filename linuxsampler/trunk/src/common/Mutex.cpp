@@ -3,6 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
+ *   Copyright (C) 2005, 2006 Christian Schoenebeck                        *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -46,6 +47,8 @@
 
 #include "Mutex.h"
 
+namespace LinuxSampler {
+
 Mutex::Mutex() {
     // the following function call only works on UNIX98 compatible systems
     #if (_XOPEN_SOURCE > 500)
@@ -74,3 +77,5 @@ bool Mutex::Trylock() {
 void Mutex::Unlock() {
     pthread_mutex_unlock(&__posix_mutex);
 }
+
+} // namespace LinuxSampler

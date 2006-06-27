@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 Christian Schoenebeck                              *
+ *   Copyright (C) 2005, 2006 Christian Schoenebeck                        *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -29,7 +29,7 @@
 #include <gig.h>
 
 #include "../../common/global.h"
-#include "../../common/LinuxSamplerException.h"
+#include "../../common/Exception.h"
 #include "../../common/ResourceManager.h"
 #include "../../drivers/audio/AudioOutputDevice.h"
 
@@ -105,9 +105,9 @@ namespace LinuxSampler { namespace gig {
     /**
      * Will be thrown by the InstrumentResourceManager on errors.
      */
-    class InstrumentResourceManagerException : public LinuxSamplerException {
+    class InstrumentResourceManagerException : public Exception {
         public:
-            InstrumentResourceManagerException(String msg) : LinuxSamplerException(msg) {}
+            InstrumentResourceManagerException(String msg) : Exception(msg) {}
     };
 
 }} // namespace LinuxSampler::gig

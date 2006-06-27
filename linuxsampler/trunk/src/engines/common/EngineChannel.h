@@ -1,6 +1,6 @@
 /***************************************************************************
  *                                                                         *
- *   Copyright (C) 2005 Christian Schoenebeck                              *
+ *   Copyright (C) 2005, 2006 Christian Schoenebeck                        *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -83,10 +83,10 @@ namespace LinuxSampler {
              * Sets the mute state of this channel.
              *
              * @param state - specifies the mute state of this sampler channel.
-             * @throws LinuxSamplerException - if state does not contain valid
+             * @throws Exception - if state does not contain valid
              * value.
              */
-            void SetMute(int state) throw (LinuxSamplerException);
+            void SetMute(int state) throw (Exception);
 
             /**
              * Determines whether this channel is muted.

@@ -48,14 +48,14 @@ namespace LinuxSampler {
             class ParameterName : public DeviceCreationParameterString {
                 public:
                     ParameterName();
-                    ParameterName(String s) throw (LinuxSamplerException);
+                    ParameterName(String s) throw (Exception);
                     virtual String              Description();
                     virtual bool                Fix();
                     virtual bool                Mandatory();
                     virtual std::map<String,DeviceCreationParameter*> DependsAsParameters();
                     virtual std::vector<String> PossibilitiesAsString(std::map<String,String> Parameters);
                     virtual optional<String>    DefaultAsString(std::map<String,String> Parameters);
-                    virtual void                OnSetValue(String s) throw (LinuxSamplerException);
+                    virtual void                OnSetValue(String s) throw (Exception);
                     static String Name();
             };
 

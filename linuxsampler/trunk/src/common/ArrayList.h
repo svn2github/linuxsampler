@@ -1,6 +1,6 @@
 /***************************************************************************
  *                                                                         *
- *   Copyright (C) 2005 Christian Schoenebeck                              *
+ *   Copyright (C) 2005, 2006 Christian Schoenebeck                        *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -21,7 +21,7 @@
 #ifndef __LS_ARRAYLIST_H__
 #define __LS_ARRAYLIST_H__
 
-#include "LinuxSamplerException.h"
+#include "Exception.h"
 
 namespace LinuxSampler {
 
@@ -61,11 +61,11 @@ namespace LinuxSampler {
             /**
              * Remove the given element at \a iPosition from the list.
              *
-             * @throws LinuxSamplerException - if \a iPosition is out of range
+             * @throws Exception - if \a iPosition is out of range
              */
-            void remove(int iPosition) throw (LinuxSamplerException) {
+            void remove(int iPosition) throw (Exception) {
                 if (iPosition < 0 || iPosition >= iSize)
-                    throw LinuxSamplerException("ArrayList::remove(): index out of range");
+                    throw Exception("ArrayList::remove(): index out of range");
                 if (iSize == 1) clear();
                 else if (pData) {
                     T* pNewArray = new T[iSize - 1];
@@ -83,7 +83,7 @@ namespace LinuxSampler {
             /**
              * Remove the given \a element from the list.
              *
-             * @throws LinuxSamplerException - if \a element could not be found
+             * @throws Exception - if \a element could not be found
              */
             void remove(const T& element) {
                 remove(find(element));
@@ -103,12 +103,12 @@ namespace LinuxSampler {
             /**
              * Returns the index of the given \a element on the list.
              *
-             * @throws LinuxSamplerException - if \a element could not be found
+             * @throws Exception - if \a element could not be found
              */
             int find(const T& element) {
                 for (int i = 0; i < iSize; i++)
                     if (pData[i] == element) return i;
-                throw LinuxSamplerException("ArrayList::find(): could not find given element");
+                throw Exception("ArrayList::find(): could not find given element");
             }
 
             /**

@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 Christian Schoenebeck                              *
+ *   Copyright (C) 2005, 2006 Christian Schoenebeck                        *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -39,21 +39,21 @@ namespace LinuxSampler {
         }
     }
 
-    static bool __parse_bool(String val) throw (LinuxSamplerException) {
+    static bool __parse_bool(String val) throw (Exception) {
         __eliminate_quotation(val);
         int b;
         if      (val == "1" || !strcasecmp(val.c_str(),"true"))  b = true;
         else if (val == "0" || !strcasecmp(val.c_str(),"false")) b = false;
-        else throw LinuxSamplerException("Invalid value for boolean Device parameter");
+        else throw Exception("Invalid value for boolean Device parameter");
         return b;
     }
 
-    static int __parse_int(String val) throw (LinuxSamplerException) {
+    static int __parse_int(String val) throw (Exception) {
         __eliminate_quotation(val);
         return atoi(val.c_str()); // TODO: format check is missing
     }
 
-    static float __parse_float(String val) throw (LinuxSamplerException) {
+    static float __parse_float(String val) throw (Exception) {
         __eliminate_quotation(val);
         return atof(val.c_str()); // TODO: format check is missing
     }
@@ -63,7 +63,7 @@ namespace LinuxSampler {
         return val;
     }
 
-    static std::vector<String> __parse_strings(String val) throw (LinuxSamplerException) {
+    static std::vector<String> __parse_strings(String val) throw (Exception) {
         std::vector<String> vS;
 
         // if there's only a single value, then we also allow to give it without being encapsulated into apostrophes
@@ -75,13 +75,13 @@ namespace LinuxSampler {
             char* pC     = pStart;
 
             while (true) {
-                if (*pC != '\'' && *pC != '\"') throw LinuxSamplerException("Invalid form, all individual strings should be encapsulated into apostrophes, separated by commas");
+                if (*pC != '\'' && *pC != '\"') throw Exception("Invalid form, all individual strings should be encapsulated into apostrophes, separated by commas");
 
                 // search for token end
                 char* pTokenStart = pC + 1;
                 do {
                     pC++;
-                    if (*pC == '\0') throw LinuxSamplerException("Invalid form, all individual strings should be encapsulated into apostrophes, separated by commas");
+                    if (*pC == '\0') throw Exception("Invalid form, all individual strings should be encapsulated into apostrophes, separated by commas");
                 }
                 while (*pC != '\'' && *pC != '\"');
                 String token = val.substr((int)(pTokenStart - pStart), (int)(pC - pTokenStart));
@@ -89,7 +89,7 @@ namespace LinuxSampler {
 
                 // now there should be either a comma or the end of the total string
                 if (*(++pC) == '\0') break;
-                if (*pC != ',') throw LinuxSamplerException("Invalid form, all individual strings should be encapsulated into apostrophes, separated by commas");
+                if (*pC != ',') throw Exception("Invalid form, all individual strings should be encapsulated into apostrophes, separated by commas");
                 pC++;
             }
         }
@@ -130,8 +130,8 @@ namespace LinuxSampler {
         return (ValueAsBool()) ? "true" : "false";
     }
 
-    void DeviceRuntimeParameterBool::SetValue(String val) throw (LinuxSamplerException) {
-        if (Fix()) throw LinuxSamplerException("Device parameter is read only");
+    void DeviceRuntimeParameterBool::SetValue(String val) throw (Exception) {
+        if (Fix()) throw Exception("Device parameter is read only");
         int b = __parse_bool(val);
         SetValue(b);
     }
@@ -140,8 +140,8 @@ namespace LinuxSampler {
         return bVal;
     }
 
-    void DeviceRuntimeParameterBool::SetValue(bool b) throw (LinuxSamplerException) {
-        if (Fix()) throw LinuxSamplerException("Device parameter is read only");
+    void DeviceRuntimeParameterBool::SetValue(bool b) throw (Exception) {
+        if (Fix()) throw Exception("Device parameter is read only");
         OnSetValue(b);
         bVal = b;
     }
@@ -193,11 +193,11 @@ namespace LinuxSampler {
         return ToString(ValueAsInt());
     }
 
-    void DeviceRuntimeParameterInt::SetValue(String val) throw (LinuxSamplerException) {
-        if (Fix()) throw LinuxSamplerException("Device parameter is read only");
+    void DeviceRuntimeParameterInt::SetValue(String val) throw (Exception) {
+        if (Fix()) throw Exception("Device parameter is read only");
         int i = __parse_int(val);
-        if (RangeMinAsInt() && i < *RangeMinAsInt()) throw LinuxSamplerException("Invalid device parameter value: too small");
-        if (RangeMaxAsInt() && i > *RangeMaxAsInt()) throw LinuxSamplerException("Invalid device parameter value: too big");
+        if (RangeMinAsInt() && i < *RangeMinAsInt()) throw Exception("Invalid device parameter value: too small");
+        if (RangeMaxAsInt() && i > *RangeMaxAsInt()) throw Exception("Invalid device parameter value: too big");
 
         std::vector<int> possibilities = PossibilitiesAsInt();
         if (possibilities.size()) {
@@ -210,7 +210,7 @@ namespace LinuxSampler {
                 }
                 iter++;
             }
-            if (!valid) throw LinuxSamplerException("Invalid device parameter value: not in set of possible values");
+            if (!valid) throw Exception("Invalid device parameter value: not in set of possible values");
         }
         SetValue(i);
     }
@@ -219,8 +219,8 @@ namespace LinuxSampler {
         return iVal;
     }
 
-    void DeviceRuntimeParameterInt::SetValue(int i) throw (LinuxSamplerException) {
-        if (Fix()) throw LinuxSamplerException("Device parameter is read only");
+    void DeviceRuntimeParameterInt::SetValue(int i) throw (Exception) {
+        if (Fix()) throw Exception("Device parameter is read only");
         OnSetValue(i);
         iVal = i;
     }
@@ -272,11 +272,11 @@ namespace LinuxSampler {
         return ToString(ValueAsFloat());
     }
 
-    void DeviceRuntimeParameterFloat::SetValue(String val) throw (LinuxSamplerException) {
-        if (Fix()) throw LinuxSamplerException("Device parameter is read only");
+    void DeviceRuntimeParameterFloat::SetValue(String val) throw (Exception) {
+        if (Fix()) throw Exception("Device parameter is read only");
         float f = __parse_float(val);
-        if (RangeMinAsFloat() && f < *RangeMinAsFloat()) throw LinuxSamplerException("Invalid device parameter value: too small");
-        if (RangeMaxAsFloat() && f > *RangeMaxAsFloat()) throw LinuxSamplerException("Invalid device parameter value: too big");
+        if (RangeMinAsFloat() && f < *RangeMinAsFloat()) throw Exception("Invalid device parameter value: too small");
+        if (RangeMaxAsFloat() && f > *RangeMaxAsFloat()) throw Exception("Invalid device parameter value: too big");
 
         std::vector<float> possibilities = PossibilitiesAsFloat();
         if (possibilities.size()) {
@@ -289,7 +289,7 @@ namespace LinuxSampler {
                 }
                 iter++;
             }
-            if (!valid) throw LinuxSamplerException("Invalid device parameter value: not in set of possible values");
+            if (!valid) throw Exception("Invalid device parameter value: not in set of possible values");
         }
         SetValue(f);
     }
@@ -298,8 +298,8 @@ namespace LinuxSampler {
         return fVal;
     }
 
-    void DeviceRuntimeParameterFloat::SetValue(float f) throw (LinuxSamplerException) {
-        if (Fix()) throw LinuxSamplerException("Device parameter is read only");
+    void DeviceRuntimeParameterFloat::SetValue(float f) throw (Exception) {
+        if (Fix()) throw Exception("Device parameter is read only");
         OnSetValue(f);
         fVal = f;
     }
@@ -347,8 +347,8 @@ namespace LinuxSampler {
         return "\'" + ValueAsString() + "\'";
     }
 
-    void DeviceRuntimeParameterString::SetValue(String val) throw (LinuxSamplerException) {
-        if (Fix()) throw LinuxSamplerException("Device parameter is read only");
+    void DeviceRuntimeParameterString::SetValue(String val) throw (Exception) {
+        if (Fix()) throw Exception("Device parameter is read only");
         SetValueAsString(__parse_string(val));
     }
 
@@ -356,10 +356,10 @@ namespace LinuxSampler {
         return sVal;
     }
 
-    void DeviceRuntimeParameterString::SetValueAsString(String val) throw (LinuxSamplerException) {
-        if (Fix()) throw LinuxSamplerException("Device parameter is read only");
-        if (val.find("\'") != String::npos) throw LinuxSamplerException("Character -> \' <- not allowed");
-        if (val.find("\"") != String::npos) throw LinuxSamplerException("Character -> \" <- not allowed");
+    void DeviceRuntimeParameterString::SetValueAsString(String val) throw (Exception) {
+        if (Fix()) throw Exception("Device parameter is read only");
+        if (val.find("\'") != String::npos) throw Exception("Character -> \' <- not allowed");
+        if (val.find("\"") != String::npos) throw Exception("Character -> \" <- not allowed");
         OnSetValue(val);
         sVal = val;
     }
@@ -414,8 +414,8 @@ namespace LinuxSampler {
         return result;
     }
 
-    void DeviceRuntimeParameterStrings::SetValue(String val) throw (LinuxSamplerException) {
-        if (Fix()) throw LinuxSamplerException("Device parameter is read only");
+    void DeviceRuntimeParameterStrings::SetValue(String val) throw (Exception) {
+        if (Fix()) throw Exception("Device parameter is read only");
         std::vector<String> vS = __parse_strings(val);
         SetValue(vS);
     }
@@ -424,8 +424,8 @@ namespace LinuxSampler {
         return sVals;
     }
 
-    void DeviceRuntimeParameterStrings::SetValue(std::vector<String> vS) throw (LinuxSamplerException) {
-        if (Fix()) throw LinuxSamplerException("Device parameter is read only");
+    void DeviceRuntimeParameterStrings::SetValue(std::vector<String> vS) throw (Exception) {
+        if (Fix()) throw Exception("Device parameter is read only");
         OnSetValue(vS);
         sVals = vS;
     }
@@ -480,7 +480,7 @@ namespace LinuxSampler {
         this->bVal = bVal;
     }
 
-    DeviceCreationParameterBool::DeviceCreationParameterBool(String val) throw (LinuxSamplerException) {
+    DeviceCreationParameterBool::DeviceCreationParameterBool(String val) throw (Exception) {
         this->bVal = __parse_bool(val);
     }
 
@@ -520,8 +520,8 @@ namespace LinuxSampler {
         return (ValueAsBool()) ? "true" : "false";
     }
 
-    void DeviceCreationParameterBool::SetValue(String val) throw (LinuxSamplerException) {
-        if (Fix()) throw LinuxSamplerException("Device parameter is read only");
+    void DeviceCreationParameterBool::SetValue(String val) throw (Exception) {
+        if (Fix()) throw Exception("Device parameter is read only");
         int b = __parse_bool(val);
         SetValue(b);
     }
@@ -530,8 +530,8 @@ namespace LinuxSampler {
         return bVal;
     }
 
-    void DeviceCreationParameterBool::SetValue(bool b) throw (LinuxSamplerException) {
-        if (Fix()) throw LinuxSamplerException("Device parameter is read only");
+    void DeviceCreationParameterBool::SetValue(bool b) throw (Exception) {
+        if (Fix()) throw Exception("Device parameter is read only");
         OnSetValue(b);
         bVal = b;
     }
@@ -545,7 +545,7 @@ namespace LinuxSampler {
         this->iVal = iVal;
     }
 
-    DeviceCreationParameterInt::DeviceCreationParameterInt(String val) throw (LinuxSamplerException) {
+    DeviceCreationParameterInt::DeviceCreationParameterInt(String val) throw (Exception) {
         this->iVal = __parse_int(val);
     }
 
@@ -599,11 +599,11 @@ namespace LinuxSampler {
         return ToString(ValueAsInt());
     }
 
-    void DeviceCreationParameterInt::SetValue(String val) throw (LinuxSamplerException) {
-        if (Fix()) throw LinuxSamplerException("Device parameter is read only");
+    void DeviceCreationParameterInt::SetValue(String val) throw (Exception) {
+        if (Fix()) throw Exception("Device parameter is read only");
         int i = __parse_int(val);
-        //if (RangeMinAsInt() && i < *RangeMinAsInt()) throw LinuxSamplerException("Invalid device parameter value: too small");
-        //if (RangeMaxAsInt() && i > *RangeMaxAsInt()) throw LinuxSamplerException("Invalid device parameter value: too big");
+        //if (RangeMinAsInt() && i < *RangeMinAsInt()) throw Exception("Invalid device parameter value: too small");
+        //if (RangeMaxAsInt() && i > *RangeMaxAsInt()) throw Exception("Invalid device parameter value: too big");
         /*if (PossibilitiesAsInt()) {
             bool valid = false;
             std::vector<int>* pPossibilities = PossibilitiesAsInt();
@@ -615,7 +615,7 @@ namespace LinuxSampler {
                 }
                 iter++;
             }
-            if (!valid) throw LinuxSamplerException("Invalid Device parameter value: not in set of possible values");
+            if (!valid) throw Exception("Invalid Device parameter value: not in set of possible values");
         }*/
         SetValue(i);
     }
@@ -624,8 +624,8 @@ namespace LinuxSampler {
         return iVal;
     }
 
-    void DeviceCreationParameterInt::SetValue(int i) throw (LinuxSamplerException) {
-        if (Fix()) throw LinuxSamplerException("Device parameter is read only");
+    void DeviceCreationParameterInt::SetValue(int i) throw (Exception) {
+        if (Fix()) throw Exception("Device parameter is read only");
         OnSetValue(i);
         iVal = i;
     }
@@ -639,7 +639,7 @@ namespace LinuxSampler {
         this->fVal = fVal;
     }
 
-    DeviceCreationParameterFloat::DeviceCreationParameterFloat(String val) throw (LinuxSamplerException) {
+    DeviceCreationParameterFloat::DeviceCreationParameterFloat(String val) throw (Exception) {
         this->fVal = __parse_float(val);
     }
 
@@ -693,11 +693,11 @@ namespace LinuxSampler {
         return ToString(ValueAsFloat());
     }
 
-    void DeviceCreationParameterFloat::SetValue(String val) throw (LinuxSamplerException) {
-        if (Fix()) throw LinuxSamplerException("Device parameter is read only");
+    void DeviceCreationParameterFloat::SetValue(String val) throw (Exception) {
+        if (Fix()) throw Exception("Device parameter is read only");
         float f = __parse_float(val);
-        //if (RangeMinAsFloat() && i < *RangeMinAsFloat()) throw LinuxSamplerException("Invalid device parameter value: too small");
-        //if (RangeMaxAsFloat() && i > *RangeMaxAsFloat()) throw LinuxSamplerException("Invalid device parameter value: too big");
+        //if (RangeMinAsFloat() && i < *RangeMinAsFloat()) throw Exception("Invalid device parameter value: too small");
+        //if (RangeMaxAsFloat() && i > *RangeMaxAsFloat()) throw Exception("Invalid device parameter value: too big");
         /*if (PossibilitiesAsFloat()) {
             bool valid = false;
             std::vector<float>* pPossibilities = PossibilitiesAsFloat();
@@ -709,7 +709,7 @@ namespace LinuxSampler {
                 }
                 iter++;
             }
-            if (!valid) throw LinuxSamplerException("Invalid Device parameter value: not in set of possible values");
+            if (!valid) throw Exception("Invalid Device parameter value: not in set of possible values");
         }*/
         SetValue(f);
     }
@@ -718,8 +718,8 @@ namespace LinuxSampler {
         return fVal;
     }
 
-    void DeviceCreationParameterFloat::SetValue(float f) throw (LinuxSamplerException) {
-        if (Fix()) throw LinuxSamplerException("Device parameter is read only");
+    void DeviceCreationParameterFloat::SetValue(float f) throw (Exception) {
+        if (Fix()) throw Exception("Device parameter is read only");
         OnSetValue(f);
         fVal = f;
     }
@@ -780,8 +780,8 @@ namespace LinuxSampler {
         return "\'" + ValueAsString() + "\'";
     }
 
-    void DeviceCreationParameterString::SetValue(String val) throw (LinuxSamplerException) {
-        if (Fix()) throw LinuxSamplerException("Device parameter is read only");
+    void DeviceCreationParameterString::SetValue(String val) throw (Exception) {
+        if (Fix()) throw Exception("Device parameter is read only");
         SetValueAsString(__parse_string(val));
     }
 
@@ -789,9 +789,9 @@ namespace LinuxSampler {
         return sVal;
     }
 
-    void DeviceCreationParameterString::SetValueAsString(String val) throw (LinuxSamplerException) {
-        if (val.find("\'") != String::npos) throw LinuxSamplerException("Character -> \' <- not allowed");
-        if (val.find("\"") != String::npos) throw LinuxSamplerException("Character -> \" <- not allowed");
+    void DeviceCreationParameterString::SetValueAsString(String val) throw (Exception) {
+        if (val.find("\'") != String::npos) throw Exception("Character -> \' <- not allowed");
+        if (val.find("\"") != String::npos) throw Exception("Character -> \" <- not allowed");
         OnSetValue(val);
         sVal = val;
     }
@@ -805,7 +805,7 @@ namespace LinuxSampler {
         this->sVals = sVals;
     }
 
-    DeviceCreationParameterStrings::DeviceCreationParameterStrings(String val) throw (LinuxSamplerException) {
+    DeviceCreationParameterStrings::DeviceCreationParameterStrings(String val) throw (Exception) {
         this->sVals = __parse_strings(val);
     }
 
@@ -868,8 +868,8 @@ namespace LinuxSampler {
         return result;
     }
 
-    void DeviceCreationParameterStrings::SetValue(String val) throw (LinuxSamplerException) {
-        if (Fix()) throw LinuxSamplerException("Device parameter is read only");
+    void DeviceCreationParameterStrings::SetValue(String val) throw (Exception) {
+        if (Fix()) throw Exception("Device parameter is read only");
         std::vector<String> vS = __parse_strings(val);
         SetValue(vS);
     }
@@ -878,8 +878,8 @@ namespace LinuxSampler {
         return sVals;
     }
 
-    void DeviceCreationParameterStrings::SetValue(std::vector<String> vS) throw (LinuxSamplerException) {
-        if (Fix()) throw LinuxSamplerException("Device parameter is read only");
+    void DeviceCreationParameterStrings::SetValue(std::vector<String> vS) throw (Exception) {
+        if (Fix()) throw Exception("Device parameter is read only");
         OnSetValue(vS);
         sVals = vS;
     }

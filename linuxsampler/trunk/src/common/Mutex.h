@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 Christian Schoenebeck                              *
+ *   Copyright (C) 2005, 2006 Christian Schoenebeck                        *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -25,6 +25,8 @@
 #define __MUTEX_H__
 
 #include <pthread.h>
+
+namespace LinuxSampler {
 
 /** @brief Mutual exclusive objects
  *
@@ -87,5 +89,7 @@ class Mutex {
         pthread_mutex_t     __posix_mutex;
         pthread_mutexattr_t __posix_mutexattr;
 };
+
+} // namespace LinuxSampler
 
 #endif // __MUTEX_H__

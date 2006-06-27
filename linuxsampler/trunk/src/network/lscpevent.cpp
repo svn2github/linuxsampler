@@ -3,6 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
+ *   Copyright (C) 2005, 2006 Christian Schoenebeck                        *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -33,14 +34,14 @@
 
 std::map<LSCPEvent::event_t, String> LSCPEvent::EventNames = std::map<LSCPEvent::event_t, String>();
 
-LSCPEvent::LSCPEvent(String eventName) throw (LinuxSamplerException) {
+LSCPEvent::LSCPEvent(String eventName) throw (Exception) {
 	for (std::map<event_t, String>::iterator iter = EventNames.begin(); iter != EventNames.end(); iter++) {
 		if (iter->second == eventName) {
 			this->type = iter->first;
 			return;
 		}
 	}
-	throw LinuxSamplerException("Event does not exist");
+	throw Exception("Event does not exist");
 }
 
 LSCPEvent::LSCPEvent(event_t eventType, int uiData) {

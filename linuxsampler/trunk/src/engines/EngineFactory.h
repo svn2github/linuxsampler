@@ -1,6 +1,6 @@
 /***************************************************************************
  *                                                                         *
- *   Copyright (C) 2005 Christian Schoenebeck                              *
+ *   Copyright (C) 2005, 2006 Christian Schoenebeck                        *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -22,7 +22,7 @@
 #define __LS_ENGINEFACTORY_H__
 
 #include "../common/global.h"
-#include "../common/LinuxSamplerException.h"
+#include "../common/Exception.h"
 #include "common/Engine.h"
 
 #include <set>
@@ -31,7 +31,7 @@ namespace LinuxSampler {
 
     class EngineFactory {
         public:
-            static Engine* Create(String EngineType) throw (LinuxSamplerException);
+            static Engine* Create(String EngineType) throw (Exception);
             static void Destroy(Engine* pEngine);
             static const std::set<Engine*>& EngineInstances();
     };

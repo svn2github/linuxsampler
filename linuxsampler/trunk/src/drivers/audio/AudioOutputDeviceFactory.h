@@ -3,6 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
+ *   Copyright (C) 2005, 2006 Christian Schoenebeck                        *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -26,7 +27,7 @@
 #include <map>
 #include <vector>
 
-#include "../../common/LinuxSamplerException.h"
+#include "../../common/Exception.h"
 #include "../DeviceParameterFactory.h"
 #include "AudioOutputDevice.h"
 
@@ -69,13 +70,13 @@ namespace LinuxSampler {
 		  }
 	  };
 
-          static AudioOutputDevice*                        Create(String DriverName, std::map<String,String> Parameters) throw (LinuxSamplerException);
+          static AudioOutputDevice*                        Create(String DriverName, std::map<String,String> Parameters) throw (Exception);
           static std::vector<String>                       AvailableDrivers();
           static String                                    AvailableDriversAsString();
-          static std::map<String,DeviceCreationParameter*> GetAvailableDriverParameters(String DriverName) throw (LinuxSamplerException);
-          static DeviceCreationParameter*                  GetDriverParameter(String DriverName, String ParameterName) throw (LinuxSamplerException);
-          static String                                    GetDriverDescription(String DriverName) throw (LinuxSamplerException);
-          static String                                    GetDriverVersion(String DriverName) throw (LinuxSamplerException);
+          static std::map<String,DeviceCreationParameter*> GetAvailableDriverParameters(String DriverName) throw (Exception);
+          static DeviceCreationParameter*                  GetDriverParameter(String DriverName, String ParameterName) throw (Exception);
+          static String                                    GetDriverDescription(String DriverName) throw (Exception);
+          static String                                    GetDriverVersion(String DriverName) throw (Exception);
 
 //      protected: /* FIXME: fields below should be protected, causes errors on gcc 2.95 though */
           static std::map<String, InnerFactory*> InnerFactories;

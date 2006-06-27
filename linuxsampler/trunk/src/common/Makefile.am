@@ -11,7 +11,7 @@ liblinuxsamplercommon_la_SOURCES = \
 	ConditionServer.cpp ConditionServer.h \
 	Features.cpp Features.h \
 	global.h \
-	LinuxSamplerException.h \
+	Exception.h \
 	Mutex.cpp Mutex.h \
 	optional.cpp optional.h \
 	Pool.h \

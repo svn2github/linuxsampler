@@ -38,7 +38,7 @@ namespace LinuxSampler {
         InitWithDefault(); // use default name
     }
 
-    AudioOutputDeviceArts::ParameterName::ParameterName(String s) throw (LinuxSamplerException) : DeviceCreationParameterString(s) {
+    AudioOutputDeviceArts::ParameterName::ParameterName(String s) throw (Exception) : DeviceCreationParameterString(s) {
     }
 
     String AudioOutputDeviceArts::ParameterName::Description() {
@@ -65,7 +65,7 @@ namespace LinuxSampler {
         return (existingArtsDevices) ? "LinuxSampler" + ToString(existingArtsDevices) : "LinuxSampler";
     }
 
-    void AudioOutputDeviceArts::ParameterName::OnSetValue(String s) throw (LinuxSamplerException) {
+    void AudioOutputDeviceArts::ParameterName::OnSetValue(String s) throw (Exception) {
         // not possible, as parameter is fix
     }
 
@@ -161,7 +161,7 @@ namespace LinuxSampler {
     }
 
     String AudioOutputDeviceArts::Version() {
-       String s = "$Revision: 1.1 $";
+       String s = "$Revision: 1.2 $";
        return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
 

@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 Christian Schoenebeck                              *
+ *   Copyright (C) 2005, 2006 Christian Schoenebeck                        *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -26,7 +26,7 @@
 
 #include "../../common/global.h"
 #include "../../common/Mutex.h"
-#include "../../common/LinuxSamplerException.h"
+#include "../../common/Exception.h"
 #include "../DeviceParameter.h"
 #include "midi.h"
 #include "MidiInputDevice.h"
@@ -56,7 +56,7 @@ namespace LinuxSampler {
                     virtual String Description();
                     virtual bool   Fix();
                     virtual std::vector<String> PossibilitiesAsString();
-                    virtual void OnSetValue(String s) throw (LinuxSamplerException);
+                    virtual void OnSetValue(String s) throw (Exception);
                 protected:
                     MidiInputPort* pPort;
             };

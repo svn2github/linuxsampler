@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 Christian Schoenebeck                              *
+ *   Copyright (C) 2005, 2006 Christian Schoenebeck                        *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -30,10 +30,10 @@ namespace LinuxSampler {
         bSolo = false;
     }
 
-    void EngineChannel::SetMute(int state) throw (LinuxSamplerException) {
+    void EngineChannel::SetMute(int state) throw (Exception) {
         if(iMute == state) return;
         if(state < -1 || state > 1)
-            throw LinuxSamplerException("Invalid Mute state: " + ToString(state));
+            throw Exception("Invalid Mute state: " + ToString(state));
 
         iMute = state;
 

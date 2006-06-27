@@ -3,6 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
+ *   Copyright (C) 2005, 2006 Christian Schoenebeck                        *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -27,6 +28,7 @@
 #include <vector>
 #include <string.h>
 #include "../../common/global.h"
+#include "../../common/Exception.h"
 #include "../DeviceParameter.h"
 
 namespace LinuxSampler {
@@ -65,20 +67,20 @@ namespace LinuxSampler {
             class ParameterIsMixChannel : public DeviceRuntimeParameterBool {
                 public:
                     ParameterIsMixChannel(bool b) : DeviceRuntimeParameterBool(b) {}
-                    virtual String Description()                                    { return "Whether real channel or mixed to another channel"; }
-                    virtual bool   Fix()                                            { return true;                                              }
-                    virtual void   OnSetValue(bool b) throw (LinuxSamplerException) { /* cannot happen, as parameter is fix */                  }
+                    virtual String Description()                        { return "Whether real channel or mixed to another channel"; }
+                    virtual bool   Fix()                                { return true;                                               }
+                    virtual void   OnSetValue(bool b) throw (Exception) { /* cannot happen, as parameter is fix */                   }
             };
 
             class ParameterMixChannelDestination : public DeviceRuntimeParameterInt {
                 public:
                     ParameterMixChannelDestination(int i) : DeviceRuntimeParameterInt(i) {}
-                    virtual String           Description()                                   { return "Destination channel of this mix channel";                 }
-                    virtual bool             Fix()                                           { return true;                                                      }
-                    virtual optional<int>    RangeMinAsInt()                                 { return optional<int>::nothing; /*TODO: needs to be implemented */ }
-                    virtual optional<int>    RangeMaxAsInt()                                 { return optional<int>::nothing; /*TODO: needs to be implemented */ }
-                    virtual std::vector<int> PossibilitiesAsInt()                            { return std::vector<int>();     /*TODO: needs to be implemented */ }
-                    virtual void             OnSetValue(int i) throw (LinuxSamplerException) { /*TODO: needs to be implemented */                                }
+                    virtual String           Description()                       { return "Destination channel of this mix channel";                 }
+                    virtual bool             Fix()                               { return true;                                                      }
+                    virtual optional<int>    RangeMinAsInt()                     { return optional<int>::nothing; /*TODO: needs to be implemented */ }
+                    virtual optional<int>    RangeMaxAsInt()                     { return optional<int>::nothing; /*TODO: needs to be implemented */ }
+                    virtual std::vector<int> PossibilitiesAsInt()                { return std::vector<int>();     /*TODO: needs to be implemented */ }
+                    virtual void             OnSetValue(int i) throw (Exception) { /*TODO: needs to be implemented */                                }
             };
 
             // attributes
