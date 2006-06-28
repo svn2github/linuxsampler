@@ -8,7 +8,10 @@ pkgconfig_DATA = linuxsampler.pc
 
 EXTRA_DIST = Doxyfile.in \
              linuxsampler.pc.in \
-             linuxsampler.kdevelop
+             linuxsampler.kdevelop \
+             benchmarks/gigsynth.cpp \
+             benchmarks/Makefile \
+             benchmarks/triang.cpp
 
 .PHONY: parser testcases
 
