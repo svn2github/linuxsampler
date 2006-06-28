@@ -28,6 +28,11 @@ arts_ladd     =
 arts_includes =
 endif
 
+liblinuxsampleraudiodriverincludedir = $(includedir)/linuxsampler/drivers/audio
+liblinuxsampleraudiodriverinclude_HEADERS = \
+	AudioChannel.h \
+	AudioOutputDevice.h
+
 INCLUDES = $(all_includes) $(arts_includes)
 
 noinst_LTLIBRARIES = liblinuxsampleraudiodriver.la

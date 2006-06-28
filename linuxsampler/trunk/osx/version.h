@@ -92,3 +92,7 @@
 
 /* Define voice stealing algorithm to be used. */
 #define CONFIG_VOICE_STEAL_ALGO voice_steal_algo_oldestvoiceonkey
+
+// avoid automatic inclusion of config.h in global.h, since we use version.h
+// to manually maintain all compile time configuration parameters
+#define OVERRIDE_CONFIG_H

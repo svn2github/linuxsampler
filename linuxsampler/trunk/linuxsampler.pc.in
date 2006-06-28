@@ -2,9 +2,10 @@ prefix=@prefix@
 exec_prefix=@exec_prefix@
 libdir=@libdir@
 includedir=@includedir@
+archincludedir=@libdir@/linuxsampler/include
 
 Name: linuxsampler
 Description: LinuxSampler C++ library
 Version: @VERSION@
 Libs: -L${libdir} -llinuxsampler
-Cflags: -I${includedir}
+Cflags: -I${archincludedir} -I${includedir}

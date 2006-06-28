@@ -33,7 +33,9 @@
 #include <string>
 #include <sstream>
 
-#ifdef HAVE_CONFIG_H
+// i.e. OSX people using the xcode project file will avoid inclusion of
+// config.h here and rather use their manually maintained version.h
+#ifndef OVERRIDE_CONFIG_H
 # include <config.h>
 #endif
 

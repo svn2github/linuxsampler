@@ -3,6 +3,11 @@ METASOURCES = AUTO
 
 AM_CXXFLAGS = -Wreturn-type -ffast-math $(CXX_CPU_SWITCH)
 
+liblinuxsamplercommonengineincludedir = $(includedir)/linuxsampler/engines/common
+liblinuxsamplercommonengineinclude_HEADERS = \
+	Engine.h \
+	EngineChannel.h
+
 noinst_LTLIBRARIES = liblinuxsamplercommonengine.la
 liblinuxsamplercommonengine_la_SOURCES = \
 	BiquadFilter.h \

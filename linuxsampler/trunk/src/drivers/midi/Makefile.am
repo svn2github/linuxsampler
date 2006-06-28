@@ -27,6 +27,12 @@ coremidi_src  =
 coremidi_ldflags =
 endif
 
+liblinuxsamplermididriverincludedir = $(includedir)/linuxsampler/drivers/midi
+liblinuxsamplermididriverinclude_HEADERS = \
+	midi.h \
+	MidiInputPort.h \
+	MidiInputDevice.h
+
 noinst_LTLIBRARIES = liblinuxsamplermididriver.la
 liblinuxsamplermididriver_la_SOURCES = \
     midi.h \

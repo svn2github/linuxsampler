@@ -14,8 +14,11 @@ AM_CXXFLAGS = -Wreturn-type -ffast-math $(CXX_CPU_SWITCH)
 
 SUBDIRS = network engines common lib testcases drivers
 
-liblinuxsamplerincludedir = $(includedir)
+liblinuxsamplerincludedir = $(includedir)/linuxsampler
 liblinuxsamplerinclude_HEADERS = Sampler.h
+
+liblinuxsampler_configdir = $(libdir)/linuxsampler/include
+liblinuxsampler_config_DATA = ../config.h
 
 pkglib_LTLIBRARIES = liblinuxsampler.la
 liblinuxsampler_la_SOURCES = Sampler.cpp

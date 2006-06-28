@@ -17,7 +17,7 @@
     along with this program; if not, write to the Free Software
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
-    $Id: atomic.h,v 1.2 2006-06-27 22:57:36 schoenebeck Exp $
+    $Id: atomic.h,v 1.3 2006-06-28 19:32:21 schoenebeck Exp $
 */
 
 //TODO: should we put this into namespace? it might clash with system installed atomic.h, because we need to install atomic.h for the LS API
@@ -25,9 +25,8 @@
 #ifndef __linuxsampler_atomic_h__
 #define __linuxsampler_atomic_h__
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>  /* config.h c/o auto* tools, wherever it may be */
-#endif
+// needed to automatically include config.h
+#include "global.h"
 
 #ifdef HAVE_SMP      /* a macro we control, to manage ... */
 #define CONFIG_SMP   /* ... the macro the kernel headers use */
