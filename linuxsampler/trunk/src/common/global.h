@@ -23,8 +23,8 @@
 
 // All application global declarations are defined here.
 
-#ifndef __GLOBAL_H__
-#define __GLOBAL_H__
+#ifndef __LS_GLOBAL_H__
+#define __LS_GLOBAL_H__
 
 #include <stdlib.h>
 #include <stdint.h>
@@ -133,4 +133,4 @@ template<class T> inline String ToString(T o) {
 	return ss.str();
 }
 
-#endif // __GLOBAL_H__
+#endif // __LS_GLOBAL_H__
