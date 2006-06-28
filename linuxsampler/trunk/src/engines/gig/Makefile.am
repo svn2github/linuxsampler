@@ -17,6 +17,7 @@ liblinuxsamplergigengine_la_SOURCES = \
 	Synthesizer.cpp Synthesizer.h \
 	Profiler.cpp Profiler.h \
 	EngineChannel.cpp EngineChannel.h \
-	SmoothVolume.cpp SmoothVolume.h
+	SmoothVolume.cpp SmoothVolume.h \
+	SynthesisParam.h
 liblinuxsamplergigengine_la_LIBADD = $(GIG_LIBS)
 liblinuxsamplergigengine_la_LDFLAGS = $(GIG_CFLAGS)
