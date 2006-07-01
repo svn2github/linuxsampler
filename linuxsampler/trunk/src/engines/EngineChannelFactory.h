@@ -23,7 +23,7 @@
 
 #include <set>
 
-#include "common/EngineChannel.h"
+#include "EngineChannel.h"
 
 namespace LinuxSampler {
 

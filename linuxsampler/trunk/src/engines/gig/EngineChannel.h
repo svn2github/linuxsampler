@@ -29,7 +29,7 @@
 #endif // DEBUG_HEADERS
 
 #include "../common/Event.h"
-#include "../common/EngineChannel.h"
+#include "../EngineChannel.h"
 #include "../../common/RingBuffer.h"
 #include "EngineGlobals.h"
 #include "Engine.h"

@@ -30,7 +30,7 @@
 #include "../DeviceParameter.h"
 #include "midi.h"
 #include "MidiInputDevice.h"
-#include "../../engines/common/EngineChannel.h"
+#include "../../engines/EngineChannel.h"
 #include "../../common/SynchronizedConfig.h"
 
 namespace LinuxSampler {

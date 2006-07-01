@@ -33,7 +33,7 @@
 #include "../../common/Exception.h"
 #include "../DeviceParameter.h"
 #include "MidiInputPort.h"
-#include "../../engines/common/Engine.h"
+#include "../../engines/Engine.h"
 
 namespace LinuxSampler {
 

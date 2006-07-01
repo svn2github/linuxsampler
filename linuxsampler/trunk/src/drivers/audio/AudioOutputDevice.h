@@ -33,7 +33,7 @@
 #include "../../common/Exception.h"
 #include "../Device.h"
 #include "../DeviceParameter.h"
-#include "../../engines/common/Engine.h"
+#include "../../engines/Engine.h"
 #include "AudioChannel.h"
 #include "../../common/SynchronizedConfig.h"
 

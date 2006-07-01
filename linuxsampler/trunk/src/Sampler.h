@@ -28,7 +28,7 @@
 #include <map>
 #include "common/global.h"
 #include "common/Exception.h"
-#include "engines/common/EngineChannel.h"
+#include "engines/EngineChannel.h"
 #include "drivers/midi/MidiInputDevice.h"
 #include "drivers/audio/AudioOutputDevice.h"
 
