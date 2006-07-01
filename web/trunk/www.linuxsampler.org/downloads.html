@@ -169,13 +169,13 @@ If you have questions on the subject please <A HREF="developers.html">contact us
       <p class="default"> The following figure illustrates the compile
 time / linker dependencies. </p>
       <div style="line-height: 1.2em;">
-      <pre>       <strong>QSampler</strong> ~~~(optional)~~~&gt; <strong>libgig</strong>
-           |                         A
-           |                         |
-      (mandatory)               (mandatory)
-           |                         |
-           V                         |
-        <strong>liblscp</strong>                 <strong>LinuxSampler</strong>
+      <pre>       <strong>QSampler</strong> ~~~(optional)~~~&gt; <strong>libgig</strong>         <strong>JSampler</strong>
+           |                         A              |
+           |                         |              |
+      (mandatory)               (mandatory)    (mandatory)
+           |                         |              |
+           V                         |              V
+        <strong>liblscp</strong>                 <strong>LinuxSampler</strong>      <strong>jlscp</strong>
 			  </pre>
       </div>
       <p class="default"> Or again in words: you have to compile and
@@ -184,7 +184,10 @@ don't need libgig for compiling and using QSampler, but it's definitely
 recommended. You cannot compile nor use QSampler without liblscp
 though. As QSampler is communicating with LinuxSampler via TCP, there
 is no linker dependency between them, but of course you still need to
-have LinuxSampler installed to be able to use QSampler. </p>
+have LinuxSampler installed to be able to use QSampler (either locally
+or on any other computer in your network). JSampler is also communicating
+with LinuxSampler via TCP, so there is no linker dependency between them
+either, JSampler requires jlscp though.</p>
 
       <h2>Source Packages (Stable)</h2>
       <table class="default">
@@ -273,10 +276,10 @@ JSampler-0.2a.tar.bz2 </a> </td>
  href="http://download.linuxsampler.org/packages/debian/">Debian
 packages</a> and <a
  href="http://download.linuxsampler.org/packages/rpms/">RPM packages</a>
-for i386 only,
-and the platform-independent <a
+for i386 only, bleeding edge <a href="http://download.linuxsampler.org/packages/gentoo/">Gentoo ebuilds</a>
+and platform-independent <a
  href="http://prdownloads.sourceforge.net/jsampler/JS_Classic-0.2a.jar?download">
-JS Classic 0.2a</a> (java frontend for LinuxSampler).</p>
+Java packages</a> (for JS Classic 0.2a, java frontend for LinuxSampler).</p>
       <h2>CVS</h2>
       <p class="default"> This project's CVS repository can be checked
 out through anonymous (pserver) CVS with the following instruction set.
