@@ -128,11 +128,13 @@
   			with professional grade features, comparable to both hardware and commercial Windows/Mac software samplers
 			and to introduce new features not yet available by any other sampler in the world.<br>
 			<br>
-			LinuxSampler was designed as a sampler backend, decoupled from any user interface. It provides a network interface
+			LinuxSampler was designed as a sampler backend, decoupled from any user interface. It provides a native C++
+			<a href="http://en.wikipedia.org/wiki/Application_programming_interface">API</a> as well as a network interface
 			using an ASCII based protocol called <a href="http://www.linuxsampler.org/api/draft-linuxsampler-protocol.html">LSCP</a>
-			for controlling the sampler and managing sampler sessions. But don't be afraid, with QSampler we
-			already have a convenient GUI frontend (based on the cross-platform GUI library Qt) for LinuxSampler and due to the
-			decoupled design you can even control the sampler with the GUI frontend from another computer, probably even running
+			for controlling the sampler and managing sampler sessions. But don't be afraid, with QSampler (based on the
+			cross-platform C++ GUI library Qt) and JSampler (Java based, thus platform independent) we already have two convenient
+			frontends for LinuxSampler and due to the
+			decoupled design you can even control the sampler with the GUI frontend(s) from another computer, probably even running
 			another OS like Windows or OS X. Beside our own custom network control layer we planned to add existing ones as well
 			(e.g. <a href="http://www.cnmat.berkeley.edu/OpenSoundControl/">OSC</a>). With the planned SMP and cluster support
 			LinuxSampler might become a very interesting tool for high-end studios and concerts in future.<br>
