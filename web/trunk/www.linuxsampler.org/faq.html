@@ -124,14 +124,59 @@
 			<h2>FAQ</h2>
 			<p class="default">
 				Here is a collection of frequently asked questions. Please read them before asking on
-				the mailing list.
+				the mailing list.<br>
+				<br>
+				<a href="#commercial_products">Can I use LinuxSampler in commercial hardware or software products?</a><br>
+				<a href="#commercial_music">Can I use LinuxSampler for commercial music production?</a><br>
+				<a href="#open_source">LinuxSampler is not open source, you are evil!</a><br>
+				<a href="#aga">linuxsampler? qsampler? libgig? liblscp? hu?</a><br>
+				<a href="#install">What do I need to compile and install?</a><br>
+				<a href="#compilarion_error">Compilation of LinuxSampler aborts with ...</a><br>
+				<a href="#cvs_checkout">How do I checkout from CVS?</a><br>
+				<a href="#compile_cvs">How do I compile from CVS?</a><br>
+				<a href="#no_gui">Can I use linuxsampler without a GUI as well?</a><br>
+				<a href="#examples_lscp">Are there example LSCP script files somewhere?</a><br>
+				<a href="#dropouts">I get dropouts (click sounds, noise), what can I do about it?</a><br>
 			</p>
-			<h3>Can I use LinuxSampler in commercial hardware or software products? </h3>
+
+			<a name="commercial_products"></a>
+			<h3>Can I use LinuxSampler in commercial hardware or software products?</h3>
 			<p class="default">
 			You are NOT ALLOWED to use LinuxSampler source code, libraries or applications in
 			COMMERCIAL hardware or software products without prior written authorization by the
 			<a href="developers.html">authors</a>. <A HREF="downloads.html">See here</A>
+			</p>
 
+			<a name="commercial_music"></a>
+			<h3>Can I use LinuxSampler for commercial music production?</h3>
+			<p class="default">
+			Hell, yes! Every indirect commercial usage of LinuxSampler, which essentially means
+			using its audio output, can of course be used in commercial applications like music
+			productions, live shows, etc. Don't get us wrong, with the mentioned commercial
+			exception we don't want to restrict the normal user / musician, we just want to avoid
+			somebody to directly make money with our work, that is by selling our software in a
+			sampler product like a sampler + sample library bundle, a hardware sampler or
+			something equivalent, at least not without giving something back to the open source
+			Community.
+			</p>
+
+			<a name="open_source"></a>
+			<h3>LinuxSampler is not open source, you are evil!</h3>
+			<p class="default">
+			There are of course many definitions of the term "open source", but according to the
+			<a href="http://en.wikipedia.org/wiki/Open_source">definition on Wikipedia</a>
+			LinuxSampler is in fact open source, since you've got complete access to its source
+			code. So due to this fact, a normal user / musician is free to do with LinuxSampler
+			what he likes to do, he can even adjust and tweak every single part of the software
+			by modifying and compiling its source code. And just the fact that we want to avoid
+			our work to be directly exploited in commercial software or hardware products is
+			definitely not an evil intention. For the normal user / musician the commercial
+			restriction is even an advantage, since that way commercial actors are forced to
+			support this or another open source project either directly by coding or indirectly
+			by funding and thus increase development speed.
+			</p>
+
+			<a name="aga"></a>
 			<h3>linuxsampler? qsampler? libgig? liblscp? hu?</h3>
 			<p class="default">
 				There are currently six subprojects in the LinuxSampler project; jlscp, jsampler,
@@ -157,6 +202,7 @@
 				
 			</p>
 
+			<a name="install"></a>
 			<h3>What do I need to compile and install?</h3>
 			<p class="default">
 				You should compile and install at least libgig and linuxsampler. As a beginner you should
@@ -172,6 +218,7 @@
 				</ol>
 			</p>
 
+			<a name="compilarion_error"></a>
 			<h3>Compilation of LinuxSampler aborts with ... </h3>
 			<p class="default">
 					&bull;&nbsp;&nbsp;&nbsp;"<code>can't find a register in class `GENERAL_REGS' while reloading `asm'</code>"<br>
@@ -222,7 +269,7 @@ make</pre>
 				<tr>
 				  <td><pre class="code">1
 2</pre>
-				  </td>
+				  </d>
 				  <td width="100%">
 				    <pre class="code">gcc --version
 g++ --version</pre>
@@ -249,6 +296,7 @@ export CXX=`which g++`</pre>
 				(<a href="https://bugs.linuxsampler.org/cgi-bin/show_bug.cgi?id=34">read this for details</a>).
 			</p>
 
+			<a name="cvs_checkout"></a>
 			<h3>How do I checkout from CVS?</h3>
 			<p class="default">
 				The procedure of checking out the newest version from CVS is described on the
@@ -257,6 +305,7 @@ export CXX=`which g++`</pre>
 				of our CVS server</a>.
 			</p>
 
+			<a name="compile_cvs"></a>
   			<h3>How do I compile from CVS?</h3>
 			<p class="default">
 				The procedure for compiling from CVS is the same for all subprojects, that is no matter
@@ -277,6 +326,7 @@ make</pre>
 				</table>
 			</p>
 
+			<a name="no_gui"></a>
 			<h3>Can I use linuxsampler without a GUI as well?</h3>
 			<p class="default">
 				Yes, but unfortunately there is no console based frontend for linuxsampler (yet).
@@ -309,7 +359,7 @@ make</pre>
 				to linuxsampler's LSCP server and type commands manually.
 			</p>
 
-
+			<a name="examples_lscp"></a>
 			<h3>Are there example LSCP script files somewhere?</h3>
 			<p class="default">
 				Yes, have a look on the <a href="documentation.html">Documentation</a> site for some
