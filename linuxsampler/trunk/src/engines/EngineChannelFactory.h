@@ -27,10 +27,30 @@
 
 namespace LinuxSampler {
 
+    /** @brief Manages EngineChannel instances.
+     *
+     * This class is used to create and destroy EngineChannel instances of the
+     * various engine types supported by this sampler. It's basically used to
+     * avoid dependencies to palpable sampler engine types /
+     * implementations.
+     */
     class EngineChannelFactory {
         public:
+            /**
+             * Create EngineChannel instance of given engine type.
+             *
+             * @see EngineFactory::AvailableEngineTypes()
+             */
             static EngineChannel* Create(String EngineType) throw (Exception);
+
+            /**
+             * Destroy given EngineChannel instance.
+             */
             static void Destroy(EngineChannel* pEngineChannel);
+
+            /**
+             * Returns all EngineChannel instances.
+             */
             static const std::set<EngineChannel*>& EngineChannelInstances();
     };
 
