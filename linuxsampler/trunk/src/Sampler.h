@@ -177,38 +177,38 @@ namespace LinuxSampler {
      * engine, connected to an arbitrary MIDI input device and connected to
      * an arbitrary audio output device. Here an example setup:
      * @code
-     * S.Channel.	MIDI in		S.Engine		Audio out
+     * S.Channel    MIDI in    S.Engine         Audio out
      * -------------------------------------------------------------------
-     * 0		Alsa	->	gig::Engine	->	Jack
-     * 1		VSTi	->	Akai::Engine	->	VSTi
-     * 2		Jack	->	DLS::Engine	->	Jack
-     * 3		Jack	->	SF::Engine	->	Alsa
+     *   0          Alsa   ->  gig::Engine  ->  Jack
+     *   1          VSTi   ->  Akai::Engine ->  VSTi
+     *   2          Jack   ->  DLS::Engine  ->  Jack
+     *   3          Jack   ->  SF::Engine   ->  Alsa
      *
      * ... (and so on) ...
      * @endcode
      *
      * Note that not all audio and MIDI backends and sampler engines listed
-     * in the example above are already implemented!
+     * in the example above might already been implemented!
      *
      * As you can see in the example setup, LinuxSampler is capable to use
      * several, different audio output and MIDI input systems
      * simultaniously at the same time. Here the example setup shown in the
-     * ascpect of MIDI input and audio output devices / drivers:
+     * aspect of MIDI input and audio output devices / drivers:
      * @code
-     * 			  ######################### #########################
-     * 			  # AudioOutputDeviceJack # # AudioOutputDeviceVSTi #
-     * 			  ######################### #########################
-     * 					 ^   ^		 ^
-     *   /------------>|Sampler Channel 0|-----/   |		 |
-     *   |  /--------->|Sampler Channel 1|---------------------/
-     *   |  |	 /------>|Sampler Channel 2|---------/
-     *   |  |	 |  /--->|Sampler Channel 3|------------>#########################
-     *   |  |	 |  |	 ... (and so on) ...		 # AudioOutputDeviceAlsa #
-     *   |  |	 |  |					 #########################
-     *   |  |	 |  \-----------------------------------------------------\
-     *   |  |	 \--------------------------------------------\		  |
-     *   |  \--------------------\			      |		  |
-     *   |			   |			      |		  |
+     *                      ######################### #########################
+     *                      # AudioOutputDeviceJack # # AudioOutputDeviceVSTi #
+     *                      ######################### #########################
+     *                                        ^   ^           ^
+     *  /------------>|Sampler Channel 0|-----/   |           |
+     *  |  /--------->|Sampler Channel 1|---------------------/
+     *  |  |  /------>|Sampler Channel 2|---------/
+     *  |  |  |  /--->|Sampler Channel 3|------------>#########################
+     *  |  |  |  |    ... (and so on) ...             # AudioOutputDeviceAlsa #
+     *  |  |  |  |                                    #########################
+     *  |  |  |  \-----------------------------------------------------\
+     *  |  |  \--------------------------------------------\           |
+     *  |  \--------------------\                          |           |
+     *  |                       |                          |           |
      * ####################### ####################### #######################
      * # MidiInputDeviceAlsa # # MidiInputDeviceVSTi # # MidiInputDeviceJack #
      * ####################### ####################### #######################
@@ -217,6 +217,11 @@ namespace LinuxSampler {
      * As you can see in this example setup, one device (that is midi input
      * driver / audio output driver) can be connected multiple times to
      * different sampler channels.
+     *
+     * It's even possible to create multiple instances of the same driver, for
+     * example multiple instances of the Alsa output driver to use multiple
+     * sound cards at the same time, or multiple instances of the JACK audio
+     * output driver to leverage SMP systems or boxes with several hard discs.
      */
     class Sampler {
         public:
