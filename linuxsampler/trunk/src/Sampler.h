@@ -52,6 +52,7 @@ namespace LinuxSampler {
              *
              * @param EngineType - type of the engine to use
              * @throws Exception - if \a EngineType is invalid
+             * @see Sampler::AvailableEngineTypes()
              */
             void SetEngineType(String EngineType) throw (Exception);
 
@@ -285,6 +286,17 @@ namespace LinuxSampler {
              * Returns the names of all available audio output drivers.
              */
             std::vector<String> AvailableAudioOutputDrivers();
+
+            /**
+             * Returns the names of all available MIDI input drivers.
+             */
+            std::vector<String> AvailableMidiInputDrivers();
+
+            /**
+             * Returns the names of all available sampler engine types.
+             * @see SamplerChannel::SetEngineType()
+             */
+            std::vector<String> AvailableEngineTypes();
 
             /**
              * Create an audio output device.

@@ -31,6 +31,23 @@ namespace LinuxSampler {
     // all currently existing engine instances
     static std::set<LinuxSampler::Engine*> engines;
 
+    std::vector<String> EngineFactory::AvailableEngineTypes() {
+        std::vector<String> result;
+        result.push_back("GIG"); // we only have one sampler engine implementation ATM
+        return result;
+    }
+
+    String EngineFactory::AvailableEngineTypesAsString() {
+        std::vector<String> types = AvailableEngineTypes();
+        String result;
+        std::vector<String>::iterator iter = types.begin();
+        for (; iter != types.end(); iter++) {
+            if (result != "") result += ",";
+            result += *iter;
+        }
+        return result;
+    }
+
     LinuxSampler::Engine* EngineFactory::Create(String EngineType) throw (Exception) {
         if (!strcasecmp(EngineType.c_str(),"GigEngine") || !strcasecmp(EngineType.c_str(),"gig")) {
             Engine* pEngine = new gig::Engine;

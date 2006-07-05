@@ -76,6 +76,9 @@ Version CVS HEAD (?)
     - fixed legacy sysex code which caused dispatching of MIDI SysEx
       messages several times instead of once
 
+  * linuxsampler application:
+    - show available sampler engine types on startup
+
   * general changes:
     - support for muting sampler channels and solo mode of the same, two new
       LSCP commands ("SET CHANNEL MUTE" and "SET CHANNEL SOLO") and two new

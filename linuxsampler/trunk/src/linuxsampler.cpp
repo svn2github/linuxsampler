@@ -57,8 +57,6 @@ int main(int argc, char **argv) {
     main_pid = getpid();
     main_thread = pthread_self();
 
-
-
     // setting signal handler for catching SIGINT (thus e.g. <CTRL><C>)
     signal(SIGINT, signal_handler);
 
@@ -98,6 +96,7 @@ int main(int argc, char **argv) {
     pSampler = new Sampler;
     dmsg(1,("OK\n"));
 
+    dmsg(1,("Registered sampler engines: %s\n", EngineFactory::AvailableEngineTypesAsString().c_str()));
     dmsg(1,("Registered MIDI input drivers: %s\n", MidiInputDeviceFactory::AvailableDriversAsString().c_str()));
     dmsg(1,("Registered audio output drivers: %s\n", AudioOutputDeviceFactory::AvailableDriversAsString().c_str()));
 

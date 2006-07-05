@@ -289,6 +289,14 @@ namespace LinuxSampler {
         return AudioOutputDeviceFactory::AvailableDrivers();
     }
 
+    std::vector<String> Sampler::AvailableMidiInputDrivers() {
+        return MidiInputDeviceFactory::AvailableDrivers();
+    }
+
+    std::vector<String> Sampler::AvailableEngineTypes() {
+        return EngineFactory::AvailableEngineTypes();
+    }
+
     AudioOutputDevice* Sampler::CreateAudioOutputDevice(String AudioDriver, std::map<String,String> Parameters) throw (Exception) {
         // create new device
         AudioOutputDevice* pDevice = AudioOutputDeviceFactory::Create(AudioDriver, Parameters);

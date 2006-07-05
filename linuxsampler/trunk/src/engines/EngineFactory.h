@@ -26,11 +26,14 @@
 #include "Engine.h"
 
 #include <set>
+#include <vector>
 
 namespace LinuxSampler {
 
     class EngineFactory {
         public:
+            static std::vector<String> AvailableEngineTypes();
+            static String AvailableEngineTypesAsString();
             static Engine* Create(String EngineType) throw (Exception);
             static void Destroy(Engine* pEngine);
             static const std::set<Engine*>& EngineInstances();
