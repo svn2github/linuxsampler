@@ -111,6 +111,13 @@ namespace {
         return x & 0x800000 ? x - 0x1000000 : x;
     }
 
+    inline void store24(unsigned char* pDst, int x)
+    {
+        pDst[0] = x;
+        pDst[1] = x >> 8;
+        pDst[2] = x >> 16;
+    }
+
     void Decompress16(int compressionmode, const unsigned char* params,
                       int srcStep, int dstStep,
                       const unsigned char* pSrc, int16_t* pDst,
@@ -150,14 +157,11 @@ namespace {
     }
 
     void Decompress24(int compressionmode, const unsigned char* params,
-                      int dstStep, const unsigned char* pSrc, int16_t* pDst,
+                      int dstStep, const unsigned char* pSrc, uint8_t* pDst,
                       unsigned long currentframeoffset,
                       unsigned long copysamples, int truncatedBits)
     {
-        // Note: The 24 bits are truncated to 16 bits for now.
-
         int y, dy, ddy, dddy;
-        const int shift = 8 - truncatedBits;
 
 #define GET_PARAMS(params)                      \
         y    = get24(params);                   \
@@ -173,14 +177,14 @@ namespace {
 
 #define COPY_ONE(x)                             \
         SKIP_ONE(x);                            \
-        *pDst = y >> shift;                     \
+        store24(pDst, y << truncatedBits);      \
         pDst += dstStep
 
         switch (compressionmode) {
             case 2: // 24 bit uncompressed
                 pSrc += currentframeoffset * 3;
                 while (copysamples) {
-                    *pDst = get24(pSrc) >> shift;
+                    store24(pDst, get24(pSrc) << truncatedBits);
                     pDst += dstStep;
                     pSrc += 3;
                     copysamples--;
@@ -891,6 +895,10 @@ namespace {
      * have to use an external decompression buffer for <b>EACH</b>
      * streaming thread to avoid race conditions and crashes!
      *
+     * For 16 bit samples, the data in the buffer will be int16_t
+     * (using native endianness). For 24 bit, the buffer will
+     * contain three bytes per sample, little-endian.
+     *
      * @param pBuffer      destination buffer
      * @param SampleCount  number of sample points to read
      * @param pExternalDecompressionBuffer  (optional) external buffer to use for decompression
@@ -901,27 +909,7 @@ namespace {
         if (SampleCount == 0) return 0;
         if (!Compressed) {
             if (BitDepth == 24) {
-                // 24 bit sample. For now just truncate to 16 bit.
-                unsigned char* pSrc = (unsigned char*) ((pExternalDecompressionBuffer) ? pExternalDecompressionBuffer->pStart : this->InternalDecompressionBuffer.pStart);
-                int16_t* pDst = static_cast<int16_t*>(pBuffer);
-                if (Channels == 2) { // Stereo
-                    unsigned long readBytes = pCkData->Read(pSrc, SampleCount * 6, 1);
-                    pSrc++;
-                    for (unsigned long i = readBytes ; i > 0 ; i -= 3) {
-                        *pDst++ = get16(pSrc);
-                        pSrc += 3;
-                    }
-                    return (pDst - static_cast<int16_t*>(pBuffer)) >> 1;
-                }
-                else { // Mono
-                    unsigned long readBytes = pCkData->Read(pSrc, SampleCount * 3, 1);
-                    pSrc++;
-                    for (unsigned long i = readBytes ; i > 0 ; i -= 3) {
-                        *pDst++ = get16(pSrc);
-                        pSrc += 3;
-                    }
-                    return pDst - static_cast<int16_t*>(pBuffer);
-                }
+                return pCkData->Read(pBuffer, SampleCount * FrameSize, 1) / FrameSize;
             }
             else { // 16 bit
                 // (pCkData->Read does endian correction)
@@ -951,6 +939,7 @@ namespace {
 
             unsigned char* pSrc = (unsigned char*) pDecompressionBuffer->pStart;
             int16_t* pDst = static_cast<int16_t*>(pBuffer);
+            uint8_t* pDst24 = static_cast<uint8_t*>(pBuffer);
             remainingbytes = pCkData->Read(pSrc, assumedsize, 1);
 
             while (remainingsamples && remainingbytes) {
@@ -1032,16 +1021,16 @@ namespace {
                             const unsigned char* const param_r = pSrc;
                             if (mode_r != 2) pSrc += 12;
 
-                            Decompress24(mode_l, param_l, 2, pSrc, pDst,
+                            Decompress24(mode_l, param_l, 6, pSrc, pDst24,
                                          skipsamples, copysamples, TruncatedBits);
-                            Decompress24(mode_r, param_r, 2, pSrc + rightChannelOffset, pDst + 1,
+                            Decompress24(mode_r, param_r, 6, pSrc + rightChannelOffset, pDst24 + 3,
                                          skipsamples, copysamples, TruncatedBits);
-                            pDst += copysamples << 1;
+                            pDst24 += copysamples * 6;
                         }
                         else { // Mono
-                            Decompress24(mode_l, param_l, 1, pSrc, pDst,
+                            Decompress24(mode_l, param_l, 3, pSrc, pDst24,
                                          skipsamples, copysamples, TruncatedBits);
-                            pDst += copysamples;
+                            pDst24 += copysamples * 3;
                         }
                     }
                     else { // 16 bit
@@ -2119,7 +2108,7 @@ namespace {
             // load sample references
             for (uint i = 0; i < DimensionRegions; i++) {
                 uint32_t wavepoolindex = _3lnk->ReadUint32();
-                pDimensionRegions[i]->pSample = GetSampleFromWavePool(wavepoolindex);
+                if (file->pWavePoolTable) pDimensionRegions[i]->pSample = GetSampleFromWavePool(wavepoolindex);
             }
         }
 
@@ -2497,6 +2486,7 @@ namespace {
     Sample* Region::GetSampleFromWavePool(unsigned int WavePoolTableIndex, progress_t* pProgress) {
         if ((int32_t)WavePoolTableIndex == -1) return NULL;
         File* file = (File*) GetParent()->GetParent();
+        if (!file->pWavePoolTable) return NULL;
         unsigned long soughtoffset = file->pWavePoolTable[WavePoolTableIndex];
         unsigned long soughtfileno = file->pWavePoolTableHi[WavePoolTableIndex];
         Sample* sample = file->GetFirstSample(pProgress);

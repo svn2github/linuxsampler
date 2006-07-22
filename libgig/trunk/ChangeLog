@@ -3,7 +3,7 @@ Version CVS HEAD (?)
   * packaging changes:
     - changed deprecated copyright attribute to license;
       added ldconfig to post-(un)install steps on libgig.spec (RPM)
- 
+
   * src/gig.cpp, src/gig.h:
     - added support for more than one set of custom velocity splits
       inside a region (for example different velocity split levels for
@@ -12,6 +12,16 @@ Version CVS HEAD (?)
       instead of the wave chunk
     - keyswitching dimension is changed from split type "normal" to
       "bit"
+    - real support for 24 bit samples - samples are not truncated to
+      16 bits anymore
+    - support for reading of ".art" files. (Merging of .art and .gig
+      files are not implemented yet.)
+
+  * src/DLS.cpp:
+    - support for reading of ".art" files
+
+  * src/gigextract.cpp:
+    - real support for 24 bit samples
 
 Version 3.0.0 (28 Apr 2006)
 

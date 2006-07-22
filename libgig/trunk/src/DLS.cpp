@@ -1043,25 +1043,32 @@ namespace DLS {
         Instruments = colh->ReadUint32();
 
         RIFF::Chunk* ptbl = pRIFF->GetSubChunk(CHUNK_ID_PTBL);
-        if (!ptbl) throw DLS::Exception("Mandatory <ptbl> chunk not found.");
-        WavePoolHeaderSize = ptbl->ReadUint32();
-        WavePoolCount  = ptbl->ReadUint32();
-        pWavePoolTable = new uint32_t[WavePoolCount];
-        pWavePoolTableHi = new uint32_t[WavePoolCount];
-        ptbl->SetPos(WavePoolHeaderSize);
+        if (!ptbl) { // pool table is missing - this is probably an ".art" file
+            WavePoolCount    = 0;
+            pWavePoolTable   = NULL;
+            pWavePoolTableHi = NULL;
+            WavePoolHeaderSize = 8;
+            b64BitWavePoolOffsets = false;
+        } else {
+            WavePoolHeaderSize = ptbl->ReadUint32();
+            WavePoolCount  = ptbl->ReadUint32();
+            pWavePoolTable = new uint32_t[WavePoolCount];
+            pWavePoolTableHi = new uint32_t[WavePoolCount];
+            ptbl->SetPos(WavePoolHeaderSize);
 
-        // Check for 64 bit offsets (used in gig v3 files)
-        b64BitWavePoolOffsets = (ptbl->GetSize() - WavePoolHeaderSize == WavePoolCount * 8);
-        if (b64BitWavePoolOffsets) {
-            for (int i = 0 ; i < WavePoolCount ; i++) {
-                pWavePoolTableHi[i] = ptbl->ReadUint32();
-                pWavePoolTable[i] = ptbl->ReadUint32();
-                if (pWavePoolTable[i] & 0x80000000)
-                    throw DLS::Exception("Files larger than 2 GB not yet supported");
+            // Check for 64 bit offsets (used in gig v3 files)
+            b64BitWavePoolOffsets = (ptbl->GetSize() - WavePoolHeaderSize == WavePoolCount * 8);
+            if (b64BitWavePoolOffsets) {
+                for (int i = 0 ; i < WavePoolCount ; i++) {
+                    pWavePoolTableHi[i] = ptbl->ReadUint32();
+                    pWavePoolTable[i] = ptbl->ReadUint32();
+                    if (pWavePoolTable[i] & 0x80000000)
+                        throw DLS::Exception("Files larger than 2 GB not yet supported");
+                }
+            } else { // conventional 32 bit offsets
+                ptbl->Read(pWavePoolTable, WavePoolCount, sizeof(uint32_t));
+                for (int i = 0 ; i < WavePoolCount ; i++) pWavePoolTableHi[i] = 0;
             }
-        } else { // conventional 32 bit offsets
-            ptbl->Read(pWavePoolTable, WavePoolCount, sizeof(uint32_t));
-            for (int i = 0 ; i < WavePoolCount ; i++) pWavePoolTableHi[i] = 0;
         }
 
         pSamples     = NULL;

@@ -172,8 +172,12 @@ void ExtractSamples(gig::File* gig, char* destdir, OrderMap* ordered) {
     openAFlib();
 #endif // !HAVE_SNDFILE
     uint8_t* pWave  = NULL;
+    int* pIntWave = NULL;
     long BufferSize = 0;
     int samples     = 0;
+    gig::buffer_t decompressionBuffer;
+    decompressionBuffer.Size = 0;
+    unsigned long decompressionBufferSize = 0;
     cout << "Seeking for available samples..." << flush;
     gig::Sample* pSample = gig->GetFirstSample();
     cout << "OK" << endl << flush;
@@ -206,46 +210,70 @@ void ExtractSamples(gig::File* gig, char* destdir, OrderMap* ordered) {
 
 
 #if USE_DISK_STREAMING
-        long neededsize = (pSample->Compressed) ? 10485760 /* 10 MB buffer */
-                                                : pSample->SamplesTotal * pSample->FrameSize;
+        long neededsize = pSample->BitDepth == 24 ?
+            pSample->SamplesTotal * pSample->Channels * sizeof(int) :
+            pSample->SamplesTotal * pSample->FrameSize;
         if (BufferSize < neededsize) {
             if (pWave) delete[] pWave;
             pWave = new uint8_t[neededsize];
             BufferSize = neededsize;
         }
+        pIntWave = (int*)pWave;
 #  if HASHED_READS_TEST
-        unsigned long readsamples     = 0,
-                      readinthisrun   = 0,
+        unsigned long readinthisrun   = 0,
                       samplepiecesize = 2000;
         uint8_t* pSamplePiece = pWave;
         do { // we read the sample in small pieces and increment the size with each run just to test streaming capability
             readinthisrun = pSample->Read(pSamplePiece, ++samplepiecesize);
-            // 24 bit is truncated to 16 by Sample::Read at the moment
-            pSamplePiece += readinthisrun * (2 * pSample->Channels); // readinthisrun * pSample->FrameSize;
-            readsamples  += readinthisrun;
+            pSamplePiece += readinthisrun * pSample->FrameSize;
         } while (readinthisrun == samplepiecesize);
 
-        if (pSample->Compressed) { // hack
-            pSample->SamplesTotal = readsamples;
-            pSample->BitDepth = 16;
-        }
 #  else // read in one piece
         if (pSample->Compressed) {
-            pSample->SamplesTotal = pSample->Read(pWave, 10485760 >> 2); // assumes 16 bit stereo
-        }
-        else {
+            if (decompressionBufferSize < pSample->SamplesTotal) {
+                gig::Sample::DestroyDecompressionBuffer(decompressionBuffer);
+                decompressionBuffer = gig::Sample::CreateDecompressionBuffer(pSample->SamplesTotal);
+                decompressionBufferSize = pSample->SamplesTotal;
+            }
+            pSample->Read(pWave, pSample->SamplesTotal, &decompressionBuffer);
+        } else {
             pSample->Read(pWave, pSample->SamplesTotal);
         }
 #  endif // HASHED_READS_TEST
 #else // no disk streaming
         if (pSample->Compressed) {
-            cout << "Sorry, sample is compressed and Sample::LoadSampleData() has no decompression routine yet! - Solution: set USE_DISK_STREAMING in gigextract.cpp (line 29) to 1 and recompile!" << endl;
+            cout << "Sorry, sample is compressed and Sample::LoadSampleData() only decompresses the beginning of the sample - Solution: set USE_DISK_STREAMING in gigextract.cpp (line 32) to 1 and recompile!" << endl;
+        } else {
+            gig::buffer_t buffer = pSample->LoadSampleData(); // load wave into RAM
+            pWave = static_cast<uint8_t*>(buffer.pStart);
+            if (pSample->BitDepth == 24) {
+                long neededsize = pSample->SamplesTotal * pSample->Channels;
+                if (BufferSize < neededsize) {
+                    if (pIntWave) delete[] pIntWave;
+                    pIntWave = new int[neededsize];
+                    BufferSize = neededsize;
+                }
+            }
         }
-        else pWave = (uint8_t*) pSample->LoadSampleData(); // load wave into RAM
 #endif // USE_DISK_STREAMING
         if (pWave) {
+
+            // Both libsndfile and libaudiofile uses int for 24 bit
+            // samples. libgig however returns 3 bytes per sample, so
+            // we have to convert the wave data before writing.
+            if (pSample->BitDepth == 24) {
+                int n = pSample->SamplesTotal * pSample->Channels;
+                for (int i = n - 1 ; i >= 0 ; i--) {
+#if HAVE_SNDFILE
+                    pIntWave[i] = pWave[i * 3] << 8 | pWave[i * 3 + 1] << 16 | pWave[i * 3 + 2] << 24;
+#else
+                    pIntWave[i] = pWave[i * 3] | pWave[i * 3 + 1] << 8 | pWave[i * 3 + 2] << 16;
+#endif
+                }
+            }
+
             int res = writeWav(filename.c_str(),
-                               pWave,
+                               pSample->BitDepth == 24 ? static_cast<void*>(pIntWave) : pWave,
                                pSample->SamplesTotal,
                                pSample->Channels,
                                pSample->BitDepth,
@@ -258,7 +286,12 @@ void ExtractSamples(gig::File* gig, char* destdir, OrderMap* ordered) {
 
         pSample = gig->GetNextSample();
     }
-    if (pWave) delete[] (uint8_t*) pWave;
+    gig::Sample::DestroyDecompressionBuffer(decompressionBuffer);
+#if USE_DISK_STREAMING
+    if (pWave) delete[] pWave;
+#else
+    if (pIntWave) delete[] pIntWave;
+#endif
 #if !HAVE_SNDFILE // use libaudiofile
     closeAFlib();
 #endif // !HAVE_SNDFILE
@@ -272,19 +305,15 @@ int writeWav(const char* filename, void* samples, long samplecount, int channels
     switch (bitdepth) {
         case 8:
             format |= SF_FORMAT_PCM_S8;
-            cout << "8 bit" << endl << flush;
             break;
         case 16:
             format |= SF_FORMAT_PCM_16;
-            cout << "16 bit" << endl << flush;
             break;
         case 24:
             format |= SF_FORMAT_PCM_24;
-            cout << "24 bit" << endl << flush;
             break;
         case 32:
             format |= SF_FORMAT_PCM_32;
-            cout << "32 bit" << endl << flush;
             break;
         default:
             cerr << "Error: Bithdepth " << ToString(bitdepth) << " not supported by libsndfile, ignoring sample!\n" << flush;
@@ -299,7 +328,10 @@ int writeWav(const char* filename, void* samples, long samplecount, int channels
         cerr << "Error: Unable to open output file \'" << filename << "\'.\n" << flush;
         return -1;
     }
-    if (sf_write_short(hfile, (short*)samples, channels * samplecount) != channels * samplecount) {
+    sf_count_t res = bitdepth == 24 ?
+        sf_write_int(hfile, static_cast<int*>(samples), channels * samplecount) :
+        sf_write_short(hfile, static_cast<short*>(samples), channels * samplecount);
+    if (res != channels * samplecount) {
         cerr << sf_strerror(hfile) << endl << flush;
         sf_close(hfile);
         return -1;
@@ -347,7 +379,7 @@ void closeAFlib() {
 #endif // !HAVE_SNDFILE
 
 string Revision() {
-    string s = "$Revision: 1.7 $";
+    string s = "$Revision: 1.8 $";
     return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
 }
 
