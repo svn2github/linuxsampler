@@ -34,14 +34,17 @@
 #define SYNTHESIS_MODE_SET_FILTER(iMode,bVal)           if (bVal) iMode |= 0x02; else iMode &= ~0x02   /* (un)set mode bit 1 */
 #define SYNTHESIS_MODE_SET_LOOP(iMode,bVal)             if (bVal) iMode |= 0x04; else iMode &= ~0x04   /* (un)set mode bit 2 */
 #define SYNTHESIS_MODE_SET_CHANNELS(iMode,bVal)         if (bVal) iMode |= 0x08; else iMode &= ~0x08   /* (un)set mode bit 3 */
-#define SYNTHESIS_MODE_SET_IMPLEMENTATION(iMode,bVal)   if (bVal) iMode |= 0x10; else iMode &= ~0x10   /* (un)set mode bit 4 */
-#define SYNTHESIS_MODE_SET_PROFILING(iMode,bVal)        if (bVal) iMode |= 0x20; else iMode &= ~0x20   /* (un)set mode bit 5 */
+#define SYNTHESIS_MODE_SET_BITDEPTH24(iMode,bVal)       if (bVal) iMode |= 0x10; else iMode &= ~0x10   /* (un)set mode bit 4 */
+#define SYNTHESIS_MODE_SET_IMPLEMENTATION(iMode,bVal)   if (bVal) iMode |= 0x20; else iMode &= ~0x20   /* (un)set mode bit 5 */
+#define SYNTHESIS_MODE_SET_PROFILING(iMode,bVal)        if (bVal) iMode |= 0x40; else iMode &= ~0x40   /* (un)set mode bit 6 */
 
 #define SYNTHESIS_MODE_GET_INTERPOLATE(iMode)           iMode & 0x01
 #define SYNTHESIS_MODE_GET_FILTER(iMode)                iMode & 0x02
 #define SYNTHESIS_MODE_GET_LOOP(iMode)                  iMode & 0x04
 #define SYNTHESIS_MODE_GET_CHANNELS(iMode)              iMode & 0x08
-#define SYNTHESIS_MODE_GET_IMPLEMENTATION(iMode)        iMode & 0x10
+#define SYNTHESIS_MODE_GET_BITDEPTH24(iMode)            iMode & 0x10
+#define SYNTHESIS_MODE_GET_IMPLEMENTATION(iMode)        iMode & 0x20
+
 
 namespace LinuxSampler { namespace gig {
 
@@ -61,8 +64,8 @@ namespace LinuxSampler { namespace gig {
      * format capable sampler engine. This means resampling / interpolation
      * for pitching the audio signal, looping, filter and amplification.
      */
-    template<channels_t CHANNELS, bool DOLOOP, bool USEFILTER, bool INTERPOLATE>
-    class Synthesizer : public __RTMath<CPP>, public LinuxSampler::Resampler<INTERPOLATE> {
+    template<channels_t CHANNELS, bool DOLOOP, bool USEFILTER, bool INTERPOLATE, bool BITDEPTH24>
+    class Synthesizer : public __RTMath<CPP>, public LinuxSampler::Resampler<INTERPOLATE,BITDEPTH24> {
 
             // declarations of derived functions (see "Name lookup,
             // templates, and accessing members of base classes" in
@@ -70,8 +73,8 @@ namespace LinuxSampler { namespace gig {
             // needed).
             //using LinuxSampler::Resampler<INTERPOLATE>::GetNextSampleMonoCPP;
             //using LinuxSampler::Resampler<INTERPOLATE>::GetNextSampleStereoCPP;
-            using LinuxSampler::Resampler<INTERPOLATE>::Interpolate1StepMonoCPP;
-            using LinuxSampler::Resampler<INTERPOLATE>::Interpolate1StepStereoCPP;
+            using LinuxSampler::Resampler<INTERPOLATE,BITDEPTH24>::Interpolate1StepMonoCPP;
+            using LinuxSampler::Resampler<INTERPOLATE,BITDEPTH24>::Interpolate1StepStereoCPP;
 
         public:
         //protected:
@@ -131,6 +134,16 @@ namespace LinuxSampler { namespace gig {
                 return 1;
             }
 
+            static int getSample(sample_t* src, int pos) {
+                if (BITDEPTH24) {
+                    pos *= 3;
+                    unsigned char* p = (unsigned char*)src;
+                    return p[pos] << 8 | p[pos + 1] << 16 | p[pos + 2] << 24;
+                } else {
+                    return src[pos];
+                }
+            }
+
             static void SynthesizeSubSubFragment(SynthesisParam* pFinalParam, uint uiToGo) {
                 float fVolumeL = pFinalParam->fFinalVolumeLeft;
                 float fVolumeR = pFinalParam->fFinalVolumeRight;
@@ -176,7 +189,7 @@ namespace LinuxSampler { namespace gig {
                             if (USEFILTER) {
                                 Filter filterL = pFinalParam->filterLeft;
                                 for (int i = 0; i < uiToGo; ++i) {
-                                    samplePoint = pSrc[i + pos_offset];
+                                    samplePoint = getSample(pSrc, i + pos_offset);
                                     samplePoint = filterL.Apply(samplePoint);
 #ifdef CONFIG_INTERPOLATE_VOLUME
                                     fVolumeL += fDeltaL;
@@ -187,7 +200,7 @@ namespace LinuxSampler { namespace gig {
                                 }
                             } else { // no filter needed
                                 for (int i = 0; i < uiToGo; ++i) {
-                                    samplePoint = pSrc[i + pos_offset];
+                                    samplePoint = getSample(pSrc, i + pos_offset);
 #ifdef CONFIG_INTERPOLATE_VOLUME
                                     fVolumeL += fDeltaL;
                                     fVolumeR += fDeltaR;
@@ -237,8 +250,8 @@ namespace LinuxSampler { namespace gig {
                                 Filter filterL = pFinalParam->filterLeft;
                                 Filter filterR = pFinalParam->filterRight;
                                 for (int i = 0, ii = 0; i < uiToGo; ++i, ii+=2) {
-                                    samplePoint.left  = pSrc[ii + pos_offset];
-                                    samplePoint.right = pSrc[ii + pos_offset + 1];
+                                    samplePoint.left = getSample(pSrc, ii + pos_offset);
+                                    samplePoint.right = getSample(pSrc, ii + pos_offset + 1);
                                     samplePoint.left  = filterL.Apply(samplePoint.left);
                                     samplePoint.right = filterR.Apply(samplePoint.right);
 #ifdef CONFIG_INTERPOLATE_VOLUME
@@ -250,8 +263,8 @@ namespace LinuxSampler { namespace gig {
                                 }
                             } else { // no filter needed
                                 for (int i = 0, ii = 0; i < uiToGo; ++i, ii+=2) {
-                                    samplePoint.left  = pSrc[ii + pos_offset];
-                                    samplePoint.right = pSrc[ii + pos_offset + 1];
+                                    samplePoint.left = getSample(pSrc, ii + pos_offset);
+                                    samplePoint.right = getSample(pSrc, ii + pos_offset + 1);
 #ifdef CONFIG_INTERPOLATE_VOLUME
                                     fVolumeL += fDeltaL;
                                     fVolumeR += fDeltaR;

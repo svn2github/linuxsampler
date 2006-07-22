@@ -67,7 +67,7 @@ namespace LinuxSampler { namespace gig {
             void WriteSilence(unsigned long SilenceSampleWords);
 
             inline int GetReadSpace() {
-                return (pRingBuffer && State != state_unused) ? pRingBuffer->read_space()  : 0;
+                return (pRingBuffer && State != state_unused) ? pRingBuffer->read_space() / BytesPerSample : 0;
             }
 
             inline int GetWriteSpace() {
@@ -75,26 +75,23 @@ namespace LinuxSampler { namespace gig {
             }
 
             inline int GetWriteSpaceToEnd() {
-                return (pRingBuffer && State == state_active) ? pRingBuffer->write_space_to_end_with_wrap() : 0;
+                return (pRingBuffer && State == state_active) ? pRingBuffer->write_space_to_end_with_wrap() / BytesPerSample : 0;
             }
 
             // adjusts the write space to avoid buffer boundaries which would lead to the wrap space
             // within the buffer (needed for interpolation) getting filled only partially
             // for more infos see the docs in ringbuffer.h at adjust_write_space_to_avoid_boundary()
             inline int AdjustWriteSpaceToAvoidBoundary(int cnt, int capped_cnt) {
-              return pRingBuffer->adjust_write_space_to_avoid_boundary(cnt, capped_cnt);
-            }
-
-            inline sample_t* GetReadPointer() {
-                return pRingBuffer->get_read_ptr();
+              return pRingBuffer->adjust_write_space_to_avoid_boundary(cnt * BytesPerSample, capped_cnt * BytesPerSample) / BytesPerSample;
             }
 
             // gets the current read_ptr within the ringbuffer
-            inline sample_t* GetReadPtr(void) {
+            inline uint8_t* GetReadPtr(void) {
                 return pRingBuffer->get_read_ptr();
             }
 
             inline void IncrementReadPos(uint Count)  {
+                Count *= BytesPerSample;
                 uint leftspace = pRingBuffer->read_space();
                 pRingBuffer->increment_read_ptr(Min(Count, leftspace));
                 if (State == state_end && Count >= leftspace) {
@@ -119,9 +116,10 @@ namespace LinuxSampler { namespace gig {
             unsigned long            SampleOffset;
             ::gig::DimensionRegion*  pDimRgn;
             ::gig::playback_state_t  PlaybackState;
-            RingBuffer<sample_t>*    pRingBuffer;
+            RingBuffer<uint8_t>*     pRingBuffer;
             bool                     DoLoop;
             ::gig::buffer_t*         pDecompressionBuffer;
+            int                      BytesPerSample;
 
             // Static Attributes
             static uint              UnusedStreams; //< Reflects how many stream objects of all stream instances are currently not in use.

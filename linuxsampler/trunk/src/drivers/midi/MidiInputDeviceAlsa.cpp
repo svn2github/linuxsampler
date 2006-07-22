@@ -212,7 +212,7 @@ namespace LinuxSampler {
     }
 
     String MidiInputDeviceAlsa::Version() {
-	    String s = "$Revision: 1.16 $";
+	    String s = "$Revision: 1.17 $";
 	    return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
 
@@ -234,6 +234,10 @@ namespace LinuxSampler {
                     switch (ev->type) {
                         case SND_SEQ_EVENT_CONTROLLER:
                             pMidiInputPort->DispatchControlChange(ev->data.control.param, ev->data.control.value, ev->data.control.channel);
+                            break;
+
+                        case SND_SEQ_EVENT_CHANPRESS:
+                            pMidiInputPort->DispatchControlChange(128, ev->data.control.value, ev->data.control.channel);
                             break;
 
                         case SND_SEQ_EVENT_PITCHBEND:

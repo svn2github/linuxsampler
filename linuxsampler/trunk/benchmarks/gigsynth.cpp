@@ -35,7 +35,8 @@ float* pOutputR;
 
 void printmode(int mode) {
     printf("Synthesis Mode: %d ",mode);
-    printf("(%s,DOLOOP=%s,FILTER=%s,INTERPOLATE=%s)\n",
+    printf("(BITDEPTH=%s,%s,DOLOOP=%s,FILTER=%s,INTERPOLATE=%s)\n",
+           (SYNTHESIS_MODE_GET_BITDEPTH24(mode)) ? "24" : "16",
            (SYNTHESIS_MODE_GET_CHANNELS(mode)) ? "STEREO" : "MONO",
            (SYNTHESIS_MODE_GET_LOOP(mode)) ? "y" : "n",
            (SYNTHESIS_MODE_GET_FILTER(mode)) ? "y" : "n",
@@ -55,14 +56,13 @@ int main() {
     }
 
     SynthesisParam* pParam = new SynthesisParam;
-    pParam->filterLeft.SetParameters(200.0f, 1.0f, 44100);
-    pParam->filterRight.SetParameters(200.0f, 1.0f, 44100);
+    pParam->filterLeft.SetParameters(5.26f, 127.0f, 44100);
+    pParam->filterRight.SetParameters(5.26f, 127.0f, 44100);
     pParam->fFinalPitch = 0.5f;
     pParam->fFinalVolumeLeft = 1.0f;
     pParam->fFinalVolumeRight = 1.0f;
-    /* For now we skip the CONFIG_INTERPOLATE_VOLUME case
-    pParam->fFinalVolumeDeltaLeft = ...
-    pParam->fFinalVolumeDeltaRight = ... */
+    pParam->fFinalVolumeDeltaLeft = 0;
+    pParam->fFinalVolumeDeltaRight = 0;
     pParam->pSrc = pSampleInputBuf;
 
     // define some loop points
@@ -72,7 +72,7 @@ int main() {
     pLoop->uiSize  = 16;
     pLoop->uiTotalCycles = 0; // infinity
 
-    for (int mode = 0; mode < 16; mode++) {
+    for (int mode = 0; mode < 32; mode++) {
             // zero out output buffers
             memset(pOutputL,0,FRAGMENTSIZE*sizeof(float));
             memset(pOutputR,0,FRAGMENTSIZE*sizeof(float));

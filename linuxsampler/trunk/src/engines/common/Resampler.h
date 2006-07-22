@@ -27,6 +27,7 @@
 #include "../../common/global.h"
 
 // TODO: cubic interpolation is not yet supported by the MMX/SSE(1) version though
+// TODO: cubic interpolation is not supported for 24 bit samples
 #ifndef USE_LINEAR_INTERPOLATION
 # define USE_LINEAR_INTERPOLATION   1  ///< set to 0 if you prefer cubic interpolation (slower, better quality)
 #endif
@@ -49,7 +50,7 @@ namespace LinuxSampler {
      * for linear and cubic interpolation for pitching a mono or stereo
      * input signal.
      */
-    template<bool INTERPOLATE>
+    template<bool INTERPOLATE,bool BITDEPTH24>
     class Resampler {
         public:
             inline static float GetNextSampleMonoCPP(sample_t* pSrc, double* Pos, float& Pitch) {
@@ -146,12 +147,24 @@ namespace LinuxSampler {
 
         protected:
 
+            static int getSample(sample_t* src, int pos) {
+                if (BITDEPTH24) {
+                    pos *= 3;
+                    unsigned char* p = (unsigned char*)src;
+                    return p[pos] << 8 | p[pos + 1] << 16 | p[pos + 2] << 24;
+                } else {
+                    return src[pos];
+                }
+            }
+
             inline static float Interpolate1StepMonoCPP(sample_t* pSrc, double* Pos, float& Pitch) {
                 int   pos_int   = (int) *Pos;     // integer position
                 float pos_fract = *Pos - pos_int; // fractional part of position
 
                 #if USE_LINEAR_INTERPOLATION
-                    float samplePoint  = pSrc[pos_int] + pos_fract * (pSrc[pos_int+1] - pSrc[pos_int]);
+                    int x1 = getSample(pSrc, pos_int);
+                    int x2 = getSample(pSrc, pos_int + 1);
+                    float samplePoint  = (x1 + pos_fract * (x2 - x1));
                 #else // polynomial interpolation
                     float xm1 = pSrc[pos_int];
                     float x0  = pSrc[pos_int+1];
@@ -176,9 +189,13 @@ namespace LinuxSampler {
 
                 #if USE_LINEAR_INTERPOLATION
                     // left channel
-                    samplePoint.left = pSrc[pos_int]   + pos_fract * (pSrc[pos_int+2] - pSrc[pos_int]);
+                    int x1 = getSample(pSrc, pos_int);
+                    int x2 = getSample(pSrc, pos_int + 2);
+                    samplePoint.left  = (x1 + pos_fract * (x2 - x1));
                     // right channel
-                    samplePoint.right = pSrc[pos_int+1] + pos_fract * (pSrc[pos_int+3] - pSrc[pos_int+1]);
+                    x1 = getSample(pSrc, pos_int + 1);
+                    x2 = getSample(pSrc, pos_int + 3);
+                    samplePoint.right = (x1 + pos_fract * (x2 - x1));
                 #else // polynomial interpolation
                     // calculate left channel
                     float xm1 = pSrc[pos_int];

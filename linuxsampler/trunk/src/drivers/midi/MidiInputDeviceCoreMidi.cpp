@@ -93,6 +93,10 @@ namespace LinuxSampler {
 					port->DispatchControlChange(packet->data[1],packet->data[2],packet->data[0]&0x0F);
 					break;
 
+				case 0xD0:
+                                        port->DispatchControlChange(128,packet->data[1],packet->data[0]&0x0F);
+					break;
+
 				case 0xE0:
 					port->DispatchPitchbend(packet->data[1],packet->data[0]&0x0F);
 					break;
@@ -159,7 +163,7 @@ namespace LinuxSampler {
     }
 
     String MidiInputDeviceCoreMidi::Version() {
-	    String s = "$Revision: 1.6 $";
+	    String s = "$Revision: 1.7 $";
 	    return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
 

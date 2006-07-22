@@ -98,7 +98,10 @@ namespace LinuxSampler { namespace gig {
         // calculate volume
         const double velocityAttenuation = pDimRgn->GetVelocityAttenuation(itNoteOnEvent->Param.Note.Velocity);
 
-        float volume = velocityAttenuation / 32768.0f; // we downscale by 32768 to convert from int16 value range to DSP value range (which is -1.0..1.0)
+        // For 16 bit samples, we downscale by 32768 to convert from
+        // int16 value range to DSP value range (which is
+        // -1.0..1.0). For 24 bit, we downscale from int32.
+        float volume = velocityAttenuation / (pSample->BitDepth == 16 ? 32768.0f : 32768.0f * 65536.0f);
 
         volume *= pDimRgn->SampleAttenuation;
 
@@ -113,12 +116,14 @@ namespace LinuxSampler { namespace gig {
 
         // select channel mode (mono or stereo)
         SYNTHESIS_MODE_SET_CHANNELS(SynthesisMode, pSample->Channels == 2);
+        // select bit depth (16 or 24)
+        SYNTHESIS_MODE_SET_BITDEPTH24(SynthesisMode, pSample->BitDepth == 24);
 
         // get starting crossfade volume level
         float crossfadeVolume;
         switch (pDimRgn->AttenuationController.type) {
             case ::gig::attenuation_ctrl_t::type_channelaftertouch:
-                crossfadeVolume = 1.0f; //TODO: aftertouch not supported yet
+                crossfadeVolume = Engine::CrossfadeCurve[CrossfadeAttenuation(pEngineChannel->ControllerTable[128])];
                 break;
             case ::gig::attenuation_ctrl_t::type_velocity:
                 crossfadeVolume = Engine::CrossfadeCurve[CrossfadeAttenuation(itNoteOnEvent->Param.Note.Velocity)];
@@ -195,7 +200,7 @@ namespace LinuxSampler { namespace gig {
                     eg1controllervalue = 0;
                     break;
                 case ::gig::eg1_ctrl_t::type_channelaftertouch:
-                    eg1controllervalue = 0; // TODO: aftertouch not yet supported
+                    eg1controllervalue = pEngineChannel->ControllerTable[128];
                     break;
                 case ::gig::eg1_ctrl_t::type_velocity:
                     eg1controllervalue = itNoteOnEvent->Param.Note.Velocity;
@@ -253,7 +258,7 @@ namespace LinuxSampler { namespace gig {
                     eg2controllervalue = 0;
                     break;
                 case ::gig::eg2_ctrl_t::type_channelaftertouch:
-                    eg2controllervalue = 0; // TODO: aftertouch not yet supported
+                    eg2controllervalue = pEngineChannel->ControllerTable[128];
                     break;
                 case ::gig::eg2_ctrl_t::type_velocity:
                     eg2controllervalue = itNoteOnEvent->Param.Note.Velocity;
@@ -405,8 +410,8 @@ namespace LinuxSampler { namespace gig {
                     break;
                 case ::gig::lfo3_ctrl_aftertouch:
                     lfo3_internal_depth  = 0;
-                    pLFO3->ExtController = 0; // TODO: aftertouch not implemented yet
-                    bLFO3Enabled         = false; // see TODO comment in line above
+                    pLFO3->ExtController = 128;
+                    bLFO3Enabled         = true;
                     break;
                 case ::gig::lfo3_ctrl_internal_modwheel:
                     lfo3_internal_depth  = pDimRgn->LFO3InternalDepth;
@@ -415,8 +420,8 @@ namespace LinuxSampler { namespace gig {
                     break;
                 case ::gig::lfo3_ctrl_internal_aftertouch:
                     lfo3_internal_depth  = pDimRgn->LFO3InternalDepth;
-                    pLFO1->ExtController = 0; // TODO: aftertouch not implemented yet
-                    bLFO3Enabled         = (lfo3_internal_depth > 0 /*|| pDimRgn->LFO3ControlDepth > 0*/); // see TODO comment in line above
+                    pLFO1->ExtController = 128;
+                    bLFO3Enabled         = (lfo3_internal_depth > 0 || pDimRgn->LFO3ControlDepth > 0);
                     break;
                 default:
                     lfo3_internal_depth  = 0;
@@ -473,7 +478,9 @@ namespace LinuxSampler { namespace gig {
                 case ::gig::vcf_cutoff_ctrl_genpurpose8:
                     VCFCutoffCtrl.controller = 83;
                     break;
-                case ::gig::vcf_cutoff_ctrl_aftertouch: //TODO: not implemented yet
+                case ::gig::vcf_cutoff_ctrl_aftertouch:
+                    VCFCutoffCtrl.controller = 128;
+                    break;
                 case ::gig::vcf_cutoff_ctrl_none:
                 default:
                     VCFCutoffCtrl.controller = 0;
@@ -614,7 +621,7 @@ namespace LinuxSampler { namespace gig {
                         }
                     }
 
-                    sample_t* ptr = DiskStreamRef.pStream->GetReadPtr(); // get the current read_ptr within the ringbuffer where we read the samples from
+                    sample_t* ptr = (sample_t*)DiskStreamRef.pStream->GetReadPtr(); // get the current read_ptr within the ringbuffer where we read the samples from
 
                     // render current audio fragment
                     Synthesize(Samples, ptr, Delay);

@@ -870,7 +870,7 @@ namespace LinuxSampler { namespace gig {
                     DimValues[i] = itNoteOnEvent->Param.Note.Velocity;
                     break;
                 case ::gig::dimension_channelaftertouch:
-                    DimValues[i] = 0; //TODO: we currently ignore this dimension
+                    DimValues[i] = pEngineChannel->ControllerTable[128];
                     break;
                 case ::gig::dimension_releasetrigger:
                     VoiceType = (ReleaseTriggerVoice) ? Voice::type_release_trigger : (!iLayer) ? Voice::type_release_trigger_required : Voice::type_normal;
@@ -1567,7 +1567,7 @@ namespace LinuxSampler { namespace gig {
     }
 
     String Engine::Version() {
-        String s = "$Revision: 1.63 $";
+        String s = "$Revision: 1.64 $";
         return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
 

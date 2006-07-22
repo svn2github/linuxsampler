@@ -38,7 +38,7 @@ namespace LinuxSampler { namespace gig {
         ::gig::Sample* pSample = pDimRgn->pSample;
         long total_readsamples = 0, readsamples = 0;
         long samplestoread = SampleCount / pSample->Channels;
-        sample_t* pBuf = pRingBuffer->get_write_ptr();
+        uint8_t* pBuf = pRingBuffer->get_write_ptr();
         bool endofsamplereached;
 
         // refill the disk stream buffer
@@ -52,7 +52,7 @@ namespace LinuxSampler { namespace gig {
             pSample->SetPos(this->SampleOffset); // recover old position
 
             do {
-                readsamples        = pSample->Read(&pBuf[total_readsamples * pSample->Channels], samplestoread, pDecompressionBuffer);
+                readsamples        = pSample->Read(&pBuf[total_readsamples * pSample->FrameSize], samplestoread, pDecompressionBuffer);
                 samplestoread     -= readsamples;
                 total_readsamples += readsamples;
             } while (samplestoread && readsamples > 0);
@@ -66,7 +66,7 @@ namespace LinuxSampler { namespace gig {
 
         // we must delay the increment_write_ptr_with_wrap() after the while() loop because we need to
         // ensure that we read exactly SampleCount sample, otherwise the buffer wrapping code will fail
-        pRingBuffer->increment_write_ptr_with_wrap(total_readsamples * pSample->Channels);
+        pRingBuffer->increment_write_ptr_with_wrap(total_readsamples * pSample->FrameSize);
 
         // update stream state
         if (endofsamplereached) SetState(state_end);
@@ -76,8 +76,8 @@ namespace LinuxSampler { namespace gig {
     }
 
     void Stream::WriteSilence(unsigned long SilenceSampleWords) {
-        memset(pRingBuffer->get_write_ptr(), 0, SilenceSampleWords * 2);
-        pRingBuffer->increment_write_ptr_with_wrap(SilenceSampleWords);
+        memset(pRingBuffer->get_write_ptr(), 0, SilenceSampleWords * BytesPerSample);
+        pRingBuffer->increment_write_ptr_with_wrap(SilenceSampleWords * BytesPerSample);
     }
 
     Stream::Stream( ::gig::buffer_t* pDecompressionBuffer, uint BufferSize, uint BufferWrapElements) {
@@ -88,7 +88,7 @@ namespace LinuxSampler { namespace gig {
         this->SampleOffset           = 0;
         this->PlaybackState.position = 0;
         this->PlaybackState.reverse  = false;
-        this->pRingBuffer            = new RingBuffer<sample_t>(BufferSize, BufferWrapElements);
+        this->pRingBuffer            = new RingBuffer<uint8_t>(BufferSize * 3, BufferWrapElements * 3);
         this->pDecompressionBuffer   = pDecompressionBuffer;
         UnusedStreams++;
 	TotalStreams++;
@@ -112,6 +112,7 @@ namespace LinuxSampler { namespace gig {
         this->PlaybackState.reverse          = false;
         this->PlaybackState.loop_cycles_left = pDimRgn->pSample->LoopPlayCount;
         this->DoLoop                         = DoLoop;
+        BytesPerSample                       = pDimRgn->pSample->BitDepth / 8;
         SetState(state_active);
     }
 

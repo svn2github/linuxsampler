@@ -446,7 +446,7 @@ namespace LinuxSampler { namespace gig {
         GlobalPanLeft  = 1.0f;
         GlobalPanRight = 1.0f;
         // set all MIDI controller values to zero
-        memset(ControllerTable, 0x00, 128);
+        memset(ControllerTable, 0x00, 129);
     }
 
     /**

@@ -27,78 +27,142 @@
 
 #include "Synthesizer.h"
 
-#define SYNTHESIZE(CHAN,LOOP,FILTER,INTERPOLATE) \
-        Synthesizer<CHAN,LOOP,FILTER,INTERPOLATE>::SynthesizeSubFragment( \
+#define SYNTHESIZE(CHAN,LOOP,FILTER,INTERPOLATE,BITDEPTH24)                           \
+        Synthesizer<CHAN,LOOP,FILTER,INTERPOLATE,BITDEPTH24>::SynthesizeSubFragment(  \
         pFinalParam, pLoop)
 
 namespace LinuxSampler { namespace gig {
 
     void SynthesizeFragment_mode00(SynthesisParam* pFinalParam, Loop* pLoop) {
-        SYNTHESIZE(MONO,0,0,0);
+        SYNTHESIZE(MONO,0,0,0,0);
     }
 
     void SynthesizeFragment_mode01(SynthesisParam* pFinalParam, Loop* pLoop) {
-        SYNTHESIZE(MONO,0,0,1);
+        SYNTHESIZE(MONO,0,0,1,0);
     }
 
     void SynthesizeFragment_mode02(SynthesisParam* pFinalParam, Loop* pLoop) {
-        SYNTHESIZE(MONO,0,1,0);
+        SYNTHESIZE(MONO,0,1,0,0);
     }
 
     void SynthesizeFragment_mode03(SynthesisParam* pFinalParam, Loop* pLoop) {
-        SYNTHESIZE(MONO,0,1,1);
+        SYNTHESIZE(MONO,0,1,1,0);
     }
 
     void SynthesizeFragment_mode04(SynthesisParam* pFinalParam, Loop* pLoop) {
-        SYNTHESIZE(MONO,1,0,0);
+        SYNTHESIZE(MONO,1,0,0,0);
     }
 
     void SynthesizeFragment_mode05(SynthesisParam* pFinalParam, Loop* pLoop) {
-        SYNTHESIZE(MONO,1,0,1);
+        SYNTHESIZE(MONO,1,0,1,0);
     }
 
     void SynthesizeFragment_mode06(SynthesisParam* pFinalParam, Loop* pLoop) {
-        SYNTHESIZE(MONO,1,1,0);
+        SYNTHESIZE(MONO,1,1,0,0);
     }
 
     void SynthesizeFragment_mode07(SynthesisParam* pFinalParam, Loop* pLoop) {
-        SYNTHESIZE(MONO,1,1,1);
+        SYNTHESIZE(MONO,1,1,1,0);
     }
 
     void SynthesizeFragment_mode08(SynthesisParam* pFinalParam, Loop* pLoop) {
-        SYNTHESIZE(STEREO,0,0,0);
+        SYNTHESIZE(STEREO,0,0,0,0);
     }
 
     void SynthesizeFragment_mode09(SynthesisParam* pFinalParam, Loop* pLoop) {
-        SYNTHESIZE(STEREO,0,0,1);
+        SYNTHESIZE(STEREO,0,0,1,0);
     }
 
     void SynthesizeFragment_mode0a(SynthesisParam* pFinalParam, Loop* pLoop) {
-        SYNTHESIZE(STEREO,0,1,0);
+        SYNTHESIZE(STEREO,0,1,0,0);
     }
 
     void SynthesizeFragment_mode0b(SynthesisParam* pFinalParam, Loop* pLoop) {
-        SYNTHESIZE(STEREO,0,1,1);
+        SYNTHESIZE(STEREO,0,1,1,0);
     }
 
     void SynthesizeFragment_mode0c(SynthesisParam* pFinalParam, Loop* pLoop) {
-        SYNTHESIZE(STEREO,1,0,0);
+        SYNTHESIZE(STEREO,1,0,0,0);
     }
 
     void SynthesizeFragment_mode0d(SynthesisParam* pFinalParam, Loop* pLoop) {
-        SYNTHESIZE(STEREO,1,0,1);
+        SYNTHESIZE(STEREO,1,0,1,0);
     }
 
     void SynthesizeFragment_mode0e(SynthesisParam* pFinalParam, Loop* pLoop) {
-        SYNTHESIZE(STEREO,1,1,0);
+        SYNTHESIZE(STEREO,1,1,0,0);
     }
 
     void SynthesizeFragment_mode0f(SynthesisParam* pFinalParam, Loop* pLoop) {
-        SYNTHESIZE(STEREO,1,1,1);
+        SYNTHESIZE(STEREO,1,1,1,0);
+    }
+
+    void SynthesizeFragment_mode10(SynthesisParam* pFinalParam, Loop* pLoop) {
+        SYNTHESIZE(MONO,0,0,0,1);
+    }
+
+    void SynthesizeFragment_mode11(SynthesisParam* pFinalParam, Loop* pLoop) {
+        SYNTHESIZE(MONO,0,0,1,1);
+    }
+
+    void SynthesizeFragment_mode12(SynthesisParam* pFinalParam, Loop* pLoop) {
+        SYNTHESIZE(MONO,0,1,0,1);
+    }
+
+    void SynthesizeFragment_mode13(SynthesisParam* pFinalParam, Loop* pLoop) {
+        SYNTHESIZE(MONO,0,1,1,1);
+    }
+
+    void SynthesizeFragment_mode14(SynthesisParam* pFinalParam, Loop* pLoop) {
+        SYNTHESIZE(MONO,1,0,0,1);
+    }
+
+    void SynthesizeFragment_mode15(SynthesisParam* pFinalParam, Loop* pLoop) {
+        SYNTHESIZE(MONO,1,0,1,1);
+    }
+
+    void SynthesizeFragment_mode16(SynthesisParam* pFinalParam, Loop* pLoop) {
+        SYNTHESIZE(MONO,1,1,0,1);
+    }
+
+    void SynthesizeFragment_mode17(SynthesisParam* pFinalParam, Loop* pLoop) {
+        SYNTHESIZE(MONO,1,1,1,1);
+    }
+
+    void SynthesizeFragment_mode18(SynthesisParam* pFinalParam, Loop* pLoop) {
+        SYNTHESIZE(STEREO,0,0,0,1);
+    }
+
+    void SynthesizeFragment_mode19(SynthesisParam* pFinalParam, Loop* pLoop) {
+        SYNTHESIZE(STEREO,0,0,1,1);
+    }
+
+    void SynthesizeFragment_mode1a(SynthesisParam* pFinalParam, Loop* pLoop) {
+        SYNTHESIZE(STEREO,0,1,0,1);
+    }
+
+    void SynthesizeFragment_mode1b(SynthesisParam* pFinalParam, Loop* pLoop) {
+        SYNTHESIZE(STEREO,0,1,1,1);
+    }
+
+    void SynthesizeFragment_mode1c(SynthesisParam* pFinalParam, Loop* pLoop) {
+        SYNTHESIZE(STEREO,1,0,0,1);
+    }
+
+    void SynthesizeFragment_mode1d(SynthesisParam* pFinalParam, Loop* pLoop) {
+        SYNTHESIZE(STEREO,1,0,1,1);
+    }
+
+    void SynthesizeFragment_mode1e(SynthesisParam* pFinalParam, Loop* pLoop) {
+        SYNTHESIZE(STEREO,1,1,0,1);
+    }
+
+    void SynthesizeFragment_mode1f(SynthesisParam* pFinalParam, Loop* pLoop) {
+        SYNTHESIZE(STEREO,1,1,1,1);
     }
 
     void* GetSynthesisFunction(int SynthesisMode) {
-        // Mode Bits: CHAN,LOOP,FILT,INTERP
+        // Mode Bits: (PROF),(IMPL),24BIT,CHAN,LOOP,FILT,INTERP
         switch (SynthesisMode) {
             case 0x00: return (void*) SynthesizeFragment_mode00;
             case 0x01: return (void*) SynthesizeFragment_mode01;
@@ -116,6 +180,22 @@ namespace LinuxSampler { namespace gig {
             case 0x0d: return (void*) SynthesizeFragment_mode0d;
             case 0x0e: return (void*) SynthesizeFragment_mode0e;
             case 0x0f: return (void*) SynthesizeFragment_mode0f;
+            case 0x10: return (void*) SynthesizeFragment_mode10;
+            case 0x11: return (void*) SynthesizeFragment_mode11;
+            case 0x12: return (void*) SynthesizeFragment_mode12;
+            case 0x13: return (void*) SynthesizeFragment_mode13;
+            case 0x14: return (void*) SynthesizeFragment_mode14;
+            case 0x15: return (void*) SynthesizeFragment_mode15;
+            case 0x16: return (void*) SynthesizeFragment_mode16;
+            case 0x17: return (void*) SynthesizeFragment_mode17;
+            case 0x18: return (void*) SynthesizeFragment_mode18;
+            case 0x19: return (void*) SynthesizeFragment_mode19;
+            case 0x1a: return (void*) SynthesizeFragment_mode1a;
+            case 0x1b: return (void*) SynthesizeFragment_mode1b;
+            case 0x1c: return (void*) SynthesizeFragment_mode1c;
+            case 0x1d: return (void*) SynthesizeFragment_mode1d;
+            case 0x1e: return (void*) SynthesizeFragment_mode1e;
+            case 0x1f: return (void*) SynthesizeFragment_mode1f;
             default: {
                 printf("gig::Synthesizer: Invalid Synthesis Mode: %d\n", SynthesisMode);
                 exit(-1);

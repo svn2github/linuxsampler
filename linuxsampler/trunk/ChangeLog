@@ -61,6 +61,10 @@ Version CVS HEAD (?)
     - reimplementation of the filter algorithm. The new filter is more
       accurate and supports all gig filter types, including bandreject
       and lowpass turbo.
+    - real support for 24 bit samples - samples are not truncated to
+      16 bits anymore
+    - support for aftertouch (channel pressure, not polyphonic
+      aftertouch)
 
   * LSCP server:
     - fixed application exit on broken pipe error (fixes bug #20)
