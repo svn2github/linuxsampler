@@ -130,6 +130,10 @@ namespace LinuxSampler {
              * event to be forwarded to all connected engines on the
              * corresponding MIDI channel.
              *
+             * This method is meant for realtime rendering, this way an event
+             * is immediately created with the current system time as time
+             * stamp.
+             *
              * @param Key         - MIDI key number of the triggered key
              * @param Velocity    - MIDI velocity of the triggered key
              * @param MidiChannel - MIDI channel on which event occured on
@@ -139,9 +143,31 @@ namespace LinuxSampler {
 
             /**
              * Should be called by the implementing MIDI input device
+             * whenever a note on event arrived, this will cause the note on
+             * event to be forwarded to all connected engines on the
+             * corresponding MIDI channel.
+             *
+             * This method is meant for offline rendering and / or in case the
+             * exact fragment position of the event is already known.
+             *
+             * @param Key         - MIDI key number of the triggered key
+             * @param Velocity    - MIDI velocity of the triggered key
+             * @param MidiChannel - MIDI channel on which event occured on
+             *                      (low level indexing, means 0..15)
+             * @param FragmentPos - event's sample point position in the
+             *                      current audio fragment
+             */
+            void DispatchNoteOn(uint8_t Key, uint8_t Velocity, uint MidiChannel, int32_t FragmentPos);
+
+            /**
+             * Should be called by the implementing MIDI input device
              * whenever a note off event arrived, this will cause the note
              * off event to be forwarded to all connected engines on the
              * corresponding MIDI channel.
+             *
+             * This method is meant for realtime rendering, this way an event
+             * is immediately created with the current system time as time
+             * stamp.
              *
              * @param Key         - MIDI key number of the released key
              * @param Velocity    - MIDI velocity of the released key
@@ -152,8 +178,30 @@ namespace LinuxSampler {
 
             /**
              * Should be called by the implementing MIDI input device
+             * whenever a note off event arrived, this will cause the note
+             * off event to be forwarded to all connected engines on the
+             * corresponding MIDI channel.
+             *
+             * This method is meant for offline rendering and / or in case the
+             * exact fragment position of the event is already known.
+             *
+             * @param Key         - MIDI key number of the released key
+             * @param Velocity    - MIDI velocity of the released key
+             * @param MidiChannel - MIDI channel on which event occured on
+             *                      (low level indexing, means 0..15)
+             * @param FragmentPos - event's sample point position in the
+             *                      current audio fragment
+             */
+            void DispatchNoteOff(uint8_t Key, uint8_t Velocity, uint MidiChannel, int32_t FragmentPos);
+
+            /**
+             * Should be called by the implementing MIDI input device
              * whenever a pitchbend event arrived, this will cause the
              * pitchbend event to be forwarded to all connected engines.
+             *
+             * This method is meant for realtime rendering, this way an event
+             * is immediately created with the current system time as time
+             * stamp.
              *
              * @param Pitch       - MIDI pitch value
              * @param MidiChannel - MIDI channel on which event occured on
@@ -163,9 +211,29 @@ namespace LinuxSampler {
 
             /**
              * Should be called by the implementing MIDI input device
+             * whenever a pitchbend event arrived, this will cause the
+             * pitchbend event to be forwarded to all connected engines.
+             *
+             * This method is meant for offline rendering and / or in case the
+             * exact fragment position of the event is already known.
+             *
+             * @param Pitch       - MIDI pitch value
+             * @param MidiChannel - MIDI channel on which event occured on
+             *                      (low level indexing, means 0..15)
+             * @param FragmentPos - event's sample point position in the
+             *                      current audio fragment
+             */
+            void DispatchPitchbend(int Pitch, uint MidiChannel, int32_t FragmentPos);
+
+            /**
+             * Should be called by the implementing MIDI input device
              * whenever a control change event arrived, this will cause the
              * control change event to be forwarded to all engines on the
              * corresponding MIDI channel.
+             *
+             * This method is meant for realtime rendering, this way an event
+             * is immediately created with the current system time as time
+             * stamp.
              *
              * @param Controller  - MIDI controller number
              * @param Value       - MIDI control change value
@@ -173,6 +241,24 @@ namespace LinuxSampler {
              *                      (low level indexing, means 0..15)
              */
             void DispatchControlChange(uint8_t Controller, uint8_t Value, uint MidiChannel);
+
+            /**
+             * Should be called by the implementing MIDI input device
+             * whenever a control change event arrived, this will cause the
+             * control change event to be forwarded to all engines on the
+             * corresponding MIDI channel.
+             *
+             * This method is meant for offline rendering and / or in case the
+             * exact fragment position of the event is already known.
+             *
+             * @param Controller  - MIDI controller number
+             * @param Value       - MIDI control change value
+             * @param MidiChannel - MIDI channel on which event occured on
+             *                      (low level indexing, means 0..15)
+             * @param FragmentPos - event's sample point position in the
+             *                      current audio fragment
+             */
+            void DispatchControlChange(uint8_t Controller, uint8_t Value, uint MidiChannel, int32_t FragmentPos);
 
             /**
              * Should be called by the implementing MIDI input device

@@ -47,8 +47,6 @@ namespace LinuxSampler {
     class EngineChannel {
         public:
 
-            EngineChannel();
-
             /////////////////////////////////////////////////////////////////
             // abstract methods
             //     (these have to be implemented by the descendant)
@@ -57,9 +55,13 @@ namespace LinuxSampler {
             virtual void    LoadInstrument() = 0;
             virtual void    Reset() = 0;
             virtual void    SendNoteOn(uint8_t Key, uint8_t Velocity) = 0;
+            virtual void    SendNoteOn(uint8_t Key, uint8_t Velocity, int32_t FragmentPos) = 0;
             virtual void    SendNoteOff(uint8_t Key, uint8_t Velocity) = 0;
+            virtual void    SendNoteOff(uint8_t Key, uint8_t Velocity, int32_t FragmentPos) = 0;
             virtual void    SendPitchbend(int Pitch) = 0;
+            virtual void    SendPitchbend(int Pitch, int32_t FragmentPos) = 0;
             virtual void    SendControlChange(uint8_t Controller, uint8_t Value) = 0;
+            virtual void    SendControlChange(uint8_t Controller, uint8_t Value, int32_t FragmentPos) = 0;
             virtual bool    StatusChanged(bool bNewStatus = false) = 0;
             virtual float   Volume() = 0;
             virtual void    Volume(float f) = 0;
@@ -114,6 +116,7 @@ namespace LinuxSampler {
             int iSamplerChannelIndex; ///< FIXME: nasty hack, might be removed (should be 'virtual EngineChannel* EngineChannel() = 0;', but due to cyclic dependencies only a void* solution would be possible ATM)
 
         protected:
+            EngineChannel();
             virtual ~EngineChannel() {}; // MUST only be destroyed by EngineChannelFactory
             friend class EngineChannelFactory;
 

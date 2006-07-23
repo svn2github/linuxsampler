@@ -57,9 +57,13 @@ namespace LinuxSampler { namespace gig {
             virtual void    LoadInstrument();
             virtual void    Reset();
             virtual void    SendNoteOn(uint8_t Key, uint8_t Velocity);
+            virtual void    SendNoteOn(uint8_t Key, uint8_t Velocity, int32_t FragmentPos);
             virtual void    SendNoteOff(uint8_t Key, uint8_t Velocity);
+            virtual void    SendNoteOff(uint8_t Key, uint8_t Velocity, int32_t FragmentPos);
             virtual void    SendPitchbend(int Pitch);
+            virtual void    SendPitchbend(int Pitch, int32_t FragmentPos);
             virtual void    SendControlChange(uint8_t Controller, uint8_t Value);
+            virtual void    SendControlChange(uint8_t Controller, uint8_t Value, int32_t FragmentPos);
             virtual bool    StatusChanged(bool bNewStatus = false);
             virtual float   Volume();
             virtual void    Volume(float f);

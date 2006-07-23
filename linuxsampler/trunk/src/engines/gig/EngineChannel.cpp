@@ -354,7 +354,9 @@ namespace LinuxSampler { namespace gig {
 
     /**
      *  Will be called by the MIDIIn Thread to let the audio thread trigger a new
-     *  voice for the given key.
+     *  voice for the given key. This method is meant for real time rendering,
+     *  that is an event will immediately be created with the current system
+     *  time as time stamp.
      *
      *  @param Key      - MIDI key number of the triggered key
      *  @param Velocity - MIDI velocity value of the triggered key
@@ -372,8 +374,36 @@ namespace LinuxSampler { namespace gig {
     }
 
     /**
+     *  Will be called by the MIDIIn Thread to let the audio thread trigger a new
+     *  voice for the given key. This method is meant for offline rendering
+     *  and / or for cases where the exact position of the event in the current
+     *  audio fragment is already known.
+     *
+     *  @param Key         - MIDI key number of the triggered key
+     *  @param Velocity    - MIDI velocity value of the triggered key
+     *  @param FragmentPos - sample point position in the current audio
+     *                       fragment to which this event belongs to
+     */
+    void EngineChannel::SendNoteOn(uint8_t Key, uint8_t Velocity, int32_t FragmentPos) {
+        if (FragmentPos < 0) {
+            dmsg(1,("EngineChannel::SendNoteOn(): negative FragmentPos! Seems MIDI driver is buggy!"));
+        }
+        else if (pEngine) {
+            Event event               = pEngine->pEventGenerator->CreateEvent(FragmentPos);
+            event.Type                = Event::type_note_on;
+            event.Param.Note.Key      = Key;
+            event.Param.Note.Velocity = Velocity;
+            event.pEngineChannel      = this;
+            if (this->pEventQueue->write_space() > 0) this->pEventQueue->push(&event);
+            else dmsg(1,("EngineChannel: Input event queue full!"));
+        }
+    }
+
+    /**
      *  Will be called by the MIDIIn Thread to signal the audio thread to release
-     *  voice(s) on the given key.
+     *  voice(s) on the given key. This method is meant for real time rendering,
+     *  that is an event will immediately be created with the current system
+     *  time as time stamp.
      *
      *  @param Key      - MIDI key number of the released key
      *  @param Velocity - MIDI release velocity value of the released key
@@ -391,8 +421,36 @@ namespace LinuxSampler { namespace gig {
     }
 
     /**
+     *  Will be called by the MIDIIn Thread to signal the audio thread to release
+     *  voice(s) on the given key. This method is meant for offline rendering
+     *  and / or for cases where the exact position of the event in the current
+     *  audio fragment is already known.
+     *
+     *  @param Key         - MIDI key number of the released key
+     *  @param Velocity    - MIDI release velocity value of the released key
+     *  @param FragmentPos - sample point position in the current audio
+     *                       fragment to which this event belongs to
+     */
+    void EngineChannel::SendNoteOff(uint8_t Key, uint8_t Velocity, int32_t FragmentPos) {
+        if (FragmentPos < 0) {
+            dmsg(1,("EngineChannel::SendNoteOff(): negative FragmentPos! Seems MIDI driver is buggy!"));
+        }
+        else if (pEngine) {
+            Event event               = pEngine->pEventGenerator->CreateEvent(FragmentPos);
+            event.Type                = Event::type_note_off;
+            event.Param.Note.Key      = Key;
+            event.Param.Note.Velocity = Velocity;
+            event.pEngineChannel      = this;
+            if (this->pEventQueue->write_space() > 0) this->pEventQueue->push(&event);
+            else dmsg(1,("EngineChannel: Input event queue full!"));
+        }
+    }
+
+    /**
      *  Will be called by the MIDIIn Thread to signal the audio thread to change
-     *  the pitch value for all voices.
+     *  the pitch value for all voices. This method is meant for real time
+     *  rendering, that is an event will immediately be created with the
+     *  current system time as time stamp.
      *
      *  @param Pitch - MIDI pitch value (-8192 ... +8191)
      */
@@ -408,8 +466,34 @@ namespace LinuxSampler { namespace gig {
     }
 
     /**
+     *  Will be called by the MIDIIn Thread to signal the audio thread to change
+     *  the pitch value for all voices. This method is meant for offline
+     *  rendering and / or for cases where the exact position of the event in
+     *  the current audio fragment is already known.
+     *
+     *  @param Pitch       - MIDI pitch value (-8192 ... +8191)
+     *  @param FragmentPos - sample point position in the current audio
+     *                       fragment to which this event belongs to
+     */
+    void EngineChannel::SendPitchbend(int Pitch, int32_t FragmentPos) {
+        if (FragmentPos < 0) {
+            dmsg(1,("EngineChannel::SendPitchBend(): negative FragmentPos! Seems MIDI driver is buggy!"));
+        }
+        else if (pEngine) {
+            Event event             = pEngine->pEventGenerator->CreateEvent(FragmentPos);
+            event.Type              = Event::type_pitchbend;
+            event.Param.Pitch.Pitch = Pitch;
+            event.pEngineChannel    = this;
+            if (this->pEventQueue->write_space() > 0) this->pEventQueue->push(&event);
+            else dmsg(1,("EngineChannel: Input event queue full!"));
+        }
+    }
+
+    /**
      *  Will be called by the MIDIIn Thread to signal the audio thread that a
-     *  continuous controller value has changed.
+     *  continuous controller value has changed. This method is meant for real
+     *  time rendering, that is an event will immediately be created with the
+     *  current system time as time stamp.
      *
      *  @param Controller - MIDI controller number of the occured control change
      *  @param Value      - value of the control change
@@ -417,6 +501,32 @@ namespace LinuxSampler { namespace gig {
     void EngineChannel::SendControlChange(uint8_t Controller, uint8_t Value) {
         if (pEngine) {
             Event event               = pEngine->pEventGenerator->CreateEvent();
+            event.Type                = Event::type_control_change;
+            event.Param.CC.Controller = Controller;
+            event.Param.CC.Value      = Value;
+            event.pEngineChannel      = this;
+            if (this->pEventQueue->write_space() > 0) this->pEventQueue->push(&event);
+            else dmsg(1,("EngineChannel: Input event queue full!"));
+        }
+    }
+
+    /**
+     *  Will be called by the MIDIIn Thread to signal the audio thread that a
+     *  continuous controller value has changed. This method is meant for
+     *  offline rendering and / or for cases where the exact position of the
+     *  event in the current audio fragment is already known.
+     *
+     *  @param Controller  - MIDI controller number of the occured control change
+     *  @param Value       - value of the control change
+     *  @param FragmentPos - sample point position in the current audio
+     *                       fragment to which this event belongs to
+     */
+    void EngineChannel::SendControlChange(uint8_t Controller, uint8_t Value, int32_t FragmentPos) {
+        if (FragmentPos < 0) {
+            dmsg(1,("EngineChannel::SendControlChange(): negative FragmentPos! Seems MIDI driver is buggy!"));
+        }
+        else if (pEngine) {
+            Event event               = pEngine->pEventGenerator->CreateEvent(FragmentPos);
             event.Type                = Event::type_control_change;
             event.Param.CC.Controller = Controller;
             event.Param.CC.Value      = Value;

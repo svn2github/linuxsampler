@@ -79,6 +79,8 @@ Version CVS HEAD (?)
   * MIDI driver:
     - fixed legacy sysex code which caused dispatching of MIDI SysEx
       messages several times instead of once
+    - API extension for MIDI drivers which already supply exact time stamps
+      for events (i.e. for offline rendering based MIDI drivers)
 
   * linuxsampler application:
     - show available sampler engine types on startup

@@ -42,6 +42,7 @@ namespace LinuxSampler {
             EventGenerator(uint SampleRate);
             void UpdateFragmentTime(uint SamplesToProcess);
             Event CreateEvent();
+            Event CreateEvent(int32_t FragmentPos);
         protected:
             typedef RTMath::time_stamp_t time_stamp_t;
             inline int32_t ToFragmentPos(time_stamp_t TimeStamp) {
@@ -60,8 +61,8 @@ namespace LinuxSampler {
 
     /**
      * Events are usually caused by a MIDI source or an internal modulation
-     * controller like LFO or EG. An event can only be created by an
-     * EventGenerator.
+     * controller like LFO or EG. An event should only be created by an
+     * EventGenerator!
      *
      * @see EventGenerator
      */
@@ -113,6 +114,7 @@ namespace LinuxSampler {
         protected:
             typedef EventGenerator::time_stamp_t time_stamp_t;
             Event(EventGenerator* pGenerator, EventGenerator::time_stamp_t Time);
+            Event(EventGenerator* pGenerator, int32_t FragmentPos);
             friend class EventGenerator;
         private:
             EventGenerator* pEventGenerator; ///< Creator of the event.
