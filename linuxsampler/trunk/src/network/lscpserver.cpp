@@ -588,7 +588,14 @@ String LSCPServer::RemoveChannel(uint uiSamplerChannel) {
  */
 String LSCPServer::GetAvailableEngines() {
     dmsg(2,("LSCPServer: GetAvailableEngines()\n"));
-    LSCPResultSet result("1");
+    LSCPResultSet result;
+    try {
+        int n = EngineFactory::AvailableEngineTypes().size();
+        result.Add(n);
+    }
+    catch (Exception e) {
+        result.Error(e);
+    }
     return result.Produce();
 }
 
@@ -597,7 +604,14 @@ String LSCPServer::GetAvailableEngines() {
  */
 String LSCPServer::ListAvailableEngines() {
     dmsg(2,("LSCPServer: ListAvailableEngines()\n"));
-    LSCPResultSet result("\'GIG\'");
+    LSCPResultSet result;
+    try {
+        String s = EngineFactory::AvailableEngineTypesAsString();
+        result.Add(s);
+    }
+    catch (Exception e) {
+        result.Error(e);
+    }
     return result.Produce();
 }
 
