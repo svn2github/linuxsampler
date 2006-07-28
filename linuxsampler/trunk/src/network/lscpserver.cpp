@@ -322,7 +322,7 @@ bool LSCPServer::GetLSCPCommand( std::vector<yyparse_param_t>::iterator iter ) {
 				continue; //Ignore CR
 			if (c == '\n') {
 				LSCPServer::SendLSCPNotify(LSCPEvent(LSCPEvent::event_misc, "Received \'" + bufferedCommands[socket] + "\' on socket", socket));
-				bufferedCommands[socket] += "\n";
+				bufferedCommands[socket] += "\r\n";
 				return true; //Complete command was read
 			}
 			bufferedCommands[socket] += c;
