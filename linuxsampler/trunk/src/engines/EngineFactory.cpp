@@ -43,7 +43,7 @@ namespace LinuxSampler {
         std::vector<String>::iterator iter = types.begin();
         for (; iter != types.end(); iter++) {
             if (result != "") result += ",";
-            result += *iter;
+            result += "'" + *iter + "'";
         }
         return result;
     }
