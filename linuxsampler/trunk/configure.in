@@ -64,7 +64,7 @@ CXX_CPU_SWITCH=
 if ! echo "X $CXXFLAGS " | grep -q -- " \(-march=\|-mcpu=\|-mtune=\|-arch=\)" ; then
   if test "$def_arch_x86" = 1; then
     CXX_CPU_SWITCH="-march=$target_cpu"
-  elif test "$target_cpu" = "powerpc"; then
+  elif test "$target_cpu" = "ppc"; then
     CXX_CPU_SWITCH="-arch=$target_cpu"
   fi
 fi

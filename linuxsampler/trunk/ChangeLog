@@ -19,6 +19,8 @@ Version CVS HEAD (?)
       messages
     - added compile time options to allow disabling the various audio and
       MIDI drivers
+    - fixed automatic GCC CPU switch detection on PPC
+      (patch by Ebrahim Mayat)
 
   * Gigasampler format engine:
     - extensive synthesis optimization
