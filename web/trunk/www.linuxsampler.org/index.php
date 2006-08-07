@@ -129,6 +129,15 @@
                 <tr>
                   <td valign=top>
                     <p class="default">
+		      <b>2006-08-07</b> <a href="http://prdownloads.sourceforge.net/jsampler/JSampler-0.3a.tar.bz2?download">JSampler 0.3a</a> has been released.<br>
+		      * Partially implemented a new view - Fantasia (graphic desing: Olivier Boyer). Only channel manipulation for now. </br>
+		      * More new features in JS Classic - Implemented an LS Console with command autocompletion
+		      (using the Tab key), command history (using Up, Down keys),
+		      command history search (Ctrl + R), command list search (Ctrl + F), and more. </br>
+		      Implemented Orchestras (something like Bookmarks/Favorites
+		      for instruments). Drag & Drop support for instrument loading, adding an instrument to orchestra
+		      and autocompleting an instrument loading command in the LS Console.</br>
+		      <br>
 		      <b>2006-06-02</b> <a href="http://qsampler.sourceforge.net">Qsampler</a> 0.1.3 is now available. It's been a long time isn't it?<br>
 		      <br>
               <b>2006-04-28</b> libgig 3.0.0 has been released.<br>
