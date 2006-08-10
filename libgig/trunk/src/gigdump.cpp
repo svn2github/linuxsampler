@@ -2,7 +2,7 @@
  *                                                                         *
  *   libgig - C++ cross-platform Gigasampler format file loader library    *
  *                                                                         *
- *   Copyright (C) 2003-2005 by Christian Schoenebeck                      *
+ *   Copyright (C) 2003-2006 by Christian Schoenebeck                      *
  *                              <cuse@users.sourceforge.net>               *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
@@ -35,6 +35,7 @@ using namespace std;
 
 string Revision();
 void PrintVersion();
+void PrintFileInformations(gig::File* gig);
 void PrintSamples(gig::File* gig);
 void PrintInstruments(gig::File* gig);
 void PrintRegions(gig::Instrument* instr);
@@ -63,6 +64,8 @@ int main(int argc, char *argv[])
     try {
         RIFF::File* riff = new RIFF::File(argv[1]);
         gig::File*  gig  = new gig::File(riff);
+        PrintFileInformations(gig);
+        cout << endl;
         PrintSamples(gig);
         cout << endl;
         PrintInstruments(gig);
@@ -79,6 +82,51 @@ int main(int argc, char *argv[])
     }
 
     return EXIT_SUCCESS;
+}
+
+void PrintFileInformations(gig::File* gig) {
+    cout << "Global File Informations:" << endl;
+    cout << "    Total instruments: " << gig->Instruments << endl;
+    if (gig->pVersion) {
+       cout << "    Version: " << gig->pVersion->major   << "." 
+                           << gig->pVersion->minor   << "."
+                           << gig->pVersion->release << "."
+                           << gig->pVersion->build   << endl; 
+    }
+    if (gig->pInfo) {
+        if (gig->pInfo->Name.size())
+            cout << "    Name: '" << gig->pInfo->Name << "'\n";
+        if (gig->pInfo->ArchivalLocation.size())
+            cout << "    ArchivalLocation: '" << gig->pInfo->ArchivalLocation << "'\n";
+        if (gig->pInfo->CreationDate.size())
+            cout << "    CreationDate: '" << gig->pInfo->CreationDate << "'\n";
+        if (gig->pInfo->Comments.size())
+            cout << "    Comments: '" << gig->pInfo->Comments << "'\n";
+        if (gig->pInfo->Product.size())
+            cout << "    Product: '" << gig->pInfo->Product << "'\n";
+        if (gig->pInfo->Copyright.size())
+            cout << "    Copyright: '" << gig->pInfo->Copyright << "'\n";
+        if (gig->pInfo->Artists.size())
+            cout << "    Artists: '" << gig->pInfo->Artists << "'\n";
+        if (gig->pInfo->Genre.size())
+            cout << "    Genre: '" << gig->pInfo->Genre << "'\n";
+        if (gig->pInfo->Keywords.size())
+            cout << "    Keywords: '" << gig->pInfo->Keywords << "'\n";
+        if (gig->pInfo->Engineer.size())
+            cout << "    Engineer: '" << gig->pInfo->Engineer << "'\n";
+        if (gig->pInfo->Technician.size())
+            cout << "    Technician: '" << gig->pInfo->Technician << "'\n";
+        if (gig->pInfo->Software.size())
+            cout << "    Software: '" << gig->pInfo->Software << "'\n";
+        if (gig->pInfo->Medium.size())
+            cout << "    Medium: '" << gig->pInfo->Medium << "'\n";
+        if (gig->pInfo->Source.size())
+            cout << "    Source: '" << gig->pInfo->Source << "'\n";
+        if (gig->pInfo->SourceForm.size())
+            cout << "    SourceForm: '" << gig->pInfo->SourceForm << "'\n";
+        if (gig->pInfo->Commissioned.size())
+            cout << "    Commissioned: '" << gig->pInfo->Commissioned << "'\n";
+    }
 }
 
 void PrintSamples(gig::File* gig) {
@@ -321,7 +369,7 @@ void PrintDimensionRegions(gig::Region* rgn) {
 }
 
 string Revision() {
-    string s = "$Revision: 1.18 $";
+    string s = "$Revision: 1.19 $";
     return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
 }
 

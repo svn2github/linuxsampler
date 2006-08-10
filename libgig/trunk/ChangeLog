@@ -23,6 +23,9 @@ Version CVS HEAD (?)
   * src/gigextract.cpp:
     - real support for 24 bit samples
 
+  * src/gigdump.cpp:
+    - print global file informations
+
 Version 3.0.0 (28 Apr 2006)
 
   * general changes:
