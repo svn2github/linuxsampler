@@ -69,4 +69,4 @@ fi
 AM_CONFIG_HEADER(config.h)
 AM_INIT_AUTOMAKE(libgig, "$LIBGIG_RELEASE_MAJOR.$LIBGIG_RELEASE_MINOR.$LIBGIG_RELEASE_BUILD")
 
-AC_OUTPUT(Makefile doc/Makefile man/Makefile src/Makefile libgig.spec gig.pc Doxyfile man/dlsdump.1 man/gigdump.1 man/gigextract.1 man/rifftree.1 debian/Makefile)
+AC_OUTPUT(Makefile doc/Makefile man/Makefile src/Makefile libgig.spec gig.pc Doxyfile man/dlsdump.1 man/gigdump.1 man/gigextract.1 man/rifftree.1 debian/Makefile src/testcases/Makefile)

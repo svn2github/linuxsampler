@@ -26,6 +26,10 @@ Version CVS HEAD (?)
   * src/gigdump.cpp:
     - print global file informations
 
+  * general changes:
+    - added CPPUnit test cases (at the moment primarily for automatic check
+      of Gigasampler write support)
+
 Version 3.0.0 (28 Apr 2006)
 
   * general changes:

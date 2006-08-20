@@ -1,3 +1,5 @@
+SUBDIRS = testcases
+
 # to prevent compile errors on some systems
 AM_CXXFLAGS = -pedantic -Wreturn-type
 
