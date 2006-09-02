@@ -45,7 +45,7 @@
 #define CONN_TRANSFORM_INVERT_SRC_ENCODE(x)		((x) ? 0x8000 : 0)
 #define CONN_TRANSFORM_INVERT_CTL_ENCODE(x)		((x) ? 0x0200 : 0)
 
-#define DRUM_TYPE_MASK			0x00000001
+#define DRUM_TYPE_MASK			0x80000000
 
 #define F_RGN_OPTION_SELFNONEXCLUSIVE	0x0001
 
@@ -142,15 +142,15 @@ namespace DLS {
         const int iEntrySize = 12; // 12 bytes per connection block
         pArticulationCk->Resize(HeaderSize + Connections * iEntrySize);
         uint8_t* pData = (uint8_t*) pArticulationCk->LoadChunkData();
-        memccpy(&pData[0], &HeaderSize, 1, 2);
-        memccpy(&pData[2], &Connections, 1, 2);
+        memcpy(&pData[0], &HeaderSize, 2);
+        memcpy(&pData[2], &Connections, 2);
         for (uint32_t i = 0; i < Connections; i++) {
             Connection::conn_block_t c = pConnections[i].ToConnBlock();
-            memccpy(&pData[HeaderSize + i * iEntrySize],     &c.source, 1, 2);
-            memccpy(&pData[HeaderSize + i * iEntrySize + 2], &c.control, 1, 2);
-            memccpy(&pData[HeaderSize + i * iEntrySize + 4], &c.destination, 1, 2);
-            memccpy(&pData[HeaderSize + i * iEntrySize + 6], &c.transform, 1, 2);
-            memccpy(&pData[HeaderSize + i * iEntrySize + 8], &c.scale, 1, 4);
+            memcpy(&pData[HeaderSize + i * iEntrySize],     &c.source, 2);
+            memcpy(&pData[HeaderSize + i * iEntrySize + 2], &c.control, 2);
+            memcpy(&pData[HeaderSize + i * iEntrySize + 4], &c.destination, 2);
+            memcpy(&pData[HeaderSize + i * iEntrySize + 6], &c.transform, 2);
+            memcpy(&pData[HeaderSize + i * iEntrySize + 8], &c.scale, 4);
         }
     }
 
@@ -233,6 +233,7 @@ namespace DLS {
      * @param list - pointer to a list chunk which contains a INFO list chunk
      */
     Info::Info(RIFF::List* list) {
+        UseFixedLengthStrings = false;
         pResourceListChunk = list;
         if (list) {
             RIFF::List* lstINFO = list->GetSubList(LIST_TYPE_INFO);
@@ -292,18 +293,21 @@ namespace DLS {
      * @param lstINFO  - parent (INFO) RIFF list chunk
      * @param s        - current value of info field
      * @param sDefault - default value
+     * @param size     - wanted size of the INFO chunk. This is ignored if UseFixedLengthStrings is false.
      */
-    void Info::SaveString(uint32_t ChunkID, RIFF::List* lstINFO, const String& s, const String& sDefault) {
+    void Info::SaveString(uint32_t ChunkID, RIFF::List* lstINFO, const String& s, const String& sDefault, int size) {
         RIFF::Chunk* ck = lstINFO->GetSubChunk(ChunkID);
         if (ck) { // if chunk exists already, use 's' as value
-            ck->Resize(s.size() + 1);
+            if (!UseFixedLengthStrings) size = s.size() + 1;
+            ck->Resize(size);
             char* pData = (char*) ck->LoadChunkData();
-            memcpy(pData, s.c_str(), s.size() + 1);
+            strncpy(pData, s.c_str(), size);
         } else if (s != "" || sDefault != "") { // create chunk
             const String& sToSave = (s != "") ? s : sDefault;
-            ck = lstINFO->AddSubChunk(ChunkID, sToSave.size() + 1);
+            if (!UseFixedLengthStrings) size = sToSave.size() + 1;
+            ck = lstINFO->AddSubChunk(ChunkID, size);
             char* pData = (char*) ck->LoadChunkData();
-            memcpy(pData, sToSave.c_str(), sToSave.size() + 1);
+            strncpy(pData, sToSave.c_str(), size);
         }
     }
 
@@ -317,36 +321,59 @@ namespace DLS {
 
         // make sure INFO list chunk exists
         RIFF::List* lstINFO   = pResourceListChunk->GetSubList(LIST_TYPE_INFO);
-        if (!lstINFO) lstINFO = pResourceListChunk->AddSubList(LIST_TYPE_INFO);
 
-        // assemble default values in case the respective chunk is missing yet
-        String defaultName = "NONAME";
-        // get current date
-        time_t now = time(NULL);
-        tm* pNowBroken = localtime(&now);
-        String defaultCreationDate = ToString(1900 + pNowBroken->tm_year) + "-" +
-                                     ToString(pNowBroken->tm_mon + 1)  + "-" +
-                                     ToString(pNowBroken->tm_mday);
-        String defaultSoftware = libraryName() + " " + libraryVersion();
-        String defaultComments = "Created with " + libraryName() + " " + libraryVersion();
+        String defaultName = "";
+        String defaultCreationDate = "";
+        String defaultSoftware = "";
+        String defaultComments = "";
+
+        uint32_t resourceType = pResourceListChunk->GetListType();
+
+        if (!lstINFO) {
+            lstINFO = pResourceListChunk->AddSubList(LIST_TYPE_INFO);
+
+            // assemble default values
+            defaultName = "NONAME";
+
+            if (resourceType == RIFF_TYPE_DLS) {
+                // get current date
+                time_t now = time(NULL);
+                tm* pNowBroken = localtime(&now);
+                char buf[11];
+                strftime(buf, 11, "%F", pNowBroken);
+                defaultCreationDate = buf;
+
+                defaultComments = "Created with " + libraryName() + " " + libraryVersion();
+            }
+            if (resourceType == RIFF_TYPE_DLS || resourceType == LIST_TYPE_INS)
+            {
+                defaultSoftware = libraryName() + " " + libraryVersion();
+            }
+        }
 
         // save values
-        SaveString(CHUNK_ID_INAM, lstINFO, Name, defaultName);
-        SaveString(CHUNK_ID_IARL, lstINFO, ArchivalLocation, String(""));
-        SaveString(CHUNK_ID_ICRD, lstINFO, CreationDate, defaultCreationDate);
-        SaveString(CHUNK_ID_ICMT, lstINFO, Comments, defaultComments);
-        SaveString(CHUNK_ID_IPRD, lstINFO, Product, String(""));
-        SaveString(CHUNK_ID_ICOP, lstINFO, Copyright, String(""));
-        SaveString(CHUNK_ID_IART, lstINFO, Artists, String(""));
-        SaveString(CHUNK_ID_IGNR, lstINFO, Genre, String(""));
-        SaveString(CHUNK_ID_IKEY, lstINFO, Keywords, String(""));
-        SaveString(CHUNK_ID_IENG, lstINFO, Engineer, String(""));
-        SaveString(CHUNK_ID_ITCH, lstINFO, Technician, String(""));
-        SaveString(CHUNK_ID_ISFT, lstINFO, Software, defaultSoftware);
-        SaveString(CHUNK_ID_IMED, lstINFO, Medium, String(""));
-        SaveString(CHUNK_ID_ISRC, lstINFO, Source, String(""));
-        SaveString(CHUNK_ID_ISRF, lstINFO, SourceForm, String(""));
-        SaveString(CHUNK_ID_ICMS, lstINFO, Commissioned, String(""));
+
+        // (the string size values are for gig files; they are only
+        // used if UseFixedLengthStrings is set to true)
+        SaveString(CHUNK_ID_INAM, lstINFO, Name, defaultName,
+                   resourceType == RIFF_TYPE_DLS ? 128 : 64);
+        SaveString(CHUNK_ID_IARL, lstINFO, ArchivalLocation, String(""), 256);
+        SaveString(CHUNK_ID_ICRD, lstINFO, CreationDate, defaultCreationDate, 128);
+        SaveString(CHUNK_ID_ICMT, lstINFO, Comments, defaultComments, 1024);
+        SaveString(CHUNK_ID_IPRD, lstINFO, Product, String(""), 128);
+        SaveString(CHUNK_ID_ICOP, lstINFO, Copyright, String(""), 128);
+        SaveString(CHUNK_ID_IART, lstINFO, Artists, String(""), 128);
+        SaveString(CHUNK_ID_IGNR, lstINFO, Genre, String(""), 128);
+        SaveString(CHUNK_ID_IKEY, lstINFO, Keywords, String(""), 128);
+        SaveString(CHUNK_ID_IENG, lstINFO, Engineer, String(""), 128);
+        SaveString(CHUNK_ID_ITCH, lstINFO, Technician, String(""), 128);
+        SaveString(CHUNK_ID_ISFT, lstINFO, Software, defaultSoftware,
+                   resourceType == LIST_TYPE_INS ?
+                   (Software == "" ? defaultSoftware.length() : Software.length()) : 128);
+        SaveString(CHUNK_ID_IMED, lstINFO, Medium, String(""), 128);
+        SaveString(CHUNK_ID_ISRC, lstINFO, Source, String(""), 128);
+        SaveString(CHUNK_ID_ISRF, lstINFO, SourceForm, String(""), 128);
+        SaveString(CHUNK_ID_ICMS, lstINFO, Commissioned, String(""), 128);
     }
 
 
@@ -452,7 +479,7 @@ namespace DLS {
         }
         uint8_t* pData = (uint8_t*) wsmp->LoadChunkData();
         // update headers size
-        memccpy(&pData[0], &uiHeaderSize, 1, 4);
+        memcpy(&pData[0], &uiHeaderSize, 4);
         // update respective sampler options bits
         SamplerOptions = (NoSampleDepthTruncation) ? SamplerOptions | F_WSMP_NO_TRUNCATION
                                                    : SamplerOptions & (~F_WSMP_NO_TRUNCATION);
@@ -461,7 +488,7 @@ namespace DLS {
         // update loop definitions
         for (uint32_t i = 0; i < SampleLoops; i++) {
             //FIXME: this does not handle extended loop structs correctly
-            memccpy(&pData[uiHeaderSize + i * 16], pSampleLoops + i, 4, 4);
+            memcpy(&pData[uiHeaderSize + i * 16], pSampleLoops + i, 4 * 4);
         }
     }
 
@@ -701,12 +728,12 @@ namespace DLS {
         if (!pCkFormat) pCkFormat = pWaveList->AddSubChunk(CHUNK_ID_FMT, 16); // assumes PCM format
         uint8_t* pData = (uint8_t*) pCkFormat->LoadChunkData();
         // update 'fmt' chunk
-        memccpy(&pData[0], &FormatTag, 1, 2);
-        memccpy(&pData[2], &Channels,  1, 2);
-        memccpy(&pData[4], &SamplesPerSecond, 1, 4);
-        memccpy(&pData[8], &AverageBytesPerSecond, 1, 4);
-        memccpy(&pData[12], &BlockAlign, 1, 2);
-        memccpy(&pData[14], &BitDepth, 1, 2); // assuming PCM format
+        memcpy(&pData[0], &FormatTag, 2);
+        memcpy(&pData[2], &Channels,  2);
+        memcpy(&pData[4], &SamplesPerSecond, 4);
+        memcpy(&pData[8], &AverageBytesPerSecond, 4);
+        memcpy(&pData[12], &BlockAlign, 2);
+        memcpy(&pData[14], &BitDepth, 2); // assuming PCM format
     }
 
 
@@ -798,20 +825,20 @@ namespace DLS {
     void Region::UpdateChunks() {
         // make sure 'rgnh' chunk exists
         RIFF::Chunk* rgnh = pCkRegion->GetSubChunk(CHUNK_ID_RGNH);
-        if (!rgnh) rgnh = pCkRegion->AddSubChunk(CHUNK_ID_RGNH, 14);
+        if (!rgnh) rgnh = pCkRegion->AddSubChunk(CHUNK_ID_RGNH, Layer ? 14 : 12);
         uint8_t* pData = (uint8_t*) rgnh->LoadChunkData();
         FormatOptionFlags = (SelfNonExclusive)
                                 ? FormatOptionFlags | F_RGN_OPTION_SELFNONEXCLUSIVE
                                 : FormatOptionFlags & (~F_RGN_OPTION_SELFNONEXCLUSIVE);
         // update 'rgnh' chunk
-        memccpy(&pData[0], &KeyRange, 2, 2);
-        memccpy(&pData[4], &VelocityRange, 2, 2);
-        memccpy(&pData[8], &FormatOptionFlags, 1, 2);
-        memccpy(&pData[10], &KeyGroup, 1, 2);
-        memccpy(&pData[12], &Layer, 1, 2);
+        memcpy(&pData[0], &KeyRange, 2 * 2);
+        memcpy(&pData[4], &VelocityRange, 2 * 2);
+        memcpy(&pData[8], &FormatOptionFlags, 2);
+        memcpy(&pData[10], &KeyGroup, 2);
+        if (rgnh->GetSize() >= 14) memcpy(&pData[12], &Layer, 2);
 
-        // update chunks of base classes as well
-        Resource::UpdateChunks();
+        // update chunks of base classes as well (but skip Resource,
+        // as a rgn doesn't seem to have dlid and INFO chunks)
         Articulator::UpdateChunks();
         Sampler::UpdateChunks();
 
@@ -841,10 +868,10 @@ namespace DLS {
         if (index < 0) throw Exception("Could not save Region, could not find Region's sample");
         WavePoolTableIndex = index;
         // update 'wlnk' chunk
-        memccpy(&pData[0], &WaveLinkOptionFlags, 1, 2);
-        memccpy(&pData[2], &PhaseGroup, 1, 2);
-        memccpy(&pData[4], &Channel, 1, 4);
-        memccpy(&pData[8], &WavePoolTableIndex, 1, 4);
+        memcpy(&pData[0], &WaveLinkOptionFlags, 2);
+        memcpy(&pData[2], &PhaseGroup, 2);
+        memcpy(&pData[4], &Channel, 4);
+        memcpy(&pData[8], &WavePoolTableIndex, 4);
     }
 
 
@@ -957,8 +984,8 @@ namespace DLS {
         locale.bank       = MIDI_BANK_ENCODE(MIDIBankCoarse, MIDIBankFine);
         locale.bank       = (IsDrum) ? locale.bank | DRUM_TYPE_MASK : locale.bank & (~DRUM_TYPE_MASK);
         MIDIBank          = MIDI_BANK_MERGE(MIDIBankCoarse, MIDIBankFine); // just a sync, when we're at it
-        memccpy(&pData[0], &Regions, 1, 4);
-        memccpy(&pData[4], &locale, 2, 4);
+        memcpy(&pData[0], &Regions, 4);
+        memcpy(&pData[4], &locale, 2 * 4);
         // update Region's chunks
         if (!pRegions) return;
         RegionList::iterator iter = pRegions->begin();
@@ -1254,7 +1281,7 @@ namespace DLS {
             RIFF::Chunk* ckVersion    = pRIFF->GetSubChunk(CHUNK_ID_VERS);
             if (!ckVersion) ckVersion = pRIFF->AddSubChunk(CHUNK_ID_VERS, 8);
             uint8_t* pData = (uint8_t*) ckVersion->LoadChunkData();
-            memccpy(pData, pVersion, 2, 4);
+            memcpy(pData, pVersion, 2 * 4);
         }
 
         // update 'colh' chunk
@@ -1262,7 +1289,7 @@ namespace DLS {
         RIFF::Chunk* colh = pRIFF->GetSubChunk(CHUNK_ID_COLH);
         if (!colh)   colh = pRIFF->AddSubChunk(CHUNK_ID_COLH, 4);
         uint8_t* pData = (uint8_t*) colh->LoadChunkData();
-        memccpy(pData, &Instruments, 1, 4);
+        memcpy(pData, &Instruments, 4);
 
         // update instrument's chunks
         if (pInstruments) {
@@ -1282,7 +1309,7 @@ namespace DLS {
         ptbl->Resize(iPtblSize);
         pData = (uint8_t*) ptbl->LoadChunkData();
         WavePoolCount = iSamples;
-        memccpy(&pData[4], &WavePoolCount, 1, 4);
+        memcpy(&pData[4], &WavePoolCount, 4);
         // we actually update the sample offsets in the pool table when we Save()
         memset(&pData[WavePoolHeaderSize], 0, iPtblSize - WavePoolHeaderSize);
 

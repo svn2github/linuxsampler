@@ -315,6 +315,7 @@ namespace DLS {
             String Source;           ///< <ISRC-ck>. Identifies the name of the person or organization who supplied the original subject of the file.
             String SourceForm;       ///< <ISRF-ck>. Identifies the original form of the material that was digitized, such as record, sampling CD, TV sound track. This is not neccessarily the same as <i>Medium</i>.
             String Commissioned;     ///< <ICMS-ck>. Lists the name of the person or organization that commissioned the subject of the file, e.g., Pope Julian II.
+            bool UseFixedLengthStrings; ///< Set this to true if the info strings should be stored with a fixed length format. This is used for gig files, not for ordinary DLS files.
 
             Info(RIFF::List* list);
             virtual ~Info();
@@ -323,7 +324,7 @@ namespace DLS {
             RIFF::List* pResourceListChunk;
 
             void LoadString(uint32_t ChunkID, RIFF::List* lstINFO, String& s);
-            void SaveString(uint32_t ChunkID, RIFF::List* lstINFO, const String& s, const String& sDefault);
+            void SaveString(uint32_t ChunkID, RIFF::List* lstINFO, const String& s, const String& sDefault, int size);
     };
 
     /** Abstract base class which encapsulates data structures which all DLS resources are able to provide. */

@@ -16,9 +16,13 @@ Version CVS HEAD (?)
       16 bits anymore
     - support for reading of ".art" files. (Merging of .art and .gig
       files are not implemented yet.)
+    - several fixes for the write support
 
-  * src/DLS.cpp:
+  * src/DLS.cpp, src/DLS.h:
     - support for reading of ".art" files
+    - removed incorrect use of memccpy in the write support (patch by
+      Jeremy Kerr)
+    - several fixes for the write support
 
   * src/gigextract.cpp:
     - real support for 24 bit samples
