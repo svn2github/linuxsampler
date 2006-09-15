@@ -485,6 +485,11 @@ namespace DLS {
                                                    : SamplerOptions & (~F_WSMP_NO_TRUNCATION);
         SamplerOptions = (NoSampleCompression) ? SamplerOptions | F_WSMP_NO_COMPRESSION
                                                : SamplerOptions & (~F_WSMP_NO_COMPRESSION);
+        memcpy(&pData[4], &UnityNote, 2);
+        memcpy(&pData[6], &FineTune, 2);
+        memcpy(&pData[8], &Gain, 4);
+        memcpy(&pData[12], &SamplerOptions, 4);
+        memcpy(&pData[16], &SampleLoops, 4);
         // update loop definitions
         for (uint32_t i = 0; i < SampleLoops; i++) {
             //FIXME: this does not handle extended loop structs correctly
