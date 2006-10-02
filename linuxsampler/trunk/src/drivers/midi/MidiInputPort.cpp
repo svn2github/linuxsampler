@@ -91,6 +91,7 @@ namespace LinuxSampler {
     }
 
     void MidiInputPort::DispatchNoteOn(uint8_t Key, uint8_t Velocity, uint MidiChannel) {
+        if (Key > 127 || Velocity > 127 || MidiChannel > 16) return;
         const MidiChannelMap_t& midiChannelMap = MidiChannelMapReader.Lock();
         // dispatch event for engines listening to the same MIDI channel
         {
@@ -108,6 +109,7 @@ namespace LinuxSampler {
     }
 
     void MidiInputPort::DispatchNoteOn(uint8_t Key, uint8_t Velocity, uint MidiChannel, int32_t FragmentPos) {
+        if (Key > 127 || Velocity > 127 || MidiChannel > 16) return;
         const MidiChannelMap_t& midiChannelMap = MidiChannelMapReader.Lock();
         // dispatch event for engines listening to the same MIDI channel
         {
@@ -125,6 +127,7 @@ namespace LinuxSampler {
     }
 
     void MidiInputPort::DispatchNoteOff(uint8_t Key, uint8_t Velocity, uint MidiChannel) {
+        if (Key > 127 || Velocity > 127 || MidiChannel > 16) return;
         const MidiChannelMap_t& midiChannelMap = MidiChannelMapReader.Lock();
         // dispatch event for engines listening to the same MIDI channel
         {
@@ -142,6 +145,7 @@ namespace LinuxSampler {
     }
 
     void MidiInputPort::DispatchNoteOff(uint8_t Key, uint8_t Velocity, uint MidiChannel, int32_t FragmentPos) {
+        if (Key > 127 || Velocity > 127 || MidiChannel > 16) return;
         const MidiChannelMap_t& midiChannelMap = MidiChannelMapReader.Lock();
         // dispatch event for engines listening to the same MIDI channel
         {
@@ -159,6 +163,7 @@ namespace LinuxSampler {
     }
 
     void MidiInputPort::DispatchPitchbend(int Pitch, uint MidiChannel) {
+        if (Pitch < -8192 || Pitch > 8191 || MidiChannel > 16) return;
         const MidiChannelMap_t& midiChannelMap = MidiChannelMapReader.Lock();
         // dispatch event for engines listening to the same MIDI channel
         {
@@ -176,6 +181,7 @@ namespace LinuxSampler {
     }
 
     void MidiInputPort::DispatchPitchbend(int Pitch, uint MidiChannel, int32_t FragmentPos) {
+        if (Pitch < -8192 || Pitch > 8191 || MidiChannel > 16) return;
         const MidiChannelMap_t& midiChannelMap = MidiChannelMapReader.Lock();
         // dispatch event for engines listening to the same MIDI channel
         {
@@ -193,6 +199,7 @@ namespace LinuxSampler {
     }
 
     void MidiInputPort::DispatchControlChange(uint8_t Controller, uint8_t Value, uint MidiChannel) {
+        if (Controller > 128 || Value > 127 || MidiChannel > 16) return;
         const MidiChannelMap_t& midiChannelMap = MidiChannelMapReader.Lock();
         // dispatch event for engines listening to the same MIDI channel
         {
@@ -210,6 +217,7 @@ namespace LinuxSampler {
     }
 
     void MidiInputPort::DispatchControlChange(uint8_t Controller, uint8_t Value, uint MidiChannel, int32_t FragmentPos) {
+        if (Controller > 128 || Value > 127 || MidiChannel > 16) return;
         const MidiChannelMap_t& midiChannelMap = MidiChannelMapReader.Lock();
         // dispatch event for engines listening to the same MIDI channel
         {
@@ -236,6 +244,7 @@ namespace LinuxSampler {
     }
 
     void MidiInputPort::DispatchProgramChange(uint8_t Program, uint MidiChannel) {
+        if (Program > 127 || MidiChannel > 16) return;
         if (!pDevice || !pDevice->pSampler) {
             std::cerr << "MidiInputPort: ERROR, no sampler instance to handle program change."
                       << "This is a bug, please report it!\n" << std::flush;

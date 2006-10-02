@@ -338,7 +338,7 @@ namespace LinuxSampler { namespace gig {
             }
             if (bLFO1Enabled) {
                 pLFO1->trigger(pDimRgn->LFO1Frequency,
-                               start_level_max,
+                               start_level_min,
                                lfo1_internal_depth,
                                pDimRgn->LFO1ControlDepth,
                                pDimRgn->LFO1FlipPhase,
@@ -835,7 +835,7 @@ namespace LinuxSampler { namespace gig {
             if (EG3.active()) finalSynthesisParameters.fFinalPitch *= EG3.render();
 
             // process low frequency oscillators
-            if (bLFO1Enabled) fFinalVolume *= pLFO1->render();
+            if (bLFO1Enabled) fFinalVolume *= (1.0f - pLFO1->render());
             if (bLFO2Enabled) fFinalCutoff *= pLFO2->render();
             if (bLFO3Enabled) finalSynthesisParameters.fFinalPitch *= RTMath::CentsToFreqRatio(pLFO3->render());
 

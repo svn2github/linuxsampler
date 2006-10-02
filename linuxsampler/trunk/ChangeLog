@@ -67,6 +67,8 @@ Version CVS HEAD (?)
       16 bits anymore
     - support for aftertouch (channel pressure, not polyphonic
       aftertouch)
+    - LFO1 behaviour fixed (dampening from max volume instead of
+      amplifying from 0)
 
   * LSCP server:
     - fixed application exit on broken pipe error (fixes bug #20)
@@ -83,6 +85,7 @@ Version CVS HEAD (?)
       messages several times instead of once
     - API extension for MIDI drivers which already supply exact time stamps
       for events (i.e. for offline rendering based MIDI drivers)
+    - added checks for bad MIDI data
 
   * linuxsampler application:
     - show available sampler engine types on startup
