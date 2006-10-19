@@ -107,6 +107,20 @@ Compiling
   On success, the resulting rpm(s) can usually be found under the proper
   "/usr/src/<rpmdir>/RPMS/<arch>" directory.
 
+Test Cases
+==========
+  The libgig sources come with a tiny console application which allows to
+  automatically test libgig's functions on your system. This test
+  application is not compiled by default, you have to compile it explicitly
+  with the following commands on the console (cppunit has to be installed):
+
+    cd src/testcases
+    make libgigtests
+
+  and then run the test application from the same directory with:
+
+    ./libgigtests
+
 License
 =======
   libgig and its tools are released under the GNU General Public License.
@@ -119,9 +133,15 @@ API Documentation
 
 Patches
 =======
-  If you find bugs or have improvements, your patches are always welcome!
+  If you have bug fixes or improvements, your patches are always welcome!
   Send them either directly to me or to the LinuxSampler developer's mailing
   list <linuxsampler-devel@lists.sourceforge.net>.
+
+Bugs
+====
+  Please use http://bugs.linuxsampler.org to check and report possible bugs.
+  You might also try to run the "Test Cases" coming with libgig (see above),
+  especially in case you are running on an odd system.
 
 Credits
 =======

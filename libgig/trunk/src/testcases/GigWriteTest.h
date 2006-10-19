@@ -12,6 +12,7 @@ class GigWriteTest : public CppUnit::TestFixture {
     CPPUNIT_TEST(testOpenCreatedGigFile);
     CPPUNIT_TEST(testArticulationsOfCreatedGigFile);
     CPPUNIT_TEST(testWriteSamples);
+    CPPUNIT_TEST(testSamplesData);
     CPPUNIT_TEST_SUITE_END();
 
     public:
@@ -24,6 +25,7 @@ class GigWriteTest : public CppUnit::TestFixture {
         void testOpenCreatedGigFile();
         void testArticulationsOfCreatedGigFile();
         void testWriteSamples();
+        void testSamplesData();
 };
 
 #endif // __LIBGIG_GIGWRITETEST_H__

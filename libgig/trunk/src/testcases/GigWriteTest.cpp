@@ -6,6 +6,7 @@
 #include <string.h>
 
 #include "../gig.h"
+#include "../helper.h"
 
 CPPUNIT_TEST_SUITE_REGISTRATION(GigWriteTest);
 
@@ -21,6 +22,7 @@ int16_t sampleData2[] = { 4, 5, 6 };
 int16_t sampleData3[] = { 7, 8, 9 };
 int16_t sampleData4[] = { 10,11,12 };
 
+// 1. Run) print the purpose of this test case first
 void GigWriteTest::printTestSuiteName() {
     cout << "\b \nTesting Gigasampler write support: " << flush;
 }
@@ -37,7 +39,7 @@ void GigWriteTest::tearDown() {
 /////////////////////////////////////////////////////////////////////////////
 // The actual test cases (in order) ...
 
-// 1.) create a new Gigasampler file from scratch
+// 2. Run) create a new Gigasampler file from scratch
 void GigWriteTest::createNewGigFile() {
     try {
         // create an empty Gigasampler file
@@ -124,7 +126,7 @@ void GigWriteTest::createNewGigFile() {
     }
 }
 
-// 2.) test if the newly created Gigasampler file exists & can be opened
+// 3. Run) test if the newly created Gigasampler file exists & can be opened
 void GigWriteTest::testOpenCreatedGigFile() {
     // try to open previously created Gigasampler file
     try {
@@ -137,20 +139,54 @@ void GigWriteTest::testOpenCreatedGigFile() {
     }
 }
 
-// 3.) test if the articulation informations of the newly created Gigasampler file were correctly written
+// 4. Run) test if the articulation informations of the newly created Gigasampler file were correctly written
 void GigWriteTest::testArticulationsOfCreatedGigFile() {
     try {
         // open previously created Gigasampler file
         RIFF::File riff(TEST_GIG_FILE_NAME);
         gig::File file(&riff);
+        // check global file informations
+        CPPUNIT_ASSERT(file.pInfo);
+        CPPUNIT_ASSERT(file.pInfo->Name == "Foo Gigasampler File");
         // check amount of instruments and samples
         CPPUNIT_ASSERT(file.Instruments == 4);
+        int iInstruments = 0;
+        for (gig::Instrument* pInstrument = file.GetFirstInstrument(); pInstrument; pInstrument = file.GetNextInstrument()) iInstruments++;
+        CPPUNIT_ASSERT(iInstruments == 4);
         int iSamples = 0;
         for (gig::Sample* pSample = file.GetFirstSample(); pSample; pSample = file.GetNextSample()) iSamples++;
         CPPUNIT_ASSERT(iSamples == 4);
-
-        //TODO: check all articulations previously set in createNewGigFile()
-
+        // check samples' meta informations
+        int iSample = 1;
+        for (gig::Sample* pSample = file.GetFirstSample(); pSample; pSample = file.GetNextSample()) {
+            CPPUNIT_ASSERT(pSample->pInfo);
+            std::string sOughtToBe = "Foo Sample " + ToString(iSample);
+            CPPUNIT_ASSERT(pSample->pInfo->Name == sOughtToBe);
+            CPPUNIT_ASSERT(pSample->GetSize() == 3); // three sample points
+            CPPUNIT_ASSERT(pSample->SamplesTotal == 3); // three sample points
+            CPPUNIT_ASSERT(pSample->Channels == 1); // mono
+            CPPUNIT_ASSERT(pSample->BitDepth == 16); // bit depth 16 bits
+            CPPUNIT_ASSERT(pSample->FrameSize == 16 / 8 * 1);
+            CPPUNIT_ASSERT(pSample->SamplesPerSecond == 44100);
+            iSample++;
+        }
+        // check instruments' meta informations
+        int iInstrument = 1;
+        for (gig::Instrument* pInstrument = file.GetFirstInstrument(); pInstrument; pInstrument = file.GetNextInstrument()) {
+            CPPUNIT_ASSERT(pInstrument->pInfo);
+            std::string sOughtToBe = "Foo Instrument " + ToString(iInstrument);
+            CPPUNIT_ASSERT(pInstrument->pInfo->Name == sOughtToBe);
+            gig::Region* pRegion = pInstrument->GetFirstRegion();
+            CPPUNIT_ASSERT(pRegion);
+            CPPUNIT_ASSERT(pRegion->Dimensions == 0);
+            CPPUNIT_ASSERT(pRegion->DimensionRegions == 1);
+            sOughtToBe = "Foo Sample " + ToString(iInstrument);
+            CPPUNIT_ASSERT(pRegion->GetSample()->pInfo->Name == sOughtToBe);
+            gig::DimensionRegion* pDimensionRegion = pRegion->GetDimensionRegionByValue((uint[8]){0,0,0,0,0,0,0,0});
+            CPPUNIT_ASSERT(pDimensionRegion);
+            CPPUNIT_ASSERT(pDimensionRegion->pSample->pInfo->Name == sOughtToBe);
+            iInstrument++;
+        }
     } catch (RIFF::Exception e) {
         std::cerr << "\nThere was an exception while checking the articulation data of the newly created Gigasampler file:\n" << std::flush;
         e.PrintMessage();
@@ -158,11 +194,12 @@ void GigWriteTest::testArticulationsOfCreatedGigFile() {
     }
 }
 
-// 4.) try to write sample data to that newly created Gigasampler file
+// 5. Run) try to write sample data to that newly created Gigasampler file
 void GigWriteTest::testWriteSamples() {
     try {
-        // open previously created Gigasampler file
+        // open previously created Gigasampler file (in read/write mode)
         RIFF::File riff(TEST_GIG_FILE_NAME);
+        riff.SetMode(RIFF::stream_mode_read_write);
         gig::File file(&riff);
         // until this point we just wrote the articulation data to the .gig file
         // and prepared the .gig file for writing our 4 example sample data, so
@@ -183,6 +220,45 @@ void GigWriteTest::testWriteSamples() {
         pSample4->Write(sampleData4, 3);
     } catch (RIFF::Exception e) {
         std::cerr << "\nCould not directly write samples to newly created Gigasampler file:\n" << std::flush;
+        e.PrintMessage();
+        throw e; // stop further tests
+    }
+}
+
+// 6. Run) check the previously written samples' data
+void GigWriteTest::testSamplesData() {
+    try {
+        // open previously created Gigasampler file
+        RIFF::File riff(TEST_GIG_FILE_NAME);
+        gig::File file(&riff);
+        // check samples' meta informations
+        gig::Sample* pSample1 = file.GetFirstSample();
+        gig::Sample* pSample2 = file.GetNextSample();
+        gig::Sample* pSample3 = file.GetNextSample();
+        gig::Sample* pSample4 = file.GetNextSample();
+        CPPUNIT_ASSERT(pSample1);
+        CPPUNIT_ASSERT(pSample2);
+        CPPUNIT_ASSERT(pSample3);
+        CPPUNIT_ASSERT(pSample4);
+        gig::buffer_t sampleBuffer1 = pSample1->LoadSampleData();
+        gig::buffer_t sampleBuffer2 = pSample2->LoadSampleData();
+        gig::buffer_t sampleBuffer3 = pSample3->LoadSampleData();
+        gig::buffer_t sampleBuffer4 = pSample4->LoadSampleData();
+        CPPUNIT_ASSERT(sampleBuffer1.pStart);
+        CPPUNIT_ASSERT(sampleBuffer2.pStart);
+        CPPUNIT_ASSERT(sampleBuffer3.pStart);
+        CPPUNIT_ASSERT(sampleBuffer4.pStart);
+        CPPUNIT_ASSERT(sampleBuffer1.Size == pSample1->FrameSize * 3); // three sample points length
+        CPPUNIT_ASSERT(sampleBuffer2.Size == pSample2->FrameSize * 3); // three sample points length
+        CPPUNIT_ASSERT(sampleBuffer3.Size == pSample3->FrameSize * 3); // three sample points length
+        CPPUNIT_ASSERT(sampleBuffer4.Size == pSample4->FrameSize * 3); // three sample points length
+        // check samples' PCM data
+        CPPUNIT_ASSERT(memcmp(sampleBuffer1.pStart, sampleData1, 3) == 0);
+        CPPUNIT_ASSERT(memcmp(sampleBuffer2.pStart, sampleData2, 3) == 0);
+        CPPUNIT_ASSERT(memcmp(sampleBuffer3.pStart, sampleData3, 3) == 0);
+        CPPUNIT_ASSERT(memcmp(sampleBuffer4.pStart, sampleData4, 3) == 0);
+    } catch (RIFF::Exception e) {
+        std::cerr << "\nThere was an exception while checking the written samples' data:\n" << std::flush;
         e.PrintMessage();
         throw e; // stop further tests
     }
