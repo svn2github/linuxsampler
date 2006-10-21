@@ -3,6 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
+ *   Copyright (C) 2005, 2006 Christian Schoenebeck                        *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -116,8 +117,15 @@ class ResourceManager {
                 entry.resource = NULL;
                 entry.consumers.insert(pConsumer);
                 ResourceEntries[Key] = entry;
-                // actually create the resource
-                entry.resource = Create(Key, pConsumer, entry.arg);
+                try {
+                    // actually create the resource
+                    entry.resource = Create(Key, pConsumer, entry.arg);
+                } catch (...) {
+                    // creating the resource failed, so remove the entry
+                    ResourceEntries.erase(Key);
+                    // rethrow the same exception
+                    throw;
+                }
                 // now update the entry with the created resource
                 ResourceEntries[Key] = entry;
                 OnBorrow(entry.resource, pConsumer, entry.arg);

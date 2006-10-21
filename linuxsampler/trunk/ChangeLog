@@ -105,6 +105,8 @@ Version CVS HEAD (?)
     - fixed some memory management errors
     - fixed some concurrency problems that could lead to crashes when
       LSCP commands were executed
+    - fixed crash when instrument loading failed previously on the same
+      sampler channel (fixes bug #36)
 
 Version 0.3.3 (15 July 2005)
 
