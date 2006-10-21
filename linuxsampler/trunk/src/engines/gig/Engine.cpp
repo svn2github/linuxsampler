@@ -329,11 +329,12 @@ namespace LinuxSampler { namespace gig {
     }
 
     /**
-     *  Let this engine proceed to render the given amount of sample points. The
-     *  calculated audio data of all voices of this engine will be placed into
-     *  the engine's audio sum buffer which has to be copied and eventually be
-     *  converted to the appropriate value range by the audio output class (e.g.
-     *  AlsaIO or JackIO) right after.
+     * Let this engine proceed to render the given amount of sample points.
+     * The engine will iterate through all engine channels and render audio
+     * for each engine channel independently. The calculated audio data of
+     * all voices of each engine channel will be placed into the audio sum
+     * buffers of the respective audio output device, connected to the
+     * respective engine channel.
      *
      *  @param Samples - number of sample points to be rendered
      *  @returns       0 on success
@@ -1567,7 +1568,7 @@ namespace LinuxSampler { namespace gig {
     }
 
     String Engine::Version() {
-        String s = "$Revision: 1.64 $";
+        String s = "$Revision: 1.65 $";
         return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
 
