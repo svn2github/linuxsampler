@@ -2,7 +2,7 @@
  *                                                                         *
  *   libgig - C++ cross-platform Gigasampler format file loader library    *
  *                                                                         *
- *   Copyright (C) 2003-2005 by Christian Schoenebeck                      *
+ *   Copyright (C) 2003-2006 by Christian Schoenebeck                      *
  *                              <cuse@users.sourceforge.net>               *
  *                                                                         *
  *   This library is free software; you can redistribute it and/or modify  *
@@ -324,8 +324,8 @@ namespace DLS {
         private:
             RIFF::List* pResourceListChunk;
 
-            void LoadString(uint32_t ChunkID, RIFF::List* lstINFO, String& s);
-            void SaveString(uint32_t ChunkID, RIFF::List* lstINFO, const String& s, const String& sDefault, int size);
+            static void LoadString(uint32_t ChunkID, RIFF::List* lstINFO, String& s);
+            static void SaveString(uint32_t ChunkID, RIFF::List* lstINFO, const String& s, const String& sDefault, bool bUseFixedLengthStrings, int size);
     };
 
     /** Abstract base class which encapsulates data structures which all DLS resources are able to provide. */

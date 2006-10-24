@@ -2,7 +2,7 @@
  *                                                                         *
  *   libgig - C++ cross-platform Gigasampler format file loader library    *
  *                                                                         *
- *   Copyright (C) 2003-2005 by Christian Schoenebeck                      *
+ *   Copyright (C) 2003-2006 by Christian Schoenebeck                      *
  *                              <cuse@users.sourceforge.net>               *
  *                                                                         *
  *   This library is free software; you can redistribute it and/or modify  *
@@ -27,6 +27,8 @@
 #include <string.h>
 #include <string>
 #include <sstream>
+
+#include "RIFF.h"
 
 // *************** Helper Functions **************
 // *
@@ -99,6 +101,55 @@ inline void SwapMemoryArea(void* pData, unsigned long AreaSize, uint WordSize) {
             delete[] pCache;
             break;
         }
+    }
+}
+
+/** @brief Load given info field (string).
+ *
+ * Load info field string from given info chunk (\a ck) and save value to \a s.
+ */
+inline void LoadString(RIFF::Chunk* ck, std::string& s) {
+    if (ck) {
+        const char* str = (char*)ck->LoadChunkData();
+        int size = ck->GetSize();
+        int len;
+        for (len = 0 ; len < size ; len++)
+            if (str[len] == '\0') break;
+        s.assign(str, len);
+        ck->ReleaseChunkData();
+    }
+}
+
+/** @brief Apply given INFO field to the respective chunk.
+ *
+ * Apply given info value string to given info chunk, which is a
+ * subchunk of INFO list chunk \a lstINFO. If the given chunk already
+ * exists, value \a s will be applied. Otherwise if it doesn't exist yet
+ * and either \a s or \a sDefault is not an empty string, such a chunk
+ * will be created and either \a s or \a sDefault will be applied
+ * (depending on which one is not an empty string, if both are not an
+ * empty string \a s will be preferred).
+ *
+ * @param ChunkID  - 32 bit RIFF chunk ID of INFO subchunk (only used in case \a ck is NULL)
+ * @param ck       - INFO (sub)chunk where string should be stored to
+ * @param lstINFO  - parent (INFO) RIFF list chunk
+ * @param s        - current value of info field
+ * @param sDefault - default value
+ * @param bUseFixedLengthStrings - should a specific string size be forced in the chunk?
+ * @param size     - wanted size of the INFO chunk. This is ignored if bUseFixedLengthStrings is false.
+ */
+inline void SaveString(uint32_t ChunkID, RIFF::Chunk* ck, RIFF::List* lstINFO, const std::string& s, const std::string& sDefault, bool bUseFixedLengthStrings, int size) {
+    if (ck) { // if chunk exists already, use 's' as value
+        if (!bUseFixedLengthStrings) size = s.size() + 1;
+        ck->Resize(size);
+        char* pData = (char*) ck->LoadChunkData();
+        strncpy(pData, s.c_str(), size);
+    } else if (s != "" || sDefault != "") { // create chunk
+        const std::string& sToSave = (s != "") ? s : sDefault;
+        if (!bUseFixedLengthStrings) size = sToSave.size() + 1;
+        ck = lstINFO->AddSubChunk(ChunkID, size);
+        char* pData = (char*) ck->LoadChunkData();
+        strncpy(pData, sToSave.c_str(), size);
     }
 }
 

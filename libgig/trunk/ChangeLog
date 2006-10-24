@@ -17,6 +17,7 @@ Version CVS HEAD (?)
     - support for reading of ".art" files. (Merging of .art and .gig
       files are not implemented yet.)
     - several fixes for the write support
+    - support for sample groups added
 
   * src/DLS.cpp, src/DLS.h:
     - support for reading of ".art" files
@@ -29,6 +30,7 @@ Version CVS HEAD (?)
 
   * src/gigdump.cpp:
     - print global file informations
+    - print sample groups
 
   * general changes:
     - added CPPUnit test cases (at the moment primarily for automatic check

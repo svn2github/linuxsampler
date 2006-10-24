@@ -2,7 +2,7 @@
  *                                                                         *
  *   libgig - C++ cross-platform Gigasampler format file loader library    *
  *                                                                         *
- *   Copyright (C) 2003-2005 by Christian Schoenebeck                      *
+ *   Copyright (C) 2003-2006 by Christian Schoenebeck                      *
  *                              <cuse@users.sourceforge.net>               *
  *                                                                         *
  *   This library is free software; you can redistribute it and/or modify  *
@@ -285,10 +285,12 @@ namespace {
 
         pCk3gix = waveList->GetSubChunk(CHUNK_ID_3GIX);
         if (pCk3gix) {
-            SampleGroup = pCk3gix->ReadInt16();
+            uint16_t iSampleGroup = pCk3gix->ReadInt16();
+            // caution: sample groups in .gig files are indexed (1..n) whereas Groups in libgig (0..n-1)
+            pGroup = pFile->GetGroup(iSampleGroup - 1);
         } else { // '3gix' chunk missing
-            // use default value(s)
-            SampleGroup = 0;
+            // not assigned to a group by default
+            pGroup = NULL;
         }
 
         pCkSmpl = waveList->GetSubChunk(CHUNK_ID_SMPL);
@@ -398,9 +400,23 @@ namespace {
         // make sure '3gix' chunk exists
         pCk3gix = pWaveList->GetSubChunk(CHUNK_ID_3GIX);
         if (!pCk3gix) pCk3gix = pWaveList->AddSubChunk(CHUNK_ID_3GIX, 4);
+        // determine appropriate sample group index (to be stored in chunk)
+        uint16_t iSampleGroup = 0; // no sample group by default
+        File* pFile = static_cast<File*>(pParent);
+        if (pFile->pGroups) {
+            std::list<Group*>::iterator iter = pFile->pGroups->begin();
+            std::list<Group*>::iterator end  = pFile->pGroups->end();
+            // caution: sample groups in .gig files are indexed (1..n) whereas Groups in libgig (0..n-1)
+            for (int i = 1; iter != end; i++, iter++) {
+                if (*iter == pGroup) {
+                    iSampleGroup = i;
+                    break; // found
+                }
+            }
+        }
         // update '3gix' chunk
         pData = (uint8_t*) pCk3gix->LoadChunkData();
-        memcpy(&pData[0], &SampleGroup, 2);
+        memcpy(&pData[0], &iSampleGroup, 2);
     }
 
     /// Scans compressed samples for mandatory informations (e.g. actual number of total sample points).
@@ -2669,15 +2685,63 @@ namespace {
 
 
 
+// *************** Group ***************
+// *
+
+    /** @brief Constructor.
+     *
+     * @param file   - pointer to the RIFF::File object of this .gig file
+     * @param ck3gnm - pointer to 3gnm chunk associated with this group
+     */
+    Group::Group(RIFF::File* file, RIFF::Chunk* ck3gnm) {
+        pFile      = file;
+        pNameChunk = ck3gnm;
+        ::LoadString(pNameChunk, Name);
+    }
+
+    Group::~Group() {
+    }
+
+    /** @brief Update chunks with current group settings.
+     *
+     * Apply current Group field values to the respective. You have to call
+     * File::Save() to make changes persistent.
+     */
+    void Group::UpdateChunks() {
+        // make sure <3gri> and <3gnl> list chunks exist
+        RIFF::List* _3gri = pFile->GetSubList(LIST_TYPE_3GRI);
+        if (!_3gri) _3gri = pFile->AddSubList(LIST_TYPE_3GRI);
+        RIFF::List* _3gnl = _3gri->GetSubList(LIST_TYPE_3GNL);
+        if (!_3gnl) _3gnl = pFile->AddSubList(LIST_TYPE_3GNL);
+        // now store the name of this group as <3gnm> chunk as subchunk of the <3gnl> list chunk
+        ::SaveString(CHUNK_ID_3GNM, pNameChunk, _3gnl, Name, String("Unnamed Group"), true, 64);
+    }
+
+
+
 // *************** File ***************
 // *
 
     File::File() : DLS::File() {
+        pGroups = NULL;
         pInfo->UseFixedLengthStrings = true;
     }
 
     File::File(RIFF::File* pRIFF) : DLS::File(pRIFF) {
+        pGroups = NULL;
         pInfo->UseFixedLengthStrings = true;
+    }
+
+    File::~File() {
+        if (pGroups) {
+            std::list<Group*>::iterator iter = pGroups->begin();
+            std::list<Group*>::iterator end  = pGroups->end();
+            while (iter != end) {
+                delete *iter;
+                ++iter;
+            }
+            delete pGroups;
+        }
     }
 
     Sample* File::GetFirstSample(progress_t* pProgress) {
@@ -2892,6 +2956,70 @@ namespace {
                 lstInstr = lstInstruments->GetNextSubList();
             }
             __notify_progress(pProgress, 1.0); // notify done
+        }
+    }
+
+    Group* File::GetFirstGroup() {
+        if (!pGroups) LoadGroups();
+        if (!pGroups) return NULL;
+        GroupsIterator = pGroups->begin();
+        return (GroupsIterator == pGroups->end()) ? NULL : *GroupsIterator;
+    }
+
+    Group* File::GetNextGroup() {
+        if (!pGroups) return NULL;
+        ++GroupsIterator;
+        return (GroupsIterator == pGroups->end()) ? NULL : *GroupsIterator;
+    }
+
+    /**
+     * Returns the group with the given index.
+     *
+     * @param index - number of the sought group (0..n)
+     * @returns sought group or NULL if there's no such group
+     */
+    Group* File::GetGroup(uint index) {
+        if (!pGroups) LoadGroups();
+        if (!pGroups) return NULL;
+        GroupsIterator = pGroups->begin();
+        for (uint i = 0; GroupsIterator != pGroups->end(); i++) {
+            if (i == index) return *GroupsIterator;
+            ++GroupsIterator;
+        }
+        return NULL;
+    }
+
+    Group* File::AddGroup() {
+        if (!pGroups) LoadGroups();
+        if (!pGroups) pGroups = new std::list<Group*>;
+        __ensureMandatoryChunksExist();
+        Group* pGroup = new Group(pRIFF, NULL);
+        pGroups->push_back(pGroup);
+        return pGroup;
+    }
+
+    void File::DeleteGroup(Group* pGroup) {
+        if (!pGroups) throw gig::Exception("Could not delete group as there are no groups");
+        std::list<Group*>::iterator iter = find(pGroups->begin(), pGroups->end(), pGroup);
+        if (iter == pGroups->end()) throw gig::Exception("Could not delete group, could not find given group");
+        pGroups->erase(iter);
+        delete pGroup;
+    }
+
+    void File::LoadGroups() {
+        if (!pGroups) pGroups = new std::list<Group*>;
+        RIFF::List* lst3gri = pRIFF->GetSubList(LIST_TYPE_3GRI);
+        if (!lst3gri) return;
+        RIFF::List* lst3gnl = lst3gri->GetSubList(LIST_TYPE_3GNL);
+        if (!lst3gnl) return;
+        {
+            RIFF::Chunk* ck = lst3gnl->GetFirstSubChunk();
+            while (ck) {
+                if (ck->GetChunkID() == CHUNK_ID_3GNM) {
+                    pGroups->push_back(new Group(pRIFF, ck));
+                }
+                ck = lst3gnl->GetNextSubChunk();
+            }
         }
     }
 

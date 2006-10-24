@@ -36,6 +36,7 @@ using namespace std;
 string Revision();
 void PrintVersion();
 void PrintFileInformations(gig::File* gig);
+void PrintGroups(gig::File* gig);
 void PrintSamples(gig::File* gig);
 void PrintInstruments(gig::File* gig);
 void PrintRegions(gig::Instrument* instr);
@@ -65,6 +66,8 @@ int main(int argc, char *argv[])
         RIFF::File* riff = new RIFF::File(argv[1]);
         gig::File*  gig  = new gig::File(riff);
         PrintFileInformations(gig);
+        cout << endl;
+        PrintGroups(gig);
         cout << endl;
         PrintSamples(gig);
         cout << endl;
@@ -126,6 +129,19 @@ void PrintFileInformations(gig::File* gig) {
             cout << "    SourceForm: '" << gig->pInfo->SourceForm << "'\n";
         if (gig->pInfo->Commissioned.size())
             cout << "    Commissioned: '" << gig->pInfo->Commissioned << "'\n";
+    }
+}
+
+void PrintGroups(gig::File* gig) {
+    int groups = 0;
+    cout << "ALL defined Groups:" << endl;
+    for (gig::Group* pGroup = gig->GetFirstGroup(); pGroup; pGroup = gig->GetNextGroup()) {
+        groups++;
+        string name = pGroup->Name;
+        if (name == "") name = "<NO NAME>";
+        else            name = '\"' + name + '\"';
+        cout << "    Group " << groups << ")" << endl;
+        cout << "        Name: " << name << endl;
     }
 }
 
@@ -369,7 +385,7 @@ void PrintDimensionRegions(gig::Region* rgn) {
 }
 
 string Revision() {
-    string s = "$Revision: 1.19 $";
+    string s = "$Revision: 1.20 $";
     return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
 }
 

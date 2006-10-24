@@ -29,21 +29,27 @@
 #if WORDS_BIGENDIAN
 # define LIST_TYPE_3PRG	0x33707267
 # define LIST_TYPE_3EWL	0x3365776C
+# define LIST_TYPE_3GRI	0x33677269
+# define LIST_TYPE_3GNL	0x33676E6C
 # define CHUNK_ID_SMPL	0x736D706C
 # define CHUNK_ID_3GIX	0x33676978
 # define CHUNK_ID_3EWA	0x33657761
 # define CHUNK_ID_3LNK	0x336C6E6B
 # define CHUNK_ID_3EWG	0x33657767
 # define CHUNK_ID_EWAV	0x65776176
+# define CHUNK_ID_3GNM	0x33676E6D
 #else  // little endian
 # define LIST_TYPE_3PRG	0x67727033
 # define LIST_TYPE_3EWL	0x6C776533
+# define LIST_TYPE_3GRI	0x69726733
+# define LIST_TYPE_3GNL	0x6C6E6733
 # define CHUNK_ID_SMPL	0x6C706D73
 # define CHUNK_ID_3GIX	0x78696733
 # define CHUNK_ID_3EWA	0x61776533
 # define CHUNK_ID_3LNK	0x6B6E6C33
 # define CHUNK_ID_3EWG	0x67776533
 # define CHUNK_ID_EWAV	0x76617765
+# define CHUNK_ID_3GNM	0x6D6E6733
 #endif // WORDS_BIGENDIAN
 
 /** Gigasampler specific classes and definitions */
@@ -316,6 +322,7 @@ namespace gig {
     class Instrument;
     class Sample;
     class Region;
+    class Group;
 
     /** Encapsulates articulation information of a dimension region.
      *
@@ -489,7 +496,7 @@ namespace gig {
      */
     class Sample : public DLS::Sample {
         public:
-            uint16_t       SampleGroup;
+            Group*         pGroup;            ///< pointer to the Group this sample belongs to, NULL otherwise
             uint32_t       Manufacturer;      ///< Specifies the MIDI Manufacturer's Association (MMA) Manufacturer code for the sampler intended to receive this file's waveform. If no particular manufacturer is to be specified, a value of 0 should be used.
             uint32_t       Product;           ///< Specifies the MIDI model ID defined by the manufacturer corresponding to the Manufacturer field. If no particular manufacturer's product is to be specified, a value of 0 should be used.
             uint32_t       SamplePeriod;      ///< Specifies the duration of time that passes during the playback of one sample in nanoseconds (normally equal to 1 / Samples Per Second, where Samples Per Second is the value found in the format chunk), don't bother to update this attribute, it won't be saved.
@@ -637,7 +644,30 @@ namespace gig {
             friend class File;
     };
 
-    // TODO: <3gnm> chunk not added yet (just contains the names of the sample groups)
+    /** @brief Group of Gigasampler objects
+     *
+     * Groups help to organize a huge collection of Gigasampler objects.
+     * Groups are not concerned at all for the synthesis, but they help
+     * sound library developers when working on complex instruments with an
+     * instrument editor (as long as that instrument editor supports it ;-).
+     *
+     * At the moment, it seems as only samples can be grouped together in
+     * the Gigasampler format yet. If this is false in the meantime, please
+     * tell us !
+     */
+    class Group {
+        public:
+            String Name; ///< Stores the name of this Group.
+        protected:
+            Group(RIFF::File* file, RIFF::Chunk* ck3gnm);
+            virtual ~Group();
+            virtual void UpdateChunks();
+            friend class File;
+        private:
+            RIFF::File*  pFile;
+            RIFF::Chunk* pNameChunk;
+    };
+
     /** Parses Gigasampler files and provides abstract access to the data. */
     class File : protected DLS::File {
         public:
@@ -657,21 +687,32 @@ namespace gig {
             File(RIFF::File* pRIFF);
             Sample*     GetFirstSample(progress_t* pProgress = NULL); ///< Returns a pointer to the first <i>Sample</i> object of the file, <i>NULL</i> otherwise.
             Sample*     GetNextSample();      ///< Returns a pointer to the next <i>Sample</i> object of the file, <i>NULL</i> otherwise.
-            Instrument* GetFirstInstrument(); ///< Returns a pointer to the first <i>Instrument</i> object of the file, <i>NULL</i> otherwise.
             Sample*     AddSample();
             void        DeleteSample(Sample* pSample);
+            Instrument* GetFirstInstrument(); ///< Returns a pointer to the first <i>Instrument</i> object of the file, <i>NULL</i> otherwise.
             Instrument* GetNextInstrument();  ///< Returns a pointer to the next <i>Instrument</i> object of the file, <i>NULL</i> otherwise.
             Instrument* GetInstrument(uint index, progress_t* pProgress = NULL);
             Instrument* AddInstrument();
             void        DeleteInstrument(Instrument* pInstrument);
+            Group*      GetFirstGroup(); ///< Returns a pointer to the first <i>Group</i> object of the file, <i>NULL</i> otherwise.
+            Group*      GetNextGroup();  ///< Returns a pointer to the next <i>Group</i> object of the file, <i>NULL</i> otherwise.
+            Group*      GetGroup(uint index);
+            Group*      AddGroup();
+            void        DeleteGroup(Group* pGroup);
+            virtual    ~File();
         protected:
             // overridden protected methods from DLS::File
             virtual void LoadSamples();
             virtual void LoadInstruments();
+            virtual void LoadGroups();
             // own protected methods
             virtual void LoadSamples(progress_t* pProgress);
             virtual void LoadInstruments(progress_t* pProgress);
             friend class Region;
+            friend class Sample;
+        private:
+            std::list<Group*>*          pGroups;
+            std::list<Group*>::iterator GroupsIterator;
     };
 
     /** Will be thrown whenever a gig specific error occurs while trying to access a Gigasampler File. */

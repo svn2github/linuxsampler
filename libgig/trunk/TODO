@@ -23,8 +23,6 @@ DLS Part:
 Gig Part:
   - support for <3dnl> chunk in gig::Region class which provides optional
     textual descriptions for dimensions
-  - support for <3gnm> chunk in gig::File class which contains names of
-    sample groups
   - additional scan for compressed samples in
     gig::Sample::ScanCompressedSample() to build a table with the compression
     mode of each compressed frame in the sample allowing a more efficient
