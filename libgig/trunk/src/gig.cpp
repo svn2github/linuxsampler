@@ -312,7 +312,7 @@ namespace {
             // use default values
             Manufacturer  = 0;
             Product       = 0;
-            SamplePeriod  = 1 / SamplesPerSecond;
+            SamplePeriod  = uint32_t(1000000000.0 / SamplesPerSecond + 0.5);
             MIDIUnityNote = 64;
             FineTune      = 0;
             SMPTEOffset   = 0;

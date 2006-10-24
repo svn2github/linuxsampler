@@ -254,6 +254,7 @@ namespace DLS {
                 LoadString(CHUNK_ID_ISRC, lstINFO, Source);
                 LoadString(CHUNK_ID_ISRF, lstINFO, SourceForm);
                 LoadString(CHUNK_ID_ICMS, lstINFO, Commissioned);
+                LoadString(CHUNK_ID_ISBJ, lstINFO, Subject);
             }
         }
     }
@@ -374,6 +375,7 @@ namespace DLS {
         SaveString(CHUNK_ID_ISRC, lstINFO, Source, String(""), 128);
         SaveString(CHUNK_ID_ISRF, lstINFO, SourceForm, String(""), 128);
         SaveString(CHUNK_ID_ICMS, lstINFO, Commissioned, String(""), 128);
+        SaveString(CHUNK_ID_ISBJ, lstINFO, Subject, String(""), 128);
     }
 
 
@@ -532,8 +534,7 @@ namespace DLS {
             // PCM format specific
             if (FormatTag == WAVE_FORMAT_PCM) {
                 BitDepth     = pCkFormat->ReadUint16();
-                FrameSize    = (FormatTag == WAVE_FORMAT_PCM) ? (BitDepth / 8) * Channels
-                                                            : 0;
+                FrameSize    = (BitDepth / 8) * Channels;
             } else { // unsupported sample data format
                 BitDepth     = 0;
                 FrameSize    = 0;

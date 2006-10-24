@@ -90,7 +90,7 @@
 # define CHUNK_ID_IENG	0x474E4549
 # define CHUNK_ID_IGNR	0x524E4749
 # define CHUNK_ID_IKEY	0x59454B49
-# define CHUNK_ID_IMED	0x44525049
+# define CHUNK_ID_IMED	0x44454D49
 # define CHUNK_ID_INAM	0x4D414E49
 # define CHUNK_ID_IPRD	0x44525049
 # define CHUNK_ID_ISBJ	0x4A425349
@@ -315,6 +315,7 @@ namespace DLS {
             String Source;           ///< <ISRC-ck>. Identifies the name of the person or organization who supplied the original subject of the file.
             String SourceForm;       ///< <ISRF-ck>. Identifies the original form of the material that was digitized, such as record, sampling CD, TV sound track. This is not neccessarily the same as <i>Medium</i>.
             String Commissioned;     ///< <ICMS-ck>. Lists the name of the person or organization that commissioned the subject of the file, e.g., Pope Julian II.
+            String Subject;          ///< <ISBJ-ck>. Describes the contents of the file.
             bool UseFixedLengthStrings; ///< Set this to true if the info strings should be stored with a fixed length format. This is used for gig files, not for ordinary DLS files.
 
             Info(RIFF::List* list);
