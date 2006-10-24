@@ -2,7 +2,7 @@
  *                                                                         *
  *   libgig - C++ cross-platform Gigasampler format file loader library    *
  *                                                                         *
- *   Copyright (C) 2003-2005 by Christian Schoenebeck                      *
+ *   Copyright (C) 2003-2006 by Christian Schoenebeck                      *
  *                              <cuse@users.sourceforge.net>               *
  *                                                                         *
  *   This library is free software; you can redistribute it and/or modify  *
@@ -576,9 +576,9 @@ namespace gig {
     class Region : public DLS::Region {
         public:
             unsigned int            Dimensions;               ///< Number of defined dimensions, do not alter!
-            dimension_def_t         pDimensionDefinitions[8]; ///< Defines the five (gig2) or eight (gig3) possible dimensions (the dimension's controller and number of bits/splits). Use AddDimension() and DeleteDimension() to create a new dimension ot delete an existing one.
+            dimension_def_t         pDimensionDefinitions[8]; ///< Defines the five (gig2) or eight (gig3) possible dimensions (the dimension's controller and number of bits/splits). Use AddDimension() and DeleteDimension() to create a new dimension or delete an existing one.
             uint32_t                DimensionRegions;         ///< Total number of DimensionRegions this Region contains, do not alter!
-            DimensionRegion*        pDimensionRegions[256];   ///< Pointer array to the 32 (gig2) or 256 (gig3) possible dimension regions (reflects NULL for dimension regions not in use). Avoid to access the array directly and better use GetDimensionRegionByValue() instead, but of course in some cases it makes sense to use the array (e.g. iterating through all DimensionRegions). Use AddDimension() and DeleteDimension() to create a new dimension ot delete an existing one (which will create or delete the respective dimension region(s) automatically).
+            DimensionRegion*        pDimensionRegions[256];   ///< Pointer array to the 32 (gig2) or 256 (gig3) possible dimension regions (reflects NULL for dimension regions not in use). Avoid to access the array directly and better use GetDimensionRegionByValue() instead, but of course in some cases it makes sense to use the array (e.g. iterating through all DimensionRegions). Use AddDimension() and DeleteDimension() to create a new dimension or delete an existing one (which will create or delete the respective dimension region(s) automatically).
             unsigned int            Layers;                   ///< Amount of defined layers (1 - 32). A value of 1 actually means no layering, a value > 1 means there is Layer dimension. The same information can of course also be obtained by accessing pDimensionDefinitions. Do not alter this value!
 
             DimensionRegion* GetDimensionRegionByValue(const uint DimValues[8]);
