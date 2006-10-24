@@ -103,18 +103,38 @@ void GigWriteTest::createNewGigFile() {
         // also we assign a sample to each dimension region
         gig::Region* pRegion = pInstrument1->AddRegion();
         pRegion->SetSample(pSample1);
+        pRegion->KeyRange.low  = 0;
+        pRegion->KeyRange.high = 1;
+        pRegion->VelocityRange.low  = 0;
+        pRegion->VelocityRange.high = 1;
+        pRegion->KeyGroup = 0;
         pRegion->pDimensionRegions[0]->pSample = pSample1;
 
         pRegion = pInstrument2->AddRegion();
         pRegion->SetSample(pSample2);
+        pRegion->KeyRange.low  = 1;
+        pRegion->KeyRange.high = 2;
+        pRegion->VelocityRange.low  = 1;
+        pRegion->VelocityRange.high = 2;
+        pRegion->KeyGroup = 1;
         pRegion->pDimensionRegions[0]->pSample = pSample2;
 
         pRegion = pInstrument3->AddRegion();
         pRegion->SetSample(pSample3);
+        pRegion->KeyRange.low  = 2;
+        pRegion->KeyRange.high = 3;
+        pRegion->VelocityRange.low  = 2;
+        pRegion->VelocityRange.high = 3;
+        pRegion->KeyGroup = 2;
         pRegion->pDimensionRegions[0]->pSample = pSample3;
 
         pRegion = pInstrument4->AddRegion();
         pRegion->SetSample(pSample4);
+        pRegion->KeyRange.low  = 3;
+        pRegion->KeyRange.high = 4;
+        pRegion->VelocityRange.low  = 3;
+        pRegion->VelocityRange.high = 4;
+        pRegion->KeyGroup = 3;
         pRegion->pDimensionRegions[0]->pSample = pSample4;
 
         // save file ("physically") as of now
@@ -182,6 +202,11 @@ void GigWriteTest::testArticulationsOfCreatedGigFile() {
             CPPUNIT_ASSERT(pRegion->DimensionRegions == 1);
             sOughtToBe = "Foo Sample " + ToString(iInstrument);
             CPPUNIT_ASSERT(pRegion->GetSample()->pInfo->Name == sOughtToBe);
+            CPPUNIT_ASSERT(pRegion->KeyRange.low  == iInstrument - 1);
+            CPPUNIT_ASSERT(pRegion->KeyRange.high == iInstrument);
+            CPPUNIT_ASSERT(pRegion->VelocityRange.low  == iInstrument - 1);
+            CPPUNIT_ASSERT(pRegion->VelocityRange.high == iInstrument);
+            CPPUNIT_ASSERT(pRegion->KeyGroup  == iInstrument - 1);
             gig::DimensionRegion* pDimensionRegion = pRegion->GetDimensionRegionByValue((uint[8]){0,0,0,0,0,0,0,0});
             CPPUNIT_ASSERT(pDimensionRegion);
             CPPUNIT_ASSERT(pDimensionRegion->pSample->pInfo->Name == sOughtToBe);
