@@ -151,10 +151,18 @@ void PrintSamples(gig::File* gig) {
     gig::Sample* pSample = gig->GetFirstSample();
     while (pSample) {
         samples++;
+        // determine sample's name
         string name = pSample->pInfo->Name;
         if (name == "") name = "<NO NAME>";
         else            name = '\"' + name + '\"';
+        // determine group this sample belongs to
+        int iGroup = 1;
+        for (gig::Group* pGroup = gig->GetFirstGroup(); pGroup; pGroup = gig->GetNextGroup(), iGroup++) {
+            if (pGroup == pSample->GetGroup()) break;
+        }
+        // print sample info
         cout << "    Sample " << samples << ") " << name << ", ";
+        cout << "Group " << iGroup << ", ";
         cout << pSample->SamplesPerSecond << "Hz, " << pSample->Channels << " Channels, " << pSample->Loops << " Loops";
         if (pSample->Loops) {
             cout << " (Type: ";
@@ -385,7 +393,7 @@ void PrintDimensionRegions(gig::Region* rgn) {
 }
 
 string Revision() {
-    string s = "$Revision: 1.20 $";
+    string s = "$Revision: 1.21 $";
     return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
 }
 
