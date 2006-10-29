@@ -496,7 +496,6 @@ namespace gig {
      */
     class Sample : public DLS::Sample {
         public:
-            Group*         pGroup;            ///< pointer to the Group this sample belongs to, NULL otherwise
             uint32_t       Manufacturer;      ///< Specifies the MIDI Manufacturer's Association (MMA) Manufacturer code for the sampler intended to receive this file's waveform. If no particular manufacturer is to be specified, a value of 0 should be used.
             uint32_t       Product;           ///< Specifies the MIDI model ID defined by the manufacturer corresponding to the Manufacturer field. If no particular manufacturer's product is to be specified, a value of 0 should be used.
             uint32_t       SamplePeriod;      ///< Specifies the duration of time that passes during the playback of one sample in nanoseconds (normally equal to 1 / Samples Per Second, where Samples Per Second is the value found in the format chunk), don't bother to update this attribute, it won't be saved.
@@ -533,10 +532,12 @@ namespace gig {
             unsigned long Read(void* pBuffer, unsigned long SampleCount, buffer_t* pExternalDecompressionBuffer = NULL);
             unsigned long ReadAndLoop(void* pBuffer, unsigned long SampleCount, playback_state_t* pPlaybackState, DimensionRegion* pDimRgn, buffer_t* pExternalDecompressionBuffer = NULL);
             unsigned long Write(void* pBuffer, unsigned long SampleCount);
+            Group*        GetGroup() const;
             virtual void  UpdateChunks();
         protected:
             static unsigned int  Instances;               ///< Number of instances of class Sample.
             static buffer_t      InternalDecompressionBuffer; ///< Buffer used for decompression as well as for truncation of 24 Bit -> 16 Bit samples.
+            Group*               pGroup;                  ///< pointer to the Group this sample belongs to (always not-NULL)
             unsigned long        FrameOffset;             ///< Current offset (sample points) in current sample frame (for decompression only).
             unsigned long*       FrameTable;              ///< For positioning within compressed samples only: stores the offset values for each frame.
             unsigned long        SamplePos;               ///< For compressed samples only: stores the current position (in sample points).
@@ -576,6 +577,7 @@ namespace gig {
             void ScanCompressedSample();
             friend class File;
             friend class Region;
+            friend class Group; // allow to modify protected member pGroup
     };
 
     // TODO: <3dnl> list not used yet - not important though (just contains optional descriptions for the dimensions)
@@ -654,17 +656,26 @@ namespace gig {
      * At the moment, it seems as only samples can be grouped together in
      * the Gigasampler format yet. If this is false in the meantime, please
      * tell us !
+     *
+     * A sample is always assigned to exactly one Group. This also means
+     * there is always at least one Group in a .gig file, no matter if you
+     * created one yet or not.
      */
     class Group {
         public:
             String Name; ///< Stores the name of this Group.
+
+            Sample* GetFirstSample();
+            Sample* GetNextSample();
+            void AddSample(Sample* pSample);
         protected:
-            Group(RIFF::File* file, RIFF::Chunk* ck3gnm);
+            Group(File* file, RIFF::Chunk* ck3gnm);
             virtual ~Group();
             virtual void UpdateChunks();
+            void MoveAll();
             friend class File;
         private:
-            RIFF::File*  pFile;
+            File*        pFile;
             RIFF::Chunk* pNameChunk;
     };
 
@@ -710,6 +721,7 @@ namespace gig {
             virtual void LoadInstruments(progress_t* pProgress);
             friend class Region;
             friend class Sample;
+            friend class Group; // so Group can access protected member pRIFF
         private:
             std::list<Group*>*          pGroups;
             std::list<Group*>::iterator GroupsIterator;

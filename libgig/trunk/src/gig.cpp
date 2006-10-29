@@ -286,11 +286,10 @@ namespace {
         pCk3gix = waveList->GetSubChunk(CHUNK_ID_3GIX);
         if (pCk3gix) {
             uint16_t iSampleGroup = pCk3gix->ReadInt16();
-            // caution: sample groups in .gig files are indexed (1..n) whereas Groups in libgig (0..n-1)
-            pGroup = pFile->GetGroup(iSampleGroup - 1);
+            pGroup = pFile->GetGroup(iSampleGroup);
         } else { // '3gix' chunk missing
-            // not assigned to a group by default
-            pGroup = NULL;
+            // by default assigned to that mandatory "Default Group"
+            pGroup = pFile->GetGroup(0);
         }
 
         pCkSmpl = waveList->GetSubChunk(CHUNK_ID_SMPL);
@@ -401,13 +400,12 @@ namespace {
         pCk3gix = pWaveList->GetSubChunk(CHUNK_ID_3GIX);
         if (!pCk3gix) pCk3gix = pWaveList->AddSubChunk(CHUNK_ID_3GIX, 4);
         // determine appropriate sample group index (to be stored in chunk)
-        uint16_t iSampleGroup = 0; // no sample group by default
+        uint16_t iSampleGroup = 0; // 0 refers to default sample group
         File* pFile = static_cast<File*>(pParent);
         if (pFile->pGroups) {
             std::list<Group*>::iterator iter = pFile->pGroups->begin();
             std::list<Group*>::iterator end  = pFile->pGroups->end();
-            // caution: sample groups in .gig files are indexed (1..n) whereas Groups in libgig (0..n-1)
-            for (int i = 1; iter != end; i++, iter++) {
+            for (int i = 0; iter != end; i++, iter++) {
                 if (*iter == pGroup) {
                     iSampleGroup = i;
                     break; // found
@@ -1152,6 +1150,18 @@ namespace {
             DecompressionBuffer.Size   = 0;
             DecompressionBuffer.NullExtensionSize = 0;
         }
+    }
+
+    /**
+     * Returns pointer to the Group this Sample belongs to. In the .gig
+     * format a sample always belongs to one group. If it wasn't explicitly
+     * assigned to a certain group, it will be automatically assigned to a
+     * default group.
+     *
+     * @returns Sample's Group (never NULL)
+     */
+    Group* Sample::GetGroup() const {
+        return pGroup;
     }
 
     Sample::~Sample() {
@@ -2690,10 +2700,11 @@ namespace {
 
     /** @brief Constructor.
      *
-     * @param file   - pointer to the RIFF::File object of this .gig file
-     * @param ck3gnm - pointer to 3gnm chunk associated with this group
+     * @param file   - pointer to the gig::File object
+     * @param ck3gnm - pointer to 3gnm chunk associated with this group or
+     *                 NULL if this is a new Group
      */
-    Group::Group(RIFF::File* file, RIFF::Chunk* ck3gnm) {
+    Group::Group(File* file, RIFF::Chunk* ck3gnm) {
         pFile      = file;
         pNameChunk = ck3gnm;
         ::LoadString(pNameChunk, Name);
@@ -2709,12 +2720,78 @@ namespace {
      */
     void Group::UpdateChunks() {
         // make sure <3gri> and <3gnl> list chunks exist
-        RIFF::List* _3gri = pFile->GetSubList(LIST_TYPE_3GRI);
-        if (!_3gri) _3gri = pFile->AddSubList(LIST_TYPE_3GRI);
+        RIFF::List* _3gri = pFile->pRIFF->GetSubList(LIST_TYPE_3GRI);
+        if (!_3gri) _3gri = pFile->pRIFF->AddSubList(LIST_TYPE_3GRI);
         RIFF::List* _3gnl = _3gri->GetSubList(LIST_TYPE_3GNL);
-        if (!_3gnl) _3gnl = pFile->AddSubList(LIST_TYPE_3GNL);
+        if (!_3gnl) _3gnl = pFile->pRIFF->AddSubList(LIST_TYPE_3GNL);
         // now store the name of this group as <3gnm> chunk as subchunk of the <3gnl> list chunk
         ::SaveString(CHUNK_ID_3GNM, pNameChunk, _3gnl, Name, String("Unnamed Group"), true, 64);
+    }
+
+    /**
+     * Returns the first Sample of this Group. You have to call this method
+     * once before you use GetNextSample().
+     *
+     * <b>Notice:</b> this method might block for a long time, in case the
+     * samples of this .gig file were not scanned yet
+     *
+     * @returns  pointer address to first Sample or NULL if there is none
+     *           applied to this Group
+     * @see      GetNextSample()
+     */
+    Sample* Group::GetFirstSample() {
+        // FIXME: lazy und unsafe implementation, should be an autonomous iterator
+        for (Sample* pSample = pFile->GetFirstSample(); pSample; pSample = pFile->GetNextSample()) {
+            if (pSample->GetGroup() == this) return pSample;
+        }
+        return NULL;
+    }
+
+    /**
+     * Returns the next Sample of the Group. You have to call
+     * GetFirstSample() once before you can use this method. By calling this
+     * method multiple times it iterates through the Samples assigned to
+     * this Group.
+     *
+     * @returns  pointer address to the next Sample of this Group or NULL if
+     *           end reached
+     * @see      GetFirstSample()
+     */
+    Sample* Group::GetNextSample() {
+        // FIXME: lazy und unsafe implementation, should be an autonomous iterator
+        for (Sample* pSample = pFile->GetNextSample(); pSample; pSample = pFile->GetNextSample()) {
+            if (pSample->GetGroup() == this) return pSample;
+        }
+        return NULL;
+    }
+
+    /**
+     * Move Sample given by \a pSample from another Group to this Group.
+     */
+    void Group::AddSample(Sample* pSample) {
+        pSample->pGroup = this;
+    }
+
+    /**
+     * Move all members of this group to another group (preferably the 1st
+     * one except this). This method is called explicitly by
+     * File::DeleteGroup() thus when a Group was deleted. This code was
+     * intentionally not placed in the destructor!
+     */
+    void Group::MoveAll() {
+        // get "that" other group first
+        Group* pOtherGroup = NULL;
+        for (pOtherGroup = pFile->GetFirstGroup(); pOtherGroup; pOtherGroup = pFile->GetNextGroup()) {
+            if (pOtherGroup != this) break;
+        }
+        if (!pOtherGroup) throw Exception(
+            "Could not move samples to another group, since there is no "
+            "other Group. This is a bug, report it!"
+        );
+        // now move all samples of this group to the other group
+        for (Sample* pSample = GetFirstSample(); pSample; pSample = GetNextSample()) {
+            pOtherGroup->AddSample(pSample);
+        }
     }
 
 
@@ -2796,6 +2873,10 @@ namespace {
     }
 
     void File::LoadSamples(progress_t* pProgress) {
+        // Groups must be loaded before samples, because samples will try
+        // to resolve the group they belong to
+        LoadGroups();
+
         if (!pSamples) pSamples = new SampleList;
 
         RIFF::File* file = pRIFF;
@@ -2961,9 +3042,9 @@ namespace {
 
     Group* File::GetFirstGroup() {
         if (!pGroups) LoadGroups();
-        if (!pGroups) return NULL;
+        // there must always be at least one group
         GroupsIterator = pGroups->begin();
-        return (GroupsIterator == pGroups->end()) ? NULL : *GroupsIterator;
+        return *GroupsIterator;
     }
 
     Group* File::GetNextGroup() {
@@ -2980,7 +3061,6 @@ namespace {
      */
     Group* File::GetGroup(uint index) {
         if (!pGroups) LoadGroups();
-        if (!pGroups) return NULL;
         GroupsIterator = pGroups->begin();
         for (uint i = 0; GroupsIterator != pGroups->end(); i++) {
             if (i == index) return *GroupsIterator;
@@ -2991,35 +3071,45 @@ namespace {
 
     Group* File::AddGroup() {
         if (!pGroups) LoadGroups();
-        if (!pGroups) pGroups = new std::list<Group*>;
+        // there must always be at least one group
         __ensureMandatoryChunksExist();
-        Group* pGroup = new Group(pRIFF, NULL);
+        Group* pGroup = new Group(this, NULL);
         pGroups->push_back(pGroup);
         return pGroup;
     }
 
     void File::DeleteGroup(Group* pGroup) {
-        if (!pGroups) throw gig::Exception("Could not delete group as there are no groups");
+        if (!pGroups) LoadGroups();
         std::list<Group*>::iterator iter = find(pGroups->begin(), pGroups->end(), pGroup);
         if (iter == pGroups->end()) throw gig::Exception("Could not delete group, could not find given group");
+        if (pGroups->size() == 1) throw gig::Exception("Cannot delete group, there must be at least one default group!");
+        // move all members of this group to another group
+        pGroup->MoveAll();
         pGroups->erase(iter);
         delete pGroup;
     }
 
     void File::LoadGroups() {
         if (!pGroups) pGroups = new std::list<Group*>;
+        // try to read defined groups from file
         RIFF::List* lst3gri = pRIFF->GetSubList(LIST_TYPE_3GRI);
-        if (!lst3gri) return;
-        RIFF::List* lst3gnl = lst3gri->GetSubList(LIST_TYPE_3GNL);
-        if (!lst3gnl) return;
-        {
-            RIFF::Chunk* ck = lst3gnl->GetFirstSubChunk();
-            while (ck) {
-                if (ck->GetChunkID() == CHUNK_ID_3GNM) {
-                    pGroups->push_back(new Group(pRIFF, ck));
+        if (lst3gri) {
+            RIFF::List* lst3gnl = lst3gri->GetSubList(LIST_TYPE_3GNL);
+            if (lst3gnl) {
+                RIFF::Chunk* ck = lst3gnl->GetFirstSubChunk();
+                while (ck) {
+                    if (ck->GetChunkID() == CHUNK_ID_3GNM) {
+                        pGroups->push_back(new Group(this, ck));
+                    }
+                    ck = lst3gnl->GetNextSubChunk();
                 }
-                ck = lst3gnl->GetNextSubChunk();
             }
+        }
+        // if there were no group(s), create at least the mandatory default group
+        if (!pGroups->size()) {
+            Group* pGroup = new Group(this, NULL);
+            pGroup->Name = "Default Group";
+            pGroups->push_back(pGroup);
         }
     }
 
