@@ -50,6 +50,8 @@
 namespace LinuxSampler {
 
 Mutex::Mutex() {
+    pthread_mutexattr_init(&__posix_mutexattr);
+
     // the following function call only works on UNIX98 compatible systems
     #if (_XOPEN_SOURCE > 500)
     if (pthread_mutexattr_settype(&__posix_mutexattr, PTHREAD_MUTEX_ERRORCHECK)) {
@@ -62,6 +64,7 @@ Mutex::Mutex() {
 
 Mutex::~Mutex() {
     pthread_mutex_destroy(&__posix_mutex);
+    pthread_mutexattr_destroy(&__posix_mutexattr);
 }
 
 void Mutex::Lock() {
