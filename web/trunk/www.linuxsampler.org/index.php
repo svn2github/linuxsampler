@@ -129,6 +129,8 @@
                 <tr>
                   <td valign=top>
                     <p class="default">
+              <b>2006-11-24</b> libgig 3.1.0 has been released.<br>
+              <br>
 		      <b>2006-08-07</b> <a href="http://prdownloads.sourceforge.net/jsampler/JSampler-0.3a.tar.bz2?download">JSampler 0.3a</a> has been released.<br>
 		      * Partially implemented a new view - Fantasia (graphic desing: Olivier Boyer). Only channel manipulation for now. </br>
 		      * More new features in JS Classic - Implemented an LS Console with command autocompletion
