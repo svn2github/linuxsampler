@@ -287,7 +287,7 @@ AM_CONDITIONAL(HAVE_COREMIDI, test $have_coremidi = "1")
 AC_DEFINE_UNQUOTED(HAVE_COREMIDI,$have_coremidi,[Define to 1 if you have CoreMIDI installed.])
 
 # Check presence of libgig
-libgig_version="3.0.0"
+libgig_version="3.1.0"
 PKG_CHECK_MODULES(GIG, gig >= $libgig_version, HAVE_GIG=true, HAVE_GIG=false)
 if test "$HAVE_GIG" = "false"; then
     echo "Required libgig version not found!"
