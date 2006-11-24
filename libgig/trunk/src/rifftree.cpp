@@ -1,9 +1,11 @@
 /***************************************************************************
  *                                                                         *
- *   libgig - C++ cross-platform Gigasampler format file loader library    *
+ *   libgig - C++ cross-platform Gigasampler format file access library    *
  *                                                                         *
- *   Copyright (C) 2003-2005 by Christian Schoenebeck                      *
+ *   Copyright (C) 2003-2006 by Christian Schoenebeck                      *
  *                              <cuse@users.sourceforge.net>               *
+ *                                                                         *
+ *   This program is part of libgig.                                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -123,7 +125,7 @@ void PrintChunkList(RIFF::List* list, bool PrintSize) {
 }
 
 string Revision() {
-    string s = "$Revision: 1.3 $";
+    string s = "$Revision: 1.4 $";
     return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
 }
 

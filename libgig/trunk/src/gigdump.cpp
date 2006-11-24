@@ -1,9 +1,11 @@
 /***************************************************************************
  *                                                                         *
- *   libgig - C++ cross-platform Gigasampler format file loader library    *
+ *   libgig - C++ cross-platform Gigasampler format file access library    *
  *                                                                         *
  *   Copyright (C) 2003-2006 by Christian Schoenebeck                      *
  *                              <cuse@users.sourceforge.net>               *
+ *                                                                         *
+ *   This program is part of libgig.                                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -393,7 +395,7 @@ void PrintDimensionRegions(gig::Region* rgn) {
 }
 
 string Revision() {
-    string s = "$Revision: 1.21 $";
+    string s = "$Revision: 1.22 $";
     return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
 }
 

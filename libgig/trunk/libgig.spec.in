@@ -1,10 +1,10 @@
 
 %define name    @PACKAGE@
 %define version @VERSION@
-%define release 7
+%define release 8
 %define prefix  @prefix@
 
-Summary:	C++ library for loading Gigasampler files and DLS Level 1/2 files.
+Summary:	C++ library for loading and modifying Gigasampler and DLS files.
 Name:		%{name}
 Version:	%{version}
 Release:	%{release}
@@ -16,15 +16,15 @@ URL:		http://stud.hs-heilbronn.de/~cschoene/projects/libgig/
 BuildRoot:	/var/tmp/%{name}-%{version}-buildroot
 
 %description
-C++ library for loading Gigasampler files and DLS Level 1/2 files.
+C++ library for loading and modifying Gigasampler and DLS files.
 
 %package devel
-Summary:	C++ library for loading Gigasampler files and DLS Level 1/2 files.
+Summary:	C++ library for loading and modifying Gigasampler and DLS files.
 Group:		Development/Libraries
 Requires:	%{name} = %{version}
 
 %description devel
-C++ library for loading Gigasampler files and DLS Level 1/2 files.
+C++ library for loading and modifying Gigasampler and DLS files.
 
 %prep
 
@@ -66,6 +66,8 @@ if [ -d $RPM_BUILD_ROOT ]; then rm -rf $RPM_BUILD_ROOT; fi
 %{prefix}/include/*
 
 %changelog
+* Fri Nov 24 2006 Christian Schoenebeck <cuse@users.sourceforge.net>
+- prepared for 3.1.0
 * Thu Jun 01 2006 Rui Nuno Capela <rncbc@users.sourceforge.net>
 - changed deprecated copyright attribute to license
 - added ldconfig to post-(un)install steps
