@@ -1,11 +1,11 @@
-linuxsampler (0.3.4~pre1) unreleased; urgency=low
+linuxsampler (0.4.0-1) unstable; urgency=low
 
   * Updated packaging files for the library nature of LinuxSampler.
   * Automatically generate Doxygen API documentation.
   * Include NEWS file on installation.
   * Include config.h on installation of liblinuxsampler-dev package.
 
- -- Christian Schoenebeck <cuse@users.sourceforge.net>  Wed, 09 Aug 2006 12:29:45 +0200
+ -- Christian Schoenebeck <cuse@users.sourceforge.net>  Fri, 24 Nov 2006 18:28:51 +0100
 
 linuxsampler (0.3.3-1) unstable; urgency=low
 

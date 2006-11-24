@@ -26,7 +26,7 @@ provides a TCP based network interface with a custom ASCII based protocol
 called "LSCP" to control the sampler and manage sampler sessions. You either
 have to send commands manually to LinuxSampler, e.g. by connecting via
 'telnet' or by using 'netcat' or you might want to use a graphical user
-interface (frontend) like QSampler.
+interface (frontend) like QSampler (C++/Qt based) or JSampler (Java based).
 
 For more informations visit http://www.linuxsampler.org/documentation.html
 
@@ -36,8 +36,10 @@ Requirements on Linux
 
     o A low latency enabled kernel
       (see http://www.linuxsampler.org/faq.html#dropouts).
-    o At least ALSA and optionally JACK and their respective development
-      (header) files as MIDI input and audio output drivers.
+    o At least one supported MIDI input system (i.e. ALSA, CoreMIDI or
+      MidiShare) and at least one support audio output system (i.e. ALSA,
+      JACK or ARTS) have to be installed, along with their respective
+      development (header) files.
     o libgig and its development (header) files for loading Gigasampler
       format files.
     o libtool

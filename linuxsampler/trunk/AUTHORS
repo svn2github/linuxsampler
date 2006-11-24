@@ -11,8 +11,7 @@ LinuxSampler side and in developing the MMX/SSE(1) assembly optimizations.
 Not to forget the huge list of bugs he fixed.
 
 Steve Harris made the filter impulse response analysis of the Gigasampler
-filters and developed an adequate filter solution for the Gigasampler
-engine of LinuxSampler.
+filters and developed the first version of the Gigasampler style filters.
 
 Stéphane Letz <letz@grame.fr> was responsible for the OS X port and fixed
 couple of bugs.
@@ -22,11 +21,17 @@ implementation.
 
 Andreas Persson made a lot of important fixes and improvents regarding the
 Gigasampler format handling. Especially the Gigasmpler v3 format support was
-developed by him. He also fixed couple of general bugs.
+developed by him. He also had his hands on a lot of quality improvements
+and bug fixes.
+
+Grigor Iliev <grishata@users.sourceforge.net> added and implemented LSCP
+commands for muting and solo-ing sampler channels, added sostenuto pedal
+support and fixed a bunch of bugs regarding the LSCP server.
 
 Smaller (but not necessarily minor) patches were received from the following
 people:
 
     James Klicman
     "Gene" a.k.a Anders Alm
-    Grigor Iliev
+    Ebrahim Mayat
+    Juan Linietsky

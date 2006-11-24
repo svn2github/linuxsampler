@@ -1,4 +1,4 @@
-Version CVS HEAD (?)
+Version 0.4.0 (24 November 2006)
 
   * packaging changes:
     - changed deprecated copyright attribute to license; added ldconfig
