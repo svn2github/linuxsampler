@@ -1,0 +1,37 @@
+Benno Senoner <benno@gardena.net> originally wrote the proof-of-concept code
+"Evo". Maybe we can get him to contribute again one day. ;-)
+
+Christian Schoenebeck <cuse@users.sourceforge.net> was and is currently the
+main author of LinuxSampler.
+
+Vladimir Senkov <hangup@users.sourceforge.net> was the first one who
+actively joined the development of this application. He was especially
+involved in designing the network protocol "LSCP" and it's implementation on
+LinuxSampler side and in developing the MMX/SSE(1) assembly optimizations.
+Not to forget the huge list of bugs he fixed.
+
+Steve Harris made the filter impulse response analysis of the Gigasampler
+filters and developed the first version of the Gigasampler style filters.
+
+Stéphane Letz <letz@grame.fr> was responsible for the OS X port and fixed
+couple of bugs.
+
+Rui Nuno Capela was also especially involved in the "LSCP" design and
+implementation.
+
+Andreas Persson made a lot of important fixes and improvents regarding the
+Gigasampler format handling. Especially the Gigasmpler v3 format support was
+developed by him. He also had his hands on a lot of quality improvements
+and bug fixes.
+
+Grigor Iliev <grishata@users.sourceforge.net> added and implemented LSCP
+commands for muting and solo-ing sampler channels, added sostenuto pedal
+support and fixed a bunch of bugs regarding the LSCP server.
+
+Smaller (but not necessarily minor) patches were received from the following
+people:
+
+    James Klicman
+    "Gene" a.k.a Anders Alm
+    Ebrahim Mayat
+    Juan Linietsky

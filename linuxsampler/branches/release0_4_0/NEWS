@@ -1,0 +1,30 @@
+Version 0.4.0 (24 November 2006)
+
+  Finally a new release after a long development cycle. The sampler now has
+  a completely revised synthesis core. Note that due to this, most of the
+  assembly code became incompatible and is thus deactivated at compile
+  time. So don't bother trying to activate the assembly option, it won't
+  compile! That's not an issue though, because even without assembly, the
+  new synthesis core is faster than the old one with assembly. The
+  Gigasampler engine now has real support for 24 bit samples, that is they
+  won't be truncated anymore, and finally supports all filter types of the
+  Gigasampler format. A lot of effort has been put into making all filters
+  under all parameters being as accurate as possible, compared to the
+  original Gigasampler ones. Analogue to hardware mixers, sampler channels
+  can now be muted and solo-ed and there is support for GM portamento and
+  GM mono mode (single note per channel) as well as support for sostenuto
+  pedal. Beside LSCP, third-party applications can now also link against
+  liblinuxsampler directly (using the sampler's C++ API). Beside these,
+  there have been of course a huge bunch of fixes and quality improvements.
+
+Version 0.3.3 (15 July 2005)
+
+  Another bug fix release. It solves one usability issue regarding small
+  fragments / high sampling rates of audio drivers, fixes some compile time
+  errors with GCC 4.0 and fixes a minor efficiency bug.
+
+Version 0.3.2 (24 June 2005)
+
+  This is more or less just a bug fix release. Beside a bunch of little
+  fixes it solves a serious crash in conjunction with voice stealing and
+  slightly improves Gigasampler format playback accuracy.
