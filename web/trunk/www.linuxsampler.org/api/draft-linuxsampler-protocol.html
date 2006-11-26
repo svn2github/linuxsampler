@@ -126,11 +126,11 @@
 <table summary="layout" width="66%" border="0" cellpadding="0" cellspacing="0"><tr><td><table summary="layout" width="100%" border="0" cellpadding="2" cellspacing="1">
 <tr><td class="header">LinuxSampler Developers</td><td class="header">C. Schoenebeck</td></tr>
 <tr><td class="header">Internet-Draft</td><td class="header">Interessengemeinschaft Software</td></tr>
-<tr><td class="header">Expires: May 29, 2007</td><td class="header">Engineering e. V.</td></tr>
-<tr><td class="header">&nbsp;</td><td class="header">November 25, 2006</td></tr>
+<tr><td class="header">Expires: May 30, 2007</td><td class="header">Engineering e. V.</td></tr>
+<tr><td class="header">&nbsp;</td><td class="header">November 26, 2006</td></tr>
 </table></td></tr></table>
 <div align="right"><span class="title"><br />LinuxSampler Control Protocol</span></div>
-<div align="right"><span class="title"><br />LSCP 1.1</span></div>
+<div align="right"><span class="title"><br />LSCP 1.2</span></div>
 
 <h3>Status of this Memo</h3>
 <p>
@@ -153,7 +153,7 @@ The list of current Internet-Drafts can be accessed at
 The list of Internet-Draft Shadow Directories can be accessed at
 <a href='http://www.ietf.org/shadow.html'>http://www.ietf.org/shadow.html</a>.</p>
 <p>
-This Internet-Draft will expire on May 29, 2007.</p>
+This Internet-Draft will expire on May 30, 2007.</p>
 
 <h3>Copyright Notice</h3>
 <p>
@@ -318,6 +318,20 @@ Maximum amount of active voices<br />
 Reset sampler<br />
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#GET SERVER INFO">6.6.4.</a>&nbsp;
 General sampler informations<br />
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#anchor14">6.7.</a>&nbsp;
+MIDI Instrument Mapping<br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#MAP MIDI_INSTRUMENT">6.7.1.</a>&nbsp;
+Create or replace a MIDI instrument map entry<br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#GET MIDI_INSTRUMENTS">6.7.2.</a>&nbsp;
+Getting ammount of MIDI instrument map entries<br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#LIST MIDI_INSTRUMENTS">6.7.3.</a>&nbsp;
+Getting indeces of all MIDI instrument map entries<br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#UNMAP MIDI_INSTRUMENT">6.7.4.</a>&nbsp;
+Remove an entry from the MIDI instrument map<br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#GET MIDI_INSTRUMENT INFO">6.7.5.</a>&nbsp;
+Get current settings of MIDI instrument map entry<br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#CLEAR MIDI_INSTRUMENTS">6.7.6.</a>&nbsp;
+Clear MIDI instrument map<br />
 <a href="#command_syntax">7.</a>&nbsp;
 Command Syntax<br />
 <a href="#events">8.</a>&nbsp;
@@ -336,9 +350,9 @@ Channel information changed<br />
 Total number of active voices changed<br />
 &nbsp;&nbsp;&nbsp;&nbsp;<a href="#SUBSCRIBE MISCELLANEOUS">8.7.</a>&nbsp;
 Miscellaneous and debugging events<br />
-<a href="#anchor14">9.</a>&nbsp;
+<a href="#anchor15">9.</a>&nbsp;
 Security Considerations<br />
-<a href="#anchor15">10.</a>&nbsp;
+<a href="#anchor16">10.</a>&nbsp;
 Acknowledgments<br />
 <a href="#rfc.references1">11.</a>&nbsp;
 References<br />
@@ -5138,6 +5152,562 @@ Intellectual Property and Copyright Statements<br />
 <p>The mentioned fields above don't have to be in particular order.
                     Other fields might be added in future.
 </p>
+<a name="anchor14"></a><br /><hr />
+<table summary="layout" cellpadding="0" cellspacing="2" class="bug" align="right"><tr><td class="bug"><a href="#toc" class="link2">&nbsp;TOC&nbsp;</a></td></tr></table>
+<a name="rfc.section.6.7"></a><h3>6.7.&nbsp;MIDI Instrument Mapping</h3>
+
+<p>The MIDI protocol provides a way to switch between instruments
+                by sending so called MIDI bank select and MIDI program change
+                messages which are essentially just numbers. The following commands
+                allow to actually map arbitrary MIDI bank select / program change
+                numbers with real instruments.
+</p>
+<p>By default, that is when the sampler is launched, this map will
+                be empty, thus the sampler will simply ignore all program change
+                messages. The front-end has to explicitly add entries to the map
+                so the sampler knows how to react on a given program change
+                message, that is by switching to the respectively defined engine
+                type and loading the respective instrument.
+</p>
+<p>Also note per MIDI specification a bank select message does not
+                cause to switch to another instrument. Instead when receiving a
+                bank select message the bank value will be stored and a subsequent
+                program change message (which may occur at any time) will finally
+                cause the sampler to switch to the respective instrument as
+                reflected by the current MIDI instrument map.
+</p>
+<a name="MAP MIDI_INSTRUMENT"></a><br /><hr />
+<table summary="layout" cellpadding="0" cellspacing="2" class="bug" align="right"><tr><td class="bug"><a href="#toc" class="link2">&nbsp;TOC&nbsp;</a></td></tr></table>
+<a name="rfc.section.6.7.1"></a><h3>6.7.1.&nbsp;Create or replace a MIDI instrument map entry</h3>
+
+<p>The front-end can create a new or replace an existing entry
+                    in the sampler's MIDI instrument map by sending the following
+                    command:
+</p>
+<p>
+                        </p>
+<blockquote class="text">
+<p>MAP MIDI_INSTRUMENT &lt;midi_bank_msb&gt;
+                            &lt;midi_bank_lsb&gt; &lt;midi_prog&gt; &lt;engine_name&gt;
+                            &lt;filename&gt; &lt;instrument_index&gt; &lt;volume_value&gt;
+                            [&lt;instr_load_mode&gt;] [&lt;name&gt;]
+</p>
+</blockquote><p>
+                    
+</p>
+<p>Where &lt;midi_bank_msb&gt; is an integer value between
+                    0..127 reflecting the MIDI bank select MSB (coarse) index,
+                    &lt;midi_bank_lsb&gt; an integer value between 0..127 reflecting
+                    the MIDI bank select LSB (fine) index, &lt;midi_prog&gt; an
+                    integer value between 0..127 reflecting the MIDI program change
+                    index, &lt;engine_name&gt; a sampler engine name as returned by
+                    the <a class="info" href="#LIST AVAILABLE_ENGINES">"LIST AVAILABLE_ENGINES"<span> (</span><span class="info">Getting all available engines</span><span>)</span></a>
+                    command (not encapsulated into apostrophes), &lt;filename&gt; the name
+                    of the instrument's file to be deployed (encapsulated into apostrophes), &lt;instrument_index&gt; the index (integer value) of the instrument
+                    within the given file, &lt;volume_value&gt; reflects the master
+                    volume of the instrument as optionally dotted number (where a
+                    value < 1.0 means attenuation and a value > 1.0 means
+                    amplification). This parameter easily allows to adjust the
+                    volume of all intruments within a custom instrument map
+                    without having to adjust their instrument files. The
+                    OPTIONAL &lt;instr_load_mode&gt; argument defines the life
+                    time of the instrument, that is when the instrument should
+                    be loaded, when freed and has exactly the following
+                    possibilities:
+</p>
+<p>
+                        </p>
+<blockquote class="text">
+<p>"ON_DEMAND" -
+                                </p>
+<blockquote class="text">
+<p>The instrument will be loaded when needed,
+                                    that is when demanded by at least one sampler
+                                    channel. It will immediately be freed from memory
+                                    when not needed by any sampler channel anymore.
+</p>
+</blockquote>
+                            
+
+<p>"ON_DEMAND_HOLD" -
+                                </p>
+<blockquote class="text">
+<p>The instrument will be loaded when needed,
+                                    that is when demanded by at least one sampler
+                                    channel. It will be kept in memory even when
+                                    not needed by any sampler channel anymore.
+                                    Instruments with this mode are only freed
+                                    when the sampler is reset or all mapping
+                                    entries with this mode (and respective
+                                    instrument) are explicitly changed to
+                                    "ON_DEMAND" and no sampler channel is using
+                                    the instrument anymore.
+</p>
+</blockquote>
+                            
+
+<p>"PERSISTENT" -
+                                </p>
+<blockquote class="text">
+<p>The instrument will immediately be loaded
+                                    into memory in the background when this mapping
+                                    command is sent and the instrument is kept all
+                                    the time. Instruments with this mode are
+                                    only freed when the sampler is reset or all
+                                    mapping entries with this mode (and
+                                    respective instrument) are explicitly
+                                    changed to "ON_DEMAND" and no sampler
+                                    channel is using the instrument anymore.
+</p>
+</blockquote>
+                            
+
+<p>not supplied -
+                                </p>
+<blockquote class="text">
+<p>In case there is no &lt;instr_load_mode&gt;
+                                    argument given, it will be up to the
+                                    InstrumentManager to decide which mode to use.
+                                    Usually it will use "ON_DEMAND" if an entry
+                                    for the given instrument does not exist in
+                                    the InstrumentManager's list yet, otherwise
+                                    if an entry already exists, it will simply
+                                    stick with the mode currently reflected by
+                                    the already existing entry, that is it will
+                                    not change the mode.
+</p>
+</blockquote>
+                            
+
+</blockquote><p>
+                    
+</p>
+<p>
+                    The &lt;instr_load_mode&gt; argument thus allows to define an
+                    appropriate strategy (low memory consumption vs. fast
+                    instrument switching) for each instrument individually. Note, the
+                    following restrictions apply to this argument: "ON_DEMAND_HOLD" and
+                    "PERSISTENT" have to be supported by the respective sampler engine
+                    (which is technically the case when the engine provides an
+                    InstrumentManager for its format). If this is not the case the
+                    argument will automatically fall back to the default value
+                    "ON_DEMAND". Also the load mode of one instrument may
+                    automatically change the laod mode of other instrument(s), i.e.
+                    because the instruments are part of the same file and the
+                    engine does not allow a way to manage load modes for them
+                    individually. Due to this, in case the frontend shows the
+                    load modes of entries, the frontend should retrieve the actual
+                    mode by i.e. sending
+                    <a class="info" href="#GET MIDI_INSTRUMENT INFO">"GET MIDI_INSTRUMENT INFO"<span> (</span><span class="info">Get current settings of MIDI instrument map entry</span><span>)</span></a>
+                    command(s). Finally the OPTIONAL &lt;name&gt; argument allows to
+                    set a custom name (encapsulated into apostrophes) for the mapping
+                    entry, useful for frontends for displaying an appropriate name for
+                    mapped instruments (using
+                    <a class="info" href="#GET MIDI_INSTRUMENT INFO">"GET MIDI_INSTRUMENT INFO"<span> (</span><span class="info">Get current settings of MIDI instrument map entry</span><span>)</span></a>).
+                    
+</p>
+<p>
+                    The "MAP MIDI_INSTRUMENT" command
+                    will immediately return, thus it will not block when an
+                    instrument is to be loaded due to a "PERSISTENT" type
+                    entry as instruments are loaded in the background. As a
+                    consequence this command may not necessarily return an error
+                    i.e. when the given instrument file does not exist or may
+                    turn out to be corrupt.
+                    
+</p>
+<p>Possible Answers:
+</p>
+<p>
+                        </p>
+<blockquote class="text">
+<p>"OK" -
+                                </p>
+<blockquote class="text">
+<p>usually
+</p>
+</blockquote>
+                            
+
+<p>"ERR:&lt;error-code&gt;:&lt;error-message&gt;" -
+                                </p>
+<blockquote class="text">
+<p>when the given engine does not exist or a value
+                                    is out of range
+</p>
+</blockquote>
+                            
+
+</blockquote><p>
+                    
+</p>
+<p>Examples:
+</p>
+<p>
+                        </p>
+<blockquote class="text">
+<p>C: "MAP MIDI_INSTRUMENT 3 0 0 gig '/usr/share/Steinway D.gig' 0 0.8 PERSISTENT"
+</p>
+<p>S: "OK"
+</p>
+</blockquote><p>
+                    
+</p>
+<p>
+                        </p>
+<blockquote class="text">
+<p>C: "MAP MIDI_INSTRUMENT 127 4 50 gig '/home/john/foostrings.gig' 7 1.0"
+</p>
+<p>S: "OK"
+</p>
+</blockquote><p>
+                    
+</p>
+<p>
+                        </p>
+<blockquote class="text">
+<p>C: "MAP MIDI_INSTRUMENT 0 0 0 gig '/usr/share/piano.gig' 0 1.0 'Normal Piano'"
+</p>
+<p>S: "OK"
+</p>
+<p>C: "MAP MIDI_INSTRUMENT 1 0 0 gig '/usr/share/piano.gig' 0 0.25 'Silent Piano'"
+</p>
+<p>S: "OK"
+</p>
+</blockquote><p>
+                    
+</p>
+<p>
+                        </p>
+<blockquote class="text">
+<p>C: "MAP MIDI_INSTRUMENT 99 8 120 gig '/home/joe/foodrums.gig' 0 1.0 PERSISTENT 'Foo Drumkit'"
+</p>
+<p>S: "OK"
+</p>
+</blockquote><p>
+                    
+</p>
+<a name="GET MIDI_INSTRUMENTS"></a><br /><hr />
+<table summary="layout" cellpadding="0" cellspacing="2" class="bug" align="right"><tr><td class="bug"><a href="#toc" class="link2">&nbsp;TOC&nbsp;</a></td></tr></table>
+<a name="rfc.section.6.7.2"></a><h3>6.7.2.&nbsp;Getting ammount of MIDI instrument map entries</h3>
+
+<p>The front-end can query the amount of currently existing MIDI
+                    instrument map entries by sending the following
+                    command:
+</p>
+<p>
+                        </p>
+<blockquote class="text">
+<p>GET MIDI_INSTRUMENTS
+</p>
+</blockquote><p>
+                    
+</p>
+<p>Possible Answers:
+</p>
+<p>
+                        </p>
+<blockquote class="text">
+<p>LinuxSampler will answer by sending the current number of
+                            entries in the sampler's MIDI instrument map.
+</p>
+</blockquote><p>
+                    
+</p>
+<p>Example:
+</p>
+<p>
+                        </p>
+<blockquote class="text">
+<p>C: "GET MIDI_INSTRUMENTS"
+</p>
+<p>S: "634"
+</p>
+</blockquote><p>
+                    
+</p>
+<a name="LIST MIDI_INSTRUMENTS"></a><br /><hr />
+<table summary="layout" cellpadding="0" cellspacing="2" class="bug" align="right"><tr><td class="bug"><a href="#toc" class="link2">&nbsp;TOC&nbsp;</a></td></tr></table>
+<a name="rfc.section.6.7.3"></a><h3>6.7.3.&nbsp;Getting indeces of all MIDI instrument map entries</h3>
+
+<p>The front-end can query a list of all currently existing MIDI
+                    instrument map entries by sending the following command:
+</p>
+<p>
+                        </p>
+<blockquote class="text">
+<p>LIST MIDI_INSTRUMENTS
+</p>
+</blockquote><p>
+                    
+</p>
+<p>Possible Answers:
+</p>
+<p>
+                        </p>
+<blockquote class="text">
+<p>LinuxSampler will answer by sending a comma separated
+                            list of MIDI bank MSB (coarse) - MIDI bank LSB (fine) -
+                            MIDI program triples, where each triple is encapsulated
+                            into curly braces. The list is returned in one single
+                            line. Each triple just reflects the key of the respective
+                            map entry, thus subsequent
+                            <a class="info" href="#GET MIDI_INSTRUMENT INFO">"GET MIDI_INSTRUMENT INFO"<span> (</span><span class="info">Get current settings of MIDI instrument map entry</span><span>)</span></a>
+                            command(s) are necessary to retrieve detailed informations
+                            about each entry.
+</p>
+</blockquote><p>
+                    
+</p>
+<p>Example:
+</p>
+<p>
+                        </p>
+<blockquote class="text">
+<p>C: "LIST MIDI_INSTRUMENTS"
+</p>
+<p>S: "{0,0,0},{0,0,1},{120,0,3},{120,0,4},{23,127,127}"
+</p>
+</blockquote><p>
+                    
+</p>
+<a name="UNMAP MIDI_INSTRUMENT"></a><br /><hr />
+<table summary="layout" cellpadding="0" cellspacing="2" class="bug" align="right"><tr><td class="bug"><a href="#toc" class="link2">&nbsp;TOC&nbsp;</a></td></tr></table>
+<a name="rfc.section.6.7.4"></a><h3>6.7.4.&nbsp;Remove an entry from the MIDI instrument map</h3>
+
+<p>The front-end can delete an entry from the MIDI instrument
+                    map by sending the following command:
+</p>
+<p>
+                        </p>
+<blockquote class="text">
+<p>UNMAP MIDI_INSTRUMENT &lt;midi_bank_msb&gt; &lt;midi_bank_lsb&gt; &lt;midi_prog&gt;
+</p>
+</blockquote><p>
+                    
+</p>
+<p>
+                    Where &lt;midi_bank_msb&gt; is an integer value between 0..127
+                    reflecting the MIDI bank MSB (coarse) value, &lt;midi_bank_lsb&gt;
+                    an integer value between 0..127 reflecting the MIDI bank LSB
+                    (fine) value and &lt;midi_prog&gt; an integer value between
+                    0..127 reflecting the MIDI program value of the map entrie's key
+                    index triple.
+                    
+</p>
+<p>Possible Answers:
+</p>
+<p>
+                        </p>
+<blockquote class="text">
+<p>"OK" -
+                                </p>
+<blockquote class="text">
+<p>usually
+</p>
+</blockquote>
+                            
+
+<p>"ERR:&lt;error-code&gt;:&lt;error-message&gt;" -
+                                </p>
+<blockquote class="text">
+<p>when index out of bounds
+</p>
+</blockquote>
+                            
+
+</blockquote><p>
+                    
+</p>
+<p>Example:
+</p>
+<p>
+                        </p>
+<blockquote class="text">
+<p>C: "UNMAP MIDI_INSTRUMENT 2 40 127"
+</p>
+<p>S: "OK"
+</p>
+</blockquote><p>
+                    
+</p>
+<a name="GET MIDI_INSTRUMENT INFO"></a><br /><hr />
+<table summary="layout" cellpadding="0" cellspacing="2" class="bug" align="right"><tr><td class="bug"><a href="#toc" class="link2">&nbsp;TOC&nbsp;</a></td></tr></table>
+<a name="rfc.section.6.7.5"></a><h3>6.7.5.&nbsp;Get current settings of MIDI instrument map entry</h3>
+
+<p>The front-end can retrieve the current settings of a certain
+                    instrument map entry by sending the following command:
+</p>
+<p>
+                        </p>
+<blockquote class="text">
+<p>GET MIDI_INSTRUMENT INFO &lt;midi_bank_msb&gt; &lt;midi_bank_lsb&gt; &lt;midi_prog&gt;
+</p>
+</blockquote><p>
+                    
+</p>
+<p>
+                    Where &lt;midi_bank_msb&gt; is an integer value between 0..127
+                    reflecting the MIDI bank MSB (coarse) value, &lt;midi_bank_lsb&gt;
+                    an integer value between 0..127 reflecting the MIDI bank LSB
+                    (fine) value and &lt;midi_prog&gt; an integer value between
+                    0..127 reflecting the MIDI program value of the map entrie's key
+                    index triple.
+                    
+</p>
+<p>Possible Answers:
+</p>
+<p>
+                        </p>
+<blockquote class="text">
+<p>LinuxSampler will answer by sending a &lt;CRLF&gt;
+                            separated list. Each answer line begins with the
+                            information category name followed by a colon and then
+                            a space character &lt;SP&gt; and finally the info
+                            character string to that info category. At the moment
+                            the following categories are defined:
+</p>
+<p>"NAME" -
+                                </p>
+<blockquote class="text">
+<p>Name for this MIDI instrument map entry (if defined).
+                                    This name shall be used by frontends for displaying a
+                                    name for this mapped instrument. It can be set and
+                                    changed with the
+                                    <a class="info" href="#MAP MIDI_INSTRUMENT">"MAP MIDI_INSTRUMENT"<span> (</span><span class="info">Create or replace a MIDI instrument map entry</span><span>)</span></a>
+                                    command and does not have to be unique.
+</p>
+</blockquote>
+                            
+
+<p>"ENGINE_NAME" -
+                                </p>
+<blockquote class="text">
+<p>Name of the engine to be deployed for this
+                                    instrument.
+</p>
+</blockquote>
+                            
+
+<p>"INSTRUMENT_FILE" -
+                                </p>
+<blockquote class="text">
+<p>File name of the instrument.
+</p>
+</blockquote>
+                            
+
+<p>"INSTRUMENT_NR" -
+                                </p>
+<blockquote class="text">
+<p>Index of the instrument within the file.
+</p>
+</blockquote>
+                            
+
+<p>"INSTRUMENT_NAME" -
+                                </p>
+<blockquote class="text">
+<p>Name of the loaded instrument as reflected by its file.
+                                    In contrast to the "NAME" field, the "INSTRUMENT_NAME" field
+                                    cannot be changed.
+</p>
+</blockquote>
+                            
+
+<p>"LOAD_MODE" -
+                                </p>
+<blockquote class="text">
+<p>Life time of instrument
+                                    (see <a class="info" href="#MAP MIDI_INSTRUMENT">"MAP MIDI_INSTRUMENT"<span> (</span><span class="info">Create or replace a MIDI instrument map entry</span><span>)</span></a> for details about this setting).
+</p>
+</blockquote>
+                            
+
+<p>"VOLUME" -
+                                </p>
+<blockquote class="text">
+<p>master volume of the instrument as optionally
+                                    dotted number (where a value < 1.0 means attenuation
+                                    and a value > 1.0 means amplification)
+</p>
+</blockquote>
+                            
+
+<p>The mentioned fields above don't have to be in particular order.
+</p>
+</blockquote><p>
+                    
+</p>
+<p>Example:
+</p>
+<p>
+                        </p>
+<blockquote class="text">
+<p>C: "GET MIDI_INSTRUMENT INFO 3 45 120"
+</p>
+<p>S: "NAME: Drums for Foo Song"
+</p>
+<p>&nbsp;&nbsp;&nbsp;"ENGINE_NAME: GigEngine"
+</p>
+<p>&nbsp;&nbsp;&nbsp;"INSTRUMENT_FILE: /usr/share/joesdrumkit.gig"
+</p>
+<p>&nbsp;&nbsp;&nbsp;"INSTRUMENT_NR: 0"
+</p>
+<p>&nbsp;&nbsp;&nbsp;"INSTRUMENT_NAME: Joe's Drumkit"
+</p>
+<p>&nbsp;&nbsp;&nbsp;"LOAD_MODE: PERSISTENT"
+</p>
+<p>&nbsp;&nbsp;&nbsp;"VOLUME: 1.0"
+</p>
+<p>&nbsp;&nbsp;&nbsp;"."
+</p>
+</blockquote><p>
+                    
+</p>
+<a name="CLEAR MIDI_INSTRUMENTS"></a><br /><hr />
+<table summary="layout" cellpadding="0" cellspacing="2" class="bug" align="right"><tr><td class="bug"><a href="#toc" class="link2">&nbsp;TOC&nbsp;</a></td></tr></table>
+<a name="rfc.section.6.7.6"></a><h3>6.7.6.&nbsp;Clear MIDI instrument map</h3>
+
+<p>The front-end can clear the whole MIDI instrument map, that
+                    is delete all entries by sending the following command:
+</p>
+<p>
+                        </p>
+<blockquote class="text">
+<p>CLEAR MIDI_INSTRUMENTS
+</p>
+</blockquote><p>
+                    
+</p>
+<p>Possible Answers:
+</p>
+<p>
+                        </p>
+<blockquote class="text">
+<p>"OK" -
+                                </p>
+<blockquote class="text">
+<p>always
+</p>
+</blockquote>
+                            
+
+</blockquote><p>
+                    
+</p>
+<p>Example:
+</p>
+<p>
+                       </p>
+<blockquote class="text">
+<p>C: "CLEAR MIDI_INSTRUMENTS"
+</p>
+<p>S: "OK"
+</p>
+</blockquote><p>
+                    
+</p>
 <a name="command_syntax"></a><br /><hr />
 <table summary="layout" cellpadding="0" cellspacing="2" class="bug" align="right"><tr><td class="bug"><a href="#toc" class="link2">&nbsp;TOC&nbsp;</a></td></tr></table>
 <a name="rfc.section.7"></a><h3>7.&nbsp;Command Syntax</h3>
@@ -5204,6 +5774,12 @@ Intellectual Property and Copyright Statements<br />
 <p>ADD SP CHANNEL
 		
 </p>
+<p>/ MAP SP map_instruction
+		
+</p>
+<p>/ UNMAP SP unmap_instruction
+		
+</p>
 <p>/ GET SP get_instruction
 		
 </p>
@@ -5219,7 +5795,8 @@ Intellectual Property and Copyright Statements<br />
 <p>/ LOAD SP load_instruction
 		
 </p>
-<p>/ REMOVE SP CHANNEL SP sampler_channel
+<p>/ REMOVE SP remove_instruction
+
 		
 </p>
 <p>/ SET SP set_instruction
@@ -5234,7 +5811,10 @@ Intellectual Property and Copyright Statements<br />
 <p>/ SELECT SP text
 		
 </p>
-<p>/ RESET SP CHANNEL SP sampler_channel
+<p>/ RESET SP reset_instruction
+		
+</p>
+<p>/ CLEAR SP clear_instruction
 		
 </p>
 <p>/ RESET
@@ -5295,6 +5875,42 @@ Intellectual Property and Copyright Statements<br />
 		
 </p>
 <p>/ TOTAL_VOICE_COUNT
+		
+</p>
+</blockquote><p>
+
+</p>
+<p>map_instruction =
+	</p>
+<blockquote class="text">
+<p>MIDI_INSTRUMENT SP midi_bank_msb SP midi_bank_lsb SP midi_prog SP engine_name SP filename SP instrument_index SP volume_value
+		
+</p>
+<p>/ MIDI_INSTRUMENT SP midi_bank_msb SP midi_bank_lsb SP midi_prog SP engine_name SP filename SP instrument_index SP volume_value SP instr_load_mode
+		
+</p>
+<p>/ MIDI_INSTRUMENT SP midi_bank_msb SP midi_bank_lsb SP midi_prog SP engine_name SP filename SP instrument_index SP volume_value SP entry_name
+		
+</p>
+<p>/ MIDI_INSTRUMENT SP midi_bank_msb SP midi_bank_lsb SP midi_prog SP engine_name SP filename SP instrument_index SP volume_value SP instr_load_mode SP entry_name
+		
+</p>
+</blockquote><p>
+
+</p>
+<p>unmap_instruction =
+	</p>
+<blockquote class="text">
+<p>MIDI_INSTRUMENT SP midi_bank_msb SP midi_bank_lsb SP midi_prog
+		
+</p>
+</blockquote><p>
+
+</p>
+<p>remove_instruction =
+	</p>
+<blockquote class="text">
+<p>CHANNEL SP sampler_channel
 		
 </p>
 </blockquote><p>
@@ -5381,6 +5997,12 @@ Intellectual Property and Copyright Statements<br />
 <p>/ TOTAL_VOICE_COUNT_MAX
 		
 </p>
+<p>/ MIDI_INSTRUMENTS
+		
+</p>
+<p>/ MIDI_INSTRUMENT SP INFO SP midi_bank_msb SP midi_bank_lsb SP midi_prog
+		
+</p>
 </blockquote><p>
 
 </p>
@@ -5421,6 +6043,24 @@ Intellectual Property and Copyright Statements<br />
 		
 </p>
 <p>/ MIDI_INPUT_DEVICE SP string
+		
+</p>
+</blockquote><p>
+
+</p>
+<p>reset_instruction =
+	</p>
+<blockquote class="text">
+<p>CHANNEL SP sampler_channel
+		
+</p>
+</blockquote><p>
+
+</p>
+<p>clear_instruction =
+	</p>
+<blockquote class="text">
+<p>MIDI_INSTRUMENTS
 		
 </p>
 </blockquote><p>
@@ -5534,6 +6174,9 @@ Intellectual Property and Copyright Statements<br />
 <p>/ AVAILABLE_AUDIO_OUTPUT_DRIVERS
 		
 </p>
+<p>/ MIDI_INSTRUMENTS
+		
+</p>
 </blockquote><p>
 
 </p>
@@ -5553,6 +6196,21 @@ Intellectual Property and Copyright Statements<br />
 	</p>
 <blockquote class="text">
 <p>engine_name SP sampler_channel
+		
+</p>
+</blockquote><p>
+
+</p>
+<p>instr_load_mode =
+	</p>
+<blockquote class="text">
+<p>ON_DEMAND
+		
+</p>
+<p>/ ON_DEMAND_HOLD
+		
+</p>
+<p>/ PERSISTENT
 		
 </p>
 </blockquote><p>
@@ -5615,6 +6273,33 @@ Intellectual Property and Copyright Statements<br />
 </blockquote><p>
 
 </p>
+<p>midi_bank_msb =
+	</p>
+<blockquote class="text">
+<p>number
+		
+</p>
+</blockquote><p>
+
+</p>
+<p>midi_bank_lsb =
+	</p>
+<blockquote class="text">
+<p>number
+		
+</p>
+</blockquote><p>
+
+</p>
+<p>midi_prog =
+	</p>
+<blockquote class="text">
+<p>number
+		
+</p>
+</blockquote><p>
+
+</p>
 <p>volume_value =
 	</p>
 <blockquote class="text">
@@ -5655,6 +6340,15 @@ Intellectual Property and Copyright Statements<br />
 
 </p>
 <p>filename =
+	</p>
+<blockquote class="text">
+<p>stringval
+		
+</p>
+</blockquote><p>
+
+</p>
+<p>entry_name =
 	</p>
 <blockquote class="text">
 <p>stringval
@@ -5904,7 +6598,7 @@ Intellectual Property and Copyright Statements<br />
                 wants to send to the client. Client MAY display this data to the
                 user AS IS to facilitate debugging.
 </p>
-<a name="anchor14"></a><br /><hr />
+<a name="anchor15"></a><br /><hr />
 <table summary="layout" cellpadding="0" cellspacing="2" class="bug" align="right"><tr><td class="bug"><a href="#toc" class="link2">&nbsp;TOC&nbsp;</a></td></tr></table>
 <a name="rfc.section.9"></a><h3>9.&nbsp;Security Considerations</h3>
 
@@ -5913,7 +6607,7 @@ Intellectual Property and Copyright Statements<br />
             connect, running LinuxSampler might be a security risk for the host
             system the LinuxSampler instance is running on.
 </p>
-<a name="anchor15"></a><br /><hr />
+<a name="anchor16"></a><br /><hr />
 <table summary="layout" cellpadding="0" cellspacing="2" class="bug" align="right"><tr><td class="bug"><a href="#toc" class="link2">&nbsp;TOC&nbsp;</a></td></tr></table>
 <a name="rfc.section.10"></a><h3>10.&nbsp;Acknowledgments</h3>
 
