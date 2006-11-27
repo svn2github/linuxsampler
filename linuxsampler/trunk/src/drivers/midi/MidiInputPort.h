@@ -283,6 +283,10 @@ namespace LinuxSampler {
              */
             void DispatchProgramChange(uint8_t Program, uint MidiChannel);
 
+            void DispatchBankSelectMsb(uint8_t BankMsb, uint MidiChannel);
+
+            void DispatchBankSelectLsb(uint8_t BankLsb, uint MidiChannel);
+
             /**
              * Should be called by the implementing MIDI input device
              * whenever a system exclusive message arrived, this will cause
@@ -316,7 +320,6 @@ namespace LinuxSampler {
             friend class MidiInputDevice;
 
         private:
-            EngineChannel* pPreviousProgramChangeEngineChannel; ///< Points to the engine channel which was connected by the previous DispatchProgramChange() call.
             static SynchronizedConfig<std::set<Engine*> > SysexListeners; ///< All engines that are listening to sysex messages.
     };
 

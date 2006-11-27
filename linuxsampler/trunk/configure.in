@@ -5,7 +5,7 @@ AC_INIT(configure.in)
 
 LINUXSAMPLER_RELEASE_MAJOR=0
 LINUXSAMPLER_RELEASE_MINOR=4
-LINUXSAMPLER_RELEASE_BUILD=0
+LINUXSAMPLER_RELEASE_BUILD=0.1cvs
 
 #------------------------------------------------------------------------------------
 # The following is the libtool / shared library version. This doesn't have to
@@ -28,6 +28,15 @@ LIBLINUXSAMPLER_LT_CURRENT=0
 LIBLINUXSAMPLER_LT_REVISION=0
 LIBLINUXSAMPLER_LT_AGE=0
 SHARED_VERSION_INFO="$LIBLINUXSAMPLER_LT_CURRENT:$LIBLINUXSAMPLER_LT_REVISION:$LIBLINUXSAMPLER_LT_AGE"
+
+#------------------------------------------------------------------------------------
+# the LSCP specification version this LinuSampler release complies with:
+
+LSCP_RELEASE_MAJOR=1
+LSCP_RELEASE_MINOR=2
+
+AC_DEFINE_UNQUOTED(LSCP_RELEASE_MAJOR, ${LSCP_RELEASE_MAJOR}, [LSCP spec major version this release complies with.])
+AC_DEFINE_UNQUOTED(LSCP_RELEASE_MINOR, ${LSCP_RELEASE_MINOR}, [LSCP spec minor version this release complies with.])
 
 AM_PROG_LIBTOOL
 
@@ -348,13 +357,13 @@ if test "$config_asm" = "yes"; then
 fi
 
 AC_ARG_ENABLE(dev-mode,
-  [  --enable-dev-mode
-                          Enable development mode (default=off). In that mode
+  [  --disable-dev-mode
+                          Disable development mode (default=on). In that mode
                           we do some extra sanity checks here and there.
                           This helps to spot possible problems, but reduces
                           efficiency a bit],
-  [config_dev_mode="yes"],
-  [config_dev_mode="no"]
+  [config_dev_mode="no"],
+  [config_dev_mode="yes"]
 )
 if test "$config_dev_mode" = "yes"; then
   AC_DEFINE_UNQUOTED(CONFIG_DEVMODE, 1, [Define to 1 if you want to enable development mode.])

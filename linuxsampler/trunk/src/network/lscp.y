@@ -21,8 +21,12 @@
  *   MA  02111-1307  USA                                                   *
  ***************************************************************************/
 
-/* Note: don't forget to run 'make parser' after you changed this file, */
-/*       otherwise the parser will not be regenerated!                  */
+/* CAUTION: !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! */
+/*                                                                         */
+/*     don't forget to run 'make parser' after you changed this file,      */
+/*     otherwise the parser will not be regenerated !                      */
+/*                                                                         */
+/* !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! */
 
 %{
 
@@ -68,10 +72,11 @@ int yylex(YYSTYPE* yylval) {
 
 %type <Char> char digit
 %type <Dotnum> dotnum volume_value boolean
-%type <Number> number sampler_channel instrument_index audio_channel_index device_index midi_input_channel_index midi_input_port_index
-%type <String> string text stringval digits param_val_list param_val filename engine_name command create_instruction destroy_instruction get_instruction list_instruction load_instruction set_chan_instruction load_instr_args load_engine_args audio_output_type_name midi_input_type_name set_instruction subscribe_event unsubscribe_event
+%type <Number> number sampler_channel instrument_index audio_channel_index device_index midi_input_channel_index midi_input_port_index midi_bank_msb midi_bank_lsb midi_prog
+%type <String> string text stringval digits param_val_list param_val filename entry_name engine_name command create_instruction destroy_instruction get_instruction list_instruction load_instruction set_chan_instruction load_instr_args load_engine_args audio_output_type_name midi_input_type_name remove_instruction unmap_instruction set_instruction subscribe_event unsubscribe_event map_instruction reset_instruction clear_instruction
 %type <FillResponse> buffer_size_type
 %type <KeyValList> key_val_list
+%type <LoadMode> instr_load_mode
 
 %start input
 
@@ -105,17 +110,20 @@ comment               :  '#'
                       ;
 
 command               :  ADD SP CHANNEL                        { $$ = LSCPSERVER->AddChannel();                          }
+                      |  MAP SP map_instruction                { $$ = $3;                                                }
+                      |  UNMAP SP unmap_instruction            { $$ = $3;                                                }
                       |  GET SP get_instruction                { $$ = $3;                                                }
                       |  CREATE SP create_instruction          { $$ = $3;                                                }
                       |  DESTROY SP destroy_instruction        { $$ = $3;                                                }
                       |  LIST SP list_instruction              { $$ = $3;                                                }
                       |  LOAD SP load_instruction              { $$ = $3;                                                }
-                      |  REMOVE SP CHANNEL SP sampler_channel  { $$ = LSCPSERVER->RemoveChannel($5);                     }
+                      |  REMOVE SP remove_instruction          { $$ = $3;                                                }
                       |  SET SP set_instruction                { $$ = $3;                                                }
                       |  SUBSCRIBE SP subscribe_event          { $$ = $3;                                                }
                       |  UNSUBSCRIBE SP unsubscribe_event      { $$ = $3;                                                }
                       |  SELECT SP text                        { $$ = LSCPSERVER->QueryDatabase($3);                     }
-                      |  RESET SP CHANNEL SP sampler_channel   { $$ = LSCPSERVER->ResetChannel($5);                      }
+                      |  RESET SP reset_instruction            { $$ = $3;                                                }
+                      |  CLEAR SP clear_instruction            { $$ = $3;                                                }
                       |  RESET                                 { $$ = LSCPSERVER->ResetSampler();                        }
                       |  QUIT                                  { LSCPSERVER->AnswerClient("Bye!\r\n"); return LSCP_QUIT; }
                       ;
@@ -136,6 +144,18 @@ unsubscribe_event     :  CHANNEL_COUNT                         { $$ = LSCPSERVER
                       |  CHANNEL_INFO                          { $$ = LSCPSERVER->UnsubscribeNotification(LSCPEvent::event_channel_info);      }
                       |  MISCELLANEOUS                         { $$ = LSCPSERVER->UnsubscribeNotification(LSCPEvent::event_misc);              }
                       |  TOTAL_VOICE_COUNT                     { $$ = LSCPSERVER->UnsubscribeNotification(LSCPEvent::event_total_voice_count); }
+                      ;
+
+map_instruction       :  MIDI_INSTRUMENT SP midi_bank_msb SP midi_bank_lsb SP midi_prog SP engine_name SP filename SP instrument_index SP volume_value { $$ = LSCPSERVER->AddOrReplaceMIDIInstrumentMapping($3,$5,$7,$9,$11,$13,$15,MidiInstrumentMapper::VOID,""); }
+                      |  MIDI_INSTRUMENT SP midi_bank_msb SP midi_bank_lsb SP midi_prog SP engine_name SP filename SP instrument_index SP volume_value SP instr_load_mode { $$ = LSCPSERVER->AddOrReplaceMIDIInstrumentMapping($3,$5,$7,$9,$11,$13,$15,$17,""); }
+                      |  MIDI_INSTRUMENT SP midi_bank_msb SP midi_bank_lsb SP midi_prog SP engine_name SP filename SP instrument_index SP volume_value SP entry_name { $$ = LSCPSERVER->AddOrReplaceMIDIInstrumentMapping($3,$5,$7,$9,$11,$13,$15,MidiInstrumentMapper::VOID,$17); }
+                      |  MIDI_INSTRUMENT SP midi_bank_msb SP midi_bank_lsb SP midi_prog SP engine_name SP filename SP instrument_index SP volume_value SP instr_load_mode SP entry_name { $$ = LSCPSERVER->AddOrReplaceMIDIInstrumentMapping($3,$5,$7,$9,$11,$13,$15,$17,$19); }
+                      ;
+
+unmap_instruction     :  MIDI_INSTRUMENT SP midi_bank_msb SP midi_bank_lsb SP midi_prog  { $$ = LSCPSERVER->RemoveMIDIInstrumentMapping($3,$5,$7); }
+                      ;
+
+remove_instruction    :  CHANNEL SP sampler_channel  { $$ = LSCPSERVER->RemoveChannel($3); }
                       ;
 
 get_instruction       :  AVAILABLE_ENGINES                                                          { $$ = LSCPSERVER->GetAvailableEngines();                          }
@@ -164,6 +184,8 @@ get_instruction       :  AVAILABLE_ENGINES                                      
                       |  SERVER SP INFO                                                             { $$ = LSCPSERVER->GetServerInfo();                                }
                       |  TOTAL_VOICE_COUNT                                                          { $$ = LSCPSERVER->GetTotalVoiceCount();                                }
                       |  TOTAL_VOICE_COUNT_MAX                                                      { $$ = LSCPSERVER->GetTotalVoiceCountMax();                        }
+                      |  MIDI_INSTRUMENTS                                                           { $$ = LSCPSERVER->GetMidiIstrumentMappings();                     }
+                      |  MIDI_INSTRUMENT SP INFO SP midi_bank_msb SP midi_bank_lsb SP midi_prog     { $$ = LSCPSERVER->GetMidiInstrumentMapping($5,$7,$9);             }
                       ;
 
 set_instruction       :  AUDIO_OUTPUT_DEVICE_PARAMETER SP number SP string '=' param_val_list             { $$ = LSCPSERVER->SetAudioOutputDeviceParameter($3, $5, $7);      }
@@ -178,6 +200,12 @@ create_instruction    :  AUDIO_OUTPUT_DEVICE SP string SP key_val_list  { $$ = L
                       |  AUDIO_OUTPUT_DEVICE SP string                  { $$ = LSCPSERVER->CreateAudioOutputDevice($3);    }
                       |  MIDI_INPUT_DEVICE SP string SP key_val_list    { $$ = LSCPSERVER->CreateMidiInputDevice($3,$5);   }
                       |  MIDI_INPUT_DEVICE SP string                    { $$ = LSCPSERVER->CreateMidiInputDevice($3);      }
+                      ;
+
+reset_instruction     :  CHANNEL SP sampler_channel  { $$ = LSCPSERVER->ResetChannel($3); }
+                      ;
+
+clear_instruction     :  MIDI_INSTRUMENTS  { $$ = LSCPSERVER->ClearMidiInstrumentMappings(); }
                       ;
 
 destroy_instruction   :  AUDIO_OUTPUT_DEVICE SP number  { $$ = LSCPSERVER->DestroyAudioOutputDevice($3); }
@@ -215,6 +243,7 @@ list_instruction      :  AUDIO_OUTPUT_DEVICES            { $$ = LSCPSERVER->GetA
                       |  AVAILABLE_ENGINES               { $$ = LSCPSERVER->ListAvailableEngines();            }
                       |  AVAILABLE_MIDI_INPUT_DRIVERS    { $$ = LSCPSERVER->ListAvailableMidiInputDrivers();   }
                       |  AVAILABLE_AUDIO_OUTPUT_DRIVERS  { $$ = LSCPSERVER->ListAvailableAudioOutputDrivers(); }
+                      |  MIDI_INSTRUMENTS                { $$ = LSCPSERVER->ListMidiInstrumentMappings();      }
                       ;
 
 load_instr_args       :  filename SP instrument_index SP sampler_channel               { $$ = LSCPSERVER->LoadInstrument($1, $3, $5);       }
@@ -222,6 +251,11 @@ load_instr_args       :  filename SP instrument_index SP sampler_channel        
                       ;
 
 load_engine_args      :  engine_name SP sampler_channel  { $$ = LSCPSERVER->SetEngineType($1, $3); }
+                      ;
+
+instr_load_mode       :  ON_DEMAND       { $$ = MidiInstrumentMapper::ON_DEMAND;      }
+                      |  ON_DEMAND_HOLD  { $$ = MidiInstrumentMapper::ON_DEMAND_HOLD; }
+                      |  PERSISTENT      { $$ = MidiInstrumentMapper::PERSISTENT;     }
                       ;
 
 device_index              :  number
@@ -243,6 +277,15 @@ midi_input_channel_index  :  number
 midi_input_type_name      :  string
                           ;
 
+midi_bank_msb             :  number
+                          ;
+
+midi_bank_lsb             :  number
+                          ;
+
+midi_prog                 :  number
+                          ;
+
 volume_value              :  dotnum
                           |  number  { $$ = $1; }
                           ;
@@ -257,6 +300,9 @@ engine_name               :  string
                           ;
 
 filename                  :  stringval
+                          ;
+
+entry_name                :  stringval
                           ;
 
 param_val_list            :  param_val
@@ -395,6 +441,15 @@ ADD                   :  'A''D''D'
 GET                   :  'G''E''T'
                       ;
 
+MAP                   :  'M''A''P'
+                      ;
+
+UNMAP                 :  'U''N''M''A''P'
+                      ;
+
+CLEAR                 :  'C''L''E''A''R'
+                      ;
+
 CREATE                :  'C''R''E''A''T''E'
                       ;
 
@@ -470,6 +525,15 @@ INSTRUMENT           :  'I''N''S''T''R''U''M''E''N''T'
 ENGINE               :  'E' 'N' 'G' 'I' 'N' 'E'
                      ;
 
+ON_DEMAND            :  'O''N''_''D''E''M''A''N''D'
+                     ;
+
+ON_DEMAND_HOLD       :  'O''N''_''D''E''M''A''N''D''_''H''O''L''D'
+                     ;
+
+PERSISTENT           :  'P''E''R''S''I''S''T''E''N''T'
+                     ;
+
 AUDIO_OUTPUT_DEVICE_PARAMETER  :  'A''U''D''I''O''_''O''U''T''P''U''T''_''D''E''V''I''C''E''_''P''A''R''A''M''E''T''E''R'
                                ;
 
@@ -511,6 +575,12 @@ MIDI_INPUT_DEVICE     :  'M''I''D''I''_''I''N''P''U''T''_''D''E''V''I''C''E'
 
 MIDI_INPUT_DRIVER_PARAMETER  :  'M''I''D''I''_''I''N''P''U''T''_''D''R''I''V''E''R''_''P''A''R''A''M''E''T''E''R'
                              ;
+
+MIDI_INSTRUMENT  :  'M''I''D''I''_''I''N''S''T''R''U''M''E''N''T'
+                 ;
+
+MIDI_INSTRUMENTS  :  'M''I''D''I''_''I''N''S''T''R''U''M''E''N''T''S'
+                  ;
 
 MIDI_INPUT_DRIVER     :  'M''I''D''I''_''I''N''P''U''T''_''D''R''I''V''E''R'
                       ;

@@ -6,11 +6,14 @@ SUBDIRS = gig common
 liblinuxsamplerengineincludedir = $(includedir)/linuxsampler/engines
 liblinuxsamplerengineinclude_HEADERS = \
 	Engine.h \
-	EngineChannel.h
+	EngineChannel.h \
+	InstrumentManager.h
 
 noinst_LTLIBRARIES = liblinuxsamplerengines.la
 liblinuxsamplerengines_la_SOURCES = \
 	Engine.h \
 	EngineChannel.cpp EngineChannel.h \
 	EngineFactory.cpp EngineFactory.h \
-	EngineChannelFactory.cpp EngineChannelFactory.h
+	EngineChannelFactory.cpp EngineChannelFactory.h \
+	InstrumentManager.cpp InstrumentManager.h \
+	InstrumentManagerThread.cpp InstrumentManagerThread.h

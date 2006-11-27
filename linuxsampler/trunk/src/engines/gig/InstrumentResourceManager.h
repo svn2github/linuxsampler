@@ -32,6 +32,7 @@
 #include "../../common/Exception.h"
 #include "../../common/ResourceManager.h"
 #include "../../drivers/audio/AudioOutputDevice.h"
+#include "../InstrumentManager.h"
 
 //namespace libgig = gig;
 
@@ -49,20 +50,7 @@ namespace LinuxSampler { namespace gig {
     // just symbol prototyping
     class EngineChannel;
 
-    /**
-     * Explicitly identifies a Gigasampler instrument.
-     */
-    struct instrument_id_t {
-        String FileName;    ///< name of the file which contains the instrument
-        uint   iInstrument; ///< index of the instrument in the instrument file
-
-        // TODO: we should extend operator<() so it will be able to detect that file x and file y are actually the same files, e.g. because one of them is a symlink / share the same inode
-        bool operator<(const instrument_id_t& o) const {
-            return (iInstrument < o.iInstrument || (iInstrument == o.iInstrument && FileName < o.FileName));
-        }
-    };
-
-    /** Gig instrument manager
+    /** @brief Gig instrument manager
      *
      * Manager to share gig instruments between multiple Gigasampler
      * engine channels. The engine channels Borrow() instruments when they
@@ -70,24 +58,26 @@ namespace LinuxSampler { namespace gig {
      * InstrumentResourceManager loads the corresponding gig file and gig
      * instrument if needed, if it's already in use by another engine
      * channel, then it just returns the same resource, if an gig
-     * instrument / file is not in use by any engine channel anymore, then
-     * it will be freed from memory.
+     * instrument / file is not needed anymore, then it will be freed from
+     * memory.
      */
-    class InstrumentResourceManager : public ResourceManager<instrument_id_t, ::gig::Instrument> {
+    class InstrumentResourceManager : public InstrumentManager, public ResourceManager<InstrumentManager::instrument_id_t, ::gig::Instrument> {
         public:
             virtual ~InstrumentResourceManager() {}
             static void OnInstrumentLoadingProgress(::gig::progress_t* pProgress);
+
+            // implementation of derived abstract methods from 'InstrumentManager'
+            virtual std::vector<instrument_id_t> Instruments();
+            virtual InstrumentManager::mode_t GetMode(const instrument_id_t& ID);
+            virtual void SetMode(const instrument_id_t& ID, InstrumentManager::mode_t Mode);
+            virtual float GetVolume(const instrument_id_t& ID);
+            virtual void SetVolume(const instrument_id_t& ID, float Volume);
+            virtual String GetInstrumentName(instrument_id_t ID);
         protected:
             virtual ::gig::Instrument* Create(instrument_id_t Key, InstrumentConsumer* pConsumer, void*& pArg);
             virtual void               Destroy(::gig::Instrument* pResource, void* pArg);
             virtual void               OnBorrow(::gig::Instrument* pResource, InstrumentConsumer* pConsumer, void*& pArg);
         private:
-            struct instr_entry_t {
-                ::gig::File* pGig;
-                uint         iInstrument;
-                uint         MaxSamplesPerCycle; ///< if some engine requests an already allocated instrument with a higher value, we have to reallocate the instrument
-            };
-
             typedef ResourceConsumer< ::gig::File> GigConsumer;
 
             class GigResourceManager : public ResourceManager<String, ::gig::File> {

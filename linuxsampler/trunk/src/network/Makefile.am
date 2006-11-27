@@ -18,8 +18,8 @@ liblinuxsamplernetwork_la_SOURCES = \
 	lscpserver.cpp lscpserver.h \
 	lscpsymbols.h \
 	lscpresultset.cpp lscpresultset.h \
-	lscpevent.cpp lscpevent.h \
-	lscpinstrumentloader.h lscpinstrumentloader.cpp
+	lscpevent.cpp lscpevent.h
+
 liblinuxsamplernetwork_la_LIBADD = $(sqlite3_lflags)
 liblinuxsamplernetwork_la_CFLAGS = $(sqlite3_cflags)
 liblinuxsamplernetwork_la_CXXFLAGS = $(sqlite3_cflags)

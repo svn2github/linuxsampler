@@ -176,9 +176,9 @@ namespace LinuxSampler { namespace gig {
 
         // request gig instrument from instrument manager
         try {
-            instrument_id_t instrid;
-            instrid.FileName    = InstrumentFile;
-            instrid.iInstrument = InstrumentIdx;
+            InstrumentManager::instrument_id_t instrid;
+            instrid.FileName  = InstrumentFile;
+            instrid.Index     = InstrumentIdx;
             pInstrument = Engine::instruments.Borrow(instrid, this);
             if (!pInstrument) {
                 InstrumentStat = -1;
@@ -553,6 +553,7 @@ namespace LinuxSampler { namespace gig {
         SustainPedal   = false;
         SostenutoPedal = false;
         GlobalVolume   = CONFIG_GLOBAL_ATTENUATION;
+        MidiVolume     = 1.0;
         GlobalPanLeft  = 1.0f;
         GlobalPanRight = 1.0f;
         // set all MIDI controller values to zero

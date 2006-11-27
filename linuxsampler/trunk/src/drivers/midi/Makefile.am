@@ -31,16 +31,19 @@ liblinuxsamplermididriverincludedir = $(includedir)/linuxsampler/drivers/midi
 liblinuxsamplermididriverinclude_HEADERS = \
 	midi.h \
 	MidiInputPort.h \
-	MidiInputDevice.h
+	MidiInputDevice.h \
+	MidiInstrumentMapper.h
 
 noinst_LTLIBRARIES = liblinuxsamplermididriver.la
 liblinuxsamplermididriver_la_SOURCES = \
-    midi.h \
-    MidiInputDevice.cpp MidiInputDevice.h \
-    MidiInputDeviceFactory.h MidiInputDeviceFactory.cpp \
-    MidiInputPort.cpp MidiInputPort.h \
-    $(alsa_src) \
-    $(midishare_src) \
-    $(coremidi_src)
+	midi.h \
+	MidiInputDevice.cpp MidiInputDevice.h \
+	MidiInputDeviceFactory.cpp MidiInputDeviceFactory.h \
+	MidiInputPort.cpp MidiInputPort.h \
+	MidiInstrumentMapper.cpp MidiInstrumentMapper.h \
+	$(alsa_src) \
+	$(midishare_src)\
+	$(coremidi_src)
+
 liblinuxsamplermididriver_la_LIBADD = $(alsa_ladd) $(midishare_ladd)
 liblinuxsamplermididriver_la_LDFLAGS = $(coremidi_ldflags)

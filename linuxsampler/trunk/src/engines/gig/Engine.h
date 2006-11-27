@@ -77,6 +77,7 @@ namespace LinuxSampler { namespace gig {
             virtual String Description();
             virtual String Version();
             virtual String EngineName();
+            virtual InstrumentManager* GetInstrumentManager();
 
             static const float* VolumeCurve;    ///< Table that maps volume control change values 0..127 to amplitude. Unity gain is at 90.
             static const float* PanCurve;       ///< Table that maps pan control change values 0..128 to right channel amplitude. Unity gain is at 64 (center).

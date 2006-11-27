@@ -90,7 +90,12 @@ namespace LinuxSampler {
 			switch(cin) { // status byte
 
 				case 0xB0:
-					port->DispatchControlChange(packet->data[1],packet->data[2],packet->data[0]&0x0F);
+					if (packet->data[1] == 0)
+						port->DispatchBankSelectMsb(packet->data[2],packet->data[0]&0x0F);
+					else if (packet->data[1] == 32)
+						port->DispatchBankSelectLsb(packet->data[2],packet->data[0]&0x0F);
+					else
+						port->DispatchControlChange(packet->data[1],packet->data[2],packet->data[0]&0x0F);
 					break;
 
 				case 0xD0:
@@ -163,7 +168,7 @@ namespace LinuxSampler {
     }
 
     String MidiInputDeviceCoreMidi::Version() {
-	    String s = "$Revision: 1.7 $";
+	    String s = "$Revision: 1.8 $";
 	    return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
 

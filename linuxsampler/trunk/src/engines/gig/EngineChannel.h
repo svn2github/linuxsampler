@@ -110,7 +110,8 @@ namespace LinuxSampler { namespace gig {
             bool                    PortamentoMode;           ///< in Portamento Mode we slide the pitch from the last note to the current note.
             float                   PortamentoTime;           ///< How long it will take to glide from the previous note to the current (in seconds)
             float                   PortamentoPos;            ///< Current position on the keyboard, that is integer and fractional part (only used if PortamentoMode is on)
-            double                  GlobalVolume;             ///< overall volume (a value < 1.0 means attenuation, a value > 1.0 means amplification)
+            double                  GlobalVolume;             ///< Master volume factor set through the C++ API / LSCP (a value < 1.0 means attenuation, a value > 1.0 means amplification)
+            double                  MidiVolume;               ///< Volume factor altered by MIDI CC#7 (a value < 1.0 means attenuation, a value > 1.0 means amplification)
             float                   GlobalPanLeft;
             float                   GlobalPanRight;
             int                     Pitch;                    ///< Current (absolute) MIDI pitch value.

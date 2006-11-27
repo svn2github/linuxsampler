@@ -141,7 +141,7 @@ namespace LinuxSampler { namespace gig {
 
         float subfragmentRate = pEngine->SampleRate / CONFIG_DEFAULT_SUBFRAGMENT_SIZE;
         CrossfadeSmoother.trigger(crossfadeVolume, subfragmentRate);
-        VolumeSmoother.trigger(pEngineChannel->GlobalVolume, subfragmentRate);
+        VolumeSmoother.trigger(pEngineChannel->GlobalVolume * pEngineChannel->MidiVolume, subfragmentRate);
         PanLeftSmoother.trigger(pEngineChannel->GlobalPanLeft, subfragmentRate);
         PanRightSmoother.trigger(pEngineChannel->GlobalPanRight, subfragmentRate);
 
@@ -241,7 +241,7 @@ namespace LinuxSampler { namespace gig {
         else
 #else
         {
-            float finalVolume = pEngineChannel->GlobalVolume * crossfadeVolume * EG1.getLevel();
+            float finalVolume = pEngineChannel->GlobalVolume * pEngineChannel->MidiVolume * crossfadeVolume * EG1.getLevel();
 
             finalSynthesisParameters.fFinalVolumeLeft  = finalVolume * VolumeLeft  * pEngineChannel->GlobalPanLeft;
             finalSynthesisParameters.fFinalVolumeRight = finalVolume * VolumeRight * pEngineChannel->GlobalPanRight;
@@ -719,7 +719,7 @@ namespace LinuxSampler { namespace gig {
                     CrossfadeSmoother.update(Engine::CrossfadeCurve[CrossfadeAttenuation(itEvent->Param.CC.Value)]);
                 }
                 if (itEvent->Param.CC.Controller == 7) { // volume
-                    VolumeSmoother.update(Engine::VolumeCurve[itEvent->Param.CC.Value] * CONFIG_GLOBAL_ATTENUATION);
+                    VolumeSmoother.update(Engine::VolumeCurve[itEvent->Param.CC.Value]);
                 } else if (itEvent->Param.CC.Controller == 10) { // panpot
                     PanLeftSmoother.update(Engine::PanCurve[128 - itEvent->Param.CC.Value]);
                     PanRightSmoother.update(Engine::PanCurve[itEvent->Param.CC.Value]);

@@ -113,6 +113,41 @@ namespace LinuxSampler {
              */
             bool GetSolo();
 
+            /**
+             * Returns current MIDI program (change) number of this
+             * EngineChannel.
+             */
+            uint8_t GetMidiProgram();
+
+            /**
+             * Change EngineChannel's MIDI program.
+             */
+            void SetMidiProgram(uint8_t Program);
+
+            /**
+             * Returns current MIDI bank MSB (coarse) number of this
+             * EngineChannel.
+             */
+            uint8_t GetMidiBankMsb();
+
+            /**
+             * Change current MIDI bank MSB (coarse) number of this
+             * EngineChannel.
+             */
+            void SetMidiBankMsb(uint8_t BankMSB);
+
+            /**
+             * Returns current MIDI bank LSB (fine) number of this
+             * EngineChannel.
+             */
+            uint8_t GetMidiBankLsb();
+
+            /**
+             * Change current MIDI bank LSB (fine) number of this
+             * EngineChannel.
+             */
+            void SetMidiBankLsb(uint8_t BankLSB);
+
             int iSamplerChannelIndex; ///< FIXME: nasty hack, might be removed (should be 'virtual EngineChannel* EngineChannel() = 0;', but due to cyclic dependencies only a void* solution would be possible ATM)
 
         protected:
@@ -121,8 +156,11 @@ namespace LinuxSampler {
             friend class EngineChannelFactory;
 
         private:
-            int  iMute;
-            bool bSolo;
+            int     iMute;
+            bool    bSolo;
+            uint8_t uiMidiProgram;
+            uint8_t uiMidiBankMsb;
+            uint8_t uiMidiBankLsb;
     };
 
 } // namespace LinuxSampler

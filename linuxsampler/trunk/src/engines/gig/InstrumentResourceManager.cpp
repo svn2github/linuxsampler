@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 Christian Schoenebeck                              *
+ *   Copyright (C) 2005, 2006 Christian Schoenebeck                        *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -34,10 +34,17 @@
 
 namespace LinuxSampler { namespace gig {
 
+    // data stored as long as an instrument resource exists
+    struct instr_entry_t {
+        InstrumentManager::instrument_id_t ID;
+        ::gig::File*                       pGig;
+        uint                               MaxSamplesPerCycle; ///< if some engine requests an already allocated instrument with a higher value, we have to reallocate the instrument
+    };
+
     // some data needed for the libgig callback function
     struct progress_callback_arg_t {
-        InstrumentResourceManager* pManager;
-        instrument_id_t*           pInstrumentKey;
+        InstrumentResourceManager*          pManager;
+        InstrumentManager::instrument_id_t* pInstrumentKey;
     };
 
     /**
@@ -57,9 +64,48 @@ namespace LinuxSampler { namespace gig {
         pArg->pManager->DispatchResourceProgressEvent(*pArg->pInstrumentKey, localProgress);
     }
 
+    std::vector<InstrumentResourceManager::instrument_id_t> InstrumentResourceManager::Instruments() {
+        return Entries();
+    }
+
+    InstrumentManager::mode_t InstrumentResourceManager::GetMode(const instrument_id_t& ID) {
+        return static_cast<InstrumentManager::mode_t>(AvailabilityMode(ID));
+    }
+
+    void InstrumentResourceManager::SetMode(const instrument_id_t& ID, InstrumentManager::mode_t Mode) {
+        dmsg(2,("gig::InstrumentResourceManager: setting mode for %s (Index=%d) to %d\n",ID.FileName.c_str(),ID.Index,Mode));
+        SetAvailabilityMode(ID, static_cast<ResourceManager<InstrumentManager::instrument_id_t, ::gig::Instrument>::mode_t>(Mode));
+    }
+
+    float InstrumentResourceManager::GetVolume(const instrument_id_t& ID) {
+        void* pCustomData = CustomData(ID);
+        const float fVolume = (pCustomData) ? *((float*)pCustomData) /* stored value */ : 1.0f /* default value */;
+        return fVolume;
+    }
+
+    void InstrumentResourceManager::SetVolume(const instrument_id_t& ID, float Volume) {
+        void* pCustomData = CustomData(ID);
+        if (Volume == 1.0f) { // if default volume ...
+            if (pCustomData) { // ... delete volume entry if necessary
+                delete (float*)pCustomData;
+                SetCustomData(ID, NULL);
+            }
+        } else { // if not default volume
+            if (!pCustomData) { // create volume entry if necessary
+                pCustomData = new float;
+                SetCustomData(ID, pCustomData);
+            }
+            *((float*)pCustomData) = Volume;
+        }
+    }
+
+    String InstrumentResourceManager::GetInstrumentName(instrument_id_t ID) {
+        return ""; // TODO: ...
+    }
+
     ::gig::Instrument* InstrumentResourceManager::Create(instrument_id_t Key, InstrumentConsumer* pConsumer, void*& pArg) {
         // get gig file from inernal gig file manager
-        ::gig::File* pGig = Gigs.Borrow(Key.FileName, (GigConsumer*) Key.iInstrument); // conversion kinda hackish :/
+        ::gig::File* pGig = Gigs.Borrow(Key.FileName, (GigConsumer*) Key.Index); // conversion kinda hackish :/
 
         // we pass this to the progress callback mechanism of libgig
         progress_callback_arg_t callbackArg;
@@ -70,11 +116,11 @@ namespace LinuxSampler { namespace gig {
         progress.callback = OnInstrumentLoadingProgress;
         progress.custom   = &callbackArg;
 
-        dmsg(1,("Loading gig instrument..."));
-        ::gig::Instrument* pInstrument = pGig->GetInstrument(Key.iInstrument, &progress);
+        dmsg(1,("Loading gig instrument ('%s',%d)...",Key.FileName.c_str(),Key.Index));
+        ::gig::Instrument* pInstrument = pGig->GetInstrument(Key.Index, &progress);
         if (!pInstrument) {
             std::stringstream msg;
-            msg << "There's no instrument with index " << Key.iInstrument << ".";
+            msg << "There's no instrument with index " << Key.Index << ".";
             throw InstrumentResourceManagerException(msg.str());
         }
         pGig->GetFirstSample(); // just to force complete instrument loading
@@ -87,14 +133,14 @@ namespace LinuxSampler { namespace gig {
         while (pRgn) {
             // we randomly schedule 90% for the .gig file loading and the remaining 10% now for sample caching
             const float localProgress = 0.9f + 0.1f * (float) iRegion / (float) pInstrument->Regions;
-            DispatchResourceProgressEvent(Key, localProgress);            
-            
+            DispatchResourceProgressEvent(Key, localProgress);
+
             if (pRgn->GetSample() && !pRgn->GetSample()->GetCache().Size) {
                 dmsg(2,("C"));
-                CacheInitialSamples(pRgn->GetSample(), dynamic_cast<gig::EngineChannel*>(pConsumer));
+                CacheInitialSamples(pRgn->GetSample(), (gig::EngineChannel*) pConsumer);
             }
             for (uint i = 0; i < pRgn->DimensionRegions; i++) {
-                CacheInitialSamples(pRgn->pDimensionRegions[i]->pSample, dynamic_cast<gig::EngineChannel*>(pConsumer));
+                CacheInitialSamples(pRgn->pDimensionRegions[i]->pSample, (gig::EngineChannel*) pConsumer);
             }
 
             pRgn = pInstrument->GetNextRegion();
@@ -105,13 +151,14 @@ namespace LinuxSampler { namespace gig {
 
         // we need the following for destruction later
         instr_entry_t* pEntry = new instr_entry_t;
-        pEntry->iInstrument   = Key.iInstrument;
+        pEntry->ID.FileName   = Key.FileName;
+        pEntry->ID.Index      = Key.Index;
         pEntry->pGig          = pGig;
 
-        gig::EngineChannel* pEngineChannel = dynamic_cast<gig::EngineChannel*>(pConsumer);
+        gig::EngineChannel* pEngineChannel = (gig::EngineChannel*) pConsumer;
         // and we save this to check if we need to reallocate for a engine with higher value of 'MaxSamplesPerSecond'
         pEntry->MaxSamplesPerCycle =
-            (pEngineChannel->GetEngine()) ? dynamic_cast<gig::Engine*>(pEngineChannel->GetEngine())->pAudioOutputDevice->MaxSamplesPerCycle()
+            (pEngineChannel && pEngineChannel->GetEngine()) ? dynamic_cast<gig::Engine*>(pEngineChannel->GetEngine())->pAudioOutputDevice->MaxSamplesPerCycle()
                                           : GIG_RESOURCE_MANAGER_DEFAULT_MAX_SAMPLES_PER_CYCLE;
         pArg = pEntry;
 
@@ -120,7 +167,14 @@ namespace LinuxSampler { namespace gig {
 
     void InstrumentResourceManager::Destroy( ::gig::Instrument* pResource, void* pArg) {
         instr_entry_t* pEntry = (instr_entry_t*) pArg;
-        Gigs.HandBack(pEntry->pGig, (GigConsumer*) pEntry->iInstrument); // conversion kinda hackish :/
+        // remove volume entry if necessary
+        void* pCustomData = CustomData(pEntry->ID);
+        if (pCustomData) {
+            delete (float*)pCustomData;
+            SetCustomData(pEntry->ID, NULL);
+        }
+        // we don't need the .gig file here anymore
+        Gigs.HandBack(pEntry->pGig, (GigConsumer*) pEntry->ID.Index); // conversion kinda hackish :/
         delete pEntry;
     }
 
@@ -158,7 +212,7 @@ namespace LinuxSampler { namespace gig {
             // border, to allow the interpolator do it's work even at the end of
             // the sample.
             const uint maxSamplesPerCycle =
-                (pEngineChannel->GetEngine()) ? dynamic_cast<gig::Engine*>(pEngineChannel->GetEngine())->pAudioOutputDevice->MaxSamplesPerCycle()
+                (pEngineChannel && pEngineChannel->GetEngine()) ? dynamic_cast<gig::Engine*>(pEngineChannel->GetEngine())->pAudioOutputDevice->MaxSamplesPerCycle()
                                               : GIG_RESOURCE_MANAGER_DEFAULT_MAX_SAMPLES_PER_CYCLE;
             const uint neededSilenceSamples = (maxSamplesPerCycle << CONFIG_MAX_PITCH) + 3;
             const uint currentlyCachedSilenceSamples = pSample->GetCache().NullExtensionSize / pSample->FrameSize;

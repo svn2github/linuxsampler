@@ -23,6 +23,7 @@
 
 #include "MidiInputPort.h"
 
+#include "MidiInstrumentMapper.h"
 #include "../../Sampler.h"
 #include "../../engines/EngineFactory.h"
 
@@ -75,7 +76,6 @@ namespace LinuxSampler {
         this->pDevice = pDevice;
         this->portNumber = portNumber;
         Parameters["NAME"] = new ParameterName(this);
-        pPreviousProgramChangeEngineChannel = NULL;
     }
 
     MidiInputDevice* MidiInputPort::GetDevice() {
@@ -244,30 +244,111 @@ namespace LinuxSampler {
     }
 
     void MidiInputPort::DispatchProgramChange(uint8_t Program, uint MidiChannel) {
+        dmsg(1,("Received MIDI program change (prog=%d,ch=%d)\n",Program,MidiChannel));
         if (Program > 127 || MidiChannel > 16) return;
         if (!pDevice || !pDevice->pSampler) {
             std::cerr << "MidiInputPort: ERROR, no sampler instance to handle program change."
                       << "This is a bug, please report it!\n" << std::flush;
             return;
         }
-
-        Sampler*        pSampler        = (Sampler*) pDevice->pSampler;
-        SamplerChannel* pSamplerChannel = pSampler->GetSamplerChannel(Program);
-        if (!pSamplerChannel) return;
-
-        EngineChannel* pEngineChannel = pSamplerChannel->GetEngineChannel();
-        if (!pEngineChannel) return;
-
-        // disconnect from the engine channel which was connected by the last PC event
-        if (pPreviousProgramChangeEngineChannel)
-            Disconnect(pPreviousProgramChangeEngineChannel);
-
-        // now connect to the new engine channel and remember it
-        try {
-            Connect(pEngineChannel, (midi_chan_t) MidiChannel);
-            pPreviousProgramChangeEngineChannel = pEngineChannel;
+        const MidiChannelMap_t& midiChannelMap = MidiChannelMapReader.Lock();
+        // dispatch event for engines listening to the same MIDI channel
+        {
+            std::set<EngineChannel*>::iterator engineiter = midiChannelMap[MidiChannel].begin();
+            std::set<EngineChannel*>::iterator end        = midiChannelMap[MidiChannel].end();
+            for (; engineiter != end; engineiter++) {
+                (*engineiter)->SetMidiProgram(Program);
+                // is there a mapping for this MIDI bank&prog pair?
+                midi_prog_index_t midiIndex;
+                midiIndex.midi_bank_msb = (*engineiter)->GetMidiBankMsb();
+                midiIndex.midi_bank_lsb = (*engineiter)->GetMidiBankLsb();
+                midiIndex.midi_prog     = (*engineiter)->GetMidiProgram();
+                optional<MidiInstrumentMapper::entry_t> mapping =
+                    MidiInstrumentMapper::GetEntry(midiIndex);
+                if (mapping) { // if mapping exists ...
+                    InstrumentManager::instrument_id_t id;
+                    id.FileName = mapping->InstrumentFile;
+                    id.Index    = mapping->InstrumentIndex;
+                    //TODO: we should switch the engine type here
+                    InstrumentManager::LoadInstrumentInBackground(id, *engineiter);
+                    (*engineiter)->Volume(mapping->Volume);
+                }
+            }
         }
-        catch (...) { /* NOOP */ }
+        // dispatch event for engines listening to ALL MIDI channels
+        {
+            std::set<EngineChannel*>::iterator engineiter = midiChannelMap[midi_chan_all].begin();
+            std::set<EngineChannel*>::iterator end        = midiChannelMap[midi_chan_all].end();
+            for (; engineiter != end; engineiter++) {
+                (*engineiter)->SetMidiProgram(Program);
+                // is there a mapping for this MIDI bank&prog pair?
+                midi_prog_index_t midiIndex;
+                midiIndex.midi_bank_msb = (*engineiter)->GetMidiBankMsb();
+                midiIndex.midi_bank_lsb = (*engineiter)->GetMidiBankLsb();
+                midiIndex.midi_prog     = (*engineiter)->GetMidiProgram();
+                optional<MidiInstrumentMapper::entry_t> mapping =
+                    MidiInstrumentMapper::GetEntry(midiIndex);
+                if (mapping) { // if mapping exists ...
+                    InstrumentManager::instrument_id_t id;
+                    id.FileName = mapping->InstrumentFile;
+                    id.Index    = mapping->InstrumentIndex;
+                    //TODO: we should switch the engine type here
+                    InstrumentManager::LoadInstrumentInBackground(id, *engineiter);
+                    (*engineiter)->Volume(mapping->Volume);
+                }
+            }
+        }
+        MidiChannelMapReader.Unlock();
+    }
+
+    void MidiInputPort::DispatchBankSelectMsb(uint8_t BankMSB, uint MidiChannel) {
+        if (BankMSB > 127 || MidiChannel > 16) return;
+        if (!pDevice || !pDevice->pSampler) {
+            std::cerr << "MidiInputPort: ERROR, no sampler instance to handle bank select MSB."
+                      << "This is a bug, please report it!\n" << std::flush;
+            return;
+        }
+        const MidiChannelMap_t& midiChannelMap = MidiChannelMapReader.Lock();
+        // dispatch event for engines listening to the same MIDI channel
+        {
+            std::set<EngineChannel*>::iterator engineiter = midiChannelMap[MidiChannel].begin();
+            std::set<EngineChannel*>::iterator end        = midiChannelMap[MidiChannel].end();
+            // according to the MIDI specs, a bank select should not alter the patch
+            for (; engineiter != end; engineiter++) (*engineiter)->SetMidiBankMsb(BankMSB);
+        }
+        // dispatch event for engines listening to ALL MIDI channels
+        {
+            std::set<EngineChannel*>::iterator engineiter = midiChannelMap[midi_chan_all].begin();
+            std::set<EngineChannel*>::iterator end        = midiChannelMap[midi_chan_all].end();
+            // according to the MIDI specs, a bank select should not alter the patch
+            for (; engineiter != end; engineiter++) (*engineiter)->SetMidiBankMsb(BankMSB);
+        }
+        MidiChannelMapReader.Unlock();
+    }
+
+    void MidiInputPort::DispatchBankSelectLsb(uint8_t BankLSB, uint MidiChannel) {
+        if (BankLSB > 127 || MidiChannel > 16) return;
+        if (!pDevice || !pDevice->pSampler) {
+            std::cerr << "MidiInputPort: ERROR, no sampler instance to handle bank select LSB."
+                      << "This is a bug, please report it!\n" << std::flush;
+            return;
+        }
+        const MidiChannelMap_t& midiChannelMap = MidiChannelMapReader.Lock();
+        // dispatch event for engines listening to the same MIDI channel
+        {
+            std::set<EngineChannel*>::iterator engineiter = midiChannelMap[MidiChannel].begin();
+            std::set<EngineChannel*>::iterator end        = midiChannelMap[MidiChannel].end();
+            // according to the MIDI specs, a bank select should not alter the patch
+            for (; engineiter != end; engineiter++) (*engineiter)->SetMidiBankLsb(BankLSB);
+        }
+        // dispatch event for engines listening to ALL MIDI channels
+        {
+            std::set<EngineChannel*>::iterator engineiter = midiChannelMap[midi_chan_all].begin();
+            std::set<EngineChannel*>::iterator end        = midiChannelMap[midi_chan_all].end();
+            // according to the MIDI specs, a bank select should not alter the patch
+            for (; engineiter != end; engineiter++) (*engineiter)->SetMidiBankLsb(BankLSB);
+        }
+        MidiChannelMapReader.Unlock();
     }
 
     void MidiInputPort::Connect(EngineChannel* pEngineChannel, midi_chan_t MidiChannel) {

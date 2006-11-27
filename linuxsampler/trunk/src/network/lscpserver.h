@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 Christian Schoenebeck                              *
+ *   Copyright (C) 2005, 2006 Christian Schoenebeck                        *
  *                                                                         *
  *   This library is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -40,11 +40,12 @@
 #include "lscpparser.h"
 #include "lscp.h"
 #include "lscpevent.h"
-#include "lscpinstrumentloader.h"
 #include "../Sampler.h"
 #include "../common/Thread.h"
 #include "../common/Mutex.h"
 #include "../common/Condition.h"
+
+#include "../drivers/midi/MidiInstrumentMapper.h"
 
 /// TCP Port on which the server should listen for connection requests.
 #define LSCP_ADDR INADDR_ANY
@@ -127,6 +128,12 @@ class LSCPServer : public Thread {
         String SetVolume(double dVolume, uint uiSamplerChannel);
         String SetChannelMute(bool bMute, uint uiSamplerChannel);
         String SetChannelSolo(bool bSolo, uint uiSamplerChannel);
+        String AddOrReplaceMIDIInstrumentMapping(uint MidiBankMSB, uint MidiBankLSB, uint MidiProg, String EngineType, String InstrumentFile, uint InstrumentIndex, float Volume, MidiInstrumentMapper::mode_t LoadMode, String Name);
+        String RemoveMIDIInstrumentMapping(uint MidiBankMSB, uint MidiBankLSB, uint MidiProg);
+        String GetMidiIstrumentMappings();
+        String GetMidiInstrumentMapping(uint MidiBankMSB, uint MidiBankLSB, uint MidiProg);
+        String ListMidiInstrumentMappings();
+        String ClearMidiInstrumentMappings();
         String ResetChannel(uint uiSamplerChannel);
         String ResetSampler();
         String GetServerInfo();
@@ -151,7 +158,6 @@ class LSCPServer : public Thread {
         sockaddr_in    SocketAddress;
         Sampler*       pSampler;
         Condition      Initialized;
-        LSCPInstrumentLoader InstrumentLoader; ///< thread responsible for loading instruments in the background
 
         int Main(); ///< Implementation of virtual method from class Thread
 

@@ -26,10 +26,18 @@
 
 #include <set>
 #include <map>
+#include <vector>
 
-/**
+#include "Exception.h"
+
+namespace LinuxSampler {
+
+/** @brief Interface class for Resource Consumers.
+ *
  * Interface class for consumer classes which use a resource managed
- * by the ResourceManager class.
+ * by the ResourceManager class. All classes which use the ResourceManager
+ * to aquire resources have to derive from this interface class and
+ * implement the abstract methods.
  */
 template<class T_res>
 class ResourceConsumer {
@@ -74,30 +82,58 @@ class ResourceConsumer {
         virtual void OnResourceProgress(float fProgress) = 0;
 };
 
-/**
+/** @brief Manager for sharing resources.
+ *
  * Abstract base class for sharing resources between multiple consumers.
  * A consumer can borrow a resource from the ResourceManager, if the
  * resource doesn't exist yet it will be created. Other consumers will
  * just be given the same pointer to the resource then. When all consumers
- * gave back their pointer to the resource, the resource will be destroyed.
+ * gave back their pointer to the resource, the resource will (by default)
+ * be destroyed.
+ *
  * Descendants of this base class have to implement the (protected)
  * Create() and Destroy() methods to create and destroy a resource.
  */
 template<class T_key, class T_res>
 class ResourceManager {
+    public:
+        /**
+         * Defines life-time strategy for resources.
+         */
+        enum mode_t {
+            ON_DEMAND      = 0, ///< Create resource when needed, free it once not needed anymore (default behavior).
+            ON_DEMAND_HOLD = 1, ///< Create resource when needed and keep it even if not needed anymore.
+            PERSISTENT     = 2  ///< Immediately create resource and keep it.
+        };
+
     private:
         typedef std::set<ResourceConsumer<T_res>*> ConsumerSet;
         struct resource_entry_t {
             T_key       key;
             T_res*      resource;  ///< pointer to the resource
+            mode_t      mode;      ///< When should the resource be created? When should it be destroyed?
             ConsumerSet consumers; ///< list of all consumers who currently use the resource
-            void*       arg;       ///< optional pointer the descendant might use to store informations about the resource
+            void*       lifearg;   ///< optional pointer the descendant might use to store informations about a created resource
+            void*       entryarg;  ///< optional pointer the descendant might use to store informations about an entry
         };
         typedef std::map<T_key, resource_entry_t> ResourceMap;
         ResourceMap ResourceEntries;
 
     public:
-		virtual ~ResourceManager() {}
+        /**
+         * Returns (the keys of) all current entries of this
+         * ResourceManager instance.
+         */
+        std::vector<T_key> Entries() {
+            std::vector<T_key> result;
+            for (typename ResourceMap::iterator iter = ResourceEntries.begin();
+                 iter != ResourceEntries.end(); iter++)
+            {
+                result.push_back(iter->first);
+            }
+            return result;
+        }
+
         /**
          * Borrow a resource identified by \a Key. The ResourceManager will
          * mark the resource as in usage by the consumer given with
@@ -109,17 +145,21 @@ class ResourceManager {
          * @returns  pointer to resource
          */
         T_res* Borrow(T_key Key, ResourceConsumer<T_res>* pConsumer) {
+            // search for an entry for this resource
             typename ResourceMap::iterator iterEntry = ResourceEntries.find(Key);
-            if (iterEntry == ResourceEntries.end()) {
+            if (iterEntry == ResourceEntries.end()) { // entry doesn't exist yet
                 // already create an entry for the resource
                 resource_entry_t entry;
                 entry.key      = Key;
                 entry.resource = NULL;
+                entry.mode     = ON_DEMAND; // default mode
+                entry.lifearg  = NULL;
+                entry.entryarg = NULL;
                 entry.consumers.insert(pConsumer);
                 ResourceEntries[Key] = entry;
                 try {
                     // actually create the resource
-                    entry.resource = Create(Key, pConsumer, entry.arg);
+                    entry.resource = Create(Key, pConsumer, entry.lifearg);
                 } catch (...) {
                     // creating the resource failed, so remove the entry
                     ResourceEntries.erase(Key);
@@ -128,37 +168,50 @@ class ResourceManager {
                 }
                 // now update the entry with the created resource
                 ResourceEntries[Key] = entry;
-                OnBorrow(entry.resource, pConsumer, entry.arg);
+                OnBorrow(entry.resource, pConsumer, entry.lifearg);
+                return entry.resource;
+            } else { // entry already exists
+                resource_entry_t& entry = iterEntry->second;
+                if (!entry.resource) { // create resource if not created already
+                    try {
+                        entry.resource = Create(Key, pConsumer, entry.lifearg);
+                    } catch (...) {
+                        entry.resource = NULL;
+                        throw; // rethrow the same exception
+                    }
+                }
+                entry.consumers.insert(pConsumer);
+                OnBorrow(entry.resource, pConsumer, entry.lifearg);
                 return entry.resource;
             }
-            resource_entry_t& entry = iterEntry->second;
-            entry.consumers.insert(pConsumer);
-            OnBorrow(entry.resource, pConsumer, entry.arg);
-            return entry.resource;
         }
 
         /**
          * Give back a resource. This tells the ResourceManager that the
          * consumer given by \a pConsumer doesn't need the resource anymore.
-         * If the resource is not needed by any consumer anymore then the
-         * resource will be destroyed.
+         * If the resource is not needed by any consumer anymore and the
+         * resource has a life-time strategy of ON_DEMAND (which is the
+         * default setting) then the resource will be destroyed.
          *
          * @param pResource - pointer to resource
          * @param pConsumer - identifier of the consumer who borrowed the
          *                    resource
          */
         void HandBack(T_res* pResource, ResourceConsumer<T_res>* pConsumer) {
+            // search for the entry associated with the given resource
             typename ResourceMap::iterator iter = ResourceEntries.begin();
             typename ResourceMap::iterator end  = ResourceEntries.end();
             for (; iter != end; iter++) {
-                if (iter->second.resource == pResource) {
+                if (iter->second.resource == pResource) { // found entry for resource
                     resource_entry_t& entry = iter->second;
                     entry.consumers.erase(pConsumer);
-                    if (entry.consumers.empty()) {
+                    // remove entry if necessary
+                    if (entry.mode == ON_DEMAND && !entry.entryarg && entry.consumers.empty()) {
                         T_res* resource = entry.resource;
-                        void* arg = entry.arg;
+                        void* arg       = entry.lifearg;
                         ResourceEntries.erase(iter);
-                        Destroy(resource, arg);
+                        // destroy resource if necessary
+                        if (resource) Destroy(resource, arg);
                     }
                     return;
                 }
@@ -166,7 +219,11 @@ class ResourceManager {
         }
 
         /**
-         * Request update of a resource.
+         * Request update of a resource. All consumers will be informed
+         * about the pending update of the resource so they can safely react
+         * by stopping its usage first, then the resource will be recreated
+         * and finally the consumers will be informed once the update was
+         * completed, so they can continue to use the resource.
          *
          * @param pResource - resource to be updated
          * @param pConsumer - consumer who requested the update
@@ -189,8 +246,8 @@ class ResourceManager {
                     }
                     // update resource
                     T_res* pOldResource = entry.resource;
-                    Destroy(entry.resource, entry.arg);
-                    entry.resource = Create(entry.key, pConsumer, entry.arg);
+                    Destroy(entry.resource, entry.lifearg);
+                    entry.resource = Create(entry.key, pConsumer, entry.lifearg);
                     // inform all consumers about update completed
                     iterCons = entry.consumers.begin();
                     endCons  = entry.consumers.end();
@@ -204,6 +261,121 @@ class ResourceManager {
                 }
             }
         }
+
+        /**
+         * Returns the life-time strategy of the given resource.
+         *
+         * @param Key - ID of the resource
+         */
+        mode_t AvailabilityMode(T_key Key) {
+            typename ResourceMap::iterator iterEntry = ResourceEntries.find(Key);
+            if (iterEntry == ResourceEntries.end())
+                return ON_DEMAND; // resource entry doesn't exist, so we return the default mode
+            resource_entry_t& entry = iterEntry->second;
+            return entry.mode;
+        }
+
+        /**
+         * Change life-time strategy of the given resource. If a life-time
+         * strategy of PERSISTENT was given and the resource was not created
+         * yet, it will immediately be created and this method will block
+         * until the resource creation was completed.
+         *
+         * @param Key - ID of the resource
+         * @param Mode - life-time strategy of resource to be set
+         * @throws Exception in case an invalid Mode was given
+         */
+        void SetAvailabilityMode(T_key Key, mode_t Mode) throw (Exception) {
+            if (Mode != ON_DEMAND && Mode != ON_DEMAND_HOLD && Mode != PERSISTENT)
+                throw Exception("ResourceManager::SetAvailabilityMode(): invalid mode");
+
+            // search for an entry for this resource
+            typename ResourceMap::iterator iterEntry = ResourceEntries.find(Key);
+            resource_entry_t* pEntry = NULL;
+            if (iterEntry == ResourceEntries.end()) { // resource entry doesn't exist
+                if (Mode == ON_DEMAND) return; // we don't create an entry for the default value
+                // create an entry for the resource
+                pEntry = &ResourceEntries[Key];
+                pEntry->key      = Key;
+                pEntry->resource = NULL;
+                pEntry->mode     = Mode;
+                pEntry->lifearg  = NULL;
+                pEntry->entryarg = NULL;
+            } else { // resource entry exists
+                pEntry = &iterEntry->second;
+                // remove entry if necessary
+                if (Mode == ON_DEMAND && !pEntry->entryarg && pEntry->consumers.empty()) {
+                    T_res* resource = pEntry->resource;
+                    void* arg       = pEntry->lifearg;
+                    ResourceEntries.erase(iterEntry);
+                    // destroy resource if necessary
+                    if (resource) Destroy(resource, arg);
+                    return; // done
+                }
+                pEntry->mode = Mode; // apply new mode
+            }
+
+            // already create the resource if necessary
+            if (pEntry->mode == PERSISTENT && !pEntry->resource) {
+                try {
+                    // actually create the resource
+                    pEntry->resource = Create(Key, NULL /*no consumer yet*/, pEntry->lifearg);
+                } catch (...) {
+                    // creating the resource failed, so skip it for now
+                    pEntry->resource = NULL;
+                    // rethrow the same exception
+                    throw;
+                }
+            }
+        }
+
+        /**
+         * Returns custom data sticked to the given resource previously by
+         * a SetCustomData() call.
+         *
+         * @param Key - ID of resource
+         */
+        void* CustomData(T_key Key) {
+            typename ResourceMap::iterator iterEntry = ResourceEntries.find(Key);
+            if (iterEntry == ResourceEntries.end()) return NULL; // resource entry doesn't exist, so we return the default mode
+            resource_entry_t& entry = iterEntry->second;
+            return entry.entryarg;
+        }
+
+        /**
+         * This method can be used to stick custom data to an resource
+         * entry. In case the custom data is not needed anymore, you should
+         * call this method again and set \a pData to NULL, so the
+         * ResourceManager might safe space by removing the respective
+         * entry if not needed anymore.
+         *
+         * @param Key - ID of resource
+         * @param pData - pointer to custom data, or NULL if not needed anymore
+         */
+        void SetCustomData(T_key Key, void* pData) {
+            typename ResourceMap::iterator iterEntry = ResourceEntries.find(Key);
+            if (pData) {
+                if (iterEntry == ResourceEntries.end()) { // entry doesnt exist, so create one
+                    resource_entry_t* pEntry = &ResourceEntries[Key];
+                    pEntry->key      = Key;
+                    pEntry->resource = NULL;
+                    pEntry->mode     = ON_DEMAND;
+                    pEntry->lifearg  = NULL;
+                    pEntry->entryarg = pData; // set custom data
+                } else { // entry exists, so just update its custom data
+                    iterEntry->second.entryarg = pData;
+                }
+            } else { // !pData
+                if (iterEntry == ResourceEntries.end()) return; // entry doesnt exist, so nothing to do
+                // entry exists, remove it if necessary
+                resource_entry_t* pEntry = &iterEntry->second;
+                if (pEntry->mode == ON_DEMAND && pEntry->consumers.empty()) {
+                    ResourceEntries.erase(iterEntry);
+                } else iterEntry->second.entryarg = NULL;
+            }
+        }
+
+        virtual ~ResourceManager() {} // due to C++'s nature we cannot destroy created resources here
 
     protected:
         /**
@@ -271,5 +443,7 @@ class ResourceManager {
             }
         }
 };
+
+} // namespace LinuxSampler
 
 #endif // __RESOURCE_MANAGER__

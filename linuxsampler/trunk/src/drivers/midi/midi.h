@@ -1,6 +1,6 @@
 /***************************************************************************
  *                                                                         *
- *   Copyright (C) 2005 Christian Schoenebeck                              *
+ *   Copyright (C) 2005, 2006 Christian Schoenebeck                        *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -20,6 +20,8 @@
 
 #ifndef __LS_MIDI_H__
 #define __LS_MIDI_H__
+
+#include <string.h>
 
 namespace LinuxSampler {
 
@@ -47,6 +49,19 @@ namespace LinuxSampler {
         midi_chan_15  = 14,
         midi_chan_16  = 15,
         midi_chan_all = 16
+    };
+
+    /**
+     * MIDI program index
+     */
+    struct midi_prog_index_t {
+        uint8_t midi_bank_msb; ///< coarse MIDI bank index
+        uint8_t midi_bank_lsb; ///< fine MIDI bank index
+        uint8_t midi_prog;     ///< MIDI program index
+
+        bool operator< (const midi_prog_index_t& other) const {
+            return memcmp(this, &other, sizeof(midi_prog_index_t)) < 0;
+        }
     };
 
 } // namsepace LinuxSampler

@@ -496,7 +496,10 @@ String LSCPServer::LoadInstrument(String Filename, uint uiInstrument, uint uiSam
         if (!pSamplerChannel->GetAudioOutputDevice())
             throw Exception("No audio output device connected to sampler channel");
         if (bBackground) {
-            InstrumentLoader.StartNewLoad(Filename, uiInstrument, pEngineChannel);
+            InstrumentManager::instrument_id_t id;
+            id.FileName = Filename;
+            id.Index    = uiInstrument;
+            InstrumentManager::LoadInstrumentInBackground(id, pEngineChannel);
         }
         else {
             // tell the engine channel which instrument to load
@@ -1544,6 +1547,139 @@ void  LSCPServer::UnmuteChannels() {
     }
 }
 
+String LSCPServer::AddOrReplaceMIDIInstrumentMapping(uint MidiBankMSB, uint MidiBankLSB, uint MidiProg, String EngineType, String InstrumentFile, uint InstrumentIndex, float Volume, MidiInstrumentMapper::mode_t LoadMode, String Name) {
+    dmsg(2,("LSCPServer: AddOrReplaceMIDIInstrumentMapping()\n"));
+
+    midi_prog_index_t idx;
+    idx.midi_bank_msb = MidiBankMSB;
+    idx.midi_bank_lsb = MidiBankLSB;
+    idx.midi_prog     = MidiProg;
+
+    MidiInstrumentMapper::entry_t entry;
+    entry.EngineName      = EngineType;
+    entry.InstrumentFile  = InstrumentFile;
+    entry.InstrumentIndex = InstrumentIndex;
+    entry.LoadMode        = LoadMode;
+    entry.Volume          = Volume;
+    entry.Name            = Name;
+
+    LSCPResultSet result;
+    try {
+        // PERSISTENT mapping commands might bloock for a long time, so in
+        // that case we add/replace the mapping in another thread
+        bool bInBackground = (entry.LoadMode == MidiInstrumentMapper::PERSISTENT);
+        MidiInstrumentMapper::AddOrReplaceMapping(idx, entry, bInBackground);
+    } catch (Exception e) {
+        result.Error(e);
+    }
+    return result.Produce();
+}
+
+String LSCPServer::RemoveMIDIInstrumentMapping(uint MidiBankMSB, uint MidiBankLSB, uint MidiProg) {
+    dmsg(2,("LSCPServer: RemoveMIDIInstrumentMapping()\n"));
+
+    midi_prog_index_t idx;
+    idx.midi_bank_msb = MidiBankMSB;
+    idx.midi_bank_lsb = MidiBankLSB;
+    idx.midi_prog     = MidiProg;
+
+    LSCPResultSet result;
+    try {
+        MidiInstrumentMapper::RemoveMapping(idx);
+    } catch (Exception e) {
+        result.Error(e);
+    }
+    return result.Produce();
+}
+
+String LSCPServer::GetMidiIstrumentMappings() {
+    dmsg(2,("LSCPServer: GetMidiIstrumentMappings()\n"));
+    LSCPResultSet result;
+    result.Add(MidiInstrumentMapper::Mappings().size());
+    return result.Produce();
+}
+
+String LSCPServer::GetMidiInstrumentMapping(uint MidiBankMSB, uint MidiBankLSB, uint MidiProg) {
+    dmsg(2,("LSCPServer: GetMidiIstrumentMapping()\n"));
+    LSCPResultSet result;
+    try {
+        midi_prog_index_t idx;
+        idx.midi_bank_msb = MidiBankMSB;
+        idx.midi_bank_lsb = MidiBankLSB;
+        idx.midi_prog     = MidiProg;
+
+        std::map<midi_prog_index_t,MidiInstrumentMapper::entry_t> mappings = MidiInstrumentMapper::Mappings();
+        std::map<midi_prog_index_t,MidiInstrumentMapper::entry_t>::iterator iter = mappings.find(idx);
+        if (iter == mappings.end()) result.Error("there is no map entry with that index");
+        else { // found
+            result.Add("NAME", iter->second.Name);
+            result.Add("ENGINE_NAME", iter->second.EngineName);
+            result.Add("INSTRUMENT_FILE", iter->second.InstrumentFile);
+            result.Add("INSTRUMENT_NR", (int) iter->second.InstrumentIndex);
+            String instrumentName;
+            Engine* pEngine = EngineFactory::Create(iter->second.EngineName);
+            if (pEngine) {
+                if (pEngine->GetInstrumentManager()) {
+                    InstrumentManager::instrument_id_t instrID;
+                    instrID.FileName = iter->second.InstrumentFile;
+                    instrID.Index    = iter->second.InstrumentIndex;
+                    instrumentName = pEngine->GetInstrumentManager()->GetInstrumentName(instrID);
+                }
+                EngineFactory::Destroy(pEngine);
+            }
+            result.Add("INSTRUMENT_NAME", instrumentName);
+            switch (iter->second.LoadMode) {
+                case MidiInstrumentMapper::ON_DEMAND:
+                    result.Add("LOAD_MODE", "ON_DEMAND");
+                    break;
+                case MidiInstrumentMapper::ON_DEMAND_HOLD:
+                    result.Add("LOAD_MODE", "ON_DEMAND_HOLD");
+                    break;
+                case MidiInstrumentMapper::PERSISTENT:
+                    result.Add("LOAD_MODE", "PERSISTENT");
+                    break;
+                default:
+                    throw Exception("entry reflects invalid LOAD_MODE, consider this as a bug!");
+            }
+            result.Add("VOLUME", iter->second.Volume);
+        }
+    } catch (Exception e) {
+        result.Error(e);
+    }
+    return result.Produce();
+}
+
+String LSCPServer::ListMidiInstrumentMappings() {
+    dmsg(2,("LSCPServer: ListMidiIstrumentMappings()\n"));
+    LSCPResultSet result;
+    try {
+        String s;
+        std::map<midi_prog_index_t,MidiInstrumentMapper::entry_t> mappings = MidiInstrumentMapper::Mappings();
+        std::map<midi_prog_index_t,MidiInstrumentMapper::entry_t>::iterator iter = mappings.begin();
+        for (; iter != mappings.end(); iter++) {
+            if (s.size()) s += ",";
+            s += "{" + ToString(iter->first.midi_bank_msb) + ","
+                     + ToString(iter->first.midi_bank_lsb) + ","
+                     + ToString(iter->first.midi_prog)     + "}";
+        }
+        result.Add(s);
+    } catch (Exception e) {
+        result.Error(e);
+    }
+    return result.Produce();
+}
+
+String LSCPServer::ClearMidiInstrumentMappings() {
+    dmsg(2,("LSCPServer: ClearMidiInstrumentMappings()\n"));
+    LSCPResultSet result;
+    try {
+        MidiInstrumentMapper::RemoveAllMappings();
+    } catch (Exception e) {
+        result.Error(e);
+    }
+    return result.Produce();
+}
+
 /**
  * Will be called by the parser to reset a particular sampler channel.
  */
@@ -1582,7 +1718,7 @@ String LSCPServer::GetServerInfo() {
     LSCPResultSet result;
     result.Add("DESCRIPTION", "LinuxSampler - modular, streaming capable sampler");
     result.Add("VERSION", VERSION);
-    result.Add("PROTOCOL_VERSION", "1.1");
+    result.Add("PROTOCOL_VERSION", ToString(LSCP_RELEASE_MAJOR) + "." + ToString(LSCP_RELEASE_MINOR));
     return result.Produce();
 }
 

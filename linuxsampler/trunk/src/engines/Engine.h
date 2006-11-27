@@ -25,6 +25,7 @@
 #define __LS_ENGINE_H__
 
 #include "../common/global.h"
+#include "InstrumentManager.h"
 
 namespace LinuxSampler {
 
@@ -56,6 +57,17 @@ namespace LinuxSampler {
             virtual String Description() = 0;
             virtual String Version() = 0;
             virtual String EngineName() = 0;
+
+            /**
+             * Returns pointer to the Engine's InstrumentManager or NULL if
+             * the Engine does not provide an InstrumentManager.
+             *
+             * <b>Important:</b> All engine instances of the same engine
+             * type have to return the same InstrumentManager, that is all
+             * instances of the same engine type have to share one and
+             * the same InstrumentManager object.
+             */
+            virtual InstrumentManager* GetInstrumentManager() = 0;
 
         protected:
             virtual ~Engine() {}; // MUST only be destroyed by EngineFactory

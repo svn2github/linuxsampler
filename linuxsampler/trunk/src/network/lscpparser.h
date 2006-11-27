@@ -3,6 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
+ *   Copyright (C) 2005, 2006 Christian Schoenebeck                        *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -34,6 +35,7 @@
 #include "../common/global.h"
 #include "lscpevent.h"
 #include "../Sampler.h"
+#include "../drivers/midi/MidiInstrumentMapper.h"
 
 /// Will be returned by the parser in case of syntax errors.
 #define LSCP_SYNTAX_ERROR	-69
@@ -63,11 +65,12 @@ enum fill_response_t {
  */
 struct YYSTYPE {
     union {
-        char               Char;
-        unsigned int       Number;
-        double             Dotnum;
-        fill_response_t    FillResponse;
-	LSCPEvent::event_t Event;
+        char                         Char;
+        unsigned int                 Number;
+        double                       Dotnum;
+        fill_response_t              FillResponse;
+        LSCPEvent::event_t           Event;
+        MidiInstrumentMapper::mode_t LoadMode;
     };
     std::string                       String;
     std::map<std::string,std::string> KeyValList;

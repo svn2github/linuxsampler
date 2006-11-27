@@ -340,7 +340,7 @@ namespace LinuxSampler { namespace gig {
      *  @returns       0 on success
      */
     int Engine::RenderAudio(uint Samples) {
-        dmsg(5,("RenderAudio(Samples=%d)\n", Samples));
+        dmsg(7,("RenderAudio(Samples=%d)\n", Samples));
 
         // return if engine disabled
         if (EngineDisabled.Pop()) {
@@ -1243,7 +1243,7 @@ namespace LinuxSampler { namespace gig {
             }
             case 7: { // volume
                 //TODO: not sample accurate yet
-                pEngineChannel->GlobalVolume = VolumeCurve[itControlChangeEvent->Param.CC.Value] *  CONFIG_GLOBAL_ATTENUATION;
+                pEngineChannel->MidiVolume = VolumeCurve[itControlChangeEvent->Param.CC.Value];
                 pEngineChannel->bStatusChanged = true; // engine channel status has changed, so set notify flag
                 break;
             }
@@ -1568,8 +1568,12 @@ namespace LinuxSampler { namespace gig {
     }
 
     String Engine::Version() {
-        String s = "$Revision: 1.65 $";
+        String s = "$Revision: 1.66 $";
         return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
+    }
+
+    InstrumentManager* Engine::GetInstrumentManager() {
+        return &instruments;
     }
 
     // static constant initializers

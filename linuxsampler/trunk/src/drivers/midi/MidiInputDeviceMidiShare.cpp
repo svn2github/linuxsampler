@@ -162,7 +162,12 @@ namespace LinuxSampler {
 			switch(EvType(ev)) { 
 			
 				case typeCtrlChange:
-					driver->DispatchControlChange(MidiGetField(ev,0),MidiGetField(ev,0),Chan(ev));
+					if (MidiGetField(ev,0) == 0)
+						driver->DispatchBankSelectMsb(MidiGetField(ev,0),Chan(ev));
+					else if (MidiGetField(ev,0) == 32)
+						driver->DispatchBankSelectLsb(MidiGetField(ev,0),Chan(ev));
+					else
+						driver->DispatchControlChange(MidiGetField(ev,0),MidiGetField(ev,0),Chan(ev));
 					MidiFreeEv(ev);
 					break;
 					

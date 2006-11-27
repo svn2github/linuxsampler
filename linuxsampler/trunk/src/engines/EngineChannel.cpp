@@ -28,6 +28,9 @@ namespace LinuxSampler {
     EngineChannel::EngineChannel() {
         iMute = 0;
         bSolo = false;
+        uiMidiBankMsb = 0;
+        uiMidiBankLsb = 0;
+        uiMidiProgram = 0;
     }
 
     void EngineChannel::SetMute(int state) throw (Exception) {
@@ -52,6 +55,30 @@ namespace LinuxSampler {
 
     bool EngineChannel::GetSolo() {
         return bSolo;
+    }
+
+    uint8_t EngineChannel::GetMidiProgram() {
+        return uiMidiProgram; // AFAIK atomic on all systems
+    }
+
+    void EngineChannel::SetMidiProgram(uint8_t Program) {
+        uiMidiProgram = Program; // AFAIK atomic on all systems
+    }
+
+    uint8_t EngineChannel::GetMidiBankMsb() {
+        return uiMidiBankMsb; // AFAIK atomic on all systems
+    }
+
+    void EngineChannel::SetMidiBankMsb(uint8_t BankMSB) {
+        uiMidiBankMsb = BankMSB; // AFAIK atomic on all systems
+    }
+
+    uint8_t EngineChannel::GetMidiBankLsb() {
+        return uiMidiBankLsb; // AFAIK atomic on all systems
+    }
+
+    void EngineChannel::SetMidiBankLsb(uint8_t BankLSB) {
+        uiMidiBankLsb = BankLSB; // AFAIK atomic on all systems
     }
 
 } // namespace LinuxSampler
