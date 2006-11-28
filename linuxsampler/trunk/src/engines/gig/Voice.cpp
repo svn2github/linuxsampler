@@ -803,8 +803,11 @@ namespace LinuxSampler { namespace gig {
             // process transition events (note on, note off & sustain pedal)
             processTransitionEvents(itNoteEvent, iSubFragmentEnd);
 
-            // if the voice was killed in this subfragment switch EG1 to fade out stage
-            if (itKillEvent && killPos <= iSubFragmentEnd) {
+            // if the voice was killed in this subfragment, or if the
+            // filter EG is finished, switch EG1 to fade out stage
+            if ((itKillEvent && killPos <= iSubFragmentEnd) ||
+                (SYNTHESIS_MODE_GET_FILTER(SynthesisMode) &&
+                 EG2.getSegmentType() == EGADSR::segment_end)) {
                 EG1.enterFadeOutStage();
                 itKillEvent = Pool<Event>::Iterator();
             }
