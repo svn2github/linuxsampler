@@ -1,3 +1,10 @@
+libgig (3.1.0-2) unreleased; urgency=low
+
+  * fixed debian rules file for working with official release tarballs as
+    well (expected a Makefile.cvs file)
+
+ -- Christian Schoenebeck <cuse@users.sourceforge.net>  Wed, 29 Nov 2006 00:04:11 +0100
+
 libgig (3.1.0-1) unstable; urgency=low
 
   * libgig's home has changed slightly from
