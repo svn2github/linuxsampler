@@ -18,6 +18,11 @@ Version CVS HEAD (?)
   * MIDI driver:
     - dispatch bank select (MSB and LSB) messages
 
+  * Gigasampler format engine:
+    - if a filter is used and EG2 finishes before EG1, let the voice
+      die when EG2 has finished (this fixes a problem with clicks and
+      voice starvation for some gigs)
+
 Version 0.4.0 (24 November 2006)
 
   * packaging changes:

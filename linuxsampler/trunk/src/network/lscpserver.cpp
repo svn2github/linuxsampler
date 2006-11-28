@@ -1658,9 +1658,9 @@ String LSCPServer::ListMidiInstrumentMappings() {
         std::map<midi_prog_index_t,MidiInstrumentMapper::entry_t>::iterator iter = mappings.begin();
         for (; iter != mappings.end(); iter++) {
             if (s.size()) s += ",";
-            s += "{" + ToString(iter->first.midi_bank_msb) + ","
-                     + ToString(iter->first.midi_bank_lsb) + ","
-                     + ToString(iter->first.midi_prog)     + "}";
+            s += "{" + ToString(int(iter->first.midi_bank_msb)) + ","
+                     + ToString(int(iter->first.midi_bank_lsb)) + ","
+                     + ToString(int(iter->first.midi_prog))     + "}";
         }
         result.Add(s);
     } catch (Exception e) {
