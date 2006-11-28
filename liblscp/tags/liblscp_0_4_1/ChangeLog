@@ -1,0 +1,141 @@
+liblscp - LinuxSampler Control Protocol API
+-------------------------------------------
+
+ChangeLog
+
+0.4.1  2006-11-28  Fixed the flush timeout operation to be issued only
+                   once, avoiding recurrent client failure after receive
+                   timeout.
+
+                   Support for very long command result sets have been
+                   introduced, with the downside of strictly obeying
+                   the LSCP draft.
+
+                   list_midi_instruments() is now being implemented.
+
+                   LGPL text is now back in COPYING.
+
+0.4.0  2006-11-27  As of the LSCP 1.2 working draft document, added
+                   some missing client interface functions:
+                     lscp_get_total_voice_count();
+                     lscp_get_total_voice_count_max();
+                   and for the new MIDI instrumenbt mapping features:
+                     lscp_map_midi_instrument();
+                     lscp_unmap_midi_instrument();
+                     lscp_get_midi_instruments();
+                     lscp_get_midi_instrument_info();
+                     lscp_clear_midi_instruments();
+
+
+0.3.4  2006-09-24  GPL address update.
+
+0.3.3  2006-06-01  Fixed some compilation warnings due to suspicious type
+                   casting and unsused header macros.
+
+                   Changed deprecated copyright attribute to license
+                   and added ldconfig to post-(un)install steps
+                   to liblscp.spec (RPM).
+
+0.3.2  2005-08-29  Fixed missing initialization bug on lscp_channel_info_t
+                   new struct fields (mute/solo).
+
+                   Include debian files into distribution.
+
+                   Renamed configure.in to newer configure.ac.
+
+0.3.1  2005-08-16  [bug #21] Fixed automake support for separate build
+                   directory.
+
+                   Added support to sampler channel MUTE/SOLO states:
+                     lscp_set_channel_mute();
+                     lscp_set_channel_solo();
+                   with corresponding new lscp_channel_info_t fields.
+
+0.3.0  2005-06-10  [bug #11] Timeout flush idiosyncrasy is now a feature;
+                   this just tries to flush the receive buffer whenever
+                   any previous transaction has failed due to a timeout.
+
+                   Fixed an off-by-one timeout quirk, that has been a real
+                   showstopper on Mac OS X at least, which is incidental
+                   to qsampler's default timeout setting of 1000 msecs,
+                   giving up systematically on select() due to "Invalid
+                   argument" (EINVAL).
+
+
+0.2.8  2005-05-22  More LSCP command syntax changes, particularly on the
+                   event subscription ones: the LSCP_EVENT_CHANNELS event
+                   definition were renamed to LSCP_EVENT_CHANNEL_COUNT,
+                   as to be more meaningful. Added support for the newest
+                   LSCP command: GET SERVER INFO; lscp_get_server_info().
+
+0.2.8  2005-05-08  [bug #9] Fixed for a LSCP command syntax convention 
+                   consistency, regarding the enumeration of available 
+                   sampler engines, Audio and MIDI drivers; this has 
+                   affected the signature of the following functions:
+                     lscp_get_available_engines();
+                     lscp_get_available_audio_drivers();
+                     lscp_get_available_midi_drivers();
+                   which are now returning an integer count of engines
+                   and drivers, respectively, while the following 
+                   functions are now being introduced:
+                     lscp_list_available_engines();
+                     lscp_list_available_audio_drivers();
+                     lscp_list_available_midi_drivers();
+                   taking on the previous functionality, returning
+                   a comma separated list of names.
+
+0.2.7  2005-03-10  Mini bitsy regression; a severe crash (segfault)
+                   was fixed on the device configuration functions:
+                     lscp_set_audio_device_param();
+                     lscp_set_midi_device_param();
+                     lscp_set_audio_channel_param();
+                     lscp_set_midi_port_param();
+
+0.2.6  2005-03-01  Fixed nasty off-by-one bug on internal helpers.
+
+0.2.5  2005-02-14  Added support for the new INSTRUMENT_NAME field
+                   of GET CHANNEL INFO command.
+
+0.2.4  2004-10-11  Fixed lscp_set_channel_midi_channel() again, MIDI
+                   channels should be given in the range 0-15, and omni
+                   mode with the LSCP_MIDI_CHANNEL_ALL symbol (16).
+
+                   Fixed lscp_get_channel_info() to parse MIDI omni
+                   (ALL) channels mode.
+
+0.2.3  2004-09-28  Fixed lscp_set_channel_midi_channel() where MIDI
+                   channels should be given in the range 1-16, and
+                   omni mode with the new LSCP_MIDI_CHANNEL_ALL
+                   symbol (0).
+
+                   Rearrangement on main command requester executive.
+
+0.2.2  2004-07-29  In sync with LSCP document draf (v.12).
+
+                   New functions added: lscp_client_get_events() and
+                   lscp_reset_sampler().
+
+                   Added support for generating Debian packages;
+                   renamed pkg-config lib name 'liblscp' -> 'lscp' as
+                   it's common practice to omit the 'lib' prefix.
+
+0.2.1  2004-07-09  Potential cripling defects habve been fixed.
+
+0.2.0  2004-07-06  New LSCP extension draft (v.11) initial support.
+                   (still a work in progress...)
+
+
+0.1.9  2004-05-18  More fixes for MSVC++ example build.
+
+0.1.8  2004-05-17  Fix for MSVC++ example build; snprintf replaced by
+                   buffer overflow friendlier sprintf.
+
+0.1.7  2004-05-10  Missing version.h now included on install; WIN32 is
+                   only now conditionally defined.
+
+0.1.6  2004-05-04  WIN32 build support; LPGL disclaimer consistency;
+                   versioning functions introduced.
+
+0.1.5  2004-04-26  Server stuff moved into examples.
+
+0.1.4  2004-04-24  Initial auto/libtool preparation.
