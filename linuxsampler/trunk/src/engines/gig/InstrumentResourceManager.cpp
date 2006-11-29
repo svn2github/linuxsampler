@@ -77,30 +77,9 @@ namespace LinuxSampler { namespace gig {
         SetAvailabilityMode(ID, static_cast<ResourceManager<InstrumentManager::instrument_id_t, ::gig::Instrument>::mode_t>(Mode));
     }
 
-    float InstrumentResourceManager::GetVolume(const instrument_id_t& ID) {
-        void* pCustomData = CustomData(ID);
-        const float fVolume = (pCustomData) ? *((float*)pCustomData) /* stored value */ : 1.0f /* default value */;
-        return fVolume;
-    }
-
-    void InstrumentResourceManager::SetVolume(const instrument_id_t& ID, float Volume) {
-        void* pCustomData = CustomData(ID);
-        if (Volume == 1.0f) { // if default volume ...
-            if (pCustomData) { // ... delete volume entry if necessary
-                delete (float*)pCustomData;
-                SetCustomData(ID, NULL);
-            }
-        } else { // if not default volume
-            if (!pCustomData) { // create volume entry if necessary
-                pCustomData = new float;
-                SetCustomData(ID, pCustomData);
-            }
-            *((float*)pCustomData) = Volume;
-        }
-    }
-
     String InstrumentResourceManager::GetInstrumentName(instrument_id_t ID) {
-        return ""; // TODO: ...
+        ::gig::Instrument* pInstrument = Resource(ID);
+        return (pInstrument) ? pInstrument->pInfo->Name : "";
     }
 
     ::gig::Instrument* InstrumentResourceManager::Create(instrument_id_t Key, InstrumentConsumer* pConsumer, void*& pArg) {
@@ -167,12 +146,6 @@ namespace LinuxSampler { namespace gig {
 
     void InstrumentResourceManager::Destroy( ::gig::Instrument* pResource, void* pArg) {
         instr_entry_t* pEntry = (instr_entry_t*) pArg;
-        // remove volume entry if necessary
-        void* pCustomData = CustomData(pEntry->ID);
-        if (pCustomData) {
-            delete (float*)pCustomData;
-            SetCustomData(pEntry->ID, NULL);
-        }
         // we don't need the .gig file here anymore
         Gigs.HandBack(pEntry->pGig, (GigConsumer*) pEntry->ID.Index); // conversion kinda hackish :/
         delete pEntry;

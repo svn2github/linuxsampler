@@ -70,8 +70,6 @@ namespace LinuxSampler { namespace gig {
             virtual std::vector<instrument_id_t> Instruments();
             virtual InstrumentManager::mode_t GetMode(const instrument_id_t& ID);
             virtual void SetMode(const instrument_id_t& ID, InstrumentManager::mode_t Mode);
-            virtual float GetVolume(const instrument_id_t& ID);
-            virtual void SetVolume(const instrument_id_t& ID, float Volume);
             virtual String GetInstrumentName(instrument_id_t ID);
         protected:
             virtual ::gig::Instrument* Create(instrument_id_t Key, InstrumentConsumer* pConsumer, void*& pArg);

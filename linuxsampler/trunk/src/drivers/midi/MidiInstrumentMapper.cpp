@@ -31,6 +31,7 @@ namespace LinuxSampler {
         String EngineName;
         String InstrumentFile;
         uint   InstrumentIndex;
+        float  Volume;
         String Name;
     };
 
@@ -71,7 +72,6 @@ namespace LinuxSampler {
                 else
                     pEngine->GetInstrumentManager()->SetMode(id, static_cast<InstrumentManager::mode_t>(Entry.LoadMode));
             }
-            pEngine->GetInstrumentManager()->SetVolume(id, Entry.Volume);
         } else {
             dmsg(1,("WARNING: no InstrumentManager for engine '%s'\n",Entry.EngineName.c_str()));
         }
@@ -79,6 +79,7 @@ namespace LinuxSampler {
         privateEntry.EngineName      = Entry.EngineName;
         privateEntry.InstrumentFile  = Entry.InstrumentFile;
         privateEntry.InstrumentIndex = Entry.InstrumentIndex;
+        privateEntry.Volume          = Entry.Volume;
         privateEntry.Name            = Entry.Name;
         midiMapMutex.Lock();
         midiMap[Index] = privateEntry;
@@ -109,11 +110,12 @@ namespace LinuxSampler {
             entry.EngineName      = iter->second.EngineName;
             entry.InstrumentFile  = iter->second.InstrumentFile;
             entry.InstrumentIndex = iter->second.InstrumentIndex;
+            entry.Volume          = iter->second.Volume;
             entry.Name            = iter->second.Name;
             result[iter->first] = entry;
         }
         midiMapMutex.Unlock();
-        // complete it with current LoadMode & Volume of each entry
+        // complete it with current LoadMode of each entry
         for (std::map<midi_prog_index_t,entry_t>::iterator iter = result.begin();
              iter != result.end(); iter++)
         {
@@ -130,11 +132,9 @@ namespace LinuxSampler {
                 id.FileName = entry.InstrumentFile;
                 id.Index    = entry.InstrumentIndex;
                 entry.LoadMode = static_cast<mode_t>(pManager->GetMode(id));
-                entry.Volume   = pManager->GetVolume(id); 
             } else { // engine does not provide an InstrumentManager
-                // use default values
+                // use default value
                 entry.LoadMode = ON_DEMAND;
-                entry.Volume   = 1.0f;
             }
             EngineFactory::Destroy(pEngine);
         }
@@ -150,15 +150,7 @@ namespace LinuxSampler {
             entry.EngineName      = iter->second.EngineName;
             entry.InstrumentFile  = iter->second.InstrumentFile;
             entry.InstrumentIndex = iter->second.InstrumentIndex;
-            Engine* pEngine = EngineFactory::Create(iter->second.EngineName);
-            // try to retrieve volume from InstrumentManager entry
-            if (pEngine && pEngine->GetInstrumentManager()) {
-                InstrumentManager::instrument_id_t id;
-                id.FileName = iter->second.InstrumentFile;
-                id.Index    = iter->second.InstrumentIndex;
-                entry.Volume = pEngine->GetInstrumentManager()->GetVolume(id);
-            } else entry.Volume = 1.0f; // default value
-            if (pEngine) EngineFactory::Destroy(pEngine);
+            entry.Volume          = iter->second.Volume;
             //TODO: for now we skip the LoadMode and Name entry here, since we don't need it in the MidiInputPort
             result = entry;
         }

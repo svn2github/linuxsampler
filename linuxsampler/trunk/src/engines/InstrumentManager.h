@@ -93,20 +93,6 @@ namespace LinuxSampler {
             void SetModeInBackground(const instrument_id_t& ID, mode_t Mode);
 
             /**
-             * Get global volume factor for this instrument.
-             *
-             * This method has to be implemented by the descendant.
-             */
-            virtual float GetVolume(const instrument_id_t& ID) = 0;
-
-            /**
-             * Change global volume factor for this instrument.
-             *
-             * This method has to be implemented by the descendant.
-             */
-            virtual void SetVolume(const instrument_id_t& ID, float Volume) = 0;
-
-            /**
              * Same as loading the given instrument directly on the given
              * EngineChannel, but this method will not block, instead it
              * will load the instrument in a separate thread.

@@ -93,6 +93,9 @@ class ResourceConsumer {
  *
  * Descendants of this base class have to implement the (protected)
  * Create() and Destroy() methods to create and destroy a resource.
+ *
+ * Note: this template class is not thread safe, so if thread safety is
+ * needed the descendant has to add synchronization methods on its own.
  */
 template<class T_key, class T_res>
 class ResourceManager {
@@ -330,6 +333,16 @@ class ResourceManager {
         }
 
         /**
+         * Returns true in case the resource associated with \a Key is
+         * currently created / "alive".
+         *
+         * @param Key - ID of resource
+         */
+        bool IsCreated(T_key Key) {
+            return Resource(Key) != NULL;
+        }
+
+        /**
          * Returns custom data sticked to the given resource previously by
          * a SetCustomData() call.
          *
@@ -441,6 +454,20 @@ class ResourceManager {
                     (*iterCons)->OnResourceProgress(fProgress);
                 }
             }
+        }
+
+        /**
+         * Returns pointer to the resource associated with \a Key if
+         * currently created / "alive", NULL otherwise. This method
+         * should be taken with great care in multi-threaded scenarios,
+         * since the returned resource might be destroyed by a concurrent
+         * HandBack() call.
+         *
+         * @param Key - ID of resource
+         */
+        T_res* Resource(T_key Key) {
+            typename ResourceMap::iterator iterEntry = ResourceEntries.find(Key);
+            return (iterEntry == ResourceEntries.end()) ? NULL : iterEntry->second.resource;
         }
 };
 
