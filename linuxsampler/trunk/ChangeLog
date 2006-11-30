@@ -23,6 +23,9 @@ Version CVS HEAD (?)
       die when EG2 has finished (this fixes a problem with clicks and
       voice starvation for some gigs)
 
+  * Bug fixes:
+    - fixed crash occurring on certain LSCP scripts (Bug 39)
+
 Version 0.4.0 (24 November 2006)
 
   * packaging changes:
