@@ -108,6 +108,8 @@ namespace LinuxSampler {
     }
 
     void SamplerChannel::SetAudioOutputDevice(AudioOutputDevice* pDevice) {
+        if(pAudioOutputDevice == pDevice) return;
+
         // disconnect old device
         if (pAudioOutputDevice && pEngineChannel) {
             Engine* engine = pEngineChannel->GetEngine();
