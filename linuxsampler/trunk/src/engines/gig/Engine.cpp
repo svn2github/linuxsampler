@@ -97,8 +97,8 @@ namespace LinuxSampler { namespace gig {
         pAudioOutputDevice = NULL;
         pDiskThread        = NULL;
         pEventGenerator    = NULL;
-        pSysexBuffer       = new RingBuffer<uint8_t>(CONFIG_SYSEX_BUFFER_SIZE, 0);
-        pEventQueue        = new RingBuffer<Event>(CONFIG_MAX_EVENTS_PER_FRAGMENT, 0);
+        pSysexBuffer       = new RingBuffer<uint8_t,false>(CONFIG_SYSEX_BUFFER_SIZE, 0);
+        pEventQueue        = new RingBuffer<Event,false>(CONFIG_MAX_EVENTS_PER_FRAGMENT, 0);
         pEventPool         = new Pool<Event>(CONFIG_MAX_EVENTS_PER_FRAGMENT);
         pVoicePool         = new Pool<Voice>(CONFIG_MAX_VOICES);
         pVoiceStealingQueue = new RTList<Event>(pEventPool);
@@ -306,7 +306,7 @@ namespace LinuxSampler { namespace gig {
      *                  current audio cycle
      */
     void Engine::ImportEvents(uint Samples) {
-        RingBuffer<Event>::NonVolatileReader eventQueueReader = pEventQueue->get_non_volatile_reader();
+        RingBuffer<Event,false>::NonVolatileReader eventQueueReader = pEventQueue->get_non_volatile_reader();
         Event* pEvent;
         while (true) {
             // get next event from input event queue
@@ -1382,7 +1382,7 @@ namespace LinuxSampler { namespace gig {
      *  @param itSysexEvent - sysex data size and time stamp of the sysex event
      */
     void Engine::ProcessSysex(Pool<Event>::Iterator& itSysexEvent) {
-        RingBuffer<uint8_t>::NonVolatileReader reader = pSysexBuffer->get_non_volatile_reader();
+        RingBuffer<uint8_t,false>::NonVolatileReader reader = pSysexBuffer->get_non_volatile_reader();
 
         uint8_t exclusive_status, id;
         if (!reader.pop(&exclusive_status)) goto free_sysex_data;
@@ -1401,7 +1401,7 @@ namespace LinuxSampler { namespace gig {
 
                 // command address
                 uint8_t addr[3]; // 2 byte addr MSB, followed by 1 byte addr LSB)
-                const RingBuffer<uint8_t>::NonVolatileReader checksum_reader = reader; // so we can calculate the check sum later
+                const RingBuffer<uint8_t,false>::NonVolatileReader checksum_reader = reader; // so we can calculate the check sum later
                 if (reader.read(&addr[0], 3) != 3) goto free_sysex_data;
                 if (addr[0] == 0x40 && addr[1] == 0x00) { // System Parameters
                     dmsg(3,("\tSystem Parameter\n"));
@@ -1448,8 +1448,8 @@ namespace LinuxSampler { namespace gig {
      *                     question
      * @param DataSize   - size of the GS message data (in bytes)
      */
-    uint8_t Engine::GSCheckSum(const RingBuffer<uint8_t>::NonVolatileReader AddrReader, uint DataSize) {
-        RingBuffer<uint8_t>::NonVolatileReader reader = AddrReader;
+    uint8_t Engine::GSCheckSum(const RingBuffer<uint8_t,false>::NonVolatileReader AddrReader, uint DataSize) {
+        RingBuffer<uint8_t,false>::NonVolatileReader reader = AddrReader;
         uint bytes = 3 /*addr*/ + DataSize;
         uint8_t addr_and_data[bytes];
         reader.read(&addr_and_data[0], bytes);
@@ -1568,7 +1568,7 @@ namespace LinuxSampler { namespace gig {
     }
 
     String Engine::Version() {
-        String s = "$Revision: 1.66 $";
+        String s = "$Revision: 1.67 $";
         return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
 

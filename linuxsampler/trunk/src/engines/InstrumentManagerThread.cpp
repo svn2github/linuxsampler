@@ -23,7 +23,7 @@
 namespace LinuxSampler {
 
     InstrumentManagerThread::InstrumentManagerThread() : Thread(true, false, 0, -4) {
-        pQueue = new RingBuffer<command_t>(INSTRUMENT_LOADER_QUEUE_SIZE);
+        pQueue = new RingBuffer<command_t,true>(INSTRUMENT_LOADER_QUEUE_SIZE);
     }
 
     InstrumentManagerThread::~InstrumentManagerThread() {

@@ -56,6 +56,8 @@ namespace LinuxSampler {
                 Entry.Volume,Entry.LoadMode)
             );
         }
+        if (!Entry.InstrumentFile.size())
+            throw Exception("No instrument file name given");
         if (Entry.Volume < 0.0)
             throw Exception("Volume may not be a negative value");
         Engine* pEngine = EngineFactory::Create(Entry.EngineName);

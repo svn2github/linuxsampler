@@ -90,13 +90,13 @@ namespace LinuxSampler { namespace gig {
             uint                    SampleRate;            ///< Sample rate of the engines output audio signal (in Hz)
             uint                    MaxSamplesPerCycle;    ///< Size of each audio output buffer
             DiskThread*             pDiskThread;
-            RingBuffer<Event>*      pEventQueue;           ///< Input event queue for engine global events (e.g. SysEx messages).
+            RingBuffer<Event,false>* pEventQueue;          ///< Input event queue for engine global events (e.g. SysEx messages).
             Pool<Voice>*            pVoicePool;            ///< Contains all voices that can be activated.
             EventGenerator*         pEventGenerator;
             RTList<Event>*          pVoiceStealingQueue;   ///< All voice-launching events which had to be postponed due to free voice shortage.
             RTList<Event>*          pGlobalEvents;         ///< All engine global events for the current audio fragment (usually only SysEx messages).
             Pool<Event>*            pEventPool;            ///< Contains all Event objects that can be used.
-            RingBuffer<uint8_t>*    pSysexBuffer;          ///< Input buffer for MIDI system exclusive messages.
+            RingBuffer<uint8_t,false>* pSysexBuffer;       ///< Input buffer for MIDI system exclusive messages.
             int                     ActiveVoiceCount;      ///< number of currently active voices (this value will be returned for public calls)
             int                     ActiveVoiceCountTemp;  ///< number of currently active voices (for internal usage, will be used for incrementation)
             int                     ActiveVoiceCountMax;   ///< the maximum voice usage since application start
@@ -145,7 +145,7 @@ namespace LinuxSampler { namespace gig {
             int SostenutoKeys[128];
             int SostenutoKeyCount;
 
-            uint8_t GSCheckSum(const RingBuffer<uint8_t>::NonVolatileReader AddrReader, uint DataSize);
+            uint8_t GSCheckSum(const RingBuffer<uint8_t,false>::NonVolatileReader AddrReader, uint DataSize);
             void    AdjustScale(int8_t ScaleTunes[12]);
             void    ReleaseAllVoices(EngineChannel* pEngineChannel, Pool<Event>::Iterator& itReleaseEvent);
             void    KillAllVoices(EngineChannel* pEngineChannel, Pool<Event>::Iterator& itKillEvent);

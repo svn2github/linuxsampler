@@ -29,6 +29,7 @@
 #include <vector>
 
 #include "Exception.h"
+#include "Mutex.h"
 
 namespace LinuxSampler {
 
@@ -94,8 +95,10 @@ class ResourceConsumer {
  * Descendants of this base class have to implement the (protected)
  * Create() and Destroy() methods to create and destroy a resource.
  *
- * Note: this template class is not thread safe, so if thread safety is
- * needed the descendant has to add synchronization methods on its own.
+ * This class is thread safe (by default). Its methods should however not
+ * be called in a realtime context due to this! Alternatively one can 
+ * call the respective methods with bLock = false, in that case thread
+ * safety mechanisms will be omitted - use with care !
  */
 template<class T_key, class T_res>
 class ResourceManager {
@@ -121,19 +124,24 @@ class ResourceManager {
         };
         typedef std::map<T_key, resource_entry_t> ResourceMap;
         ResourceMap ResourceEntries;
+        Mutex       ResourceEntriesMutex; // Mutex for protecting the ResourceEntries map
 
     public:
         /**
          * Returns (the keys of) all current entries of this
          * ResourceManager instance.
+         *
+         * @param bLock - use thread safety mechanisms
          */
-        std::vector<T_key> Entries() {
+        std::vector<T_key> Entries(bool bLock = true) {
             std::vector<T_key> result;
+            if (bLock) ResourceEntriesMutex.Lock();
             for (typename ResourceMap::iterator iter = ResourceEntries.begin();
                  iter != ResourceEntries.end(); iter++)
             {
                 result.push_back(iter->first);
             }
+            if (bLock) ResourceEntriesMutex.Unlock();
             return result;
         }
 
@@ -145,9 +153,11 @@ class ResourceManager {
          *
          * @param Key       - resource identifier
          * @param pConsumer - identifier of the consumer who borrows it
+         * @param bLock     - use thread safety mechanisms
          * @returns  pointer to resource
          */
-        T_res* Borrow(T_key Key, ResourceConsumer<T_res>* pConsumer) {
+        T_res* Borrow(T_key Key, ResourceConsumer<T_res>* pConsumer, bool bLock = true) {
+            if (bLock) ResourceEntriesMutex.Lock();
             // search for an entry for this resource
             typename ResourceMap::iterator iterEntry = ResourceEntries.find(Key);
             if (iterEntry == ResourceEntries.end()) { // entry doesn't exist yet
@@ -166,12 +176,14 @@ class ResourceManager {
                 } catch (...) {
                     // creating the resource failed, so remove the entry
                     ResourceEntries.erase(Key);
+                    if (bLock) ResourceEntriesMutex.Unlock();
                     // rethrow the same exception
                     throw;
                 }
                 // now update the entry with the created resource
                 ResourceEntries[Key] = entry;
                 OnBorrow(entry.resource, pConsumer, entry.lifearg);
+                if (bLock) ResourceEntriesMutex.Unlock();
                 return entry.resource;
             } else { // entry already exists
                 resource_entry_t& entry = iterEntry->second;
@@ -180,11 +192,13 @@ class ResourceManager {
                         entry.resource = Create(Key, pConsumer, entry.lifearg);
                     } catch (...) {
                         entry.resource = NULL;
+                        if (bLock) ResourceEntriesMutex.Unlock();
                         throw; // rethrow the same exception
                     }
                 }
                 entry.consumers.insert(pConsumer);
                 OnBorrow(entry.resource, pConsumer, entry.lifearg);
+                if (bLock) ResourceEntriesMutex.Unlock();
                 return entry.resource;
             }
         }
@@ -199,8 +213,10 @@ class ResourceManager {
          * @param pResource - pointer to resource
          * @param pConsumer - identifier of the consumer who borrowed the
          *                    resource
+         * @param bLock     - use thread safety mechanisms
          */
-        void HandBack(T_res* pResource, ResourceConsumer<T_res>* pConsumer) {
+        void HandBack(T_res* pResource, ResourceConsumer<T_res>* pConsumer, bool bLock = true) {
+            if (bLock) ResourceEntriesMutex.Lock();
             // search for the entry associated with the given resource
             typename ResourceMap::iterator iter = ResourceEntries.begin();
             typename ResourceMap::iterator end  = ResourceEntries.end();
@@ -216,9 +232,11 @@ class ResourceManager {
                         // destroy resource if necessary
                         if (resource) Destroy(resource, arg);
                     }
+                    if (bLock) ResourceEntriesMutex.Unlock();
                     return;
                 }
             }
+            if (bLock) ResourceEntriesMutex.Unlock();
         }
 
         /**
@@ -230,8 +248,10 @@ class ResourceManager {
          *
          * @param pResource - resource to be updated
          * @param pConsumer - consumer who requested the update
+         * @param bLock     - use thread safety mechanisms
          */
-        void Update(T_res* pResource, ResourceConsumer<T_res>* pConsumer) {
+        void Update(T_res* pResource, ResourceConsumer<T_res>* pConsumer, bool bLock = true) {
+            if (bLock) ResourceEntriesMutex.Lock();
             typename ResourceMap::iterator iter = ResourceEntries.begin();
             typename ResourceMap::iterator end  = ResourceEntries.end();
             for (; iter != end; iter++) {
@@ -260,21 +280,28 @@ class ResourceManager {
                         void* updatearg = (iterArg != updateargs.end()) ? iterArg->second : NULL;
                         (*iterCons)->ResourceUpdated(pOldResource, entry.resource, updatearg);
                     }
+                    if (bLock) ResourceEntriesMutex.Unlock();
                     return;
                 }
             }
+            if (bLock) ResourceEntriesMutex.Unlock();
         }
 
         /**
          * Returns the life-time strategy of the given resource.
          *
-         * @param Key - ID of the resource
+         * @param Key   - ID of the resource
+         * @param bLock - use thread safety mechanisms
          */
-        mode_t AvailabilityMode(T_key Key) {
+        mode_t AvailabilityMode(T_key Key, bool bLock = true) {
+            if (bLock) ResourceEntriesMutex.Lock();
             typename ResourceMap::iterator iterEntry = ResourceEntries.find(Key);
-            if (iterEntry == ResourceEntries.end())
+            if (iterEntry == ResourceEntries.end()) {
+                if (bLock) ResourceEntriesMutex.Unlock();
                 return ON_DEMAND; // resource entry doesn't exist, so we return the default mode
+            }
             resource_entry_t& entry = iterEntry->second;
+            if (bLock) ResourceEntriesMutex.Unlock();
             return entry.mode;
         }
 
@@ -286,17 +313,22 @@ class ResourceManager {
          *
          * @param Key - ID of the resource
          * @param Mode - life-time strategy of resource to be set
+         * @param bLock - use thread safety mechanisms
          * @throws Exception in case an invalid Mode was given
          */
-        void SetAvailabilityMode(T_key Key, mode_t Mode) throw (Exception) {
+        void SetAvailabilityMode(T_key Key, mode_t Mode, bool bLock = true) throw (Exception) {
             if (Mode != ON_DEMAND && Mode != ON_DEMAND_HOLD && Mode != PERSISTENT)
                 throw Exception("ResourceManager::SetAvailabilityMode(): invalid mode");
 
+            if (bLock) ResourceEntriesMutex.Lock();
             // search for an entry for this resource
             typename ResourceMap::iterator iterEntry = ResourceEntries.find(Key);
             resource_entry_t* pEntry = NULL;
             if (iterEntry == ResourceEntries.end()) { // resource entry doesn't exist
-                if (Mode == ON_DEMAND) return; // we don't create an entry for the default value
+                if (Mode == ON_DEMAND) {
+                    if (bLock) ResourceEntriesMutex.Unlock();
+                    return; // we don't create an entry for the default value
+                }
                 // create an entry for the resource
                 pEntry = &ResourceEntries[Key];
                 pEntry->key      = Key;
@@ -313,7 +345,9 @@ class ResourceManager {
                     ResourceEntries.erase(iterEntry);
                     // destroy resource if necessary
                     if (resource) Destroy(resource, arg);
-                    return; // done
+                    // done
+                    if (bLock) ResourceEntriesMutex.Unlock();
+                    return;
                 }
                 pEntry->mode = Mode; // apply new mode
             }
@@ -326,10 +360,12 @@ class ResourceManager {
                 } catch (...) {
                     // creating the resource failed, so skip it for now
                     pEntry->resource = NULL;
+                    if (bLock) ResourceEntriesMutex.Unlock();
                     // rethrow the same exception
                     throw;
                 }
             }
+            if (bLock) ResourceEntriesMutex.Unlock();
         }
 
         /**
@@ -337,9 +373,10 @@ class ResourceManager {
          * currently created / "alive".
          *
          * @param Key - ID of resource
+         * @param bLock - use thread safety mechanisms
          */
-        bool IsCreated(T_key Key) {
-            return Resource(Key) != NULL;
+        bool IsCreated(T_key Key, bool bLock = true) {
+            return Resource(Key, bLock) != NULL;
         }
 
         /**
@@ -347,12 +384,19 @@ class ResourceManager {
          * a SetCustomData() call.
          *
          * @param Key - ID of resource
+         * @param bLock - use thread safety mechanisms
          */
-        void* CustomData(T_key Key) {
+        void* CustomData(T_key Key, bool bLock = true) {
+            if (bLock) ResourceEntriesMutex.Lock();
             typename ResourceMap::iterator iterEntry = ResourceEntries.find(Key);
-            if (iterEntry == ResourceEntries.end()) return NULL; // resource entry doesn't exist, so we return the default mode
-            resource_entry_t& entry = iterEntry->second;
-            return entry.entryarg;
+            if (iterEntry == ResourceEntries.end()) {
+                if (bLock) ResourceEntriesMutex.Unlock();
+                return NULL; // resource entry doesn't exist, so we return the default mode
+            }
+            resource_entry_t entry = iterEntry->second;
+            void* res = entry.entryarg;
+            if (bLock) ResourceEntriesMutex.Unlock();
+            return res;
         }
 
         /**
@@ -364,8 +408,10 @@ class ResourceManager {
          *
          * @param Key - ID of resource
          * @param pData - pointer to custom data, or NULL if not needed anymore
+         * @param bLock - use thread safety mechanisms
          */
-        void SetCustomData(T_key Key, void* pData) {
+        void SetCustomData(T_key Key, void* pData, bool bLock = true) {
+            if (bLock) ResourceEntriesMutex.Lock();
             typename ResourceMap::iterator iterEntry = ResourceEntries.find(Key);
             if (pData) {
                 if (iterEntry == ResourceEntries.end()) { // entry doesnt exist, so create one
@@ -379,13 +425,46 @@ class ResourceManager {
                     iterEntry->second.entryarg = pData;
                 }
             } else { // !pData
-                if (iterEntry == ResourceEntries.end()) return; // entry doesnt exist, so nothing to do
+                if (iterEntry == ResourceEntries.end()) {
+                    if (bLock) ResourceEntriesMutex.Unlock();
+                    return; // entry doesnt exist, so nothing to do
+                }
                 // entry exists, remove it if necessary
                 resource_entry_t* pEntry = &iterEntry->second;
                 if (pEntry->mode == ON_DEMAND && pEntry->consumers.empty()) {
                     ResourceEntries.erase(iterEntry);
                 } else iterEntry->second.entryarg = NULL;
             }
+            if (bLock) ResourceEntriesMutex.Unlock();
+        }
+
+        /**
+         * Prevent this ResourceManager instance to be used by another
+         * thread at the same time. All methods of this class are thread
+         * safe by default. However sometimes you might need atomicity among
+         * a sequence of method calls. In this case you would first call
+         * this Lock() method, call the respective operational methods of
+         * this class (<b>Important:</b> each one by setting bLock = false,
+         * this avoids double locking). And once the required sequence of
+         * atomic method calls is done, you have to call Unlock() to
+         * reenable accessibility of this ResourceManager instance for other
+         * threads.
+         *
+         * @see Mutex::Lock()
+         */
+        void Lock() {
+            ResourceEntriesMutex.Lock();
+        }
+
+        /**
+         * Has to be called after a Lock() call to reenable this
+         * ResourceManager instance to be accessible by another thread
+         * again.
+         *
+         * @see Mutex::Unlock()
+         */
+        void Unlock() {
+            ResourceEntriesMutex.Unlock();
         }
 
         virtual ~ResourceManager() {} // due to C++'s nature we cannot destroy created resources here
@@ -444,6 +523,7 @@ class ResourceManager {
          *                    process as value between 0.0 and 1.0
          */
         void DispatchResourceProgressEvent(T_key Key, float fProgress) {
+            // no Mutex here, since Create() is already protected
             typename ResourceMap::iterator iterEntry = ResourceEntries.find(Key);
             if (iterEntry != ResourceEntries.end()) {
                 resource_entry_t& entry = iterEntry->second;
@@ -464,10 +544,14 @@ class ResourceManager {
          * HandBack() call.
          *
          * @param Key - ID of resource
+         * @param bLock - use thread safety mechanisms
          */
-        T_res* Resource(T_key Key) {
+        T_res* Resource(T_key Key, bool bLock = true) {
+            if (bLock) ResourceEntriesMutex.Lock();
             typename ResourceMap::iterator iterEntry = ResourceEntries.find(Key);
-            return (iterEntry == ResourceEntries.end()) ? NULL : iterEntry->second.resource;
+            T_res* result = (iterEntry == ResourceEntries.end()) ? NULL : iterEntry->second.resource;
+            if (bLock) ResourceEntriesMutex.Unlock();
+            return result;
         }
 };
 

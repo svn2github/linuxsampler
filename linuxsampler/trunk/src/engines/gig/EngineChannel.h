@@ -96,7 +96,7 @@ namespace LinuxSampler { namespace gig {
             int                     AudioDeviceChannelRight;  ///< audio device channel number to which the right channel is connected to
             MidiInputPort*          pMidiInputPort;           ///< Points to the connected MIDI input port or NULL if none assigned.
             midi_chan_t             midiChannel;              ///< MIDI channel(s) on which this engine channel listens to.
-            RingBuffer<Event>*      pEventQueue;              ///< Input event queue.
+            RingBuffer<Event,false>* pEventQueue;             ///< Input event queue.
             RTList<Event>*          pEvents;                  ///< All engine channel specific events for the current audio fragment.
             uint8_t                 ControllerTable[129];     ///< Reflects the current values (0-127) of all MIDI controllers for this engine / sampler channel. Number 128 is for channel pressure (mono aftertouch).
             midi_key_info_t*        pMIDIKeyInfo;             ///< Contains all active voices sorted by MIDI key number and other informations to the respective MIDI key

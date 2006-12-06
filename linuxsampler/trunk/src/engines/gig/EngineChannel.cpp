@@ -30,7 +30,7 @@ namespace LinuxSampler { namespace gig {
         pEngine      = NULL;
         pInstrument  = NULL;
         pEvents      = NULL; // we allocate when we retrieve the right Engine object
-        pEventQueue  = new RingBuffer<Event>(CONFIG_MAX_EVENTS_PER_FRAGMENT, 0);
+        pEventQueue  = new RingBuffer<Event,false>(CONFIG_MAX_EVENTS_PER_FRAGMENT, 0);
         pActiveKeys  = new Pool<uint>(128);
         for (uint i = 0; i < 128; i++) {
             pMIDIKeyInfo[i].pActiveVoices  = NULL; // we allocate when we retrieve the right Engine object
@@ -574,7 +574,7 @@ namespace LinuxSampler { namespace gig {
      *                  current audio cycle
      */
     void EngineChannel::ImportEvents(uint Samples) {
-        RingBuffer<Event>::NonVolatileReader eventQueueReader = pEventQueue->get_non_volatile_reader();
+        RingBuffer<Event,false>::NonVolatileReader eventQueueReader = pEventQueue->get_non_volatile_reader();
         Event* pEvent;
         while (true) {
             // get next event from input event queue

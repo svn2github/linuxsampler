@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 Christian Schoenebeck                              *
+ *   Copyright (C) 2005, 2006 Christian Schoenebeck                        *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -88,7 +88,7 @@ namespace LinuxSampler { namespace gig {
         this->SampleOffset           = 0;
         this->PlaybackState.position = 0;
         this->PlaybackState.reverse  = false;
-        this->pRingBuffer            = new RingBuffer<uint8_t>(BufferSize * 3, BufferWrapElements * 3);
+        this->pRingBuffer            = new RingBuffer<uint8_t,false>(BufferSize * 3, BufferWrapElements * 3);
         this->pDecompressionBuffer   = pDecompressionBuffer;
         UnusedStreams++;
 	TotalStreams++;

@@ -3,6 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
+ *   Copyright (C) 2005, 2006 Christian Schoenebeck                        *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -29,7 +30,34 @@
 
 #include "atomic.h"
 
-template<class T>
+/** @brief Real-time safe and type safe RingBuffer implementation.
+ *
+ * This constant size buffer can be used to send data from exactly one
+ * sender / writing thread to exactly one receiver / reading thread. It is
+ * real-time safe due to the fact that data is only allocated when this
+ * RingBuffer is created and no system level mechanisms are used for
+ * ensuring thread safety of this class.
+ *
+ * <b>Important:</b> There are two distinct behaviors of this RingBuffer
+ * which has to be given as template argument @c T_DEEP_COPY, which is a
+ * boolean flag:
+ *
+ * - @c true: The RingBuffer will copy elements of type @c T by using type
+ *   @c T's assignment operator. This behavior is mandatory for all data
+ *   structures (classes) which additionally allocate memory on the heap.
+ *   Type @c T's needs to have an assignment operator implementation though,
+ *   otherwise this will cause a compilation error. This behavior is more
+ *   safe, but usually slower (except for very small buffer sizes, where it
+ *   might be even faster).
+ * - @c false: The RingBuffer will copy elements of type @c T by flatly
+ *   copying their structural data ( i.e. with @c memcpy() ) in one piece.
+ *   This will only work if class @c T (and all of its subelements) does not
+ *   allocate any additional data on the heap by itself. So use this option
+ *   with great care, because otherwise it will result in very ugly behavior
+ *   and crashes! For larger buffer sizes, this behavior will most probably
+ *   be faster.
+ */
+template<class T, bool T_DEEP_COPY>
 class RingBuffer
 {
 public:
@@ -58,6 +86,10 @@ public:
      * Sets all remaining write space elements to zero. The write pointer
      * will currently not be incremented after, but that might change in
      * future.
+     *
+     * @e Caution: for @c T_DEEP_COPY=true you might probably @e NOT want
+     * to call this method at all, at least not in case type @c T allocates
+     * any additional data on the heap by itself.
      */
     inline void fill_write_space_with_null() {
              int w = atomic_read(&write_ptr),
@@ -122,7 +154,7 @@ public:
                w += cnt;
                if(w >= size) {
                  w -= size;
-                 memcpy(&buf[0], &buf[size], w*sizeof(T));
+                 copy(&buf[0], &buf[size], w);
 //printf("DEBUG !!!! increment_write_ptr_with_wrap: buffer wrapped, elements wrapped = %d (wrap_elements %d)\n",w,wrap_elements);
                }
                atomic_set(&write_ptr, w);
@@ -254,7 +286,7 @@ public:
      * allows to read from a RingBuffer without being forced to free read
      * data while reading / positioning.
      */
-    template<class T1>
+    template<class T1, bool T1_DEEP_COPY>
     class _NonVolatileReader {
         public:
             int read_space() {
@@ -339,11 +371,11 @@ public:
                     n2 = 0;
                 }
 
-                memcpy(dest, &pBuf->buf[priv_read_ptr], n1 * sizeof(T));
+                copy(dest, &pBuf->buf[priv_read_ptr], n1);
                 priv_read_ptr = (priv_read_ptr + n1) & pBuf->size_mask;
 
                 if (n2) {
-                    memcpy(dest+n1, pBuf->buf, n2 * sizeof(T));
+                    copy(dest+n1, pBuf->buf, n2);
                     priv_read_ptr = n2;
                 }
 
@@ -363,18 +395,18 @@ public:
             }
 
         protected:
-            _NonVolatileReader(RingBuffer<T1>* pBuf) {
+            _NonVolatileReader(RingBuffer<T1,T1_DEEP_COPY>* pBuf) {
                 this->pBuf     = pBuf;
                 this->read_ptr = atomic_read(&pBuf->read_ptr);
             }
 
-            RingBuffer<T1>* pBuf;
+            RingBuffer<T1,T1_DEEP_COPY>* pBuf;
             int read_ptr;
 
-            friend class RingBuffer<T1>;
+            friend class RingBuffer<T1,T1_DEEP_COPY>;
     };
 
-    typedef _NonVolatileReader<T> NonVolatileReader;
+    typedef _NonVolatileReader<T,T_DEEP_COPY> NonVolatileReader;
 
     NonVolatileReader get_non_volatile_reader() { return NonVolatileReader(this); }
 
@@ -384,24 +416,29 @@ public:
     atomic_t read_ptr;
     int size_mask;
 
-    friend class _NonVolatileReader<T>;
+    /**
+     * Copies \a n amount of elements from the buffer given by
+     * \a pSrc to the buffer given by \a pDst.
+     */
+    inline static void copy(T* pDst, T* pSrc, int n);
+
+    friend class _NonVolatileReader<T,T_DEEP_COPY>;
 };
 
-template<class T> T *
-RingBuffer<T>::get_write_ptr (void) {
+template<class T, bool T_DEEP_COPY>
+T* RingBuffer<T,T_DEEP_COPY>::get_write_ptr (void) {
   return(&buf[atomic_read(&write_ptr)]);
 }
 
-template<class T> T *
-RingBuffer<T>::get_buffer_begin (void) {
+template<class T, bool T_DEEP_COPY>
+T* RingBuffer<T,T_DEEP_COPY>::get_buffer_begin (void) {
   return(buf);
 }
 
 
 
-template<class T> int
-RingBuffer<T>::read (T *dest, int cnt)
-
+template<class T, bool T_DEEP_COPY>
+int RingBuffer<T,T_DEEP_COPY>::read(T* dest, int cnt)
 {
         int free_cnt;
         int cnt2;
@@ -427,11 +464,11 @@ RingBuffer<T>::read (T *dest, int cnt)
                 n2 = 0;
         }
 
-        memcpy (dest, &buf[priv_read_ptr], n1 * sizeof (T));
+        copy(dest, &buf[priv_read_ptr], n1);
         priv_read_ptr = (priv_read_ptr + n1) & size_mask;
 
         if (n2) {
-                memcpy (dest+n1, buf, n2 * sizeof (T));
+                copy(dest+n1, buf, n2);
                 priv_read_ptr = n2;
         }
 
@@ -439,9 +476,8 @@ RingBuffer<T>::read (T *dest, int cnt)
         return to_read;
 }
 
-template<class T> int
-RingBuffer<T>::write (T *src, int cnt)
-
+template<class T, bool T_DEEP_COPY>
+int RingBuffer<T,T_DEEP_COPY>::write(T* src, int cnt)
 {
         int free_cnt;
         int cnt2;
@@ -467,16 +503,24 @@ RingBuffer<T>::write (T *src, int cnt)
                 n2 = 0;
         }
 
-        memcpy (&buf[priv_write_ptr], src, n1 * sizeof (T));
+        copy(&buf[priv_write_ptr], src, n1);
         priv_write_ptr = (priv_write_ptr + n1) & size_mask;
 
         if (n2) {
-                memcpy (buf, src+n1, n2 * sizeof (T));
+                copy(buf, src+n1, n2);
                 priv_write_ptr = n2;
         }
         atomic_set(&write_ptr, priv_write_ptr);
         return to_write;
 }
 
+template<class T, bool T_DEEP_COPY>
+void RingBuffer<T,T_DEEP_COPY>::copy(T* pDst, T* pSrc, int n) {
+    if (T_DEEP_COPY) { // deep copy - won't work for data structures without assignment operator implementation
+        for (int i = 0; i < n; i++) pDst[i] = pSrc[i];
+    } else { // flat copy - won't work for complex data structures !
+        memcpy(pDst, pSrc, n * sizeof(T));
+    }
+}
 
 #endif /* RINGBUFFER_H */

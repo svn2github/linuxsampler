@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 Christian Schoenebeck                              *
+ *   Copyright (C) 2005, 2006 Christian Schoenebeck                        *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -84,9 +84,9 @@ namespace LinuxSampler { namespace gig {
             // Attributes
             bool                           IsIdle;
             uint                           Streams;
-            RingBuffer<create_command_t>*  CreationQueue;                          ///< Contains commands to create streams
-            RingBuffer<delete_command_t>*  DeletionQueue;                          ///< Contains commands to delete streams
-            RingBuffer<Stream::Handle>*    GhostQueue;                             ///< Contains handles to streams that are not used anymore and weren't deletable immediately
+            RingBuffer<create_command_t,false>* CreationQueue;                      ///< Contains commands to create streams
+            RingBuffer<delete_command_t,false>* DeletionQueue;                      ///< Contains commands to delete streams
+            RingBuffer<Stream::Handle,false>*   GhostQueue;                         ///< Contains handles to streams that are not used anymore and weren't deletable immediately
             unsigned int                   RefillStreamsPerRun;                    ///< How many streams should be refilled in each loop run
             Stream*                        pStreams[CONFIG_MAX_STREAMS];            ///< Contains all disk streams (whether used or unused)
             Stream*                        pCreatedStreams[CONFIG_MAX_STREAMS + 1]; ///< This is where the voice (audio thread) picks up it's meanwhile hopefully created disk stream.

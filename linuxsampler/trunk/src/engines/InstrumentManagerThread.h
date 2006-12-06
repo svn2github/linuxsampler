@@ -59,8 +59,8 @@ namespace LinuxSampler {
             };
 
             // Instance variables.
-            RingBuffer<command_t>* pQueue; ///< queue with commands for loading new instruments.
-            Condition              conditionJobsLeft; ///< synchronizer to block this thread until a new job arrives
+            RingBuffer<command_t,true>* pQueue; ///< queue with commands for loading new instruments.
+            Condition                   conditionJobsLeft; ///< synchronizer to block this thread until a new job arrives
 
             int Main(); ///< Implementation of virtual method from class Thread.
     };

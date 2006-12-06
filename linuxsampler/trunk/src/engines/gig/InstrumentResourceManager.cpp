@@ -78,8 +78,11 @@ namespace LinuxSampler { namespace gig {
     }
 
     String InstrumentResourceManager::GetInstrumentName(instrument_id_t ID) {
-        ::gig::Instrument* pInstrument = Resource(ID);
-        return (pInstrument) ? pInstrument->pInfo->Name : "";
+        Lock();
+        ::gig::Instrument* pInstrument = Resource(ID, false);
+        String res = (pInstrument) ? pInstrument->pInfo->Name : "";
+        Unlock();
+        return res;
     }
 
     ::gig::Instrument* InstrumentResourceManager::Create(instrument_id_t Key, InstrumentConsumer* pConsumer, void*& pArg) {
