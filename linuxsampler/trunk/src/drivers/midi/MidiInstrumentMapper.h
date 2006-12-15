@@ -41,6 +41,10 @@ namespace LinuxSampler {
      * an actual (Sampler Engine, Instrument File, Index) triple, so the
      * sampler knows which instrument to load on the respective MIDI program
      * change messages.
+     *
+     * The sampler allows to manage arbitrary amount of MIDI instrument
+     * maps. For example you might create (at least) two MIDI instrument
+     * maps: one for "normal" instruments and one for drumkits.
      */
     class MidiInstrumentMapper {
         public:
@@ -64,11 +68,11 @@ namespace LinuxSampler {
                 uint   InstrumentIndex; ///< Index of the instrument within its file.
                 mode_t LoadMode;        ///< Life-time strategy of instrument.
                 float  Volume;          ///< Global volume factor for this instrument.
-                String Name;            ///< Display name that should be associated with this mapping.
+                String Name;            ///< Display name that should be associated with this mapping entry.
             };
 
             /**
-             * Adds a new entry to the sampler's MIDI instrument map in case
+             * Adds a new entry to the given MIDI instrument map in case
              * an entry with \a Index does not exist yet, otherwise it will
              * replace the existing entry. Note that some given settings
              * might simply be ignored or might change the settings of other
@@ -84,33 +88,88 @@ namespace LinuxSampler {
              * (in that case you won't catch loading errors though, i.e. if
              * the file does not exist or might be corrupt for example).
              *
+             * @param Map   - map index
              * @param Index - unique index of the new entry to add
              * @param Entry - the actual instrument and settings
-             * @throws Exception - if the given engine type does not exist or instrument loading failed
+             * @param bInBackground - avoid this method to block for long time
+             * @throws Exception - if the given map or engine type does not
+             *                     exist or instrument loading failed
              */
-            static void AddOrReplaceMapping(midi_prog_index_t Index, entry_t Entry, bool bInBackground = false) throw (Exception);
+            static void AddOrReplaceEntry(int Map, midi_prog_index_t Index, entry_t Entry, bool bInBackground = false) throw (Exception);
 
             /**
              * Remove an existing entry from the MIDI instrument map.
              *
+             * @param Map   - map index
              * @param Index - index of entry to delete
              */
-            static void RemoveMapping(midi_prog_index_t Index);
+            static void RemoveEntry(int Map, midi_prog_index_t Index);
 
             /**
-             * Clear the whole MIDI instrument map, that is delete all
-             * entries.
+             * Clear the whole given MIDI instrument map, that is delete all
+             * its entries.
+             *
+             * @param Map - map index
              */
-            static void RemoveAllMappings();
+            static void RemoveAllEntries(int Map);
 
             /**
              * Returns the currently existing MIDI instrument map entries
-             * with their current settings.
+             * of the given map with their current settings.
+             *
+             * @param Map - map index
+             * @throws Exception - in case \a Map does not exist
              */
-            static std::map<midi_prog_index_t,entry_t> Mappings();
+            static std::map<midi_prog_index_t,entry_t> Entries(int Map) throw (Exception);
+
+            /**
+             * Returns the IDs of all currently existing MIDI instrument
+             * maps.
+             */
+            static std::vector<int> Maps();
+
+            /**
+             * Create a new MIDI instrument map. Optionally you can assign
+             * a custom name for the map. Map names don't have to be unique.
+             *
+             * @param MapName - (optional) name for the map
+             * @returns ID of the new map
+             * @throws Exception - if there's no free map ID left
+             */
+            static int AddMap(String MapName = "") throw (Exception) ;
+
+            /**
+             * Returns the custom name of the given map.
+             *
+             * @param Map - map index
+             * @throws Exception - if given map does not exist
+             */
+            static String MapName(int Map) throw (Exception);
+
+            /**
+             * Rename the given, already existing map. Map names don't have
+             * to be unique.
+             *
+             * @param Map - map index
+             * @param NewName - the map's new name to be assigned
+             * @throws Exception - if the given map does not exist
+             */
+            static void RenameMap(int Map, String NewName) throw (Exception);
+
+            /**
+             * Delete the given map.
+             *
+             * @param Map - ID of the map to delete
+             */
+            static void RemoveMap(int Map);
+
+            /**
+             * Completely delete all existing maps.
+             */
+            static void RemoveAllMaps();
 
         protected:
-            static optional<entry_t> GetEntry(midi_prog_index_t Index); // shall only be used by MidiInputPort ATM (see source comment)
+            static optional<entry_t> GetEntry(int Map, midi_prog_index_t Index); // shall only be used by MidiInputPort ATM (see source comment)
             friend class MidiInputPort; // allow MidiInputPort to access GetEntry()
     };
 

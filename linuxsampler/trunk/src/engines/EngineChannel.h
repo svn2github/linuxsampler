@@ -148,6 +148,70 @@ namespace LinuxSampler {
              */
             void SetMidiBankLsb(uint8_t BankLSB);
 
+            /**
+             * Returns true if this EngineChannel is using no MIDI
+             * instrument map at all, that is if it will ignore all MIDI
+             * program change messages.
+             *
+             * @see UsesDefaultMidiInstrumentMap()
+             * @see GetMidiInstrumentMap()
+             */
+            bool UsesNoMidiInstrumentMap();
+
+            /**
+             * Returns true if this EngineChannel is using the default MIDI
+             * instrument map for handling MIDI program changes.
+             *
+             * @see UsesNoMidiInstrumentMap()
+             * @see GetMidiInstrumentMap()
+             */
+            bool UsesDefaultMidiInstrumentMap();
+
+            /**
+             * Returns ID of the MIDI instrument map currently used by this
+             * EngineChannel to handle MIDI program changes. You should
+             * always call @c UsesNoMidiInstrumentMap() and
+             * @c UsesDefaultMidiInstrumentMap() before calling this method
+             * to check if this EngineChannel is probably using the default
+             * map or no map at all, because in these two particular cases
+             * this method would throw an exception!
+             *
+             * @throws Exception - if EngineChannel is set to no map at all
+             *                     or is set to the default map
+             * @see UsesNoMidiInstrumentMap()
+             * @see UsesDefaultMidiInstrumentMap()
+             */
+            int GetMidiInstrumentMap() throw (Exception);
+
+            /**
+             * Let this EngineChannel use no MIDI instrument map at all,
+             * that is to let it ignore all MIDI program change messages.
+             *
+             * @see SetMidiInstrumentMapToDefault()
+             * @see SetMidiInstrumentMap()
+             */
+            void SetMidiInstrumentMapToNone();
+
+            /**
+             * Let this EngineChannel use the default MIDI instrument map to
+             * handle MIDI program changes.
+             *
+             * @see SetMidiInstrumentMapToNone()
+             * @see SetMidiInstrumentMap()
+             */
+            void SetMidiInstrumentMapToDefault();
+
+            /**
+             * Set a specific MIDI instrument map this EngineChannel should
+             * use to handle MIDI program changes.
+             *
+             * @see SetMidiInstrumentMapToNone()
+             * @see SetMidiInstrumentMapToDefault()
+             *
+             * @throws Exception - in case given map does not exist
+             */
+            void SetMidiInstrumentMap(int MidiMap) throw (Exception);
+
             int iSamplerChannelIndex; ///< FIXME: nasty hack, might be removed (should be 'virtual EngineChannel* EngineChannel() = 0;', but due to cyclic dependencies only a void* solution would be possible ATM)
 
         protected:
@@ -161,6 +225,10 @@ namespace LinuxSampler {
             uint8_t uiMidiProgram;
             uint8_t uiMidiBankMsb;
             uint8_t uiMidiBankLsb;
+            bool    bMidiBankMsbReceived;
+            bool    bMidiBankLsbReceived;
+            bool    bProgramChangeReceived;
+            int     iMidiInstrumentMap;
     };
 
 } // namespace LinuxSampler

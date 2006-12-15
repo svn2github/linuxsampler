@@ -251,6 +251,9 @@ namespace LinuxSampler {
                       << "This is a bug, please report it!\n" << std::flush;
             return;
         }
+        std::vector<int> maps = MidiInstrumentMapper::Maps();
+        if (maps.empty()) return;
+
         const MidiChannelMap_t& midiChannelMap = MidiChannelMapReader.Lock();
         // dispatch event for engines listening to the same MIDI channel
         {
@@ -258,13 +261,17 @@ namespace LinuxSampler {
             std::set<EngineChannel*>::iterator end        = midiChannelMap[MidiChannel].end();
             for (; engineiter != end; engineiter++) {
                 (*engineiter)->SetMidiProgram(Program);
-                // is there a mapping for this MIDI bank&prog pair?
+                if ((*engineiter)->UsesNoMidiInstrumentMap()) continue;
+                // retrieve the MIDI instrument map this engine channel is assigned to
+                int iMapID = ((*engineiter)->UsesDefaultMidiInstrumentMap())
+                    ? maps[0] /*default*/ : (*engineiter)->GetMidiInstrumentMap();
+                // is there an entry for this MIDI bank&prog pair in that map?
                 midi_prog_index_t midiIndex;
                 midiIndex.midi_bank_msb = (*engineiter)->GetMidiBankMsb();
                 midiIndex.midi_bank_lsb = (*engineiter)->GetMidiBankLsb();
                 midiIndex.midi_prog     = (*engineiter)->GetMidiProgram();
                 optional<MidiInstrumentMapper::entry_t> mapping =
-                    MidiInstrumentMapper::GetEntry(midiIndex);
+                    MidiInstrumentMapper::GetEntry(iMapID, midiIndex);
                 if (mapping) { // if mapping exists ...
                     InstrumentManager::instrument_id_t id;
                     id.FileName = mapping->InstrumentFile;
@@ -281,13 +288,17 @@ namespace LinuxSampler {
             std::set<EngineChannel*>::iterator end        = midiChannelMap[midi_chan_all].end();
             for (; engineiter != end; engineiter++) {
                 (*engineiter)->SetMidiProgram(Program);
-                // is there a mapping for this MIDI bank&prog pair?
+                if ((*engineiter)->UsesNoMidiInstrumentMap()) continue;
+                // retrieve the MIDI instrument map this engine channel is assigned to
+                int iMapID = ((*engineiter)->UsesDefaultMidiInstrumentMap())
+                    ? maps[0] /*default*/ : (*engineiter)->GetMidiInstrumentMap();
+                // is there an entry for this MIDI bank&prog pair in that map?
                 midi_prog_index_t midiIndex;
                 midiIndex.midi_bank_msb = (*engineiter)->GetMidiBankMsb();
                 midiIndex.midi_bank_lsb = (*engineiter)->GetMidiBankLsb();
                 midiIndex.midi_prog     = (*engineiter)->GetMidiProgram();
                 optional<MidiInstrumentMapper::entry_t> mapping =
-                    MidiInstrumentMapper::GetEntry(midiIndex);
+                    MidiInstrumentMapper::GetEntry(iMapID, midiIndex);
                 if (mapping) { // if mapping exists ...
                     InstrumentManager::instrument_id_t id;
                     id.FileName = mapping->InstrumentFile;

@@ -3,7 +3,7 @@ Version CVS HEAD (?)
   * general changes:
     - replaced the old, confusing MIDI program change mechanism by a
       flexible MIDI instrument mapper which allows to map arbitrary
-      (MIDI bank MSB, MIDI bank LSB, MIDI program) triplets with arbitrary
+      (MIDI bank, MIDI program) pairs with arbitrary
       (engine type, instrument file, file index) triplets which will be
       loaded on the respective channel when such MIDI program change
       messages arrive, beside that, each entry allows to define a life-time
@@ -13,7 +13,10 @@ Version CVS HEAD (?)
       respective program change arrives (to safe RAM space), as well as a
       global volume factor for each entry, so the user can adjust the volume
       dynamic of his mapped instrument collection without having to modify
-      the instrument files
+      the instrument files, also one can manage arbitrary amount of such
+      MIDI instrument maps and assign each sampler channel individually
+      a certain map, so that i.e. separation of normal instruments and
+      drumkits is possible
 
   * MIDI driver:
     - dispatch bank select (MSB and LSB) messages

@@ -662,6 +662,7 @@ String LSCPServer::GetChannelInfo(uint uiSamplerChannel) {
         String AudioRouting;
         int Mute = 0;
         bool Solo = false;
+        String MidiInstrumentMap;
 
         if (pEngineChannel) {
             EngineName          = pEngineChannel->EngineName();
@@ -679,6 +680,12 @@ String LSCPServer::GetChannelInfo(uint uiSamplerChannel) {
             }
             Mute = pEngineChannel->GetMute();
             Solo = pEngineChannel->GetSolo();
+            if (pEngineChannel->UsesNoMidiInstrumentMap())
+                MidiInstrumentMap = "NONE";
+            else if (pEngineChannel->UsesDefaultMidiInstrumentMap())
+                MidiInstrumentMap = "DEFAULT";
+            else
+                MidiInstrumentMap = ToString(pEngineChannel->GetMidiInstrumentMap());
 	}
 
         result.Add("ENGINE_NAME", EngineName);
@@ -700,6 +707,7 @@ String LSCPServer::GetChannelInfo(uint uiSamplerChannel) {
         result.Add("INSTRUMENT_STATUS", InstrumentStatus);
         result.Add("MUTE", Mute == -1 ? "MUTED_BY_SOLO" : (Mute ? "true" : "false"));
         result.Add("SOLO", Solo);
+        result.Add("MIDI_INSTRUMENT_MAP", MidiInstrumentMap);
     }
     catch (Exception e) {
          result.Error(e);
@@ -1547,12 +1555,12 @@ void  LSCPServer::UnmuteChannels() {
     }
 }
 
-String LSCPServer::AddOrReplaceMIDIInstrumentMapping(uint MidiBankMSB, uint MidiBankLSB, uint MidiProg, String EngineType, String InstrumentFile, uint InstrumentIndex, float Volume, MidiInstrumentMapper::mode_t LoadMode, String Name) {
+String LSCPServer::AddOrReplaceMIDIInstrumentMapping(uint MidiMapID, uint MidiBank, uint MidiProg, String EngineType, String InstrumentFile, uint InstrumentIndex, float Volume, MidiInstrumentMapper::mode_t LoadMode, String Name) {
     dmsg(2,("LSCPServer: AddOrReplaceMIDIInstrumentMapping()\n"));
 
     midi_prog_index_t idx;
-    idx.midi_bank_msb = MidiBankMSB;
-    idx.midi_bank_lsb = MidiBankLSB;
+    idx.midi_bank_msb = (MidiBank >> 7) & 0x7f;
+    idx.midi_bank_lsb = MidiBank & 0x7f;
     idx.midi_prog     = MidiProg;
 
     MidiInstrumentMapper::entry_t entry;
@@ -1568,47 +1576,66 @@ String LSCPServer::AddOrReplaceMIDIInstrumentMapping(uint MidiBankMSB, uint Midi
         // PERSISTENT mapping commands might bloock for a long time, so in
         // that case we add/replace the mapping in another thread
         bool bInBackground = (entry.LoadMode == MidiInstrumentMapper::PERSISTENT);
-        MidiInstrumentMapper::AddOrReplaceMapping(idx, entry, bInBackground);
+        MidiInstrumentMapper::AddOrReplaceEntry(MidiMapID, idx, entry, bInBackground);
     } catch (Exception e) {
         result.Error(e);
     }
     return result.Produce();
 }
 
-String LSCPServer::RemoveMIDIInstrumentMapping(uint MidiBankMSB, uint MidiBankLSB, uint MidiProg) {
+String LSCPServer::RemoveMIDIInstrumentMapping(uint MidiMapID, uint MidiBank, uint MidiProg) {
     dmsg(2,("LSCPServer: RemoveMIDIInstrumentMapping()\n"));
 
     midi_prog_index_t idx;
-    idx.midi_bank_msb = MidiBankMSB;
-    idx.midi_bank_lsb = MidiBankLSB;
+    idx.midi_bank_msb = (MidiBank >> 7) & 0x7f;
+    idx.midi_bank_lsb = MidiBank & 0x7f;
     idx.midi_prog     = MidiProg;
 
     LSCPResultSet result;
     try {
-        MidiInstrumentMapper::RemoveMapping(idx);
+        MidiInstrumentMapper::RemoveEntry(MidiMapID, idx);
     } catch (Exception e) {
         result.Error(e);
     }
     return result.Produce();
 }
 
-String LSCPServer::GetMidiIstrumentMappings() {
-    dmsg(2,("LSCPServer: GetMidiIstrumentMappings()\n"));
+String LSCPServer::GetMidiInstrumentMappings(uint MidiMapID) {
+    dmsg(2,("LSCPServer: GetMidiInstrumentMappings()\n"));
     LSCPResultSet result;
-    result.Add(MidiInstrumentMapper::Mappings().size());
+    try {
+        result.Add(MidiInstrumentMapper::Entries(MidiMapID).size());
+    } catch (Exception e) {
+        result.Error(e);
+    }
     return result.Produce();
 }
 
-String LSCPServer::GetMidiInstrumentMapping(uint MidiBankMSB, uint MidiBankLSB, uint MidiProg) {
+
+String LSCPServer::GetAllMidiInstrumentMappings() {
+    dmsg(2,("LSCPServer: GetAllMidiInstrumentMappings()\n"));
+    LSCPResultSet result;
+    std::vector<int> maps = MidiInstrumentMapper::Maps();
+    int totalMappings = 0;
+    for (int i = 0; i < maps.size(); i++) {
+        try {
+            totalMappings += MidiInstrumentMapper::Entries(maps[i]).size();
+        } catch (Exception e) { /*NOOP*/ }
+    }
+    result.Add(totalMappings);
+    return result.Produce();
+}
+
+String LSCPServer::GetMidiInstrumentMapping(uint MidiMapID, uint MidiBank, uint MidiProg) {
     dmsg(2,("LSCPServer: GetMidiIstrumentMapping()\n"));
     LSCPResultSet result;
     try {
         midi_prog_index_t idx;
-        idx.midi_bank_msb = MidiBankMSB;
-        idx.midi_bank_lsb = MidiBankLSB;
+        idx.midi_bank_msb = (MidiBank >> 7) & 0x7f;
+        idx.midi_bank_lsb = MidiBank & 0x7f;
         idx.midi_prog     = MidiProg;
 
-        std::map<midi_prog_index_t,MidiInstrumentMapper::entry_t> mappings = MidiInstrumentMapper::Mappings();
+        std::map<midi_prog_index_t,MidiInstrumentMapper::entry_t> mappings = MidiInstrumentMapper::Entries(MidiMapID);
         std::map<midi_prog_index_t,MidiInstrumentMapper::entry_t>::iterator iter = mappings.find(idx);
         if (iter == mappings.end()) result.Error("there is no map entry with that index");
         else { // found
@@ -1649,18 +1676,18 @@ String LSCPServer::GetMidiInstrumentMapping(uint MidiBankMSB, uint MidiBankLSB, 
     return result.Produce();
 }
 
-String LSCPServer::ListMidiInstrumentMappings() {
-    dmsg(2,("LSCPServer: ListMidiIstrumentMappings()\n"));
+String LSCPServer::ListMidiInstrumentMappings(uint MidiMapID) {
+    dmsg(2,("LSCPServer: ListMidiInstrumentMappings()\n"));
     LSCPResultSet result;
     try {
         String s;
-        std::map<midi_prog_index_t,MidiInstrumentMapper::entry_t> mappings = MidiInstrumentMapper::Mappings();
+        std::map<midi_prog_index_t,MidiInstrumentMapper::entry_t> mappings = MidiInstrumentMapper::Entries(MidiMapID);
         std::map<midi_prog_index_t,MidiInstrumentMapper::entry_t>::iterator iter = mappings.begin();
         for (; iter != mappings.end(); iter++) {
             if (s.size()) s += ",";
-            s += "{" + ToString(int(iter->first.midi_bank_msb)) + ","
-                     + ToString(int(iter->first.midi_bank_lsb)) + ","
-                     + ToString(int(iter->first.midi_prog))     + "}";
+            s += "{" + ToString(MidiMapID) + ","
+                     + ToString((int(iter->first.midi_bank_msb) << 7) & int(iter->first.midi_bank_lsb)) + ","
+                     + ToString(int(iter->first.midi_prog)) + "}";
         }
         result.Add(s);
     } catch (Exception e) {
@@ -1669,11 +1696,158 @@ String LSCPServer::ListMidiInstrumentMappings() {
     return result.Produce();
 }
 
-String LSCPServer::ClearMidiInstrumentMappings() {
+String LSCPServer::ListAllMidiInstrumentMappings() {
+    dmsg(2,("LSCPServer: ListAllMidiInstrumentMappings()\n"));
+    LSCPResultSet result;
+    try {
+        std::vector<int> maps = MidiInstrumentMapper::Maps();
+        String s;
+        for (int i = 0; i < maps.size(); i++) {
+            std::map<midi_prog_index_t,MidiInstrumentMapper::entry_t> mappings = MidiInstrumentMapper::Entries(maps[i]);
+            std::map<midi_prog_index_t,MidiInstrumentMapper::entry_t>::iterator iter = mappings.begin();
+            for (; iter != mappings.end(); iter++) {
+                if (s.size()) s += ",";
+                s += "{" + ToString(maps[i]) + ","
+                         + ToString((int(iter->first.midi_bank_msb) << 7) & int(iter->first.midi_bank_lsb)) + ","
+                         + ToString(int(iter->first.midi_prog)) + "}";
+            }
+        }
+        result.Add(s);
+    } catch (Exception e) {
+        result.Error(e);
+    }
+    return result.Produce();
+}
+
+String LSCPServer::ClearMidiInstrumentMappings(uint MidiMapID) {
     dmsg(2,("LSCPServer: ClearMidiInstrumentMappings()\n"));
     LSCPResultSet result;
     try {
-        MidiInstrumentMapper::RemoveAllMappings();
+        MidiInstrumentMapper::RemoveAllEntries(MidiMapID);
+    } catch (Exception e) {
+        result.Error(e);
+    }
+    return result.Produce();
+}
+
+String LSCPServer::ClearAllMidiInstrumentMappings() {
+    dmsg(2,("LSCPServer: ClearAllMidiInstrumentMappings()\n"));
+    LSCPResultSet result;
+    try {
+        std::vector<int> maps = MidiInstrumentMapper::Maps();
+        for (int i = 0; i < maps.size(); i++)
+            MidiInstrumentMapper::RemoveAllEntries(maps[i]);
+    } catch (Exception e) {
+        result.Error(e);
+    }
+    return result.Produce();
+}
+
+String LSCPServer::AddMidiInstrumentMap(String MapName) {
+    dmsg(2,("LSCPServer: AddMidiInstrumentMap()\n"));
+    LSCPResultSet result;
+    try {
+        int MapID = MidiInstrumentMapper::AddMap(MapName);
+        result = LSCPResultSet(MapID);
+    } catch (Exception e) {
+        result.Error(e);
+    }
+    return result.Produce();
+}
+
+String LSCPServer::RemoveMidiInstrumentMap(uint MidiMapID) {
+    dmsg(2,("LSCPServer: RemoveMidiInstrumentMap()\n"));
+    LSCPResultSet result;
+    try {
+        MidiInstrumentMapper::RemoveMap(MidiMapID);
+    } catch (Exception e) {
+        result.Error(e);
+    }
+    return result.Produce();
+}
+
+String LSCPServer::RemoveAllMidiInstrumentMaps() {
+    dmsg(2,("LSCPServer: RemoveAllMidiInstrumentMaps()\n"));
+    LSCPResultSet result;
+    try {
+        MidiInstrumentMapper::RemoveAllMaps();
+    } catch (Exception e) {
+        result.Error(e);
+    }
+    return result.Produce();
+}
+
+String LSCPServer::GetMidiInstrumentMaps() {
+    dmsg(2,("LSCPServer: GetMidiInstrumentMaps()\n"));
+    LSCPResultSet result;
+    try {
+        result.Add(MidiInstrumentMapper::Maps().size());
+    } catch (Exception e) {
+        result.Error(e);
+    }
+    return result.Produce();
+}
+
+String LSCPServer::ListMidiInstrumentMaps() {
+    dmsg(2,("LSCPServer: ListMidiInstrumentMaps()\n"));
+    LSCPResultSet result;
+    try {
+        std::vector<int> maps = MidiInstrumentMapper::Maps();
+        String sList;
+        for (int i = 0; i < maps.size(); i++) {
+            if (sList != "") sList += ",";
+            sList += ToString(maps[i]);
+        }
+        result.Add(sList);
+    } catch (Exception e) {
+        result.Error(e);
+    }
+    return result.Produce();
+}
+
+String LSCPServer::GetMidiInstrumentMap(uint MidiMapID) {
+    dmsg(2,("LSCPServer: GetMidiInstrumentMap()\n"));
+    LSCPResultSet result;
+    try {
+        result.Add("NAME", MidiInstrumentMapper::MapName(MidiMapID));
+    } catch (Exception e) {
+        result.Error(e);
+    }
+    return result.Produce();
+}
+
+String LSCPServer::SetMidiInstrumentMapName(uint MidiMapID, String NewName) {
+    dmsg(2,("LSCPServer: SetMidiInstrumentMapName()\n"));
+    LSCPResultSet result;
+    try {
+        MidiInstrumentMapper::RenameMap(MidiMapID, NewName);
+    } catch (Exception e) {
+        result.Error(e);
+    }
+    return result.Produce();
+}
+
+/**
+ * Set the MIDI instrument map the given sampler channel shall use for
+ * handling MIDI program change messages. There are the following two
+ * special (negative) values:
+ *
+ *    - (-1) :  set to NONE (ignore program changes)
+ *    - (-2) :  set to DEFAULT map
+ */
+String LSCPServer::SetChannelMap(uint uiSamplerChannel, int MidiMapID) {
+    dmsg(2,("LSCPServer: SetChannelMap()\n"));
+    LSCPResultSet result;
+    try {
+        SamplerChannel* pSamplerChannel = pSampler->GetSamplerChannel(uiSamplerChannel);
+        if (!pSamplerChannel) throw Exception("Invalid sampler channel number " + ToString(uiSamplerChannel));
+
+        EngineChannel* pEngineChannel = pSamplerChannel->GetEngineChannel();
+        if (!pEngineChannel) throw Exception("There is no engine deployed on this sampler channel yet");
+
+        if      (MidiMapID == -1) pEngineChannel->SetMidiInstrumentMapToNone();
+        else if (MidiMapID == -2) pEngineChannel->SetMidiInstrumentMapToDefault();
+        else                      pEngineChannel->SetMidiInstrumentMap(MidiMapID);
     } catch (Exception e) {
         result.Error(e);
     }

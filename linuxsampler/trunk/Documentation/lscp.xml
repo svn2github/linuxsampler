@@ -11,9 +11,12 @@
 <?rfc symrefs="yes" ?>
 <?rfc sortrefs="yes"?>
 <?rfc iprnotified="no" ?>
-<?rfc strict="yes" ?>
 
-<rfc category="std" ipr="full2026" docName="LSCP 1.2">
+<!-- FIXME: next attribute should actually be "yes", temporarily disbled due
+     to an annoying "missing Normative/Informative References" error message -->
+<?rfc strict="no" ?>
+
+<rfc category="std" ipr="full3978" docName="LSCP 1.2">
     <front>
         <title>LinuxSampler Control Protocol</title>
         <author initials='C.S.' surname="Schoenebeck" fullname='C.
@@ -31,7 +34,7 @@ Schoenebeck'>
                 <email>schoenebeck at software minus engineering dot org</email>
             </address>
         </author>
-        <date month="November" year="2006"/>
+        <date month="December" year="2006"/>
         <workgroup>LinuxSampler Developers</workgroup>
         <keyword>LSCP</keyword>
         <abstract>
@@ -2571,6 +2574,14 @@ Schoenebeck'>
                                             the channel is a solo channel; "false" otherwise</t>
                                         </list>
                                     </t>
+                                    <t>MIDI_INSTRUMENT_MAP -
+                                        <list>
+                                            <t>Determines to which MIDI instrument map this sampler
+                                            channel is assigned to. Read chapter
+                                            <xref target="SET CHANNEL MIDI_INSTRUMENT_MAP">"SET CHANNEL MIDI_INSTRUMENT_MAP"</xref>
+                                            for a list of possible values.</t>
+                                        </list>
+                                    </t>
                                 </list>
                             </t>
                         </list>
@@ -2593,6 +2604,10 @@ Schoenebeck'>
                             <t>&nbsp;&nbsp;&nbsp;"MIDI_INPUT_DEVICE: 0"</t>
                             <t>&nbsp;&nbsp;&nbsp;"MIDI_INPUT_PORT: 0"</t>
                             <t>&nbsp;&nbsp;&nbsp;"MIDI_INPUT_CHANNEL: 5"</t>
+                            <t>&nbsp;&nbsp;&nbsp;"VOLUME: 1.0"</t>
+                            <t>&nbsp;&nbsp;&nbsp;"MUTE: false"</t>
+                            <t>&nbsp;&nbsp;&nbsp;"SOLO: false"</t>
+                            <t>&nbsp;&nbsp;&nbsp;"MIDI_INSTRUMENT_MAP: NONE"</t>
                             <t>&nbsp;&nbsp;&nbsp;"."</t>
                         </list>
                     </t>
@@ -2753,7 +2768,7 @@ Schoenebeck'>
                     </t>
                 </section>
 
-                <section title="Setting audio output type" anchor="SET CHANNEL AUDIO_OUTPUT_TYP">
+                <section title="Setting audio output type" anchor="SET CHANNEL AUDIO_OUTPUT_TYPE">
                     <t>DEPRECATED: THIS COMMAND WILL DISAPPEAR SOON!</t>
 
                     <t>The front-end can alter the audio output type on a specific sampler
@@ -3144,6 +3159,74 @@ Schoenebeck'>
                     </t>
                 </section>
 
+                <section title="Assigning a MIDI instrument map to a sampler channel" anchor="SET CHANNEL MIDI_INSTRUMENT_MAP">
+                    <t>The front-end can assign a MIDI instrument map to a specific sampler channel
+                    by sending the following command:</t>
+                    <t>
+                        <list>
+                            <t>SET CHANNEL MIDI_INSTRUMENT_MAP &lt;sampler-channel&gt; &lt;map&gt;</t>
+                        </list>
+                    </t>
+                    <t>Where &lt;sampler-channel&gt; is the respective sampler channel
+                    number as returned by the <xref target="ADD CHANNEL">"ADD CHANNEL"</xref>
+                    or <xref target="LIST CHANNELS">"LIST CHANNELS"</xref> command and
+                    &lt;map&gt; can have the following possibilites:</t>
+                    <t>
+                        <list>
+                            <t>"NONE" -
+                                <list>
+                                    <t>This is the default setting. In this case
+                                    the sampler channel is not assigned any MIDI
+                                    instrument map and thus will ignore all MIDI
+                                    program change messages.</t>
+                                </list>
+                            </t>
+                            <t>"DEFAULT" -
+                                <list>
+                                    <t>The sampler channel will always use the
+                                    default MIDI instrument map to handle MIDI
+                                    program change messages.</t>
+                                </list>
+                            </t>
+                            <t>numeric ID -
+                                <list>
+                                    <t>You can assign a specific MIDI instrument map
+                                    by replacing &lt;map&gt; with the respective numeric
+                                    ID of the MIDI instrument map as returned by the
+                                    <xref target="LIST MIDI_INSTRUMENT_MAPS">"LIST MIDI_INSTRUMENT_MAPS"</xref>
+                                    command. Once that map will be deleted, the sampler
+                                    channel would fall back to "NONE".</t>
+                                </list>
+                            </t>
+                        </list>
+                    </t>
+                    <t>Read chapter <xref target="MIDI Instrument Mapping">"MIDI Instrument Mapping"</xref>
+                    for details regarding MIDI instrument mapping.</t>
+
+                    <t>Possible Answers:</t>
+                    <t>
+                        <list>
+                            <t>"OK" -
+                                <list>
+                                    <t>on success</t>
+                                </list>
+                            </t>
+                            <t>"ERR:&lt;error-code&gt;:&lt;error-message&gt;" -
+                                <list>
+                                    <t>in case it failed, providing an appropriate error code and error message</t>
+                                </list>
+                            </t>
+                        </list>
+                    </t>
+
+                    <t>Examples:</t>
+                    <t>
+                        <list>
+                            <t></t>
+                        </list>
+                    </t>
+                </section>
+
                 <section title="Resetting a sampler channel" anchor="RESET CHANNEL">
                     <t>The front-end can reset a particular sampler channel by sending the following command:</t>
                     <t>
@@ -3436,18 +3519,26 @@ Schoenebeck'>
             </section>
 
 
-            <section title="MIDI Instrument Mapping">
+            <section title="MIDI Instrument Mapping" anchor="MIDI Instrument Mapping">
                 <t>The MIDI protocol provides a way to switch between instruments
                 by sending so called MIDI bank select and MIDI program change
                 messages which are essentially just numbers. The following commands
                 allow to actually map arbitrary MIDI bank select / program change
                 numbers with real instruments.</t>
-                <t>By default, that is when the sampler is launched, this map will
-                be empty, thus the sampler will simply ignore all program change
-                messages. The front-end has to explicitly add entries to the map
-                so the sampler knows how to react on a given program change
-                message, that is by switching to the respectively defined engine
-                type and loading the respective instrument.</t>
+                <t>The sampler allows to manage an arbitrary amount of MIDI
+                instrument maps which define which instrument to load on
+                which MIDI program change message.</t>
+                <t>By default, that is when the sampler is launched, there is no
+                map, thus the sampler will simply ignore all program change
+                messages. The front-end has to explicitly create at least one
+                map, add entries to the map and tell the respective sampler
+                channel(s) which MIDI instrument map to use, so the sampler
+                knows how to react on a given program change message on the
+                respective sampler channel, that is by switching to the
+                respectively defined engine type and loading the respective
+                instrument. See command
+                <xref target="SET CHANNEL MIDI_INSTRUMENT_MAP">"SET CHANNEL MIDI_INSTRUMENT_MAP"</xref>
+                for how to assign a MIDI instrument map to a sampler channel.</t>
                 <t>Also note per MIDI specification a bank select message does not
                 cause to switch to another instrument. Instead when receiving a
                 bank select message the bank value will be stored and a subsequent
@@ -3455,27 +3546,265 @@ Schoenebeck'>
                 cause the sampler to switch to the respective instrument as
                 reflected by the current MIDI instrument map.</t>
 
+                <section title="Create a new MIDI instrument map" anchor="ADD MIDI_INSTRUMENT MAP">
+                    <t>The front-end can add a new MIDI instrument map by sending
+                    the following command:</t>
+                    <t>
+                        <list>
+                            <t>ADD MIDI_INSTRUMENT_MAP [&lt;name&gt;]</t>
+                        </list>
+                    </t>
+                    <t>Where &lt;name&gt; is an optional argument allowing to
+                    assign a custom name to the new map. MIDI instrument Map
+                    names do not have to be unique.</t>
+
+                    <t>Possible Answers:</t>
+                    <t>
+                        <list>
+                            <t>"OK[&lt;map&gt;]" -
+                                <list>
+                                    <t>in case a new MIDI instrument map could
+                                    be added, where &lt;map&gt; reflects the
+                                    unique ID of the newly created MIDI
+                                    instrument map</t>
+                                </list>
+                            </t>
+                            <t>"ERR:&lt;error-code&gt;:&lt;error-message&gt;" -
+                                <list>
+                                    <t>when a new map could not be created, which
+                                    might never occur in practice</t>
+                                </list>
+                            </t>
+                        </list>
+                    </t>
+
+                    <t>Examples:</t>
+                    <t>
+                        <list>
+                            <t>C: "ADD MIDI_INSTRUMENT_MAP 'Standard Map'"</t>
+                            <t>S: "OK[0]"</t>
+                        </list>
+                    </t>
+                    <t>
+                        <list>
+                            <t>C: "ADD MIDI_INSTRUMENT_MAP 'Standard Drumkit'"</t>
+                            <t>S: "OK[1]"</t>
+                        </list>
+                    </t>
+                    <t>
+                        <list>
+                            <t>C: "ADD MIDI_INSTRUMENT_MAP"</t>
+                            <t>S: "OK[5]"</t>
+                        </list>
+                    </t>
+                </section>
+
+                <section title="Delete one particular or all MIDI instrument maps" anchor="REMOVE MIDI_INSTRUMENT_MAP">
+                    <t>The front-end can delete a particular MIDI instrument map
+                    by sending the following command:</t>
+                    <t>
+                        <list>
+                            <t>REMOVE MIDI_INSTRUMENT_MAP &lt;map&gt;</t>
+                        </list>
+                    </t>
+                    <t>Where &lt;map&gt; reflects the unique ID of the map to delete
+                    as returned by the <xref target="LIST MIDI_INSTRUMENT_MAPS">"LIST MIDI_INSTRUMENT_MAPS"</xref>
+                    command.</t>
+                    <t>The front-end can delete all MIDI instrument maps by
+                    sending the following command:</t>
+                    <t>
+                        <list>
+                            <t>REMOVE MIDI_INSTRUMENT_MAP ALL</t>
+                        </list>
+                    </t>
+
+                    <t>Possible Answers:</t>
+                    <t>
+                        <list>
+                            <t>"OK" -
+                                <list>
+                                    <t>in case the map(s) could be deleted</t>
+                                </list>
+                            </t>
+                            <t>"ERR:&lt;error-code&gt;:&lt;error-message&gt;" -
+                                <list>
+                                    <t>when the given map does not exist</t>
+                                </list>
+                            </t>
+                        </list>
+                    </t>
+
+                    <t>Examples:</t>
+                    <t>
+                        <list>
+                            <t>C: "REMOVE MIDI_INSTRUMENT_MAP 0"</t>
+                            <t>S: "OK"</t>
+                        </list>
+                    </t>
+                    <t>
+                        <list>
+                            <t>C: "REMOVE MIDI_INSTRUMENT_MAP ALL"</t>
+                            <t>S: "OK"</t>
+                        </list>
+                    </t>
+                </section>
+
+                <section title="Get amount of existing MIDI instrument maps" anchor="GET MIDI_INSTRUMENT_MAPS">
+                    <t>The front-end can retrieve the current amount of MIDI
+                    instrument maps by sending the following command:</t>
+                    <t>
+                        <list>
+                            <t>GET MIDI_INSTRUMENT_MAPS</t>
+                        </list>
+                    </t>
+
+                    <t>Possible Answers:</t>
+                    <t>
+                        <list>
+                            <t>The sampler will answer by returning the current
+                            number of MIDI instrument maps.</t>
+                        </list>
+                    </t>
+
+                    <t>Example:</t>
+                    <t>
+                        <list>
+                            <t>C: "GET MIDI_INSTRUMENT_MAPS"</t>
+                            <t>S: "2"</t>
+                        </list>
+                    </t>
+                </section>
+
+                <section title="Getting all created MIDI instrument maps" anchor="LIST MIDI_INSTRUMENT_MAPS">
+                    <t>The number of MIDI instrument maps can change on runtime. To get the
+                    current list of MIDI instrument maps, the front-end can send the
+                    following command:</t>
+                    <t>
+                        <list>
+                            <t>LIST MIDI_INSTRUMENT_MAPS</t>
+                        </list>
+                    </t>
+                    <t>Possible Answers:</t>
+                    <t>
+                        <list>
+                            <t>The sampler will answer by returning a comma separated list
+                            with all MIDI instrument maps' numerical IDs.</t>
+                        </list>
+                    </t>
+                    <t>Example:</t>
+                    <t>
+                        <list>
+                            <t>C: "LIST MIDI_INSTRUMENT_MAPS"</t>
+                            <t>S: "0,1,5,12"</t>
+                        </list>
+                    </t>
+                </section>
+
+                <section title="Getting MIDI instrument map information" anchor="GET MIDI_INSTRUMENT_MAP INFO">
+                    <t>The front-end can ask for the current settings of a MIDI
+                    instrument map by sending the following command:</t>
+                    <t>
+                        <list>
+                            <t>GET MIDI_INSTRUMENT_MAP INFO &lt;map&gt;</t>
+                        </list>
+                    </t>
+                    <t>Where &lt;map&gt; is the numerical ID of the map the
+                    front-end is interested in as returned by the
+                    <xref target="LIST MIDI_INSTRUMENT_MAPS">"LIST MIDI_INSTRUMENT_MAPS"</xref>
+                    command.</t>
+
+                    <t>Possible Answers:</t>
+                    <t>
+                        <list>
+                            <t>LinuxSampler will answer by sending a &lt;CRLF&gt; separated list.
+                            Each answer line begins with the settings category name
+                            followed by a colon and then a space character &lt;SP&gt; and finally
+                            the info character string to that setting category. At the
+                            moment the following categories are defined:</t>
+
+                            <t>
+                                <list>
+                                    <t>NAME -
+                                        <list>
+                                            <t>custom name of the given map,
+                                            which does not have to be unique</t>
+                                        </list>
+                                    </t>
+                                </list>
+                            </t>
+                        </list>
+                    </t>
+                    <t>The mentioned fields above don't have to be in particular order.</t>
+
+                    <t>Example:</t>
+                    <t>
+                        <list>
+                            <t>C: "GET MIDI_INSTRUMENT_MAP INFO 0"</t>
+                            <t>S: "NAME: Standard Map"</t>
+                            <t>&nbsp;&nbsp;&nbsp;"."</t>
+                        </list>
+                    </t>
+                </section>
+
+                <section title="Renaming a MIDI instrument map" anchor="SET MIDI_INSTRUMENT_MAP NAME">
+                    <t>The front-end can alter the custom name of a MIDI
+                    instrument map by sending the following command:</t>
+                    <t>
+                        <list>
+                            <t>SET MIDI_INSTRUMENT_MAP NAME &lt;map&gt; &lt;name&gt;</t>
+                        </list>
+                    </t>
+                    <t>Where &lt;map&gt; is the numerical ID of the map and
+                    &lt;name&gt; the new custom name of the map, which does not
+                    have to be unique.</t>
+
+                    <t>Possible Answers:</t>
+                    <t>
+                        <list>
+                            <t>"OK" -
+                                <list>
+                                    <t>on success</t>
+                                </list>
+                            </t>
+                            <t>"ERR:&lt;error-code&gt;:&lt;error-message&gt;" -
+                                <list>
+                                    <t>in case the given map does not exist</t>
+                                </list>
+                            </t>
+                        </list>
+                    </t>
+
+                    <t>Example:</t>
+                    <t>
+                        <list>
+                            <t>C: "SET MIDI_INSTRUMENT_MAP NAME 0 'Foo instruments'"</t>
+                            <t>S: "OK"</t>
+                        </list>
+                    </t>
+                </section>
+
                 <section title="Create or replace a MIDI instrument map entry" anchor="MAP MIDI_INSTRUMENT">
                     <t>The front-end can create a new or replace an existing entry
-                    in the sampler's MIDI instrument map by sending the following
+                    in a sampler's MIDI instrument map by sending the following
                     command:</t>
                     <t>
                         <list>
-                            <t>MAP MIDI_INSTRUMENT &lt;midi_bank_msb&gt;
-                            &lt;midi_bank_lsb&gt; &lt;midi_prog&gt; &lt;engine_name&gt;
+                            <t>MAP MIDI_INSTRUMENT &lt;map&gt;
+                            &lt;midi_bank&gt; &lt;midi_prog&gt; &lt;engine_name&gt;
                             &lt;filename&gt; &lt;instrument_index&gt; &lt;volume_value&gt;
                             [&lt;instr_load_mode&gt;] [&lt;name&gt;]</t>
                         </list>
                     </t>
-                    <t>Where &lt;midi_bank_msb&gt; is an integer value between
-                    0..127 reflecting the MIDI bank select MSB (coarse) index,
-                    &lt;midi_bank_lsb&gt; an integer value between 0..127 reflecting
-                    the MIDI bank select LSB (fine) index, &lt;midi_prog&gt; an
+                    <t>Where &lt;map&gt; is the numeric ID of the map to alter,
+                    &lt;midi_bank&gt; is an integer value between
+                    0..16383 reflecting the MIDI bank select index,
+                    &lt;midi_prog&gt; an
                     integer value between 0..127 reflecting the MIDI program change
                     index, &lt;engine_name&gt; a sampler engine name as returned by
                     the <xref target="LIST AVAILABLE_ENGINES">"LIST AVAILABLE_ENGINES"</xref>
                     command (not encapsulated into apostrophes), &lt;filename&gt; the name
-                    of the instrument's file to be deployed (encapsulated into apostrophes), &lt;instrument_index&gt; the index (integer value) of the instrument
+                    of the instrument's file to be deployed (encapsulated into apostrophes),
+                    &lt;instrument_index&gt; the index (integer value) of the instrument
                     within the given file, &lt;volume_value&gt; reflects the master
                     volume of the instrument as optionally dotted number (where a
                     value < 1.0 means attenuation and a value > 1.0 means
@@ -3582,7 +3911,7 @@ Schoenebeck'>
                             </t>
                             <t>"ERR:&lt;error-code&gt;:&lt;error-message&gt;" -
                                 <list>
-                                    <t>when the given engine does not exist or a value
+                                    <t>when the given map or engine does not exist or a value
                                     is out of range</t>
                                 </list>
                             </t>
@@ -3592,13 +3921,13 @@ Schoenebeck'>
                     <t>Examples:</t>
                     <t>
                         <list>
-                            <t>C: "MAP MIDI_INSTRUMENT 3 0 0 gig '/usr/share/Steinway D.gig' 0 0.8 PERSISTENT"</t>
+                            <t>C: "MAP MIDI_INSTRUMENT 0 3 0 gig '/usr/share/Steinway D.gig' 0 0.8 PERSISTENT"</t>
                             <t>S: "OK"</t>
                         </list>
                     </t>
                     <t>
                         <list>
-                            <t>C: "MAP MIDI_INSTRUMENT 127 4 50 gig '/home/john/foostrings.gig' 7 1.0"</t>
+                            <t>C: "MAP MIDI_INSTRUMENT 0 4 50 gig '/home/john/foostrings.gig' 7 1.0"</t>
                             <t>S: "OK"</t>
                         </list>
                     </t>
@@ -3606,61 +3935,86 @@ Schoenebeck'>
                         <list>
                             <t>C: "MAP MIDI_INSTRUMENT 0 0 0 gig '/usr/share/piano.gig' 0 1.0 'Normal Piano'"</t>
                             <t>S: "OK"</t>
-                            <t>C: "MAP MIDI_INSTRUMENT 1 0 0 gig '/usr/share/piano.gig' 0 0.25 'Silent Piano'"</t>
+                            <t>C: "MAP MIDI_INSTRUMENT 0 1 0 gig '/usr/share/piano.gig' 0 0.25 'Silent Piano'"</t>
                             <t>S: "OK"</t>
                         </list>
                     </t>
                     <t>
                         <list>
-                            <t>C: "MAP MIDI_INSTRUMENT 99 8 120 gig '/home/joe/foodrums.gig' 0 1.0 PERSISTENT 'Foo Drumkit'"</t>
+                            <t>C: "MAP MIDI_INSTRUMENT 1 8 120 gig '/home/joe/foodrums.gig' 0 1.0 PERSISTENT 'Foo Drumkit'"</t>
                             <t>S: "OK"</t>
                         </list>
                     </t>
                 </section>
 
                 <section title="Getting ammount of MIDI instrument map entries" anchor="GET MIDI_INSTRUMENTS">
-                    <t>The front-end can query the amount of currently existing MIDI
-                    instrument map entries by sending the following
+                    <t>The front-end can query the amount of currently existing
+                    entries in a MIDI instrument map by sending the following
                     command:</t>
                     <t>
                         <list>
-                            <t>GET MIDI_INSTRUMENTS</t>
+                            <t>GET MIDI_INSTRUMENTS &lt;map&gt;</t>
+                        </list>
+                    </t>
+                    <t>The front-end can query the amount of currently existing
+                    entries in all MIDI instrument maps by sending the following
+                    command:</t>
+                    <t>
+                        <list>
+                            <t>GET MIDI_INSTRUMENTS ALL</t>
                         </list>
                     </t>
                     <t>Possible Answers:</t>
                     <t>
                         <list>
-                            <t>LinuxSampler will answer by sending the current number of
-                            entries in the sampler's MIDI instrument map.</t>
+                            <t>The sampler will answer by sending the current number of
+                            entries in the MIDI instrument map(s).</t>
                         </list>
                     </t>
 
                     <t>Example:</t>
                     <t>
                         <list>
-                            <t>C: "GET MIDI_INSTRUMENTS"</t>
-                            <t>S: "634"</t>
+                            <t>C: "GET MIDI_INSTRUMENTS 0"</t>
+                            <t>S: "234"</t>
+                        </list>
+                    </t>
+                    <t>
+                        <list>
+                            <t>C: "GET MIDI_INSTRUMENTS ALL"</t>
+                            <t>S: "954"</t>
                         </list>
                     </t>
                 </section>
 
-                <section title="Getting indeces of all MIDI instrument map entries" anchor="LIST MIDI_INSTRUMENTS">
-                    <t>The front-end can query a list of all currently existing MIDI
-                    instrument map entries by sending the following command:</t>
+                <section title="Getting indeces of all entries of a MIDI instrument map" anchor="LIST MIDI_INSTRUMENTS">
+                    <t>The front-end can query a list of all currently existing
+                    entries in a certain MIDI instrument map by sending the following
+                    command:</t>
                     <t>
                         <list>
-                            <t>LIST MIDI_INSTRUMENTS</t>
+                            <t>LIST MIDI_INSTRUMENTS &lt;map&gt;</t>
                         </list>
                     </t>
+                    <t>Where &lt;map&gt; is the numeric ID of the MIDI instrument map.</t>
+                    <t>The front-end can query a list of all currently existing
+                    entries of all MIDI instrument maps by sending the following
+                    command:</t>
+                    <t>
+                        <list>
+                            <t>LIST MIDI_INSTRUMENTS ALL</t>
+                        </list>
+                    </t>
+
                     <t>Possible Answers:</t>
                     <t>
                         <list>
-                            <t>LinuxSampler will answer by sending a comma separated
-                            list of MIDI bank MSB (coarse) - MIDI bank LSB (fine) -
-                            MIDI program triples, where each triple is encapsulated
-                            into curly braces. The list is returned in one single
-                            line. Each triple just reflects the key of the respective
-                            map entry, thus subsequent
+                            <t>The sampler will answer by sending a comma separated
+                            list of map ID - MIDI bank - MIDI program triples, where
+                            each triple is encapsulated into curly braces. The
+                            list is returned in one single line. Each triple
+                            just reflects the key of the respective map entry,
+                            thus subsequent
                             <xref target="GET MIDI_INSTRUMENT INFO">"GET MIDI_INSTRUMENT INFO"</xref>
                             command(s) are necessary to retrieve detailed informations
                             about each entry.</t>
@@ -3670,26 +4024,26 @@ Schoenebeck'>
                     <t>Example:</t>
                     <t>
                         <list>
-                            <t>C: "LIST MIDI_INSTRUMENTS"</t>
-                            <t>S: "{0,0,0},{0,0,1},{120,0,3},{120,0,4},{23,127,127}"</t>
+                            <t>C: "LIST MIDI_INSTRUMENTS 0"</t>
+                            <t>S: "{0,0,0},{0,0,1},{0,0,3},{0,1,4},{1,127,127}"</t>
                         </list>
                     </t>
                 </section>
 
                 <section title="Remove an entry from the MIDI instrument map" anchor="UNMAP MIDI_INSTRUMENT">
-                    <t>The front-end can delete an entry from the MIDI instrument
+                    <t>The front-end can delete an entry from a MIDI instrument
                     map by sending the following command:</t>
                     <t>
                         <list>
-                            <t>UNMAP MIDI_INSTRUMENT &lt;midi_bank_msb&gt; &lt;midi_bank_lsb&gt; &lt;midi_prog&gt;</t>
+                            <t>UNMAP MIDI_INSTRUMENT &lt;map&gt; &lt;midi_bank&gt; &lt;midi_prog&gt;</t>
                         </list>
                     </t>
                     <t>
-                    Where &lt;midi_bank_msb&gt; is an integer value between 0..127
-                    reflecting the MIDI bank MSB (coarse) value, &lt;midi_bank_lsb&gt;
-                    an integer value between 0..127 reflecting the MIDI bank LSB
-                    (fine) value and &lt;midi_prog&gt; an integer value between
-                    0..127 reflecting the MIDI program value of the map entrie's key
+                    Where &lt;map&gt; is the numeric ID of the MIDI instrument map,
+                    &lt;midi_bank&gt; is an integer value between 0..16383
+                    reflecting the MIDI bank value and
+                    &lt;midi_prog&gt; an integer value between
+                    0..127 reflecting the MIDI program value of the map's entrie's key
                     index triple.
                     </t>
 
@@ -3712,7 +4066,7 @@ Schoenebeck'>
                     <t>Example:</t>
                     <t>
                         <list>
-                            <t>C: "UNMAP MIDI_INSTRUMENT 2 40 127"</t>
+                            <t>C: "UNMAP MIDI_INSTRUMENT 0 2 127"</t>
                             <t>S: "OK"</t>
                         </list>
                     </t>
@@ -3723,15 +4077,15 @@ Schoenebeck'>
                     instrument map entry by sending the following command:</t>
                     <t>
                         <list>
-                            <t>GET MIDI_INSTRUMENT INFO &lt;midi_bank_msb&gt; &lt;midi_bank_lsb&gt; &lt;midi_prog&gt;</t>
+                            <t>GET MIDI_INSTRUMENT INFO &lt;map&gt; &lt;midi_bank&gt; &lt;midi_prog&gt;</t>
                         </list>
                     </t>
                     <t>
-                    Where &lt;midi_bank_msb&gt; is an integer value between 0..127
-                    reflecting the MIDI bank MSB (coarse) value, &lt;midi_bank_lsb&gt;
-                    an integer value between 0..127 reflecting the MIDI bank LSB
-                    (fine) value and &lt;midi_prog&gt; an integer value between
-                    0..127 reflecting the MIDI program value of the map entrie's key
+                    Where &lt;map&gt; is the numeric ID of the MIDI instrument map,
+                    &lt;midi_bank&gt; is an integer value between 0..16383
+                    reflecting the MIDI bank value, &lt;midi_bank&gt;
+                    and &lt;midi_prog&gt; an integer value between
+                    0..127 reflecting the MIDI program value of the map's entrie's key
                     index triple.
                     </t>
 
@@ -3797,7 +4151,7 @@ Schoenebeck'>
                     <t>Example:</t>
                     <t>
                         <list>
-                            <t>C: "GET MIDI_INSTRUMENT INFO 3 45 120"</t>
+                            <t>C: "GET MIDI_INSTRUMENT INFO 1 45 120"</t>
                             <t>S: "NAME: Drums for Foo Song"</t>
                             <t>&nbsp;&nbsp;&nbsp;"ENGINE_NAME: GigEngine"</t>
                             <t>&nbsp;&nbsp;&nbsp;"INSTRUMENT_FILE: /usr/share/joesdrumkit.gig"</t>
@@ -3811,13 +4165,25 @@ Schoenebeck'>
                 </section>
 
                 <section title="Clear MIDI instrument map" anchor="CLEAR MIDI_INSTRUMENTS">
-                    <t>The front-end can clear the whole MIDI instrument map, that
-                    is delete all entries by sending the following command:</t>
+                    <t>The front-end can clear a whole MIDI instrument map, that
+                    is delete all its entries by sending the following command:</t>
                     <t>
                         <list>
-                            <t>CLEAR MIDI_INSTRUMENTS</t>
+                            <t>CLEAR MIDI_INSTRUMENTS &lt;map&gt;</t>
                         </list>
                     </t>
+                    <t>Where &lt;map&gt; is the numeric ID of the map to clear.</t>
+                    <t>The front-end can clear all MIDI instrument maps, that
+                    is delete all entries of all maps by sending the following
+                    command:</t>
+                    <t>
+                        <list>
+                            <t>CLEAR MIDI_INSTRUMENTS ALL</t>
+                        </list>
+                    </t>
+                    <t>The command "CLEAR MIDI_INSTRUMENTS ALL" does not delete the
+                    maps, only their entries, thus the map's settings like
+                    custom name will be preservevd.</t>
 
                    <t>Possible Answers:</t>
                     <t>
@@ -3830,10 +4196,16 @@ Schoenebeck'>
                         </list>
                     </t>
 
-                    <t>Example:</t>
+                    <t>Examples:</t>
                     <t>
                        <list>
-                            <t>C: "CLEAR MIDI_INSTRUMENTS"</t>
+                            <t>C: "CLEAR MIDI_INSTRUMENTS 0"</t>
+                            <t>S: "OK"</t>
+                        </list>
+                    </t>
+                    <t>
+                       <list>
+                            <t>C: "CLEAR MIDI_INSTRUMENTS ALL"</t>
                             <t>S: "OK"</t>
                         </list>
                     </t>
@@ -3891,7 +4263,7 @@ Schoenebeck'>
 </t>
 <t>command =
 	<list>
-		<t>ADD SP CHANNEL
+		<t>ADD SP add_instruction
 		</t>
 		<t>/ MAP SP map_instruction
 		</t>
@@ -3908,7 +4280,6 @@ Schoenebeck'>
 		<t>/ LOAD SP load_instruction
 		</t>
 		<t>/ REMOVE SP remove_instruction
-
 		</t>
 		<t>/ SET SP set_instruction
 		</t>
@@ -3925,6 +4296,16 @@ Schoenebeck'>
 		<t>/ RESET
 		</t>
 		<t>/ QUIT
+		</t>
+	</list>
+</t>
+<t>add_instruction =
+	<list>
+		<t>CHANNEL
+		</t>
+		<t>/ MIDI_INSTRUMENT_MAP
+		</t>
+		<t>/ MIDI_INSTRUMENT_MAP SP map_name
 		</t>
 	</list>
 </t>
@@ -3966,25 +4347,29 @@ Schoenebeck'>
 </t>
 <t>map_instruction =
 	<list>
-		<t>MIDI_INSTRUMENT SP midi_bank_msb SP midi_bank_lsb SP midi_prog SP engine_name SP filename SP instrument_index SP volume_value
+		<t>MIDI_INSTRUMENT SP midi_map SP midi_bank SP midi_prog SP engine_name SP filename SP instrument_index SP volume_value
 		</t>
-		<t>/ MIDI_INSTRUMENT SP midi_bank_msb SP midi_bank_lsb SP midi_prog SP engine_name SP filename SP instrument_index SP volume_value SP instr_load_mode
+		<t>/ MIDI_INSTRUMENT SP midi_map SP midi_bank SP midi_prog SP engine_name SP filename SP instrument_index SP volume_value SP instr_load_mode
 		</t>
-		<t>/ MIDI_INSTRUMENT SP midi_bank_msb SP midi_bank_lsb SP midi_prog SP engine_name SP filename SP instrument_index SP volume_value SP entry_name
+		<t>/ MIDI_INSTRUMENT SP midi_map SP midi_bank SP midi_prog SP engine_name SP filename SP instrument_index SP volume_value SP entry_name
 		</t>
-		<t>/ MIDI_INSTRUMENT SP midi_bank_msb SP midi_bank_lsb SP midi_prog SP engine_name SP filename SP instrument_index SP volume_value SP instr_load_mode SP entry_name
+		<t>/ MIDI_INSTRUMENT SP midi_map SP midi_bank SP midi_prog SP engine_name SP filename SP instrument_index SP volume_value SP instr_load_mode SP entry_name
 		</t>
 	</list>
 </t>
 <t>unmap_instruction =
 	<list>
-		<t>MIDI_INSTRUMENT SP midi_bank_msb SP midi_bank_lsb SP midi_prog
+		<t>MIDI_INSTRUMENT SP midi_map SP midi_bank SP midi_prog
 		</t>
 	</list>
 </t>
 <t>remove_instruction =
 	<list>
 		<t>CHANNEL SP sampler_channel
+		</t>
+		<t>/ MIDI_INSTRUMENT_MAP SP midi_map
+		</t>
+		<t>/ MIDI_INSTRUMENT_MAP SP ALL
 		</t>
 	</list>
 </t>
@@ -4042,9 +4427,15 @@ Schoenebeck'>
 		</t>
 		<t>/ TOTAL_VOICE_COUNT_MAX
 		</t>
-		<t>/ MIDI_INSTRUMENTS
+		<t>/ MIDI_INSTRUMENTS SP midi_map
 		</t>
-		<t>/ MIDI_INSTRUMENT SP INFO SP midi_bank_msb SP midi_bank_lsb SP midi_prog
+		<t>/ MIDI_INSTRUMENTS SP ALL
+		</t>
+		<t>/ MIDI_INSTRUMENT SP INFO SP midi_map SP midi_bank SP midi_prog
+		</t>
+		<t>/ MIDI_INSTRUMENT_MAPS
+		</t>
+		<t>/ MIDI_INSTRUMENT_MAP SP INFO SP midi_map
 		</t>
 	</list>
 </t>
@@ -4059,6 +4450,8 @@ Schoenebeck'>
 		<t>/ MIDI_INPUT_PORT_PARAMETER SP number SP number SP string '=' param_val_list
 		</t>
 		<t>/ CHANNEL SP set_chan_instruction
+		</t>
+		<t>/ MIDI_INSTRUMENT_MAP SP NAME SP midi_map SP map_name
 		</t>
 		<t>/ ECHO SP boolean
 		</t>
@@ -4084,7 +4477,9 @@ Schoenebeck'>
 </t>
 <t>clear_instruction =
 	<list>
-		<t>MIDI_INSTRUMENTS
+		<t>MIDI_INSTRUMENTS SP midi_map
+		</t>
+		<t>/ MIDI_INSTRUMENTS SP ALL
 		</t>
 	</list>
 </t>
@@ -4128,6 +4523,12 @@ Schoenebeck'>
 		</t>
 		<t>/ SOLO SP sampler_channel SP boolean
 		</t>
+		<t>/ MIDI_INSTRUMENT_MAP SP sampler_channel SP midi_map
+		</t>
+		<t>/ MIDI_INSTRUMENT_MAP SP sampler_channel SP NONE
+		</t>
+		<t>/ MIDI_INSTRUMENT_MAP SP sampler_channel SP DEFAULT
+		</t>
 	</list>
 </t>
 <t>key_val_list =
@@ -4160,7 +4561,11 @@ Schoenebeck'>
 		</t>
 		<t>/ AVAILABLE_AUDIO_OUTPUT_DRIVERS
 		</t>
-		<t>/ MIDI_INSTRUMENTS
+		<t>/ MIDI_INSTRUMENTS SP midi_map
+		</t>
+		<t>/ MIDI_INSTRUMENTS SP ALL
+		</t>
+		<t>/ MIDI_INSTRUMENT_MAPS
 		</t>
 	</list>
 </t>
@@ -4226,13 +4631,13 @@ Schoenebeck'>
 		</t>
 	</list>
 </t>
-<t>midi_bank_msb =
+<t>midi_map =
 	<list>
 		<t>number
 		</t>
 	</list>
 </t>
-<t>midi_bank_lsb =
+<t>midi_bank =
 	<list>
 		<t>number
 		</t>
@@ -4271,6 +4676,12 @@ Schoenebeck'>
 	</list>
 </t>
 <t>filename =
+	<list>
+		<t>stringval
+		</t>
+	</list>
+</t>
+<t>map_name =
 	<list>
 		<t>stringval
 		</t>
