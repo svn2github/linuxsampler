@@ -17,6 +17,8 @@ Version CVS HEAD (?)
       MIDI instrument maps and assign each sampler channel individually
       a certain map, so that i.e. separation of normal instruments and
       drumkits is possible
+    - new notification events for tracking audio/MIDI device changes,
+      MIDI instrument map changes and MIDI instrument changes
 
   * MIDI driver:
     - dispatch bank select (MSB and LSB) messages

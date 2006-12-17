@@ -311,6 +311,7 @@ namespace LinuxSampler {
             }
         }
 
+        LSCPServer::SendLSCPNotify(LSCPEvent(LSCPEvent::event_audio_device_count, AudioOutputDevices()));
         return pDevice;
     }
 
@@ -347,6 +348,7 @@ namespace LinuxSampler {
                 // destroy and free device from memory
                 delete pDevice;
 
+                LSCPServer::SendLSCPNotify(LSCPEvent(LSCPEvent::event_audio_device_count, AudioOutputDevices()));
                 break;
             }
         }
@@ -369,6 +371,7 @@ namespace LinuxSampler {
                 // destroy and free device from memory
                 delete pDevice;
 
+                LSCPServer::SendLSCPNotify(LSCPEvent(LSCPEvent::event_midi_device_count, MidiInputDevices()));
                 break;
             }
         }
@@ -386,6 +389,7 @@ namespace LinuxSampler {
 		}
 	}
 
+        LSCPServer::SendLSCPNotify(LSCPEvent(LSCPEvent::event_midi_device_count, MidiInputDevices()));
         return pDevice;
     }
 

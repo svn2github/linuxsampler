@@ -66,11 +66,19 @@ LSCPServer::LSCPServer(Sampler* pSampler, long int addr, short int port) : Threa
     SocketAddress.sin_addr.s_addr = addr;
     SocketAddress.sin_port        = port;
     this->pSampler = pSampler;
+    LSCPEvent::RegisterEvent(LSCPEvent::event_audio_device_count, "AUDIO_OUTPUT_DEVICE_COUNT");
+    LSCPEvent::RegisterEvent(LSCPEvent::event_audio_device_info, "AUDIO_OUTPUT_DEVICE_INFO");
+    LSCPEvent::RegisterEvent(LSCPEvent::event_midi_device_count, "MIDI_INPUT_DEVICE_COUNT");
+    LSCPEvent::RegisterEvent(LSCPEvent::event_midi_device_info, "MIDI_INPUT_DEVICE_INFO");
     LSCPEvent::RegisterEvent(LSCPEvent::event_channel_count, "CHANNEL_COUNT");
     LSCPEvent::RegisterEvent(LSCPEvent::event_voice_count, "VOICE_COUNT");
     LSCPEvent::RegisterEvent(LSCPEvent::event_stream_count, "STREAM_COUNT");
     LSCPEvent::RegisterEvent(LSCPEvent::event_buffer_fill, "BUFFER_FILL");
     LSCPEvent::RegisterEvent(LSCPEvent::event_channel_info, "CHANNEL_INFO");
+    LSCPEvent::RegisterEvent(LSCPEvent::event_midi_instr_map_count, "MIDI_INSTRUMENT_MAP_COUNT");
+    LSCPEvent::RegisterEvent(LSCPEvent::event_midi_instr_map_info, "MIDI_INSTRUMENT_MAP_INFO");
+    LSCPEvent::RegisterEvent(LSCPEvent::event_midi_instr_count, "MIDI_INSTRUMENT_COUNT");
+    LSCPEvent::RegisterEvent(LSCPEvent::event_midi_instr_info, "MIDI_INSTRUMENT_INFO");
     LSCPEvent::RegisterEvent(LSCPEvent::event_misc, "MISCELLANEOUS");
     LSCPEvent::RegisterEvent(LSCPEvent::event_total_voice_count, "TOTAL_VOICE_COUNT");
     hSocket = -1;
@@ -1185,6 +1193,7 @@ String LSCPServer::SetAudioOutputChannelParameter(uint DeviceId, uint ChannelId,
 
         // set new channel parameter value
         pParameter->SetValue(ParamVal);
+        LSCPServer::SendLSCPNotify(LSCPEvent(LSCPEvent::event_audio_device_info, DeviceId));
     }
     catch (Exception e) {
         result.Error(e);
@@ -1202,6 +1211,7 @@ String LSCPServer::SetAudioOutputDeviceParameter(uint DeviceIndex, String ParamK
         std::map<String,DeviceCreationParameter*> parameters = pDevice->DeviceParameters();
         if (!parameters.count(ParamKey)) throw Exception("Audio output device " + ToString(DeviceIndex) + " does not have a device parameter '" + ParamKey + "'");
         parameters[ParamKey]->SetValue(ParamVal);
+        LSCPServer::SendLSCPNotify(LSCPEvent(LSCPEvent::event_audio_device_info, DeviceIndex));
     }
     catch (Exception e) {
         result.Error(e);
@@ -1219,6 +1229,7 @@ String LSCPServer::SetMidiInputDeviceParameter(uint DeviceIndex, String ParamKey
         std::map<String,DeviceCreationParameter*> parameters = pDevice->DeviceParameters();
         if (!parameters.count(ParamKey)) throw Exception("MIDI input device " + ToString(DeviceIndex) + " does not have a device parameter '" + ParamKey + "'");
         parameters[ParamKey]->SetValue(ParamVal);
+        LSCPServer::SendLSCPNotify(LSCPEvent(LSCPEvent::event_midi_device_info, DeviceIndex));
     }
     catch (Exception e) {
         result.Error(e);
@@ -1243,6 +1254,7 @@ String LSCPServer::SetMidiInputPortParameter(uint DeviceIndex, uint PortIndex, S
         std::map<String,DeviceRuntimeParameter*> parameters = pMidiInputPort->PortParameters();
         if (!parameters.count(ParamKey)) throw Exception("MIDI input device " + ToString(PortIndex) + " does not have a parameter '" + ParamKey + "'");
         parameters[ParamKey]->SetValue(ParamVal);
+        LSCPServer::SendLSCPNotify(LSCPEvent(LSCPEvent::event_midi_device_info, DeviceIndex));
     }
     catch (Exception e) {
         result.Error(e);

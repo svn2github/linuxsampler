@@ -134,22 +134,38 @@ add_instruction       :  CHANNEL                               { $$ = LSCPSERVER
                       |  MIDI_INSTRUMENT_MAP SP map_name       { $$ = LSCPSERVER->AddMidiInstrumentMap($3);              }
                       ;
 
-subscribe_event       :  CHANNEL_COUNT                         { $$ = LSCPSERVER->SubscribeNotification(LSCPEvent::event_channel_count);     }
-                      |  VOICE_COUNT                           { $$ = LSCPSERVER->SubscribeNotification(LSCPEvent::event_voice_count);       }
-                      |  STREAM_COUNT                          { $$ = LSCPSERVER->SubscribeNotification(LSCPEvent::event_stream_count);      }
-                      |  BUFFER_FILL                           { $$ = LSCPSERVER->SubscribeNotification(LSCPEvent::event_buffer_fill);       }
-                      |  CHANNEL_INFO                          { $$ = LSCPSERVER->SubscribeNotification(LSCPEvent::event_channel_info);      }
-                      |  MISCELLANEOUS                         { $$ = LSCPSERVER->SubscribeNotification(LSCPEvent::event_misc);              }
-                      |  TOTAL_VOICE_COUNT                     { $$ = LSCPSERVER->SubscribeNotification(LSCPEvent::event_total_voice_count); }
+subscribe_event       :  AUDIO_OUTPUT_DEVICE_COUNT             { $$ = LSCPSERVER->SubscribeNotification(LSCPEvent::event_audio_device_count);   }
+                      |  AUDIO_OUTPUT_DEVICE_INFO              { $$ = LSCPSERVER->SubscribeNotification(LSCPEvent::event_audio_device_info);    }
+                      |  MIDI_INPUT_DEVICE_COUNT               { $$ = LSCPSERVER->SubscribeNotification(LSCPEvent::event_midi_device_count);    }
+                      |  MIDI_INPUT_DEVICE_INFO                { $$ = LSCPSERVER->SubscribeNotification(LSCPEvent::event_midi_device_info);     }
+                      |  CHANNEL_COUNT                         { $$ = LSCPSERVER->SubscribeNotification(LSCPEvent::event_channel_count);        }
+                      |  VOICE_COUNT                           { $$ = LSCPSERVER->SubscribeNotification(LSCPEvent::event_voice_count);          }
+                      |  STREAM_COUNT                          { $$ = LSCPSERVER->SubscribeNotification(LSCPEvent::event_stream_count);         }
+                      |  BUFFER_FILL                           { $$ = LSCPSERVER->SubscribeNotification(LSCPEvent::event_buffer_fill);          }
+                      |  CHANNEL_INFO                          { $$ = LSCPSERVER->SubscribeNotification(LSCPEvent::event_channel_info);         }
+                      |  MIDI_INSTRUMENT_MAP_COUNT             { $$ = LSCPSERVER->SubscribeNotification(LSCPEvent::event_midi_instr_map_count); }
+                      |  MIDI_INSTRUMENT_MAP_INFO              { $$ = LSCPSERVER->SubscribeNotification(LSCPEvent::event_midi_instr_map_info);  }
+                      |  MIDI_INSTRUMENT_COUNT                 { $$ = LSCPSERVER->SubscribeNotification(LSCPEvent::event_midi_instr_count);     }
+                      |  MIDI_INSTRUMENT_INFO                  { $$ = LSCPSERVER->SubscribeNotification(LSCPEvent::event_midi_instr_info);      }
+                      |  MISCELLANEOUS                         { $$ = LSCPSERVER->SubscribeNotification(LSCPEvent::event_misc);                 }
+                      |  TOTAL_VOICE_COUNT                     { $$ = LSCPSERVER->SubscribeNotification(LSCPEvent::event_total_voice_count);    }
                       ;
 
-unsubscribe_event     :  CHANNEL_COUNT                         { $$ = LSCPSERVER->UnsubscribeNotification(LSCPEvent::event_channel_count);     }
-                      |  VOICE_COUNT                           { $$ = LSCPSERVER->UnsubscribeNotification(LSCPEvent::event_voice_count);       }
-                      |  STREAM_COUNT                          { $$ = LSCPSERVER->UnsubscribeNotification(LSCPEvent::event_stream_count);      }
-                      |  BUFFER_FILL                           { $$ = LSCPSERVER->UnsubscribeNotification(LSCPEvent::event_buffer_fill);       }
-                      |  CHANNEL_INFO                          { $$ = LSCPSERVER->UnsubscribeNotification(LSCPEvent::event_channel_info);      }
-                      |  MISCELLANEOUS                         { $$ = LSCPSERVER->UnsubscribeNotification(LSCPEvent::event_misc);              }
-                      |  TOTAL_VOICE_COUNT                     { $$ = LSCPSERVER->UnsubscribeNotification(LSCPEvent::event_total_voice_count); }
+unsubscribe_event     :  AUDIO_OUTPUT_DEVICE_COUNT             { $$ = LSCPSERVER->UnsubscribeNotification(LSCPEvent::event_audio_device_count);   }
+                      |  AUDIO_OUTPUT_DEVICE_INFO              { $$ = LSCPSERVER->UnsubscribeNotification(LSCPEvent::event_audio_device_info);    }
+                      |  MIDI_INPUT_DEVICE_COUNT               { $$ = LSCPSERVER->UnsubscribeNotification(LSCPEvent::event_midi_device_count);    }
+                      |  MIDI_INPUT_DEVICE_INFO                { $$ = LSCPSERVER->UnsubscribeNotification(LSCPEvent::event_midi_device_info);     }
+                      |  CHANNEL_COUNT                         { $$ = LSCPSERVER->UnsubscribeNotification(LSCPEvent::event_channel_count);        }
+                      |  VOICE_COUNT                           { $$ = LSCPSERVER->UnsubscribeNotification(LSCPEvent::event_voice_count);          }
+                      |  STREAM_COUNT                          { $$ = LSCPSERVER->UnsubscribeNotification(LSCPEvent::event_stream_count);         }
+                      |  BUFFER_FILL                           { $$ = LSCPSERVER->UnsubscribeNotification(LSCPEvent::event_buffer_fill);          }
+                      |  CHANNEL_INFO                          { $$ = LSCPSERVER->UnsubscribeNotification(LSCPEvent::event_channel_info);         }
+                      |  MIDI_INSTRUMENT_MAP_COUNT             { $$ = LSCPSERVER->UnsubscribeNotification(LSCPEvent::event_midi_instr_map_count); }
+                      |  MIDI_INSTRUMENT_MAP_INFO              { $$ = LSCPSERVER->UnsubscribeNotification(LSCPEvent::event_midi_instr_map_info);  }
+                      |  MIDI_INSTRUMENT_COUNT                 { $$ = LSCPSERVER->UnsubscribeNotification(LSCPEvent::event_midi_instr_count);     }
+                      |  MIDI_INSTRUMENT_INFO                  { $$ = LSCPSERVER->UnsubscribeNotification(LSCPEvent::event_midi_instr_info);      }
+                      |  MISCELLANEOUS                         { $$ = LSCPSERVER->UnsubscribeNotification(LSCPEvent::event_misc);                 }
+                      |  TOTAL_VOICE_COUNT                     { $$ = LSCPSERVER->UnsubscribeNotification(LSCPEvent::event_total_voice_count);    }
                       ;
 
 map_instruction       :  MIDI_INSTRUMENT SP midi_map SP midi_bank SP midi_prog SP engine_name SP filename SP instrument_index SP volume_value { $$ = LSCPSERVER->AddOrReplaceMIDIInstrumentMapping($3,$5,$7,$9,$11,$13,$15,MidiInstrumentMapper::VOID,""); }
@@ -523,6 +539,30 @@ CHANNELS             :  'C''H''A''N''N''E''L''S'
                      ;
 
 INFO                 :  'I''N''F''O'
+                     ;
+
+AUDIO_OUTPUT_DEVICE_COUNT :  'A''U''D''I''O''_''O''U''T''P''U''T''_''D''E''V''I''C''E''_''C''O''U''N''T'
+                     ;
+
+AUDIO_OUTPUT_DEVICE_INFO  :  'A''U''D''I''O''_''O''U''T''P''U''T''_''D''E''V''I''C''E''_''I''N''F''O'
+                     ;
+
+MIDI_INPUT_DEVICE_COUNT   :  'M''I''D''I''_''I''N''P''U''T''_''D''E''V''I''C''E''_''C''O''U''N''T'
+                     ;
+
+MIDI_INPUT_DEVICE_INFO    :  'M''I''D''I''_''I''N''P''U''T''_''D''E''V''I''C''E''_''I''N''F''O'
+                     ;
+
+MIDI_INSTRUMENT_MAP_COUNT :  'M''I''D''I''_''I''N''S''T''R''U''M''E''N''T''_''M''A''P''_''C''O''U''N''T'
+                     ;
+
+MIDI_INSTRUMENT_MAP_INFO  :  'M''I''D''I''_''I''N''S''T''R''U''M''E''N''T''_''M''A''P''_''I''N''F''O'
+                     ;
+
+MIDI_INSTRUMENT_COUNT     :  'M''I''D''I''_''I''N''S''T''R''U''M''E''N''T''_''C''O''U''N''T'
+                     ;
+
+MIDI_INSTRUMENT_INFO      :  'M''I''D''I''_''I''N''S''T''R''U''M''E''N''T''_''I''N''F''O'
                      ;
 
 CHANNEL_COUNT        :  'C''H''A''N''N''E''L''_''C''O''U''N''T'

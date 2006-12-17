@@ -69,6 +69,11 @@ LSCPEvent::LSCPEvent(event_t eventType, int uiData, String sData) {
 	this->storage = ToString(uiData) + " " + sData;
 }
 
+LSCPEvent::LSCPEvent(event_t eventType, int uiData1, int uiData2, int uiData3) {
+	this->type = eventType;
+	this->storage = ToString(uiData1) + " " + ToString(uiData2) + " " + ToString(uiData3);
+}
+
 //Produce event string
 String LSCPEvent::Produce(void) {
 	String result = "NOTIFY:";

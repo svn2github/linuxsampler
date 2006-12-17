@@ -23,6 +23,7 @@
 #include "../../common/Mutex.h"
 #include "../../engines/EngineFactory.h"
 #include "../../engines/Engine.h"
+#include "../../network/lscpserver.h"
 
 namespace LinuxSampler {
 
@@ -97,10 +98,16 @@ namespace LinuxSampler {
         privateEntry.InstrumentIndex = Entry.InstrumentIndex;
         privateEntry.Volume          = Entry.Volume;
         privateEntry.Name            = Entry.Name;
+
+        bool Replaced = false;
+        int InstrCount = 0;
+
         midiMapsMutex.Lock();
         std::map<int,MidiInstrumentMap>::iterator iterMap = midiMaps.find(Map);
         if (iterMap != midiMaps.end()) { // map found
+            Replaced = (iterMap->second.find(Index) != iterMap->second.end());
             iterMap->second[Index] = privateEntry;
+            InstrCount = iterMap->second.size();
         } else { // no such map
             midiMapsMutex.Unlock();
             EngineFactory::Destroy(pEngine);
@@ -108,24 +115,45 @@ namespace LinuxSampler {
         }
         midiMapsMutex.Unlock();
         EngineFactory::Destroy(pEngine);
+        
+        if (Replaced) {
+            int Bank = (int(Index.midi_bank_msb) << 7) & int(Index.midi_bank_lsb);
+            LSCPServer::SendLSCPNotify(LSCPEvent(LSCPEvent::event_midi_instr_info, Map, Bank, Index.midi_prog));
+        } else {
+            LSCPServer::SendLSCPNotify(LSCPEvent(LSCPEvent::event_midi_instr_count, Map, InstrCount));
+        }
     }
 
     void MidiInstrumentMapper::RemoveEntry(int Map, midi_prog_index_t Index) {
+        int InstrCount = -1;
+
         midiMapsMutex.Lock();
         std::map<int,MidiInstrumentMap>::iterator iterMap = midiMaps.find(Map);
         if (iterMap != midiMaps.end()) { // map found
             iterMap->second.erase(Index); // remove entry
+            InstrCount = iterMap->second.size();
         }
         midiMapsMutex.Unlock();
+        
+        if (InstrCount != -1) {
+            LSCPServer::SendLSCPNotify(LSCPEvent(LSCPEvent::event_midi_instr_count, Map, InstrCount));
+        }
     }
 
     void MidiInstrumentMapper::RemoveAllEntries(int Map) {
+        int InstrCount = -1;
+
         midiMapsMutex.Lock();
         std::map<int,MidiInstrumentMap>::iterator iterMap = midiMaps.find(Map);
         if (iterMap != midiMaps.end()) { // map found
             iterMap->second.clear(); // clear that map
+            InstrCount = 0;
         }
         midiMapsMutex.Unlock();
+        
+        if (InstrCount != -1) {
+            LSCPServer::SendLSCPNotify(LSCPEvent(LSCPEvent::event_midi_instr_count, Map, InstrCount));
+        }
     }
 
     std::map<midi_prog_index_t,MidiInstrumentMapper::entry_t> MidiInstrumentMapper::Entries(int Map) throw (Exception) {
@@ -212,6 +240,8 @@ namespace LinuxSampler {
         __create_map:
         midiMaps[ID].name = MapName;
         midiMapsMutex.Unlock();
+
+        LSCPServer::SendLSCPNotify(LSCPEvent(LSCPEvent::event_midi_instr_map_count, Maps().size()));
         return ID;
     }
 
@@ -237,18 +267,21 @@ namespace LinuxSampler {
         }
         iterMap->second.name = NewName;
         midiMapsMutex.Unlock();
+        LSCPServer::SendLSCPNotify(LSCPEvent(LSCPEvent::event_midi_instr_map_info, Map));
     }
 
     void MidiInstrumentMapper::RemoveMap(int Map) {
         midiMapsMutex.Lock();
         midiMaps.erase(Map);
         midiMapsMutex.Unlock();
+        LSCPServer::SendLSCPNotify(LSCPEvent(LSCPEvent::event_midi_instr_map_count, Maps().size()));
     }
 
     void MidiInstrumentMapper::RemoveAllMaps() {
         midiMapsMutex.Lock();
         midiMaps.clear();
         midiMapsMutex.Unlock();
+        LSCPServer::SendLSCPNotify(LSCPEvent(LSCPEvent::event_midi_instr_map_count, Maps().size()));
     }
 
     optional<MidiInstrumentMapper::entry_t> MidiInstrumentMapper::GetEntry(int Map, midi_prog_index_t Index) {

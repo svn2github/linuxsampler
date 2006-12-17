@@ -4720,7 +4720,87 @@ Schoenebeck'>
         <section title="Events" anchor="events">
             <t>This chapter will describe all currently defined events supported by LinuxSampler.</t>
 
-            <section title="Number of sampler channels changed" anchor="SUBSCRIBE CHANNEL">
+            <section title="Number of audio output devices changed" anchor="SUBSCRIBE AUDIO_OUTPUT_DEVICE_COUNT">
+                <t>Client may want to be notified when the total number of audio output devices on the
+                back-end changes by issuing the following command:</t>
+                <t>
+                    <list>
+                        <t>SUBSCRIBE AUDIO_OUTPUT_DEVICE_COUNT</t>
+                    </list>
+                </t>
+                <t>Server will start sending the following notification messages:</t>
+                <t>
+                    <list>
+                        <t>"NOTIFY:AUDIO_OUTPUT_DEVICE_COUNT:&lt;devices&gt;"</t>
+                    </list>
+                </t>
+                <t>where &lt;devices&gt; will be replaced by the new number
+                of audio output devices.</t>
+            </section>
+
+            <section title="Audio output device's settings changed" anchor="SUBSCRIBE AUDIO_OUTPUT_DEVICE_INFO">
+                <t>Client may want to be notified when changes were made to audio output devices on the
+                back-end by issuing the following command:</t>
+                <t>
+                    <list>
+                        <t>SUBSCRIBE AUDIO_OUTPUT_DEVICE_INFO</t>
+                    </list>
+                </t>
+                <t>Server will start sending the following notification messages:</t>
+                <t>
+                    <list>
+                        <t>"NOTIFY:AUDIO_OUTPUT_DEVICE_INFO:&lt;device-id&gt;"</t>
+                    </list>
+                </t>
+                <t>where &lt;device-id&gt; will be replaced by the numerical ID of the audio output device,
+                which settings has been changed. The front-end will have to send
+                the respective command to actually get the audio output device info. Because these messages
+                will be triggered by LSCP commands issued by other clients rather than real
+                time events happening on the server, it is believed that an empty notification
+                message is sufficient here.</t>
+            </section>
+
+            <section title="Number of MIDI input devices changed" anchor="SUBSCRIBE MIDI_INPUT_DEVICE_COUNT">
+                <t>Client may want to be notified when the total number of MIDI input devices on the
+                back-end changes by issuing the following command:</t>
+                <t>
+                    <list>
+                        <t>SUBSCRIBE MIDI_INPUT_DEVICE_COUNT</t>
+                    </list>
+                </t>
+                <t>Server will start sending the following notification messages:</t>
+                <t>
+                    <list>
+                        <t>"NOTIFY:MIDI_INPUT_DEVICE_COUNT:&lt;devices&gt;"</t>
+                    </list>
+                </t>
+                <t>where &lt;devices&gt; will be replaced by the new number
+                of MIDI input devices.</t>
+            </section>
+
+            <section title="MIDI input device's settings changed" anchor="SUBSCRIBE MIDI_INPUT_DEVICE_INFO">
+                <t>Client may want to be notified when changes were made to MIDI input devices on the
+                back-end by issuing the following command:</t>
+                <t>
+                    <list>
+                        <t>SUBSCRIBE MIDI_INPUT_DEVICE_INFO</t>
+                    </list>
+                </t>
+                <t>Server will start sending the following notification messages:</t>
+                <t>
+                    <list>
+                        <t>"NOTIFY:MIDI_INPUT_DEVICE_INFO:&lt;device-id&gt;"</t>
+                    </list>
+                </t>
+                <t>where &lt;device-id&gt; will be replaced by the numerical ID of the MIDI input device,
+                which settings has been changed. The front-end will have to send
+                the respective command to actually get the MIDI input device info. Because these messages
+                will be triggered by LSCP commands issued by other clients rather than real
+                time events happening on the server, it is believed that an empty notification
+                message is sufficient here.</t>
+            </section>
+
+            <section title="Number of sampler channels changed" anchor="SUBSCRIBE CHANNEL_COUNT">
                 <t>Client may want to be notified when the total number of channels on the
                 back-end changes by issuing the following command:</t>
                 <t>
@@ -4797,7 +4877,7 @@ Schoenebeck'>
                 "GET CHANNEL BUFFER_FILL PERCENTAGE"</xref> command was issued on this channel.</t>
             </section>
 
-            <section title="Channel information changed" anchor="SUBSCRIBE INFO">
+            <section title="Channel information changed" anchor="SUBSCRIBE CHANNEL_INFO">
                 <t>Client may want to be notified when changes were made to sampler channels on the
                 back-end by issuing the following command:</t>
                 <t>
@@ -4837,7 +4917,89 @@ Schoenebeck'>
                 all currently active voices.</t>
             </section>
 
-            <section title="Miscellaneous and debugging events" anchor="SUBSCRIBE MISCELLANEOUS">
+            <section title="Number of MIDI instrument maps changed" anchor="SUBSCRIBE MIDI_INSTRUMENT_MAP_COUNT">
+                <t>Client may want to be notified when the number of MIDI instrument maps on the
+                back-end changes by issuing the following command:</t>
+                <t>
+                    <list>
+                        <t>SUBSCRIBE MIDI_INSTRUMENT_MAP_COUNT</t>
+                    </list>
+                </t>
+                <t>Server will start sending the following notification messages:</t>
+                <t>
+                    <list>
+                        <t>"NOTIFY:MIDI_INSTRUMENT_MAP_COUNT:&lt;maps&gt;"</t>
+                    </list>
+                </t>
+                <t>where &lt;maps&gt; will be replaced by the new number
+                of MIDI instrument maps.</t>
+            </section>
+
+            <section title="MIDI instrument map information changed" anchor="SUBSCRIBE MIDI_INSTRUMENT_MAP_INFO">
+                <t>Client may want to be notified when changes were made to MIDI instrument maps on the
+                back-end by issuing the following command:</t>
+                <t>
+                    <list>
+                        <t>SUBSCRIBE MIDI_INSTRUMENT_MAP_INFO</t>
+                    </list>
+                </t>
+                <t>Server will start sending the following notification messages:</t>
+                <t>
+                    <list>
+                        <t>"NOTIFY:MIDI_INSTRUMENT_MAP_INFO:&lt;map-id&gt;"</t>
+                    </list>
+                </t>
+                <t>where &lt;map-id&gt; will be replaced by the numerical ID of the MIDI instrument map,
+                for which information changes occurred. The front-end will have to send
+                the respective command to actually get the MIDI instrument map info. Because these messages
+                will be triggered by LSCP commands issued by other clients rather than real
+                time events happening on the server, it is believed that an empty notification
+                message is sufficient here.</t>
+            </section>
+
+            <section title="Number of MIDI instruments changed" anchor="SUBSCRIBE MIDI_INSTRUMENT_COUNT">
+                <t>Client may want to be notified when the number of MIDI instrument maps on the
+                back-end changes by issuing the following command:</t>
+                <t>
+                    <list>
+                        <t>SUBSCRIBE MIDI_INSTRUMENT_COUNT</t>
+                    </list>
+                </t>
+                <t>Server will start sending the following notification messages:</t>
+                <t>
+                    <list>
+                        <t>"NOTIFY:MIDI_INSTRUMENT_COUNT:&lt;map-id&gt; &lt;instruments&gt;"</t>
+                    </list>
+                </t>
+                <t>where &lt;map-id&gt; is the numerical ID of the MIDI instrument map, in which
+                the nuber of instruments has changed and &lt;instruments&gt; will be replaced by
+                the new number of MIDI instruments in the specified map.</t>
+            </section>
+
+            <section title="MIDI instrument information changed" anchor="SUBSCRIBE MIDI_INSTRUMENT_INFO">
+                <t>Client may want to be notified when changes were made to MIDI instruments on the
+                back-end by issuing the following command:</t>
+                <t>
+                    <list>
+                        <t>SUBSCRIBE MIDI_INSTRUMENT_INFO</t>
+                    </list>
+                </t>
+                <t>Server will start sending the following notification messages:</t>
+                <t>
+                    <list>
+                        <t>"NOTIFY:MIDI_INSTRUMENT_INFO:&lt;map-id&gt; &lt;bank&gt; &lt;program&gt;"</t>
+                    </list>
+                </t>
+                <t>where &lt;map-id&gt; will be replaced by the numerical ID of the MIDI instrument map,
+                in which a MIDI instrument is changed. &lt;bank&gt; and &lt;program&gt; specifies
+                the location of the changed MIDI instrument in the map. The front-end will have to send
+                the respective command to actually get the MIDI instrument info. Because these messages
+                will be triggered by LSCP commands issued by other clients rather than real
+                time events happening on the server, it is believed that an empty notification
+                message is sufficient here.</t>
+            </section>
+
+            <<section title="Miscellaneous and debugging events" anchor="SUBSCRIBE MISCELLANEOUS">
                 <t>Client may want to be notified of miscellaneous and debugging events occurring at
                 the server by issuing the following command:</t>
                 <t>
