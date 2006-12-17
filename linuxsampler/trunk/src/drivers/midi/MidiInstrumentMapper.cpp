@@ -207,7 +207,7 @@ namespace LinuxSampler {
                 }
                 throw Exception("Internal error: could not find unoccupied MIDI instrument map ID.");
             }
-            ID = lastIndex;
+            ID = lastIndex + 1;
         }
         __create_map:
         midiMaps[ID].name = MapName;
