@@ -4311,7 +4311,15 @@ Schoenebeck'>
 </t>
 <t>subscribe_event =
 	<list>
-		<t>CHANNEL_COUNT
+		<t>AUDIO_OUTPUT_DEVICE_COUNT
+		</t>
+		<t>/ AUDIO_OUTPUT_DEVICE_INFO
+		</t>
+		<t>/ MIDI_INPUT_DEVICE_COUNT
+		</t>
+		<t>/ MIDI_INPUT_DEVICE_INFO
+		</t>
+		<t>/ CHANNEL_COUNT
 		</t>
 		<t>/ VOICE_COUNT
 		</t>
@@ -4320,6 +4328,14 @@ Schoenebeck'>
 		<t>/ BUFFER_FILL
 		</t>
 		<t>/ CHANNEL_INFO
+		</t>
+		<t>/ MIDI_INSTRUMENT_MAP_COUNT
+		</t>
+		<t>/ MIDI_INSTRUMENT_MAP_INFO
+		</t>
+		<t>/ MIDI_INSTRUMENT_COUNT
+		</t>
+		<t>/ MIDI_INSTRUMENT_INFO
 		</t>
 		<t>/ MISCELLANEOUS
 		</t>
@@ -4329,7 +4345,15 @@ Schoenebeck'>
 </t>
 <t>unsubscribe_event =
 	<list>
-		<t>CHANNEL_COUNT
+		<t>AUDIO_OUTPUT_DEVICE_COUNT
+		</t>
+		<t>/ AUDIO_OUTPUT_DEVICE_INFO
+		</t>
+		<t>/ MIDI_INPUT_DEVICE_COUNT
+		</t>
+		<t>/ MIDI_INPUT_DEVICE_INFO
+		</t>
+		<t>/ CHANNEL_COUNT
 		</t>
 		<t>/ VOICE_COUNT
 		</t>
@@ -4338,6 +4362,14 @@ Schoenebeck'>
 		<t>/ BUFFER_FILL
 		</t>
 		<t>/ CHANNEL_INFO
+		</t>
+		<t>/ MIDI_INSTRUMENT_MAP_COUNT
+		</t>
+		<t>/ MIDI_INSTRUMENT_MAP_INFO
+		</t>
+		<t>/ MIDI_INSTRUMENT_COUNT
+		</t>
+		<t>/ MIDI_INSTRUMENT_INFO
 		</t>
 		<t>/ MISCELLANEOUS
 		</t>
