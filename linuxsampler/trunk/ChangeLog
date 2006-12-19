@@ -19,6 +19,9 @@ Version CVS HEAD (?)
       drumkits is possible
     - new notification events for tracking audio/MIDI device changes,
       MIDI instrument map changes and MIDI instrument changes
+    - sampler was limited to load max. 200 instruments in the background
+      due to a constant size RingBuffer FIFO which is now replaced by a
+      dynamic (unlimited) size std::list FIFO
 
   * MIDI driver:
     - dispatch bank select (MSB and LSB) messages
