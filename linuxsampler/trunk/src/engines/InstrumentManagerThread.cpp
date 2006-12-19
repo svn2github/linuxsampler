@@ -23,11 +23,9 @@
 namespace LinuxSampler {
 
     InstrumentManagerThread::InstrumentManagerThread() : Thread(true, false, 0, -4) {
-        pQueue = new RingBuffer<command_t,true>(INSTRUMENT_LOADER_QUEUE_SIZE);
     }
 
     InstrumentManagerThread::~InstrumentManagerThread() {
-        if (pQueue) delete pQueue;
     }
 
     /**
@@ -49,7 +47,11 @@ namespace LinuxSampler {
         command_t cmd;
         cmd.type           = command_t::DIRECT_LOAD;
         cmd.pEngineChannel = pEngineChannel;
-        pQueue->push(&cmd);
+
+        mutex.Lock();
+        queue.push_back(cmd);
+        mutex.Unlock();
+
         StartThread(); // ensure thread is running
         conditionJobsLeft.Set(true); // wake up thread
     }
@@ -72,7 +74,11 @@ namespace LinuxSampler {
         cmd.pManager     = pManager;
         cmd.instrumentId = ID;
         cmd.mode         = Mode;
-        pQueue->push(&cmd);
+
+        mutex.Lock();
+        queue.push_back(cmd);
+        mutex.Unlock();
+
         StartThread(); // ensure thread is running
         conditionJobsLeft.Set(true); // wake up thread
     }
@@ -80,9 +86,14 @@ namespace LinuxSampler {
     // Entry point for the task thread.
     int InstrumentManagerThread::Main() {
         while (true) {
-            while (pQueue->read_space()) {
+            while (!queue.empty()) {
                 command_t cmd;
-                pQueue->pop(&cmd);
+
+                // grab a new command from the queue
+                mutex.Lock();
+                cmd = queue.front();
+                mutex.Unlock();
+
                 try {
                     switch (cmd.type) {
                         case command_t::DIRECT_LOAD:
@@ -98,6 +109,11 @@ namespace LinuxSampler {
                 catch (Exception e) {
                     e.PrintMessage();
                 }
+
+                // remove processed command from queue
+                mutex.Lock();
+                queue.pop_front();
+                mutex.Unlock();
             }
 
             // nothing left to do, sleep until new jobs arrive

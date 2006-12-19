@@ -24,12 +24,11 @@
 #include "../common/global.h"
 #include "../common/Thread.h"
 #include "../common/Condition.h"
-#include "../common/RingBuffer.h"
+#include "../common/Mutex.h"
 #include "../Sampler.h"
 #include "InstrumentManager.h"
 
-/// Maximum numbers of instruments waiting to be loaded by the InstrumentLoader.
-#define INSTRUMENT_LOADER_QUEUE_SIZE    200
+#include <list>
 
 namespace LinuxSampler {
 
@@ -59,8 +58,9 @@ namespace LinuxSampler {
             };
 
             // Instance variables.
-            RingBuffer<command_t,true>* pQueue; ///< queue with commands for loading new instruments.
-            Condition                   conditionJobsLeft; ///< synchronizer to block this thread until a new job arrives
+            std::list<command_t> queue; ///< queue with commands for loading new instruments.
+            Mutex                mutex; ///< for making the queue thread safe 
+            Condition            conditionJobsLeft; ///< synchronizer to block this thread until a new job arrives
 
             int Main(); ///< Implementation of virtual method from class Thread.
     };
