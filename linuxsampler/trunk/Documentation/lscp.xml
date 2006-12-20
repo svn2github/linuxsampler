@@ -5031,7 +5031,7 @@ Schoenebeck'>
                 message is sufficient here.</t>
             </section>
 
-            <<section title="Miscellaneous and debugging events" anchor="SUBSCRIBE MISCELLANEOUS">
+            <section title="Miscellaneous and debugging events" anchor="SUBSCRIBE MISCELLANEOUS">
                 <t>Client may want to be notified of miscellaneous and debugging events occurring at
                 the server by issuing the following command:</t>
                 <t>
