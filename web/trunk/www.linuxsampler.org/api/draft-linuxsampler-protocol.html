@@ -145,7 +145,7 @@
 <tr><td class="header">LinuxSampler Developers</td><td class="header">C. Schoenebeck</td></tr>
 <tr><td class="header">Internet-Draft</td><td class="header">Interessengemeinschaft Software</td></tr>
 <tr><td class="header">Intended status: Standards Track</td><td class="header">Engineering e. V.</td></tr>
-<tr><td class="header">Expires: June 18, 2007</td><td class="header">December 15, 2006</td></tr>
+<tr><td class="header">Expires: June 23, 2007</td><td class="header">December 20, 2006</td></tr>
 </table></td></tr></table>
 <h1><br />LinuxSampler Control Protocol<br />LSCP 1.2</h1>
 
@@ -173,7 +173,7 @@ The list of current Internet-Drafts can be accessed at
 The list of Internet-Draft Shadow Directories can be accessed at
 <a href='http://www.ietf.org/shadow.html'>http://www.ietf.org/shadow.html</a>.</p>
 <p>
-This Internet-Draft will expire on June 18, 2007.</p>
+This Internet-Draft will expire on June 23, 2007.</p>
 
 <h3>Copyright Notice</h3>
 <p>
@@ -370,19 +370,35 @@ Clear MIDI instrument map<br />
 Command Syntax<br />
 <a href="#events">8.</a>&nbsp;
 Events<br />
-&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SUBSCRIBE CHANNEL">8.1.</a>&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SUBSCRIBE AUDIO_OUTPUT_DEVICE_COUNT">8.1.</a>&nbsp;
+Number of audio output devices changed<br />
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SUBSCRIBE AUDIO_OUTPUT_DEVICE_INFO">8.2.</a>&nbsp;
+Audio output device's settings changed<br />
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SUBSCRIBE MIDI_INPUT_DEVICE_COUNT">8.3.</a>&nbsp;
+Number of MIDI input devices changed<br />
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SUBSCRIBE MIDI_INPUT_DEVICE_INFO">8.4.</a>&nbsp;
+MIDI input device's settings changed<br />
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SUBSCRIBE CHANNEL_COUNT">8.5.</a>&nbsp;
 Number of sampler channels changed<br />
-&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SUBSCRIBE VOICE_COUNT">8.2.</a>&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SUBSCRIBE VOICE_COUNT">8.6.</a>&nbsp;
 Number of active voices changed<br />
-&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SUBSCRIBE STREAM_COUNT">8.3.</a>&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SUBSCRIBE STREAM_COUNT">8.7.</a>&nbsp;
 Number of active disk streams changed<br />
-&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SUBSCRIBE BUFFER_FILL">8.4.</a>&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SUBSCRIBE BUFFER_FILL">8.8.</a>&nbsp;
 Disk stream buffer fill state changed<br />
-&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SUBSCRIBE INFO">8.5.</a>&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SUBSCRIBE CHANNEL_INFO">8.9.</a>&nbsp;
 Channel information changed<br />
-&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SUBSCRIBE TOTAL_VOICE_COUNT">8.6.</a>&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SUBSCRIBE TOTAL_VOICE_COUNT">8.10.</a>&nbsp;
 Total number of active voices changed<br />
-&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SUBSCRIBE MISCELLANEOUS">8.7.</a>&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SUBSCRIBE MIDI_INSTRUMENT_MAP_COUNT">8.11.</a>&nbsp;
+Number of MIDI instrument maps changed<br />
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SUBSCRIBE MIDI_INSTRUMENT_MAP_INFO">8.12.</a>&nbsp;
+MIDI instrument map information changed<br />
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SUBSCRIBE MIDI_INSTRUMENT_COUNT">8.13.</a>&nbsp;
+Number of MIDI instruments changed<br />
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SUBSCRIBE MIDI_INSTRUMENT_INFO">8.14.</a>&nbsp;
+MIDI instrument information changed<br />
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SUBSCRIBE MISCELLANEOUS">8.15.</a>&nbsp;
 Miscellaneous and debugging events<br />
 <a href="#anchor14">9.</a>&nbsp;
 Security Considerations<br />
@@ -6508,7 +6524,19 @@ Command Syntax</h3>
 <p>subscribe_event =
 	</p>
 <blockquote class="text">
-<p>CHANNEL_COUNT
+<p>AUDIO_OUTPUT_DEVICE_COUNT
+		
+</p>
+<p>/ AUDIO_OUTPUT_DEVICE_INFO
+		
+</p>
+<p>/ MIDI_INPUT_DEVICE_COUNT
+		
+</p>
+<p>/ MIDI_INPUT_DEVICE_INFO
+		
+</p>
+<p>/ CHANNEL_COUNT
 		
 </p>
 <p>/ VOICE_COUNT
@@ -6521,6 +6549,18 @@ Command Syntax</h3>
 		
 </p>
 <p>/ CHANNEL_INFO
+		
+</p>
+<p>/ MIDI_INSTRUMENT_MAP_COUNT
+		
+</p>
+<p>/ MIDI_INSTRUMENT_MAP_INFO
+		
+</p>
+<p>/ MIDI_INSTRUMENT_COUNT
+		
+</p>
+<p>/ MIDI_INSTRUMENT_INFO
 		
 </p>
 <p>/ MISCELLANEOUS
@@ -6535,7 +6575,19 @@ Command Syntax</h3>
 <p>unsubscribe_event =
 	</p>
 <blockquote class="text">
-<p>CHANNEL_COUNT
+<p>AUDIO_OUTPUT_DEVICE_COUNT
+		
+</p>
+<p>/ AUDIO_OUTPUT_DEVICE_INFO
+		
+</p>
+<p>/ MIDI_INPUT_DEVICE_COUNT
+		
+</p>
+<p>/ MIDI_INPUT_DEVICE_INFO
+		
+</p>
+<p>/ CHANNEL_COUNT
 		
 </p>
 <p>/ VOICE_COUNT
@@ -6548,6 +6600,18 @@ Command Syntax</h3>
 		
 </p>
 <p>/ CHANNEL_INFO
+		
+</p>
+<p>/ MIDI_INSTRUMENT_MAP_COUNT
+		
+</p>
+<p>/ MIDI_INSTRUMENT_MAP_INFO
+		
+</p>
+<p>/ MIDI_INSTRUMENT_COUNT
+		
+</p>
+<p>/ MIDI_INSTRUMENT_INFO
 		
 </p>
 <p>/ MISCELLANEOUS
@@ -7118,9 +7182,133 @@ Events</h3>
 
 <p>This chapter will describe all currently defined events supported by LinuxSampler.
 </p>
-<a name="SUBSCRIBE CHANNEL"></a><br /><hr />
+<a name="SUBSCRIBE AUDIO_OUTPUT_DEVICE_COUNT"></a><br /><hr />
 <table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
 <a name="rfc.section.8.1"></a><h3>8.1.&nbsp;
+Number of audio output devices changed</h3>
+
+<p>Client may want to be notified when the total number of audio output devices on the
+                back-end changes by issuing the following command:
+</p>
+<p>
+                    </p>
+<blockquote class="text">
+<p>SUBSCRIBE AUDIO_OUTPUT_DEVICE_COUNT
+</p>
+</blockquote><p>
+                
+</p>
+<p>Server will start sending the following notification messages:
+</p>
+<p>
+                    </p>
+<blockquote class="text">
+<p>"NOTIFY:AUDIO_OUTPUT_DEVICE_COUNT:&lt;devices&gt;"
+</p>
+</blockquote><p>
+                
+</p>
+<p>where &lt;devices&gt; will be replaced by the new number
+                of audio output devices.
+</p>
+<a name="SUBSCRIBE AUDIO_OUTPUT_DEVICE_INFO"></a><br /><hr />
+<table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
+<a name="rfc.section.8.2"></a><h3>8.2.&nbsp;
+Audio output device's settings changed</h3>
+
+<p>Client may want to be notified when changes were made to audio output devices on the
+                back-end by issuing the following command:
+</p>
+<p>
+                    </p>
+<blockquote class="text">
+<p>SUBSCRIBE AUDIO_OUTPUT_DEVICE_INFO
+</p>
+</blockquote><p>
+                
+</p>
+<p>Server will start sending the following notification messages:
+</p>
+<p>
+                    </p>
+<blockquote class="text">
+<p>"NOTIFY:AUDIO_OUTPUT_DEVICE_INFO:&lt;device-id&gt;"
+</p>
+</blockquote><p>
+                
+</p>
+<p>where &lt;device-id&gt; will be replaced by the numerical ID of the audio output device,
+                which settings has been changed. The front-end will have to send
+                the respective command to actually get the audio output device info. Because these messages
+                will be triggered by LSCP commands issued by other clients rather than real
+                time events happening on the server, it is believed that an empty notification
+                message is sufficient here.
+</p>
+<a name="SUBSCRIBE MIDI_INPUT_DEVICE_COUNT"></a><br /><hr />
+<table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
+<a name="rfc.section.8.3"></a><h3>8.3.&nbsp;
+Number of MIDI input devices changed</h3>
+
+<p>Client may want to be notified when the total number of MIDI input devices on the
+                back-end changes by issuing the following command:
+</p>
+<p>
+                    </p>
+<blockquote class="text">
+<p>SUBSCRIBE MIDI_INPUT_DEVICE_COUNT
+</p>
+</blockquote><p>
+                
+</p>
+<p>Server will start sending the following notification messages:
+</p>
+<p>
+                    </p>
+<blockquote class="text">
+<p>"NOTIFY:MIDI_INPUT_DEVICE_COUNT:&lt;devices&gt;"
+</p>
+</blockquote><p>
+                
+</p>
+<p>where &lt;devices&gt; will be replaced by the new number
+                of MIDI input devices.
+</p>
+<a name="SUBSCRIBE MIDI_INPUT_DEVICE_INFO"></a><br /><hr />
+<table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
+<a name="rfc.section.8.4"></a><h3>8.4.&nbsp;
+MIDI input device's settings changed</h3>
+
+<p>Client may want to be notified when changes were made to MIDI input devices on the
+                back-end by issuing the following command:
+</p>
+<p>
+                    </p>
+<blockquote class="text">
+<p>SUBSCRIBE MIDI_INPUT_DEVICE_INFO
+</p>
+</blockquote><p>
+                
+</p>
+<p>Server will start sending the following notification messages:
+</p>
+<p>
+                    </p>
+<blockquote class="text">
+<p>"NOTIFY:MIDI_INPUT_DEVICE_INFO:&lt;device-id&gt;"
+</p>
+</blockquote><p>
+                
+</p>
+<p>where &lt;device-id&gt; will be replaced by the numerical ID of the MIDI input device,
+                which settings has been changed. The front-end will have to send
+                the respective command to actually get the MIDI input device info. Because these messages
+                will be triggered by LSCP commands issued by other clients rather than real
+                time events happening on the server, it is believed that an empty notification
+                message is sufficient here.
+</p>
+<a name="SUBSCRIBE CHANNEL_COUNT"></a><br /><hr />
+<table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
+<a name="rfc.section.8.5"></a><h3>8.5.&nbsp;
 Number of sampler channels changed</h3>
 
 <p>Client may want to be notified when the total number of channels on the
@@ -7149,7 +7337,7 @@ Number of sampler channels changed</h3>
 </p>
 <a name="SUBSCRIBE VOICE_COUNT"></a><br /><hr />
 <table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
-<a name="rfc.section.8.2"></a><h3>8.2.&nbsp;
+<a name="rfc.section.8.6"></a><h3>8.6.&nbsp;
 Number of active voices changed</h3>
 
 <p>Client may want to be notified when the number of voices on the
@@ -7179,7 +7367,7 @@ Number of active voices changed</h3>
 </p>
 <a name="SUBSCRIBE STREAM_COUNT"></a><br /><hr />
 <table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
-<a name="rfc.section.8.3"></a><h3>8.3.&nbsp;
+<a name="rfc.section.8.7"></a><h3>8.7.&nbsp;
 Number of active disk streams changed</h3>
 
 <p>Client may want to be notified when the number of streams on the back-end
@@ -7209,7 +7397,7 @@ Number of active disk streams changed</h3>
 </p>
 <a name="SUBSCRIBE BUFFER_FILL"></a><br /><hr />
 <table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
-<a name="rfc.section.8.4"></a><h3>8.4.&nbsp;
+<a name="rfc.section.8.8"></a><h3>8.8.&nbsp;
 Disk stream buffer fill state changed</h3>
 
 <p>Client may want to be notified when the buffer fill state of a disk stream
@@ -7238,9 +7426,9 @@ Disk stream buffer fill state changed</h3>
                 buffer fill data for this channel as described in <a class='info' href='#GET CHANNEL BUFFER_FILL'>Section&nbsp;6.4.13<span> (</span><span class='info'>Current fill state of disk stream buffers</span><span>)</span></a>
                 as if the <a class='info' href='#GET CHANNEL BUFFER_FILL'>"GET CHANNEL BUFFER_FILL PERCENTAGE"<span> (</span><span class='info'>Current fill state of disk stream buffers</span><span>)</span></a> command was issued on this channel.
 </p>
-<a name="SUBSCRIBE INFO"></a><br /><hr />
+<a name="SUBSCRIBE CHANNEL_INFO"></a><br /><hr />
 <table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
-<a name="rfc.section.8.5"></a><h3>8.5.&nbsp;
+<a name="rfc.section.8.9"></a><h3>8.9.&nbsp;
 Channel information changed</h3>
 
 <p>Client may want to be notified when changes were made to sampler channels on the
@@ -7273,7 +7461,7 @@ Channel information changed</h3>
 </p>
 <a name="SUBSCRIBE TOTAL_VOICE_COUNT"></a><br /><hr />
 <table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
-<a name="rfc.section.8.6"></a><h3>8.6.&nbsp;
+<a name="rfc.section.8.10"></a><h3>8.10.&nbsp;
 Total number of active voices changed</h3>
 
 <p>Client may want to be notified when the total number of voices on the
@@ -7300,9 +7488,135 @@ Total number of active voices changed</h3>
 <p>where &lt;voices&gt; will be replaced by the new number of
                 all currently active voices.
 </p>
+<a name="SUBSCRIBE MIDI_INSTRUMENT_MAP_COUNT"></a><br /><hr />
+<table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
+<a name="rfc.section.8.11"></a><h3>8.11.&nbsp;
+Number of MIDI instrument maps changed</h3>
+
+<p>Client may want to be notified when the number of MIDI instrument maps on the
+                back-end changes by issuing the following command:
+</p>
+<p>
+                    </p>
+<blockquote class="text">
+<p>SUBSCRIBE MIDI_INSTRUMENT_MAP_COUNT
+</p>
+</blockquote><p>
+                
+</p>
+<p>Server will start sending the following notification messages:
+</p>
+<p>
+                    </p>
+<blockquote class="text">
+<p>"NOTIFY:MIDI_INSTRUMENT_MAP_COUNT:&lt;maps&gt;"
+</p>
+</blockquote><p>
+                
+</p>
+<p>where &lt;maps&gt; will be replaced by the new number
+                of MIDI instrument maps.
+</p>
+<a name="SUBSCRIBE MIDI_INSTRUMENT_MAP_INFO"></a><br /><hr />
+<table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
+<a name="rfc.section.8.12"></a><h3>8.12.&nbsp;
+MIDI instrument map information changed</h3>
+
+<p>Client may want to be notified when changes were made to MIDI instrument maps on the
+                back-end by issuing the following command:
+</p>
+<p>
+                    </p>
+<blockquote class="text">
+<p>SUBSCRIBE MIDI_INSTRUMENT_MAP_INFO
+</p>
+</blockquote><p>
+                
+</p>
+<p>Server will start sending the following notification messages:
+</p>
+<p>
+                    </p>
+<blockquote class="text">
+<p>"NOTIFY:MIDI_INSTRUMENT_MAP_INFO:&lt;map-id&gt;"
+</p>
+</blockquote><p>
+                
+</p>
+<p>where &lt;map-id&gt; will be replaced by the numerical ID of the MIDI instrument map,
+                for which information changes occurred. The front-end will have to send
+                the respective command to actually get the MIDI instrument map info. Because these messages
+                will be triggered by LSCP commands issued by other clients rather than real
+                time events happening on the server, it is believed that an empty notification
+                message is sufficient here.
+</p>
+<a name="SUBSCRIBE MIDI_INSTRUMENT_COUNT"></a><br /><hr />
+<table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
+<a name="rfc.section.8.13"></a><h3>8.13.&nbsp;
+Number of MIDI instruments changed</h3>
+
+<p>Client may want to be notified when the number of MIDI instrument maps on the
+                back-end changes by issuing the following command:
+</p>
+<p>
+                    </p>
+<blockquote class="text">
+<p>SUBSCRIBE MIDI_INSTRUMENT_COUNT
+</p>
+</blockquote><p>
+                
+</p>
+<p>Server will start sending the following notification messages:
+</p>
+<p>
+                    </p>
+<blockquote class="text">
+<p>"NOTIFY:MIDI_INSTRUMENT_COUNT:&lt;map-id&gt; &lt;instruments&gt;"
+</p>
+</blockquote><p>
+                
+</p>
+<p>where &lt;map-id&gt; is the numerical ID of the MIDI instrument map, in which
+                the nuber of instruments has changed and &lt;instruments&gt; will be replaced by
+                the new number of MIDI instruments in the specified map.
+</p>
+<a name="SUBSCRIBE MIDI_INSTRUMENT_INFO"></a><br /><hr />
+<table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
+<a name="rfc.section.8.14"></a><h3>8.14.&nbsp;
+MIDI instrument information changed</h3>
+
+<p>Client may want to be notified when changes were made to MIDI instruments on the
+                back-end by issuing the following command:
+</p>
+<p>
+                    </p>
+<blockquote class="text">
+<p>SUBSCRIBE MIDI_INSTRUMENT_INFO
+</p>
+</blockquote><p>
+                
+</p>
+<p>Server will start sending the following notification messages:
+</p>
+<p>
+                    </p>
+<blockquote class="text">
+<p>"NOTIFY:MIDI_INSTRUMENT_INFO:&lt;map-id&gt; &lt;bank&gt; &lt;program&gt;"
+</p>
+</blockquote><p>
+                
+</p>
+<p>where &lt;map-id&gt; will be replaced by the numerical ID of the MIDI instrument map,
+                in which a MIDI instrument is changed. &lt;bank&gt; and &lt;program&gt; specifies
+                the location of the changed MIDI instrument in the map. The front-end will have to send
+                the respective command to actually get the MIDI instrument info. Because these messages
+                will be triggered by LSCP commands issued by other clients rather than real
+                time events happening on the server, it is believed that an empty notification
+                message is sufficient here.
+</p>
 <a name="SUBSCRIBE MISCELLANEOUS"></a><br /><hr />
 <table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
-<a name="rfc.section.8.7"></a><h3>8.7.&nbsp;
+<a name="rfc.section.8.15"></a><h3>8.15.&nbsp;
 Miscellaneous and debugging events</h3>
 
 <p>Client may want to be notified of miscellaneous and debugging events occurring at
