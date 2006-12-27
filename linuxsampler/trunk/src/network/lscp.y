@@ -72,8 +72,8 @@ int yylex(YYSTYPE* yylval) {
 
 %type <Char> char digit
 %type <Dotnum> dotnum volume_value boolean
-%type <Number> number sampler_channel instrument_index audio_channel_index device_index midi_input_channel_index midi_input_port_index midi_map midi_bank midi_prog
-%type <String> string text stringval digits param_val_list param_val filename map_name entry_name engine_name command add_instruction create_instruction destroy_instruction get_instruction list_instruction load_instruction set_chan_instruction load_instr_args load_engine_args audio_output_type_name midi_input_type_name remove_instruction unmap_instruction set_instruction subscribe_event unsubscribe_event map_instruction reset_instruction clear_instruction
+%type <Number> number sampler_channel instrument_index fx_send_id audio_channel_index device_index midi_input_channel_index midi_input_port_index midi_map midi_bank midi_prog midi_ctrl
+%type <String> string text stringval digits param_val_list param_val filename map_name entry_name fx_send_name engine_name command add_instruction create_instruction destroy_instruction get_instruction list_instruction load_instruction set_chan_instruction load_instr_args load_engine_args audio_output_type_name midi_input_type_name remove_instruction unmap_instruction set_instruction subscribe_event unsubscribe_event map_instruction reset_instruction clear_instruction
 %type <FillResponse> buffer_size_type
 %type <KeyValList> key_val_list
 %type <LoadMode> instr_load_mode
@@ -213,6 +213,8 @@ get_instruction       :  AVAILABLE_ENGINES                                      
                       |  MIDI_INSTRUMENT SP INFO SP midi_map SP midi_bank SP midi_prog              { $$ = LSCPSERVER->GetMidiInstrumentMapping($5,$7,$9);             }
                       |  MIDI_INSTRUMENT_MAPS                                                       { $$ = LSCPSERVER->GetMidiInstrumentMaps();                        }
                       |  MIDI_INSTRUMENT_MAP SP INFO SP midi_map                                    { $$ = LSCPSERVER->GetMidiInstrumentMap($5);                       }
+                      |  FX_SENDS SP sampler_channel                                                { $$ = LSCPSERVER->GetFxSends($3);                                 }
+                      |  FX_SEND SP INFO SP sampler_channel SP fx_send_id                           { $$ = LSCPSERVER->GetFxSendInfo($5,$7);                           }
                       ;
 
 set_instruction       :  AUDIO_OUTPUT_DEVICE_PARAMETER SP number SP string '=' param_val_list             { $$ = LSCPSERVER->SetAudioOutputDeviceParameter($3, $5, $7);      }
@@ -221,6 +223,7 @@ set_instruction       :  AUDIO_OUTPUT_DEVICE_PARAMETER SP number SP string '=' p
                       |  MIDI_INPUT_PORT_PARAMETER SP number SP number SP string '=' param_val_list       { $$ = LSCPSERVER->SetMidiInputPortParameter($3, $5, $7, $9);      }
                       |  CHANNEL SP set_chan_instruction                                                  { $$ = $3;                                                         }
                       |  MIDI_INSTRUMENT_MAP SP NAME SP midi_map SP map_name                              { $$ = LSCPSERVER->SetMidiInstrumentMapName($5, $7);               }
+                      |  FX_SEND SP AUDIO_OUTPUT_CHANNEL SP sampler_channel SP fx_send_id SP audio_channel_index SP audio_channel_index  { $$ = LSCPSERVER->SetFxSendAudioOutputChannel($5,$7,$9,$11); }
                       |  ECHO SP boolean                                                                  { $$ = LSCPSERVER->SetEcho((yyparse_param_t*) yyparse_param, $3);  }
                       ;
 
@@ -228,6 +231,8 @@ create_instruction    :  AUDIO_OUTPUT_DEVICE SP string SP key_val_list  { $$ = L
                       |  AUDIO_OUTPUT_DEVICE SP string                  { $$ = LSCPSERVER->CreateAudioOutputDevice($3);    }
                       |  MIDI_INPUT_DEVICE SP string SP key_val_list    { $$ = LSCPSERVER->CreateMidiInputDevice($3,$5);   }
                       |  MIDI_INPUT_DEVICE SP string                    { $$ = LSCPSERVER->CreateMidiInputDevice($3);      }
+                      |  FX_SEND SP sampler_channel SP midi_ctrl        { $$ = LSCPSERVER->CreateFxSend($3,$5);            }
+                      |  FX_SEND SP sampler_channel SP midi_ctrl SP fx_send_name  { $$ = LSCPSERVER->CreateFxSend($3,$5,$7); }
                       ;
 
 reset_instruction     :  CHANNEL SP sampler_channel  { $$ = LSCPSERVER->ResetChannel($3); }
@@ -239,6 +244,7 @@ clear_instruction     :  MIDI_INSTRUMENTS SP midi_map   { $$ = LSCPSERVER->Clear
 
 destroy_instruction   :  AUDIO_OUTPUT_DEVICE SP number  { $$ = LSCPSERVER->DestroyAudioOutputDevice($3); }
                       |  MIDI_INPUT_DEVICE SP number    { $$ = LSCPSERVER->DestroyMidiInputDevice($3);   }
+                      |  FX_SEND SP sampler_channel SP fx_send_id  { $$ = LSCPSERVER->DestroyFxSend($3,$5); }
                       ;
 
 load_instruction      :  INSTRUMENT SP load_instr_args  { $$ = $3; }
@@ -278,6 +284,7 @@ list_instruction      :  AUDIO_OUTPUT_DEVICES            { $$ = LSCPSERVER->GetA
                       |  MIDI_INSTRUMENTS SP midi_map    { $$ = LSCPSERVER->ListMidiInstrumentMappings($3);    }
                       |  MIDI_INSTRUMENTS SP ALL         { $$ = LSCPSERVER->ListAllMidiInstrumentMappings();   }
                       |  MIDI_INSTRUMENT_MAPS            { $$ = LSCPSERVER->ListMidiInstrumentMaps();          }
+                      |  FX_SENDS SP sampler_channel     { $$ = LSCPSERVER->ListFxSends($3);                   }
                       ;
 
 load_instr_args       :  filename SP instrument_index SP sampler_channel               { $$ = LSCPSERVER->LoadInstrument($1, $3, $5);       }
@@ -320,6 +327,9 @@ midi_bank                 :  number
 midi_prog                 :  number
                           ;
 
+midi_ctrl                 :  number
+                          ;
+
 volume_value              :  dotnum
                           |  number  { $$ = $1; }
                           ;
@@ -328,6 +338,9 @@ sampler_channel           :  number
                           ;
 
 instrument_index          :  number
+                          ;
+
+fx_send_id                :  number
                           ;
 
 engine_name               :  string
@@ -340,6 +353,9 @@ map_name                  :  stringval
                           ;
 
 entry_name                :  stringval
+                          ;
+
+fx_send_name              :  stringval
                           ;
 
 param_val_list            :  param_val
@@ -668,6 +684,12 @@ MIDI_INPUT_TYPE       :  'M''I''D''I''_''I''N''P''U''T''_''T''Y''P''E'
                       ;
 
 MIDI_INPUT            :  'M''I''D''I''_''I''N''P''U''T'
+                      ;
+
+FX_SEND               :  'F''X''_''S''E''N''D'
+                      ;
+
+FX_SENDS              :  'F''X''_''S''E''N''D''S'
                       ;
 
 SERVER                :  'S''E''R''V''E''R'

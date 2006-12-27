@@ -3227,6 +3227,304 @@ Schoenebeck'>
                     </t>
                 </section>
 
+                <section title="Adding an effect send to a sampler channel" anchor="CREATE FX_SEND">
+                    <t>The front-end can create an additional effect send on a specific sampler channel
+                    by sending the following command:</t>
+                    <t>
+                        <list>
+                            <t>CREATE FX_SEND &lt;sampler-channel&gt; &lt;midi-ctrl&gt; [&lt;name&gt;]</t>
+                        </list>
+                    </t>
+                    <t>Where &lt;sampler-channel&gt; is the respective sampler channel
+                    number as returned by the <xref target="ADD CHANNEL">"ADD CHANNEL"</xref>
+                    or <xref target="LIST CHANNELS">"LIST CHANNELS"</xref> command, that is the
+                    sampler channel on which the effect send should be created on, &lt;midi-ctrl&gt;
+                    is a number between 0..127 defining the MIDI controller which can alter the
+                    effect send level and &lt;name&gt; is an optional argument defining a name
+                    for the effect send entity. The name does not have to be unique.</t>
+
+                    <t>By default, that is as initial routing, the effect send's audio channels
+                    are automatically routed to the last audio channels of the sampler channel's
+                    audio output device, that way you can i.e. first increase the amount of audio
+                    channels on the audio output device for having dedicated effect send output
+                    channels and when "CREATE FX_SEND" is called, those channels will automatically
+                    be picked. You can alter the destination channels however with
+                    <xref target="SET FX_SEND AUDIO_OUTPUT_CHANNEL">"SET FX_SEND AUDIO_OUTPUT_CHANNEL"</xref>.
+                    </t>
+
+                    <t>Note: Create effect sends on a sampler channel only when needed, because having effect
+                    sends on a sampler channel will decrease runtime performance, because for implementing channel
+                    effect sends, separate (sampler channel local) audio buffers are needed to render and mix
+                    the voices and route the audio signal afterwards to the master outputs and effect send
+                    outputs (along with their respective effect send levels). A sampler channel without effect
+                    sends however can mix its voices directly into the audio output devices's audio buffers
+                    and is thus faster.
+                    </t>
+
+                    <t>Possible Answers:</t>
+                    <t>
+                        <list>
+                            <t>"OK[&lt;fx-send-id&gt;]" -
+                                <list>
+                                    <t>in case a new effect send could be added to the
+                                    sampler channel, where &lt;fx-send-id&gt; reflects the
+                                    unique ID of the newly created effect send entity</t>
+                                </list>
+                            </t>
+                            <t>"ERR:&lt;error-code&gt;:&lt;error-message&gt;" -
+                                <list>
+                                    <t>when a new effect send could not be added, i.e.
+                                    due to invalid parameters</t>
+                                </list>
+                            </t>
+                        </list>
+                    </t>
+
+                    <t>Examples:</t>
+                    <t>
+                        <list>
+                            <t>C: "CREATE FX_SEND 0 91 'Reverb Send'"</t>
+                            <t>S: "OK[0]"</t>
+                        </list>
+                    </t>
+		    <t>
+                        <list>
+                            <t>C: "CREATE FX_SEND 0 93"</t>
+                            <t>S: "OK[1]"</t>
+                        </list>
+                    </t>
+                </section>
+
+                <section title="Removing an effect send from a sampler channel" anchor="DESTROY FX_SEND">
+                    <t>The front-end can remove an existing effect send on a specific sampler channel
+                    by sending the following command:</t>
+                    <t>
+                        <list>
+                            <t>DESTROY FX_SEND &lt;sampler-channel&gt; &lt;fx-send-id&gt;</t>
+                        </list>
+                    </t>
+                    <t>Where &lt;sampler-channel&gt; is the respective sampler channel
+                    number as returned by the <xref target="ADD CHANNEL">"ADD CHANNEL"</xref>
+                    or <xref target="LIST CHANNELS">"LIST CHANNELS"</xref> command, that is the
+                    sampler channel from which the effect send should be removed from and
+                    &lt;fx-send-id&gt; is the respective effect send number as returned by the
+                    <xref target="CREATE FX_SEND">"CREATE FX_SEND"</xref>
+                    or <xref target="LIST FX_SENDS">"LIST FX_SENDS"</xref> command.</t>
+
+                    <t>Possible Answers:</t>
+                    <t>
+                        <list>
+                            <t>"OK" -
+                                <list>
+                                    <t>on success</t>
+                                </list>
+                            </t>
+                            <t>"ERR:&lt;error-code&gt;:&lt;error-message&gt;" -
+                                <list>
+                                    <t>in case it failed, providing an appropriate error code and
+                                    error message</t>
+                                </list>
+                            </t>
+                        </list>
+                    </t>
+
+                    <t>Example:</t>
+                    <t>
+                        <list>
+                            <t>C: "DESTROY FX_SEND 0 0"</t>
+                            <t>S: "OK"</t>
+                        </list>
+                    </t>
+                </section>
+
+                <section title="Getting amount of effect sends on a sampler channel" anchor="GET FX_SENDS">
+                    <t>The front-end can ask for the amount of effect sends on a specific sampler channel
+                    by sending the following command:</t>
+                    <t>
+                        <list>
+                            <t>GET FX_SENDS &lt;sampler-channel&gt;</t>
+                        </list>
+                    </t>
+                    <t>Where &lt;sampler-channel&gt; is the respective sampler channel
+                    number as returned by the <xref target="ADD CHANNEL">"ADD CHANNEL"</xref>
+                    or <xref target="LIST CHANNELS">"LIST CHANNELS"</xref> command.</t>
+
+                    <t>Possible Answers:</t>
+                    <t>
+                        <list>
+                            <t>The sampler will answer by returning the number of effect
+                            sends on the given sampler channel.</t>
+                        </list>
+                    </t>
+
+                    <t>Example:</t>
+                    <t>
+                        <list>
+                            <t>C: "GET FX_SENDS 0"</t>
+                            <t>S: "2"</t>
+                        </list>
+                    </t>
+                </section>
+
+                <section title="Listing all effect sends on a sampler channel" anchor="LIST FX_SENDS">
+                    <t>The front-end can ask for a list of effect sends on a specific sampler channel
+                    by sending the following command:</t>
+                    <t>
+                        <list>
+                            <t>LIST FX_SENDS &lt;sampler-channel&gt;</t>
+                        </list>
+                    </t>
+                    <t>Where &lt;sampler-channel&gt; is the respective sampler channel
+                    number as returned by the <xref target="ADD CHANNEL">"ADD CHANNEL"</xref>
+                    or <xref target="LIST CHANNELS">"LIST CHANNELS"</xref> command.</t>
+
+                    <t>Possible Answers:</t>
+                    <t>
+                        <list>
+                            <t>The sampler will answer by returning a comma separated list
+                            with all effect sends' numerical IDs on the given sampler
+                            channel.</t>
+                        </list>
+                    </t>
+
+                    <t>Examples:</t>
+                    <t>
+                        <list>
+                            <t>C: "LIST FX_SENDS 0"</t>
+                            <t>S: "0,1"</t>
+                        </list>
+                    </t>
+                    <t>
+                        <list>
+                            <t>C: "LIST FX_SENDS 1"</t>
+                            <t>S: ""</t>
+                        </list>
+                    </t>
+                </section>
+
+                <section title="Getting effect send information" anchor="GET FX_SEND INFO">
+                    <t>The front-end can ask for the current settings of an effect send entity
+                    by sending the following command:</t>
+                    <t>
+                        <list>
+                            <t>GET FX_SEND INFO &lt;sampler-channel&gt; &lt;fx-send-id&gt;</t>
+                        </list>
+                    </t>
+                    <t>Where &lt;sampler-channel&gt; is the sampler channel number
+                    as returned by the <xref target="ADD CHANNEL">"ADD CHANNEL"</xref>
+                    or <xref target="LIST CHANNELS">"LIST CHANNELS"</xref> command and
+                    &lt;fx-send-id&gt; reflects the numerical ID of the effect send entity
+		    as returned by the <xref target="CREATE FX_SEND">"CREATE FX_SEND"</xref>
+                    or <xref target="LIST FX_SENDS">"LIST FX_SENDS"</xref> command.
+	           </t>
+
+                    <t>Possible Answers:</t>
+                    <t>
+                        <list>
+                            <t>The sampler will answer by sending a &lt;CRLF&gt; separated list.
+                            Each answer line begins with the settings category name
+                            followed by a colon and then a space character &lt;SP&gt; and finally
+                            the info character string to that setting category. At the
+                            moment the following categories are defined:</t>
+
+                            <t>
+                                <list>
+                                    <t>NAME -
+                                        <list>
+                                            <t>name of the effect send entity</t>
+                                        </list>
+                                    </t>
+                                    <t>AUDIO_OUTPUT_ROUTING -
+                                        <list>
+                                            <t>comma separated list which reflects to which audio
+                                            channel of the selected audio output device each
+                                            effect send output channel is routed to, e.g. "0,3" would
+                                            mean the effect send's output channel 0 is routed to channel
+                                            0 of the audio output device and the effect send's output
+                                            channel 1 is routed to the channel 3 of the audio
+                                            output device (see
+                                            <xref target="SET FX_SEND AUDIO_OUTPUT_CHANNEL">"SET FX_SEND AUDIO_OUTPUT_CHANNEL"</xref>
+                                            for details)</t>
+                                        </list>
+                                    </t>
+                                </list>
+                            </t>
+                        </list>
+                    </t>
+                    <t>The mentioned fields above don't have to be in particular order.</t>
+
+                    <t>Example:</t>
+                    <t>
+                        <list>
+                            <t>C: "GET FX_SEND INFO 0 0"</t>
+                            <t>S: "NAME: Reverb Send"</t>
+                            <t>&nbsp;&nbsp;&nbsp;"AUDIO_OUTPUT_ROUTING: 2,3"</t>
+                            <t>&nbsp;&nbsp;&nbsp;"."</t>
+                        </list>
+                    </t>
+                </section>
+
+                <section title="Altering effect send's audio routing" anchor="SET FX_SEND AUDIO_OUTPUT_CHANNEL">
+                    <t>The front-end can alter the destination of an effect send's audio channel on a specific
+                    sampler channel by sending the following command:</t>
+                    <t>
+                        <list>
+                            <t>SET FX_SEND AUDIO_OUTPUT_CHANNEL &lt;sampler-chan&gt; &lt;fx-send-id&gt; &lt;audio-src&gt; &lt;audio-dst&gt;</t>
+                        </list>
+                    </t>
+                    <t>Where &lt;sampler-chan&gt; is the sampler channel number
+                    as returned by the <xref target="ADD CHANNEL">"ADD CHANNEL"</xref>
+                    or <xref target="LIST CHANNELS">"LIST CHANNELS"</xref> command,
+                    &lt;fx-send-id&gt; reflects the numerical ID of the effect send entity
+                    as returned by the <xref target="CREATE FX_SEND">"CREATE FX_SEND"</xref>
+                    or <xref target="LIST FX_SENDS">"LIST FX_SENDS"</xref> command,
+                    &lt;audio-src&gt; is the numerical ID of the effect send's audio channel
+                    which should be rerouted and &lt;audio-dst&gt; is the numerical ID of
+                    the audio channel of the selected audio output device where &lt;audio-src&gt;
+                    should be routed to.</t>
+
+                    <t>Note that effect sends can only route audio to the same audio output
+                    device as assigned to the effect send's sampler channel. Also note that an
+                    effect send entity does always have exactly as much audio channels as its
+                    sampler channel. So if the sampler channel is stereo, the effect send does
+	            have two audio channels as well. Also keep in mind that the amount of audio
+                    channels on a sampler channel might be dependant not only to the deployed
+                    sampler engine on the sampler channel, but also dependant to the instrument
+                    currently loaded. However you can (effectively) turn an i.e. stereo effect
+                    send into a mono one by simply altering its audio routing appropriately.</t>
+
+                    <t>Possible Answers:</t>
+                    <t>
+                        <list>
+                            <t>"OK" -
+                                <list>
+                                    <t>on success</t>
+                                </list>
+                            </t>
+                            <t>"WRN:&lt;warning-code&gt;:&lt;warning-message&gt;" -
+                                <list>
+                                    <t>if audio output channel was set, but there are noteworthy
+                                    issue(s) related, providing an appropriate warning code and
+                                    warning message</t>
+                                </list>
+                            </t>
+                            <t>"ERR:&lt;error-code&gt;:&lt;error-message&gt;" -
+                                <list>
+                                    <t>in case it failed, providing an appropriate error code and error message</t>
+                                </list>
+                            </t>
+                        </list>
+                    </t>
+                    <t>Example:</t>
+                    <t>
+                        <list>
+                            <t>C: "SET FX_SEND AUDIO_OUTPUT_CHANNEL 0 0 0 2"</t>
+                            <t>S: "OK"</t>
+                        </list>
+                    </t>
+                </section>
+
+
                 <section title="Resetting a sampler channel" anchor="RESET CHANNEL">
                     <t>The front-end can reset a particular sampler channel by sending the following command:</t>
                     <t>
@@ -4469,6 +4767,10 @@ Schoenebeck'>
 		</t>
 		<t>/ MIDI_INSTRUMENT_MAP SP INFO SP midi_map
 		</t>
+		<t>/ FX_SENDS SP sampler_channel
+		</t>
+		<t>/ FX_SEND SP INFO SP sampler_channel SP fx_send_id
+		</t>
 	</list>
 </t>
 <t>set_instruction =
@@ -4485,6 +4787,8 @@ Schoenebeck'>
 		</t>
 		<t>/ MIDI_INSTRUMENT_MAP SP NAME SP midi_map SP map_name
 		</t>
+		<t>/ FX_SEND SP AUDIO_OUTPUT_CHANNEL SP sampler_channel SP fx_send_id SP audio_channel_index SP audio_channel_index
+		</t>
 		<t>/ ECHO SP boolean
 		</t>
 	</list>
@@ -4498,6 +4802,10 @@ Schoenebeck'>
 		<t>/ MIDI_INPUT_DEVICE SP string SP key_val_list
 		</t>
 		<t>/ MIDI_INPUT_DEVICE SP string
+		</t>
+		<t>/ FX_SEND SP sampler_channel SP midi_ctrl
+		</t>
+		<t>/ FX_SEND SP sampler_channel SP midi_ctrl SP fx_send_name
 		</t>
 	</list>
 </t>
@@ -4520,6 +4828,8 @@ Schoenebeck'>
 		<t>AUDIO_OUTPUT_DEVICE SP number
 		</t>
 		<t>/ MIDI_INPUT_DEVICE SP number
+		</t>
+		<t>/ FX_SEND SP sampler_channel SP fx_send_id
 		</t>
 	</list>
 </t>
@@ -4598,6 +4908,8 @@ Schoenebeck'>
 		<t>/ MIDI_INSTRUMENTS SP ALL
 		</t>
 		<t>/ MIDI_INSTRUMENT_MAPS
+		</t>
+		<t>/ FX_SENDS SP sampler_channel
 		</t>
 	</list>
 </t>
@@ -4681,6 +4993,12 @@ Schoenebeck'>
 		</t>
 	</list>
 </t>
+<t>midi_ctrl =
+	<list>
+		<t>number
+		</t>
+	</list>
+</t>
 <t>volume_value =
 	<list>
 		<t>dotnum
@@ -4696,6 +5014,12 @@ Schoenebeck'>
 	</list>
 </t>
 <t>instrument_index =
+	<list>
+		<t>number
+		</t>
+	</list>
+</t>
+<t>fx_send_id =
 	<list>
 		<t>number
 		</t>
@@ -4720,6 +5044,12 @@ Schoenebeck'>
 	</list>
 </t>
 <t>entry_name =
+	<list>
+		<t>stringval
+		</t>
+	</list>
+</t>
+<t>fx_send_name =
 	<list>
 		<t>stringval
 		</t>

@@ -392,6 +392,12 @@ namespace LinuxSampler { namespace gig {
         // now that all ordinary voices on ALL engine channels are rendered, render new stolen voices
         RenderStolenVoices(Samples);
 
+        // handle audio routing for engine channels with FX sends
+        for (int i = 0; i < engineChannels.size(); i++) {
+            if (engineChannels[i]->fxSends.empty()) continue; // ignore if no FX sends
+            RouteAudio(engineChannels[i], Samples);
+        }
+
         // handle cleanup on all engine channels for the next audio fragment
         for (int i = 0; i < engineChannels.size(); i++) {
             if (!engineChannels[i]->pInstrument) continue; // ignore if no instrument loaded
@@ -529,6 +535,58 @@ namespace LinuxSampler { namespace gig {
             pKey->VoiceTheftsQueued--;
             if (!pKey->Active && !pKey->VoiceTheftsQueued) pKey->pEvents->clear();
         }
+    }
+
+    /**
+     * Will be called in case the respective engine channel sports FX send
+     * channels. In this particular case, engine channel local buffers are
+     * used to render and mix all voices to. This method is responsible for
+     * copying the audio data from those local buffers to the master audio
+     * output channels as well as to the FX send audio output channels with
+     * their respective FX send levels.
+     *
+     * @param pEngineChannel - engine channel from which audio should be
+     *                         routed
+     * @param Samples        - amount of sample points to be routed in
+     *                         this audio fragment cycle
+     */
+    void Engine::RouteAudio(EngineChannel* pEngineChannel, uint Samples) {
+        // route master signal
+        {
+            AudioChannel* pDstL = pAudioOutputDevice->Channel(pEngineChannel->AudioDeviceChannelLeft);
+            AudioChannel* pDstR = pAudioOutputDevice->Channel(pEngineChannel->AudioDeviceChannelRight);
+            pEngineChannel->pChannelLeft->CopyTo(pDstL, Samples);
+            pEngineChannel->pChannelRight->CopyTo(pDstR, Samples);
+        }
+        // route FX send signal
+        {
+            for (int iFxSend = 0; iFxSend < pEngineChannel->GetFxSendCount(); iFxSend++) {
+                FxSend* pFxSend = pEngineChannel->GetFxSend(iFxSend);
+                // left channel
+                const int iDstL = pFxSend->DestinationChannel(0);
+                if (iDstL < 0) {
+                    dmsg(1,("Engine::RouteAudio() Error: invalid FX send (L) destination channel"));
+                } else {
+                    AudioChannel* pDstL = pAudioOutputDevice->Channel(iDstL);
+                    if (!pDstL) {
+                        dmsg(1,("Engine::RouteAudio() Error: invalid FX send (L) destination channel"));
+                    } else pEngineChannel->pChannelLeft->CopyTo(pDstL, Samples, pFxSend->Level());
+                }
+                // right channel
+                const int iDstR = pFxSend->DestinationChannel(1);
+                if (iDstR < 0) {
+                    dmsg(1,("Engine::RouteAudio() Error: invalid FX send (R) destination channel"));
+                } else {
+                    AudioChannel* pDstR = pAudioOutputDevice->Channel(iDstR);
+                    if (!pDstR) {
+                        dmsg(1,("Engine::RouteAudio() Error: invalid FX send (R) destination channel"));
+                    } else pEngineChannel->pChannelRight->CopyTo(pDstR, Samples, pFxSend->Level());
+                }
+            }
+        }
+        // reset buffers with silence (zero out) for the next audio cycle
+        pEngineChannel->pChannelLeft->Clear();
+        pEngineChannel->pChannelRight->Clear();
     }
 
     /**
@@ -1236,6 +1294,7 @@ namespace LinuxSampler { namespace gig {
         // update controller value in the engine channel's controller table
         pEngineChannel->ControllerTable[itControlChangeEvent->Param.CC.Controller] = itControlChangeEvent->Param.CC.Value;
 
+        // handle hard coded MIDI controllers
         switch (itControlChangeEvent->Param.CC.Controller) {
             case 5: { // portamento time
                 pEngineChannel->PortamentoTime = (float) itControlChangeEvent->Param.CC.Value / 127.0f * (float) CONFIG_PORTAMENTO_TIME_MAX + (float) CONFIG_PORTAMENTO_TIME_MIN;
@@ -1372,6 +1431,15 @@ namespace LinuxSampler { namespace gig {
                 KillAllVoices(pEngineChannel, itControlChangeEvent);
                 pEngineChannel->SoloMode = false;
                 break;
+            }
+        }
+
+        // handle FX send controllers
+        if (!pEngineChannel->fxSends.empty()) {
+            for (int iFxSend = 0; iFxSend < pEngineChannel->GetFxSendCount(); iFxSend++) {
+                FxSend* pFxSend = pEngineChannel->GetFxSend(iFxSend);
+                if (pFxSend->MidiController() == itControlChangeEvent->Param.CC.Controller)
+                    pFxSend->SetLevel(itControlChangeEvent->Param.CC.Value);
             }
         }
     }
@@ -1568,7 +1636,7 @@ namespace LinuxSampler { namespace gig {
     }
 
     String Engine::Version() {
-        String s = "$Revision: 1.67 $";
+        String s = "$Revision: 1.68 $";
         return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
 

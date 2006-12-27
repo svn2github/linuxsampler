@@ -1866,6 +1866,152 @@ String LSCPServer::SetChannelMap(uint uiSamplerChannel, int MidiMapID) {
     return result.Produce();
 }
 
+String LSCPServer::CreateFxSend(uint uiSamplerChannel, uint MidiCtrl, String Name) {
+    dmsg(2,("LSCPServer: CreateFxSend()\n"));
+    LSCPResultSet result;
+    try {
+        SamplerChannel* pSamplerChannel = pSampler->GetSamplerChannel(uiSamplerChannel);
+        if (!pSamplerChannel) throw Exception("Invalid sampler channel number " + ToString(uiSamplerChannel));
+
+        EngineChannel* pEngineChannel = pSamplerChannel->GetEngineChannel();
+        if (!pEngineChannel) throw Exception("There is no engine deployed on this sampler channel yet");
+
+        FxSend* pFxSend = pEngineChannel->AddFxSend(MidiCtrl, Name);
+        if (!pFxSend) throw Exception("Could not add FxSend, don't ask, I don't know why (probably a bug)");
+
+        result = LSCPResultSet(pFxSend->Id()); // success
+    } catch (Exception e) {
+        result.Error(e);
+    }
+    return result.Produce();
+}
+
+String LSCPServer::DestroyFxSend(uint uiSamplerChannel, uint FxSendID) {
+    dmsg(2,("LSCPServer: DestroyFxSend()\n"));
+    LSCPResultSet result;
+    try {
+        SamplerChannel* pSamplerChannel = pSampler->GetSamplerChannel(uiSamplerChannel);
+        if (!pSamplerChannel) throw Exception("Invalid sampler channel number " + ToString(uiSamplerChannel));
+
+        EngineChannel* pEngineChannel = pSamplerChannel->GetEngineChannel();
+        if (!pEngineChannel) throw Exception("There is no engine deployed on this sampler channel yet");
+
+        FxSend* pFxSend = NULL;
+        for (int i = 0; i < pEngineChannel->GetFxSendCount(); i++) {
+            if (pEngineChannel->GetFxSend(i)->Id() == FxSendID) {
+                pFxSend = pEngineChannel->GetFxSend(i);
+                break;
+            }
+        }
+        if (!pFxSend) throw Exception("There is no FxSend with that ID on the given sampler channel");
+        pEngineChannel->RemoveFxSend(pFxSend);
+    } catch (Exception e) {
+        result.Error(e);
+    }
+    return result.Produce();
+}
+
+String LSCPServer::GetFxSends(uint uiSamplerChannel) {
+    dmsg(2,("LSCPServer: GetFxSends()\n"));
+    LSCPResultSet result;
+    try {
+        SamplerChannel* pSamplerChannel = pSampler->GetSamplerChannel(uiSamplerChannel);
+        if (!pSamplerChannel) throw Exception("Invalid sampler channel number " + ToString(uiSamplerChannel));
+
+        EngineChannel* pEngineChannel = pSamplerChannel->GetEngineChannel();
+        if (!pEngineChannel) throw Exception("There is no engine deployed on this sampler channel yet");
+
+        result.Add(pEngineChannel->GetFxSendCount());
+    } catch (Exception e) {
+        result.Error(e);
+    }
+    return result.Produce();
+}
+
+String LSCPServer::ListFxSends(uint uiSamplerChannel) {
+    dmsg(2,("LSCPServer: ListFxSends()\n"));
+    LSCPResultSet result;
+    String list;
+    try {
+        SamplerChannel* pSamplerChannel = pSampler->GetSamplerChannel(uiSamplerChannel);
+        if (!pSamplerChannel) throw Exception("Invalid sampler channel number " + ToString(uiSamplerChannel));
+
+        EngineChannel* pEngineChannel = pSamplerChannel->GetEngineChannel();
+        if (!pEngineChannel) throw Exception("There is no engine deployed on this sampler channel yet");
+
+        for (int i = 0; i < pEngineChannel->GetFxSendCount(); i++) {
+            FxSend* pFxSend = pEngineChannel->GetFxSend(i);
+            if (list != "") list += ",";
+            list += ToString(pFxSend->Id());
+        }
+        result.Add(list);
+    } catch (Exception e) {
+        result.Error(e);
+    }
+    return result.Produce();
+}
+
+String LSCPServer::GetFxSendInfo(uint uiSamplerChannel, uint FxSendID) {
+    dmsg(2,("LSCPServer: GetFxSendInfo()\n"));
+    LSCPResultSet result;
+    try {
+        SamplerChannel* pSamplerChannel = pSampler->GetSamplerChannel(uiSamplerChannel);
+        if (!pSamplerChannel) throw Exception("Invalid sampler channel number " + ToString(uiSamplerChannel));
+
+        EngineChannel* pEngineChannel = pSamplerChannel->GetEngineChannel();
+        if (!pEngineChannel) throw Exception("There is no engine deployed on this sampler channel yet");
+
+        FxSend* pFxSend = NULL;
+        for (int i = 0; i < pEngineChannel->GetFxSendCount(); i++) {
+            if (pEngineChannel->GetFxSend(i)->Id() == FxSendID) {
+                pFxSend = pEngineChannel->GetFxSend(i);
+                break;
+            }
+        }
+        if (!pFxSend) throw Exception("There is no FxSend with that ID on the given sampler channel");
+
+        // gather audio routing informations
+        String AudioRouting;
+        for (int chan = 0; chan < pEngineChannel->Channels(); chan++) {
+            if (AudioRouting != "") AudioRouting += ",";
+            AudioRouting += ToString(pFxSend->DestinationChannel(chan));
+        }
+
+        // success
+        result.Add("NAME", pFxSend->Name());
+        result.Add("AUDIO_OUTPUT_ROUTING", AudioRouting);
+    } catch (Exception e) {
+        result.Error(e);
+    }
+    return result.Produce();
+}
+
+String LSCPServer::SetFxSendAudioOutputChannel(uint uiSamplerChannel, uint FxSendID, uint FxSendChannel, uint DeviceChannel) {
+    dmsg(2,("LSCPServer: SetFxSendAudioOutputChannel()\n"));
+    LSCPResultSet result;
+    try {
+        SamplerChannel* pSamplerChannel = pSampler->GetSamplerChannel(uiSamplerChannel);
+        if (!pSamplerChannel) throw Exception("Invalid sampler channel number " + ToString(uiSamplerChannel));
+
+        EngineChannel* pEngineChannel = pSamplerChannel->GetEngineChannel();
+        if (!pEngineChannel) throw Exception("There is no engine deployed on this sampler channel yet");
+
+        FxSend* pFxSend = NULL;
+        for (int i = 0; i < pEngineChannel->GetFxSendCount(); i++) {
+            if (pEngineChannel->GetFxSend(i)->Id() == FxSendID) {
+                pFxSend = pEngineChannel->GetFxSend(i);
+                break;
+            }
+        }
+        if (!pFxSend) throw Exception("There is no FxSend with that ID on the given sampler channel");
+
+        pFxSend->SetDestinationChannel(FxSendChannel, DeviceChannel);
+    } catch (Exception e) {
+        result.Error(e);
+    }
+    return result.Produce();
+}
+
 /**
  * Will be called by the parser to reset a particular sampler channel.
  */

@@ -24,13 +24,10 @@
 #ifndef __LS_GIG_ENGINECHANNEL_H__
 #define __LS_GIG_ENGINECHANNEL_H__
 
-#if DEBUG_HEADERS
-# warning EngineChannel.h included
-#endif // DEBUG_HEADERS
-
 #include "../common/Event.h"
 #include "../EngineChannel.h"
 #include "../../common/RingBuffer.h"
+#include "../../drivers/audio/AudioChannel.h"
 #include "EngineGlobals.h"
 #include "Engine.h"
 #include "Voice.h"
@@ -70,6 +67,7 @@ namespace LinuxSampler { namespace gig {
             virtual uint    Channels();
             virtual void    Connect(AudioOutputDevice* pAudioOut);
             virtual void    DisconnectAudioOutputDevice();
+            virtual AudioOutputDevice* GetAudioOutputDevice();
             virtual void    SetOutputChannel(uint EngineAudioChannel, uint AudioDeviceChannel);
             virtual int     OutputChannel(uint EngineAudioChannel);
             virtual void    Connect(MidiInputPort* pMidiPort, midi_chan_t MidiChannel);
@@ -82,6 +80,10 @@ namespace LinuxSampler { namespace gig {
             virtual int     InstrumentStatus();
             virtual LinuxSampler::Engine* GetEngine();
             virtual String  EngineName();
+            virtual FxSend* AddFxSend(uint8_t MidiCtrl, String Name = "") throw (Exception);
+            virtual FxSend* GetFxSend(uint FxSendIndex);
+            virtual uint    GetFxSendCount();
+            virtual void    RemoveFxSend(FxSend* pFxSend);
 
             // implementation of abstract methods derived from interface class 'InstrumentConsumer'
             virtual void ResourceToBeUpdated(::gig::Instrument* pResource, void*& pUpdateArg);
@@ -90,8 +92,8 @@ namespace LinuxSampler { namespace gig {
 
         //protected:
             Engine*                 pEngine;
-            float*                  pOutputLeft;              ///< Audio output channel buffer (left)
-            float*                  pOutputRight;             ///< Audio output channel buffer (right)
+            AudioChannel*           pChannelLeft;             ///< encapsulates the audio rendering buffer (left)
+            AudioChannel*           pChannelRight;            ///< encapsulates the audio rendering buffer (right)
             int                     AudioDeviceChannelLeft;   ///< audio device channel number to which the left channel is connected to
             int                     AudioDeviceChannelRight;  ///< audio device channel number to which the right channel is connected to
             MidiInputPort*          pMidiInputPort;           ///< Points to the connected MIDI input port or NULL if none assigned.
@@ -122,6 +124,7 @@ namespace LinuxSampler { namespace gig {
             int                     InstrumentStat;
             int                     iEngineIndexSelf;         ///< Reflects the index of this EngineChannel in the Engine's ArrayList.
             bool                    bStatusChanged;           ///< true in case an engine parameter has changed (e.g. new instrument, another volumet)
+            std::vector<FxSend*>    fxSends;
 
             void ResetControllers();
             void ClearEventLists();
@@ -133,6 +136,7 @@ namespace LinuxSampler { namespace gig {
 
         private:
             void ResetInternal();
+            void RemoveAllFxSends();
     };
 
 }} // namespace LinuxSampler::gig

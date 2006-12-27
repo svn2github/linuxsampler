@@ -3,6 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
+ *   Copyright (C) 2005, 2006 Christian Schoenebeck                        *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -102,6 +103,36 @@ namespace LinuxSampler {
         std::map<String,DeviceRuntimeParameter*>::iterator iter = Parameters.begin();
         while (iter != Parameters.end()) { delete iter->second; iter++; }
         if (!UsesExternalBuffer) free(pBuffer);
+    }
+
+    /**
+     * Copies audio data (unmodified) from this AudioChannel to the given
+     * destination AudioChannel.
+     *
+     * @param pDst    - destination channel
+     * @param Samples - amount of sample points to be copied
+     */
+    void AudioChannel::CopyTo(AudioChannel* pDst, const uint Samples) {
+        memcpy(pDst->Buffer(), Buffer(), Samples);
+    }
+
+    /**
+     * Copies audio data from this AudioChannel to the given destination
+     * AudioChannel and applies the given volume coefficient to the
+     * destination audio signal.
+     *
+     * @param pDst    - destination channel
+     * @param Samples - amount of sample points to be copied
+     * @param fLevel  - volume coefficient to be applied
+     */
+    void AudioChannel::CopyTo(AudioChannel* pDst, const uint Samples, const float fLevel) {
+        if (fLevel == 1.0f) CopyTo(pDst, Samples);
+        else {
+            float* pSrcBuf = Buffer();
+            float* pDstBuf = pDst->Buffer();
+            for (int i = 0; i < Samples; i++)
+                pDstBuf[i] = pSrcBuf[i] * fLevel;
+        }
     }
 
     std::map<String,DeviceRuntimeParameter*> AudioChannel::ChannelParameters() {

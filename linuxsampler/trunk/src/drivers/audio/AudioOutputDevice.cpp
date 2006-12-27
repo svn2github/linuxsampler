@@ -233,6 +233,10 @@ namespace LinuxSampler {
         }
     }
 
+    uint AudioOutputDevice::ChannelCount() {
+        return Channels.size();
+    }
+
     std::map<String,DeviceCreationParameter*> AudioOutputDevice::DeviceParameters() {
         return Parameters;
     }

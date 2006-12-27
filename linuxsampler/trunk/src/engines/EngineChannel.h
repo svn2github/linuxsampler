@@ -26,12 +26,15 @@
 #include "../drivers/midi/MidiInputDevice.h"
 #include "../drivers/midi/MidiInputPort.h"
 #include "Engine.h"
+#include "FxSend.h"
 
 namespace LinuxSampler {
 
     // just symbol prototyping
     class AudioOutputDevice;
     class MidiInputPort;
+    class FxSend;
+
 
     /** @brief Channel Interface for LinuxSampler Sampler Engines
      *
@@ -68,6 +71,7 @@ namespace LinuxSampler {
             virtual uint    Channels() = 0;
             virtual void    Connect(AudioOutputDevice* pAudioOut) = 0;
             virtual void    DisconnectAudioOutputDevice() = 0;
+            virtual AudioOutputDevice* GetAudioOutputDevice() = 0;
             virtual void    SetOutputChannel(uint EngineAudioChannel, uint AudioDeviceChannel) = 0;
             virtual int     OutputChannel(uint EngineAudioChannel) = 0;
             virtual void    Connect(MidiInputPort* pMidiPort, midi_chan_t MidiChannel) = 0;
@@ -80,6 +84,15 @@ namespace LinuxSampler {
             virtual int     InstrumentStatus() = 0;
             virtual Engine* GetEngine() = 0;
             virtual String  EngineName() = 0;
+            virtual FxSend* AddFxSend(uint8_t MidiCtrl, String Name = "") throw (Exception) = 0;
+            virtual FxSend* GetFxSend(uint FxSendIndex) = 0;
+            virtual uint    GetFxSendCount() = 0;
+            virtual void    RemoveFxSend(FxSend* pFxSend) = 0;
+
+
+            /////////////////////////////////////////////////////////////////
+            // normal methods
+            //     (usually not to be overridden by descendant)
 
             /**
              * Sets the mute state of this channel.

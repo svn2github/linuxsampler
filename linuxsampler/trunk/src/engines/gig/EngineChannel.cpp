@@ -43,6 +43,8 @@ namespace LinuxSampler { namespace gig {
         }
         InstrumentIdx  = -1;
         InstrumentStat = -1;
+        pChannelLeft  = NULL;
+        pChannelRight = NULL;
         AudioDeviceChannelLeft  = -1;
         AudioDeviceChannelRight = -1;
         pMidiInputPort = NULL;
@@ -59,6 +61,7 @@ namespace LinuxSampler { namespace gig {
         if (pEventQueue) delete pEventQueue;
         if (pActiveKeys) delete pActiveKeys;
         if (pMIDIKeyInfo) delete[] pMIDIKeyInfo;
+        RemoveAllFxSends();
     }
 
     /**
@@ -269,8 +272,16 @@ namespace LinuxSampler { namespace gig {
         }
         AudioDeviceChannelLeft  = 0;
         AudioDeviceChannelRight = 1;
-        pOutputLeft             = pAudioOut->Channel(0)->Buffer();
-        pOutputRight            = pAudioOut->Channel(1)->Buffer();
+        if (fxSends.empty()) { // render directly into the AudioDevice's output buffers
+            pChannelLeft  = pAudioOut->Channel(AudioDeviceChannelLeft);
+            pChannelRight = pAudioOut->Channel(AudioDeviceChannelRight);
+        } else { // use local buffers for rendering and copy later
+            // ensure the local buffers have the correct size
+            if (pChannelLeft)  delete pChannelLeft;
+            if (pChannelRight) delete pChannelRight;
+            pChannelLeft  = new AudioChannel(0, pAudioOut->MaxSamplesPerCycle());
+            pChannelRight = new AudioChannel(1, pAudioOut->MaxSamplesPerCycle());
+        }
         MidiInputPort::AddSysexListener(pEngine);
     }
 
@@ -297,7 +308,17 @@ namespace LinuxSampler { namespace gig {
             Engine::FreeEngine(this, oldAudioDevice);
             AudioDeviceChannelLeft  = -1;
             AudioDeviceChannelRight = -1;
+            if (!fxSends.empty()) { // free the local rendering buffers
+                if (pChannelLeft)  delete pChannelLeft;
+                if (pChannelRight) delete pChannelRight;
+            }
+            pChannelLeft  = NULL;
+            pChannelRight = NULL;
         }
+    }
+
+    AudioOutputDevice* EngineChannel::GetAudioOutputDevice() {
+        return (pEngine) ? pEngine->pAudioOutputDevice : NULL;
     }
 
     void EngineChannel::SetOutputChannel(uint EngineAudioChannel, uint AudioDeviceChannel) {
@@ -307,11 +328,11 @@ namespace LinuxSampler { namespace gig {
         if (!pChannel) throw AudioOutputException("Invalid audio output device channel " + ToString(AudioDeviceChannel));
         switch (EngineAudioChannel) {
             case 0: // left output channel
-                pOutputLeft = pChannel->Buffer();
+                if (fxSends.empty()) pChannelLeft = pChannel;
                 AudioDeviceChannelLeft = AudioDeviceChannel;
                 break;
             case 1: // right output channel
-                pOutputRight = pChannel->Buffer();
+                if (fxSends.empty()) pChannelRight = pChannel;
                 AudioDeviceChannelRight = AudioDeviceChannel;
                 break;
             default:
@@ -350,6 +371,62 @@ namespace LinuxSampler { namespace gig {
 
     midi_chan_t EngineChannel::MidiChannel() {
         return midiChannel;
+    }
+
+    FxSend* EngineChannel::AddFxSend(uint8_t MidiCtrl, String Name) throw (Exception) {
+        if (pEngine) pEngine->DisableAndLock();
+        FxSend* pFxSend = new FxSend(this, MidiCtrl, Name);
+        if (fxSends.empty()) {
+            if (pEngine && pEngine->pAudioOutputDevice) {
+                AudioOutputDevice* pDevice = pEngine->pAudioOutputDevice;
+                // create local render buffers
+                pChannelLeft  = new AudioChannel(0, pDevice->MaxSamplesPerCycle());
+                pChannelRight = new AudioChannel(1, pDevice->MaxSamplesPerCycle());
+            } else {
+                // postpone local render buffer creation until audio device is assigned
+                pChannelLeft  = NULL;
+                pChannelRight = NULL;
+            }
+        }
+        fxSends.push_back(pFxSend);
+        if (pEngine) pEngine->Enable();
+        return pFxSend;
+    }
+
+    FxSend* EngineChannel::GetFxSend(uint FxSendIndex) {
+        return (FxSendIndex < fxSends.size()) ? fxSends[FxSendIndex] : NULL;
+    }
+
+    uint EngineChannel::GetFxSendCount() {
+        return fxSends.size();
+    }
+
+    void EngineChannel::RemoveFxSend(FxSend* pFxSend) {
+        if (pEngine) pEngine->DisableAndLock();
+        for (
+            std::vector<FxSend*>::iterator iter = fxSends.begin();
+            iter != fxSends.end(); iter++
+        ) {
+            if (*iter == pFxSend) {
+                delete pFxSend;
+                fxSends.erase(iter);
+                if (fxSends.empty()) {
+                    // destroy local render buffers
+                    if (pChannelLeft)  delete pChannelLeft;
+                    if (pChannelRight) delete pChannelRight;
+                    // fallback to render directly into AudioOutputDevice's buffers
+                    if (pEngine && pEngine->pAudioOutputDevice) {
+                        pChannelLeft  = pEngine->pAudioOutputDevice->Channel(AudioDeviceChannelLeft);
+                        pChannelRight = pEngine->pAudioOutputDevice->Channel(AudioDeviceChannelRight);
+                    } else { // we update the pointers later
+                        pChannelLeft  = NULL;
+                        pChannelRight = NULL;
+                    }
+                }
+                break;
+            }
+        }
+        if (pEngine) pEngine->Enable();
     }
 
     /**
@@ -594,6 +671,29 @@ namespace LinuxSampler { namespace gig {
             *pEvents->allocAppend() = *pEvent;
         }
         eventQueueReader.free(); // free all copied events from input queue
+    }
+
+    void EngineChannel::RemoveAllFxSends() {
+        if (pEngine) pEngine->DisableAndLock();
+        if (!fxSends.empty()) { // free local render buffers
+            if (pChannelLeft) {
+                delete pChannelLeft;
+                if (pEngine && pEngine->pAudioOutputDevice) {
+                    // fallback to render directly to the AudioOutputDevice's buffer
+                    pChannelLeft = pEngine->pAudioOutputDevice->Channel(AudioDeviceChannelLeft);
+                } else pChannelLeft = NULL;
+            }
+            if (pChannelRight) {
+                delete pChannelRight;
+                if (pEngine && pEngine->pAudioOutputDevice) {
+                    // fallback to render directly to the AudioOutputDevice's buffer
+                    pChannelRight = pEngine->pAudioOutputDevice->Channel(AudioDeviceChannelRight);
+                } else pChannelRight = NULL; 
+            }
+        }
+        for (int i = 0; i < fxSends.size(); i++) delete fxSends[i];
+        fxSends.clear();
+        if (pEngine) pEngine->Enable();
     }
 
     float EngineChannel::Volume() {

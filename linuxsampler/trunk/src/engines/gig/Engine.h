@@ -116,6 +116,7 @@ namespace LinuxSampler { namespace gig {
             void ProcessEvents(EngineChannel* pEngineChannel, uint Samples);
             void RenderActiveVoices(EngineChannel* pEngineChannel, uint Samples);
             void RenderStolenVoices(uint Samples);
+            void RouteAudio(EngineChannel* pEngineChannel, uint Samples);
             void PostProcess(EngineChannel* pEngineChannel);
             void ClearEventLists();
             void ImportEvents(uint Samples);

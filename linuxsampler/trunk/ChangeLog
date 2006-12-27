@@ -22,6 +22,10 @@ Version CVS HEAD (?)
     - sampler was limited to load max. 200 instruments in the background
       due to a constant size RingBuffer FIFO which is now replaced by a
       dynamic (unlimited) size std::list FIFO
+    - added FX sends, these allow to route audio signals to arbitrary audio
+      output channels for being processed by external effect processors
+      (i.e. jack-rack), the send levels are controllable via arbitrary MIDI
+      controllers
 
   * MIDI driver:
     - dispatch bank select (MSB and LSB) messages

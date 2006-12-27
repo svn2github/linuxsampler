@@ -768,8 +768,8 @@ namespace LinuxSampler { namespace gig {
      *  @param Skip    - number of sample points to skip in output buffer
      */
     void Voice::Synthesize(uint Samples, sample_t* pSrc, uint Skip) {
-        finalSynthesisParameters.pOutLeft  = &pEngineChannel->pOutputLeft[Skip];
-        finalSynthesisParameters.pOutRight = &pEngineChannel->pOutputRight[Skip];
+        finalSynthesisParameters.pOutLeft  = &pEngineChannel->pChannelLeft->Buffer()[Skip];
+        finalSynthesisParameters.pOutRight = &pEngineChannel->pChannelRight->Buffer()[Skip];
         finalSynthesisParameters.pSrc      = pSrc;
 
         RTList<Event>::Iterator itCCEvent = pEngineChannel->pEvents->first();

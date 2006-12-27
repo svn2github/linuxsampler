@@ -230,6 +230,12 @@ namespace LinuxSampler {
             void AcquireChannels(uint Channels);
 
             /**
+             * Returns the amount of audio channels (including the so called
+             * "mix channels") the device is currently providing.
+             */
+            uint ChannelCount();
+
+            /**
              * Returns all device parameter settings.
              */
             std::map<String,DeviceCreationParameter*> DeviceParameters();

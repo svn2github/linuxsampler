@@ -145,6 +145,12 @@ class LSCPServer : public Thread {
         String GetMidiInstrumentMap(uint MidiMapID);
         String SetMidiInstrumentMapName(uint MidiMapID, String NewName);
         String SetChannelMap(uint uiSamplerChannel, int MidiMapID);
+        String CreateFxSend(uint uiSamplerChannel, uint MidiCtrl, String Name = "");
+        String DestroyFxSend(uint uiSamplerChannel, uint FxSendID);
+        String GetFxSends(uint uiSamplerChannel);
+        String ListFxSends(uint uiSamplerChannel);
+        String GetFxSendInfo(uint uiSamplerChannel, uint FxSendID);
+        String SetFxSendAudioOutputChannel(uint uiSamplerChannel, uint FxSendID, uint FxSendChannel, uint DeviceChannel);
         String ResetChannel(uint uiSamplerChannel);
         String ResetSampler();
         String GetServerInfo();

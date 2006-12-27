@@ -37,17 +37,17 @@ namespace LinuxSampler {
      *
      * This class is used for routing audio signals between arbitrary sources
      * and destinations. You can either create a normal channel like:
-     *
+     * @code
      *	AudioChannel c1(512); // create unnamed channel
      *	AudioChannel c2(512, "Effect send mono channel"); // create named channel
-     *
+     * @endcode
      * Or you can create a mix channel, e.g. the following would create a
      * normal channel first, and the second channel is just a copy of the
      * first channel:
-     *
+     * @code
      *	AudioChannel mono_chan(512, "Effect send channel"); // real channel
      *	AudioChannel mix_chan(&mono_chan, "Effect send mono channel"); // mix channel
-     *
+     * @endcode
      * So in the last example, when writing to 'mix_chan' the signal will
      * actually be mixed to the 'mono_chan' channel, so this is an easy way
      * to downmix a signal source which has more audio channels than the
@@ -90,6 +90,8 @@ namespace LinuxSampler {
             inline float*        Buffer()     { return pBuffer;      } ///< Audio signal buffer
             inline AudioChannel* MixChannel() { return pMixChannel;  } ///< In case this channel is a mix channel, then it will return a pointer to the real channel this channel refers to, NULL otherwise.
             inline void          Clear()      { memset(pBuffer, 0, uiBufferSize * sizeof(float)); } ///< Reset audio buffer with silence
+            void CopyTo(AudioChannel* pDst, const uint Samples);
+            void CopyTo(AudioChannel* pDst, const uint Samples, const float fLevel);
             std::map<String,DeviceRuntimeParameter*> ChannelParameters();
 
             // constructors / destructor
