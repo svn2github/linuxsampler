@@ -145,7 +145,7 @@
 <tr><td class="header">LinuxSampler Developers</td><td class="header">C. Schoenebeck</td></tr>
 <tr><td class="header">Internet-Draft</td><td class="header">Interessengemeinschaft Software</td></tr>
 <tr><td class="header">Intended status: Standards Track</td><td class="header">Engineering e. V.</td></tr>
-<tr><td class="header">Expires: June 23, 2007</td><td class="header">December 20, 2006</td></tr>
+<tr><td class="header">Expires: June 30, 2007</td><td class="header">December 27, 2006</td></tr>
 </table></td></tr></table>
 <h1><br />LinuxSampler Control Protocol<br />LSCP 1.2</h1>
 
@@ -173,7 +173,7 @@ The list of current Internet-Drafts can be accessed at
 The list of Internet-Draft Shadow Directories can be accessed at
 <a href='http://www.ietf.org/shadow.html'>http://www.ietf.org/shadow.html</a>.</p>
 <p>
-This Internet-Draft will expire on June 23, 2007.</p>
+This Internet-Draft will expire on June 30, 2007.</p>
 
 <h3>Copyright Notice</h3>
 <p>
@@ -318,7 +318,19 @@ Muting a sampler channel<br />
 Soloing a sampler channel<br />
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SET CHANNEL MIDI_INSTRUMENT_MAP">6.4.24.</a>&nbsp;
 Assigning a MIDI instrument map to a sampler channel<br />
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#RESET CHANNEL">6.4.25.</a>&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#CREATE FX_SEND">6.4.25.</a>&nbsp;
+Adding an effect send to a sampler channel<br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#DESTROY FX_SEND">6.4.26.</a>&nbsp;
+Removing an effect send from a sampler channel<br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#GET FX_SENDS">6.4.27.</a>&nbsp;
+Getting amount of effect sends on a sampler channel<br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#LIST FX_SENDS">6.4.28.</a>&nbsp;
+Listing all effect sends on a sampler channel<br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#GET FX_SEND INFO">6.4.29.</a>&nbsp;
+Getting effect send information<br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SET FX_SEND AUDIO_OUTPUT_CHANNEL">6.4.30.</a>&nbsp;
+Altering effect send's audio routing<br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#RESET CHANNEL">6.4.31.</a>&nbsp;
 Resetting a sampler channel<br />
 &nbsp;&nbsp;&nbsp;&nbsp;<a href="#anchor12">6.5.</a>&nbsp;
 Controlling connection<br />
@@ -4949,9 +4961,427 @@ Assigning a MIDI instrument map to a sampler channel</h3>
 </blockquote><p>
                     
 </p>
-<a name="RESET CHANNEL"></a><br /><hr />
+<a name="CREATE FX_SEND"></a><br /><hr />
 <table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
 <a name="rfc.section.6.4.25"></a><h3>6.4.25.&nbsp;
+Adding an effect send to a sampler channel</h3>
+
+<p>The front-end can create an additional effect send on a specific sampler channel
+                    by sending the following command:
+</p>
+<p>
+                        </p>
+<blockquote class="text">
+<p>CREATE FX_SEND &lt;sampler-channel&gt; &lt;midi-ctrl&gt; [&lt;name&gt;]
+</p>
+</blockquote><p>
+                    
+</p>
+<p>Where &lt;sampler-channel&gt; is the respective sampler channel
+                    number as returned by the <a class='info' href='#ADD CHANNEL'>"ADD CHANNEL"<span> (</span><span class='info'>Adding a new sampler channel</span><span>)</span></a>
+                    or <a class='info' href='#LIST CHANNELS'>"LIST CHANNELS"<span> (</span><span class='info'>Getting all created sampler channel list</span><span>)</span></a> command, that is the
+                    sampler channel on which the effect send should be created on, &lt;midi-ctrl&gt;
+                    is a number between 0..127 defining the MIDI controller which can alter the
+                    effect send level and &lt;name&gt; is an optional argument defining a name
+                    for the effect send entity. The name does not have to be unique.
+</p>
+<p>By default, that is as initial routing, the effect send's audio channels
+                    are automatically routed to the last audio channels of the sampler channel's
+                    audio output device, that way you can i.e. first increase the amount of audio
+                    channels on the audio output device for having dedicated effect send output
+                    channels and when "CREATE FX_SEND" is called, those channels will automatically
+                    be picked. You can alter the destination channels however with
+                    <a class='info' href='#SET FX_SEND AUDIO_OUTPUT_CHANNEL'>"SET FX_SEND AUDIO_OUTPUT_CHANNEL"<span> (</span><span class='info'>Altering effect send's audio routing</span><span>)</span></a>.
+                    
+</p>
+<p>Note: Create effect sends on a sampler channel only when needed, because having effect
+                    sends on a sampler channel will decrease runtime performance, because for implementing channel
+                    effect sends, separate (sampler channel local) audio buffers are needed to render and mix
+                    the voices and route the audio signal afterwards to the master outputs and effect send
+                    outputs (along with their respective effect send levels). A sampler channel without effect
+                    sends however can mix its voices directly into the audio output devices's audio buffers
+                    and is thus faster.
+                    
+</p>
+<p>Possible Answers:
+</p>
+<p>
+                        </p>
+<blockquote class="text">
+<p>"OK[&lt;fx-send-id&gt;]" -
+                                </p>
+<blockquote class="text">
+<p>in case a new effect send could be added to the
+                                    sampler channel, where &lt;fx-send-id&gt; reflects the
+                                    unique ID of the newly created effect send entity
+</p>
+</blockquote>
+                            
+
+<p>"ERR:&lt;error-code&gt;:&lt;error-message&gt;" -
+                                </p>
+<blockquote class="text">
+<p>when a new effect send could not be added, i.e.
+                                    due to invalid parameters
+</p>
+</blockquote>
+                            
+
+</blockquote><p>
+                    
+</p>
+<p>Examples:
+</p>
+<p>
+                        </p>
+<blockquote class="text">
+<p>C: "CREATE FX_SEND 0 91 'Reverb Send'"
+</p>
+<p>S: "OK[0]"
+</p>
+</blockquote><p>
+                    
+</p>
+<p>
+                        </p>
+<blockquote class="text">
+<p>C: "CREATE FX_SEND 0 93"
+</p>
+<p>S: "OK[1]"
+</p>
+</blockquote><p>
+                    
+</p>
+<a name="DESTROY FX_SEND"></a><br /><hr />
+<table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
+<a name="rfc.section.6.4.26"></a><h3>6.4.26.&nbsp;
+Removing an effect send from a sampler channel</h3>
+
+<p>The front-end can remove an existing effect send on a specific sampler channel
+                    by sending the following command:
+</p>
+<p>
+                        </p>
+<blockquote class="text">
+<p>DESTROY FX_SEND &lt;sampler-channel&gt; &lt;fx-send-id&gt;
+</p>
+</blockquote><p>
+                    
+</p>
+<p>Where &lt;sampler-channel&gt; is the respective sampler channel
+                    number as returned by the <a class='info' href='#ADD CHANNEL'>"ADD CHANNEL"<span> (</span><span class='info'>Adding a new sampler channel</span><span>)</span></a>
+                    or <a class='info' href='#LIST CHANNELS'>"LIST CHANNELS"<span> (</span><span class='info'>Getting all created sampler channel list</span><span>)</span></a> command, that is the
+                    sampler channel from which the effect send should be removed from and
+                    &lt;fx-send-id&gt; is the respective effect send number as returned by the
+                    <a class='info' href='#CREATE FX_SEND'>"CREATE FX_SEND"<span> (</span><span class='info'>Adding an effect send to a sampler channel</span><span>)</span></a>
+                    or <a class='info' href='#LIST FX_SENDS'>"LIST FX_SENDS"<span> (</span><span class='info'>Listing all effect sends on a sampler channel</span><span>)</span></a> command.
+</p>
+<p>Possible Answers:
+</p>
+<p>
+                        </p>
+<blockquote class="text">
+<p>"OK" -
+                                </p>
+<blockquote class="text">
+<p>on success
+</p>
+</blockquote>
+                            
+
+<p>"ERR:&lt;error-code&gt;:&lt;error-message&gt;" -
+                                </p>
+<blockquote class="text">
+<p>in case it failed, providing an appropriate error code and
+                                    error message
+</p>
+</blockquote>
+                            
+
+</blockquote><p>
+                    
+</p>
+<p>Example:
+</p>
+<p>
+                        </p>
+<blockquote class="text">
+<p>C: "DESTROY FX_SEND 0 0"
+</p>
+<p>S: "OK"
+</p>
+</blockquote><p>
+                    
+</p>
+<a name="GET FX_SENDS"></a><br /><hr />
+<table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
+<a name="rfc.section.6.4.27"></a><h3>6.4.27.&nbsp;
+Getting amount of effect sends on a sampler channel</h3>
+
+<p>The front-end can ask for the amount of effect sends on a specific sampler channel
+                    by sending the following command:
+</p>
+<p>
+                        </p>
+<blockquote class="text">
+<p>GET FX_SENDS &lt;sampler-channel&gt;
+</p>
+</blockquote><p>
+                    
+</p>
+<p>Where &lt;sampler-channel&gt; is the respective sampler channel
+                    number as returned by the <a class='info' href='#ADD CHANNEL'>"ADD CHANNEL"<span> (</span><span class='info'>Adding a new sampler channel</span><span>)</span></a>
+                    or <a class='info' href='#LIST CHANNELS'>"LIST CHANNELS"<span> (</span><span class='info'>Getting all created sampler channel list</span><span>)</span></a> command.
+</p>
+<p>Possible Answers:
+</p>
+<p>
+                        </p>
+<blockquote class="text">
+<p>The sampler will answer by returning the number of effect
+                            sends on the given sampler channel.
+</p>
+</blockquote><p>
+                    
+</p>
+<p>Example:
+</p>
+<p>
+                        </p>
+<blockquote class="text">
+<p>C: "GET FX_SENDS 0"
+</p>
+<p>S: "2"
+</p>
+</blockquote><p>
+                    
+</p>
+<a name="LIST FX_SENDS"></a><br /><hr />
+<table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
+<a name="rfc.section.6.4.28"></a><h3>6.4.28.&nbsp;
+Listing all effect sends on a sampler channel</h3>
+
+<p>The front-end can ask for a list of effect sends on a specific sampler channel
+                    by sending the following command:
+</p>
+<p>
+                        </p>
+<blockquote class="text">
+<p>LIST FX_SENDS &lt;sampler-channel&gt;
+</p>
+</blockquote><p>
+                    
+</p>
+<p>Where &lt;sampler-channel&gt; is the respective sampler channel
+                    number as returned by the <a class='info' href='#ADD CHANNEL'>"ADD CHANNEL"<span> (</span><span class='info'>Adding a new sampler channel</span><span>)</span></a>
+                    or <a class='info' href='#LIST CHANNELS'>"LIST CHANNELS"<span> (</span><span class='info'>Getting all created sampler channel list</span><span>)</span></a> command.
+</p>
+<p>Possible Answers:
+</p>
+<p>
+                        </p>
+<blockquote class="text">
+<p>The sampler will answer by returning a comma separated list
+                            with all effect sends' numerical IDs on the given sampler
+                            channel.
+</p>
+</blockquote><p>
+                    
+</p>
+<p>Examples:
+</p>
+<p>
+                        </p>
+<blockquote class="text">
+<p>C: "LIST FX_SENDS 0"
+</p>
+<p>S: "0,1"
+</p>
+</blockquote><p>
+                    
+</p>
+<p>
+                        </p>
+<blockquote class="text">
+<p>C: "LIST FX_SENDS 1"
+</p>
+<p>S: ""
+</p>
+</blockquote><p>
+                    
+</p>
+<a name="GET FX_SEND INFO"></a><br /><hr />
+<table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
+<a name="rfc.section.6.4.29"></a><h3>6.4.29.&nbsp;
+Getting effect send information</h3>
+
+<p>The front-end can ask for the current settings of an effect send entity
+                    by sending the following command:
+</p>
+<p>
+                        </p>
+<blockquote class="text">
+<p>GET FX_SEND INFO &lt;sampler-channel&gt; &lt;fx-send-id&gt;
+</p>
+</blockquote><p>
+                    
+</p>
+<p>Where &lt;sampler-channel&gt; is the sampler channel number
+                    as returned by the <a class='info' href='#ADD CHANNEL'>"ADD CHANNEL"<span> (</span><span class='info'>Adding a new sampler channel</span><span>)</span></a>
+                    or <a class='info' href='#LIST CHANNELS'>"LIST CHANNELS"<span> (</span><span class='info'>Getting all created sampler channel list</span><span>)</span></a> command and
+                    &lt;fx-send-id&gt; reflects the numerical ID of the effect send entity
+		    as returned by the <a class='info' href='#CREATE FX_SEND'>"CREATE FX_SEND"<span> (</span><span class='info'>Adding an effect send to a sampler channel</span><span>)</span></a>
+                    or <a class='info' href='#LIST FX_SENDS'>"LIST FX_SENDS"<span> (</span><span class='info'>Listing all effect sends on a sampler channel</span><span>)</span></a> command.
+	           
+</p>
+<p>Possible Answers:
+</p>
+<p>
+                        </p>
+<blockquote class="text">
+<p>The sampler will answer by sending a &lt;CRLF&gt; separated list.
+                            Each answer line begins with the settings category name
+                            followed by a colon and then a space character &lt;SP&gt; and finally
+                            the info character string to that setting category. At the
+                            moment the following categories are defined:
+</p>
+<p>
+                                </p>
+<blockquote class="text">
+<p>NAME -
+                                        </p>
+<blockquote class="text">
+<p>name of the effect send entity
+</p>
+</blockquote>
+                                    
+
+<p>AUDIO_OUTPUT_ROUTING -
+                                        </p>
+<blockquote class="text">
+<p>comma separated list which reflects to which audio
+                                            channel of the selected audio output device each
+                                            effect send output channel is routed to, e.g. "0,3" would
+                                            mean the effect send's output channel 0 is routed to channel
+                                            0 of the audio output device and the effect send's output
+                                            channel 1 is routed to the channel 3 of the audio
+                                            output device (see
+                                            <a class='info' href='#SET FX_SEND AUDIO_OUTPUT_CHANNEL'>"SET FX_SEND AUDIO_OUTPUT_CHANNEL"<span> (</span><span class='info'>Altering effect send's audio routing</span><span>)</span></a>
+                                            for details)
+</p>
+</blockquote>
+                                    
+
+</blockquote>
+                            
+
+</blockquote><p>
+                    
+</p>
+<p>The mentioned fields above don't have to be in particular order.
+</p>
+<p>Example:
+</p>
+<p>
+                        </p>
+<blockquote class="text">
+<p>C: "GET FX_SEND INFO 0 0"
+</p>
+<p>S: "NAME: Reverb Send"
+</p>
+<p>&nbsp;&nbsp;&nbsp;"AUDIO_OUTPUT_ROUTING: 2,3"
+</p>
+<p>&nbsp;&nbsp;&nbsp;"."
+</p>
+</blockquote><p>
+                    
+</p>
+<a name="SET FX_SEND AUDIO_OUTPUT_CHANNEL"></a><br /><hr />
+<table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
+<a name="rfc.section.6.4.30"></a><h3>6.4.30.&nbsp;
+Altering effect send's audio routing</h3>
+
+<p>The front-end can alter the destination of an effect send's audio channel on a specific
+                    sampler channel by sending the following command:
+</p>
+<p>
+                        </p>
+<blockquote class="text">
+<p>SET FX_SEND AUDIO_OUTPUT_CHANNEL &lt;sampler-chan&gt; &lt;fx-send-id&gt; &lt;audio-src&gt; &lt;audio-dst&gt;
+</p>
+</blockquote><p>
+                    
+</p>
+<p>Where &lt;sampler-chan&gt; is the sampler channel number
+                    as returned by the <a class='info' href='#ADD CHANNEL'>"ADD CHANNEL"<span> (</span><span class='info'>Adding a new sampler channel</span><span>)</span></a>
+                    or <a class='info' href='#LIST CHANNELS'>"LIST CHANNELS"<span> (</span><span class='info'>Getting all created sampler channel list</span><span>)</span></a> command,
+                    &lt;fx-send-id&gt; reflects the numerical ID of the effect send entity
+                    as returned by the <a class='info' href='#CREATE FX_SEND'>"CREATE FX_SEND"<span> (</span><span class='info'>Adding an effect send to a sampler channel</span><span>)</span></a>
+                    or <a class='info' href='#LIST FX_SENDS'>"LIST FX_SENDS"<span> (</span><span class='info'>Listing all effect sends on a sampler channel</span><span>)</span></a> command,
+                    &lt;audio-src&gt; is the numerical ID of the effect send's audio channel
+                    which should be rerouted and &lt;audio-dst&gt; is the numerical ID of
+                    the audio channel of the selected audio output device where &lt;audio-src&gt;
+                    should be routed to.
+</p>
+<p>Note that effect sends can only route audio to the same audio output
+                    device as assigned to the effect send's sampler channel. Also note that an
+                    effect send entity does always have exactly as much audio channels as its
+                    sampler channel. So if the sampler channel is stereo, the effect send does
+	            have two audio channels as well. Also keep in mind that the amount of audio
+                    channels on a sampler channel might be dependant not only to the deployed
+                    sampler engine on the sampler channel, but also dependant to the instrument
+                    currently loaded. However you can (effectively) turn an i.e. stereo effect
+                    send into a mono one by simply altering its audio routing appropriately.
+</p>
+<p>Possible Answers:
+</p>
+<p>
+                        </p>
+<blockquote class="text">
+<p>"OK" -
+                                </p>
+<blockquote class="text">
+<p>on success
+</p>
+</blockquote>
+                            
+
+<p>"WRN:&lt;warning-code&gt;:&lt;warning-message&gt;" -
+                                </p>
+<blockquote class="text">
+<p>if audio output channel was set, but there are noteworthy
+                                    issue(s) related, providing an appropriate warning code and
+                                    warning message
+</p>
+</blockquote>
+                            
+
+<p>"ERR:&lt;error-code&gt;:&lt;error-message&gt;" -
+                                </p>
+<blockquote class="text">
+<p>in case it failed, providing an appropriate error code and error message
+</p>
+</blockquote>
+                            
+
+</blockquote><p>
+                    
+</p>
+<p>Example:
+</p>
+<p>
+                        </p>
+<blockquote class="text">
+<p>C: "SET FX_SEND AUDIO_OUTPUT_CHANNEL 0 0 0 2"
+</p>
+<p>S: "OK"
+</p>
+</blockquote><p>
+                    
+</p>
+<a name="RESET CHANNEL"></a><br /><hr />
+<table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
+<a name="rfc.section.6.4.31"></a><h3>6.4.31.&nbsp;
 Resetting a sampler channel</h3>
 
 <p>The front-end can reset a particular sampler channel by sending the following command:
@@ -6761,6 +7191,12 @@ Command Syntax</h3>
 <p>/ MIDI_INSTRUMENT_MAP SP INFO SP midi_map
 		
 </p>
+<p>/ FX_SENDS SP sampler_channel
+		
+</p>
+<p>/ FX_SEND SP INFO SP sampler_channel SP fx_send_id
+		
+</p>
 </blockquote><p>
 
 </p>
@@ -6785,6 +7221,9 @@ Command Syntax</h3>
 <p>/ MIDI_INSTRUMENT_MAP SP NAME SP midi_map SP map_name
 		
 </p>
+<p>/ FX_SEND SP AUDIO_OUTPUT_CHANNEL SP sampler_channel SP fx_send_id SP audio_channel_index SP audio_channel_index
+		
+</p>
 <p>/ ECHO SP boolean
 		
 </p>
@@ -6804,6 +7243,12 @@ Command Syntax</h3>
 		
 </p>
 <p>/ MIDI_INPUT_DEVICE SP string
+		
+</p>
+<p>/ FX_SEND SP sampler_channel SP midi_ctrl
+		
+</p>
+<p>/ FX_SEND SP sampler_channel SP midi_ctrl SP fx_send_name
 		
 </p>
 </blockquote><p>
@@ -6837,6 +7282,9 @@ Command Syntax</h3>
 		
 </p>
 <p>/ MIDI_INPUT_DEVICE SP number
+		
+</p>
+<p>/ FX_SEND SP sampler_channel SP fx_send_id
 		
 </p>
 </blockquote><p>
@@ -6954,6 +7402,9 @@ Command Syntax</h3>
 		
 </p>
 <p>/ MIDI_INSTRUMENT_MAPS
+		
+</p>
+<p>/ FX_SENDS SP sampler_channel
 		
 </p>
 </blockquote><p>
@@ -7079,6 +7530,15 @@ Command Syntax</h3>
 </blockquote><p>
 
 </p>
+<p>midi_ctrl =
+	</p>
+<blockquote class="text">
+<p>number
+		
+</p>
+</blockquote><p>
+
+</p>
 <p>volume_value =
 	</p>
 <blockquote class="text">
@@ -7101,6 +7561,15 @@ Command Syntax</h3>
 
 </p>
 <p>instrument_index =
+	</p>
+<blockquote class="text">
+<p>number
+		
+</p>
+</blockquote><p>
+
+</p>
+<p>fx_send_id =
 	</p>
 <blockquote class="text">
 <p>number
@@ -7137,6 +7606,15 @@ Command Syntax</h3>
 
 </p>
 <p>entry_name =
+	</p>
+<blockquote class="text">
+<p>stringval
+		
+</p>
+</blockquote><p>
+
+</p>
+<p>fx_send_name =
 	</p>
 <blockquote class="text">
 <p>stringval

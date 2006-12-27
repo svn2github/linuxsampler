@@ -4,7 +4,7 @@
 LinuxSampler Developers                                   C. Schoenebeck
 Internet-Draft                           Interessengemeinschaft Software
 Intended status: Standards Track                       Engineering e. V.
-Expires: June 23, 2007                                 December 20, 2006
+Expires: June 30, 2007                                 December 27, 2006
 
 
                      LinuxSampler Control Protocol
@@ -33,7 +33,7 @@ Status of this Memo
    The list of Internet-Draft Shadow Directories can be accessed at
    http://www.ietf.org/shadow.html.
 
-   This Internet-Draft will expire on June 23, 2007.
+   This Internet-Draft will expire on June 30, 2007.
 
 Copyright Notice
 
@@ -52,7 +52,7 @@ Copyright Notice
 
 
 
-Schoenebeck               Expires June 23, 2007                 [Page 1]
+Schoenebeck               Expires June 30, 2007                 [Page 1]
 
 Internet-Draft        LinuxSampler Control Protocol        December 2006
 
@@ -68,140 +68,146 @@ Abstract
 
 Table of Contents
 
-   1.  Requirements notation  . . . . . . . . . . . . . . . . . . . .  5
-   2.  Versioning of this specification . . . . . . . . . . . . . . .  6
-   3.  Introduction . . . . . . . . . . . . . . . . . . . . . . . . .  7
-   4.  Focus of this protocol . . . . . . . . . . . . . . . . . . . .  8
-   5.  Communication Overview . . . . . . . . . . . . . . . . . . . .  9
-     5.1.  Request/response communication method  . . . . . . . . . .  9
-       5.1.1.  Result format  . . . . . . . . . . . . . . . . . . . . 10
-     5.2.  Subscribe/notify communication method  . . . . . . . . . . 12
-   6.  Description for control commands . . . . . . . . . . . . . . . 14
-     6.1.  Ignored lines and comments . . . . . . . . . . . . . . . . 14
-     6.2.  Configuring audio drivers  . . . . . . . . . . . . . . . . 14
-       6.2.1.  Getting amount of available audio output drivers . . . 15
-       6.2.2.  Getting all available audio output drivers . . . . . . 15
+   1.  Requirements notation . . . . . . . . . . . . . . . . . . . .   5
+   2.  Versioning of this specification  . . . . . . . . . . . . . .   6
+   3.  Introduction  . . . . . . . . . . . . . . . . . . . . . . . .   7
+   4.  Focus of this protocol  . . . . . . . . . . . . . . . . . . .   8
+   5.  Communication Overview  . . . . . . . . . . . . . . . . . . .   9
+     5.1.  Request/response communication method . . . . . . . . . .   9
+       5.1.1.  Result format . . . . . . . . . . . . . . . . . . . .  10
+     5.2.  Subscribe/notify communication method . . . . . . . . . .  12
+   6.  Description for control commands  . . . . . . . . . . . . . .  14
+     6.1.  Ignored lines and comments  . . . . . . . . . . . . . . .  14
+     6.2.  Configuring audio drivers . . . . . . . . . . . . . . . .  14
+       6.2.1.  Getting amount of available audio output drivers  . .  15
+       6.2.2.  Getting all available audio output drivers  . . . . .  15
        6.2.3.  Getting information about a specific audio output
-               driver . . . . . . . . . . . . . . . . . . . . . . . . 15
+               driver  . . . . . . . . . . . . . . . . . . . . . . .  15
        6.2.4.  Getting information about specific audio output
-               driver parameter . . . . . . . . . . . . . . . . . . . 16
-       6.2.5.  Creating an audio output device  . . . . . . . . . . . 20
-       6.2.6.  Destroying an audio output device  . . . . . . . . . . 21
-       6.2.7.  Getting all created audio output device count  . . . . 22
-       6.2.8.  Getting all created audio output device list . . . . . 22
-       6.2.9.  Getting current settings of an audio output device . . 22
-       6.2.10. Changing settings of audio output devices  . . . . . . 24
-       6.2.11. Getting information about an audio channel . . . . . . 25
+               driver parameter  . . . . . . . . . . . . . . . . . .  16
+       6.2.5.  Creating an audio output device . . . . . . . . . . .  20
+       6.2.6.  Destroying an audio output device . . . . . . . . . .  21
+       6.2.7.  Getting all created audio output device count . . . .  22
+       6.2.8.  Getting all created audio output device list  . . . .  22
+       6.2.9.  Getting current settings of an audio output device  .  22
+       6.2.10. Changing settings of audio output devices . . . . . .  24
+       6.2.11. Getting information about an audio channel  . . . . .  25
        6.2.12. Getting information about specific audio channel
-               parameter  . . . . . . . . . . . . . . . . . . . . . . 26
-       6.2.13. Changing settings of audio output channels . . . . . . 28
-     6.3.  Configuring MIDI input drivers . . . . . . . . . . . . . . 29
-       6.3.1.  Getting amount of available MIDI input drivers . . . . 30
-       6.3.2.  Getting all available MIDI input drivers . . . . . . . 30
+               parameter . . . . . . . . . . . . . . . . . . . . . .  26
+       6.2.13. Changing settings of audio output channels  . . . . .  28
+     6.3.  Configuring MIDI input drivers  . . . . . . . . . . . . .  29
+       6.3.1.  Getting amount of available MIDI input drivers  . . .  30
+       6.3.2.  Getting all available MIDI input drivers  . . . . . .  30
        6.3.3.  Getting information about a specific MIDI input
-               driver . . . . . . . . . . . . . . . . . . . . . . . . 31
+               driver  . . . . . . . . . . . . . . . . . . . . . . .  31
        6.3.4.  Getting information about specific MIDI input
-               driver parameter . . . . . . . . . . . . . . . . . . . 32
-       6.3.5.  Creating a MIDI input device . . . . . . . . . . . . . 34
-       6.3.6.  Destroying a MIDI input device . . . . . . . . . . . . 35
-       6.3.7.  Getting all created MIDI input device count  . . . . . 36
+               driver parameter  . . . . . . . . . . . . . . . . . .  32
+       6.3.5.  Creating a MIDI input device  . . . . . . . . . . . .  34
+       6.3.6.  Destroying a MIDI input device  . . . . . . . . . . .  35
+       6.3.7.  Getting all created MIDI input device count . . . . .  36
 
 
 
-Schoenebeck               Expires June 23, 2007                 [Page 2]
+Schoenebeck               Expires June 30, 2007                 [Page 2]
 
 Internet-Draft        LinuxSampler Control Protocol        December 2006
 
 
-       6.3.8.  Getting all created MIDI input device list . . . . . . 36
-       6.3.9.  Getting current settings of a MIDI input device  . . . 37
-       6.3.10. Changing settings of MIDI input devices  . . . . . . . 38
-       6.3.11. Getting information about a MIDI port  . . . . . . . . 38
+       6.3.8.  Getting all created MIDI input device list  . . . . .  36
+       6.3.9.  Getting current settings of a MIDI input device . . .  37
+       6.3.10. Changing settings of MIDI input devices . . . . . . .  38
+       6.3.11. Getting information about a MIDI port . . . . . . . .  38
        6.3.12. Getting information about specific MIDI port
-               parameter  . . . . . . . . . . . . . . . . . . . . . . 39
-       6.3.13. Changing settings of MIDI input ports  . . . . . . . . 41
-     6.4.  Configuring sampler channels . . . . . . . . . . . . . . . 42
-       6.4.1.  Loading an instrument  . . . . . . . . . . . . . . . . 42
-       6.4.2.  Loading a sampler engine . . . . . . . . . . . . . . . 43
-       6.4.3.  Getting all created sampler channel count  . . . . . . 44
-       6.4.4.  Getting all created sampler channel list . . . . . . . 44
-       6.4.5.  Adding a new sampler channel . . . . . . . . . . . . . 44
-       6.4.6.  Removing a sampler channel . . . . . . . . . . . . . . 45
-       6.4.7.  Getting amount of available engines  . . . . . . . . . 46
-       6.4.8.  Getting all available engines  . . . . . . . . . . . . 46
-       6.4.9.  Getting information about an engine  . . . . . . . . . 47
-       6.4.10. Getting sampler channel information  . . . . . . . . . 48
-       6.4.11. Current number of active voices  . . . . . . . . . . . 51
-       6.4.12. Current number of active disk streams  . . . . . . . . 51
-       6.4.13. Current fill state of disk stream buffers  . . . . . . 52
-       6.4.14. Setting audio output device  . . . . . . . . . . . . . 53
-       6.4.15. Setting audio output type  . . . . . . . . . . . . . . 53
-       6.4.16. Setting audio output channel . . . . . . . . . . . . . 54
-       6.4.17. Setting MIDI input device  . . . . . . . . . . . . . . 55
-       6.4.18. Setting MIDI input type  . . . . . . . . . . . . . . . 56
-       6.4.19. Setting MIDI input port  . . . . . . . . . . . . . . . 56
-       6.4.20. Setting MIDI input channel . . . . . . . . . . . . . . 57
-       6.4.21. Setting channel volume . . . . . . . . . . . . . . . . 58
-       6.4.22. Muting a sampler channel . . . . . . . . . . . . . . . 58
-       6.4.23. Soloing a sampler channel  . . . . . . . . . . . . . . 59
+               parameter . . . . . . . . . . . . . . . . . . . . . .  39
+       6.3.13. Changing settings of MIDI input ports . . . . . . . .  41
+     6.4.  Configuring sampler channels  . . . . . . . . . . . . . .  42
+       6.4.1.  Loading an instrument . . . . . . . . . . . . . . . .  42
+       6.4.2.  Loading a sampler engine  . . . . . . . . . . . . . .  43
+       6.4.3.  Getting all created sampler channel count . . . . . .  44
+       6.4.4.  Getting all created sampler channel list  . . . . . .  44
+       6.4.5.  Adding a new sampler channel  . . . . . . . . . . . .  44
+       6.4.6.  Removing a sampler channel  . . . . . . . . . . . . .  45
+       6.4.7.  Getting amount of available engines . . . . . . . . .  46
+       6.4.8.  Getting all available engines . . . . . . . . . . . .  46
+       6.4.9.  Getting information about an engine . . . . . . . . .  47
+       6.4.10. Getting sampler channel information . . . . . . . . .  48
+       6.4.11. Current number of active voices . . . . . . . . . . .  51
+       6.4.12. Current number of active disk streams . . . . . . . .  51
+       6.4.13. Current fill state of disk stream buffers . . . . . .  52
+       6.4.14. Setting audio output device . . . . . . . . . . . . .  53
+       6.4.15. Setting audio output type . . . . . . . . . . . . . .  53
+       6.4.16. Setting audio output channel  . . . . . . . . . . . .  54
+       6.4.17. Setting MIDI input device . . . . . . . . . . . . . .  55
+       6.4.18. Setting MIDI input type . . . . . . . . . . . . . . .  56
+       6.4.19. Setting MIDI input port . . . . . . . . . . . . . . .  56
+       6.4.20. Setting MIDI input channel  . . . . . . . . . . . . .  57
+       6.4.21. Setting channel volume  . . . . . . . . . . . . . . .  58
+       6.4.22. Muting a sampler channel  . . . . . . . . . . . . . .  58
+       6.4.23. Soloing a sampler channel . . . . . . . . . . . . . .  59
        6.4.24. Assigning a MIDI instrument map to a sampler
-               channel  . . . . . . . . . . . . . . . . . . . . . . . 60
-       6.4.25. Resetting a sampler channel  . . . . . . . . . . . . . 61
-     6.5.  Controlling connection . . . . . . . . . . . . . . . . . . 61
-       6.5.1.  Register front-end for receiving event messages  . . . 61
+               channel . . . . . . . . . . . . . . . . . . . . . . .  60
+       6.4.25. Adding an effect send to a sampler channel  . . . . .  61
+       6.4.26. Removing an effect send from a sampler channel  . . .  62
+       6.4.27. Getting amount of effect sends on a sampler channel .  63
+       6.4.28. Listing all effect sends on a sampler channel . . . .  63
+       6.4.29. Getting effect send information . . . . . . . . . . .  64
+       6.4.30. Altering effect send's audio routing  . . . . . . . .  65
+       6.4.31. Resetting a sampler channel . . . . . . . . . . . . .  66
+     6.5.  Controlling connection  . . . . . . . . . . . . . . . . .  66
+       6.5.1.  Register front-end for receiving event messages . . .  66
        6.5.2.  Unregister front-end for not receiving event
-               messages . . . . . . . . . . . . . . . . . . . . . . . 62
-       6.5.3.  Enable or disable echo of commands . . . . . . . . . . 63
-       6.5.4.  Close client connection  . . . . . . . . . . . . . . . 63
-     6.6.  Global commands  . . . . . . . . . . . . . . . . . . . . . 64
-       6.6.1.  Current number of active voices  . . . . . . . . . . . 64
-       6.6.2.  Maximum amount of active voices  . . . . . . . . . . . 64
-       6.6.3.  Reset sampler  . . . . . . . . . . . . . . . . . . . . 64
-       6.6.4.  General sampler informations . . . . . . . . . . . . . 65
-     6.7.  MIDI Instrument Mapping  . . . . . . . . . . . . . . . . . 65
-       6.7.1.  Create a new MIDI instrument map . . . . . . . . . . . 66
-       6.7.2.  Delete one particular or all MIDI instrument maps  . . 67
+               messages  . . . . . . . . . . . . . . . . . . . . . .  67
+       6.5.3.  Enable or disable echo of commands  . . . . . . . . .  68
+       6.5.4.  Close client connection . . . . . . . . . . . . . . .  68
+     6.6.  Global commands . . . . . . . . . . . . . . . . . . . . .  69
+       6.6.1.  Current number of active voices . . . . . . . . . . .  69
 
 
 
-Schoenebeck               Expires June 23, 2007                 [Page 3]
+Schoenebeck               Expires June 30, 2007                 [Page 3]
 
 Internet-Draft        LinuxSampler Control Protocol        December 2006
 
 
-       6.7.3.  Get amount of existing MIDI instrument maps  . . . . . 67
-       6.7.4.  Getting all created MIDI instrument maps . . . . . . . 68
-       6.7.5.  Getting MIDI instrument map information  . . . . . . . 68
-       6.7.6.  Renaming a MIDI instrument map . . . . . . . . . . . . 69
-       6.7.7.  Create or replace a MIDI instrument map entry  . . . . 69
-       6.7.8.  Getting ammount of MIDI instrument map entries . . . . 72
+       6.6.2.  Maximum amount of active voices . . . . . . . . . . .  69
+       6.6.3.  Reset sampler . . . . . . . . . . . . . . . . . . . .  69
+       6.6.4.  General sampler informations  . . . . . . . . . . . .  70
+     6.7.  MIDI Instrument Mapping . . . . . . . . . . . . . . . . .  70
+       6.7.1.  Create a new MIDI instrument map  . . . . . . . . . .  71
+       6.7.2.  Delete one particular or all MIDI instrument maps . .  72
+       6.7.3.  Get amount of existing MIDI instrument maps . . . . .  72
+       6.7.4.  Getting all created MIDI instrument maps  . . . . . .  73
+       6.7.5.  Getting MIDI instrument map information . . . . . . .  73
+       6.7.6.  Renaming a MIDI instrument map  . . . . . . . . . . .  74
+       6.7.7.  Create or replace a MIDI instrument map entry . . . .  74
+       6.7.8.  Getting ammount of MIDI instrument map entries  . . .  77
        6.7.9.  Getting indeces of all entries of a MIDI
-               instrument map . . . . . . . . . . . . . . . . . . . . 73
-       6.7.10. Remove an entry from the MIDI instrument map . . . . . 73
-       6.7.11. Get current settings of MIDI instrument map entry  . . 74
-       6.7.12. Clear MIDI instrument map  . . . . . . . . . . . . . . 76
-   7.  Command Syntax . . . . . . . . . . . . . . . . . . . . . . . . 77
-   8.  Events . . . . . . . . . . . . . . . . . . . . . . . . . . . . 87
-     8.1.  Number of audio output devices changed . . . . . . . . . . 87
-     8.2.  Audio output device's settings changed . . . . . . . . . . 87
-     8.3.  Number of MIDI input devices changed . . . . . . . . . . . 87
-     8.4.  MIDI input device's settings changed . . . . . . . . . . . 88
-     8.5.  Number of sampler channels changed . . . . . . . . . . . . 88
-     8.6.  Number of active voices changed  . . . . . . . . . . . . . 88
-     8.7.  Number of active disk streams changed  . . . . . . . . . . 89
-     8.8.  Disk stream buffer fill state changed  . . . . . . . . . . 89
-     8.9.  Channel information changed  . . . . . . . . . . . . . . . 89
-     8.10. Total number of active voices changed  . . . . . . . . . . 90
-     8.11. Number of MIDI instrument maps changed . . . . . . . . . . 90
-     8.12. MIDI instrument map information changed  . . . . . . . . . 90
-     8.13. Number of MIDI instruments changed . . . . . . . . . . . . 91
-     8.14. MIDI instrument information changed  . . . . . . . . . . . 91
-     8.15. Miscellaneous and debugging events . . . . . . . . . . . . 92
-   9.  Security Considerations  . . . . . . . . . . . . . . . . . . . 93
-   10. Acknowledgments  . . . . . . . . . . . . . . . . . . . . . . . 94
-   11. References . . . . . . . . . . . . . . . . . . . . . . . . . . 95
-   Author's Address . . . . . . . . . . . . . . . . . . . . . . . . . 96
-   Intellectual Property and Copyright Statements . . . . . . . . . . 97
+               instrument map  . . . . . . . . . . . . . . . . . . .  78
+       6.7.10. Remove an entry from the MIDI instrument map  . . . .  78
+       6.7.11. Get current settings of MIDI instrument map entry . .  79
+       6.7.12. Clear MIDI instrument map . . . . . . . . . . . . . .  81
+   7.  Command Syntax  . . . . . . . . . . . . . . . . . . . . . . .  82
+   8.  Events  . . . . . . . . . . . . . . . . . . . . . . . . . . .  93
+     8.1.  Number of audio output devices changed  . . . . . . . . .  93
+     8.2.  Audio output device's settings changed  . . . . . . . . .  93
+     8.3.  Number of MIDI input devices changed  . . . . . . . . . .  93
+     8.4.  MIDI input device's settings changed  . . . . . . . . . .  94
+     8.5.  Number of sampler channels changed  . . . . . . . . . . .  94
+     8.6.  Number of active voices changed . . . . . . . . . . . . .  94
+     8.7.  Number of active disk streams changed . . . . . . . . . .  95
+     8.8.  Disk stream buffer fill state changed . . . . . . . . . .  95
+     8.9.  Channel information changed . . . . . . . . . . . . . . .  95
+     8.10. Total number of active voices changed . . . . . . . . . .  96
+     8.11. Number of MIDI instrument maps changed  . . . . . . . . .  96
+     8.12. MIDI instrument map information changed . . . . . . . . .  96
+     8.13. Number of MIDI instruments changed  . . . . . . . . . . .  97
+     8.14. MIDI instrument information changed . . . . . . . . . . .  97
+     8.15. Miscellaneous and debugging events  . . . . . . . . . . .  98
+   9.  Security Considerations . . . . . . . . . . . . . . . . . . .  99
+   10. Acknowledgments . . . . . . . . . . . . . . . . . . . . . . . 100
+   11. References  . . . . . . . . . . . . . . . . . . . . . . . . . 101
+   Author's Address  . . . . . . . . . . . . . . . . . . . . . . . . 102
+   Intellectual Property and Copyright Statements  . . . . . . . . . 103
 
 
 
@@ -214,13 +220,7 @@ Internet-Draft        LinuxSampler Control Protocol        December 2006
 
 
 
-
-
-
-
-
-
-Schoenebeck               Expires June 23, 2007                 [Page 4]
+Schoenebeck               Expires June 30, 2007                 [Page 4]
 
 Internet-Draft        LinuxSampler Control Protocol        December 2006
 
@@ -276,7 +276,7 @@ Internet-Draft        LinuxSampler Control Protocol        December 2006
 
 
 
-Schoenebeck               Expires June 23, 2007                 [Page 5]
+Schoenebeck               Expires June 30, 2007                 [Page 5]
 
 Internet-Draft        LinuxSampler Control Protocol        December 2006
 
@@ -332,7 +332,7 @@ Internet-Draft        LinuxSampler Control Protocol        December 2006
 
 
 
-Schoenebeck               Expires June 23, 2007                 [Page 6]
+Schoenebeck               Expires June 30, 2007                 [Page 6]
 
 Internet-Draft        LinuxSampler Control Protocol        December 2006
 
@@ -388,7 +388,7 @@ Internet-Draft        LinuxSampler Control Protocol        December 2006
 
 
 
-Schoenebeck               Expires June 23, 2007                 [Page 7]
+Schoenebeck               Expires June 30, 2007                 [Page 7]
 
 Internet-Draft        LinuxSampler Control Protocol        December 2006
 
@@ -444,7 +444,7 @@ Internet-Draft        LinuxSampler Control Protocol        December 2006
 
 
 
-Schoenebeck               Expires June 23, 2007                 [Page 8]
+Schoenebeck               Expires June 30, 2007                 [Page 8]
 
 Internet-Draft        LinuxSampler Control Protocol        December 2006
 
@@ -500,7 +500,7 @@ Internet-Draft        LinuxSampler Control Protocol        December 2006
 
 
 
-Schoenebeck               Expires June 23, 2007                 [Page 9]
+Schoenebeck               Expires June 30, 2007                 [Page 9]
 
 Internet-Draft        LinuxSampler Control Protocol        December 2006
 
@@ -556,7 +556,7 @@ Internet-Draft        LinuxSampler Control Protocol        December 2006
 
 
 
-Schoenebeck               Expires June 23, 2007                [Page 10]
+Schoenebeck               Expires June 30, 2007                [Page 10]
 
 Internet-Draft        LinuxSampler Control Protocol        December 2006
 
@@ -612,7 +612,7 @@ Internet-Draft        LinuxSampler Control Protocol        December 2006
 
 
 
-Schoenebeck               Expires June 23, 2007                [Page 11]
+Schoenebeck               Expires June 30, 2007                [Page 11]
 
 Internet-Draft        LinuxSampler Control Protocol        December 2006
 
@@ -668,7 +668,7 @@ Internet-Draft        LinuxSampler Control Protocol        December 2006
 
 
 
-Schoenebeck               Expires June 23, 2007                [Page 12]
+Schoenebeck               Expires June 30, 2007                [Page 12]
 
 Internet-Draft        LinuxSampler Control Protocol        December 2006
 
@@ -724,7 +724,7 @@ Internet-Draft        LinuxSampler Control Protocol        December 2006
 
 
 
-Schoenebeck               Expires June 23, 2007                [Page 13]
+Schoenebeck               Expires June 30, 2007                [Page 13]
 
 Internet-Draft        LinuxSampler Control Protocol        December 2006
 
@@ -780,7 +780,7 @@ Internet-Draft        LinuxSampler Control Protocol        December 2006
 
 
 
-Schoenebeck               Expires June 23, 2007                [Page 14]
+Schoenebeck               Expires June 30, 2007                [Page 14]
 
 Internet-Draft        LinuxSampler Control Protocol        December 2006
 
@@ -836,7 +836,7 @@ Internet-Draft        LinuxSampler Control Protocol        December 2006
 
 
 
-Schoenebeck               Expires June 23, 2007                [Page 15]
+Schoenebeck               Expires June 30, 2007                [Page 15]
 
 Internet-Draft        LinuxSampler Control Protocol        December 2006
 
@@ -892,7 +892,7 @@ Internet-Draft        LinuxSampler Control Protocol        December 2006
 
 
 
-Schoenebeck               Expires June 23, 2007                [Page 16]
+Schoenebeck               Expires June 30, 2007                [Page 16]
 
 Internet-Draft        LinuxSampler Control Protocol        December 2006
 
@@ -948,7 +948,7 @@ Internet-Draft        LinuxSampler Control Protocol        December 2006
 
 
 
-Schoenebeck               Expires June 23, 2007                [Page 17]
+Schoenebeck               Expires June 30, 2007                [Page 17]
 
 Internet-Draft        LinuxSampler Control Protocol        December 2006
 
@@ -1004,7 +1004,7 @@ Internet-Draft        LinuxSampler Control Protocol        December 2006
 
 
 
-Schoenebeck               Expires June 23, 2007                [Page 18]
+Schoenebeck               Expires June 30, 2007                [Page 18]
 
 Internet-Draft        LinuxSampler Control Protocol        December 2006
 
@@ -1060,7 +1060,7 @@ Internet-Draft        LinuxSampler Control Protocol        December 2006
 
 
 
-Schoenebeck               Expires June 23, 2007                [Page 19]
+Schoenebeck               Expires June 30, 2007                [Page 19]
 
 Internet-Draft        LinuxSampler Control Protocol        December 2006
 
@@ -1116,7 +1116,7 @@ Internet-Draft        LinuxSampler Control Protocol        December 2006
 
 
 
-Schoenebeck               Expires June 23, 2007                [Page 20]
+Schoenebeck               Expires June 30, 2007                [Page 20]
 
 Internet-Draft        LinuxSampler Control Protocol        December 2006
 
@@ -1172,7 +1172,7 @@ Internet-Draft        LinuxSampler Control Protocol        December 2006
 
 
 
-Schoenebeck               Expires June 23, 2007                [Page 21]
+Schoenebeck               Expires June 30, 2007                [Page 21]
 
 Internet-Draft        LinuxSampler Control Protocol        December 2006
 
@@ -1228,7 +1228,7 @@ Internet-Draft        LinuxSampler Control Protocol        December 2006
 
 
 
-Schoenebeck               Expires June 23, 2007                [Page 22]
+Schoenebeck               Expires June 30, 2007                [Page 22]
 
 Internet-Draft        LinuxSampler Control Protocol        December 2006
 
@@ -1284,7 +1284,7 @@ Internet-Draft        LinuxSampler Control Protocol        December 2006
 
 
 
-Schoenebeck               Expires June 23, 2007                [Page 23]
+Schoenebeck               Expires June 30, 2007                [Page 23]
 
 Internet-Draft        LinuxSampler Control Protocol        December 2006
 
@@ -1340,7 +1340,7 @@ Internet-Draft        LinuxSampler Control Protocol        December 2006
 
 
 
-Schoenebeck               Expires June 23, 2007                [Page 24]
+Schoenebeck               Expires June 30, 2007                [Page 24]
 
 Internet-Draft        LinuxSampler Control Protocol        December 2006
 
@@ -1396,7 +1396,7 @@ Internet-Draft        LinuxSampler Control Protocol        December 2006
 
 
 
-Schoenebeck               Expires June 23, 2007                [Page 25]
+Schoenebeck               Expires June 30, 2007                [Page 25]
 
 Internet-Draft        LinuxSampler Control Protocol        December 2006
 
@@ -1452,7 +1452,7 @@ Internet-Draft        LinuxSampler Control Protocol        December 2006
 
 
 
-Schoenebeck               Expires June 23, 2007                [Page 26]
+Schoenebeck               Expires June 30, 2007                [Page 26]
 
 Internet-Draft        LinuxSampler Control Protocol        December 2006
 
@@ -1508,7 +1508,7 @@ Internet-Draft        LinuxSampler Control Protocol        December 2006
 
 
 
-Schoenebeck               Expires June 23, 2007                [Page 27]
+Schoenebeck               Expires June 30, 2007                [Page 27]
 
 Internet-Draft        LinuxSampler Control Protocol        December 2006
 
@@ -1564,7 +1564,7 @@ Internet-Draft        LinuxSampler Control Protocol        December 2006
 
 
 
-Schoenebeck               Expires June 23, 2007                [Page 28]
+Schoenebeck               Expires June 30, 2007                [Page 28]
 
 Internet-Draft        LinuxSampler Control Protocol        December 2006
 
@@ -1620,7 +1620,7 @@ Internet-Draft        LinuxSampler Control Protocol        December 2006
 
 
 
-Schoenebeck               Expires June 23, 2007                [Page 29]
+Schoenebeck               Expires June 30, 2007                [Page 29]
 
 Internet-Draft        LinuxSampler Control Protocol        December 2006
 
@@ -1676,7 +1676,7 @@ Internet-Draft        LinuxSampler Control Protocol        December 2006
 
 
 
-Schoenebeck               Expires June 23, 2007                [Page 30]
+Schoenebeck               Expires June 30, 2007                [Page 30]
 
 Internet-Draft        LinuxSampler Control Protocol        December 2006
 
@@ -1732,7 +1732,7 @@ Internet-Draft        LinuxSampler Control Protocol        December 2006
 
 
 
-Schoenebeck               Expires June 23, 2007                [Page 31]
+Schoenebeck               Expires June 30, 2007                [Page 31]
 
 Internet-Draft        LinuxSampler Control Protocol        December 2006
 
@@ -1788,7 +1788,7 @@ Internet-Draft        LinuxSampler Control Protocol        December 2006
 
 
 
-Schoenebeck               Expires June 23, 2007                [Page 32]
+Schoenebeck               Expires June 30, 2007                [Page 32]
 
 Internet-Draft        LinuxSampler Control Protocol        December 2006
 
@@ -1844,7 +1844,7 @@ Internet-Draft        LinuxSampler Control Protocol        December 2006
 
 
 
-Schoenebeck               Expires June 23, 2007                [Page 33]
+Schoenebeck               Expires June 30, 2007                [Page 33]
 
 Internet-Draft        LinuxSampler Control Protocol        December 2006
 
@@ -1900,7 +1900,7 @@ Internet-Draft        LinuxSampler Control Protocol        December 2006
 
 
 
-Schoenebeck               Expires June 23, 2007                [Page 34]
+Schoenebeck               Expires June 30, 2007                [Page 34]
 
 Internet-Draft        LinuxSampler Control Protocol        December 2006
 
@@ -1956,7 +1956,7 @@ Internet-Draft        LinuxSampler Control Protocol        December 2006
 
 
 
-Schoenebeck               Expires June 23, 2007                [Page 35]
+Schoenebeck               Expires June 30, 2007                [Page 35]
 
 Internet-Draft        LinuxSampler Control Protocol        December 2006
 
@@ -2012,7 +2012,7 @@ Internet-Draft        LinuxSampler Control Protocol        December 2006
 
 
 
-Schoenebeck               Expires June 23, 2007                [Page 36]
+Schoenebeck               Expires June 30, 2007                [Page 36]
 
 Internet-Draft        LinuxSampler Control Protocol        December 2006
 
@@ -2068,7 +2068,7 @@ Internet-Draft        LinuxSampler Control Protocol        December 2006
 
 
 
-Schoenebeck               Expires June 23, 2007                [Page 37]
+Schoenebeck               Expires June 30, 2007                [Page 37]
 
 Internet-Draft        LinuxSampler Control Protocol        December 2006
 
@@ -2124,7 +2124,7 @@ Internet-Draft        LinuxSampler Control Protocol        December 2006
 
 
 
-Schoenebeck               Expires June 23, 2007                [Page 38]
+Schoenebeck               Expires June 30, 2007                [Page 38]
 
 Internet-Draft        LinuxSampler Control Protocol        December 2006
 
@@ -2180,7 +2180,7 @@ Internet-Draft        LinuxSampler Control Protocol        December 2006
 
 
 
-Schoenebeck               Expires June 23, 2007                [Page 39]
+Schoenebeck               Expires June 30, 2007                [Page 39]
 
 Internet-Draft        LinuxSampler Control Protocol        December 2006
 
@@ -2236,7 +2236,7 @@ Internet-Draft        LinuxSampler Control Protocol        December 2006
 
 
 
-Schoenebeck               Expires June 23, 2007                [Page 40]
+Schoenebeck               Expires June 30, 2007                [Page 40]
 
 Internet-Draft        LinuxSampler Control Protocol        December 2006
 
@@ -2292,7 +2292,7 @@ Internet-Draft        LinuxSampler Control Protocol        December 2006
 
 
 
-Schoenebeck               Expires June 23, 2007                [Page 41]
+Schoenebeck               Expires June 30, 2007                [Page 41]
 
 Internet-Draft        LinuxSampler Control Protocol        December 2006
 
@@ -2348,7 +2348,7 @@ Internet-Draft        LinuxSampler Control Protocol        December 2006
 
 
 
-Schoenebeck               Expires June 23, 2007                [Page 42]
+Schoenebeck               Expires June 30, 2007                [Page 42]
 
 Internet-Draft        LinuxSampler Control Protocol        December 2006
 
@@ -2404,7 +2404,7 @@ Internet-Draft        LinuxSampler Control Protocol        December 2006
 
 
 
-Schoenebeck               Expires June 23, 2007                [Page 43]
+Schoenebeck               Expires June 30, 2007                [Page 43]
 
 Internet-Draft        LinuxSampler Control Protocol        December 2006
 
@@ -2460,7 +2460,7 @@ Internet-Draft        LinuxSampler Control Protocol        December 2006
 
 
 
-Schoenebeck               Expires June 23, 2007                [Page 44]
+Schoenebeck               Expires June 30, 2007                [Page 44]
 
 Internet-Draft        LinuxSampler Control Protocol        December 2006
 
@@ -2516,7 +2516,7 @@ Internet-Draft        LinuxSampler Control Protocol        December 2006
 
 
 
-Schoenebeck               Expires June 23, 2007                [Page 45]
+Schoenebeck               Expires June 30, 2007                [Page 45]
 
 Internet-Draft        LinuxSampler Control Protocol        December 2006
 
@@ -2572,7 +2572,7 @@ Internet-Draft        LinuxSampler Control Protocol        December 2006
 
 
 
-Schoenebeck               Expires June 23, 2007                [Page 46]
+Schoenebeck               Expires June 30, 2007                [Page 46]
 
 Internet-Draft        LinuxSampler Control Protocol        December 2006
 
@@ -2628,7 +2628,7 @@ Internet-Draft        LinuxSampler Control Protocol        December 2006
 
 
 
-Schoenebeck               Expires June 23, 2007                [Page 47]
+Schoenebeck               Expires June 30, 2007                [Page 47]
 
 Internet-Draft        LinuxSampler Control Protocol        December 2006
 
@@ -2684,7 +2684,7 @@ Internet-Draft        LinuxSampler Control Protocol        December 2006
 
 
 
-Schoenebeck               Expires June 23, 2007                [Page 48]
+Schoenebeck               Expires June 30, 2007                [Page 48]
 
 Internet-Draft        LinuxSampler Control Protocol        December 2006
 
@@ -2740,7 +2740,7 @@ Internet-Draft        LinuxSampler Control Protocol        December 2006
 
 
 
-Schoenebeck               Expires June 23, 2007                [Page 49]
+Schoenebeck               Expires June 30, 2007                [Page 49]
 
 Internet-Draft        LinuxSampler Control Protocol        December 2006
 
@@ -2796,7 +2796,7 @@ Internet-Draft        LinuxSampler Control Protocol        December 2006
 
 
 
-Schoenebeck               Expires June 23, 2007                [Page 50]
+Schoenebeck               Expires June 30, 2007                [Page 50]
 
 Internet-Draft        LinuxSampler Control Protocol        December 2006
 
@@ -2852,7 +2852,7 @@ Internet-Draft        LinuxSampler Control Protocol        December 2006
 
 
 
-Schoenebeck               Expires June 23, 2007                [Page 51]
+Schoenebeck               Expires June 30, 2007                [Page 51]
 
 Internet-Draft        LinuxSampler Control Protocol        December 2006
 
@@ -2908,7 +2908,7 @@ Internet-Draft        LinuxSampler Control Protocol        December 2006
 
 
 
-Schoenebeck               Expires June 23, 2007                [Page 52]
+Schoenebeck               Expires June 30, 2007                [Page 52]
 
 Internet-Draft        LinuxSampler Control Protocol        December 2006
 
@@ -2964,7 +2964,7 @@ Internet-Draft        LinuxSampler Control Protocol        December 2006
 
 
 
-Schoenebeck               Expires June 23, 2007                [Page 53]
+Schoenebeck               Expires June 30, 2007                [Page 53]
 
 Internet-Draft        LinuxSampler Control Protocol        December 2006
 
@@ -3020,7 +3020,7 @@ Internet-Draft        LinuxSampler Control Protocol        December 2006
 
 
 
-Schoenebeck               Expires June 23, 2007                [Page 54]
+Schoenebeck               Expires June 30, 2007                [Page 54]
 
 Internet-Draft        LinuxSampler Control Protocol        December 2006
 
@@ -3076,7 +3076,7 @@ Internet-Draft        LinuxSampler Control Protocol        December 2006
 
 
 
-Schoenebeck               Expires June 23, 2007                [Page 55]
+Schoenebeck               Expires June 30, 2007                [Page 55]
 
 Internet-Draft        LinuxSampler Control Protocol        December 2006
 
@@ -3132,7 +3132,7 @@ Internet-Draft        LinuxSampler Control Protocol        December 2006
 
 
 
-Schoenebeck               Expires June 23, 2007                [Page 56]
+Schoenebeck               Expires June 30, 2007                [Page 56]
 
 Internet-Draft        LinuxSampler Control Protocol        December 2006
 
@@ -3188,7 +3188,7 @@ Internet-Draft        LinuxSampler Control Protocol        December 2006
 
 
 
-Schoenebeck               Expires June 23, 2007                [Page 57]
+Schoenebeck               Expires June 30, 2007                [Page 57]
 
 Internet-Draft        LinuxSampler Control Protocol        December 2006
 
@@ -3244,7 +3244,7 @@ Internet-Draft        LinuxSampler Control Protocol        December 2006
 
 
 
-Schoenebeck               Expires June 23, 2007                [Page 58]
+Schoenebeck               Expires June 30, 2007                [Page 58]
 
 Internet-Draft        LinuxSampler Control Protocol        December 2006
 
@@ -3300,7 +3300,7 @@ Internet-Draft        LinuxSampler Control Protocol        December 2006
 
 
 
-Schoenebeck               Expires June 23, 2007                [Page 59]
+Schoenebeck               Expires June 30, 2007                [Page 59]
 
 Internet-Draft        LinuxSampler Control Protocol        December 2006
 
@@ -3356,7 +3356,7 @@ Internet-Draft        LinuxSampler Control Protocol        December 2006
 
 
 
-Schoenebeck               Expires June 23, 2007                [Page 60]
+Schoenebeck               Expires June 30, 2007                [Page 60]
 
 Internet-Draft        LinuxSampler Control Protocol        December 2006
 
@@ -3365,7 +3365,289 @@ Internet-Draft        LinuxSampler Control Protocol        December 2006
 
 
 
-6.4.25.  Resetting a sampler channel
+6.4.25.  Adding an effect send to a sampler channel
+
+   The front-end can create an additional effect send on a specific
+   sampler channel by sending the following command:
+
+      CREATE FX_SEND <sampler-channel> <midi-ctrl> [<name>]
+
+   Where <sampler-channel> is the respective sampler channel number as
+   returned by the "ADD CHANNEL" (Section 6.4.5) or "LIST CHANNELS"
+   (Section 6.4.4) command, that is the sampler channel on which the
+   effect send should be created on, <midi-ctrl> is a number between
+   0..127 defining the MIDI controller which can alter the effect send
+   level and <name> is an optional argument defining a name for the
+   effect send entity.  The name does not have to be unique.
+
+   By default, that is as initial routing, the effect send's audio
+   channels are automatically routed to the last audio channels of the
+   sampler channel's audio output device, that way you can i.e. first
+   increase the amount of audio channels on the audio output device for
+   having dedicated effect send output channels and when "CREATE
+   FX_SEND" is called, those channels will automatically be picked.  You
+   can alter the destination channels however with "SET FX_SEND
+   AUDIO_OUTPUT_CHANNEL" (Section 6.4.30).
+
+   Note: Create effect sends on a sampler channel only when needed,
+   because having effect sends on a sampler channel will decrease
+   runtime performance, because for implementing channel effect sends,
+   separate (sampler channel local) audio buffers are needed to render
+   and mix the voices and route the audio signal afterwards to the
+   master outputs and effect send outputs (along with their respective
+   effect send levels).  A sampler channel without effect sends however
+   can mix its voices directly into the audio output devices's audio
+   buffers and is thus faster.
+
+   Possible Answers:
+
+      "OK[<fx-send-id>]" -
+
+         in case a new effect send could be added to the sampler
+         channel, where <fx-send-id> reflects the unique ID of the newly
+         created effect send entity
+
+
+
+
+
+
+Schoenebeck               Expires June 30, 2007                [Page 61]
+
+Internet-Draft        LinuxSampler Control Protocol        December 2006
+
+
+      "ERR:<error-code>:<error-message>" -
+
+         when a new effect send could not be added, i.e. due to invalid
+         parameters
+
+   Examples:
+
+      C: "CREATE FX_SEND 0 91 'Reverb Send'"
+
+      S: "OK[0]"
+
+      C: "CREATE FX_SEND 0 93"
+
+      S: "OK[1]"
+
+6.4.26.  Removing an effect send from a sampler channel
+
+   The front-end can remove an existing effect send on a specific
+   sampler channel by sending the following command:
+
+      DESTROY FX_SEND <sampler-channel> <fx-send-id>
+
+   Where <sampler-channel> is the respective sampler channel number as
+   returned by the "ADD CHANNEL" (Section 6.4.5) or "LIST CHANNELS"
+   (Section 6.4.4) command, that is the sampler channel from which the
+   effect send should be removed from and <fx-send-id> is the respective
+   effect send number as returned by the "CREATE FX_SEND"
+   (Section 6.4.25) or "LIST FX_SENDS" (Section 6.4.28) command.
+
+   Possible Answers:
+
+      "OK" -
+
+         on success
+
+      "ERR:<error-code>:<error-message>" -
+
+         in case it failed, providing an appropriate error code and
+         error message
+
+   Example:
+
+      C: "DESTROY FX_SEND 0 0"
+
+      S: "OK"
+
+
+
+
+
+
+Schoenebeck               Expires June 30, 2007                [Page 62]
+
+Internet-Draft        LinuxSampler Control Protocol        December 2006
+
+
+6.4.27.  Getting amount of effect sends on a sampler channel
+
+   The front-end can ask for the amount of effect sends on a specific
+   sampler channel by sending the following command:
+
+      GET FX_SENDS <sampler-channel>
+
+   Where <sampler-channel> is the respective sampler channel number as
+   returned by the "ADD CHANNEL" (Section 6.4.5) or "LIST CHANNELS"
+   (Section 6.4.4) command.
+
+   Possible Answers:
+
+      The sampler will answer by returning the number of effect sends on
+      the given sampler channel.
+
+   Example:
+
+      C: "GET FX_SENDS 0"
+
+      S: "2"
+
+6.4.28.  Listing all effect sends on a sampler channel
+
+   The front-end can ask for a list of effect sends on a specific
+   sampler channel by sending the following command:
+
+      LIST FX_SENDS <sampler-channel>
+
+   Where <sampler-channel> is the respective sampler channel number as
+   returned by the "ADD CHANNEL" (Section 6.4.5) or "LIST CHANNELS"
+   (Section 6.4.4) command.
+
+   Possible Answers:
+
+      The sampler will answer by returning a comma separated list with
+      all effect sends' numerical IDs on the given sampler channel.
+
+   Examples:
+
+      C: "LIST FX_SENDS 0"
+
+      S: "0,1"
+
+      C: "LIST FX_SENDS 1"
+
+      S: ""
+
+
+
+
+Schoenebeck               Expires June 30, 2007                [Page 63]
+
+Internet-Draft        LinuxSampler Control Protocol        December 2006
+
+
+6.4.29.  Getting effect send information
+
+   The front-end can ask for the current settings of an effect send
+   entity by sending the following command:
+
+      GET FX_SEND INFO <sampler-channel> <fx-send-id>
+
+   Where <sampler-channel> is the sampler channel number as returned by
+   the "ADD CHANNEL" (Section 6.4.5) or "LIST CHANNELS" (Section 6.4.4)
+   command and <fx-send-id> reflects the numerical ID of the effect send
+   entity as returned by the "CREATE FX_SEND" (Section 6.4.25) or "LIST
+   FX_SENDS" (Section 6.4.28) command.
+
+   Possible Answers:
+
+      The sampler will answer by sending a <CRLF> separated list.  Each
+      answer line begins with the settings category name followed by a
+      colon and then a space character <SP> and finally the info
+      character string to that setting category.  At the moment the
+      following categories are defined:
+
+
+
+         NAME -
+
+            name of the effect send entity
+
+         AUDIO_OUTPUT_ROUTING -
+
+            comma separated list which reflects to which audio channel
+            of the selected audio output device each effect send output
+            channel is routed to, e.g. "0,3" would mean the effect
+            send's output channel 0 is routed to channel 0 of the audio
+            output device and the effect send's output channel 1 is
+            routed to the channel 3 of the audio output device (see "SET
+            FX_SEND AUDIO_OUTPUT_CHANNEL" (Section 6.4.30) for details)
+
+   The mentioned fields above don't have to be in particular order.
+
+   Example:
+
+      C: "GET FX_SEND INFO 0 0"
+
+      S: "NAME: Reverb Send"
+
+         "AUDIO_OUTPUT_ROUTING: 2,3"
+
+
+
+
+
+Schoenebeck               Expires June 30, 2007                [Page 64]
+
+Internet-Draft        LinuxSampler Control Protocol        December 2006
+
+
+         "."
+
+6.4.30.  Altering effect send's audio routing
+
+   The front-end can alter the destination of an effect send's audio
+   channel on a specific sampler channel by sending the following
+   command:
+
+      SET FX_SEND AUDIO_OUTPUT_CHANNEL <sampler-chan> <fx-send-id>
+      <audio-src> <audio-dst>
+
+   Where <sampler-chan> is the sampler channel number as returned by the
+   "ADD CHANNEL" (Section 6.4.5) or "LIST CHANNELS" (Section 6.4.4)
+   command, <fx-send-id> reflects the numerical ID of the effect send
+   entity as returned by the "CREATE FX_SEND" (Section 6.4.25) or "LIST
+   FX_SENDS" (Section 6.4.28) command, <audio-src> is the numerical ID
+   of the effect send's audio channel which should be rerouted and
+   <audio-dst> is the numerical ID of the audio channel of the selected
+   audio output device where <audio-src> should be routed to.
+
+   Note that effect sends can only route audio to the same audio output
+   device as assigned to the effect send's sampler channel.  Also note
+   that an effect send entity does always have exactly as much audio
+   channels as its sampler channel.  So if the sampler channel is
+   stereo, the effect send does have two audio channels as well.  Also
+   keep in mind that the amount of audio channels on a sampler channel
+   might be dependant not only to the deployed sampler engine on the
+   sampler channel, but also dependant to the instrument currently
+   loaded.  However you can (effectively) turn an i.e. stereo effect
+   send into a mono one by simply altering its audio routing
+   appropriately.
+
+   Possible Answers:
+
+      "OK" -
+
+         on success
+
+      "WRN:<warning-code>:<warning-message>" -
+
+         if audio output channel was set, but there are noteworthy
+         issue(s) related, providing an appropriate warning code and
+         warning message
+
+      "ERR:<error-code>:<error-message>" -
+
+         in case it failed, providing an appropriate error code and
+         error message
+
+
+
+Schoenebeck               Expires June 30, 2007                [Page 65]
+
+Internet-Draft        LinuxSampler Control Protocol        December 2006
+
+
+   Example:
+
+      C: "SET FX_SEND AUDIO_OUTPUT_CHANNEL 0 0 0 2"
+
+      S: "OK"
+
+6.4.31.  Resetting a sampler channel
 
    The front-end can reset a particular sampler channel by sending the
    following command:
@@ -3410,9 +3692,7 @@ Internet-Draft        LinuxSampler Control Protocol        December 2006
 
 
 
-
-
-Schoenebeck               Expires June 23, 2007                [Page 61]
+Schoenebeck               Expires June 30, 2007                [Page 66]
 
 Internet-Draft        LinuxSampler Control Protocol        December 2006
 
@@ -3468,7 +3748,7 @@ Internet-Draft        LinuxSampler Control Protocol        December 2006
 
 
 
-Schoenebeck               Expires June 23, 2007                [Page 62]
+Schoenebeck               Expires June 30, 2007                [Page 67]
 
 Internet-Draft        LinuxSampler Control Protocol        December 2006
 
@@ -3524,7 +3804,7 @@ Internet-Draft        LinuxSampler Control Protocol        December 2006
 
 
 
-Schoenebeck               Expires June 23, 2007                [Page 63]
+Schoenebeck               Expires June 30, 2007                [Page 68]
 
 Internet-Draft        LinuxSampler Control Protocol        December 2006
 
@@ -3580,7 +3860,7 @@ Internet-Draft        LinuxSampler Control Protocol        December 2006
 
 
 
-Schoenebeck               Expires June 23, 2007                [Page 64]
+Schoenebeck               Expires June 30, 2007                [Page 69]
 
 Internet-Draft        LinuxSampler Control Protocol        December 2006
 
@@ -3636,7 +3916,7 @@ Internet-Draft        LinuxSampler Control Protocol        December 2006
 
 
 
-Schoenebeck               Expires June 23, 2007                [Page 65]
+Schoenebeck               Expires June 30, 2007                [Page 70]
 
 Internet-Draft        LinuxSampler Control Protocol        December 2006
 
@@ -3692,7 +3972,7 @@ Internet-Draft        LinuxSampler Control Protocol        December 2006
 
 
 
-Schoenebeck               Expires June 23, 2007                [Page 66]
+Schoenebeck               Expires June 30, 2007                [Page 71]
 
 Internet-Draft        LinuxSampler Control Protocol        December 2006
 
@@ -3748,7 +4028,7 @@ Internet-Draft        LinuxSampler Control Protocol        December 2006
 
 
 
-Schoenebeck               Expires June 23, 2007                [Page 67]
+Schoenebeck               Expires June 30, 2007                [Page 72]
 
 Internet-Draft        LinuxSampler Control Protocol        December 2006
 
@@ -3804,7 +4084,7 @@ Internet-Draft        LinuxSampler Control Protocol        December 2006
 
 
 
-Schoenebeck               Expires June 23, 2007                [Page 68]
+Schoenebeck               Expires June 30, 2007                [Page 73]
 
 Internet-Draft        LinuxSampler Control Protocol        December 2006
 
@@ -3860,7 +4140,7 @@ Internet-Draft        LinuxSampler Control Protocol        December 2006
 
 
 
-Schoenebeck               Expires June 23, 2007                [Page 69]
+Schoenebeck               Expires June 30, 2007                [Page 74]
 
 Internet-Draft        LinuxSampler Control Protocol        December 2006
 
@@ -3916,7 +4196,7 @@ Internet-Draft        LinuxSampler Control Protocol        December 2006
 
 
 
-Schoenebeck               Expires June 23, 2007                [Page 70]
+Schoenebeck               Expires June 30, 2007                [Page 75]
 
 Internet-Draft        LinuxSampler Control Protocol        December 2006
 
@@ -3972,7 +4252,7 @@ Internet-Draft        LinuxSampler Control Protocol        December 2006
 
 
 
-Schoenebeck               Expires June 23, 2007                [Page 71]
+Schoenebeck               Expires June 30, 2007                [Page 76]
 
 Internet-Draft        LinuxSampler Control Protocol        December 2006
 
@@ -4028,7 +4308,7 @@ Internet-Draft        LinuxSampler Control Protocol        December 2006
 
 
 
-Schoenebeck               Expires June 23, 2007                [Page 72]
+Schoenebeck               Expires June 30, 2007                [Page 77]
 
 Internet-Draft        LinuxSampler Control Protocol        December 2006
 
@@ -4084,7 +4364,7 @@ Internet-Draft        LinuxSampler Control Protocol        December 2006
 
 
 
-Schoenebeck               Expires June 23, 2007                [Page 73]
+Schoenebeck               Expires June 30, 2007                [Page 78]
 
 Internet-Draft        LinuxSampler Control Protocol        December 2006
 
@@ -4140,7 +4420,7 @@ Internet-Draft        LinuxSampler Control Protocol        December 2006
 
 
 
-Schoenebeck               Expires June 23, 2007                [Page 74]
+Schoenebeck               Expires June 30, 2007                [Page 79]
 
 Internet-Draft        LinuxSampler Control Protocol        December 2006
 
@@ -4196,7 +4476,7 @@ Internet-Draft        LinuxSampler Control Protocol        December 2006
 
 
 
-Schoenebeck               Expires June 23, 2007                [Page 75]
+Schoenebeck               Expires June 30, 2007                [Page 80]
 
 Internet-Draft        LinuxSampler Control Protocol        December 2006
 
@@ -4252,7 +4532,7 @@ Internet-Draft        LinuxSampler Control Protocol        December 2006
 
 
 
-Schoenebeck               Expires June 23, 2007                [Page 76]
+Schoenebeck               Expires June 30, 2007                [Page 81]
 
 Internet-Draft        LinuxSampler Control Protocol        December 2006
 
@@ -4308,7 +4588,7 @@ Internet-Draft        LinuxSampler Control Protocol        December 2006
 
 
 
-Schoenebeck               Expires June 23, 2007                [Page 77]
+Schoenebeck               Expires June 30, 2007                [Page 82]
 
 Internet-Draft        LinuxSampler Control Protocol        December 2006
 
@@ -4364,7 +4644,7 @@ Internet-Draft        LinuxSampler Control Protocol        December 2006
 
 
 
-Schoenebeck               Expires June 23, 2007                [Page 78]
+Schoenebeck               Expires June 30, 2007                [Page 83]
 
 Internet-Draft        LinuxSampler Control Protocol        December 2006
 
@@ -4420,7 +4700,7 @@ Internet-Draft        LinuxSampler Control Protocol        December 2006
 
 
 
-Schoenebeck               Expires June 23, 2007                [Page 79]
+Schoenebeck               Expires June 30, 2007                [Page 84]
 
 Internet-Draft        LinuxSampler Control Protocol        December 2006
 
@@ -4476,7 +4756,7 @@ Internet-Draft        LinuxSampler Control Protocol        December 2006
 
 
 
-Schoenebeck               Expires June 23, 2007                [Page 80]
+Schoenebeck               Expires June 30, 2007                [Page 85]
 
 Internet-Draft        LinuxSampler Control Protocol        December 2006
 
@@ -4526,16 +4806,20 @@ Internet-Draft        LinuxSampler Control Protocol        December 2006
 
       / MIDI_INSTRUMENT_MAP SP INFO SP midi_map
 
-   set_instruction =
+      / FX_SENDS SP sampler_channel
 
 
 
 
 
-Schoenebeck               Expires June 23, 2007                [Page 81]
+Schoenebeck               Expires June 30, 2007                [Page 86]
 
 Internet-Draft        LinuxSampler Control Protocol        December 2006
 
+
+      / FX_SEND SP INFO SP sampler_channel SP fx_send_id
+
+   set_instruction =
 
       AUDIO_OUTPUT_DEVICE_PARAMETER SP number SP string '='
       param_val_list
@@ -4553,6 +4837,9 @@ Internet-Draft        LinuxSampler Control Protocol        December 2006
 
       / MIDI_INSTRUMENT_MAP SP NAME SP midi_map SP map_name
 
+      / FX_SEND SP AUDIO_OUTPUT_CHANNEL SP sampler_channel SP fx_send_id
+      SP audio_channel_index SP audio_channel_index
+
       / ECHO SP boolean
 
    create_instruction =
@@ -4565,6 +4852,10 @@ Internet-Draft        LinuxSampler Control Protocol        December 2006
 
       / MIDI_INPUT_DEVICE SP string
 
+      / FX_SEND SP sampler_channel SP midi_ctrl
+
+      / FX_SEND SP sampler_channel SP midi_ctrl SP fx_send_name
+
    reset_instruction =
 
       CHANNEL SP sampler_channel
@@ -4572,6 +4863,15 @@ Internet-Draft        LinuxSampler Control Protocol        December 2006
    clear_instruction =
 
       MIDI_INSTRUMENTS SP midi_map
+
+
+
+
+
+Schoenebeck               Expires June 30, 2007                [Page 87]
+
+Internet-Draft        LinuxSampler Control Protocol        December 2006
+
 
       / MIDI_INSTRUMENTS SP ALL
 
@@ -4581,17 +4881,11 @@ Internet-Draft        LinuxSampler Control Protocol        December 2006
 
       / MIDI_INPUT_DEVICE SP number
 
+      / FX_SEND SP sampler_channel SP fx_send_id
+
    load_instruction =
 
       INSTRUMENT SP load_instr_args
-
-
-
-
-Schoenebeck               Expires June 23, 2007                [Page 82]
-
-Internet-Draft        LinuxSampler Control Protocol        December 2006
-
 
       / ENGINE SP load_engine_args
 
@@ -4626,6 +4920,15 @@ Internet-Draft        LinuxSampler Control Protocol        December 2006
 
       / MIDI_INSTRUMENT_MAP SP sampler_channel SP NONE
 
+
+
+
+
+Schoenebeck               Expires June 30, 2007                [Page 88]
+
+Internet-Draft        LinuxSampler Control Protocol        December 2006
+
+
       / MIDI_INSTRUMENT_MAP SP sampler_channel SP DEFAULT
 
    key_val_list =
@@ -4641,13 +4944,6 @@ Internet-Draft        LinuxSampler Control Protocol        December 2006
       / PERCENTAGE
 
    list_instruction =
-
-
-
-Schoenebeck               Expires June 23, 2007                [Page 83]
-
-Internet-Draft        LinuxSampler Control Protocol        December 2006
-
 
       AUDIO_OUTPUT_DEVICES
 
@@ -4667,6 +4963,8 @@ Internet-Draft        LinuxSampler Control Protocol        December 2006
 
       / MIDI_INSTRUMENT_MAPS
 
+      / FX_SENDS SP sampler_channel
+
    load_instr_args =
 
       filename SP instrument_index SP sampler_channel
@@ -4678,6 +4976,14 @@ Internet-Draft        LinuxSampler Control Protocol        December 2006
       engine_name SP sampler_channel
 
    instr_load_mode =
+
+
+
+
+Schoenebeck               Expires June 30, 2007                [Page 89]
+
+Internet-Draft        LinuxSampler Control Protocol        December 2006
+
 
       ON_DEMAND
 
@@ -4696,14 +5002,6 @@ Internet-Draft        LinuxSampler Control Protocol        December 2006
    audio_output_type_name =
 
       string
-
-
-
-
-Schoenebeck               Expires June 23, 2007                [Page 84]
-
-Internet-Draft        LinuxSampler Control Protocol        December 2006
-
 
    midi_input_port_index =
 
@@ -4731,6 +5029,18 @@ Internet-Draft        LinuxSampler Control Protocol        December 2006
 
       number
 
+   midi_ctrl =
+
+      number
+
+
+
+
+Schoenebeck               Expires June 30, 2007                [Page 90]
+
+Internet-Draft        LinuxSampler Control Protocol        December 2006
+
+
    volume_value =
 
       dotnum
@@ -4745,6 +5055,10 @@ Internet-Draft        LinuxSampler Control Protocol        December 2006
 
       number
 
+   fx_send_id =
+
+      number
+
    engine_name =
 
       string
@@ -4753,19 +5067,15 @@ Internet-Draft        LinuxSampler Control Protocol        December 2006
 
       stringval
 
-
-
-
-Schoenebeck               Expires June 23, 2007                [Page 85]
-
-Internet-Draft        LinuxSampler Control Protocol        December 2006
-
-
    map_name =
 
       stringval
 
    entry_name =
+
+      stringval
+
+   fx_send_name =
 
       stringval
 
@@ -4778,6 +5088,14 @@ Internet-Draft        LinuxSampler Control Protocol        December 2006
    param_val =
 
       string
+
+
+
+
+Schoenebeck               Expires June 30, 2007                [Page 91]
+
+Internet-Draft        LinuxSampler Control Protocol        December 2006
+
 
       / stringval
 
@@ -4812,7 +5130,25 @@ Internet-Draft        LinuxSampler Control Protocol        December 2006
 
 
 
-Schoenebeck               Expires June 23, 2007                [Page 86]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Schoenebeck               Expires June 30, 2007                [Page 92]
 
 Internet-Draft        LinuxSampler Control Protocol        December 2006
 
@@ -4868,7 +5204,7 @@ Internet-Draft        LinuxSampler Control Protocol        December 2006
 
 
 
-Schoenebeck               Expires June 23, 2007                [Page 87]
+Schoenebeck               Expires June 30, 2007                [Page 93]
 
 Internet-Draft        LinuxSampler Control Protocol        December 2006
 
@@ -4924,7 +5260,7 @@ Internet-Draft        LinuxSampler Control Protocol        December 2006
 
 
 
-Schoenebeck               Expires June 23, 2007                [Page 88]
+Schoenebeck               Expires June 30, 2007                [Page 94]
 
 Internet-Draft        LinuxSampler Control Protocol        December 2006
 
@@ -4980,7 +5316,7 @@ Internet-Draft        LinuxSampler Control Protocol        December 2006
 
 
 
-Schoenebeck               Expires June 23, 2007                [Page 89]
+Schoenebeck               Expires June 30, 2007                [Page 95]
 
 Internet-Draft        LinuxSampler Control Protocol        December 2006
 
@@ -5036,7 +5372,7 @@ Internet-Draft        LinuxSampler Control Protocol        December 2006
 
 
 
-Schoenebeck               Expires June 23, 2007                [Page 90]
+Schoenebeck               Expires June 30, 2007                [Page 96]
 
 Internet-Draft        LinuxSampler Control Protocol        December 2006
 
@@ -5092,7 +5428,7 @@ Internet-Draft        LinuxSampler Control Protocol        December 2006
 
 
 
-Schoenebeck               Expires June 23, 2007                [Page 91]
+Schoenebeck               Expires June 30, 2007                [Page 97]
 
 Internet-Draft        LinuxSampler Control Protocol        December 2006
 
@@ -5148,7 +5484,7 @@ Internet-Draft        LinuxSampler Control Protocol        December 2006
 
 
 
-Schoenebeck               Expires June 23, 2007                [Page 92]
+Schoenebeck               Expires June 30, 2007                [Page 98]
 
 Internet-Draft        LinuxSampler Control Protocol        December 2006
 
@@ -5204,7 +5540,7 @@ Internet-Draft        LinuxSampler Control Protocol        December 2006
 
 
 
-Schoenebeck               Expires June 23, 2007                [Page 93]
+Schoenebeck               Expires June 30, 2007                [Page 99]
 
 Internet-Draft        LinuxSampler Control Protocol        December 2006
 
@@ -5260,7 +5596,7 @@ Internet-Draft        LinuxSampler Control Protocol        December 2006
 
 
 
-Schoenebeck               Expires June 23, 2007                [Page 94]
+Schoenebeck               Expires June 30, 2007               [Page 100]
 
 Internet-Draft        LinuxSampler Control Protocol        December 2006
 
@@ -5316,7 +5652,7 @@ Internet-Draft        LinuxSampler Control Protocol        December 2006
 
 
 
-Schoenebeck               Expires June 23, 2007                [Page 95]
+Schoenebeck               Expires June 30, 2007               [Page 101]
 
 Internet-Draft        LinuxSampler Control Protocol        December 2006
 
@@ -5372,7 +5708,7 @@ Author's Address
 
 
 
-Schoenebeck               Expires June 23, 2007                [Page 96]
+Schoenebeck               Expires June 30, 2007               [Page 102]
 
 Internet-Draft        LinuxSampler Control Protocol        December 2006
 
@@ -5428,5 +5764,5 @@ Acknowledgment
 
 
 
-Schoenebeck               Expires June 23, 2007                [Page 97]
+Schoenebeck               Expires June 30, 2007               [Page 103]
 
