@@ -1,0 +1,530 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://web.resource.org/cc/"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://inkscape.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="841.88977pt"
+   height="595.27557pt"
+   id="svg2"
+   sodipodi:version="0.32"
+   inkscape:version="0.43"
+   sodipodi:docbase="/home/cuse/business/Lionstracs"
+   sodipodi:docname="fx_sends.svg"
+   version="1.0">
+  <defs
+     id="defs4" />
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="1.2187708"
+     inkscape:cx="444.06823"
+     inkscape:cy="372.15339"
+     inkscape:document-units="px"
+     inkscape:current-layer="layer1"
+     inkscape:window-width="1592"
+     inkscape:window-height="1120"
+     inkscape:window-x="0"
+     inkscape:window-y="0" />
+  <metadata
+     id="metadata7">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1">
+    <g
+       id="g16456"
+       transform="translate(23.79447,36.92245)">
+      <g
+         transform="translate(-59.07592,-100.1009)"
+         id="g13723">
+        <rect
+           style="fill:none;fill-opacity:1;fill-rule:nonzero;stroke:#000000;stroke-width:3.07365751;stroke-linecap:square;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+           id="rect13785"
+           width="486.80621"
+           height="485.03354"
+           x="131.33482"
+           y="200.84845" />
+        <rect
+           style="fill:#e0e0e0;fill-opacity:1;fill-rule:nonzero;stroke:#000000;stroke-width:3.46197629;stroke-linecap:square;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+           id="rect1309"
+           width="173.62675"
+           height="95.678108"
+           x="147.06293"
+           y="240.88452" />
+        <text
+           xml:space="preserve"
+           style="font-size:12px;font-style:normal;font-weight:normal;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Bitstream Vera Sans"
+           x="171.4838"
+           y="260.78091"
+           id="text2184"><tspan
+             sodipodi:role="line"
+             id="tspan2186"
+             x="171.4838"
+             y="260.78091">Sampler Channel 0</tspan></text>
+        <rect
+           style="fill:#8e97ed;fill-opacity:1;fill-rule:nonzero;stroke:#000000;stroke-width:2.52622414;stroke-linecap:square;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+           id="rect3061"
+           width="85.939354"
+           height="26.145403"
+           x="224.59087"
+           y="270.29205" />
+        <text
+           xml:space="preserve"
+           style="font-size:12px;font-style:normal;font-weight:normal;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Bitstream Vera Sans"
+           x="238.08678"
+           y="287.57532"
+           id="text3936"><tspan
+             sodipodi:role="line"
+             id="tspan3938"
+             x="238.08678"
+             y="287.57532">FX Send 0</tspan></text>
+        <rect
+           style="fill:#edb28e;fill-opacity:1;fill-rule:nonzero;stroke:#000000;stroke-width:2.52622414;stroke-linecap:square;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+           id="rect3947"
+           width="85.939354"
+           height="26.145403"
+           x="224.97371"
+           y="302.82803" />
+        <text
+           xml:space="preserve"
+           style="font-size:12px;font-style:normal;font-weight:normal;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Bitstream Vera Sans"
+           x="238.46962"
+           y="320.1113"
+           id="text3949"><tspan
+             sodipodi:role="line"
+             id="tspan3951"
+             x="238.46962"
+             y="320.1113">FX Send 1</tspan></text>
+        <g
+           id="g6684"
+           transform="translate(28.32545,105.6462)">
+          <rect
+             y="246.62619"
+             x="119.12024"
+             height="95.678108"
+             width="173.62675"
+             id="rect6624"
+             style="fill:#e0e0e0;fill-opacity:1;fill-rule:nonzero;stroke:#000000;stroke-width:3.46197629;stroke-linecap:square;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
+          <text
+             id="text6626"
+             y="266.52255"
+             x="143.54109"
+             style="font-size:12px;font-style:normal;font-weight:normal;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Bitstream Vera Sans"
+             xml:space="preserve"><tspan
+               y="266.52255"
+               x="143.54109"
+               id="tspan6628"
+               sodipodi:role="line">Sampler Channel 1</tspan></text>
+          <g
+             transform="translate(-108.3257,49.37814)"
+             id="g6630">
+            <g
+               id="g6632">
+              <rect
+                 y="226.65552"
+                 x="304.97391"
+                 height="26.145403"
+                 width="85.939354"
+                 id="rect6634"
+                 style="opacity:1;fill:#8e98ed;fill-opacity:1;fill-rule:nonzero;stroke:#000000;stroke-width:2.52622414;stroke-linecap:square;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
+              <text
+                 id="text6636"
+                 y="243.93877"
+                 x="318.46982"
+                 style="font-size:12px;font-style:normal;font-weight:normal;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Bitstream Vera Sans"
+                 xml:space="preserve"><tspan
+                   y="243.93877"
+                   x="318.46982"
+                   id="tspan6638"
+                   sodipodi:role="line">FX Send 0</tspan></text>
+            </g>
+            <g
+               id="g6640"
+               transform="translate(0.765552,-6.889972)">
+              <rect
+                 y="266.08148"
+                 x="304.59116"
+                 height="26.145403"
+                 width="85.939354"
+                 id="rect6642"
+                 style="fill:#edb28e;fill-opacity:1;fill-rule:nonzero;stroke:#000000;stroke-width:2.52622414;stroke-linecap:square;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
+              <text
+                 id="text6644"
+                 y="283.36475"
+                 x="318.08707"
+                 style="font-size:12px;font-style:normal;font-weight:normal;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Bitstream Vera Sans"
+                 xml:space="preserve"><tspan
+                   y="283.36475"
+                   x="318.08707"
+                   id="tspan6646"
+                   sodipodi:role="line">FX Send 1</tspan></text>
+            </g>
+          </g>
+        </g>
+        <g
+           id="g6706"
+           transform="translate(19.13882,156.1727)">
+          <rect
+             y="419.64105"
+             x="128.30685"
+             height="95.678108"
+             width="173.62675"
+             id="rect6660"
+             style="fill:#e0e0e0;fill-opacity:1;fill-rule:nonzero;stroke:#000000;stroke-width:3.46197629;stroke-linecap:square;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
+          <text
+             id="text6662"
+             y="439.53741"
+             x="152.72772"
+             style="font-size:12px;font-style:normal;font-weight:normal;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Bitstream Vera Sans"
+             xml:space="preserve"><tspan
+               y="439.53741"
+               x="152.72772"
+               id="tspan6664"
+               sodipodi:role="line">Sampler Channel 2</tspan></text>
+          <g
+             transform="translate(-97.60797,201.7231)"
+             id="g6676">
+            <rect
+               style="fill:#edb28e;fill-opacity:1;fill-rule:nonzero;stroke:#000000;stroke-width:2.52622414;stroke-linecap:square;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+               id="rect6678"
+               width="85.939354"
+               height="26.145403"
+               x="304.59116"
+               y="266.08148" />
+            <text
+               xml:space="preserve"
+               style="font-size:12px;font-style:normal;font-weight:normal;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Bitstream Vera Sans"
+               x="318.08707"
+               y="283.36475"
+               id="text6680"><tspan
+                 sodipodi:role="line"
+                 id="tspan6682"
+                 x="318.08707"
+                 y="283.36475">FX Send 0</tspan></text>
+          </g>
+        </g>
+        <g
+           id="g6738"
+           transform="translate(27.55989,106.4118)">
+          <rect
+             y="356.86578"
+             x="120.65134"
+             height="95.678108"
+             width="173.62675"
+             id="rect6717"
+             style="fill:#e0e0e0;fill-opacity:1;fill-rule:nonzero;stroke:#000000;stroke-width:3.46197629;stroke-linecap:square;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
+          <text
+             id="text6719"
+             y="376.76215"
+             x="145.0722"
+             style="font-size:12px;font-style:normal;font-weight:normal;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Bitstream Vera Sans"
+             xml:space="preserve"><tspan
+               y="376.76215"
+               x="145.0722"
+               id="tspan6721"
+               sodipodi:role="line">Sampler Channel 2</tspan></text>
+        </g>
+        <g
+           id="g13756"
+           transform="translate(-51.29197,156.9383)">
+          <rect
+             y="114.01524"
+             x="483.52319"
+             height="282.8136"
+             width="173.62675"
+             id="rect6745"
+             style="fill:#e0e0e0;fill-opacity:1;fill-rule:nonzero;stroke:#000000;stroke-width:3.58888459;stroke-linecap:square;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
+          <text
+             id="text6747"
+             y="132.55086"
+             x="509.47516"
+             style="font-size:12px;font-style:normal;font-weight:normal;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Bitstream Vera Sans"
+             xml:space="preserve"><tspan
+               y="132.55086"
+               x="509.47516"
+               id="tspan6749"
+               sodipodi:role="line">Audio Output Device</tspan></text>
+          <g
+             id="g4042">
+            <rect
+               style="opacity:1;fill:#bdbdbd;fill-opacity:1;fill-rule:nonzero;stroke:#000000;stroke-width:3.00105906;stroke-linecap:square;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+               id="rect3163"
+               width="145.45497"
+               height="28.71553"
+               x="498.37463"
+               y="170.6335" />
+            <text
+               xml:space="preserve"
+               style="font-size:12px;font-style:normal;font-weight:normal;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Bitstream Vera Sans"
+               x="529.76227"
+               y="188.05345"
+               id="text4038"><tspan
+                 sodipodi:role="line"
+                 id="tspan4040"
+                 x="529.76227"
+                 y="188.05345">Master Out L</tspan></text>
+          </g>
+          <g
+             transform="translate(0,-1.531104)"
+             id="g4090">
+            <rect
+               style="fill:#bdbdbd;fill-opacity:1;fill-rule:nonzero;stroke:#000000;stroke-width:3.00105906;stroke-linecap:square;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+               id="rect4049"
+               width="145.45497"
+               height="28.71553"
+               x="498.37466"
+               y="208.9111" />
+            <text
+               xml:space="preserve"
+               style="font-size:12px;font-style:normal;font-weight:normal;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Bitstream Vera Sans"
+               x="529.76227"
+               y="226.33105"
+               id="text4051"><tspan
+                 sodipodi:role="line"
+                 id="tspan4053"
+                 x="529.76227"
+                 y="226.33105">Master Out R</tspan></text>
+          </g>
+          <g
+             id="g13736">
+            <rect
+               style="fill:#8e97ed;fill-opacity:1;fill-rule:nonzero;stroke:#000000;stroke-width:3.00105906;stroke-linecap:square;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+               id="rect4057"
+               width="145.45497"
+               height="28.71553"
+               x="498.37463"
+               y="243.36099" />
+            <text
+               xml:space="preserve"
+               style="font-size:12px;font-style:normal;font-weight:normal;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Bitstream Vera Sans"
+               x="527.46564"
+               y="261.54651"
+               id="text4059"><tspan
+                 sodipodi:role="line"
+                 id="tspan4061"
+                 x="527.46564"
+                 y="261.54651">Reverb Send L</tspan></text>
+          </g>
+          <g
+             id="g13741">
+            <rect
+               style="fill:#8e97ed;fill-opacity:1;fill-rule:nonzero;stroke:#000000;stroke-width:3.00105906;stroke-linecap:square;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+               id="rect4065"
+               width="145.45497"
+               height="28.71553"
+               x="498.37466"
+               y="281.63864" />
+            <text
+               xml:space="preserve"
+               style="font-size:12px;font-style:normal;font-weight:normal;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Bitstream Vera Sans"
+               x="525.16901"
+               y="300.58969"
+               id="text4067"><tspan
+                 sodipodi:role="line"
+                 id="tspan4069"
+                 x="525.16901"
+                 y="300.58969">Reverb Send R</tspan></text>
+          </g>
+          <g
+             id="g13746">
+            <rect
+               style="fill:#edb28e;fill-opacity:1;fill-rule:nonzero;stroke:#000000;stroke-width:3.00105906;stroke-linecap:square;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+               id="rect4073"
+               width="145.45497"
+               height="28.71553"
+               x="498.37463"
+               y="319.1506" />
+            <text
+               xml:space="preserve"
+               style="font-size:12px;font-style:normal;font-weight:normal;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Bitstream Vera Sans"
+               x="525.93451"
+               y="337.33612"
+               id="text4075"><tspan
+                 sodipodi:role="line"
+                 id="tspan4077"
+                 x="525.93451"
+                 y="337.33612">Chorus Send L</tspan></text>
+          </g>
+          <g
+             id="g13751">
+            <rect
+               style="fill:#edb28e;fill-opacity:1;fill-rule:nonzero;stroke:#000000;stroke-width:3.00105906;stroke-linecap:square;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+               id="rect4081"
+               width="145.45497"
+               height="28.71553"
+               x="499.1402"
+               y="355.89716" />
+            <text
+               xml:space="preserve"
+               style="font-size:12px;font-style:normal;font-weight:normal;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Bitstream Vera Sans"
+               x="524.40344"
+               y="374.08264"
+               id="text4083"><tspan
+                 sodipodi:role="line"
+                 id="tspan4085"
+                 x="524.40344"
+                 y="374.08264">Chorus Send R</tspan></text>
+          </g>
+        </g>
+        <text
+           xml:space="preserve"
+           style="font-size:12px;font-style:normal;font-weight:normal;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Bitstream Vera Sans"
+           x="140.09612"
+           y="219.4411"
+           id="text14660"><tspan
+             sodipodi:role="line"
+             id="tspan14662"
+             x="140.09612"
+             y="219.4411">LinuxSampler</tspan></text>
+        <path
+           style="fill:none;fill-opacity:0.75;fill-rule:evenodd;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+           d="M 320.76648,248.5321 L 446.31709,341.9295"
+           id="path16548" />
+        <path
+           style="fill:none;fill-opacity:0.75;fill-rule:evenodd;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+           d="M 321.53204,258.48428 L 446.31709,378.67602"
+           id="path16550" />
+        <path
+           style="fill:none;fill-opacity:0.75;fill-rule:evenodd;stroke:#8e97ed;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+           d="M 310.8143,277.62309 L 446.31709,412.36032"
+           id="path16554" />
+        <path
+           style="fill:none;fill-opacity:0.75;fill-rule:evenodd;stroke:#8e97ed;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+           d="M 310.04875,287.57527 L 445.55154,452.16905"
+           id="path16556" />
+        <path
+           style="fill:none;fill-opacity:0.75;fill-rule:evenodd;stroke:#edb28e;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+           d="M 310.04875,309.77629 L 447.08264,489.68112"
+           id="path16558" />
+        <path
+           style="fill:none;fill-opacity:0.75;fill-rule:evenodd;stroke:#edb28e;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+           d="M 310.8143,323.55624 L 447.08264,525.66209"
+           id="path16560" />
+        <path
+           style="fill:none;fill-opacity:0.75;fill-rule:evenodd;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+           d="M 321.53204,361.06831 L 446.31709,340.39839"
+           id="path16562" />
+        <path
+           style="fill:none;fill-opacity:0.75;fill-rule:evenodd;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+           d="M 320.76648,371.78604 L 447.08264,379.44157"
+           id="path16564" />
+        <path
+           style="fill:none;fill-opacity:0.75;fill-rule:evenodd;stroke:#8e97ed;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+           d="M 311.57986,388.6282 L 447.08264,413.89143"
+           id="path16566" />
+        <path
+           style="fill:none;fill-opacity:0.75;fill-rule:evenodd;stroke:#8e97ed;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+           d="M 310.8143,396.28372 L 447.08264,452.9346"
+           id="path16568" />
+        <path
+           style="fill:none;fill-opacity:0.75;fill-rule:evenodd;stroke:#edb28e;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+           d="M 310.8143,422.31251 L 446.31709,489.68112"
+           id="path16570" />
+        <path
+           style="fill:none;fill-opacity:0.75;fill-rule:evenodd;stroke:#edb28e;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+           d="M 312.34541,432.26469 L 447.08264,524.89654"
+           id="path16572" />
+        <path
+           style="fill:none;fill-opacity:0.75;fill-rule:evenodd;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+           d="M 321.53204,473.60452 L 447.08264,340.39839"
+           id="path16574" />
+        <path
+           style="fill:none;fill-opacity:0.75;fill-rule:evenodd;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+           d="M 321.53204,484.32226 L 446.31709,377.91046"
+           id="path16576" />
+        <path
+           style="fill:none;fill-opacity:0.75;fill-rule:evenodd;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+           d="M 321.53204,583.07852 L 446.31709,341.16394"
+           id="path16578" />
+        <path
+           style="fill:none;fill-opacity:0.75;fill-rule:evenodd;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+           d="M 320.76648,595.32736 L 446.31709,378.67602"
+           id="path16580" />
+        <path
+           style="fill:none;fill-opacity:0.75;fill-rule:evenodd;stroke:#edb28e;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+           d="M 312.34541,630.54278 L 446.31709,488.15002"
+           id="path16582" />
+        <path
+           style="fill:none;fill-opacity:0.75;fill-rule:evenodd;stroke:#edb28e;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+           d="M 311.57986,639.72941 L 447.84819,525.66209"
+           id="path16584" />
+      </g>
+      <g
+         id="g16433">
+        <rect
+           style="opacity:1;fill:none;fill-opacity:1;fill-rule:nonzero;stroke:#000000;stroke-width:3;stroke-linecap:square;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+           id="rect13808"
+           width="203.17296"
+           height="357.71463"
+           x="661.88763"
+           y="167.29523" />
+        <text
+           xml:space="preserve"
+           style="font-size:12px;font-style:normal;font-weight:normal;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Bitstream Vera Sans"
+           x="681.83459"
+           y="191.89877"
+           id="text15556"><tspan
+             sodipodi:role="line"
+             id="tspan15558"
+             x="681.83459"
+             y="191.89877">jack-rack</tspan></text>
+      </g>
+      <path
+         id="path16438"
+         d="M 534.14473,241.94921 L 662.14255,241.94921"
+         style="fill:none;fill-opacity:0.75;fill-rule:evenodd;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" />
+      <path
+         id="path16440"
+         d="M 533.32423,276.41016 L 661.32205,276.41016"
+         style="fill:none;fill-opacity:0.75;fill-rule:evenodd;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" />
+      <path
+         id="path16442"
+         d="M 533.32423,313.3326 L 661.32205,313.3326 M 532.50373,352.71655 L 660.50155,352.71655"
+         style="fill:none;fill-opacity:0.75;fill-rule:evenodd;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" />
+      <path
+         id="path16444"
+         d="M 533.32423,389.63899 L 661.32205,389.63899"
+         style="fill:none;fill-opacity:0.75;fill-rule:evenodd;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" />
+      <path
+         id="path16446"
+         d="M 533.32423,425.74094 L 661.32205,425.74094"
+         style="fill:none;fill-opacity:0.75;fill-rule:evenodd;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" />
+      <path
+         id="path16448"
+         d="M 864.80575,305.94811 L 969.0091,305.94811"
+         style="fill:none;fill-opacity:0.75;fill-rule:evenodd;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" />
+      <path
+         id="path16450"
+         d="M 864.80575,341.22956 L 967.36811,341.22956"
+         style="fill:none;fill-opacity:0.75;fill-rule:evenodd;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" />
+      <text
+         id="text16452"
+         y="291.99963"
+         x="880.39526"
+         style="font-size:12px;font-style:normal;font-weight:normal;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Bitstream Vera Sans"
+         xml:space="preserve"><tspan
+           y="291.99963"
+           x="880.39526"
+           id="tspan16454"
+           sodipodi:role="line">System Output</tspan></text>
+    </g>
+  </g>
+</svg>
