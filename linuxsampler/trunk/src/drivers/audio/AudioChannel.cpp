@@ -113,7 +113,7 @@ namespace LinuxSampler {
      * @param Samples - amount of sample points to be copied
      */
     void AudioChannel::CopyTo(AudioChannel* pDst, const uint Samples) {
-        memcpy(pDst->Buffer(), Buffer(), Samples);
+        memcpy(pDst->Buffer(), Buffer(), Samples * sizeof(float));
     }
 
     /**
