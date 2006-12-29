@@ -145,7 +145,7 @@
 <tr><td class="header">LinuxSampler Developers</td><td class="header">C. Schoenebeck</td></tr>
 <tr><td class="header">Internet-Draft</td><td class="header">Interessengemeinschaft Software</td></tr>
 <tr><td class="header">Intended status: Standards Track</td><td class="header">Engineering e. V.</td></tr>
-<tr><td class="header">Expires: June 30, 2007</td><td class="header">December 27, 2006</td></tr>
+<tr><td class="header">Expires: July 2, 2007</td><td class="header">December 29, 2006</td></tr>
 </table></td></tr></table>
 <h1><br />LinuxSampler Control Protocol<br />LSCP 1.2</h1>
 
@@ -173,7 +173,7 @@ The list of current Internet-Drafts can be accessed at
 The list of Internet-Draft Shadow Directories can be accessed at
 <a href='http://www.ietf.org/shadow.html'>http://www.ietf.org/shadow.html</a>.</p>
 <p>
-This Internet-Draft will expire on June 30, 2007.</p>
+This Internet-Draft will expire on July 2, 2007.</p>
 
 <h3>Copyright Notice</h3>
 <p>
@@ -352,6 +352,10 @@ Maximum amount of active voices<br />
 Reset sampler<br />
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#GET SERVER INFO">6.6.4.</a>&nbsp;
 General sampler informations<br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#GET VOLUME">6.6.5.</a>&nbsp;
+Getting global volume attenuation<br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SET VOLUME">6.6.6.</a>&nbsp;
+Setting global volume attenuation<br />
 &nbsp;&nbsp;&nbsp;&nbsp;<a href="#MIDI Instrument Mapping">6.7.</a>&nbsp;
 MIDI Instrument Mapping<br />
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ADD MIDI_INSTRUMENT MAP">6.7.1.</a>&nbsp;
@@ -5822,6 +5826,94 @@ General sampler informations</h3>
 <p>The mentioned fields above don't have to be in particular order.
                     Other fields might be added in future.
 </p>
+<a name="GET VOLUME"></a><br /><hr />
+<table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
+<a name="rfc.section.6.6.5"></a><h3>6.6.5.&nbsp;
+Getting global volume attenuation</h3>
+
+<p>The client can ask for the current global sampler-wide volume
+                    attenuation by sending the following command:
+</p>
+<p>
+                        </p>
+<blockquote class="text">
+<p>GET VOLUME
+</p>
+</blockquote><p>
+                    
+</p>
+<p>Possible Answers:
+</p>
+<p>
+                        </p>
+<blockquote class="text">
+<p>The sampler will always answer by returning the optional
+                            dotted floating point coefficient, reflecting the current
+                            global volume attenuation.
+                            
+</p>
+</blockquote><p>
+                    
+</p>
+<p>Note: it is up to the respective sampler engine whether to obey
+                    that global volume parameter or not, but in general all engines SHOULD
+                    use this parameter.
+</p>
+<a name="SET VOLUME"></a><br /><hr />
+<table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
+<a name="rfc.section.6.6.6"></a><h3>6.6.6.&nbsp;
+Setting global volume attenuation</h3>
+
+<p>The client can alter the current global sampler-wide volume
+                    attenuation by sending the following command:
+</p>
+<p>
+                        </p>
+<blockquote class="text">
+<p>SET VOLUME &lt;volume&gt;
+</p>
+</blockquote><p>
+                    
+</p>
+<p>Where &lt;volume&gt; should be replaced by the optional dotted
+                   floating point value, reflecting the new global volume parameter.
+                   This value might usually be in the range between 0.0 and 1.0, that
+                   is for attenuating the overall volume.
+</p>
+<p>Possible Answers:
+</p>
+<p>
+                        </p>
+<blockquote class="text">
+<p>"OK" -
+                                </p>
+<blockquote class="text">
+<p>on success
+</p>
+</blockquote>
+                            
+
+<p>"WRN:&lt;warning-code&gt;:&lt;warning-message&gt;" -
+                                </p>
+<blockquote class="text">
+<p>if the global volume was set, but there are noteworthy
+                                    issue(s) related, providing an appropriate warning code and
+                                    warning message
+</p>
+</blockquote>
+                            
+
+<p>"ERR:&lt;error-code&gt;:&lt;error-message&gt;" -
+                                </p>
+<blockquote class="text">
+<p>in case it failed, providing an appropriate error code and error message
+</p>
+</blockquote>
+                            
+
+</blockquote><p>
+                    
+</p>
 <a name="MIDI Instrument Mapping"></a><br /><hr />
 <table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
 <a name="rfc.section.6.7"></a><h3>6.7.&nbsp;
@@ -7197,6 +7289,9 @@ Command Syntax</h3>
 <p>/ FX_SEND SP INFO SP sampler_channel SP fx_send_id
 		
 </p>
+<p>/ VOLUME
+		
+</p>
 </blockquote><p>
 
 </p>
@@ -7225,6 +7320,9 @@ Command Syntax</h3>
 		
 </p>
 <p>/ ECHO SP boolean
+		
+</p>
+<p>/ VOLUME SP volume_value
 		
 </p>
 </blockquote><p>
