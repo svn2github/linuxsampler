@@ -135,4 +135,6 @@ template<class T> inline String ToString(T o) {
 	return ss.str();
 }
 
+extern double GLOBAL_VOLUME;
+
 #endif // __LS_GLOBAL_H__

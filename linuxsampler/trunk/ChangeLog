@@ -26,6 +26,7 @@ Version CVS HEAD (?)
       output channels for being processed by external effect processors
       (i.e. jack-rack), the send levels are controllable via arbitrary MIDI
       controllers
+    - global (sampler wide) volume can now be controlled at runtime
 
   * MIDI driver:
     - dispatch bank select (MSB and LSB) messages

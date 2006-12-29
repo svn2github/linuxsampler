@@ -3814,6 +3814,65 @@ Schoenebeck'>
                     <t>The mentioned fields above don't have to be in particular order.
                     Other fields might be added in future.</t>
                 </section>
+
+                <section title="Getting global volume attenuation" anchor="GET VOLUME">
+                    <t>The client can ask for the current global sampler-wide volume
+                    attenuation by sending the following command:</t>
+                    <t>
+                        <list>
+                            <t>GET VOLUME</t>
+                        </list>
+                    </t>
+                    <t>Possible Answers:</t>
+                    <t>
+                        <list>
+                            <t>The sampler will always answer by returning the optional
+                            dotted floating point coefficient, reflecting the current
+                            global volume attenuation.
+                            </t>
+                        </list>
+                    </t>
+                    <t>Note: it is up to the respective sampler engine whether to obey
+                    that global volume parameter or not, but in general all engines SHOULD
+                    use this parameter.</t>
+                </section>
+
+                <section title="Setting global volume attenuation" anchor="SET VOLUME">
+                    <t>The client can alter the current global sampler-wide volume
+                    attenuation by sending the following command:</t>
+                    <t>
+                        <list>
+                            <t>SET VOLUME &lt;volume&gt;</t>
+                        </list>
+                    </t>
+                   <t>Where &lt;volume&gt; should be replaced by the optional dotted
+                   floating point value, reflecting the new global volume parameter.
+                   This value might usually be in the range between 0.0 and 1.0, that
+                   is for attenuating the overall volume.</t>
+
+                    <t>Possible Answers:</t>
+                    <t>
+                        <list>
+                            <t>"OK" -
+                                <list>
+                                    <t>on success</t>
+                                </list>
+                            </t>
+                            <t>"WRN:&lt;warning-code&gt;:&lt;warning-message&gt;" -
+                                <list>
+                                    <t>if the global volume was set, but there are noteworthy
+                                    issue(s) related, providing an appropriate warning code and
+                                    warning message</t>
+                                </list>
+                            </t>
+                            <t>"ERR:&lt;error-code&gt;:&lt;error-message&gt;" -
+                                <list>
+                                    <t>in case it failed, providing an appropriate error code and error message</t>
+                                </list>
+                            </t>
+                        </list>
+                    </t>
+                </section>
             </section>
 
 
@@ -4771,6 +4830,8 @@ Schoenebeck'>
 		</t>
 		<t>/ FX_SEND SP INFO SP sampler_channel SP fx_send_id
 		</t>
+		<t>/ VOLUME
+		</t>
 	</list>
 </t>
 <t>set_instruction =
@@ -4790,6 +4851,8 @@ Schoenebeck'>
 		<t>/ FX_SEND SP AUDIO_OUTPUT_CHANNEL SP sampler_channel SP fx_send_id SP audio_channel_index SP audio_channel_index
 		</t>
 		<t>/ ECHO SP boolean
+		</t>
+		<t>/ VOLUME SP volume_value
 		</t>
 	</list>
 </t>

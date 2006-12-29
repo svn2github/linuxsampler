@@ -32,6 +32,9 @@
 /* Define to 1 to force filter usage. */
 /* #undef CONFIG_FORCE_FILTER */
 
+/* Define default global volume attenuation (as floating point factor). */
+#define CONFIG_GLOBAL_ATTENUATION_DEFAULT 0.35
+
 /* Define max. allowed events per fragment. */
 #define CONFIG_MAX_EVENTS_PER_FRAGMENT 1024
 

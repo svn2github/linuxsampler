@@ -629,7 +629,7 @@ namespace LinuxSampler { namespace gig {
         Pitch          = 0;
         SustainPedal   = false;
         SostenutoPedal = false;
-        GlobalVolume   = CONFIG_GLOBAL_ATTENUATION;
+        GlobalVolume   = 1.0f;
         MidiVolume     = 1.0;
         GlobalPanLeft  = 1.0f;
         GlobalPanRight = 1.0f;

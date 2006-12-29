@@ -141,7 +141,7 @@ namespace LinuxSampler { namespace gig {
 
         float subfragmentRate = pEngine->SampleRate / CONFIG_DEFAULT_SUBFRAGMENT_SIZE;
         CrossfadeSmoother.trigger(crossfadeVolume, subfragmentRate);
-        VolumeSmoother.trigger(pEngineChannel->GlobalVolume * pEngineChannel->MidiVolume, subfragmentRate);
+        VolumeSmoother.trigger(pEngineChannel->GlobalVolume * GLOBAL_VOLUME * pEngineChannel->MidiVolume, subfragmentRate);
         PanLeftSmoother.trigger(pEngineChannel->GlobalPanLeft, subfragmentRate);
         PanRightSmoother.trigger(pEngineChannel->GlobalPanRight, subfragmentRate);
 
@@ -241,7 +241,7 @@ namespace LinuxSampler { namespace gig {
         else
 #else
         {
-            float finalVolume = pEngineChannel->GlobalVolume * pEngineChannel->MidiVolume * crossfadeVolume * EG1.getLevel();
+            float finalVolume = pEngineChannel->GlobalVolume * GLOBAL_VOLUME * pEngineChannel->MidiVolume * crossfadeVolume * EG1.getLevel();
 
             finalSynthesisParameters.fFinalVolumeLeft  = finalVolume * VolumeLeft  * pEngineChannel->GlobalPanLeft;
             finalSynthesisParameters.fFinalVolumeRight = finalVolume * VolumeRight * pEngineChannel->GlobalPanRight;

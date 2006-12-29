@@ -24,7 +24,7 @@
 #include "lscpserver.h"
 #include "lscpresultset.h"
 #include "lscpevent.h"
-//#include "../common/global.h"
+#include "../common/global.h"
 
 #include <fcntl.h>
 
@@ -2071,6 +2071,23 @@ String LSCPServer::GetTotalVoiceCountMax() {
     dmsg(2,("LSCPServer: GetTotalVoiceCountMax()\n"));
     LSCPResultSet result;
     result.Add(EngineFactory::EngineInstances().size() * CONFIG_MAX_VOICES);
+    return result.Produce();
+}
+
+String LSCPServer::GetGlobalVolume() {
+    LSCPResultSet result;
+    result.Add(ToString(GLOBAL_VOLUME)); // see common/global.cpp
+    return result.Produce();
+}
+
+String LSCPServer::SetGlobalVolume(double dVolume) {
+    LSCPResultSet result;
+    try {
+        if (dVolume < 0) throw Exception("Volume may not be negative");
+        GLOBAL_VOLUME = dVolume; // see common/global.cpp
+    } catch (Exception e) {
+        result.Error(e);
+    }
     return result.Produce();
 }
 

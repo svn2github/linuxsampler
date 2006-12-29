@@ -156,6 +156,8 @@ class LSCPServer : public Thread {
         String GetServerInfo();
         String GetTotalVoiceCount();
         String GetTotalVoiceCountMax();
+        String GetGlobalVolume();
+        String SetGlobalVolume(double dVolume);
         String SubscribeNotification(LSCPEvent::event_t);
         String UnsubscribeNotification(LSCPEvent::event_t);
 	String QueryDatabase(String query);
