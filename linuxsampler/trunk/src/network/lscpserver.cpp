@@ -1698,7 +1698,7 @@ String LSCPServer::ListMidiInstrumentMappings(uint MidiMapID) {
         for (; iter != mappings.end(); iter++) {
             if (s.size()) s += ",";
             s += "{" + ToString(MidiMapID) + ","
-                     + ToString((int(iter->first.midi_bank_msb) << 7) & int(iter->first.midi_bank_lsb)) + ","
+                     + ToString((int(iter->first.midi_bank_msb) << 7) | int(iter->first.midi_bank_lsb)) + ","
                      + ToString(int(iter->first.midi_prog)) + "}";
         }
         result.Add(s);
