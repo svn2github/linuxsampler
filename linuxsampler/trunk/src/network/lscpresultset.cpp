@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005, 2006 Christian Schoenebeck                        *
+ *   Copyright (C) 2005 - 2007 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -64,7 +64,7 @@ void LSCPResultSet::Add(String Label, String Value) {
 	if (result_type != result_type_success)
 		throw Exception("Attempting to create illegal resultset");
 	storage = storage + Label + ": " + Value + "\r\n";
-        count++;
+        count = 2; // results in form of "Label: Value" should always be handled as multi line responses
 }
 
 void LSCPResultSet::Add(String Label, const char* pValue) {

@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005, 2006 Christian Schoenebeck                        *
+ *   Copyright (C) 2005 - 2007 Christian Schoenebeck                       *
  *                                                                         *
  *   This library is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -1502,14 +1502,14 @@ String LSCPServer::SetChannelSolo(bool bSolo, uint uiSamplerChannel) {
 
         bool oldSolo = pEngineChannel->GetSolo();
         bool hadSoloChannel = HasSoloChannel();
-        
+
         pEngineChannel->SetSolo(bSolo);
-        
+
         if(!oldSolo && bSolo) {
             if(pEngineChannel->GetMute() == -1) pEngineChannel->SetMute(0);
             if(!hadSoloChannel) MuteNonSoloChannels();
         }
-        
+
         if(oldSolo && !bSolo) {
             if(!HasSoloChannel()) UnmuteChannels();
             else if(!pEngineChannel->GetMute()) pEngineChannel->SetMute(-1);
@@ -1720,7 +1720,7 @@ String LSCPServer::ListAllMidiInstrumentMappings() {
             for (; iter != mappings.end(); iter++) {
                 if (s.size()) s += ",";
                 s += "{" + ToString(maps[i]) + ","
-                         + ToString((int(iter->first.midi_bank_msb) << 7) & int(iter->first.midi_bank_lsb)) + ","
+                         + ToString((int(iter->first.midi_bank_msb) << 7) | int(iter->first.midi_bank_lsb)) + ","
                          + ToString(int(iter->first.midi_prog)) + "}";
             }
         }
