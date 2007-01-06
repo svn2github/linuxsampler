@@ -71,11 +71,12 @@ if [ -d $RPM_BUILD_ROOT ]; then rm -rf $RPM_BUILD_ROOT; fi
 %doc AUTHORS COPYING ChangeLog README
 %{prefix}/bin/linuxsampler
 %{prefix}/lib/linuxsampler/liblinuxsampler.so*
-%{prefix}/man/man1/linuxsampler.*
+%{prefix}/share/man/man1/linuxsampler.*
 
 %files devel
 %defattr(-,root,root)
 %doc doc/html/*
+%{prefix}/lib/linuxsampler/include/config.h
 %{prefix}/lib/linuxsampler/liblinuxsampler.a
 %{prefix}/lib/linuxsampler/liblinuxsampler.la
 %{prefix}/lib/pkgconfig/linuxsampler.pc
