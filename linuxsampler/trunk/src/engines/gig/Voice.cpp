@@ -103,7 +103,7 @@ namespace LinuxSampler { namespace gig {
         // -1.0..1.0). For 24 bit, we downscale from int32.
         float volume = velocityAttenuation / (pSample->BitDepth == 16 ? 32768.0f : 32768.0f * 65536.0f);
 
-        volume *= pDimRgn->SampleAttenuation;
+        volume *= pDimRgn->SampleAttenuation * pEngineChannel->GlobalVolume * GLOBAL_VOLUME;
 
         // the volume of release triggered samples depends on note length
         if (Type == type_release_trigger) {
@@ -141,7 +141,7 @@ namespace LinuxSampler { namespace gig {
 
         float subfragmentRate = pEngine->SampleRate / CONFIG_DEFAULT_SUBFRAGMENT_SIZE;
         CrossfadeSmoother.trigger(crossfadeVolume, subfragmentRate);
-        VolumeSmoother.trigger(pEngineChannel->GlobalVolume * GLOBAL_VOLUME * pEngineChannel->MidiVolume, subfragmentRate);
+        VolumeSmoother.trigger(pEngineChannel->MidiVolume, subfragmentRate);
         PanLeftSmoother.trigger(pEngineChannel->GlobalPanLeft, subfragmentRate);
         PanRightSmoother.trigger(pEngineChannel->GlobalPanRight, subfragmentRate);
 
@@ -241,7 +241,7 @@ namespace LinuxSampler { namespace gig {
         else
 #else
         {
-            float finalVolume = pEngineChannel->GlobalVolume * GLOBAL_VOLUME * pEngineChannel->MidiVolume * crossfadeVolume * EG1.getLevel();
+            float finalVolume = pEngineChannel->MidiVolume * crossfadeVolume * EG1.getLevel();
 
             finalSynthesisParameters.fFinalVolumeLeft  = finalVolume * VolumeLeft  * pEngineChannel->GlobalPanLeft;
             finalSynthesisParameters.fFinalVolumeRight = finalVolume * VolumeRight * pEngineChannel->GlobalPanRight;
