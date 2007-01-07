@@ -18,30 +18,13 @@
  *   MA  02111-1307  USA                                                   *
  ***************************************************************************/
 
-#ifndef __LS_ENGINEFACTORY_H__
-#define __LS_ENGINEFACTORY_H__
+#include "EngineFactory.h"
 
-#include "../common/global.h"
-#include "../common/Exception.h"
-#include "Engine.h"
-
-#include <set>
-#include <vector>
 
 namespace LinuxSampler {
 
-    class EngineFactory {
-        public:
-            static std::vector<String> AvailableEngineTypes();
-            static String AvailableEngineTypesAsString();
-            static Engine* Create(String EngineType) throw (Exception);
-            static void Destroy(Engine* pEngine);
-            static const std::set<Engine*>& EngineInstances();
-        protected:
-            static void Erase(Engine* pEngine);
-            friend class Engine;
-    };
+    void Engine::Unregister() {
+        EngineFactory::Erase(this);
+    }
 
 } // namespace LinuxSampler
-
-#endif // __LS_ENGINEFACTORY_H__

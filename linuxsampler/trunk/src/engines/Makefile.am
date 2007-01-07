@@ -12,7 +12,7 @@ liblinuxsamplerengineinclude_HEADERS = \
 
 noinst_LTLIBRARIES = liblinuxsamplerengines.la
 liblinuxsamplerengines_la_SOURCES = \
-	Engine.h \
+	Engine.cpp Engine.h \
 	EngineChannel.cpp EngineChannel.h \
 	EngineFactory.cpp EngineFactory.h \
 	EngineChannelFactory.cpp EngineChannelFactory.h \

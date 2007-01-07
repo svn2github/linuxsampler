@@ -2,8 +2,8 @@
  *                                                                         *
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
- *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005, 2006 Christian Schoenebeck                        *
+ *   Copyright (C) 2003,2004 by Benno Senoner and Christian Schoenebeck   *
+ *   Copyright (C) 2005-2007 Christian Schoenebeck                        *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -132,7 +132,7 @@ namespace LinuxSampler { namespace gig {
         if (pEventGenerator) delete pEventGenerator;
         if (pVoiceStealingQueue) delete pVoiceStealingQueue;
         if (pSysexBuffer) delete pSysexBuffer;
-        EngineFactory::Destroy(this);
+        Unregister();
     }
 
     void Engine::Enable() {
@@ -1636,7 +1636,7 @@ namespace LinuxSampler { namespace gig {
     }
 
     String Engine::Version() {
-        String s = "$Revision: 1.68 $";
+        String s = "$Revision: 1.69 $";
         return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
 

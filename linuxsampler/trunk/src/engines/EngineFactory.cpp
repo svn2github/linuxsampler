@@ -1,6 +1,6 @@
 /***************************************************************************
  *                                                                         *
- *   Copyright (C) 2005, 2006 Christian Schoenebeck                        *
+ *   Copyright (C) 2005-2007 Christian Schoenebeck                        *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -57,8 +57,12 @@ namespace LinuxSampler {
         throw Exception("Unknown engine type");
     }
 
-    void EngineFactory::Destroy(LinuxSampler::Engine* pEngine) {
+    void EngineFactory::Erase(LinuxSampler::Engine* pEngine) {
         engines.erase(pEngine);
+    }
+
+    void EngineFactory::Destroy(LinuxSampler::Engine* pEngine) {
+        delete pEngine;
     }
 
     const std::set<LinuxSampler::Engine*>& EngineFactory::EngineInstances() {

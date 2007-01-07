@@ -5,7 +5,7 @@ AC_INIT(configure.in)
 
 LINUXSAMPLER_RELEASE_MAJOR=0
 LINUXSAMPLER_RELEASE_MINOR=4
-LINUXSAMPLER_RELEASE_BUILD=0.1cvs
+LINUXSAMPLER_RELEASE_BUILD=0.2cvs
 
 #------------------------------------------------------------------------------------
 # The following is the libtool / shared library version. This doesn't have to
