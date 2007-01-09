@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005, 2006 Christian Schoenebeck                        *
+ *   Copyright (C) 2005 - 2007 Christian Schoenebeck                       *
  *                                                                         *
  *   This library is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -24,19 +24,13 @@
 #include "FxSend.h"
 
 #include "../drivers/audio/AudioOutputDevice.h"
+#include "../common/RTMath.h"
 
 #include <map>
 
 namespace LinuxSampler {
 
-    /*
-       FIXME: we create fx send indeces globally for now, although we might
-       want them to be an individual sequence per sampler channel, beside that
-       we don't handle the cases yet where __indexer overflows back to 0
-    */
-    static uint __indexer = 0;
-
-    FxSend::FxSend(EngineChannel* pEngineChannel, uint8_t MidiCtrl, String Name) {
+    FxSend::FxSend(EngineChannel* pEngineChannel, uint8_t MidiCtrl, String Name) throw (Exception) {
         this->pEngineChannel = pEngineChannel;
         AudioOutputDevice* pDevice = pEngineChannel->GetAudioOutputDevice();
         const int iChanOffset = (pDevice) ? pDevice->ChannelCount() - pEngineChannel->Channels() : 0;
@@ -46,8 +40,36 @@ namespace LinuxSampler {
         }
         MidiFxSendController = MidiCtrl;
         sName = Name;
-        iId = __indexer;
-        __indexer++;
+
+        // create an EngineChannel unique ID for this FxSend instance
+        if (!pEngineChannel->GetFxSendCount()) iId = 0;
+        else {
+            // get the highest existing map ID
+            uint highestIndex = 0;
+            for (uint i = 0; i < pEngineChannel->GetFxSendCount(); i++)
+                highestIndex = RTMath::Max(highestIndex, pEngineChannel->GetFxSend(i)->Id());
+            // check if we reached the index limit
+            if (highestIndex + 1 < highestIndex) {
+                // search for an unoccupied map ID starting from 0
+                for (uint i = 0; i < highestIndex; i++) {
+                    bool bOccupied = false;
+                    for (uint j = 0; j < pEngineChannel->GetFxSendCount(); j++) {
+                        if (pEngineChannel->GetFxSend(j)->Id() == i) {
+                            bOccupied = true;
+                            break;
+                        }
+                    }
+                    if (!bOccupied) {
+                        iId = i;
+                        goto __done;
+                    }
+                }
+                throw Exception("Internal error: could not find unoccupied FxSend ID.");
+            }
+            iId = highestIndex + 1;
+        }
+        __done:
+
         fLevel = 0.3f; // default FX send level
     }
 

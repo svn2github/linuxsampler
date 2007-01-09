@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005, 2006 Christian Schoenebeck                        *
+ *   Copyright (C) 2005 - 2007 Christian Schoenebeck                       *
  *                                                                         *
  *   This library is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -59,8 +59,10 @@ namespace LinuxSampler {
              * @param MidiCtrl - MIDI controller number which can alter the
              *                   effect send level
              * @param Name - (optional) name for the effect send entity
+             *
+             * @throws Exception - in case no free ID could be found on given EngineChannel
              */
-            FxSend(EngineChannel* pEngineChannel, uint8_t MidiCtrl, String Name = "");
+            FxSend(EngineChannel* pEngineChannel, uint8_t MidiCtrl, String Name = "") throw (Exception);
 
             /**
              * Returns the audio output device's audio channel to which effect
