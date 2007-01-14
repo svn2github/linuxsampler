@@ -2555,7 +2555,7 @@ Schoenebeck'>
                                     <t>VOLUME -
                                         <list>
                                             <t>optionally dotted number for the channel volume factor
-                                            (where a value < 1.0 means attenuation and a value >
+                                            (where a value &lt; 1.0 means attenuation and a value >
                                             1.0 means amplification)</t>
                                         </list>
                                     </t>
@@ -3287,7 +3287,7 @@ Schoenebeck'>
                             <t>S: "OK[0]"</t>
                         </list>
                     </t>
-		    <t>
+                    <t>
                         <list>
                             <t>C: "CREATE FX_SEND 0 93"</t>
                             <t>S: "OK[1]"</t>
@@ -3434,6 +3434,19 @@ Schoenebeck'>
                                             <t>name of the effect send entity</t>
                                         </list>
                                     </t>
+                                    <t>MIDI_CONTROLLER -
+                                        <list>
+                                            <t>a value between 0 and 127 reflecting the MIDI controller
+                                            which is able to modify the effect send's send level</t>
+                                        </list>
+                                    </t>
+                                    <t>LEVEL -
+                                        <list>
+                                            <t>optionally dotted number reflecting the effect send's
+                                            current send level (where a value &lt; 1.0 means attenuation
+                                            and a value > 1.0 means amplification)</t>
+                                        </list>
+                                    </t>
                                     <t>AUDIO_OUTPUT_ROUTING -
                                         <list>
                                             <t>comma separated list which reflects to which audio
@@ -3458,6 +3471,8 @@ Schoenebeck'>
                         <list>
                             <t>C: "GET FX_SEND INFO 0 0"</t>
                             <t>S: "NAME: Reverb Send"</t>
+                            <t>&nbsp;&nbsp;&nbsp;"MIDI_CONTROLLER: 91"</t>
+                            <t>&nbsp;&nbsp;&nbsp;"LEVEL: 0.3"</t>
                             <t>&nbsp;&nbsp;&nbsp;"AUDIO_OUTPUT_ROUTING: 2,3"</t>
                             <t>&nbsp;&nbsp;&nbsp;"."</t>
                         </list>
@@ -3524,6 +3539,102 @@ Schoenebeck'>
                     </t>
                 </section>
 
+                <section title="Altering effect send's MIDI controller" anchor="SET FX_SEND MIDI_CONTROLLER">
+                    <t>The front-end can alter the MIDI controller of an effect
+                    send entity by sending the following command:</t>
+                    <t>
+                        <list>
+                            <t>SET FX_SEND MIDI_CONTROLLER &lt;sampler-chan&gt; &lt;fx-send-id&gt; &lt;midi-ctrl&gt;</t>
+                        </list>
+                    </t>
+                    <t>Where &lt;sampler-chan&gt; is the sampler channel number
+                    as returned by the <xref target="ADD CHANNEL">"ADD CHANNEL"</xref>
+                    or <xref target="LIST CHANNELS">"LIST CHANNELS"</xref> command,
+                    &lt;fx-send-id&gt; reflects the numerical ID of the effect send entity
+                    as returned by the <xref target="CREATE FX_SEND">"CREATE FX_SEND"</xref>
+                    or <xref target="LIST FX_SENDS">"LIST FX_SENDS"</xref> command and
+                    &lt;midi-ctrl&gt; reflects the MIDI controller which shall be
+                    able to modify the effect send's send level.</t>
+
+                    <t>Possible Answers:</t>
+                    <t>
+                        <list>
+                            <t>"OK" -
+                                <list>
+                                    <t>on success</t>
+                                </list>
+                            </t>
+                            <t>"WRN:&lt;warning-code&gt;:&lt;warning-message&gt;" -
+                                <list>
+                                    <t>if MIDI controller was set, but there are noteworthy
+                                    issue(s) related, providing an appropriate warning code and
+                                    warning message</t>
+                                </list>
+                            </t>
+                            <t>"ERR:&lt;error-code&gt;:&lt;error-message&gt;" -
+                                <list>
+                                    <t>in case it failed, providing an appropriate error code and error message</t>
+                                </list>
+                            </t>
+                        </list>
+                    </t>
+                    <t>Example:</t>
+                    <t>
+                        <list>
+                            <t>C: "SET FX_SEND MIDI_CONTROLLER 0 0 91"</t>
+                            <t>S: "OK"</t>
+                        </list>
+                    </t>
+                </section>
+
+                <section title="Altering effect send's send level" anchor="SET FX_SEND LEVEL">
+                    <t>The front-end can alter the current send level of an effect
+                    send entity by sending the following command:</t>
+                    <t>
+                        <list>
+                            <t>SET FX_SEND LEVEL &lt;sampler-chan&gt; &lt;fx-send-id&gt; &lt;volume&gt;</t>
+                        </list>
+                    </t>
+                    <t>Where &lt;sampler-chan&gt; is the sampler channel number
+                    as returned by the <xref target="ADD CHANNEL">"ADD CHANNEL"</xref>
+                    or <xref target="LIST CHANNELS">"LIST CHANNELS"</xref> command,
+                    &lt;fx-send-id&gt; reflects the numerical ID of the effect send entity
+                    as returned by the <xref target="CREATE FX_SEND">"CREATE FX_SEND"</xref>
+                    or <xref target="LIST FX_SENDS">"LIST FX_SENDS"</xref> command and
+                    &lt;volume&gt; is an optionally dotted positive number (a value
+                    smaller than 1.0 means attenuation, whereas a value greater than
+                    1.0 means amplification) reflecting the new send level.</t>
+
+                    <t>Possible Answers:</t>
+                    <t>
+                        <list>
+                            <t>"OK" -
+                                <list>
+                                    <t>on success</t>
+                                </list>
+                            </t>
+                            <t>"WRN:&lt;warning-code&gt;:&lt;warning-message&gt;" -
+                                <list>
+                                    <t>if new send level was set, but there are noteworthy
+                                    issue(s) related, providing an appropriate warning code and
+                                    warning message</t>
+                                </list>
+                            </t>
+                            <t>"ERR:&lt;error-code&gt;:&lt;error-message&gt;" -
+                                <list>
+                                    <t>in case it failed, providing an appropriate error code and error message</t>
+                                </list>
+                            </t>
+                        </list>
+                    </t>
+                    <t>Example:</t>
+                    <t>
+                        <list>
+                            <t>C: "SET FX_SEND LEVEL 0 0 0.15"</t>
+                            <t>S: "OK"</t>
+                        </list>
+                    </t>
+                </section>
 
                 <section title="Resetting a sampler channel" anchor="RESET CHANNEL">
                     <t>The front-end can reset a particular sampler channel by sending the following command:</t>
@@ -4164,7 +4275,7 @@ Schoenebeck'>
                     &lt;instrument_index&gt; the index (integer value) of the instrument
                     within the given file, &lt;volume_value&gt; reflects the master
                     volume of the instrument as optionally dotted number (where a
-                    value < 1.0 means attenuation and a value > 1.0 means
+                    value &lt; 1.0 means attenuation and a value > 1.0 means
                     amplification). This parameter easily allows to adjust the
                     volume of all intruments within a custom instrument map
                     without having to adjust their instrument files. The
@@ -4497,7 +4608,7 @@ Schoenebeck'>
                             <t>"VOLUME" -
                                 <list>
                                     <t>master volume of the instrument as optionally
-                                    dotted number (where a value < 1.0 means attenuation
+                                    dotted number (where a value &lt; 1.0 means attenuation
                                     and a value > 1.0 means amplification)</t>
                                 </list>
                             </t>
@@ -4849,6 +4960,10 @@ Schoenebeck'>
 		<t>/ MIDI_INSTRUMENT_MAP SP NAME SP midi_map SP map_name
 		</t>
 		<t>/ FX_SEND SP AUDIO_OUTPUT_CHANNEL SP sampler_channel SP fx_send_id SP audio_channel_index SP audio_channel_index
+		</t>
+		<t>/ FX_SEND SP MIDI_CONTROLLER SP sampler_channel SP fx_send_id SP midi_ctrl
+		</t>
+		<t>/ FX_SEND SP LEVEL SP sampler_channel SP fx_send_id SP volume_value
 		</t>
 		<t>/ ECHO SP boolean
 		</t>

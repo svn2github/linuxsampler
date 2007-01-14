@@ -60,7 +60,9 @@ namespace LinuxSampler {
              *                   effect send level
              * @param Name - (optional) name for the effect send entity
              *
-             * @throws Exception - in case no free ID could be found on given EngineChannel
+             * @throws Exception - in case no free ID could be found on
+             *                     given EngineChannel or @a MidiCtrl is
+             *                     invalid
              */
             FxSend(EngineChannel* pEngineChannel, uint8_t MidiCtrl, String Name = "") throw (Exception);
 

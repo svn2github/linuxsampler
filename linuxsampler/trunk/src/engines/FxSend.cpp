@@ -38,7 +38,7 @@ namespace LinuxSampler {
             const int iDestination = iChanOffset + i;
             Routing.push_back(iDestination);
         }
-        MidiFxSendController = MidiCtrl;
+        SetMidiController(MidiCtrl);
         sName = Name;
 
         // create an EngineChannel unique ID for this FxSend instance
@@ -128,8 +128,8 @@ namespace LinuxSampler {
     }
 
     void FxSend::SetMidiController(uint8_t MidiCtrl) throw (Exception) {
-        if (MidiCtrl & 0x7f)
-            throw Exception("Invalid MIDI controller");
+        if (MidiCtrl >> 7)
+            throw Exception("Invalid MIDI controller " + ToString((int)MidiCtrl));
         MidiFxSendController = MidiCtrl;
     }
 

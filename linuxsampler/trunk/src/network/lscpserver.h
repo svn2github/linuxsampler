@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005, 2006 Christian Schoenebeck                        *
+ *   Copyright (C) 2005 - 2007 Christian Schoenebeck                       *
  *                                                                         *
  *   This library is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -151,6 +151,8 @@ class LSCPServer : public Thread {
         String ListFxSends(uint uiSamplerChannel);
         String GetFxSendInfo(uint uiSamplerChannel, uint FxSendID);
         String SetFxSendAudioOutputChannel(uint uiSamplerChannel, uint FxSendID, uint FxSendChannel, uint DeviceChannel);
+        String SetFxSendMidiController(uint uiSamplerChannel, uint FxSendID, uint MidiController);
+        String SetFxSendLevel(uint uiSamplerChannel, uint FxSendID, double dLevel);
         String ResetChannel(uint uiSamplerChannel);
         String ResetSampler();
         String GetServerInfo();

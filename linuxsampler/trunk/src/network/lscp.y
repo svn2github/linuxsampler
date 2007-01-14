@@ -225,6 +225,8 @@ set_instruction       :  AUDIO_OUTPUT_DEVICE_PARAMETER SP number SP string '=' p
                       |  CHANNEL SP set_chan_instruction                                                  { $$ = $3;                                                         }
                       |  MIDI_INSTRUMENT_MAP SP NAME SP midi_map SP map_name                              { $$ = LSCPSERVER->SetMidiInstrumentMapName($5, $7);               }
                       |  FX_SEND SP AUDIO_OUTPUT_CHANNEL SP sampler_channel SP fx_send_id SP audio_channel_index SP audio_channel_index  { $$ = LSCPSERVER->SetFxSendAudioOutputChannel($5,$7,$9,$11); }
+                      |  FX_SEND SP MIDI_CONTROLLER SP sampler_channel SP fx_send_id SP midi_ctrl         { $$ = LSCPSERVER->SetFxSendMidiController($5,$7,$9);              }
+                      |  FX_SEND SP LEVEL SP sampler_channel SP fx_send_id SP volume_value                { $$ = LSCPSERVER->SetFxSendLevel($5,$7,$9);                       }
                       |  ECHO SP boolean                                                                  { $$ = LSCPSERVER->SetEcho((yyparse_param_t*) yyparse_param, $3);  }
                       |  VOLUME SP volume_value                                                           { $$ = LSCPSERVER->SetGlobalVolume($3);                            }
                       ;
@@ -688,6 +690,9 @@ MIDI_INPUT_TYPE       :  'M''I''D''I''_''I''N''P''U''T''_''T''Y''P''E'
 MIDI_INPUT            :  'M''I''D''I''_''I''N''P''U''T'
                       ;
 
+MIDI_CONTROLLER       :  'M''I''D''I''_''C''O''N''T''R''O''L''L''E''R'
+                      ;
+
 FX_SEND               :  'F''X''_''S''E''N''D'
                       ;
 
@@ -698,6 +703,9 @@ SERVER                :  'S''E''R''V''E''R'
                       ;
 
 VOLUME                :  'V''O''L''U''M''E'
+                      ;
+
+LEVEL                 :  'L''E''V''E''L'
                       ;
 
 MUTE                  :  'M''U''T''E'
