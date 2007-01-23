@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005, 2006 Christian Schoenebeck                        *
+ *   Copyright (C) 2005 - 2007 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -92,6 +92,8 @@ namespace LinuxSampler {
             inline void          Clear()      { memset(pBuffer, 0, uiBufferSize * sizeof(float)); } ///< Reset audio buffer with silence
             void CopyTo(AudioChannel* pDst, const uint Samples);
             void CopyTo(AudioChannel* pDst, const uint Samples, const float fLevel);
+            void MixTo(AudioChannel* pDst, const uint Samples);
+            void MixTo(AudioChannel* pDst, const uint Samples, const float fLevel);
             std::map<String,DeviceRuntimeParameter*> ChannelParameters();
 
             // constructors / destructor

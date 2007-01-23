@@ -555,8 +555,8 @@ namespace LinuxSampler { namespace gig {
         {
             AudioChannel* pDstL = pAudioOutputDevice->Channel(pEngineChannel->AudioDeviceChannelLeft);
             AudioChannel* pDstR = pAudioOutputDevice->Channel(pEngineChannel->AudioDeviceChannelRight);
-            pEngineChannel->pChannelLeft->CopyTo(pDstL, Samples);
-            pEngineChannel->pChannelRight->CopyTo(pDstR, Samples);
+            pEngineChannel->pChannelLeft->MixTo(pDstL, Samples);
+            pEngineChannel->pChannelRight->MixTo(pDstR, Samples);
         }
         // route FX send signal
         {
@@ -570,7 +570,7 @@ namespace LinuxSampler { namespace gig {
                     AudioChannel* pDstL = pAudioOutputDevice->Channel(iDstL);
                     if (!pDstL) {
                         dmsg(1,("Engine::RouteAudio() Error: invalid FX send (L) destination channel"));
-                    } else pEngineChannel->pChannelLeft->CopyTo(pDstL, Samples, pFxSend->Level());
+                    } else pEngineChannel->pChannelLeft->MixTo(pDstL, Samples, pFxSend->Level());
                 }
                 // right channel
                 const int iDstR = pFxSend->DestinationChannel(1);
@@ -580,7 +580,7 @@ namespace LinuxSampler { namespace gig {
                     AudioChannel* pDstR = pAudioOutputDevice->Channel(iDstR);
                     if (!pDstR) {
                         dmsg(1,("Engine::RouteAudio() Error: invalid FX send (R) destination channel"));
-                    } else pEngineChannel->pChannelRight->CopyTo(pDstR, Samples, pFxSend->Level());
+                    } else pEngineChannel->pChannelRight->MixTo(pDstR, Samples, pFxSend->Level());
                 }
             }
         }
@@ -1636,7 +1636,7 @@ namespace LinuxSampler { namespace gig {
     }
 
     String Engine::Version() {
-        String s = "$Revision: 1.69 $";
+        String s = "$Revision: 1.70 $";
         return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
 

@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005, 2006 Christian Schoenebeck                        *
+ *   Copyright (C) 2005 - 2007 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -109,6 +109,9 @@ namespace LinuxSampler {
      * Copies audio data (unmodified) from this AudioChannel to the given
      * destination AudioChannel.
      *
+     * @e Caution: This method will overwrite the content in the destination
+     * channel buffer.
+     *
      * @param pDst    - destination channel
      * @param Samples - amount of sample points to be copied
      */
@@ -121,6 +124,9 @@ namespace LinuxSampler {
      * AudioChannel and applies the given volume coefficient to the
      * destination audio signal.
      *
+     * @e Caution: This method will overwrite the content in the destination
+     * channel buffer.
+     *
      * @param pDst    - destination channel
      * @param Samples - amount of sample points to be copied
      * @param fLevel  - volume coefficient to be applied
@@ -132,6 +138,40 @@ namespace LinuxSampler {
             float* pDstBuf = pDst->Buffer();
             for (int i = 0; i < Samples; i++)
                 pDstBuf[i] = pSrcBuf[i] * fLevel;
+        }
+    }
+
+    /**
+     * Copies audio data (unmodified) from this AudioChannel and mixes it to the
+     * given destination AudioChannel.
+     *
+     * @param pDst    - destination channel
+     * @param Samples - amount of sample points to be mixed over
+     */
+    void AudioChannel::MixTo(AudioChannel* pDst, const uint Samples) {
+        //TODO: there's probably a more efficient way to do this ...
+        float* pSrcBuf = Buffer();
+        float* pDstBuf = pDst->Buffer();
+        for (int i = 0; i < Samples; i++)
+            pDstBuf[i] += pSrcBuf[i];
+    }
+
+    /**
+     * Copies audio data from this AudioChannel, applies the given volume
+     * coefficient to the audio signal and mixes it to the given destination
+     * channel.
+     *
+     * @param pDst    - destination channel
+     * @param Samples - amount of sample points to be mixed over
+     * @param fLevel  - volume coefficient to be applied
+     */
+    void AudioChannel::MixTo(AudioChannel* pDst, const uint Samples, const float fLevel) {
+        if (fLevel == 1.0f) MixTo(pDst, Samples);
+        else {
+            float* pSrcBuf = Buffer();
+            float* pDstBuf = pDst->Buffer();
+            for (int i = 0; i < Samples; i++)
+                pDstBuf[i] += pSrcBuf[i] * fLevel;
         }
     }
 
