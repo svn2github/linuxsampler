@@ -41,17 +41,22 @@ namespace LinuxSampler { namespace gig {
      *
      * The disk reader thread is responsible for periodically refilling
      * disk streams in parallel to the audio thread's rendering process.
+     *
+     * There is also a function for releasing parts of instruments not
+     * in use anymore (as this is not real time safe, the audio thread
+     * cannot do it directly).
      */
     class DiskThread : public Thread {
         public:
             // Methods
-            DiskThread(uint BufferWrapElements);
+            DiskThread(uint BufferWrapElements, InstrumentResourceManager* pInstruments);
             virtual ~DiskThread();
             void    Reset();
             String  GetBufferFillBytes();
             String  GetBufferFillPercentage();
             int     OrderNewStream(Stream::reference_t* pStreamRef, ::gig::DimensionRegion* pDimRgn, unsigned long SampleOffset, bool DoLoop);
             int     OrderDeletionOfStream(Stream::reference_t* pStreamRef);
+            int     OrderDeletionOfDimreg(::gig::DimensionRegion* dimreg);
             Stream* AskForCreatedStream(Stream::OrderID_t StreamOrderID);
 
             // the number of streams currently in usage
@@ -87,10 +92,12 @@ namespace LinuxSampler { namespace gig {
             RingBuffer<create_command_t,false>* CreationQueue;                      ///< Contains commands to create streams
             RingBuffer<delete_command_t,false>* DeletionQueue;                      ///< Contains commands to delete streams
             RingBuffer<Stream::Handle,false>*   GhostQueue;                         ///< Contains handles to streams that are not used anymore and weren't deletable immediately
+            RingBuffer< ::gig::DimensionRegion*,false>* DeleteDimregQueue;          ///< Contains dimension regions that are not used anymore and should be handed back to the instrument resource manager
             unsigned int                   RefillStreamsPerRun;                    ///< How many streams should be refilled in each loop run
             Stream*                        pStreams[CONFIG_MAX_STREAMS];            ///< Contains all disk streams (whether used or unused)
             Stream*                        pCreatedStreams[CONFIG_MAX_STREAMS + 1]; ///< This is where the voice (audio thread) picks up it's meanwhile hopefully created disk stream.
             static Stream*                 SLOT_RESERVED;                          ///< This value is used to mark an entry in pCreatedStreams[] as reserved.
+            InstrumentResourceManager*     pInstruments;                           ///< The instrument resource manager of the engine that is using this disk thread. Used by the dimension region deletion feature.
 
             // Methods
             void                           CreateStream(create_command_t& Command);

@@ -79,6 +79,7 @@ namespace LinuxSampler { namespace gig {
     int Voice::Trigger(EngineChannel* pEngineChannel, Pool<Event>::Iterator& itNoteOnEvent, int PitchBend, ::gig::DimensionRegion* pDimRgn, type_t VoiceType, int iKeyGroup) {
         this->pEngineChannel = pEngineChannel;
         this->pDimRgn        = pDimRgn;
+        Orphan = false;
 
         #if CONFIG_DEVMODE
         if (itNoteOnEvent->FragmentPos() > pEngine->MaxSamplesPerCycle) { // just a sanity check for debugging

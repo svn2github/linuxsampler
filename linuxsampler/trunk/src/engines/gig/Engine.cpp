@@ -57,7 +57,14 @@ namespace LinuxSampler { namespace gig {
             pEngine->Connect(pDevice);
             engines[pDevice] = pEngine;
         }
+
         // register engine channel to the engine instance
+
+        // Disable the engine while the new engine channel is added
+        // and initialized. The engine will be enabled again in
+        // EngineChannel::Connect.
+        pEngine->DisableAndLock();
+
         pEngine->engineChannels.add(pChannel);
         // remember index in the ArrayList
         pChannel->iEngineIndexSelf = pEngine->engineChannels.size() - 1;
@@ -101,8 +108,12 @@ namespace LinuxSampler { namespace gig {
         pEventQueue        = new RingBuffer<Event,false>(CONFIG_MAX_EVENTS_PER_FRAGMENT, 0);
         pEventPool         = new Pool<Event>(CONFIG_MAX_EVENTS_PER_FRAGMENT);
         pVoicePool         = new Pool<Voice>(CONFIG_MAX_VOICES);
+        pDimRegionsInUse   = new ::gig::DimensionRegion*[CONFIG_MAX_VOICES + 1];
         pVoiceStealingQueue = new RTList<Event>(pEventPool);
         pGlobalEvents      = new RTList<Event>(pEventPool);
+        InstrumentChangeQueue      = new RingBuffer<instrument_change_command_t,false>(1, 0);
+        InstrumentChangeReplyQueue = new RingBuffer<instrument_change_reply_t,false>(1, 0);
+
         for (RTList<Voice>::Iterator iterVoice = pVoicePool->allocAppend(); iterVoice == pVoicePool->last(); iterVoice = pVoicePool->allocAppend()) {
             iterVoice->SetEngine(this);
         }
@@ -257,7 +268,8 @@ namespace LinuxSampler { namespace gig {
             delete this->pDiskThread;
             dmsg(1,("OK\n"));
         }
-        this->pDiskThread = new DiskThread(((pAudioOut->MaxSamplesPerCycle() << CONFIG_MAX_PITCH) << 1) + 6); //FIXME: assuming stereo
+        this->pDiskThread = new DiskThread(((pAudioOut->MaxSamplesPerCycle() << CONFIG_MAX_PITCH) << 1) + 6, //FIXME: assuming stereo
+                                           &instruments);
         if (!pDiskThread) {
             dmsg(0,("gig::Engine  new diskthread = NULL\n"));
             exit(EXIT_FAILURE);
@@ -377,15 +389,46 @@ namespace LinuxSampler { namespace gig {
         // reset internal voice counter (just for statistic of active voices)
         ActiveVoiceCountTemp = 0;
 
+        // handle instrument change commands
+        instrument_change_command_t command;
+        if (InstrumentChangeQueue->pop(&command) > 0) {
+            EngineChannel* pEngineChannel = command.pEngineChannel;
+            pEngineChannel->pInstrument = command.pInstrument;
+
+            // iterate through all active voices and mark their
+            // dimension regions as "in use". The instrument resource
+            // manager may delete all of the instrument except the
+            // dimension regions and samples that are in use.
+            int i = 0;
+            RTList<uint>::Iterator iuiKey = pEngineChannel->pActiveKeys->first();
+            RTList<uint>::Iterator end    = pEngineChannel->pActiveKeys->end();
+            while (iuiKey != end) { // iterate through all active keys
+                midi_key_info_t* pKey = &pEngineChannel->pMIDIKeyInfo[*iuiKey];
+                ++iuiKey;
+
+                RTList<Voice>::Iterator itVoice     = pKey->pActiveVoices->first();
+                RTList<Voice>::Iterator itVoicesEnd = pKey->pActiveVoices->end();
+                for (; itVoice != itVoicesEnd; ++itVoice) { // iterate through all voices on this key
+                    if (!itVoice->Orphan) {
+                        itVoice->Orphan = true;
+                        pDimRegionsInUse[i++] = itVoice->pDimRgn;
+                    }
+                }
+            }
+            pDimRegionsInUse[i] = 0; // end of list
+
+            // send a reply to the calling thread, which is waiting
+            instrument_change_reply_t reply;
+            InstrumentChangeReplyQueue->push(&reply);
+        }
+
         // handle events on all engine channels
         for (int i = 0; i < engineChannels.size(); i++) {
-            if (!engineChannels[i]->pInstrument) continue; // ignore if no instrument loaded
             ProcessEvents(engineChannels[i], Samples);
         }
 
         // render all 'normal', active voices on all engine channels
         for (int i = 0; i < engineChannels.size(); i++) {
-            if (!engineChannels[i]->pInstrument) continue; // ignore if no instrument loaded
             RenderActiveVoices(engineChannels[i], Samples);
         }
 
@@ -400,7 +443,6 @@ namespace LinuxSampler { namespace gig {
 
         // handle cleanup on all engine channels for the next audio fragment
         for (int i = 0; i < engineChannels.size(); i++) {
-            if (!engineChannels[i]->pInstrument) continue; // ignore if no instrument loaded
             PostProcess(engineChannels[i]);
         }
 
@@ -519,6 +561,7 @@ namespace LinuxSampler { namespace gig {
         RTList<Event>::Iterator end               = pVoiceStealingQueue->end();
         for (; itVoiceStealEvent != end; ++itVoiceStealEvent) {
             EngineChannel* pEngineChannel = (EngineChannel*) itVoiceStealEvent->pEngineChannel;
+            if (!pEngineChannel->pInstrument) continue; // ignore if no instrument loaded
             Pool<Voice>::Iterator itNewVoice =
                 LaunchVoice(pEngineChannel, itVoiceStealEvent, itVoiceStealEvent->Param.Note.Layer, itVoiceStealEvent->Param.Note.ReleaseTrigger, false, false);
             if (itNewVoice) {
@@ -666,6 +709,8 @@ namespace LinuxSampler { namespace gig {
         if (pEngineChannel->GetMute()) return; // skip if sampler channel is muted
         #endif
 
+        if (!pEngineChannel->pInstrument) return; // ignore if no instrument loaded
+
         const int key = itNoteOnEvent->Param.Note.Key;
         midi_key_info_t* pKey = &pEngineChannel->pMIDIKeyInfo[key];
 
@@ -763,7 +808,7 @@ namespace LinuxSampler { namespace gig {
         bool bShouldRelease = pKey->Active && ShouldReleaseVoice(pEngineChannel, itNoteOffEventOnKeyList->Param.Note.Key);
 
         // in case Solo Mode is enabled, kill all voices on this key and respawn a voice on the highest pressed key (if any)
-        if (pEngineChannel->SoloMode) { //TODO: this feels like too much code just for handling solo mode :P
+        if (pEngineChannel->SoloMode && pEngineChannel->pInstrument) { //TODO: this feels like too much code just for handling solo mode :P
             bool bOtherKeysPressed = false;
             if (iKey == pEngineChannel->SoloKey) {
                 pEngineChannel->SoloKey = -1;
@@ -826,7 +871,7 @@ namespace LinuxSampler { namespace gig {
             itNoteOffEventOnKeyList->Type = Event::type_release; // transform event type
 
             // spawn release triggered voice(s) if needed
-            if (pKey->ReleaseTrigger) {
+            if (pKey->ReleaseTrigger && pEngineChannel->pInstrument) {
                 // first, get total amount of required voices (dependant on amount of layers)
                 ::gig::Region* pRegion = pEngineChannel->pInstrument->GetRegion(itNoteOffEventOnKeyList->Param.Note.Key);
                 if (pRegion) {
@@ -1021,6 +1066,12 @@ namespace LinuxSampler { namespace gig {
                     std::cerr << "gig::Engine::LaunchVoice() Error: Unknown dimension\n" << std::flush;
             }
         }
+
+        // return if this is a release triggered voice and there is no
+        // releasetrigger dimension (could happen if an instrument
+        // change has occured between note on and off)
+        if (ReleaseTriggerVoice && VoiceType != Voice::type_release_trigger) return Pool<Voice>::Iterator();
+
         ::gig::DimensionRegion* pDimRgn = pRegion->GetDimensionRegionByValue(DimValues);
 
         // no need to continue if sample is silent
@@ -1249,6 +1300,13 @@ namespace LinuxSampler { namespace gig {
             midi_key_info_t* pKey = &pEngineChannel->pMIDIKeyInfo[itVoice->MIDIKey];
 
             uint keygroup = itVoice->KeyGroup;
+
+            // if the sample and dimension region belong to an
+            // instrument that is unloaded, tell the disk thread to
+            // release them
+            if (itVoice->Orphan) {
+                pDiskThread->OrderDeletionOfDimreg(itVoice->pDimRgn);
+            }
 
             // free the voice object
             pVoicePool->free(itVoice);
@@ -1636,7 +1694,7 @@ namespace LinuxSampler { namespace gig {
     }
 
     String Engine::Version() {
-        String s = "$Revision: 1.70 $";
+        String s = "$Revision: 1.71 $";
         return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
 
@@ -1684,6 +1742,30 @@ namespace LinuxSampler { namespace gig {
                 (segments[3] - segments[1]) / (segments[2] - segments[0]);
         }
         return y;
+    }
+
+    /**
+     * Changes the instrument for an engine channel.
+     *
+     * @param pEngineChannel - engine channel on which the instrument
+     *                         should be changed
+     * @param pInstrument - new instrument
+     * @returns a list of dimension regions from the old instrument
+     *          that are still in use
+     */
+    ::gig::DimensionRegion** Engine::ChangeInstrument(EngineChannel* pEngineChannel, ::gig::Instrument* pInstrument) {
+        instrument_change_command_t command;
+        command.pEngineChannel = pEngineChannel;
+        command.pInstrument = pInstrument;
+        InstrumentChangeQueue->push(&command);
+
+        // wait for the audio thread to confirm that the instrument
+        // change has been done
+        instrument_change_reply_t reply;
+        while (InstrumentChangeReplyQueue->pop(&reply) == 0) {
+            usleep(10000);
+        }
+        return pDimRegionsInUse;
     }
 
 }} // namespace LinuxSampler::gig

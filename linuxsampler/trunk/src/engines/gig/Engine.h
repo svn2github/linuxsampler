@@ -60,6 +60,7 @@ namespace LinuxSampler { namespace gig {
             Engine();
             virtual ~Engine();
             void Connect(AudioOutputDevice* pAudioOut);
+            ::gig::DimensionRegion** ChangeInstrument(EngineChannel* pEngineChannel, ::gig::Instrument* pInstrument);
 
             // implementation of abstract methods derived from class 'LinuxSampler::Engine'
             virtual int    RenderAudio(uint Samples);
@@ -139,6 +140,20 @@ namespace LinuxSampler { namespace gig {
 
             friend class Voice;
         private:
+
+            /// Command used by the instrument loader thread to
+            /// request an instrument change on a channel.
+            struct instrument_change_command_t {
+                EngineChannel* pEngineChannel;
+                ::gig::Instrument* pInstrument;
+            };
+            struct instrument_change_reply_t {
+                int dummy;
+            };
+            RingBuffer<instrument_change_command_t,false>* InstrumentChangeQueue;      ///< Contains the instrument change command
+            RingBuffer<instrument_change_reply_t,false>*   InstrumentChangeReplyQueue; ///< Contains the acknowledge of an instrument change
+           ::gig::DimensionRegion** pDimRegionsInUse; ///< After an instrument change, this contains a list of dimension regions that are still in use by playing voices
+
             ArrayList<EngineChannel*> engineChannels; ///< All engine channels of a gig::Engine instance.
 
             static std::map<AudioOutputDevice*,Engine*> engines; ///< All instances of gig::Engine.

@@ -40,9 +40,9 @@ namespace LinuxSampler {
      * safe to modify the other instance.
      *
      * The real time threads need one Reader object each to access the
-     * confuration data. This object must be created outside the real
-     * time thread. The Lock() function returns a reference to the
-     * data to be read, and Unlock() must be called when finished
+     * configuration data. This object must be created outside the
+     * real time thread. The Lock() function returns a reference to
+     * the data to be read, and Unlock() must be called when finished
      * reading the data. (Neither Lock nor Unlock will block the real
      * time thread, or use any system calls.)
      */

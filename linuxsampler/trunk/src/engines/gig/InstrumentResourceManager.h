@@ -63,6 +63,7 @@ namespace LinuxSampler { namespace gig {
      */
     class InstrumentResourceManager : public InstrumentManager, public ResourceManager<InstrumentManager::instrument_id_t, ::gig::Instrument> {
         public:
+            InstrumentResourceManager() : Gigs(this) {}
             virtual ~InstrumentResourceManager() {}
             static void OnInstrumentLoadingProgress(::gig::progress_t* pProgress);
 
@@ -71,6 +72,11 @@ namespace LinuxSampler { namespace gig {
             virtual InstrumentManager::mode_t GetMode(const instrument_id_t& ID);
             virtual void SetMode(const instrument_id_t& ID, InstrumentManager::mode_t Mode);
             virtual String GetInstrumentName(instrument_id_t ID);
+
+            void HandBackInstrument(::gig::Instrument* pResource, InstrumentConsumer* pConsumer,
+                                    ::gig::DimensionRegion** dimRegionsInUse);
+            void HandBackDimReg(::gig::DimensionRegion* pDimReg);
+
         protected:
             virtual ::gig::Instrument* Create(instrument_id_t Key, InstrumentConsumer* pConsumer, void*& pArg);
             virtual void               Destroy(::gig::Instrument* pResource, void* pArg);
@@ -84,10 +90,22 @@ namespace LinuxSampler { namespace gig {
                     virtual void         Destroy(::gig::File* pResource, void* pArg);
                     virtual void         OnBorrow(::gig::File* pResource, GigConsumer* pConsumer, void*& pArg) {} // ignore
                 public:
+                    GigResourceManager(InstrumentResourceManager* parent) : parent(parent) {}
                     virtual ~GigResourceManager() {}
+                private:
+                    InstrumentResourceManager* parent;
             } Gigs;
 
             void CacheInitialSamples(::gig::Sample* pSample, gig::EngineChannel* pEngineChannel);
+
+            struct dimreg_info_t {
+                int           refCount;
+                ::gig::File*  file;
+                ::RIFF::File* riff;
+            };
+            Mutex DimRegInfoMutex; ///< protects the DimRegInfo and SampleRefCount maps from concurrent access by the instrument loader and disk threads
+            std::map< ::gig::DimensionRegion*, dimreg_info_t> DimRegInfo; ///< contains dimension regions that are still in use but belong to released instrument
+            std::map< ::gig::Sample*, int> SampleRefCount; ///< contains samples that are still in use but belong to a released instrument
     };
 
     /**

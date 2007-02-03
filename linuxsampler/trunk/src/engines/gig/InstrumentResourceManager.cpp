@@ -166,6 +166,56 @@ namespace LinuxSampler { namespace gig {
     }
 
     /**
+     * Give back an instrument. This should be used instead of
+     * HandBack if there are some dimension regions that are still in
+     * use. (When an instrument is changed, the voices currently
+     * playing is allowed to keep playing with the old instrument
+     * until note off arrives. New notes will use the new instrument.)
+     */
+    void InstrumentResourceManager::HandBackInstrument(::gig::Instrument* pResource, InstrumentConsumer* pConsumer,
+                                                       ::gig::DimensionRegion** dimRegionsInUse) {
+        DimRegInfoMutex.Lock();
+        for (int i = 0 ; dimRegionsInUse[i] ; i++) {
+            DimRegInfo[dimRegionsInUse[i]].refCount++;
+            SampleRefCount[dimRegionsInUse[i]->pSample]++;
+        }
+        HandBack(pResource, pConsumer, true);
+        DimRegInfoMutex.Unlock();
+    }
+
+    /**
+     * Give back a dimension region that belongs to an instrument that
+     * was previously handed back.
+     */
+    void InstrumentResourceManager::HandBackDimReg(::gig::DimensionRegion* pDimReg) {
+        DimRegInfoMutex.Lock();
+        dimreg_info_t& dimRegInfo = DimRegInfo[pDimReg];
+        int dimRegRefCount = --dimRegInfo.refCount;
+        int sampleRefCount = --SampleRefCount[pDimReg->pSample];
+        if (dimRegRefCount == 0) {
+            ::gig::File* gig = dimRegInfo.file;
+            ::RIFF::File* riff = dimRegInfo.riff;
+            DimRegInfo.erase(pDimReg);
+            // TODO: we could delete Region and Instrument here if
+            // they have become unused
+
+            if (sampleRefCount == 0) {
+                SampleRefCount.erase(pDimReg->pSample);
+
+                if (gig) {
+                    gig->DeleteSample(pDimReg->pSample);
+                    if (!gig->GetFirstSample()) {
+                        dmsg(2,("No more samples in use - freeing gig\n"));
+                        delete gig;
+                        delete riff;
+                    }
+                }
+            }
+        }
+        DimRegInfoMutex.Unlock();
+    }
+
+    /**
      *  Caches a certain size at the beginning of the given sample in RAM. If the
      *  sample is very short, the whole sample will be loaded into RAM and thus
      *  no disk streaming is needed for this sample. Caching an initial part of
@@ -220,8 +270,53 @@ namespace LinuxSampler { namespace gig {
 
     void InstrumentResourceManager::GigResourceManager::Destroy(::gig::File* pResource, void* pArg) {
         dmsg(1,("Freeing gig file from memory..."));
-        delete pResource;
-        delete (::RIFF::File*) pArg;
+
+        // Delete as much as possible of the gig file. Some of the
+        // dimension regions and samples may still be in use - these
+        // will be deleted later by the HandBackDimReg function.
+        bool deleteFile = true;
+        ::gig::Instrument* nextInstrument;
+        for (::gig::Instrument* instrument = pResource->GetFirstInstrument() ;
+             instrument ;
+             instrument = nextInstrument) {
+            nextInstrument = pResource->GetNextInstrument();
+            bool deleteInstrument = true;
+            ::gig::Region* nextRegion;
+            for (::gig::Region *region = instrument->GetFirstRegion() ;
+                 region ;
+                 region = nextRegion) {
+                nextRegion = instrument->GetNextRegion();
+                bool deleteRegion = true;
+                for (int i = 0 ; i < region->DimensionRegions ; i++)
+                {
+                    ::gig::DimensionRegion *d = region->pDimensionRegions[i];
+                    std::map< ::gig::DimensionRegion*, dimreg_info_t>::iterator iter = parent->DimRegInfo.find(d);
+                    if (iter != parent->DimRegInfo.end()) {
+                        dimreg_info_t& dimRegInfo = (*iter).second;
+                        dimRegInfo.file = pResource;
+                        dimRegInfo.riff = (::RIFF::File*)pArg;
+                        deleteFile = deleteInstrument = deleteRegion = false;
+                    }
+                }
+                if (deleteRegion) instrument->DeleteRegion(region);
+            }
+            if (deleteInstrument) pResource->DeleteInstrument(instrument);
+        }
+        if (deleteFile) {
+            delete pResource;
+            delete (::RIFF::File*) pArg;
+        } else {
+            dmsg(2,("keeping some samples that are in use..."));
+            ::gig::Sample* nextSample;
+            for (::gig::Sample* sample = pResource->GetFirstSample() ;
+                 sample ;
+                 sample = nextSample) {
+                nextSample = pResource->GetNextSample();
+                if (parent->SampleRefCount.find(sample) == parent->SampleRefCount.end()) {
+                    pResource->DeleteSample(sample);
+                }
+            }
+        }
         dmsg(1,("OK\n"));
     }
 

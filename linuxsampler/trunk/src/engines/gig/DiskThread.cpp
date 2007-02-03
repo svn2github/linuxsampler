@@ -58,6 +58,7 @@ namespace LinuxSampler { namespace gig {
         GhostQueue->init();
         CreationQueue->init();
         DeletionQueue->init();
+        DeleteDimregQueue->init();
         ActiveStreamCount = 0;
         ActiveStreamCountMax = 0;
         if (running) this->StartThread(); // start thread only if it was running before
@@ -154,6 +155,23 @@ namespace LinuxSampler { namespace gig {
     }
 
     /**
+     * Tell the disk thread to release a dimension region that belong
+     * to an instrument which isn't loaded anymore. The disk thread
+     * will hand back the dimension region to the instrument resource
+     * manager. (OrderDeletionOfDimreg is called from the audio thread
+     * when a voice dies.)
+     */
+    int DiskThread::OrderDeletionOfDimreg(::gig::DimensionRegion* dimreg) {
+        dmsg(4,("Disk Thread: dimreg deletion ordered\n"));
+        if (DeleteDimregQueue->write_space() < 1) {
+            dmsg(1,("DiskThread: DeleteDimreg queue full!\n"));
+            return -1;
+        }
+        DeleteDimregQueue->push(&dimreg);
+        return 0;
+    }
+
+    /**
      * Returns the pointer to a disk stream if the ordered disk stream
      * represented by the \a StreamOrderID was already activated by the disk
      * thread, returns NULL otherwise. If the call was successful, thus if it
@@ -185,11 +203,14 @@ namespace LinuxSampler { namespace gig {
     // #         (following code should only be executed by the disk thread)
 
 
-    DiskThread::DiskThread(uint BufferWrapElements) : Thread(true, false, 1, -2) {
+    DiskThread::DiskThread(uint BufferWrapElements, InstrumentResourceManager* pInstruments) :
+        Thread(true, false, 1, -2),
+        pInstruments(pInstruments) {
         DecompressionBuffer = ::gig::Sample::CreateDecompressionBuffer(CONFIG_STREAM_MAX_REFILL_SIZE);
         CreationQueue       = new RingBuffer<create_command_t,false>(1024);
         DeletionQueue       = new RingBuffer<delete_command_t,false>(1024);
         GhostQueue          = new RingBuffer<Stream::Handle,false>(CONFIG_MAX_STREAMS);
+        DeleteDimregQueue   = new RingBuffer< ::gig::DimensionRegion*,false>(1024);
         Streams             = CONFIG_MAX_STREAMS;
         RefillStreamsPerRun = CONFIG_REFILL_STREAMS_PER_RUN;
         for (int i = 0; i < CONFIG_MAX_STREAMS; i++) {
@@ -208,6 +229,7 @@ namespace LinuxSampler { namespace gig {
         if (CreationQueue) delete CreationQueue;
         if (DeletionQueue) delete DeletionQueue;
         if (GhostQueue)    delete GhostQueue;
+        if (DeleteDimregQueue) delete DeleteDimregQueue;
         ::gig::Sample::DestroyDecompressionBuffer(DecompressionBuffer);
     }
 
@@ -244,6 +266,14 @@ namespace LinuxSampler { namespace gig {
                 delete_command_t command;
                 DeletionQueue->pop(&command);
                 DeleteStream(command);
+            }
+
+            // release DimensionRegions that belong to instruments
+            // that are no longer loaded
+            while (DeleteDimregQueue->read_space() > 0) {
+                ::gig::DimensionRegion* dimreg;
+                DeleteDimregQueue->pop(&dimreg);
+                pInstruments->HandBackDimReg(dimreg);
             }
 
             RefillStreams(); // refill the most empty streams

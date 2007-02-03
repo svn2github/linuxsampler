@@ -40,7 +40,7 @@ namespace LinuxSampler {
      * @param pEngineChannel - engine channel on which the instrument should be loaded
      */
     void InstrumentManagerThread::StartNewLoad(String Filename, uint uiInstrumentIndex, EngineChannel* pEngineChannel) {
-        dmsg(1,("Scheduling '%s' (Index=%d) to be loaded in background (if not loaded yet).",Filename.c_str(),uiInstrumentIndex));
+        dmsg(1,("Scheduling '%s' (Index=%d) to be loaded in background (if not loaded yet).\n",Filename.c_str(),uiInstrumentIndex));
         // already tell the engine which instrument to load
         pEngineChannel->PrepareLoadInstrument(Filename.c_str(), uiInstrumentIndex);
 

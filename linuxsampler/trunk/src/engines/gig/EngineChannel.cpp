@@ -163,27 +163,35 @@ namespace LinuxSampler { namespace gig {
      * @see PrepareLoadInstrument()
      */
     void EngineChannel::LoadInstrument() {
-
-        if (pEngine) pEngine->DisableAndLock();
-
-        ResetInternal();
+        ::gig::Instrument* oldInstrument = pInstrument;
 
         // free old instrument
-        if (pInstrument) {
-            // give old instrument back to instrument manager
-            Engine::instruments.HandBack(pInstrument, this);
+        if (oldInstrument) {
+            if (pEngine) {
+                // make sure we don't trigger any new notes with the
+                // old instrument
+                ::gig::DimensionRegion** dimRegionsInUse = pEngine->ChangeInstrument(this, 0);
+
+                // give old instrument back to instrument manager, but
+                // keep the dimension regions and samples that are in
+                // use
+                Engine::instruments.HandBackInstrument(oldInstrument, this, dimRegionsInUse);
+            } else {
+                Engine::instruments.HandBack(oldInstrument, this);
+            }
         }
 
         // delete all key groups
         ActiveKeyGroups.clear();
 
         // request gig instrument from instrument manager
+        ::gig::Instrument* newInstrument;
         try {
             InstrumentManager::instrument_id_t instrid;
             instrid.FileName  = InstrumentFile;
             instrid.Index     = InstrumentIdx;
-            pInstrument = Engine::instruments.Borrow(instrid, this);
-            if (!pInstrument) {
+            newInstrument = Engine::instruments.Borrow(instrid, this);
+            if (!newInstrument) {
                 InstrumentStat = -1;
                 dmsg(1,("no instrument loaded!!!\n"));
                 exit(EXIT_FAILURE);
@@ -205,23 +213,14 @@ namespace LinuxSampler { namespace gig {
         }
 
         // rebuild ActiveKeyGroups map with key groups of current instrument
-        for (::gig::Region* pRegion = pInstrument->GetFirstRegion(); pRegion; pRegion = pInstrument->GetNextRegion())
+        for (::gig::Region* pRegion = newInstrument->GetFirstRegion(); pRegion; pRegion = newInstrument->GetNextRegion())
             if (pRegion->KeyGroup) ActiveKeyGroups[pRegion->KeyGroup] = NULL;
 
-        InstrumentIdxName = pInstrument->pInfo->Name;
+        InstrumentIdxName = newInstrument->pInfo->Name;
         InstrumentStat = 100;
 
-        // inform audio driver for the need of two channels
-        try {
-            if (pEngine && pEngine->pAudioOutputDevice)
-                pEngine->pAudioOutputDevice->AcquireChannels(2); // gig Engine only stereo
-        }
-        catch (AudioOutputException e) {
-            String msg = "Audio output device unable to provide 2 audio channels, cause: " + e.Message();
-            throw Exception(msg);
-        }
-
-        if (pEngine) pEngine->Enable();
+        if (pEngine) pEngine->ChangeInstrument(this, newInstrument);
+        else pInstrument = newInstrument;
     }
 
     /**
@@ -282,6 +281,7 @@ namespace LinuxSampler { namespace gig {
             pChannelLeft  = new AudioChannel(0, pAudioOut->MaxSamplesPerCycle());
             pChannelRight = new AudioChannel(1, pAudioOut->MaxSamplesPerCycle());
         }
+        pEngine->Enable();
         MidiInputPort::AddSysexListener(pEngine);
     }
 

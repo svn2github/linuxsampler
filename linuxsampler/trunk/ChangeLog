@@ -35,9 +35,15 @@ Version CVS HEAD (?)
     - if a filter is used and EG2 finishes before EG1, let the voice
       die when EG2 has finished (this fixes a problem with clicks and
       voice starvation for some gigs)
+    - playback is no longer disabled during instrument loading
+    - all notes playing on a channel that changes its instrument keep
+      playing with the old instrument until they get a note off
+      command
 
   * Bug fixes:
     - fixed crash occurring on certain LSCP scripts (Bug 39)
+    - another thread safety fix for lscp "load engine" and "set
+      channel audio output device"
 
 Version 0.4.0 (24 November 2006)
 
