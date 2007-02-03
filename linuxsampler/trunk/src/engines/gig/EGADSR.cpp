@@ -286,6 +286,7 @@ namespace LinuxSampler { namespace gig {
         Segment   = segment_lin;
         StepsLeft = int((ReleaseLevel2 - Level) / ReleaseCoeff);
         Coeff     = ReleaseCoeff;
+        if (StepsLeft == 0) enterReleasePart2Stage();
     }
 
     void EGADSR::enterReleasePart2Stage() {
@@ -294,6 +295,7 @@ namespace LinuxSampler { namespace gig {
         StepsLeft = int(log((CONFIG_EG_BOTTOM - ExpOffset) / (Level - ExpOffset)) / ReleaseSlope);
         Coeff     = ReleaseCoeff2;
         Offset    = ReleaseCoeff3;
+        if (StepsLeft == 0) enterFadeOutStage();
     }
 
     void EGADSR::enterFadeOutStage() {

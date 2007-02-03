@@ -51,20 +51,18 @@ namespace LinuxSampler { namespace gig {
         if (engines.count(pDevice)) {
             dmsg(4,("Using existing gig::Engine.\n"));
             pEngine = engines[pDevice];
+
+            // Disable the engine while the new engine channel is
+            // added and initialized. The engine will be enabled again
+            // in EngineChannel::Connect.
+            pEngine->DisableAndLock();
         } else { // create a new engine (and disk thread) instance for the given audio output device
             dmsg(4,("Creating new gig::Engine.\n"));
             pEngine = (Engine*) EngineFactory::Create("gig");
             pEngine->Connect(pDevice);
             engines[pDevice] = pEngine;
         }
-
         // register engine channel to the engine instance
-
-        // Disable the engine while the new engine channel is added
-        // and initialized. The engine will be enabled again in
-        // EngineChannel::Connect.
-        pEngine->DisableAndLock();
-
         pEngine->engineChannels.add(pChannel);
         // remember index in the ArrayList
         pChannel->iEngineIndexSelf = pEngine->engineChannels.size() - 1;
@@ -1694,7 +1692,7 @@ namespace LinuxSampler { namespace gig {
     }
 
     String Engine::Version() {
-        String s = "$Revision: 1.71 $";
+        String s = "$Revision: 1.72 $";
         return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
 

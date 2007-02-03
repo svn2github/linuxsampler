@@ -39,6 +39,7 @@ Version CVS HEAD (?)
     - all notes playing on a channel that changes its instrument keep
       playing with the old instrument until they get a note off
       command
+    - EG fix: a release value of zero could cause noises or crash
 
   * Bug fixes:
     - fixed crash occurring on certain LSCP scripts (Bug 39)

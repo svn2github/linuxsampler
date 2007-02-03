@@ -281,7 +281,7 @@ namespace LinuxSampler { namespace gig {
             pChannelLeft  = new AudioChannel(0, pAudioOut->MaxSamplesPerCycle());
             pChannelRight = new AudioChannel(1, pAudioOut->MaxSamplesPerCycle());
         }
-        pEngine->Enable();
+        if (pEngine->EngineDisabled.GetUnsafe()) pEngine->Enable();
         MidiInputPort::AddSysexListener(pEngine);
     }
 
