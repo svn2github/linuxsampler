@@ -38,9 +38,9 @@ namespace LinuxSampler {
         uiMidiBankMsb = 0;
         uiMidiBankLsb = 0;
         uiMidiProgram = 0;
-        uiMidiRpnMsb = uiMidiRpnLsb = 0;
         bProgramChangeReceived = bMidiBankMsbReceived = bMidiBankLsbReceived = false;
         iMidiInstrumentMap = NO_MIDI_INSTRUMENT_MAP;
+        ResetMidiRpnController();
     }
 
     void EngineChannel::SetMute(int state) throw (Exception) {
@@ -161,14 +161,21 @@ namespace LinuxSampler {
 
     void EngineChannel::SetMidiRpnControllerMsb(uint8_t CtrlMSB) {
         uiMidiRpnMsb = CtrlMSB;
+        bMidiRpnReceived = true;
     }
 
     void EngineChannel::SetMidiRpnControllerLsb(uint8_t CtrlLSB) {
         uiMidiRpnLsb = CtrlLSB;
+        bMidiRpnReceived = true;
+    }
+
+    void EngineChannel::ResetMidiRpnController() {
+        uiMidiRpnMsb = uiMidiRpnLsb = 0;
+        bMidiRpnReceived = false;
     }
 
     int EngineChannel::GetMidiRpnController() {
-        return (uiMidiRpnMsb << 8) | uiMidiRpnLsb;
+        return (bMidiRpnReceived) ? (uiMidiRpnMsb << 8) | uiMidiRpnLsb : -1;
     }
 
 } // namespace LinuxSampler

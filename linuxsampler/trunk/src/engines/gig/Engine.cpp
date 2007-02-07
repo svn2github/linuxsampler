@@ -1372,6 +1372,8 @@ namespace LinuxSampler { namespace gig {
                     // workaround, so we won't have hanging notes
                     ReleaseAllVoices(pEngineChannel, itControlChangeEvent);
                 }
+                // to avoid other MIDI CC #6 messages to be misenterpreted as RPN controller data
+                pEngineChannel->ResetMidiRpnController();
                 break;
             }
             case 7: { // volume
@@ -1718,7 +1720,7 @@ namespace LinuxSampler { namespace gig {
     }
 
     String Engine::Version() {
-        String s = "$Revision: 1.74 $";
+        String s = "$Revision: 1.75 $";
         return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
 

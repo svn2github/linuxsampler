@@ -238,9 +238,22 @@ namespace LinuxSampler {
             void SetMidiRpnControllerLsb(uint8_t CtrlLSB);
 
             /**
+             * Reset to no RPN controller currently selected.
+             */
+            void ResetMidiRpnController();
+
+            /**
              * Get currently selected MIDI Registered Parameter Number
              * (RPN) Controller, this method will return the already merged
              * value (MSB and LSB value).
+             *
+             * @e WARNING: you have to call @c ResetMidiRpnController()
+             * after using this value, otherwise all subsequent MIDI CC #6
+             * (Data) messages are interpreted as RPN controller value
+             * messages.
+             *
+             * @returns currently selected RPN controller number, a negative
+             *          value if no RPN controller currently selected
              */
             int GetMidiRpnController();
 
@@ -262,6 +275,7 @@ namespace LinuxSampler {
             bool    bMidiBankMsbReceived;
             bool    bMidiBankLsbReceived;
             bool    bProgramChangeReceived;
+            bool    bMidiRpnReceived;
             int     iMidiInstrumentMap;
     };
 
