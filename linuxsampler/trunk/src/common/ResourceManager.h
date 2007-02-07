@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005, 2006 Christian Schoenebeck                        *
+ *   Copyright (C) 2005 - 2007 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -316,7 +316,7 @@ class ResourceManager {
          * @param bLock - use thread safety mechanisms
          * @throws Exception in case an invalid Mode was given
          */
-        void SetAvailabilityMode(T_key Key, mode_t Mode, bool bLock = true) throw (Exception) {
+        void SetAvailabilityMode(T_key Key, mode_t Mode, bool bLock = true) {
             if (Mode != ON_DEMAND && Mode != ON_DEMAND_HOLD && Mode != PERSISTENT)
                 throw Exception("ResourceManager::SetAvailabilityMode(): invalid mode");
 

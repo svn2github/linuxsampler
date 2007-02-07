@@ -109,6 +109,12 @@ namespace LinuxSampler {
             void SetLevel(uint8_t iMidiValue);
 
             /**
+             * Reset send level to the default send level (i.e. due to a
+             * MIDI "reset all controllers" message).
+             */
+            void Reset();
+
+            /**
              * Returns the MIDI controller number which can alter the effect
              * send's send level.
              */

@@ -1,6 +1,6 @@
 /***************************************************************************
  *                                                                         *
- *   Copyright (C) 2006 Christian Schoenebeck                              *
+ *   Copyright (C) 2006 - 2007 Christian Schoenebeck                       *
  *                                                                         *
  *   This library is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -73,6 +73,7 @@ namespace LinuxSampler {
         midiMapsMutex.Unlock();
         if (!Entry.InstrumentFile.size())
             throw Exception("No instrument file name given");
+        // TODO: an easy one - we should check here if given file exists and throw an exception if it doesn't
         if (Entry.Volume < 0.0)
             throw Exception("Volume may not be a negative value");
         Engine* pEngine = EngineFactory::Create(Entry.EngineName);

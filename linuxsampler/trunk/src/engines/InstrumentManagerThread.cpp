@@ -1,6 +1,6 @@
 /***************************************************************************
  *                                                                         *
- *   Copyright (C) 2005, 2006 Christian Schoenebeck                        *
+ *   Copyright (C) 2005 - 2007 Christian Schoenebeck                       *
  *                                                                         *
  *   This library is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -105,9 +105,10 @@ namespace LinuxSampler {
                         default:
                             std::cerr << "InstrumentManagerThread: unknown command - BUG!\n" << std::flush;
                     }
-                }
-                catch (Exception e) {
+                } catch (Exception e) {
                     e.PrintMessage();
+                } catch (...) {
+                    std::cerr << "InstrumentManagerThread: some exception occured, could not finish task\n" << std::flush;
                 }
 
                 // remove processed command from queue

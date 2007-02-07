@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005, 2006 Christian Schoenebeck                        *
+ *   Copyright (C) 2005 - 2007 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -192,9 +192,7 @@ namespace LinuxSampler { namespace gig {
             instrid.Index     = InstrumentIdx;
             newInstrument = Engine::instruments.Borrow(instrid, this);
             if (!newInstrument) {
-                InstrumentStat = -1;
-                dmsg(1,("no instrument loaded!!!\n"));
-                exit(EXIT_FAILURE);
+                throw InstrumentResourceManagerException("resource was not created");
             }
         }
         catch (RIFF::Exception e) {
@@ -635,6 +633,13 @@ namespace LinuxSampler { namespace gig {
         GlobalPanRight = 1.0f;
         // set all MIDI controller values to zero
         memset(ControllerTable, 0x00, 129);
+        // reset all FX Send levels
+        for (
+            std::vector<FxSend*>::iterator iter = fxSends.begin();
+            iter != fxSends.end(); iter++
+        ) {
+            (*iter)->Reset();
+        }
     }
 
     /**

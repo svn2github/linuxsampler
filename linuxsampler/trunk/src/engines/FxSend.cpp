@@ -28,6 +28,8 @@
 
 #include <map>
 
+#define DEFAULT_FX_SEND_LEVEL	0.0f
+
 namespace LinuxSampler {
 
     FxSend::FxSend(EngineChannel* pEngineChannel, uint8_t MidiCtrl, String Name) throw (Exception) {
@@ -70,7 +72,7 @@ namespace LinuxSampler {
         }
         __done:
 
-        fLevel = 0.3f; // default FX send level
+        fLevel = DEFAULT_FX_SEND_LEVEL;
     }
 
     int FxSend::DestinationChannel(int SrcChan) {
@@ -121,6 +123,10 @@ namespace LinuxSampler {
 
     void FxSend::SetLevel(uint8_t iMidiValue) {
         fLevel = float(iMidiValue & 0x7f) / 127.0f;
+    }
+
+    void FxSend::Reset() {
+        fLevel = DEFAULT_FX_SEND_LEVEL;
     }
 
     uint8_t FxSend::MidiController() {
