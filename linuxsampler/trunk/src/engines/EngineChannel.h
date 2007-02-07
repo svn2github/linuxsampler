@@ -1,6 +1,6 @@
 /***************************************************************************
  *                                                                         *
- *   Copyright (C) 2005, 2006 Christian Schoenebeck                        *
+ *   Copyright (C) 2005 - 2007 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -225,6 +225,25 @@ namespace LinuxSampler {
              */
             void SetMidiInstrumentMap(int MidiMap) throw (Exception);
 
+            /**
+             * Set MIDI Registered Parameter Number (RPN) Controller
+             * (upper 8 bits / coarse).
+             */
+            void SetMidiRpnControllerMsb(uint8_t CtrlMSB);
+
+            /**
+             * Set MIDI Registered Parameter Number (RPN) Controller
+             * (lower 8 bits / fine).
+             */
+            void SetMidiRpnControllerLsb(uint8_t CtrlLSB);
+
+            /**
+             * Get currently selected MIDI Registered Parameter Number
+             * (RPN) Controller, this method will return the already merged
+             * value (MSB and LSB value).
+             */
+            int GetMidiRpnController();
+
             int iSamplerChannelIndex; ///< FIXME: nasty hack, might be removed (should be 'virtual EngineChannel* EngineChannel() = 0;', but due to cyclic dependencies only a void* solution would be possible ATM)
 
         protected:
@@ -238,6 +257,8 @@ namespace LinuxSampler {
             uint8_t uiMidiProgram;
             uint8_t uiMidiBankMsb;
             uint8_t uiMidiBankLsb;
+            uint8_t uiMidiRpnMsb; ///< MIDI Registered Parameter Number (upper 8 bits / coarse)
+            uint8_t uiMidiRpnLsb; ///< MIDI Registered Parameter Number (lower 8 bits / fine)
             bool    bMidiBankMsbReceived;
             bool    bMidiBankLsbReceived;
             bool    bProgramChangeReceived;

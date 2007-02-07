@@ -709,6 +709,9 @@ namespace LinuxSampler { namespace gig {
 
         if (!pEngineChannel->pInstrument) return; // ignore if no instrument loaded
 
+        //HACK: we should better add the transpose value only to the most mandatory places (like for retrieving the region and calculating the tuning), because otherwise voices will unintendedly survive when changing transpose while playing
+        itNoteOnEvent->Param.Note.Key += pEngineChannel->GlobalTranspose;
+
         const int key = itNoteOnEvent->Param.Note.Key;
         midi_key_info_t* pKey = &pEngineChannel->pMIDIKeyInfo[key];
 
@@ -795,6 +798,9 @@ namespace LinuxSampler { namespace gig {
         #if !CONFIG_PROCESS_MUTED_CHANNELS
         if (pEngineChannel->GetMute()) return; // skip if sampler channel is muted
         #endif
+
+        //HACK: we should better add the transpose value only to the most mandatory places (like for retrieving the region and calculating the tuning), because otherwise voices will unintendedly survive when changing transpose while playing
+        itNoteOffEvent->Param.Note.Key += pEngineChannel->GlobalTranspose;
 
         const int iKey = itNoteOffEvent->Param.Note.Key;
         midi_key_info_t* pKey = &pEngineChannel->pMIDIKeyInfo[iKey];
@@ -1356,6 +1362,16 @@ namespace LinuxSampler { namespace gig {
                 pEngineChannel->PortamentoTime = (float) itControlChangeEvent->Param.CC.Value / 127.0f * (float) CONFIG_PORTAMENTO_TIME_MAX + (float) CONFIG_PORTAMENTO_TIME_MIN;
                 break;
             }
+            case 6: { // data entry (currently only used for RPN controllers)
+                if (pEngineChannel->GetMidiRpnController() == 2) { // coarse tuning in half tones
+                    int transpose = (int) itControlChangeEvent->Param.CC.Value - 64;
+                    // limit to +- two octaves for now
+                    transpose = RTMath::Min(transpose,  24);
+                    transpose = RTMath::Max(transpose, -24);
+                    pEngineChannel->GlobalTranspose = transpose;
+                }
+                break;
+            }
             case 7: { // volume
                 //TODO: not sample accurate yet
                 pEngineChannel->MidiVolume = VolumeCurve[itControlChangeEvent->Param.CC.Value];
@@ -1458,6 +1474,14 @@ namespace LinuxSampler { namespace gig {
                         }
                     }
                 }
+                break;
+            }
+            case 100: { // RPN controller LSB
+                pEngineChannel->SetMidiRpnControllerLsb(itControlChangeEvent->Param.CC.Value);
+                break;
+            }
+            case 101: { // RPN controller MSB
+                pEngineChannel->SetMidiRpnControllerMsb(itControlChangeEvent->Param.CC.Value);
                 break;
             }
 
@@ -1692,7 +1716,7 @@ namespace LinuxSampler { namespace gig {
     }
 
     String Engine::Version() {
-        String s = "$Revision: 1.72 $";
+        String s = "$Revision: 1.73 $";
         return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
 

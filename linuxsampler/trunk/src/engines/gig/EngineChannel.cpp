@@ -631,6 +631,7 @@ namespace LinuxSampler { namespace gig {
         MidiVolume     = 1.0;
         GlobalPanLeft  = 1.0f;
         GlobalPanRight = 1.0f;
+        GlobalTranspose = 0;
         // set all MIDI controller values to zero
         memset(ControllerTable, 0x00, 129);
         // reset all FX Send levels

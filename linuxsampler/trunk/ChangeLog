@@ -40,6 +40,7 @@ Version CVS HEAD (?)
       playing with the old instrument until they get a note off
       command
     - EG fix: a release value of zero could cause noises or crash
+    - handle MIDI coarse tuning messages (MIDI RPN #0 MSB #2 LSB)
 
   * Bug fixes:
     - fixed crash occurring on certain LSCP scripts (Bug 39)

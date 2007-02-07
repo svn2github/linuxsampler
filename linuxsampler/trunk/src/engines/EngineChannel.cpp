@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005, 2006 Christian Schoenebeck                        *
+ *   Copyright (C) 2005 - 2007 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -38,6 +38,7 @@ namespace LinuxSampler {
         uiMidiBankMsb = 0;
         uiMidiBankLsb = 0;
         uiMidiProgram = 0;
+        uiMidiRpnMsb = uiMidiRpnLsb = 0;
         bProgramChangeReceived = bMidiBankMsbReceived = bMidiBankLsbReceived = false;
         iMidiInstrumentMap = NO_MIDI_INSTRUMENT_MAP;
     }
@@ -156,6 +157,18 @@ namespace LinuxSampler {
         if (find(maps.begin(), maps.end(), MidiMap) == maps.end())
             throw Exception("MIDI instrument map doesn't exist");
         iMidiInstrumentMap = MidiMap; // assign the new map ID
+    }
+
+    void EngineChannel::SetMidiRpnControllerMsb(uint8_t CtrlMSB) {
+        uiMidiRpnMsb = CtrlMSB;
+    }
+
+    void EngineChannel::SetMidiRpnControllerLsb(uint8_t CtrlLSB) {
+        uiMidiRpnLsb = CtrlLSB;
+    }
+
+    int EngineChannel::GetMidiRpnController() {
+        return (uiMidiRpnMsb << 8) | uiMidiRpnLsb;
     }
 
 } // namespace LinuxSampler
