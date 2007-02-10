@@ -209,7 +209,7 @@ namespace LinuxSampler { namespace gig {
             Level = (float) PreAttack / 1000.0;
             Coeff = 0.896f * (1.0f - Level) / StepsLeft; // max level is a bit lower if attack != 0
         } else { // attack is zero - immediately jump to the next stage
-            Level = 1.0;
+            Level = 1.029f; // a bit higher than max sustain
             if (HoldAttack) enterAttackHoldStage();
             else            enterDecay1Part1Stage(SampleRate);
         }
@@ -234,10 +234,10 @@ namespace LinuxSampler { namespace gig {
         // (where d is 1/SampleRate). The transition from f to g is
         // done when f(x) has reached Level2 = 25% of full volume.
         StepsLeft = (int) (Decay1Time * SampleRate);
-        if (StepsLeft && SustainLevel < 1.0 && Level > SustainLevel) {
+        if (StepsLeft && Level > SustainLevel) {
             Stage        = stage_decay1_part1;
             Segment      = segment_lin;
-            Decay1Slope  = 1.365 * (SustainLevel - 1.0) / StepsLeft;
+            Decay1Slope = (1.347f * SustainLevel - 1.361f) / StepsLeft;
             Coeff        = Decay1Slope * invVolume;
             Decay1Level2 = 0.25 * invVolume;
             if (Level < Decay1Level2) enterDecay1Part2Stage(SampleRate);
@@ -265,7 +265,7 @@ namespace LinuxSampler { namespace gig {
     void EGADSR::enterDecay2Stage(const uint SampleRate) {
         Stage      = stage_decay2;
         Segment    = segment_lin;
-        Decay2Time = RTMath::Max(Decay2Time, CONFIG_EG_MIN_RELEASE_TIME);
+        Decay2Time = RTMath::Max(Decay2Time, 0.05f);
         StepsLeft  = (int) (Decay2Time * SampleRate);
         Coeff      = (-1.03 / StepsLeft) * invVolume;
         //FIXME: do we really have to calculate 'StepsLeft' two times?

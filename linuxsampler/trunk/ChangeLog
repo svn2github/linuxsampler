@@ -41,6 +41,9 @@ Version CVS HEAD (?)
       command
     - EG fix: a release value of zero could cause noises or crash
     - handle MIDI coarse tuning messages (MIDI RPN #0 MSB #2 LSB)
+    - EG fine tuning: when attack is zero the EG starts at a level
+      above max sustain level, which means that there is a decay phase
+      even if sustain is 100%
 
   * Bug fixes:
     - fixed crash occurring on certain LSCP scripts (Bug 39)
