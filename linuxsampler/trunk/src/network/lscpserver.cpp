@@ -1567,7 +1567,7 @@ void  LSCPServer::UnmuteChannels() {
     }
 }
 
-String LSCPServer::AddOrReplaceMIDIInstrumentMapping(uint MidiMapID, uint MidiBank, uint MidiProg, String EngineType, String InstrumentFile, uint InstrumentIndex, float Volume, MidiInstrumentMapper::mode_t LoadMode, String Name) {
+String LSCPServer::AddOrReplaceMIDIInstrumentMapping(uint MidiMapID, uint MidiBank, uint MidiProg, String EngineType, String InstrumentFile, uint InstrumentIndex, float Volume, MidiInstrumentMapper::mode_t LoadMode, String Name, bool bModal) {
     dmsg(2,("LSCPServer: AddOrReplaceMIDIInstrumentMapping()\n"));
 
     midi_prog_index_t idx;
@@ -1585,9 +1585,11 @@ String LSCPServer::AddOrReplaceMIDIInstrumentMapping(uint MidiMapID, uint MidiBa
 
     LSCPResultSet result;
     try {
-        // PERSISTENT mapping commands might bloock for a long time, so in
-        // that case we add/replace the mapping in another thread
-        bool bInBackground = (entry.LoadMode == MidiInstrumentMapper::PERSISTENT);
+        // PERSISTENT mapping commands might block for a long time, so in
+        // that case we add/replace the mapping in another thread in case
+        // the NON_MODAL argument was supplied, non persistent mappings
+        // should return immediately, so we don't need to do that for them
+        bool bInBackground = (entry.LoadMode == MidiInstrumentMapper::PERSISTENT && !bModal);
         MidiInstrumentMapper::AddOrReplaceEntry(MidiMapID, idx, entry, bInBackground);
     } catch (Exception e) {
         result.Error(e);

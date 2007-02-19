@@ -128,7 +128,7 @@ class LSCPServer : public Thread {
         String SetVolume(double dVolume, uint uiSamplerChannel);
         String SetChannelMute(bool bMute, uint uiSamplerChannel);
         String SetChannelSolo(bool bSolo, uint uiSamplerChannel);
-        String AddOrReplaceMIDIInstrumentMapping(uint MidiMapID, uint MidiBank, uint MidiProg, String EngineType, String InstrumentFile, uint InstrumentIndex, float Volume, MidiInstrumentMapper::mode_t LoadMode, String Name);
+        String AddOrReplaceMIDIInstrumentMapping(uint MidiMapID, uint MidiBank, uint MidiProg, String EngineType, String InstrumentFile, uint InstrumentIndex, float Volume, MidiInstrumentMapper::mode_t LoadMode, String Name, bool bModal);
         String RemoveMIDIInstrumentMapping(uint MidiMapID, uint MidiBank, uint MidiProg);
         String GetMidiInstrumentMappings(uint MidiMapID);
         String GetAllMidiInstrumentMappings();

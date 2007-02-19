@@ -34,7 +34,7 @@ Schoenebeck'>
                 <email>schoenebeck at software minus engineering dot org</email>
             </address>
         </author>
-        <date month="January" year="2007"/>
+        <date month="February" year="2007"/>
         <workgroup>LinuxSampler Developers</workgroup>
         <keyword>LSCP</keyword>
         <abstract>
@@ -4257,7 +4257,7 @@ Schoenebeck'>
                     command:</t>
                     <t>
                         <list>
-                            <t>MAP MIDI_INSTRUMENT &lt;map&gt;
+                            <t>MAP MIDI_INSTRUMENT [NON_MODAL] &lt;map&gt;
                             &lt;midi_bank&gt; &lt;midi_prog&gt; &lt;engine_name&gt;
                             &lt;filename&gt; &lt;instrument_index&gt; &lt;volume_value&gt;
                             [&lt;instr_load_mode&gt;] [&lt;name&gt;]</t>
@@ -4310,7 +4310,7 @@ Schoenebeck'>
                             <t>"PERSISTENT" -
                                 <list>
                                     <t>The instrument will immediately be loaded
-                                    into memory in the background when this mapping
+                                    into memory when this mapping
                                     command is sent and the instrument is kept all
                                     the time. Instruments with this mode are
                                     only freed when the sampler is reset or all
@@ -4360,13 +4360,19 @@ Schoenebeck'>
                     <xref target="GET MIDI_INSTRUMENT INFO">"GET MIDI_INSTRUMENT INFO"</xref>).
                     </t>
                     <t>
-                    The "MAP MIDI_INSTRUMENT" command
-                    will immediately return, thus it will not block when an
-                    instrument is to be loaded due to a "PERSISTENT" type
-                    entry as instruments are loaded in the background. As a
-                    consequence this command may not necessarily return an error
-                    i.e. when the given instrument file does not exist or may
-                    turn out to be corrupt.
+                    By default, "MAP MIDI_INSTRUMENT" commands block until the mapping is
+                    completely established in the sampler. The OPTIONAL "NON_MODAL" argument
+                    however causes the respective "MAP MIDI_INSTRUMENT" command to return
+                    immediately, that is to let the sampler establish the mapping in the
+                    background. So this argument might be especially useful for mappings with
+                    a "PERSISTENT" type, because these have to load the respective instruments
+                    immediately and might thus block for a very long time. It is recommended
+                    however to use the OPTIONAL "NON_MODAL" argument only if really necessary,
+                    because it has the following drawbacks: as "NON_MODAL" instructions return
+                    immediately, they may not necessarily return an error i.e. when the given
+                    instrument file turns out to be corrupt, beside that subsequent commands
+                    in a LSCP instruction sequence might fail, because mandatory mappings are
+                    not yet completed.
                     </t>
 
                     <t>Possible Answers:</t>
@@ -4409,7 +4415,7 @@ Schoenebeck'>
                     </t>
                     <t>
                         <list>
-                            <t>C: "MAP MIDI_INSTRUMENT 1 8 120 gig '/home/joe/foodrums.gig' 0 1.0 PERSISTENT 'Foo Drumkit'"</t>
+                            <t>C: "MAP MIDI_INSTRUMENT NON_MODAL 1 8 120 gig '/home/joe/foodrums.gig' 0 1.0 PERSISTENT 'Foo Drumkit'"</t>
                             <t>S: "OK"</t>
                         </list>
                     </t>
@@ -4847,13 +4853,13 @@ Schoenebeck'>
 </t>
 <t>map_instruction =
 	<list>
-		<t>MIDI_INSTRUMENT SP midi_map SP midi_bank SP midi_prog SP engine_name SP filename SP instrument_index SP volume_value
+		<t>MIDI_INSTRUMENT SP modal_arg midi_map SP midi_bank SP midi_prog SP engine_name SP filename SP instrument_index SP volume_value
 		</t>
-		<t>/ MIDI_INSTRUMENT SP midi_map SP midi_bank SP midi_prog SP engine_name SP filename SP instrument_index SP volume_value SP instr_load_mode
+		<t>/ MIDI_INSTRUMENT SP modal_arg midi_map SP midi_bank SP midi_prog SP engine_name SP filename SP instrument_index SP volume_value SP instr_load_mode
 		</t>
-		<t>/ MIDI_INSTRUMENT SP midi_map SP midi_bank SP midi_prog SP engine_name SP filename SP instrument_index SP volume_value SP entry_name
+		<t>/ MIDI_INSTRUMENT SP modal_arg midi_map SP midi_bank SP midi_prog SP engine_name SP filename SP instrument_index SP volume_value SP entry_name
 		</t>
-		<t>/ MIDI_INSTRUMENT SP midi_map SP midi_bank SP midi_prog SP engine_name SP filename SP instrument_index SP volume_value SP instr_load_mode SP entry_name
+		<t>/ MIDI_INSTRUMENT SP modal_arg midi_map SP midi_bank SP midi_prog SP engine_name SP filename SP instrument_index SP volume_value SP instr_load_mode SP entry_name
 		</t>
 	</list>
 </t>
@@ -5048,6 +5054,14 @@ Schoenebeck'>
 		<t>/ MIDI_INSTRUMENT_MAP SP sampler_channel SP NONE
 		</t>
 		<t>/ MIDI_INSTRUMENT_MAP SP sampler_channel SP DEFAULT
+		</t>
+	</list>
+</t>
+<t>modal_arg =
+	<list>
+		<t>/* epsilon (empty argument) */
+		</t>
+		<t>/ NON_MODAL SP
 		</t>
 	</list>
 </t>

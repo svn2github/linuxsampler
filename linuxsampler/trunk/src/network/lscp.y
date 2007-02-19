@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005, 2006 Christian Schoenebeck                        *
+ *   Copyright (C) 2005 - 2007 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -77,6 +77,7 @@ int yylex(YYSTYPE* yylval) {
 %type <FillResponse> buffer_size_type
 %type <KeyValList> key_val_list
 %type <LoadMode> instr_load_mode
+%type <Bool> modal_arg
 
 %start input
 
@@ -168,10 +169,10 @@ unsubscribe_event     :  AUDIO_OUTPUT_DEVICE_COUNT             { $$ = LSCPSERVER
                       |  TOTAL_VOICE_COUNT                     { $$ = LSCPSERVER->UnsubscribeNotification(LSCPEvent::event_total_voice_count);    }
                       ;
 
-map_instruction       :  MIDI_INSTRUMENT SP midi_map SP midi_bank SP midi_prog SP engine_name SP filename SP instrument_index SP volume_value { $$ = LSCPSERVER->AddOrReplaceMIDIInstrumentMapping($3,$5,$7,$9,$11,$13,$15,MidiInstrumentMapper::VOID,""); }
-                      |  MIDI_INSTRUMENT SP midi_map SP midi_bank SP midi_prog SP engine_name SP filename SP instrument_index SP volume_value SP instr_load_mode { $$ = LSCPSERVER->AddOrReplaceMIDIInstrumentMapping($3,$5,$7,$9,$11,$13,$15,$17,""); }
-                      |  MIDI_INSTRUMENT SP midi_map SP midi_bank SP midi_prog SP engine_name SP filename SP instrument_index SP volume_value SP entry_name { $$ = LSCPSERVER->AddOrReplaceMIDIInstrumentMapping($3,$5,$7,$9,$11,$13,$15,MidiInstrumentMapper::VOID,$17); }
-                      |  MIDI_INSTRUMENT SP midi_map SP midi_bank SP midi_prog SP engine_name SP filename SP instrument_index SP volume_value SP instr_load_mode SP entry_name { $$ = LSCPSERVER->AddOrReplaceMIDIInstrumentMapping($3,$5,$7,$9,$11,$13,$15,$17,$19); }
+map_instruction       :  MIDI_INSTRUMENT SP modal_arg midi_map SP midi_bank SP midi_prog SP engine_name SP filename SP instrument_index SP volume_value { $$ = LSCPSERVER->AddOrReplaceMIDIInstrumentMapping($4,$6,$8,$10,$12,$14,$16,MidiInstrumentMapper::VOID,"",$3); }
+                      |  MIDI_INSTRUMENT SP modal_arg midi_map SP midi_bank SP midi_prog SP engine_name SP filename SP instrument_index SP volume_value SP instr_load_mode { $$ = LSCPSERVER->AddOrReplaceMIDIInstrumentMapping($4,$6,$8,$10,$12,$14,$16,$18,"",$3); }
+                      |  MIDI_INSTRUMENT SP modal_arg midi_map SP midi_bank SP midi_prog SP engine_name SP filename SP instrument_index SP volume_value SP entry_name { $$ = LSCPSERVER->AddOrReplaceMIDIInstrumentMapping($4,$6,$8,$10,$12,$14,$16,MidiInstrumentMapper::VOID,$18,$3); }
+                      |  MIDI_INSTRUMENT SP modal_arg midi_map SP midi_bank SP midi_prog SP engine_name SP filename SP instrument_index SP volume_value SP instr_load_mode SP entry_name { $$ = LSCPSERVER->AddOrReplaceMIDIInstrumentMapping($4,$6,$8,$10,$12,$14,$16,$18,$20,$3); }
                       ;
 
 unmap_instruction     :  MIDI_INSTRUMENT SP midi_map SP midi_bank SP midi_prog  { $$ = LSCPSERVER->RemoveMIDIInstrumentMapping($3,$5,$7); }
@@ -269,6 +270,10 @@ set_chan_instruction  :  AUDIO_OUTPUT_DEVICE SP sampler_channel SP device_index 
                       |  MIDI_INSTRUMENT_MAP SP sampler_channel SP midi_map                                                  { $$ = LSCPSERVER->SetChannelMap($3, $5);             }
                       |  MIDI_INSTRUMENT_MAP SP sampler_channel SP NONE                                                      { $$ = LSCPSERVER->SetChannelMap($3, -1);             }
                       |  MIDI_INSTRUMENT_MAP SP sampler_channel SP DEFAULT                                                   { $$ = LSCPSERVER->SetChannelMap($3, -2);             }
+                      ;
+
+modal_arg             :  /* epsilon (empty argument) */  { $$ = true;  }
+                      |  NON_MODAL SP                    { $$ = false; }
                       ;
 
 key_val_list          :  string '=' param_val_list                  { $$[$1] = $3;          }

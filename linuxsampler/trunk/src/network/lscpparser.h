@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005, 2006 Christian Schoenebeck                        *
+ *   Copyright (C) 2005 - 2007 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -67,6 +67,7 @@ struct YYSTYPE {
     union {
         char                         Char;
         unsigned int                 Number;
+        bool                         Bool;
         double                       Dotnum;
         fill_response_t              FillResponse;
         LSCPEvent::event_t           Event;
