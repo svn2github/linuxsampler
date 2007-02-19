@@ -145,7 +145,7 @@
 <tr><td class="header">LinuxSampler Developers</td><td class="header">C. Schoenebeck</td></tr>
 <tr><td class="header">Internet-Draft</td><td class="header">Interessengemeinschaft Software</td></tr>
 <tr><td class="header">Intended status: Standards Track</td><td class="header">Engineering e. V.</td></tr>
-<tr><td class="header">Expires: July 18, 2007</td><td class="header">January 14, 2007</td></tr>
+<tr><td class="header">Expires: August 23, 2007</td><td class="header">February 19, 2007</td></tr>
 </table></td></tr></table>
 <h1><br />LinuxSampler Control Protocol<br />LSCP 1.2</h1>
 
@@ -173,7 +173,7 @@ The list of current Internet-Drafts can be accessed at
 The list of Internet-Draft Shadow Directories can be accessed at
 <a href='http://www.ietf.org/shadow.html'>http://www.ietf.org/shadow.html</a>.</p>
 <p>
-This Internet-Draft will expire on July 18, 2007.</p>
+This Internet-Draft will expire on August 23, 2007.</p>
 
 <h3>Copyright Notice</h3>
 <p>
@@ -6488,7 +6488,7 @@ Create or replace a MIDI instrument map entry</h3>
 <p>
                         </p>
 <blockquote class="text">
-<p>MAP MIDI_INSTRUMENT &lt;map&gt;
+<p>MAP MIDI_INSTRUMENT [NON_MODAL] &lt;map&gt;
                             &lt;midi_bank&gt; &lt;midi_prog&gt; &lt;engine_name&gt;
                             &lt;filename&gt; &lt;instrument_index&gt; &lt;volume_value&gt;
                             [&lt;instr_load_mode&gt;] [&lt;name&gt;]
@@ -6552,7 +6552,7 @@ Create or replace a MIDI instrument map entry</h3>
                                 </p>
 <blockquote class="text">
 <p>The instrument will immediately be loaded
-                                    into memory in the background when this mapping
+                                    into memory when this mapping
                                     command is sent and the instrument is kept all
                                     the time. Instruments with this mode are
                                     only freed when the sampler is reset or all
@@ -6609,13 +6609,19 @@ Create or replace a MIDI instrument map entry</h3>
                     
 </p>
 <p>
-                    The "MAP MIDI_INSTRUMENT" command
-                    will immediately return, thus it will not block when an
-                    instrument is to be loaded due to a "PERSISTENT" type
-                    entry as instruments are loaded in the background. As a
-                    consequence this command may not necessarily return an error
-                    i.e. when the given instrument file does not exist or may
-                    turn out to be corrupt.
+                    By default, "MAP MIDI_INSTRUMENT" commands block until the mapping is
+                    completely established in the sampler. The OPTIONAL "NON_MODAL" argument
+                    however causes the respective "MAP MIDI_INSTRUMENT" command to return
+                    immediately, that is to let the sampler establish the mapping in the
+                    background. So this argument might be especially useful for mappings with
+                    a "PERSISTENT" type, because these have to load the respective instruments
+                    immediately and might thus block for a very long time. It is recommended
+                    however to use the OPTIONAL "NON_MODAL" argument only if really necessary,
+                    because it has the following drawbacks: as "NON_MODAL" instructions return
+                    immediately, they may not necessarily return an error i.e. when the given
+                    instrument file turns out to be corrupt, beside that subsequent commands
+                    in a LSCP instruction sequence might fail, because mandatory mappings are
+                    not yet completed.
                     
 </p>
 <p>Possible Answers:
@@ -6682,7 +6688,7 @@ Create or replace a MIDI instrument map entry</h3>
 <p>
                         </p>
 <blockquote class="text">
-<p>C: "MAP MIDI_INSTRUMENT 1 8 120 gig '/home/joe/foodrums.gig' 0 1.0 PERSISTENT 'Foo Drumkit'"
+<p>C: "MAP MIDI_INSTRUMENT NON_MODAL 1 8 120 gig '/home/joe/foodrums.gig' 0 1.0 PERSISTENT 'Foo Drumkit'"
 </p>
 <p>S: "OK"
 </p>
@@ -7318,16 +7324,16 @@ Command Syntax</h3>
 <p>map_instruction =
 	</p>
 <blockquote class="text">
-<p>MIDI_INSTRUMENT SP midi_map SP midi_bank SP midi_prog SP engine_name SP filename SP instrument_index SP volume_value
+<p>MIDI_INSTRUMENT SP modal_arg midi_map SP midi_bank SP midi_prog SP engine_name SP filename SP instrument_index SP volume_value
 		
 </p>
-<p>/ MIDI_INSTRUMENT SP midi_map SP midi_bank SP midi_prog SP engine_name SP filename SP instrument_index SP volume_value SP instr_load_mode
+<p>/ MIDI_INSTRUMENT SP modal_arg midi_map SP midi_bank SP midi_prog SP engine_name SP filename SP instrument_index SP volume_value SP instr_load_mode
 		
 </p>
-<p>/ MIDI_INSTRUMENT SP midi_map SP midi_bank SP midi_prog SP engine_name SP filename SP instrument_index SP volume_value SP entry_name
+<p>/ MIDI_INSTRUMENT SP modal_arg midi_map SP midi_bank SP midi_prog SP engine_name SP filename SP instrument_index SP volume_value SP entry_name
 		
 </p>
-<p>/ MIDI_INSTRUMENT SP midi_map SP midi_bank SP midi_prog SP engine_name SP filename SP instrument_index SP volume_value SP instr_load_mode SP entry_name
+<p>/ MIDI_INSTRUMENT SP modal_arg midi_map SP midi_bank SP midi_prog SP engine_name SP filename SP instrument_index SP volume_value SP instr_load_mode SP entry_name
 		
 </p>
 </blockquote><p>
@@ -7619,6 +7625,18 @@ Command Syntax</h3>
 		
 </p>
 <p>/ MIDI_INSTRUMENT_MAP SP sampler_channel SP DEFAULT
+		
+</p>
+</blockquote><p>
+
+</p>
+<p>modal_arg =
+	</p>
+<blockquote class="text">
+<p>/* epsilon (empty argument) */
+		
+</p>
+<p>/ NON_MODAL SP
 		
 </p>
 </blockquote><p>
