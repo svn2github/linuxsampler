@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005, 2006 Christian Schoenebeck                        *
+ *   Copyright (C) 2005 - 2007 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -30,9 +30,9 @@ namespace LinuxSampler {
         return InnerFactories[ParameterName]->Create(val);
     }
 
-    DeviceCreationParameter* DeviceParameterFactory::Create(String ParameterName) throw (Exception) {
+    DeviceCreationParameter* DeviceParameterFactory::Create(String ParameterName, std::map<String,String> Parameters) throw (Exception) {
         if (!InnerFactories.count(ParameterName)) throw Exception("No such parameter: '" + ParameterName + "'.");
-        return InnerFactories[ParameterName]->Create();
+        return InnerFactories[ParameterName]->Create(Parameters);
     }
 
     /* This method is used by the device factory to create parameters _before_ creating a device
@@ -48,7 +48,7 @@ namespace LinuxSampler {
 		if (Parameters.count(paramName)) { //Parameter with this name was specified
 			param = iter->second->Create(Parameters[paramName]);
 		} else { //Not specified, create default
-			param = iter->second->Create();
+			param = iter->second->Create(Parameters);
 		}
 		result[paramName] = param;
 	}

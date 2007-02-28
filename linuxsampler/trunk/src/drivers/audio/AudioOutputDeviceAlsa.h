@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005, 2006 Christian Schoenebeck                        *
+ *   Copyright (C) 2005 - 2007 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -73,6 +73,35 @@ namespace LinuxSampler {
                     virtual std::vector<String> PossibilitiesAsString(std::map<String,String> Parameters);
                     virtual void                OnSetValue(String s) throw (Exception);
                     static String Name();
+            };
+
+            /** Device Parameter 'SAMPLERATE'
+             *
+             * Used to set the sample rate of the audio output device.
+             */
+            class ParameterSampleRate : public AudioOutputDevice::ParameterSampleRate {
+                public:
+                    ParameterSampleRate();
+                    ParameterSampleRate(String s);
+                    virtual std::map<String,DeviceCreationParameter*> DependsAsParameters();
+                    virtual optional<int> DefaultAsInt(std::map<String,String> Parameters);
+                    virtual optional<int> RangeMinAsInt(std::map<String,String> Parameters);
+                    virtual optional<int> RangeMaxAsInt(std::map<String,String> Parameters);
+            };
+
+            /** Device Parameters 'CHANNELS'
+             *
+             * Used to increase / decrease the number of audio channels of
+             * audio output device.
+             */
+            class ParameterChannels : public AudioOutputDevice::ParameterChannels {
+                public:
+                    ParameterChannels();
+                    ParameterChannels(String s);
+                    virtual std::map<String,DeviceCreationParameter*> DependsAsParameters();
+                    virtual optional<int> DefaultAsInt(std::map<String,String> Parameters);
+                    virtual optional<int> RangeMinAsInt(std::map<String,String> Parameters);
+                    virtual optional<int> RangeMaxAsInt(std::map<String,String> Parameters);
             };
 
             /** Device Parameter 'FRAGMENTS'

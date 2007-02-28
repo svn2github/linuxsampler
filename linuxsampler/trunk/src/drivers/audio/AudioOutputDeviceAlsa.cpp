@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005, 2006 Christian Schoenebeck                        *
+ *   Copyright (C) 2005 - 2007 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -96,6 +96,181 @@ namespace LinuxSampler {
 
 
 
+// *************** ParameterSampleRate ***************
+// *
+
+    AudioOutputDeviceAlsa::ParameterSampleRate::ParameterSampleRate() : AudioOutputDevice::ParameterSampleRate::ParameterSampleRate() {
+    }
+
+    AudioOutputDeviceAlsa::ParameterSampleRate::ParameterSampleRate(String s) : AudioOutputDevice::ParameterSampleRate::ParameterSampleRate(s) {
+    }
+
+    std::map<String,DeviceCreationParameter*> AudioOutputDeviceAlsa::ParameterSampleRate::DependsAsParameters() {
+        static ParameterCard card;
+        std::map<String,DeviceCreationParameter*> dependencies;
+        dependencies[card.Name()] = &card;
+        return dependencies;
+    }
+
+    optional<int> AudioOutputDeviceAlsa::ParameterSampleRate::DefaultAsInt(std::map<String,String> Parameters) {
+        if (!Parameters.count("CARD")) return optional<int>::nothing;
+
+        // obtain information from given sound card
+        ParameterCard card(Parameters["CARD"]);
+        String pcm_name = "hw:" + card.ValueAsString();
+        snd_pcm_t* pcm_handle = NULL;
+        if (snd_pcm_open(&pcm_handle, pcm_name.c_str(), SND_PCM_STREAM_PLAYBACK, SND_PCM_NONBLOCK) < 0) return optional<int>::nothing;
+        snd_pcm_hw_params_t* hwparams;
+        snd_pcm_hw_params_alloca(&hwparams);
+        if (snd_pcm_hw_params_any(pcm_handle, hwparams) < 0) {
+            snd_pcm_close(pcm_handle);
+            return optional<int>::nothing;
+        }
+        uint rate = 44100;
+        if (snd_pcm_hw_params_set_rate_near(pcm_handle, hwparams, &rate, NULL) < 0) {
+            snd_pcm_close(pcm_handle);
+            return optional<int>::nothing;
+        }
+        snd_pcm_close(pcm_handle);
+        return rate;
+    }
+
+    optional<int> AudioOutputDeviceAlsa::ParameterSampleRate::RangeMinAsInt(std::map<String,String> Parameters) {
+        if (!Parameters.count("CARD")) return optional<int>::nothing;
+
+        // obtain information from given sound card
+        ParameterCard card(Parameters["CARD"]);
+        String pcm_name = "hw:" + card.ValueAsString();
+        snd_pcm_t* pcm_handle = NULL;
+        if (snd_pcm_open(&pcm_handle, pcm_name.c_str(), SND_PCM_STREAM_PLAYBACK, SND_PCM_NONBLOCK) < 0) return optional<int>::nothing;
+        snd_pcm_hw_params_t* hwparams;
+        snd_pcm_hw_params_alloca(&hwparams);
+        if (snd_pcm_hw_params_any(pcm_handle, hwparams) < 0) {
+            snd_pcm_close(pcm_handle);
+            return optional<int>::nothing;
+        }
+        uint rate;
+        if (snd_pcm_hw_params_get_rate_min(hwparams, &rate, NULL) < 0) {
+            snd_pcm_close(pcm_handle);
+            return optional<int>::nothing;
+        }
+        snd_pcm_close(pcm_handle);
+        return rate;
+    }
+
+    optional<int> AudioOutputDeviceAlsa::ParameterSampleRate::RangeMaxAsInt(std::map<String,String> Parameters) {
+        if (!Parameters.count("CARD")) return optional<int>::nothing;
+
+        // obtain information from given sound card
+        String pcm_name       = "hw:" + Parameters["CARD"];
+        snd_pcm_t* pcm_handle = NULL;
+        if (snd_pcm_open(&pcm_handle, pcm_name.c_str(), SND_PCM_STREAM_PLAYBACK, SND_PCM_NONBLOCK) < 0) return optional<int>::nothing;
+        snd_pcm_hw_params_t* hwparams;
+        snd_pcm_hw_params_alloca(&hwparams);
+        if (snd_pcm_hw_params_any(pcm_handle, hwparams) < 0) {
+            snd_pcm_close(pcm_handle);
+            return optional<int>::nothing;
+        }
+        uint rate;
+        if (snd_pcm_hw_params_get_rate_max(hwparams, &rate, NULL) < 0) {
+            snd_pcm_close(pcm_handle);
+            return optional<int>::nothing;
+        }
+        snd_pcm_close(pcm_handle);
+        return rate;
+    }
+
+
+
+// *************** ParameterChannels ***************
+// *
+
+    AudioOutputDeviceAlsa::ParameterChannels::ParameterChannels() : AudioOutputDevice::ParameterChannels::ParameterChannels() {
+        //InitWithDefault();
+        // could not determine default value? ...
+        //if (ValueAsInt() == 0) SetValue(2); // ... then (try) a common value
+    }
+
+    AudioOutputDeviceAlsa::ParameterChannels::ParameterChannels(String s) : AudioOutputDevice::ParameterChannels::ParameterChannels(s) {
+    }
+
+    std::map<String,DeviceCreationParameter*> AudioOutputDeviceAlsa::ParameterChannels::DependsAsParameters() {
+        static ParameterCard card;
+        std::map<String,DeviceCreationParameter*> dependencies;
+        dependencies[card.Name()] = &card;
+        return dependencies;
+    }
+
+    optional<int> AudioOutputDeviceAlsa::ParameterChannels::DefaultAsInt(std::map<String,String> Parameters) {
+        if (!Parameters.count("CARD")) return optional<int>::nothing;
+
+        // obtain information from given sound card
+        ParameterCard card(Parameters["CARD"]);
+        String pcm_name = "hw:" + card.ValueAsString();
+        snd_pcm_t* pcm_handle = NULL;
+        if (snd_pcm_open(&pcm_handle, pcm_name.c_str(), SND_PCM_STREAM_PLAYBACK, SND_PCM_NONBLOCK) < 0) return optional<int>::nothing;
+        snd_pcm_hw_params_t* hwparams;
+        snd_pcm_hw_params_alloca(&hwparams);
+        if (snd_pcm_hw_params_any(pcm_handle, hwparams) < 0) {
+            snd_pcm_close(pcm_handle);
+            return optional<int>::nothing;
+        }
+        uint channels = 2;
+        if (snd_pcm_hw_params_set_channels_near(pcm_handle, hwparams, &channels) < 0) {
+            snd_pcm_close(pcm_handle);
+            return optional<int>::nothing;
+        }
+        snd_pcm_close(pcm_handle);
+        return channels;
+    }
+
+    optional<int> AudioOutputDeviceAlsa::ParameterChannels::RangeMinAsInt(std::map<String,String> Parameters) {
+        if (!Parameters.count("CARD")) return optional<int>::nothing;
+
+        // obtain information from given sound card
+        ParameterCard card(Parameters["CARD"]);
+        String pcm_name = "hw:" + card.ValueAsString();
+        snd_pcm_t* pcm_handle = NULL;
+        if (snd_pcm_open(&pcm_handle, pcm_name.c_str(), SND_PCM_STREAM_PLAYBACK, SND_PCM_NONBLOCK) < 0) return optional<int>::nothing;
+        snd_pcm_hw_params_t* hwparams;
+        snd_pcm_hw_params_alloca(&hwparams);
+        if (snd_pcm_hw_params_any(pcm_handle, hwparams) < 0) {
+            snd_pcm_close(pcm_handle);
+            return optional<int>::nothing;
+        }
+        uint channels;
+        if (snd_pcm_hw_params_get_channels_min(hwparams, &channels) < 0) {
+            snd_pcm_close(pcm_handle);
+            return optional<int>::nothing;
+        }
+        snd_pcm_close(pcm_handle);
+        return channels;
+    }
+
+    optional<int> AudioOutputDeviceAlsa::ParameterChannels::RangeMaxAsInt(std::map<String,String> Parameters) {
+        if (!Parameters.count("CARD")) return optional<int>::nothing;
+
+        // obtain information from given sound card
+        String pcm_name       = "hw:" + Parameters["CARD"];
+        snd_pcm_t* pcm_handle = NULL;
+        if (snd_pcm_open(&pcm_handle, pcm_name.c_str(), SND_PCM_STREAM_PLAYBACK, SND_PCM_NONBLOCK) < 0) return optional<int>::nothing;
+        snd_pcm_hw_params_t* hwparams;
+        snd_pcm_hw_params_alloca(&hwparams);
+        if (snd_pcm_hw_params_any(pcm_handle, hwparams) < 0) {
+            snd_pcm_close(pcm_handle);
+            return optional<int>::nothing;
+        }
+        uint channels;
+        if (snd_pcm_hw_params_get_channels_max(hwparams, &channels) < 0) {
+            snd_pcm_close(pcm_handle);
+            return optional<int>::nothing;
+        }
+        snd_pcm_close(pcm_handle);
+        return channels;
+    }
+
+
+
 // *************** ParameterFragments ***************
 // *
 
@@ -126,14 +301,34 @@ namespace LinuxSampler {
     }
 
     optional<int> AudioOutputDeviceAlsa::ParameterFragments::DefaultAsInt(std::map<String,String> Parameters) {
-        return 2; // until done
+        if (!Parameters.count("CARD")) return optional<int>::nothing;
+
+        // obtain information from given sound card
+        ParameterCard card(Parameters["CARD"]);
+        String pcm_name = "hw:" + card.ValueAsString();
+        snd_pcm_t* pcm_handle = NULL;
+        if (snd_pcm_open(&pcm_handle, pcm_name.c_str(), SND_PCM_STREAM_PLAYBACK, SND_PCM_NONBLOCK) < 0) return optional<int>::nothing;
+        snd_pcm_hw_params_t* hwparams;
+        snd_pcm_hw_params_alloca(&hwparams);
+        if (snd_pcm_hw_params_any(pcm_handle, hwparams) < 0) {
+            snd_pcm_close(pcm_handle);
+            return optional<int>::nothing;
+        }
+        uint segs = 2;
+        if (snd_pcm_hw_params_set_periods_near(pcm_handle, hwparams, &segs, NULL) < 0) {
+            snd_pcm_close(pcm_handle);
+            return optional<int>::nothing;
+        }
+        snd_pcm_close(pcm_handle);
+        return segs;
     }
 
     optional<int> AudioOutputDeviceAlsa::ParameterFragments::RangeMinAsInt(std::map<String,String> Parameters) {
         if (!Parameters.count("CARD")) return optional<int>::nothing;
 
         // obtain information from given sound card
-        String pcm_name       = "hw:" + Parameters["CARD"];
+        ParameterCard card(Parameters["CARD"]);
+        String pcm_name = "hw:" + card.ValueAsString();
         snd_pcm_t* pcm_handle = NULL;
         if (snd_pcm_open(&pcm_handle, pcm_name.c_str(), SND_PCM_STREAM_PLAYBACK, SND_PCM_NONBLOCK) < 0) return optional<int>::nothing;
         snd_pcm_hw_params_t* hwparams;
@@ -156,7 +351,8 @@ namespace LinuxSampler {
         if (!Parameters.count("CARD")) return optional<int>::nothing;
 
         // obtain information from given sound card
-        String pcm_name       = "hw:" + Parameters["CARD"];
+        ParameterCard card(Parameters["CARD"]);
+        String pcm_name = "hw:" + card.ValueAsString();
         snd_pcm_t* pcm_handle = NULL;
         if (snd_pcm_open(&pcm_handle, pcm_name.c_str(), SND_PCM_STREAM_PLAYBACK, SND_PCM_NONBLOCK) < 0) return optional<int>::nothing;
         snd_pcm_hw_params_t* hwparams;
@@ -219,14 +415,34 @@ namespace LinuxSampler {
     }
 
     optional<int> AudioOutputDeviceAlsa::ParameterFragmentSize::DefaultAsInt(std::map<String,String> Parameters) {
-        return 128; // until done
+        if (!Parameters.count("CARD")) return optional<int>::nothing;
+
+        // obtain information from given sound card
+        ParameterCard card(Parameters["CARD"]);
+        String pcm_name = "hw:" + card.ValueAsString();
+        snd_pcm_t* pcm_handle = NULL;
+        if (snd_pcm_open(&pcm_handle, pcm_name.c_str(), SND_PCM_STREAM_PLAYBACK, SND_PCM_NONBLOCK) < 0) return optional<int>::nothing;
+        snd_pcm_hw_params_t* hwparams;
+        snd_pcm_hw_params_alloca(&hwparams);
+        if (snd_pcm_hw_params_any(pcm_handle, hwparams) < 0) {
+            snd_pcm_close(pcm_handle);
+            return optional<int>::nothing;
+        }
+        snd_pcm_uframes_t size = 128;
+        if (snd_pcm_hw_params_set_period_size_near(pcm_handle, hwparams, &size, NULL) < 0) {
+            snd_pcm_close(pcm_handle);
+            return optional<int>::nothing;
+        }
+        snd_pcm_close(pcm_handle);
+        return size;
     }
 
     optional<int> AudioOutputDeviceAlsa::ParameterFragmentSize::RangeMinAsInt(std::map<String,String> Parameters) {
         if (!Parameters.count("CARD")) return optional<int>::nothing;
 
         // obtain information from given sound card
-        String pcm_name       = "hw:" + Parameters["CARD"];
+        ParameterCard card(Parameters["CARD"]);
+        String pcm_name = "hw:" + card.ValueAsString();
         snd_pcm_t* pcm_handle = NULL;
         if (snd_pcm_open(&pcm_handle, pcm_name.c_str(), SND_PCM_STREAM_PLAYBACK, SND_PCM_NONBLOCK) < 0) return optional<int>::nothing;
         snd_pcm_hw_params_t* hwparams;
@@ -249,7 +465,8 @@ namespace LinuxSampler {
         if (!Parameters.count("CARD")) return optional<int>::nothing;
 
         // obtain information from given sound card
-        String pcm_name       = "hw:" + Parameters["CARD"];
+        ParameterCard card(Parameters["CARD"]);
+        String pcm_name = "hw:" + card.ValueAsString();
         snd_pcm_t* pcm_handle = NULL;
         if (snd_pcm_open(&pcm_handle, pcm_name.c_str(), SND_PCM_STREAM_PLAYBACK, SND_PCM_NONBLOCK) < 0) return optional<int>::nothing;
         snd_pcm_hw_params_t* hwparams;
@@ -367,7 +584,7 @@ namespace LinuxSampler {
 
         /* Set number of periods. Periods used to be called fragments. */
         if ((err = snd_pcm_hw_params_set_periods(pcm_handle, hwparams, Fragments, dir)) < 0) {
-            throw AudioOutputException(String("Error setting number of periods: ") + snd_strerror(err));
+            throw AudioOutputException(String("Error setting number of ") + ToString(Fragments) + " periods: " + snd_strerror(err));
         }
 
         /* Set buffer size (in frames). The resulting latency is given by */
@@ -517,7 +734,7 @@ namespace LinuxSampler {
     }
 
     String AudioOutputDeviceAlsa::Version() {
-       String s = "$Revision: 1.21 $";
+       String s = "$Revision: 1.22 $";
        return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
 

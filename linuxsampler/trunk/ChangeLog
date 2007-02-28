@@ -31,6 +31,11 @@ Version CVS HEAD (?)
   * MIDI driver:
     - dispatch bank select (MSB and LSB) messages
 
+  * audio driver:
+    - the ALSA audio output driver parameters now reflect the correct
+      parameter value ranges for the respective selected sound card
+      (patch by Till Wimmer, a bit fixed and extended)
+
   * Gigasampler format engine:
     - if a filter is used and EG2 finishes before EG1, let the voice
       die when EG2 has finished (this fixes a problem with clicks and
