@@ -2,7 +2,7 @@
  *                                                                         *
  *   libgig - C++ cross-platform Gigasampler format file access library    *
  *                                                                         *
- *   Copyright (C) 2003-2006 by Christian Schoenebeck                      *
+ *   Copyright (C) 2003-2007 by Christian Schoenebeck                      *
  *                              <cuse@users.sourceforge.net>               *
  *                                                                         *
  *   This library is free software; you can redistribute it and/or modify  *
@@ -514,7 +514,7 @@ namespace DLS {
             AverageBytesPerSecond  = pCkFormat->ReadUint32();
             BlockAlign             = pCkFormat->ReadUint16();
             // PCM format specific
-            if (FormatTag == WAVE_FORMAT_PCM) {
+            if (FormatTag == DLS_WAVE_FORMAT_PCM) {
                 BitDepth     = pCkFormat->ReadUint16();
                 FrameSize    = (BitDepth / 8) * Channels;
             } else { // unsupported sample data format
@@ -522,7 +522,7 @@ namespace DLS {
                 FrameSize    = 0;
             }
         } else { // 'fmt' chunk missing
-            FormatTag              = WAVE_FORMAT_PCM;
+            FormatTag              = DLS_WAVE_FORMAT_PCM;
             BitDepth               = 16;
             Channels               = 1;
             SamplesPerSecond       = 44100;
@@ -530,8 +530,8 @@ namespace DLS {
             FrameSize              = (BitDepth / 8) * Channels;
             BlockAlign             = FrameSize;
         }
-        SamplesTotal = (pCkData) ? (FormatTag == WAVE_FORMAT_PCM) ? pCkData->GetSize() / FrameSize
-                                                                  : 0
+        SamplesTotal = (pCkData) ? (FormatTag == DLS_WAVE_FORMAT_PCM) ? pCkData->GetSize() / FrameSize
+                                                                      : 0
                                  : 0;
     }
 
@@ -591,11 +591,11 @@ namespace DLS {
      * the RIFF chunk which encapsulates the sample's wave data. The
      * returned value is dependant to the current FrameSize value.
      *
-     * @returns number of sample points or 0 if FormatTag != WAVE_FORMAT_PCM
+     * @returns number of sample points or 0 if FormatTag != DLS_WAVE_FORMAT_PCM
      * @see FrameSize, FormatTag
      */
     unsigned long Sample::GetSize() {
-        if (FormatTag != WAVE_FORMAT_PCM) return 0;
+        if (FormatTag != DLS_WAVE_FORMAT_PCM) return 0;
         return (pCkData) ? pCkData->GetSize() / FrameSize : 0;
     }
 
@@ -617,18 +617,18 @@ namespace DLS {
      * calling File::Save() as this might exceed the current sample's
      * boundary!
      *
-     * Also note: only WAVE_FORMAT_PCM is currently supported, that is
-     * FormatTag must be WAVE_FORMAT_PCM. Trying to resize samples with
+     * Also note: only DLS_WAVE_FORMAT_PCM is currently supported, that is
+     * FormatTag must be DLS_WAVE_FORMAT_PCM. Trying to resize samples with
      * other formats will fail!
      *
      * @param iNewSize - new sample wave data size in sample points (must be
      *                   greater than zero)
-     * @throws Excecption if FormatTag != WAVE_FORMAT_PCM
+     * @throws Excecption if FormatTag != DLS_WAVE_FORMAT_PCM
      * @throws Exception if \a iNewSize is less than 1
      * @see File::Save(), FrameSize, FormatTag
      */
     void Sample::Resize(int iNewSize) {
-        if (FormatTag != WAVE_FORMAT_PCM) throw Exception("Sample's format is not WAVE_FORMAT_PCM");
+        if (FormatTag != DLS_WAVE_FORMAT_PCM) throw Exception("Sample's format is not DLS_WAVE_FORMAT_PCM");
         if (iNewSize < 1) throw Exception("Sample size must be at least one sample point");
         const int iSizeInBytes = iNewSize * FrameSize;
         pCkData = pWaveList->GetSubChunk(CHUNK_ID_DATA);
@@ -641,19 +641,19 @@ namespace DLS {
      * bytes). Use this method and <i>Read()</i> if you don't want to load
      * the sample into RAM, thus for disk streaming.
      *
-     * Also note: only WAVE_FORMAT_PCM is currently supported, that is
-     * FormatTag must be WAVE_FORMAT_PCM. Trying to reposition the sample
+     * Also note: only DLS_WAVE_FORMAT_PCM is currently supported, that is
+     * FormatTag must be DLS_WAVE_FORMAT_PCM. Trying to reposition the sample
      * with other formats will fail!
      *
      * @param SampleCount  number of sample points
      * @param Whence       to which relation \a SampleCount refers to
      * @returns new position within the sample, 0 if
-     *          FormatTag != WAVE_FORMAT_PCM
+     *          FormatTag != DLS_WAVE_FORMAT_PCM
      * @throws Exception if no data RIFF chunk was created for the sample yet
      * @see FrameSize, FormatTag
      */
     unsigned long Sample::SetPos(unsigned long SampleCount, RIFF::stream_whence_t Whence) {
-        if (FormatTag != WAVE_FORMAT_PCM) return 0; // failed: wave data not PCM format
+        if (FormatTag != DLS_WAVE_FORMAT_PCM) return 0; // failed: wave data not PCM format
         if (!pCkData) throw Exception("No data chunk created for sample yet, call Sample::Resize() to create one");
         unsigned long orderedBytes = SampleCount * FrameSize;
         unsigned long result = pCkData->SetPos(orderedBytes, Whence);
@@ -671,7 +671,7 @@ namespace DLS {
      * @param SampleCount  number of sample points to read
      */
     unsigned long Sample::Read(void* pBuffer, unsigned long SampleCount) {
-        if (FormatTag != WAVE_FORMAT_PCM) return 0; // failed: wave data not PCM format
+        if (FormatTag != DLS_WAVE_FORMAT_PCM) return 0; // failed: wave data not PCM format
         return pCkData->Read(pBuffer, SampleCount, FrameSize); // FIXME: channel inversion due to endian correction?
     }
 
@@ -691,7 +691,7 @@ namespace DLS {
      * @see LoadSampleData()
      */
     unsigned long Sample::Write(void* pBuffer, unsigned long SampleCount) {
-        if (FormatTag != WAVE_FORMAT_PCM) return 0; // failed: wave data not PCM format
+        if (FormatTag != DLS_WAVE_FORMAT_PCM) return 0; // failed: wave data not PCM format
         if (GetSize() < SampleCount) throw Exception("Could not write sample data, current sample size to small");
         return pCkData->Write(pBuffer, SampleCount, FrameSize); // FIXME: channel inversion due to endian correction?
     }
@@ -700,11 +700,11 @@ namespace DLS {
      * Apply sample and its settings to the respective RIFF chunks. You have
      * to call File::Save() to make changes persistent.
      *
-     * @throws Exception if FormatTag != WAVE_FORMAT_PCM or no sample data
+     * @throws Exception if FormatTag != DLS_WAVE_FORMAT_PCM or no sample data
      *                   was provided yet
      */
     void Sample::UpdateChunks() {
-        if (FormatTag != WAVE_FORMAT_PCM)
+        if (FormatTag != DLS_WAVE_FORMAT_PCM)
             throw Exception("Could not save sample, only PCM format is supported");
         // we refuse to do anything if not sample wave form was provided yet
         if (!pCkData)

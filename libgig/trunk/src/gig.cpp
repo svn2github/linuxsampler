@@ -2,7 +2,7 @@
  *                                                                         *
  *   libgig - C++ cross-platform Gigasampler format file access library    *
  *                                                                         *
- *   Copyright (C) 2003-2006 by Christian Schoenebeck                      *
+ *   Copyright (C) 2003-2007 by Christian Schoenebeck                      *
  *                              <cuse@users.sourceforge.net>               *
  *                                                                         *
  *   This library is free software; you can redistribute it and/or modify  *
@@ -364,7 +364,7 @@ namespace {
      * Usually there is absolutely no need to call this method explicitly.
      * It will be called automatically when File::Save() was called.
      *
-     * @throws DLS::Exception if FormatTag != WAVE_FORMAT_PCM or no sample data
+     * @throws DLS::Exception if FormatTag != DLS_WAVE_FORMAT_PCM or no sample data
      *                        was provided yet
      * @throws gig::Exception if there is any invalid sample setting
      */
@@ -635,13 +635,13 @@ namespace {
      * enlarged samples before calling File::Save() as this might exceed the
      * current sample's boundary!
      *
-     * Also note: only WAVE_FORMAT_PCM is currently supported, that is
-     * FormatTag must be WAVE_FORMAT_PCM. Trying to resize samples with
+     * Also note: only DLS_WAVE_FORMAT_PCM is currently supported, that is
+     * FormatTag must be DLS_WAVE_FORMAT_PCM. Trying to resize samples with
      * other formats will fail!
      *
      * @param iNewSize - new sample wave data size in sample points (must be
      *                   greater than zero)
-     * @throws DLS::Excecption if FormatTag != WAVE_FORMAT_PCM
+     * @throws DLS::Excecption if FormatTag != DLS_WAVE_FORMAT_PCM
      *                         or if \a iNewSize is less than 1
      * @throws gig::Exception if existing sample is compressed
      * @see DLS::Sample::GetSize(), DLS::Sample::FrameSize,

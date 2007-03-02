@@ -2,7 +2,7 @@
  *                                                                         *
  *   libgig - C++ cross-platform Gigasampler format file access library    *
  *                                                                         *
- *   Copyright (C) 2003-2006 by Christian Schoenebeck                      *
+ *   Copyright (C) 2003-2007 by Christian Schoenebeck                      *
  *                              <cuse@users.sourceforge.net>               *
  *                                                                         *
  *   This library is free software; you can redistribute it and/or modify  *
@@ -81,6 +81,11 @@ namespace RIFF {
         if (lseek(pFile->hFileRead, fPos, SEEK_SET) != -1) {
             read(pFile->hFileRead, &ChunkID, 4);
             read(pFile->hFileRead, &CurrentChunkSize, 4);
+        #elif defined(WIN32)
+        if (SetFilePointer(pFile->hFileRead, fPos, NULL/*32 bit*/, FILE_BEGIN) != INVALID_SET_FILE_POINTER) {
+            DWORD dwBytesRead;
+            ReadFile(pFile->hFileRead, &ChunkID, 4, &dwBytesRead, NULL);
+            ReadFile(pFile->hFileRead, &CurrentChunkSize, 4, &dwBytesRead, NULL);
         #else
         if (!fseek(pFile->hFileRead, fPos, SEEK_SET)) {
             fread(&ChunkID, 4, 1, pFile->hFileRead);
@@ -128,6 +133,12 @@ namespace RIFF {
         if (lseek(pFile->hFileWrite, fPos, SEEK_SET) != -1) {
             write(pFile->hFileWrite, &uiNewChunkID, 4);
             write(pFile->hFileWrite, &uiNewChunkSize, 4);
+        }
+        #elif defined(WIN32)
+        if (SetFilePointer(pFile->hFileWrite, fPos, NULL/*32 bit*/, FILE_BEGIN) != INVALID_SET_FILE_POINTER) {
+            DWORD dwBytesWritten;
+            WriteFile(pFile->hFileWrite, &uiNewChunkID, 4, &dwBytesWritten, NULL);
+            WriteFile(pFile->hFileWrite, &uiNewChunkSize, 4, &dwBytesWritten, NULL);
         }
         #else
         if (!fseek(pFile->hFileWrite, fPos, SEEK_SET)) {
@@ -212,7 +223,10 @@ namespace RIFF {
       std::cout << "Chunk::GetState()" << std::endl;
       #endif // DEBUG
         #if POSIX
-        if (pFile->hFileRead == 0)    return stream_closed;
+        if (pFile->hFileRead == 0) return stream_closed;
+        #elif defined (WIN32)
+        if (pFile->hFileRead == INVALID_HANDLE_VALUE)
+            return stream_closed;
         #else
         if (pFile->hFileRead == NULL) return stream_closed;
         #endif // POSIX
@@ -244,6 +258,12 @@ namespace RIFF {
         #if POSIX
         if (lseek(pFile->hFileRead, ulStartPos + ulPos, SEEK_SET) < 0) return 0;
         unsigned long readWords = read(pFile->hFileRead, pData, WordCount * WordSize);
+        if (readWords < 1) return 0;
+        readWords /= WordSize;
+        #elif defined(WIN32)
+        if (SetFilePointer(pFile->hFileRead, ulStartPos + ulPos, NULL/*32 bit*/, FILE_BEGIN) == INVALID_SET_FILE_POINTER) return 0;
+        DWORD readWords;
+        ReadFile(pFile->hFileRead, pData, WordCount * WordSize, &readWords, NULL);
         if (readWords < 1) return 0;
         readWords /= WordSize;
         #else // standard C functions
@@ -314,6 +334,15 @@ namespace RIFF {
         }
         unsigned long writtenWords = write(pFile->hFileWrite, pData, WordCount * WordSize);
         if (writtenWords < 1) throw Exception("POSIX IO Error while trying to write chunk data");
+        writtenWords /= WordSize;
+        #elif defined(WIN32)
+        if (SetFilePointer(pFile->hFileWrite, ulStartPos + ulPos, NULL/*32 bit*/, FILE_BEGIN) == INVALID_SET_FILE_POINTER) {
+            throw Exception("Could not seek to position " + ToString(ulPos) +
+                            " in chunk (" + ToString(ulStartPos + ulPos) + " in file)");            
+        }
+        DWORD writtenWords;
+        WriteFile(pFile->hFileWrite, pData, WordCount * WordSize, &writtenWords, NULL);
+        if (writtenWords < 1) throw Exception("Windows IO Error while trying to write chunk data");
         writtenWords /= WordSize;
         #else // standard C functions
         if (fseek(pFile->hFileWrite, ulStartPos + ulPos, SEEK_SET)) {
@@ -679,6 +708,8 @@ namespace RIFF {
         if (!pChunkData && pFile->Filename != "") {
             #if POSIX
             if (lseek(pFile->hFileRead, ulStartPos, SEEK_SET) == -1) return NULL;
+            #elif defined(WIN32)
+            if (SetFilePointer(pFile->hFileRead, ulStartPos, NULL/*32 bit*/, FILE_BEGIN) == INVALID_SET_FILE_POINTER) return NULL;
             #else
             if (fseek(pFile->hFileRead, ulStartPos, SEEK_SET)) return NULL;
             #endif // POSIX
@@ -688,6 +719,9 @@ namespace RIFF {
             memset(pChunkData, 0, ulBufferSize);
             #if POSIX
             unsigned long readWords = read(pFile->hFileRead, pChunkData, GetSize());
+            #elif defined(WIN32)
+            DWORD readWords;
+            ReadFile(pFile->hFileRead, pChunkData, GetSize(), &readWords, NULL);
             #else
             unsigned long readWords = fread(pChunkData, 1, GetSize(), pFile->hFileRead);
             #endif // POSIX
@@ -775,6 +809,13 @@ namespace RIFF {
             if (write(pFile->hFileWrite, pChunkData, NewChunkSize) != NewChunkSize) {
                 throw Exception("Writing Chunk data (from RAM) failed");
             }
+            #elif defined(WIN32)
+            SetFilePointer(pFile->hFileWrite, ulWritePos, NULL/*32 bit*/, FILE_BEGIN);
+            DWORD dwBytesWritten;
+            WriteFile(pFile->hFileWrite, pChunkData, NewChunkSize, &dwBytesWritten, NULL);
+            if (dwBytesWritten != NewChunkSize) {
+                throw Exception("Writing Chunk data (from RAM) failed");
+            }
             #else
             fseek(pFile->hFileWrite, ulWritePos, SEEK_SET);
             if (fwrite(pChunkData, 1, NewChunkSize, pFile->hFileWrite) != NewChunkSize) {
@@ -785,7 +826,11 @@ namespace RIFF {
             // move chunk data from the end of the file to the appropriate position
             int8_t* pCopyBuffer = new int8_t[4096];
             unsigned long ulToMove = (NewChunkSize < CurrentChunkSize) ? NewChunkSize : CurrentChunkSize;
+            #if defined(WIN32)
+            DWORD iBytesMoved = 1; // we have to pass it via pointer to the Windows API, thus the correct size must be ensured
+            #else
             int iBytesMoved = 1;
+            #endif
             for (unsigned long ulOffset = 0; iBytesMoved > 0; ulOffset += iBytesMoved, ulToMove -= iBytesMoved) {
                 iBytesMoved = (ulToMove < 4096) ? ulToMove : 4096;
                 #if POSIX
@@ -793,6 +838,11 @@ namespace RIFF {
                 iBytesMoved = read(pFile->hFileRead, pCopyBuffer, iBytesMoved);
                 lseek(pFile->hFileWrite, ulWritePos + ulOffset, SEEK_SET);
                 iBytesMoved = write(pFile->hFileWrite, pCopyBuffer, iBytesMoved);
+                #elif defined(WIN32)
+                SetFilePointer(pFile->hFileRead, ulStartPos + ulCurrentDataOffset + ulOffset, NULL/*32 bit*/, FILE_BEGIN);
+                ReadFile(pFile->hFileRead, pCopyBuffer, iBytesMoved, &iBytesMoved, NULL);
+                SetFilePointer(pFile->hFileWrite, ulWritePos + ulOffset, NULL/*32 bit*/, FILE_BEGIN);
+                WriteFile(pFile->hFileWrite, pCopyBuffer, iBytesMoved, &iBytesMoved, NULL);
                 #else
                 fseek(pFile->hFileRead, ulStartPos + ulCurrentDataOffset + ulOffset, SEEK_SET);
                 iBytesMoved = fread(pCopyBuffer, 1, iBytesMoved, pFile->hFileRead);
@@ -818,6 +868,10 @@ namespace RIFF {
             #if POSIX
             lseek(pFile->hFileWrite, ulStartPos + NewChunkSize, SEEK_SET);
             write(pFile->hFileWrite, &cPadByte, 1);
+            #elif defined(WIN32)
+            SetFilePointer(pFile->hFileWrite, ulStartPos + NewChunkSize, NULL/*32 bit*/, FILE_BEGIN);
+            DWORD dwBytesWritten;
+            WriteFile(pFile->hFileWrite, &cPadByte, 1, &dwBytesWritten, NULL);
             #else
             fseek(pFile->hFileWrite, ulStartPos + NewChunkSize, SEEK_SET);
             fwrite(&cPadByte, 1, 1, pFile->hFileWrite);
@@ -1133,6 +1187,10 @@ namespace RIFF {
         #if POSIX
         lseek(pFile->hFileRead, fPos + CHUNK_HEADER_SIZE, SEEK_SET);
         read(pFile->hFileRead, &ListType, 4);
+        #elif defined(WIN32)
+        SetFilePointer(pFile->hFileRead, fPos + CHUNK_HEADER_SIZE, NULL/*32 bit*/, FILE_BEGIN);
+        DWORD dwBytesRead;
+        ReadFile(pFile->hFileRead, &ListType, 4, &dwBytesRead, NULL);
         #else
         fseek(pFile->hFileRead, fPos + CHUNK_HEADER_SIZE, SEEK_SET);
         fread(&ListType, 4, 1, pFile->hFileRead);
@@ -1153,6 +1211,10 @@ namespace RIFF {
         #if POSIX
         lseek(pFile->hFileWrite, fPos + CHUNK_HEADER_SIZE, SEEK_SET);
         write(pFile->hFileWrite, &ListType, 4);
+        #elif defined(WIN32)
+        SetFilePointer(pFile->hFileWrite, fPos + CHUNK_HEADER_SIZE, NULL/*32 bit*/, FILE_BEGIN);
+        DWORD dwBytesWritten;
+        WriteFile(pFile->hFileWrite, &ListType, 4, &dwBytesWritten, NULL);
         #else
         fseek(pFile->hFileWrite, fPos + CHUNK_HEADER_SIZE, SEEK_SET);
         fwrite(&ListType, 4, 1, pFile->hFileWrite);
@@ -1266,7 +1328,11 @@ namespace RIFF {
      * @see AddSubChunk(), AddSubList()
      */
     File::File(uint32_t FileType) : List(this) {
+        #if defined(WIN32)
+        hFileRead = hFileWrite = INVALID_HANDLE_VALUE;
+        #else
         hFileRead = hFileWrite = 0;
+        #endif
         Mode = stream_mode_closed;
         bEndianNative = true;
         ulStartPos = RIFF_HEADER_SIZE;
@@ -1292,9 +1358,20 @@ namespace RIFF {
             hFileRead = hFileWrite = 0;
             throw RIFF::Exception("Can't open \"" + path + "\"");
         }
+        #elif defined(WIN32)
+        hFileRead = hFileWrite = CreateFile(
+                                     path.c_str(), GENERIC_READ,
+                                     FILE_SHARE_READ | FILE_SHARE_WRITE,
+                                     NULL, OPEN_EXISTING,
+                                     FILE_ATTRIBUTE_NORMAL, NULL
+                                 );
+        if (hFileRead == INVALID_HANDLE_VALUE) {
+            hFileRead = hFileWrite = INVALID_HANDLE_VALUE;
+            throw RIFF::Exception("Can't open \"" + path + "\"");
+        }
         #else
         hFileRead = hFileWrite = fopen(path.c_str(), "rb");
-        if (!hFile) throw RIFF::Exception("Can't open \"" + path + "\"");
+        if (!hFileRead) throw RIFF::Exception("Can't open \"" + path + "\"");
         #endif // POSIX
         Mode = stream_mode_read;
         ulStartPos = RIFF_HEADER_SIZE;
@@ -1333,9 +1410,21 @@ namespace RIFF {
                         hFileRead = hFileWrite = 0;
                         throw Exception("Could not (re)open file \"" + Filename + "\" in read mode");
                     }
+                    #elif defined(WIN32)
+                    if (hFileRead != INVALID_HANDLE_VALUE) CloseHandle(hFileRead);
+                    hFileRead = hFileWrite = CreateFile(
+                                                 Filename.c_str(), GENERIC_READ,
+                                                 FILE_SHARE_READ | FILE_SHARE_WRITE,
+                                                 NULL, OPEN_EXISTING,
+                                                 FILE_ATTRIBUTE_NORMAL, NULL
+                                             );
+                    if (hFileRead == INVALID_HANDLE_VALUE) {
+                        hFileRead = hFileWrite = INVALID_HANDLE_VALUE;
+                        throw Exception("Could not (re)open file \"" + Filename + "\" in read mode");
+                    }
                     #else
                     if (hFileRead) fclose(hFileRead);
-                    hFileRead = hFileWrite = fopen(path.c_str(), "rb");
+                    hFileRead = hFileWrite = fopen(Filename.c_str(), "rb");
                     if (!hFileRead) throw Exception("Could not (re)open file \"" + Filename + "\" in read mode");
                     #endif
                     __resetPos(); // reset read/write position of ALL 'Chunk' objects
@@ -1348,11 +1437,29 @@ namespace RIFF {
                         hFileRead = hFileWrite = open(Filename.c_str(), O_RDONLY | O_NONBLOCK);
                         throw Exception("Could not open file \"" + Filename + "\" in read+write mode");
                     }
+                    #elif defined(WIN32)
+                    if (hFileRead != INVALID_HANDLE_VALUE) CloseHandle(hFileRead);
+                    hFileRead = hFileWrite = CreateFile(
+                                                 Filename.c_str(),
+                                                 GENERIC_READ | GENERIC_WRITE,
+                                                 FILE_SHARE_READ,
+                                                 NULL, OPEN_ALWAYS,
+                                                 FILE_ATTRIBUTE_NORMAL, NULL
+                                             );
+                    if (hFileRead == INVALID_HANDLE_VALUE) {
+                        hFileRead = hFileWrite = CreateFile(
+                                                     Filename.c_str(), GENERIC_READ,
+                                                     FILE_SHARE_READ | FILE_SHARE_WRITE,
+                                                     NULL, OPEN_EXISTING,
+                                                     FILE_ATTRIBUTE_NORMAL, NULL
+                                                 );
+                        throw Exception("Could not (re)open file \"" + Filename + "\" in read mode");
+                    }
                     #else
                     if (hFileRead) fclose(hFileRead);
-                    hFileRead = hFileWrite = fopen(path.c_str(), "r+b");
+                    hFileRead = hFileWrite = fopen(Filename.c_str(), "r+b");
                     if (!hFileRead) {
-                        hFileRead = hFileWrite = fopen(path.c_str(), "rb");
+                        hFileRead = hFileWrite = fopen(Filename.c_str(), "rb");
                         throw Exception("Could not open file \"" + Filename + "\" in read+write mode");
                     }
                     #endif
@@ -1362,6 +1469,9 @@ namespace RIFF {
                     #if POSIX
                     if (hFileRead)  close(hFileRead);
                     if (hFileWrite) close(hFileWrite);
+                    #elif defined(WIN32)
+                    if (hFileRead  != INVALID_HANDLE_VALUE) CloseHandle(hFileRead);
+                    if (hFileWrite != INVALID_HANDLE_VALUE) CloseHandle(hFileWrite);
                     #else
                     if (hFileRead)  fclose(hFileRead);
                     if (hFileWrite) fclose(hFileWrite);
@@ -1421,7 +1531,11 @@ namespace RIFF {
             // ... and move current data by the same amount towards end of file.
             int8_t* pCopyBuffer = new int8_t[4096];
             const unsigned long ulFileSize = GetSize() + RIFF_HEADER_SIZE;
-            int iBytesMoved = 1;
+            #if defined(WIN32)
+            DWORD iBytesMoved = 1; // we have to pass it via pointer to the Windows API, thus the correct size must be ensured
+            #else
+            int iBytesMoved = 1; 
+            #endif
             for (unsigned long ulPos = 0; iBytesMoved > 0; ulPos += iBytesMoved) {
                 const unsigned long ulToMove = ulFileSize - ulPos;
                 iBytesMoved = (ulToMove < 4096) ? ulToMove : 4096;
@@ -1430,6 +1544,11 @@ namespace RIFF {
                 iBytesMoved = read(hFileRead, pCopyBuffer, iBytesMoved);
                 lseek(hFileWrite, ulPos + ulPositiveSizeDiff, SEEK_SET);
                 iBytesMoved = write(hFileWrite, pCopyBuffer, iBytesMoved);
+                #elif defined(WIN32)
+                SetFilePointer(hFileRead, ulPos, NULL/*32 bit*/, FILE_BEGIN);
+                ReadFile(hFileRead, pCopyBuffer, iBytesMoved, &iBytesMoved, NULL);
+                SetFilePointer(hFileWrite, ulPos + ulPositiveSizeDiff, NULL/*32 bit*/, FILE_BEGIN);
+                WriteFile(hFileWrite, pCopyBuffer, iBytesMoved, &iBytesMoved, NULL);
                 #else
                 fseek(hFileRead, ulPos, SEEK_SET);
                 iBytesMoved = fread(pCopyBuffer, 1, iBytesMoved, hFileRead);
@@ -1479,6 +1598,15 @@ namespace RIFF {
             hFileWrite = hFileRead;
             throw Exception("Could not open file \"" + path + "\" for writing");
         }
+        #elif defined(WIN32)
+        hFileWrite = CreateFile(
+                         path.c_str(), GENERIC_WRITE, FILE_SHARE_READ,
+                         NULL, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL
+                     );
+        if (hFileWrite == INVALID_HANDLE_VALUE) {
+            hFileWrite = hFileRead;
+            throw Exception("Could not open file \"" + path + "\" for writing");
+        }
         #else
         hFileWrite = fopen(path.c_str(), "w+b");
         if (!hFileWrite) {
@@ -1501,6 +1629,8 @@ namespace RIFF {
         if (Filename.length() > 0) {
             #if POSIX
             close(hFileWrite);
+            #elif defined(WIN32)
+            CloseHandle(hFileWrite);
             #else
             fclose(hFileWrite);
             #endif
@@ -1517,8 +1647,13 @@ namespace RIFF {
         #if POSIX
         if (ftruncate(hFileWrite, ulNewSize) < 0)
             throw Exception("Could not resize file \"" + Filename + "\"");
+        #elif defined(WIN32)
+        if (
+            SetFilePointer(hFileWrite, ulNewSize, NULL/*32 bit*/, FILE_BEGIN) == INVALID_SET_FILE_POINTER ||
+            !SetEndOfFile(hFileWrite)
+        ) throw Exception("Could not resize file \"" + Filename + "\"");
         #else
-        # error Sorry, this version of libgig only supports POSIX systems yet.
+        # error Sorry, this version of libgig only supports POSIX and Windows systems yet.
         # error Reason: portable implementation of RIFF::File::ResizeFile() is missing (yet)!
         #endif
     }
@@ -1529,6 +1664,8 @@ namespace RIFF {
        #endif // DEBUG
         #if POSIX
         if (hFileRead) close(hFileRead);
+        #elif defined(WIN32)
+        if (hFileRead != INVALID_HANDLE_VALUE) CloseHandle(hFileRead);
         #else
         if (hFileRead) fclose(hFileRead);
         #endif // POSIX
@@ -1548,6 +1685,12 @@ namespace RIFF {
         fstat(hFile, &filestat);
         long size = filestat.st_size;
         return size;
+    }
+    #elif defined(WIN32)
+    unsigned long File::__GetFileSize(HANDLE hFile) {
+        LARGE_INTEGER size;
+        GetFileSizeEx(hFile, &size);
+        return size.LowPart;
     }
     #else // standard C functions
     unsigned long File::__GetFileSize(FILE* hFile) {

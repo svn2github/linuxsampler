@@ -2,7 +2,7 @@
  *                                                                         *
  *   libgig - C++ cross-platform Gigasampler format file access library    *
  *                                                                         *
- *   Copyright (C) 2003-2006 by Christian Schoenebeck                      *
+ *   Copyright (C) 2003-2007 by Christian Schoenebeck                      *
  *                              <cuse@users.sourceforge.net>               *
  *                                                                         *
  *   This library is free software; you can redistribute it and/or modify  *
@@ -112,7 +112,7 @@
 # define CHUNK_ID_ART2	0x32747261
 #endif // WORDS_BIGENDIAN
 
-#define WAVE_FORMAT_PCM			0x0001
+#define DLS_WAVE_FORMAT_PCM			0x0001
 
 //TODO: no support for conditional chunks <cdl> yet
 
@@ -374,7 +374,7 @@ namespace DLS {
      */
     class Sample : public Resource {
         public:
-            uint16_t      FormatTag;             ///< Format ID of the waveform data (should be WAVE_FORMAT_PCM for DLS1 compliant files, this is also the default value if Sample was created with Instrument::AddSample()).
+            uint16_t      FormatTag;             ///< Format ID of the waveform data (should be DLS_WAVE_FORMAT_PCM for DLS1 compliant files, this is also the default value if Sample was created with Instrument::AddSample()).
             uint16_t      Channels;              ///< Number of channels represented in the waveform data, e.g. 1 for mono, 2 for stereo (defaults to 1=mono if Sample was created with Instrument::AddSample() previously).
             uint32_t      SamplesPerSecond;      ///< Sampling rate at which each channel should be played (defaults to 44100 if Sample was created with Instrument::AddSample() previously).
             uint32_t      AverageBytesPerSecond; ///< The average number of bytes per second at which the waveform data should be transferred (Playback software can estimate the buffer size using this value).
