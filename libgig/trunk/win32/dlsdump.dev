@@ -1,5 +1,5 @@
 [Project]
-FileName=rifftree.dev
+FileName=dlsdump.dev
 Name=dlsdump
 UnitCount=1
 Type=1
@@ -7,7 +7,7 @@ Ver=1
 ObjFiles=
 Includes=
 Libs=./
-PrivateResource=rifftree_private.rc
+PrivateResource=dlsdump_private.rc
 ResourceIncludes=
 MakeIncludes=
 Compiler=
@@ -18,7 +18,7 @@ Icon=
 ExeOutput=
 ObjectOutput=
 OverrideOutput=0
-OverrideOutputName=rifftree.exe
+OverrideOutputName=dlsdump.exe
 HostApplication=
 Folders=
 CommandLine=
@@ -50,7 +50,7 @@ AutoIncBuildNr=0
 [Unit1]
 FileName=..\src\dlsdump.cpp
 CompileCpp=1
-Folder=rifftree
+Folder=dlsdump
 Compile=1
 Link=1
 Priority=1000
