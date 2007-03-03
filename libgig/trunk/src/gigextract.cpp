@@ -2,7 +2,7 @@
  *                                                                         *
  *   libgig - C++ cross-platform Gigasampler format file access library    *
  *                                                                         *
- *   Copyright (C) 2003-2006 by Christian Schoenebeck                      *
+ *   Copyright (C) 2003-2007 by Christian Schoenebeck                      *
  *                              <cuse@users.sourceforge.net>               *
  *                                                                         *
  *   This program is part of libgig.                                       *
@@ -48,7 +48,12 @@
 #include <sys/stat.h>
 #include <dirent.h>
 #include <errno.h>
-#include <dlfcn.h>
+
+#include "gig.h"
+
+#if POSIX
+# include <dlfcn.h>
+#endif
 
 // only libsndfile is available for Windows, so we use that for writing the sound files
 #ifdef WIN32
@@ -67,8 +72,6 @@
 #else
 # include <audiofile.h>
 #endif // HAVE_SNDFILE
-
-#include "gig.h"
 
 using namespace std;
 
@@ -381,7 +384,7 @@ void closeAFlib() {
 #endif // !HAVE_SNDFILE
 
 string Revision() {
-    string s = "$Revision: 1.9 $";
+    string s = "$Revision: 1.10 $";
     return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
 }
 

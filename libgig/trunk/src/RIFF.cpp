@@ -1688,9 +1688,10 @@ namespace RIFF {
     }
     #elif defined(WIN32)
     unsigned long File::__GetFileSize(HANDLE hFile) {
-        LARGE_INTEGER size;
-        GetFileSizeEx(hFile, &size);
-        return size.LowPart;
+        DWORD dwSize = ::GetFileSize(hFile, NULL /*32bit*/);
+        if (dwSize == INVALID_FILE_SIZE)
+            throw Exception("Windows FS error: could not determine file size");
+        return dwSize;
     }
     #else // standard C functions
     unsigned long File::__GetFileSize(FILE* hFile) {

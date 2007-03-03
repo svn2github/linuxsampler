@@ -48,18 +48,29 @@ Requirements
   Makefile.in, etc.) then you need to have automake (>= 1.5) and autoconf
   installed.
 
-  Non-POSIX systems (e.g. Windows):
-  ---------------------------------
+  Windows:
+  --------
 
-  If you don't have a POSIX system, you have to set 'POSIX' to '0' in RIFF.h.
-  Instead of using POSIX calls then standard C calls will be used for file
-  access. This applies e.g. to Windows systems. I would appreciate if
-  somebody sends me his MS Visual Studio / .NET, Borland C++ Builder or
-  Apple XCode project file! This might help others to conveniently compile
-  libgig on those platforms as well.
+  The precompiled versions of libgig (and its tools) should be compatible
+  with any Windows operating system of at least Win95 or younger. Notice
+  that all example / demo applications coming with libgig are pure console
+  applications, thus you won't see a GUI showing up! :)
 
-Compiling
-=========
+  If you want to compile libgig and its tools by yourself, please also
+  notice the requirements under "Compiling for Windows".
+
+  Other Operating Systems:
+  ------------------------
+
+  libgig was written to compile for any operating system, using standard C
+  library functions. However the latest versions of libgig lack a portable
+  implementation of one tiny method called RIFF::File::ResizeFile(). So you
+  would either have to add native OS API calls for that particular method,
+  that is dependant to your OS, or you have to add a portable
+  implementation. No matter which way you choose, please let us know! :)
+
+Compiling for Linux
+===================
   You can either compile the sources and install the library directly on
   your system or you can create Redhat or Debian packages.
 
@@ -106,6 +117,59 @@ Compiling
 
   On success, the resulting rpm(s) can usually be found under the proper
   "/usr/src/<rpmdir>/RPMS/<arch>" directory.
+
+Compiling for Windows
+=====================
+  libgig and its tools can be compiled for Windows using Bloodshed Dev-C++,
+  which is a free (GPL) C++ integrated development environment for Windows.
+  You can download it here:
+
+    http://www.bloodshed.net/devcpp.html
+
+  Make sure you install a version with Mingw integrated.
+
+  a) Compiling libgig.dll
+
+  Simply open the project file "win32/libgig.dev" either directly in Dev-C++
+  or by double clicking on the project file in the Windows explorer, then
+  click on "Compile" in the Dev-C++ menu and that's it! After compilation
+  finished, you can find the files "libgig.dll", "libgig.a" and
+  "liblibgig.def" in the "win32" directory.
+
+  b) Compiling the example tools "rifftree", "dlsdump" and "gigdump"
+
+  You need to have libgig.dll compiled as described in a). Then you can
+  compile the respective tool by simply opening the respective project
+  (.dev) file and clicking on "Compile" from the Dev-C++ menu. After
+  compilation you can find the respective .exe file in the "win32"
+  directory.
+
+  c) Compiling the example tool "gigextract"
+
+  You need to have libgig.dll compiled as described in a). Also you need
+  libsndfile (as DLL) which is used to create the .wav files. You can
+  download libsndfile already precompiled as DLL here:
+
+    http://www.mega-nerd.com/libsndfile/
+
+  Extract the .zip file i.e. to "C:\". The libsndfile .dll file should then
+  be i.e. under "C:\libsndfile-1_0_17". Beside the .dll file, make sure
+  libsndfile's .lib file exists in that directory as well. If the .lib file
+  does not exist yet, you have to create it with:
+
+    dlltool --input-def libsndfile-1.def --output-lib libsndfile-1.lib
+
+  Then you have to ensure the settings of gigextract's Dev-C++ project file
+  are pointing to the correct location of your local copy of libsndfile. For
+  that click in the Dev-C++ menu on "Project" -> "Project Options". Then
+  click on the tab "Parameter" and make sure the path to "libsndfile-1.lib"
+  in the "Linker" list view is correct. Then click on the tab "Directories"
+  and then on the tab "Include Directories" and make sure the path to
+  libsndfile points to the correct location there as well.
+
+  After that you should finally be able to compile "gigextract" by clicking
+  on "Compile" in the Dev-C++ menu. After compilation succeeded, you can
+  find the "gigextract.exe" file in the "win32" directory.
 
 Test Cases
 ==========
