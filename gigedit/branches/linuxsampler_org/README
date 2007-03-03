@@ -1,0 +1,9 @@
+Gigedit is an editor for gig files. Gig files contain sampled
+instruments and are used by software samplers such as LinuxSampler and
+GigaStudio.
+
+Note that this is an alpha version with a lot of functionality
+missing. It is currently not possible to create new instruments,
+regions and dimensions, which means that a new gig file cannot be
+created from scratch. Existing gig files can however be loaded,
+examined and parameters inside the dimension regions can be modified.
