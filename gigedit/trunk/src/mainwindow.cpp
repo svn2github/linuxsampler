@@ -31,7 +31,6 @@
 
 #define _(String) gettext(String)
 
-
 bool update_gui;
 
 uint8_t& access_UnityNote(gig::DimensionRegion* dimreg)
@@ -817,6 +816,8 @@ MainWindow::MainWindow() :
     actionGroup->add(Gtk::Action::create("Quit", Gtk::Stock::QUIT),
                      sigc::mem_fun(
                          *this, &MainWindow::hide));
+    actionGroup->add(Gtk::Action::create("MenuInstrument", _("_Instrument")));
+
     action = Gtk::Action::create("MenuHelp", Gtk::Stock::HELP);
     actionGroup->add(Gtk::Action::create("MenuHelp",
                                          action->property_label()));
@@ -847,6 +848,8 @@ MainWindow::MainWindow() :
         "      <menuitem action='Properties'/>"
         "      <separator/>"
         "      <menuitem action='Quit'/>"
+        "    </menu>"
+        "    <menu action='MenuInstrument'>"
         "    </menu>"
 #ifdef ABOUT_DIALOG
         "    <menu action='MenuHelp'>"
@@ -1242,6 +1245,15 @@ void MainWindow::on_action_file_open()
     if (dialog.run() == Gtk::RESPONSE_OK) {
         printf("filename=%s\n", dialog.get_filename().c_str());
 
+        // remove all entries from "Instrument" menu
+        Gtk::MenuItem* instrument_menu =
+            dynamic_cast<Gtk::MenuItem*>(uiManager->get_widget("/MenuBar/MenuInstrument"));
+        instrument_menu->hide();
+        for (int i = 0; i < instrument_menu->get_submenu()->items().size(); i++) {
+            delete &instrument_menu->get_submenu()->items()[i];
+        }
+        instrument_menu->get_submenu()->items().clear();
+
         m_refTreeModel->clear();
         if (file) delete file;
 
@@ -1474,13 +1486,29 @@ void MainWindow::load_gig(gig::File* gig, const char* filename)
 
     propDialog.set_info(gig->pInfo);
 
+    Gtk::MenuItem* instrument_menu =
+        dynamic_cast<Gtk::MenuItem*>(uiManager->get_widget("/MenuBar/MenuInstrument"));
+
+    int instrument_index = 0;
     for (gig::Instrument* instrument = gig->GetFirstInstrument() ; instrument ;
 	 instrument = gig->GetNextInstrument()) {
         Gtk::TreeModel::iterator iter = m_refTreeModel->append();
 	Gtk::TreeModel::Row row = *iter;
 	row[m_Columns.m_col_name] = instrument->pInfo->Name.c_str();
 	row[m_Columns.m_col_instr] = instrument;
+        // create a menu item for this instrument
+        Gtk::MenuItem* item= new Gtk::MenuItem(instrument->pInfo->Name.c_str());
+        instrument_menu->get_submenu()->append(*item);
+        item->signal_activate().connect(
+            sigc::bind(
+                sigc::mem_fun(*this, &MainWindow::on_instrument_selection_change),
+                instrument_index
+            )
+        );
+        instrument_index++;
     }
+    instrument_menu->show();
+    instrument_menu->get_submenu()->show_all_children();
 }
 
 void MainWindow::on_button_release(GdkEventButton* button)
@@ -1501,4 +1529,8 @@ void MainWindow::on_button_release(GdkEventButton* button)
     } else if (button->type == GDK_BUTTON_PRESS && button->button == 3) {
         popup_menu->popup(button->button, button->time);
     }
+}
+
+void MainWindow::on_instrument_selection_change(int index) {
+    m_RegionChooser.set_instrument(file->GetInstrument(index));
 }

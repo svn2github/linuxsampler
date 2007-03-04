@@ -43,6 +43,7 @@
 #include <gtkmm/treeview.h>
 #include <gtkmm/uimanager.h>
 #include <gtkmm/window.h>
+#include <gtkmm/menuitem.h>
 
 #include "regionchooser.h"
 #include "dimregionchooser.h"
@@ -468,6 +469,7 @@ protected:
     PropDialog propDialog;
     InstrumentProps instrumentProps;
 
+    void on_instrument_selection_change(int index);
     void on_sel_change();
     void region_changed();
     void dimreg_changed();
