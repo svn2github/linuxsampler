@@ -61,13 +61,27 @@ WARN_LOGFILE           =
 #---------------------------------------------------------------------------
 # configuration options related to the input files
 #---------------------------------------------------------------------------
-INPUT                  = @top_srcdir@/src
+INPUT                  = @top_srcdir@/src/Sampler.h \
+                         @top_srcdir@/src/common/Exception.h \
+                         @top_srcdir@/src/drivers/Device.h \
+                         @top_srcdir@/src/drivers/DeviceParameter.h \
+                         @top_srcdir@/src/drivers/audio/AudioChannel.h \
+                         @top_srcdir@/src/drivers/audio/AudioChannel.cpp \
+                         @top_srcdir@/src/drivers/audio/AudioOutputDevice.h \
+                         @top_srcdir@/src/drivers/midi/midi.h \
+                         @top_srcdir@/src/drivers/midi/MidiInputPort.h \
+                         @top_srcdir@/src/drivers/midi/MidiInputDevice.h \
+                         @top_srcdir@/src/drivers/midi/MidiInstrumentMapper.h \
+                         @top_srcdir@/src/engines/Engine.h \
+                         @top_srcdir@/src/engines/EngineChannel.h \
+                         @top_srcdir@/src/engines/FxSend.h \
+                         @top_srcdir@/src/engines/InstrumentManager.h
 FILE_PATTERNS          = *.c \
                          *.cpp \
                          *.h \
                          *.hpp \
                          *.idl
-RECURSIVE              = YES
+RECURSIVE              = NO
 EXCLUDE                =
 EXCLUDE_SYMLINKS       = NO
 EXCLUDE_PATTERNS       =

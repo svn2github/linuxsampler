@@ -1,5 +1,9 @@
 Version CVS HEAD (?)
 
+  * packaging changes:
+    - only the API relevant header (and source) files will be exported to
+      the Doxygen API documentation (explicitly listed in Doxyfile.in)
+
   * general changes:
     - replaced the old, confusing MIDI program change mechanism by a
       flexible MIDI instrument mapper which allows to map arbitrary
