@@ -4,10 +4,6 @@ if ! which glib-gettextize > /dev/null ; then
   echo "Could not find glib-gettextize, make sure libglib2.0(-dev) is installed!"
   exit -1
 fi
-if ! which intltoolize > /dev/null ; then
-  echo "Could not find intltoolize, make sure intltool is installed!"
-  exit -1
-fi
 if ! which aclocal > /dev/null ; then
   echo "Could not find aclocal, make sure automake is installed!"
   exit -1
@@ -26,9 +22,7 @@ if ! which automake > /dev/null ; then
 fi
 
 glib-gettextize --force
-intltoolize --force --automake
 aclocal
 autoconf
 autoheader
 automake --add-missing
-
