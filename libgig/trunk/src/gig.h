@@ -338,7 +338,7 @@ namespace gig {
      */
     class DimensionRegion : protected DLS::Sampler {
         public:
-            uint8_t            VelocityUpperLimit;            ///< Defines the upper velocity value limit of a velocity split (only if an user defined limit was set, thus a value not equal to 128/NumberOfSplits, else this value is 0).
+            uint8_t            VelocityUpperLimit;            ///< Defines the upper velocity value limit of a velocity split (only if an user defined limit was set, thus a value not equal to 128/NumberOfSplits, else this value is 0). Only for gig2, otherwise the DimensionUpperLimts are used instead.
             Sample*            pSample;                       ///< Points to the Sample which is assigned to the dimension region.
             // Sample Amplitude EG/LFO
             uint16_t           EG1PreAttack;                  ///< Preattack value of the sample amplitude EG (0 - 1000 permille).
@@ -422,6 +422,7 @@ namespace gig {
             bool               MSDecode;                      ///< Gigastudio flag: defines if Mid Side Recordings should be decoded.
             uint16_t           SampleStartOffset;             ///< Number of samples the sample start should be moved (0 - 2000).
             double             SampleAttenuation;             ///< Sample volume (calculated from DLS::Sampler::Gain)
+            uint8_t            DimensionUpperLimits[8];       ///< gig3: defines the upper limit of the dimension values for this dimension region
 
             // derived attributes from DLS::Sampler
             DLS::Sampler::UnityNote;

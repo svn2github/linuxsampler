@@ -4,6 +4,11 @@ Version CVS HEAD (?)
     - ported to Windows using native Windows functions for file IO
       (provided Dev-C++ + mingw project file)
 
+  * src/gig.cpp, src/gig.h:
+    - custom velocity splits now works for gig v3 files too
+    - added support for custom splits points for other dimensions than
+      velocity (gig v3 feature)
+
 Version 3.1.0 (24 Nov 2006)
 
   * packaging changes:

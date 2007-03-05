@@ -1338,6 +1338,11 @@ namespace {
                 if (lfo3ctrl & 0x40) // bit 6
                     VCFType = vcf_type_lowpassturbo;
             }
+            if (_3ewa->RemainingBytes() >= 8) {
+                _3ewa->Read(DimensionUpperLimits, 1, 8);
+            } else {
+                memset(DimensionUpperLimits, 0, 8);
+            }
         } else { // '3ewa' chunk does not exist yet
             // use default values
             LFO3Frequency                   = 1.0;
@@ -1418,6 +1423,7 @@ namespace {
             VCFVelocityDynamicRange         = 0x04;
             VCFVelocityCurve                = curve_type_linear;
             VCFType                         = vcf_type_lowpass;
+            memset(DimensionUpperLimits, 0, 8);
         }
 
         pVelocityAttenuationTable = GetVelocityTable(VelocityResponseCurve,
@@ -1473,8 +1479,8 @@ namespace {
 
         // update '3ewa' chunk with DimensionRegion's current settings
 
-        const uint32_t unknown = _3ewa->GetSize(); // unknown, always chunk size ?
-        memcpy(&pData[0], &unknown, 4);
+        const uint32_t chunksize = _3ewa->GetSize();
+        memcpy(&pData[0], &chunksize, 4); // unknown, always chunk size?
 
         const int32_t lfo3freq = (int32_t) GIG_EXP_ENCODE(LFO3Frequency);
         memcpy(&pData[4], &lfo3freq, 4);
@@ -1729,6 +1735,10 @@ namespace {
 
         const uint8_t vcftype = (VCFType == vcf_type_lowpassturbo) ? vcf_type_lowpass : VCFType;
         memcpy(&pData[139], &vcftype, 1);
+
+        if (chunksize >= 148) {
+            memcpy(&pData[140], DimensionUpperLimits, 8);
+        }
     }
 
     // get the corresponding velocity table from the table map or create & calculate that table if it doesn't exist yet
@@ -2248,7 +2258,8 @@ namespace {
         int dim[8] = { 0 };
         for (int i = 0 ; i < DimensionRegions ; i++) {
 
-            if (pDimensionRegions[i]->VelocityUpperLimit) {
+            if (pDimensionRegions[i]->DimensionUpperLimits[veldim] ||
+                pDimensionRegions[i]->VelocityUpperLimit) {
                 // create the velocity table
                 uint8_t* table = pDimensionRegions[i]->VelocityTable;
                 if (!table) {
@@ -2257,10 +2268,18 @@ namespace {
                 }
                 int tableidx = 0;
                 int velocityZone = 0;
-                for (int k = i ; k < end ; k += step) {
-                    DimensionRegion *d = pDimensionRegions[k];
-                    for (; tableidx <= d->VelocityUpperLimit ; tableidx++) table[tableidx] = velocityZone;
-                    velocityZone++;
+                if (pDimensionRegions[i]->DimensionUpperLimits[veldim]) { // gig3
+                    for (int k = i ; k < end ; k += step) {
+                        DimensionRegion *d = pDimensionRegions[k];
+                        for (; tableidx <= d->DimensionUpperLimits[veldim] ; tableidx++) table[tableidx] = velocityZone;
+                        velocityZone++;
+                    }
+                } else { // gig2
+                    for (int k = i ; k < end ; k += step) {
+                        DimensionRegion *d = pDimensionRegions[k];
+                        for (; tableidx <= d->VelocityUpperLimit ; tableidx++) table[tableidx] = velocityZone;
+                        velocityZone++;
+                    }
                 }
             } else {
                 if (pDimensionRegions[i]->VelocityTable) {
@@ -2455,7 +2474,15 @@ namespace {
             } else {
                 switch (pDimensionDefinitions[i].split_type) {
                     case split_type_normal:
-                        bits = uint8_t(DimValues[i] / pDimensionDefinitions[i].zone_size);
+                        if (pDimensionRegions[0]->DimensionUpperLimits[i]) {
+                            // gig3: all normal dimensions (not just the velocity dimension) have custom zone ranges
+                            for (bits = 0 ; bits < pDimensionDefinitions[i].zones ; bits++) {
+                                if (DimValues[i] <= pDimensionRegions[bits << bitpos]->DimensionUpperLimits[i]) break;
+                            }
+                        } else {
+                            // gig2: evenly sized zones
+                            bits = uint8_t(DimValues[i] / pDimensionDefinitions[i].zone_size);
+                        }
                         break;
                     case split_type_bit: // the value is already the sought dimension bit number
                         const uint8_t limiter_mask = (0xff << pDimensionDefinitions[i].bits) ^ 0xff;
@@ -2469,7 +2496,7 @@ namespace {
         DimensionRegion* dimreg = pDimensionRegions[dimregidx];
         if (veldim != -1) {
             // (dimreg is now the dimension region for the lowest velocity)
-            if (dimreg->VelocityUpperLimit) // custom defined zone ranges
+            if (dimreg->VelocityTable) // custom defined zone ranges
                 bits = dimreg->VelocityTable[DimValues[veldim]];
             else // normal split type
                 bits = uint8_t(DimValues[veldim] / pDimensionDefinitions[veldim].zone_size);
