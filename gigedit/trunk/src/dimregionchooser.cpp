@@ -67,16 +67,6 @@ bool DimRegionChooser::on_expose_event(GdkEventExpose* event)
 {
     if (!region) return true;
 
-    int a = 1, b, c;
-    for (int i = 0 ; i < region->Dimensions ; i++) {
-        b = a * region->pDimensionDefinitions[i].zones;
-        if (region->pDimensionDefinitions[i].dimension == gig::dimension_velocity) {
-            c = dimregno >= 0 ? (dimregno & ((a - 1) | ~(b - 1))) : 0;
-            break;
-        }
-        a = b;
-    }
-
     // This is where we draw on the window
     Glib::RefPtr<Gdk::Window> window = get_window();
     Glib::RefPtr<Pango::Context> context = get_pango_context();
@@ -88,11 +78,13 @@ bool DimRegionChooser::on_expose_event(GdkEventExpose* event)
     const int w = 800;
     const int w1 = 100;
     int y = 0;
-    int bitcount = 0;
+    int bitpos = 0;
     for (int i = 0 ; i < region->Dimensions ; i++) {
-        const int nb = region->pDimensionDefinitions[i].zones;
-        if (nb) {
+
+        int nbZones = region->pDimensionDefinitions[i].zones;
+        if (nbZones) {
             char* dstr;
+            char dstrbuf[10];
             switch (region->pDimensionDefinitions[i].dimension) {
             case gig::dimension_none: dstr="none"; break;
             case gig::dimension_samplechannel: dstr="samplechannel"; break;
@@ -126,6 +118,11 @@ bool DimRegionChooser::on_expose_event(GdkEventExpose* event)
             case gig::dimension_effect3depth: dstr="effect3depth"; break;
             case gig::dimension_effect4depth: dstr="effect4depth"; break;
             case gig::dimension_effect5depth: dstr="effect5depth"; break;
+            default:
+                sprintf(dstrbuf, "%d",
+                        region->pDimensionDefinitions[i].dimension);
+                dstr = dstrbuf;
+                break;
             }
             layout->set_text(dstr);
 
@@ -144,43 +141,55 @@ bool DimRegionChooser::on_expose_event(GdkEventExpose* event)
             window->draw_line(black, w - 1, y + h - 1, w1, y + h - 1);
             window->draw_rectangle(get_style()->get_white_gc(), true, w1 + 1, y + 1, (w - w1 - 2), h - 2);
 
-            if (region->pDimensionDefinitions[i].dimension == gig::dimension_velocity &&
-                region->pDimensionRegions[c]->VelocityUpperLimit) {
+            int c = 0;
+            if (dimregno >= 0) {
+                int mask = ~(((1 << region->pDimensionDefinitions[i].bits) - 1) << bitpos);
+                c = dimregno & mask; // mask away this dimension
+            }
+            bool customsplits =
+                ((region->pDimensionDefinitions[i].split_type == gig::split_type_normal &&
+                 region->pDimensionRegions[c]->DimensionUpperLimits[i]) ||
+                (region->pDimensionDefinitions[i].dimension == gig::dimension_velocity &&
+                 region->pDimensionRegions[c]->VelocityUpperLimit));
+
+            if (customsplits) {
                 window->draw_line(black, w1, y + 1, w1, y + h - 2);
-                for (int k = c ; k < b ; k += a) {
-                    gig::DimensionRegion *d = region->pDimensionRegions[k];
-                    int v = d->VelocityUpperLimit + 1;
+                for (int j = 0 ; j < nbZones ; j++) {
+                    gig::DimensionRegion *d = region->pDimensionRegions[c + (j << bitpos)];
+                    int upperLimit = d->DimensionUpperLimits[i];
+                    if (!upperLimit) upperLimit = d->VelocityUpperLimit;
+                    int v = upperLimit + 1;
                     int x = int((w - w1 - 1) * v / 128.0 + 0.5);
                     window->draw_line(black, w1 + x, y + 1, w1 + x, y + h - 2);
                 }
             } else {
-                for (int j = 0 ; j <= nb ; j++) {
-                    int x = int((w - w1 - 1) * j / double(nb) + 0.5);
+                for (int j = 0 ; j <= nbZones ; j++) {
+                    int x = int((w - w1 - 1) * j / double(nbZones) + 0.5);
                     window->draw_line(black, w1 + x, y + 1, w1 + x, y + h - 2);
                 }
             }
 
             if (dimregno >= 0) {
                 gc->set_foreground(red);
-                int dr = (dimregno >> bitcount) & ((1 << region->pDimensionDefinitions[i].bits) - 1);
-                if (region->pDimensionDefinitions[i].dimension == gig::dimension_velocity &&
-                    region->pDimensionRegions[c]->VelocityUpperLimit) {
-                    int x1 = 0, dr2 = 0;
-                    for (int k = c ; k < b ; k += a) {
-                        gig::DimensionRegion *d = region->pDimensionRegions[k];
-                        int v = d->VelocityUpperLimit + 1;
+                int dr = (dimregno >> bitpos) & ((1 << region->pDimensionDefinitions[i].bits) - 1);
+                if (customsplits) {
+                    int x1 = 0;
+                    for (int j = 0 ; j < nbZones ; j++) {
+                        gig::DimensionRegion *d = region->pDimensionRegions[c + (j << bitpos)];
+                        int upperLimit = d->DimensionUpperLimits[i];
+                        if (!upperLimit) upperLimit = d->VelocityUpperLimit;
+                        int v = upperLimit + 1;
                         int x2 = int((w - w1 - 1) * v / 128.0 + 0.5);
-                        if (dr2 == dr) {
+                        if (j == dr && x1 < x2) {
                             window->draw_rectangle(gc, true, w1 + x1 + 1, y + 1, (x2 - x1) - 1, h - 2);
                             break;
                         }
-                        dr2++;
                         x1 = x2;
                     }
                 } else {
-                    if (dr < nb) {
-                        int x1 = int((w - w1 - 1) * dr / double(nb) + 0.5);
-                        int x2 = int((w - w1 - 1) * (dr + 1) / double(nb) + 0.5);
+                    if (dr < nbZones) {
+                        int x1 = int((w - w1 - 1) * dr / double(nbZones) + 0.5);
+                        int x2 = int((w - w1 - 1) * (dr + 1) / double(nbZones) + 0.5);
                         window->draw_rectangle(gc, true, w1 + x1 + 1, y + 1, (x2 - x1) - 1, h - 2);
                     }
                 }
@@ -188,7 +197,7 @@ bool DimRegionChooser::on_expose_event(GdkEventExpose* event)
 
             y += h;
         }
-        bitcount += region->pDimensionDefinitions[i].bits;
+        bitpos += region->pDimensionDefinitions[i].bits;
     }
 
     return true;
@@ -258,34 +267,40 @@ bool DimRegionChooser::on_button_press_event(GdkEventButton* event)
             event->x >= w1 && event->x < w) {
 
             int dim = int(event->y / h);
-            const int nb = region->pDimensionDefinitions[dim].zones;
+            int nbZones = region->pDimensionDefinitions[dim].zones;
 
             int z = -1;
-            if (region->pDimensionDefinitions[dim].dimension == gig::dimension_velocity) {
-                int a = 1, b, c;
-                for (int i = 0 ; i < region->Dimensions ; i++) {
-                    b = a * region->pDimensionDefinitions[i].zones;
-                    if (region->pDimensionDefinitions[i].dimension == gig::dimension_velocity) {
-                        c = dimregno >= 0 ? (dimregno & ((a - 1) | ~(b - 1))) : 0;
-                        break;
-                    }
-                    a = b;
-                }
-
-                if (region->pDimensionRegions[c]->VelocityUpperLimit) {
-                    int vel = int((event->x - w1) * 128 / (w - w1 - 1));
-
-                    z = 0;
-                    for (int k = c ; k < b ; k += a) {
-                        gig::DimensionRegion *d = region->pDimensionRegions[k];
-                        if (vel <= d->VelocityUpperLimit) break;
-                        z++;
-                    }
-                }
+            int bitpos = 0;
+            for (int i = 0 ; i < dim ; i++) {
+                bitpos += region->pDimensionDefinitions[i].bits;
             }
 
-            if (z == -1) {
-                z = int((event->x - w1) * nb / (w - w1 - 1));
+            int i = dim;
+            if (dimregno < 0) dimregno = 0;
+            int mask = ~(((1 << region->pDimensionDefinitions[i].bits) - 1) << bitpos);
+            int c = dimregno & mask; // mask away this dimension
+
+            bool customsplits =
+                ((region->pDimensionDefinitions[i].split_type == gig::split_type_normal &&
+                  region->pDimensionRegions[c]->DimensionUpperLimits[i]) ||
+                 (region->pDimensionDefinitions[i].dimension == gig::dimension_velocity &&
+                  region->pDimensionRegions[c]->VelocityUpperLimit));
+            if (customsplits) {
+                int val = int((event->x - w1) * 128 / (w - w1 - 1));
+
+                if (region->pDimensionRegions[c]->DimensionUpperLimits[i]) {
+                    for (z = 0 ; z < nbZones ; z++) {
+                        gig::DimensionRegion *d = region->pDimensionRegions[c + (z << bitpos)];
+                        if (val <= d->DimensionUpperLimits[i]) break;
+                    }
+                } else {
+                    for (z = 0 ; z < nbZones ; z++) {
+                        gig::DimensionRegion *d = region->pDimensionRegions[c + (z << bitpos)];
+                        if (val <= d->VelocityUpperLimit) break;
+                    }
+                }
+            } else {
+                z = int((event->x - w1) * nbZones / (w - w1 - 1));
             }
 
             printf("dim=%d z=%d dimensionsource=%d split_type=%d zones=%d zone_size=%f\n", dim, z,
@@ -293,6 +308,7 @@ bool DimRegionChooser::on_button_press_event(GdkEventButton* event)
                    region->pDimensionDefinitions[dim].split_type,
                    region->pDimensionDefinitions[dim].zones,
                    region->pDimensionDefinitions[dim].zone_size);
+#if 0
             switch (region->pDimensionDefinitions[dim].split_type) {
             case gig::split_type_normal:
                 dimvalue_from[region->pDimensionDefinitions[dim].dimension] =
@@ -305,17 +321,9 @@ bool DimRegionChooser::on_button_press_event(GdkEventButton* event)
                 dimvalue_to[region->pDimensionDefinitions[dim].dimension] = z + 1;
                 break;
             }
-            if (dimregno < 0) dimregno = 0;
-            int bitcount = 0;
-            for (int i = 0 ; i < dim ; i++) {
-                bitcount += region->pDimensionDefinitions[i].bits;
-            }
+#endif
 
-            int mask =
-                ~(((1 << region->pDimensionDefinitions[dim].bits) - 1) <<
-                  bitcount);
-            dimregno &= mask;
-            dimregno |= (z << bitcount);
+            dimregno = c | (z << bitpos);
 
             focus_line = dim;
             if (has_focus()) queue_draw();
