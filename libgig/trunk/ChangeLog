@@ -3,6 +3,7 @@ Version CVS HEAD (?)
   * packaging changes:
     - ported to Windows using native Windows functions for file IO
       (provided Dev-C++ + mingw project file)
+    - only export relevant files to Doxygen API documentation
 
   * src/gig.cpp, src/gig.h:
     - custom velocity splits now works for gig v3 files too
