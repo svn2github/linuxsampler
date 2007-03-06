@@ -486,9 +486,7 @@ protected:
 
 	Gtk::TreeModelColumn<Glib::ustring> m_col_name;
 	Gtk::TreeModelColumn<gig::Instrument*> m_col_instr;
-    };
-
-    ModelColumns m_Columns;
+    } m_Columns;
 
     Gtk::VBox m_VBox;
     Gtk::HPaned m_HPaned;
@@ -497,7 +495,21 @@ protected:
     Gtk::TreeView m_TreeView;
     Glib::RefPtr<Gtk::ListStore> m_refTreeModel;
 
+    class SamplesModel : public Gtk::TreeModel::ColumnRecord {
+    public:
+        SamplesModel() {
+            add(m_col_name);
+            add(m_col_sample);
+        }
+
+        Gtk::TreeModelColumn<Glib::ustring> m_col_name;
+        Gtk::TreeModelColumn<void*> m_col_sample; // either pointing to gig::Group or gig::Sample
+    } m_SamplesModel;
+    Gtk::TreeView m_TreeViewSamples;
+    Glib::RefPtr<Gtk::TreeStore> m_refSamplesTreeModel;
+
     Gtk::Notebook m_Notebook;
+    Gtk::Notebook m_TreeViewNotebook;
 
     Gtk::Table* table[5];
 

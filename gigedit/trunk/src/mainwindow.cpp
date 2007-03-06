@@ -523,8 +523,8 @@ MainWindow::MainWindow() :
     m_TreeView.signal_button_press_event().connect_notify(
         sigc::mem_fun(*this, &MainWindow::on_button_release));
 
-    // Add the TreeView, inside a ScrolledWindow, with the button underneath:
-    m_ScrolledWindow.add(m_TreeView);
+    // Add the TreeView tab, inside a ScrolledWindow, with the button underneath:
+    m_ScrolledWindow.add(m_TreeViewNotebook);
     m_ScrolledWindow.set_size_request(400, 600);
     m_ScrolledWindow.set_policy(Gtk::POLICY_AUTOMATIC, Gtk::POLICY_AUTOMATIC);
 
@@ -783,6 +783,10 @@ MainWindow::MainWindow() :
     m_HPaned.add2(m_Notebook);
 
 
+    m_TreeViewNotebook.append_page(m_TreeViewSamples, "Samples");
+    m_TreeViewNotebook.append_page(m_TreeView, "Instruments");
+
+
     actionGroup = Gtk::ActionGroup::create();
 
     actionGroup->add(Gtk::Action::create("MenuFile", _("_File")));
@@ -885,6 +889,12 @@ MainWindow::MainWindow() :
     // Add the TreeView's view columns:
     m_TreeView.append_column("Instrument", m_Columns.m_col_name);
     m_TreeView.set_headers_visible(false);
+
+    // create samples treeview (including its data model)
+    m_refSamplesTreeModel = Gtk::TreeStore::create(m_SamplesModel);
+    m_TreeViewSamples.set_model(m_refSamplesTreeModel);
+    m_TreeViewSamples.append_column("Samples", m_SamplesModel.m_col_name);
+    m_TreeViewSamples.set_headers_visible(false);
 
     file = 0;
 
@@ -1255,6 +1265,7 @@ void MainWindow::on_action_file_open()
         instrument_menu->get_submenu()->items().clear();
 
         m_refTreeModel->clear();
+        m_refSamplesTreeModel->clear();
         if (file) delete file;
 
         // getInfo(dialog.get_filename().c_str(), *this);
@@ -1510,6 +1521,19 @@ void MainWindow::load_gig(gig::File* gig, const char* filename)
     }
     instrument_menu->show();
     instrument_menu->get_submenu()->show_all_children();
+
+    for (gig::Group* group = gig->GetFirstGroup(); group; group = gig->GetNextGroup()) {
+        Gtk::TreeModel::iterator iterGroup = m_refSamplesTreeModel->append();
+        Gtk::TreeModel::Row rowGroup = *iterGroup;
+        rowGroup[m_SamplesModel.m_col_name]   = group->Name.c_str();
+        rowGroup[m_SamplesModel.m_col_sample] = group;
+        for (gig::Sample* sample = group->GetFirstSample(); sample; sample = group->GetNextSample()) {
+            Gtk::TreeModel::iterator iterSample = m_refSamplesTreeModel->append(rowGroup.children());
+            Gtk::TreeModel::Row rowSample = *iterSample;
+            rowSample[m_SamplesModel.m_col_name]   = sample->pInfo->Name.c_str();
+            rowSample[m_SamplesModel.m_col_sample] = sample;
+        }
+    }
 }
 
 void MainWindow::on_button_release(GdkEventButton* button)
