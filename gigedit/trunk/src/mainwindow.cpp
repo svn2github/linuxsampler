@@ -1490,6 +1490,7 @@ void MainWindow::load_gig(gig::File* gig, const char* filename)
         dynamic_cast<Gtk::MenuItem*>(uiManager->get_widget("/MenuBar/MenuInstrument"));
 
     int instrument_index = 0;
+    Gtk::RadioMenuItem::Group instrument_group;
     for (gig::Instrument* instrument = gig->GetFirstInstrument() ; instrument ;
 	 instrument = gig->GetNextInstrument()) {
         Gtk::TreeModel::iterator iter = m_refTreeModel->append();
@@ -1497,7 +1498,7 @@ void MainWindow::load_gig(gig::File* gig, const char* filename)
 	row[m_Columns.m_col_name] = instrument->pInfo->Name.c_str();
 	row[m_Columns.m_col_instr] = instrument;
         // create a menu item for this instrument
-        Gtk::MenuItem* item= new Gtk::MenuItem(instrument->pInfo->Name.c_str());
+        Gtk::RadioMenuItem* item= new Gtk::RadioMenuItem(instrument_group, instrument->pInfo->Name.c_str());
         instrument_menu->get_submenu()->append(*item);
         item->signal_activate().connect(
             sigc::bind(
