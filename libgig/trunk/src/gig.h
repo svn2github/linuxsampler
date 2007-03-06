@@ -210,12 +210,14 @@ namespace gig {
         dimension_none              = 0x00, ///< Dimension not in use.
         dimension_samplechannel     = 0x80, ///< If used sample has more than one channel (thus is not mono).
         dimension_layer             = 0x81, ///< For layering of up to 8 instruments (and eventually crossfading of 2 or 4 layers).
-        dimension_velocity          = 0x82, ///< Key Velocity (this is the only dimension where the ranges can exactly be defined).
+        dimension_velocity          = 0x82, ///< Key Velocity (this is the only dimension in gig2 where the ranges can exactly be defined).
         dimension_channelaftertouch = 0x83, ///< Channel Key Pressure
         dimension_releasetrigger    = 0x84, ///< Special dimension for triggering samples on releasing a key.
         dimension_keyboard          = 0x85, ///< Dimension for keyswitching
         dimension_roundrobin        = 0x86, ///< Different samples triggered each time a note is played, dimension regions selected in sequence
         dimension_random            = 0x87, ///< Different samples triggered each time a note is played, random order
+        dimension_smartmidi         = 0x88, ///< For MIDI tools like legato and repetition mode
+        dimension_roundrobinkeyboard = 0x89, ///< Different samples triggered each time a note is played, any key advances the counter
         dimension_modwheel          = 0x01, ///< Modulation Wheel (MIDI Controller 1)
         dimension_breath            = 0x02, ///< Breath Controller (Coarse, MIDI Controller 2)
         dimension_foot              = 0x04, ///< Foot Pedal (Coarse, MIDI Controller 4)

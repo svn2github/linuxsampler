@@ -8,6 +8,7 @@ Version CVS HEAD (?)
     - custom velocity splits now works for gig v3 files too
     - added support for custom splits points for other dimensions than
       velocity (gig v3 feature)
+    - added "smart midi" and "round robin keyboard" dimensions
 
 Version 3.1.0 (24 Nov 2006)
 

@@ -2120,8 +2120,10 @@ namespace {
                                                            dimension == dimension_releasetrigger ||
                                                            dimension == dimension_keyboard ||
                                                            dimension == dimension_roundrobin ||
-                                                           dimension == dimension_random) ? split_type_bit
-                                                                                          : split_type_normal;
+                                                           dimension == dimension_random ||
+                                                           dimension == dimension_smartmidi ||
+                                                           dimension == dimension_roundrobinkeyboard) ? split_type_bit
+                                                                                                      : split_type_normal;
                     pDimensionDefinitions[i].zone_size  =
                         (pDimensionDefinitions[i].split_type == split_type_normal) ? 128.0 / pDimensionDefinitions[i].zones
                                                                                    : 0;
