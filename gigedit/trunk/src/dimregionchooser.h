@@ -66,6 +66,7 @@ protected:
     int focus_line;
     int dimvalue_from[256];
     int dimvalue_to[256];
+    int label_width;
 };
 
 #endif

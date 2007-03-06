@@ -76,9 +76,8 @@ bool DimRegionChooser::on_expose_event(GdkEventExpose* event)
     window->clear();
     const int h = 20;
     const int w = 800;
-    const int w1 = 100;
     int y = 0;
-    int bitpos = 0;
+    double maxwidth = 0;
     for (int i = 0 ; i < region->Dimensions ; i++) {
 
         int nbZones = region->pDimensionDefinitions[i].zones;
@@ -129,19 +128,31 @@ bool DimRegionChooser::on_expose_event(GdkEventExpose* event)
             layout->set_text(dstr);
 
 	    Pango::Rectangle rectangle = layout->get_logical_extents();
+            double text_w = double(rectangle.get_width()) / Pango::SCALE;
+            if (text_w > maxwidth) maxwidth = text_w;
 	    double text_h = double(rectangle.get_height()) / Pango::SCALE;
             Glib::RefPtr<const Gdk::GC> fg = get_style()->get_fg_gc(get_state());
             window->draw_layout(fg, 4, int(y + (h - text_h) / 2 + 0.5), layout);
 
+        }
+        y += h;
+    }
+    y = 0;
+    int bitpos = 0;
+    label_width = int(maxwidth + 10);
+    for (int i = 0 ; i < region->Dimensions ; i++) {
+        int nbZones = region->pDimensionDefinitions[i].zones;
+        if (nbZones) {
+
             if (has_focus() && focus_line == i) {
-                Gdk::Rectangle farea(0, y, 50, 20);
-                get_style()->paint_focus(window, get_state(), farea, *this, "hejsan", 0, y, 50, 20);
+                Gdk::Rectangle farea(0, y, 150, 20);
+                get_style()->paint_focus(window, get_state(), farea, *this, "", 0, y, label_width, 20);
             }
 
             Glib::RefPtr<const Gdk::GC> black = get_style()->get_black_gc();
-            window->draw_line(black, w1, y, w - 1, y);
-            window->draw_line(black, w - 1, y + h - 1, w1, y + h - 1);
-            window->draw_rectangle(get_style()->get_white_gc(), true, w1 + 1, y + 1, (w - w1 - 2), h - 2);
+            window->draw_line(black, label_width, y, w - 1, y);
+            window->draw_line(black, w - 1, y + h - 1, label_width, y + h - 1);
+            window->draw_rectangle(get_style()->get_white_gc(), true, label_width + 1, y + 1, (w - label_width - 2), h - 2);
 
             int c = 0;
             if (dimregno >= 0) {
@@ -155,19 +166,19 @@ bool DimRegionChooser::on_expose_event(GdkEventExpose* event)
                  region->pDimensionRegions[c]->VelocityUpperLimit));
 
             if (customsplits) {
-                window->draw_line(black, w1, y + 1, w1, y + h - 2);
+                window->draw_line(black, label_width, y + 1, label_width, y + h - 2);
                 for (int j = 0 ; j < nbZones ; j++) {
                     gig::DimensionRegion *d = region->pDimensionRegions[c + (j << bitpos)];
                     int upperLimit = d->DimensionUpperLimits[i];
                     if (!upperLimit) upperLimit = d->VelocityUpperLimit;
                     int v = upperLimit + 1;
-                    int x = int((w - w1 - 1) * v / 128.0 + 0.5);
-                    window->draw_line(black, w1 + x, y + 1, w1 + x, y + h - 2);
+                    int x = int((w - label_width - 1) * v / 128.0 + 0.5);
+                    window->draw_line(black, label_width + x, y + 1, label_width + x, y + h - 2);
                 }
             } else {
                 for (int j = 0 ; j <= nbZones ; j++) {
-                    int x = int((w - w1 - 1) * j / double(nbZones) + 0.5);
-                    window->draw_line(black, w1 + x, y + 1, w1 + x, y + h - 2);
+                    int x = int((w - label_width - 1) * j / double(nbZones) + 0.5);
+                    window->draw_line(black, label_width + x, y + 1, label_width + x, y + h - 2);
                 }
             }
 
@@ -181,18 +192,18 @@ bool DimRegionChooser::on_expose_event(GdkEventExpose* event)
                         int upperLimit = d->DimensionUpperLimits[i];
                         if (!upperLimit) upperLimit = d->VelocityUpperLimit;
                         int v = upperLimit + 1;
-                        int x2 = int((w - w1 - 1) * v / 128.0 + 0.5);
+                        int x2 = int((w - label_width - 1) * v / 128.0 + 0.5);
                         if (j == dr && x1 < x2) {
-                            window->draw_rectangle(gc, true, w1 + x1 + 1, y + 1, (x2 - x1) - 1, h - 2);
+                            window->draw_rectangle(gc, true, label_width + x1 + 1, y + 1, (x2 - x1) - 1, h - 2);
                             break;
                         }
                         x1 = x2;
                     }
                 } else {
                     if (dr < nbZones) {
-                        int x1 = int((w - w1 - 1) * dr / double(nbZones) + 0.5);
-                        int x2 = int((w - w1 - 1) * (dr + 1) / double(nbZones) + 0.5);
-                        window->draw_rectangle(gc, true, w1 + x1 + 1, y + 1, (x2 - x1) - 1, h - 2);
+                        int x1 = int((w - label_width - 1) * dr / double(nbZones) + 0.5);
+                        int x2 = int((w - label_width - 1) * (dr + 1) / double(nbZones) + 0.5);
+                        window->draw_rectangle(gc, true, label_width + x1 + 1, y + 1, (x2 - x1) - 1, h - 2);
                     }
                 }
             }
@@ -262,11 +273,10 @@ bool DimRegionChooser::on_button_press_event(GdkEventButton* event)
 {
     const int h = 20;
     const int w = 800;
-    const int w1 = 100;
 
     if (region) {
         if (event->y < region->Dimensions * h &&
-            event->x >= w1 && event->x < w) {
+            event->x >= label_width && event->x < w) {
 
             int dim = int(event->y / h);
             int nbZones = region->pDimensionDefinitions[dim].zones;
@@ -288,7 +298,7 @@ bool DimRegionChooser::on_button_press_event(GdkEventButton* event)
                  (region->pDimensionDefinitions[i].dimension == gig::dimension_velocity &&
                   region->pDimensionRegions[c]->VelocityUpperLimit));
             if (customsplits) {
-                int val = int((event->x - w1) * 128 / (w - w1 - 1));
+                int val = int((event->x - label_width) * 128 / (w - label_width - 1));
 
                 if (region->pDimensionRegions[c]->DimensionUpperLimits[i]) {
                     for (z = 0 ; z < nbZones ; z++) {
@@ -302,7 +312,7 @@ bool DimRegionChooser::on_button_press_event(GdkEventButton* event)
                     }
                 }
             } else {
-                z = int((event->x - w1) * nbZones / (w - w1 - 1));
+                z = int((event->x - label_width) * nbZones / (w - label_width - 1));
             }
 
             printf("dim=%d z=%d dimensionsource=%d split_type=%d zones=%d zone_size=%f\n", dim, z,
