@@ -95,6 +95,8 @@ bool DimRegionChooser::on_expose_event(GdkEventExpose* event)
             case gig::dimension_keyboard: dstr="keyboard"; break;
             case gig::dimension_roundrobin: dstr="roundrobin"; break;
             case gig::dimension_random: dstr="random"; break;
+            case gig::dimension_smartmidi: dstr="smartmidi"; break;
+            case gig::dimension_roundrobinkeyboard: dstr="roundrobinkeyboard"; break;
             case gig::dimension_modwheel: dstr="modwheel"; break;
             case gig::dimension_breath: dstr="breath"; break;
             case gig::dimension_foot: dstr="foot"; break;
