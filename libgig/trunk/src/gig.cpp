@@ -2893,6 +2893,7 @@ namespace {
         if (!pSamples || !pSamples->size()) throw gig::Exception("Could not delete sample as there are no samples");
         SampleList::iterator iter = find(pSamples->begin(), pSamples->end(), (DLS::Sample*) pSample);
         if (iter == pSamples->end()) throw gig::Exception("Could not delete sample, could not find given sample");
+        if (SamplesIterator != pSamples->end() && *SamplesIterator == pSample) ++SamplesIterator; // avoid iterator invalidation
         pSamples->erase(iter);
         delete pSample;
     }
