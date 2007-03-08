@@ -45,6 +45,8 @@
 #include <gtkmm/window.h>
 #include <gtkmm/menuitem.h>
 
+#include <sstream>
+
 #include "regionchooser.h"
 #include "dimregionchooser.h"
 
@@ -503,7 +505,8 @@ protected:
         }
 
         Gtk::TreeModelColumn<Glib::ustring> m_col_name;
-        Gtk::TreeModelColumn<void*> m_col_sample; // either pointing to gig::Group or gig::Sample
+        Gtk::TreeModelColumn<gig::Sample*> m_col_sample;
+        Gtk::TreeModelColumn<gig::Group*> m_col_group;
     } m_SamplesModel;
     Gtk::TreeView m_TreeViewSamples;
     Glib::RefPtr<Gtk::TreeStore> m_refSamplesTreeModel;
@@ -540,6 +543,13 @@ protected:
     void on_action_file_save_as();
     void on_action_file_properties();
     void on_action_help_about();
+
+    // sample right-click popup actions
+    void on_sample_treeview_button_release(GdkEventButton* button);
+    void on_action_sample_properties();
+    void on_action_add_group();
+    void on_action_add_sample();
+    void on_action_remove_sample();
 
     LoadDialog* load_dialog;
     Loader* loader;

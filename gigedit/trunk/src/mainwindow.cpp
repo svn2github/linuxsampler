@@ -31,6 +31,12 @@
 
 #define _(String) gettext(String)
 
+template<class T> inline std::string ToString(T o) {
+    std::stringstream ss;
+    ss << o;
+    return ss.str();
+}
+
 bool update_gui;
 
 uint8_t& access_UnityNote(gig::DimensionRegion* dimreg)
@@ -830,10 +836,28 @@ MainWindow::MainWindow() :
                      sigc::mem_fun(
                          *this, &MainWindow::on_action_help_about));
 #endif
-    action = Gtk::Action::create("Remove", "Ta bort");
+    action = Gtk::Action::create("Remove", Gtk::Stock::REMOVE);
     actionGroup->add(action,
                      sigc::mem_fun(
                          *this, &MainWindow::hide));
+
+    // sample right-click popup actions
+    actionGroup->add(
+        Gtk::Action::create("SampleProperties", Gtk::Stock::PROPERTIES),
+        sigc::mem_fun(*this, &MainWindow::on_action_sample_properties)
+    );
+    actionGroup->add(
+        Gtk::Action::create("AddGroup", _("Add _Group")),
+        sigc::mem_fun(*this, &MainWindow::on_action_add_group)
+    );
+    actionGroup->add(
+        Gtk::Action::create("AddSample", _("Add _Sample")),
+        sigc::mem_fun(*this, &MainWindow::on_action_add_sample)
+    );
+    actionGroup->add(
+        Gtk::Action::create("RemoveSample", Gtk::Stock::REMOVE),
+        sigc::mem_fun(*this, &MainWindow::on_action_remove_sample)
+    );
 
     uiManager = Gtk::UIManager::create();
     uiManager->insert_action_group(actionGroup);
@@ -865,6 +889,13 @@ MainWindow::MainWindow() :
         "    <menuitem action='InstrProperties'/>"
         "    <menuitem action='Remove'/>"
         "  </popup>"
+        "  <popup name='SamplePopupMenu'>"
+        "    <menuitem action='SampleProperties'/>"
+        "    <menuitem action='AddGroup'/>"
+        "    <menuitem action='AddSample'/>"
+        "    <separator/>"
+        "    <menuitem action='RemoveSample'/>"
+        "  </popup>"
         "</ui>";
     uiManager->add_ui_from_string(ui_info);
 
@@ -895,6 +926,9 @@ MainWindow::MainWindow() :
     m_TreeViewSamples.set_model(m_refSamplesTreeModel);
     m_TreeViewSamples.append_column("Samples", m_SamplesModel.m_col_name);
     m_TreeViewSamples.set_headers_visible(false);
+    m_TreeViewSamples.signal_button_press_event().connect_notify(
+        sigc::mem_fun(*this, &MainWindow::on_sample_treeview_button_release)
+    );
 
     file = 0;
 
@@ -1526,12 +1560,14 @@ void MainWindow::load_gig(gig::File* gig, const char* filename)
         Gtk::TreeModel::iterator iterGroup = m_refSamplesTreeModel->append();
         Gtk::TreeModel::Row rowGroup = *iterGroup;
         rowGroup[m_SamplesModel.m_col_name]   = group->Name.c_str();
-        rowGroup[m_SamplesModel.m_col_sample] = group;
+        rowGroup[m_SamplesModel.m_col_group]  = group;
+        rowGroup[m_SamplesModel.m_col_sample] = NULL;
         for (gig::Sample* sample = group->GetFirstSample(); sample; sample = group->GetNextSample()) {
             Gtk::TreeModel::iterator iterSample = m_refSamplesTreeModel->append(rowGroup.children());
             Gtk::TreeModel::Row rowSample = *iterSample;
             rowSample[m_SamplesModel.m_col_name]   = sample->pInfo->Name.c_str();
             rowSample[m_SamplesModel.m_col_sample] = sample;
+            rowSample[m_SamplesModel.m_col_group]  = NULL;
         }
     }
 }
@@ -1558,4 +1594,54 @@ void MainWindow::on_button_release(GdkEventButton* button)
 
 void MainWindow::on_instrument_selection_change(int index) {
     m_RegionChooser.set_instrument(file->GetInstrument(index));
+}
+
+void MainWindow::on_sample_treeview_button_release(GdkEventButton* button) {
+    if (button->type == GDK_BUTTON_PRESS && button->button == 3) {
+        Gtk::Menu* sample_popup =
+            dynamic_cast<Gtk::Menu*>(uiManager->get_widget("/SamplePopupMenu"));
+        // update enabled/disabled state of sample popup items
+        Glib::RefPtr<Gtk::TreeSelection> sel = m_TreeViewSamples.get_selection();
+        Gtk::TreeModel::iterator it = sel->get_selected();
+        bool group_selected  = false;
+        bool sample_selected = false;
+        if (it) {
+            Gtk::TreeModel::Row row = *it;
+            group_selected  = row[m_SamplesModel.m_col_group];
+            sample_selected = row[m_SamplesModel.m_col_sample];
+        }
+        dynamic_cast<Gtk::MenuItem*>(uiManager->get_widget("/SamplePopupMenu/SampleProperties"))->set_sensitive(group_selected || sample_selected);
+        dynamic_cast<Gtk::MenuItem*>(uiManager->get_widget("/SamplePopupMenu/AddSample"))->set_sensitive(group_selected || sample_selected);
+        dynamic_cast<Gtk::MenuItem*>(uiManager->get_widget("/SamplePopupMenu/AddGroup"))->set_sensitive(file);
+        dynamic_cast<Gtk::MenuItem*>(uiManager->get_widget("/SamplePopupMenu/RemoveSample"))->set_sensitive(group_selected || sample_selected);
+        // show sample popup
+        sample_popup->popup(button->button, button->time);
+    }
+}
+
+void MainWindow::on_action_sample_properties() {
+     //TODO: show a dialog where the selected sample's properties can be edited
+}
+
+void MainWindow::on_action_add_group() {
+    static int __sample_indexer = 0;
+    if (!file) return;
+    gig::Group* group = file->AddGroup();
+    group->Name = "Unnamed Group";
+    if (__sample_indexer) group->Name += " " + ToString(__sample_indexer);
+    __sample_indexer++;
+    // update sample tree view
+    Gtk::TreeModel::iterator iterGroup = m_refSamplesTreeModel->append();
+    Gtk::TreeModel::Row rowGroup = *iterGroup;
+    rowGroup[m_SamplesModel.m_col_name] = group->Name.c_str();
+    rowGroup[m_SamplesModel.m_col_sample] = NULL;
+    rowGroup[m_SamplesModel.m_col_group] = group;
+}
+
+void MainWindow::on_action_add_sample() {
+    //TODO: open browse for file dialog for adding new samples
+}
+
+void MainWindow::on_action_remove_sample() {
+    //TODO: remove the selected group or sample
 }
