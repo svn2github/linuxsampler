@@ -10,6 +10,10 @@ Version CVS HEAD (?)
     - added support for custom splits points for other dimensions than
       velocity (gig v3 feature)
     - added "smart midi" and "round robin keyboard" dimensions
+    - added new method File::DeleteGroupOnly() which only deletes the given
+      group but moves all its members to another group, the other method,
+      that is File::DeleteGroup() now removes not just the group, but also
+      all the samples that belong to that group
 
 Version 3.1.0 (24 Nov 2006)
 

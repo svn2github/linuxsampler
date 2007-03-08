@@ -3029,7 +3029,7 @@ namespace {
      * have to call Save() to make this persistent to the file.
      *
      * @param pInstrument - instrument to delete
-     * @throws gig::Excption if given instrument could not be found
+     * @throws gig::Exception if given instrument could not be found
      */
     void File::DeleteInstrument(Instrument* pInstrument) {
         if (!pInstruments) throw gig::Exception("Could not delete instrument as there are no instruments");
@@ -3107,7 +3107,40 @@ namespace {
         return pGroup;
     }
 
+    /** @brief Delete a group and its samples.
+     *
+     * This will delete the given Group object and all the samples that
+     * belong to this group from the gig file. You have to call Save() to
+     * make this persistent to the file.
+     *
+     * @param pGroup - group to delete
+     * @throws gig::Exception if given group could not be found
+     */
     void File::DeleteGroup(Group* pGroup) {
+        if (!pGroups) LoadGroups();
+        std::list<Group*>::iterator iter = find(pGroups->begin(), pGroups->end(), pGroup);
+        if (iter == pGroups->end()) throw gig::Exception("Could not delete group, could not find given group");
+        if (pGroups->size() == 1) throw gig::Exception("Cannot delete group, there must be at least one default group!");
+        // delete all members of this group
+        for (Sample* pSample = pGroup->GetFirstSample(); pSample; pSample = pGroup->GetNextSample()) {
+            DeleteSample(pSample);
+        }
+        // now delete this group object
+        pGroups->erase(iter);
+        delete pGroup;
+    }
+
+    /** @brief Delete a group.
+     *
+     * This will delete the given Group object from the gig file. All the
+     * samples that belong to this group will not be deleted, but instead
+     * be moved to another group. You have to call Save() to make this
+     * persistent to the file.
+     *
+     * @param pGroup - group to delete
+     * @throws gig::Exception if given group could not be found
+     */
+    void File::DeleteGroupOnly(Group* pGroup) {
         if (!pGroups) LoadGroups();
         std::list<Group*>::iterator iter = find(pGroups->begin(), pGroups->end(), pGroup);
         if (iter == pGroups->end()) throw gig::Exception("Could not delete group, could not find given group");
