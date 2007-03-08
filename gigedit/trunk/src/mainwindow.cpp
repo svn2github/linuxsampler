@@ -30,6 +30,9 @@
 #include <gtkmm/messagedialog.h>
 #endif
 
+#include <stdio.h>
+#include <sndfile.h>
+
 #define _(String) gettext(String)
 
 template<class T> inline std::string ToString(T o) {
@@ -852,7 +855,7 @@ MainWindow::MainWindow() :
         sigc::mem_fun(*this, &MainWindow::on_action_add_group)
     );
     actionGroup->add(
-        Gtk::Action::create("AddSample", _("Add _Sample")),
+        Gtk::Action::create("AddSample", _("Add _Sample(s)")),
         sigc::mem_fun(*this, &MainWindow::on_action_add_sample)
     );
     actionGroup->add(
@@ -1640,7 +1643,93 @@ void MainWindow::on_action_add_group() {
 }
 
 void MainWindow::on_action_add_sample() {
-    //TODO: open browse for file dialog for adding new samples
+    if (!file) return;
+    // get selected group
+    Glib::RefPtr<Gtk::TreeSelection> sel = m_TreeViewSamples.get_selection();
+    Gtk::TreeModel::iterator it = sel->get_selected();
+    if (!it) return;
+    Gtk::TreeModel::Row row = *it;
+    gig::Group* group = row[m_SamplesModel.m_col_group];
+    if (!group) { // not a group, but a sample is selected (probably)
+        gig::Sample* sample = row[m_SamplesModel.m_col_sample];
+        if (!sample) return;
+        it = row.parent(); // resolve parent (that is the sample's group)
+        if (!it) return;
+        row = *it;
+        group = row[m_SamplesModel.m_col_group];
+        if (!group) return;
+    }
+    // show 'browse for file' dialog
+    Gtk::FileChooserDialog dialog(*this, _("Add Sample(s)"));
+    dialog.add_button(Gtk::Stock::CANCEL, Gtk::RESPONSE_CANCEL);
+    dialog.add_button(Gtk::Stock::OPEN, Gtk::RESPONSE_OK);
+    dialog.set_select_multiple(true);
+    Gtk::FileFilter soundfilter; // matches all file types supported by libsndfile (yet to do ;-)
+    soundfilter.add_pattern("*.wav");
+    soundfilter.set_name("Sound Files");
+    Gtk::FileFilter allpassfilter; // matches every file
+    allpassfilter.add_pattern("*.*");
+    allpassfilter.set_name("All Files");
+    dialog.add_filter(soundfilter);
+    dialog.add_filter(allpassfilter);
+    if (dialog.run() == Gtk::RESPONSE_OK) {
+        Glib::ustring error_files;
+        Glib::SListHandle<Glib::ustring> filenames = dialog.get_filenames();
+        for (Glib::SListHandle<Glib::ustring>::iterator iter = filenames.begin(); iter != filenames.end(); ++iter) {
+            printf("Adding sample %s\n",(*iter).c_str());
+            // use libsndfile to retrieve file informations
+            SF_INFO info;
+            info.format = 0;
+            SNDFILE* hFile = sf_open((*iter).c_str(), SFM_READ, &info);
+            try {
+                if (!hFile) throw std::string("could not open file");
+                int bitdepth;
+                switch (info.format & 0xff) {
+                    case SF_FORMAT_PCM_S8:
+                        bitdepth = 8;
+                        break;
+                    case SF_FORMAT_PCM_16:
+                        bitdepth = 16;
+                        break;
+                    case SF_FORMAT_PCM_24:
+                        bitdepth = 24;
+                        break;
+                    case SF_FORMAT_PCM_32:
+                        bitdepth = 32;
+                        break;
+                    default:
+                        sf_close(hFile); // close sound file
+                        throw std::string("format not supported"); // unsupported subformat (yet?)
+                }
+                // add a new sample to the .gig file
+                gig::Sample* sample = file->AddSample();
+                sample->pInfo->Name = (*iter).raw();
+                sample->Channels = info.channels;
+                sample->BitDepth = bitdepth;
+                sample->FrameSize = bitdepth / 8/*1 byte are 8 bits*/ * info.channels;
+                sample->SamplesPerSecond = info.samplerate;
+                // schedule resizing the sample (which will be done physically when File::Save() is called)
+                sample->Resize(info.frames);
+                // add sample to the tree view
+                Gtk::TreeModel::iterator iterSample = m_refSamplesTreeModel->append(row.children());
+                Gtk::TreeModel::Row rowSample = *iterSample;
+                rowSample[m_SamplesModel.m_col_name]   = sample->pInfo->Name.c_str();
+                rowSample[m_SamplesModel.m_col_sample] = sample;
+                rowSample[m_SamplesModel.m_col_group]  = NULL;
+                // close sound file
+                sf_close(hFile);
+            } catch (std::string what) { // remember the files that made trouble (and their cause)
+                if (error_files.size()) error_files += "\n";
+                error_files += *iter += " (" + what + ")";
+            }
+        }
+        // show error message box when some file(s) could not be opened / added
+        if (error_files.size()) {
+            Glib::ustring txt = "Could not add the following sample(s):\n" + error_files;
+            Gtk::MessageDialog msg(*this, txt, false, Gtk::MESSAGE_ERROR);
+            msg.run();
+        }
+    }
 }
 
 void MainWindow::on_action_remove_sample() {

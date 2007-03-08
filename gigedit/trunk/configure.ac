@@ -18,6 +18,11 @@ AM_GLIB_GNU_GETTEXT
 PKG_CHECK_MODULES(GTKMM, gtkmm-2.4 >= 2.6.1 gthread-2.0)
 PKG_CHECK_MODULES(GIG, gig >= 3.1.0)
 
+# check for presence of libsndfile
+PKG_CHECK_MODULES(SNDFILE, sndfile >= 1.0.2)
+AC_SUBST(SNDFILE_CFLAGS)
+AC_SUBST(SNDFILE_LIBS)
+
 AC_CONFIG_FILES([
 Makefile
 src/Makefile
