@@ -502,6 +502,7 @@ protected:
         SamplesModel() {
             add(m_col_name);
             add(m_col_sample);
+            add(m_col_group);
         }
 
         Gtk::TreeModelColumn<Glib::ustring> m_col_name;

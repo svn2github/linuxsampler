@@ -27,6 +27,7 @@
 #if GTKMM_MAJOR_VERSION == 2 && GTKMM_MINOR_VERSION >= 6
 #define ABOUT_DIALOG
 #include <gtkmm/aboutdialog.h>
+#include <gtkmm/messagedialog.h>
 #endif
 
 #define _(String) gettext(String)
@@ -1643,5 +1644,25 @@ void MainWindow::on_action_add_sample() {
 }
 
 void MainWindow::on_action_remove_sample() {
-    //TODO: remove the selected group or sample
+    if (!file) return;
+    Glib::RefPtr<Gtk::TreeSelection> sel = m_TreeViewSamples.get_selection();
+    Gtk::TreeModel::iterator it = sel->get_selected();
+    if (it) {
+        Gtk::TreeModel::Row row = *it;
+        gig::Group* group   = row[m_SamplesModel.m_col_group];
+        gig::Sample* sample = row[m_SamplesModel.m_col_sample];
+        try {
+            // remove group or sample from the gig file
+            if (group) {
+                file->DeleteGroup(group);
+            } else if (sample) {
+                file->DeleteSample(sample);
+            }
+            // remove respective row(s) from samples tree view
+            m_refSamplesTreeModel->erase(it);
+        } catch (RIFF::Exception e) {
+            Gtk::MessageDialog msg(*this, e.Message.c_str(), false, Gtk::MESSAGE_ERROR);
+            msg.run();
+        }
+    }
 }
