@@ -522,6 +522,12 @@ protected:
     Gtk::Label* lSample;
     Gtk::Entry* wSample;
 
+    struct SampleImportItem {
+        gig::Sample*  gig_sample;  // pointer to the gig::Sample to which the sample data should be imported to
+        Glib::ustring sample_path; // file name of the sample to be imported
+    };
+    std::list<SampleImportItem> m_SampleImportQueue;
+
     void VCFEnabled_toggled();
     void VCFCutoffController_changed();
     void VCFResonanceController_changed();
@@ -559,6 +565,8 @@ protected:
     gig::File* file;
 
     void on_button_release(GdkEventButton* button);
+
+    void __import_queued_samples();
 
   Gtk::Menu* popup_menu;
 };

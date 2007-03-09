@@ -1280,6 +1280,7 @@ LoadDialog::LoadDialog()
 
 void MainWindow::on_action_file_new()
 {
+    m_SampleImportQueue.clear();
 }
 
 void MainWindow::on_action_file_open()
@@ -1302,6 +1303,7 @@ void MainWindow::on_action_file_open()
         }
         instrument_menu->get_submenu()->items().clear();
 
+        m_SampleImportQueue.clear();
         m_refTreeModel->clear();
         m_refSamplesTreeModel->clear();
         if (file) delete file;
@@ -1341,10 +1343,14 @@ void MainWindow::on_loader_finished()
 
 void MainWindow::on_action_file_save()
 {
+    if (!file) return;
+    file->Save();
+    __import_queued_samples();
 }
 
 void MainWindow::on_action_file_save_as()
 {
+    if (!file) return;
     Gtk::FileChooserDialog dialog(*this, "Open", Gtk::FILE_CHOOSER_ACTION_SAVE);
     dialog.add_button(Gtk::Stock::CANCEL, Gtk::RESPONSE_CANCEL);
     dialog.add_button(Gtk::Stock::SAVE, Gtk::RESPONSE_OK);
@@ -1354,6 +1360,78 @@ void MainWindow::on_action_file_save_as()
     if (dialog.run() == Gtk::RESPONSE_OK) {
         printf("filename=%s\n", dialog.get_filename().c_str());
         file->Save(dialog.get_filename());
+        __import_queued_samples();
+    }
+}
+
+// actually write the sample(s)' data to the gig file
+void MainWindow::__import_queued_samples() {
+    Glib::ustring error_files;
+    for (std::list<SampleImportItem>::iterator iter = m_SampleImportQueue.begin(); iter != m_SampleImportQueue.end(); ++iter) {
+        printf("Importing sample %s\n",(*iter).sample_path.c_str());
+        SF_INFO info;
+        info.format = 0;
+        SNDFILE* hFile = sf_open((*iter).sample_path.c_str(), SFM_READ, &info);
+        try {
+            if (!hFile) throw std::string("could not open file");
+            // determine sample's bit depth
+            int bitdepth;
+            switch (info.format & 0xff) {
+                case SF_FORMAT_PCM_S8:
+                    bitdepth = 16; // we simply convert to 16 bit for now
+                    break;
+                case SF_FORMAT_PCM_16:
+                    bitdepth = 16;
+                    break;
+                case SF_FORMAT_PCM_24:
+                    bitdepth = 32; // we simply convert to 32 bit for now
+                    break;
+                case SF_FORMAT_PCM_32:
+                    bitdepth = 32;
+                    break;
+                case SF_FORMAT_PCM_U8:
+                    bitdepth = 16; // we simply convert to 16 bit for now
+                    break;
+                case SF_FORMAT_FLOAT:
+                    bitdepth = 32;
+                    break;
+                case SF_FORMAT_DOUBLE:
+                    bitdepth = 32; // I guess we will always truncate this to 32 bit
+                    break;
+                default:
+                    sf_close(hFile); // close sound file
+                    throw std::string("format not supported"); // unsupported subformat (yet?)
+            }
+            // allocate appropriate copy buffer (TODO: for now we copy it in one piece, might be tough for very long samples)
+            // and copy sample data into buffer
+            int8_t* buffer = NULL;
+            switch (bitdepth) {
+                case 16:
+                    buffer = new int8_t[2 * info.channels * info.frames];
+                    sf_readf_short(hFile, (short*) buffer, info.frames); // libsndfile does the conversion for us (if needed)
+                    break;
+                case 32:
+                    buffer = new int8_t[4 * info.channels * info.frames];
+                    sf_readf_int(hFile, (int*) buffer, info.frames); // libsndfile does the conversion for us (if needed)
+                    break;
+            }
+            // write from buffer directly (physically) into .gig file
+            (*iter).gig_sample->Write(buffer, info.frames);
+            // cleanup
+            sf_close(hFile);
+            delete buffer;
+            // on success we remove the sample from the import queue, otherwise keep it, maybe it works the next time ?
+            m_SampleImportQueue.erase(iter);
+        } catch (std::string what) { // remember the files that made trouble (and their cause)
+            if (error_files.size()) error_files += "\n";
+            error_files += (*iter).sample_path += " (" + what + ")";
+        }
+    }
+    // show error message box when some sample(s) could not be imported
+    if (error_files.size()) {
+        Glib::ustring txt = "Could not import the following sample(s):\n" + error_files;
+        Gtk::MessageDialog msg(*this, txt, false, Gtk::MESSAGE_ERROR);
+        msg.run();
     }
 }
 
@@ -1686,16 +1764,25 @@ void MainWindow::on_action_add_sample() {
                 int bitdepth;
                 switch (info.format & 0xff) {
                     case SF_FORMAT_PCM_S8:
-                        bitdepth = 8;
+                        bitdepth = 16; // we simply convert to 16 bit for now
                         break;
                     case SF_FORMAT_PCM_16:
                         bitdepth = 16;
                         break;
                     case SF_FORMAT_PCM_24:
-                        bitdepth = 24;
+                        bitdepth = 32; // we simply convert to 32 bit for now
                         break;
                     case SF_FORMAT_PCM_32:
                         bitdepth = 32;
+                        break;
+                    case SF_FORMAT_PCM_U8:
+                        bitdepth = 16; // we simply convert to 16 bit for now
+                        break;
+                    case SF_FORMAT_FLOAT:
+                        bitdepth = 32;
+                        break;
+                    case SF_FORMAT_DOUBLE:
+                        bitdepth = 32; // I guess we will always truncate this to 32 bit
                         break;
                     default:
                         sf_close(hFile); // close sound file
@@ -1703,13 +1790,18 @@ void MainWindow::on_action_add_sample() {
                 }
                 // add a new sample to the .gig file
                 gig::Sample* sample = file->AddSample();
-                sample->pInfo->Name = (*iter).raw();
+                sample->pInfo->Name = (*iter).substr((*iter).rfind('/') + 1).raw(); // file name without path
                 sample->Channels = info.channels;
                 sample->BitDepth = bitdepth;
                 sample->FrameSize = bitdepth / 8/*1 byte are 8 bits*/ * info.channels;
                 sample->SamplesPerSecond = info.samplerate;
                 // schedule resizing the sample (which will be done physically when File::Save() is called)
                 sample->Resize(info.frames);
+                // schedule that physical resize and sample import (data copying), performed when "Save" is requested
+                SampleImportItem sched_item;
+                sched_item.gig_sample  = sample;
+                sched_item.sample_path = *iter;
+                m_SampleImportQueue.push_back(sched_item);
                 // add sample to the tree view
                 Gtk::TreeModel::iterator iterSample = m_refSamplesTreeModel->append(row.children());
                 Gtk::TreeModel::Row rowSample = *iterSample;
@@ -1746,6 +1838,15 @@ void MainWindow::on_action_remove_sample() {
                 file->DeleteGroup(group);
             } else if (sample) {
                 file->DeleteSample(sample);
+            }
+            // if sample was just previously added, remove it from the import queue
+            if (sample) {
+                for (std::list<SampleImportItem>::iterator iter = m_SampleImportQueue.begin(); iter != m_SampleImportQueue.end(); ++iter) {
+                    if ((*iter).gig_sample == sample) {
+                        m_SampleImportQueue.erase(iter);
+                        break;
+                    }
+                }
             }
             // remove respective row(s) from samples tree view
             m_refSamplesTreeModel->erase(it);
