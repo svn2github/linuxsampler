@@ -1372,7 +1372,7 @@ void MainWindow::on_action_file_save_as()
 // actually write the sample(s)' data to the gig file
 void MainWindow::__import_queued_samples() {
     Glib::ustring error_files;
-    for (std::list<SampleImportItem>::iterator iter = m_SampleImportQueue.begin(); iter != m_SampleImportQueue.end(); ++iter) {
+    for (std::list<SampleImportItem>::iterator iter = m_SampleImportQueue.begin(); iter != m_SampleImportQueue.end(); ) {
         printf("Importing sample %s\n",(*iter).sample_path.c_str());
         SF_INFO info;
         info.format = 0;
@@ -1426,10 +1426,13 @@ void MainWindow::__import_queued_samples() {
             sf_close(hFile);
             delete buffer;
             // on success we remove the sample from the import queue, otherwise keep it, maybe it works the next time ?
-            m_SampleImportQueue.erase(iter);
+            std::list<SampleImportItem>::iterator cur = iter;
+            ++iter;
+            m_SampleImportQueue.erase(cur);
         } catch (std::string what) { // remember the files that made trouble (and their cause)
             if (error_files.size()) error_files += "\n";
             error_files += (*iter).sample_path += " (" + what + ")";
+            ++iter;
         }
     }
     // show error message box when some sample(s) could not be imported
@@ -1749,8 +1752,16 @@ void MainWindow::on_action_add_sample() {
     dialog.add_button(Gtk::Stock::CANCEL, Gtk::RESPONSE_CANCEL);
     dialog.add_button(Gtk::Stock::OPEN, Gtk::RESPONSE_OK);
     dialog.set_select_multiple(true);
-    Gtk::FileFilter soundfilter; // matches all file types supported by libsndfile (yet to do ;-)
-    soundfilter.add_pattern("*.wav");
+    Gtk::FileFilter soundfilter; // matches all file types supported by libsndfile
+    const char* supportedFileTypes[] = {
+        "*.wav", "*.WAV", "*.aiff", "*.AIFF", "*.aifc", "*.AIFC", "*.snd",
+        "*.SND", "*.au", "*.AU", "*.paf", "*.PAF", "*.iff", "*.IFF",
+        "*.svx", "*.SVX", "*.sf", "*.SF", "*.voc", "*.VOC", "*.w64",
+        "*.W64", "*.pvf", "*.PVF", "*.xi", "*.XI", "*.htk", "*.HTK",
+        "*.caf", "*.CAF", NULL
+    };
+    for (int i = 0; supportedFileTypes[i]; i++)
+        soundfilter.add_pattern(supportedFileTypes[i]);
     soundfilter.set_name("Sound Files");
     Gtk::FileFilter allpassfilter; // matches every file
     allpassfilter.add_pattern("*.*");
@@ -1804,6 +1815,8 @@ void MainWindow::on_action_add_sample() {
                 sample->SamplesPerSecond = info.samplerate;
                 // schedule resizing the sample (which will be done physically when File::Save() is called)
                 sample->Resize(info.frames);
+                // make sure sample is part of the selected group
+                group->AddSample(sample);
                 // schedule that physical resize and sample import (data copying), performed when "Save" is requested
                 SampleImportItem sched_item;
                 sched_item.gig_sample  = sample;
@@ -1839,17 +1852,34 @@ void MainWindow::on_action_remove_sample() {
         Gtk::TreeModel::Row row = *it;
         gig::Group* group   = row[m_SamplesModel.m_col_group];
         gig::Sample* sample = row[m_SamplesModel.m_col_sample];
+        Glib::ustring name  = row[m_SamplesModel.m_col_name];
         try {
             // remove group or sample from the gig file
             if (group) {
+                // temporarily remember the samples that bolong to that group (we need that to clean the queue)
+                std::list<gig::Sample*> members;
+                for (gig::Sample* pSample = group->GetFirstSample(); pSample; pSample = group->GetNextSample()) {
+                    members.push_back(pSample);
+                }
+                // delete the group in the .gig file including the samples that belong to the group
                 file->DeleteGroup(group);
+                // if sample(s) were just previously added, remove them from the import queue
+                for (std::list<gig::Sample*>::iterator member = members.begin(); member != members.end(); ++member) {
+                    for (std::list<SampleImportItem>::iterator iter = m_SampleImportQueue.begin(); iter != m_SampleImportQueue.end(); ++iter) {
+                        if ((*iter).gig_sample == *member) {
+                            printf("Removing previously added sample '%s' from group '%s'\n", (*iter).sample_path.c_str(), name.c_str());
+                            m_SampleImportQueue.erase(iter);
+                            break;
+                        }
+                    }
+                }
             } else if (sample) {
+                // remove sample from the .gig file
                 file->DeleteSample(sample);
-            }
-            // if sample was just previously added, remove it from the import queue
-            if (sample) {
+                // if sample was just previously added, remove it from the import queue
                 for (std::list<SampleImportItem>::iterator iter = m_SampleImportQueue.begin(); iter != m_SampleImportQueue.end(); ++iter) {
                     if ((*iter).gig_sample == sample) {
+                        printf("Removing previously added sample '%s'\n", (*iter).sample_path.c_str());
                         m_SampleImportQueue.erase(iter);
                         break;
                     }
