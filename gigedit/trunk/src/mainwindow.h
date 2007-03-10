@@ -509,6 +509,8 @@ protected:
         Gtk::TreeModelColumn<gig::Sample*> m_col_sample;
         Gtk::TreeModelColumn<gig::Group*> m_col_group;
     } m_SamplesModel;
+
+    Gtk::ScrolledWindow m_ScrolledWindowSamples;
     Gtk::TreeView m_TreeViewSamples;
     Glib::RefPtr<Gtk::TreeStore> m_refSamplesTreeModel;
 

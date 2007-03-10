@@ -520,7 +520,7 @@ MainWindow::MainWindow() :
     eSampleLoops("SampleLoops", &access_SampleLoops, 0, 1)
 {
 //    set_border_width(5);
-    set_default_size(400, 200);
+//    set_default_size(400, 200);
 
 
     add(m_VBox);
@@ -534,9 +534,13 @@ MainWindow::MainWindow() :
         sigc::mem_fun(*this, &MainWindow::on_button_release));
 
     // Add the TreeView tab, inside a ScrolledWindow, with the button underneath:
-    m_ScrolledWindow.add(m_TreeViewNotebook);
-    m_ScrolledWindow.set_size_request(400, 600);
+    m_ScrolledWindow.add(m_TreeView);
+//    m_ScrolledWindow.set_size_request(200, 600);
     m_ScrolledWindow.set_policy(Gtk::POLICY_AUTOMATIC, Gtk::POLICY_AUTOMATIC);
+
+    m_ScrolledWindowSamples.add(m_TreeViewSamples);
+    m_ScrolledWindowSamples.set_policy(Gtk::POLICY_AUTOMATIC, Gtk::POLICY_AUTOMATIC);
+
 
     for (int i = 0 ; i < 5 ; i++) {
         table[i] = new Gtk::Table(3, 1);
@@ -787,14 +791,15 @@ MainWindow::MainWindow() :
     m_Notebook.append_page(*table[2], "EG3");
     m_Notebook.append_page(*table[3], "Velocity");
     m_Notebook.append_page(*table[4], "Misc");
-    m_Notebook.set_size_request(400, 500);
+//    m_Notebook.set_size_request(400, 500);
 
-    m_HPaned.add1(m_ScrolledWindow);
+    m_TreeViewNotebook.set_size_request(300);
+    m_HPaned.add1(m_TreeViewNotebook);
     m_HPaned.add2(m_Notebook);
 
 
-    m_TreeViewNotebook.append_page(m_TreeViewSamples, "Samples");
-    m_TreeViewNotebook.append_page(m_TreeView, "Instruments");
+    m_TreeViewNotebook.append_page(m_ScrolledWindowSamples, "Samples");
+    m_TreeViewNotebook.append_page(m_ScrolledWindow, "Instruments");
 
 
     actionGroup = Gtk::ActionGroup::create();
@@ -1639,17 +1644,19 @@ void MainWindow::load_gig(gig::File* gig, const char* filename)
     instrument_menu->get_submenu()->show_all_children();
 
     for (gig::Group* group = gig->GetFirstGroup(); group; group = gig->GetNextGroup()) {
-        Gtk::TreeModel::iterator iterGroup = m_refSamplesTreeModel->append();
-        Gtk::TreeModel::Row rowGroup = *iterGroup;
-        rowGroup[m_SamplesModel.m_col_name]   = group->Name.c_str();
-        rowGroup[m_SamplesModel.m_col_group]  = group;
-        rowGroup[m_SamplesModel.m_col_sample] = NULL;
-        for (gig::Sample* sample = group->GetFirstSample(); sample; sample = group->GetNextSample()) {
-            Gtk::TreeModel::iterator iterSample = m_refSamplesTreeModel->append(rowGroup.children());
-            Gtk::TreeModel::Row rowSample = *iterSample;
-            rowSample[m_SamplesModel.m_col_name]   = sample->pInfo->Name.c_str();
-            rowSample[m_SamplesModel.m_col_sample] = sample;
-            rowSample[m_SamplesModel.m_col_group]  = NULL;
+        if (group->Name != "") {
+            Gtk::TreeModel::iterator iterGroup = m_refSamplesTreeModel->append();
+            Gtk::TreeModel::Row rowGroup = *iterGroup;
+            rowGroup[m_SamplesModel.m_col_name]   = group->Name.c_str();
+            rowGroup[m_SamplesModel.m_col_group]  = group;
+            rowGroup[m_SamplesModel.m_col_sample] = NULL;
+            for (gig::Sample* sample = group->GetFirstSample(); sample; sample = group->GetNextSample()) {
+                Gtk::TreeModel::iterator iterSample = m_refSamplesTreeModel->append(rowGroup.children());
+                Gtk::TreeModel::Row rowSample = *iterSample;
+                rowSample[m_SamplesModel.m_col_name]   = sample->pInfo->Name.c_str();
+                rowSample[m_SamplesModel.m_col_sample] = sample;
+                rowSample[m_SamplesModel.m_col_group]  = NULL;
+            }
         }
     }
 }
