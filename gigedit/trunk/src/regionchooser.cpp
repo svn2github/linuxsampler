@@ -39,8 +39,13 @@ RegionChooser::RegionChooser()
     colormap->alloc_color(grey1);
     instrument = 0;
     region = 0;
+    resize.active = false;
+    cursor_is_resize = false;
+    h1 = 20;
+    width = 800;
 
-    add_events(Gdk::BUTTON_PRESS_MASK | Gdk::POINTER_MOTION_MASK);
+    add_events(Gdk::BUTTON_PRESS_MASK | Gdk::POINTER_MOTION_MASK |
+               Gdk::POINTER_MOTION_HINT_MASK);
 }
 
 RegionChooser::~RegionChooser()
@@ -62,9 +67,8 @@ bool RegionChooser::on_expose_event(GdkEventExpose* event)
 {
     Glib::RefPtr<Gdk::Window> window = get_window();
     window->clear();
-    const int h1 = 20;
     const int h = 40;
-    const int w = 800 - 1;
+    const int w = width - 1;
     const int bh = int(h * 0.55);
 
     Glib::RefPtr<const Gdk::GC> black = get_style()->get_black_gc();
@@ -105,7 +109,6 @@ bool RegionChooser::on_expose_event(GdkEventExpose* event)
                 window->draw_rectangle(white, true, x3 + 1, 1, x2 - x3 - 1, h1 - 2);
                 x3 = -1;
             }
-//          draw_region(r->KeyRange.low, r->KeyRange.high + 1, i % 3 == 0 ? blue : i % 3 == 1 ? red : green);
             i++;
         }
 
@@ -135,11 +138,11 @@ void RegionChooser::on_size_request(GtkRequisition* requisition)
 }
 
 
+// not used
 void RegionChooser::draw_region(int from, int to, const Gdk::Color& color)
 {
-    const int h1 = 20;
     const int h = 40;
-    const int w = 800;
+    const int w = width;
     const int bh = int(h * 0.55);
 
     Glib::RefPtr<Gdk::Window> window = get_window();
@@ -186,42 +189,179 @@ void RegionChooser::set_region(gig::Region* region)
     queue_draw();
 }
 
+bool RegionChooser::on_button_release_event(GdkEventButton* event)
+{
+    if (resize.active) {
+        get_window()->pointer_ungrab(event->time);
+        resize.active = false;
+
+        if (resize.mode == resize.moving_high_limit) {
+            resize.region->KeyRange.high = resize.pos - 1;
+        } else if (resize.mode == resize.moving_low_limit) {
+            resize.region->KeyRange.low = resize.pos;
+        }
+
+        if (!is_in_resize_zone(event->x, event->y) && cursor_is_resize) {
+            get_window()->set_cursor();
+            cursor_is_resize = false;
+        }
+    }
+    return true;
+}
+
 bool RegionChooser::on_button_press_event(GdkEventButton* event)
 {
-    const int w = 800 - 1;
-
     if (instrument) {
-        int i = 0;
-        for (gig::Region *r = instrument->GetFirstRegion() ;
-             r ;
-             r = instrument->GetNextRegion()) {
-            int x = int(w * (r->KeyRange.low) / 128.0 + 0.5);
-            int x2 = int(w * (r->KeyRange.high + 1) / 128.0 + 0.5);
-            if (event->x >= x && event->x < x2) {
-                region = r;
-                break;
+        if (is_in_resize_zone(event->x, event->y)) {
+            Gdk::Cursor double_arrow(Gdk::SB_H_DOUBLE_ARROW);
+            get_window()->pointer_grab(false,
+                                       Gdk::BUTTON_RELEASE_MASK |
+                                       Gdk::POINTER_MOTION_MASK |
+                                       Gdk::POINTER_MOTION_HINT_MASK,
+                                       double_arrow, event->time);
+            resize.active = true;
+        } else {
+            const int w = width - 1;
+            int i = 0;
+            for (gig::Region *r = instrument->GetFirstRegion() ; r ;
+                 r = instrument->GetNextRegion()) {
+
+                int x = int(w * (r->KeyRange.low) / 128.0 + 0.5);
+                int x2 = int(w * (r->KeyRange.high + 1) / 128.0 + 0.5);
+                if (event->x >= x && event->x < x2) {
+                    region = r;
+                    break;
+                }
+                i++;
             }
-            i++;
+            queue_draw();
+            sel_changed_signal.emit();
         }
-        queue_draw();
-        sel_changed_signal.emit();
     }
 }
 
-// muspekarexperiment. Fel eventhantering - se example_drawingarea.cc
-bool inside = false;
 bool RegionChooser::on_motion_notify_event(GdkEventMotion* event)
 {
-    if (event->x > 100 && event->x < 120) {
-        if (!inside) {
-            Gdk::Cursor oj(Gdk::CROSSHAIR);
-            get_window()->set_cursor(oj);
-            inside = true;
+    const int w = width - 1;
+    Glib::RefPtr<Gdk::Window> window = get_window();
+    int x, y;
+    Gdk::ModifierType state = Gdk::ModifierType(0);
+    window->get_pointer(x, y, state);
+    if (resize.active) {
+        int k = int(double(x) / w * 128.0 + 0.5);
+
+        if (k < resize.min) k = resize.min;
+        else if (k > resize.max) k = resize.max;
+
+        if (k != resize.pos) {
+            if (resize.mode == resize.undecided) {
+                if (k < resize.pos) {
+                    // edit high limit of prev_region
+                    resize.max = resize.region->KeyRange.low;
+                    resize.region = resize.prev_region;
+                    resize.mode = resize.moving_high_limit;
+                } else {
+                    // edit low limit of region
+                    resize.min = resize.prev_region->KeyRange.high + 1;
+                    resize.mode = resize.moving_low_limit;
+                }
+            }
+            Glib::RefPtr<const Gdk::GC> black = get_style()->get_black_gc();
+            Glib::RefPtr<const Gdk::GC> white = get_style()->get_white_gc();
+            if (region == resize.region) {
+                gc->set_foreground(red);
+                white = gc;
+            }
+            Glib::RefPtr<const Gdk::GC> bg = get_style()->get_bg_gc(Gtk::STATE_NORMAL);
+            int prevx = int(w * resize.pos / 128.0 + 0.5);
+            x = int(w * k / 128.0 + 0.5);
+
+            if (resize.mode == resize.moving_high_limit) {
+                if (k > resize.pos) {
+                    window->draw_rectangle(white, true, prevx, 1, x - prevx, h1 - 2);
+                    window->draw_line(black, prevx, 0, x, 0);
+                    window->draw_line(black, prevx, h1 - 1, x, h1 - 1);
+                } else {
+                    int xx = ((resize.pos == resize.max && resize.max != 128) ? 1 : 0);
+                    window->draw_rectangle(bg, true, x + 1, 0, prevx - x - xx, h1);
+                }
+            } else {
+                if (k < resize.pos) {
+                    window->draw_rectangle(white, true, x + 1, 1, prevx - x, h1 - 2);
+                    window->draw_line(black, x, 0, prevx, 0);
+                    window->draw_line(black, x, h1 - 1, prevx, h1 - 1);
+                } else {
+                    int xx = ((resize.pos == resize.min && resize.min != 0) ? 1 : 0);
+                    window->draw_rectangle(bg, true, prevx + xx, 0, x - prevx - xx, h1);
+                }
+            }
+            window->draw_line(black, x, 1, x, h1 - 2);
+            resize.pos = k;
         }
-    } else if (inside) {
-        get_window()->set_cursor();
-        inside = false;
+    } else {
+        if (is_in_resize_zone(x, y)) {
+            if (!cursor_is_resize) {
+                Gdk::Cursor double_arrow(Gdk::SB_H_DOUBLE_ARROW);
+                window->set_cursor(double_arrow);
+                cursor_is_resize = true;
+            }
+        } else if (cursor_is_resize) {
+            window->set_cursor();
+            cursor_is_resize = false;
+        }
     }
+
+    return true;
+}
+
+bool RegionChooser::is_in_resize_zone(double x, double y) {
+    const int w = width - 1;
+
+    if (instrument && y >= 0 && y <= h1) {
+        gig::Region* prev_region = 0;
+        gig::Region* next_region;
+        for (gig::Region* r = instrument->GetFirstRegion() ; r ; r = next_region) {
+            next_region = instrument->GetNextRegion();
+
+            int lo = int(w * (r->KeyRange.low) / 128.0 + 0.5);
+            if (x <= lo - 2) break;
+            if (x < lo + 2) {
+                resize.region = r;
+                resize.pos = r->KeyRange.low;
+                resize.max = r->KeyRange.high;
+
+                if (prev_region && prev_region->KeyRange.high + 1 == r->KeyRange.low) {
+                    // we don't know yet if it's the high limit of
+                    // prev_region or the low limit of r that's going
+                    // to be edited
+                    resize.mode = resize.undecided;
+                    resize.min = prev_region->KeyRange.low + 1;
+                    resize.prev_region = prev_region;
+                    return true;
+                }
+
+                // edit low limit
+                resize.mode = resize.moving_low_limit;
+                resize.min = prev_region ? prev_region->KeyRange.high + 1 : 0;
+                return true;
+            }
+            if (!next_region || r->KeyRange.high + 1 != next_region->KeyRange.low) {
+                int hi = int(w * (r->KeyRange.high + 1) / 128.0 + 0.5);
+                if (x <= hi - 2) break;
+                if (x < hi + 2) {
+                    // edit high limit
+                    resize.region = r;
+                    resize.pos = r->KeyRange.high + 1;
+                    resize.mode = resize.moving_high_limit;
+                    resize.min = r->KeyRange.low + 1;
+                    resize.max = next_region ? next_region->KeyRange.low : 128;
+                    return true;
+                }
+            }
+            prev_region = r;
+        }
+    }
+    return false;
 }
 
 sigc::signal<void> RegionChooser::signal_sel_changed()

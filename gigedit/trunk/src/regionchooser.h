@@ -44,6 +44,7 @@ protected:
     virtual bool on_expose_event(GdkEventExpose* e);
     virtual void on_size_request(GtkRequisition* requisition);
     virtual bool on_button_press_event(GdkEventButton* event);
+    virtual bool on_button_release_event(GdkEventButton* event);
     virtual bool on_motion_notify_event(GdkEventMotion* event);
 
 //    virtual void on_size_allocate(Gtk::Allocation& allocation);
@@ -57,6 +58,27 @@ protected:
 
     gig::Instrument* instrument;
     gig::Region* region;
+
+    // information needed during a resize
+    struct {
+        bool active;
+        enum {
+            undecided,
+            moving_high_limit,
+            moving_low_limit
+        } mode;
+        int pos;
+        int min;
+        int max;
+        gig::Region* region;
+        gig::Region* prev_region;
+    } resize;
+
+    bool cursor_is_resize;
+    bool is_in_resize_zone(double x, double y);
+
+    int h1;
+    int width;
 };
 
 #endif
