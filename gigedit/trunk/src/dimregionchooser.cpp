@@ -221,7 +221,7 @@ void DimRegionChooser::on_size_request(GtkRequisition* requisition)
 {
     printf("DimRegionChooser::on_size_request\n");
     *requisition = GtkRequisition();
-    requisition->height = region ? region->Dimensions * 20 : 0;
+    requisition->height = region ? nbDimensions * 20 : 0;
     requisition->width = 800;
 }
 
@@ -238,7 +238,11 @@ void DimRegionChooser::set_region(gig::Region* region)
     this->region = region;
     dimregno = 0;
     int bitcount = 0;
+    nbDimensions = 0;
     for (int dim = 0 ; dim < region->Dimensions ; dim++) {
+        if (region->pDimensionDefinitions[dim].bits == 0) continue;
+        nbDimensions++;
+
         int from = dimvalue_from[region->pDimensionDefinitions[dim].dimension];
         int to = dimvalue_to[region->pDimensionDefinitions[dim].dimension];
         int z;
@@ -275,10 +279,16 @@ bool DimRegionChooser::on_button_press_event(GdkEventButton* event)
     const int w = 800;
 
     if (region) {
-        if (event->y < region->Dimensions * h &&
+        if (event->y < nbDimensions * h &&
             event->x >= label_width && event->x < w) {
 
-            int dim = int(event->y / h);
+            int ydim = int(event->y / h);
+            int dim;
+            for (dim = 0 ; dim < region->Dimensions ; dim++) {
+                if (region->pDimensionDefinitions[dim].bits == 0) continue;
+                if (ydim == 0) break;
+                ydim--;
+            }
             int nbZones = region->pDimensionDefinitions[dim].zones;
 
             int z = -1;
