@@ -1345,7 +1345,16 @@ void MainWindow::on_loader_finished()
 void MainWindow::on_action_file_save()
 {
     if (!file) return;
-    file->Save();
+    std::cout << "Saving file\n" << std::flush;
+    try {
+        file->Save();
+    } catch (RIFF::Exception e) {
+        Glib::ustring txt = "Could not save file: " + e.Message;
+        Gtk::MessageDialog msg(*this, txt, false, Gtk::MESSAGE_ERROR);
+        msg.run();
+        return;
+    }
+    std::cout << "Saving file done\n" << std::flush;
     __import_queued_samples();
 }
 
@@ -1360,14 +1369,23 @@ void MainWindow::on_action_file_save_as()
     dialog.set_filter(filter);
     if (dialog.run() == Gtk::RESPONSE_OK) {
         printf("filename=%s\n", dialog.get_filename().c_str());
-        file->Save(dialog.get_filename());
+        try {
+            file->Save(dialog.get_filename());
+        } catch (RIFF::Exception e) {
+            Glib::ustring txt = "Could not save file: " + e.Message;
+            Gtk::MessageDialog msg(*this, txt, false, Gtk::MESSAGE_ERROR);
+            msg.run();
+            return;
+        }
         __import_queued_samples();
     }
 }
 
 // actually write the sample(s)' data to the gig file
 void MainWindow::__import_queued_samples() {
+    std::cout << "Starting sample import\n" << std::flush;
     Glib::ustring error_files;
+    printf("Samples to import: %d\n", m_SampleImportQueue.size());
     for (std::list<SampleImportItem>::iterator iter = m_SampleImportQueue.begin(); iter != m_SampleImportQueue.end(); ) {
         printf("Importing sample %s\n",(*iter).sample_path.c_str());
         SF_INFO info;
