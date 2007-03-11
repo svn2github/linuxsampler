@@ -373,7 +373,6 @@ protected:
     int pageno;
     int firstRowInBlock;
 
-    NumEntryTemp<uint8_t> eVelocityUpperLimit;
     NumEntryPermille eEG1PreAttack;
     NumEntryTemp<double> eEG1Attack;
     NumEntryTemp<double> eEG1Decay1;

@@ -390,8 +390,6 @@ void MainWindow::addProp(LabelWidget& prop)
 
 MainWindow::MainWindow() :
 //    eSample("Sample", wSample),
-    eVelocityUpperLimit("VelocityUpperLimit",
-                        &gig::DimensionRegion::VelocityUpperLimit),
     eEG1PreAttack("PreAttack", &gig::DimensionRegion::EG1PreAttack, 0, 100, 2),
     eEG1Attack("Attack", &gig::DimensionRegion::EG1Attack, 0, 60, 3),
     eEG1Decay1("Decay1", &gig::DimensionRegion::EG1Decay1, 0.005, 60, 3),
@@ -552,7 +550,6 @@ MainWindow::MainWindow() :
     firstRowInBlock = 0;
 
     addString("Sample", lSample, wSample);
-    addProp(eVelocityUpperLimit);
     addHeader("EG1");
     addProp(eEG1PreAttack);
     addProp(eEG1Attack);
@@ -977,7 +974,6 @@ void MainWindow::set_dim_region(gig::DimensionRegion* d)
 {
     update_gui = false;
     wSample->set_text(d->pSample ? d->pSample->pInfo->Name.c_str() : "NULL");
-    eVelocityUpperLimit.set_dimreg(d);
     eEG1PreAttack.set_dimreg(d);
     eEG1Attack.set_dimreg(d);
     eEG1Decay1.set_dimreg(d);

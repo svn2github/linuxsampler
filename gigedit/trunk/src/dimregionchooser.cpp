@@ -18,6 +18,7 @@
  */
 
 #include "dimregionchooser.h"
+#include <gdkmm/cursor.h>
 
 DimRegionChooser::DimRegionChooser()
 {
@@ -40,8 +41,13 @@ DimRegionChooser::DimRegionChooser()
     region = 0;
     dimregno = -1;
     focus_line = 0;
+    resize.active = false;
+    cursor_is_resize = false;
+    h = 20;
+    w = 800;
     set_flags(Gtk::CAN_FOCUS);
-    add_events(Gdk::BUTTON_PRESS_MASK);
+    add_events(Gdk::BUTTON_PRESS_MASK | Gdk::POINTER_MOTION_MASK |
+               Gdk::POINTER_MOTION_HINT_MASK);
 
     for (int i = 0 ; i < 256 ; i++) {
         dimvalue_from[i] = 0;
@@ -74,8 +80,6 @@ bool DimRegionChooser::on_expose_event(GdkEventExpose* event)
     Glib::RefPtr<Pango::Layout> layout = Pango::Layout::create(context);
 
     window->clear();
-    const int h = 20;
-    const int w = 800;
     int y = 0;
     double maxwidth = 0;
     for (int i = 0 ; i < region->Dimensions ; i++) {
@@ -146,13 +150,15 @@ bool DimRegionChooser::on_expose_event(GdkEventExpose* event)
 
             if (has_focus() && focus_line == i) {
                 Gdk::Rectangle farea(0, y, 150, 20);
-                get_style()->paint_focus(window, get_state(), farea, *this, "", 0, y, label_width, 20);
+                get_style()->paint_focus(window, get_state(), farea, *this, "",
+                                         0, y, label_width, 20);
             }
 
             Glib::RefPtr<const Gdk::GC> black = get_style()->get_black_gc();
             window->draw_line(black, label_width, y, w - 1, y);
             window->draw_line(black, w - 1, y + h - 1, label_width, y + h - 1);
-            window->draw_rectangle(get_style()->get_white_gc(), true, label_width + 1, y + 1, (w - label_width - 2), h - 2);
+            window->draw_rectangle(get_style()->get_white_gc(), true,
+                                   label_width + 1, y + 1, (w - label_width - 2), h - 2);
 
             int c = 0;
             if (dimregno >= 0) {
@@ -194,7 +200,8 @@ bool DimRegionChooser::on_expose_event(GdkEventExpose* event)
                         int v = upperLimit + 1;
                         int x2 = int((w - label_width - 1) * v / 128.0 + 0.5);
                         if (j == dr && x1 < x2) {
-                            window->draw_rectangle(gc, true, label_width + x1 + 1, y + 1, (x2 - x1) - 1, h - 2);
+                            window->draw_rectangle(gc, true, label_width + x1 + 1, y + 1,
+                                                   (x2 - x1) - 1, h - 2);
                             break;
                         }
                         x1 = x2;
@@ -203,7 +210,8 @@ bool DimRegionChooser::on_expose_event(GdkEventExpose* event)
                     if (dr < nbZones) {
                         int x1 = int((w - label_width - 1) * dr / double(nbZones) + 0.5);
                         int x2 = int((w - label_width - 1) * (dr + 1) / double(nbZones) + 0.5);
-                        window->draw_rectangle(gc, true, label_width + x1 + 1, y + 1, (x2 - x1) - 1, h - 2);
+                        window->draw_rectangle(gc, true, label_width + x1 + 1, y + 1,
+                                               (x2 - x1) - 1, h - 2);
                     }
                 }
             }
@@ -215,7 +223,6 @@ bool DimRegionChooser::on_expose_event(GdkEventExpose* event)
 
     return true;
 }
-
 
 void DimRegionChooser::on_size_request(GtkRequisition* requisition)
 {
@@ -273,15 +280,72 @@ void DimRegionChooser::set_region(gig::Region* region)
   }
 */
 
+bool DimRegionChooser::on_button_release_event(GdkEventButton* event)
+{
+    if (resize.active) {
+        get_window()->pointer_ungrab(event->time);
+        resize.active = false;
+
+        if (region->pDimensionDefinitions[resize.dimension].dimension == gig::dimension_velocity) {
+
+            int bitpos = 0;
+            for (int j = 0 ; j < resize.dimension ; j++) {
+                bitpos += region->pDimensionDefinitions[j].bits;
+            }
+            int mask =
+                     ~(((1 << region->pDimensionDefinitions[resize.dimension].bits) - 1) << bitpos);
+            int c = dimregno & mask; // mask away this dimension
+
+            gig::DimensionRegion *d = region->pDimensionRegions[c + resize.offset];
+            if (d->DimensionUpperLimits[resize.dimension]) {
+                d->DimensionUpperLimits[resize.dimension] = resize.pos - 1;
+            } else {
+                d->VelocityUpperLimit = resize.pos - 1;
+            }
+
+        } else {
+            for (int i = 0 ; i < region->DimensionRegions ; ) {
+
+                gig::DimensionRegion *d = region->pDimensionRegions[i + resize.offset];
+                d->DimensionUpperLimits[resize.dimension] = resize.pos - 1;
+
+                int bitpos = 0;
+                int j;
+                for (j = 0 ; j < region->Dimensions ; j++) {
+                    if (j != resize.dimension) {
+                        int maxzones = 1 << region->pDimensionDefinitions[j].bits;
+                        int dimj = (i >> bitpos) & (maxzones - 1);
+                        if (dimj + 1 < region->pDimensionDefinitions[j].zones) break;
+                    }
+                    bitpos += region->pDimensionDefinitions[j].bits;
+                }
+                if (j == region->Dimensions) break;
+                i = (i & ~((1 << bitpos) - 1)) + (1 << bitpos);
+            }
+        }
+
+        if (!is_in_resize_zone(event->x, event->y) && cursor_is_resize) {
+            get_window()->set_cursor();
+            cursor_is_resize = false;
+        }
+    }
+    return true;
+}
+
 bool DimRegionChooser::on_button_press_event(GdkEventButton* event)
 {
-    const int h = 20;
-    const int w = 800;
+    if (region && event->y < nbDimensions * h &&
+        event->x >= label_width && event->x < w) {
 
-    if (region) {
-        if (event->y < nbDimensions * h &&
-            event->x >= label_width && event->x < w) {
-
+        if (is_in_resize_zone(event->x, event->y)) {
+            Gdk::Cursor double_arrow(Gdk::SB_H_DOUBLE_ARROW);
+            get_window()->pointer_grab(false,
+                                       Gdk::BUTTON_RELEASE_MASK |
+                                       Gdk::POINTER_MOTION_MASK |
+                                       Gdk::POINTER_MOTION_HINT_MASK,
+                                       double_arrow, event->time);
+            resize.active = true;
+        } else {
             int ydim = int(event->y / h);
             int dim;
             for (dim = 0 ; dim < region->Dimensions ; dim++) {
@@ -355,6 +419,135 @@ bool DimRegionChooser::on_button_press_event(GdkEventButton* event)
         }
     }
     return true;
+}
+
+bool DimRegionChooser::on_motion_notify_event(GdkEventMotion* event)
+{
+    Glib::RefPtr<Gdk::Window> window = get_window();
+    int x, y;
+    Gdk::ModifierType state = Gdk::ModifierType(0);
+    window->get_pointer(x, y, state);
+
+    if (resize.active) {
+        int k = int((x - label_width) * 128.0 / (w - label_width - 1) + 0.5);
+
+        if (k < resize.min) k = resize.min;
+        else if (k > resize.max) k = resize.max;
+
+        if (k < 2) k = 2; // k is upper limit + 1, upper limit 0 is forbidden
+
+        if (k != resize.pos) {
+            Glib::RefPtr<const Gdk::GC> black = get_style()->get_black_gc();
+            Glib::RefPtr<const Gdk::GC> white = get_style()->get_white_gc();
+
+            int prevx = int((w - label_width - 1) * resize.pos / 128.0 + 0.5) + label_width;
+            int x = int((w - label_width - 1) * k / 128.0 + 0.5) + label_width;
+            int y = resize.dimension * h;
+
+            if (resize.selected == resize.none) {
+                if (resize.pos != resize.min && resize.pos != resize.max) {
+                    window->draw_line(white, prevx, y + 1, prevx, y + h - 2);
+                }
+            } else {
+                gc->set_foreground(red);
+
+                Glib::RefPtr<const Gdk::GC> left;
+                Glib::RefPtr<const Gdk::GC> right;
+                if (resize.selected == resize.left) {
+                    left = gc;
+                    right = white;
+                } else {
+                    left = white;
+                    right = gc;
+                }
+
+                if (k > resize.pos) {
+                    int xx = resize.pos == resize.min ? 1 : 0;
+                    window->draw_rectangle(left, true,
+                                           prevx + xx, y + 1, x - prevx - xx, h - 2);
+                } else {
+                    int xx = resize.pos == resize.max ? 0 : 1;
+                    window->draw_rectangle(right, true,
+                                           x, y + 1, prevx - x + xx, h - 2);
+                }
+            }
+            window->draw_line(black, x, y + 1, x, y + h - 2);
+            resize.pos = k;
+        }
+    } else {
+        if (is_in_resize_zone(x, y)) {
+            if (!cursor_is_resize) {
+                Gdk::Cursor double_arrow(Gdk::SB_H_DOUBLE_ARROW);
+                window->set_cursor(double_arrow);
+                cursor_is_resize = true;
+            }
+        } else if (cursor_is_resize) {
+            window->set_cursor();
+            cursor_is_resize = false;
+        }
+    }
+    return true;
+}
+
+bool DimRegionChooser::is_in_resize_zone(double x, double y)
+{
+    if (region && y < nbDimensions * h && x >= label_width && x < w) {
+        int ydim = int(y / h);
+        int dim;
+        int bitpos = 0;
+        for (dim = 0 ; dim < region->Dimensions ; dim++) {
+            if (region->pDimensionDefinitions[dim].bits == 0) continue;
+            if (ydim == 0) break;
+            ydim--;
+            bitpos += region->pDimensionDefinitions[dim].bits;
+        }
+        int nbZones = region->pDimensionDefinitions[dim].zones;
+
+        int c = 0;
+        if (dimregno >= 0) {
+            int mask = ~(((1 << region->pDimensionDefinitions[dim].bits) - 1) << bitpos);
+            c = dimregno & mask; // mask away this dimension
+        }
+        bool customsplits =
+            ((region->pDimensionDefinitions[dim].split_type == gig::split_type_normal &&
+              region->pDimensionRegions[c]->DimensionUpperLimits[dim]) ||
+             (region->pDimensionDefinitions[dim].dimension == gig::dimension_velocity &&
+              region->pDimensionRegions[c]->VelocityUpperLimit));
+
+        if (customsplits) {
+            int prev_limit = 0;
+            for (int j = 0 ; j < nbZones - 1 ; j++) {
+                gig::DimensionRegion *d = region->pDimensionRegions[c + (j << bitpos)];
+                int upperLimit = d->DimensionUpperLimits[dim];
+                if (!upperLimit) upperLimit = d->VelocityUpperLimit;
+                int limit = upperLimit + 1;
+                int limitx = int((w - label_width - 1) * limit / 128.0 + 0.5) + label_width;
+
+                if (x <= limitx - 2) break;
+                if (x <= limitx + 2) {
+                    resize.dimension = dim;
+                    resize.offset = j << bitpos;
+                    resize.pos = limit;
+                    resize.min = prev_limit;
+
+                    int dr = (dimregno >> bitpos) &
+                        ((1 << region->pDimensionDefinitions[dim].bits) - 1);
+                    resize.selected = dr == j ? resize.left :
+                        dr == j + 1 ? resize.right : resize.none;
+
+                    j++;
+                    gig::DimensionRegion *d = region->pDimensionRegions[c + (j << bitpos)];
+                    int upperLimit = d->DimensionUpperLimits[dim];
+                    if (!upperLimit) upperLimit = d->VelocityUpperLimit;
+                    int limit = upperLimit + 1;
+                    resize.max = limit;
+                    return true;
+                }
+                prev_limit = limit;
+            }
+        }
+    }
+    return false;
 }
 
 sigc::signal<void> DimRegionChooser::signal_sel_changed()

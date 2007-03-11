@@ -47,11 +47,9 @@ protected:
     virtual bool on_expose_event(GdkEventExpose* e);
     virtual void on_size_request(GtkRequisition* requisition);
     virtual bool on_button_press_event(GdkEventButton* event);
-//    virtual bool on_key_press_event(GdkEventKey* event);
-//    virtual bool on_focus_in_event(GdkEventFocus* event);
+    virtual bool on_button_release_event(GdkEventButton* event);
+    virtual bool on_motion_notify_event(GdkEventMotion* event);
     virtual bool on_focus(Gtk::DirectionType direction);
-
-//    virtual void on_size_allocate(Gtk::Allocation& allocation);
 
     Glib::RefPtr<Gdk::GC> gc;
     Gdk::Color blue, red, black, white, green;
@@ -68,6 +66,27 @@ protected:
     int dimvalue_to[256];
     int label_width;
     int nbDimensions;
+
+    // information needed during a resize
+    struct {
+        bool active;
+        enum {
+            none,
+            left,
+            right
+        } selected;
+        int pos;
+        int min;
+        int max;
+        int dimension;
+        int offset;
+    } resize;
+
+    bool cursor_is_resize;
+    bool is_in_resize_zone(double x, double y);
+
+    int h;
+    int w;
 };
 
 #endif
