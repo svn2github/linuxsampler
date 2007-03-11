@@ -326,7 +326,7 @@ namespace gig {
     class Region;
     class Group;
 
-    /** Encapsulates articulation information of a dimension region.
+    /** @brief Encapsulates articulation information of a dimension region.
      *
      *  Every Gigasampler Instrument has at least one dimension region
      *  (exactly then when it has no dimension defined).
@@ -731,7 +731,14 @@ namespace gig {
             std::list<Group*>::iterator GroupsIterator;
     };
 
-    /** Will be thrown whenever a gig specific error occurs while trying to access a Gigasampler File. */
+    /**
+     * Will be thrown whenever a gig specific error occurs while trying to
+     * access a Gigasampler File. Note: In your application you should
+     * better catch for RIFF::Exception rather than this one, except you
+     * explicitly want to catch and handle gig::Exception, DLS::Exception
+     * and RIFF::Exception independently, which usually shouldn't be
+     * necessary though.
+     */
     class Exception : public DLS::Exception {
         public:
             Exception(String Message);

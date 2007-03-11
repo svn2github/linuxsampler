@@ -508,7 +508,13 @@ namespace DLS {
             void __UpdateWavePoolTable();
     };
 
-    /** Will be thrown whenever a DLS specific error occurs while trying to access a DLS File. */
+    /**
+     * Will be thrown whenever a DLS specific error occurs while trying to
+     * access a DLS File. Note: In your application you should better catch
+     * for RIFF::Exception rather than this one, except you explicitly want
+     * to catch and handle DLS::Exception and RIFF::Exception independently,
+     * which usually shouldn't be necessary though.
+     */
     class Exception : public RIFF::Exception {
         public:
             Exception(String Message);

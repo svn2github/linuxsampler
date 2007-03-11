@@ -1155,8 +1155,9 @@ namespace RIFF {
      *
      * Removes the sub chunk given by \a pSubChunk from this list and frees
      * it completely from RAM. The given chunk can either be a normal sub
-     * chunk or a list sub chunk. You should call File::Save() to make this
-     * change persistent at any time.
+     * chunk or a list sub chunk. In case the given chunk is a list chunk,
+     * all its subchunks (if any) will be removed recursively as well. You
+     * should call File::Save() to make this change persistent at any time.
      *
      * @param pSubChunk - sub chunk or sub list chunk to be removed
      */
