@@ -70,6 +70,7 @@ namespace RIFF {
     }
 
     Chunk::~Chunk() {
+        if (CurrentChunkSize != NewChunkSize) pFile->UnlogResized(this);
         if (pChunkData) delete[] pChunkData;
     }
 
@@ -1515,7 +1516,19 @@ namespace RIFF {
         // first we sum up all positive chunk size changes (and skip all negative ones)
         unsigned long ulPositiveSizeDiff = 0;
         for (ChunkList::iterator iter = ResizedChunks.begin(), end = ResizedChunks.end(); iter != end; ++iter) {
-            if ((*iter)->GetNewSize() == 0) throw Exception("There is at least one empty chunk (zero size)");
+            if ((*iter)->GetNewSize() == 0) {
+                // just to make the exception message a bit more verbose: resolve the chunk's path
+                String sChunkPath;
+                for (Chunk* pChunk = *iter; pChunk; pChunk = pChunk->GetParent()) {
+                    if (pChunk->GetChunkID() == CHUNK_ID_LIST) {
+                        List* pList = (List*) pChunk;
+                        sChunkPath = "->'" + pList->GetListTypeString() + "'" + sChunkPath;
+                    } else {
+                        sChunkPath = "->'" + pChunk->GetChunkIDString() + "'" + sChunkPath;
+                    }
+                }
+                throw Exception("There is at least one empty chunk (zero size): " + sChunkPath);
+            }
             if ((*iter)->GetNewSize() + 1L > (*iter)->GetSize()) {
                 unsigned long ulDiff = (*iter)->GetNewSize() - (*iter)->GetSize() + 1L; // +1 in case we have to add a pad byte
                 ulPositiveSizeDiff += ulDiff;
@@ -1674,6 +1687,10 @@ namespace RIFF {
 
     void File::LogAsResized(Chunk* pResizedChunk) {
         ResizedChunks.push_back(pResizedChunk);
+    }
+
+    void File::UnlogResized(Chunk* pResizedChunk) {
+        ResizedChunks.remove(pResizedChunk);
     }
 
     unsigned long File::GetFileSize() {

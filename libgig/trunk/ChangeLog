@@ -17,6 +17,11 @@ Version CVS HEAD (?)
     - fixed crash which occured on interfering File::DeleteSample() and
       File::GetNextSample() calls (due to iterator invalidation)
 
+  * src/RIFF.cpp, src/RIFF.h:
+    - fixed RIFF::Chunk destructor which did not unregister previously
+      resized chunks, leading to a "zero size chunk" exception when
+      File::Save() was called
+
 Version 3.1.0 (24 Nov 2006)
 
   * packaging changes:

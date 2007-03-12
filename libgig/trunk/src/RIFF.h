@@ -271,6 +271,7 @@ namespace RIFF {
             bool   bEndianNative;
 
             void LogAsResized(Chunk* pResizedChunk);
+            void UnlogResized(Chunk* pResizedChunk);
             friend class Chunk;
             friend class List;
         private:
