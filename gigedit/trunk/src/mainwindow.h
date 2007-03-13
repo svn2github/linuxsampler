@@ -509,9 +509,18 @@ protected:
         Gtk::TreeModelColumn<gig::Group*> m_col_group;
     } m_SamplesModel;
 
+    class SamplesTreeStore : public Gtk::TreeStore {
+    public:
+        static Glib::RefPtr<SamplesTreeStore> create(const SamplesModel& columns) {
+            return Glib::RefPtr<SamplesTreeStore>( new SamplesTreeStore(columns) );
+        }
+    protected:
+        SamplesTreeStore(const SamplesModel& columns) : Gtk::TreeStore(columns) {}
+    };
+
     Gtk::ScrolledWindow m_ScrolledWindowSamples;
     Gtk::TreeView m_TreeViewSamples;
-    Glib::RefPtr<Gtk::TreeStore> m_refSamplesTreeModel;
+    Glib::RefPtr<SamplesTreeStore> m_refSamplesTreeModel;
 
     Gtk::Notebook m_Notebook;
     Gtk::Notebook m_TreeViewNotebook;
@@ -566,6 +575,8 @@ protected:
     gig::File* file;
 
     void on_button_release(GdkEventButton* button);
+    void on_sample_treeview_drag_data_get(const Glib::RefPtr<Gdk::DragContext>&, Gtk::SelectionData& selection_data, guint, guint);
+    void on_sample_label_drop_drag_data_received(const Glib::RefPtr<Gdk::DragContext>& context, int, int, const Gtk::SelectionData& selection_data, guint, guint time);
 
     void __import_queued_samples();
 

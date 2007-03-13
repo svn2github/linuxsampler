@@ -28,6 +28,7 @@
 #define ABOUT_DIALOG
 #include <gtkmm/aboutdialog.h>
 #include <gtkmm/messagedialog.h>
+#include <gtkmm/targetentry.h>
 #endif
 
 #include <stdio.h>
@@ -550,6 +551,7 @@ MainWindow::MainWindow() :
     firstRowInBlock = 0;
 
     addString("Sample", lSample, wSample);
+    //TODO: the following would break drag&drop:   wSample->property_editable().set_value(false);  or this:    wSample->set_editable(false);
     addHeader("EG1");
     addProp(eEG1PreAttack);
     addProp(eEG1Attack);
@@ -928,12 +930,26 @@ MainWindow::MainWindow() :
     m_TreeView.set_headers_visible(false);
 
     // create samples treeview (including its data model)
-    m_refSamplesTreeModel = Gtk::TreeStore::create(m_SamplesModel);
+    m_refSamplesTreeModel = SamplesTreeStore::create(m_SamplesModel);
     m_TreeViewSamples.set_model(m_refSamplesTreeModel);
     m_TreeViewSamples.append_column("Samples", m_SamplesModel.m_col_name);
     m_TreeViewSamples.set_headers_visible(false);
     m_TreeViewSamples.signal_button_press_event().connect_notify(
         sigc::mem_fun(*this, &MainWindow::on_sample_treeview_button_release)
+    );
+
+    // establish drag&drop between samples tree view and dimension region 'Sample' text entry
+    std::list<Gtk::TargetEntry> drag_target_gig_sample;
+    drag_target_gig_sample.push_back( Gtk::TargetEntry("gig::Sample") );
+//drag_target_gig_sample.push_back( Gtk::TargetEntry("STRING") );
+//drag_target_gig_sample.push_back( Gtk::TargetEntry("text/plain") );
+    m_TreeViewSamples.drag_source_set(drag_target_gig_sample);
+    m_TreeViewSamples.signal_drag_data_get().connect(
+        sigc::mem_fun(*this, &MainWindow::on_sample_treeview_drag_data_get)
+    );
+    wSample->drag_dest_set(drag_target_gig_sample);
+    wSample->signal_drag_data_received().connect(
+        sigc::mem_fun(*this, &MainWindow::on_sample_label_drop_drag_data_received)
     );
 
     file = 0;
@@ -1906,4 +1922,37 @@ void MainWindow::on_action_remove_sample() {
             msg.run();
         }
     }
+}
+
+void MainWindow::on_sample_treeview_drag_data_get(const Glib::RefPtr<Gdk::DragContext>&, Gtk::SelectionData& selection_data, guint, guint)
+{
+    // get selected sample
+    gig::Sample* sample = NULL;
+    Glib::RefPtr<Gtk::TreeSelection> sel = m_TreeViewSamples.get_selection();
+    Gtk::TreeModel::iterator it = sel->get_selected();
+    if (it) {
+        Gtk::TreeModel::Row row = *it;
+        sample = row[m_SamplesModel.m_col_sample];
+    }
+    // pass the gig::Sample as pointer
+    selection_data.set(selection_data.get_target(), 0/*unused*/, (const guchar*)&sample, sizeof(sample)/*length of data in bytes*/);
+}
+
+void MainWindow::on_sample_label_drop_drag_data_received(const Glib::RefPtr<Gdk::DragContext>& context, int, int, const Gtk::SelectionData& selection_data, guint, guint time)
+{
+    gig::DimensionRegion* dimregion = m_DimRegionChooser.get_dimregion();
+    gig::Sample* sample = *((gig::Sample**) selection_data.get_data());
+
+    if (sample && dimregion && selection_data.get_length() == sizeof(gig::Sample*)) {
+        if (sample != dimregion->pSample) {
+            dimregion->pSample = sample;
+            wSample->set_text(dimregion->pSample->pInfo->Name.c_str());
+            std::cout << "Drop received sample \"" << dimregion->pSample->pInfo->Name.c_str() << "\"" << std::endl;
+            // drop success
+            context->drop_reply(true, time);
+            return;
+        }
+    }
+    // drop failed
+    context->drop_reply(false, time);
 }
