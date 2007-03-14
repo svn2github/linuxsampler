@@ -44,6 +44,7 @@
 #include <gtkmm/uimanager.h>
 #include <gtkmm/window.h>
 #include <gtkmm/menuitem.h>
+#include <gtkmm/treemodel.h>
 
 #include <sstream>
 
@@ -577,6 +578,8 @@ protected:
     void on_button_release(GdkEventButton* button);
     void on_sample_treeview_drag_data_get(const Glib::RefPtr<Gdk::DragContext>&, Gtk::SelectionData& selection_data, guint, guint);
     void on_sample_label_drop_drag_data_received(const Glib::RefPtr<Gdk::DragContext>& context, int, int, const Gtk::SelectionData& selection_data, guint, guint time);
+    void sample_name_changed(const Gtk::TreeModel::Path& path, const Gtk::TreeModel::iterator& iter);
+    void instrument_name_changed(const Gtk::TreeModel::Path& path, const Gtk::TreeModel::iterator& iter);
 
     void __import_queued_samples();
 

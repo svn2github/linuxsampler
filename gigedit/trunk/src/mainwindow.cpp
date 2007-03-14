@@ -924,18 +924,24 @@ MainWindow::MainWindow() :
     // Create the Tree model:
     m_refTreeModel = Gtk::ListStore::create(m_Columns);
     m_TreeView.set_model(m_refTreeModel);
+    m_refTreeModel->signal_row_changed().connect(
+        sigc::mem_fun(*this, &MainWindow::instrument_name_changed)
+    );
 
     // Add the TreeView's view columns:
-    m_TreeView.append_column("Instrument", m_Columns.m_col_name);
+    m_TreeView.append_column_editable("Instrument", m_Columns.m_col_name);
     m_TreeView.set_headers_visible(false);
 
     // create samples treeview (including its data model)
     m_refSamplesTreeModel = SamplesTreeStore::create(m_SamplesModel);
     m_TreeViewSamples.set_model(m_refSamplesTreeModel);
-    m_TreeViewSamples.append_column("Samples", m_SamplesModel.m_col_name);
+    m_TreeViewSamples.append_column_editable("Samples", m_SamplesModel.m_col_name);
     m_TreeViewSamples.set_headers_visible(false);
     m_TreeViewSamples.signal_button_press_event().connect_notify(
         sigc::mem_fun(*this, &MainWindow::on_sample_treeview_button_release)
+    );
+    m_refSamplesTreeModel->signal_row_changed().connect(
+        sigc::mem_fun(*this, &MainWindow::sample_name_changed)
     );
 
     // establish drag&drop between samples tree view and dimension region 'Sample' text entry
@@ -1955,4 +1961,28 @@ void MainWindow::on_sample_label_drop_drag_data_received(const Glib::RefPtr<Gdk:
     }
     // drop failed
     context->drop_reply(false, time);
+}
+
+void MainWindow::sample_name_changed(const Gtk::TreeModel::Path& path, const Gtk::TreeModel::iterator& iter) {
+    if (!iter) return;
+    Gtk::TreeModel::Row row = *iter;
+    Glib::ustring name  = row[m_SamplesModel.m_col_name];
+    gig::Group* group   = row[m_SamplesModel.m_col_group];
+    gig::Sample* sample = row[m_SamplesModel.m_col_sample];
+    if (group) {
+        group->Name = name;
+        std::cout << "Group name changed\n" << std::flush;
+    } else if (sample) {
+        sample->pInfo->Name = name.raw();
+        std::cout << "Sample name changed\n" << std::flush;
+    }
+}
+
+void MainWindow::instrument_name_changed(const Gtk::TreeModel::Path& path, const Gtk::TreeModel::iterator& iter) {
+    std::cout << "Instrument name changed\n" << std::flush;
+    if (!iter) return;
+    Gtk::TreeModel::Row row = *iter;
+    Glib::ustring name = row[m_Columns.m_col_name];
+    gig::Instrument* instrument = row[m_Columns.m_col_instr];
+    if (instrument) instrument->pInfo->Name = name.raw();
 }
