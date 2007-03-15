@@ -17,6 +17,8 @@ Version CVS HEAD (?)
     - fixed crash which occured on interfering File::DeleteSample() and
       File::GetNextSample() calls (due to iterator invalidation)
     - fixed group names which were not saved
+    - fixed group destructor which did not remove the RIFF chunk associated
+      with the group
 
   * src/RIFF.cpp, src/RIFF.h:
     - fixed RIFF::Chunk destructor which did not unregister previously

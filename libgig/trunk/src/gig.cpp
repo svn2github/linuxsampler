@@ -2740,6 +2740,8 @@ namespace {
     }
 
     Group::~Group() {
+        // remove the chunk associated with this group (if any)
+        if (pNameChunk) pNameChunk->GetParent()->DeleteSubChunk(pNameChunk);
     }
 
     /** @brief Update chunks with current group settings.
