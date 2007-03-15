@@ -2744,8 +2744,11 @@ namespace {
 
     /** @brief Update chunks with current group settings.
      *
-     * Apply current Group field values to the respective. You have to call
-     * File::Save() to make changes persistent.
+     * Apply current Group field values to the respective chunks. You have
+     * to call File::Save() to make changes persistent.
+     *
+     * Usually there is absolutely no need to call this method explicitly.
+     * It will be called automatically when File::Save() was called.
      */
     void Group::UpdateChunks() {
         // make sure <3gri> and <3gnl> list chunks exist
@@ -3173,6 +3176,30 @@ namespace {
             Group* pGroup = new Group(this, NULL);
             pGroup->Name = "Default Group";
             pGroups->push_back(pGroup);
+        }
+    }
+
+    /**
+     * Apply all the gig file's current instruments, samples, groups and settings
+     * to the respective RIFF chunks. You have to call Save() to make changes
+     * persistent.
+     *
+     * Usually there is absolutely no need to call this method explicitly.
+     * It will be called automatically when File::Save() was called.
+     *
+     * @throws Exception - on errors
+     */
+    void File::UpdateChunks() {
+        // first update base class's chunks
+        DLS::File::UpdateChunks();
+
+        // update group's chunks
+        if (pGroups) {
+            std::list<Group*>::iterator iter = pGroups->begin();
+            std::list<Group*>::iterator end  = pGroups->end();
+            for (; iter != end; ++iter) {
+                (*iter)->UpdateChunks();
+            }
         }
     }
 

@@ -715,6 +715,7 @@ namespace gig {
             void        DeleteGroup(Group* pGroup);
             void        DeleteGroupOnly(Group* pGroup);
             virtual    ~File();
+            virtual void UpdateChunks();
         protected:
             // overridden protected methods from DLS::File
             virtual void LoadSamples();
