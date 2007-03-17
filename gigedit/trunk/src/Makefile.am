@@ -2,7 +2,9 @@ bin_PROGRAMS = gigedit
 gigedit_SOURCES = main.cpp \
 	mainwindow.cpp mainwindow.h \
 	regionchooser.cpp regionchooser.h \
-	dimregionchooser.cpp dimregionchooser.h
+	dimregionchooser.cpp dimregionchooser.h \
+	dimregionedit.cpp dimregionedit.h \
+	paramedit.cpp paramedit.h
 gigedit_CXXFLAGS = $(SNDFILE_CFLAGS)
 gigedit_LDADD = $(GTKMM_LIBS) $(GIG_LIBS) $(SNDFILE_LIBS)
 

@@ -35,7 +35,7 @@ int main(int argc, char* argv[])
 
     MainWindow window;
 
-    if (argc >= 2) window.getInfo(argv[1]);
+    if (argc >= 2) window.load_file(argv[1]);
 
     Gtk::Main::run(window);
 
