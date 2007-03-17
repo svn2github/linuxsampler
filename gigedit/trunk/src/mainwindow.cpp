@@ -123,10 +123,14 @@ MainWindow::MainWindow()
                      sigc::mem_fun(
                          *this, &MainWindow::on_action_help_about));
 #endif
-    action = Gtk::Action::create("Remove", Gtk::Stock::REMOVE);
-    actionGroup->add(action,
-                     sigc::mem_fun(
-                         *this, &MainWindow::hide));
+    actionGroup->add(
+        Gtk::Action::create("AddInstrument", _("Add _Instrument")),
+        sigc::mem_fun(*this, &MainWindow::on_action_add_instrument)
+    );
+    actionGroup->add(
+        Gtk::Action::create("RemoveInstrument", Gtk::Stock::REMOVE),
+        sigc::mem_fun(*this, &MainWindow::on_action_remove_instrument)
+    );
 
     // sample right-click popup actions
     actionGroup->add(
@@ -174,7 +178,9 @@ MainWindow::MainWindow()
         "  </menubar>"
         "  <popup name='PopupMenu'>"
         "    <menuitem action='InstrProperties'/>"
-        "    <menuitem action='Remove'/>"
+        "    <menuitem action='AddInstrument'/>"
+        "    <separator/>"
+        "    <menuitem action='RemoveInstrument'/>"
         "  </popup>"
         "  <popup name='SamplePopupMenu'>"
         "    <menuitem action='SampleProperties'/>"
@@ -227,8 +233,6 @@ MainWindow::MainWindow()
     // establish drag&drop between samples tree view and dimension region 'Sample' text entry
     std::list<Gtk::TargetEntry> drag_target_gig_sample;
     drag_target_gig_sample.push_back( Gtk::TargetEntry("gig::Sample") );
-//drag_target_gig_sample.push_back( Gtk::TargetEntry("STRING") );
-//drag_target_gig_sample.push_back( Gtk::TargetEntry("text/plain") );
     m_TreeViewSamples.drag_source_set(drag_target_gig_sample);
     m_TreeViewSamples.signal_drag_data_get().connect(
         sigc::mem_fun(*this, &MainWindow::on_sample_treeview_drag_data_get)
@@ -340,9 +344,40 @@ LoadDialog::LoadDialog(const Glib::ustring& title, Gtk::Window& parent)
     show_all_children();
 }
 
+// Clear all GUI elements / controls. This method is typically called
+// before a new .gig file is to be created or to be loaded.
+void MainWindow::__clear() {
+    // remove all entries from "Instrument" menu
+    Gtk::MenuItem* instrument_menu =
+        dynamic_cast<Gtk::MenuItem*>(uiManager->get_widget("/MenuBar/MenuInstrument"));
+    instrument_menu->hide();
+    for (int i = 0; i < instrument_menu->get_submenu()->items().size(); i++) {
+        delete &instrument_menu->get_submenu()->items()[i];
+    }
+    instrument_menu->get_submenu()->items().clear();
+    // forget all samples that ought to be imported
+    m_SampleImportQueue.clear();
+    // clear the samples and instruments tree views
+    m_refTreeModel->clear();
+    m_refSamplesTreeModel->clear();
+    // free libgig's gig::File instance
+    if (file) {
+        delete file;
+        file = NULL;
+    }
+}
+
 void MainWindow::on_action_file_new()
 {
-    m_SampleImportQueue.clear();
+    // clear all GUI elements
+    __clear();
+    // create a new .gig file (virtually yet)
+    gig::File* pFile = new gig::File;
+    // already add one new instrument by default
+    gig::Instrument* pInstrument = pFile->AddInstrument();
+    pInstrument->pInfo->Name = "Unnamed Instrument";
+    // update GUI with that new gig::File
+    load_gig(pFile, NULL /*no file name yet*/);
 }
 
 void MainWindow::on_action_file_open()
@@ -355,21 +390,7 @@ void MainWindow::on_action_file_open()
     dialog.set_filter(filter);
     if (dialog.run() == Gtk::RESPONSE_OK) {
         printf("filename=%s\n", dialog.get_filename().c_str());
-
-        // remove all entries from "Instrument" menu
-        Gtk::MenuItem* instrument_menu =
-            dynamic_cast<Gtk::MenuItem*>(uiManager->get_widget("/MenuBar/MenuInstrument"));
-        instrument_menu->hide();
-        for (int i = 0; i < instrument_menu->get_submenu()->items().size(); i++) {
-            delete &instrument_menu->get_submenu()->items()[i];
-        }
-        instrument_menu->get_submenu()->items().clear();
-
-        m_SampleImportQueue.clear();
-        m_refTreeModel->clear();
-        m_refSamplesTreeModel->clear();
-        if (file) delete file;
-
+        __clear();
         printf("on_action_file_open self=%x\n", Glib::Thread::self());
         load_file(dialog.get_filename().c_str());
     }
@@ -397,7 +418,6 @@ void MainWindow::on_loader_finished()
     printf("Loader finished!\n");
     printf("on_loader_finished self=%x\n", Glib::Thread::self());
     load_gig(loader->gig, loader->filename);
-
 
     Glib::RefPtr<Gtk::TreeSelection> tree_sel_ref = m_TreeView.get_selection();
     tree_sel_ref->select(Gtk::TreePath("0"));
@@ -505,7 +525,7 @@ void MainWindow::__import_queued_samples() {
             (*iter).gig_sample->Write(buffer, info.frames);
             // cleanup
             sf_close(hFile);
-            delete buffer;
+            delete[] buffer;
             // on success we remove the sample from the import queue,
             // otherwise keep it, maybe it works the next time ?
             std::list<SampleImportItem>::iterator cur = iter;
@@ -690,10 +710,13 @@ void MainWindow::load_gig(gig::File* gig, const char* filename)
 {
     file = gig;
 
-    const char *basename = strrchr(filename, '/');
-    basename = basename ? basename + 1 : filename;
-
-    set_title(basename);
+    if (filename) {
+        const char *basename = strrchr(filename, '/');
+        basename = basename ? basename + 1 : filename;
+        set_title(basename);
+    } else {
+        set_title("unnamed");
+    }
 
     propDialog.set_info(gig->pInfo);
 
@@ -799,8 +822,45 @@ void MainWindow::on_sample_treeview_button_release(GdkEventButton* button) {
     }
 }
 
+void MainWindow::on_action_add_instrument() {
+    static int __instrument_indexer = 0;
+    if (!file) return;
+    gig::Instrument* instrument = file->AddInstrument();
+    __instrument_indexer++;
+    instrument->pInfo->Name = 
+        "Unnamed Instrument " + ToString(__instrument_indexer);
+    // update instrument tree view
+    Gtk::TreeModel::iterator iterInstr = m_refTreeModel->append();
+    Gtk::TreeModel::Row rowInstr = *iterInstr;
+    rowInstr[m_Columns.m_col_name] = instrument->pInfo->Name.c_str();
+    rowInstr[m_Columns.m_col_instr] = instrument;
+}
+
+void MainWindow::on_action_remove_instrument() {
+    if (!file) return;
+    Glib::RefPtr<Gtk::TreeSelection> sel = m_TreeView.get_selection();
+    Gtk::TreeModel::iterator it = sel->get_selected();
+    if (it) {
+        Gtk::TreeModel::Row row = *it;
+        gig::Instrument* instr = row[m_Columns.m_col_instr];
+        try {
+            // remove instrument from the gig file
+            if (instr) file->DeleteInstrument(instr);
+            // remove respective row from instruments tree view
+            m_refTreeModel->erase(it);
+        } catch (RIFF::Exception e) {
+            Gtk::MessageDialog msg(*this, e.Message.c_str(), false, Gtk::MESSAGE_ERROR);
+            msg.run();
+        }
+    }
+}
+
 void MainWindow::on_action_sample_properties() {
-     //TODO: show a dialog where the selected sample's properties can be edited
+    //TODO: show a dialog where the selected sample's properties can be edited
+    Gtk::MessageDialog msg(
+        *this, "Sorry, yet to be implemented!", false, Gtk::MESSAGE_INFO
+    );
+    msg.run();
 }
 
 void MainWindow::on_action_add_group() {

@@ -191,6 +191,9 @@ protected:
     void on_action_add_sample();
     void on_action_remove_sample();
 
+    void on_action_add_instrument();
+    void on_action_remove_instrument();
+
     LoadDialog* load_dialog;
     Loader* loader;
     void load_gig(gig::File* gig, const char* filename);
@@ -210,6 +213,7 @@ protected:
                                  const Gtk::TreeModel::iterator& iter);
 
     void __import_queued_samples();
+    void __clear();
 
     Gtk::Menu* popup_menu;
 };
