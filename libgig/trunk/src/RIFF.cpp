@@ -29,6 +29,25 @@
 
 namespace RIFF {
 
+// *************** Internal functions **************
+// *
+
+    /// Returns a human readable path of the given chunk.
+    String __resolveChunkPath(Chunk* pCk) {
+        String sPath;
+        for (Chunk* pChunk = pCk; pChunk; pChunk = pChunk->GetParent()) {
+            if (pChunk->GetChunkID() == CHUNK_ID_LIST) {
+                List* pList = (List*) pChunk;
+                sPath = "->'" + pList->GetListTypeString() + "'" + sPath;
+            } else {
+                sPath = "->'" + pChunk->GetChunkIDString() + "'" + sPath;
+            }
+        }
+        return sPath;
+    }
+
+
+
 // *************** Chunk **************
 // *
 
@@ -775,7 +794,8 @@ namespace RIFF {
      * @see File::Save()
      */
     void Chunk::Resize(int iNewSize) {
-        if (iNewSize <= 0) throw Exception("Chunk size must be at least one byte");
+        if (iNewSize <= 0)
+            throw Exception("There is at least one empty chunk (zero size): " + __resolveChunkPath(this));
         if (NewChunkSize == iNewSize) return;
         NewChunkSize = iNewSize;
         pFile->LogAsResized(this);
@@ -1535,17 +1555,7 @@ namespace RIFF {
         unsigned long ulPositiveSizeDiff = 0;
         for (ChunkList::iterator iter = ResizedChunks.begin(), end = ResizedChunks.end(); iter != end; ++iter) {
             if ((*iter)->GetNewSize() == 0) {
-                // just to make the exception message a bit more verbose: resolve the chunk's path
-                String sChunkPath;
-                for (Chunk* pChunk = *iter; pChunk; pChunk = pChunk->GetParent()) {
-                    if (pChunk->GetChunkID() == CHUNK_ID_LIST) {
-                        List* pList = (List*) pChunk;
-                        sChunkPath = "->'" + pList->GetListTypeString() + "'" + sChunkPath;
-                    } else {
-                        sChunkPath = "->'" + pChunk->GetChunkIDString() + "'" + sChunkPath;
-                    }
-                }
-                throw Exception("There is at least one empty chunk (zero size): " + sChunkPath);
+                throw Exception("There is at least one empty chunk (zero size): " + __resolveChunkPath(*iter));
             }
             if ((*iter)->GetNewSize() + 1L > (*iter)->GetSize()) {
                 unsigned long ulDiff = (*iter)->GetNewSize() - (*iter)->GetSize() + 1L; // +1 in case we have to add a pad byte
