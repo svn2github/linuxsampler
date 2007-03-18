@@ -632,6 +632,8 @@ namespace gig {
 
             // derived methods from DLS::Resource
             DLS::Resource::GetParent;
+            // derived methods from DLS::Instrument
+            DLS::Instrument::MoveRegion;
             // overridden methods
             Region*   GetFirstRegion();
             Region*   GetNextRegion();

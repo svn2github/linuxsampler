@@ -444,6 +444,7 @@ namespace DLS {
             Region*  GetFirstRegion();
             Region*  GetNextRegion();
             Region*  AddRegion();
+            void     MoveRegion(Region* pSrc, Region* pDst);
             void     DeleteRegion(Region* pRegion);
             virtual void UpdateChunks();
         protected:

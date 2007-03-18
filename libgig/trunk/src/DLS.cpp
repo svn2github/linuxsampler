@@ -942,6 +942,15 @@ namespace DLS {
         return pNewRegion;
     }
 
+    void Instrument::MoveRegion(Region* pSrc, Region* pDst) {
+        RIFF::List* lrgn = pCkInstrument->GetSubList(LIST_TYPE_LRGN);
+        lrgn->MoveSubChunk(pSrc->pCkRegion, pDst ? pDst->pCkRegion : 0);
+
+        pRegions->remove(pSrc);
+        RegionList::iterator iter = find(pRegions->begin(), pRegions->end(), pDst);
+        pRegions->insert(iter, pSrc);
+    }
+
     void Instrument::DeleteRegion(Region* pRegion) {
         if (!pRegions) return;
         RegionList::iterator iter = find(pRegions->begin(), pRegions->end(), pRegion);

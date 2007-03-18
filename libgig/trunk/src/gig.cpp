@@ -2152,6 +2152,8 @@ namespace {
                 if (file->pWavePoolTable) pDimensionRegions[i]->pSample = GetSampleFromWavePool(wavepoolindex);
             }
             GetSample(); // load global region sample reference
+        } else {
+            DimensionRegions = 0;
         }
 
         // make sure there is at least one dimension region

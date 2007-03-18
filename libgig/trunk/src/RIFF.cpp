@@ -1135,6 +1135,24 @@ namespace RIFF {
         return pNewChunk;
     }
 
+    /** @brief Moves a sub chunk.
+     *
+     * Moves a sub chunk from one position in a list to another
+     * position in the same list. The pSrc chunk is placed before the
+     * pDst chunk.
+     *
+     * @param pSrc - sub chunk to be moved
+     * @param pDst - the position to move to. pSrc will be placed
+     *               before pDst. If pDst is 0, pSrc will be placed
+     *               last in list.
+     */
+    void List::MoveSubChunk(Chunk* pSrc, Chunk* pDst) {
+        if (!pSubChunks) LoadSubChunks();
+        pSubChunks->remove(pSrc);
+        ChunkList::iterator iter = find(pSubChunks->begin(), pSubChunks->end(), pDst);
+        pSubChunks->insert(iter, pSrc);
+    }
+
     /** @brief Creates a new list sub chunk.
      *
      * Creates and adds a new list sub chunk to this list chunk. Note that

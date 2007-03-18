@@ -19,11 +19,18 @@ Version CVS HEAD (?)
     - fixed group names which were not saved
     - fixed group destructor which did not remove the RIFF chunk associated
       with the group
+    - added Instrument::MoveRegion method
+    - fixed constructor for Region, which did not initialize correctly
+      when used from Instrument::AddRegion
+
+  * src/DLS.cpp, src/DLS.h:
+    - added Instrument::MoveRegion method
 
   * src/RIFF.cpp, src/RIFF.h:
     - fixed RIFF::Chunk destructor which did not unregister previously
       resized chunks, leading to a "zero size chunk" exception when
       File::Save() was called
+    - added List::MoveSubChunk method
 
 Version 3.1.0 (24 Nov 2006)
 
