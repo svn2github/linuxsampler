@@ -246,29 +246,31 @@ void DimRegionChooser::set_region(gig::Region* region)
     dimregno = 0;
     int bitcount = 0;
     nbDimensions = 0;
-    for (int dim = 0 ; dim < region->Dimensions ; dim++) {
-        if (region->pDimensionDefinitions[dim].bits == 0) continue;
-        nbDimensions++;
+    if (region) {
+        for (int dim = 0 ; dim < region->Dimensions ; dim++) {
+            if (region->pDimensionDefinitions[dim].bits == 0) continue;
+            nbDimensions++;
 
-        int from = dimvalue_from[region->pDimensionDefinitions[dim].dimension];
-        int to = dimvalue_to[region->pDimensionDefinitions[dim].dimension];
-        int z;
-        switch (region->pDimensionDefinitions[dim].split_type) {
-        case gig::split_type_normal:
-            z = int((to + from) / 2.0 / region->pDimensionDefinitions[dim].zone_size);
-            break;
-        case gig::split_type_bit:
-            z = std::min(from, region->pDimensionDefinitions[dim].zones - 1);
-            break;
+            int from = dimvalue_from[region->pDimensionDefinitions[dim].dimension];
+            int to = dimvalue_to[region->pDimensionDefinitions[dim].dimension];
+            int z;
+            switch (region->pDimensionDefinitions[dim].split_type) {
+            case gig::split_type_normal:
+                z = int((to + from) / 2.0 / region->pDimensionDefinitions[dim].zone_size);
+                break;
+            case gig::split_type_bit:
+                z = std::min(from, region->pDimensionDefinitions[dim].zones - 1);
+                break;
+            }
+            int mask =
+                ~(((1 << region->pDimensionDefinitions[dim].bits) - 1) <<
+                  bitcount);
+            dimregno &= mask;
+            dimregno |= (z << bitcount);
+            bitcount += region->pDimensionDefinitions[dim].bits;
         }
-        int mask =
-            ~(((1 << region->pDimensionDefinitions[dim].bits) - 1) <<
-              bitcount);
-        dimregno &= mask;
-        dimregno |= (z << bitcount);
-        bitcount += region->pDimensionDefinitions[dim].bits;
+        dimreg = region->pDimensionRegions[dimregno];
     }
-    dimreg = region->pDimensionRegions[dimregno];
     sel_changed_signal.emit();
     queue_resize();
 }

@@ -22,7 +22,10 @@
 
 #include <gtkmm/drawingarea.h>
 #include <gdkmm/colormap.h>
+#include <gtkmm/uimanager.h>
 #include <gdkmm/window.h>
+
+#include <gtkmm/menu.h>
 
 #include <gig.h>
 
@@ -47,7 +50,7 @@ protected:
     virtual bool on_button_release_event(GdkEventButton* event);
     virtual bool on_motion_notify_event(GdkEventMotion* event);
 
-//    virtual void on_size_allocate(Gtk::Allocation& allocation);
+    gig::Region* get_region(int key);
 
     Glib::RefPtr<Gdk::GC> gc;
     Gdk::Color blue, red, black, white, green, grey1;
@@ -79,6 +82,16 @@ protected:
 
     int h1;
     int width;
+
+    Gtk::Menu* popup_menu_inside_region;
+    Gtk::Menu* popup_menu_outside_region;
+    void show_region_properties();
+    void add_region();
+    void delete_region();
+    int new_region_pos;
+
+    Glib::RefPtr<Gtk::ActionGroup> actionGroup;
+    Glib::RefPtr<Gtk::UIManager> uiManager;
 };
 
 #endif

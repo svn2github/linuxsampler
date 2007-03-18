@@ -19,6 +19,7 @@
 
 #include "regionchooser.h"
 #include <gdkmm/cursor.h>
+#include <gtkmm/stock.h>
 
 RegionChooser::RegionChooser()
 {
@@ -44,8 +45,37 @@ RegionChooser::RegionChooser()
     h1 = 20;
     width = 800;
 
-    add_events(Gdk::BUTTON_PRESS_MASK | Gdk::POINTER_MOTION_MASK |
-               Gdk::POINTER_MOTION_HINT_MASK);
+    actionGroup = Gtk::ActionGroup::create();
+    actionGroup->add(Gtk::Action::create("Properties",
+                                         Gtk::Stock::PROPERTIES),
+                     sigc::mem_fun(*this,
+                                   &RegionChooser::show_region_properties));
+    actionGroup->add(Gtk::Action::create("Remove", Gtk::Stock::REMOVE),
+                     sigc::mem_fun(*this, &RegionChooser::delete_region));
+    actionGroup->add(Gtk::Action::create("Add", Gtk::Stock::ADD),
+                     sigc::mem_fun(*this, &RegionChooser::add_region));
+
+    uiManager = Gtk::UIManager::create();
+    uiManager->insert_action_group(actionGroup);
+    Glib::ustring ui_info =
+        "<ui>"
+        "  <popup name='PopupMenuInsideRegion'>"
+        "    <menuitem action='Properties'/>"
+        "    <menuitem action='Remove'/>"
+        "  </popup>"
+        "  <popup name='PopupMenuOutsideRegion'>"
+        "    <menuitem action='Add'/>"
+        "  </popup>"
+        "</ui>";
+    uiManager->add_ui_from_string(ui_info);
+
+    popup_menu_inside_region = dynamic_cast<Gtk::Menu*>(
+        uiManager->get_widget("/PopupMenuInsideRegion"));
+    popup_menu_outside_region = dynamic_cast<Gtk::Menu*>(
+        uiManager->get_widget("/PopupMenuOutsideRegion"));
+
+    add_events(Gdk::BUTTON_PRESS_MASK | Gdk::BUTTON_RELEASE_MASK |
+               Gdk::POINTER_MOTION_MASK | Gdk::POINTER_MOTION_HINT_MASK);
 }
 
 RegionChooser::~RegionChooser()
@@ -211,7 +241,22 @@ bool RegionChooser::on_button_release_event(GdkEventButton* event)
 
 bool RegionChooser::on_button_press_event(GdkEventButton* event)
 {
-    if (instrument) {
+    if (!instrument) return true;
+
+    int k = int(event->x / (width - 1) * 128.0);
+
+    if (event->type == GDK_BUTTON_PRESS && event->button == 3) {
+        gig::Region* r = get_region(k);
+        if (r) {
+            region = r;
+            queue_draw();
+            sel_changed_signal.emit();
+            popup_menu_inside_region->popup(event->button, event->time);
+        } else {
+            new_region_pos = k;
+            popup_menu_outside_region->popup(event->button, event->time);
+        }
+    } else {
         if (is_in_resize_zone(event->x, event->y)) {
             Gdk::Cursor double_arrow(Gdk::SB_H_DOUBLE_ARROW);
             get_window()->pointer_grab(false,
@@ -221,23 +266,25 @@ bool RegionChooser::on_button_press_event(GdkEventButton* event)
                                        double_arrow, event->time);
             resize.active = true;
         } else {
-            const int w = width - 1;
-            int i = 0;
-            for (gig::Region *r = instrument->GetFirstRegion() ; r ;
-                 r = instrument->GetNextRegion()) {
-
-                int x = int(w * (r->KeyRange.low) / 128.0 + 0.5);
-                int x2 = int(w * (r->KeyRange.high + 1) / 128.0 + 0.5);
-                if (event->x >= x && event->x < x2) {
-                    region = r;
-                    break;
-                }
-                i++;
+            gig::Region* r = get_region(k);
+            if (r) {
+                region = r;
+                queue_draw();
+                sel_changed_signal.emit();
             }
-            queue_draw();
-            sel_changed_signal.emit();
         }
     }
+    return true;
+}
+
+gig::Region* RegionChooser::get_region(int key)
+{
+    for (gig::Region *r = instrument->GetFirstRegion() ; r ;
+         r = instrument->GetNextRegion()) {
+        if (key < r->KeyRange.low) return 0;
+        if (key <= r->KeyRange.high) return r;
+    }
+    return 0;
 }
 
 bool RegionChooser::on_motion_notify_event(GdkEventMotion* event)
@@ -367,4 +414,31 @@ bool RegionChooser::is_in_resize_zone(double x, double y) {
 sigc::signal<void> RegionChooser::signal_sel_changed()
 {
     return sel_changed_signal;
+}
+
+void RegionChooser::show_region_properties()
+{
+}
+
+void RegionChooser::add_region()
+{
+    gig::Region* r;
+    for (r = instrument->GetFirstRegion() ; r ; r = instrument->GetNextRegion()) {
+        if (r->KeyRange.low > new_region_pos) break;
+    }
+
+    region = instrument->AddRegion();
+    region->KeyRange.low = region->KeyRange.high = new_region_pos;
+
+    instrument->MoveRegion(region, r);
+    queue_draw();
+    sel_changed_signal.emit();
+}
+
+void RegionChooser::delete_region()
+{
+    instrument->DeleteRegion(region);
+    region = 0;
+    queue_draw();
+    sel_changed_signal.emit();
 }
