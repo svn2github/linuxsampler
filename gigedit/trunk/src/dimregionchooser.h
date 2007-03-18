@@ -34,9 +34,7 @@ public:
 
     void set_fromto(int from, int to);
 
-    void set_instrument(gig::Instrument* instrument);
     void set_region(gig::Region* region);
-//    void set_dimregno(int x);
 
     sigc::signal<void> signal_sel_changed();
 

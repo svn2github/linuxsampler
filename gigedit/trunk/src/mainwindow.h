@@ -118,13 +118,13 @@ protected:
 
     class ModelColumns : public Gtk::TreeModel::ColumnRecord {
     public:
-	ModelColumns() {
-	  add(m_col_name);
-	  add(m_col_instr);
+        ModelColumns() {
+          add(m_col_name);
+          add(m_col_instr);
         }
 
-	Gtk::TreeModelColumn<Glib::ustring> m_col_name;
-	Gtk::TreeModelColumn<gig::Instrument*> m_col_instr;
+        Gtk::TreeModelColumn<Glib::ustring> m_col_name;
+        Gtk::TreeModelColumn<gig::Instrument*> m_col_instr;
     } m_Columns;
 
     Gtk::VBox m_VBox;

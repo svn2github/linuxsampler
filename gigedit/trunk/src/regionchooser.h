@@ -36,7 +36,6 @@ public:
     virtual ~RegionChooser();
 
     void set_instrument(gig::Instrument* instrument);
-    void set_region(gig::Region* region);
 
     sigc::signal<void> signal_sel_changed();
 

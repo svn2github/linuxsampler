@@ -131,10 +131,10 @@ bool DimRegionChooser::on_expose_event(GdkEventExpose* event)
             }
             layout->set_text(dstr);
 
-	    Pango::Rectangle rectangle = layout->get_logical_extents();
+            Pango::Rectangle rectangle = layout->get_logical_extents();
             double text_w = double(rectangle.get_width()) / Pango::SCALE;
             if (text_w > maxwidth) maxwidth = text_w;
-	    double text_h = double(rectangle.get_height()) / Pango::SCALE;
+            double text_h = double(rectangle.get_height()) / Pango::SCALE;
             Glib::RefPtr<const Gdk::GC> fg = get_style()->get_fg_gc(get_state());
             window->draw_layout(fg, 4, int(y + (h - text_h) / 2 + 0.5), layout);
 
@@ -232,21 +232,13 @@ void DimRegionChooser::on_size_request(GtkRequisition* requisition)
     requisition->width = 800;
 }
 
-void DimRegionChooser::set_instrument(gig::Instrument* instrument)
-{
-    this->instrument = instrument;
-    this->region = 0;
-    this->dimregno = -1;
-    queue_draw();
-}
-
 void DimRegionChooser::set_region(gig::Region* region)
 {
     this->region = region;
     dimregno = 0;
-    int bitcount = 0;
     nbDimensions = 0;
     if (region) {
+        int bitcount = 0;
         for (int dim = 0 ; dim < region->Dimensions ; dim++) {
             if (region->pDimensionDefinitions[dim].bits == 0) continue;
             nbDimensions++;
@@ -270,17 +262,12 @@ void DimRegionChooser::set_region(gig::Region* region)
             bitcount += region->pDimensionDefinitions[dim].bits;
         }
         dimreg = region->pDimensionRegions[dimregno];
+    } else {
+        dimreg = 0;
     }
     sel_changed_signal.emit();
     queue_resize();
 }
-
-/*
-  void DimRegionChooser::set_dimregno(int x) {
-  this->dimregno = x;
-  queue_draw();
-  }
-*/
 
 bool DimRegionChooser::on_button_release_event(GdkEventButton* event)
 {

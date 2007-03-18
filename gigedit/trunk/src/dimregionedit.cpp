@@ -496,6 +496,9 @@ void DimRegionEdit::addProp(LabelWidget& prop)
 
 void DimRegionEdit::set_dim_region(gig::DimensionRegion* d)
 {
+    set_sensitive(d);
+    if (!d) return;
+
     update_gui = false;
     wSample->set_text(d->pSample ? d->pSample->pInfo->Name.c_str() : "NULL");
     eEG1PreAttack.set_dimreg(d);

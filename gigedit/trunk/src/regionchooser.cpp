@@ -208,15 +208,9 @@ void RegionChooser::draw_region(int from, int to, const Gdk::Color& color)
 void RegionChooser::set_instrument(gig::Instrument* instrument)
 {
     this->instrument = instrument;
-    region = instrument->GetFirstRegion();
+    region = instrument ? instrument->GetFirstRegion() : 0;
     queue_draw();
     sel_changed_signal.emit();
-}
-
-void RegionChooser::set_region(gig::Region* region)
-{
-    this->region = region;
-    queue_draw();
 }
 
 bool RegionChooser::on_button_release_event(GdkEventButton* event)

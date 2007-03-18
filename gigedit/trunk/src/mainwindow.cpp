@@ -54,7 +54,7 @@ MainWindow::MainWindow()
     // Handle selection
     Glib::RefPtr<Gtk::TreeSelection> tree_sel_ref = m_TreeView.get_selection();
     tree_sel_ref->signal_changed().connect(
-	sigc::mem_fun(*this, &MainWindow::on_sel_change));
+        sigc::mem_fun(*this, &MainWindow::on_sel_change));
 
     // m_TreeView.set_reorderable();
 
@@ -201,9 +201,9 @@ MainWindow::MainWindow()
     m_VBox.pack_start(m_DimRegionChooser, Gtk::PACK_SHRINK);
 
     m_RegionChooser.signal_sel_changed().connect(
-	sigc::mem_fun(*this, &MainWindow::region_changed) );
+        sigc::mem_fun(*this, &MainWindow::region_changed) );
     m_DimRegionChooser.signal_sel_changed().connect(
-	sigc::mem_fun(*this, &MainWindow::dimreg_changed) );
+        sigc::mem_fun(*this, &MainWindow::dimreg_changed) );
 
 
     // Create the Tree model:
@@ -266,13 +266,13 @@ void MainWindow::on_sel_change()
     Glib::RefPtr<Gtk::TreeSelection> tree_sel_ref = m_TreeView.get_selection();
 
     Gtk::TreeModel::iterator it = tree_sel_ref->get_selected();
-    if (it)
-    {
-	Gtk::TreeModel::Row row = *it;
-	std::cout << row[m_Columns.m_col_name] << std::endl;
+    if (it) {
+        Gtk::TreeModel::Row row = *it;
+        std::cout << row[m_Columns.m_col_name] << std::endl;
 
-	if (row[m_Columns.m_col_instr])
-            m_RegionChooser.set_instrument(row[m_Columns.m_col_instr]);
+        m_RegionChooser.set_instrument(row[m_Columns.m_col_instr]);
+    } else {
+        m_RegionChooser.set_instrument(0);
     }
 }
 
@@ -418,10 +418,6 @@ void MainWindow::on_loader_finished()
     printf("Loader finished!\n");
     printf("on_loader_finished self=%x\n", Glib::Thread::self());
     load_gig(loader->gig, loader->filename);
-
-    Glib::RefPtr<Gtk::TreeSelection> tree_sel_ref = m_TreeView.get_selection();
-    tree_sel_ref->select(Gtk::TreePath("0"));
-
     load_dialog->hide();
 }
 
@@ -665,7 +661,7 @@ InstrumentProps::InstrumentProps()
     quitButton.grab_focus();
 
     quitButton.signal_clicked().connect(
-	sigc::mem_fun(*this, &InstrumentProps::hide));
+        sigc::mem_fun(*this, &InstrumentProps::hide));
 
     // quitButton.grab_default();
     quitButton.show();
@@ -726,11 +722,11 @@ void MainWindow::load_gig(gig::File* gig, const char* filename)
     int instrument_index = 0;
     Gtk::RadioMenuItem::Group instrument_group;
     for (gig::Instrument* instrument = gig->GetFirstInstrument() ; instrument ;
-	 instrument = gig->GetNextInstrument()) {
+         instrument = gig->GetNextInstrument()) {
         Gtk::TreeModel::iterator iter = m_refTreeModel->append();
-	Gtk::TreeModel::Row row = *iter;
-	row[m_Columns.m_col_name] = instrument->pInfo->Name.c_str();
-	row[m_Columns.m_col_instr] = instrument;
+        Gtk::TreeModel::Row row = *iter;
+        row[m_Columns.m_col_name] = instrument->pInfo->Name.c_str();
+        row[m_Columns.m_col_instr] = instrument;
         // create a menu item for this instrument
         Gtk::RadioMenuItem* item =
             new Gtk::RadioMenuItem(instrument_group, instrument->pInfo->Name.c_str());
@@ -764,6 +760,10 @@ void MainWindow::load_gig(gig::File* gig, const char* filename)
             }
         }
     }
+
+    // select the first instrument
+    Glib::RefPtr<Gtk::TreeSelection> tree_sel_ref = m_TreeView.get_selection();
+    tree_sel_ref->select(Gtk::TreePath("0"));
 }
 
 void MainWindow::show_instr_props()
@@ -827,7 +827,7 @@ void MainWindow::on_action_add_instrument() {
     if (!file) return;
     gig::Instrument* instrument = file->AddInstrument();
     __instrument_indexer++;
-    instrument->pInfo->Name = 
+    instrument->pInfo->Name =
         "Unnamed Instrument " + ToString(__instrument_indexer);
     // update instrument tree view
     Gtk::TreeModel::iterator iterInstr = m_refTreeModel->append();
