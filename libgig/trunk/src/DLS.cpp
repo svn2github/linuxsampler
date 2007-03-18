@@ -352,7 +352,7 @@ namespace DLS {
         SaveString(CHUNK_ID_ITCH, lstINFO, Technician, String(""), UseFixedLengthStrings, 128);
         SaveString(CHUNK_ID_ISFT, lstINFO, Software, defaultSoftware, UseFixedLengthStrings,
                    resourceType == LIST_TYPE_INS ?
-                   (Software == "" ? defaultSoftware.length() : Software.length()) : 128);
+                   (Software == "" ? defaultSoftware.length()+1 : Software.length()+1) : 128);
         SaveString(CHUNK_ID_IMED, lstINFO, Medium, String(""), UseFixedLengthStrings, 128);
         SaveString(CHUNK_ID_ISRC, lstINFO, Source, String(""), UseFixedLengthStrings, 128);
         SaveString(CHUNK_ID_ISRF, lstINFO, SourceForm, String(""), UseFixedLengthStrings, 128);

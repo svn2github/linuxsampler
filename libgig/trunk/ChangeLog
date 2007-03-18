@@ -22,9 +22,14 @@ Version CVS HEAD (?)
     - added Instrument::MoveRegion method
     - fixed constructor for Region, which did not initialize correctly
       when used from Instrument::AddRegion
+    - when saving, override the gig::Regions sample reference simply by
+      the region's first dimension region's sample (avoids an exception
+      when trying to save a new instrument)
 
   * src/DLS.cpp, src/DLS.h:
     - added Instrument::MoveRegion method
+    - fixed software info field which was wrongly stored on instruments,
+      causing an exception when trying to save a new instrument
 
   * src/RIFF.cpp, src/RIFF.h:
     - fixed RIFF::Chunk destructor which did not unregister previously

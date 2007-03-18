@@ -2176,6 +2176,12 @@ namespace {
      * @throws gig::Exception if samples cannot be dereferenced
      */
     void Region::UpdateChunks() {
+        // in the gig format we don't care about the Region's sample reference
+        // but we still have to provide some existing one to not corrupt the
+        // file, so to avoid the latter we simply always assign the sample of
+        // the first dimension region of this region
+        pSample = pDimensionRegions[0]->pSample;
+
         // first update base class's chunks
         DLS::Region::UpdateChunks();
 
