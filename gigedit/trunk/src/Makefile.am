@@ -4,7 +4,8 @@ gigedit_SOURCES = main.cpp \
 	regionchooser.cpp regionchooser.h \
 	dimregionchooser.cpp dimregionchooser.h \
 	dimregionedit.cpp dimregionedit.h \
-	paramedit.cpp paramedit.h
+	paramedit.cpp paramedit.h \
+	dimensionmanager.cpp dimensionmanager.h
 gigedit_CXXFLAGS = $(SNDFILE_CFLAGS)
 gigedit_LDADD = $(GTKMM_LIBS) $(GIG_LIBS) $(SNDFILE_LIBS)
 

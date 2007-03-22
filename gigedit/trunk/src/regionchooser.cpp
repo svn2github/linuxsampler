@@ -20,6 +20,9 @@
 #include "regionchooser.h"
 #include <gdkmm/cursor.h>
 #include <gtkmm/stock.h>
+#include <libintl.h>
+
+#define _(String) gettext(String)
 
 RegionChooser::RegionChooser()
 {
@@ -54,6 +57,8 @@ RegionChooser::RegionChooser()
                      sigc::mem_fun(*this, &RegionChooser::delete_region));
     actionGroup->add(Gtk::Action::create("Add", Gtk::Stock::ADD),
                      sigc::mem_fun(*this, &RegionChooser::add_region));
+    actionGroup->add(Gtk::Action::create("Dimensions", _("Dimensions...")),
+                     sigc::mem_fun(*this, &RegionChooser::manage_dimensions));
 
     uiManager = Gtk::UIManager::create();
     uiManager->insert_action_group(actionGroup);
@@ -61,6 +66,7 @@ RegionChooser::RegionChooser()
         "<ui>"
         "  <popup name='PopupMenuInsideRegion'>"
         "    <menuitem action='Properties'/>"
+        "    <menuitem action='Dimensions'/>"
         "    <menuitem action='Remove'/>"
         "  </popup>"
         "  <popup name='PopupMenuOutsideRegion'>"
@@ -435,4 +441,11 @@ void RegionChooser::delete_region()
     region = 0;
     queue_draw();
     sel_changed_signal.emit();
+}
+
+void RegionChooser::manage_dimensions()
+{
+    gig::Region* region = get_region();
+    if (!region) return;
+    dimensionManager.show(region);
 }
