@@ -1524,6 +1524,7 @@ namespace LinuxSampler { namespace gig {
                 FxSend* pFxSend = pEngineChannel->GetFxSend(iFxSend);
                 if (pFxSend->MidiController() == itControlChangeEvent->Param.CC.Controller)
                     pFxSend->SetLevel(itControlChangeEvent->Param.CC.Value);
+                    pFxSend->SetInfoChanged(true);
             }
         }
     }
@@ -1720,7 +1721,7 @@ namespace LinuxSampler { namespace gig {
     }
 
     String Engine::Version() {
-        String s = "$Revision: 1.75 $";
+        String s = "$Revision: 1.76 $";
         return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
 

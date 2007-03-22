@@ -34,7 +34,7 @@ Schoenebeck'>
                 <email>schoenebeck at software minus engineering dot org</email>
             </address>
         </author>
-        <date month="February" year="2007"/>
+        <date month="March" year="2007"/>
         <workgroup>LinuxSampler Developers</workgroup>
         <keyword>LSCP</keyword>
         <abstract>
@@ -5383,7 +5383,7 @@ Schoenebeck'>
                 <t>Server will start sending the following notification messages:</t>
                 <t>
                     <list>
-                        <t>"NOTIFY:VOICE_COUNT:&lt;sampler-channel&gt; &lt;voices&gt;</t>
+                        <t>"NOTIFY:VOICE_COUNT:&lt;sampler-channel&gt; &lt;voices&gt;"</t>
                     </list>
                 </t>
                 <t>where &lt;sampler-channel&gt; will be replaced by the sampler channel the
@@ -5453,6 +5453,44 @@ Schoenebeck'>
                 message is sufficient here.</t>
             </section>
 
+            <section title="Number of effect sends changed" anchor="SUBSCRIBE FX_SEND_COUNT">
+                <t>Client may want to be notified when the number of effect sends on 
+                a particular sampler channel is changed by issuing the following command:</t>
+                <t>
+                    <list>
+                        <t>SUBSCRIBE FX_SEND_COUNT</t>
+                    </list>
+                </t>
+                <t>Server will start sending the following notification messages:</t>
+                <t>
+                    <list>
+                        <t>"NOTIFY:FX_SEND_COUNT:&lt;channel-id&gt; &lt;fx-sends&gt;"</t>
+                    </list>
+                </t>
+                <t>where &lt;channel-id&gt; will be replaced by the numerical ID of the sampler
+                channel, on which the effect sends number is changed and &lt;fx-sends&gt; will
+                be replaced by the new number of effect sends on that channel.</t>
+            </section>
+
+            <section title="Effect send information changed" anchor="SUBSCRIBE FX_SEND_INFO">
+                <t>Client may want to be notified when changes were made to effect sends on a
+                a particular sampler channel by issuing the following command:</t>
+                <t>
+                    <list>
+                        <t>SUBSCRIBE FX_SEND_INFO</t>
+                    </list>
+                </t>
+                <t>Server will start sending the following notification messages:</t>
+                <t>
+                    <list>
+                        <t>"NOTIFY:FX_SEND_INFO:&lt;channel-id&gt; &lt;fx-send-id&gt;"</t>
+                    </list>
+                </t>
+                <t>where &lt;channel-id&gt; will be replaced by the numerical ID of the sampler
+                channel, on which an effect send entity is changed and &lt;fx-send-id&gt; will
+                be replaced by the numerical ID of the changed effect send.</t>
+            </section>
+
             <section title="Total number of active voices changed" anchor="SUBSCRIBE TOTAL_VOICE_COUNT">
                 <t>Client may want to be notified when the total number of voices on the
                 back-end changes by issuing the following command:</t>
@@ -5464,7 +5502,7 @@ Schoenebeck'>
                 <t>Server will start sending the following notification messages:</t>
                 <t>
                     <list>
-                        <t>"NOTIFY:TOTAL_VOICE_COUNT:&lt;voices&gt;</t>
+                        <t>"NOTIFY:TOTAL_VOICE_COUNT:&lt;voices&gt;"</t>
                     </list>
                 </t>
                 <t>where &lt;voices&gt; will be replaced by the new number of
@@ -5551,6 +5589,25 @@ Schoenebeck'>
                 will be triggered by LSCP commands issued by other clients rather than real
                 time events happening on the server, it is believed that an empty notification
                 message is sufficient here.</t>
+            </section>
+
+            <section title="Global settings changed" anchor="SUBSCRIBE GLOBAL_INFO">
+                <t>Client may want to be notified when changes to the global settings
+                of the sampler were made by issuing the following command:</t>
+                <t>
+                    <list>
+                        <t>SUBSCRIBE GLOBAL_INFO</t>
+                    </list>
+                </t>
+                <t>Server will start sending the following types of notification messages:</t>
+                <t>
+                    <list>
+                        <t>"NOTIFY:GLOBAL_INFO:VOLUME &lt;volume&gt;" - Notifies that the
+                        golbal volume of the sampler is changed, where &lt;volume&gt; will be
+                        replaced by the optional dotted floating point value, reflecting the
+                        new global volume parameter.</t>
+                    </list>
+                </t>
             </section>
 
             <section title="Miscellaneous and debugging events" anchor="SUBSCRIBE MISCELLANEOUS">

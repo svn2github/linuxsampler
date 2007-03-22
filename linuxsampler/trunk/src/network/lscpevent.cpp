@@ -64,6 +64,11 @@ LSCPEvent::LSCPEvent(event_t eventType, String sData, int uiData) {
 	this->storage = sData + " " + ToString(uiData);
 }
 
+LSCPEvent::LSCPEvent(event_t eventType, String sData, double dData) {
+	this->type = eventType;
+	this->storage = sData + " " + ToString(dData);
+}
+
 LSCPEvent::LSCPEvent(event_t eventType, int uiData, String sData) {
 	this->type = eventType;
 	this->storage = ToString(uiData) + " " + sData;

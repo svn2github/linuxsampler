@@ -52,12 +52,15 @@ class LSCPEvent {
 		    event_stream_count,
 		    event_buffer_fill,
 		    event_channel_info,
+		    event_fx_send_count,
+		    event_fx_send_info,
 		    event_midi_instr_map_count,
 		    event_midi_instr_map_info,
 		    event_midi_instr_count,
 		    event_midi_instr_info,
 		    event_misc,
-		    event_total_voice_count
+		    event_total_voice_count,
+		    event_global_info
 	    };
 
 	    /* This constructor will do type lookup based on name
@@ -72,6 +75,7 @@ class LSCPEvent {
 	    LSCPEvent(event_t eventType, String sData);
 	    LSCPEvent(event_t eventType, int uiData1, int uiData2);
 	    LSCPEvent(event_t eventType, String sData, int uiData);
+	    LSCPEvent(event_t eventType, String sData, double dData);
 	    LSCPEvent(event_t eventType, int uiData, String sData);
 	    LSCPEvent(event_t eventType, int uiData1, int uiData2, int uiData3);
 	    String Produce( void );

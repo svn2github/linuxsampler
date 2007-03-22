@@ -118,15 +118,18 @@ namespace LinuxSampler {
     }
 
     void FxSend::SetLevel(float f) {
+        if(fLevel == f) return;
         fLevel = f;
+        SetInfoChanged(true);
     }
 
     void FxSend::SetLevel(uint8_t iMidiValue) {
         fLevel = float(iMidiValue & 0x7f) / 127.0f;
+        SetInfoChanged(true);
     }
 
     void FxSend::Reset() {
-        fLevel = DEFAULT_FX_SEND_LEVEL;
+        SetLevel(DEFAULT_FX_SEND_LEVEL);
     }
 
     uint8_t FxSend::MidiController() {
@@ -145,6 +148,14 @@ namespace LinuxSampler {
 
     uint FxSend::Id() {
         return iId;
+    }
+
+    void FxSend::SetInfoChanged(bool b) {
+        bInfoChanged = b;
+    }
+
+    bool FxSend::IsInfoChanged() {
+        return bInfoChanged;
     }
 
 } // namespace LinuxSampler

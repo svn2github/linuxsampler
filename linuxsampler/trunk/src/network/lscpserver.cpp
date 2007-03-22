@@ -75,12 +75,15 @@ LSCPServer::LSCPServer(Sampler* pSampler, long int addr, short int port) : Threa
     LSCPEvent::RegisterEvent(LSCPEvent::event_stream_count, "STREAM_COUNT");
     LSCPEvent::RegisterEvent(LSCPEvent::event_buffer_fill, "BUFFER_FILL");
     LSCPEvent::RegisterEvent(LSCPEvent::event_channel_info, "CHANNEL_INFO");
+    LSCPEvent::RegisterEvent(LSCPEvent::event_fx_send_count, "FX_SEND_COUNT");
+    LSCPEvent::RegisterEvent(LSCPEvent::event_fx_send_info, "FX_SEND_INFO");
     LSCPEvent::RegisterEvent(LSCPEvent::event_midi_instr_map_count, "MIDI_INSTRUMENT_MAP_COUNT");
     LSCPEvent::RegisterEvent(LSCPEvent::event_midi_instr_map_info, "MIDI_INSTRUMENT_MAP_INFO");
     LSCPEvent::RegisterEvent(LSCPEvent::event_midi_instr_count, "MIDI_INSTRUMENT_COUNT");
     LSCPEvent::RegisterEvent(LSCPEvent::event_midi_instr_info, "MIDI_INSTRUMENT_INFO");
     LSCPEvent::RegisterEvent(LSCPEvent::event_misc, "MISCELLANEOUS");
     LSCPEvent::RegisterEvent(LSCPEvent::event_total_voice_count, "TOTAL_VOICE_COUNT");
+    LSCPEvent::RegisterEvent(LSCPEvent::event_global_info, "GLOBAL_INFO");
     hSocket = -1;
 }
 
@@ -147,6 +150,15 @@ int LSCPServer::Main() {
             for (; itEngineChannel != itEnd; ++itEngineChannel) {
                 if ((*itEngineChannel)->StatusChanged()) {
                     SendLSCPNotify(LSCPEvent(LSCPEvent::event_channel_info, (*itEngineChannel)->iSamplerChannelIndex));
+                }
+
+                for (int i = 0; i < (*itEngineChannel)->GetFxSendCount(); i++) {
+                    FxSend* fxs = (*itEngineChannel)->GetFxSend(i);
+                    if(fxs != NULL && fxs->IsInfoChanged()) {
+                        int chn = (*itEngineChannel)->iSamplerChannelIndex;
+                        LSCPServer::SendLSCPNotify(LSCPEvent(LSCPEvent::event_fx_send_info, chn, fxs->Id()));
+                        fxs->SetInfoChanged(false);
+                    }
                 }
             }
         }
@@ -2010,6 +2022,7 @@ String LSCPServer::SetFxSendAudioOutputChannel(uint uiSamplerChannel, uint FxSen
         if (!pFxSend) throw Exception("There is no FxSend with that ID on the given sampler channel");
 
         pFxSend->SetDestinationChannel(FxSendChannel, DeviceChannel);
+        LSCPServer::SendLSCPNotify(LSCPEvent(LSCPEvent::event_fx_send_info, uiSamplerChannel, FxSendID));
     } catch (Exception e) {
         result.Error(e);
     }
@@ -2036,6 +2049,7 @@ String LSCPServer::SetFxSendMidiController(uint uiSamplerChannel, uint FxSendID,
         if (!pFxSend) throw Exception("There is no FxSend with that ID on the given sampler channel");
 
         pFxSend->SetMidiController(MidiController);
+        LSCPServer::SendLSCPNotify(LSCPEvent(LSCPEvent::event_fx_send_info, uiSamplerChannel, FxSendID));
     } catch (Exception e) {
         result.Error(e);
     }
@@ -2062,6 +2076,7 @@ String LSCPServer::SetFxSendLevel(uint uiSamplerChannel, uint FxSendID, double d
         if (!pFxSend) throw Exception("There is no FxSend with that ID on the given sampler channel");
 
         pFxSend->SetLevel((float)dLevel);
+        LSCPServer::SendLSCPNotify(LSCPEvent(LSCPEvent::event_fx_send_info, uiSamplerChannel, FxSendID));
     } catch (Exception e) {
         result.Error(e);
     }
@@ -2141,6 +2156,7 @@ String LSCPServer::SetGlobalVolume(double dVolume) {
     try {
         if (dVolume < 0) throw Exception("Volume may not be negative");
         GLOBAL_VOLUME = dVolume; // see common/global.cpp
+        LSCPServer::SendLSCPNotify(LSCPEvent(LSCPEvent::event_global_info, "VOLUME", GLOBAL_VOLUME));
     } catch (Exception e) {
         result.Error(e);
     }

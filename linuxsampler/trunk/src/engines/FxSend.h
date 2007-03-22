@@ -142,6 +142,16 @@ namespace LinuxSampler {
              */
             uint Id();
 
+            /**
+             * Determines whether the effect send's settings are changed.
+             */
+            bool IsInfoChanged();
+
+            /**
+             * Sets whether the effect send's settings are changed.
+             */
+            void SetInfoChanged(bool b);
+
         protected:
             EngineChannel*   pEngineChannel;
             std::vector<int> Routing;
@@ -149,6 +159,7 @@ namespace LinuxSampler {
             String           sName;
             uint             iId;
             float            fLevel;
+            bool             bInfoChanged;  // Determines whether there are changes to the settings.
     };
 
 } // namespace LinuxSampler
