@@ -4803,6 +4803,10 @@ Schoenebeck'>
 		</t>
 		<t>/ CHANNEL_INFO
 		</t>
+		<t>/ FX_SEND_COUNT
+		</t>
+		<t>/ FX_SEND_INFO
+		</t>
 		<t>/ MIDI_INSTRUMENT_MAP_COUNT
 		</t>
 		<t>/ MIDI_INSTRUMENT_MAP_INFO
@@ -4814,6 +4818,8 @@ Schoenebeck'>
 		<t>/ MISCELLANEOUS
 		</t>
 		<t>/ TOTAL_VOICE_COUNT
+		</t>
+		<t>/ GLOBAL_INFO
 		</t>
 	</list>
 </t>
@@ -4837,6 +4843,10 @@ Schoenebeck'>
 		</t>
 		<t>/ CHANNEL_INFO
 		</t>
+		<t>/ FX_SEND_COUNT
+		</t>
+		<t>/ FX_SEND_INFO
+		</t>
 		<t>/ MIDI_INSTRUMENT_MAP_COUNT
 		</t>
 		<t>/ MIDI_INSTRUMENT_MAP_INFO
@@ -4848,6 +4858,8 @@ Schoenebeck'>
 		<t>/ MISCELLANEOUS
 		</t>
 		<t>/ TOTAL_VOICE_COUNT
+		</t>
+		<t>/ GLOBAL_INFO
 		</t>
 	</list>
 </t>
