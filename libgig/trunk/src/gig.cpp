@@ -254,6 +254,30 @@ namespace {
 }
 
 
+
+// *************** Other Internal functions  ***************
+// *
+
+    static split_type_t __resolveSplitType(dimension_t dimension) {
+        return (
+            dimension == dimension_layer ||
+            dimension == dimension_samplechannel ||
+            dimension == dimension_releasetrigger ||
+            dimension == dimension_keyboard ||
+            dimension == dimension_roundrobin ||
+            dimension == dimension_random ||
+            dimension == dimension_smartmidi ||
+            dimension == dimension_roundrobinkeyboard
+        ) ? split_type_bit : split_type_normal;
+    }
+
+    static int __resolveZoneSize(dimension_def_t& dimension_definition) {
+        return (dimension_definition.split_type == split_type_normal)
+        ? int(128.0 / dimension_definition.zones) : 0;
+    }
+
+
+
 // *************** Sample ***************
 // *
 
@@ -2115,18 +2139,8 @@ namespace {
                     pDimensionDefinitions[i].dimension = dimension;
                     pDimensionDefinitions[i].bits      = bits;
                     pDimensionDefinitions[i].zones     = zones ? zones : 0x01 << bits; // = pow(2,bits)
-                    pDimensionDefinitions[i].split_type = (dimension == dimension_layer ||
-                                                           dimension == dimension_samplechannel ||
-                                                           dimension == dimension_releasetrigger ||
-                                                           dimension == dimension_keyboard ||
-                                                           dimension == dimension_roundrobin ||
-                                                           dimension == dimension_random ||
-                                                           dimension == dimension_smartmidi ||
-                                                           dimension == dimension_roundrobinkeyboard) ? split_type_bit
-                                                                                                      : split_type_normal;
-                    pDimensionDefinitions[i].zone_size  =
-                        (pDimensionDefinitions[i].split_type == split_type_normal) ? 128.0 / pDimensionDefinitions[i].zones
-                                                                                   : 0;
+                    pDimensionDefinitions[i].split_type = __resolveSplitType(dimension);
+                    pDimensionDefinitions[i].zone_size  = __resolveZoneSize(pDimensionDefinitions[i]);
                     Dimensions++;
 
                     // if this is a layer dimension, remember the amount of layers
@@ -2355,6 +2369,12 @@ namespace {
 
         // assign definition of new dimension
         pDimensionDefinitions[Dimensions] = *pDimDef;
+
+        // auto correct certain dimension definition fields (where possible)
+        pDimensionDefinitions[Dimensions].split_type  =
+            __resolveSplitType(pDimensionDefinitions[Dimensions].dimension);
+        pDimensionDefinitions[Dimensions].zone_size =
+            __resolveZoneSize(pDimensionDefinitions[Dimensions]);
 
         // create new dimension region(s) for this new dimension
         for (int i = 1 << iCurrentBits; i < 1 << iNewBits; i++) {
