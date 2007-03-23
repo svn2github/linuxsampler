@@ -20,6 +20,9 @@
 #include "dimensionmanager.h"
 
 #include <gtkmm/stock.h>
+#include <gtkmm/messagedialog.h>
+#include <gtkmm/dialog.h>
+#include <gtkmm/comboboxtext.h>
 
 // returns a human readable name of the given dimension type
 static Glib::ustring __dimTypeAsString(gig::dimension_t d) {
@@ -217,12 +220,13 @@ void DimensionManager::show(gig::Region* region) {
     refTableModel->clear();
 
     for (int i = 0; i < region->Dimensions; i++) {
-        gig::dimension_def_t dim = region->pDimensionDefinitions[i];
+        gig::dimension_def_t* dim = &region->pDimensionDefinitions[i];
         Gtk::TreeModel::Row row = *(refTableModel->append());
-        row[tableModel.m_dim_type] = __dimTypeAsString(dim.dimension);
-        row[tableModel.m_bits] = dim.bits;
-        row[tableModel.m_zones] = 1 << dim.bits; //TODO: for now we calculate it here until libgig always ensures 'zones' to be correct
-        row[tableModel.m_description] = __dimDescriptionAsString(dim.dimension);
+        row[tableModel.m_dim_type] = __dimTypeAsString(dim->dimension);
+        row[tableModel.m_bits] = dim->bits;
+        row[tableModel.m_zones] = 1 << dim->bits; //TODO: for now we calculate it here until libgig always ensures 'zones' to be correct
+        row[tableModel.m_description] = __dimDescriptionAsString(dim->dimension);
+        row[tableModel.m_definition] = dim;
     }
 
     Gtk::Window::show();
@@ -230,9 +234,77 @@ void DimensionManager::show(gig::Region* region) {
 }
 
 void DimensionManager::addDimension() {
-    //TODO: show a small dialog for adding a new dimension
+    try {
+        Gtk::Dialog dialog("New Dimension", true /*modal*/);
+        // add dimension type combo box to the dialog
+        Glib::RefPtr<Gtk::ListStore> refComboModel = Gtk::ListStore::create(comboModel);
+        for (int i = 0x01; i < 0xff; i++) {
+            Glib::ustring sType =
+                __dimTypeAsString(static_cast<gig::dimension_t>(i));
+            if (sType.find("Unknown") != 0) {
+                Gtk::TreeModel::Row row = *(refComboModel->append());
+                row[comboModel.m_type_id]   = i;
+                row[comboModel.m_type_name] = sType;
+            }
+        }
+        Gtk::ComboBox comboDimType;
+        comboDimType.set_model(refComboModel);
+        comboDimType.pack_start(comboModel.m_type_id);
+        comboDimType.pack_start(comboModel.m_type_name);
+        dialog.get_vbox()->pack_start(comboDimType);
+        comboDimType.show();
+        // add zones combo box to the dialog
+        Gtk::ComboBoxText comboZones;
+        for (int i = 1; i <= 7; i++) { //FIXME: is 7 the correct amount of max. bits ???
+            char buf[64];
+            sprintf(buf, "%d Zones (%d Bits)", 1 << i, i); 
+            comboZones.append_text(buf);
+        }
+        dialog.get_vbox()->pack_start(comboZones);
+        comboZones.show();
+        // add OK and CANCEL buttons to the dialog
+        dialog.add_button(Gtk::Stock::OK, 0);
+        dialog.add_button(Gtk::Stock::CANCEL, 1);
+        dialog.show_all_children();
+        if (!dialog.run()) { // OK selected ...
+            Gtk::TreeModel::iterator iterType = comboDimType.get_active();
+            if (!iterType) return;
+            Gtk::TreeModel::Row rowType = *iterType;
+            if (!rowType) return;
+            gig::dimension_def_t dim;
+            int iTypeID = rowType[comboModel.m_type_id];
+            dim.dimension = static_cast<gig::dimension_t>(iTypeID);
+            if (comboZones.get_active_row_number() < 0) return;
+            dim.bits = comboZones.get_active_row_number() + 1;
+            dim.zones = 1 << dim.bits; //TODO: support zones != pow(2,bits) - feature of gig v3
+            printf(
+                "Adding dimension (type=0x%x, bits=%d, zones=%d)\n",
+                dim.dimension, dim.bits, dim.zones
+            );
+            // add the new dimension to the region
+            // (implicitly creates new dimension regions)
+            region->AddDimension(&dim);
+            // let everybody know there was a change
+            articulation_changed_signal.emit();
+        }
+    } catch (RIFF::Exception e) {
+        Glib::ustring txt = "Could not remove dimension: " + e.Message;
+        Gtk::MessageDialog msg(*this, txt, false, Gtk::MESSAGE_ERROR);
+        msg.run();
+    }
 }
 
 void DimensionManager::removeDimension() {
-   //TODO: remove selected dimension
+    Glib::RefPtr<Gtk::TreeSelection> sel = treeView.get_selection();
+    Gtk::TreeModel::iterator it = sel->get_selected();
+    if (it) {
+        // remove selected dimension
+        Gtk::TreeModel::Row row = *it;
+        gig::dimension_def_t* dim = row[tableModel.m_definition];
+        region->DeleteDimension(dim);
+        // remove respective row from table
+        refTableModel->erase(it);
+        // let everybody know there was a change
+        articulation_changed_signal.emit();
+    }
 }

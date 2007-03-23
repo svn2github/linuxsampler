@@ -89,6 +89,7 @@ protected:
     void add_region();
     void delete_region();
     void manage_dimensions();
+    void on_dimension_manager_changed();
     int new_region_pos;
 
     Glib::RefPtr<Gtk::ActionGroup> actionGroup;

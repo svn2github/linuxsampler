@@ -82,6 +82,10 @@ RegionChooser::RegionChooser()
 
     add_events(Gdk::BUTTON_PRESS_MASK | Gdk::BUTTON_RELEASE_MASK |
                Gdk::POINTER_MOTION_MASK | Gdk::POINTER_MOTION_HINT_MASK);
+
+    dimensionManager.articulation_changed_signal.connect(
+        sigc::mem_fun(*this, &RegionChooser::on_dimension_manager_changed)
+    );
 }
 
 RegionChooser::~RegionChooser()
@@ -448,4 +452,8 @@ void RegionChooser::manage_dimensions()
     gig::Region* region = get_region();
     if (!region) return;
     dimensionManager.show(region);
+}
+
+void RegionChooser::on_dimension_manager_changed() {
+    sel_changed_signal.emit();
 }

@@ -32,6 +32,9 @@
 
 class DimensionManager : public Gtk::Window {
 public:
+    // triggered on all changes (i.e. dimension added or removed)
+    sigc::signal<void> articulation_changed_signal;
+
     DimensionManager();
     void show(gig::Region* region);
 protected:
@@ -50,13 +53,26 @@ protected:
             add(m_bits);
             add(m_zones);
             add(m_description);
+            add(m_definition);
         }
 
         Gtk::TreeModelColumn<Glib::ustring> m_dim_type;
         Gtk::TreeModelColumn<int> m_bits;
         Gtk::TreeModelColumn<int> m_zones;
         Gtk::TreeModelColumn<Glib::ustring> m_description;
+        Gtk::TreeModelColumn<gig::dimension_def_t*> m_definition;
     } tableModel;
+
+    class ComboModelColumns : public Gtk::TreeModel::ColumnRecord {
+    public:
+        ComboModelColumns() {
+            add(m_type_id);
+            add(m_type_name);
+        }
+
+        Gtk::TreeModelColumn<int> m_type_id;
+        Gtk::TreeModelColumn<Glib::ustring> m_type_name;
+    } comboModel;
 
     Glib::RefPtr<Gtk::ListStore> refTableModel;
 
