@@ -293,7 +293,7 @@ void DimensionManager::addDimension() {
             refreshManager();
         }
     } catch (RIFF::Exception e) {
-        Glib::ustring txt = "Could not remove dimension: " + e.Message;
+        Glib::ustring txt = "Could not add dimension: " + e.Message;
         Gtk::MessageDialog msg(*this, txt, false, Gtk::MESSAGE_ERROR);
         msg.run();
     }
@@ -303,13 +303,19 @@ void DimensionManager::removeDimension() {
     Glib::RefPtr<Gtk::TreeSelection> sel = treeView.get_selection();
     Gtk::TreeModel::iterator it = sel->get_selected();
     if (it) {
-        // remove selected dimension
-        Gtk::TreeModel::Row row = *it;
-        gig::dimension_def_t* dim = row[tableModel.m_definition];
-        region->DeleteDimension(dim);
-        // remove respective row from table
-        refTableModel->erase(it);
-        // let everybody know there was a change
-        articulation_changed_signal.emit();
+        try {
+            // remove selected dimension
+            Gtk::TreeModel::Row row = *it;
+            gig::dimension_def_t* dim = row[tableModel.m_definition];
+            region->DeleteDimension(dim);
+            // remove respective row from table
+            refTableModel->erase(it);
+            // let everybody know there was a change
+            articulation_changed_signal.emit();
+        } catch (RIFF::Exception e) {
+            Glib::ustring txt = "Could not remove dimension: " + e.Message;
+            Gtk::MessageDialog msg(*this, txt, false, Gtk::MESSAGE_ERROR);
+            msg.run();
+        }
     }
 }
