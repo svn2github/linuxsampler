@@ -215,10 +215,9 @@ addButton(Gtk::Stock::ADD), removeButton(Gtk::Stock::REMOVE)
     show_all_children();
 }
 
-void DimensionManager::show(gig::Region* region) {
-    this->region = region;
+// update all GUI elements according to current gig::Region informations
+void DimensionManager::refreshManager() {
     refTableModel->clear();
-
     for (int i = 0; i < region->Dimensions; i++) {
         gig::dimension_def_t* dim = &region->pDimensionDefinitions[i];
         Gtk::TreeModel::Row row = *(refTableModel->append());
@@ -228,7 +227,11 @@ void DimensionManager::show(gig::Region* region) {
         row[tableModel.m_description] = __dimDescriptionAsString(dim->dimension);
         row[tableModel.m_definition] = dim;
     }
+}
 
+void DimensionManager::show(gig::Region* region) {
+    this->region = region;
+    refreshManager();
     Gtk::Window::show();
     deiconify();
 }
@@ -286,6 +289,8 @@ void DimensionManager::addDimension() {
             region->AddDimension(&dim);
             // let everybody know there was a change
             articulation_changed_signal.emit();
+            // update all GUI elements
+            refreshManager();
         }
     } catch (RIFF::Exception e) {
         Glib::ustring txt = "Could not remove dimension: " + e.Message;

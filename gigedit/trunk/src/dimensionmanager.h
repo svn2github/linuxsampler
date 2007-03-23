@@ -76,6 +76,7 @@ protected:
 
     Glib::RefPtr<Gtk::ListStore> refTableModel;
 
+    void refreshManager();
     void addDimension();
     void removeDimension();
 };
