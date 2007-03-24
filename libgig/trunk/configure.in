@@ -5,7 +5,7 @@ AC_INIT(configure.in)
 
 LIBGIG_RELEASE_MAJOR=3
 LIBGIG_RELEASE_MINOR=1
-LIBGIG_RELEASE_BUILD=0
+LIBGIG_RELEASE_BUILD=1
 
 #------------------------------------------------------------------------------------
 # The following is the libtool / shared library version. This doesn't have to
@@ -24,9 +24,9 @@ LIBGIG_RELEASE_BUILD=0
 #  6. If any interfaces have been removed since the last public release, then set age
 #     to 0.
 
-LIBGIG_LT_CURRENT=6
+LIBGIG_LT_CURRENT=7
 LIBGIG_LT_REVISION=0
-LIBGIG_LT_AGE=0
+LIBGIG_LT_AGE=1
 SHARED_VERSION_INFO="$LIBGIG_LT_CURRENT:$LIBGIG_LT_REVISION:$LIBGIG_LT_AGE"
 
 

@@ -30,6 +30,4 @@ Gig Part:
   - low level optimization in decompression algorithm
   - optional writing of frame table to disk to speed up loading of compressed
     samples
-  - support for additional articulation informations introduced by the
-    Gigasampler v3 format
   - support for creating and modifying compressed samples

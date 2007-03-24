@@ -1,4 +1,4 @@
-Version CVS HEAD (?)
+Version 3.1.1 (24 Mar 2007)
 
   * packaging changes:
     - ported to Windows using native Windows functions for file IO

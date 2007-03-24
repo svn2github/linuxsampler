@@ -1,3 +1,9 @@
+Version 3.1.1 (24 Mar 2007)
+
+  This is a bugfix release, fixing one important bug regarding gig v3
+  support (custom split points) and a lot of bugs regarding .gig write
+  support. And this is the first official release for the Windows platform.
+
 Version 3.1.0 (24 Nov 2006)
 
   libgig's home has moved (slightly) from
