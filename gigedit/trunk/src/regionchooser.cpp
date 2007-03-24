@@ -20,7 +20,10 @@
 #include "regionchooser.h"
 #include <gdkmm/cursor.h>
 #include <gtkmm/stock.h>
+#include <gtkmm/spinbutton.h>
+#include <gtkmm/dialog.h>
 #include <libintl.h>
+#include <math.h>
 
 #define _(String) gettext(String)
 
@@ -422,6 +425,27 @@ sigc::signal<void> RegionChooser::signal_sel_changed()
 
 void RegionChooser::show_region_properties()
 {
+    if (!region) return;
+    Gtk::Dialog dialog("Region Properties", true /*modal*/);
+    // add "Keygroup" checkbox
+    Gtk::CheckButton checkBoxKeygroup("Member of a Keygroup (Exclusive Group)");
+    checkBoxKeygroup.set_active(region->KeyGroup);
+    dialog.get_vbox()->pack_start(checkBoxKeygroup);
+    checkBoxKeygroup.show();
+    // add "Keygroup" spinbox
+    Gtk::Adjustment adjustment(1, 1, pow(2,32));
+    Gtk::SpinButton spinBox(adjustment);
+    if (region->KeyGroup) spinBox.set_value(region->KeyGroup);
+    dialog.get_vbox()->pack_start(spinBox);
+    spinBox.show();
+    // add OK and CANCEL buttons to the dialog
+    dialog.add_button(Gtk::Stock::OK, 0);
+    dialog.add_button(Gtk::Stock::CANCEL, 1);
+    dialog.show_all_children();
+    if (!dialog.run()) { // OK selected ...
+        region->KeyGroup =
+            (checkBoxKeygroup.get_active()) ? spinBox.get_value_as_int() : 0;
+    }
 }
 
 void RegionChooser::add_region()
