@@ -26,6 +26,7 @@
 #include <gtkmm/label.h>
 #include <gtkmm/notebook.h>
 #include <gtkmm/table.h>
+#include <gtkmm/tooltips.h>
 
 #include "paramedit.h"
 
@@ -40,6 +41,8 @@ public:
     Gtk::Entry* wSample;
 
 protected:
+    Gtk::Tooltips tooltips;
+
     Gtk::Table* table[5];
 
     Gtk::Label* lSample;

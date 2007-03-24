@@ -192,6 +192,7 @@ DimRegionEdit::DimRegionEdit() :
 
     addString("Sample", lSample, wSample);
     //TODO: the following would break drag&drop:   wSample->property_editable().set_value(false);  or this:    wSample->set_editable(false);
+    tooltips.set_tip(*wSample, "drop a sample here");
     addHeader("EG1");
     addProp(eEG1PreAttack);
     addProp(eEG1Attack);
