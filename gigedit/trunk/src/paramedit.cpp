@@ -89,10 +89,43 @@ void NumEntryGain::value_changed()
 void NumEntryGain::set_dimreg(gig::DimensionRegion* dimreg)
 {
     this->dimreg = 0;
-    set_value(dimreg->Gain / -655360.0);
+    bool plus6 = dimreg->Gain < 0;
+    set_value(plus6 ? 0 : dimreg->Gain / -655360.0);
+    set_sensitive(!plus6);
     this->dimreg = dimreg;
 }
 
+
+BoolEntryPlus6::BoolEntryPlus6(char* labelText, NumEntryGain& eGain) :
+    LabelWidget(labelText, checkbutton),
+    eGain(eGain)
+{
+    checkbutton.signal_toggled().connect(
+        sigc::mem_fun(*this, &BoolEntryPlus6::value_changed));
+}
+
+void BoolEntryPlus6::value_changed()
+{
+    if (dimreg && update_gui) {
+        bool plus6 = checkbutton.get_active();
+        if (plus6) {
+            eGain.set_value(0);
+            dimreg->Gain = 6 * -655360;
+        } else {
+            if (dimreg->Gain < 0) {
+                dimreg->Gain = 0;
+            }
+        }
+        eGain.set_sensitive(!plus6);
+    }
+}
+
+void BoolEntryPlus6::set_dimreg(gig::DimensionRegion* dimreg)
+{
+    this->dimreg = 0;
+    checkbutton.set_active(dimreg->Gain < 0);
+    this->dimreg = dimreg;
+}
 
 NumEntryPermille::NumEntryPermille(char* labelText,
                                    uint16_t gig::DimensionRegion::* param,
@@ -161,28 +194,6 @@ bool NoteEntry::on_output()
     sprintf(buf, "%s%d", notes[x % 12], x / 12 - 1);
     spinbutton.set_text(buf);
     return true;
-}
-
-BoolEntry::BoolEntry(char* labelText, bool gig::DimensionRegion::* param) :
-    LabelWidget(labelText, checkbutton),
-    param(param)
-{
-    checkbutton.signal_toggled().connect(
-        sigc::mem_fun(*this, &BoolEntry::value_changed));
-}
-
-void BoolEntry::value_changed()
-{
-    if (dimreg && update_gui) {
-        dimreg->*param = checkbutton.get_active();
-    }
-}
-
-void BoolEntry::set_dimreg(gig::DimensionRegion* dimreg)
-{
-    this->dimreg = 0;
-    checkbutton.set_active(dimreg->*param);
-    this->dimreg = dimreg;
 }
 
 ChoiceEntryLeverageCtrl::ChoiceEntryLeverageCtrl(

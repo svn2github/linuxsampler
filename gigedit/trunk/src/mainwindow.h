@@ -63,6 +63,12 @@ protected:
     Gtk::Label label[10];
     Gtk::Entry entry[8];
     Gtk::CheckButton check[2];
+    NumEntryX<uint16_t, gig::Instrument> eMIDIBank;
+    NumEntryX<uint32_t, gig::Instrument> eMIDIProgram;
+    NumEntryTemp<int32_t, gig::Instrument> eAttenuation;
+    NumEntryTemp<uint16_t, gig::Instrument> eEffectSend;
+    NumEntryTemp<int16_t, gig::Instrument> eFineTune;
+    BoolEntry<gig::Instrument> ePianoReleaseMode;
 };
 
 class LoadDialog : public Gtk::Dialog {

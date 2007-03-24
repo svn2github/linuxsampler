@@ -613,10 +613,27 @@ void PropDialog::set_info(DLS::Info* info)
     entry[15].set_text(info->Subject);
 }
 
+namespace {
+    uint16_t& access_MIDIBank(gig::Instrument* instr)
+    {
+        // TODO: update MIDIBankCoarse/Fine too?
+        return instr->MIDIBank;
+    }
+    uint32_t& access_MIDIProgram(gig::Instrument* instr)
+    {
+        return instr->MIDIProgram;
+    }
+}
 
 InstrumentProps::InstrumentProps()
     : table(2,1),
-      quitButton(Gtk::Stock::CLOSE)
+      quitButton(Gtk::Stock::CLOSE),
+      eMIDIBank("MIDIBank", &access_MIDIBank, 0, 16383),
+      eMIDIProgram("MIDIProgram", &access_MIDIProgram),
+      eAttenuation("Attenuation", &gig::Instrument::Attenuation),
+      eEffectSend("EffectSend", &gig::Instrument::EffectSend, 0, 65536),
+      eFineTune("FineTune", &gig::Instrument::FineTune, -8400, 8400),
+      ePianoReleaseMode("PianoReleaseMode", &gig::Instrument::PianoReleaseMode)
 {
     table.set_col_spacings(5);
     char* propLabels[] = {
@@ -633,6 +650,15 @@ InstrumentProps::InstrumentProps()
     };
     int entryIdx = 0, checkIdx = 0;
     for (int i = 0 ; i < sizeof(propLabels) / sizeof(char*) ; i++) {
+#if 0
+        if (i == 3) {
+            table.attach(eMIDIProgram.label, 0, 1, i, i + 1,
+                         Gtk::FILL, Gtk::SHRINK);
+            table.attach(eMIDIProgram.widget, 1, 2, i, i + 1,
+                         Gtk::FILL | Gtk::EXPAND, Gtk::SHRINK);
+            continue;
+        }
+#endif
         label[i].set_text(propLabels[i]);
         label[i].set_alignment(Gtk::ALIGN_LEFT);
         table.attach(label[i], 0, 1, i, i + 1, Gtk::FILL, Gtk::SHRINK);

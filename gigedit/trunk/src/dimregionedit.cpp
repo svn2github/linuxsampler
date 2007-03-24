@@ -178,6 +178,7 @@ DimRegionEdit::DimRegionEdit() :
     eUnityNote("UnityNote", &access_UnityNote),
     eFineTune("FineTune", &access_FineTune, -49, 50),
     eGain("Gain", -96, 0, 2),
+    eGainPlus6("Gain +6dB", eGain),
     eSampleLoops("SampleLoops", &access_SampleLoops, 0, 1)
 {
     for (int i = 0 ; i < 5 ; i++) {
@@ -388,6 +389,7 @@ DimRegionEdit::DimRegionEdit() :
     addProp(eUnityNote);
     addProp(eFineTune);
     addProp(eGain);
+    addProp(eGainPlus6);
     addProp(eSampleLoops);
     nextPage();
 
@@ -582,6 +584,7 @@ void DimRegionEdit::set_dim_region(gig::DimensionRegion* d)
     eUnityNote.set_dimreg(d);
     eFineTune.set_dimreg(d);
     eGain.set_dimreg(d);
+    eGainPlus6.set_dimreg(d);
     eSampleLoops.set_dimreg(d);
 
     VCFEnabled_toggled();
