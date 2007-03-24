@@ -1,0 +1,19 @@
+Version 3.1.1 (24 Mar 2007)
+
+  This is a bugfix release, fixing one important bug regarding gig v3
+  support (custom split points) and a lot of bugs regarding .gig write
+  support. And this is the first official release for the Windows platform.
+
+Version 3.1.0 (24 Nov 2006)
+
+  libgig's home has moved (slightly) from
+  http://stud.fh-heilbronn.de/~cschoene/projects/libgig/ to
+  http://stud.hs-heilbronn.de/~cschoene/projects/libgig/, please update your
+  links and bookmarks! This is due to the recent renaming of the University
+  of Heilbronn, which kindly hosts this and other projects.
+
+Version 3.0.0 (28 Apr 2006)
+
+  This is the first release which allows to create new and modify existing
+  .gig files. Beside that it also includes another bunch of bug fixes and
+  Gigasampler v3 support improvements.
