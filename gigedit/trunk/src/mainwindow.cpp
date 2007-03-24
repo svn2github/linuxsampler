@@ -1130,16 +1130,13 @@ void MainWindow::sample_name_changed(const Gtk::TreeModel::Path& path,
     gig::Sample* sample = row[m_SamplesModel.m_col_sample];
     if (group) {
         group->Name = name;
-        std::cout << "Group name changed\n" << std::flush;
     } else if (sample) {
         sample->pInfo->Name = name.raw();
-        std::cout << "Sample name changed\n" << std::flush;
     }
 }
 
 void MainWindow::instrument_name_changed(const Gtk::TreeModel::Path& path,
                                          const Gtk::TreeModel::iterator& iter) {
-    std::cout << "Instrument name changed\n" << std::flush;
     if (!iter) return;
     Gtk::TreeModel::Row row = *iter;
     Glib::ustring name = row[m_Columns.m_col_name];

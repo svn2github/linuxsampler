@@ -7,22 +7,39 @@ msgid ""
 msgstr ""
 "Project-Id-Version: gigedit 0.0.3\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2007-03-05 21:50+0100\n"
-"PO-Revision-Date: 2007-03-05 21:51+0100\n"
+"POT-Creation-Date: 2007-03-24 14:09+0100\n"
+"PO-Revision-Date: 2007-03-24 14:17+0100\n"
 "Last-Translator: Andreas Persson\n"
 "Language-Team: Swedish\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: ../src/mainwindow.cpp:788
+#: ../src/mainwindow.cpp:85
 msgid "_File"
 msgstr "_Arkiv"
 
-#: ../src/mainwindow.cpp:819
+#: ../src/mainwindow.cpp:116
 msgid "_Instrument"
 msgstr "_Instrument"
 
-#: ../src/mainwindow.cpp:1239
+#: ../src/mainwindow.cpp:127
+msgid "Add _Instrument"
+msgstr "_Lägg till instrument"
+
+#: ../src/mainwindow.cpp:141
+msgid "Add _Group"
+msgstr "Lägg till _grupp"
+
+#: ../src/mainwindow.cpp:145
+msgid "Add _Sample(s)"
+msgstr "Lägg till _sampling(ar)"
+
+#: ../src/mainwindow.cpp:385
 msgid "Open file"
 msgstr "Öppna fil"
+
+#. show 'browse for file' dialog
+#: ../src/mainwindow.cpp:925
+msgid "Add Sample(s)"
+msgstr "Lägg till sampling(ar)"

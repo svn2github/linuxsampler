@@ -1,0 +1,14 @@
+Version 0.0.3 (2007-03-24)
+
+  First version of gigedit. The program is renamed from gigview to
+  gigedit as it is now an editor, not just a viewer. Basic support for
+  both editing existing gig files and creating new ones from scratch
+  is provided.
+
+Version 0.0.2 (2006-11-05)
+
+  Quick fix for a thread initialization problem.
+
+Version 0.0.1 (2006-11-05)
+
+  First version of gigview.
