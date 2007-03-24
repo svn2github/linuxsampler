@@ -16,7 +16,7 @@ IT_PROG_INTLTOOL(0.35.0)
 AM_GLIB_GNU_GETTEXT
 
 PKG_CHECK_MODULES(GTKMM, gtkmm-2.4 >= 2.6.1 gthread-2.0)
-PKG_CHECK_MODULES(GIG, gig >= 3.1.0)
+PKG_CHECK_MODULES(GIG, gig >= 3.1.1)
 
 # check for presence of libsndfile
 PKG_CHECK_MODULES(SNDFILE, sndfile >= 1.0.2)

@@ -1,9 +1,56 @@
-Gigedit is an editor for gig files. Gig files contain sampled
-instruments and are used by software samplers such as LinuxSampler and
-GigaStudio.
+Gigedit
+=======
 
-Note that this is an alpha version with a lot of functionality
-missing. It is currently not possible to create new instruments,
-regions and dimensions, which means that a new gig file cannot be
-created from scratch. Existing gig files can however be loaded,
-examined and parameters inside the dimension regions can be modified.
+Gigedit is an instrument editor for gig files. Gig files are
+used by software samplers such as LinuxSampler and GigaStudio.
+
+With gigedit it is possible to modify existing gig files and also to
+create completely new instruments from scratch.
+
+Please note that this is an alpha version that only includes the most
+basic features needed to create and edit gig files. There is still a
+lot to do, fix and improve.
+
+Be sure to backup your original gig files before editing them in
+gigedit.
+
+The latest version of gigedit can be found at:
+
+http://www.linuxsampler.org
+
+Questions, bug reports and suggestions can be sent to LinuxSampler
+developer's mailing list:
+
+linuxsampler-devel@lists.sourceforge.net
+
+
+License
+=======
+
+Gigedit is licensed under the GNU General Public License. See the file
+COPYING for details.
+
+
+Requirements
+============
+
+Gigedit requires gtkmm, libgig and libsndfile libraries.
+
+
+Installation
+============
+
+./configure
+make
+su -c "make install"
+
+See the file INSTALL for details.
+
+
+Building from CVS
+=================
+
+./autogen.sh
+./configure
+make
+su -c "make install"
