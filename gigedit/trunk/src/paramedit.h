@@ -88,6 +88,7 @@ public:
 
 template<typename T, typename T2 = gig::DimensionRegion>
 class NumEntryX : public NumEntry<T2> {
+protected:
     using NumEntry<T2>::spinbutton;
     using NumEntry<T2>::dimreg;
 private:

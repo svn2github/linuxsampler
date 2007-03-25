@@ -1,3 +1,7 @@
+Version CVS HEAD
+
+  * fixed compilation with older gcc versions
+
 Version 0.0.3 (2007-03-24)
 
   * first release of gigedit
