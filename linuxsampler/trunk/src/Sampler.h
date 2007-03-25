@@ -26,6 +26,7 @@
 
 #include <vector>
 #include <map>
+#include "EventListeners.h"
 #include "common/global.h"
 #include "common/Exception.h"
 #include "engines/EngineChannel.h"
@@ -149,6 +150,29 @@ namespace LinuxSampler {
              * Sampler instance.
              */
             uint Index();
+            
+            /**
+             * Registers the specified listener to be notified
+             * when the engine type of this sampler channel is changed.
+             */
+            void AddEngineChangeListener(EngineChangeListener* l);
+
+            /**
+             * Removes the specified listener.
+             */
+            void RemoveEngineChangeListener(EngineChangeListener* l);
+
+            /**
+             * Removes the specified listener.
+             */
+            void RemoveAllEngineChangeListeners();
+
+            /**
+             * Notifies listeners that the engine
+             * type of this sampler channel is changed.
+             */
+            void fireEngineChanged();
+
 
         protected:
             SamplerChannel(Sampler* pS);
@@ -167,6 +191,7 @@ namespace LinuxSampler {
         private:
             int                iMidiPort;   ///< Don't access directly, read GetMidiInputPort() instead !
             midi_chan_t        midiChannel; ///< Don't access directly, read GetMidiInputChannel() instead !
+            ListenerList<EngineChangeListener*> llEngineChangeListeners;
     };
 
     /** @brief LinuxSampler main class
@@ -283,6 +308,126 @@ namespace LinuxSampler {
             void RemoveSamplerChannel(uint uiSamplerChannel);
 
             /**
+             * Registers the specified listener to be notified
+             * when the number of sampler chanels is changed.
+             */
+            void AddChannelCountListener(ChannelCountListener* l);
+
+            /**
+             * Removes the specified listener.
+             */
+            void RemoveChannelCountListener(ChannelCountListener* l);
+
+            /**
+             * Registers the specified listener to be notified
+             * when the number of audio output devices is changed.
+             */
+            void AddAudioDeviceCountListener(AudioDeviceCountListener* l);
+
+            /**
+             * Removes the specified listener.
+             */
+            void RemoveAudioDeviceCountListener(AudioDeviceCountListener* l);
+
+            
+            /**
+             * Registers the specified listener to be notified
+             * when the number of MIDI input devices is changed.
+             */
+            void AddMidiDeviceCountListener(MidiDeviceCountListener* l);
+
+            /**
+             * Removes the specified listener.
+             */
+            void RemoveMidiDeviceCountListener(MidiDeviceCountListener* l);
+
+            /**
+             * Registers the specified listener to be notified when the number
+             * of active voices in a particular sampler channel is changed.
+             */
+            void AddVoiceCountListener(VoiceCountListener* l);
+
+            /**
+             * Removes the specified listener.
+             */
+            void RemoveVoiceCountListener(VoiceCountListener* l);
+
+            /**
+             * Notifies listeners that the number of active voices
+             * on the specified sampler channel is changed.
+             * @param ChannelId The numerical ID of the sampler channel.
+             * @param NewCount The new number of active voices.
+             */
+            void fireVoiceCountChanged(int ChannelId, int NewCount);
+
+            /**
+             * Registers the specified listener to be notified when the number
+             * of active disk streams in a particular sampler channel is changed.
+             */
+            void AddStreamCountListener(StreamCountListener* l);
+
+            /**
+             * Removes the specified listener.
+             */
+            void RemoveStreamCountListener(StreamCountListener* l);
+
+            /**
+             * Notifies listeners that the number of active disk streams
+             * on the specified sampler channel is changed.
+             * @param ChannelId The numerical ID of the sampler channel.
+             * @param NewCount The new number of active disk streams.
+             */
+            void fireStreamCountChanged(int ChannelId, int NewCount);
+
+            /**
+             * Registers the specified listener to be
+             * notified when the fill state of the disk stream
+             * buffers on a specific sampler channel is changed.
+             */
+            void AddBufferFillListener(BufferFillListener* l);
+
+            /**
+             * Removes the specified listener.
+             */
+            void RemoveBufferFillListener(BufferFillListener* l);
+
+            /**
+             * Notifies listeners that the fill state of the disk stream
+             * buffers on the specified sampler channel is changed.
+             * @param ChannelId The numerical ID of the sampler channel.
+             * @param FillData The buffer fill data for the specified sampler channel.
+             */
+            void fireBufferFillChanged(int ChannelId, String FillData);
+
+            /**
+             * Registers the specified listener to be notified
+             * when total number of active voices is changed.
+             */
+            void AddTotalVoiceCountListener(TotalVoiceCountListener* l);
+
+            /**
+             * Removes the specified listener.
+             */
+            void RemoveTotalVoiceCountListener(TotalVoiceCountListener* l);
+
+            /**
+             * Notifies listeners that the total number of active voices is changed.
+             * @param NewCount The new number of active voices.
+             */
+            void fireTotalVoiceCountChanged(int NewCount);
+
+            /**
+             * Registers the specified listener to be notified when the number
+             * of effect sends on a particular sampler channel is changed.
+             */
+            void AddFxSendCountListener(FxSendCountListener* l);
+
+            /**
+             * Removes the specified listener.
+             */
+            void RemoveFxSendCountListener(FxSendCountListener* l);
+
+            /**
              * Returns the names of all available audio output drivers.
              */
             std::vector<String> AvailableAudioOutputDrivers();
@@ -371,6 +516,32 @@ namespace LinuxSampler {
             void Reset();
 
         protected:
+            /**
+             * Notifies listeners that the number of sampler channels has been changed.
+             * @param NewCount The new number of sampler channels.
+             */
+            void fireChannelCountChanged(int NewCount);
+
+            /**
+             * Notifies listeners that the number of audio output devices has been changed.
+             * @param NewCount The new number of audio output devices.
+             */
+            void fireAudioDeviceCountChanged(int NewCount);
+
+            /**
+             * Notifies listeners that the number of MIDI input devices has been changed.
+             * @param NewCount The new number of MIDI input devices.
+             */
+            void fireMidiDeviceCountChanged(int NewCount);
+
+            /**
+             * Notifies listeners that the number of effect sends
+             * on a particular sampler channel is changed.
+             * @param ChannelId The numerical ID of the sampler channel.
+             * @param NewCount The new number of sampler channels.
+             */
+            void fireFxSendCountChanged(int ChannelId, int NewCount);
+
             typedef std::map<uint, AudioOutputDevice*> AudioOutputDeviceMap;
             typedef std::map<uint, MidiInputDevice*> MidiInputDeviceMap;
             typedef std::map<uint, SamplerChannel*> SamplerChannelMap;
@@ -380,6 +551,40 @@ namespace LinuxSampler {
             MidiInputDeviceMap    mMidiInputDevices;   ///< contains all created MIDI input devices
 
             friend class SamplerChannel;
+
+        private:
+            ListenerList<ChannelCountListener*> llChannelCountListeners;
+            ListenerList<AudioDeviceCountListener*> llAudioDeviceCountListeners;
+            ListenerList<MidiDeviceCountListener*> llMidiDeviceCountListeners;
+            ListenerList<VoiceCountListener*> llVoiceCountListeners;
+            ListenerList<StreamCountListener*> llStreamCountListeners;
+            ListenerList<BufferFillListener*> llBufferFillListeners;
+            ListenerList<TotalVoiceCountListener*> llTotalVoiceCountListeners;
+            ListenerList<FxSendCountListener*> llFxSendCountListeners;
+
+            class EventHandler : public EngineChangeListener, public FxSendCountListener {
+                public:
+                    void SetSampler(Sampler* pSampler) { this->pSampler = pSampler; }
+
+                    /**
+                     * Invoked when the engine type of the
+                     * specified sampler channel is changed.
+                     * @param ChannelId The numerical ID of the sampler
+                     * channel, which engine type has been changed.
+                     */
+                    virtual void EngineChanged(int ChannelId);
+
+                    /**
+                     * Invoked when the number of effect sends
+                     * on the specified sampler channel has changed.
+                     * @param ChannelId The numerical ID of the sampler channel.
+                     * @param NewCount The new number of effect sends.
+                     */
+                    virtual void FxSendCountChanged(int ChannelId, int NewCount);
+
+                private:
+                    Sampler* pSampler;
+            } eventHandler;
     };
 }
 

@@ -91,6 +91,55 @@ LSCPServer::~LSCPServer() {
     if (hSocket >= 0) close(hSocket);
 }
 
+void LSCPServer::LscpChannelCountListener::ChannelCountChanged(int NewCount) {
+    LSCPServer::SendLSCPNotify(LSCPEvent(LSCPEvent::event_channel_count, NewCount));
+}
+
+void LSCPServer::LscpAudioDeviceCountListener::AudioDeviceCountChanged(int NewCount) {
+    LSCPServer::SendLSCPNotify(LSCPEvent(LSCPEvent::event_audio_device_count, NewCount));
+}
+
+void LSCPServer::LscpMidiDeviceCountListener::MidiDeviceCountChanged(int NewCount) {
+    LSCPServer::SendLSCPNotify(LSCPEvent(LSCPEvent::event_midi_device_count, NewCount));
+}
+
+void LSCPServer::LscpMidiInstrumentCountListener::MidiInstrumentCountChanged(int MapId, int NewCount) {
+    LSCPServer::SendLSCPNotify(LSCPEvent(LSCPEvent::event_midi_instr_count, MapId, NewCount));
+}
+
+void LSCPServer::LscpMidiInstrumentInfoListener::MidiInstrumentInfoChanged(int MapId, int Bank, int Program) {
+    LSCPServer::SendLSCPNotify(LSCPEvent(LSCPEvent::event_midi_instr_info, MapId, Bank, Program));
+}
+
+void LSCPServer::LscpMidiInstrumentMapCountListener::MidiInstrumentMapCountChanged(int NewCount) {
+    LSCPServer::SendLSCPNotify(LSCPEvent(LSCPEvent::event_midi_instr_map_count, NewCount));
+}
+
+void LSCPServer::LscpMidiInstrumentMapInfoListener::MidiInstrumentMapInfoChanged(int MapId) {
+    LSCPServer::SendLSCPNotify(LSCPEvent(LSCPEvent::event_midi_instr_map_info, MapId));
+}
+
+void LSCPServer::LscpFxSendCountListener::FxSendCountChanged(int ChannelId, int NewCount) {
+    LSCPServer::SendLSCPNotify(LSCPEvent(LSCPEvent::event_fx_send_count, ChannelId, NewCount));
+}
+
+void LSCPServer::LscpVoiceCountListener::VoiceCountChanged(int ChannelId, int NewCount) {
+    LSCPServer::SendLSCPNotify(LSCPEvent(LSCPEvent::event_voice_count, ChannelId, NewCount));
+}
+
+void LSCPServer::LscpStreamCountListener::StreamCountChanged(int ChannelId, int NewCount) {
+    LSCPServer::SendLSCPNotify(LSCPEvent(LSCPEvent::event_stream_count, ChannelId, NewCount));
+}
+
+void LSCPServer::LscpBufferFillListener::BufferFillChanged(int ChannelId, String FillData) {
+    LSCPServer::SendLSCPNotify(LSCPEvent(LSCPEvent::event_buffer_fill, ChannelId, FillData));
+}
+
+void LSCPServer::LscpTotalVoiceCountListener::TotalVoiceCountChanged(int NewCount) {
+    LSCPServer::SendLSCPNotify(LSCPEvent(LSCPEvent::event_total_voice_count, NewCount));
+}
+
+
 /**
  * Blocks the calling thread until the LSCP Server is initialized and
  * accepting socket connections, if the server is already initialized then
@@ -131,6 +180,20 @@ int LSCPServer::Main() {
 
     listen(hSocket, 1);
     Initialized.Set(true);
+    
+    // Registering event listeners
+    pSampler->AddChannelCountListener(&channelCountListener);
+    pSampler->AddAudioDeviceCountListener(&audioDeviceCountListener);
+    pSampler->AddMidiDeviceCountListener(&midiDeviceCountListener);
+    pSampler->AddVoiceCountListener(&voiceCountListener);
+    pSampler->AddStreamCountListener(&streamCountListener);
+    pSampler->AddBufferFillListener(&bufferFillListener);
+    pSampler->AddTotalVoiceCountListener(&totalVoiceCountListener);
+    pSampler->AddFxSendCountListener(&fxSendCountListener);
+    MidiInstrumentMapper::AddMidiInstrumentCountListener(&midiInstrumentCountListener);
+    MidiInstrumentMapper::AddMidiInstrumentInfoListener(&midiInstrumentInfoListener);
+    MidiInstrumentMapper::AddMidiInstrumentMapCountListener(&midiInstrumentMapCountListener);
+    MidiInstrumentMapper::AddMidiInstrumentMapInfoListener(&midiInstrumentMapInfoListener);
 
     // now wait for client connections and handle their requests
     sockaddr_in client;
@@ -682,7 +745,7 @@ String LSCPServer::GetChannelInfo(uint uiSamplerChannel) {
         String AudioRouting;
         int Mute = 0;
         bool Solo = false;
-        String MidiInstrumentMap;
+        String MidiInstrumentMap = "NONE";
 
         if (pEngineChannel) {
             EngineName          = pEngineChannel->EngineName();

@@ -163,10 +163,10 @@ int main(int argc, char **argv) {
               if (!pEngineChannel) continue;
               Engine* pEngine = pEngineChannel->GetEngine();
               if (!pEngine) continue;
-              LSCPServer::SendLSCPNotify(LSCPEvent(LSCPEvent::event_voice_count, iter->first, pEngine->VoiceCount()));
-              LSCPServer::SendLSCPNotify(LSCPEvent(LSCPEvent::event_stream_count, iter->first, pEngine->DiskStreamCount()));
-              LSCPServer::SendLSCPNotify(LSCPEvent(LSCPEvent::event_buffer_fill, iter->first, pEngine->DiskStreamBufferFillPercentage()));
-              LSCPServer::SendLSCPNotify(LSCPEvent(LSCPEvent::event_total_voice_count, pSampler->GetVoiceCount()));
+              pSampler->fireVoiceCountChanged(iter->first, pEngine->VoiceCount());
+              pSampler->fireStreamCountChanged(iter->first, pEngine->DiskStreamCount());
+              pSampler->fireBufferFillChanged(iter->first, pEngine->DiskStreamBufferFillPercentage());
+              pSampler->fireTotalVoiceCountChanged(pSampler->GetVoiceCount());
           }
           LSCPServer::UnlockRTNotify();
       }

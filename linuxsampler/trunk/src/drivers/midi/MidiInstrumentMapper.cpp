@@ -23,7 +23,6 @@
 #include "../../common/Mutex.h"
 #include "../../engines/EngineFactory.h"
 #include "../../engines/Engine.h"
-#include "../../network/lscpserver.h"
 
 namespace LinuxSampler {
 
@@ -48,6 +47,67 @@ namespace LinuxSampler {
     // for synchronization of midiMaps
     Mutex midiMapsMutex;
 
+
+    ListenerList<MidiInstrumentCountListener*> MidiInstrumentMapper::llMidiInstrumentCountListeners;
+    ListenerList<MidiInstrumentInfoListener*> MidiInstrumentMapper::llMidiInstrumentInfoListeners;
+    ListenerList<MidiInstrumentMapCountListener*> MidiInstrumentMapper::llMidiInstrumentMapCountListeners;
+    ListenerList<MidiInstrumentMapInfoListener*> MidiInstrumentMapper::llMidiInstrumentMapInfoListeners;
+    
+    void MidiInstrumentMapper::AddMidiInstrumentCountListener(MidiInstrumentCountListener* l) {
+        llMidiInstrumentCountListeners.AddListener(l);
+    }
+
+    void MidiInstrumentMapper::RemoveMidiInstrumentCountListener(MidiInstrumentCountListener* l) {
+        llMidiInstrumentCountListeners.RemoveListener(l);
+    }
+
+    void MidiInstrumentMapper::fireMidiInstrumentCountChanged(int MapId, int NewCount) {
+        for (int i = 0; i < llMidiInstrumentCountListeners.GetListenerCount(); i++) {
+            llMidiInstrumentCountListeners.GetListener(i)->MidiInstrumentCountChanged(MapId, NewCount);
+        }
+    }
+
+    void MidiInstrumentMapper::AddMidiInstrumentInfoListener(MidiInstrumentInfoListener* l) {
+        llMidiInstrumentInfoListeners.AddListener(l);
+    }
+
+    void MidiInstrumentMapper::RemoveMidiInstrumentInfoListener(MidiInstrumentInfoListener* l) {
+        llMidiInstrumentInfoListeners.RemoveListener(l);
+    }
+
+    void MidiInstrumentMapper::fireMidiInstrumentInfoChanged(int MapId, int Bank, int Program) {
+        for (int i = 0; i < llMidiInstrumentInfoListeners.GetListenerCount(); i++) {
+            llMidiInstrumentInfoListeners.GetListener(i)->MidiInstrumentInfoChanged(MapId, Bank, Program);
+        }
+    }
+
+    void MidiInstrumentMapper::AddMidiInstrumentMapCountListener(MidiInstrumentMapCountListener* l) {
+        llMidiInstrumentMapCountListeners.AddListener(l);
+    }
+
+    void MidiInstrumentMapper::RemoveMidiInstrumentMapCountListener(MidiInstrumentMapCountListener* l) {
+        llMidiInstrumentMapCountListeners.RemoveListener(l);
+    }
+
+    void MidiInstrumentMapper::fireMidiInstrumentMapCountChanged(int NewCount) {
+        for (int i = 0; i < llMidiInstrumentMapCountListeners.GetListenerCount(); i++) {
+            llMidiInstrumentMapCountListeners.GetListener(i)->MidiInstrumentMapCountChanged(NewCount);
+        }
+    }
+
+    void MidiInstrumentMapper::AddMidiInstrumentMapInfoListener(MidiInstrumentMapInfoListener* l) {
+        llMidiInstrumentMapInfoListeners.AddListener(l);
+    }
+
+    void MidiInstrumentMapper::RemoveMidiInstrumentMapInfoListener(MidiInstrumentMapInfoListener* l) {
+        llMidiInstrumentMapInfoListeners.RemoveListener(l);
+    }
+
+    void MidiInstrumentMapper::fireMidiInstrumentMapInfoChanged(int MapId) {
+        for (int i = 0; i < llMidiInstrumentMapInfoListeners.GetListenerCount(); i++) {
+            llMidiInstrumentMapInfoListeners.GetListener(i)->MidiInstrumentMapInfoChanged(MapId);
+        }
+    }
 
     void MidiInstrumentMapper::AddOrReplaceEntry(int Map, midi_prog_index_t Index, entry_t Entry, bool bInBackground) throw (Exception) {
         if (bInBackground) {
@@ -119,9 +179,9 @@ namespace LinuxSampler {
         
         if (Replaced) {
             int Bank = (int(Index.midi_bank_msb) << 7) & int(Index.midi_bank_lsb);
-            LSCPServer::SendLSCPNotify(LSCPEvent(LSCPEvent::event_midi_instr_info, Map, Bank, Index.midi_prog));
+            fireMidiInstrumentInfoChanged(Map, Bank, Index.midi_prog);
         } else {
-            LSCPServer::SendLSCPNotify(LSCPEvent(LSCPEvent::event_midi_instr_count, Map, InstrCount));
+            fireMidiInstrumentCountChanged(Map, InstrCount);
         }
     }
 
@@ -137,7 +197,7 @@ namespace LinuxSampler {
         midiMapsMutex.Unlock();
         
         if (InstrCount != -1) {
-            LSCPServer::SendLSCPNotify(LSCPEvent(LSCPEvent::event_midi_instr_count, Map, InstrCount));
+            fireMidiInstrumentCountChanged(Map, InstrCount);
         }
     }
 
@@ -153,7 +213,7 @@ namespace LinuxSampler {
         midiMapsMutex.Unlock();
         
         if (InstrCount != -1) {
-            LSCPServer::SendLSCPNotify(LSCPEvent(LSCPEvent::event_midi_instr_count, Map, InstrCount));
+            fireMidiInstrumentCountChanged(Map, InstrCount);
         }
     }
 
@@ -242,7 +302,7 @@ namespace LinuxSampler {
         midiMaps[ID].name = MapName;
         midiMapsMutex.Unlock();
 
-        LSCPServer::SendLSCPNotify(LSCPEvent(LSCPEvent::event_midi_instr_map_count, Maps().size()));
+        fireMidiInstrumentMapCountChanged(Maps().size());
         return ID;
     }
 
@@ -268,21 +328,21 @@ namespace LinuxSampler {
         }
         iterMap->second.name = NewName;
         midiMapsMutex.Unlock();
-        LSCPServer::SendLSCPNotify(LSCPEvent(LSCPEvent::event_midi_instr_map_info, Map));
+        fireMidiInstrumentMapInfoChanged(Map);
     }
 
     void MidiInstrumentMapper::RemoveMap(int Map) {
         midiMapsMutex.Lock();
         midiMaps.erase(Map);
         midiMapsMutex.Unlock();
-        LSCPServer::SendLSCPNotify(LSCPEvent(LSCPEvent::event_midi_instr_map_count, Maps().size()));
+        fireMidiInstrumentMapCountChanged(Maps().size());
     }
 
     void MidiInstrumentMapper::RemoveAllMaps() {
         midiMapsMutex.Lock();
         midiMaps.clear();
         midiMapsMutex.Unlock();
-        LSCPServer::SendLSCPNotify(LSCPEvent(LSCPEvent::event_midi_instr_map_count, Maps().size()));
+        fireMidiInstrumentMapCountChanged(Maps().size());
     }
 
     optional<MidiInstrumentMapper::entry_t> MidiInstrumentMapper::GetEntry(int Map, midi_prog_index_t Index) {

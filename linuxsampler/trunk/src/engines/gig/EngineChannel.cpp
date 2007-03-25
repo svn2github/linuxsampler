@@ -22,7 +22,6 @@
  ***************************************************************************/
 
 #include "EngineChannel.h"
-#include "../../network/lscpserver.h"
 
 namespace LinuxSampler { namespace gig {
 
@@ -389,7 +388,8 @@ namespace LinuxSampler { namespace gig {
         }
         fxSends.push_back(pFxSend);
         if (pEngine) pEngine->Enable();
-        LSCPServer::SendLSCPNotify(LSCPEvent(LSCPEvent::event_fx_send_count, iSamplerChannelIndex, GetFxSendCount()));
+        fireFxSendCountChanged(iSamplerChannelIndex, GetFxSendCount());
+        
         return pFxSend;
     }
 
@@ -427,7 +427,7 @@ namespace LinuxSampler { namespace gig {
             }
         }
         if (pEngine) pEngine->Enable();
-        LSCPServer::SendLSCPNotify(LSCPEvent(LSCPEvent::event_fx_send_count, iSamplerChannelIndex, GetFxSendCount()));
+        fireFxSendCountChanged(iSamplerChannelIndex, GetFxSendCount());
     }
 
     /**

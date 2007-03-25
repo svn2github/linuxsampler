@@ -21,6 +21,7 @@
 #ifndef __LS_ENGINECHANNEL_H__
 #define __LS_ENGINECHANNEL_H__
 
+#include "../EventListeners.h"
 #include "../drivers/audio/AudioOutputDevice.h"
 #include "../drivers/midi/midi.h"
 #include "../drivers/midi/MidiInputDevice.h"
@@ -241,6 +242,22 @@ namespace LinuxSampler {
              * Reset to no RPN controller currently selected.
              */
             void ResetMidiRpnController();
+            
+             /**
+             * Registers the specified listener to be notified when the number
+             * of effect sends on this channel is changed.
+             */
+            void AddFxSendCountListener(FxSendCountListener* l);
+
+            /**
+             * Removes the specified listener.
+             */
+            void RemoveFxSendCountListener(FxSendCountListener* l);
+
+            /**
+             * Removes all listeners.
+             */
+            void RemoveAllFxSendCountListeners();
 
             /**
              * Get currently selected MIDI Registered Parameter Number
@@ -262,6 +279,15 @@ namespace LinuxSampler {
         protected:
             EngineChannel();
             virtual ~EngineChannel() {}; // MUST only be destroyed by EngineChannelFactory
+
+            /**
+             * Notifies listeners that the number of effect sends
+             * on a this channel is changed.
+             * @param ChannelId The numerical ID of the sampler channel.
+             * @param NewCount The new number of sampler channels.
+             */
+            void fireFxSendCountChanged(int ChannelId, int NewCount);
+
             friend class EngineChannelFactory;
 
         private:
@@ -277,6 +303,7 @@ namespace LinuxSampler {
             bool    bProgramChangeReceived;
             bool    bMidiRpnReceived;
             int     iMidiInstrumentMap;
+            ListenerList<FxSendCountListener*> llFxSendCountListeners;
     };
 
 } // namespace LinuxSampler

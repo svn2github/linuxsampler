@@ -31,6 +31,7 @@ Version CVS HEAD (?)
       (i.e. jack-rack), the send levels are controllable via arbitrary MIDI
       controllers
     - global (sampler wide) volume can now be controlled at runtime
+    - Implemented new, improved notification system
 
   * MIDI driver:
     - dispatch bank select (MSB and LSB) messages

@@ -178,4 +178,22 @@ namespace LinuxSampler {
         return (bMidiRpnReceived) ? (uiMidiRpnMsb << 8) | uiMidiRpnLsb : -1;
     }
 
+    void EngineChannel::AddFxSendCountListener(FxSendCountListener* l) {
+        llFxSendCountListeners.AddListener(l);
+    }
+
+    void EngineChannel::RemoveFxSendCountListener(FxSendCountListener* l) {
+        llFxSendCountListeners.RemoveListener(l);
+    }
+
+    void EngineChannel::RemoveAllFxSendCountListeners() {
+        llFxSendCountListeners.RemoveAllListeners();
+    }
+
+    void EngineChannel::fireFxSendCountChanged(int ChannelId, int NewCount) {
+        for (int i = 0; i < llFxSendCountListeners.GetListenerCount(); i++) {
+            llFxSendCountListeners.GetListener(i)->FxSendCountChanged(ChannelId, NewCount);
+        }
+    }
+
 } // namespace LinuxSampler

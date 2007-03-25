@@ -21,12 +21,13 @@
 #ifndef __LS_MIDIINSTRUMENTMAPPER_H__
 #define __LS_MIDIINSTRUMENTMAPPER_H__
 
+#include <map>
+
+#include "midi.h"
+#include "../../EventListeners.h"
 #include "../../common/global.h"
 #include "../../common/optional.h"
-#include "midi.h"
 #include "../../engines/InstrumentManager.h"
-
-#include <map>
 
 namespace LinuxSampler {
 
@@ -70,6 +71,50 @@ namespace LinuxSampler {
                 float  Volume;          ///< Global volume factor for this instrument.
                 String Name;            ///< Display name that should be associated with this mapping entry.
             };
+
+            /**
+             * Registers the specified listener to be notified when the number
+             * of MIDI instruments on a particular MIDI instrument map is changed.
+             */
+            static void AddMidiInstrumentCountListener(MidiInstrumentCountListener* l);
+
+            /**
+             * Removes the specified listener.
+             */
+            static void RemoveMidiInstrumentCountListener(MidiInstrumentCountListener* l);
+
+            /**
+             * Registers the specified listener to be notified when
+             * a MIDI instrument in a MIDI instrument map is changed.
+             */
+            static void AddMidiInstrumentInfoListener(MidiInstrumentInfoListener* l);
+
+            /**
+             * Removes the specified listener.
+             */
+            static void RemoveMidiInstrumentInfoListener(MidiInstrumentInfoListener* l);
+
+            /**
+             * Registers the specified listener to be notified
+             * when the number of MIDI instrument maps is changed.
+             */
+            static void AddMidiInstrumentMapCountListener(MidiInstrumentMapCountListener* l);
+
+            /**
+             * Removes the specified listener.
+             */
+            static void RemoveMidiInstrumentMapCountListener(MidiInstrumentMapCountListener* l);
+
+            /**
+             * Registers the specified listener to be notified when
+             * the settings of a MIDI instrument map are changed.
+             */
+            static void AddMidiInstrumentMapInfoListener(MidiInstrumentMapInfoListener* l);
+
+            /**
+             * Removes the specified listener.
+             */
+            static void RemoveMidiInstrumentMapInfoListener(MidiInstrumentMapInfoListener* l);
 
             /**
              * Adds a new entry to the given MIDI instrument map in case
@@ -169,8 +214,42 @@ namespace LinuxSampler {
             static void RemoveAllMaps();
 
         protected:
+            /**
+             * Notifies listeners that the number of MIDI instruments
+             * on the specified MIDI instrument map has been changed.
+             * @param MapId The numerical ID of the MIDI instrument map.
+             * @param NewCount The new number of MIDI instruments.
+             */
+            static void fireMidiInstrumentCountChanged(int MapId, int NewCount);
+
+            /**
+             * Notifies listeners that a MIDI instrument
+             * in a MIDI instrument map is changed.
+             * @param MapId The numerical ID of the MIDI instrument map.
+             * @param Bank The index of the MIDI bank, containing the instrument.
+             * @param Program The MIDI program number of the instrument.
+             */
+            static void fireMidiInstrumentInfoChanged(int MapId, int Bank, int Program);
+
+             /**
+             * Notifies listeners that the number of MIDI instrument maps has been changed.
+             * @param NewCount The new number of MIDI instrument maps.
+             */
+            static void fireMidiInstrumentMapCountChanged(int NewCount);
+
+            /**
+             * Notifies listeners that the settings of a MIDI instrument map are changed.
+             */
+            static void fireMidiInstrumentMapInfoChanged(int MapId);
+
             static optional<entry_t> GetEntry(int Map, midi_prog_index_t Index); // shall only be used by MidiInputPort ATM (see source comment)
             friend class MidiInputPort; // allow MidiInputPort to access GetEntry()
+
+        private:
+            static ListenerList<MidiInstrumentCountListener*> llMidiInstrumentCountListeners;
+            static ListenerList<MidiInstrumentInfoListener*> llMidiInstrumentInfoListeners;
+            static ListenerList<MidiInstrumentMapCountListener*> llMidiInstrumentMapCountListeners;
+            static ListenerList<MidiInstrumentMapInfoListener*> llMidiInstrumentMapInfoListeners;
     };
 
 } // namespace LinuxSampler

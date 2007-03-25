@@ -30,7 +30,6 @@
 #include "drivers/audio/AudioOutputDeviceFactory.h"
 #include "drivers/midi/MidiInputDeviceFactory.h"
 #include "drivers/midi/MidiInstrumentMapper.h"
-#include "network/lscpserver.h"
 
 namespace LinuxSampler {
 
@@ -104,7 +103,7 @@ namespace LinuxSampler {
         this->iMidiPort        = 0;
 
         pEngineChannel->StatusChanged(true);
-
+        fireEngineChanged();
         dmsg(2,("OK\n"));
     }
 
@@ -205,6 +204,24 @@ namespace LinuxSampler {
         throw Exception("Internal error: SamplerChannel index not found");
     }
 
+    void SamplerChannel::AddEngineChangeListener(EngineChangeListener* l) {
+        llEngineChangeListeners.AddListener(l);
+    }
+
+    void SamplerChannel::RemoveEngineChangeListener(EngineChangeListener* l) {
+       llEngineChangeListeners.RemoveListener(l);
+    }
+
+    void SamplerChannel::RemoveAllEngineChangeListeners() {
+       llEngineChangeListeners.RemoveAllListeners();
+    }
+
+    void SamplerChannel::fireEngineChanged() {
+        for (int i = 0; i < llEngineChangeListeners.GetListenerCount(); i++) {
+            llEngineChangeListeners.GetListener(i)->EngineChanged(Index());
+        }
+    }
+
     MidiInputPort* SamplerChannel::__GetMidiInputDevicePort(int iMidiPort) {
         MidiInputPort* pMidiInputPort = NULL;
         MidiInputDevice* pMidiInputDevice = GetMidiInputDevice();
@@ -219,6 +236,7 @@ namespace LinuxSampler {
     // * Sampler
 
     Sampler::Sampler() {
+        eventHandler.SetSampler(this);
     }
 
     Sampler::~Sampler() {
@@ -229,12 +247,136 @@ namespace LinuxSampler {
         return mSamplerChannels.size();
     }
 
+    void Sampler::AddChannelCountListener(ChannelCountListener* l) {
+        llChannelCountListeners.AddListener(l);
+    }
+
+    void Sampler::RemoveChannelCountListener(ChannelCountListener* l) {
+       llChannelCountListeners.RemoveListener(l);
+    }
+
+    void Sampler::fireChannelCountChanged(int NewCount) {
+        for (int i = 0; i < llChannelCountListeners.GetListenerCount(); i++) {
+            llChannelCountListeners.GetListener(i)->ChannelCountChanged(NewCount);
+        }
+    }
+
+    void Sampler::AddAudioDeviceCountListener(AudioDeviceCountListener* l) {
+        llAudioDeviceCountListeners.AddListener(l);
+    }
+
+    void Sampler::RemoveAudioDeviceCountListener(AudioDeviceCountListener* l) {
+        llAudioDeviceCountListeners.RemoveListener(l);
+    }
+
+    void Sampler::fireAudioDeviceCountChanged(int NewCount) {
+        for (int i = 0; i < llAudioDeviceCountListeners.GetListenerCount(); i++) {
+            llAudioDeviceCountListeners.GetListener(i)->AudioDeviceCountChanged(NewCount);
+        }
+    }
+
+    void Sampler::AddMidiDeviceCountListener(MidiDeviceCountListener* l) {
+        llMidiDeviceCountListeners.AddListener(l);
+    }
+
+    void Sampler::RemoveMidiDeviceCountListener(MidiDeviceCountListener* l) {
+        llMidiDeviceCountListeners.RemoveListener(l);
+    }
+
+    void Sampler::fireMidiDeviceCountChanged(int NewCount) {
+        for (int i = 0; i < llMidiDeviceCountListeners.GetListenerCount(); i++) {
+            llMidiDeviceCountListeners.GetListener(i)->MidiDeviceCountChanged(NewCount);
+        }
+    }
+
+    void Sampler::AddVoiceCountListener(VoiceCountListener* l) {
+        llVoiceCountListeners.AddListener(l);
+    }
+
+    void Sampler::RemoveVoiceCountListener(VoiceCountListener* l) {
+        llVoiceCountListeners.RemoveListener(l);
+    }
+
+    void Sampler::fireVoiceCountChanged(int ChannelId, int NewCount) {
+        for (int i = 0; i < llVoiceCountListeners.GetListenerCount(); i++) {
+            llVoiceCountListeners.GetListener(i)->VoiceCountChanged(ChannelId, NewCount);
+        }
+    }
+
+    void Sampler::AddStreamCountListener(StreamCountListener* l) {
+        llStreamCountListeners.AddListener(l);
+    }
+
+    void Sampler::RemoveStreamCountListener(StreamCountListener* l) {
+        llStreamCountListeners.RemoveListener(l);
+    }
+
+    void Sampler::fireStreamCountChanged(int ChannelId, int NewCount) {
+        for (int i = 0; i < llStreamCountListeners.GetListenerCount(); i++) {
+            llStreamCountListeners.GetListener(i)->StreamCountChanged(ChannelId, NewCount);
+        }
+    }
+
+    void Sampler::AddBufferFillListener(BufferFillListener* l) {
+        llBufferFillListeners.AddListener(l);
+    }
+
+    void Sampler::RemoveBufferFillListener(BufferFillListener* l) {
+        llBufferFillListeners.RemoveListener(l);
+    }
+
+    void Sampler::fireBufferFillChanged(int ChannelId, String FillData) {
+        for (int i = 0; i < llBufferFillListeners.GetListenerCount(); i++) {
+            llBufferFillListeners.GetListener(i)->BufferFillChanged(ChannelId, FillData);
+        }
+    }
+
+    void Sampler::AddTotalVoiceCountListener(TotalVoiceCountListener* l) {
+        llTotalVoiceCountListeners.AddListener(l);
+    }
+
+    void Sampler::RemoveTotalVoiceCountListener(TotalVoiceCountListener* l) {
+        llTotalVoiceCountListeners.RemoveListener(l);
+    }
+
+    void Sampler::fireTotalVoiceCountChanged(int NewCount) {
+        for (int i = 0; i < llTotalVoiceCountListeners.GetListenerCount(); i++) {
+            llTotalVoiceCountListeners.GetListener(i)->TotalVoiceCountChanged(NewCount);
+        }
+    }
+
+    void Sampler::AddFxSendCountListener(FxSendCountListener* l) {
+        llFxSendCountListeners.AddListener(l);
+    }
+
+    void Sampler::RemoveFxSendCountListener(FxSendCountListener* l) {
+        llFxSendCountListeners.RemoveListener(l);
+    }
+
+    void Sampler::fireFxSendCountChanged(int ChannelId, int NewCount) {
+        for (int i = 0; i < llFxSendCountListeners.GetListenerCount(); i++) {
+            llFxSendCountListeners.GetListener(i)->FxSendCountChanged(ChannelId, NewCount);
+        }
+    }
+
+    void Sampler::EventHandler::EngineChanged(int ChannelId) {
+        EngineChannel* engineChannel = pSampler->GetSamplerChannel(ChannelId)->GetEngineChannel();
+        if(engineChannel == NULL) return;
+        engineChannel->AddFxSendCountListener(this);
+    }
+
+    void Sampler::EventHandler::FxSendCountChanged(int ChannelId, int NewCount) {
+        pSampler->fireFxSendCountChanged(ChannelId, NewCount);
+    }
+
+
     SamplerChannel* Sampler::AddSamplerChannel() {
         // if there's no sampler channel yet
         if (!mSamplerChannels.size()) {
             SamplerChannel* pChannel = new SamplerChannel(this);
             mSamplerChannels[0] = pChannel;
-	    LSCPServer::SendLSCPNotify(LSCPEvent(LSCPEvent::event_channel_count, 1));
+            fireChannelCountChanged(1);
+            pChannel->AddEngineChangeListener(&eventHandler);
             return pChannel;
         }
 
@@ -249,7 +391,8 @@ namespace LinuxSampler {
                 // we found an unused index, so insert the new channel there
                 SamplerChannel* pChannel = new SamplerChannel(this);
                 mSamplerChannels[i] = pChannel;
-		LSCPServer::SendLSCPNotify(LSCPEvent(LSCPEvent::event_channel_count, i));
+                fireChannelCountChanged(SamplerChannels());
+                pChannel->AddEngineChangeListener(&eventHandler);
                 return pChannel;
             }
             throw Exception("Internal error: could not find unoccupied sampler channel index.");
@@ -258,7 +401,8 @@ namespace LinuxSampler {
         // we have not reached the index limit so we just add the channel past the highest index
         SamplerChannel* pChannel = new SamplerChannel(this);
         mSamplerChannels[lastIndex + 1] = pChannel;
-	LSCPServer::SendLSCPNotify(LSCPEvent(LSCPEvent::event_channel_count, lastIndex + 1));
+        fireChannelCountChanged(SamplerChannels());
+        pChannel->AddEngineChangeListener(&eventHandler);
         return pChannel;
     }
 
@@ -274,9 +418,10 @@ namespace LinuxSampler {
         SamplerChannelMap::iterator iterChan = mSamplerChannels.begin();
         for (; iterChan != mSamplerChannels.end(); iterChan++) {
             if (iterChan->second == pSamplerChannel) {
+                pSamplerChannel->RemoveAllEngineChangeListeners();
                 mSamplerChannels.erase(iterChan);
                 delete pSamplerChannel;
-		LSCPServer::SendLSCPNotify(LSCPEvent(LSCPEvent::event_channel_count, mSamplerChannels.size()));
+                fireChannelCountChanged(SamplerChannels());
                 return;
             }
         }
@@ -312,7 +457,7 @@ namespace LinuxSampler {
             }
         }
 
-        LSCPServer::SendLSCPNotify(LSCPEvent(LSCPEvent::event_audio_device_count, AudioOutputDevices()));
+        fireAudioDeviceCountChanged(AudioOutputDevices());
         return pDevice;
     }
 
@@ -349,7 +494,7 @@ namespace LinuxSampler {
                 // destroy and free device from memory
                 delete pDevice;
 
-                LSCPServer::SendLSCPNotify(LSCPEvent(LSCPEvent::event_audio_device_count, AudioOutputDevices()));
+                fireAudioDeviceCountChanged(AudioOutputDevices());
                 break;
             }
         }
@@ -372,7 +517,7 @@ namespace LinuxSampler {
                 // destroy and free device from memory
                 delete pDevice;
 
-                LSCPServer::SendLSCPNotify(LSCPEvent(LSCPEvent::event_midi_device_count, MidiInputDevices()));
+                fireMidiDeviceCountChanged(MidiInputDevices());
                 break;
             }
         }
@@ -390,7 +535,7 @@ namespace LinuxSampler {
 		}
 	}
 
-        LSCPServer::SendLSCPNotify(LSCPEvent(LSCPEvent::event_midi_device_count, MidiInputDevices()));
+        fireMidiDeviceCountChanged(MidiInputDevices());
         return pDevice;
     }
 
