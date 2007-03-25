@@ -132,7 +132,7 @@
               <b>2007-03-24</b> gigedit 0.0.3 has been released, a graphical
               instrument editor allowing to edit existing Gigasampler format
               files as well as creating new ones completely from scratch. Along
-              comes a new release of libgig (3.3.1).<br>
+              comes a new release of libgig (3.1.1).<br>
               <br>
               <b>2006-11-24</b> After a long, long development cycle LinuxSampler 0.4.0 has finally been released.<br>
               <br>
