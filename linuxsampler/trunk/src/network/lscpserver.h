@@ -213,45 +213,39 @@ class LSCPServer : public Thread {
 	//from LSCP server removing engines and channels from underneath
 	static Mutex RTNotifyMutex;
 
-        class LscpChannelCountListener : public ChannelCountListener {
-             public:
+        class EventHandler : public ChannelCountListener, public AudioDeviceCountListener,
+            public MidiDeviceCountListener, public MidiInstrumentCountListener,
+            public MidiInstrumentInfoListener, public MidiInstrumentMapCountListener,
+            public MidiInstrumentMapInfoListener, public FxSendCountListener,
+            public VoiceCountListener, public StreamCountListener,
+            public BufferFillListener, public TotalVoiceCountListener {
+
+            public:
                 /**
                  * Invoked when the number of sampler channels has changed.
                  * @param NewCount The new number of sampler channels.
                  */
                 virtual void ChannelCountChanged(int NewCount);
-        } channelCountListener;
         
-        class LscpAudioDeviceCountListener : public AudioDeviceCountListener {
-            public:
                 /**
                  * Invoked when the number of audio output devices has changed.
                  * @param NewCount The new number of audio output devices.
                  */
                 virtual void AudioDeviceCountChanged(int NewCount);
-        } audioDeviceCountListener;
-
-        class LscpMidiDeviceCountListener : public MidiDeviceCountListener {
-            public:
+ 
                 /**
                  * Invoked when the number of MIDI input devices has changed.
                  * @param NewCount The new number of MIDI input devices.
                  */
                 virtual void MidiDeviceCountChanged(int NewCount);
-        } midiDeviceCountListener;
-        
-        class LscpMidiInstrumentCountListener : public MidiInstrumentCountListener {
-            public:
+
                 /**
                  * Invoked when the number of MIDI instruments has changed.
                  * @param MapId The numerical ID of the MIDI instrument map.
                  * @param NewCount The new number of MIDI instruments.
                  */
                 virtual void MidiInstrumentCountChanged(int MapId, int NewCount);
-        } midiInstrumentCountListener;
-
-        class LscpMidiInstrumentInfoListener : public MidiInstrumentInfoListener {
-            public:
+ 
                 /**
                  * Invoked when a MIDI instrument in a MIDI instrument map is changed.
                  * @param MapId The numerical ID of the MIDI instrument map.
@@ -259,28 +253,19 @@ class LSCPServer : public Thread {
                  * @param Program The MIDI program number of the instrument.
                  */
                 virtual void MidiInstrumentInfoChanged(int MapId, int Bank, int Program);
-        } midiInstrumentInfoListener;
-        
-        class LscpMidiInstrumentMapCountListener : public MidiInstrumentMapCountListener {
-            public:
-               /**
+     
+                /**
                  * Invoked when the number of MIDI instrument maps has changed.
                  * @param NewCount The new number of MIDI instruments.
                  */
                 virtual void MidiInstrumentMapCountChanged(int NewCount);
-        } midiInstrumentMapCountListener;
 
-        class LscpMidiInstrumentMapInfoListener : public MidiInstrumentMapInfoListener {
-            public:
                 /**
                  * Invoked when the settings of a MIDI instrument map are changed.
                  * @param MapId The numerical ID of the MIDI instrument map.
                  */
                 virtual void MidiInstrumentMapInfoChanged(int MapId);
-        } midiInstrumentMapInfoListener;
-        
-        class LscpFxSendCountListener : public FxSendCountListener {
-            public:
+      
                 /**
                  * Invoked when the number of effect sends
                  * on the specified sampler channel has changed.
@@ -288,10 +273,7 @@ class LSCPServer : public Thread {
                  * @param NewCount The new number of effect sends.
                  */
                 virtual void FxSendCountChanged(int ChannelId, int NewCount);
-        } fxSendCountListener;
-        
-        class LscpVoiceCountListener : public VoiceCountListener {
-            public:
+
                 /**
                  * Invoked when the number of active voices
                  * on the specified sampler channel has changed.
@@ -299,10 +281,7 @@ class LSCPServer : public Thread {
                  * @param NewCount The new number of active voices.
                  */
                 virtual void VoiceCountChanged(int ChannelId, int NewCount);
-        } voiceCountListener;
 
-        class LscpStreamCountListener : public StreamCountListener {
-            public:
                 /**
                  * Invoked when the number of active disk streams
                  * on the specified sampler channel has changed.
@@ -310,10 +289,7 @@ class LSCPServer : public Thread {
                  * @param NewCount The new number of active disk streams.
                  */
                 virtual void StreamCountChanged(int ChannelId, int NewCount);
-        } streamCountListener;
 
-        class LscpBufferFillListener : public BufferFillListener {
-            public:
                 /**
                  * Invoked when the fill state of the disk stream
                  * buffers on the specified sampler channel is changed.
@@ -321,16 +297,13 @@ class LSCPServer : public Thread {
                  * @param FillData The buffer fill data for the specified sampler channel.
                  */
                 virtual void BufferFillChanged(int ChannelId, String FillData);
-        } bufferFillListener;
 
-        class LscpTotalVoiceCountListener : public TotalVoiceCountListener {
-            public:
                 /**
                  * Invoked when the total number of active voices is changed.
                  * @param NewCount The new number of active voices.
                  */
                 virtual void TotalVoiceCountChanged(int NewCount);
-        } totalVoiceCountListener;
+        } eventHandler;
 };
 
 #endif // __LSCPSERVER_H_

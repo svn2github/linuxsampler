@@ -91,51 +91,51 @@ LSCPServer::~LSCPServer() {
     if (hSocket >= 0) close(hSocket);
 }
 
-void LSCPServer::LscpChannelCountListener::ChannelCountChanged(int NewCount) {
+void LSCPServer::EventHandler::ChannelCountChanged(int NewCount) {
     LSCPServer::SendLSCPNotify(LSCPEvent(LSCPEvent::event_channel_count, NewCount));
 }
 
-void LSCPServer::LscpAudioDeviceCountListener::AudioDeviceCountChanged(int NewCount) {
+void LSCPServer::EventHandler::AudioDeviceCountChanged(int NewCount) {
     LSCPServer::SendLSCPNotify(LSCPEvent(LSCPEvent::event_audio_device_count, NewCount));
 }
 
-void LSCPServer::LscpMidiDeviceCountListener::MidiDeviceCountChanged(int NewCount) {
+void LSCPServer::EventHandler::MidiDeviceCountChanged(int NewCount) {
     LSCPServer::SendLSCPNotify(LSCPEvent(LSCPEvent::event_midi_device_count, NewCount));
 }
 
-void LSCPServer::LscpMidiInstrumentCountListener::MidiInstrumentCountChanged(int MapId, int NewCount) {
+void LSCPServer::EventHandler::MidiInstrumentCountChanged(int MapId, int NewCount) {
     LSCPServer::SendLSCPNotify(LSCPEvent(LSCPEvent::event_midi_instr_count, MapId, NewCount));
 }
 
-void LSCPServer::LscpMidiInstrumentInfoListener::MidiInstrumentInfoChanged(int MapId, int Bank, int Program) {
+void LSCPServer::EventHandler::MidiInstrumentInfoChanged(int MapId, int Bank, int Program) {
     LSCPServer::SendLSCPNotify(LSCPEvent(LSCPEvent::event_midi_instr_info, MapId, Bank, Program));
 }
 
-void LSCPServer::LscpMidiInstrumentMapCountListener::MidiInstrumentMapCountChanged(int NewCount) {
+void LSCPServer::EventHandler::MidiInstrumentMapCountChanged(int NewCount) {
     LSCPServer::SendLSCPNotify(LSCPEvent(LSCPEvent::event_midi_instr_map_count, NewCount));
 }
 
-void LSCPServer::LscpMidiInstrumentMapInfoListener::MidiInstrumentMapInfoChanged(int MapId) {
+void LSCPServer::EventHandler::MidiInstrumentMapInfoChanged(int MapId) {
     LSCPServer::SendLSCPNotify(LSCPEvent(LSCPEvent::event_midi_instr_map_info, MapId));
 }
 
-void LSCPServer::LscpFxSendCountListener::FxSendCountChanged(int ChannelId, int NewCount) {
+void LSCPServer::EventHandler::FxSendCountChanged(int ChannelId, int NewCount) {
     LSCPServer::SendLSCPNotify(LSCPEvent(LSCPEvent::event_fx_send_count, ChannelId, NewCount));
 }
 
-void LSCPServer::LscpVoiceCountListener::VoiceCountChanged(int ChannelId, int NewCount) {
+void LSCPServer::EventHandler::VoiceCountChanged(int ChannelId, int NewCount) {
     LSCPServer::SendLSCPNotify(LSCPEvent(LSCPEvent::event_voice_count, ChannelId, NewCount));
 }
 
-void LSCPServer::LscpStreamCountListener::StreamCountChanged(int ChannelId, int NewCount) {
+void LSCPServer::EventHandler::StreamCountChanged(int ChannelId, int NewCount) {
     LSCPServer::SendLSCPNotify(LSCPEvent(LSCPEvent::event_stream_count, ChannelId, NewCount));
 }
 
-void LSCPServer::LscpBufferFillListener::BufferFillChanged(int ChannelId, String FillData) {
+void LSCPServer::EventHandler::BufferFillChanged(int ChannelId, String FillData) {
     LSCPServer::SendLSCPNotify(LSCPEvent(LSCPEvent::event_buffer_fill, ChannelId, FillData));
 }
 
-void LSCPServer::LscpTotalVoiceCountListener::TotalVoiceCountChanged(int NewCount) {
+void LSCPServer::EventHandler::TotalVoiceCountChanged(int NewCount) {
     LSCPServer::SendLSCPNotify(LSCPEvent(LSCPEvent::event_total_voice_count, NewCount));
 }
 
@@ -182,18 +182,18 @@ int LSCPServer::Main() {
     Initialized.Set(true);
     
     // Registering event listeners
-    pSampler->AddChannelCountListener(&channelCountListener);
-    pSampler->AddAudioDeviceCountListener(&audioDeviceCountListener);
-    pSampler->AddMidiDeviceCountListener(&midiDeviceCountListener);
-    pSampler->AddVoiceCountListener(&voiceCountListener);
-    pSampler->AddStreamCountListener(&streamCountListener);
-    pSampler->AddBufferFillListener(&bufferFillListener);
-    pSampler->AddTotalVoiceCountListener(&totalVoiceCountListener);
-    pSampler->AddFxSendCountListener(&fxSendCountListener);
-    MidiInstrumentMapper::AddMidiInstrumentCountListener(&midiInstrumentCountListener);
-    MidiInstrumentMapper::AddMidiInstrumentInfoListener(&midiInstrumentInfoListener);
-    MidiInstrumentMapper::AddMidiInstrumentMapCountListener(&midiInstrumentMapCountListener);
-    MidiInstrumentMapper::AddMidiInstrumentMapInfoListener(&midiInstrumentMapInfoListener);
+    pSampler->AddChannelCountListener(&eventHandler);
+    pSampler->AddAudioDeviceCountListener(&eventHandler);
+    pSampler->AddMidiDeviceCountListener(&eventHandler);
+    pSampler->AddVoiceCountListener(&eventHandler);
+    pSampler->AddStreamCountListener(&eventHandler);
+    pSampler->AddBufferFillListener(&eventHandler);
+    pSampler->AddTotalVoiceCountListener(&eventHandler);
+    pSampler->AddFxSendCountListener(&eventHandler);
+    MidiInstrumentMapper::AddMidiInstrumentCountListener(&eventHandler);
+    MidiInstrumentMapper::AddMidiInstrumentInfoListener(&eventHandler);
+    MidiInstrumentMapper::AddMidiInstrumentMapCountListener(&eventHandler);
+    MidiInstrumentMapper::AddMidiInstrumentMapInfoListener(&eventHandler);
 
     // now wait for client connections and handle their requests
     sockaddr_in client;
