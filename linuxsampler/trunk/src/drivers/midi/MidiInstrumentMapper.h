@@ -213,6 +213,22 @@ namespace LinuxSampler {
              */
             static void RemoveAllMaps();
 
+            static int GetMapCount();
+
+            /**
+             * Gets the ID of the default map.
+             * For now, the default map is the first available map. When
+             * the default map is removed, the default map becomes the next available map.
+             * @return The ID of the default map or -1 if the there are no maps added.
+             */
+            static int GetDefaultMap();
+
+	    /**
+	     * Sets the default map.
+	     * @param MapId The ID of the new default map.
+	     */
+	    static void SetDefaultMap(int MapId);
+
         protected:
             /**
              * Notifies listeners that the number of MIDI instruments
@@ -250,6 +266,8 @@ namespace LinuxSampler {
             static ListenerList<MidiInstrumentInfoListener*> llMidiInstrumentInfoListeners;
             static ListenerList<MidiInstrumentMapCountListener*> llMidiInstrumentMapCountListeners;
             static ListenerList<MidiInstrumentMapInfoListener*> llMidiInstrumentMapInfoListeners;
+            
+            static int DefaultMap;
     };
 
 } // namespace LinuxSampler

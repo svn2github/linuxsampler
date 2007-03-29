@@ -262,9 +262,10 @@ namespace LinuxSampler {
             for (; engineiter != end; engineiter++) {
                 (*engineiter)->SetMidiProgram(Program);
                 if ((*engineiter)->UsesNoMidiInstrumentMap()) continue;
+                if (MidiInstrumentMapper::GetMapCount() == 0) continue;
                 // retrieve the MIDI instrument map this engine channel is assigned to
                 int iMapID = ((*engineiter)->UsesDefaultMidiInstrumentMap())
-                    ? maps[0] /*default*/ : (*engineiter)->GetMidiInstrumentMap();
+                    ? MidiInstrumentMapper::GetDefaultMap() /*default*/ : (*engineiter)->GetMidiInstrumentMap();
                 // is there an entry for this MIDI bank&prog pair in that map?
                 midi_prog_index_t midiIndex;
                 midiIndex.midi_bank_msb = (*engineiter)->GetMidiBankMsb();
@@ -289,9 +290,10 @@ namespace LinuxSampler {
             for (; engineiter != end; engineiter++) {
                 (*engineiter)->SetMidiProgram(Program);
                 if ((*engineiter)->UsesNoMidiInstrumentMap()) continue;
+                if (MidiInstrumentMapper::GetMapCount() == 0) continue;
                 // retrieve the MIDI instrument map this engine channel is assigned to
                 int iMapID = ((*engineiter)->UsesDefaultMidiInstrumentMap())
-                    ? maps[0] /*default*/ : (*engineiter)->GetMidiInstrumentMap();
+                    ? MidiInstrumentMapper::GetDefaultMap() /*default*/ : (*engineiter)->GetMidiInstrumentMap();
                 // is there an entry for this MIDI bank&prog pair in that map?
                 midi_prog_index_t midiIndex;
                 midiIndex.midi_bank_msb = (*engineiter)->GetMidiBankMsb();

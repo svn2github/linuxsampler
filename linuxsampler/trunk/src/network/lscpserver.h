@@ -150,6 +150,7 @@ class LSCPServer : public Thread {
         String GetFxSends(uint uiSamplerChannel);
         String ListFxSends(uint uiSamplerChannel);
         String GetFxSendInfo(uint uiSamplerChannel, uint FxSendID);
+        String SetFxSendName(uint uiSamplerChannel, uint FxSendID, String Name);
         String SetFxSendAudioOutputChannel(uint uiSamplerChannel, uint FxSendID, uint FxSendChannel, uint DeviceChannel);
         String SetFxSendMidiController(uint uiSamplerChannel, uint FxSendID, uint MidiController);
         String SetFxSendLevel(uint uiSamplerChannel, uint FxSendID, double dLevel);
@@ -193,6 +194,13 @@ class LSCPServer : public Thread {
          * Find a created midi input device index.
          */
         int GetMidiInputDeviceIndex (MidiInputDevice *pDevice);
+
+        EngineChannel* GetEngineChannel(uint uiSamplerChannel);
+
+		/**
+		 * Gets the specified effect send on the specified sampler channel.
+		 */
+		FxSend* GetFxSend(uint uiSamplerChannel, uint FxSendID);
 
         bool HasSoloChannel();
         void MuteNonSoloChannels();

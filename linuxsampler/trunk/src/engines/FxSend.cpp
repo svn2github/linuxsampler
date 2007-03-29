@@ -146,6 +146,10 @@ namespace LinuxSampler {
         return sName;
     }
 
+    void FxSend::SetName(String Name) {
+        sName = Name;
+    }
+
     uint FxSend::Id() {
         return iId;
     }

@@ -3479,6 +3479,47 @@ Schoenebeck'>
                     </t>
                 </section>
 
+                <section title="Changing effect send's name" anchor="SET FX_SEND NAME">
+                    <t>The front-end can alter the current name of an effect
+                    send entity by sending the following command:</t>
+                    <t>
+                        <list>
+                            <t>SET FX_SEND NAME &lt;sampler-chan&gt; &lt;fx-send-id&gt; &lt;name&gt;</t>
+                        </list>
+                    </t>
+                    <t>Where &lt;sampler-chan&gt; is the sampler channel number
+                    as returned by the <xref target="ADD CHANNEL">"ADD CHANNEL"</xref>
+                    or <xref target="LIST CHANNELS">"LIST CHANNELS"</xref> command,
+                    &lt;fx-send-id&gt; reflects the numerical ID of the effect send entity
+                    as returned by the <xref target="CREATE FX_SEND">"CREATE FX_SEND"</xref>
+                    or <xref target="LIST FX_SENDS">"LIST FX_SENDS"</xref> command and
+                    &lt;name&gt; is the new name of the effect send entity, which
+                    does not have to be unique.</t>
+
+                    <t>Possible Answers:</t>
+                    <t>
+                        <list>
+                            <t>"OK" -
+                                <list>
+                                    <t>on success</t>
+                                </list>
+                            </t>
+                            <t>"ERR:&lt;error-code&gt;:&lt;error-message&gt;" -
+                                <list>
+                                    <t>in case it failed, providing an appropriate error code and error message</t>
+                                </list>
+                            </t>
+                        </list>
+                    </t>
+                    <t>Example:</t>
+                    <t>
+                        <list>
+                            <t>C: "SET FX_SEND NAME 0 0 'Fx Send 1'"</t>
+                            <t>S: "OK"</t>
+                        </list>
+                    </t>
+                </section>
+
                 <section title="Altering effect send's audio routing" anchor="SET FX_SEND AUDIO_OUTPUT_CHANNEL">
                     <t>The front-end can alter the destination of an effect send's audio channel on a specific
                     sampler channel by sending the following command:</t>
@@ -4196,6 +4237,12 @@ Schoenebeck'>
                                         <list>
                                             <t>custom name of the given map,
                                             which does not have to be unique</t>
+                                        </list>
+                                    </t>
+                                    <t>DEFAULT -
+                                        <list>
+                                            <t>either true or false,
+                                            defines whether this map is the default map</t>
                                         </list>
                                     </t>
                                 </list>
@@ -4976,6 +5023,8 @@ Schoenebeck'>
 		<t>/ CHANNEL SP set_chan_instruction
 		</t>
 		<t>/ MIDI_INSTRUMENT_MAP SP NAME SP midi_map SP map_name
+		</t>
+		<t>/ FX_SEND SP NAME SP sampler_channel SP fx_send_id SP fx_send_name
 		</t>
 		<t>/ FX_SEND SP AUDIO_OUTPUT_CHANNEL SP sampler_channel SP fx_send_id SP audio_channel_index SP audio_channel_index
 		</t>

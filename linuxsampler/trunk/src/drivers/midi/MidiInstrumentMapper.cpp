@@ -47,11 +47,11 @@ namespace LinuxSampler {
     // for synchronization of midiMaps
     Mutex midiMapsMutex;
 
-
     ListenerList<MidiInstrumentCountListener*> MidiInstrumentMapper::llMidiInstrumentCountListeners;
     ListenerList<MidiInstrumentInfoListener*> MidiInstrumentMapper::llMidiInstrumentInfoListeners;
     ListenerList<MidiInstrumentMapCountListener*> MidiInstrumentMapper::llMidiInstrumentMapCountListeners;
     ListenerList<MidiInstrumentMapInfoListener*> MidiInstrumentMapper::llMidiInstrumentMapInfoListeners;
+    int MidiInstrumentMapper::DefaultMap;
     
     void MidiInstrumentMapper::AddMidiInstrumentCountListener(MidiInstrumentCountListener* l) {
         llMidiInstrumentCountListeners.AddListener(l);
@@ -278,6 +278,13 @@ namespace LinuxSampler {
         return result;
     }
 
+    int MidiInstrumentMapper::GetMapCount() {
+        midiMapsMutex.Lock();
+        int i = midiMaps.size();
+        midiMapsMutex.Unlock();
+        return i;
+    }
+
     int MidiInstrumentMapper::AddMap(String MapName) throw (Exception) {
         int ID;
         midiMapsMutex.Lock();
@@ -300,9 +307,12 @@ namespace LinuxSampler {
         }
         __create_map:
         midiMaps[ID].name = MapName;
-        midiMapsMutex.Unlock();
-
+        
         fireMidiInstrumentMapCountChanged(Maps().size());
+        // If there were no maps until now we must set a default map.
+        if (midiMaps.size() == 1) SetDefaultMap(ID);
+        midiMapsMutex.Unlock();
+        
         return ID;
     }
 
@@ -334,15 +344,34 @@ namespace LinuxSampler {
     void MidiInstrumentMapper::RemoveMap(int Map) {
         midiMapsMutex.Lock();
         midiMaps.erase(Map);
-        midiMapsMutex.Unlock();
+        if(Map == GetDefaultMap()) {
+            SetDefaultMap(midiMaps.empty() ? -1 : (*(midiMaps.begin())).first);
+        }
         fireMidiInstrumentMapCountChanged(Maps().size());
+        midiMapsMutex.Unlock();
     }
 
     void MidiInstrumentMapper::RemoveAllMaps() {
         midiMapsMutex.Lock();
         midiMaps.clear();
-        midiMapsMutex.Unlock();
+        SetDefaultMap(-1);
         fireMidiInstrumentMapCountChanged(Maps().size());
+        midiMapsMutex.Unlock();
+    }
+
+    int MidiInstrumentMapper::GetDefaultMap() {
+        midiMapsMutex.Lock();
+        int i = DefaultMap;
+        midiMapsMutex.Unlock();
+        return i;
+    }
+
+    void MidiInstrumentMapper::SetDefaultMap(int MapId) {
+        midiMapsMutex.Lock();
+        DefaultMap = MapId;
+        midiMapsMutex.Unlock();
+        
+        if (MapId != -1) fireMidiInstrumentMapInfoChanged(MapId);
     }
 
     optional<MidiInstrumentMapper::entry_t> MidiInstrumentMapper::GetEntry(int Map, midi_prog_index_t Index) {

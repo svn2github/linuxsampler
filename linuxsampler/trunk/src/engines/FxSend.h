@@ -135,6 +135,12 @@ namespace LinuxSampler {
             String Name();
 
             /**
+             * Sets the name of this effect send entity.
+             * @param Name The new name of this effect send entity.
+             */
+            void SetName(String Name);
+
+            /**
              * Returns the (at least sampler-channel-) unique ID of the
              * effect send instance. This is actually not used by the engine
              * at all. It is at the moment only used by the LSCP server to
