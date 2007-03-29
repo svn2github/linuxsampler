@@ -4256,6 +4256,7 @@ Schoenebeck'>
                         <list>
                             <t>C: "GET MIDI_INSTRUMENT_MAP INFO 0"</t>
                             <t>S: "NAME: Standard Map"</t>
+                            <t>&nbsp;&nbsp;&nbsp;"DEFAULT: true"</t>
                             <t>&nbsp;&nbsp;&nbsp;"."</t>
                         </list>
                     </t>
