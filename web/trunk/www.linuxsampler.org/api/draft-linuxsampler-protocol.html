@@ -145,7 +145,7 @@
 <tr><td class="header">LinuxSampler Developers</td><td class="header">C. Schoenebeck</td></tr>
 <tr><td class="header">Internet-Draft</td><td class="header">Interessengemeinschaft Software</td></tr>
 <tr><td class="header">Intended status: Standards Track</td><td class="header">Engineering e. V.</td></tr>
-<tr><td class="header">Expires: September 23, 2007</td><td class="header">March 22, 2007</td></tr>
+<tr><td class="header">Expires: September 30, 2007</td><td class="header">March 29, 2007</td></tr>
 </table></td></tr></table>
 <h1><br />LinuxSampler Control Protocol<br />LSCP 1.2</h1>
 
@@ -173,7 +173,7 @@ The list of current Internet-Drafts can be accessed at
 The list of Internet-Draft Shadow Directories can be accessed at
 <a href='http://www.ietf.org/shadow.html'>http://www.ietf.org/shadow.html</a>.</p>
 <p>
-This Internet-Draft will expire on September 23, 2007.</p>
+This Internet-Draft will expire on September 30, 2007.</p>
 
 <h3>Copyright Notice</h3>
 <p>
@@ -328,13 +328,15 @@ Getting amount of effect sends on a sampler channel<br />
 Listing all effect sends on a sampler channel<br />
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#GET FX_SEND INFO">6.4.29.</a>&nbsp;
 Getting effect send information<br />
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SET FX_SEND AUDIO_OUTPUT_CHANNEL">6.4.30.</a>&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SET FX_SEND NAME">6.4.30.</a>&nbsp;
+Changing effect send's name<br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SET FX_SEND AUDIO_OUTPUT_CHANNEL">6.4.31.</a>&nbsp;
 Altering effect send's audio routing<br />
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SET FX_SEND MIDI_CONTROLLER">6.4.31.</a>&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SET FX_SEND MIDI_CONTROLLER">6.4.32.</a>&nbsp;
 Altering effect send's MIDI controller<br />
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SET FX_SEND LEVEL">6.4.32.</a>&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SET FX_SEND LEVEL">6.4.33.</a>&nbsp;
 Altering effect send's send level<br />
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#RESET CHANNEL">6.4.33.</a>&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#RESET CHANNEL">6.4.34.</a>&nbsp;
 Resetting a sampler channel<br />
 &nbsp;&nbsp;&nbsp;&nbsp;<a href="#anchor12">6.5.</a>&nbsp;
 Controlling connection<br />
@@ -5333,9 +5335,70 @@ Getting effect send information</h3>
 </blockquote><p>
                     
 </p>
-<a name="SET FX_SEND AUDIO_OUTPUT_CHANNEL"></a><br /><hr />
+<a name="SET FX_SEND NAME"></a><br /><hr />
 <table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
 <a name="rfc.section.6.4.30"></a><h3>6.4.30.&nbsp;
+Changing effect send's name</h3>
+
+<p>The front-end can alter the current name of an effect
+                    send entity by sending the following command:
+</p>
+<p>
+                        </p>
+<blockquote class="text">
+<p>SET FX_SEND NAME &lt;sampler-chan&gt; &lt;fx-send-id&gt; &lt;name&gt;
+</p>
+</blockquote><p>
+                    
+</p>
+<p>Where &lt;sampler-chan&gt; is the sampler channel number
+                    as returned by the <a class='info' href='#ADD CHANNEL'>"ADD CHANNEL"<span> (</span><span class='info'>Adding a new sampler channel</span><span>)</span></a>
+                    or <a class='info' href='#LIST CHANNELS'>"LIST CHANNELS"<span> (</span><span class='info'>Getting all created sampler channel list</span><span>)</span></a> command,
+                    &lt;fx-send-id&gt; reflects the numerical ID of the effect send entity
+                    as returned by the <a class='info' href='#CREATE FX_SEND'>"CREATE FX_SEND"<span> (</span><span class='info'>Adding an effect send to a sampler channel</span><span>)</span></a>
+                    or <a class='info' href='#LIST FX_SENDS'>"LIST FX_SENDS"<span> (</span><span class='info'>Listing all effect sends on a sampler channel</span><span>)</span></a> command and
+                    &lt;name&gt; is the new name of the effect send entity, which
+                    does not have to be unique.
+</p>
+<p>Possible Answers:
+</p>
+<p>
+                        </p>
+<blockquote class="text">
+<p>"OK" -
+                                </p>
+<blockquote class="text">
+<p>on success
+</p>
+</blockquote>
+                            
+
+<p>"ERR:&lt;error-code&gt;:&lt;error-message&gt;" -
+                                </p>
+<blockquote class="text">
+<p>in case it failed, providing an appropriate error code and error message
+</p>
+</blockquote>
+                            
+
+</blockquote><p>
+                    
+</p>
+<p>Example:
+</p>
+<p>
+                        </p>
+<blockquote class="text">
+<p>C: "SET FX_SEND NAME 0 0 'Fx Send 1'"
+</p>
+<p>S: "OK"
+</p>
+</blockquote><p>
+                    
+</p>
+<a name="SET FX_SEND AUDIO_OUTPUT_CHANNEL"></a><br /><hr />
+<table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
+<a name="rfc.section.6.4.31"></a><h3>6.4.31.&nbsp;
 Altering effect send's audio routing</h3>
 
 <p>The front-end can alter the destination of an effect send's audio channel on a specific
@@ -5418,7 +5481,7 @@ Altering effect send's audio routing</h3>
 </p>
 <a name="SET FX_SEND MIDI_CONTROLLER"></a><br /><hr />
 <table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
-<a name="rfc.section.6.4.31"></a><h3>6.4.31.&nbsp;
+<a name="rfc.section.6.4.32"></a><h3>6.4.32.&nbsp;
 Altering effect send's MIDI controller</h3>
 
 <p>The front-end can alter the MIDI controller of an effect
@@ -5489,7 +5552,7 @@ Altering effect send's MIDI controller</h3>
 </p>
 <a name="SET FX_SEND LEVEL"></a><br /><hr />
 <table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
-<a name="rfc.section.6.4.32"></a><h3>6.4.32.&nbsp;
+<a name="rfc.section.6.4.33"></a><h3>6.4.33.&nbsp;
 Altering effect send's send level</h3>
 
 <p>The front-end can alter the current send level of an effect
@@ -5561,7 +5624,7 @@ Altering effect send's send level</h3>
 </p>
 <a name="RESET CHANNEL"></a><br /><hr />
 <table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
-<a name="rfc.section.6.4.33"></a><h3>6.4.33.&nbsp;
+<a name="rfc.section.6.4.34"></a><h3>6.4.34.&nbsp;
 Resetting a sampler channel</h3>
 
 <p>The front-end can reset a particular sampler channel by sending the following command:
@@ -6404,6 +6467,15 @@ Getting MIDI instrument map information</h3>
 </blockquote>
                                     
 
+<p>DEFAULT -
+                                        </p>
+<blockquote class="text">
+<p>either true or false,
+                                            defines whether this map is the default map
+</p>
+</blockquote>
+                                    
+
 </blockquote>
                             
 
@@ -6420,6 +6492,8 @@ Getting MIDI instrument map information</h3>
 <p>C: "GET MIDI_INSTRUMENT_MAP INFO 0"
 </p>
 <p>S: "NAME: Standard Map"
+</p>
+<p>&nbsp;&nbsp;&nbsp;"DEFAULT: true"
 </p>
 <p>&nbsp;&nbsp;&nbsp;"."
 </p>
@@ -7514,6 +7588,9 @@ Command Syntax</h3>
 		
 </p>
 <p>/ MIDI_INSTRUMENT_MAP SP NAME SP midi_map SP map_name
+		
+</p>
+<p>/ FX_SEND SP NAME SP sampler_channel SP fx_send_id SP fx_send_name
 		
 </p>
 <p>/ FX_SEND SP AUDIO_OUTPUT_CHANNEL SP sampler_channel SP fx_send_id SP audio_channel_index SP audio_channel_index
