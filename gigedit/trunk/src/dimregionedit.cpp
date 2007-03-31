@@ -19,167 +19,90 @@
 
 #include "dimregionedit.h"
 
-bool update_gui;
-
-namespace {
-    uint8_t& access_UnityNote(gig::DimensionRegion* dimreg)
-    {
-        return dimreg->UnityNote;
-    }
-    int16_t& access_FineTune(gig::DimensionRegion* dimreg)
-    {
-        return dimreg->FineTune;
-    }
-    uint32_t& access_SampleLoops(gig::DimensionRegion* dimreg)
-    {
-        return dimreg->SampleLoops;
-    }
-    uint8_t& access_Crossfade_in_start(gig::DimensionRegion* dimreg)
-    {
-        return dimreg->Crossfade.in_start;
-    }
-    uint8_t& access_Crossfade_in_end(gig::DimensionRegion* dimreg)
-    {
-        return dimreg->Crossfade.in_end;
-    }
-    uint8_t& access_Crossfade_out_start(gig::DimensionRegion* dimreg)
-    {
-        return dimreg->Crossfade.out_start;
-    }
-    uint8_t& access_Crossfade_out_end(gig::DimensionRegion* dimreg)
-    {
-        return dimreg->Crossfade.out_end;
-    }
-}
-
 DimRegionEdit::DimRegionEdit() :
-    eEG1PreAttack("PreAttack", &gig::DimensionRegion::EG1PreAttack, 0, 100, 2),
-    eEG1Attack("Attack", &gig::DimensionRegion::EG1Attack, 0, 60, 3),
-    eEG1Decay1("Decay1", &gig::DimensionRegion::EG1Decay1, 0.005, 60, 3),
-    eEG1Decay2("Decay2", &gig::DimensionRegion::EG1Decay2, 0, 60, 3),
-    eEG1InfiniteSustain("InfiniteSustain",
-                        &gig::DimensionRegion::EG1InfiniteSustain),
-    eEG1Sustain("Sustain", &gig::DimensionRegion::EG1Sustain, 0, 100, 2),
-    eEG1Release("Release", &gig::DimensionRegion::EG1Release, 0, 60, 3),
-    eEG1Hold("Hold", &gig::DimensionRegion::EG1Hold),
-    eEG1Controller("Controller", &gig::DimensionRegion::EG1Controller),
-    eEG1ControllerInvert("ControllerInvert",
-                         &gig::DimensionRegion::EG1ControllerInvert),
-    eEG1ControllerAttackInfluence("ControllerAttackInfluence",
-                                  &gig::DimensionRegion::EG1ControllerAttackInfluence,
-                                  0, 3),
-    eEG1ControllerDecayInfluence("ControllerDecayInfluence",
-                                 &gig::DimensionRegion::EG1ControllerDecayInfluence,
-                                 0, 3),
-    eEG1ControllerReleaseInfluence("ControllerReleaseInfluence",
-                                   &gig::DimensionRegion::EG1ControllerReleaseInfluence,
-                                   0, 3),
-    eLFO1Frequency("Frequency", &gig::DimensionRegion::LFO1Frequency,
-                   0.1, 10, 2),
-    eLFO1InternalDepth("InternalDepth",
-                       &gig::DimensionRegion::LFO1InternalDepth, 0, 1200),
-    eLFO1ControlDepth("ControlDepth", &gig::DimensionRegion::LFO1ControlDepth,
-                      0, 1200),
-    eLFO1Controller("Controller", &gig::DimensionRegion::LFO1Controller),
-    eLFO1FlipPhase("FlipPhase", &gig::DimensionRegion::LFO1FlipPhase),
-    eLFO1Sync("Sync", &gig::DimensionRegion::LFO1Sync),
-    eEG2PreAttack("PreAttack", &gig::DimensionRegion::EG2PreAttack, 0, 100, 2),
-    eEG2Attack("Attack", &gig::DimensionRegion::EG2Attack, 0, 60, 3),
-    eEG2Decay1("Decay1", &gig::DimensionRegion::EG2Decay1, 0.005, 60, 3),
-    eEG2Decay2("Decay2", &gig::DimensionRegion::EG2Decay2, 0, 60, 3),
-    eEG2InfiniteSustain("InfiniteSustain",
-                        &gig::DimensionRegion::EG2InfiniteSustain),
-    eEG2Sustain("Sustain", &gig::DimensionRegion::EG2Sustain, 0, 100, 2),
-    eEG2Release("Release", &gig::DimensionRegion::EG2Release, 0, 60, 3),
-    eEG2Controller("Controller", &gig::DimensionRegion::EG2Controller),
-    eEG2ControllerInvert("ControllerInvert",
-                         &gig::DimensionRegion::EG2ControllerInvert),
-    eEG2ControllerAttackInfluence("ControllerAttackInfluence",
-                                  &gig::DimensionRegion::EG2ControllerAttackInfluence,
-                                  0, 3),
-    eEG2ControllerDecayInfluence("ControllerDecayInfluence",
-                                 &gig::DimensionRegion::EG2ControllerDecayInfluence,
-                                 0, 3),
-    eEG2ControllerReleaseInfluence("ControllerReleaseInfluence",
-                                   &gig::DimensionRegion::EG2ControllerReleaseInfluence,
-                                   0, 3),
-    eLFO2Frequency("Frequency", &gig::DimensionRegion::LFO2Frequency,
-                   0.1, 10, 2),
-    eLFO2InternalDepth("InternalDepth",
-                       &gig::DimensionRegion::LFO2InternalDepth, 0, 1200),
-    eLFO2ControlDepth("ControlDepth",
-                      &gig::DimensionRegion::LFO2ControlDepth, 0, 1200),
-    eLFO2Controller("Controller", &gig::DimensionRegion::LFO2Controller),
-    eLFO2FlipPhase("FlipPhase", &gig::DimensionRegion::LFO2FlipPhase),
-    eLFO2Sync("Sync", &gig::DimensionRegion::LFO2Sync),
-    eEG3Attack("Attack", &gig::DimensionRegion::EG3Attack, 0, 10, 3),
-    eEG3Depth("Depth", &gig::DimensionRegion::EG3Depth, -1200, 1200),
-    eLFO3Frequency("Frequency", &gig::DimensionRegion::LFO3Frequency,
-                   0.1, 10, 2),
-    eLFO3InternalDepth("InternalDepth",
-                       &gig::DimensionRegion::LFO3InternalDepth, 0, 1200),
-    eLFO3ControlDepth("ControlDepth", &gig::DimensionRegion::LFO3ControlDepth,
-                      0, 1200),
-    eLFO3Controller("Controller", &gig::DimensionRegion::LFO3Controller),
-    eLFO3Sync("Sync", &gig::DimensionRegion::LFO3Sync),
-    eVCFEnabled("Enabled", &gig::DimensionRegion::VCFEnabled),
-    eVCFType("Type", &gig::DimensionRegion::VCFType),
-    eVCFCutoffController("CutoffController",
-                         &gig::DimensionRegion::VCFCutoffController),
-    eVCFCutoffControllerInvert("CutoffControllerInvert",
-                               &gig::DimensionRegion::VCFCutoffControllerInvert),
-    eVCFCutoff("Cutoff", &gig::DimensionRegion::VCFCutoff),
-    eVCFVelocityCurve("VelocityCurve", &gig::DimensionRegion::VCFVelocityCurve),
-    eVCFVelocityScale("VelocityScale", &gig::DimensionRegion::VCFVelocityScale),
-    eVCFVelocityDynamicRange("VelocityDynamicRange",
-                             &gig::DimensionRegion::VCFVelocityDynamicRange,
-                             0, 4),
-    eVCFResonance("Resonance", &gig::DimensionRegion::VCFResonance),
-    eVCFResonanceDynamic("ResonanceDynamic",
-                         &gig::DimensionRegion::VCFResonanceDynamic),
-    eVCFResonanceController("ResonanceController",
-                            &gig::DimensionRegion::VCFResonanceController),
-    eVCFKeyboardTracking("KeyboardTracking",
-                         &gig::DimensionRegion::VCFKeyboardTracking),
-    eVCFKeyboardTrackingBreakpoint("KeyboardTrackingBreakpoint",
-                                   &gig::DimensionRegion::VCFKeyboardTrackingBreakpoint),
-    eVelocityResponseCurve("VelocityResponseCurve",
-                           &gig::DimensionRegion::VelocityResponseCurve),
-    eVelocityResponseDepth("VelocityResponseDepth",
-                           &gig::DimensionRegion::VelocityResponseDepth, 0, 4),
-    eVelocityResponseCurveScaling("VelocityResponseCurveScaling",
-                                  &gig::DimensionRegion::VelocityResponseCurveScaling),
-    eReleaseVelocityResponseCurve("ReleaseVelocityResponseCurve",
-                                  &gig::DimensionRegion::ReleaseVelocityResponseCurve),
-    eReleaseVelocityResponseDepth("ReleaseVelocityResponseDepth",
-                                  &gig::DimensionRegion::ReleaseVelocityResponseDepth,
-                                  0, 4),
-    eReleaseTriggerDecay("ReleaseTriggerDecay",
-                         &gig::DimensionRegion::ReleaseTriggerDecay, 0, 8),
-    eCrossfade_in_start("Crossfade.in_start", &access_Crossfade_in_start),
-    eCrossfade_in_end("Crossfade.in_end", &access_Crossfade_in_end),
-    eCrossfade_out_start("Crossfade.out_start", &access_Crossfade_out_start),
-    eCrossfade_out_end("Crossfade.out_end", &access_Crossfade_out_end),
-    ePitchTrack("PitchTrack", &gig::DimensionRegion::PitchTrack),
-    eDimensionBypass("DimensionBypass", &gig::DimensionRegion::DimensionBypass),
-    ePan("Pan", &gig::DimensionRegion::Pan, -64, 63),
-    eSelfMask("SelfMask", &gig::DimensionRegion::SelfMask),
-    eAttenuationController("AttenuationController",
-                           &gig::DimensionRegion::AttenuationController),
-    eInvertAttenuationController("InvertAttenuationController",
-                                 &gig::DimensionRegion::InvertAttenuationController),
-    eAttenuationControllerThreshold("AttenuationControllerThreshold",
-                                    &gig::DimensionRegion::AttenuationControllerThreshold),
-    eChannelOffset("ChannelOffset", &gig::DimensionRegion::ChannelOffset, 0, 9),
-    eSustainDefeat("SustainDefeat", &gig::DimensionRegion::SustainDefeat),
-    eMSDecode("MSDecode", &gig::DimensionRegion::MSDecode),
-    eSampleStartOffset("SampleStartOffset",
-                       &gig::DimensionRegion::SampleStartOffset, 0, 2000),
-    eUnityNote("UnityNote", &access_UnityNote),
-    eFineTune("FineTune", &access_FineTune, -49, 50),
-    eGain("Gain", -96, 0, 2),
-    eGainPlus6("Gain +6dB", eGain),
-    eSampleLoops("SampleLoops", &access_SampleLoops, 0, 1)
+    eEG1PreAttack("PreAttack", 0, 100, 2),
+    eEG1Attack("Attack", 0, 60, 3),
+    eEG1Decay1("Decay1", 0.005, 60, 3),
+    eEG1Decay2("Decay2", 0, 60, 3),
+    eEG1InfiniteSustain("InfiniteSustain"),
+    eEG1Sustain("Sustain", 0, 100, 2),
+    eEG1Release("Release", 0, 60, 3),
+    eEG1Hold("Hold"),
+    eEG1Controller("Controller"),
+    eEG1ControllerInvert("ControllerInvert"),
+    eEG1ControllerAttackInfluence("ControllerAttackInfluence", 0, 3),
+    eEG1ControllerDecayInfluence("ControllerDecayInfluence", 0, 3),
+    eEG1ControllerReleaseInfluence("ControllerReleaseInfluence", 0, 3),
+    eLFO1Frequency("Frequency", 0.1, 10, 2),
+    eLFO1InternalDepth("InternalDepth", 0, 1200),
+    eLFO1ControlDepth("ControlDepth", 0, 1200),
+    eLFO1Controller("Controller"),
+    eLFO1FlipPhase("FlipPhase"),
+    eLFO1Sync("Sync"),
+    eEG2PreAttack("PreAttack", 0, 100, 2),
+    eEG2Attack("Attack", 0, 60, 3),
+    eEG2Decay1("Decay1", 0.005, 60, 3),
+    eEG2Decay2("Decay2", 0, 60, 3),
+    eEG2InfiniteSustain("InfiniteSustain"),
+    eEG2Sustain("Sustain", 0, 100, 2),
+    eEG2Release("Release", 0, 60, 3),
+    eEG2Controller("Controller"),
+    eEG2ControllerInvert("ControllerInvert"),
+    eEG2ControllerAttackInfluence("ControllerAttackInfluence", 0, 3),
+    eEG2ControllerDecayInfluence("ControllerDecayInfluence", 0, 3),
+    eEG2ControllerReleaseInfluence("ControllerReleaseInfluence", 0, 3),
+    eLFO2Frequency("Frequency", 0.1, 10, 2),
+    eLFO2InternalDepth("InternalDepth", 0, 1200),
+    eLFO2ControlDepth("ControlDepth", 0, 1200),
+    eLFO2Controller("Controller"),
+    eLFO2FlipPhase("FlipPhase"),
+    eLFO2Sync("Sync"),
+    eEG3Attack("Attack", 0, 10, 3),
+    eEG3Depth("Depth", -1200, 1200),
+    eLFO3Frequency("Frequency", 0.1, 10, 2),
+    eLFO3InternalDepth("InternalDepth", 0, 1200),
+    eLFO3ControlDepth("ControlDepth", 0, 1200),
+    eLFO3Controller("Controller"),
+    eLFO3Sync("Sync"),
+    eVCFEnabled("Enabled"),
+    eVCFType("Type"),
+    eVCFCutoffController("CutoffController"),
+    eVCFCutoffControllerInvert("CutoffControllerInvert"),
+    eVCFCutoff("Cutoff"),
+    eVCFVelocityCurve("VelocityCurve"),
+    eVCFVelocityScale("VelocityScale"),
+    eVCFVelocityDynamicRange("VelocityDynamicRange", 0, 4),
+    eVCFResonance("Resonance"),
+    eVCFResonanceDynamic("ResonanceDynamic"),
+    eVCFResonanceController("ResonanceController"),
+    eVCFKeyboardTracking("KeyboardTracking"),
+    eVCFKeyboardTrackingBreakpoint("KeyboardTrackingBreakpoint"),
+    eVelocityResponseCurve("VelocityResponseCurve"),
+    eVelocityResponseDepth("VelocityResponseDepth", 0, 4),
+    eVelocityResponseCurveScaling("VelocityResponseCurveScaling"),
+    eReleaseVelocityResponseCurve("ReleaseVelocityResponseCurve"),
+    eReleaseVelocityResponseDepth("ReleaseVelocityResponseDepth", 0, 4),
+    eReleaseTriggerDecay("ReleaseTriggerDecay", 0, 8),
+    eCrossfade_in_start("Crossfade.in_start"),
+    eCrossfade_in_end("Crossfade.in_end"),
+    eCrossfade_out_start("Crossfade.out_start"),
+    eCrossfade_out_end("Crossfade.out_end"),
+    ePitchTrack("PitchTrack"),
+    eDimensionBypass("DimensionBypass"),
+    ePan("Pan", -64, 63),
+    eSelfMask("SelfMask"),
+    eAttenuationController("AttenuationController"),
+    eInvertAttenuationController("InvertAttenuationController"),
+    eAttenuationControllerThreshold("AttenuationControllerThreshold"),
+    eChannelOffset("ChannelOffset", 0, 9),
+    eSustainDefeat("SustainDefeat"),
+    eMSDecode("MSDecode"),
+    eSampleStartOffset("SampleStartOffset", 0, 2000),
+    eUnityNote("UnityNote"),
+    eFineTune("FineTune", -49, 50),
+    eGain("Gain", -96, 0, 2, -655360),
+    eGainPlus6("Gain +6dB", eGain, 6 * -655360),
+    eSampleLoops("SampleLoops", 0, 1)
 {
     for (int i = 0 ; i < 5 ; i++) {
         table[i] = new Gtk::Table(3, 1);
@@ -504,89 +427,89 @@ void DimRegionEdit::set_dim_region(gig::DimensionRegion* d)
 
     update_gui = false;
     wSample->set_text(d->pSample ? d->pSample->pInfo->Name.c_str() : "NULL");
-    eEG1PreAttack.set_dimreg(d);
-    eEG1Attack.set_dimreg(d);
-    eEG1Decay1.set_dimreg(d);
-    eEG1Decay2.set_dimreg(d);
-    eEG1InfiniteSustain.set_dimreg(d);
-    eEG1Sustain.set_dimreg(d);
-    eEG1Release.set_dimreg(d);
-    eEG1Hold.set_dimreg(d);
-    eEG1Controller.set_dimreg(d);
-    eEG1ControllerInvert.set_dimreg(d);
-    eEG1ControllerAttackInfluence.set_dimreg(d);
-    eEG1ControllerDecayInfluence.set_dimreg(d);
-    eEG1ControllerReleaseInfluence.set_dimreg(d);
-    eLFO1Frequency.set_dimreg(d);
-    eLFO1InternalDepth.set_dimreg(d);
-    eLFO1ControlDepth.set_dimreg(d);
-    eLFO1Controller.set_dimreg(d);
-    eLFO1FlipPhase.set_dimreg(d);
-    eLFO1Sync.set_dimreg(d);
-    eEG2PreAttack.set_dimreg(d);
-    eEG2Attack.set_dimreg(d);
-    eEG2Decay1.set_dimreg(d);
-    eEG2Decay2.set_dimreg(d);
-    eEG2InfiniteSustain.set_dimreg(d);
-    eEG2Sustain.set_dimreg(d);
-    eEG2Release.set_dimreg(d);
-    eEG2Controller.set_dimreg(d);
-    eEG2ControllerInvert.set_dimreg(d);
-    eEG2ControllerAttackInfluence.set_dimreg(d);
-    eEG2ControllerDecayInfluence.set_dimreg(d);
-    eEG2ControllerReleaseInfluence.set_dimreg(d);
-    eLFO2Frequency.set_dimreg(d);
-    eLFO2InternalDepth.set_dimreg(d);
-    eLFO2ControlDepth.set_dimreg(d);
-    eLFO2Controller.set_dimreg(d);
-    eLFO2FlipPhase.set_dimreg(d);
-    eLFO2Sync.set_dimreg(d);
-    eEG3Attack.set_dimreg(d);
-    eEG3Depth.set_dimreg(d);
-    eLFO3Frequency.set_dimreg(d);
-    eLFO3InternalDepth.set_dimreg(d);
-    eLFO3ControlDepth.set_dimreg(d);
-    eLFO3Controller.set_dimreg(d);
-    eLFO3Sync.set_dimreg(d);
-    eVCFEnabled.set_dimreg(d);
-    eVCFType.set_dimreg(d);
-    eVCFCutoffController.set_dimreg(d);
-    eVCFCutoffControllerInvert.set_dimreg(d);
-    eVCFCutoff.set_dimreg(d);
-    eVCFVelocityCurve.set_dimreg(d);
-    eVCFVelocityScale.set_dimreg(d);
-    eVCFVelocityDynamicRange.set_dimreg(d);
-    eVCFResonance.set_dimreg(d);
-    eVCFResonanceDynamic.set_dimreg(d);
-    eVCFResonanceController.set_dimreg(d);
-    eVCFKeyboardTracking.set_dimreg(d);
-    eVCFKeyboardTrackingBreakpoint.set_dimreg(d);
-    eVelocityResponseCurve.set_dimreg(d);
-    eVelocityResponseDepth.set_dimreg(d);
-    eVelocityResponseCurveScaling.set_dimreg(d);
-    eReleaseVelocityResponseCurve.set_dimreg(d);
-    eReleaseVelocityResponseDepth.set_dimreg(d);
-    eReleaseTriggerDecay.set_dimreg(d);
-    eCrossfade_in_start.set_dimreg(d);
-    eCrossfade_in_end.set_dimreg(d);
-    eCrossfade_out_start.set_dimreg(d);
-    eCrossfade_out_end.set_dimreg(d);
-    ePitchTrack.set_dimreg(d);
-    eDimensionBypass.set_dimreg(d);
-    ePan.set_dimreg(d);
-    eSelfMask.set_dimreg(d);
-    eAttenuationController.set_dimreg(d);
-    eInvertAttenuationController.set_dimreg(d);
-    eAttenuationControllerThreshold.set_dimreg(d);
-    eChannelOffset.set_dimreg(d);
-    eSustainDefeat.set_dimreg(d);
-    eMSDecode.set_dimreg(d);
-    eSampleStartOffset.set_dimreg(d);
-    eUnityNote.set_dimreg(d);
-    eFineTune.set_dimreg(d);
-    eGain.set_dimreg(d);
-    eGainPlus6.set_dimreg(d);
-    eSampleLoops.set_dimreg(d);
+    eEG1PreAttack.set_ptr(&d->EG1PreAttack);
+    eEG1Attack.set_ptr(&d->EG1Attack);
+    eEG1Decay1.set_ptr(&d->EG1Decay1);
+    eEG1Decay2.set_ptr(&d->EG1Decay2);
+    eEG1InfiniteSustain.set_ptr(&d->EG1InfiniteSustain);
+    eEG1Sustain.set_ptr(&d->EG1Sustain);
+    eEG1Release.set_ptr(&d->EG1Release);
+    eEG1Hold.set_ptr(&d->EG1Hold);
+    eEG1Controller.set_ptr(&d->EG1Controller);
+    eEG1ControllerInvert.set_ptr(&d->EG1ControllerInvert);
+    eEG1ControllerAttackInfluence.set_ptr(&d->EG1ControllerAttackInfluence);
+    eEG1ControllerDecayInfluence.set_ptr(&d->EG1ControllerDecayInfluence);
+    eEG1ControllerReleaseInfluence.set_ptr(&d->EG1ControllerReleaseInfluence);
+    eLFO1Frequency.set_ptr(&d->LFO1Frequency);
+    eLFO1InternalDepth.set_ptr(&d->LFO1InternalDepth);
+    eLFO1ControlDepth.set_ptr(&d->LFO1ControlDepth);
+    eLFO1Controller.set_ptr(&d->LFO1Controller);
+    eLFO1FlipPhase.set_ptr(&d->LFO1FlipPhase);
+    eLFO1Sync.set_ptr(&d->LFO1Sync);
+    eEG2PreAttack.set_ptr(&d->EG2PreAttack);
+    eEG2Attack.set_ptr(&d->EG2Attack);
+    eEG2Decay1.set_ptr(&d->EG2Decay1);
+    eEG2Decay2.set_ptr(&d->EG2Decay2);
+    eEG2InfiniteSustain.set_ptr(&d->EG2InfiniteSustain);
+    eEG2Sustain.set_ptr(&d->EG2Sustain);
+    eEG2Release.set_ptr(&d->EG2Release);
+    eEG2Controller.set_ptr(&d->EG2Controller);
+    eEG2ControllerInvert.set_ptr(&d->EG2ControllerInvert);
+    eEG2ControllerAttackInfluence.set_ptr(&d->EG2ControllerAttackInfluence);
+    eEG2ControllerDecayInfluence.set_ptr(&d->EG2ControllerDecayInfluence);
+    eEG2ControllerReleaseInfluence.set_ptr(&d->EG2ControllerReleaseInfluence);
+    eLFO2Frequency.set_ptr(&d->LFO2Frequency);
+    eLFO2InternalDepth.set_ptr(&d->LFO2InternalDepth);
+    eLFO2ControlDepth.set_ptr(&d->LFO2ControlDepth);
+    eLFO2Controller.set_ptr(&d->LFO2Controller);
+    eLFO2FlipPhase.set_ptr(&d->LFO2FlipPhase);
+    eLFO2Sync.set_ptr(&d->LFO2Sync);
+    eEG3Attack.set_ptr(&d->EG3Attack);
+    eEG3Depth.set_ptr(&d->EG3Depth);
+    eLFO3Frequency.set_ptr(&d->LFO3Frequency);
+    eLFO3InternalDepth.set_ptr(&d->LFO3InternalDepth);
+    eLFO3ControlDepth.set_ptr(&d->LFO3ControlDepth);
+    eLFO3Controller.set_ptr(&d->LFO3Controller);
+    eLFO3Sync.set_ptr(&d->LFO3Sync);
+    eVCFEnabled.set_ptr(&d->VCFEnabled);
+    eVCFType.set_ptr(&d->VCFType);
+    eVCFCutoffController.set_ptr(&d->VCFCutoffController);
+    eVCFCutoffControllerInvert.set_ptr(&d->VCFCutoffControllerInvert);
+    eVCFCutoff.set_ptr(&d->VCFCutoff);
+    eVCFVelocityCurve.set_ptr(&d->VCFVelocityCurve);
+    eVCFVelocityScale.set_ptr(&d->VCFVelocityScale);
+    eVCFVelocityDynamicRange.set_ptr(&d->VCFVelocityDynamicRange);
+    eVCFResonance.set_ptr(&d->VCFResonance);
+    eVCFResonanceDynamic.set_ptr(&d->VCFResonanceDynamic);
+    eVCFResonanceController.set_ptr(&d->VCFResonanceController);
+    eVCFKeyboardTracking.set_ptr(&d->VCFKeyboardTracking);
+    eVCFKeyboardTrackingBreakpoint.set_ptr(&d->VCFKeyboardTrackingBreakpoint);
+    eVelocityResponseCurve.set_ptr(&d->VelocityResponseCurve);
+    eVelocityResponseDepth.set_ptr(&d->VelocityResponseDepth);
+    eVelocityResponseCurveScaling.set_ptr(&d->VelocityResponseCurveScaling);
+    eReleaseVelocityResponseCurve.set_ptr(&d->ReleaseVelocityResponseCurve);
+    eReleaseVelocityResponseDepth.set_ptr(&d->ReleaseVelocityResponseDepth);
+    eReleaseTriggerDecay.set_ptr(&d->ReleaseTriggerDecay);
+    eCrossfade_in_start.set_ptr(&d->Crossfade.in_start);
+    eCrossfade_in_end.set_ptr(&d->Crossfade.in_end);
+    eCrossfade_out_start.set_ptr(&d->Crossfade.out_start);
+    eCrossfade_out_end.set_ptr(&d->Crossfade.out_end);
+    ePitchTrack.set_ptr(&d->PitchTrack);
+    eDimensionBypass.set_ptr(&d->DimensionBypass);
+    ePan.set_ptr(&d->Pan);
+    eSelfMask.set_ptr(&d->SelfMask);
+    eAttenuationController.set_ptr(&d->AttenuationController);
+    eInvertAttenuationController.set_ptr(&d->InvertAttenuationController);
+    eAttenuationControllerThreshold.set_ptr(&d->AttenuationControllerThreshold);
+    eChannelOffset.set_ptr(&d->ChannelOffset);
+    eSustainDefeat.set_ptr(&d->SustainDefeat);
+    eMSDecode.set_ptr(&d->MSDecode);
+    eSampleStartOffset.set_ptr(&d->SampleStartOffset);
+    eUnityNote.set_ptr(&d->UnityNote);
+    eFineTune.set_ptr(&d->FineTune);
+    eGain.set_ptr(&d->Gain);
+    eGainPlus6.set_ptr(&d->Gain);
+    eSampleLoops.set_ptr(&d->SampleLoops);
 
     VCFEnabled_toggled();
 

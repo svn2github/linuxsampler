@@ -41,14 +41,12 @@ public:
     void set_sensitive(bool sensitive = true);
 };
 
-template<typename T2>
 class NumEntry : public LabelWidget {
 protected:
     Gtk::Adjustment adjust;
     Gtk::HScale scale;
     Gtk::SpinButton spinbutton;
     Gtk::HBox box;
-    T2* dimreg;
 public:
     NumEntry(char* labelText, double lower = 0, double upper = 127,
              int decimals = 0);
@@ -63,128 +61,71 @@ public:
     }
 };
 
-template<typename T2>
-NumEntry<T2>::NumEntry(char* labelText, double lower, double upper,
-                       int decimals) :
-    adjust(lower, lower, upper, 1, 10),
-    scale(adjust),
-    spinbutton(adjust),
-    LabelWidget(labelText, box)
-{
-    spinbutton.set_digits(decimals);
-    scale.set_draw_value(false);
-    box.pack_start(spinbutton, Gtk::PACK_SHRINK);
-    box.add(scale);
-}
-
-class NumEntryGain : public NumEntry<gig::DimensionRegion> {
+class NumEntryGain : public NumEntry {
 private:
     void value_changed();
+    int32_t* ptr;
+    double coeff;
 public:
     NumEntryGain(char* labelText,
-                 double lower, double upper, int decimals);
-    void set_dimreg(gig::DimensionRegion* dimreg);
+                 double lower, double upper, int decimals, double coeff);
+    void set_ptr(int32_t* ptr);
 };
 
-template<typename T, typename T2 = gig::DimensionRegion>
-class NumEntryX : public NumEntry<T2> {
-protected:
-    using NumEntry<T2>::spinbutton;
-    using NumEntry<T2>::dimreg;
+template<typename T>
+class NumEntryTemp : public NumEntry {
 private:
-    T& (*access)(T2*);
+    T* ptr;
     void value_changed();
 public:
-    NumEntryX(char* labelText, T& (*access)(T2*),
-              double lower = 0, double upper = 127, int decimals = 0);
-    void set_dimreg(T2* dimreg);
+    NumEntryTemp(char* labelText,
+                 double lower = 0, double upper = 127, int decimals = 0);
+    void set_ptr(T* ptr);
 };
 
-template<typename T, typename T2>
-NumEntryX<T, T2>::NumEntryX(char* labelText, T& (*access)(T2*),
-                            double lower, double upper, int decimals) :
-    NumEntry<T2>(labelText, lower, upper, decimals),
-    access(access)
+template<typename T>
+NumEntryTemp<T>::NumEntryTemp(char* labelText,
+                              double lower, double upper, int decimals) :
+    NumEntry(labelText, lower, upper, decimals)
 {
     spinbutton.signal_value_changed().connect(
-        sigc::mem_fun(*this, &NumEntryX::value_changed));
+        sigc::mem_fun(*this, &NumEntryTemp::value_changed));
 }
 
-template<typename T, typename T2>
-void NumEntryX<T, T2>::value_changed()
+template<typename T>
+void NumEntryTemp<T>::value_changed()
 {
-    if (dimreg && update_gui) {
-        access(dimreg) = T(spinbutton.get_value());
+    if (ptr && update_gui) {
+        *ptr = T(spinbutton.get_value());
     }
 }
 
-template<typename T, typename T2>
-void NumEntryX<T, T2>::set_dimreg(T2* dimreg)
+template<typename T>
+void NumEntryTemp<T>::set_ptr(T* ptr)
 {
-    this->dimreg = 0;
-    set_value(access(dimreg));
-    this->dimreg = dimreg;
+    this->ptr = 0;
+    set_value(*ptr);
+    this->ptr = ptr;
 }
 
 
-class NoteEntry : public NumEntryX<uint8_t> {
+class NoteEntry : public NumEntryTemp<uint8_t> {
 public:
-    NoteEntry(char* labelText, uint8_t& (*access)(gig::DimensionRegion*));
+    NoteEntry(char* labelText);
 private:
     int on_input(double* new_value);
     bool on_output();
 };
 
 
-template<typename T, typename T2 = gig::DimensionRegion>
-class NumEntryTemp : public NumEntry<T2> {
-    using NumEntry<T2>::spinbutton;
-    using NumEntry<T2>::dimreg;
+class NumEntryPermille : public NumEntry {
 private:
-    T T2::* param;
+    uint16_t* ptr;
     void value_changed();
 public:
-    NumEntryTemp(char* labelText, T T2::* param,
-                 double lower = 0, double upper = 127, int decimals = 0);
-    void set_dimreg(T2* dimreg);
-};
-
-template<typename T, typename T2>
-NumEntryTemp<T, T2>::NumEntryTemp(char* labelText, T T2::* param,
-                                  double lower, double upper, int decimals) :
-    NumEntry<T2>(labelText, lower, upper, decimals),
-    param(param)
-{
-    spinbutton.signal_value_changed().connect(
-        sigc::mem_fun(*this, &NumEntryTemp::value_changed));
-}
-
-template<typename T, typename T2>
-void NumEntryTemp<T, T2>::value_changed()
-{
-    if (dimreg && update_gui) {
-        dimreg->*param = T(spinbutton.get_value());
-    }
-}
-
-template<typename T, typename T2>
-void NumEntryTemp<T, T2>::set_dimreg(T2* dimreg)
-{
-    this->dimreg = 0;
-    set_value(dimreg->*param);
-    this->dimreg = dimreg;
-}
-
-
-
-class NumEntryPermille : public NumEntry<gig::DimensionRegion> {
-private:
-    uint16_t gig::DimensionRegion::* param;
-    void value_changed();
-public:
-    NumEntryPermille(char* labelText, uint16_t gig::DimensionRegion::* param,
+    NumEntryPermille(char* labelText,
                      double lower = 0, double upper = 127, int decimals = 0);
-    void set_dimreg(gig::DimensionRegion* dimreg);
+    void set_ptr(uint16_t* ptr);
 };
 
 
@@ -193,15 +134,13 @@ class ChoiceEntry : public LabelWidget {
 private:
     Gtk::ComboBoxText combobox;
     Gtk::Alignment align;
-    T gig::DimensionRegion::* param;
-    gig::DimensionRegion* dimreg;
+    T* ptr;
     void value_changed();
     const T* values;
 public:
-    ChoiceEntry(char* labelText,
-                T gig::DimensionRegion::* param);
+    ChoiceEntry(char* labelText);
     void set_choices(char** texts, const T* values);
-    void set_dimreg(gig::DimensionRegion* dimreg);
+    void set_ptr(T* ptr);
     int get_active_row_number() { return combobox.get_active_row_number(); }
     Glib::SignalProxy0<void> signal_changed() {
         return combobox.signal_changed();
@@ -209,11 +148,9 @@ public:
 };
 
 template<typename T>
-ChoiceEntry<T>::ChoiceEntry(char* labelText,
-                            T gig::DimensionRegion::* param) :
+ChoiceEntry<T>::ChoiceEntry(char* labelText) :
     align(0, 0, 0, 0),
-    LabelWidget(labelText, align),
-    param(param)
+    LabelWidget(labelText, align)
 {
     combobox.signal_changed().connect(
         sigc::mem_fun(*this, &ChoiceEntry::value_changed));
@@ -232,24 +169,24 @@ void ChoiceEntry<T>::set_choices(char** texts, const T* values)
 template<typename T>
 void ChoiceEntry<T>::value_changed()
 {
-    if (dimreg && update_gui) {
+    if (ptr && update_gui) {
         int rowno = combobox.get_active_row_number();
-        if (rowno != -1) dimreg->*param = values[rowno];
+        if (rowno != -1) *ptr = values[rowno];
     }
 }
 
 template<typename T>
-void ChoiceEntry<T>::set_dimreg(gig::DimensionRegion* dimreg)
+void ChoiceEntry<T>::set_ptr(T* ptr)
 {
-    this->dimreg = 0;
-    T value = dimreg->*param;
+    this->ptr = 0;
+    T value = *ptr;
     int row = 0;
     int nb_rows = combobox.get_model()->children().size();
     for (; row < nb_rows ; row++) {
         if (value == values[row]) break;
     }
     combobox.set_active(row == nb_rows ? -1 : row);
-    this->dimreg = dimreg;
+    this->ptr = ptr;
 }
 
 
@@ -257,13 +194,11 @@ class ChoiceEntryLeverageCtrl : public LabelWidget {
 private:
     Gtk::ComboBoxText combobox;
     Gtk::Alignment align;
-    gig::leverage_ctrl_t gig::DimensionRegion::* param;
-    gig::DimensionRegion* dimreg;
+    gig::leverage_ctrl_t* ptr;
     void value_changed();
 public:
-    ChoiceEntryLeverageCtrl(char* labelText,
-                            gig::leverage_ctrl_t gig::DimensionRegion::* param);
-    void set_dimreg(gig::DimensionRegion* dimreg);
+    ChoiceEntryLeverageCtrl(char* labelText);
+    void set_ptr(gig::leverage_ctrl_t* ptr);
     int get_active_row_number() { return combobox.get_active_row_number(); }
     Glib::SignalProxy0<void> signal_changed() {
         return combobox.signal_changed();
@@ -271,60 +206,46 @@ public:
 };
 
 
-template<typename T2>
 class BoolEntry : public LabelWidget {
 private:
     Gtk::CheckButton checkbutton;
-    bool T2::* param;
-    T2* dimreg;
+    bool* ptr;
     void value_changed();
 public:
-    BoolEntry(char* labelText, bool T2::* param);
-    void set_dimreg(T2* dimreg);
+    BoolEntry(char* labelText);
     bool get_active() { return checkbutton.get_active(); }
     Glib::SignalProxy0<void> signal_toggled() {
         return checkbutton.signal_toggled();
     }
+    void set_ptr(bool* ptr);
 };
 
-template<typename T2>
-BoolEntry<T2>::BoolEntry(char* labelText, bool T2::* param) :
-    LabelWidget(labelText, checkbutton),
-    param(param)
-{
-    checkbutton.signal_toggled().connect(
-        sigc::mem_fun(*this, &BoolEntry::value_changed));
-}
-
-template<typename T2>
-void BoolEntry<T2>::value_changed()
-{
-    if (dimreg && update_gui) {
-        dimreg->*param = checkbutton.get_active();
-    }
-}
-
-template<typename T2>
-void BoolEntry<T2>::set_dimreg(T2* dimreg)
-{
-    this->dimreg = 0;
-    checkbutton.set_active(dimreg->*param);
-    this->dimreg = dimreg;
-}
 
 class BoolEntryPlus6 : public LabelWidget {
 private:
     Gtk::CheckButton checkbutton;
-    gig::DimensionRegion* dimreg;
+    int32_t* ptr;
     void value_changed();
     NumEntryGain& eGain;
+    int32_t plus6value;
 public:
-    BoolEntryPlus6(char* labelText, NumEntryGain& eGain);
-    void set_dimreg(gig::DimensionRegion* dimreg);
+    BoolEntryPlus6(char* labelText, NumEntryGain& eGain, int32_t plus6value);
+    void set_ptr(int32_t* ptr);
     bool get_active() { return checkbutton.get_active(); }
     Glib::SignalProxy0<void> signal_toggled() {
         return checkbutton.signal_toggled();
     }
 };
+
+class StringEntry : public LabelWidget {
+private:
+    Gtk::Entry entry;
+    gig::String* ptr;
+    void value_changed();
+public:
+    StringEntry(char* labelText);
+    void set_ptr(gig::String* ptr);
+};
+
 
 #endif

@@ -613,72 +613,59 @@ void PropDialog::set_info(DLS::Info* info)
     entry[15].set_text(info->Subject);
 }
 
-namespace {
-    uint16_t& access_MIDIBank(gig::Instrument* instr)
-    {
-        // TODO: update MIDIBankCoarse/Fine too?
-        return instr->MIDIBank;
-    }
-    uint32_t& access_MIDIProgram(gig::Instrument* instr)
-    {
-        return instr->MIDIProgram;
-    }
+void InstrumentProps::add_prop(LabelWidget& prop)
+{
+    table.attach(prop.label, 0, 1, rowno, rowno + 1,
+                 Gtk::FILL, Gtk::SHRINK);
+    table.attach(prop.widget, 1, 2, rowno, rowno + 1,
+                 Gtk::FILL | Gtk::EXPAND, Gtk::SHRINK);
+    rowno++;
 }
 
 InstrumentProps::InstrumentProps()
     : table(2,1),
       quitButton(Gtk::Stock::CLOSE),
-      eMIDIBank("MIDIBank", &access_MIDIBank, 0, 16383),
-      eMIDIProgram("MIDIProgram", &access_MIDIProgram),
-      eAttenuation("Attenuation", &gig::Instrument::Attenuation),
-      eEffectSend("EffectSend", &gig::Instrument::EffectSend, 0, 65536),
-      eFineTune("FineTune", &gig::Instrument::FineTune, -8400, 8400),
-      ePianoReleaseMode("PianoReleaseMode", &gig::Instrument::PianoReleaseMode)
+      eName("Name"),
+      eIsDrum("IsDrum"),
+      eMIDIBank("MIDIBank", 0, 16383),
+      eMIDIProgram("MIDIProgram"),
+      eAttenuation("Attenuation", 0, 96, 0, 1),
+      eGainPlus6("Gain +6dB", eAttenuation, -6),
+      eEffectSend("EffectSend", 0, 65535),
+      eFineTune("FineTune", -8400, 8400),
+      ePitchbendRange("PitchbendRange", 0, 12),
+      ePianoReleaseMode("PianoReleaseMode"),
+      eDimensionKeyRangeLow("DimensionKeyRangeLow"),
+      eDimensionKeyRangeHigh("DimensionKeyRangeHigh")
 {
+    set_title("Instrument properties");
+
+    rowno = 0;
     table.set_col_spacings(5);
-    char* propLabels[] = {
-        "Name:",
-        "IsDrum:",
-        "MIDIBank:",
-        "MIDIProgram:",
-        "Attenuation:",
-        "EffectSend:",
-        "FineTune:",
-        "PitchbendRange:",
-        "PianoReleaseMode:",
-        "DimensionKeyRange:",
-    };
-    int entryIdx = 0, checkIdx = 0;
-    for (int i = 0 ; i < sizeof(propLabels) / sizeof(char*) ; i++) {
-#if 0
-        if (i == 3) {
-            table.attach(eMIDIProgram.label, 0, 1, i, i + 1,
-                         Gtk::FILL, Gtk::SHRINK);
-            table.attach(eMIDIProgram.widget, 1, 2, i, i + 1,
-                         Gtk::FILL | Gtk::EXPAND, Gtk::SHRINK);
-            continue;
-        }
-#endif
-        label[i].set_text(propLabels[i]);
-        label[i].set_alignment(Gtk::ALIGN_LEFT);
-        table.attach(label[i], 0, 1, i, i + 1, Gtk::FILL, Gtk::SHRINK);
-        if (i == 1 || i == 8)
-            table.attach(check[checkIdx++], 1, 2, i, i + 1,
-                         Gtk::FILL | Gtk::EXPAND, Gtk::SHRINK);
-        else
-            table.attach(entry[entryIdx++], 1, 2, i, i + 1,
-                         Gtk::FILL | Gtk::EXPAND, Gtk::SHRINK);
-    }
 
-    // vbox { table buttonBox { quitButton } }
+    add_prop(eName);
+    add_prop(eIsDrum);
+    add_prop(eMIDIBank);
+    add_prop(eMIDIProgram);
+    add_prop(eAttenuation);
+    add_prop(eGainPlus6);
+    add_prop(eEffectSend);
+    add_prop(eFineTune);
+    add_prop(ePitchbendRange);
+    add_prop(ePianoReleaseMode);
+    add_prop(eDimensionKeyRangeLow);
+    add_prop(eDimensionKeyRangeHigh);
 
-    //get_vbox()->pack_start(table);
-    // set_border_width(6);
+    eDimensionKeyRangeLow.signal_value_changed().connect(
+        sigc::mem_fun(*this, &InstrumentProps::key_range_low_changed));
+    eDimensionKeyRangeHigh.signal_value_changed().connect(
+        sigc::mem_fun(*this, &InstrumentProps::key_range_high_changed));
+
     add(vbox);
-    table.set_border_width(2);
+    table.set_border_width(5);
     vbox.pack_start(table);
     table.show();
-    vbox.pack_start(buttonBox);
+    vbox.pack_start(buttonBox, Gtk::PACK_SHRINK);
     buttonBox.set_layout(Gtk::BUTTONBOX_END);
     buttonBox.set_border_width(5);
     buttonBox.show();
@@ -689,43 +676,41 @@ InstrumentProps::InstrumentProps()
     quitButton.signal_clicked().connect(
         sigc::mem_fun(*this, &InstrumentProps::hide));
 
-    // quitButton.grab_default();
     quitButton.show();
-    // add(table);
     vbox.show();
     show_all_children();
 }
 
-extern char* notes[];
-
 void InstrumentProps::set_instrument(gig::Instrument* instrument)
 {
-    char buf[100];
+    update_gui = false;
+    eName.set_ptr(&instrument->pInfo->Name);
+    eIsDrum.set_ptr(&instrument->IsDrum);
+    eMIDIBank.set_ptr(&instrument->MIDIBank);
+    eMIDIProgram.set_ptr(&instrument->MIDIProgram);
+    eAttenuation.set_ptr(&instrument->Attenuation);
+    eGainPlus6.set_ptr(&instrument->Attenuation);
+    eEffectSend.set_ptr(&instrument->EffectSend);
+    eFineTune.set_ptr(&instrument->FineTune);
+    ePitchbendRange.set_ptr(&instrument->PitchbendRange);
+    ePianoReleaseMode.set_ptr(&instrument->PianoReleaseMode);
+    eDimensionKeyRangeLow.set_ptr(&instrument->DimensionKeyRange.low);
+    eDimensionKeyRangeHigh.set_ptr(&instrument->DimensionKeyRange.high);
+    update_gui = true;
+}
 
-    int entryIdx = 0, checkIdx = 0;
-    entry[entryIdx++].set_text(instrument->pInfo->Name);
-    check[checkIdx++].set_active(instrument->IsDrum);
-    sprintf(buf, "%d", instrument->MIDIBank);
-    entry[entryIdx++].set_text(buf);
-    sprintf(buf, "%d", instrument->MIDIProgram);
-    entry[entryIdx++].set_text(buf);
-    sprintf(buf, "%d", instrument->Attenuation);
-    entry[entryIdx++].set_text(buf);
-    sprintf(buf, "%d", instrument->EffectSend);
-    entry[entryIdx++].set_text(buf);
-    sprintf(buf, "%d", instrument->FineTune);
-    entry[entryIdx++].set_text(buf);
-    sprintf(buf, "%d", instrument->PitchbendRange);
-    entry[entryIdx++].set_text(buf);
-    check[checkIdx++].set_active(instrument->PianoReleaseMode);
-    sprintf(buf, "%s%d (%d)..%s%d (%d)",
-            notes[instrument->DimensionKeyRange.low % 12],
-            instrument->DimensionKeyRange.low / 12 - 1,
-            instrument->DimensionKeyRange.low,
-            notes[instrument->DimensionKeyRange.high % 12],
-            instrument->DimensionKeyRange.high / 12 - 1,
-            instrument->DimensionKeyRange.high);
-    entry[entryIdx].set_text(buf);
+void InstrumentProps::key_range_low_changed()
+{
+    double l = eDimensionKeyRangeLow.get_value();
+    double h = eDimensionKeyRangeHigh.get_value();
+    if (h < l) eDimensionKeyRangeHigh.set_value(l);
+}
+
+void InstrumentProps::key_range_high_changed()
+{
+    double l = eDimensionKeyRangeLow.get_value();
+    double h = eDimensionKeyRangeHigh.get_value();
+    if (h < l) eDimensionKeyRangeLow.set_value(h);
 }
 
 void MainWindow::load_gig(gig::File* gig, const char* filename)

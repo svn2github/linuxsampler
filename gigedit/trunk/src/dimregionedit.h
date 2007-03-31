@@ -30,8 +30,6 @@
 
 #include "paramedit.h"
 
-typedef BoolEntry<gig::DimensionRegion> DimregBoolEntry;
-
 class DimRegionEdit : public Gtk::Notebook
 {
 public:
@@ -51,12 +49,12 @@ protected:
     NumEntryTemp<double> eEG1Attack;
     NumEntryTemp<double> eEG1Decay1;
     NumEntryTemp<double> eEG1Decay2;
-    DimregBoolEntry eEG1InfiniteSustain;
+    BoolEntry eEG1InfiniteSustain;
     NumEntryPermille eEG1Sustain;
     NumEntryTemp<double> eEG1Release;
-    DimregBoolEntry eEG1Hold;
+    BoolEntry eEG1Hold;
     ChoiceEntryLeverageCtrl eEG1Controller;
-    DimregBoolEntry eEG1ControllerInvert;
+    BoolEntry eEG1ControllerInvert;
     NumEntryTemp<uint8_t> eEG1ControllerAttackInfluence;
     NumEntryTemp<uint8_t> eEG1ControllerDecayInfluence;
     NumEntryTemp<uint8_t> eEG1ControllerReleaseInfluence;
@@ -64,17 +62,17 @@ protected:
     NumEntryTemp<uint16_t> eLFO1InternalDepth;
     NumEntryTemp<uint16_t> eLFO1ControlDepth;
     ChoiceEntry<gig::lfo1_ctrl_t> eLFO1Controller;
-    DimregBoolEntry eLFO1FlipPhase;
-    DimregBoolEntry eLFO1Sync;
+    BoolEntry eLFO1FlipPhase;
+    BoolEntry eLFO1Sync;
     NumEntryPermille eEG2PreAttack;
     NumEntryTemp<double> eEG2Attack;
     NumEntryTemp<double> eEG2Decay1;
     NumEntryTemp<double> eEG2Decay2;
-    DimregBoolEntry eEG2InfiniteSustain;
+    BoolEntry eEG2InfiniteSustain;
     NumEntryPermille eEG2Sustain;
     NumEntryTemp<double> eEG2Release;
     ChoiceEntryLeverageCtrl eEG2Controller;
-    DimregBoolEntry eEG2ControllerInvert;
+    BoolEntry eEG2ControllerInvert;
     NumEntryTemp<uint8_t> eEG2ControllerAttackInfluence;
     NumEntryTemp<uint8_t> eEG2ControllerDecayInfluence;
     NumEntryTemp<uint8_t> eEG2ControllerReleaseInfluence;
@@ -82,27 +80,27 @@ protected:
     NumEntryTemp<uint16_t> eLFO2InternalDepth;
     NumEntryTemp<uint16_t> eLFO2ControlDepth;
     ChoiceEntry<gig::lfo2_ctrl_t> eLFO2Controller;
-    DimregBoolEntry eLFO2FlipPhase;
-    DimregBoolEntry eLFO2Sync;
+    BoolEntry eLFO2FlipPhase;
+    BoolEntry eLFO2Sync;
     NumEntryTemp<double> eEG3Attack;
     NumEntryTemp<int16_t> eEG3Depth;
     NumEntryTemp<double> eLFO3Frequency;
     NumEntryTemp<int16_t> eLFO3InternalDepth;
     NumEntryTemp<int16_t> eLFO3ControlDepth;
     ChoiceEntry<gig::lfo3_ctrl_t> eLFO3Controller;
-    DimregBoolEntry eLFO3Sync;
-    DimregBoolEntry eVCFEnabled;
+    BoolEntry eLFO3Sync;
+    BoolEntry eVCFEnabled;
     ChoiceEntry<gig::vcf_type_t> eVCFType;
     ChoiceEntry<gig::vcf_cutoff_ctrl_t> eVCFCutoffController;
-    DimregBoolEntry eVCFCutoffControllerInvert;
+    BoolEntry eVCFCutoffControllerInvert;
     NumEntryTemp<uint8_t> eVCFCutoff;
     ChoiceEntry<gig::curve_type_t> eVCFVelocityCurve;
     NumEntryTemp<uint8_t> eVCFVelocityScale;
     NumEntryTemp<uint8_t> eVCFVelocityDynamicRange;
     NumEntryTemp<uint8_t> eVCFResonance;
-    DimregBoolEntry eVCFResonanceDynamic;
+    BoolEntry eVCFResonanceDynamic;
     ChoiceEntry<gig::vcf_res_ctrl_t> eVCFResonanceController;
-    DimregBoolEntry eVCFKeyboardTracking;
+    BoolEntry eVCFKeyboardTracking;
     NumEntryTemp<uint8_t> eVCFKeyboardTrackingBreakpoint;
     ChoiceEntry<gig::curve_type_t> eVelocityResponseCurve;
     NumEntryTemp<uint8_t> eVelocityResponseDepth;
@@ -110,26 +108,26 @@ protected:
     ChoiceEntry<gig::curve_type_t> eReleaseVelocityResponseCurve;
     NumEntryTemp<uint8_t> eReleaseVelocityResponseDepth;
     NumEntryTemp<uint8_t> eReleaseTriggerDecay;
-    NumEntryX<uint8_t> eCrossfade_in_start;
-    NumEntryX<uint8_t> eCrossfade_in_end;
-    NumEntryX<uint8_t> eCrossfade_out_start;
-    NumEntryX<uint8_t> eCrossfade_out_end;
-    DimregBoolEntry ePitchTrack;
+    NumEntryTemp<uint8_t> eCrossfade_in_start;
+    NumEntryTemp<uint8_t> eCrossfade_in_end;
+    NumEntryTemp<uint8_t> eCrossfade_out_start;
+    NumEntryTemp<uint8_t> eCrossfade_out_end;
+    BoolEntry ePitchTrack;
     ChoiceEntry<gig::dim_bypass_ctrl_t> eDimensionBypass;
     NumEntryTemp<int8_t> ePan;
-    DimregBoolEntry eSelfMask;
+    BoolEntry eSelfMask;
     ChoiceEntryLeverageCtrl eAttenuationController;
-    DimregBoolEntry eInvertAttenuationController;
+    BoolEntry eInvertAttenuationController;
     NumEntryTemp<uint8_t> eAttenuationControllerThreshold;
     NumEntryTemp<uint8_t> eChannelOffset;
-    DimregBoolEntry eSustainDefeat;
-    DimregBoolEntry eMSDecode;
+    BoolEntry eSustainDefeat;
+    BoolEntry eMSDecode;
     NumEntryTemp<uint16_t> eSampleStartOffset;
     NoteEntry eUnityNote;
-    NumEntryX<int16_t> eFineTune;
+    NumEntryTemp<int16_t> eFineTune;
     NumEntryGain eGain;
     BoolEntryPlus6 eGainPlus6;
-    NumEntryX<uint32_t> eSampleLoops;
+    NumEntryTemp<uint32_t> eSampleLoops;
 
     int rowno;
     int pageno;

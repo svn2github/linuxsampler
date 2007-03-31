@@ -2,6 +2,8 @@ Version CVS HEAD
 
   * fixed compilation with older gcc versions
   * added German translation
+  * reworked instrument properties dialog - properties can now be
+    edited
 
 Version 0.0.3 (2007-03-24)
 

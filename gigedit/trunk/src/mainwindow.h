@@ -63,12 +63,22 @@ protected:
     Gtk::Label label[10];
     Gtk::Entry entry[8];
     Gtk::CheckButton check[2];
-    NumEntryX<uint16_t, gig::Instrument> eMIDIBank;
-    NumEntryX<uint32_t, gig::Instrument> eMIDIProgram;
-    NumEntryTemp<int32_t, gig::Instrument> eAttenuation;
-    NumEntryTemp<uint16_t, gig::Instrument> eEffectSend;
-    NumEntryTemp<int16_t, gig::Instrument> eFineTune;
-    BoolEntry<gig::Instrument> ePianoReleaseMode;
+    StringEntry eName;
+    BoolEntry eIsDrum;
+    NumEntryTemp<uint16_t> eMIDIBank;
+    NumEntryTemp<uint32_t> eMIDIProgram;
+    NumEntryGain eAttenuation;
+    BoolEntryPlus6 eGainPlus6;
+    NumEntryTemp<uint16_t> eEffectSend;
+    NumEntryTemp<int16_t> eFineTune;
+    NumEntryTemp<uint16_t> ePitchbendRange;
+    BoolEntry ePianoReleaseMode;
+    NoteEntry eDimensionKeyRangeLow;
+    NoteEntry eDimensionKeyRangeHigh;
+    int rowno;
+    void add_prop(LabelWidget& prop);
+    void key_range_low_changed();
+    void key_range_high_changed();
 };
 
 class LoadDialog : public Gtk::Dialog {
