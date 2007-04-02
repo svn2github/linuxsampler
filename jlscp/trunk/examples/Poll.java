@@ -1,7 +1,7 @@
 /*
  *   jlscp - a java LinuxSampler control protocol API
  *
- *   Copyright (C) 2005 Grigor Kirilov Iliev
+ *   Copyright (C) 2005-2007 Grigor Iliev <grigor@grigoriliev.com>
  *
  *   This file is part of jlscp.
  *
@@ -94,7 +94,7 @@ public class Poll {
 			
 			for(int j = 0; j < d.getChannelCount(); j++) {
 				AudioOutputChannel aoc =
-					client.getAudioOutputChannelInfo(d.getDeviceID(), j);
+					client.getAudioOutputChannelInfo(d.getDeviceId(), j);
 				System.out.println(" Channel: " + aoc.getName());
 				if(aoc.isMixChannel()) System.out.println (
 					" Mix channel destincation: " + aoc.getMixChannelDest()
@@ -205,7 +205,7 @@ public class Poll {
 	
 	private static void
 	showDeviceInfo(Device device) {
-		System.out.println("Device ID: " + device.getDeviceID());
+		System.out.println("Device ID: " + device.getDeviceId());
 		System.out.println(" Driver: " + device.getDriverName());
 		System.out.println(" Active: " + device.isActive());
 		for(Parameter p : device.getAdditionalParameters()) showParameterInfo(p);
@@ -317,7 +317,7 @@ public class Poll {
 	
 	private static void
 	showChannelInfo(SamplerChannel channel) {
-		System.out.println("Sampler channel ID: " + channel.getChannelID());
+		System.out.println("Sampler channel ID: " + channel.getChannelId());
 		System.out.println();
 	}
 	

@@ -1,7 +1,7 @@
 /*
  *   jlscp - a java LinuxSampler control protocol API
  *
- *   Copyright (C) 2005 Grigor Kirilov Iliev
+ *   Copyright (C) 2005-2006 Grigor Iliev <grigor@grigoriliev.com>
  *
  *   This file is part of jlscp.
  *
@@ -32,7 +32,7 @@ import java.util.Vector;
 public abstract class AbstractDevice implements Device {
 	private int id = -1;
 	private String driver = null;
-	private boolean active = false;
+	private BoolParameter active = new BoolParameter("ACTIVE", true);
 	
 	private final Vector<Parameter> prmList = new Vector<Parameter>();
 	
@@ -46,14 +46,14 @@ public abstract class AbstractDevice implements Device {
 	 * @return The numerical ID of this device or -1 if the device number is not set.
 	 */
 	public int
-	getDeviceID() { return id; }
+	getDeviceId() { return id; }
 	
 	/**
 	 * Sets the numerical ID of this device.
 	 * @param id The new numerical ID of this device.
 	 */
 	public void
-	setDeviceID(int id) { this.id = id; }
+	setDeviceId(int id) { this.id = id; }
 	
 	/**
 	 * Gets the driver name used by this device.
@@ -74,7 +74,7 @@ public abstract class AbstractDevice implements Device {
 	 * @return <code>false</code> if the device is inactive and <code>true</code> otherwise.
 	 */
 	public boolean
-	isActive() { return active; }
+	isActive() { return active.getValue(); }
 	
 	/**
 	 * Sets whether this audio output device is active or not.
@@ -82,7 +82,15 @@ public abstract class AbstractDevice implements Device {
 	 * <code>true</code> otherwise.
 	 */
 	public void
-	setActive(boolean active) { this.active = active; }
+	setActive(boolean active) { this.active.setValue(active); }
+	
+	/**
+	 * Gets the <code>ACTIVE</code> parameter.
+	 * @return A <code>Parameter<Boolean></code> instance
+	 * representing the active state of the device.
+	 */
+	public Parameter<Boolean>
+	getActiveParameter() { return active; }
 	
 	/**
 	 * Adds additional parameter to this device.
@@ -111,5 +119,5 @@ public abstract class AbstractDevice implements Device {
 	 * @return The numerical ID of the device.
 	 */
 	public String
-	toString() { return String.valueOf(getDeviceID()); }
+	toString() { return String.valueOf(getDeviceId()); }
 }

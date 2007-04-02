@@ -1,7 +1,7 @@
 /*
  *   jlscp - a java LinuxSampler control protocol API
  *
- *   Copyright (C) 2005 Grigor Kirilov Iliev
+ *   Copyright (C) 2005-2006 Grigor Iliev <grigor@grigoriliev.com>
  *
  *   This file is part of jlscp.
  *
@@ -48,10 +48,10 @@ public class VoiceCountEvent extends java.util.EventObject {
 	}
 	
 	/**
-	 * Gets the new number of the sampler channel for which 
+	 * Gets the numerical ID of the sampler channel for which 
 	 * the number of active voices has changed.
 	 *
-	 * @return The new number of the sampler channel for which 
+	 * @return The numerical ID of the sampler channel for which 
 	 * the number of active voices has changed.
 	 */
 	public int

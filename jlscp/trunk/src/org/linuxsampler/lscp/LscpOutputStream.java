@@ -1,7 +1,7 @@
 /*
  *   jlscp - a java LinuxSampler control protocol API
  *
- *   Copyright (C) 2005 Grigor Kirilov Iliev
+ *   Copyright (C) 2005-2006 Grigor Iliev <grigor@grigoriliev.com>
  *
  *   This file is part of jlscp.
  *
@@ -40,7 +40,7 @@ class LscpOutputStream {
 	
 	/*
 	 * Writes a line.
-	 * @param line a string to be writed.
+	 * @param line a string to be written.
 	 */
 	public void
 	writeLine(String line) throws IOException {

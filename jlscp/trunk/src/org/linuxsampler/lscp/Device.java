@@ -1,7 +1,7 @@
 /*
  *   jlscp - a java LinuxSampler control protocol API
  *
- *   Copyright (C) 2005 Grigor Kirilov Iliev
+ *   Copyright (C) 2005-2006 Grigor Iliev <grigor@grigoriliev.com>
  *
  *   This file is part of jlscp.
  *
@@ -32,7 +32,7 @@ public interface Device {
 	 * Gets the numerical ID of this device.
 	 * @return The numerical ID of this device or -1 if the device number is not set.
 	 */
-	public int getDeviceID();
+	public int getDeviceId();
 	
 	/**
 	 * Gets the driver name used by this device.
@@ -45,6 +45,13 @@ public interface Device {
 	 * @return <code>false</code> if the device is inactive and <code>true</code> otherwise.
 	 */
 	public boolean isActive();
+	
+	/**
+	 * Gets the <code>ACTIVE</code> parameter.
+	 * @return A <code>Parameter<Boolean></code> instance
+	 * representing the active state of the device.
+	 */
+	public Parameter<Boolean> getActiveParameter();
 	
 	/**
 	 * Gets <code>Parameter</code> array with the additional parameters of this device.

@@ -1,7 +1,7 @@
 
 jlscp - A java LinuxSampler control protocol API
 
-by Grigor Iliev <gr.iliev@gmail.com>
+by Grigor Iliev <grigor@grigoriliev.com>
 
 
 This library provides client API for retrieving information and

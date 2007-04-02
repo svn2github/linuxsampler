@@ -1,7 +1,7 @@
 /*
  *   jlscp - a java LinuxSampler control protocol API
  *
- *   Copyright (C) 2005 Grigor Kirilov Iliev
+ *   Copyright (C) 2005-2006 Grigor Iliev <grigor@grigoriliev.com>
  *
  *   This file is part of jlscp.
  *
@@ -115,4 +115,24 @@ public class AudioOutputDevice extends AbstractDevice {
 	 */
 	public int
 	getAudioChannelCount() { return audioChannels.length; }
+	
+	/**
+	 * Gets a <code>Parameter</code> array providing all parameters
+	 * of this audio output device (including <code>ACTIVE</code>,
+	 * <code>CHANNELS</code> and <code>SAMPLERATE</code> parameters).
+	 * @return A <code>Parameter</code> array providing all parameters
+	 * of this MIDI port.
+	 */
+	public Parameter[]
+	getAllParameters() {
+		Parameter[] ap = getAdditionalParameters();
+		Parameter[] params = new Parameter[ap.length + 3];
+		params[0] = getActiveParameter();
+		params[1] = channels;
+		params[2] = samplerate;
+		
+		for(int i = 0; i < ap.length; i++) params[i + 3] = ap[i];
+		
+		return params;
+	}
 }

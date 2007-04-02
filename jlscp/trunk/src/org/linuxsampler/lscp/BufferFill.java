@@ -1,7 +1,7 @@
 /*
  *   jlscp - a java LinuxSampler control protocol API
  *
- *   Copyright (C) 2005 Grigor Kirilov Iliev
+ *   Copyright (C) 2005-2006 Grigor Iliev <grigor@grigoriliev.com>
  *
  *   This file is part of jlscp.
  *
@@ -27,7 +27,7 @@ package org.linuxsampler.lscp;
  * @author  Grigor Iliev
  */
 public class BufferFill {
-	private int streamID;
+	private int streamId;
 	private int value;
 	
 	/** Creates a new instance of <code>BufferFill</code>. */
@@ -37,12 +37,12 @@ public class BufferFill {
 	/** 
 	 * Creates a new instance of <code>BufferFill</code> with
 	 * the specified stream ID and fill amount.
-	 * @param streamID The stream ID of the disk stream buffer.
+	 * @param streamId The stream ID of the disk stream buffer.
 	 * @param value The fill amount of the disk stream buffer.
 	 */
 	public
-	BufferFill(int streamID, int value) {
-		setStreamID(streamID);
+	BufferFill(int streamId, int value) {
+		setStreamId(streamId);
 		setValue(value);
 	}
 	
@@ -51,14 +51,14 @@ public class BufferFill {
 	 * @return The stream ID of the disk stream buffer.
 	 */
 	public int
-	getStreamID() { return streamID; }
+	getStreamId() { return streamId; }
 	
 	/**
 	 * Sets the stream ID of the disk stream buffer.
 	 * @param id The stream ID of the disk stream buffer.
 	 */
 	public void
-	setStreamID(int id) { streamID = id; }
+	setStreamId(int id) { streamId = id; }
 	
 	/**
 	 * Gets the fill amount of the buffer.

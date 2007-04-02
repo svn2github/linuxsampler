@@ -1,3 +1,18 @@
+jlscp v0.4a: 2007-04-02
+  * Implemented support for managing MIDI instrument maps.
+
+  * Implemented support for managing Effect Sends.
+
+  * Implemented print-only mode: Print-only mode means that the
+    client will just print all LSCP commands to the specified output
+    stream or to the standard output stream (java.lang.System.out) if
+    no output stream is specified, without taking any further actions.
+    
+  * API Changes
+	   - Client: 
+	   - Device, AbstractDevice: added getActiveParameter method
+	   - AudioOutputDevice: added getAllParameters method
+
 jlscp v0.3a: 2005-10-10
 	* Significantly speeded up the transfer by setting the socket
 	  property TcpNoDelay to true

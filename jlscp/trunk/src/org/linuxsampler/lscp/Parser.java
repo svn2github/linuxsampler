@@ -1,7 +1,7 @@
 /*
  *   jlscp - a java LinuxSampler control protocol API
  *
- *   Copyright (C) 2005 Grigor Kirilov Iliev
+ *   Copyright (C) 2005-2006 Grigor Iliev <grigor@grigoriliev.com>
  *
  *   This file is part of jlscp.
  *
@@ -32,6 +32,9 @@ import java.util.Vector;
  * @author  Grigor Iliev
  */
 final class Parser {
+	/** Forbits the instantiatrion of this class */
+	private Parser() { }
+	
 	/**
 	 * Parses an integer value.
 	 * @param s The integer value to be parsed.
@@ -65,12 +68,21 @@ final class Parser {
 	 * @return A <code>String</code> array containing all items in the list.
 	 */
 	protected static String[]
-	parseList(String list) {
+	parseList(String list) { return parseList(list, ','); }
+	
+	/**
+	 * Parses a list.
+	 * @param list The list to parse.
+	 * @param separator Provides the character used as separator.
+	 * @return A <code>String</code> array containing all items in the list.
+	 */
+	protected static String[]
+	parseList(String list, char separator) {
 		if(list == null || list.length() == 0) return new String[0];
 		int pos = 0;
 		int idx;
 		Vector<String> v = new Vector<String>();
-		while((idx = list.indexOf(',', pos)) > 0) {
+		while((idx = list.indexOf(separator, pos)) > 0) {
 			v.add(list.substring(pos, idx));
 			pos = idx + 1;
 		}
@@ -106,8 +118,20 @@ final class Parser {
 	 * @throws LscpException if the list contains value(s) from different type.
 	 */
 	protected static Integer[]
-	parseIntList(String list) throws LscpException {
-		String[] ar = parseList(list);
+	parseIntList(String list) throws LscpException { return parseIntList(list, ','); }
+	
+	/**
+	 * Parses a list of integer values.
+	 *
+	 * @param list The list of integer values.
+	 * @param separator Provides the character used as separator.
+	 * @return A <code>Integer</code> array containing all items in the list.
+	 *
+	 * @throws LscpException if the list contains value(s) from different type.
+	 */
+	protected static Integer[]
+	parseIntList(String list, char separator) throws LscpException {
+	String[] ar = parseList(list, separator);
 		
 		Integer[] iar = new Integer[ar.length];
 		for(int i = 0; i < ar.length; i++) iar[i] = parseInt(ar[i]);
@@ -193,6 +217,39 @@ final class Parser {
 		for(i = 0; i < v.size(); i++) s2S[i] = Parser.parseStringList(v.get(i));
 		
 		return s2S;
+	}
+	
+	/**
+	 * Parses a comma separated list whose items are encapsulated into curly braces.
+	 *
+	 * @param list The comma separated list.
+	 * @return A <code>String</code> array containing all items in the list.
+	 *
+	 * @throws LscpException if the list is broken.
+	 */
+	protected static String[]
+	parseArray(String list) throws LscpException {
+		if(list == null || list.length() == 0) return new String[0];
+		int q1 = 0, q2 = 0;
+		Vector<String> v = new Vector<String>();
+		
+		for(;;) {
+			if(list.charAt(q1) != '{')
+				throw new LscpException(LscpI18n.getLogMsg("Parser.brokenList!"));
+			q2 = list.indexOf('}', q1 + 1);
+			if(q2 == -1) throw new LscpException(LscpI18n.getLogMsg("Parser.EOL!"));
+			v.add(list.substring(q1 + 1, q2));
+			
+			if(q2 + 1 >= list.length()) break;
+			
+			if(list.charAt(q2 + 1) != ',')
+				throw new LscpException(LscpI18n.getLogMsg("Parser.brokenList!"));
+			q1 = q2 + 2;
+			if(q1 >= list.length())
+				throw new LscpException(LscpI18n.getLogMsg("Parser.EOL!"));
+		}
+		
+		return v.toArray(new String[v.size()]);
 	}
 	
 	/** Helper function used by <code>parseListOfStringLists</code>. */

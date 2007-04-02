@@ -1,7 +1,7 @@
 /*
  *   jlscp - a java LinuxSampler control protocol API
  *
- *   Copyright (C) 2005 Grigor Kirilov Iliev
+ *   Copyright (C) 2005-2006 Grigor Iliev <grigor@grigoriliev.com>
  *
  *   This file is part of jlscp.
  *
@@ -23,14 +23,14 @@
 package org.linuxsampler.lscp;
 
 /**
- * Provides information about current settings of a specific sampler channel.
+ * Provides information about the current settings of a specific sampler channel.
  * @author  Grigor Iliev
  */
 public class SamplerChannel implements Parseable {
 	/** Indicates that the channel is muted because of the presence of a solo channel. */
 	private final static int MUTED_BY_SOLO = -1;
 		
-	private int chnID = -1;
+	private int chnId = -1;
 	
 	private SamplerEngine engine = null;
 	private int aoDevice = -1;
@@ -46,6 +46,7 @@ public class SamplerChannel implements Parseable {
 	private float vol = 0;
 	private int mute = 0;
 	private boolean solo = false;
+	private int midiInstrumentMapId = -1;
 	
 	/** Creates a new instance of SamplerChannel */
 	public
@@ -69,14 +70,14 @@ public class SamplerChannel implements Parseable {
 	 * @return The sampler channel number or -1 if the sampler channel number is not set.
 	 */
 	public int
-	getChannelID() { return chnID; }
+	getChannelId() { return chnId; }
 	
 	/**
 	 * Sets the sampler channel number.
 	 * @param id The new sampler channel number.
 	 */
 	public void
-	setChannelID(int id) { chnID = id; }
+	setChannelId(int id) { chnId = id; }
 	
 	/**
 	 * Gets the engine that is deployed on the sampler channel.
@@ -113,7 +114,10 @@ public class SamplerChannel implements Parseable {
 	
 	/**
 	 * Gets a list which reflects to which audio channel of the selected audio output device
-	 * each sampler output channel is routed to.
+	 * each sampler output channel is routed to. The number of the array's position represents
+	 * the sampler output channel and the value at the specified position represents
+	 * to which channel of the selected audio output device the
+	 * sampler output channel is routed to.
 	 * @return A list which reflects to which audio channel of the selected audio output device
 	 * each sampler output channel is routed to.
 	 */
@@ -211,6 +215,28 @@ public class SamplerChannel implements Parseable {
 	isSoloChannel() { return solo; }
 	
 	/**
+	 * Gets the numerical id of the MIDI instrument
+	 * map, to which this sampler channel is assigned to.
+	 * @return The numerical id of the MIDI instrument map, to
+	 * which this sampler channel is assigned to, or <code>-1</code>
+	 * if no MIDI instrument map is assigned to this sampler
+	 * channel and <code>-2</code> if the channel is assigned
+	 * to the default MIDI instrument map.
+	 * @see #isUsingDefaultMidiInstrumentMap
+	 */
+	public int
+	getMidiInstrumentMapId() { return midiInstrumentMapId; }
+	
+	/**
+	 * Determines whether the sampler channel is
+	 * assigned to the default MIDI instrument map.
+	 * @return <code>true</code> if the sampler channel is assigned
+	 * to the default MIDI instrument map, <code>false</code> otherwise.
+	 */
+	public boolean
+	isUsingDefaultMidiInstrumentMap() { return getMidiInstrumentMapId() == -2; }
+	
+	/**
 	 * Parses a line of text.
 	 * @param s The string to be parsed.
 	 * @return <code>true</code> if the line has been processed, <code>false</code> otherwise.
@@ -276,6 +302,11 @@ public class SamplerChannel implements Parseable {
 		} else if(s.startsWith("SOLO: ")) {
 			s = s.substring("SOLO: ".length());
 			solo = Boolean.parseBoolean(s);
+		} else if(s.startsWith("MIDI_INSTRUMENT_MAP: ")) {
+			s = s.substring("MIDI_INSTRUMENT_MAP: ".length());
+			if(s.equals("NONE")) midiInstrumentMapId = -1;
+			else if(s.equals("DEFAULT")) midiInstrumentMapId = -2;
+			else midiInstrumentMapId = Parser.parseInt(s);
 		} else return false;
 	
 		return true;
@@ -286,5 +317,5 @@ public class SamplerChannel implements Parseable {
 	 * @return The numerical ID of this sampler channel.
 	 */
 	public String
-	toString() { return String.valueOf(getChannelID()); }
+	toString() { return String.valueOf(getChannelId()); }
 }
