@@ -129,6 +129,9 @@
                 <tr>
                   <td valign=top>
                     <p class="default">
+              <b>2007-04-02</b> JSampler 0.4a has been released. Read the <a href="jsampler/manual/html/jsampler.html">manual</a>
+              for installation instructions.<br>
+              <br>
               <b>2007-03-24</b> gigedit 0.0.3 has been released, a graphical
               instrument editor allowing to edit existing Gigasampler format
               files as well as creating new ones completely from scratch. Along
