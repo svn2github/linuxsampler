@@ -1,0 +1,61 @@
+<project name="jlscp" default="build-lib" basedir=".">
+    <description>This buildfile is used to build the jlscp library</description>
+    
+    <property name="jlscp.version" value="0.4a"/>
+    
+    <target name="build-all" depends="build-lib,build-examples,build-doc"/>
+        
+    <target name="build-lib" depends="clean-lib,build-manifest">
+        <javac debug="true" debuglevel="source,lines,vars" srcdir="./src" destdir="./lib/build"/>
+        <copy todir="./lib/build/org/linuxsampler/lscp/langprops">
+            <fileset dir="./src/org/linuxsampler/lscp/langprops"/>
+        </copy>
+        <jar basedir="./lib/build" excludes="Manifest" destfile="./lib/jlscp.jar" manifest="./lib/build/Manifest"/>
+        <delete dir="./lib/build"/>
+    </target>
+    
+    <target name="build-doc" depends="clean-doc">
+        <mkdir dir="doc/api"/>
+        <javadoc sourcepath="./src" destdir="./doc/api" windowtitle="jlscp ${jlscp.version} API specification" overview="./src/overview.html" Author="false" splitindex="true" use="true">
+            <package name="org.linuxsampler.lscp"/>
+            <package name="org.linuxsampler.lscp.event"/>
+            <doctitle>jlscp ${jlscp.version} API specification</doctitle>
+            <header><![CDATA[<b>jlscp</b><br><font size=-1>v${jlscp.version}</font>]]></header>
+            <bottom><![CDATA[<font size=-1>Copyright &copy; 2005 Grigor Iliev. All rights reserved.</font>]]></bottom>
+        </javadoc>
+    </target>
+    
+    <target name="build-examples" depends="clean-examples">
+         <mkdir dir="examples/build"/>
+         <javac debug="true" debuglevel="source,lines" srcdir="./examples" destdir="./examples/build" classpath="lib/jlscp.jar"/>
+    </target>
+    
+    <target name="build-manifest">
+        <mkdir dir="lib/build"/>
+        <manifest file="./lib/build/Manifest">
+            <section name="org/linuxsampler/lscp/">
+                <attribute name="Specification-Title" value="A java LinuxSampler control protocol API"/>
+                <attribute name="Specification-Version" value="1.1"/>
+                <attribute name="Specification-Vendor" value="Grigor Iliev"/>
+                <attribute name="Implementation-Title" value="org.linuxsampler.lscp"/>
+                <attribute name="Implementation-Version" value="${jlscp.version}"/>
+                <attribute name="Implementation-Vendor" value="Grigor Iliev"/>
+            </section>
+        </manifest>
+    </target>
+    
+    <target name="clean-all" depends="clean-lib,clean-examples,clean-doc"/>
+    
+    <target name="clean-lib">
+        <delete dir="lib"/>
+    </target>
+    
+    <target name="clean-doc">
+        <delete dir="doc"/>
+    </target>
+    
+    <target name="clean-examples">
+        <delete dir="examples/build"/>
+    </target>
+</project>
+
