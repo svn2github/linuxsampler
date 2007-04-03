@@ -240,8 +240,8 @@ namespace LinuxSampler { namespace gig {
             Decay1Slope = (1.347f * SustainLevel - 1.361f) / StepsLeft;
             Coeff        = Decay1Slope * invVolume;
             Decay1Level2 = 0.25 * invVolume;
-            if (Level < Decay1Level2) enterDecay1Part2Stage(SampleRate);
-            else StepsLeft = int((RTMath::Max(Decay1Level2, SustainLevel) - Level) / Coeff);
+            StepsLeft = int((RTMath::Max(Decay1Level2, SustainLevel) - Level) / Coeff);
+            if (StepsLeft <= 0) enterDecay1Part2Stage(SampleRate);
         } else {
             if (InfiniteSustain) enterSustainStage();
             else                 enterDecay2Stage(SampleRate);
@@ -256,10 +256,10 @@ namespace LinuxSampler { namespace gig {
             Coeff  = exp(Decay1Slope);
             Offset = ExpOffset * (1 - Coeff);
             StepsLeft = int(log((SustainLevel - ExpOffset) / (Level - ExpOffset)) / Decay1Slope);
-        } else {
-            if (InfiniteSustain) enterSustainStage();
-            else                 enterDecay2Stage(SampleRate);
+            if (StepsLeft > 0) return;
         }
+        if (InfiniteSustain) enterSustainStage();
+        else                 enterDecay2Stage(SampleRate);
     }
 
     void EGADSR::enterDecay2Stage(const uint SampleRate) {
@@ -270,7 +270,7 @@ namespace LinuxSampler { namespace gig {
         Coeff      = (-1.03 / StepsLeft) * invVolume;
         //FIXME: do we really have to calculate 'StepsLeft' two times?
         StepsLeft  = int((CONFIG_EG_BOTTOM - Level) / Coeff);
-        if (StepsLeft == 0) enterEndStage();
+        if (StepsLeft <= 0) enterEndStage();
     }
 
     void EGADSR::enterSustainStage() {
@@ -286,7 +286,7 @@ namespace LinuxSampler { namespace gig {
         Segment   = segment_lin;
         StepsLeft = int((ReleaseLevel2 - Level) / ReleaseCoeff);
         Coeff     = ReleaseCoeff;
-        if (StepsLeft == 0) enterReleasePart2Stage();
+        if (StepsLeft <= 0) enterReleasePart2Stage();
     }
 
     void EGADSR::enterReleasePart2Stage() {
@@ -295,7 +295,7 @@ namespace LinuxSampler { namespace gig {
         StepsLeft = int(log((CONFIG_EG_BOTTOM - ExpOffset) / (Level - ExpOffset)) / ReleaseSlope);
         Coeff     = ReleaseCoeff2;
         Offset    = ReleaseCoeff3;
-        if (StepsLeft == 0) enterFadeOutStage();
+        if (StepsLeft <= 0) enterFadeOutStage();
     }
 
     void EGADSR::enterFadeOutStage() {
@@ -303,7 +303,7 @@ namespace LinuxSampler { namespace gig {
         Segment   = segment_lin;
         StepsLeft = int(Level / (-FadeOutCoeff));
         Coeff     = FadeOutCoeff;
-        if (StepsLeft == 0) enterEndStage();
+        if (StepsLeft <= 0) enterEndStage();
     }
 
     void EGADSR::enterEndStage() {

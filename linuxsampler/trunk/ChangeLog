@@ -54,6 +54,8 @@ Version CVS HEAD (?)
     - EG fine tuning: when attack is zero the EG starts at a level
       above max sustain level, which means that there is a decay phase
       even if sustain is 100%
+    - more EG fixes: the level could sometimes go below zero and cause
+      noises or crashes
 
   * Bug fixes:
     - fixed crash occurring on certain LSCP scripts (Bug 39)
