@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 Christian Schoenebeck                              *
+ *   Copyright (C) 2005, 2007 Christian Schoenebeck                        *
  *                                                                         *
  *   This library is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -33,7 +33,7 @@ namespace LinuxSampler { namespace gig {
 
         // calculate decay parameters (lin. curve)
         StepsLeft = (int) (DecayTime * SampleRate);
-        Coeff     = (1.0f - Depth) / (float) StepsLeft;
+        Coeff     = (StepsLeft) ? (1.0f - Depth) / (float) StepsLeft : 0.0f;
 
         dmsg(4,("Depth=%d, DecayTime=%f\n", Depth, DecayTime));
     }

@@ -1,6 +1,7 @@
 /***************************************************************************
  *                                                                         *
  *   Copyright (C) 2004, 2005 Grame                                        *
+ *   Copyright (C) 2005 - 2007 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -25,11 +26,11 @@ namespace LinuxSampler {
 
 	int MidiInputDeviceCoreMidi::MidiInputPortCoreMidi::pPortID = 0;
 
-	MidiInputDeviceCoreMidi::MidiInputPortCoreMidi::ParameterName::ParameterName(MidiInputPort* pPort) throw (LinuxSamplerException) : MidiInputPort::ParameterName(pPort, "Port " + ToString(pPort->GetPortNumber())) {
+	MidiInputDeviceCoreMidi::MidiInputPortCoreMidi::ParameterName::ParameterName(MidiInputPort* pPort) throw (Exception) : MidiInputPort::ParameterName(pPort, "Port " + ToString(pPort->GetPortNumber())) {
         OnSetValue(ValueAsString()); // initialize port name
     }
 
-    void MidiInputDeviceCoreMidi::MidiInputPortCoreMidi::ParameterName::OnSetValue(String s) throw (LinuxSamplerException) {
+    void MidiInputDeviceCoreMidi::MidiInputPortCoreMidi::ParameterName::OnSetValue(String s) throw (Exception) {
 
     }
 
@@ -53,7 +54,7 @@ namespace LinuxSampler {
 		return res;
     }
 
-    void MidiInputDeviceCoreMidi::MidiInputPortCoreMidi::ParameterCoreMidiBindings::OnSetValue(std::vector<String> vS) throw (LinuxSamplerException) {
+    void MidiInputDeviceCoreMidi::MidiInputPortCoreMidi::ParameterCoreMidiBindings::OnSetValue(std::vector<String> vS) throw (Exception) {
         // to finish
     }
 
@@ -168,7 +169,7 @@ namespace LinuxSampler {
     }
 
     String MidiInputDeviceCoreMidi::Version() {
-	    String s = "$Revision: 1.8 $";
+	    String s = "$Revision: 1.9 $";
 	    return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
 

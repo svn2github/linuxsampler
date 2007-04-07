@@ -1,6 +1,7 @@
 /***************************************************************************
  *                                                                         *
  *   Copyright (C) 2004, 2005 Grame                                        *
+ *   Copyright (C) 2007 Christian Schoenebeck                              *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -46,8 +47,8 @@ namespace LinuxSampler {
                      */
                     class ParameterName : public MidiInputPort::ParameterName {
                         public:
-                            ParameterName(MidiInputPort* pPort) throw (LinuxSamplerException);
-                            virtual void OnSetValue(String s) throw (LinuxSamplerException);
+                            ParameterName(MidiInputPort* pPort) throw (Exception);
+                            virtual void OnSetValue(String s) throw (Exception);
                     };
 
                     /** MIDI Port Parameter 'CORE_MIDI_BINDINGS'
@@ -61,7 +62,7 @@ namespace LinuxSampler {
                             virtual String Description();
                             virtual bool Fix();
                             virtual std::vector<String> PossibilitiesAsString();
-                            virtual void OnSetValue(std::vector<String> vS) throw (LinuxSamplerException);
+                            virtual void OnSetValue(std::vector<String> vS) throw (Exception);
                         protected:
                             MidiInputPortCoreMidi* pPort;
                     };

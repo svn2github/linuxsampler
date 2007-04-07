@@ -32,6 +32,8 @@ Version CVS HEAD (?)
       controllers
     - global (sampler wide) volume can now be controlled at runtime
     - Implemented new, improved notification system
+    - fixed compilation errors regarding OSX
+      (patch by Toshi Nagata)
 
   * MIDI driver:
     - dispatch bank select (MSB and LSB) messages
@@ -56,6 +58,7 @@ Version CVS HEAD (?)
       even if sustain is 100%
     - more EG fixes: the level could sometimes go below zero and cause
       noises or crashes
+    - minor fix of EGDecay (patch by Toshi Nagata)
 
   * Bug fixes:
     - fixed crash occurring on certain LSCP scripts (Bug 39)

@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005, 2006 Christian Schoenebeck                        *
+ *   Copyright (C) 2005 - 2007 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -53,7 +53,12 @@ Mutex::Mutex() {
     pthread_mutexattr_init(&__posix_mutexattr);
 
     // the following function call only works on UNIX98 compatible systems
-    #if (_XOPEN_SOURCE > 500)
+    #if (_XOPEN_SOURCE > 500) || defined(__APPLE__)
+	// Mac OS X Note: 10.4 (and later) does support PTHREAD_MUTEX_ERRORCHECK, and
+	// actually LinuxSampler does not work if this call is omitted. However,
+	// defining _XOPEN_SOURCE macro seems to cause other problems. As a workaround,
+	// the symbol __APPLE__ is checked here. There should be a better solution
+	// to this problem. (Toshi Nagata, 27 Mar 2007)
     if (pthread_mutexattr_settype(&__posix_mutexattr, PTHREAD_MUTEX_ERRORCHECK)) {
         std::cout << "Mutex Constructor: Fatal error - unable to pthread_mutexattr_settype(PTHREAD_MUTEX_ERRORCHECK)\n" << std::flush;
         exit(-1);

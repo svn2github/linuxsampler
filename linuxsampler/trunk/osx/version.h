@@ -6,7 +6,12 @@
   define them manually here for now.
 */
 
-#define VERSION "0.3.3"
+#define VERSION "0.4.0.4cvs"
+#define PACKAGE "linuxsampler"
+
+#if __APPLE__ && __BIG_ENDIAN__
+#define WORDS_BIGENDIAN 1
+#endif
 
 /* Define to 1 if you want to enable hand-crafted asm optimizations. */
 /* #undef CONFIG_ASM */
@@ -95,6 +100,8 @@
 
 /* Define voice stealing algorithm to be used. */
 #define CONFIG_VOICE_STEAL_ALGO voice_steal_algo_oldestvoiceonkey
+
+#define CONFIG_GLOBAL_ATTENUATION 0.35
 
 // avoid automatic inclusion of config.h in global.h, since we use version.h
 // to manually maintain all compile time configuration parameters
