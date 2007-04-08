@@ -4,6 +4,8 @@ Version CVS HEAD
   * added German translation
   * reworked instrument properties dialog - properties can now be
     edited
+  * restructured dimension region editor for elements to be in a more
+    logical and intuitive order
 
 Version 0.0.3 (2007-03-24)
 

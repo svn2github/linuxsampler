@@ -113,10 +113,32 @@ DimRegionEdit::DimRegionEdit() :
     rowno = 0;
     firstRowInBlock = 0;
 
+    addHeader("General (mandatory):");
     addString("Sample", lSample, wSample);
     //TODO: the following would break drag&drop:   wSample->property_editable().set_value(false);  or this:    wSample->set_editable(false);
     tooltips.set_tip(*wSample, "drop a sample here");
-    addHeader("EG1");
+    addProp(eUnityNote);
+    addHeader("Optional Settings:");
+    addProp(eSampleStartOffset);
+    addProp(ePan);
+    addProp(eChannelOffset);
+    addHeader("Loops:");
+    addProp(eSampleLoops);
+    addHeader("Crossfade:");
+    addProp(eCrossfade_in_start);
+    addProp(eCrossfade_in_end);
+    addProp(eCrossfade_out_start);
+    addProp(eCrossfade_out_end);
+
+    nextPage();
+
+    addHeader("General Amplitude Settings:");
+    addProp(eGain);
+    addProp(eGainPlus6);
+    addProp(eAttenuationController);
+    addProp(eInvertAttenuationController);
+    addProp(eAttenuationControllerThreshold);
+    addHeader("EG1 (Amplitude Envelope):");
     addProp(eEG1PreAttack);
     addProp(eEG1Attack);
     addProp(eEG1Decay1);
@@ -130,7 +152,7 @@ DimRegionEdit::DimRegionEdit() :
     addProp(eEG1ControllerAttackInfluence);
     addProp(eEG1ControllerDecayInfluence);
     addProp(eEG1ControllerReleaseInfluence);
-    addHeader("LFO1");
+    addHeader("LFO1 (Amplitude Oscillator):");
     addProp(eLFO1Frequency);
     addProp(eLFO1InternalDepth);
     addProp(eLFO1ControlDepth);
@@ -151,63 +173,8 @@ DimRegionEdit::DimRegionEdit() :
     addProp(eLFO1Sync);
 
     nextPage();
-    addHeader("EG2");
-    addProp(eEG2PreAttack);
-    addProp(eEG2Attack);
-    addProp(eEG2Decay1);
-    addProp(eEG2Decay2);
-    addProp(eEG2InfiniteSustain);
-    addProp(eEG2Sustain);
-    addProp(eEG2Release);
-    addProp(eEG2Controller);
-    addProp(eEG2ControllerInvert);
-    addProp(eEG2ControllerAttackInfluence);
-    addProp(eEG2ControllerDecayInfluence);
-    addProp(eEG2ControllerReleaseInfluence);
-    addHeader("LFO2");
-    addProp(eLFO2Frequency);
-    addProp(eLFO2InternalDepth);
-    addProp(eLFO2ControlDepth);
-    {
-        char* choices[] = { "internal", "modwheel", "foot",
-                            "internal+modwheel", "internal+foot", 0 };
-        static const gig::lfo2_ctrl_t values[] = {
-            gig::lfo2_ctrl_internal,
-            gig::lfo2_ctrl_modwheel,
-            gig::lfo2_ctrl_foot,
-            gig::lfo2_ctrl_internal_modwheel,
-            gig::lfo2_ctrl_internal_foot
-        };
-        eLFO2Controller.set_choices(choices, values);
-    }
-    addProp(eLFO2Controller);
-    addProp(eLFO2FlipPhase);
-    addProp(eLFO2Sync);
 
-    nextPage();
-
-    addHeader("EG3");
-    addProp(eEG3Attack);
-    addProp(eEG3Depth);
-    addHeader("LFO3");
-    addProp(eLFO3Frequency);
-    addProp(eLFO3InternalDepth);
-    addProp(eLFO3ControlDepth);
-    {
-        char* choices[] = { "internal", "modwheel", "aftertouch",
-                            "internal+modwheel", "internal+aftertouch", 0 };
-        static const gig::lfo3_ctrl_t values[] = {
-            gig::lfo3_ctrl_internal,
-            gig::lfo3_ctrl_modwheel,
-            gig::lfo3_ctrl_aftertouch,
-            gig::lfo3_ctrl_internal_modwheel,
-            gig::lfo3_ctrl_internal_aftertouch
-        };
-        eLFO3Controller.set_choices(choices, values);
-    }
-    addProp(eLFO3Controller);
-    addProp(eLFO3Sync);
-    addHeader("VCF");
+    addHeader("General Filter Settings:");
     addProp(eVCFEnabled);
     {
         char* choices[] = { "lowpass", "lowpassturbo", "bandpass",
@@ -272,6 +239,65 @@ DimRegionEdit::DimRegionEdit() :
     addProp(eVCFResonanceController);
     addProp(eVCFKeyboardTracking);
     addProp(eVCFKeyboardTrackingBreakpoint);
+    addHeader("EG2 (Filter Cutoff Envelope):");
+    addProp(eEG2PreAttack);
+    addProp(eEG2Attack);
+    addProp(eEG2Decay1);
+    addProp(eEG2Decay2);
+    addProp(eEG2InfiniteSustain);
+    addProp(eEG2Sustain);
+    addProp(eEG2Release);
+    addProp(eEG2Controller);
+    addProp(eEG2ControllerInvert);
+    addProp(eEG2ControllerAttackInfluence);
+    addProp(eEG2ControllerDecayInfluence);
+    addProp(eEG2ControllerReleaseInfluence);
+    addHeader("LFO2 (Filter Cutoff Oscillator):");
+    addProp(eLFO2Frequency);
+    addProp(eLFO2InternalDepth);
+    addProp(eLFO2ControlDepth);
+    {
+        char* choices[] = { "internal", "modwheel", "foot",
+                            "internal+modwheel", "internal+foot", 0 };
+        static const gig::lfo2_ctrl_t values[] = {
+            gig::lfo2_ctrl_internal,
+            gig::lfo2_ctrl_modwheel,
+            gig::lfo2_ctrl_foot,
+            gig::lfo2_ctrl_internal_modwheel,
+            gig::lfo2_ctrl_internal_foot
+        };
+        eLFO2Controller.set_choices(choices, values);
+    }
+    addProp(eLFO2Controller);
+    addProp(eLFO2FlipPhase);
+    addProp(eLFO2Sync);
+
+    nextPage();
+
+    addHeader("General Pitch Settings:");
+    addProp(eFineTune);
+    addProp(ePitchTrack);
+    addHeader("EG3 (Pitch Envelope):");
+    addProp(eEG3Attack);
+    addProp(eEG3Depth);
+    addHeader("LFO3 (Pitch Oscillator):");
+    addProp(eLFO3Frequency);
+    addProp(eLFO3InternalDepth);
+    addProp(eLFO3ControlDepth);
+    {
+        char* choices[] = { "internal", "modwheel", "aftertouch",
+                            "internal+modwheel", "internal+aftertouch", 0 };
+        static const gig::lfo3_ctrl_t values[] = {
+            gig::lfo3_ctrl_internal,
+            gig::lfo3_ctrl_modwheel,
+            gig::lfo3_ctrl_aftertouch,
+            gig::lfo3_ctrl_internal_modwheel,
+            gig::lfo3_ctrl_internal_aftertouch
+        };
+        eLFO3Controller.set_choices(choices, values);
+    }
+    addProp(eLFO3Controller);
+    addProp(eLFO3Sync);
 
     nextPage();
 
@@ -284,11 +310,6 @@ DimRegionEdit::DimRegionEdit() :
     addProp(eReleaseVelocityResponseCurve);
     addProp(eReleaseVelocityResponseDepth);
     addProp(eReleaseTriggerDecay);
-    addProp(eCrossfade_in_start);
-    addProp(eCrossfade_in_end);
-    addProp(eCrossfade_out_start);
-    addProp(eCrossfade_out_end);
-    addProp(ePitchTrack);
     {
         char* choices[] = { "none", "effect4depth", "effect5depth", 0 };
         static const gig::dim_bypass_ctrl_t values[] = {
@@ -299,23 +320,12 @@ DimRegionEdit::DimRegionEdit() :
         eDimensionBypass.set_choices(choices, values);
     }
     addProp(eDimensionBypass);
-    addProp(ePan);
     addProp(eSelfMask);
-    addProp(eAttenuationController);
-    addProp(eInvertAttenuationController);
-    addProp(eAttenuationControllerThreshold);
-    addProp(eChannelOffset);
     addProp(eSustainDefeat);
+    addProp(eMSDecode);
 
     nextPage();
-    addProp(eMSDecode);
-    addProp(eSampleStartOffset);
-    addProp(eUnityNote);
-    addProp(eFineTune);
-    addProp(eGain);
-    addProp(eGainPlus6);
-    addProp(eSampleLoops);
-    nextPage();
+
 
     eEG1InfiniteSustain.signal_toggled().connect(
         sigc::mem_fun(*this, &DimRegionEdit::EG1InfiniteSustain_toggled) );
@@ -349,10 +359,10 @@ DimRegionEdit::DimRegionEdit() :
     eCrossfade_out_end.signal_value_changed().connect(
         sigc::mem_fun(*this, &DimRegionEdit::crossfade4_changed));
 
-    append_page(*table[0], "EG1");
-    append_page(*table[1], "EG2");
-    append_page(*table[2], "EG3");
-    append_page(*table[3], "Velocity");
+    append_page(*table[0], "Sample");
+    append_page(*table[1], "Amplitude");
+    append_page(*table[2], "Filter");
+    append_page(*table[3], "Pitch");
     append_page(*table[4], "Misc");
 }
 
