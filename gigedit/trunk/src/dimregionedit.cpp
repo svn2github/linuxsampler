@@ -104,9 +104,9 @@ DimRegionEdit::DimRegionEdit() :
     eGainPlus6("Gain +6dB", eGain, 6 * -655360),
     eSampleLoops("SampleLoops", 0, 1)
 {
-    for (int i = 0 ; i < 5 ; i++) {
+    for (int i = 0 ; i < 7 ; i++) {
         table[i] = new Gtk::Table(3, 1);
-        table[i]->set_col_spacings(5);
+        table[i]->set_col_spacings(7);
     }
 
     pageno = 0;
@@ -152,6 +152,9 @@ DimRegionEdit::DimRegionEdit() :
     addProp(eEG1ControllerAttackInfluence);
     addProp(eEG1ControllerDecayInfluence);
     addProp(eEG1ControllerReleaseInfluence);
+
+    nextPage();
+
     addHeader("LFO1 (Amplitude Oscillator):");
     addProp(eLFO1Frequency);
     addProp(eLFO1InternalDepth);
@@ -239,6 +242,9 @@ DimRegionEdit::DimRegionEdit() :
     addProp(eVCFResonanceController);
     addProp(eVCFKeyboardTracking);
     addProp(eVCFKeyboardTrackingBreakpoint);
+
+    nextPage();
+
     addHeader("EG2 (Filter Cutoff Envelope):");
     addProp(eEG2PreAttack);
     addProp(eEG2Attack);
@@ -360,10 +366,12 @@ DimRegionEdit::DimRegionEdit() :
         sigc::mem_fun(*this, &DimRegionEdit::crossfade4_changed));
 
     append_page(*table[0], "Sample");
-    append_page(*table[1], "Amplitude");
-    append_page(*table[2], "Filter");
-    append_page(*table[3], "Pitch");
-    append_page(*table[4], "Misc");
+    append_page(*table[1], "Amplitude (1)");
+    append_page(*table[2], "Amplitude (2)");
+    append_page(*table[3], "Filter (1)");
+    append_page(*table[4], "Filter (2)");
+    append_page(*table[5], "Pitch");
+    append_page(*table[6], "Misc");
 }
 
 DimRegionEdit::~DimRegionEdit()

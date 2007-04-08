@@ -41,7 +41,7 @@ public:
 protected:
     Gtk::Tooltips tooltips;
 
-    Gtk::Table* table[5];
+    Gtk::Table* table[7];
 
     Gtk::Label* lSample;
 
