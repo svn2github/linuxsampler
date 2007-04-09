@@ -19,6 +19,9 @@
 
 #include "dimregionedit.h"
 
+#include <libintl.h>
+#define _(String) gettext(String)
+
 DimRegionEdit::DimRegionEdit() :
     eEG1PreAttack("PreAttack", 0, 100, 2),
     eEG1Attack("Attack", 0, 60, 3),
@@ -109,16 +112,30 @@ DimRegionEdit::DimRegionEdit() :
         table[i]->set_col_spacings(7);
     }
 
+    // set tooltips
+    eUnityNote.set_tip(
+        _("note this sample is associated with (a.k.a. 'root note')")
+    );
+    eSampleStartOffset.set_tip(_("sample position at which playback should be started"));
+    ePan.set_tip(_("stereo balance (left/right)"));
+    eChannelOffset.set_tip(
+        _("output channel where the audio signal should be routed to (0 - 9)")
+    );
+    ePitchTrack.set_tip(
+        _("if true: sample will be pitched according to the key position "
+          "(this would be disabled for drums for example)")
+    );
+
     pageno = 0;
     rowno = 0;
     firstRowInBlock = 0;
 
-    addHeader("General (mandatory):");
+    addHeader(_("Mandatory Settings:"));
     addString("Sample", lSample, wSample);
     //TODO: the following would break drag&drop:   wSample->property_editable().set_value(false);  or this:    wSample->set_editable(false);
-    tooltips.set_tip(*wSample, "drop a sample here");
+    tooltips.set_tip(*wSample, _("drop a sample here"));
     addProp(eUnityNote);
-    addHeader("Optional Settings:");
+    addHeader(_("Optional Settings:"));
     addProp(eSampleStartOffset);
     addProp(ePan);
     addProp(eChannelOffset);
@@ -132,13 +149,13 @@ DimRegionEdit::DimRegionEdit() :
 
     nextPage();
 
-    addHeader("General Amplitude Settings:");
+    addHeader(_("General Amplitude Settings:"));
     addProp(eGain);
     addProp(eGainPlus6);
     addProp(eAttenuationController);
     addProp(eInvertAttenuationController);
     addProp(eAttenuationControllerThreshold);
-    addHeader("EG1 (Amplitude Envelope):");
+    addHeader(_("Amplitude Envelope (EG1):"));
     addProp(eEG1PreAttack);
     addProp(eEG1Attack);
     addProp(eEG1Decay1);
@@ -155,7 +172,7 @@ DimRegionEdit::DimRegionEdit() :
 
     nextPage();
 
-    addHeader("LFO1 (Amplitude Oscillator):");
+    addHeader(_("Amplitude Oscillator (LFO1):"));
     addProp(eLFO1Frequency);
     addProp(eLFO1InternalDepth);
     addProp(eLFO1ControlDepth);
@@ -177,7 +194,7 @@ DimRegionEdit::DimRegionEdit() :
 
     nextPage();
 
-    addHeader("General Filter Settings:");
+    addHeader(_("General Filter Settings:"));
     addProp(eVCFEnabled);
     {
         char* choices[] = { "lowpass", "lowpassturbo", "bandpass",
@@ -245,7 +262,7 @@ DimRegionEdit::DimRegionEdit() :
 
     nextPage();
 
-    addHeader("EG2 (Filter Cutoff Envelope):");
+    addHeader(_("Filter Cutoff Envelope (EG2):"));
     addProp(eEG2PreAttack);
     addProp(eEG2Attack);
     addProp(eEG2Decay1);
@@ -258,7 +275,7 @@ DimRegionEdit::DimRegionEdit() :
     addProp(eEG2ControllerAttackInfluence);
     addProp(eEG2ControllerDecayInfluence);
     addProp(eEG2ControllerReleaseInfluence);
-    addHeader("LFO2 (Filter Cutoff Oscillator):");
+    addHeader(_("Filter Cutoff Oscillator (LFO2):"));
     addProp(eLFO2Frequency);
     addProp(eLFO2InternalDepth);
     addProp(eLFO2ControlDepth);
@@ -280,13 +297,13 @@ DimRegionEdit::DimRegionEdit() :
 
     nextPage();
 
-    addHeader("General Pitch Settings:");
+    addHeader(_("General Pitch Settings:"));
     addProp(eFineTune);
     addProp(ePitchTrack);
-    addHeader("EG3 (Pitch Envelope):");
+    addHeader(_("Pitch Envelope (EG3):"));
     addProp(eEG3Attack);
     addProp(eEG3Depth);
-    addHeader("LFO3 (Pitch Oscillator):");
+    addHeader(_("Pitch Oscillator (LFO3):"));
     addProp(eLFO3Frequency);
     addProp(eLFO3InternalDepth);
     addProp(eLFO3ControlDepth);

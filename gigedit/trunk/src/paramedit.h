@@ -29,6 +29,7 @@
 #include <gtkmm/label.h>
 #include <gtkmm/scale.h>
 #include <gtkmm/spinbutton.h>
+#include <gtkmm/tooltips.h>
 
 extern bool update_gui;
 
@@ -39,6 +40,8 @@ public:
 
     LabelWidget(char* labelText, Gtk::Widget& widget);
     void set_sensitive(bool sensitive = true);
+protected:
+    Gtk::Tooltips tooltips;
 };
 
 class NumEntry : public LabelWidget {
@@ -58,6 +61,9 @@ public:
     }
     double get_value() const {
         return spinbutton.get_value();
+    }
+    void set_tip(const Glib::ustring& tip_text) {
+        tooltips.set_tip(spinbutton, tip_text);
     }
 };
 
@@ -218,6 +224,9 @@ public:
         return checkbutton.signal_toggled();
     }
     void set_ptr(bool* ptr);
+    void set_tip(const Glib::ustring& tip_text) {
+        tooltips.set_tip(checkbutton, tip_text);
+    }
 };
 
 

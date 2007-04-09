@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: gigedit 0.0.3\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2007-03-26 19:00+0200\n"
+"POT-Creation-Date: 2007-04-09 22:48+0200\n"
 "PO-Revision-Date: 2007-03-26 18:19+0200\n"
 "Last-Translator: Christian Schoenebeck\n"
 "Language-Team: German\n"
@@ -40,6 +40,81 @@ msgid "Open file"
 msgstr "Datei öffnen"
 
 #. show 'browse for file' dialog
-#: ../src/mainwindow.cpp:925
+#: ../src/mainwindow.cpp:910
 msgid "Add Sample(s)"
 msgstr "Sample(s) hinzufügen"
+
+#: ../src/dimregionedit.cpp:117
+msgid "note this sample is associated with (a.k.a. 'root note')"
+msgstr ""
+"Note mit der dieses Sample assoziiert wird (auch als "
+"'Root Note' bezeichnet)"
+
+#: ../src/dimregionedit.cpp:119
+msgid "sample position at which playback should be started"
+msgstr "Sample Position an der die Wiedergabe gestartet werden soll"
+
+#: ../src/dimregionedit.cpp:120
+msgid "stereo balance (left/right)"
+msgstr "Stereo Balance (links/rechts)"
+
+#: ../src/dimregionedit.cpp:122
+msgid "output channel where the audio signal should be routed to (0 - 9)"
+msgstr "Ausgangskanal an dem das Audiosignal ausgegeben werden soll (0 - 9)"
+
+#: ../src/dimregionedit.cpp:125
+msgid ""
+"if true: sample will be pitched according to the key position (this would be "
+"disabled for drums for example)"
+msgstr ""
+"wenn aktiviert, wird das Sample gemäß Tastenposition gepitcht (dies würde "
+"für Drums z.B. deaktiviert sein)"
+
+#: ../src/dimregionedit.cpp:133
+msgid "Mandatory Settings:"
+msgstr "Zwingende Einstellungen:"
+
+#. TODO: the following would break drag&drop:   wSample->property_editable().set_value(false);  or this:    wSample->set_editable(false);
+#: ../src/dimregionedit.cpp:136
+msgid "drop a sample here"
+msgstr "ziehen Sie ein Sample hierher"
+
+#: ../src/dimregionedit.cpp:138
+msgid "Optional Settings:"
+msgstr "Optionale Einstellungen:"
+
+#: ../src/dimregionedit.cpp:152
+msgid "General Amplitude Settings:"
+msgstr "Allgem. Amplituden Einstellungen:"
+
+#: ../src/dimregionedit.cpp:158
+msgid "Amplitude Envelope (EG1):"
+msgstr "Amplituden Hüllkurve (EG1):"
+
+#: ../src/dimregionedit.cpp:175
+msgid "Amplitude Oscillator (LFO1):"
+msgstr "Amplituden Oszillator (LFO1):"
+
+#: ../src/dimregionedit.cpp:197
+msgid "General Filter Settings:"
+msgstr "Allgem. Filter Einstellungen:"
+
+#: ../src/dimregionedit.cpp:265
+msgid "Filter Cutoff Envelope (EG2):"
+msgstr "Filter Cutoff Hüllkurve (EG2):"
+
+#: ../src/dimregionedit.cpp:278
+msgid "Filter Cutoff Oscillator (LFO2):"
+msgstr "Filter Cutoff Oszillator (LFO2):"
+
+#: ../src/dimregionedit.cpp:300
+msgid "General Pitch Settings:"
+msgstr "Allgem. Pitch Einstellungen:"
+
+#: ../src/dimregionedit.cpp:303
+msgid "Pitch Envelope (EG3):"
+msgstr "Pitch Hüllkurve (EG3):"
+
+#: ../src/dimregionedit.cpp:306
+msgid "Pitch Oscillator (LFO3):"
+msgstr "Pitch Oszillator (LFO3):"
