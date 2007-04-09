@@ -1,4 +1,4 @@
-SUBDIRS = src po
+SUBDIRS = src po debian
 
 EXTRA_DIST =			\
 	intltool-extract.in	\

@@ -6,6 +6,8 @@ Version CVS HEAD
     edited
   * restructured dimension region editor for elements to be in a more
     logical and intuitive order
+  * added Makefile.cvs (just for standard compliance with other projects)
+  * added Debian packaging infrastructure
 
 Version 0.0.3 (2007-03-24)
 
