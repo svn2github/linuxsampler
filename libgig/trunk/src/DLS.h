@@ -224,10 +224,10 @@ namespace DLS {
 
     /** Defines Sample Loop Points. */
     struct sample_loop_t {
-        uint32_t Size;
-        uint32_t LoopType;
-        uint32_t LoopStart;
-        uint32_t LoopLength;
+        uint32_t Size;       ///< For internal usage only: usually reflects exactly @c sizeof(sample_loop_t), otherwise if the value is larger then the DLS format was extended!
+        uint32_t LoopType;   ///< Defines how the waveform samples will be looped (appropriate loop types for the gig format are defined by gig::loop_type_t).
+        uint32_t LoopStart;  ///< The start value specifies the offset (in sample points) in the waveform data of the first sample point to be played in the loop.
+        uint32_t LoopLength; ///< Length of the looping area (in sample points).
     };
 
     // just symbol prototyping
@@ -355,6 +355,8 @@ namespace DLS {
             uint32_t       SampleLoops;  ///< Reflects the number of sample loops.
             sample_loop_t* pSampleLoops; ///< Points to the beginning of a sample loop array, or is NULL if there are no loops defined.
 
+            void AddSampleLoop(sample_loop_t* pLoopDef);
+            void DeleteSampleLoop(sample_loop_t* pLoopDef);
             virtual void UpdateChunks();
         protected:
             RIFF::List*    pParentList;

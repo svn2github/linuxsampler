@@ -481,6 +481,47 @@ namespace DLS {
         }
     }
 
+    /**
+     * Adds a new sample loop with the provided loop definition.
+     *
+     * @param - points to a loop definition that is to be copied
+     */
+    void Sampler::AddSampleLoop(sample_loop_t* pLoopDef) {
+        sample_loop_t* pNewLoops = new sample_loop_t[SampleLoops + 1];
+        // copy old loops array
+        for (int i = 0; i < SampleLoops; i++) {
+            pNewLoops[i] = pSampleLoops[i];
+        }
+        // add the new loop
+        pNewLoops[SampleLoops] = *pLoopDef;
+        // free the old array and update the member variables
+        if (SampleLoops) delete[] pSampleLoops;
+        pSampleLoops = pNewLoops;
+        SampleLoops++;
+    }
+
+    /**
+     * Deletes an existing sample loop.
+     *
+     * @param pLoopDef - pointer to existing loop definition
+     * @throws Exception - if given loop definition does not exist
+     */
+    void Sampler::DeleteSampleLoop(sample_loop_t* pLoopDef) {
+        sample_loop_t* pNewLoops = new sample_loop_t[SampleLoops - 1];
+        // copy old loops array (skipping given loop)
+        for (int i = 0, o = 0; i < SampleLoops; i++) {
+            if (&pSampleLoops[i] == pLoopDef) continue;
+            if (o == SampleLoops - 1)
+                throw Exception("Could not delete Sample Loop, because it does not exist");
+            pNewLoops[o] = pSampleLoops[i];
+            o++;
+        }
+        // free the old array and update the member variables
+        if (SampleLoops) delete[] pSampleLoops;
+        pSampleLoops = pNewLoops;
+        SampleLoops--;
+    }
+
 
 
 // *************** Sample ***************
