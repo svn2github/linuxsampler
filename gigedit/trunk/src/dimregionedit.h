@@ -39,6 +39,8 @@ public:
     Gtk::Entry* wSample;
 
 protected:
+    gig::DimensionRegion* dimregion;
+
     Gtk::Tooltips tooltips;
 
     Gtk::Table* table[7];
@@ -127,7 +129,12 @@ protected:
     NumEntryTemp<int16_t> eFineTune;
     NumEntryGain eGain;
     BoolEntryPlus6 eGainPlus6;
-    NumEntryTemp<uint32_t> eSampleLoops;
+    BoolEntry eSampleLoopEnabled;
+    NumEntryTemp<uint32_t> eSampleLoopStart;
+    NumEntryTemp<uint32_t> eSampleLoopLength;
+    ChoiceEntry<uint32_t> eSampleLoopType;
+    BoolEntry eSampleLoopInfinite;
+    NumEntryTemp<uint32_t> eSampleLoopPlayCount;
 
     int rowno;
     int pageno;
@@ -155,7 +162,10 @@ protected:
     void crossfade2_changed();
     void crossfade3_changed();
     void crossfade4_changed();
+    void loop_enabled_toggled();
+    void loop_infinite_toggled();
 
+    void updateLoopElements();
 };
 
 #endif

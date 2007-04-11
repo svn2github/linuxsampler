@@ -8,6 +8,7 @@ Version CVS HEAD
     logical and intuitive order
   * added Makefile.cvs (just for standard compliance with other projects)
   * added Debian packaging infrastructure
+  * implemented sample loop editing
 
 Version 0.0.3 (2007-03-24)
 

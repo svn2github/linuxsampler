@@ -65,6 +65,9 @@ public:
     void set_tip(const Glib::ustring& tip_text) {
         tooltips.set_tip(spinbutton, tip_text);
     }
+    void set_upper(double upper) {
+        adjust.set_upper(upper);
+    }
 };
 
 class NumEntryGain : public NumEntry {
@@ -110,7 +113,7 @@ template<typename T>
 void NumEntryTemp<T>::set_ptr(T* ptr)
 {
     this->ptr = 0;
-    set_value(*ptr);
+    if (ptr) set_value(*ptr);
     this->ptr = ptr;
 }
 
@@ -151,6 +154,9 @@ public:
     Glib::SignalProxy0<void> signal_changed() {
         return combobox.signal_changed();
     }
+    void set_tip(const Glib::ustring& tip_text) {
+        tooltips.set_tip(combobox, tip_text); //FIXME: don't Gtk::ComboBoxes support tooltips ???
+    }
 };
 
 template<typename T>
@@ -185,13 +191,15 @@ template<typename T>
 void ChoiceEntry<T>::set_ptr(T* ptr)
 {
     this->ptr = 0;
-    T value = *ptr;
-    int row = 0;
-    int nb_rows = combobox.get_model()->children().size();
-    for (; row < nb_rows ; row++) {
-        if (value == values[row]) break;
-    }
-    combobox.set_active(row == nb_rows ? -1 : row);
+    if (ptr) {
+        T value = *ptr;
+        int row = 0;
+        int nb_rows = combobox.get_model()->children().size();
+        for (; row < nb_rows ; row++) {
+            if (value == values[row]) break;
+        }
+        combobox.set_active(row == nb_rows ? -1 : row);
+    } else combobox.set_active(-1);
     this->ptr = ptr;
 }
 
@@ -220,6 +228,7 @@ private:
 public:
     BoolEntry(char* labelText);
     bool get_active() { return checkbutton.get_active(); }
+    bool set_active(bool b) { checkbutton.set_active(b); }
     Glib::SignalProxy0<void> signal_toggled() {
         return checkbutton.signal_toggled();
     }

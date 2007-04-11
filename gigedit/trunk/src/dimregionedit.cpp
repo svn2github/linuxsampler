@@ -105,7 +105,12 @@ DimRegionEdit::DimRegionEdit() :
     eFineTune("FineTune", -49, 50),
     eGain("Gain", -96, 0, 2, -655360),
     eGainPlus6("Gain +6dB", eGain, 6 * -655360),
-    eSampleLoops("SampleLoops", 0, 1)
+    eSampleLoopEnabled("Enabled"),
+    eSampleLoopStart("Loop Start Positon"),
+    eSampleLoopLength("Loop Size"),
+    eSampleLoopType("Loop Type"),
+    eSampleLoopInfinite("Infinite Loop"),
+    eSampleLoopPlayCount("Playback Count")
 {
     for (int i = 0 ; i < 7 ; i++) {
         table[i] = new Gtk::Table(3, 1);
@@ -125,6 +130,27 @@ DimRegionEdit::DimRegionEdit() :
         _("if true: sample will be pitched according to the key position "
           "(this would be disabled for drums for example)")
     );
+    eSampleLoopEnabled.set_tip(_("if enabled: repeats to playback the sample"));
+    eSampleLoopStart.set_tip(
+        _("start position within the sample (in sample points) of the area to "
+          "be looped")
+    );
+    eSampleLoopLength.set_tip(
+        _("duration (in sample points) of the area to be looped")
+    );
+    eSampleLoopType.set_tip(
+        _("direction in which the loop area in the sample should be played back")
+    );
+    eSampleLoopInfinite.set_tip(
+        _("whether the loop area should be played back forever\n"
+          "Caution: this setting is stored on Sample side, thus is shared "
+          "among all dimension regions that use this sample!")
+    );
+    eSampleLoopPlayCount.set_tip(
+        _("how many times the loop area should be played back\n"
+          "Caution: this setting is stored on Sample side, thus is shared "
+          "among all dimension regions that use this sample!")
+    );
 
     pageno = 0;
     rowno = 0;
@@ -140,7 +166,21 @@ DimRegionEdit::DimRegionEdit() :
     addProp(ePan);
     addProp(eChannelOffset);
     addHeader("Loops:");
-    addProp(eSampleLoops);
+    addProp(eSampleLoopEnabled);
+    addProp(eSampleLoopStart);
+    addProp(eSampleLoopLength);
+    {
+        char* choices[] = { "normal", "bidirectional", "backward", 0 };
+        static const uint32_t values[] = {
+            gig::loop_type_normal,
+            gig::loop_type_bidirectional,
+            gig::loop_type_backward
+        };
+        eSampleLoopType.set_choices(choices, values);
+    }
+    addProp(eSampleLoopType);
+    addProp(eSampleLoopInfinite);
+    addProp(eSampleLoopPlayCount);
     addHeader("Crossfade:");
     addProp(eCrossfade_in_start);
     addProp(eCrossfade_in_end);
@@ -382,6 +422,15 @@ DimRegionEdit::DimRegionEdit() :
     eCrossfade_out_end.signal_value_changed().connect(
         sigc::mem_fun(*this, &DimRegionEdit::crossfade4_changed));
 
+    eSampleLoopEnabled.signal_toggled().connect(
+        sigc::mem_fun(*this, &DimRegionEdit::loop_enabled_toggled));
+    eSampleLoopStart.signal_value_changed().connect(
+        sigc::mem_fun(*this, &DimRegionEdit::updateLoopElements));
+    eSampleLoopLength.signal_value_changed().connect(
+        sigc::mem_fun(*this, &DimRegionEdit::updateLoopElements));
+    eSampleLoopInfinite.signal_toggled().connect(
+        sigc::mem_fun(*this, &DimRegionEdit::loop_infinite_toggled));
+
     append_page(*table[0], "Sample");
     append_page(*table[1], "Amplitude (1)");
     append_page(*table[2], "Amplitude (2)");
@@ -457,6 +506,8 @@ void DimRegionEdit::addProp(LabelWidget& prop)
 
 void DimRegionEdit::set_dim_region(gig::DimensionRegion* d)
 {
+    dimregion = d;
+
     set_sensitive(d);
     if (!d) return;
 
@@ -544,7 +595,9 @@ void DimRegionEdit::set_dim_region(gig::DimensionRegion* d)
     eFineTune.set_ptr(&d->FineTune);
     eGain.set_ptr(&d->Gain);
     eGainPlus6.set_ptr(&d->Gain);
-    eSampleLoops.set_ptr(&d->SampleLoops);
+
+    eSampleLoopEnabled.set_active(d->SampleLoops);
+    updateLoopElements();
 
     VCFEnabled_toggled();
 
@@ -699,4 +752,69 @@ void DimRegionEdit::crossfade4_changed()
     double c4 = eCrossfade_out_end.get_value();
 
     if (c4 < c3) eCrossfade_out_start.set_value(c4);
+}
+
+void DimRegionEdit::loop_enabled_toggled()
+{
+    const bool active = eSampleLoopEnabled.get_active();
+    if (active) {
+        // create a new sample loop in case there is none yet
+        if (!dimregion->SampleLoops) {
+            DLS::sample_loop_t loop;
+            loop.LoopType   = gig::loop_type_normal;
+            // loop the whole sample by default
+            loop.LoopStart  = 0;
+            loop.LoopLength =
+                (dimregion->pSample) ? dimregion->pSample->GetSize() : 0;
+            dimregion->AddSampleLoop(&loop);
+        }
+    } else {
+        // delete ALL existing sample loops
+        while (dimregion->SampleLoops)
+            dimregion->DeleteSampleLoop(&dimregion->pSampleLoops[0]);
+    }
+    updateLoopElements();
+}
+
+void DimRegionEdit::updateLoopElements()
+{
+    const bool active = eSampleLoopEnabled.get_active();
+    eSampleLoopStart.set_sensitive(active);
+    eSampleLoopLength.set_sensitive(active);
+    eSampleLoopType.set_sensitive(active);
+    eSampleLoopInfinite.set_sensitive(active);
+    if (dimregion && dimregion->SampleLoops) {
+        eSampleLoopStart.set_ptr(&dimregion->pSampleLoops[0].LoopStart);
+        eSampleLoopLength.set_ptr(&dimregion->pSampleLoops[0].LoopLength);
+        eSampleLoopType.set_ptr(&dimregion->pSampleLoops[0].LoopType);
+        eSampleLoopPlayCount.set_ptr(
+            (dimregion->pSample) ? &dimregion->pSample->LoopPlayCount : NULL
+        );
+        eSampleLoopInfinite.set_active(
+            dimregion->pSample && !dimregion->pSample->LoopPlayCount
+        );
+        // sample loop shall never be longer than the actual sample size
+        eSampleLoopStart.set_upper(
+            (dimregion->pSample)
+                ? dimregion->pSample->GetSize() -
+                  dimregion->pSampleLoops[0].LoopLength
+                : 0
+        );
+        eSampleLoopLength.set_upper(
+            (dimregion->pSample)
+                ? dimregion->pSample->GetSize() -
+                  dimregion->pSampleLoops[0].LoopStart
+                : 0
+        );
+    } else { // no sample loop(s)
+        eSampleLoopStart.set_ptr(NULL);
+        eSampleLoopLength.set_ptr(NULL);
+        eSampleLoopType.set_ptr(NULL);
+        eSampleLoopPlayCount.set_ptr(NULL);
+    }
+}
+
+void DimRegionEdit::loop_infinite_toggled() {
+    eSampleLoopPlayCount.set_sensitive(!eSampleLoopInfinite.get_active());
+    if (eSampleLoopInfinite.get_active()) eSampleLoopPlayCount.set_value(0);
 }
