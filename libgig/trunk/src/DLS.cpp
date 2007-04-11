@@ -494,6 +494,8 @@ namespace DLS {
         }
         // add the new loop
         pNewLoops[SampleLoops] = *pLoopDef;
+        // auto correct size field
+        pNewLoops[SampleLoops].Size = sizeof(DLS::sample_loop_t);
         // free the old array and update the member variables
         if (SampleLoops) delete[] pSampleLoops;
         pSampleLoops = pNewLoops;

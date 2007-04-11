@@ -437,6 +437,9 @@ namespace gig {
             double GetVelocityAttenuation(uint8_t MIDIKeyVelocity);
             double GetVelocityRelease(uint8_t MIDIKeyVelocity);
             double GetVelocityCutoff(uint8_t MIDIKeyVelocity);
+            // derived methods
+            DLS::Sampler::AddSampleLoop;
+            DLS::Sampler::DeleteSampleLoop;
             // overridden methods
             virtual void UpdateChunks();
         protected:
