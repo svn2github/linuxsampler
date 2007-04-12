@@ -817,4 +817,5 @@ void DimRegionEdit::updateLoopElements()
 void DimRegionEdit::loop_infinite_toggled() {
     eSampleLoopPlayCount.set_sensitive(!eSampleLoopInfinite.get_active());
     if (eSampleLoopInfinite.get_active()) eSampleLoopPlayCount.set_value(0);
+    else                                  eSampleLoopPlayCount.set_value(1);
 }
