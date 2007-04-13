@@ -2938,7 +2938,7 @@ namespace {
     void File::LoadSamples(progress_t* pProgress) {
         // Groups must be loaded before samples, because samples will try
         // to resolve the group they belong to
-        LoadGroups();
+        if (!pGroups) LoadGroups();
 
         if (!pSamples) pSamples = new SampleList;
 
