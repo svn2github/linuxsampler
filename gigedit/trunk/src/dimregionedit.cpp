@@ -23,94 +23,94 @@
 #define _(String) gettext(String)
 
 DimRegionEdit::DimRegionEdit() :
-    eEG1PreAttack("PreAttack", 0, 100, 2),
+    eEG1PreAttack("Pre-attack", 0, 100, 2),
     eEG1Attack("Attack", 0, 60, 3),
-    eEG1Decay1("Decay1", 0.005, 60, 3),
-    eEG1Decay2("Decay2", 0, 60, 3),
-    eEG1InfiniteSustain("InfiniteSustain"),
+    eEG1Decay1("Decay 1", 0.005, 60, 3),
+    eEG1Decay2("Decay 2", 0, 60, 3),
+    eEG1InfiniteSustain("Infinite sustain"),
     eEG1Sustain("Sustain", 0, 100, 2),
     eEG1Release("Release", 0, 60, 3),
     eEG1Hold("Hold"),
     eEG1Controller("Controller"),
-    eEG1ControllerInvert("ControllerInvert"),
-    eEG1ControllerAttackInfluence("ControllerAttackInfluence", 0, 3),
-    eEG1ControllerDecayInfluence("ControllerDecayInfluence", 0, 3),
-    eEG1ControllerReleaseInfluence("ControllerReleaseInfluence", 0, 3),
+    eEG1ControllerInvert("Controller invert"),
+    eEG1ControllerAttackInfluence("Controller attack influence", 0, 3),
+    eEG1ControllerDecayInfluence("Controller decay influence", 0, 3),
+    eEG1ControllerReleaseInfluence("Controller release influence", 0, 3),
     eLFO1Frequency("Frequency", 0.1, 10, 2),
-    eLFO1InternalDepth("InternalDepth", 0, 1200),
-    eLFO1ControlDepth("ControlDepth", 0, 1200),
+    eLFO1InternalDepth("Internal depth", 0, 1200),
+    eLFO1ControlDepth("Control depth", 0, 1200),
     eLFO1Controller("Controller"),
-    eLFO1FlipPhase("FlipPhase"),
+    eLFO1FlipPhase("Flip phase"),
     eLFO1Sync("Sync"),
-    eEG2PreAttack("PreAttack", 0, 100, 2),
+    eEG2PreAttack("Pre-attack", 0, 100, 2),
     eEG2Attack("Attack", 0, 60, 3),
-    eEG2Decay1("Decay1", 0.005, 60, 3),
-    eEG2Decay2("Decay2", 0, 60, 3),
-    eEG2InfiniteSustain("InfiniteSustain"),
+    eEG2Decay1("Decay 1", 0.005, 60, 3),
+    eEG2Decay2("Decay 2", 0, 60, 3),
+    eEG2InfiniteSustain("Infinite sustain"),
     eEG2Sustain("Sustain", 0, 100, 2),
     eEG2Release("Release", 0, 60, 3),
     eEG2Controller("Controller"),
-    eEG2ControllerInvert("ControllerInvert"),
-    eEG2ControllerAttackInfluence("ControllerAttackInfluence", 0, 3),
-    eEG2ControllerDecayInfluence("ControllerDecayInfluence", 0, 3),
-    eEG2ControllerReleaseInfluence("ControllerReleaseInfluence", 0, 3),
+    eEG2ControllerInvert("Controller invert"),
+    eEG2ControllerAttackInfluence("Controller attack influence", 0, 3),
+    eEG2ControllerDecayInfluence("Controller decay influence", 0, 3),
+    eEG2ControllerReleaseInfluence("Controller release influence", 0, 3),
     eLFO2Frequency("Frequency", 0.1, 10, 2),
-    eLFO2InternalDepth("InternalDepth", 0, 1200),
-    eLFO2ControlDepth("ControlDepth", 0, 1200),
+    eLFO2InternalDepth("Internal depth", 0, 1200),
+    eLFO2ControlDepth("Control depth", 0, 1200),
     eLFO2Controller("Controller"),
-    eLFO2FlipPhase("FlipPhase"),
+    eLFO2FlipPhase("Flip phase"),
     eLFO2Sync("Sync"),
     eEG3Attack("Attack", 0, 10, 3),
     eEG3Depth("Depth", -1200, 1200),
     eLFO3Frequency("Frequency", 0.1, 10, 2),
-    eLFO3InternalDepth("InternalDepth", 0, 1200),
-    eLFO3ControlDepth("ControlDepth", 0, 1200),
+    eLFO3InternalDepth("Internal depth", 0, 1200),
+    eLFO3ControlDepth("Control depth", 0, 1200),
     eLFO3Controller("Controller"),
     eLFO3Sync("Sync"),
     eVCFEnabled("Enabled"),
     eVCFType("Type"),
-    eVCFCutoffController("CutoffController"),
-    eVCFCutoffControllerInvert("CutoffControllerInvert"),
+    eVCFCutoffController("Cutoff controller"),
+    eVCFCutoffControllerInvert("Cutoff controller invert"),
     eVCFCutoff("Cutoff"),
-    eVCFVelocityCurve("VelocityCurve"),
-    eVCFVelocityScale("VelocityScale"),
-    eVCFVelocityDynamicRange("VelocityDynamicRange", 0, 4),
+    eVCFVelocityCurve("Velocity curve"),
+    eVCFVelocityScale("Velocity scale"),
+    eVCFVelocityDynamicRange("Velocity dynamic range", 0, 4),
     eVCFResonance("Resonance"),
-    eVCFResonanceDynamic("ResonanceDynamic"),
-    eVCFResonanceController("ResonanceController"),
-    eVCFKeyboardTracking("KeyboardTracking"),
-    eVCFKeyboardTrackingBreakpoint("KeyboardTrackingBreakpoint"),
-    eVelocityResponseCurve("VelocityResponseCurve"),
-    eVelocityResponseDepth("VelocityResponseDepth", 0, 4),
-    eVelocityResponseCurveScaling("VelocityResponseCurveScaling"),
-    eReleaseVelocityResponseCurve("ReleaseVelocityResponseCurve"),
-    eReleaseVelocityResponseDepth("ReleaseVelocityResponseDepth", 0, 4),
-    eReleaseTriggerDecay("ReleaseTriggerDecay", 0, 8),
-    eCrossfade_in_start("Crossfade.in_start"),
-    eCrossfade_in_end("Crossfade.in_end"),
-    eCrossfade_out_start("Crossfade.out_start"),
-    eCrossfade_out_end("Crossfade.out_end"),
-    ePitchTrack("PitchTrack"),
-    eDimensionBypass("DimensionBypass"),
+    eVCFResonanceDynamic("Resonance dynamic"),
+    eVCFResonanceController("Resonance controller"),
+    eVCFKeyboardTracking("Keyboard tracking"),
+    eVCFKeyboardTrackingBreakpoint("Keyboard tracking breakpoint"),
+    eVelocityResponseCurve("Velocity response curve"),
+    eVelocityResponseDepth("Velocity response depth", 0, 4),
+    eVelocityResponseCurveScaling("Velocity response curve scaling"),
+    eReleaseVelocityResponseCurve("Release velocity response curve"),
+    eReleaseVelocityResponseDepth("Release velocity response depth", 0, 4),
+    eReleaseTriggerDecay("Release trigger decay", 0, 8),
+    eCrossfade_in_start("Crossfade-in start"),
+    eCrossfade_in_end("Crossfade-in end"),
+    eCrossfade_out_start("Crossfade-out start"),
+    eCrossfade_out_end("Crossfade-out end"),
+    ePitchTrack("Pitch track"),
+    eDimensionBypass("Dimension bypass"),
     ePan("Pan", -64, 63),
-    eSelfMask("SelfMask"),
-    eAttenuationController("AttenuationController"),
-    eInvertAttenuationController("InvertAttenuationController"),
-    eAttenuationControllerThreshold("AttenuationControllerThreshold"),
-    eChannelOffset("ChannelOffset", 0, 9),
-    eSustainDefeat("SustainDefeat"),
-    eMSDecode("MSDecode"),
-    eSampleStartOffset("SampleStartOffset", 0, 2000),
-    eUnityNote("UnityNote"),
-    eFineTune("FineTune", -49, 50),
+    eSelfMask("Self mask"),
+    eAttenuationController("Attenuation controller"),
+    eInvertAttenuationController("Invert attenuation controller"),
+    eAttenuationControllerThreshold("Attenuation controller threshold"),
+    eChannelOffset("Channel offset", 0, 9),
+    eSustainDefeat("Sustain defeat"),
+    eMSDecode("MS decode"),
+    eSampleStartOffset("Sample start offset", 0, 2000),
+    eUnityNote("Unity note"),
+    eFineTune("Fine tune", -49, 50),
     eGain("Gain", -96, 0, 2, -655360),
     eGainPlus6("Gain +6dB", eGain, 6 * -655360),
     eSampleLoopEnabled("Enabled"),
-    eSampleLoopStart("Loop Start Positon"),
-    eSampleLoopLength("Loop Size"),
-    eSampleLoopType("Loop Type"),
-    eSampleLoopInfinite("Infinite Loop"),
-    eSampleLoopPlayCount("Playback Count")
+    eSampleLoopStart("Loop start positon"),
+    eSampleLoopLength("Loop size"),
+    eSampleLoopType("Loop type"),
+    eSampleLoopInfinite("Infinite loop"),
+    eSampleLoopPlayCount("Playback count")
 {
     for (int i = 0 ; i < 7 ; i++) {
         table[i] = new Gtk::Table(3, 1);
@@ -119,35 +119,35 @@ DimRegionEdit::DimRegionEdit() :
 
     // set tooltips
     eUnityNote.set_tip(
-        _("note this sample is associated with (a.k.a. 'root note')")
+        _("Note this sample is associated with (a.k.a. 'root note')")
     );
-    eSampleStartOffset.set_tip(_("sample position at which playback should be started"));
-    ePan.set_tip(_("stereo balance (left/right)"));
+    eSampleStartOffset.set_tip(_("Sample position at which playback should be started"));
+    ePan.set_tip(_("Stereo balance (left/right)"));
     eChannelOffset.set_tip(
-        _("output channel where the audio signal should be routed to (0 - 9)")
+        _("Output channel where the audio signal should be routed to (0 - 9)")
     );
     ePitchTrack.set_tip(
-        _("if true: sample will be pitched according to the key position "
+        _("If true: sample will be pitched according to the key position "
           "(this would be disabled for drums for example)")
     );
-    eSampleLoopEnabled.set_tip(_("if enabled: repeats to playback the sample"));
+    eSampleLoopEnabled.set_tip(_("If enabled: repeats to playback the sample"));
     eSampleLoopStart.set_tip(
-        _("start position within the sample (in sample points) of the area to "
+        _("Start position within the sample (in sample points) of the area to "
           "be looped")
     );
     eSampleLoopLength.set_tip(
-        _("duration (in sample points) of the area to be looped")
+        _("Duration (in sample points) of the area to be looped")
     );
     eSampleLoopType.set_tip(
-        _("direction in which the loop area in the sample should be played back")
+        _("Direction in which the loop area in the sample should be played back")
     );
     eSampleLoopInfinite.set_tip(
-        _("whether the loop area should be played back forever\n"
+        _("Whether the loop area should be played back forever\n"
           "Caution: this setting is stored on Sample side, thus is shared "
           "among all dimension regions that use this sample!")
     );
     eSampleLoopPlayCount.set_tip(
-        _("how many times the loop area should be played back\n"
+        _("How many times the loop area should be played back\n"
           "Caution: this setting is stored on Sample side, thus is shared "
           "among all dimension regions that use this sample!")
     );
@@ -156,16 +156,16 @@ DimRegionEdit::DimRegionEdit() :
     rowno = 0;
     firstRowInBlock = 0;
 
-    addHeader(_("Mandatory Settings:"));
+    addHeader(_("Mandatory Settings"));
     addString("Sample", lSample, wSample);
     //TODO: the following would break drag&drop:   wSample->property_editable().set_value(false);  or this:    wSample->set_editable(false);
-    tooltips.set_tip(*wSample, _("drop a sample here"));
+    tooltips.set_tip(*wSample, _("Drop a sample here"));
     addProp(eUnityNote);
-    addHeader(_("Optional Settings:"));
+    addHeader(_("Optional Settings"));
     addProp(eSampleStartOffset);
     addProp(ePan);
     addProp(eChannelOffset);
-    addHeader("Loops:");
+    addHeader("Loops");
     addProp(eSampleLoopEnabled);
     addProp(eSampleLoopStart);
     addProp(eSampleLoopLength);
@@ -181,7 +181,7 @@ DimRegionEdit::DimRegionEdit() :
     addProp(eSampleLoopType);
     addProp(eSampleLoopInfinite);
     addProp(eSampleLoopPlayCount);
-    addHeader("Crossfade:");
+    addHeader("Crossfade");
     addProp(eCrossfade_in_start);
     addProp(eCrossfade_in_end);
     addProp(eCrossfade_out_start);
@@ -189,13 +189,13 @@ DimRegionEdit::DimRegionEdit() :
 
     nextPage();
 
-    addHeader(_("General Amplitude Settings:"));
+    addHeader(_("General Amplitude Settings"));
     addProp(eGain);
     addProp(eGainPlus6);
     addProp(eAttenuationController);
     addProp(eInvertAttenuationController);
     addProp(eAttenuationControllerThreshold);
-    addHeader(_("Amplitude Envelope (EG1):"));
+    addHeader(_("Amplitude Envelope (EG1)"));
     addProp(eEG1PreAttack);
     addProp(eEG1Attack);
     addProp(eEG1Decay1);
@@ -212,7 +212,7 @@ DimRegionEdit::DimRegionEdit() :
 
     nextPage();
 
-    addHeader(_("Amplitude Oscillator (LFO1):"));
+    addHeader(_("Amplitude Oscillator (LFO1)"));
     addProp(eLFO1Frequency);
     addProp(eLFO1InternalDepth);
     addProp(eLFO1ControlDepth);
@@ -234,7 +234,7 @@ DimRegionEdit::DimRegionEdit() :
 
     nextPage();
 
-    addHeader(_("General Filter Settings:"));
+    addHeader(_("General Filter Settings"));
     addProp(eVCFEnabled);
     {
         char* choices[] = { "lowpass", "lowpassturbo", "bandpass",
@@ -302,7 +302,7 @@ DimRegionEdit::DimRegionEdit() :
 
     nextPage();
 
-    addHeader(_("Filter Cutoff Envelope (EG2):"));
+    addHeader(_("Filter Cutoff Envelope (EG2)"));
     addProp(eEG2PreAttack);
     addProp(eEG2Attack);
     addProp(eEG2Decay1);
@@ -315,7 +315,7 @@ DimRegionEdit::DimRegionEdit() :
     addProp(eEG2ControllerAttackInfluence);
     addProp(eEG2ControllerDecayInfluence);
     addProp(eEG2ControllerReleaseInfluence);
-    addHeader(_("Filter Cutoff Oscillator (LFO2):"));
+    addHeader(_("Filter Cutoff Oscillator (LFO2)"));
     addProp(eLFO2Frequency);
     addProp(eLFO2InternalDepth);
     addProp(eLFO2ControlDepth);
@@ -337,13 +337,13 @@ DimRegionEdit::DimRegionEdit() :
 
     nextPage();
 
-    addHeader(_("General Pitch Settings:"));
+    addHeader(_("General Pitch Settings"));
     addProp(eFineTune);
     addProp(ePitchTrack);
-    addHeader(_("Pitch Envelope (EG3):"));
+    addHeader(_("Pitch Envelope (EG3)"));
     addProp(eEG3Attack);
     addProp(eEG3Depth);
-    addHeader(_("Pitch Oscillator (LFO3):"));
+    addHeader(_("Pitch Oscillator (LFO3)"));
     addProp(eLFO3Frequency);
     addProp(eLFO3InternalDepth);
     addProp(eLFO3ControlDepth);
@@ -492,6 +492,13 @@ void DimRegionEdit::nextPage()
     pageno++;
     rowno = 0;
     firstRowInBlock = 0;
+}
+
+void DimRegionEdit::addProp(BoolEntry& boolentry)
+{
+    table[pageno]->attach(boolentry.widget, 1, 3, rowno, rowno + 1,
+                          Gtk::FILL, Gtk::SHRINK);
+    rowno++;
 }
 
 void DimRegionEdit::addProp(LabelWidget& prop)
@@ -658,8 +665,8 @@ void DimRegionEdit::VCFCutoffController_changed()
     eVCFCutoffControllerInvert.set_sensitive(hasController);
     eVCFCutoff.set_sensitive(!hasController);
     eVCFResonanceDynamic.set_sensitive(!hasController);
-    eVCFVelocityScale.label.set_text(hasController ? "MinimumCutoff:" :
-                                     "VelocityScale:");
+    eVCFVelocityScale.label.set_text(hasController ? "Minimum cutoff:" :
+                                     "Velocity scale:");
 }
 
 void DimRegionEdit::VCFResonanceController_changed()

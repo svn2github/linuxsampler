@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: gigedit 0.0.3\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2007-03-24 14:09+0100\n"
+"POT-Creation-Date: 2007-04-13 19:51+0200\n"
 "PO-Revision-Date: 2007-03-24 14:17+0100\n"
 "Last-Translator: Andreas Persson\n"
 "Language-Team: Swedish\n"
@@ -40,6 +40,108 @@ msgid "Open file"
 msgstr "Öppna fil"
 
 #. show 'browse for file' dialog
-#: ../src/mainwindow.cpp:925
+#: ../src/mainwindow.cpp:910
 msgid "Add Sample(s)"
 msgstr "Lägg till sampling(ar)"
+
+#: ../src/dimregionedit.cpp:122
+msgid "Note this sample is associated with (a.k.a. 'root note')"
+msgstr ""
+
+#: ../src/dimregionedit.cpp:124
+msgid "Sample position at which playback should be started"
+msgstr ""
+
+#: ../src/dimregionedit.cpp:125
+msgid "Stereo balance (left/right)"
+msgstr ""
+
+#: ../src/dimregionedit.cpp:127
+msgid "Output channel where the audio signal should be routed to (0 - 9)"
+msgstr ""
+
+#: ../src/dimregionedit.cpp:130
+msgid ""
+"If true: sample will be pitched according to the key position (this would be "
+"disabled for drums for example)"
+msgstr ""
+
+#: ../src/dimregionedit.cpp:133
+msgid "If enabled: repeats to playback the sample"
+msgstr ""
+
+#: ../src/dimregionedit.cpp:135
+msgid ""
+"Start position within the sample (in sample points) of the area to be looped"
+msgstr ""
+
+#: ../src/dimregionedit.cpp:139
+msgid "Duration (in sample points) of the area to be looped"
+msgstr ""
+
+#: ../src/dimregionedit.cpp:142
+msgid "Direction in which the loop area in the sample should be played back"
+msgstr ""
+
+#: ../src/dimregionedit.cpp:145
+msgid ""
+"Whether the loop area should be played back forever\n"
+"Caution: this setting is stored on Sample side, thus is shared among all "
+"dimension regions that use this sample!"
+msgstr ""
+
+#: ../src/dimregionedit.cpp:150
+msgid ""
+"How many times the loop area should be played back\n"
+"Caution: this setting is stored on Sample side, thus is shared among all "
+"dimension regions that use this sample!"
+msgstr ""
+
+#: ../src/dimregionedit.cpp:159
+msgid "Mandatory Settings"
+msgstr ""
+
+#. TODO: the following would break drag&drop:   wSample->property_editable().set_value(false);  or this:    wSample->set_editable(false);
+#: ../src/dimregionedit.cpp:162
+msgid "Drop a sample here"
+msgstr ""
+
+#: ../src/dimregionedit.cpp:164
+msgid "Optional Settings"
+msgstr ""
+
+#: ../src/dimregionedit.cpp:192
+msgid "General Amplitude Settings"
+msgstr ""
+
+#: ../src/dimregionedit.cpp:198
+msgid "Amplitude Envelope (EG1)"
+msgstr ""
+
+#: ../src/dimregionedit.cpp:215
+msgid "Amplitude Oscillator (LFO1)"
+msgstr ""
+
+#: ../src/dimregionedit.cpp:237
+msgid "General Filter Settings"
+msgstr ""
+
+#: ../src/dimregionedit.cpp:305
+msgid "Filter Cutoff Envelope (EG2)"
+msgstr ""
+
+#: ../src/dimregionedit.cpp:318
+msgid "Filter Cutoff Oscillator (LFO2)"
+msgstr ""
+
+#: ../src/dimregionedit.cpp:340
+msgid "General Pitch Settings"
+msgstr ""
+
+#: ../src/dimregionedit.cpp:343
+msgid "Pitch Envelope (EG3)"
+msgstr ""
+
+#: ../src/dimregionedit.cpp:346
+msgid "Pitch Oscillator (LFO3)"
+msgstr ""

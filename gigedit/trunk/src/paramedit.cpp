@@ -296,7 +296,9 @@ void ChoiceEntryLeverageCtrl::set_ptr(gig::leverage_ctrl_t* ptr)
 
 
 BoolEntry::BoolEntry(char* labelText) :
-    LabelWidget(labelText, checkbutton), ptr(NULL)
+    LabelWidget(labelText, checkbutton),
+    checkbutton(labelText),
+    ptr(0)
 {
     checkbutton.signal_toggled().connect(
         sigc::mem_fun(*this, &BoolEntry::value_changed));

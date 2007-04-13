@@ -1,1 +1,1 @@
-make -f Makefile.cvs
+make -f Makefile.cvs clean

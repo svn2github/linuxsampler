@@ -9,6 +9,8 @@ Version CVS HEAD
   * added Makefile.cvs (just for standard compliance with other projects)
   * added Debian packaging infrastructure
   * implemented sample loop editing
+  * improved labels in dimension region editor
+  * use normal layout for checkboxes
 
 Version 0.0.3 (2007-03-24)
 

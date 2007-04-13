@@ -141,6 +141,7 @@ protected:
     int firstRowInBlock;
 
 
+    void addProp(BoolEntry& boolentry);
     void addProp(LabelWidget& labelwidget);
     void addString(char* labelText, Gtk::Label*& label,
                    Gtk::Entry*& widget);
