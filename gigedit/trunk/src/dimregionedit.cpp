@@ -819,10 +819,17 @@ void DimRegionEdit::updateLoopElements()
         eSampleLoopType.set_ptr(NULL);
         eSampleLoopPlayCount.set_ptr(NULL);
     }
+    // updated enabled state of loop play count widget
+    loop_infinite_toggled();
 }
 
 void DimRegionEdit::loop_infinite_toggled() {
-    eSampleLoopPlayCount.set_sensitive(!eSampleLoopInfinite.get_active());
-    if (eSampleLoopInfinite.get_active()) eSampleLoopPlayCount.set_value(0);
-    else                                  eSampleLoopPlayCount.set_value(1);
+    eSampleLoopPlayCount.set_sensitive(
+        !eSampleLoopInfinite.get_active() &&
+         eSampleLoopEnabled.get_active()
+    );
+    if (eSampleLoopInfinite.get_active())
+        eSampleLoopPlayCount.set_value(0);
+    else if (!eSampleLoopPlayCount.get_value())
+        eSampleLoopPlayCount.set_value(1);
 }
