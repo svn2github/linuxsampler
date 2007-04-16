@@ -145,7 +145,7 @@
 <tr><td class="header">LinuxSampler Developers</td><td class="header">C. Schoenebeck</td></tr>
 <tr><td class="header">Internet-Draft</td><td class="header">Interessengemeinschaft Software</td></tr>
 <tr><td class="header">Intended status: Standards Track</td><td class="header">Engineering e. V.</td></tr>
-<tr><td class="header">Expires: September 30, 2007</td><td class="header">March 29, 2007</td></tr>
+<tr><td class="header">Expires: October 18, 2007</td><td class="header">April 16, 2007</td></tr>
 </table></td></tr></table>
 <h1><br />LinuxSampler Control Protocol<br />LSCP 1.2</h1>
 
@@ -173,7 +173,7 @@ The list of current Internet-Drafts can be accessed at
 The list of Internet-Draft Shadow Directories can be accessed at
 <a href='http://www.ietf.org/shadow.html'>http://www.ietf.org/shadow.html</a>.</p>
 <p>
-This Internet-Draft will expire on September 30, 2007.</p>
+This Internet-Draft will expire on October 18, 2007.</p>
 
 <h3>Copyright Notice</h3>
 <p>
@@ -388,6 +388,40 @@ Remove an entry from the MIDI instrument map<br />
 Get current settings of MIDI instrument map entry<br />
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#CLEAR MIDI_INSTRUMENTS">6.7.12.</a>&nbsp;
 Clear MIDI instrument map<br />
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#Managing Instruments Database">6.8.</a>&nbsp;
+Managing Instruments Database<br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ADD DB_INSTRUMENT_DIRECTORY">6.8.1.</a>&nbsp;
+Creating a new instrument directory<br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#REMOVE DB_INSTRUMENT_DIRECTORY">6.8.2.</a>&nbsp;
+Deleting an instrument directory<br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#GET DB_INSTRUMENT_DIRECTORIES">6.8.3.</a>&nbsp;
+Getting amount of instrument directories<br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#LIST DB_INSTRUMENT_DIRECTORIES">6.8.4.</a>&nbsp;
+Listing all directories in specific directory<br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#GET DB_INSTRUMENT_DIRECTORY INFO">6.8.5.</a>&nbsp;
+Getting instrument directory information<br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SET DB_INSTRUMENT_DIRECTORY NAME">6.8.6.</a>&nbsp;
+Renaming an instrument directory<br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#MOVE DB_INSTRUMENT_DIRECTORY">6.8.7.</a>&nbsp;
+Moving an instrument directory<br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SET DB_INSTRUMENT_DIRECTORY DESCRIPTION">6.8.8.</a>&nbsp;
+Changing the description of directory<br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ADD DB_INSTRUMENTS">6.8.9.</a>&nbsp;
+Adding instruments to the instruments database<br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#REMOVE DB_INSTRUMENT">6.8.10.</a>&nbsp;
+Removing an instrument<br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#GET DB_INSTRUMENTS">6.8.11.</a>&nbsp;
+Getting amount of instruments<br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#LIST DB_INSTRUMENTS">6.8.12.</a>&nbsp;
+Listing all instruments in specific directory<br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#GET DB_INSTRUMENT INFO">6.8.13.</a>&nbsp;
+Getting instrument information<br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SET DB_INSTRUMENT NAME">6.8.14.</a>&nbsp;
+Renaming an instrument<br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#MOVE DB_INSTRUMENT">6.8.15.</a>&nbsp;
+Moving an instrument<br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SET DB_INSTRUMENT DESCRIPTION">6.8.16.</a>&nbsp;
+Changing the description of instrument<br />
 <a href="#command_syntax">7.</a>&nbsp;
 Command Syntax<br />
 <a href="#events">8.</a>&nbsp;
@@ -426,7 +460,15 @@ Number of MIDI instruments changed<br />
 MIDI instrument information changed<br />
 &nbsp;&nbsp;&nbsp;&nbsp;<a href="#SUBSCRIBE GLOBAL_INFO">8.17.</a>&nbsp;
 Global settings changed<br />
-&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SUBSCRIBE MISCELLANEOUS">8.18.</a>&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SUBSCRIBE DB_INSTRUMENT_DIRECTORY_COUNT">8.18.</a>&nbsp;
+Number of database instrument directories changed<br />
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SUBSCRIBE DB_INSTRUMENT_DIRECTORY_INFO">8.19.</a>&nbsp;
+Database instrument directory information changed<br />
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SUBSCRIBE DB_INSTRUMENT_COUNT">8.20.</a>&nbsp;
+Number of database instruments changed<br />
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SUBSCRIBE DB_INSTRUMENT_INFO">8.21.</a>&nbsp;
+Database instrument information changed<br />
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SUBSCRIBE MISCELLANEOUS">8.22.</a>&nbsp;
 Miscellaneous and debugging events<br />
 <a href="#anchor14">9.</a>&nbsp;
 Security Considerations<br />
@@ -6056,6 +6098,15 @@ General sampler informations</h3>
 </blockquote>
                                     
 
+<p>INSTRUMENTS_DB_SUPPORT -
+                                        </p>
+<blockquote class="text">
+<p>either yes or no, specifies whether the
+                                            sampler is build with instruments database support.
+</p>
+</blockquote>
+                                    
+
 </blockquote>
                             
 
@@ -7166,6 +7217,1098 @@ Clear MIDI instrument map</h3>
 </blockquote><p>
                     
 </p>
+<a name="Managing Instruments Database"></a><br /><hr />
+<table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
+<a name="rfc.section.6.8"></a><h3>6.8.&nbsp;
+Managing Instruments Database</h3>
+
+<p>The following commands describe how to use and manage
+                the instruments database.
+</p>
+<a name="ADD DB_INSTRUMENT_DIRECTORY"></a><br /><hr />
+<table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
+<a name="rfc.section.6.8.1"></a><h3>6.8.1.&nbsp;
+Creating a new instrument directory</h3>
+
+<p>The front-end can add a new instrument directory to the
+                    instruments database by sending the following command:
+</p>
+<p>
+                        </p>
+<blockquote class="text">
+<p>ADD DB_INSTRUMENT_DIRECTORY &lt;dir&gt;
+</p>
+</blockquote><p>
+                    
+</p>
+<p>Where &lt;dir&gt; is the absolute path name of the directory
+                    to be created (encapsulated into apostrophes).
+</p>
+<p>Possible Answers:
+</p>
+<p>
+                        </p>
+<blockquote class="text">
+<p>"OK" -
+                                </p>
+<blockquote class="text">
+<p>on success
+</p>
+</blockquote>
+                            
+
+<p>"ERR:&lt;error-code&gt;:&lt;error-message&gt;" -
+                                </p>
+<blockquote class="text">
+<p>when the directory could not be created, which
+                                    can happen if the directory already exists or the
+                                    name contains not allowed symbols
+</p>
+</blockquote>
+                            
+
+</blockquote><p>
+                    
+</p>
+<p>Examples:
+</p>
+<p>
+                        </p>
+<blockquote class="text">
+<p>C: "ADD DB_INSTRUMENT_DIRECTORY '/Piano Collection'"
+</p>
+<p>S: "OK"
+</p>
+</blockquote><p>
+                    
+</p>
+<a name="REMOVE DB_INSTRUMENT_DIRECTORY"></a><br /><hr />
+<table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
+<a name="rfc.section.6.8.2"></a><h3>6.8.2.&nbsp;
+Deleting an instrument directory</h3>
+
+<p>The front-end can delete a particular instrument directory
+                    from the instruments database by sending the following command:
+</p>
+<p>
+                        </p>
+<blockquote class="text">
+<p>REMOVE DB_INSTRUMENT_DIRECTORY [FORCE] &lt;dir&gt;
+</p>
+</blockquote><p>
+                    
+</p>
+<p>Where &lt;dir&gt; is the absolute path name of the directory
+                    to delete. The optional FORCE argument can be used to
+                    force the deletion of a non-empty directory and all its content.
+</p>
+<p>Possible Answers:
+</p>
+<p>
+                        </p>
+<blockquote class="text">
+<p>"OK" -
+                                </p>
+<blockquote class="text">
+<p>if the directory is deleted successfully
+</p>
+</blockquote>
+                            
+
+<p>"ERR:&lt;error-code&gt;:&lt;error-message&gt;" -
+                                </p>
+<blockquote class="text">
+<p>if the given directory does not exist, or
+                                    if trying to delete a non-empty directory,
+                                    without using the FORCE argument.
+</p>
+</blockquote>
+                            
+
+</blockquote><p>
+                    
+</p>
+<p>Examples:
+</p>
+<p>
+                        </p>
+<blockquote class="text">
+<p>C: "REMOVE DB_INSTRUMENT_DIRECTORY FORCE '/Piano Collection'"
+</p>
+<p>S: "OK"
+</p>
+</blockquote><p>
+                    
+</p>
+<a name="GET DB_INSTRUMENT_DIRECTORIES"></a><br /><hr />
+<table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
+<a name="rfc.section.6.8.3"></a><h3>6.8.3.&nbsp;
+Getting amount of instrument directories</h3>
+
+<p>The front-end can retrieve the current amount of
+                    directories in a specific directory by sending the following command:
+</p>
+<p>
+                        </p>
+<blockquote class="text">
+<p>GET DB_INSTRUMENT_DIRECTORIES &lt;dir&gt;
+</p>
+</blockquote><p>
+                    
+</p>
+<p>Where &lt;dir&gt; should be replaced by the absolute path
+                    name of the directory.
+</p>
+<p>Possible Answers:
+</p>
+<p>
+                        </p>
+<blockquote class="text">
+<p>The current number of instrument directories
+                            in the specified directory.
+</p>
+<p>"ERR:&lt;error-code&gt;:&lt;error-message&gt;" -
+                                </p>
+<blockquote class="text">
+<p>if the given directory does not exist.
+</p>
+</blockquote>
+                            
+
+</blockquote><p>
+                    
+</p>
+<p>Example:
+</p>
+<p>
+                        </p>
+<blockquote class="text">
+<p>C: "GET DB_INSTRUMENT_DIRECTORIES '/'"
+</p>
+<p>S: "2"
+</p>
+</blockquote><p>
+                    
+</p>
+<a name="LIST DB_INSTRUMENT_DIRECTORIES"></a><br /><hr />
+<table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
+<a name="rfc.section.6.8.4"></a><h3>6.8.4.&nbsp;
+Listing all directories in specific directory</h3>
+
+<p>The front-end can retrieve the current list of directories
+                    in specific directory by sending the following command:
+</p>
+<p>
+                        </p>
+<blockquote class="text">
+<p>LIST DB_INSTRUMENT_DIRECTORIES &lt;dir&gt;
+</p>
+</blockquote><p>
+                    
+</p>
+<p>Where &lt;dir&gt; should be replaced by the absolute path
+                    name of the directory.
+</p>
+<p>Possible Answers:
+</p>
+<p>
+                        </p>
+<blockquote class="text">
+<p>A comma separated list of all instrument directories
+                            (encapsulated into apostrophes) in the specified directory.
+</p>
+<p>"ERR:&lt;error-code&gt;:&lt;error-message&gt;" -
+                                </p>
+<blockquote class="text">
+<p>if the given directory does not exist.
+</p>
+</blockquote>
+                            
+
+</blockquote><p>
+                    
+</p>
+<p>Example:
+</p>
+<p>
+                        </p>
+<blockquote class="text">
+<p>C: "LIST DB_INSTRUMENT_DIRECTORIES '/'"
+</p>
+<p>S: "'Piano Collection','Percussion Collection'"
+</p>
+</blockquote><p>
+                    
+</p>
+<a name="GET DB_INSTRUMENT_DIRECTORY INFO"></a><br /><hr />
+<table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
+<a name="rfc.section.6.8.5"></a><h3>6.8.5.&nbsp;
+Getting instrument directory information</h3>
+
+<p>The front-end can ask for the current settings of an
+                    instrument directory by sending the following command:
+</p>
+<p>
+                        </p>
+<blockquote class="text">
+<p>GET DB_INSTRUMENT_DIRECTORY INFO &lt;dir&gt;
+</p>
+</blockquote><p>
+                    
+</p>
+<p>Where &lt;dir&gt; should be replaced by the absolute path
+                    name of the directory the front-end is interested in.
+</p>
+<p>Possible Answers:
+</p>
+<p>
+                        </p>
+<blockquote class="text">
+<p>LinuxSampler will answer by sending a &lt;CRLF&gt; separated list.
+                            Each answer line begins with the settings category name
+                            followed by a colon and then a space character &lt;SP&gt; and finally
+                            the info character string to that setting category. At the
+                            moment the following categories are defined:
+</p>
+<p>
+                                </p>
+<blockquote class="text">
+<p>DESCRIPTION -
+                                        </p>
+<blockquote class="text">
+<p>A brief description of the directory content
+</p>
+</blockquote>
+                                    
+
+<p>CREATED -
+                                        </p>
+<blockquote class="text">
+<p>The creation date and time of the directory,
+                                            represented in "YYYY-MM-DD HH:MM:SS" format
+</p>
+</blockquote>
+                                    
+
+<p>MODIFIED -
+                                        </p>
+<blockquote class="text">
+<p>The date and time of the last modification of the
+                                            directory, represented in "YYYY-MM-DD HH:MM:SS" format
+</p>
+</blockquote>
+                                    
+
+</blockquote>
+                            
+
+</blockquote><p>
+                    
+</p>
+<p>The mentioned fields above don't have to be in particular order.
+</p>
+<p>Example:
+</p>
+<p>
+                        </p>
+<blockquote class="text">
+<p>C: "GET DB_INSTRUMENT_DIRECTORY INFO '/Piano Collection'"
+</p>
+<p>S: "DESCRIPTION: Piano collection of instruments in GigaSampler format."
+</p>
+<p>&nbsp;&nbsp;&nbsp;"CREATED: 2007-02-05 10:23:12"
+</p>
+<p>&nbsp;&nbsp;&nbsp;"MODIFIED: 2007-04-07 12:50:21"
+</p>
+<p>&nbsp;&nbsp;&nbsp;"."
+</p>
+</blockquote><p>
+                    
+</p>
+<a name="SET DB_INSTRUMENT_DIRECTORY NAME"></a><br /><hr />
+<table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
+<a name="rfc.section.6.8.6"></a><h3>6.8.6.&nbsp;
+Renaming an instrument directory</h3>
+
+<p>The front-end can alter the name of a specific
+                    instrument directory by sending the following command:
+</p>
+<p>
+                        </p>
+<blockquote class="text">
+<p>SET DB_INSTRUMENT_DIRECTORY NAME &lt;dir&gt; &lt;name&gt;
+</p>
+</blockquote><p>
+                    
+</p>
+<p>Where &lt;dir&gt; is the absolute path name of the directory and
+                    &lt;name&gt; is the new name for that directory.
+</p>
+<p>Possible Answers:
+</p>
+<p>
+                        </p>
+<blockquote class="text">
+<p>"OK" -
+                                </p>
+<blockquote class="text">
+<p>on success
+</p>
+</blockquote>
+                            
+
+<p>"ERR:&lt;error-code&gt;:&lt;error-message&gt;" -
+                                </p>
+<blockquote class="text">
+<p>in case the given directory does not exists,
+                                    or if a directory with name equal to the new
+                                    name already exists.
+</p>
+</blockquote>
+                            
+
+</blockquote><p>
+                    
+</p>
+<p>Example:
+</p>
+<p>
+                        </p>
+<blockquote class="text">
+<p>C: "SET DB_INSTRUMENT_DIRECTORY NAME '/Piano Collection/Acustic' 'Acoustic'"
+</p>
+<p>S: "OK"
+</p>
+</blockquote><p>
+                    
+</p>
+<a name="MOVE DB_INSTRUMENT_DIRECTORY"></a><br /><hr />
+<table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
+<a name="rfc.section.6.8.7"></a><h3>6.8.7.&nbsp;
+Moving an instrument directory</h3>
+
+<p>The front-end can move a specific
+                    instrument directory by sending the following command:
+</p>
+<p>
+                        </p>
+<blockquote class="text">
+<p>MOVE DB_INSTRUMENT_DIRECTORY &lt;dir&gt; &lt;dst&gt;
+</p>
+</blockquote><p>
+                    
+</p>
+<p>Where &lt;dir&gt; is the absolute path name of the directory
+                    to move and &lt;dst&gt; is the location where the directory will
+                    be moved to.
+</p>
+<p>Possible Answers:
+</p>
+<p>
+                        </p>
+<blockquote class="text">
+<p>"OK" -
+                                </p>
+<blockquote class="text">
+<p>on success
+</p>
+</blockquote>
+                            
+
+<p>"ERR:&lt;error-code&gt;:&lt;error-message&gt;" -
+                                </p>
+<blockquote class="text">
+<p>in case a given directory does not exists,
+                                    or if a directory with name equal to the name
+                                    of the specified directory already exists in
+                                    the destination directory. Error is also thrown
+                                    when trying to move a directory to a subdirectory
+                                    of itself.
+</p>
+</blockquote>
+                            
+
+</blockquote><p>
+                    
+</p>
+<p>Example:
+</p>
+<p>
+                        </p>
+<blockquote class="text">
+<p>C: "MOVE DB_INSTRUMENT_DIRECTORY '/Acoustic' '/Piano Collection/Acoustic'"
+</p>
+<p>S: "OK"
+</p>
+</blockquote><p>
+                    
+</p>
+<a name="SET DB_INSTRUMENT_DIRECTORY DESCRIPTION"></a><br /><hr />
+<table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
+<a name="rfc.section.6.8.8"></a><h3>6.8.8.&nbsp;
+Changing the description of directory</h3>
+
+<p>The front-end can alter the description of a specific
+                    instrument directory by sending the following command:
+</p>
+<p>
+                        </p>
+<blockquote class="text">
+<p>SET DB_INSTRUMENT_DIRECTORY DESCRIPTION &lt;dir&gt; &lt;desc&gt;
+</p>
+</blockquote><p>
+                    
+</p>
+<p>Where &lt;dir&gt; is the absolute path name of the directory and
+                    &lt;desc&gt; is the new description for the directory.
+</p>
+<p>Possible Answers:
+</p>
+<p>
+                        </p>
+<blockquote class="text">
+<p>"OK" -
+                                </p>
+<blockquote class="text">
+<p>on success
+</p>
+</blockquote>
+                            
+
+<p>"ERR:&lt;error-code&gt;:&lt;error-message&gt;" -
+                                </p>
+<blockquote class="text">
+<p>in case the given directory does not exists.
+</p>
+</blockquote>
+                            
+
+</blockquote><p>
+                    
+</p>
+<p>Example:
+</p>
+<p>
+                        </p>
+<blockquote class="text">
+<p>C: "SET DB_INSTRUMENT_DIRECTORY DESCRIPTION '/Piano Collection' 'A collection of piano instruments in various format.'"
+</p>
+<p>S: "OK"
+</p>
+</blockquote><p>
+                    
+</p>
+<a name="ADD DB_INSTRUMENTS"></a><br /><hr />
+<table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
+<a name="rfc.section.6.8.9"></a><h3>6.8.9.&nbsp;
+Adding instruments to the instruments database</h3>
+
+<p>The front-end can add one or more instruments
+                    to the instruments database by sending the following command:
+</p>
+<p>
+                        </p>
+<blockquote class="text">
+<p>ADD DB_INSTRUMENTS [&lt;mode&gt;] &lt;db_dir&gt; &lt;file_path&gt; [&lt;instr_index&gt;]
+</p>
+</blockquote><p>
+                    
+</p>
+<p>Where &lt;db_dir&gt; is the absolute path name of a directory
+                    (encapsulated into apostrophes) in the instruments database in which
+                    only the new instruments (that are not already in the database) will
+                    be added, &lt;file_path&gt; is the absolute path name of a file or
+                    directory in the file system (encapsulated into apostrophes). In case
+                    an instrument file is supplied, only the instruments in the specified
+                    file will be added to the instruments database. If the optional
+                    &lt;instr_index&gt; (the index of the instrument within the given file)
+                    is supplied too, then only the specified instrument will be added.
+                    In case a directory is supplied, the instruments in that directory
+                    will be added. The OPTIONAL &lt;mode&gt; argument is only applied
+                    when a directory is provided as &lt;file_path&gt; and specifies how the
+                    scanning will be done and has exactly the following possibilities:
+</p>
+<p>
+                        </p>
+<blockquote class="text">
+<p>"NON_RECURSIVE" -
+                                </p>
+<blockquote class="text">
+<p>Only the instruments in the specified directory
+                                    will be added, the instruments in the subdirectories
+                                    will not be processed.
+</p>
+</blockquote>
+                            
+
+<p>"FLAT" -
+                                </p>
+<blockquote class="text">
+<p>All instruments will be processed, including those
+                                    in the subdirectories, but the respective subdirectory
+                                    structure will not be recreated in the instruments
+                                    database. All instruments will be added directly in
+                                    the specified database directory.
+</p>
+</blockquote>
+                            
+
+<p>not supplied -
+                                </p>
+<blockquote class="text">
+<p>The subdirectory tree structure will be recreated
+                                    in the instruments database and all instruments will be
+                                    processed and added to the respective subdirectory
+                                    in the instruments database.
+</p>
+</blockquote>
+                            
+
+</blockquote><p>
+                    
+</p>
+<p>Possible Answers:
+</p>
+<p>
+                        </p>
+<blockquote class="text">
+<p>"OK" -
+                                </p>
+<blockquote class="text">
+<p>on success
+</p>
+</blockquote>
+                            
+
+<p>"ERR:&lt;error-code&gt;:&lt;error-message&gt;" -
+                                </p>
+<blockquote class="text">
+<p>if an invalid path is specified.
+</p>
+</blockquote>
+                            
+
+</blockquote><p>
+                    
+</p>
+<p>Examples:
+</p>
+<p>
+                        </p>
+<blockquote class="text">
+<p>C: "ADD DB_INSTRUMENTS '/Piano Collection' '/home/me/gigs/PMI Bosendorfer 290.gig' 0"
+</p>
+<p>S: "OK"
+</p>
+</blockquote><p>
+                    
+</p>
+<a name="REMOVE DB_INSTRUMENT"></a><br /><hr />
+<table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
+<a name="rfc.section.6.8.10"></a><h3>6.8.10.&nbsp;
+Removing an instrument</h3>
+
+<p>The front-end can remove a particular instrument
+                    from the instruments database by sending the following command:
+</p>
+<p>
+                        </p>
+<blockquote class="text">
+<p>REMOVE DB_INSTRUMENT &lt;instr_path&gt;
+</p>
+</blockquote><p>
+                    
+</p>
+<p>Where &lt;instr_path&gt; is the absolute path name
+                    (in the instruments database) of the instrument to remove.
+</p>
+<p>Possible Answers:
+</p>
+<p>
+                        </p>
+<blockquote class="text">
+<p>"OK" -
+                                </p>
+<blockquote class="text">
+<p>if the instrument is removed successfully
+</p>
+</blockquote>
+                            
+
+<p>"ERR:&lt;error-code&gt;:&lt;error-message&gt;" -
+                                </p>
+<blockquote class="text">
+<p>if the given path does not exist or
+                                    is a directory.
+</p>
+</blockquote>
+                            
+
+</blockquote><p>
+                    
+</p>
+<p>Examples:
+</p>
+<p>
+                        </p>
+<blockquote class="text">
+<p>C: "REMOVE DB_INSTRUMENT '/Piano Collection/Bosendorfer 290'"
+</p>
+<p>S: "OK"
+</p>
+</blockquote><p>
+                    
+</p>
+<a name="GET DB_INSTRUMENTS"></a><br /><hr />
+<table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
+<a name="rfc.section.6.8.11"></a><h3>6.8.11.&nbsp;
+Getting amount of instruments</h3>
+
+<p>The front-end can retrieve the current amount of
+                    instruments in a specific directory by sending the following command:
+</p>
+<p>
+                        </p>
+<blockquote class="text">
+<p>GET DB_INSTRUMENTS &lt;dir&gt;
+</p>
+</blockquote><p>
+                    
+</p>
+<p>Where &lt;dir&gt; should be replaced by the absolute path name
+                    of the directory.
+</p>
+<p>Possible Answers:
+</p>
+<p>
+                        </p>
+<blockquote class="text">
+<p>The current number of instruments
+                            in the specified directory.
+</p>
+<p>"ERR:&lt;error-code&gt;:&lt;error-message&gt;" -
+                                </p>
+<blockquote class="text">
+<p>if the given directory does not exist.
+</p>
+</blockquote>
+                            
+
+</blockquote><p>
+                    
+</p>
+<p>Example:
+</p>
+<p>
+                        </p>
+<blockquote class="text">
+<p>C: "GET DB_INSTRUMENTS '/Piano Collection'"
+</p>
+<p>S: "2"
+</p>
+</blockquote><p>
+                    
+</p>
+<a name="LIST DB_INSTRUMENTS"></a><br /><hr />
+<table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
+<a name="rfc.section.6.8.12"></a><h3>6.8.12.&nbsp;
+Listing all instruments in specific directory</h3>
+
+<p>The front-end can retrieve the current list of instruments
+                    in specific directory by sending the following command:
+</p>
+<p>
+                        </p>
+<blockquote class="text">
+<p>LIST DB_INSTRUMENTS &lt;dir&gt;
+</p>
+</blockquote><p>
+                    
+</p>
+<p>Where &lt;dir&gt; should be replaced by the absolute path
+                    name of the directory.
+</p>
+<p>Possible Answers:
+</p>
+<p>
+                        </p>
+<blockquote class="text">
+<p>A comma separated list of all instruments
+                            (encapsulated into apostrophes) in the specified directory.
+</p>
+<p>"ERR:&lt;error-code&gt;:&lt;error-message&gt;" -
+                                </p>
+<blockquote class="text">
+<p>if the given directory does not exist.
+</p>
+</blockquote>
+                            
+
+</blockquote><p>
+                    
+</p>
+<p>Example:
+</p>
+<p>
+                        </p>
+<blockquote class="text">
+<p>C: "LIST DB_INSTRUMENTS '/Piano Collection'"
+</p>
+<p>S: "'Bosendorfer 290','Steinway D'"
+</p>
+</blockquote><p>
+                    
+</p>
+<a name="GET DB_INSTRUMENT INFO"></a><br /><hr />
+<table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
+<a name="rfc.section.6.8.13"></a><h3>6.8.13.&nbsp;
+Getting instrument information</h3>
+
+<p>The front-end can ask for the current settings of an
+                    instrument by sending the following command:
+</p>
+<p>
+                        </p>
+<blockquote class="text">
+<p>GET DB_INSTRUMENT INFO &lt;instr_path&gt;
+</p>
+</blockquote><p>
+                    
+</p>
+<p>Where &lt;instr_path&gt; should be replaced by the absolute path
+                    name of the instrument the front-end is interested in.
+</p>
+<p>Possible Answers:
+</p>
+<p>
+                        </p>
+<blockquote class="text">
+<p>LinuxSampler will answer by sending a &lt;CRLF&gt; separated list.
+                            Each answer line begins with the settings category name
+                            followed by a colon and then a space character &lt;SP&gt; and finally
+                            the info character string to that setting category. At the
+                            moment the following categories are defined:
+</p>
+<p>
+                                </p>
+<blockquote class="text">
+<p>INSTRUMENT_FILE -
+                                        </p>
+<blockquote class="text">
+<p>File name of the instrument.
+</p>
+</blockquote>
+                                    
+
+<p>INSTRUMENT_NR -
+                                        </p>
+<blockquote class="text">
+<p>Index of the instrument within the file.
+</p>
+</blockquote>
+                                    
+
+<p>FORMAT_FAMILY -
+                                        </p>
+<blockquote class="text">
+<p>The format family of the instrument.
+</p>
+</blockquote>
+                                    
+
+<p>FORMAT_VERSION -
+                                        </p>
+<blockquote class="text">
+<p>The format version of the instrument.
+</p>
+</blockquote>
+                                    
+
+<p>SIZE -
+                                        </p>
+<blockquote class="text">
+<p>The size of the instrument in bytes.
+</p>
+</blockquote>
+                                    
+
+<p>CREATED -
+                                        </p>
+<blockquote class="text">
+<p>The date and time when the instrument is added
+                                            in the instruments database, represented in
+                                           "YYYY-MM-DD HH:MM:SS" format
+</p>
+</blockquote>
+                                    
+
+<p>MODIFIED -
+                                        </p>
+<blockquote class="text">
+<p>The date and time of the last modification of the
+                                            instrument's database settings, represented in
+                                            "YYYY-MM-DD HH:MM:SS" format
+</p>
+</blockquote>
+                                    
+
+<p>DESCRIPTION -
+                                        </p>
+<blockquote class="text">
+<p>A brief description of the instrument
+</p>
+</blockquote>
+                                    
+
+<p>IS_DRUM -
+                                        </p>
+<blockquote class="text">
+<p>either true or false, determines whether the
+                                            instrument is a drumkit or a chromatic instrument
+</p>
+</blockquote>
+                                    
+
+<p>PRODUCT -
+                                        </p>
+<blockquote class="text">
+<p>The product title of the instrument
+</p>
+</blockquote>
+                                    
+
+<p>ARTISTS -
+                                        </p>
+<blockquote class="text">
+<p>Lists the artist names
+</p>
+</blockquote>
+                                    
+
+<p>KEYWORDS -
+                                        </p>
+<blockquote class="text">
+<p>Provides a list of keywords that refer to the instrument.
+                                            Keywords are separated with semicolon and blank.
+</p>
+</blockquote>
+                                    
+
+</blockquote>
+                            
+
+</blockquote><p>
+                    
+</p>
+<p>The mentioned fields above don't have to be in particular order.
+</p>
+<p>Example:
+</p>
+<p>
+                        </p>
+<blockquote class="text">
+<p>C: "GET DB_INSTRUMENT INFO '/Piano Collection/Bosendorfer 290'"
+</p>
+<p>S: "INSTRUMENT_FILE: /home/me/gigs/Bosendorfer 290.gig"
+</p>
+<p>&nbsp;&nbsp;&nbsp;"INSTRUMENT_NR: 0"
+</p>
+<p>&nbsp;&nbsp;&nbsp;"FORMAT_FAMILY: GIG"
+</p>
+<p>&nbsp;&nbsp;&nbsp;"FORMAT_VERSION: 2"
+</p>
+<p>&nbsp;&nbsp;&nbsp;"SIZE: 2050871870"
+</p>
+<p>&nbsp;&nbsp;&nbsp;"CREATED: 2007-02-05 10:23:12"
+</p>
+<p>&nbsp;&nbsp;&nbsp;"MODIFIED: 2007-04-07 12:50:21"
+</p>
+<p>&nbsp;&nbsp;&nbsp;"DESCRIPTION: "
+</p>
+<p>&nbsp;&nbsp;&nbsp;"IS_DRUM: false"
+</p>
+<p>&nbsp;&nbsp;&nbsp;"PRODUCT: GRANDIOSO Bosendorfer 290"
+</p>
+<p>&nbsp;&nbsp;&nbsp;"ARTISTS: Post Musical Instruments"
+</p>
+<p>&nbsp;&nbsp;&nbsp;"KEYWORDS: Bosendorfer"
+</p>
+<p>&nbsp;&nbsp;&nbsp;"."
+</p>
+</blockquote><p>
+                    
+</p>
+<a name="SET DB_INSTRUMENT NAME"></a><br /><hr />
+<table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
+<a name="rfc.section.6.8.14"></a><h3>6.8.14.&nbsp;
+Renaming an instrument</h3>
+
+<p>The front-end can alter the name of a specific
+                    instrument by sending the following command:
+</p>
+<p>
+                        </p>
+<blockquote class="text">
+<p>SET DB_INSTRUMENT NAME &lt;instr&gt; &lt;name&gt;
+</p>
+</blockquote><p>
+                    
+</p>
+<p>Where &lt;instr&gt; is the absolute path name of the instrument and
+                    &lt;name&gt; is the new name for that instrument.
+</p>
+<p>Possible Answers:
+</p>
+<p>
+                        </p>
+<blockquote class="text">
+<p>"OK" -
+                                </p>
+<blockquote class="text">
+<p>on success
+</p>
+</blockquote>
+                            
+
+<p>"ERR:&lt;error-code&gt;:&lt;error-message&gt;" -
+                                </p>
+<blockquote class="text">
+<p>in case the given instrument does not exists,
+                                    or if an instrument with name equal to the new
+                                    name already exists.
+</p>
+</blockquote>
+                            
+
+</blockquote><p>
+                    
+</p>
+<p>Example:
+</p>
+<p>
+                        </p>
+<blockquote class="text">
+<p>C: "SET DB_INSTRUMENT NAME '/Piano Collection/Bosendorfer' 'Bosendorfer 290'"
+</p>
+<p>S: "OK"
+</p>
+</blockquote><p>
+                    
+</p>
+<a name="MOVE DB_INSTRUMENT"></a><br /><hr />
+<table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
+<a name="rfc.section.6.8.15"></a><h3>6.8.15.&nbsp;
+Moving an instrument</h3>
+
+<p>The front-end can move a specific instrument to another directory by
+                    sending the following command:
+</p>
+<p>
+                        </p>
+<blockquote class="text">
+<p>MOVE DB_INSTRUMENT &lt;instr&gt; &lt;dst&gt;
+</p>
+</blockquote><p>
+                    
+</p>
+<p>Where &lt;instr&gt; is the absolute path name of the instrument
+                    to move and &lt;dst&gt; is the directory where the instrument will
+                    be moved to.
+</p>
+<p>Possible Answers:
+</p>
+<p>
+                        </p>
+<blockquote class="text">
+<p>"OK" -
+                                </p>
+<blockquote class="text">
+<p>on success
+</p>
+</blockquote>
+                            
+
+<p>"ERR:&lt;error-code&gt;:&lt;error-message&gt;" -
+                                </p>
+<blockquote class="text">
+<p>in case the given instrument does not exists,
+                                    or if an instrument with name equal to the name of the
+                                    specified instrument already exists in the destination
+                                    directory.
+</p>
+</blockquote>
+                            
+
+</blockquote><p>
+                    
+</p>
+<p>Example:
+</p>
+<p>
+                        </p>
+<blockquote class="text">
+<p>C: "MOVE DB_INSTRUMENT '/Piano Collection/Bosendorfer 290' '/Piano Collection/Acoustic'"
+</p>
+<p>S: "OK"
+</p>
+</blockquote><p>
+                    
+</p>
+<a name="SET DB_INSTRUMENT DESCRIPTION"></a><br /><hr />
+<table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
+<a name="rfc.section.6.8.16"></a><h3>6.8.16.&nbsp;
+Changing the description of instrument</h3>
+
+<p>The front-end can alter the description of a specific
+                    instrument by sending the following command:
+</p>
+<p>
+                        </p>
+<blockquote class="text">
+<p>SET DB_INSTRUMENT DESCRIPTION &lt;instr&gt; &lt;desc&gt;
+</p>
+</blockquote><p>
+                    
+</p>
+<p>Where &lt;instr&gt; is the absolute path name of the instrument and
+                    &lt;desc&gt; is the new description for the instrument.
+</p>
+<p>Possible Answers:
+</p>
+<p>
+                        </p>
+<blockquote class="text">
+<p>"OK" -
+                                </p>
+<blockquote class="text">
+<p>on success
+</p>
+</blockquote>
+                            
+
+<p>"ERR:&lt;error-code&gt;:&lt;error-message&gt;" -
+                                </p>
+<blockquote class="text">
+<p>in case the given instrument does not exists.
+</p>
+</blockquote>
+                            
+
+</blockquote><p>
+                    
+</p>
+<p>Example:
+</p>
+<p>
+                        </p>
+<blockquote class="text">
+<p>C: "SET DB_INSTRUMENT DESCRIPTION '/Piano Collection/Acoustic/Bosendorfer 290' 'No comment :)'"
+</p>
+<p>S: "OK"
+</p>
+</blockquote><p>
+                    
+</p>
 <a name="command_syntax"></a><br /><hr />
 <table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
 <a name="rfc.section.7"></a><h3>7.&nbsp;
@@ -7266,13 +8409,13 @@ Command Syntax</h3>
 <p>/ UNSUBSCRIBE SP unsubscribe_event
 		
 </p>
-<p>/ SELECT SP text
-		
-</p>
 <p>/ RESET SP reset_instruction
 		
 </p>
 <p>/ CLEAR SP clear_instruction
+		
+</p>
+<p>/ MOVE SP move_instruction
 		
 </p>
 <p>/ RESET
@@ -7288,6 +8431,21 @@ Command Syntax</h3>
 	</p>
 <blockquote class="text">
 <p>CHANNEL
+		
+</p>
+<p>/ DB_INSTRUMENT_DIRECTORY SP pathname
+		
+</p>
+<p>/ DB_INSTRUMENTS SP FLAT SP pathname SP pathname
+		
+</p>
+<p>/ DB_INSTRUMENTS SP NON_RECURSIVE SP pathname SP pathname
+		
+</p>
+<p>/ DB_INSTRUMENTS SP pathname SP pathname
+		
+</p>
+<p>/ DB_INSTRUMENTS SP pathname SP pathname SP instrument_index
 		
 </p>
 <p>/ MIDI_INSTRUMENT_MAP
@@ -7345,6 +8503,18 @@ Command Syntax</h3>
 		
 </p>
 <p>/ MIDI_INSTRUMENT_INFO
+		
+</p>
+<p>/ DB_INSTRUMENT_DIRECTORY_COUNT
+		
+</p>
+<p>/ DB_INSTRUMENT_DIRECTORY_INFO
+		
+</p>
+<p>/ DB_INSTRUMENT_COUNT
+		
+</p>
+<p>/ DB_INSTRUMENT_INFO
 		
 </p>
 <p>/ MISCELLANEOUS
@@ -7407,6 +8577,18 @@ Command Syntax</h3>
 <p>/ MIDI_INSTRUMENT_INFO
 		
 </p>
+<p>/ DB_INSTRUMENT_DIRECTORY_COUNT
+		
+</p>
+<p>/ DB_INSTRUMENT_DIRECTORY_INFO
+		
+</p>
+<p>/ DB_INSTRUMENT_COUNT
+		
+</p>
+<p>/ DB_INSTRUMENT_INFO
+		
+</p>
 <p>/ MISCELLANEOUS
 		
 </p>
@@ -7456,6 +8638,15 @@ Command Syntax</h3>
 		
 </p>
 <p>/ MIDI_INSTRUMENT_MAP SP ALL
+		
+</p>
+<p>/ DB_INSTRUMENT_DIRECTORY SP FORCE SP pathname
+		
+</p>
+<p>/ DB_INSTRUMENT_DIRECTORY SP pathname
+		
+</p>
+<p>/ DB_INSTRUMENT SP pathname
 		
 </p>
 </blockquote><p>
@@ -7563,6 +8754,18 @@ Command Syntax</h3>
 <p>/ FX_SEND SP INFO SP sampler_channel SP fx_send_id
 		
 </p>
+<p>/ DB_INSTRUMENT_DIRECTORIES SP pathname
+		
+</p>
+<p>/ DB_INSTRUMENT_DIRECTORY SP INFO SP pathname
+		
+</p>
+<p>/ DB_INSTRUMENTS SP pathname
+		
+</p>
+<p>/ DB_INSTRUMENT SP INFO SP pathname
+		
+</p>
 <p>/ VOLUME
 		
 </p>
@@ -7600,6 +8803,18 @@ Command Syntax</h3>
 		
 </p>
 <p>/ FX_SEND SP LEVEL SP sampler_channel SP fx_send_id SP volume_value
+		
+</p>
+<p>/ DB_INSTRUMENT_DIRECTORY SP NAME SP pathname SP dirname
+		
+</p>
+<p>/ DB_INSTRUMENT_DIRECTORY SP DESCRIPTION SP pathname SP stringval
+		
+</p>
+<p>/ DB_INSTRUMENT SP NAME SP pathname SP dirname
+		
+</p>
+<p>/ DB_INSTRUMENT SP DESCRIPTION SP pathname SP stringval
 		
 </p>
 <p>/ ECHO SP boolean
@@ -7651,6 +8866,18 @@ Command Syntax</h3>
 		
 </p>
 <p>/ MIDI_INSTRUMENTS SP ALL
+		
+</p>
+</blockquote><p>
+
+</p>
+<p>move_instruction =
+	</p>
+<blockquote class="text">
+<p>DB_INSTRUMENT_DIRECTORY SP pathname SP pathname
+		
+</p>
+<p>/ DB_INSTRUMENT SP pathname SP pathname
 		
 </p>
 </blockquote><p>
@@ -7798,6 +9025,12 @@ Command Syntax</h3>
 		
 </p>
 <p>/ FX_SENDS SP sampler_channel
+		
+</p>
+<p>/ DB_INSTRUMENT_DIRECTORIES SP pathname
+		
+</p>
+<p>/ DB_INSTRUMENTS SP pathname
 		
 </p>
 </blockquote><p>
@@ -7975,6 +9208,24 @@ Command Syntax</h3>
 	</p>
 <blockquote class="text">
 <p>string
+		
+</p>
+</blockquote><p>
+
+</p>
+<p>pathname =
+	</p>
+<blockquote class="text">
+<p>stringval
+		
+</p>
+</blockquote><p>
+
+</p>
+<p>dirname =
+	</p>
+<blockquote class="text">
+<p>stringval
 		
 </p>
 </blockquote><p>
@@ -8574,9 +9825,167 @@ Global settings changed</h3>
 </blockquote><p>
                 
 </p>
-<a name="SUBSCRIBE MISCELLANEOUS"></a><br /><hr />
+<a name="SUBSCRIBE DB_INSTRUMENT_DIRECTORY_COUNT"></a><br /><hr />
 <table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
 <a name="rfc.section.8.18"></a><h3>8.18.&nbsp;
+Number of database instrument directories changed</h3>
+
+<p>Client may want to be notified when the number of instrument
+                directories in a particular directory in the instruments database
+                is changed by issuing the following command:
+</p>
+<p>
+                    </p>
+<blockquote class="text">
+<p>SUBSCRIBE DB_INSTRUMENT_DIRECTORY_COUNT
+</p>
+</blockquote><p>
+                
+</p>
+<p>Server will start sending the following notification messages:
+</p>
+<p>
+                    </p>
+<blockquote class="text">
+<p>"NOTIFY:DB_INSTRUMENT_DIRECTORY_COUNT:&lt;dir-path&gt;"
+</p>
+</blockquote><p>
+                
+</p>
+<p>where &lt;dir-path&gt; will be replaced by the absolute path
+                name of the directory in the instruments database,
+                in which the number of directories is changed.
+</p>
+<p>Note that when a non-empty directory is removed, this event
+                is not sent for the subdirectories in that directory.
+</p>
+<a name="SUBSCRIBE DB_INSTRUMENT_DIRECTORY_INFO"></a><br /><hr />
+<table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
+<a name="rfc.section.8.19"></a><h3>8.19.&nbsp;
+Database instrument directory information changed</h3>
+
+<p>Client may want to be notified when changes were made to directories
+                in the instruments database by issuing the following command:
+</p>
+<p>
+                    </p>
+<blockquote class="text">
+<p>SUBSCRIBE DB_INSTRUMENT_DIRECTORY_INFO
+</p>
+</blockquote><p>
+                
+</p>
+<p>Server will start sending the following notification messages:
+</p>
+<p>
+                    </p>
+<blockquote class="text">
+<p>"NOTIFY:DB_INSTRUMENT_DIRECTORY_INFO:&lt;dir-path&gt;"
+</p>
+</blockquote><p>
+                
+</p>
+<p>where &lt;dir-path&gt; will be replaced by the absolute path name
+                of the directory, for which information changes occurred. The front-end will have to send
+                the respective command to actually get the updated directory info. Because these messages
+                will be triggered by LSCP commands issued by other clients rather than real
+                time events happening on the server, it is believed that an empty notification
+                message is sufficient here.
+</p>
+<p>
+                    </p>
+<blockquote class="text">
+<p>"NOTIFY:DB_INSTRUMENT_DIRECTORY_INFO:NAME &lt;old-dir-path&gt; &lt;new-name&gt;"
+</p>
+</blockquote><p>
+                
+</p>
+<p>where &lt;old-dir-path&gt; is the old absolute path name of the directory
+                (encapsulated into apostrophes), which name is changes and &lt;new-name&gt; is
+                the new name of the directory, encapsulated into apostrophes.
+</p>
+<a name="SUBSCRIBE DB_INSTRUMENT_COUNT"></a><br /><hr />
+<table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
+<a name="rfc.section.8.20"></a><h3>8.20.&nbsp;
+Number of database instruments changed</h3>
+
+<p>Client may want to be notified when the number of instruments
+                in a particular directory in the instruments database
+                is changed by issuing the following command:
+</p>
+<p>
+                    </p>
+<blockquote class="text">
+<p>SUBSCRIBE DB_INSTRUMENT_COUNT
+</p>
+</blockquote><p>
+                
+</p>
+<p>Server will start sending the following notification messages:
+</p>
+<p>
+                    </p>
+<blockquote class="text">
+<p>"NOTIFY:DB_INSTRUMENT_COUNT:&lt;dir-path&gt;"
+</p>
+</blockquote><p>
+                
+</p>
+<p>where &lt;dir-path&gt; will be replaced by the absolute path
+                name of the directory in the instruments database,
+                in which the number of instruments is changed.
+</p>
+<p>Note that when a non-empty directory is removed, this event
+                is not sent for the instruments in that directory.
+</p>
+<a name="SUBSCRIBE DB_INSTRUMENT_INFO"></a><br /><hr />
+<table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
+<a name="rfc.section.8.21"></a><h3>8.21.&nbsp;
+Database instrument information changed</h3>
+
+<p>Client may want to be notified when changes were made to instruments
+                in the instruments database by issuing the following command:
+</p>
+<p>
+                    </p>
+<blockquote class="text">
+<p>SUBSCRIBE DB_INSTRUMENT_INFO
+</p>
+</blockquote><p>
+                
+</p>
+<p>Server will start sending the following notification messages:
+</p>
+<p>
+                    </p>
+<blockquote class="text">
+<p>"NOTIFY:DB_INSTRUMENT_INFO:&lt;instr-path&gt;"
+</p>
+</blockquote><p>
+                
+</p>
+<p>where &lt;instr-path&gt; will be replaced by the absolute path name
+                of the instrument, which settings are changed. The front-end will have to send
+                the respective command to actually get the updated directory info. Because these messages
+                will be triggered by LSCP commands issued by other clients rather than real
+                time events happening on the server, it is believed that an empty notification
+                message is sufficient here.
+</p>
+<p>
+                    </p>
+<blockquote class="text">
+<p>"NOTIFY:DB_INSTRUMENT_INFO:NAME &lt;old-instr-path&gt; &lt;new-name&gt;"
+</p>
+</blockquote><p>
+                
+</p>
+<p>where &lt;old-instr-path&gt; is the old absolute path name of the instrument
+                (encapsulated into apostrophes), which name is changes and &lt;new-name&gt; is
+                the new name of the instrument, encapsulated into apostrophes.
+</p>
+<a name="SUBSCRIBE MISCELLANEOUS"></a><br /><hr />
+<table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
+<a name="rfc.section.8.22"></a><h3>8.22.&nbsp;
 Miscellaneous and debugging events</h3>
 
 <p>Client may want to be notified of miscellaneous and debugging events occurring at
