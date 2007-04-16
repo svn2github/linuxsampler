@@ -158,8 +158,7 @@ namespace LinuxSampler {
              * @param Dir The absolute path name of the directory.
              * @throws Exception - if database error occurs, or
              * the specified path name is invalid.
-             * @returns The number of directories in the specified directory
-             * or -1 if the directory doesn't exist.
+             * @returns The number of directories in the specified directory.
              */
             int GetDirectoryCount(String Dir);
 
@@ -287,8 +286,7 @@ namespace LinuxSampler {
              * @param Dir The absolute path name of the directory.
              * @throws Exception - if database error occurs, or
              * the specified path name is invalid.
-             * @returns The number of instruments in the specified directory
-             * or -1 if the directory doesn't exist.
+             * @returns The number of instruments in the specified directory.
              */
             int GetInstrumentCount(String Dir);
 

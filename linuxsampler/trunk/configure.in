@@ -309,11 +309,12 @@ AC_SUBST(GIG_CFLAGS)
 AC_SUBST(GIG_LIBS)
 
 # Check presence of sqlite3
+AC_CHECK_PROG(HAVE_SQLITE3_CMD, sqlite3, true, false)
 sqlite_version="3.3"
 PKG_CHECK_MODULES(SQLITE3, sqlite3 >= $sqlite_version, HAVE_SQLITE3=true, HAVE_SQLITE3=false)
 AC_SUBST(SQLITE3_LIBS)
 AC_SUBST(SQLITE3_CFLAGS)
-if test $HAVE_SQLITE3 = false; then
+if test $HAVE_SQLITE3_CMD = false -o $HAVE_SQLITE3 = false; then
     HAVE_SQLITE3=0;
     instruments_db_support="no"
     echo "*** Required sqlite version not found!"
