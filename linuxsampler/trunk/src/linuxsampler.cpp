@@ -112,9 +112,9 @@ int main(int argc, char **argv) {
     if (profile)
     {
         dmsg(1,("Calibrating profiler..."));
-        gig::Profiler::Calibrate();
-        gig::Profiler::Reset();
-        gig::Profiler::enable();
+        LinuxSampler::gig::Profiler::Calibrate();
+        LinuxSampler::gig::Profiler::Reset();
+        LinuxSampler::gig::Profiler::enable();
         dmsg(1,("OK\n"));
     }
 
@@ -144,7 +144,7 @@ int main(int argc, char **argv) {
       if (profile)
       {
           unsigned int samplingFreq = 48000; //FIXME: hardcoded for now
-          unsigned int bv = gig::Profiler::GetBogoVoices(samplingFreq);
+          unsigned int bv = LinuxSampler::gig::Profiler::GetBogoVoices(samplingFreq);
           if (bv != 0)
           {
               printf("       BogoVoices: %i         \r", bv);
@@ -185,6 +185,9 @@ void signal_handler(int iSignal) {
                     delete pLSCPServer;
                 }
                 if (pSampler) delete pSampler;
+#if HAVE_SQLITE3
+                InstrumentsDb::Destroy();
+#endif
                 printf("LinuxSampler stopped due to SIGINT.\n");
                 exit(EXIT_SUCCESS);
             }

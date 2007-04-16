@@ -44,8 +44,13 @@
 #include "../common/Thread.h"
 #include "../common/Mutex.h"
 #include "../common/Condition.h"
+#include "../common/global.h"
 
 #include "../drivers/midi/MidiInstrumentMapper.h"
+
+#if HAVE_SQLITE3
+#include "../db/InstrumentsDb.h"
+#endif
 
 /// TCP Port on which the server should listen for connection requests.
 #define LSCP_ADDR INADDR_ANY
@@ -154,6 +159,24 @@ class LSCPServer : public Thread {
         String SetFxSendAudioOutputChannel(uint uiSamplerChannel, uint FxSendID, uint FxSendChannel, uint DeviceChannel);
         String SetFxSendMidiController(uint uiSamplerChannel, uint FxSendID, uint MidiController);
         String SetFxSendLevel(uint uiSamplerChannel, uint FxSendID, double dLevel);
+        String AddDbInstrumentDirectory(String Dir);
+        String RemoveDbInstrumentDirectory(String Dir, bool Force = false);
+        String GetDbInstrumentDirectoryCount(String Dir);
+        String GetDbInstrumentDirectories(String Dir);
+        String GetDbInstrumentDirectoryInfo(String Dir);
+        String SetDbInstrumentDirectoryName(String Dir, String Name);
+        String MoveDbInstrumentDirectory(String Dir, String Dst);
+        String SetDbInstrumentDirectoryDescription(String Dir, String Desc);
+        String AddDbInstruments(String DbDir, String FilePath, int Index = -1);
+        String AddDbInstrumentsFlat(String DbDir, String FilePath);
+        String AddDbInstrumentsNonrecursive(String DbDir, String FsDir);
+        String RemoveDbInstrument(String Instr);
+        String GetDbInstrumentCount(String Dir);
+        String GetDbInstruments(String Dir);
+        String GetDbInstrumentInfo(String Instr);
+        String SetDbInstrumentName(String Instr, String Name);
+        String MoveDbInstrument(String Instr, String Dst);
+        String SetDbInstrumentDescription(String Instr, String Desc);
         String ResetChannel(uint uiSamplerChannel);
         String ResetSampler();
         String GetServerInfo();
@@ -163,7 +186,6 @@ class LSCPServer : public Thread {
         String SetGlobalVolume(double dVolume);
         String SubscribeNotification(LSCPEvent::event_t);
         String UnsubscribeNotification(LSCPEvent::event_t);
-	String QueryDatabase(String query);
         String SetEcho(yyparse_param_t* pSession, double boolean_value);
         void   AnswerClient(String ReturnMessage);
 
@@ -174,6 +196,7 @@ class LSCPServer : public Thread {
 	static int EventSubscribers( std::list<LSCPEvent::event_t> events );
 	static void LockRTNotify( void ) { RTNotifyMutex.Lock(); }
 	static void UnlockRTNotify( void ) { RTNotifyMutex.Unlock(); }
+    static String FilterEndlines(String s);
 
     protected:
         int            hSocket;
@@ -312,6 +335,57 @@ class LSCPServer : public Thread {
                  */
                 virtual void TotalVoiceCountChanged(int NewCount);
         } eventHandler;
+
+#if HAVE_SQLITE3
+        class DbInstrumentsEventHandler : public InstrumentsDb::Listener {
+            public:
+
+                /**
+                 * Invoked when the number of instrument directories
+                 * in a specific directory has changed.
+                 * @param Dir The absolute pathname of the directory in
+                 * which the number of directories is changed.
+                 */
+                virtual void DirectoryCountChanged(String Dir);
+
+                /**
+                 * Invoked when the settings of an instrument directory
+                 * are changed.
+                 * @param Dir The absolute pathname of the directory
+                 * whose settings are changed.
+                 */
+                virtual void DirectoryInfoChanged(String Dir);
+
+                /**
+                 * Invoked when an instrument directory is renamed.
+                 * @param Dir The old absolute pathname of the directory.
+                 * @param NewName The new name of the directory.
+                 */
+                virtual void DirectoryNameChanged(String Dir, String NewName);
+
+                /**
+                 * Invoked when the number of instruments
+                 * in a specific directory has changed.
+                 * @param Dir The absolute pathname of the directory in
+                 * which the number of instruments is changed.
+                 */
+                virtual void InstrumentCountChanged(String Dir);
+
+                /**
+                 * Invoked when the settings of an instrument are changed.
+                 * @param Instr The absolute pathname of the instrument
+                 * whose settings are changed.
+                 */
+                virtual void InstrumentInfoChanged(String Instr);
+
+                /**
+                 * Invoked when an instrument is renamed.
+                 * @param Instr The old absolute pathname of the instrument.
+                 * @param NewName The new name of the directory.
+                 */
+                virtual void InstrumentNameChanged(String Instr, String NewName);
+        } dbInstrumentsEventHandler;
+#endif // HAVE_SQLITE3
 };
 
 #endif // __LSCPSERVER_H_

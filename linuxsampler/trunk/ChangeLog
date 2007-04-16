@@ -34,6 +34,7 @@ Version CVS HEAD (?)
     - Implemented new, improved notification system
     - fixed compilation errors regarding OSX
       (patch by Toshi Nagata)
+    - implemented instruments database
 
   * MIDI driver:
     - dispatch bank select (MSB and LSB) messages

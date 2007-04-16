@@ -308,16 +308,21 @@ fi
 AC_SUBST(GIG_CFLAGS)
 AC_SUBST(GIG_LIBS)
 
-# SQLITE3
-PKG_CHECK_MODULES(SQLITE3, sqlite3, HAVE_SQLITE3=true, HAVE_SQLITE3=false)
+# Check presence of sqlite3
+sqlite_version="3.3"
+PKG_CHECK_MODULES(SQLITE3, sqlite3 >= $sqlite_version, HAVE_SQLITE3=true, HAVE_SQLITE3=false)
 AC_SUBST(SQLITE3_LIBS)
 AC_SUBST(SQLITE3_CFLAGS)
 if test $HAVE_SQLITE3 = false; then
     HAVE_SQLITE3=0;
-    echo "no, support for instrument DB will be disabled!"
+    instruments_db_support="no"
+    echo "*** Required sqlite version not found!"
+    echo "*** You need to have sqlite version ${sqlite_version} or higher"
+    echo "*** for instruments database support to be enabled."
+    echo "*** Support for instruments DB will be disabled!"
 else
     HAVE_SQLITE3=1
-    echo "yes"
+    instruments_db_support="yes"
 fi
 AM_CONDITIONAL(HAVE_SQLITE3, test $HAVE_SQLITE3 = 1)
 AC_DEFINE_UNQUOTED(HAVE_SQLITE3,$HAVE_SQLITE3,[Define to 1 if you have SQLITE3 installed.])
@@ -918,6 +923,7 @@ AC_OUTPUT( \
     man/Makefile \
     man/linuxsampler.1 \
     src/Makefile \
+    src/db/Makefile \
     src/network/Makefile \
     src/engines/Makefile \
     src/engines/gig/Makefile \
@@ -984,6 +990,7 @@ echo "# Assert GS SysEx Checksum: ${config_assert_gs_sysex_checksum}"
 echo "# Process Muted Channels: ${config_process_muted_channels}"
 echo "# Process All-Notes-Off MIDI message: ${config_process_all_notes_off}"
 echo "# Interpolate Volume: ${config_interpolate_volume}"
+echo "# Instruments database support: ${instruments_db_support}"
 echo "#-------------------------------------------------------------------#"
 echo "# Read './configure --help' or file 'configure.in' for details.     #"
 echo "#####################################################################"

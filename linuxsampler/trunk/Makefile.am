@@ -15,6 +15,19 @@ EXTRA_DIST = Doxyfile.in \
 
 .PHONY: parser testcases
 
+if HAVE_SQLITE3
+have_sqlite = "yes"
+else
+have_sqlite = "no"
+endif
+
+install-data-local:
+	@if [ ! -e "/var/lib/linuxsampler/instruments.db" -a \
+	 $(have_sqlite) = "yes" ] ; then ./scripts/create_instr_db.sh && \
+	mkdir -p /var/lib/linuxsampler && \
+	mv instruments.db /var/lib/linuxsampler ; \
+	fi
+
 # generate parser with yacc
 parser:
 	@cd $(srcdir)/src/network && make $@

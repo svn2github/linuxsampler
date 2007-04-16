@@ -12,7 +12,7 @@ endif
 
 AM_CXXFLAGS = -Wreturn-type -ffast-math $(CXX_CPU_SWITCH)
 
-SUBDIRS = network engines common lib testcases drivers
+SUBDIRS = db network engines common lib testcases drivers
 
 liblinuxsamplerincludedir = $(includedir)/linuxsampler
 liblinuxsamplerinclude_HEADERS = Sampler.h
@@ -23,6 +23,7 @@ liblinuxsampler_config_DATA = ../config.h
 pkglib_LTLIBRARIES = liblinuxsampler.la
 liblinuxsampler_la_SOURCES = Sampler.cpp
 liblinuxsampler_la_LIBADD = \
+	$(top_builddir)/src/db/liblinuxsamplerdb.la \
 	$(top_builddir)/src/network/liblinuxsamplernetwork.la \
 	$(top_builddir)/src/engines/gig/liblinuxsamplergigengine.la \
 	$(top_builddir)/src/engines/common/liblinuxsamplercommonengine.la \

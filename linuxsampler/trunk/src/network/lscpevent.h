@@ -58,6 +58,10 @@ class LSCPEvent {
 		    event_midi_instr_map_info,
 		    event_midi_instr_count,
 		    event_midi_instr_info,
+            event_db_instr_dir_count,
+		    event_db_instr_dir_info,
+            event_db_instr_count,
+		    event_db_instr_info,
 		    event_misc,
 		    event_total_voice_count,
 		    event_global_info
@@ -78,6 +82,7 @@ class LSCPEvent {
 	    LSCPEvent(event_t eventType, String sData, double dData);
 	    LSCPEvent(event_t eventType, int uiData, String sData);
 	    LSCPEvent(event_t eventType, int uiData1, int uiData2, int uiData3);
+        LSCPEvent(event_t eventType, String sData1, String sData2, String sData3);
 	    String Produce( void );
 
 	    /* Returns event type */

@@ -24,12 +24,11 @@
 #include "lscpserver.h"
 #include "lscpresultset.h"
 #include "lscpevent.h"
-#include "../common/global.h"
 
 #include <fcntl.h>
 
-#if HAVE_SQLITE3
-# include "sqlite3.h"
+#if ! HAVE_SQLITE3
+#define DOESNT_HAVE_SQLITE3 "No database support. SQLITE3 was not installed when linuxsampler was built."
 #endif
 
 #include "../engines/EngineFactory.h"
@@ -81,6 +80,10 @@ LSCPServer::LSCPServer(Sampler* pSampler, long int addr, short int port) : Threa
     LSCPEvent::RegisterEvent(LSCPEvent::event_midi_instr_map_info, "MIDI_INSTRUMENT_MAP_INFO");
     LSCPEvent::RegisterEvent(LSCPEvent::event_midi_instr_count, "MIDI_INSTRUMENT_COUNT");
     LSCPEvent::RegisterEvent(LSCPEvent::event_midi_instr_info, "MIDI_INSTRUMENT_INFO");
+    LSCPEvent::RegisterEvent(LSCPEvent::event_db_instr_dir_count, "DB_INSTRUMENT_DIRECTORY_COUNT");
+    LSCPEvent::RegisterEvent(LSCPEvent::event_db_instr_dir_info, "DB_INSTRUMENT_DIRECTORY_INFO");
+    LSCPEvent::RegisterEvent(LSCPEvent::event_db_instr_count, "DB_INSTRUMENT_COUNT");
+    LSCPEvent::RegisterEvent(LSCPEvent::event_db_instr_info, "DB_INSTRUMENT_INFO");
     LSCPEvent::RegisterEvent(LSCPEvent::event_misc, "MISCELLANEOUS");
     LSCPEvent::RegisterEvent(LSCPEvent::event_total_voice_count, "TOTAL_VOICE_COUNT");
     LSCPEvent::RegisterEvent(LSCPEvent::event_global_info, "GLOBAL_INFO");
@@ -139,6 +142,35 @@ void LSCPServer::EventHandler::TotalVoiceCountChanged(int NewCount) {
     LSCPServer::SendLSCPNotify(LSCPEvent(LSCPEvent::event_total_voice_count, NewCount));
 }
 
+#if HAVE_SQLITE3
+void LSCPServer::DbInstrumentsEventHandler::DirectoryCountChanged(String Dir) {
+    LSCPServer::SendLSCPNotify(LSCPEvent(LSCPEvent::event_db_instr_dir_count, Dir));
+}
+
+void LSCPServer::DbInstrumentsEventHandler::DirectoryInfoChanged(String Dir) {
+    LSCPServer::SendLSCPNotify(LSCPEvent(LSCPEvent::event_db_instr_dir_info, Dir));
+}
+
+void LSCPServer::DbInstrumentsEventHandler::DirectoryNameChanged(String Dir, String NewName) {
+    Dir = "'" + Dir + "'";
+    NewName = "'" + NewName + "'";
+    LSCPServer::SendLSCPNotify(LSCPEvent(LSCPEvent::event_db_instr_dir_info, "NAME", Dir, NewName));
+}
+
+void LSCPServer::DbInstrumentsEventHandler::InstrumentCountChanged(String Dir) {
+    LSCPServer::SendLSCPNotify(LSCPEvent(LSCPEvent::event_db_instr_count, Dir));
+}
+
+void LSCPServer::DbInstrumentsEventHandler::InstrumentInfoChanged(String Instr) {
+    LSCPServer::SendLSCPNotify(LSCPEvent(LSCPEvent::event_db_instr_info, Instr));
+}
+void LSCPServer::DbInstrumentsEventHandler::InstrumentNameChanged(String Instr, String NewName) {
+    Instr = "'" + Instr + "'";
+    NewName = "'" + NewName + "'";
+    LSCPServer::SendLSCPNotify(LSCPEvent(LSCPEvent::event_db_instr_info, "NAME", Instr, NewName));
+}
+#endif // HAVE_SQLITE3
+
 
 /**
  * Blocks the calling thread until the LSCP Server is initialized and
@@ -194,7 +226,9 @@ int LSCPServer::Main() {
     MidiInstrumentMapper::AddMidiInstrumentInfoListener(&eventHandler);
     MidiInstrumentMapper::AddMidiInstrumentMapCountListener(&eventHandler);
     MidiInstrumentMapper::AddMidiInstrumentMapInfoListener(&eventHandler);
-
+#if HAVE_SQLITE3
+    InstrumentsDb::GetInstrumentsDb()->AddInstrumentsDbListener(&dbInstrumentsEventHandler);
+#endif
     // now wait for client connections and handle their requests
     sockaddr_in client;
     int length = sizeof(client);
@@ -2157,6 +2191,12 @@ String LSCPServer::GetServerInfo() {
     result.Add("DESCRIPTION", "LinuxSampler - modular, streaming capable sampler");
     result.Add("VERSION", VERSION);
     result.Add("PROTOCOL_VERSION", ToString(LSCP_RELEASE_MAJOR) + "." + ToString(LSCP_RELEASE_MINOR));
+#if HAVE_SQLITE3
+    result.Add("INSTRUMENTS_DB_SUPPORT", "yes");
+#else
+    result.Add("INSTRUMENTS_DB_SUPPORT", "no");
+#endif
+    
     return result.Produce();
 }
 
@@ -2224,36 +2264,309 @@ String LSCPServer::UnsubscribeNotification(LSCPEvent::event_t type) {
     return result.Produce();
 }
 
-static int select_callback(void * lscpResultSet, int argc,
-			char **argv, char **azColName)
-{
-    LSCPResultSet* resultSet = (LSCPResultSet*) lscpResultSet;
-    resultSet->Add(argc, argv);
-    return 0;
-}
-
-String LSCPServer::QueryDatabase(String query) {
+String LSCPServer::AddDbInstrumentDirectory(String Dir) {
+    dmsg(2,("LSCPServer: AddDbInstrumentDirectory(Dir=%s)\n", Dir.c_str()));
     LSCPResultSet result;
 #if HAVE_SQLITE3
-    char* zErrMsg = NULL;
-    sqlite3 *db;
-    String selectStr = "SELECT " + query;
-
-    int rc = sqlite3_open("linuxsampler.db", &db);
-    if (rc == SQLITE_OK)
-    {
-	    rc = sqlite3_exec(db, selectStr.c_str(), select_callback, &result, &zErrMsg);
+    try {
+        InstrumentsDb::GetInstrumentsDb()->AddDirectory(Dir);
+    } catch (Exception e) {
+         result.Error(e);
     }
-    if ( rc != SQLITE_OK )
-    {
-	    result.Error(String(zErrMsg), rc);
-    }
-    sqlite3_close(db);
 #else
-    result.Error(String("SQLITE3 was not installed when linuxsampler was built. SELECT statement is not available."), 0);
+    result.Error(String(DOESNT_HAVE_SQLITE3), 0);
 #endif
     return result.Produce();
 }
+
+String LSCPServer::RemoveDbInstrumentDirectory(String Dir, bool Force) {
+    dmsg(2,("LSCPServer: RemoveDbInstrumentDirectory(Dir=%s,Force=%d)\n", Dir.c_str(), Force));
+    LSCPResultSet result;
+#if HAVE_SQLITE3
+    try {
+        InstrumentsDb::GetInstrumentsDb()->RemoveDirectory(Dir, Force);
+    } catch (Exception e) {
+         result.Error(e);
+    }
+#else
+    result.Error(String(DOESNT_HAVE_SQLITE3), 0);
+#endif
+    return result.Produce();
+}
+
+String LSCPServer::GetDbInstrumentDirectoryCount(String Dir) {
+    dmsg(2,("LSCPServer: GetDbInstrumentDirectoryCount(Dir=%s)\n", Dir.c_str()));
+    LSCPResultSet result;
+#if HAVE_SQLITE3
+    try {
+        result.Add(InstrumentsDb::GetInstrumentsDb()->GetDirectoryCount(Dir));
+    } catch (Exception e) {
+         result.Error(e);
+    }
+#else
+    result.Error(String(DOESNT_HAVE_SQLITE3), 0);
+#endif
+    return result.Produce();
+}
+
+String LSCPServer::GetDbInstrumentDirectories(String Dir) {
+    dmsg(2,("LSCPServer: GetDbInstrumentDirectories(Dir=%s)\n", Dir.c_str()));
+    LSCPResultSet result;
+#if HAVE_SQLITE3
+    try {
+        String list;
+        StringListPtr dirs = InstrumentsDb::GetInstrumentsDb()->GetDirectories(Dir);
+
+        for (int i = 0; i < dirs->size(); i++) {
+            if (list != "") list += ",";
+            list += "'" + dirs->at(i) + "'";
+        }
+
+        result.Add(list);
+    } catch (Exception e) {
+         result.Error(e);
+    }
+#else
+    result.Error(String(DOESNT_HAVE_SQLITE3), 0);
+#endif
+    return result.Produce();
+}
+
+String LSCPServer::GetDbInstrumentDirectoryInfo(String Dir) {
+    dmsg(2,("LSCPServer: GetDbInstrumentDirectoryInfo(Dir=%s)\n", Dir.c_str()));
+    LSCPResultSet result;
+#if HAVE_SQLITE3
+    try {
+        DbDirectory info = InstrumentsDb::GetInstrumentsDb()->GetDirectoryInfo(Dir);
+
+        result.Add("DESCRIPTION", info.Description);
+        result.Add("CREATED", info.Created);
+        result.Add("MODIFIED", info.Modified);
+    } catch (Exception e) {
+         result.Error(e);
+    }
+#else
+    result.Error(String(DOESNT_HAVE_SQLITE3), 0);
+#endif
+    return result.Produce();
+}
+
+String LSCPServer::SetDbInstrumentDirectoryName(String Dir, String Name) {
+    dmsg(2,("LSCPServer: SetDbInstrumentDirectoryName(Dir=%s,Name=%s)\n", Dir.c_str(), Name.c_str()));
+    LSCPResultSet result;
+#if HAVE_SQLITE3
+    try {
+        InstrumentsDb::GetInstrumentsDb()->RenameDirectory(Dir, Name);
+    } catch (Exception e) {
+         result.Error(e);
+    }
+#else
+    result.Error(String(DOESNT_HAVE_SQLITE3), 0);
+#endif
+    return result.Produce();
+}
+
+String LSCPServer::MoveDbInstrumentDirectory(String Dir, String Dst) {
+    dmsg(2,("LSCPServer: MoveDbInstrumentDirectory(Dir=%s,Dst=%s)\n", Dir.c_str(), Dst.c_str()));
+    LSCPResultSet result;
+#if HAVE_SQLITE3
+    try {
+        InstrumentsDb::GetInstrumentsDb()->MoveDirectory(Dir, Dst);
+    } catch (Exception e) {
+         result.Error(e);
+    }
+#else
+    result.Error(String(DOESNT_HAVE_SQLITE3), 0);
+#endif
+    return result.Produce();
+}
+
+String LSCPServer::SetDbInstrumentDirectoryDescription(String Dir, String Desc) {
+    dmsg(2,("LSCPServer: SetDbInstrumentDirectoryDescription(Dir=%s,Desc=%s)\n", Dir.c_str(), Desc.c_str()));
+    LSCPResultSet result;
+#if HAVE_SQLITE3
+    try {
+        InstrumentsDb::GetInstrumentsDb()->SetDirectoryDescription(Dir, Desc);
+    } catch (Exception e) {
+         result.Error(e);
+    }
+#else
+    result.Error(String(DOESNT_HAVE_SQLITE3), 0);
+#endif
+    return result.Produce();
+}
+
+String LSCPServer::AddDbInstruments(String DbDir, String FilePath, int Index) {
+    dmsg(2,("LSCPServer: AddDbInstruments(DbDir=%s,FilePath=%s,Index=%d)\n", DbDir.c_str(), FilePath.c_str(), Index));
+    LSCPResultSet result;
+#if HAVE_SQLITE3
+    try {
+        InstrumentsDb::GetInstrumentsDb()->AddInstruments(DbDir, FilePath, Index);
+    } catch (Exception e) {
+         result.Error(e);
+    }
+#else
+    result.Error(String(DOESNT_HAVE_SQLITE3), 0);
+#endif
+    return result.Produce();
+}
+
+String LSCPServer::AddDbInstrumentsFlat(String DbDir, String FsDir) {
+    dmsg(2,("LSCPServer: AddDbInstrumentsFlat(DbDir=%s,FilePath=%s)\n", DbDir.c_str(), FsDir.c_str()));
+    LSCPResultSet result;
+#if HAVE_SQLITE3
+    try {
+        InstrumentsDb::GetInstrumentsDb()->AddInstrumentsRecursive(DbDir, FsDir, true);
+    } catch (Exception e) {
+         result.Error(e);
+    }
+#else
+    result.Error(String(DOESNT_HAVE_SQLITE3), 0);
+#endif
+    return result.Produce();
+}
+
+String LSCPServer::AddDbInstrumentsNonrecursive(String DbDir, String FsDir) {
+    dmsg(2,("LSCPServer: AddDbInstrumentsNonrecursive(DbDir=%s,FilePath=%s)\n", DbDir.c_str(), FsDir.c_str()));
+    LSCPResultSet result;
+#if HAVE_SQLITE3
+    try {
+        InstrumentsDb::GetInstrumentsDb()->AddInstrumentsNonrecursive(DbDir, FsDir);
+    } catch (Exception e) {
+         result.Error(e);
+    }
+#else
+    result.Error(String(DOESNT_HAVE_SQLITE3), 0);
+#endif
+    return result.Produce();
+}
+
+String LSCPServer::RemoveDbInstrument(String Instr) {
+    dmsg(2,("LSCPServer: RemoveDbInstrument(Instr=%s)\n", Instr.c_str()));
+    LSCPResultSet result;
+#if HAVE_SQLITE3
+    try {
+        InstrumentsDb::GetInstrumentsDb()->RemoveInstrument(Instr);
+    } catch (Exception e) {
+         result.Error(e);
+    }
+#else
+    result.Error(String(DOESNT_HAVE_SQLITE3), 0);
+#endif
+    return result.Produce();
+}
+
+String LSCPServer::GetDbInstrumentCount(String Dir) {
+    dmsg(2,("LSCPServer: GetDbInstrumentCount(Dir=%s)\n", Dir.c_str()));
+    LSCPResultSet result;
+#if HAVE_SQLITE3
+    try {
+        result.Add(InstrumentsDb::GetInstrumentsDb()->GetInstrumentCount(Dir));
+    } catch (Exception e) {
+         result.Error(e);
+    }
+#else
+    result.Error(String(DOESNT_HAVE_SQLITE3), 0);
+#endif
+    return result.Produce();
+}
+
+String LSCPServer::GetDbInstruments(String Dir) {
+    dmsg(2,("LSCPServer: GetDbInstruments(Dir=%s)\n", Dir.c_str()));
+    LSCPResultSet result;
+#if HAVE_SQLITE3
+    try {
+        String list;
+        StringListPtr instrs = InstrumentsDb::GetInstrumentsDb()->GetInstruments(Dir);
+
+        for (int i = 0; i < instrs->size(); i++) {
+            if (list != "") list += ",";
+            list += "'" + instrs->at(i) + "'";
+        }
+
+        result.Add(list);
+    } catch (Exception e) {
+         result.Error(e);
+    }
+#else
+    result.Error(String(DOESNT_HAVE_SQLITE3), 0);
+#endif
+    return result.Produce();
+}
+
+String LSCPServer::GetDbInstrumentInfo(String Instr) {
+    dmsg(2,("LSCPServer: GetDbInstrumentInfo(Instr=%s)\n", Instr.c_str()));
+    LSCPResultSet result;
+#if HAVE_SQLITE3
+    try {
+        DbInstrument info = InstrumentsDb::GetInstrumentsDb()->GetInstrumentInfo(Instr);
+
+        result.Add("INSTRUMENT_FILE", info.InstrFile);
+        result.Add("INSTRUMENT_NR", info.InstrNr);
+        result.Add("FORMAT_FAMILY", info.FormatFamily);
+        result.Add("FORMAT_VERSION", info.FormatVersion);
+        result.Add("SIZE", (int)info.Size);
+        result.Add("CREATED", info.Created);
+        result.Add("MODIFIED", info.Modified);
+        result.Add("DESCRIPTION", FilterEndlines(info.Description));
+        result.Add("IS_DRUM", info.IsDrum);
+        result.Add("PRODUCT", FilterEndlines(info.Product));
+        result.Add("ARTISTS", FilterEndlines(info.Artists));
+        result.Add("KEYWORDS", FilterEndlines(info.Keywords));
+    } catch (Exception e) {
+         result.Error(e);
+    }
+#else
+    result.Error(String(DOESNT_HAVE_SQLITE3), 0);
+#endif
+    return result.Produce();
+}
+
+String LSCPServer::SetDbInstrumentName(String Instr, String Name) {
+    dmsg(2,("LSCPServer: SetDbInstrumentName(Instr=%s,Name=%s)\n", Instr.c_str(), Name.c_str()));
+    LSCPResultSet result;
+#if HAVE_SQLITE3
+    try {
+        InstrumentsDb::GetInstrumentsDb()->RenameInstrument(Instr, Name);
+    } catch (Exception e) {
+         result.Error(e);
+    }
+#else
+    result.Error(String(DOESNT_HAVE_SQLITE3), 0);
+#endif
+    return result.Produce();
+}
+
+String LSCPServer::MoveDbInstrument(String Instr, String Dst) {
+    dmsg(2,("LSCPServer: MoveDbInstrument(Instr=%s,Dst=%s)\n", Instr.c_str(), Dst.c_str()));
+    LSCPResultSet result;
+#if HAVE_SQLITE3
+    try {
+        InstrumentsDb::GetInstrumentsDb()->MoveInstrument(Instr, Dst);
+    } catch (Exception e) {
+         result.Error(e);
+    }
+#else
+    result.Error(String(DOESNT_HAVE_SQLITE3), 0);
+#endif
+    return result.Produce();
+}
+
+String LSCPServer::SetDbInstrumentDescription(String Instr, String Desc) {
+    dmsg(2,("LSCPServer: SetDbInstrumentDescription(Instr=%s,Desc=%s)\n", Instr.c_str(), Desc.c_str()));
+    LSCPResultSet result;
+#if HAVE_SQLITE3
+    try {
+        InstrumentsDb::GetInstrumentsDb()->SetInstrumentDescription(Instr, Desc);
+    } catch (Exception e) {
+         result.Error(e);
+    }
+#else
+    result.Error(String(DOESNT_HAVE_SQLITE3), 0);
+#endif
+    return result.Produce();
+}
+
 
 /**
  * Will be called by the parser to enable or disable echo mode; if echo
@@ -2272,4 +2585,14 @@ String LSCPServer::SetEcho(yyparse_param_t* pSession, double boolean_value) {
          result.Error(e);
     }
     return result.Produce();
+}
+
+String LSCPServer::FilterEndlines(String s) {
+    String s2 = s;
+    for (int i = 0; i < s2.length(); i++) {
+        if (s2.at(i) == '\r') s2.at(i) = ' ';
+        else if (s2.at(i) == '\n') s2.at(i) = ' ';
+    }
+    
+    return s2;
 }
