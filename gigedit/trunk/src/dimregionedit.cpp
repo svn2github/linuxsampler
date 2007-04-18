@@ -163,7 +163,6 @@ DimRegionEdit::DimRegionEdit() :
     addProp(eUnityNote);
     addHeader(_("Optional Settings"));
     addProp(eSampleStartOffset);
-    addProp(ePan);
     addProp(eChannelOffset);
     addHeader("Loops");
     addProp(eSampleLoopEnabled);
@@ -181,20 +180,13 @@ DimRegionEdit::DimRegionEdit() :
     addProp(eSampleLoopType);
     addProp(eSampleLoopInfinite);
     addProp(eSampleLoopPlayCount);
-    addHeader("Crossfade");
-    addProp(eCrossfade_in_start);
-    addProp(eCrossfade_in_end);
-    addProp(eCrossfade_out_start);
-    addProp(eCrossfade_out_end);
 
     nextPage();
 
     addHeader(_("General Amplitude Settings"));
     addProp(eGain);
     addProp(eGainPlus6);
-    addProp(eAttenuationController);
-    addProp(eInvertAttenuationController);
-    addProp(eAttenuationControllerThreshold);
+    addProp(ePan);
     addHeader(_("Amplitude Envelope (EG1)"));
     addProp(eEG1PreAttack);
     addProp(eEG1Attack);
@@ -231,6 +223,14 @@ DimRegionEdit::DimRegionEdit() :
     addProp(eLFO1Controller);
     addProp(eLFO1FlipPhase);
     addProp(eLFO1Sync);
+    addHeader("Crossfade");
+    addProp(eAttenuationController);
+    addProp(eInvertAttenuationController);
+    addProp(eAttenuationControllerThreshold);
+    addProp(eCrossfade_in_start);
+    addProp(eCrossfade_in_end);
+    addProp(eCrossfade_out_start);
+    addProp(eCrossfade_out_end);
 
     nextPage();
 
@@ -703,6 +703,11 @@ void DimRegionEdit::AttenuationController_changed()
 {
     bool hasController = eAttenuationController.get_active_row_number() != 0;
     eInvertAttenuationController.set_sensitive(hasController);
+    eAttenuationControllerThreshold.set_sensitive(hasController);
+    eCrossfade_in_start.set_sensitive(hasController);
+    eCrossfade_in_end.set_sensitive(hasController);
+    eCrossfade_out_start.set_sensitive(hasController);
+    eCrossfade_out_end.set_sensitive(hasController);
 }
 
 void DimRegionEdit::LFO1Controller_changed()
