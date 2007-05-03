@@ -862,6 +862,15 @@ if test "$config_signed_triang_algo" = "benchmark"; then
         echo "Call './configure --help' for further information or read configure.in."
         exit -1;
     fi
+else
+    case "$config_signed_triang_algo" in
+        intmath)
+            triang_signed=2 ;;
+        diharmonic)
+            triang_signed=3 ;;
+        intmathabs)
+            triang_signed=5 ;;
+    esac
 fi
 AC_DEFINE_UNQUOTED(CONFIG_SIGNED_TRIANG_ALGO, ${triang_signed}, [Define signed triangular wave algorithm to be used.])
 
@@ -893,6 +902,15 @@ if test "$config_unsigned_triang_algo" = "benchmark"; then
         echo "Call './configure --help' for further information or read configure.in."
         exit -1;
     fi
+else
+    case "$config_unsigned_triang_algo" in
+        intmath)
+            triang_unsigned=2 ;;
+        diharmonic)
+            triang_unsigned=3 ;;
+        intmathabs)
+            triang_unsigned=5 ;;
+    esac
 fi
 AC_DEFINE_UNQUOTED(CONFIG_UNSIGNED_TRIANG_ALGO, ${triang_unsigned}, [Define unsigned triangular wave algorithm to be used.])
 
