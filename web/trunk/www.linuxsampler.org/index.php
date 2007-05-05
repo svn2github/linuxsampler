@@ -129,6 +129,8 @@
                 <tr>
                   <td valign=top>
                     <p class="default">
+              <b>2007-05-04</b> Qsampler 0.1.4 has been released. Almost another year has gone by.<br>
+              <br>
               <b>2007-04-02</b> JSampler 0.4a has been released. Read the <a href="jsampler/manual/html/jsampler.html">manual</a>
               for installation instructions.<br>
               <br>
