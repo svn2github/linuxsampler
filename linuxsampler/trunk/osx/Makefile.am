@@ -1,3 +1,3 @@
-SUBDIRS = LinuxSampler.xcode
+SUBDIRS = linuxsampler.xcodeproj
 
-EXTRA_DIST = version.h
+EXTRA_DIST = autoconf_builder.sh wrapper.sh README.osx

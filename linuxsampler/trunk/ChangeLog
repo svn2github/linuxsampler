@@ -3,6 +3,10 @@ Version CVS HEAD (?)
   * packaging changes:
     - only the API relevant header (and source) files will be exported to
       the Doxygen API documentation (explicitly listed in Doxyfile.in)
+    - added completely new XCode project files for Mac OSX which is now
+      capable to execute our autoconf environment, thus no need anymore
+      to maintain the compile time configuration file (osx/version.h) for
+      OSX manually (patch by Toshi Nagata)
 
   * general changes:
     - replaced the old, confusing MIDI program change mechanism by a

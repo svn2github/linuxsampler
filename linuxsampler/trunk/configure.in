@@ -959,7 +959,7 @@ AC_OUTPUT( \
     Artwork/Makefile \
     scripts/Makefile \
     osx/Makefile \
-    osx/LinuxSampler.xcode/Makefile \
+    osx/linuxsampler.xcodeproj/Makefile \
     Documentation/Makefile \
     Documentation/Engines/Makefile \
     Documentation/Engines/gig/Makefile \
