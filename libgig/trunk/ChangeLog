@@ -1,5 +1,8 @@
 Version CVS HEAD (?)
 
+  * packaging changes:
+    - added Mac OSX XCode project files (patch by Toshi Nagata)
+
   * src/DLS.cpp, src/DLS.h:
     - added Sampler::AddSampleLoop() and Sampler::DeleteSampleLoop() methods
 
