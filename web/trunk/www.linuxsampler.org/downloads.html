@@ -169,7 +169,12 @@ If you have questions on the subject please <A HREF="developers.html">contact us
       <p class="default"> The following figure illustrates the compile
 time / linker dependencies. </p>
       <div style="line-height: 1.2em;">
-      <pre>       <strong>QSampler</strong> ~~~(optional)~~~&gt; <strong>libgig</strong>         <strong>JSampler</strong>
+      <pre>                                  <strong>gigedit</strong>
+                                     |
+                                (mandatory)
+                                     |
+                                     V
+       <strong>QSampler</strong> ~~~(optional)~~~&gt; <strong>libgig</strong>         <strong>JSampler</strong>
            |                         A              |
            |                         |              |
       (mandatory)               (mandatory)    (mandatory)
@@ -187,7 +192,8 @@ is no linker dependency between them, but of course you still need to
 have LinuxSampler installed to be able to use QSampler (either locally
 or on any other computer in your network). JSampler is also communicating
 with LinuxSampler via TCP, so there is no linker dependency between them
-either, JSampler requires jlscp though.</p>
+either. JSampler requires jlscp though. You have to compile and install
+libgig before being able to compile and use gigedit.</p>
 
       <h2>Source Packages (Stable)</h2>
       <table class="default">
