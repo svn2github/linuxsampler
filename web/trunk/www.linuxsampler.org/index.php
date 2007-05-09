@@ -1,6 +1,8 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
 <html>
 <head>
+<meta name="keywords" content="linux, sound, music, audio, software, free, sampler, mac, os x" />
+<meta name="description" content="LinuxSampler - free, open source pure software audio sampler with professional grade features." />
 <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
 <link rel="stylesheet" type="text/css" href="index.css">
   <title>The Linux Sampler Project</title>
