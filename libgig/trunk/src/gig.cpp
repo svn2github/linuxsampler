@@ -303,7 +303,11 @@ namespace {
      *                         is located, 0 otherwise
      */
     Sample::Sample(File* pFile, RIFF::List* waveList, unsigned long WavePoolOffset, unsigned long fileNo) : DLS::Sample((DLS::File*) pFile, waveList, WavePoolOffset) {
-        pInfo->UseFixedLengthStrings = true;
+        static const DLS::Info::FixedStringLength fixedStringLengths[] = {
+            { CHUNK_ID_INAM, 64 },
+            { 0, 0 }
+        };
+        pInfo->FixedStringLengths = fixedStringLengths;
         Instances++;
         FileNo = fileNo;
 
@@ -2104,8 +2108,6 @@ namespace {
 // *
 
     Region::Region(Instrument* pInstrument, RIFF::List* rgnList) : DLS::Region((DLS::Instrument*) pInstrument, rgnList) {
-        pInfo->UseFixedLengthStrings = true;
-
         // Initialization
         Dimensions = 0;
         for (int i = 0; i < 256; i++) {
@@ -2592,7 +2594,12 @@ namespace {
 // *
 
     Instrument::Instrument(File* pFile, RIFF::List* insList, progress_t* pProgress) : DLS::Instrument((DLS::File*)pFile, insList) {
-        pInfo->UseFixedLengthStrings = true;
+        static const DLS::Info::FixedStringLength fixedStringLengths[] = {
+            { CHUNK_ID_INAM, 64 },
+            { CHUNK_ID_ISFT, 12 },
+            { 0, 0 }
+        };
+        pInfo->FixedStringLengths = fixedStringLengths;
 
         // Initialization
         for (int i = 0; i < 128; i++) RegionKeyTable[i] = NULL;
@@ -2861,14 +2868,35 @@ namespace {
 // *************** File ***************
 // *
 
+    const DLS::Info::FixedStringLength File::FixedStringLengths[] = {
+        { CHUNK_ID_IARL, 256 },
+        { CHUNK_ID_IART, 128 },
+        { CHUNK_ID_ICMS, 128 },
+        { CHUNK_ID_ICMT, 1024 },
+        { CHUNK_ID_ICOP, 128 },
+        { CHUNK_ID_ICRD, 128 },
+        { CHUNK_ID_IENG, 128 },
+        { CHUNK_ID_IGNR, 128 },
+        { CHUNK_ID_IKEY, 128 },
+        { CHUNK_ID_IMED, 128 },
+        { CHUNK_ID_INAM, 128 },
+        { CHUNK_ID_IPRD, 128 },
+        { CHUNK_ID_ISBJ, 128 },
+        { CHUNK_ID_ISFT, 128 },
+        { CHUNK_ID_ISRC, 128 },
+        { CHUNK_ID_ISRF, 128 },
+        { CHUNK_ID_ITCH, 128 },
+        { 0, 0 }
+    };
+
     File::File() : DLS::File() {
         pGroups = NULL;
-        pInfo->UseFixedLengthStrings = true;
+        pInfo->FixedStringLengths = FixedStringLengths;
     }
 
     File::File(RIFF::File* pRIFF) : DLS::File(pRIFF) {
         pGroups = NULL;
-        pInfo->UseFixedLengthStrings = true;
+        pInfo->FixedStringLengths = FixedStringLengths;
     }
 
     File::~File() {

@@ -168,7 +168,7 @@ inline void SaveString(uint32_t ChunkID, RIFF::Chunk* ck, RIFF::List* lstINFO, c
         ck->Resize(size);
         char* pData = (char*) ck->LoadChunkData();
         strncpy(pData, s.c_str(), size);
-    } else if (s != "" || sDefault != "") { // create chunk
+    } else if (s != "" || sDefault != "" || bUseFixedLengthStrings) { // create chunk
         const std::string& sToSave = (s != "") ? s : sDefault;
         if (!bUseFixedLengthStrings) size = sToSave.size() + 1;
         ck = lstINFO->AddSubChunk(ChunkID, size);

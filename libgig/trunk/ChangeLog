@@ -6,11 +6,15 @@ Version CVS HEAD (?)
   * src/DLS.cpp, src/DLS.h:
     - added Sampler::AddSampleLoop() and Sampler::DeleteSampleLoop() methods
     - fixed write support for big-endian systems
+    - improved handling of fixed length info strings - separate default
+      lengths can be specified for each INFO chunk
 
   * src/gig.cpp, src/gig.h:
     - fixed segmentation fault in the gig::File destructor sequence which
       happened when gig::Group informations were accessed before
     - fixed write support for big-endian systems
+    - defined lengths of a fixed set of info strings. These strings
+      are saved when the file is written, even if they are empty.
 
 Version 3.1.1 (24 Mar 2007)
 

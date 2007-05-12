@@ -233,7 +233,7 @@ namespace DLS {
      * @param list - pointer to a list chunk which contains an INFO list chunk
      */
     Info::Info(RIFF::List* list) {
-        UseFixedLengthStrings = false;
+        FixedStringLengths = NULL;
         pResourceListChunk = list;
         if (list) {
             RIFF::List* lstINFO = list->GetSubList(LIST_TYPE_INFO);
@@ -286,12 +286,18 @@ namespace DLS {
      * @param lstINFO  - parent (INFO) RIFF list chunk
      * @param s        - current value of info field
      * @param sDefault - default value
-     * @param bUseFixedLengthStrings - should a specific string size be forced in the chunk?
-     * @param size     - wanted size of the INFO chunk. This is ignored if bUseFixedLengthStrings is false.
      */
-    void Info::SaveString(uint32_t ChunkID, RIFF::List* lstINFO, const String& s, const String& sDefault, bool bUseFixedLengthStrings, int size) {
+    void Info::SaveString(uint32_t ChunkID, RIFF::List* lstINFO, const String& s, const String& sDefault) {
+        int size = 0;
+        if (FixedStringLengths) {
+            for (int i = 0 ; FixedStringLengths[i].length ; i++) {
+                if (FixedStringLengths[i].chunkId == ChunkID) {
+                    size = FixedStringLengths[i].length;
+                }
+            }
+        }
         RIFF::Chunk* ck = lstINFO->GetSubChunk(ChunkID);
-        ::SaveString(ChunkID, ck, lstINFO, s, sDefault, bUseFixedLengthStrings, size); // function from helper.h
+        ::SaveString(ChunkID, ck, lstINFO, s, sDefault, size != 0, size); // function from helper.h
     }
 
     /** @brief Update chunks with current info values.
@@ -336,28 +342,23 @@ namespace DLS {
 
         // save values
 
-        // (the string size values are for gig files; they are only
-        // used if UseFixedLengthStrings is set to true)
-        SaveString(CHUNK_ID_INAM, lstINFO, Name, defaultName, UseFixedLengthStrings,
-                   resourceType == RIFF_TYPE_DLS ? 128 : 64);
-        SaveString(CHUNK_ID_IARL, lstINFO, ArchivalLocation, String(""), UseFixedLengthStrings, 256);
-        SaveString(CHUNK_ID_ICRD, lstINFO, CreationDate, defaultCreationDate, UseFixedLengthStrings, 128);
-        SaveString(CHUNK_ID_ICMT, lstINFO, Comments, defaultComments, UseFixedLengthStrings, 1024);
-        SaveString(CHUNK_ID_IPRD, lstINFO, Product, String(""), UseFixedLengthStrings, 128);
-        SaveString(CHUNK_ID_ICOP, lstINFO, Copyright, String(""), UseFixedLengthStrings, 128);
-        SaveString(CHUNK_ID_IART, lstINFO, Artists, String(""), UseFixedLengthStrings, 128);
-        SaveString(CHUNK_ID_IGNR, lstINFO, Genre, String(""), UseFixedLengthStrings, 128);
-        SaveString(CHUNK_ID_IKEY, lstINFO, Keywords, String(""), UseFixedLengthStrings, 128);
-        SaveString(CHUNK_ID_IENG, lstINFO, Engineer, String(""), UseFixedLengthStrings, 128);
-        SaveString(CHUNK_ID_ITCH, lstINFO, Technician, String(""), UseFixedLengthStrings, 128);
-        SaveString(CHUNK_ID_ISFT, lstINFO, Software, defaultSoftware, UseFixedLengthStrings,
-                   resourceType == LIST_TYPE_INS ?
-                   (Software == "" ? defaultSoftware.length()+1 : Software.length()+1) : 128);
-        SaveString(CHUNK_ID_IMED, lstINFO, Medium, String(""), UseFixedLengthStrings, 128);
-        SaveString(CHUNK_ID_ISRC, lstINFO, Source, String(""), UseFixedLengthStrings, 128);
-        SaveString(CHUNK_ID_ISRF, lstINFO, SourceForm, String(""), UseFixedLengthStrings, 128);
-        SaveString(CHUNK_ID_ICMS, lstINFO, Commissioned, String(""), UseFixedLengthStrings, 128);
-        SaveString(CHUNK_ID_ISBJ, lstINFO, Subject, String(""), UseFixedLengthStrings, 128);
+        SaveString(CHUNK_ID_IARL, lstINFO, ArchivalLocation, String(""));
+        SaveString(CHUNK_ID_IART, lstINFO, Artists, String(""));
+        SaveString(CHUNK_ID_ICMS, lstINFO, Commissioned, String(""));
+        SaveString(CHUNK_ID_ICMT, lstINFO, Comments, defaultComments);
+        SaveString(CHUNK_ID_ICOP, lstINFO, Copyright, String(""));
+        SaveString(CHUNK_ID_ICRD, lstINFO, CreationDate, defaultCreationDate);
+        SaveString(CHUNK_ID_IENG, lstINFO, Engineer, String(""));
+        SaveString(CHUNK_ID_IGNR, lstINFO, Genre, String(""));
+        SaveString(CHUNK_ID_IKEY, lstINFO, Keywords, String(""));
+        SaveString(CHUNK_ID_IMED, lstINFO, Medium, String(""));
+        SaveString(CHUNK_ID_INAM, lstINFO, Name, defaultName);
+        SaveString(CHUNK_ID_IPRD, lstINFO, Product, String(""));
+        SaveString(CHUNK_ID_ISBJ, lstINFO, Subject, String(""));
+        SaveString(CHUNK_ID_ISFT, lstINFO, Software, defaultSoftware);
+        SaveString(CHUNK_ID_ISRC, lstINFO, Source, String(""));
+        SaveString(CHUNK_ID_ISRF, lstINFO, SourceForm, String(""));
+        SaveString(CHUNK_ID_ITCH, lstINFO, Technician, String(""));
     }
 
 
