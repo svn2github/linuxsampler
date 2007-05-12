@@ -515,8 +515,8 @@ namespace LinuxSampler { namespace gig {
             finalSynthesisParameters.filterLeft.SetType(pDimRgn->VCFType);
             finalSynthesisParameters.filterRight.SetType(pDimRgn->VCFType);
             #else // override filter type
-            FilterLeft.SetType(CONFIG_OVERRIDE_FILTER_TYPE);
-            FilterRight.SetType(CONFIG_OVERRIDE_FILTER_TYPE);
+            finalSynthesisParameters.filterLeft.SetType(CONFIG_OVERRIDE_FILTER_TYPE);
+            finalSynthesisParameters.filterRight.SetType(CONFIG_OVERRIDE_FILTER_TYPE);
             #endif // CONFIG_OVERRIDE_FILTER_TYPE
 
             VCFCutoffCtrl.value    = pEngineChannel->ControllerTable[VCFCutoffCtrl.controller];
