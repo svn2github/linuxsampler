@@ -48,6 +48,30 @@ inline long Abs(long val) {
 }
 
 /**
+ * Stores a 16 bit integer in memory using little-endian format.
+ *
+ * @param pData - memory pointer
+ * @param data  - integer to be stored
+ */
+inline void store16(uint8_t* pData, uint16_t data) {
+    pData[0] = data;
+    pData[1] = data >> 8;
+}
+
+/**
+ * Stores a 32 bit integer in memory using little-endian format.
+ *
+ * @param pData - memory pointer
+ * @param data  - integer to be stored
+ */
+inline void store32(uint8_t* pData, uint32_t data) {
+    pData[0] = data;
+    pData[1] = data >> 8;
+    pData[2] = data >> 16;
+    pData[3] = data >> 24;
+}
+
+/**
  * Swaps the order of the data words in the given memory area
  * with a granularity given by \a WordSize.
  *

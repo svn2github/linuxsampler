@@ -142,15 +142,15 @@ namespace DLS {
         const int iEntrySize = 12; // 12 bytes per connection block
         pArticulationCk->Resize(HeaderSize + Connections * iEntrySize);
         uint8_t* pData = (uint8_t*) pArticulationCk->LoadChunkData();
-        memcpy(&pData[0], &HeaderSize, 2);
-        memcpy(&pData[2], &Connections, 2);
+        store16(&pData[0], HeaderSize);
+        store16(&pData[2], Connections);
         for (uint32_t i = 0; i < Connections; i++) {
             Connection::conn_block_t c = pConnections[i].ToConnBlock();
-            memcpy(&pData[HeaderSize + i * iEntrySize],     &c.source, 2);
-            memcpy(&pData[HeaderSize + i * iEntrySize + 2], &c.control, 2);
-            memcpy(&pData[HeaderSize + i * iEntrySize + 4], &c.destination, 2);
-            memcpy(&pData[HeaderSize + i * iEntrySize + 6], &c.transform, 2);
-            memcpy(&pData[HeaderSize + i * iEntrySize + 8], &c.scale, 4);
+            store16(&pData[HeaderSize + i * iEntrySize],     c.source);
+            store16(&pData[HeaderSize + i * iEntrySize + 2], c.control);
+            store16(&pData[HeaderSize + i * iEntrySize + 4], c.destination);
+            store16(&pData[HeaderSize + i * iEntrySize + 6], c.transform);
+            store32(&pData[HeaderSize + i * iEntrySize + 8], c.scale);
         }
     }
 
@@ -463,21 +463,24 @@ namespace DLS {
         }
         uint8_t* pData = (uint8_t*) wsmp->LoadChunkData();
         // update headers size
-        memcpy(&pData[0], &uiHeaderSize, 4);
+        store32(&pData[0], uiHeaderSize);
         // update respective sampler options bits
         SamplerOptions = (NoSampleDepthTruncation) ? SamplerOptions | F_WSMP_NO_TRUNCATION
                                                    : SamplerOptions & (~F_WSMP_NO_TRUNCATION);
         SamplerOptions = (NoSampleCompression) ? SamplerOptions | F_WSMP_NO_COMPRESSION
                                                : SamplerOptions & (~F_WSMP_NO_COMPRESSION);
-        memcpy(&pData[4], &UnityNote, 2);
-        memcpy(&pData[6], &FineTune, 2);
-        memcpy(&pData[8], &Gain, 4);
-        memcpy(&pData[12], &SamplerOptions, 4);
-        memcpy(&pData[16], &SampleLoops, 4);
+        store16(&pData[4], UnityNote);
+        store16(&pData[6], FineTune);
+        store32(&pData[8], Gain);
+        store32(&pData[12], SamplerOptions);
+        store32(&pData[16], SampleLoops);
         // update loop definitions
         for (uint32_t i = 0; i < SampleLoops; i++) {
             //FIXME: this does not handle extended loop structs correctly
-            memcpy(&pData[uiHeaderSize + i * 16], pSampleLoops + i, 4 * 4);
+            store32(&pData[uiHeaderSize + i * 16], pSampleLoops[i].Size);
+            store32(&pData[uiHeaderSize + i * 16 + 4], pSampleLoops[i].LoopType);
+            store32(&pData[uiHeaderSize + i * 16 + 8], pSampleLoops[i].LoopStart);
+            store32(&pData[uiHeaderSize + i * 16 + 12], pSampleLoops[i].LoopLength);
         }
     }
 
@@ -759,12 +762,12 @@ namespace DLS {
         if (!pCkFormat) pCkFormat = pWaveList->AddSubChunk(CHUNK_ID_FMT, 16); // assumes PCM format
         uint8_t* pData = (uint8_t*) pCkFormat->LoadChunkData();
         // update 'fmt' chunk
-        memcpy(&pData[0], &FormatTag, 2);
-        memcpy(&pData[2], &Channels,  2);
-        memcpy(&pData[4], &SamplesPerSecond, 4);
-        memcpy(&pData[8], &AverageBytesPerSecond, 4);
-        memcpy(&pData[12], &BlockAlign, 2);
-        memcpy(&pData[14], &BitDepth, 2); // assuming PCM format
+        store16(&pData[0], FormatTag);
+        store16(&pData[2], Channels);
+        store32(&pData[4], SamplesPerSecond);
+        store32(&pData[8], AverageBytesPerSecond);
+        store16(&pData[12], BlockAlign);
+        store16(&pData[14], BitDepth); // assuming PCM format
     }
 
 
@@ -862,11 +865,13 @@ namespace DLS {
                                 ? FormatOptionFlags | F_RGN_OPTION_SELFNONEXCLUSIVE
                                 : FormatOptionFlags & (~F_RGN_OPTION_SELFNONEXCLUSIVE);
         // update 'rgnh' chunk
-        memcpy(&pData[0], &KeyRange, 2 * 2);
-        memcpy(&pData[4], &VelocityRange, 2 * 2);
-        memcpy(&pData[8], &FormatOptionFlags, 2);
-        memcpy(&pData[10], &KeyGroup, 2);
-        if (rgnh->GetSize() >= 14) memcpy(&pData[12], &Layer, 2);
+        store16(&pData[0], KeyRange.low);
+        store16(&pData[2], KeyRange.high);
+        store16(&pData[4], VelocityRange.low);
+        store16(&pData[6], VelocityRange.high);
+        store16(&pData[8], FormatOptionFlags);
+        store16(&pData[10], KeyGroup);
+        if (rgnh->GetSize() >= 14) store16(&pData[12], Layer);
 
         // update chunks of base classes as well (but skip Resource,
         // as a rgn doesn't seem to have dlid and INFO chunks)
@@ -899,10 +904,10 @@ namespace DLS {
         if (index < 0) throw Exception("Could not save Region, could not find Region's sample");
         WavePoolTableIndex = index;
         // update 'wlnk' chunk
-        memcpy(&pData[0], &WaveLinkOptionFlags, 2);
-        memcpy(&pData[2], &PhaseGroup, 2);
-        memcpy(&pData[4], &Channel, 4);
-        memcpy(&pData[8], &WavePoolTableIndex, 4);
+        store16(&pData[0], WaveLinkOptionFlags);
+        store16(&pData[2], PhaseGroup);
+        store32(&pData[4], Channel);
+        store32(&pData[8], WavePoolTableIndex);
     }
 
 
@@ -1024,8 +1029,9 @@ namespace DLS {
         locale.bank       = MIDI_BANK_ENCODE(MIDIBankCoarse, MIDIBankFine);
         locale.bank       = (IsDrum) ? locale.bank | DRUM_TYPE_MASK : locale.bank & (~DRUM_TYPE_MASK);
         MIDIBank          = MIDI_BANK_MERGE(MIDIBankCoarse, MIDIBankFine); // just a sync, when we're at it
-        memcpy(&pData[0], &Regions, 4);
-        memcpy(&pData[4], &locale, 2 * 4);
+        store32(&pData[0], Regions);
+        store32(&pData[4], locale.bank);
+        store32(&pData[8], locale.instrument);
         // update Region's chunks
         if (!pRegions) return;
         RegionList::iterator iter = pRegions->begin();
@@ -1321,7 +1327,10 @@ namespace DLS {
             RIFF::Chunk* ckVersion    = pRIFF->GetSubChunk(CHUNK_ID_VERS);
             if (!ckVersion) ckVersion = pRIFF->AddSubChunk(CHUNK_ID_VERS, 8);
             uint8_t* pData = (uint8_t*) ckVersion->LoadChunkData();
-            memcpy(pData, pVersion, 2 * 4);
+            store16(&pData[0], pVersion->minor);
+            store16(&pData[2], pVersion->major);
+            store16(&pData[4], pVersion->build);
+            store16(&pData[6], pVersion->release);
         }
 
         // update 'colh' chunk
@@ -1329,7 +1338,7 @@ namespace DLS {
         RIFF::Chunk* colh = pRIFF->GetSubChunk(CHUNK_ID_COLH);
         if (!colh)   colh = pRIFF->AddSubChunk(CHUNK_ID_COLH, 4);
         uint8_t* pData = (uint8_t*) colh->LoadChunkData();
-        memcpy(pData, &Instruments, 4);
+        store32(pData, Instruments);
 
         // update instrument's chunks
         if (pInstruments) {
@@ -1349,7 +1358,7 @@ namespace DLS {
         ptbl->Resize(iPtblSize);
         pData = (uint8_t*) ptbl->LoadChunkData();
         WavePoolCount = iSamples;
-        memcpy(&pData[4], &WavePoolCount, 4);
+        store32(&pData[4], WavePoolCount);
         // we actually update the sample offsets in the pool table when we Save()
         memset(&pData[WavePoolHeaderSize], 0, iPtblSize - WavePoolHeaderSize);
 
@@ -1438,18 +1447,24 @@ namespace DLS {
         unsigned long ulOriginalPos = ptbl->GetPos();
         // update headers
         ptbl->SetPos(0);
-        ptbl->WriteUint32(&WavePoolHeaderSize);
-        ptbl->WriteUint32(&WavePoolCount);
+        uint32_t tmp = WavePoolHeaderSize;
+        ptbl->WriteUint32(&tmp);
+        tmp = WavePoolCount;
+        ptbl->WriteUint32(&tmp);
         // update offsets
         ptbl->SetPos(WavePoolHeaderSize);
         if (b64BitWavePoolOffsets) {
             for (int i = 0 ; i < WavePoolCount ; i++) {
-                ptbl->WriteUint32(&pWavePoolTableHi[i]);
-                ptbl->WriteUint32(&pWavePoolTable[i]);
+                tmp = pWavePoolTableHi[i];
+                ptbl->WriteUint32(&tmp);
+                tmp = pWavePoolTable[i];
+                ptbl->WriteUint32(&tmp);
             }
         } else { // conventional 32 bit offsets
-            for (int i = 0 ; i < WavePoolCount ; i++)
-                ptbl->WriteUint32(&pWavePoolTable[i]);
+            for (int i = 0 ; i < WavePoolCount ; i++) {
+                tmp = pWavePoolTable[i];
+                ptbl->WriteUint32(&tmp);
+            }
         }
         // restore 'ptbl' chunk's original read/write position
         ptbl->SetPos(ulOriginalPos);

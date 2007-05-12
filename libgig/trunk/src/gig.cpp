@@ -402,23 +402,23 @@ namespace {
         // update 'smpl' chunk
         uint8_t* pData = (uint8_t*) pCkSmpl->LoadChunkData();
         SamplePeriod = uint32_t(1000000000.0 / SamplesPerSecond + 0.5);
-        memcpy(&pData[0], &Manufacturer, 4);
-        memcpy(&pData[4], &Product, 4);
-        memcpy(&pData[8], &SamplePeriod, 4);
-        memcpy(&pData[12], &MIDIUnityNote, 4);
-        memcpy(&pData[16], &FineTune, 4);
-        memcpy(&pData[20], &SMPTEFormat, 4);
-        memcpy(&pData[24], &SMPTEOffset, 4);
-        memcpy(&pData[28], &Loops, 4);
+        store32(&pData[0], Manufacturer);
+        store32(&pData[4], Product);
+        store32(&pData[8], SamplePeriod);
+        store32(&pData[12], MIDIUnityNote);
+        store32(&pData[16], FineTune);
+        store32(&pData[20], SMPTEFormat);
+        store32(&pData[24], SMPTEOffset);
+        store32(&pData[28], Loops);
 
         // we skip 'manufByt' for now (4 bytes)
 
-        memcpy(&pData[36], &LoopID, 4);
-        memcpy(&pData[40], &LoopType, 4);
-        memcpy(&pData[44], &LoopStart, 4);
-        memcpy(&pData[48], &LoopEnd, 4);
-        memcpy(&pData[52], &LoopFraction, 4);
-        memcpy(&pData[56], &LoopPlayCount, 4);
+        store32(&pData[36], LoopID);
+        store32(&pData[40], LoopType);
+        store32(&pData[44], LoopStart);
+        store32(&pData[48], LoopEnd);
+        store32(&pData[52], LoopFraction);
+        store32(&pData[56], LoopPlayCount);
 
         // make sure '3gix' chunk exists
         pCk3gix = pWaveList->GetSubChunk(CHUNK_ID_3GIX);
@@ -438,7 +438,7 @@ namespace {
         }
         // update '3gix' chunk
         pData = (uint8_t*) pCk3gix->LoadChunkData();
-        memcpy(&pData[0], &iSampleGroup, 2);
+        store16(&pData[0], iSampleGroup);
     }
 
     /// Scans compressed samples for mandatory informations (e.g. actual number of total sample points).
@@ -1504,103 +1504,103 @@ namespace {
         // update '3ewa' chunk with DimensionRegion's current settings
 
         const uint32_t chunksize = _3ewa->GetSize();
-        memcpy(&pData[0], &chunksize, 4); // unknown, always chunk size?
+        store32(&pData[0], chunksize); // unknown, always chunk size?
 
         const int32_t lfo3freq = (int32_t) GIG_EXP_ENCODE(LFO3Frequency);
-        memcpy(&pData[4], &lfo3freq, 4);
+        store32(&pData[4], lfo3freq);
 
         const int32_t eg3attack = (int32_t) GIG_EXP_ENCODE(EG3Attack);
-        memcpy(&pData[8], &eg3attack, 4);
+        store32(&pData[8], eg3attack);
 
         // next 2 bytes unknown
 
-        memcpy(&pData[14], &LFO1InternalDepth, 2);
+        store16(&pData[14], LFO1InternalDepth);
 
         // next 2 bytes unknown
 
-        memcpy(&pData[18], &LFO3InternalDepth, 2);
+        store16(&pData[18], LFO3InternalDepth);
 
         // next 2 bytes unknown
 
-        memcpy(&pData[22], &LFO1ControlDepth, 2);
+        store16(&pData[22], LFO1ControlDepth);
 
         // next 2 bytes unknown
 
-        memcpy(&pData[26], &LFO3ControlDepth, 2);
+        store16(&pData[26], LFO3ControlDepth);
 
         const int32_t eg1attack = (int32_t) GIG_EXP_ENCODE(EG1Attack);
-        memcpy(&pData[28], &eg1attack, 4);
+        store32(&pData[28], eg1attack);
 
         const int32_t eg1decay1 = (int32_t) GIG_EXP_ENCODE(EG1Decay1);
-        memcpy(&pData[32], &eg1decay1, 4);
+        store32(&pData[32], eg1decay1);
 
         // next 2 bytes unknown
 
-        memcpy(&pData[38], &EG1Sustain, 2);
+        store16(&pData[38], EG1Sustain);
 
         const int32_t eg1release = (int32_t) GIG_EXP_ENCODE(EG1Release);
-        memcpy(&pData[40], &eg1release, 4);
+        store32(&pData[40], eg1release);
 
         const uint8_t eg1ctl = (uint8_t) EncodeLeverageController(EG1Controller);
-        memcpy(&pData[44], &eg1ctl, 1);
+        pData[44] = eg1ctl;
 
         const uint8_t eg1ctrloptions =
             (EG1ControllerInvert) ? 0x01 : 0x00 |
             GIG_EG_CTR_ATTACK_INFLUENCE_ENCODE(EG1ControllerAttackInfluence) |
             GIG_EG_CTR_DECAY_INFLUENCE_ENCODE(EG1ControllerDecayInfluence) |
             GIG_EG_CTR_RELEASE_INFLUENCE_ENCODE(EG1ControllerReleaseInfluence);
-        memcpy(&pData[45], &eg1ctrloptions, 1);
+        pData[45] = eg1ctrloptions;
 
         const uint8_t eg2ctl = (uint8_t) EncodeLeverageController(EG2Controller);
-        memcpy(&pData[46], &eg2ctl, 1);
+        pData[46] = eg2ctl;
 
         const uint8_t eg2ctrloptions =
             (EG2ControllerInvert) ? 0x01 : 0x00 |
             GIG_EG_CTR_ATTACK_INFLUENCE_ENCODE(EG2ControllerAttackInfluence) |
             GIG_EG_CTR_DECAY_INFLUENCE_ENCODE(EG2ControllerDecayInfluence) |
             GIG_EG_CTR_RELEASE_INFLUENCE_ENCODE(EG2ControllerReleaseInfluence);
-        memcpy(&pData[47], &eg2ctrloptions, 1);
+        pData[47] = eg2ctrloptions;
 
         const int32_t lfo1freq = (int32_t) GIG_EXP_ENCODE(LFO1Frequency);
-        memcpy(&pData[48], &lfo1freq, 4);
+        store32(&pData[48], lfo1freq);
 
         const int32_t eg2attack = (int32_t) GIG_EXP_ENCODE(EG2Attack);
-        memcpy(&pData[52], &eg2attack, 4);
+        store32(&pData[52], eg2attack);
 
         const int32_t eg2decay1 = (int32_t) GIG_EXP_ENCODE(EG2Decay1);
-        memcpy(&pData[56], &eg2decay1, 4);
+        store32(&pData[56], eg2decay1);
 
         // next 2 bytes unknown
 
-        memcpy(&pData[62], &EG2Sustain, 2);
+        store16(&pData[62], EG2Sustain);
 
         const int32_t eg2release = (int32_t) GIG_EXP_ENCODE(EG2Release);
-        memcpy(&pData[64], &eg2release, 4);
+        store32(&pData[64], eg2release);
 
         // next 2 bytes unknown
 
-        memcpy(&pData[70], &LFO2ControlDepth, 2);
+        store16(&pData[70], LFO2ControlDepth);
 
         const int32_t lfo2freq = (int32_t) GIG_EXP_ENCODE(LFO2Frequency);
-        memcpy(&pData[72], &lfo2freq, 4);
+        store32(&pData[72], lfo2freq);
 
         // next 2 bytes unknown
 
-        memcpy(&pData[78], &LFO2InternalDepth, 2);
+        store16(&pData[78], LFO2InternalDepth);
 
         const int32_t eg1decay2 = (int32_t) (EG1InfiniteSustain) ? 0x7fffffff : (int32_t) GIG_EXP_ENCODE(EG1Decay2);
-        memcpy(&pData[80], &eg1decay2, 4);
+        store32(&pData[80], eg1decay2);
 
         // next 2 bytes unknown
 
-        memcpy(&pData[86], &EG1PreAttack, 2);
+        store16(&pData[86], EG1PreAttack);
 
         const int32_t eg2decay2 = (int32_t) (EG2InfiniteSustain) ? 0x7fffffff : (int32_t) GIG_EXP_ENCODE(EG2Decay2);
-        memcpy(&pData[88], &eg2decay2, 4);
+        store32(&pData[88], eg2decay2);
 
         // next 2 bytes unknown
 
-        memcpy(&pData[94], &EG2PreAttack, 2);
+        store16(&pData[94], EG2PreAttack);
 
         {
             if (VelocityResponseDepth > 4) throw Exception("VelocityResponseDepth must be between 0 and 4");
@@ -1618,7 +1618,7 @@ namespace {
                 default:
                     throw Exception("Could not update DimensionRegion's chunk, unknown VelocityResponseCurve selected");
             }
-            memcpy(&pData[96], &velocityresponse, 1);
+            pData[96] = velocityresponse;
         }
 
         {
@@ -1637,16 +1637,16 @@ namespace {
                 default:
                     throw Exception("Could not update DimensionRegion's chunk, unknown ReleaseVelocityResponseCurve selected");
             }
-            memcpy(&pData[97], &releasevelocityresponse, 1);
+            pData[97] = releasevelocityresponse;
         }
 
-        memcpy(&pData[98], &VelocityResponseCurveScaling, 1);
+        pData[98] = VelocityResponseCurveScaling;
 
-        memcpy(&pData[99], &AttenuationControllerThreshold, 1);
+        pData[99] = AttenuationControllerThreshold;
 
         // next 4 bytes unknown
 
-        memcpy(&pData[104], &SampleStartOffset, 2);
+        store16(&pData[104], SampleStartOffset);
 
         // next 2 bytes unknown
 
@@ -1665,14 +1665,14 @@ namespace {
                 default:
                     throw Exception("Could not update DimensionRegion's chunk, unknown DimensionBypass selected");
             }
-            memcpy(&pData[108], &pitchTrackDimensionBypass, 1);
+            pData[108] = pitchTrackDimensionBypass;
         }
 
         const uint8_t pan = (Pan >= 0) ? Pan : ((-Pan) + 63); // signed 8 bit -> signed 7 bit
-        memcpy(&pData[109], &pan, 1);
+        pData[109] = pan;
 
         const uint8_t selfmask = (SelfMask) ? 0x01 : 0x00;
-        memcpy(&pData[110], &selfmask, 1);
+        pData[110] = selfmask;
 
         // next byte unknown
 
@@ -1681,18 +1681,18 @@ namespace {
             if (LFO3Sync) lfo3ctrl |= 0x20; // bit 5
             if (InvertAttenuationController) lfo3ctrl |= 0x80; // bit 7
             if (VCFType == vcf_type_lowpassturbo) lfo3ctrl |= 0x40; // bit 6
-            memcpy(&pData[112], &lfo3ctrl, 1);
+            pData[112] = lfo3ctrl;
         }
 
         const uint8_t attenctl = EncodeLeverageController(AttenuationController);
-        memcpy(&pData[113], &attenctl, 1);
+        pData[113] = attenctl;
 
         {
             uint8_t lfo2ctrl = LFO2Controller & 0x07; // lower 3 bits
             if (LFO2FlipPhase) lfo2ctrl |= 0x80; // bit 7
             if (LFO2Sync)      lfo2ctrl |= 0x20; // bit 5
             if (VCFResonanceController != vcf_res_ctrl_none) lfo2ctrl |= 0x40; // bit 6
-            memcpy(&pData[114], &lfo2ctrl, 1);
+            pData[114] = lfo2ctrl;
         }
 
         {
@@ -1701,64 +1701,64 @@ namespace {
             if (LFO1Sync)      lfo1ctrl |= 0x40; // bit 6
             if (VCFResonanceController != vcf_res_ctrl_none)
                 lfo1ctrl |= GIG_VCF_RESONANCE_CTRL_ENCODE(VCFResonanceController);
-            memcpy(&pData[115], &lfo1ctrl, 1);
+            pData[115] = lfo1ctrl;
         }
 
         const uint16_t eg3depth = (EG3Depth >= 0) ? EG3Depth
                                                   : uint16_t(((-EG3Depth) - 1) ^ 0xffff); /* binary complementary for negatives */
-        memcpy(&pData[116], &eg3depth, 1);
+        pData[116] = eg3depth;
 
         // next 2 bytes unknown
 
         const uint8_t channeloffset = ChannelOffset * 4;
-        memcpy(&pData[120], &channeloffset, 1);
+        pData[120] = channeloffset;
 
         {
             uint8_t regoptions = 0;
             if (MSDecode)      regoptions |= 0x01; // bit 0
             if (SustainDefeat) regoptions |= 0x02; // bit 1
-            memcpy(&pData[121], &regoptions, 1);
+            pData[121] = regoptions;
         }
 
         // next 2 bytes unknown
 
-        memcpy(&pData[124], &VelocityUpperLimit, 1);
+        pData[124] = VelocityUpperLimit;
 
         // next 3 bytes unknown
 
-        memcpy(&pData[128], &ReleaseTriggerDecay, 1);
+        pData[128] = ReleaseTriggerDecay;
 
         // next 2 bytes unknown
 
         const uint8_t eg1hold = (EG1Hold) ? 0x80 : 0x00; // bit 7
-        memcpy(&pData[131], &eg1hold, 1);
+        pData[131] = eg1hold;
 
         const uint8_t vcfcutoff = (VCFEnabled) ? 0x80 : 0x00 |  /* bit 7 */
                                   (VCFCutoff & 0x7f);   /* lower 7 bits */
-        memcpy(&pData[132], &vcfcutoff, 1);
+        pData[132] = vcfcutoff;
 
-        memcpy(&pData[133], &VCFCutoffController, 1);
+        pData[133] = VCFCutoffController;
 
         const uint8_t vcfvelscale = (VCFCutoffControllerInvert) ? 0x80 : 0x00 | /* bit 7 */
                                     (VCFVelocityScale & 0x7f); /* lower 7 bits */
-        memcpy(&pData[134], &vcfvelscale, 1);
+        pData[134] = vcfvelscale;
 
         // next byte unknown
 
         const uint8_t vcfresonance = (VCFResonanceDynamic) ? 0x00 : 0x80 | /* bit 7 */
                                      (VCFResonance & 0x7f); /* lower 7 bits */
-        memcpy(&pData[136], &vcfresonance, 1);
+        pData[136] = vcfresonance;
 
         const uint8_t vcfbreakpoint = (VCFKeyboardTracking) ? 0x80 : 0x00 | /* bit 7 */
                                       (VCFKeyboardTrackingBreakpoint & 0x7f); /* lower 7 bits */
-        memcpy(&pData[137], &vcfbreakpoint, 1);
+        pData[137] = vcfbreakpoint;
 
         const uint8_t vcfvelocity = VCFVelocityDynamicRange % 5 |
                                     VCFVelocityCurve * 5;
-        memcpy(&pData[138], &vcfvelocity, 1);
+        pData[138] = vcfvelocity;
 
         const uint8_t vcftype = (VCFType == vcf_type_lowpassturbo) ? vcf_type_lowpass : VCFType;
-        memcpy(&pData[139], &vcftype, 1);
+        pData[139] = vcftype;
 
         if (chunksize >= 148) {
             memcpy(&pData[140], DimensionUpperLimits, 8);
@@ -2217,7 +2217,7 @@ namespace {
 
         // update dimension definitions in '3lnk' chunk
         uint8_t* pData = (uint8_t*) _3lnk->LoadChunkData();
-        memcpy(&pData[0], &DimensionRegions, 4);
+        store32(&pData[0], DimensionRegions);
         for (int i = 0; i < iMaxDimensions; i++) {
             pData[4 + i * 8] = (uint8_t) pDimensionDefinitions[i].dimension;
             pData[5 + i * 8] = pDimensionDefinitions[i].bits;
@@ -2242,7 +2242,7 @@ namespace {
                 }
                 if (iWaveIndex < 0) throw gig::Exception("Could not update gig::Region, could not find DimensionRegion's sample");
             }
-            memcpy(&pData[iWavePoolOffset + i * 4], &iWaveIndex, 4);
+            store32(&pData[iWavePoolOffset + i * 4], iWaveIndex);
         }
     }
 
@@ -2674,14 +2674,14 @@ namespace {
         if (!_3ewg)  _3ewg = lart->AddSubChunk(CHUNK_ID_3EWG, 12);
         // update '3ewg' RIFF chunk
         uint8_t* pData = (uint8_t*) _3ewg->LoadChunkData();
-        memcpy(&pData[0], &EffectSend, 2);
-        memcpy(&pData[2], &Attenuation, 4);
-        memcpy(&pData[6], &FineTune, 2);
-        memcpy(&pData[8], &PitchbendRange, 2);
+        store16(&pData[0], EffectSend);
+        store32(&pData[2], Attenuation);
+        store16(&pData[6], FineTune);
+        store16(&pData[8], PitchbendRange);
         const uint8_t dimkeystart = (PianoReleaseMode) ? 0x01 : 0x00 |
                                     DimensionKeyRange.low << 1;
-        memcpy(&pData[10], &dimkeystart, 1);
-        memcpy(&pData[11], &DimensionKeyRange.high, 1);
+        pData[10] = dimkeystart;
+        pData[11] = DimensionKeyRange.high;
     }
 
     /**

@@ -5,10 +5,12 @@ Version CVS HEAD (?)
 
   * src/DLS.cpp, src/DLS.h:
     - added Sampler::AddSampleLoop() and Sampler::DeleteSampleLoop() methods
+    - fixed write support for big-endian systems
 
   * src/gig.cpp, src/gig.h:
     - fixed segmentation fault in the gig::File destructor sequence which
       happened when gig::Group informations were accessed before
+    - fixed write support for big-endian systems
 
 Version 3.1.1 (24 Mar 2007)
 
