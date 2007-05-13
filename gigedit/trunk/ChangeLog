@@ -11,6 +11,8 @@ Version CVS HEAD
   * implemented sample loop editing
   * improved labels in dimension region editor
   * use normal layout for checkboxes
+  * allow to resize dimension zones even when the respective dimension has
+    no custom dimension splits yet
 
 Version 0.0.3 (2007-03-24)
 

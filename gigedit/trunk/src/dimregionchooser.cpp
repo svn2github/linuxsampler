@@ -497,37 +497,45 @@ bool DimRegionChooser::is_in_resize_zone(double x, double y)
             int mask = ~(((1 << region->pDimensionDefinitions[dim].bits) - 1) << bitpos);
             c = dimregno & mask; // mask away this dimension
         }
-        bool customsplits =
+        const bool customsplits =
             ((region->pDimensionDefinitions[dim].split_type == gig::split_type_normal &&
               region->pDimensionRegions[c]->DimensionUpperLimits[dim]) ||
              (region->pDimensionDefinitions[dim].dimension == gig::dimension_velocity &&
               region->pDimensionRegions[c]->VelocityUpperLimit));
 
-        if (customsplits) {
+        // dimensions of split_type_bit cannot be resized
+        if (region->pDimensionDefinitions[dim].split_type != gig::split_type_bit) {
             int prev_limit = 0;
-            for (int j = 0 ; j < nbZones - 1 ; j++) {
-                gig::DimensionRegion *d = region->pDimensionRegions[c + (j << bitpos)];
-                int upperLimit = d->DimensionUpperLimits[dim];
-                if (!upperLimit) upperLimit = d->VelocityUpperLimit;
+            for (int iZone = 0 ; iZone < nbZones - 1 ; iZone++) {
+                gig::DimensionRegion *d = region->pDimensionRegions[c + (iZone << bitpos)];
+                const int upperLimit =
+                    (customsplits) ?
+                        (d->DimensionUpperLimits[dim]) ?
+                            d->DimensionUpperLimits[dim] : d->VelocityUpperLimit
+                        : (iZone+1) * (int)region->pDimensionDefinitions[dim].zone_size;
                 int limit = upperLimit + 1;
                 int limitx = int((w - label_width - 1) * limit / 128.0 + 0.5) + label_width;
-
                 if (x <= limitx - 2) break;
                 if (x <= limitx + 2) {
                     resize.dimension = dim;
-                    resize.offset = j << bitpos;
+                    resize.offset = iZone << bitpos;
                     resize.pos = limit;
                     resize.min = prev_limit;
 
                     int dr = (dimregno >> bitpos) &
                         ((1 << region->pDimensionDefinitions[dim].bits) - 1);
-                    resize.selected = dr == j ? resize.left :
-                        dr == j + 1 ? resize.right : resize.none;
+                    resize.selected = dr == iZone ? resize.left :
+                        dr == iZone + 1 ? resize.right : resize.none;
 
-                    j++;
-                    gig::DimensionRegion *d = region->pDimensionRegions[c + (j << bitpos)];
-                    int upperLimit = d->DimensionUpperLimits[dim];
-                    if (!upperLimit) upperLimit = d->VelocityUpperLimit;
+                    iZone++;
+                    gig::DimensionRegion *d = region->pDimensionRegions[c + (iZone << bitpos)];
+
+                    const int upperLimit =
+                        (customsplits) ?
+                            (d->DimensionUpperLimits[dim]) ?
+                                d->DimensionUpperLimits[dim] : d->VelocityUpperLimit
+                            : (iZone+1) * (int)region->pDimensionDefinitions[dim].zone_size;
+
                     int limit = upperLimit + 1;
                     resize.max = limit;
                     return true;
