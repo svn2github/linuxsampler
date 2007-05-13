@@ -1073,7 +1073,7 @@ namespace DLS {
      * to add samples, instruments and finally call Save() to actually write
      * a DLS file.
      */
-    File::File() : Resource(NULL, pRIFF = new RIFF::File(RIFF_TYPE_DLS)) {
+    File::File() : Resource(NULL, pRIFF = new RIFF::File(RIFF_TYPE_DLS, RIFF::endian_little)) {
         pVersion = new version_t;
         pVersion->major   = 0;
         pVersion->minor   = 0;

@@ -316,6 +316,7 @@ namespace DLS {
             String SourceForm;       ///< <ISRF-ck>. Identifies the original form of the material that was digitized, such as record, sampling CD, TV sound track. This is not neccessarily the same as <i>Medium</i>.
             String Commissioned;     ///< <ICMS-ck>. Lists the name of the person or organization that commissioned the subject of the file, e.g., Pope Julian II.
             String Subject;          ///< <ISBJ-ck>. Describes the contents of the file.
+            bool UseFixedLengthStrings; ///< Deprecated. Use #FixedStringLengths instead.
 
             struct FixedStringLength {
                 uint32_t chunkId;

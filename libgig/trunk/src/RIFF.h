@@ -114,6 +114,12 @@ namespace RIFF {
         stream_end      = 3
     } stream_whence_t;
 
+    typedef enum {
+        endian_little = 0,
+        endian_big    = 1,
+        endian_native = 2
+    } endian_t;
+
     /** Provides convenient methods to access data of RIFF chunks in general. */
     class Chunk {
         public:
@@ -250,6 +256,7 @@ namespace RIFF {
     class File : public List {
         public:
             File(uint32_t FileType);
+            File(uint32_t FileType, endian_t Endian);
             File(const String& path);
             stream_mode_t GetMode();
             bool          SetMode(stream_mode_t NewMode);
