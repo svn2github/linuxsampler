@@ -15,6 +15,14 @@ Version CVS HEAD (?)
     - fixed write support for big-endian systems
     - defined lengths of a fixed set of info strings. These strings
       are saved when the file is written, even if they are empty.
+    - added missing parameter initalizations in sample, region and
+      instrument constructors
+    - clear unused fields when saving samples and regions
+    - fixed write support bugs: v3 dimension limits and chunksize
+      weren't saved, leverage controller of type controlchange
+      couldn't be saved, group name list chunk was placed wrong
+    - added initialization of some fixed info strings in file and
+      instrument
 
 Version 3.1.1 (24 Mar 2007)
 

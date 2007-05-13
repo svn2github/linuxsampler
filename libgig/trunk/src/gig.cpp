@@ -344,9 +344,11 @@ namespace {
             SamplePeriod  = uint32_t(1000000000.0 / SamplesPerSecond + 0.5);
             MIDIUnityNote = 64;
             FineTune      = 0;
+            SMPTEFormat   = smpte_format_no_offset;
             SMPTEOffset   = 0;
             Loops         = 0;
             LoopID        = 0;
+            LoopType      = loop_type_normal;
             LoopStart     = 0;
             LoopEnd       = 0;
             LoopFraction  = 0;
@@ -402,7 +404,10 @@ namespace {
 
         // make sure 'smpl' chunk exists
         pCkSmpl = pWaveList->GetSubChunk(CHUNK_ID_SMPL);
-        if (!pCkSmpl) pCkSmpl = pWaveList->AddSubChunk(CHUNK_ID_SMPL, 60);
+        if (!pCkSmpl) {
+            pCkSmpl = pWaveList->AddSubChunk(CHUNK_ID_SMPL, 60);
+            memset(pCkSmpl->LoadChunkData(), 0, 60);
+        }
         // update 'smpl' chunk
         uint8_t* pData = (uint8_t*) pCkSmpl->LoadChunkData();
         SamplePeriod = uint32_t(1000000000.0 / SamplesPerSecond + 0.5);
@@ -1507,7 +1512,7 @@ namespace {
 
         // update '3ewa' chunk with DimensionRegion's current settings
 
-        const uint32_t chunksize = _3ewa->GetSize();
+        const uint32_t chunksize = _3ewa->GetNewSize();
         store32(&pData[0], chunksize); // unknown, always chunk size?
 
         const int32_t lfo3freq = (int32_t) GIG_EXP_ENCODE(LFO3Frequency);
@@ -1991,6 +1996,7 @@ namespace {
                     default:
                         throw gig::Exception("leverage controller number is not supported by the gig format");
                 }
+                break;
             default:
                 throw gig::Exception("Unknown leverage controller type.");
         }
@@ -2170,6 +2176,11 @@ namespace {
             GetSample(); // load global region sample reference
         } else {
             DimensionRegions = 0;
+            for (int i = 0 ; i < 8 ; i++) {
+                pDimensionDefinitions[i].dimension  = dimension_none;
+                pDimensionDefinitions[i].bits       = 0;
+                pDimensionDefinitions[i].zones      = 0;
+            }
         }
 
         // make sure there is at least one dimension region
@@ -2215,6 +2226,7 @@ namespace {
         if (!_3lnk) {
             const int _3lnkChunkSize = (pFile->pVersion && pFile->pVersion->major == 3) ? 1092 : 172;
             _3lnk = pCkRegion->AddSubChunk(CHUNK_ID_3LNK, _3lnkChunkSize);
+            memset(_3lnk->LoadChunkData(), 0, _3lnkChunkSize);
         }
 
         // update dimension definitions in '3lnk' chunk
@@ -2603,6 +2615,13 @@ namespace {
 
         // Initialization
         for (int i = 0; i < 128; i++) RegionKeyTable[i] = NULL;
+        EffectSend = 0;
+        Attenuation = 0;
+        FineTune = 0;
+        PitchbendRange = 0;
+        PianoReleaseMode = false;
+        DimensionKeyRange.low = 0;
+        DimensionKeyRange.high = 0;
 
         // Loading
         RIFF::List* lart = insList->GetSubList(LIST_TYPE_LART);
@@ -2792,7 +2811,7 @@ namespace {
         RIFF::List* _3gri = pFile->pRIFF->GetSubList(LIST_TYPE_3GRI);
         if (!_3gri) _3gri = pFile->pRIFF->AddSubList(LIST_TYPE_3GRI);
         RIFF::List* _3gnl = _3gri->GetSubList(LIST_TYPE_3GNL);
-        if (!_3gnl) _3gnl = pFile->pRIFF->AddSubList(LIST_TYPE_3GNL);
+        if (!_3gnl) _3gnl = _3gri->AddSubList(LIST_TYPE_3GNL);
         // now store the name of this group as <3gnm> chunk as subchunk of the <3gnl> list chunk
         ::SaveString(CHUNK_ID_3GNM, pNameChunk, _3gnl, Name, String("Unnamed Group"), true, 64);
     }
@@ -2892,6 +2911,7 @@ namespace {
     File::File() : DLS::File() {
         pGroups = NULL;
         pInfo->FixedStringLengths = FixedStringLengths;
+        pInfo->ArchivalLocation = String(256, ' ');
     }
 
     File::File(RIFF::File* pRIFF) : DLS::File(pRIFF) {
@@ -3081,6 +3101,10 @@ namespace {
        RIFF::List* lstInstruments = pRIFF->GetSubList(LIST_TYPE_LINS);
        RIFF::List* lstInstr = lstInstruments->AddSubList(LIST_TYPE_INS);
        Instrument* pInstrument = new Instrument(this, lstInstr);
+
+       // this string is needed for the gig to be loadable in GSt:
+       pInstrument->pInfo->Software = "Endless Wave";
+
        pInstruments->push_back(pInstrument);
        return pInstrument;
     }
