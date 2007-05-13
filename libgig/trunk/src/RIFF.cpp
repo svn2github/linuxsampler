@@ -1363,8 +1363,6 @@ namespace RIFF {
      * Use this constructor if you want to create a new RIFF file completely
      * "from scratch". Note: there must be no empty chunks or empty list
      * chunks when trying to make the new RIFF file persistent with Save()!
-     * Note that this constructor will create a RIFX file on
-     * big-endian machines.
      *
      * @param FileType - four-byte identifier of the RIFF file type
      * @see AddSubChunk(), AddSubList()
@@ -1377,39 +1375,6 @@ namespace RIFF {
         #endif
         Mode = stream_mode_closed;
         bEndianNative = true;
-        ulStartPos = RIFF_HEADER_SIZE;
-        ListType = FileType;
-    }
-
-
-    /** @brief Create new RIFF file.
-     *
-     * Use this constructor if you want to create a new RIFF file
-     * completely "from scratch" and also want to specify
-     * endianess. Note: there must be no empty chunks or empty list
-     * chunks when trying to make the new RIFF file persistent with
-     * Save()!
-     *
-     * @param FileType - four-byte identifier of the RIFF file type
-     * @param Endian - endianess used in the new file. A value of
-     *                 endian_little will create a RIFF file,
-     *                 endian_big a RIFX file, endian_native will
-     *                 create a RIFF file on little-endian machines
-     *                 and RIFX on big-endian.
-     * @see AddSubChunk(), AddSubList()
-     */
-    File::File(uint32_t FileType, endian_t Endian) : List(this) {
-        #if defined(WIN32)
-        hFileRead = hFileWrite = INVALID_HANDLE_VALUE;
-        #else
-        hFileRead = hFileWrite = 0;
-        #endif
-        Mode = stream_mode_closed;
-        #if WORDS_BIGENDIAN
-        bEndianNative = Endian != endian_little;
-        #else
-        bEndianNative = Endian != endian_big;
-        #endif
         ulStartPos = RIFF_HEADER_SIZE;
         ListType = FileType;
     }
@@ -1560,6 +1525,23 @@ namespace RIFF {
             return true;
         }
         return false;
+    }
+
+    /** @brief Set the byte order to be used when saving.
+     *
+     * Set the byte order to be used in the file. A value of
+     * endian_little will create a RIFF file, endian_big a RIFX file
+     * and endian_native will create a RIFF file on little-endian
+     * machines and RIFX on big-endian machines.
+     *
+     * @param Endian - endianess to use when file is saved.
+     */
+    void File::SetByteOrder(endian_t Endian) {
+        #if WORDS_BIGENDIAN
+        bEndianNative = Endian != endian_little;
+        #else
+        bEndianNative = Endian != endian_big;
+        #endif
     }
 
     /** @brief Save changes to same file.

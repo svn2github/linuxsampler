@@ -256,10 +256,10 @@ namespace RIFF {
     class File : public List {
         public:
             File(uint32_t FileType);
-            File(uint32_t FileType, endian_t Endian);
             File(const String& path);
             stream_mode_t GetMode();
             bool          SetMode(stream_mode_t NewMode);
+            void SetByteOrder(endian_t Endian);
             String GetFileName();
             virtual void Save();
             virtual void Save(const String& path);

@@ -25,8 +25,7 @@ Version CVS HEAD (?)
       instrument
 
   * src/RIFF.cpp, src/RIFF.h:
-    - added constructor for File where endianess (RIFF/RIFX) can be
-      specified
+    - added File::SetByteOrder method
 
 Version 3.1.1 (24 Mar 2007)
 
