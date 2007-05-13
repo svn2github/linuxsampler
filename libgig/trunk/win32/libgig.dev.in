@@ -70,9 +70,9 @@ OverrideBuildCmd=0
 BuildCmd=
 
 [VersionInfo]
-Major=3
-Minor=1
-Release=1
+Major=@LIBGIG_RELEASE_MAJOR@
+Minor=@LIBGIG_RELEASE_MINOR@
+Release=@LIBGIG_RELEASE_BUILD@
 Build=0
 LanguageID=1033
 CharsetID=1252

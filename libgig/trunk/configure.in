@@ -38,6 +38,9 @@ AM_PROG_LIBTOOL
 
 AC_SUBST(SHLIB_VERSION_ARG)
 AC_SUBST(SHARED_VERSION_INFO)
+AC_SUBST(LIBGIG_RELEASE_MAJOR)
+AC_SUBST(LIBGIG_RELEASE_MINOR)
+AC_SUBST(LIBGIG_RELEASE_BUILD)
 
 have_audio_file_lib="false"
 
@@ -69,4 +72,22 @@ fi
 AM_CONFIG_HEADER(config.h)
 AM_INIT_AUTOMAKE(libgig, "$LIBGIG_RELEASE_MAJOR.$LIBGIG_RELEASE_MINOR.$LIBGIG_RELEASE_BUILD")
 
-AC_OUTPUT(Makefile doc/Makefile man/Makefile src/Makefile libgig.spec gig.pc Doxyfile man/dlsdump.1 man/gigdump.1 man/gigextract.1 man/rifftree.1 debian/Makefile src/testcases/Makefile win32/Makefile osx/Makefile osx/libgig.xcodeproj/Makefile)
+AC_OUTPUT( \
+    Doxyfile \
+    gig.pc \
+    libgig.spec \
+    Makefile \
+    src/Makefile \
+    src/testcases/Makefile \
+    doc/Makefile \
+    man/Makefile \
+    man/dlsdump.1 \
+    man/gigdump.1 \
+    man/gigextract.1 \
+    man/rifftree.1 \
+    debian/Makefile \
+    osx/Makefile \
+    osx/libgig.xcodeproj/Makefile \
+    win32/Makefile \
+    win32/libgig.dev \
+)
