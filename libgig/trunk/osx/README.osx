@@ -48,16 +48,21 @@ Layout of the Directories
 Universal Binaries
 ------------------
 
-  Universal Binaries are not automatically created by the XCode project.
-  However, it is easy to create them by hands as follows:
+  You can create the Universal Binaries by selecting "Deployment_UB" build
+  style and build. The binaries for i386 and ppc architectures are built
+  separately and then automatically combined. The products are found in
+  $LIBGIG/../temp_build/Deployment_UB/local/{bin,lib}.
   
-  $ cd $LIBGIG   # Move to the libgig directory
-  $ mkdir -p ../temp_build/UB/bin ../temp_build/UB/lib
-  $ cd ../temp_build/Deployment_ppc
-  $ for i in bin/* lib/*.a; do
-    lipo -create $i ../Deployment_i386/$i -output ../UB/$i
-    done
+  You can also create the binaries for i386 and ppc architectures
+  separately by selecting "Deployment_i386" and "Deployment_ppc" built
+  styles respectively. This may be more convenient when you make your
+  binary exclusively for your own use, and/or the required libraries
+  (e.g. libsndfile, see below) are available only for a single
+  architecture.
 
+  Note that the current XCode project does _not_ take care of libgig.la
+  and pkgconfig/gig.pc when creating the Universal Binary.
+  
   The libgig project is dependent on libsndfile, but you may not 
   have a Universal Binary version of libsndfile. Don't worry, you 
   can still create UB of libgig products. Follow these steps:
@@ -80,18 +85,23 @@ Universal Binaries
   After these steps, the i386 and ppc versions of libsndfile.a are
   created in $LIBGIG/../temp_build/Deployment_$ARCH/local/lib 
   ($ARCH is either i386 or ppc). Now you can double-click on 
-  libgig.xcodeproj and build libgig with Deployment_i386 and 
-  Deployment_ppc build styles. pkg-config will find the correct
-  version of libsndfile.a in $LIBGIG/../temp_build/$BUILD_STYLES/
-  local/lib.
+  libgig.xcodeproj and build libgig with Deployment_UB build style.
+  When XCode is building libgig for each architecture, pkg-config 
+  will find the correct version of libsndfile.a in $LIBGIG/../
+  temp_build/Deployment_{ppc,i386}/local/lib.
+
+  (You can also easily create a Universal Binary of libsndfile.a,
+  but then you need to take care manually of the contents of 
+  libsndfile.la and pkgconfig/sndfile.pc.)
 
 Additional Information
 ----------------------
 
-  The XCode project just invokes autoconf_builder.sh with after
+  The XCode project just invokes autoconf_builder.sh after
   setting relevant environmental variables. If you are interested
   (or feel suspicious), please examine autoconf_builder.sh.
 
 
-6 May 2007
-Written by Toshi Nagata
+6 May 2007: First written by Toshi Nagata
+9 May 2007: Updated to account for the Deployment_UB target
+
