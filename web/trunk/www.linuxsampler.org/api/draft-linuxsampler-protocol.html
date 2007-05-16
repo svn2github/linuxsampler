@@ -145,7 +145,7 @@
 <tr><td class="header">LinuxSampler Developers</td><td class="header">C. Schoenebeck</td></tr>
 <tr><td class="header">Internet-Draft</td><td class="header">Interessengemeinschaft Software</td></tr>
 <tr><td class="header">Intended status: Standards Track</td><td class="header">Engineering e. V.</td></tr>
-<tr><td class="header">Expires: October 18, 2007</td><td class="header">April 16, 2007</td></tr>
+<tr><td class="header">Expires: November 17, 2007</td><td class="header">May 16, 2007</td></tr>
 </table></td></tr></table>
 <h1><br />LinuxSampler Control Protocol<br />LSCP 1.2</h1>
 
@@ -173,7 +173,7 @@ The list of current Internet-Drafts can be accessed at
 The list of Internet-Draft Shadow Directories can be accessed at
 <a href='http://www.ietf.org/shadow.html'>http://www.ietf.org/shadow.html</a>.</p>
 <p>
-This Internet-Draft will expire on October 18, 2007.</p>
+This Internet-Draft will expire on November 17, 2007.</p>
 
 <h3>Copyright Notice</h3>
 <p>
@@ -404,24 +404,32 @@ Getting instrument directory information<br />
 Renaming an instrument directory<br />
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#MOVE DB_INSTRUMENT_DIRECTORY">6.8.7.</a>&nbsp;
 Moving an instrument directory<br />
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SET DB_INSTRUMENT_DIRECTORY DESCRIPTION">6.8.8.</a>&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#COPY DB_INSTRUMENT_DIRECTORY">6.8.8.</a>&nbsp;
+Copying instrument directories<br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SET DB_INSTRUMENT_DIRECTORY DESCRIPTION">6.8.9.</a>&nbsp;
 Changing the description of directory<br />
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ADD DB_INSTRUMENTS">6.8.9.</a>&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#FIND DB_INSTRUMENT_DIRECTORIES">6.8.10.</a>&nbsp;
+Finding directories<br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ADD DB_INSTRUMENTS">6.8.11.</a>&nbsp;
 Adding instruments to the instruments database<br />
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#REMOVE DB_INSTRUMENT">6.8.10.</a>&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#REMOVE DB_INSTRUMENT">6.8.12.</a>&nbsp;
 Removing an instrument<br />
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#GET DB_INSTRUMENTS">6.8.11.</a>&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#GET DB_INSTRUMENTS">6.8.13.</a>&nbsp;
 Getting amount of instruments<br />
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#LIST DB_INSTRUMENTS">6.8.12.</a>&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#LIST DB_INSTRUMENTS">6.8.14.</a>&nbsp;
 Listing all instruments in specific directory<br />
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#GET DB_INSTRUMENT INFO">6.8.13.</a>&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#GET DB_INSTRUMENT INFO">6.8.15.</a>&nbsp;
 Getting instrument information<br />
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SET DB_INSTRUMENT NAME">6.8.14.</a>&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SET DB_INSTRUMENT NAME">6.8.16.</a>&nbsp;
 Renaming an instrument<br />
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#MOVE DB_INSTRUMENT">6.8.15.</a>&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#MOVE DB_INSTRUMENT">6.8.17.</a>&nbsp;
 Moving an instrument<br />
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SET DB_INSTRUMENT DESCRIPTION">6.8.16.</a>&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#COPY DB_INSTRUMENT">6.8.18.</a>&nbsp;
+Copying instruments<br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SET DB_INSTRUMENT DESCRIPTION">6.8.19.</a>&nbsp;
 Changing the description of instrument<br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#FIND DB_INSTRUMENTS">6.8.20.</a>&nbsp;
+Finding instruments<br />
 <a href="#command_syntax">7.</a>&nbsp;
 Command Syntax<br />
 <a href="#events">8.</a>&nbsp;
@@ -7351,13 +7359,15 @@ Getting amount of instrument directories</h3>
 <p>
                         </p>
 <blockquote class="text">
-<p>GET DB_INSTRUMENT_DIRECTORIES &lt;dir&gt;
+<p>GET DB_INSTRUMENT_DIRECTORIES [RECURSIVE] &lt;dir&gt;
 </p>
 </blockquote><p>
                     
 </p>
 <p>Where &lt;dir&gt; should be replaced by the absolute path
-                    name of the directory.
+                    name of the directory. If RECURSIVE is specified, the number of
+                    all directories, including those located in subdirectories of the
+                    specified directory, will be returned.
 </p>
 <p>Possible Answers:
 </p>
@@ -7401,13 +7411,15 @@ Listing all directories in specific directory</h3>
 <p>
                         </p>
 <blockquote class="text">
-<p>LIST DB_INSTRUMENT_DIRECTORIES &lt;dir&gt;
+<p>LIST DB_INSTRUMENT_DIRECTORIES [RECURSIVE] &lt;dir&gt;
 </p>
 </blockquote><p>
                     
 </p>
 <p>Where &lt;dir&gt; should be replaced by the absolute path
-                    name of the directory.
+                    name of the directory. If RECURSIVE is specified, the absolute path names
+                    of all directories, including those located in subdirectories of the
+                    specified directory, will be returned.
 </p>
 <p>Possible Answers:
 </p>
@@ -7436,6 +7448,16 @@ Listing all directories in specific directory</h3>
 <p>C: "LIST DB_INSTRUMENT_DIRECTORIES '/'"
 </p>
 <p>S: "'Piano Collection','Percussion Collection'"
+</p>
+</blockquote><p>
+                    
+</p>
+<p>
+                        </p>
+<blockquote class="text">
+<p>C: "LIST DB_INSTRUMENT_DIRECTORIES RECURSIVE '/'"
+</p>
+<p>S: "'/Piano Collection','/Piano Collection/Acoustic','/Piano Collection/Acoustic/New','/Percussion Collection'"
 </p>
 </blockquote><p>
                     
@@ -7643,9 +7665,70 @@ Moving an instrument directory</h3>
 </blockquote><p>
                     
 </p>
-<a name="SET DB_INSTRUMENT_DIRECTORY DESCRIPTION"></a><br /><hr />
+<a name="COPY DB_INSTRUMENT_DIRECTORY"></a><br /><hr />
 <table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
 <a name="rfc.section.6.8.8"></a><h3>6.8.8.&nbsp;
+Copying instrument directories</h3>
+
+<p>The front-end can copy a specific
+                    instrument directory by sending the following command:
+</p>
+<p>
+                        </p>
+<blockquote class="text">
+<p>COPY DB_INSTRUMENT_DIRECTORY &lt;dir&gt; &lt;dst&gt;
+</p>
+</blockquote><p>
+                    
+</p>
+<p>Where &lt;dir&gt; is the absolute path name of the directory
+                    to copy and &lt;dst&gt; is the location where the directory will
+                    be copied to.
+</p>
+<p>Possible Answers:
+</p>
+<p>
+                        </p>
+<blockquote class="text">
+<p>"OK" -
+                                </p>
+<blockquote class="text">
+<p>on success
+</p>
+</blockquote>
+                            
+
+<p>"ERR:&lt;error-code&gt;:&lt;error-message&gt;" -
+                                </p>
+<blockquote class="text">
+<p>in case a given directory does not exists,
+                                    or if a directory with name equal to the name
+                                    of the specified directory already exists in
+                                    the destination directory. Error is also thrown
+                                    when trying to copy a directory to a subdirectory
+                                    of itself.
+</p>
+</blockquote>
+                            
+
+</blockquote><p>
+                    
+</p>
+<p>Example:
+</p>
+<p>
+                        </p>
+<blockquote class="text">
+<p>C: "COPY DB_INSTRUMENT_DIRECTORY '/Piano Collection/Acoustic' '/Acoustic/Pianos'"
+</p>
+<p>S: "OK"
+</p>
+</blockquote><p>
+                    
+</p>
+<a name="SET DB_INSTRUMENT_DIRECTORY DESCRIPTION"></a><br /><hr />
+<table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
+<a name="rfc.section.6.8.9"></a><h3>6.8.9.&nbsp;
 Changing the description of directory</h3>
 
 <p>The front-end can alter the description of a specific
@@ -7698,9 +7781,133 @@ Changing the description of directory</h3>
 </blockquote><p>
                     
 </p>
+<a name="FIND DB_INSTRUMENT_DIRECTORIES"></a><br /><hr />
+<table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
+<a name="rfc.section.6.8.10"></a><h3>6.8.10.&nbsp;
+Finding directories</h3>
+
+<p>The front-end can search for directories
+                    in specific directory by sending the following command:
+</p>
+<p>
+                        </p>
+<blockquote class="text">
+<p>FIND DB_INSTRUMENT_DIRECTORIES [NON_RECURSIVE] &lt;dir&gt; &lt;criteria-list&gt;
+</p>
+</blockquote><p>
+                    
+</p>
+<p>Where &lt;dir&gt; should be replaced by the absolute path
+                    name of the directory to search in. If NON_RECURSIVE is specified, the
+                    directories located in subdirectories of the specified directory will not
+                    be searched. &lt;criteria-list&gt; is a list of search criterias
+                    in form of "key1=val1 key2=val2 ...". The following criterias are
+                    allowed:
+</p>
+<p>
+                      
+<p>NAME='&lt;search-string&gt;'
+                          </p>
+<blockquote class="text">
+<p>Restricts the search to directories, which names
+                              satisfy the supplied search string.
+</p>
+</blockquote><p>
+                      
+</p>
+
+                      
+<p>CREATED='[&lt;date-after&gt;]..[&lt;date-before&gt;]'
+                          </p>
+<blockquote class="text">
+<p>Restricts the search to directories, which creation
+                              date satisfies the specified period, where &lt;date-after&gt;
+                              and &lt;date-before&gt; are in "YYYY-MM-DD HH:MM:SS" format.
+                              If &lt;date-after&gt; is omitted the search is restricted to
+                              directories created before &lt;date-before&gt;. If
+                              &lt;date-before&gt; is omitted, the search is restricted
+                              to directories created after &lt;date-after&gt;.
+</p>
+</blockquote><p>
+                      
+</p>
+
+                      
+<p>MODIFIED='[&lt;date-after&gt;]..[&lt;date-before&gt;]'
+                          </p>
+<blockquote class="text">
+<p>Restricts the search to directories, which
+                              date of last modification satisfies the specified period, where
+                              &lt;date-after&gt; and &lt;date-before&gt; are in "YYYY-MM-DD HH:MM:SS"
+                              format. If &lt;date-after&gt; is omitted the search is restricted to
+                              directories, which are last modified before &lt;date-before&gt;. If
+                              &lt;date-before&gt; is omitted, the search is restricted to directories,
+                              which are last modified after &lt;date-after&gt;.
+</p>
+</blockquote><p>
+                      
+</p>
+
+                      
+<p>DESCRIPTION='&lt;search-string&gt;'
+                          </p>
+<blockquote class="text">
+<p>Restricts the search to directories with description
+                              that satisfies the supplied search string.
+</p>
+</blockquote><p>
+                      
+</p>
+                    
+
+<p>Where &lt;search-string&gt; is either a regular expression, or a
+                    word list separated with spaces for OR search and with '+' for AND search.
+</p>
+<p>Possible Answers:
+</p>
+<p>
+                        </p>
+<blockquote class="text">
+<p>A comma separated list with the absolute path names (encapsulated into
+                            apostrophes) of all directories in the specified directory that satisfy
+                            the supplied search criterias.
+</p>
+<p>"ERR:&lt;error-code&gt;:&lt;error-message&gt;" -
+                                </p>
+<blockquote class="text">
+<p>if the given directory does not exist.
+</p>
+</blockquote>
+                            
+
+</blockquote><p>
+                    
+</p>
+<p>Example:
+</p>
+<p>
+                        </p>
+<blockquote class="text">
+<p>C: "FIND DB_INSTRUMENT_DIRECTORIES '/' NAME='Piano'"
+</p>
+<p>S: "'/Piano Collection'"
+</p>
+</blockquote><p>
+                    
+</p>
+<p>
+                        </p>
+<blockquote class="text">
+<p>C: "FIND DB_INSTRUMENT_DIRECTORIES '/' CREATED='..2007-04-01 09:30:13'"
+</p>
+<p>S: "'/Piano Collection','/Percussions'"
+</p>
+</blockquote><p>
+                    
+</p>
 <a name="ADD DB_INSTRUMENTS"></a><br /><hr />
 <table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
-<a name="rfc.section.6.8.9"></a><h3>6.8.9.&nbsp;
+<a name="rfc.section.6.8.11"></a><h3>6.8.11.&nbsp;
 Adding instruments to the instruments database</h3>
 
 <p>The front-end can add one or more instruments
@@ -7805,7 +8012,7 @@ Adding instruments to the instruments database</h3>
 </p>
 <a name="REMOVE DB_INSTRUMENT"></a><br /><hr />
 <table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
-<a name="rfc.section.6.8.10"></a><h3>6.8.10.&nbsp;
+<a name="rfc.section.6.8.12"></a><h3>6.8.12.&nbsp;
 Removing an instrument</h3>
 
 <p>The front-end can remove a particular instrument
@@ -7861,7 +8068,7 @@ Removing an instrument</h3>
 </p>
 <a name="GET DB_INSTRUMENTS"></a><br /><hr />
 <table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
-<a name="rfc.section.6.8.11"></a><h3>6.8.11.&nbsp;
+<a name="rfc.section.6.8.13"></a><h3>6.8.13.&nbsp;
 Getting amount of instruments</h3>
 
 <p>The front-end can retrieve the current amount of
@@ -7870,13 +8077,15 @@ Getting amount of instruments</h3>
 <p>
                         </p>
 <blockquote class="text">
-<p>GET DB_INSTRUMENTS &lt;dir&gt;
+<p>GET DB_INSTRUMENTS [RECURSIVE] &lt;dir&gt;
 </p>
 </blockquote><p>
                     
 </p>
 <p>Where &lt;dir&gt; should be replaced by the absolute path name
-                    of the directory.
+                    of the directory. If RECURSIVE is specified, the number of all
+                    instruments, including those located in subdirectories of the
+                    specified directory, will be returned.
 </p>
 <p>Possible Answers:
 </p>
@@ -7911,7 +8120,7 @@ Getting amount of instruments</h3>
 </p>
 <a name="LIST DB_INSTRUMENTS"></a><br /><hr />
 <table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
-<a name="rfc.section.6.8.12"></a><h3>6.8.12.&nbsp;
+<a name="rfc.section.6.8.14"></a><h3>6.8.14.&nbsp;
 Listing all instruments in specific directory</h3>
 
 <p>The front-end can retrieve the current list of instruments
@@ -7920,13 +8129,15 @@ Listing all instruments in specific directory</h3>
 <p>
                         </p>
 <blockquote class="text">
-<p>LIST DB_INSTRUMENTS &lt;dir&gt;
+<p>LIST DB_INSTRUMENTS [RECURSIVE] &lt;dir&gt;
 </p>
 </blockquote><p>
                     
 </p>
 <p>Where &lt;dir&gt; should be replaced by the absolute path
-                    name of the directory.
+                    name of the directory. If RECURSIVE is specified, the absolute path
+                    names of all instruments, including those located in subdirectories
+                    of the specified directory, will be returned.
 </p>
 <p>Possible Answers:
 </p>
@@ -7959,9 +8170,19 @@ Listing all instruments in specific directory</h3>
 </blockquote><p>
                     
 </p>
+<p>
+                        </p>
+<blockquote class="text">
+<p>C: "LIST DB_INSTRUMENTS RECURSIVE '/Piano Collection'"
+</p>
+<p>S: "'/Piano Collection/Bosendorfer 290','/Piano Collection/Steinway D','/Piano Collection/Lite/Free Piano'"
+</p>
+</blockquote><p>
+                    
+</p>
 <a name="GET DB_INSTRUMENT INFO"></a><br /><hr />
 <table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
-<a name="rfc.section.6.8.13"></a><h3>6.8.13.&nbsp;
+<a name="rfc.section.6.8.15"></a><h3>6.8.15.&nbsp;
 Getting instrument information</h3>
 
 <p>The front-end can ask for the current settings of an
@@ -8140,7 +8361,7 @@ Getting instrument information</h3>
 </p>
 <a name="SET DB_INSTRUMENT NAME"></a><br /><hr />
 <table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
-<a name="rfc.section.6.8.14"></a><h3>6.8.14.&nbsp;
+<a name="rfc.section.6.8.16"></a><h3>6.8.16.&nbsp;
 Renaming an instrument</h3>
 
 <p>The front-end can alter the name of a specific
@@ -8197,7 +8418,7 @@ Renaming an instrument</h3>
 </p>
 <a name="MOVE DB_INSTRUMENT"></a><br /><hr />
 <table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
-<a name="rfc.section.6.8.15"></a><h3>6.8.15.&nbsp;
+<a name="rfc.section.6.8.17"></a><h3>6.8.17.&nbsp;
 Moving an instrument</h3>
 
 <p>The front-end can move a specific instrument to another directory by
@@ -8254,9 +8475,68 @@ Moving an instrument</h3>
 </blockquote><p>
                     
 </p>
+<a name="COPY DB_INSTRUMENT"></a><br /><hr />
+<table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
+<a name="rfc.section.6.8.18"></a><h3>6.8.18.&nbsp;
+Copying instruments</h3>
+
+<p>The front-end can copy a specific instrument to another directory by
+                    sending the following command:
+</p>
+<p>
+                        </p>
+<blockquote class="text">
+<p>COPY DB_INSTRUMENT &lt;instr&gt; &lt;dst&gt;
+</p>
+</blockquote><p>
+                    
+</p>
+<p>Where &lt;instr&gt; is the absolute path name of the instrument
+                    to copy and &lt;dst&gt; is the directory where the instrument will
+                    be copied to.
+</p>
+<p>Possible Answers:
+</p>
+<p>
+                        </p>
+<blockquote class="text">
+<p>"OK" -
+                                </p>
+<blockquote class="text">
+<p>on success
+</p>
+</blockquote>
+                            
+
+<p>"ERR:&lt;error-code&gt;:&lt;error-message&gt;" -
+                                </p>
+<blockquote class="text">
+<p>in case the given instrument does not exists,
+                                    or if an instrument with name equal to the name of the
+                                    specified instrument already exists in the destination
+                                    directory.
+</p>
+</blockquote>
+                            
+
+</blockquote><p>
+                    
+</p>
+<p>Example:
+</p>
+<p>
+                        </p>
+<blockquote class="text">
+<p>C: "COPY DB_INSTRUMENT '/Piano Collection/Bosendorfer 290' '/Acoustic/Pianos/'"
+</p>
+<p>S: "OK"
+</p>
+</blockquote><p>
+                    
+</p>
 <a name="SET DB_INSTRUMENT DESCRIPTION"></a><br /><hr />
 <table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
-<a name="rfc.section.6.8.16"></a><h3>6.8.16.&nbsp;
+<a name="rfc.section.6.8.19"></a><h3>6.8.19.&nbsp;
 Changing the description of instrument</h3>
 
 <p>The front-end can alter the description of a specific
@@ -8305,6 +8585,200 @@ Changing the description of instrument</h3>
 <p>C: "SET DB_INSTRUMENT DESCRIPTION '/Piano Collection/Acoustic/Bosendorfer 290' 'No comment :)'"
 </p>
 <p>S: "OK"
+</p>
+</blockquote><p>
+                    
+</p>
+<a name="FIND DB_INSTRUMENTS"></a><br /><hr />
+<table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
+<a name="rfc.section.6.8.20"></a><h3>6.8.20.&nbsp;
+Finding instruments</h3>
+
+<p>The front-end can search for instruments
+                    in specific directory by sending the following command:
+</p>
+<p>
+                        </p>
+<blockquote class="text">
+<p>FIND DB_INSTRUMENTS [NON_RECURSIVE] &lt;dir&gt; &lt;criteria-list&gt;
+</p>
+</blockquote><p>
+                    
+</p>
+<p>Where &lt;dir&gt; should be replaced by the absolute path
+                    name of the directory to search in. If NON_RECURSIVE is specified, the
+                    directories located in subdirectories of the specified directory will not
+                    be searched. &lt;criteria-list&gt; is a list of search criterias
+                    in form of "key1=val1 key2=val2 ...". The following criterias are
+                    allowed:
+</p>
+<p>
+                      
+<p>NAME='&lt;search-string&gt;'
+                          </p>
+<blockquote class="text">
+<p>Restricts the search to instruments, which names
+                              satisfy the supplied search string.
+</p>
+</blockquote><p>
+                      
+</p>
+
+                      
+<p>SIZE=[&lt;min&gt;]..[&lt;max&gt;]
+                          </p>
+<blockquote class="text">
+<p>Restricts the search to instruments, which 
+                              size is in the specified range. If &lt;min&gt; is omitted,
+                              the search results are restricted to instruments with size less then
+                              or equal to &lt;max&gt;. If &lt;max&gt; is omitted, the
+                              search is restricted to instruments with size greater then
+                              or equal to &lt;min&gt;.
+</p>
+</blockquote><p>
+                      
+</p>
+
+                      
+<p>CREATED='[&lt;date-after&gt;]..[&lt;date-before&gt;]'
+                          </p>
+<blockquote class="text">
+<p>Restricts the search to instruments, which creation
+                              date satisfies the specified period, where &lt;date-after&gt;
+                              and &lt;date-before&gt; are in "YYYY-MM-DD HH:MM:SS" format.
+                              If &lt;date-after&gt; is omitted the search is restricted to
+                              instruments created before &lt;date-before&gt;. If
+                              &lt;date-before&gt; is omitted, the search is restricted
+                              to instruments created after &lt;date-after&gt;.
+</p>
+</blockquote><p>
+                      
+</p>
+
+                      
+<p>MODIFIED='[&lt;date-after&gt;]..[&lt;date-before&gt;]'
+                          </p>
+<blockquote class="text">
+<p>Restricts the search to instruments, which
+                              date of last modification satisfies the specified period, where
+                              &lt;date-after&gt; and &lt;date-before&gt; are in "YYYY-MM-DD HH:MM:SS"
+                              format. If &lt;date-after&gt; is omitted the search is restricted to
+                              instruments, which are last modified before &lt;date-before&gt;. If
+                              &lt;date-before&gt; is omitted, the search is restricted to instruments,
+                              which are last modified after &lt;date-after&gt;.
+</p>
+</blockquote><p>
+                      
+</p>
+
+                      
+<p>DESCRIPTION='&lt;search-string&gt;'
+                          </p>
+<blockquote class="text">
+<p>Restricts the search to instruments with description
+                              that satisfies the supplied search string.
+</p>
+</blockquote><p>
+                      
+</p>
+
+                      
+<p>PRODUCT='&lt;search-string&gt;'
+                          </p>
+<blockquote class="text">
+<p>Restricts the search to instruments with product info
+                              that satisfies the supplied search string.
+</p>
+</blockquote><p>
+                      
+</p>
+
+                      
+<p>ARTISTS='&lt;search-string&gt;'
+                          </p>
+<blockquote class="text">
+<p>Restricts the search to instruments with artists info
+                              that satisfies the supplied search string.
+</p>
+</blockquote><p>
+                      
+</p>
+
+                      
+<p>KEYWORDS='&lt;search-string&gt;'
+                          </p>
+<blockquote class="text">
+<p>Restricts the search to instruments with keyword list
+                              that satisfies the supplied search string.
+</p>
+</blockquote><p>
+                      
+</p>
+
+                      
+<p>IS_DRUM=true | false
+                          </p>
+<blockquote class="text">
+<p>Either true or false. Restricts the search to 
+                              drum kits or chromatic instruments.
+</p>
+</blockquote><p>
+                      
+</p>
+
+                      
+<p>FORMAT_FAMILIES='&lt;format-list&gt;'
+                          </p>
+<blockquote class="text">
+<p>Restricts the search to instruments of the supplied format families,
+                              where &lt;format-list&gt; is a comma separated list of format families.
+</p>
+</blockquote><p>
+                      
+</p>
+                    
+
+<p>Where &lt;search-string&gt; is either a regular expression, or a
+                    word list separated with spaces for OR search and with '+' for AND search.
+</p>
+<p>Possible Answers:
+</p>
+<p>
+                        </p>
+<blockquote class="text">
+<p>A comma separated list with the absolute path names (encapsulated into
+                            apostrophes) of all instruments in the specified directory that satisfy
+                            the supplied search criterias.
+</p>
+<p>"ERR:&lt;error-code&gt;:&lt;error-message&gt;" -
+                                </p>
+<blockquote class="text">
+<p>if the given directory does not exist.
+</p>
+</blockquote>
+                            
+
+</blockquote><p>
+                    
+</p>
+<p>Example:
+</p>
+<p>
+                        </p>
+<blockquote class="text">
+<p>C: "FIND DB_INSTRUMENTS '/Piano Collection' NAME='bosendorfer+290'"
+</p>
+<p>S: "'/Piano Collection/Bosendorfer 290'"
+</p>
+</blockquote><p>
+                    
+</p>
+<p>
+                        </p>
+<blockquote class="text">
+<p>C: "FIND DB_INSTRUMENTS '/Piano Collection' CREATED='2007-04-01 09:30:13..'"
+</p>
+<p>S: "'/Piano Collection/Bosendorfer 290','/Piano Collection/Steinway D'"
 </p>
 </blockquote><p>
                     
@@ -8415,7 +8889,13 @@ Command Syntax</h3>
 <p>/ CLEAR SP clear_instruction
 		
 </p>
+<p>/ FIND SP find_instruction
+		
+</p>
 <p>/ MOVE SP move_instruction
+		
+</p>
+<p>/ COPY SP copy_instruction
 		
 </p>
 <p>/ RESET
@@ -8754,10 +9234,16 @@ Command Syntax</h3>
 <p>/ FX_SEND SP INFO SP sampler_channel SP fx_send_id
 		
 </p>
+<p>/ DB_INSTRUMENT_DIRECTORIES SP RECURSIVE SP pathname
+		
+</p>
 <p>/ DB_INSTRUMENT_DIRECTORIES SP pathname
 		
 </p>
 <p>/ DB_INSTRUMENT_DIRECTORY SP INFO SP pathname
+		
+</p>
+<p>/ DB_INSTRUMENTS SP RECURSIVE SP pathname
 		
 </p>
 <p>/ DB_INSTRUMENTS SP pathname
@@ -8871,7 +9357,37 @@ Command Syntax</h3>
 </blockquote><p>
 
 </p>
+<p>find_instruction =
+	</p>
+<blockquote class="text">
+<p>DB_INSTRUMENTS SP NON_RECURSIVE SP pathname SP query_val_list
+		
+</p>
+<p>/ DB_INSTRUMENTS SP pathname SP query_val_list
+		
+</p>
+<p>/ DB_INSTRUMENT_DIRECTORIES SP NON_RECURSIVE SP pathname SP query_val_list
+		
+</p>
+<p>/ DB_INSTRUMENT_DIRECTORIES SP pathname SP query_val_list
+		
+</p>
+</blockquote><p>
+
+</p>
 <p>move_instruction =
+	</p>
+<blockquote class="text">
+<p>DB_INSTRUMENT_DIRECTORY SP pathname SP pathname
+		
+</p>
+<p>/ DB_INSTRUMENT SP pathname SP pathname
+		
+</p>
+</blockquote><p>
+
+</p>
+<p>copy_instruction =
 	</p>
 <blockquote class="text">
 <p>DB_INSTRUMENT_DIRECTORY SP pathname SP pathname
@@ -9027,7 +9543,13 @@ Command Syntax</h3>
 <p>/ FX_SENDS SP sampler_channel
 		
 </p>
+<p>/ DB_INSTRUMENT_DIRECTORIES SP RECURSIVE SP pathname
+		
+</p>
 <p>/ DB_INSTRUMENT_DIRECTORIES SP pathname
+		
+</p>
+<p>/ DB_INSTRUMENTS SP RECURSIVE SP pathname
 		
 </p>
 <p>/ DB_INSTRUMENTS SP pathname
@@ -9292,6 +9814,30 @@ Command Syntax</h3>
 		
 </p>
 <p>/ dotnum
+		
+</p>
+</blockquote><p>
+
+</p>
+<p>query_val_list =
+	</p>
+<blockquote class="text">
+<p>string '=' query_val
+		
+</p>
+<p>/ query_val_list SP string '=' query_val
+		
+</p>
+</blockquote><p>
+
+</p>
+<p>query_val =
+	</p>
+<blockquote class="text">
+<p>string
+		
+</p>
+<p>/ stringval
 		
 </p>
 </blockquote><p>
