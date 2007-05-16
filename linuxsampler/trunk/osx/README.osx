@@ -44,14 +44,13 @@ Layout of the Directories
 Universal Binaries
 ------------------
 
-  Universal Binaries are not automatically created by the XCode project.
-  However, it is easy to create them by hands as follows:
-  
-  $ cd $LS   # Move to the linuxsampler directory
-  $ mkdir -p ../temp_build/UB/bin
-  $ cd ../temp_build/Deployment_ppc
-  $ i=bin/linuxsampler
-  $ lipo -create $i ../Deployment_i386/$i -output ../UB/$i
+  You can create the Universal Binaries by selecting "Deployment_UB" build
+  style and build. The binaries for i386 and ppc architectures are built
+  separately and then automatically combined. The Universal version of
+  linuxsampler is found in $LS/../temp_build/Deployment_UB/local/bin.
+
+  You do not need to have the Universal version of libgig, but you _do_
+  need to build libgig both for i386 and ppc architectures.
 
 Additional Information
 ----------------------
@@ -60,5 +59,6 @@ Additional Information
   setting relevant environmental variables. If you are interested
   (or feel suspicious), please examine autoconf_builder.sh.
 
-6 May 2007
-Written by Toshi Nagata
+6 May 2007: First written by Toshi Nagata
+9 May 2007: Updated to account for the Deployment_UB target
+

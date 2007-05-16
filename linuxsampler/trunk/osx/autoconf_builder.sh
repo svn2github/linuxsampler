@@ -1,21 +1,48 @@
 #!/bin/sh
 # autoconf_builder.sh
-# LinuxSampler
-#
 # Created by Toshi Nagata on 07/04/18.
-# Copyright 2007 __MyCompanyName__. All rights reserved.
+#
+# Copyright 2007 Toshi Nagata.
+#
+# Redistribution and use in source and binary forms, with or without modification, are permitted 
+# provided that the following conditions are met:
+#
+#   1. Redistributions of source code must retain the above copyright notice, this list of 
+# conditions and the following disclaimer.
+#   2. Redistributions in binary form must reproduce the above copyright notice, this list of 
+# conditions and the following disclaimer in the documentation and/or other materials provided 
+# with the distribution.
+#
+# THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, 
+# INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A 
+# PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, 
+# INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED 
+# TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS 
+# INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT 
+# LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF 
+# THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 #  Influential environmental variables:
 #  ACTION(*): autoconf - run "make -f Makefile.cvs"; configure - run "configure";
-#          make - run "make"; install - run "make install";
-#          build (or empty string) - autoconf && configure && make (&& install)
-#            "install" step is only done if WITH_INSTALL is non-empty
+#		make - run "make"; install - run "make install";
+#		build (or empty string) - autoconf && configure && make (&& install)
+#		"install" step is only done if WITH_INSTALL is non-empty
 #  BUILD_STYLE(*): The build style. If it ends with "ppc" or "i386", it also specifies the architecture.
+#		If it ends with "UB" or "Universal", it creates the Universal Binaries for the products
+#		specified by $UB_PRODUCTS (see below).
+#		If any of the products are missing, then this script is recursively called for 
+#		$BUILD_STYLE's that have "ppc" and "i386" in place of "UB" or "Universal".
 #  WITH_INSTALL: When non-empty, "install" action is automatically done in "build" action.
 #  CFLAGS, CXXFLAGS: Compiler flags
 #  CONFIG_OPTIONS: Options for "configure"
-#  BUILD_BASE_DIR: Temporary building and install directory. By default "$PWD/build".
+#  BUILD_BASE_DIR: Temporary building and install directory. By default "$PWD/build". The source
+#		tree is duplicated (by use of symbolic links) in $BUILD_BASE_DIR/$BUILD_STYLE/<basename>.build,
+#		where <basename> is the basename of the toplevel directory of the source tree (which also
+#		should be the current directory when this script is invoked). The product is "installed"
+#		into $BUILD_BASE_DIR/$BUILD_STYLE/local.
 #  SDKROOT: The root directory for SDK
+#  UB_PRODUCTS: The products for which Universal Binaries are to be created. The paths should be
+#		relative to $BUILD_BASE_DIR/$BUILD_STYLE/local. Eg. bin/some_executable, lib/some_library.a.
 #
 #  The variables marked with (*) are automatically set by Xcode.
 
@@ -24,9 +51,6 @@ BASE_NAME=`basename $PWD`
 
 function rel2abs () {
 	(cd "$1"; pwd)
-#	pushd "$1" >/dev/null
-#	pwd
-#	popd >/dev/null
 }
 
 function abs2rel () {
@@ -68,11 +92,8 @@ fi
 if test "x$BUILD_BASE_DIR" = "x"; then
 	BUILD_BASE_DIR=$PWD/build
 fi
-BUILD_DIR="$BUILD_BASE_DIR/$BUILD_STYLE/$BASE_NAME.build"
-mkdir -p "$BUILD_DIR" || exit $?
+mkdir -p "$BUILD_BASE_DIR" || exit $?
 BUILD_BASE_DIR=`rel2abs "$BUILD_BASE_DIR"`
-BUILD_DIR=`rel2abs "$BUILD_DIR"`
-CONFIG_OPTIONS="--prefix=$BUILD_BASE_DIR/$BUILD_STYLE/local $CONFIG_OPTIONS"
 
 if test -e "$SDKROOT"; then
 	SYSROOT_CFLAGS="-isysroot $SDKROOT"
@@ -94,8 +115,13 @@ case "$BUILD_STYLE" in
 	ARCH_CFLAGS="-arch i386 -msse -msse2"
 	ARCH_CONFIG_OPTIONS="--host=i386-apple-darwin8"
 	;;
-    *UB|*Universal)
+	*UB)
 	ARCH="UB"
+	BUILD_STYLE_BASE=${BUILD_STYLE/UB/}
+	;;
+    *Universal)
+	ARCH="UB"	
+	BUILD_STYLE_BASE=${BUILD_STYLE/Universal/}
 	;;
     *)
 	echo "Warning: architecture cannot be recognized from the build style"
@@ -115,18 +141,52 @@ esac
 export CFLAGS="$SYSROOT_CFLAGS $ARCH_CFLAGS $OPT_CFLAGS $CFLAGS"
 export CXXFLAGS="$SYSROOT_CFLAGS $ARCH_CFLAGS $OPT_CFLAGS $CXXFLAGS"
 
+if test "x$ARCH" = "xUB" -a "x$ACTION" != "xclean"; then
+	#  Test the existence of the products
+	BUILD_STYLE_PPC=${BUILD_STYLE_BASE}ppc
+	BUILD_STYLE_386=${BUILD_STYLE_BASE}i386
+	for style in $BUILD_STYLE_PPC $BUILD_STYLE_386; do
+		missing=no
+		for i in $UB_PRODUCTS; do
+			if ! test -e "$BUILD_BASE_DIR/$style/local/$i"; then
+				missing=yes
+			fi
+		done
+		if test "$missing" = "yes"; then
+			BUILD_STYLE_SAVE=$BUILD_STYLE
+			export BUILD_STYLE=$style
+			echo "Building with BUILD_STYLE=$style"
+			/bin/sh $0 || exit $?
+			BUILD_STYLE=$BUILD_STYLE_SAVE
+		fi
+	done
+	mkdir -p "$BUILD_BASE_DIR/$BUILD_STYLE/local" || exit $?
+	cd "$BUILD_BASE_DIR"
+	for i in $UB_PRODUCTS; do
+		mkdir -p "$BUILD_STYLE/local/"`dirname $i` || exit $?
+		echo "Creating universal binary $BUILD_STYLE/local/$i"
+		lipo -create "$BUILD_STYLE_PPC/local/$i" "$BUILD_STYLE_386/local/$i" -output "$BUILD_STYLE/local/$i" || exit $?
+	done
+	exit $?
+fi
+
+#  Move to the working directory
+BUILD_DIR="$BUILD_BASE_DIR/$BUILD_STYLE/$BASE_NAME.build"
+mkdir -p "$BUILD_DIR"
+BUILD_DIR=`rel2abs "$BUILD_DIR"`
+CONFIG_OPTIONS="--prefix=$BUILD_BASE_DIR/$BUILD_STYLE/local $CONFIG_OPTIONS"
+
 #  Display all environments
 set
 
-#  Move to the working directory
 cd $BUILD_DIR
 
 #  Clean if specified
 if test "x$ACTION" = "xclean"; then
-	if test "x$WITH_INSTALL" != "x" -a -e "Makefile"; then
-		echo "Doing make uninstall"
-		make uninstall
-	fi
+	# if test "x$WITH_INSTALL" != "x" -a -e "Makefile"; then
+	#	echo "Doing make uninstall"
+	#	make uninstall
+	# fi
     echo "Removing files in $BUILD_DIR"
 	cd $BASE_DIR
     rm -rf "$BUILD_DIR"

@@ -506,6 +506,27 @@
 			};
 			name = Deployment_i386;
 		};
+		E49D6A780BEE280600432768 /* Deployment_UB */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COPY_PHASE_STRIP = NO;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				PRODUCT_NAME = linuxsampler;
+			};
+			name = Deployment_UB;
+		};
+		E49D6A790BEE280600432768 /* Deployment_UB */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				PREBINDING = NO;
+				SDKROOT = /Developer/SDKs/MacOSX10.4u.sdk;
+			};
+			name = Deployment_UB;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -515,6 +536,7 @@
 				1DEB919408733D9F0010E9CD /* Development */,
 				E4102B7B0BCBD8A9006B57FE /* Deployment_ppc */,
 				E4102B7C0BCBD8A9006B57FE /* Deployment_i386 */,
+				E49D6A790BEE280600432768 /* Deployment_UB */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Development;
@@ -525,6 +547,7 @@
 				E4102B750BCBD85E006B57FE /* Development */,
 				E4102B770BCBD8A9006B57FE /* Deployment_ppc */,
 				E4102B780BCBD8A9006B57FE /* Deployment_i386 */,
+				E49D6A780BEE280600432768 /* Deployment_UB */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Development;
