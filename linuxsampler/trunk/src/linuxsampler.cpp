@@ -238,6 +238,7 @@ void parse_options(int argc, char **argv) {
             {"profile",0,0,0},
             {"no-tune",0,0,0},
             {"statistics",0,0,0},
+            {"create-instruments-db",1,0,0},
             {"lscp-addr",1,0,0},
             {"lscp-port",1,0,0},
             {0,0,0,0}
@@ -254,13 +255,14 @@ void parse_options(int argc, char **argv) {
             switch(option_index) {
                 case 0: // --help
                     printf("usage: linuxsampler [OPTIONS]\n\n");
-                    printf("--help             prints this message\n");
-                    printf("--version          prints version information\n");
-                    printf("--profile          profile synthesis algorithms\n");
-                    printf("--no-tune          disable assembly optimization\n");
-                    printf("--statistics       periodically prints statistics\n");
-                    printf("--lscp-addr        set LSCP address (default: any)\n");
-                    printf("--lscp-port        set LSCP port (default: 8888)\n");
+                    printf("--help                    prints this message\n");
+                    printf("--version                 prints version information\n");
+                    printf("--profile                 profile synthesis algorithms\n");
+                    printf("--no-tune                 disable assembly optimization\n");
+                    printf("--statistics              periodically prints statistics\n");
+                    printf("--lscp-addr               set LSCP address (default: any)\n");
+                    printf("--lscp-port               set LSCP port (default: 8888)\n");
+                    printf("--create-instruments-db   creates an instruments DB\n");
                     exit(EXIT_SUCCESS);
                     break;
                 case 1: // --version
@@ -276,19 +278,42 @@ void parse_options(int argc, char **argv) {
                 case 4: // --statistics
                     bPrintStatistics = true;
                     break;
-                case 5: // --lscp-addr
-		    struct in_addr addr;
-		    if (inet_aton(optarg, &addr) == 0)
-			    printf("WARNING: Failed to parse lscp-addr argument, ignoring!\n");
-		    else
-			    lscp_addr = addr.s_addr;
+                case 5: // --create-instruments-db
+#if HAVE_SQLITE3
+                    try {
+                        if (optarg) {
+                            std::cout << "Creating instruments database..." << std::endl;
+                            InstrumentsDb::CreateInstrumentsDb(String(optarg));
+                            InstrumentsDb::Destroy();
+                            std::cout << "Done" << std::endl;
+                        }
+                    } catch(Exception e) {
+                        std::cerr << e.Message() << std::endl;
+                        exit(EXIT_FAILURE);
+                        return;
+                    }
+
+                    exit(EXIT_SUCCESS);
+                    return;
+#else
+                    std::cerr << "Failed to create the database. LinuxSampler was ";
+                    std::cerr << "not build with instruments database support." <<std::endl;
+                    exit(EXIT_FAILURE);
+                    return;
+#endif              
+                case 6: // --lscp-addr
+                    struct in_addr addr;
+                    if (inet_aton(optarg, &addr) == 0)
+                        printf("WARNING: Failed to parse lscp-addr argument, ignoring!\n");
+                    else
+                        lscp_addr = addr.s_addr;
                     break;
-                case 6: // --lscp-port
-		    long unsigned int port = 0;
-		    if ((sscanf(optarg, "%u", &port) != 1) || (port == 0) || (port > 65535))
-			    printf("WARNING: Failed to parse lscp-port argument, ignoring!\n");
-		    else
-			    lscp_port = htons(port);
+                case 7: // --lscp-port
+                    long unsigned int port = 0;
+                    if ((sscanf(optarg, "%u", &port) != 1) || (port == 0) || (port > 65535))
+                        printf("WARNING: Failed to parse lscp-port argument, ignoring!\n");
+                    else
+                        lscp_port = htons(port);
                     break;
             }
         }

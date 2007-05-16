@@ -2294,12 +2294,12 @@ String LSCPServer::RemoveDbInstrumentDirectory(String Dir, bool Force) {
     return result.Produce();
 }
 
-String LSCPServer::GetDbInstrumentDirectoryCount(String Dir) {
-    dmsg(2,("LSCPServer: GetDbInstrumentDirectoryCount(Dir=%s)\n", Dir.c_str()));
+String LSCPServer::GetDbInstrumentDirectoryCount(String Dir, bool Recursive) {
+    dmsg(2,("LSCPServer: GetDbInstrumentDirectoryCount(Dir=%s,Recursive=%d)\n", Dir.c_str(), Recursive));
     LSCPResultSet result;
 #if HAVE_SQLITE3
     try {
-        result.Add(InstrumentsDb::GetInstrumentsDb()->GetDirectoryCount(Dir));
+        result.Add(InstrumentsDb::GetInstrumentsDb()->GetDirectoryCount(Dir, Recursive));
     } catch (Exception e) {
          result.Error(e);
     }
@@ -2309,13 +2309,13 @@ String LSCPServer::GetDbInstrumentDirectoryCount(String Dir) {
     return result.Produce();
 }
 
-String LSCPServer::GetDbInstrumentDirectories(String Dir) {
-    dmsg(2,("LSCPServer: GetDbInstrumentDirectories(Dir=%s)\n", Dir.c_str()));
+String LSCPServer::GetDbInstrumentDirectories(String Dir, bool Recursive) {
+    dmsg(2,("LSCPServer: GetDbInstrumentDirectories(Dir=%s,Recursive=%d)\n", Dir.c_str(), Recursive));
     LSCPResultSet result;
 #if HAVE_SQLITE3
     try {
         String list;
-        StringListPtr dirs = InstrumentsDb::GetInstrumentsDb()->GetDirectories(Dir);
+        StringListPtr dirs = InstrumentsDb::GetInstrumentsDb()->GetDirectories(Dir, Recursive);
 
         for (int i = 0; i < dirs->size(); i++) {
             if (list != "") list += ",";
@@ -2372,6 +2372,21 @@ String LSCPServer::MoveDbInstrumentDirectory(String Dir, String Dst) {
 #if HAVE_SQLITE3
     try {
         InstrumentsDb::GetInstrumentsDb()->MoveDirectory(Dir, Dst);
+    } catch (Exception e) {
+         result.Error(e);
+    }
+#else
+    result.Error(String(DOESNT_HAVE_SQLITE3), 0);
+#endif
+    return result.Produce();
+}
+
+String LSCPServer::CopyDbInstrumentDirectory(String Dir, String Dst) {
+    dmsg(2,("LSCPServer: CopyDbInstrumentDirectory(Dir=%s,Dst=%s)\n", Dir.c_str(), Dst.c_str()));
+    LSCPResultSet result;
+#if HAVE_SQLITE3
+    try {
+        InstrumentsDb::GetInstrumentsDb()->CopyDirectory(Dir, Dst);
     } catch (Exception e) {
          result.Error(e);
     }
@@ -2456,12 +2471,12 @@ String LSCPServer::RemoveDbInstrument(String Instr) {
     return result.Produce();
 }
 
-String LSCPServer::GetDbInstrumentCount(String Dir) {
-    dmsg(2,("LSCPServer: GetDbInstrumentCount(Dir=%s)\n", Dir.c_str()));
+String LSCPServer::GetDbInstrumentCount(String Dir, bool Recursive) {
+    dmsg(2,("LSCPServer: GetDbInstrumentCount(Dir=%s,Recursive=%d)\n", Dir.c_str(), Recursive));
     LSCPResultSet result;
 #if HAVE_SQLITE3
     try {
-        result.Add(InstrumentsDb::GetInstrumentsDb()->GetInstrumentCount(Dir));
+        result.Add(InstrumentsDb::GetInstrumentsDb()->GetInstrumentCount(Dir, Recursive));
     } catch (Exception e) {
          result.Error(e);
     }
@@ -2471,13 +2486,13 @@ String LSCPServer::GetDbInstrumentCount(String Dir) {
     return result.Produce();
 }
 
-String LSCPServer::GetDbInstruments(String Dir) {
-    dmsg(2,("LSCPServer: GetDbInstruments(Dir=%s)\n", Dir.c_str()));
+String LSCPServer::GetDbInstruments(String Dir, bool Recursive) {
+    dmsg(2,("LSCPServer: GetDbInstruments(Dir=%s,Recursive=%d)\n", Dir.c_str(), Recursive));
     LSCPResultSet result;
 #if HAVE_SQLITE3
     try {
         String list;
-        StringListPtr instrs = InstrumentsDb::GetInstrumentsDb()->GetInstruments(Dir);
+        StringListPtr instrs = InstrumentsDb::GetInstrumentsDb()->GetInstruments(Dir, Recursive);
 
         for (int i = 0; i < instrs->size(); i++) {
             if (list != "") list += ",";
@@ -2552,12 +2567,123 @@ String LSCPServer::MoveDbInstrument(String Instr, String Dst) {
     return result.Produce();
 }
 
+String LSCPServer::CopyDbInstrument(String Instr, String Dst) {
+    dmsg(2,("LSCPServer: CopyDbInstrument(Instr=%s,Dst=%s)\n", Instr.c_str(), Dst.c_str()));
+    LSCPResultSet result;
+#if HAVE_SQLITE3
+    try {
+        InstrumentsDb::GetInstrumentsDb()->CopyInstrument(Instr, Dst);
+    } catch (Exception e) {
+         result.Error(e);
+    }
+#else
+    result.Error(String(DOESNT_HAVE_SQLITE3), 0);
+#endif
+    return result.Produce();
+}
+
 String LSCPServer::SetDbInstrumentDescription(String Instr, String Desc) {
     dmsg(2,("LSCPServer: SetDbInstrumentDescription(Instr=%s,Desc=%s)\n", Instr.c_str(), Desc.c_str()));
     LSCPResultSet result;
 #if HAVE_SQLITE3
     try {
         InstrumentsDb::GetInstrumentsDb()->SetInstrumentDescription(Instr, Desc);
+    } catch (Exception e) {
+         result.Error(e);
+    }
+#else
+    result.Error(String(DOESNT_HAVE_SQLITE3), 0);
+#endif
+    return result.Produce();
+}
+
+String LSCPServer::FindDbInstrumentDirectories(String Dir, std::map<String,String> Parameters, bool Recursive) {
+    dmsg(2,("LSCPServer: FindDbInstrumentDirectories(Dir=%s)\n", Dir.c_str()));
+    LSCPResultSet result;
+#if HAVE_SQLITE3
+    try {
+        SearchQuery Query;
+        std::map<String,String>::iterator iter;
+        for (iter = Parameters.begin(); iter != Parameters.end(); iter++) {
+            if (iter->first.compare("NAME") == 0) {
+                Query.Name = iter->second;
+            } else if (iter->first.compare("CREATED") == 0) {
+                Query.SetCreated(iter->second);
+            } else if (iter->first.compare("MODIFIED") == 0) {
+                Query.SetModified(iter->second);
+            } else if (iter->first.compare("DESCRIPTION") == 0) {
+                Query.Description = iter->second;
+            } else {
+                throw Exception("Unknown search criteria: " + iter->first);
+            }
+        }
+
+        String list;
+        StringListPtr pDirectories =
+            InstrumentsDb::GetInstrumentsDb()->FindDirectories(Dir, &Query, Recursive);
+
+        for (int i = 0; i < pDirectories->size(); i++) {
+            if (list != "") list += ",";
+            list += "'" + pDirectories->at(i) + "'";
+        }
+
+        result.Add(list);
+    } catch (Exception e) {
+         result.Error(e);
+    }
+#else
+    result.Error(String(DOESNT_HAVE_SQLITE3), 0);
+#endif
+    return result.Produce();
+}
+
+String LSCPServer::FindDbInstruments(String Dir, std::map<String,String> Parameters, bool Recursive) {
+    dmsg(2,("LSCPServer: FindDbInstruments(Dir=%s)\n", Dir.c_str()));
+    LSCPResultSet result;
+#if HAVE_SQLITE3
+    try {
+        SearchQuery Query;
+        std::map<String,String>::iterator iter;
+        for (iter = Parameters.begin(); iter != Parameters.end(); iter++) {
+            if (iter->first.compare("NAME") == 0) {
+                Query.Name = iter->second;
+            } else if (iter->first.compare("FORMAT_FAMILIES") == 0) {
+                Query.SetFormatFamilies(iter->second);
+            } else if (iter->first.compare("SIZE") == 0) {
+                Query.SetSize(iter->second);
+            } else if (iter->first.compare("CREATED") == 0) {
+                Query.SetCreated(iter->second);
+            } else if (iter->first.compare("MODIFIED") == 0) {
+                Query.SetModified(iter->second);
+            } else if (iter->first.compare("DESCRIPTION") == 0) {
+                Query.Description = iter->second;
+            } else if (iter->first.compare("IS_DRUM") == 0) {
+                if (!strcasecmp(iter->second.c_str(), "true")) {
+                    Query.InstrType = SearchQuery::DRUM;
+                } else {
+                    Query.InstrType = SearchQuery::CHROMATIC;
+                }
+            } else if (iter->first.compare("PRODUCT") == 0) {
+                 Query.Product = iter->second;
+            } else if (iter->first.compare("ARTISTS") == 0) {
+                 Query.Artists = iter->second;
+            } else if (iter->first.compare("KEYWORDS") == 0) {
+                 Query.Keywords = iter->second;
+            } else {
+                throw Exception("Unknown search criteria: " + iter->first);
+            }
+        }
+
+        String list;
+        StringListPtr pInstruments =
+            InstrumentsDb::GetInstrumentsDb()->FindInstruments(Dir, &Query, Recursive);
+
+        for (int i = 0; i < pInstruments->size(); i++) {
+            if (list != "") list += ",";
+            list += "'" + pInstruments->at(i) + "'";
+        }
+
+        result.Add(list);
     } catch (Exception e) {
          result.Error(e);
     }

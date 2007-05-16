@@ -26,6 +26,7 @@
 #include <sstream>
 #include <dirent.h>
 #include <errno.h>
+#include <fnmatch.h>
 #include <ftw.h>
 #include "../common/Exception.h"
 
@@ -57,12 +58,374 @@ namespace LinuxSampler {
         Description = Dir.Description;
     }
 
+    SearchQuery::SearchQuery() {
+        MinSize = -1;
+        MaxSize = -1;
+        InstrType = BOTH;
+    }
+
+    void SearchQuery::SetFormatFamilies(String s) {
+        if (s.length() == 0) return;
+        int i = 0;
+        int j = s.find(',', 0);
+        
+        while (j != std::string::npos) {
+            FormatFamilies.push_back(s.substr(i, j - i));
+            i = j + 1;
+            j = s.find(',', i);
+        }
+        
+        if (i < s.length()) FormatFamilies.push_back(s.substr(i));
+    }
+
+    void SearchQuery::SetSize(String s) {
+        String s2 = GetMin(s);
+        if (s2.length() > 0) MinSize = atoll(s2.c_str());
+        else MinSize = -1;
+        
+        s2 = GetMax(s);
+        if (s2.length() > 0) MaxSize = atoll(s2.c_str());
+        else MaxSize = -1;
+    }
+
+    void SearchQuery::SetCreated(String s) {
+        CreatedAfter = GetMin(s);
+        CreatedBefore = GetMax(s);
+    }
+
+    void SearchQuery::SetModified(String s) {
+        ModifiedAfter = GetMin(s);
+        ModifiedBefore = GetMax(s);
+    }
+
+    String SearchQuery::GetMin(String s) {
+        if (s.length() < 3) return "";
+        if (s.at(0) == '.' && s.at(1) == '.') return "";
+        int i = s.find("..");
+        if (i == std::string::npos) return "";
+        return s.substr(0, i);
+    }
+
+    String SearchQuery::GetMax(String s) {
+        if (s.length() < 3) return "";
+        if (s.find("..", s.length() - 2) != std::string::npos) return "";
+        int i = s.find("..");
+        if (i == std::string::npos) return "";
+        return s.substr(i + 2);
+    }
+    
+    bool InstrumentsDb::AbstractFinder::IsRegex(String Pattern) {
+        if(Pattern.find('?') != String::npos) return true;
+        if(Pattern.find('*') != String::npos) return true;
+        return false;
+    }
+
+    void InstrumentsDb::AbstractFinder::AddSql(String Col, String Pattern, std::stringstream& Sql) {
+        if (Pattern.length() == 0) return;
+
+        if (IsRegex(Pattern)) {
+            Sql << " AND " << Col << " regexp ?";
+            Params.push_back(Pattern);
+            return;
+        }
+
+        String buf;
+        std::vector<String> tokens;
+        std::vector<String> tokens2;
+        std::stringstream ss(Pattern);
+        while (ss >> buf) tokens.push_back(buf);
+
+        if (tokens.size() == 0) {
+            Sql << " AND " << Col << " LIKE ?";
+            Params.push_back("%" + Pattern + "%");
+            return;
+        }
+
+        bool b = false;
+        for (int i = 0; i < tokens.size(); i++) {
+            Sql << (i == 0 ? " AND (" : "");
+
+            for (int j = 0; j < tokens.at(i).length(); j++) {
+                if (tokens.at(i).at(j) == '+') tokens.at(i).at(j) = ' ';
+            }
+
+            ss.clear();
+            ss.str("");
+            ss << tokens.at(i);
+
+            tokens2.clear();
+            while (ss >> buf) tokens2.push_back(buf);
+
+            if (b && tokens2.size() > 0) Sql << " OR ";
+            if (tokens2.size() > 1) Sql << "(";
+            for (int j = 0; j < tokens2.size(); j++) {
+                if (j != 0) Sql << " AND ";
+                Sql << Col << " LIKE ?";
+                Params.push_back("%" + tokens2.at(j) + "%");
+                b = true;
+            }
+            if (tokens2.size() > 1) Sql << ")";
+        }
+        if (!b) Sql << "0)";
+        else Sql << ")";
+    }
+
+    InstrumentsDb::DirectoryFinder::DirectoryFinder(SearchQuery* pQuery) : pDirectories(new std::vector<String>) {
+        pStmt = NULL;
+        this->pQuery = pQuery;
+        std::stringstream sql;
+        sql << "SELECT dir_name from instr_dirs WHERE parent_dir_id=?";
+
+        if (pQuery->CreatedAfter.length() != 0) {
+            sql << " AND created > ?";
+            Params.push_back(pQuery->CreatedAfter);
+        }
+        if (pQuery->CreatedBefore.length() != 0) {
+            sql << " AND created < ?";
+            Params.push_back(pQuery->CreatedBefore);
+        }
+        if (pQuery->ModifiedAfter.length() != 0) {
+            sql << " AND modified > ?";
+            Params.push_back(pQuery->ModifiedAfter);
+        }
+        if (pQuery->ModifiedBefore.length() != 0) {
+            sql << " AND modified < ?";
+            Params.push_back(pQuery->ModifiedBefore);
+        }
+
+        AddSql("dir_name", pQuery->Name, sql);
+        AddSql("description", pQuery->Description, sql);
+        SqlQuery = sql.str();
+
+        InstrumentsDb* idb = InstrumentsDb::GetInstrumentsDb();
+
+        int res = sqlite3_prepare(idb->GetDb(), SqlQuery.c_str(), -1, &pStmt, NULL);
+        if (res != SQLITE_OK) {
+            throw Exception("DB error: " + ToString(sqlite3_errmsg(idb->GetDb())));
+        }
+
+        for(int i = 0; i < Params.size(); i++) {
+            idb->BindTextParam(pStmt, i + 2, Params.at(i));
+        }
+    }
+    
+    InstrumentsDb::DirectoryFinder::~DirectoryFinder() {
+        if (pStmt != NULL) sqlite3_finalize(pStmt);
+    }
+
+    StringListPtr InstrumentsDb::DirectoryFinder::GetDirectories() {
+        return pDirectories;
+    }
+    
+    void InstrumentsDb::DirectoryFinder::ProcessDirectory(String Path, int DirId) {
+        InstrumentsDb* idb = InstrumentsDb::GetInstrumentsDb();
+        idb->BindIntParam(pStmt, 1, DirId);
+
+        String s = Path;
+        if(Path.compare("/") != 0) s += "/";
+        int res = sqlite3_step(pStmt);
+        while(res == SQLITE_ROW) {
+            pDirectories->push_back(s + ToString(sqlite3_column_text(pStmt, 0)));
+            res = sqlite3_step(pStmt);
+        }
+        
+        if (res != SQLITE_DONE) {
+            sqlite3_finalize(pStmt);
+            throw Exception("DB error: " + ToString(sqlite3_errmsg(idb->GetDb())));
+        }
+
+        res = sqlite3_reset(pStmt);
+        if (res != SQLITE_OK) {
+            sqlite3_finalize(pStmt);
+            throw Exception("DB error: " + ToString(sqlite3_errmsg(idb->GetDb())));
+        }
+    }
+
+    InstrumentsDb::InstrumentFinder::InstrumentFinder(SearchQuery* pQuery) : pInstruments(new std::vector<String>) {
+        pStmt = NULL;
+        this->pQuery = pQuery;
+        std::stringstream sql;
+        sql << "SELECT instr_name from instruments WHERE dir_id=?";
+
+        if (pQuery->CreatedAfter.length() != 0) {
+            sql << " AND created > ?";
+            Params.push_back(pQuery->CreatedAfter);
+        }
+        if (pQuery->CreatedBefore.length() != 0) {
+            sql << " AND created < ?";
+            Params.push_back(pQuery->CreatedBefore);
+        }
+        if (pQuery->ModifiedAfter.length() != 0) {
+            sql << " AND modified > ?";
+            Params.push_back(pQuery->ModifiedAfter);
+        }
+        if (pQuery->ModifiedBefore.length() != 0) {
+            sql << " AND modified < ?";
+            Params.push_back(pQuery->ModifiedBefore);
+        }
+        if (pQuery->MinSize != -1) sql << " AND instr_size > " << pQuery->MinSize;
+        if (pQuery->MaxSize != -1) sql << " AND instr_size < " << pQuery->MaxSize;
+
+        if (pQuery->InstrType == SearchQuery::CHROMATIC) sql << " AND is_drum = 0";
+        else if (pQuery->InstrType == SearchQuery::DRUM) sql << " AND is_drum != 0";
+
+        if (pQuery->FormatFamilies.size() > 0) {
+            sql << " AND (format_family=?";
+            Params.push_back(pQuery->FormatFamilies.at(0));
+            for (int i = 1; i < pQuery->FormatFamilies.size(); i++) {
+                sql << "OR format_family=?";
+                Params.push_back(pQuery->FormatFamilies.at(i));
+            }
+            sql << ")";
+        }
+
+        AddSql("instr_name", pQuery->Name, sql);
+        AddSql("description", pQuery->Description, sql);
+        AddSql("product", pQuery->Product, sql);
+        AddSql("artists", pQuery->Artists, sql);
+        AddSql("keywords", pQuery->Keywords, sql);
+        SqlQuery = sql.str();
+
+        InstrumentsDb* idb = InstrumentsDb::GetInstrumentsDb();
+
+        int res = sqlite3_prepare(idb->GetDb(), SqlQuery.c_str(), -1, &pStmt, NULL);
+        if (res != SQLITE_OK) {
+            throw Exception("DB error: " + ToString(sqlite3_errmsg(idb->GetDb())));
+        }
+
+        for(int i = 0; i < Params.size(); i++) {
+            idb->BindTextParam(pStmt, i + 2, Params.at(i));
+        }
+    }
+    
+    InstrumentsDb::InstrumentFinder::~InstrumentFinder() {
+        if (pStmt != NULL) sqlite3_finalize(pStmt);
+    }
+    
+    void InstrumentsDb::InstrumentFinder::ProcessDirectory(String Path, int DirId) {
+        InstrumentsDb* idb = InstrumentsDb::GetInstrumentsDb();
+        idb->BindIntParam(pStmt, 1, DirId);
+
+        String s = Path;
+        if(Path.compare("/") != 0) s += "/";
+        int res = sqlite3_step(pStmt);
+        while(res == SQLITE_ROW) {
+            pInstruments->push_back(s + ToString(sqlite3_column_text(pStmt, 0)));
+            res = sqlite3_step(pStmt);
+        }
+        
+        if (res != SQLITE_DONE) {
+            sqlite3_finalize(pStmt);
+            throw Exception("DB error: " + ToString(sqlite3_errmsg(idb->GetDb())));
+        }
+
+        res = sqlite3_reset(pStmt);
+        if (res != SQLITE_OK) {
+            sqlite3_finalize(pStmt);
+            throw Exception("DB error: " + ToString(sqlite3_errmsg(idb->GetDb())));
+        }
+    }
+
+    StringListPtr InstrumentsDb::InstrumentFinder::GetInstruments() {
+        return pInstruments;
+    }
+
+    void InstrumentsDb::DirectoryCounter::ProcessDirectory(String Path, int DirId) {
+        count += InstrumentsDb::GetInstrumentsDb()->GetDirectoryCount(DirId);
+    }
+
+    void InstrumentsDb::InstrumentCounter::ProcessDirectory(String Path, int DirId) {
+        count += InstrumentsDb::GetInstrumentsDb()->GetInstrumentCount(DirId);
+    }
+
+    InstrumentsDb::DirectoryCopier::DirectoryCopier(String SrcParentDir, String DestDir) {
+        this->SrcParentDir = SrcParentDir;
+        this->DestDir = DestDir;
+
+        if (DestDir.at(DestDir.length() - 1) != '/') {
+            this->DestDir.append("/");
+        }
+        if (SrcParentDir.at(SrcParentDir.length() - 1) != '/') {
+            this->SrcParentDir.append("/");
+        }
+    }
+
+    void InstrumentsDb::DirectoryCopier::ProcessDirectory(String Path, int DirId) {
+        InstrumentsDb* db = InstrumentsDb::GetInstrumentsDb();
+
+        String dir = DestDir;
+        String subdir = Path;
+        if(subdir.length() > SrcParentDir.length()) {
+            subdir = subdir.substr(SrcParentDir.length());
+            dir += subdir;
+            db->AddDirectory(dir);
+        }
+
+        int dstDirId = db->GetDirectoryId(dir);
+        if(dstDirId == -1) throw Exception("Unkown DB directory: " + dir);
+        IntListPtr ids = db->GetInstrumentIDs(DirId);
+        for (int i = 0; i < ids->size(); i++) {
+            String name = db->GetInstrumentName(ids->at(i));
+            db->CopyInstrument(ids->at(i), name, dstDirId, dir);
+        }
+    }
 
     InstrumentsDb* InstrumentsDb::pInstrumentsDb = new InstrumentsDb;
+
+    void InstrumentsDb::CreateInstrumentsDb(String File) {
+        struct stat statBuf;
+        int res = stat(File.c_str(), &statBuf);
+        if (!res) {
+            throw Exception("File exists: " + File);
+        }
+        
+        GetInstrumentsDb()->SetDbFile(File);
+
+        String sql = 
+            "  CREATE TABLE instr_dirs (                                      "
+            "      dir_id         INTEGER PRIMARY KEY AUTOINCREMENT,          "
+            "      parent_dir_id  INTEGER DEFAULT 0,                          "
+            "      dir_name       TEXT,                                       "
+            "      created        TIMESTAMP DEFAULT CURRENT_TIMESTAMP,        "
+            "      modified       TIMESTAMP DEFAULT CURRENT_TIMESTAMP,        "
+            "      description    TEXT,                                       "
+            "      FOREIGN KEY(parent_dir_id) REFERENCES instr_dirs(dir_id),  "
+            "      UNIQUE (parent_dir_id,dir_name)                            "
+            "  );                                                             ";
+        
+        GetInstrumentsDb()->ExecSql(sql);
+
+        sql = "INSERT INTO instr_dirs (dir_id, parent_dir_id, dir_name) VALUES (0, 0, '/');";
+        GetInstrumentsDb()->ExecSql(sql);
+
+        sql =
+            "  CREATE TABLE instruments (                                "
+            "      instr_id        INTEGER PRIMARY KEY AUTOINCREMENT,    "
+            "      dir_id          INTEGER DEFAULT 0,                    "
+            "      instr_name      TEXT,                                 "
+            "      instr_file      TEXT,                                 "
+            "      instr_nr        INTEGER,                              "
+            "      format_family   TEXT,                                 "
+            "      format_version  TEXT,                                 "
+            "      instr_size      INTEGER,                              "
+            "      created         TIMESTAMP DEFAULT CURRENT_TIMESTAMP,  "
+            "      modified        TIMESTAMP DEFAULT CURRENT_TIMESTAMP,  "
+            "      description     TEXT,                                 "
+            "      is_drum         INTEGER(1),                           "
+            "      product         TEXT,                                 "
+            "      artists         TEXT,                                 "
+            "      keywords        TEXT,                                 "
+            "      FOREIGN KEY(dir_id) REFERENCES instr_dirs(dir_id),    "
+            "      UNIQUE (dir_id,instr_name)                            "
+            "  );                                                        ";
+        
+        GetInstrumentsDb()->ExecSql(sql);
+    }
 
     InstrumentsDb::InstrumentsDb() {
         db = NULL;
         DbInstrumentsMutex = Mutex();
+        InTransaction = false;
     }
 
     InstrumentsDb::~InstrumentsDb() {
@@ -108,6 +471,8 @@ namespace LinuxSampler {
             db = NULL;
             throw Exception("Cannot open instruments database: " + DbFile);
         }
+        rc = sqlite3_create_function(db, "regexp", 2, SQLITE_UTF8, NULL, Regexp, NULL, NULL);
+        if (rc) { throw Exception("Failed to add user function for handling regular expressions."); }
         
         return db;
     }
@@ -127,17 +492,24 @@ namespace LinuxSampler {
         return count;
     }
 
-    int InstrumentsDb::GetDirectoryCount(String Dir) {
-        dmsg(2,("InstrumentsDb: GetDirectoryCount(Dir=%s)\n", Dir.c_str()));
+    int InstrumentsDb::GetDirectoryCount(String Dir, bool Recursive) {
+        dmsg(2,("InstrumentsDb: GetDirectoryCount(Dir=%s,Recursive=%d)\n", Dir.c_str(), Recursive));
         int i;
 
-        DbInstrumentsMutex.Lock();
-        try { i = GetDirectoryCount(GetDirectoryId(Dir)); }
-        catch (Exception e) {
-            DbInstrumentsMutex.Unlock();
+        BeginTransaction();
+        try {
+            if (Recursive) {
+                DirectoryCounter directoryCounter;
+                DirectoryTreeWalk(Dir, &directoryCounter);
+                i = directoryCounter.GetDirectoryCount();
+            } else {
+                i = GetDirectoryCount(GetDirectoryId(Dir));
+            }
+        } catch (Exception e) {
+            EndTransaction();
             throw e;
         }
-        DbInstrumentsMutex.Unlock();
+        EndTransaction();
         if (i == -1) throw Exception("Unkown DB directory: " + Dir);
         
         return i;
@@ -151,24 +523,36 @@ namespace LinuxSampler {
         return ExecSqlIntList(sql.str());
     }
 
-    StringListPtr InstrumentsDb::GetDirectories(String Dir) {
-        dmsg(2,("InstrumentsDb: GetDirectories(Dir=%s)\n", Dir.c_str()));
+    StringListPtr InstrumentsDb::GetDirectories(String Dir, bool Recursive) {
+        dmsg(2,("InstrumentsDb: GetDirectories(Dir=%s,Recursive=%d)\n", Dir.c_str(), Recursive));
 
-        DbInstrumentsMutex.Lock();
+        BeginTransaction();
         try {
             int dirId = GetDirectoryId(Dir);
             if(dirId == -1) throw Exception("Unknown DB directory: " + Dir);
 
-            std::stringstream sql;
-            sql << "SELECT dir_name FROM instr_dirs ";
-            sql << "WHERE parent_dir_id=" << dirId << " AND dir_id!=0";
-
-            DbInstrumentsMutex.Unlock();
-            return ExecSqlStringList(sql.str());
+            StringListPtr pDirs;
+            if (Recursive) {
+                SearchQuery q;
+                DirectoryFinder directoryFinder(&q);
+                DirectoryTreeWalk(Dir, &directoryFinder);
+                pDirs = directoryFinder.GetDirectories();
+            } else {
+                pDirs = GetDirectories(dirId);
+            }
+            EndTransaction();
+            return pDirs;
         } catch (Exception e) {
-            DbInstrumentsMutex.Unlock();
+            EndTransaction();
             throw e;
         }
+    }
+    
+    StringListPtr InstrumentsDb::GetDirectories(int DirId) {
+        std::stringstream sql;
+        sql << "SELECT dir_name FROM instr_dirs ";
+        sql << "WHERE parent_dir_id=" << DirId << " AND dir_id!=0";
+        return ExecSqlStringList(sql.str());
     }
 
     int InstrumentsDb::GetDirectoryId(String Dir) {
@@ -203,12 +587,45 @@ namespace LinuxSampler {
         return ExecSqlInt(sql.str(), DirName);
     }
 
+    String InstrumentsDb::GetDirectoryName(int DirId) {
+        String sql = "SELECT dir_name FROM instr_dirs WHERE dir_id=" + ToString(DirId);
+        String name = ExecSqlString(sql);
+        if (name.empty()) throw Exception("Directory ID not found");
+        return name;
+    }
+
+    int InstrumentsDb::GetParentDirectoryId(int DirId) {
+        if (DirId == 0) throw Exception("The root directory is specified");
+        String sql = "SELECT parent_dir_id FROM instr_dirs WHERE dir_id=" + ToString(DirId);
+        int parentId = ExecSqlInt(sql);
+        if (parentId == -1) throw Exception("DB directory not found");
+        return parentId;
+    }
+
+    String InstrumentsDb::GetDirectoryPath(int DirId) {
+        String path = "";
+        int count = 1000; // used to prevent infinite loops
+
+        while(--count) {
+            if (DirId == 0) {
+                path = "/" + path;
+                break;
+            }
+            path = GetDirectoryName(DirId) + path;
+            DirId = GetParentDirectoryId(DirId);
+        }
+
+        if (!count) throw Exception("Possible infinite loop detected");
+
+        return path;
+    }
+
     void InstrumentsDb::AddDirectory(String Dir) {
         dmsg(2,("InstrumentsDb: AddDirectory(Dir=%s)\n", Dir.c_str()));
         CheckPathName(Dir);
         String ParentDir = GetParentDirectory(Dir);
         
-        DbInstrumentsMutex.Lock();
+        BeginTransaction();
         try {
             if (Dir.length() > 1) {
                 if (Dir.at(Dir.length() - 1) == '/') Dir.erase(Dir.length() - 1);
@@ -223,6 +640,8 @@ namespace LinuxSampler {
             if (id == -1) throw Exception("DB directory doesn't exist: " + ParentDir);
             int id2 = GetDirectoryId(id, dirName);
             if (id2 != -1) throw Exception("DB directory already exist: " + Dir);
+            id2 = GetInstrumentId(id, dirName);
+            if (id2 != -1) throw Exception("Instrument with that name exist: " + Dir);
 
             std::stringstream sql;
             sql << "INSERT INTO instr_dirs (parent_dir_id, dir_name) VALUES (";
@@ -230,11 +649,11 @@ namespace LinuxSampler {
 
             ExecSql(sql.str(), dirName);
         } catch (Exception e) {
-            DbInstrumentsMutex.Unlock();
+            EndTransaction();
             throw e;
         }
 
-        DbInstrumentsMutex.Unlock();
+        EndTransaction();
 
         FireDirectoryCountChanged(ParentDir);
     }
@@ -244,7 +663,7 @@ namespace LinuxSampler {
 
         String ParentDir = GetParentDirectory(Dir);
 
-        DbInstrumentsMutex.Lock();
+        BeginTransaction();
         try {
             int dirId = GetDirectoryId(Dir);
             if (dirId == -1) throw Exception("Unknown DB directory: " + Dir);
@@ -253,11 +672,11 @@ namespace LinuxSampler {
             if (Force) RemoveDirectoryContent(dirId);
             RemoveDirectory(dirId);
         } catch (Exception e) {
-            DbInstrumentsMutex.Unlock();
+            EndTransaction();
             throw e;
         }
 
-        DbInstrumentsMutex.Unlock();
+        EndTransaction();
         FireDirectoryCountChanged(ParentDir);
     }
 
@@ -330,7 +749,7 @@ namespace LinuxSampler {
         dmsg(2,("InstrumentsDb: GetDirectoryInfo(Dir=%s)\n", Dir.c_str()));
         DbDirectory d;
 
-        DbInstrumentsMutex.Lock();
+        BeginTransaction();
 
         try {
             int id = GetDirectoryId(Dir);
@@ -363,11 +782,11 @@ namespace LinuxSampler {
             
             sqlite3_finalize(pStmt);
         } catch (Exception e) {
-            DbInstrumentsMutex.Unlock();
+            EndTransaction();
             throw e;
         }
 
-        DbInstrumentsMutex.Unlock();
+        EndTransaction();
         return d;
     }
 
@@ -375,7 +794,7 @@ namespace LinuxSampler {
         dmsg(2,("InstrumentsDb: RenameDirectory(Dir=%s,Name=%s)\n", Dir.c_str(), Name.c_str()));
         CheckFileName(Name);
 
-        DbInstrumentsMutex.Lock();
+        BeginTransaction();
         try {
             int dirId = GetDirectoryId(Dir);
             if (dirId == -1) throw Exception("Unknown DB directory: " + Dir);
@@ -389,25 +808,30 @@ namespace LinuxSampler {
                 throw Exception("Cannot rename. Directory with that name already exists: " + Name);
             }
 
+            if (GetInstrumentId(parent, Name) != -1) {
+                throw Exception("Cannot rename. Instrument with that name exist: " + Dir);
+            }
+
             sql.str("");
             sql << "UPDATE instr_dirs SET dir_name=? WHERE dir_id=" << dirId;
             ExecSql(sql.str(), Name);
         } catch (Exception e) {
-            DbInstrumentsMutex.Unlock();
+            EndTransaction();
             throw e;
         }
 
-        DbInstrumentsMutex.Unlock();
+        EndTransaction();
         FireDirectoryNameChanged(Dir, Name);
     }
 
     void InstrumentsDb::MoveDirectory(String Dir, String Dst) {
         dmsg(2,("InstrumentsDb: MoveDirectory(Dir=%s,Dst=%s)\n", Dir.c_str(), Dst.c_str()));
 
+        if(Dir.compare("/") == 0) throw Exception("Cannot move the root directory");
         String ParentDir = GetParentDirectory(Dir);
         if(ParentDir.empty()) throw Exception("Unknown parent directory");
 
-        DbInstrumentsMutex.Lock();
+        BeginTransaction();
         try {
             int dirId = GetDirectoryId(Dir);
             if (dirId == -1) throw Exception("Unknown DB directory: " + Dir);
@@ -423,25 +847,75 @@ namespace LinuxSampler {
                     throw Exception("Cannot move a directory to a subdirectory of itself.");
                 }
             }
+            
+            Dir.erase(Dir.length() - 1);
+            String dirName = GetFileName(Dir);
+
+            int id2 = GetDirectoryId(dstId, dirName);
+            if (id2 != -1) throw Exception("DB directory already exist: " + dirName);
+            id2 = GetInstrumentId(dstId, dirName);
+            if (id2 != -1) throw Exception("Instrument with that name exist: " + dirName);
 
             std::stringstream sql;
             sql << "UPDATE instr_dirs SET parent_dir_id=" << dstId;
             sql << " WHERE dir_id=" << dirId;
             ExecSql(sql.str());
         } catch (Exception e) {
-            DbInstrumentsMutex.Unlock();
+            EndTransaction();
             throw e;
         }
 
-        DbInstrumentsMutex.Unlock();
+        EndTransaction();
         FireDirectoryCountChanged(ParentDir);
         FireDirectoryCountChanged(Dst);
+    }
+
+    void InstrumentsDb::CopyDirectory(String Dir, String Dst) {
+        dmsg(2,("InstrumentsDb: CopyDirectory(Dir=%s,Dst=%s)\n", Dir.c_str(), Dst.c_str()));
+
+        if(Dir.compare("/") == 0) throw Exception("Cannot copy the root directory");
+        String ParentDir = GetParentDirectory(Dir);
+        if(ParentDir.empty()) throw Exception("Unknown parent directory");
+
+        BeginTransaction();
+        try {
+            int dirId = GetDirectoryId(Dir);
+            if (dirId == -1) throw Exception("Unknown DB directory: " + Dir);
+            int dstId = GetDirectoryId(Dst);
+            if (dstId == -1) throw Exception("Unknown DB directory: " + Dst);
+            if (dirId == dstId) {
+                throw Exception("Cannot copy directory to itself");
+            }
+
+            if (Dir.at(Dir.length() - 1) != '/') Dir.append("/");
+            if (Dst.length() > Dir.length()) {
+                if (Dir.compare(Dst.substr(0, Dir.length())) == 0) {
+                    throw Exception("Cannot copy a directory to a subdirectory of itself.");
+                }
+            }
+            
+            Dir.erase(Dir.length() - 1);
+            String dirName = GetFileName(Dir);
+
+            int id2 = GetDirectoryId(dstId, dirName);
+            if (id2 != -1) throw Exception("DB directory already exist: " + dirName);
+            id2 = GetInstrumentId(dstId, dirName);
+            if (id2 != -1) throw Exception("Instrument with that name exist: " + dirName);
+
+            DirectoryCopier directoryCopier(ParentDir, Dst);
+            DirectoryTreeWalk(Dir, &directoryCopier);
+        } catch (Exception e) {
+            EndTransaction();
+            throw e;
+        }
+
+        EndTransaction();
     }
 
     void InstrumentsDb::SetDirectoryDescription(String Dir, String Desc) {
         dmsg(2,("InstrumentsDb: SetDirectoryDescription(Dir=%s,Desc=%s)\n", Dir.c_str(), Desc.c_str()));
         
-        DbInstrumentsMutex.Lock();
+        BeginTransaction();
         try {
             int id = GetDirectoryId(Dir);
             if(id == -1) throw Exception("Unknown DB directory: " + Dir);
@@ -452,10 +926,10 @@ namespace LinuxSampler {
         
             ExecSql(sql.str(), Desc);
         } catch (Exception e) {
-            DbInstrumentsMutex.Unlock();
+            EndTransaction();
             throw e;
         }
-        DbInstrumentsMutex.Unlock();
+        EndTransaction();
         
         FireDirectoryInfoChanged(Dir);
     }
@@ -531,7 +1005,7 @@ namespace LinuxSampler {
                 std::stringstream ss;
                 ss << "The scanning of directory `" << FsDir << "` failed: ";
                 ss << strerror(errno);
-                std::cout << ss.str();
+                std::cerr << ss.str();
                 DbInstrumentsMutex.Unlock();
                 return;
             }
@@ -551,7 +1025,7 @@ namespace LinuxSampler {
                 std::stringstream ss;
                 ss << "Failed to close directory `" << FsDir << "`: ";
                 ss << strerror(errno);
-                std::cout << ss.str();
+                std::cerr << ss.str();
             }
         } catch (Exception e) {
             DbInstrumentsMutex.Unlock();
@@ -576,17 +1050,24 @@ namespace LinuxSampler {
         return ExecSqlInt(sql.str());
     }
 
-    int InstrumentsDb::GetInstrumentCount(String Dir) {
-        dmsg(2,("InstrumentsDb: GetInstrumentCount(Dir=%s)\n", Dir.c_str()));
+    int InstrumentsDb::GetInstrumentCount(String Dir, bool Recursive) {
+        dmsg(2,("InstrumentsDb: GetInstrumentCount(Dir=%s,Recursive=%d)\n", Dir.c_str(), Recursive));
         int i;
         
-        DbInstrumentsMutex.Lock();
-        try { i = GetInstrumentCount(GetDirectoryId(Dir)); }
-        catch (Exception e) {
-            DbInstrumentsMutex.Unlock();
+        BeginTransaction();
+        try {
+            if (Recursive) {
+                InstrumentCounter instrumentCounter;
+                DirectoryTreeWalk(Dir, &instrumentCounter);
+                i = instrumentCounter.GetInstrumentCount();
+            } else {
+                i = GetInstrumentCount(GetDirectoryId(Dir));
+            }
+        } catch (Exception e) {
+            EndTransaction();
             throw e;
         }
-        DbInstrumentsMutex.Unlock();
+        EndTransaction();
 
         if (i == -1) throw Exception("Unknown Db directory: " + Dir);
         return i;
@@ -599,21 +1080,30 @@ namespace LinuxSampler {
         return ExecSqlIntList(sql.str());
     }
 
-    StringListPtr InstrumentsDb::GetInstruments(String Dir) {
-        dmsg(2,("InstrumentsDb: GetInstruments(Dir=%s)\n", Dir.c_str()));
-        DbInstrumentsMutex.Lock();
+    StringListPtr InstrumentsDb::GetInstruments(String Dir, bool Recursive) {
+        dmsg(2,("InstrumentsDb: GetInstruments(Dir=%s,Recursive=%d)\n", Dir.c_str(), Recursive));
+        BeginTransaction();
         try {
             int dirId = GetDirectoryId(Dir);
             if(dirId == -1) throw Exception("Unknown DB directory: " + Dir);
 
-            std::stringstream sql;
-            sql << "SELECT instr_name FROM instruments WHERE dir_id=" << dirId;
+            StringListPtr pInstrs;
 
-            StringListPtr instrs = ExecSqlStringList(sql.str());
-            DbInstrumentsMutex.Unlock();
-            return instrs;
+            if(Recursive) {
+                SearchQuery q;
+                InstrumentFinder instrumentFinder(&q);
+                DirectoryTreeWalk(Dir, &instrumentFinder);
+                pInstrs = instrumentFinder.GetInstruments();
+            } else {
+                std::stringstream sql;
+                sql << "SELECT instr_name FROM instruments WHERE dir_id=" << dirId;
+
+                pInstrs = ExecSqlStringList(sql.str());
+            }
+            EndTransaction();
+            return pInstrs;
         } catch (Exception e) {
-            DbInstrumentsMutex.Unlock();
+            EndTransaction();
             throw e;
         }
     }
@@ -635,13 +1125,20 @@ namespace LinuxSampler {
         sql << DirId << " AND instr_name=?";
         return ExecSqlInt(sql.str(), InstrName);
     }
+
+    String InstrumentsDb::GetInstrumentName(int InstrId) {
+        dmsg(2,("InstrumentsDb: GetInstrumentName(InstrId=%d)\n", InstrId));
+        std::stringstream sql;
+        sql << "SELECT instr_name FROM instruments WHERE instr_id=" << InstrId;
+        return ExecSqlString(sql.str());
+    }
     
     void InstrumentsDb::RemoveInstrument(String Instr) {
         dmsg(2,("InstrumentsDb: RemoveInstrument(Instr=%s)\n", Instr.c_str()));
         String ParentDir = GetDirectoryPath(Instr);
         if(ParentDir.empty()) throw Exception("Unknown parent directory");
         
-        DbInstrumentsMutex.Lock();
+        BeginTransaction();
         try {
             int instrId = GetInstrumentId(Instr);
             if(instrId == -1) {
@@ -649,10 +1146,10 @@ namespace LinuxSampler {
             }
             RemoveInstrument(instrId);
         } catch (Exception e) {
-            DbInstrumentsMutex.Unlock();
+            EndTransaction();
             throw e;
         }
-        DbInstrumentsMutex.Unlock();
+        EndTransaction();
         FireInstrumentCountChanged(ParentDir);
     }
 
@@ -677,53 +1174,58 @@ namespace LinuxSampler {
         dmsg(2,("InstrumentsDb: GetInstrumentInfo(Instr=%s)\n", Instr.c_str()));
         DbInstrument i;
         
-        DbInstrumentsMutex.Lock();
+        BeginTransaction();
         try {
             int id = GetInstrumentId(Instr);
             if(id == -1) throw Exception("Unknown DB instrument: " + Instr);
-        
-            sqlite3_stmt *pStmt = NULL;
-            std::stringstream sql;
-            sql << "SELECT instr_file,instr_nr,format_family,format_version,";
-            sql << "instr_size,created,modified,description,is_drum,product,";
-            sql << "artists,keywords FROM instruments WHERE instr_id=" << id;
-
-            int res = sqlite3_prepare(GetDb(), sql.str().c_str(), -1, &pStmt, NULL);
-            if (res != SQLITE_OK) {
-                throw Exception("DB error: " + ToString(sqlite3_errmsg(db)));
-            }
-
-            res = sqlite3_step(pStmt);
-            if(res == SQLITE_ROW) {
-                i.InstrFile = ToString(sqlite3_column_text(pStmt, 0));
-                i.InstrNr = sqlite3_column_int(pStmt, 1);
-                i.FormatFamily = ToString(sqlite3_column_text(pStmt, 2));
-                i.FormatVersion = ToString(sqlite3_column_text(pStmt, 3));
-                i.Size = sqlite3_column_int64(pStmt, 4);
-                i.Created = ToString(sqlite3_column_text(pStmt, 5));
-                i.Modified = ToString(sqlite3_column_text(pStmt, 6));
-                i.Description = ToString(sqlite3_column_text(pStmt, 7));
-                i.IsDrum = sqlite3_column_int(pStmt, 8);
-                i.Product = ToString(sqlite3_column_text(pStmt, 9));
-                i.Artists = ToString(sqlite3_column_text(pStmt, 10));
-                i.Keywords = ToString(sqlite3_column_text(pStmt, 11));
-            } else {
-                sqlite3_finalize(pStmt);
-            
-                if (res != SQLITE_DONE) {
-                    throw Exception("DB error: " + ToString(sqlite3_errmsg(db)));
-                } else {
-                    throw Exception("Unknown DB instrument: " + Instr);
-                }
-            }
-
-            sqlite3_finalize(pStmt);
+            i = GetInstrumentInfo(id);
         } catch (Exception e) {
-            DbInstrumentsMutex.Unlock();
+            EndTransaction();
             throw e;
         }
-        DbInstrumentsMutex.Unlock();
+        EndTransaction();
         
+        return i;
+    }
+
+    DbInstrument InstrumentsDb::GetInstrumentInfo(int InstrId) {
+        sqlite3_stmt *pStmt = NULL;
+        std::stringstream sql;
+        sql << "SELECT instr_file,instr_nr,format_family,format_version,";
+        sql << "instr_size,created,modified,description,is_drum,product,";
+        sql << "artists,keywords FROM instruments WHERE instr_id=" << InstrId;
+
+        int res = sqlite3_prepare(GetDb(), sql.str().c_str(), -1, &pStmt, NULL);
+        if (res != SQLITE_OK) {
+            throw Exception("DB error: " + ToString(sqlite3_errmsg(db)));
+        }
+
+        DbInstrument i;
+        res = sqlite3_step(pStmt);
+        if(res == SQLITE_ROW) {
+            i.InstrFile = ToString(sqlite3_column_text(pStmt, 0));
+            i.InstrNr = sqlite3_column_int(pStmt, 1);
+            i.FormatFamily = ToString(sqlite3_column_text(pStmt, 2));
+            i.FormatVersion = ToString(sqlite3_column_text(pStmt, 3));
+            i.Size = sqlite3_column_int64(pStmt, 4);
+            i.Created = ToString(sqlite3_column_text(pStmt, 5));
+            i.Modified = ToString(sqlite3_column_text(pStmt, 6));
+            i.Description = ToString(sqlite3_column_text(pStmt, 7));
+            i.IsDrum = sqlite3_column_int(pStmt, 8);
+            i.Product = ToString(sqlite3_column_text(pStmt, 9));
+            i.Artists = ToString(sqlite3_column_text(pStmt, 10));
+            i.Keywords = ToString(sqlite3_column_text(pStmt, 11));
+        } else {
+            sqlite3_finalize(pStmt);
+
+            if (res != SQLITE_DONE) {
+                throw Exception("DB error: " + ToString(sqlite3_errmsg(db)));
+            } else {
+                throw Exception("Unknown DB instrument");
+            }
+        }
+
+        sqlite3_finalize(pStmt);
         return i;
     }
 
@@ -731,7 +1233,7 @@ namespace LinuxSampler {
         dmsg(2,("InstrumentsDb: RenameInstrument(Instr=%s,Name=%s)\n", Instr.c_str(), Name.c_str()));
         CheckFileName(Name);
 
-        DbInstrumentsMutex.Lock();
+        BeginTransaction();
         try {
             int dirId = GetDirectoryId(GetDirectoryPath(Instr));
             if (dirId == -1) throw Exception("Unknown DB instrument: " + Instr);
@@ -743,14 +1245,18 @@ namespace LinuxSampler {
                 throw Exception("Cannot rename. Instrument with that name already exists: " + Name);
             }
 
+            if (GetDirectoryId(dirId, Name) != -1) {
+                throw Exception("Cannot rename. Directory with that name already exists: " + Name);
+            }
+
             std::stringstream sql;
             sql << "UPDATE instruments SET instr_name=? WHERE instr_id=" << instrId;
             ExecSql(sql.str(), Name);
         } catch (Exception e) {
-            DbInstrumentsMutex.Unlock();
+            EndTransaction();
             throw e;
         }
-        DbInstrumentsMutex.Unlock();
+        EndTransaction();
         FireInstrumentNameChanged(Instr, Name);
     }
 
@@ -759,7 +1265,7 @@ namespace LinuxSampler {
         String ParentDir = GetDirectoryPath(Instr);
         if(ParentDir.empty()) throw Exception("Unknown parent directory");
 
-        DbInstrumentsMutex.Lock();
+        BeginTransaction();
         try {
             int dirId = GetDirectoryId(GetDirectoryPath(Instr));
             if (dirId == -1) throw Exception("Unknown DB instrument: " + Instr);
@@ -771,7 +1277,7 @@ namespace LinuxSampler {
             int dstId = GetDirectoryId(Dst);
             if (dstId == -1) throw Exception("Unknown DB directory: " + Dst);
             if (dirId == dstId) {
-                DbInstrumentsMutex.Unlock();
+                EndTransaction();
                 return;
             }
 
@@ -779,23 +1285,98 @@ namespace LinuxSampler {
                 throw Exception("Cannot move. Instrument with that name already exists: " + instrName);
             }
 
+            if (GetDirectoryId(dstId, instrName) != -1) {
+                throw Exception("Cannot move. Directory with that name already exists: " + instrName);
+            }
+
             std::stringstream sql;
             sql << "UPDATE instruments SET dir_id=" << dstId;
             sql << " WHERE instr_id=" << instrId;
             ExecSql(sql.str());
         } catch (Exception e) {
-            DbInstrumentsMutex.Unlock();
+            EndTransaction();
             throw e;
         }
-        DbInstrumentsMutex.Unlock();
+        EndTransaction();
         FireInstrumentCountChanged(ParentDir);
         FireInstrumentCountChanged(Dst);
+    }
+
+    void InstrumentsDb::CopyInstrument(String Instr, String Dst) {
+        dmsg(2,("InstrumentsDb: CopyInstrument(Instr=%s,Dst=%s)\n", Instr.c_str(), Dst.c_str()));
+        String ParentDir = GetDirectoryPath(Instr);
+        if(ParentDir.empty()) throw Exception("Unknown parent directory");
+
+        BeginTransaction();
+        try {
+            int dirId = GetDirectoryId(GetDirectoryPath(Instr));
+            if (dirId == -1) throw Exception("Unknown DB instrument: " + Instr);
+
+            String instrName = GetFileName(Instr);
+            int instrId = GetInstrumentId(dirId, instrName);
+            if (instrId == -1) throw Exception("Unknown DB instrument: " + Instr);
+
+            int dstId = GetDirectoryId(Dst);
+            if (dstId == -1) throw Exception("Unknown DB directory: " + Dst);
+            if (dirId == dstId) {
+                EndTransaction();
+                return;
+            }
+
+            if (GetInstrumentId(dstId, instrName) != -1) {
+                throw Exception("Cannot copy. Instrument with that name already exists: " + instrName);
+            }
+
+            if (GetDirectoryId(dstId, instrName) != -1) {
+                throw Exception("Cannot copy. Directory with that name already exists: " + instrName);
+            }
+
+            CopyInstrument(instrId, instrName, dstId, Dst);
+        } catch (Exception e) {
+            EndTransaction();
+            throw e;
+        }
+        EndTransaction();
+        
+    }
+
+    void InstrumentsDb::CopyInstrument(int InstrId, String InstrName, int DstDirId, String DstDir) {
+        DbInstrument i = GetInstrumentInfo(InstrId);
+        sqlite3_stmt *pStmt = NULL;
+        std::stringstream sql;
+        sql << "INSERT INTO instruments (dir_id,instr_name,instr_file,instr_nr,format_family,";
+        sql << "format_version,instr_size,description,is_drum,product,artists,keywords) ";
+        sql << "VALUES (" << DstDirId << ",?,?," << i.InstrNr << ",?,?," << i.Size << ",?,";
+        sql << i.IsDrum << ",?,?,?)";
+
+        int res = sqlite3_prepare(GetDb(), sql.str().c_str(), -1, &pStmt, NULL);
+        if (res != SQLITE_OK) {
+            throw Exception("DB error: " + ToString(sqlite3_errmsg(db)));
+        }
+
+        BindTextParam(pStmt, 1, InstrName);
+        BindTextParam(pStmt, 2, i.InstrFile);
+        BindTextParam(pStmt, 3, i.FormatFamily);
+        BindTextParam(pStmt, 4, i.FormatVersion);
+        BindTextParam(pStmt, 5, i.Description);
+        BindTextParam(pStmt, 6, i.Product);
+        BindTextParam(pStmt, 7, i.Artists);
+        BindTextParam(pStmt, 8, i.Keywords);
+
+        res = sqlite3_step(pStmt);
+        if(res != SQLITE_DONE) {
+            sqlite3_finalize(pStmt);
+            throw Exception("DB error: " + ToString(sqlite3_errmsg(db)));
+        }
+        
+        sqlite3_finalize(pStmt);
+        FireInstrumentCountChanged(DstDir);
     }
 
     void InstrumentsDb::SetInstrumentDescription(String Instr, String Desc) {
         dmsg(2,("InstrumentsDb: SetInstrumentDescription(Instr=%s,Desc=%s)\n", Instr.c_str(), Desc.c_str()));
 
-        DbInstrumentsMutex.Lock();
+        BeginTransaction();
         try {
             int id = GetInstrumentId(Instr);
             if(id == -1) throw Exception("Unknown DB instrument: " + Instr);
@@ -806,10 +1387,10 @@ namespace LinuxSampler {
 
             ExecSql(sql.str(), Desc);
         } catch (Exception e) {
-            DbInstrumentsMutex.Unlock();
+            EndTransaction();
             throw e;
         }
-        DbInstrumentsMutex.Unlock();
+        EndTransaction();
         FireInstrumentInfoChanged(Instr);
     }
 
@@ -823,7 +1404,7 @@ namespace LinuxSampler {
                 AddGigInstruments(DbDir, File, Index);
             }
         } catch(Exception e) {
-            std::cout << e.Message() << std::endl;
+            std::cerr << e.Message() << std::endl;
         }
     }
 
@@ -892,6 +1473,7 @@ namespace LinuxSampler {
                 }
             }
 
+            sqlite3_finalize(pStmt);
             delete gig;
             delete riff;
         } catch (RIFF::Exception e) {
@@ -912,7 +1494,7 @@ namespace LinuxSampler {
         }
     }
 
-    void InstrumentsDb::AddGigInstrument (sqlite3_stmt* pStmt, String DbDir, int DirId, String File, gig::Instrument* pInstrument, int Index) {
+    void InstrumentsDb::AddGigInstrument(sqlite3_stmt* pStmt, String DbDir, int DirId, String File, gig::Instrument* pInstrument, int Index) {
         String name = pInstrument->pInfo->Name;
         if (name == "") return;
         name = GetUniqueInstrumentName(DirId, name);
@@ -947,6 +1529,123 @@ namespace LinuxSampler {
 
         res = sqlite3_reset(pStmt);
         FireInstrumentCountChanged(DbDir);
+    }
+
+    void InstrumentsDb::DirectoryTreeWalk(String Path, DirectoryHandler* pHandler) {
+        int DirId = GetDirectoryId(Path);
+        if(DirId == -1) throw Exception("Unknown DB directory: " + Path);
+        DirectoryTreeWalk(pHandler, Path, DirId, 0);
+    }
+
+    void InstrumentsDb::DirectoryTreeWalk(DirectoryHandler* pHandler, String Path, int DirId, int Level) {
+        if(Level == 1000) throw Exception("Possible infinite loop detected");
+        pHandler->ProcessDirectory(Path, DirId);
+        
+        String s;
+        StringListPtr pDirs = GetDirectories(DirId);
+        for(int i = 0; i < pDirs->size(); i++) {
+            if (Path.length() == 1 && Path.at(0) == '/') s = "/" + pDirs->at(i);
+            else s = Path + "/" + pDirs->at(i);
+            DirectoryTreeWalk(pHandler, s, GetDirectoryId(DirId, pDirs->at(i)), Level + 1);
+        }
+    }
+
+    StringListPtr InstrumentsDb::FindDirectories(String Dir, SearchQuery* pQuery, bool Recursive) {
+        dmsg(2,("InstrumentsDb: FindDirectories(Dir=%s)\n", Dir.c_str()));
+        DirectoryFinder directoryFinder(pQuery);
+        
+        BeginTransaction();
+        try {
+            int DirId = GetDirectoryId(Dir);
+            if(DirId == -1) throw Exception("Unknown DB directory: " + Dir);
+
+            if (Recursive) DirectoryTreeWalk(Dir, &directoryFinder);
+            else directoryFinder.ProcessDirectory(Dir, DirId);
+        } catch (Exception e) {
+            EndTransaction();
+            throw e;
+        }
+        EndTransaction();
+
+        return directoryFinder.GetDirectories();
+    }
+
+    StringListPtr InstrumentsDb::FindInstruments(String Dir, SearchQuery* pQuery, bool Recursive) {
+        dmsg(2,("InstrumentsDb: FindInstruments(Dir=%s)\n", Dir.c_str()));
+        InstrumentFinder instrumentFinder(pQuery);
+        
+        BeginTransaction();
+        try {
+            int DirId = GetDirectoryId(Dir);
+            if(DirId == -1) throw Exception("Unknown DB directory: " + Dir);
+
+            if (Recursive) DirectoryTreeWalk(Dir, &instrumentFinder);
+            else instrumentFinder.ProcessDirectory(Dir, DirId);
+        } catch (Exception e) {
+            EndTransaction();
+            throw e;
+        }
+        EndTransaction();
+
+        return instrumentFinder.GetInstruments();
+    }
+
+    void InstrumentsDb::BeginTransaction() {
+        dmsg(2,("InstrumentsDb: BeginTransaction(InTransaction=%d)\n", InTransaction));
+        DbInstrumentsMutex.Lock();
+        if (InTransaction) return;
+        
+        if(db == NULL) return;
+        sqlite3_stmt *pStmt = NULL;
+        
+        InTransaction = true;
+        int res = sqlite3_prepare(db, "BEGIN TRANSACTION", -1, &pStmt, NULL);
+        if (res != SQLITE_OK) {
+            std::cerr << ToString(sqlite3_errmsg(db)) << std::endl;
+            return;
+        }
+        
+        res = sqlite3_step(pStmt);
+        if(res != SQLITE_DONE) {
+            sqlite3_finalize(pStmt);
+            std::cerr << ToString(sqlite3_errmsg(db)) << std::endl;
+            return;
+        }
+
+        sqlite3_finalize(pStmt);
+    }
+
+    void InstrumentsDb::EndTransaction() {
+        dmsg(2,("InstrumentsDb: EndTransaction(InTransaction=%d)\n", InTransaction));
+        if (!InTransaction) {
+            DbInstrumentsMutex.Unlock();
+            return;
+        }
+        InTransaction = false;
+        
+        if(db == NULL) {
+            DbInstrumentsMutex.Unlock();
+            return;
+        }
+        sqlite3_stmt *pStmt = NULL;
+        
+        int res = sqlite3_prepare(db, "END TRANSACTION", -1, &pStmt, NULL);
+        if (res != SQLITE_OK) {
+            std::cerr << ToString(sqlite3_errmsg(db)) << std::endl;
+            DbInstrumentsMutex.Unlock();
+            return;
+        }
+        
+        res = sqlite3_step(pStmt);
+        if(res != SQLITE_DONE) {
+            sqlite3_finalize(pStmt);
+            std::cerr << ToString(sqlite3_errmsg(db)) << std::endl;
+            DbInstrumentsMutex.Unlock();
+            return;
+        }
+
+        sqlite3_finalize(pStmt);
+        DbInstrumentsMutex.Unlock();
     }
 
     void InstrumentsDb::ExecSql(String Sql) {
@@ -1128,6 +1827,17 @@ namespace LinuxSampler {
         }
     }
 
+    void InstrumentsDb::Regexp(sqlite3_context* pContext, int argc, sqlite3_value** ppValue) {
+        if (argc != 2) return;
+
+        String pattern = ToString(sqlite3_value_text(ppValue[0]));
+        String str = ToString(sqlite3_value_text(ppValue[1]));
+
+        if(!fnmatch(pattern.c_str(), str.c_str(), FNM_CASEFOLD)) {
+            sqlite3_result_int(pContext, 1);
+        }
+    }
+
     String InstrumentsDb::GetDirectoryPath(String File) {
         if (File.empty()) return String("");
         if (File.at(0) != '/') String("");
@@ -1178,16 +1888,15 @@ namespace LinuxSampler {
 
     String InstrumentsDb::GetUniqueInstrumentName(int DirId, String Name) {
         dmsg(2,("InstrumentsDb: GetUniqueInstrumentName(DirId=%d,Name=%s)\n", DirId, Name.c_str()));
-        std::stringstream sql;
-        sql << "SELECT COUNT(*) FROM instruments WHERE dir_id=" << DirId;
-        sql << " AND instr_name=?";
 
-        if (ExecSqlInt(sql.str(), Name) == 0) return Name;
+        if (GetInstrumentId(DirId, Name) == -1 && GetDirectoryId(DirId, Name) == -1) return Name;
         std::stringstream ss;
         for(int i = 2; i < 1001; i++) {
             ss.str("");
             ss << Name << '[' << i << ']';
-            if (ExecSqlInt(sql.str(), ss.str()) == 0) return ss.str();
+            if (GetInstrumentId(DirId, ss.str()) == -1 && GetInstrumentId(DirId, ss.str()) == -1) {
+                return ss.str();
+            }
         }
 
         throw Exception("Unable to find an unique name: " + Name);

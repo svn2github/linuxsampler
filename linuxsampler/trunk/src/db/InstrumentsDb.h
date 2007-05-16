@@ -66,7 +66,40 @@ namespace LinuxSampler {
             void operator=(const DbDirectory& Dir) { Copy(Dir); }
             void Copy(const DbDirectory&);
     };
-    
+
+    class SearchQuery {
+        public:
+            enum InstrumentType {
+                CHROMATIC = 0,
+                DRUM = 1,
+                BOTH = 2
+            };
+
+            String Name;
+            std::vector<String> FormatFamilies;
+            long long MinSize;
+            long long MaxSize;
+            String CreatedBefore;
+            String CreatedAfter;
+            String ModifiedBefore;
+            String ModifiedAfter;
+            String Description;
+            String Product;
+            String Artists;
+            String Keywords;
+            InstrumentType InstrType;
+            
+            SearchQuery();
+            void SetFormatFamilies(String s);
+            void SetSize(String s);
+            void SetCreated(String s);
+            void SetModified(String s);
+
+        private:
+            String GetMin(String s);
+            String GetMax(String s);
+    };
+
     typedef std::auto_ptr<std::vector<int> > IntListPtr;
     typedef std::auto_ptr<std::vector<String> > StringListPtr;
 
@@ -140,6 +173,13 @@ namespace LinuxSampler {
             void RemoveInstrumentsDbListener(InstrumentsDb::Listener* l);
 
             /**
+             * Creates an instruments database file.
+             * @param File the pathname of the file to create.
+             * @throws Exception If the creation of the database file failed.
+             */
+            static void CreateInstrumentsDb(String File);
+
+            /**
              * This method is used to access the instruments database.
              */
             static InstrumentsDb* GetInstrumentsDb();
@@ -156,19 +196,23 @@ namespace LinuxSampler {
             /**
              * Gets the number of directories in the specified directory.
              * @param Dir The absolute path name of the directory.
+             * @param Recursive If true, the number of all directories
+             * in the specified subtree will be returned.
              * @throws Exception - if database error occurs, or
              * the specified path name is invalid.
              * @returns The number of directories in the specified directory.
              */
-            int GetDirectoryCount(String Dir);
+            int GetDirectoryCount(String Dir, bool Recursive);
 
             /**
              * Gets the list of directories in the specified directory.
              * @param Dir The absolute path name of the directory.
+             * @param Recursive If true, all directories
+             * in the specified subtree will be returned.
              * @throws Exception - if database error occurs, or
              * the specified path name is invalid.
              */
-            StringListPtr GetDirectories(String Dir);
+            StringListPtr GetDirectories(String Dir, bool Recursive);
 
             /**
              * Adds the specified directory to the database.
@@ -225,11 +269,34 @@ namespace LinuxSampler {
             void MoveDirectory(String Dir, String Dst);
 
             /**
+             * Copies the specified directory into the specified location.
+             * @param Dir The absolute path name of the directory to copy.
+             * @param Dst The location where the directory will be copied to.
+             * @throws Exception - In case a given directory does not exists,
+             * or if a directory with name equal to the directory name already
+             * exists in the specified destination directory, or if database error
+             * occurs. Error is also thrown when trying to copy a directory to a
+             * subdirectory of itself.
+             */
+            void CopyDirectory(String Dir, String Dst);
+
+            /**
              * Changes the description of the specified directory.
              * @throws Exception - if database error occurs, or if
              * the specified directory is not found.
              */
             void SetDirectoryDescription(String Dir, String Desc);
+            
+            /**
+             * Finds all directories that match the search query.
+             * @param Dir The absolute path name of the database
+             * directory to search in.
+             * @throws Exception - if database error occurs, or
+             * if the specified path name is invalid.
+             * @returns The absolute path names of all directories
+             * that match the search query.
+             */
+            StringListPtr FindDirectories(String Dir, SearchQuery* pQuery, bool Recursive);
 
             /**
              * Adds the instruments in the specified file or
@@ -284,19 +351,23 @@ namespace LinuxSampler {
             /**
              * Gets the number of instruments in the specified directory.
              * @param Dir The absolute path name of the directory.
+             * @param Recursive If true, the number of all instruments
+             * in the specified subtree will be returned.
              * @throws Exception - if database error occurs, or
              * the specified path name is invalid.
              * @returns The number of instruments in the specified directory.
              */
-            int GetInstrumentCount(String Dir);
+            int GetInstrumentCount(String Dir, bool Recursive);
 
             /**
              * Gets the list of instruments in the specified directory.
              * @param Dir The absolute path name of the directory.
+             * @param Recursive If true, all instruments
+             * in the specified subtree will be returned.
              * @throws Exception - if database error occurs, or
              * the specified path name is invalid.
              */
-            StringListPtr GetInstruments(String Dir);
+            StringListPtr GetInstruments(String Dir, bool Recursive);
 
             /**
              * Removes the specified instrument from the database.
@@ -337,6 +408,17 @@ namespace LinuxSampler {
             void MoveInstrument(String Instr, String Dst);
 
             /**
+             * Copies the specified instrument into the specified directory.
+             * @param Instr The absolute path name of the instrument to copy.
+             * @param Dst The directory where the instrument will be copied to.
+             * @throws Exception - In case the given directory or instrument
+             * does not exist, or if an instrument with name equal to the name
+             * of the specified instrument already exists in the specified
+             * destination directory, or if database error occurs.
+             */
+            void CopyInstrument(String Instr, String Dst);
+
+            /**
              * Changes the description of the specified instrument.
              * @throws Exception - if database error occurs, or if
              * the specified instrument is not found.
@@ -344,18 +426,105 @@ namespace LinuxSampler {
             void SetInstrumentDescription(String Instr, String Desc);
             
             /**
+             * Finds all instruments that match the search query.
+             * @param Dir The absolute path name of the database
+             * directory to search in.
+             * @throws Exception - if database error occurs, or
+             * if the specified path name is invalid.
+             * @returns The absolute path names of all instruments
+             * that match the search query.
+             */
+            StringListPtr FindInstruments(String Dir, SearchQuery* pQuery, bool Recursive);
+            
+            /**
              * Closes the database connection if opened and deletes
              * the InstrumentsDb instance.
              */
             static void Destroy();
 
-            
+
         private:
+            class DirectoryHandler {
+                public:
+                    virtual void ProcessDirectory(String Path, int DirId) = 0;
+            };
+            
+            class AbstractFinder : public DirectoryHandler {
+                public:
+                    virtual void ProcessDirectory(String Path, int DirId) = 0;
+                    
+                    bool IsRegex(String Pattern);
+                    void AddSql(String Col, String Pattern, std::stringstream& Sql);
+
+                protected:
+                    std::vector<String> Params;
+            };
+            
+            class DirectoryFinder : public AbstractFinder {
+                public:
+                    DirectoryFinder(SearchQuery* pQuery);
+                    ~DirectoryFinder();
+                    StringListPtr GetDirectories();
+                    virtual void ProcessDirectory(String Path, int DirId);
+
+                private:
+                    sqlite3_stmt* pStmt;
+                    String SqlQuery;
+                    SearchQuery* pQuery;
+                    StringListPtr pDirectories;
+                    
+            };
+            
+            class InstrumentFinder : public AbstractFinder {
+                public:
+                    InstrumentFinder(SearchQuery* pQuery);
+                    ~InstrumentFinder();
+                    StringListPtr GetInstruments();
+                    virtual void ProcessDirectory(String Path, int DirId);
+
+                private:
+                    sqlite3_stmt* pStmt;
+                    String SqlQuery;
+                    SearchQuery* pQuery;
+                    StringListPtr pInstruments;
+            };
+            
+            class DirectoryCounter : public DirectoryHandler {
+                public:
+                    DirectoryCounter() { count = 0; }
+                    virtual void ProcessDirectory(String Path, int DirId);
+                    int GetDirectoryCount() { return count; }
+
+                private:
+                    int count;
+            };
+            
+            class InstrumentCounter : public DirectoryHandler {
+                public:
+                    InstrumentCounter() { count = 0; }
+                    virtual void ProcessDirectory(String Path, int DirId);
+                    int GetInstrumentCount() { return count; }
+
+                private:
+                    int count;
+            };
+            
+            class DirectoryCopier : public DirectoryHandler {
+                public:
+                    DirectoryCopier(String SrcParentDir, String DestDir);
+                    virtual void ProcessDirectory(String Path, int DirId);
+
+                private:
+                    String SrcParentDir;
+                    String DestDir;
+            };
+            
             sqlite3* db;
             String DbFile;
             static InstrumentsDb* pInstrumentsDb;
             Mutex DbInstrumentsMutex;
             ListenerList<InstrumentsDb::Listener*> llInstrumentsDbListeners;
+            bool InTransaction;
             
             InstrumentsDb();
             ~InstrumentsDb();
@@ -385,6 +554,14 @@ namespace LinuxSampler {
             IntListPtr GetDirectoryIDs(int DirId);
 
             /**
+             * Gets the list of directories in the specified directory.
+             * @param DirId The ID of the directory.
+             * @throws Exception - if database error occurs, or
+             * the specified ID is invalid.
+             */
+            StringListPtr GetDirectories(int DirId);
+
+            /**
              * Gets the directory ID.
              * @param Dir The absolute path name of the directory.
              * @returns The directory ID or -1 if the directory is not found.
@@ -401,6 +578,29 @@ namespace LinuxSampler {
              * or -1 if the directory doesn't exist.
              */
             int GetDirectoryId(int ParentDirId, String DirName);
+
+            /**
+             * Gets the name of the specified directory.
+             * @throws Exception - if the directory is not found
+             * or if database error occurs.
+             */
+            String GetDirectoryName(int DirId);
+
+            /**
+             * Gets the ID of the parent directory.
+             * @throws Exception - if the root directory is specified, or if the
+             * specified directory is not found, or if database error occurs.
+             */
+            int GetParentDirectoryId(int DirId);
+
+            /**
+             * Gets the absolute path name of the specified directory.
+             * @param DirId The ID of the directory, which absolute
+             * path name should be returned.
+             * @throws Exception If the specified directory is not
+             * found or if database error occurs.
+             */
+            String GetDirectoryPath(int DirId);
 
             /**
              * Removes the specified directory from the database.
@@ -454,6 +654,14 @@ namespace LinuxSampler {
             int GetInstrumentId(int DirId, String InstrName);
 
             /**
+             * Gets the name of the instrument with the specified ID.
+             * @param InstrId The ID of the instrument, which name should be obtained.
+             * @returns The name of the specified instrument.
+             * @throws Exception - if database error occurs.
+             */
+            String GetInstrumentName(int InstrId);
+
+            /**
              * Removes the specified instrument from the database.
              * @param InstrId The ID of the instrument to remove.
              * @throws Exception - If the specified instrument does not exist.
@@ -482,6 +690,25 @@ namespace LinuxSampler {
              * @throws Exception - if database error occurs.
              */
             IntListPtr GetInstrumentIDs(int DirId);
+
+            /**
+             * Gets information about the specified instrument.
+             * @param InstrId The ID of the instrument.
+             * @throws Exception - if database error occurs.
+             */
+            DbInstrument GetInstrumentInfo(int InstrId);
+
+            /**
+             * Copies the specified instrument into the specified directory.
+             * @param InstrId The ID of the instrument to copy.
+             * @param InstrId The name of the instrument to copy.
+             * @param DstDirId The ID of the directory where the
+             * instrument will be copied to.
+             * @param DstDirId The name of the directory where the
+             * instrument will be copied to.
+             * @throws Exception - If database error occurs.
+             */
+            void CopyInstrument(int InstrId, String InstrName, int DstDirId, String DstDir);
 
             /**
              * Adds the instruments in the specified file
@@ -515,7 +742,17 @@ namespace LinuxSampler {
              * @throws Exception if the operation failed.
              */
             void AddGigInstrument(sqlite3_stmt* pStmt, String DbDir, int DirId, String File, ::gig::Instrument* pInstrument, int Index);
+            
+            void DirectoryTreeWalk(String Path, DirectoryHandler* pHandler);
 
+            void DirectoryTreeWalk(DirectoryHandler* pHandler, String Path, int DirId, int Level);
+
+            /** Locks the DbInstrumentsMutex and starts a transaction. */
+            void BeginTransaction();
+
+            /** Commits the transaction and unocks the DbInstrumentsMutex. */
+            void EndTransaction();
+            
             /**
              * Used to execute SQL commands which return empty result set.
              */
@@ -611,6 +848,9 @@ namespace LinuxSampler {
              * @throws Exception - if the specified file name is invalid.
              */
             static void CheckFileName(String File);
+            
+            /** SQLite user function for handling regular expressions */
+            static void Regexp(sqlite3_context* pContext, int argc, sqlite3_value** ppValue);
     };
     
     /**

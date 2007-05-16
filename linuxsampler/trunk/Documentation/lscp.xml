@@ -4827,11 +4827,13 @@ Schoenebeck'>
                     directories in a specific directory by sending the following command:</t>
                     <t>
                         <list>
-                            <t>GET DB_INSTRUMENT_DIRECTORIES &lt;dir&gt;</t>
+                            <t>GET DB_INSTRUMENT_DIRECTORIES [RECURSIVE] &lt;dir&gt;</t>
                         </list>
                     </t>
                     <t>Where &lt;dir&gt; should be replaced by the absolute path
-                    name of the directory.</t>
+                    name of the directory. If RECURSIVE is specified, the number of
+                    all directories, including those located in subdirectories of the
+                    specified directory, will be returned.</t>
 
                     <t>Possible Answers:</t>
                     <t>
@@ -4860,11 +4862,13 @@ Schoenebeck'>
                     in specific directory by sending the following command:</t>
                     <t>
                         <list>
-                            <t>LIST DB_INSTRUMENT_DIRECTORIES &lt;dir&gt;</t>
+                            <t>LIST DB_INSTRUMENT_DIRECTORIES [RECURSIVE] &lt;dir&gt;</t>
                         </list>
                     </t>
                     <t>Where &lt;dir&gt; should be replaced by the absolute path
-                    name of the directory.</t>
+                    name of the directory. If RECURSIVE is specified, the absolute path names
+                    of all directories, including those located in subdirectories of the
+                    specified directory, will be returned.</t>
 
                     <t>Possible Answers:</t>
                     <t>
@@ -4883,6 +4887,12 @@ Schoenebeck'>
                         <list>
                             <t>C: "LIST DB_INSTRUMENT_DIRECTORIES '/'"</t>
                             <t>S: "'Piano Collection','Percussion Collection'"</t>
+                        </list>
+                    </t>
+                    <t>
+                        <list>
+                            <t>C: "LIST DB_INSTRUMENT_DIRECTORIES RECURSIVE '/'"</t>
+                            <t>S: "'/Piano Collection','/Piano Collection/Acoustic','/Piano Collection/Acoustic/New','/Percussion Collection'"</t>
                         </list>
                     </t>
                 </section>
@@ -5024,6 +5034,48 @@ Schoenebeck'>
                     </t>
                 </section>
 
+                <section title="Copying instrument directories" anchor="COPY DB_INSTRUMENT_DIRECTORY">
+                    <t>The front-end can copy a specific
+                    instrument directory by sending the following command:</t>
+                    <t>
+                        <list>
+                            <t>COPY DB_INSTRUMENT_DIRECTORY &lt;dir&gt; &lt;dst&gt;</t>
+                        </list>
+                    </t>
+                    <t>Where &lt;dir&gt; is the absolute path name of the directory
+                    to copy and &lt;dst&gt; is the location where the directory will
+                    be copied to.</t>
+
+                    <t>Possible Answers:</t>
+                    <t>
+                        <list>
+                            <t>"OK" -
+                                <list>
+                                    <t>on success</t>
+                                </list>
+                            </t>
+                            <t>"ERR:&lt;error-code&gt;:&lt;error-message&gt;" -
+                                <list>
+                                    <t>in case a given directory does not exists,
+                                    or if a directory with name equal to the name
+                                    of the specified directory already exists in
+                                    the destination directory. Error is also thrown
+                                    when trying to copy a directory to a subdirectory
+                                    of itself.</t>
+                                </list>
+                            </t>
+                        </list>
+                    </t>
+
+                    <t>Example:</t>
+                    <t>
+                        <list>
+                            <t>C: "COPY DB_INSTRUMENT_DIRECTORY '/Piano Collection/Acoustic' '/Acoustic/Pianos'"</t>
+                            <t>S: "OK"</t>
+                        </list>
+                    </t>
+                </section>
+
                 <section title="Changing the description of directory" anchor="SET DB_INSTRUMENT_DIRECTORY DESCRIPTION">
                     <t>The front-end can alter the description of a specific
                     instrument directory by sending the following command:</t>
@@ -5056,6 +5108,91 @@ Schoenebeck'>
                         <list>
                             <t>C: "SET DB_INSTRUMENT_DIRECTORY DESCRIPTION '/Piano Collection' 'A collection of piano instruments in various format.'"</t>
                             <t>S: "OK"</t>
+                        </list>
+                    </t>
+                </section>
+
+                <section title="Finding directories" anchor="FIND DB_INSTRUMENT_DIRECTORIES">
+                    <t>The front-end can search for directories
+                    in specific directory by sending the following command:</t>
+                    <t>
+                        <list>
+                            <t>FIND DB_INSTRUMENT_DIRECTORIES [NON_RECURSIVE] &lt;dir&gt; &lt;criteria-list&gt;</t>
+                        </list>
+                    </t>
+                    <t>Where &lt;dir&gt; should be replaced by the absolute path
+                    name of the directory to search in. If NON_RECURSIVE is specified, the
+                    directories located in subdirectories of the specified directory will not
+                    be searched. &lt;criteria-list&gt; is a list of search criterias
+                    in form of "key1=val1 key2=val2 ...". The following criterias are
+                    allowed:</t>
+                    <t>
+                      <t>NAME='&lt;search-string&gt;'
+                          <list>
+                              <t>Restricts the search to directories, which names
+                              satisfy the supplied search string.</t>
+                          </list>
+                      </t>
+
+                      <t>CREATED='[&lt;date-after&gt;]..[&lt;date-before&gt;]'
+                          <list>
+                              <t>Restricts the search to directories, which creation
+                              date satisfies the specified period, where &lt;date-after&gt;
+                              and &lt;date-before&gt; are in "YYYY-MM-DD HH:MM:SS" format.
+                              If &lt;date-after&gt; is omitted the search is restricted to
+                              directories created before &lt;date-before&gt;. If
+                              &lt;date-before&gt; is omitted, the search is restricted
+                              to directories created after &lt;date-after&gt;.</t>
+                          </list>
+                      </t>
+
+                      <t>MODIFIED='[&lt;date-after&gt;]..[&lt;date-before&gt;]'
+                          <list>
+                              <t>Restricts the search to directories, which
+                              date of last modification satisfies the specified period, where
+                              &lt;date-after&gt; and &lt;date-before&gt; are in "YYYY-MM-DD HH:MM:SS"
+                              format. If &lt;date-after&gt; is omitted the search is restricted to
+                              directories, which are last modified before &lt;date-before&gt;. If
+                              &lt;date-before&gt; is omitted, the search is restricted to directories,
+                              which are last modified after &lt;date-after&gt;.</t>
+                          </list>
+                      </t>
+
+                      <t>DESCRIPTION='&lt;search-string&gt;'
+                          <list>
+                              <t>Restricts the search to directories with description
+                              that satisfies the supplied search string.</t>
+                          </list>
+                      </t>
+                    </t>
+
+                    <t>Where &lt;search-string&gt; is either a regular expression, or a
+                    word list separated with spaces for OR search and with '+' for AND search.</t>
+
+                    <t>Possible Answers:</t>
+                    <t>
+                        <list>
+                            <t>A comma separated list with the absolute path names (encapsulated into
+                            apostrophes) of all directories in the specified directory that satisfy
+                            the supplied search criterias.</t>
+                            <t>"ERR:&lt;error-code&gt;:&lt;error-message&gt;" -
+                                <list>
+                                    <t>if the given directory does not exist.</t>
+                                </list>
+                            </t>
+                        </list>
+                    </t>
+                    <t>Example:</t>
+                    <t>
+                        <list>
+                            <t>C: "FIND DB_INSTRUMENT_DIRECTORIES '/' NAME='Piano'"</t>
+                            <t>S: "'/Piano Collection'"</t>
+                        </list>
+                    </t>
+                    <t>
+                        <list>
+                            <t>C: "FIND DB_INSTRUMENT_DIRECTORIES '/' CREATED='..2007-04-01 09:30:13'"</t>
+                            <t>S: "'/Piano Collection','/Percussions'"</t>
                         </list>
                     </t>
                 </section>
@@ -5177,11 +5314,13 @@ Schoenebeck'>
                     instruments in a specific directory by sending the following command:</t>
                     <t>
                         <list>
-                            <t>GET DB_INSTRUMENTS &lt;dir&gt;</t>
+                            <t>GET DB_INSTRUMENTS [RECURSIVE] &lt;dir&gt;</t>
                         </list>
                     </t>
                     <t>Where &lt;dir&gt; should be replaced by the absolute path name
-                    of the directory.</t>
+                    of the directory. If RECURSIVE is specified, the number of all
+                    instruments, including those located in subdirectories of the
+                    specified directory, will be returned.</t>
 
                     <t>Possible Answers:</t>
                     <t>
@@ -5210,11 +5349,13 @@ Schoenebeck'>
                     in specific directory by sending the following command:</t>
                     <t>
                         <list>
-                            <t>LIST DB_INSTRUMENTS &lt;dir&gt;</t>
+                            <t>LIST DB_INSTRUMENTS [RECURSIVE] &lt;dir&gt;</t>
                         </list>
                     </t>
                     <t>Where &lt;dir&gt; should be replaced by the absolute path
-                    name of the directory.</t>
+                    name of the directory. If RECURSIVE is specified, the absolute path
+                    names of all instruments, including those located in subdirectories
+                    of the specified directory, will be returned.</t>
 
                     <t>Possible Answers:</t>
                     <t>
@@ -5233,6 +5374,12 @@ Schoenebeck'>
                         <list>
                             <t>C: "LIST DB_INSTRUMENTS '/Piano Collection'"</t>
                             <t>S: "'Bosendorfer 290','Steinway D'"</t>
+                        </list>
+                    </t>
+                    <t>
+                        <list>
+                            <t>C: "LIST DB_INSTRUMENTS RECURSIVE '/Piano Collection'"</t>
+                            <t>S: "'/Piano Collection/Bosendorfer 290','/Piano Collection/Steinway D','/Piano Collection/Lite/Free Piano'"</t>
                         </list>
                     </t>
                 </section>
@@ -5430,6 +5577,46 @@ Schoenebeck'>
                     </t>
                 </section>
 
+                <section title="Copying instruments" anchor="COPY DB_INSTRUMENT">
+                    <t>The front-end can copy a specific instrument to another directory by
+                    sending the following command:</t>
+                    <t>
+                        <list>
+                            <t>COPY DB_INSTRUMENT &lt;instr&gt; &lt;dst&gt;</t>
+                        </list>
+                    </t>
+                    <t>Where &lt;instr&gt; is the absolute path name of the instrument
+                    to copy and &lt;dst&gt; is the directory where the instrument will
+                    be copied to.</t>
+
+                    <t>Possible Answers:</t>
+                    <t>
+                        <list>
+                            <t>"OK" -
+                                <list>
+                                    <t>on success</t>
+                                </list>
+                            </t>
+                            <t>"ERR:&lt;error-code&gt;:&lt;error-message&gt;" -
+                                <list>
+                                    <t>in case the given instrument does not exists,
+                                    or if an instrument with name equal to the name of the
+                                    specified instrument already exists in the destination
+                                    directory.</t>
+                                </list>
+                            </t>
+                        </list>
+                    </t>
+
+                    <t>Example:</t>
+                    <t>
+                        <list>
+                            <t>C: "COPY DB_INSTRUMENT '/Piano Collection/Bosendorfer 290' '/Acoustic/Pianos/'"</t>
+                            <t>S: "OK"</t>
+                        </list>
+                    </t>
+                </section>
+
                 <section title="Changing the description of instrument" anchor="SET DB_INSTRUMENT DESCRIPTION">
                     <t>The front-end can alter the description of a specific
                     instrument by sending the following command:</t>
@@ -5462,6 +5649,137 @@ Schoenebeck'>
                         <list>
                             <t>C: "SET DB_INSTRUMENT DESCRIPTION '/Piano Collection/Acoustic/Bosendorfer 290' 'No comment :)'"</t>
                             <t>S: "OK"</t>
+                        </list>
+                    </t>
+                </section>
+
+                <section title="Finding instruments" anchor="FIND DB_INSTRUMENTS">
+                    <t>The front-end can search for instruments
+                    in specific directory by sending the following command:</t>
+                    <t>
+                        <list>
+                            <t>FIND DB_INSTRUMENTS [NON_RECURSIVE] &lt;dir&gt; &lt;criteria-list&gt;</t>
+                        </list>
+                    </t>
+                    <t>Where &lt;dir&gt; should be replaced by the absolute path
+                    name of the directory to search in. If NON_RECURSIVE is specified, the
+                    directories located in subdirectories of the specified directory will not
+                    be searched. &lt;criteria-list&gt; is a list of search criterias
+                    in form of "key1=val1 key2=val2 ...". The following criterias are
+                    allowed:</t>
+                    <t>
+                      <t>NAME='&lt;search-string&gt;'
+                          <list>
+                              <t>Restricts the search to instruments, which names
+                              satisfy the supplied search string.</t>
+                          </list>
+                      </t>
+
+                      <t>SIZE=[&lt;min&gt;]..[&lt;max&gt;]
+                          <list>
+                              <t>Restricts the search to instruments, which 
+                              size is in the specified range. If &lt;min&gt; is omitted,
+                              the search results are restricted to instruments with size less then
+                              or equal to &lt;max&gt;. If &lt;max&gt; is omitted, the
+                              search is restricted to instruments with size greater then
+                              or equal to &lt;min&gt;.</t>
+                          </list>
+                      </t>
+
+                      <t>CREATED='[&lt;date-after&gt;]..[&lt;date-before&gt;]'
+                          <list>
+                              <t>Restricts the search to instruments, which creation
+                              date satisfies the specified period, where &lt;date-after&gt;
+                              and &lt;date-before&gt; are in "YYYY-MM-DD HH:MM:SS" format.
+                              If &lt;date-after&gt; is omitted the search is restricted to
+                              instruments created before &lt;date-before&gt;. If
+                              &lt;date-before&gt; is omitted, the search is restricted
+                              to instruments created after &lt;date-after&gt;.</t>
+                          </list>
+                      </t>
+
+                      <t>MODIFIED='[&lt;date-after&gt;]..[&lt;date-before&gt;]'
+                          <list>
+                              <t>Restricts the search to instruments, which
+                              date of last modification satisfies the specified period, where
+                              &lt;date-after&gt; and &lt;date-before&gt; are in "YYYY-MM-DD HH:MM:SS"
+                              format. If &lt;date-after&gt; is omitted the search is restricted to
+                              instruments, which are last modified before &lt;date-before&gt;. If
+                              &lt;date-before&gt; is omitted, the search is restricted to instruments,
+                              which are last modified after &lt;date-after&gt;.</t>
+                          </list>
+                      </t>
+
+                      <t>DESCRIPTION='&lt;search-string&gt;'
+                          <list>
+                              <t>Restricts the search to instruments with description
+                              that satisfies the supplied search string.</t>
+                          </list>
+                      </t>
+
+                      <t>PRODUCT='&lt;search-string&gt;'
+                          <list>
+                              <t>Restricts the search to instruments with product info
+                              that satisfies the supplied search string.</t>
+                          </list>
+                      </t>
+
+                      <t>ARTISTS='&lt;search-string&gt;'
+                          <list>
+                              <t>Restricts the search to instruments with artists info
+                              that satisfies the supplied search string.</t>
+                          </list>
+                      </t>
+
+                      <t>KEYWORDS='&lt;search-string&gt;'
+                          <list>
+                              <t>Restricts the search to instruments with keyword list
+                              that satisfies the supplied search string.</t>
+                          </list>
+                      </t>
+
+                      <t>IS_DRUM=true | false
+                          <list>
+                              <t>Either true or false. Restricts the search to 
+                              drum kits or chromatic instruments.</t>
+                          </list>
+                      </t>
+
+                      <t>FORMAT_FAMILIES='&lt;format-list&gt;'
+                          <list>
+                              <t>Restricts the search to instruments of the supplied format families,
+                              where &lt;format-list&gt; is a comma separated list of format families.</t>
+                          </list>
+                      </t>
+                    </t>
+
+                    <t>Where &lt;search-string&gt; is either a regular expression, or a
+                    word list separated with spaces for OR search and with '+' for AND search.</t>
+
+                    <t>Possible Answers:</t>
+                    <t>
+                        <list>
+                            <t>A comma separated list with the absolute path names (encapsulated into
+                            apostrophes) of all instruments in the specified directory that satisfy
+                            the supplied search criterias.</t>
+                            <t>"ERR:&lt;error-code&gt;:&lt;error-message&gt;" -
+                                <list>
+                                    <t>if the given directory does not exist.</t>
+                                </list>
+                            </t>
+                        </list>
+                    </t>
+                    <t>Example:</t>
+                    <t>
+                        <list>
+                            <t>C: "FIND DB_INSTRUMENTS '/Piano Collection' NAME='bosendorfer+290'"</t>
+                            <t>S: "'/Piano Collection/Bosendorfer 290'"</t>
+                        </list>
+                    </t>
+                    <t>
+                        <list>
+                            <t>C: "FIND DB_INSTRUMENTS '/Piano Collection' CREATED='2007-04-01 09:30:13..'"</t>
+                            <t>S: "'/Piano Collection/Bosendorfer 290','/Piano Collection/Steinway D'"</t>
                         </list>
                     </t>
                 </section>
@@ -5547,7 +5865,11 @@ Schoenebeck'>
 		</t>
 		<t>/ CLEAR SP clear_instruction
 		</t>
+		<t>/ FIND SP find_instruction
+		</t>
 		<t>/ MOVE SP move_instruction
+		</t>
+		<t>/ COPY SP copy_instruction
 		</t>
 		<t>/ RESET
 		</t>
@@ -5773,9 +6095,13 @@ Schoenebeck'>
 		</t>
 		<t>/ FX_SEND SP INFO SP sampler_channel SP fx_send_id
 		</t>
+		<t>/ DB_INSTRUMENT_DIRECTORIES SP RECURSIVE SP pathname
+		</t>
 		<t>/ DB_INSTRUMENT_DIRECTORIES SP pathname
 		</t>
 		<t>/ DB_INSTRUMENT_DIRECTORY SP INFO SP pathname
+		</t>
+		<t>/ DB_INSTRUMENTS SP RECURSIVE SP pathname
 		</t>
 		<t>/ DB_INSTRUMENTS SP pathname
 		</t>
@@ -5851,7 +6177,27 @@ Schoenebeck'>
 		</t>
 	</list>
 </t>
+<t>find_instruction =
+	<list>
+		<t>DB_INSTRUMENTS SP NON_RECURSIVE SP pathname SP query_val_list
+		</t>
+		<t>/ DB_INSTRUMENTS SP pathname SP query_val_list
+		</t>
+		<t>/ DB_INSTRUMENT_DIRECTORIES SP NON_RECURSIVE SP pathname SP query_val_list
+		</t>
+		<t>/ DB_INSTRUMENT_DIRECTORIES SP pathname SP query_val_list
+		</t>
+	</list>
+</t>
 <t>move_instruction =
+	<list>
+		<t>DB_INSTRUMENT_DIRECTORY SP pathname SP pathname
+		</t>
+		<t>/ DB_INSTRUMENT SP pathname SP pathname
+		</t>
+	</list>
+</t>
+<t>copy_instruction =
 	<list>
 		<t>DB_INSTRUMENT_DIRECTORY SP pathname SP pathname
 		</t>
@@ -5955,7 +6301,11 @@ Schoenebeck'>
 		</t>
 		<t>/ FX_SENDS SP sampler_channel
 		</t>
+		<t>/ DB_INSTRUMENT_DIRECTORIES SP RECURSIVE SP pathname
+		</t>
 		<t>/ DB_INSTRUMENT_DIRECTORIES SP pathname
+		</t>
+		<t>/ DB_INSTRUMENTS SP RECURSIVE SP pathname
 		</t>
 		<t>/ DB_INSTRUMENTS SP pathname
 		</t>
@@ -6132,6 +6482,22 @@ Schoenebeck'>
 		<t>/ number
 		</t>
 		<t>/ dotnum
+		</t>
+	</list>
+</t>
+<t>query_val_list =
+	<list>
+		<t>string '=' query_val
+		</t>
+		<t>/ query_val_list SP string '=' query_val
+		</t>
+	</list>
+</t>
+<t>query_val =
+	<list>
+		<t>string
+		</t>
+		<t>/ stringval
 		</t>
 	</list>
 </t>
