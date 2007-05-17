@@ -82,7 +82,25 @@
 #define RIFF_HEADER_SIZE	12
 
 
-/** RIFF specific classes and definitions */
+/**
+ * @brief RIFF specific classes and definitions
+ *
+ * The Resource Interchange File Format (RIFF) is a generic tree-structured
+ * meta-format which stores data in so called "chunks". It can be compared
+ * to XML, but in contrast to XML, RIFF is entirely binary encoded, that is
+ * not ASCII based. RIFF is used as basis for many file formats like AVI,
+ * WAV, DLS and of course the Gigasampler file format. ;-)
+ *
+ * RIFF chunks can be seen as containers for data. There are two distinct
+ * types of chunks:
+ *
+ * - @e ordinary @e chunks are the leafs of the data tree which encapsulate
+ *   the actual data of the file (i.e. the sample data of a .wav file)
+ *
+ * - @e list @e chunks are the nodes of the data tree which hold an
+ *   arbitrary amount of subchunks (can be both, list chunks and/or ordinary
+ *   chunks)
+ */
 namespace RIFF {
 
     /* just symbol prototyping */
@@ -114,13 +132,18 @@ namespace RIFF {
         stream_end      = 3
     } stream_whence_t;
 
+    /** Alignment of data bytes in memory (system dependant). */
     typedef enum {
         endian_little = 0,
         endian_big    = 1,
         endian_native = 2
     } endian_t;
 
-    /** Provides convenient methods to access data of RIFF chunks in general. */
+    /** @brief Ordinary RIFF Chunk
+     *
+     * Provides convenient methods to access data of ordinary RIFF chunks
+     * in general.
+     */
     class Chunk {
         public:
             Chunk(File* pFile, unsigned long StartPos, List* Parent);
@@ -211,7 +234,11 @@ namespace RIFF {
             friend class List;
     };
 
-    /** Provides convenient methods to access data of RIFF list chunks and their subchunks. */
+    /** @brief RIFF List Chunk
+     *
+     * Provides convenient methods to access data of RIFF list chunks and
+     * their subchunks.
+     */
     class List : public Chunk {
         public:
             List(File* pFile, unsigned long StartPos, List* Parent);
@@ -252,7 +279,12 @@ namespace RIFF {
             virtual void __resetPos(); ///< Sets List Chunk's read/write position to zero and causes all sub chunks to do the same.
     };
 
-    /** Parses arbitrary RIFF files and provides together with it's base classes convenient methods to walk through the RIFF tree. */
+    /** @brief RIFF File
+     *
+     * Handles arbitrary RIFF files and provides together with its base
+     * classes convenient methods to walk through, read and modify the
+     * file's RIFF tree.
+     */
     class File : public List {
         public:
             File(uint32_t FileType);
@@ -297,7 +329,9 @@ namespace RIFF {
             #endif
     };
 
-    /** Will be thrown whenever an error occurs while parsing a RIFF file. */
+    /**
+     * Will be thrown whenever an error occurs while handling a RIFF file.
+     */
     class Exception {
         public:
             String Message;
