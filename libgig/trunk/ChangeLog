@@ -25,6 +25,8 @@ Version CVS HEAD (?)
       couldn't be saved, group name list chunk was placed wrong
     - added initialization of some fixed info strings in file and
       instrument
+    - write support: files created by libgig will now have the RIFF
+      chunks in correct order
 
   * src/RIFF.cpp, src/RIFF.h:
     - added File::SetByteOrder method

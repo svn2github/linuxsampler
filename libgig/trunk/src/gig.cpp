@@ -2227,6 +2227,9 @@ namespace {
             const int _3lnkChunkSize = (pFile->pVersion && pFile->pVersion->major == 3) ? 1092 : 172;
             _3lnk = pCkRegion->AddSubChunk(CHUNK_ID_3LNK, _3lnkChunkSize);
             memset(_3lnk->LoadChunkData(), 0, _3lnkChunkSize);
+
+            // move 3prg to last position
+            pCkRegion->MoveSubChunk(pCkRegion->GetSubList(LIST_TYPE_3PRG), 0);
         }
 
         // update dimension definitions in '3lnk' chunk
@@ -2809,7 +2812,10 @@ namespace {
     void Group::UpdateChunks() {
         // make sure <3gri> and <3gnl> list chunks exist
         RIFF::List* _3gri = pFile->pRIFF->GetSubList(LIST_TYPE_3GRI);
-        if (!_3gri) _3gri = pFile->pRIFF->AddSubList(LIST_TYPE_3GRI);
+        if (!_3gri) {
+            _3gri = pFile->pRIFF->AddSubList(LIST_TYPE_3GRI);
+            pFile->pRIFF->MoveSubChunk(_3gri, pFile->pRIFF->GetSubChunk(CHUNK_ID_PTBL));
+        }
         RIFF::List* _3gnl = _3gri->GetSubList(LIST_TYPE_3GNL);
         if (!_3gnl) _3gnl = _3gri->AddSubList(LIST_TYPE_3GNL);
         // now store the name of this group as <3gnm> chunk as subchunk of the <3gnl> list chunk
@@ -2912,6 +2918,11 @@ namespace {
         pGroups = NULL;
         pInfo->FixedStringLengths = FixedStringLengths;
         pInfo->ArchivalLocation = String(256, ' ');
+
+        // add some mandatory chunks to get the file chunks in right
+        // order (INFO chunk will be moved to first position later)
+        pRIFF->AddSubChunk(CHUNK_ID_VERS, 8);
+        pRIFF->AddSubChunk(CHUNK_ID_COLH, 4);
     }
 
     File::File(RIFF::File* pRIFF) : DLS::File(pRIFF) {
@@ -2958,6 +2969,11 @@ namespace {
        // create new Sample object and its respective 'wave' list chunk
        RIFF::List* wave = wvpl->AddSubList(LIST_TYPE_WAVE);
        Sample* pSample = new Sample(this, wave, 0 /*arbitrary value, we update offsets when we save*/);
+
+       // add mandatory chunks to get the chunks in right order
+       wave->AddSubChunk(CHUNK_ID_FMT, 16);
+       wave->AddSubList(LIST_TYPE_INFO);
+
        pSamples->push_back(pSample);
        return pSample;
     }
@@ -3100,7 +3116,13 @@ namespace {
        __ensureMandatoryChunksExist();
        RIFF::List* lstInstruments = pRIFF->GetSubList(LIST_TYPE_LINS);
        RIFF::List* lstInstr = lstInstruments->AddSubList(LIST_TYPE_INS);
+
+       // add mandatory chunks to get the chunks in right order
+       lstInstr->AddSubList(LIST_TYPE_INFO);
+
        Instrument* pInstrument = new Instrument(this, lstInstr);
+
+       lstInstr->AddSubChunk(CHUNK_ID_INSH, 12);
 
        // this string is needed for the gig to be loadable in GSt:
        pInstrument->pInfo->Software = "Endless Wave";
@@ -3272,8 +3294,20 @@ namespace {
      * @throws Exception - on errors
      */
     void File::UpdateChunks() {
+        RIFF::Chunk* info = pRIFF->GetSubList(LIST_TYPE_INFO);
+
         // first update base class's chunks
         DLS::File::UpdateChunks();
+
+        if (!info) {
+            // INFO was added by Resource::UpdateChunks - make sure it
+            // is placed first in file
+            info = pRIFF->GetSubList(LIST_TYPE_INFO);
+            RIFF::Chunk* first = pRIFF->GetFirstSubChunk();
+            if (first != info) {
+                pRIFF->MoveSubChunk(info, first);
+            }
+        }
 
         // update group's chunks
         if (pGroups) {
