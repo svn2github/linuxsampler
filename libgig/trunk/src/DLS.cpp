@@ -488,7 +488,7 @@ namespace DLS {
     /**
      * Adds a new sample loop with the provided loop definition.
      *
-     * @param - points to a loop definition that is to be copied
+     * @param pLoopDef - points to a loop definition that is to be copied
      */
     void Sampler::AddSampleLoop(sample_loop_t* pLoopDef) {
         sample_loop_t* pNewLoops = new sample_loop_t[SampleLoops + 1];
