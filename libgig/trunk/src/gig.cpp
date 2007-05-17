@@ -2396,7 +2396,8 @@ namespace {
         // create new dimension region(s) for this new dimension
         for (int i = 1 << iCurrentBits; i < 1 << iNewBits; i++) {
             //TODO: maybe we should copy existing dimension regions if possible instead of simply creating new ones with default values
-            RIFF::List* pNewDimRgnListChunk = pCkRegion->AddSubList(LIST_TYPE_3EWL);
+            RIFF::List* _3prg = pCkRegion->GetSubList(LIST_TYPE_3PRG);
+            RIFF::List* pNewDimRgnListChunk = _3prg->AddSubList(LIST_TYPE_3EWL);
             pDimensionRegions[i] = new DimensionRegion(pNewDimRgnListChunk);
             DimensionRegions++;
         }

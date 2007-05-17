@@ -22,7 +22,8 @@ Version CVS HEAD (?)
     - clear unused fields when saving samples and regions
     - fixed write support bugs: v3 dimension limits and chunksize
       weren't saved, leverage controller of type controlchange
-      couldn't be saved, group name list chunk was placed wrong
+      couldn't be saved, group name list chunk was placed wrong,
+      dimension region chunks also placed wrong
     - added initialization of some fixed info strings in file and
       instrument
     - write support: files created by libgig will now have the RIFF
