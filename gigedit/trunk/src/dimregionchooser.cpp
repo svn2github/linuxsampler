@@ -80,10 +80,11 @@ bool DimRegionChooser::on_expose_event(GdkEventExpose* event)
     Glib::RefPtr<Pango::Layout> layout = Pango::Layout::create(context);
 
     window->clear();
+
+    // draw labels on the left (reflecting the dimension type)
     int y = 0;
     double maxwidth = 0;
     for (int i = 0 ; i < region->Dimensions ; i++) {
-
         int nbZones = region->pDimensionDefinitions[i].zones;
         if (nbZones) {
             char* dstr;
@@ -141,13 +142,15 @@ bool DimRegionChooser::on_expose_event(GdkEventExpose* event)
         }
         y += h;
     }
+
+    // draw dimensions' zones areas
     y = 0;
     int bitpos = 0;
     label_width = int(maxwidth + 10);
     for (int i = 0 ; i < region->Dimensions ; i++) {
         int nbZones = region->pDimensionDefinitions[i].zones;
         if (nbZones) {
-
+            // draw focus rectangle around dimension's label and zones
             if (has_focus() && focus_line == i) {
                 Gdk::Rectangle farea(0, y, 150, 20);
                 get_style()->paint_focus(window, get_state(), farea, *this, "",
@@ -155,8 +158,10 @@ bool DimRegionChooser::on_expose_event(GdkEventExpose* event)
             }
 
             Glib::RefPtr<const Gdk::GC> black = get_style()->get_black_gc();
+            // draw top and bottom lines of dimension's zones
             window->draw_line(black, label_width, y, w - 1, y);
             window->draw_line(black, w - 1, y + h - 1, label_width, y + h - 1);
+            // erase whole dimension's zones area
             window->draw_rectangle(get_style()->get_white_gc(), true,
                                    label_width + 1, y + 1, (w - label_width - 2), h - 2);
 
@@ -171,6 +176,7 @@ bool DimRegionChooser::on_expose_event(GdkEventExpose* event)
                 (region->pDimensionDefinitions[i].dimension == gig::dimension_velocity &&
                  region->pDimensionRegions[c]->VelocityUpperLimit));
 
+            // draw dimension's zone borders
             if (customsplits) {
                 window->draw_line(black, label_width, y + 1, label_width, y + h - 2);
                 for (int j = 0 ; j < nbZones ; j++) {
@@ -188,6 +194,7 @@ bool DimRegionChooser::on_expose_event(GdkEventExpose* event)
                 }
             }
 
+            // draw fill for currently selected zone
             if (dimregno >= 0) {
                 gc->set_foreground(red);
                 int dr = (dimregno >> bitpos) & ((1 << region->pDimensionDefinitions[i].bits) - 1);
