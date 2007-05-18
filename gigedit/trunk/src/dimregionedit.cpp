@@ -161,7 +161,6 @@ DimRegionEdit::DimRegionEdit() :
     //TODO: the following would break drag&drop:   wSample->property_editable().set_value(false);  or this:    wSample->set_editable(false);
     tooltips.set_tip(*wSample, _("Drop a sample here"));
     addProp(eUnityNote);
-    // prop_table.addProp(eUnityNote);
     addHeader(_("Optional Settings"));
     addProp(eSampleStartOffset);
     addProp(eChannelOffset);
@@ -181,14 +180,6 @@ DimRegionEdit::DimRegionEdit() :
     addProp(eSampleLoopType);
     addProp(eSampleLoopInfinite);
     addProp(eSampleLoopPlayCount);
-
-    Gtk::Requisition req = table[0]->size_request();
-    printf("w=%d h=%d\n", req.width, req.height);
-    req = eCrossfade_out_end.widget.size_request();
-    printf("widget: w=%d h=%d\n", req.width, req.height);
-
-    Gtk::Allocation all = table[0]->get_allocation();
-    printf("allocation: w=%d h=%d\n", all.get_width(), all.get_height());
 
     nextPage();
 
@@ -508,47 +499,6 @@ void DimRegionEdit::addProp(BoolEntry& boolentry)
     table[pageno]->attach(boolentry.widget, 1, 3, rowno, rowno + 1,
                           Gtk::FILL, Gtk::SHRINK);
     rowno++;
-}
-
-void DimRegionEdit::addProp(BoolEntryPlus6& boolentry)
-{
-    table[pageno]->attach(boolentry.widget, 1, 3, rowno, rowno + 1,
-                          Gtk::FILL, Gtk::SHRINK);
-    rowno++;
-}
-
-PropTable::PropTable()
-{
-    rowno = 0;
-    firstRowInBlock = 0;
-
-    table = new Gtk::Table(3, 1);
-    table->set_col_spacings(7);
-    tables.push_back(table);
-}
-
-void PropTable::addProp(LabelWidget& prop)
-{
-    table->attach(prop.label, 1, 2, rowno, rowno + 1,
-                  Gtk::FILL, Gtk::SHRINK);
-    table->attach(prop.widget, 2, 3, rowno, rowno + 1,
-                  Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK);
-    rowno++;
-}
-
-void PropTable::nextPage()
-{
-    if (firstRowInBlock < rowno - 1)
-    {
-        Gtk::Label* filler = new Gtk::Label("    ");
-        table->attach(*filler, 0, 1, firstRowInBlock, rowno,
-                      Gtk::FILL, Gtk::SHRINK);
-    }
-    table = new Gtk::Table(3, 1);
-    table->set_col_spacings(7);
-    tables.push_back(table);
-    rowno = 0;
-    firstRowInBlock = 0;
 }
 
 void DimRegionEdit::addProp(LabelWidget& prop)

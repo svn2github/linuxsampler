@@ -282,19 +282,53 @@ bool DimRegionChooser::on_button_release_event(GdkEventButton* event)
                 bitpos += region->pDimensionDefinitions[j].bits;
             }
             int mask =
-                     ~(((1 << region->pDimensionDefinitions[resize.dimension].bits) - 1) << bitpos);
+                ~(((1 << region->pDimensionDefinitions[resize.dimension].bits) - 1) << bitpos);
             int c = dimregno & mask; // mask away this dimension
 
-            gig::DimensionRegion *d = region->pDimensionRegions[c + resize.offset];
-            if (d->DimensionUpperLimits[resize.dimension]) {
-                d->DimensionUpperLimits[resize.dimension] = resize.pos - 1;
-            } else {
-                d->VelocityUpperLimit = resize.pos - 1;
+            if (region->pDimensionRegions[c]->DimensionUpperLimits[resize.dimension] == 0) {
+                // the velocity dimension didn't previously have
+                // custom v3 splits, so we initialize all splits with
+                // default values
+                int nbZones = region->pDimensionDefinitions[resize.dimension].zones;
+                for (int j = 0 ; j < nbZones ; j++) {
+                    gig::DimensionRegion *d = region->pDimensionRegions[c + (j << bitpos)];
+                    d->DimensionUpperLimits[resize.dimension] = int(128.0 * (j + 1) / nbZones - 1);
+                }
             }
+            if (region->pDimensionRegions[c]->VelocityUpperLimit == 0) {
+                // the velocity dimension didn't previously have
+                // custom v2 splits, so we initialize all splits with
+                // default values
+                int nbZones = region->pDimensionDefinitions[resize.dimension].zones;
+                for (int j = 0 ; j < nbZones ; j++) {
+                    gig::DimensionRegion *d = region->pDimensionRegions[c + (j << bitpos)];
+                    d->VelocityUpperLimit = int(128.0 * (j + 1) / nbZones - 1);
+                }
+            }
+
+            gig::DimensionRegion *d = region->pDimensionRegions[c + resize.offset];
+            // update both v2 and v3 values
+            d->DimensionUpperLimits[resize.dimension] = resize.pos - 1;
+            d->VelocityUpperLimit = resize.pos - 1;
 
         } else {
             for (int i = 0 ; i < region->DimensionRegions ; ) {
 
+                if (region->pDimensionRegions[i]->DimensionUpperLimits[resize.dimension] == 0) {
+                    // the dimension didn't previously have custom
+                    // limits, so we have to set default limits for
+                    // all the dimension regions
+                    int bitpos = 0;
+                    for (int j = 0 ; j < resize.dimension ; j++) {
+                        bitpos += region->pDimensionDefinitions[j].bits;
+                    }
+                    int nbZones = region->pDimensionDefinitions[resize.dimension].zones;
+
+                    for (int j = 0 ; j < nbZones ; j++) {
+                        gig::DimensionRegion *d = region->pDimensionRegions[i + (j << bitpos)];
+                        d->DimensionUpperLimits[resize.dimension] = int(128.0 * (j + 1) / nbZones - 1);
+                    }
+                }
                 gig::DimensionRegion *d = region->pDimensionRegions[i + resize.offset];
                 d->DimensionUpperLimits[resize.dimension] = resize.pos - 1;
 
@@ -512,7 +546,7 @@ bool DimRegionChooser::is_in_resize_zone(double x, double y)
                     (customsplits) ?
                         (d->DimensionUpperLimits[dim]) ?
                             d->DimensionUpperLimits[dim] : d->VelocityUpperLimit
-                        : (iZone+1) * (int)region->pDimensionDefinitions[dim].zone_size;
+                        : (iZone+1) * (int)region->pDimensionDefinitions[dim].zone_size - 1;
                 int limit = upperLimit + 1;
                 int limitx = int((w - label_width - 1) * limit / 128.0 + 0.5) + label_width;
                 if (x <= limitx - 2) break;
@@ -534,7 +568,7 @@ bool DimRegionChooser::is_in_resize_zone(double x, double y)
                         (customsplits) ?
                             (d->DimensionUpperLimits[dim]) ?
                                 d->DimensionUpperLimits[dim] : d->VelocityUpperLimit
-                            : (iZone+1) * (int)region->pDimensionDefinitions[dim].zone_size;
+                            : (iZone+1) * (int)region->pDimensionDefinitions[dim].zone_size - 1;
 
                     int limit = upperLimit + 1;
                     resize.max = limit;
