@@ -278,6 +278,26 @@ namespace {
 
 
 
+// *************** CRC ***************
+// *
+
+    const uint32_t* CRC::table(initTable());
+
+    uint32_t* CRC::initTable() {
+        uint32_t* res = new uint32_t[256];
+
+        for (int i = 0 ; i < 256 ; i++) {
+            uint32_t c = i;
+            for (int j = 0 ; j < 8 ; j++) {
+                c = (c & 1) ? 0xedb88320 ^ (c >> 1) : c >> 1;
+            }
+            res[i] = c;
+        }
+        return res;
+    }
+
+
+
 // *************** Sample ***************
 // *
 
@@ -1140,7 +1160,17 @@ namespace {
      */
     unsigned long Sample::Write(void* pBuffer, unsigned long SampleCount) {
         if (Compressed) throw gig::Exception("There is no support for writing compressed gig samples (yet)");
-        return DLS::Sample::Write(pBuffer, SampleCount);
+        if (pCkData->GetPos() == 0) {
+            crc.reset();
+        }
+        unsigned long res = DLS::Sample::Write(pBuffer, SampleCount);
+        crc.update((unsigned char *)pBuffer, SampleCount * FrameSize);
+
+        if (pCkData->GetPos() == pCkData->GetSize()) {
+            File* pFile = static_cast<File*>(GetParent());
+            pFile->SetSampleChecksum(this, crc.getValue());
+        }
+        return res;
     }
 
     /**
@@ -2133,8 +2163,8 @@ namespace {
             for (int i = 0; i < dimensionBits; i++) {
                 dimension_t dimension = static_cast<dimension_t>(_3lnk->ReadUint8());
                 uint8_t     bits      = _3lnk->ReadUint8();
-                _3lnk->ReadUint8(); // probably the position of the dimension
-                _3lnk->ReadUint8(); // unknown
+                _3lnk->ReadUint8(); // bit position of the dimension (bits[0] + bits[1] + ... + bits[i-1])
+                _3lnk->ReadUint8(); // (1 << bit position of next dimension) - (1 << bit position of this dimension)
                 uint8_t     zones     = _3lnk->ReadUint8(); // new for v3: number of zones doesn't have to be == pow(2,bits)
                 if (dimension == dimension_none) { // inactive dimension
                     pDimensionDefinitions[i].dimension  = dimension_none;
@@ -2235,12 +2265,16 @@ namespace {
         // update dimension definitions in '3lnk' chunk
         uint8_t* pData = (uint8_t*) _3lnk->LoadChunkData();
         store32(&pData[0], DimensionRegions);
+        int shift = 0;
         for (int i = 0; i < iMaxDimensions; i++) {
             pData[4 + i * 8] = (uint8_t) pDimensionDefinitions[i].dimension;
             pData[5 + i * 8] = pDimensionDefinitions[i].bits;
-            // next 2 bytes unknown
+            pData[6 + i * 8] = shift;
+            pData[7 + i * 8] = (1 << (shift + pDimensionDefinitions[i].bits)) - (1 << shift);
             pData[8 + i * 8] = pDimensionDefinitions[i].zones;
-            // next 3 bytes unknown
+            // next 3 bytes unknown, always zero?
+
+            shift += pDimensionDefinitions[i].bits;
         }
 
         // update wave pool table in '3lnk' chunk
@@ -2894,6 +2928,16 @@ namespace {
 // *************** File ***************
 // *
 
+    // File version 2.0, 1998-06-28
+    const DLS::version_t File::VERSION_2 = {
+        0, 2, 19980628 & 0xffff, 19980628 >> 16
+    };
+
+    // File version 3.0, 2003-03-31
+    const DLS::version_t File::VERSION_3 = {
+        0, 3, 20030331 & 0xffff, 20030331 >> 16
+    };
+
     const DLS::Info::FixedStringLength File::FixedStringLengths[] = {
         { CHUNK_ID_IARL, 256 },
         { CHUNK_ID_IART, 128 },
@@ -3178,6 +3222,26 @@ namespace {
         }
     }
 
+    void File::SetSampleChecksum(Sample* pSample, uint32_t crc) {
+        RIFF::Chunk* _3crc = pRIFF->GetSubChunk(CHUNK_ID_3CRC);
+        if (!_3crc) return;
+        int iWaveIndex = -1;
+        File::SampleList::iterator iter = pSamples->begin();
+        File::SampleList::iterator end  = pSamples->end();
+        for (int index = 0; iter != end; ++iter, ++index) {
+            if (*iter == pSample) {
+                iWaveIndex = index;
+                break;
+            }
+        }
+        if (iWaveIndex < 0) throw gig::Exception("Could not update crc, could not find sample");
+
+        _3crc->SetPos(iWaveIndex * 8);
+        uint32_t tmp = 1;
+        _3crc->WriteUint32(&tmp); // unknown, always 1?
+        _3crc->WriteUint32(&crc);
+    }
+
     Group* File::GetFirstGroup() {
         if (!pGroups) LoadGroups();
         // there must always be at least one group
@@ -3295,15 +3359,15 @@ namespace {
      * @throws Exception - on errors
      */
     void File::UpdateChunks() {
-        RIFF::Chunk* info = pRIFF->GetSubList(LIST_TYPE_INFO);
+        bool newFile = pRIFF->GetSubList(LIST_TYPE_INFO) == NULL;
 
         // first update base class's chunks
         DLS::File::UpdateChunks();
 
-        if (!info) {
+        if (newFile) {
             // INFO was added by Resource::UpdateChunks - make sure it
             // is placed first in file
-            info = pRIFF->GetSubList(LIST_TYPE_INFO);
+            RIFF::Chunk* info = pRIFF->GetSubList(LIST_TYPE_INFO);
             RIFF::Chunk* first = pRIFF->GetFirstSubChunk();
             if (first != info) {
                 pRIFF->MoveSubChunk(info, first);
@@ -3317,6 +3381,125 @@ namespace {
             for (; iter != end; ++iter) {
                 (*iter)->UpdateChunks();
             }
+        }
+
+        // update einf chunk
+
+        // The einf chunk contains statistics about the gig file, such
+        // as the number of regions and samples used by each
+        // instrument. It is divided in equally sized parts, where the
+        // first part contains information about the whole gig file,
+        // and the rest of the parts map to each instrument in the
+        // file.
+        //
+        // At the end of each part there is a bit map of each sample
+        // in the file, where a set bit means that the sample is used
+        // by the file/instrument.
+        //
+        // Note that there are several fields with unknown use. These
+        // are set to zero.
+
+        int sublen = pSamples->size() / 8 + 49;
+        int einfSize = (Instruments + 1) * sublen;
+
+        RIFF::Chunk* einf = pRIFF->GetSubChunk(CHUNK_ID_EINF);
+        if (einf) {
+            if (einf->GetSize() != einfSize) {
+                einf->Resize(einfSize);
+                memset(einf->LoadChunkData(), 0, einfSize);
+            }
+        } else if (newFile) {
+            einf = pRIFF->AddSubChunk(CHUNK_ID_EINF, einfSize);
+        }
+        if (einf) {
+            uint8_t* pData = (uint8_t*) einf->LoadChunkData();
+
+            std::map<gig::Sample*,int> sampleMap;
+            int sampleIdx = 0;
+            for (Sample* pSample = GetFirstSample(); pSample; pSample = GetNextSample()) {
+                sampleMap[pSample] = sampleIdx++;
+            }
+
+            int totnbusedsamples = 0;
+            int totnbusedchannels = 0;
+            int totnbregions = 0;
+            int totnbdimregions = 0;
+            int instrumentIdx = 0;
+
+            memset(&pData[48], 0, sublen - 48);
+
+            for (Instrument* instrument = GetFirstInstrument() ; instrument ;
+                 instrument = GetNextInstrument()) {
+                int nbusedsamples = 0;
+                int nbusedchannels = 0;
+                int nbdimregions = 0;
+
+                memset(&pData[(instrumentIdx + 1) * sublen + 48], 0, sublen - 48);
+
+                for (Region* region = instrument->GetFirstRegion() ; region ;
+                     region = instrument->GetNextRegion()) {
+                    for (int i = 0 ; i < region->DimensionRegions ; i++) {
+                        gig::DimensionRegion *d = region->pDimensionRegions[i];
+                        if (d->pSample) {
+                            int sampleIdx = sampleMap[d->pSample];
+                            int byte = 48 + sampleIdx / 8;
+                            int bit = 1 << (sampleIdx & 7);
+                            if ((pData[(instrumentIdx + 1) * sublen + byte] & bit) == 0) {
+                                pData[(instrumentIdx + 1) * sublen + byte] |= bit;
+                                nbusedsamples++;
+                                nbusedchannels += d->pSample->Channels;
+
+                                if ((pData[byte] & bit) == 0) {
+                                    pData[byte] |= bit;
+                                    totnbusedsamples++;
+                                    totnbusedchannels += d->pSample->Channels;
+                                }
+                            }
+                        }
+                    }
+                    nbdimregions += region->DimensionRegions;
+                }
+                // first 4 bytes unknown - sometimes 0, sometimes length of einf part
+                // store32(&pData[(instrumentIdx + 1) * sublen], sublen);
+                store32(&pData[(instrumentIdx + 1) * sublen + 4], nbusedchannels);
+                store32(&pData[(instrumentIdx + 1) * sublen + 8], nbusedsamples);
+                store32(&pData[(instrumentIdx + 1) * sublen + 12], 1);
+                store32(&pData[(instrumentIdx + 1) * sublen + 16], instrument->Regions);
+                store32(&pData[(instrumentIdx + 1) * sublen + 20], nbdimregions);
+                // next 12 bytes unknown
+                store32(&pData[(instrumentIdx + 1) * sublen + 36], instrumentIdx);
+                store32(&pData[(instrumentIdx + 1) * sublen + 40], pSamples->size());
+                // next 4 bytes unknown
+
+                totnbregions += instrument->Regions;
+                totnbdimregions += nbdimregions;
+                instrumentIdx++;
+            }
+            // first 4 bytes unknown - sometimes 0, sometimes length of einf part
+            // store32(&pData[0], sublen);
+            store32(&pData[4], totnbusedchannels);
+            store32(&pData[8], totnbusedsamples);
+            store32(&pData[12], Instruments);
+            store32(&pData[16], totnbregions);
+            store32(&pData[20], totnbdimregions);
+            // next 12 bytes unknown
+            // next 4 bytes unknown, always 0?
+            store32(&pData[40], pSamples->size());
+            // next 4 bytes unknown
+        }
+
+        // update 3crc chunk
+
+        // The 3crc chunk contains CRC-32 checksums for the
+        // samples. The actual checksum values will be filled in
+        // later, by Sample::Write.
+
+        RIFF::Chunk* _3crc = pRIFF->GetSubChunk(CHUNK_ID_3CRC);
+        if (_3crc) {
+            _3crc->Resize(pSamples->size() * 8);
+        } else if (newFile) {
+            _3crc = pRIFF->AddSubChunk(CHUNK_ID_3CRC, pSamples->size() * 8);
+            _3crc->LoadChunkData();
         }
     }
 

@@ -28,6 +28,12 @@ Version CVS HEAD (?)
       instrument
     - write support: files created by libgig will now have the RIFF
       chunks in correct order
+    - write support: two previously unknown fields in dimension
+      definition are now saved
+    - added constants for gig file versions
+    - write support: the 3crc and einf chunks are now created or
+      updated when a file is saved (3crc contains sample checksums,
+      einf contains file statistics)
 
   * src/RIFF.cpp, src/RIFF.h:
     - added File::SetByteOrder method

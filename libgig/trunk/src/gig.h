@@ -38,6 +38,8 @@
 # define CHUNK_ID_3EWG	0x33657767
 # define CHUNK_ID_EWAV	0x65776176
 # define CHUNK_ID_3GNM	0x33676E6D
+# define CHUNK_ID_EINF	0x65696E66
+# define CHUNK_ID_3CRC	0x33637263
 #else  // little endian
 # define LIST_TYPE_3PRG	0x67727033
 # define LIST_TYPE_3EWL	0x6C776533
@@ -50,6 +52,8 @@
 # define CHUNK_ID_3EWG	0x67776533
 # define CHUNK_ID_EWAV	0x76617765
 # define CHUNK_ID_3GNM	0x6D6E6733
+# define CHUNK_ID_EINF	0x666E6965
+# define CHUNK_ID_3CRC	0x63726333
 #endif // WORDS_BIGENDIAN
 
 /** Gigasampler specific classes and definitions */
@@ -319,6 +323,28 @@ namespace gig {
         progress_t();
     };
 
+    class CRC {
+    private:
+        uint32_t value;
+        static const uint32_t* table;
+        static uint32_t* initTable();
+    public:
+        CRC() {
+            reset();
+        }
+        void reset() {
+            value = 0xffffffff;
+        }
+        void update(unsigned char* buf, int len) {
+            for (int i = 0 ; i < len ; i++) {
+                value = table[(value ^ buf[i]) & 0xff] ^ (value >> 8);
+            }
+        }
+        uint32_t getValue() {
+            return value ^ 0xffffffff;
+        }
+    };
+
     // just symbol prototyping
     class File;
     class Instrument;
@@ -559,6 +585,7 @@ namespace gig {
             unsigned long        FileNo;                  ///< File number (> 0 when sample is stored in an extension file, 0 when it's in the gig)
             RIFF::Chunk*         pCk3gix;
             RIFF::Chunk*         pCkSmpl;
+            CRC                  crc;
 
             Sample(File* pFile, RIFF::List* waveList, unsigned long WavePoolOffset, unsigned long fileNo = 0);
            ~Sample();
@@ -695,6 +722,9 @@ namespace gig {
     /** Parses Gigasampler files and provides abstract access to the data. */
     class File : protected DLS::File {
         public:
+            static const DLS::version_t VERSION_2;
+            static const DLS::version_t VERSION_3;
+
             // derived attributes from DLS::Resource
             DLS::Resource::pInfo;
             DLS::Resource::pDLSID;
@@ -734,6 +764,7 @@ namespace gig {
             // own protected methods
             virtual void LoadSamples(progress_t* pProgress);
             virtual void LoadInstruments(progress_t* pProgress);
+            void SetSampleChecksum(Sample* pSample, uint32_t crc);
             friend class Region;
             friend class Sample;
             friend class Group; // so Group can access protected member pRIFF
