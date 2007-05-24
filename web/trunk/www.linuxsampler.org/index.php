@@ -131,6 +131,7 @@
                 <tr>
                   <td valign=top>
                     <p class="default">
+              <b>2007-05-24</b> <a href="http://downloads.sourceforge.net/jsampler/JSampler-0.5a.tar.bz2">JSampler 0.5a</a> has been released, now with instruments database support.<br>
               <b>2007-05-04</b> <a href="http://qsampler.sourceforge.net">Qsampler</a> 0.1.4 has been released. Almost another year has gone by.<br>
               <br>
               <b>2007-04-02</b> JSampler 0.4a has been released. Read the <a href="jsampler/manual/html/jsampler.html">manual</a>
