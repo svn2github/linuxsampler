@@ -84,6 +84,7 @@ LSCPServer::LSCPServer(Sampler* pSampler, long int addr, short int port) : Threa
     LSCPEvent::RegisterEvent(LSCPEvent::event_db_instr_dir_info, "DB_INSTRUMENT_DIRECTORY_INFO");
     LSCPEvent::RegisterEvent(LSCPEvent::event_db_instr_count, "DB_INSTRUMENT_COUNT");
     LSCPEvent::RegisterEvent(LSCPEvent::event_db_instr_info, "DB_INSTRUMENT_INFO");
+    LSCPEvent::RegisterEvent(LSCPEvent::event_db_instrs_job_info, "DB_INSTRUMENTS_JOB_INFO");
     LSCPEvent::RegisterEvent(LSCPEvent::event_misc, "MISCELLANEOUS");
     LSCPEvent::RegisterEvent(LSCPEvent::event_total_voice_count, "TOTAL_VOICE_COUNT");
     LSCPEvent::RegisterEvent(LSCPEvent::event_global_info, "GLOBAL_INFO");
@@ -164,10 +165,15 @@ void LSCPServer::DbInstrumentsEventHandler::InstrumentCountChanged(String Dir) {
 void LSCPServer::DbInstrumentsEventHandler::InstrumentInfoChanged(String Instr) {
     LSCPServer::SendLSCPNotify(LSCPEvent(LSCPEvent::event_db_instr_info, Instr));
 }
+
 void LSCPServer::DbInstrumentsEventHandler::InstrumentNameChanged(String Instr, String NewName) {
     Instr = "'" + Instr + "'";
     NewName = "'" + NewName + "'";
     LSCPServer::SendLSCPNotify(LSCPEvent(LSCPEvent::event_db_instr_info, "NAME", Instr, NewName));
+}
+
+void LSCPServer::DbInstrumentsEventHandler::JobStatusChanged(int JobId) {
+    LSCPServer::SendLSCPNotify(LSCPEvent(LSCPEvent::event_db_instrs_job_info, JobId));
 }
 #endif // HAVE_SQLITE3
 
@@ -2411,12 +2417,15 @@ String LSCPServer::SetDbInstrumentDirectoryDescription(String Dir, String Desc) 
     return result.Produce();
 }
 
-String LSCPServer::AddDbInstruments(String DbDir, String FilePath, int Index) {
-    dmsg(2,("LSCPServer: AddDbInstruments(DbDir=%s,FilePath=%s,Index=%d)\n", DbDir.c_str(), FilePath.c_str(), Index));
+String LSCPServer::AddDbInstruments(String DbDir, String FilePath, int Index, bool bBackground) {
+    dmsg(2,("LSCPServer: AddDbInstruments(DbDir=%s,FilePath=%s,Index=%d,bBackground=%d)\n", DbDir.c_str(), FilePath.c_str(), Index, bBackground));
     LSCPResultSet result;
 #if HAVE_SQLITE3
     try {
-        InstrumentsDb::GetInstrumentsDb()->AddInstruments(DbDir, FilePath, Index);
+        int id;
+        InstrumentsDb* db = InstrumentsDb::GetInstrumentsDb();
+        id = db->AddInstruments(DbDir, FilePath, Index, bBackground);
+        if (bBackground) result = id;
     } catch (Exception e) {
          result.Error(e);
     }
@@ -2426,27 +2435,24 @@ String LSCPServer::AddDbInstruments(String DbDir, String FilePath, int Index) {
     return result.Produce();
 }
 
-String LSCPServer::AddDbInstrumentsFlat(String DbDir, String FsDir) {
-    dmsg(2,("LSCPServer: AddDbInstrumentsFlat(DbDir=%s,FilePath=%s)\n", DbDir.c_str(), FsDir.c_str()));
+String LSCPServer::AddDbInstruments(String ScanMode, String DbDir, String FsDir, bool bBackground) {
+    dmsg(2,("LSCPServer: AddDbInstruments(ScanMode=%s,DbDir=%s,FsDir=%s,bBackground=%d)\n", ScanMode.c_str(), DbDir.c_str(), FsDir.c_str(), bBackground));
     LSCPResultSet result;
 #if HAVE_SQLITE3
     try {
-        InstrumentsDb::GetInstrumentsDb()->AddInstrumentsRecursive(DbDir, FsDir, true);
-    } catch (Exception e) {
-         result.Error(e);
-    }
-#else
-    result.Error(String(DOESNT_HAVE_SQLITE3), 0);
-#endif
-    return result.Produce();
-}
-
-String LSCPServer::AddDbInstrumentsNonrecursive(String DbDir, String FsDir) {
-    dmsg(2,("LSCPServer: AddDbInstrumentsNonrecursive(DbDir=%s,FilePath=%s)\n", DbDir.c_str(), FsDir.c_str()));
-    LSCPResultSet result;
-#if HAVE_SQLITE3
-    try {
-        InstrumentsDb::GetInstrumentsDb()->AddInstrumentsNonrecursive(DbDir, FsDir);
+        int id;
+        InstrumentsDb* db = InstrumentsDb::GetInstrumentsDb();
+        if (ScanMode.compare("RECURSIVE") == 0) {
+           id = db->AddInstruments(RECURSIVE, DbDir, FsDir, bBackground);
+        } else if (ScanMode.compare("NON_RECURSIVE") == 0) {
+           id = db->AddInstruments(NON_RECURSIVE, DbDir, FsDir, bBackground);
+        } else if (ScanMode.compare("FLAT") == 0) {
+           id = db->AddInstruments(FLAT, DbDir, FsDir, bBackground);
+        } else {
+            throw Exception("Unknown scan mode: " + ScanMode);
+        }
+        
+        if (bBackground) result = id;
     } catch (Exception e) {
          result.Error(e);
     }
@@ -2528,6 +2534,26 @@ String LSCPServer::GetDbInstrumentInfo(String Instr) {
         result.Add("PRODUCT", FilterEndlines(info.Product));
         result.Add("ARTISTS", FilterEndlines(info.Artists));
         result.Add("KEYWORDS", FilterEndlines(info.Keywords));
+    } catch (Exception e) {
+         result.Error(e);
+    }
+#else
+    result.Error(String(DOESNT_HAVE_SQLITE3), 0);
+#endif
+    return result.Produce();
+}
+
+String LSCPServer::GetDbInstrumentsJobInfo(int JobId) {
+    dmsg(2,("LSCPServer: GetDbInstrumentsJobInfo(JobId=%d)\n", JobId));
+    LSCPResultSet result;
+#if HAVE_SQLITE3
+    try {
+        ScanJob job = InstrumentsDb::GetInstrumentsDb()->Jobs.GetJobById(JobId);
+
+        result.Add("FILES_TOTAL", job.FilesTotal);
+        result.Add("FILES_SCANNED", job.FilesScanned);
+        result.Add("SCANNING", job.Scanning);
+        result.Add("STATUS", job.Status);
     } catch (Exception e) {
          result.Error(e);
     }

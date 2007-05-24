@@ -5202,7 +5202,7 @@ Schoenebeck'>
                     to the instruments database by sending the following command:</t>
                     <t>
                         <list>
-                            <t>ADD DB_INSTRUMENTS [&lt;mode&gt;] &lt;db_dir&gt; &lt;file_path&gt; [&lt;instr_index&gt;]</t>
+                            <t>ADD DB_INSTRUMENTS [NON_MODAL] [&lt;mode&gt;] &lt;db_dir&gt; &lt;file_path&gt; [&lt;instr_index&gt;]</t>
                         </list>
                     </t>
                     <t>Where &lt;db_dir&gt; is the absolute path name of a directory
@@ -5220,6 +5220,14 @@ Schoenebeck'>
                     scanning will be done and has exactly the following possibilities:</t>
                     <t>
                         <list>
+                            <t>"RECURSIVE" -
+                                <list>
+                                    <t>All instruments will be processed, including those
+                                    in the subdirectories, and the respective subdirectory
+                                    tree structure will be recreated in the instruments
+                                    database</t>
+                                </list>
+                            </t>
                             <t>"NON_RECURSIVE" -
                                 <list>
                                     <t>Only the instruments in the specified directory
@@ -5236,23 +5244,29 @@ Schoenebeck'>
                                     the specified database directory.</t>
                                 </list>
                             </t>
-                            <t>not supplied -
-                                <list>
-                                    <t>The subdirectory tree structure will be recreated
-                                    in the instruments database and all instruments will be
-                                    processed and added to the respective subdirectory
-                                    in the instruments database.</t>
-                                </list>
-                            </t>
                         </list>
                     </t>
+
+                 <t>The difference between regular and NON_MODAL versions of the command
+                    is that the regular command returns when the scanning is finished
+                    while NON_MODAL version returns immediately and a background process is launched.
+                    The <xref target="GET DB_INSTRUMENTS_JOB INFO">GET DB_INSTRUMENTS_JOB INFO</xref>
+                    command can be used to monitor the scanning progress.</t>
 
                     <t>Possible Answers:</t>
                     <t>
                         <list>
                             <t>"OK" -
                                 <list>
-                                    <t>on success</t>
+                                    <t>on success when NON_MODAL is not supplied</t>
+                                </list>
+                            </t>
+                            <t>"OK[&lt;job-id&gt;]" -
+                                <list>
+                                    <t>on success when NON_MODAL is supplied, where &lt;job-id&gt;
+                                    is a numerical ID used to obtain status information about the job progress.
+                                    See <xref target="GET DB_INSTRUMENTS_JOB INFO">GET DB_INSTRUMENTS_JOB INFO</xref>
+                                    </t>
                                 </list>
                             </t>
                             <t>"ERR:&lt;error-code&gt;:&lt;error-message&gt;" -
@@ -5784,6 +5798,70 @@ Schoenebeck'>
                     </t>
                 </section>
 
+                <section title="Getting job status information" anchor="GET DB_INSTRUMENTS_JOB INFO">
+                    <t>The front-end can ask for the current status of a
+                    particular database instruments job by sending the following command:</t>
+                    <t>
+                        <list>
+                            <t>GET DB_INSTRUMENTS_JOB INFO &lt;job-id&gt;</t>
+                        </list>
+                    </t>
+                    <t>Where &lt;job-id&gt; should be replaced by the numerical ID
+                    of the job the front-end is interested in.</t>
+
+                    <t>Possible Answers:</t>
+                    <t>
+                        <list>
+                            <t>LinuxSampler will answer by sending a &lt;CRLF&gt; separated list.
+                            Each answer line begins with the settings category name
+                            followed by a colon and then a space character &lt;SP&gt; and finally
+                            the info character string to that setting category. At the
+                            moment the following categories are defined:</t>
+
+                            <t>
+                                <list>
+                                    <t>FILES_TOTAL -
+                                        <list>
+                                            <t>The total number of files scheduled for scanning</t>
+                                        </list>
+                                    </t>
+                                    <t>FILES_SCANNED -
+                                        <list>
+                                            <t>The current number of scanned files</t>
+                                        </list>
+                                    </t>
+                                    <t>SCANNING -
+                                        <list>
+                                            <t>The absolute path name of the file which is currently
+                                            being scanned</t>
+                                        </list>
+                                    </t>
+                                    <t>STATUS -
+                                        <list>
+                                            <t>An integer value between 0 and 100 indicating the
+                                            scanning progress percentage of the file which is
+                                            currently being scanned</t>
+                                        </list>
+                                    </t>
+                                </list>
+                            </t>
+                        </list>
+                    </t>
+                    <t>The mentioned fields above don't have to be in particular order.</t>
+
+                    <t>Example:</t>
+                    <t>
+                        <list>
+                            <t>C: "GET DB_INSTRUMENTS_JOB INFO 2"</t>
+                            <t>S: "FILES_TOTAL: 12"</t>
+                            <t>&nbsp;&nbsp;&nbsp;"FILES_SCANNED: 7"</t>
+                            <t>&nbsp;&nbsp;&nbsp;"SCANNING: /home/me/gigs/Bosendorfer 290.gig"</t>
+                            <t>&nbsp;&nbsp;&nbsp;"STATUS: 42"</t>
+                            <t>&nbsp;&nbsp;&nbsp;"."</t>
+                        </list>
+                    </t>
+                </section>
+
             </section>
 
         </section>
@@ -5883,9 +5961,13 @@ Schoenebeck'>
 		</t>
 		<t>/ DB_INSTRUMENT_DIRECTORY SP pathname
 		</t>
-		<t>/ DB_INSTRUMENTS SP FLAT SP pathname SP pathname
+		<t>/ DB_INSTRUMENTS SP NON_MODAL SP scan_mode SP pathname SP pathname
 		</t>
-		<t>/ DB_INSTRUMENTS SP NON_RECURSIVE SP pathname SP pathname
+		<t>/ DB_INSTRUMENTS SP scan_mode SP pathname SP pathname
+		</t>
+		<t>/ DB_INSTRUMENTS SP NON_MODAL SP pathname SP pathname
+		</t>
+		<t>/ DB_INSTRUMENTS SP NON_MODAL SP pathname SP pathname SP instrument_index
 		</t>
 		<t>/ DB_INSTRUMENTS SP pathname SP pathname
 		</t>
@@ -5937,6 +6019,8 @@ Schoenebeck'>
 		</t>
 		<t>/ DB_INSTRUMENT_INFO
 		</t>
+		<t>/ DB_INSTRUMENTS_JOB_INFO
+		</t>
 		<t>/ MISCELLANEOUS
 		</t>
 		<t>/ TOTAL_VOICE_COUNT
@@ -5984,6 +6068,8 @@ Schoenebeck'>
 		<t>/ DB_INSTRUMENT_COUNT
 		</t>
 		<t>/ DB_INSTRUMENT_INFO
+		</t>
+		<t>/ DB_INSTRUMENTS_JOB_INFO
 		</t>
 		<t>/ MISCELLANEOUS
 		</t>
@@ -6106,6 +6192,8 @@ Schoenebeck'>
 		<t>/ DB_INSTRUMENTS SP pathname
 		</t>
 		<t>/ DB_INSTRUMENT SP INFO SP pathname
+		</t>
+		<t>/ DB_INSTRUMENTS_JOB SP INFO SP number
 		</t>
 		<t>/ VOLUME
 		</t>
@@ -6498,6 +6586,16 @@ Schoenebeck'>
 		<t>string
 		</t>
 		<t>/ stringval
+		</t>
+	</list>
+</t>
+<t>scan_mode =
+	<list>
+		<t>RECURSIVE
+		</t>
+		<t>/ NON_RECURSIVE
+		</t>
+		<t>/ FLAT
 		</t>
 	</list>
 </t>
@@ -6946,6 +7044,28 @@ Schoenebeck'>
                 <t>where &lt;old-instr-path&gt; is the old absolute path name of the instrument
                 (encapsulated into apostrophes), which name is changes and &lt;new-name&gt; is
                 the new name of the instrument, encapsulated into apostrophes.</t>
+            </section>
+
+            <section title="Database job status information changed" anchor="SUBSCRIBE DB_INSTRUMENTS_JOB_INFO">
+                <t>Client may want to be notified when the status of particular database
+                instruments job is changed by issuing the following command:</t>
+                <t>
+                    <list>
+                        <t>SUBSCRIBE DB_INSTRUMENTS_JOB_INFO</t>
+                    </list>
+                </t>
+                <t>Server will start sending the following notification messages:</t>
+                <t>
+                    <list>
+                        <t>"NOTIFY:DB_INSTRUMENTS_JOB_INFO:&lt;job-id&gt;"</t>
+                    </list>
+                </t>
+                <t>where &lt;job-id&gt; will be replaced by the numerical ID of the job,
+                which status is changed. The front-end will have to send the respective
+                command to actually get the status info. Because these messages
+                will be triggered by LSCP commands issued by other clients rather than real
+                time events happening on the server, it is believed that an empty notification
+                message is sufficient here.</t>
             </section>
 
             <section title="Miscellaneous and debugging events" anchor="SUBSCRIBE MISCELLANEOUS">

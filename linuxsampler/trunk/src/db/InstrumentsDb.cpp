@@ -24,351 +24,14 @@
 
 #include <iostream>
 #include <sstream>
+#include <vector>
 #include <dirent.h>
 #include <errno.h>
 #include <fnmatch.h>
-#include <ftw.h>
+
 #include "../common/Exception.h"
 
 namespace LinuxSampler {
-
-    void DbInstrument::Copy(const DbInstrument& Instr) {
-        if (this == &Instr) return;
-
-        InstrFile = Instr.InstrFile;
-        InstrNr = Instr.InstrNr;
-        FormatFamily = Instr.FormatFamily;
-        FormatVersion = Instr.FormatVersion;
-        Size = Instr.Size;
-        Created = Instr.Created;
-        Modified = Instr.Modified;
-        Description = Instr.Description;
-        IsDrum = Instr.IsDrum;
-        Product = Instr.Product;
-        Artists = Instr.Artists;
-        Keywords = Instr.Keywords;
-    }
-
-
-    void DbDirectory::Copy(const DbDirectory& Dir) {
-        if (this == &Dir) return;
-
-        Created = Dir.Created;
-        Modified = Dir.Modified;
-        Description = Dir.Description;
-    }
-
-    SearchQuery::SearchQuery() {
-        MinSize = -1;
-        MaxSize = -1;
-        InstrType = BOTH;
-    }
-
-    void SearchQuery::SetFormatFamilies(String s) {
-        if (s.length() == 0) return;
-        int i = 0;
-        int j = s.find(',', 0);
-        
-        while (j != std::string::npos) {
-            FormatFamilies.push_back(s.substr(i, j - i));
-            i = j + 1;
-            j = s.find(',', i);
-        }
-        
-        if (i < s.length()) FormatFamilies.push_back(s.substr(i));
-    }
-
-    void SearchQuery::SetSize(String s) {
-        String s2 = GetMin(s);
-        if (s2.length() > 0) MinSize = atoll(s2.c_str());
-        else MinSize = -1;
-        
-        s2 = GetMax(s);
-        if (s2.length() > 0) MaxSize = atoll(s2.c_str());
-        else MaxSize = -1;
-    }
-
-    void SearchQuery::SetCreated(String s) {
-        CreatedAfter = GetMin(s);
-        CreatedBefore = GetMax(s);
-    }
-
-    void SearchQuery::SetModified(String s) {
-        ModifiedAfter = GetMin(s);
-        ModifiedBefore = GetMax(s);
-    }
-
-    String SearchQuery::GetMin(String s) {
-        if (s.length() < 3) return "";
-        if (s.at(0) == '.' && s.at(1) == '.') return "";
-        int i = s.find("..");
-        if (i == std::string::npos) return "";
-        return s.substr(0, i);
-    }
-
-    String SearchQuery::GetMax(String s) {
-        if (s.length() < 3) return "";
-        if (s.find("..", s.length() - 2) != std::string::npos) return "";
-        int i = s.find("..");
-        if (i == std::string::npos) return "";
-        return s.substr(i + 2);
-    }
-    
-    bool InstrumentsDb::AbstractFinder::IsRegex(String Pattern) {
-        if(Pattern.find('?') != String::npos) return true;
-        if(Pattern.find('*') != String::npos) return true;
-        return false;
-    }
-
-    void InstrumentsDb::AbstractFinder::AddSql(String Col, String Pattern, std::stringstream& Sql) {
-        if (Pattern.length() == 0) return;
-
-        if (IsRegex(Pattern)) {
-            Sql << " AND " << Col << " regexp ?";
-            Params.push_back(Pattern);
-            return;
-        }
-
-        String buf;
-        std::vector<String> tokens;
-        std::vector<String> tokens2;
-        std::stringstream ss(Pattern);
-        while (ss >> buf) tokens.push_back(buf);
-
-        if (tokens.size() == 0) {
-            Sql << " AND " << Col << " LIKE ?";
-            Params.push_back("%" + Pattern + "%");
-            return;
-        }
-
-        bool b = false;
-        for (int i = 0; i < tokens.size(); i++) {
-            Sql << (i == 0 ? " AND (" : "");
-
-            for (int j = 0; j < tokens.at(i).length(); j++) {
-                if (tokens.at(i).at(j) == '+') tokens.at(i).at(j) = ' ';
-            }
-
-            ss.clear();
-            ss.str("");
-            ss << tokens.at(i);
-
-            tokens2.clear();
-            while (ss >> buf) tokens2.push_back(buf);
-
-            if (b && tokens2.size() > 0) Sql << " OR ";
-            if (tokens2.size() > 1) Sql << "(";
-            for (int j = 0; j < tokens2.size(); j++) {
-                if (j != 0) Sql << " AND ";
-                Sql << Col << " LIKE ?";
-                Params.push_back("%" + tokens2.at(j) + "%");
-                b = true;
-            }
-            if (tokens2.size() > 1) Sql << ")";
-        }
-        if (!b) Sql << "0)";
-        else Sql << ")";
-    }
-
-    InstrumentsDb::DirectoryFinder::DirectoryFinder(SearchQuery* pQuery) : pDirectories(new std::vector<String>) {
-        pStmt = NULL;
-        this->pQuery = pQuery;
-        std::stringstream sql;
-        sql << "SELECT dir_name from instr_dirs WHERE parent_dir_id=?";
-
-        if (pQuery->CreatedAfter.length() != 0) {
-            sql << " AND created > ?";
-            Params.push_back(pQuery->CreatedAfter);
-        }
-        if (pQuery->CreatedBefore.length() != 0) {
-            sql << " AND created < ?";
-            Params.push_back(pQuery->CreatedBefore);
-        }
-        if (pQuery->ModifiedAfter.length() != 0) {
-            sql << " AND modified > ?";
-            Params.push_back(pQuery->ModifiedAfter);
-        }
-        if (pQuery->ModifiedBefore.length() != 0) {
-            sql << " AND modified < ?";
-            Params.push_back(pQuery->ModifiedBefore);
-        }
-
-        AddSql("dir_name", pQuery->Name, sql);
-        AddSql("description", pQuery->Description, sql);
-        SqlQuery = sql.str();
-
-        InstrumentsDb* idb = InstrumentsDb::GetInstrumentsDb();
-
-        int res = sqlite3_prepare(idb->GetDb(), SqlQuery.c_str(), -1, &pStmt, NULL);
-        if (res != SQLITE_OK) {
-            throw Exception("DB error: " + ToString(sqlite3_errmsg(idb->GetDb())));
-        }
-
-        for(int i = 0; i < Params.size(); i++) {
-            idb->BindTextParam(pStmt, i + 2, Params.at(i));
-        }
-    }
-    
-    InstrumentsDb::DirectoryFinder::~DirectoryFinder() {
-        if (pStmt != NULL) sqlite3_finalize(pStmt);
-    }
-
-    StringListPtr InstrumentsDb::DirectoryFinder::GetDirectories() {
-        return pDirectories;
-    }
-    
-    void InstrumentsDb::DirectoryFinder::ProcessDirectory(String Path, int DirId) {
-        InstrumentsDb* idb = InstrumentsDb::GetInstrumentsDb();
-        idb->BindIntParam(pStmt, 1, DirId);
-
-        String s = Path;
-        if(Path.compare("/") != 0) s += "/";
-        int res = sqlite3_step(pStmt);
-        while(res == SQLITE_ROW) {
-            pDirectories->push_back(s + ToString(sqlite3_column_text(pStmt, 0)));
-            res = sqlite3_step(pStmt);
-        }
-        
-        if (res != SQLITE_DONE) {
-            sqlite3_finalize(pStmt);
-            throw Exception("DB error: " + ToString(sqlite3_errmsg(idb->GetDb())));
-        }
-
-        res = sqlite3_reset(pStmt);
-        if (res != SQLITE_OK) {
-            sqlite3_finalize(pStmt);
-            throw Exception("DB error: " + ToString(sqlite3_errmsg(idb->GetDb())));
-        }
-    }
-
-    InstrumentsDb::InstrumentFinder::InstrumentFinder(SearchQuery* pQuery) : pInstruments(new std::vector<String>) {
-        pStmt = NULL;
-        this->pQuery = pQuery;
-        std::stringstream sql;
-        sql << "SELECT instr_name from instruments WHERE dir_id=?";
-
-        if (pQuery->CreatedAfter.length() != 0) {
-            sql << " AND created > ?";
-            Params.push_back(pQuery->CreatedAfter);
-        }
-        if (pQuery->CreatedBefore.length() != 0) {
-            sql << " AND created < ?";
-            Params.push_back(pQuery->CreatedBefore);
-        }
-        if (pQuery->ModifiedAfter.length() != 0) {
-            sql << " AND modified > ?";
-            Params.push_back(pQuery->ModifiedAfter);
-        }
-        if (pQuery->ModifiedBefore.length() != 0) {
-            sql << " AND modified < ?";
-            Params.push_back(pQuery->ModifiedBefore);
-        }
-        if (pQuery->MinSize != -1) sql << " AND instr_size > " << pQuery->MinSize;
-        if (pQuery->MaxSize != -1) sql << " AND instr_size < " << pQuery->MaxSize;
-
-        if (pQuery->InstrType == SearchQuery::CHROMATIC) sql << " AND is_drum = 0";
-        else if (pQuery->InstrType == SearchQuery::DRUM) sql << " AND is_drum != 0";
-
-        if (pQuery->FormatFamilies.size() > 0) {
-            sql << " AND (format_family=?";
-            Params.push_back(pQuery->FormatFamilies.at(0));
-            for (int i = 1; i < pQuery->FormatFamilies.size(); i++) {
-                sql << "OR format_family=?";
-                Params.push_back(pQuery->FormatFamilies.at(i));
-            }
-            sql << ")";
-        }
-
-        AddSql("instr_name", pQuery->Name, sql);
-        AddSql("description", pQuery->Description, sql);
-        AddSql("product", pQuery->Product, sql);
-        AddSql("artists", pQuery->Artists, sql);
-        AddSql("keywords", pQuery->Keywords, sql);
-        SqlQuery = sql.str();
-
-        InstrumentsDb* idb = InstrumentsDb::GetInstrumentsDb();
-
-        int res = sqlite3_prepare(idb->GetDb(), SqlQuery.c_str(), -1, &pStmt, NULL);
-        if (res != SQLITE_OK) {
-            throw Exception("DB error: " + ToString(sqlite3_errmsg(idb->GetDb())));
-        }
-
-        for(int i = 0; i < Params.size(); i++) {
-            idb->BindTextParam(pStmt, i + 2, Params.at(i));
-        }
-    }
-    
-    InstrumentsDb::InstrumentFinder::~InstrumentFinder() {
-        if (pStmt != NULL) sqlite3_finalize(pStmt);
-    }
-    
-    void InstrumentsDb::InstrumentFinder::ProcessDirectory(String Path, int DirId) {
-        InstrumentsDb* idb = InstrumentsDb::GetInstrumentsDb();
-        idb->BindIntParam(pStmt, 1, DirId);
-
-        String s = Path;
-        if(Path.compare("/") != 0) s += "/";
-        int res = sqlite3_step(pStmt);
-        while(res == SQLITE_ROW) {
-            pInstruments->push_back(s + ToString(sqlite3_column_text(pStmt, 0)));
-            res = sqlite3_step(pStmt);
-        }
-        
-        if (res != SQLITE_DONE) {
-            sqlite3_finalize(pStmt);
-            throw Exception("DB error: " + ToString(sqlite3_errmsg(idb->GetDb())));
-        }
-
-        res = sqlite3_reset(pStmt);
-        if (res != SQLITE_OK) {
-            sqlite3_finalize(pStmt);
-            throw Exception("DB error: " + ToString(sqlite3_errmsg(idb->GetDb())));
-        }
-    }
-
-    StringListPtr InstrumentsDb::InstrumentFinder::GetInstruments() {
-        return pInstruments;
-    }
-
-    void InstrumentsDb::DirectoryCounter::ProcessDirectory(String Path, int DirId) {
-        count += InstrumentsDb::GetInstrumentsDb()->GetDirectoryCount(DirId);
-    }
-
-    void InstrumentsDb::InstrumentCounter::ProcessDirectory(String Path, int DirId) {
-        count += InstrumentsDb::GetInstrumentsDb()->GetInstrumentCount(DirId);
-    }
-
-    InstrumentsDb::DirectoryCopier::DirectoryCopier(String SrcParentDir, String DestDir) {
-        this->SrcParentDir = SrcParentDir;
-        this->DestDir = DestDir;
-
-        if (DestDir.at(DestDir.length() - 1) != '/') {
-            this->DestDir.append("/");
-        }
-        if (SrcParentDir.at(SrcParentDir.length() - 1) != '/') {
-            this->SrcParentDir.append("/");
-        }
-    }
-
-    void InstrumentsDb::DirectoryCopier::ProcessDirectory(String Path, int DirId) {
-        InstrumentsDb* db = InstrumentsDb::GetInstrumentsDb();
-
-        String dir = DestDir;
-        String subdir = Path;
-        if(subdir.length() > SrcParentDir.length()) {
-            subdir = subdir.substr(SrcParentDir.length());
-            dir += subdir;
-            db->AddDirectory(dir);
-        }
-
-        int dstDirId = db->GetDirectoryId(dir);
-        if(dstDirId == -1) throw Exception("Unkown DB directory: " + dir);
-        IntListPtr ids = db->GetInstrumentIDs(DirId);
-        for (int i = 0; i < ids->size(); i++) {
-            String name = db->GetInstrumentName(ids->at(i));
-            db->CopyInstrument(ids->at(i), name, dstDirId, dir);
-        }
-    }
 
     InstrumentsDb* InstrumentsDb::pInstrumentsDb = new InstrumentsDb;
 
@@ -934,7 +597,48 @@ namespace LinuxSampler {
         FireDirectoryInfoChanged(Dir);
     }
 
-    void InstrumentsDb::AddInstruments(String DbDir, String FilePath, int Index) {
+    int InstrumentsDb::AddInstruments(ScanMode Mode, String DbDir, String FsDir, bool bBackground) {
+        dmsg(2,("InstrumentsDb: AddInstruments(Mode=%d,DbDir=%s,FsDir=%s,bBackground=%d)\n", Mode, DbDir.c_str(), FsDir.c_str(), bBackground));
+        if(!bBackground) {
+            switch (Mode) {
+                case NON_RECURSIVE:
+                    AddInstrumentsNonrecursive(DbDir, FsDir);
+                    break;
+                case RECURSIVE:
+                    AddInstrumentsRecursive(DbDir, FsDir);
+                    break;
+                case FLAT:
+                    AddInstrumentsRecursive(DbDir, FsDir, true);
+                    break;
+                default:
+                    throw Exception("Unknown scan mode");
+            }
+
+            return -1;
+        }
+
+        ScanJob job;
+        int jobId = Jobs.AddJob(job);
+        InstrumentsDbThread.Execute(new AddInstrumentsJob(jobId, Mode, DbDir, FsDir));
+
+        return jobId;
+    }
+    
+    int InstrumentsDb::AddInstruments(String DbDir, String FilePath, int Index, bool bBackground) {
+        dmsg(2,("InstrumentsDb: AddInstruments(DbDir=%s,FilePath=%s,Index=%d,bBackground=%d)\n", DbDir.c_str(), FilePath.c_str(), Index, bBackground));
+        if(!bBackground) {
+            AddInstruments(DbDir, FilePath, Index);
+            return -1;
+        }
+
+        ScanJob job;
+        int jobId = Jobs.AddJob(job);
+        InstrumentsDbThread.Execute(new AddInstrumentsFromFileJob(jobId, DbDir, FilePath, Index));
+
+        return jobId;
+    }
+
+    void InstrumentsDb::AddInstruments(String DbDir, String FilePath, int Index, ScanProgress* pProgress) {
         dmsg(2,("InstrumentsDb: AddInstruments(DbDir=%s,FilePath=%s,Index=%d)\n", DbDir.c_str(), FilePath.c_str(), Index));
         if (DbDir.empty() || FilePath.empty()) return;
         
@@ -951,24 +655,13 @@ namespace LinuxSampler {
                 throw Exception(ss.str());
             }
 
-            if (S_ISREG(statBuf.st_mode)) {
-                AddInstrumentsFromFile(DbDir, FilePath, Index);
-                DbInstrumentsMutex.Unlock();
-                return;
-            }
-
-            if (!S_ISDIR(statBuf.st_mode)) {
-                DbInstrumentsMutex.Unlock();
-                return;
-            }
-            
-            if (Index != -1) {
+            if (!S_ISREG(statBuf.st_mode)) {
                 std::stringstream ss;
-                ss << "`" << FilePath << "` is directory, not an instrument file";
+                ss << "`" << FilePath << "` is not an instrument file";
                 throw Exception(ss.str());
             }
-        
-            AddInstrumentsRecursive(DbDir, FilePath, false);
+
+            AddInstrumentsFromFile(DbDir, FilePath, Index, pProgress);
         } catch (Exception e) {
             DbInstrumentsMutex.Unlock();
             throw e;
@@ -977,7 +670,7 @@ namespace LinuxSampler {
         DbInstrumentsMutex.Unlock();
     }
 
-    void InstrumentsDb::AddInstrumentsNonrecursive(String DbDir, String FsDir) {
+    void InstrumentsDb::AddInstrumentsNonrecursive(String DbDir, String FsDir, ScanProgress* pProgress) {
         dmsg(2,("InstrumentsDb: AddInstrumentsNonrecursive(DbDir=%s,FsDir=%s)\n", DbDir.c_str(), FsDir.c_str()));
         if (DbDir.empty() || FsDir.empty()) return;
         
@@ -1017,7 +710,7 @@ namespace LinuxSampler {
                     continue;
                 }
 
-                AddInstrumentsFromFile(DbDir, FsDir + String(pEnt->d_name));
+                AddInstrumentsFromFile(DbDir, FsDir + String(pEnt->d_name), -1, pProgress);
                 pEnt = readdir(pDir);
             }
 
@@ -1035,9 +728,13 @@ namespace LinuxSampler {
         DbInstrumentsMutex.Unlock();
     }
 
-    void InstrumentsDb::AddInstrumentsRecursive(String DbDir, String FsDir, bool Flat) {
+    void InstrumentsDb::AddInstrumentsRecursive(String DbDir, String FsDir, bool Flat, ScanProgress* pProgress) {
         dmsg(2,("InstrumentsDb: AddInstrumentsRecursive(DbDir=%s,FsDir=%s,Flat=%d)\n", DbDir.c_str(), FsDir.c_str(), Flat));
-        DirectoryScanner::Scan(DbDir, FsDir, Flat);
+        if (pProgress != NULL) {
+            pProgress->SetTotalFileCount(InstrumentFileCounter::Count(FsDir));
+        }
+
+        DirectoryScanner::Scan(DbDir, FsDir, Flat, pProgress);
     }
 
     int InstrumentsDb::GetInstrumentCount(int DirId) {
@@ -1394,21 +1091,30 @@ namespace LinuxSampler {
         FireInstrumentInfoChanged(Instr);
     }
 
-    void InstrumentsDb::AddInstrumentsFromFile(String DbDir, String File, int Index) {
+    void InstrumentsDb::AddInstrumentsFromFile(String DbDir, String File, int Index, ScanProgress* pProgress) {
         dmsg(2,("InstrumentsDb: AddInstrumentsFromFile(DbDir=%s,File=%s,Index=%d)\n", DbDir.c_str(), File.c_str(), Index));
         
         if(File.length() < 4) return;
         
         try {
             if(!strcasecmp(".gig", File.substr(File.length() - 4).c_str())) {
-                AddGigInstruments(DbDir, File, Index);
+                if (pProgress != NULL) {
+                    pProgress->SetStatus(0);
+                    pProgress->CurrentFile = File;
+                }
+
+                AddGigInstruments(DbDir, File, Index, pProgress);
+
+                if (pProgress != NULL) {
+                    pProgress->SetScannedFileCount(pProgress->GetScannedFileCount() + 1);
+                }
             }
         } catch(Exception e) {
             std::cerr << e.Message() << std::endl;
         }
     }
 
-    void InstrumentsDb::AddGigInstruments(String DbDir, String File, int Index) {
+    void InstrumentsDb::AddGigInstruments(String DbDir, String File, int Index, ScanProgress* pProgress) {
         dmsg(2,("InstrumentsDb: AddGigInstruments(DbDir=%s,File=%s,Index=%d)\n", DbDir.c_str(), File.c_str(), Index));
         int dirId = GetDirectoryId(DbDir);
         if (dirId == -1) throw Exception("Invalid DB directory: " + DbDir);
@@ -1432,7 +1138,7 @@ namespace LinuxSampler {
         try {
             riff = new RIFF::File(File);
             gig::File* gig = new gig::File(riff);
-            
+
             std::stringstream sql;
             sql << "INSERT INTO instruments (dir_id,instr_name,instr_file,";
             sql << "instr_nr,format_family,format_version,instr_size,";
@@ -1453,6 +1159,7 @@ namespace LinuxSampler {
 
             if (Index == -1) {
                 int instrIndex = 0;
+                if (pProgress != NULL) gig->GetInstrument(0, &(pProgress->GigFileProgress)); // TODO: this workaround should be fixed
                 gig::Instrument* pInstrument = gig->GetFirstInstrument();
                 while (pInstrument) {
                     BindTextParam(pStmt, 7, gig->pInfo->Product);
@@ -1464,7 +1171,9 @@ namespace LinuxSampler {
                     pInstrument = gig->GetNextInstrument();
                 }
             } else {
-                gig::Instrument* pInstrument = gig->GetInstrument(Index);
+                gig::Instrument* pInstrument;
+                if (pProgress == NULL) pInstrument = gig->GetInstrument(Index);
+                else pInstrument = gig->GetInstrument(Index, &(pProgress->GigFileProgress));
                 if (pInstrument != NULL) {
                     BindTextParam(pStmt, 7, gig->pInfo->Product);
                     BindTextParam(pStmt, 8, gig->pInfo->Artists);
@@ -1901,97 +1610,48 @@ namespace LinuxSampler {
 
         throw Exception("Unable to find an unique name: " + Name);
     }
-    
+
     void InstrumentsDb::FireDirectoryCountChanged(String Dir) {
         for (int i = 0; i < llInstrumentsDbListeners.GetListenerCount(); i++) {
             llInstrumentsDbListeners.GetListener(i)->DirectoryCountChanged(Dir);
         }
     }
-    
+
     void InstrumentsDb::FireDirectoryInfoChanged(String Dir) {
         for (int i = 0; i < llInstrumentsDbListeners.GetListenerCount(); i++) {
             llInstrumentsDbListeners.GetListener(i)->DirectoryInfoChanged(Dir);
         }
     }
-    
+
     void InstrumentsDb::FireDirectoryNameChanged(String Dir, String NewName) {
         for (int i = 0; i < llInstrumentsDbListeners.GetListenerCount(); i++) {
             llInstrumentsDbListeners.GetListener(i)->DirectoryNameChanged(Dir, NewName);
         }
     }
-    
+
     void InstrumentsDb::FireInstrumentCountChanged(String Dir) {
         for (int i = 0; i < llInstrumentsDbListeners.GetListenerCount(); i++) {
             llInstrumentsDbListeners.GetListener(i)->InstrumentCountChanged(Dir);
         }
     }
-    
+
     void InstrumentsDb::FireInstrumentInfoChanged(String Instr) {
         for (int i = 0; i < llInstrumentsDbListeners.GetListenerCount(); i++) {
             llInstrumentsDbListeners.GetListener(i)->InstrumentInfoChanged(Instr);
         }
     }
-    
+
     void InstrumentsDb::FireInstrumentNameChanged(String Instr, String NewName) {
         for (int i = 0; i < llInstrumentsDbListeners.GetListenerCount(); i++) {
             llInstrumentsDbListeners.GetListener(i)->InstrumentNameChanged(Instr, NewName);
         }
     }
-    
 
-    String DirectoryScanner::DbDir;
-    String DirectoryScanner::FsDir;
-    bool DirectoryScanner::Flat;
-
-    void DirectoryScanner::Scan(String DbDir, String FsDir, bool Flat) {
-        dmsg(2,("DirectoryScanner: Scan(DbDir=%s,FsDir=%s,Flat=%d)\n", DbDir.c_str(), FsDir.c_str(), Flat));
-        if (DbDir.empty() || FsDir.empty()) throw Exception("Directory expected");
-        
-        struct stat statBuf;
-        int res = stat(FsDir.c_str(), &statBuf);
-        if (res) {
-            std::stringstream ss;
-            ss << "Fail to stat `" << FsDir << "`: " << strerror(errno);
-            throw Exception(ss.str());
+    void InstrumentsDb::FireJobStatusChanged(int JobId) {
+        for (int i = 0; i < llInstrumentsDbListeners.GetListenerCount(); i++) {
+            llInstrumentsDbListeners.GetListener(i)->JobStatusChanged(JobId);
         }
-
-        if (!S_ISDIR(statBuf.st_mode)) {
-            throw Exception("Directory expected");
-        }
-        
-        DirectoryScanner::DbDir = DbDir;
-        DirectoryScanner::FsDir = FsDir;
-        if (DbDir.at(DbDir.length() - 1) != '/') {
-            DirectoryScanner::DbDir.append("/");
-        }
-        if (FsDir.at(FsDir.length() - 1) != '/') {
-            DirectoryScanner::FsDir.append("/");
-        }
-        DirectoryScanner::Flat = Flat;
-        
-        ftw(FsDir.c_str(), FtwCallback, 10);
     }
-
-    int DirectoryScanner::FtwCallback(const char* fpath, const struct stat* sb, int typeflag) {
-        dmsg(2,("DirectoryScanner: FtwCallback(fpath=%s)\n", fpath));
-        if (typeflag != FTW_D) return 0;
-
-        String dir = DbDir;
-        if (!Flat) {
-            String subdir = fpath;
-            if(subdir.length() > FsDir.length()) {
-                subdir = subdir.substr(FsDir.length());
-                dir += subdir;
-            }
-        }
-        
-        InstrumentsDb* db = InstrumentsDb::GetInstrumentsDb();
-        if (!db->DirectoryExist(dir)) db->AddDirectory(dir);
-
-        db->AddInstrumentsNonrecursive(dir, String(fpath));
-
-        return 0;
-    };
 
 } // namespace LinuxSampler
 

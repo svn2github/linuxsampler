@@ -12,11 +12,12 @@ endif
 
 liblinuxsamplerdbincludedir = $(includedir)/linuxsampler/db
 liblinuxsamplerdbinclude_HEADERS = \
-	InstrumentsDb.h
+	InstrumentsDb.h InstrumentsDbUtilities.h
 
 noinst_LTLIBRARIES = liblinuxsamplerdb.la
 liblinuxsamplerdb_la_SOURCES = \
-	InstrumentsDb.cpp InstrumentsDb.h
+	InstrumentsDb.cpp InstrumentsDb.h \
+	InstrumentsDbUtilities.cpp InstrumentsDbUtilities.h
 
 liblinuxsamplerdb_la_LIBADD = $(sqlite3_lflags)
 liblinuxsamplerdb_la_CFLAGS = $(sqlite3_cflags)

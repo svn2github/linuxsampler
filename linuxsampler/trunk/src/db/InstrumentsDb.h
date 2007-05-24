@@ -26,89 +26,27 @@
 #define __LS_INSTRUMENTSDB_H__
 
 #include <sqlite3.h>
-#include <vector>
-#include <sys/stat.h>
 #include <gig.h>
 #include "../common/Mutex.h"
+#include "../common/WorkerThread.h"
 #include "../EventListeners.h"
+#include "InstrumentsDbUtilities.h"
 
 namespace LinuxSampler {
-
-    class DbInstrument {
-        public:
-            String InstrFile;
-            int    InstrNr;
-            String FormatFamily;
-            String FormatVersion;
-            long long int Size;
-            String Created;
-            String Modified;
-            String Description;
-            bool   IsDrum;
-            String Product;
-            String Artists;
-            String Keywords;
-
-            DbInstrument() { }
-            DbInstrument(const DbInstrument& Instr) { Copy(Instr); }
-            void operator=(const DbInstrument& Instr) { Copy(Instr); }
-            void Copy(const DbInstrument&);
-    };
-
-    class DbDirectory {
-        public:
-            String Created;
-            String Modified;
-            String Description;
-
-            DbDirectory() { }
-            DbDirectory(const DbDirectory& Dir) { Copy(Dir); }
-            void operator=(const DbDirectory& Dir) { Copy(Dir); }
-            void Copy(const DbDirectory&);
-    };
-
-    class SearchQuery {
-        public:
-            enum InstrumentType {
-                CHROMATIC = 0,
-                DRUM = 1,
-                BOTH = 2
-            };
-
-            String Name;
-            std::vector<String> FormatFamilies;
-            long long MinSize;
-            long long MaxSize;
-            String CreatedBefore;
-            String CreatedAfter;
-            String ModifiedBefore;
-            String ModifiedAfter;
-            String Description;
-            String Product;
-            String Artists;
-            String Keywords;
-            InstrumentType InstrType;
-            
-            SearchQuery();
-            void SetFormatFamilies(String s);
-            void SetSize(String s);
-            void SetCreated(String s);
-            void SetModified(String s);
-
-        private:
-            String GetMin(String s);
-            String GetMax(String s);
-    };
-
-    typedef std::auto_ptr<std::vector<int> > IntListPtr;
-    typedef std::auto_ptr<std::vector<String> > StringListPtr;
-
     /**
      * @brief Provides access to the instruments database.
      */
     class InstrumentsDb {
+        friend class DirectoryScanner;
+        friend class DirectoryFinder;
+        friend class InstrumentFinder;
+        friend class DirectoryCounter;
+        friend class InstrumentCounter;
+        friend class DirectoryCopier;
+        friend class AddInstrumentsJob;
+        friend class ScanProgress;
+        
         public:
-
             /**
              * This class is used as a listener, which is notified when
              * changes to the instruments database are made.
@@ -159,6 +97,12 @@ namespace LinuxSampler {
                      * @param NewName The new name of the directory.
                      */
                     virtual void InstrumentNameChanged(String Instr, String NewName) = 0;
+
+                    /**
+                     * Invoked when the status of particular job is changed.
+                     * @param JobId The ID of the job.
+                     */
+                    virtual void JobStatusChanged(int JobId) = 0;
             };
 
             /**
@@ -314,39 +258,56 @@ namespace LinuxSampler {
              * instrument file) to add. If -1 is specified, all instruments in
              * the supplied instrument file will be added. Error is thrown if
              * a directory is supplied and Index is not equal to -1.
+             * @param bBackground Determines whether
+             * the task should be done in the background.
+             * @returns If bBackground is true, the ID of the scan job;
+             * -1 otherwise.
              * @throws Exception if the operation failed.
              */
-            void AddInstruments(String DbDir, String FilePath, int Index = -1);
+            int AddInstruments(String DbDir, String FilePath, int Index, bool bBackground);
 
             /**
-             * Adds all supported instruments in the specified directory
-             * to the specified instruments database directory. The
-             * instruments in the subdirectories will not be processed
+             * Adds the instruments in the specified file
+             * to the specified instruments database directory.
              * @param DbDir The absolute path name of a directory in the
              * instruments database in which only the new instruments
              * (that are not already in the database) will be added.
-             * @param FsDir The absolute path name of a directory in the file
-             * system.
+             * @param FilePath The absolute path name of the instrument file.
+             * @param Index The index of the instrument (in the given
+             * instrument file) to add. If -1 is specified, all instruments in
+             * the supplied instrument file will be added.
+             * @param pProgress The progress used to monitor the scan process.
              * @throws Exception if the operation failed.
              */
-            void AddInstrumentsNonrecursive(String DbDir, String FsDir);
+            void AddInstruments(String DbDir, String FilePath, int Index = -1, ScanProgress* pProgress = NULL);
 
             /**
              * Adds all supported instruments in the specified file system
-             * direcotry to the specified instruments database directory,
-             * including the instruments in the subdirectories of the
-             * supplied directory.
+             * direcotry to the specified instruments database directory.
+             * @param Mode Determines the scanning mode. If RECURSIVE is
+             * specified, all supported instruments in the specified file system
+             * direcotry will be added to the specified instruments database
+             * directory, including the instruments in subdirectories
+             * of the supplied directory. If NON_RECURSIVE is specified,
+             * the instruments in the subdirectories will not be processed.
+             * If FLAT is specified, all supported instruments in the specified
+             * file system direcotry will be added, including the instruments in
+             * subdirectories of the supplied directory, but the respective
+             * subdirectory structure will not be recreated in the instruments
+             * database and all instruments will be added directly in the
+             * specified database directory.
              * @param DbDir The absolute path name of a directory in the
              * instruments database in which only the new instruments
              * (that are not already in the database) will be added.
              * @param FsDir The absolute path name of an existing
              * directory in the file system.
-             * @param Flat If true, the respective subdirectory structure will
-             * not be recreated in the instruments database and all instruments
-             * will be added directly in the specified database directory.
+             * @param bBackground Determines whether
+             * the task should be done in the background.
+             * @returns If bBackground is true, the ID of the scan job;
+             * -1 otherwise.
              * @throws Exception if the operation failed.
              */
-            void AddInstrumentsRecursive(String DbDir, String FsDir, bool Flat = false);
+            int AddInstruments(ScanMode Mode, String DbDir, String FsDir, bool bBackground);
 
             /**
              * Gets the number of instruments in the specified directory.
@@ -442,89 +403,16 @@ namespace LinuxSampler {
              */
             static void Destroy();
 
+            JobList Jobs;
 
         private:
-            class DirectoryHandler {
-                public:
-                    virtual void ProcessDirectory(String Path, int DirId) = 0;
-            };
-            
-            class AbstractFinder : public DirectoryHandler {
-                public:
-                    virtual void ProcessDirectory(String Path, int DirId) = 0;
-                    
-                    bool IsRegex(String Pattern);
-                    void AddSql(String Col, String Pattern, std::stringstream& Sql);
-
-                protected:
-                    std::vector<String> Params;
-            };
-            
-            class DirectoryFinder : public AbstractFinder {
-                public:
-                    DirectoryFinder(SearchQuery* pQuery);
-                    ~DirectoryFinder();
-                    StringListPtr GetDirectories();
-                    virtual void ProcessDirectory(String Path, int DirId);
-
-                private:
-                    sqlite3_stmt* pStmt;
-                    String SqlQuery;
-                    SearchQuery* pQuery;
-                    StringListPtr pDirectories;
-                    
-            };
-            
-            class InstrumentFinder : public AbstractFinder {
-                public:
-                    InstrumentFinder(SearchQuery* pQuery);
-                    ~InstrumentFinder();
-                    StringListPtr GetInstruments();
-                    virtual void ProcessDirectory(String Path, int DirId);
-
-                private:
-                    sqlite3_stmt* pStmt;
-                    String SqlQuery;
-                    SearchQuery* pQuery;
-                    StringListPtr pInstruments;
-            };
-            
-            class DirectoryCounter : public DirectoryHandler {
-                public:
-                    DirectoryCounter() { count = 0; }
-                    virtual void ProcessDirectory(String Path, int DirId);
-                    int GetDirectoryCount() { return count; }
-
-                private:
-                    int count;
-            };
-            
-            class InstrumentCounter : public DirectoryHandler {
-                public:
-                    InstrumentCounter() { count = 0; }
-                    virtual void ProcessDirectory(String Path, int DirId);
-                    int GetInstrumentCount() { return count; }
-
-                private:
-                    int count;
-            };
-            
-            class DirectoryCopier : public DirectoryHandler {
-                public:
-                    DirectoryCopier(String SrcParentDir, String DestDir);
-                    virtual void ProcessDirectory(String Path, int DirId);
-
-                private:
-                    String SrcParentDir;
-                    String DestDir;
-            };
-            
             sqlite3* db;
             String DbFile;
             static InstrumentsDb* pInstrumentsDb;
             Mutex DbInstrumentsMutex;
             ListenerList<InstrumentsDb::Listener*> llInstrumentsDbListeners;
             bool InTransaction;
+            WorkerThread InstrumentsDbThread;
             
             InstrumentsDb();
             ~InstrumentsDb();
@@ -711,6 +599,38 @@ namespace LinuxSampler {
             void CopyInstrument(int InstrId, String InstrName, int DstDirId, String DstDir);
 
             /**
+             * Adds all supported instruments in the specified directory
+             * to the specified instruments database directory. The
+             * instruments in the subdirectories will not be processed.
+             * @param DbDir The absolute path name of a directory in the
+             * instruments database in which only the new instruments
+             * (that are not already in the database) will be added.
+             * @param FsDir The absolute path name of a directory in the file
+             * system.
+             * @param pProgress The progress used to monitor the scan process.
+             * @throws Exception if the operation failed.
+             */
+            void AddInstrumentsNonrecursive(String DbDir, String FsDir, ScanProgress* pProgress = NULL);
+
+            /**
+             * Adds all supported instruments in the specified file system
+             * direcotry to the specified instruments database directory,
+             * including the instruments in the subdirectories of the
+             * supplied directory.
+             * @param DbDir The absolute path name of a directory in the
+             * instruments database in which only the new instruments
+             * (that are not already in the database) will be added.
+             * @param FsDir The absolute path name of an existing
+             * directory in the file system.
+             * @param Flat If true, the respective subdirectory structure will
+             * not be recreated in the instruments database and all instruments
+             * will be added directly in the specified database directory.
+             * @param pProgress The progress used to monitor the scan process.
+             * @throws Exception if the operation failed.
+             */
+            void AddInstrumentsRecursive(String DbDir, String FsDir, bool Flat = false, ScanProgress* pProgress = NULL);
+
+            /**
              * Adds the instruments in the specified file
              * to the specified instruments database directory.
              * @param DbDir The absolute path name of a directory in the
@@ -720,9 +640,11 @@ namespace LinuxSampler {
              * @param Index The index of the instrument (in the given
              * instrument file) to add. If -1 is specified, all instruments in
              * the supplied instrument file will be added.
+             * @param pProgress The progress used to monitor the scan process.
+             * Specify NULL if you don't want to monitor the scanning process.
              * @throws Exception if the operation failed.
              */
-            void AddInstrumentsFromFile(String DbDir, String File, int Index = -1);
+            void AddInstrumentsFromFile(String DbDir, String File, int Index = -1, ScanProgress* pProgress = NULL);
 
             /**
              * Adds the specified GIG instrument(s) to the specified location
@@ -733,9 +655,11 @@ namespace LinuxSampler {
              * @param Index The index of the instrument (in the given
              * instrument file) to add. If -1 is specified, all instruments in
              * the supplied instrument file will be added.
+             * @param pProgress The progress used to monitor the scan process.
+             * Specify NULL if you don't want to monitor the scanning process.
              * @throws Exception if the operation failed.
              */
-            void AddGigInstruments(String DbDir, String File, int Index = -1);
+            void AddGigInstruments(String DbDir, String File, int Index = -1, ScanProgress* pProgress = NULL);
 
             /**
              * Adds the specified GIG instrument.
@@ -816,6 +740,7 @@ namespace LinuxSampler {
             void FireInstrumentCountChanged(String Dir);
             void FireInstrumentInfoChanged(String Instr);
             void FireInstrumentNameChanged(String Instr, String NewName);
+            void FireJobStatusChanged(int JobId);
 
             /**
              * Strips the non-directory suffix from the file name. If the string
@@ -851,25 +776,6 @@ namespace LinuxSampler {
             
             /** SQLite user function for handling regular expressions */
             static void Regexp(sqlite3_context* pContext, int argc, sqlite3_value** ppValue);
-    };
-    
-    /**
-     * This class is used for recursive
-     */
-    class DirectoryScanner {
-        public:
-            /**
-             * Recursively scans all subdirectories of the specified
-             * directory and adds the supported instruments to the database.
-             * @throws Exception - if the specified directories are invalid.
-             */
-            static void Scan(String DbDir, String FsDir, bool Flat);
-
-        private:
-            static String DbDir;
-            static String FsDir;
-            static bool Flat;
-            static int FtwCallback(const char* fpath, const struct stat* sb, int typeflag);
     };
 
 } // namespace LinuxSampler

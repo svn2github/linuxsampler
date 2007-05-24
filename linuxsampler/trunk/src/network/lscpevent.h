@@ -62,6 +62,7 @@ class LSCPEvent {
 		    event_db_instr_dir_info,
             event_db_instr_count,
 		    event_db_instr_info,
+            event_db_instrs_job_info,
 		    event_misc,
 		    event_total_voice_count,
 		    event_global_info

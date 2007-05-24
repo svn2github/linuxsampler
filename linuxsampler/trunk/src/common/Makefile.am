@@ -26,4 +26,5 @@ liblinuxsamplercommon_la_SOURCES = \
 	RingBuffer.h \
 	RTMath.cpp RTMath.h \
 	stacktrace.c stacktrace.h \
-	Thread.cpp Thread.h
+	Thread.cpp Thread.h \
+	WorkerThread.cpp WorkerThread.h

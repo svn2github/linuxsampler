@@ -169,9 +169,8 @@ class LSCPServer : public Thread {
         String CopyDbInstrumentDirectory(String Dir, String Dst);
         String SetDbInstrumentDirectoryDescription(String Dir, String Desc);
         String FindDbInstrumentDirectories(String Dir, std::map<String,String> Parameters, bool Recursive = true);
-        String AddDbInstruments(String DbDir, String FilePath, int Index = -1);
-        String AddDbInstrumentsFlat(String DbDir, String FilePath);
-        String AddDbInstrumentsNonrecursive(String DbDir, String FsDir);
+        String AddDbInstruments(String DbDir, String FilePath, int Index = -1, bool bBackground = false);
+        String AddDbInstruments(String ScanMode, String DbDir, String FsDir, bool bBackground = false);
         String RemoveDbInstrument(String Instr);
         String GetDbInstrumentCount(String Dir, bool Recursive = false);
         String GetDbInstruments(String Dir, bool Recursive = false);
@@ -181,6 +180,7 @@ class LSCPServer : public Thread {
         String CopyDbInstrument(String Instr, String Dst);
         String SetDbInstrumentDescription(String Instr, String Desc);
         String FindDbInstruments(String Dir, std::map<String,String> Parameters, bool Recursive = true);
+        String GetDbInstrumentsJobInfo(int JobId);
         String ResetChannel(uint uiSamplerChannel);
         String ResetSampler();
         String GetServerInfo();
@@ -388,6 +388,12 @@ class LSCPServer : public Thread {
                  * @param NewName The new name of the directory.
                  */
                 virtual void InstrumentNameChanged(String Instr, String NewName);
+
+                /**
+                 * Invoked when the status of particular job is changed.
+                 * @param JobId The ID of the job.
+                 */
+                virtual void JobStatusChanged(int JobId);
         } dbInstrumentsEventHandler;
 #endif // HAVE_SQLITE3
 };

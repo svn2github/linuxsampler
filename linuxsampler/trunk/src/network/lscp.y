@@ -73,7 +73,7 @@ int yylex(YYSTYPE* yylval) {
 %type <Char> char digit
 %type <Dotnum> dotnum volume_value boolean
 %type <Number> number sampler_channel instrument_index fx_send_id audio_channel_index device_index midi_input_channel_index midi_input_port_index midi_map midi_bank midi_prog midi_ctrl
-%type <String> string text stringval digits param_val_list param_val query_val pathname dirname filename map_name entry_name fx_send_name engine_name command add_instruction create_instruction destroy_instruction get_instruction list_instruction load_instruction set_chan_instruction load_instr_args load_engine_args audio_output_type_name midi_input_type_name remove_instruction unmap_instruction set_instruction subscribe_event unsubscribe_event map_instruction reset_instruction clear_instruction find_instruction move_instruction copy_instruction
+%type <String> string text stringval digits param_val_list param_val query_val pathname dirname filename map_name entry_name fx_send_name engine_name command add_instruction create_instruction destroy_instruction get_instruction list_instruction load_instruction set_chan_instruction load_instr_args load_engine_args audio_output_type_name midi_input_type_name remove_instruction unmap_instruction set_instruction subscribe_event unsubscribe_event map_instruction reset_instruction clear_instruction find_instruction move_instruction copy_instruction scan_mode
 %type <FillResponse> buffer_size_type
 %type <KeyValList> key_val_list query_val_list
 %type <LoadMode> instr_load_mode
@@ -134,10 +134,12 @@ command               :  ADD SP add_instruction                { $$ = $3;       
 
 add_instruction       :  CHANNEL                               { $$ = LSCPSERVER->AddChannel();                          }
                       |  DB_INSTRUMENT_DIRECTORY SP pathname   { $$ = LSCPSERVER->AddDbInstrumentDirectory($3);          }
-                      |  DB_INSTRUMENTS SP FLAT SP pathname SP pathname             { $$ = LSCPSERVER->AddDbInstrumentsFlat($5,$7);         }
-                      |  DB_INSTRUMENTS SP NON_RECURSIVE SP pathname SP pathname    { $$ = LSCPSERVER->AddDbInstrumentsNonrecursive($5,$7); }
-                      |  DB_INSTRUMENTS SP pathname SP pathname                     { $$ = LSCPSERVER->AddDbInstruments($3,$5);             }
-                      |  DB_INSTRUMENTS SP pathname SP pathname SP instrument_index { $$ = LSCPSERVER->AddDbInstruments($3,$5,$7);          }
+                      |  DB_INSTRUMENTS SP NON_MODAL SP scan_mode SP pathname SP pathname        { $$ = LSCPSERVER->AddDbInstruments($5,$7,$9, true);  }
+                      |  DB_INSTRUMENTS SP scan_mode SP pathname SP pathname                     { $$ = LSCPSERVER->AddDbInstruments($3,$5,$7);        }
+                      |  DB_INSTRUMENTS SP NON_MODAL SP pathname SP pathname                     { $$ = LSCPSERVER->AddDbInstruments($5,$7, -1, true); }
+                      |  DB_INSTRUMENTS SP NON_MODAL SP pathname SP pathname SP instrument_index { $$ = LSCPSERVER->AddDbInstruments($5,$7,$9, true);  }
+                      |  DB_INSTRUMENTS SP pathname SP pathname                                  { $$ = LSCPSERVER->AddDbInstruments($3,$5);           }
+                      |  DB_INSTRUMENTS SP pathname SP pathname SP instrument_index              { $$ = LSCPSERVER->AddDbInstruments($3,$5,$7);        }
                       |  MIDI_INSTRUMENT_MAP                   { $$ = LSCPSERVER->AddMidiInstrumentMap();                }
                       |  MIDI_INSTRUMENT_MAP SP map_name       { $$ = LSCPSERVER->AddMidiInstrumentMap($3);              }
                       ;
@@ -161,6 +163,7 @@ subscribe_event       :  AUDIO_OUTPUT_DEVICE_COUNT             { $$ = LSCPSERVER
                       |  DB_INSTRUMENT_DIRECTORY_INFO          { $$ = LSCPSERVER->SubscribeNotification(LSCPEvent::event_db_instr_dir_info);    }
                       |  DB_INSTRUMENT_COUNT                   { $$ = LSCPSERVER->SubscribeNotification(LSCPEvent::event_db_instr_count);       }
                       |  DB_INSTRUMENT_INFO                    { $$ = LSCPSERVER->SubscribeNotification(LSCPEvent::event_db_instr_info);        }
+                      |  DB_INSTRUMENTS_JOB_INFO               { $$ = LSCPSERVER->SubscribeNotification(LSCPEvent::event_db_instrs_job_info);   }
                       |  MISCELLANEOUS                         { $$ = LSCPSERVER->SubscribeNotification(LSCPEvent::event_misc);                 }
                       |  TOTAL_VOICE_COUNT                     { $$ = LSCPSERVER->SubscribeNotification(LSCPEvent::event_total_voice_count);    }
                       |  GLOBAL_INFO                           { $$ = LSCPSERVER->SubscribeNotification(LSCPEvent::event_global_info);          }
@@ -185,6 +188,7 @@ unsubscribe_event     :  AUDIO_OUTPUT_DEVICE_COUNT             { $$ = LSCPSERVER
                       |  DB_INSTRUMENT_DIRECTORY_INFO          { $$ = LSCPSERVER->UnsubscribeNotification(LSCPEvent::event_db_instr_dir_info);    }
                       |  DB_INSTRUMENT_COUNT                   { $$ = LSCPSERVER->UnsubscribeNotification(LSCPEvent::event_db_instr_count);       }
                       |  DB_INSTRUMENT_INFO                    { $$ = LSCPSERVER->UnsubscribeNotification(LSCPEvent::event_db_instr_info);        }
+                      |  DB_INSTRUMENTS_JOB_INFO               { $$ = LSCPSERVER->UnsubscribeNotification(LSCPEvent::event_db_instrs_job_info);   }
                       |  MISCELLANEOUS                         { $$ = LSCPSERVER->UnsubscribeNotification(LSCPEvent::event_misc);                 }
                       |  TOTAL_VOICE_COUNT                     { $$ = LSCPSERVER->UnsubscribeNotification(LSCPEvent::event_total_voice_count);    }
                       |  GLOBAL_INFO                           { $$ = LSCPSERVER->UnsubscribeNotification(LSCPEvent::event_global_info);          }
@@ -246,6 +250,7 @@ get_instruction       :  AVAILABLE_ENGINES                                      
                       |  DB_INSTRUMENTS SP RECURSIVE SP pathname                                    { $$ = LSCPSERVER->GetDbInstrumentCount($5, true);                 }
                       |  DB_INSTRUMENTS SP pathname                                                 { $$ = LSCPSERVER->GetDbInstrumentCount($3, false);                }
                       |  DB_INSTRUMENT SP INFO SP pathname                                          { $$ = LSCPSERVER->GetDbInstrumentInfo($5);                        }
+                      |  DB_INSTRUMENTS_JOB SP INFO SP number                                       { $$ = LSCPSERVER->GetDbInstrumentsJobInfo($5);                    }
                       |  VOLUME                                                                     { $$ = LSCPSERVER->GetGlobalVolume();                              }
                       ;
 
@@ -442,6 +447,11 @@ query_val_list            :  string '=' query_val                    { $$[$1] = 
 
 query_val                 :  string
                           |  stringval
+                          ;
+
+scan_mode                 :  RECURSIVE      { $$ = "RECURSIVE"; }
+                          |  NON_RECURSIVE  { $$ = "NON_RECURSIVE"; }
+                          |  FLAT           { $$ = "FLAT"; }
                           ;
 
 // GRAMMAR_BNF_END - do NOT delete or modify this line !!!
@@ -675,6 +685,9 @@ DB_INSTRUMENT_COUNT           :  'D''B''_''I''N''S''T''R''U''M''E''N''T''_''C''O
 DB_INSTRUMENT_INFO            :  'D''B''_''I''N''S''T''R''U''M''E''N''T''_''I''N''F''O'
                               ;
 
+DB_INSTRUMENTS_JOB_INFO       :  'D''B''_''I''N''S''T''R''U''M''E''N''T''S''_''J''O''B''_''I''N''F''O'
+                              ;
+
 CHANNEL_COUNT        :  'C''H''A''N''N''E''L''_''C''O''U''N''T'
                      ;
 
@@ -808,6 +821,9 @@ DB_INSTRUMENTS             :  'D''B''_''I''N''S''T''R''U''M''E''N''T''S'
                            ;
 
 DB_INSTRUMENT              :  'D''B''_''I''N''S''T''R''U''M''E''N''T'
+                           ;
+
+DB_INSTRUMENTS_JOB         :  'D''B''_''I''N''S''T''R''U''M''E''N''T''S''_''J''O''B'
                            ;
 
 DESCRIPTION                :  'D''E''S''C''R''I''P''T''I''O''N'
