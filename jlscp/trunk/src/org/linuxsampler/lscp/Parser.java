@@ -156,17 +156,26 @@ final class Parser {
 		
 		return far;
 	}
-	
 	/**
 	 * Parses a comma separated list whose items are encapsulated into apostrophes.
-	 *
 	 * @param list The comma separated list.
 	 * @return A <code>String</code> array containing all items in the list.
-	 *
 	 * @throws LscpException if the list is broken.
 	 */
 	protected static String[]
 	parseStringList(String list) throws LscpException {
+		return parseStringList(list, ',');
+	}
+	
+	/**
+	 * Parses a list whose items are encapsulated into apostrophes.
+	 * @param list The list of strings.
+	 * @param separator Provides the character used as separator.
+	 * @return A <code>String</code> array containing all items in the list.
+	 * @throws LscpException if the list is broken.
+	 */
+	protected static String[]
+	parseStringList(String list, char separator) throws LscpException {
 		if(list == null || list.length() == 0) return new String[0];
 		int q1 = 0, q2 = 0;
 		Vector<String> v = new Vector<String>();
@@ -180,7 +189,7 @@ final class Parser {
 			
 			if(q2 + 1 >= list.length()) break;
 			
-			if(list.charAt(q2 + 1) != ',')
+			if(list.charAt(q2 + 1) != separator)
 				throw new LscpException(LscpI18n.getLogMsg("Parser.brokenList!"));
 			q1 = q2 + 2;
 			if(q1 >= list.length())

@@ -1,7 +1,7 @@
 <project name="jlscp" default="build-lib" basedir=".">
     <description>This buildfile is used to build the jlscp library</description>
     
-    <property name="jlscp.version" value="0.4a"/>
+    <property name="jlscp.version" value="0.5a"/>
     
     <target name="build-all" depends="build-lib,build-examples,build-doc"/>
         

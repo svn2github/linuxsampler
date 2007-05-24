@@ -28,6 +28,7 @@ package org.linuxsampler.lscp;
  */
 public class LSException extends Exception {
 	private int code;
+	private String details = null;
 	
 	/** 
 	 * Creates a new instance of LSException with the specified error code and detail message.
@@ -36,8 +37,19 @@ public class LSException extends Exception {
 	 */
 	public
 	LSException(int code, String msg) {
+		this(code, msg, null);
+	}
+	
+	/** 
+	 * Creates a new instance of LSException with the specified error code and detail message.
+	 * @param code Specifies the error code.
+	 * @param msg Specifies the detail message.
+	 */
+	public
+	LSException(int code, String msg, String details) {
 		super(msg);
 		this.code = code;
+		this.details = details;
 	}
 	
 	/**
@@ -46,4 +58,11 @@ public class LSException extends Exception {
 	 */
 	public int
 	getCode() { return code; }
+	
+	/**
+	 * Gets a detailed error report.
+	 * @return A detailed error report or <code>null</code> if there is no such.
+	 */
+	public String
+	getDetails() { return details; }
 }

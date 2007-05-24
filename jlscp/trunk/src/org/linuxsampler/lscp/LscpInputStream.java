@@ -71,6 +71,7 @@ class LscpInputStream {
 				throw new LscpException(LscpI18n.getLogMsg("LscpInputStream.EOL!"));
 			return null;
 		}
+		
 		return buf.toString();
 	}
 	

@@ -30,6 +30,7 @@ public final class ServerInfo implements Parseable {
 	private String desc = null;
 	private String ver = null;
 	private String protoVer = null;
+	private boolean instrumentsDbSupport = false;
 	
 	/**
 	 * Creates a new instance of <code>ServerInfo</code> and parses the information
@@ -64,6 +65,13 @@ public final class ServerInfo implements Parseable {
 	getProtocolVersion() { return protoVer; }
 	
 	/**
+	 * Determines whether the backend is
+	 * build with instruments database support.
+	 */
+	public boolean
+	hasInstrumentsDbSupport() { return instrumentsDbSupport; }
+	
+	/**
 	 * Parses a line of text.
 	 * @param s The string to be parsed.
 	 * @return <code>true</code> if the line has been processed, <code>false</code> otherwise.
@@ -76,6 +84,9 @@ public final class ServerInfo implements Parseable {
 			ver = s.substring("VERSION: ".length());
 		} else if(s.startsWith("PROTOCOL_VERSION: ")) {
 			protoVer = s.substring("PROTOCOL_VERSION: ".length());
+		} else if(s.startsWith("INSTRUMENTS_DB_SUPPORT: ")) {
+			s = s.substring("INSTRUMENTS_DB_SUPPORT: ".length());
+			if(s.equalsIgnoreCase("yes")) instrumentsDbSupport = true;
 		} else return false;
 		
 		return true;

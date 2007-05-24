@@ -69,7 +69,7 @@ public class Client {
 	private String address;
 	private int port;
 	private Socket sock = null;
-	private int soTimeout = 10000;
+	private int soTimeout = 20000;
 	
 	private LscpInputStream in = null;
 	private LscpOutputStream out = null;
@@ -79,6 +79,7 @@ public class Client {
 	private boolean printOnlyMode = false;
 	
 	class EventThread extends Thread {
+		private Vector<String> queue = new Vector<String>();
 		private boolean terminate = false;
 		
 		EventThread() { super("LSCP-Event-Thread"); }
@@ -86,8 +87,10 @@ public class Client {
 		public void
 		run() {
 			while(!mustTerminate()) {
-				try { processNotifications(); }
-				catch(Exception x) {
+				try {
+					processQueue();
+					processNotifications();
+				} catch(Exception x) {
 					getLogger().log(Level.FINE, x.getMessage(), x);
 				}
 				try { synchronized(this) { wait(100); } }
@@ -104,6 +107,22 @@ public class Client {
 		terminate() {
 			terminate = true;
 			this.notifyAll();
+		}
+		
+		public synchronized void
+		scheduleNotification(String s) { queue.add(s); }
+		
+		private void
+		processQueue() {
+			String[] notifications = popAllNotifications();
+			for(String n : notifications) fireEvent(n);
+		}
+		
+		private synchronized String[]
+		popAllNotifications() {
+			String[] notifications = queue.toArray(new String[queue.size()]);
+			queue.removeAllElements();
+			return notifications;
 		}
 	}
 	
@@ -329,6 +348,12 @@ public class Client {
 		if(!llMIMI.isEmpty()) subscribe("MIDI_INSTRUMENT_MAP_INFO");
 		if(!llMIC.isEmpty()) subscribe("MIDI_INSTRUMENT_COUNT");
 		if(!llMII.isEmpty()) subscribe("MIDI_INSTRUMENT_INFO");
+		if(!llID.isEmpty()) {
+			subscribe("DB_INSTRUMENT_DIRECTORY_COUNT");
+			subscribe("DB_INSTRUMENT_DIRECTORY_INFO");
+			subscribe("DB_INSTRUMENT_COUNT");
+			subscribe("DB_INSTRUMENT_INFO");
+		}
 		if(!llGI.isEmpty()) subscribe("GLOBAL_INFO");
 	}
 	
@@ -376,7 +401,9 @@ public class Client {
 		String s;
 		for(;;) {
 			s = in.readLine();
-			if(s.startsWith("NOTIFY:")) fireEvent(s.substring("NOTIFY:".length()));
+			if(s.startsWith("NOTIFY:")) {
+				eventThread.scheduleNotification(s.substring("NOTIFY:".length()));
+			}
 			else break;
 		}
 		return s;
@@ -469,6 +496,7 @@ public class Client {
 	/** MIDI instrument info listeners */
 	private final Vector<MidiInstrumentInfoListener> llMII =
 		new Vector<MidiInstrumentInfoListener>();
+	private final Vector<InstrumentsDbListener> llID = new Vector<InstrumentsDbListener>();
 	private final Vector<GlobalInfoListener> llGI = new Vector<GlobalInfoListener>();
 	
 	
@@ -498,12 +526,78 @@ public class Client {
 			!llMIMI.isEmpty() ||
 			!llMIC.isEmpty()  ||
 			!llMII.isEmpty()  ||
+			!llID.isEmpty()   ||
 			!llGI.isEmpty();
 	}
 	
-	private void
+	private synchronized void
 	fireEvent(String s) {
-		if(s.startsWith("CHANNEL_COUNT:")) {
+		 if(s.startsWith("DB_INSTRUMENT_DIRECTORY_COUNT:")) {
+			s = s.substring("DB_INSTRUMENT_DIRECTORY_COUNT:".length());
+			InstrumentsDbEvent e = new InstrumentsDbEvent(this, s);
+			for(InstrumentsDbListener l : llID) l.directoryCountChanged(e);
+		} else if(s.startsWith("DB_INSTRUMENT_DIRECTORY_INFO:")) {
+			InstrumentsDbEvent e;
+			s = s.substring("DB_INSTRUMENT_DIRECTORY_INFO:".length());
+			if(s.startsWith("NAME ")) {
+				String[] list;
+				try {
+					list = parseStringList(s.substring("NAME ".length()), ' ');
+					if(list.length != 2) throw new LscpException();
+					e = new InstrumentsDbEvent(this, list[0], list[1]);
+					for(InstrumentsDbListener l : llID) {
+						l.directoryNameChanged(e);
+					}
+				} catch(LscpException x) {
+					getLogger().log (
+						Level.WARNING,
+						LscpI18n.getLogMsg("CommandFailed!"),
+						x
+					);
+				}
+			} else {
+				e = new InstrumentsDbEvent(this, s);
+				for(InstrumentsDbListener l : llID) l.directoryInfoChanged(e);
+			}
+		} else if(s.startsWith("DB_INSTRUMENT_COUNT:")) {
+			s = s.substring("DB_INSTRUMENT_COUNT:".length());
+			InstrumentsDbEvent e = new InstrumentsDbEvent(this, s);
+			for(InstrumentsDbListener l : llID) l.instrumentCountChanged(e);
+		} else if(s.startsWith("DB_INSTRUMENT_INFO:")) {
+			InstrumentsDbEvent e;
+			s = s.substring("DB_INSTRUMENT_INFO:".length());
+			if(s.startsWith("NAME ")) {
+				String[] list;
+				try {
+					list = parseStringList(s.substring("NAME ".length()), ' ');
+					if(list.length != 2) throw new LscpException();
+					e = new InstrumentsDbEvent(this, list[0], list[1]);
+					for(InstrumentsDbListener l : llID) {
+						l.instrumentNameChanged(e);
+					}
+				} catch(LscpException x) {
+					getLogger().log (
+						Level.WARNING,
+						LscpI18n.getLogMsg("CommandFailed!"),
+						x
+					);
+				}
+			} else {
+				e = new InstrumentsDbEvent(this, s);
+				for(InstrumentsDbListener l : llID) l.instrumentInfoChanged(e);
+			}
+		} else if(s.startsWith("DB_INSTRUMENTS_JOB_INFO:")) {
+			s = s.substring("DB_INSTRUMENTS_JOB_INFO:".length());
+			try {
+				int i = Integer.parseInt(s);
+				InstrumentsDbEvent e = new InstrumentsDbEvent(this, i);
+				for(InstrumentsDbListener l : llID) l.jobStatusChanged(e);
+			} catch(NumberFormatException x) {
+				s = "Unknown DB_INSTRUMENTS_JOB_INFO format";
+				getLogger().log(Level.WARNING, s, x);
+			}
+			
+		} else if(s.startsWith("CHANNEL_COUNT:")) {
 			try {
 				int i = Integer.parseInt(s.substring("CHANNEL_COUNT:".length()));
 				ChannelCountEvent e = new ChannelCountEvent(this, i);
@@ -1140,6 +1234,40 @@ public class Client {
 	removeMidiInstrumentInfoListener(MidiInstrumentInfoListener l) {
 		boolean b = llMII.remove(l);
 		if(b && llMII.isEmpty()) unsubscribe("MIDI_INSTRUMENT_INFO");
+	}
+	
+	/**
+	 * Registers the specified listener for receiving event messages.
+	 * Listeners can be registered regardless of the connection state.
+	 * @param l The <code>InstrumentsDbListener</code> to register.
+	 */
+	public synchronized void
+	addInstrumentsDbListener(InstrumentsDbListener l) {
+		if(llID.isEmpty()) {
+			subscribe("DB_INSTRUMENT_DIRECTORY_COUNT");
+			subscribe("DB_INSTRUMENT_DIRECTORY_INFO");
+			subscribe("DB_INSTRUMENT_COUNT");
+			subscribe("DB_INSTRUMENT_INFO");
+			subscribe("DB_INSTRUMENTS_JOB_INFO");
+		}
+		llID.add(l);
+	}
+	
+	/**
+	 * Removes the specified listener.
+	 * Listeners can be removed regardless of the connection state.
+	 * @param l The <code>InstrumentsDbListener</code> to remove.
+	 */
+	public synchronized void
+	removeInstrumentsDbListener(InstrumentsDbListener l) {
+		boolean b = llID.remove(l);
+		if(b && llID.isEmpty()) {
+			unsubscribe("DB_INSTRUMENT_DIRECTORY_COUNT");
+			unsubscribe("DB_INSTRUMENT_DIRECTORY_INFO");
+			unsubscribe("DB_INSTRUMENT_COUNT");
+			unsubscribe("DB_INSTRUMENT_INFO");
+			unsubscribe("DB_INSTRUMENTS_JOB_INFO");
+		}
 	}
 	
 	/**
@@ -2472,6 +2600,8 @@ public class Client {
 		ResultSet rs = getEmptyResultSet();
 	}
 	
+	
+	
 	/**
 	 * Creates or replaces a MIDI instrument map entry.
 	 * @param mapId The ID of the map, where this instrument should be mapped.
@@ -2486,14 +2616,34 @@ public class Client {
 	public synchronized void
 	mapMidiInstrument(int mapId, MidiInstrumentEntry entry, MidiInstrumentInfo info) 
 					throws IOException, LSException, LscpException {
+		mapMidiInstrument(mapId, entry, info, false);
+	}
+	
+	/**
+	 * Creates or replaces a MIDI instrument map entry.
+	 * @param mapId The ID of the map, where this instrument should be mapped.
+	 * @param entry Specifies the position of the MIDI instrument in the MIDI instrument map.
+	 * @param info Provides the needed information of the
+	 * MIDI instrument, which will be mapped to the specified MIDI instrument map.
+	 * @param nonModal If <code>true</code> the function returns immediately
+	 * and the mapping is established in the background.
+	 * @throws IOException If some I/O error occurs.
+	 * @throws LSException If the mapping failed.
+	 * @throws LscpException If LSCP protocol corruption occurs.
+	 * @see #unmapMidiInstrument
+	 */
+	public synchronized void
+	mapMidiInstrument(int mapId, MidiInstrumentEntry entry, MidiInstrumentInfo info, boolean nonModal) 
+					throws IOException, LSException, LscpException {
 		
 		verifyConnection();
 		StringBuffer cmd = new StringBuffer("MAP MIDI_INSTRUMENT ");
+		if(nonModal) cmd.append("NON_MODAL ");
 		cmd.append(mapId).append(' ');
 		cmd.append(entry.getMidiBank()).append(' ');
 		cmd.append(entry.getMidiProgram()).append(' ');
 		cmd.append(info.getEngine()).append(" '");
-		cmd.append(info.getFileName()).append("' ");
+		cmd.append(info.getFilePath()).append("' ");
 		cmd.append(info.getInstrumentIndex()).append(' ');
 		cmd.append(info.getVolume());
 		if(!info.getLoadMode().name().equals("DEFAULT")) {
@@ -3567,6 +3717,1046 @@ public class Client {
 		ResultSet rs = getEmptyResultSet();
 	}
 	
+	
+	
+	/**
+	 * Adds the specified directory to the instruments database.
+	 * @param dir The absolute path name of the directory to add.
+	 * @throws IOException If some I/O error occurs.
+	 * @throws LSException If the creation of the directory failed.
+	 * @throws LscpException If LSCP protocol corruption occurs.
+	 */
+	public synchronized void
+	addDbDirectory(String dir) throws IOException, LSException, LscpException {
+		verifyConnection();
+		out.writeLine("ADD DB_INSTRUMENT_DIRECTORY '" + dir + "'");
+		if(getPrintOnlyMode()) return;
+		
+		ResultSet rs = getEmptyResultSet();
+	}
+	
+	/**
+	 * Removes the specified directory from the instruments database.
+	 * @param dir The absolute path name of the directory to remove.
+	 * @throws IOException If some I/O error occurs.
+	 * @throws LscpException If LSCP protocol corruption occurs.
+	 * @throws LSException If the specified directory is not
+	 * empty or if the removal of the directory failed.
+	 */
+	public synchronized void
+	removeDbDirectory(String dir) throws IOException, LscpException, LSException {
+		removeDbDirectory(dir, false);
+	}
+	
+	/**
+	 * Removes the specified directory from the instruments database.
+	 * @param dir The absolute path name of the directory to remove.
+	 * @param force If <code>true</code> forces the removal of non-empty
+	 * directory and all its content.
+	 * @throws IOException If some I/O error occurs.
+	 * @throws LscpException If LSCP protocol corruption occurs.
+	 * @throws LSException If the removing of the directory failed.
+	 */
+	public synchronized void
+	removeDbDirectory(String dir, boolean force)
+				throws IOException, LscpException, LSException {
+		
+		verifyConnection();
+		String s = "REMOVE DB_INSTRUMENT_DIRECTORY ";
+		if(force) s += "FORCE ";
+		out.writeLine(s + "'" + dir + "'");
+		if(getPrintOnlyMode()) return;
+		
+		ResultSet rs = getEmptyResultSet();
+	}
+	
+	/**
+	 * Removes the specified directories from the instruments database.
+	 * @param dirs The absolute path names of the directories to remove.
+	 * @param force If <code>true</code> forces the removal of non-empty
+	 * directories.
+	 * @throws IOException If some I/O error occurs.
+	 * @throws LscpException If LSCP protocol corruption occurs.
+	 * @throws LSException If the removing of the directores failed.
+	 */
+	public synchronized void
+	removeDbDirectories(String[] dirs, boolean force)
+				throws IOException, LscpException, LSException {
+		
+		verifyConnection();
+		String cmd = "REMOVE DB_INSTRUMENT_DIRECTORY ";
+		if(force) cmd += "FORCE ";
+		
+		for(String s : dirs) out.writeLine(cmd + "'" + s + "'");
+		
+		if(getPrintOnlyMode()) return;
+		
+		getEmptyResultSets(dirs.length, "Client.dirDeletionFailed!");
+	}
+	
+	/**
+	 * Gets the number of directories in the specified directory.
+	 * @return The current number of directories in the specified directory.
+	 * @param dir The absolute path name of the directory.
+	 * @throws IOException If some I/O error occurs.
+	 * @throws LscpException If LSCP protocol corruption occurs.
+	 * @throws LSException If some other error occurs.
+	 */
+	public synchronized int
+	getDbDirectoryCount(String dir) throws IOException, LscpException, LSException {
+		return getDbDirectoryCount(dir, false);
+	}
+	
+	/**
+	 * Gets the number of directories in the specified directory.
+	 * @return The current number of directories in the specified directory.
+	 * @param dir The absolute path name of the directory.
+	 * @param recursive If <code>true</code>, the number of all directories
+	 * in the specified subtree will be returned.
+	 * @throws IOException If some I/O error occurs.
+	 * @throws LscpException If LSCP protocol corruption occurs.
+	 * @throws LSException If some other error occurs.
+	 */
+	public synchronized int
+	getDbDirectoryCount(String dir, boolean recursive)
+				throws IOException, LscpException, LSException {
+		
+		verifyConnection();
+		String s;
+		if(recursive) s = "GET DB_INSTRUMENT_DIRECTORIES RECURSIVE '";
+		else s = "GET DB_INSTRUMENT_DIRECTORIES '";
+		out.writeLine(s + dir + "'");
+		if(getPrintOnlyMode()) return -1;
+		
+		s = getSingleLineResultSet().getResult();
+		return parseInt(s);
+	}
+	
+	/**
+	 * Gets the list of directories in the specified directory.
+	 * @param dir The absolute path name of the directory.
+	 * @return A <code>String</code> array providing the names of
+	 * all directories in the specified directory.
+	 * @throws IOException If some I/O error occurs.
+	 * @throws LscpException If LSCP protocol corruption occurs.
+	 * @throws LSException If the specified path name is invalid.
+	 */
+	public synchronized String[]
+	getDbDirectoryNames(String dir) throws IOException, LscpException, LSException {
+		verifyConnection();
+		out.writeLine("LIST DB_INSTRUMENT_DIRECTORIES '" + dir + "'");
+		if(getPrintOnlyMode()) return null;
+		
+		return parseStringList(getSingleLineResultSet().getResult());
+	}
+	
+	/**
+	 * Gets information about the specified directory.
+	 * @param dir The absolute path name of the directory.
+	 * @return A <code>DbDirectoryInfo</code> instance providing information
+	 * about the specified directory.
+	 * @throws IOException If some I/O error occurs.
+	 * @throws LscpException If LSCP protocol corruption occurs.
+	 * @throws LSException If the specified directory is not found.
+	 */
+	public synchronized DbDirectoryInfo
+	getDbDirectoryInfo(String dir) throws IOException, LscpException, LSException {
+		verifyConnection();
+		out.writeLine("GET DB_INSTRUMENT_DIRECTORY INFO '" + dir + "'");
+		if(getPrintOnlyMode()) return null;
+		
+		ResultSet rs = getMultiLineResultSet();
+		DbDirectoryInfo info = new DbDirectoryInfo(rs.getMultiLineResult());
+		if(dir.equals("/")) {
+			info.setName("/");
+		} else if(dir.length() > 1 && dir.charAt(dir.length() - 1) == '/') {
+			dir = dir.substring(0, dir.length() - 1);
+		}
+		int i = dir.lastIndexOf('/');
+		if(i != -1 && i < dir.length() - 1) {
+			info.setName(dir.substring(i + 1));
+			if(i == 0) info.setParentDirectoryPath("/");
+			else info.setParentDirectoryPath(dir.substring(0, i));
+		}
+		
+		return info;
+	}
+	
+	/**
+	 * Gets the list of directories in the specified directory.
+	 * @param dir The absolute path name of the directory.
+	 * @return A <code>DbDirectoryInfo</code> array providing
+	 * information about all directories in the specified directory.
+	 * @throws IOException If some I/O error occurs.
+	 * @throws LscpException If LSCP protocol corruption occurs.
+	 * @throws LSException If the specified path name is invalid.
+	 */
+	public synchronized DbDirectoryInfo[]
+	getDbDirectories(String dir) throws IOException, LscpException, LSException {
+		String[] dirS = getDbDirectoryNames(dir);
+		if(dir.charAt(dir.length() - 1) != '/') dir += "/";
+		DbDirectoryInfo[] infoS = new DbDirectoryInfo[dirS.length];
+		for(int i = 0; i < dirS.length; i++) infoS[i] = getDbDirectoryInfo(dir + dirS[i]);
+		return infoS;
+	}
+	
+	/**
+	 * Gets the list of directories in the specified directory.
+	 * @param dir The absolute path name of the directory.
+	 * @return A <code>DbDirectoryInfo</code> array providing
+	 * information about all directories in the specified directory.
+	 * @throws IOException If some I/O error occurs.
+	 * @throws LscpException If LSCP protocol corruption occurs.
+	 * @throws LSException If the specified path name is invalid.
+	 *
+	public synchronized DbDirectoryInfo[]
+	getDbDirectories(String dir) throws IOException, LscpException, LSException {
+		String[] dirS = getDbDirectoryNames(dir);
+		if(dirS.length == 0) return new DbDirectoryInfo[0];
+		
+		if(dir.charAt(dir.length() - 1) != '/') dir += "/";
+		
+		for(int i = 0; i < dirS.length; i++) {
+			out.writeLine("GET DB_INSTRUMENT_DIRECTORY INFO '" + dir + dirS[i] + "'");
+		}
+		
+		if(getPrintOnlyMode()) return null;
+		
+		if(dir.length() > 1) dir = dir.substring(0, dir.length() - 1);
+		StringBuffer sb = new StringBuffer();
+		DbDirectoryInfo[] infoS = new DbDirectoryInfo[dirS.length];
+		for(int i = 0; i < dirS.length; i++) {
+			try {
+				ResultSet rs = getMultiLineResultSet();
+				infoS[i] = new DbDirectoryInfo(rs.getMultiLineResult());
+				infoS[i].setName(dirS[i]);
+				infoS[i].setParentDirectoryPath(dir);
+			} catch (SocketTimeoutException e) {
+				getLogger().log(Level.FINE, e.getMessage(), e);
+				sb.append(e.getMessage()).append("\n");
+				break;
+			} catch (Exception e) {
+				getLogger().log(Level.FINE, e.getMessage(), e);
+				sb.append(e.getMessage()).append("\n");
+			}
+		}
+		
+		String details = sb.toString();
+		if(details.length() > 0) {
+			String err = LscpI18n.getLogMsg("Client.getInstrsInfoFailed!");
+			throw new LSException(0, err, details);
+		}
+		
+		return infoS;
+	}*/
+	
+	/**
+	 * Renames the specified directory.
+	 * @param dir The absolute path name of the directory to rename.
+	 * @param name The new name for the directory.
+	 * @throws IOException If some I/O error occurs.
+	 * @throws LSException If the renaming of the directory failed.
+	 * @throws LscpException If LSCP protocol corruption occurs.
+	 */
+	public synchronized void
+	renameDbDirectory(String dir, String name) throws IOException, LSException, LscpException {
+		verifyConnection();
+		out.writeLine("SET DB_INSTRUMENT_DIRECTORY NAME '" + dir + "' '" + name + "'");
+		if(getPrintOnlyMode()) return;
+		
+		ResultSet rs = getEmptyResultSet();
+	}
+	
+	/**
+	 * Moves the specified directory into the specified location.
+	 * @param dir The absolute path name of the directory to move.
+	 * @param dst The location where the directory will be moved to.
+	 * @throws IOException If some I/O error occurs.
+	 * @throws LSException If the operation failed.
+	 * @throws LscpException If LSCP protocol corruption occurs.
+	 */
+	public synchronized void
+	moveDbDirectory(String dir, String dst) throws IOException, LSException, LscpException {
+		verifyConnection();
+		out.writeLine("MOVE DB_INSTRUMENT_DIRECTORY '" + dir + "' '" + dst + "'");
+		if(getPrintOnlyMode()) return;
+		
+		ResultSet rs = getEmptyResultSet();
+	}
+	
+	/**
+	 * Moves the specified directories into the specified location.
+	 * @param dirs The absolute path names of the directories to move.
+	 * @param dst The location where the directories will be moved to.
+	 * @throws IOException If some I/O error occurs.
+	 * @throws LSException If the operation failed.
+	 * @throws LscpException If LSCP protocol corruption occurs.
+	 */
+	public synchronized void
+	moveDbDirectories(String dirs[], String dst) throws IOException, LSException, LscpException {
+		verifyConnection();
+		for(String s : dirs) {
+			out.writeLine("MOVE DB_INSTRUMENT_DIRECTORY '" + s + "' '" + dst + "'");
+		}
+		if(getPrintOnlyMode()) return;
+		
+		getEmptyResultSets(dirs.length, "Client.dirMovingFailed!");
+	}
+	
+	/**
+	 * Copies the specified directory into the specified location.
+	 * @param dir The absolute path name of the directory to copy.
+	 * @param dst The location where the directory will be copied to.
+	 * @throws IOException If some I/O error occurs.
+	 * @throws LSException If the operation failed.
+	 * @throws LscpException If LSCP protocol corruption occurs.
+	 */
+	public synchronized void
+	copyDbDirectory(String dir, String dst) throws IOException, LSException, LscpException {
+		verifyConnection();
+		out.writeLine("COPY DB_INSTRUMENT_DIRECTORY '" + dir + "' '" + dst + "'");
+		if(getPrintOnlyMode()) return;
+		
+		ResultSet rs = getEmptyResultSet();
+	}
+	
+	/**
+	 * Copies the specified directories into the specified location.
+	 * @param dirs The absolute path names of the directories to copy.
+	 * @param dst The location where the directories will be copied to.
+	 * @throws IOException If some I/O error occurs.
+	 * @throws LSException If the operation failed.
+	 * @throws LscpException If LSCP protocol corruption occurs.
+	 */
+	public synchronized void
+	copyDbDirectories(String[] dirs, String dst) throws IOException, LSException, LscpException {
+		verifyConnection();
+		for(String s : dirs) {
+			out.writeLine("COPY DB_INSTRUMENT_DIRECTORY '" + s + "' '" + dst + "'");
+		}
+		if(getPrintOnlyMode()) return;
+		
+		getEmptyResultSets(dirs.length, "Client.dirCopyingFailed!");
+	}
+	
+	/**
+	 * Changes the description of the specified directory.
+	 * @param dir The absolute path name of the directory.
+	 * @param desc The new description for the directory.
+	 * @throws IOException If some I/O error occurs.
+	 * @throws LSException If failed to change the description.
+	 * @throws LscpException If LSCP protocol corruption occurs.
+	 */
+	public synchronized void
+	setDbDirectoryDescription(String dir, String desc)
+				throws IOException, LSException, LscpException {
+		
+		verifyConnection();
+		String s = "SET DB_INSTRUMENT_DIRECTORY DESCRIPTION '";
+		out.writeLine(s + dir + "' '" + desc + "'");
+		if(getPrintOnlyMode()) return;
+		
+		ResultSet rs = getEmptyResultSet();
+	}
+	
+	public static enum ScanMode {
+		RECURSIVE, NON_RECURSIVE, FLAT
+	}
+	
+	/**
+	 * Adds the specified instrument to the specified instruments database directory.
+	 * @param dbDir The absolute path name of the database directory in which the
+	 * specified instrument will be added.
+	 * @param filePath The absolute path name of the instrument file.
+	 * @param instrIndex The index of the instrument (in the given instrument file) to add.
+	 * @throws IOException If some I/O error occurs.
+	 * @throws LSException If the operation failed.
+	 * @throws LscpException If LSCP protocol corruption occurs.
+	 */
+	public synchronized void
+	addDbInstrument(String dbDir, String filePath, int instrIndex)
+					throws IOException, LSException, LscpException {
+		
+		addDbInstrument(dbDir, filePath, instrIndex, false);
+	}
+	
+	/**
+	 * Adds the specified instrument to the specified instruments database directory.
+	 * @param dbDir The absolute path name of the database directory in which the
+	 * specified instrument will be added.
+	 * @param filePath The absolute path name of the instrument file.
+	 * @param instrIndex The index of the instrument (in the given instrument file) to add.
+	 * @param background If <code>true</code>, the scan will be done
+	 * in background and this method may return before the job is finished.
+	 * @return If <code>background</code> is <code>true</code>, the ID
+	 * of the scan job.
+	 * @throws IOException If some I/O error occurs.
+	 * @throws LSException If the operation failed.
+	 * @throws LscpException If LSCP protocol corruption occurs.
+	 * @see #addInstrumentsDbListener
+	 */
+	public synchronized int
+	addDbInstrument(String dbDir, String filePath, int instrIndex, boolean background)
+					throws IOException, LSException, LscpException {
+		
+		verifyConnection();
+		String s = "ADD DB_INSTRUMENTS";
+		if(background) s += " NON_MODAL";
+		s += " '" + dbDir + "' '" + filePath + "' ";
+		out.writeLine(s + String.valueOf(instrIndex));
+		if(getPrintOnlyMode()) return -1;
+		
+		ResultSet rs = getEmptyResultSet();
+		return rs.getIndex();
+	}
+	
+	/**
+	 * Adds the instruments in the specified file to the specified
+	 * instruments database directory.
+	 * @param dbDir The absolute path name of the database directory
+	 * in which the the supported instruments will be added.
+	 * @param filePath The absolute path name of the file to scan for instruments.
+	 * @throws IOException If some I/O error occurs.
+	 * @throws LSException If the operation failed.
+	 * @throws LscpException If LSCP protocol corruption occurs.
+	 */
+	public synchronized void
+	addDbInstruments(String dbDir, String filePath)
+					throws IOException, LSException, LscpException {
+		
+		addDbInstruments(dbDir, filePath, false);
+	}
+	
+	/**
+	 * Adds the instruments in the specified file to the specified
+	 * instruments database directory.
+	 * @param dbDir The absolute path name of the database directory
+	 * in which the the supported instruments will be added.
+	 * @param filePath The absolute path name of the file to scan for instruments.
+	 * @param background If <code>true</code>, the scan will be done
+	 * in background and this method may return before the job is finished.
+	 * @return If <code>background</code> is <code>true</code>, the ID
+	 * of the scan job.
+	 * @throws IOException If some I/O error occurs.
+	 * @throws LSException If the operation failed.
+	 * @throws LscpException If LSCP protocol corruption occurs.
+	 * @see #addInstrumentsDbListener
+	 */
+	public synchronized int
+	addDbInstruments(String dbDir, String filePath, boolean background)
+					throws IOException, LSException, LscpException {
+		
+		verifyConnection();
+		String s = "ADD DB_INSTRUMENTS";
+		if(background) s += " NON_MODAL";
+		out.writeLine(s + " '" + dbDir + "' '" + filePath + "'");
+		if(getPrintOnlyMode()) return -1;
+		
+		ResultSet rs = getEmptyResultSet();
+		return rs.getIndex();
+	}
+	
+	/**
+	 * Adds the instruments in the specified file system directory
+	 * to the specified instruments database directory.
+	 * @param mode Determines the scanning mode. If RECURSIVE is
+	 * specified, all supported instruments in the specified file system
+	 * direcotry will be added to the specified instruments database
+	 * directory, including the instruments in subdirectories
+	 * of the supplied directory. If NON_RECURSIVE is specified,
+	 * the instruments in the subdirectories will not be processed.
+	 * If FLAT is specified, all supported instruments in the specified
+	 * file system direcotry will be added, including the instruments in
+	 * subdirectories of the supplied directory, but the respective
+	 * subdirectory structure will not be recreated in the instruments
+	 * database and all instruments will be added directly in the
+	 * specified database directory.
+	 * @param dbDir The absolute path name of the database directory
+	 * in which the supported instruments will be added.
+	 * @param fsDir The absolute path name of the file system directory.
+	 * @throws IOException If some I/O error occurs.
+	 * @throws LSException If the operation failed.
+	 * @throws LscpException If LSCP protocol corruption occurs.
+	 */
+	public synchronized void
+	addDbInstruments(ScanMode mode, String dbDir, String fsDir)
+					throws IOException, LSException, LscpException {
+		
+		addDbInstruments(mode, dbDir, fsDir, false);
+	}
+	
+	/**
+	 * Adds the instruments in the specified file system directory
+	 * to the specified instruments database directory.
+	 * @param mode Determines the scanning mode. If RECURSIVE is
+	 * specified, all supported instruments in the specified file system
+	 * direcotry will be added to the specified instruments database
+	 * directory, including the instruments in subdirectories
+	 * of the supplied directory. If NON_RECURSIVE is specified,
+	 * the instruments in the subdirectories will not be processed.
+	 * If FLAT is specified, all supported instruments in the specified
+	 * file system direcotry will be added, including the instruments in
+	 * subdirectories of the supplied directory, but the respective
+	 * subdirectory structure will not be recreated in the instruments
+	 * database and all instruments will be added directly in the
+	 * specified database directory.
+	 * @param dbDir The absolute path name of the database directory
+	 * in which the supported instruments will be added.
+	 * @param fsDir The absolute path name of the file system directory.
+	 * @param background If <code>true</code>, the scan will be done
+	 * in background and this method may return before the job is finished.
+	 * @return If <code>background</code> is <code>true</code>, the ID
+	 * of the scan job.
+	 * @throws IOException If some I/O error occurs.
+	 * @throws LSException If the operation failed.
+	 * @throws LscpException If LSCP protocol corruption occurs.
+	 * @see #addInstrumentsDbListener
+	 */
+	public synchronized int
+	addDbInstruments(ScanMode mode, String dbDir, String fsDir, boolean background)
+					throws IOException, LSException, LscpException {
+		
+		verifyConnection();
+		StringBuffer sb = new StringBuffer("ADD DB_INSTRUMENTS");
+		if(background) sb.append(" NON_MODAL");
+		
+		switch(mode) {
+			case RECURSIVE:
+				sb.append(" RECURSIVE");
+				break;
+			case NON_RECURSIVE:
+				sb.append(" NON_RECURSIVE");
+				break;
+			case FLAT:
+				sb.append(" FLAT");
+				break;
+		}
+		
+		sb.append(" '").append(dbDir).append("' '").append(fsDir).append("'");
+		out.writeLine(sb.toString());
+		if(getPrintOnlyMode()) return -1;
+		
+		ResultSet rs = getEmptyResultSet();
+		return rs.getIndex();
+	}
+	
+	/**
+	 * Removes the specified instrument from the instruments database.
+	 * @param instr The absolute path name of the instrument to remove.
+	 * @throws IOException If some I/O error occurs.
+	 * @throws LscpException If LSCP protocol corruption occurs.
+	 * @throws LSException If the removing of the instrument failed.
+	 */
+	public synchronized void
+	removeDbInstrument(String instr) throws IOException, LscpException, LSException {
+		
+		verifyConnection();
+		out.writeLine("REMOVE DB_INSTRUMENT '" + instr + "'");
+		if(getPrintOnlyMode()) return;
+		
+		ResultSet rs = getEmptyResultSet();
+	}
+	
+	/**
+	 * Removes the specified instruments from the instruments database.
+	 * @param instrs The absolute path names of the instruments to remove.
+	 * @throws IOException If some I/O error occurs.
+	 * @throws LscpException If LSCP protocol corruption occurs.
+	 * @throws LSException If the removing of the instruments failed.
+	 */
+	public synchronized void
+	removeDbInstruments(String[] instrs) throws IOException, LscpException, LSException {
+		verifyConnection();
+		for(String s : instrs) {
+			out.writeLine("REMOVE DB_INSTRUMENT '" + s + "'");
+		}
+		if(getPrintOnlyMode()) return;
+		
+		getEmptyResultSets(instrs.length, "Client.instrDeletionFailed!");
+	}
+	
+	/**
+	 * Gets the number of instruments in the specified directory.
+	 * @return The current number of instruments in the specified directory.
+	 * @param dir The absolute path name of the directory.
+	 * @throws IOException If some I/O error occurs.
+	 * @throws LscpException If LSCP protocol corruption occurs.
+	 * @throws LSException If some other error occurs.
+	 */
+	public synchronized int
+	getDbInstrumentCount(String dir) throws IOException, LscpException, LSException {
+		return getDbInstrumentCount(dir, false);
+	}
+	
+	/**
+	 * Gets the number of instruments in the specified directory.
+	 * @return The current number of instruments in the specified directory.
+	 * @param dir The absolute path name of the directory.
+	 * @param recursive If <code>true</code>, the number of all instruments
+	 * in the specified subtree will be returned.
+	 * @throws IOException If some I/O error occurs.
+	 * @throws LscpException If LSCP protocol corruption occurs.
+	 * @throws LSException If some other error occurs.
+	 */
+	public synchronized int
+	getDbInstrumentCount(String dir, boolean recursive)
+				throws IOException, LscpException, LSException {
+		
+		verifyConnection();
+		String s;
+		if(recursive) s = "GET DB_INSTRUMENTS RECURSIVE '";
+		else s = "GET DB_INSTRUMENTS '";
+		out.writeLine(s + dir + "'");
+		if(getPrintOnlyMode()) return -1;
+		
+		s = getSingleLineResultSet().getResult();
+		return parseInt(s);
+	}
+	
+	/**
+	 * Gets the list of instruments in the specified directory.
+	 * @param dir The absolute path name of the directory.
+	 * @return A <code>String</code> array providing the names of
+	 * all instruments in the specified directory.
+	 * @throws IOException If some I/O error occurs.
+	 * @throws LscpException If LSCP protocol corruption occurs.
+	 * @throws LSException If the specified path name is invalid.
+	 */
+	public synchronized String[]
+	getDbInstrumentNames(String dir) throws IOException, LscpException, LSException {
+		verifyConnection();
+		out.writeLine("LIST DB_INSTRUMENTS '" + dir + "'");
+		if(getPrintOnlyMode()) return null;
+		
+		return parseStringList(getSingleLineResultSet().getResult());
+	}
+	
+	/**
+	 * Gets information about the specified instrument.
+	 * @param instr The absolute path name of the instrument.
+	 * @return A <code>DbInstrumentInfo</code> instance providing information
+	 * about the specified instrument.
+	 * @throws IOException If some I/O error occurs.
+	 * @throws LscpException If LSCP protocol corruption occurs.
+	 * @throws LSException If the specified instrument is not found.
+	 */
+	public synchronized DbInstrumentInfo
+	getDbInstrumentInfo(String instr) throws IOException, LscpException, LSException {
+		verifyConnection();
+		out.writeLine("GET DB_INSTRUMENT INFO '" + instr + "'");
+		if(getPrintOnlyMode()) return null;
+		
+		ResultSet rs = getMultiLineResultSet();
+		DbInstrumentInfo info = new DbInstrumentInfo(rs.getMultiLineResult());
+		int i = instr.lastIndexOf('/');
+		if(i != -1 && i < instr.length() - 1) {
+			info.setName(instr.substring(i + 1));
+			if(i == 0) info.setDirectoryPath("/");
+			else info.setDirectoryPath(instr.substring(0, i));
+		}
+		
+		return info;
+	}
+	
+	/**
+	 * Gets the list of instruments in the specified directory.
+	 * @param dir The absolute path name of the directory.
+	 * @return A <code>DbInstrumentInfo</code> array providing
+	 * information about all instruments in the specified directory.
+	 * @throws IOException If some I/O error occurs.
+	 * @throws LscpException If LSCP protocol corruption occurs.
+	 * @throws LSException If the specified path name is invalid.
+	 */
+	public synchronized DbInstrumentInfo[]
+	getDbInstruments(String dir) throws IOException, LscpException, LSException {
+		String[] instrS = getDbInstrumentNames(dir);
+		if(dir.charAt(dir.length() - 1) != '/') dir += "/";
+		
+		DbInstrumentInfo[] infoS = new DbInstrumentInfo[instrS.length];
+		for(int i = 0; i < instrS.length; i++) {
+			infoS[i] = getDbInstrumentInfo(dir + instrS[i]);
+		}
+		return infoS;
+	}
+	
+	/**
+	 * Gets the list of instruments in the specified directory.
+	 * @param dir The absolute path name of the directory.
+	 * @return A <code>DbInstrumentInfo</code> array providing
+	 * information about all instruments in the specified directory.
+	 * @throws IOException If some I/O error occurs.
+	 * @throws LscpException If LSCP protocol corruption occurs.
+	 * @throws LSException If the specified path name is invalid.
+	 *
+	public synchronized DbInstrumentInfo[]
+	getDbInstruments(String dir) throws IOException, LscpException, LSException {
+		String[] instrS = getDbInstrumentNames(dir);
+		if(instrS.length == 0) return new DbInstrumentInfo[0];
+		
+		if(dir.charAt(dir.length() - 1) != '/') dir += "/";
+		
+		for(int i = 0; i < instrS.length; i++) {
+			out.writeLine("GET DB_INSTRUMENT INFO '" + dir + instrS[i] + "'");
+		}
+		
+		if(getPrintOnlyMode()) return null;
+		
+		if(dir.length() > 1) dir = dir.substring(0, dir.length() - 1);
+		StringBuffer sb = new StringBuffer();
+		DbInstrumentInfo[] infoS = new DbInstrumentInfo[instrS.length];
+		for(int i = 0; i < instrS.length; i++) {
+			try {
+				ResultSet rs = getMultiLineResultSet();
+				infoS[i] = new DbInstrumentInfo(rs.getMultiLineResult());
+				infoS[i].setName(instrS[i]);
+				infoS[i].setDirectoryPath(dir);
+			} catch (SocketTimeoutException e) {
+				getLogger().log(Level.FINE, e.getMessage(), e);
+				sb.append(e.getMessage()).append("\n");
+				break;
+			} catch (Exception e) {
+				getLogger().log(Level.FINE, e.getMessage(), e);
+				sb.append(e.getMessage()).append("\n");
+			}
+		}
+		
+		String details = sb.toString();
+		if(details.length() > 0) {
+			String err = LscpI18n.getLogMsg("Client.getInstrsInfoFailed!");
+			throw new LSException(0, err, details);
+		}
+		
+		return infoS;
+	}*/
+	
+	/**
+	 * Renames the specified instrument.
+	 * @param instr The absolute path name of the instrument to rename.
+	 * @param name The new name for the instrument.
+	 * @throws IOException If some I/O error occurs.
+	 * @throws LSException If the renaming of the instrument failed.
+	 * @throws LscpException If LSCP protocol corruption occurs.
+	 */
+	public synchronized void
+	renameDbInstrument(String instr, String name)
+				throws IOException, LSException, LscpException {
+		
+		verifyConnection();
+		out.writeLine("SET DB_INSTRUMENT NAME '" + instr + "' '" + name + "'");
+		if(getPrintOnlyMode()) return;
+		
+		ResultSet rs = getEmptyResultSet();
+	}
+	
+	/**
+	 * Moves the specified instrument into the specified location.
+	 * @param instr The absolute path name of the instrument to move.
+	 * @param dst The directory where the specified instrument will be moved to.
+	 * @throws IOException If some I/O error occurs.
+	 * @throws LSException If the operation failed.
+	 * @throws LscpException If LSCP protocol corruption occurs.
+	 */
+	public synchronized void
+	moveDbInstrument(String instr, String dst) throws IOException, LSException, LscpException {
+		verifyConnection();
+		out.writeLine("MOVE DB_INSTRUMENT '" + instr + "' '" + dst + "'");
+		if(getPrintOnlyMode()) return;
+		
+		ResultSet rs = getEmptyResultSet();
+	}
+	
+	/**
+	 * Moves the specified instruments into the specified location.
+	 * @param instrs The absolute path names of the instruments to move.
+	 * @param dst The directory where the specified instruments will be moved to.
+	 * @throws IOException If some I/O error occurs.
+	 * @throws LSException If the operation failed.
+	 * @throws LscpException If LSCP protocol corruption occurs.
+	 */
+	public synchronized void
+	moveDbInstruments(String[] instrs, String dst) throws IOException, LSException, LscpException {
+		verifyConnection();
+		for(String s : instrs) {
+			out.writeLine("MOVE DB_INSTRUMENT '" + s + "' '" + dst + "'");
+		}
+		if(getPrintOnlyMode()) return;
+		
+		getEmptyResultSets(instrs.length, "Client.instrMovingFailed!");
+	}
+	
+	/**
+	 * Copies the specified instrument into the specified location.
+	 * @param instr The absolute path name of the instrument to copy.
+	 * @param dst The directory where the specified instrument will be copied to.
+	 * @throws IOException If some I/O error occurs.
+	 * @throws LSException If the operation failed.
+	 * @throws LscpException If LSCP protocol corruption occurs.
+	 */
+	public synchronized void
+	copyDbInstrument(String instr, String dst) throws IOException, LSException, LscpException {
+		verifyConnection();
+		out.writeLine("COPY DB_INSTRUMENT '" + instr + "' '" + dst + "'");
+		if(getPrintOnlyMode()) return;
+		
+		ResultSet rs = getEmptyResultSet();
+	}
+	
+	/**
+	 * Copies the specified instruments into the specified location.
+	 * @param instrs The absolute path name of the instruments to copy.
+	 * @param dst The directory where the specified instruments will be copied to.
+	 * @throws IOException If some I/O error occurs.
+	 * @throws LSException If the operation failed.
+	 * @throws LscpException If LSCP protocol corruption occurs.
+	 */
+	public synchronized void
+	copyDbInstruments(String[] instrs, String dst) throws IOException, LSException, LscpException {
+		verifyConnection();
+		for(String s : instrs) {
+			out.writeLine("COPY DB_INSTRUMENT '" + s + "' '" + dst + "'");
+		}
+		if(getPrintOnlyMode()) return;
+		
+		getEmptyResultSets(instrs.length, "Client.instrCopyingFailed!");
+	}
+	
+	/**
+	 * Changes the description of the specified instrument.
+	 * @param instr The absolute path name of the instrument.
+	 * @param desc The new description for the instrument.
+	 * @throws IOException If some I/O error occurs.
+	 * @throws LSException If failed to change the description.
+	 * @throws LscpException If LSCP protocol corruption occurs.
+	 */
+	public synchronized void
+	setDbInstrumentDescription(String instr, String desc)
+				throws IOException, LSException, LscpException {
+		
+		verifyConnection();
+		out.writeLine("SET DB_INSTRUMENT DESCRIPTION '" + instr + "' '" + desc + "'");
+		if(getPrintOnlyMode()) return;
+		
+		ResultSet rs = getEmptyResultSet();
+	}
+	
+	/**
+	 * Finds all directories in the specified directory
+	 * that corresponds to the specified search criterias.
+	 * @param dir The absolute path name of the directory to search.
+	 * @param query Provides the search criterias.
+	 * @return A <code>DbDirectoryInfo</code> array providing
+	 * information about all directories that are found in the specified directory.
+	 * @throws IOException If some I/O error occurs.
+	 * @throws LscpException If LSCP protocol corruption occurs.
+	 * @throws LSException If the specified path name is invalid.
+	 */
+	public synchronized DbDirectoryInfo[]
+	findDbDirectories(String dir, DbSearchQuery query)
+				throws IOException, LscpException, LSException {
+		
+		return findDbDirectories(dir, query, false);
+	}
+	
+	/**
+	 * Finds all directories in the specified directory
+	 * that corresponds to the specified search criterias.
+	 * @param dir The absolute path name of the directory to search.
+	 * @param query Provides the search criterias.
+	 * @param nonRecursive If <code>true</code>, the search will be non-recursive.
+	 * @return A <code>DbDirectoryInfo</code> array providing
+	 * information about all directories that are found in the specified directory.
+	 * @throws IOException If some I/O error occurs.
+	 * @throws LscpException If LSCP protocol corruption occurs.
+	 * @throws LSException If the specified path name is invalid.
+	 */
+	public synchronized DbDirectoryInfo[]
+	findDbDirectories(String dir, DbSearchQuery query, boolean nonRecursive)
+				throws IOException, LscpException, LSException {
+		
+		verifyConnection();
+		StringBuffer sb = new StringBuffer();
+		sb.append("FIND DB_INSTRUMENT_DIRECTORIES");
+		if(nonRecursive) sb.append(" NON_RECURSIVE");
+		sb.append(" '").append(dir).append("'");
+		
+		if(query.name != null && query.name.length() > 0) {
+			sb.append(" NAME='").append(query.name).append("'");
+		}
+		
+		String s = query.getCreatedAfter();
+		String s2 = query.getCreatedBefore();
+		if(s != null || s2 != null) {
+			sb.append(" CREATED='");
+			if(s != null) sb.append(s);
+			sb.append("..");
+			if(s2 != null) sb.append(s2);
+			sb.append("'");
+		}
+		
+		s = query.getModifiedAfter();
+		s2 = query.getModifiedBefore();
+		if(s != null || s2 != null) {
+			sb.append(" MODIFIED='");
+			if(s != null) sb.append(s);
+			sb.append("..");
+			if(s2 != null) sb.append(s2);
+			sb.append("'");
+		}
+		
+		if(query.description != null && query.description.length() > 0) {
+			sb.append(" DESCRIPTION='").append(query.description).append("'");
+		}
+		
+		out.writeLine(sb.toString());
+		if(getPrintOnlyMode()) return null;
+		
+		String[] dirS = parseStringList(getSingleLineResultSet().getResult());
+		
+		DbDirectoryInfo[] infoS = new DbDirectoryInfo[dirS.length];
+		for(int i = 0; i < dirS.length; i++) {
+			infoS[i] = getDbDirectoryInfo(dirS[i]);
+		}
+		return infoS;
+	}
+	
+	/**
+	 * Finds all instruments in the specified directory
+	 * that corresponds to the specified search criterias.
+	 * @param dir The absolute path name of the directory to search.
+	 * @param query Provides the search criterias.
+	 * @return A <code>DbInstrumentInfo</code> array providing
+	 * information about all instruments that are found in the specified directory.
+	 * @throws IOException If some I/O error occurs.
+	 * @throws LscpException If LSCP protocol corruption occurs.
+	 * @throws LSException If the specified path name is invalid.
+	 */
+	public synchronized DbInstrumentInfo[]
+	findDbInstruments(String dir, DbSearchQuery query)
+				throws IOException, LscpException, LSException {
+		
+		return findDbInstruments(dir, query, false);
+	}
+	
+	/**
+	 * Finds all instruments in the specified directory
+	 * that corresponds to the specified search criterias.
+	 * @param dir The absolute path name of the directory to search.
+	 * @param query Provides the search criterias.
+	 * @param nonRecursive If <code>true</code>, the search will be non-recursive.
+	 * @return A <code>DbInstrumentInfo</code> array providing
+	 * information about all instruments that are found in the specified directory.
+	 * @throws IOException If some I/O error occurs.
+	 * @throws LscpException If LSCP protocol corruption occurs.
+	 * @throws LSException If the specified path name is invalid.
+	 */
+	public synchronized DbInstrumentInfo[]
+	findDbInstruments(String dir, DbSearchQuery query, boolean nonRecursive)
+				throws IOException, LscpException, LSException {
+		
+		verifyConnection();
+		StringBuffer sb = new StringBuffer();
+		sb.append("FIND DB_INSTRUMENTS");
+		if(nonRecursive) sb.append(" NON_RECURSIVE");
+		sb.append(" '").append(dir).append("'");
+		
+		if(query.name != null && query.name.length() > 0) {
+			sb.append(" NAME='").append(query.name).append("'");
+		}
+		
+		if(query.formatFamilies.size() > 0) {
+			sb.append(" FORMAT_FAMILIES='").append(query.formatFamilies.get(0));
+			for(int i = 1; i < query.formatFamilies.size(); i++) {
+				sb.append(',').append(query.formatFamilies.get(i));
+			}
+			sb.append("'");
+		}
+		
+		if(query.minSize != -1 || query.maxSize != -1) {
+			sb.append(" SIZE='");
+			if(query.minSize != -1) sb.append(query.minSize);
+			sb.append("..");
+			if(query.maxSize != -1) sb.append(query.maxSize);
+			sb.append("'");
+		}
+		
+		String s = query.getCreatedAfter();
+		String s2 = query.getCreatedBefore();
+		if(s != null || s2 != null) {
+			sb.append(" CREATED='");
+			if(s != null) sb.append(s);
+			sb.append("..");
+			if(s2 != null) sb.append(s2);
+			sb.append("'");
+		}
+		
+		s = query.getModifiedAfter();
+		s2 = query.getModifiedBefore();
+		if(s != null || s2 != null) {
+			sb.append(" MODIFIED='");
+			if(s != null) sb.append(s);
+			sb.append("..");
+			if(s2 != null) sb.append(s2);
+			sb.append("'");
+		}
+		
+		if(query.description != null && query.description.length() > 0) {
+			sb.append(" DESCRIPTION='").append(query.description).append("'");
+		}
+		
+		if(query.instrumentType != DbSearchQuery.InstrumentType.BOTH) {
+			sb.append(" IS_DRUM=");
+			if(query.instrumentType == DbSearchQuery.InstrumentType.DRUM) {
+				sb.append("'true'");
+			} else {
+				sb.append("'false'");
+			}
+		}
+		
+		if(query.product != null && query.product.length() > 0) {
+			sb.append(" PRODUCT='").append(query.product).append("'");
+		}
+		
+		if(query.artists != null && query.artists.length() > 0) {
+			sb.append(" ARTISTS='").append(query.artists).append("'");
+		}
+		
+		if(query.keywords != null && query.keywords.length() > 0) {
+			sb.append(" KEYWORDS='").append(query.keywords).append("'");
+		}
+		
+		out.writeLine(sb.toString());
+		if(getPrintOnlyMode()) return null;
+		
+		String[] instrS = parseStringList(getSingleLineResultSet().getResult());
+		
+		DbInstrumentInfo[] infoS = new DbInstrumentInfo[instrS.length];
+		for(int i = 0; i < instrS.length; i++) {
+			infoS[i] = getDbInstrumentInfo(instrS[i]);
+		}
+		return infoS;
+	}
+	
+	/**
+	 * Gets status information about the specified job.
+	 * @param jobId The ID of the job.
+	 * @return A <code>ScanJobInfo</code> instance providing information
+	 * about the specified job.
+	 * @throws IOException If some I/O error occurs.
+	 * @throws LscpException If LSCP protocol corruption occurs.
+	 * @throws LSException If the specified job is not found.
+	 */
+	public synchronized ScanJobInfo
+	getDbInstrumentsJobInfo(int jobId) throws IOException, LscpException, LSException {
+		verifyConnection();
+		out.writeLine("GET DB_INSTRUMENTS_JOB INFO " + String.valueOf(jobId));
+		if(getPrintOnlyMode()) return null;
+		
+		ResultSet rs = getMultiLineResultSet();
+		ScanJobInfo info = new ScanJobInfo(rs.getMultiLineResult());
+		
+		return info;
+	}
+	
 	/**
 	 * Resets the specified sampler channel.
 	 *
@@ -3690,6 +4880,28 @@ public class Client {
 		if(getPrintOnlyMode()) return;
 		
 		ResultSet rs = getEmptyResultSet();
+	}
+	
+	private void
+	getEmptyResultSets(int count, String err) throws LSException {
+		StringBuffer sb = new StringBuffer();
+		for(int i = 0; i < count; i++) {
+			try { getEmptyResultSet(); }
+			catch (SocketTimeoutException e) {
+				getLogger().log(Level.FINE, e.getMessage(), e);
+				sb.append(e.getMessage()).append("\n");
+				break;
+			} catch (Exception e) {
+				getLogger().log(Level.FINE, e.getMessage(), e);
+				sb.append(e.getMessage()).append("\n");
+			}
+		}
+		
+		String details = sb.toString();
+		if(details.length() > 0) {
+			String s = LscpI18n.getLogMsg(err);
+			throw new LSException(0, s, details);
+		}
 	}
 	
 	/**

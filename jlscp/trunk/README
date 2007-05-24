@@ -6,8 +6,8 @@ by Grigor Iliev <grigor@grigoriliev.com>
 
 This library provides client API for retrieving information and
 configuring running LinuxSampler instance according to the LinuxSampler
-control protocol version 1.0 as specified in the LSCP specification written
-by Christian Schoenebeck (http://www.linuxsampler.org/api/lscp-1.0.html).
+control protocol version 1.1 as specified in the LSCP specification
+(http://www.linuxsampler.org/api/lscp-1.1.html).
 
 For more information about LinuxSampler visit http://www.linuxsampler.org
 

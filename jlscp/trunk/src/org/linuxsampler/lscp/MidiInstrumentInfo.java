@@ -26,15 +26,12 @@ package org.linuxsampler.lscp;
  * Provides information about a MIDI instrument.
  * @author Grigor Iliev
  */
-public class MidiInstrumentInfo implements Parseable {
+public class MidiInstrumentInfo extends AbstractInstrument implements Parseable {
 	private int mapId = -1;
 	private MidiInstrumentEntry entry;
 	
-	private String name = "Untitled";
 	private String engine;
 	private String instrName = "Untitled";
-	private String path = null;
-	private int instrumentIndex = 0;
 	private double volume = 1.0;
 	private LoadMode loadMode = LoadMode.DEFAULT;
 	
@@ -132,20 +129,6 @@ public class MidiInstrumentInfo implements Parseable {
 	getMidiProgram() { return entry.getMidiProgram(); }
 	
 	/**
-	 * Gets the name of this MIDI instrument.
-	 * @return The name of this MIDI instrument.
-	 */
-	public String
-	getName() { return name; }
-	
-	/**
-	 * Sets the name of this MIDI instrument.
-	 * @param name The new name of this MIDI instrument.
-	 */
-	public void
-	setName(String name) { this.name = name; }
-	
-	/**
 	 * Gets the name of the sampler engine to be used to load the instrument.
 	 * @return The name of the sampler engine to be used to load the instrument.
 	 */
@@ -172,34 +155,6 @@ public class MidiInstrumentInfo implements Parseable {
 	 *
 	public void
 	setInstrumentName(String name) { this.instrName = name; }*/
-	
-	/**
-	 * Returns the absolute pathname of the instrument location.
-	 * @return The absolute pathname of the instrument location.
-	 */
-	public String
-	getFileName() { return path; }
-	
-	/**
-	 * Sets the absolute pathname of the instrument location.
-	 * @param path Specifies the absolute pathname of the instrument location.
-	 */
-	public void
-	setFileName(String path) { this.path = path; }
-	
-	/**
-	 * Returns the index of the instrument in the instrument file.
-	 * @return The index of the instrument in the instrument file.
-	 */
-	public int
-	getInstrumentIndex() { return instrumentIndex; }
-	
-	/**
-	 * Sets the index of the instrument in the instrument file.
-	 * @param idx The index of the instrument in the instrument file.
-	 */
-	public void
-	setInstrumentIndex(int idx) { instrumentIndex = idx; }
 	
 	/**
 	 * Returns the volume, specified for this instrument, where a
@@ -237,15 +192,12 @@ public class MidiInstrumentInfo implements Parseable {
 	 */
 	public boolean
 	parse(String s) throws LscpException {
+		if (super.parse(s)) return true;
+		
 		if(s.startsWith("NAME: ")) {
 			setName(s.substring("NAME: ".length()));
 		} else if(s.startsWith("ENGINE_NAME: ")) {
 			setEngine(s.substring("ENGINE_NAME: ".length()));
-		} else if(s.startsWith("INSTRUMENT_FILE: ")) {
-			setFileName(s.substring("INSTRUMENT_FILE: ".length()));
-		} else if(s.startsWith("INSTRUMENT_NR: ")) {
-			s = s.substring("INSTRUMENT_NR: ".length());
-			setInstrumentIndex(Parser.parseInt(s));
 		} else if(s.startsWith("INSTRUMENT_NAME: ")) {
 			instrName = s.substring("INSTRUMENT_NAME: ".length());
 		} else if(s.startsWith("LOAD_MODE: ")) {

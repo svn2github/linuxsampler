@@ -1,3 +1,7 @@
+jlscp v0.5a: 2007-05-24
+  * Implemented instruments database support
+  * All notifications are now processed through the LSCP event thread
+
 jlscp v0.4a: 2007-04-02
   * Implemented support for managing MIDI instrument maps.
 
