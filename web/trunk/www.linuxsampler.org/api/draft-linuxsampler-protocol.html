@@ -145,7 +145,7 @@
 <tr><td class="header">LinuxSampler Developers</td><td class="header">C. Schoenebeck</td></tr>
 <tr><td class="header">Internet-Draft</td><td class="header">Interessengemeinschaft Software</td></tr>
 <tr><td class="header">Intended status: Standards Track</td><td class="header">Engineering e. V.</td></tr>
-<tr><td class="header">Expires: November 17, 2007</td><td class="header">May 16, 2007</td></tr>
+<tr><td class="header">Expires: November 25, 2007</td><td class="header">May 24, 2007</td></tr>
 </table></td></tr></table>
 <h1><br />LinuxSampler Control Protocol<br />LSCP 1.2</h1>
 
@@ -173,7 +173,7 @@ The list of current Internet-Drafts can be accessed at
 The list of Internet-Draft Shadow Directories can be accessed at
 <a href='http://www.ietf.org/shadow.html'>http://www.ietf.org/shadow.html</a>.</p>
 <p>
-This Internet-Draft will expire on November 17, 2007.</p>
+This Internet-Draft will expire on November 25, 2007.</p>
 
 <h3>Copyright Notice</h3>
 <p>
@@ -430,6 +430,8 @@ Copying instruments<br />
 Changing the description of instrument<br />
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#FIND DB_INSTRUMENTS">6.8.20.</a>&nbsp;
 Finding instruments<br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#GET DB_INSTRUMENTS_JOB INFO">6.8.21.</a>&nbsp;
+Getting job status information<br />
 <a href="#command_syntax">7.</a>&nbsp;
 Command Syntax<br />
 <a href="#events">8.</a>&nbsp;
@@ -476,7 +478,9 @@ Database instrument directory information changed<br />
 Number of database instruments changed<br />
 &nbsp;&nbsp;&nbsp;&nbsp;<a href="#SUBSCRIBE DB_INSTRUMENT_INFO">8.21.</a>&nbsp;
 Database instrument information changed<br />
-&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SUBSCRIBE MISCELLANEOUS">8.22.</a>&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SUBSCRIBE DB_INSTRUMENTS_JOB_INFO">8.22.</a>&nbsp;
+Database job status information changed<br />
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SUBSCRIBE MISCELLANEOUS">8.23.</a>&nbsp;
 Miscellaneous and debugging events<br />
 <a href="#anchor14">9.</a>&nbsp;
 Security Considerations<br />
@@ -7916,7 +7920,7 @@ Adding instruments to the instruments database</h3>
 <p>
                         </p>
 <blockquote class="text">
-<p>ADD DB_INSTRUMENTS [&lt;mode&gt;] &lt;db_dir&gt; &lt;file_path&gt; [&lt;instr_index&gt;]
+<p>ADD DB_INSTRUMENTS [NON_MODAL] [&lt;mode&gt;] &lt;db_dir&gt; &lt;file_path&gt; [&lt;instr_index&gt;]
 </p>
 </blockquote><p>
                     
@@ -7938,6 +7942,17 @@ Adding instruments to the instruments database</h3>
 <p>
                         </p>
 <blockquote class="text">
+<p>"RECURSIVE" -
+                                </p>
+<blockquote class="text">
+<p>All instruments will be processed, including those
+                                    in the subdirectories, and the respective subdirectory
+                                    tree structure will be recreated in the instruments
+                                    database
+</p>
+</blockquote>
+                            
+
 <p>"NON_RECURSIVE" -
                                 </p>
 <blockquote class="text">
@@ -7960,19 +7975,14 @@ Adding instruments to the instruments database</h3>
 </blockquote>
                             
 
-<p>not supplied -
-                                </p>
-<blockquote class="text">
-<p>The subdirectory tree structure will be recreated
-                                    in the instruments database and all instruments will be
-                                    processed and added to the respective subdirectory
-                                    in the instruments database.
-</p>
-</blockquote>
-                            
-
 </blockquote><p>
                     
+</p>
+<p>The difference between regular and NON_MODAL versions of the command
+                    is that the regular command returns when the scanning is finished
+                    while NON_MODAL version returns immediately and a background process is launched.
+                    The <a class='info' href='#GET DB_INSTRUMENTS_JOB INFO'>GET DB_INSTRUMENTS_JOB INFO<span> (</span><span class='info'>Getting job status information</span><span>)</span></a>
+                    command can be used to monitor the scanning progress.
 </p>
 <p>Possible Answers:
 </p>
@@ -7982,7 +7992,18 @@ Adding instruments to the instruments database</h3>
 <p>"OK" -
                                 </p>
 <blockquote class="text">
-<p>on success
+<p>on success when NON_MODAL is not supplied
+</p>
+</blockquote>
+                            
+
+<p>"OK[&lt;job-id&gt;]" -
+                                </p>
+<blockquote class="text">
+<p>on success when NON_MODAL is supplied, where &lt;job-id&gt;
+                                    is a numerical ID used to obtain status information about the job progress.
+                                    See <a class='info' href='#GET DB_INSTRUMENTS_JOB INFO'>GET DB_INSTRUMENTS_JOB INFO<span> (</span><span class='info'>Getting job status information</span><span>)</span></a>
+                                    
 </p>
 </blockquote>
                             
@@ -8783,6 +8804,102 @@ Finding instruments</h3>
 </blockquote><p>
                     
 </p>
+<a name="GET DB_INSTRUMENTS_JOB INFO"></a><br /><hr />
+<table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
+<a name="rfc.section.6.8.21"></a><h3>6.8.21.&nbsp;
+Getting job status information</h3>
+
+<p>The front-end can ask for the current status of a
+                    particular database instruments job by sending the following command:
+</p>
+<p>
+                        </p>
+<blockquote class="text">
+<p>GET DB_INSTRUMENTS_JOB INFO &lt;job-id&gt;
+</p>
+</blockquote><p>
+                    
+</p>
+<p>Where &lt;job-id&gt; should be replaced by the numerical ID
+                    of the job the front-end is interested in.
+</p>
+<p>Possible Answers:
+</p>
+<p>
+                        </p>
+<blockquote class="text">
+<p>LinuxSampler will answer by sending a &lt;CRLF&gt; separated list.
+                            Each answer line begins with the settings category name
+                            followed by a colon and then a space character &lt;SP&gt; and finally
+                            the info character string to that setting category. At the
+                            moment the following categories are defined:
+</p>
+<p>
+                                </p>
+<blockquote class="text">
+<p>FILES_TOTAL -
+                                        </p>
+<blockquote class="text">
+<p>The total number of files scheduled for scanning
+</p>
+</blockquote>
+                                    
+
+<p>FILES_SCANNED -
+                                        </p>
+<blockquote class="text">
+<p>The current number of scanned files
+</p>
+</blockquote>
+                                    
+
+<p>SCANNING -
+                                        </p>
+<blockquote class="text">
+<p>The absolute path name of the file which is currently
+                                            being scanned
+</p>
+</blockquote>
+                                    
+
+<p>STATUS -
+                                        </p>
+<blockquote class="text">
+<p>An integer value between 0 and 100 indicating the
+                                            scanning progress percentage of the file which is
+                                            currently being scanned
+</p>
+</blockquote>
+                                    
+
+</blockquote>
+                            
+
+</blockquote><p>
+                    
+</p>
+<p>The mentioned fields above don't have to be in particular order.
+</p>
+<p>Example:
+</p>
+<p>
+                        </p>
+<blockquote class="text">
+<p>C: "GET DB_INSTRUMENTS_JOB INFO 2"
+</p>
+<p>S: "FILES_TOTAL: 12"
+</p>
+<p>&nbsp;&nbsp;&nbsp;"FILES_SCANNED: 7"
+</p>
+<p>&nbsp;&nbsp;&nbsp;"SCANNING: /home/me/gigs/Bosendorfer 290.gig"
+</p>
+<p>&nbsp;&nbsp;&nbsp;"STATUS: 42"
+</p>
+<p>&nbsp;&nbsp;&nbsp;"."
+</p>
+</blockquote><p>
+                    
+</p>
 <a name="command_syntax"></a><br /><hr />
 <table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
 <a name="rfc.section.7"></a><h3>7.&nbsp;
@@ -8916,10 +9033,16 @@ Command Syntax</h3>
 <p>/ DB_INSTRUMENT_DIRECTORY SP pathname
 		
 </p>
-<p>/ DB_INSTRUMENTS SP FLAT SP pathname SP pathname
+<p>/ DB_INSTRUMENTS SP NON_MODAL SP scan_mode SP pathname SP pathname
 		
 </p>
-<p>/ DB_INSTRUMENTS SP NON_RECURSIVE SP pathname SP pathname
+<p>/ DB_INSTRUMENTS SP scan_mode SP pathname SP pathname
+		
+</p>
+<p>/ DB_INSTRUMENTS SP NON_MODAL SP pathname SP pathname
+		
+</p>
+<p>/ DB_INSTRUMENTS SP NON_MODAL SP pathname SP pathname SP instrument_index
 		
 </p>
 <p>/ DB_INSTRUMENTS SP pathname SP pathname
@@ -8997,6 +9120,9 @@ Command Syntax</h3>
 <p>/ DB_INSTRUMENT_INFO
 		
 </p>
+<p>/ DB_INSTRUMENTS_JOB_INFO
+		
+</p>
 <p>/ MISCELLANEOUS
 		
 </p>
@@ -9067,6 +9193,9 @@ Command Syntax</h3>
 		
 </p>
 <p>/ DB_INSTRUMENT_INFO
+		
+</p>
+<p>/ DB_INSTRUMENTS_JOB_INFO
 		
 </p>
 <p>/ MISCELLANEOUS
@@ -9250,6 +9379,9 @@ Command Syntax</h3>
 		
 </p>
 <p>/ DB_INSTRUMENT SP INFO SP pathname
+		
+</p>
+<p>/ DB_INSTRUMENTS_JOB SP INFO SP number
 		
 </p>
 <p>/ VOLUME
@@ -9838,6 +9970,21 @@ Command Syntax</h3>
 		
 </p>
 <p>/ stringval
+		
+</p>
+</blockquote><p>
+
+</p>
+<p>scan_mode =
+	</p>
+<blockquote class="text">
+<p>RECURSIVE
+		
+</p>
+<p>/ NON_RECURSIVE
+		
+</p>
+<p>/ FLAT
 		
 </p>
 </blockquote><p>
@@ -10529,9 +10676,42 @@ Database instrument information changed</h3>
                 (encapsulated into apostrophes), which name is changes and &lt;new-name&gt; is
                 the new name of the instrument, encapsulated into apostrophes.
 </p>
-<a name="SUBSCRIBE MISCELLANEOUS"></a><br /><hr />
+<a name="SUBSCRIBE DB_INSTRUMENTS_JOB_INFO"></a><br /><hr />
 <table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
 <a name="rfc.section.8.22"></a><h3>8.22.&nbsp;
+Database job status information changed</h3>
+
+<p>Client may want to be notified when the status of particular database
+                instruments job is changed by issuing the following command:
+</p>
+<p>
+                    </p>
+<blockquote class="text">
+<p>SUBSCRIBE DB_INSTRUMENTS_JOB_INFO
+</p>
+</blockquote><p>
+                
+</p>
+<p>Server will start sending the following notification messages:
+</p>
+<p>
+                    </p>
+<blockquote class="text">
+<p>"NOTIFY:DB_INSTRUMENTS_JOB_INFO:&lt;job-id&gt;"
+</p>
+</blockquote><p>
+                
+</p>
+<p>where &lt;job-id&gt; will be replaced by the numerical ID of the job,
+                which status is changed. The front-end will have to send the respective
+                command to actually get the status info. Because these messages
+                will be triggered by LSCP commands issued by other clients rather than real
+                time events happening on the server, it is believed that an empty notification
+                message is sufficient here.
+</p>
+<a name="SUBSCRIBE MISCELLANEOUS"></a><br /><hr />
+<table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
+<a name="rfc.section.8.23"></a><h3>8.23.&nbsp;
 Miscellaneous and debugging events</h3>
 
 <p>Client may want to be notified of miscellaneous and debugging events occurring at
