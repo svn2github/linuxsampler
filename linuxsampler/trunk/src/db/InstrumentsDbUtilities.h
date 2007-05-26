@@ -377,13 +377,14 @@ namespace LinuxSampler {
             static bool Flat;
             static ScanProgress* pProgress;
             static int FtwCallback(const char* fpath, const struct stat* sb, int typeflag);
+            static bool HasInstrumentFiles(String Dir);
     };
     
     class InstrumentFileCounter {
         public:
             /**
              * Recursively scans all subdirectories of the specified file
-             * system directory and returns the number of supported instruments.
+             * system directory and returns the number of supported instrument files.
              * @param FsDir The file system directory to process.
              * @throws Exception - if the specified directory is invalid.
              */

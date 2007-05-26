@@ -238,6 +238,7 @@ void parse_options(int argc, char **argv) {
             {"profile",0,0,0},
             {"no-tune",0,0,0},
             {"statistics",0,0,0},
+            {"instruments-db-location",1,0,0},
             {"create-instruments-db",1,0,0},
             {"lscp-addr",1,0,0},
             {"lscp-port",1,0,0},
@@ -255,14 +256,15 @@ void parse_options(int argc, char **argv) {
             switch(option_index) {
                 case 0: // --help
                     printf("usage: linuxsampler [OPTIONS]\n\n");
-                    printf("--help                    prints this message\n");
-                    printf("--version                 prints version information\n");
-                    printf("--profile                 profile synthesis algorithms\n");
-                    printf("--no-tune                 disable assembly optimization\n");
-                    printf("--statistics              periodically prints statistics\n");
-                    printf("--lscp-addr               set LSCP address (default: any)\n");
-                    printf("--lscp-port               set LSCP port (default: 8888)\n");
-                    printf("--create-instruments-db   creates an instruments DB\n");
+                    printf("--help                      prints this message\n");
+                    printf("--version                   prints version information\n");
+                    printf("--profile                   profile synthesis algorithms\n");
+                    printf("--no-tune                   disable assembly optimization\n");
+                    printf("--statistics                periodically prints statistics\n");
+                    printf("--lscp-addr                 set LSCP address (default: any)\n");
+                    printf("--lscp-port                 set LSCP port (default: 8888)\n");
+                    printf("--create-instruments-db     creates an instruments DB\n");
+                    printf("--instruments-db-location   specifies the instruments DB file\n");
                     exit(EXIT_SUCCESS);
                     break;
                 case 1: // --version
@@ -278,7 +280,39 @@ void parse_options(int argc, char **argv) {
                 case 4: // --statistics
                     bPrintStatistics = true;
                     break;
-                case 5: // --create-instruments-db
+                case 5: // --instruments-db-location
+#if HAVE_SQLITE3
+                    try {
+                        if (optarg) {
+                            struct stat statBuf;
+                            int res = stat(optarg, &statBuf);
+
+                            if (res) {
+                                std::stringstream ss;
+                                ss << "Fail to stat `" << optarg << "`: " << strerror(errno);
+                                throw Exception(ss.str());
+                            }
+
+                            if (!S_ISREG(statBuf.st_mode)) {
+                                std::stringstream ss;
+                                ss << "`" << optarg << "` is not a regular file";
+                                throw Exception(ss.str());
+                            }
+
+                            InstrumentsDb::GetInstrumentsDb()->SetDbFile(String(optarg));
+                        }
+                    } catch(Exception e) {
+                        std::cerr << e.Message() << std::endl << std::endl;
+                        return;
+                    }
+
+                    return;
+#else
+                    std::cerr << "LinuxSampler was not build with ";
+                    std::cerr << "instruments database support." <<std::endl;
+                    return;
+#endif              
+                case 6: // --create-instruments-db
 #if HAVE_SQLITE3
                     try {
                         if (optarg) {
@@ -301,14 +335,14 @@ void parse_options(int argc, char **argv) {
                     exit(EXIT_FAILURE);
                     return;
 #endif              
-                case 6: // --lscp-addr
+                case 7: // --lscp-addr
                     struct in_addr addr;
                     if (inet_aton(optarg, &addr) == 0)
                         printf("WARNING: Failed to parse lscp-addr argument, ignoring!\n");
                     else
                         lscp_addr = addr.s_addr;
                     break;
-                case 7: // --lscp-port
+                case 8: // --lscp-port
                     long unsigned int port = 0;
                     if ((sscanf(optarg, "%u", &port) != 1) || (port == 0) || (port > 65535))
                         printf("WARNING: Failed to parse lscp-port argument, ignoring!\n");

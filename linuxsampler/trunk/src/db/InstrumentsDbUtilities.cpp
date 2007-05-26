@@ -488,6 +488,12 @@ namespace LinuxSampler {
                 default:
                     throw Exception("Unknown scan mode");
             }
+
+            // Just to be sure that the frontends will be notified about the job completion
+            if (Progress.GetTotalFileCount() != Progress.GetScannedFileCount()) {
+                Progress.SetTotalFileCount(Progress.GetScannedFileCount());
+            }
+            if (Progress.GetStatus() != 100) Progress.SetStatus(100);
         } catch(Exception e) {
             Progress.SetErrorStatus(-1);
             throw e;
@@ -513,7 +519,13 @@ namespace LinuxSampler {
                 continue;
             }
 
-            count++;
+            String s(pEnt->d_name);
+            if(s.length() < 4) {
+                pEnt = readdir(pDir);
+                continue;
+            }
+            if(!strcasecmp(".gig", s.substr(s.length() - 4).c_str())) count++;
+
             pEnt = readdir(pDir);
         }
         
@@ -538,7 +550,18 @@ namespace LinuxSampler {
     }
 
     void AddInstrumentsFromFileJob::Run() {
-        InstrumentsDb::GetInstrumentsDb()->AddInstruments(DbDir, FilePath, Index, &Progress);
+        try {
+            InstrumentsDb::GetInstrumentsDb()->AddInstruments(DbDir, FilePath, Index, &Progress);
+
+            // Just to be sure that the frontends will be notified about the job completion
+            if (Progress.GetTotalFileCount() != Progress.GetScannedFileCount()) {
+                Progress.SetTotalFileCount(Progress.GetScannedFileCount());
+            }
+            if (Progress.GetStatus() != 100) Progress.SetStatus(100);
+        } catch(Exception e) {
+            Progress.SetErrorStatus(-1);
+            throw e;
+        }
     }
 
 
@@ -591,12 +614,18 @@ namespace LinuxSampler {
         }
         
         InstrumentsDb* db = InstrumentsDb::GetInstrumentsDb();
-        if (!db->DirectoryExist(dir)) db->AddDirectory(dir);
 
-        db->AddInstrumentsNonrecursive(dir, String(fpath), pProgress);
+        if (HasInstrumentFiles(String(fpath))) {
+            if (!db->DirectoryExist(dir)) db->AddDirectory(dir);
+            db->AddInstrumentsNonrecursive(dir, String(fpath), pProgress);
+        }
 
         return 0;
     };
+
+    bool DirectoryScanner::HasInstrumentFiles(String Dir) {
+        return InstrumentFileCounter::Count(Dir) > 0;
+    }
 
     int InstrumentFileCounter::FileCount;
 
@@ -626,6 +655,7 @@ namespace LinuxSampler {
         String s = fpath;
         if(s.length() < 4) return 0;
         if(!strcasecmp(".gig", s.substr(s.length() - 4).c_str())) FileCount++;
+
         return 0;
     };
 
