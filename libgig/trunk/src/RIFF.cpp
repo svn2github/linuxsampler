@@ -1364,8 +1364,13 @@ namespace RIFF {
      * "from scratch". Note: there must be no empty chunks or empty list
      * chunks when trying to make the new RIFF file persistent with Save()!
      *
+     * Note: by default, the RIFF file will be saved in native endian
+     * format; that is, as a RIFF file on little-endian machines and
+     * as a RIFX file on big-endian. To change this behaviour, call
+     * SetByteOrder() before calling Save().
+     *
      * @param FileType - four-byte identifier of the RIFF file type
-     * @see AddSubChunk(), AddSubList()
+     * @see AddSubChunk(), AddSubList(), SetByteOrder()
      */
     File::File(uint32_t FileType) : List(this) {
         #if defined(WIN32)

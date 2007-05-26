@@ -1160,12 +1160,17 @@ namespace {
      */
     unsigned long Sample::Write(void* pBuffer, unsigned long SampleCount) {
         if (Compressed) throw gig::Exception("There is no support for writing compressed gig samples (yet)");
+
+        // if this is the first write in this sample, reset the
+        // checksum calculator
         if (pCkData->GetPos() == 0) {
             crc.reset();
         }
         unsigned long res = DLS::Sample::Write(pBuffer, SampleCount);
         crc.update((unsigned char *)pBuffer, SampleCount * FrameSize);
 
+        // if this is the last write, update the checksum chunk in the
+        // file
         if (pCkData->GetPos() == pCkData->GetSize()) {
             File* pFile = static_cast<File*>(GetParent());
             pFile->SetSampleChecksum(this, crc.getValue());
@@ -3222,9 +3227,14 @@ namespace {
         }
     }
 
+    /// Updates the 3crc chunk with the checksum of a sample. The
+    /// update is done directly to disk, as this method is called
+    /// after File::Save()
     void File::SetSampleChecksum(Sample* pSample, uint32_t crc) {
         RIFF::Chunk* _3crc = pRIFF->GetSubChunk(CHUNK_ID_3CRC);
         if (!_3crc) return;
+
+        // get the index of the sample
         int iWaveIndex = -1;
         File::SampleList::iterator iter = pSamples->begin();
         File::SampleList::iterator end  = pSamples->end();
@@ -3236,6 +3246,7 @@ namespace {
         }
         if (iWaveIndex < 0) throw gig::Exception("Could not update crc, could not find sample");
 
+        // write the CRC-32 checksum to disk
         _3crc->SetPos(iWaveIndex * 8);
         uint32_t tmp = 1;
         _3crc->WriteUint32(&tmp); // unknown, always 1?
