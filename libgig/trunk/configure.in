@@ -69,6 +69,17 @@ if test "$have_audio_file_lib" = "false"; then
     exit -1;
 fi
 
+AC_CHECK_HEADERS(uuid/uuid.h)
+AC_SEARCH_LIBS(uuid_generate, uuid)
+AC_CHECK_FUNCS(uuid_generate CFUUIDCreate)
+
+if test "$ac_cv_func_uuid_generate" = no -a "$ac_cv_func_CFUUIDCreate" = no; then
+   AC_MSG_WARN([No UUID generate function found.
+*** libgig will not be able to create DLSIDs in DLS and gig files.
+*** Install libuuid from e2fsprogs to solve this. Package might be called
+*** uuid-dev, libext2fs2-devel or e2fsprogs-devel.])
+fi
+
 AM_CONFIG_HEADER(config.h)
 AM_INIT_AUTOMAKE(libgig, "$LIBGIG_RELEASE_MAJOR.$LIBGIG_RELEASE_MINOR.$LIBGIG_RELEASE_BUILD")
 

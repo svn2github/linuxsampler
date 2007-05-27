@@ -341,6 +341,7 @@ namespace DLS {
 
             Resource* GetParent() { return pParent; };
             virtual void UpdateChunks();
+            void GenerateDLSID();
         protected:
             Resource* pParent;
             RIFF::List* pResourceList;

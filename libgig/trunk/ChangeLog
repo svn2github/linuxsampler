@@ -10,6 +10,7 @@ Version CVS HEAD (?)
     - fixed write support for big-endian systems
     - improved handling of fixed length info strings - separate default
       lengths can be specified for each INFO chunk
+    - added Resource::GenerateDLSID function
 
   * src/gig.cpp, src/gig.h:
     - fixed segmentation fault in the gig::File destructor sequence which
@@ -34,6 +35,8 @@ Version CVS HEAD (?)
     - write support: the 3crc and einf chunks are now created or
       updated when a file is saved (3crc contains sample checksums,
       einf contains file statistics)
+    - write support: DLSID is now generated on the file and the
+      instruments
 
   * src/RIFF.cpp, src/RIFF.h:
     - added File::SetByteOrder method

@@ -2973,6 +2973,9 @@ namespace {
         // order (INFO chunk will be moved to first position later)
         pRIFF->AddSubChunk(CHUNK_ID_VERS, 8);
         pRIFF->AddSubChunk(CHUNK_ID_COLH, 4);
+        pRIFF->AddSubChunk(CHUNK_ID_DLID, 16);
+
+        GenerateDLSID();
     }
 
     File::File(RIFF::File* pRIFF) : DLS::File(pRIFF) {
@@ -3169,8 +3172,10 @@ namespace {
 
        // add mandatory chunks to get the chunks in right order
        lstInstr->AddSubList(LIST_TYPE_INFO);
+       lstInstr->AddSubChunk(CHUNK_ID_DLID, 16);
 
        Instrument* pInstrument = new Instrument(this, lstInstr);
+       pInstrument->GenerateDLSID();
 
        lstInstr->AddSubChunk(CHUNK_ID_INSH, 12);
 

@@ -25,6 +25,12 @@
 
 #include <time.h>
 
+#ifdef __APPLE__
+#include <CoreFoundation/CFUUID.h>
+#elif defined(HAVE_UUID_UUID_H)
+#include <uuid/uuid.h>
+#endif
+
 #include "helper.h"
 
 // macros to decode connection transforms
@@ -293,6 +299,7 @@ namespace DLS {
             for (int i = 0 ; FixedStringLengths[i].length ; i++) {
                 if (FixedStringLengths[i].chunkId == ChunkID) {
                     size = FixedStringLengths[i].length;
+                    break;
                 }
             }
         }
@@ -407,9 +414,63 @@ namespace DLS {
      */
     void Resource::UpdateChunks() {
         pInfo->UpdateChunks();
-        //TODO: save DLSID
+
+        if (pDLSID) {
+            // make sure 'dlid' chunk exists
+            RIFF::Chunk* ckDLSID = pResourceList->GetSubChunk(CHUNK_ID_DLID);
+            if (!ckDLSID) ckDLSID = pResourceList->AddSubChunk(CHUNK_ID_DLID, 16);
+            uint8_t* pData = (uint8_t*)ckDLSID->LoadChunkData();
+            // update 'dlid' chunk
+            store32(&pData[0], pDLSID->ulData1);
+            store16(&pData[4], pDLSID->usData2);
+            store16(&pData[6], pDLSID->usData3);
+            memcpy(&pData[8], pDLSID->abData, 8);
+        }
     }
 
+    /**
+     * Generates a new DLSID for the resource.
+     */
+    void Resource::GenerateDLSID() {
+#if defined(WIN32) || defined(__APPLE__) || defined(HAVE_UUID_GENERATE)
+
+        if (!pDLSID) pDLSID = new dlsid_t;
+
+#ifdef WIN32
+
+        UUID uuid;
+        UuidCreate(&uuid);
+        pDLSID->ulData1 = uuid.Data1;
+        pDLSID->usData1 = uuid.Data2;
+        pDLSID->usData2 = uuid.Data3;
+        memcpy(pDLSID->abData, uuid.Data4, 8);
+
+#elif defined(__APPLE__)
+
+        CFUUIDRef uuidRef = CFUUIDCreate(NULL);
+        CFUUIDBytes uuid = CFUUIDGetUUIDBytes(uuidRef);
+        CFRelease(uuidRef);
+        pDLSID->ulData1 = uuid.byte0 | uuid.byte1 << 8 | uuid.byte2 << 16 | uuid.byte3 << 24;
+        pDLSID->usData2 = uuid.byte4 | uuid.byte5 << 8;
+        pDLSID->usData3 = uuid.byte6 | uuid.byte7 << 8;
+        pDLSID->abData[0] = uuid.byte8;
+        pDLSID->abData[1] = uuid.byte9;
+        pDLSID->abData[2] = uuid.byte10;
+        pDLSID->abData[3] = uuid.byte11;
+        pDLSID->abData[4] = uuid.byte12;
+        pDLSID->abData[5] = uuid.byte13;
+        pDLSID->abData[6] = uuid.byte14;
+        pDLSID->abData[7] = uuid.byte15;
+#else
+        uuid_t uuid;
+        uuid_generate(uuid);
+        pDLSID->ulData1 = uuid[0] | uuid[1] << 8 | uuid[2] << 16 | uuid[3] << 24;
+        pDLSID->usData2 = uuid[4] | uuid[5] << 8;
+        pDLSID->usData3 = uuid[6] | uuid[7] << 8;
+        memcpy(pDLSID->abData, &uuid[8], 8);
+#endif
+#endif
+    }
 
 
 // *************** Sampler ***************
