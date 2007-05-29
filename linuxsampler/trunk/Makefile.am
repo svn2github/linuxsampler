@@ -22,10 +22,10 @@ have_sqlite = "no"
 endif
 
 install-data-local:
-	@if [ ! -e "/var/lib/linuxsampler/instruments.db" -a \
+	@if [ ! -e "$(DESTDIR)/var/lib/linuxsampler/instruments.db" -a \
 	$(have_sqlite) = "yes" ] ; then \
-	mkdir -p /var/lib/linuxsampler && ./src/linuxsampler \
-	--create-instruments-db /var/lib/linuxsampler/instruments.db ; \
+	mkdir -p $(DESTDIR)/var/lib/linuxsampler && ./src/linuxsampler \
+	--create-instruments-db $(DESTDIR)/var/lib/linuxsampler/instruments.db ; \
 	fi
 
 # generate parser with yacc
