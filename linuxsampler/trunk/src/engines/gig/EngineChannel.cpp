@@ -159,7 +159,6 @@ namespace LinuxSampler { namespace gig {
      * This method will then actually start to load the instrument and block
      * the calling thread until loading was completed.
      *
-     * @returns detailed description of the method call result
      * @see PrepareLoadInstrument()
      */
     void EngineChannel::LoadInstrument() {
@@ -192,7 +191,7 @@ namespace LinuxSampler { namespace gig {
             instrid.Index     = InstrumentIdx;
             newInstrument = Engine::instruments.Borrow(instrid, this);
             if (!newInstrument) {
-                throw InstrumentResourceManagerException("resource was not created");
+                throw InstrumentManagerException("resource was not created");
             }
         }
         catch (RIFF::Exception e) {
@@ -200,7 +199,7 @@ namespace LinuxSampler { namespace gig {
             String msg = "gig::Engine error: Failed to load instrument, cause: " + e.Message;
             throw Exception(msg);
         }
-        catch (InstrumentResourceManagerException e) {
+        catch (InstrumentManagerException e) {
             InstrumentStat = -3;
             String msg = "gig::Engine error: Failed to load instrument, cause: " + e.Message();
             throw Exception(msg);

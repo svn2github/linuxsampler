@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005, 2006 Christian Schoenebeck                        *
+ *   Copyright (C) 2005 - 2007 Christian Schoenebeck                       *
  *                                                                         *
  *   This library is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -25,6 +25,7 @@
 #define __LS_INSTRUMENTMANAGER_H__
 
 #include "../common/global.h"
+#include "../common/Exception.h"
 
 #include <vector>
 
@@ -32,6 +33,14 @@ namespace LinuxSampler {
 
     // just symbol prototyping
     class EngineChannel;
+
+    /**
+     * Will be thrown by InstrumentManager implementations on errors.
+     */
+    class InstrumentManagerException : public Exception {
+        public:
+            InstrumentManagerException(String msg) : Exception(msg) {}
+    };
 
     /** @brief Abstract interface class for InstrumentManagers.
      *
@@ -110,8 +119,14 @@ namespace LinuxSampler {
              * This method has to be implemented by the descendant.
              */
             virtual String GetInstrumentName(instrument_id_t ID) = 0;
+
+            virtual String GetInstrumentTypeName(instrument_id_t ID) = 0;
+
+            virtual String GetInstrumentTypeVersion(instrument_id_t ID) = 0;
+
+            virtual void LaunchInstrumentEditor(instrument_id_t ID) throw (InstrumentManagerException) = 0;
     };
 
-};
+}
 
 #endif // __LS_INSTRUMENTMANAGER_H__

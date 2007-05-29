@@ -26,6 +26,7 @@
 
 #include "Sampler.h"
 #include "engines/EngineFactory.h"
+#include "engines/InstrumentEditorFactory.h"
 #include "drivers/midi/MidiInputDeviceFactory.h"
 #include "drivers/audio/AudioOutputDeviceFactory.h"
 #include "engines/gig/Profiler.h"
@@ -99,6 +100,7 @@ int main(int argc, char **argv) {
     dmsg(1,("Registered sampler engines: %s\n", EngineFactory::AvailableEngineTypesAsString().c_str()));
     dmsg(1,("Registered MIDI input drivers: %s\n", MidiInputDeviceFactory::AvailableDriversAsString().c_str()));
     dmsg(1,("Registered audio output drivers: %s\n", AudioOutputDeviceFactory::AvailableDriversAsString().c_str()));
+    dmsg(1,("Registered instrument editors: %s\n", InstrumentEditorFactory::AvailableEditorsAsString().c_str()));
 
     // start LSCP network server
     struct in_addr addr;

@@ -27,6 +27,7 @@
 
 #include "engines/EngineFactory.h"
 #include "engines/EngineChannelFactory.h"
+#include "engines/InstrumentEditorFactory.h"
 #include "drivers/audio/AudioOutputDeviceFactory.h"
 #include "drivers/midi/MidiInputDeviceFactory.h"
 #include "drivers/midi/MidiInstrumentMapper.h"
@@ -598,6 +599,9 @@ namespace LinuxSampler {
             std::cerr << "Sampler::Reset(): Exception occured while trying to delete all MIDI instrument maps, exiting.\n" << std::flush;
             exit(EXIT_FAILURE);
         }
+
+        // unload all instrument editor DLLs
+        InstrumentEditorFactory::ClosePlugins();
     }
 
 } // namespace LinuxSampler

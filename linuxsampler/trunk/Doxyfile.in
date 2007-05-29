@@ -63,6 +63,7 @@ WARN_LOGFILE           =
 #---------------------------------------------------------------------------
 INPUT                  = @top_srcdir@/src/Sampler.h \
                          @top_srcdir@/src/common/Exception.h \
+                         @top_srcdir@/src/common/Thread.h \
                          @top_srcdir@/src/drivers/Device.h \
                          @top_srcdir@/src/drivers/DeviceParameter.h \
                          @top_srcdir@/src/drivers/audio/AudioChannel.h \
@@ -75,6 +76,8 @@ INPUT                  = @top_srcdir@/src/Sampler.h \
                          @top_srcdir@/src/engines/Engine.h \
                          @top_srcdir@/src/engines/EngineChannel.h \
                          @top_srcdir@/src/engines/FxSend.h \
+                         @top_srcdir@/src/engines/InstrumentEditor.h \
+                         @top_srcdir@/src/engines/InstrumentEditorFactory.h \
                          @top_srcdir@/src/engines/InstrumentManager.h
 FILE_PATTERNS          = *.c \
                          *.cpp \

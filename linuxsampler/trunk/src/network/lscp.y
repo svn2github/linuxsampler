@@ -73,7 +73,7 @@ int yylex(YYSTYPE* yylval) {
 %type <Char> char digit
 %type <Dotnum> dotnum volume_value boolean
 %type <Number> number sampler_channel instrument_index fx_send_id audio_channel_index device_index midi_input_channel_index midi_input_port_index midi_map midi_bank midi_prog midi_ctrl
-%type <String> string text stringval digits param_val_list param_val query_val pathname dirname filename map_name entry_name fx_send_name engine_name command add_instruction create_instruction destroy_instruction get_instruction list_instruction load_instruction set_chan_instruction load_instr_args load_engine_args audio_output_type_name midi_input_type_name remove_instruction unmap_instruction set_instruction subscribe_event unsubscribe_event map_instruction reset_instruction clear_instruction find_instruction move_instruction copy_instruction scan_mode
+%type <String> string text stringval digits param_val_list param_val query_val pathname dirname filename map_name entry_name fx_send_name engine_name command add_instruction create_instruction destroy_instruction get_instruction list_instruction load_instruction set_chan_instruction load_instr_args load_engine_args audio_output_type_name midi_input_type_name remove_instruction unmap_instruction set_instruction subscribe_event unsubscribe_event map_instruction reset_instruction clear_instruction find_instruction move_instruction copy_instruction scan_mode edit_instruction
 %type <FillResponse> buffer_size_type
 %type <KeyValList> key_val_list query_val_list
 %type <LoadMode> instr_load_mode
@@ -128,6 +128,7 @@ command               :  ADD SP add_instruction                { $$ = $3;       
                       |  FIND SP find_instruction              { $$ = $3;                                                }
                       |  MOVE SP move_instruction              { $$ = $3;                                                }
                       |  COPY SP copy_instruction              { $$ = $3;                                                }
+                      |  EDIT SP edit_instruction              { $$ = $3;                                                }
                       |  RESET                                 { $$ = LSCPSERVER->ResetSampler();                        }
                       |  QUIT                                  { LSCPSERVER->AnswerClient("Bye!\r\n"); return LSCP_QUIT; }
                       ;
@@ -324,6 +325,9 @@ set_chan_instruction  :  AUDIO_OUTPUT_DEVICE SP sampler_channel SP device_index 
                       |  MIDI_INSTRUMENT_MAP SP sampler_channel SP midi_map                                                  { $$ = LSCPSERVER->SetChannelMap($3, $5);             }
                       |  MIDI_INSTRUMENT_MAP SP sampler_channel SP NONE                                                      { $$ = LSCPSERVER->SetChannelMap($3, -1);             }
                       |  MIDI_INSTRUMENT_MAP SP sampler_channel SP DEFAULT                                                   { $$ = LSCPSERVER->SetChannelMap($3, -2);             }
+                      ;
+
+edit_instruction      :  INSTRUMENT SP sampler_channel  { $$ = LSCPSERVER->EditSamplerChannelInstrument($3); }
                       ;
 
 modal_arg             :  /* epsilon (empty argument) */  { $$ = true;  }
@@ -860,6 +864,9 @@ BYTES                 :  'B''Y''T''E''S'
                       ;
 
 PERCENTAGE            :  'P''E''R''C''E''N''T''A''G''E'
+                      ;
+
+EDIT                  :  'E''D''I''T'
                       ;
 
 RESET                 :  'R''E''S''E''T'

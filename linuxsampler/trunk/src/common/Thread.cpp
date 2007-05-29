@@ -3,6 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
+ *   Copyright (C) 2005 - 2007 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -21,6 +22,8 @@
  ***************************************************************************/
 
 #include "Thread.h"
+
+namespace LinuxSampler {
 
 Thread::Thread(bool LockMemory, bool RealTime, int PriorityMax, int PriorityDelta) {
     this->bLockedMemory     = LockMemory;
@@ -118,6 +121,13 @@ int Thread::SignalStopThread() {
 }
 
 /**
+ * Returns @c true in case the thread is currently running.
+ */
+bool Thread::IsRunning() {
+    return Running;
+}
+
+/**
  *  Sets the process SCHED_FIFO policy,  if max=1 then set at max priority,
  *  else use min priority. delta is added to the priority so that we can
  *  for example set 3 SCHED_FIFO tasks to different priorities by specifying
@@ -208,3 +218,5 @@ void __pthread_destructor(void* thread) {
     t = (Thread*) thread;
     t->Destructor();
 }
+
+} // namespace LinuxSampler

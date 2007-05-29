@@ -1,5 +1,5 @@
 INCLUDES = $(all_includes)
-AM_CXXFLAGS = -Wreturn-type -ffast-math $(CXX_CPU_SWITCH)
+AM_CXXFLAGS = -Wreturn-type -ffast-math $(CXX_CPU_SWITCH) -DCONFIG_PLUGIN_DIR=\"$(config_plugin_dir)\"
 METASOURCES = AUTO
 SUBDIRS = gig common
 
@@ -8,7 +8,9 @@ liblinuxsamplerengineinclude_HEADERS = \
 	Engine.h \
 	EngineChannel.h \
 	FxSend.h \
-	InstrumentManager.h
+	InstrumentManager.h \
+	InstrumentEditor.h \
+	InstrumentEditorFactory.h
 
 noinst_LTLIBRARIES = liblinuxsamplerengines.la
 liblinuxsamplerengines_la_SOURCES = \
@@ -18,4 +20,6 @@ liblinuxsamplerengines_la_SOURCES = \
 	EngineChannelFactory.cpp EngineChannelFactory.h \
 	FxSend.cpp FxSend.h \
 	InstrumentManager.cpp InstrumentManager.h \
-	InstrumentManagerThread.cpp InstrumentManagerThread.h
+	InstrumentManagerThread.cpp InstrumentManagerThread.h \
+	InstrumentEditor.cpp InstrumentEditor.h \
+	InstrumentEditorFactory.cpp InstrumentEditorFactory.h

@@ -7,6 +7,7 @@ liblinuxsamplercommonincludedir = $(includedir)/linuxsampler/common
 liblinuxsamplercommoninclude_HEADERS = \
 	atomic.h \
 	Exception.h \
+	Thread.h \
 	global.h \
 	optional.h \
 	Mutex.h \
@@ -28,3 +29,11 @@ liblinuxsamplercommon_la_SOURCES = \
 	stacktrace.c stacktrace.h \
 	Thread.cpp Thread.h \
 	WorkerThread.cpp WorkerThread.h
+
+# create the plugins directory (i.e. /usr/lib/linuxsampler/plugins)
+install-exec-hook:
+	mkdir -p $(DESTDIR)$(config_plugin_dir)
+
+# remove the plugins directory
+uninstall-hook:
+	rmdir $(DESTDIR)$(config_plugin_dir)

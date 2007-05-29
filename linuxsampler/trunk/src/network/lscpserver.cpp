@@ -2158,6 +2158,27 @@ String LSCPServer::SetFxSendLevel(uint uiSamplerChannel, uint FxSendID, double d
     return result.Produce();
 }
 
+String LSCPServer::EditSamplerChannelInstrument(uint uiSamplerChannel) {
+    dmsg(2,("LSCPServer: EditSamplerChannelInstrument(SamplerChannel=%d)\n", uiSamplerChannel));
+    LSCPResultSet result;
+    try {
+        SamplerChannel* pSamplerChannel = pSampler->GetSamplerChannel(uiSamplerChannel);
+        if (!pSamplerChannel) throw Exception("Invalid sampler channel number " + ToString(uiSamplerChannel));
+        EngineChannel* pEngineChannel = pSamplerChannel->GetEngineChannel();
+        if (!pEngineChannel) throw Exception("No engine type assigned to sampler channel");
+        Engine* pEngine = pEngineChannel->GetEngine();
+        InstrumentManager* pInstrumentManager = pEngine->GetInstrumentManager();
+        if (!pInstrumentManager) throw Exception("Engine does not provide an instrument manager");
+        InstrumentManager::instrument_id_t instrumentID;
+        instrumentID.FileName = pEngineChannel->InstrumentFileName();
+        instrumentID.Index    = pEngineChannel->InstrumentIndex();
+        pInstrumentManager->LaunchInstrumentEditor(instrumentID);
+    } catch (Exception e) {
+        result.Error(e);
+    }
+    return result.Produce();
+}
+
 /**
  * Will be called by the parser to reset a particular sampler channel.
  */

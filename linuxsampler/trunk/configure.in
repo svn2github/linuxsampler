@@ -5,7 +5,7 @@ AC_INIT(configure.in)
 
 LINUXSAMPLER_RELEASE_MAJOR=0
 LINUXSAMPLER_RELEASE_MINOR=4
-LINUXSAMPLER_RELEASE_BUILD=0.4cvs
+LINUXSAMPLER_RELEASE_BUILD=0.5cvs
 
 #------------------------------------------------------------------------------------
 # The following is the libtool / shared library version. This doesn't have to
@@ -827,6 +827,19 @@ if test "$config_interpolate_volume" = "yes"; then
   AC_DEFINE_UNQUOTED(CONFIG_INTERPOLATE_VOLUME, 1, [Define to 1 if you want to enable interpolation of volume modulation.])
 fi
 
+AC_ARG_ENABLE(plugin-dir,
+  [  --enable-plugin-dir
+                          Directory where the sampler shall look for potential plugins,
+                          that is 3rd party shared libraries that should be loaded by
+                          the sampler on startup. By default the sampler will search
+                          for plugins in the subdirectory "plugins" below its own
+                          library directory.
+                          (i.e. /usr/local/lib/linuxsampler/plugins)],
+  [config_plugin_dir="${enableval}"],
+  [config_plugin_dir="${libdir}/linuxsampler/plugins"]
+)
+AC_SUBST(config_plugin_dir)
+
 
 ###########################################################################
 # Automatic Benchmarks (to detect the best algorithms for the system)
@@ -966,6 +979,12 @@ AC_OUTPUT( \
     Doxyfile \
 )
 
+# resolve all nested variables in '${config_plugin_dir}'
+# (merely for providing a human readable summary below)
+while test $config_plugin_dir != `eval echo ${config_plugin_dir}` ; do
+	config_plugin_dir=`eval echo ${config_plugin_dir}`
+done
+
 
 ###########################################################################
 # Output All Configuration Options
@@ -1009,6 +1028,7 @@ echo "# Process Muted Channels: ${config_process_muted_channels}"
 echo "# Process All-Notes-Off MIDI message: ${config_process_all_notes_off}"
 echo "# Interpolate Volume: ${config_interpolate_volume}"
 echo "# Instruments database support: ${instruments_db_support}"
+echo "# Plugin Path: ${config_plugin_dir}"
 echo "#-------------------------------------------------------------------#"
 echo "# Read './configure --help' or file 'configure.in' for details.     #"
 echo "#####################################################################"

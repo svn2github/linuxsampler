@@ -3,6 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
+ *   Copyright (C) 2005 - 2007 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -32,6 +33,8 @@
 #include <pthread.h>
 #include <errno.h>
 
+namespace LinuxSampler {
+
 /// Abstract base class for classes that need to run in an own thread.
 class Thread {
     public:
@@ -41,7 +44,7 @@ class Thread {
         virtual int  StopThread();
         virtual int  SignalStartThread();
         virtual int  SignalStopThread();
-        virtual bool IsRunning() { return Running; }
+        virtual bool IsRunning();
         virtual int  SetSchedulingPriority(); //FIXME: should be private
         virtual int  LockMemory();            //FIXME: should be private
         virtual void EnableDestructor();      //FIXME: should be private
@@ -63,5 +66,7 @@ class Thread {
 // Callback functions for the POSIX thread API
 void* __pthread_launcher(void* thread);
 void  __pthread_destructor(void* thread);
+
+} // namespace LinuxSampler
 
 #endif // __THREAD_H__

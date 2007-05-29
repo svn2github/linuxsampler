@@ -1,6 +1,8 @@
 Version CVS HEAD (?)
 
   * packaging changes:
+    - config.h is not going to be installed along with liblinuxsampler's
+      API header files anymore
     - only the API relevant header (and source) files will be exported to
       the Doxygen API documentation (explicitly listed in Doxyfile.in)
     - added completely new XCode project files for Mac OSX which is now
@@ -39,6 +41,13 @@ Version CVS HEAD (?)
     - fixed compilation errors regarding OSX
       (patch by Toshi Nagata)
     - implemented instruments database
+    - added highly experimental support for on-the-fly instrument editing
+      within the sampler's process (by using instrument editor plugins),
+      you'll notice the new "Registered instrument editors:" message on
+      startup, added a new LSCP command "EDIT INSTRUMENT <sampler-channel>"
+      to spawn a matching instrument editor for the instrument on the
+      given sampler channel, the plugin path can be overridden at compile
+      time with ./configure --enable-plugin-dir=/some/dir
 
   * MIDI driver:
     - dispatch bank select (MSB and LSB) messages

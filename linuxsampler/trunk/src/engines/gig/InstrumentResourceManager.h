@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005, 2006 Christian Schoenebeck                        *
+ *   Copyright (C) 2005 - 2007 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -29,7 +29,6 @@
 #include <gig.h>
 
 #include "../../common/global.h"
-#include "../../common/Exception.h"
 #include "../../common/ResourceManager.h"
 #include "../../drivers/audio/AudioOutputDevice.h"
 #include "../InstrumentManager.h"
@@ -44,6 +43,7 @@ namespace LinuxSampler { namespace gig {
 
 #include "EngineChannel.h"
 #include "Engine.h"
+#include "../InstrumentEditor.h"
 
 namespace LinuxSampler { namespace gig {
 
@@ -61,7 +61,7 @@ namespace LinuxSampler { namespace gig {
      * instrument / file is not needed anymore, then it will be freed from
      * memory.
      */
-    class InstrumentResourceManager : public InstrumentManager, public ResourceManager<InstrumentManager::instrument_id_t, ::gig::Instrument> {
+    class InstrumentResourceManager : public InstrumentManager, public ResourceManager<InstrumentManager::instrument_id_t, ::gig::Instrument>, public InstrumentEditorListener {
         public:
             InstrumentResourceManager() : Gigs(this) {}
             virtual ~InstrumentResourceManager() {}
@@ -72,6 +72,12 @@ namespace LinuxSampler { namespace gig {
             virtual InstrumentManager::mode_t GetMode(const instrument_id_t& ID);
             virtual void SetMode(const instrument_id_t& ID, InstrumentManager::mode_t Mode);
             virtual String GetInstrumentName(instrument_id_t ID);
+            virtual String GetInstrumentTypeName(instrument_id_t ID);
+            virtual String GetInstrumentTypeVersion(instrument_id_t ID);
+            virtual void LaunchInstrumentEditor(instrument_id_t ID) throw (InstrumentManagerException);
+
+            // implementation of derived abstract method from 'InstrumentEditorListener'
+            virtual void OnInstrumentEditorQuit(InstrumentEditor* pSender);
 
             void HandBackInstrument(::gig::Instrument* pResource, InstrumentConsumer* pConsumer,
                                     ::gig::DimensionRegion** dimRegionsInUse);
@@ -106,14 +112,9 @@ namespace LinuxSampler { namespace gig {
             Mutex DimRegInfoMutex; ///< protects the DimRegInfo and SampleRefCount maps from concurrent access by the instrument loader and disk threads
             std::map< ::gig::DimensionRegion*, dimreg_info_t> DimRegInfo; ///< contains dimension regions that are still in use but belong to released instrument
             std::map< ::gig::Sample*, int> SampleRefCount; ///< contains samples that are still in use but belong to a released instrument
-    };
 
-    /**
-     * Will be thrown by the InstrumentResourceManager on errors.
-     */
-    class InstrumentResourceManagerException : public Exception {
-        public:
-            InstrumentResourceManagerException(String msg) : Exception(msg) {}
+            Mutex InstrumentEditorProxiesMutex; ///< protects the 'InstrumentEditorProxies' map
+            std::map<InstrumentEditor*, InstrumentConsumer*> InstrumentEditorProxies; ///< here we store the objects that react on instrument specific notifications on behalf of the respective instrument editor
     };
 
 }} // namespace LinuxSampler::gig

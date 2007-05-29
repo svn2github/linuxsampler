@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005, 2006 Christian Schoenebeck                        *
+ *   Copyright (C) 2005 - 2007 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -25,6 +25,8 @@
 
 #include "InstrumentResourceManager.h"
 
+#include "../InstrumentEditorFactory.h"
+
 // We need to know the maximum number of sample points which are going to
 // be processed for each render cycle of the audio output driver, to know
 // how much initial sample points we need to cache into RAM. If the given
@@ -45,6 +47,25 @@ namespace LinuxSampler { namespace gig {
     struct progress_callback_arg_t {
         InstrumentResourceManager*          pManager;
         InstrumentManager::instrument_id_t* pInstrumentKey;
+    };
+
+    // we use this to react on events concerning an instrument on behalf of an instrument editor
+    class InstrumentEditorProxy : public InstrumentConsumer {
+    public:
+        virtual void ResourceToBeUpdated(::gig::Instrument* pResource, void*& pUpdateArg) {
+            //TODO: inform the instrument editor about the pending update
+        }
+
+        virtual void ResourceUpdated(::gig::Instrument* pOldResource, ::gig::Instrument* pNewResource, void* pUpdateArg) {
+            //TODO:: inform the instrument editor about finished update
+        }
+
+        virtual void OnResourceProgress(float fProgress) {
+            //TODO: inform the instrument editor about the progress of an update
+        }
+
+        // the instrument we borrowed on behalf of the editor
+        ::gig::Instrument* pInstrument;
     };
 
     /**
@@ -85,6 +106,71 @@ namespace LinuxSampler { namespace gig {
         return res;
     }
 
+    String InstrumentResourceManager::GetInstrumentTypeName(instrument_id_t ID) {
+        return ::gig::libraryName();
+    }
+
+    String InstrumentResourceManager::GetInstrumentTypeVersion(instrument_id_t ID) {
+        return ::gig::libraryVersion();
+    }
+
+    void InstrumentResourceManager::LaunchInstrumentEditor(instrument_id_t ID) throw (InstrumentManagerException) {
+        const String sDataType    = GetInstrumentTypeName(ID);
+        const String sDataVersion = GetInstrumentTypeVersion(ID);
+        // find instrument editors capable to handle given instrument
+        std::vector<String> vEditors =
+            InstrumentEditorFactory::MatchingEditors(sDataType, sDataVersion);
+        if (!vEditors.size())
+            throw InstrumentManagerException(
+                "There is no instrument editor capable to handle this instrument"
+            );
+        // simply use the first editor in the result set
+        dmsg(1,("Found matching editor '%s' for instrument ('%s', %d) having data structure ('%s','%s')\n",
+            vEditors[0].c_str(), ID.FileName.c_str(), ID.Index, sDataType.c_str(), sDataVersion.c_str()));
+        InstrumentEditor* pEditor = InstrumentEditorFactory::Create(vEditors[0]);
+        // we want to know when you'll die X| (see OnInstrumentEditorQuit())
+        pEditor->AddListener(this);
+        // create a proxy that reacts on notification on behalf of the editor
+        InstrumentEditorProxy* pProxy = new InstrumentEditorProxy;
+        // borrow the instrument on behalf of the instrument editor
+        ::gig::Instrument* pInstrument = Borrow(ID, pProxy);
+        // remember the proxy and instrument for this instrument editor
+        pProxy->pInstrument = pInstrument;
+        InstrumentEditorProxiesMutex.Lock();
+        InstrumentEditorProxies[pEditor] = pProxy;
+        InstrumentEditorProxiesMutex.Unlock();
+        // launch the instrument editor for the given instrument
+        pEditor->Launch(pInstrument, sDataType, sDataVersion);
+    }
+
+    /**
+     * Will be called by the respective instrument editor once it left its
+     * Main() loop. That way we can handle cleanup before its thread finally
+     * dies.
+     *
+     * @param pSender - instrument editor that stops execution
+     */
+    void InstrumentResourceManager::OnInstrumentEditorQuit(InstrumentEditor* pSender) {
+        dmsg(1,("InstrumentResourceManager: instrument editor quit, doing cleanup\n"));
+        // hand back instrument and free proxy
+        InstrumentEditorProxiesMutex.Lock();
+        if (InstrumentEditorProxies.count(pSender)) {
+            InstrumentEditorProxy* pProxy =
+                dynamic_cast<InstrumentEditorProxy*>(
+                    InstrumentEditorProxies[pSender]
+                );
+            InstrumentEditorProxies.erase(pSender);
+            InstrumentEditorProxiesMutex.Unlock();
+            HandBack(pProxy->pInstrument, pProxy);
+            if (pProxy) delete pProxy;
+        } else {
+            InstrumentEditorProxiesMutex.Unlock();
+            std::cerr << "Eeeek, could not find instrument editor proxy, this is a bug!\n" << std::flush;
+        }
+        // free the editor
+        InstrumentEditorFactory::Destroy(pSender);
+    }
+
     ::gig::Instrument* InstrumentResourceManager::Create(instrument_id_t Key, InstrumentConsumer* pConsumer, void*& pArg) {
         // get gig file from inernal gig file manager
         ::gig::File* pGig = Gigs.Borrow(Key.FileName, (GigConsumer*) Key.Index); // conversion kinda hackish :/
@@ -103,7 +189,7 @@ namespace LinuxSampler { namespace gig {
         if (!pInstrument) {
             std::stringstream msg;
             msg << "There's no instrument with index " << Key.Index << ".";
-            throw InstrumentResourceManagerException(msg.str());
+            throw InstrumentManagerException(msg.str());
         }
         pGig->GetFirstSample(); // just to force complete instrument loading
         dmsg(1,("OK\n"));
@@ -137,11 +223,13 @@ namespace LinuxSampler { namespace gig {
         pEntry->ID.Index      = Key.Index;
         pEntry->pGig          = pGig;
 
-        gig::EngineChannel* pEngineChannel = (gig::EngineChannel*) pConsumer;
+        gig::EngineChannel* pEngineChannel = dynamic_cast<gig::EngineChannel*>(pConsumer);
         // and we save this to check if we need to reallocate for a engine with higher value of 'MaxSamplesPerSecond'
         pEntry->MaxSamplesPerCycle =
-            (pEngineChannel && pEngineChannel->GetEngine()) ? dynamic_cast<gig::Engine*>(pEngineChannel->GetEngine())->pAudioOutputDevice->MaxSamplesPerCycle()
-                                          : GIG_RESOURCE_MANAGER_DEFAULT_MAX_SAMPLES_PER_CYCLE;
+            (!pEngineChannel) ? 0 /* don't care for instrument editors */ :
+                (pEngineChannel->GetEngine()) ?
+                    dynamic_cast<gig::Engine*>(pEngineChannel->GetEngine())->pAudioOutputDevice->MaxSamplesPerCycle()
+                    : GIG_RESOURCE_MANAGER_DEFAULT_MAX_SAMPLES_PER_CYCLE;
         pArg = pEntry;
 
         return pInstrument;
@@ -158,7 +246,7 @@ namespace LinuxSampler { namespace gig {
         instr_entry_t* pEntry = (instr_entry_t*) pArg;
         gig::EngineChannel* pEngineChannel = dynamic_cast<gig::EngineChannel*>(pConsumer);
         uint maxSamplesPerCycle =
-            (pEngineChannel->GetEngine()) ? dynamic_cast<gig::Engine*>(pEngineChannel->GetEngine())->pAudioOutputDevice->MaxSamplesPerCycle()
+            (pEngineChannel && pEngineChannel->GetEngine()) ? dynamic_cast<gig::Engine*>(pEngineChannel->GetEngine())->pAudioOutputDevice->MaxSamplesPerCycle()
                                           : GIG_RESOURCE_MANAGER_DEFAULT_MAX_SAMPLES_PER_CYCLE;
         if (pEntry->MaxSamplesPerCycle < maxSamplesPerCycle) {
             Update(pResource, pConsumer);

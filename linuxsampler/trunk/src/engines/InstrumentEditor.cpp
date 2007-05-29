@@ -1,0 +1,68 @@
+/***************************************************************************
+ *                                                                         *
+ *   Copyright (C) 2007 Christian Schoenebeck                              *
+ *                                                                         *
+ *   This program is free software; you can redistribute it and/or modify  *
+ *   it under the terms of the GNU General Public License as published by  *
+ *   the Free Software Foundation; either version 2 of the License, or     *
+ *   (at your option) any later version.                                   *
+ *                                                                         *
+ *   This program is distributed in the hope that it will be useful,       *
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
+ *   GNU General Public License for more details.                          *
+ *                                                                         *
+ *   You should have received a copy of the GNU General Public License     *
+ *   along with this program; if not, write to the Free Software           *
+ *   Foundation, Inc., 59 Temple Place, Suite 330, Boston,                 *
+ *   MA  02111-1307  USA                                                   *
+ ***************************************************************************/
+
+#include "InstrumentEditor.h"
+
+#include <algorithm>
+#include <functional>
+
+namespace LinuxSampler {
+
+    InstrumentEditor::InstrumentEditor() : Thread(false, false, -1, 0) {
+        pInstrument = NULL;
+    }
+
+    void InstrumentEditor::Launch(void* pInstrument, String sTypeName, String sTypeVersion) {
+        dmsg(1,("InstrumentEditor::Launch(instr=%x,type=%s,version=%s)\n", pInstrument, sTypeName.c_str(), sTypeVersion.c_str()));
+        // prepare the editor's mandatory parameters
+        this->pInstrument  = pInstrument;
+        this->sTypeName    = sTypeName;
+        this->sTypeVersion = sTypeVersion;
+        // start the editor in its own thread
+        StartThread();
+    }
+
+    int InstrumentEditor::Main() {
+        dmsg(1,("InstrumentEditor::Main()\n"));
+        // run the editor's main loop
+        int iResult = Main(pInstrument, sTypeName, sTypeVersion);
+        // reset editor parameters
+        this->pInstrument  = NULL;
+        this->sTypeName    = "";
+        this->sTypeVersion = "";
+        dmsg(1,("Instrument editor '%s' returned with exit status %d\n", Name().c_str(), iResult));
+        // notify all registered listeners
+        std::for_each(
+            listeners.begin(), listeners.end(),
+            std::bind2nd(std::mem_fun(&InstrumentEditorListener::OnInstrumentEditorQuit), this)
+        );
+        // done
+        return iResult;
+    }
+
+    void InstrumentEditor::AddListener(InstrumentEditorListener* pListener) {
+        listeners.insert(pListener);
+    }
+
+    void InstrumentEditor::RemoveListener(InstrumentEditorListener* pListener) {
+        listeners.erase(pListener);
+    }
+
+} // namespace LinuxSampler

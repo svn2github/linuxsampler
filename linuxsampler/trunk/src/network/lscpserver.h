@@ -180,6 +180,7 @@ class LSCPServer : public Thread {
         String CopyDbInstrument(String Instr, String Dst);
         String SetDbInstrumentDescription(String Instr, String Desc);
         String FindDbInstruments(String Dir, std::map<String,String> Parameters, bool Recursive = true);
+        String EditSamplerChannelInstrument(uint uiSamplerChannel);
         String GetDbInstrumentsJobInfo(int JobId);
         String ResetChannel(uint uiSamplerChannel);
         String ResetSampler();
@@ -261,13 +262,13 @@ class LSCPServer : public Thread {
                  * @param NewCount The new number of sampler channels.
                  */
                 virtual void ChannelCountChanged(int NewCount);
-        
+
                 /**
                  * Invoked when the number of audio output devices has changed.
                  * @param NewCount The new number of audio output devices.
                  */
                 virtual void AudioDeviceCountChanged(int NewCount);
- 
+
                 /**
                  * Invoked when the number of MIDI input devices has changed.
                  * @param NewCount The new number of MIDI input devices.
@@ -280,7 +281,7 @@ class LSCPServer : public Thread {
                  * @param NewCount The new number of MIDI instruments.
                  */
                 virtual void MidiInstrumentCountChanged(int MapId, int NewCount);
- 
+
                 /**
                  * Invoked when a MIDI instrument in a MIDI instrument map is changed.
                  * @param MapId The numerical ID of the MIDI instrument map.
@@ -288,7 +289,7 @@ class LSCPServer : public Thread {
                  * @param Program The MIDI program number of the instrument.
                  */
                 virtual void MidiInstrumentInfoChanged(int MapId, int Bank, int Program);
-     
+
                 /**
                  * Invoked when the number of MIDI instrument maps has changed.
                  * @param NewCount The new number of MIDI instruments.
@@ -300,7 +301,7 @@ class LSCPServer : public Thread {
                  * @param MapId The numerical ID of the MIDI instrument map.
                  */
                 virtual void MidiInstrumentMapInfoChanged(int MapId);
-      
+
                 /**
                  * Invoked when the number of effect sends
                  * on the specified sampler channel has changed.
