@@ -13,6 +13,10 @@ Version CVS HEAD
   * use normal layout for checkboxes
   * allow to resize dimension zones even when the respective dimension has
     no custom dimension splits yet
+  * moved instrument editor into a shared library 'libgigedit', the 'gigedit'
+    binary is now just calling that shared library
+  * implemented an "instrument editor plugin" for LinuxSampler to allow
+    on-the-fly instrument editing within the sampler's own process
 
 Version 0.0.3 (2007-03-24)
 

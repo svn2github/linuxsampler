@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006, 2007 Andreas Persson
+ * Copyright (C) 2007 Andreas Persson
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -17,10 +17,16 @@
  * 02110-1301 USA.
  */
 
-#include "gigedit.h"
+#ifndef GIGEDIT_H
+#define GIGEDIT_H
 
-int main(int argc, char* argv[])
-{
-    return (argc >= 2) ? GigEdit::run(argv[1])
-                       : GigEdit::run();
-}
+#include <gig.h>
+
+class GigEdit {
+public:
+    static int run();
+    static int run(const char* pFileName);
+    static int run(gig::Instrument* pInstrument);
+};
+
+#endif // GIGEDIT_H

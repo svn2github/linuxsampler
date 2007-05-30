@@ -24,6 +24,7 @@
 #include <gtkmm/messagedialog.h>
 #include <gtkmm/stock.h>
 #include <gtkmm/targetentry.h>
+#include <gtkmm/main.h>
 
 #if GTKMM_MAJOR_VERSION == 2 && GTKMM_MINOR_VERSION >= 6
 #define ABOUT_DIALOG
@@ -406,6 +407,18 @@ void MainWindow::load_file(const char* name)
     loader->signal_finished().connect(
         sigc::mem_fun(*this, &MainWindow::on_loader_finished));
     loader->launch();
+}
+
+void MainWindow::load_instrument(gig::Instrument* instr) {
+    if (!instr) {
+        Glib::ustring txt = "Provided instrument is NULL!\n";
+        Gtk::MessageDialog msg(*this, txt, false, Gtk::MESSAGE_ERROR);
+        msg.run();
+        Gtk::Main::quit();
+    }
+    gig::File* pFile = (gig::File*) instr->GetParent();
+    load_gig(pFile, NULL /*file name*/);
+    //TODO: automatically select the given instrument
 }
 
 void MainWindow::on_loader_progress()

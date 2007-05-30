@@ -28,6 +28,7 @@ configure: check_dependencies configure.ac Makefile.am \
            src/Makefile.am
 	@intltoolize --force --automake
 	@aclocal
+	@libtoolize --force --copy
 	@autoheader
 	@automake --add-missing --copy
 	@autoconf

@@ -114,6 +114,7 @@ public:
     MainWindow();
     virtual ~MainWindow();
     void load_file(const char* name);
+    void load_instrument(gig::Instrument* instr);
 
 protected:
     Glib::RefPtr<Gtk::ActionGroup> actionGroup;
