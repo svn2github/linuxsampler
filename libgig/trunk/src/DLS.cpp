@@ -488,7 +488,7 @@ namespace DLS {
             SampleLoops    = wsmp->ReadUint32();
         } else { // 'wsmp' chunk missing
             uiHeaderSize   = 0;
-            UnityNote      = 64;
+            UnityNote      = 60;
             FineTune       = 0; // +- 0 cents
             Gain           = 0; // 0 dB
             SamplerOptions = F_WSMP_NO_COMPRESSION;

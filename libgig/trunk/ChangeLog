@@ -37,6 +37,8 @@ Version CVS HEAD (?)
       einf contains file statistics)
     - write support: DLSID is now generated on the file and the
       instruments
+    - write support: improved the default values for dimension region
+      parameters
 
   * src/RIFF.cpp, src/RIFF.h:
     - added File::SetByteOrder method
