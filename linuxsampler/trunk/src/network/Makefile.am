@@ -16,17 +16,6 @@ EXTRA_DIST = lscp.y
 
 .PHONY: parser
 
-# generate parser with lex and yacc
+# generate parser with bison / yacc
 parser:
-	@echo "Generating LSCP parser..."
-	@if which "yacc" > /dev/null; then \
-	    yacc -d lscp.y && \
-	    yacc lscp.y && \
-	    mv -f y.tab.h lscpsymbols.h && \
-	    mv -f y.tab.c lscpparser.cpp && \
-	    echo -n "Updating Documentation/lscp.xml..." && \
-	    (cd ../../scripts/ && ./update_grammar.pl) && \
-	    echo "OK"; \
-	else \
-	    echo "You need yacc (or bison) to generate the parser."; \
-	fi;
+	$(top_builddir)/scripts/generate_parser.sh
