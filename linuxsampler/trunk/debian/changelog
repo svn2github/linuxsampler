@@ -3,8 +3,10 @@ linuxsampler (0.4.0.1cvs-1) unreleased; urgency=low
   * fixed debian rules file for working with official release tarballs as
     well (expected a Makefile.cvs file)
   * don't strip binary (to allow debugging)
+  * abort packaging build process when Makefile.cvs failed
+    (only relevant to CVS versions of LinuxSampler)
 
- -- Christian Schoenebeck <cuse@users.sourceforge.net>  Wed, 30 May 2007 01:01:29 +0200
+ -- Christian Schoenebeck <cuse@users.sourceforge.net>  Tue, 05 Jun 2007 17:53:53 +0200
 
 linuxsampler (0.4.0-1) unstable; urgency=low
 
