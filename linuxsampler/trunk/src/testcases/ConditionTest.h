@@ -13,6 +13,8 @@
 // we need an additional thread to test the Mutex class
 #include "../common/Thread.h"
 
+using namespace LinuxSampler;
+
 class ConditionTest : public CppUnit::TestFixture {
 
     CPPUNIT_TEST_SUITE(ConditionTest);

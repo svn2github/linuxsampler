@@ -6,10 +6,12 @@ CPPUNIT_TEST_SUITE_REGISTRATION(ThreadTest);
 
 using namespace std;
 
+static ThreadTest::DummyThread dummythread;
+
 
 // DummyThread
 
-ThreadTest::DummyThread::DummyThread() : Thread(false, false, 0, -4) {
+ThreadTest::DummyThread::DummyThread() : LinuxSampler::Thread(false, false, 0, -4) {
     wasRunning = false;
 }
 
@@ -21,7 +23,7 @@ int ThreadTest::DummyThread::Main() {
 
 // HelperThread
 
-ThreadTest::HelperThread::HelperThread(DummyThread* pDummyThread) : Thread(false, false, 0, -4) {
+ThreadTest::HelperThread::HelperThread(DummyThread* pDummyThread) : LinuxSampler::Thread(false, false, 0, -4) {
     returnedFromDummyStop = false;
     this->pDummyThread = pDummyThread;
 }
@@ -39,7 +41,7 @@ bool ThreadTest::HelperThread::dummyThreadWasNotRunningAnymoreAfter_StopThread_c
 
 // WaitingThread
 
-ThreadTest::WaitingThread::WaitingThread() : Thread(false, false, 0, -4) {
+ThreadTest::WaitingThread::WaitingThread() : LinuxSampler::Thread(false, false, 0, -4) {
 }
 
 int ThreadTest::WaitingThread::Main() {
@@ -63,8 +65,10 @@ void ThreadTest::testThreadRunning() {
 
 // Check if SignalStopThread() method actually stops the thread
 void ThreadTest::testSignalStopThread() {
+    CPPUNIT_ASSERT(dummythread.wasRunning);
+    CPPUNIT_ASSERT(dummythread.IsRunning());
     dummythread.SignalStopThread();
-    usleep(40000); // wait 40ms
+    usleep(80000); // wait 40ms
     CPPUNIT_ASSERT(!dummythread.IsRunning());
 }
 

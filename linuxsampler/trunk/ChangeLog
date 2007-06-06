@@ -48,6 +48,11 @@ Version CVS HEAD (?)
       to spawn a matching instrument editor for the instrument on the
       given sampler channel, the plugin path can be overridden at compile
       time with ./configure --enable-plugin-dir=/some/dir
+    - fixed several issues in fundamental "Thread" class: set scheduling
+      policy and priority on thread level, set a minimum stack size for
+      thread (TODO: a reasonable value yet to be tested), bugfix: non-RT
+      threads simply inherited properties of starting thread instead of
+      setting their own policy and priority
 
   * MIDI driver:
     - dispatch bank select (MSB and LSB) messages
@@ -80,6 +85,9 @@ Version CVS HEAD (?)
     - fixed crash occurring on certain LSCP scripts (Bug 39)
     - another thread safety fix for lscp "load engine" and "set
       channel audio output device"
+
+  * test cases:
+    - updated and fixed (haven't been touched in a while)
 
 Version 0.4.0 (24 November 2006)
 

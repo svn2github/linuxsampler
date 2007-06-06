@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005, 2006 Christian Schoenebeck                        *
+ *   Copyright (C) 2005 - 2007 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -56,6 +56,10 @@ class Condition : public Mutex {
          * critical section and has to explicitly call Unlock() right after
          * it left it's critcal section.
          *
+         * @e Note: If you don't provide a timeout value or if you provide a
+         * timeout value of exactly 0s and 0ns, then this call will block
+         * without any timeout!
+         *
          * @param bCondition         - block in case of this condition
          * @param TimeoutSeconds     - optional: max. wait time in seconds
          *                             (default: 0s)
@@ -69,6 +73,10 @@ class Condition : public Mutex {
          * Same as WaitIf(), except that WaitAndUnlockIf() will unlock the
          * Condition object, so only use this call if you don't need to
          * enter a thread critical section, otherwise use WaitIf() instead!
+         *
+         * @e Note: If you don't provide a timeout value or if you provide a
+         * timeout value of exactly 0s and 0ns, then this call will block
+         * without any timeout!
          *
          * @param bCondition         - block in case of this condition
          * @param TimeoutSeconds     - optional: max. wait time in seconds
@@ -89,6 +97,14 @@ class Condition : public Mutex {
          * @param bCondition - new condition
          */
         void Set(bool bCondition);
+
+        /**
+        * Returns the current boolean state of this condition object.
+        * @e Caution: this method is not thread safe! If you need to use the
+        * condition state in a thread critical context you must call
+        * @c Lock() and @c Unlock() respectively by yourself!
+        */
+        bool GetUnsafe();
 
     protected:
         pthread_cond_t __posix_true_condition;

@@ -18,6 +18,7 @@
 #include "../network/lscpserver.h"
 
 using namespace std;
+using namespace LinuxSampler;
 
 class LSCPTest : public CppUnit::TestFixture {
 
@@ -41,9 +42,9 @@ class LSCPTest : public CppUnit::TestFixture {
         bool closeConnectionToLSCPServer();
 
         void sendCommandToLSCPServer(string cmd);
-        string receiveSingleLineAnswerFromLSCPServer(uint timeout_seconds = 0) throw (LinuxSamplerException);
-        vector<string> receiveMultiLineAnswerFromLSCPServer(uint timeout_seconds = 0) throw (LinuxSamplerException);
-        string receiveAnswerFromLSCPServer(string delimiter, uint timeout_seconds = 0) throw (LinuxSamplerException);
+        string receiveSingleLineAnswerFromLSCPServer(uint timeout_seconds = 0) throw (Exception);
+        vector<string> receiveMultiLineAnswerFromLSCPServer(uint timeout_seconds = 0) throw (Exception);
+        string receiveAnswerFromLSCPServer(string delimiter, uint timeout_seconds = 0) throw (Exception);
         void clearInputBuffer();
     public:
         void setUp();

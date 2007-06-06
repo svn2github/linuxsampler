@@ -23,25 +23,26 @@
 
 #include "Thread.h"
 
+// this is the minimum stack size a thread will be spawned with
+// if this value is too small, the OS will allocate memory on demand and
+// thus might lead to dropouts in realtime threads
+// TODO: should be up for testing to get a reasonable good value
+#define MIN_STACK_SIZE		524288
+
 namespace LinuxSampler {
 
 Thread::Thread(bool LockMemory, bool RealTime, int PriorityMax, int PriorityDelta) {
     this->bLockedMemory     = LockMemory;
     this->isRealTime        = RealTime;
-    this->Running           = false;
     this->PriorityDelta     = PriorityDelta;
     this->PriorityMax       = PriorityMax;
     __thread_destructor_key = 0;
-    pthread_mutex_init(&__thread_state_mutex, NULL);
-    pthread_cond_init(&__thread_start_condition, NULL);
-    pthread_cond_init(&__thread_exit_condition, NULL);
+    pthread_attr_init(&__thread_attr);
 }
 
 Thread::~Thread() {
     StopThread();
-    pthread_cond_destroy(&__thread_start_condition);
-    pthread_cond_destroy(&__thread_exit_condition);
-    pthread_mutex_destroy(&__thread_state_mutex);
+    pthread_attr_destroy(&__thread_attr);
 }
 
 /**
@@ -51,12 +52,13 @@ Thread::~Thread() {
  *  Main() method in your subclass.
  */
 int Thread::StartThread() {
-    pthread_mutex_lock(&__thread_state_mutex);
-    if (!Running) {
+    RunningCondition.Lock();
+    if (!RunningCondition.GetUnsafe()) {
         SignalStartThread();
-        pthread_cond_wait(&__thread_start_condition, &__thread_state_mutex);
+        // wait until thread started execution
+        RunningCondition.WaitIf(false);
     }
-    pthread_mutex_unlock(&__thread_state_mutex);
+    RunningCondition.Unlock();
     return 0;
 }
 
@@ -69,25 +71,54 @@ int Thread::StartThread() {
  *  @see StartThread()
  */
 int Thread::SignalStartThread() {
+    // prepare the thread properties
+    int res = pthread_attr_setinheritsched(&__thread_attr, PTHREAD_EXPLICIT_SCHED);
+    if (res) {
+        std::cerr << "Thread creation failed: Could not inherit thread properties."
+                  << std::endl << std::flush;
+        RunningCondition.Set(false);
+        return res;
+    }
+    res = pthread_attr_setdetachstate(&__thread_attr, PTHREAD_CREATE_JOINABLE);
+    if (res) {
+        std::cerr << "Thread creation failed: Could not request a joinable thread."
+                  << std::endl << std::flush;
+        RunningCondition.Set(false);
+        return res;
+    }
+    res = pthread_attr_setscope(&__thread_attr, PTHREAD_SCOPE_SYSTEM);
+    if (res) {
+        std::cerr << "Thread creation failed: Could not request system scope for thread scheduling."
+                  << std::endl << std::flush;
+        RunningCondition.Set(false);
+        return res;
+    }
+    res = pthread_attr_setstacksize(&__thread_attr, MIN_STACK_SIZE);
+    if (res) {
+        std::cerr << "Thread creation failed: Could not set minimum stack size."
+                  << std::endl << std::flush;
+        RunningCondition.Set(false);
+        return res;
+    }
     // Create and run the thread
-    int res = pthread_create(&this->__thread_id, NULL, __pthread_launcher, this);
+    res = pthread_create(&this->__thread_id, &__thread_attr, __pthread_launcher, this);
     switch (res) {
         case 0: // Success
             break;
         case EAGAIN:
             std::cerr << "Thread creation failed: System doesn't allow to create another thread."
                       << std::endl << std::flush;
-            this->Running = false;
+            RunningCondition.Set(false);
             break;
         case EPERM:
             std::cerr << "Thread creation failed: You're lacking permisssions to set required scheduling policy and parameters."
                       << std::endl << std::flush;
-            this->Running = false;
+            RunningCondition.Set(false);
             break;
         default:
             std::cerr << "Thread creation failed: Unknown cause."
                       << std::endl << std::flush;
-            this->Running = false;
+            RunningCondition.Set(false);
             break;
     }
     return res;
@@ -98,13 +129,14 @@ int Thread::SignalStartThread() {
  *  it's execution before it will return.
  */
 int Thread::StopThread() {
-    pthread_mutex_lock(&__thread_state_mutex);
-    if (Running) {
+    RunningCondition.Lock();
+    if (RunningCondition.GetUnsafe()) {
         SignalStopThread();
-        pthread_cond_wait(&__thread_exit_condition, &__thread_state_mutex);
+        // wait until thread stopped execution
+        RunningCondition.WaitIf(true);
         pthread_detach(__thread_id);
     }
-    pthread_mutex_unlock(&__thread_state_mutex);
+    RunningCondition.Unlock();
     return 0;
 }
 
@@ -116,6 +148,7 @@ int Thread::StopThread() {
  *  @see StopThread()
  */
 int Thread::SignalStopThread() {
+    //FIXME: segfaults when thread is not yet running
     pthread_cancel(__thread_id);
     return 0;
 }
@@ -124,7 +157,7 @@ int Thread::SignalStopThread() {
  * Returns @c true in case the thread is currently running.
  */
 bool Thread::IsRunning() {
-    return Running;
+    return RunningCondition.GetUnsafe();
 }
 
 /**
@@ -136,23 +169,29 @@ bool Thread::IsRunning() {
  */
 int Thread::SetSchedulingPriority() {
 #if !defined(__APPLE__)
+    int policy;
+    char* policyDescription = NULL;
+    if (isRealTime) { // becomes a RT thread
+        policy = SCHED_FIFO;
+        policyDescription = "realtime";
+    } else { // 'normal', non-RT thread
+        policy = SCHED_OTHER;
+        policyDescription = "normal (non-RT)";
+    }
+    // set selected scheduling policy and priority
     struct sched_param schp;
-
-    if (!isRealTime) return 0;
-
-    /*
-     * set the process to realtime privs
-     */
     memset(&schp, 0, sizeof(schp));
     if (this->PriorityMax == 1) {
-        schp.sched_priority = sched_get_priority_max(SCHED_FIFO) + this->PriorityDelta;
+        schp.sched_priority = sched_get_priority_max(policy) + this->PriorityDelta;
     }
     if (this->PriorityMax == -1) {
-        schp.sched_priority = sched_get_priority_min(SCHED_FIFO) + this->PriorityDelta;
+        schp.sched_priority = sched_get_priority_min(policy) + this->PriorityDelta;
     }
-
-    if (sched_setscheduler(0, SCHED_FIFO, &schp) != 0) {
-        perror("Thread: WARNING, can't assign realtime scheduling to thread!");
+    if (pthread_setschedparam(__thread_id, policy, &schp) != 0) {
+        std::cerr << "Thread: WARNING, can't assign "
+                  << policyDescription
+                  << " scheduling to thread!"
+                  << std::endl << std::flush;
         return -1;
     }
 #endif
@@ -166,7 +205,8 @@ int Thread::LockMemory() {
 #if !defined(__APPLE__)
     if (!bLockedMemory) return 0;
     if (mlockall(MCL_CURRENT | MCL_FUTURE) < 0) {
-        perror("Thread: WARNING, can't mlockall() memory!");
+        std::cerr << "Thread: WARNING, can't mlockall() memory!\n"
+                  << std::flush;
         return -1;
     }
 #endif
@@ -180,12 +220,11 @@ int Thread::LockMemory() {
  *  CALL THIS METHOD YOURSELF!
  */
 void Thread::EnableDestructor() {
-    pthread_mutex_lock(&__thread_state_mutex);
+    RunningCondition.Lock();
     pthread_key_create(&__thread_destructor_key, __pthread_destructor);
     pthread_setspecific(__thread_destructor_key, this);
-    Running = true;
-    pthread_mutex_unlock(&__thread_state_mutex);
-    pthread_cond_broadcast(&__thread_start_condition);
+    RunningCondition.Set(true);
+    RunningCondition.Unlock();
 }
 
 /**
@@ -193,10 +232,7 @@ void Thread::EnableDestructor() {
  */
 int Thread::Destructor() {
     pthread_key_delete(__thread_destructor_key);
-    pthread_mutex_lock(&__thread_state_mutex);
-    Running = false;
-    pthread_mutex_unlock(&__thread_state_mutex);
-    pthread_cond_broadcast(&__thread_exit_condition);
+    RunningCondition.Set(false);
     return 0;
 }
 

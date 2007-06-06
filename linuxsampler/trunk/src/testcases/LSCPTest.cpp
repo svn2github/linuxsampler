@@ -158,8 +158,8 @@ void LSCPTest::sendCommandToLSCPServer(string cmd) {
     send(hSocket, cmd.c_str(), cmd.length(), 0);
 }
 
-// wait until LSCP server answers with a single line answer (throws LinuxSamplerException if optional timeout exceeded)
-string LSCPTest::receiveSingleLineAnswerFromLSCPServer(uint timeout_seconds) throw (LinuxSamplerException) {
+// wait until LSCP server answers with a single line answer (throws LinuxSampler::Exception if optional timeout exceeded)
+string LSCPTest::receiveSingleLineAnswerFromLSCPServer(uint timeout_seconds) throw (Exception) {
     string msg = receiveAnswerFromLSCPServer("\n", timeout_seconds);
     // remove carriage return characters
     string::size_type p = msg.find('\r');
@@ -170,8 +170,8 @@ string LSCPTest::receiveSingleLineAnswerFromLSCPServer(uint timeout_seconds) thr
     return msg.substr(0, pos);
 }
 
-/// wait until LSCP server answers with a multi line answer (throws LinuxSamplerException if optional timeout exceeded)
-vector<string> LSCPTest::receiveMultiLineAnswerFromLSCPServer(uint timeout_seconds) throw (LinuxSamplerException) {
+/// wait until LSCP server answers with a multi line answer (throws LinuxSampler::Exception if optional timeout exceeded)
+vector<string> LSCPTest::receiveMultiLineAnswerFromLSCPServer(uint timeout_seconds) throw (Exception) {
     string msg = receiveAnswerFromLSCPServer("\n.\r\n", timeout_seconds);
     return __ConvertMultiLineMessage(msg);
 }
@@ -181,8 +181,8 @@ void LSCPTest::clearInputBuffer() {
     while (recv(hSocket, &c, 1, 0) > 0);
 }
 
-/// wait until LSCP server answers with the given \a delimiter token at the end (throws LinuxSamplerException if optional timeout exceeded or socket error occured)
-string LSCPTest::receiveAnswerFromLSCPServer(string delimiter, uint timeout_seconds) throw (LinuxSamplerException) {
+/// wait until LSCP server answers with the given \a delimiter token at the end (throws LinuxSampler::Exception if optional timeout exceeded or socket error occured)
+string LSCPTest::receiveAnswerFromLSCPServer(string delimiter, uint timeout_seconds) throw (Exception) {
     string message;
     char c;
     fd_set sockSet;
@@ -196,40 +196,40 @@ string LSCPTest::receiveAnswerFromLSCPServer(string delimiter, uint timeout_seco
             timeout.tv_usec = 0;
             int res = select(hSocket + 1, &sockSet, NULL, NULL, &timeout);
             if (!res) { // if timeout exceeded
-                if (!message.size()) throw LinuxSamplerException("LSCPTest::receiveAnswerFromLSCPServer(): timeout (" + ToString(timeout_seconds) + "s) exceeded, no answer received");
-                else                 throw LinuxSamplerException("LSCPTest::receiveAnswerFromLSCPServer(): timeout (" + ToString(timeout_seconds) + "s) exceeded waiting for expected answer (end), received answer: \'" + message + "\'");
+                if (!message.size()) throw Exception("LSCPTest::receiveAnswerFromLSCPServer(): timeout (" + ToString(timeout_seconds) + "s) exceeded, no answer received");
+                else                 throw Exception("LSCPTest::receiveAnswerFromLSCPServer(): timeout (" + ToString(timeout_seconds) + "s) exceeded waiting for expected answer (end), received answer: \'" + message + "\'");
             }
             else if (res < 0) {
-                throw LinuxSamplerException("LSCPTest::receiveAnswerFromLSCPServer(): select error");
+                throw Exception("LSCPTest::receiveAnswerFromLSCPServer(): select error");
             }
         }
 
         // there's something to read, so read one character
         int res = recv(hSocket, &c, 1, 0);
-        if (!res) throw LinuxSamplerException("LSCPTest::receiveAnswerFromLSCPServer(): connection to LSCP server closed");
+        if (!res) throw Exception("LSCPTest::receiveAnswerFromLSCPServer(): connection to LSCP server closed");
         else if (res < 0) {
             switch(errno) {
                 case EBADF:
-                    throw LinuxSamplerException("The argument s is an invalid descriptor");
+                    throw Exception("The argument s is an invalid descriptor");
                 case ECONNREFUSED:
-                    throw LinuxSamplerException("A remote host refused to allow the network connection (typically because it is not running the requested service).");
+                    throw Exception("A remote host refused to allow the network connection (typically because it is not running the requested service).");
                 case ENOTCONN:
-                    throw LinuxSamplerException("The socket is associated with a connection-oriented protocol and has not been connected (see connect(2) and accept(2)).");
+                    throw Exception("The socket is associated with a connection-oriented protocol and has not been connected (see connect(2) and accept(2)).");
                 case ENOTSOCK:
-                    throw LinuxSamplerException("The argument s does not refer to a socket.");
+                    throw Exception("The argument s does not refer to a socket.");
                 case EAGAIN:
                     continue;
-                    //throw LinuxSamplerException("The socket is marked non-blocking and the receive operation would block, or a receive timeout had been set and the timeout expired before data was received.");
+                    //throw Exception("The socket is marked non-blocking and the receive operation would block, or a receive timeout had been set and the timeout expired before data was received.");
                 case EINTR:
-                    throw LinuxSamplerException("The receive was interrupted by delivery of a signal before any data were available.");
+                    throw Exception("The receive was interrupted by delivery of a signal before any data were available.");
                 case EFAULT:
-                    throw LinuxSamplerException("The receive buffer pointer(s) point outside the process's address space.");
+                    throw Exception("The receive buffer pointer(s) point outside the process's address space.");
                 case EINVAL:
-                    throw LinuxSamplerException("Invalid argument passed.");
+                    throw Exception("Invalid argument passed.");
                 case ENOMEM:
-                    throw LinuxSamplerException("Could not allocate memory for recvmsg.");
+                    throw Exception("Could not allocate memory for recvmsg.");
                 default:
-                    throw LinuxSamplerException("Unknown recv() error.");
+                    throw Exception("Unknown recv() error.");
             }
         }
 

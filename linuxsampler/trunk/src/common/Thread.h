@@ -33,6 +33,8 @@
 #include <pthread.h>
 #include <errno.h>
 
+#include "Condition.h"
+
 namespace LinuxSampler {
 
 /// Abstract base class for classes that need to run in an own thread.
@@ -51,14 +53,12 @@ class Thread {
         virtual int  Destructor();            //FIXME: should be private
         virtual int  Main() = 0; ///< This method needs to be implemented by the descendant and is the entry point for the new thread. FIXME: should be protected
     private:
+        pthread_attr_t  __thread_attr;
         pthread_t       __thread_id;
         pthread_key_t   __thread_destructor_key;
-        pthread_mutex_t __thread_state_mutex;
-        pthread_cond_t  __thread_start_condition;
-        pthread_cond_t  __thread_exit_condition;
+        Condition       RunningCondition;
         int             PriorityMax;
         int             PriorityDelta;
-        bool            Running;
         bool            isRealTime;
         bool            bLockedMemory;
 };
