@@ -170,7 +170,7 @@ bool Thread::IsRunning() {
 int Thread::SetSchedulingPriority() {
 #if !defined(__APPLE__)
     int policy;
-    char* policyDescription = NULL;
+    const char* policyDescription = NULL;
     if (isRealTime) { // becomes a RT thread
         policy = SCHED_FIFO;
         policyDescription = "realtime";
@@ -181,11 +181,13 @@ int Thread::SetSchedulingPriority() {
     // set selected scheduling policy and priority
     struct sched_param schp;
     memset(&schp, 0, sizeof(schp));
-    if (this->PriorityMax == 1) {
-        schp.sched_priority = sched_get_priority_max(policy) + this->PriorityDelta;
-    }
-    if (this->PriorityMax == -1) {
-        schp.sched_priority = sched_get_priority_min(policy) + this->PriorityDelta;
+    if (isRealTime) { // it is not possible to change priority for the SCHED_OTHER policy
+        if (this->PriorityMax == 1) {
+            schp.sched_priority = sched_get_priority_max(policy) + this->PriorityDelta;
+        }
+        if (this->PriorityMax == -1) {
+            schp.sched_priority = sched_get_priority_min(policy) + this->PriorityDelta;
+        }
     }
     if (pthread_setschedparam(__thread_id, policy, &schp) != 0) {
         std::cerr << "Thread: WARNING, can't assign "
