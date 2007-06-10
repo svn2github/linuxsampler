@@ -72,6 +72,7 @@ AC_DEFINE_UNQUOTED(
 AC_CONFIG_FILES([
 	Makefile
 	src/Makefile
+	src/gigedit/Makefile
 	src/plugin/Makefile
 	po/Makefile.in
 	debian/Makefile

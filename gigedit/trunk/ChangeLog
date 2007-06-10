@@ -17,6 +17,8 @@ Version CVS HEAD
     binary is now just calling that shared library
   * implemented an "instrument editor plugin" for LinuxSampler to allow
     on-the-fly instrument editing within the sampler's own process
+    (revised directories to a more automake-friendly structure for this, to
+    avoid compilation and install errors)
 
 Version 0.0.3 (2007-03-24)
 
