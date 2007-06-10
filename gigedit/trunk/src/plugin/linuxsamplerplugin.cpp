@@ -21,7 +21,7 @@
 
 #include <gig.h>
 #include <linuxsampler/engines/InstrumentEditorFactory.h>
-#include "../gigedit.h"
+#include "../gigedit/gigedit.h"
 
 #include <iostream>
 
