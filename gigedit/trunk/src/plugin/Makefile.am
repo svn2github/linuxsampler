@@ -1,5 +1,4 @@
-#TODO: retrieve plugin path from LS's pkg-config info
-pkglibdir = /usr/lib/linuxsampler/plugins
+pkglibdir = $(LINUXSAMPLER_PLUGIN_DIR)
 
 pkglib_LTLIBRARIES = \
 	libgigeditlinuxsamplerplugin.la

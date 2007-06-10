@@ -58,16 +58,28 @@ PKG_CHECK_MODULES(
     LINUXSAMPLER, linuxsampler >= $liblinuxsampler_version,
     have_linuxsampler=1, have_linuxsampler=0
 )
+LINUXSAMPLER_PLUGIN_DIR=
 if test "$have_linuxsampler" = "0"; then
     echo "Required liblinuxsampler version not found!"
     echo "You need to have liblinuxsampler version ${liblinuxsampler_version}"
     echo "installed. Support for on-the-fly editing with LinuxSampler will"
     echo "be disabled."
 else
-    echo "yes, found linuxsampler $linuxsampler_version"
+    echo "Found linuxsampler $liblinuxsampler_version"
+    echo -n "Retrieving LinuxSampler's plugin dir... "
+    LINUXSAMPLER_PLUGIN_DIR=`pkg-config --variable plugindir linuxsampler`
+    if test "$LINUXSAMPLER_PLUGIN_DIR" = ""; then
+        have_linuxsampler=0
+        echo "Error"
+        echo "Could not retrieve LinuxSampler's plugin directory. Support"
+        echo "for on-the-fly editing with LinuxSampler will be disabled."
+    else
+        echo "${LINUXSAMPLER_PLUGIN_DIR} "
+    fi
 fi
 AC_SUBST(LINUXSAMPLER_CFLAGS)
 AC_SUBST(LINUXSAMPLER_LIBS)
+AC_SUBST(LINUXSAMPLER_PLUGIN_DIR)
 AM_CONDITIONAL(HAVE_LINUXSAMPLER, test $have_linuxsampler = "1")
 AC_DEFINE_UNQUOTED(
     HAVE_LINUXSAMPLER, $have_linuxsampler,
