@@ -169,7 +169,7 @@ DimRegionEdit::DimRegionEdit() :
     addProp(eSampleLoopStart);
     addProp(eSampleLoopLength);
     {
-        char* choices[] = { "normal", "bidirectional", "backward", 0 };
+        const char* choices[] = { "normal", "bidirectional", "backward", 0 };
         static const uint32_t values[] = {
             gig::loop_type_normal,
             gig::loop_type_bidirectional,
@@ -209,8 +209,8 @@ DimRegionEdit::DimRegionEdit() :
     addProp(eLFO1InternalDepth);
     addProp(eLFO1ControlDepth);
     {
-        char* choices[] = { "internal", "modwheel", "breath",
-                            "internal+modwheel", "internal+breath", 0 };
+        const char* choices[] = { "internal", "modwheel", "breath",
+                                  "internal+modwheel", "internal+breath", 0 };
         static const gig::lfo1_ctrl_t values[] = {
             gig::lfo1_ctrl_internal,
             gig::lfo1_ctrl_modwheel,
@@ -237,8 +237,8 @@ DimRegionEdit::DimRegionEdit() :
     addHeader(_("General Filter Settings"));
     addProp(eVCFEnabled);
     {
-        char* choices[] = { "lowpass", "lowpassturbo", "bandpass",
-                            "highpass", "bandreject", 0 };
+        const char* choices[] = { "lowpass", "lowpassturbo", "bandpass",
+                                  "highpass", "bandreject", 0 };
         static const gig::vcf_type_t values[] = {
             gig::vcf_type_lowpass,
             gig::vcf_type_lowpassturbo,
@@ -250,9 +250,9 @@ DimRegionEdit::DimRegionEdit() :
     }
     addProp(eVCFType);
     {
-        char* choices[] = { "none", "none2", "modwheel", "effect1", "effect2",
-                            "breath", "foot", "sustainpedal", "softpedal",
-                            "genpurpose7", "genpurpose8", "aftertouch", 0 };
+        const char* choices[] = { "none", "none2", "modwheel", "effect1", "effect2",
+                                  "breath", "foot", "sustainpedal", "softpedal",
+                                  "genpurpose7", "genpurpose8", "aftertouch", 0 };
         static const gig::vcf_cutoff_ctrl_t values[] = {
             gig::vcf_cutoff_ctrl_none,
             gig::vcf_cutoff_ctrl_none2,
@@ -272,7 +272,7 @@ DimRegionEdit::DimRegionEdit() :
     addProp(eVCFCutoffController);
     addProp(eVCFCutoffControllerInvert);
     addProp(eVCFCutoff);
-    char* curve_type_texts[] = { "nonlinear", "linear", "special", 0 };
+    const char* curve_type_texts[] = { "nonlinear", "linear", "special", 0 };
     static const gig::curve_type_t curve_type_values[] = {
         gig::curve_type_nonlinear,
         gig::curve_type_linear,
@@ -285,8 +285,8 @@ DimRegionEdit::DimRegionEdit() :
     addProp(eVCFResonance);
     addProp(eVCFResonanceDynamic);
     {
-        char* choices[] = { "none", "genpurpose3", "genpurpose4",
-                            "genpurpose5", "genpurpose6", 0 };
+        const char* choices[] = { "none", "genpurpose3", "genpurpose4",
+                                  "genpurpose5", "genpurpose6", 0 };
         static const gig::vcf_res_ctrl_t values[] = {
             gig::vcf_res_ctrl_none,
             gig::vcf_res_ctrl_genpurpose3,
@@ -320,8 +320,8 @@ DimRegionEdit::DimRegionEdit() :
     addProp(eLFO2InternalDepth);
     addProp(eLFO2ControlDepth);
     {
-        char* choices[] = { "internal", "modwheel", "foot",
-                            "internal+modwheel", "internal+foot", 0 };
+        const char* choices[] = { "internal", "modwheel", "foot",
+                                  "internal+modwheel", "internal+foot", 0 };
         static const gig::lfo2_ctrl_t values[] = {
             gig::lfo2_ctrl_internal,
             gig::lfo2_ctrl_modwheel,
@@ -348,8 +348,8 @@ DimRegionEdit::DimRegionEdit() :
     addProp(eLFO3InternalDepth);
     addProp(eLFO3ControlDepth);
     {
-        char* choices[] = { "internal", "modwheel", "aftertouch",
-                            "internal+modwheel", "internal+aftertouch", 0 };
+        const char* choices[] = { "internal", "modwheel", "aftertouch",
+                                  "internal+modwheel", "internal+aftertouch", 0 };
         static const gig::lfo3_ctrl_t values[] = {
             gig::lfo3_ctrl_internal,
             gig::lfo3_ctrl_modwheel,
@@ -374,7 +374,7 @@ DimRegionEdit::DimRegionEdit() :
     addProp(eReleaseVelocityResponseDepth);
     addProp(eReleaseTriggerDecay);
     {
-        char* choices[] = { "none", "effect4depth", "effect5depth", 0 };
+        const char* choices[] = { "none", "effect4depth", "effect5depth", 0 };
         static const gig::dim_bypass_ctrl_t values[] = {
             gig::dim_bypass_ctrl_none,
             gig::dim_bypass_ctrl_94,
@@ -444,8 +444,8 @@ DimRegionEdit::~DimRegionEdit()
 {
 }
 
-void DimRegionEdit::addString(char* labelText, Gtk::Label*& label,
-                           Gtk::Entry*& widget)
+void DimRegionEdit::addString(const char* labelText, Gtk::Label*& label,
+                              Gtk::Entry*& widget)
 {
     label = new Gtk::Label(Glib::ustring(labelText) + ":");
     label->set_alignment(Gtk::ALIGN_LEFT);
@@ -461,7 +461,7 @@ void DimRegionEdit::addString(char* labelText, Gtk::Label*& label,
     rowno++;
 }
 
-void DimRegionEdit::addHeader(char* text)
+void DimRegionEdit::addHeader(const char* text)
 {
     if (firstRowInBlock < rowno - 1)
     {

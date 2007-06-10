@@ -59,7 +59,7 @@ namespace {
     };
 }
 
-LabelWidget::LabelWidget(char* labelText, Gtk::Widget& widget) :
+LabelWidget::LabelWidget(const char* labelText, Gtk::Widget& widget) :
     label(Glib::ustring(labelText) + ":"),
     widget(widget)
 {
@@ -72,7 +72,7 @@ void LabelWidget::set_sensitive(bool sensitive)
     widget.set_sensitive(sensitive);
 }
 
-NumEntry::NumEntry(char* labelText, double lower, double upper,
+NumEntry::NumEntry(const char* labelText, double lower, double upper,
                    int decimals) :
     adjust(lower, lower, upper, 1, 10),
     scale(adjust),
@@ -85,7 +85,7 @@ NumEntry::NumEntry(char* labelText, double lower, double upper,
     box.add(scale);
 }
 
-NumEntryGain::NumEntryGain(char* labelText,
+NumEntryGain::NumEntryGain(const char* labelText,
 			   double lower, double upper,
 			   int decimals, double coeff) :
     NumEntry(labelText, lower, upper, decimals),
@@ -112,7 +112,7 @@ void NumEntryGain::set_ptr(int32_t* ptr)
 }
 
 
-BoolEntryPlus6::BoolEntryPlus6(char* labelText, NumEntryGain& eGain, int32_t plus6value) :
+BoolEntryPlus6::BoolEntryPlus6(const char* labelText, NumEntryGain& eGain, int32_t plus6value) :
     LabelWidget(labelText, checkbutton),
     eGain(eGain),
     plus6value(plus6value)
@@ -144,7 +144,7 @@ void BoolEntryPlus6::set_ptr(int32_t* ptr)
     this->ptr = ptr;
 }
 
-NumEntryPermille::NumEntryPermille(char* labelText,
+NumEntryPermille::NumEntryPermille(const char* labelText,
                                    double lower, double upper, int decimals) :
     NumEntry(labelText, lower, upper, decimals)
 {
@@ -167,7 +167,7 @@ void NumEntryPermille::set_ptr(uint16_t* ptr)
 }
 
 
-NoteEntry::NoteEntry(char* labelText) :
+NoteEntry::NoteEntry(const char* labelText) :
     NumEntryTemp<uint8_t>(labelText)
 {
     spinbutton.signal_input().connect(
@@ -211,7 +211,7 @@ bool NoteEntry::on_output()
     return true;
 }
 
-ChoiceEntryLeverageCtrl::ChoiceEntryLeverageCtrl(char* labelText) :
+ChoiceEntryLeverageCtrl::ChoiceEntryLeverageCtrl(const char* labelText) :
     align(0, 0, 0, 0),
     LabelWidget(labelText, align)
 {
@@ -295,7 +295,7 @@ void ChoiceEntryLeverageCtrl::set_ptr(gig::leverage_ctrl_t* ptr)
 }
 
 
-BoolEntry::BoolEntry(char* labelText) :
+BoolEntry::BoolEntry(const char* labelText) :
     LabelWidget(labelText, checkbutton),
     checkbutton(labelText),
     ptr(0)
@@ -319,7 +319,7 @@ void BoolEntry::set_ptr(bool* ptr)
 }
 
 
-StringEntry::StringEntry(char* labelText) :
+StringEntry::StringEntry(const char* labelText) :
     LabelWidget(labelText, entry)
 {
     entry.signal_changed().connect(

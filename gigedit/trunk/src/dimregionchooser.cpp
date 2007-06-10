@@ -87,7 +87,7 @@ bool DimRegionChooser::on_expose_event(GdkEventExpose* event)
     for (int i = 0 ; i < region->Dimensions ; i++) {
         int nbZones = region->pDimensionDefinitions[i].zones;
         if (nbZones) {
-            char* dstr;
+            const char* dstr;
             char dstrbuf[10];
             switch (region->pDimensionDefinitions[i].dimension) {
             case gig::dimension_none: dstr="none"; break;

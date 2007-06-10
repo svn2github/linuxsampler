@@ -143,9 +143,9 @@ protected:
 
     void addProp(BoolEntry& boolentry);
     void addProp(LabelWidget& labelwidget);
-    void addString(char* labelText, Gtk::Label*& label,
+    void addString(const char* labelText, Gtk::Label*& label,
                    Gtk::Entry*& widget);
-    void addHeader(char* text);
+    void addHeader(const char* text);
     void nextPage();
 
     void VCFEnabled_toggled();

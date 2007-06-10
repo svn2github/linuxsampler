@@ -574,7 +574,7 @@ PropDialog::PropDialog()
     : table(2,1)
 {
     table.set_col_spacings(5);
-    char* propLabels[] = {
+    const char* propLabels[] = {
         "Name:",
         "CreationDate:",
         "Comments:", // TODO: multiline

@@ -27,8 +27,8 @@
 
 // the app has to work from a DLL as well, so we hard code argv
 int argc = 1;
-char* argv_c[] = { "gigedit" };
-char** argv = argv_c;
+const char* argv_c[] = { "gigedit" };
+char** argv = const_cast<char**>(argv_c);
 
 static void __init_app() {
     setlocale(LC_ALL, "");

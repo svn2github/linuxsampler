@@ -38,7 +38,7 @@ public:
     Gtk::Label label;
     Gtk::Widget& widget;
 
-    LabelWidget(char* labelText, Gtk::Widget& widget);
+    LabelWidget(const char* labelText, Gtk::Widget& widget);
     void set_sensitive(bool sensitive = true);
 protected:
     Gtk::Tooltips tooltips;
@@ -51,7 +51,7 @@ protected:
     Gtk::SpinButton spinbutton;
     Gtk::HBox box;
 public:
-    NumEntry(char* labelText, double lower = 0, double upper = 127,
+    NumEntry(const char* labelText, double lower = 0, double upper = 127,
              int decimals = 0);
     void set_value(double value) {
         spinbutton.set_value(value);
@@ -76,7 +76,7 @@ private:
     int32_t* ptr;
     double coeff;
 public:
-    NumEntryGain(char* labelText,
+    NumEntryGain(const char* labelText,
                  double lower, double upper, int decimals, double coeff);
     void set_ptr(int32_t* ptr);
 };
@@ -87,13 +87,13 @@ private:
     T* ptr;
     void value_changed();
 public:
-    NumEntryTemp(char* labelText,
+    NumEntryTemp(const char* labelText,
                  double lower = 0, double upper = 127, int decimals = 0);
     void set_ptr(T* ptr);
 };
 
 template<typename T>
-NumEntryTemp<T>::NumEntryTemp(char* labelText,
+NumEntryTemp<T>::NumEntryTemp(const char* labelText,
                               double lower, double upper, int decimals) :
     NumEntry(labelText, lower, upper, decimals)
 {
@@ -120,7 +120,7 @@ void NumEntryTemp<T>::set_ptr(T* ptr)
 
 class NoteEntry : public NumEntryTemp<uint8_t> {
 public:
-    NoteEntry(char* labelText);
+    NoteEntry(const char* labelText);
 private:
     int on_input(double* new_value);
     bool on_output();
@@ -132,7 +132,7 @@ private:
     uint16_t* ptr;
     void value_changed();
 public:
-    NumEntryPermille(char* labelText,
+    NumEntryPermille(const char* labelText,
                      double lower = 0, double upper = 127, int decimals = 0);
     void set_ptr(uint16_t* ptr);
 };
@@ -147,8 +147,8 @@ private:
     void value_changed();
     const T* values;
 public:
-    ChoiceEntry(char* labelText);
-    void set_choices(char** texts, const T* values);
+    ChoiceEntry(const char* labelText);
+    void set_choices(const char** texts, const T* values);
     void set_ptr(T* ptr);
     int get_active_row_number() { return combobox.get_active_row_number(); }
     Glib::SignalProxy0<void> signal_changed() {
@@ -160,7 +160,7 @@ public:
 };
 
 template<typename T>
-ChoiceEntry<T>::ChoiceEntry(char* labelText) :
+ChoiceEntry<T>::ChoiceEntry(const char* labelText) :
     align(0, 0, 0, 0),
     LabelWidget(labelText, align)
 {
@@ -170,7 +170,7 @@ ChoiceEntry<T>::ChoiceEntry(char* labelText) :
 }
 
 template<typename T>
-void ChoiceEntry<T>::set_choices(char** texts, const T* values)
+void ChoiceEntry<T>::set_choices(const char** texts, const T* values)
 {
     for (int i = 0 ; texts[i] ; i++) {
         combobox.append_text(texts[i]);
@@ -211,7 +211,7 @@ private:
     gig::leverage_ctrl_t* ptr;
     void value_changed();
 public:
-    ChoiceEntryLeverageCtrl(char* labelText);
+    ChoiceEntryLeverageCtrl(const char* labelText);
     void set_ptr(gig::leverage_ctrl_t* ptr);
     int get_active_row_number() { return combobox.get_active_row_number(); }
     Glib::SignalProxy0<void> signal_changed() {
@@ -226,7 +226,7 @@ private:
     bool* ptr;
     void value_changed();
 public:
-    BoolEntry(char* labelText);
+    BoolEntry(const char* labelText);
     bool get_active() { return checkbutton.get_active(); }
     bool set_active(bool b) { checkbutton.set_active(b); }
     Glib::SignalProxy0<void> signal_toggled() {
@@ -247,7 +247,7 @@ private:
     NumEntryGain& eGain;
     int32_t plus6value;
 public:
-    BoolEntryPlus6(char* labelText, NumEntryGain& eGain, int32_t plus6value);
+    BoolEntryPlus6(const char* labelText, NumEntryGain& eGain, int32_t plus6value);
     void set_ptr(int32_t* ptr);
     bool get_active() { return checkbutton.get_active(); }
     Glib::SignalProxy0<void> signal_toggled() {
@@ -261,7 +261,7 @@ private:
     gig::String* ptr;
     void value_changed();
 public:
-    StringEntry(char* labelText);
+    StringEntry(const char* labelText);
     void set_ptr(gig::String* ptr);
 };
 
