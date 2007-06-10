@@ -11,7 +11,8 @@ liblinuxsamplercommoninclude_HEADERS = \
 	global.h \
 	optional.h \
 	Mutex.h \
-	SynchronizedConfig.h
+	SynchronizedConfig.h \
+	Condition.h
 
 noinst_LTLIBRARIES = liblinuxsamplercommon.la
 liblinuxsamplercommon_la_SOURCES = \
