@@ -26,7 +26,12 @@ AC_PROG_LIBTOOL
 AC_SUBST(SHLIB_VERSION_ARG)
 AC_SUBST(SHARED_VERSION_INFO)
 
-AC_CONFIG_SRCDIR(src/main.cpp)
+# configure checks for the following file's existence to make sure that
+# the directory that it is told contains the source code in fact does.
+# Occasionally people accidentally specify the wrong directory with
+# `--srcdir'; this is a safety check.
+AC_CONFIG_SRCDIR(src/gigedit/main.cpp)
+
 AC_CONFIG_HEADERS(config.h)
 AM_INIT_AUTOMAKE
 
