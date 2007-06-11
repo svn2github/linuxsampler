@@ -99,11 +99,11 @@ class Condition : public Mutex {
         void Set(bool bCondition);
 
         /**
-        * Returns the current boolean state of this condition object.
-        * @e Caution: this method is not thread safe! If you need to use the
-        * condition state in a thread critical context you must call
-        * @c Lock() and @c Unlock() respectively by yourself!
-        */
+         * Returns the current boolean state of this condition object.
+         * @e Caution: this method is not thread safe! If you need to use
+         * the condition state in a thread critical context you must call
+         * @c Lock() and @c Unlock() respectively by yourself!
+         */
         bool GetUnsafe();
 
     protected:
