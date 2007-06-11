@@ -1,6 +1,6 @@
 /*************************************************************************
  *
- * $Id: stacktrace.c,v 1.2 2005-02-09 01:22:17 schoenebeck Exp $
+ * $Id: stacktrace.c,v 1.3 2007-06-11 13:42:21 schoenebeck Exp $
  *
  * Copyright (c) 1998 by Bjorn Reese <breese@mail1.stofanet.dk>
  *
@@ -35,6 +35,8 @@
 # define PLATFORM_UNIX
 #elif defined(WIN32) || defined(_WIN32)
 # define PLATFORM_WIN32
+#else
+# warning "No platform defined, automatic stack trace will fail!"
 #endif
 
 #if defined(_AIX) || defined(__xlC__)
@@ -159,6 +161,7 @@ static int my_popen(const char *command, pid_t *pid)
 	default: /* Parent */
 	  //close(pipefd[1]);
 	  //rc = pipefd[0];
+	  rc = 0; // success
 	  break;
 	} /* switch */
     }
@@ -444,6 +447,8 @@ static int DumpStack(char *format, ...)
 	}
       while ((SYS_ERROR == rc) && (EINTR == errno));
 
+      //FIXME: deactivated separate piping of debugger output, as it caused problems in conjunction with threads
+/*
       if ((WIFEXITED(status)) && (WEXITSTATUS(status) == EXIT_SUCCESS))
 	{
 	  while (my_getline(fd, buf, sizeof(buf)))
@@ -466,6 +471,9 @@ static int DumpStack(char *format, ...)
 	      write(global_output, "\n", strlen("\n"));
 	    }
 	}
+*/
+      gotSomething = TRUE; //HACK: to compensate the commented FIXME block above
+
       my_pclose(fd, pid);
     }
   return gotSomething;

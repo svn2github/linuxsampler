@@ -53,6 +53,9 @@ Version CVS HEAD (?)
       thread (TODO: a reasonable value yet to be tested), bugfix: non-RT
       threads simply inherited properties of starting thread instead of
       setting their own policy and priority
+    - minor fix in our automatic stack trace mechanism on crashes, the
+      main process did not wait for the stack trace process to finish
+      its output
 
   * MIDI driver:
     - dispatch bank select (MSB and LSB) messages
