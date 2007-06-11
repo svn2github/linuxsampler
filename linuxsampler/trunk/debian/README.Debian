@@ -1,3 +1,13 @@
+TODO:
+=====
+* automatic creation of instruments database file as postinst script in
+  case such a file does not exist yet
+  (linuxsampler --create-instruments-db)
+* deletion of instruments database file in case package was requested to
+  be remove with --purge
+
+###########################################################################
+
 # commands used to package linuxsampler
 MINORVERSION=cvs20050602
 cd ~/debian/debRelease/linuxsampler
