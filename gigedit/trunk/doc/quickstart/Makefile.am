@@ -11,6 +11,9 @@ doc_sources = gigedit_quickstart.xml general_midi_drummap.sgm \
 
 EXTRA_DIST = $(doc_DATA) $(doc_sources) routing.odg
 
+# the docbook.xsl URL below is usually mapped to the system's local copy of
+# the file (via entry in /etc/xml/catalog) and only if not found, fetched
+# from the internet
 gigedit_quickstart.html: $(doc_sources)
 	xsltproc --output $@ \
 	--stringparam html.stylesheet style.css \
