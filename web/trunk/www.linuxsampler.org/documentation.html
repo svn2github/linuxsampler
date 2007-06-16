@@ -197,10 +197,16 @@
 				  <td><pre class="code">1</pre>
 				  </td>
 				  <td width="100%">
-				    <pre class="code">cat yourscript.lscp | netcat -t localhost 8888</pre>
+				    <pre class="code">cat yourscript.lscp | netcat localhost 8888</pre>
 				  </td>
 				</tr>
 			</table>
+			<p class="default">
+			Optionally you can also use a graphical frontend like QSampler one time to setup a working
+			sampler session for your needs and save it. Because you have to know that the files saved
+			by our frontends are actually pure LSCP scripts, thus you can i.e. use those files simply with
+			the mentioned netcat command from above to setup the sampler session without a frontend.
+			</p>
 			<p class="default">
 			Here is a simple LSCP example which uses ALSA as MIDI input and as audio output driver as well,
 			it creates only one sampler channel using the Gigasampler engine and loads a Piano instrument
