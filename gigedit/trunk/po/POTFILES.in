@@ -1,2 +1,2 @@
-src/mainwindow.cpp
-src/dimregionedit.cpp
+src/gigedit/mainwindow.cpp
+src/gigedit/dimregionedit.cpp
