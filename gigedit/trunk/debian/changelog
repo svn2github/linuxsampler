@@ -1,3 +1,11 @@
+gigedit (0.0.3-2) unreleased; urgency=low
+
+  * Added build-dependency to xsltproc and docbook-xsl as the current CVS
+    version needs it to generate the quick start document (not necessary
+    for tarball releases though).
+
+ -- Christian Schoenebeck <cuse@users.sourceforge.net>  Sat, 16 Jun 2007 17:57:46 +0200
+
 gigedit (0.0.3-1) unreleased; urgency=low
 
   * Initial Release.

@@ -2,7 +2,7 @@ Source: gigedit
 Section: sound
 Priority: optional
 Maintainer: Christian Schoenebeck <cuse@users.sf.net>
-Build-Depends: debhelper (>= 4.0.0), pkg-config, intltool, libgtkmm-2.4-dev, libsndfile1-dev
+Build-Depends: debhelper (>= 4.0.0), pkg-config, intltool, libgtkmm-2.4-dev, libsndfile1-dev, xsltproc, docbook-xsl
 Standards-Version: 3.6.1
 
 Package: gigedit
