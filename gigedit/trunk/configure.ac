@@ -93,5 +93,7 @@ AC_CONFIG_FILES([
 	src/plugin/Makefile
 	po/Makefile.in
 	debian/Makefile
+        doc/Makefile
+        doc/quickstart/Makefile
 ])
 AC_OUTPUT

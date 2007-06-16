@@ -1,0 +1,136 @@
+<appendix id="mc505_midi_drum"><title>MC505 Midi Drum Map</title>
+ <para>
+	The <xref linkend="gen_midi_drum"/> is a quite generic
+	approach to arrange drum samples. The most impressive
+	realization was the MC 505 drum map. It doesn't lack
+	all those fine exotic samples and is a bit more
+	intuitive. Have a look at the octave shifting bass drum
+	switching...
+ </para>
+
+ <table>
+  <tgroup cols="4" rowsep="1" colsep="1">
+  <thead>
+   <row>
+    <entry>Note</entry><entry>Drum Sound</entry>
+    <entry>Note</entry><entry>Drum Sound</entry>
+   </row>
+  </thead>
+  <tbody>
+   <row>
+	<entry>35</entry><entry>Bass Drum 1</entry><entry>59</entry><entry>Tom</entry>
+   </row>
+   <row>
+	<entry>36</entry><entry>Bass Drum 2</entry><entry>60</entry><entry>Tom</entry>
+   </row>
+   <row>
+	<entry>37</entry><entry>Side Stick</entry><entry>61</entry><entry>Crash/ Cym</entry>
+   </row>
+   <row>
+	<entry>38</entry><entry>Snare 1</entry><entry>62</entry><entry>Tom</entry>
+   </row>
+   <row>
+	<entry>39</entry><entry>Hand Clap</entry><entry>63</entry><entry>Ride/ Cym</entry>
+   </row>
+   <row>
+	<entry>40</entry><entry>Snare 2</entry><entry>64</entry><entry>Crash/ Cym</entry>
+   </row>
+   <row>
+	<entry>41</entry><entry>Low Floor Tom</entry><entry>65</entry><entry>Ride</entry>
+   </row>
+   <row>
+	<entry>42</entry><entry>Closed Hi-Hat</entry><entry>66</entry><entry>Tambourine</entry>
+   </row>
+   <row>
+	<entry>43</entry><entry>High Floor Tom</entry><entry>67</entry><entry>Crash</entry>
+   </row>
+   <row>
+	<entry>44</entry><entry>Pedal Hi-Hat</entry><entry>68</entry><entry>Cowbell</entry>
+   </row>
+   <row>
+	<entry>45</entry><entry>Low Tom</entry><entry>69</entry><entry>Cymbal/ Crash/ Ride</entry>
+   </row>
+   <row>
+	<entry>46</entry><entry>Open Hi-Hat</entry><entry>70</entry><entry>Guiro/ Cowbell/ Hi Bongo</entry>
+   </row>
+   <row>
+	<entry>47</entry><entry>Bass Drum 3</entry><entry>71</entry><entry>Ride</entry>
+   </row>
+   <row>
+	<entry>48</entry><entry>Bass Drum 4</entry><entry>72</entry><entry>High Bongo</entry>
+   </row>
+   <row>
+	<entry>49</entry><entry>Sidestick (Rim)</entry><entry>73</entry><entry>Low Bongo/ Conga</entry>
+   </row>
+   <row>
+	<entry>50</entry><entry>Snare 3</entry><entry>74</entry><entry>(High) Conga</entry>
+   </row>
+   <row>
+	<entry>51</entry><entry>Clap</entry><entry>75</entry><entry>(High) Conga</entry>
+   </row>
+   <row>
+	<entry>52</entry><entry>Snare 4</entry><entry>76</entry><entry>(Low) Conga</entry>
+   </row>
+   <row>
+	<entry>53</entry><entry>Tom</entry><entry>77</entry><entry>High Timbale</entry>
+   </row>
+   <row>
+	<entry>54</entry><entry>Closed High Hat</entry><entry>78</entry><entry>Low Timbale</entry>
+   </row>
+   <row>
+	<entry>55</entry><entry>Tom</entry><entry>79</entry><entry>Agogo</entry>
+   </row>
+   <row>
+	<entry>56</entry><entry>Open High Hat</entry><entry>80</entry><entry>Agogo/ Claves</entry>
+   </row>
+   <row>
+	<entry>57</entry><entry>Tom</entry><entry>81</entry><entry>Cabase/ Guiro</entry>
+   </row>
+   <row>
+	<entry>58</entry><entry>Open High Hat</entry> 	  	 
+   </row>
+  </tbody>
+  </tgroup>
+ </table>
+
+ <table>
+  <tgroup cols="4" rowsep="1" colsep="1">
+  <thead>
+   <row>
+    <entry>Note</entry><entry>Drum Sound</entry>
+    <entry>Note</entry><entry>Drum Sound</entry>
+   </row>
+  </thead>
+  <tbody>
+   <row>
+	<entry>82</entry><entry>Maracas</entry><entry>91</entry><entry>Synthetic Sample</entry>
+   </row>
+   <row>
+	<entry>83</entry><entry>Hit/ EFX Sample</entry><entry>92</entry><entry>EFX Sample</entry>
+   </row>
+   <row>
+	<entry>84</entry><entry>Blip/ EFX Sample</entry><entry>93</entry><entry>Noise Sample</entry>
+   </row>
+   <row>
+	<entry>85</entry><entry>Hit/ Blip</entry><entry>94</entry><entry>Clap</entry>
+   </row>
+   <row>
+	<entry>86</entry><entry>Hit/ Noise Sample</entry><entry>95</entry><entry>Bass Drum</entry>
+   </row>
+   <row>
+	<entry>87</entry><entry>EFX Sample</entry><entry>96</entry><entry>Bass Drum</entry>
+   </row>
+   <row>
+	<entry>88</entry><entry>Hit</entry><entry>97</entry><entry>Snare</entry>
+   </row>
+   <row>
+	<entry>89</entry><entry>EFX Sample</entry><entry>98</entry><entry>Snare/ Rim</entry>
+   </row>
+   <row>
+	<entry>90</entry><entry>EFX Sample</entry>
+   </row>
+  </tbody>
+  </tgroup>
+ </table>
+
+</appendix>

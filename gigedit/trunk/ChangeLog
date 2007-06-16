@@ -19,6 +19,7 @@ Version CVS HEAD
     on-the-fly instrument editing within the sampler's own process
     (revised directories to a more automake-friendly structure for this, to
     avoid compilation and install errors)
+  * added quick start documentation by Alexander Methke
 
 Version 0.0.3 (2007-03-24)
 

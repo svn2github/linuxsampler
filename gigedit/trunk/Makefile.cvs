@@ -42,6 +42,7 @@ clean:
 	@rm -rvf *.cache *.log *.status *.m4
 	@rm -rvf src/Makefile.in src/config.h.in src/config.h src/stamp-h.*
 	@rm -rvf po/Makefile.in debian/Makefile.in
+	@rm -rvf doc/Makefile.in doc/quickstart/Makefile.in doc/quickstart/gigedit_quickstart.html
 	@rm -rvf Makefile.in config.*
 	@rm -rvf missing install-sh mkinstalldirs depcomp ltmain.sh
 	@rm -rvf configure stamp-h.*

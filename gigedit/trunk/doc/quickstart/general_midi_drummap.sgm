@@ -1,0 +1,99 @@
+<appendix id="gen_midi_drum"><title>General Midi Drum Map</title>
+ <para>
+	Drums are not played with notes but with events. You trigger
+	the drum or you don't trigger it. But there's no such range thing
+	like a piano has or strings or synths. Back in the 1980s some
+	people thought, it would be good to have something like a
+	drum map. Switching from a piano to strings only needs some
+	adjustment in octaves but notes sound the same. Switching from
+	one drum set to another could cause a mess or silence. Without
+	a standardized assignment of note (events) and drums it's quite
+	hard to move from a jazzy drum set with brushes to a more
+	straightforward rock drum set.
+ </para>
+
+ <table>
+  <tgroup cols="4" rowsep="1" colsep="1">
+  <thead>
+   <row>
+    <entry>Note</entry><entry>Drum Sound</entry>
+    <entry>Note</entry><entry>Drum Sound</entry>
+   </row>
+  </thead>
+  <tbody>
+   <row>
+	<entry>35</entry><entry>Acoustic Bass Drum</entry><entry>59</entry><entry>Ride Cymbal 2</entry>
+   </row>
+   <row>
+	<entry>  36</entry><entry> 	Bass Drum 1</entry><entry> 	60</entry><entry> 	Hi Bongo</entry>
+   </row>
+   <row>
+	<entry>  37</entry><entry> 	Side Stick</entry><entry> 	61</entry><entry> 	Low Bongo</entry>
+   </row>
+   <row>
+	<entry>  38</entry><entry> 	Acoustic Snare</entry><entry> 	62</entry><entry> 	Mute Hi Conga</entry>
+   </row>
+   <row>
+	<entry>  39</entry><entry> 	Hand Clap</entry><entry> 	63</entry><entry> 	Open Hi Conga</entry>
+   </row>
+   <row>
+	<entry>  40</entry><entry> 	Electric Snare</entry><entry>  	64</entry><entry> 	Low Conga</entry>
+   </row>
+   <row>
+	<entry>  41</entry><entry> 	Low Floor Tom</entry><entry> 	65</entry><entry> 	High Timbale</entry>
+   </row>
+   <row>
+	<entry>  42</entry><entry> 	Closed Hi-Hat</entry><entry> 	66</entry><entry> 	Low Timbale</entry>
+   </row>
+   <row>
+	<entry>  43</entry><entry> 	High Floor Tom</entry><entry>  	67</entry><entry> 	High Agogo</entry>
+   </row>
+   <row>
+	<entry>  44</entry><entry> 	Pedal Hi-Hat</entry><entry>  	68</entry><entry> 	Low Agogo</entry>
+   </row>
+   <row>
+	<entry>  45</entry><entry> 	Low Tom</entry><entry> 	69</entry><entry> 	Cabasa</entry>
+   </row>
+   <row>
+	<entry>  46</entry><entry> 	Open Hi-Hat</entry><entry> 	70</entry><entry> 	Maracas</entry>
+   </row>
+   <row>
+	<entry>  47</entry><entry> 	Low-Mid Tom</entry><entry> 	71</entry><entry> 	Short Whistle</entry>
+   </row>
+   <row>
+	<entry>  48</entry><entry> 	Hi-Mid Tom</entry><entry> 	72</entry><entry> 	Long Whistle</entry>
+   </row>
+   <row>
+	<entry>  49</entry><entry> 	Crash Cymbal 1</entry><entry> 	73</entry><entry> 	Short Guiro</entry>
+   </row>
+   <row>
+	<entry>  50</entry><entry> 	High Tom</entry><entry> 	74</entry><entry> 	Long Guiro</entry>
+   </row>
+   <row>
+	<entry>  51</entry><entry> 	Ride Cymbal 1</entry><entry> 	75</entry><entry> 	Claves</entry>
+   </row>
+   <row>
+	<entry>  52</entry><entry> 	Chinese Cymbal</entry><entry> 	76</entry><entry> 	Hi Wood Block</entry>
+   </row>
+   <row>
+	<entry>  53</entry><entry> 	Ride Bell</entry><entry> 	77</entry><entry> 	Low Wood Block</entry>
+   </row>
+   <row>
+	<entry>  54</entry><entry> 	Tambourine</entry><entry> 	78</entry><entry> 	Mute Cuica</entry>
+   </row>
+   <row>
+	<entry>  55</entry><entry> 	Splash Cymbal</entry><entry> 	79</entry><entry> 	Open Cuica</entry>
+   </row>
+   <row>
+	<entry>  56</entry><entry> 	Cowbell</entry><entry> 	80</entry><entry> 	Mute Triangle</entry>
+   </row>
+   <row>
+	<entry>  57</entry><entry> 	Crash Cymbal 2</entry><entry> 	81</entry><entry> 	Open Triangle</entry>
+   </row>
+   <row>
+	<entry>  58</entry><entry> 	Vibraslap</entry> 	  	 
+   </row>
+  </tbody>
+  </tgroup>
+ </table>
+</appendix>

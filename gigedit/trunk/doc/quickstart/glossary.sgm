@@ -1,0 +1,147 @@
+<glossary id="glossary"><title>Glossary</title>
+ <!--
+ <glossentry id=""><glossterm></glossterm>
+   <acronym></acronym>
+   <glossdef>
+     <para></para>
+     <glossseealso otherterm=""></glossseealso>
+   </glossdef>
+ </glossentry>
+ -->
+
+ <glossdiv><title>A</title>
+ <glossentry id="gloss_adsr"><glossterm>ADSR</glossterm>
+   <acronym>ADSR</acronym>
+   <glossdef>
+     <para>
+	  Attack, Decay, Sustain, Release, abbreviation for the so called
+	  ADSR-envelope that forms a shape which controls voltage controlled
+	  circuits like amplifiers or filters.
+	 </para>
+     <glossseealso otherterm="gloss_attack">Attack</glossseealso>
+     <glossseealso otherterm="gloss_decay">Decay</glossseealso>
+     <glossseealso otherterm="gloss_envelope">Envelope</glossseealso>
+     <glossseealso otherterm="gloss_sustain">Sustain</glossseealso>
+     <glossseealso otherterm="gloss_release">Release</glossseealso>
+   </glossdef>
+ </glossentry>
+
+ <glossentry id="gloss_attack"><glossterm>Attack</glossterm>
+   <glossdef>
+     <para>time value, time span defined for an
+	 envelope to rise after starting the envelope cycle</para>
+     <glossseealso otherterm="gloss_adsr">ADSR</glossseealso>
+   </glossdef>
+ </glossentry>
+
+ </glossdiv>
+
+ <glossdiv><title>D</title>
+
+ <glossentry id="gloss_decay"><glossterm>Decay</glossterm>
+   <glossdef>
+     <para>time value, time span defined for an
+	 envelope to fall after rising to a hold state</para>
+     <glossseealso otherterm="gloss_adsr">ADSR</glossseealso>
+   </glossdef>
+ </glossentry>
+
+ </glossdiv>
+
+ <glossdiv><title>E</title>
+ 
+ <glossentry id="gloss_envelope"><glossterm>Envelope</glossterm>
+   <glossdef>
+     <para>
+	  Definition of time and level values to shape a
+	  signal. Most common structure is a so called
+	  ADSR-follower. Such an envelope has a rising
+	  Attack-time, a first falling Decay time leading
+	  to the Sustain level. At the end of the cycle
+	  there's a Release time, damping the signal's
+	  strength. For example a piano has a rather
+	  short Attack time, no Sustain level and
+	  a Release time. Strings have varying Attack
+	  times as well as varying Decay, they have a
+	  Sustain level and very flexible Release time.
+	 </para>
+     <glossseealso otherterm="gloss_adsr">ADSR</glossseealso>
+   </glossdef>
+ </glossentry>
+
+ </glossdiv>
+
+ <glossdiv><title>L</title>
+ <glossentry id="gloss_lfo"><glossterm>LFO</glossterm>
+   <glossdef>
+     <para>
+	 Low Frequency Oscillator, an oscillator with very
+	 low frequency, typically below 10Hz. Often used
+	 with VCAs or VCFs to shape a signal.
+	 </para>
+     <glossseealso otherterm="gloss_vca">VCA</glossseealso>
+     <glossseealso otherterm="gloss_vcf">VCF</glossseealso>
+   </glossdef>
+ </glossentry>
+
+ </glossdiv>
+
+ <glossdiv><title>R</title>
+
+ <glossentry id="gloss_release"><glossterm>Release</glossterm>
+   <glossdef>
+     <para>time value, time span defined for an
+	 envelope to fall at the end of an envelope cycle</para>
+     <glossseealso otherterm="gloss_adsr">ADSR</glossseealso>
+   </glossdef>
+ </glossentry>
+
+
+ </glossdiv>
+
+ <glossdiv><title>S</title>
+
+ <glossentry id="gloss_sustain"><glossterm>Sustain</glossterm>
+   <glossdef>
+     <para>strength or level value, level of an
+	 envelope while being in hold state of an envelope cycle</para>
+     <glossseealso otherterm="gloss_adsr">ADSR</glossseealso>
+   </glossdef>
+ </glossentry>
+
+
+ </glossdiv>
+
+ <glossdiv><title>V</title>
+
+ <glossentry id="gloss_vca"><glossterm>VCA</glossterm>
+   <glossdef>
+     <para>
+	  Voltage Controlled Amplifier, an amplifier whose amplification
+	  depends on a controlling voltage. Instead of making it louder
+	  by turning a knob you raise the controlling voltage. Often
+	  used in conjunction with Envelopes or LFOs to shape a signal.
+	 </para>
+     <glossseealso otherterm="gloss_envelope">Envelope</glossseealso>
+     <glossseealso otherterm="gloss_lfo">LFO</glossseealso>
+     <glossseealso otherterm="gloss_vcf">VCF</glossseealso>
+   </glossdef>
+ </glossentry>
+
+ <glossentry id="gloss_vcf"><glossterm>VCF</glossterm>
+   <glossdef>
+     <para>
+	  Voltage Controlled Filter, a filter whose parameters,
+	  for example cutoff frequency, depend on a controlling voltage.
+	  Instead of changing the frequency by turning a knob you raise the
+	  controlling voltage. Often used in conjunction with Envelopes or
+	  LFOs to shape a signal.
+	 </para>
+     <glossseealso otherterm="gloss_envelope">Envelope</glossseealso>
+     <glossseealso otherterm="gloss_lfo">LFO</glossseealso>
+     <glossseealso otherterm="gloss_vca">VCA</glossseealso>
+   </glossdef>
+ </glossentry>
+
+ </glossdiv>
+</glossary>

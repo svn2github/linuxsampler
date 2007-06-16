@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+ <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.4//EN"
+                       "http://www.oasis-open.org/docbook/xml/4.4/docbookx.dtd"[
+	<!ENTITY app_gen_midi_map SYSTEM "general_midi_drummap.sgm">
+	<!ENTITY app_mc505_midi_map SYSTEM "mc505_midi_drummap.sgm">
+	<!ENTITY from_scratch SYSTEM "from_scratch.sgm">
+	<!ENTITY glossary SYSTEM "glossary.sgm">
+	<!ENTITY keybindings SYSTEM "keybindings.sgm">
+	<!ENTITY libgig SYSTEM "libgig.sgm">
+	<!ENTITY see_also SYSTEM "see_also.sgm">
+	<!ENTITY technical SYSTEM "technical.sgm">
+]>
+<book>
+ <title>GigEdit Quickstart</title>
+ <bookinfo>
+  <author>
+   <firstname>Alexander</firstname>
+   <surname>Methke</surname>
+  </author>
+  <pubdate>2007</pubdate>
+  <revhistory>
+
+   <!--
+	   <revision>
+	    <revnumber></revnumber>
+		<date></date>
+		<author>
+		 <firstname></firstname>
+		 <surname></surname>
+		</author>
+		<revremark>
+		</revremark>
+	   </revision>
+	-->
+	   <revision>
+	    <revnumber>0b</revnumber>
+		<date>03.06.2007</date>
+		<author>
+		 <firstname>Alexander</firstname>
+		 <surname>Methke</surname>
+		</author>
+		<revremark>
+		Restructuring, See Also, few hints on improvement (GUI)
+		</revremark>
+	   </revision>
+
+	   <revision>
+	    <revnumber>0a</revnumber>
+		<date>28.05.2007</date>
+		<author>
+		 <firstname>Alexander</firstname>
+		 <surname>Methke</surname>
+		</author>
+		<revremark>
+		Initial editing, basic GUI features, some information
+		about GIG file structure.
+		</revremark>
+	   </revision>
+
+  </revhistory>
+ </bookinfo>
+
+ <!-- main part -->
+
+ &from_scratch;
+
+ &technical;
+
+ &keybindings;
+
+ &see_also;
+
+ &libgig;
+
+ <!-- functional part -->
+
+ &glossary;
+
+ <!-- appendices -->
+ &app_gen_midi_map;
+ &app_mc505_midi_map;
+
+ <index/>
+</book>
+

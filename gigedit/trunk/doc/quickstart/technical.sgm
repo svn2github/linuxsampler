@@ -1,0 +1,79 @@
+<chapter id="technical"><title>Technical Approach</title>
+ <section id="tech_basic"><title>Sample Playing Basics</title>
+  <para>
+	Now that you've tried enough you want to know what all
+	the funny elements like <emphasis>Attack</emphasis> or
+	<emphasis>LFO</emphasis> mean. I don't need to explain
+	it here, look up the terms in a textbook. If you can
+	explain the difference between <emphasis>Amplifier</emphasis>
+	(Amp) and <emphasis>Voltage Controlled Filter</emphasis>
+	(VCO) you can go on looking on the next picture:
+  </para>
+  
+  <figure id="diagram_signal_routing"><title>Schematic drawing of basic signal routing</title>
+	<screenshot><mediaobject><imageobject>
+	<imagedata fileref="routing.png" format="PNG"/>
+	</imageobject></mediaobject></screenshot>
+  </figure>
+
+ <para>
+	As you can see you have access to an Amp and one VCO. This
+	is not much from a synthesizer's point of view, but enough if
+	your samples are already perfectly synthesized. Gigedit provides
+	for 4 tabs, one for each section (Amp/ VCO) and one for the
+	LFO and the ADSR.
+ </para>
+ </section>
+
+ <section title="tech_amp"><title>Amplifier Section</title>
+  
+  <figure id="shot_amp1"><title>Screen shot of ADSR settings for Amp section</title>
+	<screenshot><mediaobject><imageobject>
+	<imagedata fileref="shot_amp1.png" format="PNG"/>
+	</imageobject></mediaobject></screenshot>
+  </figure>
+
+  <figure id="shot_amp2"><title>Screen shot of LFO settings for Amp section</title>
+	<screenshot><mediaobject><imageobject>
+	<imagedata fileref="shot_amp2.png" format="PNG"/>
+	</imageobject></mediaobject></screenshot>
+  </figure>
+
+ </section>
+
+ <section title="tech_filter"><title>Filter Section</title>
+  
+  <figure id="shot_filter1"><title>Screen shot of general settings for Filter section</title>
+	<screenshot><mediaobject><imageobject>
+	<imagedata fileref="shot_filter1.png" format="PNG"/>
+	</imageobject></mediaobject></screenshot>
+  </figure>
+
+  <figure id="shot_filter2"><title>Screen shot of ADSR and LFO settings for Filter section</title>
+	<screenshot><mediaobject><imageobject>
+	<imagedata fileref="shot_filter2.png" format="PNG"/>
+	</imageobject></mediaobject></screenshot>
+  </figure>
+
+ </section>
+
+ <section id="tech_bank"><title>A simple Sample Bank</title>
+  <para>
+   <indexterm>
+    <primary>Sample Bank</primary>
+   </indexterm>
+	First sampler use was just repeating a sound, a drum
+	sample, some vocals, maybe short snippets of whole
+	orchestrations. This so called <firstterm>Sample Bank</firstterm>
+	is a collection of samples, vocals, or sounds that will
+	never be stretched along a key range. You simply press
+	a key and the sound occurs as it is. So there won't be
+	no LFO nor ADSR influence. Regions will range only for one
+	key, maybe include the half tone, maybe not. For drum
+	maps I personally recommend the <xref linkend="gen_midi_drum"/>.
+	If you have different drum sets you may switch easily
+	between them without reprogramming your sequencer. Also
+	shifting by octaves is easy to change the drums.
+  </para>
+ </section>
+</chapter>
