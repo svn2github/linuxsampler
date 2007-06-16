@@ -9,7 +9,7 @@ doc_sources = gigedit_quickstart.xml general_midi_drummap.sgm \
 	mc505_midi_drummap.sgm from_scratch.sgm glossary.sgm keybindings.sgm \
 	libgig.sgm see_also.sgm technical.sgm
 
-EXTRA_DIST = $(doc_DATA) $(doc_sources)
+EXTRA_DIST = $(doc_DATA) $(doc_sources) routing.odg
 
 gigedit_quickstart.html: $(doc_sources)
 	xsltproc --output $@ \
