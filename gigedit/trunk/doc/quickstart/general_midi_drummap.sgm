@@ -12,7 +12,8 @@
 	straightforward rock drum set.
  </para>
 
- <table>
+ <table id="gen_midi_table">
+  <title>General midi drum map</title>
   <tgroup cols="4" rowsep="1" colsep="1">
   <thead>
    <row>
@@ -91,7 +92,7 @@
 	<entry>  57</entry><entry> 	Crash Cymbal 2</entry><entry> 	81</entry><entry> 	Open Triangle</entry>
    </row>
    <row>
-	<entry>  58</entry><entry> 	Vibraslap</entry> 	  	 
+	<entry>  58</entry><entry> 	Vibraslap</entry>
    </row>
   </tbody>
   </tgroup>

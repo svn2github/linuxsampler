@@ -8,7 +8,8 @@
 	switching...
  </para>
 
- <table>
+ <table id="mc505_table1">
+  <title>MC505 midi drum map</title>
   <tgroup cols="4" rowsep="1" colsep="1">
   <thead>
    <row>
@@ -87,13 +88,14 @@
 	<entry>57</entry><entry>Tom</entry><entry>81</entry><entry>Cabase/ Guiro</entry>
    </row>
    <row>
-	<entry>58</entry><entry>Open High Hat</entry> 	  	 
+	<entry>58</entry><entry>Open High Hat</entry>
    </row>
   </tbody>
   </tgroup>
  </table>
 
- <table>
+ <table id="mc505_table2">
+  <title>MC505 midi drum map (continued)</title>
   <tgroup cols="4" rowsep="1" colsep="1">
   <thead>
    <row>

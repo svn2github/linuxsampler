@@ -7,9 +7,9 @@
 	it here, look up the terms in a textbook. If you can
 	explain the difference between <emphasis>Amplifier</emphasis>
 	(Amp) and <emphasis>Voltage Controlled Filter</emphasis>
-	(VCO) you can go on looking on the next picture:
+	(VCF) you can go on looking on the next picture:
   </para>
-  
+
   <figure id="diagram_signal_routing"><title>Schematic drawing of basic signal routing</title>
 	<screenshot><mediaobject><imageobject>
 	<imagedata fileref="routing.png" format="PNG"/>
@@ -17,16 +17,16 @@
   </figure>
 
  <para>
-	As you can see you have access to an Amp and one VCO. This
+	As you can see you have access to an Amp and one VCF. This
 	is not much from a synthesizer's point of view, but enough if
 	your samples are already perfectly synthesized. Gigedit provides
-	for 4 tabs, one for each section (Amp/ VCO) and one for the
+	for 4 tabs, one for each section (Amp/VCF) and one for the
 	LFO and the ADSR.
  </para>
  </section>
 
- <section title="tech_amp"><title>Amplifier Section</title>
-  
+ <section id="tech_amp"><title>Amplifier Section</title>
+
   <figure id="shot_amp1"><title>Screen shot of ADSR settings for Amp section</title>
 	<screenshot><mediaobject><imageobject>
 	<imagedata fileref="shot_amp1.png" format="PNG"/>
@@ -41,8 +41,8 @@
 
  </section>
 
- <section title="tech_filter"><title>Filter Section</title>
-  
+ <section id="tech_filter"><title>Filter Section</title>
+
   <figure id="shot_filter1"><title>Screen shot of general settings for Filter section</title>
 	<screenshot><mediaobject><imageobject>
 	<imagedata fileref="shot_filter1.png" format="PNG"/>

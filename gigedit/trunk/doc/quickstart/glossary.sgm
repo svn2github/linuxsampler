@@ -9,7 +9,7 @@
  </glossentry>
  -->
 
- <glossdiv><title>A</title>
+ <glossdiv id="gloss_A"><title>A</title>
  <glossentry id="gloss_adsr"><glossterm>ADSR</glossterm>
    <acronym>ADSR</acronym>
    <glossdef>
@@ -36,7 +36,7 @@
 
  </glossdiv>
 
- <glossdiv><title>D</title>
+ <glossdiv id="gloss_D"><title>D</title>
 
  <glossentry id="gloss_decay"><glossterm>Decay</glossterm>
    <glossdef>
@@ -48,7 +48,7 @@
 
  </glossdiv>
 
- <glossdiv><title>E</title>
+ <glossdiv id="gloss_E"><title>E</title>
  
  <glossentry id="gloss_envelope"><glossterm>Envelope</glossterm>
    <glossdef>
@@ -71,7 +71,7 @@
 
  </glossdiv>
 
- <glossdiv><title>L</title>
+ <glossdiv id="gloss_L"><title>L</title>
  <glossentry id="gloss_lfo"><glossterm>LFO</glossterm>
    <glossdef>
      <para>
@@ -86,7 +86,7 @@
 
  </glossdiv>
 
- <glossdiv><title>R</title>
+ <glossdiv id="gloss_R"><title>R</title>
 
  <glossentry id="gloss_release"><glossterm>Release</glossterm>
    <glossdef>
@@ -99,7 +99,7 @@
 
  </glossdiv>
 
- <glossdiv><title>S</title>
+ <glossdiv id="gloss_S"><title>S</title>
 
  <glossentry id="gloss_sustain"><glossterm>Sustain</glossterm>
    <glossdef>
@@ -112,7 +112,7 @@
 
  </glossdiv>
 
- <glossdiv><title>V</title>
+ <glossdiv id="gloss_V"><title>V</title>
 
  <glossentry id="gloss_vca"><glossterm>VCA</glossterm>
    <glossdef>

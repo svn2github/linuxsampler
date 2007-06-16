@@ -14,5 +14,5 @@ EXTRA_DIST = $(doc_DATA) $(doc_sources) routing.odg
 gigedit_quickstart.html: $(doc_sources)
 	xsltproc --output $@ \
 	--stringparam html.stylesheet style.css \
-	/usr/share/sgml/docbook/xsl-stylesheets/html/docbook.xsl \
+	http://docbook.sourceforge.net/release/xsl/current/html/docbook.xsl \
 	gigedit_quickstart.xml

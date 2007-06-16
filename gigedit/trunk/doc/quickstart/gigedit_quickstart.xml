@@ -11,7 +11,7 @@
 	<!ENTITY technical SYSTEM "technical.sgm">
 ]>
 <book>
- <title>GigEdit Quickstart</title>
+ <title>Gigedit Quickstart</title>
  <bookinfo>
   <author>
    <firstname>Alexander</firstname>
@@ -80,6 +80,5 @@
  &app_gen_midi_map;
  &app_mc505_midi_map;
 
- <index/>
+ <index id="index"/>
 </book>
-
