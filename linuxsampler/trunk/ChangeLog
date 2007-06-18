@@ -84,6 +84,10 @@ Version CVS HEAD (?)
     - fixed compiler error when --enable-override-filter-type was
       supplied to the configure script (fixes #46)
 
+  * LSCP server:
+    - fixed compile time error for old Bison versions
+      (i.e. v1.28 found on MacOS 10.4, patch by Toshi Nagata)
+
   * Bug fixes:
     - fixed crash occurring on certain LSCP scripts (Bug 39)
     - another thread safety fix for lscp "load engine" and "set

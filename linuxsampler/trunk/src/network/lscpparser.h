@@ -63,7 +63,7 @@ enum fill_response_t {
  * recognized number strings in the input text and the parser might return a
  * value for each of it's rules.
  */
-struct YYSTYPE {
+struct _YYSTYPE {
     union {
         char                         Char;
         unsigned int                 Number;
@@ -76,6 +76,7 @@ struct YYSTYPE {
     std::string                       String;
     std::map<std::string,std::string> KeyValList;
 };
+#define YYSTYPE _YYSTYPE
 #define yystype YYSTYPE		///< For backward compatibility.
 #define YYSTYPE_IS_DECLARED	///< We tell the lexer / parser that we use our own data structure as defined above.
 
