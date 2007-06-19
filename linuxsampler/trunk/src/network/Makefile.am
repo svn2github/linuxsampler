@@ -12,10 +12,23 @@ liblinuxsamplernetwork_la_SOURCES = \
 	lscpresultset.cpp lscpresultset.h \
 	lscpevent.cpp lscpevent.h
 
-EXTRA_DIST = lscp.y
+yacc_sources = lscp.y
+
+EXTRA_DIST = $(yacc_sources)
+
+# automatically (re)generate lscpsymbols.h with bison / yacc if the
+# yacc source file(s) have been changed
+lscpsymbols.h: $(yacc_sources)
+	$(top_builddir)/scripts/generate_parser.sh
+
+# automatically (re)generate lscpparser.cpp with bison / yacc if the
+# yacc source file(s) have been changed
+lscpparser.cpp: $(yacc_sources)
+	$(top_builddir)/scripts/generate_parser.sh
+
 
 .PHONY: parser
 
-# generate parser with bison / yacc
+# "make parser" was explicitly requested
 parser:
 	$(top_builddir)/scripts/generate_parser.sh

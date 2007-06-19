@@ -21,12 +21,13 @@
  *   MA  02111-1307  USA                                                   *
  ***************************************************************************/
 
-/* CAUTION: !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! */
-/*                                                                         */
-/*     don't forget to run 'make parser' after you changed this file,      */
-/*     otherwise the parser will not be regenerated !                      */
-/*                                                                         */
-/* !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! */
+/*
+    The parser's C++ source files should be automatically (re)generated if
+    this file was modified. If not, or in case you want explicitly
+    regenerate the parser C++ files, run 'make parser'. In both cases you
+    need to have bison or another yacc compatible parser generator
+    installed though.
+*/
 
 %{
 
@@ -51,7 +52,14 @@ static int ptr   = 0;  // current position in the input buffer
 // external reference to the function which actually reads from the socket
 extern int GetLSCPCommand( void *buf, int max_size);
 
+// returns true if supplied characters has an ASCII code of 128 or higher
+inline bool isExtendedAsciiChar(const char c) {
+    return (c < 0);
+}
+
 // custom scanner function which reads from the socket
+// (bison expects it to return the numerical ID of the next
+// "recognized token" from the input stream)
 int yylex(YYSTYPE* yylval) {
     // check if we have to read new characters
     if (ptr >= bytes) {
@@ -62,18 +70,67 @@ int yylex(YYSTYPE* yylval) {
             return 0;
         }
     }
-    return (int) buf[ptr++];
+    // this is the next character in the input stream
+    const char c = buf[ptr++];
+    // we have to handle "normal" and "extended" ASCII characters separately
+    if (isExtendedAsciiChar(c)) {
+        // workaround for characters with ASCII code higher than 127
+        yylval->Char = c;
+        return EXT_ASCII_CHAR;
+    } else {
+        // simply return the ASCII code as terminal symbol ID
+        return (int) c;
+    }
+}
+
+// parser helper functions
+
+int octalsToNumber(char oct_digit0, char oct_digit1 = '0', char oct_digit2 = '0') {
+    const char d0[] = { oct_digit0, '\0' };
+    const char d1[] = { oct_digit1, '\0' };
+    const char d2[] = { oct_digit2, '\0' };
+    return atoi(d2)*8*8 + atoi(d1)*8 + atoi(d0);
+}
+
+int hexToNumber(char hex_digit) {
+    switch (hex_digit) {
+        case '0': return 0;
+        case '1': return 1;
+        case '2': return 2;
+        case '3': return 3;
+        case '4': return 4;
+        case '5': return 5;
+        case '6': return 6;
+        case '7': return 7;
+        case '8': return 8;
+        case '9': return 9;
+        // grammar rule 'digit_hex' already forced lower case
+        case 'a': return 10;
+        case 'b': return 11;
+        case 'c': return 12;
+        case 'd': return 13;
+        case 'e': return 14;
+        case 'f': return 15;
+        default:  return 0;
+    }
+}
+
+int hexsToNumber(char hex_digit0, char hex_digit1 = '0') {
+    return hexToNumber(hex_digit1)*16 + hexToNumber(hex_digit0);
 }
 
 %}
 
 // reentrant parser
 %pure_parser
+%error-verbose
 
-%type <Char> char digit
+%token <Char> EXT_ASCII_CHAR
+
+%type <Char> char digit digit_oct digit_hex escape_seq escape_seq_octal escape_seq_hex
 %type <Dotnum> dotnum volume_value boolean
 %type <Number> number sampler_channel instrument_index fx_send_id audio_channel_index device_index midi_input_channel_index midi_input_port_index midi_map midi_bank midi_prog midi_ctrl
-%type <String> string text stringval digits param_val_list param_val query_val pathname dirname filename map_name entry_name fx_send_name engine_name command add_instruction create_instruction destroy_instruction get_instruction list_instruction load_instruction set_chan_instruction load_instr_args load_engine_args audio_output_type_name midi_input_type_name remove_instruction unmap_instruction set_instruction subscribe_event unsubscribe_event map_instruction reset_instruction clear_instruction find_instruction move_instruction copy_instruction scan_mode edit_instruction
+%type <String> string string_escaped text text_escaped stringval stringval_escaped digits param_val_list param_val query_val pathname dirname filename map_name entry_name fx_send_name engine_name command add_instruction create_instruction destroy_instruction get_instruction list_instruction load_instruction set_chan_instruction load_instr_args load_engine_args audio_output_type_name midi_input_type_name remove_instruction unmap_instruction set_instruction subscribe_event unsubscribe_event map_instruction reset_instruction clear_instruction find_instruction move_instruction copy_instruction scan_mode edit_instruction
 %type <FillResponse> buffer_size_type
 %type <KeyValList> key_val_list query_val_list
 %type <LoadMode> instr_load_mode
@@ -423,7 +480,7 @@ pathname                  :  stringval
 dirname                   :  stringval
                           ;
 
-filename                  :  stringval
+filename                  :  stringval_escaped
                           ;
 
 map_name                  :  stringval
@@ -468,7 +525,14 @@ boolean               :  number  { $$ = $1; }
                       ;
 
 string                :  char          { std::string s; s = $1; $$ = s; }
+                      |  '\\'          { $$ = "\\";                     } // we have to place this rule here, because we currently distinguish between escaped and unescaped strings
                       |  string char   { $$ = $1 + $2;                  }
+                      ;
+
+string_escaped        :  char                        { std::string s; s = $1; $$ = s; }
+                      |  escape_seq                  { std::string s; s = $1; $$ = s; }
+                      |  string_escaped char         { $$ = $1 + $2;                  }
+                      |  string_escaped escape_seq   { $$ = $1 + $2;                  }
                       ;
 
 dotnum                :      digits '.' digits  { $$ = atof(String($1 + "." + $3).c_str());                         }
@@ -493,6 +557,40 @@ digit                 :  '0'  { $$ = '0'; }
                       |  '9'  { $$ = '9'; }
                       ;
 
+digit_oct             :  '0'  { $$ = '0'; }
+                      |  '1'  { $$ = '1'; }
+                      |  '2'  { $$ = '2'; }
+                      |  '3'  { $$ = '3'; }
+                      |  '4'  { $$ = '4'; }
+                      |  '5'  { $$ = '5'; }
+                      |  '6'  { $$ = '6'; }
+                      |  '7'  { $$ = '7'; }
+                      ;
+
+digit_hex             :  '0'  { $$ = '0'; }
+                      |  '1'  { $$ = '1'; }
+                      |  '2'  { $$ = '2'; }
+                      |  '3'  { $$ = '3'; }
+                      |  '4'  { $$ = '4'; }
+                      |  '5'  { $$ = '5'; }
+                      |  '6'  { $$ = '6'; }
+                      |  '7'  { $$ = '7'; }
+                      |  '8'  { $$ = '8'; }
+                      |  '9'  { $$ = '9'; }
+                      |  'a'  { $$ = 'a'; }
+                      |  'b'  { $$ = 'b'; }
+                      |  'c'  { $$ = 'c'; }
+                      |  'd'  { $$ = 'd'; }
+                      |  'e'  { $$ = 'e'; }
+                      |  'f'  { $$ = 'f'; }
+                      |  'A'  { $$ = 'a'; }
+                      |  'B'  { $$ = 'b'; }
+                      |  'C'  { $$ = 'c'; }
+                      |  'D'  { $$ = 'd'; }
+                      |  'E'  { $$ = 'e'; }
+                      |  'F'  { $$ = 'f'; }
+                      ;
+
 number                :  digit       { $$ = atoi(String(1, $1).c_str());      }
                       |  '1' digits  { $$ = atoi(String(String("1") + $2).c_str()); }
                       |  '2' digits  { $$ = atoi(String(String("2") + $2).c_str()); }
@@ -509,51 +607,9 @@ char                  :  'A' { $$ = 'A'; } | 'B' { $$ = 'B'; } | 'C' { $$ = 'C';
                       |  '0' { $$ = '0'; } | '1' { $$ = '1'; } | '2' { $$ = '2'; } | '3' { $$ = '3'; } | '4' { $$ = '4'; } | '5' { $$ = '5'; } | '6' { $$ = '6'; } | '7' { $$ = '7'; } | '8' { $$ = '8'; } | '9' { $$ = '9'; }
                       |  '!' { $$ = '!'; } | '#' { $$ = '#'; } | '$' { $$ = '$'; } | '%' { $$ = '%'; } | '&' { $$ = '&'; } | '(' { $$ = '('; } | ')' { $$ = ')'; } | '*' { $$ = '*'; } | '+' { $$ = '+'; } | '-' { $$ = '-'; } | '.' { $$ = '.'; } | ',' { $$ = ','; } | '/' { $$ = '/'; }
                       |  ':' { $$ = ':'; } | ';' { $$ = ';'; } | '<' { $$ = '<'; } | '=' { $$ = '='; } | '>' { $$ = '>'; } | '?' { $$ = '?'; } | '@' { $$ = '@'; }
-                      |  '[' { $$ = '['; } | '\\' { $$ = '\\'; } | ']' { $$ = ']'; } | '^' { $$ = '^'; } | '_' { $$ = '_'; }
+                      |  '[' { $$ = '['; } | ']' { $$ = ']'; } | '^' { $$ = '^'; } | '_' { $$ = '_'; }
                       |  '{' { $$ = '{'; } | '|' { $$ = '|'; } | '}' { $$ = '}'; } | '~' { $$ = '~'; }
-                      |  '\200' { $$ = '\200'; } | '\201' { $$ = '\201'; } | '\202' { $$ = '\202'; }
-                      |  '\203' { $$ = '\203'; } | '\204' { $$ = '\204'; } | '\205' { $$ = '\205'; }
-                      |  '\206' { $$ = '\206'; } | '\207' { $$ = '\207'; } | '\210' { $$ = '\210'; }
-                      |  '\211' { $$ = '\211'; } | '\212' { $$ = '\212'; } | '\213' { $$ = '\213'; }
-                      |  '\214' { $$ = '\214'; } | '\215' { $$ = '\215'; } | '\216' { $$ = '\216'; }
-                      |  '\217' { $$ = '\217'; } | '\220' { $$ = '\220'; } | '\221' { $$ = '\221'; }
-                      |  '\222' { $$ = '\222'; } | '\223' { $$ = '\223'; } | '\224' { $$ = '\224'; }
-                      |  '\225' { $$ = '\225'; } | '\226' { $$ = '\226'; } | '\227' { $$ = '\227'; }
-                      |  '\230' { $$ = '\230'; } | '\231' { $$ = '\231'; } | '\232' { $$ = '\232'; }
-                      |  '\233' { $$ = '\233'; } | '\234' { $$ = '\234'; } | '\235' { $$ = '\235'; }
-                      |  '\236' { $$ = '\236'; } | '\237' { $$ = '\237'; } | '\240' { $$ = '\240'; }
-                      |  '\241' { $$ = '\241'; } | '\242' { $$ = '\242'; } | '\243' { $$ = '\243'; }
-                      |  '\244' { $$ = '\244'; } | '\245' { $$ = '\245'; } | '\246' { $$ = '\246'; }
-                      |  '\247' { $$ = '\247'; } | '\250' { $$ = '\250'; } | '\251' { $$ = '\251'; }
-                      |  '\252' { $$ = '\252'; } | '\253' { $$ = '\253'; } | '\254' { $$ = '\254'; }
-                      |  '\255' { $$ = '\255'; } | '\256' { $$ = '\256'; } | '\257' { $$ = '\257'; }
-                      |  '\260' { $$ = '\260'; } | '\261' { $$ = '\261'; } | '\262' { $$ = '\262'; }
-                      |  '\263' { $$ = '\263'; } | '\264' { $$ = '\264'; } | '\265' { $$ = '\265'; }
-                      |  '\266' { $$ = '\266'; } | '\267' { $$ = '\267'; } | '\270' { $$ = '\270'; }
-                      |  '\271' { $$ = '\271'; } | '\272' { $$ = '\272'; } | '\273' { $$ = '\273'; }
-                      |  '\274' { $$ = '\274'; } | '\275' { $$ = '\275'; } | '\276' { $$ = '\276'; }
-                      |  '\277' { $$ = '\277'; } | '\300' { $$ = '\300'; } | '\301' { $$ = '\301'; }
-                      |  '\302' { $$ = '\302'; } | '\303' { $$ = '\303'; } | '\304' { $$ = '\304'; }
-                      |  '\305' { $$ = '\305'; } | '\306' { $$ = '\306'; } | '\307' { $$ = '\307'; }
-                      |  '\310' { $$ = '\310'; } | '\311' { $$ = '\311'; } | '\312' { $$ = '\312'; }
-                      |  '\313' { $$ = '\313'; } | '\314' { $$ = '\314'; } | '\315' { $$ = '\315'; }
-                      |  '\316' { $$ = '\316'; } | '\317' { $$ = '\317'; } | '\320' { $$ = '\320'; }
-                      |  '\321' { $$ = '\321'; } | '\322' { $$ = '\322'; } | '\323' { $$ = '\323'; }
-                      |  '\324' { $$ = '\324'; } | '\325' { $$ = '\325'; } | '\326' { $$ = '\326'; }
-                      |  '\327' { $$ = '\327'; } | '\330' { $$ = '\330'; } | '\331' { $$ = '\331'; }
-                      |  '\332' { $$ = '\332'; } | '\333' { $$ = '\333'; } | '\334' { $$ = '\334'; }
-                      |  '\335' { $$ = '\335'; } | '\336' { $$ = '\336'; } | '\337' { $$ = '\337'; }
-                      |  '\340' { $$ = '\340'; } | '\341' { $$ = '\341'; } | '\342' { $$ = '\342'; }
-                      |  '\343' { $$ = '\343'; } | '\344' { $$ = '\344'; } | '\345' { $$ = '\345'; }
-                      |  '\346' { $$ = '\346'; } | '\347' { $$ = '\347'; } | '\350' { $$ = '\350'; }
-                      |  '\351' { $$ = '\351'; } | '\352' { $$ = '\352'; } | '\353' { $$ = '\353'; }
-                      |  '\354' { $$ = '\354'; } | '\355' { $$ = '\355'; } | '\356' { $$ = '\356'; }
-                      |  '\357' { $$ = '\357'; } | '\360' { $$ = '\360'; } | '\361' { $$ = '\361'; }
-                      |  '\362' { $$ = '\362'; } | '\363' { $$ = '\363'; } | '\364' { $$ = '\364'; }
-                      |  '\365' { $$ = '\365'; } | '\366' { $$ = '\366'; } | '\367' { $$ = '\367'; }
-                      |  '\370' { $$ = '\370'; } | '\371' { $$ = '\371'; } | '\372' { $$ = '\372'; }
-                      |  '\373' { $$ = '\373'; } | '\374' { $$ = '\374'; } | '\375' { $$ = '\375'; }
-                      |  '\376' { $$ = '\376'; } | '\377' { $$ = '\377'; }
+                      |  EXT_ASCII_CHAR
                       ;
 
 text                  :  SP           { $$ = " ";      }
@@ -562,10 +618,40 @@ text                  :  SP           { $$ = " ";      }
                       |  text string  { $$ = $1 + $2;  }
                       ;
 
+text_escaped          :  SP                           { $$ = " ";      }
+                      |  string_escaped
+                      |  text_escaped SP              { $$ = $1 + " "; }
+                      |  text_escaped string_escaped  { $$ = $1 + $2;  }
+                      ;
+
 stringval             :  '\'' text '\''  { $$ = $2; }
                       |  '\"' text '\"'  { $$ = $2; }
                       ;
 
+stringval_escaped     :  '\'' text_escaped '\''  { $$ = $2; }
+                      |  '\"' text_escaped '\"'  { $$ = $2; }
+                      ;
+
+escape_seq            :  '\\' '\''  { $$ = '\''; }
+                      |  '\\' '\"'  { $$ = '\"'; }
+                      |  '\\' '\\'  { $$ = '\\'; }
+                      |  '\\' 'n'   { $$ = '\n'; }
+                      |  '\\' 'r'   { $$ = '\r'; }
+                      |  '\\' 'f'   { $$ = '\f'; }
+                      |  '\\' 't'   { $$ = '\t'; }
+                      |  '\\' 'v'   { $$ = '\v'; }
+                      |  escape_seq_octal
+                      |  escape_seq_hex
+                      ;
+
+escape_seq_octal      :  '\\' digit_oct                      { $$ = (char) octalsToNumber($2);       }
+                      |  '\\' digit_oct digit_oct            { $$ = (char) octalsToNumber($3,$2);    }
+                      |  '\\' digit_oct digit_oct digit_oct  { $$ = (char) octalsToNumber($4,$3,$2); }
+                      ;
+
+escape_seq_hex        :  '\\' 'x' digit_hex            { $$ = (char) hexsToNumber($3);    }
+                      |  '\\' 'x' digit_hex digit_hex  { $$ = (char) hexsToNumber($4,$3); }
+                      ;
 
 // rules which are more or less just terminal symbols
 

@@ -87,6 +87,12 @@ Version CVS HEAD (?)
   * LSCP server:
     - fixed compile time error for old Bison versions
       (i.e. v1.28 found on MacOS 10.4, patch by Toshi Nagata)
+    - parser now supports extended ASCII character set
+      (up to ASCII code 255, i.e. includes now umlauts and accents)
+    - filename arguments in LSCP commands now allow to use escape
+      sequences, that is directly literal as one of: \', \", \\, \n, \r,
+      \f, \t, \v, or as octal ASCII code value like \132, or as hex ASCII
+      code value like \xf2) (fixes bug #24)
 
   * Bug fixes:
     - fixed crash occurring on certain LSCP scripts (Bug 39)
