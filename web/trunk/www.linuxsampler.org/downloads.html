@@ -158,9 +158,59 @@
       <td valign="top" width="100%">
       <div id="contents">
 
-      <h2>License</h2>
+      <h2>Licenses</h2>
       <p class="default">
-LinuxSampler is licensed under the GNU GPL license with the exception that<br>
+      There are several subprojects, each having its own license terms, as follows:
+      </p>
+      <table class="default">
+      <tbody>
+        <tr>
+          <td class="bordered">
+            <a class="info" href=#gigedit>gigedit<span class='info'>An instrument editor for gig files (written in C++, based on the GTK toolkit).</span></a>
+          </td>
+          <td> -> (pure) <a href="http://www.gnu.org/copyleft/gpl.html">GPL</a></td>
+        </tr>
+        <tr>
+          <td class="bordered">
+             <a class="info" href=#jlscp>jlscp<span class='info'>A java LinuxSampler control protocol API.</span></a>
+          </td>
+          <td> -> (pure) <a href="http://www.gnu.org/copyleft/gpl.html">GPL</a> v2</td>
+        </tr>
+        <tr>
+          <td class="bordered">
+              <a class="info" href=#jsampler>JSampler<span class='info'>A graphical frontend to LinuxSampler, written in Java.</span></a>
+          </td>
+          <td> -> (pure) <a href="http://www.gnu.org/copyleft/gpl.html">GPL</a> v2</td>
+        </tr>
+        <tr>
+          <td class="bordered">
+            <a class="info" href=#libgig>libgig<span class='info'>Gigasampler file access library (C++), for loading, modifying and creating gig files.</span></a>
+          </td>
+          <td> -> (pure) <a href="http://www.gnu.org/copyleft/gpl.html">GPL</a></td>
+        </tr>
+        <tr>
+          <td class="bordered">
+            <a class="info" href=#liblscp>liblscp<span class='info'>LinuxSampler Control Protocol (LSCP) wrapper C library.</span></a>
+          </td>
+          <td> -> (pure) <a href="http://www.gnu.org/licenses/lgpl.html">LGPL</a></td>
+        </tr>
+        <tr>
+          <td class="bordered">
+            <a class="info" href=#linuxsampler>LinuxSampler<span class='info'>Sampler backend, including sampler engine, audio and MIDI drivers, network layer (LSCP) API and native C++ API.</span></a>
+          </td>
+          <td> -> <a href="http://www.gnu.org/copyleft/gpl.html">GPL</a> with <a href="#exception"><u><i>commercial exception</i></u>*</a></td>
+        </tr>
+        <tr>
+          <td class="bordered">
+            <a class="info" href=#qsampler>QSampler<span class='info'>Graphical frontend to LinuxSampler (written in C++, based on the Qt toolkit).</span></a>
+          </td>
+          <td> -> (pure) <a href="http://www.gnu.org/copyleft/gpl.html">GPL</a></td>
+        </tr>
+      </tbody>
+      </table>
+      <a name="exception"></a>
+      <p class="default">
+* LinuxSampler is licensed under the GNU GPL license with the exception that<br>
 <b>COMMERCIAL USE</b> of the souce code, libraries and applications is<br>
 <b>NOT ALLOWED</b> without prior written permission by the LinuxSampler authors.<br>
 If you have questions on the subject please <A HREF="developers.html">contact us</A>.<br>
@@ -199,42 +249,54 @@ libgig before being able to compile and use gigedit.</p>
       <table class="default">
         <tbody>
           <tr>
-            <td> <a
+            <td>
+              <a name="libgig"></a>
+              <a
  href="http://download.linuxsampler.org/packages/libgig-3.1.1.tar.bz2">
 libgig-3.1.1.tar.bz2 </a> </td>
             <td> --&gt; </td>
-            <td> Gigasampler file loader library </td>
+            <td> Gigasampler file access library (C++) </td>
           </tr>
           <tr>
-            <td> <a
+            <td>
+              <a name="liblscp"></a>
+              <a
  href="http://download.linuxsampler.org/packages/liblscp-0.3.3.tar.gz">
 liblscp-0.3.3.tar.gz </a> </td>
             <td> --&gt; </td>
             <td> LinuxSampler Control Protocol (LSCP) wrapper library </td>
           </tr>
           <tr>
-            <td> <a
+            <td>
+              <a name="linuxsampler"></a>
+              <a
  href="http://download.linuxsampler.org/packages/linuxsampler-0.4.0.tar.bz2">
 linuxsampler-0.4.0.tar.bz2 </a> </td>
             <td> --&gt; </td>
-            <td> sampler backend </td>
+            <td> sampler engine / backend </td>
           </tr>
           <tr>
-            <td> <a
+            <td>
+              <a name="qsampler"></a>
+              <a
  href="http://download.linuxsampler.org/packages/qsampler-0.1.3.tar.gz">
 qsampler-0.1.3.tar.gz </a> </td>
             <td> --&gt; </td>
             <td> graphical frontend to LinuxSampler </td>
           </tr>
           <tr>
-            <td> <a
+            <td>
+              <a name="jlscp"></a>
+              <a
  href="http://downloads.sourceforge.net/jlscp/jlscp-0.3a.tar.bz2">
 jlscp-0.3a.tar.bz2 </a> </td>
             <td> --&gt; </td>
             <td> a java LinuxSampler control protocol API </td>
           </tr>
           <tr>
-            <td> <a
+            <td>
+              <a name="jsampler"></a>
+              <a
  href="http://downloads.sourceforge.net/jsampler/JSampler-0.3a.tar.bz2">
 JSampler-0.3a.tar.bz2 </a> </td>
             <td> --&gt; </td>
@@ -252,7 +314,7 @@ JSampler-0.3a.tar.bz2 </a> </td>
  href="http://download.linuxsampler.org/packages/libgig-3.1.1.tar.bz2">
 libgig-3.1.1.tar.bz2 </a> </td>
             <td> --&gt; </td>
-            <td> Gigasampler file access library </td>
+            <td> Gigasampler file access library (C++) </td>
           </tr>
           <tr>
             <td> <a
@@ -266,7 +328,7 @@ liblscp-0.5.3.tar.gz </a> </td>
  href="http://download.linuxsampler.org/packages/linuxsampler-0.4.0.tar.bz2">
 linuxsampler-0.4.0.tar.bz2 </a> </td>
             <td> --&gt; </td>
-            <td> sampler backend </td>
+            <td> sampler engine / backend </td>
           </tr>
           <tr>
             <td> <a
@@ -290,7 +352,9 @@ JSampler-0.5a.tar.bz2 </a> </td>
             <td> a java frontend to LinuxSampler </td>
           </tr>
           <tr>
-            <td> <a
+            <td>
+              <a name="gigedit"></a>
+              <a
  href="http://download.linuxsampler.org/packages/gigedit-0.0.3.tar.gz">
 gigedit-0.0.3.tar.gz </a> </td>
             <td> --&gt; </td>
