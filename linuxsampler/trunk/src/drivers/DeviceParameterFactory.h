@@ -91,6 +91,13 @@ namespace LinuxSampler {
 				factory->InnerFactories[Parameter_T::Name()] = new InnerFactoryTemplate<Parameter_T>(factory);
 			}
 
+			template <class Parameter_T>
+                        static void Unregister(DeviceParameterFactory* factory) {
+                            std::map<String, InnerFactory*>::iterator iter = factory->InnerFactories.find(Parameter_T::Name());
+                            delete iter->second;
+                            factory->InnerFactories.erase(Parameter_T::Name());
+                        }
+
 			std::map<String,DeviceCreationParameter*> CreateAllParams ( std::map<String,String> Parameters );
 			std::map<String,DeviceCreationParameter*> CreateAllParams ();
 

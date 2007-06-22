@@ -182,11 +182,11 @@ void signal_handler(int iSignal) {
     switch (iSignal) {
         case SIGINT: {
             if (pthread_equal(pthread_self(), main_thread)) {
-                if (pLSCPServer) {
-                    pLSCPServer->StopThread();
-                    delete pLSCPServer;
-                }
+                if (pLSCPServer) pLSCPServer->StopThread();
+                // the delete order here is important: the Sampler
+                // destructor sends notifications to the lscpserver
                 if (pSampler) delete pSampler;
+                if (pLSCPServer) delete pLSCPServer;
 #if HAVE_SQLITE3
                 InstrumentsDb::Destroy();
 #endif

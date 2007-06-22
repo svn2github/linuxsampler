@@ -141,6 +141,10 @@ namespace LinuxSampler { namespace gig {
         if (pEventGenerator) delete pEventGenerator;
         if (pVoiceStealingQueue) delete pVoiceStealingQueue;
         if (pSysexBuffer) delete pSysexBuffer;
+        if (pGlobalEvents) delete pGlobalEvents;
+        if (InstrumentChangeQueue) delete InstrumentChangeQueue;
+        if (InstrumentChangeReplyQueue) delete InstrumentChangeReplyQueue;
+        if (pDimRegionsInUse) delete[] pDimRegionsInUse;
         Unregister();
     }
 
@@ -1721,7 +1725,7 @@ namespace LinuxSampler { namespace gig {
     }
 
     String Engine::Version() {
-        String s = "$Revision: 1.76 $";
+        String s = "$Revision: 1.77 $";
         return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
 

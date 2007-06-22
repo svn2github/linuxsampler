@@ -105,6 +105,7 @@ namespace LinuxSampler {
     AudioOutputDeviceJack::AudioChannelJack::AudioChannelJack(uint ChannelNr, AudioOutputDeviceJack* pDevice) throw (AudioOutputException) : AudioChannel(ChannelNr, CreateJackPort(ChannelNr, pDevice), pDevice->uiMaxSamplesPerCycle) {
         this->pDevice   = pDevice;
         this->ChannelNr = ChannelNr;
+        delete Parameters["NAME"];
         Parameters["NAME"]          = new ParameterName(this);
         Parameters["JACK_BINDINGS"] = new ParameterJackBindings(this);
     }
@@ -257,7 +258,7 @@ namespace LinuxSampler {
     }
 
     String AudioOutputDeviceJack::Version() {
-       String s = "$Revision: 1.20 $";
+       String s = "$Revision: 1.21 $";
        return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
 

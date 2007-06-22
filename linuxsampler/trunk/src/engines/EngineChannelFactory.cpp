@@ -41,6 +41,7 @@ namespace LinuxSampler {
     void EngineChannelFactory::Destroy(LinuxSampler::EngineChannel* pEngineChannel) {
         pEngineChannel->RemoveAllFxSendCountListeners();
         engineChannels.erase(pEngineChannel);
+        delete pEngineChannel;
     }
 
     const std::set<LinuxSampler::EngineChannel*>& EngineChannelFactory::EngineChannelInstances() {

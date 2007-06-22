@@ -130,6 +130,7 @@ namespace LinuxSampler {
         if (alsaPort < 0) throw MidiInputException("Error creating sequencer port");
         this->portNumber = alsaPort;
 
+        delete Parameters["NAME"];
         Parameters["NAME"]              = new ParameterName(this);
         Parameters["ALSA_SEQ_BINDINGS"] = new ParameterAlsaSeqBindings(this);
         Parameters["ALSA_SEQ_ID"]       = new ParameterAlsaSeqId(this);
@@ -184,7 +185,15 @@ namespace LinuxSampler {
     }
 
     MidiInputDeviceAlsa::~MidiInputDeviceAlsa() {
-	    snd_seq_close(hAlsaSeq);
+        // free the midi ports (we can't let the base class do this,
+        // as the MidiInputPortAlsa destructors need access to
+        // hAlsaSeq)
+        for (std::map<int,MidiInputPort*>::iterator iter = Ports.begin(); iter != Ports.end() ; iter++) {
+            delete static_cast<MidiInputPortAlsa*>(iter->second);
+        }
+        Ports.clear();
+
+        snd_seq_close(hAlsaSeq);
     }
 
     MidiInputDeviceAlsa::MidiInputPortAlsa* MidiInputDeviceAlsa::CreateMidiPort() {
@@ -212,7 +221,7 @@ namespace LinuxSampler {
     }
 
     String MidiInputDeviceAlsa::Version() {
-	    String s = "$Revision: 1.18 $";
+	    String s = "$Revision: 1.19 $";
 	    return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
 

@@ -47,6 +47,7 @@ namespace LinuxSampler {
             virtual optional<String> Possibilities() = 0;
             virtual String           Value()         = 0;
             virtual void             SetValue(String val) throw (Exception) = 0;
+            virtual ~DeviceRuntimeParameter(){};
     };
 
     class DeviceRuntimeParameterBool : public DeviceRuntimeParameter {

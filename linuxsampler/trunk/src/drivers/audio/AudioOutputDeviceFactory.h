@@ -60,14 +60,26 @@ namespace LinuxSampler {
                       AudioOutputDeviceFactory::InnerFactories[Driver_T::Name()] = new AudioOutputDeviceFactory::InnerFactoryTemplate<Driver_T>;
 		      AudioOutputDeviceFactory::ParameterFactories[Driver_T::Name()] = new DeviceParameterFactory();
                   }
+                  ~InnerFactoryRegistrator() {
+                      std::map<String, InnerFactory*>::iterator iter = AudioOutputDeviceFactory::InnerFactories.find(Driver_T::Name());
+                      delete iter->second;
+                      AudioOutputDeviceFactory::InnerFactories.erase(iter);
+
+                      std::map<String, DeviceParameterFactory*>::iterator iterpf = AudioOutputDeviceFactory::ParameterFactories.find(Driver_T::Name());
+                      delete iterpf->second;
+                      AudioOutputDeviceFactory::ParameterFactories.erase(iterpf);
+                  }
           };
 
 	  template <class Driver_T, class Parameter_T>
           class ParameterRegistrator {
 	      public:
                   ParameterRegistrator() {
-			  DeviceParameterFactory::Register<Parameter_T>(AudioOutputDeviceFactory::ParameterFactories[Driver_T::Name()]);
+                      DeviceParameterFactory::Register<Parameter_T>(AudioOutputDeviceFactory::ParameterFactories[Driver_T::Name()]);
 		  }
+                  ~ParameterRegistrator() {
+                      DeviceParameterFactory::Unregister<Parameter_T>(AudioOutputDeviceFactory::ParameterFactories[Driver_T::Name()]);
+                  }
 	  };
 
           static AudioOutputDevice*                        Create(String DriverName, std::map<String,String> Parameters) throw (Exception);

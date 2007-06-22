@@ -56,6 +56,7 @@ Version CVS HEAD (?)
     - minor fix in our automatic stack trace mechanism on crashes, the
       main process did not wait for the stack trace process to finish
       its output
+    - fixed some minor memory leaks
 
   * MIDI driver:
     - dispatch bank select (MSB and LSB) messages

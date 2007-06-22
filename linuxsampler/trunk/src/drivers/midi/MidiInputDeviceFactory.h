@@ -61,14 +61,26 @@ namespace LinuxSampler {
                       MidiInputDeviceFactory::InnerFactories[Driver_T::Name()] = new MidiInputDeviceFactory::InnerFactoryTemplate<Driver_T>;
 		      MidiInputDeviceFactory::ParameterFactories[Driver_T::Name()] = new DeviceParameterFactory();
                   }
+                  ~InnerFactoryRegistrator() {
+                      std::map<String, InnerFactory*>::iterator iter = MidiInputDeviceFactory::InnerFactories.find(Driver_T::Name());
+                      delete iter->second;
+                      MidiInputDeviceFactory::InnerFactories.erase(iter);
+
+                      std::map<String, DeviceParameterFactory*>::iterator iterpf = MidiInputDeviceFactory::ParameterFactories.find(Driver_T::Name());
+                      delete iterpf->second;
+                      MidiInputDeviceFactory::ParameterFactories.erase(iterpf);
+                  }
           };
 
 	  template <class Driver_T, class Parameter_T>
 	  class ParameterRegistrator {
 	      public:
 		  ParameterRegistrator() {
-			  DeviceParameterFactory::Register<Parameter_T>(MidiInputDeviceFactory::ParameterFactories[Driver_T::Name()]);
+                      DeviceParameterFactory::Register<Parameter_T>(MidiInputDeviceFactory::ParameterFactories[Driver_T::Name()]);
 		  }
+                  ~ParameterRegistrator() {
+                      DeviceParameterFactory::Unregister<Parameter_T>(MidiInputDeviceFactory::ParameterFactories[Driver_T::Name()]);
+                  }
 	  };
 
 
