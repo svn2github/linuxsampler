@@ -16,9 +16,9 @@
      to an annoying "missing Normative/Informative References" error message -->
 <?rfc strict="no" ?>
 
-<rfc category="std" ipr="full3978" docName="LSCP 1.2">
+<rfc category="std" ipr="full3978" docName="LSCP 1.3cvs">
     <front>
-        <title>LinuxSampler Control Protocol</title>
+        <title>LinuxSampler Control Protocol (draft)</title>
         <author initials='C.S.' surname="Schoenebeck" fullname='C.
 Schoenebeck'>
             <organization>
@@ -34,7 +34,7 @@ Schoenebeck'>
                 <email>schoenebeck at software minus engineering dot org</email>
             </address>
         </author>
-        <date month="May" year="2007"/>
+        <date month="June" year="2007"/>
         <workgroup>LinuxSampler Developers</workgroup>
         <keyword>LSCP</keyword>
         <abstract>
@@ -61,8 +61,8 @@ Schoenebeck'>
             (front-end) and server (LinuxSampler) respectively. Lines in
             examples must be interpreted as every line being CRLF
             terminated (carriage return character followed by line feed
-            character as defined in the ASCII standard), thus the following
-            example:</t>
+            character as defined in the ASCII standard <xref target="RFC20"/>),
+            thus the following example:</t>
 
             <t>
                 <list>
@@ -2112,6 +2112,12 @@ Schoenebeck'>
                     instrument in the instrument file and &lt;sampler-channel> is the
                     number of the sampler channel the instrument should be assigned to.
                     Each sampler channel can only have one instrument.</t>
+
+                    <t>Notice: since LSCP 1.3 the &lt;filename&gt; argument supports
+                    escape characters for special characters (see chapter
+                    "<xref target="character_set">Character Set and Escape Sequences</xref>"
+                    for details) and accordingly backslash characters in the filename
+                    MUST now be escaped as well!</t>
 
                     <t>The difference between regular and NON_MODAL versions of the command
                     is that the regular command returns OK only after the instrument has been
@@ -4325,7 +4331,9 @@ Schoenebeck'>
                     index, &lt;engine_name&gt; a sampler engine name as returned by
                     the <xref target="LIST AVAILABLE_ENGINES">"LIST AVAILABLE_ENGINES"</xref>
                     command (not encapsulated into apostrophes), &lt;filename&gt; the name
-                    of the instrument's file to be deployed (encapsulated into apostrophes),
+                    of the instrument's file to be deployed (encapsulated into apostrophes,
+                    supporting escape sequences as described in chapter
+                    "<xref target="character_set">Character Set and Escape Sequences</xref>"),
                     &lt;instrument_index&gt; the index (integer value) of the instrument
                     within the given file, &lt;volume_value&gt; reflects the master
                     volume of the instrument as optionally dotted number (where a
@@ -5691,7 +5699,7 @@ Schoenebeck'>
 
                       <t>SIZE=[&lt;min&gt;]..[&lt;max&gt;]
                           <list>
-                              <t>Restricts the search to instruments, which 
+                              <t>Restricts the search to instruments, which
                               size is in the specified range. If &lt;min&gt; is omitted,
                               the search results are restricted to instruments with size less then
                               or equal to &lt;max&gt;. If &lt;max&gt; is omitted, the
@@ -5754,7 +5762,7 @@ Schoenebeck'>
 
                       <t>IS_DRUM=true | false
                           <list>
-                              <t>Either true or false. Restricts the search to 
+                              <t>Either true or false. Restricts the search to
                               drum kits or chromatic instruments.</t>
                           </list>
                       </t>
@@ -5948,6 +5956,8 @@ Schoenebeck'>
 		<t>/ MOVE SP move_instruction
 		</t>
 		<t>/ COPY SP copy_instruction
+		</t>
+		<t>/ EDIT SP edit_instruction
 		</t>
 		<t>/ RESET
 		</t>
@@ -6343,6 +6353,12 @@ Schoenebeck'>
 		</t>
 	</list>
 </t>
+<t>edit_instruction =
+	<list>
+		<t>INSTRUMENT SP sampler_channel
+		</t>
+	</list>
+</t>
 <t>modal_arg =
 	<list>
 		<t>/* epsilon (empty argument) */
@@ -6531,7 +6547,7 @@ Schoenebeck'>
 </t>
 <t>filename =
 	<list>
-		<t>stringval
+		<t>stringval_escaped
 		</t>
 	</list>
 </t>
@@ -6601,6 +6617,38 @@ Schoenebeck'>
 </t>
 
             <!-- GRAMMAR_BNF_END - do NOT delete or modify this line !!! -->
+
+            <section title="Character Set and Escape Sequences" anchor="character_set">
+                <t>Older versions of this protocol up to and including v1.2 only
+                supported the standard ASCII character set (ASCII code 0 - 127)
+                <xref target="RFC20"/>, all younger versions of this protocol
+                however support the Extended ASCII character set (ASCII code
+                0 - 255). The same group of younger protocols also support
+                escape sequences, but only for certain, explicitly declared
+                parts of the protocol. The supported escape sequences are
+                defined as follows:</t>
+                <texttable>
+                    <ttcol>ASCII Character Sequence</ttcol>
+                    <ttcol>Translated into (Name)</ttcol>
+                    <c>\n</c> <c>new line</c>
+                    <c>\r</c> <c>carriage return</c>
+                    <c>\f</c> <c>form feed</c>
+                    <c>\t</c> <c>horizontal tab</c>
+                    <c>\v</c> <c>vertical tab</c>
+                    <c>\'</c> <c>apostrophe</c>
+                    <c>\"</c> <c>quotation mark</c>
+                    <c>\\</c> <c>backslash</c>
+                    <c>\OOO</c> <c>three digit octal ASCII code of the character</c>
+                    <c>\xHH</c> <c>two digit hex ASCII code of the character</c>
+                </texttable>
+                <t>Notice: due to the transition of certain parts of the
+                protocol which now support escape sequences, a slight backward
+                incompatibility to protocols version v1.2 and younger has been
+                introduced. The only difference is that in parts of the protocol
+                where escape characters are now supported, a backslash characters
+                MUST be escaped as well (that is as double backslash), whereas
+                in the old versions a single backslash was sufficient.</t>
+            </section>
         </section>
 
         <section title="Events" anchor="events">
@@ -6786,7 +6834,7 @@ Schoenebeck'>
             </section>
 
             <section title="Number of effect sends changed" anchor="SUBSCRIBE FX_SEND_COUNT">
-                <t>Client may want to be notified when the number of effect sends on 
+                <t>Client may want to be notified when the number of effect sends on
                 a particular sampler channel is changed by issuing the following command:</t>
                 <t>
                     <list>
@@ -7145,6 +7193,16 @@ Schoenebeck'>
                     <date year="1997"></date>
                 </front>
                 <seriesInfo name="RFC" value="2234" />
+            </reference>
+            <reference anchor="RFC20">
+                <front>
+                    <title>ASCII format for Network Interchange</title>
+                    <author>
+                        <organization>UCLA</organization>
+                    </author>
+                    <date year="1969"></date>
+                </front>
+                <seriesInfo name="RFC" value="20" />
             </reference>
          </references>
     </back>
