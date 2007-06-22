@@ -16,7 +16,7 @@
      to an annoying "missing Normative/Informative References" error message -->
 <?rfc strict="no" ?>
 
-<rfc category="std" ipr="full3978" docName="LSCP 1.3cvs">
+<rfc category="std" ipr="full3978" docName="LSCP 1.2cvs">
     <front>
         <title>LinuxSampler Control Protocol (draft)</title>
         <author initials='C.S.' surname="Schoenebeck" fullname='C.
@@ -2113,7 +2113,7 @@ Schoenebeck'>
                     number of the sampler channel the instrument should be assigned to.
                     Each sampler channel can only have one instrument.</t>
 
-                    <t>Notice: since LSCP 1.3 the &lt;filename&gt; argument supports
+                    <t>Notice: since LSCP 1.2 the &lt;filename&gt; argument supports
                     escape characters for special characters (see chapter
                     "<xref target="character_set">Character Set and Escape Sequences</xref>"
                     for details) and accordingly backslash characters in the filename
@@ -6619,7 +6619,7 @@ Schoenebeck'>
             <!-- GRAMMAR_BNF_END - do NOT delete or modify this line !!! -->
 
             <section title="Character Set and Escape Sequences" anchor="character_set">
-                <t>Older versions of this protocol up to and including v1.2 only
+                <t>Older versions of this protocol up to and including v1.1 only
                 supported the standard ASCII character set (ASCII code 0 - 127)
                 <xref target="RFC20"/>, all younger versions of this protocol
                 however support the Extended ASCII character set (ASCII code
@@ -6643,7 +6643,7 @@ Schoenebeck'>
                 </texttable>
                 <t>Notice: due to the transition of certain parts of the
                 protocol which now support escape sequences, a slight backward
-                incompatibility to protocols version v1.2 and younger has been
+                incompatibility to protocols version v1.1 and younger has been
                 introduced. The only difference is that in parts of the protocol
                 where escape characters are now supported, a backslash characters
                 MUST be escaped as well (that is as double backslash), whereas
