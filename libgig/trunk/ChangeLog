@@ -39,6 +39,10 @@ Version CVS HEAD (?)
       instruments
     - write support: improved the default values for dimension region
       parameters
+    - more write support fixes: crossfade parameters were not saved,
+      v3 dimension limits were not correctly initialized and saved
+      when dimensions were added or deleted, v3 wave pool offsets were
+      not saved correctly
 
   * src/RIFF.cpp, src/RIFF.h:
     - added File::SetByteOrder method

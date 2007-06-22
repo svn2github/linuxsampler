@@ -1256,7 +1256,9 @@ namespace {
 
         pSample = NULL;
 
-        memcpy(&Crossfade, &SamplerOptions, 4);
+        if (_3ewl->GetSubChunk(CHUNK_ID_WSMP)) memcpy(&Crossfade, &SamplerOptions, 4);
+        else memset(&Crossfade, 0, 4);
+
         if (!pVelocityTables) pVelocityTables = new VelocityTableMap;
 
         RIFF::Chunk* _3ewa = _3ewl->GetSubChunk(CHUNK_ID_3EWA);
@@ -1491,7 +1493,7 @@ namespace {
             VCFVelocityDynamicRange         = 0x04;
             VCFVelocityCurve                = curve_type_linear;
             VCFType                         = vcf_type_lowpass;
-            memset(DimensionUpperLimits, 0, 8);
+            memset(DimensionUpperLimits, 127, 8);
         }
 
         pVelocityAttenuationTable = GetVelocityTable(VelocityResponseCurve,
@@ -1540,10 +1542,17 @@ namespace {
         // first update base class's chunk
         DLS::Sampler::UpdateChunks();
 
+        RIFF::Chunk* wsmp = pParentList->GetSubChunk(CHUNK_ID_WSMP);
+        uint8_t* pData = (uint8_t*) wsmp->LoadChunkData();
+        pData[12] = Crossfade.in_start;
+        pData[13] = Crossfade.in_end;
+        pData[14] = Crossfade.out_start;
+        pData[15] = Crossfade.out_end;
+
         // make sure '3ewa' chunk exists
         RIFF::Chunk* _3ewa = pParentList->GetSubChunk(CHUNK_ID_3EWA);
         if (!_3ewa)  _3ewa = pParentList->AddSubChunk(CHUNK_ID_3EWA, 140);
-        uint8_t* pData = (uint8_t*) _3ewa->LoadChunkData();
+        pData = (uint8_t*) _3ewa->LoadChunkData();
 
         // update '3ewa' chunk with DimensionRegion's current settings
 
@@ -2247,19 +2256,29 @@ namespace {
         // first update base class's chunks
         DLS::Region::UpdateChunks();
 
+        File* pFile = (File*) GetParent()->GetParent();
+        bool version3 = pFile->pVersion && pFile->pVersion->major == 3;
+
         // update dimension region's chunks
         for (int i = 0; i < DimensionRegions; i++) {
-            pDimensionRegions[i]->UpdateChunks();
+            DimensionRegion* d = pDimensionRegions[i];
+
+            // make sure '3ewa' chunk exists (we need to this before
+            // calling DimensionRegion::UpdateChunks, as
+            // DimensionRegion doesn't know which file version it is)
+            RIFF::Chunk* _3ewa = d->pParentList->GetSubChunk(CHUNK_ID_3EWA);
+            if (!_3ewa) d->pParentList->AddSubChunk(CHUNK_ID_3EWA, version3 ? 148 : 140);
+
+            d->UpdateChunks();
         }
 
-        File* pFile = (File*) GetParent()->GetParent();
-        const int iMaxDimensions = (pFile->pVersion && pFile->pVersion->major == 3) ? 8 : 5;
-        const int iMaxDimensionRegions = (pFile->pVersion && pFile->pVersion->major == 3) ? 256 : 32;
+        const int iMaxDimensions =  version3 ? 8 : 5;
+        const int iMaxDimensionRegions = version3 ? 256 : 32;
 
         // make sure '3lnk' chunk exists
         RIFF::Chunk* _3lnk = pCkRegion->GetSubChunk(CHUNK_ID_3LNK);
         if (!_3lnk) {
-            const int _3lnkChunkSize = (pFile->pVersion && pFile->pVersion->major == 3) ? 1092 : 172;
+            const int _3lnkChunkSize = version3 ? 1092 : 172;
             _3lnk = pCkRegion->AddSubChunk(CHUNK_ID_3LNK, _3lnkChunkSize);
             memset(_3lnk->LoadChunkData(), 0, _3lnkChunkSize);
 
@@ -2283,7 +2302,7 @@ namespace {
         }
 
         // update wave pool table in '3lnk' chunk
-        const int iWavePoolOffset = (pFile->pVersion && pFile->pVersion->major == 3) ? 68 : 44;
+        const int iWavePoolOffset = version3 ? 68 : 44;
         for (uint i = 0; i < iMaxDimensionRegions; i++) {
             int iWaveIndex = -1;
             if (i < DimensionRegions) {
@@ -2438,7 +2457,20 @@ namespace {
             RIFF::List* _3prg = pCkRegion->GetSubList(LIST_TYPE_3PRG);
             RIFF::List* pNewDimRgnListChunk = _3prg->AddSubList(LIST_TYPE_3EWL);
             pDimensionRegions[i] = new DimensionRegion(pNewDimRgnListChunk);
+
+            // copy the upper limits for the other dimensions
+            memcpy(pDimensionRegions[i]->DimensionUpperLimits,
+                   pDimensionRegions[i & ((1 << iCurrentBits) - 1)]->DimensionUpperLimits, 8);
+
             DimensionRegions++;
+        }
+
+        // initialize the upper limits for this dimension
+        for (int z = 0, j = 0 ; z < pDimDef->zones ; z++, j += 1 << iCurrentBits) {
+            uint8_t upperLimit = (z + 1) * 128.0 / pDimDef->zones - 1;
+            for (int i = 0 ; i < 1 << iCurrentBits ; i++) {
+                pDimensionRegions[j + i]->DimensionUpperLimits[Dimensions] = upperLimit;
+            }
         }
 
         Dimensions++;
@@ -2481,6 +2513,8 @@ namespace {
         for (int i = iDimensionNr + 1; i < Dimensions; i++)
             iUpperBits += pDimensionDefinitions[i].bits;
 
+        RIFF::List* _3prg = pCkRegion->GetSubList(LIST_TYPE_3PRG);
+
         // delete dimension regions which belong to the given dimension
         // (that is where the dimension's bit > 0)
         for (int iUpperBit = 0; iUpperBit < 1 << iUpperBits; iUpperBit++) {
@@ -2489,6 +2523,8 @@ namespace {
                     int iToDelete = iUpperBit    << (pDimensionDefinitions[iDimensionNr].bits + iLowerBits) |
                                     iObsoleteBit << iLowerBits |
                                     iLowerBit;
+
+                    _3prg->DeleteSubChunk(pDimensionRegions[iToDelete]->pParentList);
                     delete pDimensionRegions[iToDelete];
                     pDimensionRegions[iToDelete] = NULL;
                     DimensionRegions--;
@@ -2507,6 +2543,15 @@ namespace {
                     pDimensionRegions[iFrom] = NULL;
                 }
             }
+        }
+
+        // remove the this dimension from the upper limits arrays
+        for (int j = 0 ; j < 256 && pDimensionRegions[j] ; j++) {
+            DimensionRegion* d = pDimensionRegions[j];
+            for (int i = iDimensionNr + 1; i < Dimensions; i++) {
+                d->DimensionUpperLimits[i - 1] = d->DimensionUpperLimits[i];
+            }
+            d->DimensionUpperLimits[Dimensions - 1] = 127;
         }
 
         // 'remove' dimension definition
@@ -3376,6 +3421,8 @@ namespace {
      */
     void File::UpdateChunks() {
         bool newFile = pRIFF->GetSubList(LIST_TYPE_INFO) == NULL;
+
+        b64BitWavePoolOffsets = pVersion && pVersion->major == 3;
 
         // first update base class's chunks
         DLS::File::UpdateChunks();
