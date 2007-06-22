@@ -1,7 +1,7 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
-<html lang="en"><head><title>LinuxSampler Control Protocol</title>
+<html lang="en"><head><title>LinuxSampler Control Protocol (draft)</title>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-<meta name="description" content="LinuxSampler Control Protocol">
+<meta name="description" content="LinuxSampler Control Protocol (draft)">
 <meta name="keywords" content="LSCP">
 <meta name="generator" content="xml2rfc v1.32 (http://xml.resource.org/)">
 <style type='text/css'><!--
@@ -145,9 +145,9 @@
 <tr><td class="header">LinuxSampler Developers</td><td class="header">C. Schoenebeck</td></tr>
 <tr><td class="header">Internet-Draft</td><td class="header">Interessengemeinschaft Software</td></tr>
 <tr><td class="header">Intended status: Standards Track</td><td class="header">Engineering e. V.</td></tr>
-<tr><td class="header">Expires: November 25, 2007</td><td class="header">May 24, 2007</td></tr>
+<tr><td class="header">Expires: December 24, 2007</td><td class="header">June 22, 2007</td></tr>
 </table></td></tr></table>
-<h1><br />LinuxSampler Control Protocol<br />LSCP 1.2</h1>
+<h1><br />LinuxSampler Control Protocol (draft)<br />LSCP 1.2cvs</h1>
 
 <h3>Status of this Memo</h3>
 <p>
@@ -173,7 +173,7 @@ The list of current Internet-Drafts can be accessed at
 The list of Internet-Draft Shadow Directories can be accessed at
 <a href='http://www.ietf.org/shadow.html'>http://www.ietf.org/shadow.html</a>.</p>
 <p>
-This Internet-Draft will expire on November 25, 2007.</p>
+This Internet-Draft will expire on December 24, 2007.</p>
 
 <h3>Copyright Notice</h3>
 <p>
@@ -434,6 +434,8 @@ Finding instruments<br />
 Getting job status information<br />
 <a href="#command_syntax">7.</a>&nbsp;
 Command Syntax<br />
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#character_set">7.1.</a>&nbsp;
+Character Set and Escape Sequences<br />
 <a href="#events">8.</a>&nbsp;
 Events<br />
 &nbsp;&nbsp;&nbsp;&nbsp;<a href="#SUBSCRIBE AUDIO_OUTPUT_DEVICE_COUNT">8.1.</a>&nbsp;
@@ -512,8 +514,8 @@ Requirements notation</h3>
             (front-end) and server (LinuxSampler) respectively. Lines in
             examples must be interpreted as every line being CRLF
             terminated (carriage return character followed by line feed
-            character as defined in the ASCII standard), thus the following
-            example:
+            character as defined in the ASCII standard <a class='info' href='#RFC20'>[RFC20]<span> (</span><span class='info'>UCLA, &ldquo;ASCII format for Network Interchange,&rdquo; 1969.</span><span>)</span></a>),
+            thus the following example:
 </p>
 <p>
                 </p>
@@ -3374,6 +3376,12 @@ Loading an instrument</h3>
                     instrument in the instrument file and &lt;sampler-channel> is the
                     number of the sampler channel the instrument should be assigned to.
                     Each sampler channel can only have one instrument.
+</p>
+<p>Notice: since LSCP 1.2 the &lt;filename&gt; argument supports
+                    escape characters for special characters (see chapter
+                    "<a class='info' href='#character_set'>Character Set and Escape Sequences<span> (</span><span class='info'>Character Set and Escape Sequences</span><span>)</span></a>"
+                    for details) and accordingly backslash characters in the filename
+                    MUST now be escaped as well!
 </p>
 <p>The difference between regular and NON_MODAL versions of the command
                     is that the regular command returns OK only after the instrument has been
@@ -6647,7 +6655,9 @@ Create or replace a MIDI instrument map entry</h3>
                     index, &lt;engine_name&gt; a sampler engine name as returned by
                     the <a class='info' href='#LIST AVAILABLE_ENGINES'>"LIST AVAILABLE_ENGINES"<span> (</span><span class='info'>Getting all available engines</span><span>)</span></a>
                     command (not encapsulated into apostrophes), &lt;filename&gt; the name
-                    of the instrument's file to be deployed (encapsulated into apostrophes),
+                    of the instrument's file to be deployed (encapsulated into apostrophes,
+                    supporting escape sequences as described in chapter
+                    "<a class='info' href='#character_set'>Character Set and Escape Sequences<span> (</span><span class='info'>Character Set and Escape Sequences</span><span>)</span></a>"),
                     &lt;instrument_index&gt; the index (integer value) of the instrument
                     within the given file, &lt;volume_value&gt; reflects the master
                     volume of the instrument as optionally dotted number (where a
@@ -8649,7 +8659,7 @@ Finding instruments</h3>
 <p>SIZE=[&lt;min&gt;]..[&lt;max&gt;]
                           </p>
 <blockquote class="text">
-<p>Restricts the search to instruments, which 
+<p>Restricts the search to instruments, which
                               size is in the specified range. If &lt;min&gt; is omitted,
                               the search results are restricted to instruments with size less then
                               or equal to &lt;max&gt;. If &lt;max&gt; is omitted, the
@@ -8740,7 +8750,7 @@ Finding instruments</h3>
 <p>IS_DRUM=true | false
                           </p>
 <blockquote class="text">
-<p>Either true or false. Restricts the search to 
+<p>Either true or false. Restricts the search to
                               drum kits or chromatic instruments.
 </p>
 </blockquote><p>
@@ -9013,6 +9023,9 @@ Command Syntax</h3>
 		
 </p>
 <p>/ COPY SP copy_instruction
+		
+</p>
+<p>/ EDIT SP edit_instruction
 		
 </p>
 <p>/ RESET
@@ -9606,6 +9619,15 @@ Command Syntax</h3>
 </blockquote><p>
 
 </p>
+<p>edit_instruction =
+	</p>
+<blockquote class="text">
+<p>INSTRUMENT SP sampler_channel
+		
+</p>
+</blockquote><p>
+
+</p>
 <p>modal_arg =
 	</p>
 <blockquote class="text">
@@ -9888,7 +9910,7 @@ Command Syntax</h3>
 <p>filename =
 	</p>
 <blockquote class="text">
-<p>stringval
+<p>stringval_escaped
 		
 </p>
 </blockquote><p>
@@ -9989,6 +10011,72 @@ Command Syntax</h3>
 </p>
 </blockquote><p>
 
+</p>
+<a name="character_set"></a><br /><hr />
+<table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
+<a name="rfc.section.7.1"></a><h3>7.1.&nbsp;
+Character Set and Escape Sequences</h3>
+
+<p>Older versions of this protocol up to and including v1.1 only
+                supported the standard ASCII character set (ASCII code 0 - 127)
+                <a class='info' href='#RFC20'>[RFC20]<span> (</span><span class='info'>UCLA, &ldquo;ASCII format for Network Interchange,&rdquo; 1969.</span><span>)</span></a>, all younger versions of this protocol
+                however support the Extended ASCII character set (ASCII code
+                0 - 255). The same group of younger protocols also support
+                escape sequences, but only for certain, explicitly declared
+                parts of the protocol. The supported escape sequences are
+                defined as follows:
+</p><table class="full" align="center" border="0" cellpadding="2" cellspacing="2">
+<col align="left"><col align="left">
+<tr><th align="left">ASCII Character Sequence</th><th align="left">Translated into (Name)</th></tr>
+<tr>
+<td align="left">\n</td>
+<td align="left">new line</td>
+</tr>
+<tr>
+<td align="left">\r</td>
+<td align="left">carriage return</td>
+</tr>
+<tr>
+<td align="left">\f</td>
+<td align="left">form feed</td>
+</tr>
+<tr>
+<td align="left">\t</td>
+<td align="left">horizontal tab</td>
+</tr>
+<tr>
+<td align="left">\v</td>
+<td align="left">vertical tab</td>
+</tr>
+<tr>
+<td align="left">\'</td>
+<td align="left">apostrophe</td>
+</tr>
+<tr>
+<td align="left">\"</td>
+<td align="left">quotation mark</td>
+</tr>
+<tr>
+<td align="left">\\</td>
+<td align="left">backslash</td>
+</tr>
+<tr>
+<td align="left">\OOO</td>
+<td align="left">three digit octal ASCII code of the character</td>
+</tr>
+<tr>
+<td align="left">\xHH</td>
+<td align="left">two digit hex ASCII code of the character</td>
+</tr>
+</table>
+
+<p>Notice: due to the transition of certain parts of the
+                protocol which now support escape sequences, a slight backward
+                incompatibility to protocols version v1.1 and younger has been
+                introduced. The only difference is that in parts of the protocol
+                where escape characters are now supported, a backslash characters
+                MUST be escaped as well (that is as double backslash), whereas
+                in the old versions a single backslash was sufficient.
 </p>
 <a name="events"></a><br /><hr />
 <table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
@@ -10279,7 +10367,7 @@ Channel information changed</h3>
 <a name="rfc.section.8.10"></a><h3>8.10.&nbsp;
 Number of effect sends changed</h3>
 
-<p>Client may want to be notified when the number of effect sends on 
+<p>Client may want to be notified when the number of effect sends on
                 a particular sampler channel is changed by issuing the following command:
 </p>
 <p>
@@ -10776,6 +10864,8 @@ Acknowledgments</h3>
 <table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
 <h3>11.&nbsp;References</h3>
 <table width="99%" border="0">
+<tr><td class="author-text" valign="top"><a name="RFC20">[RFC20]</a></td>
+<td class="author-text">UCLA, &ldquo;<a href="ftp://ftp.isi.edu/in-notes/rfc20.txt">ASCII format for Network Interchange</a>,&rdquo; RFC&nbsp;20, 1969.</td></tr>
 <tr><td class="author-text" valign="top"><a name="RFC2119">[RFC2119]</a></td>
 <td class="author-text">Bradner, S., &ldquo;<a href="ftp://ftp.isi.edu/in-notes/rfc2119.txt">Key words for use in RFCs to Indicate Requirement Levels</a>,&rdquo; RFC&nbsp;2119, 1997.</td></tr>
 <tr><td class="author-text" valign="top"><a name="RFC2234">[RFC2234]</a></td>
