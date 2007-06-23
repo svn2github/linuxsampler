@@ -87,11 +87,14 @@ struct yyparse_param_t {
     LSCPServer* pServer;
     int         hSession;
     bool        bVerbose; ///< if true then all commands will immediately sent back (echo)
+    int         iLine;    ///< Current line (just for verbosity / messages)
+    int         iColumn;  ///< Current column (just for verbosity / messages)
 
     yyparse_param_t() {
         pServer  = NULL;
         hSession = -1;
         bVerbose = false;
+        iLine = iColumn = 0;
     }
 };
 #define YYPARSE_PARAM yyparse_param

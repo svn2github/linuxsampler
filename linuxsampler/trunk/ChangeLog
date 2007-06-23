@@ -94,6 +94,9 @@ Version CVS HEAD (?)
       sequences, that is directly literal as one of: \', \", \\, \n, \r,
       \f, \t, \v, or as octal ASCII code value like \132, or as hex ASCII
       code value like \xf2) (fixes bug #24)
+    - returns verbose syntax errors (line and column where syntax error
+      occured, the unexpected character and the actually expected, possible
+      character(s), the latter only if less than 5 possibilities)
 
   * Bug fixes:
     - fixed crash occurring on certain LSCP scripts (Bug 39)

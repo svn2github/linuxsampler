@@ -52,6 +52,7 @@
 fd_set LSCPServer::fdSet;
 int LSCPServer::currentSocket = -1;
 std::vector<yyparse_param_t> LSCPServer::Sessions = std::vector<yyparse_param_t>();
+std::vector<yyparse_param_t>::iterator itCurrentSession = std::vector<yyparse_param_t>::iterator();
 std::map<int,String> LSCPServer::bufferedNotifies = std::map<int,String>();
 std::map<int,String> LSCPServer::bufferedCommands = std::map<int,String>();
 std::map< LSCPEvent::event_t, std::list<int> > LSCPServer::eventSubscriptions = std::map< LSCPEvent::event_t, std::list<int> >();
@@ -218,7 +219,7 @@ int LSCPServer::Main() {
 
     listen(hSocket, 1);
     Initialized.Set(true);
-    
+
     // Registering event listeners
     pSampler->AddChannelCountListener(&eventHandler);
     pSampler->AddAudioDeviceCountListener(&eventHandler);
@@ -327,12 +328,14 @@ int LSCPServer::Main() {
                                 int dummy; // just a temporary hack to fulfill the restart() function prototype
                                 restart(NULL, dummy); // restart the 'scanner'
 				currentSocket = (*iter).hSession;  //a hack
+				itCurrentSession = iter; // another hack
 				dmsg(2,("LSCPServer: [%s]\n",bufferedCommands[currentSocket].c_str()));
                                 if ((*iter).bVerbose) { // if echo mode enabled
                                     AnswerClient(bufferedCommands[currentSocket]);
                                 }
 				int result = yyparse(&(*iter));
 				currentSocket = -1;	//continuation of a hack
+				itCurrentSession = Sessions.end(); // hack as well
 				dmsg(3,("LSCPServer: Done parsing on socket %d.\n", currentSocket));
 				if (result == LSCP_QUIT) { //Was it a quit command by any chance?
 					CloseConnection(iter);
@@ -423,6 +426,10 @@ extern int GetLSCPCommand( void *buf, int max_size ) {
 	strcpy((char*) buf, command.c_str());
 	LSCPServer::bufferedCommands.erase(LSCPServer::currentSocket);
 	return command.size();
+}
+
+extern yyparse_param_t* GetCurrentYaccSession() {
+    return &(*itCurrentSession);
 }
 
 /**
@@ -612,7 +619,7 @@ EngineChannel* LSCPServer::GetEngineChannel(uint uiSamplerChannel) {
     EngineChannel* pEngineChannel = pSamplerChannel->GetEngineChannel();
     if (!pEngineChannel) throw Exception("There is no engine deployed on this sampler channel yet");
 
-    return pEngineChannel;        
+    return pEngineChannel;
 }
 
 /**
@@ -1999,7 +2006,7 @@ String LSCPServer::CreateFxSend(uint uiSamplerChannel, uint MidiCtrl, String Nam
     LSCPResultSet result;
     try {
         EngineChannel* pEngineChannel = GetEngineChannel(uiSamplerChannel);
-        
+
         FxSend* pFxSend = pEngineChannel->AddFxSend(MidiCtrl, Name);
         if (!pFxSend) throw Exception("Could not add FxSend, don't ask, I don't know why (probably a bug)");
 
@@ -2083,7 +2090,7 @@ String LSCPServer::GetFxSendInfo(uint uiSamplerChannel, uint FxSendID) {
     try {
         EngineChannel* pEngineChannel = GetEngineChannel(uiSamplerChannel);
         FxSend* pFxSend = GetFxSend(uiSamplerChannel, FxSendID);
-        
+
         // gather audio routing informations
         String AudioRouting;
         for (int chan = 0; chan < pEngineChannel->Channels(); chan++) {
@@ -2223,7 +2230,7 @@ String LSCPServer::GetServerInfo() {
 #else
     result.Add("INSTRUMENTS_DB_SUPPORT", "no");
 #endif
-    
+
     return result.Produce();
 }
 
@@ -2472,7 +2479,7 @@ String LSCPServer::AddDbInstruments(String ScanMode, String DbDir, String FsDir,
         } else {
             throw Exception("Unknown scan mode: " + ScanMode);
         }
-        
+
         if (bBackground) result = id;
     } catch (Exception e) {
          result.Error(e);
@@ -2766,6 +2773,6 @@ String LSCPServer::FilterEndlines(String s) {
         if (s2.at(i) == '\r') s2.at(i) = ' ';
         else if (s2.at(i) == '\n') s2.at(i) = ' ';
     }
-    
+
     return s2;
 }

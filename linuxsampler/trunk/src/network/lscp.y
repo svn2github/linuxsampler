@@ -37,6 +37,8 @@
 
 // to save us typing work in the rules action definitions
 #define LSCPSERVER ((yyparse_param_t*) yyparse_param)->pServer
+#define SESSION_PARAM ((yyparse_param_t*) yyparse_param)
+#define INCREMENT_LINE { SESSION_PARAM->iLine++; SESSION_PARAM->iColumn = 0; }
 
 // clears input buffer
 void restart(yyparse_param_t* pparam, int& yychar);
@@ -48,9 +50,14 @@ void yyerror(const char* s);
 static char buf[1024]; // input buffer to feed the parser with new characters
 static int bytes = 0;  // current number of characters in the input buffer
 static int ptr   = 0;  // current position in the input buffer
+static String sLastError; // error message of the last error occured
 
 // external reference to the function which actually reads from the socket
 extern int GetLSCPCommand( void *buf, int max_size);
+
+// external reference to the function in lscpserver.cpp which returns the
+// current session (only works because the server runs as singleton)
+extern yyparse_param_t* GetCurrentYaccSession();
 
 // returns true if supplied characters has an ASCII code of 128 or higher
 inline bool isExtendedAsciiChar(const char c) {
@@ -72,6 +79,8 @@ int yylex(YYSTYPE* yylval) {
     }
     // this is the next character in the input stream
     const char c = buf[ptr++];
+    // increment current reading position (just for verbosity / messages)
+    GetCurrentYaccSession()->iColumn++;
     // we have to handle "normal" and "extended" ASCII characters separately
     if (isExtendedAsciiChar(c)) {
         // workaround for characters with ASCII code higher than 127
@@ -123,6 +132,8 @@ int hexsToNumber(char hex_digit0, char hex_digit1 = '0') {
 
 // reentrant parser
 %pure_parser
+
+// tell bison to spit out verbose syntax error messages
 %error-verbose
 
 %token <Char> EXT_ASCII_CHAR
@@ -156,9 +167,9 @@ input                 : line LF
                       ;
 
 line                  :  /* epsilon (empty line ignored) */ { return LSCP_DONE; }
-                      |  comment  { return LSCP_DONE; }
-                      |  command  { LSCPSERVER->AnswerClient($1); return LSCP_DONE; }
-                      |  error    { LSCPSERVER->AnswerClient("ERR:0:Unknown command.\r\n"); RESTART; return LSCP_SYNTAX_ERROR; }
+                      |  comment  { INCREMENT_LINE; return LSCP_DONE; }
+                      |  command  { INCREMENT_LINE; LSCPSERVER->AnswerClient($1); return LSCP_DONE; }
+                      |  error    { INCREMENT_LINE; LSCPSERVER->AnswerClient("ERR:0:" + sLastError + "\r\n"); RESTART; return LSCP_SYNTAX_ERROR; }
                       ;
 
 comment               :  '#'
@@ -976,7 +987,13 @@ QUIT                  :  'Q''U''I''T'
  * Will be called when an error occured (usually syntax error).
  */
 void yyerror(const char* s) {
-    dmsg(2,("LSCPParser: %s\n", s));
+    yyparse_param_t* param = GetCurrentYaccSession();
+    String msg = s
+        + (" (line:"   + ToString(param->iLine+1))
+        + ( ",column:" + ToString(param->iColumn))
+        + ")";
+    dmsg(2,("LSCPParser: %s\n", msg.c_str()));
+    sLastError = msg;
 }
 
 /**
@@ -985,4 +1002,5 @@ void yyerror(const char* s) {
 void restart(yyparse_param_t* pparam, int& yychar) {
     bytes = 0;
     ptr   = 0;
+    sLastError = "";
 }
