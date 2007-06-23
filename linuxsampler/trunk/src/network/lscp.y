@@ -166,7 +166,7 @@ input                 : line LF
                       | line CR LF
                       ;
 
-line                  :  /* epsilon (empty line ignored) */ { return LSCP_DONE; }
+line                  :  /* epsilon (empty line ignored) */ { INCREMENT_LINE; return LSCP_DONE; }
                       |  comment  { INCREMENT_LINE; return LSCP_DONE; }
                       |  command  { INCREMENT_LINE; LSCPSERVER->AnswerClient($1); return LSCP_DONE; }
                       |  error    { INCREMENT_LINE; LSCPSERVER->AnswerClient("ERR:0:" + sLastError + "\r\n"); RESTART; return LSCP_SYNTAX_ERROR; }
