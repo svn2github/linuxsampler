@@ -144,19 +144,26 @@ namespace LinuxSampler {
     }
 
     void EngineChannel::SetMidiInstrumentMapToNone() {
+        if (iMidiInstrumentMap == NO_MIDI_INSTRUMENT_MAP) return;
         iMidiInstrumentMap = NO_MIDI_INSTRUMENT_MAP;
+        StatusChanged(true);
     }
 
     void EngineChannel::SetMidiInstrumentMapToDefault() {
+        if (iMidiInstrumentMap == DEFAULT_MIDI_INSTRUMENT_MAP) return;
         iMidiInstrumentMap = DEFAULT_MIDI_INSTRUMENT_MAP;
+        StatusChanged(true);
     }
 
     void EngineChannel::SetMidiInstrumentMap(int MidiMap) throw (Exception) {
+        if (iMidiInstrumentMap == MidiMap) return;
+
         // check if given map actually exists in the MIDI instrument mapper
         std::vector<int> maps = MidiInstrumentMapper::Maps();
         if (find(maps.begin(), maps.end(), MidiMap) == maps.end())
             throw Exception("MIDI instrument map doesn't exist");
         iMidiInstrumentMap = MidiMap; // assign the new map ID
+        StatusChanged(true);
     }
 
     void EngineChannel::SetMidiRpnControllerMsb(uint8_t CtrlMSB) {
