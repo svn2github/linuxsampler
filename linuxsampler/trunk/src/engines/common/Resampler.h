@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 Christian Schoenebeck                              *
+ *   Copyright (C) 2005 - 2007 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -20,6 +20,9 @@
  *   Foundation, Inc., 59 Temple Place, Suite 330, Boston,                 *
  *   MA  02111-1307  USA                                                   *
  ***************************************************************************/
+
+// Note: the assembly code is currently disabled, as it doesn't fit into
+// the new synthesis core introduced by LS 0.4.0
 
 #ifndef __LS_RESAMPLER_H__
 #define __LS_RESAMPLER_H__
@@ -75,7 +78,7 @@ namespace LinuxSampler {
                 }
             }
 
-#if CONFIG_ASM && ARCH_X86
+#if 0 // CONFIG_ASM && ARCH_X86
             inline static void GetNext4SamplesMonoMMXSSE(sample_t* pSrc, void* Pos, float& Pitch) {
                 if (INTERPOLATE) Interpolate4StepsMonoMMXSSE(pSrc, Pos, Pitch);
                 else { // no pitch, so no interpolation necessary
@@ -222,7 +225,7 @@ namespace LinuxSampler {
                 return samplePoint;
             }
 
-#if CONFIG_ASM && ARCH_X86
+#if 0 // CONFIG_ASM && ARCH_X86
             // TODO: no support for cubic interpolation yet
             inline static void Interpolate4StepsMonoMMXSSE(sample_t* pSrc, void* Pos, float& Pitch) {
                 /* calculate playback position of each of the 4 samples by adding the associated pitch */

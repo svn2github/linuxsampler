@@ -57,6 +57,8 @@ Version CVS HEAD (?)
       main process did not wait for the stack trace process to finish
       its output
     - fixed some minor memory leaks
+    - reenabled assembly features support, at the moment only for
+      enabling a fast denormal FPU mode (x86 platforms supporting SSE2)
 
   * MIDI driver:
     - dispatch bank select (MSB and LSB) messages

@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 Christian Schoenebeck                              *
+ *   Copyright (C) 2005 - 2007 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -20,6 +20,9 @@
  *   Foundation, Inc., 59 Temple Place, Suite 330, Boston,                 *
  *   MA  02111-1307  USA                                                   *
  ***************************************************************************/
+
+// Note: the assembly code is currently disabled, as it doesn't fit into
+// the new synthesis core introduced by LS 0.4.0
 
 #ifndef __LS_BIQUADFILTER_H__
 #define __LS_BIQUADFILTER_H__
@@ -131,7 +134,7 @@ namespace LinuxSampler {
                 return y;
             }
 
-#if CONFIG_ASM && ARCH_X86
+#if 0 // CONFIG_ASM && ARCH_X86
             // expects to find input in xmm0 (xmm0 stays unmodified) and finally leaves output in xmm6
             inline void Apply4StepsSSE(biquad_param_t* param) {
                 __asm__ __volatile__ (
@@ -250,7 +253,7 @@ namespace LinuxSampler {
                 return y;
             }
 
-#if CONFIG_ASM && ARCH_X86
+#if 0 // CONFIG_ASM && ARCH_X86
             // expects to find input in xmm0 (xmm0 stays unmodified) and finally leaves output in xmm7
             inline void ApplyFB4StepsSSE(biquad_param_t* param, const bq_t &fb) {
                 float xs, ys;

@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005, 2006 Christian Schoenebeck                        *
+ *   Copyright (C) 2005 - 2007 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -38,8 +38,8 @@ namespace LinuxSampler { namespace gig {
         pLFO3 = new LFOSigned(1200.0f); // pitch EG (-1200..+1200 range)
         KeyGroup = 0;
         SynthesisMode = 0; // set all mode bits to 0 first
-        // select synthesis implementation (currently either pure C++ or MMX+SSE(1))
-        #if CONFIG_ASM && ARCH_X86
+        // select synthesis implementation (asm core is not supported ATM)
+        #if 0 // CONFIG_ASM && ARCH_X86
         SYNTHESIS_MODE_SET_IMPLEMENTATION(SynthesisMode, Features::supportsMMX() && Features::supportsSSE());
         #else
         SYNTHESIS_MODE_SET_IMPLEMENTATION(SynthesisMode, false);

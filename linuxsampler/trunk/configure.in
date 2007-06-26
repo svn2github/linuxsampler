@@ -5,7 +5,7 @@ AC_INIT(configure.in)
 
 LINUXSAMPLER_RELEASE_MAJOR=0
 LINUXSAMPLER_RELEASE_MINOR=4
-LINUXSAMPLER_RELEASE_BUILD=0.5cvs
+LINUXSAMPLER_RELEASE_BUILD=0.6cvs
 
 #------------------------------------------------------------------------------------
 # The following is the libtool / shared library version. This doesn't have to
@@ -348,17 +348,18 @@ fi
 # TODO: should we use AC_ARG_VAR(variable, description) instead?
 
 AC_ARG_ENABLE(asm,
-  [  --enable-asm
+  [  --disable-asm
                           Enable hand-crafted assembly optimizations
-                          (default=off). LinuxSampler provides CPU specific
-                          assembly optimizations for the most important
-                          synthesis algorithms. This is currently disabled
-                          by default since current asm code is broken.],
-  [config_asm="yes"],
-  [config_asm="no"]
+                          (default=on). LinuxSampler provides CPU specific
+                          assembly optimizations. This is currently limited
+                          to just enter a fast (denormal) FPU mode on x86
+                          platforms. There are currently no synthesis core
+                          assembly optimizations anymore since LS 0.4.0],
+  [config_asm="no"],
+  [config_asm="yes"]
 )
 if test "$config_asm" = "yes"; then
-  AC_DEFINE_UNQUOTED(CONFIG_ASM, 1, [Define to 1 if you want to enable hand-crafted asm optimizations.])
+  AC_DEFINE_UNQUOTED(CONFIG_ASM, 1, [Define to 1 if you want to enable asm optimizations.])
 fi
 
 AC_ARG_ENABLE(dev-mode,
