@@ -38,7 +38,8 @@ public:
 
     void set_instrument(gig::Instrument* instrument);
 
-    sigc::signal<void> signal_sel_changed();
+    sigc::signal<void> signal_region_selected();
+    sigc::signal<void> signal_instrument_changed();
 
     gig::Region* get_region() { return region; }
 
@@ -57,7 +58,8 @@ protected:
 
     void draw_region(int from, int to, const Gdk::Color& color);
 
-    sigc::signal<void> sel_changed_signal;
+    sigc::signal<void> region_selected;
+    sigc::signal<void> instrument_changed;
 
     gig::Instrument* instrument;
     gig::Region* region;

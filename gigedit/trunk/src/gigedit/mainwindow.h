@@ -55,14 +55,12 @@ class InstrumentProps : public Gtk::Window {
 public:
     InstrumentProps();
     void set_instrument(gig::Instrument* instrument);
+    sigc::signal<void> signal_instrument_changed();
 protected:
     Gtk::VBox vbox;
     Gtk::HButtonBox buttonBox;
     Gtk::Button quitButton;
     Gtk::Table table;
-    Gtk::Label label[10];
-    Gtk::Entry entry[8];
-    Gtk::CheckButton check[2];
     StringEntry eName;
     BoolEntry eIsDrum;
     NumEntryTemp<uint16_t> eMIDIBank;
@@ -79,6 +77,7 @@ protected:
     void add_prop(LabelWidget& prop);
     void key_range_low_changed();
     void key_range_high_changed();
+    sigc::signal<void> instrument_changed;
 };
 
 class LoadDialog : public Gtk::Dialog {
@@ -115,6 +114,7 @@ public:
     virtual ~MainWindow();
     void load_file(const char* name);
     void load_instrument(gig::Instrument* instr);
+    void file_changed();
 
 protected:
     Glib::RefPtr<Gtk::ActionGroup> actionGroup;
@@ -198,6 +198,7 @@ protected:
     void on_action_file_save();
     void on_action_file_save_as();
     void on_action_file_properties();
+    void on_action_quit();
     void show_instr_props();
     void on_action_help_about();
 
@@ -216,6 +217,13 @@ protected:
     void load_gig(gig::File* gig, const char* filename);
 
     gig::File* file;
+    bool file_has_name;
+    bool file_is_changed;
+    std::string filename;
+    std::string current_dir;
+
+    bool file_save();
+    bool file_save_as();
 
     void on_button_release(GdkEventButton* button);
     void on_sample_treeview_drag_data_get(const Glib::RefPtr<Gdk::DragContext>&,
@@ -232,7 +240,11 @@ protected:
     void __import_queued_samples();
     void __clear();
 
+    bool close_confirmation_dialog();
+
     Gtk::Menu* popup_menu;
+
+    bool on_delete_event(GdkEventAny* event);
 };
 
 #endif

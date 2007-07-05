@@ -19,8 +19,6 @@
 
 #include "paramedit.h"
 
-bool update_gui;
-
 namespace {
     const char* const controlChangeTexts[] = {
         "none", "channelaftertouch", "velocity",
@@ -97,8 +95,15 @@ NumEntryGain::NumEntryGain(const char* labelText,
 
 void NumEntryGain::value_changed()
 {
-    if (ptr && update_gui) {
-        *ptr = int32_t(spinbutton.get_value() * coeff);
+    if (ptr) {
+        const double f = pow(10, spinbutton.get_digits());
+        int new_value = round_to_int(spinbutton.get_value() * f);
+
+        if (new_value != round_to_int(*ptr / coeff * f))
+        {
+            *ptr = round_to_int(new_value / f * coeff);
+            sig_changed();
+        }
     }
 }
 
@@ -123,14 +128,16 @@ BoolEntryPlus6::BoolEntryPlus6(const char* labelText, NumEntryGain& eGain, int32
 
 void BoolEntryPlus6::value_changed()
 {
-    if (ptr && update_gui) {
+    if (ptr) {
         bool plus6 = checkbutton.get_active();
         if (plus6) {
             eGain.set_value(0);
             *ptr = plus6value;
+            sig_changed();
         } else {
             if (*ptr < 0) {
                 *ptr = 0;
+                sig_changed();
             }
         }
         eGain.set_sensitive(!plus6);
@@ -154,8 +161,12 @@ NumEntryPermille::NumEntryPermille(const char* labelText,
 
 void NumEntryPermille::value_changed()
 {
-    if (ptr && update_gui) {
-        *ptr = uint16_t(spinbutton.get_value() * 10 + 0.5);
+    if (ptr) {
+        uint16_t new_value = uint16_t(spinbutton.get_value() * 10 + 0.5);
+        if (new_value != *ptr) {
+            *ptr = uint16_t(spinbutton.get_value() * 10 + 0.5);
+            sig_changed();
+        }
     }
 }
 
@@ -204,7 +215,7 @@ int NoteEntry::on_input(double* new_value)
 // Convert the Adjustment position to text
 bool NoteEntry::on_output()
 {
-    int x = int(spinbutton.get_adjustment()->get_value());
+    int x = int(spinbutton.get_adjustment()->get_value() + 0.5);
     char buf[10];
     sprintf(buf, "%s%d", notes[x % 12], x / 12 - 1);
     spinbutton.set_text(buf);
@@ -227,7 +238,7 @@ ChoiceEntryLeverageCtrl::ChoiceEntryLeverageCtrl(const char* labelText) :
 
 void ChoiceEntryLeverageCtrl::value_changed()
 {
-    if (ptr && update_gui) {
+    if (ptr) {
         int rowno = combobox.get_active_row_number();
         switch (rowno)
         {
@@ -256,6 +267,7 @@ void ChoiceEntryLeverageCtrl::value_changed()
             }
             break;
         }
+        if (rowno >= 0) sig_changed();
     }
 }
 
@@ -306,8 +318,9 @@ BoolEntry::BoolEntry(const char* labelText) :
 
 void BoolEntry::value_changed()
 {
-    if (ptr && update_gui) {
+    if (ptr) {
         *ptr = checkbutton.get_active();
+        sig_changed();
     }
 }
 
@@ -328,8 +341,9 @@ StringEntry::StringEntry(const char* labelText) :
 
 void StringEntry::value_changed()
 {
-    if (ptr && update_gui) {
+    if (ptr) {
         *ptr = entry.get_text();
+        sig_changed();
     }
 }
 

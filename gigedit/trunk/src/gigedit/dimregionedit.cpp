@@ -413,20 +413,20 @@ DimRegionEdit::DimRegionEdit() :
     eVCFResonanceController.signal_changed().connect(
         sigc::mem_fun(*this, &DimRegionEdit::VCFResonanceController_changed) );
 
-    eCrossfade_in_start.signal_value_changed().connect(
+    eCrossfade_in_start.signal_changed_by_user().connect(
         sigc::mem_fun(*this, &DimRegionEdit::crossfade1_changed));
-    eCrossfade_in_end.signal_value_changed().connect(
+    eCrossfade_in_end.signal_changed_by_user().connect(
         sigc::mem_fun(*this, &DimRegionEdit::crossfade2_changed));
-    eCrossfade_out_start.signal_value_changed().connect(
+    eCrossfade_out_start.signal_changed_by_user().connect(
         sigc::mem_fun(*this, &DimRegionEdit::crossfade3_changed));
-    eCrossfade_out_end.signal_value_changed().connect(
+    eCrossfade_out_end.signal_changed_by_user().connect(
         sigc::mem_fun(*this, &DimRegionEdit::crossfade4_changed));
 
     eSampleLoopEnabled.signal_toggled().connect(
         sigc::mem_fun(*this, &DimRegionEdit::loop_enabled_toggled));
-    eSampleLoopStart.signal_value_changed().connect(
+    eSampleLoopStart.signal_changed_by_user().connect(
         sigc::mem_fun(*this, &DimRegionEdit::updateLoopElements));
-    eSampleLoopLength.signal_value_changed().connect(
+    eSampleLoopLength.signal_changed_by_user().connect(
         sigc::mem_fun(*this, &DimRegionEdit::updateLoopElements));
     eSampleLoopInfinite.signal_toggled().connect(
         sigc::mem_fun(*this, &DimRegionEdit::loop_infinite_toggled));
@@ -499,6 +499,7 @@ void DimRegionEdit::addProp(BoolEntry& boolentry)
     table[pageno]->attach(boolentry.widget, 1, 3, rowno, rowno + 1,
                           Gtk::FILL, Gtk::SHRINK);
     rowno++;
+    boolentry.signal_changed_by_user().connect(dimreg_changed_signal.make_slot());
 }
 
 void DimRegionEdit::addProp(LabelWidget& prop)
@@ -508,6 +509,7 @@ void DimRegionEdit::addProp(LabelWidget& prop)
     table[pageno]->attach(prop.widget, 2, 3, rowno, rowno + 1,
                           Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK);
     rowno++;
+    prop.signal_changed_by_user().connect(dimreg_changed_signal.make_slot());
 }
 
 
@@ -518,7 +520,6 @@ void DimRegionEdit::set_dim_region(gig::DimensionRegion* d)
     set_sensitive(d);
     if (!d) return;
 
-    update_gui = false;
     wSample->set_text(d->pSample ? d->pSample->pInfo->Name.c_str() : "NULL");
     eEG1PreAttack.set_ptr(&d->EG1PreAttack);
     eEG1Attack.set_ptr(&d->EG1Attack);
@@ -583,10 +584,16 @@ void DimRegionEdit::set_dim_region(gig::DimensionRegion* d)
     eReleaseVelocityResponseCurve.set_ptr(&d->ReleaseVelocityResponseCurve);
     eReleaseVelocityResponseDepth.set_ptr(&d->ReleaseVelocityResponseDepth);
     eReleaseTriggerDecay.set_ptr(&d->ReleaseTriggerDecay);
+
+    eCrossfade_in_start.set_ptr(0);
+    eCrossfade_in_end.set_ptr(0);
+    eCrossfade_out_start.set_ptr(0);
+    eCrossfade_out_end.set_ptr(0);
     eCrossfade_in_start.set_ptr(&d->Crossfade.in_start);
     eCrossfade_in_end.set_ptr(&d->Crossfade.in_end);
     eCrossfade_out_start.set_ptr(&d->Crossfade.out_start);
     eCrossfade_out_end.set_ptr(&d->Crossfade.out_end);
+
     ePitchTrack.set_ptr(&d->PitchTrack);
     eDimensionBypass.set_ptr(&d->DimensionBypass);
     ePan.set_ptr(&d->Pan);
@@ -607,8 +614,6 @@ void DimRegionEdit::set_dim_region(gig::DimensionRegion* d)
     updateLoopElements();
 
     VCFEnabled_toggled();
-
-    update_gui = true;
 }
 
 void DimRegionEdit::VCFEnabled_toggled()
@@ -779,11 +784,16 @@ void DimRegionEdit::loop_enabled_toggled()
             loop.LoopLength =
                 (dimregion->pSample) ? dimregion->pSample->GetSize() : 0;
             dimregion->AddSampleLoop(&loop);
+            dimreg_changed_signal();
         }
     } else {
-        // delete ALL existing sample loops
-        while (dimregion->SampleLoops)
-            dimregion->DeleteSampleLoop(&dimregion->pSampleLoops[0]);
+        if (dimregion->SampleLoops) {
+            // delete ALL existing sample loops
+            while (dimregion->SampleLoops) {
+                dimregion->DeleteSampleLoop(&dimregion->pSampleLoops[0]);
+            }
+            dimreg_changed_signal();
+        }
     }
     updateLoopElements();
 }
@@ -795,16 +805,24 @@ void DimRegionEdit::updateLoopElements()
     eSampleLoopLength.set_sensitive(active);
     eSampleLoopType.set_sensitive(active);
     eSampleLoopInfinite.set_sensitive(active);
+    eSampleLoopStart.set_ptr(0);
+    eSampleLoopLength.set_ptr(0);
+    eSampleLoopPlayCount.set_ptr(0);
+
     if (dimregion && dimregion->SampleLoops) {
         eSampleLoopStart.set_ptr(&dimregion->pSampleLoops[0].LoopStart);
         eSampleLoopLength.set_ptr(&dimregion->pSampleLoops[0].LoopLength);
         eSampleLoopType.set_ptr(&dimregion->pSampleLoops[0].LoopType);
-        eSampleLoopPlayCount.set_ptr(
-            (dimregion->pSample) ? &dimregion->pSample->LoopPlayCount : NULL
-        );
         eSampleLoopInfinite.set_active(
             dimregion->pSample && !dimregion->pSample->LoopPlayCount
         );
+        // updated enabled state of loop play count widget
+        loop_infinite_toggled();
+
+        eSampleLoopPlayCount.set_ptr(
+            (dimregion->pSample) ? &dimregion->pSample->LoopPlayCount : 0
+        );
+
         // sample loop shall never be longer than the actual sample size
         eSampleLoopStart.set_upper(
             (dimregion->pSample)
@@ -819,13 +837,10 @@ void DimRegionEdit::updateLoopElements()
                 : 0
         );
     } else { // no sample loop(s)
-        eSampleLoopStart.set_ptr(NULL);
-        eSampleLoopLength.set_ptr(NULL);
-        eSampleLoopType.set_ptr(NULL);
-        eSampleLoopPlayCount.set_ptr(NULL);
+        eSampleLoopType.set_ptr(0);
+        // updated enabled state of loop play count widget
+        loop_infinite_toggled();
     }
-    // updated enabled state of loop play count widget
-    loop_infinite_toggled();
 }
 
 void DimRegionEdit::loop_infinite_toggled() {

@@ -31,8 +31,6 @@
 #include <gtkmm/spinbutton.h>
 #include <gtkmm/tooltips.h>
 
-extern bool update_gui;
-
 class LabelWidget {
 public:
     Gtk::Label label;
@@ -40,8 +38,12 @@ public:
 
     LabelWidget(const char* labelText, Gtk::Widget& widget);
     void set_sensitive(bool sensitive = true);
+    sigc::signal<void> signal_changed_by_user() {
+        return sig_changed;
+    }
 protected:
     Gtk::Tooltips tooltips;
+    sigc::signal<void> sig_changed;
 };
 
 class NumEntry : public LabelWidget {
@@ -50,14 +52,15 @@ protected:
     Gtk::HScale scale;
     Gtk::SpinButton spinbutton;
     Gtk::HBox box;
+
+    int round_to_int(double x) {
+        return int(x < 0.0 ? x - 0.5 : x + 0.5);
+    }
 public:
     NumEntry(const char* labelText, double lower = 0, double upper = 127,
              int decimals = 0);
     void set_value(double value) {
         spinbutton.set_value(value);
-    }
-    Glib::SignalProxy0<void> signal_value_changed() {
-        return spinbutton.signal_value_changed();
     }
     double get_value() const {
         return spinbutton.get_value();
@@ -104,8 +107,13 @@ NumEntryTemp<T>::NumEntryTemp(const char* labelText,
 template<typename T>
 void NumEntryTemp<T>::value_changed()
 {
-    if (ptr && update_gui) {
-        *ptr = T(spinbutton.get_value());
+    if (ptr) {
+        const double f = pow(10, spinbutton.get_digits());
+        int new_value = round_to_int(spinbutton.get_value() * f);
+        if (new_value != round_to_int(*ptr * f)) {
+            *ptr = T(new_value / f);
+            sig_changed();
+        }
     }
 }
 
@@ -181,9 +189,12 @@ void ChoiceEntry<T>::set_choices(const char** texts, const T* values)
 template<typename T>
 void ChoiceEntry<T>::value_changed()
 {
-    if (ptr && update_gui) {
+    if (ptr) {
         int rowno = combobox.get_active_row_number();
-        if (rowno != -1) *ptr = values[rowno];
+        if (rowno != -1) {
+            *ptr = values[rowno];
+            sig_changed();
+        }
     }
 }
 

@@ -26,7 +26,7 @@
 #include <gtkmm/targetentry.h>
 #include <gtkmm/main.h>
 
-#if GTKMM_MAJOR_VERSION == 2 && GTKMM_MINOR_VERSION >= 6
+#if (GTKMM_MAJOR_VERSION == 2 && GTKMM_MINOR_VERSION >= 6) || GTKMM_MAJOR_VERSION > 2
 #define ABOUT_DIALOG
 #include <gtkmm/aboutdialog.h>
 #endif
@@ -99,10 +99,9 @@ MainWindow::MainWindow()
     action = Gtk::Action::create("SaveAs", Gtk::Stock::SAVE_AS);
     action->property_label() = action->property_label() + "...";
     actionGroup->add(action,
-                     *(new Gtk::AccelKey("<shift><control>s")),
+                     Gtk::AccelKey("<shift><control>s"),
                      sigc::mem_fun(
-                         *this, &MainWindow::on_action_file_save_as)
-        );
+                         *this, &MainWindow::on_action_file_save_as));
     actionGroup->add(Gtk::Action::create("Properties",
                                          Gtk::Stock::PROPERTIES),
                      sigc::mem_fun(
@@ -113,7 +112,7 @@ MainWindow::MainWindow()
                          *this, &MainWindow::show_instr_props));
     actionGroup->add(Gtk::Action::create("Quit", Gtk::Stock::QUIT),
                      sigc::mem_fun(
-                         *this, &MainWindow::hide));
+                         *this, &MainWindow::on_action_quit));
     actionGroup->add(Gtk::Action::create("MenuInstrument", _("_Instrument")));
 
     action = Gtk::Action::create("MenuHelp", Gtk::Stock::HELP);
@@ -153,7 +152,7 @@ MainWindow::MainWindow()
 
     uiManager = Gtk::UIManager::create();
     uiManager->insert_action_group(actionGroup);
-    // add_accel_group(uiManager->get_accel_group());
+    add_accel_group(uiManager->get_accel_group());
 
     Glib::ustring ui_info =
         "<ui>"
@@ -201,9 +200,9 @@ MainWindow::MainWindow()
     m_VBox.pack_start(m_RegionChooser, Gtk::PACK_SHRINK);
     m_VBox.pack_start(m_DimRegionChooser, Gtk::PACK_SHRINK);
 
-    m_RegionChooser.signal_sel_changed().connect(
+    m_RegionChooser.signal_region_selected().connect(
         sigc::mem_fun(*this, &MainWindow::region_changed) );
-    m_DimRegionChooser.signal_sel_changed().connect(
+    m_DimRegionChooser.signal_dimregion_selected().connect(
         sigc::mem_fun(*this, &MainWindow::dimreg_changed) );
 
 
@@ -242,14 +241,33 @@ MainWindow::MainWindow()
     dimreg_edit.wSample->signal_drag_data_received().connect(
         sigc::mem_fun(*this, &MainWindow::on_sample_label_drop_drag_data_received)
     );
-
+    dimreg_edit.signal_dimreg_changed().connect(
+        sigc::mem_fun(*this, &MainWindow::file_changed));
+    m_RegionChooser.signal_instrument_changed().connect(
+        sigc::mem_fun(*this, &MainWindow::file_changed));
+    m_DimRegionChooser.signal_region_changed().connect(
+        sigc::mem_fun(*this, &MainWindow::file_changed));
+    instrumentProps.signal_instrument_changed().connect(
+        sigc::mem_fun(*this, &MainWindow::file_changed));
     file = 0;
+    file_is_changed = false;
 
     show_all_children();
 }
 
 MainWindow::~MainWindow()
 {
+}
+
+bool MainWindow::on_delete_event(GdkEventAny* event)
+{
+    return file_is_changed && !close_confirmation_dialog();
+}
+
+void MainWindow::on_action_quit()
+{
+    if (file_is_changed && !close_confirmation_dialog()) return;
+    hide();
 }
 
 void MainWindow::region_changed()
@@ -370,6 +388,8 @@ void MainWindow::__clear() {
 
 void MainWindow::on_action_file_new()
 {
+    if (file_is_changed && !close_confirmation_dialog()) return;
+
     // clear all GUI elements
     __clear();
     // create a new .gig file (virtually yet)
@@ -378,22 +398,46 @@ void MainWindow::on_action_file_new()
     gig::Instrument* pInstrument = pFile->AddInstrument();
     pInstrument->pInfo->Name = "Unnamed Instrument";
     // update GUI with that new gig::File
-    load_gig(pFile, NULL /*no file name yet*/);
+    load_gig(pFile, 0 /*no file name yet*/);
+}
+
+bool MainWindow::close_confirmation_dialog()
+{
+    gchar* msg = g_strdup_printf(_("Save changes to \"%s\" before closing?"),
+                                 Glib::filename_display_basename(filename).c_str());
+    Gtk::MessageDialog dialog(*this, msg, false, Gtk::MESSAGE_WARNING, Gtk::BUTTONS_NONE);
+    g_free(msg);
+    dialog.set_secondary_text(_("If you close without saving, your changes will be lost."));
+    dialog.add_button(_("Close _Without Saving"), Gtk::RESPONSE_NO);
+    dialog.add_button(Gtk::Stock::CANCEL, Gtk::RESPONSE_CANCEL);
+    dialog.add_button(file_has_name ? Gtk::Stock::SAVE : Gtk::Stock::SAVE_AS, Gtk::RESPONSE_YES);
+    dialog.set_default_response(Gtk::RESPONSE_YES);
+    int response = dialog.run();
+    if (response == Gtk::RESPONSE_YES) return file_save();
+    return response != Gtk::RESPONSE_CANCEL;
 }
 
 void MainWindow::on_action_file_open()
 {
+    if (file_is_changed && !close_confirmation_dialog()) return;
+
     Gtk::FileChooserDialog dialog(*this, _("Open file"));
     dialog.add_button(Gtk::Stock::CANCEL, Gtk::RESPONSE_CANCEL);
     dialog.add_button(Gtk::Stock::OPEN, Gtk::RESPONSE_OK);
+    dialog.set_default_response(Gtk::RESPONSE_OK);
     Gtk::FileFilter filter;
     filter.add_pattern("*.gig");
     dialog.set_filter(filter);
+    if (current_dir != "") {
+        dialog.set_current_folder(current_dir);
+    }
     if (dialog.run() == Gtk::RESPONSE_OK) {
-        printf("filename=%s\n", dialog.get_filename().c_str());
+        std::string filename = dialog.get_filename();
+        printf("filename=%s\n", filename.c_str());
         __clear();
         printf("on_action_file_open self=%x\n", Glib::Thread::self());
-        load_file(dialog.get_filename().c_str());
+        load_file(filename.c_str());
+        current_dir = Glib::path_get_dirname(filename);
     }
 }
 
@@ -417,7 +461,7 @@ void MainWindow::load_instrument(gig::Instrument* instr) {
         Gtk::Main::quit();
     }
     gig::File* pFile = (gig::File*) instr->GetParent();
-    load_gig(pFile, NULL /*file name*/);
+    load_gig(pFile, 0 /*file name*/);
     //TODO: automatically select the given instrument
 }
 
@@ -436,41 +480,83 @@ void MainWindow::on_loader_finished()
 
 void MainWindow::on_action_file_save()
 {
-    if (!file) return;
+    file_save();
+}
+
+bool MainWindow::file_save()
+{
+    if (!file) return false;
+    if (!file_has_name) return file_save_as();
+
     std::cout << "Saving file\n" << std::flush;
     try {
         file->Save();
+        if (file_is_changed) {
+            set_title(get_title().substr(1));
+            file_is_changed = false;
+        }
     } catch (RIFF::Exception e) {
         Glib::ustring txt = "Could not save file: " + e.Message;
         Gtk::MessageDialog msg(*this, txt, false, Gtk::MESSAGE_ERROR);
         msg.run();
-        return;
+        return false;
     }
     std::cout << "Saving file done\n" << std::flush;
     __import_queued_samples();
+    return true;
 }
 
 void MainWindow::on_action_file_save_as()
 {
-    if (!file) return;
-    Gtk::FileChooserDialog dialog(*this, "Open", Gtk::FILE_CHOOSER_ACTION_SAVE);
+    file_save_as();
+}
+
+bool MainWindow::file_save_as()
+{
+    if (!file) return false;
+    Gtk::FileChooserDialog dialog(*this, _("Save as"), Gtk::FILE_CHOOSER_ACTION_SAVE);
     dialog.add_button(Gtk::Stock::CANCEL, Gtk::RESPONSE_CANCEL);
     dialog.add_button(Gtk::Stock::SAVE, Gtk::RESPONSE_OK);
+    dialog.set_default_response(Gtk::RESPONSE_OK);
+
+#if (GTKMM_MAJOR_VERSION == 2 && GTKMM_MINOR_VERSION >= 8) || GTKMM_MAJOR_VERSION > 2
+    dialog.set_do_overwrite_confirmation();
+    // TODO: an overwrite dialog for gtkmm < 2.8
+#endif
     Gtk::FileFilter filter;
     filter.add_pattern("*.gig");
     dialog.set_filter(filter);
+
+    if (Glib::path_is_absolute(filename)) {
+        dialog.set_filename(filename);
+    } else if (current_dir != "") {
+        dialog.set_current_folder(current_dir);
+    }
+    dialog.set_current_name(Glib::filename_display_basename(filename));
+
     if (dialog.run() == Gtk::RESPONSE_OK) {
-        printf("filename=%s\n", dialog.get_filename().c_str());
         try {
-            file->Save(dialog.get_filename());
+            std::string filename = dialog.get_filename();
+            if (!Glib::str_has_suffix(filename, ".gig")) {
+                filename += ".gig";
+            }
+            printf("filename=%s\n", filename.c_str());
+            file->Save(filename);
+            this->filename = filename;
+            current_dir = Glib::path_get_dirname(filename);
+            set_title(Glib::filename_display_basename(filename));
+            file_has_name = true;
+            file_is_changed = false;
         } catch (RIFF::Exception e) {
             Glib::ustring txt = "Could not save file: " + e.Message;
             Gtk::MessageDialog msg(*this, txt, false, Gtk::MESSAGE_ERROR);
             msg.run();
-            return;
+            return false;
         }
         __import_queued_samples();
+        return true;
     }
+    return false;
 }
 
 // actually write the sample(s)' data to the gig file
@@ -633,6 +719,7 @@ void InstrumentProps::add_prop(LabelWidget& prop)
     table.attach(prop.widget, 1, 2, rowno, rowno + 1,
                  Gtk::FILL | Gtk::EXPAND, Gtk::SHRINK);
     rowno++;
+    prop.signal_changed_by_user().connect(instrument_changed.make_slot());
 }
 
 InstrumentProps::InstrumentProps()
@@ -669,9 +756,9 @@ InstrumentProps::InstrumentProps()
     add_prop(eDimensionKeyRangeLow);
     add_prop(eDimensionKeyRangeHigh);
 
-    eDimensionKeyRangeLow.signal_value_changed().connect(
+    eDimensionKeyRangeLow.signal_changed_by_user().connect(
         sigc::mem_fun(*this, &InstrumentProps::key_range_low_changed));
-    eDimensionKeyRangeHigh.signal_value_changed().connect(
+    eDimensionKeyRangeHigh.signal_changed_by_user().connect(
         sigc::mem_fun(*this, &InstrumentProps::key_range_high_changed));
 
     add(vbox);
@@ -696,7 +783,6 @@ InstrumentProps::InstrumentProps()
 
 void InstrumentProps::set_instrument(gig::Instrument* instrument)
 {
-    update_gui = false;
     eName.set_ptr(&instrument->pInfo->Name);
     eIsDrum.set_ptr(&instrument->IsDrum);
     eMIDIBank.set_ptr(&instrument->MIDIBank);
@@ -707,9 +793,10 @@ void InstrumentProps::set_instrument(gig::Instrument* instrument)
     eFineTune.set_ptr(&instrument->FineTune);
     ePitchbendRange.set_ptr(&instrument->PitchbendRange);
     ePianoReleaseMode.set_ptr(&instrument->PianoReleaseMode);
+    eDimensionKeyRangeLow.set_ptr(0);
+    eDimensionKeyRangeHigh.set_ptr(0);
     eDimensionKeyRangeLow.set_ptr(&instrument->DimensionKeyRange.low);
     eDimensionKeyRangeHigh.set_ptr(&instrument->DimensionKeyRange.high);
-    update_gui = true;
 }
 
 void InstrumentProps::key_range_low_changed()
@@ -726,17 +813,27 @@ void InstrumentProps::key_range_high_changed()
     if (h < l) eDimensionKeyRangeLow.set_value(h);
 }
 
+sigc::signal<void> InstrumentProps::signal_instrument_changed()
+{
+    return instrument_changed;
+}
+
+void MainWindow::file_changed()
+{
+    if (file && !file_is_changed) {
+        set_title("*" + get_title());
+        file_is_changed = true;
+    }
+}
+
 void MainWindow::load_gig(gig::File* gig, const char* filename)
 {
-    file = gig;
+    file = 0;
 
-    if (filename) {
-        const char *basename = strrchr(filename, '/');
-        basename = basename ? basename + 1 : filename;
-        set_title(basename);
-    } else {
-        set_title("unnamed");
-    }
+    this->filename = filename ? filename : _("Unsaved Gig File");
+    set_title(Glib::filename_display_basename(this->filename));
+    file_has_name = filename;
+    file_is_changed = false;
 
     propDialog.set_info(gig->pInfo);
 
@@ -784,6 +881,8 @@ void MainWindow::load_gig(gig::File* gig, const char* filename)
             }
         }
     }
+
+    file = gig;
 
     // select the first instrument
     Glib::RefPtr<Gtk::TreeSelection> tree_sel_ref = m_TreeView.get_selection();
@@ -858,6 +957,7 @@ void MainWindow::on_action_add_instrument() {
     Gtk::TreeModel::Row rowInstr = *iterInstr;
     rowInstr[m_Columns.m_col_name] = instrument->pInfo->Name.c_str();
     rowInstr[m_Columns.m_col_instr] = instrument;
+    file_changed();
 }
 
 void MainWindow::on_action_remove_instrument() {
@@ -872,6 +972,7 @@ void MainWindow::on_action_remove_instrument() {
             if (instr) file->DeleteInstrument(instr);
             // remove respective row from instruments tree view
             m_refTreeModel->erase(it);
+            file_changed();
         } catch (RIFF::Exception e) {
             Gtk::MessageDialog msg(*this, e.Message.c_str(), false, Gtk::MESSAGE_ERROR);
             msg.run();
@@ -900,6 +1001,7 @@ void MainWindow::on_action_add_group() {
     rowGroup[m_SamplesModel.m_col_name] = group->Name.c_str();
     rowGroup[m_SamplesModel.m_col_sample] = NULL;
     rowGroup[m_SamplesModel.m_col_group] = group;
+    file_changed();
 }
 
 void MainWindow::on_action_add_sample() {
@@ -1007,6 +1109,7 @@ void MainWindow::on_action_add_sample() {
                 rowSample[m_SamplesModel.m_col_group]  = NULL;
                 // close sound file
                 sf_close(hFile);
+                file_changed();
             } catch (std::string what) { // remember the files that made trouble (and their cause)
                 if (error_files.size()) error_files += "\n";
                 error_files += *iter += " (" + what + ")";
@@ -1057,6 +1160,7 @@ void MainWindow::on_action_remove_sample() {
                         }
                     }
                 }
+                file_changed();
             } else if (sample) {
                 // remove sample from the .gig file
                 file->DeleteSample(sample);
@@ -1071,6 +1175,7 @@ void MainWindow::on_action_remove_sample() {
                         break;
                     }
                 }
+                file_changed();
             }
             // remove respective row(s) from samples tree view
             m_refSamplesTreeModel->erase(it);
@@ -1112,6 +1217,7 @@ void MainWindow::on_sample_label_drop_drag_data_received(
                 dimregion->pSample->pInfo->Name.c_str() << "\"" << std::endl;
             // drop success
             context->drop_reply(true, time);
+            file_changed();
             return;
         }
     }
@@ -1127,9 +1233,17 @@ void MainWindow::sample_name_changed(const Gtk::TreeModel::Path& path,
     gig::Group* group   = row[m_SamplesModel.m_col_group];
     gig::Sample* sample = row[m_SamplesModel.m_col_sample];
     if (group) {
-        group->Name = name;
+        if (group->Name != name) {
+            group->Name = name;
+            printf("group name changed\n");
+            file_changed();
+        }
     } else if (sample) {
-        sample->pInfo->Name = name.raw();
+        if (sample->pInfo->Name != name.raw()) {
+            sample->pInfo->Name = name.raw();
+            printf("sample name changed\n");
+            file_changed();
+        }
     }
 }
 
@@ -1139,5 +1253,8 @@ void MainWindow::instrument_name_changed(const Gtk::TreeModel::Path& path,
     Gtk::TreeModel::Row row = *iter;
     Glib::ustring name = row[m_Columns.m_col_name];
     gig::Instrument* instrument = row[m_Columns.m_col_instr];
-    if (instrument) instrument->pInfo->Name = name.raw();
+    if (instrument && instrument->pInfo->Name != name.raw()) {
+        instrument->pInfo->Name = name.raw();
+        file_changed();
+    }
 }

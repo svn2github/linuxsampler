@@ -37,8 +37,14 @@ public:
     virtual ~DimRegionEdit();
     void set_dim_region(gig::DimensionRegion* d);
     Gtk::Entry* wSample;
+    sigc::signal<void> signal_dimreg_changed() {
+        return dimreg_changed_signal;
+    }
 
 protected:
+    sigc::signal<void> dimreg_changed_signal;
+    sigc::signal<void> instrument_changed;
+
     gig::DimensionRegion* dimregion;
 
     Gtk::Tooltips tooltips;

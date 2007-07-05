@@ -223,7 +223,7 @@ void RegionChooser::set_instrument(gig::Instrument* instrument)
     this->instrument = instrument;
     region = instrument ? instrument->GetFirstRegion() : 0;
     queue_draw();
-    sel_changed_signal.emit();
+    region_selected();
 }
 
 bool RegionChooser::on_button_release_event(GdkEventButton* event)
@@ -233,9 +233,15 @@ bool RegionChooser::on_button_release_event(GdkEventButton* event)
         resize.active = false;
 
         if (resize.mode == resize.moving_high_limit) {
-            resize.region->KeyRange.high = resize.pos - 1;
+            if (resize.region->KeyRange.high != resize.pos - 1) {
+                resize.region->KeyRange.high = resize.pos - 1;
+                instrument_changed();
+            }
         } else if (resize.mode == resize.moving_low_limit) {
-            resize.region->KeyRange.low = resize.pos;
+            if (resize.region->KeyRange.low != resize.pos) {
+                resize.region->KeyRange.low = resize.pos;
+                instrument_changed();
+            }
         }
 
         if (!is_in_resize_zone(event->x, event->y) && cursor_is_resize) {
@@ -257,7 +263,7 @@ bool RegionChooser::on_button_press_event(GdkEventButton* event)
         if (r) {
             region = r;
             queue_draw();
-            sel_changed_signal.emit();
+            region_selected();
             popup_menu_inside_region->popup(event->button, event->time);
         } else {
             new_region_pos = k;
@@ -277,7 +283,7 @@ bool RegionChooser::on_button_press_event(GdkEventButton* event)
             if (r) {
                 region = r;
                 queue_draw();
-                sel_changed_signal.emit();
+                region_selected();
             }
         }
     }
@@ -418,9 +424,14 @@ bool RegionChooser::is_in_resize_zone(double x, double y) {
     return false;
 }
 
-sigc::signal<void> RegionChooser::signal_sel_changed()
+sigc::signal<void> RegionChooser::signal_region_selected()
 {
-    return sel_changed_signal;
+    return region_selected;
+}
+
+sigc::signal<void> RegionChooser::signal_instrument_changed()
+{
+    return instrument_changed;
 }
 
 void RegionChooser::show_region_properties()
@@ -460,7 +471,8 @@ void RegionChooser::add_region()
 
     instrument->MoveRegion(region, r);
     queue_draw();
-    sel_changed_signal.emit();
+    region_selected();
+    instrument_changed();
 }
 
 void RegionChooser::delete_region()
@@ -468,7 +480,8 @@ void RegionChooser::delete_region()
     instrument->DeleteRegion(region);
     region = 0;
     queue_draw();
-    sel_changed_signal.emit();
+    region_selected();
+    instrument_changed();
 }
 
 void RegionChooser::manage_dimensions()
@@ -479,5 +492,6 @@ void RegionChooser::manage_dimensions()
 }
 
 void RegionChooser::on_dimension_manager_changed() {
-    sel_changed_signal.emit();
+    region_selected();
+    instrument_changed();
 }

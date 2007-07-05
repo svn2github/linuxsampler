@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: gigedit 0.0.3\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2007-06-16 12:44+0200\n"
+"POT-Creation-Date: 2007-07-02 22:02+0200\n"
 "PO-Revision-Date: 2007-03-26 18:19+0200\n"
 "Last-Translator: Christian Schoenebeck\n"
 "Language-Team: German\n"
@@ -19,28 +19,49 @@ msgstr ""
 msgid "_File"
 msgstr "_Datei"
 
-#: ../src/gigedit/mainwindow.cpp:117
+#: ../src/gigedit/mainwindow.cpp:116
 msgid "_Instrument"
 msgstr "_Instrument"
 
-#: ../src/gigedit/mainwindow.cpp:128
+#: ../src/gigedit/mainwindow.cpp:127
 msgid "Add _Instrument"
 msgstr "_Instrument hinzufügen"
 
-#: ../src/gigedit/mainwindow.cpp:142
+#: ../src/gigedit/mainwindow.cpp:141
 msgid "Add _Group"
 msgstr "_Gruppe hinzufügen"
 
-#: ../src/gigedit/mainwindow.cpp:146
+#: ../src/gigedit/mainwindow.cpp:145
 msgid "Add _Sample(s)"
 msgstr "_Sample(s) hinzufügen"
 
-#: ../src/gigedit/mainwindow.cpp:386
+#: ../src/gigedit/mainwindow.cpp:406
+#, c-format
+msgid "Save changes to \"%s\" before closing?"
+msgstr ""
+
+#: ../src/gigedit/mainwindow.cpp:410
+msgid "If you close without saving, your changes will be lost."
+msgstr ""
+
+#: ../src/gigedit/mainwindow.cpp:411
+msgid "Close _Without Saving"
+msgstr ""
+
+#: ../src/gigedit/mainwindow.cpp:424
 msgid "Open file"
 msgstr "Datei öffnen"
 
+#: ../src/gigedit/mainwindow.cpp:517
+msgid "Save as"
+msgstr ""
+
+#: ../src/gigedit/mainwindow.cpp:833
+msgid "Unsaved Gig File"
+msgstr ""
+
 #. show 'browse for file' dialog
-#: ../src/gigedit/mainwindow.cpp:923
+#: ../src/gigedit/mainwindow.cpp:1025
 msgid "Add Sample(s)"
 msgstr "Sample(s) hinzufügen"
 

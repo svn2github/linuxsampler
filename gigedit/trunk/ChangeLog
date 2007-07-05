@@ -20,6 +20,12 @@ Version CVS HEAD
     (revised directories to a more automake-friendly structure for this, to
     avoid compilation and install errors)
   * added quick start documentation by Alexander Methke
+  * a changed file is now marked with an asterisk in the window title
+  * added close confirmation dialog, shown if file is changed
+  * "save" means "save as" for new files
+  * enabled acceleration keys
+  * add .gig to filename in "save as" if it's not already there
+  * filename character encodings other than utf-8 supported
 
 Version 0.0.3 (2007-03-24)
 

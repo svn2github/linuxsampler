@@ -36,7 +36,8 @@ public:
 
     void set_region(gig::Region* region);
 
-    sigc::signal<void> signal_sel_changed();
+    sigc::signal<void> signal_dimregion_selected();
+    sigc::signal<void> signal_region_changed();
 
     gig::DimensionRegion* get_dimregion() { return dimreg; }
 
@@ -56,7 +57,8 @@ protected:
     gig::Region* region;
     int dimregno;
 
-    sigc::signal<void> sel_changed_signal;
+    sigc::signal<void> dimregion_selected;
+    sigc::signal<void> region_changed;
 
     gig::DimensionRegion* dimreg;
     int focus_line;

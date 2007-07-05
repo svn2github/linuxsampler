@@ -272,7 +272,7 @@ void DimRegionChooser::set_region(gig::Region* region)
     } else {
         dimreg = 0;
     }
-    sel_changed_signal.emit();
+    dimregion_selected();
     queue_resize();
 }
 
@@ -353,6 +353,7 @@ bool DimRegionChooser::on_button_release_event(GdkEventButton* event)
                 i = (i & ~((1 << bitpos) - 1)) + (1 << bitpos);
             }
         }
+        region_changed();
 
         if (!is_in_resize_zone(event->x, event->y) && cursor_is_resize) {
             get_window()->set_cursor();
@@ -445,7 +446,7 @@ bool DimRegionChooser::on_button_press_event(GdkEventButton* event)
             if (has_focus()) queue_draw();
             else grab_focus();
             dimreg = region->pDimensionRegions[dimregno];
-            sel_changed_signal.emit();
+            dimregion_selected();
         }
     }
     return true;
@@ -588,9 +589,14 @@ bool DimRegionChooser::is_in_resize_zone(double x, double y)
     return false;
 }
 
-sigc::signal<void> DimRegionChooser::signal_sel_changed()
+sigc::signal<void> DimRegionChooser::signal_dimregion_selected()
 {
-    return sel_changed_signal;
+    return dimregion_selected;
+}
+
+sigc::signal<void> DimRegionChooser::signal_region_changed()
+{
+    return region_changed;
 }
 
 bool DimRegionChooser::on_focus(Gtk::DirectionType direction)
