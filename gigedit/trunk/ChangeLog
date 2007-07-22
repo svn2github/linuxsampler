@@ -29,6 +29,8 @@ Version CVS HEAD
   * regions can now be moved, not just resized
   * improved labels in instrument properties dialog
   * remove file extensions from file names when importing samples
+  * added digits for octave numbers on the keyboard and made keys
+    outside piano range grey
 
 Version 0.0.3 (2007-03-24)
 
