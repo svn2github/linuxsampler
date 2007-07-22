@@ -148,6 +148,7 @@ protected:
 
 
     void addProp(BoolEntry& boolentry);
+    void addProp(BoolEntryPlus6& boolentry);
     void addProp(LabelWidget& labelwidget);
     void addString(const char* labelText, Gtk::Label*& label,
                    Gtk::Entry*& widget);

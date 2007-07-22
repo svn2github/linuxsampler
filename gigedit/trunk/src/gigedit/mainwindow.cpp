@@ -712,6 +712,22 @@ void PropDialog::set_info(DLS::Info* info)
     entry[15].set_text(info->Subject);
 }
 
+void InstrumentProps::add_prop(BoolEntry& boolentry)
+{
+    table.attach(boolentry.widget, 0, 2, rowno, rowno + 1,
+                 Gtk::FILL, Gtk::SHRINK);
+    rowno++;
+    boolentry.signal_changed_by_user().connect(instrument_changed.make_slot());
+}
+
+void InstrumentProps::add_prop(BoolEntryPlus6& boolentry)
+{
+    table.attach(boolentry.widget, 0, 2, rowno, rowno + 1,
+                 Gtk::FILL, Gtk::SHRINK);
+    rowno++;
+    boolentry.signal_changed_by_user().connect(instrument_changed.make_slot());
+}
+
 void InstrumentProps::add_prop(LabelWidget& prop)
 {
     table.attach(prop.label, 0, 1, rowno, rowno + 1,
@@ -726,17 +742,17 @@ InstrumentProps::InstrumentProps()
     : table(2,1),
       quitButton(Gtk::Stock::CLOSE),
       eName("Name"),
-      eIsDrum("IsDrum"),
-      eMIDIBank("MIDIBank", 0, 16383),
-      eMIDIProgram("MIDIProgram"),
+      eIsDrum("Is drum"),
+      eMIDIBank("MIDI bank", 0, 16383),
+      eMIDIProgram("MIDI program"),
       eAttenuation("Attenuation", 0, 96, 0, 1),
       eGainPlus6("Gain +6dB", eAttenuation, -6),
-      eEffectSend("EffectSend", 0, 65535),
-      eFineTune("FineTune", -8400, 8400),
-      ePitchbendRange("PitchbendRange", 0, 12),
-      ePianoReleaseMode("PianoReleaseMode"),
-      eDimensionKeyRangeLow("DimensionKeyRangeLow"),
-      eDimensionKeyRangeHigh("DimensionKeyRangeHigh")
+      eEffectSend("Effect send", 0, 65535),
+      eFineTune("Fine tune", -8400, 8400),
+      ePitchbendRange("Pitchbend range", 0, 12),
+      ePianoReleaseMode("Piano release mode"),
+      eDimensionKeyRangeLow("Dimension key range low"),
+      eDimensionKeyRangeHigh("Dimension key range high")
 {
     set_title("Instrument properties");
 
@@ -1027,7 +1043,7 @@ void MainWindow::on_action_add_sample() {
     dialog.add_button(Gtk::Stock::OPEN, Gtk::RESPONSE_OK);
     dialog.set_select_multiple(true);
     Gtk::FileFilter soundfilter; // matches all file types supported by libsndfile
-    const char* supportedFileTypes[] = {
+    const char* const supportedFileTypes[] = {
         "*.wav", "*.WAV", "*.aiff", "*.AIFF", "*.aifc", "*.AIFC", "*.snd",
         "*.SND", "*.au", "*.AU", "*.paf", "*.PAF", "*.iff", "*.IFF",
         "*.svx", "*.SVX", "*.sf", "*.SF", "*.voc", "*.VOC", "*.w64",
@@ -1084,7 +1100,15 @@ void MainWindow::on_action_add_sample() {
                 // add a new sample to the .gig file
                 gig::Sample* sample = file->AddSample();
                 // file name without path
-                sample->pInfo->Name = (*iter).substr((*iter).rfind('/') + 1).raw();
+                Glib::ustring filename = Glib::filename_display_basename(*iter);
+                // remove file extension if there is one
+                for (int i = 0; supportedFileTypes[i]; i++) {
+                    if (Glib::str_has_suffix(filename, supportedFileTypes[i] + 1)) {
+                        filename.erase(filename.length() - strlen(supportedFileTypes[i] + 1));
+                        break;
+                    }
+                }
+                sample->pInfo->Name = filename;
                 sample->Channels = info.channels;
                 sample->BitDepth = bitdepth;
                 sample->FrameSize = bitdepth / 8/*1 byte are 8 bits*/ * info.channels;
@@ -1104,7 +1128,7 @@ void MainWindow::on_action_add_sample() {
                 Gtk::TreeModel::iterator iterSample =
                     m_refSamplesTreeModel->append(row.children());
                 Gtk::TreeModel::Row rowSample = *iterSample;
-                rowSample[m_SamplesModel.m_col_name]   = sample->pInfo->Name.c_str();
+                rowSample[m_SamplesModel.m_col_name]   = filename;
                 rowSample[m_SamplesModel.m_col_sample] = sample;
                 rowSample[m_SamplesModel.m_col_group]  = NULL;
                 // close sound file

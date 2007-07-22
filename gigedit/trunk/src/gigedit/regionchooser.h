@@ -54,7 +54,7 @@ protected:
     gig::Region* get_region(int key);
 
     Glib::RefPtr<Gdk::GC> gc;
-    Gdk::Color blue, red, black, white, green, grey1;
+    Gdk::Color blue, red, grey1;
 
     void draw_region(int from, int to, const Gdk::Color& color);
 
@@ -63,6 +63,9 @@ protected:
 
     gig::Instrument* instrument;
     gig::Region* region;
+
+    void motion_resize_region(int x, int y);
+    void motion_move_region(int x, int y);
 
     // information needed during a resize
     struct {
@@ -78,6 +81,15 @@ protected:
         gig::Region* region;
         gig::Region* prev_region;
     } resize;
+
+    // information needed during a region move
+    struct {
+        bool active;
+        double from_x;
+        int pos;
+        bool touch_left;
+        bool touch_right;
+    } move;
 
     bool cursor_is_resize;
     bool is_in_resize_zone(double x, double y);

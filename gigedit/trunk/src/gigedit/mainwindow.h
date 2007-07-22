@@ -74,6 +74,8 @@ protected:
     NoteEntry eDimensionKeyRangeLow;
     NoteEntry eDimensionKeyRangeHigh;
     int rowno;
+    void add_prop(BoolEntry& prop);
+    void add_prop(BoolEntryPlus6& prop);
     void add_prop(LabelWidget& prop);
     void key_range_low_changed();
     void key_range_high_changed();

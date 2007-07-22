@@ -119,6 +119,7 @@ void NumEntryGain::set_ptr(int32_t* ptr)
 
 BoolEntryPlus6::BoolEntryPlus6(const char* labelText, NumEntryGain& eGain, int32_t plus6value) :
     LabelWidget(labelText, checkbutton),
+    checkbutton(labelText),
     eGain(eGain),
     plus6value(plus6value)
 {

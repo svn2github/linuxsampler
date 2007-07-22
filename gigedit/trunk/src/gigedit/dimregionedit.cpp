@@ -502,6 +502,14 @@ void DimRegionEdit::addProp(BoolEntry& boolentry)
     boolentry.signal_changed_by_user().connect(dimreg_changed_signal.make_slot());
 }
 
+void DimRegionEdit::addProp(BoolEntryPlus6& boolentry)
+{
+    table[pageno]->attach(boolentry.widget, 1, 3, rowno, rowno + 1,
+                          Gtk::FILL, Gtk::SHRINK);
+    rowno++;
+    boolentry.signal_changed_by_user().connect(dimreg_changed_signal.make_slot());
+}
+
 void DimRegionEdit::addProp(LabelWidget& prop)
 {
     table[pageno]->attach(prop.label, 1, 2, rowno, rowno + 1,

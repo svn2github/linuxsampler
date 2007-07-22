@@ -26,6 +26,9 @@ Version CVS HEAD
   * enabled acceleration keys
   * add .gig to filename in "save as" if it's not already there
   * filename character encodings other than utf-8 supported
+  * regions can now be moved, not just resized
+  * improved labels in instrument properties dialog
+  * remove file extensions from file names when importing samples
 
 Version 0.0.3 (2007-03-24)
 

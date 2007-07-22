@@ -31,18 +31,10 @@ RegionChooser::RegionChooser()
 {
     Glib::RefPtr<Gdk::Colormap> colormap = get_default_colormap();
 
-    black = Gdk::Color("black");
-    white = Gdk::Color("white");
     red = Gdk::Color("#8070ff");
-    blue = Gdk::Color("#c098ff");
-    green = Gdk::Color("#a088ff");
-    grey1 = Gdk::Color("red");
+    grey1 = Gdk::Color("#b0b0b0");
 
-    colormap->alloc_color(black);
-    colormap->alloc_color(white);
     colormap->alloc_color(red);
-    colormap->alloc_color(blue);
-    colormap->alloc_color(green);
     colormap->alloc_color(grey1);
     instrument = 0;
     region = 0;
@@ -117,8 +109,19 @@ bool RegionChooser::on_expose_event(GdkEventExpose* event)
     Glib::RefPtr<const Gdk::GC> black = get_style()->get_black_gc();
     Glib::RefPtr<const Gdk::GC> white = get_style()->get_white_gc();
 
+    Glib::RefPtr<Pango::Context> context = get_pango_context();
+    Glib::RefPtr<Pango::Layout> layout = Pango::Layout::create(context);
+
     window->draw_rectangle(black, false, 0, h1, w, h - 1);
-    window->draw_rectangle(white, true, 1, h1 + 1, w - 1, h - 2);
+    gc->set_foreground(grey1);
+    int x1 = int(w * 20.5 / 128.0 + 0.5);
+    int x2 = int(w * 109.5 / 128.0 + 0.5);
+    window->draw_rectangle(gc, true, 1, h1 + 1,
+                           x1 - 1, h - 2);
+    window->draw_rectangle(white, true, x1 + 1, h1 + 1, x2 - x1 - 1, h - 2);
+    window->draw_rectangle(gc, true, x2 + 1, h1 + 1,
+                           w - x2 - 1, h - 2);
+    int octave = -1;
     for (int i = 0 ; i < 128 ; i++) {
         int note = (i + 3) % 12;
         int x = int(w * i / 128.0 + 0.5);
@@ -132,19 +135,31 @@ bool RegionChooser::on_expose_event(GdkEventExpose* event)
         } else if (note == 3 || note == 8) {
             window->draw_line(black, x, h1 + 1, x, h1 + h);
         }
+        if (note == 3) {
+            char buf[30];
+            sprintf(buf, "<span size=\"x-small\">%d</span>", octave);
+            layout->set_markup(buf);
+            Pango::Rectangle rectangle = layout->get_logical_extents();
+            double text_w = double(rectangle.get_width()) / Pango::SCALE;
+            double text_h = double(rectangle.get_height()) / Pango::SCALE;
+            double x2 = w * (i + 0.75) / 128.0;
+            window->draw_layout(black, int(x2 - text_w / 2 + 1),
+                                int(h1 + h - text_h + 0.5), layout);
+            octave++;
+        }
     }
 
     if (instrument) {
         int i = 0;
-        gig::Region *nextRegion;
+        gig::Region *next_region;
         int x3 = -1;
         for (gig::Region *r = instrument->GetFirstRegion() ;
              r ;
-             r = nextRegion) {
+             r = next_region) {
 
             if (x3 < 0) x3 = int(w * (r->KeyRange.low) / 128.0 + 0.5);
-            nextRegion = instrument->GetNextRegion();
-            if (!nextRegion || r->KeyRange.high + 1 != nextRegion->KeyRange.low) {
+            next_region = instrument->GetNextRegion();
+            if (!next_region || r->KeyRange.high + 1 != next_region->KeyRange.low) {
                 int x2 = int(w * (r->KeyRange.high + 1) / 128.0 + 0.5);
                 window->draw_line(black, x3, 0, x2, 0);
                 window->draw_line(black, x3, h1 - 1, x2, h1 - 1);
@@ -248,6 +263,33 @@ bool RegionChooser::on_button_release_event(GdkEventButton* event)
             get_window()->set_cursor();
             cursor_is_resize = false;
         }
+    } else if (move.active) {
+        get_window()->pointer_ungrab(event->time);
+        move.active = false;
+
+        if (move.pos) {
+            region->KeyRange.low += move.pos;
+            region->KeyRange.high += move.pos;
+
+            // find the r which is the first one to the right of region
+            // at its new position
+            gig::Region* r;
+            gig::Region* prev_region = 0;
+            for (r = instrument->GetFirstRegion() ; r ; r = instrument->GetNextRegion()) {
+                if (r->KeyRange.low > region->KeyRange.low) break;
+                prev_region = r;
+            }
+
+            // place region before r if it's not already there
+            if (prev_region != region) {
+                instrument->MoveRegion(region, r);
+            }
+        }
+
+        if (is_in_resize_zone(event->x, event->y)) {
+            get_window()->set_cursor(Gdk::Cursor(Gdk::SB_H_DOUBLE_ARROW));
+            cursor_is_resize = true;
+        }
     }
     return true;
 }
@@ -271,12 +313,11 @@ bool RegionChooser::on_button_press_event(GdkEventButton* event)
         }
     } else {
         if (is_in_resize_zone(event->x, event->y)) {
-            Gdk::Cursor double_arrow(Gdk::SB_H_DOUBLE_ARROW);
             get_window()->pointer_grab(false,
                                        Gdk::BUTTON_RELEASE_MASK |
                                        Gdk::POINTER_MOTION_MASK |
                                        Gdk::POINTER_MOTION_HINT_MASK,
-                                       double_arrow, event->time);
+                                       Gdk::Cursor(Gdk::SB_H_DOUBLE_ARROW), event->time);
             resize.active = true;
         } else {
             gig::Region* r = get_region(k);
@@ -284,6 +325,15 @@ bool RegionChooser::on_button_press_event(GdkEventButton* event)
                 region = r;
                 queue_draw();
                 region_selected();
+
+                get_window()->pointer_grab(false,
+                                           Gdk::BUTTON_RELEASE_MASK |
+                                           Gdk::POINTER_MOTION_MASK |
+                                           Gdk::POINTER_MOTION_HINT_MASK,
+                                           Gdk::Cursor(Gdk::FLEUR), event->time);
+                move.active = true;
+                move.from_x = event->x;
+                move.pos = 0;
             }
         }
     }
@@ -292,77 +342,210 @@ bool RegionChooser::on_button_press_event(GdkEventButton* event)
 
 gig::Region* RegionChooser::get_region(int key)
 {
+    gig::Region* prev_region = 0;
+    gig::Region* next_region;
     for (gig::Region *r = instrument->GetFirstRegion() ; r ;
-         r = instrument->GetNextRegion()) {
+         r = next_region) {
+        next_region = instrument->GetNextRegion();
+
         if (key < r->KeyRange.low) return 0;
-        if (key <= r->KeyRange.high) return r;
+        if (key <= r->KeyRange.high) {
+            move.touch_left = prev_region && prev_region->KeyRange.high + 1 == r->KeyRange.low;
+            move.touch_right = next_region && r->KeyRange.high + 1 == next_region->KeyRange.low;
+            return r;
+        }
+        prev_region = r;
     }
     return 0;
 }
 
-bool RegionChooser::on_motion_notify_event(GdkEventMotion* event)
+void RegionChooser::motion_resize_region(int x, int y)
 {
     const int w = width - 1;
+    Glib::RefPtr<Gdk::Window> window = get_window();
+
+    int k = int(double(x) / w * 128.0 + 0.5);
+
+    if (k < resize.min) k = resize.min;
+    else if (k > resize.max) k = resize.max;
+
+    if (k != resize.pos) {
+        if (resize.mode == resize.undecided) {
+            if (k < resize.pos) {
+                // edit high limit of prev_region
+                resize.max = resize.region->KeyRange.low;
+                resize.region = resize.prev_region;
+                resize.mode = resize.moving_high_limit;
+            } else {
+                // edit low limit of region
+                resize.min = resize.prev_region->KeyRange.high + 1;
+                resize.mode = resize.moving_low_limit;
+            }
+        }
+        Glib::RefPtr<const Gdk::GC> black = get_style()->get_black_gc();
+        Glib::RefPtr<const Gdk::GC> white = get_style()->get_white_gc();
+        if (region == resize.region) {
+            gc->set_foreground(red);
+            white = gc;
+        }
+        Glib::RefPtr<const Gdk::GC> bg = get_style()->get_bg_gc(Gtk::STATE_NORMAL);
+        int prevx = int(w * resize.pos / 128.0 + 0.5);
+        x = int(w * k / 128.0 + 0.5);
+
+        if (resize.mode == resize.moving_high_limit) {
+            if (k > resize.pos) {
+                window->draw_rectangle(white, true, prevx, 1, x - prevx, h1 - 2);
+                window->draw_line(black, prevx, 0, x, 0);
+                window->draw_line(black, prevx, h1 - 1, x, h1 - 1);
+            } else {
+                int xx = ((resize.pos == resize.max && resize.max != 128) ? 1 : 0);
+                window->draw_rectangle(bg, true, x + 1, 0, prevx - x - xx, h1);
+            }
+        } else {
+            if (k < resize.pos) {
+                window->draw_rectangle(white, true, x + 1, 1, prevx - x, h1 - 2);
+                window->draw_line(black, x, 0, prevx, 0);
+                window->draw_line(black, x, h1 - 1, prevx, h1 - 1);
+            } else {
+                int xx = ((resize.pos == resize.min && resize.min != 0) ? 1 : 0);
+                window->draw_rectangle(bg, true, prevx + xx, 0, x - prevx - xx, h1);
+            }
+        }
+        window->draw_line(black, x, 1, x, h1 - 2);
+        resize.pos = k;
+    }
+}
+
+void RegionChooser::motion_move_region(int x, int y)
+{
+    const int w = width - 1;
+    Glib::RefPtr<Gdk::Window> window = get_window();
+
+    int k = int(double(x - move.from_x) / w * 128.0 + 0.5);
+    if (k == move.pos) return;
+    int new_k;
+    bool new_touch_left;
+    bool new_touch_right;
+    int a = 0;
+    if (k > move.pos) {
+        for (gig::Region* r = instrument->GetFirstRegion() ; ;
+             r = instrument->GetNextRegion()) {
+            if (r != region) {
+                int b = r ? r->KeyRange.low : 128;
+
+                // gap: from a to b (not inclusive b)
+
+                if (region->KeyRange.high + move.pos >= b) {
+                    // not found the current gap yet, just continue
+                } else {
+
+                    if (a > region->KeyRange.low + k) {
+                        // this gap is too far to the right, break
+                        break;
+                    }
+
+                    int newhigh = std::min(region->KeyRange.high + k, b - 1);
+                    int newlo = newhigh - (region->KeyRange.high - region->KeyRange.low);
+
+                    if (newlo >= a) {
+                        // yes it fits - it's a candidate
+                        new_k = newlo - region->KeyRange.low;
+                        new_touch_left = a > 0 && a == newlo;
+                        new_touch_right = b < 128 && newhigh + 1 == b;
+                    }
+                }
+                if (!r) break;
+                a = r->KeyRange.high + 1;
+            }
+        }
+    } else {
+        for (gig::Region* r = instrument->GetFirstRegion() ; ;
+             r = instrument->GetNextRegion()) {
+            if (r != region) {
+                int b = r ? r->KeyRange.low : 128;
+
+                // gap from a to b (not inclusive b)
+
+                if (region->KeyRange.high + k >= b) {
+                    // not found the current gap yet, just continue
+                } else {
+
+                    if (a > region->KeyRange.low + move.pos) {
+                        // this gap is too far to the right, break
+                        break;
+                    }
+
+                    int newlo = std::max(region->KeyRange.low + k, a);
+                    int newhigh = newlo + (region->KeyRange.high - region->KeyRange.low);
+
+                    if (newhigh < b) {
+                        // yes it fits - break as the first one is the best
+                        new_k = newlo - region->KeyRange.low;
+                        new_touch_left = a > 0 && a == newlo;
+                        new_touch_right = b < 128 && newhigh + 1 == b;
+                        break;
+                    }
+                }
+                if (!r) break;
+                a = r->KeyRange.high + 1;
+            }
+        }
+    }
+    k = new_k;
+    if (k == move.pos) return;
+
+    Glib::RefPtr<const Gdk::GC> bg = get_style()->get_bg_gc(Gtk::STATE_NORMAL);
+    int prevx = int(w * (move.pos + region->KeyRange.low) / 128.0 + 0.5);
+    x = int(w * (k + region->KeyRange.low) / 128.0 + 0.5);
+    int prevx2 = int(w * (move.pos + region->KeyRange.high + 1) / 128.0 + 0.5);
+    int x2 = int(w * (k + region->KeyRange.high + 1) / 128.0 + 0.5);
+    Glib::RefPtr<const Gdk::GC> black = get_style()->get_black_gc();
+    gc->set_foreground(red);
+
+    if (!new_touch_left) window->draw_line(black, x, 1, x, h1 - 2);
+    if (!new_touch_right) window->draw_line(black, x2, 1, x2, h1 - 2);
+
+    if (k > move.pos) {
+        window->draw_rectangle(bg, true, prevx + (move.touch_left ? 1 : 0), 0,
+                               std::min(x, prevx2 + 1 - (move.touch_right ? 1 : 0)) -
+                               (prevx + (move.touch_left ? 1 : 0)), h1);
+
+        window->draw_line(black, std::max(x, prevx2 + 1), 0, x2, 0);
+        window->draw_line(black, std::max(x, prevx2 + 1), h1 - 1, x2, h1 - 1);
+        window->draw_rectangle(gc, true, std::max(x + 1, prevx2), 1,
+                               x2 - std::max(x + 1, prevx2), h1 - 2);
+    } else {
+        window->draw_rectangle(bg, true, std::max(x2 + 1, prevx + (move.touch_left ? 1 : 0)), 0,
+                               prevx2 + 1 - (move.touch_right ? 1 : 0) -
+                               std::max(x2 + 1, prevx + (move.touch_left ? 1 : 0)), h1);
+
+        window->draw_line(black, x, 0, std::min(x2, prevx - 1), 0);
+        window->draw_line(black, x, h1 - 1, std::min(x2, prevx - 1), h1 - 1);
+
+        window->draw_rectangle(gc, true, x + 1, 1, std::min(x2 - 1, prevx) - x, h1 - 2);
+    }
+
+    move.pos = k;
+    move.touch_left = new_touch_left;
+    move.touch_right = new_touch_right;
+}
+
+
+bool RegionChooser::on_motion_notify_event(GdkEventMotion* event)
+{
     Glib::RefPtr<Gdk::Window> window = get_window();
     int x, y;
     Gdk::ModifierType state = Gdk::ModifierType(0);
     window->get_pointer(x, y, state);
+
     if (resize.active) {
-        int k = int(double(x) / w * 128.0 + 0.5);
-
-        if (k < resize.min) k = resize.min;
-        else if (k > resize.max) k = resize.max;
-
-        if (k != resize.pos) {
-            if (resize.mode == resize.undecided) {
-                if (k < resize.pos) {
-                    // edit high limit of prev_region
-                    resize.max = resize.region->KeyRange.low;
-                    resize.region = resize.prev_region;
-                    resize.mode = resize.moving_high_limit;
-                } else {
-                    // edit low limit of region
-                    resize.min = resize.prev_region->KeyRange.high + 1;
-                    resize.mode = resize.moving_low_limit;
-                }
-            }
-            Glib::RefPtr<const Gdk::GC> black = get_style()->get_black_gc();
-            Glib::RefPtr<const Gdk::GC> white = get_style()->get_white_gc();
-            if (region == resize.region) {
-                gc->set_foreground(red);
-                white = gc;
-            }
-            Glib::RefPtr<const Gdk::GC> bg = get_style()->get_bg_gc(Gtk::STATE_NORMAL);
-            int prevx = int(w * resize.pos / 128.0 + 0.5);
-            x = int(w * k / 128.0 + 0.5);
-
-            if (resize.mode == resize.moving_high_limit) {
-                if (k > resize.pos) {
-                    window->draw_rectangle(white, true, prevx, 1, x - prevx, h1 - 2);
-                    window->draw_line(black, prevx, 0, x, 0);
-                    window->draw_line(black, prevx, h1 - 1, x, h1 - 1);
-                } else {
-                    int xx = ((resize.pos == resize.max && resize.max != 128) ? 1 : 0);
-                    window->draw_rectangle(bg, true, x + 1, 0, prevx - x - xx, h1);
-                }
-            } else {
-                if (k < resize.pos) {
-                    window->draw_rectangle(white, true, x + 1, 1, prevx - x, h1 - 2);
-                    window->draw_line(black, x, 0, prevx, 0);
-                    window->draw_line(black, x, h1 - 1, prevx, h1 - 1);
-                } else {
-                    int xx = ((resize.pos == resize.min && resize.min != 0) ? 1 : 0);
-                    window->draw_rectangle(bg, true, prevx + xx, 0, x - prevx - xx, h1);
-                }
-            }
-            window->draw_line(black, x, 1, x, h1 - 2);
-            resize.pos = k;
-        }
+        motion_resize_region(x, y);
+    } else if (move.active) {
+        motion_move_region(x, y);
     } else {
         if (is_in_resize_zone(x, y)) {
             if (!cursor_is_resize) {
-                Gdk::Cursor double_arrow(Gdk::SB_H_DOUBLE_ARROW);
-                window->set_cursor(double_arrow);
+                window->set_cursor(Gdk::Cursor(Gdk::SB_H_DOUBLE_ARROW));
                 cursor_is_resize = true;
             }
         } else if (cursor_is_resize) {
