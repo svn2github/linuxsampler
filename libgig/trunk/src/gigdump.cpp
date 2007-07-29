@@ -252,6 +252,12 @@ void PrintRegions(gig::Instrument* instr) {
                 case gig::dimension_random: // Different samples triggered each time a note is played, random order
                     cout << "RANDOM";
                     break;
+                case gig::dimension_smartmidi: // For MIDI tools like legato and repetition mode
+                    cout << "SMARTMIDI";
+                    break;
+                case gig::dimension_roundrobinkeyboard: // Different samples triggered each time a note is played, any key advances the counter
+                    cout << "ROUNDROBINKEYBOARD";
+                    break;
                 case gig::dimension_modwheel: // Modulation Wheel (MIDI Controller 1)
                     cout << "MODWHEEL";
                     break;
@@ -395,7 +401,7 @@ void PrintDimensionRegions(gig::Region* rgn) {
 }
 
 string Revision() {
-    string s = "$Revision: 1.22 $";
+    string s = "$Revision: 1.23 $";
     return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
 }
 

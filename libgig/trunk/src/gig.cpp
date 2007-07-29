@@ -1152,6 +1152,10 @@ namespace {
      *
      * Note: there is currently no support for writing compressed samples.
      *
+     * For 16 bit samples, the data in the source buffer should be
+     * int16_t (using native endianness). For 24 bit, the buffer
+     * should contain three bytes per sample, little-endian.
+     *
      * @param pBuffer     - source buffer
      * @param SampleCount - number of sample points to write
      * @throws DLS::Exception if current sample size is too small
@@ -1166,7 +1170,14 @@ namespace {
         if (pCkData->GetPos() == 0) {
             crc.reset();
         }
-        unsigned long res = DLS::Sample::Write(pBuffer, SampleCount);
+        if (GetSize() < SampleCount) throw Exception("Could not write sample data, current sample size to small");
+        unsigned long res;
+        if (BitDepth == 24) {
+            res = pCkData->Write(pBuffer, SampleCount * FrameSize, 1) / FrameSize;
+        } else { // 16 bit
+            res = Channels == 2 ? pCkData->Write(pBuffer, SampleCount << 1, 2) >> 1
+                                : pCkData->Write(pBuffer, SampleCount, 2);
+        }
         crc.update((unsigned char *)pBuffer, SampleCount * FrameSize);
 
         // if this is the last write, update the checksum chunk in the
@@ -1539,6 +1550,10 @@ namespace {
      * It will be called automatically when File::Save() was called.
      */
     void DimensionRegion::UpdateChunks() {
+        // check if wsmp is going to be created by
+        // DLS::Sampler::UpdateChunks
+        bool wsmp_created = !pParentList->GetSubChunk(CHUNK_ID_WSMP);
+
         // first update base class's chunk
         DLS::Sampler::UpdateChunks();
 
@@ -1552,6 +1567,10 @@ namespace {
         // make sure '3ewa' chunk exists
         RIFF::Chunk* _3ewa = pParentList->GetSubChunk(CHUNK_ID_3EWA);
         if (!_3ewa)  _3ewa = pParentList->AddSubChunk(CHUNK_ID_3EWA, 140);
+        else if (wsmp_created) {
+            // make sure the chunk order is: wsmp, 3ewa
+            pParentList->MoveSubChunk(_3ewa, 0);
+        }
         pData = (uint8_t*) _3ewa->LoadChunkData();
 
         // update '3ewa' chunk with DimensionRegion's current settings
@@ -2467,7 +2486,7 @@ namespace {
 
         // initialize the upper limits for this dimension
         for (int z = 0, j = 0 ; z < pDimDef->zones ; z++, j += 1 << iCurrentBits) {
-            uint8_t upperLimit = (z + 1) * 128.0 / pDimDef->zones - 1;
+            uint8_t upperLimit = uint8_t((z + 1) * 128.0 / pDimDef->zones - 1);
             for (int i = 0 ; i < 1 << iCurrentBits ; i++) {
                 pDimensionRegions[j + i]->DimensionUpperLimits[Dimensions] = upperLimit;
             }
@@ -2785,7 +2804,14 @@ namespace {
         if (!lart)  lart = pCkInstrument->AddSubList(LIST_TYPE_LART);
         // make sure '3ewg' RIFF chunk exists
         RIFF::Chunk* _3ewg = lart->GetSubChunk(CHUNK_ID_3EWG);
-        if (!_3ewg)  _3ewg = lart->AddSubChunk(CHUNK_ID_3EWG, 12);
+        if (!_3ewg)  {
+            File* pFile = (File*) GetParent();
+
+            // 3ewg is bigger in gig3, as it includes the iMIDI rules
+            int size = (pFile->pVersion && pFile->pVersion->major == 3) ? 16416 : 12;
+            _3ewg = lart->AddSubChunk(CHUNK_ID_3EWG, size);
+            memset(_3ewg->LoadChunkData(), 0, size);
+        }
         // update '3ewg' RIFF chunk
         uint8_t* pData = (uint8_t*) _3ewg->LoadChunkData();
         store16(&pData[0], EffectSend);
@@ -3010,6 +3036,7 @@ namespace {
     };
 
     File::File() : DLS::File() {
+        *pVersion = VERSION_3;
         pGroups = NULL;
         pInfo->FixedStringLengths = FixedStringLengths;
         pInfo->ArchivalLocation = String(256, ' ');
@@ -3487,6 +3514,7 @@ namespace {
             int totnbusedchannels = 0;
             int totnbregions = 0;
             int totnbdimregions = 0;
+            int totnbloops = 0;
             int instrumentIdx = 0;
 
             memset(&pData[48], 0, sublen - 48);
@@ -3496,6 +3524,7 @@ namespace {
                 int nbusedsamples = 0;
                 int nbusedchannels = 0;
                 int nbdimregions = 0;
+                int nbloops = 0;
 
                 memset(&pData[(instrumentIdx + 1) * sublen + 48], 0, sublen - 48);
 
@@ -3519,6 +3548,7 @@ namespace {
                                 }
                             }
                         }
+                        if (d->SampleLoops) nbloops++;
                     }
                     nbdimregions += region->DimensionRegions;
                 }
@@ -3529,13 +3559,15 @@ namespace {
                 store32(&pData[(instrumentIdx + 1) * sublen + 12], 1);
                 store32(&pData[(instrumentIdx + 1) * sublen + 16], instrument->Regions);
                 store32(&pData[(instrumentIdx + 1) * sublen + 20], nbdimregions);
-                // next 12 bytes unknown
+                store32(&pData[(instrumentIdx + 1) * sublen + 24], nbloops);
+                // next 8 bytes unknown
                 store32(&pData[(instrumentIdx + 1) * sublen + 36], instrumentIdx);
                 store32(&pData[(instrumentIdx + 1) * sublen + 40], pSamples->size());
                 // next 4 bytes unknown
 
                 totnbregions += instrument->Regions;
                 totnbdimregions += nbdimregions;
+                totnbloops += nbloops;
                 instrumentIdx++;
             }
             // first 4 bytes unknown - sometimes 0, sometimes length of einf part
@@ -3545,8 +3577,9 @@ namespace {
             store32(&pData[12], Instruments);
             store32(&pData[16], totnbregions);
             store32(&pData[20], totnbdimregions);
-            // next 12 bytes unknown
-            // next 4 bytes unknown, always 0?
+            store32(&pData[24], totnbloops);
+            // next 8 bytes unknown
+            // next 4 bytes unknown, not always 0
             store32(&pData[40], pSamples->size());
             // next 4 bytes unknown
         }
@@ -3563,6 +3596,9 @@ namespace {
         } else if (newFile) {
             _3crc = pRIFF->AddSubChunk(CHUNK_ID_3CRC, pSamples->size() * 8);
             _3crc->LoadChunkData();
+
+            // the order of einf and 3crc is not the same in v2 and v3
+            if (einf && pVersion && pVersion->major == 3) pRIFF->MoveSubChunk(_3crc, einf);
         }
     }
 
