@@ -834,13 +834,13 @@ void DimRegionEdit::updateLoopElements()
         // sample loop shall never be longer than the actual sample size
         eSampleLoopStart.set_upper(
             (dimregion->pSample)
-                ? dimregion->pSample->GetSize() -
+                ? dimregion->pSample->SamplesTotal -
                   dimregion->pSampleLoops[0].LoopLength
                 : 0
         );
         eSampleLoopLength.set_upper(
             (dimregion->pSample)
-                ? dimregion->pSample->GetSize() -
+                ? dimregion->pSample->SamplesTotal -
                   dimregion->pSampleLoops[0].LoopStart
                 : 0
         );
@@ -860,4 +860,42 @@ void DimRegionEdit::loop_infinite_toggled() {
         eSampleLoopPlayCount.set_value(0);
     else if (!eSampleLoopPlayCount.get_value())
         eSampleLoopPlayCount.set_value(1);
+}
+
+bool DimRegionEdit::set_sample(gig::Sample* sample)
+{
+    if (dimregion) {
+        dimregion->pSample = sample;
+
+        // copy sample information from Sample to DimensionRegion
+
+        dimregion->UnityNote = sample->MIDIUnityNote;
+        dimregion->FineTune = sample->FineTune;
+
+        int loops = sample->Loops ? 1 : 0;
+        while (dimregion->SampleLoops > loops) {
+            dimregion->DeleteSampleLoop(&dimregion->pSampleLoops[0]);
+        }
+        while (dimregion->SampleLoops < sample->Loops) {
+            DLS::sample_loop_t loop;
+            dimregion->AddSampleLoop(&loop);
+        }
+        if (loops) {
+            dimregion->pSampleLoops[0].Size = sizeof(DLS::sample_loop_t);
+            dimregion->pSampleLoops[0].LoopType = sample->LoopType;
+            dimregion->pSampleLoops[0].LoopStart = sample->LoopStart;
+            dimregion->pSampleLoops[0].LoopLength = sample->LoopEnd - sample->LoopStart + 1;
+        }
+
+        // update ui
+        wSample->set_text(dimregion->pSample->pInfo->Name);
+        eUnityNote.set_ptr(&dimregion->UnityNote);
+        eFineTune.set_ptr(&dimregion->FineTune);
+        eSampleLoopEnabled.set_active(dimregion->SampleLoops);
+        updateLoopElements();
+
+        dimreg_changed_signal();
+        return true;
+    }
+    return false;
 }

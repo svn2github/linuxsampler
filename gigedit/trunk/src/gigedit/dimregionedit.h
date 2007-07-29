@@ -36,6 +36,7 @@ public:
     DimRegionEdit();
     virtual ~DimRegionEdit();
     void set_dim_region(gig::DimensionRegion* d);
+    bool set_sample(gig::Sample* sample);
     Gtk::Entry* wSample;
     sigc::signal<void> signal_dimreg_changed() {
         return dimreg_changed_signal;

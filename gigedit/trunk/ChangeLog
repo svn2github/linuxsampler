@@ -31,6 +31,9 @@ Version CVS HEAD
   * remove file extensions from file names when importing samples
   * added digits for octave numbers on the keyboard and made keys
     outside piano range grey
+  * added support for 24 bit sample import
+  * when importing samples, settings for loops and root note are
+    copied from the sample files (if they have such settings)
 
 Version 0.0.3 (2007-03-24)
 

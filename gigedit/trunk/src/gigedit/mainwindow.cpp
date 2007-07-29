@@ -576,51 +576,60 @@ void MainWindow::__import_queued_samples() {
             int bitdepth;
             switch (info.format & 0xff) {
                 case SF_FORMAT_PCM_S8:
-                    bitdepth = 16; // we simply convert to 16 bit for now
-                    break;
                 case SF_FORMAT_PCM_16:
+                case SF_FORMAT_PCM_U8:
                     bitdepth = 16;
                     break;
                 case SF_FORMAT_PCM_24:
-                    bitdepth = 32; // we simply convert to 32 bit for now
-                    break;
                 case SF_FORMAT_PCM_32:
-                    bitdepth = 32;
-                    break;
-                case SF_FORMAT_PCM_U8:
-                    bitdepth = 16; // we simply convert to 16 bit for now
-                    break;
                 case SF_FORMAT_FLOAT:
-                    bitdepth = 32;
-                    break;
                 case SF_FORMAT_DOUBLE:
-                    bitdepth = 32; // I guess we will always truncate this to 32 bit
+                    bitdepth = 24;
                     break;
                 default:
                     sf_close(hFile); // close sound file
                     throw std::string("format not supported"); // unsupported subformat (yet?)
             }
-            // allocate appropriate copy buffer (TODO: for now we copy
-            // it in one piece, might be tough for very long samples)
-            // and copy sample data into buffer
-            int8_t* buffer = NULL;
+
+            const int bufsize = 10000;
             switch (bitdepth) {
-                case 16:
-                    buffer = new int8_t[2 * info.channels * info.frames];
-                    // libsndfile does the conversion for us (if needed)
-                    sf_readf_short(hFile, (short*) buffer, info.frames);
+                case 16: {
+                    short* buffer = new short[bufsize * info.channels];
+                    sf_count_t cnt = info.frames;
+                    while (cnt) {
+                        // libsndfile does the conversion for us (if needed)
+                        int n = sf_readf_short(hFile, buffer, bufsize);
+                        // write from buffer directly (physically) into .gig file
+                        iter->gig_sample->Write(buffer, n);
+                        cnt -= n;
+                    }
+                    delete[] buffer;
                     break;
-                case 32:
-                    buffer = new int8_t[4 * info.channels * info.frames];
-                    // libsndfile does the conversion for us (if needed)
-                    sf_readf_int(hFile, (int*) buffer, info.frames);
+                }
+                case 24: {
+                    int* srcbuf = new int[bufsize * info.channels];
+                    uint8_t* dstbuf = new uint8_t[bufsize * 3 * info.channels];
+                    sf_count_t cnt = info.frames;
+                    while (cnt) {
+                        // libsndfile returns 32 bits, convert to 24
+                        int n = sf_readf_int(hFile, srcbuf, bufsize);
+                        int j = 0;
+                        for (int i = 0 ; i < n * info.channels ; i++) {
+                            dstbuf[j++] = srcbuf[i] >> 8;
+                            dstbuf[j++] = srcbuf[i] >> 16;
+                            dstbuf[j++] = srcbuf[i] >> 24;
+                        }
+                        // write from buffer directly (physically) into .gig file
+                        iter->gig_sample->Write(dstbuf, n);
+                        cnt -= n;
+                    }
+                    delete[] srcbuf;
+                    delete[] dstbuf;
                     break;
+                }
             }
-            // write from buffer directly (physically) into .gig file
-            (*iter).gig_sample->Write(buffer, info.frames);
             // cleanup
             sf_close(hFile);
-            delete[] buffer;
             // on success we remove the sample from the import queue,
             // otherwise keep it, maybe it works the next time ?
             std::list<SampleImportItem>::iterator cur = iter;
@@ -1073,25 +1082,15 @@ void MainWindow::on_action_add_sample() {
                 int bitdepth;
                 switch (info.format & 0xff) {
                     case SF_FORMAT_PCM_S8:
-                        bitdepth = 16; // we simply convert to 16 bit for now
-                        break;
                     case SF_FORMAT_PCM_16:
+                    case SF_FORMAT_PCM_U8:
                         bitdepth = 16;
                         break;
                     case SF_FORMAT_PCM_24:
-                        bitdepth = 32; // we simply convert to 32 bit for now
-                        break;
                     case SF_FORMAT_PCM_32:
-                        bitdepth = 32;
-                        break;
-                    case SF_FORMAT_PCM_U8:
-                        bitdepth = 16; // we simply convert to 16 bit for now
-                        break;
                     case SF_FORMAT_FLOAT:
-                        bitdepth = 32;
-                        break;
                     case SF_FORMAT_DOUBLE:
-                        bitdepth = 32; // I guess we will always truncate this to 32 bit
+                        bitdepth = 24;
                         break;
                     default:
                         sf_close(hFile); // close sound file
@@ -1113,6 +1112,37 @@ void MainWindow::on_action_add_sample() {
                 sample->BitDepth = bitdepth;
                 sample->FrameSize = bitdepth / 8/*1 byte are 8 bits*/ * info.channels;
                 sample->SamplesPerSecond = info.samplerate;
+                sample->AverageBytesPerSecond = sample->FrameSize * sample->SamplesPerSecond;
+                sample->BlockAlign = sample->FrameSize;
+                sample->SamplesTotal = info.frames;
+
+                SF_INSTRUMENT instrument;
+                if (sf_command(hFile, SFC_GET_INSTRUMENT,
+                               &instrument, sizeof(instrument)) != SF_FALSE)
+                {
+                    sample->MIDIUnityNote = instrument.basenote;
+
+                    if (instrument.loop_count && instrument.loops[0].mode != SF_LOOP_NONE) {
+                        sample->Loops = 1;
+
+                        switch (instrument.loops[0].mode) {
+                        case SF_LOOP_FORWARD:
+                            sample->LoopType = gig::loop_type_normal;
+                            break;
+                        case SF_LOOP_BACKWARD:
+                            sample->LoopType = gig::loop_type_backward;
+                            break;
+                        case SF_LOOP_ALTERNATING:
+                            sample->LoopType = gig::loop_type_bidirectional;
+                            break;
+                        }
+                        sample->LoopStart = instrument.loops[0].start;
+                        sample->LoopEnd = instrument.loops[0].end;
+                        sample->LoopPlayCount = instrument.loops[0].count;
+                        sample->LoopSize = sample->LoopEnd - sample->LoopStart + 1;
+                    }
+                }
+
                 // schedule resizing the sample (which will be done
                 // physically when File::Save() is called)
                 sample->Resize(info.frames);
@@ -1230,18 +1260,14 @@ void MainWindow::on_sample_label_drop_drag_data_received(
     const Glib::RefPtr<Gdk::DragContext>& context, int, int,
     const Gtk::SelectionData& selection_data, guint, guint time)
 {
-    gig::DimensionRegion* dimregion = m_DimRegionChooser.get_dimregion();
     gig::Sample* sample = *((gig::Sample**) selection_data.get_data());
 
-    if (sample && dimregion && selection_data.get_length() == sizeof(gig::Sample*)) {
-        if (sample != dimregion->pSample) {
-            dimregion->pSample = sample;
-            dimreg_edit.wSample->set_text(dimregion->pSample->pInfo->Name.c_str());
+    if (sample && selection_data.get_length() == sizeof(gig::Sample*)) {
+        if (dimreg_edit.set_sample(sample)) {
             std::cout << "Drop received sample \"" <<
-                dimregion->pSample->pInfo->Name.c_str() << "\"" << std::endl;
+                sample->pInfo->Name << "\"" << std::endl;
             // drop success
             context->drop_reply(true, time);
-            file_changed();
             return;
         }
     }
