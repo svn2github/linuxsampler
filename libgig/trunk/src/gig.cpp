@@ -1617,7 +1617,7 @@ namespace {
         pData[44] = eg1ctl;
 
         const uint8_t eg1ctrloptions =
-            (EG1ControllerInvert) ? 0x01 : 0x00 |
+            (EG1ControllerInvert ? 0x01 : 0x00) |
             GIG_EG_CTR_ATTACK_INFLUENCE_ENCODE(EG1ControllerAttackInfluence) |
             GIG_EG_CTR_DECAY_INFLUENCE_ENCODE(EG1ControllerDecayInfluence) |
             GIG_EG_CTR_RELEASE_INFLUENCE_ENCODE(EG1ControllerReleaseInfluence);
@@ -1627,7 +1627,7 @@ namespace {
         pData[46] = eg2ctl;
 
         const uint8_t eg2ctrloptions =
-            (EG2ControllerInvert) ? 0x01 : 0x00 |
+            (EG2ControllerInvert ? 0x01 : 0x00) |
             GIG_EG_CTR_ATTACK_INFLUENCE_ENCODE(EG2ControllerAttackInfluence) |
             GIG_EG_CTR_DECAY_INFLUENCE_ENCODE(EG2ControllerDecayInfluence) |
             GIG_EG_CTR_RELEASE_INFLUENCE_ENCODE(EG2ControllerReleaseInfluence);
@@ -1805,23 +1805,23 @@ namespace {
         const uint8_t eg1hold = (EG1Hold) ? 0x80 : 0x00; // bit 7
         pData[131] = eg1hold;
 
-        const uint8_t vcfcutoff = (VCFEnabled) ? 0x80 : 0x00 |  /* bit 7 */
+        const uint8_t vcfcutoff = (VCFEnabled ? 0x80 : 0x00) |  /* bit 7 */
                                   (VCFCutoff & 0x7f);   /* lower 7 bits */
         pData[132] = vcfcutoff;
 
         pData[133] = VCFCutoffController;
 
-        const uint8_t vcfvelscale = (VCFCutoffControllerInvert) ? 0x80 : 0x00 | /* bit 7 */
+        const uint8_t vcfvelscale = (VCFCutoffControllerInvert ? 0x80 : 0x00) | /* bit 7 */
                                     (VCFVelocityScale & 0x7f); /* lower 7 bits */
         pData[134] = vcfvelscale;
 
         // next byte unknown
 
-        const uint8_t vcfresonance = (VCFResonanceDynamic) ? 0x00 : 0x80 | /* bit 7 */
+        const uint8_t vcfresonance = (VCFResonanceDynamic ? 0x00 : 0x80) | /* bit 7 */
                                      (VCFResonance & 0x7f); /* lower 7 bits */
         pData[136] = vcfresonance;
 
-        const uint8_t vcfbreakpoint = (VCFKeyboardTracking) ? 0x80 : 0x00 | /* bit 7 */
+        const uint8_t vcfbreakpoint = (VCFKeyboardTracking ? 0x80 : 0x00) | /* bit 7 */
                                       (VCFKeyboardTrackingBreakpoint & 0x7f); /* lower 7 bits */
         pData[137] = vcfbreakpoint;
 
@@ -2312,7 +2312,7 @@ namespace {
         for (int i = 0; i < iMaxDimensions; i++) {
             pData[4 + i * 8] = (uint8_t) pDimensionDefinitions[i].dimension;
             pData[5 + i * 8] = pDimensionDefinitions[i].bits;
-            pData[6 + i * 8] = shift;
+            pData[6 + i * 8] = pDimensionDefinitions[i].dimension == dimension_none ? 0 : shift;
             pData[7 + i * 8] = (1 << (shift + pDimensionDefinitions[i].bits)) - (1 << shift);
             pData[8 + i * 8] = pDimensionDefinitions[i].zones;
             // next 3 bytes unknown, always zero?
@@ -2334,7 +2334,6 @@ namespace {
                         break;
                     }
                 }
-                if (iWaveIndex < 0) throw gig::Exception("Could not update gig::Region, could not find DimensionRegion's sample");
             }
             store32(&pData[iWavePoolOffset + i * 4], iWaveIndex);
         }
@@ -2818,7 +2817,7 @@ namespace {
         store32(&pData[2], Attenuation);
         store16(&pData[6], FineTune);
         store16(&pData[8], PitchbendRange);
-        const uint8_t dimkeystart = (PianoReleaseMode) ? 0x01 : 0x00 |
+        const uint8_t dimkeystart = (PianoReleaseMode ? 0x01 : 0x00) |
                                     DimensionKeyRange.low << 1;
         pData[10] = dimkeystart;
         pData[11] = DimensionKeyRange.high;
@@ -2929,6 +2928,17 @@ namespace {
         }
         RIFF::List* _3gnl = _3gri->GetSubList(LIST_TYPE_3GNL);
         if (!_3gnl) _3gnl = _3gri->AddSubList(LIST_TYPE_3GNL);
+
+        if (!pNameChunk && pFile->pVersion && pFile->pVersion->major == 3) {
+            // v3 has a fixed list of 128 strings, find a free one
+            for (RIFF::Chunk* ck = _3gnl->GetFirstSubChunk() ; ck ; ck = _3gnl->GetNextSubChunk()) {
+                if (strcmp(static_cast<char*>(ck->LoadChunkData()), "") == 0) {
+                    pNameChunk = ck;
+                    break;
+                }
+            }
+        }
+
         // now store the name of this group as <3gnm> chunk as subchunk of the <3gnl> list chunk
         ::SaveString(CHUNK_ID_3GNM, pNameChunk, _3gnl, Name, String("Unnamed Group"), true, 64);
     }
@@ -3118,6 +3128,21 @@ namespace {
         if (SamplesIterator != pSamples->end() && *SamplesIterator == pSample) ++SamplesIterator; // avoid iterator invalidation
         pSamples->erase(iter);
         delete pSample;
+
+        // remove all references to the sample
+        for (Instrument* instrument = GetFirstInstrument() ; instrument ;
+             instrument = GetNextInstrument()) {
+            for (Region* region = instrument->GetFirstRegion() ; region ;
+                 region = instrument->GetNextRegion()) {
+
+                if (region->GetSample() == pSample) region->SetSample(NULL);
+
+                for (int i = 0 ; i < region->DimensionRegions ; i++) {
+                    gig::DimensionRegion *d = region->pDimensionRegions[i];
+                    if (d->pSample == pSample) d->pSample = NULL;
+                }
+            }
+        }
     }
 
     void File::LoadSamples() {
@@ -3422,6 +3447,9 @@ namespace {
                 RIFF::Chunk* ck = lst3gnl->GetFirstSubChunk();
                 while (ck) {
                     if (ck->GetChunkID() == CHUNK_ID_3GNM) {
+                        if (pVersion && pVersion->major == 3 &&
+                            strcmp(static_cast<char*>(ck->LoadChunkData()), "") == 0) break;
+
                         pGroups->push_back(new Group(this, ck));
                     }
                     ck = lst3gnl->GetNextSubChunk();
@@ -3470,6 +3498,16 @@ namespace {
             std::list<Group*>::iterator end  = pGroups->end();
             for (; iter != end; ++iter) {
                 (*iter)->UpdateChunks();
+            }
+
+            // v3: make sure the file has 128 3gnm chunks
+            if (pVersion && pVersion->major == 3) {
+                RIFF::List* _3gnl = pRIFF->GetSubList(LIST_TYPE_3GRI)->GetSubList(LIST_TYPE_3GNL);
+                RIFF::Chunk* _3gnm = _3gnl->GetFirstSubChunk();
+                for (int i = 0 ; i < 128 ; i++) {
+                    if (i >= pGroups->size()) ::SaveString(CHUNK_ID_3GNM, _3gnm, _3gnl, "", "", true, 64);
+                    if (_3gnm) _3gnm = _3gnl->GetNextSubChunk();
+                }
             }
         }
 

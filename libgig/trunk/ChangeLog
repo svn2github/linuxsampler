@@ -11,6 +11,7 @@ Version CVS HEAD (?)
     - improved handling of fixed length info strings - separate default
       lengths can be specified for each INFO chunk
     - added Resource::GenerateDLSID function
+    - write support fix: allow regions without mapped samples
 
   * src/gig.cpp, src/gig.h:
     - fixed segmentation fault in the gig::File destructor sequence which
@@ -45,7 +46,11 @@ Version CVS HEAD (?)
       not saved correctly
     - write support: 24 bit samples can now be written
     - write support: version 3 is now the default for new files
-    - more write support fixes: the 3ewg chunk is now bigger for v3
+    - more write support fixes: the 3ewg chunk is now bigger for v3,
+      dimension regions without mapped samples are now allowed, 3gnl
+      list in v3 files now always has 128 entries, several parameters
+      where incorrectly saved due to an operator precedence mistake
+    - DeleteSample now removes all references to the deleted sample
 
   * src/RIFF.cpp, src/RIFF.h:
     - added File::SetByteOrder method

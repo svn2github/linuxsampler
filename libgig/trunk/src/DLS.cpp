@@ -963,7 +963,6 @@ namespace DLS {
                 }
             }
         }
-        if (index < 0) throw Exception("Could not save Region, could not find Region's sample");
         WavePoolTableIndex = index;
         // update 'wlnk' chunk
         store16(&pData[0], WaveLinkOptionFlags);
