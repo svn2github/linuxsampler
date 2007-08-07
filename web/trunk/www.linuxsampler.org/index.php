@@ -130,12 +130,10 @@
               <tbody>
                 <tr>
                   <td valign=top>
-                    <p class="default">
-                      <?php readfile("http://www.linuxsampler.org/news_internal.php?max_items=3"); ?>
-                    </p>
-                    <p class="default">
+                    <?php readfile("http://www.linuxsampler.org/news_internal.php?max_items=3"); ?>
+                    <span class="news_footer">
                       <a href="http://www.linuxsampler.org/news_history.php">More News...</a>
-                    </p>
+                    </span>
                   </td>
                   <td valign="top">
 

@@ -287,3 +287,7 @@ li.news {
 span.news_date {
     font-weight: bold;
 }
+
+span.news_footer {
+    margin: 0em 2em;
+}
