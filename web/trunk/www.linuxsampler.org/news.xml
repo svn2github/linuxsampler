@@ -1,0 +1,195 @@
+<?xml version='1.0' ?>
+<news>
+  <entry date="2007-05-24">
+    <link ref="http://downloads.sourceforge.net/jsampler/JSampler-0.5a.tar.bz2">
+    JSampler 0.5a</link> has been released, now with instruments database
+    support.
+  </entry>
+  <entry date="2007-05-04">
+    <link ref="http://qsampler.sourceforge.net">Qsampler</link> 0.1.4 has been
+    released. Almost another year has gone by.
+  </entry>
+  <entry date="2007-04-02">
+    JSampler 0.4a has been released. Read the
+    <link ref="jsampler/manual/html/jsampler.html">manual</link> for
+    installation instructions.
+  </entry>
+  <entry date="2007-03-24">
+    gigedit 0.0.3 has been released, a graphical instrument editor allowing
+    to edit existing Gigasampler format files as well as creating new ones
+    completely from scratch. Along comes a new release of libgig (3.1.1).
+  </entry>
+  <entry date="2006-11-24">
+    After a long, long development cycle LinuxSampler 0.4.0 has finally been
+    released.
+  </entry>
+  <entry date="2006-11-24">
+    libgig 3.1.0 has been released.
+  </entry>
+  <entry date="2006-08-07">
+    <link ref="http://prdownloads.sourceforge.net/jsampler/JSampler-0.3a.tar.bz2?download">
+    JSampler 0.3a</link> has been released.
+    <list>
+      <li>
+        Partially implemented a new view - Fantasia (graphic desing: Olivier
+        Boyer). Only channel manipulation for now.
+      </li>
+      <li>
+        More new features in JS Classic - Implemented an LS Console with
+        command autocompletion (using the Tab key), command history (using Up,
+        Down keys), command history search (Ctrl + R), command list search
+        (Ctrl + F), and more.
+      </li>
+      <li>
+        Implemented Orchestras (something like Bookmarks/Favorites for
+        instruments). Drag &amp; Drop support for instrument loading, adding an
+        instrument to orchestra and autocompleting an instrument loading
+        command in the LS Console.
+      </li>
+    </list>
+  </entry>
+  <entry date="2006-06-02">
+    <link ref="http://qsampler.sourceforge.net">Qsampler</link> 0.1.3 is now
+    available. It's been a long time isn't it?
+  </entry>
+  <entry date="2006-04-28">
+    libgig 3.0.0 has been released.
+  </entry>
+  <entry date="2006-03-16">
+    <link ref="http://prdownloads.sourceforge.net/jsampler/JS_Classic-0.2a.jar?download">
+    JS Classic 0.2a</link> has been released.
+  </entry>
+  <entry date="2005-12-22">
+    Major services (CVS, downloads, Bug Tracking System) were down in the last
+    days due to a hardware defect on one of our servers. CVS is finally up
+    again and we are working on restoring all other services in the next days
+    as well. We are also establishing further backup facilities to prevent this
+    happening again. Sorry for any inconvenience!
+  </entry>
+  <entry date="2005-11-24">
+    Latest <link ref="http://cvs.linuxsampler.org">CVS version</link>
+    of <link ref="http://stud.fh-heilbronn.de/~cschoene/projects/libgig/">
+    libgig</link> now allows to create and modify Gigasampler files
+    (<link ref="http://sourceforge.net/mailarchive/forum.php?thread_id=9051147&amp;forum_id=12792">
+    read announcement</link>). Please let
+    <link ref="http://www.linuxsampler.org/developers.html">us</link>
+    know if you are interested in writing an instrument patch editor.
+  </entry>
+  <entry date="2005-10-10">
+    <link ref="http://prdownloads.sourceforge.net/jsampler/js-classic.jar?download">
+    JS Classic 0.1a</link> has been released (the first distribution of the
+    <link ref="https://sourceforge.net/projects/jsampler/">JSampler</link>
+    project).
+  </entry>
+  <entry date="2005-08-16">
+    Due to ongoing synthesis optimizations, CVS version of LS might be broken
+    for a while. Please use the tarball release in the meantime.
+  </entry>
+  <entry date="2005-07-15">
+    LinuxSampler 0.3.3 has been released. Once again a bug fix release.
+  </entry>
+  <entry date="2005-06-24">
+    LinuxSampler 0.3.2 has been released. This is more or less just a bug fix
+    release. Just by coincidence, <link ref="http://qsampler.sourceforge.net">
+    QSampler</link> 0.1.2 has also been thrown out.
+  </entry>
+  <entry date="2005-06-12">
+    <link ref="http://qsampler.sourceforge.net">QSampler</link> 0.1.1 has been
+    released, after a few bugfixes and a new logo icon.
+  </entry>
+  <entry date="2005-05-25">
+    LinuxSampler 0.3.1, the first official release is finally out!
+  </entry>
+  <entry date="2005-05-23">
+    After some time laying around in the backyard,
+    <link ref="http://qsampler.sourceforge.net">QSampler</link> 0.1.0 has
+    been released, now with the promised Audio and MIDI device configuration
+    interface. Enjoy!
+  </entry>
+  <entry date="2005-03-15">
+    Our bug tracking system is now online and available on
+    <link ref="http://bugs.linuxsampler.org">bugs.linuxsampler.org</link>.
+  </entry>
+  <entry date="2005-03-04">
+    <link ref="http://qsampler.sourceforge.net">QSampler</link>,
+    the Qt GUI front-end in the works for the LinuxSampler engine, was bumped
+    to its now fifth primordial release (0.0.5). Still alpha code. Time to move
+    on... to a better and complete Audio/MIDI device configuration interface,
+    as predicted by LSCP and wrapped by liblscp.
+  </entry>
+  <entry date="2005-02-26">
+    Due to a design change, current LinuxSampler CVS version is quite unstable.
+    You might want to use the previous, stable version of LS in the meantime,
+    which can be downloaded as
+    <link ref="http://www.linuxsampler.org/downloads.html">source tarball
+    </link>. Alternatively you can also checkout the old version from CVS which
+    was tagged as "v0_2_0".
+  </entry>
+  <entry date="2004-11-19">
+    The Qt GUI front-end for the LinuxSampler engine has been updated: the 4th
+    alpha-release of
+    <link ref="http://qsampler.sourceforge.net">QSampler</link> has been
+    released.
+  </entry>
+  <entry date="2004-11-13">
+    On monday (November, 15th) <link ref="http://cvs.linuxsampler.org">
+    cvs.linuxsampler.org</link> may be temporarily down due to maintenance work
+    around 13:00 UTC.
+  </entry>
+  <entry date="2004-07-06">
+    The third alpha-release of <link ref="http://qsampler.sourceforge.net">
+    QSampler</link>, the Qt GUI front-end for the LinuxSampler engine, is now
+    publicly available.
+  </entry>
+  <entry date="2004-06-05">
+    Added a screenshot to the Screenshots page, instructions how to compile the
+    GUI are on the linked qsampler site.
+  </entry>
+  <entry date="2004-05-31">
+    On wednesday (June, 2nd) <link ref="http://cvs.linuxsampler.org">
+    cvs.linuxsampler.org</link> will be temporarily not available from 6:00 UTC
+    until 16:00 UTC due to construction works.
+  </entry>
+  <entry date="2004-05-24">
+    The CVS repository is now <link ref="http://cvs.linuxsampler.org">
+    browseable</link>.
+  </entry>
+  <entry date="2004-05-03">
+    We are currently in a transition stage due to the recent changes (multi
+    channel / multi engine / multi audio output device and multi MIDI input
+    device support) this also leads to multi problems we have to solve ;-) so
+    meanwhile you can use the old single channel version. We created the two
+    CVS alias tags 'singlechannel' and 'v0_1_0' which you can use to checkout
+    the old single channel version of LinuxSampler. The CVS command line is the
+    same except that you have to add '-r singlechannel'.
+  </entry>
+  <entry date="2004-03-26">
+    CVS root path has changed! See <link ref="downloads.html">downloads</link>
+    section for instructions how to checkout the latest version of LinuxSampler
+    from CVS.
+  </entry>
+  <entry date="2004-03-23">
+    Updated <link ref="features.html">features</link> section on this site,
+    hopefully we will keep the features list in sync with the latest
+    developments from now on.
+  </entry>
+  <entry date="2004-01-07">
+    The document for the network protocol definition is now available in the
+    <link ref="http://www.linuxsampler.org/downloads.html">downloads</link>
+    section. Have a look at it if you can imagine to write a frontend for
+    LinuxSampler!
+  </entry>
+  <entry date="2003-11-08">
+    Added CVS log to this site, showing the latest commits to the LinuxSampler
+    CVS repository.
+  </entry>
+  <entry date="2003-11-02">
+    Lots of news for the Linuxsampler community. We've got a new site, new
+    domain and new code available in CVS. Check the
+    <link ref="http://www.linuxsampler.org/downloads.html">downloads</link>
+    section for instructions. If you want to check it out, please keep in mind
+    that it might contain bugs, it might crash and that it's still lacking tons
+    of features. CVS is directed towards developers who would like to test
+    things and add code. Users should wait for a tarball release.
+  </entry>
+</news>

@@ -184,7 +184,6 @@ span.default  {
 	}
 
 ul	{
-	/* list-style-type:circle; */
 	border: none;
 	background: rgb(240, 240, 240);
 	list-style-image: url("gfx/okay.png");
@@ -253,4 +252,38 @@ a.info:hover span.info {
 	padding: 2px; border: 1px solid #333;
 	color: #900; background-color: #DDF;
 	text-align: left;
+}
+
+
+
+/* News section */
+
+div.news {
+    border: 1px dotted;
+    margin: 0.8em 2em;
+    padding: 0.4em 0.4em;
+    font-size: 11pt;
+    font-family: sans-serif;
+    text-align: justify;
+    font-style: normal;
+    font-weight: normal;
+}
+
+ul.news {
+    background: transparent;
+    list-style-type: disc;
+    margin: 0em 0em 0em 0em;
+    padding: 0em 0em 0em 1.5em;
+}
+
+li.news {
+    font-size: 11pt;
+    font-family: sans-serif;
+    text-align: justify;
+    font-style: normal;
+    font-weight: normal;
+}
+
+span.news_date {
+    font-weight: bold;
 }

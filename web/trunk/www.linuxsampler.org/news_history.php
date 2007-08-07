@@ -1,8 +1,6 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
 <html>
 <head>
-<meta name="keywords" content="linux, sound, music, audio, software, free, sampler, mac, os x" />
-<meta name="description" content="LinuxSampler - free, open source pure software audio sampler with professional grade features." />
 <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
 <link rel="stylesheet" type="text/css" href="index.css">
   <title>The Linux Sampler Project</title>
@@ -82,12 +80,6 @@
 		creditsout = new Image();
 		creditsout.src = dir + "mcredits.png";
 
-		faqover = new Image();
-		faqover.src = dir + "mfaqhover.png";
-
-		faqout = new Image();
-		faqout.src = dir + "mfaq.png";
-
 		bugsover = new Image();
 		bugsover.src = dir + "mbugshover.png";
 
@@ -106,7 +98,7 @@
 		<h1><span class="hidden">The LinuxSampler Project</span></h1>
 
 			<table border=0 cellspacing=0 cellpadding=0><tr><th colspan=2 align=left>
-			<img name="h1blank" src="gfx/h1blank.png" alt="blank"><span class="hidden">about</span></th></tr>
+			<img name="h1blank" src="gfx/h1blank.png" alt="h1blank"><span class="hidden">about</span></th></tr>
 			<tr><td valign=top>
 			<a id="news" href="index.php" onmouseover="javascript:if(document.images)document.news.src = newsover.src" onmouseout="javascript:if(document.images)document.news.src = newsout.src"><img name="news" src="gfx/mnews.png" alt="news"></a>
 			<a id="about" href="about.html" onmouseover="javascript:if(document.images)document.about.src = aboutover.src" onmouseout="javascript:if(document.images)document.about.src = aboutout.src"><img name="about" src="gfx/mabout.png" alt="about"></a>
@@ -124,82 +116,16 @@
 			</td><td valign=top width="100%">
 			<div id="contents">
 
-			<h2>News</h2>
+			<h2>News History</h2>
 
-            <table>
-              <tbody>
-                <tr>
-                  <td valign=top>
-                    <p class="default">
-                      <?php include("news_internal.php?max_items=3"); ?>
-                    </p>
-                    <p class="default">
-                      <a href="http://www.linuxsampler.org/news_history.php">More News...</a>
-                    </p>
-                  </td>
-                  <td valign="top">
-
-
-                    <table>
-                      <thead>
-                        <tr>
-                          <th scope=col>Latest Commits LinuxSampler (Engine)</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        <tr>
-                          <td>
-			    <span class="default">
-			      <?php include("http://cvs.linuxsampler.org/log/linuxsampler_latest.html"); ?>
-			    </span>
-			  </td>
-			</tr>
-                        <tr>
-                          <td><a href="http://www.linuxsampler.org/linuxsampler_cvshistory.php">More... (LinuxSampler CVS History)</a></td>
-                        </tr>
-                      </tbody>
-                    </table>
-
-		    <br>
-
-                    <table>
-                      <thead>
-                        <tr>
-                          <th scope=col>Latest Commits QSampler (GUI)</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-			<tr>
-			  <td>
-			    <span class="default">
-                              <?php include("http://cvs.linuxsampler.org/log/qsampler_latest.html"); ?>
-			    </span>
-                          </td>
-                        </tr>
-                        <tr>
-                          <td><a href="http://www.linuxsampler.org/qsampler_cvshistory.php">More... (QSampler CVS History)</a></td>
-                        </tr>
-                      </tbody>
-                    </table>
-
-		    <br>
-
-
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-
+            <p class="default">
+              <?php include("news_internal.php"); ?>
+            </p>
 
 	  	</div>
 	  	</td></tr></table>
 
  </div>
-<CENTER>
-Last Sync: <?php readfile("date.txt"); ?>
-</CENTER>
-
-
 
 </body>
 </html>
