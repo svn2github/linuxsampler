@@ -119,7 +119,7 @@
 			<h2>QSampler CVS History</h2>
 
                         <p class="default">
-                          <?php include("http://cvs.linuxsampler.org/log/qsampler_history.html"); ?>
+                          <?php readfile("http://cvs.linuxsampler.org/log/qsampler_history.html"); ?>
                           <br>
                         </p>
 

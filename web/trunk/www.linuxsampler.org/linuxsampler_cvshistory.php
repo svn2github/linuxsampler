@@ -119,7 +119,7 @@
 			<h2>LinuxSampler CVS History</h2>
 
                         <p class="default">
-                          <?php include("http://cvs.linuxsampler.org/log/linuxsampler_history.html"); ?>
+                          <?php readfile("http://cvs.linuxsampler.org/log/linuxsampler_history.html"); ?>
                           <br>
                         </p>
 
