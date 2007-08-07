@@ -118,9 +118,7 @@
 
 			<h2>News History</h2>
 
-            <p class="default">
-              <?php include("news_internal.php"); ?>
-            </p>
+            <?php include("news_internal.php"); ?>
 
 	  	</div>
 	  	</td></tr></table>
