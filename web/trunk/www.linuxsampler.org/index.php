@@ -131,7 +131,7 @@
                 <tr>
                   <td valign=top>
                     <p class="default">
-                      <?php include("news_internal.php?max_items=3"); ?>
+                      <?php readfile("http://www.linuxsampler.org/news_internal.php?max_items=3"); ?>
                     </p>
                     <p class="default">
                       <a href="http://www.linuxsampler.org/news_history.php">More News...</a>
@@ -150,7 +150,7 @@
                         <tr>
                           <td>
 			    <span class="default">
-			      <?php include("http://cvs.linuxsampler.org/log/linuxsampler_latest.html"); ?>
+			      <?php readfile("http://cvs.linuxsampler.org/log/linuxsampler_latest.html"); ?>
 			    </span>
 			  </td>
 			</tr>
@@ -172,7 +172,7 @@
 			<tr>
 			  <td>
 			    <span class="default">
-                              <?php include("http://cvs.linuxsampler.org/log/qsampler_latest.html"); ?>
+                              <?php readfile("http://cvs.linuxsampler.org/log/qsampler_latest.html"); ?>
 			    </span>
                           </td>
                         </tr>
