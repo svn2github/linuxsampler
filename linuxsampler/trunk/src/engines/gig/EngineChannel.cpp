@@ -335,6 +335,8 @@ namespace LinuxSampler { namespace gig {
             default:
                 throw AudioOutputException("Invalid engine audio channel " + ToString(EngineAudioChannel));
         }
+
+        bStatusChanged = true;
     }
 
     int EngineChannel::OutputChannel(uint EngineAudioChannel) {
