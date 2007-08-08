@@ -155,7 +155,7 @@
                         <tr>
                           <td>
                             <span class="cvs_footer">
-                              <a href="http://www.linuxsampler.org/linuxsampler_cvshistory.php">More ...</a>
+                              <a href="http://www.linuxsampler.org/cvshistory.php?subproject=linuxsampler">More ...</a>
                             </span>
                           </td>
                         </tr>
@@ -180,7 +180,7 @@
                         <tr>
                           <td>
                             <span class="cvs_footer">
-                              <a href="http://www.linuxsampler.org/gigedit_cvshistory.php">More ...</a>
+                              <a href="http://www.linuxsampler.org/cvshistory.php?subproject=gigedit">More ...</a>
                             </span>
                           </td>
                         </tr>
@@ -205,7 +205,7 @@
                         <tr>
                           <td>
                             <span class="cvs_footer">
-                              <a href="http://www.linuxsampler.org/qsampler_cvshistory.php">More ...</a>
+                              <a href="http://www.linuxsampler.org/cvshistory.php?subproject=qsampler">More ...</a>
                             </span>
                           </td>
                         </tr>
@@ -230,7 +230,7 @@
                         <tr>
                           <td>
                             <span class="cvs_footer">
-                              <a href="http://www.linuxsampler.org/jsampler_cvshistory.php">More ...</a>
+                              <a href="http://www.linuxsampler.org/cvshistory.php?subproject=jsampler">More ...</a>
                             </span>
                           </td>
                         </tr>
@@ -257,7 +257,7 @@
                         <tr>
                           <td>
                             <span class="cvs_footer">
-                              <a href="http://www.linuxsampler.org/libgig_cvshistory.php">More ...</a>
+                              <a href="http://www.linuxsampler.org/cvshistory.php?subproject=libgig">More ...</a>
                             </span>
                           </td>
                         </tr>
@@ -282,7 +282,7 @@
                         <tr>
                           <td>
                             <span class="cvs_footer">
-                              <a href="http://www.linuxsampler.org/liblscp_cvshistory.php">More ...</a>
+                              <a href="http://www.linuxsampler.org/cvshistory.php?subproject=liblscp">More ...</a>
                             </span>
                           </td>
                         </tr>
@@ -307,7 +307,7 @@
                         <tr>
                           <td>
                             <span class="cvs_footer">
-                              <a href="http://www.linuxsampler.org/jlscp_cvshistory.php">More ...</a>
+                              <a href="http://www.linuxsampler.org/cvshistory.php?subproject=jlscp">More ...</a>
                             </span>
                           </td>
                         </tr>

@@ -116,12 +116,32 @@
 			</td><td valign=top width="100%">
 			<div id="contents">
 
-			<h2>LinuxSampler CVS History</h2>
+			<h2>
+            <?php
+              if (isset($HTTP_GET_VARS['subproject']))
+                  echo $HTTP_GET_VARS['subproject'];
+            ?>
+            CVS History
+            </h2>
 
-                        <p class="default">
-                          <?php readfile("http://cvs.linuxsampler.org/log/linuxsampler_history.html"); ?>
-                          <br>
-                        </p>
+            <p class="default">
+              <?php
+                if (isset($HTTP_GET_VARS['subproject'])) {
+                    if (
+                        $HTTP_GET_VARS['subproject'] == "linuxsampler" ||
+                        $HTTP_GET_VARS['subproject'] == "qsampler" ||
+                        $HTTP_GET_VARS['subproject'] == "jsampler" ||
+                        $HTTP_GET_VARS['subproject'] == "gigedit" ||
+                        $HTTP_GET_VARS['subproject'] == "libgig" ||
+                        $HTTP_GET_VARS['subproject'] == "liblscp" ||
+                        $HTTP_GET_VARS['subproject'] == "jlscp"
+                    ) {
+                        readfile("http://cvs.linuxsampler.org/log/" . $HTTP_GET_VARS['subproject'] . "_history.html");
+                    }
+                }
+              ?>
+              <br>
+            </p>
 
 	  	</div>
 	  	</td></tr></table>
