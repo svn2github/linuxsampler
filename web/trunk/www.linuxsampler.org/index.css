@@ -291,3 +291,38 @@ span.news_date {
 span.news_footer {
     margin: 0em 2em;
 }
+
+
+
+/* CVS Commits section */
+
+table.cvs {
+    font-size: 11pt;
+    font-family: sans-serif;
+    text-align: justify;
+    font-style: normal;
+    font-weight: normal;
+    margin: 0em 2em;
+}
+
+table.cvs_project {
+    border: 1px dotted;
+}
+
+#cvs_content {
+    max-height: 300px;
+    overflow: hidden;
+    font-size: 11pt;
+    font-family: sans-serif;
+    text-align: justify;
+    font-style: normal;
+    font-weight: normal;
+}
+
+span.cvs_footer {
+    font-size: 11pt;
+    font-family: sans-serif;
+    text-align: justify;
+    font-style: normal;
+    font-weight: normal;
+}
