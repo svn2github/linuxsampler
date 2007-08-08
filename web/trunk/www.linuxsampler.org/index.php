@@ -132,11 +132,11 @@
 
             <h2>Latest CVS Commits</h2>
 
-            <table class="cvs">
+            <table class="cvs" width=100%>
               <tbody>
                 <tr>
-                  <td valign="top">
-                    <table class="cvs_project">
+                  <td valign="top" width=33%>
+                    <table class="cvs_project" width=100%>
                       <thead>
                         <tr>
                           <th scope=col>linuxsampler</th>
@@ -162,8 +162,8 @@
                       </tfoot>
                     </table>
                   </td>
-                  <td valign="top">
-                    <table class="cvs_project">
+                  <td valign="top" width=33%>
+                    <table class="cvs_project" width=100%>
                       <thead>
                         <tr>
                           <th scope=col>gigedit</th>
@@ -187,8 +187,8 @@
                       </tbody>
                     </table>
                   </td>
-                  <td valign="top">
-                    <table class="cvs_project">
+                  <td valign="top" width=33%>
+                    <table class="cvs_project" width=100%>
                       <thead>
                         <tr>
                           <th scope=col>qsampler</th>
@@ -212,8 +212,60 @@
                       </tbody>
                     </table>
                   </td>
-                  <td>
-                    <table class="cvs_project">
+                </tr>
+                <tr>
+                  <td valign="top" width=33%>
+                    <table class="cvs_project" width=100%>
+                      <thead>
+                        <tr>
+                          <th scope=col>libgig</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td>
+                            <div id="cvs_content">
+                              <?php readfile("http://cvs.linuxsampler.org/log/libgig_latest.html"); ?>
+                            </div>
+                          </td>
+                        </tr>
+                        <tr>
+                          <td>
+                            <span class="cvs_footer">
+                              <a href="http://www.linuxsampler.org/cvshistory.php?subproject=libgig">More ...</a>
+                            </span>
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </td>
+                  <td valign="top" width=33%>
+                    <table class="cvs_project" width=100%>
+                      <thead>
+                        <tr>
+                          <th scope=col>liblscp</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td>
+                            <div id="cvs_content">
+                              <?php readfile("http://cvs.linuxsampler.org/log/liblscp_latest.html"); ?>
+                            </div>
+                          </td>
+                        </tr>
+                        <tr>
+                          <td>
+                            <span class="cvs_footer">
+                              <a href="http://www.linuxsampler.org/cvshistory.php?subproject=liblscp">More ...</a>
+                            </span>
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </td>
+                  <td valign="top" width=33%>
+                    <table class="cvs_project" width=100%>
                       <thead>
                         <tr>
                           <th scope=col>jsampler</th>
@@ -239,58 +291,8 @@
                   </td>
                 </tr>
                 <tr>
-                  <td valign="top">
-                    <table class="cvs_project">
-                      <thead>
-                        <tr>
-                          <th scope=col>libgig</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        <tr>
-                          <td>
-                            <div id="cvs_content">
-                              <?php readfile("http://cvs.linuxsampler.org/log/libgig_latest.html"); ?>
-                            </div>
-                          </td>
-                        </tr>
-                        <tr>
-                          <td>
-                            <span class="cvs_footer">
-                              <a href="http://www.linuxsampler.org/cvshistory.php?subproject=libgig">More ...</a>
-                            </span>
-                          </td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </td>
-                  <td valign="top">
-                    <table class="cvs_project">
-                      <thead>
-                        <tr>
-                          <th scope=col>liblscp</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        <tr>
-                          <td>
-                            <div id="cvs_content">
-                              <?php readfile("http://cvs.linuxsampler.org/log/liblscp_latest.html"); ?>
-                            </div>
-                          </td>
-                        </tr>
-                        <tr>
-                          <td>
-                            <span class="cvs_footer">
-                              <a href="http://www.linuxsampler.org/cvshistory.php?subproject=liblscp">More ...</a>
-                            </span>
-                          </td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </td>
-                  <td valign="top">
-                    <table class="cvs_project">
+                  <td valign="top" width=33%>
+                    <table class="cvs_project" width=100%>
                       <thead>
                         <tr>
                           <th scope=col>jlscp</th>

@@ -297,6 +297,7 @@ span.news_footer {
 /* CVS Commits section */
 
 table.cvs {
+    table-layout: automatic;
     font-size: 11pt;
     font-family: sans-serif;
     text-align: justify;
@@ -306,6 +307,7 @@ table.cvs {
 }
 
 table.cvs_project {
+    table-layout: automatic;
     border: 1px dotted;
 }
 
