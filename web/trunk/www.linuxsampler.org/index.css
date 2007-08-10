@@ -384,7 +384,7 @@ table.cvs_project {
 }
 
 #cvs_content {
-    max-height: 300px;
+    height: 300px;
     overflow: hidden;
     font-size: 10pt;
     font-family: sans-serif,Arial,Helvetica;

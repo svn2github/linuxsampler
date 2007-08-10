@@ -135,7 +135,7 @@
             <table class="cvs" width=100%>
               <tbody>
                 <tr>
-                  <td valign="top" width=33%>
+                  <td valign="top" width=50%>
                     <table class="cvs_project" width=100%>
                       <thead>
                         <tr>
@@ -162,7 +162,7 @@
                       </tfoot>
                     </table>
                   </td>
-                  <td valign="top" width=33%>
+                  <td valign="top" width=50%>
                     <table class="cvs_project" width=100%>
                       <thead>
                         <tr>
@@ -187,7 +187,34 @@
                       </tbody>
                     </table>
                   </td>
-                  <td valign="top" width=33%>
+                </tr>
+                <tr>
+                  <td valign="top" width=50%>
+                    <table class="cvs_project" width=100%>
+                      <thead>
+                        <tr>
+                          <th scope=col>libgig</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td>
+                            <div id="cvs_content">
+                              <?php readfile("http://cvs.linuxsampler.org/log/libgig_latest.html"); ?>
+                            </div>
+                          </td>
+                        </tr>
+                        <tr>
+                          <td>
+                            <span class="cvs_footer">
+                              <a href="http://www.linuxsampler.org/cvshistory.php?subproject=libgig">More ...</a>
+                            </span>
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </td>
+                  <td valign="top" width=50%>
                     <table class="cvs_project" width=100%>
                       <thead>
                         <tr>
@@ -214,32 +241,7 @@
                   </td>
                 </tr>
                 <tr>
-                  <td valign="top" width=33%>
-                    <table class="cvs_project" width=100%>
-                      <thead>
-                        <tr>
-                          <th scope=col>libgig</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        <tr>
-                          <td>
-                            <div id="cvs_content">
-                              <?php readfile("http://cvs.linuxsampler.org/log/libgig_latest.html"); ?>
-                            </div>
-                          </td>
-                        </tr>
-                        <tr>
-                          <td>
-                            <span class="cvs_footer">
-                              <a href="http://www.linuxsampler.org/cvshistory.php?subproject=libgig">More ...</a>
-                            </span>
-                          </td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </td>
-                  <td valign="top" width=33%>
+                  <td valign="top" width=50%>
                     <table class="cvs_project" width=100%>
                       <thead>
                         <tr>
@@ -264,7 +266,7 @@
                       </tbody>
                     </table>
                   </td>
-                  <td valign="top" width=33%>
+                  <td valign="top" width=50%>
                     <table class="cvs_project" width=100%>
                       <thead>
                         <tr>
@@ -291,7 +293,7 @@
                   </td>
                 </tr>
                 <tr>
-                  <td valign="top" width=33%>
+                  <td valign="top" width=50%>
                     <table class="cvs_project" width=100%>
                       <thead>
                         <tr>
