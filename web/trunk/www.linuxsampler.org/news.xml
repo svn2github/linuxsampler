@@ -1,5 +1,12 @@
 <?xml version='1.0' ?>
 <news>
+  <entry date="2007-08-10">
+    <link ref="http://downloads.sourceforge.net/jsampler/JSampler-0.6a.tar.bz2">
+    JSampler 0.6a</link> has been released.
+    The <link ref="http://downloads.sourceforge.net/jsampler/Fantasia-0.6a.jar">
+    Fantasia</link> distribution is now capable of controlling all features
+    available in LinuxSampler. See <link ref="screenshots/fantasia.png">screenshot</link>.
+  </entry>
   <entry date="2007-05-24">
     <link ref="http://downloads.sourceforge.net/jsampler/JSampler-0.5a.tar.bz2">
     JSampler 0.5a</link> has been released, now with instruments database
