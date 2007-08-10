@@ -327,7 +327,7 @@
 
  </div>
 <CENTER>
-Last Sync: <?php readfile("date.txt"); ?>
+Last Webserver Sync: <?php readfile("date.txt"); ?>
 </CENTER>
 
 
