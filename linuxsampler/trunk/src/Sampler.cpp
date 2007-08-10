@@ -67,6 +67,13 @@ namespace LinuxSampler {
 
     void SamplerChannel::SetEngineType(String EngineType) throw (Exception) {
         dmsg(2,("SamplerChannel: Assigning engine type..."));
+        
+        if (pEngineChannel) {
+            if (!strcasecmp(pEngineChannel->EngineName().c_str(), EngineType.c_str())) {
+                dmsg(2,("OK\n"));
+                return;
+            }
+        }
 
         // create new engine channel
         EngineChannel* pNewEngineChannel = EngineChannelFactory::Create(EngineType);

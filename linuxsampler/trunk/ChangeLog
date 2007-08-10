@@ -104,6 +104,8 @@ Version CVS HEAD (?)
     - fixed crash occurring on certain LSCP scripts (Bug 39)
     - another thread safety fix for lscp "load engine" and "set
       channel audio output device"
+    - fixed a crash which occurs when reassigning the same engine
+      on a sampler channel with connected MIDI device
 
   * test cases:
     - updated and fixed (haven't been touched in a while)
