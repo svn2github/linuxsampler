@@ -125,18 +125,41 @@
 			<p class="default">
 				Here is a collection of frequently asked questions. Please read them before asking on
 				the mailing list.<br>
-				<br>
-				<a href="#commercial_products">Can I use LinuxSampler in commercial hardware or software products?</a><br>
-				<a href="#commercial_music">Can I use LinuxSampler for commercial music production?</a><br>
-				<a href="#open_source">LinuxSampler is not open source, you are evil!</a><br>
-				<a href="#aga">linuxsampler? qsampler? jsampler? libgig? liblscp? jlscp? ... hu?</a><br>
-				<a href="#install">What do I need to compile and install?</a><br>
-				<a href="#compilarion_error">Compilation of LinuxSampler aborts with ...</a><br>
-				<a href="#cvs_checkout">How do I checkout from CVS?</a><br>
-				<a href="#compile_cvs">How do I compile from CVS?</a><br>
-				<a href="#no_gui">Can I use linuxsampler without a GUI as well?</a><br>
-				<a href="#examples_lscp">Are there example LSCP script files somewhere?</a><br>
-				<a href="#dropouts">I get dropouts (click sounds, noise), what can I do about it?</a><br>
+				<ol class="default">
+					<li>
+						<a href="#commercial_products">Can I use LinuxSampler in commercial hardware or software products?</a>
+					</li>
+					<li>
+						<a href="#commercial_music">Can I use LinuxSampler for commercial music production?</a>
+					</li>
+					<li>
+						<a href="#open_source">LinuxSampler is not open source, you are evil!</a>
+					</li>
+					<li>
+						<a href="#aga">linuxsampler? qsampler? jsampler? libgig? liblscp? jlscp? ... hu?</a>
+					</li>
+					<li>
+						<a href="#install">What do I need to compile and install?</a>
+					</li>
+					<li>
+						<a href="#compilarion_error">Compilation of LinuxSampler aborts with ...</a>
+					</li>
+					<li>
+						<a href="#cvs_checkout">How do I checkout from CVS?</a>
+					</li>
+					<li>
+						<a href="#compile_cvs">How do I compile from CVS?</a>
+					</li>
+					<li>
+						<a href="#no_gui">Can I use linuxsampler without a GUI as well?</a>
+					</li>
+					<li>
+						<a href="#examples_lscp">Are there example LSCP script files somewhere?</a>
+					</li>
+					<li>
+						<a href="#dropouts">I get dropouts (click sounds, noise), what can I do about it?</a>
+					</li>
+                </ol>
 			</p>
 
 			<a name="commercial_products"></a>
@@ -228,32 +251,16 @@
 				linuxsampler. You have to compile older versions of LinuxSampler (v0.3.3 and older) with
 				-O2 or -O3 to avoid this problem. Usually this is done by default, if not try:
                 <br>
-				<table class="default" border="0" cellpadding="1" cellspacing="5">
-					<tr>
-					<td><pre class="code">1
-2</pre>
-					</td>
-					<td width="100%">
-					<pre class="code">CXXFLAGS="-O3" ./configure
+            </p>
+			<pre class="code">CXXFLAGS="-O3" ./configure
 make</pre>
-					</td>
-					</tr>
-				</table>
-				<br>
+			<p class="default">
 				Alternatively you could also disable all hand-crafted assembly optimization code by:
-				<table class="default" border="0" cellpadding="1" cellspacing="5">
-				<tr>
-				  <td><pre class="code">1
-2</pre>
-				  </td>
-				  <td width="100%">
-				    <pre class="code">./configure --disable-asm
+            </p>
+			<pre class="code">./configure --disable-asm
 make</pre>
-				  </td>
-				</tr>
-				</table>
-				<br>
-				but the latter is definitely not recommended, as it will increase CPU usage a lot!
+			<p class="default">
+			    but the latter is definitely not recommended, as it will increase CPU usage a lot!
 			</p>
 
 			<p class="default">
@@ -265,31 +272,17 @@ make</pre>
 				<a href="http://en.wikipedia.org/wiki/SIMD">SIMD</a> optimization in older versions of
 				linuxsampler. Make sure you got gcc and g++, both of version 3.3 or higher installed.
 				You can check this with:
-				<table class="default" border="0" cellpadding="1" cellspacing="5">
-				<tr>
-				  <td><pre class="code">1
-2</pre>
-				  </d>
-				  <td width="100%">
-				    <pre class="code">gcc --version
+            </p>
+			<pre class="code">gcc --version
 g++ --version</pre>
-				  </td>
-				</tr>
-				</table>
+            <p class="default">
 				In case you already got gcc and g++ of version 3.3 or higher
 				installed and it still causes the compilation error mentioned
 				above, try the following:
-				<table class="default" border="0" cellpadding="1" cellspacing="5">
-				<tr>
-				  <td><pre class="code">1
-2</pre>
-				  </td>
-				  <td width="100%">
-				    <pre class="code">export CC=`which gcc`
+            </p>
+			<pre class="code">export CC=`which gcc`
 export CXX=`which g++`</pre>
-				  </td>
-				</tr>
-				</table>
+            <p class="default">
 				On certain systems however you still get this error in conjunction with older
 				versions of LinuxSampler (v0.3.3 and older). Fortunately newer versions of
 				linuxsampler are not affected anymore
@@ -311,19 +304,9 @@ export CXX=`which g++`</pre>
 				The procedure for compiling from CVS is the same for all subprojects, that is no matter
 				if you are compiling linuxsampler, qsampler, libgig or liblscp from CVS, you need to
 				have the autotools (automake, autoconf and libtool) installed and compile it that way:
-				<table class="default" border="0" cellpadding="1" cellspacing="5">
-				<tr>
-				  <td><pre class="code">1
-2
-3</pre>
-				  </td>
-				  <td width="100%">
-				    <pre class="code">make -f Makefile.cvs
+				<pre class="code">make -f Makefile.cvs
 ./configure
 make</pre>
-				  </td>
-				</tr>
-				</table>
 			</p>
 
 			<a name="no_gui"></a>
@@ -335,25 +318,13 @@ make</pre>
 				a sampler session with QSampler, because the session files qsampler writes are actually
 				real LSCP scripts. You can send a LSCP script to linuxsampler on the console with the
 				following command:
-				<table class="default" border="0" cellpadding="1" cellspacing="5">
-				<tr>
-				  <td><pre class="code">1</pre>
-				  </td>
-				  <td width="100%">
-				    <pre class="code">cat yourscript.lscp | netcat localhost 8888</pre>
-				  </td>
-				</tr>
-				</table>
-				or on certain systems (like Debian) you have to provide the -t switch:
-				<table class="default" border="0" cellpadding="1" cellspacing="5">
-				<tr>
-				  <td><pre class="code">1</pre>
-				  </td>
-				  <td width="100%">
-				    <pre class="code">cat yourscript.lscp | netcat -t localhost 8888</pre>
-				  </td>
-				</tr>
-				</table>
+            </p>
+			<pre class="code">cat yourscript.lscp | netcat localhost 8888</pre>
+			<p class="default">
+                or on certain systems (like Debian) you have to provide the -t switch:
+            </p>
+			<pre class="code">cat yourscript.lscp | netcat -t localhost 8888</pre>
+            <p class="default">
 				Of course you can also replace localhost by the IP address of the machine where
 				linuxsampler is running. Alternatively you can also make a telnet connection (port 8888)
 				to linuxsampler's LSCP server and type commands manually.
