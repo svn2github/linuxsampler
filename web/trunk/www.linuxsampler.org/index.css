@@ -359,6 +359,11 @@ span.news_date {
 
 span.news_footer {
     margin: 0em 2em;
+    font-size: 10pt;
+    font-family: sans-serif,Arial,Helvetica;
+    text-align: left;
+    font-style: normal;
+    font-weight: normal;
 }
 
 
