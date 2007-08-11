@@ -3115,8 +3115,9 @@ namespace {
 
     /** @brief Delete a sample.
      *
-     * This will delete the given Sample object from the gig file. You have
-     * to call Save() to make this persistent to the file.
+     * This will delete the given Sample object from the gig file. Any
+     * references to this sample from Regions and DimensionRegions will be
+     * removed. You have to call Save() to make this persistent to the file.
      *
      * @param pSample - sample to delete
      * @throws gig::Exception if given sample could not be found
