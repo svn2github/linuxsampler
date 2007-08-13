@@ -106,6 +106,9 @@ Version CVS HEAD (?)
       channel audio output device"
     - fixed a crash which occurs when reassigning the same engine
       on a sampler channel with connected MIDI device
+    - fixed a crash which occurs when changing the number of ports of a MIDI
+      device connected to a sampler channel to number less then or equal
+      to the index of the port to which the sampler channel is connected.
 
   * test cases:
     - updated and fixed (haven't been touched in a while)

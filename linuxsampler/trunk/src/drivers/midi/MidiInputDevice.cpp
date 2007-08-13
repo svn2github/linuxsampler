@@ -23,6 +23,8 @@
 
 #include "MidiInputDevice.h"
 
+#include "../../Sampler.h"
+
 namespace LinuxSampler {
 
 // *************** ParameterActive ***************
@@ -109,6 +111,24 @@ namespace LinuxSampler {
     }
 
     void MidiInputDevice::ParameterPorts::OnSetValue(int i) throw (Exception) {
+        MidiInputDevice* dev = static_cast<MidiInputDevice*> (pDevice);
+        Sampler* s = static_cast<Sampler*> (dev->pSampler);
+        std::map<uint, SamplerChannel*> channels = s->GetSamplerChannels();
+        std::map<uint, SamplerChannel*>::iterator iter = channels.begin();
+        for (; iter != channels.end(); iter++) {
+            SamplerChannel* chn = iter->second;
+            if (chn->GetMidiInputDevice() == NULL || chn->GetMidiInputDevice() != pDevice) {
+                continue;
+            }
+            
+            int port = chn->GetMidiInputPort();
+            if (port >= i) {
+                String err = "Sampler channel " + ToString(iter->first);
+                err += " is still connected to MIDI port " + ToString(port);
+                throw Exception(err);
+            }
+        }
+        
         ((MidiInputDevice*)pDevice)->AcquirePorts(i);
     }
 
