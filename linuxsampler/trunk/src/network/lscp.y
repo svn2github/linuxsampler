@@ -326,6 +326,7 @@ get_instruction       :  AVAILABLE_ENGINES                                      
 set_instruction       :  AUDIO_OUTPUT_DEVICE_PARAMETER SP number SP string '=' param_val_list             { $$ = LSCPSERVER->SetAudioOutputDeviceParameter($3, $5, $7);      }
                       |  AUDIO_OUTPUT_CHANNEL_PARAMETER SP number SP number SP string '=' param_val_list  { $$ = LSCPSERVER->SetAudioOutputChannelParameter($3, $5, $7, $9); }
                       |  MIDI_INPUT_DEVICE_PARAMETER SP number SP string '=' param_val_list               { $$ = LSCPSERVER->SetMidiInputDeviceParameter($3, $5, $7);        }
+                      |  MIDI_INPUT_PORT_PARAMETER SP number SP number SP string '=' NONE                 { $$ = LSCPSERVER->SetMidiInputPortParameter($3, $5, $7, "");      }
                       |  MIDI_INPUT_PORT_PARAMETER SP number SP number SP string '=' param_val_list       { $$ = LSCPSERVER->SetMidiInputPortParameter($3, $5, $7, $9);      }
                       |  CHANNEL SP set_chan_instruction                                                  { $$ = $3;                                                         }
                       |  MIDI_INSTRUMENT_MAP SP NAME SP midi_map SP map_name                              { $$ = LSCPSERVER->SetMidiInstrumentMapName($5, $7);               }

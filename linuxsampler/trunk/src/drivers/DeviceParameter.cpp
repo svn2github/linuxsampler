@@ -65,6 +65,9 @@ namespace LinuxSampler {
 
     static std::vector<String> __parse_strings(String val) throw (Exception) {
         std::vector<String> vS;
+        
+        // checking for empty list
+        if (val.length() == 0) return vS;
 
         // if there's only a single value, then we also allow to give it without being encapsulated into apostrophes
         if (val.find("\'") == String::npos && val.find("\"") == String::npos) {

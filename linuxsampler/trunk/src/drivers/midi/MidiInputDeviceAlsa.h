@@ -86,6 +86,8 @@ namespace LinuxSampler {
 
                     void ConnectToAlsaMidiSource(const char* MidiSource);
                 protected:
+                    std::vector<snd_seq_port_subscribe_t*> subscriptions;
+
                     MidiInputPortAlsa(MidiInputDeviceAlsa* pDevice) throw (MidiInputException);
                     ~MidiInputPortAlsa();
                     friend class MidiInputDeviceAlsa;

@@ -2061,7 +2061,8 @@ Schoenebeck'>
                     or <xref target="LIST MIDI_INPUT_DEVICES">"LIST MIDI_INPUT_DEVICES"</xref>
                     command, &lt;port&gt; by the MIDI port number, &lt;key&gt; by the name of
                     the parameter to change and &lt;value&gt; by the new value for this
-                    parameter.</t>
+                    parameter (encapsulated into apostrophes) or NONE (not encapsulated into apostrophes)
+		    for specifying no value for parameters allowing a list of values.</t>
 
                     <t>Possible Answers:</t>
                     <t>
@@ -2088,7 +2089,14 @@ Schoenebeck'>
                     <t>Example:</t>
                     <t>
                         <list>
-                            <t></t>
+                            <t>C: "SET MIDI_INPUT_PORT_PARAMETER 0 0 ALSA_SEQ_BINDINGS='20:0'"</t>
+                            <t>S: "OK"</t>
+                        </list>
+                    </t>
+                    <t>
+                        <list>
+                            <t>C: "SET MIDI_INPUT_PORT_PARAMETER 0 0 ALSA_SEQ_BINDINGS=NONE"</t>
+                            <t>S: "OK"</t>
                         </list>
                     </t>
                 </section>
@@ -6216,6 +6224,8 @@ Schoenebeck'>
 		<t>/ AUDIO_OUTPUT_CHANNEL_PARAMETER SP number SP number SP string '=' param_val_list
 		</t>
 		<t>/ MIDI_INPUT_DEVICE_PARAMETER SP number SP string '=' param_val_list
+		</t>
+		<t>/ MIDI_INPUT_PORT_PARAMETER SP number SP number SP string '=' NONE
 		</t>
 		<t>/ MIDI_INPUT_PORT_PARAMETER SP number SP number SP string '=' param_val_list
 		</t>

@@ -86,6 +86,15 @@ namespace LinuxSampler {
     }
 
     void MidiInputDeviceAlsa::MidiInputPortAlsa::ParameterAlsaSeqBindings::OnSetValue(std::vector<String> vS) throw (Exception) {
+        std::vector<snd_seq_port_subscribe_t*>::iterator it = pPort->subscriptions.begin();
+        for (; it != pPort->subscriptions.end(); it++) {
+            if(snd_seq_unsubscribe_port(pPort->pDevice->hAlsaSeq, *it)) {
+                dmsg(1,("ParameterAlsaSeqBindings::OnSetValue: Can't unsubscribe port connection!.\n"));
+            }
+            snd_seq_port_subscribe_free(*it);
+        }
+        pPort->subscriptions.clear();
+        
         std::vector<String>::iterator iter = vS.begin();
         for (; iter != vS.end(); iter++) pPort->ConnectToAlsaMidiSource((*iter).c_str());
     }
@@ -157,14 +166,18 @@ namespace LinuxSampler {
         sender.port   = (char) hExtPort;
         dest.client   = (char) pDevice->hAlsaSeqClient;
         dest.port     = (char) portNumber;
-        snd_seq_port_subscribe_alloca(&subs);
+        snd_seq_port_subscribe_malloc(&subs);
         snd_seq_port_subscribe_set_sender(subs, &sender);
         snd_seq_port_subscribe_set_dest(subs, &dest);
         snd_seq_port_subscribe_set_queue(subs, 1);
         snd_seq_port_subscribe_set_time_update(subs, 1);
         snd_seq_port_subscribe_set_time_real(subs, 1);
-        if (snd_seq_subscribe_port(pDevice->hAlsaSeq, subs) < 0)
+        if (snd_seq_subscribe_port(pDevice->hAlsaSeq, subs) < 0) {
+            snd_seq_port_subscribe_free(subs);
             throw MidiInputException(String("Unable to connect to Alsa seq client \'") + MidiSource + "\' (" + snd_strerror(errno) + ")");
+        }
+
+        subscriptions.push_back(subs);
     }
 
 
@@ -221,7 +234,7 @@ namespace LinuxSampler {
     }
 
     String MidiInputDeviceAlsa::Version() {
-	    String s = "$Revision: 1.19 $";
+	    String s = "$Revision: 1.20 $";
 	    return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
 
