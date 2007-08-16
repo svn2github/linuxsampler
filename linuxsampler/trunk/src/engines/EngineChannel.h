@@ -274,6 +274,26 @@ namespace LinuxSampler {
              */
             int GetMidiRpnController();
 
+            /**
+             * Gets the current number of active voices.
+             */
+            uint GetVoiceCount();
+
+            /**
+             * Sets the current number of active voices.
+             */
+            void SetVoiceCount(uint Voices);
+
+            /**
+             * Gets the current number of active disk streams.
+             */
+            uint GetDiskStreamCount();
+
+            /**
+             * Sets the current number of active disk streams.
+             */
+            void SetDiskStreamCount(uint Streams);
+
             int iSamplerChannelIndex; ///< FIXME: nasty hack, might be removed (should be 'virtual EngineChannel* EngineChannel() = 0;', but due to cyclic dependencies only a void* solution would be possible ATM)
 
         protected:
@@ -303,6 +323,8 @@ namespace LinuxSampler {
             bool    bProgramChangeReceived;
             bool    bMidiRpnReceived;
             int     iMidiInstrumentMap;
+            uint    uiVoiceCount;
+            uint    uiDiskStreamCount;
             ListenerList<FxSendCountListener*> llFxSendCountListeners;
     };
 

@@ -112,6 +112,7 @@ Version CVS HEAD (?)
     - The previous bindings were not been disconnected when altering
       the ALSA_SEQ_BINDINGS parameter. Introduced a NONE keyword for
       unsubscribing from all bindings (e.g. ALSA_SEQ_BINDINGS=NONE).
+    - The active stream/voice count statistic was incorrect.
 
   * test cases:
     - updated and fixed (haven't been touched in a while)

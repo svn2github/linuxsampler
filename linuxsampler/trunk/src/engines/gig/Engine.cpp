@@ -526,6 +526,8 @@ namespace LinuxSampler { namespace gig {
         if (pEngineChannel->GetMute()) return; // skip if sampler channel is muted
         #endif
 
+        uint vc = 0;
+        uint sc = 0;
         RTList<uint>::Iterator iuiKey = pEngineChannel->pActiveKeys->first();
         RTList<uint>::Iterator end    = pEngineChannel->pActiveKeys->end();
         while (iuiKey != end) { // iterate through all active keys
@@ -537,12 +539,21 @@ namespace LinuxSampler { namespace gig {
             for (; itVoice != itVoicesEnd; ++itVoice) { // iterate through all voices on this key
                 // now render current voice
                 itVoice->Render(Samples);
-                if (itVoice->IsActive()) ActiveVoiceCountTemp++; // still active
-                else { // voice reached end, is now inactive
+                if (itVoice->IsActive()) { // still active
+                    ActiveVoiceCountTemp++;
+                    vc++;
+
+                    if (itVoice->PlaybackState == Voice::playback_state_disk) {
+                        if ((itVoice->DiskStreamRef).State == Stream::state_active) sc++;
+                    }
+                }  else { // voice reached end, is now inactive
                     FreeVoice(pEngineChannel, itVoice); // remove voice from the list of active voices
                 }
             }
         }
+        
+        pEngineChannel->SetVoiceCount(vc);
+        pEngineChannel->SetDiskStreamCount(sc);
     }
 
     /**
@@ -568,8 +579,16 @@ namespace LinuxSampler { namespace gig {
                 LaunchVoice(pEngineChannel, itVoiceStealEvent, itVoiceStealEvent->Param.Note.Layer, itVoiceStealEvent->Param.Note.ReleaseTrigger, false, false);
             if (itNewVoice) {
                 itNewVoice->Render(Samples);
-                if (itNewVoice->IsActive()) ActiveVoiceCountTemp++; // still active
-                else { // voice reached end, is now inactive
+                if (itNewVoice->IsActive()) { // still active
+                    ActiveVoiceCountTemp++;
+                    pEngineChannel->SetVoiceCount(pEngineChannel->GetVoiceCount() + 1);
+
+                    if (itNewVoice->PlaybackState == Voice::playback_state_disk) {
+                        if (itNewVoice->DiskStreamRef.State == Stream::state_active) {
+                            pEngineChannel->SetDiskStreamCount(pEngineChannel->GetDiskStreamCount() + 1);
+                        }
+                    }
+                } else { // voice reached end, is now inactive
                     FreeVoice(pEngineChannel, itNewVoice); // remove voice from the list of active voices
                 }
             }
@@ -1725,7 +1744,7 @@ namespace LinuxSampler { namespace gig {
     }
 
     String Engine::Version() {
-        String s = "$Revision: 1.77 $";
+        String s = "$Revision: 1.78 $";
         return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
 

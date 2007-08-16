@@ -40,6 +40,8 @@ namespace LinuxSampler {
         uiMidiProgram = 0;
         bProgramChangeReceived = bMidiBankMsbReceived = bMidiBankLsbReceived = false;
         iMidiInstrumentMap = NO_MIDI_INSTRUMENT_MAP;
+        uiVoiceCount = 0;
+        uiDiskStreamCount = 0;
         ResetMidiRpnController();
     }
 
@@ -183,6 +185,22 @@ namespace LinuxSampler {
 
     int EngineChannel::GetMidiRpnController() {
         return (bMidiRpnReceived) ? (uiMidiRpnMsb << 8) | uiMidiRpnLsb : -1;
+    }
+
+    uint EngineChannel::GetVoiceCount() {
+        return uiVoiceCount;
+    }
+    
+    void EngineChannel::SetVoiceCount(uint Voices) {
+        uiVoiceCount = Voices;
+    }
+
+    uint EngineChannel::GetDiskStreamCount() {
+        return uiDiskStreamCount;
+    }
+    
+    void EngineChannel::SetDiskStreamCount(uint Streams) {
+        uiDiskStreamCount = Streams;
     }
 
     void EngineChannel::AddFxSendCountListener(FxSendCountListener* l) {

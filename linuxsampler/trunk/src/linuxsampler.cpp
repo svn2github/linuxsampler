@@ -165,8 +165,8 @@ int main(int argc, char **argv) {
               if (!pEngineChannel) continue;
               Engine* pEngine = pEngineChannel->GetEngine();
               if (!pEngine) continue;
-              pSampler->fireVoiceCountChanged(iter->first, pEngine->VoiceCount());
-              pSampler->fireStreamCountChanged(iter->first, pEngine->DiskStreamCount());
+              pSampler->fireVoiceCountChanged(iter->first, pEngineChannel->GetVoiceCount());
+              pSampler->fireStreamCountChanged(iter->first, pEngineChannel->GetDiskStreamCount());
               pSampler->fireBufferFillChanged(iter->first, pEngine->DiskStreamBufferFillPercentage());
               pSampler->fireTotalVoiceCountChanged(pSampler->GetVoiceCount());
           }
