@@ -113,6 +113,8 @@ Version CVS HEAD (?)
       the ALSA_SEQ_BINDINGS parameter. Introduced a NONE keyword for
       unsubscribing from all bindings (e.g. ALSA_SEQ_BINDINGS=NONE).
     - The active stream/voice count statistic was incorrect.
+    - notification events were not been sent for some sampler
+      channel changes
 
   * test cases:
     - updated and fixed (haven't been touched in a while)

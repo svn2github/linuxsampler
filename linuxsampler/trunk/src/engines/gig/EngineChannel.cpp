@@ -218,6 +218,8 @@ namespace LinuxSampler { namespace gig {
 
         if (pEngine) pEngine->ChangeInstrument(this, newInstrument);
         else pInstrument = newInstrument;
+        
+        StatusChanged(true);
     }
 
     /**
