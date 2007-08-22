@@ -1,3 +1,12 @@
+libgig (3.1.1-2) unreleased; urgency=low
+
+  * added build dependency to uuid-dev to allow libgig generating DLSIDs
+    for DLS and gig files (not a mandatory but highly recommended
+    dependency)
+  * slightly changed package descriptions
+
+ -- Christian Schoenebeck <cuse@users.sourceforge.net>  Wed, 22 Aug 2007 14:03:12 +0200
+
 libgig (3.1.1-1) unstable; urgency=low
 
   * fixed debian rules file for working with official release tarballs as

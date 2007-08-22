@@ -2,15 +2,15 @@ Source: libgig
 Section: devel
 Priority: optional
 Maintainer: Matt Flax <flatmax@pgb.unsw.edu.au>
-Build-Depends: debhelper (>= 4.0.0), pkg-config, libsndfile1-dev, doxygen
+Build-Depends: debhelper (>= 4.0.0), pkg-config, libsndfile1-dev, doxygen, uuid-dev
 Standards-Version: 3.6.1
 
 Package: libgig-dev
 Section: libdevel
 Architecture: any
 Depends: libgig (= ${Source-Version})
-Description: library for loading and modifying Gigasampler and DLS files
- libgig is a C++ library for loading, modifying and creating Gigasampler
+Description: library for reading and modifying Gigasampler and DLS files
+ libgig is a C++ library for reading, modifying and creating Gigasampler
  files and DLS (Downloadable Sounds) Level 1/2 files.
  .
  For more information visit
@@ -24,8 +24,8 @@ Package: libgig
 Section: libs
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
-Description: library for loading and modifying Gigasampler and DLS files
- libgig is a C++ library for loading, modifying and creating Gigasampler
+Description: library for reading and modifying Gigasampler and DLS files
+ libgig is a C++ library for reading, modifying and creating Gigasampler
  files and DLS (Downloadable Sounds) Level 1/2 files.
  .
  For more information visit
