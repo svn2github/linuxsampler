@@ -253,6 +253,9 @@ MainWindow::MainWindow()
     file_is_changed = false;
 
     show_all_children();
+
+    // start with a new gig file by default
+    on_action_file_new();
 }
 
 MainWindow::~MainWindow()

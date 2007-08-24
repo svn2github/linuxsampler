@@ -34,6 +34,7 @@ Version CVS HEAD
   * added support for 24 bit sample import
   * when importing samples, settings for loops and root note are
     copied from the sample files (if they have such settings)
+  * start with a new gig file by default
 
 Version 0.0.3 (2007-03-24)
 

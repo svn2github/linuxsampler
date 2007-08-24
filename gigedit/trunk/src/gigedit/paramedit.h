@@ -22,6 +22,8 @@
 
 #include <gig.h>
 
+#include <math.h>
+
 #include <gtkmm/adjustment.h>
 #include <gtkmm/alignment.h>
 #include <gtkmm/box.h>
