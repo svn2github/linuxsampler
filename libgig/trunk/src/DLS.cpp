@@ -441,8 +441,8 @@ namespace DLS {
         UUID uuid;
         UuidCreate(&uuid);
         pDLSID->ulData1 = uuid.Data1;
-        pDLSID->usData1 = uuid.Data2;
-        pDLSID->usData2 = uuid.Data3;
+        pDLSID->usData2 = uuid.Data2;
+        pDLSID->usData3 = uuid.Data3;
         memcpy(pDLSID->abData, uuid.Data4, 8);
 
 #elif defined(__APPLE__)

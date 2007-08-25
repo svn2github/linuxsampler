@@ -51,9 +51,13 @@ Version CVS HEAD (?)
       list in v3 files now always has 128 entries, several parameters
       where incorrectly saved due to an operator precedence mistake
     - DeleteSample now removes all references to the deleted sample
+    - AddDimension now copies all parameters from existing dimension
+      regions and also makes sure that the samplechannel dimension is
+      placed first in the list of dimensions.
 
   * src/RIFF.cpp, src/RIFF.h:
     - added File::SetByteOrder method
+    - Windows fix: saving a new file didn't work
 
   * src/gigdump.cpp:
     - added some missing dimension strings

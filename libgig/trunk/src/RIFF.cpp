@@ -1268,7 +1268,11 @@ namespace RIFF {
         if (!pSubChunks) {
             pSubChunks    = new ChunkList();
             pSubChunksMap = new ChunkMap();
+            #if defined(WIN32)
+            if (pFile->hFileRead == INVALID_HANDLE_VALUE) return;
+            #else
             if (!pFile->hFileRead) return;
+            #endif
             unsigned long uiOriginalPos = GetPos();
             SetPos(0); // jump to beginning of list chunk body
             while (RemainingBytes() >= CHUNK_HEADER_SIZE) {
@@ -1498,7 +1502,7 @@ namespace RIFF {
                                                      NULL, OPEN_EXISTING,
                                                      FILE_ATTRIBUTE_NORMAL, NULL
                                                  );
-                        throw Exception("Could not (re)open file \"" + Filename + "\" in read mode");
+                        throw Exception("Could not (re)open file \"" + Filename + "\" in read+write mode");
                     }
                     #else
                     if (hFileRead) fclose(hFileRead);
@@ -1690,16 +1694,14 @@ namespace RIFF {
         // forget all resized chunks
         ResizedChunks.clear();
 
-        if (Filename.length() > 0) {
-            #if POSIX
-            close(hFileWrite);
-            #elif defined(WIN32)
-            CloseHandle(hFileWrite);
-            #else
-            fclose(hFileWrite);
-            #endif
-            hFileWrite = hFileRead;
-        }
+        #if POSIX
+        if (hFileWrite) close(hFileWrite);
+        #elif defined(WIN32)
+        if (hFileWrite != INVALID_HANDLE_VALUE) CloseHandle(hFileWrite);
+        #else
+        if (hFileWrite) fclose(hFileWrite);
+        #endif
+        hFileWrite = hFileRead;
 
         // associate new file with this File object from now on
         Filename = path;

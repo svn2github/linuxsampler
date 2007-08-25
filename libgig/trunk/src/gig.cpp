@@ -1542,6 +1542,28 @@ namespace {
         VelocityTable = 0;
     }
 
+    /*
+     * Constructs a DimensionRegion by copying all parameters from
+     * another DimensionRegion
+     */
+    DimensionRegion::DimensionRegion(RIFF::List* _3ewl, const DimensionRegion& src) : DLS::Sampler(_3ewl) {
+        Instances++;
+        *this = src; // default memberwise shallow copy of all parameters
+        pParentList = _3ewl; // restore the chunk pointer
+
+        // deep copy of owned structures
+        if (src.VelocityTable) {
+            VelocityTable = new uint8_t[128];
+            for (int k = 0 ; k < 128 ; k++)
+                VelocityTable[k] = src.VelocityTable[k];
+        }
+        if (src.pSampleLoops) {
+            pSampleLoops = new DLS::sample_loop_t[src.SampleLoops];
+            for (int k = 0 ; k < src.SampleLoops ; k++)
+                pSampleLoops[k] = src.pSampleLoops[k];
+        }
+    }
+
     /**
      * Apply dimension region settings to the respective RIFF chunks. You
      * have to call File::Save() to make changes persistent.
@@ -2460,34 +2482,64 @@ namespace {
             if (pDimensionDefinitions[i].dimension == pDimDef->dimension)
                 throw gig::Exception("Could not add new dimension, there is already a dimension of the same type");
 
+        // pos is where the new dimension should be placed, normally
+        // last in list, except for the samplechannel dimension which
+        // has to be first in list
+        int pos = pDimDef->dimension == dimension_samplechannel ? 0 : Dimensions;
+        int bitpos = 0;
+        for (int i = 0 ; i < pos ; i++)
+            bitpos += pDimensionDefinitions[i].bits;
+
+        // make room for the new dimension
+        for (int i = Dimensions ; i > pos ; i--) pDimensionDefinitions[i] = pDimensionDefinitions[i - 1];
+        for (int i = 0 ; i < (1 << iCurrentBits) ; i++) {
+            for (int j = Dimensions ; j > pos ; j--) {
+                pDimensionRegions[i]->DimensionUpperLimits[j] =
+                    pDimensionRegions[i]->DimensionUpperLimits[j - 1];
+            }
+        }
+
         // assign definition of new dimension
-        pDimensionDefinitions[Dimensions] = *pDimDef;
+        pDimensionDefinitions[pos] = *pDimDef;
 
         // auto correct certain dimension definition fields (where possible)
-        pDimensionDefinitions[Dimensions].split_type  =
-            __resolveSplitType(pDimensionDefinitions[Dimensions].dimension);
-        pDimensionDefinitions[Dimensions].zone_size =
-            __resolveZoneSize(pDimensionDefinitions[Dimensions]);
+        pDimensionDefinitions[pos].split_type  =
+            __resolveSplitType(pDimensionDefinitions[pos].dimension);
+        pDimensionDefinitions[pos].zone_size =
+            __resolveZoneSize(pDimensionDefinitions[pos]);
 
-        // create new dimension region(s) for this new dimension
-        for (int i = 1 << iCurrentBits; i < 1 << iNewBits; i++) {
-            //TODO: maybe we should copy existing dimension regions if possible instead of simply creating new ones with default values
-            RIFF::List* _3prg = pCkRegion->GetSubList(LIST_TYPE_3PRG);
-            RIFF::List* pNewDimRgnListChunk = _3prg->AddSubList(LIST_TYPE_3EWL);
-            pDimensionRegions[i] = new DimensionRegion(pNewDimRgnListChunk);
+        // create new dimension region(s) for this new dimension, and make
+        // sure that the dimension regions are placed correctly in both the
+        // RIFF list and the pDimensionRegions array
+        RIFF::Chunk* moveTo = NULL;
+        RIFF::List* _3prg = pCkRegion->GetSubList(LIST_TYPE_3PRG);
+        for (int i = (1 << iCurrentBits) - (1 << bitpos) ; i >= 0 ; i -= (1 << bitpos)) {
+            for (int k = 0 ; k < (1 << bitpos) ; k++) {
+                pDimensionRegions[(i << pDimDef->bits) + k] = pDimensionRegions[i + k];
+            }
+            for (int j = 1 ; j < (1 << pDimDef->bits) ; j++) {
+                for (int k = 0 ; k < (1 << bitpos) ; k++) {
+                    RIFF::List* pNewDimRgnListChunk = _3prg->AddSubList(LIST_TYPE_3EWL);
+                    if (moveTo) _3prg->MoveSubChunk(pNewDimRgnListChunk, moveTo);
+                    // create a new dimension region and copy all parameter values from
+                    // an existing dimension region
+                    pDimensionRegions[(i << pDimDef->bits) + (j << bitpos) + k] =
+                        new DimensionRegion(pNewDimRgnListChunk, *pDimensionRegions[i + k]);
 
-            // copy the upper limits for the other dimensions
-            memcpy(pDimensionRegions[i]->DimensionUpperLimits,
-                   pDimensionRegions[i & ((1 << iCurrentBits) - 1)]->DimensionUpperLimits, 8);
-
-            DimensionRegions++;
+                    DimensionRegions++;
+                }
+            }
+            moveTo = pDimensionRegions[i]->pParentList;
         }
 
         // initialize the upper limits for this dimension
-        for (int z = 0, j = 0 ; z < pDimDef->zones ; z++, j += 1 << iCurrentBits) {
+        int mask = (1 << bitpos) - 1;
+        for (int z = 0 ; z < pDimDef->zones ; z++) {
             uint8_t upperLimit = uint8_t((z + 1) * 128.0 / pDimDef->zones - 1);
             for (int i = 0 ; i < 1 << iCurrentBits ; i++) {
-                pDimensionRegions[j + i]->DimensionUpperLimits[Dimensions] = upperLimit;
+                pDimensionRegions[((i & ~mask) << pDimDef->bits) |
+                                  (z << bitpos) |
+                                  (i & mask)]->DimensionUpperLimits[pos] = upperLimit;
             }
         }
 

@@ -478,6 +478,7 @@ namespace gig {
         protected:
             uint8_t* VelocityTable; ///< For velocity dimensions with custom defined zone ranges only: used for fast converting from velocity MIDI value to dimension bit number.
             DimensionRegion(RIFF::List* _3ewl);
+            DimensionRegion(RIFF::List* _3ewl, const DimensionRegion& src);
            ~DimensionRegion();
             friend class Region;
         private:
