@@ -31,6 +31,18 @@
 #include <gtkmm/aboutdialog.h>
 #endif
 
+#if (GLIBMM_MAJOR_VERSION == 2 && GLIBMM_MINOR_VERSION < 6) || GLIBMM_MAJOR_VERSION < 2
+namespace Glib {
+Glib::ustring filename_display_basename(const std::string& filename)
+{
+    gchar* gstr = g_path_get_basename(filename.c_str());
+    Glib::ustring str(gstr);
+    g_free(gstr);
+    return Glib::filename_to_utf8(str);
+}
+}
+#endif
+
 #include <stdio.h>
 #include <sndfile.h>
 
@@ -234,6 +246,9 @@ MainWindow::MainWindow()
     std::list<Gtk::TargetEntry> drag_target_gig_sample;
     drag_target_gig_sample.push_back( Gtk::TargetEntry("gig::Sample") );
     m_TreeViewSamples.drag_source_set(drag_target_gig_sample);
+    m_TreeViewSamples.signal_drag_begin().connect(
+        sigc::mem_fun(*this, &MainWindow::on_sample_treeview_drag_begin)
+    );
     m_TreeViewSamples.signal_drag_data_get().connect(
         sigc::mem_fun(*this, &MainWindow::on_sample_treeview_drag_data_get)
     );
@@ -410,12 +425,15 @@ bool MainWindow::close_confirmation_dialog()
                                  Glib::filename_display_basename(filename).c_str());
     Gtk::MessageDialog dialog(*this, msg, false, Gtk::MESSAGE_WARNING, Gtk::BUTTONS_NONE);
     g_free(msg);
+#if (GTKMM_MAJOR_VERSION == 2 && GTKMM_MINOR_VERSION >= 6) || GTKMM_MAJOR_VERSION > 2
     dialog.set_secondary_text(_("If you close without saving, your changes will be lost."));
+#endif
     dialog.add_button(_("Close _Without Saving"), Gtk::RESPONSE_NO);
     dialog.add_button(Gtk::Stock::CANCEL, Gtk::RESPONSE_CANCEL);
     dialog.add_button(file_has_name ? Gtk::Stock::SAVE : Gtk::Stock::SAVE_AS, Gtk::RESPONSE_YES);
     dialog.set_default_response(Gtk::RESPONSE_YES);
     int response = dialog.run();
+    dialog.hide();
     if (response == Gtk::RESPONSE_YES) return file_save();
     return response != Gtk::RESPONSE_CANCEL;
 }
@@ -437,7 +455,6 @@ void MainWindow::on_action_file_open()
     if (dialog.run() == Gtk::RESPONSE_OK) {
         std::string filename = dialog.get_filename();
         printf("filename=%s\n", filename.c_str());
-        __clear();
         printf("on_action_file_open self=%x\n", Glib::Thread::self());
         load_file(filename.c_str());
         current_dir = Glib::path_get_dirname(filename);
@@ -446,6 +463,7 @@ void MainWindow::on_action_file_open()
 
 void MainWindow::load_file(const char* name)
 {
+    __clear();
     load_dialog = new LoadDialog("Loading...", *this);
     load_dialog->show_all();
     loader = new Loader(strdup(name));
@@ -486,9 +504,33 @@ void MainWindow::on_action_file_save()
     file_save();
 }
 
-bool MainWindow::file_save()
+bool MainWindow::check_if_savable()
 {
     if (!file) return false;
+
+    if (!file->GetFirstSample()) {
+        Gtk::MessageDialog(*this, _("The file could not be saved "
+                                    "because it contains no samples"),
+                           false, Gtk::MESSAGE_ERROR).run();
+        return false;
+    }
+
+    for (gig::Instrument* instrument = file->GetFirstInstrument() ; instrument ;
+         instrument = file->GetNextInstrument()) {
+        if (!instrument->GetFirstRegion()) {
+            Gtk::MessageDialog(*this, _("The file could not be saved "
+                                        "because there are instruments "
+                                        "that have no regions"),
+                               false, Gtk::MESSAGE_ERROR).run();
+            return false;
+        }
+    }
+    return true;
+}
+
+bool MainWindow::file_save()
+{
+    if (!check_if_savable()) return false;
     if (!file_has_name) return file_save_as();
 
     std::cout << "Saving file\n" << std::flush;
@@ -511,12 +553,12 @@ bool MainWindow::file_save()
 
 void MainWindow::on_action_file_save_as()
 {
+    if (!check_if_savable()) return;
     file_save_as();
 }
 
 bool MainWindow::file_save_as()
 {
-    if (!file) return false;
     Gtk::FileChooserDialog dialog(*this, _("Save as"), Gtk::FILE_CHOOSER_ACTION_SAVE);
     dialog.add_button(Gtk::Stock::CANCEL, Gtk::RESPONSE_CANCEL);
     dialog.add_button(Gtk::Stock::SAVE, Gtk::RESPONSE_OK);
@@ -1125,6 +1167,7 @@ void MainWindow::on_action_add_sample() {
                 {
                     sample->MIDIUnityNote = instrument.basenote;
 
+#if HAVE_SF_INSTRUMENT_LOOPS
                     if (instrument.loop_count && instrument.loops[0].mode != SF_LOOP_NONE) {
                         sample->Loops = 1;
 
@@ -1144,6 +1187,7 @@ void MainWindow::on_action_add_sample() {
                         sample->LoopPlayCount = instrument.loops[0].count;
                         sample->LoopSize = sample->LoopEnd - sample->LoopStart + 1;
                     }
+#endif
                 }
 
                 // schedule resizing the sample (which will be done
@@ -1232,6 +1276,7 @@ void MainWindow::on_action_remove_sample() {
                         break;
                     }
                 }
+                dimreg_changed();
                 file_changed();
             }
             // remove respective row(s) from samples tree view
@@ -1243,9 +1288,21 @@ void MainWindow::on_action_remove_sample() {
     }
 }
 
+// For some reason drag_data_get gets called two times for each
+// drag'n'drop (at least when target is an Entry). This work-around
+// makes sure the code in drag_data_get and drop_drag_data_received is
+// only executed once, as drag_begin only gets called once.
+void MainWindow::on_sample_treeview_drag_begin(const Glib::RefPtr<Gdk::DragContext>& context)
+{
+    first_call_to_drag_data_get = true;
+}
+
 void MainWindow::on_sample_treeview_drag_data_get(const Glib::RefPtr<Gdk::DragContext>&,
                                                   Gtk::SelectionData& selection_data, guint, guint)
 {
+    if (!first_call_to_drag_data_get) return;
+    first_call_to_drag_data_get = false;
+
     // get selected sample
     gig::Sample* sample = NULL;
     Glib::RefPtr<Gtk::TreeSelection> sel = m_TreeViewSamples.get_selection();
@@ -1266,13 +1323,52 @@ void MainWindow::on_sample_label_drop_drag_data_received(
     gig::Sample* sample = *((gig::Sample**) selection_data.get_data());
 
     if (sample && selection_data.get_length() == sizeof(gig::Sample*)) {
-        if (dimreg_edit.set_sample(sample)) {
-            std::cout << "Drop received sample \"" <<
-                sample->pInfo->Name << "\"" << std::endl;
-            // drop success
-            context->drop_reply(true, time);
-            return;
+        std::cout << "Drop received sample \"" <<
+            sample->pInfo->Name << "\"" << std::endl;
+        // drop success
+        context->drop_reply(true, time);
+
+        // find the samplechannel dimension
+        gig::Region* region = m_RegionChooser.get_region();
+        gig::dimension_def_t* stereo_dimension = 0;
+        for (int i = 0 ; i < region->Dimensions ; i++) {
+            if (region->pDimensionDefinitions[i].dimension ==
+                gig::dimension_samplechannel) {
+                stereo_dimension = &region->pDimensionDefinitions[i];
+                break;
+            }
         }
+        bool channels_changed = false;
+        if (sample->Channels == 1 && stereo_dimension) {
+            // remove the samplechannel dimension
+            region->DeleteDimension(stereo_dimension);
+            channels_changed = true;
+            region_changed();
+        }
+        dimreg_edit.set_sample(sample);
+
+        if (sample->Channels == 2 && !stereo_dimension) {
+            // add samplechannel dimension
+            gig::dimension_def_t dim;
+            dim.dimension = gig::dimension_samplechannel;
+            dim.bits = 1;
+            dim.zones = 2;
+            region->AddDimension(&dim);
+            channels_changed = true;
+            region_changed();
+        }
+        if (channels_changed) {
+            // unmap all samples with wrong number of channels
+            // TODO: maybe there should be a warning dialog for this
+            for (int i = 0 ; i < region->DimensionRegions ; i++) {
+                gig::DimensionRegion* d = region->pDimensionRegions[i];
+                if (d->pSample && d->pSample->Channels != sample->Channels) {
+                    d->pSample = 0;
+                }
+            }
+        }
+
+        return;
     }
     // drop failed
     context->drop_reply(false, time);

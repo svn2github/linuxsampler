@@ -226,14 +226,17 @@ protected:
 
     bool file_save();
     bool file_save_as();
+    bool check_if_savable();
 
     void on_button_release(GdkEventButton* button);
+    void on_sample_treeview_drag_begin(const Glib::RefPtr<Gdk::DragContext>& context);
     void on_sample_treeview_drag_data_get(const Glib::RefPtr<Gdk::DragContext>&,
                                           Gtk::SelectionData& selection_data, guint, guint);
     void on_sample_label_drop_drag_data_received(const Glib::RefPtr<Gdk::DragContext>& context,
                                                  int, int,
                                                  const Gtk::SelectionData& selection_data,
                                                  guint, guint time);
+
     void sample_name_changed(const Gtk::TreeModel::Path& path,
                              const Gtk::TreeModel::iterator& iter);
     void instrument_name_changed(const Gtk::TreeModel::Path& path,
@@ -247,6 +250,8 @@ protected:
     Gtk::Menu* popup_menu;
 
     bool on_delete_event(GdkEventAny* event);
+
+    bool first_call_to_drag_data_get;
 };
 
 #endif

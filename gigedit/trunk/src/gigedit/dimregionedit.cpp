@@ -812,7 +812,7 @@ void DimRegionEdit::updateLoopElements()
     eSampleLoopStart.set_sensitive(active);
     eSampleLoopLength.set_sensitive(active);
     eSampleLoopType.set_sensitive(active);
-    eSampleLoopInfinite.set_sensitive(active);
+    eSampleLoopInfinite.set_sensitive(active && dimregion && dimregion->pSample);
     eSampleLoopStart.set_ptr(0);
     eSampleLoopLength.set_ptr(0);
     eSampleLoopPlayCount.set_ptr(0);
@@ -853,6 +853,7 @@ void DimRegionEdit::updateLoopElements()
 
 void DimRegionEdit::loop_infinite_toggled() {
     eSampleLoopPlayCount.set_sensitive(
+        dimregion && dimregion->pSample &&
         !eSampleLoopInfinite.get_active() &&
          eSampleLoopEnabled.get_active()
     );

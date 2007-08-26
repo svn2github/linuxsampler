@@ -199,8 +199,8 @@ addButton(Gtk::Stock::ADD), removeButton(Gtk::Stock::REMOVE)
     refTableModel = Gtk::ListStore::create(tableModel);
     treeView.set_model(refTableModel);
     treeView.append_column("Dimension Type", tableModel.m_dim_type);
-    treeView.append_column_numeric("Bits", tableModel.m_bits, "%d");
-    treeView.append_column_numeric("Zones", tableModel.m_zones, "%d");
+    treeView.append_column("Bits", tableModel.m_bits);
+    treeView.append_column("Zones", tableModel.m_zones);
     treeView.append_column("Description", tableModel.m_description);
     treeView.show();
 

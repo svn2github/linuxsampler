@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: gigedit 0.0.3\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2007-07-02 22:02+0200\n"
+"POT-Creation-Date: 2007-08-26 10:41+0200\n"
 "PO-Revision-Date: 2007-03-26 18:19+0200\n"
 "Last-Translator: Christian Schoenebeck\n"
 "Language-Team: German\n"
@@ -15,53 +15,63 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: ../src/gigedit/mainwindow.cpp:86
+#: ../src/gigedit/mainwindow.cpp:98
 msgid "_File"
 msgstr "_Datei"
 
-#: ../src/gigedit/mainwindow.cpp:116
+#: ../src/gigedit/mainwindow.cpp:128
 msgid "_Instrument"
 msgstr "_Instrument"
 
-#: ../src/gigedit/mainwindow.cpp:127
+#: ../src/gigedit/mainwindow.cpp:139
 msgid "Add _Instrument"
 msgstr "_Instrument hinzufügen"
 
-#: ../src/gigedit/mainwindow.cpp:141
+#: ../src/gigedit/mainwindow.cpp:153
 msgid "Add _Group"
 msgstr "_Gruppe hinzufügen"
 
-#: ../src/gigedit/mainwindow.cpp:145
+#: ../src/gigedit/mainwindow.cpp:157
 msgid "Add _Sample(s)"
 msgstr "_Sample(s) hinzufügen"
 
-#: ../src/gigedit/mainwindow.cpp:406
+#: ../src/gigedit/mainwindow.cpp:425
 #, c-format
 msgid "Save changes to \"%s\" before closing?"
 msgstr ""
 
-#: ../src/gigedit/mainwindow.cpp:410
+#: ../src/gigedit/mainwindow.cpp:430
 msgid "If you close without saving, your changes will be lost."
 msgstr ""
 
-#: ../src/gigedit/mainwindow.cpp:411
+#: ../src/gigedit/mainwindow.cpp:432
 msgid "Close _Without Saving"
 msgstr ""
 
-#: ../src/gigedit/mainwindow.cpp:424
+#: ../src/gigedit/mainwindow.cpp:446
 msgid "Open file"
 msgstr "Datei öffnen"
 
-#: ../src/gigedit/mainwindow.cpp:517
+#: ../src/gigedit/mainwindow.cpp:513
+msgid "The file could not be saved because it contains no samples"
+msgstr ""
+
+#: ../src/gigedit/mainwindow.cpp:522
+msgid ""
+"The file could not be saved because there are instruments that have no "
+"regions"
+msgstr ""
+
+#: ../src/gigedit/mainwindow.cpp:563
 msgid "Save as"
 msgstr ""
 
-#: ../src/gigedit/mainwindow.cpp:833
+#: ../src/gigedit/mainwindow.cpp:904
 msgid "Unsaved Gig File"
 msgstr ""
 
 #. show 'browse for file' dialog
-#: ../src/gigedit/mainwindow.cpp:1025
+#: ../src/gigedit/mainwindow.cpp:1096
 msgid "Add Sample(s)"
 msgstr "Sample(s) hinzufügen"
 

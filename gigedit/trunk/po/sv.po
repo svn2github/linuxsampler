@@ -7,61 +7,71 @@ msgid ""
 msgstr ""
 "Project-Id-Version: gigedit 0.0.3\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2007-07-02 22:02+0200\n"
-"PO-Revision-Date: 2007-03-24 14:17+0100\n"
+"POT-Creation-Date: 2007-08-26 10:41+0200\n"
+"PO-Revision-Date: 2007-08-26 11:21+0200\n"
 "Last-Translator: Andreas Persson\n"
 "Language-Team: Swedish\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: ../src/gigedit/mainwindow.cpp:86
+#: ../src/gigedit/mainwindow.cpp:98
 msgid "_File"
 msgstr "_Arkiv"
 
-#: ../src/gigedit/mainwindow.cpp:116
+#: ../src/gigedit/mainwindow.cpp:128
 msgid "_Instrument"
 msgstr "_Instrument"
 
-#: ../src/gigedit/mainwindow.cpp:127
+#: ../src/gigedit/mainwindow.cpp:139
 msgid "Add _Instrument"
 msgstr "_Lägg till instrument"
 
-#: ../src/gigedit/mainwindow.cpp:141
+#: ../src/gigedit/mainwindow.cpp:153
 msgid "Add _Group"
 msgstr "Lägg till _grupp"
 
-#: ../src/gigedit/mainwindow.cpp:145
+#: ../src/gigedit/mainwindow.cpp:157
 msgid "Add _Sample(s)"
 msgstr "Lägg till _sampling(ar)"
 
-#: ../src/gigedit/mainwindow.cpp:406
+#: ../src/gigedit/mainwindow.cpp:425
 #, c-format
 msgid "Save changes to \"%s\" before closing?"
 msgstr "Spara ändringarna i \"%s\"?"
 
-#: ../src/gigedit/mainwindow.cpp:410
+#: ../src/gigedit/mainwindow.cpp:430
 msgid "If you close without saving, your changes will be lost."
 msgstr "Om du stänger utan att spara förlorar du dina ändringar."
 
-#: ../src/gigedit/mainwindow.cpp:411
+#: ../src/gigedit/mainwindow.cpp:432
 msgid "Close _Without Saving"
 msgstr "Stäng _utan att spara"
 
-#: ../src/gigedit/mainwindow.cpp:424
+#: ../src/gigedit/mainwindow.cpp:446
 msgid "Open file"
 msgstr "Öppna fil"
 
-#: ../src/gigedit/mainwindow.cpp:517
+#: ../src/gigedit/mainwindow.cpp:513
+msgid "The file could not be saved because it contains no samples"
+msgstr "Filen kunde inte sparas eftersom den inte innehåller några samplingar"
+
+#: ../src/gigedit/mainwindow.cpp:522
+msgid ""
+"The file could not be saved because there are instruments that have no "
+"regions"
+msgstr "Filen kunde inte sparas eftersom det finns instrument som inte har några regioner"
+
+#: ../src/gigedit/mainwindow.cpp:563
 msgid "Save as"
 msgstr "Spara som"
 
-#: ../src/gigedit/mainwindow.cpp:833
+#: ../src/gigedit/mainwindow.cpp:904
 msgid "Unsaved Gig File"
 msgstr "Osparad gig-fil"
 
 #. show 'browse for file' dialog
-#: ../src/gigedit/mainwindow.cpp:1025
+#: ../src/gigedit/mainwindow.cpp:1096
 msgid "Add Sample(s)"
 msgstr "Lägg till sampling(ar)"
 

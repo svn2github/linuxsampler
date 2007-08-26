@@ -49,10 +49,7 @@ DimRegionChooser::DimRegionChooser()
     add_events(Gdk::BUTTON_PRESS_MASK | Gdk::POINTER_MOTION_MASK |
                Gdk::POINTER_MOTION_HINT_MASK);
 
-    for (int i = 0 ; i < 256 ; i++) {
-        dimvalue_from[i] = 0;
-        dimvalue_to[i] = 1;
-    }
+    for (int i = 0 ; i < 256 ; i++) dimvalue[i] = 0;
 }
 
 DimRegionChooser::~DimRegionChooser()
@@ -250,17 +247,8 @@ void DimRegionChooser::set_region(gig::Region* region)
             if (region->pDimensionDefinitions[dim].bits == 0) continue;
             nbDimensions++;
 
-            int from = dimvalue_from[region->pDimensionDefinitions[dim].dimension];
-            int to = dimvalue_to[region->pDimensionDefinitions[dim].dimension];
-            int z;
-            switch (region->pDimensionDefinitions[dim].split_type) {
-            case gig::split_type_normal:
-                z = int((to + from) / 2.0 / region->pDimensionDefinitions[dim].zone_size);
-                break;
-            case gig::split_type_bit:
-                z = std::min(from, region->pDimensionDefinitions[dim].zones - 1);
-                break;
-            }
+            int z = std::min(dimvalue[region->pDimensionDefinitions[dim].dimension],
+                             region->pDimensionDefinitions[dim].zones - 1);
             int mask =
                 ~(((1 << region->pDimensionDefinitions[dim].bits) - 1) <<
                   bitcount);
@@ -425,20 +413,7 @@ bool DimRegionChooser::on_button_press_event(GdkEventButton* event)
                    region->pDimensionDefinitions[dim].split_type,
                    region->pDimensionDefinitions[dim].zones,
                    region->pDimensionDefinitions[dim].zone_size);
-#if 0
-            switch (region->pDimensionDefinitions[dim].split_type) {
-            case gig::split_type_normal:
-                dimvalue_from[region->pDimensionDefinitions[dim].dimension] =
-                    int(z * region->pDimensionDefinitions[dim].zone_size);
-                dimvalue_to[region->pDimensionDefinitions[dim].dimension] =
-                    int((z + 1) * region->pDimensionDefinitions[dim].zone_size) - 1;
-                break;
-            case gig::split_type_bit:
-                dimvalue_from[region->pDimensionDefinitions[dim].dimension] = z;
-                dimvalue_to[region->pDimensionDefinitions[dim].dimension] = z + 1;
-                break;
-            }
-#endif
+            dimvalue[region->pDimensionDefinitions[dim].dimension] = z;
 
             dimregno = c | (z << bitpos);
 

@@ -39,6 +39,7 @@ RegionChooser::RegionChooser()
     instrument = 0;
     region = 0;
     resize.active = false;
+    move.active = false;
     cursor_is_resize = false;
     h1 = 20;
     width = 800;

@@ -32,8 +32,6 @@ public:
     DimRegionChooser();
     virtual ~DimRegionChooser();
 
-    void set_fromto(int from, int to);
-
     void set_region(gig::Region* region);
 
     sigc::signal<void> signal_dimregion_selected();
@@ -62,8 +60,7 @@ protected:
 
     gig::DimensionRegion* dimreg;
     int focus_line;
-    int dimvalue_from[256];
-    int dimvalue_to[256];
+    int dimvalue[256];
     int label_width;
     int nbDimensions;
 

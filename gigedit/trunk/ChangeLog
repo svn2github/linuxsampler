@@ -35,6 +35,10 @@ Version CVS HEAD
   * when importing samples, settings for loops and root note are
     copied from the sample files (if they have such settings)
   * start with a new gig file by default
+  * make sure samplechannel dimension gets created for stereo samples
+  * allow building with older versions of gtk and libsndfile
+  * remember selected dimension when switching regions
+  * check if file is savable before trying to save
 
 Version 0.0.3 (2007-03-24)
 
