@@ -526,8 +526,8 @@ namespace LinuxSampler { namespace gig {
         if (pEngineChannel->GetMute()) return; // skip if sampler channel is muted
         #endif
 
-        uint vc = 0;
-        uint sc = 0;
+        uint voiceCount = 0;
+        uint streamCount = 0;
         RTList<uint>::Iterator iuiKey = pEngineChannel->pActiveKeys->first();
         RTList<uint>::Iterator end    = pEngineChannel->pActiveKeys->end();
         while (iuiKey != end) { // iterate through all active keys
@@ -541,10 +541,10 @@ namespace LinuxSampler { namespace gig {
                 itVoice->Render(Samples);
                 if (itVoice->IsActive()) { // still active
                     ActiveVoiceCountTemp++;
-                    vc++;
+                    voiceCount++;
 
                     if (itVoice->PlaybackState == Voice::playback_state_disk) {
-                        if ((itVoice->DiskStreamRef).State == Stream::state_active) sc++;
+                        if ((itVoice->DiskStreamRef).State == Stream::state_active) streamCount++;
                     }
                 }  else { // voice reached end, is now inactive
                     FreeVoice(pEngineChannel, itVoice); // remove voice from the list of active voices
@@ -552,8 +552,8 @@ namespace LinuxSampler { namespace gig {
             }
         }
         
-        pEngineChannel->SetVoiceCount(vc);
-        pEngineChannel->SetDiskStreamCount(sc);
+        pEngineChannel->SetVoiceCount(voiceCount);
+        pEngineChannel->SetDiskStreamCount(streamCount);
     }
 
     /**
@@ -1744,7 +1744,7 @@ namespace LinuxSampler { namespace gig {
     }
 
     String Engine::Version() {
-        String s = "$Revision: 1.78 $";
+        String s = "$Revision: 1.79 $";
         return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
 

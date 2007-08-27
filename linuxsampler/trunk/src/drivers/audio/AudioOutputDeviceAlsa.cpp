@@ -225,45 +225,47 @@ namespace LinuxSampler {
     }
 
     optional<int> AudioOutputDeviceAlsa::ParameterChannels::RangeMinAsInt(std::map<String,String> Parameters) {
-        if (!Parameters.count("CARD")) return optional<int>::nothing;
+        uint channels = 1;
+        if (!Parameters.count("CARD")) return channels;
 
         // obtain information from given sound card
         ParameterCard card(Parameters["CARD"]);
         String pcm_name = "hw:" + card.ValueAsString();
         snd_pcm_t* pcm_handle = NULL;
-        if (snd_pcm_open(&pcm_handle, pcm_name.c_str(), SND_PCM_STREAM_PLAYBACK, SND_PCM_NONBLOCK) < 0) return optional<int>::nothing;
+        if (snd_pcm_open(&pcm_handle, pcm_name.c_str(), SND_PCM_STREAM_PLAYBACK, SND_PCM_NONBLOCK) < 0) return channels;
         snd_pcm_hw_params_t* hwparams;
         snd_pcm_hw_params_alloca(&hwparams);
         if (snd_pcm_hw_params_any(pcm_handle, hwparams) < 0) {
             snd_pcm_close(pcm_handle);
-            return optional<int>::nothing;
+            return channels;
         }
-        uint channels;
+
         if (snd_pcm_hw_params_get_channels_min(hwparams, &channels) < 0) {
             snd_pcm_close(pcm_handle);
-            return optional<int>::nothing;
+            return channels;
         }
         snd_pcm_close(pcm_handle);
         return channels;
     }
 
     optional<int> AudioOutputDeviceAlsa::ParameterChannels::RangeMaxAsInt(std::map<String,String> Parameters) {
-        if (!Parameters.count("CARD")) return optional<int>::nothing;
+        uint channels = 100;
+        if (!Parameters.count("CARD")) return channels;
 
         // obtain information from given sound card
         String pcm_name       = "hw:" + Parameters["CARD"];
         snd_pcm_t* pcm_handle = NULL;
-        if (snd_pcm_open(&pcm_handle, pcm_name.c_str(), SND_PCM_STREAM_PLAYBACK, SND_PCM_NONBLOCK) < 0) return optional<int>::nothing;
+        if (snd_pcm_open(&pcm_handle, pcm_name.c_str(), SND_PCM_STREAM_PLAYBACK, SND_PCM_NONBLOCK) < 0) return channels;
         snd_pcm_hw_params_t* hwparams;
         snd_pcm_hw_params_alloca(&hwparams);
         if (snd_pcm_hw_params_any(pcm_handle, hwparams) < 0) {
             snd_pcm_close(pcm_handle);
-            return optional<int>::nothing;
+            return channels;
         }
-        uint channels;
+
         if (snd_pcm_hw_params_get_channels_max(hwparams, &channels) < 0) {
             snd_pcm_close(pcm_handle);
-            return optional<int>::nothing;
+            return channels;
         }
         snd_pcm_close(pcm_handle);
         return channels;
@@ -635,8 +637,7 @@ namespace LinuxSampler {
         //StopThread();  //FIXME: commented out due to a bug in thread.cpp (StopThread() doesn't return at all)
         //dmsg(0,("OK\n"));
 
-        //FIXME: currently commented out due to segfault
-        //snd_pcm_close(pcm_handle);
+        snd_pcm_close(pcm_handle);
 
         if (pAlsaOutputBuffer) {
             //FIXME: currently commented out due to segfault
@@ -734,7 +735,7 @@ namespace LinuxSampler {
     }
 
     String AudioOutputDeviceAlsa::Version() {
-       String s = "$Revision: 1.22 $";
+       String s = "$Revision: 1.23 $";
        return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
 

@@ -605,13 +605,20 @@ namespace LinuxSampler {
     void DeviceCreationParameterInt::SetValue(String val) throw (Exception) {
         if (Fix()) throw Exception("Device parameter is read only");
         int i = __parse_int(val);
-        //if (RangeMinAsInt() && i < *RangeMinAsInt()) throw Exception("Invalid device parameter value: too small");
-        //if (RangeMaxAsInt() && i > *RangeMaxAsInt()) throw Exception("Invalid device parameter value: too big");
-        /*if (PossibilitiesAsInt()) {
+
+        std::map<String,String> emptyMap;
+        if (RangeMinAsInt(emptyMap) && i < *RangeMinAsInt(emptyMap)) {
+            throw Exception("Invalid device parameter value: too small");
+        }
+        if (RangeMaxAsInt(emptyMap) && i > *RangeMaxAsInt(emptyMap)) {
+            throw Exception("Invalid device parameter value: too big");
+        }
+
+        if (PossibilitiesAsInt(emptyMap).size()) {
             bool valid = false;
-            std::vector<int>* pPossibilities = PossibilitiesAsInt();
-            std::vector<int>::iterator iter  = pPossibilities->begin();
-            while (iter != pPossibilities->end()) {
+            std::vector<int> possibilities = PossibilitiesAsInt(emptyMap);
+            std::vector<int>::iterator iter  = possibilities.begin();
+            while (iter != possibilities.end()) {
                 if (i == *iter) {
                     valid = true;
                     break;
@@ -619,7 +626,7 @@ namespace LinuxSampler {
                 iter++;
             }
             if (!valid) throw Exception("Invalid Device parameter value: not in set of possible values");
-        }*/
+        }
         SetValue(i);
     }
 

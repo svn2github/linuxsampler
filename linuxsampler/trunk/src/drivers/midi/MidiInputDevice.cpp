@@ -99,11 +99,11 @@ namespace LinuxSampler {
     }
 
     optional<int> MidiInputDevice::ParameterPorts::RangeMinAsInt(std::map<String,String> Parameters) {
-        return optional<int>::nothing;
+        return 1;
     }
 
     optional<int> MidiInputDevice::ParameterPorts::RangeMaxAsInt(std::map<String,String> Parameters) {
-        return optional<int>::nothing;
+        return 100;
     }
 
     std::vector<int> MidiInputDevice::ParameterPorts::PossibilitiesAsInt(std::map<String,String> Parameters) {

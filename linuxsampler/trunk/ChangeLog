@@ -115,6 +115,9 @@ Version CVS HEAD (?)
     - The active stream/voice count statistic was incorrect.
     - notification events were not been sent for some sampler
       channel changes
+    - added default min and max values to restrict the number of allowed
+      audio output channels and MIDI input ports
+    - the pcm is now closed when destroying an audio output device
 
   * test cases:
     - updated and fixed (haven't been touched in a while)

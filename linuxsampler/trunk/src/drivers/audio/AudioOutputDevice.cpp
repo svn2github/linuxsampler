@@ -150,11 +150,11 @@ namespace LinuxSampler {
     }
 
     optional<int> AudioOutputDevice::ParameterChannels::RangeMinAsInt(std::map<String,String> Parameters) {
-        return optional<int>::nothing;
+        return 1;
     }
 
     optional<int> AudioOutputDevice::ParameterChannels::RangeMaxAsInt(std::map<String,String> Parameters) {
-        return optional<int>::nothing;
+        return 100;
     }
 
     std::vector<int> AudioOutputDevice::ParameterChannels::PossibilitiesAsInt(std::map<String,String> Parameters) {
