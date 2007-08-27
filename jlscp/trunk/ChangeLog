@@ -1,3 +1,6 @@
+CVS HEAD
+  * Added support for escape sequences
+
 jlscp v0.5a: 2007-05-24
   * Implemented instruments database support
   * All notifications are now processed through the LSCP event thread

@@ -463,4 +463,27 @@ final class Parser {
 		
 		return s;
 	}
+	
+	/**
+	 * Returns the provided string with added escape sequences where necessary.
+	 */
+	protected static String
+	getEscapedString(String s) {
+		StringBuffer sb = new StringBuffer();
+		for(int i = 0; i < s.length(); i++) {
+			switch(s.charAt(i)) {
+				case '\n': sb.append("\\n");  break;
+				case '\r': sb.append("\\r");  break;
+				case '\f': sb.append("\\f");  break;
+				case '\t': sb.append("\\t");  break;
+				case 0x0B: sb.append("\\v");  break;
+				case '\'': sb.append("\\'");  break;
+				case '\"': sb.append("\\\""); break;
+				case '\\': sb.append("\\\\"); break;
+				default  : sb.append(s.charAt(i));
+			}
+		}
+		
+		return sb.toString();
+	}
 }

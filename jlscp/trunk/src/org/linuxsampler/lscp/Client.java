@@ -2845,6 +2845,7 @@ public class Client {
 	loadInstrument(String filename, int instrIdx, int samplerChn, boolean nonModal)
 						throws IOException, LscpException, LSException {
 		
+		filename = getEscapedString(filename);
 		String cmd = nonModal ? "LOAD INSTRUMENT NON_MODAL " : "LOAD INSTRUMENT ";
 		String args = '\'' + filename + "' " + instrIdx + ' ' + samplerChn;
 		
