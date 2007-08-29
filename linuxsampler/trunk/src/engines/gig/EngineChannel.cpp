@@ -196,16 +196,19 @@ namespace LinuxSampler { namespace gig {
         }
         catch (RIFF::Exception e) {
             InstrumentStat = -2;
+            StatusChanged(true);
             String msg = "gig::Engine error: Failed to load instrument, cause: " + e.Message;
             throw Exception(msg);
         }
         catch (InstrumentManagerException e) {
             InstrumentStat = -3;
+            StatusChanged(true);
             String msg = "gig::Engine error: Failed to load instrument, cause: " + e.Message();
             throw Exception(msg);
         }
         catch (...) {
             InstrumentStat = -4;
+            StatusChanged(true);
             throw Exception("gig::Engine error: Failed to load instrument, cause: Unknown exception while trying to parse gig file.");
         }
 
