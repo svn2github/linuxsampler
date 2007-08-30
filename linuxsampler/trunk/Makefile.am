@@ -24,6 +24,10 @@ endif
 install-data-local:
 	@if [ ! -e "$(DESTDIR)/var/lib/linuxsampler/instruments.db" -a \
 	$(have_sqlite) = "yes" ] ; then \
+	echo "****************************************************************"; \
+	echo "*** LinuxSampler was compiled with instruments DB support and"; \
+	echo "*** $(DESTDIR)/var/lib/linuxsampler/instruments.db"; \
+	echo "*** doesn't exist yet, creating it now:"; \
 	mkdir -p $(DESTDIR)/var/lib/linuxsampler && ./src/linuxsampler \
 	--create-instruments-db $(DESTDIR)/var/lib/linuxsampler/instruments.db ; \
 	fi
