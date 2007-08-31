@@ -1262,10 +1262,11 @@ namespace {
     uint                               DimensionRegion::Instances       = 0;
     DimensionRegion::VelocityTableMap* DimensionRegion::pVelocityTables = NULL;
 
-    DimensionRegion::DimensionRegion(RIFF::List* _3ewl) : DLS::Sampler(_3ewl) {
+    DimensionRegion::DimensionRegion(Region* pParent, RIFF::List* _3ewl) : DLS::Sampler(_3ewl) {
         Instances++;
 
         pSample = NULL;
+        pRegion = pParent;
 
         if (_3ewl->GetSubChunk(CHUNK_ID_WSMP)) memcpy(&Crossfade, &SamplerOptions, 4);
         else memset(&Crossfade, 0, 4);
@@ -1874,6 +1875,10 @@ namespace {
         return table;
     }
 
+    Region* DimensionRegion::GetParent() const {
+        return pRegion;
+    }
+
     leverage_ctrl_t DimensionRegion::DecodeLeverageController(_lev_ctrl_t EncodedController) {
         leverage_ctrl_t decodedcontroller;
         switch (EncodedController) {
@@ -2273,7 +2278,7 @@ namespace {
             RIFF::List* _3prg = rgnList->GetSubList(LIST_TYPE_3PRG);
             if (!_3prg) _3prg = rgnList->AddSubList(LIST_TYPE_3PRG);
             RIFF::List* _3ewl = _3prg->AddSubList(LIST_TYPE_3EWL);
-            pDimensionRegions[0] = new DimensionRegion(_3ewl);
+            pDimensionRegions[0] = new DimensionRegion(this, _3ewl);
             DimensionRegions = 1;
         }
     }
@@ -2368,7 +2373,7 @@ namespace {
             RIFF::List* _3ewl = _3prg->GetFirstSubList();
             while (_3ewl) {
                 if (_3ewl->GetListType() == LIST_TYPE_3EWL) {
-                    pDimensionRegions[dimensionRegionNr] = new DimensionRegion(_3ewl);
+                    pDimensionRegions[dimensionRegionNr] = new DimensionRegion(this, _3ewl);
                     dimensionRegionNr++;
                 }
                 _3ewl = _3prg->GetNextSubList();

@@ -54,6 +54,8 @@ Version CVS HEAD (?)
     - AddDimension now copies all parameters from existing dimension
       regions and also makes sure that the samplechannel dimension is
       placed first in the list of dimensions.
+    - added method GetParent() to class 'DimensionRegion', which returns its
+      parent Region
 
   * src/RIFF.cpp, src/RIFF.h:
     - added File::SetByteOrder method

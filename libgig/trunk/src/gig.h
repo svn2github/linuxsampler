@@ -470,6 +470,7 @@ namespace gig {
             double GetVelocityAttenuation(uint8_t MIDIKeyVelocity);
             double GetVelocityRelease(uint8_t MIDIKeyVelocity);
             double GetVelocityCutoff(uint8_t MIDIKeyVelocity);
+            Region* GetParent() const;
             // derived methods
             DLS::Sampler::AddSampleLoop;
             DLS::Sampler::DeleteSampleLoop;
@@ -477,7 +478,7 @@ namespace gig {
             virtual void UpdateChunks();
         protected:
             uint8_t* VelocityTable; ///< For velocity dimensions with custom defined zone ranges only: used for fast converting from velocity MIDI value to dimension bit number.
-            DimensionRegion(RIFF::List* _3ewl);
+            DimensionRegion(Region* pParent, RIFF::List* _3ewl);
             DimensionRegion(RIFF::List* _3ewl, const DimensionRegion& src);
            ~DimensionRegion();
             friend class Region;
@@ -517,6 +518,7 @@ namespace gig {
             double*                  pVelocityAttenuationTable;  ///< Points to the velocity table corresponding to the velocity parameters of this DimensionRegion.
             double*                  pVelocityReleaseTable;      ///< Points to the velocity table corresponding to the release velocity parameters of this DimensionRegion
             double*                  pVelocityCutoffTable;       ///< Points to the velocity table corresponding to the filter velocity parameters of this DimensionRegion
+            Region*                  pRegion;
 
             leverage_ctrl_t DecodeLeverageController(_lev_ctrl_t EncodedController);
             _lev_ctrl_t     EncodeLeverageController(leverage_ctrl_t DecodedController);
