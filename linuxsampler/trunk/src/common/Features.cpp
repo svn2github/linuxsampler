@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 Christian Schoenebeck                              *
+ *   Copyright (C) 2005 - 2007 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -28,26 +28,15 @@ bool Features::bMMX(false);
 bool Features::bSSE(false);
 bool Features::bSSE2(false);
 
-unsigned int edx = 0;
-unsigned int eax_temp = 0;
-unsigned int ebx_temp = 0;
-unsigned int ecx_temp = 0;
-unsigned int edx_temp = 0;
-
 void Features::detect() {
-    // we store and restore all registers modified by 'cpuid' the old fashioned way
+    int edx;
     __asm__ __volatile__ (
-        "mov %eax,eax_temp\n\t"
-        "mov %ebx,ebx_temp\n\t"
-        "mov %ecx,ecx_temp\n\t"
-        "mov %edx,edx_temp\n\t"
-        "mov $1,%eax\n\t"
+        "movl %%ebx,%%edi\n\t" /*save PIC register*/
+        "movl $1,%%eax\n\t"
         "cpuid\n\t"
-        "mov %edx,edx\n\t"
-        "mov eax_temp,%eax\n\t"
-        "mov ebx_temp,%ebx\n\t"
-        "mov ecx_temp,%ecx\n\t"
-        "mov edx_temp,%edx\n\t"
+        "movl %%edi,%%ebx\n\t" /*restore PIC register*/
+        : "=d" (edx)
+        : : "%eax", "%ecx", "%edi"
     );
     bMMX = (edx & 0x00800000);
     bSSE = (edx & 0x02000000);

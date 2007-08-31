@@ -59,6 +59,8 @@ Version CVS HEAD (?)
     - fixed some minor memory leaks
     - reenabled assembly features support, at the moment only for
       enabling a fast denormal FPU mode (x86 platforms supporting SSE2)
+    - minor assembly fix in x86 features detection (don't use the PIC
+      register, to avoid relocations in the text segment at runtime)
 
   * MIDI driver:
     - dispatch bank select (MSB and LSB) messages
