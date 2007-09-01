@@ -1573,10 +1573,6 @@ namespace {
      * It will be called automatically when File::Save() was called.
      */
     void DimensionRegion::UpdateChunks() {
-        // check if wsmp is going to be created by
-        // DLS::Sampler::UpdateChunks
-        bool wsmp_created = !pParentList->GetSubChunk(CHUNK_ID_WSMP);
-
         // first update base class's chunk
         DLS::Sampler::UpdateChunks();
 
@@ -1589,10 +1585,10 @@ namespace {
 
         // make sure '3ewa' chunk exists
         RIFF::Chunk* _3ewa = pParentList->GetSubChunk(CHUNK_ID_3EWA);
-        if (!_3ewa)  _3ewa = pParentList->AddSubChunk(CHUNK_ID_3EWA, 140);
-        else if (wsmp_created) {
-            // make sure the chunk order is: wsmp, 3ewa
-            pParentList->MoveSubChunk(_3ewa, 0);
+        if (!_3ewa) {
+            File* pFile = (File*) GetParent()->GetParent()->GetParent();
+            bool version3 = pFile->pVersion && pFile->pVersion->major == 3;
+            _3ewa = pParentList->AddSubChunk(CHUNK_ID_3EWA, version3 ? 148 : 140);
         }
         pData = (uint8_t*) _3ewa->LoadChunkData();
 
@@ -2302,22 +2298,13 @@ namespace {
         // first update base class's chunks
         DLS::Region::UpdateChunks();
 
-        File* pFile = (File*) GetParent()->GetParent();
-        bool version3 = pFile->pVersion && pFile->pVersion->major == 3;
-
         // update dimension region's chunks
         for (int i = 0; i < DimensionRegions; i++) {
-            DimensionRegion* d = pDimensionRegions[i];
-
-            // make sure '3ewa' chunk exists (we need to this before
-            // calling DimensionRegion::UpdateChunks, as
-            // DimensionRegion doesn't know which file version it is)
-            RIFF::Chunk* _3ewa = d->pParentList->GetSubChunk(CHUNK_ID_3EWA);
-            if (!_3ewa) d->pParentList->AddSubChunk(CHUNK_ID_3EWA, version3 ? 148 : 140);
-
-            d->UpdateChunks();
+            pDimensionRegions[i]->UpdateChunks();
         }
 
+        File* pFile = (File*) GetParent()->GetParent();
+        bool version3 = pFile->pVersion && pFile->pVersion->major == 3;
         const int iMaxDimensions =  version3 ? 8 : 5;
         const int iMaxDimensionRegions = version3 ? 256 : 32;
 
