@@ -58,7 +58,7 @@ class Condition : public Mutex {
          *
          * @e Note: If you don't provide a timeout value or if you provide a
          * timeout value of exactly 0s and 0ns, then this call will block
-         * without any timeout!
+         * without any timeout, or in other words: @e infinity!
          *
          * @param bCondition         - block in case of this condition
          * @param TimeoutSeconds     - optional: max. wait time in seconds
@@ -76,7 +76,7 @@ class Condition : public Mutex {
          *
          * @e Note: If you don't provide a timeout value or if you provide a
          * timeout value of exactly 0s and 0ns, then this call will block
-         * without any timeout!
+         * without any timeout, or in other words: @e infinity!
          *
          * @param bCondition         - block in case of this condition
          * @param TimeoutSeconds     - optional: max. wait time in seconds
@@ -99,7 +99,10 @@ class Condition : public Mutex {
         void Set(bool bCondition);
 
         /**
-         * Returns the current boolean state of this condition object.
+         * Returns the current boolean state of this condition object. This
+         * method never blocks, it returns immediately and doesn't use any
+         * system calls.
+         *
          * @e Caution: this method is not thread safe! If you need to use
          * the condition state in a thread critical context you must call
          * @c Lock() and @c Unlock() respectively by yourself!
