@@ -735,7 +735,7 @@ namespace LinuxSampler {
     }
 
     String AudioOutputDeviceAlsa::Version() {
-       String s = "$Revision: 1.23 $";
+       String s = "$Revision: 1.24 $";
        return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
 
@@ -768,6 +768,8 @@ namespace LinuxSampler {
                 exit(EXIT_FAILURE);
             }
         }
+        // just to suppress compiler warning
+        return EXIT_FAILURE;
     }
 
     /**
