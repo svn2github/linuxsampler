@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005, 2006 Christian Schoenebeck                        *
+ *   Copyright (C) 2005 - 2007 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -58,6 +58,7 @@ namespace LinuxSampler { namespace gig {
         GhostQueue->init();
         CreationQueue->init();
         DeletionQueue->init();
+        DeletionNotificationQueue.init();
         DeleteDimregQueue->init();
         ActiveStreamCount = 0;
         ActiveStreamCountMax = 0;
@@ -135,10 +136,18 @@ namespace LinuxSampler { namespace gig {
     }
 
     /**
-     * Returns -1 if command queue is full, 0 on success (will be called by audio
-     * thread within the voice class).
+     * Request the disk thread to delete the given disk stream. This method
+     * will return immediately, thus it won't block until the respective voice
+     * was actually deleted. (Called by audio thread within the Voice class).
+     *
+     * @param pStreamRef           - stream that shall be deleted
+     * @param bRequestNotification - set to true in case you want to receive a
+     *                               notification once the stream has actually
+     *                               been deleted
+     * @returns 0 on success, -1 if command queue is full
+     * @see AskForDeletedStream()
      */
-    int DiskThread::OrderDeletionOfStream(Stream::reference_t* pStreamRef) {
+    int DiskThread::OrderDeletionOfStream(Stream::reference_t* pStreamRef, bool bRequestNotification) {
         dmsg(4,("Disk Thread: stream deletion ordered\n"));
         if (DeletionQueue->write_space() < 1) {
             dmsg(1,("DiskThread: Deletion queue full!\n"));
@@ -149,13 +158,14 @@ namespace LinuxSampler { namespace gig {
         cmd.pStream = pStreamRef->pStream;
         cmd.hStream = pStreamRef->hStream;
         cmd.OrderID = pStreamRef->OrderID;
+        cmd.bNotify = bRequestNotification;
 
         DeletionQueue->push(&cmd);
         return 0;
     }
 
     /**
-     * Tell the disk thread to release a dimension region that belong
+     * Tell the disk thread to release a dimension region that belongs
      * to an instrument which isn't loaded anymore. The disk thread
      * will hand back the dimension region to the instrument resource
      * manager. (OrderDeletionOfDimreg is called from the audio thread
@@ -196,6 +206,22 @@ namespace LinuxSampler { namespace gig {
         return NULL;
     }
 
+    /**
+     * In case the original sender requested a notification with his stream
+     * deletion order, he can use this method to poll if the respective stream
+     * has actually been deleted.
+     *
+     * @returns handle / identifier of the deleted stream, or
+     *          Stream::INVALID_HANDLE if no notification present
+     */
+    Stream::Handle DiskThread::AskForDeletedStream() {
+        if (DeletionNotificationQueue.read_space()) {
+            Stream::Handle hStream;
+            DeletionNotificationQueue.pop(&hStream);
+            return hStream;
+        } else return Stream::INVALID_HANDLE; // no notification received yet
+    }
+
 
 
     // #########################################################################
@@ -205,12 +231,14 @@ namespace LinuxSampler { namespace gig {
 
     DiskThread::DiskThread(uint BufferWrapElements, InstrumentResourceManager* pInstruments) :
         Thread(true, false, 1, -2),
-        pInstruments(pInstruments) {
+        pInstruments(pInstruments),
+        DeletionNotificationQueue(4*CONFIG_MAX_STREAMS)
+    {
         DecompressionBuffer = ::gig::Sample::CreateDecompressionBuffer(CONFIG_STREAM_MAX_REFILL_SIZE);
-        CreationQueue       = new RingBuffer<create_command_t,false>(1024);
-        DeletionQueue       = new RingBuffer<delete_command_t,false>(1024);
-        GhostQueue          = new RingBuffer<Stream::Handle,false>(CONFIG_MAX_STREAMS);
-        DeleteDimregQueue   = new RingBuffer< ::gig::DimensionRegion*,false>(1024);
+        CreationQueue       = new RingBuffer<create_command_t,false>(4*CONFIG_MAX_STREAMS);
+        DeletionQueue       = new RingBuffer<delete_command_t,false>(4*CONFIG_MAX_STREAMS);
+        GhostQueue          = new RingBuffer<delete_command_t,false>(CONFIG_MAX_STREAMS);
+        DeleteDimregQueue   = new RingBuffer< ::gig::DimensionRegion*,false>(4*CONFIG_MAX_STREAMS);
         Streams             = CONFIG_MAX_STREAMS;
         RefillStreamsPerRun = CONFIG_REFILL_STREAMS_PER_RUN;
         for (int i = 0; i < CONFIG_MAX_STREAMS; i++) {
@@ -241,17 +269,20 @@ namespace LinuxSampler { namespace gig {
 
             // if there are ghost streams, delete them
             for (int i = 0; i < GhostQueue->read_space(); i++) { //FIXME: unefficient
-                Stream::Handle hGhostStream;
-                GhostQueue->pop(&hGhostStream);
+                delete_command_t ghostStream;
+                GhostQueue->pop(&ghostStream);
                 bool found = false;
                 for (int i = 0; i < this->Streams; i++) {
-                    if (pStreams[i]->GetHandle() == hGhostStream) {
+                    if (pStreams[i]->GetHandle() == ghostStream.hStream) {
                         pStreams[i]->Kill();
                         found = true;
+                        // if original sender requested a notification, let him know now
+                        if (ghostStream.bNotify)
+                            DeletionNotificationQueue.push(&ghostStream.hStream);
                         break;
                     }
                 }
-                if (!found) GhostQueue->push(&hGhostStream); // put ghost stream handle back to the queue
+                if (!found) GhostQueue->push(&ghostStream); // put ghost stream handle back to the queue
             }
 
             // if there are creation commands, create new streams
@@ -325,14 +356,22 @@ namespace LinuxSampler { namespace gig {
             if (pStream && pStream != SLOT_RESERVED) {
                 pStream->Kill();
                 pCreatedStreams[Command.OrderID] = NULL; // free slot for new order
+                // if original sender requested a notification, let him know now
+                if (Command.bNotify)
+                    DeletionNotificationQueue.push(&Command.hStream);
                 return;
             }
 
             // the stream was not created yet
             if (GhostQueue->write_space() > 0) {
-                GhostQueue->push(&Command.hStream);
+                GhostQueue->push(&Command);
+            } else { // error, queue full
+                if (Command.bNotify) {
+                    dmsg(1,("DiskThread: GhostQueue full! (might lead to dead lock with instrument editor!)\n"));
+                } else {
+                    dmsg(1,("DiskThread: GhostQueue full!\n"));
+                }
             }
-            else dmsg(1,("DiskThread: GhostQueue full!\n"));
         }
     }
 

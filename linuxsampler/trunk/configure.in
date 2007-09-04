@@ -5,7 +5,7 @@ AC_INIT(configure.in)
 
 LINUXSAMPLER_RELEASE_MAJOR=0
 LINUXSAMPLER_RELEASE_MINOR=4
-LINUXSAMPLER_RELEASE_BUILD=0.6cvs
+LINUXSAMPLER_RELEASE_BUILD=0.7cvs
 
 #------------------------------------------------------------------------------------
 # The following is the libtool / shared library version. This doesn't have to
@@ -960,9 +960,7 @@ AC_OUTPUT( \
     src/engines/Makefile \
     src/engines/gig/Makefile \
     src/engines/common/Makefile \
-    src/common/Makefile src/lib/Makefile \
-    src/lib/fileloader/Makefile \
-    src/lib/fileloader/libgig/Makefile \
+    src/common/Makefile \
     src/testcases/Makefile \
     src/drivers/Makefile \
     src/drivers/audio/Makefile \

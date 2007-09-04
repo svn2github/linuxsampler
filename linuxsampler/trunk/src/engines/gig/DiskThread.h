@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005, 2006 Christian Schoenebeck                        *
+ *   Copyright (C) 2005 - 2007 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -55,9 +55,10 @@ namespace LinuxSampler { namespace gig {
             String  GetBufferFillBytes();
             String  GetBufferFillPercentage();
             int     OrderNewStream(Stream::reference_t* pStreamRef, ::gig::DimensionRegion* pDimRgn, unsigned long SampleOffset, bool DoLoop);
-            int     OrderDeletionOfStream(Stream::reference_t* pStreamRef);
+            int     OrderDeletionOfStream(Stream::reference_t* pStreamRef, bool bRequestNotification = false);
             int     OrderDeletionOfDimreg(::gig::DimensionRegion* dimreg);
             Stream* AskForCreatedStream(Stream::OrderID_t StreamOrderID);
+            Stream::Handle AskForDeletedStream();
 
             // the number of streams currently in usage
             // printed on the console the main thread (along with the active voice count)
@@ -84,6 +85,7 @@ namespace LinuxSampler { namespace gig {
                 Stream*           pStream;
                 Stream::Handle    hStream;
                 Stream::OrderID_t OrderID;
+                bool              bNotify;
             };
 
             // Attributes
@@ -91,7 +93,8 @@ namespace LinuxSampler { namespace gig {
             uint                           Streams;
             RingBuffer<create_command_t,false>* CreationQueue;                      ///< Contains commands to create streams
             RingBuffer<delete_command_t,false>* DeletionQueue;                      ///< Contains commands to delete streams
-            RingBuffer<Stream::Handle,false>*   GhostQueue;                         ///< Contains handles to streams that are not used anymore and weren't deletable immediately
+            RingBuffer<delete_command_t,false>* GhostQueue;                         ///< Contains handles to streams that are not used anymore and weren't deletable immediately
+            RingBuffer<Stream::Handle,false>    DeletionNotificationQueue;          ///< In case the original sender requested a notification for its stream deletion order, this queue will receive the handle of the respective stream once actually be deleted by the disk thread.
             RingBuffer< ::gig::DimensionRegion*,false>* DeleteDimregQueue;          ///< Contains dimension regions that are not used anymore and should be handed back to the instrument resource manager
             unsigned int                   RefillStreamsPerRun;                    ///< How many streams should be refilled in each loop run
             Stream*                        pStreams[CONFIG_MAX_STREAMS];            ///< Contains all disk streams (whether used or unused)

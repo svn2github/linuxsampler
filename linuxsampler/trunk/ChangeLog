@@ -48,6 +48,10 @@ Version CVS HEAD (?)
       to spawn a matching instrument editor for the instrument on the
       given sampler channel, the plugin path can be overridden at compile
       time with ./configure --enable-plugin-dir=/some/dir
+    - added experimental code for synchronizing instrument editors hosted
+      in the sampler's process to safely edit instruments while playing
+      without a crash (hopefully) by either suspending single regions
+      wherever possible or if unavoidable whole engine(s)
     - fixed several issues in fundamental "Thread" class: set scheduling
       policy and priority on thread level, set a minimum stack size for
       thread (TODO: a reasonable value yet to be tested), bugfix: non-RT
@@ -88,6 +92,8 @@ Version CVS HEAD (?)
     - minor fix of EGDecay (patch by Toshi Nagata)
     - fixed compiler error when --enable-override-filter-type was
       supplied to the configure script (fixes #46)
+    - disk thread: queue sizes are now proportional to CONFIG_MAX_STREAMS
+      instead of a fix value
 
   * LSCP server:
     - fixed compile time error for old Bison versions

@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005, 2006 Christian Schoenebeck                        *
+ *   Copyright (C) 2005 - 2007 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -48,6 +48,7 @@ namespace LinuxSampler { namespace gig {
             // Member Types
             typedef uint32_t OrderID_t;
             typedef uint32_t Handle; ///< unique identifier of a relationship between one stream and a consumer (Voice)
+            enum { INVALID_HANDLE = 0 };
             enum state_t {           ///< streams go through severe cyclic state transition (unused->active->end->unused->...)
                 state_unused,        ///< stream is not in use, thus can still be launched
                 state_active,        ///< stream provides data in it's buffer to be read and hasn't reached the end yet (this is the usual case)

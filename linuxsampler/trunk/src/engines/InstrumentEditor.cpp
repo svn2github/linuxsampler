@@ -65,4 +65,39 @@ namespace LinuxSampler {
         listeners.erase(pListener);
     }
 
+    void InstrumentEditor::NotifySamplesToBeRemoved(std::set<void*> Samples) {
+        for ( // notify all registered listeners
+            std::set<InstrumentEditorListener*>::iterator iter = listeners.begin();
+            iter != listeners.end(); iter++
+        ) (*iter)->OnSamplesToBeRemoved(Samples, this);
+    }
+
+    void InstrumentEditor::NotifySamplesRemoved() {
+        for ( // notify all registered listeners
+            std::set<InstrumentEditorListener*>::iterator iter = listeners.begin();
+            iter != listeners.end(); iter++
+        ) (*iter)->OnSamplesRemoved(this);
+    }
+
+    void InstrumentEditor::NotifyDataStructureToBeChanged(void* pStruct, String sStructType) {
+        for ( // notify all registered listeners
+            std::set<InstrumentEditorListener*>::iterator iter = listeners.begin();
+            iter != listeners.end(); iter++
+        ) (*iter)->OnDataStructureToBeChanged(pStruct, sStructType, this);
+    }
+
+    void InstrumentEditor::NotifyDataStructureChanged(void* pStruct, String sStructType) {
+        for ( // notify all registered listeners
+            std::set<InstrumentEditorListener*>::iterator iter = listeners.begin();
+            iter != listeners.end(); iter++
+        ) (*iter)->OnDataStructureChanged(pStruct, sStructType, this);
+    }
+
+    void InstrumentEditor::NotifySampleReferenceChanged(void* pOldSample, void* pNewSample) {
+        for ( // notify all registered listeners
+            std::set<InstrumentEditorListener*>::iterator iter = listeners.begin();
+            iter != listeners.end(); iter++
+        ) (*iter)->OnSampleReferenceChanged(pOldSample, pNewSample, this);
+    }
+
 } // namespace LinuxSampler

@@ -49,6 +49,7 @@ namespace LinuxSampler { namespace gig {
 
     // just symbol prototyping
     class EngineChannel;
+    class Engine;
 
     /** @brief Gig instrument manager
      *
@@ -72,18 +73,24 @@ namespace LinuxSampler { namespace gig {
             virtual InstrumentManager::mode_t GetMode(const instrument_id_t& ID);
             virtual void SetMode(const instrument_id_t& ID, InstrumentManager::mode_t Mode);
             virtual String GetInstrumentName(instrument_id_t ID);
-            virtual String GetInstrumentTypeName(instrument_id_t ID);
-            virtual String GetInstrumentTypeVersion(instrument_id_t ID);
+            virtual String GetInstrumentDataStructureName(instrument_id_t ID);
+            virtual String GetInstrumentDataStructureVersion(instrument_id_t ID);
             virtual void LaunchInstrumentEditor(instrument_id_t ID) throw (InstrumentManagerException);
 
-            // implementation of derived abstract method from 'InstrumentEditorListener'
+            // implementation of derived abstract methods from 'InstrumentEditorListener'
             virtual void OnInstrumentEditorQuit(InstrumentEditor* pSender);
+            virtual void OnSamplesToBeRemoved(std::set<void*> Samples, InstrumentEditor* pSender);
+            virtual void OnSamplesRemoved(InstrumentEditor* pSender);
+            virtual void OnDataStructureToBeChanged(void* pStruct, String sStructType, InstrumentEditor* pSender);
+            virtual void OnDataStructureChanged(void* pStruct, String sStructType, InstrumentEditor* pSender);
+            virtual void OnSampleReferenceChanged(void* pOldSample, void* pNewSample, InstrumentEditor* pSender);
 
             void HandBackInstrument(::gig::Instrument* pResource, InstrumentConsumer* pConsumer,
                                     ::gig::DimensionRegion** dimRegionsInUse);
             void HandBackDimReg(::gig::DimensionRegion* pDimReg);
 
         protected:
+            // implementation of derived abstract methods from 'ResourceManager'
             virtual ::gig::Instrument* Create(instrument_id_t Key, InstrumentConsumer* pConsumer, void*& pArg);
             virtual void               Destroy(::gig::Instrument* pResource, void* pArg);
             virtual void               OnBorrow(::gig::Instrument* pResource, InstrumentConsumer* pConsumer, void*& pArg);
@@ -92,6 +99,7 @@ namespace LinuxSampler { namespace gig {
 
             class GigResourceManager : public ResourceManager<String, ::gig::File> {
                 protected:
+                    // implementation of derived abstract methods from 'ResourceManager'
                     virtual ::gig::File* Create(String Key, GigConsumer* pConsumer, void*& pArg);
                     virtual void         Destroy(::gig::File* pResource, void* pArg);
                     virtual void         OnBorrow(::gig::File* pResource, GigConsumer* pConsumer, void*& pArg) {} // ignore
@@ -103,6 +111,15 @@ namespace LinuxSampler { namespace gig {
             } Gigs;
 
             void CacheInitialSamples(::gig::Sample* pSample, gig::EngineChannel* pEngineChannel);
+            void CacheInitialSamples(::gig::Sample* pSample, gig::Engine* pEngine);
+            void UncacheInitialSamples(::gig::Sample* pSample);
+            std::vector< ::gig::Instrument*> GetInstrumentsCurrentlyUsedOf(::gig::File* pFile, bool bLock);
+            std::set<gig::Engine*> GetEnginesUsing(::gig::Instrument* pFile, bool bLock);
+            std::set<gig::Engine*> GetEnginesUsing(::gig::File* pFile, bool bLock);
+            bool SampleReferencedByInstrument(::gig::Sample* pSample, ::gig::Instrument* pInstrument);
+            void SuspendEnginesUsing(::gig::Instrument* pInstrument);
+            void SuspendEnginesUsing(::gig::File* pFile);
+            void ResumeAllEngines();
 
             struct dimreg_info_t {
                 int           refCount;
@@ -115,6 +132,8 @@ namespace LinuxSampler { namespace gig {
 
             Mutex InstrumentEditorProxiesMutex; ///< protects the 'InstrumentEditorProxies' map
             std::map<InstrumentEditor*, InstrumentConsumer*> InstrumentEditorProxies; ///< here we store the objects that react on instrument specific notifications on behalf of the respective instrument editor
+            std::set<Engine*> suspendedEngines; ///< all engines currently completely suspended
+            Mutex             suspendedEnginesMutex; ///< protects 'suspendedEngines' set
     };
 
 }} // namespace LinuxSampler::gig

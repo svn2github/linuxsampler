@@ -44,7 +44,7 @@ namespace LinuxSampler {
      * sampler will load these external DLLs as plugins on startup. Whenever
      * there's a request for editing an instrument, the sampler will try to
      * launch a matching registered editor, by calling the respective
-     * plugin's Main() method.
+     * plugin's @c Main() method.
      */
     class InstrumentEditor : protected Thread {
     public:
@@ -63,9 +63,9 @@ namespace LinuxSampler {
          *
          * @param pInstrument - pointer to the respective instrument object
          * @param sTypeName - format of the instrument data structure
-         *                    (i.e. "libgig")
+         *                    (i.e. @c "libgig" )
          * @param sTypeVersion - version of the instrument data structure
-         *                       (i.e. "3.0.1").
+         *                       (i.e. @c "3.0.1" ).
          */
         virtual int Main(void* pInstrument, String sTypeName, String sTypeVersion) = 0;
 
@@ -76,18 +76,18 @@ namespace LinuxSampler {
          * sampler to determine which editor is capable to work with a
          * certain instrument.
          *
-         * @param sTypeName - i.e. "libgig"
-         * @param STypeVersion - i.e. "3.0.1"
+         * @param sTypeName - i.e. @c "libgig"
+         * @param STypeVersion - i.e. @c "3.0.1"
          */
         virtual bool IsTypeSupported(String sTypeName, String sTypeVersion) = 0;
 
         /**
-         * The instrument editor's name (i.e. "gigedit").
+         * The instrument editor's name (i.e. @c "gigedit" ).
          */
         virtual String Name() = 0;
 
         /**
-         * The instrument editor's version (i.e. "0.0.1").
+         * The instrument editor's version (i.e. @c "0.0.1" ).
          */
         virtual String Version() = 0;
 
@@ -102,6 +102,89 @@ namespace LinuxSampler {
         /////////////////////////////////////////////////////////////////
         // normal methods
         //     (usually not to be overriden by descendant)
+
+        /** @brief Dispatch pending sample removal event.
+         *
+         * @e SHOULD be called by the instrument editor @e before deleting
+         * samples, so the sampler can react by stopping usage of these
+         * samples to avoid a crash.
+         *
+         * After calling this method, the instrument editor @e MUST call
+         * @c NotifySamplesRemoved() after it actually deleted the samples, so
+         * the sampler can react by i.e. resuming playback of sampler engines.
+         *
+         * @param Samples - list of samples that will be deleted by the
+         *                  instrument editor
+         */
+        void NotifySamplesToBeRemoved(std::set<void*> Samples);
+
+        /** @brief Dispatch completed sample removal event.
+         *
+         * Inform the sampler that the by @c NotifySamplesToBeRemoved()
+         * previously announced samples have been deleted.
+         */
+        void NotifySamplesRemoved();
+
+        /** @brief Dispatch pending data structure modification event.
+         *
+         * @e SHOULD be called by the instrument editor @e before modifying
+         * data structures (except samples, which have their own dispatch
+         * methods) which could otherwise lead to undesired synchronisation
+         * issues and a crash. The respective data structure is passed as a
+         * typeless pointer @a pStruct , so the instrument editor additionally
+         * has to pass the name of the data structure (i.e. @c "gig::Region" ),
+         * so the sampler can cast the pointer to an appropriate type. The
+         * sampler will react by stopping usage of the respective data
+         * structure.
+         *
+         * After calling this method, the instrument editor @e MUST call
+         * @c NotifyDataStructureChanged() , so the sampler can react by
+         * resuming usage of the respective data structure for playback.
+         *
+         * @param pStruct     - data structure going to be modified
+         * @param sStructType - name of the data structure (i.e. its C++
+         *                      struct or class name)
+         */
+        void NotifyDataStructureToBeChanged(void* pStruct, String sStructType);
+
+        /** @brief Dispatch completed data structure modification event.
+         *
+         * Inform the sampler that the by @c NotifyDataStructureToBeChanged()
+         * previously announced data structure has been completely modified.
+         *
+         * @param pStruct     - data structure that has been modified
+         * @param sStructType - name of the data structure (i.e. its C++
+         *                      struct or class name)
+         */
+        void NotifyDataStructureChanged(void* pStruct, String sStructType);
+
+        /** @brief Dispatch sample reference changed event.
+         *
+         * @e SHOULD be called by the instrument editor @e after a certain data
+         * structure changed its reference / pointer to a sample, so the
+         * sampler can react by:
+         *
+         * - Caching the newly referenced sample if necessary.
+         * - Un-caching the old referenced sample if necessary.
+         *
+         * @e Note: the instrument editor additionally @e MUST embed this call
+         * into the respective @c NotifyDataStructureToBeChanged() and
+         * @c NotifyDataStructureChanged() calls for announcing the data
+         * structure whose sample reference is actually to be changed, so the
+         * sampler can react by suspending usage. For example:
+         * @code
+         *  NotifyDataStructureToBeChanged(pDimReg, "gig::DimensionRegion");
+         *  gig::Sample* pOldSample = pDimReg->pSample;
+         *  pDimReg->pSample = pNewSample;
+         *  NotifySampleReferenceChanged(pOldSample, pNewSample);
+         *  NotifyDataStructureChanged(pDimReg, "gig::DimensionRegion");
+         * @endcode
+         * So calling this method alone is not safe!
+         *
+         * @param pOldSample - previous sample reference
+         * @param pNewSample - current sample reference
+         */
+        void NotifySampleReferenceChanged(void* pOldSample, void* pNewSample);
 
         /**
          * Launch the instrument editor for the given instrument. The
@@ -139,12 +222,82 @@ namespace LinuxSampler {
     /** @brief Instrument Editor Notifications
      *
      * This abstract interface class has to be implemented by classes that
-     * want to be notified on certain events of an instrument editor.
+     * want to be notified on certain events of an instrument editor. This is
+     * typically used on sampler side, but might also be used by an instrument
+     * editor to get informed about modifications another instrument editor
+     * makes.
      */
     class InstrumentEditorListener {
     public:
-        /// Called after the instrument editor stopped running.
+        /** @brief Called after the instrument editor stopped running.
+         *
+         * Automatically called after the instrument editor application stopped
+         * running. This method has to be implemented by the descendant.
+         *
+         * @param pSender - instrument editor that died
+         */
         virtual void OnInstrumentEditorQuit(InstrumentEditor* pSender) = 0;
+
+        /** @brief Called before samples are to be deleted.
+         *
+         * See the dispatcher method
+         * @c InstrumentEditor::NotifySamplesToBeRemoved() for details.
+         * This method has to be implemented by the descendant.
+         *
+         * @param Samples - list of samples that will be deleted by the
+         *                  instrument editor
+         * @param pSender - instrument editor that is going to do this
+         *                  modification
+         */
+        virtual void OnSamplesToBeRemoved(std::set<void*> Samples, InstrumentEditor* pSender) = 0;
+
+        /** @brief  Called after samples have been deleted.
+         *
+         * See the dispatcher method
+         * @c InstrumentEditor::NotifySamplesRemoved() for details.
+         * This method has to be implemented by the descendant.
+         *
+         * @param pSender - instrument editor that did this modification
+         */
+        virtual void OnSamplesRemoved(InstrumentEditor* pSender) = 0;
+
+        /** @brief Called before data structure is to be modified.
+         *
+         * See the dispatcher method
+         * @c InstrumentEditor::NotifyDataStructureToBeChanged() for details.
+         * This method has to be implemented by the descendant.
+         *
+         * @param pStruct     - data structure going to be modified
+         * @param sStructType - name of the data structure (i.e. its C++
+         *                      struct or class name)
+         * @param pSender     - instrument editor that is going to do this
+         *                      modification
+         */
+        virtual void OnDataStructureToBeChanged(void* pStruct, String sStructType, InstrumentEditor* pSender) = 0;
+
+        /** @brief Called after data structure has been modified.
+         *
+         * See the dispatcher method
+         * @c InstrumentEditor::NotifyDataStructureChanged() for details.
+         * This method has to be implemented by the descendant.
+         *
+         * @param pStruct     - data structure that has been modified
+         * @param sStructType - name of the data structure (i.e. its C++
+         *                      struct or class name)
+         * @param pSender     - instrument editor that did this modification
+         */
+        virtual void OnDataStructureChanged(void* pStruct, String sStructType, InstrumentEditor* pSender) = 0;
+
+        /** @brief Called after some data structure changed its reference to a sample.
+         *
+         * @c InstrumentEditor::NotifySampleReferenceChanged() for details.
+         * This method has to be implemented by the descendant.
+         *
+         * @param pOldSample - previous sample reference
+         * @param pNewSample - current sample reference
+         * @param pSender    - instrument editor that did this modification
+         */
+        virtual void OnSampleReferenceChanged(void* pOldSample, void* pNewSample, InstrumentEditor* pSender) = 0;
     };
 
 } // namespace LinuxSampler

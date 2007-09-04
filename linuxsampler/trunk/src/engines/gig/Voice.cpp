@@ -921,13 +921,30 @@ namespace LinuxSampler { namespace gig {
      *  fading down the volume level to avoid clicks and regular processing
      *  until the kill event actually occured!
      *
-     *  @see Kill()
+     * If it's necessary to know when the voice's disk stream was actually
+     * deleted, then one can set the optional @a bRequestNotification
+     * parameter and this method will then return the handle of the disk
+     * stream (unique identifier) and one can use this handle to poll the
+     * disk thread if this stream has been deleted. In any case this method
+     * will return immediately and will not block until the stream actually
+     * was deleted.
+     *
+     * @param bRequestNotification - (optional) whether the disk thread shall
+     *                                provide a notification once it deleted
+     *                               the respective disk stream
+     *                               (default=false)
+     * @returns handle to the voice's disk stream or @c Stream::INVALID_HANDLE
+     *          if the voice did not use a disk stream at all
+     * @see Kill()
      */
-    void Voice::KillImmediately() {
+    Stream::Handle Voice::KillImmediately(bool bRequestNotification) {
+        Stream::Handle hStream = Stream::INVALID_HANDLE;
         if (DiskVoice && DiskStreamRef.State != Stream::state_unused) {
-            pDiskThread->OrderDeletionOfStream(&DiskStreamRef);
+            pDiskThread->OrderDeletionOfStream(&DiskStreamRef, bRequestNotification);
+            hStream = DiskStreamRef.hStream;
         }
         Reset();
+        return hStream;
     }
 
     /**

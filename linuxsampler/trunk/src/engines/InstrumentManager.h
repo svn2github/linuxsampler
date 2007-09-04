@@ -120,10 +120,42 @@ namespace LinuxSampler {
              */
             virtual String GetInstrumentName(instrument_id_t ID) = 0;
 
-            virtual String GetInstrumentTypeName(instrument_id_t ID) = 0;
+            /**
+             * Returns a textual identifier of the data structure for the
+             * given loaded instrument, which usually reflects the name of
+             * of the library used to load the instrument (i.e. "libgig").
+             *
+             * This method has to be implemented by the descendant.
+             */
+            virtual String GetInstrumentDataStructureName(instrument_id_t ID) = 0;
 
-            virtual String GetInstrumentTypeVersion(instrument_id_t ID) = 0;
+            /**
+             * Returns the version of the data structure for the given
+             * loaded instrument, which usually reflects the version of the
+             * library which was used to load the instrument (i.e. "3.1.0").
+             *
+             * This method has to be implemented by the descendant.
+             */
+            virtual String GetInstrumentDataStructureVersion(instrument_id_t ID) = 0;
 
+            /**
+             * Spawn an appropriate editor for the given instrument that is
+             * actually capable to handle the instrument's format and data
+             * structure. The instrument editor will be hosted in the
+             * sampler's own process to allow immediate live-editing of the
+             * instrument while playing the instrument in parallel by the
+             * sampler.
+             *
+             * For this to work, instrument editor applications have to
+             * implement the abstract interface class @c InstrumentEditor
+             * and have to generate a plugin DLL that has to be placed into
+             * the appropriate plugin directory of the sampler.
+             *
+             * This method has to be implemented by the descendant.
+             *
+             * @throws InstrumentManagerException - in case no compatible
+             *         instrument editor is registered to the sampler
+             */
             virtual void LaunchInstrumentEditor(instrument_id_t ID) throw (InstrumentManagerException) = 0;
     };
 

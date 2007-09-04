@@ -98,7 +98,7 @@ namespace LinuxSampler { namespace gig {
     /**
      * Constructor
      */
-    Engine::Engine() {
+    Engine::Engine() : SuspendedRegions(128) {
         pAudioOutputDevice = NULL;
         pDiskThread        = NULL;
         pEventGenerator    = NULL;
@@ -119,6 +119,7 @@ namespace LinuxSampler { namespace gig {
 
         ResetInternal();
         ResetScaleTuning();
+        ResetSuspendedRegions();
     }
 
     /**
@@ -145,6 +146,7 @@ namespace LinuxSampler { namespace gig {
         if (InstrumentChangeQueue) delete InstrumentChangeQueue;
         if (InstrumentChangeReplyQueue) delete InstrumentChangeReplyQueue;
         if (pDimRegionsInUse) delete[] pDimRegionsInUse;
+        ResetSuspendedRegions();
         Unregister();
     }
 
@@ -154,6 +156,18 @@ namespace LinuxSampler { namespace gig {
         dmsg(3,("gig::Engine: enabled (val=%d)\n", EngineDisabled.GetUnsafe()));
     }
 
+    /**
+     * Temporarily stop the engine to not do anything. The engine will just be
+     * frozen during that time, that means after enabling it again it will
+     * continue where it was, with all its voices and playback state it had at
+     * the point of disabling. Notice that the engine's (audio) thread will
+     * continue to run, it just remains in an inactive loop during that time.
+     *
+     * If you need to be sure that all voices and disk streams are killed as
+     * well, use @c SuspendAll() instead.
+     *
+     * @see Enable(), SuspendAll()
+     */
     void Engine::Disable() {
         dmsg(3,("gig::Engine: disabling\n"));
         bool* pWasDisabled = EngineDisabled.PushAndUnlock(true, 2); // wait max. 2s
@@ -164,6 +178,96 @@ namespace LinuxSampler { namespace gig {
         dmsg(3,("gig::Engine: disabling\n"));
         bool* pWasDisabled = EngineDisabled.Push(true, 2); // wait max. 2s
         if (!pWasDisabled) dmsg(3,("gig::Engine warning: Timeout waiting to disable engine.\n"));
+    }
+
+    /**
+     * Similar to @c Disable() but this method additionally kills all voices
+     * and disk streams and blocks until all voices and disk streams are actually
+     * killed / deleted.
+     *
+     * @e Note: only the original calling thread is able to re-enable the
+     * engine afterwards by calling @c ResumeAll() later on!
+     */
+    void Engine::SuspendAll() {
+        dmsg(1,("gig::Engine: Suspending all ...\n"));
+        // stop the engine, so we can safely modify the engine's
+        // data structures from this foreign thread
+        DisableAndLock();
+        // we could also use the respective class member variable here,
+        // but this is probably safer and cleaner
+        int iPendingStreamDeletions = 0;
+        // kill all voices on all engine channels the *die hard* way
+        for (int iChannel = 0; iChannel < engineChannels.size(); iChannel++) {
+            EngineChannel* pEngineChannel = engineChannels[iChannel];
+            RTList<uint>::Iterator iuiKey = pEngineChannel->pActiveKeys->first();
+            RTList<uint>::Iterator end    = pEngineChannel->pActiveKeys->end();
+            for (; iuiKey != end; ++iuiKey) { // iterate through all active keys
+                midi_key_info_t* pKey = &pEngineChannel->pMIDIKeyInfo[*iuiKey];
+                RTList<Voice>::Iterator itVoice = pKey->pActiveVoices->first();
+                RTList<Voice>::Iterator itVoicesEnd = pKey->pActiveVoices->end();
+                for (; itVoice != itVoicesEnd; ++itVoice) { // iterate through all voices on this key
+                    // request a notification from disk thread side for stream deletion
+                    const Stream::Handle hStream = itVoice->KillImmediately(true);
+                    if (hStream != Stream::INVALID_HANDLE) { // voice actually used a stream
+                        iPendingStreamDeletions++;
+                    }
+                }
+            }
+        }
+        // wait until all streams were actually deleted by the disk thread
+        while (iPendingStreamDeletions) {
+            while (
+                iPendingStreamDeletions &&
+                pDiskThread->AskForDeletedStream() != Stream::INVALID_HANDLE
+            ) iPendingStreamDeletions--;
+            if (!iPendingStreamDeletions) break;
+            usleep(10000); // sleep for 10ms
+        }
+        dmsg(1,("gig::Engine: Everything suspended.\n"));
+    }
+
+    /**
+     * At the moment same as calling @c Enable() directly, but this might
+     * change in future, so better call this method as counterpart to
+     * @c SuspendAll() instead of @c Enable() !
+     */
+    void Engine::ResumeAll() {
+        Enable();
+    }
+
+    /**
+     * Order the engine to stop rendering audio for the given region.
+     * Additionally this method will block until all voices and their disk
+     * streams associated with that region are actually killed / deleted, so
+     * one can i.e. safely modify the region with an instrument editor after
+     * returning from this method.
+     *
+     * @param pRegion - region the engine shall stop using
+     */
+    void Engine::Suspend(::gig::Region* pRegion) {
+        dmsg(1,("gig::Engine: Suspending Region %x ...\n",pRegion));
+        SuspendedRegionsMutex.Lock();
+        SuspensionChangeOngoing.Set(true);
+        pPendingRegionSuspension = pRegion;
+        SuspensionChangeOngoing.WaitAndUnlockIf(true);
+        SuspendedRegionsMutex.Unlock();
+        dmsg(1,("gig::Engine: Region %x suspended.",pRegion));
+    }
+
+    /**
+     * Orders the engine to resume playing back the given region, previously
+     * suspended with @c Suspend() .
+     *
+     * @param pRegion - region the engine shall be allowed to use again
+     */
+    void Engine::Resume(::gig::Region* pRegion) {
+        dmsg(1,("gig::Engine: Resuming Region %x ...\n",pRegion));
+        SuspendedRegionsMutex.Lock();
+        SuspensionChangeOngoing.Set(true);
+        pPendingRegionResumption = pRegion;
+        SuspensionChangeOngoing.WaitAndUnlockIf(true);
+        SuspendedRegionsMutex.Unlock();
+        dmsg(1,("gig::Engine: Region %x resumed.\n",pRegion));
     }
 
     /**
@@ -219,6 +323,13 @@ namespace LinuxSampler { namespace gig {
      */
     void Engine::ResetScaleTuning() {
         memset(&ScaleTuning[0], 0x00, 12);
+    }
+
+    void Engine::ResetSuspendedRegions() {
+        SuspendedRegions.clear();
+        iPendingStreamDeletions = 0;
+        pPendingRegionSuspension = pPendingRegionResumption = NULL;
+        SuspensionChangeOngoing.Set(false);
     }
 
     /**
@@ -300,6 +411,110 @@ namespace LinuxSampler { namespace gig {
     }
 
     /**
+     * Called by the engine's (audio) thread once per cycle to process requests
+     * from the outer world to suspend or resume a given @c gig::Region .
+     */
+    void Engine::ProcessSuspensionsChanges() {
+        // process request for suspending one region
+        if (pPendingRegionSuspension) {
+            // kill all voices on all engine channels that use this region
+            for (int iChannel = 0; iChannel < engineChannels.size(); iChannel++) {
+                EngineChannel* pEngineChannel = engineChannels[iChannel];
+                RTList<uint>::Iterator iuiKey = pEngineChannel->pActiveKeys->first();
+                RTList<uint>::Iterator end    = pEngineChannel->pActiveKeys->end();
+                for (; iuiKey != end; ++iuiKey) { // iterate through all active keys
+                    midi_key_info_t* pKey = &pEngineChannel->pMIDIKeyInfo[*iuiKey];
+                    RTList<Voice>::Iterator itVoice = pKey->pActiveVoices->first();
+                    // if current key is not associated with this region, skip this key
+                    if (itVoice->pDimRgn->GetParent() != pPendingRegionSuspension) continue;
+                    RTList<Voice>::Iterator itVoicesEnd = pKey->pActiveVoices->end();
+                    for (; itVoice != itVoicesEnd; ++itVoice) { // iterate through all voices on this key
+                        // request a notification from disk thread side for stream deletion
+                        const Stream::Handle hStream = itVoice->KillImmediately(true);
+                        if (hStream != Stream::INVALID_HANDLE) { // voice actually used a stream
+                            iPendingStreamDeletions++;
+                        }
+                    }
+                }
+            }
+            // make sure the region is not yet on the list
+            bool bAlreadySuspended = false;
+            RTList< ::gig::Region*>::Iterator iter = SuspendedRegions.first();
+            RTList< ::gig::Region*>::Iterator end  = SuspendedRegions.end();
+            for (; iter != end; ++iter) { // iterate through all suspended regions
+                if (*iter == pPendingRegionSuspension) { // found
+                    bAlreadySuspended = true;
+                    dmsg(1,("gig::Engine: attempt to suspend an already suspended region !!!\n"));
+                    break;
+                }
+            }
+            if (!bAlreadySuspended) {
+                // put the region on the list of suspended regions
+                RTList< ::gig::Region*>::Iterator iter = SuspendedRegions.allocAppend();
+                if (iter) {
+                    *iter = pPendingRegionSuspension;
+                } else std::cerr << "gig::Engine: Could not suspend Region, list is full. This is a bug!!!\n" << std::flush;
+            }
+            // free request slot for next caller (and to make sure that
+            // we're not going to process the same request in the next cycle)
+            pPendingRegionSuspension = NULL;
+            // if no disk stream deletions are pending, awaker other side, as
+            // we're done in this case
+            if (!iPendingStreamDeletions) SuspensionChangeOngoing.Set(false);
+        }
+
+        // process request for resuming one region
+        if (pPendingRegionResumption) {
+            // remove region from the list of suspended regions
+            RTList< ::gig::Region*>::Iterator iter = SuspendedRegions.first();
+            RTList< ::gig::Region*>::Iterator end  = SuspendedRegions.end();
+            for (; iter != end; ++iter) { // iterate through all suspended regions
+                if (*iter == pPendingRegionResumption) { // found
+                    SuspendedRegions.free(iter);
+                    break; // done
+                }
+            }
+            // free request slot for next caller
+            pPendingRegionResumption = NULL;
+            // awake other side as we're done
+            SuspensionChangeOngoing.Set(false);
+        }
+    }
+
+    /**
+     * Called by the engine's (audio) thread once per cycle to check if
+     * streams of voices that were killed due to suspension request have
+     * finally really been deleted by the disk thread.
+     */
+    void Engine::ProcessPendingStreamDeletions() {
+        if (!iPendingStreamDeletions) return;
+        //TODO: or shall we better store a list with stream handles instead of a scalar amount of streams to be deleted? might be safer
+        while (
+            iPendingStreamDeletions &&
+            pDiskThread->AskForDeletedStream() != Stream::INVALID_HANDLE
+        ) iPendingStreamDeletions--;
+        // just for safety ...
+        while (pDiskThread->AskForDeletedStream() != Stream::INVALID_HANDLE);
+        // now that all disk streams are deleted, awake other side as
+        // we're finally done with suspending the requested region
+        if (!iPendingStreamDeletions) SuspensionChangeOngoing.Set(false);
+    }
+
+    /**
+     * Returns @c true if the given region is currently set to be suspended
+     * from being used, @c false otherwise.
+     */
+    bool Engine::RegionSuspended(::gig::Region* pRegion) {
+        if (SuspendedRegions.isEmpty()) return false;
+        //TODO: or shall we use a sorted container instead of the RTList? might be faster ... or trivial ;-)
+        RTList< ::gig::Region*>::Iterator iter = SuspendedRegions.first();
+        RTList< ::gig::Region*>::Iterator end  = SuspendedRegions.end();
+        for (; iter != end; ++iter)  // iterate through all suspended regions
+            if (*iter == pRegion) return true;
+        return false;
+    }
+
+    /**
      * Clear all engine global event lists.
      */
     void Engine::ClearEventLists() {
@@ -362,6 +577,10 @@ namespace LinuxSampler { namespace gig {
             return 0;
         }
 
+        // process requests for suspending / resuming regions (i.e. to avoid
+        // crashes while these regions are modified by an instrument editor)
+        ProcessSuspensionsChanges();
+
         // update time of start and end of this audio fragment (as events' time stamps relate to this)
         pEventGenerator->UpdateFragmentTime(Samples);
 
@@ -396,6 +615,9 @@ namespace LinuxSampler { namespace gig {
         if (InstrumentChangeQueue->pop(&command) > 0) {
             EngineChannel* pEngineChannel = command.pEngineChannel;
             pEngineChannel->pInstrument = command.pInstrument;
+
+            //TODO: this is a lazy solution ATM and not safe in case somebody is currently editing the instrument we're currently switching to (we should store all suspended regions on instrument manager side and when switching to another instrument copy that list to the engine's local list of suspensions
+            ResetSuspendedRegions();
 
             // iterate through all active voices and mark their
             // dimension regions as "in use". The instrument resource
@@ -458,6 +680,11 @@ namespace LinuxSampler { namespace gig {
         // just some statistics about this engine instance
         ActiveVoiceCount = ActiveVoiceCountTemp;
         if (ActiveVoiceCount > ActiveVoiceCountMax) ActiveVoiceCountMax = ActiveVoiceCount;
+
+        // in case regions were previously suspended and we killed voices
+        // with disk streams due to that, check if those streams have finally
+        // been deleted by the disk thread
+        if (iPendingStreamDeletions) ProcessPendingStreamDeletions();
 
         FrameTime += Samples;
 
@@ -792,7 +1019,7 @@ namespace LinuxSampler { namespace gig {
         {
             // first, get total amount of required voices (dependant on amount of layers)
             ::gig::Region* pRegion = pEngineChannel->pInstrument->GetRegion(itNoteOnEventOnKeyList->Param.Note.Key);
-            if (pRegion) {
+            if (pRegion && !RegionSuspended(pRegion)) {
                 int voicesRequired = pRegion->Layers;
                 // now launch the required amount of voices
                 for (int i = 0; i < voicesRequired; i++)
@@ -1744,7 +1971,7 @@ namespace LinuxSampler { namespace gig {
     }
 
     String Engine::Version() {
-        String s = "$Revision: 1.79 $";
+        String s = "$Revision: 1.80 $";
         return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
 

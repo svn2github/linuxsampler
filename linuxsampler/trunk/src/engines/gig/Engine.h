@@ -61,6 +61,10 @@ namespace LinuxSampler { namespace gig {
             virtual ~Engine();
             void Connect(AudioOutputDevice* pAudioOut);
             ::gig::DimensionRegion** ChangeInstrument(EngineChannel* pEngineChannel, ::gig::Instrument* pInstrument);
+            void SuspendAll();
+            void ResumeAll();
+            void Suspend(::gig::Region* pRegion);
+            void Resume(::gig::Region* pRegion);
 
             // implementation of abstract methods derived from class 'LinuxSampler::Engine'
             virtual int    RenderAudio(uint Samples);
@@ -126,12 +130,15 @@ namespace LinuxSampler { namespace gig {
             void ProcessPitchbend(EngineChannel* pEngineChannel, Pool<Event>::Iterator& itPitchbendEvent);
             void ProcessControlChange(EngineChannel* pEngineChannel, Pool<Event>::Iterator& itControlChangeEvent);
             void ProcessSysex(Pool<Event>::Iterator& itSysexEvent);
+            void ProcessSuspensionsChanges();
+            void ProcessPendingStreamDeletions();
             Pool<Voice>::Iterator LaunchVoice(EngineChannel* pEngineChannel, Pool<Event>::Iterator& itNoteOnEvent, int iLayer, bool ReleaseTriggerVoice, bool VoiceStealing, bool HandleKeyGroupConflicts);
             int  StealVoice(EngineChannel* pEngineChannel, Pool<Event>::Iterator& itNoteOnEvent);
             void FreeVoice(EngineChannel* pEngineChannel, Pool<Voice>::Iterator& itVoice);
             void FreeKey(EngineChannel* pEngineChannel, midi_key_info_t* pKey);
             void ResetInternal();
             void ResetScaleTuning();
+            void ResetSuspendedRegions();
 
             static Engine* AcquireEngine(LinuxSampler::gig::EngineChannel* pChannel, AudioOutputDevice* pDevice);
             static void    FreeEngine(LinuxSampler::gig::EngineChannel* pChannel, AudioOutputDevice* pDevice);
@@ -154,6 +161,13 @@ namespace LinuxSampler { namespace gig {
             RingBuffer<instrument_change_reply_t,false>*   InstrumentChangeReplyQueue; ///< Contains the acknowledge of an instrument change
            ::gig::DimensionRegion** pDimRegionsInUse; ///< After an instrument change, this contains a list of dimension regions that are still in use by playing voices
 
+            Pool< ::gig::Region*> SuspendedRegions;
+            Mutex                 SuspendedRegionsMutex;
+            Condition             SuspensionChangeOngoing;
+            ::gig::Region*        pPendingRegionSuspension;
+            ::gig::Region*        pPendingRegionResumption;
+            int                   iPendingStreamDeletions;
+
             ArrayList<EngineChannel*> engineChannels; ///< All engine channels of a gig::Engine instance.
 
             static std::map<AudioOutputDevice*,Engine*> engines; ///< All instances of gig::Engine.
@@ -166,6 +180,7 @@ namespace LinuxSampler { namespace gig {
             void    ReleaseAllVoices(EngineChannel* pEngineChannel, Pool<Event>::Iterator& itReleaseEvent);
             void    KillAllVoices(EngineChannel* pEngineChannel, Pool<Event>::Iterator& itKillEvent);
             bool    ShouldReleaseVoice(EngineChannel* pEngineChannel, int Key);
+            bool    RegionSuspended(::gig::Region* pRegion);
             static float* InitVolumeCurve();
             static float* InitPanCurve();
             static float* InitCrossfadeCurve();

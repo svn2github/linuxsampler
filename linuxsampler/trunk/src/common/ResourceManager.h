@@ -112,8 +112,9 @@ class ResourceManager {
             PERSISTENT     = 2  ///< Immediately create resource and keep it.
         };
 
-    private:
         typedef std::set<ResourceConsumer<T_res>*> ConsumerSet;
+
+    private:
         struct resource_entry_t {
             T_key       key;
             T_res*      resource;  ///< pointer to the resource
@@ -143,6 +144,46 @@ class ResourceManager {
             }
             if (bLock) ResourceEntriesMutex.Unlock();
             return result;
+        }
+
+        /**
+         * Returns a list of all consumers that use the resource given by
+         * \a Key .
+         *
+         * @e Caution: this is not thread safe! You might want to call
+         * @c Lock() and @c Unlock() respectively to avoid race conditions
+         * while using this method and its result set!
+         *
+         * @param Key - resource identifier
+         */
+        ConsumerSet ConsumersOf(T_key Key) {
+            // search for an entry for the given resource key
+            typename ResourceMap::iterator iterEntry = ResourceEntries.find(Key);
+            return (iterEntry == ResourceEntries.end()) ?
+                   ConsumerSet() : iterEntry->second.consumers;
+        }
+
+        /**
+         * Returns a list of all consumers that use the resource given by
+         * \a pResource .
+         *
+         * @e Caution: this is not thread safe! You might want to call
+         * @c Lock() and @c Unlock() respectively to avoid race conditions
+         * while using this method and its result set!
+         *
+         * @param pResource - resource pointer
+         */
+        ConsumerSet ConsumersOf(T_res* pResource) {
+            // search for the entry associated with the given resource
+            typename ResourceMap::iterator iter = ResourceEntries.begin();
+            typename ResourceMap::iterator end  = ResourceEntries.end();
+            for (; iter != end; iter++) {
+                if (iter->second.resource == pResource) { // found entry for resource
+                    return iter->second.consumers;
+                }
+            }
+            // no entry found for resource ...
+            return ConsumerSet();
         }
 
         /**
@@ -440,7 +481,7 @@ class ResourceManager {
 
         /**
          * Prevent this ResourceManager instance to be used by another
-         * thread at the same time. All methods of this class are thread
+         * thread at the same time. Most methods of this class are thread
          * safe by default. However sometimes you might need atomicity among
          * a sequence of method calls. In this case you would first call
          * this Lock() method, call the respective operational methods of
@@ -550,6 +591,26 @@ class ResourceManager {
             if (bLock) ResourceEntriesMutex.Lock();
             typename ResourceMap::iterator iterEntry = ResourceEntries.find(Key);
             T_res* result = (iterEntry == ResourceEntries.end()) ? NULL : iterEntry->second.resource;
+            if (bLock) ResourceEntriesMutex.Unlock();
+            return result;
+        }
+
+        /**
+         * Returns a list with all currently created / "living" resources.
+         * This method should be taken with great care in multi-threaded
+         * scenarios, since the returned resources might be destroyed by a
+         * concurrent HandBack() call.
+         *
+         * @param bLock - use thread safety mechanisms
+         */
+        std::vector<T_res*> Resources(bool bLock = true) {
+            if (bLock) ResourceEntriesMutex.Lock();
+            std::vector<T_res*> result;
+            typename ResourceMap::iterator iter = ResourceEntries.begin();
+            typename ResourceMap::iterator end  = ResourceEntries.end();
+            for (; iter != end; ++iter)
+                if (iter->second.resource)
+                    result.push_back(iter->second.resource);
             if (bLock) ResourceEntriesMutex.Unlock();
             return result;
         }

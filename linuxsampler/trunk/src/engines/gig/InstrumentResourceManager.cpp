@@ -106,17 +106,17 @@ namespace LinuxSampler { namespace gig {
         return res;
     }
 
-    String InstrumentResourceManager::GetInstrumentTypeName(instrument_id_t ID) {
+    String InstrumentResourceManager::GetInstrumentDataStructureName(instrument_id_t ID) {
         return ::gig::libraryName();
     }
 
-    String InstrumentResourceManager::GetInstrumentTypeVersion(instrument_id_t ID) {
+    String InstrumentResourceManager::GetInstrumentDataStructureVersion(instrument_id_t ID) {
         return ::gig::libraryVersion();
     }
 
     void InstrumentResourceManager::LaunchInstrumentEditor(instrument_id_t ID) throw (InstrumentManagerException) {
-        const String sDataType    = GetInstrumentTypeName(ID);
-        const String sDataVersion = GetInstrumentTypeVersion(ID);
+        const String sDataType    = GetInstrumentDataStructureName(ID);
+        const String sDataVersion = GetInstrumentDataStructureVersion(ID);
         // find instrument editors capable to handle given instrument
         std::vector<String> vEditors =
             InstrumentEditorFactory::MatchingEditors(sDataType, sDataVersion);
@@ -128,7 +128,7 @@ namespace LinuxSampler { namespace gig {
         dmsg(1,("Found matching editor '%s' for instrument ('%s', %d) having data structure ('%s','%s')\n",
             vEditors[0].c_str(), ID.FileName.c_str(), ID.Index, sDataType.c_str(), sDataVersion.c_str()));
         InstrumentEditor* pEditor = InstrumentEditorFactory::Create(vEditors[0]);
-        // we want to know when you'll die X| (see OnInstrumentEditorQuit())
+        // register for receiving notifications from the instrument editor
         pEditor->AddListener(this);
         // create a proxy that reacts on notification on behalf of the editor
         InstrumentEditorProxy* pProxy = new InstrumentEditorProxy;
@@ -171,8 +171,152 @@ namespace LinuxSampler { namespace gig {
         InstrumentEditorFactory::Destroy(pSender);
     }
 
+    void InstrumentResourceManager::OnSamplesToBeRemoved(std::set<void*> Samples, InstrumentEditor* pSender) {
+        if (Samples.empty()) {
+            std::cerr << "gig::InstrumentResourceManager: WARNING, "
+                         "OnSamplesToBeRemoved() called with empty list, this "
+                         "is a bug!\n" << std::flush;
+            return;
+        }
+        // TODO: ATM we assume here that all samples are from the same file
+        ::gig::Sample* pFirstSample = (::gig::Sample*) *Samples.begin();
+        ::gig::File* pCriticalFile = dynamic_cast< ::gig::File*>(pFirstSample->GetParent());
+        // completely suspend all engines that use that same file
+        SuspendEnginesUsing(pCriticalFile);
+    }
+
+    void InstrumentResourceManager::OnSamplesRemoved(InstrumentEditor* pSender) {
+        // resume all previously, completely suspended engines
+        // (we don't have to un-cache the removed samples here, since that is
+        // automatically done by the gig::Sample destructor)
+        ResumeAllEngines();
+    }
+
+    void InstrumentResourceManager::OnDataStructureToBeChanged(void* pStruct, String sStructType, InstrumentEditor* pSender) {
+        //TODO: remove code duplication
+        if (sStructType == "gig::File") {
+            // completely suspend all engines that use that file
+            ::gig::File* pFile = (::gig::File*) pStruct;
+            SuspendEnginesUsing(pFile);
+        } else if (sStructType == "gig::Instrument") {
+            // completely suspend all engines that use that instrument
+            ::gig::Instrument* pInstrument = (::gig::Instrument*) pStruct;
+            SuspendEnginesUsing(pInstrument);
+        } else if (sStructType == "gig::Region") {
+            // only advice the engines to suspend the given region, so they'll
+            // only ignore that region (and probably already other suspended
+            // ones), but beside that continue normal playback
+            ::gig::Region* pRegion = (::gig::Region*) pStruct;
+            ::gig::Instrument* pInstrument =
+                (::gig::Instrument*) pRegion->GetParent();
+            Lock();
+            std::set<gig::Engine*> engines =
+                GetEnginesUsing(pInstrument, false/*don't lock again*/);
+            std::set<gig::Engine*>::iterator iter = engines.begin();
+            std::set<gig::Engine*>::iterator end  = engines.end();
+            for (; iter != end; ++iter) (*iter)->Suspend(pRegion);
+            Unlock();
+        } else if (sStructType == "gig::DimensionRegion") {
+            // only advice the engines to suspend the given DimensionRegions's
+            // parent region, so they'll only ignore that region (and probably
+            // already other suspended ones), but beside that continue normal
+            // playback
+            ::gig::DimensionRegion* pDimReg =
+                (::gig::DimensionRegion*) pStruct;
+            ::gig::Region* pRegion = pDimReg->GetParent();
+            ::gig::Instrument* pInstrument =
+                (::gig::Instrument*) pRegion->GetParent();
+            Lock();
+            std::set<gig::Engine*> engines =
+                GetEnginesUsing(pInstrument, false/*don't lock again*/);
+            std::set<gig::Engine*>::iterator iter = engines.begin();
+            std::set<gig::Engine*>::iterator end  = engines.end();
+            for (; iter != end; ++iter) (*iter)->Suspend(pRegion);
+            Unlock();
+        } else {
+            std::cerr << "gig::InstrumentResourceManager: ERROR, unknown data "
+                         "structure '" << sStructType << "' requested to be "
+                         "suspended by instrument editor. This is a bug!\n"
+                      << std::flush;
+            //TODO: we should inform the instrument editor that something seriously went wrong
+        }
+    }
+
+    void InstrumentResourceManager::OnDataStructureChanged(void* pStruct, String sStructType, InstrumentEditor* pSender) {
+        //TODO: remove code duplication
+        if (sStructType == "gig::File") {
+            // resume all previously suspended engines
+            ResumeAllEngines();
+        } else if (sStructType == "gig::Instrument") {
+            // resume all previously suspended engines
+            ResumeAllEngines();
+        } else if (sStructType == "gig::Region") {
+            // advice the engines to resume the given region, that is to
+            // using it for playback again
+            ::gig::Region* pRegion = (::gig::Region*) pStruct;
+            ::gig::Instrument* pInstrument =
+                (::gig::Instrument*) pRegion->GetParent();
+            Lock();
+            std::set<gig::Engine*> engines =
+                GetEnginesUsing(pInstrument, false/*don't lock again*/);
+            std::set<gig::Engine*>::iterator iter = engines.begin();
+            std::set<gig::Engine*>::iterator end  = engines.end();
+            for (; iter != end; ++iter) (*iter)->Resume(pRegion);
+            Unlock();
+        } else if (sStructType == "gig::DimensionRegion") {
+            // advice the engines to resume the given DimensionRegion's parent
+            // region, that is to using it for playback again
+            ::gig::DimensionRegion* pDimReg =
+                (::gig::DimensionRegion*) pStruct;
+            ::gig::Region* pRegion = pDimReg->GetParent();
+            ::gig::Instrument* pInstrument =
+                (::gig::Instrument*) pRegion->GetParent();
+            Lock();
+            std::set<gig::Engine*> engines =
+                GetEnginesUsing(pInstrument, false/*don't lock again*/);
+            std::set<gig::Engine*>::iterator iter = engines.begin();
+            std::set<gig::Engine*>::iterator end  = engines.end();
+            for (; iter != end; ++iter) (*iter)->Resume(pRegion);
+            Unlock();
+        } else {
+            std::cerr << "gig::InstrumentResourceManager: ERROR, unknown data "
+                         "structure '" << sStructType << "' requested to be "
+                         "resumed by instrument editor. This is a bug!\n"
+                      << std::flush;
+            //TODO: we should inform the instrument editor that something seriously went wrong
+        }
+    }
+
+    void InstrumentResourceManager::OnSampleReferenceChanged(void* pOldSample, void* pNewSample, InstrumentEditor* pSender) {
+        // uncache old sample in case it's not used by anybody anymore
+        if (pOldSample) {
+            Lock();
+            ::gig::Sample* pSample = (::gig::Sample*) pOldSample;
+            ::gig::File* pFile = (::gig::File*) pSample->GetParent();
+            std::vector< ::gig::Instrument*> instruments =
+                GetInstrumentsCurrentlyUsedOf(pFile, false/*don't lock again*/);
+            for (int i = 0; i < instruments.size(); i++)
+                if (!SampleReferencedByInstrument(pSample, instruments[i]))
+                    UncacheInitialSamples(pSample);
+            Unlock();
+        }
+        // make sure new sample reference is cached
+        if (pNewSample) {
+            Lock();
+            ::gig::Sample* pSample = (::gig::Sample*) pNewSample;
+            ::gig::File* pFile = (::gig::File*) pSample->GetParent();
+            // get all engines that use that same gig::File
+            std::set<gig::Engine*> engines = GetEnginesUsing(pFile, false/*don't lock again*/);
+            std::set<gig::Engine*>::iterator iter = engines.begin();
+            std::set<gig::Engine*>::iterator end  = engines.end();
+            for (; iter != end; ++iter)
+                CacheInitialSamples(pSample, *iter);
+            Unlock();
+        }
+    }
+
     ::gig::Instrument* InstrumentResourceManager::Create(instrument_id_t Key, InstrumentConsumer* pConsumer, void*& pArg) {
-        // get gig file from inernal gig file manager
+        // get gig file from internal gig file manager
         ::gig::File* pGig = Gigs.Borrow(Key.FileName, (GigConsumer*) Key.Index); // conversion kinda hackish :/
 
         // we pass this to the progress callback mechanism of libgig
@@ -304,15 +448,32 @@ namespace LinuxSampler { namespace gig {
     }
 
     /**
+     * Just a wrapper around the other @c CacheInitialSamples() method.
+     *
+     *  @param pSample - points to the sample to be cached
+     *  @param pEngine - pointer to Gig Engine Channel which caused this call
+     *                   (may be NULL, in this case default amount of samples
+     *                   will be cached)
+     */
+    void InstrumentResourceManager::CacheInitialSamples(::gig::Sample* pSample, gig::EngineChannel* pEngineChannel) {
+        gig::Engine* pEngine =
+            (pEngineChannel && pEngineChannel->GetEngine()) ?
+                dynamic_cast<gig::Engine*>(pEngineChannel->GetEngine()) : NULL;
+        CacheInitialSamples(pSample, pEngine);
+    }
+
+    /**
      *  Caches a certain size at the beginning of the given sample in RAM. If the
      *  sample is very short, the whole sample will be loaded into RAM and thus
      *  no disk streaming is needed for this sample. Caching an initial part of
      *  samples is needed to compensate disk reading latency.
      *
      *  @param pSample - points to the sample to be cached
-     *  @param pEngineChannel - pointer to Gig Engine Channel which caused this call
+     *  @param pEngine - pointer to Gig Engine which caused this call
+     *                   (may be NULL, in this case default amount of samples
+     *                   will be cached)
      */
-    void InstrumentResourceManager::CacheInitialSamples(::gig::Sample* pSample, gig::EngineChannel* pEngineChannel) {
+    void InstrumentResourceManager::CacheInitialSamples(::gig::Sample* pSample, gig::Engine* pEngine) {
         if (!pSample) {
             dmsg(4,("gig::InstrumentResourceManager: Skipping sample (pSample == NULL)\n"));
             return;
@@ -326,8 +487,8 @@ namespace LinuxSampler { namespace gig {
             // border, to allow the interpolator do it's work even at the end of
             // the sample.
             const uint maxSamplesPerCycle =
-                (pEngineChannel && pEngineChannel->GetEngine()) ? dynamic_cast<gig::Engine*>(pEngineChannel->GetEngine())->pAudioOutputDevice->MaxSamplesPerCycle()
-                                              : GIG_RESOURCE_MANAGER_DEFAULT_MAX_SAMPLES_PER_CYCLE;
+                (pEngine) ? pEngine->pAudioOutputDevice->MaxSamplesPerCycle()
+                          : GIG_RESOURCE_MANAGER_DEFAULT_MAX_SAMPLES_PER_CYCLE;
             const uint neededSilenceSamples = (maxSamplesPerCycle << CONFIG_MAX_PITCH) + 3;
             const uint currentlyCachedSilenceSamples = pSample->GetCache().NullExtensionSize / pSample->FrameSize;
             if (currentlyCachedSilenceSamples < neededSilenceSamples) {
@@ -341,6 +502,181 @@ namespace LinuxSampler { namespace gig {
         }
 
         if (!pSample->GetCache().Size) std::cerr << "Unable to cache sample - maybe memory full!" << std::endl << std::flush;
+    }
+
+    void InstrumentResourceManager::UncacheInitialSamples(::gig::Sample* pSample) {
+        dmsg(1,("Uncaching sample %x\n",pSample));
+        if (pSample->GetCache().Size) pSample->ReleaseSampleData();
+    }
+
+    /**
+     * Returns a list with all instruments currently in use, that are part of
+     * the given file.
+     *
+     * @param pFile - search criteria
+     * @param bLock - whether we should lock (mutex) the instrument manager
+     *                during this call and unlock at the end of this call
+     */
+    std::vector< ::gig::Instrument*> InstrumentResourceManager::GetInstrumentsCurrentlyUsedOf(::gig::File* pFile, bool bLock) {
+        if (bLock) Lock();
+        std::vector< ::gig::Instrument*> result;
+        std::vector< ::gig::Instrument*> allInstruments = Resources(false/*don't lock again*/);
+        for (int i = 0; i < allInstruments.size(); i++)
+            if (
+                (::gig::File*) allInstruments[i]->GetParent()
+                == pFile
+            ) result.push_back(allInstruments[i]);
+        if (bLock) Unlock();
+        return result;
+    }
+
+    /**
+     * Returns a list with all gig Engines that are currently using the given
+     * instrument.
+     *
+     * @param pInstrument - search criteria
+     * @param bLock - whether we should lock (mutex) the instrument manager
+     *                during this call and unlock at the end of this call
+     */
+    std::set<gig::Engine*> InstrumentResourceManager::GetEnginesUsing(::gig::Instrument* pInstrument, bool bLock) {
+        if (bLock) Lock();
+        std::set<gig::Engine*> result; 
+        std::set<ResourceConsumer< ::gig::Instrument>*> consumers = ConsumersOf(pInstrument);
+        std::set<ResourceConsumer< ::gig::Instrument>*>::iterator iter = consumers.begin();
+        std::set<ResourceConsumer< ::gig::Instrument>*>::iterator end  = consumers.end();
+        for (; iter != end; ++iter) {
+            gig::EngineChannel* pEngineChannel = dynamic_cast<gig::EngineChannel*>(*iter);
+            if (!pEngineChannel) continue;
+            gig::Engine* pEngine = dynamic_cast<gig::Engine*>(pEngineChannel->GetEngine());
+            if (!pEngine) continue;
+            result.insert(pEngine);
+        }
+        if (bLock) Unlock();
+        return result;
+    }
+
+    /**
+     * Returns a list with all gig Engines that are currently using an
+     * instrument that is part of the given instrument file.
+     *
+     * @param pFile - search criteria
+     * @param bLock - whether we should lock (mutex) the instrument manager
+     *                during this call and unlock at the end of this call
+     */
+    std::set<gig::Engine*> InstrumentResourceManager::GetEnginesUsing(::gig::File* pFile, bool bLock) {
+        if (bLock) Lock();
+        // get all instruments (currently in usage) that use that same gig::File
+        std::vector< ::gig::Instrument*> instrumentsOfInterest =
+            GetInstrumentsCurrentlyUsedOf(pFile, false/*don't lock again*/);
+
+        // get all engines that use that same gig::File
+        std::set<gig::Engine*> result;
+        {
+            for (int i = 0; i < instrumentsOfInterest.size(); i++) {
+                std::set<ResourceConsumer< ::gig::Instrument>*> consumers = ConsumersOf(instrumentsOfInterest[i]);
+                std::set<ResourceConsumer< ::gig::Instrument>*>::iterator iter = consumers.begin();
+                std::set<ResourceConsumer< ::gig::Instrument>*>::iterator end  = consumers.end();
+                for (; iter != end; ++iter) {
+                    gig::EngineChannel* pEngineChannel = dynamic_cast<gig::EngineChannel*>(*iter);
+                    if (!pEngineChannel) continue;
+                    gig::Engine* pEngine = dynamic_cast<gig::Engine*>(pEngineChannel->GetEngine());
+                    if (!pEngine) continue;
+                    // the unique, sorted container std::set makes
+                    // sure we won't have duplicates
+                    result.insert(pEngine);
+                }
+            }
+        }
+        if (bLock) Unlock();
+        return result;
+    }
+
+    /**
+     * Returns @c true in case the given sample is referenced somewhere by the
+     * given instrument, @c false otherwise.
+     *
+     * @param pSample - sample reference
+     * @param pInstrument - instrument that might use that sample
+     */
+    bool InstrumentResourceManager::SampleReferencedByInstrument(::gig::Sample* pSample, ::gig::Instrument* pInstrument) {
+        for (
+            ::gig::Region* pRegion = pInstrument->GetFirstRegion();
+            pRegion; pRegion = pInstrument->GetNextRegion()
+        ) {
+            for (
+                int i = 0; i < pRegion->DimensionRegions &&
+                pRegion->pDimensionRegions[i]; i++
+            ) {
+                if (pRegion->pDimensionRegions[i]->pSample == pSample)
+                    return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Suspend all gig engines that use the given instrument. This means
+     * completely stopping playback on those engines and killing all their
+     * voices and disk streams. This method will block until all voices AND
+     * their disk streams are finally deleted and the engine turned into a
+     * complete idle loop.
+     *
+     * All @c SuspendEnginesUsing() methods only serve one thread by one and
+     * block all other threads until the current active thread called
+     * @c ResumeAllEngines() .
+     *
+     * @param pInstrument - search criteria
+     */
+    void InstrumentResourceManager::SuspendEnginesUsing(::gig::Instrument* pInstrument) {
+        // make sure no other thread suspends whole engines at the same time
+        suspendedEnginesMutex.Lock();
+        // get all engines that use that same gig::Instrument
+        suspendedEngines = GetEnginesUsing(pInstrument, true/*lock*/);
+        // finally, completely suspend all engines that use that same gig::Instrument
+        std::set<gig::Engine*>::iterator iter = suspendedEngines.begin();
+        std::set<gig::Engine*>::iterator end  = suspendedEngines.end();
+        for (; iter != end; ++iter) (*iter)->SuspendAll();
+    }
+
+    /**
+     * Suspend all gig engines that use the given instrument file. This means
+     * completely stopping playback on those engines and killing all their
+     * voices and disk streams. This method will block until all voices AND
+     * their disk streams are finally deleted and the engine turned into a
+     * complete idle loop.
+     *
+     * All @c SuspendEnginesUsing() methods only serve one thread by one and
+     * block all other threads until the current active thread called
+     * @c ResumeAllEngines() .
+     *
+     * @param pFile - search criteria
+     */
+    void InstrumentResourceManager::SuspendEnginesUsing(::gig::File* pFile) {
+        // make sure no other thread suspends whole engines at the same time
+        suspendedEnginesMutex.Lock();
+        // get all engines that use that same gig::File
+        suspendedEngines = GetEnginesUsing(pFile, true/*lock*/);
+        // finally, completely suspend all engines that use that same gig::File
+        std::set<gig::Engine*>::iterator iter = suspendedEngines.begin();
+        std::set<gig::Engine*>::iterator end  = suspendedEngines.end();
+        for (; iter != end; ++iter) (*iter)->SuspendAll();
+    }
+
+    /**
+     * MUST be called after one called one of the @c SuspendEnginesUsing()
+     * methods, to resume normal playback on all previously suspended engines.
+     * As it's only possible for one thread to suspend whole engines at the
+     * same time, this method doesn't take any arguments.
+     */
+    void InstrumentResourceManager::ResumeAllEngines() {
+        // resume all previously completely suspended engines
+        std::set<Engine*>::iterator iter = suspendedEngines.begin();
+        std::set<Engine*>::iterator end  = suspendedEngines.end();
+        for (; iter != end; ++iter) (*iter)->ResumeAll();
+        // no more suspended engines ...
+        suspendedEngines.clear();
+        // allow another thread to suspend whole engines
+        suspendedEnginesMutex.Unlock();
     }
 
 
