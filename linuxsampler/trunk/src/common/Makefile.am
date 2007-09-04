@@ -35,6 +35,6 @@ liblinuxsamplercommon_la_SOURCES = \
 install-exec-hook:
 	mkdir -p $(DESTDIR)$(config_plugin_dir)
 
-# remove the plugins directory
+# remove the plugins directory (if empty)
 uninstall-hook:
-	rmdir $(DESTDIR)$(config_plugin_dir)
+	rmdir --ignore-fail-on-non-empty $(DESTDIR)$(config_plugin_dir)
