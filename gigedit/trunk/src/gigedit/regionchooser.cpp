@@ -79,8 +79,16 @@ RegionChooser::RegionChooser()
     add_events(Gdk::BUTTON_PRESS_MASK | Gdk::BUTTON_RELEASE_MASK |
                Gdk::POINTER_MOTION_MASK | Gdk::POINTER_MOTION_HINT_MASK);
 
-    dimensionManager.articulation_changed_signal.connect(
-        sigc::mem_fun(*this, &RegionChooser::on_dimension_manager_changed)
+    dimensionManager.region_to_be_changed_signal.connect(
+        region_to_be_changed_signal.make_slot()
+    );
+    dimensionManager.region_changed_signal.connect(
+        region_changed_signal.make_slot()
+    );
+    dimensionManager.region_changed_signal.connect(
+        sigc::hide(
+            sigc::mem_fun(*this, &RegionChooser::on_dimension_manager_changed)
+        )
     );
 }
 
@@ -283,7 +291,9 @@ bool RegionChooser::on_button_release_event(GdkEventButton* event)
 
             // place region before r if it's not already there
             if (prev_region != region) {
+                instrument_struct_to_be_changed_signal.emit(instrument);
                 instrument->MoveRegion(region, r);
+                instrument_struct_changed_signal.emit(instrument);
             }
         }
 
@@ -650,10 +660,15 @@ void RegionChooser::add_region()
         if (r->KeyRange.low > new_region_pos) break;
     }
 
+    instrument_struct_to_be_changed_signal.emit(instrument);
+
     region = instrument->AddRegion();
     region->KeyRange.low = region->KeyRange.high = new_region_pos;
 
     instrument->MoveRegion(region, r);
+
+    instrument_struct_changed_signal.emit(instrument);
+
     queue_draw();
     region_selected();
     instrument_changed();
@@ -661,7 +676,10 @@ void RegionChooser::add_region()
 
 void RegionChooser::delete_region()
 {
+    instrument_struct_to_be_changed_signal.emit(instrument);
     instrument->DeleteRegion(region);
+    instrument_struct_changed_signal.emit(instrument);
+
     region = 0;
     queue_draw();
     region_selected();
@@ -678,4 +696,20 @@ void RegionChooser::manage_dimensions()
 void RegionChooser::on_dimension_manager_changed() {
     region_selected();
     instrument_changed();
+}
+
+sigc::signal<void, gig::Instrument*> RegionChooser::signal_instrument_struct_to_be_changed() {
+    return instrument_struct_to_be_changed_signal;
+}
+
+sigc::signal<void, gig::Instrument*> RegionChooser::signal_instrument_struct_changed() {
+    return instrument_struct_changed_signal;
+}
+
+sigc::signal<void, gig::Region*> RegionChooser::signal_region_to_be_changed() {
+    return region_to_be_changed_signal;
+}
+
+sigc::signal<void, gig::Region*> RegionChooser::signal_region_changed_signal() {
+    return region_changed_signal;
 }

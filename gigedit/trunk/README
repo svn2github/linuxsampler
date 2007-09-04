@@ -34,7 +34,9 @@ COPYING for details.
 Requirements
 ============
 
-Gigedit requires gtkmm, libgig and libsndfile libraries.
+Gigedit requires gtkmm, libgig and libsndfile libraries. There is an
+optional dependency to LinuxSampler, for being able to play instruments
+while editing.
 
 
 Installation

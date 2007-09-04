@@ -1,9 +1,12 @@
+AM_CPPFLAGS = $(GTKMM_CFLAGS) $(GIG_CFLAGS)
+
 pkglibdir = $(LINUXSAMPLER_PLUGIN_DIR)
 
 pkglib_LTLIBRARIES = \
 	libgigeditlinuxsamplerplugin.la
 libgigeditlinuxsamplerplugin_la_SOURCES = \
-	linuxsamplerplugin.cpp
+	linuxsamplerplugin.cpp \
+	linuxsamplerplugin.h
 libgigeditlinuxsamplerplugin_la_LIBADD = \
 	$(top_builddir)/src/gigedit/libgigedit.la
 libgigeditlinuxsamplerplugin_la_CXXFLAGS = \

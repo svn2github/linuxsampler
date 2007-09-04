@@ -85,6 +85,11 @@ else
         echo "for on-the-fly editing with LinuxSampler will be disabled."
     else
         echo "${LINUXSAMPLER_PLUGIN_DIR} "
+        # convert absolute LS plugin dir into relative dir
+        # (see ch 27.10 of the automake manual,
+        #  "Installing to Hard-Coded Locations")
+        LINUXSAMPLER_PLUGIN_DIR=`echo "${LINUXSAMPLER_PLUGIN_DIR}" | sed 's/^.*\/lib\//\${libdir}\//g'`
+        echo "Relative plugin dir: ${LINUXSAMPLER_PLUGIN_DIR}"
     fi
 fi
 AC_SUBST(LINUXSAMPLER_CFLAGS)

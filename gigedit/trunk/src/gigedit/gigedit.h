@@ -22,11 +22,35 @@
 
 #include <gig.h>
 
+#include <list>
+#include <sigc++/signal.h>
+
 class GigEdit {
 public:
-    static int run();
-    static int run(const char* pFileName);
-    static int run(gig::Instrument* pInstrument);
+    int run();
+    int run(const char* pFileName);
+    int run(gig::Instrument* pInstrument);
+
+    sigc::signal<void, gig::File*> signal_file_structure_to_be_changed();
+    sigc::signal<void, gig::File*> signal_file_structure_changed();
+    sigc::signal<void, std::list<gig::Sample*> > signal_samples_to_be_removed();
+    sigc::signal<void> signal_samples_removed();
+    sigc::signal<void, gig::Region*> signal_region_to_be_changed();
+    sigc::signal<void, gig::Region*> signal_region_changed();
+    sigc::signal<void, gig::DimensionRegion*> signal_dimreg_to_be_changed();
+    sigc::signal<void, gig::DimensionRegion*> signal_dimreg_changed();
+    sigc::signal<void, gig::Sample*/*old*/, gig::Sample*/*new*/> signal_sample_ref_changed();
+
+private:
+    sigc::signal<void, gig::File*> file_structure_to_be_changed_signal;
+    sigc::signal<void, gig::File*> file_structure_changed_signal;
+    sigc::signal<void, std::list<gig::Sample*> > samples_to_be_removed_signal;
+    sigc::signal<void> samples_removed_signal;
+    sigc::signal<void, gig::Region*> region_to_be_changed_signal;
+    sigc::signal<void, gig::Region*> region_changed_signal;
+    sigc::signal<void, gig::DimensionRegion*> dimreg_to_be_changed_signal;
+    sigc::signal<void, gig::DimensionRegion*> dimreg_changed_signal;
+    sigc::signal<void, gig::Sample*/*old*/, gig::Sample*/*new*/> sample_ref_changed_signal;
 };
 
 #endif // GIGEDIT_H

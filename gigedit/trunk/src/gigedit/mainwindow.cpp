@@ -257,13 +257,42 @@ MainWindow::MainWindow()
         sigc::mem_fun(*this, &MainWindow::on_sample_label_drop_drag_data_received)
     );
     dimreg_edit.signal_dimreg_changed().connect(
-        sigc::mem_fun(*this, &MainWindow::file_changed));
+        sigc::hide(sigc::mem_fun(*this, &MainWindow::file_changed)));
     m_RegionChooser.signal_instrument_changed().connect(
         sigc::mem_fun(*this, &MainWindow::file_changed));
     m_DimRegionChooser.signal_region_changed().connect(
         sigc::mem_fun(*this, &MainWindow::file_changed));
     instrumentProps.signal_instrument_changed().connect(
         sigc::mem_fun(*this, &MainWindow::file_changed));
+
+    dimreg_edit.signal_dimreg_to_be_changed().connect(
+        dimreg_to_be_changed_signal.make_slot());
+    dimreg_edit.signal_dimreg_changed().connect(
+        dimreg_changed_signal.make_slot());
+    dimreg_edit.signal_sample_ref_changed().connect(
+        sample_ref_changed_signal.make_slot());
+
+    m_RegionChooser.signal_instrument_struct_to_be_changed().connect(
+        sigc::hide(
+            sigc::bind(
+                file_structure_to_be_changed_signal.make_slot(),
+                sigc::ref(this->file)
+            )
+        )
+    );
+    m_RegionChooser.signal_instrument_struct_changed().connect(
+        sigc::hide(
+            sigc::bind(
+                file_structure_changed_signal.make_slot(),
+                sigc::ref(this->file)
+            )
+        )
+    );
+    m_RegionChooser.signal_region_to_be_changed().connect(
+        region_to_be_changed_signal.make_slot());
+    m_RegionChooser.signal_region_changed_signal().connect(
+        region_changed_signal.make_slot());
+
     file = 0;
     file_is_changed = false;
 
@@ -534,6 +563,7 @@ bool MainWindow::file_save()
     if (!file_has_name) return file_save_as();
 
     std::cout << "Saving file\n" << std::flush;
+    file_structure_to_be_changed_signal.emit(this->file);
     try {
         file->Save();
         if (file_is_changed) {
@@ -541,6 +571,7 @@ bool MainWindow::file_save()
             file_is_changed = false;
         }
     } catch (RIFF::Exception e) {
+        file_structure_changed_signal.emit(this->file);
         Glib::ustring txt = "Could not save file: " + e.Message;
         Gtk::MessageDialog msg(*this, txt, false, Gtk::MESSAGE_ERROR);
         msg.run();
@@ -548,6 +579,7 @@ bool MainWindow::file_save()
     }
     std::cout << "Saving file done\n" << std::flush;
     __import_queued_samples();
+    file_structure_changed_signal.emit(this->file);
     return true;
 }
 
@@ -580,6 +612,7 @@ bool MainWindow::file_save_as()
     dialog.set_current_name(Glib::filename_display_basename(filename));
 
     if (dialog.run() == Gtk::RESPONSE_OK) {
+        file_structure_to_be_changed_signal.emit(this->file);
         try {
             std::string filename = dialog.get_filename();
             if (!Glib::str_has_suffix(filename, ".gig")) {
@@ -593,12 +626,14 @@ bool MainWindow::file_save_as()
             file_has_name = true;
             file_is_changed = false;
         } catch (RIFF::Exception e) {
+            file_structure_changed_signal.emit(this->file);
             Glib::ustring txt = "Could not save file: " + e.Message;
             Gtk::MessageDialog msg(*this, txt, false, Gtk::MESSAGE_ERROR);
             msg.run();
             return false;
         }
         __import_queued_samples();
+        file_structure_changed_signal.emit(this->file);
         return true;
     }
     return false;
@@ -1244,9 +1279,13 @@ void MainWindow::on_action_remove_sample() {
                      pSample; pSample = group->GetNextSample()) {
                     members.push_back(pSample);
                 }
+                // notify everybody that we're going to remove these samples
+                samples_to_be_removed_signal.emit(members);
                 // delete the group in the .gig file including the
                 // samples that belong to the group
                 file->DeleteGroup(group);
+                // notify that we're done with removal
+                samples_removed_signal.emit();
                 // if sample(s) were just previously added, remove
                 // them from the import queue
                 for (std::list<gig::Sample*>::iterator member = members.begin();
@@ -1263,8 +1302,14 @@ void MainWindow::on_action_remove_sample() {
                 }
                 file_changed();
             } else if (sample) {
+                // notify everybody that we're going to remove this sample
+                std::list<gig::Sample*> lsamples;
+                lsamples.push_back(sample);
+                samples_to_be_removed_signal.emit(lsamples);
                 // remove sample from the .gig file
                 file->DeleteSample(sample);
+                // notify that we're done with removal
+                samples_removed_signal.emit();
                 // if sample was just previously added, remove it from
                 // the import queue
                 for (std::list<SampleImportItem>::iterator iter = m_SampleImportQueue.begin();
@@ -1282,6 +1327,9 @@ void MainWindow::on_action_remove_sample() {
             // remove respective row(s) from samples tree view
             m_refSamplesTreeModel->erase(it);
         } catch (RIFF::Exception e) {
+            // pretend we're done with removal (i.e. to avoid dead locks)
+            samples_removed_signal.emit();
+            // show error message
             Gtk::MessageDialog msg(*this, e.Message.c_str(), false, Gtk::MESSAGE_ERROR);
             msg.run();
         }
@@ -1328,8 +1376,13 @@ void MainWindow::on_sample_label_drop_drag_data_received(
         // drop success
         context->drop_reply(true, time);
 
-        // find the samplechannel dimension
+        //TODO: we should better move most of the following code to DimRegionEdit::set_sample()
+
+        // notify everybody that we're going to alter the region
         gig::Region* region = m_RegionChooser.get_region();
+        region_to_be_changed_signal.emit(region);
+
+        // find the samplechannel dimension
         gig::dimension_def_t* stereo_dimension = 0;
         for (int i = 0 ; i < region->Dimensions ; i++) {
             if (region->pDimensionDefinitions[i].dimension ==
@@ -1363,10 +1416,15 @@ void MainWindow::on_sample_label_drop_drag_data_received(
             for (int i = 0 ; i < region->DimensionRegions ; i++) {
                 gig::DimensionRegion* d = region->pDimensionRegions[i];
                 if (d->pSample && d->pSample->Channels != sample->Channels) {
-                    d->pSample = 0;
+                    gig::Sample* oldref = d->pSample;
+                    d->pSample = NULL;
+                    sample_ref_changed_signal.emit(oldref, NULL);
                 }
             }
         }
+
+        // notify we're done with altering
+        region_changed_signal.emit(region);
 
         return;
     }
@@ -1406,4 +1464,40 @@ void MainWindow::instrument_name_changed(const Gtk::TreeModel::Path& path,
         instrument->pInfo->Name = name.raw();
         file_changed();
     }
+}
+
+sigc::signal<void, gig::File*> MainWindow::signal_file_structure_to_be_changed() {
+    return file_structure_to_be_changed_signal;
+}
+
+sigc::signal<void, gig::File*> MainWindow::signal_file_structure_changed() {
+    return file_structure_changed_signal;
+}
+
+sigc::signal<void, std::list<gig::Sample*> > MainWindow::signal_samples_to_be_removed() {
+    return samples_to_be_removed_signal;
+}
+
+sigc::signal<void> MainWindow::signal_samples_removed() {
+    return samples_removed_signal;
+}
+
+sigc::signal<void, gig::Region*> MainWindow::signal_region_to_be_changed() {
+    return region_to_be_changed_signal;
+}
+
+sigc::signal<void, gig::Region*> MainWindow::signal_region_changed() {
+    return region_changed_signal;
+}
+
+sigc::signal<void, gig::Sample*/*old*/, gig::Sample*/*new*/> MainWindow::signal_sample_ref_changed() {
+    return sample_ref_changed_signal;
+}
+
+sigc::signal<void, gig::DimensionRegion*> MainWindow::signal_dimreg_to_be_changed() {
+    return dimreg_to_be_changed_signal;
+}
+
+sigc::signal<void, gig::DimensionRegion*> MainWindow::signal_dimreg_changed() {
+    return dimreg_changed_signal;
 }

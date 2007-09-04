@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: gigedit 0.0.3\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2007-08-26 10:41+0200\n"
+"POT-Creation-Date: 2007-09-04 13:13+0200\n"
 "PO-Revision-Date: 2007-03-26 18:19+0200\n"
 "Last-Translator: Christian Schoenebeck\n"
 "Language-Team: German\n"
@@ -35,43 +35,48 @@ msgstr "_Gruppe hinzufügen"
 msgid "Add _Sample(s)"
 msgstr "_Sample(s) hinzufügen"
 
-#: ../src/gigedit/mainwindow.cpp:425
+#: ../src/gigedit/mainwindow.cpp:453
 #, c-format
 msgid "Save changes to \"%s\" before closing?"
-msgstr ""
+msgstr "Änderungen in \"%s\" vor dem Schließen speichern?"
 
-#: ../src/gigedit/mainwindow.cpp:430
+#: ../src/gigedit/mainwindow.cpp:458
 msgid "If you close without saving, your changes will be lost."
 msgstr ""
+"Wenn Sie schließen ohne vorher zu speichern, gehen all Ihre Änderungen "
+"verloren!"
 
-#: ../src/gigedit/mainwindow.cpp:432
+#: ../src/gigedit/mainwindow.cpp:460
 msgid "Close _Without Saving"
-msgstr ""
+msgstr "Ver_werfen"
 
-#: ../src/gigedit/mainwindow.cpp:446
+#: ../src/gigedit/mainwindow.cpp:474
 msgid "Open file"
 msgstr "Datei öffnen"
 
-#: ../src/gigedit/mainwindow.cpp:513
+#: ../src/gigedit/mainwindow.cpp:541
 msgid "The file could not be saved because it contains no samples"
 msgstr ""
+"Die Datei konnte nicht gespeichert werden, da es keine Samples beinhaltet."
 
-#: ../src/gigedit/mainwindow.cpp:522
+#: ../src/gigedit/mainwindow.cpp:550
 msgid ""
 "The file could not be saved because there are instruments that have no "
 "regions"
 msgstr ""
+"Die Datei konnte nicht gespeichert werden, da es Instrumente gibt, die keine "
+"Regions haben."
 
-#: ../src/gigedit/mainwindow.cpp:563
+#: ../src/gigedit/mainwindow.cpp:594
 msgid "Save as"
-msgstr ""
+msgstr "Speichern unter"
 
-#: ../src/gigedit/mainwindow.cpp:904
+#: ../src/gigedit/mainwindow.cpp:938
 msgid "Unsaved Gig File"
-msgstr ""
+msgstr "Ungespeicherte Gig Datei"
 
 #. show 'browse for file' dialog
-#: ../src/gigedit/mainwindow.cpp:1096
+#: ../src/gigedit/mainwindow.cpp:1130
 msgid "Add Sample(s)"
 msgstr "Sample(s) hinzufügen"
 

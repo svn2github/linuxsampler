@@ -117,6 +117,15 @@ public:
     void load_file(const char* name);
     void load_instrument(gig::Instrument* instr);
     void file_changed();
+    sigc::signal<void, gig::File*> signal_file_structure_to_be_changed();
+    sigc::signal<void, gig::File*> signal_file_structure_changed();
+    sigc::signal<void, std::list<gig::Sample*> > signal_samples_to_be_removed();
+    sigc::signal<void> signal_samples_removed();
+    sigc::signal<void, gig::Region*> signal_region_to_be_changed();
+    sigc::signal<void, gig::Region*> signal_region_changed();
+    sigc::signal<void, gig::DimensionRegion*> signal_dimreg_to_be_changed();
+    sigc::signal<void, gig::DimensionRegion*> signal_dimreg_changed();
+    sigc::signal<void, gig::Sample*/*old*/, gig::Sample*/*new*/> signal_sample_ref_changed();
 
 protected:
     Glib::RefPtr<Gtk::ActionGroup> actionGroup;
@@ -127,6 +136,16 @@ protected:
 
     PropDialog propDialog;
     InstrumentProps instrumentProps;
+
+    sigc::signal<void, gig::File*> file_structure_to_be_changed_signal;
+    sigc::signal<void, gig::File*> file_structure_changed_signal;
+    sigc::signal<void, std::list<gig::Sample*> > samples_to_be_removed_signal;
+    sigc::signal<void> samples_removed_signal;
+    sigc::signal<void, gig::Region*> region_to_be_changed_signal;
+    sigc::signal<void, gig::Region*> region_changed_signal;
+    sigc::signal<void, gig::DimensionRegion*> dimreg_to_be_changed_signal;
+    sigc::signal<void, gig::DimensionRegion*> dimreg_changed_signal;
+    sigc::signal<void, gig::Sample*/*old*/, gig::Sample*/*new*/> sample_ref_changed_signal;
 
     void on_instrument_selection_change(int index);
     void on_sel_change();

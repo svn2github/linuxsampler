@@ -284,15 +284,20 @@ void DimensionManager::addDimension() {
                 "Adding dimension (type=0x%x, bits=%d, zones=%d)\n",
                 dim.dimension, dim.bits, dim.zones
             );
+            // notify everybody that we're going to update the region
+            region_to_be_changed_signal.emit(region);
             // add the new dimension to the region
             // (implicitly creates new dimension regions)
             region->AddDimension(&dim);
             // let everybody know there was a change
-            articulation_changed_signal.emit();
+            region_changed_signal.emit(region);
             // update all GUI elements
             refreshManager();
         }
     } catch (RIFF::Exception e) {
+        // notify that the changes are over (i.e. to avoid dead locks)
+        region_changed_signal.emit(region);
+        // show error message
         Glib::ustring txt = "Could not add dimension: " + e.Message;
         Gtk::MessageDialog msg(*this, txt, false, Gtk::MESSAGE_ERROR);
         msg.run();
@@ -304,6 +309,8 @@ void DimensionManager::removeDimension() {
     Gtk::TreeModel::iterator it = sel->get_selected();
     if (it) {
         try {
+            // notify everybody that we're going to update the region
+            region_to_be_changed_signal.emit(region);
             // remove selected dimension
             Gtk::TreeModel::Row row = *it;
             gig::dimension_def_t* dim = row[tableModel.m_definition];
@@ -311,8 +318,11 @@ void DimensionManager::removeDimension() {
             // remove respective row from table
             refTableModel->erase(it);
             // let everybody know there was a change
-            articulation_changed_signal.emit();
+            region_changed_signal.emit(region);
         } catch (RIFF::Exception e) {
+            // notify that the changes are over (i.e. to avoid dead locks)
+            region_changed_signal.emit(region);
+            // show error message
             Glib::ustring txt = "Could not remove dimension: " + e.Message;
             Gtk::MessageDialog msg(*this, txt, false, Gtk::MESSAGE_ERROR);
             msg.run();

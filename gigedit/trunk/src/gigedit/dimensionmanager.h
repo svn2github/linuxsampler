@@ -32,8 +32,8 @@
 
 class DimensionManager : public Gtk::Window {
 public:
-    // triggered on all changes (i.e. dimension added or removed)
-    sigc::signal<void> articulation_changed_signal;
+    sigc::signal<void, gig::Region*> region_to_be_changed_signal;
+    sigc::signal<void, gig::Region*> region_changed_signal;
 
     DimensionManager();
     void show(gig::Region* region);

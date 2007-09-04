@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: gigedit 0.0.3\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2007-08-26 10:41+0200\n"
+"POT-Creation-Date: 2007-09-04 13:13+0200\n"
 "PO-Revision-Date: 2007-08-26 11:21+0200\n"
 "Last-Translator: Andreas Persson\n"
 "Language-Team: Swedish\n"
@@ -35,43 +35,45 @@ msgstr "Lägg till _grupp"
 msgid "Add _Sample(s)"
 msgstr "Lägg till _sampling(ar)"
 
-#: ../src/gigedit/mainwindow.cpp:425
+#: ../src/gigedit/mainwindow.cpp:453
 #, c-format
 msgid "Save changes to \"%s\" before closing?"
 msgstr "Spara ändringarna i \"%s\"?"
 
-#: ../src/gigedit/mainwindow.cpp:430
+#: ../src/gigedit/mainwindow.cpp:458
 msgid "If you close without saving, your changes will be lost."
 msgstr "Om du stänger utan att spara förlorar du dina ändringar."
 
-#: ../src/gigedit/mainwindow.cpp:432
+#: ../src/gigedit/mainwindow.cpp:460
 msgid "Close _Without Saving"
 msgstr "Stäng _utan att spara"
 
-#: ../src/gigedit/mainwindow.cpp:446
+#: ../src/gigedit/mainwindow.cpp:474
 msgid "Open file"
 msgstr "Öppna fil"
 
-#: ../src/gigedit/mainwindow.cpp:513
+#: ../src/gigedit/mainwindow.cpp:541
 msgid "The file could not be saved because it contains no samples"
 msgstr "Filen kunde inte sparas eftersom den inte innehåller några samplingar"
 
-#: ../src/gigedit/mainwindow.cpp:522
+#: ../src/gigedit/mainwindow.cpp:550
 msgid ""
 "The file could not be saved because there are instruments that have no "
 "regions"
-msgstr "Filen kunde inte sparas eftersom det finns instrument som inte har några regioner"
+msgstr ""
+"Filen kunde inte sparas eftersom det finns instrument som inte har några "
+"regioner"
 
-#: ../src/gigedit/mainwindow.cpp:563
+#: ../src/gigedit/mainwindow.cpp:594
 msgid "Save as"
 msgstr "Spara som"
 
-#: ../src/gigedit/mainwindow.cpp:904
+#: ../src/gigedit/mainwindow.cpp:938
 msgid "Unsaved Gig File"
 msgstr "Osparad gig-fil"
 
 #. show 'browse for file' dialog
-#: ../src/gigedit/mainwindow.cpp:1096
+#: ../src/gigedit/mainwindow.cpp:1130
 msgid "Add Sample(s)"
 msgstr "Lägg till sampling(ar)"
 

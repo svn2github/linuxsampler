@@ -19,6 +19,8 @@ Version CVS HEAD
     on-the-fly instrument editing within the sampler's own process
     (revised directories to a more automake-friendly structure for this, to
     avoid compilation and install errors)
+  * added experimental support to synchronize gigedit with LinuxSampler to
+    avoid race conditions / crash while modifying data structures
   * added quick start documentation by Alexander Methke
   * a changed file is now marked with an asterisk in the window title
   * added close confirmation dialog, shown if file is changed

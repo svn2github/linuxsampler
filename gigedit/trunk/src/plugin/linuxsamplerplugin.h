@@ -24,6 +24,8 @@
 
 #include <linuxsampler/engines/InstrumentEditor.h>
 
+#include <gig.h>
+
 class LinuxSamplerPlugin : public LinuxSampler::InstrumentEditor {
     public:
         LinuxSamplerPlugin();
@@ -32,6 +34,9 @@ class LinuxSamplerPlugin : public LinuxSampler::InstrumentEditor {
         virtual String Name();
         virtual String Version();
         virtual String Description();
+
+    private:
+        void __onSamplesToBeRemoved(std::list<gig::Sample*> lSamples);
 };
 
 #endif // GIGEDIT_LINUXSAMPLER_PLUGIN_H

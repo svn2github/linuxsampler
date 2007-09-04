@@ -499,7 +499,9 @@ void DimRegionEdit::addProp(BoolEntry& boolentry)
     table[pageno]->attach(boolentry.widget, 1, 3, rowno, rowno + 1,
                           Gtk::FILL, Gtk::SHRINK);
     rowno++;
-    boolentry.signal_changed_by_user().connect(dimreg_changed_signal.make_slot());
+    boolentry.signal_changed_by_user().connect(
+        sigc::bind(dimreg_changed_signal.make_slot(), sigc::ref(this->dimregion))
+    );
 }
 
 void DimRegionEdit::addProp(BoolEntryPlus6& boolentry)
@@ -507,7 +509,9 @@ void DimRegionEdit::addProp(BoolEntryPlus6& boolentry)
     table[pageno]->attach(boolentry.widget, 1, 3, rowno, rowno + 1,
                           Gtk::FILL, Gtk::SHRINK);
     rowno++;
-    boolentry.signal_changed_by_user().connect(dimreg_changed_signal.make_slot());
+    boolentry.signal_changed_by_user().connect(
+        sigc::bind(dimreg_changed_signal.make_slot(), sigc::ref(this->dimregion))
+    );
 }
 
 void DimRegionEdit::addProp(LabelWidget& prop)
@@ -517,7 +521,9 @@ void DimRegionEdit::addProp(LabelWidget& prop)
     table[pageno]->attach(prop.widget, 2, 3, rowno, rowno + 1,
                           Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK);
     rowno++;
-    prop.signal_changed_by_user().connect(dimreg_changed_signal.make_slot());
+    prop.signal_changed_by_user().connect(
+        sigc::bind(dimreg_changed_signal.make_slot(), sigc::ref(this->dimregion))
+    );
 }
 
 
@@ -791,16 +797,18 @@ void DimRegionEdit::loop_enabled_toggled()
             loop.LoopStart  = 0;
             loop.LoopLength =
                 (dimregion->pSample) ? dimregion->pSample->GetSize() : 0;
+            dimreg_to_be_changed_signal.emit(dimregion);
             dimregion->AddSampleLoop(&loop);
-            dimreg_changed_signal();
+            dimreg_changed_signal.emit(dimregion);
         }
     } else {
         if (dimregion->SampleLoops) {
+            dimreg_to_be_changed_signal.emit(dimregion);
             // delete ALL existing sample loops
             while (dimregion->SampleLoops) {
                 dimregion->DeleteSampleLoop(&dimregion->pSampleLoops[0]);
             }
-            dimreg_changed_signal();
+            dimreg_changed_signal.emit(dimregion);
         }
     }
     updateLoopElements();
@@ -866,6 +874,12 @@ void DimRegionEdit::loop_infinite_toggled() {
 bool DimRegionEdit::set_sample(gig::Sample* sample)
 {
     if (dimregion) {
+        //TODO: we should better move the code from MainWindow::on_sample_label_drop_drag_data_received() here
+
+        // currently commented because we're sending a similar signal in MainWindow::on_sample_label_drop_drag_data_received()
+        //dimreg_to_be_changed_signal.emit(dimregion);
+
+        gig::Sample* oldref = dimregion->pSample;
         dimregion->pSample = sample;
 
         // copy sample information from Sample to DimensionRegion
@@ -895,8 +909,22 @@ bool DimRegionEdit::set_sample(gig::Sample* sample)
         eSampleLoopEnabled.set_active(dimregion->SampleLoops);
         updateLoopElements();
 
-        dimreg_changed_signal();
+        sample_ref_changed_signal.emit(oldref, sample);
+        // currently commented because we're sending a similar signal in MainWindow::on_sample_label_drop_drag_data_received()
+        //dimreg_changed_signal.emit(dimregion);
         return true;
     }
     return false;
+}
+
+sigc::signal<void, gig::DimensionRegion*> DimRegionEdit::signal_dimreg_to_be_changed() {
+    return dimreg_to_be_changed_signal;
+}
+
+sigc::signal<void, gig::DimensionRegion*> DimRegionEdit::signal_dimreg_changed() {
+    return dimreg_changed_signal;
+}
+
+sigc::signal<void, gig::Sample*/*old*/, gig::Sample*/*new*/> DimRegionEdit::signal_sample_ref_changed() {
+    return sample_ref_changed_signal;
 }

@@ -21,6 +21,7 @@
 
 int main(int argc, char* argv[])
 {
-    return (argc >= 2) ? GigEdit::run(argv[1])
-                       : GigEdit::run();
+    GigEdit app;
+    return (argc >= 2) ? app.run(argv[1])
+                       : app.run();
 }
