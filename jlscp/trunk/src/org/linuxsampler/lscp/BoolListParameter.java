@@ -89,7 +89,7 @@ public class BoolListParameter extends AbstractParameter<Boolean[]> {
 			// Possible problems here???
 			s = s.substring("POSSIBILITIES: ".length(), s.length());
 			
-			String[] sS = Parser.parseStringList(s);
+			String[] sS = Parser.parseQuotedStringList(s);
 			Boolean[][] b2S = new Boolean[sS.length][];
 			for(int i = 0; i < sS.length; i++) b2S[i] = Parser.parseBoolList(sS[i]);
 			setPossibilities(b2S);

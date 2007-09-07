@@ -76,7 +76,7 @@ public class StringListParameter extends AbstractParameter<String[]> {
 	parse(String s) throws LscpException {
 		if(super.parse(s)) return true;
 		else if(s.startsWith("DEFAULT: ")) {
-			setDefault(Parser.parseStringList(s.substring("DEFAULT: ".length())));
+			setDefault(Parser.parseQuotedStringList(s.substring("DEFAULT: ".length())));
 			return true;
 		} else if(s.startsWith("POSSIBILITIES: ")) {
 			s = s.substring("POSSIBILITIES: ".length(), s.length());
@@ -105,7 +105,7 @@ public class StringListParameter extends AbstractParameter<String[]> {
 	getStringValue() {
 		String[] ar = getValue();
 		
-		if(ar == null || ar.length == 0) return "";
+		if(ar == null || ar.length == 0) return "NONE";
 		
 		StringBuffer sb = new StringBuffer();
 		sb.append('\'').append(ar[0]).append('\'');

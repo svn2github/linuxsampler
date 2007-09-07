@@ -542,7 +542,7 @@ public class Client {
 			if(s.startsWith("NAME ")) {
 				String[] list;
 				try {
-					list = parseStringList(s.substring("NAME ".length()), ' ');
+					list = parseQuotedStringList(s.substring("NAME ".length()), ' ');
 					if(list.length != 2) throw new LscpException();
 					e = new InstrumentsDbEvent(this, list[0], list[1]);
 					for(InstrumentsDbListener l : llID) {
@@ -569,7 +569,7 @@ public class Client {
 			if(s.startsWith("NAME ")) {
 				String[] list;
 				try {
-					list = parseStringList(s.substring("NAME ".length()), ' ');
+					list = parseQuotedStringList(s.substring("NAME ".length()), ' ');
 					if(list.length != 2) throw new LscpException();
 					e = new InstrumentsDbEvent(this, list[0], list[1]);
 					for(InstrumentsDbListener l : llID) {
@@ -1355,7 +1355,7 @@ public class Client {
 	/**
 	 * Gets detailed information about a specific audio output driver.
 	 * @param driverName The name of the audio output driver.
-	 *
+	 * @param depList An optional list of dependences parameters.
 	 * @return An <code>AudioOutputDriver</code> object containing
 	 * information about the specified audio output driver.
 	 *
@@ -1365,8 +1365,10 @@ public class Client {
 	 *
 	 * @see #getAudioOutputDriverNames
 	 */
-	private synchronized AudioOutputDriver
-	getAudioOutputDriverInfo(String driverName) throws IOException, LscpException, LSException {
+	public synchronized AudioOutputDriver
+	getAudioOutputDriverInfo(String driverName, Parameter... depList) 
+					throws IOException, LscpException, LSException {
+		
 		verifyConnection();
 		out.writeLine("GET AUDIO_OUTPUT_DRIVER INFO " + driverName);
 		if(getPrintOnlyMode()) return null;
@@ -1376,7 +1378,7 @@ public class Client {
 		aod.setName(driverName);
 		
 		for(String s : aod.getParameterNames())
-			aod.addParameter(getAudioOutputDriverParameterInfo(driverName, s));
+			aod.addParameter(getAudioOutputDriverParameterInfo(driverName, s, depList));
 		
 		return aod;
 	}
@@ -1410,8 +1412,10 @@ public class Client {
 		StringBuffer args = new StringBuffer(driver);
 		args.append(' ').append(param);
 		
-		for(Parameter p : deplist)
+		for(Parameter p : deplist) {
+			if(p.getValue() == null) continue;
 			args.append(' ').append(p.getName()).append('=').append(p.getStringValue());
+		}
 		
 		out.writeLine("GET AUDIO_OUTPUT_DRIVER_PARAMETER INFO " + args.toString());
 		if(getPrintOnlyMode()) return null;
@@ -1472,8 +1476,10 @@ public class Client {
 		verifyConnection();
 		StringBuffer args = new StringBuffer(aoDriver);
 		
-		for(Parameter p : paramList)
+		for(Parameter p : paramList) {
+			if(p.getValue() == null) continue;
 			args.append(' ').append(p.getName()).append('=').append(p.getStringValue());
+		}
 		
 		out.writeLine("CREATE AUDIO_OUTPUT_DEVICE " + args.toString());
 		if(getPrintOnlyMode()) return -1;
@@ -1934,7 +1940,7 @@ public class Client {
 	/**
 	 * Gets detailed information about a specific MIDI input driver.
 	 * @param driverName The name of the MIDI input driver.
-	 *
+	 * @param depList An optional list of dependences parameters.
 	 * @return A <code>MidiInputDriver</code> object containing
 	 * information about the specified MIDI input driver.
 	 *
@@ -1944,8 +1950,10 @@ public class Client {
 	 *
 	 * @see #getMidiInputDriverNames
 	 */
-	private synchronized MidiInputDriver
-	getMidiInputDriverInfo(String driverName) throws IOException, LscpException, LSException {
+	public synchronized MidiInputDriver
+	getMidiInputDriverInfo(String driverName, Parameter... depList)
+					throws IOException, LscpException, LSException {
+		
 		verifyConnection();
 		out.writeLine("GET MIDI_INPUT_DRIVER INFO " + driverName);
 		if(getPrintOnlyMode()) return null;
@@ -1956,7 +1964,7 @@ public class Client {
 		mid.setName(driverName);
 		
 		for(String s : mid.getParameterNames())
-			mid.addParameter(getMidiInputDriverParameterInfo(driverName, s));
+			mid.addParameter(getMidiInputDriverParameterInfo(driverName, s, depList));
 		
 		return mid;
 	}
@@ -1990,8 +1998,10 @@ public class Client {
 		StringBuffer args = new StringBuffer(driver);
 		args.append(' ').append(param);
 		
-		for(Parameter p : deplist)
+		for(Parameter p : deplist) {
+			if(p.getValue() == null) continue;
 			args.append(' ').append(p.getName()).append('=').append(p.getStringValue());
+		}
 		
 		out.writeLine("GET MIDI_INPUT_DRIVER_PARAMETER INFO " + args.toString());
 		if(getPrintOnlyMode()) return null;
@@ -2053,8 +2063,10 @@ public class Client {
 		verifyConnection();
 		StringBuffer args = new StringBuffer(miDriver);
 		
-		for(Parameter p : paramList)
+		for(Parameter p : paramList) {
+			if(p.getValue() == null) continue;
 			args.append(' ').append(p.getName()).append('=').append(p.getStringValue());
+		}
 		
 		out.writeLine("CREATE MIDI_INPUT_DEVICE " + args.toString());
 		if(getPrintOnlyMode()) return -1;
@@ -3028,7 +3040,7 @@ public class Client {
 		out.writeLine("LIST AVAILABLE_ENGINES");
 		if(getPrintOnlyMode()) return null;
 		
-		return parseStringList(getSingleLineResultSet().getResult());
+		return parseQuotedStringList(getSingleLineResultSet().getResult());
 	}
 	
 	/**
@@ -3848,7 +3860,7 @@ public class Client {
 		out.writeLine("LIST DB_INSTRUMENT_DIRECTORIES '" + dir + "'");
 		if(getPrintOnlyMode()) return null;
 		
-		return parseStringList(getSingleLineResultSet().getResult());
+		return parseQuotedStringList(getSingleLineResultSet().getResult());
 	}
 	
 	/**
@@ -4329,7 +4341,7 @@ public class Client {
 		out.writeLine("LIST DB_INSTRUMENTS '" + dir + "'");
 		if(getPrintOnlyMode()) return null;
 		
-		return parseStringList(getSingleLineResultSet().getResult());
+		return parseQuotedStringList(getSingleLineResultSet().getResult());
 	}
 	
 	/**
@@ -4611,7 +4623,7 @@ public class Client {
 		out.writeLine(sb.toString());
 		if(getPrintOnlyMode()) return null;
 		
-		String[] dirS = parseStringList(getSingleLineResultSet().getResult());
+		String[] dirS = parseQuotedStringList(getSingleLineResultSet().getResult());
 		
 		DbDirectoryInfo[] infoS = new DbDirectoryInfo[dirS.length];
 		for(int i = 0; i < dirS.length; i++) {
@@ -4728,7 +4740,7 @@ public class Client {
 		out.writeLine(sb.toString());
 		if(getPrintOnlyMode()) return null;
 		
-		String[] instrS = parseStringList(getSingleLineResultSet().getResult());
+		String[] instrS = parseQuotedStringList(getSingleLineResultSet().getResult());
 		
 		DbInstrumentInfo[] infoS = new DbInstrumentInfo[instrS.length];
 		for(int i = 0; i < instrS.length; i++) {

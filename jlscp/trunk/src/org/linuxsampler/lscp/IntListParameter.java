@@ -103,7 +103,7 @@ public class IntListParameter extends AbstractParameter<Integer[]> {
 		} else if(s.startsWith("POSSIBILITIES: ")) {
 			s = s.substring("POSSIBILITIES: ".length(), s.length());
 			
-			String[] sS = Parser.parseStringList(s);
+			String[] sS = Parser.parseQuotedStringList(s);
 			Integer[][] i2S = new Integer[sS.length][];
 			for(int i = 0; i < sS.length; i++) i2S[i] = Parser.parseIntList(sS[i]);
 			setPossibilities(i2S);

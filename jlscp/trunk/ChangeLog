@@ -1,6 +1,15 @@
 CVS HEAD
   * Added support for escape sequences
 
+  * API Changes
+    - Client: getAudioOutputDriverInfo is now public and accepts a
+      dependences list of parameters
+    - Client: getMidiInputDriverInfo is now public and accepts a
+      dependences list of parameters
+
+  * Bug fixes:
+    - Parameters with unset values are now not sent to LinuxSampler
+
 jlscp v0.5a: 2007-05-24
   * Implemented instruments database support
   * All notifications are now processed through the LSCP event thread

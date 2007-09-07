@@ -103,7 +103,7 @@ public class FloatListParameter extends AbstractParameter<Float[]> {
 		} else if(s.startsWith("POSSIBILITIES: ")) {
 			s = s.substring("POSSIBILITIES: ".length(), s.length());
 			
-			String[] sS = Parser.parseStringList(s);
+			String[] sS = Parser.parseQuotedStringList(s);
 			Float[][] f2S = new Float[sS.length][];
 			for(int i = 0; i < sS.length; i++) f2S[i] = Parser.parseFloatList(sS[i]);
 			setPossibilities(f2S);

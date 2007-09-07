@@ -1,7 +1,7 @@
 /*
  *   jlscp - a java LinuxSampler control protocol API
  *
- *   Copyright (C) 2005-2006 Grigor Iliev <grigor@grigoriliev.com>
+ *   Copyright (C) 2005-2007 Grigor Iliev <grigor@grigoriliev.com>
  *
  *   This file is part of jlscp.
  *
@@ -156,6 +156,19 @@ final class Parser {
 		
 		return far;
 	}
+	
+	/**
+	 * Parses a comma separated list whose items are not encapsulated into apostrophes.
+	 * @param list The comma separated list.
+	 * @return A <code>String</code> array containing all items in the list.
+	 * @throws LscpException if the list is broken.
+	 */
+	protected static String[]
+	parseStringList(String list) throws LscpException {
+		list = removeQuotation(list);
+		return parseList(list);
+	}
+	
 	/**
 	 * Parses a comma separated list whose items are encapsulated into apostrophes.
 	 * @param list The comma separated list.
@@ -163,8 +176,8 @@ final class Parser {
 	 * @throws LscpException if the list is broken.
 	 */
 	protected static String[]
-	parseStringList(String list) throws LscpException {
-		return parseStringList(list, ',');
+	parseQuotedStringList(String list) throws LscpException {
+		return parseQuotedStringList(list, ',');
 	}
 	
 	/**
@@ -175,7 +188,7 @@ final class Parser {
 	 * @throws LscpException if the list is broken.
 	 */
 	protected static String[]
-	parseStringList(String list, char separator) throws LscpException {
+	parseQuotedStringList(String list, char separator) throws LscpException {
 		if(list == null || list.length() == 0) return new String[0];
 		int q1 = 0, q2 = 0;
 		Vector<String> v = new Vector<String>();
@@ -206,7 +219,7 @@ final class Parser {
 		String[][] s2S;
 		if(!list.startsWith("''") && !list.startsWith("\"\"")) {
 			s2S = new String[1][];
-			s2S[0] = parseStringList(list);
+			s2S[0] = parseQuotedStringList(list);
 			return s2S;
 		}
 			
@@ -223,7 +236,7 @@ final class Parser {
 		}
 		
 		s2S = new String[v.size()][];
-		for(i = 0; i < v.size(); i++) s2S[i] = Parser.parseStringList(v.get(i));
+		for(i = 0; i < v.size(); i++) s2S[i] = parseQuotedStringList(v.get(i));
 		
 		return s2S;
 	}
