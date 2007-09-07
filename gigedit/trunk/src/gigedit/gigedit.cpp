@@ -35,8 +35,8 @@ static void __init_app() {
     bindtextdomain(GETTEXT_PACKAGE, LOCALEDIR);
     bind_textdomain_codeset(GETTEXT_PACKAGE, "UTF-8");
     textdomain(GETTEXT_PACKAGE);
-
-    Glib::thread_init();
+    // make sure thread_init() is called once and ONLY once per process
+    if (!Glib::thread_supported()) Glib::thread_init();
 }
 
 static void __connect_signals(GigEdit* gigedit, MainWindow* mainwindow) {

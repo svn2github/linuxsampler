@@ -510,6 +510,9 @@ void MainWindow::load_instrument(gig::Instrument* instr) {
         msg.run();
         Gtk::Main::quit();
     }
+    // clear all GUI elements
+    __clear();
+    // load the instrument
     gig::File* pFile = (gig::File*) instr->GetParent();
     load_gig(pFile, 0 /*file name*/);
     //TODO: automatically select the given instrument
