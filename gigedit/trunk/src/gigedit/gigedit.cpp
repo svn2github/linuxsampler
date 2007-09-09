@@ -29,14 +29,23 @@
 int argc = 1;
 const char* argv_c[] = { "gigedit" };
 char** argv = const_cast<char**>(argv_c);
+//FIXME: Gtk only allows to instantiate one Gtk::Main object per process, so this might crash other Gtk applications, i.e. launched as plugins by LinuxSampler
+Gtk::Main kit(argc, argv);
 
 static void __init_app() {
-    setlocale(LC_ALL, "");
-    bindtextdomain(GETTEXT_PACKAGE, LOCALEDIR);
-    bind_textdomain_codeset(GETTEXT_PACKAGE, "UTF-8");
-    textdomain(GETTEXT_PACKAGE);
-    // make sure thread_init() is called once and ONLY once per process
-    if (!Glib::thread_supported()) Glib::thread_init();
+    static bool process_initialized = false;
+    if (!process_initialized) {
+        std::cout << "Initializing 3rd party services needed by gigedit.\n"
+                  << std::flush;
+        setlocale(LC_ALL, "");
+        bindtextdomain(GETTEXT_PACKAGE, LOCALEDIR);
+        bind_textdomain_codeset(GETTEXT_PACKAGE, "UTF-8");
+        textdomain(GETTEXT_PACKAGE);
+        // make sure thread_init() is called once and ONLY once per process
+        if (!Glib::thread_supported()) Glib::thread_init();
+
+        process_initialized = true;
+    }
 }
 
 static void __connect_signals(GigEdit* gigedit, MainWindow* mainwindow) {
@@ -74,7 +83,6 @@ static void __connect_signals(GigEdit* gigedit, MainWindow* mainwindow) {
 
 int GigEdit::run() {
     __init_app();
-    Gtk::Main kit(argc, argv);
     MainWindow window;
     __connect_signals(this, &window);
     kit.run(window);
@@ -83,7 +91,6 @@ int GigEdit::run() {
 
 int GigEdit::run(const char* pFileName) {
     __init_app();
-    Gtk::Main kit(argc, argv);
     MainWindow window;
     __connect_signals(this, &window);
     if (pFileName) window.load_file(pFileName);
@@ -93,7 +100,6 @@ int GigEdit::run(const char* pFileName) {
 
 int GigEdit::run(gig::Instrument* pInstrument) {
     __init_app();
-    Gtk::Main kit(argc, argv);
     MainWindow window;
     __connect_signals(this, &window);
     if (pInstrument) window.load_instrument(pInstrument);
