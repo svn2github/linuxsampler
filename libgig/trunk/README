@@ -120,9 +120,13 @@ Compiling for Linux
 
 Compiling for Windows
 =====================
+
   libgig and its tools can be compiled for Windows using Bloodshed Dev-C++,
   which is a free (GPL) C++ integrated development environment for Windows.
-  You can download it here:
+  It is also possible to use MSYS from MinGW, which allows you to use
+  './configure && make' like the linux builds.
+
+  You can download Dev-C++ here:
 
     http://www.bloodshed.net/devcpp.html
 

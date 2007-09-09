@@ -73,7 +73,17 @@ AC_CHECK_HEADERS(uuid/uuid.h)
 AC_SEARCH_LIBS(uuid_generate, uuid)
 AC_CHECK_FUNCS(uuid_generate CFUUIDCreate)
 
-if test "$ac_cv_func_uuid_generate" = no -a "$ac_cv_func_CFUUIDCreate" = no; then
+case "$host" in
+    *mingw*|*cygwin*)
+        win32=yes
+        ;;
+    *)
+        win32=no
+        ;;
+esac
+AM_CONDITIONAL(WIN32, test "$win32" = "yes")
+
+if test "$ac_cv_func_uuid_generate" = no -a "$ac_cv_func_CFUUIDCreate" = no -a "$win32" = no; then
    AC_MSG_WARN([No UUID generate function found.
 *** libgig will not be able to create DLSIDs in DLS and gig files.
 *** Install libuuid from e2fsprogs to solve this. Package might be called

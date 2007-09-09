@@ -4,6 +4,7 @@ Version CVS HEAD (?)
     - added Mac OSX XCode project files (patch by Toshi Nagata)
     - Dev-C++ (win32) project file is automatically updated with
       the version info from configure.in
+    - the configure script can now be used in Windows with MSYS
 
   * src/DLS.cpp, src/DLS.h:
     - added Sampler::AddSampleLoop() and Sampler::DeleteSampleLoop() methods
