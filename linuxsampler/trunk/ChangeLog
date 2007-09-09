@@ -127,6 +127,7 @@ Version CVS HEAD (?)
       audio output channels and MIDI input ports
     - the connection to the PCM interface is now closed when destroying
       an audio output device
+    - files with slash in their path or filename could not be loaded
 
   * test cases:
     - updated and fixed (haven't been touched in a while)

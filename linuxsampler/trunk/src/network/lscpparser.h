@@ -33,6 +33,7 @@
 #include <string>
 
 #include "../common/global.h"
+#include "../common/Path.h"
 #include "lscpevent.h"
 #include "../Sampler.h"
 #include "../drivers/midi/MidiInstrumentMapper.h"
@@ -75,6 +76,7 @@ struct _YYSTYPE {
     };
     std::string                       String;
     std::map<std::string,std::string> KeyValList;
+    Path                              UniversalPath;
 };
 #define YYSTYPE _YYSTYPE
 #define yystype YYSTYPE		///< For backward compatibility.

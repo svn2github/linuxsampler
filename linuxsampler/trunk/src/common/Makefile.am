@@ -29,7 +29,8 @@ liblinuxsamplercommon_la_SOURCES = \
 	RTMath.cpp RTMath.h \
 	stacktrace.c stacktrace.h \
 	Thread.cpp Thread.h \
-	WorkerThread.cpp WorkerThread.h
+	WorkerThread.cpp WorkerThread.h \
+	Path.cpp Path.h
 
 # create the plugins directory (i.e. /usr/lib/linuxsampler/plugins)
 install-exec-hook:

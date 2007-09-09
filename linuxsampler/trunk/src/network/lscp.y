@@ -138,14 +138,15 @@ int hexsToNumber(char hex_digit0, char hex_digit1 = '0') {
 
 %token <Char> EXT_ASCII_CHAR
 
-%type <Char> char digit digit_oct digit_hex escape_seq escape_seq_octal escape_seq_hex
+%type <Char> char char_base digit digit_oct digit_hex escape_seq escape_seq_octal escape_seq_hex
 %type <Dotnum> dotnum volume_value boolean
 %type <Number> number sampler_channel instrument_index fx_send_id audio_channel_index device_index midi_input_channel_index midi_input_port_index midi_map midi_bank midi_prog midi_ctrl
-%type <String> string string_escaped text text_escaped stringval stringval_escaped digits param_val_list param_val query_val pathname dirname filename map_name entry_name fx_send_name engine_name command add_instruction create_instruction destroy_instruction get_instruction list_instruction load_instruction set_chan_instruction load_instr_args load_engine_args audio_output_type_name midi_input_type_name remove_instruction unmap_instruction set_instruction subscribe_event unsubscribe_event map_instruction reset_instruction clear_instruction find_instruction move_instruction copy_instruction scan_mode edit_instruction
+%type <String> string string_escaped text text_escaped stringval digits param_val_list param_val query_val pathname dirname filename map_name entry_name fx_send_name engine_name command add_instruction create_instruction destroy_instruction get_instruction list_instruction load_instruction set_chan_instruction load_instr_args load_engine_args audio_output_type_name midi_input_type_name remove_instruction unmap_instruction set_instruction subscribe_event unsubscribe_event map_instruction reset_instruction clear_instruction find_instruction move_instruction copy_instruction scan_mode edit_instruction
 %type <FillResponse> buffer_size_type
 %type <KeyValList> key_val_list query_val_list
 %type <LoadMode> instr_load_mode
 %type <Bool> modal_arg
+%type <UniversalPath> path path_base
 
 %start input
 
@@ -492,7 +493,7 @@ pathname                  :  stringval
 dirname                   :  stringval
                           ;
 
-filename                  :  stringval_escaped
+filename                  :  path  { $$ = $1.toPosix(); /*TODO: assuming POSIX*/ }
                           ;
 
 map_name                  :  stringval
@@ -534,17 +535,6 @@ scan_mode                 :  RECURSIVE      { $$ = "RECURSIVE"; }
 
 boolean               :  number  { $$ = $1; }
                       |  string  { $$ = -1; }
-                      ;
-
-string                :  char          { std::string s; s = $1; $$ = s; }
-                      |  '\\'          { $$ = "\\";                     } // we have to place this rule here, because we currently distinguish between escaped and unescaped strings
-                      |  string char   { $$ = $1 + $2;                  }
-                      ;
-
-string_escaped        :  char                        { std::string s; s = $1; $$ = s; }
-                      |  escape_seq                  { std::string s; s = $1; $$ = s; }
-                      |  string_escaped char         { $$ = $1 + $2;                  }
-                      |  string_escaped escape_seq   { $$ = $1 + $2;                  }
                       ;
 
 dotnum                :      digits '.' digits  { $$ = atof(String($1 + "." + $3).c_str());                         }
@@ -613,15 +603,19 @@ number                :  digit       { $$ = atoi(String(1, $1).c_str());      }
                       |  '7' digits  { $$ = atoi(String(String("7") + $2).c_str()); }
                       |  '8' digits  { $$ = atoi(String(String("8") + $2).c_str()); }
                       |  '9' digits  { $$ = atoi(String(String("9") + $2).c_str()); }
+                      ;
 
-char                  :  'A' { $$ = 'A'; } | 'B' { $$ = 'B'; } | 'C' { $$ = 'C'; } | 'D' { $$ = 'D'; } | 'E' { $$ = 'E'; } | 'F' { $$ = 'F'; } | 'G' { $$ = 'G'; } | 'H' { $$ = 'H'; } | 'I' { $$ = 'I'; } | 'J' { $$ = 'J'; } | 'K' { $$ = 'K'; } | 'L' { $$ = 'L'; } | 'M' { $$ = 'M'; } | 'N' { $$ = 'N'; } | 'O' { $$ = 'O'; } | 'P' { $$ = 'P'; } | 'Q' { $$ = 'Q'; } | 'R' { $$ = 'R'; } | 'S' { $$ = 'S'; } | 'T' { $$ = 'T'; } | 'U' { $$ = 'U'; } | 'V' { $$ = 'V'; } | 'W' { $$ = 'W'; } | 'X' { $$ = 'X'; } | 'Y' { $$ = 'Y'; } | 'Z' { $$ = 'Z'; }
-                      |  'a' { $$ = 'a'; } | 'b' { $$ = 'b'; } | 'c' { $$ = 'c'; } | 'd' { $$ = 'd'; } | 'e' { $$ = 'e'; } | 'f' { $$ = 'f'; } | 'g' { $$ = 'g'; } | 'h' { $$ = 'h'; } | 'i' { $$ = 'i'; } | 'j' { $$ = 'j'; } | 'k' { $$ = 'k'; } | 'l' { $$ = 'l'; } | 'm' { $$ = 'm'; } | 'n' { $$ = 'n'; } | 'o' { $$ = 'o'; } | 'p' { $$ = 'p'; } | 'q' { $$ = 'q'; } | 'r' { $$ = 'r'; } | 's' { $$ = 's'; } | 't' { $$ = 't'; } | 'u' { $$ = 'u'; } | 'v' { $$ = 'v'; } | 'w' { $$ = 'w'; } | 'x' { $$ = 'x'; } | 'y' { $$ = 'y'; } | 'z' { $$ = 'z'; }
-                      |  '0' { $$ = '0'; } | '1' { $$ = '1'; } | '2' { $$ = '2'; } | '3' { $$ = '3'; } | '4' { $$ = '4'; } | '5' { $$ = '5'; } | '6' { $$ = '6'; } | '7' { $$ = '7'; } | '8' { $$ = '8'; } | '9' { $$ = '9'; }
-                      |  '!' { $$ = '!'; } | '#' { $$ = '#'; } | '$' { $$ = '$'; } | '%' { $$ = '%'; } | '&' { $$ = '&'; } | '(' { $$ = '('; } | ')' { $$ = ')'; } | '*' { $$ = '*'; } | '+' { $$ = '+'; } | '-' { $$ = '-'; } | '.' { $$ = '.'; } | ',' { $$ = ','; } | '/' { $$ = '/'; }
-                      |  ':' { $$ = ':'; } | ';' { $$ = ';'; } | '<' { $$ = '<'; } | '=' { $$ = '='; } | '>' { $$ = '>'; } | '?' { $$ = '?'; } | '@' { $$ = '@'; }
-                      |  '[' { $$ = '['; } | ']' { $$ = ']'; } | '^' { $$ = '^'; } | '_' { $$ = '_'; }
-                      |  '{' { $$ = '{'; } | '|' { $$ = '|'; } | '}' { $$ = '}'; } | '~' { $$ = '~'; }
-                      |  EXT_ASCII_CHAR
+path                  :  '\'' path_base '\''  { $$ = $2; }
+                      |  '\"' path_base '\"'  { $$ = $2; }
+                      ;
+
+path_base             :  '/'                     { $$ = Path();                           }
+                      |  path_base '/'           { $$ = $1;                               }
+                      |  path_base text_escaped  { Path p; p.appendNode($2); $$ = $1 + p; }
+                      ;
+
+stringval             :  '\'' text '\''  { $$ = $2; }
+                      |  '\"' text '\"'  { $$ = $2; }
                       ;
 
 text                  :  SP           { $$ = " ";      }
@@ -636,17 +630,37 @@ text_escaped          :  SP                           { $$ = " ";      }
                       |  text_escaped string_escaped  { $$ = $1 + $2;  }
                       ;
 
-stringval             :  '\'' text '\''  { $$ = $2; }
-                      |  '\"' text '\"'  { $$ = $2; }
+string                :  char          { std::string s; s = $1; $$ = s; }
+                      |  string char   { $$ = $1 + $2;                  }
                       ;
 
-stringval_escaped     :  '\'' text_escaped '\''  { $$ = $2; }
-                      |  '\"' text_escaped '\"'  { $$ = $2; }
+string_escaped        :  char_base                   { std::string s; s = $1; $$ = s; }
+                      |  escape_seq                  { std::string s; s = $1; $$ = s; }
+                      |  string_escaped char_base    { $$ = $1 + $2;                  }
+                      |  string_escaped escape_seq   { $$ = $1 + $2;                  }
+                      ;
+
+// full ASCII character set except space, quotation mark and apostrophe
+char                  :  char_base
+                      |  '\\'  { $$ = '\\'; }
+                      |  '/'   { $$ = '/';  }
+                      ;
+
+// ASCII characters except space, quotation mark, apostrophe, backslash and slash
+char_base             :  'A' { $$ = 'A'; } | 'B' { $$ = 'B'; } | 'C' { $$ = 'C'; } | 'D' { $$ = 'D'; } | 'E' { $$ = 'E'; } | 'F' { $$ = 'F'; } | 'G' { $$ = 'G'; } | 'H' { $$ = 'H'; } | 'I' { $$ = 'I'; } | 'J' { $$ = 'J'; } | 'K' { $$ = 'K'; } | 'L' { $$ = 'L'; } | 'M' { $$ = 'M'; } | 'N' { $$ = 'N'; } | 'O' { $$ = 'O'; } | 'P' { $$ = 'P'; } | 'Q' { $$ = 'Q'; } | 'R' { $$ = 'R'; } | 'S' { $$ = 'S'; } | 'T' { $$ = 'T'; } | 'U' { $$ = 'U'; } | 'V' { $$ = 'V'; } | 'W' { $$ = 'W'; } | 'X' { $$ = 'X'; } | 'Y' { $$ = 'Y'; } | 'Z' { $$ = 'Z'; }
+                      |  'a' { $$ = 'a'; } | 'b' { $$ = 'b'; } | 'c' { $$ = 'c'; } | 'd' { $$ = 'd'; } | 'e' { $$ = 'e'; } | 'f' { $$ = 'f'; } | 'g' { $$ = 'g'; } | 'h' { $$ = 'h'; } | 'i' { $$ = 'i'; } | 'j' { $$ = 'j'; } | 'k' { $$ = 'k'; } | 'l' { $$ = 'l'; } | 'm' { $$ = 'm'; } | 'n' { $$ = 'n'; } | 'o' { $$ = 'o'; } | 'p' { $$ = 'p'; } | 'q' { $$ = 'q'; } | 'r' { $$ = 'r'; } | 's' { $$ = 's'; } | 't' { $$ = 't'; } | 'u' { $$ = 'u'; } | 'v' { $$ = 'v'; } | 'w' { $$ = 'w'; } | 'x' { $$ = 'x'; } | 'y' { $$ = 'y'; } | 'z' { $$ = 'z'; }
+                      |  '0' { $$ = '0'; } | '1' { $$ = '1'; } | '2' { $$ = '2'; } | '3' { $$ = '3'; } | '4' { $$ = '4'; } | '5' { $$ = '5'; } | '6' { $$ = '6'; } | '7' { $$ = '7'; } | '8' { $$ = '8'; } | '9' { $$ = '9'; }
+                      |  '!' { $$ = '!'; } | '#' { $$ = '#'; } | '$' { $$ = '$'; } | '%' { $$ = '%'; } | '&' { $$ = '&'; } | '(' { $$ = '('; } | ')' { $$ = ')'; } | '*' { $$ = '*'; } | '+' { $$ = '+'; } | '-' { $$ = '-'; } | '.' { $$ = '.'; } | ',' { $$ = ','; }
+                      |  ':' { $$ = ':'; } | ';' { $$ = ';'; } | '<' { $$ = '<'; } | '=' { $$ = '='; } | '>' { $$ = '>'; } | '?' { $$ = '?'; } | '@' { $$ = '@'; }
+                      |  '[' { $$ = '['; } | ']' { $$ = ']'; } | '^' { $$ = '^'; } | '_' { $$ = '_'; }
+                      |  '{' { $$ = '{'; } | '|' { $$ = '|'; } | '}' { $$ = '}'; } | '~' { $$ = '~'; }
+                      |  EXT_ASCII_CHAR
                       ;
 
 escape_seq            :  '\\' '\''  { $$ = '\''; }
                       |  '\\' '\"'  { $$ = '\"'; }
                       |  '\\' '\\'  { $$ = '\\'; }
+                      |  '\\' '/'   { $$ = '/';  }
                       |  '\\' 'n'   { $$ = '\n'; }
                       |  '\\' 'r'   { $$ = '\r'; }
                       |  '\\' 'f'   { $$ = '\f'; }
