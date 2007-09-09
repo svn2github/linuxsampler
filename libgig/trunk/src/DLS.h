@@ -414,7 +414,7 @@ namespace DLS {
     /** Defines <i>Region</i> information of an <i>Instrument</i>. */
     class Region : public Resource, public Articulator, public Sampler {
         public:
-            range_t     KeyRange;
+            range_t     KeyRange; ///< @deprecated Only read, don't write! Use SetKeyRange() instead.
             range_t     VelocityRange;
             uint16_t    KeyGroup;
             uint16_t    Layer;
@@ -426,6 +426,7 @@ namespace DLS {
 
             Sample*     GetSample();
             void        SetSample(Sample* pSample);
+            virtual void SetKeyRange(uint16_t Low, uint16_t High);
             virtual void UpdateChunks();
         protected:
             RIFF::List* pCkRegion;
@@ -452,7 +453,6 @@ namespace DLS {
             Region*  GetFirstRegion();
             Region*  GetNextRegion();
             Region*  AddRegion();
-            void     MoveRegion(Region* pSrc, Region* pDst);
             void     DeleteRegion(Region* pRegion);
             virtual void UpdateChunks();
         protected:
@@ -470,6 +470,9 @@ namespace DLS {
             virtual void LoadRegions();
             virtual ~Instrument();
             friend class File;
+            friend class Region;
+        private:
+            void MoveRegion(Region* pSrc, Region* pDst);
     };
 
     /** Parses DLS Level 1 and 2 compliant files and provides abstract access to the data. */

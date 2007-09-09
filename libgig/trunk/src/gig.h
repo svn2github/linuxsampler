@@ -638,11 +638,14 @@ namespace gig {
             DimensionRegion*        pDimensionRegions[256];   ///< Pointer array to the 32 (gig2) or 256 (gig3) possible dimension regions (reflects NULL for dimension regions not in use). Avoid to access the array directly and better use GetDimensionRegionByValue() instead, but of course in some cases it makes sense to use the array (e.g. iterating through all DimensionRegions). Use AddDimension() and DeleteDimension() to create a new dimension or delete an existing one (which will create or delete the respective dimension region(s) automatically).
             unsigned int            Layers;                   ///< Amount of defined layers (1 - 32). A value of 1 actually means no layering, a value > 1 means there is Layer dimension. The same information can of course also be obtained by accessing pDimensionDefinitions. Do not alter this value!
 
+            // own methods
             DimensionRegion* GetDimensionRegionByValue(const uint DimValues[8]);
             DimensionRegion* GetDimensionRegionByBit(const uint8_t DimBits[8]);
             Sample*          GetSample();
             void             AddDimension(dimension_def_t* pDimDef);
             void             DeleteDimension(dimension_def_t* pDimDef);
+            // overridden methods
+            virtual void     SetKeyRange(uint16_t Low, uint16_t High);
             virtual void     UpdateChunks();
         protected:
             Region(Instrument* pInstrument, RIFF::List* rgnList);
@@ -677,8 +680,6 @@ namespace gig {
 
             // derived methods from DLS::Resource
             DLS::Resource::GetParent;
-            // derived methods from DLS::Instrument
-            DLS::Instrument::MoveRegion;
             // overridden methods
             Region*   GetFirstRegion();
             Region*   GetNextRegion();
@@ -694,6 +695,7 @@ namespace gig {
            ~Instrument();
             void UpdateRegionKeyTable();
             friend class File;
+            friend class Region; // so Region can call UpdateRegionKeyTable()
     };
 
     /** @brief Group of Gigasampler objects

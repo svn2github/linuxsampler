@@ -13,6 +13,9 @@ Version CVS HEAD (?)
       lengths can be specified for each INFO chunk
     - added Resource::GenerateDLSID function
     - write support fix: allow regions without mapped samples
+    - added method SetKeyRange() to the Region class which should be used
+      instead of setting the KeyRange member variable directly
+    - MoveRegion() method of Region class is now private
 
   * src/gig.cpp, src/gig.h:
     - fixed segmentation fault in the gig::File destructor sequence which
@@ -57,6 +60,8 @@ Version CVS HEAD (?)
       placed first in the list of dimensions.
     - added method GetParent() to class 'DimensionRegion', which returns its
       parent Region
+    - fixed Instrument::UpdateRegionKeyTable() method which did not reset
+      unused areas
 
   * src/RIFF.cpp, src/RIFF.h:
     - added File::SetByteOrder method

@@ -2369,6 +2369,13 @@ namespace {
         }
     }
 
+    void Region::SetKeyRange(uint16_t Low, uint16_t High) {
+        // update KeyRange struct and make sure regions are in correct order
+        DLS::Region::SetKeyRange(Low, High);
+        // update Region key table for fast lookup
+        ((gig::Instrument*)GetParent())->UpdateRegionKeyTable();
+    }
+
     void Region::UpdateVelocityTable() {
         // get velocity dimension's index
         int veldim = -1;
@@ -2808,6 +2815,7 @@ namespace {
     }
 
     void Instrument::UpdateRegionKeyTable() {
+        for (int i = 0; i < 128; i++) RegionKeyTable[i] = NULL;
         RegionList::iterator iter = pRegions->begin();
         RegionList::iterator end  = pRegions->end();
         for (; iter != end; ++iter) {
@@ -2875,7 +2883,7 @@ namespace {
      *             there is no Region defined for the given \a Key
      */
     Region* Instrument::GetRegion(unsigned int Key) {
-        if (!pRegions || !pRegions->size() || Key > 127) return NULL;
+        if (!pRegions || pRegions->empty() || Key > 127) return NULL;
         return RegionKeyTable[Key];
 
         /*for (int i = 0; i < Regions; i++) {

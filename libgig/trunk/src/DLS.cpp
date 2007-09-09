@@ -913,6 +913,41 @@ namespace DLS {
     }
 
     /**
+     * Modifies the key range of this Region and makes sure the respective
+     * chunks are in correct order.
+     *
+     * @param Low  - lower end of key range
+     * @param High - upper end of key range
+     */
+    void Region::SetKeyRange(uint16_t Low, uint16_t High) {
+        KeyRange.low  = Low;
+        KeyRange.high = High;
+
+        // make sure regions are already loaded
+        Instrument* pInstrument = (Instrument*) GetParent();
+        if (!pInstrument->pRegions) pInstrument->LoadRegions();
+        if (!pInstrument->pRegions) return;
+
+        // find the r which is the first one to the right of this region
+        // at its new position
+        Region* r = NULL;
+        Region* prev_region = NULL;
+        for (
+            Instrument::RegionList::iterator iter = pInstrument->pRegions->begin();
+            iter != pInstrument->pRegions->end(); iter++
+        ) {
+            if ((*iter)->KeyRange.low > this->KeyRange.low) {
+                r = *iter;
+                break;
+            }
+            prev_region = *iter;
+        }
+
+        // place this region before r if it's not already there
+        if (prev_region != this) pInstrument->MoveRegion(this, r);
+    }
+
+    /**
      * Apply Region settings to the respective RIFF chunks. You have to
      * call File::Save() to make changes persistent.
      *
