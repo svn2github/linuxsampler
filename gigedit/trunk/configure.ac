@@ -39,12 +39,15 @@ GETTEXT_PACKAGE=gigedit
 AC_SUBST([GETTEXT_PACKAGE])
 AC_DEFINE_UNQUOTED([GETTEXT_PACKAGE],["$GETTEXT_PACKAGE"],[Gettext package])
 
+# the libgig header files need this
+AC_C_BIGENDIAN
+
 AC_PROG_CXX
 
 IT_PROG_INTLTOOL(0.35.0)
 AM_GLIB_GNU_GETTEXT
 
-PKG_CHECK_MODULES(GTKMM, gtkmm-2.4 >= 2.4.11 gthread-2.0)
+PKG_CHECK_MODULES(GTKMM, gtkmm-2.4 >= 2.4.10 gthread-2.0)
 PKG_CHECK_MODULES(GIG, gig >= 3.1.1)
 
 # check for presence of libsndfile
