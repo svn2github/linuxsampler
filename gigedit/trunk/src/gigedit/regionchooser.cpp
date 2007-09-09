@@ -258,13 +258,23 @@ bool RegionChooser::on_button_release_event(GdkEventButton* event)
 
         if (resize.mode == resize.moving_high_limit) {
             if (resize.region->KeyRange.high != resize.pos - 1) {
-                resize.region->KeyRange.high = resize.pos - 1;
-                instrument_changed();
+                instrument_struct_to_be_changed_signal.emit(instrument);
+                resize.region->SetKeyRange(
+                    resize.region->KeyRange.low, // low
+                    resize.pos - 1 // high
+                );
+                instrument_changed.emit();
+                instrument_struct_changed_signal.emit(instrument);
             }
         } else if (resize.mode == resize.moving_low_limit) {
             if (resize.region->KeyRange.low != resize.pos) {
-                resize.region->KeyRange.low = resize.pos;
-                instrument_changed();
+                instrument_struct_to_be_changed_signal.emit(instrument);
+                resize.region->SetKeyRange(
+                    resize.pos, // low
+                    resize.region->KeyRange.high // high
+                );
+                instrument_changed.emit();
+                instrument_struct_changed_signal.emit(instrument);
             }
         }
 
@@ -277,24 +287,12 @@ bool RegionChooser::on_button_release_event(GdkEventButton* event)
         move.active = false;
 
         if (move.pos) {
-            region->KeyRange.low += move.pos;
-            region->KeyRange.high += move.pos;
-
-            // find the r which is the first one to the right of region
-            // at its new position
-            gig::Region* r;
-            gig::Region* prev_region = 0;
-            for (r = instrument->GetFirstRegion() ; r ; r = instrument->GetNextRegion()) {
-                if (r->KeyRange.low > region->KeyRange.low) break;
-                prev_region = r;
-            }
-
-            // place region before r if it's not already there
-            if (prev_region != region) {
-                instrument_struct_to_be_changed_signal.emit(instrument);
-                instrument->MoveRegion(region, r);
-                instrument_struct_changed_signal.emit(instrument);
-            }
+            instrument_struct_to_be_changed_signal.emit(instrument);
+            region->SetKeyRange(
+                region->KeyRange.low  + move.pos,
+                region->KeyRange.high + move.pos
+            );
+            instrument_struct_changed_signal.emit(instrument);
         }
 
         if (is_in_resize_zone(event->x, event->y)) {
@@ -655,17 +653,10 @@ void RegionChooser::show_region_properties()
 
 void RegionChooser::add_region()
 {
-    gig::Region* r;
-    for (r = instrument->GetFirstRegion() ; r ; r = instrument->GetNextRegion()) {
-        if (r->KeyRange.low > new_region_pos) break;
-    }
-
     instrument_struct_to_be_changed_signal.emit(instrument);
 
     region = instrument->AddRegion();
-    region->KeyRange.low = region->KeyRange.high = new_region_pos;
-
-    instrument->MoveRegion(region, r);
+    region->SetKeyRange(new_region_pos, new_region_pos);
 
     instrument_struct_changed_signal.emit(instrument);
 
