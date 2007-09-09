@@ -2173,6 +2173,7 @@ String LSCPServer::EditSamplerChannelInstrument(uint uiSamplerChannel) {
         if (!pSamplerChannel) throw Exception("Invalid sampler channel number " + ToString(uiSamplerChannel));
         EngineChannel* pEngineChannel = pSamplerChannel->GetEngineChannel();
         if (!pEngineChannel) throw Exception("No engine type assigned to sampler channel");
+        if (pEngineChannel->InstrumentStatus() < 0) throw Exception("No instrument loaded to sampler channel");
         Engine* pEngine = pEngineChannel->GetEngine();
         InstrumentManager* pInstrumentManager = pEngine->GetInstrumentManager();
         if (!pInstrumentManager) throw Exception("Engine does not provide an instrument manager");
