@@ -35,11 +35,16 @@ std::string Path::toPosix() {
     // and http://www.opengroup.org/onlinepubs/000095399/basedefs/xbd_chap03.html#tag_03_266 )
     std::string result;
     for (int iElement = 0; iElement < elements.size(); iElement++) {
-        // encode forward slashes
+        // encode percent characters
         std::string e = elements[iElement];
         for (
+            int pos = e.find("%"); pos != std::string::npos;
+            pos = e.find("%", pos+2)
+        ) e.replace(pos/*offset*/, 1/*length*/, "%%"/*by*/);
+        // encode forward slashes
+        for (
             int pos = e.find("/"); pos != std::string::npos;
-            pos = e.find("/", pos+1)
+            pos = e.find("/", pos+3)
         ) e.replace(pos/*offset*/, 1/*length*/, "%2f"/*by*/);
         // append encoded node to full encoded path
         result += "/" + e;
