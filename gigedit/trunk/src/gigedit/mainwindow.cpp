@@ -921,7 +921,7 @@ void InstrumentProps::key_range_high_changed()
     if (h < l) eDimensionKeyRangeLow.set_value(h);
 }
 
-sigc::signal<void> InstrumentProps::signal_instrument_changed()
+sigc::signal<void>& InstrumentProps::signal_instrument_changed()
 {
     return instrument_changed;
 }
@@ -1469,38 +1469,38 @@ void MainWindow::instrument_name_changed(const Gtk::TreeModel::Path& path,
     }
 }
 
-sigc::signal<void, gig::File*> MainWindow::signal_file_structure_to_be_changed() {
+sigc::signal<void, gig::File*>& MainWindow::signal_file_structure_to_be_changed() {
     return file_structure_to_be_changed_signal;
 }
 
-sigc::signal<void, gig::File*> MainWindow::signal_file_structure_changed() {
+sigc::signal<void, gig::File*>& MainWindow::signal_file_structure_changed() {
     return file_structure_changed_signal;
 }
 
-sigc::signal<void, std::list<gig::Sample*> > MainWindow::signal_samples_to_be_removed() {
+sigc::signal<void, std::list<gig::Sample*> >& MainWindow::signal_samples_to_be_removed() {
     return samples_to_be_removed_signal;
 }
 
-sigc::signal<void> MainWindow::signal_samples_removed() {
+sigc::signal<void>& MainWindow::signal_samples_removed() {
     return samples_removed_signal;
 }
 
-sigc::signal<void, gig::Region*> MainWindow::signal_region_to_be_changed() {
+sigc::signal<void, gig::Region*>& MainWindow::signal_region_to_be_changed() {
     return region_to_be_changed_signal;
 }
 
-sigc::signal<void, gig::Region*> MainWindow::signal_region_changed() {
+sigc::signal<void, gig::Region*>& MainWindow::signal_region_changed() {
     return region_changed_signal;
 }
 
-sigc::signal<void, gig::Sample*/*old*/, gig::Sample*/*new*/> MainWindow::signal_sample_ref_changed() {
+sigc::signal<void, gig::Sample*/*old*/, gig::Sample*/*new*/>& MainWindow::signal_sample_ref_changed() {
     return sample_ref_changed_signal;
 }
 
-sigc::signal<void, gig::DimensionRegion*> MainWindow::signal_dimreg_to_be_changed() {
+sigc::signal<void, gig::DimensionRegion*>& MainWindow::signal_dimreg_to_be_changed() {
     return dimreg_to_be_changed_signal;
 }
 
-sigc::signal<void, gig::DimensionRegion*> MainWindow::signal_dimreg_changed() {
+sigc::signal<void, gig::DimensionRegion*>& MainWindow::signal_dimreg_changed() {
     return dimreg_changed_signal;
 }

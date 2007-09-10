@@ -917,14 +917,14 @@ bool DimRegionEdit::set_sample(gig::Sample* sample)
     return false;
 }
 
-sigc::signal<void, gig::DimensionRegion*> DimRegionEdit::signal_dimreg_to_be_changed() {
+sigc::signal<void, gig::DimensionRegion*>& DimRegionEdit::signal_dimreg_to_be_changed() {
     return dimreg_to_be_changed_signal;
 }
 
-sigc::signal<void, gig::DimensionRegion*> DimRegionEdit::signal_dimreg_changed() {
+sigc::signal<void, gig::DimensionRegion*>& DimRegionEdit::signal_dimreg_changed() {
     return dimreg_changed_signal;
 }
 
-sigc::signal<void, gig::Sample*/*old*/, gig::Sample*/*new*/> DimRegionEdit::signal_sample_ref_changed() {
+sigc::signal<void, gig::Sample*/*old*/, gig::Sample*/*new*/>& DimRegionEdit::signal_sample_ref_changed() {
     return sample_ref_changed_signal;
 }

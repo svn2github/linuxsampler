@@ -55,7 +55,7 @@ class InstrumentProps : public Gtk::Window {
 public:
     InstrumentProps();
     void set_instrument(gig::Instrument* instrument);
-    sigc::signal<void> signal_instrument_changed();
+    sigc::signal<void>& signal_instrument_changed();
 protected:
     Gtk::VBox vbox;
     Gtk::HButtonBox buttonBox;
@@ -117,15 +117,15 @@ public:
     void load_file(const char* name);
     void load_instrument(gig::Instrument* instr);
     void file_changed();
-    sigc::signal<void, gig::File*> signal_file_structure_to_be_changed();
-    sigc::signal<void, gig::File*> signal_file_structure_changed();
-    sigc::signal<void, std::list<gig::Sample*> > signal_samples_to_be_removed();
-    sigc::signal<void> signal_samples_removed();
-    sigc::signal<void, gig::Region*> signal_region_to_be_changed();
-    sigc::signal<void, gig::Region*> signal_region_changed();
-    sigc::signal<void, gig::DimensionRegion*> signal_dimreg_to_be_changed();
-    sigc::signal<void, gig::DimensionRegion*> signal_dimreg_changed();
-    sigc::signal<void, gig::Sample*/*old*/, gig::Sample*/*new*/> signal_sample_ref_changed();
+    sigc::signal<void, gig::File*>& signal_file_structure_to_be_changed();
+    sigc::signal<void, gig::File*>& signal_file_structure_changed();
+    sigc::signal<void, std::list<gig::Sample*> >& signal_samples_to_be_removed();
+    sigc::signal<void>& signal_samples_removed();
+    sigc::signal<void, gig::Region*>& signal_region_to_be_changed();
+    sigc::signal<void, gig::Region*>& signal_region_changed();
+    sigc::signal<void, gig::DimensionRegion*>& signal_dimreg_to_be_changed();
+    sigc::signal<void, gig::DimensionRegion*>& signal_dimreg_changed();
+    sigc::signal<void, gig::Sample*/*old*/, gig::Sample*/*new*/>& signal_sample_ref_changed();
 
 protected:
     Glib::RefPtr<Gtk::ActionGroup> actionGroup;

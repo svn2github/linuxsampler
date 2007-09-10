@@ -38,14 +38,14 @@ public:
 
     void set_instrument(gig::Instrument* instrument);
 
-    sigc::signal<void> signal_region_selected();
-    sigc::signal<void> signal_instrument_changed();
+    sigc::signal<void>& signal_region_selected();
+    sigc::signal<void>& signal_instrument_changed();
 
-    sigc::signal<void, gig::Instrument*> signal_instrument_struct_to_be_changed();
-    sigc::signal<void, gig::Instrument*> signal_instrument_struct_changed();
+    sigc::signal<void, gig::Instrument*>& signal_instrument_struct_to_be_changed();
+    sigc::signal<void, gig::Instrument*>& signal_instrument_struct_changed();
 
-    sigc::signal<void, gig::Region*> signal_region_to_be_changed();
-    sigc::signal<void, gig::Region*> signal_region_changed_signal();
+    sigc::signal<void, gig::Region*>& signal_region_to_be_changed();
+    sigc::signal<void, gig::Region*>& signal_region_changed_signal();
 
     gig::Region* get_region() { return region; }
 

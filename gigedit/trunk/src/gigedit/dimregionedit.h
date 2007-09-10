@@ -38,9 +38,9 @@ public:
     void set_dim_region(gig::DimensionRegion* d);
     bool set_sample(gig::Sample* sample);
     Gtk::Entry* wSample;
-    sigc::signal<void, gig::DimensionRegion*> signal_dimreg_to_be_changed();
-    sigc::signal<void, gig::DimensionRegion*> signal_dimreg_changed();
-    sigc::signal<void, gig::Sample*/*old*/, gig::Sample*/*new*/> signal_sample_ref_changed();
+    sigc::signal<void, gig::DimensionRegion*>& signal_dimreg_to_be_changed();
+    sigc::signal<void, gig::DimensionRegion*>& signal_dimreg_changed();
+    sigc::signal<void, gig::Sample*/*old*/, gig::Sample*/*new*/>& signal_sample_ref_changed();
 
 protected:
     sigc::signal<void, gig::DimensionRegion*> dimreg_to_be_changed_signal;

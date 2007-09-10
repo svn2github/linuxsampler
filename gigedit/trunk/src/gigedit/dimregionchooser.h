@@ -34,8 +34,8 @@ public:
 
     void set_region(gig::Region* region);
 
-    sigc::signal<void> signal_dimregion_selected();
-    sigc::signal<void> signal_region_changed();
+    sigc::signal<void>& signal_dimregion_selected();
+    sigc::signal<void>& signal_region_changed();
 
     gig::DimensionRegion* get_dimregion() { return dimreg; }
 

@@ -107,38 +107,38 @@ int GigEdit::run(gig::Instrument* pInstrument) {
     return 0;
 }
 
-sigc::signal<void, gig::File*> GigEdit::signal_file_structure_to_be_changed() {
+sigc::signal<void, gig::File*>& GigEdit::signal_file_structure_to_be_changed() {
     return file_structure_to_be_changed_signal;
 }
 
-sigc::signal<void, gig::File*> GigEdit::signal_file_structure_changed() {
+sigc::signal<void, gig::File*>& GigEdit::signal_file_structure_changed() {
     return file_structure_changed_signal;
 }
 
-sigc::signal<void, std::list<gig::Sample*> > GigEdit::signal_samples_to_be_removed() {
+sigc::signal<void, std::list<gig::Sample*> >& GigEdit::signal_samples_to_be_removed() {
     return samples_to_be_removed_signal;
 }
 
-sigc::signal<void> GigEdit::signal_samples_removed() {
+sigc::signal<void>& GigEdit::signal_samples_removed() {
     return samples_removed_signal;
 }
 
-sigc::signal<void, gig::Region*> GigEdit::signal_region_to_be_changed() {
+sigc::signal<void, gig::Region*>& GigEdit::signal_region_to_be_changed() {
     return region_to_be_changed_signal;
 }
 
-sigc::signal<void, gig::Region*> GigEdit::signal_region_changed() {
+sigc::signal<void, gig::Region*>& GigEdit::signal_region_changed() {
     return region_changed_signal;
 }
 
-sigc::signal<void, gig::DimensionRegion*> GigEdit::signal_dimreg_to_be_changed() {
+sigc::signal<void, gig::DimensionRegion*>& GigEdit::signal_dimreg_to_be_changed() {
     return dimreg_to_be_changed_signal;
 }
 
-sigc::signal<void, gig::DimensionRegion*> GigEdit::signal_dimreg_changed() {
+sigc::signal<void, gig::DimensionRegion*>& GigEdit::signal_dimreg_changed() {
     return dimreg_changed_signal;
 }
 
-sigc::signal<void, gig::Sample*/*old*/, gig::Sample*/*new*/> GigEdit::signal_sample_ref_changed() {
+sigc::signal<void, gig::Sample*/*old*/, gig::Sample*/*new*/>& GigEdit::signal_sample_ref_changed() {
     return sample_ref_changed_signal;
 }

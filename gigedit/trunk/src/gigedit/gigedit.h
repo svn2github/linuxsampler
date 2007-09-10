@@ -31,15 +31,17 @@ public:
     int run(const char* pFileName);
     int run(gig::Instrument* pInstrument);
 
-    sigc::signal<void, gig::File*> signal_file_structure_to_be_changed();
-    sigc::signal<void, gig::File*> signal_file_structure_changed();
-    sigc::signal<void, std::list<gig::Sample*> > signal_samples_to_be_removed();
-    sigc::signal<void> signal_samples_removed();
-    sigc::signal<void, gig::Region*> signal_region_to_be_changed();
-    sigc::signal<void, gig::Region*> signal_region_changed();
-    sigc::signal<void, gig::DimensionRegion*> signal_dimreg_to_be_changed();
-    sigc::signal<void, gig::DimensionRegion*> signal_dimreg_changed();
-    sigc::signal<void, gig::Sample*/*old*/, gig::Sample*/*new*/> signal_sample_ref_changed();
+    sigc::signal<void, gig::File*>& signal_file_structure_to_be_changed();
+    sigc::signal<void, gig::File*>& signal_file_structure_changed();
+    sigc::signal<void, std::list<gig::Sample*> >& signal_samples_to_be_removed();
+    sigc::signal<void>& signal_samples_removed();
+    sigc::signal<void, gig::Region*>& signal_region_to_be_changed();
+    sigc::signal<void, gig::Region*>& signal_region_changed();
+    sigc::signal<void, gig::DimensionRegion*>& signal_dimreg_to_be_changed();
+    sigc::signal<void, gig::DimensionRegion*>& signal_dimreg_changed();
+    sigc::signal<void, gig::Sample*/*old*/, gig::Sample*/*new*/>& signal_sample_ref_changed();
+
+void test(gig::File*);
 
 private:
     sigc::signal<void, gig::File*> file_structure_to_be_changed_signal;

@@ -616,12 +616,12 @@ bool RegionChooser::is_in_resize_zone(double x, double y) {
     return false;
 }
 
-sigc::signal<void> RegionChooser::signal_region_selected()
+sigc::signal<void>& RegionChooser::signal_region_selected()
 {
     return region_selected;
 }
 
-sigc::signal<void> RegionChooser::signal_instrument_changed()
+sigc::signal<void>& RegionChooser::signal_instrument_changed()
 {
     return instrument_changed;
 }
@@ -689,18 +689,18 @@ void RegionChooser::on_dimension_manager_changed() {
     instrument_changed();
 }
 
-sigc::signal<void, gig::Instrument*> RegionChooser::signal_instrument_struct_to_be_changed() {
+sigc::signal<void, gig::Instrument*>& RegionChooser::signal_instrument_struct_to_be_changed() {
     return instrument_struct_to_be_changed_signal;
 }
 
-sigc::signal<void, gig::Instrument*> RegionChooser::signal_instrument_struct_changed() {
+sigc::signal<void, gig::Instrument*>& RegionChooser::signal_instrument_struct_changed() {
     return instrument_struct_changed_signal;
 }
 
-sigc::signal<void, gig::Region*> RegionChooser::signal_region_to_be_changed() {
+sigc::signal<void, gig::Region*>& RegionChooser::signal_region_to_be_changed() {
     return region_to_be_changed_signal;
 }
 
-sigc::signal<void, gig::Region*> RegionChooser::signal_region_changed_signal() {
+sigc::signal<void, gig::Region*>& RegionChooser::signal_region_changed_signal() {
     return region_changed_signal;
 }

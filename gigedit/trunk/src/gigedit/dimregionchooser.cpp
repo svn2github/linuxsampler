@@ -564,12 +564,12 @@ bool DimRegionChooser::is_in_resize_zone(double x, double y)
     return false;
 }
 
-sigc::signal<void> DimRegionChooser::signal_dimregion_selected()
+sigc::signal<void>& DimRegionChooser::signal_dimregion_selected()
 {
     return dimregion_selected;
 }
 
-sigc::signal<void> DimRegionChooser::signal_region_changed()
+sigc::signal<void>& DimRegionChooser::signal_region_changed()
 {
     return region_changed;
 }

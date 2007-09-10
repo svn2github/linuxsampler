@@ -40,7 +40,7 @@ public:
 
     LabelWidget(const char* labelText, Gtk::Widget& widget);
     void set_sensitive(bool sensitive = true);
-    sigc::signal<void> signal_changed_by_user() {
+    sigc::signal<void>& signal_changed_by_user() {
         return sig_changed;
     }
 protected:
