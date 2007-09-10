@@ -2,6 +2,8 @@ CVS HEAD
   * Added support for escape sequences
 
   * API Changes
+    - Client: added new method - editInstrument
+      dependences list of parameters
     - Client: getAudioOutputDriverInfo is now public and accepts a
       dependences list of parameters
     - Client: getMidiInputDriverInfo is now public and accepts a

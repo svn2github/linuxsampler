@@ -3730,6 +3730,25 @@ public class Client {
 		ResultSet rs = getEmptyResultSet();
 	}
 	
+	/**
+	 * Starts an instrument editor for editing the loaded instrument
+	 * on the specified sampler channel.
+	 * @param samplerChn The sampler channel number.
+	 * @throws IOException If some I/O error occurs.
+	 * @throws LscpException If LSCP protocol corruption occurs.
+	 * @throws LSException If <code>samplerChn</code> is not a valid channel number or if
+	 * there is no instrument loaded on the specified sampler channel.
+	 * @see #getSamplerChannels
+	 */
+	public synchronized void
+	editInstrument(int samplerChn) throws IOException, LscpException, LSException {
+		verifyConnection();
+		out.writeLine("EDIT INSTRUMENT " + samplerChn);
+		if(getPrintOnlyMode()) return;
+		
+		ResultSet rs = getEmptyResultSet();
+	}
+	
 	
 	
 	/**
