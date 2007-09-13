@@ -173,7 +173,7 @@ namespace LinuxSampler {
             throw e;
         }
         EndTransaction();
-        if (i == -1) throw Exception("Unkown DB directory: " + Dir);
+        if (i == -1) throw Exception("Unkown DB directory: " + toEscapedPath(Dir));
         
         return i;
     }
@@ -192,7 +192,7 @@ namespace LinuxSampler {
         BeginTransaction();
         try {
             int dirId = GetDirectoryId(Dir);
-            if(dirId == -1) throw Exception("Unknown DB directory: " + Dir);
+            if(dirId == -1) throw Exception("Unknown DB directory: " + toEscapedPath(Dir));
 
             StringListPtr pDirs;
             if (Recursive) {
@@ -215,7 +215,15 @@ namespace LinuxSampler {
         std::stringstream sql;
         sql << "SELECT dir_name FROM instr_dirs ";
         sql << "WHERE parent_dir_id=" << DirId << " AND dir_id!=0";
-        return ExecSqlStringList(sql.str());
+        StringListPtr dirs = ExecSqlStringList(sql.str());
+
+        for (int i = 0; i < dirs->size(); i++) {
+            for (int j = 0; j < dirs->at(i).length(); j++) {
+                if (dirs->at(i).at(j) == '/') dirs->at(i).at(j) = '\0';
+            }
+        }
+
+        return dirs;
     }
 
     int InstrumentsDb::GetDirectoryId(String Dir) {
@@ -244,6 +252,7 @@ namespace LinuxSampler {
 
     int InstrumentsDb::GetDirectoryId(int ParentDirId, String DirName) {
         dmsg(2,("InstrumentsDb: GetDirectoryId(ParentDirId=%d, DirName=%s)\n", ParentDirId, DirName.c_str()));
+        DirName = toDbName(DirName);
         std::stringstream sql;
         sql << "SELECT dir_id FROM instr_dirs WHERE parent_dir_id=";
         sql << ParentDirId << " AND dir_name=?";
@@ -296,21 +305,21 @@ namespace LinuxSampler {
 
             String dirName = GetFileName(Dir);
             if(ParentDir.empty() || dirName.empty()) {
-                throw Exception("Failed to add DB directory: " + Dir);
+                throw Exception("Failed to add DB directory: " + toEscapedPath(Dir));
             }
 
             int id = GetDirectoryId(ParentDir);
-            if (id == -1) throw Exception("DB directory doesn't exist: " + ParentDir);
+            if (id == -1) throw Exception("DB directory doesn't exist: " + toEscapedPath(ParentDir));
             int id2 = GetDirectoryId(id, dirName);
-            if (id2 != -1) throw Exception("DB directory already exist: " + Dir);
+            if (id2 != -1) throw Exception("DB directory already exist: " + toEscapedPath(Dir));
             id2 = GetInstrumentId(id, dirName);
-            if (id2 != -1) throw Exception("Instrument with that name exist: " + Dir);
+            if (id2 != -1) throw Exception("Instrument with that name exist: " + toEscapedPath(Dir));
 
             std::stringstream sql;
             sql << "INSERT INTO instr_dirs (parent_dir_id, dir_name) VALUES (";
             sql << id << ", ?)";
 
-            ExecSql(sql.str(), dirName);
+            ExecSql(sql.str(), toDbName(dirName));
         } catch (Exception e) {
             EndTransaction();
             throw e;
@@ -329,7 +338,7 @@ namespace LinuxSampler {
         BeginTransaction();
         try {
             int dirId = GetDirectoryId(Dir);
-            if (dirId == -1) throw Exception("Unknown DB directory: " + Dir);
+            if (dirId == -1) throw Exception("Unknown DB directory: " + toEscapedPath(Dir));
             if (dirId == 0) throw Exception("Cannot delete the root directory: " + Dir);
             if(ParentDir.empty()) throw Exception("Unknown parent directory");
             if (Force) RemoveDirectoryContent(dirId);
@@ -416,7 +425,7 @@ namespace LinuxSampler {
 
         try {
             int id = GetDirectoryId(Dir);
-            if(id == -1) throw Exception("Unknown DB directory: " + Dir);
+            if(id == -1) throw Exception("Unknown DB directory: " + toEscapedPath(Dir));
 
             sqlite3_stmt *pStmt = NULL;
             std::stringstream sql;
@@ -439,7 +448,7 @@ namespace LinuxSampler {
                 if (res != SQLITE_DONE) {
                     throw Exception("DB error: " + ToString(sqlite3_errmsg(db)));
                 } else {
-                    throw Exception("Unknown DB directory: " + Dir);
+                    throw Exception("Unknown DB directory: " + toEscapedPath(Dir));
                 }
             }
             
@@ -456,28 +465,31 @@ namespace LinuxSampler {
     void InstrumentsDb::RenameDirectory(String Dir, String Name) {
         dmsg(2,("InstrumentsDb: RenameDirectory(Dir=%s,Name=%s)\n", Dir.c_str(), Name.c_str()));
         CheckFileName(Name);
+        String dbName = toDbName(Name);
 
         BeginTransaction();
         try {
             int dirId = GetDirectoryId(Dir);
-            if (dirId == -1) throw Exception("Unknown DB directory: " + Dir);
+            if (dirId == -1) throw Exception("Unknown DB directory: " + toEscapedText(Dir));
 
             std::stringstream sql;
             sql << "SELECT parent_dir_id FROM instr_dirs WHERE dir_id=" <<  dirId;
 
             int parent = ExecSqlInt(sql.str());
-            if (parent == -1) throw Exception("Unknown parent directory: " + Dir);
-            if (GetDirectoryId(parent, Name) != -1) {
-                throw Exception("Cannot rename. Directory with that name already exists: " + Name);
+            if (parent == -1) throw Exception("Unknown parent directory: " + toEscapedPath(Dir));
+
+            if (GetDirectoryId(parent, dbName) != -1) {
+                String s = toEscapedPath(Name);
+                throw Exception("Cannot rename. Directory with that name already exists: " + s);
             }
 
-            if (GetInstrumentId(parent, Name) != -1) {
-                throw Exception("Cannot rename. Instrument with that name exist: " + Dir);
+            if (GetInstrumentId(parent, dbName) != -1) {
+                throw Exception("Cannot rename. Instrument with that name exist: " + toEscapedPath(Dir));
             }
 
             sql.str("");
             sql << "UPDATE instr_dirs SET dir_name=? WHERE dir_id=" << dirId;
-            ExecSql(sql.str(), Name);
+            ExecSql(sql.str(), dbName);
         } catch (Exception e) {
             EndTransaction();
             throw e;
@@ -497,9 +509,9 @@ namespace LinuxSampler {
         BeginTransaction();
         try {
             int dirId = GetDirectoryId(Dir);
-            if (dirId == -1) throw Exception("Unknown DB directory: " + Dir);
+            if (dirId == -1) throw Exception("Unknown DB directory: " + toEscapedPath(Dir));
             int dstId = GetDirectoryId(Dst);
-            if (dstId == -1) throw Exception("Unknown DB directory: " + Dst);
+            if (dstId == -1) throw Exception("Unknown DB directory: " + toEscapedPath(Dst));
             if (dirId == dstId) {
                 throw Exception("Cannot move directory to itself");
             }
@@ -515,9 +527,9 @@ namespace LinuxSampler {
             String dirName = GetFileName(Dir);
 
             int id2 = GetDirectoryId(dstId, dirName);
-            if (id2 != -1) throw Exception("DB directory already exist: " + dirName);
+            if (id2 != -1) throw Exception("DB directory already exist: " + toEscapedPath(dirName));
             id2 = GetInstrumentId(dstId, dirName);
-            if (id2 != -1) throw Exception("Instrument with that name exist: " + dirName);
+            if (id2 != -1) throw Exception("Instrument with that name exist: " + toEscapedPath(dirName));
 
             std::stringstream sql;
             sql << "UPDATE instr_dirs SET parent_dir_id=" << dstId;
@@ -543,9 +555,9 @@ namespace LinuxSampler {
         BeginTransaction();
         try {
             int dirId = GetDirectoryId(Dir);
-            if (dirId == -1) throw Exception("Unknown DB directory: " + Dir);
+            if (dirId == -1) throw Exception("Unknown DB directory: " + toEscapedPath(Dir));
             int dstId = GetDirectoryId(Dst);
-            if (dstId == -1) throw Exception("Unknown DB directory: " + Dst);
+            if (dstId == -1) throw Exception("Unknown DB directory: " + toEscapedPath(Dst));
             if (dirId == dstId) {
                 throw Exception("Cannot copy directory to itself");
             }
@@ -561,9 +573,9 @@ namespace LinuxSampler {
             String dirName = GetFileName(Dir);
 
             int id2 = GetDirectoryId(dstId, dirName);
-            if (id2 != -1) throw Exception("DB directory already exist: " + dirName);
+            if (id2 != -1) throw Exception("DB directory already exist: " + toEscapedPath(dirName));
             id2 = GetInstrumentId(dstId, dirName);
-            if (id2 != -1) throw Exception("Instrument with that name exist: " + dirName);
+            if (id2 != -1) throw Exception("Instrument with that name exist: " + toEscapedPath(dirName));
 
             DirectoryCopier directoryCopier(ParentDir, Dst);
             DirectoryTreeWalk(Dir, &directoryCopier);
@@ -581,7 +593,7 @@ namespace LinuxSampler {
         BeginTransaction();
         try {
             int id = GetDirectoryId(Dir);
-            if(id == -1) throw Exception("Unknown DB directory: " + Dir);
+            if(id == -1) throw Exception("Unknown DB directory: " + toEscapedPath(Dir));
 
             std::stringstream sql;
             sql << "UPDATE instr_dirs SET description=?,modified=CURRENT_TIMESTAMP ";
@@ -645,7 +657,7 @@ namespace LinuxSampler {
         DbInstrumentsMutex.Lock();
         try {
             int dirId = GetDirectoryId(DbDir);
-            if (dirId == -1) throw Exception("Invalid DB directory: " + DbDir);
+            if (dirId == -1) throw Exception("Invalid DB directory: " + toEscapedText(DbDir));
 
             struct stat statBuf;
             int res = stat(FilePath.c_str(), &statBuf);
@@ -677,7 +689,7 @@ namespace LinuxSampler {
         DbInstrumentsMutex.Lock();
         try {
             int dirId = GetDirectoryId(DbDir);
-            if (dirId == -1) throw Exception("Invalid DB directory: " + DbDir);
+            if (dirId == -1) throw Exception("Invalid DB directory: " + toEscapedPath(DbDir));
 
             struct stat statBuf;
             int res = stat(FsDir.c_str(), &statBuf);
@@ -766,7 +778,7 @@ namespace LinuxSampler {
         }
         EndTransaction();
 
-        if (i == -1) throw Exception("Unknown Db directory: " + Dir);
+        if (i == -1) throw Exception("Unknown Db directory: " + toEscapedPath(Dir));
         return i;
     }
 
@@ -782,7 +794,7 @@ namespace LinuxSampler {
         BeginTransaction();
         try {
             int dirId = GetDirectoryId(Dir);
-            if(dirId == -1) throw Exception("Unknown DB directory: " + Dir);
+            if(dirId == -1) throw Exception("Unknown DB directory: " + toEscapedPath(Dir));
 
             StringListPtr pInstrs;
 
@@ -820,14 +832,14 @@ namespace LinuxSampler {
         std::stringstream sql;
         sql << "SELECT instr_id FROM instruments WHERE dir_id=";
         sql << DirId << " AND instr_name=?";
-        return ExecSqlInt(sql.str(), InstrName);
+        return ExecSqlInt(sql.str(), toDbName(InstrName));
     }
 
     String InstrumentsDb::GetInstrumentName(int InstrId) {
         dmsg(2,("InstrumentsDb: GetInstrumentName(InstrId=%d)\n", InstrId));
         std::stringstream sql;
         sql << "SELECT instr_name FROM instruments WHERE instr_id=" << InstrId;
-        return ExecSqlString(sql.str());
+        return toAbstractName(ExecSqlString(sql.str()));
     }
     
     void InstrumentsDb::RemoveInstrument(String Instr) {
@@ -839,7 +851,7 @@ namespace LinuxSampler {
         try {
             int instrId = GetInstrumentId(Instr);
             if(instrId == -1) {
-                throw Exception("The specified instrument does not exist: " + Instr);
+                throw Exception("The specified instrument does not exist: " + toEscapedPath(Instr));
             }
             RemoveInstrument(instrId);
         } catch (Exception e) {
@@ -874,7 +886,7 @@ namespace LinuxSampler {
         BeginTransaction();
         try {
             int id = GetInstrumentId(Instr);
-            if(id == -1) throw Exception("Unknown DB instrument: " + Instr);
+            if(id == -1) throw Exception("Unknown DB instrument: " + toEscapedPath(Instr));
             i = GetInstrumentInfo(id);
         } catch (Exception e) {
             EndTransaction();
@@ -933,22 +945,24 @@ namespace LinuxSampler {
         BeginTransaction();
         try {
             int dirId = GetDirectoryId(GetDirectoryPath(Instr));
-            if (dirId == -1) throw Exception("Unknown DB instrument: " + Instr);
+            if (dirId == -1) throw Exception("Unknown DB instrument: " + toEscapedPath(Instr));
 
             int instrId = GetInstrumentId(dirId, GetFileName(Instr));
-            if (instrId == -1) throw Exception("Unknown DB instrument: " + Instr);
+            if (instrId == -1) throw Exception("Unknown DB instrument: " + toEscapedPath(Instr));
 
             if (GetInstrumentId(dirId, Name) != -1) {
-                throw Exception("Cannot rename. Instrument with that name already exists: " + Name);
+                String s = toEscapedPath(Name);
+                throw Exception("Cannot rename. Instrument with that name already exists: " + s);
             }
 
             if (GetDirectoryId(dirId, Name) != -1) {
-                throw Exception("Cannot rename. Directory with that name already exists: " + Name);
+                String s = toEscapedPath(Name);
+                throw Exception("Cannot rename. Directory with that name already exists: " + s);
             }
 
             std::stringstream sql;
             sql << "UPDATE instruments SET instr_name=? WHERE instr_id=" << instrId;
-            ExecSql(sql.str(), Name);
+            ExecSql(sql.str(), toDbName(Name));
         } catch (Exception e) {
             EndTransaction();
             throw e;
@@ -964,26 +978,28 @@ namespace LinuxSampler {
 
         BeginTransaction();
         try {
-            int dirId = GetDirectoryId(GetDirectoryPath(Instr));
-            if (dirId == -1) throw Exception("Unknown DB instrument: " + Instr);
+            int dirId = GetDirectoryId(ParentDir);
+            if (dirId == -1) throw Exception("Unknown DB instrument: " + toEscapedPath(Instr));
 
             String instrName = GetFileName(Instr);
             int instrId = GetInstrumentId(dirId, instrName);
-            if (instrId == -1) throw Exception("Unknown DB instrument: " + Instr);
+            if (instrId == -1) throw Exception("Unknown DB instrument: " + toEscapedPath(Instr));
 
             int dstId = GetDirectoryId(Dst);
-            if (dstId == -1) throw Exception("Unknown DB directory: " + Dst);
+            if (dstId == -1) throw Exception("Unknown DB directory: " + toEscapedPath(Dst));
             if (dirId == dstId) {
                 EndTransaction();
                 return;
             }
 
             if (GetInstrumentId(dstId, instrName) != -1) {
-                throw Exception("Cannot move. Instrument with that name already exists: " + instrName);
+                String s = toEscapedPath(instrName);
+                throw Exception("Cannot move. Instrument with that name already exists: " + s);
             }
 
             if (GetDirectoryId(dstId, instrName) != -1) {
-                throw Exception("Cannot move. Directory with that name already exists: " + instrName);
+                String s = toEscapedPath(instrName);
+                throw Exception("Cannot move. Directory with that name already exists: " + s);
             }
 
             std::stringstream sql;
@@ -1007,25 +1023,27 @@ namespace LinuxSampler {
         BeginTransaction();
         try {
             int dirId = GetDirectoryId(GetDirectoryPath(Instr));
-            if (dirId == -1) throw Exception("Unknown DB instrument: " + Instr);
+            if (dirId == -1) throw Exception("Unknown DB instrument: " + toEscapedPath(Instr));
 
             String instrName = GetFileName(Instr);
             int instrId = GetInstrumentId(dirId, instrName);
-            if (instrId == -1) throw Exception("Unknown DB instrument: " + Instr);
+            if (instrId == -1) throw Exception("Unknown DB instrument: " + toEscapedPath(Instr));
 
             int dstId = GetDirectoryId(Dst);
-            if (dstId == -1) throw Exception("Unknown DB directory: " + Dst);
+            if (dstId == -1) throw Exception("Unknown DB directory: " + toEscapedPath(Dst));
             if (dirId == dstId) {
                 EndTransaction();
                 return;
             }
 
             if (GetInstrumentId(dstId, instrName) != -1) {
-                throw Exception("Cannot copy. Instrument with that name already exists: " + instrName);
+                String s = toEscapedPath(instrName);
+                throw Exception("Cannot copy. Instrument with that name already exists: " + s);
             }
 
             if (GetDirectoryId(dstId, instrName) != -1) {
-                throw Exception("Cannot copy. Directory with that name already exists: " + instrName);
+                String s = toEscapedPath(instrName);
+                throw Exception("Cannot copy. Directory with that name already exists: " + s);
             }
 
             CopyInstrument(instrId, instrName, dstId, Dst);
@@ -1051,7 +1069,7 @@ namespace LinuxSampler {
             throw Exception("DB error: " + ToString(sqlite3_errmsg(db)));
         }
 
-        BindTextParam(pStmt, 1, InstrName);
+        BindTextParam(pStmt, 1, toDbName(InstrName));
         BindTextParam(pStmt, 2, i.InstrFile);
         BindTextParam(pStmt, 3, i.FormatFamily);
         BindTextParam(pStmt, 4, i.FormatVersion);
@@ -1076,7 +1094,7 @@ namespace LinuxSampler {
         BeginTransaction();
         try {
             int id = GetInstrumentId(Instr);
-            if(id == -1) throw Exception("Unknown DB instrument: " + Instr);
+            if(id == -1) throw Exception("Unknown DB instrument: " + toEscapedPath(Instr));
 
             std::stringstream sql;
             sql << "UPDATE instruments SET description=?,modified=CURRENT_TIMESTAMP ";
@@ -1117,7 +1135,7 @@ namespace LinuxSampler {
     void InstrumentsDb::AddGigInstruments(String DbDir, String File, int Index, ScanProgress* pProgress) {
         dmsg(2,("InstrumentsDb: AddGigInstruments(DbDir=%s,File=%s,Index=%d)\n", DbDir.c_str(), File.c_str(), Index));
         int dirId = GetDirectoryId(DbDir);
-        if (dirId == -1) throw Exception("Invalid DB directory: " + DbDir);
+        if (dirId == -1) throw Exception("Invalid DB directory: " + toEscapedPath(DbDir));
 
         struct stat statBuf;
         int res = stat(File.c_str(), &statBuf);
@@ -1240,21 +1258,24 @@ namespace LinuxSampler {
         FireInstrumentCountChanged(DbDir);
     }
 
-    void InstrumentsDb::DirectoryTreeWalk(String Path, DirectoryHandler* pHandler) {
-        int DirId = GetDirectoryId(Path);
-        if(DirId == -1) throw Exception("Unknown DB directory: " + Path);
-        DirectoryTreeWalk(pHandler, Path, DirId, 0);
+    void InstrumentsDb::DirectoryTreeWalk(String AbstractPath, DirectoryHandler* pHandler) {
+        int DirId = GetDirectoryId(AbstractPath);
+        if(DirId == -1) throw Exception("Unknown DB directory: " + toEscapedPath(AbstractPath));
+        DirectoryTreeWalk(pHandler, AbstractPath, DirId, 0);
     }
 
-    void InstrumentsDb::DirectoryTreeWalk(DirectoryHandler* pHandler, String Path, int DirId, int Level) {
+    void InstrumentsDb::DirectoryTreeWalk(DirectoryHandler* pHandler, String AbstractPath, int DirId, int Level) {
         if(Level == 1000) throw Exception("Possible infinite loop detected");
-        pHandler->ProcessDirectory(Path, DirId);
+        pHandler->ProcessDirectory(AbstractPath, DirId);
         
         String s;
         StringListPtr pDirs = GetDirectories(DirId);
         for(int i = 0; i < pDirs->size(); i++) {
-            if (Path.length() == 1 && Path.at(0) == '/') s = "/" + pDirs->at(i);
-            else s = Path + "/" + pDirs->at(i);
+            if (AbstractPath.length() == 1 && AbstractPath.at(0) == '/') {
+                s = "/" + pDirs->at(i);
+            } else {
+                s = AbstractPath + "/" + pDirs->at(i);
+            }
             DirectoryTreeWalk(pHandler, s, GetDirectoryId(DirId, pDirs->at(i)), Level + 1);
         }
     }
@@ -1266,7 +1287,7 @@ namespace LinuxSampler {
         BeginTransaction();
         try {
             int DirId = GetDirectoryId(Dir);
-            if(DirId == -1) throw Exception("Unknown DB directory: " + Dir);
+            if(DirId == -1) throw Exception("Unknown DB directory: " + toEscapedPath(Dir));
 
             if (Recursive) DirectoryTreeWalk(Dir, &directoryFinder);
             else directoryFinder.ProcessDirectory(Dir, DirId);
@@ -1286,7 +1307,7 @@ namespace LinuxSampler {
         BeginTransaction();
         try {
             int DirId = GetDirectoryId(Dir);
-            if(DirId == -1) throw Exception("Unknown DB directory: " + Dir);
+            if(DirId == -1) throw Exception("Unknown DB directory: " + toEscapedPath(Dir));
 
             if (Recursive) DirectoryTreeWalk(Dir, &instrumentFinder);
             else instrumentFinder.ProcessDirectory(Dir, DirId);
@@ -1590,9 +1611,6 @@ namespace LinuxSampler {
 
     void InstrumentsDb::CheckFileName(String File) {
         if (File.empty()) throw Exception("Invalid file name: " + File);
-        if (File.find('/') != std::string::npos) {
-            throw Exception("Invalid file name: " + File);
-        }
     }
 
     String InstrumentsDb::GetUniqueInstrumentName(int DirId, String Name) {
@@ -1609,6 +1627,55 @@ namespace LinuxSampler {
         }
 
         throw Exception("Unable to find an unique name: " + Name);
+    }
+
+    String InstrumentsDb::toDbName(String AbstractName) {
+        for (int i = 0; i < AbstractName.length(); i++) {
+            if (AbstractName.at(i) == '\0') AbstractName.at(i) = '/';
+        }
+        return AbstractName;
+    }
+
+    String InstrumentsDb::toEscapedPath(String AbstractName) {
+        for (int i = 0; i < AbstractName.length(); i++) {
+            if (AbstractName.at(i) == '\0')      AbstractName.replace(i++, 1, "\\/");
+            else if (AbstractName.at(i) == '\\') AbstractName.replace(i++, 1, "\\\\");
+            else if (AbstractName.at(i) == '\'') AbstractName.replace(i++, 1, "\\'");
+            else if (AbstractName.at(i) == '"')  AbstractName.replace(i++, 1, "\\\"");
+            else if (AbstractName.at(i) == '\r') AbstractName.replace(i++, 1, "\\r");
+            else if (AbstractName.at(i) == '\n') AbstractName.replace(i++, 1, "\\n");
+        }
+        return AbstractName;
+    }
+    
+    String InstrumentsDb::toEscapedText(String text) {
+        for (int i = 0; i < text.length(); i++) {
+            if (text.at(i) == '\\')      text.replace(i++, 1, "\\\\");
+            else if (text.at(i) == '\'') text.replace(i++, 1, "\\'");
+            else if (text.at(i) == '"')  text.replace(i++, 1, "\\\"");
+            else if (text.at(i) == '\r') text.replace(i++, 1, "\\r");
+            else if (text.at(i) == '\n') text.replace(i++, 1, "\\n");
+        }
+        return text;
+    }
+    
+    String InstrumentsDb::toEscapedName(String AbstractName) {
+        for (int i = 0; i < AbstractName.length(); i++) {
+            if (AbstractName.at(i) == '\0')      AbstractName.at(i) = '/';
+            else if (AbstractName.at(i) == '\\') AbstractName.replace(i++, 1, "\\\\");
+            else if (AbstractName.at(i) == '\'') AbstractName.replace(i++, 1, "\\'");
+            else if (AbstractName.at(i) == '"')  AbstractName.replace(i++, 1, "\\\"");
+            else if (AbstractName.at(i) == '\r') AbstractName.replace(i++, 1, "\\r");
+            else if (AbstractName.at(i) == '\n') AbstractName.replace(i++, 1, "\\n");
+        }
+        return AbstractName;
+    }
+    
+    String InstrumentsDb::toAbstractName(String DbName) {
+        for (int i = 0; i < DbName.length(); i++) {
+            if (DbName.at(i) == '/') DbName.at(i) = '\0';
+        }
+        return DbName;
     }
 
     void InstrumentsDb::FireDirectoryCountChanged(String Dir) {

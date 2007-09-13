@@ -146,30 +146,30 @@ void LSCPServer::EventHandler::TotalVoiceCountChanged(int NewCount) {
 
 #if HAVE_SQLITE3
 void LSCPServer::DbInstrumentsEventHandler::DirectoryCountChanged(String Dir) {
-    LSCPServer::SendLSCPNotify(LSCPEvent(LSCPEvent::event_db_instr_dir_count, Dir));
+    LSCPServer::SendLSCPNotify(LSCPEvent(LSCPEvent::event_db_instr_dir_count, InstrumentsDb::toEscapedPath(Dir)));
 }
 
 void LSCPServer::DbInstrumentsEventHandler::DirectoryInfoChanged(String Dir) {
-    LSCPServer::SendLSCPNotify(LSCPEvent(LSCPEvent::event_db_instr_dir_info, Dir));
+    LSCPServer::SendLSCPNotify(LSCPEvent(LSCPEvent::event_db_instr_dir_info, InstrumentsDb::toEscapedPath(Dir)));
 }
 
 void LSCPServer::DbInstrumentsEventHandler::DirectoryNameChanged(String Dir, String NewName) {
-    Dir = "'" + Dir + "'";
-    NewName = "'" + NewName + "'";
+    Dir = "'" + InstrumentsDb::toEscapedPath(Dir) + "'";
+    NewName = "'" + InstrumentsDb::toEscapedName(NewName) + "'";
     LSCPServer::SendLSCPNotify(LSCPEvent(LSCPEvent::event_db_instr_dir_info, "NAME", Dir, NewName));
 }
 
 void LSCPServer::DbInstrumentsEventHandler::InstrumentCountChanged(String Dir) {
-    LSCPServer::SendLSCPNotify(LSCPEvent(LSCPEvent::event_db_instr_count, Dir));
+    LSCPServer::SendLSCPNotify(LSCPEvent(LSCPEvent::event_db_instr_count, InstrumentsDb::toEscapedPath(Dir)));
 }
 
 void LSCPServer::DbInstrumentsEventHandler::InstrumentInfoChanged(String Instr) {
-    LSCPServer::SendLSCPNotify(LSCPEvent(LSCPEvent::event_db_instr_info, Instr));
+    LSCPServer::SendLSCPNotify(LSCPEvent(LSCPEvent::event_db_instr_info, InstrumentsDb::toEscapedPath(Instr)));
 }
 
 void LSCPServer::DbInstrumentsEventHandler::InstrumentNameChanged(String Instr, String NewName) {
-    Instr = "'" + Instr + "'";
-    NewName = "'" + NewName + "'";
+    Instr = "'" + InstrumentsDb::toEscapedPath(Instr) + "'";
+    NewName = "'" + InstrumentsDb::toEscapedName(NewName) + "'";
     LSCPServer::SendLSCPNotify(LSCPEvent(LSCPEvent::event_db_instr_info, "NAME", Instr, NewName));
 }
 
@@ -2354,7 +2354,9 @@ String LSCPServer::GetDbInstrumentDirectories(String Dir, bool Recursive) {
 
         for (int i = 0; i < dirs->size(); i++) {
             if (list != "") list += ",";
-            list += "'" + dirs->at(i) + "'";
+
+            if (Recursive) list += "'" + InstrumentsDb::toEscapedPath(dirs->at(i)) + "'";
+            else list += "'" + InstrumentsDb::toEscapedName(dirs->at(i)) + "'";
         }
 
         result.Add(list);
@@ -2374,7 +2376,7 @@ String LSCPServer::GetDbInstrumentDirectoryInfo(String Dir) {
     try {
         DbDirectory info = InstrumentsDb::GetInstrumentsDb()->GetDirectoryInfo(Dir);
 
-        result.Add("DESCRIPTION", info.Description);
+        result.Add("DESCRIPTION", InstrumentsDb::toEscapedText(info.Description));
         result.Add("CREATED", info.Created);
         result.Add("MODIFIED", info.Modified);
     } catch (Exception e) {
@@ -2531,7 +2533,9 @@ String LSCPServer::GetDbInstruments(String Dir, bool Recursive) {
 
         for (int i = 0; i < instrs->size(); i++) {
             if (list != "") list += ",";
-            list += "'" + instrs->at(i) + "'";
+
+            if (Recursive) list += "'" + InstrumentsDb::toEscapedPath(instrs->at(i)) + "'";
+            else list += "'" + InstrumentsDb::toEscapedName(instrs->at(i)) + "'";
         }
 
         result.Add(list);
@@ -2558,11 +2562,11 @@ String LSCPServer::GetDbInstrumentInfo(String Instr) {
         result.Add("SIZE", (int)info.Size);
         result.Add("CREATED", info.Created);
         result.Add("MODIFIED", info.Modified);
-        result.Add("DESCRIPTION", FilterEndlines(info.Description));
+        result.Add("DESCRIPTION", InstrumentsDb::toEscapedText(info.Description));
         result.Add("IS_DRUM", info.IsDrum);
-        result.Add("PRODUCT", FilterEndlines(info.Product));
-        result.Add("ARTISTS", FilterEndlines(info.Artists));
-        result.Add("KEYWORDS", FilterEndlines(info.Keywords));
+        result.Add("PRODUCT", InstrumentsDb::toEscapedText(info.Product));
+        result.Add("ARTISTS", InstrumentsDb::toEscapedText(info.Artists));
+        result.Add("KEYWORDS", InstrumentsDb::toEscapedText(info.Keywords));
     } catch (Exception e) {
          result.Error(e);
     }
@@ -2679,7 +2683,7 @@ String LSCPServer::FindDbInstrumentDirectories(String Dir, std::map<String,Strin
 
         for (int i = 0; i < pDirectories->size(); i++) {
             if (list != "") list += ",";
-            list += "'" + pDirectories->at(i) + "'";
+            list += "'" + InstrumentsDb::toEscapedPath(pDirectories->at(i)) + "'";
         }
 
         result.Add(list);
@@ -2735,7 +2739,7 @@ String LSCPServer::FindDbInstruments(String Dir, std::map<String,String> Paramet
 
         for (int i = 0; i < pInstruments->size(); i++) {
             if (list != "") list += ",";
-            list += "'" + pInstruments->at(i) + "'";
+            list += "'" + InstrumentsDb::toEscapedPath(pInstruments->at(i)) + "'";
         }
 
         result.Add(list);
@@ -2766,14 +2770,4 @@ String LSCPServer::SetEcho(yyparse_param_t* pSession, double boolean_value) {
          result.Error(e);
     }
     return result.Produce();
-}
-
-String LSCPServer::FilterEndlines(String s) {
-    String s2 = s;
-    for (int i = 0; i < s2.length(); i++) {
-        if (s2.at(i) == '\r') s2.at(i) = ' ';
-        else if (s2.at(i) == '\n') s2.at(i) = ' ';
-    }
-
-    return s2;
 }

@@ -254,7 +254,7 @@ namespace LinuxSampler {
         if(Path.compare("/") != 0) s += "/";
         int res = sqlite3_step(pStmt);
         while(res == SQLITE_ROW) {
-            pDirectories->push_back(s + ToString(sqlite3_column_text(pStmt, 0)));
+            pDirectories->push_back(s + idb->toAbstractName(ToString(sqlite3_column_text(pStmt, 0))));
             res = sqlite3_step(pStmt);
         }
         
@@ -339,7 +339,7 @@ namespace LinuxSampler {
         if(Path.compare("/") != 0) s += "/";
         int res = sqlite3_step(pStmt);
         while(res == SQLITE_ROW) {
-            pInstruments->push_back(s + ToString(sqlite3_column_text(pStmt, 0)));
+            pInstruments->push_back(s + idb->toAbstractName(ToString(sqlite3_column_text(pStmt, 0))));
             res = sqlite3_step(pStmt);
         }
         
@@ -391,7 +391,9 @@ namespace LinuxSampler {
         }
 
         int dstDirId = db->GetDirectoryId(dir);
-        if(dstDirId == -1) throw Exception("Unkown DB directory: " + dir);
+        if(dstDirId == -1) {
+            throw Exception("Unkown DB directory: " + InstrumentsDb::toEscapedPath(dir));
+        }
         IntListPtr ids = db->GetInstrumentIDs(DirId);
         for (int i = 0; i < ids->size(); i++) {
             String name = db->GetInstrumentName(ids->at(i));

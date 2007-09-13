@@ -141,7 +141,7 @@ int hexsToNumber(char hex_digit0, char hex_digit1 = '0') {
 %type <Char> char char_base digit digit_oct digit_hex escape_seq escape_seq_octal escape_seq_hex
 %type <Dotnum> dotnum volume_value boolean
 %type <Number> number sampler_channel instrument_index fx_send_id audio_channel_index device_index midi_input_channel_index midi_input_port_index midi_map midi_bank midi_prog midi_ctrl
-%type <String> string string_escaped text text_escaped stringval digits param_val_list param_val query_val pathname dirname filename map_name entry_name fx_send_name engine_name command add_instruction create_instruction destroy_instruction get_instruction list_instruction load_instruction set_chan_instruction load_instr_args load_engine_args audio_output_type_name midi_input_type_name remove_instruction unmap_instruction set_instruction subscribe_event unsubscribe_event map_instruction reset_instruction clear_instruction find_instruction move_instruction copy_instruction scan_mode edit_instruction
+%type <String> string string_escaped text text_escaped textval_escaped stringval stringval_escaped digits param_val_list param_val query_val filename db_path map_name entry_name fx_send_name engine_name command add_instruction create_instruction destroy_instruction get_instruction list_instruction load_instruction set_chan_instruction load_instr_args load_engine_args audio_output_type_name midi_input_type_name remove_instruction unmap_instruction set_instruction subscribe_event unsubscribe_event map_instruction reset_instruction clear_instruction find_instruction move_instruction copy_instruction scan_mode edit_instruction
 %type <FillResponse> buffer_size_type
 %type <KeyValList> key_val_list query_val_list
 %type <LoadMode> instr_load_mode
@@ -202,14 +202,14 @@ command               :  ADD SP add_instruction                { $$ = $3;       
                       |  QUIT                                  { LSCPSERVER->AnswerClient("Bye!\r\n"); return LSCP_QUIT; }
                       ;
 
-add_instruction       :  CHANNEL                               { $$ = LSCPSERVER->AddChannel();                          }
-                      |  DB_INSTRUMENT_DIRECTORY SP pathname   { $$ = LSCPSERVER->AddDbInstrumentDirectory($3);          }
-                      |  DB_INSTRUMENTS SP NON_MODAL SP scan_mode SP pathname SP pathname        { $$ = LSCPSERVER->AddDbInstruments($5,$7,$9, true);  }
-                      |  DB_INSTRUMENTS SP scan_mode SP pathname SP pathname                     { $$ = LSCPSERVER->AddDbInstruments($3,$5,$7);        }
-                      |  DB_INSTRUMENTS SP NON_MODAL SP pathname SP pathname                     { $$ = LSCPSERVER->AddDbInstruments($5,$7, -1, true); }
-                      |  DB_INSTRUMENTS SP NON_MODAL SP pathname SP pathname SP instrument_index { $$ = LSCPSERVER->AddDbInstruments($5,$7,$9, true);  }
-                      |  DB_INSTRUMENTS SP pathname SP pathname                                  { $$ = LSCPSERVER->AddDbInstruments($3,$5);           }
-                      |  DB_INSTRUMENTS SP pathname SP pathname SP instrument_index              { $$ = LSCPSERVER->AddDbInstruments($3,$5,$7);        }
+add_instruction       :  CHANNEL                               { $$ = LSCPSERVER->AddChannel();                  }
+                      |  DB_INSTRUMENT_DIRECTORY SP db_path    { $$ = LSCPSERVER->AddDbInstrumentDirectory($3);  }
+                      |  DB_INSTRUMENTS SP NON_MODAL SP scan_mode SP db_path SP filename         { $$ = LSCPSERVER->AddDbInstruments($5,$7,$9, true);  }
+                      |  DB_INSTRUMENTS SP scan_mode SP db_path SP filename                      { $$ = LSCPSERVER->AddDbInstruments($3,$5,$7);        }
+                      |  DB_INSTRUMENTS SP NON_MODAL SP db_path SP filename                      { $$ = LSCPSERVER->AddDbInstruments($5,$7, -1, true); }
+                      |  DB_INSTRUMENTS SP NON_MODAL SP db_path SP filename SP instrument_index  { $$ = LSCPSERVER->AddDbInstruments($5,$7,$9, true);  }
+                      |  DB_INSTRUMENTS SP db_path SP filename                                   { $$ = LSCPSERVER->AddDbInstruments($3,$5);           }
+                      |  DB_INSTRUMENTS SP db_path SP filename SP instrument_index               { $$ = LSCPSERVER->AddDbInstruments($3,$5,$7);        }
                       |  MIDI_INSTRUMENT_MAP                   { $$ = LSCPSERVER->AddMidiInstrumentMap();                }
                       |  MIDI_INSTRUMENT_MAP SP map_name       { $$ = LSCPSERVER->AddMidiInstrumentMap($3);              }
                       ;
@@ -273,12 +273,12 @@ map_instruction       :  MIDI_INSTRUMENT SP modal_arg midi_map SP midi_bank SP m
 unmap_instruction     :  MIDI_INSTRUMENT SP midi_map SP midi_bank SP midi_prog  { $$ = LSCPSERVER->RemoveMIDIInstrumentMapping($3,$5,$7); }
                       ;
 
-remove_instruction    :  CHANNEL SP sampler_channel                    { $$ = LSCPSERVER->RemoveChannel($3);                     }
-                      |  MIDI_INSTRUMENT_MAP SP midi_map               { $$ = LSCPSERVER->RemoveMidiInstrumentMap($3);           }
-                      |  MIDI_INSTRUMENT_MAP SP ALL                    { $$ = LSCPSERVER->RemoveAllMidiInstrumentMaps();         }
-                      |  DB_INSTRUMENT_DIRECTORY SP FORCE SP pathname  { $$ = LSCPSERVER->RemoveDbInstrumentDirectory($5, true); }
-                      |  DB_INSTRUMENT_DIRECTORY SP pathname           { $$ = LSCPSERVER->RemoveDbInstrumentDirectory($3);       }
-                      |  DB_INSTRUMENT SP pathname                     { $$ = LSCPSERVER->RemoveDbInstrument($3);                }
+remove_instruction    :  CHANNEL SP sampler_channel                   { $$ = LSCPSERVER->RemoveChannel($3);                      }
+                      |  MIDI_INSTRUMENT_MAP SP midi_map              { $$ = LSCPSERVER->RemoveMidiInstrumentMap($3);            }
+                      |  MIDI_INSTRUMENT_MAP SP ALL                   { $$ = LSCPSERVER->RemoveAllMidiInstrumentMaps();          }
+                      |  DB_INSTRUMENT_DIRECTORY SP FORCE SP db_path  { $$ = LSCPSERVER->RemoveDbInstrumentDirectory($5, true);  }
+                      |  DB_INSTRUMENT_DIRECTORY SP db_path           { $$ = LSCPSERVER->RemoveDbInstrumentDirectory($3);        }
+                      |  DB_INSTRUMENT SP db_path                     { $$ = LSCPSERVER->RemoveDbInstrument($3);                 }
                       ;
 
 get_instruction       :  AVAILABLE_ENGINES                                                          { $$ = LSCPSERVER->GetAvailableEngines();                          }
@@ -314,12 +314,12 @@ get_instruction       :  AVAILABLE_ENGINES                                      
                       |  MIDI_INSTRUMENT_MAP SP INFO SP midi_map                                    { $$ = LSCPSERVER->GetMidiInstrumentMap($5);                       }
                       |  FX_SENDS SP sampler_channel                                                { $$ = LSCPSERVER->GetFxSends($3);                                 }
                       |  FX_SEND SP INFO SP sampler_channel SP fx_send_id                           { $$ = LSCPSERVER->GetFxSendInfo($5,$7);                           }
-                      |  DB_INSTRUMENT_DIRECTORIES SP RECURSIVE SP pathname                         { $$ = LSCPSERVER->GetDbInstrumentDirectoryCount($5, true);        }
-                      |  DB_INSTRUMENT_DIRECTORIES SP pathname                                      { $$ = LSCPSERVER->GetDbInstrumentDirectoryCount($3, false);       }
-                      |  DB_INSTRUMENT_DIRECTORY SP INFO SP pathname                                { $$ = LSCPSERVER->GetDbInstrumentDirectoryInfo($5);               }
-                      |  DB_INSTRUMENTS SP RECURSIVE SP pathname                                    { $$ = LSCPSERVER->GetDbInstrumentCount($5, true);                 }
-                      |  DB_INSTRUMENTS SP pathname                                                 { $$ = LSCPSERVER->GetDbInstrumentCount($3, false);                }
-                      |  DB_INSTRUMENT SP INFO SP pathname                                          { $$ = LSCPSERVER->GetDbInstrumentInfo($5);                        }
+                      |  DB_INSTRUMENT_DIRECTORIES SP RECURSIVE SP db_path                          { $$ = LSCPSERVER->GetDbInstrumentDirectoryCount($5, true);        }
+                      |  DB_INSTRUMENT_DIRECTORIES SP db_path                                       { $$ = LSCPSERVER->GetDbInstrumentDirectoryCount($3, false);       }
+                      |  DB_INSTRUMENT_DIRECTORY SP INFO SP db_path                                 { $$ = LSCPSERVER->GetDbInstrumentDirectoryInfo($5);               }
+                      |  DB_INSTRUMENTS SP RECURSIVE SP db_path                                     { $$ = LSCPSERVER->GetDbInstrumentCount($5, true);                 }
+                      |  DB_INSTRUMENTS SP db_path                                                  { $$ = LSCPSERVER->GetDbInstrumentCount($3, false);                }
+                      |  DB_INSTRUMENT SP INFO SP db_path                                           { $$ = LSCPSERVER->GetDbInstrumentInfo($5);                        }
                       |  DB_INSTRUMENTS_JOB SP INFO SP number                                       { $$ = LSCPSERVER->GetDbInstrumentsJobInfo($5);                    }
                       |  VOLUME                                                                     { $$ = LSCPSERVER->GetGlobalVolume();                              }
                       ;
@@ -335,10 +335,10 @@ set_instruction       :  AUDIO_OUTPUT_DEVICE_PARAMETER SP number SP string '=' p
                       |  FX_SEND SP AUDIO_OUTPUT_CHANNEL SP sampler_channel SP fx_send_id SP audio_channel_index SP audio_channel_index  { $$ = LSCPSERVER->SetFxSendAudioOutputChannel($5,$7,$9,$11); }
                       |  FX_SEND SP MIDI_CONTROLLER SP sampler_channel SP fx_send_id SP midi_ctrl         { $$ = LSCPSERVER->SetFxSendMidiController($5,$7,$9);              }
                       |  FX_SEND SP LEVEL SP sampler_channel SP fx_send_id SP volume_value                { $$ = LSCPSERVER->SetFxSendLevel($5,$7,$9);                       }
-                      |  DB_INSTRUMENT_DIRECTORY SP NAME SP pathname SP dirname                           { $$ = LSCPSERVER->SetDbInstrumentDirectoryName($5,$7);            }
-                      |  DB_INSTRUMENT_DIRECTORY SP DESCRIPTION SP pathname SP stringval                  { $$ = LSCPSERVER->SetDbInstrumentDirectoryDescription($5,$7);     }
-                      |  DB_INSTRUMENT SP NAME SP pathname SP dirname                                     { $$ = LSCPSERVER->SetDbInstrumentName($5,$7);                     }
-                      |  DB_INSTRUMENT SP DESCRIPTION SP pathname SP stringval                            { $$ = LSCPSERVER->SetDbInstrumentDescription($5,$7);              }
+                      |  DB_INSTRUMENT_DIRECTORY SP NAME SP db_path SP stringval_escaped                  { $$ = LSCPSERVER->SetDbInstrumentDirectoryName($5,$7);            }
+                      |  DB_INSTRUMENT_DIRECTORY SP DESCRIPTION SP db_path SP stringval_escaped           { $$ = LSCPSERVER->SetDbInstrumentDirectoryDescription($5,$7);     }
+                      |  DB_INSTRUMENT SP NAME SP db_path SP stringval_escaped                            { $$ = LSCPSERVER->SetDbInstrumentName($5,$7);                     }
+                      |  DB_INSTRUMENT SP DESCRIPTION SP db_path SP stringval_escaped                     { $$ = LSCPSERVER->SetDbInstrumentDescription($5,$7);              }
                       |  ECHO SP boolean                                                                  { $$ = LSCPSERVER->SetEcho((yyparse_param_t*) yyparse_param, $3);  }
                       |  VOLUME SP volume_value                                                           { $$ = LSCPSERVER->SetGlobalVolume($3);                            }
                       ;
@@ -358,18 +358,18 @@ clear_instruction     :  MIDI_INSTRUMENTS SP midi_map   { $$ = LSCPSERVER->Clear
                       |  MIDI_INSTRUMENTS SP ALL        { $$ = LSCPSERVER->ClearAllMidiInstrumentMappings(); }
                       ;
 
-find_instruction      :  DB_INSTRUMENTS SP NON_RECURSIVE SP pathname SP query_val_list             { $$ = LSCPSERVER->FindDbInstruments($5,$7, false);           }
-                      |  DB_INSTRUMENTS SP pathname SP query_val_list                              { $$ = LSCPSERVER->FindDbInstruments($3,$5, true);            }
-                      |  DB_INSTRUMENT_DIRECTORIES SP NON_RECURSIVE SP pathname SP query_val_list  { $$ = LSCPSERVER->FindDbInstrumentDirectories($5,$7, false); }
-                      |  DB_INSTRUMENT_DIRECTORIES SP pathname SP query_val_list                   { $$ = LSCPSERVER->FindDbInstrumentDirectories($3,$5, true);  }
+find_instruction      :  DB_INSTRUMENTS SP NON_RECURSIVE SP db_path SP query_val_list              { $$ = LSCPSERVER->FindDbInstruments($5,$7, false);           }
+                      |  DB_INSTRUMENTS SP db_path SP query_val_list                               { $$ = LSCPSERVER->FindDbInstruments($3,$5, true);            }
+                      |  DB_INSTRUMENT_DIRECTORIES SP NON_RECURSIVE SP db_path SP query_val_list   { $$ = LSCPSERVER->FindDbInstrumentDirectories($5,$7, false); }
+                      |  DB_INSTRUMENT_DIRECTORIES SP db_path SP query_val_list                    { $$ = LSCPSERVER->FindDbInstrumentDirectories($3,$5, true);  }
                       ;
 
-move_instruction      :  DB_INSTRUMENT_DIRECTORY SP pathname SP pathname  { $$ = LSCPSERVER->MoveDbInstrumentDirectory($3,$5); }
-                      |  DB_INSTRUMENT SP pathname SP pathname            { $$ = LSCPSERVER->MoveDbInstrument($3,$5);          }
+move_instruction      :  DB_INSTRUMENT_DIRECTORY SP db_path SP db_path    { $$ = LSCPSERVER->MoveDbInstrumentDirectory($3,$5); }
+                      |  DB_INSTRUMENT SP db_path SP db_path              { $$ = LSCPSERVER->MoveDbInstrument($3,$5);          }
                       ;
 
-copy_instruction      :  DB_INSTRUMENT_DIRECTORY SP pathname SP pathname  { $$ = LSCPSERVER->CopyDbInstrumentDirectory($3,$5); }
-                      |  DB_INSTRUMENT SP pathname SP pathname            { $$ = LSCPSERVER->CopyDbInstrument($3,$5);          }
+copy_instruction      :  DB_INSTRUMENT_DIRECTORY SP db_path SP db_path    { $$ = LSCPSERVER->CopyDbInstrumentDirectory($3,$5); }
+                      |  DB_INSTRUMENT SP db_path SP db_path              { $$ = LSCPSERVER->CopyDbInstrument($3,$5);          }
                       ;
 
 destroy_instruction   :  AUDIO_OUTPUT_DEVICE SP number  { $$ = LSCPSERVER->DestroyAudioOutputDevice($3); }
@@ -422,10 +422,10 @@ list_instruction      :  AUDIO_OUTPUT_DEVICES                               { $$
                       |  MIDI_INSTRUMENTS SP ALL                            { $$ = LSCPSERVER->ListAllMidiInstrumentMappings();      }
                       |  MIDI_INSTRUMENT_MAPS                               { $$ = LSCPSERVER->ListMidiInstrumentMaps();             }
                       |  FX_SENDS SP sampler_channel                        { $$ = LSCPSERVER->ListFxSends($3);                      }
-                      |  DB_INSTRUMENT_DIRECTORIES SP RECURSIVE SP pathname { $$ = LSCPSERVER->GetDbInstrumentDirectories($5, true); }
-                      |  DB_INSTRUMENT_DIRECTORIES SP pathname              { $$ = LSCPSERVER->GetDbInstrumentDirectories($3);       }
-                      |  DB_INSTRUMENTS SP RECURSIVE SP pathname            { $$ = LSCPSERVER->GetDbInstruments($5, true);           }
-                      |  DB_INSTRUMENTS SP pathname                         { $$ = LSCPSERVER->GetDbInstruments($3);                 }
+                      |  DB_INSTRUMENT_DIRECTORIES SP RECURSIVE SP db_path  { $$ = LSCPSERVER->GetDbInstrumentDirectories($5, true); }
+                      |  DB_INSTRUMENT_DIRECTORIES SP db_path               { $$ = LSCPSERVER->GetDbInstrumentDirectories($3);       }
+                      |  DB_INSTRUMENTS SP RECURSIVE SP db_path             { $$ = LSCPSERVER->GetDbInstruments($5, true);           }
+                      |  DB_INSTRUMENTS SP db_path                          { $$ = LSCPSERVER->GetDbInstruments($3);                 }
                       ;
 
 load_instr_args       :  filename SP instrument_index SP sampler_channel               { $$ = LSCPSERVER->LoadInstrument($1, $3, $5);       }
@@ -487,13 +487,10 @@ fx_send_id                :  number
 engine_name               :  string
                           ;
 
-pathname                  :  stringval
-                          ;
-
-dirname                   :  stringval
-                          ;
-
 filename                  :  path  { $$ = $1.toPosix(); /*TODO: assuming POSIX*/ }
+                          ;
+
+db_path                   :  path  { $$ = $1.toDbPath(); }
                           ;
 
 map_name                  :  stringval
@@ -519,8 +516,8 @@ query_val_list            :  string '=' query_val                    { $$[$1] = 
                           |  query_val_list SP string '=' query_val  { $$ = $1; $$[$3] = $5; }
                           ;
 
-query_val                 :  string
-                          |  stringval
+query_val                 :  textval_escaped
+                          |  stringval_escaped
                           ;
 
 scan_mode                 :  RECURSIVE      { $$ = "RECURSIVE"; }
@@ -618,6 +615,10 @@ stringval             :  '\'' text '\''  { $$ = $2; }
                       |  '\"' text '\"'  { $$ = $2; }
                       ;
 
+stringval_escaped     :  '\'' textval_escaped '\''  { $$ = $2; }
+                      |  '\"' textval_escaped '\"'  { $$ = $2; }
+                      ;
+
 text                  :  SP           { $$ = " ";      }
                       |  string
                       |  text SP      { $$ = $1 + " "; }
@@ -628,6 +629,12 @@ text_escaped          :  SP                           { $$ = " ";      }
                       |  string_escaped
                       |  text_escaped SP              { $$ = $1 + " "; }
                       |  text_escaped string_escaped  { $$ = $1 + $2;  }
+                      ;
+
+textval_escaped       :  '/'                           { $$ = "/";      }
+                      |  text_escaped
+                      |  textval_escaped '/'           { $$ = $1 + "/"; }
+                      |  textval_escaped text_escaped  { $$ = $1 + $2;  }
                       ;
 
 string                :  char          { std::string s; s = $1; $$ = s; }

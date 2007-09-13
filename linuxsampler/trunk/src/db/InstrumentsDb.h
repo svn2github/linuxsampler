@@ -140,6 +140,7 @@ namespace LinuxSampler {
             /**
              * Gets the number of directories in the specified directory.
              * @param Dir The absolute path name of the directory.
+             * All slashes in the directory names should be replaced with '\0'.
              * @param Recursive If true, the number of all directories
              * in the specified subtree will be returned.
              * @throws Exception - if database error occurs, or
@@ -151,16 +152,21 @@ namespace LinuxSampler {
             /**
              * Gets the list of directories in the specified directory.
              * @param Dir The absolute path name of the directory.
+             * All slashes in the directory names should be replaced with '\0'.
              * @param Recursive If true, all directories
              * in the specified subtree will be returned.
              * @throws Exception - if database error occurs, or
              * the specified path name is invalid.
+             * @returns The list of directories, where the directories are
+             * represented in abstract path - all slashes in the directory
+             * names are replaced with '\0'.
              */
             StringListPtr GetDirectories(String Dir, bool Recursive);
 
             /**
              * Adds the specified directory to the database.
              * @param Dir The absolute path name of the directory to add.
+             * All slashes in the directory names should be replaced with '\0'.
              * @throws Exception - if database error occurs, or the
              * specified path is invalid.
              */
@@ -169,6 +175,7 @@ namespace LinuxSampler {
             /**
              * Removes the specified directory from the database.
              * @param Dir The absolute path name of the directory to remove.
+             * All slashes in the directory names should be replaced with '\0'.
              * @throws Exception - If the specified path is invalid, or 
              * Force is false and the specified directory is
              * not empty, or if database error occurs.
@@ -177,6 +184,8 @@ namespace LinuxSampler {
 
             /**
              * Determines whether the specified directory exists in the database.
+             * @param Dir The absolute path name of the directory.
+             * All slashes in the directory names should be replaced with '\0'.
              * @throws Exception - If database error occurs.
              */
             bool DirectoryExist(String Dir);
@@ -184,6 +193,7 @@ namespace LinuxSampler {
             /**
              * Gets information about the specified directory.
              * @param Dir The absolute path name of the directory.
+             * All slashes in the directory names should be replaced with '\0'.
              * @throws Exception - if database error occurs, or if
              * the specified directory is not found.
              */
@@ -192,6 +202,7 @@ namespace LinuxSampler {
             /**
              * Renames the specified directory.
              * @param Dir The absolute path name of the directory to rename.
+             * All slashes in the directory names should be replaced with '\0'.
              * @param Name The new name for the directory.
              * @throws Exception - In case the given directory does not exists,
              * or the specified name is not a valid name,
@@ -203,7 +214,9 @@ namespace LinuxSampler {
             /**
              * Moves the specified directory into the specified location.
              * @param Dir The absolute path name of the directory to move.
+             * All slashes in the directory names should be replaced with '\0'.
              * @param Dst The location where the directory will be moved to.
+             * All slashes in the directory names should be replaced with '\0'.
              * @throws Exception - In case a given directory does not exists,
              * or if a directory with name equal to the directory name already
              * exists in the specified destination directory, or if database error
@@ -215,7 +228,9 @@ namespace LinuxSampler {
             /**
              * Copies the specified directory into the specified location.
              * @param Dir The absolute path name of the directory to copy.
+             * All slashes in the directory names should be replaced with '\0'.
              * @param Dst The location where the directory will be copied to.
+             * All slashes in the directory names should be replaced with '\0'.
              * @throws Exception - In case a given directory does not exists,
              * or if a directory with name equal to the directory name already
              * exists in the specified destination directory, or if database error
@@ -226,6 +241,8 @@ namespace LinuxSampler {
 
             /**
              * Changes the description of the specified directory.
+             * @param Dir The absolute path name of the directory.
+             * All slashes in the directory names should be replaced with '\0'.
              * @throws Exception - if database error occurs, or if
              * the specified directory is not found.
              */
@@ -371,7 +388,10 @@ namespace LinuxSampler {
             /**
              * Copies the specified instrument into the specified directory.
              * @param Instr The absolute path name of the instrument to copy.
-             * @param Dst The directory where the instrument will be copied to.
+             * All slashes in the directory/instrument names should be replaced with '\0'.
+             * @param Dst The absolute path name of the directory where the
+             * instrument will be copied to. All slashes in the directory names
+             * should be replaced with '\0'.
              * @throws Exception - In case the given directory or instrument
              * does not exist, or if an instrument with name equal to the name
              * of the specified instrument already exists in the specified
@@ -396,6 +416,26 @@ namespace LinuxSampler {
              * that match the search query.
              */
             StringListPtr FindInstruments(String Dir, SearchQuery* pQuery, bool Recursive);
+
+            /**
+             * All '\0' chars in the string are replaced with "\/";
+             * ', ", \ are escaped with backslash and
+             * <CR> and <LF> are replaced with \r and \n.
+             */
+            static String toEscapedPath(String AbstractPath);
+
+            /**
+             * The characters ', ", \ are escaped with backslash and
+             * <CR> and <LF> are replaced with \r and \n.
+             */
+            static String toEscapedText(String text);
+
+            /**
+             *  All '\0' chars in the string are replaced with '/';
+             * The characthers ', ", \ are escaped with backslash and
+             * <CR> and <LF> are replaced with \r and \n.
+             */
+            static String toEscapedName(String AbstractName);
             
             /**
              * Closes the database connection if opened and deletes
@@ -444,6 +484,9 @@ namespace LinuxSampler {
             /**
              * Gets the list of directories in the specified directory.
              * @param DirId The ID of the directory.
+             * @returns The list of directories, where the directories are
+             * represented in abstract path - all slashes in the directory
+             * names are replaced with '\0'.
              * @throws Exception - if database error occurs, or
              * the specified ID is invalid.
              */
@@ -452,6 +495,7 @@ namespace LinuxSampler {
             /**
              * Gets the directory ID.
              * @param Dir The absolute path name of the directory.
+             * All slashes in the directory names should be replaced with '\0'.
              * @returns The directory ID or -1 if the directory is not found.
              * @throws Exception - if database error occurs.
              */
@@ -461,6 +505,7 @@ namespace LinuxSampler {
              * Gets the directory ID.
              * @param ParentDirId The ID of the parent directory.
              * @param DirName The directory name.
+             * All slashes in the directory name should be replaced with '\0'.
              * @throws Exception - if database error occurs.
              * @returns The ID of the specified directory
              * or -1 if the directory doesn't exist.
@@ -527,6 +572,7 @@ namespace LinuxSampler {
             /**
              * Gets the ID of the specified database instrument.
              * @param Instr The absolute path name of the instrument.
+             * All slashes in the directory/instrument names should be replaced with '\0'.
              * @returns The instrument ID or -1 if the instrument is not found.
              * @throws Exception - if database error occurs.
              */
@@ -536,6 +582,7 @@ namespace LinuxSampler {
              * Gets the ID of the specified database instrument.
              * @param DirId The ID of the directory containing the instrument.
              * @param InstrName The name of the instrument.
+             * All slashes in the instrument name should be replaced with '\0'.
              * @returns The instrument ID or -1 if the instrument is not found.
              * @throws Exception - if database error occurs.
              */
@@ -544,7 +591,8 @@ namespace LinuxSampler {
             /**
              * Gets the name of the instrument with the specified ID.
              * @param InstrId The ID of the instrument, which name should be obtained.
-             * @returns The name of the specified instrument.
+             * @returns The name of the specified instrument, where all slashes
+             * in the name are replaced with '\0'.
              * @throws Exception - if database error occurs.
              */
             String GetInstrumentName(int InstrId);
@@ -589,10 +637,10 @@ namespace LinuxSampler {
             /**
              * Copies the specified instrument into the specified directory.
              * @param InstrId The ID of the instrument to copy.
-             * @param InstrId The name of the instrument to copy.
+             * @param InstrName The name of the instrument to copy.
              * @param DstDirId The ID of the directory where the
              * instrument will be copied to.
-             * @param DstDirId The name of the directory where the
+             * @param DstDir The name of the directory where the
              * instrument will be copied to.
              * @throws Exception - If database error occurs.
              */
@@ -667,9 +715,9 @@ namespace LinuxSampler {
              */
             void AddGigInstrument(sqlite3_stmt* pStmt, String DbDir, int DirId, String File, ::gig::Instrument* pInstrument, int Index);
             
-            void DirectoryTreeWalk(String Path, DirectoryHandler* pHandler);
+            void DirectoryTreeWalk(String AbstractPath, DirectoryHandler* pHandler);
 
-            void DirectoryTreeWalk(DirectoryHandler* pHandler, String Path, int DirId, int Level);
+            void DirectoryTreeWalk(DirectoryHandler* pHandler, String AbstractPath, int DirId, int Level);
 
             /** Locks the DbInstrumentsMutex and starts a transaction. */
             void BeginTransaction();
@@ -733,6 +781,16 @@ namespace LinuxSampler {
              * supposed that this is due to a bug or an infinite loop.
              */
             String GetUniqueInstrumentName(int DirId, String Name);
+
+            /**
+             * All '\0' chars in the string are replaced with '/'.
+             */
+            static String toDbName(String AbstractName);
+
+            /**
+             * All slashes are replaced with '\0'.
+             */
+            static String toAbstractName(String DbName);
 
             void FireDirectoryCountChanged(String Dir);
             void FireDirectoryInfoChanged(String Dir);

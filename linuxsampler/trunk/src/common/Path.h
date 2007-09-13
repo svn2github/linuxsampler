@@ -61,6 +61,12 @@ public:
     std::string toPosix();
 
     /**
+     * Convert this Path into the correct encoding as expected
+     * by the instruments database implementation.
+     */
+    std::string toDbPath();
+
+    /**
      * Concatenate two paths.
      */
     Path operator+(const Path& p);

@@ -53,6 +53,21 @@ std::string Path::toPosix() {
     return result;
 }
 
+std::string Path::toDbPath() {
+    std::string result;
+    for (int iElement = 0; iElement < elements.size(); iElement++) {
+        // replace all slashes with '\0'
+        std::string e = elements[iElement];
+        for (int i = 0; i < e.length(); i++) {
+            if (e.at(i) == '/') e.at(i) = '\0';
+        }
+        // append encoded node to full encoded path
+        result += "/" + e;
+    }
+    if (!result.size()) result = "/";
+    return result;
+}
+
 Path Path::operator+(const Path& p) {
     Path result = *this;
     for (int i = 0; i < p.elements.size(); i++)

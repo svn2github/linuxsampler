@@ -41,6 +41,7 @@ Version CVS HEAD (?)
     - fixed compilation errors regarding OSX
       (patch by Toshi Nagata)
     - implemented instruments database
+    - added support for escape sequences to the instruments database
     - added highly experimental support for on-the-fly instrument editing
       within the sampler's process (by using instrument editor plugins),
       you'll notice the new "Registered instrument editors:" message on
