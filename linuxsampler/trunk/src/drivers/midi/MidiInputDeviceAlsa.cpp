@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005, 2006 Christian Schoenebeck                        *
+ *   Copyright (C) 2005 - 2007 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -94,7 +94,7 @@ namespace LinuxSampler {
             snd_seq_port_subscribe_free(*it);
         }
         pPort->subscriptions.clear();
-        
+
         std::vector<String>::iterator iter = vS.begin();
         for (; iter != vS.end(); iter++) pPort->ConnectToAlsaMidiSource((*iter).c_str());
     }
@@ -234,7 +234,7 @@ namespace LinuxSampler {
     }
 
     String MidiInputDeviceAlsa::Version() {
-	    String s = "$Revision: 1.20 $";
+	    String s = "$Revision: 1.21 $";
 	    return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
 
@@ -296,6 +296,8 @@ namespace LinuxSampler {
                 } while (snd_seq_event_input_pending(hAlsaSeq, 0) > 0);
             }
         }
+        // just to avoid a compiler warning
+        return EXIT_FAILURE;
     }
 
 } // namespace LinuxSampler
