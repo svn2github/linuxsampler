@@ -542,8 +542,10 @@ public class Client {
 			if(s.startsWith("NAME ")) {
 				String[] list;
 				try {
-					list = parseQuotedStringList(s.substring("NAME ".length()), ' ');
+					s = s.substring("NAME ".length());
+					list = parseEscapedStringList(s, ' ');
 					if(list.length != 2) throw new LscpException();
+					list[1] = toNonEscapedText(list[1]);
 					e = new InstrumentsDbEvent(this, list[0], list[1]);
 					for(InstrumentsDbListener l : llID) {
 						l.directoryNameChanged(e);
@@ -569,8 +571,10 @@ public class Client {
 			if(s.startsWith("NAME ")) {
 				String[] list;
 				try {
-					list = parseQuotedStringList(s.substring("NAME ".length()), ' ');
+					s = s.substring("NAME ".length());
+					list = parseEscapedStringList(s, ' ');
 					if(list.length != 2) throw new LscpException();
+					list[1] = toNonEscapedText(list[1]);
 					e = new InstrumentsDbEvent(this, list[0], list[1]);
 					for(InstrumentsDbListener l : llID) {
 						l.instrumentNameChanged(e);
@@ -2857,7 +2861,7 @@ public class Client {
 	loadInstrument(String filename, int instrIdx, int samplerChn, boolean nonModal)
 						throws IOException, LscpException, LSException {
 		
-		filename = getEscapedString(filename);
+		filename = toEscapedString(filename);
 		String cmd = nonModal ? "LOAD INSTRUMENT NON_MODAL " : "LOAD INSTRUMENT ";
 		String args = '\'' + filename + "' " + instrIdx + ' ' + samplerChn;
 		
@@ -3753,7 +3757,7 @@ public class Client {
 	
 	/**
 	 * Adds the specified directory to the instruments database.
-	 * @param dir The absolute path name of the directory to add.
+	 * @param dir The absolute (escaped) path name of the directory to add.
 	 * @throws IOException If some I/O error occurs.
 	 * @throws LSException If the creation of the directory failed.
 	 * @throws LscpException If LSCP protocol corruption occurs.
@@ -3769,7 +3773,7 @@ public class Client {
 	
 	/**
 	 * Removes the specified directory from the instruments database.
-	 * @param dir The absolute path name of the directory to remove.
+	 * @param dir The absolute (escaped) path name of the directory to remove.
 	 * @throws IOException If some I/O error occurs.
 	 * @throws LscpException If LSCP protocol corruption occurs.
 	 * @throws LSException If the specified directory is not
@@ -3804,7 +3808,7 @@ public class Client {
 	
 	/**
 	 * Removes the specified directories from the instruments database.
-	 * @param dirs The absolute path names of the directories to remove.
+	 * @param dirs The absolute (escaped) path names of the directories to remove.
 	 * @param force If <code>true</code> forces the removal of non-empty
 	 * directories.
 	 * @throws IOException If some I/O error occurs.
@@ -3879,7 +3883,11 @@ public class Client {
 		out.writeLine("LIST DB_INSTRUMENT_DIRECTORIES '" + dir + "'");
 		if(getPrintOnlyMode()) return null;
 		
-		return parseQuotedStringList(getSingleLineResultSet().getResult());
+		String[] names = parseEscapedStringList(getSingleLineResultSet().getResult());
+		for(int i = 0; i < names.length; i++) {
+			names[i] = toNonEscapedText(names[i]);
+		}
+		return names;
 	}
 	
 	/**
@@ -3901,15 +3909,13 @@ public class Client {
 		DbDirectoryInfo info = new DbDirectoryInfo(rs.getMultiLineResult());
 		if(dir.equals("/")) {
 			info.setName("/");
-		} else if(dir.length() > 1 && dir.charAt(dir.length() - 1) == '/') {
-			dir = dir.substring(0, dir.length() - 1);
+		} else {
+			dir = removeEndingFileSeparator(dir);
 		}
-		int i = dir.lastIndexOf('/');
-		if(i != -1 && i < dir.length() - 1) {
-			info.setName(dir.substring(i + 1));
-			if(i == 0) info.setParentDirectoryPath("/");
-			else info.setParentDirectoryPath(dir.substring(0, i));
-		}
+		String s = getFileName(dir);
+		if(s != null) info.setName(toNonEscapedFileName(s));
+		s = getParentDirectory(dir);
+		if(s != null) info.setParentDirectoryPath(s);
 		
 		return info;
 	}
@@ -3926,9 +3932,11 @@ public class Client {
 	public synchronized DbDirectoryInfo[]
 	getDbDirectories(String dir) throws IOException, LscpException, LSException {
 		String[] dirS = getDbDirectoryNames(dir);
-		if(dir.charAt(dir.length() - 1) != '/') dir += "/";
+		if(!hasEndingFileSeparator(dir)) dir += "/";
 		DbDirectoryInfo[] infoS = new DbDirectoryInfo[dirS.length];
-		for(int i = 0; i < dirS.length; i++) infoS[i] = getDbDirectoryInfo(dir + dirS[i]);
+		for(int i = 0; i < dirS.length; i++) {
+			infoS[i] = getDbDirectoryInfo(dir + toEscapedFileName(dirS[i]));
+		}
 		return infoS;
 	}
 	
@@ -3993,6 +4001,7 @@ public class Client {
 	public synchronized void
 	renameDbDirectory(String dir, String name) throws IOException, LSException, LscpException {
 		verifyConnection();
+		name = toEscapedString(name);
 		out.writeLine("SET DB_INSTRUMENT_DIRECTORY NAME '" + dir + "' '" + name + "'");
 		if(getPrintOnlyMode()) return;
 		
@@ -4085,7 +4094,7 @@ public class Client {
 		
 		verifyConnection();
 		String s = "SET DB_INSTRUMENT_DIRECTORY DESCRIPTION '";
-		out.writeLine(s + dir + "' '" + desc + "'");
+		out.writeLine(s + dir + "' '" + toEscapedString(desc) + "'");
 		if(getPrintOnlyMode()) return;
 		
 		ResultSet rs = getEmptyResultSet();
@@ -4134,7 +4143,7 @@ public class Client {
 		verifyConnection();
 		String s = "ADD DB_INSTRUMENTS";
 		if(background) s += " NON_MODAL";
-		s += " '" + dbDir + "' '" + filePath + "' ";
+		s += " '" + dbDir + "' '" + toEscapedString(filePath) + "' ";
 		out.writeLine(s + String.valueOf(instrIndex));
 		if(getPrintOnlyMode()) return -1;
 		
@@ -4181,7 +4190,7 @@ public class Client {
 		verifyConnection();
 		String s = "ADD DB_INSTRUMENTS";
 		if(background) s += " NON_MODAL";
-		out.writeLine(s + " '" + dbDir + "' '" + filePath + "'");
+		out.writeLine(s + " '" + dbDir + "' '" + toEscapedString(filePath) + "'");
 		if(getPrintOnlyMode()) return -1;
 		
 		ResultSet rs = getEmptyResultSet();
@@ -4264,7 +4273,8 @@ public class Client {
 				break;
 		}
 		
-		sb.append(" '").append(dbDir).append("' '").append(fsDir).append("'");
+		sb.append(" '").append(dbDir).append("' '");
+		sb.append(toEscapedString(fsDir)).append("'");
 		out.writeLine(sb.toString());
 		if(getPrintOnlyMode()) return -1;
 		
@@ -4360,7 +4370,11 @@ public class Client {
 		out.writeLine("LIST DB_INSTRUMENTS '" + dir + "'");
 		if(getPrintOnlyMode()) return null;
 		
-		return parseQuotedStringList(getSingleLineResultSet().getResult());
+		String[] names = parseEscapedStringList(getSingleLineResultSet().getResult());
+		for(int i = 0; i < names.length; i++) {
+			names[i] = toNonEscapedText(names[i]);
+		}
+		return names;
 	}
 	
 	/**
@@ -4380,12 +4394,10 @@ public class Client {
 		
 		ResultSet rs = getMultiLineResultSet();
 		DbInstrumentInfo info = new DbInstrumentInfo(rs.getMultiLineResult());
-		int i = instr.lastIndexOf('/');
-		if(i != -1 && i < instr.length() - 1) {
-			info.setName(instr.substring(i + 1));
-			if(i == 0) info.setDirectoryPath("/");
-			else info.setDirectoryPath(instr.substring(0, i));
-		}
+		String s = getParentDirectory(instr);
+		if(s != null) info.setDirectoryPath(s);
+		s = getFileName(instr);
+		if(s != null) info.setName(toNonEscapedFileName(s));
 		
 		return info;
 	}
@@ -4402,11 +4414,11 @@ public class Client {
 	public synchronized DbInstrumentInfo[]
 	getDbInstruments(String dir) throws IOException, LscpException, LSException {
 		String[] instrS = getDbInstrumentNames(dir);
-		if(dir.charAt(dir.length() - 1) != '/') dir += "/";
+		if(!hasEndingFileSeparator(dir)) dir += "/";
 		
 		DbInstrumentInfo[] infoS = new DbInstrumentInfo[instrS.length];
 		for(int i = 0; i < instrS.length; i++) {
-			infoS[i] = getDbInstrumentInfo(dir + instrS[i]);
+			infoS[i] = getDbInstrumentInfo(dir + toEscapedFileName(instrS[i]));
 		}
 		return infoS;
 	}
@@ -4474,6 +4486,7 @@ public class Client {
 				throws IOException, LSException, LscpException {
 		
 		verifyConnection();
+		name = toEscapedString(name);
 		out.writeLine("SET DB_INSTRUMENT NAME '" + instr + "' '" + name + "'");
 		if(getPrintOnlyMode()) return;
 		
@@ -4565,6 +4578,7 @@ public class Client {
 				throws IOException, LSException, LscpException {
 		
 		verifyConnection();
+		desc = toEscapedString(desc);
 		out.writeLine("SET DB_INSTRUMENT DESCRIPTION '" + instr + "' '" + desc + "'");
 		if(getPrintOnlyMode()) return;
 		
@@ -4612,7 +4626,7 @@ public class Client {
 		sb.append(" '").append(dir).append("'");
 		
 		if(query.name != null && query.name.length() > 0) {
-			sb.append(" NAME='").append(query.name).append("'");
+			sb.append(" NAME='").append(toEscapedString(query.name)).append("'");
 		}
 		
 		String s = query.getCreatedAfter();
@@ -4636,13 +4650,14 @@ public class Client {
 		}
 		
 		if(query.description != null && query.description.length() > 0) {
-			sb.append(" DESCRIPTION='").append(query.description).append("'");
+			sb.append(" DESCRIPTION='");
+			sb.append(toEscapedString(query.description)).append("'");
 		}
 		
 		out.writeLine(sb.toString());
 		if(getPrintOnlyMode()) return null;
 		
-		String[] dirS = parseQuotedStringList(getSingleLineResultSet().getResult());
+		String[] dirS = parseEscapedStringList(getSingleLineResultSet().getResult());
 		
 		DbDirectoryInfo[] infoS = new DbDirectoryInfo[dirS.length];
 		for(int i = 0; i < dirS.length; i++) {
@@ -4692,7 +4707,7 @@ public class Client {
 		sb.append(" '").append(dir).append("'");
 		
 		if(query.name != null && query.name.length() > 0) {
-			sb.append(" NAME='").append(query.name).append("'");
+			sb.append(" NAME='").append(toEscapedString(query.name)).append("'");
 		}
 		
 		if(query.formatFamilies.size() > 0) {
@@ -4732,7 +4747,8 @@ public class Client {
 		}
 		
 		if(query.description != null && query.description.length() > 0) {
-			sb.append(" DESCRIPTION='").append(query.description).append("'");
+			sb.append(" DESCRIPTION='");
+			sb.append(toEscapedString(query.description)).append("'");
 		}
 		
 		if(query.instrumentType != DbSearchQuery.InstrumentType.BOTH) {
@@ -4745,21 +4761,22 @@ public class Client {
 		}
 		
 		if(query.product != null && query.product.length() > 0) {
-			sb.append(" PRODUCT='").append(query.product).append("'");
+			sb.append(" PRODUCT='").append(toEscapedString(query.product)).append("'");
 		}
 		
 		if(query.artists != null && query.artists.length() > 0) {
-			sb.append(" ARTISTS='").append(query.artists).append("'");
+			sb.append(" ARTISTS='").append(toEscapedString(query.artists)).append("'");
 		}
 		
 		if(query.keywords != null && query.keywords.length() > 0) {
-			sb.append(" KEYWORDS='").append(query.keywords).append("'");
+			sb.append(" KEYWORDS='");
+			sb.append(toEscapedString(query.keywords)).append("'");
 		}
 		
 		out.writeLine(sb.toString());
 		if(getPrintOnlyMode()) return null;
 		
-		String[] instrS = parseQuotedStringList(getSingleLineResultSet().getResult());
+		String[] instrS = parseEscapedStringList(getSingleLineResultSet().getResult());
 		
 		DbInstrumentInfo[] infoS = new DbInstrumentInfo[instrS.length];
 		for(int i = 0; i < instrS.length; i++) {

@@ -22,6 +22,8 @@
 
 package org.linuxsampler.lscp;
 
+import static org.linuxsampler.lscp.Parser.*;
+
 /**
  *
  * @author Grigor Iliev
@@ -99,6 +101,7 @@ public abstract class AbstractInstrument implements Parseable {
 			setName(s.substring("NAME: ".length()));
 		} else if(s.startsWith("DESCRIPTION: ")) {
 			description = s.substring("DESCRIPTION: ".length());
+			description = toNonEscapedText(description);
 		} else if(s.startsWith("INSTRUMENT_FILE: ")) {
 			setFilePath(s.substring("INSTRUMENT_FILE: ".length()));
 		} else if(s.startsWith("INSTRUMENT_NR: ")) {

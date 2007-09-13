@@ -29,6 +29,8 @@ import java.text.SimpleDateFormat;
 
 import java.util.Date;
 
+import static org.linuxsampler.lscp.Parser.*;
+
 
 /**
  * Provides information about a database instrument.
@@ -87,10 +89,10 @@ public class DbInstrumentInfo extends AbstractInstrument implements Parseable {
 		if(getDirectoryPath() == null) return null;
 		if(getDirectoryPath().length() == 1) {
 			if(!getDirectoryPath().equals("/")) return null;
-			return getDirectoryPath() + getName();
+			return getDirectoryPath() + toEscapedFileName(getName());
 		}
 		
-		return getDirectoryPath() + "/" + getName();
+		return getDirectoryPath() + "/" + toEscapedFileName(getName());
 	}
 	
 	/**
@@ -205,10 +207,13 @@ public class DbInstrumentInfo extends AbstractInstrument implements Parseable {
 			drum = Boolean.parseBoolean(s.substring("IS_DRUM: ".length()));
 		} else if(s.startsWith("PRODUCT: ")) {
 			product = s.substring("PRODUCT: ".length());
+			product = toNonEscapedText(product);
 		} else if(s.startsWith("ARTISTS: ")) {
 			artists = s.substring("ARTISTS: ".length());
+			artists = toNonEscapedText(artists);
 		} else if(s.startsWith("KEYWORDS: ")) {
 			keywords = s.substring("KEYWORDS: ".length());
+			keywords = toNonEscapedText(keywords);
 		} else return false;
 		
 		return true;

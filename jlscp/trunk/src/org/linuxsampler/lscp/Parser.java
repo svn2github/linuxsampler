@@ -31,7 +31,7 @@ import java.util.Vector;
  * This class contains only helper functions that are used from the other classes in this library.
  * @author  Grigor Iliev
  */
-final class Parser {
+public final class Parser {
 	/** Forbits the instantiatrion of this class */
 	private Parser() { }
 	
@@ -167,6 +167,56 @@ final class Parser {
 	parseStringList(String list) throws LscpException {
 		list = removeQuotation(list);
 		return parseList(list);
+	}
+	
+	/**
+	 * Parses a comma separated string list, which elements contains escaped sequences.
+	 * @param list The list to parse.
+	 * @return A <code>String</code> array containing all items in the list.
+	 */
+	protected static String[]
+	parseEscapedStringList(String list) throws LscpException {
+		return parseEscapedStringList(list, ',');
+	}
+	
+	/**
+	 * Parses a string list, which elements contains escaped sequences.
+	 * @param list The list to parse.
+	 * @param separator Provides the character used as separator.
+	 * @return A <code>String</code> array containing all items in the list.
+	 */
+	protected static String[]
+	parseEscapedStringList(String list, char separator) throws LscpException {
+		if(list == null || list.length() == 0) return new String[0];
+		int q1 = 0, q2 = 0;
+		Vector<String> v = new Vector<String>();
+		
+		for(;;) {
+			if(list.charAt(q1) != '\'')
+				throw new LscpException(LscpI18n.getLogMsg("Parser.brokenList!"));
+			q2 = findApostrophe(list, q1 + 1);
+			if(q2 == -1) throw new LscpException(LscpI18n.getLogMsg("Parser.EOL!"));
+			v.add(list.substring(q1 + 1, q2));
+			
+			if(q2 + 1 >= list.length()) break;
+			
+			if(list.charAt(q2 + 1) != separator)
+				throw new LscpException(LscpI18n.getLogMsg("Parser.brokenList!"));
+			q1 = q2 + 2;
+			if(q1 >= list.length())
+				throw new LscpException(LscpI18n.getLogMsg("Parser.EOL!"));
+		}
+		
+		return v.toArray(new String[v.size()]);
+	}
+	
+	/**
+	 * Returns the index of the first occurrence of a non-escaped apostrophe
+	 * in the specified string, starting at <b>index</b>, or -1 if nothing is found.
+	 */
+	private static int
+	findApostrophe(String s, int index) {
+		return findNonEscapedChar(s, index, '\'');
 	}
 	
 	/**
@@ -480,8 +530,9 @@ final class Parser {
 	/**
 	 * Returns the provided string with added escape sequences where necessary.
 	 */
-	protected static String
-	getEscapedString(String s) {
+	public static String
+	toEscapedString(Object obj) {
+		String s = obj.toString();
 		StringBuffer sb = new StringBuffer();
 		for(int i = 0; i < s.length(); i++) {
 			switch(s.charAt(i)) {
@@ -498,5 +549,237 @@ final class Parser {
 		}
 		
 		return sb.toString();
+	}
+	
+	/**
+	 * Returns the provided file name with added escape sequences where necessary.
+	 */
+	public static String
+	toEscapedFileName(Object obj) {
+		String s = obj.toString();
+		StringBuffer sb = new StringBuffer();
+		for(int i = 0; i < s.length(); i++) {
+			switch(s.charAt(i)) {
+				case '/' : sb.append("\\/");  break;
+				case '\n': sb.append("\\n");  break;
+				case '\r': sb.append("\\r");  break;
+				case '\f': sb.append("\\f");  break;
+				case '\t': sb.append("\\t");  break;
+				case 0x0B: sb.append("\\v");  break;
+				case '\'': sb.append("\\'");  break;
+				case '\"': sb.append("\\\""); break;
+				case '\\': sb.append("\\\\"); break;
+				default  : sb.append(s.charAt(i));
+			}
+		}
+		
+		return sb.toString();
+	}
+	
+	/**
+	 * Removes the escape sequences from the specified file name
+	 * @return The provided file name with removed escape sequences.
+	 */
+	public static String
+	toNonEscapedFileName(Object obj) {
+		String s = obj.toString();
+		StringBuffer sb = new StringBuffer();
+		for(int i = 0; i < s.length(); i++) {
+			char c = s.charAt(i);
+			if(c == '\\') {
+				if(i >= s.length()) {
+					Client.getLogger().info("Broken escape sequence");
+					break;
+				}
+				char c2 = s.charAt(++i);
+				if(c2 == '\'')      sb.append('\'');
+				else if(c2 == '"')  sb.append('"');
+				else if(c2 == '\\') sb.append('\\');
+				else if(c2 == 'r')  sb.append('\r');
+				else if(c2 == 'n')  sb.append('\n');
+				else if(c2 == '/') sb.append('/');
+				else Client.getLogger().info("Unknown escape sequence \\" + c2);
+			} else {
+				sb.append(c);
+			}
+		}
+		
+		return sb.toString();
+	}
+	
+	/**
+	 * Removes the escape sequences from the string <code>obj.toString()</code>.
+	 * @return The provided text with removed escape sequences.
+	 */
+	public static String
+	toNonEscapedText(Object obj) {
+		String s = obj.toString();
+		StringBuffer sb = new StringBuffer();
+		for(int i = 0; i < s.length(); i++) {
+			char c = s.charAt(i);
+			if(c == '\\') {
+				if(i >= s.length()) {
+					Client.getLogger().info("Broken escape sequence");
+					break;
+				}
+				char c2 = s.charAt(++i);
+				if(c2 == '\'')      sb.append('\'');
+				else if(c2 == '"')  sb.append('"');
+				else if(c2 == '\\') sb.append('\\');
+				else if(c2 == 'r')  sb.append('\r');
+				else if(c2 == 'n')  sb.append('\n');
+				else Client.getLogger().info("Unknown escape sequence \\" + c2);
+			} else {
+				sb.append(c);
+			}
+		}
+		
+		return sb.toString();
+	}
+	
+	/**
+	 * Determines whether the character at the specified position
+	 * is escaped with backslash.
+	 */
+	public static boolean
+	isEscaped(String s, int index) {
+		if (index < 0 || index >= s.length()) return false;
+		int count = 0;
+		for (int i = index - 1; i >= 0; i--) {
+			if (s.charAt(i) != '\\') break;
+			count++;
+		}
+		return count % 2 != 0;
+	}
+	
+	/**
+	 * Returns the index of the first occurrence of the specified non-escaped character
+	 * in the specified string, starting at <b>index</b>, or -1 if nothing is found.
+	 */
+	private static int
+	findNonEscapedChar(String s, int index, char c) {
+		if(s == null) return -1;
+		int pos = index;
+		if (pos < 0 || pos >= s.length()) return -1;
+		
+		for(;;) {
+			int i = s.indexOf(c, pos);
+			if (i == -1) break;
+			if (!isEscaped(s, i)) return i;
+			pos = i + 1;
+			if (pos >= s.length()) break;
+		}
+		
+		return -1;
+	}
+	
+	/**
+	 * Returns the index of the first occurrence of a file separator
+	 * in the specified escaped path, starting at <b>index</b>, or -1 if nothing is found.
+	 */
+	private static int
+	findFileSeparator(String path, int index) {
+		return findNonEscapedChar(path, index, '/');
+	}
+	
+	/**
+	 * Gets the position of the last file separator in the specified
+	 * escaped path, or -1 if failed.
+	 */
+	private static int
+	getLastFileSeparator(String path) {
+		if(path == null || path.length() == 0) return -1;
+		int pos = path.length() - 1;
+		
+		for(;;) {
+			pos = path.lastIndexOf('/', pos);
+			if(pos == -1) return -1;
+			if(!isEscaped(path, pos)) return pos;
+			pos--;
+		}
+	}
+	
+	/**
+	 * Determines whether the specified escaped path ends with a file separator.
+	 */
+	protected static boolean
+	hasEndingFileSeparator(String path) {
+		if(path == null || path.length() < 2) return false;
+		
+		int last = path.length() - 1;
+		if(path.charAt(last) == '/' && !isEscaped(path, last)) return true;
+		
+		return false;
+	}
+	
+	/**
+	 * If the specified escaped path ends with a file separator,
+	 * a new string is returned with the ending file separator removed.
+	 */
+	protected static String
+	removeEndingFileSeparator(String path) {
+		if(path == null || path.length() < 2) return path;
+		
+		int last = path.length() - 1;
+		if(path.charAt(last) == '/' && !isEscaped(path, last)) {
+			path = path.substring(0, path.length() - 1);
+		}
+		
+		return path;
+	}
+	
+	/**
+	 * Gets the parent directory of the specified escaped path.
+	 */
+	public static String
+	getParentDirectory(String path) {
+		if(path == null || path.length() == 0) return null;
+		if(path.charAt(0) != '/') return null;
+		if(path.length() == 1) return null;
+		
+		path = removeEndingFileSeparator(path);
+		
+		int i = getLastFileSeparator(path);
+		if(i == 0) return "/";
+		return path.substring(0, i);
+	}
+	
+	/**
+	 * Extracts the file name from the specified escaped path.
+	 * If the path does not ends with a file name, <code>null</code> is returned.
+	 */
+	public static String
+	getFileName(String path) {
+		if(path == null || path.length() < 2) return null;
+		int i = getLastFileSeparator(path);
+		if(i == -1) return null;
+		if(i == path.length() - 1) return null;
+		return path.substring(i + 1);
+	}
+	
+	/**
+	 * Returns an array containing all directories in the specified escaped path.
+	 */
+	public static String[]
+	getDirectoryList(String path) {
+		if(path == null || path.length() == 0) return null;
+		if(path.charAt(0) != '/') return null;
+		Vector<String> v = new Vector<String>();
+		v.add("/");
+		if(path.length() == 1) return v.toArray(new String[v.size()]);
+		
+		if(!hasEndingFileSeparator(path)) path += "/";
+		int i = 1;
+		int j = findFileSeparator(path, i);
+		
+		while(j != -1) {
+			v.add(path.substring(i, j));
+			
+			i = j + 1;
+			if(i >= path.length()) return v.toArray(new String[v.size()]);
+			j = findFileSeparator(path, i);
+		}
+		
+		return null;
 	}
 }

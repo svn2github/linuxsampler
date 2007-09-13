@@ -27,6 +27,8 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+import static org.linuxsampler.lscp.Parser.*;
+
 
 /**
  * Provides information about a database instrument directory.
@@ -96,10 +98,10 @@ public class DbDirectoryInfo {
 		if(getParentDirectoryPath() == null) return null;
 		if(getParentDirectoryPath().length() == 1) {
 			if(!getParentDirectoryPath().equals("/")) return null;
-			return getParentDirectoryPath() + getName();
+			return getParentDirectoryPath() + toEscapedFileName(getName());
 		}
 		
-		return getParentDirectoryPath() + "/" + getName();
+		return getParentDirectoryPath() + "/" + toEscapedFileName(getName());
 	}
 	
 	/**
@@ -124,6 +126,7 @@ public class DbDirectoryInfo {
 	parse(String s) throws LscpException {
 		if(s.startsWith("DESCRIPTION: ")) {
 			description = s.substring("DESCRIPTION: ".length());
+			description = toNonEscapedText(description);
 		} else if(s.startsWith("CREATED: ")) {
 			s = s.substring("CREATED: ".length());
 			try { dateCreated.setTime(dateFormat.parse(s).getTime()); }
