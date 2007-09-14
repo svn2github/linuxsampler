@@ -95,6 +95,9 @@ Version CVS HEAD (?)
       supplied to the configure script (fixes #46)
     - disk thread: queue sizes are now proportional to CONFIG_MAX_STREAMS
       instead of a fix value
+    - behavior fix: on MIDI CC# 65 (portamento on / off), 126 (mono mode),
+      127 (solo mode) only kill voices if the respective mode really
+      changed
 
   * LSCP server:
     - fixed compile time error for old Bison versions

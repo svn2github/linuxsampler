@@ -778,7 +778,7 @@ namespace LinuxSampler { namespace gig {
                 }
             }
         }
-        
+
         pEngineChannel->SetVoiceCount(voiceCount);
         pEngineChannel->SetDiskStreamCount(streamCount);
     }
@@ -1686,8 +1686,10 @@ namespace LinuxSampler { namespace gig {
                 break;
             }
             case 65: { // portamento on / off
-                KillAllVoices(pEngineChannel, itControlChangeEvent);
-                pEngineChannel->PortamentoMode = itControlChangeEvent->Param.CC.Value >= 64;
+                const bool bPortamento = itControlChangeEvent->Param.CC.Value >= 64;
+                if (bPortamento != pEngineChannel->PortamentoMode)
+                    KillAllVoices(pEngineChannel, itControlChangeEvent);
+                pEngineChannel->PortamentoMode = bPortamento;
                 break;
             }
             case 66: { // sostenuto
@@ -1757,12 +1759,14 @@ namespace LinuxSampler { namespace gig {
                 break;
             }
             case 126: { // mono mode on
-                KillAllVoices(pEngineChannel, itControlChangeEvent);
+                if (!pEngineChannel->SoloMode)
+                    KillAllVoices(pEngineChannel, itControlChangeEvent);
                 pEngineChannel->SoloMode = true;
                 break;
             }
             case 127: { // poly mode on
-                KillAllVoices(pEngineChannel, itControlChangeEvent);
+                if (pEngineChannel->SoloMode)
+                    KillAllVoices(pEngineChannel, itControlChangeEvent);
                 pEngineChannel->SoloMode = false;
                 break;
             }
@@ -1971,7 +1975,7 @@ namespace LinuxSampler { namespace gig {
     }
 
     String Engine::Version() {
-        String s = "$Revision: 1.80 $";
+        String s = "$Revision: 1.81 $";
         return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
 
