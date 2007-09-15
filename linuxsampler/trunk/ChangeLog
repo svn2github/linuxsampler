@@ -111,6 +111,8 @@ Version CVS HEAD (?)
     - returns verbose syntax errors (line and column where syntax error
       occured, the unexpected character and the actually expected, possible
       character(s), the latter only if less than 5 possibilities)
+    - made sure that LSCP syntax is not affected by gigedit locale
+      settings
 
   * Bug fixes:
     - fixed crash occurring on certain LSCP scripts (Bug 39)

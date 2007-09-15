@@ -55,17 +55,21 @@ namespace LinuxSampler {
 
     static float __parse_float(String val) throw (Exception) {
         __eliminate_quotation(val);
-        return atof(val.c_str()); // TODO: format check is missing
+        float x;
+        std::stringstream ss(val);
+        ss.imbue(std::locale::classic());
+        ss >> x; // TODO: format check is missing
+        return x;
     }
 
-    static String __parse_string(String val) {        
+    static String __parse_string(String val) {
         __eliminate_quotation(val);
         return val;
     }
 
     static std::vector<String> __parse_strings(String val) throw (Exception) {
         std::vector<String> vS;
-        
+
         // checking for empty list
         if (val.length() == 0) return vS;
 

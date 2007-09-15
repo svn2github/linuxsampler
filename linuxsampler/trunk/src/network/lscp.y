@@ -534,9 +534,9 @@ boolean               :  number  { $$ = $1; }
                       |  string  { $$ = -1; }
                       ;
 
-dotnum                :      digits '.' digits  { $$ = atof(String($1 + "." + $3).c_str());                         }
-                      |  '+' digits '.' digits  { String s = "+"; s += $2; s += "."; s += $4; $$ = atof(s.c_str()); }
-                      |  '-' digits '.' digits  { $$ = atof(String("-" + $2 + "." + $4).c_str());                   }
+dotnum                :      digits '.' digits  { std::stringstream ss($1 + "." + $3); ss.imbue(std::locale::classic()); ss >> $$; }
+                      |  '+' digits '.' digits  { std::stringstream ss($2 + "." + $4); ss.imbue(std::locale::classic()); ss >> $$; }
+                      |  '-' digits '.' digits  { std::stringstream ss("-" + $2 + "." + $4); ss.imbue(std::locale::classic()); ss >> $$; }
                       ;
 
 

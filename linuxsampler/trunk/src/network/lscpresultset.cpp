@@ -37,6 +37,7 @@
  * ******************************************************/
 
 #include "lscpresultset.h"
+#include <iomanip>
 
 //Construct an empty resultset
 //Default index is -1 meaning the resultset doesn't have an index
@@ -92,9 +93,10 @@ void LSCPResultSet::Add(String Label, int Value) {
 }
 
 void LSCPResultSet::Add(String Label, float Value) {
-    char s[1024];
-    snprintf(s, 1023, "%.3f", Value);
-    Add(Label, String(s));
+    std::stringstream ss;
+    ss.imbue(std::locale::classic());
+    ss << std::fixed << std::setprecision(3) << Value;
+    Add(Label, ss.str());
 }
 
 void LSCPResultSet::Add(String Label, bool Value) {
