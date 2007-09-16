@@ -56,8 +56,9 @@ namespace LinuxSampler {
                     /**
                      * Invoked when the number of instrument directories
                      * in a specific directory has changed.
-                     * @param Dir The absolute pathname of the directory in
-                     * which the number of directories is changed.
+                     * @param Dir The absolute pathname of the directory
+                     * in which the number of directories is changed.
+                     * All slashes in the directory names are replaced with '\0'.
                      */
                     virtual void DirectoryCountChanged(String Dir) = 0;
 
@@ -66,35 +67,42 @@ namespace LinuxSampler {
                      * are changed.
                      * @param Dir The absolute pathname of the directory
                      * whose settings are changed.
+                     * All slashes in the directory names are replaced with '\0'.
                      */
                     virtual void DirectoryInfoChanged(String Dir) = 0;
 
                     /**
                      * Invoked when an instrument directory is renamed.
                      * @param Dir The old absolute pathname of the directory.
+                     * All slashes in the directory names are replaced with '\0'.
                      * @param NewName The new name of the directory.
+                     * All slashes in the name are replaced with '\0'.
                      */
                     virtual void DirectoryNameChanged(String Dir, String NewName) = 0;
 
                     /**
                      * Invoked when the number of instruments
                      * in a specific directory has changed.
-                     * @param Dir The absolute pathname of the directory in
-                     * which the number of instruments is changed.
+                     * @param Dir The absolute pathname of the directory
+                     * in which the number of instruments is changed.
+                     * All slashes in the directory names are replaced with '\0'.
                      */
                     virtual void InstrumentCountChanged(String Dir) = 0;
 
                     /**
                      * Invoked when the settings of an instrument are changed.
-                     * @param Instr The absolute pathname of the instrument
-                     * whose settings are changed.
+                     * @param Instr The absolute pathname of the
+                     * instrument whose settings are changed.
+                     * All slashes in the directory/instrument names are replaced with '\0'.
                      */
                     virtual void InstrumentInfoChanged(String Instr) = 0;
 
                     /**
                      * Invoked when an instrument is renamed.
                      * @param Instr The old absolute pathname of the instrument.
+                     * All slashes in the directory/instrument names are replaced with '\0'.
                      * @param NewName The new name of the directory.
+                     * All slashes in the name are replaced with '\0'.
                      */
                     virtual void InstrumentNameChanged(String Instr, String NewName) = 0;
 
@@ -252,6 +260,7 @@ namespace LinuxSampler {
              * Finds all directories that match the search query.
              * @param Dir The absolute path name of the database
              * directory to search in.
+             * All slashes in the directory names should be replaced with '\0'.
              * @throws Exception - if database error occurs, or
              * if the specified path name is invalid.
              * @returns The absolute path names of all directories
@@ -265,6 +274,7 @@ namespace LinuxSampler {
              * @param DbDir The absolute path name of a directory in the
              * instruments database in which only the new instruments
              * (that are not already in the database) will be added.
+             * All slashes in the directory names should be replaced with '\0'.
              * @param FilePath The absolute path name of a file or
              * directory in the file system. In case a directory is
              * supplied, all supported instruments in the specified directory
@@ -289,6 +299,7 @@ namespace LinuxSampler {
              * @param DbDir The absolute path name of a directory in the
              * instruments database in which only the new instruments
              * (that are not already in the database) will be added.
+             * All slashes in the directory names should be replaced with '\0'.
              * @param FilePath The absolute path name of the instrument file.
              * @param Index The index of the instrument (in the given
              * instrument file) to add. If -1 is specified, all instruments in
@@ -316,6 +327,7 @@ namespace LinuxSampler {
              * @param DbDir The absolute path name of a directory in the
              * instruments database in which only the new instruments
              * (that are not already in the database) will be added.
+             * All slashes in the directory names should be replaced with '\0'.
              * @param FsDir The absolute path name of an existing
              * directory in the file system.
              * @param bBackground Determines whether
@@ -329,6 +341,7 @@ namespace LinuxSampler {
             /**
              * Gets the number of instruments in the specified directory.
              * @param Dir The absolute path name of the directory.
+             * All slashes in the directory names should be replaced with '\0'.
              * @param Recursive If true, the number of all instruments
              * in the specified subtree will be returned.
              * @throws Exception - if database error occurs, or
@@ -340,6 +353,7 @@ namespace LinuxSampler {
             /**
              * Gets the list of instruments in the specified directory.
              * @param Dir The absolute path name of the directory.
+             * All slashes in the directory names should be replaced with '\0'.
              * @param Recursive If true, all instruments
              * in the specified subtree will be returned.
              * @throws Exception - if database error occurs, or
@@ -350,6 +364,7 @@ namespace LinuxSampler {
             /**
              * Removes the specified instrument from the database.
              * @param Instr The absolute path name of the instrument to remove.
+             * All slashes in the directory/instrument names should be replaced with '\0'.
              * @throws Exception - If the specified instrument does not exist,
              * or database error occurs.
              */
@@ -358,6 +373,7 @@ namespace LinuxSampler {
             /**
              * Gets information about the specified instrument.
              * @param Instr The absolute path name of the instrument.
+             * All slashes in the directory/instrument names should be replaced with '\0'.
              * @throws Exception - if database error occurs, or if
              * the specified instrument is not found.
              */
@@ -366,6 +382,7 @@ namespace LinuxSampler {
             /**
              * Renames the specified instrument.
              * @param Instr The absolute path name of the instrument to rename.
+             * All slashes in the directory/instrument names should be replaced with '\0'.
              * @param Name The new name for the instrument.
              * @throws Exception - In case the given instrument does not exists,
              * or the specified name is not a valid name, or if an instrument
@@ -377,6 +394,7 @@ namespace LinuxSampler {
             /**
              * Moves the specified instrument into the specified directory.
              * @param Instr The absolute path name of the instrument to move.
+             * All slashes in the directory/instrument names should be replaced with '\0'.
              * @param Dst The directory where the instrument will be moved to.
              * @throws Exception - In case the given directory or instrument
              * does not exist, or if an instrument with name equal to the name
@@ -410,6 +428,7 @@ namespace LinuxSampler {
              * Finds all instruments that match the search query.
              * @param Dir The absolute path name of the database
              * directory to search in.
+             * All slashes in the directory names should be replaced with '\0'.
              * @throws Exception - if database error occurs, or
              * if the specified path name is invalid.
              * @returns The absolute path names of all instruments
@@ -418,7 +437,7 @@ namespace LinuxSampler {
             StringListPtr FindInstruments(String Dir, SearchQuery* pQuery, bool Recursive);
 
             /**
-             * All '\0' chars in the string are replaced with "\/";
+             * All '\0' chars in the string are replaced with "\x2f";
              * ', ", \ are escaped with backslash and
              * <CR> and <LF> are replaced with \r and \n.
              */
@@ -429,13 +448,6 @@ namespace LinuxSampler {
              * <CR> and <LF> are replaced with \r and \n.
              */
             static String toEscapedText(String text);
-
-            /**
-             *  All '\0' chars in the string are replaced with '/';
-             * The characthers ', ", \ are escaped with backslash and
-             * <CR> and <LF> are replaced with \r and \n.
-             */
-            static String toEscapedName(String AbstractName);
             
             /**
              * Closes the database connection if opened and deletes
@@ -638,6 +650,7 @@ namespace LinuxSampler {
              * Copies the specified instrument into the specified directory.
              * @param InstrId The ID of the instrument to copy.
              * @param InstrName The name of the instrument to copy.
+             * All slashes in the instrument name should be replaced with '\0'.
              * @param DstDirId The ID of the directory where the
              * instrument will be copied to.
              * @param DstDir The name of the directory where the
@@ -653,6 +666,7 @@ namespace LinuxSampler {
              * @param DbDir The absolute path name of a directory in the
              * instruments database in which only the new instruments
              * (that are not already in the database) will be added.
+             * All slashes in the directory names should be replaced with '\0'.
              * @param FsDir The absolute path name of a directory in the file
              * system.
              * @param pProgress The progress used to monitor the scan process.
@@ -668,6 +682,7 @@ namespace LinuxSampler {
              * @param DbDir The absolute path name of a directory in the
              * instruments database in which only the new instruments
              * (that are not already in the database) will be added.
+             * All slashes in the directory names should be replaced with '\0'.
              * @param FsDir The absolute path name of an existing
              * directory in the file system.
              * @param Flat If true, the respective subdirectory structure will
@@ -684,6 +699,7 @@ namespace LinuxSampler {
              * @param DbDir The absolute path name of a directory in the
              * instruments database in which only the new instruments
              * (that are not already in the database) will be added.
+             * All slashes in the directory names should be replaced with '\0'.
              * @param File The absolute path name of a file in the file system.
              * @param Index The index of the instrument (in the given
              * instrument file) to add. If -1 is specified, all instruments in
@@ -699,6 +715,7 @@ namespace LinuxSampler {
              * in the instruments database.
              * @param DbDir The instruments database directory
              * in which the instrument will be added.
+             * All slashes in the directory names should be replaced with '\0'.
              * @param File The absolute path name of the instrument file.
              * @param Index The index of the instrument (in the given
              * instrument file) to add. If -1 is specified, all instruments in
@@ -711,6 +728,9 @@ namespace LinuxSampler {
 
             /**
              * Adds the specified GIG instrument.
+             * @param DbDir The instruments database directory
+             * in which the instrument will be added.
+             * All slashes in the directory names should be replaced with '\0'.
              * @throws Exception if the operation failed.
              */
             void AddGigInstrument(sqlite3_stmt* pStmt, String DbDir, int DirId, String File, ::gig::Instrument* pInstrument, int Index);
@@ -791,6 +811,8 @@ namespace LinuxSampler {
              * All slashes are replaced with '\0'.
              */
             static String toAbstractName(String DbName);
+
+            static String toEscapedFsPath(String FsPath);
 
             void FireDirectoryCountChanged(String Dir);
             void FireDirectoryInfoChanged(String Dir);

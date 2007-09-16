@@ -155,7 +155,7 @@ void LSCPServer::DbInstrumentsEventHandler::DirectoryInfoChanged(String Dir) {
 
 void LSCPServer::DbInstrumentsEventHandler::DirectoryNameChanged(String Dir, String NewName) {
     Dir = "'" + InstrumentsDb::toEscapedPath(Dir) + "'";
-    NewName = "'" + InstrumentsDb::toEscapedName(NewName) + "'";
+    NewName = "'" + InstrumentsDb::toEscapedPath(NewName) + "'";
     LSCPServer::SendLSCPNotify(LSCPEvent(LSCPEvent::event_db_instr_dir_info, "NAME", Dir, NewName));
 }
 
@@ -169,7 +169,7 @@ void LSCPServer::DbInstrumentsEventHandler::InstrumentInfoChanged(String Instr) 
 
 void LSCPServer::DbInstrumentsEventHandler::InstrumentNameChanged(String Instr, String NewName) {
     Instr = "'" + InstrumentsDb::toEscapedPath(Instr) + "'";
-    NewName = "'" + InstrumentsDb::toEscapedName(NewName) + "'";
+    NewName = "'" + InstrumentsDb::toEscapedPath(NewName) + "'";
     LSCPServer::SendLSCPNotify(LSCPEvent(LSCPEvent::event_db_instr_info, "NAME", Instr, NewName));
 }
 
@@ -2354,9 +2354,7 @@ String LSCPServer::GetDbInstrumentDirectories(String Dir, bool Recursive) {
 
         for (int i = 0; i < dirs->size(); i++) {
             if (list != "") list += ",";
-
-            if (Recursive) list += "'" + InstrumentsDb::toEscapedPath(dirs->at(i)) + "'";
-            else list += "'" + InstrumentsDb::toEscapedName(dirs->at(i)) + "'";
+            list += "'" + InstrumentsDb::toEscapedPath(dirs->at(i)) + "'";
         }
 
         result.Add(list);
@@ -2533,9 +2531,7 @@ String LSCPServer::GetDbInstruments(String Dir, bool Recursive) {
 
         for (int i = 0; i < instrs->size(); i++) {
             if (list != "") list += ",";
-
-            if (Recursive) list += "'" + InstrumentsDb::toEscapedPath(instrs->at(i)) + "'";
-            else list += "'" + InstrumentsDb::toEscapedName(instrs->at(i)) + "'";
+            list += "'" + InstrumentsDb::toEscapedPath(instrs->at(i)) + "'";
         }
 
         result.Add(list);

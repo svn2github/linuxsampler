@@ -58,7 +58,7 @@ namespace LinuxSampler {
         
         GetInstrumentsDb()->ExecSql(sql);
 
-        sql = "INSERT INTO instr_dirs (dir_id, parent_dir_id, dir_name) VALUES (0, 0, '/');";
+        sql = "INSERT INTO instr_dirs (dir_id, parent_dir_id, dir_name) VALUES (0, -2, '/');";
         GetInstrumentsDb()->ExecSql(sql);
 
         sql =
@@ -136,6 +136,14 @@ namespace LinuxSampler {
         }
         rc = sqlite3_create_function(db, "regexp", 2, SQLITE_UTF8, NULL, Regexp, NULL, NULL);
         if (rc) { throw Exception("Failed to add user function for handling regular expressions."); }
+
+        // TODO: remove this in the next version
+        try {
+            int i = ExecSqlInt("SELECT parent_dir_id FROM instr_dirs WHERE dir_id=0");
+            // The parent ID of the root directory should be -2 now.
+            if(i != -2) ExecSql("UPDATE instr_dirs SET parent_dir_id=-2 WHERE dir_id=0");
+        } catch(Exception e) { }
+        ////////////////////////////////////////
         
         return db;
     }
@@ -149,9 +157,6 @@ namespace LinuxSampler {
         
         int count = ExecSqlInt(sql.str());
 
-        // While the root dir has ID 0 and parent ID 0, the directory
-        // count for the root dir will be incorrect, so we should fix it.
-        if (count != -1 && DirId == 0) count--;
         return count;
     }
 
@@ -496,7 +501,7 @@ namespace LinuxSampler {
         }
 
         EndTransaction();
-        FireDirectoryNameChanged(Dir, Name);
+        FireDirectoryNameChanged(Dir, toAbstractName(Name));
     }
 
     void InstrumentsDb::MoveDirectory(String Dir, String Dst) {
@@ -808,6 +813,12 @@ namespace LinuxSampler {
                 sql << "SELECT instr_name FROM instruments WHERE dir_id=" << dirId;
 
                 pInstrs = ExecSqlStringList(sql.str());
+                // Converting to abstract names
+                for (int i = 0; i < pInstrs->size(); i++) {
+                    for (int j = 0; j < pInstrs->at(i).length(); j++) {
+                        if (pInstrs->at(i).at(j) == '/') pInstrs->at(i).at(j) = '\0';
+                    }
+                }
             }
             EndTransaction();
             return pInstrs;
@@ -968,7 +979,7 @@ namespace LinuxSampler {
             throw e;
         }
         EndTransaction();
-        FireInstrumentNameChanged(Instr, Name);
+        FireInstrumentNameChanged(Instr, toAbstractName(Name));
     }
 
     void InstrumentsDb::MoveInstrument(String Instr, String Dst) {
@@ -1036,16 +1047,6 @@ namespace LinuxSampler {
                 return;
             }
 
-            if (GetInstrumentId(dstId, instrName) != -1) {
-                String s = toEscapedPath(instrName);
-                throw Exception("Cannot copy. Instrument with that name already exists: " + s);
-            }
-
-            if (GetDirectoryId(dstId, instrName) != -1) {
-                String s = toEscapedPath(instrName);
-                throw Exception("Cannot copy. Directory with that name already exists: " + s);
-            }
-
             CopyInstrument(instrId, instrName, dstId, Dst);
         } catch (Exception e) {
             EndTransaction();
@@ -1056,6 +1057,16 @@ namespace LinuxSampler {
     }
 
     void InstrumentsDb::CopyInstrument(int InstrId, String InstrName, int DstDirId, String DstDir) {
+        if (GetInstrumentId(DstDirId, InstrName) != -1) {
+            String s = toEscapedPath(InstrName);
+            throw Exception("Cannot copy. Instrument with that name already exists: " + s);
+        }
+
+        if (GetDirectoryId(DstDirId, InstrName) != -1) {
+            String s = toEscapedPath(InstrName);
+            throw Exception("Cannot copy. Directory with that name already exists: " + s);
+        }
+
         DbInstrument i = GetInstrumentInfo(InstrId);
         sqlite3_stmt *pStmt = NULL;
         std::stringstream sql;
@@ -1069,7 +1080,8 @@ namespace LinuxSampler {
             throw Exception("DB error: " + ToString(sqlite3_errmsg(db)));
         }
 
-        BindTextParam(pStmt, 1, toDbName(InstrName));
+        String s = toDbName(InstrName);
+        BindTextParam(pStmt, 1, s);
         BindTextParam(pStmt, 2, i.InstrFile);
         BindTextParam(pStmt, 3, i.FormatFamily);
         BindTextParam(pStmt, 4, i.FormatVersion);
@@ -1170,7 +1182,8 @@ namespace LinuxSampler {
                 throw Exception("DB error: " + ToString(sqlite3_errmsg(db)));
             }
 
-            BindTextParam(pStmt, 2, File);
+            String s = toEscapedFsPath(File);
+            BindTextParam(pStmt, 2, s);
             String ver = "";
             if (gig->pVersion != NULL) ver = ToString(gig->pVersion->major);
             BindTextParam(pStmt, 4, ver);
@@ -1229,7 +1242,8 @@ namespace LinuxSampler {
         std::stringstream sql2;
         sql2 << "SELECT COUNT(*) FROM instruments WHERE instr_file=? AND ";
         sql2 << "instr_nr=" << Index;
-        if (ExecSqlInt(sql2.str(), File) > 0) return;
+        String s = toEscapedFsPath(File);
+        if (ExecSqlInt(sql2.str(), s) > 0) return;
 
         BindTextParam(pStmt, 1, name);
         BindIntParam(pStmt, 3, Index);
@@ -1638,7 +1652,7 @@ namespace LinuxSampler {
 
     String InstrumentsDb::toEscapedPath(String AbstractName) {
         for (int i = 0; i < AbstractName.length(); i++) {
-            if (AbstractName.at(i) == '\0')      AbstractName.replace(i++, 1, "\\/");
+            if (AbstractName.at(i) == '\0')      AbstractName.replace(i++, 1, "\\x2f");
             else if (AbstractName.at(i) == '\\') AbstractName.replace(i++, 1, "\\\\");
             else if (AbstractName.at(i) == '\'') AbstractName.replace(i++, 1, "\\'");
             else if (AbstractName.at(i) == '"')  AbstractName.replace(i++, 1, "\\\"");
@@ -1659,16 +1673,8 @@ namespace LinuxSampler {
         return text;
     }
     
-    String InstrumentsDb::toEscapedName(String AbstractName) {
-        for (int i = 0; i < AbstractName.length(); i++) {
-            if (AbstractName.at(i) == '\0')      AbstractName.at(i) = '/';
-            else if (AbstractName.at(i) == '\\') AbstractName.replace(i++, 1, "\\\\");
-            else if (AbstractName.at(i) == '\'') AbstractName.replace(i++, 1, "\\'");
-            else if (AbstractName.at(i) == '"')  AbstractName.replace(i++, 1, "\\\"");
-            else if (AbstractName.at(i) == '\r') AbstractName.replace(i++, 1, "\\r");
-            else if (AbstractName.at(i) == '\n') AbstractName.replace(i++, 1, "\\n");
-        }
-        return AbstractName;
+    String InstrumentsDb::toEscapedFsPath(String FsPath) {
+        return toEscapedText(FsPath);
     }
     
     String InstrumentsDb::toAbstractName(String DbName) {

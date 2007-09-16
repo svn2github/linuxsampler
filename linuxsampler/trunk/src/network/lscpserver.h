@@ -344,56 +344,12 @@ class LSCPServer : public Thread {
 #if HAVE_SQLITE3
         class DbInstrumentsEventHandler : public InstrumentsDb::Listener {
             public:
-
-                /**
-                 * Invoked when the number of instrument directories
-                 * in a specific directory has changed.
-                 * @param Dir The absolute pathname of the directory in
-                 * which the number of directories is changed.
-                 */
                 virtual void DirectoryCountChanged(String Dir);
-
-                /**
-                 * Invoked when the settings of an instrument directory
-                 * are changed.
-                 * @param Dir The absolute pathname of the directory
-                 * whose settings are changed.
-                 */
                 virtual void DirectoryInfoChanged(String Dir);
-
-                /**
-                 * Invoked when an instrument directory is renamed.
-                 * @param Dir The old absolute pathname of the directory.
-                 * @param NewName The new name of the directory.
-                 */
                 virtual void DirectoryNameChanged(String Dir, String NewName);
-
-                /**
-                 * Invoked when the number of instruments
-                 * in a specific directory has changed.
-                 * @param Dir The absolute pathname of the directory in
-                 * which the number of instruments is changed.
-                 */
                 virtual void InstrumentCountChanged(String Dir);
-
-                /**
-                 * Invoked when the settings of an instrument are changed.
-                 * @param Instr The absolute pathname of the instrument
-                 * whose settings are changed.
-                 */
                 virtual void InstrumentInfoChanged(String Instr);
-
-                /**
-                 * Invoked when an instrument is renamed.
-                 * @param Instr The old absolute pathname of the instrument.
-                 * @param NewName The new name of the directory.
-                 */
                 virtual void InstrumentNameChanged(String Instr, String NewName);
-
-                /**
-                 * Invoked when the status of particular job is changed.
-                 * @param JobId The ID of the job.
-                 */
                 virtual void JobStatusChanged(int JobId);
         } dbInstrumentsEventHandler;
 #endif // HAVE_SQLITE3

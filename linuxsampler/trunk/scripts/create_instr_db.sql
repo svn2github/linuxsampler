@@ -9,7 +9,7 @@ CREATE TABLE instr_dirs (
     UNIQUE (parent_dir_id,dir_name)
 );
 
-INSERT INTO instr_dirs (dir_id, parent_dir_id, dir_name) VALUES (0, 0, "/");
+INSERT INTO instr_dirs (dir_id, parent_dir_id, dir_name) VALUES (0, -2, "/");
 
 CREATE TABLE instruments (
     instr_id        INTEGER PRIMARY KEY AUTOINCREMENT,
