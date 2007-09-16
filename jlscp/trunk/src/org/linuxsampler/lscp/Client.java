@@ -34,8 +34,9 @@ import java.util.Vector;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import static org.linuxsampler.lscp.Parser.*;
 import org.linuxsampler.lscp.event.*;
+
+import static org.linuxsampler.lscp.Parser.*;
 
 
 /**
@@ -545,7 +546,7 @@ public class Client {
 					s = s.substring("NAME ".length());
 					list = parseEscapedStringList(s, ' ');
 					if(list.length != 2) throw new LscpException();
-					list[1] = toNonEscapedText(list[1]);
+					list[1] = toNonEscapedString(list[1]);
 					e = new InstrumentsDbEvent(this, list[0], list[1]);
 					for(InstrumentsDbListener l : llID) {
 						l.directoryNameChanged(e);
@@ -574,7 +575,7 @@ public class Client {
 					s = s.substring("NAME ".length());
 					list = parseEscapedStringList(s, ' ');
 					if(list.length != 2) throw new LscpException();
-					list[1] = toNonEscapedText(list[1]);
+					list[1] = toNonEscapedString(list[1]);
 					e = new InstrumentsDbEvent(this, list[0], list[1]);
 					for(InstrumentsDbListener l : llID) {
 						l.instrumentNameChanged(e);
@@ -2861,7 +2862,6 @@ public class Client {
 	loadInstrument(String filename, int instrIdx, int samplerChn, boolean nonModal)
 						throws IOException, LscpException, LSException {
 		
-		filename = toEscapedString(filename);
 		String cmd = nonModal ? "LOAD INSTRUMENT NON_MODAL " : "LOAD INSTRUMENT ";
 		String args = '\'' + filename + "' " + instrIdx + ' ' + samplerChn;
 		
@@ -3885,7 +3885,7 @@ public class Client {
 		
 		String[] names = parseEscapedStringList(getSingleLineResultSet().getResult());
 		for(int i = 0; i < names.length; i++) {
-			names[i] = toNonEscapedText(names[i]);
+			names[i] = toNonEscapedString(names[i]);
 		}
 		return names;
 	}
@@ -4143,7 +4143,7 @@ public class Client {
 		verifyConnection();
 		String s = "ADD DB_INSTRUMENTS";
 		if(background) s += " NON_MODAL";
-		s += " '" + dbDir + "' '" + toEscapedString(filePath) + "' ";
+		s += " '" + dbDir + "' '" + filePath + "' ";
 		out.writeLine(s + String.valueOf(instrIndex));
 		if(getPrintOnlyMode()) return -1;
 		
@@ -4190,7 +4190,7 @@ public class Client {
 		verifyConnection();
 		String s = "ADD DB_INSTRUMENTS";
 		if(background) s += " NON_MODAL";
-		out.writeLine(s + " '" + dbDir + "' '" + toEscapedString(filePath) + "'");
+		out.writeLine(s + " '" + dbDir + "' '" + filePath + "'");
 		if(getPrintOnlyMode()) return -1;
 		
 		ResultSet rs = getEmptyResultSet();
@@ -4274,7 +4274,7 @@ public class Client {
 		}
 		
 		sb.append(" '").append(dbDir).append("' '");
-		sb.append(toEscapedString(fsDir)).append("'");
+		sb.append(fsDir).append("'");
 		out.writeLine(sb.toString());
 		if(getPrintOnlyMode()) return -1;
 		
@@ -4372,7 +4372,7 @@ public class Client {
 		
 		String[] names = parseEscapedStringList(getSingleLineResultSet().getResult());
 		for(int i = 0; i < names.length; i++) {
-			names[i] = toNonEscapedText(names[i]);
+			names[i] = toNonEscapedString(names[i]);
 		}
 		return names;
 	}

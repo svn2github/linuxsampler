@@ -126,7 +126,7 @@ public class DbDirectoryInfo {
 	parse(String s) throws LscpException {
 		if(s.startsWith("DESCRIPTION: ")) {
 			description = s.substring("DESCRIPTION: ".length());
-			description = toNonEscapedText(description);
+			description = toNonEscapedString(description);
 		} else if(s.startsWith("CREATED: ")) {
 			s = s.substring("CREATED: ".length());
 			try { dateCreated.setTime(dateFormat.parse(s).getTime()); }

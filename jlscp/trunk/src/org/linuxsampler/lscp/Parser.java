@@ -560,15 +560,15 @@ public final class Parser {
 		StringBuffer sb = new StringBuffer();
 		for(int i = 0; i < s.length(); i++) {
 			switch(s.charAt(i)) {
-				case '/' : sb.append("\\/");  break;
-				case '\n': sb.append("\\n");  break;
-				case '\r': sb.append("\\r");  break;
-				case '\f': sb.append("\\f");  break;
-				case '\t': sb.append("\\t");  break;
-				case 0x0B: sb.append("\\v");  break;
-				case '\'': sb.append("\\'");  break;
-				case '\"': sb.append("\\\""); break;
-				case '\\': sb.append("\\\\"); break;
+				case '/' : sb.append("\\x2f"); break;
+				case '\n': sb.append("\\n");   break;
+				case '\r': sb.append("\\r");   break;
+				case '\f': sb.append("\\f");   break;
+				case '\t': sb.append("\\t");   break;
+				case 0x0B: sb.append("\\v");   break;
+				case '\'': sb.append("\\'");   break;
+				case '\"': sb.append("\\\"");  break;
+				case '\\': sb.append("\\\\");  break;
 				default  : sb.append(s.charAt(i));
 			}
 		}
@@ -582,13 +582,22 @@ public final class Parser {
 	 */
 	public static String
 	toNonEscapedFileName(Object obj) {
+		return toNonEscapedString(obj);
+	}
+	
+	/**
+	 * Removes the escape sequences from the string <code>obj.toString()</code>.
+	 * @return The provided text with removed escape sequences.
+	 */
+	public static String
+	toNonEscapedString(Object obj) {
 		String s = obj.toString();
 		StringBuffer sb = new StringBuffer();
 		for(int i = 0; i < s.length(); i++) {
 			char c = s.charAt(i);
 			if(c == '\\') {
 				if(i >= s.length()) {
-					Client.getLogger().info("Broken escape sequence");
+					Client.getLogger().info("Broken escape sequence!");
 					break;
 				}
 				char c2 = s.charAt(++i);
@@ -597,8 +606,18 @@ public final class Parser {
 				else if(c2 == '\\') sb.append('\\');
 				else if(c2 == 'r')  sb.append('\r');
 				else if(c2 == 'n')  sb.append('\n');
-				else if(c2 == '/') sb.append('/');
-				else Client.getLogger().info("Unknown escape sequence \\" + c2);
+				else if(c2 == 'f')  sb.append('\f');
+				else if(c2 == 't')  sb.append('\t');
+				else if(c2 == 'v')  sb.append((char)0x0B);
+				else if(c2 == 'x') {
+					Character ch = getHexEscapeSequence(s, i + 1);
+					if(ch != null) sb.append(ch.charValue());
+					i += 2;
+				} else if(c2 >= '0' && c2 <= '9') {
+					Character ch = getOctEscapeSequence(s, i);
+					if(ch != null) sb.append(ch.charValue());
+					i += 2;
+				} else Client.getLogger().info("Unknown escape sequence \\" + c2);
 			} else {
 				sb.append(c);
 			}
@@ -607,34 +626,34 @@ public final class Parser {
 		return sb.toString();
 	}
 	
-	/**
-	 * Removes the escape sequences from the string <code>obj.toString()</code>.
-	 * @return The provided text with removed escape sequences.
-	 */
-	public static String
-	toNonEscapedText(Object obj) {
-		String s = obj.toString();
-		StringBuffer sb = new StringBuffer();
-		for(int i = 0; i < s.length(); i++) {
-			char c = s.charAt(i);
-			if(c == '\\') {
-				if(i >= s.length()) {
-					Client.getLogger().info("Broken escape sequence");
-					break;
-				}
-				char c2 = s.charAt(++i);
-				if(c2 == '\'')      sb.append('\'');
-				else if(c2 == '"')  sb.append('"');
-				else if(c2 == '\\') sb.append('\\');
-				else if(c2 == 'r')  sb.append('\r');
-				else if(c2 == 'n')  sb.append('\n');
-				else Client.getLogger().info("Unknown escape sequence \\" + c2);
-			} else {
-				sb.append(c);
-			}
+	private static Character
+	getHexEscapeSequence(String s, int index) {
+		Character c = null;
+		
+		if(index + 1 >= s.length()) {
+			Client.getLogger().info("Broken escape sequence");
+			return c;
 		}
 		
-		return sb.toString();
+		try { c = (char)Integer.parseInt(s.substring(index, index + 2), 16); }
+		catch(Exception x) { Client.getLogger().info("Broken escape sequence!"); }
+		
+		return c;
+	}
+	
+	private static Character
+	getOctEscapeSequence(String s, int index) {
+		Character c = null;
+		
+		if(index + 2 >= s.length()) {
+			Client.getLogger().info("Broken escape sequence");
+			return c;
+		}
+		
+		try { c = (char)Integer.parseInt(s.substring(index, index + 3), 8); }
+		catch(Exception x) { Client.getLogger().info("Broken escape sequence!"); }
+		
+		return c;
 	}
 	
 	/**

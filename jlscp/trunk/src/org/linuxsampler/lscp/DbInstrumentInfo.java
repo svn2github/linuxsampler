@@ -207,13 +207,13 @@ public class DbInstrumentInfo extends AbstractInstrument implements Parseable {
 			drum = Boolean.parseBoolean(s.substring("IS_DRUM: ".length()));
 		} else if(s.startsWith("PRODUCT: ")) {
 			product = s.substring("PRODUCT: ".length());
-			product = toNonEscapedText(product);
+			product = toNonEscapedString(product);
 		} else if(s.startsWith("ARTISTS: ")) {
 			artists = s.substring("ARTISTS: ".length());
-			artists = toNonEscapedText(artists);
+			artists = toNonEscapedString(artists);
 		} else if(s.startsWith("KEYWORDS: ")) {
 			keywords = s.substring("KEYWORDS: ".length());
-			keywords = toNonEscapedText(keywords);
+			keywords = toNonEscapedString(keywords);
 		} else return false;
 		
 		return true;
