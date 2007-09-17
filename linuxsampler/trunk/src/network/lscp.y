@@ -141,7 +141,7 @@ int hexsToNumber(char hex_digit0, char hex_digit1 = '0') {
 %type <Char> char char_base digit digit_oct digit_hex escape_seq escape_seq_octal escape_seq_hex
 %type <Dotnum> dotnum volume_value boolean
 %type <Number> number sampler_channel instrument_index fx_send_id audio_channel_index device_index midi_input_channel_index midi_input_port_index midi_map midi_bank midi_prog midi_ctrl
-%type <String> string string_escaped text text_escaped textval_escaped stringval stringval_escaped digits param_val_list param_val query_val filename db_path map_name entry_name fx_send_name engine_name command add_instruction create_instruction destroy_instruction get_instruction list_instruction load_instruction set_chan_instruction load_instr_args load_engine_args audio_output_type_name midi_input_type_name remove_instruction unmap_instruction set_instruction subscribe_event unsubscribe_event map_instruction reset_instruction clear_instruction find_instruction move_instruction copy_instruction scan_mode edit_instruction
+%type <String> string string_escaped text text_escaped textval_escaped stringval stringval_escaped digits param_val_list param_val query_val filename db_path map_name entry_name fx_send_name engine_name command add_instruction create_instruction destroy_instruction get_instruction list_instruction load_instruction set_chan_instruction load_instr_args load_engine_args audio_output_type_name midi_input_type_name remove_instruction unmap_instruction set_instruction subscribe_event unsubscribe_event map_instruction reset_instruction clear_instruction find_instruction move_instruction copy_instruction scan_mode edit_instruction format_instruction
 %type <FillResponse> buffer_size_type
 %type <KeyValList> key_val_list query_val_list
 %type <LoadMode> instr_load_mode
@@ -198,6 +198,7 @@ command               :  ADD SP add_instruction                { $$ = $3;       
                       |  MOVE SP move_instruction              { $$ = $3;                                                }
                       |  COPY SP copy_instruction              { $$ = $3;                                                }
                       |  EDIT SP edit_instruction              { $$ = $3;                                                }
+                      |  FORMAT SP format_instruction          { $$ = $3;                                                }
                       |  RESET                                 { $$ = LSCPSERVER->ResetSampler();                        }
                       |  QUIT                                  { LSCPSERVER->AnswerClient("Bye!\r\n"); return LSCP_QUIT; }
                       ;
@@ -398,6 +399,9 @@ set_chan_instruction  :  AUDIO_OUTPUT_DEVICE SP sampler_channel SP device_index 
                       ;
 
 edit_instruction      :  INSTRUMENT SP sampler_channel  { $$ = LSCPSERVER->EditSamplerChannelInstrument($3); }
+                      ;
+
+format_instruction    :  INSTRUMENTS_DB  { $$ = LSCPSERVER->FormatInstrumentsDb(); }
                       ;
 
 modal_arg             :  /* epsilon (empty argument) */  { $$ = true;  }
@@ -949,6 +953,9 @@ DB_INSTRUMENT              :  'D''B''_''I''N''S''T''R''U''M''E''N''T'
 DB_INSTRUMENTS_JOB         :  'D''B''_''I''N''S''T''R''U''M''E''N''T''S''_''J''O''B'
                            ;
 
+INSTRUMENTS_DB             :  'I''N''S''T''R''U''M''E''N''T''S''_''D''B'
+                           ;
+
 DESCRIPTION                :  'D''E''S''C''R''I''P''T''I''O''N'
                            ;
 
@@ -986,6 +993,9 @@ PERCENTAGE            :  'P''E''R''C''E''N''T''A''G''E'
                       ;
 
 EDIT                  :  'E''D''I''T'
+                      ;
+
+FORMAT                :  'F''O''R''M''A''T'
                       ;
 
 RESET                 :  'R''E''S''E''T'

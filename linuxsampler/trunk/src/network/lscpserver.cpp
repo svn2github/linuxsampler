@@ -2748,6 +2748,21 @@ String LSCPServer::FindDbInstruments(String Dir, std::map<String,String> Paramet
     return result.Produce();
 }
 
+String LSCPServer::FormatInstrumentsDb() {
+    dmsg(2,("LSCPServer: FormatInstrumentsDb()\n"));
+    LSCPResultSet result;
+#if HAVE_SQLITE3
+    try {
+        InstrumentsDb::GetInstrumentsDb()->Format();
+    } catch (Exception e) {
+         result.Error(e);
+    }
+#else
+    result.Error(String(DOESNT_HAVE_SQLITE3), 0);
+#endif
+    return result.Produce();
+}
+
 
 /**
  * Will be called by the parser to enable or disable echo mode; if echo

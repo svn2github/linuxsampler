@@ -1623,6 +1623,34 @@ namespace LinuxSampler {
         return Dir.substr(0, i);
     }
 
+    void InstrumentsDb::Format() {
+        DbInstrumentsMutex.Lock();
+        if (db != NULL) {
+            sqlite3_close(db);
+            db = NULL;
+        }
+
+        if (DbFile.empty()) DbFile = "/var/lib/linuxsampler/instruments.db";
+        String bkp = DbFile + ".bkp";
+        remove(bkp.c_str());
+        if (rename(DbFile.c_str(), bkp.c_str()) && errno != ENOENT) {
+            DbInstrumentsMutex.Unlock();
+            throw Exception(String("Failed to backup database: ") + strerror(errno));
+        }
+        
+        String f = DbFile;
+        DbFile = "";
+        try { CreateInstrumentsDb(f); }
+        catch(Exception e) {
+            DbInstrumentsMutex.Unlock();
+            throw e;
+        }
+        DbInstrumentsMutex.Unlock();
+        
+        FireDirectoryCountChanged("/");
+        FireInstrumentCountChanged("/");
+    }
+
     void InstrumentsDb::CheckFileName(String File) {
         if (File.empty()) throw Exception("Invalid file name: " + File);
     }

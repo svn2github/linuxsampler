@@ -34,7 +34,7 @@ Schoenebeck'>
                 <email>schoenebeck at software minus engineering dot org</email>
             </address>
         </author>
-        <date month="June" year="2007"/>
+        <date month="September" year="2007"/>
         <workgroup>LinuxSampler Developers</workgroup>
         <keyword>LSCP</keyword>
         <abstract>
@@ -4760,6 +4760,18 @@ Schoenebeck'>
             <section title="Managing Instruments Database" anchor="Managing Instruments Database">
                 <t>The following commands describe how to use and manage
                 the instruments database.</t>
+                <t>Notice:</t>
+                    <t>
+                        <list>
+                            <t>All command arguments representing a path or
+                            instrument/directory name support escape sequences as described in chapter
+                            "<xref target="character_set">Character Set and Escape Sequences</xref>".
+                            </t>
+                            <t>All occurrences of a forward slash in instrument and directory
+                               names are escaped with its hex (\x2f) or octal (\057) escape sequence.
+                            </t>
+                        </list>
+                    </t>
 
                 <section title="Creating a new instrument directory" anchor="ADD DB_INSTRUMENT_DIRECTORY">
                     <t>The front-end can add a new instrument directory to the
@@ -4937,7 +4949,9 @@ Schoenebeck'>
                                 <list>
                                     <t>DESCRIPTION -
                                         <list>
-                                            <t>A brief description of the directory content</t>
+                                            <t>A brief description of the directory content.
+                                            Note that the character string may contain
+                                            <xref target="character_set">escape sequences</xref>.</t>
                                         </list>
                                     </t>
                                     <t>CREATED -
@@ -5101,7 +5115,9 @@ Schoenebeck'>
                         </list>
                     </t>
                     <t>Where &lt;dir&gt; is the absolute path name of the directory and
-                    &lt;desc&gt; is the new description for the directory.</t>
+                    &lt;desc&gt; is the new description for the directory
+                    (encapsulated into apostrophes, supporting escape sequences as described in chapter
+                    "<xref target="character_set">Character Set and Escape Sequences</xref>").</t>
 
                     <t>Possible Answers:</t>
                     <t>
@@ -5146,7 +5162,9 @@ Schoenebeck'>
                       <t>NAME='&lt;search-string&gt;'
                           <list>
                               <t>Restricts the search to directories, which names
-                              satisfy the supplied search string.</t>
+                              satisfy the supplied search string (encapsulated into apostrophes,
+                              supporting escape sequences as described in chapter
+                              "<xref target="character_set">Character Set and Escape Sequences</xref>").</t>
                           </list>
                       </t>
 
@@ -5177,7 +5195,10 @@ Schoenebeck'>
                       <t>DESCRIPTION='&lt;search-string&gt;'
                           <list>
                               <t>Restricts the search to directories with description
-                              that satisfies the supplied search string.</t>
+                              that satisfies the supplied search string
+                              (encapsulated into apostrophes, supporting escape
+                              sequences as described in chapter
+                              "<xref target="character_set">Character Set and Escape Sequences</xref>").</t>
                           </list>
                       </t>
                     </t>
@@ -5438,7 +5459,9 @@ Schoenebeck'>
                                 <list>
                                     <t>INSTRUMENT_FILE -
                                         <list>
-                                            <t>File name of the instrument.</t>
+                                            <t>File name of the instrument.
+                                            Note that the character string may contain
+                                            <xref target="character_set">escape sequences</xref>.</t>
                                         </list>
                                     </t>
                                     <t>INSTRUMENT_NR -
@@ -5477,7 +5500,9 @@ Schoenebeck'>
                                     </t>
                                     <t>DESCRIPTION -
                                         <list>
-                                            <t>A brief description of the instrument</t>
+                                            <t>A brief description of the instrument.
+                                            Note that the character string may contain
+                                            <xref target="character_set">escape sequences</xref>.</t>
                                         </list>
                                     </t>
                                     <t>IS_DRUM -
@@ -5488,18 +5513,24 @@ Schoenebeck'>
                                     </t>
                                     <t>PRODUCT -
                                         <list>
-                                            <t>The product title of the instrument</t>
+                                            <t>The product title of the instrument.
+                                            Note that the character string may contain
+                                            <xref target="character_set">escape sequences</xref>.</t>
                                         </list>
                                     </t>
                                     <t>ARTISTS -
                                         <list>
-                                            <t>Lists the artist names</t>
+                                            <t>Lists the artist names.
+                                            Note that the character string may contain
+                                            <xref target="character_set">escape sequences</xref>.</t>
                                         </list>
                                     </t>
                                     <t>KEYWORDS -
                                         <list>
                                             <t>Provides a list of keywords that refer to the instrument.
-                                            Keywords are separated with semicolon and blank.</t>
+                                            Keywords are separated with semicolon and blank.
+                                            Note that the character string may contain
+                                            <xref target="character_set">escape sequences</xref>.</t>
                                         </list>
                                     </t>
                                 </list>
@@ -5656,7 +5687,9 @@ Schoenebeck'>
                         </list>
                     </t>
                     <t>Where &lt;instr&gt; is the absolute path name of the instrument and
-                    &lt;desc&gt; is the new description for the instrument.</t>
+                    &lt;desc&gt; is the new description for the instrument 
+                    (encapsulated into apostrophes, supporting escape sequences as described in chapter
+                    "<xref target="character_set">Character Set and Escape Sequences</xref>").</t>
 
                     <t>Possible Answers:</t>
                     <t>
@@ -5701,7 +5734,9 @@ Schoenebeck'>
                       <t>NAME='&lt;search-string&gt;'
                           <list>
                               <t>Restricts the search to instruments, which names
-                              satisfy the supplied search string.</t>
+                              satisfy the supplied search string (encapsulated into apostrophes,
+                              supporting escape sequences as described in chapter
+                              "<xref target="character_set">Character Set and Escape Sequences</xref>").</t>
                           </list>
                       </t>
 
@@ -5743,28 +5778,36 @@ Schoenebeck'>
                       <t>DESCRIPTION='&lt;search-string&gt;'
                           <list>
                               <t>Restricts the search to instruments with description
-                              that satisfies the supplied search string.</t>
+                              that satisfies the supplied search string (encapsulated into apostrophes,
+                              supporting escape sequences as described in chapter
+                              "<xref target="character_set">Character Set and Escape Sequences</xref>").</t>
                           </list>
                       </t>
 
                       <t>PRODUCT='&lt;search-string&gt;'
                           <list>
                               <t>Restricts the search to instruments with product info
-                              that satisfies the supplied search string.</t>
+                              that satisfies the supplied search string (encapsulated into apostrophes,
+                              supporting escape sequences as described in chapter
+                              "<xref target="character_set">Character Set and Escape Sequences</xref>").</t>
                           </list>
                       </t>
 
                       <t>ARTISTS='&lt;search-string&gt;'
                           <list>
                               <t>Restricts the search to instruments with artists info
-                              that satisfies the supplied search string.</t>
+                              that satisfies the supplied search string (encapsulated into apostrophes,
+                              supporting escape sequences as described in chapter
+                              "<xref target="character_set">Character Set and Escape Sequences</xref>").</t>
                           </list>
                       </t>
 
                       <t>KEYWORDS='&lt;search-string&gt;'
                           <list>
                               <t>Restricts the search to instruments with keyword list
-                              that satisfies the supplied search string.</t>
+                              that satisfies the supplied search string (encapsulated into apostrophes,
+                              supporting escape sequences as described in chapter
+                              "<xref target="character_set">Character Set and Escape Sequences</xref>").</t>
                           </list>
                       </t>
 
@@ -5874,6 +5917,34 @@ Schoenebeck'>
                             <t>&nbsp;&nbsp;&nbsp;"SCANNING: /home/me/gigs/Bosendorfer 290.gig"</t>
                             <t>&nbsp;&nbsp;&nbsp;"STATUS: 42"</t>
                             <t>&nbsp;&nbsp;&nbsp;"."</t>
+                        </list>
+                    </t>
+                </section>
+
+                <section title="Formatting the instruments database" anchor="FORMAT INSTRUMENTS_DB">
+                    <t>The front-end can remove all instruments and directories and re-create
+                    the instruments database structure (e.g., in case of a database corruption)
+                    by sending the following command:</t>
+                    <t>
+                        <list>
+                            <t>FORMAT INSTRUMENTS_DB</t>
+                        </list>
+                    </t>
+                    
+                    <t>Possible Answers:</t>
+                    <t>
+                        <list>
+                            <t>"OK" -
+                                <list>
+                                    <t>on success</t>
+                                </list>
+                            </t>
+                            <t>"ERR:&lt;error-code&gt;:&lt;error-message&gt;" -
+                                <list>
+                                    <t>If the formatting of the instruments database
+                                    failed.</t>
+                                </list>
+                            </t>
                         </list>
                     </t>
                 </section>

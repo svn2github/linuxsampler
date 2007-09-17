@@ -437,6 +437,12 @@ namespace LinuxSampler {
             StringListPtr FindInstruments(String Dir, SearchQuery* pQuery, bool Recursive);
 
             /**
+             * Removes the old instruments datbase and re-creates
+             * the instruments database from scratch.
+             */
+            void Format();
+
+            /**
              * All '\0' chars in the string are replaced with "\x2f";
              * ', ", \ are escaped with backslash and
              * <CR> and <LF> are replaced with \r and \n.
