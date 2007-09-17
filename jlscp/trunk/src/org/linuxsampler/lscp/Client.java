@@ -4807,6 +4807,22 @@ public class Client {
 	}
 	
 	/**
+	 * Removes all instruments and directories and re-creates
+	 * the instruments database structure.
+	 * @throws IOException If some I/O error occurs.
+	 * @throws LscpException If LSCP protocol corruption occurs.
+	 * @throws LSException If the formatting of the instruments database failed.
+	 */
+	public synchronized void
+	formatInstrumentsDb() throws IOException, LscpException, LSException {
+		verifyConnection();
+		out.writeLine("FORMAT INSTRUMENTS_DB");
+		if(getPrintOnlyMode()) return;
+		
+		ResultSet rs = getEmptyResultSet();
+	}
+	
+	/**
 	 * Resets the specified sampler channel.
 	 *
 	 * @param samplerChn The sampler channel number.
