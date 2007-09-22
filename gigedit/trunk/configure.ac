@@ -1,5 +1,6 @@
 dnl Process this file with autoconf to produce a configure script.
 AC_INIT(gigedit,0.0.3)
+AC_CONFIG_AUX_DIR([.])
 
 #------------------------------------------------------------------------------------
 # The following is the libtool / shared library version. This doesn't have to
