@@ -145,7 +145,7 @@
 <tr><td class="header">LinuxSampler Developers</td><td class="header">C. Schoenebeck</td></tr>
 <tr><td class="header">Internet-Draft</td><td class="header">Interessengemeinschaft Software</td></tr>
 <tr><td class="header">Intended status: Standards Track</td><td class="header">Engineering e. V.</td></tr>
-<tr><td class="header">Expires: December 24, 2007</td><td class="header">June 22, 2007</td></tr>
+<tr><td class="header">Expires: March 4, 2008</td><td class="header">September 2007</td></tr>
 </table></td></tr></table>
 <h1><br />LinuxSampler Control Protocol (draft)<br />LSCP 1.2cvs</h1>
 
@@ -173,7 +173,7 @@ The list of current Internet-Drafts can be accessed at
 The list of Internet-Draft Shadow Directories can be accessed at
 <a href='http://www.ietf.org/shadow.html'>http://www.ietf.org/shadow.html</a>.</p>
 <p>
-This Internet-Draft will expire on December 24, 2007.</p>
+This Internet-Draft will expire on March 4, 2008.</p>
 
 <h3>Copyright Notice</h3>
 <p>
@@ -432,6 +432,12 @@ Changing the description of instrument<br />
 Finding instruments<br />
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#GET DB_INSTRUMENTS_JOB INFO">6.8.21.</a>&nbsp;
 Getting job status information<br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#FORMAT INSTRUMENTS_DB">6.8.22.</a>&nbsp;
+Formatting the instruments database<br />
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#editing_instruments">6.9.</a>&nbsp;
+Editing Instruments<br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#EDIT INSTRUMENT">6.9.1.</a>&nbsp;
+Opening an appropriate instrument editor application<br />
 <a href="#command_syntax">7.</a>&nbsp;
 Command Syntax<br />
 &nbsp;&nbsp;&nbsp;&nbsp;<a href="#character_set">7.1.</a>&nbsp;
@@ -3301,7 +3307,8 @@ Changing settings of MIDI input ports</h3>
                     or <a class='info' href='#LIST MIDI_INPUT_DEVICES'>"LIST MIDI_INPUT_DEVICES"<span> (</span><span class='info'>Getting all created MIDI input device list</span><span>)</span></a>
                     command, &lt;port&gt; by the MIDI port number, &lt;key&gt; by the name of
                     the parameter to change and &lt;value&gt; by the new value for this
-                    parameter.
+                    parameter (encapsulated into apostrophes) or NONE (not encapsulated into apostrophes)
+		    for specifying no value for parameters allowing a list of values.
 </p>
 <p>Possible Answers:
 </p>
@@ -3342,7 +3349,19 @@ Changing settings of MIDI input ports</h3>
 <p>
                         </p>
 <blockquote class="text">
+<p>C: "SET MIDI_INPUT_PORT_PARAMETER 0 0 ALSA_SEQ_BINDINGS='20:0'"
+</p>
+<p>S: "OK"
+</p>
+</blockquote><p>
+                    
+</p>
 <p>
+                        </p>
+<blockquote class="text">
+<p>C: "SET MIDI_INPUT_PORT_PARAMETER 0 0 ALSA_SEQ_BINDINGS=NONE"
+</p>
+<p>S: "OK"
 </p>
 </blockquote><p>
                     
@@ -7247,6 +7266,23 @@ Managing Instruments Database</h3>
 <p>The following commands describe how to use and manage
                 the instruments database.
 </p>
+<p>Notice:
+</p>
+<p>
+                        </p>
+<blockquote class="text">
+<p>All command arguments representing a path or
+                            instrument/directory name support escape sequences as described in chapter
+                            "<a class='info' href='#character_set'>Character Set and Escape Sequences<span> (</span><span class='info'>Character Set and Escape Sequences</span><span>)</span></a>".
+                            
+</p>
+<p>All occurrences of a forward slash in instrument and directory
+                               names are escaped with its hex (\x2f) or octal (\057) escape sequence.
+                            
+</p>
+</blockquote><p>
+                    
+</p>
 <a name="ADD DB_INSTRUMENT_DIRECTORY"></a><br /><hr />
 <table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
 <a name="rfc.section.6.8.1"></a><h3>6.8.1.&nbsp;
@@ -7512,7 +7548,9 @@ Getting instrument directory information</h3>
 <p>DESCRIPTION -
                                         </p>
 <blockquote class="text">
-<p>A brief description of the directory content
+<p>A brief description of the directory content.
+                                            Note that the character string may contain
+                                            <a class='info' href='#character_set'>escape sequences<span> (</span><span class='info'>Character Set and Escape Sequences</span><span>)</span></a>.
 </p>
 </blockquote>
                                     
@@ -7757,7 +7795,9 @@ Changing the description of directory</h3>
                     
 </p>
 <p>Where &lt;dir&gt; is the absolute path name of the directory and
-                    &lt;desc&gt; is the new description for the directory.
+                    &lt;desc&gt; is the new description for the directory
+                    (encapsulated into apostrophes, supporting escape sequences as described in chapter
+                    "<a class='info' href='#character_set'>Character Set and Escape Sequences<span> (</span><span class='info'>Character Set and Escape Sequences</span><span>)</span></a>").
 </p>
 <p>Possible Answers:
 </p>
@@ -7824,7 +7864,9 @@ Finding directories</h3>
                           </p>
 <blockquote class="text">
 <p>Restricts the search to directories, which names
-                              satisfy the supplied search string.
+                              satisfy the supplied search string (encapsulated into apostrophes,
+                              supporting escape sequences as described in chapter
+                              "<a class='info' href='#character_set'>Character Set and Escape Sequences<span> (</span><span class='info'>Character Set and Escape Sequences</span><span>)</span></a>").
 </p>
 </blockquote><p>
                       
@@ -7867,7 +7909,10 @@ Finding directories</h3>
                           </p>
 <blockquote class="text">
 <p>Restricts the search to directories with description
-                              that satisfies the supplied search string.
+                              that satisfies the supplied search string
+                              (encapsulated into apostrophes, supporting escape
+                              sequences as described in chapter
+                              "<a class='info' href='#character_set'>Character Set and Escape Sequences<span> (</span><span class='info'>Character Set and Escape Sequences</span><span>)</span></a>").
 </p>
 </blockquote><p>
                       
@@ -8248,6 +8293,8 @@ Getting instrument information</h3>
                                         </p>
 <blockquote class="text">
 <p>File name of the instrument.
+                                            Note that the character string may contain
+                                            <a class='info' href='#character_set'>escape sequences<span> (</span><span class='info'>Character Set and Escape Sequences</span><span>)</span></a>.
 </p>
 </blockquote>
                                     
@@ -8307,7 +8354,9 @@ Getting instrument information</h3>
 <p>DESCRIPTION -
                                         </p>
 <blockquote class="text">
-<p>A brief description of the instrument
+<p>A brief description of the instrument.
+                                            Note that the character string may contain
+                                            <a class='info' href='#character_set'>escape sequences<span> (</span><span class='info'>Character Set and Escape Sequences</span><span>)</span></a>.
 </p>
 </blockquote>
                                     
@@ -8324,7 +8373,9 @@ Getting instrument information</h3>
 <p>PRODUCT -
                                         </p>
 <blockquote class="text">
-<p>The product title of the instrument
+<p>The product title of the instrument.
+                                            Note that the character string may contain
+                                            <a class='info' href='#character_set'>escape sequences<span> (</span><span class='info'>Character Set and Escape Sequences</span><span>)</span></a>.
 </p>
 </blockquote>
                                     
@@ -8332,7 +8383,9 @@ Getting instrument information</h3>
 <p>ARTISTS -
                                         </p>
 <blockquote class="text">
-<p>Lists the artist names
+<p>Lists the artist names.
+                                            Note that the character string may contain
+                                            <a class='info' href='#character_set'>escape sequences<span> (</span><span class='info'>Character Set and Escape Sequences</span><span>)</span></a>.
 </p>
 </blockquote>
                                     
@@ -8342,6 +8395,8 @@ Getting instrument information</h3>
 <blockquote class="text">
 <p>Provides a list of keywords that refer to the instrument.
                                             Keywords are separated with semicolon and blank.
+                                            Note that the character string may contain
+                                            <a class='info' href='#character_set'>escape sequences<span> (</span><span class='info'>Character Set and Escape Sequences</span><span>)</span></a>.
 </p>
 </blockquote>
                                     
@@ -8582,7 +8637,9 @@ Changing the description of instrument</h3>
                     
 </p>
 <p>Where &lt;instr&gt; is the absolute path name of the instrument and
-                    &lt;desc&gt; is the new description for the instrument.
+                    &lt;desc&gt; is the new description for the instrument 
+                    (encapsulated into apostrophes, supporting escape sequences as described in chapter
+                    "<a class='info' href='#character_set'>Character Set and Escape Sequences<span> (</span><span class='info'>Character Set and Escape Sequences</span><span>)</span></a>").
 </p>
 <p>Possible Answers:
 </p>
@@ -8649,7 +8706,9 @@ Finding instruments</h3>
                           </p>
 <blockquote class="text">
 <p>Restricts the search to instruments, which names
-                              satisfy the supplied search string.
+                              satisfy the supplied search string (encapsulated into apostrophes,
+                              supporting escape sequences as described in chapter
+                              "<a class='info' href='#character_set'>Character Set and Escape Sequences<span> (</span><span class='info'>Character Set and Escape Sequences</span><span>)</span></a>").
 </p>
 </blockquote><p>
                       
@@ -8707,7 +8766,9 @@ Finding instruments</h3>
                           </p>
 <blockquote class="text">
 <p>Restricts the search to instruments with description
-                              that satisfies the supplied search string.
+                              that satisfies the supplied search string (encapsulated into apostrophes,
+                              supporting escape sequences as described in chapter
+                              "<a class='info' href='#character_set'>Character Set and Escape Sequences<span> (</span><span class='info'>Character Set and Escape Sequences</span><span>)</span></a>").
 </p>
 </blockquote><p>
                       
@@ -8718,7 +8779,9 @@ Finding instruments</h3>
                           </p>
 <blockquote class="text">
 <p>Restricts the search to instruments with product info
-                              that satisfies the supplied search string.
+                              that satisfies the supplied search string (encapsulated into apostrophes,
+                              supporting escape sequences as described in chapter
+                              "<a class='info' href='#character_set'>Character Set and Escape Sequences<span> (</span><span class='info'>Character Set and Escape Sequences</span><span>)</span></a>").
 </p>
 </blockquote><p>
                       
@@ -8729,7 +8792,9 @@ Finding instruments</h3>
                           </p>
 <blockquote class="text">
 <p>Restricts the search to instruments with artists info
-                              that satisfies the supplied search string.
+                              that satisfies the supplied search string (encapsulated into apostrophes,
+                              supporting escape sequences as described in chapter
+                              "<a class='info' href='#character_set'>Character Set and Escape Sequences<span> (</span><span class='info'>Character Set and Escape Sequences</span><span>)</span></a>").
 </p>
 </blockquote><p>
                       
@@ -8740,7 +8805,9 @@ Finding instruments</h3>
                           </p>
 <blockquote class="text">
 <p>Restricts the search to instruments with keyword list
-                              that satisfies the supplied search string.
+                              that satisfies the supplied search string (encapsulated into apostrophes,
+                              supporting escape sequences as described in chapter
+                              "<a class='info' href='#character_set'>Character Set and Escape Sequences<span> (</span><span class='info'>Character Set and Escape Sequences</span><span>)</span></a>").
 </p>
 </blockquote><p>
                       
@@ -8910,6 +8977,149 @@ Getting job status information</h3>
 </blockquote><p>
                     
 </p>
+<a name="FORMAT INSTRUMENTS_DB"></a><br /><hr />
+<table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
+<a name="rfc.section.6.8.22"></a><h3>6.8.22.&nbsp;
+Formatting the instruments database</h3>
+
+<p>The front-end can remove all instruments and directories and re-create
+                    the instruments database structure (e.g., in case of a database corruption)
+                    by sending the following command:
+</p>
+<p>
+                        </p>
+<blockquote class="text">
+<p>FORMAT INSTRUMENTS_DB
+</p>
+</blockquote><p>
+                    
+</p>
+<p>Possible Answers:
+</p>
+<p>
+                        </p>
+<blockquote class="text">
+<p>"OK" -
+                                </p>
+<blockquote class="text">
+<p>on success
+</p>
+</blockquote>
+                            
+
+<p>"ERR:&lt;error-code&gt;:&lt;error-message&gt;" -
+                                </p>
+<blockquote class="text">
+<p>If the formatting of the instruments database
+                                    failed.
+</p>
+</blockquote>
+                            
+
+</blockquote><p>
+                    
+</p>
+<a name="editing_instruments"></a><br /><hr />
+<table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
+<a name="rfc.section.6.9"></a><h3>6.9.&nbsp;
+Editing Instruments</h3>
+
+<p>The sampler allows to edit instruments while playing with the
+                sampler by spawning an external (3rd party) instrument editor
+                application for a given instrument. The 3rd party instrument
+                editor applications have to place a respective plugin DLL file
+                into the sampler's plugins directory. The sampler will
+                automatically try to load all plugin DLLs in that directory on
+                startup and only on startup!
+</p>
+<p>At the moment there is only one command for this feature set,
+                but this will most probably change in future.
+</p>
+<a name="EDIT INSTRUMENT"></a><br /><hr />
+<table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
+<a name="rfc.section.6.9.1"></a><h3>6.9.1.&nbsp;
+Opening an appropriate instrument editor application</h3>
+
+<p>The front-end can request to open an appropriate instrument
+                    editor application by sending the following command:
+</p>
+<p>
+                        </p>
+<blockquote class="text">
+<p>EDIT INSTRUMENT &lt;sampler-channel&gt;
+</p>
+</blockquote><p>
+                    
+</p>
+<p>Where &lt;sampler-channel&gt; should be replaced by the
+                    number of the sampler channel as given by the
+                    <a class='info' href='#ADD CHANNEL'>"ADD CHANNEL"<span> (</span><span class='info'>Adding a new sampler channel</span><span>)</span></a>
+                    or <a class='info' href='#LIST CHANNELS'>"LIST CHANNELS"<span> (</span><span class='info'>Getting all created sampler channel list</span><span>)</span></a>
+                    command.
+</p>
+<p>The sampler will try to ask all registered instrument
+                    editors (or to be more specific: their sampler plugins)
+                    whether they are capable to handle the instrument on the
+                    given sampler channel. The sampler will simply use the first
+                    instrument editor application which replied with a positive
+                    answer and spawn that instrument editor application within
+                    the sampler's process and provide that application access
+                    to the instrument's data structures, so both applications
+                    can share and access the same instruments data at the same
+                    time, thus allowing to immediately hear changes with the
+                    sampler made by the instrument editor.
+</p>
+<p>Note: consequently instrument editors are always spawned
+                    locally on the same machine where the sampler is running
+                    on!
+</p>
+<p>Possible Answers:
+</p>
+<p>
+                        </p>
+<blockquote class="text">
+<p>"OK" -
+                                </p>
+<blockquote class="text">
+<p>when an appropriate instrument editor was
+                                    launched
+</p>
+</blockquote>
+                            
+
+<p>"WRN:&lt;warning-code&gt;:&lt;warning-message&gt;" -
+                                </p>
+<blockquote class="text">
+<p>when an appropriate instrument editor was
+                                    launched, but there are noteworthy issues
+</p>
+</blockquote>
+                            
+
+<p>"ERR:&lt;error-code&gt;:&lt;error-message&gt;" -
+                                </p>
+<blockquote class="text">
+<p>when an appropriate instrument editor
+                                    could not be launched
+</p>
+</blockquote>
+                            
+
+</blockquote><p>
+                    
+</p>
+<p>Examples:
+</p>
+<p>
+                        </p>
+<blockquote class="text">
+<p>C: "EDIT INSTRUMENT 0"
+</p>
+<p>S: "OK"
+</p>
+</blockquote><p>
+                    
+</p>
 <a name="command_syntax"></a><br /><hr />
 <table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
 <a name="rfc.section.7"></a><h3>7.&nbsp;
@@ -9028,6 +9238,9 @@ Command Syntax</h3>
 <p>/ EDIT SP edit_instruction
 		
 </p>
+<p>/ FORMAT SP format_instruction
+		
+</p>
 <p>/ RESET
 		
 </p>
@@ -9043,25 +9256,25 @@ Command Syntax</h3>
 <p>CHANNEL
 		
 </p>
-<p>/ DB_INSTRUMENT_DIRECTORY SP pathname
+<p>/ DB_INSTRUMENT_DIRECTORY SP db_path
 		
 </p>
-<p>/ DB_INSTRUMENTS SP NON_MODAL SP scan_mode SP pathname SP pathname
+<p>/ DB_INSTRUMENTS SP NON_MODAL SP scan_mode SP db_path SP filename
 		
 </p>
-<p>/ DB_INSTRUMENTS SP scan_mode SP pathname SP pathname
+<p>/ DB_INSTRUMENTS SP scan_mode SP db_path SP filename
 		
 </p>
-<p>/ DB_INSTRUMENTS SP NON_MODAL SP pathname SP pathname
+<p>/ DB_INSTRUMENTS SP NON_MODAL SP db_path SP filename
 		
 </p>
-<p>/ DB_INSTRUMENTS SP NON_MODAL SP pathname SP pathname SP instrument_index
+<p>/ DB_INSTRUMENTS SP NON_MODAL SP db_path SP filename SP instrument_index
 		
 </p>
-<p>/ DB_INSTRUMENTS SP pathname SP pathname
+<p>/ DB_INSTRUMENTS SP db_path SP filename
 		
 </p>
-<p>/ DB_INSTRUMENTS SP pathname SP pathname SP instrument_index
+<p>/ DB_INSTRUMENTS SP db_path SP filename SP instrument_index
 		
 </p>
 <p>/ MIDI_INSTRUMENT_MAP
@@ -9262,13 +9475,13 @@ Command Syntax</h3>
 <p>/ MIDI_INSTRUMENT_MAP SP ALL
 		
 </p>
-<p>/ DB_INSTRUMENT_DIRECTORY SP FORCE SP pathname
+<p>/ DB_INSTRUMENT_DIRECTORY SP FORCE SP db_path
 		
 </p>
-<p>/ DB_INSTRUMENT_DIRECTORY SP pathname
+<p>/ DB_INSTRUMENT_DIRECTORY SP db_path
 		
 </p>
-<p>/ DB_INSTRUMENT SP pathname
+<p>/ DB_INSTRUMENT SP db_path
 		
 </p>
 </blockquote><p>
@@ -9376,22 +9589,22 @@ Command Syntax</h3>
 <p>/ FX_SEND SP INFO SP sampler_channel SP fx_send_id
 		
 </p>
-<p>/ DB_INSTRUMENT_DIRECTORIES SP RECURSIVE SP pathname
+<p>/ DB_INSTRUMENT_DIRECTORIES SP RECURSIVE SP db_path
 		
 </p>
-<p>/ DB_INSTRUMENT_DIRECTORIES SP pathname
+<p>/ DB_INSTRUMENT_DIRECTORIES SP db_path
 		
 </p>
-<p>/ DB_INSTRUMENT_DIRECTORY SP INFO SP pathname
+<p>/ DB_INSTRUMENT_DIRECTORY SP INFO SP db_path
 		
 </p>
-<p>/ DB_INSTRUMENTS SP RECURSIVE SP pathname
+<p>/ DB_INSTRUMENTS SP RECURSIVE SP db_path
 		
 </p>
-<p>/ DB_INSTRUMENTS SP pathname
+<p>/ DB_INSTRUMENTS SP db_path
 		
 </p>
-<p>/ DB_INSTRUMENT SP INFO SP pathname
+<p>/ DB_INSTRUMENT SP INFO SP db_path
 		
 </p>
 <p>/ DB_INSTRUMENTS_JOB SP INFO SP number
@@ -9415,6 +9628,9 @@ Command Syntax</h3>
 <p>/ MIDI_INPUT_DEVICE_PARAMETER SP number SP string '=' param_val_list
 		
 </p>
+<p>/ MIDI_INPUT_PORT_PARAMETER SP number SP number SP string '=' NONE
+		
+</p>
 <p>/ MIDI_INPUT_PORT_PARAMETER SP number SP number SP string '=' param_val_list
 		
 </p>
@@ -9436,16 +9652,16 @@ Command Syntax</h3>
 <p>/ FX_SEND SP LEVEL SP sampler_channel SP fx_send_id SP volume_value
 		
 </p>
-<p>/ DB_INSTRUMENT_DIRECTORY SP NAME SP pathname SP dirname
+<p>/ DB_INSTRUMENT_DIRECTORY SP NAME SP db_path SP stringval_escaped
 		
 </p>
-<p>/ DB_INSTRUMENT_DIRECTORY SP DESCRIPTION SP pathname SP stringval
+<p>/ DB_INSTRUMENT_DIRECTORY SP DESCRIPTION SP db_path SP stringval_escaped
 		
 </p>
-<p>/ DB_INSTRUMENT SP NAME SP pathname SP dirname
+<p>/ DB_INSTRUMENT SP NAME SP db_path SP stringval_escaped
 		
 </p>
-<p>/ DB_INSTRUMENT SP DESCRIPTION SP pathname SP stringval
+<p>/ DB_INSTRUMENT SP DESCRIPTION SP db_path SP stringval_escaped
 		
 </p>
 <p>/ ECHO SP boolean
@@ -9505,16 +9721,16 @@ Command Syntax</h3>
 <p>find_instruction =
 	</p>
 <blockquote class="text">
-<p>DB_INSTRUMENTS SP NON_RECURSIVE SP pathname SP query_val_list
+<p>DB_INSTRUMENTS SP NON_RECURSIVE SP db_path SP query_val_list
 		
 </p>
-<p>/ DB_INSTRUMENTS SP pathname SP query_val_list
+<p>/ DB_INSTRUMENTS SP db_path SP query_val_list
 		
 </p>
-<p>/ DB_INSTRUMENT_DIRECTORIES SP NON_RECURSIVE SP pathname SP query_val_list
+<p>/ DB_INSTRUMENT_DIRECTORIES SP NON_RECURSIVE SP db_path SP query_val_list
 		
 </p>
-<p>/ DB_INSTRUMENT_DIRECTORIES SP pathname SP query_val_list
+<p>/ DB_INSTRUMENT_DIRECTORIES SP db_path SP query_val_list
 		
 </p>
 </blockquote><p>
@@ -9523,10 +9739,10 @@ Command Syntax</h3>
 <p>move_instruction =
 	</p>
 <blockquote class="text">
-<p>DB_INSTRUMENT_DIRECTORY SP pathname SP pathname
+<p>DB_INSTRUMENT_DIRECTORY SP db_path SP db_path
 		
 </p>
-<p>/ DB_INSTRUMENT SP pathname SP pathname
+<p>/ DB_INSTRUMENT SP db_path SP db_path
 		
 </p>
 </blockquote><p>
@@ -9535,10 +9751,10 @@ Command Syntax</h3>
 <p>copy_instruction =
 	</p>
 <blockquote class="text">
-<p>DB_INSTRUMENT_DIRECTORY SP pathname SP pathname
+<p>DB_INSTRUMENT_DIRECTORY SP db_path SP db_path
 		
 </p>
-<p>/ DB_INSTRUMENT SP pathname SP pathname
+<p>/ DB_INSTRUMENT SP db_path SP db_path
 		
 </p>
 </blockquote><p>
@@ -9628,6 +9844,15 @@ Command Syntax</h3>
 </blockquote><p>
 
 </p>
+<p>format_instruction =
+	</p>
+<blockquote class="text">
+<p>INSTRUMENTS_DB
+		
+</p>
+</blockquote><p>
+
+</p>
 <p>modal_arg =
 	</p>
 <blockquote class="text">
@@ -9697,16 +9922,16 @@ Command Syntax</h3>
 <p>/ FX_SENDS SP sampler_channel
 		
 </p>
-<p>/ DB_INSTRUMENT_DIRECTORIES SP RECURSIVE SP pathname
+<p>/ DB_INSTRUMENT_DIRECTORIES SP RECURSIVE SP db_path
 		
 </p>
-<p>/ DB_INSTRUMENT_DIRECTORIES SP pathname
+<p>/ DB_INSTRUMENT_DIRECTORIES SP db_path
 		
 </p>
-<p>/ DB_INSTRUMENTS SP RECURSIVE SP pathname
+<p>/ DB_INSTRUMENTS SP RECURSIVE SP db_path
 		
 </p>
-<p>/ DB_INSTRUMENTS SP pathname
+<p>/ DB_INSTRUMENTS SP db_path
 		
 </p>
 </blockquote><p>
@@ -9889,28 +10114,19 @@ Command Syntax</h3>
 </blockquote><p>
 
 </p>
-<p>pathname =
-	</p>
-<blockquote class="text">
-<p>stringval
-		
-</p>
-</blockquote><p>
-
-</p>
-<p>dirname =
-	</p>
-<blockquote class="text">
-<p>stringval
-		
-</p>
-</blockquote><p>
-
-</p>
 <p>filename =
 	</p>
 <blockquote class="text">
-<p>stringval_escaped
+<p>path
+		
+</p>
+</blockquote><p>
+
+</p>
+<p>db_path =
+	</p>
+<blockquote class="text">
+<p>path
 		
 </p>
 </blockquote><p>
@@ -9988,10 +10204,10 @@ Command Syntax</h3>
 <p>query_val =
 	</p>
 <blockquote class="text">
-<p>string
+<p>textval_escaped
 		
 </p>
-<p>/ stringval
+<p>/ stringval_escaped
 		
 </p>
 </blockquote><p>
@@ -10943,3 +11159,4 @@ Please address the information to the IETF at <a href='mailto:ietf-ipr@ietf.org'
 Funding for the RFC Editor function is provided by
 the IETF Administrative Support Activity (IASA).</p>
 </body></html>
+
