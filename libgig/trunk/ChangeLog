@@ -16,6 +16,7 @@ Version CVS HEAD (?)
     - added method SetKeyRange() to the Region class which should be used
       instead of setting the KeyRange member variable directly
     - MoveRegion() method of Region class is now private
+    - added SetGain() method to Sampler class
 
   * src/gig.cpp, src/gig.h:
     - fixed segmentation fault in the gig::File destructor sequence which
@@ -62,6 +63,8 @@ Version CVS HEAD (?)
       parent Region
     - fixed Instrument::UpdateRegionKeyTable() method which did not reset
       unused areas
+    - added various setter methods to DimensionRegion class which take care
+      of updating lookup tables / caches.
 
   * src/RIFF.cpp, src/RIFF.h:
     - added File::SetByteOrder method

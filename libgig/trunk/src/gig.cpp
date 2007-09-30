@@ -1512,32 +1512,15 @@ namespace {
                                                      VelocityResponseDepth,
                                                      VelocityResponseCurveScaling);
 
-        curve_type_t curveType = ReleaseVelocityResponseCurve;
-        uint8_t depth = ReleaseVelocityResponseDepth;
+        pVelocityReleaseTable = GetReleaseVelocityTable(
+                                    ReleaseVelocityResponseCurve,
+                                    ReleaseVelocityResponseDepth
+                                );
 
-        // this models a strange behaviour or bug in GSt: two of the
-        // velocity response curves for release time are not used even
-        // if specified, instead another curve is chosen.
-        if ((curveType == curve_type_nonlinear && depth == 0) ||
-            (curveType == curve_type_special   && depth == 4)) {
-            curveType = curve_type_nonlinear;
-            depth = 3;
-        }
-        pVelocityReleaseTable = GetVelocityTable(curveType, depth, 0);
-
-        curveType = VCFVelocityCurve;
-        depth = VCFVelocityDynamicRange;
-
-        // even stranger GSt: two of the velocity response curves for
-        // filter cutoff are not used, instead another special curve
-        // is chosen. This curve is not used anywhere else.
-        if ((curveType == curve_type_nonlinear && depth == 0) ||
-            (curveType == curve_type_special   && depth == 4)) {
-            curveType = curve_type_special;
-            depth = 5;
-        }
-        pVelocityCutoffTable = GetVelocityTable(curveType, depth,
-                                                VCFCutoffController <= vcf_cutoff_ctrl_none2 ? VCFVelocityScale : 0);
+        pVelocityCutoffTable = GetCutoffVelocityTable(VCFVelocityCurve,
+                                                      VCFVelocityDynamicRange,
+                                                      VCFVelocityScale,
+                                                      VCFCutoffController);
 
         SampleAttenuation = pow(10.0, -Gain / (20.0 * 655360));
         VelocityTable = 0;
@@ -1563,6 +1546,15 @@ namespace {
             for (int k = 0 ; k < src.SampleLoops ; k++)
                 pSampleLoops[k] = src.pSampleLoops[k];
         }
+    }
+
+    /**
+     * Updates the respective member variable and updates @c SampleAttenuation
+     * which depends on this value.
+     */
+    void DimensionRegion::SetGain(int32_t gain) {
+        DLS::Sampler::SetGain(gain);
+        SampleAttenuation = pow(10.0, -Gain / (20.0 * 655360));
     }
 
     /**
@@ -1856,6 +1848,40 @@ namespace {
         }
     }
 
+    double* DimensionRegion::GetReleaseVelocityTable(curve_type_t releaseVelocityResponseCurve, uint8_t releaseVelocityResponseDepth) {
+        curve_type_t curveType = releaseVelocityResponseCurve;
+        uint8_t depth = releaseVelocityResponseDepth;
+        // this models a strange behaviour or bug in GSt: two of the
+        // velocity response curves for release time are not used even
+        // if specified, instead another curve is chosen.
+        if ((curveType == curve_type_nonlinear && depth == 0) ||
+            (curveType == curve_type_special   && depth == 4)) {
+            curveType = curve_type_nonlinear;
+            depth = 3;
+        }
+        return GetVelocityTable(curveType, depth, 0);
+    }
+
+    double* DimensionRegion::GetCutoffVelocityTable(curve_type_t vcfVelocityCurve,
+                                                    uint8_t vcfVelocityDynamicRange,
+                                                    uint8_t vcfVelocityScale,
+                                                    vcf_cutoff_ctrl_t vcfCutoffController)
+    {
+        curve_type_t curveType = vcfVelocityCurve;
+        uint8_t depth = vcfVelocityDynamicRange;
+        // even stranger GSt: two of the velocity response curves for
+        // filter cutoff are not used, instead another special curve
+        // is chosen. This curve is not used anywhere else.
+        if ((curveType == curve_type_nonlinear && depth == 0) ||
+            (curveType == curve_type_special   && depth == 4)) {
+            curveType = curve_type_special;
+            depth = 5;
+        }
+        return GetVelocityTable(curveType, depth,
+                                (vcfCutoffController <= vcf_cutoff_ctrl_none2)
+                                    ? vcfVelocityScale : 0);
+    }
+
     // get the corresponding velocity table from the table map or create & calculate that table if it doesn't exist yet
     double* DimensionRegion::GetVelocityTable(curve_type_t curveType, uint8_t depth, uint8_t scaling)
     {
@@ -2126,6 +2152,96 @@ namespace {
 
     double DimensionRegion::GetVelocityCutoff(uint8_t MIDIKeyVelocity) {
         return pVelocityCutoffTable[MIDIKeyVelocity];
+    }
+
+    /**
+     * Updates the respective member variable and the lookup table / cache
+     * that depends on this value.
+     */
+    void DimensionRegion::SetVelocityResponseCurve(curve_type_t curve) {
+        pVelocityAttenuationTable =
+            GetVelocityTable(
+                curve, VelocityResponseDepth, VelocityResponseCurveScaling
+            );
+        VelocityResponseCurve = curve;
+    }
+
+    /**
+     * Updates the respective member variable and the lookup table / cache
+     * that depends on this value.
+     */
+    void DimensionRegion::SetVelocityResponseDepth(uint8_t depth) {
+        pVelocityAttenuationTable =
+            GetVelocityTable(
+                VelocityResponseCurve, depth, VelocityResponseCurveScaling
+            );
+        VelocityResponseDepth = depth;
+    }
+
+    /**
+     * Updates the respective member variable and the lookup table / cache
+     * that depends on this value.
+     */
+    void DimensionRegion::SetVelocityResponseCurveScaling(uint8_t scaling) {
+        pVelocityAttenuationTable =
+            GetVelocityTable(
+                VelocityResponseCurve, VelocityResponseDepth, scaling
+            );
+        VelocityResponseCurveScaling = scaling;
+    }
+
+    /**
+     * Updates the respective member variable and the lookup table / cache
+     * that depends on this value.
+     */
+    void DimensionRegion::SetReleaseVelocityResponseCurve(curve_type_t curve) {
+        pVelocityReleaseTable = GetReleaseVelocityTable(curve, ReleaseVelocityResponseDepth);
+        ReleaseVelocityResponseCurve = curve;
+    }
+
+    /**
+     * Updates the respective member variable and the lookup table / cache
+     * that depends on this value.
+     */
+    void DimensionRegion::SetReleaseVelocityResponseDepth(uint8_t depth) {
+        pVelocityReleaseTable = GetReleaseVelocityTable(ReleaseVelocityResponseCurve, depth);
+        ReleaseVelocityResponseDepth = depth;
+    }
+
+    /**
+     * Updates the respective member variable and the lookup table / cache
+     * that depends on this value.
+     */
+    void DimensionRegion::SetVCFCutoffController(vcf_cutoff_ctrl_t controller) {
+        pVelocityCutoffTable = GetCutoffVelocityTable(VCFVelocityCurve, VCFVelocityDynamicRange, VCFVelocityScale, controller);
+        VCFCutoffController = controller;
+    }
+
+    /**
+     * Updates the respective member variable and the lookup table / cache
+     * that depends on this value.
+     */
+    void DimensionRegion::SetVCFVelocityCurve(curve_type_t curve) {
+        pVelocityCutoffTable = GetCutoffVelocityTable(curve, VCFVelocityDynamicRange, VCFVelocityScale, VCFCutoffController);
+        VCFVelocityCurve = curve;
+    }
+
+    /**
+     * Updates the respective member variable and the lookup table / cache
+     * that depends on this value.
+     */
+    void DimensionRegion::SetVCFVelocityDynamicRange(uint8_t range) {
+        pVelocityCutoffTable = GetCutoffVelocityTable(VCFVelocityCurve, range, VCFVelocityScale, VCFCutoffController);
+        VCFVelocityDynamicRange = range;
+    }
+
+    /**
+     * Updates the respective member variable and the lookup table / cache
+     * that depends on this value.
+     */
+    void DimensionRegion::SetVCFVelocityScale(uint8_t scaling) {
+        pVelocityCutoffTable = GetCutoffVelocityTable(VCFVelocityCurve, VCFVelocityDynamicRange, scaling, VCFCutoffController);
+        VCFVelocityScale = scaling;
     }
 
     double* DimensionRegion::CreateVelocityTable(curve_type_t curveType, uint8_t depth, uint8_t scaling) {

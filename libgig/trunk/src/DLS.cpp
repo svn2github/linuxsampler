@@ -512,6 +512,10 @@ namespace DLS {
         if (pSampleLoops) delete[] pSampleLoops;
     }
 
+    void Sampler::SetGain(int32_t gain) {
+        Gain = gain;
+    }
+
     /**
      * Apply all sample player options to the respective RIFF chunk. You
      * have to call File::Save() to make changes persistent.

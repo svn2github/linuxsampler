@@ -425,23 +425,23 @@ namespace gig {
             // Filter
             bool               VCFEnabled;                    ///< If filter should be used.
             vcf_type_t         VCFType;                       ///< Defines the general filter characteristic (lowpass, highpass, bandpass, etc.).
-            vcf_cutoff_ctrl_t  VCFCutoffController;           ///< Specifies which external controller has influence on the filter cutoff frequency.
+            vcf_cutoff_ctrl_t  VCFCutoffController;           ///< Specifies which external controller has influence on the filter cutoff frequency. @deprecated Don't alter directly, use SetVCFCutoffController() instead!
             bool               VCFCutoffControllerInvert;     ///< Inverts values coming from the defined cutoff controller
             uint8_t            VCFCutoff;                     ///< Max. cutoff frequency.
-            curve_type_t       VCFVelocityCurve;              ///< Defines a transformation curve for the incoming velocity values, affecting the VCF.
-            uint8_t            VCFVelocityScale;              ///< (0-127) Amount velocity controls VCF cutoff frequency (only if no other VCF cutoff controller is defined, otherwise this is the minimum cutoff).
-            uint8_t            VCFVelocityDynamicRange;       ///< 0x04 = lowest, 0x00 = highest
+            curve_type_t       VCFVelocityCurve;              ///< Defines a transformation curve for the incoming velocity values, affecting the VCF. @deprecated Don't alter directly, use SetVCFVelocityCurve() instead!
+            uint8_t            VCFVelocityScale;              ///< (0-127) Amount velocity controls VCF cutoff frequency (only if no other VCF cutoff controller is defined, otherwise this is the minimum cutoff). @deprecated Don't alter directly, use SetVCFVelocityScale() instead!
+            uint8_t            VCFVelocityDynamicRange;       ///< 0x04 = lowest, 0x00 = highest . @deprecated Don't alter directly, use SetVCFVelocityDynamicRange() instead!
             uint8_t            VCFResonance;                  ///< Firm internal filter resonance weight.
             bool               VCFResonanceDynamic;           ///< If <i>true</i>: Increases the resonance Q according to changes of controllers that actually control the VCF cutoff frequency (EG2, ext. VCF MIDI controller).
             vcf_res_ctrl_t     VCFResonanceController;        ///< Specifies which external controller has influence on the filter resonance Q.
             bool               VCFKeyboardTracking;           ///< If <i>true</i>: VCF cutoff frequence will be dependend to the note key position relative to the defined breakpoint value.
             uint8_t            VCFKeyboardTrackingBreakpoint; ///< See VCFKeyboardTracking (0 - 127).
             // Key Velocity Transformations
-            curve_type_t       VelocityResponseCurve;         ///< Defines a transformation curve to the incoming velocity values affecting amplitude (usually you don't have to interpret this parameter, use GetVelocityAttenuation() instead).
-            uint8_t            VelocityResponseDepth;         ///< Dynamic range of velocity affecting amplitude (0 - 4) (usually you don't have to interpret this parameter, use GetVelocityAttenuation() instead).
-            uint8_t            VelocityResponseCurveScaling;  ///< 0 - 127 (usually you don't have to interpret this parameter, use GetVelocityAttenuation() instead)
-            curve_type_t       ReleaseVelocityResponseCurve;  ///< Defines a transformation curve to the incoming release veloctiy values affecting envelope times.
-            uint8_t            ReleaseVelocityResponseDepth;  ///< Dynamic range of release velocity affecting envelope time (0 - 4).
+            curve_type_t       VelocityResponseCurve;         ///< Defines a transformation curve to the incoming velocity values affecting amplitude (usually you don't have to interpret this parameter, use GetVelocityAttenuation() instead). @deprecated Don't alter directly, use SetVelocityResponseCurve() instead!
+            uint8_t            VelocityResponseDepth;         ///< Dynamic range of velocity affecting amplitude (0 - 4) (usually you don't have to interpret this parameter, use GetVelocityAttenuation() instead). @deprecated Don't alter directly, use SetVelocityResponseDepth() instead!
+            uint8_t            VelocityResponseCurveScaling;  ///< 0 - 127 (usually you don't have to interpret this parameter, use GetVelocityAttenuation() instead). @deprecated Don't alter directly, use SetVelocityResponseCurveScaling() instead!
+            curve_type_t       ReleaseVelocityResponseCurve;  ///< Defines a transformation curve to the incoming release veloctiy values affecting envelope times. @deprecated Don't alter directly, use SetReleaseVelocityResponseCurve() instead!
+            uint8_t            ReleaseVelocityResponseDepth;  ///< Dynamic range of release velocity affecting envelope time (0 - 4). @deprecated Don't alter directly, use SetReleaseVelocityResponseDepth() instead!
             uint8_t            ReleaseTriggerDecay;           ///< 0 - 8
             // Mix / Layer
             crossfade_t        Crossfade;
@@ -470,11 +470,21 @@ namespace gig {
             double GetVelocityAttenuation(uint8_t MIDIKeyVelocity);
             double GetVelocityRelease(uint8_t MIDIKeyVelocity);
             double GetVelocityCutoff(uint8_t MIDIKeyVelocity);
+            void SetVelocityResponseCurve(curve_type_t curve);
+            void SetVelocityResponseDepth(uint8_t depth);
+            void SetVelocityResponseCurveScaling(uint8_t scaling);
+            void SetReleaseVelocityResponseCurve(curve_type_t curve);
+            void SetReleaseVelocityResponseDepth(uint8_t depth);
+            void SetVCFCutoffController(vcf_cutoff_ctrl_t controller);
+            void SetVCFVelocityCurve(curve_type_t curve);
+            void SetVCFVelocityDynamicRange(uint8_t range);
+            void SetVCFVelocityScale(uint8_t scaling);
             Region* GetParent() const;
             // derived methods
             DLS::Sampler::AddSampleLoop;
             DLS::Sampler::DeleteSampleLoop;
             // overridden methods
+            virtual void SetGain(int32_t gain);
             virtual void UpdateChunks();
         protected:
             uint8_t* VelocityTable; ///< For velocity dimensions with custom defined zone ranges only: used for fast converting from velocity MIDI value to dimension bit number.
@@ -522,6 +532,8 @@ namespace gig {
 
             leverage_ctrl_t DecodeLeverageController(_lev_ctrl_t EncodedController);
             _lev_ctrl_t     EncodeLeverageController(leverage_ctrl_t DecodedController);
+            double* GetReleaseVelocityTable(curve_type_t releaseVelocityResponseCurve, uint8_t releaseVelocityResponseDepth);
+            double* GetCutoffVelocityTable(curve_type_t vcfVelocityCurve, uint8_t vcfVelocityDynamicRange, uint8_t vcfVelocityScale, vcf_cutoff_ctrl_t vcfCutoffController);
             double* GetVelocityTable(curve_type_t curveType, uint8_t depth, uint8_t scaling);
             double* CreateVelocityTable(curve_type_t curveType, uint8_t depth, uint8_t scaling);
     };

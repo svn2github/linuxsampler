@@ -316,7 +316,7 @@ namespace DLS {
             String SourceForm;       ///< <ISRF-ck>. Identifies the original form of the material that was digitized, such as record, sampling CD, TV sound track. This is not neccessarily the same as <i>Medium</i>.
             String Commissioned;     ///< <ICMS-ck>. Lists the name of the person or organization that commissioned the subject of the file, e.g., Pope Julian II.
             String Subject;          ///< <ISBJ-ck>. Describes the contents of the file.
-            bool UseFixedLengthStrings; ///< Deprecated. Use #FixedStringLengths instead.
+            bool UseFixedLengthStrings; ///< @deprecated Use #FixedStringLengths instead.
 
             struct FixedStringLength {
                 uint32_t chunkId;
@@ -355,7 +355,7 @@ namespace DLS {
         public:
             uint8_t        UnityNote;
             int16_t        FineTune;
-            int32_t        Gain;
+            int32_t        Gain; ///< @deprecated Don't alter directly, use SetGain() instead!
             bool           NoSampleDepthTruncation;
             bool           NoSampleCompression;
             uint32_t       SampleLoops;  ///< Reflects the number of sample loops.
@@ -363,6 +363,7 @@ namespace DLS {
 
             void AddSampleLoop(sample_loop_t* pLoopDef);
             void DeleteSampleLoop(sample_loop_t* pLoopDef);
+            virtual void SetGain(int32_t gain);
             virtual void UpdateChunks();
         protected:
             RIFF::List*    pParentList;
