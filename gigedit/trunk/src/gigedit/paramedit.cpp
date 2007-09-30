@@ -95,15 +95,20 @@ NumEntryGain::NumEntryGain(const char* labelText,
 
 void NumEntryGain::value_changed()
 {
+    const double f = pow(10, spinbutton.get_digits());
+    int new_value = round_to_int(spinbutton.get_value() * f);
     if (ptr) {
-        const double f = pow(10, spinbutton.get_digits());
-        int new_value = round_to_int(spinbutton.get_value() * f);
-
         if (new_value != round_to_int(*ptr / coeff * f))
         {
+            sig_to_be_changed.emit();
             *ptr = round_to_int(new_value / f * coeff);
-            sig_changed();
+            sig_val_changed.emit(new_value);
+            sig_changed.emit();
         }
+    } else {
+        sig_to_be_changed.emit();
+        sig_val_changed.emit(new_value);
+        sig_changed.emit();
     }
 }
 

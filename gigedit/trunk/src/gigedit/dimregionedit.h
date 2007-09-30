@@ -145,6 +145,17 @@ protected:
     BoolEntry eSampleLoopInfinite;
     NumEntryTemp<uint32_t> eSampleLoopPlayCount;
 
+    sigc::connection connection_eVCFCutoffController;
+    sigc::connection connection_eVCFVelocityCurve;
+    sigc::connection connection_eVCFVelocityScale;
+    sigc::connection connection_eVCFVelocityDynamicRange;
+    sigc::connection connection_eVelocityResponseCurve;
+    sigc::connection connection_eVelocityResponseDepth;
+    sigc::connection connection_eVelocityResponseCurveScaling;
+    sigc::connection connection_eReleaseVelocityResponseCurve;
+    sigc::connection connection_eReleaseVelocityResponseDepth;
+    sigc::connection connection_eGain;
+
     int rowno;
     int pageno;
     int firstRowInBlock;

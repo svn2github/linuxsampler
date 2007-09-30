@@ -80,10 +80,19 @@ private:
     void value_changed();
     int32_t* ptr;
     double coeff;
+protected:
+    sigc::signal<void> sig_to_be_changed;
+    sigc::signal<void, int32_t> sig_val_changed;
 public:
     NumEntryGain(const char* labelText,
                  double lower, double upper, int decimals, double coeff);
     void set_ptr(int32_t* ptr);
+    sigc::signal<void>& signal_to_be_changed() {
+        return sig_to_be_changed;
+    }
+    sigc::signal<void, int32_t>& signal_value_changed() {
+        return sig_val_changed;
+    }
 };
 
 template<typename T>
@@ -91,10 +100,19 @@ class NumEntryTemp : public NumEntry {
 private:
     T* ptr;
     void value_changed();
+protected:
+    sigc::signal<void> sig_to_be_changed;
+    sigc::signal<void, T> sig_val_changed;
 public:
     NumEntryTemp(const char* labelText,
                  double lower = 0, double upper = 127, int decimals = 0);
     void set_ptr(T* ptr);
+    sigc::signal<void>& signal_to_be_changed() {
+        return sig_to_be_changed;
+    }
+    sigc::signal<void, T>& signal_value_changed() {
+        return sig_val_changed;
+    }
 };
 
 template<typename T>
@@ -109,13 +127,20 @@ NumEntryTemp<T>::NumEntryTemp(const char* labelText,
 template<typename T>
 void NumEntryTemp<T>::value_changed()
 {
+    const double f = pow(10, spinbutton.get_digits());
+    int new_value = round_to_int(spinbutton.get_value() * f);
+    const T val = T(new_value / f);
     if (ptr) {
-        const double f = pow(10, spinbutton.get_digits());
-        int new_value = round_to_int(spinbutton.get_value() * f);
         if (new_value != round_to_int(*ptr * f)) {
-            *ptr = T(new_value / f);
-            sig_changed();
+            sig_to_be_changed.emit();
+            *ptr = val;
+            sig_val_changed.emit(val);
+            sig_changed.emit();
         }
+    } else {
+        sig_to_be_changed.emit();
+        sig_val_changed.emit(val);
+        sig_changed.emit();
     }
 }
 
@@ -156,11 +181,20 @@ private:
     T* ptr;
     void value_changed();
     const T* values;
+protected:
+    sigc::signal<void> sig_to_be_changed;
+    sigc::signal<void, T> sig_val_changed;
 public:
     ChoiceEntry(const char* labelText);
     void set_choices(const char** texts, const T* values);
     void set_ptr(T* ptr);
     int get_active_row_number() { return combobox.get_active_row_number(); }
+    sigc::signal<void>& signal_to_be_changed() {
+        return sig_to_be_changed;
+    }
+    sigc::signal<void, T>& signal_value_changed() {
+        return sig_val_changed;
+    }
     Glib::SignalProxy0<void> signal_changed() {
         return combobox.signal_changed();
     }
@@ -191,13 +225,13 @@ void ChoiceEntry<T>::set_choices(const char** texts, const T* values)
 template<typename T>
 void ChoiceEntry<T>::value_changed()
 {
-    if (ptr) {
-        int rowno = combobox.get_active_row_number();
-        if (rowno != -1) {
-            *ptr = values[rowno];
-            sig_changed();
-        }
-    }
+    int rowno = combobox.get_active_row_number();
+    if (rowno == -1) return;
+    const T val = values[rowno];
+    sig_to_be_changed.emit();
+    if (ptr) *ptr = val;
+    sig_val_changed.emit(val);
+    sig_changed.emit();
 }
 
 template<typename T>

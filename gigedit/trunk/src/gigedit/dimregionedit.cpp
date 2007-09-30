@@ -531,6 +531,18 @@ void DimRegionEdit::set_dim_region(gig::DimensionRegion* d)
 {
     dimregion = d;
 
+    // disconnect connections to old dimregion, to avoid segfaults
+    connection_eVCFCutoffController.disconnect();
+    connection_eVCFVelocityCurve.disconnect();
+    connection_eVCFVelocityScale.disconnect();
+    connection_eVCFVelocityDynamicRange.disconnect();
+    connection_eVelocityResponseCurve.disconnect();
+    connection_eVelocityResponseDepth.disconnect();
+    connection_eVelocityResponseCurveScaling.disconnect();
+    connection_eReleaseVelocityResponseCurve.disconnect();
+    connection_eReleaseVelocityResponseDepth.disconnect();
+    connection_eGain.disconnect();
+
     set_sensitive(d);
     if (!d) return;
 
@@ -582,21 +594,57 @@ void DimRegionEdit::set_dim_region(gig::DimensionRegion* d)
     eVCFEnabled.set_ptr(&d->VCFEnabled);
     eVCFType.set_ptr(&d->VCFType);
     eVCFCutoffController.set_ptr(&d->VCFCutoffController);
+    connection_eVCFCutoffController =
+        eVCFCutoffController.signal_value_changed().connect(
+            sigc::mem_fun(d, &gig::DimensionRegion::SetVCFCutoffController)
+        );
     eVCFCutoffControllerInvert.set_ptr(&d->VCFCutoffControllerInvert);
     eVCFCutoff.set_ptr(&d->VCFCutoff);
     eVCFVelocityCurve.set_ptr(&d->VCFVelocityCurve);
+    connection_eVCFVelocityCurve =
+        eVCFVelocityCurve.signal_value_changed().connect(
+            sigc::mem_fun(d, &gig::DimensionRegion::SetVCFVelocityCurve)
+        );
     eVCFVelocityScale.set_ptr(&d->VCFVelocityScale);
+    connection_eVCFVelocityScale =
+        eVCFVelocityScale.signal_value_changed().connect(
+            sigc::mem_fun(d, &gig::DimensionRegion::SetVCFVelocityScale)
+        );
     eVCFVelocityDynamicRange.set_ptr(&d->VCFVelocityDynamicRange);
+    connection_eVCFVelocityDynamicRange =
+        eVCFVelocityDynamicRange.signal_value_changed().connect(
+            sigc::mem_fun(d, &gig::DimensionRegion::SetVCFVelocityDynamicRange)
+        );
     eVCFResonance.set_ptr(&d->VCFResonance);
     eVCFResonanceDynamic.set_ptr(&d->VCFResonanceDynamic);
     eVCFResonanceController.set_ptr(&d->VCFResonanceController);
     eVCFKeyboardTracking.set_ptr(&d->VCFKeyboardTracking);
     eVCFKeyboardTrackingBreakpoint.set_ptr(&d->VCFKeyboardTrackingBreakpoint);
     eVelocityResponseCurve.set_ptr(&d->VelocityResponseCurve);
+    connection_eVelocityResponseCurve =
+        eVelocityResponseCurve.signal_value_changed().connect(
+            sigc::mem_fun(d, &gig::DimensionRegion::SetVelocityResponseCurve)
+        );
     eVelocityResponseDepth.set_ptr(&d->VelocityResponseDepth);
+    connection_eVelocityResponseDepth =
+        eVelocityResponseDepth.signal_value_changed().connect(
+            sigc::mem_fun(d, &gig::DimensionRegion::SetVelocityResponseDepth)
+        );
     eVelocityResponseCurveScaling.set_ptr(&d->VelocityResponseCurveScaling);
+    connection_eVelocityResponseCurveScaling =
+        eVelocityResponseCurveScaling.signal_value_changed().connect(
+            sigc::mem_fun(d, &gig::DimensionRegion::SetVelocityResponseCurveScaling)
+        );
     eReleaseVelocityResponseCurve.set_ptr(&d->ReleaseVelocityResponseCurve);
+    connection_eReleaseVelocityResponseCurve =
+        eReleaseVelocityResponseCurve.signal_value_changed().connect(
+            sigc::mem_fun(d, &gig::DimensionRegion::SetReleaseVelocityResponseCurve)
+        );
     eReleaseVelocityResponseDepth.set_ptr(&d->ReleaseVelocityResponseDepth);
+    connection_eReleaseVelocityResponseDepth =
+        eReleaseVelocityResponseDepth.signal_value_changed().connect(
+            sigc::mem_fun(d, &gig::DimensionRegion::SetReleaseVelocityResponseDepth)
+        );
     eReleaseTriggerDecay.set_ptr(&d->ReleaseTriggerDecay);
 
     eCrossfade_in_start.set_ptr(0);
@@ -622,6 +670,10 @@ void DimRegionEdit::set_dim_region(gig::DimensionRegion* d)
     eUnityNote.set_ptr(&d->UnityNote);
     eFineTune.set_ptr(&d->FineTune);
     eGain.set_ptr(&d->Gain);
+    connection_eGain =
+        eGain.signal_value_changed().connect(
+            sigc::mem_fun(d, &gig::DimensionRegion::SetGain)
+        );
     eGainPlus6.set_ptr(&d->Gain);
 
     eSampleLoopEnabled.set_active(d->SampleLoops);
