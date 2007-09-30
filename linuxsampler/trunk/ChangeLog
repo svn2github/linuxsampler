@@ -9,6 +9,8 @@ Version CVS HEAD (?)
       capable to execute our autoconf environment, thus no need anymore
       to maintain the compile time configuration file (osx/version.h) for
       OSX manually (patch by Toshi Nagata)
+    - fixed buggy boolean --enable-foo / --disable-foo configure script
+      parameters
 
   * general changes:
     - replaced the old, confusing MIDI program change mechanism by a
