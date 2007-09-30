@@ -56,16 +56,16 @@ foreach $line (@yacc_in) {
     $_ = $line;
     # remove C++ code
     s/\{\p{IsASCII}*\}//g;
-    s/\/\/\p{IsASCII}*$/\n/g;
+    s/\/\/\p{IsASCII}*$/\r\n/g;
     s/\{//g;
     s/\}//g;
     # place XML tags
-    s!^(\w+)\s*:\s*(\p{IsASCII}*)!<t>$1 =\n\t<list>\n\t\t<t>$2!;
-    s!^\s+\|\s*(\p{IsASCII}*)!\t\t</t>\n\t\t<t>/ $1!;
-    s!^\s*;(\p{IsASCII}*)!\t\t</t>\n\t</list>\n</t>!;
+    s!^(\w+)\s*:\s*(\p{IsASCII}*)!<t>$1 =\r\n\t<list>\r\n\t\t<t>$2!;
+    s!^\s+\|\s*(\p{IsASCII}*)!\t\t</t>\r\n\t\t<t>/ $1!;
+    s!^\s*;(\p{IsASCII}*)!\t\t</t>\r\n\t</list>\r\n</t>!;
     #s/:/<list>/g;
     # remove space(s) at the end of each line
-    s/\s+$/\n/g;
+    s/\s+$/\r\n/g;
     $yacc_in[$i] = $_;
     $i++;
 }
