@@ -5951,6 +5951,82 @@ Schoenebeck'>
 
             </section>
 
+
+
+            <section title="Editing Instruments" anchor="editing_instruments">
+                <t>The sampler allows to edit instruments while playing with the
+                sampler by spawning an external (3rd party) instrument editor
+                application for a given instrument. The 3rd party instrument
+                editor applications have to place a respective plugin DLL file
+                into the sampler's plugins directory. The sampler will
+                automatically try to load all plugin DLLs in that directory on
+                startup and only on startup!</t>
+                <t>At the moment there is only one command for this feature set,
+                but this will most probably change in future.</t>
+
+                <section title="Opening an appropriate instrument editor application" anchor="EDIT INSTRUMENT">
+                    <t>The front-end can request to open an appropriate instrument
+                    editor application by sending the following command:</t>
+                    <t>
+                        <list>
+                            <t>EDIT INSTRUMENT &lt;sampler-channel&gt;</t>
+                        </list>
+                    </t>
+                    <t>Where &lt;sampler-channel&gt; should be replaced by the
+                    number of the sampler channel as given by the
+                    <xref target="ADD CHANNEL">"ADD CHANNEL"</xref>
+                    or <xref target="LIST CHANNELS">"LIST CHANNELS"</xref>
+                    command.</t>
+
+                    <t>The sampler will try to ask all registered instrument
+                    editors (or to be more specific: their sampler plugins)
+                    whether they are capable to handle the instrument on the
+                    given sampler channel. The sampler will simply use the first
+                    instrument editor application which replied with a positive
+                    answer and spawn that instrument editor application within
+                    the sampler's process and provide that application access
+                    to the instrument's data structures, so both applications
+                    can share and access the same instruments data at the same
+                    time, thus allowing to immediately hear changes with the
+                    sampler made by the instrument editor.</t>
+
+                    <t>Note: consequently instrument editors are always spawned
+                    locally on the same machine where the sampler is running
+                    on!</t>
+
+                    <t>Possible Answers:</t>
+                    <t>
+                        <list>
+                            <t>"OK" -
+                                <list>
+                                    <t>when an appropriate instrument editor was
+                                    launched</t>
+                                </list>
+                            </t>
+                            <t>"WRN:&lt;warning-code&gt;:&lt;warning-message&gt;" -
+                                <list>
+                                    <t>when an appropriate instrument editor was
+                                    launched, but there are noteworthy issues</t>
+                                </list>
+                            </t>
+                            <t>"ERR:&lt;error-code&gt;:&lt;error-message&gt;" -
+                                <list>
+                                    <t>when an appropriate instrument editor
+                                    could not be launched</t>
+                                </list>
+                            </t>
+                        </list>
+                    </t>
+
+                    <t>Examples:</t>
+                    <t>
+                        <list>
+                            <t>C: "EDIT INSTRUMENT 0"</t>
+                            <t>S: "OK"</t>
+                        </list>
+                    </t>
+                </section>
+            </section>
         </section>
 
 
@@ -6038,6 +6114,8 @@ Schoenebeck'>
 		</t>
 		<t>/ EDIT SP edit_instruction
 		</t>
+		<t>/ FORMAT SP format_instruction
+		</t>
 		<t>/ RESET
 		</t>
 		<t>/ QUIT
@@ -6048,19 +6126,19 @@ Schoenebeck'>
 	<list>
 		<t>CHANNEL
 		</t>
-		<t>/ DB_INSTRUMENT_DIRECTORY SP pathname
+		<t>/ DB_INSTRUMENT_DIRECTORY SP db_path
 		</t>
-		<t>/ DB_INSTRUMENTS SP NON_MODAL SP scan_mode SP pathname SP pathname
+		<t>/ DB_INSTRUMENTS SP NON_MODAL SP scan_mode SP db_path SP filename
 		</t>
-		<t>/ DB_INSTRUMENTS SP scan_mode SP pathname SP pathname
+		<t>/ DB_INSTRUMENTS SP scan_mode SP db_path SP filename
 		</t>
-		<t>/ DB_INSTRUMENTS SP NON_MODAL SP pathname SP pathname
+		<t>/ DB_INSTRUMENTS SP NON_MODAL SP db_path SP filename
 		</t>
-		<t>/ DB_INSTRUMENTS SP NON_MODAL SP pathname SP pathname SP instrument_index
+		<t>/ DB_INSTRUMENTS SP NON_MODAL SP db_path SP filename SP instrument_index
 		</t>
-		<t>/ DB_INSTRUMENTS SP pathname SP pathname
+		<t>/ DB_INSTRUMENTS SP db_path SP filename
 		</t>
-		<t>/ DB_INSTRUMENTS SP pathname SP pathname SP instrument_index
+		<t>/ DB_INSTRUMENTS SP db_path SP filename SP instrument_index
 		</t>
 		<t>/ MIDI_INSTRUMENT_MAP
 		</t>
@@ -6194,11 +6272,11 @@ Schoenebeck'>
 		</t>
 		<t>/ MIDI_INSTRUMENT_MAP SP ALL
 		</t>
-		<t>/ DB_INSTRUMENT_DIRECTORY SP FORCE SP pathname
+		<t>/ DB_INSTRUMENT_DIRECTORY SP FORCE SP db_path
 		</t>
-		<t>/ DB_INSTRUMENT_DIRECTORY SP pathname
+		<t>/ DB_INSTRUMENT_DIRECTORY SP db_path
 		</t>
-		<t>/ DB_INSTRUMENT SP pathname
+		<t>/ DB_INSTRUMENT SP db_path
 		</t>
 	</list>
 </t>
@@ -6270,17 +6348,17 @@ Schoenebeck'>
 		</t>
 		<t>/ FX_SEND SP INFO SP sampler_channel SP fx_send_id
 		</t>
-		<t>/ DB_INSTRUMENT_DIRECTORIES SP RECURSIVE SP pathname
+		<t>/ DB_INSTRUMENT_DIRECTORIES SP RECURSIVE SP db_path
 		</t>
-		<t>/ DB_INSTRUMENT_DIRECTORIES SP pathname
+		<t>/ DB_INSTRUMENT_DIRECTORIES SP db_path
 		</t>
-		<t>/ DB_INSTRUMENT_DIRECTORY SP INFO SP pathname
+		<t>/ DB_INSTRUMENT_DIRECTORY SP INFO SP db_path
 		</t>
-		<t>/ DB_INSTRUMENTS SP RECURSIVE SP pathname
+		<t>/ DB_INSTRUMENTS SP RECURSIVE SP db_path
 		</t>
-		<t>/ DB_INSTRUMENTS SP pathname
+		<t>/ DB_INSTRUMENTS SP db_path
 		</t>
-		<t>/ DB_INSTRUMENT SP INFO SP pathname
+		<t>/ DB_INSTRUMENT SP INFO SP db_path
 		</t>
 		<t>/ DB_INSTRUMENTS_JOB SP INFO SP number
 		</t>
@@ -6312,13 +6390,13 @@ Schoenebeck'>
 		</t>
 		<t>/ FX_SEND SP LEVEL SP sampler_channel SP fx_send_id SP volume_value
 		</t>
-		<t>/ DB_INSTRUMENT_DIRECTORY SP NAME SP pathname SP dirname
+		<t>/ DB_INSTRUMENT_DIRECTORY SP NAME SP db_path SP stringval_escaped
 		</t>
-		<t>/ DB_INSTRUMENT_DIRECTORY SP DESCRIPTION SP pathname SP stringval
+		<t>/ DB_INSTRUMENT_DIRECTORY SP DESCRIPTION SP db_path SP stringval_escaped
 		</t>
-		<t>/ DB_INSTRUMENT SP NAME SP pathname SP dirname
+		<t>/ DB_INSTRUMENT SP NAME SP db_path SP stringval_escaped
 		</t>
-		<t>/ DB_INSTRUMENT SP DESCRIPTION SP pathname SP stringval
+		<t>/ DB_INSTRUMENT SP DESCRIPTION SP db_path SP stringval_escaped
 		</t>
 		<t>/ ECHO SP boolean
 		</t>
@@ -6358,29 +6436,29 @@ Schoenebeck'>
 </t>
 <t>find_instruction =
 	<list>
-		<t>DB_INSTRUMENTS SP NON_RECURSIVE SP pathname SP query_val_list
+		<t>DB_INSTRUMENTS SP NON_RECURSIVE SP db_path SP query_val_list
 		</t>
-		<t>/ DB_INSTRUMENTS SP pathname SP query_val_list
+		<t>/ DB_INSTRUMENTS SP db_path SP query_val_list
 		</t>
-		<t>/ DB_INSTRUMENT_DIRECTORIES SP NON_RECURSIVE SP pathname SP query_val_list
+		<t>/ DB_INSTRUMENT_DIRECTORIES SP NON_RECURSIVE SP db_path SP query_val_list
 		</t>
-		<t>/ DB_INSTRUMENT_DIRECTORIES SP pathname SP query_val_list
+		<t>/ DB_INSTRUMENT_DIRECTORIES SP db_path SP query_val_list
 		</t>
 	</list>
 </t>
 <t>move_instruction =
 	<list>
-		<t>DB_INSTRUMENT_DIRECTORY SP pathname SP pathname
+		<t>DB_INSTRUMENT_DIRECTORY SP db_path SP db_path
 		</t>
-		<t>/ DB_INSTRUMENT SP pathname SP pathname
+		<t>/ DB_INSTRUMENT SP db_path SP db_path
 		</t>
 	</list>
 </t>
 <t>copy_instruction =
 	<list>
-		<t>DB_INSTRUMENT_DIRECTORY SP pathname SP pathname
+		<t>DB_INSTRUMENT_DIRECTORY SP db_path SP db_path
 		</t>
-		<t>/ DB_INSTRUMENT SP pathname SP pathname
+		<t>/ DB_INSTRUMENT SP db_path SP db_path
 		</t>
 	</list>
 </t>
@@ -6440,6 +6518,12 @@ Schoenebeck'>
 		</t>
 	</list>
 </t>
+<t>format_instruction =
+	<list>
+		<t>INSTRUMENTS_DB
+		</t>
+	</list>
+</t>
 <t>modal_arg =
 	<list>
 		<t>/* epsilon (empty argument) */
@@ -6486,13 +6570,13 @@ Schoenebeck'>
 		</t>
 		<t>/ FX_SENDS SP sampler_channel
 		</t>
-		<t>/ DB_INSTRUMENT_DIRECTORIES SP RECURSIVE SP pathname
+		<t>/ DB_INSTRUMENT_DIRECTORIES SP RECURSIVE SP db_path
 		</t>
-		<t>/ DB_INSTRUMENT_DIRECTORIES SP pathname
+		<t>/ DB_INSTRUMENT_DIRECTORIES SP db_path
 		</t>
-		<t>/ DB_INSTRUMENTS SP RECURSIVE SP pathname
+		<t>/ DB_INSTRUMENTS SP RECURSIVE SP db_path
 		</t>
-		<t>/ DB_INSTRUMENTS SP pathname
+		<t>/ DB_INSTRUMENTS SP db_path
 		</t>
 	</list>
 </t>
@@ -6614,21 +6698,15 @@ Schoenebeck'>
 		</t>
 	</list>
 </t>
-<t>pathname =
-	<list>
-		<t>stringval
-		</t>
-	</list>
-</t>
-<t>dirname =
-	<list>
-		<t>stringval
-		</t>
-	</list>
-</t>
 <t>filename =
 	<list>
-		<t>stringval_escaped
+		<t>path
+		</t>
+	</list>
+</t>
+<t>db_path =
+	<list>
+		<t>path
 		</t>
 	</list>
 </t>
@@ -6680,9 +6758,9 @@ Schoenebeck'>
 </t>
 <t>query_val =
 	<list>
-		<t>string
+		<t>textval_escaped
 		</t>
-		<t>/ stringval
+		<t>/ stringval_escaped
 		</t>
 	</list>
 </t>
