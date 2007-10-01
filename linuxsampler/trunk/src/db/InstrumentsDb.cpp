@@ -127,7 +127,7 @@ namespace LinuxSampler {
     sqlite3* InstrumentsDb::GetDb() {
         if ( db != NULL) return db;
 
-        if (DbFile.empty()) DbFile = "/var/lib/linuxsampler/instruments.db";
+        if (DbFile.empty()) DbFile = CONFIG_DEFAULT_INSTRUMENTS_DB_LOCATION;
         int rc = sqlite3_open(DbFile.c_str(), &db);
         if (rc) {
             sqlite3_close(db);
@@ -1630,7 +1630,7 @@ namespace LinuxSampler {
             db = NULL;
         }
 
-        if (DbFile.empty()) DbFile = "/var/lib/linuxsampler/instruments.db";
+        if (DbFile.empty()) DbFile = CONFIG_DEFAULT_INSTRUMENTS_DB_LOCATION;
         String bkp = DbFile + ".bkp";
         remove(bkp.c_str());
         if (rename(DbFile.c_str(), bkp.c_str()) && errno != ENOENT) {

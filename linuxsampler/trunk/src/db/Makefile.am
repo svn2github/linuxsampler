@@ -5,19 +5,25 @@ METASOURCES = AUTO
 if HAVE_SQLITE3
 sqlite3_lflags = $(SQLITE3_LIBS)
 sqlite3_cflags = $(SQLITE3_CFLAGS)
+instruments_db_headers = \
+	InstrumentsDb.h InstrumentsDbUtilities.h
+instruments_db_sources = \
+	InstrumentsDb.cpp InstrumentsDb.h \
+	InstrumentsDbUtilities.cpp InstrumentsDbUtilities.h
 else
 sqlite3_lflags =
 sqlite3_cflags =
+instruments_db_headers =
+instruments_db_sources =
 endif
 
 liblinuxsamplerdbincludedir = $(includedir)/linuxsampler/db
 liblinuxsamplerdbinclude_HEADERS = \
-	InstrumentsDb.h InstrumentsDbUtilities.h
+	$(instruments_db_headers)
 
 noinst_LTLIBRARIES = liblinuxsamplerdb.la
 liblinuxsamplerdb_la_SOURCES = \
-	InstrumentsDb.cpp InstrumentsDb.h \
-	InstrumentsDbUtilities.cpp InstrumentsDbUtilities.h
+	$(instruments_db_sources)
 
 liblinuxsamplerdb_la_LIBADD = $(sqlite3_lflags)
 liblinuxsamplerdb_la_CFLAGS = $(sqlite3_cflags)

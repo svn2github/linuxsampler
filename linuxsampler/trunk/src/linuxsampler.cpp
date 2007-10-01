@@ -291,7 +291,7 @@ void parse_options(int argc, char **argv) {
 
                             if (res) {
                                 std::stringstream ss;
-                                ss << "Fail to stat `" << optarg << "`: " << strerror(errno);
+                                ss << "Failed to stat `" << optarg << "`: " << strerror(errno);
                                 throw Exception(ss.str());
                             }
 
@@ -304,16 +304,17 @@ void parse_options(int argc, char **argv) {
                             InstrumentsDb::GetInstrumentsDb()->SetDbFile(String(optarg));
                         }
                     } catch(Exception e) {
-                        std::cerr << e.Message() << std::endl << std::endl;
-                        return;
+                        std::cerr << "Could not open instruments DB file: "
+                                  << e.Message() << std::endl;
+                        exit(EXIT_FAILURE);
                     }
-
-                    return;
+                    break;
 #else
                     std::cerr << "LinuxSampler was not build with ";
-                    std::cerr << "instruments database support." <<std::endl;
-                    return;
-#endif              
+                    std::cerr << "instruments database support!\n";
+                    exit(EXIT_FAILURE);
+                    break;
+#endif
                 case 6: // --create-instruments-db
 #if HAVE_SQLITE3
                     try {
@@ -333,10 +334,10 @@ void parse_options(int argc, char **argv) {
                     return;
 #else
                     std::cerr << "Failed to create the database. LinuxSampler was ";
-                    std::cerr << "not build with instruments database support." <<std::endl;
+                    std::cerr << "not build with instruments database support!\n";
                     exit(EXIT_FAILURE);
                     return;
-#endif              
+#endif
                 case 7: // --lscp-addr
                     struct in_addr addr;
                     if (inet_aton(optarg, &addr) == 0)
