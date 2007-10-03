@@ -19,7 +19,7 @@
 
 #include "linuxsamplerplugin.h"
 
-#include <linuxsampler/engines/InstrumentEditorFactory.h>
+#include <linuxsampler/plugins/InstrumentEditorFactory.h>
 #include "../gigedit/gigedit.h"
 
 #include <iostream>

@@ -22,7 +22,7 @@
 
 #include <config.h>
 
-#include <linuxsampler/engines/InstrumentEditor.h>
+#include <linuxsampler/plugins/InstrumentEditor.h>
 
 #include <gig.h>
 
