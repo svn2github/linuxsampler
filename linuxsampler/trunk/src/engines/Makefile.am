@@ -8,9 +8,7 @@ liblinuxsamplerengineinclude_HEADERS = \
 	Engine.h \
 	EngineChannel.h \
 	FxSend.h \
-	InstrumentManager.h \
-	InstrumentEditor.h \
-	InstrumentEditorFactory.h
+	InstrumentManager.h
 
 noinst_LTLIBRARIES = liblinuxsamplerengines.la
 liblinuxsamplerengines_la_SOURCES = \
@@ -20,6 +18,4 @@ liblinuxsamplerengines_la_SOURCES = \
 	EngineChannelFactory.cpp EngineChannelFactory.h \
 	FxSend.cpp FxSend.h \
 	InstrumentManager.cpp InstrumentManager.h \
-	InstrumentManagerThread.cpp InstrumentManagerThread.h \
-	InstrumentEditor.cpp InstrumentEditor.h \
-	InstrumentEditorFactory.cpp InstrumentEditorFactory.h
+	InstrumentManagerThread.cpp InstrumentManagerThread.h

@@ -25,7 +25,7 @@
 
 #include "InstrumentResourceManager.h"
 
-#include "../InstrumentEditorFactory.h"
+#include "../../plugins/InstrumentEditorFactory.h"
 
 // We need to know the maximum number of sample points which are going to
 // be processed for each render cycle of the audio output driver, to know

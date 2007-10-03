@@ -43,7 +43,7 @@ namespace LinuxSampler { namespace gig {
 
 #include "EngineChannel.h"
 #include "Engine.h"
-#include "../InstrumentEditor.h"
+#include "../../plugins/InstrumentEditor.h"
 
 namespace LinuxSampler { namespace gig {
 

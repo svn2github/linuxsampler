@@ -27,7 +27,7 @@
 
 #include "engines/EngineFactory.h"
 #include "engines/EngineChannelFactory.h"
-#include "engines/InstrumentEditorFactory.h"
+#include "plugins/InstrumentEditorFactory.h"
 #include "drivers/audio/AudioOutputDeviceFactory.h"
 #include "drivers/midi/MidiInputDeviceFactory.h"
 #include "drivers/midi/MidiInstrumentMapper.h"

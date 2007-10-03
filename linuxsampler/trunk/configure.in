@@ -1001,6 +1001,7 @@ AC_OUTPUT( \
     src/drivers/Makefile \
     src/drivers/audio/Makefile \
     src/drivers/midi/Makefile \
+    src/plugins/Makefile \
     linuxsampler.spec \
     debian/Makefile \
     Artwork/Makefile \
