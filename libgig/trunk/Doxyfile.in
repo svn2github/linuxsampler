@@ -67,12 +67,14 @@ INPUT                  = @top_srcdir@/src/RIFF.h \
                          @top_srcdir@/src/DLS.h \
                          @top_srcdir@/src/DLS.cpp \
                          @top_srcdir@/src/gig.h \
-                         @top_srcdir@/src/gig.cpp
+                         @top_srcdir@/src/gig.cpp \
+                         @top_srcdir@/doc/mainpage.dox
 FILE_PATTERNS          = *.c \
                          *.cpp \
                          *.h \
                          *.hpp \
-                         *.idl
+                         *.idl \
+                         *.dox
 RECURSIVE              = NO
 EXCLUDE                =
 EXCLUDE_SYMLINKS       = NO
