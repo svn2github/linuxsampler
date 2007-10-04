@@ -141,7 +141,7 @@ int hexsToNumber(char hex_digit0, char hex_digit1 = '0') {
 %type <Char> char char_base digit digit_oct digit_hex escape_seq escape_seq_octal escape_seq_hex
 %type <Dotnum> dotnum volume_value boolean
 %type <Number> number sampler_channel instrument_index fx_send_id audio_channel_index device_index midi_input_channel_index midi_input_port_index midi_map midi_bank midi_prog midi_ctrl
-%type <String> string string_escaped text text_escaped textval_escaped stringval stringval_escaped digits param_val_list param_val query_val filename db_path map_name entry_name fx_send_name engine_name command add_instruction create_instruction destroy_instruction get_instruction list_instruction load_instruction set_chan_instruction load_instr_args load_engine_args audio_output_type_name midi_input_type_name remove_instruction unmap_instruction set_instruction subscribe_event unsubscribe_event map_instruction reset_instruction clear_instruction find_instruction move_instruction copy_instruction scan_mode edit_instruction format_instruction
+%type <String> string string_escaped text text_escaped raw_path_base stringval raw_path digits param_val_list param_val query_val filename db_path map_name entry_name fx_send_name engine_name command add_instruction create_instruction destroy_instruction get_instruction list_instruction load_instruction set_chan_instruction load_instr_args load_engine_args audio_output_type_name midi_input_type_name remove_instruction unmap_instruction set_instruction subscribe_event unsubscribe_event map_instruction reset_instruction clear_instruction find_instruction move_instruction copy_instruction scan_mode edit_instruction format_instruction
 %type <FillResponse> buffer_size_type
 %type <KeyValList> key_val_list query_val_list
 %type <LoadMode> instr_load_mode
@@ -336,10 +336,10 @@ set_instruction       :  AUDIO_OUTPUT_DEVICE_PARAMETER SP number SP string '=' p
                       |  FX_SEND SP AUDIO_OUTPUT_CHANNEL SP sampler_channel SP fx_send_id SP audio_channel_index SP audio_channel_index  { $$ = LSCPSERVER->SetFxSendAudioOutputChannel($5,$7,$9,$11); }
                       |  FX_SEND SP MIDI_CONTROLLER SP sampler_channel SP fx_send_id SP midi_ctrl         { $$ = LSCPSERVER->SetFxSendMidiController($5,$7,$9);              }
                       |  FX_SEND SP LEVEL SP sampler_channel SP fx_send_id SP volume_value                { $$ = LSCPSERVER->SetFxSendLevel($5,$7,$9);                       }
-                      |  DB_INSTRUMENT_DIRECTORY SP NAME SP db_path SP stringval_escaped                  { $$ = LSCPSERVER->SetDbInstrumentDirectoryName($5,$7);            }
-                      |  DB_INSTRUMENT_DIRECTORY SP DESCRIPTION SP db_path SP stringval_escaped           { $$ = LSCPSERVER->SetDbInstrumentDirectoryDescription($5,$7);     }
-                      |  DB_INSTRUMENT SP NAME SP db_path SP stringval_escaped                            { $$ = LSCPSERVER->SetDbInstrumentName($5,$7);                     }
-                      |  DB_INSTRUMENT SP DESCRIPTION SP db_path SP stringval_escaped                     { $$ = LSCPSERVER->SetDbInstrumentDescription($5,$7);              }
+                      |  DB_INSTRUMENT_DIRECTORY SP NAME SP db_path SP raw_path                           { $$ = LSCPSERVER->SetDbInstrumentDirectoryName($5,$7);            }
+                      |  DB_INSTRUMENT_DIRECTORY SP DESCRIPTION SP db_path SP raw_path                    { $$ = LSCPSERVER->SetDbInstrumentDirectoryDescription($5,$7);     }
+                      |  DB_INSTRUMENT SP NAME SP db_path SP raw_path                                     { $$ = LSCPSERVER->SetDbInstrumentName($5,$7);                     }
+                      |  DB_INSTRUMENT SP DESCRIPTION SP db_path SP raw_path                              { $$ = LSCPSERVER->SetDbInstrumentDescription($5,$7);              }
                       |  ECHO SP boolean                                                                  { $$ = LSCPSERVER->SetEcho((yyparse_param_t*) yyparse_param, $3);  }
                       |  VOLUME SP volume_value                                                           { $$ = LSCPSERVER->SetGlobalVolume($3);                            }
                       ;
@@ -510,8 +510,9 @@ param_val_list            :  param_val
                           |  param_val_list','param_val  { $$ = $1 + "," + $3; }
                           ;
 
-param_val                 :  string
-                          |  stringval
+//TODO: the re-encapsulation into apostrophes for string and strinval here is a hack, since we need a way for __parse_strings() (DeviceParameters.cpp) to distinguish a comma separated list of strings and a string which contains commas. A clean solution would be to move those parser jobs over here to lscp.y
+param_val                 :  string            { $$ = "\'" + $1 + "\'"; }
+                          |  stringval         { $$ = "\'" + $1 + "\'"; }
                           |  number            { std::stringstream ss; ss << "\'" << $1 << "\'"; $$ = ss.str(); }
                           |  dotnum            { std::stringstream ss; ss << "\'" << $1 << "\'"; $$ = ss.str(); }
                           ;
@@ -520,8 +521,8 @@ query_val_list            :  string '=' query_val                    { $$[$1] = 
                           |  query_val_list SP string '=' query_val  { $$ = $1; $$[$3] = $5; }
                           ;
 
-query_val                 :  textval_escaped
-                          |  stringval_escaped
+query_val                 :  raw_path_base
+                          |  raw_path
                           ;
 
 scan_mode                 :  RECURSIVE      { $$ = "RECURSIVE"; }
@@ -619,8 +620,8 @@ stringval             :  '\'' text '\''  { $$ = $2; }
                       |  '\"' text '\"'  { $$ = $2; }
                       ;
 
-stringval_escaped     :  '\'' textval_escaped '\''  { $$ = $2; }
-                      |  '\"' textval_escaped '\"'  { $$ = $2; }
+raw_path              :  '\'' raw_path_base '\''  { $$ = $2; }
+                      |  '\"' raw_path_base '\"'  { $$ = $2; }
                       ;
 
 text                  :  SP           { $$ = " ";      }
@@ -635,10 +636,10 @@ text_escaped          :  SP                           { $$ = " ";      }
                       |  text_escaped string_escaped  { $$ = $1 + $2;  }
                       ;
 
-textval_escaped       :  '/'                           { $$ = "/";      }
+raw_path_base         :  '/'                          { $$ = "/";      }
                       |  text_escaped
-                      |  textval_escaped '/'           { $$ = $1 + "/"; }
-                      |  textval_escaped text_escaped  { $$ = $1 + $2;  }
+                      |  raw_path_base '/'            { $$ = $1 + "/"; }
+                      |  raw_path_base text_escaped   { $$ = $1 + $2;  }
                       ;
 
 string                :  char          { std::string s; s = $1; $$ = s; }

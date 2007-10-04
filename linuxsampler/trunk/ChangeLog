@@ -115,6 +115,9 @@ Version CVS HEAD (?)
       character(s), the latter only if less than 5 possibilities)
     - made sure that LSCP syntax is not affected by gigedit locale
       settings
+    - bugfix regarding strings parameter lists: all comma separated lists
+      of strings were treated as being one string containing commas
+      (fixes #57)
 
   * Bug fixes:
     - fixed crash occurring on certain LSCP scripts (Bug 39)

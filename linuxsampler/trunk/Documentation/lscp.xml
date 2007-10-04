@@ -6390,13 +6390,13 @@ Schoenebeck'>
 		</t>
 		<t>/ FX_SEND SP LEVEL SP sampler_channel SP fx_send_id SP volume_value
 		</t>
-		<t>/ DB_INSTRUMENT_DIRECTORY SP NAME SP db_path SP stringval_escaped
+		<t>/ DB_INSTRUMENT_DIRECTORY SP NAME SP db_path SP raw_path
 		</t>
-		<t>/ DB_INSTRUMENT_DIRECTORY SP DESCRIPTION SP db_path SP stringval_escaped
+		<t>/ DB_INSTRUMENT_DIRECTORY SP DESCRIPTION SP db_path SP raw_path
 		</t>
-		<t>/ DB_INSTRUMENT SP NAME SP db_path SP stringval_escaped
+		<t>/ DB_INSTRUMENT SP NAME SP db_path SP raw_path
 		</t>
-		<t>/ DB_INSTRUMENT SP DESCRIPTION SP db_path SP stringval_escaped
+		<t>/ DB_INSTRUMENT SP DESCRIPTION SP db_path SP raw_path
 		</t>
 		<t>/ ECHO SP boolean
 		</t>
@@ -6736,6 +6736,7 @@ Schoenebeck'>
 		</t>
 	</list>
 </t>
+
 <t>param_val =
 	<list>
 		<t>string
@@ -6758,9 +6759,9 @@ Schoenebeck'>
 </t>
 <t>query_val =
 	<list>
-		<t>textval_escaped
+		<t>raw_path_base
 		</t>
-		<t>/ stringval_escaped
+		<t>/ raw_path
 		</t>
 	</list>
 </t>
