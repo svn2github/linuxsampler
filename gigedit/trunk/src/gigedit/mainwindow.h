@@ -235,9 +235,10 @@ protected:
 
     LoadDialog* load_dialog;
     Loader* loader;
-    void load_gig(gig::File* gig, const char* filename);
+    void load_gig(gig::File* gig, const char* filename, bool isSharedInstrument = false);
 
     gig::File* file;
+    bool file_is_shared;
     bool file_has_name;
     bool file_is_changed;
     std::string filename;
@@ -265,6 +266,7 @@ protected:
     void __clear();
 
     bool close_confirmation_dialog();
+    bool leaving_shared_mode_dialog();
 
     Gtk::Menu* popup_menu;
 

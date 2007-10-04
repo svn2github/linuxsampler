@@ -295,6 +295,7 @@ MainWindow::MainWindow()
 
     file = 0;
     file_is_changed = false;
+    file_is_shared  = false;
 
     show_all_children();
 
@@ -308,12 +309,12 @@ MainWindow::~MainWindow()
 
 bool MainWindow::on_delete_event(GdkEventAny* event)
 {
-    return file_is_changed && !close_confirmation_dialog();
+    return !file_is_shared && file_is_changed && !close_confirmation_dialog();
 }
 
 void MainWindow::on_action_quit()
 {
-    if (file_is_changed && !close_confirmation_dialog()) return;
+    if (!file_is_shared && file_is_changed && !close_confirmation_dialog()) return;
     hide();
 }
 
@@ -427,15 +428,16 @@ void MainWindow::__clear() {
     m_refTreeModel->clear();
     m_refSamplesTreeModel->clear();
     // free libgig's gig::File instance
-    if (file) {
-        delete file;
-        file = NULL;
-    }
+    if (file && !file_is_shared) delete file;
+    file = NULL;
+    file_is_shared = false;
 }
 
 void MainWindow::on_action_file_new()
 {
-    if (file_is_changed && !close_confirmation_dialog()) return;
+    if (!file_is_shared && file_is_changed && !close_confirmation_dialog()) return;
+
+    if (file_is_shared && !leaving_shared_mode_dialog()) return;
 
     // clear all GUI elements
     __clear();
@@ -467,9 +469,29 @@ bool MainWindow::close_confirmation_dialog()
     return response != Gtk::RESPONSE_CANCEL;
 }
 
+bool MainWindow::leaving_shared_mode_dialog() {
+    Glib::ustring msg = _("Detach from sampler and proceed working stand-alone?");
+    Gtk::MessageDialog dialog(*this, msg, false, Gtk::MESSAGE_WARNING, Gtk::BUTTONS_NONE);
+#if (GTKMM_MAJOR_VERSION == 2 && GTKMM_MINOR_VERSION >= 6) || GTKMM_MAJOR_VERSION > 2
+    dialog.set_secondary_text(
+        _("If you proceed to work on another instrument file, it won't be "
+          "used by the sampler until you tell the sampler explicitly to "
+          "load it.")
+   );
+#endif
+    dialog.add_button(_("_Yes, Detach"), Gtk::RESPONSE_YES);
+    dialog.add_button(Gtk::Stock::CANCEL, Gtk::RESPONSE_CANCEL);
+    dialog.set_default_response(Gtk::RESPONSE_CANCEL);
+    int response = dialog.run();
+    dialog.hide();
+    return response == Gtk::RESPONSE_YES;
+}
+
 void MainWindow::on_action_file_open()
 {
-    if (file_is_changed && !close_confirmation_dialog()) return;
+    if (!file_is_shared && file_is_changed && !close_confirmation_dialog()) return;
+
+    if (file_is_shared && !leaving_shared_mode_dialog()) return;
 
     Gtk::FileChooserDialog dialog(*this, _("Open file"));
     dialog.add_button(Gtk::Stock::CANCEL, Gtk::RESPONSE_CANCEL);
@@ -514,7 +536,7 @@ void MainWindow::load_instrument(gig::Instrument* instr) {
     __clear();
     // load the instrument
     gig::File* pFile = (gig::File*) instr->GetParent();
-    load_gig(pFile, 0 /*file name*/);
+    load_gig(pFile, 0 /*file name*/, true /*shared instrument*/);
     //TODO: automatically select the given instrument
 }
 
@@ -563,7 +585,7 @@ bool MainWindow::check_if_savable()
 bool MainWindow::file_save()
 {
     if (!check_if_savable()) return false;
-    if (!file_has_name) return file_save_as();
+    if (!file_is_shared && !file_has_name) return file_save_as();
 
     std::cout << "Saving file\n" << std::flush;
     file_structure_to_be_changed_signal.emit(this->file);
@@ -575,7 +597,7 @@ bool MainWindow::file_save()
         }
     } catch (RIFF::Exception e) {
         file_structure_changed_signal.emit(this->file);
-        Glib::ustring txt = "Could not save file: " + e.Message;
+        Glib::ustring txt = _("Could not save file: ") + e.Message;
         Gtk::MessageDialog msg(*this, txt, false, Gtk::MESSAGE_ERROR);
         msg.run();
         return false;
@@ -630,7 +652,7 @@ bool MainWindow::file_save_as()
             file_is_changed = false;
         } catch (RIFF::Exception e) {
             file_structure_changed_signal.emit(this->file);
-            Glib::ustring txt = "Could not save file: " + e.Message;
+            Glib::ustring txt = _("Could not save file: ") + e.Message;
             Gtk::MessageDialog msg(*this, txt, false, Gtk::MESSAGE_ERROR);
             msg.run();
             return false;
@@ -727,7 +749,7 @@ void MainWindow::__import_queued_samples() {
     }
     // show error message box when some sample(s) could not be imported
     if (error_files.size()) {
-        Glib::ustring txt = "Could not import the following sample(s):\n" + error_files;
+        Glib::ustring txt = _("Could not import the following sample(s):\n") + error_files;
         Gtk::MessageDialog msg(*this, txt, false, Gtk::MESSAGE_ERROR);
         msg.run();
     }
@@ -934,9 +956,10 @@ void MainWindow::file_changed()
     }
 }
 
-void MainWindow::load_gig(gig::File* gig, const char* filename)
+void MainWindow::load_gig(gig::File* gig, const char* filename, bool isSharedInstrument)
 {
     file = 0;
+    file_is_shared = isSharedInstrument;
 
     this->filename = filename ? filename : _("Unsaved Gig File");
     set_title(Glib::filename_display_basename(this->filename));
@@ -1070,6 +1093,17 @@ void MainWindow::on_action_add_instrument() {
 
 void MainWindow::on_action_remove_instrument() {
     if (!file) return;
+    if (file_is_shared) {
+        Gtk::MessageDialog msg(
+            *this,
+             _("You cannot delete an instrument from this file, since it's "
+               "currently used by the sampler."),
+             false, Gtk::MESSAGE_INFO
+        );
+        msg.run();
+        return;
+    }
+
     Glib::RefPtr<Gtk::TreeSelection> sel = m_TreeView.get_selection();
     Gtk::TreeModel::iterator it = sel->get_selected();
     if (it) {
@@ -1256,7 +1290,7 @@ void MainWindow::on_action_add_sample() {
         }
         // show error message box when some file(s) could not be opened / added
         if (error_files.size()) {
-            Glib::ustring txt = "Could not add the following sample(s):\n" + error_files;
+            Glib::ustring txt = _("Could not add the following sample(s):\n") + error_files;
             Gtk::MessageDialog msg(*this, txt, false, Gtk::MESSAGE_ERROR);
             msg.run();
         }

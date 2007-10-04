@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: gigedit 0.0.3\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2007-09-04 13:13+0200\n"
+"POT-Creation-Date: 2007-10-05 01:24+0200\n"
 "PO-Revision-Date: 2007-08-26 11:21+0200\n"
 "Last-Translator: Andreas Persson\n"
 "Language-Team: Swedish\n"
@@ -35,28 +35,42 @@ msgstr "Lägg till _grupp"
 msgid "Add _Sample(s)"
 msgstr "Lägg till _sampling(ar)"
 
-#: ../src/gigedit/mainwindow.cpp:453
+#: ../src/gigedit/mainwindow.cpp:455
 #, c-format
 msgid "Save changes to \"%s\" before closing?"
 msgstr "Spara ändringarna i \"%s\"?"
 
-#: ../src/gigedit/mainwindow.cpp:458
+#: ../src/gigedit/mainwindow.cpp:460
 msgid "If you close without saving, your changes will be lost."
 msgstr "Om du stänger utan att spara förlorar du dina ändringar."
 
-#: ../src/gigedit/mainwindow.cpp:460
+#: ../src/gigedit/mainwindow.cpp:462
 msgid "Close _Without Saving"
 msgstr "Stäng _utan att spara"
 
-#: ../src/gigedit/mainwindow.cpp:474
+#: ../src/gigedit/mainwindow.cpp:473
+msgid "Detach from sampler and proceed working stand-alone?"
+msgstr ""
+
+#: ../src/gigedit/mainwindow.cpp:477
+msgid ""
+"If you proceed to work on another instrument file, it won't be used by the "
+"sampler until you tell the sampler explicitly to load it."
+msgstr ""
+
+#: ../src/gigedit/mainwindow.cpp:482
+msgid "_Yes, Detach"
+msgstr ""
+
+#: ../src/gigedit/mainwindow.cpp:496
 msgid "Open file"
 msgstr "Öppna fil"
 
-#: ../src/gigedit/mainwindow.cpp:541
+#: ../src/gigedit/mainwindow.cpp:566
 msgid "The file could not be saved because it contains no samples"
 msgstr "Filen kunde inte sparas eftersom den inte innehåller några samplingar"
 
-#: ../src/gigedit/mainwindow.cpp:550
+#: ../src/gigedit/mainwindow.cpp:575
 msgid ""
 "The file could not be saved because there are instruments that have no "
 "regions"
@@ -64,18 +78,36 @@ msgstr ""
 "Filen kunde inte sparas eftersom det finns instrument som inte har några "
 "regioner"
 
-#: ../src/gigedit/mainwindow.cpp:594
+#: ../src/gigedit/mainwindow.cpp:600 ../src/gigedit/mainwindow.cpp:655
+msgid "Could not save file: "
+msgstr ""
+
+#: ../src/gigedit/mainwindow.cpp:619
 msgid "Save as"
 msgstr "Spara som"
 
-#: ../src/gigedit/mainwindow.cpp:938
+#: ../src/gigedit/mainwindow.cpp:752
+msgid "Could not import the following sample(s):\n"
+msgstr ""
+
+#: ../src/gigedit/mainwindow.cpp:964
 msgid "Unsaved Gig File"
 msgstr "Osparad gig-fil"
 
+#: ../src/gigedit/mainwindow.cpp:1099
+msgid ""
+"You cannot delete an instrument from this file, since it's currently used by "
+"the sampler."
+msgstr ""
+
 #. show 'browse for file' dialog
-#: ../src/gigedit/mainwindow.cpp:1130
+#: ../src/gigedit/mainwindow.cpp:1167
 msgid "Add Sample(s)"
 msgstr "Lägg till sampling(ar)"
+
+#: ../src/gigedit/mainwindow.cpp:1293
+msgid "Could not add the following sample(s):\n"
+msgstr ""
 
 #: ../src/gigedit/dimregionedit.cpp:122
 msgid "Note this sample is associated with (a.k.a. 'root note')"

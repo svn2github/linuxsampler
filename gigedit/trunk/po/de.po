@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: gigedit 0.0.3\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2007-09-04 13:13+0200\n"
+"POT-Creation-Date: 2007-10-05 01:24+0200\n"
 "PO-Revision-Date: 2007-03-26 18:19+0200\n"
 "Last-Translator: Christian Schoenebeck\n"
 "Language-Team: German\n"
@@ -35,31 +35,48 @@ msgstr "_Gruppe hinzufügen"
 msgid "Add _Sample(s)"
 msgstr "_Sample(s) hinzufügen"
 
-#: ../src/gigedit/mainwindow.cpp:453
+#: ../src/gigedit/mainwindow.cpp:455
 #, c-format
 msgid "Save changes to \"%s\" before closing?"
 msgstr "Änderungen in \"%s\" vor dem Schließen speichern?"
 
-#: ../src/gigedit/mainwindow.cpp:458
+#: ../src/gigedit/mainwindow.cpp:460
 msgid "If you close without saving, your changes will be lost."
 msgstr ""
 "Wenn Sie schließen ohne vorher zu speichern, gehen all Ihre Änderungen "
 "verloren!"
 
-#: ../src/gigedit/mainwindow.cpp:460
+#: ../src/gigedit/mainwindow.cpp:462
 msgid "Close _Without Saving"
 msgstr "Ver_werfen"
 
-#: ../src/gigedit/mainwindow.cpp:474
+#: ../src/gigedit/mainwindow.cpp:473
+msgid "Detach from sampler and proceed working stand-alone?"
+msgstr "Vom Sampler trennen und Stand-Alone weiterarbeiten?"
+
+#: ../src/gigedit/mainwindow.cpp:477
+msgid ""
+"If you proceed to work on another instrument file, it won't be used by the "
+"sampler until you tell the sampler explicitly to load it."
+msgstr ""
+"Wenn Sie fortsetzen und an einer anderen Instrumenten Datei weiterarbeiten, "
+"wird diese nicht vom Sampler verwendet solange Sie den Sampler nicht "
+"explizit dazu anweisen die Datei zu laden."
+
+#: ../src/gigedit/mainwindow.cpp:482
+msgid "_Yes, Detach"
+msgstr "_Ja, Trennen"
+
+#: ../src/gigedit/mainwindow.cpp:496
 msgid "Open file"
 msgstr "Datei öffnen"
 
-#: ../src/gigedit/mainwindow.cpp:541
+#: ../src/gigedit/mainwindow.cpp:566
 msgid "The file could not be saved because it contains no samples"
 msgstr ""
 "Die Datei konnte nicht gespeichert werden, da es keine Samples beinhaltet."
 
-#: ../src/gigedit/mainwindow.cpp:550
+#: ../src/gigedit/mainwindow.cpp:575
 msgid ""
 "The file could not be saved because there are instruments that have no "
 "regions"
@@ -67,18 +84,38 @@ msgstr ""
 "Die Datei konnte nicht gespeichert werden, da es Instrumente gibt, die keine "
 "Regions haben."
 
-#: ../src/gigedit/mainwindow.cpp:594
+#: ../src/gigedit/mainwindow.cpp:600 ../src/gigedit/mainwindow.cpp:655
+msgid "Could not save file: "
+msgstr "Konnte Datei nicht speichern: "
+
+#: ../src/gigedit/mainwindow.cpp:619
 msgid "Save as"
 msgstr "Speichern unter"
 
-#: ../src/gigedit/mainwindow.cpp:938
+#: ../src/gigedit/mainwindow.cpp:752
+msgid "Could not import the following sample(s):\n"
+msgstr "Konnte die folgenden Sample(s) nicht importieren:\n"
+
+#: ../src/gigedit/mainwindow.cpp:964
 msgid "Unsaved Gig File"
 msgstr "Ungespeicherte Gig Datei"
 
+#: ../src/gigedit/mainwindow.cpp:1099
+msgid ""
+"You cannot delete an instrument from this file, since it's currently used by "
+"the sampler."
+msgstr ""
+"Sie können kein Instrument von dieser Datei löschen, da sie gerade vom "
+"Sampler verwendet wird."
+
 #. show 'browse for file' dialog
-#: ../src/gigedit/mainwindow.cpp:1130
+#: ../src/gigedit/mainwindow.cpp:1167
 msgid "Add Sample(s)"
 msgstr "Sample(s) hinzufügen"
+
+#: ../src/gigedit/mainwindow.cpp:1293
+msgid "Could not add the following sample(s):\n"
+msgstr "Konnte die folgenden Sample(s) nicht hinzufügen:\n"
 
 #: ../src/gigedit/dimregionedit.cpp:122
 #, fuzzy
