@@ -255,6 +255,69 @@ namespace {
 
 
 
+// *************** Internal CRC-32 (Cyclic Redundancy Check) functions  ***************
+// *
+
+    static uint32_t* __initCRCTable() {
+        static uint32_t res[256];
+
+        for (int i = 0 ; i < 256 ; i++) {
+            uint32_t c = i;
+            for (int j = 0 ; j < 8 ; j++) {
+                c = (c & 1) ? 0xedb88320 ^ (c >> 1) : c >> 1;
+            }
+            res[i] = c;
+        }
+        return res;
+    }
+
+    static const uint32_t* __CRCTable = __initCRCTable();
+
+    /**
+     * Initialize a CRC variable.
+     *
+     * @param crc - variable to be initialized
+     */
+    inline static void __resetCRC(uint32_t& crc) {
+        crc = 0xffffffff;
+    }
+
+    /**
+     * Used to calculate checksums of the sample data in a gig file. The
+     * checksums are stored in the 3crc chunk of the gig file and
+     * automatically updated when a sample is written with Sample::Write().
+     *
+     * One should call __resetCRC() to initialize the CRC variable to be
+     * used before calling this function the first time.
+     *
+     * After initializing the CRC variable one can call this function
+     * arbitrary times, i.e. to split the overall CRC calculation into
+     * steps.
+     *
+     * Once the whole data was processed by __calculateCRC(), one should
+     * call __encodeCRC() to get the final CRC result.
+     *
+     * @param buf     - pointer to data the CRC shall be calculated of
+     * @param bufSize - size of the data to be processed
+     * @param crc     - variable the CRC sum shall be stored to
+     */
+    static void __calculateCRC(unsigned char* buf, int bufSize, uint32_t& crc) {
+        for (int i = 0 ; i < bufSize ; i++) {
+            crc = __CRCTable[(crc ^ buf[i]) & 0xff] ^ (crc >> 8);
+        }
+    }
+
+    /**
+     * Returns the final CRC result.
+     *
+     * @param crc - variable previously passed to __calculateCRC()
+     */
+    inline static uint32_t __encodeCRC(const uint32_t& crc) {
+        return crc ^ 0xffffffff;
+    }
+
+
+
 // *************** Other Internal functions  ***************
 // *
 
@@ -274,26 +337,6 @@ namespace {
     static int __resolveZoneSize(dimension_def_t& dimension_definition) {
         return (dimension_definition.split_type == split_type_normal)
         ? int(128.0 / dimension_definition.zones) : 0;
-    }
-
-
-
-// *************** CRC ***************
-// *
-
-    const uint32_t* CRC::table(initTable());
-
-    uint32_t* CRC::initTable() {
-        uint32_t* res = new uint32_t[256];
-
-        for (int i = 0 ; i < 256 ; i++) {
-            uint32_t c = i;
-            for (int j = 0 ; j < 8 ; j++) {
-                c = (c & 1) ? 0xedb88320 ^ (c >> 1) : c >> 1;
-            }
-            res[i] = c;
-        }
-        return res;
     }
 
 
@@ -330,6 +373,8 @@ namespace {
         pInfo->FixedStringLengths = fixedStringLengths;
         Instances++;
         FileNo = fileNo;
+
+        __resetCRC(crc);
 
         pCk3gix = waveList->GetSubChunk(CHUNK_ID_3GIX);
         if (pCk3gix) {
@@ -1168,7 +1213,7 @@ namespace {
         // if this is the first write in this sample, reset the
         // checksum calculator
         if (pCkData->GetPos() == 0) {
-            crc.reset();
+            __resetCRC(crc);
         }
         if (GetSize() < SampleCount) throw Exception("Could not write sample data, current sample size to small");
         unsigned long res;
@@ -1178,13 +1223,13 @@ namespace {
             res = Channels == 2 ? pCkData->Write(pBuffer, SampleCount << 1, 2) >> 1
                                 : pCkData->Write(pBuffer, SampleCount, 2);
         }
-        crc.update((unsigned char *)pBuffer, SampleCount * FrameSize);
+        __calculateCRC((unsigned char *)pBuffer, SampleCount * FrameSize, crc);
 
         // if this is the last write, update the checksum chunk in the
         // file
         if (pCkData->GetPos() == pCkData->GetSize()) {
             File* pFile = static_cast<File*>(GetParent());
-            pFile->SetSampleChecksum(this, crc.getValue());
+            pFile->SetSampleChecksum(this, __encodeCRC(crc));
         }
         return res;
     }

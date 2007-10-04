@@ -323,35 +323,6 @@ namespace gig {
         progress_t();
     };
 
-    /** @brief CRC-32 checksum implementation
-     *
-     * This class is used to calculate checksums of the sample data in
-     * a gig file. The checksums are stored in the 3crc chunk of the
-     * gig file and automatically updated when a sample is written
-     * with Sample::Write().
-     */
-    class CRC {
-    private:
-        uint32_t value;
-        static const uint32_t* table;
-        static uint32_t* initTable();
-    public:
-        CRC() {
-            reset();
-        }
-        void reset() {
-            value = 0xffffffff;
-        }
-        void update(unsigned char* buf, int len) {
-            for (int i = 0 ; i < len ; i++) {
-                value = table[(value ^ buf[i]) & 0xff] ^ (value >> 8);
-            }
-        }
-        uint32_t getValue() {
-            return value ^ 0xffffffff;
-        }
-    };
-
     // just symbol prototyping
     class File;
     class Instrument;
@@ -607,7 +578,7 @@ namespace gig {
             unsigned long        FileNo;                  ///< File number (> 0 when sample is stored in an extension file, 0 when it's in the gig)
             RIFF::Chunk*         pCk3gix;
             RIFF::Chunk*         pCkSmpl;
-            CRC                  crc;                     ///< CRC-32 checksum of the raw sample data
+            uint32_t             crc;                     ///< CRC-32 checksum of the raw sample data
 
             Sample(File* pFile, RIFF::List* waveList, unsigned long WavePoolOffset, unsigned long fileNo = 0);
            ~Sample();
