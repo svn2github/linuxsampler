@@ -6,25 +6,30 @@
 @section Intro
 
 libgig is a C++ library for loading, modifying existing and creating new
-Gigasampler files and DLS (Downloadable Sounds) Level 1 & 2 files.
+Gigasampler files (of both the old version 2 and the latest version 3 of
+the Gigasampler format) and DLS (Downloadable Sounds) Level 1 & 2 files.
 
 The library actually consists of three parts:
 
-  1. @ref RIFF classes: Provide convenient methods to parse and access
+  - 1. @ref RIFF classes: Provide convenient methods to parse and access
      arbitrary RIFF files. The <i>Resource Interchange File Format</i>
      provides universal data containers ordered in a tree-like structure
      and can be compared to XML, but with the difference that RIFF is
      binary encoded.
 
-  2. @ref DLS classes: Provide convenient methods to parse and access
+  - 2. @ref DLS classes: Provide convenient methods to parse and access
      DLS (<i>Downloadable Sounds</i>) Level 1 and 2 files. These classes
      use the RIFF classes to access such files, since the DLS format
      uses RIFF as its layer beneath to store and structure its data.
 
-  3. @ref gig classes: These are based on the DLS classes and provide the
-     necessary extensions for the Gigasampler file format, since the
-     Gigasampler format is in fact based on the DLS Level 2 format, with
+  - 3. @ref gig classes: These are based on the DLS classes and provide the
+     necessary extensions for the Gigasampler file format v2 and v3, since
+     the Gigasampler format is in fact based on the DLS Level 2 format, with
      quite some radical modifications though.
+
+So one can also use this library to access all kinds of RIFF files and DLS
+files, but the main focus (as one can obviously derive from the library name)
+is currently the Gigasampler format.
 
 
 @section License
