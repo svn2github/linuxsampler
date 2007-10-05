@@ -3227,12 +3227,12 @@ namespace {
 // *************** File ***************
 // *
 
-    // File version 2.0, 1998-06-28
+    /// Reflects Gigasampler file format version 2.0 (1998-06-28).
     const DLS::version_t File::VERSION_2 = {
         0, 2, 19980628 & 0xffff, 19980628 >> 16
     };
 
-    // File version 3.0, 2003-03-31
+    /// Reflects Gigasampler file format version 3.0 (2003-03-31).
     const DLS::version_t File::VERSION_3 = {
         0, 3, 20030331 & 0xffff, 20030331 >> 16
     };
