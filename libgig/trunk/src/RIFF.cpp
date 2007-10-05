@@ -33,7 +33,7 @@ namespace RIFF {
 // *
 
     /// Returns a human readable path of the given chunk.
-    String __resolveChunkPath(Chunk* pCk) {
+    static String __resolveChunkPath(Chunk* pCk) {
         String sPath;
         for (Chunk* pChunk = pCk; pChunk; pChunk = pChunk->GetParent()) {
             if (pChunk->GetChunkID() == CHUNK_ID_LIST) {
@@ -235,7 +235,7 @@ namespace RIFF {
      *  - RIFF::stream_closed :
      *    the data stream was closed somehow, no more reading possible
      *  - RIFF::stream_end_reached :
-     *    alreaady reached the end of the chunk data, no more reading
+     *    already reached the end of the chunk data, no more reading
      *    possible without SetPos()
      */
     stream_state_t Chunk::GetState() {
