@@ -145,7 +145,7 @@
 <tr><td class="header">LinuxSampler Developers</td><td class="header">C. Schoenebeck</td></tr>
 <tr><td class="header">Internet-Draft</td><td class="header">Interessengemeinschaft Software</td></tr>
 <tr><td class="header">Intended status: Standards Track</td><td class="header">Engineering e. V.</td></tr>
-<tr><td class="header">Expires: March 4, 2008</td><td class="header">September 2007</td></tr>
+<tr><td class="header">Expires: April 9, 2008</td><td class="header">October 7, 2007</td></tr>
 </table></td></tr></table>
 <h1><br />LinuxSampler Control Protocol (draft)<br />LSCP 1.2cvs</h1>
 
@@ -173,7 +173,7 @@ The list of current Internet-Drafts can be accessed at
 The list of Internet-Draft Shadow Directories can be accessed at
 <a href='http://www.ietf.org/shadow.html'>http://www.ietf.org/shadow.html</a>.</p>
 <p>
-This Internet-Draft will expire on March 4, 2008.</p>
+This Internet-Draft will expire on April 9, 2008.</p>
 
 <h3>Copyright Notice</h3>
 <p>
@@ -364,7 +364,7 @@ Getting global volume attenuation<br />
 Setting global volume attenuation<br />
 &nbsp;&nbsp;&nbsp;&nbsp;<a href="#MIDI Instrument Mapping">6.7.</a>&nbsp;
 MIDI Instrument Mapping<br />
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ADD MIDI_INSTRUMENT MAP">6.7.1.</a>&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ADD MIDI_INSTRUMENT_MAP">6.7.1.</a>&nbsp;
 Create a new MIDI instrument map<br />
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#REMOVE MIDI_INSTRUMENT_MAP">6.7.2.</a>&nbsp;
 Delete one particular or all MIDI instrument maps<br />
@@ -5080,7 +5080,9 @@ Adding an effect send to a sampler channel</h3>
                     sampler channel on which the effect send should be created on, &lt;midi-ctrl&gt;
                     is a number between 0..127 defining the MIDI controller which can alter the
                     effect send level and &lt;name&gt; is an optional argument defining a name
-                    for the effect send entity. The name does not have to be unique.
+                    for the effect send entity. The name does not have to be unique, but MUST be
+                    encapsulated into apostrophes and supports escape sequences as described in chapter
+                    "<a class='info' href='#character_set'>Character Set and Escape Sequences<span> (</span><span class='info'>Character Set and Escape Sequences</span><span>)</span></a>".
 </p>
 <p>By default, that is as initial routing, the effect send's audio channels
                     are automatically routed to the last audio channels of the sampler channel's
@@ -5439,7 +5441,10 @@ Changing effect send's name</h3>
                     as returned by the <a class='info' href='#CREATE FX_SEND'>"CREATE FX_SEND"<span> (</span><span class='info'>Adding an effect send to a sampler channel</span><span>)</span></a>
                     or <a class='info' href='#LIST FX_SENDS'>"LIST FX_SENDS"<span> (</span><span class='info'>Listing all effect sends on a sampler channel</span><span>)</span></a> command and
                     &lt;name&gt; is the new name of the effect send entity, which
-                    does not have to be unique.
+                    does not have to be unique (name MUST be encapsulated into apostrophes
+                    and supports escape sequences as described in chapter
+                    "<a class='info' href='#character_set'>Character Set and Escape Sequences<span> (</span><span class='info'>Character Set and Escape Sequences</span><span>)</span></a>").
+                    
 </p>
 <p>Possible Answers:
 </p>
@@ -6116,6 +6121,8 @@ General sampler informations</h3>
                                         </p>
 <blockquote class="text">
 <p>arbitrary textual description about the sampler
+                                            (note that the character string may contain
+                                            <a class='info' href='#character_set'>escape sequences<span> (</span><span class='info'>Character Set and Escape Sequences</span><span>)</span></a>)
 </p>
 </blockquote>
                                     
@@ -6277,7 +6284,7 @@ MIDI Instrument Mapping</h3>
                 cause the sampler to switch to the respective instrument as
                 reflected by the current MIDI instrument map.
 </p>
-<a name="ADD MIDI_INSTRUMENT MAP"></a><br /><hr />
+<a name="ADD MIDI_INSTRUMENT_MAP"></a><br /><hr />
 <table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
 <a name="rfc.section.6.7.1"></a><h3>6.7.1.&nbsp;
 Create a new MIDI instrument map</h3>
@@ -6295,7 +6302,10 @@ Create a new MIDI instrument map</h3>
 </p>
 <p>Where &lt;name&gt; is an optional argument allowing to
                     assign a custom name to the new map. MIDI instrument Map
-                    names do not have to be unique.
+                    names do not have to be unique, but MUST be encapsulated
+                    into apostrophes and support escape sequences as described
+                    in chapter "<a class='info' href='#character_set'>Character Set and Escape Sequences<span> (</span><span class='info'>Character Set and Escape Sequences</span><span>)</span></a>".
+                    
 </p>
 <p>Possible Answers:
 </p>
@@ -6608,7 +6618,10 @@ Renaming a MIDI instrument map</h3>
 </p>
 <p>Where &lt;map&gt; is the numerical ID of the map and
                     &lt;name&gt; the new custom name of the map, which does not
-                    have to be unique.
+                    have to be unique (name MUST be encapsulated into apostrophes
+                    and supports escape sequences as described in chapter
+                    "<a class='info' href='#character_set'>Character Set and Escape Sequences<span> (</span><span class='info'>Character Set and Escape Sequences</span><span>)</span></a>").
+                    
 </p>
 <p>Possible Answers:
 </p>
@@ -6773,9 +6786,10 @@ Create or replace a MIDI instrument map entry</h3>
                     load modes of entries, the frontend should retrieve the actual
                     mode by i.e. sending
                     <a class='info' href='#GET MIDI_INSTRUMENT INFO'>"GET MIDI_INSTRUMENT INFO"<span> (</span><span class='info'>Get current settings of MIDI instrument map entry</span><span>)</span></a>
-                    command(s). Finally the OPTIONAL &lt;name&gt; argument allows to
-                    set a custom name (encapsulated into apostrophes) for the mapping
-                    entry, useful for frontends for displaying an appropriate name for
+                    command(s). Finally the OPTIONAL &lt;name&gt; argument allows to set a custom name
+                    (encapsulated into apostrophes, supporting escape sequences as described in chapter
+                    "<a class='info' href='#character_set'>Character Set and Escape Sequences<span> (</span><span class='info'>Character Set and Escape Sequences</span><span>)</span></a>") for the
+                    mapping entry, useful for frontends for displaying an appropriate name for
                     mapped instruments (using
                     <a class='info' href='#GET MIDI_INSTRUMENT INFO'>"GET MIDI_INSTRUMENT INFO"<span> (</span><span class='info'>Get current settings of MIDI instrument map entry</span><span>)</span></a>).
                     
@@ -10135,7 +10149,7 @@ Command Syntax</h3>
 <p>map_name =
 	</p>
 <blockquote class="text">
-<p>stringval
+<p>stringval_escaped
 		
 </p>
 </blockquote><p>
@@ -10144,7 +10158,7 @@ Command Syntax</h3>
 <p>entry_name =
 	</p>
 <blockquote class="text">
-<p>stringval
+<p>stringval_escaped
 		
 </p>
 </blockquote><p>
@@ -10153,7 +10167,7 @@ Command Syntax</h3>
 <p>fx_send_name =
 	</p>
 <blockquote class="text">
-<p>stringval
+<p>stringval_escaped
 		
 </p>
 </blockquote><p>
@@ -10204,7 +10218,7 @@ Command Syntax</h3>
 <p>query_val =
 	</p>
 <blockquote class="text">
-<p>textval_escaped
+<p>text_escaped
 		
 </p>
 <p>/ stringval_escaped
@@ -10293,6 +10307,91 @@ Character Set and Escape Sequences</h3>
                 where escape characters are now supported, a backslash characters
                 MUST be escaped as well (that is as double backslash), whereas
                 in the old versions a single backslash was sufficient.
+</p>
+<p>The following LSCP commands support escape sequences as part
+                of their filename / path based arguments:
+                </p>
+<blockquote class="text">
+<p><a class='info' href='#LOAD INSTRUMENT'>"LOAD INSTRUMENT"<span> (</span><span class='info'>Loading an instrument</span><span>)</span></a>
+</p>
+<p><a class='info' href='#MAP MIDI_INSTRUMENT'>"MAP MIDI_INSTRUMENT"<span> (</span><span class='info'>Create or replace a MIDI instrument map entry</span><span>)</span></a>
+</p>
+<p><a class='info' href='#ADD DB_INSTRUMENT_DIRECTORY'>"ADD DB_INSTRUMENT_DIRECTORY"<span> (</span><span class='info'>Creating a new instrument directory</span><span>)</span></a>
+</p>
+<p><a class='info' href='#ADD DB_INSTRUMENTS'>"ADD DB_INSTRUMENTS"<span> (</span><span class='info'>Adding instruments to the instruments database</span><span>)</span></a>
+</p>
+<p><a class='info' href='#REMOVE DB_INSTRUMENT_DIRECTORY'>"REMOVE DB_INSTRUMENT_DIRECTORY"<span> (</span><span class='info'>Deleting an instrument directory</span><span>)</span></a>
+</p>
+<p><a class='info' href='#REMOVE DB_INSTRUMENT'>"REMOVE DB_INSTRUMENT"<span> (</span><span class='info'>Removing an instrument</span><span>)</span></a>
+</p>
+<p><a class='info' href='#GET DB_INSTRUMENT_DIRECTORIES'>"GET DB_INSTRUMENT_DIRECTORIES"<span> (</span><span class='info'>Getting amount of instrument directories</span><span>)</span></a>
+</p>
+<p><a class='info' href='#LIST DB_INSTRUMENT_DIRECTORIES'>"LIST DB_INSTRUMENT_DIRECTORIES"<span> (</span><span class='info'>Listing all directories in specific directory</span><span>)</span></a>
+</p>
+<p><a class='info' href='#GET DB_INSTRUMENT_DIRECTORY INFO'>"GET DB_INSTRUMENT_DIRECTORY INFO"<span> (</span><span class='info'>Getting instrument directory information</span><span>)</span></a>
+</p>
+<p><a class='info' href='#GET DB_INSTRUMENTS'>"GET DB_INSTRUMENTS"<span> (</span><span class='info'>Getting amount of instruments</span><span>)</span></a>
+</p>
+<p><a class='info' href='#LIST DB_INSTRUMENTS'>"LIST DB_INSTRUMENTS"<span> (</span><span class='info'>Listing all instruments in specific directory</span><span>)</span></a>
+</p>
+<p><a class='info' href='#GET DB_INSTRUMENT INFO'>"GET DB_INSTRUMENT INFO"<span> (</span><span class='info'>Getting instrument information</span><span>)</span></a>
+</p>
+<p><a class='info' href='#SET DB_INSTRUMENT_DIRECTORY NAME'>"SET DB_INSTRUMENT_DIRECTORY NAME"<span> (</span><span class='info'>Renaming an instrument directory</span><span>)</span></a>
+</p>
+<p><a class='info' href='#SET DB_INSTRUMENT_DIRECTORY DESCRIPTION'>"SET DB_INSTRUMENT_DIRECTORY DESCRIPTION"<span> (</span><span class='info'>Changing the description of directory</span><span>)</span></a>
+</p>
+<p><a class='info' href='#SET DB_INSTRUMENT NAME'>"SET DB_INSTRUMENT NAME"<span> (</span><span class='info'>Renaming an instrument</span><span>)</span></a>
+</p>
+<p><a class='info' href='#SET DB_INSTRUMENT DESCRIPTION'>"SET DB_INSTRUMENT DESCRIPTION"<span> (</span><span class='info'>Changing the description of instrument</span><span>)</span></a>
+</p>
+<p><a class='info' href='#FIND DB_INSTRUMENTS'>"FIND DB_INSTRUMENTS"<span> (</span><span class='info'>Finding instruments</span><span>)</span></a>
+</p>
+<p><a class='info' href='#FIND DB_INSTRUMENT_DIRECTORIES'>"FIND DB_INSTRUMENT_DIRECTORIES"<span> (</span><span class='info'>Finding directories</span><span>)</span></a>
+</p>
+<p><a class='info' href='#MOVE DB_INSTRUMENT'>"MOVE DB_INSTRUMENT"<span> (</span><span class='info'>Moving an instrument</span><span>)</span></a>
+</p>
+<p><a class='info' href='#MOVE DB_INSTRUMENT_DIRECTORY'>"MOVE DB_INSTRUMENT_DIRECTORY"<span> (</span><span class='info'>Moving an instrument directory</span><span>)</span></a>
+</p>
+<p><a class='info' href='#COPY DB_INSTRUMENT'>"COPY DB_INSTRUMENT"<span> (</span><span class='info'>Copying instruments</span><span>)</span></a>
+</p>
+<p><a class='info' href='#COPY DB_INSTRUMENT_DIRECTORY'>"COPY DB_INSTRUMENT_DIRECTORY"<span> (</span><span class='info'>Copying instrument directories</span><span>)</span></a>
+</p>
+</blockquote><p>
+                Note that the forward slash character ('/') has a special meaning in
+                filename / path based arguments: it acts as separator of the nodes in
+                the path, thus if a directory- or filename includes a forward slash
+                (not intended as path node separator), you MUST escape that slash
+                either with the respective hex escape sequence ("\x2f") or with the
+                respective octal escape sequence ("\057").
+                
+</p>
+<p>
+                The following LSCP commands even support escape sequences as
+                part of at least one of their text-based arguments (i.e. entity name,
+                description):
+                </p>
+<blockquote class="text">
+<p><a class='info' href='#ADD MIDI_INSTRUMENT_MAP'>"ADD MIDI_INSTRUMENT_MAP"<span> (</span><span class='info'>Create a new MIDI instrument map</span><span>)</span></a>
+</p>
+<p><a class='info' href='#MAP MIDI_INSTRUMENT'>"MAP MIDI_INSTRUMENT"<span> (</span><span class='info'>Create or replace a MIDI instrument map entry</span><span>)</span></a>
+</p>
+<p><a class='info' href='#SET MIDI_INSTRUMENT_MAP NAME'>"SET MIDI_INSTRUMENT_MAP NAME"<span> (</span><span class='info'>Renaming a MIDI instrument map</span><span>)</span></a>
+</p>
+<p><a class='info' href='#SET DB_INSTRUMENT_DIRECTORY NAME'>"SET DB_INSTRUMENT_DIRECTORY NAME"<span> (</span><span class='info'>Renaming an instrument directory</span><span>)</span></a>
+</p>
+<p><a class='info' href='#SET DB_INSTRUMENT_DIRECTORY DESCRIPTION'>"SET DB_INSTRUMENT_DIRECTORY DESCRIPTION"<span> (</span><span class='info'>Changing the description of directory</span><span>)</span></a>
+</p>
+<p><a class='info' href='#SET DB_INSTRUMENT NAME'>"SET DB_INSTRUMENT NAME"<span> (</span><span class='info'>Renaming an instrument</span><span>)</span></a>
+</p>
+<p><a class='info' href='#SET DB_INSTRUMENT DESCRIPTION'>"SET DB_INSTRUMENT DESCRIPTION"<span> (</span><span class='info'>Changing the description of instrument</span><span>)</span></a>
+</p>
+<p><a class='info' href='#FIND DB_INSTRUMENT_DIRECTORIES'>"FIND DB_INSTRUMENT_DIRECTORIES"<span> (</span><span class='info'>Finding directories</span><span>)</span></a>
+</p>
+</blockquote><p>
+                Please note that these lists are manually maintained. If you
+                find a command that also supports escape sequences we forgot to
+                mention here, please report it!
+                
 </p>
 <a name="events"></a><br /><hr />
 <table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
