@@ -2460,7 +2460,7 @@ public class Client {
 	public synchronized int
 	addMidiInstrumentMap(String name) throws IOException, LSException, LscpException {
 		verifyConnection();
-		out.writeLine("ADD MIDI_INSTRUMENT_MAP '" + name + "'");
+		out.writeLine("ADD MIDI_INSTRUMENT_MAP '" + toEscapedString(name) + "'");
 		if(getPrintOnlyMode()) return -1;
 		
 		ResultSet rs = getEmptyResultSet();
@@ -2611,6 +2611,7 @@ public class Client {
 				throws IOException, LscpException, LSException {
 		
 		verifyConnection();
+		name = toEscapedString(name);
 		out.writeLine("SET MIDI_INSTRUMENT_MAP NAME " +  + mapId + " '" + name + "'");
 		if(getPrintOnlyMode()) return;
 		
@@ -2666,7 +2667,11 @@ public class Client {
 		if(!info.getLoadMode().name().equals("DEFAULT")) {
 			cmd.append(' ').append(info.getLoadMode().name());
 		}
-		if(info.getName() != null) cmd.append(" '").append(info.getName()).append("'");
+		
+		if(info.getName() != null) {
+			String s = toEscapedString(info.getName());
+			cmd.append(" '").append(s).append("'");
+		}
 		
 		out.writeLine(cmd.toString());
 		if(getPrintOnlyMode()) return;
@@ -3044,7 +3049,7 @@ public class Client {
 		out.writeLine("LIST AVAILABLE_ENGINES");
 		if(getPrintOnlyMode()) return null;
 		
-		return parseQuotedStringList(getSingleLineResultSet().getResult());
+		return parseStringList(getSingleLineResultSet().getResult());
 	}
 	
 	/**
@@ -3515,7 +3520,7 @@ public class Client {
 		
 		verifyConnection();
 		String s = String.valueOf(channel) + " " + String.valueOf(midiCtrl);
-		if(name != null) s += " '" + name + "'";
+		if(name != null) s += " '" + toEscapedString(name) + "'";
 		out.writeLine("CREATE FX_SEND " + s);
 		if(getPrintOnlyMode()) return -1;
 		
@@ -3646,7 +3651,7 @@ public class Client {
 				throws IOException, LscpException, LSException {
 		
 		verifyConnection();
-		String args = " " + channel + " " + fxSend + " '" + name + "'";
+		String args = " " + channel + " " + fxSend + " '" + toEscapedString(name) + "'";
 		out.writeLine("SET FX_SEND NAME" + args);
 		if(getPrintOnlyMode()) return;
 		

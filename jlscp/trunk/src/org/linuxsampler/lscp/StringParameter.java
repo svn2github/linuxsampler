@@ -85,7 +85,7 @@ public class StringParameter extends AbstractParameter<String> {
 			return true;
 		} else if(s.startsWith("POSSIBILITIES: ")) {
 			s = s.substring("POSSIBILITIES: ".length());
-			setPossibilities(Parser.parseQuotedStringList(s));
+			setPossibilities(Parser.parseStringList(s));
 			return true;
 		}
 		

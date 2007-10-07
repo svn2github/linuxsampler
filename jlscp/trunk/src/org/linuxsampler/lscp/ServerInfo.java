@@ -80,6 +80,7 @@ public final class ServerInfo implements Parseable {
 	parse(String s) {
 		if(s.startsWith("DESCRIPTION: ")) {
 			desc = s.substring("DESCRIPTION: ".length());
+			desc = Parser.toNonEscapedString(desc);
 		} else if(s.startsWith("VERSION: ")) {
 			ver = s.substring("VERSION: ".length());
 		} else if(s.startsWith("PROTOCOL_VERSION: ")) {

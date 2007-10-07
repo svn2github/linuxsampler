@@ -76,7 +76,7 @@ public class StringListParameter extends AbstractParameter<String[]> {
 	parse(String s) throws LscpException {
 		if(super.parse(s)) return true;
 		else if(s.startsWith("DEFAULT: ")) {
-			setDefault(Parser.parseQuotedStringList(s.substring("DEFAULT: ".length())));
+			setDefault(Parser.parseStringList(s.substring("DEFAULT: ".length())));
 			return true;
 		} else if(s.startsWith("POSSIBILITIES: ")) {
 			s = s.substring("POSSIBILITIES: ".length(), s.length());
@@ -95,7 +95,9 @@ public class StringListParameter extends AbstractParameter<String[]> {
 	 * @throws LscpException If the parsing failed.
 	 */
 	public void
-	parseValue(String s) throws LscpException { setValue(Parser.parseStringList(s)); }
+	parseValue(String s) throws LscpException {
+		setValue(Parser.parseEscapedStringList(s)); // TODO: always escaped?
+	}
 	
 	/**
 	 * Gets the current value of this parameter.
