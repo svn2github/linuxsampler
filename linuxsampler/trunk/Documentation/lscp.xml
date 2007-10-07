@@ -6862,14 +6862,17 @@ Schoenebeck'>
                 part of at least one of their text-based arguments (i.e. entity name,
                 description):
                 <list>
+                    <t><xref target="CREATE FX_SEND">"CREATE FX_SEND"</xref></t>
+                    <t><xref target="SET FX_SEND NAME">"SET FX_SEND NAME"</xref></t>
                     <t><xref target="ADD MIDI_INSTRUMENT_MAP">"ADD MIDI_INSTRUMENT_MAP"</xref></t>
                     <t><xref target="MAP MIDI_INSTRUMENT">"MAP MIDI_INSTRUMENT"</xref></t>
                     <t><xref target="SET MIDI_INSTRUMENT_MAP NAME">"SET MIDI_INSTRUMENT_MAP NAME"</xref></t>
                     <t><xref target="SET DB_INSTRUMENT_DIRECTORY NAME">"SET DB_INSTRUMENT_DIRECTORY NAME"</xref></t>
                     <t><xref target="SET DB_INSTRUMENT_DIRECTORY DESCRIPTION">"SET DB_INSTRUMENT_DIRECTORY DESCRIPTION"</xref></t>
+                    <t><xref target="FIND DB_INSTRUMENT_DIRECTORIES">"FIND DB_INSTRUMENT_DIRECTORIES"</xref></t>
                     <t><xref target="SET DB_INSTRUMENT NAME">"SET DB_INSTRUMENT NAME"</xref></t>
                     <t><xref target="SET DB_INSTRUMENT DESCRIPTION">"SET DB_INSTRUMENT DESCRIPTION"</xref></t>
-                    <t><xref target="FIND DB_INSTRUMENT_DIRECTORIES">"FIND DB_INSTRUMENT_DIRECTORIES"</xref></t>
+                    <t><xref target="FIND DB_INSTRUMENTS">"FIND DB_INSTRUMENTS"</xref></t>
                 </list>
                 Please note that these lists are manually maintained. If you
                 find a command that also supports escape sequences we forgot to
