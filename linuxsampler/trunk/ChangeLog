@@ -110,6 +110,14 @@ Version CVS HEAD (?)
       sequences, that is directly literal as one of: \', \", \\, \n, \r,
       \f, \t, \v, or as octal ASCII code value like \132, or as hex ASCII
       code value like \xf2) (fixes bug #24)
+    - the following LSCP commands now also support escape sequences for at
+      least one of their text-based parameters (i.e. name, description):
+      "ADD MIDI_INSTRUMENT_MAP", "MAP MIDI_INSTRUMENT",
+      "SET MIDI_INSTRUMENT_MAP NAME", "SET FX_SEND NAME", "CREATE FX_SEND",
+      "SET DB_INSTRUMENT_DIRECTORY NAME",
+      "SET DB_INSTRUMENT_DIRECTORY DESCRIPTION", "SET DB_INSTRUMENT NAME",
+      "SET DB_INSTRUMENT DESCRIPTION", "FIND DB_INSTRUMENTS",
+      "FIND DB_INSTRUMENT_DIRECTORIES"
     - returns verbose syntax errors (line and column where syntax error
       occured, the unexpected character and the actually expected, possible
       character(s), the latter only if less than 5 possibilities)

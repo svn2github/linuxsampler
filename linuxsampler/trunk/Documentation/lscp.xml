@@ -34,7 +34,7 @@ Schoenebeck'>
                 <email>schoenebeck at software minus engineering dot org</email>
             </address>
         </author>
-        <date month="September" year="2007"/>
+        <date month="October" year="2007"/>
         <workgroup>LinuxSampler Developers</workgroup>
         <keyword>LSCP</keyword>
         <abstract>
@@ -3255,7 +3255,9 @@ Schoenebeck'>
                     sampler channel on which the effect send should be created on, &lt;midi-ctrl&gt;
                     is a number between 0..127 defining the MIDI controller which can alter the
                     effect send level and &lt;name&gt; is an optional argument defining a name
-                    for the effect send entity. The name does not have to be unique.</t>
+                    for the effect send entity. The name does not have to be unique, but MUST be
+                    encapsulated into apostrophes and supports escape sequences as described in chapter
+                    "<xref target="character_set">Character Set and Escape Sequences</xref>".</t>
 
                     <t>By default, that is as initial routing, the effect send's audio channels
                     are automatically routed to the last audio channels of the sampler channel's
@@ -3508,7 +3510,10 @@ Schoenebeck'>
                     as returned by the <xref target="CREATE FX_SEND">"CREATE FX_SEND"</xref>
                     or <xref target="LIST FX_SENDS">"LIST FX_SENDS"</xref> command and
                     &lt;name&gt; is the new name of the effect send entity, which
-                    does not have to be unique.</t>
+                    does not have to be unique (name MUST be encapsulated into apostrophes
+                    and supports escape sequences as described in chapter
+                    "<xref target="character_set">Character Set and Escape Sequences</xref>").
+                    </t>
 
                     <t>Possible Answers:</t>
                     <t>
@@ -4077,7 +4082,7 @@ Schoenebeck'>
                 cause the sampler to switch to the respective instrument as
                 reflected by the current MIDI instrument map.</t>
 
-                <section title="Create a new MIDI instrument map" anchor="ADD MIDI_INSTRUMENT MAP">
+                <section title="Create a new MIDI instrument map" anchor="ADD MIDI_INSTRUMENT_MAP">
                     <t>The front-end can add a new MIDI instrument map by sending
                     the following command:</t>
                     <t>
@@ -4087,7 +4092,10 @@ Schoenebeck'>
                     </t>
                     <t>Where &lt;name&gt; is an optional argument allowing to
                     assign a custom name to the new map. MIDI instrument Map
-                    names do not have to be unique.</t>
+                    names do not have to be unique, but MUST be encapsulated
+                    into apostrophes and support escape sequences as described
+                    in chapter "<xref target="character_set">Character Set and Escape Sequences</xref>".
+                    </t>
 
                     <t>Possible Answers:</t>
                     <t>
@@ -4294,7 +4302,10 @@ Schoenebeck'>
                     </t>
                     <t>Where &lt;map&gt; is the numerical ID of the map and
                     &lt;name&gt; the new custom name of the map, which does not
-                    have to be unique.</t>
+                    have to be unique (name MUST be encapsulated into apostrophes
+                    and supports escape sequences as described in chapter
+                    "<xref target="character_set">Character Set and Escape Sequences</xref>").
+                    </t>
 
                     <t>Possible Answers:</t>
                     <t>
@@ -6393,13 +6404,13 @@ Schoenebeck'>
 		</t>
 		<t>/ FX_SEND SP LEVEL SP sampler_channel SP fx_send_id SP volume_value
 		</t>
-		<t>/ DB_INSTRUMENT_DIRECTORY SP NAME SP db_path SP raw_path
+		<t>/ DB_INSTRUMENT_DIRECTORY SP NAME SP db_path SP stringval_escaped
 		</t>
-		<t>/ DB_INSTRUMENT_DIRECTORY SP DESCRIPTION SP db_path SP raw_path
+		<t>/ DB_INSTRUMENT_DIRECTORY SP DESCRIPTION SP db_path SP stringval_escaped
 		</t>
-		<t>/ DB_INSTRUMENT SP NAME SP db_path SP raw_path
+		<t>/ DB_INSTRUMENT SP NAME SP db_path SP stringval_escaped
 		</t>
-		<t>/ DB_INSTRUMENT SP DESCRIPTION SP db_path SP raw_path
+		<t>/ DB_INSTRUMENT SP DESCRIPTION SP db_path SP stringval_escaped
 		</t>
 		<t>/ ECHO SP boolean
 		</t>
@@ -6715,19 +6726,19 @@ Schoenebeck'>
 </t>
 <t>map_name =
 	<list>
-		<t>stringval
+		<t>stringval_escaped
 		</t>
 	</list>
 </t>
 <t>entry_name =
 	<list>
-		<t>stringval
+		<t>stringval_escaped
 		</t>
 	</list>
 </t>
 <t>fx_send_name =
 	<list>
-		<t>stringval
+		<t>stringval_escaped
 		</t>
 	</list>
 </t>
@@ -6762,9 +6773,9 @@ Schoenebeck'>
 </t>
 <t>query_val =
 	<list>
-		<t>raw_path_base
+		<t>text_escaped
 		</t>
-		<t>/ raw_path
+		<t>/ stringval_escaped
 		</t>
 	</list>
 </t>
@@ -6811,6 +6822,59 @@ Schoenebeck'>
                 where escape characters are now supported, a backslash characters
                 MUST be escaped as well (that is as double backslash), whereas
                 in the old versions a single backslash was sufficient.</t>
+
+                <t>The following LSCP commands support escape sequences as part
+                of their filename / path based arguments:
+                <list>
+                    <t><xref target="LOAD INSTRUMENT">"LOAD INSTRUMENT"</xref></t>
+                    <t><xref target="MAP MIDI_INSTRUMENT">"MAP MIDI_INSTRUMENT"</xref></t>
+                    <t><xref target="ADD DB_INSTRUMENT_DIRECTORY">"ADD DB_INSTRUMENT_DIRECTORY"</xref></t>
+                    <t><xref target="ADD DB_INSTRUMENTS">"ADD DB_INSTRUMENTS"</xref></t>
+                    <t><xref target="REMOVE DB_INSTRUMENT_DIRECTORY">"REMOVE DB_INSTRUMENT_DIRECTORY"</xref></t>
+                    <t><xref target="REMOVE DB_INSTRUMENT">"REMOVE DB_INSTRUMENT"</xref></t>
+                    <t><xref target="GET DB_INSTRUMENT_DIRECTORIES">"GET DB_INSTRUMENT_DIRECTORIES"</xref></t>
+                    <t><xref target="LIST DB_INSTRUMENT_DIRECTORIES">"LIST DB_INSTRUMENT_DIRECTORIES"</xref></t>
+                    <t><xref target="GET DB_INSTRUMENT_DIRECTORY INFO">"GET DB_INSTRUMENT_DIRECTORY INFO"</xref></t>
+                    <t><xref target="GET DB_INSTRUMENTS">"GET DB_INSTRUMENTS"</xref></t>
+                    <t><xref target="LIST DB_INSTRUMENTS">"LIST DB_INSTRUMENTS"</xref></t>
+                    <t><xref target="GET DB_INSTRUMENT INFO">"GET DB_INSTRUMENT INFO"</xref></t>
+                    <t><xref target="SET DB_INSTRUMENT_DIRECTORY NAME">"SET DB_INSTRUMENT_DIRECTORY NAME"</xref></t>
+                    <t><xref target="SET DB_INSTRUMENT_DIRECTORY DESCRIPTION">"SET DB_INSTRUMENT_DIRECTORY DESCRIPTION"</xref></t>
+                    <t><xref target="SET DB_INSTRUMENT NAME">"SET DB_INSTRUMENT NAME"</xref></t>
+                    <t><xref target="SET DB_INSTRUMENT DESCRIPTION">"SET DB_INSTRUMENT DESCRIPTION"</xref></t>
+                    <t><xref target="FIND DB_INSTRUMENTS">"FIND DB_INSTRUMENTS"</xref></t>
+                    <t><xref target="FIND DB_INSTRUMENT_DIRECTORIES">"FIND DB_INSTRUMENT_DIRECTORIES"</xref></t>
+                    <t><xref target="MOVE DB_INSTRUMENT">"MOVE DB_INSTRUMENT"</xref></t>
+                    <t><xref target="MOVE DB_INSTRUMENT_DIRECTORY">"MOVE DB_INSTRUMENT_DIRECTORY"</xref></t>
+                    <t><xref target="COPY DB_INSTRUMENT">"COPY DB_INSTRUMENT"</xref></t>
+                    <t><xref target="COPY DB_INSTRUMENT_DIRECTORY">"COPY DB_INSTRUMENT_DIRECTORY"</xref></t>
+                </list>
+                Note that the forward slash character ('/') has a special meaning in
+                filename / path based arguments: it acts as separator of the nodes in
+                the path, thus if a directory- or filename includes a forward slash
+                (not intended as path node separator), you MUST escape that slash
+                either with the respective hex escape sequence ("\x2f") or with the
+                respective octal escape sequence ("\057").
+                </t>
+
+                <t>
+                The following LSCP commands even support escape sequences as
+                part of at least one of their text-based arguments (i.e. entity name,
+                description):
+                <list>
+                    <t><xref target="ADD MIDI_INSTRUMENT_MAP">"ADD MIDI_INSTRUMENT_MAP"</xref></t>
+                    <t><xref target="MAP MIDI_INSTRUMENT">"MAP MIDI_INSTRUMENT"</xref></t>
+                    <t><xref target="SET MIDI_INSTRUMENT_MAP NAME">"SET MIDI_INSTRUMENT_MAP NAME"</xref></t>
+                    <t><xref target="SET DB_INSTRUMENT_DIRECTORY NAME">"SET DB_INSTRUMENT_DIRECTORY NAME"</xref></t>
+                    <t><xref target="SET DB_INSTRUMENT_DIRECTORY DESCRIPTION">"SET DB_INSTRUMENT_DIRECTORY DESCRIPTION"</xref></t>
+                    <t><xref target="SET DB_INSTRUMENT NAME">"SET DB_INSTRUMENT NAME"</xref></t>
+                    <t><xref target="SET DB_INSTRUMENT DESCRIPTION">"SET DB_INSTRUMENT DESCRIPTION"</xref></t>
+                    <t><xref target="FIND DB_INSTRUMENT_DIRECTORIES">"FIND DB_INSTRUMENT_DIRECTORIES"</xref></t>
+                </list>
+                Please note that these lists are manually maintained. If you
+                find a command that also supports escape sequences we forgot to
+                mention here, please report it!
+                </t>
             </section>
         </section>
 
