@@ -18,6 +18,7 @@ Version CVS HEAD (?)
       instead of setting the KeyRange member variable directly
     - MoveRegion() method of Region class is now private
     - added SetGain() method to Sampler class
+    - fixed crash when saving a file after a sample loop was added
 
   * src/gig.cpp, src/gig.h:
     - fixed segmentation fault in the gig::File destructor sequence which

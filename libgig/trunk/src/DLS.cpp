@@ -487,7 +487,7 @@ namespace DLS {
             SamplerOptions = wsmp->ReadUint32();
             SampleLoops    = wsmp->ReadUint32();
         } else { // 'wsmp' chunk missing
-            uiHeaderSize   = 0;
+            uiHeaderSize   = 20;
             UnityNote      = 60;
             FineTune       = 0; // +- 0 cents
             Gain           = 0; // 0 dB
@@ -523,9 +523,11 @@ namespace DLS {
     void Sampler::UpdateChunks() {
         // make sure 'wsmp' chunk exists
         RIFF::Chunk* wsmp = pParentList->GetSubChunk(CHUNK_ID_WSMP);
+        int wsmpSize = uiHeaderSize + SampleLoops * 16;
         if (!wsmp) {
-            uiHeaderSize = 20;
-            wsmp = pParentList->AddSubChunk(CHUNK_ID_WSMP, uiHeaderSize + SampleLoops * 16);
+            wsmp = pParentList->AddSubChunk(CHUNK_ID_WSMP, wsmpSize);
+        } else if (wsmp->GetSize() != wsmpSize) {
+            wsmp->Resize(wsmpSize);
         }
         uint8_t* pData = (uint8_t*) wsmp->LoadChunkData();
         // update headers size
