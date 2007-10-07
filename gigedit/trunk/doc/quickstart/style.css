@@ -19,3 +19,7 @@ div.note h3 {
 	color:white;
 	background-color:green
 }
+
+.errortext {
+	color:red;
+}

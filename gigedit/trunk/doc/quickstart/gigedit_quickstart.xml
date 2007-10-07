@@ -9,6 +9,7 @@
 	<!ENTITY libgig SYSTEM "libgig.sgm">
 	<!ENTITY see_also SYSTEM "see_also.sgm">
 	<!ENTITY technical SYSTEM "technical.sgm">
+	<!ENTITY live_editing SYSTEM "live_editing.sgm">
 ]>
 <book>
  <title>Gigedit Quickstart</title>
@@ -32,6 +33,18 @@
 		</revremark>
 	   </revision>
 	-->
+	   <revision>
+	    <revnumber>0c</revnumber>
+		<date>07.10.2007</date>
+		<author>
+		 <firstname>Christian</firstname>
+		 <surname>Schoenebeck</surname>
+		</author>
+		<revremark>
+		Added chapter about live-editing.
+		</revremark>
+	   </revision>
+
 	   <revision>
 	    <revnumber>0b</revnumber>
 		<date>03.06.2007</date>
@@ -63,6 +76,8 @@
  <!-- main part -->
 
  &from_scratch;
+
+ &live_editing;
 
  &technical;
 
