@@ -500,7 +500,7 @@ db_path                   :  path  { $$ = $1.toDbPath(); }
 map_name                  :  stringval
                           ;
 
-entry_name                :  stringval
+entry_name                :  raw_path
                           ;
 
 fx_send_name              :  stringval

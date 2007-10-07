@@ -3959,7 +3959,9 @@ Schoenebeck'>
                                 <list>
                                     <t>DESCRIPTION -
                                         <list>
-                                            <t>arbitrary textual description about the sampler</t>
+                                            <t>arbitrary textual description about the sampler
+                                            (note that the character string may contain
+                                            <xref target="character_set">escape sequences</xref>)</t>
                                         </list>
                                     </t>
                                     <t>VERSION -
@@ -4423,9 +4425,10 @@ Schoenebeck'>
                     load modes of entries, the frontend should retrieve the actual
                     mode by i.e. sending
                     <xref target="GET MIDI_INSTRUMENT INFO">"GET MIDI_INSTRUMENT INFO"</xref>
-                    command(s). Finally the OPTIONAL &lt;name&gt; argument allows to
-                    set a custom name (encapsulated into apostrophes) for the mapping
-                    entry, useful for frontends for displaying an appropriate name for
+                    command(s). Finally the OPTIONAL &lt;name&gt; argument allows to set a custom name
+                    (encapsulated into apostrophes, supporting escape sequences as described in chapter
+                    "<xref target="character_set">Character Set and Escape Sequences</xref>") for the
+                    mapping entry, useful for frontends for displaying an appropriate name for
                     mapped instruments (using
                     <xref target="GET MIDI_INSTRUMENT INFO">"GET MIDI_INSTRUMENT INFO"</xref>).
                     </t>
