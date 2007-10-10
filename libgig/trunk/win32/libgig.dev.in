@@ -12,7 +12,7 @@ ResourceIncludes=
 MakeIncludes=
 Compiler=-DBUILDING_DLL=1_@@_
 CppCompiler=-DBUILDING_DLL=1_@@_
-Linker=--export-all-symbols --add-stdcall-alias_@@_ -fpic -lrpcrt4_@@_
+Linker=--export-all-symbols --output-lib libgig.lib --add-stdcall-alias_@@_ -fpic -lrpcrt4_@@_
 IsCpp=1
 Icon=
 ExeOutput=
