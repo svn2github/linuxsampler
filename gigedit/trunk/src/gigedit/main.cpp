@@ -19,9 +19,23 @@
 
 #include "gigedit.h"
 
+#if defined(WIN32)
+#include <windows.h>
+
+int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
+    LPSTR lpCmdLine, int nCmdShow)
+{
+    GigEdit app;
+    return app.run();
+}
+
+#else
+
 int main(int argc, char* argv[])
 {
     GigEdit app;
     return (argc >= 2) ? app.run(argv[1])
                        : app.run();
 }
+
+#endif
