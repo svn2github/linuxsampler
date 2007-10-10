@@ -41,6 +41,8 @@ Version CVS HEAD
   * allow building with older versions of gtk and libsndfile
   * remember selected dimension when switching regions
   * check if file is savable before trying to save
+  * gettext is now an optional dependency
+  * added Dev-C++ project files for Windows systems
 
 Version 0.0.3 (2007-03-24)
 

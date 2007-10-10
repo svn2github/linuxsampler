@@ -17,7 +17,6 @@
  * 02110-1301 USA.
  */
 
-#include <libintl.h>
 #include <iostream>
 
 #include <gtkmm/filechooserdialog.h>
@@ -25,6 +24,8 @@
 #include <gtkmm/stock.h>
 #include <gtkmm/targetentry.h>
 #include <gtkmm/main.h>
+
+#include "global.h"
 
 #if (GTKMM_MAJOR_VERSION == 2 && GTKMM_MINOR_VERSION >= 6) || GTKMM_MAJOR_VERSION > 2
 #define ABOUT_DIALOG
@@ -47,8 +48,6 @@ Glib::ustring filename_display_basename(const std::string& filename)
 #include <sndfile.h>
 
 #include "mainwindow.h"
-
-#define _(String) gettext(String)
 
 template<class T> inline std::string ToString(T o) {
     std::stringstream ss;

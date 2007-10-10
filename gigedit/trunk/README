@@ -36,17 +36,24 @@ Requirements
 
 Gigedit requires gtkmm, libgig and libsndfile libraries. There is an
 optional dependency to LinuxSampler, for being able to play instruments
-while editing.
+while editing. Also optionally is the dependency to gettext for
+internationalization support.
 
 
 Installation
 ============
 
+On a POSIX system like Linux or OSX you should only have to call the
+following on the console:
+
 ./configure
 make
 su -c "make install"
 
-See the file INSTALL for details.
+See the file INSTALL for details about these steps and options.
+
+Windows users shall read the respective README file in the "win32"
+directory for compilation instructions.
 
 
 Building from CVS

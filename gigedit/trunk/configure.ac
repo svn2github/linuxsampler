@@ -1,6 +1,13 @@
 dnl Process this file with autoconf to produce a configure script.
-AC_INIT(gigedit,0.0.3)
+AC_INIT(configure.ac)
 AC_CONFIG_AUX_DIR([.])
+
+#------------------------------------------------------------------------------------
+# The following is the current, official release version of gigedit:
+
+GIGEDIT_VER_MAJOR=0
+GIGEDIT_VER_MINOR=0
+GIGEDIT_VER_RELEASE=3
 
 #------------------------------------------------------------------------------------
 # The following is the libtool / shared library version. This doesn't have to
@@ -22,19 +29,22 @@ AC_CONFIG_AUX_DIR([.])
 LIBGIGEDIT_LT_CURRENT=0
 LIBGIGEDIT_LT_REVISION=0
 LIBGIGEDIT_LT_AGE=0
+
 SHARED_VERSION_INFO="$LIBGIGEDIT_LT_CURRENT:$LIBGIGEDIT_LT_REVISION:$LIBGIGEDIT_LT_AGE"
+AC_LANG_CPLUSPLUS
+AC_PROG_CXX
 AC_PROG_LIBTOOL
 AC_SUBST(SHLIB_VERSION_ARG)
 AC_SUBST(SHARED_VERSION_INFO)
+AC_SUBST(GIGEDIT_VER_MAJOR)
+AC_SUBST(GIGEDIT_VER_MINOR)
+AC_SUBST(GIGEDIT_VER_RELEASE)
 
 # configure checks for the following file's existence to make sure that
 # the directory that it is told contains the source code in fact does.
 # Occasionally people accidentally specify the wrong directory with
 # `--srcdir'; this is a safety check.
 AC_CONFIG_SRCDIR(src/gigedit/main.cpp)
-
-AC_CONFIG_HEADERS(config.h)
-AM_INIT_AUTOMAKE
 
 GETTEXT_PACKAGE=gigedit
 AC_SUBST([GETTEXT_PACKAGE])
@@ -105,6 +115,9 @@ AC_DEFINE_UNQUOTED(
     [Define to 1 if you have LinuxSampler installed.]
 )
 
+AC_CONFIG_HEADERS(config.h)
+AM_INIT_AUTOMAKE(gigedit, "$GIGEDIT_VER_MAJOR.$GIGEDIT_VER_MINOR.$GIGEDIT_VER_RELEASE")
+
 AC_CONFIG_FILES([
 	Makefile
 	src/Makefile
@@ -112,7 +125,10 @@ AC_CONFIG_FILES([
 	src/plugin/Makefile
 	po/Makefile.in
 	debian/Makefile
-        doc/Makefile
-        doc/quickstart/Makefile
+	doc/Makefile
+	doc/quickstart/Makefile
+	win32/libgigedit.dev
+	win32/gigedit.dev
+	win32/Makefile
 ])
 AC_OUTPUT

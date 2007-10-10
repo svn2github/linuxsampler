@@ -19,8 +19,7 @@
 
 #include "dimregionedit.h"
 
-#include <libintl.h>
-#define _(String) gettext(String)
+#include "global.h"
 
 DimRegionEdit::DimRegionEdit() :
     eEG1PreAttack("Pre-attack", 0, 100, 2),

@@ -22,8 +22,7 @@
 #include <gtkmm/main.h>
 #include "mainwindow.h"
 
-#include <libintl.h>
-#include <config.h>
+#include "global.h"
 
 // the app has to work from a DLL as well, so we hard code argv
 int argc = 1;
@@ -38,9 +37,13 @@ static void __init_app() {
         std::cout << "Initializing 3rd party services needed by gigedit.\n"
                   << std::flush;
         setlocale(LC_ALL, "");
+
+#if HAVE_GETTEXT
         bindtextdomain(GETTEXT_PACKAGE, LOCALEDIR);
         bind_textdomain_codeset(GETTEXT_PACKAGE, "UTF-8");
         textdomain(GETTEXT_PACKAGE);
+#endif // HAVE_GETTEXT
+
         // make sure thread_init() is called once and ONLY once per process
         if (!Glib::thread_supported()) Glib::thread_init();
 

@@ -22,10 +22,9 @@
 #include <gtkmm/stock.h>
 #include <gtkmm/spinbutton.h>
 #include <gtkmm/dialog.h>
-#include <libintl.h>
 #include <math.h>
 
-#define _(String) gettext(String)
+#include "global.h"
 
 RegionChooser::RegionChooser()
 {

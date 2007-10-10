@@ -3,6 +3,7 @@ DEFS = -DLOCALEDIR=\"$(datadir)/locale\" @DEFS@
 
 pkglib_LTLIBRARIES = libgigedit.la
 libgigedit_la_SOURCES = \
+	global.h \
 	gigedit.cpp gigedit.h \
 	mainwindow.cpp mainwindow.h \
 	regionchooser.cpp regionchooser.h \
