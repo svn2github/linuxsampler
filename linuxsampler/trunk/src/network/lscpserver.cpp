@@ -36,6 +36,42 @@
 #include "../drivers/audio/AudioOutputDeviceFactory.h"
 #include "../drivers/midi/MidiInputDeviceFactory.h"
 
+
+/**
+ * Returns a copy of the given string where all special characters are
+ * replaced by LSCP escape sequences ("\xHH"). This function shall be used
+ * to escape LSCP response fields in case the respective response field is
+ * actually defined as using escape sequences in the LSCP specs.
+ *
+ * @e Caution: DO NOT use this function for escaping path based responses,
+ * use the Path class (src/common/Path.h) for this instead!
+ */
+static String _escapeLscpResponse(String txt) {
+    for (int i = 0; i < txt.length(); i++) {
+        const char c = txt.c_str()[i];
+        if (
+            !(c >= '0' && c <= '9') &&
+            !(c >= 'a' && c <= 'z') &&
+            !(c >= 'A' && c <= 'Z') &&
+            !(c == ' ') && !(c == '!') && !(c == '#') && !(c == '$') &&
+            !(c == '%') && !(c == '&') && !(c == '(') && !(c == ')') &&
+            !(c == '*') && !(c == '+') && !(c == ',') && !(c == '-') &&
+            !(c == '.') && !(c == '/') && !(c == ':') && !(c == ';') &&
+            !(c == '<') && !(c == '=') && !(c == '>') && !(c == '?') &&
+            !(c == '@') && !(c == '[') && !(c == '\\') && !(c == ']') &&
+            !(c == '^') && !(c == '_') && !(c == '`') && !(c == '{') &&
+            !(c == '|') && !(c == '}') && !(c == '~')
+        ) {
+            // convert the "special" character into a "\xHH" LSCP escape sequence
+            char buf[5];
+            snprintf(buf, sizeof(buf), "\\x%02x", static_cast<unsigned char>(c));
+            txt.replace(i, 1, buf);
+            i += 3;
+        }
+    }
+    return txt;
+}
+
 /**
  * Below are a few static members of the LSCPServer class.
  * The big assumption here is that LSCPServer is going to remain a singleton.
@@ -768,7 +804,7 @@ String LSCPServer::GetEngineInfo(String EngineName) {
     LockRTNotify();
     try {
         Engine* pEngine = EngineFactory::Create(EngineName);
-        result.Add("DESCRIPTION", pEngine->Description());
+        result.Add("DESCRIPTION", _escapeLscpResponse(pEngine->Description()));
         result.Add("VERSION",     pEngine->Version());
         EngineFactory::Destroy(pEngine);
     }
@@ -841,9 +877,13 @@ String LSCPServer::GetChannelInfo(uint uiSamplerChannel) {
         if (pSamplerChannel->GetMidiInputChannel() == midi_chan_all) result.Add("MIDI_INPUT_CHANNEL", "ALL");
         else result.Add("MIDI_INPUT_CHANNEL", pSamplerChannel->GetMidiInputChannel());
 
-        result.Add("INSTRUMENT_FILE", InstrumentFileName);
+        result.Add("INSTRUMENT_FILE",
+                   (InstrumentFileName != "NONE" && InstrumentFileName != "") ?
+                        Path::fromPosix(InstrumentFileName).toLscp() : // TODO: assuming POSIX
+                        InstrumentFileName
+        );
         result.Add("INSTRUMENT_NR", InstrumentIndex);
-        result.Add("INSTRUMENT_NAME", InstrumentName);
+        result.Add("INSTRUMENT_NAME", _escapeLscpResponse(InstrumentName));
         result.Add("INSTRUMENT_STATUS", InstrumentStatus);
         result.Add("MUTE", Mute == -1 ? "MUTED_BY_SOLO" : (Mute ? "true" : "false"));
         result.Add("SOLO", Solo);
@@ -1785,9 +1825,9 @@ String LSCPServer::GetMidiInstrumentMapping(uint MidiMapID, uint MidiBank, uint 
         std::map<midi_prog_index_t,MidiInstrumentMapper::entry_t>::iterator iter = mappings.find(idx);
         if (iter == mappings.end()) result.Error("there is no map entry with that index");
         else { // found
-            result.Add("NAME", iter->second.Name);
+            result.Add("NAME", _escapeLscpResponse(iter->second.Name));
             result.Add("ENGINE_NAME", iter->second.EngineName);
-            result.Add("INSTRUMENT_FILE", iter->second.InstrumentFile);
+            result.Add("INSTRUMENT_FILE", Path::fromPosix(iter->second.InstrumentFile).toLscp()); //TODO: assuming POSIX
             result.Add("INSTRUMENT_NR", (int) iter->second.InstrumentIndex);
             String instrumentName;
             Engine* pEngine = EngineFactory::Create(iter->second.EngineName);
@@ -1800,7 +1840,7 @@ String LSCPServer::GetMidiInstrumentMapping(uint MidiMapID, uint MidiBank, uint 
                 }
                 EngineFactory::Destroy(pEngine);
             }
-            result.Add("INSTRUMENT_NAME", instrumentName);
+            result.Add("INSTRUMENT_NAME", _escapeLscpResponse(instrumentName));
             switch (iter->second.LoadMode) {
                 case MidiInstrumentMapper::ON_DEMAND:
                     result.Add("LOAD_MODE", "ON_DEMAND");
@@ -1955,7 +1995,7 @@ String LSCPServer::GetMidiInstrumentMap(uint MidiMapID) {
     dmsg(2,("LSCPServer: GetMidiInstrumentMap()\n"));
     LSCPResultSet result;
     try {
-        result.Add("NAME", MidiInstrumentMapper::MapName(MidiMapID));
+        result.Add("NAME", _escapeLscpResponse(MidiInstrumentMapper::MapName(MidiMapID)));
         result.Add("DEFAULT", MidiInstrumentMapper::GetDefaultMap() == MidiMapID);
     } catch (Exception e) {
         result.Error(e);
@@ -2099,7 +2139,7 @@ String LSCPServer::GetFxSendInfo(uint uiSamplerChannel, uint FxSendID) {
         }
 
         // success
-        result.Add("NAME", pFxSend->Name());
+        result.Add("NAME", _escapeLscpResponse(pFxSend->Name()));
         result.Add("MIDI_CONTROLLER", pFxSend->MidiController());
         result.Add("LEVEL", ToString(pFxSend->Level()));
         result.Add("AUDIO_OUTPUT_ROUTING", AudioRouting);
@@ -2222,8 +2262,10 @@ String LSCPServer::ResetSampler() {
  */
 String LSCPServer::GetServerInfo() {
     dmsg(2,("LSCPServer: GetServerInfo()\n"));
+    const std::string description =
+        _escapeLscpResponse("LinuxSampler - modular, streaming capable sampler");
     LSCPResultSet result;
-    result.Add("DESCRIPTION", "LinuxSampler - modular, streaming capable sampler");
+    result.Add("DESCRIPTION", description);
     result.Add("VERSION", VERSION);
     result.Add("PROTOCOL_VERSION", ToString(LSCP_RELEASE_MAJOR) + "." + ToString(LSCP_RELEASE_MINOR));
 #if HAVE_SQLITE3

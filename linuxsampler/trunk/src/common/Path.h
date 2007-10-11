@@ -67,6 +67,12 @@ public:
     std::string toDbPath();
 
     /**
+     * Convert this Path into the correct encoding as expected and needed
+     * for LSCP responses.
+     */
+    std::string toLscp();
+
+    /**
      * Concatenate two paths.
      */
     Path operator+(const Path& p);
@@ -75,6 +81,11 @@ public:
      * Concatenate two paths.
      */
     Path operator+(const Path* p);
+
+    /**
+     * Create a Path object from a POSIX path / filename string.
+     */
+    static Path fromPosix(std::string path);
 
 private:
     std::vector<std::string> elements; ///< stores the path names raw = unencoded, each element is one node of the path

@@ -20,6 +20,9 @@
 
 #include "Path.h"
 
+// for function hexsToNumber()
+#include "global.h"
+
 namespace LinuxSampler {
 
 void Path::appendNode(std::string Name) {
@@ -68,6 +71,39 @@ std::string Path::toDbPath() {
     return result;
 }
 
+std::string Path::toLscp() {
+    std::string result;
+    for (int iElement = 0; iElement < elements.size(); iElement++) {
+        // replace "special characters" by LSCP escape sequences
+        std::string e = elements[iElement];
+        for (int i = 0; i < e.length(); i++) {
+            const char c = e.c_str()[i];
+            if (
+                !(c >= '0' && c <= '9') &&
+                !(c >= 'a' && c <= 'z') &&
+                !(c >= 'A' && c <= 'Z') &&
+                !(c == '!') && !(c == '#') && !(c == '$') && !(c == '%') &&
+                !(c == '&') && !(c == '(') && !(c == ')') && !(c == '*') &&
+                !(c == '+') && !(c == ',') && !(c == '-') && !(c == '.') &&
+                !(c == ':') && !(c == ';') && !(c == '<') && !(c == '=') &&
+                !(c == '>') && !(c == '?') && !(c == '@') && !(c == '[') &&
+                !(c == ']') && !(c == '^') && !(c == '_') && !(c == '`') &&
+                !(c == '{') && !(c == '|') && !(c == '}') && !(c == '~')
+            ) {
+                // convert the "special" character into a "\xHH" LSCP escape sequence
+                char buf[5];
+                snprintf(buf, sizeof(buf), "\\x%02x", static_cast<unsigned char>(c));
+                e.replace(i, 1, buf);
+                i += 3;
+            }
+        }
+        // append encoded node to full encoded path
+        result += "/" + e;
+    }
+    if (!result.size()) result = "/";
+    return result;
+}
+
 Path Path::operator+(const Path& p) {
     Path result = *this;
     for (int i = 0; i < p.elements.size(); i++)
@@ -77,6 +113,52 @@ Path Path::operator+(const Path& p) {
 
 Path Path::operator+(const Path* p) {
     return *this + *p;
+}
+
+Path Path::fromPosix(std::string path) {
+    Path result;
+    // first split the nodes
+    {
+        int nodeEnd;
+        for (
+            int nodeBegin = path.find_first_not_of('/');
+            nodeBegin != std::string::npos;
+            nodeBegin = path.find_first_not_of('/', nodeEnd)
+        ) {
+            nodeEnd = path.find_first_of('/', nodeBegin);
+            result.appendNode(
+                (nodeEnd != std::string::npos) ?
+                    path.substr(nodeBegin, nodeEnd - nodeBegin) :
+                    path.substr(nodeBegin)
+            );
+        }
+    }
+    // resolve POSIX escape sequences in all nodes
+    for (int iNode = 0; iNode < result.elements.size(); iNode++) {
+        std::string& s = result.elements[iNode];
+        for (int pos = s.find('%'); pos < s.length(); pos = s.find('%', ++pos)) {
+            if (pos+1 >= s.length()) { // unexpected character
+                //TODO: we might want to throw an exception here, for now we simply replace the character by '?'
+                s.replace(pos, 1, "?");
+                continue;
+            }
+            if (s.c_str()[pos+1] == '%') {
+                s.replace(pos, 2, "%");
+                continue;
+            }
+            if (pos+2 >= s.length()) {
+                //TODO: we might want to throw an exception here, for now we simply replace the character by '?'
+                s.replace(pos, 2, "?");
+                continue;
+            }
+            // expecting a "%HH" sequence here, convert it into the respective character
+            const std::string sHex = s.substr(pos+1, 2);
+            char cAscii = hexsToNumber(sHex.c_str()[1], sHex.c_str()[0]);
+            char pcAscii[] = { cAscii, 0 };
+            s.replace(pos, 3, pcAscii);
+        }
+    }
+    return result;
 }
 
 } // namespace LinuxSampler

@@ -101,33 +101,6 @@ int octalsToNumber(char oct_digit0, char oct_digit1 = '0', char oct_digit2 = '0'
     return atoi(d2)*8*8 + atoi(d1)*8 + atoi(d0);
 }
 
-int hexToNumber(char hex_digit) {
-    switch (hex_digit) {
-        case '0': return 0;
-        case '1': return 1;
-        case '2': return 2;
-        case '3': return 3;
-        case '4': return 4;
-        case '5': return 5;
-        case '6': return 6;
-        case '7': return 7;
-        case '8': return 8;
-        case '9': return 9;
-        // grammar rule 'digit_hex' already forced lower case
-        case 'a': return 10;
-        case 'b': return 11;
-        case 'c': return 12;
-        case 'd': return 13;
-        case 'e': return 14;
-        case 'f': return 15;
-        default:  return 0;
-    }
-}
-
-int hexsToNumber(char hex_digit0, char hex_digit1 = '0') {
-    return hexToNumber(hex_digit1)*16 + hexToNumber(hex_digit0);
-}
-
 %}
 
 // reentrant parser

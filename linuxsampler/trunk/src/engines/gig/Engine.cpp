@@ -189,7 +189,7 @@ namespace LinuxSampler { namespace gig {
      * engine afterwards by calling @c ResumeAll() later on!
      */
     void Engine::SuspendAll() {
-        dmsg(1,("gig::Engine: Suspending all ...\n"));
+        dmsg(2,("gig::Engine: Suspending all ...\n"));
         // stop the engine, so we can safely modify the engine's
         // data structures from this foreign thread
         DisableAndLock();
@@ -223,7 +223,7 @@ namespace LinuxSampler { namespace gig {
             if (!iPendingStreamDeletions) break;
             usleep(10000); // sleep for 10ms
         }
-        dmsg(1,("gig::Engine: Everything suspended.\n"));
+        dmsg(2,("gig::Engine: Everything suspended.\n"));
     }
 
     /**
@@ -245,13 +245,13 @@ namespace LinuxSampler { namespace gig {
      * @param pRegion - region the engine shall stop using
      */
     void Engine::Suspend(::gig::Region* pRegion) {
-        dmsg(1,("gig::Engine: Suspending Region %x ...\n",pRegion));
+        dmsg(2,("gig::Engine: Suspending Region %x ...\n",pRegion));
         SuspendedRegionsMutex.Lock();
         SuspensionChangeOngoing.Set(true);
         pPendingRegionSuspension = pRegion;
         SuspensionChangeOngoing.WaitAndUnlockIf(true);
         SuspendedRegionsMutex.Unlock();
-        dmsg(1,("gig::Engine: Region %x suspended.",pRegion));
+        dmsg(2,("gig::Engine: Region %x suspended.",pRegion));
     }
 
     /**
@@ -261,13 +261,13 @@ namespace LinuxSampler { namespace gig {
      * @param pRegion - region the engine shall be allowed to use again
      */
     void Engine::Resume(::gig::Region* pRegion) {
-        dmsg(1,("gig::Engine: Resuming Region %x ...\n",pRegion));
+        dmsg(2,("gig::Engine: Resuming Region %x ...\n",pRegion));
         SuspendedRegionsMutex.Lock();
         SuspensionChangeOngoing.Set(true);
         pPendingRegionResumption = pRegion;
         SuspensionChangeOngoing.WaitAndUnlockIf(true);
         SuspendedRegionsMutex.Unlock();
-        dmsg(1,("gig::Engine: Region %x resumed.\n",pRegion));
+        dmsg(2,("gig::Engine: Region %x resumed.\n",pRegion));
     }
 
     /**
@@ -1975,7 +1975,7 @@ namespace LinuxSampler { namespace gig {
     }
 
     String Engine::Version() {
-        String s = "$Revision: 1.81 $";
+        String s = "$Revision: 1.82 $";
         return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
 

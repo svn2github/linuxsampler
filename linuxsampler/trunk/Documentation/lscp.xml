@@ -2443,7 +2443,9 @@ Schoenebeck'>
                                 <list>
                                     <t>DESCRIPTION -
                                         <list>
-                                            <t>arbitrary description text about the engine</t>
+                                            <t>arbitrary description text about the engine
+                                            (note that the character string may contain
+                                            <xref target="character_set">escape sequences</xref>)</t>
                                         </list>
                                     </t>
                                      <t>VERSION -
@@ -2527,7 +2529,8 @@ Schoenebeck'>
                                         <list>
                                             <t>the file name of the loaded instrument, "NONE" if
                                             there's no instrument yet loaded for this sampler
-                                            channel</t>
+                                            channel (note: since LSCP 1.2 this path may contain
+                                            <xref target="character_set">escape sequences</xref>)</t>
                                         </list>
                                     </t>
                                     <t>INSTRUMENT_NR -
@@ -2537,7 +2540,9 @@ Schoenebeck'>
                                     </t>
                                     <t>INSTRUMENT_NAME -
                                         <list>
-                                            <t>the instrument name of the loaded instrument</t>
+                                            <t>the instrument name of the loaded instrument
+                                            (note: since LSCP 1.2 this character string may contain
+                                            <xref target="character_set">escape sequences</xref>)</t>
                                         </list>
                                     </t>
                                     <t>INSTRUMENT_STATUS -
@@ -3447,7 +3452,9 @@ Schoenebeck'>
                                 <list>
                                     <t>NAME -
                                         <list>
-                                            <t>name of the effect send entity</t>
+                                            <t>name of the effect send entity
+                                            (note that this character string may contain
+                                             <xref target="character_set">escape sequences</xref>)</t>
                                         </list>
                                     </t>
                                     <t>MIDI_CONTROLLER -
@@ -4266,7 +4273,9 @@ Schoenebeck'>
                                     <t>NAME -
                                         <list>
                                             <t>custom name of the given map,
-                                            which does not have to be unique</t>
+                                            which does not have to be unique
+                                            (note that this character string may contain
+                                             <xref target="character_set">escape sequences</xref>)</t>
                                         </list>
                                     </t>
                                     <t>DEFAULT -
@@ -4663,7 +4672,9 @@ Schoenebeck'>
                                     name for this mapped instrument. It can be set and
                                     changed with the
                                     <xref target="MAP MIDI_INSTRUMENT">"MAP MIDI_INSTRUMENT"</xref>
-                                    command and does not have to be unique.</t>
+                                    command and does not have to be unique.
+                                    (note that this character string may contain
+                                    <xref target="character_set">escape sequences</xref>)</t>
                                 </list>
                             </t>
                             <t>"ENGINE_NAME" -
@@ -4674,7 +4685,9 @@ Schoenebeck'>
                             </t>
                             <t>"INSTRUMENT_FILE" -
                                 <list>
-                                    <t>File name of the instrument.</t>
+                                    <t>File name of the instrument
+                                    (note that this path may contain
+                                    <xref target="character_set">escape sequences</xref>).</t>
                                 </list>
                             </t>
                             <t>"INSTRUMENT_NR" -
@@ -4686,7 +4699,8 @@ Schoenebeck'>
                                 <list>
                                     <t>Name of the loaded instrument as reflected by its file.
                                     In contrast to the "NAME" field, the "INSTRUMENT_NAME" field
-                                    cannot be changed.</t>
+                                    cannot be changed (note that this character string may contain
+                                    <xref target="character_set">escape sequences</xref>).</t>
                                 </list>
                             </t>
                             <t>"LOAD_MODE" -
@@ -6824,10 +6838,13 @@ Schoenebeck'>
                 in the old versions a single backslash was sufficient.</t>
 
                 <t>The following LSCP commands support escape sequences as part
-                of their filename / path based arguments:
+                of their filename / path based arguments and / or may contain
+                a filename / path with escape sequences in their response:
                 <list>
                     <t><xref target="LOAD INSTRUMENT">"LOAD INSTRUMENT"</xref></t>
+                    <t><xref target="GET CHANNEL INFO">"GET CHANNEL INFO"</xref></t>
                     <t><xref target="MAP MIDI_INSTRUMENT">"MAP MIDI_INSTRUMENT"</xref></t>
+                    <t><xref target="GET MIDI_INSTRUMENT INFO">"GET MIDI_INSTRUMENT INFO"</xref></t>
                     <t><xref target="ADD DB_INSTRUMENT_DIRECTORY">"ADD DB_INSTRUMENT_DIRECTORY"</xref></t>
                     <t><xref target="ADD DB_INSTRUMENTS">"ADD DB_INSTRUMENTS"</xref></t>
                     <t><xref target="REMOVE DB_INSTRUMENT_DIRECTORY">"REMOVE DB_INSTRUMENT_DIRECTORY"</xref></t>
@@ -6860,10 +6877,17 @@ Schoenebeck'>
                 <t>
                 The following LSCP commands even support escape sequences as
                 part of at least one of their text-based arguments (i.e. entity name,
-                description):
+                description) and / or may contain escape sequences in at least one of
+                their text-based fields in their response:
                 <list>
+                    <t><xref target="GET SERVER INFO">"GET SERVER INFO"</xref></t>
+                    <t><xref target="GET ENGINE INFO">"GET ENGINE INFO"</xref></t>
+                    <t><xref target="GET CHANNEL INFO">"GET CHANNEL INFO"</xref></t>
                     <t><xref target="CREATE FX_SEND">"CREATE FX_SEND"</xref></t>
+                    <t><xref target="GET FX_SEND INFO">"GET FX_SEND INFO"</xref></t>
                     <t><xref target="SET FX_SEND NAME">"SET FX_SEND NAME"</xref></t>
+                    <t><xref target="GET MIDI_INSTRUMENT INFO">"GET MIDI_INSTRUMENT INFO"</xref></t>
+                    <t><xref target="GET MIDI_INSTRUMENT_MAP INFO">"GET MIDI_INSTRUMENT_MAP INFO"</xref></t>
                     <t><xref target="ADD MIDI_INSTRUMENT_MAP">"ADD MIDI_INSTRUMENT_MAP"</xref></t>
                     <t><xref target="MAP MIDI_INSTRUMENT">"MAP MIDI_INSTRUMENT"</xref></t>
                     <t><xref target="SET MIDI_INSTRUMENT_MAP NAME">"SET MIDI_INSTRUMENT_MAP NAME"</xref></t>

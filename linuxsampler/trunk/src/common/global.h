@@ -84,4 +84,9 @@ class Runnable {
 
 extern double GLOBAL_VOLUME;
 
+// I read with some Linux kernel versions (between 2.4.18 and 2.4.21)
+// sscanf() might be buggy regarding parsing of hex characters, so ...
+int hexToNumber(char hex_digit);
+int hexsToNumber(char hex_digit0, char hex_digit1 = '0');
+
 #endif // __LS_GLOBAL_H__
