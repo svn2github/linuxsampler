@@ -6891,9 +6891,11 @@ Schoenebeck'>
                     <t><xref target="ADD MIDI_INSTRUMENT_MAP">"ADD MIDI_INSTRUMENT_MAP"</xref></t>
                     <t><xref target="MAP MIDI_INSTRUMENT">"MAP MIDI_INSTRUMENT"</xref></t>
                     <t><xref target="SET MIDI_INSTRUMENT_MAP NAME">"SET MIDI_INSTRUMENT_MAP NAME"</xref></t>
+                    <t><xref target="GET DB_INSTRUMENT_DIRECTORY INFO">"GET DB_INSTRUMENT_DIRECTORY INFO"</xref></t>
                     <t><xref target="SET DB_INSTRUMENT_DIRECTORY NAME">"SET DB_INSTRUMENT_DIRECTORY NAME"</xref></t>
                     <t><xref target="SET DB_INSTRUMENT_DIRECTORY DESCRIPTION">"SET DB_INSTRUMENT_DIRECTORY DESCRIPTION"</xref></t>
                     <t><xref target="FIND DB_INSTRUMENT_DIRECTORIES">"FIND DB_INSTRUMENT_DIRECTORIES"</xref></t>
+                    <t><xref target="GET DB_INSTRUMENT INFO">"GET DB_INSTRUMENT INFO"</xref></t>
                     <t><xref target="SET DB_INSTRUMENT NAME">"SET DB_INSTRUMENT NAME"</xref></t>
                     <t><xref target="SET DB_INSTRUMENT DESCRIPTION">"SET DB_INSTRUMENT DESCRIPTION"</xref></t>
                     <t><xref target="FIND DB_INSTRUMENTS">"FIND DB_INSTRUMENTS"</xref></t>
