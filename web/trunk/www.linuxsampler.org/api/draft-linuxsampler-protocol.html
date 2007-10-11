@@ -145,7 +145,7 @@
 <tr><td class="header">LinuxSampler Developers</td><td class="header">C. Schoenebeck</td></tr>
 <tr><td class="header">Internet-Draft</td><td class="header">Interessengemeinschaft Software</td></tr>
 <tr><td class="header">Intended status: Standards Track</td><td class="header">Engineering e. V.</td></tr>
-<tr><td class="header">Expires: April 9, 2008</td><td class="header">October 7, 2007</td></tr>
+<tr><td class="header">Expires: April 13, 2008</td><td class="header">October 11, 2007</td></tr>
 </table></td></tr></table>
 <h1><br />LinuxSampler Control Protocol (draft)<br />LSCP 1.2cvs</h1>
 
@@ -173,7 +173,7 @@ The list of current Internet-Drafts can be accessed at
 The list of Internet-Draft Shadow Directories can be accessed at
 <a href='http://www.ietf.org/shadow.html'>http://www.ietf.org/shadow.html</a>.</p>
 <p>
-This Internet-Draft will expire on April 9, 2008.</p>
+This Internet-Draft will expire on April 13, 2008.</p>
 
 <h3>Copyright Notice</h3>
 <p>
@@ -3869,6 +3869,8 @@ Getting information about an engine</h3>
                                         </p>
 <blockquote class="text">
 <p>arbitrary description text about the engine
+                                            (note that the character string may contain
+                                            <a class='info' href='#character_set'>escape sequences<span> (</span><span class='info'>Character Set and Escape Sequences</span><span>)</span></a>)
 </p>
 </blockquote>
                                     
@@ -3988,7 +3990,8 @@ Getting sampler channel information</h3>
 <blockquote class="text">
 <p>the file name of the loaded instrument, "NONE" if
                                             there's no instrument yet loaded for this sampler
-                                            channel
+                                            channel (note: since LSCP 1.2 this path may contain
+                                            <a class='info' href='#character_set'>escape sequences<span> (</span><span class='info'>Character Set and Escape Sequences</span><span>)</span></a>)
 </p>
 </blockquote>
                                     
@@ -4005,6 +4008,8 @@ Getting sampler channel information</h3>
                                         </p>
 <blockquote class="text">
 <p>the instrument name of the loaded instrument
+                                            (note: since LSCP 1.2 this character string may contain
+                                            <a class='info' href='#character_set'>escape sequences<span> (</span><span class='info'>Character Set and Escape Sequences</span><span>)</span></a>)
 </p>
 </blockquote>
                                     
@@ -5351,6 +5356,8 @@ Getting effect send information</h3>
                                         </p>
 <blockquote class="text">
 <p>name of the effect send entity
+                                            (note that this character string may contain
+                                             <a class='info' href='#character_set'>escape sequences<span> (</span><span class='info'>Character Set and Escape Sequences</span><span>)</span></a>)
 </p>
 </blockquote>
                                     
@@ -6563,6 +6570,8 @@ Getting MIDI instrument map information</h3>
 <blockquote class="text">
 <p>custom name of the given map,
                                             which does not have to be unique
+                                            (note that this character string may contain
+                                             <a class='info' href='#character_set'>escape sequences<span> (</span><span class='info'>Character Set and Escape Sequences</span><span>)</span></a>)
 </p>
 </blockquote>
                                     
@@ -7111,6 +7120,8 @@ Get current settings of MIDI instrument map entry</h3>
                                     changed with the
                                     <a class='info' href='#MAP MIDI_INSTRUMENT'>"MAP MIDI_INSTRUMENT"<span> (</span><span class='info'>Create or replace a MIDI instrument map entry</span><span>)</span></a>
                                     command and does not have to be unique.
+                                    (note that this character string may contain
+                                    <a class='info' href='#character_set'>escape sequences<span> (</span><span class='info'>Character Set and Escape Sequences</span><span>)</span></a>)
 </p>
 </blockquote>
                             
@@ -7127,7 +7138,9 @@ Get current settings of MIDI instrument map entry</h3>
 <p>"INSTRUMENT_FILE" -
                                 </p>
 <blockquote class="text">
-<p>File name of the instrument.
+<p>File name of the instrument
+                                    (note that this path may contain
+                                    <a class='info' href='#character_set'>escape sequences<span> (</span><span class='info'>Character Set and Escape Sequences</span><span>)</span></a>).
 </p>
 </blockquote>
                             
@@ -7145,7 +7158,8 @@ Get current settings of MIDI instrument map entry</h3>
 <blockquote class="text">
 <p>Name of the loaded instrument as reflected by its file.
                                     In contrast to the "NAME" field, the "INSTRUMENT_NAME" field
-                                    cannot be changed.
+                                    cannot be changed (note that this character string may contain
+                                    <a class='info' href='#character_set'>escape sequences<span> (</span><span class='info'>Character Set and Escape Sequences</span><span>)</span></a>).
 </p>
 </blockquote>
                             
@@ -10309,12 +10323,17 @@ Character Set and Escape Sequences</h3>
                 in the old versions a single backslash was sufficient.
 </p>
 <p>The following LSCP commands support escape sequences as part
-                of their filename / path based arguments:
+                of their filename / path based arguments and / or may contain
+                a filename / path with escape sequences in their response:
                 </p>
 <blockquote class="text">
 <p><a class='info' href='#LOAD INSTRUMENT'>"LOAD INSTRUMENT"<span> (</span><span class='info'>Loading an instrument</span><span>)</span></a>
 </p>
+<p><a class='info' href='#GET CHANNEL INFO'>"GET CHANNEL INFO"<span> (</span><span class='info'>Getting sampler channel information</span><span>)</span></a>
+</p>
 <p><a class='info' href='#MAP MIDI_INSTRUMENT'>"MAP MIDI_INSTRUMENT"<span> (</span><span class='info'>Create or replace a MIDI instrument map entry</span><span>)</span></a>
+</p>
+<p><a class='info' href='#GET MIDI_INSTRUMENT INFO'>"GET MIDI_INSTRUMENT INFO"<span> (</span><span class='info'>Get current settings of MIDI instrument map entry</span><span>)</span></a>
 </p>
 <p><a class='info' href='#ADD DB_INSTRUMENT_DIRECTORY'>"ADD DB_INSTRUMENT_DIRECTORY"<span> (</span><span class='info'>Creating a new instrument directory</span><span>)</span></a>
 </p>
@@ -10368,9 +10387,26 @@ Character Set and Escape Sequences</h3>
 <p>
                 The following LSCP commands even support escape sequences as
                 part of at least one of their text-based arguments (i.e. entity name,
-                description):
+                description) and / or may contain escape sequences in at least one of
+                their text-based fields in their response:
                 </p>
 <blockquote class="text">
+<p><a class='info' href='#GET SERVER INFO'>"GET SERVER INFO"<span> (</span><span class='info'>General sampler informations</span><span>)</span></a>
+</p>
+<p><a class='info' href='#GET ENGINE INFO'>"GET ENGINE INFO"<span> (</span><span class='info'>Getting information about an engine</span><span>)</span></a>
+</p>
+<p><a class='info' href='#GET CHANNEL INFO'>"GET CHANNEL INFO"<span> (</span><span class='info'>Getting sampler channel information</span><span>)</span></a>
+</p>
+<p><a class='info' href='#CREATE FX_SEND'>"CREATE FX_SEND"<span> (</span><span class='info'>Adding an effect send to a sampler channel</span><span>)</span></a>
+</p>
+<p><a class='info' href='#GET FX_SEND INFO'>"GET FX_SEND INFO"<span> (</span><span class='info'>Getting effect send information</span><span>)</span></a>
+</p>
+<p><a class='info' href='#SET FX_SEND NAME'>"SET FX_SEND NAME"<span> (</span><span class='info'>Changing effect send's name</span><span>)</span></a>
+</p>
+<p><a class='info' href='#GET MIDI_INSTRUMENT INFO'>"GET MIDI_INSTRUMENT INFO"<span> (</span><span class='info'>Get current settings of MIDI instrument map entry</span><span>)</span></a>
+</p>
+<p><a class='info' href='#GET MIDI_INSTRUMENT_MAP INFO'>"GET MIDI_INSTRUMENT_MAP INFO"<span> (</span><span class='info'>Getting MIDI instrument map information</span><span>)</span></a>
+</p>
 <p><a class='info' href='#ADD MIDI_INSTRUMENT_MAP'>"ADD MIDI_INSTRUMENT_MAP"<span> (</span><span class='info'>Create a new MIDI instrument map</span><span>)</span></a>
 </p>
 <p><a class='info' href='#MAP MIDI_INSTRUMENT'>"MAP MIDI_INSTRUMENT"<span> (</span><span class='info'>Create or replace a MIDI instrument map entry</span><span>)</span></a>
@@ -10381,11 +10417,13 @@ Character Set and Escape Sequences</h3>
 </p>
 <p><a class='info' href='#SET DB_INSTRUMENT_DIRECTORY DESCRIPTION'>"SET DB_INSTRUMENT_DIRECTORY DESCRIPTION"<span> (</span><span class='info'>Changing the description of directory</span><span>)</span></a>
 </p>
+<p><a class='info' href='#FIND DB_INSTRUMENT_DIRECTORIES'>"FIND DB_INSTRUMENT_DIRECTORIES"<span> (</span><span class='info'>Finding directories</span><span>)</span></a>
+</p>
 <p><a class='info' href='#SET DB_INSTRUMENT NAME'>"SET DB_INSTRUMENT NAME"<span> (</span><span class='info'>Renaming an instrument</span><span>)</span></a>
 </p>
 <p><a class='info' href='#SET DB_INSTRUMENT DESCRIPTION'>"SET DB_INSTRUMENT DESCRIPTION"<span> (</span><span class='info'>Changing the description of instrument</span><span>)</span></a>
 </p>
-<p><a class='info' href='#FIND DB_INSTRUMENT_DIRECTORIES'>"FIND DB_INSTRUMENT_DIRECTORIES"<span> (</span><span class='info'>Finding directories</span><span>)</span></a>
+<p><a class='info' href='#FIND DB_INSTRUMENTS'>"FIND DB_INSTRUMENTS"<span> (</span><span class='info'>Finding instruments</span><span>)</span></a>
 </p>
 </blockquote><p>
                 Please note that these lists are manually maintained. If you
