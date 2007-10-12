@@ -6,7 +6,6 @@ $file = "news.xml";
 $max_items = -1;
 
 $current_tag = array();
-$current_tag_attribs = 0;
 $current_tag_body_is_empty = true;
 $current_link_ref = "";
 
