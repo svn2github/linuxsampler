@@ -4,8 +4,9 @@ libgig (3.1.1-2) unreleased; urgency=low
     for DLS and gig files (not a mandatory but highly recommended
     dependency)
   * slightly changed package descriptions
+  * libgig's home has moved to http://www.linuxsampler.org/libgig/
 
- -- Christian Schoenebeck <cuse@users.sourceforge.net>  Wed, 22 Aug 2007 14:03:12 +0200
+ -- Christian Schoenebeck <cuse@users.sourceforge.net>  Fri, 12 Oct 2007 14:20:42 +0200
 
 libgig (3.1.1-1) unstable; urgency=low
 

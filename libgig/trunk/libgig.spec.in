@@ -12,7 +12,7 @@ Prefix:		%{prefix}
 License:	GPL
 Group:		Sound
 Source0:	%{name}-%{version}.tar.bz2
-URL:		http://stud.hs-heilbronn.de/~cschoene/projects/libgig/
+URL:		http://www.linuxsampler.org/libgig/
 BuildRoot:	/var/tmp/%{name}-%{version}-buildroot
 
 %description
@@ -66,6 +66,8 @@ if [ -d $RPM_BUILD_ROOT ]; then rm -rf $RPM_BUILD_ROOT; fi
 %{prefix}/include/*
 
 %changelog
+* Fri Oct 12 2007 Christian Schoenebeck <cuse@users.sourceforge.net>
+- libgig's home has moved to http://www.linuxsampler.org/libgig/
 * Sat Mar 24 2007 Christian Schoenebeck <cuse@users.sourceforge.net>
 - prepared for 3.1.1
 * Fri Nov 24 2006 Christian Schoenebeck <cuse@users.sourceforge.net>
