@@ -32,6 +32,8 @@
 #include <gtkmm/treestore.h>
 #include <gtkmm/uimanager.h>
 #include <gtkmm/window.h>
+#include <gtkmm/statusbar.h>
+#include <gtkmm/image.h>
 
 #include <sstream>
 
@@ -130,6 +132,10 @@ public:
 protected:
     Glib::RefPtr<Gtk::ActionGroup> actionGroup;
     Glib::RefPtr<Gtk::UIManager> uiManager;
+
+    Gtk::Statusbar m_StatusBar;
+    Gtk::Label     m_AttachedStateLabel;
+    Gtk::Image     m_AttachedStateImage;
 
     RegionChooser m_RegionChooser;
     DimRegionChooser m_DimRegionChooser;
@@ -243,6 +249,8 @@ protected:
     bool file_is_changed;
     std::string filename;
     std::string current_dir;
+
+    void set_file_is_shared(bool);
 
     bool file_save();
     bool file_save_as();

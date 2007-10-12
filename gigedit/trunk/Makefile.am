@@ -1,4 +1,4 @@
-SUBDIRS = src po debian doc win32
+SUBDIRS = src gfx po debian doc win32
 
 EXTRA_DIST =			\
 	intltool-extract.in	\

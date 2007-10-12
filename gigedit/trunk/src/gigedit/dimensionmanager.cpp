@@ -186,12 +186,12 @@ addButton(Gtk::Stock::ADD), removeButton(Gtk::Stock::REMOVE)
     scrolledWindow.add(treeView);
     vbox.pack_start(scrolledWindow);
     scrolledWindow.show();
-    vbox.pack_start(buttonBox);
+    vbox.pack_start(buttonBox, Gtk::PACK_SHRINK);
     buttonBox.set_layout(Gtk::BUTTONBOX_END);
     buttonBox.set_border_width(5);
     buttonBox.show();
-    buttonBox.pack_start(addButton);
-    buttonBox.pack_start(removeButton);
+    buttonBox.pack_start(addButton, Gtk::PACK_SHRINK);
+    buttonBox.pack_start(removeButton, Gtk::PACK_SHRINK);
     addButton.show();
     removeButton.show();
 

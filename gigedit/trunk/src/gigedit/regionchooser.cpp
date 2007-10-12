@@ -145,7 +145,7 @@ bool RegionChooser::on_expose_event(GdkEventExpose* event)
         }
         if (note == 3) {
             char buf[30];
-            sprintf(buf, "<span size=\"x-small\">%d</span>", octave);
+            sprintf(buf, "<span size=\"8000\">%d</span>", octave);
             layout->set_markup(buf);
             Pango::Rectangle rectangle = layout->get_logical_extents();
             double text_w = double(rectangle.get_width()) / Pango::SCALE;

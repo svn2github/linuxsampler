@@ -49,6 +49,9 @@ Glib::ustring filename_display_basename(const std::string& filename)
 
 #include "mainwindow.h"
 
+#include "../../gfx/status_attached.xpm"
+#include "../../gfx/status_detached.xpm"
+
 template<class T> inline std::string ToString(T o) {
     std::stringstream ss;
     ss << o;
@@ -210,6 +213,12 @@ MainWindow::MainWindow()
     m_VBox.pack_start(m_HPaned);
     m_VBox.pack_start(m_RegionChooser, Gtk::PACK_SHRINK);
     m_VBox.pack_start(m_DimRegionChooser, Gtk::PACK_SHRINK);
+    m_VBox.pack_start(m_StatusBar, Gtk::PACK_SHRINK);
+
+    // Status Bar:
+    m_StatusBar.pack_start(m_AttachedStateLabel, Gtk::PACK_SHRINK);
+    m_StatusBar.pack_start(m_AttachedStateImage, Gtk::PACK_SHRINK);
+    m_StatusBar.show();
 
     m_RegionChooser.signal_region_selected().connect(
         sigc::mem_fun(*this, &MainWindow::region_changed) );
@@ -294,7 +303,7 @@ MainWindow::MainWindow()
 
     file = 0;
     file_is_changed = false;
-    file_is_shared  = false;
+    set_file_is_shared(false);
 
     show_all_children();
 
@@ -429,7 +438,7 @@ void MainWindow::__clear() {
     // free libgig's gig::File instance
     if (file && !file_is_shared) delete file;
     file = NULL;
-    file_is_shared = false;
+    set_file_is_shared(false);
 }
 
 void MainWindow::on_action_file_new()
@@ -958,7 +967,7 @@ void MainWindow::file_changed()
 void MainWindow::load_gig(gig::File* gig, const char* filename, bool isSharedInstrument)
 {
     file = 0;
-    file_is_shared = isSharedInstrument;
+    set_file_is_shared(isSharedInstrument);
 
     this->filename = filename ? filename : _("Unsaved Gig File");
     set_title(Glib::filename_display_basename(this->filename));
@@ -1499,6 +1508,22 @@ void MainWindow::instrument_name_changed(const Gtk::TreeModel::Path& path,
     if (instrument && instrument->pInfo->Name != name.raw()) {
         instrument->pInfo->Name = name.raw();
         file_changed();
+    }
+}
+
+void MainWindow::set_file_is_shared(bool b) {
+    this->file_is_shared = b;
+
+    if (file_is_shared) {
+        m_AttachedStateLabel.set_label(_("live-mode"));
+        m_AttachedStateImage.set(
+            Gdk::Pixbuf::create_from_xpm_data(status_attached_xpm)
+        );
+    } else {
+        m_AttachedStateLabel.set_label(_("stand-alone"));
+        m_AttachedStateImage.set(
+            Gdk::Pixbuf::create_from_xpm_data(status_detached_xpm)
+        );
     }
 }
 

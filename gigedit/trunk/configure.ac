@@ -123,6 +123,7 @@ AC_CONFIG_FILES([
 	src/Makefile
 	src/gigedit/Makefile
 	src/plugin/Makefile
+	gfx/Makefile
 	po/Makefile.in
 	debian/Makefile
 	doc/Makefile

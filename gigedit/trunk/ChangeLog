@@ -43,6 +43,10 @@ Version CVS HEAD
   * check if file is savable before trying to save
   * gettext is now an optional dependency
   * added Dev-C++ project files for Windows systems
+  * added status bar to the bottom of main window (independent area on the
+    right shows whether gigedit is running stand-alone or attached to
+    LinuxSampler)
+  * fixed crash when gigedit was compiled with CXXFLAGS="-g"
 
 Version 0.0.3 (2007-03-24)
 
