@@ -5,9 +5,22 @@ $file = "news.xml";
 // show all news entries by default
 $max_items = -1;
 
+$current_tag = array();
+$current_tag_attribs = 0;
+$current_tag_body_is_empty = true;
+$current_link_ref = "";
+
 function startElement($parser, $name, $attribs) {
     global $max_items;
+    global $current_tag;
+    global $current_tag_body_is_empty;
+    global $current_link_ref;
+
     if ($max_items == 0) return;
+
+    array_push($current_tag, $name);
+
+    $current_tag_body_is_empty = true;
 
     if ($name == "entry") {
         if (count($attribs) && isset($attribs["date"])) {
@@ -16,8 +29,8 @@ function startElement($parser, $name, $attribs) {
             echo "<span class=\"news_date\">$d</span> ";
         } else echo "<b>???</b> ";
     } else if ($name == "link") {
-        $addr = (isset($attribs["ref"])) ? $attribs["ref"] : "";
-        echo "<a href=\"$addr\">";
+        $current_link_ref = (isset($attribs["ref"])) ? $attribs["ref"] : "";
+        echo "<a href=\"$current_link_ref\">";
     } else if ($name == "list") {
         echo "<ul class=\"news\">";
     } else if ($name == "li") {
@@ -27,18 +40,33 @@ function startElement($parser, $name, $attribs) {
 
 function endElement($parser, $name) {
     global $max_items;
+    global $current_tag;
+    global $current_tag_body_is_empty;
+    global $current_link_ref;
+
     if ($max_items == 0) return;
+
+    array_pop($current_tag);
 
     if ($name == "entry") { echo "</div>\n";
         if ($max_items > 0) $max_items--;
     }
-    else if ($name == "link") echo "</a>";
+    else if ($name == "link") {
+        if ($current_tag_body_is_empty) echo $current_link_ref;
+        echo "</a>";
+        $current_link_ref = ""; // reset
+    }
     else if ($name == "list") echo "</ul>";
     else if ($name == "li") echo "</li>";
 }
 
 function characterData($parser, $data) {
     global $max_items;
+    global $current_tag;
+    global $current_tag_body_is_empty;
+
+    $current_tag_body_is_empty = false;
+
     if ($max_items == 0) return;
 
     echo $data;
