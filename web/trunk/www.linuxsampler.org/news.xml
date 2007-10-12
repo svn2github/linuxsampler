@@ -1,5 +1,10 @@
 <?xml version='1.0' ?>
 <news>
+  <entry date="2007-10-12">
+    libgig's home has moved to this server. It's new official home is now:
+    <link ref="http://www.linuxsampler.org/libgig/" />
+    Please update your links and bookmarks!
+  </entry>
   <entry date="2007-08-10">
     <link ref="http://downloads.sourceforge.net/jsampler/JSampler-0.6a.tar.bz2">
     JSampler 0.6a</link> has been released.
