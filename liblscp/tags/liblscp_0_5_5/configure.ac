@@ -1,0 +1,54 @@
+# Process this file with autoconf to produce a configure script.
+AC_INIT(src/client.c)
+AM_CONFIG_HEADER(src/config.h)
+
+AM_INIT_AUTOMAKE(liblscp, 0.5.5)
+
+#------------------------------------------------------------------------------------
+# Rules for library version information:
+#
+#  1. Start with version information of `0:0:0' for each libtool library.
+#  2. Update the version information only immediately before a public release of
+#     your software. More frequent updates are unnecessary, and only guarantee
+#     that the current interface number gets larger faster.
+#  3. If the library source code has changed at all since the last update, then
+#     increment revision (`c:r:a' becomes `c:r+1:a').
+#  4. If any interfaces have been added, removed, or changed since the last update,
+#     increment current, and set revision to 0.
+#  5. If any interfaces have been added since the last public release, then increment
+#     age.
+#  6. If any interfaces have been removed since the last public release, then set age
+#     to 0.
+
+SHARED_VERSION_INFO="5:0:0"
+
+AC_SUBST(SHARED_VERSION_INFO)
+
+# Checks for programs.
+AC_PROG_CC
+AC_PROG_LIBTOOL
+AM_PROG_LIBTOOL
+
+# Checks for header files.
+AC_HEADER_STDC
+AC_CHECK_HEADERS(stdlib.h string.h netdb.h arpa/inet.h netinet/tcp.h netinet/in.h sys/socket.h unistd.h)
+
+# Checks for typedefs, structures, and compiler characteristics.
+AC_C_CONST
+AC_TYPE_SIZE_T
+
+# Checks for library functions.
+AC_CHECK_FUNCS(strdup strtok_r memset memmove socket connect bind listen setsockopt getsockopt getsockname gethostbyname)
+
+# Checks for pthread library.
+AC_CHECK_LIB(pthread, pthread_create)
+
+AC_ENABLE_STATIC(no)
+AC_ENABLE_SHARED(yes)
+
+# Checks for doxygen.
+AC_CHECK_PROG(ac_doxygen, doxygen, [doc], [])
+AC_SUBST(ac_doxygen)
+
+AC_OUTPUT(Makefile src/Makefile lscp/Makefile examples/Makefile debian/Makefile doc/Makefile doc/liblscp.doxygen lscp.pc liblscp.spec lscp/version.h)
+
