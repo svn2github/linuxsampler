@@ -1,0 +1,235 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html lang="en">
+  <head>
+    <title>libgig</title>
+    <link rel="shortcut icon" href="http://download.linuxsampler.org/favicon.ico" type="image/x-icon">
+    <link rel="stylesheet" type="text/css" href="css/content.css" title="content" media="all">
+  </head>
+  <body>
+    <center><h1>libgig</h1></center>
+    <p>
+	libgig is a C++ library for loading, modifying existing and creating new
+	Gigasampler files and DLS (Downloadable Sounds) Level 1/2 files. The
+	source code package includes a couple of command line tools based on the
+	library. The library and tools are released in source code format under the
+	<a href="http://www.gnu.org/copyleft/gpl.html">GNU General Public License</a>.
+    </p>
+    <p>
+      This library is developed and optimized for POSIX compliant operating
+      systems like Linux and OSX and since release 3.1.1 for Windows as well.
+      libgig was developed to compile on any operating system, though since
+      release 3.0.0 libgig uses one tiny operating system dependant method to
+      be able to resize files. Should be a 5 minute job to implement this method
+      for other operating systems as well though.
+    </p>
+
+    <a name="src"></a>
+    <h1>Source Code</h1>
+    <p>
+      <table border="1">
+        <TH>
+		<TR>
+			<TD>Version</TD>
+			<TD>File Name</TD>
+			<TD>File Size</TD>
+			<TD>Date</TD>
+  		</TR>
+	</TH>
+	<tbody>
+		<tr>
+			<td>3.1.1</td>
+			<td><a href="http://download.linuxsampler.org/packages/libgig-3.1.1.tar.bz2">libgig-3.1.1.tar.bz2</a></td>
+			<td>294k</td>
+			<td>24-Mar-2007 19:26</td>
+		</tr>
+		<tr>
+			<td>3.1.0</td>
+			<td><a href="http://download.linuxsampler.org/packages/libgig-3.1.0.tar.bz2">libgig-3.1.0.tar.bz2</a></td>
+			<td>294k</td>
+			<td>24-Nov-2006 14:03</td>
+		</tr>
+		<tr>
+			<td>3.0.0</td>
+			<td><a href="http://download.linuxsampler.org/packages/libgig-3.0.0.tar.bz2">libgig-3.0.0.tar.bz2</a></td>
+			<td>275k</td>
+			<td>28-Apr-2006 20:05</td>
+		</tr>
+		<tr>
+			<td>2.0.2</td>
+			<td><a href="http://download.linuxsampler.org/packages/libgig-2.0.2.tar.bz2">libgig-2.0.2.tar.bz2</a></td>
+			<td>255k</td>
+			<td>15-Aug-2005 19:34</td>
+		</tr>
+		<tr>
+			<td>2.0.1</td>
+			<td><a href="http://download.linuxsampler.org/packages/libgig-2.0.1.tar.bz2">libgig-2.0.1.tar.bz2</a></td>
+			<td>241k</td>
+			<td>13-June-2005 02:18</td>
+		</tr>
+ <tr>
+   <td>2.0.0</td>
+   <td><A href="http://download.linuxsampler.org/packages/libgig-2.0.0.tar.bz2">libgig-2.0.0.tar.bz2</A></td>
+   <td>61k</td>
+   <td>10-May-2005 12:08</td>
+  </tr>
+		<tr>
+			<td>1.0.0</td>
+			<td><A href="http://download.linuxsampler.org/packages/libgig-1.0.0.tar.bz2">libgig-1.0.0.tar.bz2</A></td>
+			<td>67k</td>
+			<td>26-Nov-2004 23:39</td>
+                </tr>
+		<tr>
+			<td>0.7.1</td>
+			<td><A href="http://download.linuxsampler.org/packages/libgig-0.7.1.tar.bz2">libgig-0.7.1.tar.bz2</A></td>
+			<td>56k</td>
+			<td>09-July-2004 00:13</td>
+		</tr>
+		<tr>
+			<td>0.7.0</td>
+			<td><A href="http://download.linuxsampler.org/packages/libgig-0.7.0.tar.bz2">libgig-0.7.0.tar.bz2</A></td>
+			<td>253k</td>
+			<td>03-May-2004 16:51</td>
+		</tr>
+		<tr>
+			<td>0.6.0</td>
+			<td><A href="http://download.linuxsampler.org/packages/libgig-0.6.0.tar.bz2">libgig-0.6.0.tar.bz2</A></td>
+			<td>336k</td>
+			<td>20-Dec-2003 05:41</td>
+		</tr>
+	</tbody>
+	</table>
+        <br>
+        See <a href="http://cvs.linuxsampler.org/cgi-bin/viewcvs.cgi/*checkout*/libgig/ChangeLog?rev=HEAD&content-type=text/plain">
+        Changelog</a> for details.
+    </p>
+
+    <a name="binaries"></a>
+    <h1>Binary Packages</h1>
+    For <a href="http://download.linuxsampler.org/packages/win32/">Windows</a> you can find a precompiled DLL of libgig,
+    coming with the example command line tools as .exe files, packed into one
+    .zip file. For Linux there are currently <a href="http://download.linuxsampler.org/packages/debian/">Debian</a> packages
+    and <a href="http://download.linuxsampler.org/packages/rpms/">RPM</a> packages for Redhat / Fedora, SuSE and Mandrake.
+    Note that libgig is already part of many distributions. You might want to use
+    packages coming with your distribution instead.
+
+    <a name="tools"></a>
+    <h1>Tools</h1>
+    The libgig sources and the 'gigtools' Debian package contain the following command line tools:
+    <ul>
+      <li><b>gigextract</b> (Extracts samples from a .gig file)</li>
+      <li><b>gigdump</b> (Prints out the content of a .gig file)</li>
+      <li><b>dlsdump</b> (Prints out the content of a DLS file)</li>
+      <li><b>rifftree</b> (Prints out the RIFF tree structure of an arbitrary RIFF file)</li>
+    </ul>
+
+    <a name="doc"></a>
+    <h1>Documentation</h1>
+    <p>
+      Online API Documentation for the latest libgig version
+      (<a href="http://download.linuxsampler.org/doc/libgig/api/">HTML</a>)
+    </p>
+    <p>
+      Kick start documentation for libgig (<a href="Introduction.sxw">OpenOffice</a>, <a href="Introduction.pdf">PDF</a>)
+    </p>
+
+    <a name="examples"></a>
+    <h1>Examples</h1>
+    There are couple of example applications which demonstrate how to use the
+    library. Beside the mentioned <a href="#tools">tools</a> coming with the
+    source packages, there are also the following demo applications (only in
+    source code format):
+    <ul>
+      <li><a href="examples/gigwritedemo.cpp"><b>gigwritedemo.cpp</b></a> (demonstrates how to create and modify Gigasampler format files)</li>
+      <li><a href="examples/dlswritedemo.cpp"><b>dlswritedemo.cpp</b></a> (demonstrates how to create and modify DLS Level 1/2 files)</li>
+      <li><a href="examples/riffwritedemo.cpp"><b>riffwritedemo.cpp</b></a> (demonstrates how to create and modify RIFF files in general)</li>
+    </ul>
+
+    <a name="diagrams"></a>
+    <h1>Diagrams</h1>
+    <p>
+      UML static structure diagram focused on the aspect of actually using the
+      library (created with <a href="http://wwwhome.cs.utwente.nl/~tcm/">TCM</a>):
+      <table border="1">
+        <TH>
+		<TR>
+			<TD>Version</TD>
+			<TD>File Formats</TD>
+			<TD>Date</TD>
+  		</TR>
+        </TH>
+	<tbody>
+		<tr>
+			<td>1.0.0</td>
+			<td>
+				<A href="http://download.linuxsampler.org/doc/libgig/libgig-1.0.0.ssd">TCM</A>,
+				<A href="http://download.linuxsampler.org/doc/libgig/libgig-1.0.0.pdf">PDF</A>,
+				<A href="http://download.linuxsampler.org/doc/libgig/libgig-1.0.0.ps">PostScript</A>
+			</td>
+			<td>26-Nov-2004 21:18</td>
+		</tr>
+		<tr>
+			<td>0.7.x</td>
+			<td>
+				<A href="http://download.linuxsampler.org/doc/libgig/libgig-0.7.0.ssd">TCM</A>,
+				<A href="http://download.linuxsampler.org/doc/libgig/libgig-0.7.0.pdf">PDF</A>,
+				<A href="http://download.linuxsampler.org/doc/libgig/libgig-0.7.0.ps">PostScript</A>
+			</td>
+			<td>03-May-2004 17:36</td>
+		</tr>
+		<tr>
+			<td>0.6.0</td>
+			<td>
+				<A href="http://download.linuxsampler.org/doc/libgig/libgig-0.6.0.ssd">TCM</A>,
+				<A href="http://download.linuxsampler.org/doc/libgig/libgig-0.6.0.pdf">PDF</A>,
+				<A href="http://download.linuxsampler.org/doc/libgig/libgig-0.6.0.ps">PostScript</A>
+			</td>
+			<td>20-Dec-2003 05:41</td>
+		</tr>
+	</tbody>
+	</table>
+    (Sorry, these UML diagrams are a bit outdated).
+    </p>
+
+    <a name="cvs"></a>
+    <h1>CVS</h1>
+    <p>
+      You can check out the latest development version of libgig from the
+      LinuxSampler CVS server:
+    </p>
+    <p>
+      <table border="1">
+        <tbody>
+	  <tr><TD>cvs -z3 -d:pserver:anonymous@cvs.linuxsampler.org:/var/cvs/linuxsampler co libgig</TD></tr>
+	</tbody>
+      </table>
+    </p>
+    <p>
+     You can also <a href="http://cvs.linuxsampler.org/cgi-bin/viewcvs.cgi/libgig/">browse the libgig CVS repository</a>.
+    </p>
+
+    <a name="author"></a>
+    <h1>Author</h1>
+    <p>This library was written by <a href="mailto:cuse@users.sf.net">Christian Schoenebeck</a>
+    (<a href="http://stud.fh-heilbronn.de/~cschoene/gpg.asc">PGP/GPG Public Key</a>).
+    </p>
+
+    <a name="license"></a>
+    <h1>Licensing</h1>
+    <p>
+      libgig and its tools are released under the
+	<a href="http://www.gnu.org/copyleft/gpl.html">GNU General Public License</a>.
+    </p>
+
+    <a name="contact"></a>
+    <h1>Contact</h1>
+    <p>You can either send emails to the
+      <a href="mailto:linuxsampler-devel@lists.sourceforge.net">LinuxSampler Developers Mailing List</a>
+       or contact <a href="mailto:cuse@users.sf.net">me</a> directly.
+    </p>
+
+    <p>
+      Happy hacking!<br>
+      Christian
+    </p>
+  </body>
+</html>
