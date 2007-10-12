@@ -5997,7 +5997,7 @@ Schoenebeck'>
                     editor application by sending the following command:</t>
                     <t>
                         <list>
-                            <t>EDIT INSTRUMENT &lt;sampler-channel&gt;</t>
+                            <t>EDIT CHANNEL INSTRUMENT &lt;sampler-channel&gt;</t>
                         </list>
                     </t>
                     <t>Where &lt;sampler-channel&gt; should be replaced by the
@@ -6049,7 +6049,7 @@ Schoenebeck'>
                     <t>Examples:</t>
                     <t>
                         <list>
-                            <t>C: "EDIT INSTRUMENT 0"</t>
+                            <t>C: "EDIT CHANNEL INSTRUMENT 0"</t>
                             <t>S: "OK"</t>
                         </list>
                     </t>
@@ -6542,7 +6542,7 @@ Schoenebeck'>
 </t>
 <t>edit_instruction =
 	<list>
-		<t>INSTRUMENT SP sampler_channel
+		<t>CHANNEL SP INSTRUMENT SP sampler_channel
 		</t>
 	</list>
 </t>

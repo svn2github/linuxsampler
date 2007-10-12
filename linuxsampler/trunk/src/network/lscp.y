@@ -371,7 +371,7 @@ set_chan_instruction  :  AUDIO_OUTPUT_DEVICE SP sampler_channel SP device_index 
                       |  MIDI_INSTRUMENT_MAP SP sampler_channel SP DEFAULT                                                   { $$ = LSCPSERVER->SetChannelMap($3, -2);             }
                       ;
 
-edit_instruction      :  INSTRUMENT SP sampler_channel  { $$ = LSCPSERVER->EditSamplerChannelInstrument($3); }
+edit_instruction      :  CHANNEL SP INSTRUMENT SP sampler_channel  { $$ = LSCPSERVER->EditSamplerChannelInstrument($5); }
                       ;
 
 format_instruction    :  INSTRUMENTS_DB  { $$ = LSCPSERVER->FormatInstrumentsDb(); }
