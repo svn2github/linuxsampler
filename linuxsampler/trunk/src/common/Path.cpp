@@ -161,4 +161,27 @@ Path Path::fromPosix(std::string path) {
     return result;
 }
 
+Path Path::fromDbPath(std::string path) {
+    Path result;
+    // first split the nodes
+    {
+        int nodeEnd;
+        for (
+            int nodeBegin = path.find_first_not_of('/');
+            nodeBegin != std::string::npos;
+            nodeBegin = path.find_first_not_of('/', nodeEnd)
+        ) {
+            nodeEnd = path.find_first_of('/', nodeBegin);
+
+            std::string s = (nodeEnd != std::string::npos) ?
+                path.substr(nodeBegin, nodeEnd - nodeBegin) :
+                path.substr(nodeBegin);
+
+            for (int i = 0; i < s.length(); i++) if (s.at(i) == '\0') s.at(i) = '/';
+            result.appendNode(s);
+        }
+    }
+    return result;
+}
+
 } // namespace LinuxSampler

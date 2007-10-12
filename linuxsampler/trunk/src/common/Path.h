@@ -87,6 +87,11 @@ public:
      */
     static Path fromPosix(std::string path);
 
+    /**
+     * Create a Path object from a DB path.
+     */
+    static Path fromDbPath(std::string path);
+
 private:
     std::vector<std::string> elements; ///< stores the path names raw = unencoded, each element is one node of the path
 };

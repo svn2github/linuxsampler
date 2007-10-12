@@ -58,7 +58,7 @@ static String _escapeLscpResponse(String txt) {
             !(c == '*') && !(c == '+') && !(c == ',') && !(c == '-') &&
             !(c == '.') && !(c == '/') && !(c == ':') && !(c == ';') &&
             !(c == '<') && !(c == '=') && !(c == '>') && !(c == '?') &&
-            !(c == '@') && !(c == '[') && !(c == '\\') && !(c == ']') &&
+            !(c == '@') && !(c == '[') && !(c == ']') &&
             !(c == '^') && !(c == '_') && !(c == '`') && !(c == '{') &&
             !(c == '|') && !(c == '}') && !(c == '~')
         ) {
@@ -2416,7 +2416,7 @@ String LSCPServer::GetDbInstrumentDirectoryInfo(String Dir) {
     try {
         DbDirectory info = InstrumentsDb::GetInstrumentsDb()->GetDirectoryInfo(Dir);
 
-        result.Add("DESCRIPTION", InstrumentsDb::toEscapedText(info.Description));
+        result.Add("DESCRIPTION", _escapeLscpResponse(info.Description));
         result.Add("CREATED", info.Created);
         result.Add("MODIFIED", info.Modified);
     } catch (Exception e) {
@@ -2600,11 +2600,11 @@ String LSCPServer::GetDbInstrumentInfo(String Instr) {
         result.Add("SIZE", (int)info.Size);
         result.Add("CREATED", info.Created);
         result.Add("MODIFIED", info.Modified);
-        result.Add("DESCRIPTION", InstrumentsDb::toEscapedText(info.Description));
+        result.Add("DESCRIPTION", _escapeLscpResponse(info.Description));
         result.Add("IS_DRUM", info.IsDrum);
-        result.Add("PRODUCT", InstrumentsDb::toEscapedText(info.Product));
-        result.Add("ARTISTS", InstrumentsDb::toEscapedText(info.Artists));
-        result.Add("KEYWORDS", InstrumentsDb::toEscapedText(info.Keywords));
+        result.Add("PRODUCT", _escapeLscpResponse(info.Product));
+        result.Add("ARTISTS", _escapeLscpResponse(info.Artists));
+        result.Add("KEYWORDS", _escapeLscpResponse(info.Keywords));
     } catch (Exception e) {
          result.Error(e);
     }
