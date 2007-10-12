@@ -200,20 +200,30 @@
 			</p>
 
 			<a name="aga"></a>
-			<h3>linuxsampler? qsampler? jsampler? libgig? liblscp? jlscp? ... hu?</h3>
+			<h3>linuxsampler? qsampler? jsampler? gigedit? libgig? liblscp? jlscp? ... hu?</h3>
 			<p class="default">
-				There are currently six subprojects in the LinuxSampler project; jlscp, jsampler,
-				libgig, liblscp, linuxsampler and qsampler. linuxsampler is the core of the sampler, it includes the
+				There are currently seven subprojects in the LinuxSampler project; jlscp, jsampler,
+				libgig, liblscp, linuxsampler, gigedit and qsampler. linuxsampler is the core of the sampler, it includes the
 				sampler engines and audio and MIDI drivers. linuxsampler itself is decoupled from any
 				user interface. It offers a native C++ API as well as a network server (LSCP server) to allow to be controlled by
 				an arbitrary user frontend from an arbitrary place over a network connection or
-				locally from the same machine as well.
-				qsampler is the first GUI frontend written for linuxsampler, it is written in C++ using the Qt
+				(of course) locally from the same machine as well. This decoupled /
+				<a href="http://en.wikipedia.org/wiki/Backend">"backend"</a> design
+				of the sampler allows to run it even on a machine without any graphical interface,
+				without a Desktop, the machine doesn't even have to have a graphics card!
+				qsampler is the first <a href="http://en.wikipedia.org/wiki/Graphical_user_interface">GUI</a>
+				<a href="http://en.wikipedia.org/wiki/Frontend">frontend</a>
+				written for linuxsampler, it is written in C++ using the Qt
 				GUI library and thus can be compiled for various architectures and operating systems
 				without modifications of the source code.
+				gigedit is an instruments editor application for Gigasampler format files. You can
+				run it as stand-alone application or in conjunction with LinuxSampler. In the latter
+				case you can play and immediately hear all your modifications made with gigedit in
+				realtime.
 				libgig is a C++ library written for accessing Gigasampler files and DLS Level 1 and 2
 				files, that is for reading and (since version 3.0.0) also writing of those files.
-				libgig is used by linuxsampler to load Gigasampler files and it <b>can</b> be
+				libgig is used by linuxsampler to load Gigasampler files, it is used by gigedit to
+				load, modify and create new Gigasampler files and it <b>can</b> be
 				used by qsampler to retrieve additional informations about Gigasampler files. liblscp
 				is a C library written as a wrapper around the LSCP network protocol, thus to control
 				linuxsampler. It was originally designed to be used on both sides, that is on server /
@@ -231,18 +241,38 @@
 				You should compile and install at least libgig and linuxsampler. As a beginner you should
 				definitely as well compile and install a convenient GUI frontend like either qsampler or
 				jsampler, whatever you prefer. qsampler depends on liblscp, so you have to
-				compile and install liblscp before starting to build qsampler. The recommended order to
-				compile and install is:
+				compile and install liblscp before starting to build qsampler. Also if you like to be
+				able to edit instruments, you should compile and install gigedit as well. The recommended
+				order to compile and install is:
 				<ol class="default">
 				  <li>libgig</li>
 				  <li>linuxsampler</li>
+				  <li>gigedit</li>
 				  <li>liblscp</li>
 				  <li>qsampler</li>
 				</ol>
 			</p>
+			<p class="default">
+				Of course you can also install QSampler and JSampler side by side. So you can test and use
+				both at the same time.
+			</p>
 
 			<a name="compilarion_error"></a>
 			<h3>Compilation of LinuxSampler aborts with ... </h3>
+
+			<p class="default">
+				&bull;&nbsp;&nbsp;&nbsp;"<code>Required libgig version not found...</code>"<br>
+				<br>
+				This error might occur when running LinuxSampler's configure script. Make sure
+				you have the required libgig version installed. If you're compiling a CVS
+				version of LinuxSampler you usually have to compile and install the current
+				CVS version of libgig as well. Also note there are couple common mistakes which
+				let this error occur even after having compiled and installed the required
+				libgig version. Read
+				<a href="https://bugs.linuxsampler.org/cgi-bin/show_bug.cgi?id=29">this bug report</a>
+				about common mistakes and how you can fix them.
+            </p>
+
 			<p class="default">
 					&bull;&nbsp;&nbsp;&nbsp;"<code>can't find a register in class `GENERAL_REGS' while reloading `asm'</code>"<br>
 				<br>
@@ -319,11 +349,11 @@ make</pre>
 				real LSCP scripts. You can send a LSCP script to linuxsampler on the console with the
 				following command:
             </p>
-			<pre class="code">cat yourscript.lscp | netcat localhost 8888</pre>
+			<pre class="code">netcat localhost 8888 &lt; yourscript.lscp</pre>
 			<p class="default">
                 or on certain systems (like Debian) you have to provide the -t switch:
             </p>
-			<pre class="code">cat yourscript.lscp | netcat -t localhost 8888</pre>
+			<pre class="code">netcat -t localhost 8888 &lt; yourscript.lscp</pre>
             <p class="default">
 				Of course you can also replace localhost by the IP address of the machine where
 				linuxsampler is running. Alternatively you can also make a telnet connection (port 8888)
