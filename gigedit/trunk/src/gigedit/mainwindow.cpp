@@ -24,6 +24,7 @@
 #include <gtkmm/stock.h>
 #include <gtkmm/targetentry.h>
 #include <gtkmm/main.h>
+#include <gtkmm/toggleaction.h>
 
 #include "global.h"
 
@@ -129,6 +130,14 @@ MainWindow::MainWindow()
                          *this, &MainWindow::on_action_quit));
     actionGroup->add(Gtk::Action::create("MenuInstrument", _("_Instrument")));
 
+    actionGroup->add(Gtk::Action::create("MenuView", _("_View")));
+    Glib::RefPtr<Gtk::ToggleAction> toggle_action =
+        Gtk::ToggleAction::create("Statusbar", _("_Statusbar"));
+    toggle_action->set_active(true);
+    actionGroup->add(toggle_action,
+                     sigc::mem_fun(
+                         *this, &MainWindow::on_action_view_status_bar));
+
     action = Gtk::Action::create("MenuHelp", Gtk::Stock::HELP);
     actionGroup->add(Gtk::Action::create("MenuHelp",
                                          action->property_label()));
@@ -183,6 +192,9 @@ MainWindow::MainWindow()
         "      <menuitem action='Quit'/>"
         "    </menu>"
         "    <menu action='MenuInstrument'>"
+        "    </menu>"
+        "    <menu action='MenuView'>"
+        "      <menuitem action='Statusbar'/>"
         "    </menu>"
 #ifdef ABOUT_DIALOG
         "    <menu action='MenuHelp'>"
@@ -1042,6 +1054,17 @@ void MainWindow::show_instr_props()
             instrumentProps.deiconify();
         }
     }
+}
+
+void MainWindow::on_action_view_status_bar() {
+    Gtk::CheckMenuItem* item =
+        dynamic_cast<Gtk::CheckMenuItem*>(uiManager->get_widget("/MenuBar/MenuView/Statusbar"));
+    if (!item) {
+        std::cerr << "/MenuBar/MenuView/Statusbar == NULL\n";
+        return;
+    }
+    if (item->get_active()) m_StatusBar.show();
+    else                    m_StatusBar.hide();
 }
 
 void MainWindow::on_button_release(GdkEventButton* button)

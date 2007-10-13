@@ -227,6 +227,7 @@ protected:
     void on_action_file_properties();
     void on_action_quit();
     void show_instr_props();
+    void on_action_view_status_bar();
     void on_action_help_about();
 
     // sample right-click popup actions
