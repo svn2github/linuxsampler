@@ -16,7 +16,7 @@
      to an annoying "missing Normative/Informative References" error message -->
 <?rfc strict="no" ?>
 
-<rfc category="std" ipr="full3978" docName="LSCP 1.2cvs">
+<rfc category="std" ipr="full3978" docName="LSCP 1.2">
     <front>
         <title>LinuxSampler Control Protocol (draft)</title>
         <author initials='C.S.' surname="Schoenebeck" fullname='C.
