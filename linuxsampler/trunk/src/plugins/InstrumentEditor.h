@@ -77,7 +77,7 @@ namespace LinuxSampler {
          * certain instrument.
          *
          * @param sTypeName - i.e. @c "libgig"
-         * @param STypeVersion - i.e. @c "3.0.1"
+         * @param sTypeVersion - i.e. @c "3.0.1"
          */
         virtual bool IsTypeSupported(String sTypeName, String sTypeVersion) = 0;
 

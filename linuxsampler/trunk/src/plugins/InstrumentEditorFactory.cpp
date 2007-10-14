@@ -20,6 +20,8 @@
 
 #include "InstrumentEditorFactory.h"
 
+#include "../common/global_private.h"
+
 #include <dlfcn.h>
 #include <errno.h>
 #include <string.h>

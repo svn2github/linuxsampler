@@ -20,6 +20,8 @@
 
 #include "InstrumentEditor.h"
 
+#include "../common/global_private.h"
+
 #include <algorithm>
 #include <functional>
 
