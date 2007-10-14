@@ -16,6 +16,7 @@ liblinuxsamplercommoninclude_HEADERS = \
 noinst_LTLIBRARIES = liblinuxsamplercommon.la
 liblinuxsamplercommon_la_SOURCES = \
 	global_private.cpp global_private.h \
+	atomic.h \
 	ArrayList.h \
 	Condition.cpp Condition.h \
 	ConditionServer.cpp ConditionServer.h \
