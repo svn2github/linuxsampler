@@ -18,7 +18,7 @@
 
 <rfc category="std" ipr="full3978" docName="LSCP 1.2">
     <front>
-        <title>LinuxSampler Control Protocol (draft)</title>
+        <title>LinuxSampler Control Protocol</title>
         <author initials='C.S.' surname="Schoenebeck" fullname='C.
 Schoenebeck'>
             <organization>
