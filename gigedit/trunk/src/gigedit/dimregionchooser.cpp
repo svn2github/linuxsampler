@@ -230,7 +230,6 @@ bool DimRegionChooser::on_expose_event(GdkEventExpose* event)
 
 void DimRegionChooser::on_size_request(GtkRequisition* requisition)
 {
-    printf("DimRegionChooser::on_size_request\n");
     *requisition = GtkRequisition();
     requisition->height = region ? nbDimensions * 20 : 0;
     requisition->width = 800;

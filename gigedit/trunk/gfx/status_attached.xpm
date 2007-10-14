@@ -1,5 +1,5 @@
 /* XPM */
-static char * status_attached_xpm[] = {
+static const char * status_attached_xpm[] = {
 "16 16 182 2",
 "  	c None",
 ". 	c #000064",
