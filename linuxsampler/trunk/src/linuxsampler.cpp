@@ -25,6 +25,7 @@
 #include <signal.h>
 
 #include "Sampler.h"
+#include "common/global_private.h"
 #include "engines/EngineFactory.h"
 #include "plugins/InstrumentEditorFactory.h"
 #include "drivers/midi/MidiInputDeviceFactory.h"

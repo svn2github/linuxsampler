@@ -25,6 +25,7 @@
 
 #include <algorithm>
 
+#include "../common/global_private.h"
 #include "../drivers/midi/MidiInstrumentMapper.h"
 
 #define NO_MIDI_INSTRUMENT_MAP		-1

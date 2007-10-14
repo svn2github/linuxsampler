@@ -25,6 +25,7 @@
 
 #include "InstrumentResourceManager.h"
 
+#include "../../common/global_private.h"
 #include "../../plugins/InstrumentEditorFactory.h"
 
 // We need to know the maximum number of sample points which are going to

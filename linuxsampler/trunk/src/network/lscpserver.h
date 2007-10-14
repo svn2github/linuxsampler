@@ -44,7 +44,7 @@
 #include "../common/Thread.h"
 #include "../common/Mutex.h"
 #include "../common/Condition.h"
-#include "../common/global.h"
+#include "../common/global_private.h"
 
 #include "../drivers/midi/MidiInstrumentMapper.h"
 

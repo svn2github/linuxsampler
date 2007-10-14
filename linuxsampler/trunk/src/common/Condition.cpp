@@ -25,7 +25,7 @@
 
 #include "Condition.h"
 
-#include "global.h"
+#include "global_private.h"
 
 namespace LinuxSampler {
 

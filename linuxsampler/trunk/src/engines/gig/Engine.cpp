@@ -29,6 +29,8 @@
 
 #include "Engine.h"
 
+#include "../../common/global_private.h"
+
 namespace LinuxSampler { namespace gig {
 
     InstrumentResourceManager Engine::instruments;
@@ -1975,7 +1977,7 @@ namespace LinuxSampler { namespace gig {
     }
 
     String Engine::Version() {
-        String s = "$Revision: 1.82 $";
+        String s = "$Revision: 1.83 $";
         return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
 

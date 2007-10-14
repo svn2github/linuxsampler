@@ -32,7 +32,7 @@
 #include <sstream>
 #include <string>
 
-#include "../common/global.h"
+#include "../common/global_private.h"
 #include "../common/Path.h"
 #include "lscpevent.h"
 #include "../Sampler.h"

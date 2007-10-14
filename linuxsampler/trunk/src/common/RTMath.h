@@ -26,7 +26,7 @@
 
 #include <math.h>
 #include <stdint.h>
-#include "global.h"
+#include "global_private.h"
 
 /// Needed for calculating frequency ratio used to pitch a sample
 #define TWELVEHUNDREDTH_ROOT_OF_TWO	1.000577789506555

@@ -25,6 +25,7 @@
 
 #include "Sampler.h"
 
+#include "common/global_private.h"
 #include "engines/EngineFactory.h"
 #include "engines/EngineChannelFactory.h"
 #include "plugins/InstrumentEditorFactory.h"

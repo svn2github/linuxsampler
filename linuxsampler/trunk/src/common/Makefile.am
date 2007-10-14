@@ -5,7 +5,6 @@ AM_CXXFLAGS = -Wreturn-type -ffast-math $(CXX_CPU_SWITCH)
 
 liblinuxsamplercommonincludedir = $(includedir)/linuxsampler/common
 liblinuxsamplercommoninclude_HEADERS = \
-	atomic.h \
 	Exception.h \
 	Thread.h \
 	global.h \
@@ -16,11 +15,11 @@ liblinuxsamplercommoninclude_HEADERS = \
 
 noinst_LTLIBRARIES = liblinuxsamplercommon.la
 liblinuxsamplercommon_la_SOURCES = \
+	global_private.cpp global_private.h \
 	ArrayList.h \
 	Condition.cpp Condition.h \
 	ConditionServer.cpp ConditionServer.h \
 	Features.cpp Features.h \
-	global.cpp \
 	Mutex.cpp \
 	optional.cpp \
 	Pool.h \

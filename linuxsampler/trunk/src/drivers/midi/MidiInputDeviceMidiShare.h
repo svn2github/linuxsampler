@@ -26,7 +26,7 @@
 
 #include <MidiShare.h>
 
-#include "../common/global.h"
+#include "../common/global_private.h"
 #include "MidiInputDevice.h"
 
 namespace LinuxSampler {

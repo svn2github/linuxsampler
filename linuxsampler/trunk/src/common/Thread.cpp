@@ -31,6 +31,10 @@
 
 namespace LinuxSampler {
 
+// Callback functions for the POSIX thread API
+static void* __pthread_launcher(void* thread);
+static void  __pthread_destructor(void* thread);
+
 Thread::Thread(bool LockMemory, bool RealTime, int PriorityMax, int PriorityDelta) {
     this->bLockedMemory     = LockMemory;
     this->isRealTime        = RealTime;
@@ -239,7 +243,7 @@ int Thread::Destructor() {
 }
 
 /// Callback function for the POSIX thread API
-void* __pthread_launcher(void* thread) {
+static void* __pthread_launcher(void* thread) {
     pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, NULL); // let the thread be killable under any circumstances
     Thread* t;
     t = (Thread*) thread;
@@ -251,7 +255,7 @@ void* __pthread_launcher(void* thread) {
 }
 
 /// Callback function for the POSIX thread API
-void __pthread_destructor(void* thread) {
+static void __pthread_destructor(void* thread) {
     Thread* t;
     t = (Thread*) thread;
     t->Destructor();

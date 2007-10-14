@@ -1,6 +1,6 @@
 /***************************************************************************
  *                                                                         *
- *   Copyright (C) 2006 Andreas Persson                                    *
+ *   Copyright (C) 2006, 2007 Andreas Persson                              *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -21,7 +21,6 @@
 #ifndef __SYNCHRONIZEDCONFIG_H__
 #define __SYNCHRONIZEDCONFIG_H__
 
-#include "atomic.h"
 #include <set>
 
 namespace LinuxSampler {
@@ -48,6 +47,8 @@ namespace LinuxSampler {
      */
     template<class T>
     class SynchronizedConfig {
+        struct atomic_t { volatile int word; };
+
         public:
             SynchronizedConfig();
 
@@ -65,8 +66,8 @@ namespace LinuxSampler {
                      *          thread
                      */
                     const T& Lock() {
-                        atomic_set(&lock, 1);
-                        return parent.config[atomic_read(&parent.indexAtomic)];
+                        atomicSet(&lock, 1);
+                        return parent.config[atomicRead(&parent.indexAtomic)];
                     }
 
                     /**
@@ -78,7 +79,7 @@ namespace LinuxSampler {
                      * time threads are locked anymore.
                      */
                     void Unlock() {
-                        atomic_set(&lock, 0);
+                        atomicSet(&lock, 0);
                     }
 
                     Reader(SynchronizedConfig& config);
@@ -124,10 +125,18 @@ namespace LinuxSampler {
             int updateIndex;
             T config[2];
             std::set<Reader*> readers;
+
+            static int atomicRead(atomic_t* pSharedVariable) {
+                return pSharedVariable->word;
+            }
+
+            static void atomicSet(atomic_t* pSharedVariable, int value) {
+                pSharedVariable->word = value;
+            }
     };
 
     template<class T> SynchronizedConfig<T>::SynchronizedConfig() {
-        atomic_set(&indexAtomic, 0);
+        atomicSet(&indexAtomic, 0);
         updateIndex = 1;
     }
 
@@ -136,14 +145,14 @@ namespace LinuxSampler {
     }
 
     template<class T> T& SynchronizedConfig<T>::SwitchConfig() {
-        atomic_set(&indexAtomic, updateIndex);
+        atomicSet(&indexAtomic, updateIndex);
 
         // first put all locking readers in a linked list
         Reader* lockingReaders = 0;
         for (typename std::set<Reader*>::iterator iter = readers.begin() ;
              iter != readers.end() ;
              iter++) {
-            if (atomic_read(&(*iter)->lock)) {
+            if (atomicRead(&(*iter)->lock)) {
                 (*iter)->next = lockingReaders;
                 lockingReaders = *iter;
             }
@@ -154,7 +163,7 @@ namespace LinuxSampler {
             usleep(50000);
             Reader** prev = &lockingReaders;
             for (Reader* p = lockingReaders ; p ; p = p->next) {
-                if (atomic_read(&p->lock)) prev = &p->next;
+                if (atomicRead(&p->lock)) prev = &p->next;
                 else *prev = p->next; // unlink
             }
         }
@@ -168,7 +177,7 @@ namespace LinuxSampler {
 
     template <class T>
     SynchronizedConfig<T>::Reader::Reader(SynchronizedConfig& config) : parent(config) {
-        atomic_set(&lock, 0);
+        atomicSet(&lock, 0);
         parent.readers.insert(this);
     }
 

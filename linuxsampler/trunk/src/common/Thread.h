@@ -21,8 +21,8 @@
  *   MA  02111-1307  USA                                                   *
  ***************************************************************************/
 
-#ifndef __THREAD_H__
-#define __THREAD_H__
+#ifndef __LS_THREAD_H__
+#define __LS_THREAD_H__
 
 #include <iostream>
 #include <stdio.h>
@@ -63,10 +63,6 @@ class Thread {
         bool            bLockedMemory;
 };
 
-// Callback functions for the POSIX thread API
-void* __pthread_launcher(void* thread);
-void  __pthread_destructor(void* thread);
-
 } // namespace LinuxSampler
 
-#endif // __THREAD_H__
+#endif // __LS_THREAD_H__

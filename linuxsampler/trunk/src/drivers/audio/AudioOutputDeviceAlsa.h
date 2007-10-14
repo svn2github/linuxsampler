@@ -27,7 +27,7 @@
 #include <string.h>
 #include <alsa/asoundlib.h>
 
-#include "../../common/global.h"
+#include "../../common/global_private.h"
 #include "../../common/Thread.h"
 #include "AudioOutputDevice.h"
 #include "AudioChannel.h"

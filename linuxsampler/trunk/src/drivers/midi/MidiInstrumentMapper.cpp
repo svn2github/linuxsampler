@@ -20,6 +20,7 @@
 
 #include "MidiInstrumentMapper.h"
 
+#include "../../common/global_private.h"
 #include "../../common/Mutex.h"
 #include "../../engines/EngineFactory.h"
 #include "../../engines/Engine.h"

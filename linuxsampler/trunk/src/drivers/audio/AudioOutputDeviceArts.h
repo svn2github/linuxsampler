@@ -1,6 +1,6 @@
 /***************************************************************************
  *                                                                         *
- *   Copyright (C) 2006 Christian Schoenebeck                              *
+ *   Copyright (C) 2006, 2007 Christian Schoenebeck                        *
  *                                                                         *
  *   This library is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -23,7 +23,7 @@
 
 #include <artsc.h>
 
-#include "../../common/global.h"
+#include "../../common/global_private.h"
 #include "../../common/Thread.h"
 #include "AudioOutputDevice.h"
 #include "AudioChannel.h"

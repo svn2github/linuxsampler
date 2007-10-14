@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005, 2006 Christian Schoenebeck                        *
+ *   Copyright (C) 2005 - 2007 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -68,24 +68,25 @@ namespace LinuxSampler {
             //     (usually not to be overriden by descendant)
 
             /**
-             * Connect given sampler engine with this MIDI input device.
-             * The engine can either be connected to one specific MIDI
-             * channel or all MIDI channels. If an engine gets connected
-             * twice to this MIDI input device, then the engine's old
-             * connection will be detached (no matter on which MIDI channel).
+             * Connect given sampler engine channel with this MIDI input
+             * device. The engine channel can either be connected to one
+             * specific MIDI channel or all MIDI channels. If an engine
+             * channel gets connected twice to this MIDI input device, then
+             * the engine's old connection will be detached (no matter on
+             * which MIDI channel).
              *
-             * @param pEngine     - sampler engine
+             * @param pEngineChannel - sampler engine
              * @param MidiChannel - MIDI channel to connect to
              * @throws MidiInputException  if MidiChannel argument invalid
              */
             void Connect(EngineChannel* pEngineChannel, midi_chan_t MidiChannel);
 
             /**
-             * Disconnect given sampler engine from this MIDI input device.
-             * If the given engine was not connected with this device,
-             * nothing happens.
+             * Disconnect given sampler engine channel from this MIDI input
+             * device. If the given engine channel was not connected with
+             * this device, nothing happens.
              *
-             * @param pEngine - sampler engine
+             * @param pEngineChannel - sampler engine
              */
             void Disconnect(EngineChannel* pEngineChannel);
 

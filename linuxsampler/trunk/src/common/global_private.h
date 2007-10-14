@@ -21,31 +21,68 @@
  *   MA  02111-1307  USA                                                   *
  ***************************************************************************/
 
-#ifndef __FEATURES_H__
-#define __FEATURES_H__
+// All application global declarations, that are not going to be exposed to
+// the C++ API are defined here.
 
-#include "global_private.h"
+#ifndef __LS_GLOBAL_PRIVATE_H__
+#define __LS_GLOBAL_PRIVATE_H__
+
+#include "global.h"
+
+#include <sstream>
+
+#if HAVE_CONFIG_H
+# include <config.h>
+#endif
+
+#if CONFIG_DEBUG_LEVEL > 0
+#  define dmsg(debuglevel,x)	if (CONFIG_DEBUG_LEVEL >= debuglevel) {printf x; fflush(stdout);}
+#else
+#  define dmsg(debuglevel,x)
+#endif // CONFIG_DEBUG_LEVEL > 0
+
+#define EMMS __asm__ __volatile__ ("emms" ::: "st", "st(1)", "st(2)", "st(3)", "st(4)", "st(5)", "st(6)", "st(7)", "mm0", "mm1", "mm2", "mm3", "mm4", "mm5", "mm6", "mm7")
+
+/// defines globally the bit depth of used samples
+typedef int16_t sample_t;
 
 /**
- * Detects system / CPU specific features at runtime.
+ * Whether a function / method call was successful, or if warnings or even an
+ * error occured.
  */
-class Features {
-    public:
-        static void   detect();
-        static void   enableDenormalsAreZeroMode();
-        static String featuresAsString();
-
-        #if CONFIG_ASM && ARCH_X86
-        inline static bool supportsMMX() { return bMMX; }
-        inline static bool supportsSSE() { return bSSE; }
-        inline static bool supportsSSE2() { return bSSE2; }
-        #endif // CONFIG_ASM && ARCH_X86
-    private:
-        #if CONFIG_ASM && ARCH_X86
-        static bool bMMX;
-        static bool bSSE;
-        static bool bSSE2;
-        #endif // CONFIG_ASM && ARCH_X86
+enum result_type_t {
+    result_type_success,
+    result_type_warning,
+    result_type_error
 };
 
-#endif // __FEATURES_H__
+/**
+ * Used whenever a detailed description of the result of a function / method
+ * call is needed.
+ */
+struct result_t {
+    result_type_t type;     ///< success, warning or error
+    int           code;     ///< warning or error code
+    String        message;  ///< detailed warning or error message
+};
+
+template<class T> inline String ToString(T o) {
+	std::stringstream ss;
+	ss << o;
+	return ss.str();
+}
+
+class Runnable {
+    public:
+        virtual ~Runnable() { }
+        virtual void Run() = 0;
+};
+
+extern double GLOBAL_VOLUME;
+
+// I read with some Linux kernel versions (between 2.4.18 and 2.4.21)
+// sscanf() might be buggy regarding parsing of hex characters, so ...
+int hexToNumber(char hex_digit);
+int hexsToNumber(char hex_digit0, char hex_digit1 = '0');
+
+#endif // __LS_GLOBAL_PRIVATE_H__

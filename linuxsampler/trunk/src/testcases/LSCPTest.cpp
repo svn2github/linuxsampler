@@ -1,6 +1,6 @@
 #include "LSCPTest.h"
 
-#include "../common/global.h"
+#include "../common/global_private.h"
 #include "../common/optional.h"
 
 #include <iostream>

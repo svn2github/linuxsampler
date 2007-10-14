@@ -23,6 +23,8 @@
 
 #include "EGDecay.h"
 
+#include "../../common/global_private.h"
+
 namespace LinuxSampler { namespace gig {
 
     EGDecay::EGDecay() {

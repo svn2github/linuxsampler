@@ -17,9 +17,8 @@ CPP=g++
 OBJFILES=*.o
 
 # In order to be able to compile the actual Sampler source files, we need to
-# define compile time configuration macros. For now we use the respective
-# workaround header from the xcode (osx) project file for this.
-INCLUDES=-include ../osx/version.h
+# define compile time configuration macros.
+INCLUDES=-include ../config.h
 
 .PHONY: all gigsynth.o Synthesizer.o RTMath.o
 

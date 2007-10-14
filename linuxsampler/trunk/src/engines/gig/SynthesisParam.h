@@ -1,11 +1,11 @@
 /*
- *   Copyright (C) 2005 Christian Schoenebeck
+ *   Copyright (C) 2005, 2007 Christian Schoenebeck
  */
 
 #ifndef __LS_SYNTHESIS_PARAM_H__
 #define __LS_SYNTHESIS_PARAM_H__
 
-#include "../../common/global.h"
+#include "../../common/global_private.h"
 #include "Filter.h"
 
 namespace LinuxSampler { namespace gig {

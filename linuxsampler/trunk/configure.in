@@ -4,8 +4,8 @@ AC_INIT(configure.in)
 # LinuxSampler's / liblinuxsampler's "official" release version:
 
 LINUXSAMPLER_RELEASE_MAJOR=0
-LINUXSAMPLER_RELEASE_MINOR=4
-LINUXSAMPLER_RELEASE_BUILD=0.8cvs
+LINUXSAMPLER_RELEASE_MINOR=5
+LINUXSAMPLER_RELEASE_BUILD=0
 
 #------------------------------------------------------------------------------------
 # The following is the libtool / shared library version. This doesn't have to
@@ -24,7 +24,7 @@ LINUXSAMPLER_RELEASE_BUILD=0.8cvs
 #  6. If any interfaces have been removed since the last public release, then set age
 #     to 0.
 
-LIBLINUXSAMPLER_LT_CURRENT=0
+LIBLINUXSAMPLER_LT_CURRENT=1
 LIBLINUXSAMPLER_LT_REVISION=0
 LIBLINUXSAMPLER_LT_AGE=0
 SHARED_VERSION_INFO="$LIBLINUXSAMPLER_LT_CURRENT:$LIBLINUXSAMPLER_LT_REVISION:$LIBLINUXSAMPLER_LT_AGE"
@@ -317,7 +317,7 @@ fi
 # Checks for various DLL libraries
 
 # Check presence of libgig
-libgig_version="3.1.1"
+libgig_version="3.2.0"
 PKG_CHECK_MODULES(GIG, gig >= $libgig_version, HAVE_GIG=true, HAVE_GIG=false)
 if test "$HAVE_GIG" = "false"; then
     echo "Required libgig version not found!"
@@ -384,13 +384,13 @@ if test "$config_asm" = "yes"; then
 fi
 
 AC_ARG_ENABLE(dev-mode,
-  [  --disable-dev-mode
-                          Disable development mode (default=on). In that mode
+  [  --enable-dev-mode
+                          Enable development mode (default=off). In that mode
                           we do some extra sanity checks here and there.
                           This helps to spot possible problems, but reduces
                           efficiency a bit],
   [config_dev_mode="$enableval"],
-  [config_dev_mode="yes"]
+  [config_dev_mode="no"]
 )
 if test "$config_dev_mode" = "yes"; then
   AC_DEFINE_UNQUOTED(CONFIG_DEVMODE, 1, [Define to 1 if you want to enable development mode.])

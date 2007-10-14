@@ -20,6 +20,8 @@
 
 #include "InstrumentManagerThread.h"
 
+#include "../common/global_private.h"
+
 namespace LinuxSampler {
 
     InstrumentManagerThread::InstrumentManagerThread() : Thread(true, false, 0, -4) {

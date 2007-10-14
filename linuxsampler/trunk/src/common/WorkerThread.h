@@ -25,7 +25,7 @@
 
 #include "Condition.h"
 #include "Mutex.h"
-#include "global.h"
+#include "global_private.h"
 #include "Thread.h"
 
 namespace LinuxSampler {

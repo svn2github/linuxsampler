@@ -23,6 +23,8 @@
 
 #include "AudioChannel.h"
 
+#include "../../common/global_private.h"
+
 #if defined(__APPLE__)
 # include <stdlib.h>
 #else
@@ -60,7 +62,7 @@ namespace LinuxSampler {
      *
      * @param ChannelNr  - channel number of this new channel
      * @param pBuffer    - external audio buffer
-     * @param BufferSIze - size of the external buffer
+     * @param BufferSize - size of the external buffer
      */
     AudioChannel::AudioChannel(uint ChannelNr, float* pBuffer, uint BufferSize) {
         this->ChannelNr          = ChannelNr;

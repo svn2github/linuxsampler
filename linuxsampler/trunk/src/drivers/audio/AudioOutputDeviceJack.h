@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005, 2006 Christian Schoenebeck                        *
+ *   Copyright (C) 2005 - 2007 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -24,7 +24,7 @@
 #ifndef __LS_AUDIOOUTPUTDEVICEJACK_H__
 #define __LS_AUDIOOUTPUTDEVICEJACK_H__
 
-#include "../../common/global.h"
+#include "../../common/global_private.h"
 
 #if HAVE_JACK
 

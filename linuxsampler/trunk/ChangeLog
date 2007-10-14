@@ -1,4 +1,4 @@
-Version CVS HEAD (?)
+Version 0.5.0 (15 October 2007)
 
   * packaging changes:
     - config.h is not going to be installed along with liblinuxsampler's
@@ -11,6 +11,12 @@ Version CVS HEAD (?)
       OSX manually (patch by Toshi Nagata)
     - fixed buggy boolean --enable-foo / --disable-foo configure script
       parameters
+    - global.h now only covers global definitions that are needed for the
+      C++ API header files, all implementation internal global definitions
+      are now in global_private.h
+    - atomic.h is not exposed to the C++ API anymore
+    - no need to include config.h anymore for using LS's API header files
+    - fixed warnings in API doc generation
 
   * general changes:
     - replaced the old, confusing MIDI program change mechanism by a
@@ -69,6 +75,7 @@ Version CVS HEAD (?)
       enabling a fast denormal FPU mode (x86 platforms supporting SSE2)
     - minor assembly fix in x86 features detection (don't use the PIC
       register, to avoid relocations in the text segment at runtime)
+    - POSIX callback functions of Thread.h are hidden
 
   * MIDI driver:
     - dispatch bank select (MSB and LSB) messages

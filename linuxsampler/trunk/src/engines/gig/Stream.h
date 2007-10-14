@@ -26,10 +26,6 @@
 
 #include "../../common/global.h"
 
-#if DEBUG_HEADERS
-# warning Stream.h included
-#endif // DEBUG_HEADERS
-
 #include <gig.h>
 
 #include "../../common/RingBuffer.h"

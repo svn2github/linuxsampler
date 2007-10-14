@@ -27,7 +27,7 @@
 #ifndef __LS_RESAMPLER_H__
 #define __LS_RESAMPLER_H__
 
-#include "../../common/global.h"
+#include "../../common/global_private.h"
 
 // TODO: cubic interpolation is not yet supported by the MMX/SSE(1) version though
 // TODO: cubic interpolation is not supported for 24 bit samples

@@ -38,6 +38,7 @@
 
 #include "lscpresultset.h"
 #include <iomanip>
+#include "../common/global_private.h"
 
 //Construct an empty resultset
 //Default index is -1 meaning the resultset doesn't have an index

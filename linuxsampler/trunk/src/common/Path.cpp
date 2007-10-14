@@ -21,7 +21,7 @@
 #include "Path.h"
 
 // for function hexsToNumber()
-#include "global.h"
+#include "global_private.h"
 
 namespace LinuxSampler {
 

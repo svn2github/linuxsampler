@@ -24,7 +24,7 @@
 #ifndef __LS_GIG_VOICE_H__
 #define __LS_GIG_VOICE_H__
 
-#include "../../common/global.h"
+#include "../../common/global_private.h"
 
 #include <gig.h>
 

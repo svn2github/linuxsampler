@@ -23,6 +23,7 @@
 
 #include "FxSend.h"
 
+#include "../common/global_private.h"
 #include "../drivers/audio/AudioOutputDevice.h"
 #include "../common/RTMath.h"
 

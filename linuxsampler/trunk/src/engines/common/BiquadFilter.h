@@ -29,7 +29,7 @@
 
 #include <math.h>
 
-#include "../../common/global.h"
+#include "../../common/global_private.h"
 
 /// ln(2) / 2
 #define LN_2_2			0.34657359f

@@ -20,7 +20,7 @@
 
 #include "InstrumentsDb.h"
 
-#if HAVE_SQLITE3
+#include "../common/global_private.h"
 
 #include <iostream>
 #include <sstream>
@@ -1755,5 +1755,3 @@ namespace LinuxSampler {
     }
 
 } // namespace LinuxSampler
-
-#endif // HAVE_SQLITE3

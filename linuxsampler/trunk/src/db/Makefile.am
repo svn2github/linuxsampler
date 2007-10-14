@@ -17,9 +17,10 @@ instruments_db_headers =
 instruments_db_sources =
 endif
 
-liblinuxsamplerdbincludedir = $(includedir)/linuxsampler/db
-liblinuxsamplerdbinclude_HEADERS = \
-	$(instruments_db_headers)
+## no need to expose the instruments DB to the C++ API ATM
+#liblinuxsamplerdbincludedir = $(includedir)/linuxsampler/db
+#liblinuxsamplerdbinclude_HEADERS = \
+#	$(instruments_db_headers)
 
 noinst_LTLIBRARIES = liblinuxsamplerdb.la
 liblinuxsamplerdb_la_SOURCES = \

@@ -62,6 +62,8 @@ WARN_LOGFILE           =
 # configuration options related to the input files
 #---------------------------------------------------------------------------
 INPUT                  = @top_srcdir@/src/Sampler.h \
+                         @top_srcdir@/src/EventListeners.h \
+                         @top_srcdir@/src/common/global.h \
                          @top_srcdir@/src/common/Exception.h \
                          @top_srcdir@/src/common/Thread.h \
                          @top_srcdir@/src/drivers/Device.h \
@@ -76,9 +78,9 @@ INPUT                  = @top_srcdir@/src/Sampler.h \
                          @top_srcdir@/src/engines/Engine.h \
                          @top_srcdir@/src/engines/EngineChannel.h \
                          @top_srcdir@/src/engines/FxSend.h \
-                         @top_srcdir@/src/engines/InstrumentEditor.h \
-                         @top_srcdir@/src/engines/InstrumentEditorFactory.h \
-                         @top_srcdir@/src/engines/InstrumentManager.h
+                         @top_srcdir@/src/engines/InstrumentManager.h \
+                         @top_srcdir@/src/plugins/InstrumentEditor.h \
+                         @top_srcdir@/src/plugins/InstrumentEditorFactory.h
 FILE_PATTERNS          = *.c \
                          *.cpp \
                          *.h \

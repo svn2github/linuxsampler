@@ -20,8 +20,6 @@
 
 #include "../common/global.h"
 
-#if HAVE_SQLITE3
-
 #ifndef __LS_INSTRUMENTSDB_H__
 #define __LS_INSTRUMENTSDB_H__
 
@@ -867,5 +865,3 @@ namespace LinuxSampler {
 } // namespace LinuxSampler
 
 #endif // __LS_INSTRUMENTSDB_H__
-
-#endif // HAVE_SQLITE3

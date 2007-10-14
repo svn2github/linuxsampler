@@ -1,3 +1,31 @@
+Version 0.5.0 (15 October 2007)
+
+  This release comes with a bunch of important new features. We implemented
+  a very powerful and easy MIDI program change mapping, which not only
+  allows you to define which instrument to load on which MIDI program
+  change number (and bank select number), it also allows further parameters
+  like whether the instrument shall be pre-cached or loaded only when needed
+  (and likewise freed when not needed). You can create arbitrary amount of
+  effect sends for each sampler channel, each having an arbitrary MIDI
+  controller for controlling the effect send level in realtime and can
+  flexible be routed to some of the sampler's audio output channel, i.e.
+  to a dedicated one for a certain effect type. The new instruments
+  database allows you to keep track even of largest instrument library
+  collections. You can order them in categories and search by various
+  criteria. The sampler now allows third party applications to offer so
+  called 'instrument editor plugins' which the sampler can use to spawn
+  an appropriate instrument editor application for a selected instrument
+  and for allowing to edit instruments with such an external editor
+  application on-the-fly, that is all modifications made with the editor
+  will immediately be audible with the sampler. No need to reload instrument
+  files anymore. Checkout our brand new instrument editor application called
+  'gigedit' which you can use for this feature. Loading huge instruments may
+  take a long time, that's why the sampler now allows to play an instrument
+  while loading. That way you can i.e. play and hold notes on the keyboard
+  while loading a new instrument on the same sampler channel at the same
+  time. Beside these new features, you can find the common huge list of bug
+  fixes and quality improvements.
+
 Version 0.4.0 (24 November 2006)
 
   Finally a new release after a long development cycle. The sampler now has

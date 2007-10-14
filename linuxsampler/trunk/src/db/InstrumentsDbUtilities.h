@@ -18,9 +18,7 @@
  *   MA  02110-1301  USA                                                   *
  ***************************************************************************/
 
-#include "../common/global.h"
-
-#if HAVE_SQLITE3
+#include "../common/global_private.h"
 
 #ifndef __LS_INSTRUMENTSDBUTILITIES_H__
 #define __LS_INSTRUMENTSDBUTILITIES_H__
@@ -399,5 +397,3 @@ namespace LinuxSampler {
 } // namespace LinuxSampler
 
 #endif // __LS_INSTRUMENTSDBUTILITIES_H__
-
-#endif // HAVE_SQLITE3
