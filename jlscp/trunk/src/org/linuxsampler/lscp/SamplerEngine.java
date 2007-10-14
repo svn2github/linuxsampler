@@ -22,6 +22,8 @@
 
 package org.linuxsampler.lscp;
 
+import static org.linuxsampler.lscp.Parser.*;
+
 /**
  * Provides information about a specific sampler engine.
  * @author  Grigor Iliev
@@ -85,6 +87,7 @@ public class SamplerEngine implements Parseable {
 	parse(String s) {
 		if(s.startsWith("DESCRIPTION: ")) {
 			desc = s.substring("DESCRIPTION: ".length(), s.length());
+			desc = toNonEscapedString(desc);
 		} else if(s.startsWith("VERSION: ")) {
 			ver = s.substring("VERSION: ".length(), s.length());
 		} else return false;

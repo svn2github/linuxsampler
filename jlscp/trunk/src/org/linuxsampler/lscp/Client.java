@@ -2563,7 +2563,7 @@ public class Client {
 		
 		for(String s : lnS) {
 			if(s.startsWith("NAME: ")) {
-				name = s.substring("NAME: ".length());
+				name = toNonEscapedString(s.substring("NAME: ".length()));
 			} else if(s.startsWith("DEFAULT: ")) {
 				b = Boolean.parseBoolean(s.substring("DEFAULT: ".length()));
 			} else {
@@ -3750,9 +3750,9 @@ public class Client {
 	 * @see #getSamplerChannels
 	 */
 	public synchronized void
-	editInstrument(int samplerChn) throws IOException, LscpException, LSException {
+	editChannelInstrument(int samplerChn) throws IOException, LscpException, LSException {
 		verifyConnection();
-		out.writeLine("EDIT INSTRUMENT " + samplerChn);
+		out.writeLine("EDIT CHANNEL INSTRUMENT " + samplerChn);
 		if(getPrintOnlyMode()) return;
 		
 		ResultSet rs = getEmptyResultSet();

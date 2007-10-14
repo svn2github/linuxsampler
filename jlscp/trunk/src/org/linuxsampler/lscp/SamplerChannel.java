@@ -22,6 +22,8 @@
 
 package org.linuxsampler.lscp;
 
+import static org.linuxsampler.lscp.Parser.*;
+
 /**
  * Provides information about the current settings of a specific sampler channel.
  * @author  Grigor Iliev
@@ -273,7 +275,7 @@ public class SamplerChannel implements Parseable {
 		} else if(s.startsWith("INSTRUMENT_NAME: ")) {
 			s = s.substring("INSTRUMENT_NAME: ".length());
 			if(s.equals("NONE")) instrName = null;
-			else instrName = s;
+			else instrName = toNonEscapedString(s);
 		} else if(s.startsWith("INSTRUMENT_STATUS: ")) {
 			s = s.substring("INSTRUMENT_STATUS: ".length());
 			instrStat = Parser.parseInt(s);

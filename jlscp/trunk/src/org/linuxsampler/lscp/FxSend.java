@@ -22,6 +22,8 @@
 
 package org.linuxsampler.lscp;
 
+import static org.linuxsampler.lscp.Parser.*;
+
 /**
  * Provides information about the current settings of a specific effect send.
  * @author Grigor Iliev
@@ -116,7 +118,7 @@ public class FxSend implements Parseable {
 	public boolean
 	parse(String s) throws LscpException {
 		if(s.startsWith("NAME: ")) {
-			name = s.substring("NAME: ".length());
+			name = toNonEscapedString(s.substring("NAME: ".length()));
 		} else if(s.startsWith("MIDI_CONTROLLER: ")) {
 			s = s.substring("MIDI_CONTROLLER: ".length());
 			midiController = Parser.parseInt(s);

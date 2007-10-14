@@ -22,6 +22,8 @@
 
 package org.linuxsampler.lscp;
 
+import static org.linuxsampler.lscp.Parser.*;
+
 /**
  * Provides information about a MIDI instrument.
  * @author Grigor Iliev
@@ -192,14 +194,12 @@ public class MidiInstrumentInfo extends AbstractInstrument implements Parseable 
 	 */
 	public boolean
 	parse(String s) throws LscpException {
-		if (super.parse(s)) return true;
-		
 		if(s.startsWith("NAME: ")) {
-			setName(s.substring("NAME: ".length()));
+			setName(toNonEscapedString(s.substring("NAME: ".length())));
 		} else if(s.startsWith("ENGINE_NAME: ")) {
 			setEngine(s.substring("ENGINE_NAME: ".length()));
 		} else if(s.startsWith("INSTRUMENT_NAME: ")) {
-			instrName = s.substring("INSTRUMENT_NAME: ".length());
+			instrName = toNonEscapedString(s.substring("INSTRUMENT_NAME: ".length()));
 		} else if(s.startsWith("LOAD_MODE: ")) {
 			s = s.substring("LOAD_MODE: ".length());
 			if(s.length() == 0) setLoadMode(LoadMode.DEFAULT);
@@ -207,7 +207,7 @@ public class MidiInstrumentInfo extends AbstractInstrument implements Parseable 
 		} else if(s.startsWith("VOLUME: ")) {
 			s = s.substring("VOLUME: ".length());
 			setVolume(Parser.parseFloat(s));
-		} else return false;
+		} else return super.parse(s);
 		
 		return true;
 	}
