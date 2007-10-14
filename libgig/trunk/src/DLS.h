@@ -316,18 +316,20 @@ namespace DLS {
             String SourceForm;       ///< <ISRF-ck>. Identifies the original form of the material that was digitized, such as record, sampling CD, TV sound track. This is not neccessarily the same as <i>Medium</i>.
             String Commissioned;     ///< <ICMS-ck>. Lists the name of the person or organization that commissioned the subject of the file, e.g., Pope Julian II.
             String Subject;          ///< <ISBJ-ck>. Describes the contents of the file.
-            bool UseFixedLengthStrings; ///< @deprecated Use #FixedStringLengths instead.
+            bool UseFixedLengthStrings; ///< @deprecated Not used anymore, use SetFixedStringLengths() instead.
 
-            struct FixedStringLength {
+            struct string_length_t {
                 uint32_t chunkId;
-                int length;
+                int      length;
             };
-            const FixedStringLength* FixedStringLengths; ///< List of IDs and string lengths for strings that should be stored in a fixed length format. This is used for gig files, not for ordinary DLS files.
+
             Info(RIFF::List* list);
+            void SetFixedStringLengths(const string_length_t* lengths);
             virtual ~Info();
             virtual void UpdateChunks();
         private:
-            RIFF::List* pResourceListChunk;
+            RIFF::List*            pResourceListChunk;
+            const string_length_t* pFixedStringLengths; ///< List of IDs and string lengths for strings that should be stored in a fixed length format. This is used for gig files, not for ordinary DLS files.
 
             static void LoadString(uint32_t ChunkID, RIFF::List* lstINFO, String& s);
             void SaveString(uint32_t ChunkID, RIFF::List* lstINFO, const String& s, const String& sDefault);

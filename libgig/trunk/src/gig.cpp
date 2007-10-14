@@ -366,11 +366,11 @@ namespace {
      *                         is located, 0 otherwise
      */
     Sample::Sample(File* pFile, RIFF::List* waveList, unsigned long WavePoolOffset, unsigned long fileNo) : DLS::Sample((DLS::File*) pFile, waveList, WavePoolOffset) {
-        static const DLS::Info::FixedStringLength fixedStringLengths[] = {
+        static const DLS::Info::string_length_t fixedStringLengths[] = {
             { CHUNK_ID_INAM, 64 },
             { 0, 0 }
         };
-        pInfo->FixedStringLengths = fixedStringLengths;
+        pInfo->SetFixedStringLengths(fixedStringLengths);
         Instances++;
         FileNo = fileNo;
 
@@ -2924,12 +2924,12 @@ namespace {
 // *
 
     Instrument::Instrument(File* pFile, RIFF::List* insList, progress_t* pProgress) : DLS::Instrument((DLS::File*)pFile, insList) {
-        static const DLS::Info::FixedStringLength fixedStringLengths[] = {
+        static const DLS::Info::string_length_t fixedStringLengths[] = {
             { CHUNK_ID_INAM, 64 },
             { CHUNK_ID_ISFT, 12 },
             { 0, 0 }
         };
-        pInfo->FixedStringLengths = fixedStringLengths;
+        pInfo->SetFixedStringLengths(fixedStringLengths);
 
         // Initialization
         for (int i = 0; i < 128; i++) RegionKeyTable[i] = NULL;
@@ -3237,7 +3237,7 @@ namespace {
         0, 3, 20030331 & 0xffff, 20030331 >> 16
     };
 
-    const DLS::Info::FixedStringLength File::FixedStringLengths[] = {
+    static const DLS::Info::string_length_t _FileFixedStringLengths[] = {
         { CHUNK_ID_IARL, 256 },
         { CHUNK_ID_IART, 128 },
         { CHUNK_ID_ICMS, 128 },
@@ -3261,7 +3261,7 @@ namespace {
     File::File() : DLS::File() {
         *pVersion = VERSION_3;
         pGroups = NULL;
-        pInfo->FixedStringLengths = FixedStringLengths;
+        pInfo->SetFixedStringLengths(_FileFixedStringLengths);
         pInfo->ArchivalLocation = String(256, ' ');
 
         // add some mandatory chunks to get the file chunks in right
@@ -3275,7 +3275,7 @@ namespace {
 
     File::File(RIFF::File* pRIFF) : DLS::File(pRIFF) {
         pGroups = NULL;
-        pInfo->FixedStringLengths = FixedStringLengths;
+        pInfo->SetFixedStringLengths(_FileFixedStringLengths);
     }
 
     File::~File() {

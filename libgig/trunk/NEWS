@@ -1,4 +1,8 @@
-Version ? (?)
+Version 3.2.0 (14 Oct 2007)
+
+  This release once again comes with a huge bunch of fixes regarding
+  Gigasampler write support. Instrument files created from scratch with
+  libgig can finally be loaded into the Gigasampler application as well.
 
   libgig's home has moved! From now on you can find it on:
   http://www.linuxsampler.org/libgig/

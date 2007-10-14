@@ -764,7 +764,6 @@ namespace gig {
             friend class Sample;
             friend class Group; // so Group can access protected member pRIFF
         private:
-            static const DLS::Info::FixedStringLength FixedStringLengths[];
             std::list<Group*>*          pGroups;
             std::list<Group*>::iterator GroupsIterator;
     };

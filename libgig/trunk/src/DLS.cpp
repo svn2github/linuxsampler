@@ -239,7 +239,7 @@ namespace DLS {
      * @param list - pointer to a list chunk which contains an INFO list chunk
      */
     Info::Info(RIFF::List* list) {
-        FixedStringLengths = NULL;
+        pFixedStringLengths = NULL;
         pResourceListChunk = list;
         if (list) {
             RIFF::List* lstINFO = list->GetSubList(LIST_TYPE_INFO);
@@ -266,6 +266,21 @@ namespace DLS {
     }
 
     Info::~Info() {
+    }
+
+    /**
+     * Forces specific Info fields to be of a fixed length when being saved
+     * to a file. By default the respective RIFF chunk of an Info field
+     * will have a size analogue to its actual string length. With this
+     * method however this behavior can be overridden, allowing to force an
+     * arbitrary fixed size individually for each Info field.
+     *
+     * This method is used as a workaround for the gig format, not for DLS.
+     *
+     * @param lengths - NULL terminated array of string_length_t elements
+     */
+    void Info::SetFixedStringLengths(const string_length_t* lengths) {
+        pFixedStringLengths = lengths;
     }
 
     /** @brief Load given INFO field.
@@ -295,10 +310,10 @@ namespace DLS {
      */
     void Info::SaveString(uint32_t ChunkID, RIFF::List* lstINFO, const String& s, const String& sDefault) {
         int size = 0;
-        if (FixedStringLengths) {
-            for (int i = 0 ; FixedStringLengths[i].length ; i++) {
-                if (FixedStringLengths[i].chunkId == ChunkID) {
-                    size = FixedStringLengths[i].length;
+        if (pFixedStringLengths) {
+            for (int i = 0 ; pFixedStringLengths[i].length ; i++) {
+                if (pFixedStringLengths[i].chunkId == ChunkID) {
+                    size = pFixedStringLengths[i].length;
                     break;
                 }
             }
