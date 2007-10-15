@@ -1,0 +1,6 @@
+<chapter id="see_also"><title>See Also</title>
+ <itemizedlist>
+  <listitem><simpara>Bugs: <ulink url="http://bugs.linuxsampler.org" /></simpara></listitem>
+  <listitem><simpara>More Documentation (incl. some diagrams): <ulink url="http://stud.fh-heilbronn.de/~cschoene/projects/libgig/" /></simpara></listitem>
+ </itemizedlist>
+</chapter>

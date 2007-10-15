@@ -1,0 +1,234 @@
+# Swedish translations for gigedit package
+# Svenska översättningar för paketet gigedit.
+# Copyright (C) 2006, 2007 Andreas Persson
+# This file is distributed under the same license as the gigedit package.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: gigedit 0.1.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2007-10-15 22:14+0200\n"
+"PO-Revision-Date: 2007-10-15 22:25+0200\n"
+"Last-Translator: Andreas Persson\n"
+"Language-Team: Swedish\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: ../src/gigedit/mainwindow.cpp:101
+msgid "_File"
+msgstr "_Arkiv"
+
+#: ../src/gigedit/mainwindow.cpp:131
+msgid "_Instrument"
+msgstr "_Instrument"
+
+#: ../src/gigedit/mainwindow.cpp:133
+msgid "_View"
+msgstr "_Visa"
+
+#: ../src/gigedit/mainwindow.cpp:135
+msgid "_Statusbar"
+msgstr "Statusfältet"
+
+#: ../src/gigedit/mainwindow.cpp:150
+msgid "Add _Instrument"
+msgstr "_Lägg till instrument"
+
+#: ../src/gigedit/mainwindow.cpp:164
+msgid "Add _Group"
+msgstr "Lägg till _grupp"
+
+#: ../src/gigedit/mainwindow.cpp:168
+msgid "Add _Sample(s)"
+msgstr "Lägg till _sampling(ar)"
+
+#: ../src/gigedit/mainwindow.cpp:475
+#, c-format
+msgid "Save changes to \"%s\" before closing?"
+msgstr "Spara ändringarna i \"%s\"?"
+
+#: ../src/gigedit/mainwindow.cpp:480
+msgid "If you close without saving, your changes will be lost."
+msgstr "Om du stänger utan att spara förlorar du dina ändringar."
+
+#: ../src/gigedit/mainwindow.cpp:482
+msgid "Close _Without Saving"
+msgstr "Stäng _utan att spara"
+
+#: ../src/gigedit/mainwindow.cpp:493
+msgid "Detach from sampler and proceed working stand-alone?"
+msgstr "Koppla från samplern och fortsätta arbeta fristående?"
+
+#: ../src/gigedit/mainwindow.cpp:497
+msgid ""
+"If you proceed to work on another instrument file, it won't be used by the "
+"sampler until you tell the sampler explicitly to load it."
+msgstr ""
+
+#: ../src/gigedit/mainwindow.cpp:502
+msgid "_Yes, Detach"
+msgstr ""
+
+#: ../src/gigedit/mainwindow.cpp:516
+msgid "Open file"
+msgstr "Öppna fil"
+
+#: ../src/gigedit/mainwindow.cpp:586
+msgid "The file could not be saved because it contains no samples"
+msgstr "Filen kunde inte sparas eftersom den inte innehåller några samplingar"
+
+#: ../src/gigedit/mainwindow.cpp:595
+msgid ""
+"The file could not be saved because there are instruments that have no "
+"regions"
+msgstr ""
+"Filen kunde inte sparas eftersom det finns instrument som inte har några "
+"regioner"
+
+#: ../src/gigedit/mainwindow.cpp:620 ../src/gigedit/mainwindow.cpp:675
+msgid "Could not save file: "
+msgstr "Kunde inte spara fil: "
+
+#: ../src/gigedit/mainwindow.cpp:639
+msgid "Save as"
+msgstr "Spara som"
+
+#: ../src/gigedit/mainwindow.cpp:772
+msgid "Could not import the following sample(s):\n"
+msgstr "Kunde inte importera följande sampling(ar):\n"
+
+#: ../src/gigedit/mainwindow.cpp:996
+msgid "Unsaved Gig File"
+msgstr "Osparad gig-fil"
+
+#: ../src/gigedit/mainwindow.cpp:1142
+msgid ""
+"You cannot delete an instrument from this file, since it's currently used by "
+"the sampler."
+msgstr ""
+"Du kan inte radera ett instrument från den här filen, eftersom den används "
+"av samplern."
+
+#. show 'browse for file' dialog
+#: ../src/gigedit/mainwindow.cpp:1210
+msgid "Add Sample(s)"
+msgstr "Lägg till sampling(ar)"
+
+#: ../src/gigedit/mainwindow.cpp:1336
+msgid "Could not add the following sample(s):\n"
+msgstr "Kunde inte lägga till följande sampling(ar):\n"
+
+#: ../src/gigedit/mainwindow.cpp:1553
+msgid "live-mode"
+msgstr ""
+
+#: ../src/gigedit/mainwindow.cpp:1558
+msgid "stand-alone"
+msgstr ""
+
+#: ../src/gigedit/dimregionedit.cpp:121
+msgid "Note this sample is associated with (a.k.a. 'root note')"
+msgstr ""
+
+#: ../src/gigedit/dimregionedit.cpp:123
+msgid "Sample position at which playback should be started"
+msgstr ""
+
+#: ../src/gigedit/dimregionedit.cpp:124
+msgid "Stereo balance (left/right)"
+msgstr ""
+
+#: ../src/gigedit/dimregionedit.cpp:126
+msgid "Output channel where the audio signal should be routed to (0 - 9)"
+msgstr ""
+
+#: ../src/gigedit/dimregionedit.cpp:129
+msgid ""
+"If true: sample will be pitched according to the key position (this would be "
+"disabled for drums for example)"
+msgstr ""
+
+#: ../src/gigedit/dimregionedit.cpp:132
+msgid "If enabled: repeats to playback the sample"
+msgstr ""
+
+#: ../src/gigedit/dimregionedit.cpp:134
+msgid ""
+"Start position within the sample (in sample points) of the area to be looped"
+msgstr ""
+
+#: ../src/gigedit/dimregionedit.cpp:138
+msgid "Duration (in sample points) of the area to be looped"
+msgstr ""
+
+#: ../src/gigedit/dimregionedit.cpp:141
+msgid "Direction in which the loop area in the sample should be played back"
+msgstr ""
+
+#: ../src/gigedit/dimregionedit.cpp:144
+msgid ""
+"Whether the loop area should be played back forever\n"
+"Caution: this setting is stored on Sample side, thus is shared among all "
+"dimension regions that use this sample!"
+msgstr ""
+
+#: ../src/gigedit/dimregionedit.cpp:149
+msgid ""
+"How many times the loop area should be played back\n"
+"Caution: this setting is stored on Sample side, thus is shared among all "
+"dimension regions that use this sample!"
+msgstr ""
+
+#: ../src/gigedit/dimregionedit.cpp:158
+msgid "Mandatory Settings"
+msgstr ""
+
+#. TODO: the following would break drag&drop:   wSample->property_editable().set_value(false);  or this:    wSample->set_editable(false);
+#: ../src/gigedit/dimregionedit.cpp:161
+msgid "Drop a sample here"
+msgstr ""
+
+#: ../src/gigedit/dimregionedit.cpp:163
+msgid "Optional Settings"
+msgstr ""
+
+#: ../src/gigedit/dimregionedit.cpp:185
+msgid "General Amplitude Settings"
+msgstr ""
+
+#: ../src/gigedit/dimregionedit.cpp:189
+msgid "Amplitude Envelope (EG1)"
+msgstr ""
+
+#: ../src/gigedit/dimregionedit.cpp:206
+msgid "Amplitude Oscillator (LFO1)"
+msgstr ""
+
+#: ../src/gigedit/dimregionedit.cpp:236
+msgid "General Filter Settings"
+msgstr ""
+
+#: ../src/gigedit/dimregionedit.cpp:304
+msgid "Filter Cutoff Envelope (EG2)"
+msgstr ""
+
+#: ../src/gigedit/dimregionedit.cpp:317
+msgid "Filter Cutoff Oscillator (LFO2)"
+msgstr ""
+
+#: ../src/gigedit/dimregionedit.cpp:339
+msgid "General Pitch Settings"
+msgstr ""
+
+#: ../src/gigedit/dimregionedit.cpp:342
+msgid "Pitch Envelope (EG3)"
+msgstr ""
+
+#: ../src/gigedit/dimregionedit.cpp:345
+msgid "Pitch Oscillator (LFO3)"
+msgstr ""
+
+#: ../src/gigedit/regionchooser.cpp:55
+msgid "Dimensions..."
+msgstr "Dimensioner..."

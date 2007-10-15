@@ -1,0 +1,53 @@
+Version 0.1.0 (2007-10-15)
+
+  * fixed compilation with older gcc versions
+  * added German translation
+  * reworked instrument properties dialog - properties can now be
+    edited
+  * restructured dimension region editor for elements to be in a more
+    logical and intuitive order
+  * added Makefile.cvs (just for standard compliance with other projects)
+  * added Debian packaging infrastructure
+  * implemented sample loop editing
+  * improved labels in dimension region editor
+  * use normal layout for checkboxes
+  * allow to resize dimension zones even when the respective dimension has
+    no custom dimension splits yet
+  * moved instrument editor into a shared library 'libgigedit', the 'gigedit'
+    binary is now just calling that shared library
+  * implemented an "instrument editor plugin" for LinuxSampler to allow
+    on-the-fly instrument editing within the sampler's own process
+    (revised directories to a more automake-friendly structure for this, to
+    avoid compilation and install errors)
+  * added experimental support to synchronize gigedit with LinuxSampler to
+    avoid race conditions / crash while modifying data structures
+  * added quick start documentation by Alexander Methke
+  * a changed file is now marked with an asterisk in the window title
+  * added close confirmation dialog, shown if file is changed
+  * "save" means "save as" for new files
+  * enabled acceleration keys
+  * add .gig to filename in "save as" if it's not already there
+  * filename character encodings other than utf-8 supported
+  * regions can now be moved, not just resized
+  * improved labels in instrument properties dialog
+  * remove file extensions from file names when importing samples
+  * added digits for octave numbers on the keyboard and made keys
+    outside piano range grey
+  * added support for 24 bit sample import
+  * when importing samples, settings for loops and root note are
+    copied from the sample files (if they have such settings)
+  * start with a new gig file by default
+  * make sure samplechannel dimension gets created for stereo samples
+  * allow building with older versions of gtk and libsndfile
+  * remember selected dimension when switching regions
+  * check if file is savable before trying to save
+  * gettext is now an optional dependency
+  * added Dev-C++ project files for Windows systems
+  * added status bar to the bottom of main window (independent area on the
+    right shows whether gigedit is running stand-alone or attached to
+    LinuxSampler)
+  * fixed crash when gigedit was compiled with CXXFLAGS="-g"
+
+Version 0.0.3 (2007-03-24)
+
+  * first release of gigedit

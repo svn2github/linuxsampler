@@ -1,0 +1,55 @@
+default: all
+
+all: configure
+
+check_dependencies:
+	@if ! which intltoolize > /dev/null ; then \
+	  echo "Could not find intltoolize, make sure intltool is installed!"; \
+	  exit -1; \
+	fi
+	@if ! which aclocal > /dev/null ; then \
+	  echo "Could not find aclocal, make sure automake is installed!"; \
+	  exit -1; \
+	fi
+	@if ! which autoconf > /dev/null ; then \
+	  echo "Could not find autoconf, make sure it is installed!"; \
+	  exit -1; \
+	fi
+	@if ! which autoheader > /dev/null ; then \
+	  echo "Could not find autoheader, make sure autoconf is installed!"; \
+	  exit -1; \
+	fi
+	@if ! which automake > /dev/null ; then \
+	  echo "Could not find automake, make sure it is installed!"; \
+	  exit -1; \
+	fi
+
+configure: check_dependencies configure.ac Makefile.am \
+           src/Makefile.am
+	@intltoolize --force --automake
+	@aclocal
+	@libtoolize --force --copy
+	@autoheader
+	@automake --add-missing --copy
+	@autoconf
+	######################################################################
+	# If you are compiling gigedit from CVS, make sure to use the latest #
+	# version of libgig from CVS as well !                               #
+	######################################################################
+
+.PHONY: clean
+
+clean:
+	@if [ -f Makefile ]; then make distclean; fi || true
+	@rm -rvf *.cache *.log *.status *.m4
+	@rm -rvf src/Makefile.in src/config.h.in src/config.h src/stamp-h.*
+	@rm -rvf po/Makefile.in debian/Makefile.in
+	@rm -rvf doc/Makefile.in doc/quickstart/Makefile.in doc/quickstart/gigedit_quickstart.html
+	@rm -rvf Makefile.in config.*
+	@rm -rvf missing install-sh mkinstalldirs depcomp ltmain.sh
+	@rm -rvf configure stamp-h.*
+	@find . -type l | xargs rm -f
+	@rm -rvf *~ autom4te.cache \
+		depcomp INSTALL install-sh Makefile Makefile.in missing mkinstalldirs \
+		gigedit-*.tar.gz po/*~ src/*~ gigedit.kdevelop.pcs debug src/a.out \
+		Doxyfile COPYING

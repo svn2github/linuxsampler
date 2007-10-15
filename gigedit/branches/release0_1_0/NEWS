@@ -1,0 +1,24 @@
+Version 0.1.0 (2007-10-15)
+
+  Many fixes have been made to make sure that the gig files created by
+  gigedit are working properly in LinuxSampler and GigaStudio. Gigedit
+  can now be run as a LinuxSampler plugin, allowing live editing of
+  loaded instruments. Sample loop parameters and instrument global
+  properties can now be edited. 24 bit samples can be imported. A
+  quick-start document has been added. Lots of other minor fixes and
+  improvements have been done.
+
+Version 0.0.3 (2007-03-24)
+
+  First version of gigedit. The program is renamed from gigview to
+  gigedit as it is now an editor, not just a viewer. Basic support for
+  both editing existing gig files and creating new ones from scratch
+  is provided.
+
+Version 0.0.2 (2006-11-05)
+
+  Quick fix for a thread initialization problem.
+
+Version 0.0.1 (2006-11-05)
+
+  First version of gigview.

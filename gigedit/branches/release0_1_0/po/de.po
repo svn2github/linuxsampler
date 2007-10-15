@@ -1,0 +1,276 @@
+# German translations for gigedit package
+# Deutsche Übersetzung für das gigedit Paket.
+# Copyright (C) 2006, 2007 Andreas Persson
+# This file is distributed under the same license as the gigedit package.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: gigedit 0.1.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2007-10-15 22:14+0200\n"
+"PO-Revision-Date: 2007-10-15 22:26+0200\n"
+"Last-Translator: Christian Schoenebeck\n"
+"Language-Team: German\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: ../src/gigedit/mainwindow.cpp:101
+msgid "_File"
+msgstr "_Datei"
+
+#: ../src/gigedit/mainwindow.cpp:131
+msgid "_Instrument"
+msgstr "_Instrument"
+
+#: ../src/gigedit/mainwindow.cpp:133
+#, fuzzy
+msgid "_View"
+msgstr "_Datei"
+
+#: ../src/gigedit/mainwindow.cpp:135
+msgid "_Statusbar"
+msgstr "_Statusleiste"
+
+#: ../src/gigedit/mainwindow.cpp:150
+msgid "Add _Instrument"
+msgstr "_Instrument hinzufügen"
+
+#: ../src/gigedit/mainwindow.cpp:164
+msgid "Add _Group"
+msgstr "_Gruppe hinzufügen"
+
+#: ../src/gigedit/mainwindow.cpp:168
+msgid "Add _Sample(s)"
+msgstr "_Sample(s) hinzufügen"
+
+#: ../src/gigedit/mainwindow.cpp:475
+#, c-format
+msgid "Save changes to \"%s\" before closing?"
+msgstr "Änderungen in \"%s\" vor dem Schließen speichern?"
+
+#: ../src/gigedit/mainwindow.cpp:480
+msgid "If you close without saving, your changes will be lost."
+msgstr ""
+"Wenn Sie schließen ohne vorher zu speichern, gehen all Ihre Änderungen "
+"verloren!"
+
+#: ../src/gigedit/mainwindow.cpp:482
+msgid "Close _Without Saving"
+msgstr "Ver_werfen"
+
+#: ../src/gigedit/mainwindow.cpp:493
+msgid "Detach from sampler and proceed working stand-alone?"
+msgstr "Vom Sampler trennen und Stand-Alone weiterarbeiten?"
+
+#: ../src/gigedit/mainwindow.cpp:497
+msgid ""
+"If you proceed to work on another instrument file, it won't be used by the "
+"sampler until you tell the sampler explicitly to load it."
+msgstr ""
+"Wenn Sie fortsetzen und an einer anderen Instrumenten Datei weiterarbeiten, "
+"wird diese nicht vom Sampler verwendet solange Sie den Sampler nicht "
+"explizit dazu anweisen die Datei zu laden."
+
+#: ../src/gigedit/mainwindow.cpp:502
+msgid "_Yes, Detach"
+msgstr "_Ja, Trennen"
+
+#: ../src/gigedit/mainwindow.cpp:516
+msgid "Open file"
+msgstr "Datei öffnen"
+
+#: ../src/gigedit/mainwindow.cpp:586
+msgid "The file could not be saved because it contains no samples"
+msgstr ""
+"Die Datei konnte nicht gespeichert werden, da es keine Samples beinhaltet."
+
+#: ../src/gigedit/mainwindow.cpp:595
+msgid ""
+"The file could not be saved because there are instruments that have no "
+"regions"
+msgstr ""
+"Die Datei konnte nicht gespeichert werden, da es Instrumente gibt, die keine "
+"Regions haben."
+
+#: ../src/gigedit/mainwindow.cpp:620 ../src/gigedit/mainwindow.cpp:675
+msgid "Could not save file: "
+msgstr "Konnte Datei nicht speichern: "
+
+#: ../src/gigedit/mainwindow.cpp:639
+msgid "Save as"
+msgstr "Speichern unter"
+
+#: ../src/gigedit/mainwindow.cpp:772
+msgid "Could not import the following sample(s):\n"
+msgstr "Konnte die folgenden Sample(s) nicht importieren:\n"
+
+#: ../src/gigedit/mainwindow.cpp:996
+msgid "Unsaved Gig File"
+msgstr "Ungespeicherte Gig Datei"
+
+#: ../src/gigedit/mainwindow.cpp:1142
+msgid ""
+"You cannot delete an instrument from this file, since it's currently used by "
+"the sampler."
+msgstr ""
+"Sie können kein Instrument von dieser Datei löschen, da sie gerade vom "
+"Sampler verwendet wird."
+
+#. show 'browse for file' dialog
+#: ../src/gigedit/mainwindow.cpp:1210
+msgid "Add Sample(s)"
+msgstr "Sample(s) hinzufügen"
+
+#: ../src/gigedit/mainwindow.cpp:1336
+msgid "Could not add the following sample(s):\n"
+msgstr "Konnte die folgenden Sample(s) nicht hinzufügen:\n"
+
+#: ../src/gigedit/mainwindow.cpp:1553
+msgid "live-mode"
+msgstr ""
+
+#: ../src/gigedit/mainwindow.cpp:1558
+msgid "stand-alone"
+msgstr ""
+
+#: ../src/gigedit/dimregionedit.cpp:121
+#, fuzzy
+msgid "Note this sample is associated with (a.k.a. 'root note')"
+msgstr ""
+"Note mit der dieses Sample assoziiert wird (auch als 'Root Note' bezeichnet)"
+
+#: ../src/gigedit/dimregionedit.cpp:123
+#, fuzzy
+msgid "Sample position at which playback should be started"
+msgstr "Sample Position an der die Wiedergabe gestartet werden soll"
+
+#: ../src/gigedit/dimregionedit.cpp:124
+#, fuzzy
+msgid "Stereo balance (left/right)"
+msgstr "Stereo Balance (links/rechts)"
+
+#: ../src/gigedit/dimregionedit.cpp:126
+#, fuzzy
+msgid "Output channel where the audio signal should be routed to (0 - 9)"
+msgstr "Ausgangskanal an dem das Audiosignal ausgegeben werden soll (0 - 9)"
+
+#: ../src/gigedit/dimregionedit.cpp:129
+#, fuzzy
+msgid ""
+"If true: sample will be pitched according to the key position (this would be "
+"disabled for drums for example)"
+msgstr ""
+"wenn aktiviert, wird das Sample gemäß Tastenposition gepitcht (dies würde "
+"für Drums z.B. deaktiviert sein)"
+
+#: ../src/gigedit/dimregionedit.cpp:132
+#, fuzzy
+msgid "If enabled: repeats to playback the sample"
+msgstr "wenn aktiviert, wird das Sample wiederholt abgespielt"
+
+#: ../src/gigedit/dimregionedit.cpp:134
+#, fuzzy
+msgid ""
+"Start position within the sample (in sample points) of the area to be looped"
+msgstr ""
+"Start Position im Sample (in Sample Punkten) des Bereiches der wiederholt "
+"abgespielt werden soll"
+
+#: ../src/gigedit/dimregionedit.cpp:138
+#, fuzzy
+msgid "Duration (in sample points) of the area to be looped"
+msgstr ""
+"Länge (in Sample Punkten) des Bereiches der wiederholt abgespielt werden soll"
+
+#: ../src/gigedit/dimregionedit.cpp:141
+#, fuzzy
+msgid "Direction in which the loop area in the sample should be played back"
+msgstr "Richtung in welcher der Loop Bereich im Sample abgespielt werden soll"
+
+#: ../src/gigedit/dimregionedit.cpp:144
+#, fuzzy
+msgid ""
+"Whether the loop area should be played back forever\n"
+"Caution: this setting is stored on Sample side, thus is shared among all "
+"dimension regions that use this sample!"
+msgstr ""
+"wenn aktiviert, wird der Loop Bereich endlos wiederholt abgespieltAchtung: "
+"diese Einstellung wird Sample-seitig gespeichert, folglich wird sie mit "
+"allen Dimension Regions geteilt, die dasselbe Sample verwenden!"
+
+#: ../src/gigedit/dimregionedit.cpp:149
+#, fuzzy
+msgid ""
+"How many times the loop area should be played back\n"
+"Caution: this setting is stored on Sample side, thus is shared among all "
+"dimension regions that use this sample!"
+msgstr ""
+"Anzahl der Wiederholungen mit der der Loop Bereich abgespielt werden "
+"sollAchtung: diese Einstellung wird Sample-seitig gespeichert, folglich wird "
+"sie mit allen Dimension Regions geteilt, die dasselbe Sample verwenden!"
+
+#: ../src/gigedit/dimregionedit.cpp:158
+#, fuzzy
+msgid "Mandatory Settings"
+msgstr "Zwingende Einstellungen:"
+
+#. TODO: the following would break drag&drop:   wSample->property_editable().set_value(false);  or this:    wSample->set_editable(false);
+#: ../src/gigedit/dimregionedit.cpp:161
+#, fuzzy
+msgid "Drop a sample here"
+msgstr "ziehen Sie ein Sample hierher"
+
+#: ../src/gigedit/dimregionedit.cpp:163
+#, fuzzy
+msgid "Optional Settings"
+msgstr "Optionale Einstellungen:"
+
+#: ../src/gigedit/dimregionedit.cpp:185
+#, fuzzy
+msgid "General Amplitude Settings"
+msgstr "Allgem. Amplituden Einstellungen:"
+
+#: ../src/gigedit/dimregionedit.cpp:189
+#, fuzzy
+msgid "Amplitude Envelope (EG1)"
+msgstr "Amplituden Hüllkurve (EG1):"
+
+#: ../src/gigedit/dimregionedit.cpp:206
+#, fuzzy
+msgid "Amplitude Oscillator (LFO1)"
+msgstr "Amplituden Oszillator (LFO1):"
+
+#: ../src/gigedit/dimregionedit.cpp:236
+#, fuzzy
+msgid "General Filter Settings"
+msgstr "Allgem. Filter Einstellungen:"
+
+#: ../src/gigedit/dimregionedit.cpp:304
+#, fuzzy
+msgid "Filter Cutoff Envelope (EG2)"
+msgstr "Filter Cutoff Hüllkurve (EG2):"
+
+#: ../src/gigedit/dimregionedit.cpp:317
+#, fuzzy
+msgid "Filter Cutoff Oscillator (LFO2)"
+msgstr "Filter Cutoff Oszillator (LFO2):"
+
+#: ../src/gigedit/dimregionedit.cpp:339
+#, fuzzy
+msgid "General Pitch Settings"
+msgstr "Allgem. Pitch Einstellungen:"
+
+#: ../src/gigedit/dimregionedit.cpp:342
+#, fuzzy
+msgid "Pitch Envelope (EG3)"
+msgstr "Pitch Hüllkurve (EG3):"
+
+#: ../src/gigedit/dimregionedit.cpp:345
+#, fuzzy
+msgid "Pitch Oscillator (LFO3)"
+msgstr "Pitch Oszillator (LFO3):"
+
+#: ../src/gigedit/regionchooser.cpp:55
+msgid "Dimensions..."
+msgstr ""
