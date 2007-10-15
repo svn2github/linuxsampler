@@ -786,6 +786,18 @@ void MainWindow::on_action_help_about()
 #ifdef ABOUT_DIALOG
     Gtk::AboutDialog dialog;
     dialog.set_version(VERSION);
+    dialog.set_copyright("Copyright (C) 2006,2007 Andreas Persson");
+    dialog.set_comments(
+        "Released under the GNU General Public License.\n"
+        "\n"
+        "Please notice that this is still a very young instrument editor. "
+        "So better backup your Gigasampler files before editing them with "
+        "this application.\n"
+        "\n"
+        "Please report bugs to: http://bugs.linuxsampler.org"
+    );
+    dialog.set_website("http://www.linuxsampler.org");
+    dialog.set_website_label("http://www.linuxsampler.org");
     dialog.run();
 #endif
 }
