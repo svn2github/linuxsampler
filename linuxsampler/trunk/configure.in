@@ -875,7 +875,7 @@ AC_DEFINE_UNQUOTED(
     "$config_default_instruments_db_file",
     [Only when instruments DB feature is enabled: default location of the DB file.]
 )
-
+AC_SUBST(config_default_instruments_db_file)
 
 
 ###########################################################################
