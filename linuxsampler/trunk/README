@@ -94,14 +94,8 @@ Compiling on Linux
     "/usr/src/<rpmdir>/RPMS/<arch>" directory.
 
 
-Compilation on OSX : Stephane Letz (letz@grame.fr)
---------------------------------------------------
+Compilation on OSX
+------------------
 
-The compilation on OSX currently uses an XCode project.
-
-- Download and install the JackOSX package (www.jackosx.com)
-
-- In the "osx" folder, possibly manually edit the version.h to change the version number
-
-- In the XCode project, build the "LinuxSampler" target
-
+    Please read osx/README.osx for detailed instructions about how to
+    compile the sampler for Mac OSX.

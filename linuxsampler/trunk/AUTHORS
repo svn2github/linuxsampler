@@ -13,8 +13,8 @@ Not to forget the huge list of bugs he fixed.
 Steve Harris made the filter impulse response analysis of the Gigasampler
 filters and developed the first version of the Gigasampler style filters.
 
-Stéphane Letz <letz@grame.fr> was responsible for the OS X port and fixed
-couple of bugs.
+Stéphane Letz <letz@grame.fr> was responsible for the initial OS X port and
+fixed couple of bugs.
 
 Rui Nuno Capela was also especially involved in the "LSCP" design and
 implementation.
@@ -26,7 +26,11 @@ and bug fixes.
 
 Grigor Iliev <grishata@users.sourceforge.net> added and implemented LSCP
 commands for muting and solo-ing sampler channels, added sostenuto pedal
-support and fixed a bunch of bugs regarding the LSCP server.
+support, implemented the instruments database system and fixed a lot of
+bugs.
+
+Toshi Nagata was responsible for the current OS X port and added autoconf
+support to the XCode project file.
 
 Smaller (but not necessarily minor) patches were received from the following
 people:
@@ -35,3 +39,4 @@ people:
     "Gene" a.k.a Anders Alm
     Ebrahim Mayat
     Juan Linietsky
+    Till Wimmer
