@@ -1,0 +1,58 @@
+Version 0.5.0 (15 October 2007)
+
+  This release comes with a bunch of important new features. We implemented
+  a very powerful and easy MIDI program change mapping, which not only
+  allows you to define which instrument to load on which MIDI program
+  change number (and bank select number), it also allows further parameters
+  like whether the instrument shall be pre-cached or loaded only when needed
+  (and likewise freed when not needed). You can create arbitrary amount of
+  effect sends for each sampler channel, each having an arbitrary MIDI
+  controller for controlling the effect send level in realtime and can
+  flexible be routed to some of the sampler's audio output channel, i.e.
+  to a dedicated one for a certain effect type. The new instruments
+  database allows you to keep track even of largest instrument library
+  collections. You can order them in categories and search by various
+  criteria. The sampler now allows third party applications to offer so
+  called 'instrument editor plugins' which the sampler can use to spawn
+  an appropriate instrument editor application for a selected instrument
+  and for allowing to edit instruments with such an external editor
+  application on-the-fly, that is all modifications made with the editor
+  will immediately be audible with the sampler. No need to reload instrument
+  files anymore. Checkout our brand new instrument editor application called
+  'gigedit' which you can use for this feature. Loading huge instruments may
+  take a long time, that's why the sampler now allows to play an instrument
+  while loading. That way you can i.e. play and hold notes on the keyboard
+  while loading a new instrument on the same sampler channel at the same
+  time. Beside these new features, you can find the common huge list of bug
+  fixes and quality improvements.
+
+Version 0.4.0 (24 November 2006)
+
+  Finally a new release after a long development cycle. The sampler now has
+  a completely revised synthesis core. Note that due to this, most of the
+  assembly code became incompatible and is thus deactivated at compile
+  time. So don't bother trying to activate the assembly option, it won't
+  compile! That's not an issue though, because even without assembly, the
+  new synthesis core is faster than the old one with assembly. The
+  Gigasampler engine now has real support for 24 bit samples, that is they
+  won't be truncated anymore, and finally supports all filter types of the
+  Gigasampler format. A lot of effort has been put into making all filters
+  under all parameters being as accurate as possible, compared to the
+  original Gigasampler ones. Analogue to hardware mixers, sampler channels
+  can now be muted and solo-ed and there is support for GM portamento and
+  GM mono mode (single note per channel) as well as support for sostenuto
+  pedal. Beside LSCP, third-party applications can now also link against
+  liblinuxsampler directly (using the sampler's C++ API). Beside these,
+  there have been of course a huge bunch of fixes and quality improvements.
+
+Version 0.3.3 (15 July 2005)
+
+  Another bug fix release. It solves one usability issue regarding small
+  fragments / high sampling rates of audio drivers, fixes some compile time
+  errors with GCC 4.0 and fixes a minor efficiency bug.
+
+Version 0.3.2 (24 June 2005)
+
+  This is more or less just a bug fix release. Beside a bunch of little
+  fixes it solves a serious crash in conjunction with voice stealing and
+  slightly improves Gigasampler format playback accuracy.

@@ -1,0 +1,1076 @@
+AC_INIT(configure.in)
+
+#------------------------------------------------------------------------------------
+# LinuxSampler's / liblinuxsampler's "official" release version:
+
+LINUXSAMPLER_RELEASE_MAJOR=0
+LINUXSAMPLER_RELEASE_MINOR=5
+LINUXSAMPLER_RELEASE_BUILD=0
+
+#------------------------------------------------------------------------------------
+# The following is the libtool / shared library version. This doesn't have to
+# do anything with the release version. It MUST conform to the following rules:
+#
+#  1. Start with version information of `0:0:0' for each libtool library.
+#  2. Update the version information only immediately before a public release of
+#     your software. More frequent updates are unnecessary, and only guarantee
+#     that the current interface number gets larger faster.
+#  3. If the library source code has changed at all since the last update, then
+#     increment revision (`c:r:a' becomes `c:r+1:a').
+#  4. If any interfaces have been added, removed, or changed since the last update,
+#     increment current, and set revision to 0.
+#  5. If any interfaces have been added since the last public release, then increment
+#     age.
+#  6. If any interfaces have been removed since the last public release, then set age
+#     to 0.
+
+LIBLINUXSAMPLER_LT_CURRENT=1
+LIBLINUXSAMPLER_LT_REVISION=0
+LIBLINUXSAMPLER_LT_AGE=0
+SHARED_VERSION_INFO="$LIBLINUXSAMPLER_LT_CURRENT:$LIBLINUXSAMPLER_LT_REVISION:$LIBLINUXSAMPLER_LT_AGE"
+
+#------------------------------------------------------------------------------------
+# the LSCP specification version this LinuSampler release complies with:
+
+LSCP_RELEASE_MAJOR=1
+LSCP_RELEASE_MINOR=2
+
+AC_DEFINE_UNQUOTED(LSCP_RELEASE_MAJOR, ${LSCP_RELEASE_MAJOR}, [LSCP spec major version this release complies with.])
+AC_DEFINE_UNQUOTED(LSCP_RELEASE_MINOR, ${LSCP_RELEASE_MINOR}, [LSCP spec minor version this release complies with.])
+
+AM_PROG_LIBTOOL
+
+AC_SUBST(SHLIB_VERSION_ARG)
+AC_SUBST(SHARED_VERSION_INFO)
+
+AC_C_BIGENDIAN
+AC_CANONICAL_SYSTEM
+
+AC_SUBST(target)
+AC_SUBST(target_alias)
+AC_SUBST(target_cpu)
+AC_SUBST(target_os)
+AC_SUBST(target_vendor)
+
+
+###########################################################################
+# General Checks
+
+AC_MSG_CHECKING([whether x86 architecture])
+def_arch_x86=0
+case $target_cpu in
+  "i386" | "i486" | "i586" | "i686" | "i786")
+    echo "yes"
+    def_arch_x86=1;;
+  *)
+    echo "no";;
+esac
+AC_DEFINE_UNQUOTED(ARCH_X86,$def_arch_x86,[Define to 1 if you build for x86 architecture.])
+
+# determine the right gcc switch for CPU specific optimizations
+# (only if the user did not provide one)
+CXX_CPU_SWITCH=
+if ! echo "X $CXXFLAGS " | grep -q -- " \(-march=\|-mcpu=\|-mtune=\|-arch=\)" ; then
+  if test "$def_arch_x86" = 1; then
+    CXX_CPU_SWITCH="-march=$target_cpu"
+  elif test "$target_cpu" = "ppc"; then
+    CXX_CPU_SWITCH="-arch=$target_cpu"
+  fi
+fi
+AC_SUBST([CXX_CPU_SWITCH])
+
+AC_MSG_CHECKING([whether UNIX98 compatible])
+AC_LANG_SAVE
+AC_LANG_C
+AC_TRY_RUN([
+#ifndef _GNU_SOURCE
+#define _GNU_SOURCE 1
+#endif
+#include <features.h>
+void main(void) {
+#if _XOPEN_SOURCE >= 500
+exit(0); /* UNIX98 compatible */
+#else
+exit(-1); /* not UNIX98 compatible */
+#endif
+}
+],
+have_unix98="yes",
+have_unix98="no",
+have_unix98="no"
+)
+AC_LANG_RESTORE
+AC_MSG_RESULT([$have_unix98])
+if test "$have_unix98" = "no"; then
+    if test "x$HAVE_UNIX98" = "x"; then
+        echo "LinuxSampler only runs on UNIX98 compatible systems, which is mandatory for"
+        echo "pthread_mutexattr_settype() call in Mutex.cpp. You may want to run
+        echo "./configure with environment variable HAVE_UNIX98=1 in case you think you
+        echo "have a UNIX98 compatible system."
+        exit -1;
+    fi
+fi
+
+# check for <features.h>
+AC_CHECK_HEADERS(features.h)
+
+
+###########################################################################
+# Checks for available audio and MIDI systems / drivers
+# (we throw an error if there's not at least one system for audio output and MIDI input available)
+
+have_midi_input_driver="false"
+have_audio_output_driver="false"
+
+# ALSA
+AC_ARG_ENABLE(alsa-driver,
+  [  --disable-alsa-driver
+                          Disable support for the Advanced Linux Sound
+                          Architecture (ALSA).],
+  [config_alsa_driver="$enableval"],
+  [config_alsa_driver="yes"]
+)
+have_alsa=0
+if test "$config_alsa_driver" = "yes"; then
+    AC_CHECK_HEADER(alsa/asoundlib.h,
+        AC_CHECK_LIB(asound, main,
+                                 have_alsa=1
+                                 ,
+                                 have_alsa=0
+                    )
+                    ,
+                    have_alsa=0
+    )
+    if test "$have_alsa" = "1"; then
+        have_midi_input_driver="true"
+        have_audio_output_driver="true";
+    fi
+
+    echo -n "checking Alsa version... "
+    AC_LANG_SAVE
+    AC_LANG_C
+    AC_TRY_RUN([
+        #include <alsa/asoundlib.h>
+        void main(void) {
+            /* ensure backward compatibility */
+            #if !defined(SND_LIB_MAJOR) && defined(SOUNDLIB_VERSION_MAJOR)
+            #define SND_LIB_MAJOR SOUNDLIB_VERSION_MAJOR
+            #endif
+            exit(SND_LIB_MAJOR);
+        }
+    ],
+    alsa_major=0,
+    alsa_major=$?,
+    alsa_major=0
+    )
+    AC_TRY_RUN([
+        #include <alsa/asoundlib.h>
+        void main(void) {
+            /* ensure backward compatibility */
+            #if !defined(SND_LIB_MINOR) && defined(SOUNDLIB_VERSION_MINOR)
+            #define SND_LIB_MINOR SOUNDLIB_VERSION_MINOR
+            #endif
+            exit(SND_LIB_MINOR);
+        }
+    ],
+    alsa_minor=0,
+    alsa_minor=$?,
+    alsa_minor=0
+    )
+    AC_TRY_RUN([
+        #include <alsa/asoundlib.h>
+        void main(void) {
+            /* ensure backward compatibility */
+            #if !defined(SND_LIB_SUBMINOR) && defined(SOUNDLIB_VERSION_SUBMINOR)
+            #define SND_LIB_SUBMINOR SOUNDLIB_VERSION_SUBMINOR
+            #endif
+            exit(SND_LIB_SUBMINOR);
+        }
+    ],
+    alsa_subminor=0,
+    alsa_subminor=$?,
+    alsa_subminor=0
+    )
+    AC_LANG_RESTORE
+    echo "$alsa_major.$alsa_minor.$alsa_subminor";
+    AC_DEFINE_UNQUOTED(ALSA_MAJOR,$alsa_major,[Define to the major version number of your Alsa installation.])
+    AC_DEFINE_UNQUOTED(ALSA_MINOR,$alsa_minor,[Define to the minor version number of your Alsa installation.])
+    AC_DEFINE_UNQUOTED(ALSA_SUBMINOR,$alsa_subminor,[Define to the subminor version number of your Alsa installation.])
+else
+    echo "ALSA support disabled by configure script parameter"
+fi
+AM_CONDITIONAL(HAVE_ALSA, test $have_alsa = "1")
+AC_DEFINE_UNQUOTED(HAVE_ALSA,$have_alsa,[Define to 1 if you have ALSA installed.])
+
+# JACK
+AC_ARG_ENABLE(jack-driver,
+  [  --disable-jack-driver
+                          Disable support for the Jack Audio Connection Kit
+                          (JACK).],
+  [config_jack_driver="$enableval"],
+  [config_jack_driver="yes"]
+)
+have_jack=0
+if test "$config_jack_driver" = "yes"; then
+    PKG_CHECK_MODULES(JACK, jack, have_jack=1, have_jack=0)
+    if test $have_jack = "1"; then
+        AC_SUBST(JACK_LIBS)
+        AC_SUBST(JACK_CFLAGS)
+        AC_CHECK_LIB(jack, jack_client_name_size, [AC_DEFINE(HAVE_JACK_CLIENT_NAME_SIZE, 1, [Define to 1 if you have the `jack_client_name_size' function.])], , $JACK_LIBS)
+        have_audio_output_driver="true";
+    fi
+else
+    echo "JACK support disabled by configure script parameter"
+fi
+AM_CONDITIONAL(HAVE_JACK, test $have_jack = "1")
+AC_DEFINE_UNQUOTED(HAVE_JACK,$have_jack,[Define to 1 if you have JACK installed.])
+
+# ARTS
+AC_ARG_ENABLE(arts-driver,
+  [  --disable-arts-driver
+                          Disable support for the Analogue Realtime System
+                          (aRts).],
+  [config_arts_driver="$enableval"],
+  [config_arts_driver="yes"]
+)
+have_arts=0
+if test "$config_arts_driver" = "yes"; then
+    m4_ifdef([m4_include(m4/arts.m4)],,
+             [sinclude([m4/arts.m4])])
+    AM_PATH_ARTS(0.9.5, have_arts=1, have_arts=0)
+    if test "$have_arts" = "1"; then
+        have_audio_output_driver="true"
+    fi
+else
+    echo "ARTS support disabled by configure script parameter"
+fi
+AM_CONDITIONAL(HAVE_ARTS, test "$have_arts" = "1")
+AC_DEFINE_UNQUOTED(HAVE_ARTS,$have_arts,[Define to 1 if you have aRts installed.])
+
+# MidiShare (Linux, OS X, Windows)
+AC_ARG_ENABLE(midishare-driver,
+  [  --disable-midishare-driver
+                          Disable support for the MidiShare system.],
+  [config_midishare_driver="$enableval"],
+  [config_midishare_driver="yes"]
+)
+have_midishare=0
+if test "$config_midishare_driver" = "yes"; then
+    AC_CHECK_HEADER(MidiShare.h,
+        AC_CHECK_LIB(MidiShare, MidiCountEvs,
+                                have_midishare=1,
+                                have_midishare=0
+                    )
+                    ,
+                    have_midishare=0
+    )
+    if test "$have_midishare" = "1"; then
+        have_midi_input_driver="true"
+    fi
+else
+    echo "MidiShare support disabled by configure script parameter"
+fi
+AM_CONDITIONAL(HAVE_MIDISHARE, test $have_midishare = "1")
+AC_DEFINE_UNQUOTED(HAVE_MIDISHARE,$have_midishare,[Define to 1 if you have MidiShare installed.])
+
+# CoreMIDI (OS X)
+AC_ARG_ENABLE(coremidi-driver,
+  [  --disable-coremidi-driver
+                          Disable support for the Apple CoreMIDI system.],
+  [config_coremidi_driver="$enableval"],
+  [config_coremidi_driver="yes"]
+)
+have_coremidi=0
+if test "$config_coremidi_driver" = "yes"; then
+    AC_CHECK_HEADER(CoreMIDI/CoreMIDI.h,
+        have_coremidi=1,
+        have_coremidi=0
+    )
+    if test "$have_coremidi" = "1"; then
+        have_midi_input_driver="true"
+    fi
+else
+    echo "CoreMIDI support disabled by configure script parameter"
+fi
+AM_CONDITIONAL(HAVE_COREMIDI, test $have_coremidi = "1")
+AC_DEFINE_UNQUOTED(HAVE_COREMIDI,$have_coremidi,[Define to 1 if you have CoreMIDI installed.])
+
+# have we found at least one MIDI input and one audio output driver ?
+if test "$have_midi_input_driver" = "false"; then
+    echo "No supported MIDI input system found!"
+    echo "Sorry, LinuxSampler only supports the following MIDI drivers at the moment:"
+    echo "ALSA, MIDIShare, CoreMIDI."
+    echo "If you think you have one of those available on your system, make sure you"
+    echo "also have the respective development (header) files installed."
+    exit -1;
+fi
+if test "$have_audio_output_driver" = "false"; then
+    echo "No supported audio output system found!"
+    echo "Sorry, LinuxSampler only supports ALSA, JACK and ARTS as audio output"
+    echo "driver at the moment!"
+    exit -1;
+fi
+
+
+
+###########################################################################
+# Checks for various DLL libraries
+
+# Check presence of libgig
+libgig_version="3.2.0"
+PKG_CHECK_MODULES(GIG, gig >= $libgig_version, HAVE_GIG=true, HAVE_GIG=false)
+if test "$HAVE_GIG" = "false"; then
+    echo "Required libgig version not found!"
+    echo "You need to have libgig version ${libgig_version} installed!"
+    exit -1;
+else
+    echo "yes, found libgig $libgig_version"
+fi
+AC_SUBST(GIG_CFLAGS)
+AC_SUBST(GIG_LIBS)
+
+# Instruments DB feature (requires SQLite 3.3)
+AC_ARG_ENABLE(instruments-db,
+  [  --disable-instruments-db
+                          Disable compilation of the sampler's instruments
+                          database feature. You need to have SQLite 3.3
+                          or younger installed for this feature.],
+  [config_instruments_db="$enableval"],
+  [config_instruments_db="yes"]
+)
+HAVE_SQLITE3=0;
+if test "$config_instruments_db" = "yes"; then
+    # Check presence of sqlite3
+    sqlite_version="3.3"
+    PKG_CHECK_MODULES(SQLITE3, sqlite3 >= $sqlite_version, HAVE_SQLITE3=true, HAVE_SQLITE3=false)
+    AC_SUBST(SQLITE3_LIBS)
+    AC_SUBST(SQLITE3_CFLAGS)
+    if test $HAVE_SQLITE3 = false; then
+        HAVE_SQLITE3=0
+        config_instruments_db="no"
+        echo "*** Required sqlite version not found!"
+        echo "*** You need to have sqlite version ${sqlite_version} or higher"
+        echo "*** for instruments database support to be enabled."
+        echo "*** Support for instruments DB will be disabled!"
+    else
+        HAVE_SQLITE3=1
+    fi
+else
+    echo "Instruments DB feature disabled by configure script parameter"
+fi
+AM_CONDITIONAL(HAVE_SQLITE3, test $HAVE_SQLITE3 = 1)
+AC_DEFINE_UNQUOTED(HAVE_SQLITE3,$HAVE_SQLITE3,[Define to 1 if you want the instruments DB feature and have SQLITE3 installed.])
+
+
+
+###########################################################################
+# Handle Configuration Options
+
+# TODO: should we use AC_ARG_VAR(variable, description) instead?
+
+AC_ARG_ENABLE(asm,
+  [  --disable-asm
+                          Enable hand-crafted assembly optimizations
+                          (default=on). LinuxSampler provides CPU specific
+                          assembly optimizations. This is currently limited
+                          to just enter a fast (denormal) FPU mode on x86
+                          platforms. There are currently no synthesis core
+                          assembly optimizations anymore since LS 0.4.0],
+  [config_asm="$enableval"],
+  [config_asm="yes"]
+)
+if test "$config_asm" = "yes"; then
+  AC_DEFINE_UNQUOTED(CONFIG_ASM, 1, [Define to 1 if you want to enable asm optimizations.])
+fi
+
+AC_ARG_ENABLE(dev-mode,
+  [  --enable-dev-mode
+                          Enable development mode (default=off). In that mode
+                          we do some extra sanity checks here and there.
+                          This helps to spot possible problems, but reduces
+                          efficiency a bit],
+  [config_dev_mode="$enableval"],
+  [config_dev_mode="no"]
+)
+if test "$config_dev_mode" = "yes"; then
+  AC_DEFINE_UNQUOTED(CONFIG_DEVMODE, 1, [Define to 1 if you want to enable development mode.])
+fi
+
+AC_ARG_ENABLE(debug-level,
+  [  --enable-debug-level
+                          Specify verbosity of console messages (default=1).
+                          The higher the value, the higher will be verbosity.
+                          A value of 0 means no console output at all.
+                          There's not really an upper limit but the usual
+                          level of all messages is currently somewhere less
+                          than 10.],
+  [config_debug_level="${enableval}"],
+  [config_debug_level="1"]
+)
+AC_DEFINE_UNQUOTED(CONFIG_DEBUG_LEVEL, $config_debug_level, [Define console verbosity.])
+
+AC_ARG_ENABLE(rt-exceptions,
+  [  --enable-rt-exceptions
+                          Enable exceptions in the realtime thread
+                          (default=no). If this is enabled, exceptions will
+                          be thrown on critical errors in the realtime
+                          context as well. Otherwise if disabled
+                          segmentation faults will be forced by the
+                          application on critical errors.],
+  [config_rt_exceptions="$enableval"],
+  [config_rt_exceptions="no"]
+)
+if test "$config_rt_exceptions" = "yes"; then
+  AC_DEFINE_UNQUOTED(CONFIG_RT_EXCEPTIONS, 1, [Define to 1 to allow exceptions in the realtime context.])
+fi
+
+AC_ARG_ENABLE(preload-samples,
+  [  --enable-preload-samples
+                          Due to seeking and latency issues with hard drives
+                          we have to cache a small part of samples' head in
+                          RAM (default=32768). The higher this value the
+                          more memory will be occupied for each sample, but
+                          the safer this will be in regards of possible
+                          droputs. A 'good' value depends on the running
+                          system and usage dependant factors.],
+  [config_preload_samples="${enableval}"],
+  [config_preload_samples="32768"]
+)
+AC_DEFINE_UNQUOTED(CONFIG_PRELOAD_SAMPLES, $config_preload_samples, [Define amount of sample points to be cached in RAM.])
+
+AC_ARG_ENABLE(max-pitch,
+  [  --enable-max-pitch
+                          Specify the maximum allowed pitch value in octaves
+                          (default=4). To lower memory usage you might want
+                          set a smaller value.],
+  [config_max_pitch="${enableval}"],
+  [config_max_pitch="4"]
+)
+AC_DEFINE_UNQUOTED(CONFIG_MAX_PITCH, $config_max_pitch, [Define max. allowed pitch.])
+
+AC_ARG_ENABLE(max-events,
+  [  --enable-max-events
+                          Specify the maximum allowed amount of events to be
+                          processed per fragment (default=1024).],
+  [config_max_events="${enableval}"],
+  [config_max_events="1024"]
+)
+AC_DEFINE_UNQUOTED(CONFIG_MAX_EVENTS_PER_FRAGMENT, $config_max_events, [Define max. allowed events per fragment.])
+
+AC_ARG_ENABLE(eg-bottom,
+  [  --enable-eg-bottom
+                          Bottom limit of envelope generators
+                          (default=0.001). Certain kinds of curve types like
+                          exponential curves converge against 0 but never
+                          reach 0. So we have to define a certain low value
+                          after which we should consider all smaller values
+                          to be 'almost zero'. The smaller this value, the
+                          longer will voices survive in EG's release stage
+                          and thus waste voices. If this value is too high
+                          will cause click sounds though.],
+  [config_eg_bottom="${enableval}"],
+  [config_eg_bottom="0.001"]
+)
+AC_DEFINE_UNQUOTED(CONFIG_EG_BOTTOM, $config_eg_bottom, [Define bottom limit of envelopes.])
+
+AC_ARG_ENABLE(eg-min-release-time,
+  [  --enable-eg-min-release-time
+                          Specify the lowest allowed release time in seconds
+                          (default=0.0025). This value will also be used to
+                          ramp down voices on voice stealing. This value
+                          should always be less than the period time of the
+                          used audio driver, as in case of voice stealing
+                          the killed voice needs to be completely ramped
+                          down in the same fragment.],
+  [config_eg_min_release_time="${enableval}"],
+  [config_eg_min_release_time="0.0025"]
+)
+AC_DEFINE_UNQUOTED(CONFIG_EG_MIN_RELEASE_TIME, $config_eg_min_release_time, [Define min. release time.])
+
+AC_ARG_ENABLE(refill-streams,
+  [  --enable-refill-streams
+                          Number of streams that should be refilled in each
+                          disk thread cycle (default=4).],
+  [config_refill_streams="${enableval}"],
+  [config_refill_streams="4"]
+)
+AC_DEFINE_UNQUOTED(CONFIG_REFILL_STREAMS_PER_RUN, $config_refill_streams, [Define amount of streams to be refilled per cycle.])
+
+AC_ARG_ENABLE(stream-min-refill,
+  [  --enable-stream-min-refill
+                          Minimum refill size for disk streams (default=1024).
+                          The disk thread will go to sleep for a while if no
+                          stream had to be refilled more than this value in
+                          a disk thread cycle.],
+  [config_stream_min_refill="${enableval}"],
+  [config_stream_min_refill="1024"]
+)
+AC_DEFINE_UNQUOTED(CONFIG_STREAM_MIN_REFILL_SIZE, $config_stream_min_refill, [Define min. stream refill size.])
+
+AC_ARG_ENABLE(stream-max-refill,
+  [  --enable-stream-max-refill
+                          Maximum refill size for disk streams
+                          (default=65536). The disk thread will refill
+                          each stream only by a size of this value per
+                          disk thread cycle.],
+  [config_stream_max_refill="${enableval}"],
+  [config_stream_max_refill="65536"]
+)
+AC_DEFINE_UNQUOTED(CONFIG_STREAM_MAX_REFILL_SIZE, $config_stream_max_refill, [Define max. stream refill size.])
+
+AC_ARG_ENABLE(stream-size,
+  [  --enable-stream-size
+                          Size of each stream's ring buffer in sample points
+                          (default=262144).],
+  [config_stream_size="${enableval}"],
+  [config_stream_size="262144"]
+)
+AC_DEFINE_UNQUOTED(CONFIG_STREAM_BUFFER_SIZE, $config_stream_size, [Define each stream's ring buffer size.])
+
+AC_ARG_ENABLE(max-streams,
+  [  --enable-max-streams
+                          Maximum amount of disk streams (default=90). This
+                          value should always be higher than the maximum
+                          amount of voices.],
+  [config_max_streams="${enableval}"],
+  [config_max_streams="90"]
+)
+AC_DEFINE_UNQUOTED(CONFIG_MAX_STREAMS, $config_max_streams, [Define max. streams.])
+
+AC_ARG_ENABLE(max-voices,
+  [  --enable-max-voices
+                          Maximum amount of voices (default=64). This value
+                          should always be lower than the maximum amount of
+                          disk streams.],
+  [config_max_voices="${enableval}"],
+  [config_max_voices="64"]
+)
+AC_DEFINE_UNQUOTED(CONFIG_MAX_VOICES, $config_max_voices, [Define max. voices.])
+
+AC_ARG_ENABLE(subfragment-size,
+  [  --enable-subfragment-size
+                          Every audio fragment will be splitted into
+                          subfragments. Where each subfragment renders
+                          audio with constant synthesis parameters. This is
+                          done for efficiency reasons. This parameter
+                          defines the default size of a subfragment in
+                          sample points. A large value means less CPU time
+                          whereas a low value means better audio quality
+                          (default=32).],
+  [config_subfragment_size="${enableval}"],
+  [config_subfragment_size="32"]
+)
+AC_DEFINE_UNQUOTED(CONFIG_DEFAULT_SUBFRAGMENT_SIZE, $config_subfragment_size, [Define default subfragment size (in sample points).])
+
+AC_ARG_ENABLE(global-attenuation-default,
+  [  --enable-global-attenuation-default
+                          To prevent clipping all samples will be lowered
+                          in amplitude by this given default factor (can
+                          be overridden at runtime).
+                          (default=0.35)],
+  [config_global_attenuation_default="${enableval}"],
+  [config_global_attenuation_default="0.35"]
+)
+AC_DEFINE_UNQUOTED(CONFIG_GLOBAL_ATTENUATION_DEFAULT, $config_global_attenuation_default, [Define default global volume attenuation (as floating point factor).])
+
+AC_ARG_ENABLE(voice-steal-algo,
+  [  --enable-voice-steal-algo
+                          Voice stealing algorithm to be used. Currently
+                          available options:
+                            none:
+                              Disable voice stealing completely.
+                            oldestvoiceonkey (default):
+                              Try to kill a voice on the same key first,
+                              if no success, proceed with the oldest key.
+                            oldestkey:
+                              Try to kill a voice from the oldest active
+                              key.],
+  [ if test ! "(" "${enableval}" = "none" \
+              -o "${enableval}" = "oldestvoiceonkey" \
+              -o "${enableval}" = "oldestkey" ")" ; then
+      AC_MSG_ERROR([Unknown voice stealing algorithm for parameter --enable-voice-steal-algo])
+    else
+      config_voice_steal_algo="${enableval}"
+    fi
+  ],
+  [config_voice_steal_algo="oldestvoiceonkey"]
+)
+AC_DEFINE_UNQUOTED(CONFIG_VOICE_STEAL_ALGO, voice_steal_algo_${config_voice_steal_algo}, [Define voice stealing algorithm to be used.])
+
+AC_ARG_ENABLE(sysex-buffer-size,
+  [  --enable-sysex-buffer-size
+                          System Exclusive Message buffer size in kB
+                          (default=2048).],
+  [config_sysex_buffer_size="${enableval}"],
+  [config_sysex_buffer_size="2048"]
+)
+AC_DEFINE_UNQUOTED(CONFIG_SYSEX_BUFFER_SIZE, $config_sysex_buffer_size, [Define SysEx buffer size.])
+
+AC_ARG_ENABLE(force-filter,
+  [  --enable-force-filter
+                          If enabled will force filter to be used even if
+                          no usage was define in instrument patch files.
+                          (default=no).],
+  [config_force_filter="$enableval"],
+  [config_force_filter="no"]
+)
+if test "$config_force_filter" = "yes"; then
+  AC_DEFINE_UNQUOTED(CONFIG_FORCE_FILTER, 1, [Define to 1 to force filter usage.])
+fi
+
+AC_ARG_ENABLE(filter-cutoff-min,
+  [  --enable-filter-cutoff-min
+                          Minimum filter cutoff frequency in Hz
+                          (default=100.0).],
+  [config_filter_cutoff_min="${enableval}"],
+  [config_filter_cutoff_min="100.0"]
+)
+AC_DEFINE_UNQUOTED(CONFIG_FILTER_CUTOFF_MIN, ${config_filter_cutoff_min}f, [Define min. filter cutoff frequency.])
+
+AC_ARG_ENABLE(filter-cutoff-max,
+  [  --enable-filter-cutoff-max
+                          Maximum filter cutoff frequency in Hz
+                          (default=10000.0).],
+  [config_filter_cutoff_max="${enableval}"],
+  [config_filter_cutoff_max="10000.0"]
+)
+AC_DEFINE_UNQUOTED(CONFIG_FILTER_CUTOFF_MAX, ${config_filter_cutoff_max}f, [Define max. filter cutoff frequency.])
+
+AC_ARG_ENABLE(override-cutoff-ctrl,
+  [  --enable-override-cutoff-ctrl
+                          Override filter cutoff MIDI controller (default=no).
+                          Note: you have to define the MIDI controller number
+                          here, it's not a boolean parameter type! If this
+                          option is used, controller number given by
+                          instrument patch will be ignored and instead this
+                          supplied value will be used.],
+  [config_override_cutoff_ctrl="${enableval}"],
+  [config_override_cutoff_ctrl="no"]
+)
+if test ! "$config_override_cutoff_ctrl" = "no"; then
+  AC_DEFINE_UNQUOTED(CONFIG_OVERRIDE_CUTOFF_CTRL, $config_override_cutoff_ctrl, [Define to a MIDI controller number to override cutoff control.])
+fi
+
+AC_ARG_ENABLE(override-resonance-ctrl,
+  [  --enable-override-resonance-ctrl
+                          Override filter resonance MIDI controller
+                          (default=no). Note: you have to define the MIDI
+                          controller number here, it's not a boolean
+                          parameter type! If this option is used, controller
+                          number given by instrument patch will be ignored
+                          and instead this supplied value will be used.],
+  [config_override_resonance_ctrl="${enableval}"],
+  [config_override_resonance_ctrl="no"]
+)
+if test ! "$config_override_resonance_ctrl" = "no"; then
+  AC_DEFINE_UNQUOTED(CONFIG_OVERRIDE_RESONANCE_CTRL, $config_override_resonance_ctrl, [Define to a MIDI controller number to override resonance control.])
+fi
+
+AC_ARG_ENABLE(override-filter-type,
+  [  --enable-override-filter-type
+                          Override filter type (default=no). Options:
+                          hp: for highpass
+                          bp: for bandpass
+                          br: for bandreject
+                          lp: for lowpass
+                          lpt: for lowpass turbo],
+  [ if   test "${enableval}" = "hp" ; then
+       config_override_filter_type="::gig::vcf_type_highpass"
+    elif test "${enableval}" = "bp" ; then
+       config_override_filter_type="::gig::vcf_type_bandpass"
+    elif test "${enableval}" = "br" ; then
+       config_override_filter_type="::gig::vcf_type_bandreject"
+    elif test "${enableval}" = "lp" ; then
+       config_override_filter_type="::gig::vcf_type_lowpass"
+    elif test "${enableval}" = "lpt" ; then
+       config_override_filter_type="::gig::vcf_type_lowpassturbo"
+    elif test ! "${enableval}" = "no"; then
+       AC_MSG_ERROR([Unknown filter type for parameter --enable-override-filter-type])
+    fi
+  ],
+  [config_override_filter_type="no"]
+)
+if test ! "$config_override_filter_type" = "no"; then
+  AC_DEFINE_UNQUOTED(CONFIG_OVERRIDE_FILTER_TYPE, $config_override_filter_type, [Define to a filter type to always force that filter type.])
+fi
+
+AC_ARG_ENABLE(gs-checksum,
+  [  --enable-gs-checksum
+                          Enable Roland General Synth SysEx checksum check
+                          (default=no). If this is enabled, all GS SysEx
+                          messages which do not provide a correct checksum
+                          will be ignored. This is disabled by default as
+                          not all devices honor GS checksums.],
+  [config_assert_gs_sysex_checksum="$enableval"],
+  [config_assert_gs_sysex_checksum="no"]
+)
+if test "config_assert_gs_sysex_checksum" = "yes"; then
+  AC_DEFINE_UNQUOTED(CONFIG_ASSERT_GS_SYSEX_CHECKSUM, 1, [Define to 1 if you want to enable GS SysEx check.])
+fi
+
+AC_ARG_ENABLE(portamento-time-min,
+  [  --enable-portamento-time-min
+                          Minimum Portamento time in seconds
+                          (default=0.1).],
+  [config_portamento_time_min="${enableval}"],
+  [config_portamento_time_min="0.1"]
+)
+AC_DEFINE_UNQUOTED(CONFIG_PORTAMENTO_TIME_MIN, $config_portamento_time_min, [Define min. portamento time.])
+
+AC_ARG_ENABLE(portamento-time-max,
+  [  --enable-portamento-time-max
+                          Maximum Portamento time in seconds
+                          (default=32).],
+  [config_portamento_time_max="${enableval}"],
+  [config_portamento_time_max="32"]
+)
+AC_DEFINE_UNQUOTED(CONFIG_PORTAMENTO_TIME_MAX, $config_portamento_time_max, [Define max. portamento time.])
+
+AC_ARG_ENABLE(portamento-time-default,
+  [  --enable-portamento-time-default
+                          Default Portamento time in seconds
+                          (default=1).],
+  [config_portamento_time_default="${enableval}"],
+  [config_portamento_time_default="1"]
+)
+AC_DEFINE_UNQUOTED(CONFIG_PORTAMENTO_TIME_DEFAULT, $config_portamento_time_default, [Define default portamento time.])
+
+AC_ARG_ENABLE(signed-triang-algo,
+  [  --enable-signed-triang-algo
+                          Signed triangular wave algorithm to be used (e.g. for LFOs).
+                          Currently available options:
+                            intmath:
+                              Uses integer math without any branch will then be
+                              converted to floating point value for each sample point.
+                              This int->float conversion might hurt on some systems.
+                            intmathabs:
+                              Similar to intmath but uses abs() function.
+                              Depending on compiler and platrofm this could
+                              perform better than integer math as it avoids
+                              an extra integer multiply instruction.
+                            diharmonic:
+                              The triangular wave will be approximated by adding two
+                              sinusoidials. This solution might especially hurt on
+                              systems with weak floating point unit.
+                            benchmark (default):
+                              This is not an algorithm. Use this option if the
+                              appropriate algorithm should be automatically
+                              chosen by the configure script by performing a
+                              benchmark between the algorithms mentioned above.
+                              This will NOT work for cross compilation!],
+  [ if test ! "(" "${enableval}" = "intmath" \
+              -o "${enableval}" = "intmathabs" \
+              -o "${enableval}" = "diharmonic" ")" ; then
+      AC_MSG_ERROR([Unknown triangular wave algorithm for parameter --enable-signed-triang-algo])
+    else
+      config_signed_triang_algo="${enableval}"
+    fi
+  ],
+  [config_signed_triang_algo="benchmark"]
+)
+
+AC_ARG_ENABLE(unsigned-triang-algo,
+  [  --enable-unsigned-triang-algo
+                          Unsigned triangular wave algorithm to be used (e.g. for LFOs).
+                          Currently available options:
+                            intmath:
+                              Uses integer math without any branch will then be
+                              converted to floating point value for each sample point.
+                              This int->float conversion might hurt on some systems.
+                            intmathabs:
+                              Similar to intmath but uses abs() function.
+                              Depending on compiler and platrofm this could
+                              perform better than integer math as it avoids
+                              an extra integer multiply instruction.
+                            diharmonic:
+                              The triangular wave will be approximated by adding two
+                              sinusoidials. This solution might especially hurt on
+                              systems with weak floating point unit.
+                            benchmark (default):
+                              This is not an algorithm. Use this option if the
+                              appropriate algorithm should be automatically
+                              chosen by the configure script by performing a
+                              benchmark between the algorithms mentioned above.
+                              This will NOT work for cross compilation!],
+  [ if test ! "(" "${enableval}" = "intmath" \
+              -o "${enableval}" = "intmathabs" \
+              -o "${enableval}" = "diharmonic" ")" ; then
+      AC_MSG_ERROR([Unknown triangular wave algorithm for parameter --enable-unsigned-triang-algo])
+    else
+      config_unsigned_triang_algo="${enableval}"
+    fi
+  ],
+  [config_unsigned_triang_algo="benchmark"]
+)
+
+AC_ARG_ENABLE(process-muted-channels,
+  [  --enable-process-muted-channels
+                          Enable processing of muted channels (default=no).
+                          In that mode all MIDI events in the muted channels
+                          will be processed. This will provide information
+                          about the active voices in the muted channels and
+                          will not discard notes, triggered in mute mode,
+                          when the channel is unmuted. But also will reduce
+                          the efficiency.],
+  [config_process_muted_channels="$enableval"],
+  [config_process_muted_channels="no"]
+)
+if test "$config_process_muted_channels" = "yes"; then
+  AC_DEFINE_UNQUOTED(CONFIG_PROCESS_MUTED_CHANNELS, 1, [Define to 1 if you want to enable processing of muted channels.])
+fi
+
+AC_ARG_ENABLE(process-all-notes-off,
+  [  --disable-process-all-notes-off
+                          Disable interpretation of All-Notes-Off MIDI
+                          messages (default=on). By default LS will release
+                          all voices whenever it receives an All-Notes-Off
+                          MIDI message. You can disable this behavior, so
+                          that LS simply ignores such messages.],
+  [config_process_all_notes_off="$enableval"],
+  [config_process_all_notes_off="yes"]
+)
+if test "$config_process_all_notes_off" = "yes"; then
+  AC_DEFINE_UNQUOTED(CONFIG_PROCESS_ALL_NOTES_OFF, 1, [Define to 1 if you want to enable processing of All-Notes-Off MIDI messages.])
+fi
+
+AC_ARG_ENABLE(interpolate-volume,
+  [  --disable-interpolate-volume
+                          Disable interpolation of volume modulation
+                          (default=on). With this enabled, the volume changes
+                          generated by for example the envelope generator
+                          will be smoother, minimizing the risk for audio
+                          clicks. Disable it to reduce CPU usage.],
+  [config_interpolate_volume="$enableval"],
+  [config_interpolate_volume="yes"]
+)
+if test "$config_interpolate_volume" = "yes"; then
+  AC_DEFINE_UNQUOTED(CONFIG_INTERPOLATE_VOLUME, 1, [Define to 1 if you want to enable interpolation of volume modulation.])
+fi
+
+AC_ARG_ENABLE(plugin-dir,
+  [  --enable-plugin-dir
+                          Directory where the sampler shall look for potential plugins,
+                          that is 3rd party shared libraries that should be loaded by
+                          the sampler on startup. By default the sampler will search
+                          for plugins in the subdirectory "plugins" below its own
+                          library directory.
+                          (i.e. /usr/local/lib/linuxsampler/plugins)],
+  [config_plugin_dir="${enableval}"],
+  [config_plugin_dir="${libdir}/linuxsampler/plugins"]
+)
+AC_SUBST(config_plugin_dir)
+
+AC_ARG_ENABLE(default-instruments-db-location,
+  [  --enable-default-instruments-db-location
+                          Only when instruments DB feature is enabled: file name
+                          which shall be taken as default location of the
+                          instruments DB file. This location can still be
+                          overridden at runtime with a command line switch.
+                          (default: /var/lib/linuxsampler/instruments.db)],
+  [config_default_instruments_db_file="${enableval}"],
+  [config_default_instruments_db_file="/var/lib/linuxsampler/instruments.db"]
+)
+AC_DEFINE_UNQUOTED(
+    CONFIG_DEFAULT_INSTRUMENTS_DB_LOCATION,
+    "$config_default_instruments_db_file",
+    [Only when instruments DB feature is enabled: default location of the DB file.]
+)
+AC_SUBST(config_default_instruments_db_file)
+
+
+###########################################################################
+# Automatic Benchmarks (to detect the best algorithms for the system)
+
+AC_LANG_SAVE
+
+if test "$config_signed_triang_algo" = "benchmark"; then
+    echo -n "benchmarking for the best (signed) triangular oscillator algorithm... "
+    AC_LANG_CPLUSPLUS
+    AC_TRY_RUN([
+            #define SIGNED 1
+            #define SILENT 1
+            #include "${srcdir}/benchmarks/triang.cpp"
+        ],
+        triang_signed=0,
+        triang_signed=$?,
+        triang_signed=0
+    )
+    if test "$triang_signed" = "2"; then
+        config_signed_triang_algo="intmath"
+        echo "integer math"
+    elif test "$triang_signed" = "3"; then
+        config_signed_triang_algo="diharmonic"
+        echo "di harmonics"
+    elif test "$triang_signed" = "5"; then
+        config_signed_triang_algo="intmathabs"
+        echo "integer math using abs()"
+    else
+        echo "Benchmark of signed triangular wave algorithms failed!"
+        echo "Maybe you are doing cross compilation? In that case you have to select"
+        echo "an algorithm manually with './configure --enable-signed-triang-algo=...'"
+        echo "Call './configure --help' for further information or read configure.in."
+        exit -1;
+    fi
+else
+    case "$config_signed_triang_algo" in
+        intmath)
+            triang_signed=2 ;;
+        diharmonic)
+            triang_signed=3 ;;
+        intmathabs)
+            triang_signed=5 ;;
+    esac
+fi
+AC_DEFINE_UNQUOTED(CONFIG_SIGNED_TRIANG_ALGO, ${triang_signed}, [Define signed triangular wave algorithm to be used.])
+
+if test "$config_unsigned_triang_algo" = "benchmark"; then
+    echo -n "benchmarking for the best (unsigned) triangular oscillator algorithm... "
+    AC_LANG_CPLUSPLUS
+    AC_TRY_RUN([
+            #define SIGNED 0
+            #define SILENT 1
+            #include "${srcdir}/benchmarks/triang.cpp"
+        ],
+        triang_unsigned=0,
+        triang_unsigned=$?,
+        triang_unsigned=0
+    )
+    if test "$triang_unsigned" = "2"; then
+        config_unsigned_triang_algo="intmath"
+        echo "integer math"
+    elif test "$triang_unsigned" = "3"; then
+        config_unsigned_triang_algo="diharmonic"
+        echo "di harmonics"
+    elif test "$triang_unsigned" = "5"; then
+        config_unsigned_triang_algo="intmathabs"
+        echo "integer math using abs()"
+    else
+        echo "Benchmark of unsigned triangular wave algorithms failed!"
+        echo "Maybe you are doing cross compilation? In that case you have to select"
+        echo "an algorithm manually with './configure --enable-unsigned-triang-algo=...'"
+        echo "Call './configure --help' for further information or read configure.in."
+        exit -1;
+    fi
+else
+    case "$config_unsigned_triang_algo" in
+        intmath)
+            triang_unsigned=2 ;;
+        diharmonic)
+            triang_unsigned=3 ;;
+        intmathabs)
+            triang_unsigned=5 ;;
+    esac
+fi
+AC_DEFINE_UNQUOTED(CONFIG_UNSIGNED_TRIANG_ALGO, ${triang_unsigned}, [Define unsigned triangular wave algorithm to be used.])
+
+AC_LANG_RESTORE
+
+
+###########################################################################
+# Create Build Files
+
+AM_CONFIG_HEADER(config.h)
+AM_INIT_AUTOMAKE(linuxsampler, "$LINUXSAMPLER_RELEASE_MAJOR.$LINUXSAMPLER_RELEASE_MINOR.$LINUXSAMPLER_RELEASE_BUILD")
+
+AC_LANG_CPLUSPLUS
+AC_PROG_CXX
+
+# some gcc 4.0 versions need -msse for SSE register allocations
+if test "$config_asm" = "yes"; then
+  if test "$def_arch_x86" = 1; then
+    CXXFLAGS="$CXXFLAGS -msse"
+  fi
+fi
+
+# autoconf 2.59/libtool 1.5.12 bug? work-around. Without a check like
+# this, the dlfcn.h check in am_prog_libtool may fail.
+AC_CHECK_HEADER(stdlib.h)
+
+AC_OUTPUT( \
+    Makefile \
+    man/Makefile \
+    man/linuxsampler.1 \
+    src/Makefile \
+    src/db/Makefile \
+    src/network/Makefile \
+    src/engines/Makefile \
+    src/engines/gig/Makefile \
+    src/engines/common/Makefile \
+    src/common/Makefile \
+    src/testcases/Makefile \
+    src/drivers/Makefile \
+    src/drivers/audio/Makefile \
+    src/drivers/midi/Makefile \
+    src/plugins/Makefile \
+    linuxsampler.spec \
+    debian/Makefile \
+    Artwork/Makefile \
+    scripts/Makefile \
+    osx/Makefile \
+    osx/linuxsampler.xcodeproj/Makefile \
+    Documentation/Makefile \
+    Documentation/Engines/Makefile \
+    Documentation/Engines/gig/Makefile \
+    linuxsampler.pc \
+    Doxyfile \
+)
+
+# resolve all nested variables in '${config_plugin_dir}'
+# (merely for providing a human readable summary below)
+while test $config_plugin_dir != `eval echo ${config_plugin_dir}` ; do
+	config_plugin_dir=`eval echo ${config_plugin_dir}`
+done
+
+
+###########################################################################
+# Output All Configuration Options
+
+echo ""
+echo "#####################################################################"
+echo "# LinuxSampler Configuration                                        #"
+echo "#-------------------------------------------------------------------#"
+echo "# Assembly Optimizations: ${config_asm}"
+echo "# Development Mode: ${config_dev_mode}"
+echo "# Debug Level: ${config_debug_level}"
+echo "# Use Exceptions in RT Context: ${config_rt_exceptions}"
+echo "# Preload Samples: ${config_preload_samples}"
+echo "# Maximum Pitch: ${config_max_pitch} (octaves)"
+echo "# Maximum Events: ${config_max_events}"
+echo "# Envelope Bottom Level: ${config_eg_bottom} (linear)"
+echo "# Envelope Minimum Release Time: ${config_eg_min_release_time} s"
+echo "# Streams to be refilled per Disk Thread Cycle: ${config_refill_streams}"
+echo "# Minimum Stream Refill Size: ${config_stream_min_refill}"
+echo "# Maximum Stream Refill Size: ${config_stream_max_refill}"
+echo "# Stream Size: ${config_stream_size}"
+echo "# Maximum Disk Streams: ${config_max_streams}"
+echo "# Maximum Voices: ${config_max_voices}"
+echo "# Default Subfragment Size: ${config_subfragment_size}"
+echo "# Default Global Volume Attenuation: ${config_global_attenuation_default}"
+echo "# Voice Stealing Algorithm: ${config_voice_steal_algo}"
+echo "# Signed Triangular Oscillator Algorithm: ${config_signed_triang_algo}"
+echo "# Unsigned Triangular Oscillator Algorithm: ${config_unsigned_triang_algo}"
+echo "# SysEx Buffer Size: ${config_sysex_buffer_size} Byte"
+echo "# Min. Portamento Time: ${config_portamento_time_min} s"
+echo "# Max. Portamento Time: ${config_portamento_time_max} s"
+echo "# Default Portamento Time: ${config_portamento_time_default} s"
+echo "# Force Filter Usage: ${config_force_filter}"
+echo "# Filter Cutoff Minimum: ${config_filter_cutoff_min} Hz"
+echo "# Filter Cutoff Maximum: ${config_filter_cutoff_max} Hz"
+echo "# Override Filter Cutoff Controller: ${config_override_cutoff_ctrl}"
+echo "# Override Filter Resonance Controller: ${config_override_resonance_ctrl}"
+echo "# Override Filter Type: ${config_override_filter_type}"
+echo "# Assert GS SysEx Checksum: ${config_assert_gs_sysex_checksum}"
+echo "# Process Muted Channels: ${config_process_muted_channels}"
+echo "# Process All-Notes-Off MIDI message: ${config_process_all_notes_off}"
+echo "# Interpolate Volume: ${config_interpolate_volume}"
+echo "# Instruments database support: ${config_instruments_db}"
+if test "$config_instruments_db" = "yes"; then
+echo "# Instruments DB default location: ${config_default_instruments_db_file}"
+fi
+echo "# Plugin Path: ${config_plugin_dir}"
+echo "#-------------------------------------------------------------------#"
+echo "# Read './configure --help' or file 'configure.in' for details.     #"
+echo "#####################################################################"
+echo ""
+echo "Good. Now type 'make' to compile, followed by 'make install' as root."
+echo ""
