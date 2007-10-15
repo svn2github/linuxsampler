@@ -1,0 +1,85 @@
+%define name    @PACKAGE_TARNAME@
+%define version @PACKAGE_VERSION@
+%define release 10
+%define prefix  @ac_prefix@
+
+Summary:	A LinuxSampler Qt GUI interface.
+Name:		%{name}
+Version:	%{version}
+Release:	%{release}
+Prefix:		%{prefix}
+License:	GPL
+Group:		Productivity/Multimedia/Sound/Midi
+Source0:	%{name}-%{version}.tar.gz
+URL:		http://qsampler.sourceforge.net/
+
+BuildRoot:	%{_tmppath}/%{name}-%{version}-%{release}-buildroot
+
+Requires:	qt3 >= 3.1
+Requires:	liblscp >= 0.5.3
+Requires:	libgig >= 3.1.0
+
+BuildRequires:	qt3-devel >= 3.1
+BuildRequires:	liblscp-devel >= 0.5.3
+BuildRequires:	libgig-devel >= 3.1.0
+
+%description
+QSampler is a LinuxSampler GUI front-end application written in C++ around
+the Qt3 toolkit using Qt Designer. For the moment it just wraps the client
+interface of LinuxSampler Control Protocol (LSCP) (http://www.linuxsampler.org).
+
+%prep
+%setup
+[ -f Makefile.cvs ] && %__make -f Makefile.cvs
+
+%build
+export PATH=$QTDIR/bin:$PATH
+%configure
+%__make
+
+%install
+%makeinstall
+
+%clean
+[ -d %{buildroot} -a "%{buildroot}" != "" ] && %__rm -rf  %{buildroot}
+
+%files
+%defattr(-,root,root)
+%doc AUTHORS COPYING ChangeLog README TODO
+%{_bindir}/%{name}
+%{_datadir}/applications/%{name}.desktop
+%{_datadir}/pixmaps/%{name}.png
+
+%changelog
+* Mon Jun 25 2007 Rui Nuno Capela <rncbc@users.sourceforge.net>
+- Application icon is now installed to (prefix)/share/pixmaps.
+- Declared fundamental build and run-time requirements.
+- Destination install directory prefix is now in spec.
+- Spec is now a bit more openSUSE compliant.
+* Mon Jan 15 2007 Rui Nuno Capela <rncbc@users.sourceforge.net>
+- Added sampler channel FX send support at session save code-level.
+- Global sampler volume slider/spinbox combo is now featured.
+* Thu Dec 17 2006 Rui Nuno Capela <rncbc@users.sourceforge.net>
+- Added preliminary MIDI instrument mapping support.
+* Thu Jun 01 2006 Rui Nuno Capela <rncbc@users.sourceforge.net>
+- Take a chance for a new 0.1.3 release.
+- Changed deprecated copyright attribute to license.
+* Wed Aug 24 2005 Rui Nuno Capela <rncbc@users.sourceforge.net>
+- Prepared auto-generation from configure.
+* Tue Aug 16 2005 Rui Nuno Capela <rncbc@users.sourceforge.net>
+- Get in sync with latest offerings from liblscp (0.3.1) and
+  specially libgig (2.0.2) which broke previous ABI, somewhat.
+* Thu Jun 23 2005 Rui Nuno Capela <rncbc@users.sourceforge.net>
+- Even minor workings needs a rest.
+* Mon Jun 13 2005 Rui Nuno Capela <rncbc@users.sourceforge.net>
+- The mantra of bugfixes.
+* Mon May 23 2005 Rui Nuno Capela <rncbc@users.sourceforge.net>
+- Device configuration breakthrough.
+* Fri Mar 4 2005 Rui Nuno Capela <rncbc@users.sourceforge.net>
+- Fifth alpha-release.
+* Wed Nov 16 2004 Rui Nuno Capela <rncbc@users.sourceforge.net>
+- Prepared for the fourth alpha release.
+* Wed Nov 16 2004 Rui Nuno Capela <rncbc@users.sourceforge.net>
+- Prepared for the fourth alpha release.
+* Wed Jun 2 2004 Rui Nuno Capela <rncbc@users.sourceforge.net>
+- Created initial qsampler.spec

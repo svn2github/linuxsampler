@@ -1,0 +1,67 @@
+prefix  = @ac_prefix@
+qmake   = @ac_qmake@
+
+name    = qsampler
+
+headers = config.h \
+	src/qsamplerAbout.h \
+	src/qsamplerOptions.h \
+	src/qsamplerChannel.h \
+	src/qsamplerMessages.h \
+	src/qsamplerInstrument.h \
+	src/qsamplerInstrumentList.h \
+	src/qsamplerDevice.h \
+	src/qsamplerInstrumentForm.ui.h \
+	src/qsamplerInstrumentListForm.ui.h \
+	src/qsamplerDeviceForm.ui.h \
+	src/qsamplerChannelStrip.ui.h \
+	src/qsamplerChannelForm.ui.h \
+	src/qsamplerOptionsForm.ui.h \
+	src/qsamplerMainForm.ui.h \
+	src/qsamplerUtilities.h
+
+sources = src/main.cpp \
+	src/qsamplerOptions.cpp \
+	src/qsamplerChannel.cpp \
+	src/qsamplerMessages.cpp \
+	src/qsamplerInstrument.cpp \
+	src/qsamplerInstrumentList.cpp \
+	src/qsamplerDevice.cpp \
+	src/qsamplerUtilities.cpp \
+	src/qsamplerInstrumentForm.ui \
+	src/qsamplerInstrumentListForm.ui \
+	src/qsamplerDeviceForm.ui \
+	src/qsamplerChannelStrip.ui \
+	src/qsamplerChannelForm.ui \
+	src/qsamplerOptionsForm.ui \
+	src/qsamplerMainForm.ui
+
+all:	$(name)
+
+$(name).mak:	$(name).pro
+	@$(qmake) -o $(name).mak $(name).pro
+
+$(name):	$(name).mak $(sources) $(headers)
+	@make -f $(name).mak
+
+
+# NOTE: DO NOT DELETE $(DESTDIR) in install and uninstall rules !!!
+#       It is mandatory for Debian packaging.
+
+install:	$(name) icons/$(name).png
+	@install -d -v -m 0755 $(DESTDIR)$(prefix)/bin
+	@install -d -v -m 0755 $(DESTDIR)$(prefix)/share/pixmaps
+	@install -d -v -m 0755 $(DESTDIR)$(prefix)/share/applications
+	@install -v -m 0755 $(name) $(DESTDIR)$(prefix)/bin/$(name)
+	@install -v -m 0644 icons/$(name).png $(DESTDIR)$(prefix)/share/pixmaps/$(name).png
+	@install -v -m 0644 $(name).desktop $(DESTDIR)$(prefix)/share/applications/$(name).desktop
+
+uninstall:	$(DESTDIR)$(prefix)/bin/$(name)
+	@rm -vf $(DESTDIR)$(prefix)/bin/$(name)
+	@rm -vf $(DESTDIR)$(prefix)/share/pixmaps/$(name).png
+	@rm -vf $(DESTDIR)$(prefix)/share/applications/$(name).desktop
+
+clean:	$(name).mak
+	@make -f $(name).mak clean
+	@rm -f $(name) $(name).mak
+	@rm -rf *.cache *.log *.status
