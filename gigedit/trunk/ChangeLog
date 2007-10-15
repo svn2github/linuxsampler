@@ -1,4 +1,4 @@
-Version CVS HEAD
+Version 0.1.0 (2007-10-15)
 
   * fixed compilation with older gcc versions
   * added German translation

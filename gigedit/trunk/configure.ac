@@ -6,8 +6,8 @@ AC_CONFIG_AUX_DIR([.])
 # The following is the current, official release version of gigedit:
 
 GIGEDIT_VER_MAJOR=0
-GIGEDIT_VER_MINOR=0
-GIGEDIT_VER_RELEASE=3
+GIGEDIT_VER_MINOR=1
+GIGEDIT_VER_RELEASE=0
 
 #------------------------------------------------------------------------------------
 # The following is the libtool / shared library version. This doesn't have to
@@ -59,7 +59,7 @@ IT_PROG_INTLTOOL(0.35.0)
 AM_GLIB_GNU_GETTEXT
 
 PKG_CHECK_MODULES(GTKMM, gtkmm-2.4 >= 2.4.10 gthread-2.0)
-PKG_CHECK_MODULES(GIG, gig >= 3.1.1)
+PKG_CHECK_MODULES(GIG, gig >= 3.2.0)
 
 # check for presence of libsndfile
 PKG_CHECK_MODULES(SNDFILE, sndfile >= 1.0.2)
@@ -77,7 +77,7 @@ AC_CHECK_MEMBERS([SF_INSTRUMENT.loops],,
 CFLAGS=$gigedit_save_CFLAGS
 
 # check for (optional) presence of liblinuxsampler
-liblinuxsampler_version="0.4.0.5cvs"
+liblinuxsampler_version="0.5.0"
 PKG_CHECK_MODULES(
     LINUXSAMPLER, linuxsampler >= $liblinuxsampler_version,
     have_linuxsampler=1, have_linuxsampler=0
