@@ -34,7 +34,7 @@
     not by QSampler yet). The new instruments database on sampler side allows
     you to keep track even of largest instrument library collections. You can
     order them in categories and search by various criteria (you can find this
-    feature as "Orchestras" in JSampler, it's not yet supported by QSampler).
+    feature as "Instruments Database" in JSampler, it's not yet supported by QSampler).
     Loading huge instruments may take a while, that's why the sampler now
     allows to play an instrument while loading. That way you can i.e. play and
     hold notes on the keyboard while loading a new instrument on the same
