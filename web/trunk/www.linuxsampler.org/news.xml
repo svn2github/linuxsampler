@@ -1,5 +1,45 @@
 <?xml version='1.0' ?>
 <news>
+  <entry date="2007-10-16">
+    A new release wave of the LinuxSampler family has arrived:
+    <list>
+      <li>linuxsampler 0.5.0</li>
+      <li>qsampler 0.1.5</li>
+      <li>jsampler 0.7a</li>
+      <li>gigedit 0.1.0</li>
+      <li>libgig 3.2.0</li>
+      <li>liblscp 0.5.5</li>
+      <li>jlscp 0.6a</li>
+    </list>
+    With our new instrument editor
+    <link ref="http://linuxsampler.org/screenshots/gigedit_0_0_3.png">gigedit</link>
+    we can finally modify existing, as well as create new Gigasampler format
+    instruments from scratch, which are not only accepted by LinuxSampler, but
+    also by Gigastudio. You can run gigedit as stand-alone application or
+    <link ref="http://download.linuxsampler.org/doc/gigedit/quickstart/gigedit_quickstart.html#live_editing">
+    "attached" to LinuxSampler</link>. The latter case allows you to play and edit
+    instruments at the same time, making all your modifications immediately
+    audible, without having to reload the instruments into the sampler. You can
+    simply edit instruments by selecting the respective sampler channel and
+    clicking on "Edit" (in QSampler as well as in JSampler). LinuxSampler now
+    provides a very powerful and easy MIDI program change mapping, which not
+    only allows you to define which instrument to load on which MIDI program
+    change number (and bank), it also allows further parameters like whether
+    the instrument shall be pre-cached or loaded only when needed (and likewise
+    freed when not needed). You can create arbitrary amount of effect sends for
+    each sampler channel, each having an arbitrary MIDI controller for
+    altering the effect send level in realtime and each one can flexible be routed to
+    some of the sampler's audio output channels, i.e. to a dedicated one for a
+    certain effect type (managing FX sends is yet only supported by JSampler,
+    not by QSampler yet). The new instruments database on sampler side allows
+    you to keep track even of largest instrument library collections. You can
+    order them in categories and search by various criteria (you can find this
+    feature as "Orchestras" in JSampler, it's not yet supported by QSampler).
+    Loading huge instruments may take a while, that's why the sampler now
+    allows to play an instrument while loading. That way you can i.e. play and
+    hold notes on the keyboard while loading a new instrument on the same
+    sampler channel at the same time.
+  </entry>
   <entry date="2007-10-12">
     libgig's home has moved to this server. It's new official home is now:
     <link ref="http://www.linuxsampler.org/libgig/" />
