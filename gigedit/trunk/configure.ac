@@ -130,6 +130,7 @@ AC_CONFIG_FILES([
 	doc/quickstart/Makefile
 	win32/libgigedit.dev
 	win32/gigedit.dev
+	win32/gigedit.nsi
 	win32/Makefile
 ])
 AC_OUTPUT

@@ -5,14 +5,14 @@ UnitCount=8
 Type=3
 Ver=1
 ObjFiles=
-Includes=C:\libgig-3.1.1\include;C:\libsndfile-1_0_17;C:\GTK\include\gtkmm-2.4;C:\GTK\include\glibmm-2.4;C:\GTK\lib\glibmm-2.4\include;C:\GTK\include\glib-2.0;C:\GTK\lib\glib-2.0\include;C:\GTK\include\sigc++-2.0;C:\GTK\lib\sigc++-2.0\include;C:\GTK\include\pangomm-1.4;C:\GTK\include\pango-1.0;C:\GTK\include\cairomm-1.0;C:\GTK\include\cairo;C:\GTK\lib\gtkmm-2.4\include;C:\GTK\lib\gdkmm-2.4\include;C:\GTK\include\atkmm-1.6;C:\GTK\include\gdkmm-2.4;C:\GTK\include\gtk-2.0;C:\GTK\lib\gtk-2.0\include;C:\GTK\include\atk-1.0
+Includes=C:\libgig-3.2.0\include;C:\libsndfile-1_0_17;C:\GTK\include\gtkmm-2.4;C:\GTK\include\glibmm-2.4;C:\GTK\lib\glibmm-2.4\include;C:\GTK\include\glib-2.0;C:\GTK\lib\glib-2.0\include;C:\GTK\include\sigc++-2.0;C:\GTK\lib\sigc++-2.0\include;C:\GTK\include\pangomm-1.4;C:\GTK\include\pango-1.0;C:\GTK\include\cairomm-1.0;C:\GTK\include\cairo;C:\GTK\lib\gtkmm-2.4\include;C:\GTK\lib\gdkmm-2.4\include;C:\GTK\include\atkmm-1.6;C:\GTK\include\gdkmm-2.4;C:\GTK\include\gtk-2.0;C:\GTK\lib\gtk-2.0\include;C:\GTK\include\atk-1.0
 Libs=C:\GTK\lib
 PrivateResource=libgigedit_private.rc
 ResourceIncludes=
 MakeIncludes=
 Compiler=-DBUILDING_DLL=1_@@_
 CppCompiler=-DBUILDING_DLL=1_@@_
-Linker=--export-all-symbols --add-stdcall-alias_@@_ -fpic -lrpcrt4_@@_C:/libsndfile-1_0_17/libsndfile-1.lib_@@_C:/libgig-3.1.1/libgig.lib_@@_-lgtkmm-2.4_@@_-lgdkmm-2.4_@@_-lglibmm-2.4_@@_-lsigc-2.0_@@_-lpangomm-1.4_@@_-lcairomm-1.0_@@_-lglibmm-2.4_@@_-latk-1.0_@@_-latkmm-1.6_@@_-lpango-1.0_@@_-lgobject-2.0_@@_-lgmodule-2.0_@@_-lgthread-2.0_@@_-lglib-2.0_@@_
+Linker=--export-all-symbols --add-stdcall-alias_@@_ -fpic -lrpcrt4_@@_C:/libsndfile-1_0_17/libsndfile-1.lib_@@_C:/libgig-3.2.0/libgig.lib_@@_-lgtkmm-2.4_@@_-lgdkmm-2.4_@@_-lglibmm-2.4_@@_-lsigc-2.0_@@_-lpangomm-1.4_@@_-lcairomm-1.0_@@_-lglibmm-2.4_@@_-latk-1.0_@@_-latkmm-1.6_@@_-lpango-1.0_@@_-lgobject-2.0_@@_-lgmodule-2.0_@@_-lgthread-2.0_@@_-lglib-2.0_@@_
 IsCpp=1
 Icon=
 ExeOutput=

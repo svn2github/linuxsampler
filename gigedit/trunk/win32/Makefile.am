@@ -3,4 +3,5 @@
 # include win32 project files into distribution
 EXTRA_DIST = dllmain.cpp \
              gigedit.dev \
-             libgigedit.dev
+             libgigedit.dev \
+             gigedit.nsi
