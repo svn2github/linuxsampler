@@ -1,3 +1,9 @@
+gigedit (0.1.0-2) unreleased; urgency=low
+
+  * Ignore missing Makefile.cvs (which doesn't exist in release tarballs).
+
+ -- Christian Schoenebeck <cuse@users.sourceforge.net>  Thu, 18 Oct 2007 15:25:16 +0200
+
 gigedit (0.1.0-1) unreleased; urgency=low
 
   * Added build-dependency to xsltproc and docbook-xsl as the current CVS
