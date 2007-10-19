@@ -114,6 +114,45 @@ fi
 # check for <features.h>
 AC_CHECK_HEADERS(features.h)
 
+# test for POSIX thread library
+m4_ifdef([m4_include(m4/pthread.m4)],,
+             [sinclude([m4/pthread.m4])])
+ACX_PTHREAD
+LIBS="$PTHREAD_LIBS $LIBS"
+CFLAGS="$CFLAGS $PTHREAD_CFLAGS"
+CXXFLAGS="$CXXFLAGS $PTHREAD_CFLAGS"
+CC="$PTHREAD_CC"
+
+# check for a bug in NPTL-enabled glibc
+# (see Gentoo bug report #194076)
+AC_ARG_ENABLE(nptl-bug-check,
+  [  --disable-nptl-bug-check
+                          Disable check for a bug in certain NPTL-enabled
+                          glibc versions that caused crashs.],
+  [config_check_nptl_bug="$enableval"],
+  [config_check_nptl_bug="yes"]
+)
+if test "$config_check_nptl_bug" = "yes"; then
+    m4_ifdef([m4_include(m4/nptl_bug.m4)],,
+             [sinclude([m4/nptl_bug.m4])])
+    ACX_NPTL_GLIBC_BUG([
+        echo "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+        echo "You seem to have a buggy PTHREAD library! LinuxSampler would"
+        echo "probably crash due to this. Please report us the system you are"
+        echo "using and/or file a bug report to the bug tracking system of"
+        echo "your distribution."
+        echo "If you have a NPTL-enabled glibc AND it was compiled for TLS as"
+        echo "well, you can try to circumvent this problem for now by setting"
+        echo "the environment variable LD_ASSUME_KERNEL=\"2.4.1\" , which"
+        echo "should cause this test to pass."
+        echo "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+        AC_MSG_ERROR([possibly NPTL glibc bug detected])
+    ])
+else
+    echo "NPTL glibc bug check disabled"
+fi
+
+
 
 ###########################################################################
 # Checks for available audio and MIDI systems / drivers
