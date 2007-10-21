@@ -24,14 +24,60 @@
 
 #include "global.h"
 
-// the app has to work from a DLL as well, so we hard code argv
-int argc = 1;
-const char* argv_c[] = { "gigedit" };
-char** argv = const_cast<char**>(argv_c);
-//FIXME: Gtk only allows to instantiate one Gtk::Main object per process, so this might crash other Gtk applications, i.e. launched as plugins by LinuxSampler
-Gtk::Main kit(argc, argv);
+namespace {
 
-static void __init_app() {
+// State for a gigedit thread.
+//
+// This class is only used when gigedit is run as a plugin and makes
+// sure that there's only one Gtk::Main event loop. The event loop is
+// started in a separate thread. The plugin thread just dispatches an
+// event to the main loop to open a window and then goes to sleep
+// until the window is closed.
+//
+class GigEditState : public sigc::trackable {
+public:
+    GigEditState(GigEdit* parent) : parent(parent) { }
+    void run(gig::Instrument* pInstrument);
+
+private:
+
+    // simple condition variable abstraction
+    class Cond {
+    private:
+        bool pred;
+        Glib::Mutex mutex;
+        Glib::Cond cond;
+    public:
+        Cond() : pred(false) { }
+        void signal() {
+            Glib::Mutex::Lock lock(mutex);
+            pred = true;
+            cond.signal();
+        }
+        void wait() {
+            Glib::Mutex::Lock lock(mutex);
+            while (!pred) cond.wait(mutex);
+        }
+    };
+
+    static Glib::StaticMutex mutex;
+    static Glib::Dispatcher* dispatcher;
+    static GigEditState* current;
+
+    static void main_loop_run(Cond* intialized);
+    static void open_window_static();
+
+    GigEdit* parent;
+    Cond open;
+    Cond close;
+    gig::Instrument* instrument;
+    MainWindow* window;
+
+    void open_window();
+    void close_window();
+};
+
+void init_app() {
     static bool process_initialized = false;
     if (!process_initialized) {
         std::cout << "Initializing 3rd party services needed by gigedit.\n"
@@ -51,7 +97,7 @@ static void __init_app() {
     }
 }
 
-static void __connect_signals(GigEdit* gigedit, MainWindow* mainwindow) {
+void connect_signals(GigEdit* gigedit, MainWindow* mainwindow) {
     // the signals of the "GigEdit" class are actually just proxies, that
     // is they simply forward the signals of the internal classes to the
     // outer world
@@ -84,29 +130,25 @@ static void __connect_signals(GigEdit* gigedit, MainWindow* mainwindow) {
     );
 }
 
-int GigEdit::run() {
-    __init_app();
-    MainWindow window;
-    __connect_signals(this, &window);
-    kit.run(window);
-    return 0;
 }
 
-int GigEdit::run(const char* pFileName) {
-    __init_app();
+
+int GigEdit::run(int argc, char* argv[]) {
+    init_app();
+
+    Gtk::Main kit(argc, argv);
     MainWindow window;
-    __connect_signals(this, &window);
-    if (pFileName) window.load_file(pFileName);
+    connect_signals(this, &window);
+    if (argc >= 2) window.load_file(argv[1]);
     kit.run(window);
     return 0;
 }
 
 int GigEdit::run(gig::Instrument* pInstrument) {
-    __init_app();
-    MainWindow window;
-    __connect_signals(this, &window);
-    if (pInstrument) window.load_instrument(pInstrument);
-    kit.run(window);
+    init_app();
+
+    GigEditState state(this);
+    state.run(pInstrument);
     return 0;
 }
 
@@ -144,4 +186,65 @@ sigc::signal<void, gig::DimensionRegion*>& GigEdit::signal_dimreg_changed() {
 
 sigc::signal<void, gig::Sample*/*old*/, gig::Sample*/*new*/>& GigEdit::signal_sample_ref_changed() {
     return sample_ref_changed_signal;
+}
+
+
+Glib::StaticMutex GigEditState::mutex = GLIBMM_STATIC_MUTEX_INIT;
+Glib::Dispatcher* GigEditState::dispatcher = 0;
+GigEditState* GigEditState::current = 0;
+
+void GigEditState::open_window_static() {
+    GigEditState* c = GigEditState::current;
+    c->open.signal();
+    c->open_window();
+}
+
+void GigEditState::open_window() {
+    window = new MainWindow();
+
+    connect_signals(parent, window);
+    if (instrument) window->load_instrument(instrument);
+
+    window->signal_hide().connect(sigc::mem_fun(this,
+                                                &GigEditState::close_window));
+    window->present();
+}
+
+void GigEditState::close_window() {
+    delete window;
+    close.signal();
+}
+
+void GigEditState::main_loop_run(Cond* initialized) {
+    int argc = 1;
+    const char* argv_c[] = { "gigedit" };
+    char** argv = const_cast<char**>(argv_c);
+    Gtk::Main main_loop(argc, argv);
+
+    dispatcher = new Glib::Dispatcher();
+    dispatcher->connect(sigc::ptr_fun(&GigEditState::open_window_static));
+    initialized->signal();
+
+    main_loop.run();
+}
+
+void GigEditState::run(gig::Instrument* pInstrument) {
+    mutex.lock(); // lock access to static variables
+
+    static bool main_loop_started = false;
+    if (!main_loop_started) {
+        Cond initialized;
+        Glib::Thread::create(
+            sigc::bind(sigc::ptr_fun(&GigEditState::main_loop_run),
+                       &initialized),
+            false);
+        initialized.wait();
+        main_loop_started = true;
+    }
+    instrument = pInstrument;
+    current = this;
+    dispatcher->emit();
+    open.wait(); // wait until the GUI thread has read current
+    mutex.unlock();
+    close.wait(); // sleep until window is closed
 }

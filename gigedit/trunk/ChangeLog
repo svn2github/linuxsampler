@@ -1,3 +1,9 @@
+Version CVS HEAD (?)
+
+  * multiple editor windows can now be opened by the plugin
+  * bugfix: gigedit didn't start on windows 2000
+  * standard gtk command line parameters is now handled
+
 Version 0.1.0 (2007-10-15)
 
   * fixed compilation with older gcc versions

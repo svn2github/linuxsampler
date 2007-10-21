@@ -26,7 +26,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
     LPSTR lpCmdLine, int nCmdShow)
 {
     GigEdit app;
-    return app.run();
+    return app.run(__argc, __argv);
 }
 
 #else
@@ -34,8 +34,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
 int main(int argc, char* argv[])
 {
     GigEdit app;
-    return (argc >= 2) ? app.run(argv[1])
-                       : app.run();
+    return app.run(argc, argv);
 }
 
 #endif
