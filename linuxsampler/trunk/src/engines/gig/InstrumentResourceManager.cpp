@@ -168,8 +168,10 @@ namespace LinuxSampler { namespace gig {
             InstrumentEditorProxiesMutex.Unlock();
             std::cerr << "Eeeek, could not find instrument editor proxy, this is a bug!\n" << std::flush;
         }
-        // free the editor
-        InstrumentEditorFactory::Destroy(pSender);
+
+        // Note that we don't need to free the editor here. As it
+        // derives from Thread, it will delete itself when the thread
+        // dies.
     }
 
     void InstrumentResourceManager::OnSamplesToBeRemoved(std::set<void*> Samples, InstrumentEditor* pSender) {

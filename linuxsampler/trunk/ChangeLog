@@ -5,6 +5,10 @@ Version CVS HEAD (?)
     - added autoconf check for pthread bug found on certain NPTL-enabled
       glibc versions (see Gentoo bug report #194076)
 
+  * general changes:
+    - bugfix: the thread used by an editor plugin didn't die when the
+      editor closed
+
 Version 0.5.0 (15 October 2007)
 
   * packaging changes:
