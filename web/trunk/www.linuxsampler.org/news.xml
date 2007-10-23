@@ -1,5 +1,12 @@
 <?xml version='1.0' ?>
 <news>
+  <entry date="2007-10-23">
+    As you might have noticed, we had issues with our linuxsampler.org DNS
+    names in the last two days, because it was dependent to a foreign server
+    out of our control. We just addressed this issue and finally completely
+    moved the DNS responsibility to our own servers to avoid this happening
+    again. Sorry for any inconvenience this may have caused!
+  </entry>
   <entry date="2007-10-16">
     A new release wave of the LinuxSampler family has arrived:
     <list>
