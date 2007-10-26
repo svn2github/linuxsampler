@@ -358,7 +358,7 @@ namespace RIFF {
         #elif defined(WIN32)
         if (SetFilePointer(pFile->hFileWrite, ulStartPos + ulPos, NULL/*32 bit*/, FILE_BEGIN) == INVALID_SET_FILE_POINTER) {
             throw Exception("Could not seek to position " + ToString(ulPos) +
-                            " in chunk (" + ToString(ulStartPos + ulPos) + " in file)");            
+                            " in chunk (" + ToString(ulStartPos + ulPos) + " in file)");
         }
         DWORD writtenWords;
         WriteFile(pFile->hFileWrite, pData, WordCount * WordSize, &writtenWords, NULL);
@@ -1412,7 +1412,8 @@ namespace RIFF {
                                      path.c_str(), GENERIC_READ,
                                      FILE_SHARE_READ | FILE_SHARE_WRITE,
                                      NULL, OPEN_EXISTING,
-                                     FILE_ATTRIBUTE_NORMAL, NULL
+                                     FILE_ATTRIBUTE_NORMAL |
+                                     FILE_FLAG_RANDOM_ACCESS, NULL
                                  );
         if (hFileRead == INVALID_HANDLE_VALUE) {
             hFileRead = hFileWrite = INVALID_HANDLE_VALUE;
@@ -1465,7 +1466,9 @@ namespace RIFF {
                                                  Filename.c_str(), GENERIC_READ,
                                                  FILE_SHARE_READ | FILE_SHARE_WRITE,
                                                  NULL, OPEN_EXISTING,
-                                                 FILE_ATTRIBUTE_NORMAL, NULL
+                                                 FILE_ATTRIBUTE_NORMAL |
+                                                 FILE_FLAG_RANDOM_ACCESS,
+                                                 NULL
                                              );
                     if (hFileRead == INVALID_HANDLE_VALUE) {
                         hFileRead = hFileWrite = INVALID_HANDLE_VALUE;
@@ -1493,14 +1496,18 @@ namespace RIFF {
                                                  GENERIC_READ | GENERIC_WRITE,
                                                  FILE_SHARE_READ,
                                                  NULL, OPEN_ALWAYS,
-                                                 FILE_ATTRIBUTE_NORMAL, NULL
+                                                 FILE_ATTRIBUTE_NORMAL |
+                                                 FILE_FLAG_RANDOM_ACCESS,
+                                                 NULL
                                              );
                     if (hFileRead == INVALID_HANDLE_VALUE) {
                         hFileRead = hFileWrite = CreateFile(
                                                      Filename.c_str(), GENERIC_READ,
                                                      FILE_SHARE_READ | FILE_SHARE_WRITE,
                                                      NULL, OPEN_EXISTING,
-                                                     FILE_ATTRIBUTE_NORMAL, NULL
+                                                     FILE_ATTRIBUTE_NORMAL |
+                                                     FILE_FLAG_RANDOM_ACCESS,
+                                                     NULL
                                                  );
                         throw Exception("Could not (re)open file \"" + Filename + "\" in read+write mode");
                     }
@@ -1602,7 +1609,7 @@ namespace RIFF {
             #if defined(WIN32)
             DWORD iBytesMoved = 1; // we have to pass it via pointer to the Windows API, thus the correct size must be ensured
             #else
-            int iBytesMoved = 1; 
+            int iBytesMoved = 1;
             #endif
             for (unsigned long ulPos = 0; iBytesMoved > 0; ulPos += iBytesMoved) {
                 const unsigned long ulToMove = ulFileSize - ulPos;
@@ -1669,7 +1676,8 @@ namespace RIFF {
         #elif defined(WIN32)
         hFileWrite = CreateFile(
                          path.c_str(), GENERIC_WRITE, FILE_SHARE_READ,
-                         NULL, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL
+                         NULL, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL |
+                         FILE_FLAG_RANDOM_ACCESS, NULL
                      );
         if (hFileWrite == INVALID_HANDLE_VALUE) {
             hFileWrite = hFileRead;
