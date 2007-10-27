@@ -28,6 +28,8 @@
 #include <gtkmm/table.h>
 #include <gtkmm/tooltips.h>
 
+#include <set>
+
 #include "paramedit.h"
 
 class DimRegionEdit : public Gtk::Notebook
@@ -145,17 +147,6 @@ protected:
     BoolEntry eSampleLoopInfinite;
     NumEntryTemp<uint32_t> eSampleLoopPlayCount;
 
-    sigc::connection connection_eVCFCutoffController;
-    sigc::connection connection_eVCFVelocityCurve;
-    sigc::connection connection_eVCFVelocityScale;
-    sigc::connection connection_eVCFVelocityDynamicRange;
-    sigc::connection connection_eVelocityResponseCurve;
-    sigc::connection connection_eVelocityResponseDepth;
-    sigc::connection connection_eVelocityResponseCurveScaling;
-    sigc::connection connection_eReleaseVelocityResponseCurve;
-    sigc::connection connection_eReleaseVelocityResponseDepth;
-    sigc::connection connection_eGain;
-
     int rowno;
     int pageno;
     int firstRowInBlock;
@@ -184,10 +175,84 @@ protected:
     void crossfade2_changed();
     void crossfade3_changed();
     void crossfade4_changed();
-    void loop_enabled_toggled();
+    void update_loop_elements();
+    void loop_start_changed();
+    void loop_length_changed();
     void loop_infinite_toggled();
 
-    void updateLoopElements();
+    std::set<gig::DimensionRegion*> dimregs;
+
+    int update_model;
+
+    // connect a widget to a setter function in DimRegionEdit
+    template<typename C, typename T>
+    void connect(C& widget,
+                 void (DimRegionEdit::*setter)(gig::DimensionRegion*, T)) {
+        connect<C, T>(widget,
+                      sigc::mem_fun(setter));
+    }
+
+    // connect a widget to a member variable in gig::DimensionRegion
+    template<typename C, typename T>
+    void connect(C& widget, T gig::DimensionRegion::* member) {
+        connect<C, T>(widget,
+                      sigc::bind(sigc::mem_fun(&DimRegionEdit::set_member<T>), member));
+    }
+
+    // connect a widget to a setter function in gig::DimensionRegion
+    template<typename C, typename T>
+    void connect(C& widget,
+                 void (gig::DimensionRegion::*setter)(T)) {
+        connect<C, T>(widget,
+                      sigc::hide<0>(sigc::mem_fun(setter)));
+    }
+
+    // helper function for the connect functions above
+    template<typename C, typename T>
+    void connect(C& widget,
+                 sigc::slot<void, DimRegionEdit*, gig::DimensionRegion*, T> setter) {
+        widget.signal_value_changed().connect(
+            sigc::compose(sigc::bind(sigc::mem_fun(*this, &DimRegionEdit::set_many<T>), setter),
+                          sigc::mem_fun(widget, &C::get_value)));
+    }
+
+    // loop through all dimregions being edited ant set a value in
+    // each of them
+    template<typename T>
+    void set_many(T value,
+                  sigc::slot<void, DimRegionEdit*, gig::DimensionRegion*, T> setter) {
+        if (update_model == 0) {
+            for (std::set<gig::DimensionRegion*>::iterator i = dimregs.begin() ;
+                 i != dimregs.end() ; i++)
+            {
+                dimreg_changed_signal(*i);
+                setter(this, *i, value);
+            }
+        }
+    }
+
+    // set a value of a member variable in the given dimregion
+    template<typename T>
+    void set_member(gig::DimensionRegion* d, T value,
+                    T gig::DimensionRegion::* member) {
+        d->*member = value;
+    }
+
+    // setters for specific dimregion parameters
+
+    void set_UnityNote(gig::DimensionRegion* d, uint8_t value);
+    void set_FineTune(gig::DimensionRegion* d, int16_t value);
+    void set_Crossfade_in_start(gig::DimensionRegion* d, uint8_t value);
+    void set_Crossfade_in_end(gig::DimensionRegion* d, uint8_t value);
+    void set_Crossfade_out_start(gig::DimensionRegion* d, uint8_t value);
+    void set_Crossfade_out_end(gig::DimensionRegion* d, uint8_t value);
+    void set_Gain(gig::DimensionRegion* d, int32_t value);
+    void set_LoopEnabled(gig::DimensionRegion* d, bool value);
+    void set_LoopType(gig::DimensionRegion* d, uint32_t value);
+    void set_LoopStart(gig::DimensionRegion* d, uint32_t value);
+    void set_LoopLength(gig::DimensionRegion* d, uint32_t value);
+    void set_LoopInfinite(gig::DimensionRegion* d, bool value);
+    void set_LoopPlayCount(gig::DimensionRegion* d, uint32_t value);
 };
 
 #endif

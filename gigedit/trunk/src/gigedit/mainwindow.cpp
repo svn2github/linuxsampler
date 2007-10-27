@@ -858,12 +858,42 @@ void PropDialog::set_info(DLS::Info* info)
     entry[15].set_text(info->Subject);
 }
 
+void InstrumentProps::set_IsDrum(bool value)
+{
+    instrument->IsDrum = value;
+}
+
+void InstrumentProps::set_MIDIBank(uint16_t value)
+{
+    instrument->MIDIBank = value;
+}
+
+void InstrumentProps::set_MIDIProgram(uint32_t value)
+{
+    instrument->MIDIProgram = value;
+}
+
+void InstrumentProps::set_DimensionKeyRange_low(uint8_t value)
+{
+    instrument->DimensionKeyRange.low = value;
+    if (value > instrument->DimensionKeyRange.high) {
+        eDimensionKeyRangeHigh.set_value(value);
+    }
+}
+
+void InstrumentProps::set_DimensionKeyRange_high(uint8_t value)
+{
+    instrument->DimensionKeyRange.high = value;
+    if (value < instrument->DimensionKeyRange.low) {
+        eDimensionKeyRangeLow.set_value(value);
+    }
+}
+
 void InstrumentProps::add_prop(BoolEntry& boolentry)
 {
     table.attach(boolentry.widget, 0, 2, rowno, rowno + 1,
                  Gtk::FILL, Gtk::SHRINK);
     rowno++;
-    boolentry.signal_changed_by_user().connect(instrument_changed.make_slot());
 }
 
 void InstrumentProps::add_prop(BoolEntryPlus6& boolentry)
@@ -871,7 +901,6 @@ void InstrumentProps::add_prop(BoolEntryPlus6& boolentry)
     table.attach(boolentry.widget, 0, 2, rowno, rowno + 1,
                  Gtk::FILL, Gtk::SHRINK);
     rowno++;
-    boolentry.signal_changed_by_user().connect(instrument_changed.make_slot());
 }
 
 void InstrumentProps::add_prop(LabelWidget& prop)
@@ -881,7 +910,6 @@ void InstrumentProps::add_prop(LabelWidget& prop)
     table.attach(prop.widget, 1, 2, rowno, rowno + 1,
                  Gtk::FILL | Gtk::EXPAND, Gtk::SHRINK);
     rowno++;
-    prop.signal_changed_by_user().connect(instrument_changed.make_slot());
 }
 
 InstrumentProps::InstrumentProps()
@@ -898,9 +926,24 @@ InstrumentProps::InstrumentProps()
       ePitchbendRange("Pitchbend range", 0, 12),
       ePianoReleaseMode("Piano release mode"),
       eDimensionKeyRangeLow("Dimension key range low"),
-      eDimensionKeyRangeHigh("Dimension key range high")
+      eDimensionKeyRangeHigh("Dimension key range high"),
+      update_model(0)
 {
     set_title("Instrument properties");
+
+    connect(eIsDrum, &InstrumentProps::set_IsDrum);
+    connect(eMIDIBank, &InstrumentProps::set_MIDIBank);
+    connect(eMIDIProgram, &InstrumentProps::set_MIDIProgram);
+    connect(eAttenuation, &gig::Instrument::Attenuation);
+    connect(eGainPlus6, &gig::Instrument::Attenuation);
+    connect(eEffectSend, &gig::Instrument::EffectSend);
+    connect(eFineTune, &gig::Instrument::FineTune);
+    connect(ePitchbendRange, &gig::Instrument::PitchbendRange);
+    connect(ePianoReleaseMode, &gig::Instrument::PianoReleaseMode);
+    connect(eDimensionKeyRangeLow,
+            &InstrumentProps::set_DimensionKeyRange_low);
+    connect(eDimensionKeyRangeHigh,
+            &InstrumentProps::set_DimensionKeyRange_high);
 
     rowno = 0;
     table.set_col_spacings(5);
@@ -917,11 +960,6 @@ InstrumentProps::InstrumentProps()
     add_prop(ePianoReleaseMode);
     add_prop(eDimensionKeyRangeLow);
     add_prop(eDimensionKeyRangeHigh);
-
-    eDimensionKeyRangeLow.signal_changed_by_user().connect(
-        sigc::mem_fun(*this, &InstrumentProps::key_range_low_changed));
-    eDimensionKeyRangeHigh.signal_changed_by_user().connect(
-        sigc::mem_fun(*this, &InstrumentProps::key_range_high_changed));
 
     add(vbox);
     table.set_border_width(5);
@@ -945,34 +983,22 @@ InstrumentProps::InstrumentProps()
 
 void InstrumentProps::set_instrument(gig::Instrument* instrument)
 {
+    this->instrument = instrument;
+
+    update_model++;
     eName.set_ptr(&instrument->pInfo->Name);
-    eIsDrum.set_ptr(&instrument->IsDrum);
-    eMIDIBank.set_ptr(&instrument->MIDIBank);
-    eMIDIProgram.set_ptr(&instrument->MIDIProgram);
-    eAttenuation.set_ptr(&instrument->Attenuation);
-    eGainPlus6.set_ptr(&instrument->Attenuation);
-    eEffectSend.set_ptr(&instrument->EffectSend);
-    eFineTune.set_ptr(&instrument->FineTune);
-    ePitchbendRange.set_ptr(&instrument->PitchbendRange);
-    ePianoReleaseMode.set_ptr(&instrument->PianoReleaseMode);
-    eDimensionKeyRangeLow.set_ptr(0);
-    eDimensionKeyRangeHigh.set_ptr(0);
-    eDimensionKeyRangeLow.set_ptr(&instrument->DimensionKeyRange.low);
-    eDimensionKeyRangeHigh.set_ptr(&instrument->DimensionKeyRange.high);
-}
-
-void InstrumentProps::key_range_low_changed()
-{
-    double l = eDimensionKeyRangeLow.get_value();
-    double h = eDimensionKeyRangeHigh.get_value();
-    if (h < l) eDimensionKeyRangeHigh.set_value(l);
-}
-
-void InstrumentProps::key_range_high_changed()
-{
-    double l = eDimensionKeyRangeLow.get_value();
-    double h = eDimensionKeyRangeHigh.get_value();
-    if (h < l) eDimensionKeyRangeLow.set_value(h);
+    eIsDrum.set_value(instrument->IsDrum);
+    eMIDIBank.set_value(instrument->MIDIBank);
+    eMIDIProgram.set_value(instrument->MIDIProgram);
+    eAttenuation.set_value(instrument->Attenuation);
+    eGainPlus6.set_value(instrument->Attenuation);
+    eEffectSend.set_value(instrument->EffectSend);
+    eFineTune.set_value(instrument->FineTune);
+    ePitchbendRange.set_value(instrument->PitchbendRange);
+    ePianoReleaseMode.set_value(instrument->PianoReleaseMode);
+    eDimensionKeyRangeLow.set_value(instrument->DimensionKeyRange.low);
+    eDimensionKeyRangeHigh.set_value(instrument->DimensionKeyRange.high);
+    update_model--;
 }
 
 sigc::signal<void>& InstrumentProps::signal_instrument_changed()
@@ -1505,6 +1531,8 @@ void MainWindow::on_sample_label_drop_drag_data_received(
 
         // notify we're done with altering
         region_changed_signal.emit(region);
+
+        file_changed();
 
         return;
     }

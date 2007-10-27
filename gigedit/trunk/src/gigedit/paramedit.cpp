@@ -78,6 +78,7 @@ NumEntry::NumEntry(const char* labelText, double lower, double upper,
     LabelWidget(labelText, box)
 {
     spinbutton.set_digits(decimals);
+    spinbutton.set_value(0);
     scale.set_draw_value(false);
     box.pack_start(spinbutton, Gtk::PACK_SHRINK);
     box.add(scale);
@@ -87,7 +88,9 @@ NumEntryGain::NumEntryGain(const char* labelText,
 			   double lower, double upper,
 			   int decimals, double coeff) :
     NumEntry(labelText, lower, upper, decimals),
-    coeff(coeff)
+    coeff(coeff),
+    value(0),
+    connected(true)
 {
     spinbutton.signal_value_changed().connect(
         sigc::mem_fun(*this, &NumEntryGain::value_changed));
@@ -95,30 +98,29 @@ NumEntryGain::NumEntryGain(const char* labelText,
 
 void NumEntryGain::value_changed()
 {
+    if (!connected) return;
+
     const double f = pow(10, spinbutton.get_digits());
     int new_value = round_to_int(spinbutton.get_value() * f);
-    if (ptr) {
-        if (new_value != round_to_int(*ptr / coeff * f))
-        {
-            sig_to_be_changed.emit();
-            *ptr = round_to_int(new_value / f * coeff);
-            sig_val_changed.emit(new_value);
-            sig_changed.emit();
-        }
-    } else {
-        sig_to_be_changed.emit();
-        sig_val_changed.emit(new_value);
-        sig_changed.emit();
+    if (new_value != round_to_int(value / coeff * f)) {
+        value = round_to_int(new_value / f * coeff);
+        sig_changed();
     }
 }
 
-void NumEntryGain::set_ptr(int32_t* ptr)
+void NumEntryGain::set_value(int32_t value)
 {
-    this->ptr = 0;
-    bool plus6 = *ptr < 0;
-    set_value(plus6 ? 0 : *ptr / coeff);
-    set_sensitive(!plus6);
-    this->ptr = ptr;
+    if (value != this->value) {
+        this->value = value;
+
+        connected = false;
+        bool plus6 = value < 0;
+        spinbutton.set_value(plus6 ? 0 : value / coeff);
+        set_sensitive(!plus6);
+        connected = true;
+
+        sig_changed();
+    }
 }
 
 
@@ -134,32 +136,24 @@ BoolEntryPlus6::BoolEntryPlus6(const char* labelText, NumEntryGain& eGain, int32
 
 void BoolEntryPlus6::value_changed()
 {
-    if (ptr) {
-        bool plus6 = checkbutton.get_active();
-        if (plus6) {
-            eGain.set_value(0);
-            *ptr = plus6value;
-            sig_changed();
-        } else {
-            if (*ptr < 0) {
-                *ptr = 0;
-                sig_changed();
-            }
-        }
-        eGain.set_sensitive(!plus6);
-    }
+    if (checkbutton.get_active()) eGain.set_value(plus6value);
+    else if (eGain.get_value() < 0) eGain.set_value(0);
 }
 
-void BoolEntryPlus6::set_ptr(int32_t* ptr)
+int32_t BoolEntryPlus6::get_value() const
 {
-    this->ptr = 0;
-    checkbutton.set_active(*ptr < 0);
-    this->ptr = ptr;
+    return eGain.get_value();
+}
+
+void BoolEntryPlus6::set_value(int32_t value)
+{
+    checkbutton.set_active(value < 0);
 }
 
 NumEntryPermille::NumEntryPermille(const char* labelText,
                                    double lower, double upper, int decimals) :
-    NumEntry(labelText, lower, upper, decimals)
+    NumEntry(labelText, lower, upper, decimals),
+    value(0)
 {
     spinbutton.signal_value_changed().connect(
         sigc::mem_fun(*this, &NumEntryPermille::value_changed));
@@ -167,20 +161,18 @@ NumEntryPermille::NumEntryPermille(const char* labelText,
 
 void NumEntryPermille::value_changed()
 {
-    if (ptr) {
-        uint16_t new_value = uint16_t(spinbutton.get_value() * 10 + 0.5);
-        if (new_value != *ptr) {
-            *ptr = uint16_t(spinbutton.get_value() * 10 + 0.5);
-            sig_changed();
-        }
+    uint16_t new_value = uint16_t(spinbutton.get_value() * 10 + 0.5);
+    if (new_value != value) {
+        value = uint16_t(spinbutton.get_value() * 10 + 0.5);
+        sig_changed();
     }
 }
 
-void NumEntryPermille::set_ptr(uint16_t* ptr)
+void NumEntryPermille::set_value(uint16_t value)
 {
-    this->ptr = 0;
-    set_value(*ptr / 10.0);
-    this->ptr = ptr;
+    if (value != this->value) {
+        spinbutton.set_value(value / 10.0);
+    }
 }
 
 
@@ -240,48 +232,47 @@ ChoiceEntryLeverageCtrl::ChoiceEntryLeverageCtrl(const char* labelText) :
     combobox.signal_changed().connect(
         sigc::mem_fun(*this, &ChoiceEntryLeverageCtrl::value_changed));
     align.add(combobox);
+    value.type = gig::leverage_ctrl_t::type_none;
+    value.controller_number = 0;
 }
 
 void ChoiceEntryLeverageCtrl::value_changed()
 {
-    if (ptr) {
-        int rowno = combobox.get_active_row_number();
-        switch (rowno)
-        {
-        case -1:
-            break;
-        case 0:
-            ptr->type = gig::leverage_ctrl_t::type_none;
-            break;
-        case 1:
-            ptr->type = gig::leverage_ctrl_t::type_channelaftertouch;
-            break;
-        case 2:
-            ptr->type = gig::leverage_ctrl_t::type_velocity;
-            break;
-        default:
-            ptr->type = gig::leverage_ctrl_t::type_controlchange;
-            int x = 3;
-            for (int cc = 0 ; cc < 96 ; cc++) {
-                if (controlChangeTexts[cc + 3]) {
-                    if (rowno == x) {
-                        ptr->controller_number = cc;
-                        break;
-                    }
-                    x++;
+    int rowno = combobox.get_active_row_number();
+    switch (rowno)
+    {
+    case -1:
+        break;
+    case 0:
+        value.type = gig::leverage_ctrl_t::type_none;
+        break;
+    case 1:
+        value.type = gig::leverage_ctrl_t::type_channelaftertouch;
+        break;
+    case 2:
+        value.type = gig::leverage_ctrl_t::type_velocity;
+        break;
+    default:
+        value.type = gig::leverage_ctrl_t::type_controlchange;
+        int x = 3;
+        for (int cc = 0 ; cc < 96 ; cc++) {
+            if (controlChangeTexts[cc + 3]) {
+                if (rowno == x) {
+                    value.controller_number = cc;
+                    break;
                 }
+                x++;
             }
-            break;
         }
-        if (rowno >= 0) sig_changed();
+        break;
     }
+    if (rowno >= 0) sig_changed();
 }
 
-void ChoiceEntryLeverageCtrl::set_ptr(gig::leverage_ctrl_t* ptr)
+void ChoiceEntryLeverageCtrl::set_value(gig::leverage_ctrl_t value)
 {
-    this->ptr = 0;
     int x;
-    switch (ptr->type)
+    switch (value.type)
     {
     case gig::leverage_ctrl_t::type_none:
         x = 0;
@@ -297,7 +288,7 @@ void ChoiceEntryLeverageCtrl::set_ptr(gig::leverage_ctrl_t* ptr)
         for (int cc = 0 ; cc < 96 ; cc++) {
             if (controlChangeTexts[cc + 3]) {
                 x++;
-                if (ptr->controller_number == cc) {
+                if (value.controller_number == cc) {
                     x += 3;
                     break;
                 }
@@ -309,32 +300,14 @@ void ChoiceEntryLeverageCtrl::set_ptr(gig::leverage_ctrl_t* ptr)
         break;
     }
     combobox.set_active(x);
-    this->ptr = ptr;
 }
 
 
 BoolEntry::BoolEntry(const char* labelText) :
     LabelWidget(labelText, checkbutton),
-    checkbutton(labelText),
-    ptr(0)
+    checkbutton(labelText)
 {
-    checkbutton.signal_toggled().connect(
-        sigc::mem_fun(*this, &BoolEntry::value_changed));
-}
-
-void BoolEntry::value_changed()
-{
-    if (ptr) {
-        *ptr = checkbutton.get_active();
-        sig_changed();
-    }
-}
-
-void BoolEntry::set_ptr(bool* ptr)
-{
-    this->ptr = 0;
-    checkbutton.set_active(*ptr);
-    this->ptr = ptr;
+    checkbutton.signal_toggled().connect(sig_changed.make_slot());
 }
 
 

@@ -109,8 +109,117 @@ DimRegionEdit::DimRegionEdit() :
     eSampleLoopLength("Loop size"),
     eSampleLoopType("Loop type"),
     eSampleLoopInfinite("Infinite loop"),
-    eSampleLoopPlayCount("Playback count")
+    eSampleLoopPlayCount("Playback count", 1),
+    update_model(0)
 {
+    connect(eEG1PreAttack, &gig::DimensionRegion::EG1PreAttack);
+    connect(eEG1Attack, &gig::DimensionRegion::EG1Attack);
+    connect(eEG1Decay1, &gig::DimensionRegion::EG1Decay1);
+    connect(eEG1Decay2, &gig::DimensionRegion::EG1Decay2);
+    connect(eEG1InfiniteSustain, &gig::DimensionRegion::EG1InfiniteSustain);
+    connect(eEG1Sustain, &gig::DimensionRegion::EG1Sustain);
+    connect(eEG1Release, &gig::DimensionRegion::EG1Release);
+    connect(eEG1Hold, &gig::DimensionRegion::EG1Hold);
+    connect(eEG1Controller, &gig::DimensionRegion::EG1Controller);
+    connect(eEG1ControllerInvert, &gig::DimensionRegion::EG1ControllerInvert);
+    connect(eEG1ControllerAttackInfluence,
+            &gig::DimensionRegion::EG1ControllerAttackInfluence);
+    connect(eEG1ControllerDecayInfluence,
+            &gig::DimensionRegion::EG1ControllerDecayInfluence);
+    connect(eEG1ControllerReleaseInfluence,
+            &gig::DimensionRegion::EG1ControllerReleaseInfluence);
+    connect(eLFO1Frequency, &gig::DimensionRegion::LFO1Frequency);
+    connect(eLFO1InternalDepth, &gig::DimensionRegion::LFO1InternalDepth);
+    connect(eLFO1ControlDepth, &gig::DimensionRegion::LFO1ControlDepth);
+    connect(eLFO1Controller, &gig::DimensionRegion::LFO1Controller);
+    connect(eLFO1FlipPhase, &gig::DimensionRegion::LFO1FlipPhase);
+    connect(eLFO1Sync, &gig::DimensionRegion::LFO1Sync);
+    connect(eEG2PreAttack, &gig::DimensionRegion::EG2PreAttack);
+    connect(eEG2Attack, &gig::DimensionRegion::EG2Attack);
+    connect(eEG2Decay1, &gig::DimensionRegion::EG2Decay1);
+    connect(eEG2Decay2, &gig::DimensionRegion::EG2Decay2);
+    connect(eEG2InfiniteSustain, &gig::DimensionRegion::EG2InfiniteSustain);
+    connect(eEG2Sustain, &gig::DimensionRegion::EG2Sustain);
+    connect(eEG2Release, &gig::DimensionRegion::EG2Release);
+    connect(eEG2Controller, &gig::DimensionRegion::EG2Controller);
+    connect(eEG2ControllerInvert, &gig::DimensionRegion::EG2ControllerInvert);
+    connect(eEG2ControllerAttackInfluence,
+            &gig::DimensionRegion::EG2ControllerAttackInfluence);
+    connect(eEG2ControllerDecayInfluence,
+            &gig::DimensionRegion::EG2ControllerDecayInfluence);
+    connect(eEG2ControllerReleaseInfluence,
+            &gig::DimensionRegion::EG2ControllerReleaseInfluence);
+    connect(eLFO2Frequency, &gig::DimensionRegion::LFO2Frequency);
+    connect(eLFO2InternalDepth, &gig::DimensionRegion::LFO2InternalDepth);
+    connect(eLFO2ControlDepth, &gig::DimensionRegion::LFO2ControlDepth);
+    connect(eLFO2Controller, &gig::DimensionRegion::LFO2Controller);
+    connect(eLFO2FlipPhase, &gig::DimensionRegion::LFO2FlipPhase);
+    connect(eLFO2Sync, &gig::DimensionRegion::LFO2Sync);
+    connect(eEG3Attack, &gig::DimensionRegion::EG3Attack);
+    connect(eEG3Depth, &gig::DimensionRegion::EG3Depth);
+    connect(eLFO3Frequency, &gig::DimensionRegion::LFO3Frequency);
+    connect(eLFO3InternalDepth, &gig::DimensionRegion::LFO3InternalDepth);
+    connect(eLFO3ControlDepth, &gig::DimensionRegion::LFO3ControlDepth);
+    connect(eLFO3Controller, &gig::DimensionRegion::LFO3Controller);
+    connect(eLFO3Sync, &gig::DimensionRegion::LFO3Sync);
+    connect(eVCFEnabled, &gig::DimensionRegion::VCFEnabled);
+    connect(eVCFType, &gig::DimensionRegion::VCFType);
+    connect(eVCFCutoffController,
+            &gig::DimensionRegion::SetVCFCutoffController);
+    connect(eVCFCutoffControllerInvert,
+            &gig::DimensionRegion::VCFCutoffControllerInvert);
+    connect(eVCFCutoff, &gig::DimensionRegion::VCFCutoff);
+    connect(eVCFVelocityCurve, &gig::DimensionRegion::SetVCFVelocityCurve);
+    connect(eVCFVelocityScale, &gig::DimensionRegion::SetVCFVelocityScale);
+    connect(eVCFVelocityDynamicRange,
+            &gig::DimensionRegion::SetVCFVelocityDynamicRange);
+    connect(eVCFResonance, &gig::DimensionRegion::VCFResonance);
+    connect(eVCFResonanceDynamic, &gig::DimensionRegion::VCFResonanceDynamic);
+    connect(eVCFResonanceController,
+            &gig::DimensionRegion::VCFResonanceController);
+    connect(eVCFKeyboardTracking, &gig::DimensionRegion::VCFKeyboardTracking);
+    connect(eVCFKeyboardTrackingBreakpoint,
+            &gig::DimensionRegion::VCFKeyboardTrackingBreakpoint);
+    connect(eVelocityResponseCurve,
+            &gig::DimensionRegion::SetVelocityResponseCurve);
+    connect(eVelocityResponseDepth,
+            &gig::DimensionRegion::SetVelocityResponseDepth);
+    connect(eVelocityResponseCurveScaling,
+            &gig::DimensionRegion::SetVelocityResponseCurveScaling);
+    connect(eReleaseVelocityResponseCurve,
+            &gig::DimensionRegion::SetReleaseVelocityResponseCurve);
+    connect(eReleaseVelocityResponseDepth,
+            &gig::DimensionRegion::SetReleaseVelocityResponseDepth);
+    connect(eReleaseTriggerDecay, &gig::DimensionRegion::ReleaseTriggerDecay);
+    connect(eCrossfade_in_start, &DimRegionEdit::set_Crossfade_in_start);
+    connect(eCrossfade_in_end, &DimRegionEdit::set_Crossfade_in_end);
+    connect(eCrossfade_out_start, &DimRegionEdit::set_Crossfade_out_start);
+    connect(eCrossfade_out_end, &DimRegionEdit::set_Crossfade_out_end);
+    connect(ePitchTrack, &gig::DimensionRegion::PitchTrack);
+    connect(eDimensionBypass, &gig::DimensionRegion::DimensionBypass);
+    connect(ePan, &gig::DimensionRegion::Pan);
+    connect(eSelfMask, &gig::DimensionRegion::SelfMask);
+    connect(eAttenuationController,
+            &gig::DimensionRegion::AttenuationController);
+    connect(eInvertAttenuationController,
+            &gig::DimensionRegion::InvertAttenuationController);
+    connect(eAttenuationControllerThreshold,
+            &gig::DimensionRegion::AttenuationControllerThreshold);
+    connect(eChannelOffset, &gig::DimensionRegion::ChannelOffset);
+    connect(eSustainDefeat, &gig::DimensionRegion::SustainDefeat);
+    connect(eMSDecode, &gig::DimensionRegion::MSDecode);
+    connect(eSampleStartOffset, &gig::DimensionRegion::SampleStartOffset);
+    connect(eUnityNote, &DimRegionEdit::set_UnityNote);
+    connect(eFineTune, &DimRegionEdit::set_FineTune);
+    connect(eGain, &DimRegionEdit::set_Gain);
+    connect(eGainPlus6, &DimRegionEdit::set_Gain);
+    connect(eSampleLoopEnabled, &DimRegionEdit::set_LoopEnabled);
+    connect(eSampleLoopType, &DimRegionEdit::set_LoopType);
+    connect(eSampleLoopStart, &DimRegionEdit::set_LoopStart);
+    connect(eSampleLoopLength, &DimRegionEdit::set_LoopLength);
+    connect(eSampleLoopInfinite, &DimRegionEdit::set_LoopInfinite);
+    connect(eSampleLoopPlayCount, &DimRegionEdit::set_LoopPlayCount);
+
     for (int i = 0 ; i < 7 ; i++) {
         table[i] = new Gtk::Table(3, 1);
         table[i]->set_col_spacings(7);
@@ -389,45 +498,45 @@ DimRegionEdit::DimRegionEdit() :
     nextPage();
 
 
-    eEG1InfiniteSustain.signal_toggled().connect(
-        sigc::mem_fun(*this, &DimRegionEdit::EG1InfiniteSustain_toggled) );
-    eEG2InfiniteSustain.signal_toggled().connect(
-        sigc::mem_fun(*this, &DimRegionEdit::EG2InfiniteSustain_toggled) );
-    eEG1Controller.signal_changed().connect(
-        sigc::mem_fun(*this, &DimRegionEdit::EG1Controller_changed) );
-    eEG2Controller.signal_changed().connect(
-        sigc::mem_fun(*this, &DimRegionEdit::EG2Controller_changed) );
-    eLFO1Controller.signal_changed().connect(
-        sigc::mem_fun(*this, &DimRegionEdit::LFO1Controller_changed) );
-    eLFO2Controller.signal_changed().connect(
-        sigc::mem_fun(*this, &DimRegionEdit::LFO2Controller_changed) );
-    eLFO3Controller.signal_changed().connect(
-        sigc::mem_fun(*this, &DimRegionEdit::LFO3Controller_changed) );
-    eAttenuationController.signal_changed().connect(
-        sigc::mem_fun(*this, &DimRegionEdit::AttenuationController_changed) );
-    eVCFEnabled.signal_toggled().connect(
-        sigc::mem_fun(*this, &DimRegionEdit::VCFEnabled_toggled) );
-    eVCFCutoffController.signal_changed().connect(
-        sigc::mem_fun(*this, &DimRegionEdit::VCFCutoffController_changed) );
-    eVCFResonanceController.signal_changed().connect(
-        sigc::mem_fun(*this, &DimRegionEdit::VCFResonanceController_changed) );
+    eEG1InfiniteSustain.signal_value_changed().connect(
+        sigc::mem_fun(*this, &DimRegionEdit::EG1InfiniteSustain_toggled));
+    eEG2InfiniteSustain.signal_value_changed().connect(
+        sigc::mem_fun(*this, &DimRegionEdit::EG2InfiniteSustain_toggled));
+    eEG1Controller.signal_value_changed().connect(
+        sigc::mem_fun(*this, &DimRegionEdit::EG1Controller_changed));
+    eEG2Controller.signal_value_changed().connect(
+        sigc::mem_fun(*this, &DimRegionEdit::EG2Controller_changed));
+    eLFO1Controller.signal_value_changed().connect(
+        sigc::mem_fun(*this, &DimRegionEdit::LFO1Controller_changed));
+    eLFO2Controller.signal_value_changed().connect(
+        sigc::mem_fun(*this, &DimRegionEdit::LFO2Controller_changed));
+    eLFO3Controller.signal_value_changed().connect(
+        sigc::mem_fun(*this, &DimRegionEdit::LFO3Controller_changed));
+    eAttenuationController.signal_value_changed().connect(
+        sigc::mem_fun(*this, &DimRegionEdit::AttenuationController_changed));
+    eVCFEnabled.signal_value_changed().connect(
+        sigc::mem_fun(*this, &DimRegionEdit::VCFEnabled_toggled));
+    eVCFCutoffController.signal_value_changed().connect(
+        sigc::mem_fun(*this, &DimRegionEdit::VCFCutoffController_changed));
+    eVCFResonanceController.signal_value_changed().connect(
+        sigc::mem_fun(*this, &DimRegionEdit::VCFResonanceController_changed));
 
-    eCrossfade_in_start.signal_changed_by_user().connect(
+    eCrossfade_in_start.signal_value_changed().connect(
         sigc::mem_fun(*this, &DimRegionEdit::crossfade1_changed));
-    eCrossfade_in_end.signal_changed_by_user().connect(
+    eCrossfade_in_end.signal_value_changed().connect(
         sigc::mem_fun(*this, &DimRegionEdit::crossfade2_changed));
-    eCrossfade_out_start.signal_changed_by_user().connect(
+    eCrossfade_out_start.signal_value_changed().connect(
         sigc::mem_fun(*this, &DimRegionEdit::crossfade3_changed));
-    eCrossfade_out_end.signal_changed_by_user().connect(
+    eCrossfade_out_end.signal_value_changed().connect(
         sigc::mem_fun(*this, &DimRegionEdit::crossfade4_changed));
 
-    eSampleLoopEnabled.signal_toggled().connect(
-        sigc::mem_fun(*this, &DimRegionEdit::loop_enabled_toggled));
-    eSampleLoopStart.signal_changed_by_user().connect(
-        sigc::mem_fun(*this, &DimRegionEdit::updateLoopElements));
-    eSampleLoopLength.signal_changed_by_user().connect(
-        sigc::mem_fun(*this, &DimRegionEdit::updateLoopElements));
-    eSampleLoopInfinite.signal_toggled().connect(
+    eSampleLoopEnabled.signal_value_changed().connect(
+        sigc::mem_fun(*this, &DimRegionEdit::update_loop_elements));
+    eSampleLoopStart.signal_value_changed().connect(
+        sigc::mem_fun(*this, &DimRegionEdit::loop_start_changed));
+    eSampleLoopLength.signal_value_changed().connect(
+        sigc::mem_fun(*this, &DimRegionEdit::loop_length_changed));
+    eSampleLoopInfinite.signal_value_changed().connect(
         sigc::mem_fun(*this, &DimRegionEdit::loop_infinite_toggled));
 
     append_page(*table[0], "Sample");
@@ -498,9 +607,6 @@ void DimRegionEdit::addProp(BoolEntry& boolentry)
     table[pageno]->attach(boolentry.widget, 1, 3, rowno, rowno + 1,
                           Gtk::FILL, Gtk::SHRINK);
     rowno++;
-    boolentry.signal_changed_by_user().connect(
-        sigc::bind(dimreg_changed_signal.make_slot(), sigc::ref(this->dimregion))
-    );
 }
 
 void DimRegionEdit::addProp(BoolEntryPlus6& boolentry)
@@ -508,9 +614,6 @@ void DimRegionEdit::addProp(BoolEntryPlus6& boolentry)
     table[pageno]->attach(boolentry.widget, 1, 3, rowno, rowno + 1,
                           Gtk::FILL, Gtk::SHRINK);
     rowno++;
-    boolentry.signal_changed_by_user().connect(
-        sigc::bind(dimreg_changed_signal.make_slot(), sigc::ref(this->dimregion))
-    );
 }
 
 void DimRegionEdit::addProp(LabelWidget& prop)
@@ -520,9 +623,6 @@ void DimRegionEdit::addProp(LabelWidget& prop)
     table[pageno]->attach(prop.widget, 2, 3, rowno, rowno + 1,
                           Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK);
     rowno++;
-    prop.signal_changed_by_user().connect(
-        sigc::bind(dimreg_changed_signal.make_slot(), sigc::ref(this->dimregion))
-    );
 }
 
 
@@ -530,160 +630,121 @@ void DimRegionEdit::set_dim_region(gig::DimensionRegion* d)
 {
     dimregion = d;
 
-    // disconnect connections to old dimregion, to avoid segfaults
-    connection_eVCFCutoffController.disconnect();
-    connection_eVCFVelocityCurve.disconnect();
-    connection_eVCFVelocityScale.disconnect();
-    connection_eVCFVelocityDynamicRange.disconnect();
-    connection_eVelocityResponseCurve.disconnect();
-    connection_eVelocityResponseDepth.disconnect();
-    connection_eVelocityResponseCurveScaling.disconnect();
-    connection_eReleaseVelocityResponseCurve.disconnect();
-    connection_eReleaseVelocityResponseDepth.disconnect();
-    connection_eGain.disconnect();
-
     set_sensitive(d);
     if (!d) return;
 
+    // TODO: Here is where we decide which dimregions that are going
+    // to be modified when the user changes a parameter. For now, just
+    // choose the shown dimregion.
+    dimregs.clear();
+    dimregs.insert(d);
+
+    update_model++;
+    eEG1PreAttack.set_value(d->EG1PreAttack);
+    eEG1Attack.set_value(d->EG1Attack);
+    eEG1Decay1.set_value(d->EG1Decay1);
+    eEG1Decay2.set_value(d->EG1Decay2);
+    eEG1InfiniteSustain.set_value(d->EG1InfiniteSustain);
+    eEG1Sustain.set_value(d->EG1Sustain);
+    eEG1Release.set_value(d->EG1Release);
+    eEG1Hold.set_value(d->EG1Hold);
+    eEG1Controller.set_value(d->EG1Controller);
+    eEG1ControllerInvert.set_value(d->EG1ControllerInvert);
+    eEG1ControllerAttackInfluence.set_value(d->EG1ControllerAttackInfluence);
+    eEG1ControllerDecayInfluence.set_value(d->EG1ControllerDecayInfluence);
+    eEG1ControllerReleaseInfluence.set_value(d->EG1ControllerReleaseInfluence);
+    eLFO1Frequency.set_value(d->LFO1Frequency);
+    eLFO1InternalDepth.set_value(d->LFO1InternalDepth);
+    eLFO1ControlDepth.set_value(d->LFO1ControlDepth);
+    eLFO1Controller.set_value(d->LFO1Controller);
+    eLFO1FlipPhase.set_value(d->LFO1FlipPhase);
+    eLFO1Sync.set_value(d->LFO1Sync);
+    eEG2PreAttack.set_value(d->EG2PreAttack);
+    eEG2Attack.set_value(d->EG2Attack);
+    eEG2Decay1.set_value(d->EG2Decay1);
+    eEG2Decay2.set_value(d->EG2Decay2);
+    eEG2InfiniteSustain.set_value(d->EG2InfiniteSustain);
+    eEG2Sustain.set_value(d->EG2Sustain);
+    eEG2Release.set_value(d->EG2Release);
+    eEG2Controller.set_value(d->EG2Controller);
+    eEG2ControllerInvert.set_value(d->EG2ControllerInvert);
+    eEG2ControllerAttackInfluence.set_value(d->EG2ControllerAttackInfluence);
+    eEG2ControllerDecayInfluence.set_value(d->EG2ControllerDecayInfluence);
+    eEG2ControllerReleaseInfluence.set_value(d->EG2ControllerReleaseInfluence);
+    eLFO2Frequency.set_value(d->LFO2Frequency);
+    eLFO2InternalDepth.set_value(d->LFO2InternalDepth);
+    eLFO2ControlDepth.set_value(d->LFO2ControlDepth);
+    eLFO2Controller.set_value(d->LFO2Controller);
+    eLFO2FlipPhase.set_value(d->LFO2FlipPhase);
+    eLFO2Sync.set_value(d->LFO2Sync);
+    eEG3Attack.set_value(d->EG3Attack);
+    eEG3Depth.set_value(d->EG3Depth);
+    eLFO3Frequency.set_value(d->LFO3Frequency);
+    eLFO3InternalDepth.set_value(d->LFO3InternalDepth);
+    eLFO3ControlDepth.set_value(d->LFO3ControlDepth);
+    eLFO3Controller.set_value(d->LFO3Controller);
+    eLFO3Sync.set_value(d->LFO3Sync);
+    eVCFEnabled.set_value(d->VCFEnabled);
+    eVCFType.set_value(d->VCFType);
+    eVCFCutoffController.set_value(d->VCFCutoffController);
+    eVCFCutoffControllerInvert.set_value(d->VCFCutoffControllerInvert);
+    eVCFCutoff.set_value(d->VCFCutoff);
+    eVCFVelocityCurve.set_value(d->VCFVelocityCurve);
+    eVCFVelocityScale.set_value(d->VCFVelocityScale);
+    eVCFVelocityDynamicRange.set_value(d->VCFVelocityDynamicRange);
+    eVCFResonance.set_value(d->VCFResonance);
+    eVCFResonanceDynamic.set_value(d->VCFResonanceDynamic);
+    eVCFResonanceController.set_value(d->VCFResonanceController);
+    eVCFKeyboardTracking.set_value(d->VCFKeyboardTracking);
+    eVCFKeyboardTrackingBreakpoint.set_value(d->VCFKeyboardTrackingBreakpoint);
+    eVelocityResponseCurve.set_value(d->VelocityResponseCurve);
+    eVelocityResponseDepth.set_value(d->VelocityResponseDepth);
+    eVelocityResponseCurveScaling.set_value(d->VelocityResponseCurveScaling);
+    eReleaseVelocityResponseCurve.set_value(d->ReleaseVelocityResponseCurve);
+    eReleaseVelocityResponseDepth.set_value(d->ReleaseVelocityResponseDepth);
+    eReleaseTriggerDecay.set_value(d->ReleaseTriggerDecay);
+    eCrossfade_in_start.set_value(d->Crossfade.in_start);
+    eCrossfade_in_end.set_value(d->Crossfade.in_end);
+    eCrossfade_out_start.set_value(d->Crossfade.out_start);
+    eCrossfade_out_end.set_value(d->Crossfade.out_end);
+    ePitchTrack.set_value(d->PitchTrack);
+    eDimensionBypass.set_value(d->DimensionBypass);
+    ePan.set_value(d->Pan);
+    eSelfMask.set_value(d->SelfMask);
+    eAttenuationController.set_value(d->AttenuationController);
+    eInvertAttenuationController.set_value(d->InvertAttenuationController);
+    eAttenuationControllerThreshold.set_value(d->AttenuationControllerThreshold);
+    eChannelOffset.set_value(d->ChannelOffset);
+    eSustainDefeat.set_value(d->SustainDefeat);
+    eMSDecode.set_value(d->MSDecode);
+    eSampleStartOffset.set_value(d->SampleStartOffset);
+    eUnityNote.set_value(d->UnityNote);
+    eFineTune.set_value(d->FineTune);
+    eGain.set_value(d->Gain);
+    eGainPlus6.set_value(d->Gain);
+    eSampleLoopEnabled.set_value(d->SampleLoops);
+    eSampleLoopType.set_value(
+        d->SampleLoops ? d->pSampleLoops[0].LoopType : 0);
+    eSampleLoopStart.set_value(
+        d->SampleLoops ? d->pSampleLoops[0].LoopStart : 0);
+    eSampleLoopLength.set_value(
+        d->SampleLoops ? d->pSampleLoops[0].LoopLength : 0);
+    eSampleLoopInfinite.set_value(
+        d->pSample && d->pSample->LoopPlayCount == 0);
+    eSampleLoopPlayCount.set_value(
+        d->pSample ? d->pSample->LoopPlayCount : 0);
+    update_model--;
+
     wSample->set_text(d->pSample ? d->pSample->pInfo->Name.c_str() : "NULL");
-    eEG1PreAttack.set_ptr(&d->EG1PreAttack);
-    eEG1Attack.set_ptr(&d->EG1Attack);
-    eEG1Decay1.set_ptr(&d->EG1Decay1);
-    eEG1Decay2.set_ptr(&d->EG1Decay2);
-    eEG1InfiniteSustain.set_ptr(&d->EG1InfiniteSustain);
-    eEG1Sustain.set_ptr(&d->EG1Sustain);
-    eEG1Release.set_ptr(&d->EG1Release);
-    eEG1Hold.set_ptr(&d->EG1Hold);
-    eEG1Controller.set_ptr(&d->EG1Controller);
-    eEG1ControllerInvert.set_ptr(&d->EG1ControllerInvert);
-    eEG1ControllerAttackInfluence.set_ptr(&d->EG1ControllerAttackInfluence);
-    eEG1ControllerDecayInfluence.set_ptr(&d->EG1ControllerDecayInfluence);
-    eEG1ControllerReleaseInfluence.set_ptr(&d->EG1ControllerReleaseInfluence);
-    eLFO1Frequency.set_ptr(&d->LFO1Frequency);
-    eLFO1InternalDepth.set_ptr(&d->LFO1InternalDepth);
-    eLFO1ControlDepth.set_ptr(&d->LFO1ControlDepth);
-    eLFO1Controller.set_ptr(&d->LFO1Controller);
-    eLFO1FlipPhase.set_ptr(&d->LFO1FlipPhase);
-    eLFO1Sync.set_ptr(&d->LFO1Sync);
-    eEG2PreAttack.set_ptr(&d->EG2PreAttack);
-    eEG2Attack.set_ptr(&d->EG2Attack);
-    eEG2Decay1.set_ptr(&d->EG2Decay1);
-    eEG2Decay2.set_ptr(&d->EG2Decay2);
-    eEG2InfiniteSustain.set_ptr(&d->EG2InfiniteSustain);
-    eEG2Sustain.set_ptr(&d->EG2Sustain);
-    eEG2Release.set_ptr(&d->EG2Release);
-    eEG2Controller.set_ptr(&d->EG2Controller);
-    eEG2ControllerInvert.set_ptr(&d->EG2ControllerInvert);
-    eEG2ControllerAttackInfluence.set_ptr(&d->EG2ControllerAttackInfluence);
-    eEG2ControllerDecayInfluence.set_ptr(&d->EG2ControllerDecayInfluence);
-    eEG2ControllerReleaseInfluence.set_ptr(&d->EG2ControllerReleaseInfluence);
-    eLFO2Frequency.set_ptr(&d->LFO2Frequency);
-    eLFO2InternalDepth.set_ptr(&d->LFO2InternalDepth);
-    eLFO2ControlDepth.set_ptr(&d->LFO2ControlDepth);
-    eLFO2Controller.set_ptr(&d->LFO2Controller);
-    eLFO2FlipPhase.set_ptr(&d->LFO2FlipPhase);
-    eLFO2Sync.set_ptr(&d->LFO2Sync);
-    eEG3Attack.set_ptr(&d->EG3Attack);
-    eEG3Depth.set_ptr(&d->EG3Depth);
-    eLFO3Frequency.set_ptr(&d->LFO3Frequency);
-    eLFO3InternalDepth.set_ptr(&d->LFO3InternalDepth);
-    eLFO3ControlDepth.set_ptr(&d->LFO3ControlDepth);
-    eLFO3Controller.set_ptr(&d->LFO3Controller);
-    eLFO3Sync.set_ptr(&d->LFO3Sync);
-    eVCFEnabled.set_ptr(&d->VCFEnabled);
-    eVCFType.set_ptr(&d->VCFType);
-    eVCFCutoffController.set_ptr(&d->VCFCutoffController);
-    connection_eVCFCutoffController =
-        eVCFCutoffController.signal_value_changed().connect(
-            sigc::mem_fun(d, &gig::DimensionRegion::SetVCFCutoffController)
-        );
-    eVCFCutoffControllerInvert.set_ptr(&d->VCFCutoffControllerInvert);
-    eVCFCutoff.set_ptr(&d->VCFCutoff);
-    eVCFVelocityCurve.set_ptr(&d->VCFVelocityCurve);
-    connection_eVCFVelocityCurve =
-        eVCFVelocityCurve.signal_value_changed().connect(
-            sigc::mem_fun(d, &gig::DimensionRegion::SetVCFVelocityCurve)
-        );
-    eVCFVelocityScale.set_ptr(&d->VCFVelocityScale);
-    connection_eVCFVelocityScale =
-        eVCFVelocityScale.signal_value_changed().connect(
-            sigc::mem_fun(d, &gig::DimensionRegion::SetVCFVelocityScale)
-        );
-    eVCFVelocityDynamicRange.set_ptr(&d->VCFVelocityDynamicRange);
-    connection_eVCFVelocityDynamicRange =
-        eVCFVelocityDynamicRange.signal_value_changed().connect(
-            sigc::mem_fun(d, &gig::DimensionRegion::SetVCFVelocityDynamicRange)
-        );
-    eVCFResonance.set_ptr(&d->VCFResonance);
-    eVCFResonanceDynamic.set_ptr(&d->VCFResonanceDynamic);
-    eVCFResonanceController.set_ptr(&d->VCFResonanceController);
-    eVCFKeyboardTracking.set_ptr(&d->VCFKeyboardTracking);
-    eVCFKeyboardTrackingBreakpoint.set_ptr(&d->VCFKeyboardTrackingBreakpoint);
-    eVelocityResponseCurve.set_ptr(&d->VelocityResponseCurve);
-    connection_eVelocityResponseCurve =
-        eVelocityResponseCurve.signal_value_changed().connect(
-            sigc::mem_fun(d, &gig::DimensionRegion::SetVelocityResponseCurve)
-        );
-    eVelocityResponseDepth.set_ptr(&d->VelocityResponseDepth);
-    connection_eVelocityResponseDepth =
-        eVelocityResponseDepth.signal_value_changed().connect(
-            sigc::mem_fun(d, &gig::DimensionRegion::SetVelocityResponseDepth)
-        );
-    eVelocityResponseCurveScaling.set_ptr(&d->VelocityResponseCurveScaling);
-    connection_eVelocityResponseCurveScaling =
-        eVelocityResponseCurveScaling.signal_value_changed().connect(
-            sigc::mem_fun(d, &gig::DimensionRegion::SetVelocityResponseCurveScaling)
-        );
-    eReleaseVelocityResponseCurve.set_ptr(&d->ReleaseVelocityResponseCurve);
-    connection_eReleaseVelocityResponseCurve =
-        eReleaseVelocityResponseCurve.signal_value_changed().connect(
-            sigc::mem_fun(d, &gig::DimensionRegion::SetReleaseVelocityResponseCurve)
-        );
-    eReleaseVelocityResponseDepth.set_ptr(&d->ReleaseVelocityResponseDepth);
-    connection_eReleaseVelocityResponseDepth =
-        eReleaseVelocityResponseDepth.signal_value_changed().connect(
-            sigc::mem_fun(d, &gig::DimensionRegion::SetReleaseVelocityResponseDepth)
-        );
-    eReleaseTriggerDecay.set_ptr(&d->ReleaseTriggerDecay);
 
-    eCrossfade_in_start.set_ptr(0);
-    eCrossfade_in_end.set_ptr(0);
-    eCrossfade_out_start.set_ptr(0);
-    eCrossfade_out_end.set_ptr(0);
-    eCrossfade_in_start.set_ptr(&d->Crossfade.in_start);
-    eCrossfade_in_end.set_ptr(&d->Crossfade.in_end);
-    eCrossfade_out_start.set_ptr(&d->Crossfade.out_start);
-    eCrossfade_out_end.set_ptr(&d->Crossfade.out_end);
-
-    ePitchTrack.set_ptr(&d->PitchTrack);
-    eDimensionBypass.set_ptr(&d->DimensionBypass);
-    ePan.set_ptr(&d->Pan);
-    eSelfMask.set_ptr(&d->SelfMask);
-    eAttenuationController.set_ptr(&d->AttenuationController);
-    eInvertAttenuationController.set_ptr(&d->InvertAttenuationController);
-    eAttenuationControllerThreshold.set_ptr(&d->AttenuationControllerThreshold);
-    eChannelOffset.set_ptr(&d->ChannelOffset);
-    eSustainDefeat.set_ptr(&d->SustainDefeat);
-    eMSDecode.set_ptr(&d->MSDecode);
-    eSampleStartOffset.set_ptr(&d->SampleStartOffset);
-    eUnityNote.set_ptr(&d->UnityNote);
-    eFineTune.set_ptr(&d->FineTune);
-    eGain.set_ptr(&d->Gain);
-    connection_eGain =
-        eGain.signal_value_changed().connect(
-            sigc::mem_fun(d, &gig::DimensionRegion::SetGain)
-        );
-    eGainPlus6.set_ptr(&d->Gain);
-
-    eSampleLoopEnabled.set_active(d->SampleLoops);
-    updateLoopElements();
-
+    update_loop_elements();
     VCFEnabled_toggled();
 }
 
+
 void DimRegionEdit::VCFEnabled_toggled()
 {
-    bool sensitive = eVCFEnabled.get_active();
+    bool sensitive = eVCFEnabled.get_value();
     eVCFType.set_sensitive(sensitive);
     eVCFCutoffController.set_sensitive(sensitive);
     eVCFVelocityCurve.set_sensitive(sensitive);
@@ -729,8 +790,8 @@ void DimRegionEdit::VCFEnabled_toggled()
 
 void DimRegionEdit::VCFCutoffController_changed()
 {
-    int rowno = eVCFCutoffController.get_active_row_number();
-    bool hasController = rowno != 0 && rowno != 1;
+    gig::vcf_cutoff_ctrl_t ctrl = eVCFCutoffController.get_value();
+    bool hasController = ctrl != gig::vcf_cutoff_ctrl_none && ctrl != gig::vcf_cutoff_ctrl_none2;
 
     eVCFCutoffControllerInvert.set_sensitive(hasController);
     eVCFCutoff.set_sensitive(!hasController);
@@ -741,37 +802,38 @@ void DimRegionEdit::VCFCutoffController_changed()
 
 void DimRegionEdit::VCFResonanceController_changed()
 {
-    bool hasController = eVCFResonanceController.get_active_row_number() != 0;
+    bool hasController = eVCFResonanceController.get_value() != gig::vcf_res_ctrl_none;
     eVCFResonance.set_sensitive(!hasController);
 }
 
 void DimRegionEdit::EG1InfiniteSustain_toggled()
 {
-    bool infSus = eEG1InfiniteSustain.get_active();
+    bool infSus = eEG1InfiniteSustain.get_value();
     eEG1Decay2.set_sensitive(!infSus);
 }
 
 void DimRegionEdit::EG2InfiniteSustain_toggled()
 {
-    bool infSus = eEG2InfiniteSustain.get_active();
+    bool infSus = eEG2InfiniteSustain.get_value();
     eEG2Decay2.set_sensitive(!infSus);
 }
 
 void DimRegionEdit::EG1Controller_changed()
 {
-    bool hasController = eEG1Controller.get_active_row_number() != 0;
+    bool hasController = eEG1Controller.get_value().type != gig::leverage_ctrl_t::type_none;
     eEG1ControllerInvert.set_sensitive(hasController);
 }
 
 void DimRegionEdit::EG2Controller_changed()
 {
-    bool hasController = eEG2Controller.get_active_row_number() != 0;
+    bool hasController = eEG2Controller.get_value().type != gig::leverage_ctrl_t::type_none;
     eEG2ControllerInvert.set_sensitive(hasController);
 }
 
 void DimRegionEdit::AttenuationController_changed()
 {
-    bool hasController = eAttenuationController.get_active_row_number() != 0;
+    bool hasController =
+        eAttenuationController.get_value().type != gig::leverage_ctrl_t::type_none;
     eInvertAttenuationController.set_sensitive(hasController);
     eAttenuationControllerThreshold.set_sensitive(hasController);
     eCrossfade_in_start.set_sensitive(hasController);
@@ -782,144 +844,113 @@ void DimRegionEdit::AttenuationController_changed()
 
 void DimRegionEdit::LFO1Controller_changed()
 {
-    int rowno = eLFO1Controller.get_active_row_number();
-    eLFO1ControlDepth.set_sensitive(rowno != 0);
-    eLFO1InternalDepth.set_sensitive(rowno != 1 && rowno != 2);
+    gig::lfo1_ctrl_t ctrl = eLFO1Controller.get_value();
+    eLFO1ControlDepth.set_sensitive(ctrl != gig::lfo1_ctrl_internal);
+    eLFO1InternalDepth.set_sensitive(ctrl != gig::lfo1_ctrl_modwheel &&
+                                     ctrl != gig::lfo1_ctrl_breath);
 }
 
 void DimRegionEdit::LFO2Controller_changed()
 {
-    int rowno = eLFO2Controller.get_active_row_number();
-    eLFO2ControlDepth.set_sensitive(rowno != 0);
-    eLFO2InternalDepth.set_sensitive(rowno != 1 && rowno != 2);
+    gig::lfo2_ctrl_t ctrl = eLFO2Controller.get_value();
+    eLFO2ControlDepth.set_sensitive(ctrl != gig::lfo2_ctrl_internal);
+    eLFO2InternalDepth.set_sensitive(ctrl != gig::lfo2_ctrl_modwheel &&
+                                     ctrl != gig::lfo2_ctrl_foot);
 }
 
 void DimRegionEdit::LFO3Controller_changed()
 {
-    int rowno = eLFO3Controller.get_active_row_number();
-    eLFO3ControlDepth.set_sensitive(rowno != 0);
-    eLFO3InternalDepth.set_sensitive(rowno != 1 && rowno != 2);
+    gig::lfo3_ctrl_t ctrl = eLFO3Controller.get_value();
+    eLFO3ControlDepth.set_sensitive(ctrl != gig::lfo3_ctrl_internal);
+    eLFO3InternalDepth.set_sensitive(ctrl != gig::lfo3_ctrl_modwheel &&
+                                     ctrl != gig::lfo3_ctrl_aftertouch);
 }
 
 void DimRegionEdit::crossfade1_changed()
 {
-    double c1 = eCrossfade_in_start.get_value();
-    double c2 = eCrossfade_in_end.get_value();
-    if (c1 > c2) eCrossfade_in_end.set_value(c1);
+    update_model++;
+    eCrossfade_in_end.set_value(dimregion->Crossfade.in_end);
+    eCrossfade_out_start.set_value(dimregion->Crossfade.out_start);
+    eCrossfade_out_end.set_value(dimregion->Crossfade.out_end);
+    update_model--;
 }
 
 void DimRegionEdit::crossfade2_changed()
 {
-    double c1 = eCrossfade_in_start.get_value();
-    double c2 = eCrossfade_in_end.get_value();
-    double c3 = eCrossfade_out_start.get_value();
-
-    if (c2 < c1) eCrossfade_in_start.set_value(c2);
-    if (c2 > c3) eCrossfade_out_start.set_value(c2);
+    update_model++;
+    eCrossfade_in_start.set_value(dimregion->Crossfade.in_start);
+    eCrossfade_out_start.set_value(dimregion->Crossfade.out_start);
+    eCrossfade_out_end.set_value(dimregion->Crossfade.out_end);
+    update_model--;
 }
 
 void DimRegionEdit::crossfade3_changed()
 {
-    double c2 = eCrossfade_in_end.get_value();
-    double c3 = eCrossfade_out_start.get_value();
-    double c4 = eCrossfade_out_end.get_value();
-
-    if (c3 < c2) eCrossfade_in_end.set_value(c3);
-    if (c3 > c4) eCrossfade_out_end.set_value(c3);
+    update_model++;
+    eCrossfade_in_start.set_value(dimregion->Crossfade.in_start);
+    eCrossfade_in_end.set_value(dimregion->Crossfade.in_end);
+    eCrossfade_out_end.set_value(dimregion->Crossfade.out_end);
+    update_model--;
 }
 
 void DimRegionEdit::crossfade4_changed()
 {
-    double c3 = eCrossfade_out_start.get_value();
-    double c4 = eCrossfade_out_end.get_value();
-
-    if (c4 < c3) eCrossfade_out_start.set_value(c4);
+    update_model++;
+    eCrossfade_in_start.set_value(dimregion->Crossfade.in_start);
+    eCrossfade_in_end.set_value(dimregion->Crossfade.in_end);
+    eCrossfade_out_start.set_value(dimregion->Crossfade.out_start);
+    update_model--;
 }
 
-void DimRegionEdit::loop_enabled_toggled()
+void DimRegionEdit::update_loop_elements()
 {
-    const bool active = eSampleLoopEnabled.get_active();
-    if (active) {
-        // create a new sample loop in case there is none yet
-        if (!dimregion->SampleLoops) {
-            DLS::sample_loop_t loop;
-            loop.LoopType   = gig::loop_type_normal;
-            // loop the whole sample by default
-            loop.LoopStart  = 0;
-            loop.LoopLength =
-                (dimregion->pSample) ? dimregion->pSample->GetSize() : 0;
-            dimreg_to_be_changed_signal.emit(dimregion);
-            dimregion->AddSampleLoop(&loop);
-            dimreg_changed_signal.emit(dimregion);
-        }
-    } else {
-        if (dimregion->SampleLoops) {
-            dimreg_to_be_changed_signal.emit(dimregion);
-            // delete ALL existing sample loops
-            while (dimregion->SampleLoops) {
-                dimregion->DeleteSampleLoop(&dimregion->pSampleLoops[0]);
-            }
-            dimreg_changed_signal.emit(dimregion);
-        }
-    }
-    updateLoopElements();
-}
-
-void DimRegionEdit::updateLoopElements()
-{
-    const bool active = eSampleLoopEnabled.get_active();
+    update_model++;
+    const bool active = eSampleLoopEnabled.get_value();
     eSampleLoopStart.set_sensitive(active);
     eSampleLoopLength.set_sensitive(active);
     eSampleLoopType.set_sensitive(active);
     eSampleLoopInfinite.set_sensitive(active && dimregion && dimregion->pSample);
-    eSampleLoopStart.set_ptr(0);
-    eSampleLoopLength.set_ptr(0);
-    eSampleLoopPlayCount.set_ptr(0);
+    // sample loop shall never be longer than the actual sample size
+    loop_start_changed();
+    loop_length_changed();
+    eSampleLoopStart.set_value(
+        dimregion->SampleLoops ? dimregion->pSampleLoops[0].LoopStart : 0);
+    eSampleLoopLength.set_value(
+        dimregion->SampleLoops ? dimregion->pSampleLoops[0].LoopLength : 0);
 
+    eSampleLoopInfinite.set_value(
+        dimregion->pSample && dimregion->pSample->LoopPlayCount == 0);
+
+    loop_infinite_toggled();
+    update_model--;
+}
+
+void DimRegionEdit::loop_start_changed() {
     if (dimregion && dimregion->SampleLoops) {
-        eSampleLoopStart.set_ptr(&dimregion->pSampleLoops[0].LoopStart);
-        eSampleLoopLength.set_ptr(&dimregion->pSampleLoops[0].LoopLength);
-        eSampleLoopType.set_ptr(&dimregion->pSampleLoops[0].LoopType);
-        eSampleLoopInfinite.set_active(
-            dimregion->pSample && !dimregion->pSample->LoopPlayCount
-        );
-        // updated enabled state of loop play count widget
-        loop_infinite_toggled();
+        eSampleLoopLength.set_upper(dimregion->pSample ?
+                                    dimregion->pSample->SamplesTotal -
+                                    dimregion->pSampleLoops[0].LoopStart : 0);
+    }
+}
 
-        eSampleLoopPlayCount.set_ptr(
-            (dimregion->pSample) ? &dimregion->pSample->LoopPlayCount : 0
-        );
-
-        // sample loop shall never be longer than the actual sample size
-        eSampleLoopStart.set_upper(
-            (dimregion->pSample)
-                ? dimregion->pSample->SamplesTotal -
-                  dimregion->pSampleLoops[0].LoopLength
-                : 0
-        );
-        eSampleLoopLength.set_upper(
-            (dimregion->pSample)
-                ? dimregion->pSample->SamplesTotal -
-                  dimregion->pSampleLoops[0].LoopStart
-                : 0
-        );
-    } else { // no sample loop(s)
-        eSampleLoopType.set_ptr(0);
-        // updated enabled state of loop play count widget
-        loop_infinite_toggled();
+void DimRegionEdit::loop_length_changed() {
+    if (dimregion && dimregion->SampleLoops) {
+        eSampleLoopStart.set_upper(dimregion->pSample ?
+                                   dimregion->pSample->SamplesTotal -
+                                   dimregion->pSampleLoops[0].LoopLength : 0);
     }
 }
 
 void DimRegionEdit::loop_infinite_toggled() {
     eSampleLoopPlayCount.set_sensitive(
         dimregion && dimregion->pSample &&
-        !eSampleLoopInfinite.get_active() &&
-         eSampleLoopEnabled.get_active()
+        !eSampleLoopInfinite.get_value() &&
+        eSampleLoopEnabled.get_value()
     );
-    if (eSampleLoopInfinite.get_active())
-        eSampleLoopPlayCount.set_value(0);
-    else if (!eSampleLoopPlayCount.get_value())
-        eSampleLoopPlayCount.set_value(1);
+    update_model++;
+    eSampleLoopPlayCount.set_value(
+        dimregion->pSample ? dimregion->pSample->LoopPlayCount : 0);
+    update_model--;
 }
 
 bool DimRegionEdit::set_sample(gig::Sample* sample)
@@ -954,11 +985,13 @@ bool DimRegionEdit::set_sample(gig::Sample* sample)
         }
 
         // update ui
+        update_model++;
         wSample->set_text(dimregion->pSample->pInfo->Name);
-        eUnityNote.set_ptr(&dimregion->UnityNote);
-        eFineTune.set_ptr(&dimregion->FineTune);
-        eSampleLoopEnabled.set_active(dimregion->SampleLoops);
-        updateLoopElements();
+        eUnityNote.set_value(dimregion->UnityNote);
+        eFineTune.set_value(dimregion->FineTune);
+        eSampleLoopEnabled.set_value(dimregion->SampleLoops);
+        update_loop_elements();
+        update_model--;
 
         sample_ref_changed_signal.emit(oldref, sample);
         // currently commented because we're sending a similar signal in MainWindow::on_sample_label_drop_drag_data_received()
@@ -978,4 +1011,117 @@ sigc::signal<void, gig::DimensionRegion*>& DimRegionEdit::signal_dimreg_changed(
 
 sigc::signal<void, gig::Sample*/*old*/, gig::Sample*/*new*/>& DimRegionEdit::signal_sample_ref_changed() {
     return sample_ref_changed_signal;
+}
+
+
+void DimRegionEdit::set_UnityNote(gig::DimensionRegion* d, uint8_t value)
+{
+    d->UnityNote = value;
+}
+
+void DimRegionEdit::set_FineTune(gig::DimensionRegion* d, int16_t value)
+{
+    d->FineTune = value;
+}
+
+void DimRegionEdit::set_Crossfade_in_start(gig::DimensionRegion* d,
+                                           uint8_t value)
+{
+    d->Crossfade.in_start = value;
+    if (d->Crossfade.in_end < value) set_Crossfade_in_end(d, value);
+}
+
+void DimRegionEdit::set_Crossfade_in_end(gig::DimensionRegion* d,
+                                         uint8_t value)
+{
+    d->Crossfade.in_end = value;
+    if (value < d->Crossfade.in_start) set_Crossfade_in_start(d, value);
+    if (value > d->Crossfade.out_start) set_Crossfade_out_start(d, value);
+}
+
+void DimRegionEdit::set_Crossfade_out_start(gig::DimensionRegion* d,
+                                            uint8_t value)
+{
+    d->Crossfade.out_start = value;
+    if (value < d->Crossfade.in_end) set_Crossfade_in_end(d, value);
+    if (value > d->Crossfade.out_end) set_Crossfade_out_end(d, value);
+}
+
+void DimRegionEdit::set_Crossfade_out_end(gig::DimensionRegion* d,
+                                          uint8_t value)
+{
+    d->Crossfade.out_end = value;
+    if (value < d->Crossfade.out_start) set_Crossfade_out_start(d, value);
+}
+
+void DimRegionEdit::set_Gain(gig::DimensionRegion* d, int32_t value)
+{
+    d->SetGain(value);
+}
+
+void DimRegionEdit::set_LoopEnabled(gig::DimensionRegion* d, bool value)
+{
+    if (value) {
+        // create a new sample loop in case there is none yet
+        if (!d->SampleLoops) {
+            DLS::sample_loop_t loop;
+            loop.LoopType = gig::loop_type_normal;
+            // loop the whole sample by default
+            loop.LoopStart  = 0;
+            loop.LoopLength =
+                (d->pSample) ? d->pSample->SamplesTotal : 0;
+            dimreg_to_be_changed_signal.emit(d);
+            d->AddSampleLoop(&loop);
+            dimreg_changed_signal.emit(d);
+        }
+    } else {
+        if (d->SampleLoops) {
+            dimreg_to_be_changed_signal.emit(d);
+            // delete ALL existing sample loops
+            while (d->SampleLoops) {
+                d->DeleteSampleLoop(&d->pSampleLoops[0]);
+            }
+            dimreg_changed_signal.emit(d);
+        }
+    }
+}
+
+void DimRegionEdit::set_LoopType(gig::DimensionRegion* d, uint32_t value)
+{
+    if (d->SampleLoops) d->pSampleLoops[0].LoopType = value;
+}
+
+void DimRegionEdit::set_LoopStart(gig::DimensionRegion* d, uint32_t value)
+{
+    if (d->SampleLoops) {
+        d->pSampleLoops[0].LoopStart =
+            d->pSample ?
+            std::min(value, uint32_t(d->pSample->SamplesTotal -
+                                     d->pSampleLoops[0].LoopLength)) :
+            0;
+    }
+}
+
+void DimRegionEdit::set_LoopLength(gig::DimensionRegion* d, uint32_t value)
+{
+    if (d->SampleLoops) {
+        d->pSampleLoops[0].LoopLength =
+            d->pSample ?
+            std::min(value, uint32_t(d->pSample->SamplesTotal -
+                                     d->pSampleLoops[0].LoopStart)) :
+            0;
+    }
+}
+
+void DimRegionEdit::set_LoopInfinite(gig::DimensionRegion* d, bool value)
+{
+    if (d->pSample) {
+        if (value) d->pSample->LoopPlayCount = 0;
+        else if (d->pSample->LoopPlayCount == 0) d->pSample->LoopPlayCount = 1;
+    }
+}
+
+void DimRegionEdit::set_LoopPlayCount(gig::DimensionRegion* d, uint32_t value)
+{
+    if (d->pSample) d->pSample->LoopPlayCount = value;
 }
