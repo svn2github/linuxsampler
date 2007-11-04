@@ -122,45 +122,31 @@
 			<div id="contents">
 
 			<h2>FAQ</h2>
-			<p class="default">
+			<div class="groupbox">
 				Here is a collection of frequently asked questions. Please read them before asking on
 				the mailing list.<br>
-				<ol class="default">
-					<li>
-						<a href="#commercial_products">Can I use LinuxSampler in commercial hardware or software products?</a>
-					</li>
-					<li>
-						<a href="#commercial_music">Can I use LinuxSampler for commercial music production?</a>
-					</li>
-					<li>
-						<a href="#open_source">LinuxSampler is not open source, you are evil!</a>
-					</li>
-					<li>
-						<a href="#aga">linuxsampler? qsampler? jsampler? libgig? liblscp? jlscp? ... hu?</a>
-					</li>
-					<li>
-						<a href="#install">What do I need to compile and install?</a>
-					</li>
-					<li>
-						<a href="#compilarion_error">Compilation of LinuxSampler aborts with ...</a>
-					</li>
-					<li>
-						<a href="#cvs_checkout">How do I checkout from CVS?</a>
-					</li>
-					<li>
-						<a href="#compile_cvs">How do I compile from CVS?</a>
-					</li>
-					<li>
-						<a href="#no_gui">Can I use linuxsampler without a GUI as well?</a>
-					</li>
-					<li>
-						<a href="#examples_lscp">Are there example LSCP script files somewhere?</a>
-					</li>
-					<li>
-						<a href="#dropouts">I get dropouts (click sounds, noise), what can I do about it?</a>
-					</li>
-                </ol>
-			</p>
+				<br>
+				1.&nbsp;License<br>
+				&nbsp;&nbsp;&nbsp;&nbsp;1.1&nbsp;<a href="#commercial_products">Can I use LinuxSampler in commercial hardware or software products?</a><br>
+				&nbsp;&nbsp;&nbsp;&nbsp;1.2&nbsp;<a href="#commercial_music">Can I use LinuxSampler for commercial music production?</a><br>
+				&nbsp;&nbsp;&nbsp;&nbsp;1.3&nbsp;<a href="#open_source">LinuxSampler is not open source, you are evil!</a><br>
+				&nbsp;&nbsp;&nbsp;&nbsp;1.3&nbsp;<a href="#closed_source">Will LinuxSampler turn closed-source?</a><br>
+				&nbsp;&nbsp;&nbsp;&nbsp;1.4&nbsp;<a href="#ls_license_change">I've heard the commercial exception of LinuxSampler was added at a certain version?</a><br>
+				&nbsp;&nbsp;&nbsp;&nbsp;1.5&nbsp;<a href="#ls_breaking_libgig_license">Doesn't LinuxSampler illegally link against libgig?</a><br>
+				&nbsp;&nbsp;&nbsp;&nbsp;1.6&nbsp;<a href="#ls_breaking_license">Doesn't LinuxSampler illegally link against other libraries?</a><br>
+				2.&nbsp;General Questions<br>
+				&nbsp;&nbsp;&nbsp;&nbsp;2.1&nbsp;<a href="#aga">linuxsampler? qsampler? jsampler? libgig? liblscp? jlscp? ... hu?</a><br>
+				&nbsp;&nbsp;&nbsp;&nbsp;2.2&nbsp;<a href="#no_gui">Can I use linuxsampler without a GUI as well?</a><br>
+				3.&nbsp;Compilation / Installation<br>
+				&nbsp;&nbsp;&nbsp;&nbsp;3.1&nbsp;<a href="#install">What do I need to compile and install?</a><br>
+				&nbsp;&nbsp;&nbsp;&nbsp;3.2&nbsp;<a href="#compilarion_error">Compilation of LinuxSampler aborts with ...</a><br>
+				&nbsp;&nbsp;&nbsp;&nbsp;3.3&nbsp;<a href="#cvs_checkout">How do I checkout from CVS?</a><br>
+				&nbsp;&nbsp;&nbsp;&nbsp;3.4&nbsp;<a href="#compile_cvs">How do I compile from CVS?</a><br>
+				4.&nbsp;Setup<br>
+				&nbsp;&nbsp;&nbsp;&nbsp;4.1&nbsp;<a href="#examples_lscp">Are there example LSCP script files somewhere?</a><br>
+				&nbsp;&nbsp;&nbsp;&nbsp;4.2&nbsp;<a href="#dropouts">I get dropouts (click sounds, noise), what can I do about it?</a><br>
+				<br>
+			</div>
 
 			<a name="commercial_products"></a>
 			<h3>Can I use LinuxSampler in commercial hardware or software products?</h3>
@@ -197,6 +183,49 @@
 			restriction is even an advantage, since that way commercial actors are forced to
 			support this or another open source project either directly by coding or indirectly
 			by funding and thus increase development speed.
+			</p>
+
+			<a name="closed_source"></a>
+			<h3>Will LinuxSampler turn closed-source?</h3>
+			<p class="default">
+			No, LinuxSampler will remain open source. Again, the commercial exception is just to
+			prevent commercial exploitation by third parties that haven't contributed anything to
+			open source projects.
+			</p>
+
+			<a name="ls_license_change"></a>
+			<h3>I've heard the commercial exception of LinuxSampler was added at a certain version?</h3>
+			<p class="default">
+			No, the commercial exception in LinuxSampler's license terms were there since day one.
+			Even further it's not only there since the very first publicly available CVS
+			(developer) version of LinuxSampler, that commercial exception was even already in
+			Benno Senoner's proof of concept code called "EVO", which LinuxSampler was based on.
+			There was even a rumour that we would have manipulated CVS history to "pretend" this
+			exception wasn't added at a later point. Needless to say that this rumour is completely
+			false as well. Think about it! We're a group of developers spread around the world who
+			work on this project for fun and ideology in our spare time. Most of us contributed to
+			various other open source / free software projects. Do you seriously think we would
+			cheat on such an issue? Beside that you certainly find various people completely
+			unrelated to this project who still have early versions of LinuxSampler and / or EVO
+			and thus can confirm that this commercial exception was always there.
+			</p>
+
+			<a name="ls_breaking_libgig_license"></a>
+			<h3>Doesn't LinuxSampler illegally link against libgig?</h3>
+			<p class="default">
+			No! LinuxSampler does not "illegally" link against libgig, since the copyright holder
+			(in this case of libgig) has all rights of his work and thus is not bound to his own
+			license terms. The sole purpose of license terms is to grant other people certain
+			rights to use the work.
+			</p>
+
+			<a name="ls_breaking_license"></a>
+			<h3>Doesn't LinuxSampler illegally link against other libraries?</h3>
+			<p class="default">
+			No, the only library LinuxSampler links to that has license restrictions regarding
+			linking is libgig (<a href="#ls_breaking_libgig_license">see above</a>). Especially
+			LinuxSampler does not break Qt's license terms, since it does not link against Qt at
+			all.
 			</p>
 
 			<a name="aga"></a>
