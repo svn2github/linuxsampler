@@ -7,7 +7,7 @@ dnl    ACX_NPTL_GLIBC_BUG([ACTION-IF-FOUND [, ACTION-IF-NOT-FOUND]])
 dnl
 dnl Check for NPTL glibc bug which caused crashs on Gentoo systems, see
 dnl Gentoo bug report #194076 for details. This test is ignored on cross-
-dnl compilations.
+dnl compilations. On Windows systems this test always succeeds.
 dnl
 dnl Note: this test requires LIBS, CFLAGS and CC already been set, i.e. by
 dnl using ACX_PTHREAD before calling this macro.
@@ -23,8 +23,17 @@ AC_DEFUN([ACX_NPTL_GLIBC_BUG],
 
   AC_TRY_RUN([
 
-#include <stdio.h>
 #include <stdlib.h>
+
+#if WIN32
+
+int main() {
+    exit(0);
+}
+
+#else /* POSIX system */
+
+#include <stdio.h>
 #include <pthread.h>
 #include <unistd.h>
 
@@ -88,6 +97,7 @@ int main() {
 
     exit(0);
 }
+#endif /* WIN32 */
 
   ],[
     AC_MSG_RESULT(no)
