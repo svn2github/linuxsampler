@@ -44,6 +44,8 @@ namespace LinuxSampler {
  */
 class Path {
 public:
+    Path();
+
     /**
      * Concatenate exactly one path node or filename to the end of this Path
      * object. This can be used to build up a full qualified path, directory
@@ -55,22 +57,34 @@ public:
     void appendNode(std::string Name);
 
     /**
+     * Sets the hardware drive of the path, for systems that use the concept
+     * of drives in absolute pathes (i.e. Windows).
+     */
+    void setDrive(const char& Drive);
+
+    /**
      * Convert this Path into the correct encoding as expected by POSIX
      * compliant system calls.
      */
-    std::string toPosix();
+    std::string toPosix() const;
 
     /**
      * Convert this Path into the correct encoding as expected
      * by the instruments database implementation.
      */
-    std::string toDbPath();
+    std::string toDbPath() const;
 
     /**
      * Convert this Path into the correct encoding as expected and needed
      * for LSCP responses.
      */
-    std::string toLscp();
+    std::string toLscp() const;
+
+    /**
+     * Convert this Path into the correct encoding as expected by Windows
+     * operating systems.
+     */
+    std::string toWindows() const;
 
     /**
      * Concatenate two paths.
@@ -92,8 +106,14 @@ public:
      */
     static Path fromDbPath(std::string path);
 
+    /**
+     * Create a Path object from a Windows path / filename string.
+     */
+    static Path fromWindowsPath(std::string path);
+
 private:
     std::vector<std::string> elements; ///< stores the path names raw = unencoded, each element is one node of the path
+    char                     drive;
 };
 
 } // namespace LinuxSampler

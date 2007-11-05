@@ -23,14 +23,23 @@
 // for function hexsToNumber()
 #include "global_private.h"
 
+#include <sstream>
+
 namespace LinuxSampler {
+
+Path::Path() : drive(0) {
+}
 
 void Path::appendNode(std::string Name) {
     if (!Name.size()) return;
     elements.push_back(Name);
 }
 
-std::string Path::toPosix() {
+void Path::setDrive(const char& Drive) {
+    drive = Drive;
+}
+
+std::string Path::toPosix() const {
     // POSIX paths consist of forward slash separators and requires forward
     // slashes in path and file names to be encoded as "%2f", the file names
     // "." and ".." have special meanings
@@ -56,7 +65,7 @@ std::string Path::toPosix() {
     return result;
 }
 
-std::string Path::toDbPath() {
+std::string Path::toDbPath() const {
     std::string result;
     for (int iElement = 0; iElement < elements.size(); iElement++) {
         // replace all slashes with '\0'
@@ -71,7 +80,7 @@ std::string Path::toDbPath() {
     return result;
 }
 
-std::string Path::toLscp() {
+std::string Path::toLscp() const {
     std::string result;
     for (int iElement = 0; iElement < elements.size(); iElement++) {
         // replace "special characters" by LSCP escape sequences
@@ -102,6 +111,19 @@ std::string Path::toLscp() {
     }
     if (!result.size()) result = "/";
     return result;
+}
+
+std::string Path::toWindows() const {
+    std::stringstream result;
+    result <<
+        ((drive >= 'A' && drive <= 'Z') || (drive >= 'a' && drive <= 'z'))
+            ? drive : '?';
+    result << ':';
+    for (int iElement = 0; iElement < elements.size(); iElement++) {
+        // append encoded node to full encoded path
+        result << "\\" << elements[iElement];
+    }
+    return result.str();
 }
 
 Path Path::operator+(const Path& p) {
@@ -181,6 +203,36 @@ Path Path::fromDbPath(std::string path) {
             result.appendNode(s);
         }
     }
+    return result;
+}
+
+Path Path::fromWindowsPath(std::string path) {
+    Path result;
+
+    int nodeEnd = 0;
+
+    // first retrieve drive
+    if (path.size() >= 2 && path.c_str()[1] == ':') {
+        result.setDrive(path.c_str()[0]);
+        nodeEnd = 2;
+    }
+
+    // split the nodes
+    {
+        for (
+            int nodeBegin = path.find_first_not_of('\\', nodeEnd);
+            nodeBegin != std::string::npos;
+            nodeBegin = path.find_first_not_of('\\', nodeEnd)
+        ) {
+            nodeEnd = path.find_first_of('\\', nodeBegin);
+            result.appendNode(
+                (nodeEnd != std::string::npos) ?
+                    path.substr(nodeBegin, nodeEnd - nodeBegin) :
+                    path.substr(nodeBegin)
+            );
+        }
+    }
+
     return result;
 }
 

@@ -111,7 +111,7 @@ int octalsToNumber(char oct_digit0, char oct_digit1 = '0', char oct_digit2 = '0'
 
 %token <Char> EXT_ASCII_CHAR
 
-%type <Char> char char_base digit digit_oct digit_hex escape_seq escape_seq_octal escape_seq_hex
+%type <Char> char char_base alpha_char digit digit_oct digit_hex escape_seq escape_seq_octal escape_seq_hex
 %type <Dotnum> dotnum volume_value boolean
 %type <Number> number sampler_channel instrument_index fx_send_id audio_channel_index device_index midi_input_channel_index midi_input_port_index midi_map midi_bank midi_prog midi_ctrl
 %type <String> string string_escaped text text_escaped text_escaped_base stringval stringval_escaped digits param_val_list param_val query_val filename db_path map_name entry_name fx_send_name engine_name command add_instruction create_instruction destroy_instruction get_instruction list_instruction load_instruction set_chan_instruction load_instr_args load_engine_args audio_output_type_name midi_input_type_name remove_instruction unmap_instruction set_instruction subscribe_event unsubscribe_event map_instruction reset_instruction clear_instruction find_instruction move_instruction copy_instruction scan_mode edit_instruction format_instruction
@@ -119,7 +119,7 @@ int octalsToNumber(char oct_digit0, char oct_digit1 = '0', char oct_digit2 = '0'
 %type <KeyValList> key_val_list query_val_list
 %type <LoadMode> instr_load_mode
 %type <Bool> modal_arg
-%type <UniversalPath> path path_base
+%type <UniversalPath> path path_base path_prefix path_body
 
 %start input
 
@@ -464,7 +464,14 @@ fx_send_id                :  number
 engine_name               :  string
                           ;
 
-filename                  :  path  { $$ = $1.toPosix(); /*TODO: assuming POSIX*/ }
+filename                  :  path  {
+                                 #if WIN32
+                                 $$ = $1.toWindows();
+                                 #else
+                                 // assuming POSIX
+                                 $$ = $1.toPosix();
+                                 #endif
+                             }
                           ;
 
 db_path                   :  path  { $$ = $1.toDbPath(); }
@@ -584,9 +591,16 @@ path                  :  '\'' path_base '\''  { $$ = $2; }
                       |  '\"' path_base '\"'  { $$ = $2; }
                       ;
 
-path_base             :  '/'                          { $$ = Path();                           }
-                      |  path_base '/'                { $$ = $1;                               }
-                      |  path_base text_escaped_base  { Path p; p.appendNode($2); $$ = $1 + p; }
+path_base             :  path_prefix path_body  { $$ = $1 + $2; }
+                      ;
+
+path_prefix           :  '/'                 { $$ = Path();                    }
+                      |  alpha_char ':' '/'  { Path p; p.setDrive($1); $$ = p; }
+                      ;
+
+path_body             :  /* epsilon (empty argument) */ { $$ = Path();                           }
+                      |  path_body '/'                  { $$ = $1;                               }
+                      |  path_body text_escaped_base    { Path p; p.appendNode($2); $$ = $1 + p; }
                       ;
 
 stringval             :  '\'' text '\''  { $$ = $2; }
@@ -632,9 +646,13 @@ char                  :  char_base
                       |  '/'   { $$ = '/';  }
                       ;
 
-// ASCII characters except space, quotation mark, apostrophe, backslash and slash
-char_base             :  'A' { $$ = 'A'; } | 'B' { $$ = 'B'; } | 'C' { $$ = 'C'; } | 'D' { $$ = 'D'; } | 'E' { $$ = 'E'; } | 'F' { $$ = 'F'; } | 'G' { $$ = 'G'; } | 'H' { $$ = 'H'; } | 'I' { $$ = 'I'; } | 'J' { $$ = 'J'; } | 'K' { $$ = 'K'; } | 'L' { $$ = 'L'; } | 'M' { $$ = 'M'; } | 'N' { $$ = 'N'; } | 'O' { $$ = 'O'; } | 'P' { $$ = 'P'; } | 'Q' { $$ = 'Q'; } | 'R' { $$ = 'R'; } | 'S' { $$ = 'S'; } | 'T' { $$ = 'T'; } | 'U' { $$ = 'U'; } | 'V' { $$ = 'V'; } | 'W' { $$ = 'W'; } | 'X' { $$ = 'X'; } | 'Y' { $$ = 'Y'; } | 'Z' { $$ = 'Z'; }
+// characters A..Z and a..z
+alpha_char            :  'A' { $$ = 'A'; } | 'B' { $$ = 'B'; } | 'C' { $$ = 'C'; } | 'D' { $$ = 'D'; } | 'E' { $$ = 'E'; } | 'F' { $$ = 'F'; } | 'G' { $$ = 'G'; } | 'H' { $$ = 'H'; } | 'I' { $$ = 'I'; } | 'J' { $$ = 'J'; } | 'K' { $$ = 'K'; } | 'L' { $$ = 'L'; } | 'M' { $$ = 'M'; } | 'N' { $$ = 'N'; } | 'O' { $$ = 'O'; } | 'P' { $$ = 'P'; } | 'Q' { $$ = 'Q'; } | 'R' { $$ = 'R'; } | 'S' { $$ = 'S'; } | 'T' { $$ = 'T'; } | 'U' { $$ = 'U'; } | 'V' { $$ = 'V'; } | 'W' { $$ = 'W'; } | 'X' { $$ = 'X'; } | 'Y' { $$ = 'Y'; } | 'Z' { $$ = 'Z'; }
                       |  'a' { $$ = 'a'; } | 'b' { $$ = 'b'; } | 'c' { $$ = 'c'; } | 'd' { $$ = 'd'; } | 'e' { $$ = 'e'; } | 'f' { $$ = 'f'; } | 'g' { $$ = 'g'; } | 'h' { $$ = 'h'; } | 'i' { $$ = 'i'; } | 'j' { $$ = 'j'; } | 'k' { $$ = 'k'; } | 'l' { $$ = 'l'; } | 'm' { $$ = 'm'; } | 'n' { $$ = 'n'; } | 'o' { $$ = 'o'; } | 'p' { $$ = 'p'; } | 'q' { $$ = 'q'; } | 'r' { $$ = 'r'; } | 's' { $$ = 's'; } | 't' { $$ = 't'; } | 'u' { $$ = 'u'; } | 'v' { $$ = 'v'; } | 'w' { $$ = 'w'; } | 'x' { $$ = 'x'; } | 'y' { $$ = 'y'; } | 'z' { $$ = 'z'; }
+                      ;
+
+// ASCII characters except space, quotation mark, apostrophe, backslash and slash
+char_base             :  alpha_char
                       |  '0' { $$ = '0'; } | '1' { $$ = '1'; } | '2' { $$ = '2'; } | '3' { $$ = '3'; } | '4' { $$ = '4'; } | '5' { $$ = '5'; } | '6' { $$ = '6'; } | '7' { $$ = '7'; } | '8' { $$ = '8'; } | '9' { $$ = '9'; }
                       |  '!' { $$ = '!'; } | '#' { $$ = '#'; } | '$' { $$ = '$'; } | '%' { $$ = '%'; } | '&' { $$ = '&'; } | '(' { $$ = '('; } | ')' { $$ = ')'; } | '*' { $$ = '*'; } | '+' { $$ = '+'; } | '-' { $$ = '-'; } | '.' { $$ = '.'; } | ',' { $$ = ','; }
                       |  ':' { $$ = ':'; } | ';' { $$ = ';'; } | '<' { $$ = '<'; } | '=' { $$ = '='; } | '>' { $$ = '>'; } | '?' { $$ = '?'; } | '@' { $$ = '@'; }

@@ -877,11 +877,18 @@ String LSCPServer::GetChannelInfo(uint uiSamplerChannel) {
         if (pSamplerChannel->GetMidiInputChannel() == midi_chan_all) result.Add("MIDI_INPUT_CHANNEL", "ALL");
         else result.Add("MIDI_INPUT_CHANNEL", pSamplerChannel->GetMidiInputChannel());
 
-        result.Add("INSTRUMENT_FILE",
-                   (InstrumentFileName != "NONE" && InstrumentFileName != "") ?
-                        Path::fromPosix(InstrumentFileName).toLscp() : // TODO: assuming POSIX
-                        InstrumentFileName
-        );
+        // convert the filename into the correct encoding as defined for LSCP
+        // (especially in terms of special characters -> escape sequences)
+        if (InstrumentFileName != "NONE" && InstrumentFileName != "") {
+#if WIN32
+            InstrumentFileName = Path::fromWindows(InstrumentFileName).toLscp();
+#else
+            // assuming POSIX
+            InstrumentFileName = Path::fromPosix(InstrumentFileName).toLscp();
+#endif
+        }
+
+        result.Add("INSTRUMENT_FILE", InstrumentFileName);
         result.Add("INSTRUMENT_NR", InstrumentIndex);
         result.Add("INSTRUMENT_NAME", _escapeLscpResponse(InstrumentName));
         result.Add("INSTRUMENT_STATUS", InstrumentStatus);
@@ -1825,9 +1832,19 @@ String LSCPServer::GetMidiInstrumentMapping(uint MidiMapID, uint MidiBank, uint 
         std::map<midi_prog_index_t,MidiInstrumentMapper::entry_t>::iterator iter = mappings.find(idx);
         if (iter == mappings.end()) result.Error("there is no map entry with that index");
         else { // found
+
+            // convert the filename into the correct encoding as defined for LSCP
+            // (especially in terms of special characters -> escape sequences)
+#if WIN32
+            const String instrumentFileName = Path::fromWindows(iter->second.InstrumentFile).toLscp();
+#else
+            // assuming POSIX
+            const String instrumentFileName = Path::fromPosix(iter->second.InstrumentFile).toLscp();
+#endif
+
             result.Add("NAME", _escapeLscpResponse(iter->second.Name));
             result.Add("ENGINE_NAME", iter->second.EngineName);
-            result.Add("INSTRUMENT_FILE", Path::fromPosix(iter->second.InstrumentFile).toLscp()); //TODO: assuming POSIX
+            result.Add("INSTRUMENT_FILE", instrumentFileName);
             result.Add("INSTRUMENT_NR", (int) iter->second.InstrumentIndex);
             String instrumentName;
             Engine* pEngine = EngineFactory::Create(iter->second.EngineName);

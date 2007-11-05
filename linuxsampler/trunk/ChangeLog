@@ -9,6 +9,11 @@ Version CVS HEAD (?)
     - bugfix: the thread used by an editor plugin didn't die when the
       editor closed
 
+  * LSCP server:
+    - added support for Windows style path / filenames, however with
+      forward slash path separators instead of backslash
+      (i.e. "C:/foo/bar.gig")
+
 Version 0.5.0 (15 October 2007)
 
   * packaging changes:
