@@ -22,10 +22,14 @@
 
 #include "../common/global_private.h"
 
+#if defined(WIN32)
+#include <windows.h>
+#else
 #include <dlfcn.h>
 #include <errno.h>
-#include <string.h>
 #include <dirent.h>
+#endif
+#include <string.h>
 
 #ifndef CONFIG_PLUGIN_DIR
 # error "Configuration macro CONFIG_PLUGIN_DIR not defined!"
@@ -93,6 +97,43 @@ namespace LinuxSampler {
     void InstrumentEditorFactory::LoadPlugins() {
         if (!bPluginsLoaded) {
             dmsg(1,("Loading instrument editor plugins..."));
+            #if defined(WIN32)
+            bool firstFileFound = true;
+            WIN32_FIND_DATA win32FindData;
+            String plugindir = (String)CONFIG_PLUGIN_DIR + (String)("\\*.DLL");
+            HANDLE hDir = FindFirstFile(plugindir.c_str(), &win32FindData);
+            if (hDir == INVALID_HANDLE_VALUE) {
+                if(GetLastError() != ERROR_FILE_NOT_FOUND) {
+                    std::cerr << "Could not open instrument editor plugins directory "
+                        << "(" << CONFIG_PLUGIN_DIR << "): Error "
+                        << GetLastError() << std::endl;
+                    return;
+                }
+                else {
+                    firstFileFound = false;		
+                }
+            }
+
+            while(GetLastError() != ERROR_NO_MORE_FILES && firstFileFound) {
+                if(!(win32FindData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)) {
+                    String sPath = (String)CONFIG_PLUGIN_DIR + ((String)"\\" + (String)win32FindData.cFileName);
+                    // load the DLL (the plugins should register themselfes automatically)
+                    void* pDLL = myhinstance = LoadLibrary( sPath.c_str() );
+                    if (pDLL) LoadedDLLs.push_back(pDLL);
+                    else {
+                        std::cerr << "Failed to load instrument editor plugin: "
+                                  << sPath << std::endl;
+                    }
+                }
+                int res = FindNextFile(hDir, &win32FindData);
+                if(res == 0 && GetLastError() != ERROR_NO_MORE_FILES) {
+                    std::cerr << "Error while reading plugins directory FindNextFile Error "
+                              << GetLastError() << std::endl;
+                    return;		  
+                }
+            }
+            FindClose(hDir);
+            #else // POSIX
             DIR* hDir = opendir(CONFIG_PLUGIN_DIR);
             if (!hDir) {
                 std::cerr << "Could not open instrument editor plugins directory "
@@ -120,6 +161,7 @@ namespace LinuxSampler {
                 }
             }
             closedir(hDir);
+            #endif
             bPluginsLoaded = true;
             dmsg(1,("OK\n"));
         }
@@ -137,7 +179,13 @@ namespace LinuxSampler {
             // free the DLLs
             {
                 std::list<void*>::iterator iter = LoadedDLLs.begin();
-                for (; iter != LoadedDLLs.end(); iter++) dlclose(*iter);
+                for (; iter != LoadedDLLs.end(); iter++) {
+                    #if defined(WIN32)
+                    FreeLibrary((HINSTANCE)*iter);
+                    #else
+                    dlclose(*iter);
+                    #endif
+                }
                 LoadedDLLs.clear();
                 dmsg(1,("OK\n"));
             }
