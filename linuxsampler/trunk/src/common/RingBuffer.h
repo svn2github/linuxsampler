@@ -24,7 +24,7 @@
 #ifndef RINGBUFFER_H
 #define RINGBUFFER_H
 
-#define DEFAULT_WRAP_ELEMENTS 1024
+#define DEFAULT_WRAP_ELEMENTS 0
 
 #include <string.h>
 
@@ -94,13 +94,13 @@ public:
     inline void fill_write_space_with_null() {
              int w = atomic_read(&write_ptr),
                  r = atomic_read(&read_ptr);
-             memset(get_write_ptr(), 0, write_space_to_end());
+             memset(get_write_ptr(), 0, sizeof(T)*write_space_to_end());
              if (r && w >= r) {
-               memset(get_buffer_begin(), 0, r - 1);
+               memset(get_buffer_begin(), 0, sizeof(T)*(r - 1));
              }
 
              // set the wrap space elements to null
-             if (wrap_elements) memset(&buf[size], 0, wrap_elements);
+             if (wrap_elements) memset(&buf[size], 0, sizeof(T)*wrap_elements);
            }
 
     __inline int  read (T *dest, int cnt);
@@ -301,7 +301,7 @@ public:
              */
             inline void operator--() {
                 if (read_ptr == atomic_read(&pBuf->read_ptr)) return; //TODO: or should we react oh this case (e.g. force segfault), as this is a very odd case?
-                --read_ptr & pBuf->size_mask;
+                read_ptr = (read_ptr-1) & pBuf->size_mask;
             }
 
             /**

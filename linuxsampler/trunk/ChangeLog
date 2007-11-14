@@ -8,6 +8,12 @@ Version CVS HEAD (?)
   * general changes:
     - bugfix: the thread used by an editor plugin didn't die when the
       editor closed
+    - bugfix: Ringbuffer.h:
+      fill_write_space_with_null() did not zero out all the space
+      operator--() did not apply size_mask after decrementing the read_ptr
+      DEFAULT_WRAP_ELEMENTS set to 0 in order to avoid problems with 
+        the _NonVolatileReader functions.
+      
 
   * LSCP server:
     - added support for Windows style path / filenames, however with
