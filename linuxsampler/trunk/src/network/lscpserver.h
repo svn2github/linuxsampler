@@ -24,6 +24,10 @@
 #ifndef __LSCPSERVER_H_
 #define __LSCPSERVER_H_
 
+#if defined(WIN32)
+#include <windows.h>
+typedef int socklen_t;
+#else
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -33,6 +37,7 @@
 #include <netinet/tcp.h>
 #include <arpa/inet.h>
 #include <netdb.h>
+#endif
 
 #include <list>
 

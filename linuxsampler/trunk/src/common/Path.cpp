@@ -115,9 +115,10 @@ std::string Path::toLscp() const {
 
 std::string Path::toWindows() const {
     std::stringstream result;
-    result <<
-        ((drive >= 'A' && drive <= 'Z') || (drive >= 'a' && drive <= 'z'))
+	const char cDrive =
+	    ((drive >= 'A' && drive <= 'Z') || (drive >= 'a' && drive <= 'z'))
             ? drive : '?';
+    result << cDrive;
     result << ':';
     for (int iElement = 0; iElement < elements.size(); iElement++) {
         // append encoded node to full encoded path
@@ -206,7 +207,7 @@ Path Path::fromDbPath(std::string path) {
     return result;
 }
 
-Path Path::fromWindowsPath(std::string path) {
+Path Path::fromWindows(std::string path) {
     Path result;
 
     int nodeEnd = 0;

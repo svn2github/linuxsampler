@@ -37,6 +37,9 @@
 # include "MidiInputDeviceMidiShare.h"
 #endif // HAVE_MIDISHARE
 
+#if HAVE_MME_MIDI
+# include "MidiInputDeviceMme.h"
+#endif // HAVE_MME_MIDI
 namespace LinuxSampler {
 
     std::map<String, MidiInputDeviceFactory::InnerFactory*> MidiInputDeviceFactory::InnerFactories;
@@ -62,6 +65,13 @@ namespace LinuxSampler {
     REGISTER_MIDI_INPUT_DRIVER_PARAMETER(MidiInputDeviceMidiShare, ParameterActive);
     REGISTER_MIDI_INPUT_DRIVER_PARAMETER(MidiInputDeviceMidiShare, ParameterPorts);
 #endif // HAVE_MIDISHARE
+
+#if HAVE_MME_MIDI
+    REGISTER_MIDI_INPUT_DRIVER(MidiInputDeviceMme);
+    /* Common parameters */
+    REGISTER_MIDI_INPUT_DRIVER_PARAMETER(MidiInputDeviceMme, ParameterActive);
+    REGISTER_MIDI_INPUT_DRIVER_PARAMETER(MidiInputDeviceMme, ParameterPorts);
+#endif // HAVE_MME_MIDI
 
     MidiInputDevice* MidiInputDeviceFactory::Create(String DriverName, std::map<String,String> Parameters, Sampler* pSampler) throw (Exception) {
         if (!InnerFactories.count(DriverName)) throw Exception("There is no midi input driver '" + DriverName + "'.");

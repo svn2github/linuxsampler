@@ -571,7 +571,7 @@ namespace LinuxSampler { namespace gig {
      *  @returns       0 on success
      */
     int Engine::RenderAudio(uint Samples) {
-        dmsg(7,("RenderAudio(Samples=%d)\n", Samples));
+        dmsg(8,("RenderAudio(Samples=%d)\n", Samples));
 
         // return if engine disabled
         if (EngineDisabled.Pop()) {
@@ -1977,7 +1977,7 @@ namespace LinuxSampler { namespace gig {
     }
 
     String Engine::Version() {
-        String s = "$Revision: 1.83 $";
+        String s = "$Revision: 1.84 $";
         return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
 

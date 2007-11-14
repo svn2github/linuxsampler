@@ -26,6 +26,33 @@
 
 #include "Mutex.h"
 
+#if defined(WIN32)
+#include <windows.h>
+typedef HANDLE win32thread_mutex_t;
+
+typedef struct
+{
+    int waiters_count_;
+    // Number of waiting threads.
+
+    CRITICAL_SECTION waiters_count_lock_;
+    // Serialize access to <waiters_count_>.
+
+    HANDLE sema_;
+    // Semaphore used to queue up threads waiting for the condition to
+    // become signaled. 
+
+    HANDLE waiters_done_;
+    // An auto-reset event used by the broadcast/signal thread to wait
+    // for all the waiting thread(s) to wake up and be released from the
+    // semaphore. 
+
+    size_t was_broadcast_;
+    // Keeps track of whether we were broadcasting or signaling.  This
+    // allows us to optimize the code if we're just signaling.
+} win32thread_cond_t;
+#endif
+
 namespace LinuxSampler {
 
 /**
@@ -110,8 +137,13 @@ class Condition : public Mutex {
         bool GetUnsafe();
 
     protected:
+    #if defined(WIN32)
+        win32thread_cond_t __win32_true_condition;
+        win32thread_cond_t __win32_false_condition;
+    #else
         pthread_cond_t __posix_true_condition;
         pthread_cond_t __posix_false_condition;
+    #endif
         bool bCondition;
 };
 

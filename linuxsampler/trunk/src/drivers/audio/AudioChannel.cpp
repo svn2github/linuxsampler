@@ -24,6 +24,7 @@
 #include "AudioChannel.h"
 
 #include "../../common/global_private.h"
+#include "../../common/Thread.h" // needed for allocAlignedMem() and freeAlignedMem()
 
 #if defined(__APPLE__)
 # include <stdlib.h>
@@ -42,11 +43,7 @@ namespace LinuxSampler {
      */
     AudioChannel::AudioChannel(uint ChannelNr, uint BufferSize) {
         this->ChannelNr          = ChannelNr;
-        #if defined(__APPLE__)
-        this->pBuffer            = (float *) malloc(BufferSize*sizeof(float));
-        #else
-        this->pBuffer            = (float *) memalign(16,BufferSize*sizeof(float));
-        #endif
+        this->pBuffer            = (float *) Thread::allocAlignedMem(16,BufferSize*sizeof(float));
         this->uiBufferSize       = BufferSize;
         this->pMixChannel        = NULL;
         this->UsesExternalBuffer = false;
@@ -104,7 +101,7 @@ namespace LinuxSampler {
     AudioChannel::~AudioChannel() {
         std::map<String,DeviceRuntimeParameter*>::iterator iter = Parameters.begin();
         while (iter != Parameters.end()) { delete iter->second; iter++; }
-        if (!UsesExternalBuffer) free(pBuffer);
+        if (!UsesExternalBuffer) Thread::freeAlignedMem(pBuffer);
     }
 
     /**

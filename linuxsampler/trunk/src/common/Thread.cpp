@@ -31,22 +31,36 @@
 
 namespace LinuxSampler {
 
+#if defined(WIN32)
+// Callback functions for the WIN32 thread API
+DWORD WINAPI __win32thread_launcher(LPVOID lpParameter);
+#else
 // Callback functions for the POSIX thread API
 static void* __pthread_launcher(void* thread);
 static void  __pthread_destructor(void* thread);
+#endif
 
 Thread::Thread(bool LockMemory, bool RealTime, int PriorityMax, int PriorityDelta) {
     this->bLockedMemory     = LockMemory;
     this->isRealTime        = RealTime;
     this->PriorityDelta     = PriorityDelta;
     this->PriorityMax       = PriorityMax;
+#if defined(WIN32)
+#if defined(WIN32_SIGNALSTARTTHREAD_WORKAROUND)
+    win32isRunning = false;
+#endif
+#else
     __thread_destructor_key = 0;
     pthread_attr_init(&__thread_attr);
+#endif
 }
 
 Thread::~Thread() {
     StopThread();
+#if defined(WIN32)
+#else
     pthread_attr_destroy(&__thread_attr);
+#endif
 }
 
 /**
@@ -56,6 +70,17 @@ Thread::~Thread() {
  *  Main() method in your subclass.
  */
 int Thread::StartThread() {
+#if defined (WIN32_SIGNALSTARTTHREAD_WORKAROUND)
+    // poll the win32isRunning variable and sleep 1msec inbetween
+    if(!win32isRunning) {
+        SignalStartThread();
+        while(1) {
+            Sleep(1);
+            if(win32isRunning) break;
+        }
+    }
+    return 0;
+#else
     RunningCondition.Lock();
     if (!RunningCondition.GetUnsafe()) {
         SignalStartThread();
@@ -64,6 +89,7 @@ int Thread::StartThread() {
     }
     RunningCondition.Unlock();
     return 0;
+#endif
 }
 
 /**
@@ -75,6 +101,26 @@ int Thread::StartThread() {
  *  @see StartThread()
  */
 int Thread::SignalStartThread() {
+#if defined(WIN32)
+    LPVOID lpParameter;
+    hThread = CreateThread(
+               NULL, // no security attributes
+               MIN_STACK_SIZE,
+               __win32thread_launcher,
+               this,
+               0,
+               &lpThreadId);
+    if(hThread == NULL) {
+        std::cerr << "Thread creation failed: Error" << GetLastError() << std::endl << std::flush;
+        #if defined(WIN32_SIGNALSTARTTHREAD_WORKAROUND)
+        win32isRunning = false;
+        #else
+        RunningCondition.Set(false);
+        #endif
+        return -1;
+    }
+    return 0;
+#else
     // prepare the thread properties
     int res = pthread_attr_setinheritsched(&__thread_attr, PTHREAD_EXPLICIT_SCHED);
     if (res) {
@@ -126,6 +172,7 @@ int Thread::SignalStartThread() {
             break;
     }
     return res;
+#endif
 }
 
 /**
@@ -133,12 +180,20 @@ int Thread::SignalStartThread() {
  *  it's execution before it will return.
  */
 int Thread::StopThread() {
+#if defined(WIN32_SIGNALSTARTTHREAD_WORKAROUND)
+    SignalStopThread();
+    win32isRunning = false;
+    return 0;
+#endif
     RunningCondition.Lock();
     if (RunningCondition.GetUnsafe()) {
         SignalStopThread();
         // wait until thread stopped execution
         RunningCondition.WaitIf(true);
+        #if defined(WIN32)
+        #else		
         pthread_detach(__thread_id);
+        #endif		
     }
     RunningCondition.Unlock();
     return 0;
@@ -153,7 +208,19 @@ int Thread::StopThread() {
  */
 int Thread::SignalStopThread() {
     //FIXME: segfaults when thread is not yet running
+#if defined(WIN32)
+    BOOL res;
+    res = TerminateThread(hThread, 0); // we set ExitCode to 0
+    //res = WaitForSingleObject( hThread, INFINITE);
+    //myprint(("Thread::SignalStopThread:  WaitForSingleObject( hThread, INFINITE) res=%d\n",res));
+    #if defined(WIN32_SIGNALSTARTTHREAD_WORKAROUND)
+    win32isRunning = false;
+    #else
+    RunningCondition.Set(false);
+    #endif
+#else	
     pthread_cancel(__thread_id);
+#endif	
     return 0;
 }
 
@@ -161,7 +228,11 @@ int Thread::SignalStopThread() {
  * Returns @c true in case the thread is currently running.
  */
 bool Thread::IsRunning() {
+    #if defined(WIN32_SIGNALSTARTTHREAD_WORKAROUND)
+    return win32isRunning;
+    #else
     return RunningCondition.GetUnsafe();
+    #endif
 }
 
 /**
@@ -172,6 +243,40 @@ bool Thread::IsRunning() {
  *  current priority).
  */
 int Thread::SetSchedulingPriority() {
+#if defined(WIN32)
+    DWORD dwPriorityClass;
+    int nPriority;
+
+    if(isRealTime) {
+        dwPriorityClass = REALTIME_PRIORITY_CLASS;
+        if (this->PriorityMax == 1) {
+            if(this->PriorityDelta == 0) nPriority = THREAD_PRIORITY_TIME_CRITICAL;
+            else nPriority = 7 + this->PriorityDelta;
+        }
+        else nPriority = THREAD_PRIORITY_NORMAL + this->PriorityDelta;
+    }
+    else {
+        dwPriorityClass = NORMAL_PRIORITY_CLASS;
+        nPriority = THREAD_PRIORITY_NORMAL + this->PriorityDelta;
+    }
+
+    BOOL res;
+    // FIXME: priority class (realtime) does not work yet, gives error. check why.
+    #if 0
+    res = SetPriorityClass( hThread, dwPriorityClass );
+    if(res == false) {
+        std::cerr << "Thread: WARNING, setPriorityClass " << dwPriorityClass << "failed. Error " << GetLastError() << "\n";
+        return -1;
+    }
+
+    res = SetThreadPriority( hThread, nPriority );
+    if(res == false) {
+        std::cerr << "Thread: WARNING, setThreadPriority " << nPriority << "failed. Error " << GetLastError() << "\n";
+        return -1;
+    }
+    #endif
+    return 0;
+#else
 #if !defined(__APPLE__)
     int policy;
     const char* policyDescription = NULL;
@@ -202,12 +307,16 @@ int Thread::SetSchedulingPriority() {
     }
 #endif
     return 0;
+#endif	
 }
 
 /**
  * Locks the memory so it will not be swapped out by the operating system.
  */
 int Thread::LockMemory() {
+#if defined(WIN32)
+    return 0;
+#else
 #if !defined(__APPLE__)
     if (!bLockedMemory) return 0;
     if (mlockall(MCL_CURRENT | MCL_FUTURE) < 0) {
@@ -217,6 +326,7 @@ int Thread::LockMemory() {
     }
 #endif
     return 0;
+#endif	
 }
 
 /**
@@ -226,9 +336,16 @@ int Thread::LockMemory() {
  *  CALL THIS METHOD YOURSELF!
  */
 void Thread::EnableDestructor() {
+#if defined(WIN32_SIGNALSTARTTHREAD_WORKAROUND)
+    win32isRunning = true;
+    return;	
+#endif
     RunningCondition.Lock();
+#if defined(WIN32)
+#else	
     pthread_key_create(&__thread_destructor_key, __pthread_destructor);
     pthread_setspecific(__thread_destructor_key, this);
+#endif	
     RunningCondition.Set(true);
     RunningCondition.Unlock();
 }
@@ -237,11 +354,25 @@ void Thread::EnableDestructor() {
  *  Will be called by the kernel when the thread stops it's execution.
  */
 int Thread::Destructor() {
+#if defined(WIN32)
+#else
     pthread_key_delete(__thread_destructor_key);
     RunningCondition.Set(false);
+#endif	
     return 0;
 }
 
+#if defined(WIN32)
+DWORD WINAPI __win32thread_launcher(LPVOID lpParameter) {
+    Thread* t;
+    t = (Thread*) lpParameter;
+    t->SetSchedulingPriority();
+    t->LockMemory();
+    t->EnableDestructor();
+    t->Main();
+    return 0;
+}
+#else
 /// Callback function for the POSIX thread API
 static void* __pthread_launcher(void* thread) {
     pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, NULL); // let the thread be killable under any circumstances
@@ -253,12 +384,16 @@ static void* __pthread_launcher(void* thread) {
     t->Main();
     return NULL;
 }
+#endif
 
+#if defined(WIN32)
+#else
 /// Callback function for the POSIX thread API
 static void __pthread_destructor(void* thread) {
     Thread* t;
     t = (Thread*) thread;
     t->Destructor();
 }
+#endif
 
 } // namespace LinuxSampler

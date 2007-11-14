@@ -24,7 +24,11 @@
 #ifndef __MUTEX_H__
 #define __MUTEX_H__
 
+#if defined(WIN32)
+#include <windows.h>
+#else
 #include <pthread.h>
+#endif
 
 namespace LinuxSampler {
 
@@ -86,8 +90,12 @@ class Mutex {
         void Unlock();
         
     protected:
+    #if defined(WIN32)
+    HANDLE hMutex;
+    #else
         pthread_mutex_t     __posix_mutex;
         pthread_mutexattr_t __posix_mutexattr;
+    #endif
 };
 
 } // namespace LinuxSampler

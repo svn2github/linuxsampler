@@ -56,7 +56,10 @@ namespace LinuxSampler {
                 ON_DEMAND      = 0,  ///< Instrument will be loaded when needed, freed once not needed anymore.
                 ON_DEMAND_HOLD = 1,  ///< Instrument will be loaded when needed and kept even if not needed anymore.
                 PERSISTENT     = 2,  ///< Instrument will immediately be loaded and kept all the time.
-                VOID           = 127 ///< Don't care, let it up to the InstrumentManager to decide for an appropriate LoadMode.
+                #if !defined(WIN32)
+                VOID           = 127, ///< @deprecated use DONTCARE instead!
+                #endif
+                DONTCARE       = 127 ///< Don't care, let it up to the InstrumentManager to decide for an appropriate LoadMode.
             };
 
             /**

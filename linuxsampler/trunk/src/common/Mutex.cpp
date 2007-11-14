@@ -33,12 +33,14 @@
 # include <features.h>
 #endif
 
+#if !defined(WIN32)
 #if !defined(_XOPEN_SOURCE) || _XOPEN_SOURCE < 500
 # undef _XOPEN_SOURCE
 # define _XOPEN_SOURCE 500 /* to define PTHREAD_MUTEX_ERRORCHECK */
 # warning "Seems you don't have a UNIX98 compatible system."
 # warning "Please run LinuxSampler's selftest to make sure this won't be a problem!"
 # warning "(compile tests with 'make tests', run them with 'src/testcases/linuxsamplertest')"
+#endif
 #endif
 
 #include <iostream>
@@ -50,6 +52,13 @@
 namespace LinuxSampler {
 
 Mutex::Mutex() {
+#if defined(WIN32)
+    hMutex = CreateMutex( NULL, FALSE, NULL);
+    if (hMutex == NULL) {
+        std::cerr << "Mutex Constructor: Fatal error - CreateMutex error " << GetLastError() << "\n";
+        exit(1);
+    }
+#else
     pthread_mutexattr_init(&__posix_mutexattr);
 
     // the following function call only works on UNIX98 compatible systems
@@ -60,30 +69,48 @@ Mutex::Mutex() {
 	// the symbol __APPLE__ is checked here. There should be a better solution
 	// to this problem. (Toshi Nagata, 27 Mar 2007)
     if (pthread_mutexattr_settype(&__posix_mutexattr, PTHREAD_MUTEX_ERRORCHECK)) {
-        std::cout << "Mutex Constructor: Fatal error - unable to pthread_mutexattr_settype(PTHREAD_MUTEX_ERRORCHECK)\n" << std::flush;
+        std::cerr << "Mutex Constructor: Fatal error - unable to pthread_mutexattr_settype(PTHREAD_MUTEX_ERRORCHECK)\n" << std::flush;
         exit(-1);
     }
     #endif
     pthread_mutex_init(&__posix_mutex, &__posix_mutexattr);
+#endif
 }
 
 Mutex::~Mutex() {
+#if defined(WIN32)
+    CloseHandle(hMutex);
+#else
     pthread_mutex_destroy(&__posix_mutex);
     pthread_mutexattr_destroy(&__posix_mutexattr);
+#endif
 }
 
 void Mutex::Lock() {
+#if defined(WIN32)
+    WaitForSingleObject(hMutex, INFINITE);
+#else
     pthread_mutex_lock(&__posix_mutex);
+#endif
 }
 
 bool Mutex::Trylock() {
-    if (pthread_mutex_trylock(&__posix_mutex) == EBUSY)
-	    return false;
+#if defined(WIN32)
+    if( WaitForSingleObject(hMutex, 0) == WAIT_TIMEOUT) return false;
     return true;
+#else
+    if (pthread_mutex_trylock(&__posix_mutex) == EBUSY)
+        return false;
+    return true;
+#endif
 }
 
 void Mutex::Unlock() {
+#if defined(WIN32)
+    ReleaseMutex(hMutex);
+#else
     pthread_mutex_unlock(&__posix_mutex);
+#endif
 }
 
 } // namespace LinuxSampler

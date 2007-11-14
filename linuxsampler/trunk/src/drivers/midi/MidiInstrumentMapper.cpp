@@ -145,7 +145,7 @@ namespace LinuxSampler {
             InstrumentManager::instrument_id_t id;
             id.FileName = Entry.InstrumentFile;
             id.Index    = Entry.InstrumentIndex;
-            if (Entry.LoadMode != VOID) {
+            if (Entry.LoadMode != DONTCARE) {
                 if (bInBackground)
                     pEngine->GetInstrumentManager()->SetModeInBackground(id, static_cast<InstrumentManager::mode_t>(Entry.LoadMode));
                 else

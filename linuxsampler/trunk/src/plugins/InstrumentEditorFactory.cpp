@@ -35,6 +35,10 @@
 # error "Configuration macro CONFIG_PLUGIN_DIR not defined!"
 #endif // CONFIG_PLUGIN_DIR
 
+#if defined(WIN32)
+typedef void* (*InnerFactoryRegisterFunction)(void);
+#endif
+
 namespace LinuxSampler {
 
     std::map<String, InstrumentEditorFactory::InnerFactory*> InstrumentEditorFactory::InnerFactories;
@@ -118,12 +122,51 @@ namespace LinuxSampler {
                 if(!(win32FindData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)) {
                     String sPath = (String)CONFIG_PLUGIN_DIR + ((String)"\\" + (String)win32FindData.cFileName);
                     // load the DLL (the plugins should register themselfes automatically)
-                    void* pDLL = myhinstance = LoadLibrary( sPath.c_str() );
-                    if (pDLL) LoadedDLLs.push_back(pDLL);
-                    else {
+                    HINSTANCE hinstLib;
+                    void* pDLL = hinstLib = LoadLibrary( sPath.c_str() );
+                    if (!pDLL) {
                         std::cerr << "Failed to load instrument editor plugin: "
                                   << sPath << std::endl;
+                        continue;
                     }
+                    
+                    //(InnerFactory*) (*fn)(void);
+                    InnerFactoryRegisterFunction fn;
+                    fn = (InnerFactoryRegisterFunction)
+                        GetProcAddress(
+                            hinstLib,
+                            "createInstrumentEditorInnerFactory"
+                        );
+                    if (fn == NULL) {
+                        std::cerr << "ERROR: unable to find "
+                                     "createInstrumentEditorInnerFactory() "
+                                     "in DLL\n" << std::flush;
+                        FreeLibrary(hinstLib);
+                        continue;
+                    }
+                    
+                    // get the plugin instance and register it to the factory
+                    
+                    InnerFactory* pInnerFactory = (InnerFactory*)fn();
+                    if (!pInnerFactory) {
+                        std::cerr << "ERROR: !pInnerFactory\n" << std::flush;
+                        FreeLibrary(hinstLib);
+                        continue;
+                    }
+                    InstrumentEditor* pEditor = pInnerFactory->Create();
+                    if (InnerFactories.count(pEditor->Name())) {
+                        std::cerr << "ERROR: a plugin with name '"
+                                  << pEditor->Name()
+                                  << "' already loaded (skipping)\n"
+                                  << std::flush;
+                        pInnerFactory->Destroy(pEditor);
+                        FreeLibrary(hinstLib);
+                        continue;
+                    }
+                    InnerFactories[pEditor->Name()] = pInnerFactory;
+                    pInnerFactory->Destroy(pEditor);
+                    
+                    LoadedDLLs.push_back(pDLL);
                 }
                 int res = FindNextFile(hDir, &win32FindData);
                 if(res == 0 && GetLastError() != ERROR_NO_MORE_FILES) {

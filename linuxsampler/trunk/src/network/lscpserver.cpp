@@ -25,7 +25,10 @@
 #include "lscpresultset.h"
 #include "lscpevent.h"
 
+#if defined(WIN32)
+#else
 #include <fcntl.h>
+#endif
 
 #if ! HAVE_SQLITE3
 #define DOESNT_HAVE_SQLITE3 "No database support. SQLITE3 was not installed when linuxsampler was built."
@@ -129,7 +132,11 @@ LSCPServer::LSCPServer(Sampler* pSampler, long int addr, short int port) : Threa
 }
 
 LSCPServer::~LSCPServer() {
+#if defined(WIN32)
+    if (hSocket >= 0) closesocket(hSocket);
+#else
     if (hSocket >= 0) close(hSocket);
+#endif
 }
 
 void LSCPServer::EventHandler::ChannelCountChanged(int NewCount) {
@@ -230,6 +237,15 @@ int LSCPServer::WaitUntilInitialized(long TimeoutSeconds, long TimeoutNanoSecond
 }
 
 int LSCPServer::Main() {
+	#if defined(WIN32)
+	WSADATA wsaData;
+	int iResult;
+	iResult = WSAStartup(MAKEWORD(2,2), &wsaData);
+	if (iResult != 0) {
+		std::cerr << "LSCPServer: WSAStartup failed: " << iResult << "\n";
+		exit(EXIT_FAILURE);
+	}
+	#endif
     hSocket = socket(AF_INET, SOCK_STREAM, 0);
     if (hSocket < 0) {
         std::cerr << "LSCPServer: Could not create server socket." << std::endl;
@@ -243,7 +259,11 @@ int LSCPServer::Main() {
             if (bind(hSocket, (sockaddr*) &SocketAddress, sizeof(sockaddr_in)) < 0) {
                 if (trial > LSCP_SERVER_BIND_TIMEOUT) {
                     std::cerr << "gave up!" << std::endl;
+                    #if defined(WIN32)
+                    closesocket(hSocket);
+                    #else
                     close(hSocket);
+                    #endif
                     //return -1;
                     exit(EXIT_FAILURE);
                 }
@@ -325,7 +345,11 @@ int LSCPServer::Main() {
 		continue; //Nothing try again
 	if (retval == -1) {
 		std::cerr << "LSCPServer: Socket select error." << std::endl;
+		#if defined(WIN32)
+		closesocket(hSocket);
+		#else
 		close(hSocket);
+		#endif
 		exit(EXIT_FAILURE);
 	}
 
@@ -337,10 +361,18 @@ int LSCPServer::Main() {
 			exit(EXIT_FAILURE);
 		}
 
+		#if defined(WIN32)
+		u_long nonblock_io = 1;
+		if( ioctlsocket(socket, FIONBIO, &nonblock_io) ) {
+		  std::cerr << "LSCPServer: ioctlsocket: set FIONBIO failed. Error " << WSAGetLastError() << std::endl;
+		  exit(EXIT_FAILURE);
+		}
+        #else		
 		if (fcntl(socket, F_SETFL, O_NONBLOCK)) {
 			std::cerr << "LSCPServer: F_SETFL O_NONBLOCK failed." << std::endl;
 			exit(EXIT_FAILURE);
 		}
+		#endif
 
                 // Parser initialization
                 yyparse_param_t yyparse_param;
@@ -399,7 +431,11 @@ void LSCPServer::CloseConnection( std::vector<yyparse_param_t>::iterator iter ) 
 	NotifyMutex.Lock();
 	bufferedCommands.erase(socket);
 	bufferedNotifies.erase(socket);
+	#if defined(WIN32)
+	closesocket(socket);
+	#else
 	close(socket);
+	#endif
 	NotifyMutex.Unlock();
 }
 
@@ -478,7 +514,11 @@ bool LSCPServer::GetLSCPCommand( std::vector<yyparse_param_t>::iterator iter ) {
 	char c;
 	int i = 0;
 	while (true) {
+		#if defined(WIN32)
+		int result = recv(socket, (char *)&c, 1, 0); //Read one character at a time for now
+		#else
 		int result = recv(socket, (void *)&c, 1, 0); //Read one character at a time for now
+		#endif
 		if (result == 0) { //socket was selected, so 0 here means client has closed the connection
 			CloseConnection(iter);
 			break;
@@ -493,6 +533,16 @@ bool LSCPServer::GetLSCPCommand( std::vector<yyparse_param_t>::iterator iter ) {
 			}
 			bufferedCommands[socket] += c;
 		}
+		#if defined(WIN32)
+		if (result == SOCKET_ERROR) {
+		    int wsa_lasterror = WSAGetLastError();
+			if (wsa_lasterror == WSAEWOULDBLOCK) //Would block, try again later.
+				return false;
+			dmsg(2,("LSCPScanner: Socket error after recv() Error %d.\n", wsa_lasterror));	
+			CloseConnection(iter);
+			break;
+		}
+		#else
 		if (result == -1) {
 			if (errno == EAGAIN) //Would block, try again later.
 				return false;
@@ -531,6 +581,7 @@ bool LSCPServer::GetLSCPCommand( std::vector<yyparse_param_t>::iterator iter ) {
 			CloseConnection(iter);
 			break;
 		}
+		#endif
 	}
 	return false;
 }

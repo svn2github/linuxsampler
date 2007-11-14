@@ -25,7 +25,11 @@
 #define __LSCPPARSER_H__
 
 #include <sys/types.h>
+#if defined(WIN32)
+#include <windows.h>
+#else
 #include <sys/socket.h>
+#endif
 
 #include <stdlib.h>
 #include <iostream>

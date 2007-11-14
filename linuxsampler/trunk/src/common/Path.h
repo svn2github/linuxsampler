@@ -109,7 +109,7 @@ public:
     /**
      * Create a Path object from a Windows path / filename string.
      */
-    static Path fromWindowsPath(std::string path);
+    static Path fromWindows(std::string path);
 
 private:
     std::vector<std::string> elements; ///< stores the path names raw = unencoded, each element is one node of the path

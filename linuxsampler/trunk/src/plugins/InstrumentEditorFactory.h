@@ -28,9 +28,17 @@
 #include "../common/Exception.h"
 #include "InstrumentEditor.h"
 
-#define REGISTER_INSTRUMENT_EDITOR(PluginClass) \
+#if defined(WIN32)
+# define REGISTER_INSTRUMENT_EDITOR(PluginClass) \
+    extern "C" __declspec(dllexport) void* \
+    createInstrumentEditorInnerFactory() { \
+        return new LinuxSampler::InstrumentEditorFactory::InnerFactoryTemplate<PluginClass>(); \
+    }
+#else
+# define REGISTER_INSTRUMENT_EDITOR(PluginClass) \
     LinuxSampler::InstrumentEditorFactory::InnerFactoryRegistrator<PluginClass> \
     __auto_register_instrument_editor__##PluginClass;
+#endif
 
 namespace LinuxSampler {
 
