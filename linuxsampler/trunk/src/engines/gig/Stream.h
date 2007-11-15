@@ -68,7 +68,7 @@ namespace LinuxSampler { namespace gig {
             }
 
             inline int GetWriteSpace() {
-                return (pRingBuffer && State == state_active) ? pRingBuffer->write_space() : 0;
+                return (pRingBuffer && State == state_active) ? pRingBuffer->write_space() / BytesPerSample : 0;
             }
 
             inline int GetWriteSpaceToEnd() {

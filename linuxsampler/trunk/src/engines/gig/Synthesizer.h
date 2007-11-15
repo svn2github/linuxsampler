@@ -134,11 +134,17 @@ namespace LinuxSampler { namespace gig {
                 return 1;
             }
 
-            static int getSample(sample_t* src, int pos) {
+            inline static int getSample(sample_t* src, int pos) {
                 if (BITDEPTH24) {
                     pos *= 3;
+                    #if WORDS_BIGENDIAN
                     unsigned char* p = (unsigned char*)src;
                     return p[pos] << 8 | p[pos + 1] << 16 | p[pos + 2] << 24;
+                    #else
+                    // 24bit read optimization: 
+                    // a misaligned 32bit read and subquent 8 bit shift is faster (on x86)  than reading 3 single bytes and shifting them
+                    return (*((int *)(&((char *)(src))[pos])))<<8;
+                    #endif
                 } else {
                     return src[pos];
                 }

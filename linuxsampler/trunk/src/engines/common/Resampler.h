@@ -30,7 +30,6 @@
 #include "../../common/global_private.h"
 
 // TODO: cubic interpolation is not yet supported by the MMX/SSE(1) version though
-// TODO: cubic interpolation is not supported for 24 bit samples
 #ifndef USE_LINEAR_INTERPOLATION
 # define USE_LINEAR_INTERPOLATION   1  ///< set to 0 if you prefer cubic interpolation (slower, better quality)
 #endif
@@ -150,11 +149,17 @@ namespace LinuxSampler {
 
         protected:
 
-            static int getSample(sample_t* src, int pos) {
+            inline static int getSample(sample_t* src, int pos) {
                 if (BITDEPTH24) {
                     pos *= 3;
+                    #if WORDS_BIGENDIAN
                     unsigned char* p = (unsigned char*)src;
                     return p[pos] << 8 | p[pos + 1] << 16 | p[pos + 2] << 24;
+                    #else
+                    // 24bit read optimization: 
+                    // a misaligned 32bit read and subquent 8 bit shift is faster (on x86) than reading 3 single bytes and shifting them
+                    return (*((int *)(&((char *)(src))[pos])))<<8;
+                    #endif
                 } else {
                     return src[pos];
                 }
@@ -169,10 +174,10 @@ namespace LinuxSampler {
                     int x2 = getSample(pSrc, pos_int + 1);
                     float samplePoint  = (x1 + pos_fract * (x2 - x1));
                 #else // polynomial interpolation
-                    float xm1 = pSrc[pos_int];
-                    float x0  = pSrc[pos_int+1];
-                    float x1  = pSrc[pos_int+2];
-                    float x2  = pSrc[pos_int+3];
+                    float xm1 = getSample(pSrc, pos_int);
+                    float x0  = getSample(pSrc, pos_int + 1);
+                    float x1  = getSample(pSrc, pos_int + 2);
+                    float x2  = getSample(pSrc, pos_int + 3);
                     float a   = (3.0f * (x0 - x1) - xm1 + x2) * 0.5f;
                     float b   = 2.0f * x1 + xm1 - (5.0f * x0 + x2) * 0.5f;
                     float c   = (x1 - xm1) * 0.5f;
@@ -201,20 +206,20 @@ namespace LinuxSampler {
                     samplePoint.right = (x1 + pos_fract * (x2 - x1));
                 #else // polynomial interpolation
                     // calculate left channel
-                    float xm1 = pSrc[pos_int];
-                    float x0  = pSrc[pos_int+2];
-                    float x1  = pSrc[pos_int+4];
-                    float x2  = pSrc[pos_int+6];
+                    float xm1 = getSample(pSrc, pos_int);
+                    float x0  = getSample(pSrc, pos_int + 2);
+                    float x1  = getSample(pSrc, pos_int + 4);
+                    float x2  = getSample(pSrc, pos_int + 6);
                     float a   = (3.0f * (x0 - x1) - xm1 + x2) * 0.5f;
                     float b   = 2.0f * x1 + xm1 - (5.0f * x0 + x2) * 0.5f;
                     float c   = (x1 - xm1) * 0.5f;
                     samplePoint.left = (((a * pos_fract) + b) * pos_fract + c) * pos_fract + x0;
 
                     //calculate right channel
-                    xm1 = pSrc[pos_int+1];
-                    x0  = pSrc[pos_int+3];
-                    x1  = pSrc[pos_int+5];
-                    x2  = pSrc[pos_int+7];
+                    xm1 = getSample(pSrc, pos_int + 1);
+                    x0  = getSample(pSrc, pos_int + 3);
+                    x1  = getSample(pSrc, pos_int + 5);
+                    x2  = getSample(pSrc, pos_int + 7);
                     a   = (3.0f * (x0 - x1) - xm1 + x2) * 0.5f;
                     b   = 2.0f * x1 + xm1 - (5.0f * x0 + x2) * 0.5f;
                     c   = (x1 - xm1) * 0.5f;
