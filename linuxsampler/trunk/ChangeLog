@@ -13,7 +13,16 @@ Version CVS HEAD (?)
       operator--() did not apply size_mask after decrementing the read_ptr
       DEFAULT_WRAP_ELEMENTS set to 0 in order to avoid problems with 
         the _NonVolatileReader functions.
-      
+     - bugfix: Stream.h: added a missing divide by BytesPerSample in GetWriteSpace()
+       since this function is currently only used in the stream's
+       qsort() compare function, it didn't trigger any bugs
+     Resampler.h, Synthesizer.h:
+       cubic interpolation now works in 24bit mode too
+       faster method to read 24bit words on little endian machines (x86):
+       replaced 3 byte reads + shifts with a 1 unaligned 32bit read and shift 
+
+  * MIDI driver:
+    - added MME Windows MIDI driver      
 
   * LSCP server:
     - added support for Windows style path / filenames, however with
