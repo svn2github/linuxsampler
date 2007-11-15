@@ -24,8 +24,10 @@
 #ifndef __LS_THREAD_H__
 #define __LS_THREAD_H__
 
-//FIXME: jthis is a temorary solution because of problems with condition variables we use a polling lock in SignalStartThread()
+//FIXME: this is a temorary solution because of problems with condition variables we use a polling lock in SignalStartThread()
+#if defined(WIN32)
 #define WIN32_SIGNALSTARTTHREAD_WORKAROUND 1
+#endif
 
 #include <iostream>
 #include <stdio.h>
@@ -60,15 +62,17 @@ class Thread {
         virtual void EnableDestructor();      //FIXME: should be private
         virtual int  Destructor();            //FIXME: should be private
         virtual int  Main() = 0; ///< This method needs to be implemented by the descendant and is the entry point for the new thread. FIXME: should be protected
-		
-    /**
-     * allocates an aligned block of memory
-     * allocated memory blocks need to be freed using freeAlignedMem()
-     * @param boundary - the alignement boundary, usually a power of 2, eg 4 but it can be an arbitrary number between 1 and 128
-     *  @param size - size in bytes to be allocated  
-    *   @return pointer to the allocated memory block 
-     */		
 
+        /**
+         * Allocates an aligned block of memory. Allocated memory blocks
+         * need to be freed using freeAlignedMem().
+         *
+         * @param boundary - the alignement boundary, usually a power of 2
+         *                   e.g. 4 but it can be an arbitrary number
+         *                   between 1 and 128
+         * @param size     - size in bytes to be allocated
+         * @returns  pointer to the allocated memory block
+         */
         static void* allocAlignedMem(size_t boundary, size_t size) {
             unsigned char *ptr = (unsigned char *)malloc(size+boundary);
             size_t offset = boundary - ((size_t)ptr % boundary);
@@ -76,22 +80,24 @@ class Thread {
             return (ptr + offset);
         }
 
-    /**
-     * frees s a aligned block of memory allocated with  allocAlignedMem() 
-     * @param ptr - pointer to the memory block
-                 */			
+        /**
+         * Frees an aligned block of memory allocated with allocAlignedMem()
+         *
+         * @param ptr - pointer to the memory block
+         */
         static void freeAlignedMem(void *ptr) {
             unsigned char *p = (unsigned char *)ptr;
             p -= p[-1];
             free(p);
         }
-		
+
         /**
-                     * locks a region of memory in physical RAM
-                     * @param addr - address of the memory block
-                     * @param size- size of the memory block
-                     * @return true if the locking succeded, otherwise false
-                     */
+         * Locks a region of memory in physical RAM.
+         *
+         * @param addr - address of the memory block
+         * @param size - size of the memory block
+         * @return true if the locking succeded, otherwise false
+         */
         static bool lockMemory(void *addr, size_t size) {
             #if defined(WIN32)
             return VirtualLock(addr, size);
@@ -99,13 +105,14 @@ class Thread {
             return !mlock(addr, size);
             #endif
         }
-		
+
         /**
-        * unlocks a region of memory in physical RAM
-        * @param addr - address of the memory block
-        * @param size- size of the memory block
-        * @return true if the unlocking succeded, otherwise false
-        */
+         * Unlocks a region of memory in physical RAM.
+         *
+         * @param addr - address of the memory block
+         * @param size - size of the memory block
+         * @return true if the unlocking succeded, otherwise false
+         */
         static bool unlockMemory(void *addr, size_t size) {
             #if defined(WIN32)
             return VirtualUnlock(addr, size);
@@ -113,8 +120,7 @@ class Thread {
             return !munlock(addr, size);
             #endif
         }
-		
-		
+
     private:
     #if defined(WIN32)
         HANDLE hThread;
