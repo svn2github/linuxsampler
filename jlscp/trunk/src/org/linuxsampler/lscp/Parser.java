@@ -67,7 +67,7 @@ public final class Parser {
 	 * @param list The comma separated list.
 	 * @return A <code>String</code> array containing all items in the list.
 	 */
-	protected static String[]
+	public static String[]
 	parseList(String list) { return parseList(list, ','); }
 	
 	/**
@@ -76,7 +76,7 @@ public final class Parser {
 	 * @param separator Provides the character used as separator.
 	 * @return A <code>String</code> array containing all items in the list.
 	 */
-	protected static String[]
+	public static String[]
 	parseList(String list, char separator) {
 		if(list == null || list.length() == 0) return new String[0];
 		int pos = 0;
@@ -97,7 +97,7 @@ public final class Parser {
 	 * @param list The comma separated list with boolean values.
 	 * @return A <code>Boolean</code> array containing all items in the list.
 	 */
-	protected static Boolean[]
+	public static Boolean[]
 	parseBoolList(String list) {
 		String[] ar = parseList(list);
 		
@@ -117,7 +117,7 @@ public final class Parser {
 	 *
 	 * @throws LscpException if the list contains value(s) from different type.
 	 */
-	protected static Integer[]
+	public static Integer[]
 	parseIntList(String list) throws LscpException { return parseIntList(list, ','); }
 	
 	/**
@@ -129,7 +129,7 @@ public final class Parser {
 	 *
 	 * @throws LscpException if the list contains value(s) from different type.
 	 */
-	protected static Integer[]
+	public static Integer[]
 	parseIntList(String list, char separator) throws LscpException {
 	String[] ar = parseList(list, separator);
 		
@@ -147,7 +147,7 @@ public final class Parser {
 	 *
 	 * @throws LscpException if the list contains value(s) from different type.
 	 */
-	protected static Float[]
+	public static Float[]
 	parseFloatList(String list) throws LscpException {
 		String[] ar = parseList(list);
 		
@@ -162,7 +162,7 @@ public final class Parser {
 	 * @param list The list to parse.
 	 * @return A <code>String</code> array containing all items in the list.
 	 */
-	protected static String[]
+	public static String[]
 	parseEscapedStringList(String list) throws LscpException {
 		return parseEscapedStringList(list, ',');
 	}
@@ -173,7 +173,7 @@ public final class Parser {
 	 * @param separator Provides the character used as separator.
 	 * @return A <code>String</code> array containing all items in the list.
 	 */
-	protected static String[]
+	public static String[]
 	parseEscapedStringList(String list, char separator) throws LscpException {
 		if(list == null || list.length() == 0) return new String[0];
 		int q1 = 0, q2 = 0;
@@ -213,7 +213,7 @@ public final class Parser {
 	 * @return A <code>String</code> array containing all items in the list.
 	 * @throws LscpException if the list is broken.
 	 */
-	protected static String[]
+	public static String[]
 	parseStringList(String list) throws LscpException {
 		return parseStringList(list, ',');
 	}
@@ -225,7 +225,7 @@ public final class Parser {
 	 * @return A <code>String</code> array containing all items in the list.
 	 * @throws LscpException if the list is broken.
 	 */
-	protected static String[]
+	public static String[]
 	parseStringList(String list, char separator) throws LscpException {
 		if(list == null || list.length() == 0) return new String[0];
 		int q1 = 0, q2 = 0;
@@ -287,7 +287,7 @@ public final class Parser {
 	 *
 	 * @throws LscpException if the list is broken.
 	 */
-	protected static String[]
+	public static String[]
 	parseArray(String list) throws LscpException {
 		if(list == null || list.length() == 0) return new String[0];
 		int q1 = 0, q2 = 0;
@@ -504,7 +504,7 @@ public final class Parser {
 	 * @return New string without quotation marks if the string is quoted; else
 	 * the same string is returned.
 	 */
-	protected static String
+	public static String
 	removeQuotation(String s) {
 		if(s == null || s.length() < 2) return s;
 		char q = s.charAt(0);
@@ -709,7 +709,7 @@ public final class Parser {
 	/**
 	 * Determines whether the specified escaped path ends with a file separator.
 	 */
-	protected static boolean
+	public static boolean
 	hasEndingFileSeparator(String path) {
 		if(path == null || path.length() < 2) return false;
 		
@@ -723,7 +723,7 @@ public final class Parser {
 	 * If the specified escaped path ends with a file separator,
 	 * a new string is returned with the ending file separator removed.
 	 */
-	protected static String
+	public static String
 	removeEndingFileSeparator(String path) {
 		if(path == null || path.length() < 2) return path;
 		

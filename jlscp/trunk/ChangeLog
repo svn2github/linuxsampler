@@ -1,3 +1,7 @@
+CVS HEAD
+  * API Changes
+    - Parser: some of the methods are now public
+
 jlscp v0.6a: 2007-10-15
   * Added support for escape sequences
 
