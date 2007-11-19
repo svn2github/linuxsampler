@@ -1,5 +1,7 @@
 CVS HEAD
   * API Changes
+    - MidiInputDevice: added new methods - getPortsParameter,
+      setPortsParameter
     - Parser: some of the methods are now public
 
 jlscp v0.6a: 2007-10-15

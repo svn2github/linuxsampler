@@ -28,6 +28,7 @@ package org.linuxsampler.lscp;
  * @author  Grigor Iliev
  */
 public class MidiInputDevice extends AbstractDevice {
+	private Parameter<Integer> ports = null;
 	private MidiPort[] midiPorts = new MidiPort[0];
 	
 	/** Creates a new instance of MidiInputDevice */
@@ -51,6 +52,20 @@ public class MidiInputDevice extends AbstractDevice {
 		if(ports == null) throw new IllegalArgumentException("ports must be non null");
 		midiPorts = ports;
 	}
+	
+	/**
+	 * Gets the <code>PORTS</code> parameter.
+	 * @return A <code>Parameter<Integer></code> instance.
+	 */
+	public Parameter<Integer>
+	getPortsParameter() { return ports; }
+	
+	/**
+	 * Sets the <code>PORTS</code> parameter.
+	 * @param ports The new <code>PORTS</code> parameter.
+	 */
+	public void
+	setPortsParameter(Parameter<Integer> ports) { this.ports = ports; }
 	
 	/**
 	 * Gets the MIDI port at the specified index.

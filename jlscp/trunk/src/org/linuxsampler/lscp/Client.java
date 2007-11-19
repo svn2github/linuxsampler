@@ -2216,8 +2216,15 @@ public class Client {
 				mid.setActive(Boolean.parseBoolean(s));
 			} else if(s.startsWith("PORTS: ")) {
 				s = s.substring("PORTS: ".length());
-				int ports = Parser.parseInt(s);
-				MidiPort[] midiPorts = new MidiPort[ports > 0 ? ports : 0];
+				
+				Parameter<Integer> ports = (Parameter<Integer>)
+					getMidiInputDriverParameterInfo(drv, "PORTS");
+				
+				ports.parseValue(s);
+				mid.setPortsParameter(ports);
+				
+				int j = ports.getValue();
+				MidiPort[] midiPorts = new MidiPort[j > 0 ? j : 0];
 				
 				for(int i = 0; i < midiPorts.length; i++)
 					midiPorts[i] = getMidiInputPortInfo(deviceId, i);
