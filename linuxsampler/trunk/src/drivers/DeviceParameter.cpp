@@ -41,8 +41,18 @@ namespace LinuxSampler {
         }
     }
 
+    // like __eliminate_quotation(), but this one really kills all of 'em
+    static void __eliminate_all_quotations(String& s) {
+        for (int i = 0; i < s.size(); i++) {
+            if (s.c_str()[i] == '\'' || s.c_str()[i] == '\"') {
+                s.replace(i, 1, "");
+                i--;
+            }
+        }
+    }
+
     static bool __parse_bool(String val) throw (Exception) {
-        __eliminate_quotation(val);
+        __eliminate_all_quotations(val);
         int b;
         if      (val == "1" || !strcasecmp(val.c_str(),"true"))  b = true;
         else if (val == "0" || !strcasecmp(val.c_str(),"false")) b = false;
@@ -51,12 +61,12 @@ namespace LinuxSampler {
     }
 
     static int __parse_int(String val) throw (Exception) {
-        __eliminate_quotation(val);
+        __eliminate_all_quotations(val);
         return atoi(val.c_str()); // TODO: format check is missing
     }
 
     static float __parse_float(String val) throw (Exception) {
-        __eliminate_quotation(val);
+        __eliminate_all_quotations(val);
         float x;
         std::stringstream ss(val);
         ss.imbue(std::locale::classic());
