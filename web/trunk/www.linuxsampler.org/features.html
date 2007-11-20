@@ -180,7 +180,7 @@
 											</li>
 										</ol>
 									</li>
-									<li class="ok">Generic playback (RAM & disk streaming)</li>
+									<li class="ok">Generic playback (RAM playback & disk streaming)</li>
 									<li class="ok">Dimension switching
 										<ol>
 											<li class="ok">Sample Channel</li>
@@ -207,9 +207,17 @@
 									<li class="ok">Sustain pedal interpretation</li>
 									<li class="ok">Sostenuto pedal interpretation</li>
 									<li class="ok">Key velocity &#060;-&#062; volume mapping</li>
-									<li class="ok">Looping</li>
+									<li class="ok">Looping
+										<ol>
+											<li class="ok">endless loop</li>
+											<li class="ok">limited amount of loops</li>
+											<li class="ok">fractional looping</li>
+										</ol>
+									</li>
 									<li class="ok">Pitchbend wheel support</li>
-									<li class="ok">Bidirectional voice state transition</li>
+									<li class="ok">Bidirectional voice state transition, allowing
+										to cancel the relase stage of voices forth and back arbitrary
+										times if needed</li>
 									<li class="ok">Filter (VCF)
 										<ol>
 											<li class="ok">Highpass</li>
@@ -217,6 +225,9 @@
 											<li class="ok">Bandreject</li>
 											<li class="ok">Lowpass</li>
 											<li class="ok">Turbo lowpass</li>
+											<li class="ok">all filter types provide extremely
+												accurate characteristics compared to the original
+												Gigasampler format filters</li>
 											<li class="ok">Cutoff frequency controllable by MIDI controller</li>
 											<li class="ok">Resonance controllable by MIDI controller</li>
 										</ol>
@@ -229,9 +240,13 @@
 									<li class="ok">VCO Low Frequency Oscillator (Pitch)</li>
 									<li class="ok">Layers</li>
 									<li class="ok">Crossfades</li>
-									<li class="ok">Key Groups (a.k.a Exclusive Groups)</li>
-									<li class="ok">Release Triggered Voices</li>
-									<li class="ok">Key Switching</li>
+									<li class="ok">Key Groups (a.k.a Exclusive Groups),
+										for mutually switching off sounds i.e. for drumkits</li>
+									<li class="ok">Release Triggered Voices, specific samples
+										that are played back when voices are released</li>
+									<li class="ok">Key Switching, which allows to map a certain
+										range on thy keyboard as additional performance controller,
+										i.e. for switching articulations of orchestral sounds in realtime</li>
 									<li class="ok">Voice Stealing</li>
 									<li class="ok">Portamento Mode and Solo Mode (a.k.a 'Mono Mode',
 										can be altered via standard GM messages, that is CC5 for
@@ -295,11 +310,59 @@
 					<li class="false">Dynamic engine recompilation</li>
 					<li class="false">Extensive SMP (multi processor) support</li>
 					<li class="false">Network cluster support</li>
+					<li class="ok">MIDI instrument mapper, allows to create very flexible MIDI progam change setups in a very easy way.
+						<ol>
+							<li class="ok">MIDI program change</li>
+							<li class="ok">MIDI bank select (automatic detection of MSB only, LSB only or full MSB+LSB)</li>
+							<li class="ok">Load Strategy for each Item individually
+								<ol>
+									<li class="ok">On-Demand: loads the instrument only when needed, frees it immediately once not used by any sampler channel anymore</li>
+									<li class="ok">On-Demand-Hold: loads the instrument when needed and keeps it in memory, that is even if not used by a sampler channel</li>
+									<li class="ok">Persistent: loads the instrument immediately in the background (i.e. at sampler startup), allowing immediate program changes in realtime even of largest instruments, without wait time</li>
+									<li class="ok">Default: let the sampler decide</li>
+								</ol>
+							</li>
+							<li class="ok">Volume Factor for each Item, allowing to compensate the volume difference of sample library collections i.e. for live performances, without having to edit the instrument files</li>
+							<li class="ok">Mapping of arbitrary Instrument Files, already independent of the underlying format in respect for future sampler engines</li>
+							<li class="ok">arbitrary amount of independent MIDI instrumet maps, (i.e. for chromatic instruments, drumkits, ...), each sampler channel can be assigned to a specific MIDI map</li>
+						</ol>
+					</li>
+					<li class="ok">Effect Sends
+						<ol>
+							<li class="ok">Arbitrary Amount of FX Sends on Sampler Channels</li>
+							<li class="ok">Realtime MIDI Control of Send Level</li>
+							<li class="ok">Arbitrary MIDI Controller assignable</li>
+							<li class="ok">Flexible Routing i.e. to a dedicated effect audio output</li>
+						</ol>
+					</li>
+					<li class="ok">Instrument Database System, allowing to keep track of even the largest sample library collections
+						<ol>
+							<li class="ok">Ordering in Categories</li>
+							<li class="ok">Search by various Criteria</li>
+							<li class="ok">Transparently maintained on backend side</li>
+						</ol>
+					</li>
 					<li class="partly">(Graphical) frontends
 						<ol>
 							<li class="ok">Qt based frontend (<a href="http://qsampler.sourceforge.net">QSampler</a>)</li>
 							<li class="ok">Java based frontend (<a href="http://sourceforge.net/projects/jsampler">JSampler</a>)</li>
 							<li class="false">VSTi frontend (based on the Qt frontend)</li>
+						</ol>
+					</li>
+					<li class="ok">Playing while Loading, i.e. allowing to play and hold notes on the keyboard
+						while loading a new instrument on the same sampler channel at the same time</li>
+					<li class="ok">Instrument Editor Plugin System for 3rd Party Instrument Editors</li>
+					<li class="ok">Instrument Editors
+						<ol>
+							<li class="ok"><a href="http://download.linuxsampler.org/doc/gigedit/quickstart/gigedit_quickstart.html">gigedit</a> (based on the Gtk+ Toolkit)
+								<ol>
+									<li class="ok">allows to modify all aspects of Gigsampler v2 and v3 format files</li>
+									<li class="ok">allows to modify existing as well as creating completely new .gig files from scratch</li>
+									<li class="ok">stand-alone mode (independent of LinuxSampler)</li>
+									<li class="ok">live-mode (attached with LinuxSampler), which makes all modifications audible in the sampler in realtime without having to reload</li>
+									<li class="ok">created / modified files are accepted by LinuxSampler as well as by Gigastudio 3</li>
+								</ol>
+							</li>
 						</ol>
 					</li>
 				</ol>
@@ -317,7 +380,7 @@
 			</p>
 
 			<p>
-			 (Last page update on <b>$Date: 2006-11-24 21:40:58 $</b> by $Author: schoenebeck $,
+			 (Last page update on <b>$Date: 2007-11-20 02:27:46 $</b> by $Author: schoenebeck $,
 			 also see <a href="http://www.linuxsampler.org">CVS Log</a> for recent changes)
 			</p>
 
