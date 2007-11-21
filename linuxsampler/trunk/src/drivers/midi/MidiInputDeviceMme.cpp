@@ -36,6 +36,63 @@ void CALLBACK MidiInputDeviceMme::MidiInputPortMme::win32_midiin_callback(HMIDII
 
 
 
+// *************** ParameterPorts ***************
+// *
+
+// *************** ParameterPorts ***************
+// *
+
+    MidiInputDeviceMme::ParameterPorts::ParameterPorts() : DeviceCreationParameterInt() {
+        InitWithDefault();
+    }
+
+    MidiInputDeviceMme::ParameterPorts::ParameterPorts(String val) : DeviceCreationParameterInt(val) {
+    }
+
+    String MidiInputDeviceMme::ParameterPorts::Description() {
+        return "Number of ports";
+    }
+
+    bool MidiInputDeviceMme::ParameterPorts::Fix() {
+        return true;
+    }
+
+    bool MidiInputDeviceMme::ParameterPorts::Mandatory() {
+        return false;
+    }
+
+    std::map<String,DeviceCreationParameter*> MidiInputDeviceMme::ParameterPorts::DependsAsParameters() {
+        return std::map<String,DeviceCreationParameter*>();
+    }
+
+    // the MME driver supports only one port so to manage multiple MME MIDI ports the user just creates several MME drivers and connects each one to the desired MME port
+    optional<int> MidiInputDeviceMme::ParameterPorts::DefaultAsInt(std::map<String,String> Parameters) {
+        return 1;
+    }
+
+    optional<int> MidiInputDeviceMme::ParameterPorts::RangeMinAsInt(std::map<String,String> Parameters) {
+        return 1;
+    }
+
+    optional<int> MidiInputDeviceMme::ParameterPorts::RangeMaxAsInt(std::map<String,String> Parameters) {
+        return 1;
+    }
+
+    std::vector<int> MidiInputDeviceMme::ParameterPorts::PossibilitiesAsInt(std::map<String,String> Parameters) {
+        return std::vector<int>();
+    }
+
+   void MidiInputDeviceMme::ParameterPorts::OnSetValue(int i) throw (Exception) {
+        if (i != 1) throw Exception("MME only supports one MIDI port per device");
+    }
+
+    String MidiInputDeviceMme::ParameterPorts::Name() {
+        return "PORTS";
+    }
+    
+    // the MME driver supports only one port so to manage multiple MME MIDI ports the user just creates several MME drivers and connects each one to the desired MME port
+    
+
 
 // *************** ParameterPort ***************
 // *
@@ -294,7 +351,6 @@ void MidiInputDeviceMme::MidiInputPortMme::MmeCallbackDispatcher(HMIDIIN handle,
     }
 
     MidiInputDeviceMme::MidiInputPortMme* MidiInputDeviceMme::CreateMidiPort() {
-        dmsg(1,("foo\n"));
         return new MidiInputPortMme(this);
     }
 
@@ -319,7 +375,7 @@ void MidiInputDeviceMme::MidiInputPortMme::MmeCallbackDispatcher(HMIDIIN handle,
     }
 
     String MidiInputDeviceMme::Version() {
-        String s = "$Revision: 1.1 $";
+        String s = "$Revision: 1.2 $";
         return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
 

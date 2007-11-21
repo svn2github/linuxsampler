@@ -21,6 +21,9 @@ Version CVS HEAD (?)
        faster method to read 24bit words on little endian machines (x86):
        replaced 3 byte reads + shifts with a 1 unaligned 32bit read and shift
 
+  * AUDIO driver:
+    - added Windows ASIO low latency audio driver 
+
   * MIDI driver:
     - added MME Windows MIDI driver
 

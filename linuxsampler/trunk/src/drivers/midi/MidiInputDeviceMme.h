@@ -41,8 +41,24 @@ namespace LinuxSampler {
      */
     class MidiInputDeviceMme : public MidiInputDevice {
         public:
+        
+            class ParameterPorts : public DeviceCreationParameterInt {
+                public:
+                    ParameterPorts();
+                    ParameterPorts(String val);
+                    virtual String Description();
+                    virtual bool   Fix();
+                    virtual bool   Mandatory();
+                    virtual std::map<String,DeviceCreationParameter*> DependsAsParameters();
+                    virtual optional<int>    DefaultAsInt(std::map<String,String> Parameters);
+                    virtual optional<int>    RangeMinAsInt(std::map<String,String> Parameters);
+                    virtual optional<int>    RangeMaxAsInt(std::map<String,String> Parameters);
+                    virtual std::vector<int> PossibilitiesAsInt(std::map<String,String> Parameters);
+                    virtual void             OnSetValue(int i) throw (Exception);
+                    static String Name();
+            };
 
-            /**
+         /**
              * MIDI Port implementation for the MME MIDI input driver.
              */
             class MidiInputPortMme : public MidiInputPort {
@@ -51,7 +67,7 @@ namespace LinuxSampler {
 
                    
 
-                    /** MIDI Port Parameter 'Port'
+                /** MIDI Port Parameter 'Port'
                      *
                      * MME MIDI ports
                      * 
