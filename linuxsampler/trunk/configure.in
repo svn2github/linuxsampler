@@ -79,6 +79,14 @@ if ! echo "X $CXXFLAGS " | grep -q -- " \(-march=\|-mcpu=\|-mtune=\|-arch=\)" ; 
 fi
 AC_SUBST([CXX_CPU_SWITCH])
 
+# check if we're on MS Windows
+AC_CHECK_HEADERS(
+    mmsystem.h,
+    have_windows=1,
+    have_windows=0
+)
+AM_CONDITIONAL(HAVE_WINDOWS, test $have_windows = "1")
+
 AC_MSG_CHECKING([whether UNIX98 compatible])
 AC_LANG_SAVE
 AC_LANG_C
@@ -101,7 +109,7 @@ have_unix98="no"
 )
 AC_LANG_RESTORE
 AC_MSG_RESULT([$have_unix98])
-if test "$have_unix98" = "no"; then
+if test "$have_unix98" = "no" -a "have_windows" = "0"; then
     if test "x$HAVE_UNIX98" = "x"; then
         echo "LinuxSampler only runs on UNIX98 compatible systems, which is mandatory for"
         echo "pthread_mutexattr_settype() call in Mutex.cpp. You may want to run
@@ -286,6 +294,45 @@ fi
 AM_CONDITIONAL(HAVE_ARTS, test "$have_arts" = "1")
 AC_DEFINE_UNQUOTED(HAVE_ARTS,$have_arts,[Define to 1 if you have aRts installed.])
 
+# ASIO AUDIO (Win32)
+AC_ARG_ENABLE(asiosdk-dir,
+  [  --enable-asiosdk-dir
+                          Directory where the ASIO SDK is located, this automatically
+                          enables the compilation of the ASIO audio output driver.],
+  [config_asiosdk_dir="${enableval}"],
+  [config_asiosdk_dir="."]
+)
+AC_SUBST(config_asiosdk_dir)
+
+AC_ARG_ENABLE(asio-driver,
+  [  --disable-asio-driver
+                          Disable support for the Windows ASIO driver.],
+  [config_asio_driver="$enableval"],
+  [config_asio_driver="yes"]
+)
+have_asio=0
+ASIOSDK_BASEDIR=
+if test "$config_asio_driver" = "yes"; then
+    asiosdk_headerfile=$config_asiosdk_dir/ASIOSDK2/common/asio.h
+    echo -n "checking for ASIO headerfile: $asiosdk_headerfile ...."
+    if test -e $asiosdk_headerfile ; then
+        echo yes
+        have_asio=1
+        ASIOSDK_BASEDIR="$config_asiosdk_dir"
+    else
+        echo no
+        have_asio=0
+    fi
+    if test "$have_asio" = "1"; then
+        have_audio_output_driver="true"
+    fi
+else
+    echo "Windows ASIO support disabled by configure script parameter"
+fi
+AC_SUBST(ASIOSDK_BASEDIR)
+AM_CONDITIONAL(HAVE_ASIO, test $have_asio = "1")
+AC_DEFINE_UNQUOTED(HAVE_ASIO,$have_asio,[Define to 1 if you have ASIO installed.])
+
 # MidiShare (Linux, OS X, Windows)
 AC_ARG_ENABLE(midishare-driver,
   [  --disable-midishare-driver
@@ -333,6 +380,28 @@ else
 fi
 AM_CONDITIONAL(HAVE_COREMIDI, test $have_coremidi = "1")
 AC_DEFINE_UNQUOTED(HAVE_COREMIDI,$have_coremidi,[Define to 1 if you have CoreMIDI installed.])
+
+# MME MIDI (Win32)
+AC_ARG_ENABLE(mmemidi-driver,
+  [  --disable-mmemidi-driver
+                          Disable support for the Windows MME MIDI system.],
+  [config_mmemidi_driver="$enableval"],
+  [config_mmemidi_driver="yes"]
+)
+have_mmemidi=0
+if test "$config_mmemidi_driver" = "yes"; then
+    AC_CHECK_HEADERS(mmsystem.h,
+        have_mmemidi=1,
+        have_mmemidi=0
+    )
+    if test "$have_mmemidi" = "1"; then
+        have_midi_input_driver="true"
+    fi
+else
+    echo "MME MIDI support disabled by configure script parameter"
+fi
+AM_CONDITIONAL(HAVE_MME_MIDI, test $have_mmemidi = "1")
+AC_DEFINE_UNQUOTED(HAVE_MME_MIDI,$have_mmemidi,[Define to 1 if you have MME MIDI installed.])
 
 # have we found at least one MIDI input and one audio output driver ?
 if test "$have_midi_input_driver" = "false"; then

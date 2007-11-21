@@ -28,18 +28,28 @@ arts_ladd     =
 arts_includes =
 endif
 
+if HAVE_ASIO
+asio_includes = -I@ASIOSDK_BASEDIR@/asiosdk2/common -I@ASIOSDK_BASEDIR@/asiosdk2/host -I@ASIOSDK_BASEDIR@/asiosdk2/host/pc
+asio_src  = AudioOutputDeviceAsio.cpp AudioOutputDeviceAsio.h iasiothiscallresolver.cpp iasiothiscallresolver.h asiosdk2/common/asio.cpp asiosdk2/common/asio.h asiosdk2/host/asiodrivers.cpp asiosdk2/host/asiodrivers.h asiosdk2/host/pc/asiolist.cpp asiosdk2/host/pc/asiolist.h
+asio_ladd = 
+else
+asio_src  =
+asio_includes  =
+asio_ladd =
+endif
+
 liblinuxsampleraudiodriverincludedir = $(includedir)/linuxsampler/drivers/audio
 liblinuxsampleraudiodriverinclude_HEADERS = \
 	AudioChannel.h \
 	AudioOutputDevice.h
 
-INCLUDES = $(all_includes) $(arts_includes)
+INCLUDES = $(all_includes) $(arts_includes) $(asio_includes)
 
 noinst_LTLIBRARIES = liblinuxsampleraudiodriver.la
 liblinuxsampleraudiodriver_la_SOURCES = \
 	AudioChannel.cpp AudioChannel.h \
 	AudioOutputDevice.cpp AudioOutputDevice.h \
 	AudioOutputDeviceFactory.cpp AudioOutputDeviceFactory.h \
-	$(alsa_src) $(jack_src) $(arts_src)
+	$(alsa_src) $(jack_src) $(arts_src) $(asio_src)
 liblinuxsampleraudiodriver_la_LIBADD = $(alsa_ladd) $(arts_ladd)
 liblinuxsampleraudiodriver_la_LDFLAGS = $(jack_lflags)

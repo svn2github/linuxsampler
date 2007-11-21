@@ -4,6 +4,7 @@ Version CVS HEAD (?)
     - added autoconf checks for pthread library
     - added autoconf check for pthread bug found on certain NPTL-enabled
       glibc versions (see Gentoo bug report #194076)
+    - added autoconf checks for MS Windows
 
   * general changes:
     - bugfix: the thread used by an editor plugin didn't die when the
@@ -20,6 +21,7 @@ Version CVS HEAD (?)
        cubic interpolation now works in 24bit mode too
        faster method to read 24bit words on little endian machines (x86):
        replaced 3 byte reads + shifts with a 1 unaligned 32bit read and shift
+     Experimental support for MS Windows (MIDI input via MME, AUDIO output via ASIO)
 
   * AUDIO driver:
     - added Windows ASIO low latency audio driver 

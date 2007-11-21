@@ -3,6 +3,12 @@ METASOURCES = AUTO
 
 AM_CXXFLAGS = -Wreturn-type -ffast-math $(CXX_CPU_SWITCH)
 
+if HAVE_WINDOWS
+winsocket_ldflags = -lws2_32 -lole32
+else
+winsocket_ldflags = 
+endif
+
 noinst_LTLIBRARIES = liblinuxsamplernetwork.la
 liblinuxsamplernetwork_la_SOURCES = \
 	lscp.h \
@@ -11,6 +17,7 @@ liblinuxsamplernetwork_la_SOURCES = \
 	lscpsymbols.h \
 	lscpresultset.cpp lscpresultset.h \
 	lscpevent.cpp lscpevent.h
+liblinuxsamplernetwork_la_LIBADD = $(winsocket_ldflags)
 
 yacc_sources = lscp.y
 

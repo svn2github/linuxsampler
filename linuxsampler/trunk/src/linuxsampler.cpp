@@ -24,6 +24,11 @@
 #include <getopt.h>
 #include <signal.h>
 
+#if defined(WIN32)
+// require at least Windows 2000 for the GlobalMemoryStatusEx() call
+#define _WIN32_WINNT 0x0500
+#endif
+
 #include "Sampler.h"
 #include "common/global_private.h"
 #include "engines/EngineFactory.h"
@@ -39,8 +44,23 @@ using namespace LinuxSampler;
 
 Sampler*    pSampler    = NULL;
 LSCPServer* pLSCPServer = NULL;
+#if defined(WIN32)
+// inet_aton seems missing under WIN32
+#ifndef INADDR_NONE
+#define INADDR_NONE 0xffffffff
+#endif
+
+int inet_aton(const char *cp, struct in_addr *addr)
+{
+    addr->s_addr = inet_addr(cp);
+    return (addr->s_addr == INADDR_NONE) ? 0 : 1;
+}
+
+DWORD main_thread;
+#else
 pthread_t   main_thread;
 pid_t       main_pid;
+#endif
 bool bPrintStatistics = false;
 bool profile = false;
 bool tune = true;
@@ -56,12 +76,67 @@ int main(int argc, char **argv) {
     // initialize the stack trace mechanism with our binary file
     StackTraceInit(argv[0], -1);
 
+    #if defined(WIN32)
+    // some WIN32 memory info code which tries to determine the maximum lockable amount of memory (for debug purposes)
+    SYSTEM_INFO siSysInfo;
+    long physical_memory;
+    GetSystemInfo(&siSysInfo);
+    dmsg(1,("page size=%d\n", siSysInfo.dwPageSize));
+
+    MEMORYSTATUSEX statex;
+	statex.dwLength = sizeof (statex);
+    GlobalMemoryStatusEx (&statex);
+    dmsg(1, ("There are %*I64d total Kbytes of physical memory.\n",
+          8, statex.ullTotalPhys));
+    dmsg(1, ("There are %*I64d free Kbytes of physical memory.\n",
+          8, statex.ullAvailPhys));
+    physical_memory = statex.ullTotalPhys;
+
+    HANDLE hProcess = GetCurrentProcess();
+
+    unsigned long MinimumWorkingSetSize, MaximumWorkingSetSize;
+    unsigned long DefaultMinimumWorkingSetSize, DefaultMaximumWorkingSetSize;
+    unsigned long RequestedMinimumWorkingSetSize, RequestedMaximumWorkingSetSize;
+    int res;
+
+    res = GetProcessWorkingSetSize(hProcess, &DefaultMinimumWorkingSetSize, &DefaultMaximumWorkingSetSize);
+
+    RequestedMaximumWorkingSetSize = physical_memory - 2*1024*1024;
+    RequestedMinimumWorkingSetSize = RequestedMaximumWorkingSetSize;
+
+    for(;;) {
+        dmsg(2,("TRYING VALUES  RequestedMinimumWorkingSetSize=%d, RequestedMaximumWorkingSetSize=%d\n", RequestedMinimumWorkingSetSize, RequestedMaximumWorkingSetSize));
+        res = SetProcessWorkingSetSize(hProcess, RequestedMinimumWorkingSetSize, RequestedMaximumWorkingSetSize);
+        dmsg(2,("AFTER SET: res = %d  RequestedMinimumWorkingSetSize=%d, RequestedMaximumWorkingSetSize=%d\n", res,RequestedMinimumWorkingSetSize, RequestedMaximumWorkingSetSize));
+
+        res = GetProcessWorkingSetSize(hProcess, &MinimumWorkingSetSize, &MaximumWorkingSetSize);
+        dmsg(2,("AFTER GET: res = %d  MinimumWorkingSetSize=%d, MaximumWorkingSetSize=%d\n", res,MinimumWorkingSetSize, MaximumWorkingSetSize));
+
+        if( RequestedMinimumWorkingSetSize == MinimumWorkingSetSize ) {
+            dmsg(2,("RequestedMinimumWorkingSetSize == MinimumWorkingSetSize. OK !\n"));
+            break;
+        }
+
+        RequestedMinimumWorkingSetSize -=  10*1024*1024;
+        if(RequestedMinimumWorkingSetSize < DefaultMinimumWorkingSetSize) break;
+    }
+
+    dmsg(1,("AFTER GetProcessWorkingSetSize: res = %d  MinimumWorkingSetSize=%d, MaximumWorkingSetSize=%d\n", res,MinimumWorkingSetSize, MaximumWorkingSetSize));
+    #endif
+
+    #if defined(WIN32)
+    main_thread = GetCurrentThreadId();
+    #else
     main_pid = getpid();
     main_thread = pthread_self();
+    #endif
 
     // setting signal handler for catching SIGINT (thus e.g. <CTRL><C>)
     signal(SIGINT, signal_handler);
 
+    #if defined(WIN32)
+    // FIXME: sigaction() not supported on WIN32, we ignore it for now
+    #else
     // register signal handler for all unusual signals
     // (we will print the stack trace and exit)
     struct sigaction sact;
@@ -74,6 +149,7 @@ int main(int argc, char **argv) {
     sigaction(SIGFPE,  &sact, NULL);
     sigaction(SIGUSR1, &sact, NULL);
     sigaction(SIGUSR2, &sact, NULL);
+    #endif
 
     lscp_addr = htonl(LSCP_ADDR);
     lscp_port = htons(LSCP_PORT);
@@ -182,7 +258,11 @@ int main(int argc, char **argv) {
 void signal_handler(int iSignal) {
     switch (iSignal) {
         case SIGINT: {
+            #if defined(WIN32)
+            if( GetCurrentThreadId() == main_thread ) {
+            #else
             if (pthread_equal(pthread_self(), main_thread)) {
+            #endif
                 if (pLSCPServer) pLSCPServer->StopThread();
                 // the delete order here is important: the Sampler
                 // destructor sends notifications to the lscpserver
@@ -196,6 +276,9 @@ void signal_handler(int iSignal) {
             }
             return;
         }
+        #if defined(WIN32)
+        // FIXME: under WIN32 we ignore the signals below due to the missing sigaction call
+        #else
         case SIGSEGV:
             std::cerr << ">>> FATAL ERROR: Segmentation fault (SIGSEGV) occured! <<<\n" << std::flush;
             break;
@@ -214,6 +297,7 @@ void signal_handler(int iSignal) {
         case SIGUSR2:
             std::cerr << ">>> User defined signal 2 (SIGUSR2) received <<<\n" << std::flush;
             break;
+        #endif
         default: { // this should never happen, as we register for the signals we want
             std::cerr << ">>> FATAL ERROR: Unknown signal received! <<<\n" << std::flush;
             break;
@@ -228,7 +312,12 @@ void signal_handler(int iSignal) {
 }
 
 void kill_app() {
+    #if defined(WIN32)
+    // FIXME: do we need to do anything at this point under WIN32 ?  is exit(0) ok ?
+    exit(0);
+    #else
     kill(main_pid, SIGKILL);
+    #endif
 }
 
 void parse_options(int argc, char **argv) {
