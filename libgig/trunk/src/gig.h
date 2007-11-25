@@ -749,6 +749,8 @@ namespace gig {
             Group*      AddGroup();
             void        DeleteGroup(Group* pGroup);
             void        DeleteGroupOnly(Group* pGroup);
+            void        SetAutoLoad(bool b);
+            bool        GetAutoLoad();
             virtual    ~File();
             virtual void UpdateChunks();
         protected:
@@ -766,6 +768,7 @@ namespace gig {
         private:
             std::list<Group*>*          pGroups;
             std::list<Group*>::iterator GroupsIterator;
+            bool                        bAutoLoad;
     };
 
     /**

@@ -2372,6 +2372,8 @@ namespace {
 
         // Actual Loading
 
+        if (!file->GetAutoLoad()) return;
+
         LoadDimensionRegions(rgnList);
 
         RIFF::Chunk* _3lnk = rgnList->GetSubChunk(CHUNK_ID_3LNK);
@@ -2415,12 +2417,14 @@ namespace {
             else
                 _3lnk->SetPos(44);
 
-            // load sample references
-            for (uint i = 0; i < DimensionRegions; i++) {
-                uint32_t wavepoolindex = _3lnk->ReadUint32();
-                if (file->pWavePoolTable) pDimensionRegions[i]->pSample = GetSampleFromWavePool(wavepoolindex);
+            // load sample references (if auto loading is enabled)
+            if (file->GetAutoLoad()) {
+                for (uint i = 0; i < DimensionRegions; i++) {
+                    uint32_t wavepoolindex = _3lnk->ReadUint32();
+                    if (file->pWavePoolTable) pDimensionRegions[i]->pSample = GetSampleFromWavePool(wavepoolindex);
+                }
+                GetSample(); // load global region sample reference
             }
-            GetSample(); // load global region sample reference
         } else {
             DimensionRegions = 0;
             for (int i = 0 ; i < 8 ; i++) {
@@ -2957,19 +2961,21 @@ namespace {
             }
         }
 
-        if (!pRegions) pRegions = new RegionList;
-        RIFF::List* lrgn = insList->GetSubList(LIST_TYPE_LRGN);
-        if (lrgn) {
-            RIFF::List* rgn = lrgn->GetFirstSubList();
-            while (rgn) {
-                if (rgn->GetListType() == LIST_TYPE_RGN) {
-                    __notify_progress(pProgress, (float) pRegions->size() / (float) Regions);
-                    pRegions->push_back(new Region(this, rgn));
+        if (pFile->GetAutoLoad()) {
+            if (!pRegions) pRegions = new RegionList;
+            RIFF::List* lrgn = insList->GetSubList(LIST_TYPE_LRGN);
+            if (lrgn) {
+                RIFF::List* rgn = lrgn->GetFirstSubList();
+                while (rgn) {
+                    if (rgn->GetListType() == LIST_TYPE_RGN) {
+                        __notify_progress(pProgress, (float) pRegions->size() / (float) Regions);
+                        pRegions->push_back(new Region(this, rgn));
+                    }
+                    rgn = lrgn->GetNextSubList();
                 }
-                rgn = lrgn->GetNextSubList();
+                // Creating Region Key Table for fast lookup
+                UpdateRegionKeyTable();
             }
-            // Creating Region Key Table for fast lookup
-            UpdateRegionKeyTable();
         }
 
         __notify_progress(pProgress, 1.0f); // notify done
@@ -3259,6 +3265,7 @@ namespace {
     };
 
     File::File() : DLS::File() {
+        bAutoLoad = true;
         *pVersion = VERSION_3;
         pGroups = NULL;
         pInfo->SetFixedStringLengths(_FileFixedStringLengths);
@@ -3274,6 +3281,7 @@ namespace {
     }
 
     File::File(RIFF::File* pRIFF) : DLS::File(pRIFF) {
+        bAutoLoad = true;
         pGroups = NULL;
         pInfo->SetFixedStringLengths(_FileFixedStringLengths);
     }
@@ -3447,7 +3455,8 @@ namespace {
             progress_t subprogress;
             __divide_progress(pProgress, &subprogress, 3.0f, 0.0f); // randomly schedule 33% for this subtask
             __notify_progress(&subprogress, 0.0f);
-            GetFirstSample(&subprogress); // now force all samples to be loaded
+            if (GetAutoLoad())
+                GetFirstSample(&subprogress); // now force all samples to be loaded
             __notify_progress(&subprogress, 1.0f);
 
             // instrument loading subtask
@@ -3852,6 +3861,33 @@ namespace {
             // the order of einf and 3crc is not the same in v2 and v3
             if (einf && pVersion && pVersion->major == 3) pRIFF->MoveSubChunk(_3crc, einf);
         }
+    }
+
+    /**
+     * Enable / disable automatic loading. By default this properyt is
+     * enabled and all informations are loaded automatically. However
+     * loading all Regions, DimensionRegions and especially samples might
+     * take a long time for large .gig files, and sometimes one might only
+     * be interested in retrieving very superficial informations like the
+     * amount of instruments and their names. In this case one might disable
+     * automatic loading to avoid very slow response times.
+     *
+     * @e CAUTION: by disabling this property many pointers (i.e. sample
+     * references) and informations will have invalid or even undefined
+     * data! This feature is currently only intended for retrieving very
+     * superficial informations in a very fast way. Don't use it to retrieve
+     * details like synthesis informations or even to modify .gig files!
+     */
+    void File::SetAutoLoad(bool b) {
+        bAutoLoad = b;
+    }
+
+    /**
+     * Returns whether automatic loading is enabled.
+     * @see SetAutoLoad()
+     */
+    bool File::GetAutoLoad() {
+        return bAutoLoad;
     }
 
 

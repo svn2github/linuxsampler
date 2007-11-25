@@ -4,6 +4,11 @@ Version CVS HEAD (?)
     - avoid Windows to perform unnecessary file stream caching which would
       decrease disk streaming performance on Windows systems otherwise
 
+  * src/gig.cpp, src/gig.h:
+    - added File::SetAutoLoad() and File::GetAutoLoad() for allowing
+      applications to retrieve very superficial informations like amount of
+      instruments and their names in a very fast way
+
 Version 3.2.0 (14 Oct 2007)
 
   * packaging changes:
