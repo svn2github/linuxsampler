@@ -195,6 +195,9 @@ class LSCPServer : public Thread {
         String GetTotalVoiceCountMax();
         String GetGlobalVolume();
         String SetGlobalVolume(double dVolume);
+        String GetFileInstruments(String Filename);
+        String ListFileInstruments(String Filename);
+        String GetFileInstrumentInfo(String Filename, uint InstrumentID);
         String SubscribeNotification(LSCPEvent::event_t);
         String UnsubscribeNotification(LSCPEvent::event_t);
         String SetEcho(yyparse_param_t* pSession, double boolean_value);

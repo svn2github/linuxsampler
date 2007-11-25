@@ -5,7 +5,7 @@ AC_INIT(configure.in)
 
 LINUXSAMPLER_RELEASE_MAJOR=0
 LINUXSAMPLER_RELEASE_MINOR=5
-LINUXSAMPLER_RELEASE_BUILD=0
+LINUXSAMPLER_RELEASE_BUILD=0.1cvs
 
 #------------------------------------------------------------------------------------
 # The following is the libtool / shared library version. This doesn't have to
@@ -33,7 +33,7 @@ SHARED_VERSION_INFO="$LIBLINUXSAMPLER_LT_CURRENT:$LIBLINUXSAMPLER_LT_REVISION:$L
 # the LSCP specification version this LinuSampler release complies with:
 
 LSCP_RELEASE_MAJOR=1
-LSCP_RELEASE_MINOR=2
+LSCP_RELEASE_MINOR=3
 
 AC_DEFINE_UNQUOTED(LSCP_RELEASE_MAJOR, ${LSCP_RELEASE_MAJOR}, [LSCP spec major version this release complies with.])
 AC_DEFINE_UNQUOTED(LSCP_RELEASE_MINOR, ${LSCP_RELEASE_MINOR}, [LSCP spec minor version this release complies with.])

@@ -115,6 +115,65 @@ namespace LinuxSampler { namespace gig {
         return ::gig::libraryVersion();
     }
 
+    std::vector<InstrumentResourceManager::instrument_id_t> InstrumentResourceManager::GetInstrumentFileContent(String File) throw (InstrumentManagerException) {
+        ::RIFF::File* riff = NULL;
+        ::gig::File*  gig  = NULL;
+        try {
+            std::vector<instrument_id_t> result;
+            riff = new ::RIFF::File(File);
+            gig  = new ::gig::File(riff);
+            gig->SetAutoLoad(false); // avoid time consuming samples scanning
+            for (int i = 0; gig->GetInstrument(i); i++) {
+                instrument_id_t id;
+                id.FileName = File;
+                id.Index    = i;
+                result.push_back(id);
+            }
+            if (gig)  delete gig;
+            if (riff) delete riff;
+            return result;
+        } catch (::RIFF::Exception e) {
+            if (gig)  delete gig;
+            if (riff) delete riff;
+            throw InstrumentManagerException(e.Message);
+        } catch (...) {
+            if (gig)  delete gig;
+            if (riff) delete riff;
+            throw InstrumentManagerException("Unknown exception while trying to parse '" + File + "'");
+        }
+    }
+
+    InstrumentResourceManager::instrument_info_t InstrumentResourceManager::GetInstrumentInfo(instrument_id_t ID) throw (InstrumentManagerException) {
+        std::vector<instrument_id_t> result;
+        ::RIFF::File* riff = NULL;
+        ::gig::File*  gig  = NULL;
+        try {
+            riff = new ::RIFF::File(ID.FileName);
+            gig  = new ::gig::File(riff);
+            gig->SetAutoLoad(false); // avoid time consuming samples scanning
+            ::gig::Instrument* pInstrument = gig->GetInstrument(ID.Index);
+            if (!pInstrument) throw InstrumentManagerException("There is no instrument " + ToString(ID.Index) + " in " + ID.FileName);
+            instrument_info_t info;
+            if (gig->pVersion) {
+                info.FormatVersion = ToString(gig->pVersion->major);
+                info.Product = gig->pInfo->Product;
+                info.Artists = gig->pInfo->Artists;
+            }
+            info.InstrumentName = pInstrument->pInfo->Name;
+            if (gig)  delete gig;
+            if (riff) delete riff;
+            return info;
+        } catch (::RIFF::Exception e) {
+            if (gig)  delete gig;
+            if (riff) delete riff;
+            throw InstrumentManagerException(e.Message);
+        } catch (...) {
+            if (gig)  delete gig;
+            if (riff) delete riff;
+            throw InstrumentManagerException("Unknown exception while trying to parse '" + ID.FileName + "'");
+        }
+    }
+
     void InstrumentResourceManager::LaunchInstrumentEditor(instrument_id_t ID) throw (InstrumentManagerException) {
         const String sDataType    = GetInstrumentDataStructureName(ID);
         const String sDataVersion = GetInstrumentDataStructureVersion(ID);

@@ -73,6 +73,16 @@ namespace LinuxSampler {
             };
 
             /**
+             * Rather abstract informations about an instrument.
+             */
+            struct instrument_info_t {
+                String InstrumentName;
+                String FormatVersion;
+                String Product;
+                String Artists;
+            };
+
+            /**
              * Returns all managed instruments.
              *
              * This method has to be implemented by the descendant.
@@ -157,6 +167,23 @@ namespace LinuxSampler {
              *         instrument editor is registered to the sampler
              */
             virtual void LaunchInstrumentEditor(instrument_id_t ID) throw (InstrumentManagerException) = 0;
+
+            /**
+             * Returns a list of instrument IDs of the provided instrument
+             * file in case the provided file's format is supported.
+             *
+             * @throws InstrumentManagerException if the format of the
+             *         provided instrument file is not supported
+             */
+            virtual std::vector<instrument_id_t> GetInstrumentFileContent(String File) throw (InstrumentManagerException) = 0;
+
+            /**
+             * Get detailed informations about the provided instrument file.
+             *
+             * @throws InstrumentManagerException if the format of the
+             *         provided instrument file is not supported
+             */
+            virtual instrument_info_t GetInstrumentInfo(instrument_id_t ID) throw (InstrumentManagerException) = 0;
     };
 
 }

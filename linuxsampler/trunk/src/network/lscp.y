@@ -296,6 +296,8 @@ get_instruction       :  AVAILABLE_ENGINES                                      
                       |  DB_INSTRUMENT SP INFO SP db_path                                           { $$ = LSCPSERVER->GetDbInstrumentInfo($5);                        }
                       |  DB_INSTRUMENTS_JOB SP INFO SP number                                       { $$ = LSCPSERVER->GetDbInstrumentsJobInfo($5);                    }
                       |  VOLUME                                                                     { $$ = LSCPSERVER->GetGlobalVolume();                              }
+                      |  FILE SP INSTRUMENTS SP filename                                            { $$ = LSCPSERVER->GetFileInstruments($5);                         }
+                      |  FILE SP INSTRUMENT SP INFO SP filename SP instrument_index                 { $$ = LSCPSERVER->GetFileInstrumentInfo($7,$9);                   }
                       ;
 
 set_instruction       :  AUDIO_OUTPUT_DEVICE_PARAMETER SP number SP string '=' param_val_list             { $$ = LSCPSERVER->SetAudioOutputDeviceParameter($3, $5, $7);      }
@@ -403,6 +405,7 @@ list_instruction      :  AUDIO_OUTPUT_DEVICES                               { $$
                       |  DB_INSTRUMENT_DIRECTORIES SP db_path               { $$ = LSCPSERVER->GetDbInstrumentDirectories($3);       }
                       |  DB_INSTRUMENTS SP RECURSIVE SP db_path             { $$ = LSCPSERVER->GetDbInstruments($5, true);           }
                       |  DB_INSTRUMENTS SP db_path                          { $$ = LSCPSERVER->GetDbInstruments($3);                 }
+                      |  FILE SP INSTRUMENTS SP filename                    { $$ = LSCPSERVER->ListFileInstruments($5);              }
                       ;
 
 load_instr_args       :  filename SP instrument_index SP sampler_channel               { $$ = LSCPSERVER->LoadInstrument($1, $3, $5);       }
@@ -841,6 +844,9 @@ GLOBAL_INFO          :  'G''L''O''B''A''L''_''I''N''F''O'
 INSTRUMENT           :  'I''N''S''T''R''U''M''E''N''T'
                      ;
 
+INSTRUMENTS          :  'I''N''S''T''R''U''M''E''N''T''S'
+                     ;
+
 ENGINE               :  'E' 'N' 'G' 'I' 'N' 'E'
                      ;
 
@@ -983,6 +989,9 @@ BYTES                 :  'B''Y''T''E''S'
                       ;
 
 PERCENTAGE            :  'P''E''R''C''E''N''T''A''G''E'
+                      ;
+
+FILE                  :  'F''I''L''E'
                       ;
 
 EDIT                  :  'E''D''I''T'

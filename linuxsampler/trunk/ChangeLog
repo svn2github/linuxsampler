@@ -35,6 +35,11 @@ Version CVS HEAD (?)
       (i.e. "C:/foo/bar.gig")
     - allow naughty liblscp to send non-string device parameters within
       apostrophes as well
+    - added new LSCP commands: "GET FILE INSTRUMENTS <file>",
+      "LIST FILE INSTRUMENTS <file>" and
+      "GET FILE INSTRUMENT INFO <file> <index>" for retrieving informations
+      about an arbitrary instrument file on the system where the sampler is
+      running on
 
 Version 0.5.0 (15 October 2007)
 

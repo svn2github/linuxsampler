@@ -2383,6 +2383,99 @@ String LSCPServer::SetGlobalVolume(double dVolume) {
     return result.Produce();
 }
 
+String LSCPServer::GetFileInstruments(String Filename) {
+    LSCPResultSet result;
+    // try to find a sampler engine that can handle the file
+    bool bFound = false;
+    std::vector<String> engineTypes = EngineFactory::AvailableEngineTypes();
+    for (int i = 0; !bFound && i < engineTypes.size(); i++) {
+        Engine* pEngine = NULL;
+        try {
+            pEngine = EngineFactory::Create(engineTypes[i]);
+            if (!pEngine) throw Exception("Internal error: could not create '" + engineTypes[i] + "' engine");
+            InstrumentManager* pManager = pEngine->GetInstrumentManager();
+            if (pManager) {
+                std::vector<InstrumentManager::instrument_id_t> IDs =
+                    pManager->GetInstrumentFileContent(Filename);
+                // return the amount of instruments in the file
+                result.Add(IDs.size());
+                // no more need to ask other engine types
+                bFound = true;
+            } else dmsg(1,("Warning: engine '%s' does not provide an instrument manager\n", engineTypes[i].c_str()));
+        } catch (Exception e) {
+            // NOOP, as exception is thrown if engine doesn't support file
+        }
+        if (pEngine) EngineFactory::Destroy(pEngine);
+    }
+    return result.Produce();
+}
+
+String LSCPServer::ListFileInstruments(String Filename) {
+    LSCPResultSet result;
+    // try to find a sampler engine that can handle the file
+    bool bFound = false;
+    std::vector<String> engineTypes = EngineFactory::AvailableEngineTypes();
+    for (int i = 0; !bFound && i < engineTypes.size(); i++) {
+        Engine* pEngine = NULL;
+        try {
+            pEngine = EngineFactory::Create(engineTypes[i]);
+            if (!pEngine) throw Exception("Internal error: could not create '" + engineTypes[i] + "' engine");
+            InstrumentManager* pManager = pEngine->GetInstrumentManager();
+            if (pManager) {
+                std::vector<InstrumentManager::instrument_id_t> IDs =
+                    pManager->GetInstrumentFileContent(Filename);
+                // return a list of IDs of the instruments in the file
+                String s;
+                for (int j = 0; j < IDs.size(); j++) {
+                    if (s.size()) s += ",";
+                    s += ToString(IDs[j].Index);
+                }
+                result.Add(s);
+                // no more need to ask other engine types
+                bFound = true;
+            } else dmsg(1,("Warning: engine '%s' does not provide an instrument manager\n", engineTypes[i].c_str()));
+        } catch (Exception e) {
+            // NOOP, as exception is thrown if engine doesn't support file
+        }
+        if (pEngine) EngineFactory::Destroy(pEngine);
+    }
+    return result.Produce();
+}
+
+String LSCPServer::GetFileInstrumentInfo(String Filename, uint InstrumentID) {
+    LSCPResultSet result;
+    InstrumentManager::instrument_id_t id;
+    id.FileName = Filename;
+    id.Index    = InstrumentID;
+    // try to find a sampler engine that can handle the file
+    bool bFound = false;
+    std::vector<String> engineTypes = EngineFactory::AvailableEngineTypes();
+    for (int i = 0; !bFound && i < engineTypes.size(); i++) {
+        Engine* pEngine = NULL;
+        try {
+            pEngine = EngineFactory::Create(engineTypes[i]);
+            if (!pEngine) throw Exception("Internal error: could not create '" + engineTypes[i] + "' engine");
+            InstrumentManager* pManager = pEngine->GetInstrumentManager();
+            if (pManager) {
+                InstrumentManager::instrument_info_t info =
+                    pManager->GetInstrumentInfo(id);
+                // return detailed informations about the file
+                result.Add("NAME", info.InstrumentName);
+                result.Add("FORMAT_NAME", engineTypes[i]);
+                result.Add("FORMAT_VERSION", info.FormatVersion);
+                result.Add("PRODUCT", info.Product);
+                result.Add("ARTISTS", info.Artists);
+                // no more need to ask other engine types
+                bFound = true;
+            } else dmsg(1,("Warning: engine '%s' does not provide an instrument manager\n", engineTypes[i].c_str()));
+        } catch (Exception e) {
+            // NOOP, as exception is thrown if engine doesn't support file
+        }
+        if (pEngine) EngineFactory::Destroy(pEngine);
+    }
+    return result.Produce();
+}
+
 /**
  * Will be called by the parser to subscribe a client (frontend) on the
  * server for receiving event messages.

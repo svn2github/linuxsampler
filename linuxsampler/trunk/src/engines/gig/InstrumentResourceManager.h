@@ -76,6 +76,8 @@ namespace LinuxSampler { namespace gig {
             virtual String GetInstrumentDataStructureName(instrument_id_t ID);
             virtual String GetInstrumentDataStructureVersion(instrument_id_t ID);
             virtual void LaunchInstrumentEditor(instrument_id_t ID) throw (InstrumentManagerException);
+            virtual std::vector<instrument_id_t> GetInstrumentFileContent(String File) throw (InstrumentManagerException);
+            virtual instrument_info_t GetInstrumentInfo(instrument_id_t ID) throw (InstrumentManagerException);
 
             // implementation of derived abstract methods from 'InstrumentEditorListener'
             virtual void OnInstrumentEditorQuit(InstrumentEditor* pSender);
