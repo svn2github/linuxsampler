@@ -344,9 +344,28 @@
 					</li>
 					<li class="partly">(Graphical) frontends
 						<ol>
-							<li class="ok">Qt based frontend (<a href="http://qsampler.sourceforge.net">QSampler</a>)</li>
-							<li class="ok">Java based frontend (<a href="http://sourceforge.net/projects/jsampler">JSampler</a>)</li>
-							<li class="false">VSTi frontend (based on the Qt frontend)</li>
+							<li class="partly"><a href="http://qsampler.sourceforge.net">QSampler</a> (C++ based frontend using Qt)
+								<ol>
+									<li class="ok">Supports all features of LinuxSampler except the following ...</li>
+									<li class="partly"><a href="http://www.linuxsampler.org/api/draft-linuxsampler-protocol.html#CREATE FX_SEND">
+										Effect Sends</a> (qsampler retrieves current FX send settings from the sampler,
+										stores FX send settings in session .lscp files and restores them, but
+										currently does not yet offer a widget to modify FX send settings)
+									</li>
+									<li class="partly"><a href="http://www.linuxsampler.org/api/draft-linuxsampler-protocol.html#MIDI Instrument Mapping">MIDI Instrument Maps</a>
+										(qsampler does currently not yet support to create more than two MIDI instrument maps [one intended for chromatic instruments and one for drumkits])
+									</li>
+									<li class="false"><a href="http://www.linuxsampler.org/api/draft-linuxsampler-protocol.html#Managing Instruments Database">Instruments DB support</a> (to ease handling of huge sample library collections)</li>
+									<li class="false"><a href="http://www.linuxsampler.org/api/draft-linuxsampler-protocol.html#events">Sampler events</a> (to let qsampler react on certain events occuring on sampler side)</li>
+									<li class="partly">Audio and MIDI device management (only minor thing that qsampler lacks support yet are <a href="http://www.linuxsampler.org/api/draft-linuxsampler-protocol.html#GET MIDI_INPUT_DRIVER_PARAMETER INFO">"multiplicity"</a> type device parameters, that is parameters which don't just accept one value, but also a list of values, i.e. for the "ALSA_SEQ_BINDINGS" parameter of the ALSA MIDI driver)</li>
+								</ol>
+							</li>
+							<li class="ok"><a href="http://sourceforge.net/projects/jsampler">JSampler</a> (Java based frontend)
+								<ol>
+									<li class="ok">Supports all currently available features of LinuxSampler</li>
+								</ol>
+							</li>
+							<li class="false">VSTi frontend</li>
 						</ol>
 					</li>
 					<li class="ok">Playing while Loading, i.e. allowing to play and hold notes on the keyboard
@@ -354,7 +373,7 @@
 					<li class="ok">Instrument Editor Plugin System for 3rd Party Instrument Editors</li>
 					<li class="ok">Instrument Editors
 						<ol>
-							<li class="ok"><a href="http://download.linuxsampler.org/doc/gigedit/quickstart/gigedit_quickstart.html">gigedit</a> (based on the Gtk+ Toolkit)
+							<li class="ok"><a href="http://download.linuxsampler.org/doc/gigedit/quickstart/gigedit_quickstart.html">gigedit</a> (C++ based using gtkmm/Gtk+)
 								<ol>
 									<li class="ok">allows to modify all aspects of Gigsampler v2 and v3 format files</li>
 									<li class="ok">allows to modify existing as well as creating completely new .gig files from scratch</li>
@@ -380,7 +399,7 @@
 			</p>
 
 			<p>
-			 (Last page update on <b>$Date: 2007-11-20 02:27:46 $</b> by $Author: schoenebeck $,
+			 (Last page update on <b>$Date: 2007-11-27 19:43:15 $</b> by $Author: schoenebeck $,
 			 also see <a href="http://www.linuxsampler.org">CVS Log</a> for recent changes)
 			</p>
 
