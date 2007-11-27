@@ -35,4 +35,18 @@
 
 typedef std::string String;
 
+#if defined(WIN32)
+#include <windows.h>
+#define usleep(a) Sleep(a/1000)
+#define sleep(a) Sleep(a*1000)
+typedef unsigned int uint;
+// FIXME: define proper functions which do proper alignement under Win32
+#define alignedMalloc(a,b) malloc(b)
+#define alignedFree(a) free(a)
+#else
+// needed for usleep under POSIX
+#include <stdio.h>
+#endif
+
+
 #endif // __LS_GLOBAL_H__
