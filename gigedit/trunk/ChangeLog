@@ -3,6 +3,10 @@ Version CVS HEAD (?)
   * multiple editor windows can now be opened by the plugin
   * bugfix: gigedit didn't start on windows 2000
   * standard gtk command line parameters is now handled
+  * parameter edits can now be applied to multiple regions and
+    dimension regions simultaneously - three checkboxes were added
+    that select if changes apply to all regions and/or all dimension
+    regions
 
 Version 0.1.0 (2007-10-15)
 

@@ -291,6 +291,7 @@ bool RegionChooser::on_button_release_event(GdkEventButton* event)
                 region->KeyRange.low  + move.pos,
                 region->KeyRange.high + move.pos
             );
+            instrument_changed.emit();
             instrument_struct_changed_signal.emit(instrument);
         }
 

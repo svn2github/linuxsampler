@@ -26,6 +26,8 @@
 
 #include <gig.h>
 
+#include <set>
+
 class DimRegionChooser : public Gtk::DrawingArea
 {
 public:
@@ -37,7 +39,9 @@ public:
     sigc::signal<void>& signal_dimregion_selected();
     sigc::signal<void>& signal_region_changed();
 
-    gig::DimensionRegion* get_dimregion() { return dimreg; }
+    gig::DimensionRegion* get_dimregion() const { return dimreg; }
+    void get_dimregions(const gig::Region* region, bool stereo,
+                        std::set<gig::DimensionRegion*>& dimregs) const;
 
 protected:
     virtual void on_realize();

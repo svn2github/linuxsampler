@@ -197,6 +197,10 @@ protected:
     void dimreg_changed();
     void on_loader_progress();
     void on_loader_finished();
+    void dimreg_all_dimregs_toggled();
+    gig::Instrument* get_instrument();
+    void add_region_to_dimregs(gig::Region* region, bool stereo, bool all_dimregs);
+    void update_dimregs();
 
     class ModelColumns : public Gtk::TreeModel::ColumnRecord {
     public:
@@ -243,6 +247,12 @@ protected:
     Gtk::TreeView m_TreeViewSamples;
     Glib::RefPtr<SamplesTreeStore> m_refSamplesTreeModel;
 
+    Gtk::VBox dimreg_vbox;
+    Gtk::HBox dimreg_hbox;
+    Gtk::Label dimreg_label;
+    Gtk::CheckButton dimreg_all_regions;
+    Gtk::CheckButton dimreg_all_dimregs;
+    Gtk::CheckButton dimreg_stereo;
     DimRegionEdit dimreg_edit;
 
     Gtk::Notebook m_Notebook;

@@ -44,6 +44,8 @@ public:
     sigc::signal<void, gig::DimensionRegion*>& signal_dimreg_changed();
     sigc::signal<void, gig::Sample*/*old*/, gig::Sample*/*new*/>& signal_sample_ref_changed();
 
+    std::set<gig::DimensionRegion*> dimregs;
+
 protected:
     sigc::signal<void, gig::DimensionRegion*> dimreg_to_be_changed_signal;
     sigc::signal<void, gig::DimensionRegion*> dimreg_changed_signal;
@@ -179,8 +181,6 @@ protected:
     void loop_start_changed();
     void loop_length_changed();
     void loop_infinite_toggled();
-
-    std::set<gig::DimensionRegion*> dimregs;
 
     int update_model;
 

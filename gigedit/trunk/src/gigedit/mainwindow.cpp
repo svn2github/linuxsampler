@@ -59,7 +59,11 @@ template<class T> inline std::string ToString(T o) {
     return ss.str();
 }
 
-MainWindow::MainWindow()
+MainWindow::MainWindow() :
+    dimreg_label(_("Changes apply to:")),
+    dimreg_all_regions(_("all regions")),
+    dimreg_all_dimregs(_("all dimension splits")),
+    dimreg_stereo(_("both channels"))
 {
 //    set_border_width(5);
 //    set_default_size(400, 200);
@@ -89,7 +93,14 @@ MainWindow::MainWindow()
     m_TreeViewNotebook.set_size_request(300);
 
     m_HPaned.add1(m_TreeViewNotebook);
-    m_HPaned.add2(dimreg_edit);
+    dimreg_hbox.add(dimreg_label);
+    dimreg_hbox.add(dimreg_all_regions);
+    dimreg_hbox.add(dimreg_all_dimregs);
+    dimreg_stereo.set_active();
+    dimreg_hbox.add(dimreg_stereo);
+    dimreg_vbox.add(dimreg_edit);
+    dimreg_vbox.add(dimreg_hbox);
+    m_HPaned.add2(dimreg_vbox);
 
 
     m_TreeViewNotebook.append_page(m_ScrolledWindowSamples, "Samples");
@@ -313,6 +324,13 @@ MainWindow::MainWindow()
     m_RegionChooser.signal_region_changed_signal().connect(
         region_changed_signal.make_slot());
 
+    dimreg_all_regions.signal_toggled().connect(
+        sigc::mem_fun(*this, &MainWindow::update_dimregs));
+    dimreg_all_dimregs.signal_toggled().connect(
+        sigc::mem_fun(*this, &MainWindow::dimreg_all_dimregs_toggled));
+    dimreg_stereo.signal_toggled().connect(
+        sigc::mem_fun(*this, &MainWindow::update_dimregs));
+
     file = 0;
     file_is_changed = false;
     set_file_is_shared(false);
@@ -343,24 +361,71 @@ void MainWindow::region_changed()
     m_DimRegionChooser.set_region(m_RegionChooser.get_region());
 }
 
-void MainWindow::dimreg_changed()
+gig::Instrument* MainWindow::get_instrument()
 {
-    dimreg_edit.set_dim_region(m_DimRegionChooser.get_dimregion());
-}
-
-void MainWindow::on_sel_change()
-{
+    gig::Instrument* instrument = 0;
     Glib::RefPtr<Gtk::TreeSelection> tree_sel_ref = m_TreeView.get_selection();
 
     Gtk::TreeModel::iterator it = tree_sel_ref->get_selected();
     if (it) {
         Gtk::TreeModel::Row row = *it;
-        std::cout << row[m_Columns.m_col_name] << std::endl;
-
-        m_RegionChooser.set_instrument(row[m_Columns.m_col_instr]);
-    } else {
-        m_RegionChooser.set_instrument(0);
+        instrument = row[m_Columns.m_col_instr];
     }
+    return instrument;
+}
+
+void MainWindow::add_region_to_dimregs(gig::Region* region, bool stereo, bool all_dimregs)
+{
+    if (all_dimregs) {
+        for (int i = 0 ; i < region->DimensionRegions ; i++) {
+            if (region->pDimensionRegions[i]) {
+                dimreg_edit.dimregs.insert(region->pDimensionRegions[i]);
+            }
+        }
+    } else {
+        m_DimRegionChooser.get_dimregions(region, stereo, dimreg_edit.dimregs);
+    }
+}
+
+void MainWindow::update_dimregs()
+{
+    dimreg_edit.dimregs.clear();
+    bool all_regions = dimreg_all_regions.get_active();
+    bool stereo = dimreg_stereo.get_active();
+    bool all_dimregs = dimreg_all_dimregs.get_active();
+
+    if (all_regions) {
+        gig::Instrument* instrument = get_instrument();
+        if (instrument) {
+            for (gig::Region* region = instrument->GetFirstRegion() ;
+                 region ;
+                 region = instrument->GetNextRegion()) {
+                add_region_to_dimregs(region, stereo, all_dimregs);
+            }
+        }
+    } else {
+        gig::Region* region = m_RegionChooser.get_region();
+        if (region) {
+            add_region_to_dimregs(region, stereo, all_dimregs);
+        }
+    }
+}
+
+void MainWindow::dimreg_all_dimregs_toggled()
+{
+    dimreg_stereo.set_sensitive(!dimreg_all_dimregs.get_active());
+    update_dimregs();
+}
+
+void MainWindow::dimreg_changed()
+{
+    update_dimregs();
+    dimreg_edit.set_dim_region(m_DimRegionChooser.get_dimregion());
+}
+
+void MainWindow::on_sel_change()
+{
+    m_RegionChooser.set_instrument(get_instrument());
 }
 
 void loader_progress_callback(gig::progress_t* progress)
@@ -1080,17 +1145,12 @@ void MainWindow::load_gig(gig::File* gig, const char* filename, bool isSharedIns
 
 void MainWindow::show_instr_props()
 {
-    Glib::RefPtr<Gtk::TreeSelection> tree_sel_ref = m_TreeView.get_selection();
-    Gtk::TreeModel::iterator it = tree_sel_ref->get_selected();
-    if (it)
+    gig::Instrument* instrument = get_instrument();
+    if (instrument)
     {
-        Gtk::TreeModel::Row row = *it;
-        if (row[m_Columns.m_col_instr])
-        {
-            instrumentProps.set_instrument(row[m_Columns.m_col_instr]);
-            instrumentProps.show();
-            instrumentProps.deiconify();
-        }
+        instrumentProps.set_instrument(instrument);
+        instrumentProps.show();
+        instrumentProps.deiconify();
     }
 }
 

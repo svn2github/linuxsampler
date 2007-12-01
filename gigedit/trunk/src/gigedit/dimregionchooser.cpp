@@ -248,10 +248,6 @@ void DimRegionChooser::set_region(gig::Region* region)
 
             int z = std::min(dimvalue[region->pDimensionDefinitions[dim].dimension],
                              region->pDimensionDefinitions[dim].zones - 1);
-            int mask =
-                ~(((1 << region->pDimensionDefinitions[dim].bits) - 1) <<
-                  bitcount);
-            dimregno &= mask;
             dimregno |= (z << bitcount);
             bitcount += region->pDimensionDefinitions[dim].bits;
         }
@@ -262,6 +258,30 @@ void DimRegionChooser::set_region(gig::Region* region)
     dimregion_selected();
     queue_resize();
 }
+
+
+void DimRegionChooser::get_dimregions(const gig::Region* region, bool stereo,
+                                      std::set<gig::DimensionRegion*>& dimregs) const
+{
+    int dimregno = 0;
+    int bitcount = 0;
+    int stereo_bit = 0;
+    for (int dim = 0 ; dim < region->Dimensions ; dim++) {
+        if (region->pDimensionDefinitions[dim].bits == 0) continue;
+        if (stereo &&
+            region->pDimensionDefinitions[dim].dimension == gig::dimension_samplechannel) {
+            stereo_bit = (1 << bitcount);
+        } else {
+            int z = std::min(dimvalue[region->pDimensionDefinitions[dim].dimension],
+                             region->pDimensionDefinitions[dim].zones - 1);
+            dimregno |= (z << bitcount);
+        }
+        bitcount += region->pDimensionDefinitions[dim].bits;
+    }
+    dimregs.insert(region->pDimensionRegions[dimregno]);
+    if (stereo_bit) dimregs.insert(region->pDimensionRegions[dimregno | stereo_bit]);
+}
+
 
 bool DimRegionChooser::on_button_release_event(GdkEventButton* event)
 {

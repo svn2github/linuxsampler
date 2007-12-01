@@ -633,12 +633,6 @@ void DimRegionEdit::set_dim_region(gig::DimensionRegion* d)
     set_sensitive(d);
     if (!d) return;
 
-    // TODO: Here is where we decide which dimregions that are going
-    // to be modified when the user changes a parameter. For now, just
-    // choose the shown dimregion.
-    dimregs.clear();
-    dimregs.insert(d);
-
     update_model++;
     eEG1PreAttack.set_value(d->EG1PreAttack);
     eEG1Attack.set_value(d->EG1Attack);
