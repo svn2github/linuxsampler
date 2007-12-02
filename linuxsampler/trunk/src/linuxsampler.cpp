@@ -39,6 +39,7 @@
 #include "network/lscpserver.h"
 #include "common/stacktrace.h"
 #include "common/Features.h"
+#include "common/atomic.h"
 
 using namespace LinuxSampler;
 
@@ -56,9 +57,7 @@ int inet_aton(const char *cp, struct in_addr *addr)
     return (addr->s_addr == INADDR_NONE) ? 0 : 1;
 }
 
-DWORD main_thread;
 #else
-pthread_t   main_thread;
 pid_t       main_pid;
 #endif
 bool bPrintStatistics = false;
@@ -70,6 +69,7 @@ unsigned short int lscp_port;
 void parse_options(int argc, char **argv);
 void signal_handler(int signal);
 void kill_app();
+static atomic_t running = ATOMIC_INIT(1);
 
 int main(int argc, char **argv) {
 
@@ -124,11 +124,8 @@ int main(int argc, char **argv) {
     dmsg(1,("AFTER GetProcessWorkingSetSize: res = %d  MinimumWorkingSetSize=%d, MaximumWorkingSetSize=%d\n", res,MinimumWorkingSetSize, MaximumWorkingSetSize));
     #endif
 
-    #if defined(WIN32)
-    main_thread = GetCurrentThreadId();
-    #else
+    #if !defined(WIN32)
     main_pid = getpid();
-    main_thread = pthread_self();
     #endif
 
     // setting signal handler for catching SIGINT (thus e.g. <CTRL><C>)
@@ -205,7 +202,7 @@ int main(int argc, char **argv) {
     rtEvents.push_back(LSCPEvent::event_buffer_fill);
     rtEvents.push_back(LSCPEvent::event_total_voice_count);
 
-    while (true) {
+    while (atomic_read(&running)) {
         if (bPrintStatistics) {
             const std::set<Engine*>& engines = EngineFactory::EngineInstances();
             std::set<Engine*>::iterator itEngine = engines.begin();
@@ -219,63 +216,54 @@ int main(int argc, char **argv) {
             }
         }
 
-      sleep(1);
-      if (profile)
-      {
-          unsigned int samplingFreq = 48000; //FIXME: hardcoded for now
-          unsigned int bv = LinuxSampler::gig::Profiler::GetBogoVoices(samplingFreq);
-          if (bv != 0)
-          {
-              printf("       BogoVoices: %i         \r", bv);
-              fflush(stdout);
-          }
-      }
+        sleep(1);
+        if (profile)
+        {
+            unsigned int samplingFreq = 48000; //FIXME: hardcoded for now
+            unsigned int bv = LinuxSampler::gig::Profiler::GetBogoVoices(samplingFreq);
+            if (bv != 0)
+            {
+                printf("       BogoVoices: %i         \r", bv);
+                fflush(stdout);
+            }
+        }
 
-      if (LSCPServer::EventSubscribers(rtEvents))
-      {
-          LSCPServer::LockRTNotify();
-          std::map<uint,SamplerChannel*> channels = pSampler->GetSamplerChannels();
-          std::map<uint,SamplerChannel*>::iterator iter = channels.begin();
-          for (; iter != channels.end(); iter++) {
-              SamplerChannel* pSamplerChannel = iter->second;
-              EngineChannel* pEngineChannel = pSamplerChannel->GetEngineChannel();
-              if (!pEngineChannel) continue;
-              Engine* pEngine = pEngineChannel->GetEngine();
-              if (!pEngine) continue;
-              pSampler->fireVoiceCountChanged(iter->first, pEngineChannel->GetVoiceCount());
-              pSampler->fireStreamCountChanged(iter->first, pEngineChannel->GetDiskStreamCount());
-              pSampler->fireBufferFillChanged(iter->first, pEngine->DiskStreamBufferFillPercentage());
-              pSampler->fireTotalVoiceCountChanged(pSampler->GetVoiceCount());
-          }
-          LSCPServer::UnlockRTNotify();
-      }
-
+        if (LSCPServer::EventSubscribers(rtEvents))
+        {
+            LSCPServer::LockRTNotify();
+            std::map<uint,SamplerChannel*> channels = pSampler->GetSamplerChannels();
+            std::map<uint,SamplerChannel*>::iterator iter = channels.begin();
+            for (; iter != channels.end(); iter++) {
+                SamplerChannel* pSamplerChannel = iter->second;
+                EngineChannel* pEngineChannel = pSamplerChannel->GetEngineChannel();
+                if (!pEngineChannel) continue;
+                Engine* pEngine = pEngineChannel->GetEngine();
+                if (!pEngine) continue;
+                pSampler->fireVoiceCountChanged(iter->first, pEngineChannel->GetVoiceCount());
+                pSampler->fireStreamCountChanged(iter->first, pEngineChannel->GetDiskStreamCount());
+                pSampler->fireBufferFillChanged(iter->first, pEngine->DiskStreamBufferFillPercentage());
+                pSampler->fireTotalVoiceCountChanged(pSampler->GetVoiceCount());
+            }
+            LSCPServer::UnlockRTNotify();
+        }
     }
-
+    if (pLSCPServer) pLSCPServer->StopThread();
+    // the delete order here is important: the Sampler
+    // destructor sends notifications to the lscpserver
+    if (pSampler) delete pSampler;
+    if (pLSCPServer) delete pLSCPServer;
+#if HAVE_SQLITE3
+    InstrumentsDb::Destroy();
+#endif
+    printf("LinuxSampler stopped due to SIGINT.\n");
     return EXIT_SUCCESS;
 }
 
 void signal_handler(int iSignal) {
     switch (iSignal) {
-        case SIGINT: {
-            #if defined(WIN32)
-            if( GetCurrentThreadId() == main_thread ) {
-            #else
-            if (pthread_equal(pthread_self(), main_thread)) {
-            #endif
-                if (pLSCPServer) pLSCPServer->StopThread();
-                // the delete order here is important: the Sampler
-                // destructor sends notifications to the lscpserver
-                if (pSampler) delete pSampler;
-                if (pLSCPServer) delete pLSCPServer;
-#if HAVE_SQLITE3
-                InstrumentsDb::Destroy();
-#endif
-                printf("LinuxSampler stopped due to SIGINT.\n");
-                exit(EXIT_SUCCESS);
-            }
+        case SIGINT:
+            atomic_set(&running, 0);
             return;
-        }
         #if defined(WIN32)
         // FIXME: under WIN32 we ignore the signals below due to the missing sigaction call
         #else
