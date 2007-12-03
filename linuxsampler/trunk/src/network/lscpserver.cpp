@@ -367,7 +367,7 @@ int LSCPServer::Main() {
 		  std::cerr << "LSCPServer: ioctlsocket: set FIONBIO failed. Error " << WSAGetLastError() << std::endl;
 		  exit(EXIT_FAILURE);
 		}
-        #else		
+        #else
 		if (fcntl(socket, F_SETFL, O_NONBLOCK)) {
 			std::cerr << "LSCPServer: F_SETFL O_NONBLOCK failed." << std::endl;
 			exit(EXIT_FAILURE);
@@ -538,7 +538,7 @@ bool LSCPServer::GetLSCPCommand( std::vector<yyparse_param_t>::iterator iter ) {
 		    int wsa_lasterror = WSAGetLastError();
 			if (wsa_lasterror == WSAEWOULDBLOCK) //Would block, try again later.
 				return false;
-			dmsg(2,("LSCPScanner: Socket error after recv() Error %d.\n", wsa_lasterror));	
+			dmsg(2,("LSCPScanner: Socket error after recv() Error %d.\n", wsa_lasterror));
 			CloseConnection(iter);
 			break;
 		}
@@ -2474,14 +2474,26 @@ String LSCPServer::GetFileInstrumentInfo(String Filename, uint InstrumentID) {
     id.Index    = InstrumentID;
     // try to find a sampler engine that can handle the file
     bool bFound = false;
+    bool bFatalErr = false;
     std::vector<String> engineTypes = EngineFactory::AvailableEngineTypes();
-    for (int i = 0; !bFound && i < engineTypes.size(); i++) {
+    for (int i = 0; !bFound && !bFatalErr && i < engineTypes.size(); i++) {
         Engine* pEngine = NULL;
         try {
             pEngine = EngineFactory::Create(engineTypes[i]);
             if (!pEngine) throw Exception("Internal error: could not create '" + engineTypes[i] + "' engine");
             InstrumentManager* pManager = pEngine->GetInstrumentManager();
             if (pManager) {
+                // check if the instrument index is valid
+                // FIXME: this won't work if an engine only supports parts of the instrument file
+                std::vector<InstrumentManager::instrument_id_t> IDs =
+                    pManager->GetInstrumentFileContent(Filename);
+                if (std::find(IDs.begin(), IDs.end(), id) == IDs.end()) {
+                    std::stringstream ss;
+                    ss << "Invalid instrument index " << InstrumentID << " for instrument file '" << Filename << "'";
+                    bFatalErr = true;
+                    throw Exception(ss.str());
+                }
+                // get the info of the requested instrument
                 InstrumentManager::instrument_info_t info =
                     pManager->GetInstrumentInfo(id);
                 // return detailed informations about the file
@@ -2494,12 +2506,13 @@ String LSCPServer::GetFileInstrumentInfo(String Filename, uint InstrumentID) {
                 bFound = true;
             } else dmsg(1,("Warning: engine '%s' does not provide an instrument manager\n", engineTypes[i].c_str()));
         } catch (Exception e) {
-            // NOOP, as exception is thrown if engine doesn't support file
+            // usually NOOP, as exception is thrown if engine doesn't support file
+            if (bFatalErr) result.Error(e);
         }
         if (pEngine) EngineFactory::Destroy(pEngine);
     }
 
-    if (!bFound) result.Error("Unknown file format");
+    if (!bFound && !bFatalErr) result.Error("Unknown file format");
     return result.Produce();
 }
 

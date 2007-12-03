@@ -70,6 +70,10 @@ namespace LinuxSampler {
                 bool operator<(const instrument_id_t& o) const {
                     return (Index < o.Index || (Index == o.Index && FileName < o.FileName));
                 }
+
+                bool operator==(const instrument_id_t& o) const {
+                    return (Index == o.Index && FileName == o.FileName);
+                }
             };
 
             /**
