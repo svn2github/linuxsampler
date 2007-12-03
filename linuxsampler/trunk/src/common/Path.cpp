@@ -82,6 +82,12 @@ std::string Path::toDbPath() const {
 
 std::string Path::toLscp() const {
     std::string result;
+    #if WIN32
+    if(drive) {
+        result.assign(&drive,1);
+        result += ":";
+    }
+    #endif
     for (int iElement = 0; iElement < elements.size(); iElement++) {
         // replace "special characters" by LSCP escape sequences
         std::string e = elements[iElement];

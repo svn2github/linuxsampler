@@ -26,6 +26,7 @@
 #include "lscpevent.h"
 
 #if defined(WIN32)
+#include <windows.h>
 #else
 #include <fcntl.h>
 #endif
@@ -2517,6 +2518,18 @@ String LSCPServer::GetFileInstrumentInfo(String Filename, uint InstrumentID) {
 }
 
 void LSCPServer::VerifyFile(String Filename) {
+    #if WIN32
+    WIN32_FIND_DATA win32FileAttributeData;
+    BOOL res = GetFileAttributesEx( Filename.c_str(), GetFileExInfoStandard, &win32FileAttributeData );
+    if (!res) {
+        std::stringstream ss;
+        ss << "File does not exist, GetFileAttributesEx failed `" << Filename << "`: Error " << GetLastError();
+        throw Exception(ss.str());
+    }
+    if ( win32FileAttributeData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY ) {
+        throw Exception("Directory is specified");
+    }
+    #else    
     struct stat statBuf;
     int res = stat(Filename.c_str(), &statBuf);
     if (res) {
@@ -2528,6 +2541,7 @@ void LSCPServer::VerifyFile(String Filename) {
     if (S_ISDIR(statBuf.st_mode)) {
         throw Exception("Directory is specified");
     }
+    #endif
 }
 
 /**
