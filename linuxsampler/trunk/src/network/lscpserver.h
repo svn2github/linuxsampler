@@ -242,6 +242,12 @@ class LSCPServer : public Thread {
         bool HasSoloChannel();
         void MuteNonSoloChannels();
         void UnmuteChannels();
+        
+        /**
+         * Throws an exception if the specified file is not found or
+         * if directory is specified.
+         */
+        static void VerifyFile(String Filename);
 
 	static std::map<int,String> bufferedNotifies;
 	static Mutex NotifyMutex;

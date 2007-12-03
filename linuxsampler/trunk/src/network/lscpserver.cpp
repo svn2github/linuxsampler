@@ -2384,7 +2384,14 @@ String LSCPServer::SetGlobalVolume(double dVolume) {
 }
 
 String LSCPServer::GetFileInstruments(String Filename) {
+    dmsg(2,("LSCPServer: GetFileInstruments(String Filename=%s)\n",Filename.c_str()));
     LSCPResultSet result;
+    try {
+        VerifyFile(Filename);
+    } catch (Exception e) {
+        result.Error(e);
+        return result.Produce();
+    }
     // try to find a sampler engine that can handle the file
     bool bFound = false;
     std::vector<String> engineTypes = EngineFactory::AvailableEngineTypes();
@@ -2407,11 +2414,20 @@ String LSCPServer::GetFileInstruments(String Filename) {
         }
         if (pEngine) EngineFactory::Destroy(pEngine);
     }
+
+    if (!bFound) result.Error("Unknown file format");
     return result.Produce();
 }
 
 String LSCPServer::ListFileInstruments(String Filename) {
+    dmsg(2,("LSCPServer: ListFileInstruments(String Filename=%s)\n",Filename.c_str()));
     LSCPResultSet result;
+    try {
+        VerifyFile(Filename);
+    } catch (Exception e) {
+        result.Error(e);
+        return result.Produce();
+    }
     // try to find a sampler engine that can handle the file
     bool bFound = false;
     std::vector<String> engineTypes = EngineFactory::AvailableEngineTypes();
@@ -2439,11 +2455,20 @@ String LSCPServer::ListFileInstruments(String Filename) {
         }
         if (pEngine) EngineFactory::Destroy(pEngine);
     }
+
+    if (!bFound) result.Error("Unknown file format");
     return result.Produce();
 }
 
 String LSCPServer::GetFileInstrumentInfo(String Filename, uint InstrumentID) {
+    dmsg(2,("LSCPServer: GetFileInstrumentInfo(String Filename=%s, InstrumentID=%d)\n",Filename.c_str(),InstrumentID));
     LSCPResultSet result;
+    try {
+        VerifyFile(Filename);
+    } catch (Exception e) {
+        result.Error(e);
+        return result.Produce();
+    }
     InstrumentManager::instrument_id_t id;
     id.FileName = Filename;
     id.Index    = InstrumentID;
@@ -2461,7 +2486,7 @@ String LSCPServer::GetFileInstrumentInfo(String Filename, uint InstrumentID) {
                     pManager->GetInstrumentInfo(id);
                 // return detailed informations about the file
                 result.Add("NAME", info.InstrumentName);
-                result.Add("FORMAT_NAME", engineTypes[i]);
+                result.Add("FORMAT_FAMILY", engineTypes[i]);
                 result.Add("FORMAT_VERSION", info.FormatVersion);
                 result.Add("PRODUCT", info.Product);
                 result.Add("ARTISTS", info.Artists);
@@ -2473,7 +2498,23 @@ String LSCPServer::GetFileInstrumentInfo(String Filename, uint InstrumentID) {
         }
         if (pEngine) EngineFactory::Destroy(pEngine);
     }
+
+    if (!bFound) result.Error("Unknown file format");
     return result.Produce();
+}
+
+void LSCPServer::VerifyFile(String Filename) {
+    struct stat statBuf;
+    int res = stat(Filename.c_str(), &statBuf);
+    if (res) {
+        std::stringstream ss;
+        ss << "Fail to stat `" << Filename << "`: " << strerror(errno);
+        throw Exception(ss.str());
+    }
+
+    if (S_ISDIR(statBuf.st_mode)) {
+        throw Exception("Directory is specified");
+    }
 }
 
 /**
