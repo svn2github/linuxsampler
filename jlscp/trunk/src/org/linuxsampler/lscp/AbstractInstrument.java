@@ -28,16 +28,28 @@ import static org.linuxsampler.lscp.Parser.*;
  *
  * @author Grigor Iliev
  */
-public abstract class AbstractInstrument implements Parseable {
+public abstract class AbstractInstrument implements Instrument, Parseable {
 	private String name = "Untitled";
 	private String description = "";
 	private String path = null;
 	private int instrumentIndex = 0;
+	private String formatFamily = "";
+	private String formatVersion = "";
 	
 	/**
 	 * Creates a new instance of <code>AbstractInstrument</code>.
 	 */
-	public AbstractInstrument() {
+	public
+	AbstractInstrument() { }
+	
+	/**
+	 * Creates a new instance of <code>AbstractInstrument</code>.
+	 * @param resultSet An array with information categories about an instrument.
+	 */
+	public
+	AbstractInstrument(String[] resultSet) throws LscpException {
+		for(String s : resultSet)
+			if(!parse(s)) Client.getLogger().info(LscpI18n.getLogMsg("unknownLine", s));
 	}
 	
 	/**
@@ -90,6 +102,18 @@ public abstract class AbstractInstrument implements Parseable {
 	setInstrumentIndex(int idx) { instrumentIndex = idx; }
 	
 	/**
+	 * Returns the format family of the instrument.
+	 **/
+	public String
+	getFormatFamily() { return formatFamily; }
+	
+	/**
+	 * Returns the format version of the instrument.
+	 **/
+	public String
+	getFormatVersion() { return formatVersion; }
+	
+	/**
 	 * Parses a line of text.
 	 * @param s The string to be parsed.
 	 * @return <code>true</code> if the line has been processed, <code>false</code> otherwise.
@@ -107,6 +131,10 @@ public abstract class AbstractInstrument implements Parseable {
 		} else if(s.startsWith("INSTRUMENT_NR: ")) {
 			s = s.substring("INSTRUMENT_NR: ".length());
 			setInstrumentIndex(Parser.parseInt(s));
+		} else if(s.startsWith("FORMAT_FAMILY: ")) {
+			formatFamily = s.substring("FORMAT_FAMILY: ".length());
+		} else if(s.startsWith("FORMAT_VERSION: ")) {
+			formatVersion = s.substring("FORMAT_VERSION: ".length());
 		} else return false;
 		
 		return true;

@@ -40,8 +40,6 @@ public class DbInstrumentInfo extends AbstractInstrument implements Parseable {
 	private String directoryPath = null;
 	private final Date dateCreated = new EnhancedDate();
 	private final Date dateModified = new EnhancedDate();
-	private String formatFamily = "";
-	private String formatVersion = "";
 	private long size = 0;
 	private boolean drum = false;
 	private String product = "";
@@ -108,18 +106,6 @@ public class DbInstrumentInfo extends AbstractInstrument implements Parseable {
 	getDateModified() { return dateModified; }
 	
 	/**
-	 * Returns the format family of the instrument.
-	 **/
-	public String
-	getFormatFamily() { return formatFamily; }
-	
-	/**
-	 * Returns the format version of the instrument.
-	 **/
-	public String
-	getFormatVersion() { return formatVersion; }
-	
-	/**
 	 * Returns the size of the instrument in bytes.
 	 **/
 	public long
@@ -176,6 +162,12 @@ public class DbInstrumentInfo extends AbstractInstrument implements Parseable {
 	public String
 	getKeywords() { return keywords; }
 	
+	public String
+	getEngine() {
+		// TODO: engine lookup?
+		return getFormatFamily();
+	}
+	
 	/**
 	 * Parses a line of text.
 	 * @param s The string to be parsed.
@@ -194,10 +186,6 @@ public class DbInstrumentInfo extends AbstractInstrument implements Parseable {
 			s = s.substring("MODIFIED: ".length());
 			try { dateModified.setTime(dateFormat.parse(s).getTime()); }
 			catch(ParseException e) { throw new LscpException(e.getMessage()); }
-		} else if(s.startsWith("FORMAT_FAMILY: ")) {
-			formatFamily = s.substring("FORMAT_FAMILY: ".length());
-		} else if(s.startsWith("FORMAT_VERSION: ")) {
-			formatVersion = s.substring("FORMAT_VERSION: ".length());
 		} else if(s.startsWith("SIZE: ")) {
 			try { size = Long.parseLong(s.substring("SIZE: ".length())); }
 			catch(NumberFormatException x) { 

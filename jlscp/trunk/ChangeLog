@@ -1,5 +1,8 @@
 CVS HEAD
   * API Changes
+    - Added new interface - Instrument
+    - Client: added new methods - getFileInstrumentCount,
+      getFileInstrumentInfo,  getFileInstruments
     - MidiInputDevice: added new methods - getPortsParameter,
       setPortsParameter
     - Parser: some of the methods are now public

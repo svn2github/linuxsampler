@@ -4959,6 +4959,86 @@ public class Client {
 		ResultSet rs = getEmptyResultSet();
 	}
 	
+	/**
+	 * Gets the number of instruments in the specified instrument file.
+	 * @param filename The absolute path name of the instrument file.
+	 * @return The number of instruments in the specified instrument file.
+	 * @throws IOException If some I/O error occurs.
+	 * @throws LscpException If LSCP protocol corruption occurs.
+	 * @throws LSException If the file is not found, or other error occur.
+	 */
+	public synchronized int
+	getFileInstrumentCount(String filename) throws IOException, LscpException, LSException {
+		verifyConnection();
+		out.writeLine("GET FILE INSTRUMENTS '" + filename +"'");
+		if(getPrintOnlyMode()) return -1;
+		
+		String s = getSingleLineResultSet().getResult();
+		return parseInt(s);
+	}
+	
+	/**
+	 * Gets information about the instrument with index
+	 * <code>instrIdx</code> in the specified instrument file.
+	 * @param filename The absolute path name of the instrument file.
+	 * @param instrIdx The index of the instrument in the specified instrument file.
+	 * @throws IOException If some I/O error occurs.
+	 * @throws LscpException If LSCP protocol corruption occurs.
+	 * @throws LSException If failed to retrieve information.
+	 */
+	public synchronized Instrument
+	getFileInstrumentInfo(String filename, int instrIdx)
+				throws IOException, LscpException, LSException {
+		
+		verifyConnection();
+		out.writeLine("GET FILE INSTRUMENT INFO '" + filename + "' " + String.valueOf(instrIdx));
+		if(getPrintOnlyMode()) return null;
+		
+		ResultSet rs = getMultiLineResultSet();
+		Instrument instr = new FileInstrument(rs.getMultiLineResult()) { };
+		
+		return instr;
+	}
+	
+	/**
+	 * Gets the list of instruments in the specified instrument file.
+	 * @param filename The absolute path name of the instrument file.
+	 * @return An <code>Instrument</code> array providing
+	 * information about all instruments in the specified instrument file.
+	 * @throws IOException If some I/O error occurs.
+	 * @throws LscpException If LSCP protocol corruption occurs.
+	 * @throws LSException If the specified file name is invalid.
+	 */
+	public synchronized Instrument[]
+	getFileInstruments(String filename) throws IOException, LscpException, LSException {
+		int l = getFileInstrumentCount(filename);
+		if(l < 0) return null;
+		Instrument[] instrS = new FileInstrument[l];
+		
+		for(int i = 0; i < instrS.length; i++) {
+			instrS[i] = getFileInstrumentInfo(filename, i);
+		}
+		return instrS;
+	}
+	
+	private static class FileInstrument extends AbstractInstrument {
+		FileInstrument(String[] resultSet) throws LscpException {
+			super(resultSet);
+		}
+		
+		public String
+		getEngine() {
+			// TODO: engine lookup?
+			return getFormatFamily();
+		}
+		
+		public boolean
+		parse(String s) throws LscpException {
+			if(s.startsWith("PRODUCT: ") || s.startsWith("ARTISTS: ")) return true;
+			return super.parse(s);
+		}
+	}
+	
 	private void
 	getEmptyResultSets(int count, String err) throws LSException {
 		StringBuffer sb = new StringBuffer();

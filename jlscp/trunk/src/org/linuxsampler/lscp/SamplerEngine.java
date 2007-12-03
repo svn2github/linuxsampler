@@ -119,10 +119,6 @@ public class SamplerEngine implements Parseable {
 		return false;
 	}
 	
-	/**
-	 * Returns the description of this sampler engine.
-	 * @return The description of this sampler engine.
-	 */
 	public String
-	toString() { return getDescription(); }
+	toString() { return getName() + " engine"; }
 }
