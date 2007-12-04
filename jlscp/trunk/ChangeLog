@@ -1,4 +1,6 @@
 CVS HEAD
+  * Added support for monitoring the total number of active disk streams
+
   * API Changes
     - Added new interface - Instrument
     - Client: added new methods - getFileInstrumentCount,

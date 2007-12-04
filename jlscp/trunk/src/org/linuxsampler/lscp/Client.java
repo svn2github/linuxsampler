@@ -344,6 +344,7 @@ public class Client {
 		if(!llFSI.isEmpty()) subscribe("FX_SEND_INFO");
 		if(!llSC.isEmpty()) subscribe("STREAM_COUNT");
 		if(!llVC.isEmpty()) subscribe("VOICE_COUNT");
+		if(!llTSC.isEmpty()) subscribe("TOTAL_STREAM_COUNT");
 		if(!llTVC.isEmpty()) subscribe("TOTAL_VOICE_COUNT");
 		if(!llMIMC.isEmpty()) subscribe("MIDI_INSTRUMENT_MAP_COUNT");
 		if(!llMIMI.isEmpty()) subscribe("MIDI_INSTRUMENT_MAP_INFO");
@@ -485,6 +486,7 @@ public class Client {
 	private final Vector<ItemInfoListener> llMIDI = new Vector<ItemInfoListener>();
 	private final Vector<StreamCountListener> llSC = new Vector<StreamCountListener>();
 	private final Vector<VoiceCountListener> llVC = new Vector<VoiceCountListener>();
+	private final Vector<TotalStreamCountListener> llTSC = new Vector<TotalStreamCountListener>();
 	private final Vector<TotalVoiceCountListener> llTVC = new Vector<TotalVoiceCountListener>();
 	
 	/** MIDI instrument map count listeners */
@@ -522,6 +524,7 @@ public class Client {
 			!llMIDI.isEmpty() ||
 			!llSC.isEmpty()   ||
 			!llVC.isEmpty()   ||
+			!llTSC.isEmpty()  ||
 			!llTVC.isEmpty()  ||
 			!llMIMC.isEmpty() ||
 			!llMIMI.isEmpty() ||
@@ -661,6 +664,17 @@ public class Client {
 				for(ChannelInfoListener l : llCI) l.channelInfoChanged(e);
 			} catch(NumberFormatException x) {
 				getLogger().log(Level.WARNING, "Unknown CHANNEL_INFO format", x);
+			}
+		} else if(s.startsWith("TOTAL_STREAM_COUNT:")) {
+			try {
+				s = s.substring("TOTAL_STREAM_COUNT:".length());
+				int i = Integer.parseInt(s);
+				TotalStreamCountEvent e = new TotalStreamCountEvent(this, i);
+				for(TotalStreamCountListener l : llTSC) l.totalStreamCountChanged(e);
+			} catch(NumberFormatException x) {
+				getLogger().log (
+					Level.WARNING, "Unknown TOTAL_STREAM_COUNT format", x
+				);
 			}
 		} else if(s.startsWith("TOTAL_VOICE_COUNT:")) {
 			try {
@@ -1129,6 +1143,28 @@ public class Client {
 	removeVoiceCountListener(VoiceCountListener l) {
 		boolean b = llVC.remove(l);
 		if(b && llVC.isEmpty()) unsubscribe("VOICE_COUNT");
+	}
+	
+	/**
+	 * Registers the specified listener for receiving event messages.
+	 * Listeners can be registered regardless of the connection state.
+	 * @param l The <code>TotalStreamCountListener</code> to register.
+	 */
+	public synchronized void
+	addTotalStreamCountListener(TotalStreamCountListener l) {
+		if(llTSC.isEmpty()) subscribe("TOTAL_STREAM_COUNT");
+		llTSC.add(l);
+	}
+	
+	/**
+	 * Removes the specified listener.
+	 * Listeners can be removed regardless of the connection state.
+	 * @param l The <code>TotalStreamCountListener</code> to remove.
+	 */
+	public synchronized void
+	removeTotalStreamCountListener(TotalStreamCountListener l) {
+		boolean b = llTSC.remove(l);
+		if(b && llTSC.isEmpty()) unsubscribe("TOTAL_STREAM_COUNT");
 	}
 	
 	/**
@@ -4868,6 +4904,23 @@ public class Client {
 		
 		try { ResultSet rs = getEmptyResultSet(); }
 		catch(LSException x) { getLogger().warning(x.getMessage()); }
+	}
+	
+	/**
+	 * Gets the current number of all active streams.
+	 * @return The current number of all active streams.
+	 * @throws IOException If some I/O error occurs.
+	 * @throws LscpException If LSCP protocol corruption occurs.
+	 * @throws LSException If some other error occurs.
+	 */
+	public synchronized int
+	getTotalStreamCount() throws IOException, LscpException, LSException {
+		verifyConnection();
+		out.writeLine("GET TOTAL_STREAM_COUNT");
+		if(getPrintOnlyMode()) return -1;
+		
+		String s = getSingleLineResultSet().getResult();
+		return parseInt(s);
 	}
 	
 	/**
