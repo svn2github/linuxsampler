@@ -242,6 +242,7 @@ int main(int argc, char **argv) {
                 pSampler->fireVoiceCountChanged(iter->first, pEngineChannel->GetVoiceCount());
                 pSampler->fireStreamCountChanged(iter->first, pEngineChannel->GetDiskStreamCount());
                 pSampler->fireBufferFillChanged(iter->first, pEngine->DiskStreamBufferFillPercentage());
+                pSampler->fireTotalStreamCountChanged(pSampler->GetDiskStreamCount());
                 pSampler->fireTotalVoiceCountChanged(pSampler->GetVoiceCount());
             }
             LSCPServer::UnlockRTNotify();

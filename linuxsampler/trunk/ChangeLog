@@ -24,6 +24,9 @@ Version CVS HEAD (?)
     - experimental support for MS Windows (MIDI input via MME, AUDIO
       output via ASIO)
     - made handling of SIGINT signal (Ctrl-C) a bit more robust
+    - support for monitoring the total number of active disk streams
+      (new LSCP commands: GET TOTAL_STREAM_COUNT,
+      SUBSCRIBE TOTAL_STREAM_COUNT, UNSUBSCRIBE TOTAL_STREAM_COUNT)
 
   * AUDIO driver:
     - added Windows ASIO low latency audio driver

@@ -415,6 +415,10 @@ namespace LinuxSampler {
              * @param NewCount The new number of active voices.
              */
             void fireTotalVoiceCountChanged(int NewCount);
+            
+            void AddTotalStreamCountListener(TotalStreamCountListener* l);
+            void RemoveTotalStreamCountListener(TotalStreamCountListener* l);
+            void fireTotalStreamCountChanged(int NewCount);
 
             /**
              * Registers the specified listener to be notified when the number
@@ -503,6 +507,12 @@ namespace LinuxSampler {
              */
             void DestroyMidiInputDevice(MidiInputDevice* pDevice) throw (Exception);
 
+             /**
+             * Gets the current number of all active streams.
+             * @returns The current number of all active streams.
+             */
+            int GetDiskStreamCount();
+
             /**
              * Gets the current number of all active voices.
              * @returns The current number of all active voices.
@@ -559,6 +569,7 @@ namespace LinuxSampler {
             ListenerList<VoiceCountListener*> llVoiceCountListeners;
             ListenerList<StreamCountListener*> llStreamCountListeners;
             ListenerList<BufferFillListener*> llBufferFillListeners;
+            ListenerList<TotalStreamCountListener*> llTotalStreamCountListeners;
             ListenerList<TotalVoiceCountListener*> llTotalVoiceCountListeners;
             ListenerList<FxSendCountListener*> llFxSendCountListeners;
 

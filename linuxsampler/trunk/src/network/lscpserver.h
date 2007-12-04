@@ -191,6 +191,7 @@ class LSCPServer : public Thread {
         String ResetChannel(uint uiSamplerChannel);
         String ResetSampler();
         String GetServerInfo();
+        String GetTotalStreamCount();
         String GetTotalVoiceCount();
         String GetTotalVoiceCountMax();
         String GetGlobalVolume();
@@ -268,8 +269,8 @@ class LSCPServer : public Thread {
             public MidiDeviceCountListener, public MidiInstrumentCountListener,
             public MidiInstrumentInfoListener, public MidiInstrumentMapCountListener,
             public MidiInstrumentMapInfoListener, public FxSendCountListener,
-            public VoiceCountListener, public StreamCountListener,
-            public BufferFillListener, public TotalVoiceCountListener {
+            public VoiceCountListener, public StreamCountListener, public BufferFillListener,
+            public TotalStreamCountListener, public TotalVoiceCountListener {
 
             public:
                 /**
@@ -354,6 +355,7 @@ class LSCPServer : public Thread {
                  * @param NewCount The new number of active voices.
                  */
                 virtual void TotalVoiceCountChanged(int NewCount);
+                virtual void TotalStreamCountChanged(int NewCount);
         } eventHandler;
 
 #if HAVE_SQLITE3

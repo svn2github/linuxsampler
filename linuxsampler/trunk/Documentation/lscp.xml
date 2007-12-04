@@ -3924,6 +3924,24 @@ Schoenebeck'>
                     </t>
                 </section>
 
+                <section title="Current number of active disk streams" anchor="GET TOTAL_STREAM_COUNT">
+                    <t>The front-end can ask for the current number of active disk streams on
+                    the sampler by sending the following command:</t>
+                    <t>
+                        <list>
+                            <t>GET TOTAL_STREAM_COUNT</t>
+                        </list>
+                    </t>
+
+                    <t>Possible Answers:</t>
+                    <t>
+                        <list>
+                            <t>LinuxSampler will answer by returning the number of all active
+                            disk streams on the sampler.</t>
+                        </list>
+                    </t>
+                </section>
+
                 <section title="Reset sampler" anchor="RESET">
                     <t>The front-end can reset the whole sampler by sending the following command:</t>
                     <t>
@@ -7143,6 +7161,24 @@ Schoenebeck'>
                 </t>
                 <t>where &lt;voices&gt; will be replaced by the new number of
                 all currently active voices.</t>
+            </section>
+
+            <section title="Total number of active disk streams changed" anchor="SUBSCRIBE TOTAL_STREAM_COUNT">
+                <t>Client may want to be notified when the total number of disk streams on the
+                back-end changes by issuing the following command:</t>
+                <t>
+                    <list>
+                        <t>SUBSCRIBE TOTAL_STREAM_COUNT</t>
+                    </list>
+                </t>
+                <t>Server will start sending the following notification messages:</t>
+                <t>
+                    <list>
+                        <t>"NOTIFY:TOTAL_STREAM_COUNT:&lt;streams&gt;"</t>
+                    </list>
+                </t>
+                <t>where &lt;streams&gt; will be replaced by the new number of
+                all currently active disk streams.</t>
             </section>
 
             <section title="Number of MIDI instrument maps changed" anchor="SUBSCRIBE MIDI_INSTRUMENT_MAP_COUNT">

@@ -340,6 +340,20 @@ namespace LinuxSampler {
         }
     }
 
+    void Sampler::AddTotalStreamCountListener(TotalStreamCountListener* l) {
+        llTotalStreamCountListeners.AddListener(l);
+    }
+
+    void Sampler::RemoveTotalStreamCountListener(TotalStreamCountListener* l) {
+        llTotalStreamCountListeners.RemoveListener(l);
+    }
+
+    void Sampler::fireTotalStreamCountChanged(int NewCount) {
+        for (int i = 0; i < llTotalStreamCountListeners.GetListenerCount(); i++) {
+            llTotalStreamCountListeners.GetListener(i)->TotalStreamCountChanged(NewCount);
+        }
+    }
+
     void Sampler::AddTotalVoiceCountListener(TotalVoiceCountListener* l) {
         llTotalVoiceCountListeners.AddListener(l);
     }
@@ -546,6 +560,17 @@ namespace LinuxSampler {
 
         fireMidiDeviceCountChanged(MidiInputDevices());
         return pDevice;
+    }
+
+    int Sampler::GetDiskStreamCount() {
+        int count = 0;
+        std::set<Engine*>::iterator it = EngineFactory::EngineInstances().begin();
+
+        for(; it != EngineFactory::EngineInstances().end(); it++) {
+            count += (*it)->DiskStreamCount();
+        }
+
+        return count;
     }
 
     int Sampler::GetVoiceCount() {

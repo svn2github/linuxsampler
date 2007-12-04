@@ -209,6 +209,7 @@ subscribe_event       :  AUDIO_OUTPUT_DEVICE_COUNT             { $$ = LSCPSERVER
                       |  DB_INSTRUMENT_INFO                    { $$ = LSCPSERVER->SubscribeNotification(LSCPEvent::event_db_instr_info);        }
                       |  DB_INSTRUMENTS_JOB_INFO               { $$ = LSCPSERVER->SubscribeNotification(LSCPEvent::event_db_instrs_job_info);   }
                       |  MISCELLANEOUS                         { $$ = LSCPSERVER->SubscribeNotification(LSCPEvent::event_misc);                 }
+                      |  TOTAL_STREAM_COUNT                    { $$ = LSCPSERVER->SubscribeNotification(LSCPEvent::event_total_stream_count);   }
                       |  TOTAL_VOICE_COUNT                     { $$ = LSCPSERVER->SubscribeNotification(LSCPEvent::event_total_voice_count);    }
                       |  GLOBAL_INFO                           { $$ = LSCPSERVER->SubscribeNotification(LSCPEvent::event_global_info);          }
                       ;
@@ -234,6 +235,7 @@ unsubscribe_event     :  AUDIO_OUTPUT_DEVICE_COUNT             { $$ = LSCPSERVER
                       |  DB_INSTRUMENT_INFO                    { $$ = LSCPSERVER->UnsubscribeNotification(LSCPEvent::event_db_instr_info);        }
                       |  DB_INSTRUMENTS_JOB_INFO               { $$ = LSCPSERVER->UnsubscribeNotification(LSCPEvent::event_db_instrs_job_info);   }
                       |  MISCELLANEOUS                         { $$ = LSCPSERVER->UnsubscribeNotification(LSCPEvent::event_misc);                 }
+                      |  TOTAL_STREAM_COUNT                    { $$ = LSCPSERVER->UnsubscribeNotification(LSCPEvent::event_total_stream_count);   }
                       |  TOTAL_VOICE_COUNT                     { $$ = LSCPSERVER->UnsubscribeNotification(LSCPEvent::event_total_voice_count);    }
                       |  GLOBAL_INFO                           { $$ = LSCPSERVER->UnsubscribeNotification(LSCPEvent::event_global_info);          }
                       ;
@@ -279,6 +281,7 @@ get_instruction       :  AVAILABLE_ENGINES                                      
                       |  CHANNEL SP VOICE_COUNT SP sampler_channel                                  { $$ = LSCPSERVER->GetVoiceCount($5);                              }
                       |  ENGINE SP INFO SP engine_name                                              { $$ = LSCPSERVER->GetEngineInfo($5);                              }
                       |  SERVER SP INFO                                                             { $$ = LSCPSERVER->GetServerInfo();                                }
+                      |  TOTAL_STREAM_COUNT                                                         { $$ = LSCPSERVER->GetTotalStreamCount();                           }
                       |  TOTAL_VOICE_COUNT                                                          { $$ = LSCPSERVER->GetTotalVoiceCount();                           }
                       |  TOTAL_VOICE_COUNT_MAX                                                      { $$ = LSCPSERVER->GetTotalVoiceCountMax();                        }
                       |  MIDI_INSTRUMENTS SP midi_map                                               { $$ = LSCPSERVER->GetMidiInstrumentMappings($3);                  }
@@ -830,6 +833,9 @@ STREAM_COUNT         :  'S''T''R''E''A''M''_''C''O''U''N''T'
                      ;
 
 VOICE_COUNT          :  'V''O''I''C''E''_''C''O''U''N''T'
+                     ;
+
+TOTAL_STREAM_COUNT   :  'T''O''T''A''L''_''S''T''R''E''A''M''_''C''O''U''N''T'
                      ;
 
 TOTAL_VOICE_COUNT    :  'T''O''T''A''L''_''V''O''I''C''E''_''C''O''U''N''T'

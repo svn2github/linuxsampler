@@ -232,6 +232,19 @@ namespace LinuxSampler {
 
     /**
      * This class is used as a listener, which is notified
+     * when the total number of active streams is changed.
+     */
+    class TotalStreamCountListener {
+        public:
+            /**
+             * Invoked when the total number of active streams is changed.
+             * @param NewCount The new number of active streams.
+             */
+            virtual void TotalStreamCountChanged(int NewCount) = 0;
+    };
+
+    /**
+     * This class is used as a listener, which is notified
      * when the total number of active voices is changed.
      */
     class TotalVoiceCountListener {

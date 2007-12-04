@@ -127,6 +127,7 @@ LSCPServer::LSCPServer(Sampler* pSampler, long int addr, short int port) : Threa
     LSCPEvent::RegisterEvent(LSCPEvent::event_db_instr_info, "DB_INSTRUMENT_INFO");
     LSCPEvent::RegisterEvent(LSCPEvent::event_db_instrs_job_info, "DB_INSTRUMENTS_JOB_INFO");
     LSCPEvent::RegisterEvent(LSCPEvent::event_misc, "MISCELLANEOUS");
+    LSCPEvent::RegisterEvent(LSCPEvent::event_total_stream_count, "TOTAL_STREAM_COUNT");
     LSCPEvent::RegisterEvent(LSCPEvent::event_total_voice_count, "TOTAL_VOICE_COUNT");
     LSCPEvent::RegisterEvent(LSCPEvent::event_global_info, "GLOBAL_INFO");
     hSocket = -1;
@@ -186,6 +187,10 @@ void LSCPServer::EventHandler::BufferFillChanged(int ChannelId, String FillData)
 
 void LSCPServer::EventHandler::TotalVoiceCountChanged(int NewCount) {
     LSCPServer::SendLSCPNotify(LSCPEvent(LSCPEvent::event_total_voice_count, NewCount));
+}
+
+void LSCPServer::EventHandler::TotalStreamCountChanged(int NewCount) {
+    LSCPServer::SendLSCPNotify(LSCPEvent(LSCPEvent::event_total_stream_count, NewCount));
 }
 
 #if HAVE_SQLITE3
@@ -284,6 +289,7 @@ int LSCPServer::Main() {
     pSampler->AddVoiceCountListener(&eventHandler);
     pSampler->AddStreamCountListener(&eventHandler);
     pSampler->AddBufferFillListener(&eventHandler);
+    pSampler->AddTotalStreamCountListener(&eventHandler);
     pSampler->AddTotalVoiceCountListener(&eventHandler);
     pSampler->AddFxSendCountListener(&eventHandler);
     MidiInstrumentMapper::AddMidiInstrumentCountListener(&eventHandler);
@@ -2343,6 +2349,16 @@ String LSCPServer::GetServerInfo() {
     result.Add("INSTRUMENTS_DB_SUPPORT", "no");
 #endif
 
+    return result.Produce();
+}
+
+/**
+ * Will be called by the parser to return the current number of all active streams.
+ */
+String LSCPServer::GetTotalStreamCount() {
+    dmsg(2,("LSCPServer: GetTotalStreamCount()\n"));
+    LSCPResultSet result;
+    result.Add(pSampler->GetDiskStreamCount());
     return result.Produce();
 }
 
