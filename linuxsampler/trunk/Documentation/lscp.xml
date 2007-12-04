@@ -6236,6 +6236,8 @@ Schoenebeck'>
 		</t>
 		<t>/ MISCELLANEOUS
 		</t>
+		<t>/ TOTAL_STREAM_COUNT
+		</t>
 		<t>/ TOTAL_VOICE_COUNT
 		</t>
 		<t>/ GLOBAL_INFO
@@ -6285,6 +6287,8 @@ Schoenebeck'>
 		<t>/ DB_INSTRUMENTS_JOB_INFO
 		</t>
 		<t>/ MISCELLANEOUS
+		</t>
+		<t>/ TOTAL_STREAM_COUNT
 		</t>
 		<t>/ TOTAL_VOICE_COUNT
 		</t>
@@ -6376,6 +6380,8 @@ Schoenebeck'>
 		</t>
 		<t>/ SERVER SP INFO
 		</t>
+		<t>/ TOTAL_STREAM_COUNT
+		</t>
 		<t>/ TOTAL_VOICE_COUNT
 		</t>
 		<t>/ TOTAL_VOICE_COUNT_MAX
@@ -6409,6 +6415,10 @@ Schoenebeck'>
 		<t>/ DB_INSTRUMENTS_JOB SP INFO SP number
 		</t>
 		<t>/ VOLUME
+		</t>
+		<t>/ FILE SP INSTRUMENTS SP filename
+		</t>
+		<t>/ FILE SP INSTRUMENT SP INFO SP filename SP instrument_index
 		</t>
 	</list>
 </t>
@@ -6624,6 +6634,8 @@ Schoenebeck'>
 		</t>
 		<t>/ DB_INSTRUMENTS SP db_path
 		</t>
+		<t>/ FILE SP INSTRUMENTS SP filename
+		</t>
 	</list>
 </t>
 <t>load_instr_args =
@@ -6747,6 +6759,13 @@ Schoenebeck'>
 <t>filename =
 	<list>
 		<t>path
+                                 #if WIN32
+                                 $$ = $1.toWindows();
+                                 #else
+
+                                 $$ = $1.toPosix();
+                                 #endif
+
 		</t>
 	</list>
 </t>
