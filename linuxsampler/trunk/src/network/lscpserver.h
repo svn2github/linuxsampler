@@ -209,8 +209,8 @@ class LSCPServer : public Thread {
 
 	static void SendLSCPNotify( LSCPEvent Event );
 	static int EventSubscribers( std::list<LSCPEvent::event_t> events );
-	static void LockRTNotify( void ) { RTNotifyMutex.Lock(); }
-	static void UnlockRTNotify( void ) { RTNotifyMutex.Unlock(); }
+    static void LockRTNotify();
+    static void UnlockRTNotify();
     static String FilterEndlines(String s);
 
     protected:
@@ -243,7 +243,7 @@ class LSCPServer : public Thread {
         bool HasSoloChannel();
         void MuteNonSoloChannels();
         void UnmuteChannels();
-        
+
         /**
          * Throws an exception if the specified file is not found or
          * if directory is specified.

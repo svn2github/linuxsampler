@@ -446,6 +446,14 @@ void LSCPServer::CloseConnection( std::vector<yyparse_param_t>::iterator iter ) 
 	NotifyMutex.Unlock();
 }
 
+void LSCPServer::LockRTNotify() {
+    RTNotifyMutex.Lock();
+}
+
+void LSCPServer::UnlockRTNotify() {
+    RTNotifyMutex.Unlock();
+}
+
 int LSCPServer::EventSubscribers( std::list<LSCPEvent::event_t> events ) {
 	int subs = 0;
 	SubscriptionMutex.Lock();
@@ -2545,7 +2553,7 @@ void LSCPServer::VerifyFile(String Filename) {
     if ( win32FileAttributeData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY ) {
         throw Exception("Directory is specified");
     }
-    #else    
+    #else
     struct stat statBuf;
     int res = stat(Filename.c_str(), &statBuf);
     if (res) {
