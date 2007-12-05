@@ -1,4 +1,4 @@
-Version CVS HEAD (?)
+Version 3.2.1 (5 Dec 2007)
 
   * src/RIFF.cpp, src/RIFF.h:
     - avoid Windows to perform unnecessary file stream caching which would

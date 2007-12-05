@@ -66,6 +66,8 @@ if [ -d $RPM_BUILD_ROOT ]; then rm -rf $RPM_BUILD_ROOT; fi
 %{prefix}/include/*
 
 %changelog
+* Wed Dec 05 2007 Christian Schoenebeck <cuse@users.sourceforge.net>
+- prepared for release 3.2.1
 * Sun Oct 14 2007 Christian Schoenebeck <cuse@users.sourceforge.net>
 - prepared for release 3.2.0
 - libgig's home has moved to http://www.linuxsampler.org/libgig/
