@@ -40,15 +40,9 @@ namespace LinuxSampler { namespace gig {
      */
     class Profiler {
         public:
-	    static void Reset( void )
-	    {
-		    profilingSamples = 0;
-		    profilingTime = 0;
-	    }
+		static void Reset();
 
-		static void enable() {
-		    bEnabled = true;
-		}
+		static void enable();
 
 		static bool isEnabled() {
 		    return bEnabled;

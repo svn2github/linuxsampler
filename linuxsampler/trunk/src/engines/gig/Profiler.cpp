@@ -30,6 +30,16 @@ namespace LinuxSampler { namespace gig {
 	double Profiler::tsPerSecond = 0;
 	bool Profiler::bEnabled = false;
 
+	void Profiler::Reset()
+	{
+		profilingSamples = 0;
+		profilingTime = 0;
+	}
+
+	void Profiler::enable() {
+		bEnabled = true;
+	}
+
 	void Profiler::Calibrate( void )
 	{
 		clock_t start_time = clock();

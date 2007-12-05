@@ -6759,13 +6759,6 @@ Schoenebeck'>
 <t>filename =
 	<list>
 		<t>path
-                                 #if WIN32
-                                 $$ = $1.toWindows();
-                                 #else
-
-                                 $$ = $1.toPosix();
-                                 #endif
-
 		</t>
 	</list>
 </t>

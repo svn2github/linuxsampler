@@ -50,10 +50,21 @@ if ($verbose) { print "Ok, found ${ANCHOR_TOKEN_BEGIN} in line ${in_marker_begin
 # delete everything except the grammar lines
 splice(@yacc_in, $in_marker_end, $#yacc_in - $in_marker_end);
 splice(@yacc_in, 0, $in_marker_begin + 1);
+
+# remove C++ code
+$scalar_yacc_in = join("", @yacc_in);
+$scalar_yacc_in =~ s/'\{'|'\}'//mg;
+$scalar_yacc_in =~ s/\{(\d|[a-z]|[A-Z]|\#|;|:|<|>|\(|\)|\$|\[|\]|=|\+|-|\"|'|_|\\|\/|\.|,|\s|\n|\r)*\}//mgix;
+# remove surving '}' character ;-)
+#$scalar_yacc_in =~ s/\}/\n/g;
+
+# convert scalar, long string into a line array
+@yacc_in = split(/\n/, $scalar_yacc_in);
+
 # do the XML transformation
 $i = 0;
 foreach $line (@yacc_in) {
-    $_ = $line;
+    $_ = $line . "\n";
     # remove C++ code
     s/\{\p{IsASCII}*\}//g;
     s/\/\/\p{IsASCII}*$/\r\n/g;
