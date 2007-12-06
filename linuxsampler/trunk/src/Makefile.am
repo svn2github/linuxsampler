@@ -30,7 +30,7 @@ liblinuxsampler_la_LIBADD = \
 	$(top_builddir)/src/drivers/midi/liblinuxsamplermididriver.la \
 	$(top_builddir)/src/plugins/liblinuxsamplerplugins.la \
 	$(top_builddir)/src/common/liblinuxsamplercommon.la
-liblinuxsampler_la_LDFLAGS = -version-info @SHARED_VERSION_INFO@ @SHLIB_VERSION_ARG@
+liblinuxsampler_la_LDFLAGS = -version-info @SHARED_VERSION_INFO@ @SHLIB_VERSION_ARG@ -no-undefined
 
 bin_PROGRAMS = linuxsampler
 linuxsampler_SOURCES = linuxsampler.cpp
