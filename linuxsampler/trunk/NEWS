@@ -1,3 +1,13 @@
+Version 0.5.1 (6 December 2007)
+
+  This is the first release for the Windows platform, providing a MME MIDI
+  input driver and ASIO audio output driver. Note that the instruments DB
+  feature is not yet available for Windows systems, since the respective
+  code base has yet to be ported. Needless to say that there still might be
+  plenty of issues on MS systems. Beside that support for Windows, this is
+  merely a bugfix release (i.e. fixing one serious crash) with only minor
+  new features.
+
 Version 0.5.0 (15 October 2007)
 
   This release comes with a bunch of important new features. We implemented

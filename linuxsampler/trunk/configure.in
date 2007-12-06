@@ -5,7 +5,7 @@ AC_INIT(configure.in)
 
 LINUXSAMPLER_RELEASE_MAJOR=0
 LINUXSAMPLER_RELEASE_MINOR=5
-LINUXSAMPLER_RELEASE_BUILD=0.1cvs
+LINUXSAMPLER_RELEASE_BUILD=1
 
 #------------------------------------------------------------------------------------
 # The following is the libtool / shared library version. This doesn't have to
@@ -24,9 +24,9 @@ LINUXSAMPLER_RELEASE_BUILD=0.1cvs
 #  6. If any interfaces have been removed since the last public release, then set age
 #     to 0.
 
-LIBLINUXSAMPLER_LT_CURRENT=1
+LIBLINUXSAMPLER_LT_CURRENT=2
 LIBLINUXSAMPLER_LT_REVISION=0
-LIBLINUXSAMPLER_LT_AGE=0
+LIBLINUXSAMPLER_LT_AGE=1
 SHARED_VERSION_INFO="$LIBLINUXSAMPLER_LT_CURRENT:$LIBLINUXSAMPLER_LT_REVISION:$LIBLINUXSAMPLER_LT_AGE"
 
 #------------------------------------------------------------------------------------
@@ -425,7 +425,7 @@ fi
 # Checks for various DLL libraries
 
 # Check presence of libgig
-libgig_version="3.2.0"
+libgig_version="3.2.1"
 PKG_CHECK_MODULES(GIG, gig >= $libgig_version, HAVE_GIG=true, HAVE_GIG=false)
 if test "$HAVE_GIG" = "false"; then
     echo "Required libgig version not found!"

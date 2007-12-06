@@ -27,17 +27,33 @@
 
 #include "global_private.h"
 
+namespace LinuxSampler {
+
+// *************** Internal data types (for Windows only) ***************
+// *
+
 #if defined(WIN32)
+
+typedef HANDLE win32thread_mutex_t;
+
 //NOTE: since pthread_condattr_t is not needed in the Condition class so just set it to int
 typedef int win32thread_condattr_t;
 
 typedef struct {
-                    unsigned long tv_sec;
-                    unsigned long tv_nsec;
-                } win32_timespec;
+    unsigned long tv_sec;
+    unsigned long tv_nsec;
+} win32_timespec;
 
 
-int win32thread_cond_init (win32thread_cond_t *cv, const win32thread_condattr_t *)
+
+// *************** ConditionInternal (for Windows only) ***************
+// *
+
+class ConditionInternal {
+public:
+
+static
+int win32thread_cond_init (Condition::win32thread_cond_t *cv, const win32thread_condattr_t *)
 {
     dmsg(7,("win32thread_cond_init:\n"));
     cv->waiters_count_ = 0;
@@ -45,45 +61,43 @@ int win32thread_cond_init (win32thread_cond_t *cv, const win32thread_condattr_t 
     cv->sema_ = CreateSemaphore (NULL,       // no security
                                  0,          // initially 0
                                  0x7fffffff, // max count
-                                 NULL);      // unnamed 
-    dmsg(7,("win32thread_cond_init: after CreateSemaphore retval=%d\n",cv->sema_));								 
+                                 NULL);      // unnamed
+    dmsg(7,("win32thread_cond_init: after CreateSemaphore retval=%d\n",cv->sema_));
     InitializeCriticalSection (&cv->waiters_count_lock_);
     cv->waiters_done_ = CreateEvent (NULL,  // no security
                                    FALSE, // auto-reset
                                    FALSE, // non-signaled initially
                                    NULL); // unnamed
-    dmsg(7,("win32thread_cond_init: after CreateEvent retval=%d\n",cv->waiters_done_));								   
-								   
+    dmsg(7,("win32thread_cond_init: after CreateEvent retval=%d\n",cv->waiters_done_));
+
     return 0;
 }
 
-
-int win32thread_cond_destroy(win32thread_cond_t *cv) {
-  dmsg(7,("win32thread_cond_destroy ptr=%d\n",cv));	
+static
+int win32thread_cond_destroy(Condition::win32thread_cond_t *cv) {
+  dmsg(7,("win32thread_cond_destroy ptr=%d\n",cv));
   CloseHandle(cv->waiters_done_);
   DeleteCriticalSection(&cv->waiters_count_lock_);
   CloseHandle(cv->sema_);
   return 0;
 }
 
- 
-
-
-int win32thread_cond_timedwait (win32thread_cond_t *cv, win32thread_mutex_t *external_mutex, win32_timespec *timeout)
+static
+int win32thread_cond_timedwait (Condition::win32thread_cond_t *cv, win32thread_mutex_t *external_mutex, win32_timespec *timeout)
 {
-    dmsg(7,("win32thread_cond_timedwait: external mutex=%d BEGIN!\n",external_mutex));	
+    dmsg(7,("win32thread_cond_timedwait: external mutex=%d BEGIN!\n",external_mutex));
     // Avoid race conditions.
     dmsg(7,("win32thread_cond_timedwait: before EnterCriticalSection (&cv->waiters_count_lock_) cv->waiters_count_=%d\n",cv->waiters_count_));
     EnterCriticalSection (&cv->waiters_count_lock_);
     cv->waiters_count_++;
     LeaveCriticalSection (&cv->waiters_count_lock_);
     dmsg(7,("win32thread_cond_timedwait: after LeaveCriticalSection (&cv->waiters_count_lock_) cv->waiters_count_=%d\n",cv->waiters_count_));
-	
+
 
     // This call atomically releases the mutex and waits on the
     // semaphore until <pthread_cond_signal> or <pthread_cond_broadcast>
     // are called by another thread.
-  
+
     DWORD dwMilliseconds;
     if(timeout->tv_sec || timeout->tv_nsec) {
         dwMilliseconds = timeout->tv_sec * 1000 + timeout->tv_nsec / 1000000;
@@ -96,12 +110,12 @@ int win32thread_cond_timedwait (win32thread_cond_t *cv, win32thread_mutex_t *ext
     DWORD res;
     res = SignalObjectAndWait (*external_mutex, cv->sema_, dwMilliseconds, FALSE);
     dmsg(7,("win32thread_cond_timedwait: after SignalObjectAndWait, res=%d\n",res));
-    if(res == WAIT_TIMEOUT) return -1; 
+    if(res == WAIT_TIMEOUT) return -1;
 
     // Reacquire lock to avoid race conditions.
-    dmsg(7,("win32thread_cond_timedwait: before EnterCriticalSection (2) (&cv->waiters_count_lock_) cv->waiters_count=%d\n",cv->waiters_count_)); 
+    dmsg(7,("win32thread_cond_timedwait: before EnterCriticalSection (2) (&cv->waiters_count_lock_) cv->waiters_count=%d\n",cv->waiters_count_));
     EnterCriticalSection (&cv->waiters_count_lock_);
-    dmsg(7,("win32thread_cond_timedwait: after EnterCriticalSection (2) (&cv->waiters_count_lock_) cv->waiters_count=%d\n",cv->waiters_count_)); 
+    dmsg(7,("win32thread_cond_timedwait: after EnterCriticalSection (2) (&cv->waiters_count_lock_) cv->waiters_count=%d\n",cv->waiters_count_));
 
     // We're no longer waiting...
     cv->waiters_count_--;
@@ -110,13 +124,13 @@ int win32thread_cond_timedwait (win32thread_cond_t *cv, win32thread_mutex_t *ext
     int last_waiter = cv->was_broadcast_ && cv->waiters_count_ == 0;
 
     LeaveCriticalSection (&cv->waiters_count_lock_);
-    dmsg(7,("win32thread_cond_timedwait: after LeaveCriticalSection (2) (&cv->waiters_count_lock_) last_waiter=%d\n",last_waiter)); 
+    dmsg(7,("win32thread_cond_timedwait: after LeaveCriticalSection (2) (&cv->waiters_count_lock_) last_waiter=%d\n",last_waiter));
 
     // If we're the last waiter thread during this particular broadcast
     // then let all the other threads proceed.
     if (last_waiter) {
         // This call atomically signals the <waiters_done_> event and waits until
-        // it can acquire the <external_mutex>.  This is required to ensure fairness. 
+        // it can acquire the <external_mutex>.  This is required to ensure fairness.
         dmsg(7,("win32thread_cond_timedwait: before SignalObjectAndWait (cv->waiters_done_, *external_mutex, dwMilliseconds, FALSE) \n"));
         res = SignalObjectAndWait (cv->waiters_done_, *external_mutex, dwMilliseconds, FALSE);
         dmsg(7,("win32thread_cond_timedwait: after SignalObjectAndWait (cv->waiters_done_, *external_mutex, dwMilliseconds, FALSE) res=%d\n",res));
@@ -127,7 +141,7 @@ int win32thread_cond_timedwait (win32thread_cond_t *cv, win32thread_mutex_t *ext
     }
     else {
         // Always regain the external mutex since that's the guarantee we
-        // give to our callers. 
+        // give to our callers.
         dmsg(7,("win32thread_cond_timedwait: before WaitForSingleObject (*external_mutex, dwMilliseconds)\n"));
         res = WaitForSingleObject (*external_mutex, dwMilliseconds);
         dmsg(7,("win32thread_cond_timedwait: after WaitForSingleObject (*external_mutex, dwMilliseconds) res=%d\n",res));
@@ -140,35 +154,8 @@ int win32thread_cond_timedwait (win32thread_cond_t *cv, win32thread_mutex_t *ext
     return 0;
 }
 
-int win32thread_cond_signal (win32thread_cond_t *cv)
-{
-
-    dmsg(7,("win32thread_cond_signal cv=%d\n",cv));
-    dmsg(7,("win32thread_cond_signal before EnterCriticalSection (&cv->waiters_count_lock_)\n"));
-    EnterCriticalSection (&cv->waiters_count_lock_);
-    int have_waiters = cv->waiters_count_ > 0;
-    LeaveCriticalSection (&cv->waiters_count_lock_);
-    dmsg(7,("win32thread_cond_signal after LeaveCriticalSection (&cv->waiters_count_lock_)\n"));
-
-    dmsg(7,("win32thread_cond_signal have_waiters=%d\n",have_waiters));
-    // If there aren't any waiters, then this is a no-op.  
-    if (have_waiters) {
-        dmsg(7,("win32thread_cond have_waiters is TRUE,  before ReleaseSemaphore (cv->sema_, 1, 0)\n"));
-        ReleaseSemaphore (cv->sema_, 1, 0);
-    }
-    dmsg(7,("win32thread_cond_signal: all OK. returning 0\n"));
-    return 0;
-}
-
-int win32thread_cond_wait (win32thread_cond_t *cv, win32thread_mutex_t *external_mutex) {
-    dmsg(7,("win32thread_cond_wait: (calls win32thread_cond_timedwait)  cv=%d  external_mutex=%d\n",cv, external_mutex));
-    win32_timespec timeout;
-    timeout.tv_sec = 0;
-    timeout.tv_nsec = 0;
-    return win32thread_cond_timedwait (cv, external_mutex, &timeout);
-}
-
-int win32thread_cond_broadcast (win32thread_cond_t *cv)
+static
+int win32thread_cond_broadcast (Condition::win32thread_cond_t *cv)
 {
     DWORD res;
     dmsg(7,("win32thread_cond_broadcast: cv=%d\n",cv));
@@ -198,11 +185,11 @@ int win32thread_cond_broadcast (win32thread_cond_t *cv)
         dmsg(7,("win32thread_cond_broadcast: have_waiters ! after LeaveCriticalSection (&cv->waiters_count_lock_)\n"));
 
         // Wait for all the awakened threads to acquire the counting
-        // semaphore. 
+        // semaphore.
         dmsg(7,("win32thread_cond_broadcast: before WaitForSingleObject (cv->waiters_done_, INFINITE)\n"));
         res = WaitForSingleObject (cv->waiters_done_, INFINITE);
         dmsg(7,("win32thread_cond_broadcast: after WaitForSingleObject (cv->waiters_done_, INFINITE) res=%d\n",res));
-        // This assignment is okay, even without the <waiters_count_lock_> held 
+        // This assignment is okay, even without the <waiters_count_lock_> held
         // because no other waiter threads can wake up to access it.
         cv->was_broadcast_ = 0;
     }
@@ -210,33 +197,67 @@ int win32thread_cond_broadcast (win32thread_cond_t *cv)
         LeaveCriticalSection (&cv->waiters_count_lock_);
         dmsg(7,("win32thread_cond_broadcast: after LeaveCriticalSection (&cv->waiters_count_lock_)\n"));
     }
-	dmsg(7,("win32thread_cond_broadcast: all OK, returning 0.\n"));
+    dmsg(7,("win32thread_cond_broadcast: all OK, returning 0.\n"));
     return 0;
 }
 
+/* TODO: the following two functions are currently not used yet
+static
+int win32thread_cond_signal (Condition::win32thread_cond_t *cv)
+{
+
+    dmsg(7,("win32thread_cond_signal cv=%d\n",cv));
+    dmsg(7,("win32thread_cond_signal before EnterCriticalSection (&cv->waiters_count_lock_)\n"));
+    EnterCriticalSection (&cv->waiters_count_lock_);
+    int have_waiters = cv->waiters_count_ > 0;
+    LeaveCriticalSection (&cv->waiters_count_lock_);
+    dmsg(7,("win32thread_cond_signal after LeaveCriticalSection (&cv->waiters_count_lock_)\n"));
+
+    dmsg(7,("win32thread_cond_signal have_waiters=%d\n",have_waiters));
+    // If there aren't any waiters, then this is a no-op.
+    if (have_waiters) {
+        dmsg(7,("win32thread_cond have_waiters is TRUE,  before ReleaseSemaphore (cv->sema_, 1, 0)\n"));
+        ReleaseSemaphore (cv->sema_, 1, 0);
+    }
+    dmsg(7,("win32thread_cond_signal: all OK. returning 0\n"));
+    return 0;
+}
+
+static
+int win32thread_cond_wait (Condition::win32thread_cond_t *cv, win32thread_mutex_t *external_mutex) {
+    dmsg(7,("win32thread_cond_wait: (calls win32thread_cond_timedwait)  cv=%d  external_mutex=%d\n",cv, external_mutex));
+    win32_timespec timeout;
+    timeout.tv_sec = 0;
+    timeout.tv_nsec = 0;
+    return win32thread_cond_timedwait (cv, external_mutex, &timeout);
+}
+*/
+
+}; // class ConditionInternal
+
+#endif // WIN32
 
 
-#endif
 
-
-namespace LinuxSampler {
+// *************** Condition ***************
+// *
 
 Condition::Condition(bool bInitialCondition) {
 dmsg(7,("Condition:: constructor, bInitialCondition=%d\n", bInitialCondition));
 #if defined(WIN32)
-    win32thread_cond_init(&__win32_true_condition, NULL);
-    win32thread_cond_init(&__win32_false_condition, NULL);
+    ConditionInternal::win32thread_cond_init(&__win32_true_condition, NULL);
+    ConditionInternal::win32thread_cond_init(&__win32_false_condition, NULL);
 #else
     pthread_cond_init(&__posix_true_condition, NULL);
     pthread_cond_init(&__posix_false_condition, NULL);
-#endif	
+#endif
     bCondition = bInitialCondition;
 }
 
 Condition::~Condition() {
 #if defined(WIN32)
-    win32thread_cond_destroy(&__win32_true_condition);
-    win32thread_cond_destroy(&__win32_false_condition);
+    ConditionInternal::win32thread_cond_destroy(&__win32_true_condition);
+    ConditionInternal::win32thread_cond_destroy(&__win32_false_condition);
 #else
     pthread_cond_destroy(&__posix_true_condition);
     pthread_cond_destroy(&__posix_false_condition);
@@ -256,7 +277,7 @@ int Condition::WaitIf(bool bCondition, long TimeoutSeconds, long TimeoutNanoSeco
             timeout.tv_sec  = TimeoutSeconds;
             timeout.tv_nsec = TimeoutNanoSeconds;
             dmsg(7,("Condition::Waitif() -> waiting for 'false' condition with timeout\n"));
-            res = win32thread_cond_timedwait(&__win32_false_condition, &hMutex, &timeout);
+            res = ConditionInternal::win32thread_cond_timedwait(&__win32_false_condition, &hMutex, &timeout);
             dmsg(7,("Condition::Waitif() -> awakened from 'false' condition waiting\n"));
             #else
             if (TimeoutSeconds || TimeoutNanoSeconds) { // wait with timeout
@@ -282,7 +303,7 @@ int Condition::WaitIf(bool bCondition, long TimeoutSeconds, long TimeoutNanoSeco
             timeout.tv_sec  = TimeoutSeconds;
             timeout.tv_nsec = TimeoutNanoSeconds;
             dmsg(7,("Condition::Waitif() -> waiting for 'true' condition with timeout\n"));
-            res = win32thread_cond_timedwait(&__win32_true_condition, &hMutex, &timeout);
+            res = ConditionInternal::win32thread_cond_timedwait(&__win32_true_condition, &hMutex, &timeout);
             dmsg(7,("Condition::Waitif() -> awakened from 'true' condition waiting\n"));
             #else
             if (TimeoutSeconds || TimeoutNanoSeconds) { // wait with timeout
