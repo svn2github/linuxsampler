@@ -1,0 +1,3 @@
+src/gigedit/mainwindow.cpp
+src/gigedit/dimregionedit.cpp
+src/gigedit/regionchooser.cpp

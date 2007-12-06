@@ -1,0 +1,20 @@
+Source: gigedit
+Section: sound
+Priority: optional
+Maintainer: Christian Schoenebeck <cuse@users.sf.net>
+Build-Depends: debhelper (>= 4.0.0), pkg-config, intltool, libgtkmm-2.4-dev, libsndfile1-dev, xsltproc, docbook-xsl
+Standards-Version: 3.6.1
+
+Package: gigedit
+Section: sound
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: instrument editor for Gigasampler files
+ gigedit is an instrument editor allowing to modify existing Gigasampler
+ files, as well as creating new ones from scratch. The GUI is based on
+ the GTK+ (gtkmm) toolkit. Even though it is created as a subproject of
+ the LinuxSampler project, it is currently a completely independent
+ stand-alone editor.
+ .
+ For more information visit
+ http://www.linuxsampler.org

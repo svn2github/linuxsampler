@@ -1,0 +1,62 @@
+<chapter id="gig"><title>The GIG format</title>
+ <section id="gig_overview"><title>An Overview</title>
+  <para>
+  <indexterm>
+   <primary>GIG</primary>
+  </indexterm>
+	Allthoug this is only a quickstart somebody might want to know more
+	about the GIG format and all that Regions, Dimensions, Samples and
+	stuff. <firstterm>GIG</firstterm> is an abbreviation of <emphasis>
+	Gigasampler</emphasis> a format defined by some company to hold
+	lots of data about <emphasis>noise</emphasis>. Samplers are able
+	to morph a (MIDI-) key event into a sound. Either they just play
+	a so called sample, or change it according to the key's note, maybe
+	shift it, do something with filters or oscillators.
+  </para>
+  <para>
+	To describe all that you have the GIG-format. It contains not only
+	the samples but also where they're situated on the keyboard, their
+	basic tuning and lots of controlling information like aftertouch,
+	modwheel and so on. This rather complex information is split into
+	different parts.
+  </para>
+ </section>
+
+ <section id="gig_region"><title>Region</title>
+  <para>
+	A <firstterm>region</firstterm> is a range of notes or keys. For example one could
+	have a bass drum sample and assigns it to a single key, let's
+	assume C4 for that. So when the GIG-file contains that region, ranging
+	from C4 to C4 (one key) and referring to the base drum sample. If you
+	load this file into your sampler and press C4 you hear it kicking.
+  </para>
+ </section>
+
+ <section id="gig_dimension"><title>Dimension</title>
+  <para>
+	Kicking the bass drum is not really a complicated use case. Imagine a more
+	sophisticated piano sample. You can play it hard or soft, higher or lower notes
+	and even press various pedals. That's the <firstterm>dimension's</firstterm>
+	task. You take various samples (soft, hard, this pedal, that pedal) and get,
+	let's say 4 different sample types of a 2-octave range.
+  </para>
+  <para>
+	First you create a region ranging from C2 to C4. But you get only one
+	sample into this region. A dimension adds additional <emphasis>dimensions</emphasis>
+	to this. A region with another dimension splitting into 2 bits gives
+	you 4 more samples (2^2). Now how will the right sample be selected?
+	First of all there's the region information, you already pressed a key.
+	The sampler just asks the dimension, which controller it belongs to,
+	checks this controller's setting and chooses the sample from the
+	according dimension.
+  </para>
+ </section>
+
+ <section id="gig_instrument"><title>Instrument</title>
+   <para/>
+ </section>
+
+ <section id="gig_group"><title>Group</title>
+   <para/>
+ </section>
+</chapter>
