@@ -1,3 +1,9 @@
+Version 0.1.1 (2007-12-06)
+
+  Parameter edits can now be applied to multiple regions and dimension
+  regions simultaneously - three checkboxes were added that select if
+  changes apply to all regions and/or all dimension regions.
+
 Version 0.1.0 (2007-10-15)
 
   Many fixes have been made to make sure that the gig files created by
