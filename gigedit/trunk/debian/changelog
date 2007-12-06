@@ -1,3 +1,9 @@
+gigedit (0.1.1-1) unreleased; urgency=low
+
+  * New release.
+
+ -- Christian Schoenebeck <cuse@users.sourceforge.net>  Thu, 06 Dec 2007 20:33:12 +0100
+
 gigedit (0.1.0-2) unreleased; urgency=low
 
   * Ignore missing Makefile.cvs (which doesn't exist in release tarballs).
