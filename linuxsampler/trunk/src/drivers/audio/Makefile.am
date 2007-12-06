@@ -30,10 +30,12 @@ endif
 
 if HAVE_ASIO
 asio_includes = -I@ASIOSDK_BASEDIR@/asiosdk2/common -I@ASIOSDK_BASEDIR@/asiosdk2/host -I@ASIOSDK_BASEDIR@/asiosdk2/host/pc
-asio_src  = AudioOutputDeviceAsio.cpp AudioOutputDeviceAsio.h iasiothiscallresolver.cpp iasiothiscallresolver.h @ASIOSDK_BASEDIR@/asiosdk2/common/asio.cpp @ASIOSDK_BASEDIR@/asiosdk2/common/asio.h @ASIOSDK_BASEDIR@/asiosdk2/host/asiodrivers.cpp @ASIOSDK_BASEDIR@/asiosdk2/host/asiodrivers.h @ASIOSDK_BASEDIR@/asiosdk2/host/pc/asiolist.cpp @ASIOSDK_BASEDIR@/asiosdk2/host/pc/asiolist.h
-asio_ladd = 
+asio_3rd_party_src = @ASIOSDK_BASEDIR@/asiosdk2/common/asio.cpp @ASIOSDK_BASEDIR@/asiosdk2/common/asio.h @ASIOSDK_BASEDIR@/asiosdk2/host/asiodrivers.cpp @ASIOSDK_BASEDIR@/asiosdk2/host/asiodrivers.h @ASIOSDK_BASEDIR@/asiosdk2/host/pc/asiolist.cpp @ASIOSDK_BASEDIR@/asiosdk2/host/pc/asiolist.h
+asio_src  = AudioOutputDeviceAsio.cpp AudioOutputDeviceAsio.h iasiothiscallresolver.cpp iasiothiscallresolver.h
+asio_ladd =
 else
 asio_src  =
+asio_3rd_party_src =
 asio_includes  =
 asio_ladd =
 endif
@@ -51,5 +53,7 @@ liblinuxsampleraudiodriver_la_SOURCES = \
 	AudioOutputDevice.cpp AudioOutputDevice.h \
 	AudioOutputDeviceFactory.cpp AudioOutputDeviceFactory.h \
 	$(alsa_src) $(jack_src) $(arts_src) $(asio_src)
+nodist_liblinuxsampleraudiodriver_la_SOURCES = \
+	$(asio_3rd_party_src)
 liblinuxsampleraudiodriver_la_LIBADD = $(alsa_ladd) $(arts_ladd)
 liblinuxsampleraudiodriver_la_LDFLAGS = $(jack_lflags)
