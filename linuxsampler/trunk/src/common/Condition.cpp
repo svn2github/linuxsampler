@@ -344,7 +344,7 @@ void Condition::Set(bool bCondition) {
         if (bCondition) {
             dmsg(7,("Condition::Set() -> broadcasting 'true' condition\n"));
             #if defined(WIN32)
-            win32thread_cond_broadcast(&__win32_true_condition);
+            ConditionInternal::win32thread_cond_broadcast(&__win32_true_condition);
             #else
             pthread_cond_broadcast(&__posix_true_condition);
             #endif
@@ -352,7 +352,7 @@ void Condition::Set(bool bCondition) {
         else {
             dmsg(7,("Condition::Set() -> broadcasting 'false' condition\n"));
             #if defined(WIN32)
-            win32thread_cond_broadcast(&__win32_false_condition);
+            ConditionInternal::win32thread_cond_broadcast(&__win32_false_condition);
             #else
             pthread_cond_broadcast(&__posix_false_condition);
             #endif
