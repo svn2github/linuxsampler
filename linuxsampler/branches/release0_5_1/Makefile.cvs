@@ -1,0 +1,26 @@
+default: all
+
+.PHONY: clean
+
+all: configure
+
+configure: configure.in m4/arts.m4 m4/nptl_bug.m4 m4/pthread.m4
+	@aclocal -I m4
+	@libtoolize --force --copy
+	@autoheader
+	@automake --add-missing --copy
+	@autoconf
+	@scripts/generate_parser.sh
+	######################################################################
+	# If you are compiling LinuxSampler from CVS, make sure to use the   #
+	# latest version of libgig from CVS as well !                        #
+	######################################################################
+
+clean:
+	@if [ -f Makefile ]; then make distclean; fi || true
+	@rm -rvf *.cache *.log *.status *.m4 stamp-h* config.*
+	@rm -rvf `find . -name Makefile.in`
+	@rm -rvf missing install-sh mkinstalldirs depcomp ltmain.sh configure
+	@rm -rvf src/network/lscpparser.cpp src/network/lscpsymbols.h
+	@rm -rvf linuxsampler-*.tar.*
+	@rm -rvf Doxyfile
