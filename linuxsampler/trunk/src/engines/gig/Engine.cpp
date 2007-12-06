@@ -1973,11 +1973,11 @@ namespace LinuxSampler { namespace gig {
     }
 
     String Engine::Description() {
-        return "Gigasampler Engine";
+        return "Gigasampler Format Engine";
     }
 
     String Engine::Version() {
-        String s = "$Revision: 1.84 $";
+        String s = "$Revision: 1.85 $";
         return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
 
