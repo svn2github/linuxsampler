@@ -1,4 +1,4 @@
-CVS HEAD
+jlscp v0.7a: 2007-12-06
   * Added support for monitoring the total number of active disk streams
 
   * API Changes

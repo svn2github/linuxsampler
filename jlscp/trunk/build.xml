@@ -1,12 +1,12 @@
 <project name="jlscp" default="build-lib" basedir=".">
     <description>This buildfile is used to build the jlscp library</description>
     
-    <property name="jlscp.version" value="0.6a"/>
+    <property name="jlscp.version" value="0.7a"/>
     
     <target name="build-all" depends="build-lib,build-examples,build-doc"/>
         
     <target name="build-lib" depends="clean-lib,build-manifest">
-        <javac debug="true" debuglevel="source,lines,vars" srcdir="./src" destdir="./lib/build"/>
+        <javac debug="true" debuglevel="source,lines" srcdir="./src" destdir="./lib/build"/>
         <copy todir="./lib/build/org/linuxsampler/lscp/langprops">
             <fileset dir="./src/org/linuxsampler/lscp/langprops"/>
         </copy>
