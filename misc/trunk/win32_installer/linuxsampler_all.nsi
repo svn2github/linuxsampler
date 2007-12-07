@@ -11,11 +11,13 @@ SetCompressor lzma
 ;Include Modern UI
 !include "MUI.nsh"
 
+!define RELEASE_DATE "20071207"
+
 ; The name of the installer
-Name "LinuxSampler"
+Name "LinuxSampler (${RELEASE_DATE})"
 
 ; The file to write
-OutFile "linuxsampler_20071206_setup.exe"
+OutFile "linuxsampler_${RELEASE_DATE}_setup.exe"
 
 ; Java Runtime Environment, needed for JSampler
 !define JRE_VERSION "1.6"
@@ -26,8 +28,6 @@ InstallDir $PROGRAMFILES\LinuxSampler
 
 ; Get installation folder from registry if available
 InstallDirRegKey HKCU "Software\LinuxSampler" ""
-
-;LoadLanguageFile "${NSISDIR}\Contrib\Language files\English.nlf"
 
 ;--------------------------------
 ;Interface Settings
@@ -40,22 +40,16 @@ InstallDirRegKey HKCU "Software\LinuxSampler" ""
 ;Version Information
 
 VIProductVersion "0.0.0.0"
-VIAddVersionKey /LANG=${LANG_ENGLISH} "ProductName" "LinuxSampler Installer"
+VIAddVersionKey /LANG=${LANG_ENGLISH} "ProductName" "all-in-one installer"
 VIAddVersionKey /LANG=${LANG_ENGLISH} "Comments" "http://linuxsampler.org"
 VIAddVersionKey /LANG=${LANG_ENGLISH} "CompanyName" "The LinuxSampler Project"
 VIAddVersionKey /LANG=${LANG_ENGLISH} "LegalTrademarks" ""
 VIAddVersionKey /LANG=${LANG_ENGLISH} "LegalCopyright" "© 2003-2007 The LinuxSampler Project"
-VIAddVersionKey /LANG=${LANG_ENGLISH} "FileDescription" "all-in-one installer"
+VIAddVersionKey /LANG=${LANG_ENGLISH} "FileDescription" "LinuxSampler Installer (${RELEASE_DATE})"
 VIAddVersionKey /LANG=${LANG_ENGLISH} "FileVersion" "0.0.0"
 
 ;--------------------------------
-
 ; Pages
-
-;Page license
-;Page components
-;Page directory
-;Page instfiles
 
 !insertmacro MUI_PAGE_LICENSE "license.rtf"
 !insertmacro MUI_PAGE_COMPONENTS
@@ -64,11 +58,6 @@ VIAddVersionKey /LANG=${LANG_ENGLISH} "FileVersion" "0.0.0"
 !insertmacro MUI_UNPAGE_CONFIRM
 !insertmacro MUI_UNPAGE_INSTFILES
 
-;UninstPage uninstConfirm
-;UninstPage instfiles
-
-;LicenseData license.rtf
-
 ;--------------------------------
 ;Languages
 
@@ -76,11 +65,23 @@ VIAddVersionKey /LANG=${LANG_ENGLISH} "FileVersion" "0.0.0"
 
 ;--------------------------------
 
+Function .onInit
+  Var /GLOBAL installingLinuxSampler
+  Var /GLOBAL installingJSampler
+  Var /GLOBAL installingQSampler
+  Var /GLOBAL installinggigedit
+  StrCpy $installingLinuxSampler "0"
+  StrCpy $installingJSampler "0"
+  StrCpy $installingQSampler "0"
+  StrCpy $installinggigedit "0"
+FunctionEnd
+
 ; Check for the presence of gtkmm, and if false, ask the user whether to
 ; download and install gtkmm now from the internet.
 Function CheckForGtkmm
   Var /GLOBAL gtkmmSetupFile
 
+  ClearErrors
   ; This is just a lazy check for the presence of gtkmm, we should better use:
   ; System::Call function (NSI internal function) to actually call an arbitrary
   ; gtkmm function (/method) from a gtkmm DLL to make it certain
@@ -137,39 +138,47 @@ FunctionEnd
 
 ; The stuff to install
 Section "LinuxSampler 0.5.1" SecLinuxSampler
+  StrCpy $installingLinuxSampler "1"
   ; Set output path to the installation directory.
   SetOutPath $INSTDIR
   ; Files to install
-;  File linuxsampler.exe
-;  File liblinuxsampler.dll
+  File linuxsampler.exe
+  File liblinuxsampler-1.dll
 SectionEnd
 
-Section "JSampler 'Fantasia' 0.0.1" SecJSampler
+Section "JSampler 'Fantasia' 0.8a" SecJSampler
   ; make sure JRE is installed
   Call DetectJRE
+  StrCpy $installingJSampler "1"
   ; Set output path to the installation directory.
   SetOutPath $INSTDIR
   ; Files to install
-;  File jsampler.jar
+  File Fantasia-0.8a.jar
+  File jsampler.ico
 SectionEnd
 
-Section "QSampler 0.2.0" SecQSampler
+Section "QSampler 0.2.1" SecQSampler
+  StrCpy $installingQSampler "1"
   ; Set output path to the installation directory.
   SetOutPath $INSTDIR
   ; Files to install
-;  File qsampler.exe
-;  File liblscp.dll
+  File qsampler.exe
+  File QtCore4.dll
+  File QtGui4.dll
+  File mingwm10.dll
 SectionEnd
 
 Section "gigedit 0.1.1" Secgigedit
+  StrCpy $installinggigedit "1"
   ; make sure gtkmm is installed
   Call CheckForGtkmm
   ; Set output path to the installation directory.
   SetOutPath $INSTDIR
   ; Files to install
-;  File gigedit.exe
-  SetOutPath "$INSTDIR\Plugins"
-;  File libgigedit.dll
+  File gigedit.exe
+  File libsndfile-1.dll
+  SetOutPath "$INSTDIR\plugins"
+  File libgigedit.dll
 SectionEnd
 
 Section "libgig 3.2.1" Seclibgig
@@ -178,10 +187,14 @@ Section "libgig 3.2.1" Seclibgig
   ; Set output path to the installation directory.
   SetOutPath $INSTDIR
   ; Files to install
-;  File libgig.dll
+  File libgig-6.dll
+  File rifftree.exe
+  File dlsdump.exe
+  File gigdump.exe
+  File gigextract.exe
   ; As this is a mandatory component, we misuse it to install the uninstaller as well ...
   ; Write the uninstall keys for Windows
-  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\LinuxSampler" "DisplayName" "LinuxSampler 2007-12-05"
+  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\LinuxSampler" "DisplayName" "LinuxSampler ${RELEASE_DATE}"
   WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\LinuxSampler" "UninstallString" '"$INSTDIR\uninstall.exe"'
   WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\LinuxSampler" "NoModify" 1
   WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\LinuxSampler" "NoRepair" 1
@@ -190,22 +203,24 @@ Section "libgig 3.2.1" Seclibgig
   WriteRegStr HKCU "Software\LinuxSampler" "" $INSTDIR
 SectionEnd
 
-Section "libsndfile 1.0.17" Seclibsndfile
-  ; We make this a mandatory component
-  SectionIn RO
-  ; Set output path to the installation directory.
-  SetOutPath $INSTDIR
-  ; Files to install
-;  File libsndfile-1.dll
-SectionEnd
-
 Section "Start Menu Shortcuts" SecShortcuts
+  
   CreateDirectory "$SMPROGRAMS\LinuxSampler"
+  
   CreateShortCut "$SMPROGRAMS\LinuxSampler\Uninstall.lnk" "$INSTDIR\uninstall.exe" "" "$INSTDIR\uninstall.exe" 0
-  CreateShortCut "$SMPROGRAMS\LinuxSampler\LinuxSampler (backend).lnk" "$INSTDIR\linuxsampler.exe" "" "$INSTDIR\linuxsampler.exe" 0
-  CreateShortCut "$SMPROGRAMS\LinuxSampler\JSampler Fantasia (frontend).lnk" "$INSTDIR\jjjjjsampler.exe" "" "$INSTDIR\jjjjjsampler.exe" 0
-  CreateShortCut "$SMPROGRAMS\LinuxSampler\QSampler (frontend).lnk" "$INSTDIR\qsampler.exe" "" "$INSTDIR\qsampler.exe" 0
-  CreateShortCut "$SMPROGRAMS\LinuxSampler\gigedit (stand alone).lnk" "$INSTDIR\gigedit.exe" "" "$INSTDIR\gigedit.exe" 0
+  
+  StrCmp $installingLinuxSampler '1' 0 +2
+  CreateShortCut "$SMPROGRAMS\LinuxSampler\LinuxSampler 0.5.1 (backend).lnk" "$INSTDIR\linuxsampler.exe" "" "$INSTDIR\linuxsampler.exe" 0
+  
+  StrCmp $installingJSampler '1' 0 +2
+  CreateShortCut '$SMPROGRAMS\LinuxSampler\JSampler Fantasia 0.8a (frontend).lnk' 'javaw' '-jar "$INSTDIR\Fantasia-0.8a.jar"' '$INSTDIR\jsampler.ico' 0
+  
+  StrCmp $installingQSampler '1' 0 +2
+  CreateShortCut "$SMPROGRAMS\LinuxSampler\QSampler 0.2.1 (frontend).lnk" "$INSTDIR\qsampler.exe" "" "$INSTDIR\qsampler.exe" 0
+  
+  StrCmp $installinggigedit '1' 0 +2
+  CreateShortCut "$SMPROGRAMS\LinuxSampler\gigedit 0.1.1 (stand alone).lnk" "$INSTDIR\gigedit.exe" "" "$INSTDIR\gigedit.exe" 0
+  
 SectionEnd
 
 ;--------------------------------
@@ -217,10 +232,12 @@ Section "Uninstall"
   DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\LinuxSampler"
   ; Remove files and uninstaller
   Delete $INSTDIR\*.*
+  Delete $INSTDIR\plugins\*.*
   ; Remove shortcuts, if any
   Delete "$SMPROGRAMS\LinuxSampler\*.*"
   ; Remove directories used
   RMDir "$SMPROGRAMS\LinuxSampler"
+  RMDir "$INSTDIR\plugins"
   RMDir "$INSTDIR"
 SectionEnd
 
@@ -233,7 +250,6 @@ LangString DESC_SecJSampler ${LANG_ENGLISH} "Graphical frontend (user interface)
 LangString DESC_SecQSampler ${LANG_ENGLISH} "Graphical light-weight frontend (user interface) for LinuxSampler written in C++, offering a fast native user interface. NOTE: QSampler doesn't support all LinuxSampler features yet!"
 LangString DESC_Secgigedit ${LANG_ENGLISH} "Graphical instrument editor for Gigasampler format v2 and v3 files. Can be used stand-alone or in conjunction with LinuxSampler. NOTE: this is yet an early development version!"
 LangString DESC_Seclibgig ${LANG_ENGLISH} "C++ program library for accessing DLS (Level 1 and Level 2) and Gigasampler format (v2 and v3) files. This library is required by LinuxSampler, gigedit and QSampler."
-LangString DESC_Seclibsndfile ${LANG_ENGLISH} "C program library for reading and writing files containing sampled sound (such as MS Windows WAV and the Apple/SGI AIFF format), used by gigedit to import samples."
 LangString DESC_SecShortcuts ${LANG_ENGLISH} "Installs start menu shortcuts for all applications."
 
 ;Assign language strings to sections
@@ -243,6 +259,5 @@ LangString DESC_SecShortcuts ${LANG_ENGLISH} "Installs start menu shortcuts for 
   !insertmacro MUI_DESCRIPTION_TEXT ${SecQSampler} $(DESC_SecQSampler)
   !insertmacro MUI_DESCRIPTION_TEXT ${Secgigedit} $(DESC_Secgigedit)
   !insertmacro MUI_DESCRIPTION_TEXT ${Seclibgig} $(DESC_Seclibgig)
-  !insertmacro MUI_DESCRIPTION_TEXT ${Seclibsndfile} $(DESC_Seclibsndfile)
   !insertmacro MUI_DESCRIPTION_TEXT ${SecShortcuts} $(DESC_SecShortcuts)
 !insertmacro MUI_FUNCTION_DESCRIPTION_END
