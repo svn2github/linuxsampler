@@ -1,0 +1,212 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+  <meta content="text/html; charset=ISO-8859-1"
+ http-equiv="content-type">
+  <title>LinuxSampler For Windows</title>
+</head>
+<body>
+<h2>LinuxSampler for Windows&nbsp; - howto by Benno Senoner&nbsp; </h2>
+<br>
+December,&nbsp; 7 2007<br>
+<br>
+the LinuxSampler development team is happy to announce that<br>
+LinuxSampler, the most advanced free, open source sampler now runs on
+MS Windows too (requires at least Windows 2000).<br>
+(see below for the download link)<br>
+More information and documentation will be added here soon, so check
+back frequently.<br>
+<br>
+for the latest LinuxSampler Windowsversion always check <a
+ href="http://www.linuxsampler.org/downloads.html">LinuxSampler
+Download Page</a><br>
+<br>
+If you have questions or want to help subscribe to the <a
+ href="http://www.linuxsampler.org/developers.html">LinuxSampler
+mailing list</a><br>
+<br>
+or since I did most of of the porting, you can write me directly (to
+Benno) about&nbsp; Windows related questions.<br>
+you can find my email address here: <a
+ href="http://www.linuxsampler.org/developers.html">LinuxSampler
+developers</a><br>
+<br>
+To report bugs please use our bug tracking system <a
+ href="http://bugs.linuxsampler.org/">http://bugs.linuxsampler.org/</a><br>
+<br>
+<br>
+For now it supports Windows Multimedia System (MME) at MIDI in and ASIO
+output out.<br>
+<br>
+This means that currently it runs only as a standalone application.<br>
+A VST interface will follow soon, along with a network module to run
+multiple sampler slaves on<br>
+Windows or Linux machines (Linux provides better performance) all
+controlled from a Windows box running <br>
+the VST sequencer.<br>
+LinuxSampler is implemented as a client/server application. This means
+the sampling engine (the server) runs<br>
+independently from the GUI (the client). Sampling engine and client can
+be run on the same box or<br>
+on different machines too, connected over the network.<br>
+<br>
+The MS Windows version provides all the features of the Linux version
+since it is built from the <br>
+same source code base. This means when new features will come out the
+Windows version will always provide<br>
+the same feature set as the Linux version. This was made possible by
+the very modular design of both<br>
+low level, operating system functions and flexible audio/MIDI driver
+system.<br>
+<br>
+The Windows version comes as a self extracting .exe file which will
+install all the necessary modules<br>
+to run both the server ( linuxsampler.exe ) and the GUI client.<br>
+In installs 2 GUI clients. One is QSampler, based on the cross-platform
+Qt4 GUI toolkit, and a java<br>
+GUI client called JSampler Fantasia. At the moment the latter more
+advanced than qsampler as it <br>
+implements all the functionality present in the LinuxSampler engine.<br>
+Due to the Java virtual machine it uses a bit more memory than the
+qsampler GUI (around 30MB or so)<br>
+but on a 1GB+ RAM box the difference should be negligible.<br>
+<br>
+Quickstart:<br>
+start<br>
+LinuxSampler -&gt; LinuxSampler<br>
+then<br>
+LinuxSampler -&gt; Fantasa<br>
+<br>
+<br style="font-weight: bold;">
+<big style="font-weight: bold;">1) setting up MIDI input</big><span
+ style="font-weight: bold;">:</span><br>
+once the GUI opens, click on the left round button in the MIDI devices
+tab.<br>
+At this point a window will open where you can create a new MIDI device.<br>
+Press Create. The window will close and the MIDI device will be created.<br>
+(MIDI Device 0 MME).<br>
+Now click on the right arrow which points downwards.<br>
+You can see that a MIDI device with a single Port (Port 0) was created.<br>
+Under Windows MME LinuxSampler always creates MIDI devices which are
+connected to a single <br>
+MME port.<br>
+To select the MIDI input port you must click on the field located on
+the left of PORT. <br>
+A combobox pops-up where you can select the Windows MIDI port.<br>
+<br>
+You can create an arbitrary number of MIDI input devices by repeating
+the procedure above.<br>
+Each MIDI input device is connected to a single Windows MME MIDI port.<br>
+This means LinuxSampler has no limitation in terms of number of MIDI
+ports. <br>
+Each MIDI device can be routed to arbitrary sampler channels.<br>
+<br>
+<br>
+<big><span style="font-weight: bold;">2) setting up AUDIO output:</span></big><br>
+<br>
+LinuxSampler currently uses the ASIO driver model for audio output.<br>
+ASIO drivers ensure reliable low-latency operation and are virtually
+available<br>
+for any soundcard.<br>
+(For consumer audio cards which do not come with their own ASIO drivers
+you need<br>
+to install ASIO4ALL:&nbsp; http://www.asio4all.com/<br>
+We recommend to use version 2.7 , perhaps on Vista 2.8beta1 works
+better but<br>
+we did not perform tests on Vista so we cannot tell it. Let us know
+about your findings<br>
+so we can share them here)<br>
+<br>
+Click on the left round button in the Audio Devices tab.<br>
+At this point a window will open where you can create a new MIDI device.<br>
+When creating the Audio device you can set several parameters.<br>
+- CARD : the name of the soundcard, in case you have multiple cards
+installed.<br>
+it will show the default value (first card found)<br>
+- CHANNELS: number of audio output channels, can range from 1 to
+maximum number<br>
+of channels your soundcard supports. We recommend to leave the default
+value which<br>
+is maximum number of channels.<br>
+- FRAGMENTSIZE: ASIO buffer size in samples. The card's default value
+is shown.<br>
+If you experience clicks and pops during audio playback then initialize
+the <br>
+audio output device with bigger values. <br>
+(better if it's always a power of 2:&nbsp; eg. 256, 512, 1024)<br>
+<br>
+SAMPLERATE: sets the samplerate. The default value is shown.<br>
+<br>
+Now Press Create. The window will close and the Audio device will be
+created.<br>
+AUDIO DEVICE 0 (ASIO)<br>
+<big style="font-weight: bold;"><br>
+3) Loading samples:</big><br>
+<br>
+In the middle of the screen below the volume slider you see the sampler
+channel strip pane.<br>
+press on the round button located on the left. <br>
+This will create a new sampler channel.<br>
+- click on Load Instrument <br>
+this opens a dialog which allows you to select an instrument to be
+loaded in the sampler channel.<br>
+For now ignore the upper part (Select instrument form orchestra) as
+this feature is not implemented<br>
+on Windows yet.<br>
+On the row&nbsp; "Select instrument from file" click on the orange icon
+located on the right side.<br>
+This opens a file dialog which allows you to select a sample to be
+loaded <br>
+(currently only the GIG format is supported).<br>
+select the sample to be loaded and then click on Open.<br>
+At this point the fields Instrument file shows the filename.<br>
+You can click on the Instrument index and select the specific
+instrument contained in the<br>
+instrument file.<br>
+Now press OK<br>
+While it loads you see: Loading .. 90% .. 100% <br>
+Once loaded you see the Instrument's name: ie&nbsp; FreePiano<br>
+<br>
+On the left side of the sampler channel click on the arrow below
+Options.<br>
+This pane permits to set MIDI input device, port and channel and oudio
+output channel.<br>
+Notice that under Windows MME the Port value is always 0.<br>
+So the only values you can change MIDI device (normally 0 if you
+created only a single<br>
+MIDI input device) and the MIDI channel (from 1 to 16).<br>
+<br>
+Saving a sampler session:<br>
+click on the 3rd icon from the left on the row where you see the round
+icon with the S logo.<br>
+<br>
+Now select the directory where you want to save the file to ( extension
+.lscp = Linux Sampler Control Protocol).<br>
+enter the name and press save. (add .lscp at end of file otherwise you
+will not see it when loading it)<br>
+<br>
+Next time you can load a sampler session by clicking on the second icon
+from the left <br>
+then select a .lscp file in the file dialog and press Open.<br>
+This will automatically set up the MIDI devices and audio devices,
+create the sampler channels<br>
+and load all the samples that were loaded.<br>
+<br>
+<span style="font-weight: bold;">Bugs and Problems: <br>
+<small><span style="font-weight: bold;"></span></small></span>since the
+Windows port is very young there could be several bugs which we hope to
+root out soon.<br>
+so be sure to report them using our bug tracking system <a
+ href="http://bugs.linuxsampler.org/">http://bugs.linuxsampler.org/</a><br>
+<br>
+some bugs and problems I discovered:<br>
+- when adding a channel there noises could occur while playing on other
+channels<br>
+- if you overload the sampler (CPU overload or disk overload) it
+produces noises<br>
+- then editing an instrument using gigedit<br>
+<br>
+<br>
+<br>
+</body>
+</html>
