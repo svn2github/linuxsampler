@@ -145,9 +145,9 @@
 <tr><td class="header">LinuxSampler Developers</td><td class="header">C. Schoenebeck</td></tr>
 <tr><td class="header">Internet-Draft</td><td class="header">Interessengemeinschaft Software</td></tr>
 <tr><td class="header">Intended status: Standards Track</td><td class="header">Engineering e. V.</td></tr>
-<tr><td class="header">Expires: April 17, 2008</td><td class="header">October 15, 2007</td></tr>
+<tr><td class="header">Expires: June 7, 2008</td><td class="header">December 5, 2007</td></tr>
 </table></td></tr></table>
-<h1><br />LinuxSampler Control Protocol<br />LSCP 1.2</h1>
+<h1><br />LinuxSampler Control Protocol<br />LSCP 1.3</h1>
 
 <h3>Status of this Memo</h3>
 <p>
@@ -173,7 +173,7 @@ The list of current Internet-Drafts can be accessed at
 The list of Internet-Draft Shadow Directories can be accessed at
 <a href='http://www.ietf.org/shadow.html'>http://www.ietf.org/shadow.html</a>.</p>
 <p>
-This Internet-Draft will expire on April 17, 2008.</p>
+This Internet-Draft will expire on June 7, 2008.</p>
 
 <h3>Copyright Notice</h3>
 <p>
@@ -354,13 +354,15 @@ Global commands<br />
 Current number of active voices<br />
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#GET TOTAL_VOICE_COUNT_MAX">6.6.2.</a>&nbsp;
 Maximum amount of active voices<br />
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#RESET">6.6.3.</a>&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#GET TOTAL_STREAM_COUNT">6.6.3.</a>&nbsp;
+Current number of active disk streams<br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#RESET">6.6.4.</a>&nbsp;
 Reset sampler<br />
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#GET SERVER INFO">6.6.4.</a>&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#GET SERVER INFO">6.6.5.</a>&nbsp;
 General sampler informations<br />
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#GET VOLUME">6.6.5.</a>&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#GET VOLUME">6.6.6.</a>&nbsp;
 Getting global volume attenuation<br />
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SET VOLUME">6.6.6.</a>&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SET VOLUME">6.6.7.</a>&nbsp;
 Setting global volume attenuation<br />
 &nbsp;&nbsp;&nbsp;&nbsp;<a href="#MIDI Instrument Mapping">6.7.</a>&nbsp;
 MIDI Instrument Mapping<br />
@@ -438,6 +440,14 @@ Formatting the instruments database<br />
 Editing Instruments<br />
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#EDIT INSTRUMENT">6.9.1.</a>&nbsp;
 Opening an appropriate instrument editor application<br />
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#file_management">6.10.</a>&nbsp;
+Managing Files<br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#GET FILE INSTRUMENTS">6.10.1.</a>&nbsp;
+Retrieving amount of instruments of a file<br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#LIST FILE INSTRUMENTS">6.10.2.</a>&nbsp;
+Retrieving all instruments of a file<br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#GET FILE INSTRUMENT INFO">6.10.3.</a>&nbsp;
+Retrieving informations about one instrument in a file<br />
 <a href="#command_syntax">7.</a>&nbsp;
 Command Syntax<br />
 &nbsp;&nbsp;&nbsp;&nbsp;<a href="#character_set">7.1.</a>&nbsp;
@@ -468,27 +478,29 @@ Number of effect sends changed<br />
 Effect send information changed<br />
 &nbsp;&nbsp;&nbsp;&nbsp;<a href="#SUBSCRIBE TOTAL_VOICE_COUNT">8.12.</a>&nbsp;
 Total number of active voices changed<br />
-&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SUBSCRIBE MIDI_INSTRUMENT_MAP_COUNT">8.13.</a>&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SUBSCRIBE TOTAL_STREAM_COUNT">8.13.</a>&nbsp;
+Total number of active disk streams changed<br />
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SUBSCRIBE MIDI_INSTRUMENT_MAP_COUNT">8.14.</a>&nbsp;
 Number of MIDI instrument maps changed<br />
-&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SUBSCRIBE MIDI_INSTRUMENT_MAP_INFO">8.14.</a>&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SUBSCRIBE MIDI_INSTRUMENT_MAP_INFO">8.15.</a>&nbsp;
 MIDI instrument map information changed<br />
-&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SUBSCRIBE MIDI_INSTRUMENT_COUNT">8.15.</a>&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SUBSCRIBE MIDI_INSTRUMENT_COUNT">8.16.</a>&nbsp;
 Number of MIDI instruments changed<br />
-&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SUBSCRIBE MIDI_INSTRUMENT_INFO">8.16.</a>&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SUBSCRIBE MIDI_INSTRUMENT_INFO">8.17.</a>&nbsp;
 MIDI instrument information changed<br />
-&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SUBSCRIBE GLOBAL_INFO">8.17.</a>&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SUBSCRIBE GLOBAL_INFO">8.18.</a>&nbsp;
 Global settings changed<br />
-&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SUBSCRIBE DB_INSTRUMENT_DIRECTORY_COUNT">8.18.</a>&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SUBSCRIBE DB_INSTRUMENT_DIRECTORY_COUNT">8.19.</a>&nbsp;
 Number of database instrument directories changed<br />
-&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SUBSCRIBE DB_INSTRUMENT_DIRECTORY_INFO">8.19.</a>&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SUBSCRIBE DB_INSTRUMENT_DIRECTORY_INFO">8.20.</a>&nbsp;
 Database instrument directory information changed<br />
-&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SUBSCRIBE DB_INSTRUMENT_COUNT">8.20.</a>&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SUBSCRIBE DB_INSTRUMENT_COUNT">8.21.</a>&nbsp;
 Number of database instruments changed<br />
-&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SUBSCRIBE DB_INSTRUMENT_INFO">8.21.</a>&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SUBSCRIBE DB_INSTRUMENT_INFO">8.22.</a>&nbsp;
 Database instrument information changed<br />
-&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SUBSCRIBE DB_INSTRUMENTS_JOB_INFO">8.22.</a>&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SUBSCRIBE DB_INSTRUMENTS_JOB_INFO">8.23.</a>&nbsp;
 Database job status information changed<br />
-&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SUBSCRIBE MISCELLANEOUS">8.23.</a>&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SUBSCRIBE MISCELLANEOUS">8.24.</a>&nbsp;
 Miscellaneous and debugging events<br />
 <a href="#anchor14">9.</a>&nbsp;
 Security Considerations<br />
@@ -3449,12 +3461,26 @@ Loading an instrument</h3>
 </blockquote><p>
                     
 </p>
-<p>Example:
+<p>Example (Unix):
 </p>
 <p>
                         </p>
 <blockquote class="text">
+<p>C: LOAD INSTRUMENT '/home/joe/gigs/cello.gig' 0 0
+</p>
+<p>S: OK
+</p>
+</blockquote><p>
+                    
+</p>
+<p>Example (Windows):
+</p>
 <p>
+                        </p>
+<blockquote class="text">
+<p>C: LOAD INSTRUMENT 'D:/MySounds/cello.gig' 0 0
+</p>
+<p>S: OK
 </p>
 </blockquote><p>
                     
@@ -6052,9 +6078,36 @@ Maximum amount of active voices</h3>
 </blockquote><p>
                     
 </p>
-<a name="RESET"></a><br /><hr />
+<a name="GET TOTAL_STREAM_COUNT"></a><br /><hr />
 <table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
 <a name="rfc.section.6.6.3"></a><h3>6.6.3.&nbsp;
+Current number of active disk streams</h3>
+
+<p>The front-end can ask for the current number of active disk streams on
+                    the sampler by sending the following command:
+</p>
+<p>
+                        </p>
+<blockquote class="text">
+<p>GET TOTAL_STREAM_COUNT
+</p>
+</blockquote><p>
+                    
+</p>
+<p>Possible Answers:
+</p>
+<p>
+                        </p>
+<blockquote class="text">
+<p>LinuxSampler will answer by returning the number of all active
+                            disk streams on the sampler.
+</p>
+</blockquote><p>
+                    
+</p>
+<a name="RESET"></a><br /><hr />
+<table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
+<a name="rfc.section.6.6.4"></a><h3>6.6.4.&nbsp;
 Reset sampler</h3>
 
 <p>The front-end can reset the whole sampler by sending the following command:
@@ -6095,7 +6148,7 @@ Reset sampler</h3>
 </p>
 <a name="GET SERVER INFO"></a><br /><hr />
 <table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
-<a name="rfc.section.6.6.4"></a><h3>6.6.4.&nbsp;
+<a name="rfc.section.6.6.5"></a><h3>6.6.5.&nbsp;
 General sampler informations</h3>
 
 <p>The client can ask for general informations about the LinuxSampler
@@ -6171,7 +6224,7 @@ General sampler informations</h3>
 </p>
 <a name="GET VOLUME"></a><br /><hr />
 <table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
-<a name="rfc.section.6.6.5"></a><h3>6.6.5.&nbsp;
+<a name="rfc.section.6.6.6"></a><h3>6.6.6.&nbsp;
 Getting global volume attenuation</h3>
 
 <p>The client can ask for the current global sampler-wide volume
@@ -6204,7 +6257,7 @@ Getting global volume attenuation</h3>
 </p>
 <a name="SET VOLUME"></a><br /><hr />
 <table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
-<a name="rfc.section.6.6.6"></a><h3>6.6.6.&nbsp;
+<a name="rfc.section.6.6.7"></a><h3>6.6.7.&nbsp;
 Setting global volume attenuation</h3>
 
 <p>The client can alter the current global sampler-wide volume
@@ -8665,7 +8718,7 @@ Changing the description of instrument</h3>
                     
 </p>
 <p>Where &lt;instr&gt; is the absolute path name of the instrument and
-                    &lt;desc&gt; is the new description for the instrument 
+                    &lt;desc&gt; is the new description for the instrument
                     (encapsulated into apostrophes, supporting escape sequences as described in chapter
                     "<a class='info' href='#character_set'>Character Set and Escape Sequences<span> (</span><span class='info'>Character Set and Escape Sequences</span><span>)</span></a>").
 </p>
@@ -9148,6 +9201,258 @@ Opening an appropriate instrument editor application</h3>
 </blockquote><p>
                     
 </p>
+<a name="file_management"></a><br /><hr />
+<table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
+<a name="rfc.section.6.10"></a><h3>6.10.&nbsp;
+Managing Files</h3>
+
+<p>You can query detailed informations about files located
+                at the same system where the sampler instance is running on.
+                Using this command set allows to retrieve file informations
+                even remotely from another machine.
+</p>
+<a name="GET FILE INSTRUMENTS"></a><br /><hr />
+<table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
+<a name="rfc.section.6.10.1"></a><h3>6.10.1.&nbsp;
+Retrieving amount of instruments of a file</h3>
+
+<p>The front-end can retrieve the amount of instruments
+                    within a given instrument file by sending the
+                    following command:
+</p>
+<p>
+                        </p>
+<blockquote class="text">
+<p>GET FILE INSTRUMENTS &lt;filename&gt;
+</p>
+</blockquote><p>
+                    
+</p>
+<p>Where &lt;filename&gt; is the name of the instrument
+                    file (encapsulated into apostrophes, supporting escape
+                    sequences as described in chapter
+                    "<a class='info' href='#character_set'>Character Set and Escape
+	                Sequences<span> (</span><span class='info'>Character Set and Escape Sequences</span><span>)</span></a>").
+</p>
+<p>The sampler will try to ask all sampler engines,
+                    whether they support the given file and ask the first
+                    engine with a positive answer for the amount of
+                    instruments.
+</p>
+<p>Possible Answers:
+</p>
+<p>
+                        </p>
+<blockquote class="text">
+<p>On success, the sampler will answer by
+                               returning the amount of instruments.
+                            
+</p>
+<p>"ERR:&lt;error-code&gt;:&lt;error-message&gt;" -
+                                </p>
+<blockquote class="text">
+<p>if the file could not be handled
+</p>
+</blockquote>
+                            
+
+</blockquote><p>
+                    
+</p>
+<p>Examples:
+</p>
+<p>
+                        </p>
+<blockquote class="text">
+<p>C: "GET FILE INSTRUMENTS 'D:/Sounds/Foo.gig'"
+</p>
+<p>S: "10"
+</p>
+</blockquote><p>
+                    
+</p>
+<a name="LIST FILE INSTRUMENTS"></a><br /><hr />
+<table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
+<a name="rfc.section.6.10.2"></a><h3>6.10.2.&nbsp;
+Retrieving all instruments of a file</h3>
+
+<p>The front-end can retrieve a list of all instruments
+                    within a given instrument file by sending the
+                    following command:
+</p>
+<p>
+                        </p>
+<blockquote class="text">
+<p>LIST FILE INSTRUMENTS &lt;filename&gt;
+</p>
+</blockquote><p>
+                    
+</p>
+<p>Where &lt;filename&gt; is the name of the instrument
+                    file (encapsulated into apostrophes, supporting escape
+                    sequences as described in chapter
+                    "<a class='info' href='#character_set'>Character Set and Escape
+	                Sequences<span> (</span><span class='info'>Character Set and Escape Sequences</span><span>)</span></a>").
+</p>
+<p>The sampler will try to ask all sampler engines,
+                    whether they support the given file and ask the first
+                    engine with a positive answer for a list of IDs for the
+                    instruments in the given file.
+</p>
+<p>Possible Answers:
+</p>
+<p>
+                        </p>
+<blockquote class="text">
+<p>On success, the sampler will answer by
+                               returning a comma separated list of
+                               instrument IDs.
+                            
+</p>
+<p>"ERR:&lt;error-code&gt;:&lt;error-message&gt;" -
+                                </p>
+<blockquote class="text">
+<p>if the file could not be handled
+</p>
+</blockquote>
+                            
+
+</blockquote><p>
+                    
+</p>
+<p>Examples:
+</p>
+<p>
+                        </p>
+<blockquote class="text">
+<p>C: "LIST FILE INSTRUMENTS 'D:/Sounds/Foo.gig'"
+</p>
+<p>S: "0,1,2,3,4,5,6,7,8,9"
+</p>
+</blockquote><p>
+                    
+</p>
+<a name="GET FILE INSTRUMENT INFO"></a><br /><hr />
+<table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
+<a name="rfc.section.6.10.3"></a><h3>6.10.3.&nbsp;
+Retrieving informations about one instrument in a file</h3>
+
+<p>The front-end can retrieve detailed informations
+                    about a specific instrument within a given instrument
+                    file by sending the following command:
+</p>
+<p>
+                        </p>
+<blockquote class="text">
+<p>GET FILE INSTRUMENT INFO &lt;filename&gt;
+                            &lt;instr-id&gt;
+</p>
+</blockquote><p>
+                    
+</p>
+<p>Where &lt;filename&gt; is the name of the instrument
+                    file (encapsulated into apostrophes, supporting escape
+                    sequences as described in chapter
+                    "<a class='info' href='#character_set'>Character Set and Escape
+	                Sequences<span> (</span><span class='info'>Character Set and Escape Sequences</span><span>)</span></a>") and &lt;instr-id&gt; is the numeric
+                    instrument ID as returned by the
+                    <a class='info' href='#LIST FILE INSTRUMENTS'>"LIST FILE INSTRUMENTS"<span> (</span><span class='info'>Retrieving all instruments of a file</span><span>)</span></a> command.
+</p>
+<p>The sampler will try to ask all sampler engines,
+                    whether they support the given file and ask the first
+                    engine with a positive answer for informations about the
+                    specific instrument in the given file.
+</p>
+<p>Possible Answers:
+</p>
+<p>
+                        </p>
+<blockquote class="text">
+<p>LinuxSampler will answer by sending a &lt;CRLF&gt; separated list.
+                            Each answer line begins with the settings category name
+                            followed by a colon and then a space character &lt;SP&gt; and finally
+                            the info character string to that setting category. At the
+                            moment the following categories are defined:
+</p>
+<p>
+                                </p>
+<blockquote class="text">
+<p>NAME -
+                                        </p>
+<blockquote class="text">
+<p>name of the instrument as
+                                            stored in the instrument file
+</p>
+</blockquote>
+                                    
+
+<p>FORMAT_FAMILY -
+                                        </p>
+<blockquote class="text">
+<p>name of the sampler format
+                                            of the given instrument
+</p>
+</blockquote>
+                                    
+
+<p>FORMAT_VERSION -
+                                        </p>
+<blockquote class="text">
+<p>version of the sampler format
+                                            the instrumen is stored as
+</p>
+</blockquote>
+                                    
+
+<p>PRODUCT -
+                                        </p>
+<blockquote class="text">
+<p>official product name of the
+                                            instrument as stored in the file
+                                            
+</p>
+</blockquote>
+                                    
+
+<p>ARTISTS -
+                                        </p>
+<blockquote class="text">
+<p>artists / sample library
+                                            vendor of the instrument
+</p>
+</blockquote>
+                                    
+
+</blockquote>
+                            
+
+</blockquote><p>
+                    
+</p>
+<p>The mentioned fields above don't have to be in particular order.
+</p>
+<p>Example:
+</p>
+<p>
+                        </p>
+<blockquote class="text">
+<p>C: "GET FILE INSTRUMENT INFO 'D:/Sounds/Foo.gig' 0"
+</p>
+<p>S: "NAME: Lunatic Loops"
+</p>
+<p>&nbsp;&nbsp;&nbsp;"FORMAT_FAMILY: GIG"
+</p>
+<p>&nbsp;&nbsp;&nbsp;"FORMAT_VERSION: 3"
+</p>
+<p>&nbsp;&nbsp;&nbsp;"PRODUCT: The Backbone Bongo Beats"
+</p>
+<p>&nbsp;&nbsp;&nbsp;"ARTISTS: Jimmy the Fish"
+</p>
+<p>&nbsp;&nbsp;&nbsp;"."
+</p>
+</blockquote><p>
+                    
+</p>
 <a name="command_syntax"></a><br /><hr />
 <table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
 <a name="rfc.section.7"></a><h3>7.&nbsp;
@@ -9380,6 +9685,9 @@ Command Syntax</h3>
 <p>/ MISCELLANEOUS
 		
 </p>
+<p>/ TOTAL_STREAM_COUNT
+		
+</p>
 <p>/ TOTAL_VOICE_COUNT
 		
 </p>
@@ -9453,6 +9761,9 @@ Command Syntax</h3>
 		
 </p>
 <p>/ MISCELLANEOUS
+		
+</p>
+<p>/ TOTAL_STREAM_COUNT
 		
 </p>
 <p>/ TOTAL_VOICE_COUNT
@@ -9590,6 +9901,9 @@ Command Syntax</h3>
 <p>/ SERVER SP INFO
 		
 </p>
+<p>/ TOTAL_STREAM_COUNT
+		
+</p>
 <p>/ TOTAL_VOICE_COUNT
 		
 </p>
@@ -9639,6 +9953,12 @@ Command Syntax</h3>
 		
 </p>
 <p>/ VOLUME
+		
+</p>
+<p>/ FILE SP INSTRUMENTS SP filename
+		
+</p>
+<p>/ FILE SP INSTRUMENT SP INFO SP filename SP instrument_index
 		
 </p>
 </blockquote><p>
@@ -9960,6 +10280,9 @@ Command Syntax</h3>
 		
 </p>
 <p>/ DB_INSTRUMENTS SP db_path
+		
+</p>
+<p>/ FILE SP INSTRUMENTS SP filename
 		
 </p>
 </blockquote><p>
@@ -10375,6 +10698,12 @@ Character Set and Escape Sequences</h3>
 </p>
 <p><a class='info' href='#COPY DB_INSTRUMENT_DIRECTORY'>"COPY DB_INSTRUMENT_DIRECTORY"<span> (</span><span class='info'>Copying instrument directories</span><span>)</span></a>
 </p>
+<p><a class='info' href='#GET FILE INSTRUMENTS'>"GET FILE INSTRUMENTS"<span> (</span><span class='info'>Retrieving amount of instruments of a file</span><span>)</span></a>
+</p>
+<p><a class='info' href='#LIST FILE INSTRUMENTS'>"LIST FILE INSTRUMENTS"<span> (</span><span class='info'>Retrieving all instruments of a file</span><span>)</span></a>
+</p>
+<p><a class='info' href='#GET FILE INSTRUMENT INFO'>"GET FILE INSTRUMENT INFO"<span> (</span><span class='info'>Retrieving informations about one instrument in a file</span><span>)</span></a>
+</p>
 </blockquote><p>
                 Note that the forward slash character ('/') has a special meaning in
                 filename / path based arguments: it acts as separator of the nodes in
@@ -10382,6 +10711,16 @@ Character Set and Escape Sequences</h3>
                 (not intended as path node separator), you MUST escape that slash
                 either with the respective hex escape sequence ("\x2f") or with the
                 respective octal escape sequence ("\057").
+                
+</p>
+<p>
+                Note for Windows: file path arguments in LSCP are expected
+                to use forward slashes as directory node separator similar
+                to Unix based operating systems. In contrast to Unix however
+                a Windows typical drive character is expected to be
+                prefixed to the path. That is an original Windows file path
+                like "D:\Sounds\My.gig" would become in LSCP:
+                "D:/Sounds/My.gig".
                 
 </p>
 <p>
@@ -10808,9 +11147,38 @@ Total number of active voices changed</h3>
 <p>where &lt;voices&gt; will be replaced by the new number of
                 all currently active voices.
 </p>
-<a name="SUBSCRIBE MIDI_INSTRUMENT_MAP_COUNT"></a><br /><hr />
+<a name="SUBSCRIBE TOTAL_STREAM_COUNT"></a><br /><hr />
 <table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
 <a name="rfc.section.8.13"></a><h3>8.13.&nbsp;
+Total number of active disk streams changed</h3>
+
+<p>Client may want to be notified when the total number of disk streams on the
+                back-end changes by issuing the following command:
+</p>
+<p>
+                    </p>
+<blockquote class="text">
+<p>SUBSCRIBE TOTAL_STREAM_COUNT
+</p>
+</blockquote><p>
+                
+</p>
+<p>Server will start sending the following notification messages:
+</p>
+<p>
+                    </p>
+<blockquote class="text">
+<p>"NOTIFY:TOTAL_STREAM_COUNT:&lt;streams&gt;"
+</p>
+</blockquote><p>
+                
+</p>
+<p>where &lt;streams&gt; will be replaced by the new number of
+                all currently active disk streams.
+</p>
+<a name="SUBSCRIBE MIDI_INSTRUMENT_MAP_COUNT"></a><br /><hr />
+<table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
+<a name="rfc.section.8.14"></a><h3>8.14.&nbsp;
 Number of MIDI instrument maps changed</h3>
 
 <p>Client may want to be notified when the number of MIDI instrument maps on the
@@ -10839,7 +11207,7 @@ Number of MIDI instrument maps changed</h3>
 </p>
 <a name="SUBSCRIBE MIDI_INSTRUMENT_MAP_INFO"></a><br /><hr />
 <table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
-<a name="rfc.section.8.14"></a><h3>8.14.&nbsp;
+<a name="rfc.section.8.15"></a><h3>8.15.&nbsp;
 MIDI instrument map information changed</h3>
 
 <p>Client may want to be notified when changes were made to MIDI instrument maps on the
@@ -10872,7 +11240,7 @@ MIDI instrument map information changed</h3>
 </p>
 <a name="SUBSCRIBE MIDI_INSTRUMENT_COUNT"></a><br /><hr />
 <table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
-<a name="rfc.section.8.15"></a><h3>8.15.&nbsp;
+<a name="rfc.section.8.16"></a><h3>8.16.&nbsp;
 Number of MIDI instruments changed</h3>
 
 <p>Client may want to be notified when the number of MIDI instrument maps on the
@@ -10902,7 +11270,7 @@ Number of MIDI instruments changed</h3>
 </p>
 <a name="SUBSCRIBE MIDI_INSTRUMENT_INFO"></a><br /><hr />
 <table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
-<a name="rfc.section.8.16"></a><h3>8.16.&nbsp;
+<a name="rfc.section.8.17"></a><h3>8.17.&nbsp;
 MIDI instrument information changed</h3>
 
 <p>Client may want to be notified when changes were made to MIDI instruments on the
@@ -10936,7 +11304,7 @@ MIDI instrument information changed</h3>
 </p>
 <a name="SUBSCRIBE GLOBAL_INFO"></a><br /><hr />
 <table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
-<a name="rfc.section.8.17"></a><h3>8.17.&nbsp;
+<a name="rfc.section.8.18"></a><h3>8.18.&nbsp;
 Global settings changed</h3>
 
 <p>Client may want to be notified when changes to the global settings
@@ -10965,7 +11333,7 @@ Global settings changed</h3>
 </p>
 <a name="SUBSCRIBE DB_INSTRUMENT_DIRECTORY_COUNT"></a><br /><hr />
 <table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
-<a name="rfc.section.8.18"></a><h3>8.18.&nbsp;
+<a name="rfc.section.8.19"></a><h3>8.19.&nbsp;
 Number of database instrument directories changed</h3>
 
 <p>Client may want to be notified when the number of instrument
@@ -10999,7 +11367,7 @@ Number of database instrument directories changed</h3>
 </p>
 <a name="SUBSCRIBE DB_INSTRUMENT_DIRECTORY_INFO"></a><br /><hr />
 <table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
-<a name="rfc.section.8.19"></a><h3>8.19.&nbsp;
+<a name="rfc.section.8.20"></a><h3>8.20.&nbsp;
 Database instrument directory information changed</h3>
 
 <p>Client may want to be notified when changes were made to directories
@@ -11044,7 +11412,7 @@ Database instrument directory information changed</h3>
 </p>
 <a name="SUBSCRIBE DB_INSTRUMENT_COUNT"></a><br /><hr />
 <table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
-<a name="rfc.section.8.20"></a><h3>8.20.&nbsp;
+<a name="rfc.section.8.21"></a><h3>8.21.&nbsp;
 Number of database instruments changed</h3>
 
 <p>Client may want to be notified when the number of instruments
@@ -11078,7 +11446,7 @@ Number of database instruments changed</h3>
 </p>
 <a name="SUBSCRIBE DB_INSTRUMENT_INFO"></a><br /><hr />
 <table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
-<a name="rfc.section.8.21"></a><h3>8.21.&nbsp;
+<a name="rfc.section.8.22"></a><h3>8.22.&nbsp;
 Database instrument information changed</h3>
 
 <p>Client may want to be notified when changes were made to instruments
@@ -11123,7 +11491,7 @@ Database instrument information changed</h3>
 </p>
 <a name="SUBSCRIBE DB_INSTRUMENTS_JOB_INFO"></a><br /><hr />
 <table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
-<a name="rfc.section.8.22"></a><h3>8.22.&nbsp;
+<a name="rfc.section.8.23"></a><h3>8.23.&nbsp;
 Database job status information changed</h3>
 
 <p>Client may want to be notified when the status of particular database
@@ -11156,7 +11524,7 @@ Database job status information changed</h3>
 </p>
 <a name="SUBSCRIBE MISCELLANEOUS"></a><br /><hr />
 <table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
-<a name="rfc.section.8.23"></a><h3>8.23.&nbsp;
+<a name="rfc.section.8.24"></a><h3>8.24.&nbsp;
 Miscellaneous and debugging events</h3>
 
 <p>Client may want to be notified of miscellaneous and debugging events occurring at
