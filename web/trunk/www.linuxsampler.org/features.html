@@ -148,7 +148,9 @@
 			listed below, you can write a proposol to the
 			<a href="http://lists.sourceforge.net/lists/listinfo/linuxsampler-devel">
 				developers mailing list
-			</a> or even better send us your patch if you have done something. Even
+			</a>, open an "enhancement" request on our
+			<a href="http://bugs.linuxsampler.org">bug tracking system</a>
+			or even better send us your patch if you have done something. Even
 			if features are listed to be planned below, it can be that it takes a
 			while until somebody finds the time to implement it. So if you have the
 			time and will to finish one of them, let us know!
@@ -159,6 +161,7 @@
 						<ol>
 							<li class="ok">Linux</li>
 							<li class="ok">Mac <a href="http://www.apple.com/macosx/">OS X</a></li>
+							<li class="partly">Windows</a> (we provide a convenient Windows installer for all components of the project, only the <a href="#instruments_db">instruments DB feature</a> is not yet supported on Windows)</li>
 						</ol>
 					</li>
 					<li class="partly"> Sampler Engines
@@ -281,18 +284,21 @@
 					</li>
      <li class="partly">MIDI input drivers
       <ol>
-       <li class="ok"><a href="http://www.alsa-project.org/">ALSA</a></li>
+       <li class="ok"><a href="http://www.alsa-project.org/">ALSA</a> (Linux)</li>
+       <li class="false"><a href="http://jackit.sourceforge.net/">JACK</a> (Linux, OSX, Windows, ...)</li>
        <li class="false"><a href="http://www.steinberg.net/en/support/3rdparty/">VSTi</a></li>
        <li class="false">MIDI over ethernet (<a href="http://standards.ieee.org/announcements/p1639app.html">Distributed MIDI</a>)</li>
        <li class="ok"><a href="http://developer.apple.com/audio/pdf/coreaudio.pdf">CoreMIDI</a>  (Mac <a href="http://www.apple.com/macosx/">OS X</a>)</li>
        <li class="ok"><a href="http://midishare.sourceforge.net/">MidiShare</a> (Linux, OS X, Windows)</li>
+       <li class="ok"><a href="http://en.wikipedia.org/wiki/MultiMedia_Extensions">MME</a> (Windows)</li>
       </ol>
      </li>
 					<li class="partly">Audio output drivers
 						<ol>
-							<li class="ok"><a href="http://www.alsa-project.org/">ALSA</a></li>
-							<li class="ok"><a href="http://jackit.sourceforge.net/">JACK</a></li>
+							<li class="ok"><a href="http://www.alsa-project.org/">ALSA</a> (Linux)</li>
+							<li class="ok"><a href="http://jackit.sourceforge.net/">JACK</a> (Linux, OSX, Windows, ...)</li>
 							<li class="ok"><a href="http://www.arts-project.org/">aRts</a> (not RT safe!)</li>
+							<li class="ok"><a href="http://en.wikipedia.org/wiki/Audio_stream_input_output">ASIO</a> (Windows)</li>
 							<li class="false"><a href="http://www.steinberg.net/en/support/3rdparty/">VSTi</a></li>
 							<li class="false">Audio over ethernet</li>
 							<li class="false"><a href="http://developer.apple.com/audio/pdf/coreaudio.pdf">CoreAudio</a>  (Mac <a href="http://www.apple.com/macosx/">OS X</a>)</li>
@@ -335,6 +341,7 @@
 							<li class="ok">Flexible Routing i.e. to a dedicated effect audio output</li>
 						</ol>
 					</li>
+					<a name="instruments_db"></a>
 					<li class="ok">Instrument Database System, allowing to keep track of even the largest sample library collections
 						<ol>
 							<li class="ok">Ordering in Categories</li>
@@ -399,7 +406,7 @@
 			</p>
 
 			<p>
-			 (Last page update on <b>$Date: 2007-11-27 19:43:15 $</b> by $Author: schoenebeck $,
+			 (Last page update on <b>$Date: 2007-12-07 08:14:05 $</b> by $Author: schoenebeck $,
 			 also see <a href="http://www.linuxsampler.org">CVS Log</a> for recent changes)
 			</p>
 
