@@ -11,26 +11,26 @@
       <li>jlscp 0.7a</li>
     </list>
     What do you expect from a sampler called LinuxSampler? Exactly: that it
-    <link ref="screenshots/win32_premiere.png">conquers the Windows world
-    </link>. This is the first official release of our applications for the
-    Windows platform, providing a convenient all-in-one installer tagged
+    <link ref="screenshots/win32_premiere.png">conquers the Windows
+    world</link>. This is the first official release of our applications for
+    the Windows platform, providing a convenient all-in-one installer tagged
     "20071207". Supported drivers for this new system are so far: MME for
     MIDI and ASIO for audio. Needless to say that there still might be
-    plenty of issues on Windows. Also note, that the instruments DB feature
-    is not ported yet. Have a look at the
+    plenty of issues on Windows. Also note that the instruments database
+    feature is not ported yet. Have a look at the
     <link ref="windows.html">Windows HOWTO</link> for a smooth start.
     Beside this first Windows release, this is merely a bugfix release, i.e.
     fixing a serious crash in LinuxSampler. Retrieving instrument names from
-    .gig files with the frontends is now much faster, so better turn that
-    option always on in QSampler from now on. With gigedit you now can edit
+    .gig files with the frontends is now much faster, so better keep that
+    option always on in QSampler from now on. With gigedit you can now edit
     multiple (dimension) regions simultaniously. JSampler is finally able
     to retrieve instrument names of instrument files and even remotely from
-    another machine, beside minor cosmetics like total stream count display
-    and volume display in DB and couple bug fixes. QSampler gave Qt3 an
-    official funeral and is finally completely ported to Qt4. A lot of the
-    QSampler code base has changed due to this. So you still might encounter
-    bugs. Beside that the device management dialog received couple of bug
-    fixes.
+    another machine, beside minor cosmetics like a total stream count
+    and volume displayed in dB, as well as couple bug fixes. QSampler gave
+    Qt3 an official funeral and is finally completely ported to Qt4. A lot
+    of the QSampler code base has changed due to this. So you still might
+    encounter bugs. Beside that the device management dialog received couple
+    of bug fixes.
   </entry>
   <entry date="2007-10-23">
     As you might have noticed, we had issues with our linuxsampler.org DNS
