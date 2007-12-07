@@ -34,6 +34,18 @@
 	   </revision>
 	-->
 	   <revision>
+	    <revnumber>0d</revnumber>
+		<date>07.12.2007</date>
+		<author>
+		 <firstname>Christian</firstname>
+		 <surname>Schoenebeck</surname>
+		</author>
+		<revremark>
+		Added screenshot of JSampler to chapter "live-editing".
+		</revremark>
+	   </revision>
+
+	   <revision>
 	    <revnumber>0c</revnumber>
 		<date>07.10.2007</date>
 		<author>

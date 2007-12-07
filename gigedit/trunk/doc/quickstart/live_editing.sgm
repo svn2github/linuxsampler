@@ -14,17 +14,10 @@
 	To do this, you first have to load the respective instrument(s) into
 	<application>LinuxSampler</application>, i.e. by using a frontend
 	application like <application>JSampler</application> or
-	<application>QSampler</application>. In this example we describe it
-	by using <application>QSampler</application>, but you'll see it's
-	pretty much the same thing with <application>JSampler</application>.
-	Select the channel strip of the instrument you want to edit and click
-	on the "Edit" button on the same channel strip:
-
-  <figure id="shot_qsampler_edit"><title>Selecting an instrument to edit from QSampler</title>
-	<screenshot><mediaobject><imageobject>
-	<imagedata fileref="shot_qsampler_edit.png" format="PNG"/>
-	</imageobject></mediaobject></screenshot>
-  </figure>
+	<application>QSampler</application>. Here's how you do it with
+	<application>QSampler</application>: Select the channel strip of the
+	instrument you want to edit and click on the "Edit" button on the same
+	channel strip, like shown in <xref linkend="shot_qsampler_edit" />.
 
 	Alternatively you can also select this function from the menu (
 	<menuchoice>
@@ -34,6 +27,26 @@
 	<application>gigedit</application> should popup on the screen in less
 	than 5 seconds. This time you can see <application>gigedit</application>
 	like being "attached" to <application>LinuxSampler</application>.
+
+  <figure id="shot_qsampler_edit"><title>Selecting an instrument to edit from QSampler</title>
+	<screenshot><mediaobject><imageobject>
+	<imagedata fileref="shot_qsampler_edit.png" format="PNG"/>
+	</imageobject></mediaobject></screenshot>
+  </figure>
+
+	In <application>JSampler</application> you won't see an "Edit" button
+	by default. Instead you have to move the mouse pointer over the channel
+	strip which contains the instrument you want to edit. The channel strip
+	display will change immediately and a round, small "Edit" button
+	appears like shown in <xref linkend="shot_jsampler_edit" />. Click on
+	that button and gigedit will appear like with
+	<application>QSampler</application>, so it's pretty much the same thing.
+
+  <figure id="shot_jsampler_edit"><title>Selecting an instrument to edit from JSampler "Fantasia" 0.8a</title>
+	<screenshot><mediaobject><imageobject>
+	<imagedata fileref="shot_jsampler_edit.png" format="PNG"/>
+	</imageobject></mediaobject></screenshot>
+  </figure>
 
   <figure id="shot_gigedit_hosted"><title>Gigedit running "attached" to LinuxSampler</title>
 	<screenshot><mediaobject><imageobject>
