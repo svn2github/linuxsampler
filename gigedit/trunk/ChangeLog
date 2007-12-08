@@ -1,3 +1,7 @@
+Version CVS HEAD (?)
+
+  * fixed file properties dialog - properties now can be edited
+
 Version 0.1.1 (2007-12-06)
 
   * multiple editor windows can now be opened by the plugin

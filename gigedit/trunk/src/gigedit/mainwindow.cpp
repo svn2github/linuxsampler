@@ -59,6 +59,31 @@ template<class T> inline std::string ToString(T o) {
     return ss.str();
 }
 
+Table::Table(int x, int y) : Gtk::Table(x, y), rowno(0) {  }
+
+void Table::add(BoolEntry& boolentry)
+{
+    attach(boolentry.widget, 0, 2, rowno, rowno + 1,
+           Gtk::FILL, Gtk::SHRINK);
+    rowno++;
+}
+
+void Table::add(BoolEntryPlus6& boolentry)
+{
+    attach(boolentry.widget, 0, 2, rowno, rowno + 1,
+           Gtk::FILL, Gtk::SHRINK);
+    rowno++;
+}
+
+void Table::add(LabelWidget& prop)
+{
+    attach(prop.label, 1, 2, rowno, rowno + 1,
+           Gtk::FILL, Gtk::SHRINK);
+    attach(prop.widget, 2, 3, rowno, rowno + 1,
+           Gtk::EXPAND | Gtk::FILL, Gtk::SHRINK);
+    rowno++;
+}
+
 MainWindow::MainWindow() :
     dimreg_label(_("Changes apply to:")),
     dimreg_all_regions(_("all regions")),
@@ -99,7 +124,7 @@ MainWindow::MainWindow() :
     dimreg_stereo.set_active();
     dimreg_hbox.add(dimreg_stereo);
     dimreg_vbox.add(dimreg_edit);
-    dimreg_vbox.add(dimreg_hbox);
+    dimreg_vbox.pack_start(dimreg_hbox, Gtk::PACK_SHRINK);
     m_HPaned.add2(dimreg_vbox);
 
 
@@ -294,6 +319,8 @@ MainWindow::MainWindow() :
     m_DimRegionChooser.signal_region_changed().connect(
         sigc::mem_fun(*this, &MainWindow::file_changed));
     instrumentProps.signal_instrument_changed().connect(
+        sigc::mem_fun(*this, &MainWindow::file_changed));
+    propDialog.signal_info_changed().connect(
         sigc::mem_fun(*this, &MainWindow::file_changed));
 
     dimreg_edit.signal_dimreg_to_be_changed().connect(
@@ -868,59 +895,108 @@ void MainWindow::on_action_help_about()
 }
 
 PropDialog::PropDialog()
-    : table(2,1)
+    : table(2,1),
+      eName("Name"),
+      eCreationDate("Creation date"),
+      eComments("Comments"),
+      eProduct("Product"),
+      eCopyright("Copyright"),
+      eArtists("Artists"),
+      eGenre("Genre"),
+      eKeywords("Keywords"),
+      eEngineer("Engineer"),
+      eTechnician("Technician"),
+      eSoftware("Software"),
+      eMedium("Medium"),
+      eSource("Source"),
+      eSourceForm("Source form"),
+      eCommissioned("Commissioned"),
+      eSubject("Subject"),
+      quitButton(Gtk::Stock::CLOSE),
+      update_model(0)
 {
-    table.set_col_spacings(5);
-    const char* propLabels[] = {
-        "Name:",
-        "CreationDate:",
-        "Comments:", // TODO: multiline
-        "Product:",
-        "Copyright:",
-        "Artists:",
-        "Genre:",
-        "Keywords:",
-        "Engineer:",
-        "Technician:",
-        "Software:", // TODO: readonly
-        "Medium:",
-        "Source:",
-        "SourceForm:",
-        "Commissioned:",
-        "Subject:"
-    };
-    for (int i = 0 ; i < sizeof(propLabels) / sizeof(char*) ; i++) {
-        label[i].set_text(propLabels[i]);
-        label[i].set_alignment(Gtk::ALIGN_LEFT);
-        table.attach(label[i], 0, 1, i, i + 1, Gtk::FILL, Gtk::SHRINK);
-        table.attach(entry[i], 1, 2, i, i + 1, Gtk::FILL | Gtk::EXPAND,
-                     Gtk::SHRINK);
-    }
+    set_title("File Properties");
+    eName.set_width_chars(50);
 
-    add(table);
-    // add_button(Gtk::Stock::CANCEL, 0);
-    // add_button(Gtk::Stock::OK, 1);
+    connect(eName, &DLS::Info::Name);
+    connect(eCreationDate, &DLS::Info::CreationDate);
+    connect(eComments, &DLS::Info::Comments);
+    connect(eProduct, &DLS::Info::Product);
+    connect(eCopyright, &DLS::Info::Copyright);
+    connect(eArtists, &DLS::Info::Artists);
+    connect(eGenre, &DLS::Info::Genre);
+    connect(eKeywords, &DLS::Info::Keywords);
+    connect(eEngineer, &DLS::Info::Engineer);
+    connect(eTechnician, &DLS::Info::Technician);
+    connect(eSoftware, &DLS::Info::Software);
+    connect(eMedium, &DLS::Info::Medium);
+    connect(eSource, &DLS::Info::Source);
+    connect(eSourceForm, &DLS::Info::SourceForm);
+    connect(eCommissioned, &DLS::Info::Commissioned);
+    connect(eSubject, &DLS::Info::Subject);
+
+    table.add(eName);
+    table.add(eCreationDate);
+    table.add(eComments);
+    table.add(eProduct);
+    table.add(eCopyright);
+    table.add(eArtists);
+    table.add(eGenre);
+    table.add(eKeywords);
+    table.add(eEngineer);
+    table.add(eTechnician);
+    table.add(eSoftware);
+    table.add(eMedium);
+    table.add(eSource);
+    table.add(eSourceForm);
+    table.add(eCommissioned);
+    table.add(eSubject);
+
+    table.set_col_spacings(5);
+    add(vbox);
+    table.set_border_width(5);
+    vbox.add(table);
+    vbox.pack_start(buttonBox, Gtk::PACK_SHRINK);
+    buttonBox.set_layout(Gtk::BUTTONBOX_END);
+    buttonBox.set_border_width(5);
+    buttonBox.show();
+    buttonBox.pack_start(quitButton);
+    quitButton.set_flags(Gtk::CAN_DEFAULT);
+    quitButton.grab_focus();
+    quitButton.signal_clicked().connect(
+        sigc::mem_fun(*this, &PropDialog::hide));
+
+    quitButton.show();
+    vbox.show();
     show_all_children();
 }
 
 void PropDialog::set_info(DLS::Info* info)
 {
-    entry[0].set_text(info->Name);
-    entry[1].set_text(info->CreationDate);
-    entry[2].set_text(Glib::convert(info->Comments, "UTF-8", "ISO-8859-1"));
-    entry[3].set_text(info->Product);
-    entry[4].set_text(info->Copyright);
-    entry[5].set_text(info->Artists);
-    entry[6].set_text(info->Genre);
-    entry[7].set_text(info->Keywords);
-    entry[8].set_text(info->Engineer);
-    entry[9].set_text(info->Technician);
-    entry[10].set_text(info->Software);
-    entry[11].set_text(info->Medium);
-    entry[12].set_text(info->Source);
-    entry[13].set_text(info->SourceForm);
-    entry[14].set_text(info->Commissioned);
-    entry[15].set_text(info->Subject);
+    this->info = info;
+    update_model++;
+    eName.set_value(info->Name);
+    eCreationDate.set_value(info->CreationDate);
+    eComments.set_value(info->Comments);
+    eProduct.set_value(info->Product);
+    eCopyright.set_value(info->Copyright);
+    eArtists.set_value(info->Artists);
+    eGenre.set_value(info->Genre);
+    eKeywords.set_value(info->Keywords);
+    eEngineer.set_value(info->Engineer);
+    eTechnician.set_value(info->Technician);
+    eSoftware.set_value(info->Software);
+    eMedium.set_value(info->Medium);
+    eSource.set_value(info->Source);
+    eSourceForm.set_value(info->SourceForm);
+    eCommissioned.set_value(info->Commissioned);
+    eSubject.set_value(info->Subject);
+    update_model--;
+}
+
+sigc::signal<void>& PropDialog::signal_info_changed()
+{
+    return info_changed;
 }
 
 void InstrumentProps::set_IsDrum(bool value)
@@ -954,29 +1030,6 @@ void InstrumentProps::set_DimensionKeyRange_high(uint8_t value)
     }
 }
 
-void InstrumentProps::add_prop(BoolEntry& boolentry)
-{
-    table.attach(boolentry.widget, 0, 2, rowno, rowno + 1,
-                 Gtk::FILL, Gtk::SHRINK);
-    rowno++;
-}
-
-void InstrumentProps::add_prop(BoolEntryPlus6& boolentry)
-{
-    table.attach(boolentry.widget, 0, 2, rowno, rowno + 1,
-                 Gtk::FILL, Gtk::SHRINK);
-    rowno++;
-}
-
-void InstrumentProps::add_prop(LabelWidget& prop)
-{
-    table.attach(prop.label, 0, 1, rowno, rowno + 1,
-                 Gtk::FILL, Gtk::SHRINK);
-    table.attach(prop.widget, 1, 2, rowno, rowno + 1,
-                 Gtk::FILL | Gtk::EXPAND, Gtk::SHRINK);
-    rowno++;
-}
-
 InstrumentProps::InstrumentProps()
     : table(2,1),
       quitButton(Gtk::Stock::CLOSE),
@@ -994,7 +1047,7 @@ InstrumentProps::InstrumentProps()
       eDimensionKeyRangeHigh("Dimension key range high"),
       update_model(0)
 {
-    set_title("Instrument properties");
+    set_title("Instrument Properties");
 
     connect(eIsDrum, &InstrumentProps::set_IsDrum);
     connect(eMIDIBank, &InstrumentProps::set_MIDIBank);
@@ -1010,21 +1063,20 @@ InstrumentProps::InstrumentProps()
     connect(eDimensionKeyRangeHigh,
             &InstrumentProps::set_DimensionKeyRange_high);
 
-    rowno = 0;
     table.set_col_spacings(5);
 
-    add_prop(eName);
-    add_prop(eIsDrum);
-    add_prop(eMIDIBank);
-    add_prop(eMIDIProgram);
-    add_prop(eAttenuation);
-    add_prop(eGainPlus6);
-    add_prop(eEffectSend);
-    add_prop(eFineTune);
-    add_prop(ePitchbendRange);
-    add_prop(ePianoReleaseMode);
-    add_prop(eDimensionKeyRangeLow);
-    add_prop(eDimensionKeyRangeHigh);
+    table.add(eName);
+    table.add(eIsDrum);
+    table.add(eMIDIBank);
+    table.add(eMIDIProgram);
+    table.add(eAttenuation);
+    table.add(eGainPlus6);
+    table.add(eEffectSend);
+    table.add(eFineTune);
+    table.add(ePitchbendRange);
+    table.add(ePianoReleaseMode);
+    table.add(eDimensionKeyRangeLow);
+    table.add(eDimensionKeyRangeHigh);
 
     add(vbox);
     table.set_border_width(5);
@@ -1051,7 +1103,7 @@ void InstrumentProps::set_instrument(gig::Instrument* instrument)
     this->instrument = instrument;
 
     update_model++;
-    eName.set_ptr(&instrument->pInfo->Name);
+    eName.set_value(instrument->pInfo->Name);
     eIsDrum.set_value(instrument->IsDrum);
     eMIDIBank.set_value(instrument->MIDIBank);
     eMIDIProgram.set_value(instrument->MIDIProgram);

@@ -43,14 +43,62 @@
 
 class MainWindow;
 
+class Table : public Gtk::Table
+{
+public:
+    Table(int x, int y);
+    void add(BoolEntry& boolentry);
+    void add(BoolEntryPlus6& boolentry);
+    void add(LabelWidget& labelwidget);
+private:
+    int rowno;
+};
+
 class PropDialog : public Gtk::Window {
 public:
     PropDialog();
     void set_info(DLS::Info* info);
+    sigc::signal<void>& signal_info_changed();
 protected:
-    Gtk::Table table;
-    Gtk::Label label[16];
-    Gtk::Entry entry[16];
+    sigc::signal<void> info_changed;
+    StringEntry eName;
+    StringEntry eCreationDate;
+    StringEntryMultiLine eComments;
+    StringEntry eProduct;
+    StringEntry eCopyright;
+    StringEntry eArtists;
+    StringEntry eGenre;
+    StringEntry eKeywords;
+    StringEntry eEngineer;
+    StringEntry eTechnician;
+    StringEntry eSoftware;
+    StringEntry eMedium;
+    StringEntry eSource;
+    StringEntry eSourceForm;
+    StringEntry eCommissioned;
+    StringEntry eSubject;
+    Gtk::VBox vbox;
+    Gtk::HButtonBox buttonBox;
+    Gtk::Button quitButton;
+    Table table;
+    int update_model;
+    DLS::Info* info;
+
+    template<typename T>
+    void set_member(T value, T DLS::Info::* member) {
+        if (update_model == 0) {
+            info->*member = value;
+            info_changed();
+        }
+    }
+
+    template<typename C, typename T>
+    void connect(C& widget, T DLS::Info::* member) {
+        widget.signal_value_changed().connect(
+            sigc::compose(
+                sigc::bind(sigc::mem_fun(*this, &PropDialog::set_member<T>), member),
+                sigc::mem_fun(widget, &C::get_value)));
+    }
 };
 
 class InstrumentProps : public Gtk::Window {
@@ -102,7 +150,7 @@ protected:
     Gtk::VBox vbox;
     Gtk::HButtonBox buttonBox;
     Gtk::Button quitButton;
-    Gtk::Table table;
+    Table table;
     StringEntry eName;
     BoolEntry eIsDrum;
     NumEntryTemp<uint16_t> eMIDIBank;
@@ -115,10 +163,6 @@ protected:
     BoolEntry ePianoReleaseMode;
     NoteEntry eDimensionKeyRangeLow;
     NoteEntry eDimensionKeyRangeHigh;
-    int rowno;
-    void add_prop(BoolEntry& prop);
-    void add_prop(BoolEntryPlus6& prop);
-    void add_prop(LabelWidget& prop);
     sigc::signal<void> instrument_changed;
 };
 

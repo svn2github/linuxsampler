@@ -28,9 +28,11 @@
 #include <gtkmm/alignment.h>
 #include <gtkmm/box.h>
 #include <gtkmm/comboboxtext.h>
+#include <gtkmm/frame.h>
 #include <gtkmm/label.h>
 #include <gtkmm/scale.h>
 #include <gtkmm/spinbutton.h>
+#include <gtkmm/textview.h>
 #include <gtkmm/tooltips.h>
 
 class LabelWidget {
@@ -247,11 +249,22 @@ public:
 class StringEntry : public LabelWidget {
 private:
     Gtk::Entry entry;
-    gig::String* ptr;
-    void value_changed();
 public:
     StringEntry(const char* labelText);
-    void set_ptr(gig::String* ptr);
+    gig::String get_value() const { return entry.get_text(); }
+    void set_value(gig::String value) { entry.set_text(value); }
+    void set_width_chars(int n_chars) { entry.set_width_chars(n_chars); }
+};
+
+class StringEntryMultiLine : public LabelWidget {
+private:
+    Gtk::TextView text_view;
+    Glib::RefPtr<Gtk::TextBuffer> text_buffer;
+    Gtk::Frame frame;
+public:
+    StringEntryMultiLine(const char* labelText);
+    gig::String get_value() const;
+    void set_value(gig::String value);
 };
 
 

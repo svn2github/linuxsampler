@@ -314,21 +314,29 @@ BoolEntry::BoolEntry(const char* labelText) :
 StringEntry::StringEntry(const char* labelText) :
     LabelWidget(labelText, entry)
 {
-    entry.signal_changed().connect(
-        sigc::mem_fun(*this, &StringEntry::value_changed));
+    entry.signal_changed().connect(sig_changed.make_slot());
 }
 
-void StringEntry::value_changed()
+StringEntryMultiLine::StringEntryMultiLine(const char* labelText) :
+    LabelWidget(labelText, frame)
 {
-    if (ptr) {
-        *ptr = entry.get_text();
-        sig_changed();
-    }
+    text_buffer = text_view.get_buffer();
+    frame.set_shadow_type(Gtk::SHADOW_IN);
+    frame.add(text_view);
+    text_buffer->signal_changed().connect(sig_changed.make_slot());
 }
 
-void StringEntry::set_ptr(gig::String* ptr)
+gig::String StringEntryMultiLine::get_value() const
 {
-    this->ptr = 0;
-    entry.set_text(*ptr);
-    this->ptr = ptr;
+    Glib::ustring value = text_buffer->get_text();
+    for (int i = 0 ; (i = value.find("\x0a", i)) >= 0 ; i += 2)
+        value.replace(i, 1, "\x0d\x0a");
+    return value;
+}
+
+void StringEntryMultiLine::set_value(gig::String value)
+{
+    for (int i = 0 ; (i = value.find("\x0d\x0a", i, 2)) >= 0 ; i++)
+        value.replace(i, 2, "\x0a");
+    text_buffer->set_text(value);
 }
