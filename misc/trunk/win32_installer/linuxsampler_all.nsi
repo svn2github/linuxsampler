@@ -166,6 +166,7 @@ Section "QSampler 0.2.1" SecQSampler
   File QtCore4.dll
   File QtGui4.dll
   File mingwm10.dll
+  File qsampler.ico
 SectionEnd
 
 Section "gigedit 0.1.1" Secgigedit
@@ -216,7 +217,7 @@ Section "Start Menu Shortcuts" SecShortcuts
   CreateShortCut '$SMPROGRAMS\LinuxSampler\JSampler Fantasia 0.8a (frontend).lnk' 'javaw' '-jar "$INSTDIR\Fantasia-0.8a.jar"' '$INSTDIR\jsampler.ico' 0
   
   StrCmp $installingQSampler '1' 0 +2
-  CreateShortCut "$SMPROGRAMS\LinuxSampler\QSampler 0.2.1 (frontend).lnk" "$INSTDIR\qsampler.exe" "" "$INSTDIR\qsampler.exe" 0
+  CreateShortCut "$SMPROGRAMS\LinuxSampler\QSampler 0.2.1 (frontend).lnk" "$INSTDIR\qsampler.exe" "" "$INSTDIR\qsampler.ico" 0
   
   StrCmp $installinggigedit '1' 0 +2
   CreateShortCut "$SMPROGRAMS\LinuxSampler\gigedit 0.1.1 (stand alone).lnk" "$INSTDIR\gigedit.exe" "" "$INSTDIR\gigedit.exe" 0
