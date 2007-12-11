@@ -249,7 +249,55 @@ with LinuxSampler via TCP, so there is no linker dependency between them
 either. JSampler requires jlscp though. You have to compile and install
 libgig before being able to compile and use gigedit.</p>
 
-      <h2>Source Packages (Stable)</h2>
+      <h2>Binary Packages</h2>
+      <p class="default">
+        We currently provide pre-compiled binaries for the following operating systems:
+      </p>
+      <table class="decorated">
+        <thead>
+          <tr>
+            <td class="decorated_header">Operating System</td>
+            <td class="decorated_header">Description</td>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="decorated">
+              <a href="http://download.linuxsampler.org/packages/debian/">
+                <img src="gfx/logos/debian.png">Debian
+              </a>
+            </td>
+            <td class="decorated"> Individual Debian (.deb) binary package for each software component, compiled for x86 (Debian <i>stable</i>, a.k.a "Etch"). </td>
+          </tr>
+          <tr>
+            <td class="decorated">
+              <a href="http://download.linuxsampler.org/packages/gentoo/">
+                <img src="gfx/logos/gentoo.png">Gentoo
+              </a>
+            </td>
+            <td class="decorated"> Bleeding edge Gentoo ebuild for each software component, which can be used to conveniently emerge the latest versions directly from CVS. </td>
+          </tr>
+          <tr>
+            <td class="decorated">
+              <a href="http://download.linuxsampler.org/packages/rpms/">
+                <img src="gfx/logos/suse.png">Suse
+              </a>
+            </td>
+            <td class="decorated"> Individual RPM package for each software component, compiled for i586. </td>
+          </tr>
+          <tr>
+            <td class="decorated">
+              <a href="http://download.linuxsampler.org/packages/win32/linuxsampler_20071207_setup.exe">
+                <img src="gfx/logos/windows.png">Windows
+              </a>
+            </td>
+            <td class="decorated"> Self-extracting all-in-one installer for the latest official releases of all software components. Download, execute, enjoy!</td>
+          </tr>
+        </tbody>
+      </table>
+      <p class="default">
+        Additionally there are the following platform independent packages (note: "Fantasia" is already included with the Windows installer):
+      </p>
       <table class="decorated">
         <thead>
           <tr>
@@ -260,57 +308,28 @@ libgig before being able to compile and use gigedit.</p>
         <tbody>
           <tr>
             <td class="decorated">
-              <a name="libgig"></a>
-              <a
- href="http://download.linuxsampler.org/packages/libgig-3.1.1.tar.bz2">
-libgig-3.1.1.tar.bz2 </a> </td>
-            <td class="decorated"> Gigasampler file access library (C++) </td>
+              <a href="http://downloads.sourceforge.net/jsampler/Fantasia-0.8a.jar">
+                <img src="gfx/logos/java.png">Fantasia-0.8a.jar
+              </a>
+            </td>
+            <td class="decorated"> a frontend to LinuxSampler, modern skin-based distribution </td>
           </tr>
           <tr>
             <td class="decorated">
-              <a name="liblscp"></a>
-              <a
- href="http://download.linuxsampler.org/packages/liblscp-0.5.3.tar.gz">
-liblscp-0.5.3.tar.gz </a> </td>
-            <td class="decorated"> LinuxSampler Control Protocol (LSCP) wrapper library </td>
+              <a href="http://downloads.sourceforge.net/jsampler/JS_Classic-0.8a.jar">
+                <img src="gfx/logos/java.png">JS_Classic-0.8a.jar
+              </a>
+            </td>
+            <td class="decorated"> a frontend to LinuxSampler, classic distribution </td>
           </tr>
-          <tr>
-            <td class="decorated">
-              <a name="linuxsampler"></a>
-              <a
- href="http://download.linuxsampler.org/packages/linuxsampler-0.4.0.tar.bz2">
-linuxsampler-0.4.0.tar.bz2 </a> </td>
-            <td class="decorated"> sampler engine / backend </td>
-          </tr>
-          <tr>
-            <td class="decorated">
-              <a name="qsampler"></a>
-              <a
- href="http://download.linuxsampler.org/packages/qsampler-0.1.4.tar.gz">
-qsampler-0.1.4.tar.gz </a> </td>
-            <td class="decorated"> graphical frontend to LinuxSampler </td>
-          </tr>
-          <tr>
-            <td class="decorated">
-              <a name="jlscp"></a>
-              <a
- href="http://downloads.sourceforge.net/jlscp/jlscp-0.5a.tar.bz2">
-jlscp-0.5a.tar.bz2 </a> </td>
-            <td class="decorated"> a java LinuxSampler control protocol API </td>
-          </tr>
-          <tr>
-            <td class="decorated">
-              <a name="jsampler"></a>
-              <a
- href="http://downloads.sourceforge.net/jsampler/JSampler-0.6a.tar.bz2">
-JSampler-0.6a.tar.bz2 </a> </td>
-            <td class="decorated"> a java frontend to LinuxSampler </td>
-          </tr>
-          <tr>
         </tbody>
       </table>
+      <br>
 
-      <h2>Source Packages (Testing)</h2>
+      <h2>Source Packages</h2>
+      <p class="default">
+        Source code packages of the latest official releases:
+      </p>
       <table class="decorated">
         <thead>
           <tr>
@@ -362,21 +381,10 @@ JSampler-0.8a.tar.bz2 </a> </td>
  href="http://download.linuxsampler.org/packages/gigedit-0.1.1.tar.gz">
 gigedit-0.1.1.tar.gz </a> </td>
             <td class="decorated"> an instrument editor for gig files </td>
-          </tr>
         </tbody>
       </table>
+      <br>
 
-      <h2>Binary Packages</h2>
-      <p class="default"> There are currently <a
- href="http://download.linuxsampler.org/packages/debian/">Debian
-packages</a> and <a
- href="http://download.linuxsampler.org/packages/rpms/">RPM packages</a>,
-bleeding edge <a href="http://download.linuxsampler.org/packages/gentoo/">Gentoo ebuilds</a>,
-platform-independent Java packages
-(<a href="http://downloads.sourceforge.net/jsampler/Fantasia-0.8a.jar">Fantasia 0.8a</a>,
- <a href="http://downloads.sourceforge.net/jsampler/JS_Classic-0.8a.jar">JS Classic 0.8a</a>)
-and finally also <a href="http://download.linuxsampler.org/packages/win32/">Windows binaries</a>
-for all our components.</p>
       <a name="cvs"></a><h2>CVS</h2>
       <p class="default"> This project's CVS repository can be checked
 out through anonymous (pserver) CVS with the following instruction set.
