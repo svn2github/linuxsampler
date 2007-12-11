@@ -145,6 +145,7 @@
 				4.&nbsp;Setup<br>
 				&nbsp;&nbsp;&nbsp;&nbsp;4.1&nbsp;<a href="#examples_lscp">Are there example LSCP script files somewhere?</a><br>
 				&nbsp;&nbsp;&nbsp;&nbsp;4.2&nbsp;<a href="#dropouts">I get dropouts (click sounds, noise), what can I do about it?</a><br>
+				&nbsp;&nbsp;&nbsp;&nbsp;4.3&nbsp;<a href="#runtime_error">LinuxSampler aborts at runtime with ...</a><br>
 				<br>
 			</div>
 
@@ -413,6 +414,34 @@ make</pre>
 				LinuxSampler with root priviliges. As a rule of thumb: if you don't get warnings like "cannot
 				mlockall() memory" on the console, you are safe to run it as ordinary user as well.
 			</p>
+
+			<a name="runtime_error"></a>
+			<h3>LinuxSampler aborts at runtime with ... </h3>
+
+			<p class="default">
+				&bull;&nbsp;&nbsp;&nbsp;"<code>gig::Engine error: Failed to
+				load instrument, cause: Unknown exception while trying to
+				parse gig file.</code>"<br>
+				<br>
+				Usually LS gives you a meaningful error message in case it
+				failed to load an instrument. However there might be rare
+				cases where LS cannot resolve the reason and you get an
+				error message like above. In this case make sure security /
+				user limits aren't set too low. You can list your current
+				limits with:
+			</p>
+			<pre class="code">ulimit -a</pre>
+			<p class="default">
+				Usually most of those settings are set to "unlimited" on
+				most boxes. If this is not the case on yours, make sure that
+				at least the limits for "max locked memory", "virtual
+				memory" and "data seg size" are sufficiently high enough.
+				The exact value depends on the instruments you want to load.
+				If your security policy allows it, you could simply set
+				those limits to "unlimited" (see also config file
+				/etc/security/limits.conf and
+				<a href="https://bugs.linuxsampler.org/cgi-bin/show_bug.cgi?id=41">bug report #41</a>).
+            </p>
 
 	  	</div>
 	  	</td></tr></table>
