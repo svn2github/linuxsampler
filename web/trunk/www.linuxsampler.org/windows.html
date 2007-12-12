@@ -151,7 +151,8 @@ This will create a new sampler channel.<br>
 this opens a dialog which allows you to select an instrument to be
 loaded in the sampler channel.<br>
 (For information on how to use orchestras <a
- href="http://www.linuxsampler.org/jsampler/manual/html/jsampler.html#USING_ORCHESTRAS">click here</a>)<br>
+ href="http://www.linuxsampler.org/jsampler/manual/html/jsampler.html#USING_ORCHESTRAS">click
+here</a>)<br>
 On the row&nbsp; "Select instrument from file" click on the orange icon
 located on the right side.<br>
 This opens a file dialog which allows you to select a sample to be
@@ -191,6 +192,45 @@ This will automatically set up the MIDI devices and audio devices,
 create the sampler channels<br>
 and load all the samples that were loaded.<br>
 <br>
+<span style="font-weight: bold;">Installation Troubleshooting: </span><br>
+it could happen that some previous installation of the Gtk+ , gtkmm
+GUI&nbsp; DLLs even after<br>
+deinstallation leave some stale keys in the windows registry which
+could fool the installer into<br>
+believing that the needed DLLs are already installed therefore skipping
+its installation which will<br>
+cause the sampler not being able to start due to the missing DLLs.<br>
+We recommend in this case to install gtk+ and gtkmm manually. The links
+to the installers<br>
+are given below in the Manual Installation of Helper Utilities. Just
+install them both and then LinuxSampler should work correctly.<br>
+<br>
+<span style="font-weight: bold;">Manual Installation of Helper
+Utilities: (useful for boxes not connected on the Internet)<br>
+</span><br>
+The LinuxSampler installer needs 3 external components in order to work:<br>
+gtk, gtk++ are needed for the gigedit sample editor<br>
+the Java Runtime Enviroment, needed for the JSampler GUI<br>
+<br>
+If you want to install them manually (for example because you want to
+install LinuxSampler on a box not connected to the internet)<br>
+get the files here:<br>
+<br>
+<span style="font-weight: bold;">Gtk+</span>:&nbsp; <a
+ href="http://downloads.sourceforge.net/gladewin32/gtk-2.10.11-win32-1.exe?modtime=1175123376&amp;big_mirror=0">http://downloads.sourceforge.net/gladewin32/gtk-2.10.11-win32-1.exe?modtime=1175123376&amp;big_mirror=0</a><br>
+<span style="font-weight: bold;">gtkmm</span>: <a
+ href="http://ftp.gnome.org/pub/gnome/binaries/win32/gtkmm/2.10/gtkmm-win32-runtime-2.10.11-1.exe">http://ftp.gnome.org/pub/gnome/binaries/win32/gtkmm/2.10/gtkmm-win32-runtime-2.10.11-1.exe</a><br>
+<br>
+<span style="font-weight: bold;">Java Runtime Enviroment</span>: <a
+ href="http://www.java.com/getjava/">http://www.java.com/getjava/<br>
+</a><br>
+So if you want to install LinuxSampler on a machine that does not have
+a connection to the internet download&nbsp; the<br>
+gtk+,gtkmm and the java installers, put them on the target machine and
+install everything before installing LinuxSampler.<br>
+<br>
+<br>
+<br>
 <span style="font-weight: bold;">Bugs and Problems: <br>
 <small><span style="font-weight: bold;"></span></small></span>since the
 Windows port is very young there could be several bugs which we hope to
@@ -203,9 +243,10 @@ some bugs and problems I discovered:<br>
 channels<br>
 - if you overload the sampler (CPU overload or disk overload) it
 produces noises<br>
-- then editing an instrument using gigedit<br>
-<br>
-<br>
+- then editing an instrument using gigedit, after saving it, it could
+happen that LinuxSampler does not<br>
+&nbsp; accept commands from the GUI anymore. if this happens close the
+GUI and the LinuxSampler console window and restart both.<br>
 <br>
 </body>
 </html>
