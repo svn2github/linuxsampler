@@ -73,6 +73,8 @@ but on a 1GB+ RAM box the difference should be negligible.
 <a name="requirements"></a>
 <h3>2.&nbsp; Requirements</h3>
 <ul>
+  <li>Intel Pentium4 or recent AMD processor (use
+    <a href="#old_cpu_workaround">this workaround for older processors</a>)
   <li>Windows 2000, ME, XP or Vista</li>
   <li><a href="http://www.gtk.org/">GTK+</a> (<a href="http://downloads.sourceforge.net/gladewin32/gtk-2.10.11-win32-1.exe?modtime=1175123376&big_mirror=0">version 2.10.11</a>)</li>
   <li><a href="http://www.gtkmm.org/">gtkmm</a> (<a href="http://ftp.gnome.org/pub/gnome/binaries/win32/gtkmm/2.10/gtkmm-win32-runtime-2.10.11-1.exe">version 2.10.11</a>)</li>
@@ -236,16 +238,61 @@ loaded by you in the saved sampler session.
 
 <a name="houston"></a>
 <h3>5.&nbsp; Installation Troubleshooting</h3>
-It could happen that due to previous installations of Gtk+ and gtkmm DLLs
-even after deinstallation leave some stale keys in the windows registry which
-could fool the installer into
-believing that the needed DLLs are already installed therefore skipping
-its installation which will
-cause the sampler not being able to start due to the missing DLLs.
-We recommend in this case to install gtk+ and gtkmm manually as described
-above in "<a href="#install_wo_inet">Installation without Internet</a>".
-Just install those mentioned Gtk+ and gtkmm versions and then LinuxSampler
-should work correctly.
+<ul>
+  <li>
+    <div style="background-color: #FFF2F2;">
+      <u>Problem:</u> The LinuxSampler backend application
+      (<i>linuxsampler.exe</i>) fails to start with an error message that
+      claims that a DLL file is missing (e.g. <i>libatkmm-1.6-1.dll</i>)
+    </div>
+    <div style="background-color: #F2FFF2;">
+      <u>Reason / Solution:</u>
+      It could happen that due to previous installations of Gtk+ and gtkmm
+      DLLs even after deinstallation leave some stale keys in the windows
+      registry which could fool the installer into believing that the needed
+      DLLs are already installed therefore skipping its installation which
+      will cause the sampler not being able to start due to the missing
+      DLLs. We recommend in this case to install gtk+ and gtkmm manually as
+      described above in "<a href="#install_wo_inet">Installation without
+      Internet</a>". Just install those mentioned Gtk+ and gtkmm versions
+      and then LinuxSampler should work correctly.
+    </div>
+  </li>
+  <li>
+    <div style="background-color: #FFF2F2;">
+      <u>Problem:</u> The LinuxSampler backend application
+      (<i>linuxsampler.exe</i>) fails to start with the error message
+      "<i>The application failed to initialize properly (0xc000001d). Click
+      on OK to terminate the application.</i>"
+    </div>
+    <div style="background-color: #F2FFF2;">
+      <u>Reason / Solution:</u><a name="old_cpu_workaround"></a>
+      This first Windows release of LinuxSampler requires at least an Intel
+      Pentium4 processor or a recent AMD processor. If you have an older
+      processor and get the error message from above, you can use the
+      following workaround for now:
+      <ol>
+        <li>Download and extract
+          <a href="http://download.linuxsampler.org/dev/win32_probs/ls686_20071207.zip">
+            these replacement binaries.
+          </a>
+        </li>
+        <li>Copy the 3 binaries manually in your LinuxSampler installation
+          directory (default installation directory:
+          "C:\Program Files\LinuxSampler"), that is overwrite the existing
+          binaries in the LS installation directory with the 3 ones from the
+          zip file.
+        </li>
+      </ol>
+      Use this workaround only if you got the mentioned error message,
+      because the replacement binaries will otherwise decrease runtime
+      efficiency! This is of course just a temporary workaround. We'll
+      address this issue with the next release of LinuxSampler (see also
+      <a href="https://bugs.linuxsampler.org/cgi-bin/show_bug.cgi?id=67">
+      bug report #67</a>).
+    </div>
+  </li>
+</ul>
 
 <a name="docs"></a>
 <h3>6.&nbsp; Detailed Documentation</h3>
