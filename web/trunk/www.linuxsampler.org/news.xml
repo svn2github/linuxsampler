@@ -1,5 +1,15 @@
 <?xml version='1.0' ?>
 <news>
+  <entry date="2007-12-26">
+    You tried out the young Windows version of LinuxSampler and encountered
+    problems? Check out the
+    <link ref="http://linuxsampler.org/windows.html#houston">Trouble
+    Shooting Section</link> of the LinuxSampler Windows HOWTO. It still
+    doesn't solve your problem? You can ask for help on our
+    <link ref="http://linuxsampler.org/windows.html#houston">Mailing List
+    </link>. If you found bugs, please report them to our
+    <link ref="http://bugs.linuxsampler.org">Bug Tracking System</link>.
+  </entry>
   <entry date="2007-12-07">
     Another strike:
     <list>
