@@ -250,22 +250,23 @@ namespace LinuxSampler {
 
     optional<int> AudioOutputDeviceAlsa::ParameterChannels::RangeMaxAsInt(std::map<String,String> Parameters) {
         uint channels = 100;
-        if (!Parameters.count("CARD")) return channels;
+        if (!Parameters.count("CARD")) return optional<int>::nothing;
 
         // obtain information from given sound card
         String pcm_name       = "hw:" + Parameters["CARD"];
         snd_pcm_t* pcm_handle = NULL;
-        if (snd_pcm_open(&pcm_handle, pcm_name.c_str(), SND_PCM_STREAM_PLAYBACK, SND_PCM_NONBLOCK) < 0) return channels;
+        if (snd_pcm_open(&pcm_handle, pcm_name.c_str(), SND_PCM_STREAM_PLAYBACK, SND_PCM_NONBLOCK) < 0)
+            return optional<int>::nothing;
         snd_pcm_hw_params_t* hwparams;
         snd_pcm_hw_params_alloca(&hwparams);
         if (snd_pcm_hw_params_any(pcm_handle, hwparams) < 0) {
             snd_pcm_close(pcm_handle);
-            return channels;
+            return optional<int>::nothing;
         }
 
         if (snd_pcm_hw_params_get_channels_max(hwparams, &channels) < 0) {
             snd_pcm_close(pcm_handle);
-            return channels;
+            return optional<int>::nothing;
         }
         snd_pcm_close(pcm_handle);
         return channels;
@@ -735,7 +736,7 @@ namespace LinuxSampler {
     }
 
     String AudioOutputDeviceAlsa::Version() {
-       String s = "$Revision: 1.24 $";
+       String s = "$Revision: 1.25 $";
        return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
 

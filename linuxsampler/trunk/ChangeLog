@@ -1,3 +1,9 @@
+Version CVS HEAD (?)
+
+  * audio driver:
+    - removed the nonsense audio channel constraint (which was hard coded to
+      max. 100 audio channels) for most audio drivers
+
 Version 0.5.1 (6 December 2007)
 
   * packaging changes:
