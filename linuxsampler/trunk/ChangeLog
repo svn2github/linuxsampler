@@ -1,5 +1,10 @@
 Version CVS HEAD (?)
 
+  * general changes:
+    - bugfix: on some POSIX systems instrument editor plugins refused to
+      load as we used a non-portable Linux specific struct field
+      (fixes bug #70, patch by Ronald Baljeu)
+
   * audio driver:
     - removed the nonsense audio channel constraint (which was hard coded to
       max. 100 audio channels) for most audio drivers

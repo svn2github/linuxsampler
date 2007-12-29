@@ -28,6 +28,9 @@
 #include <dlfcn.h>
 #include <errno.h>
 #include <dirent.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
 #endif
 #include <string.h>
 
@@ -185,16 +188,18 @@ namespace LinuxSampler {
                 return;
             }
             for (dirent* pEntry = readdir(hDir); pEntry; pEntry = readdir(hDir)) {
+                // dir entry name as full qualified path
+                const String sPath = CONFIG_PLUGIN_DIR + ("/" + String(pEntry->d_name));
                 // skip entries that are not regular files
-                if (pEntry->d_type != DT_REG) continue;
-                String sPath = pEntry->d_name;
+                struct stat entry_stat;
+                if (lstat(sPath.c_str(), &entry_stat) != 0 ||
+                   (entry_stat.st_mode & S_IFMT) != S_IFREG)
+                   continue;
                 // skip files that are not .so files
-                if (
+                if (sPath.length() < 3 ||
                     sPath.substr(sPath.length() - 3) != ".so" &&
                     sPath.find(".so.") == String::npos
                 ) continue;
-                // make it a full qualified path
-                sPath = CONFIG_PLUGIN_DIR + ("/" + sPath);
                 // load the DLL (the plugins should register themselfes automatically)
                 void* pDLL = dlopen(sPath.c_str(), RTLD_NOW);
                 if (pDLL) LoadedDLLs.push_back(pDLL);

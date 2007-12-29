@@ -1,5 +1,5 @@
 Benno Senoner <benno@gardena.net> originally wrote the proof-of-concept code
-"Evo". Maybe we can get him to contribute again one day. ;-)
+"Evo" and ported LinuxSampler to the Windows platform.
 
 Christian Schoenebeck <cuse@users.sourceforge.net> was and is currently the
 main author of LinuxSampler.
@@ -40,3 +40,4 @@ people:
     Ebrahim Mayat
     Juan Linietsky
     Till Wimmer
+    Ronald Baljeu
