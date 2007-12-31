@@ -61,6 +61,7 @@ namespace LinuxSampler {
     REGISTER_AUDIO_OUTPUT_DRIVER(AudioOutputDeviceJack);
     /* Common parameters for now they'll have to be registered here. */
     REGISTER_AUDIO_OUTPUT_DRIVER_PARAMETER(AudioOutputDeviceJack, ParameterActive);
+    REGISTER_AUDIO_OUTPUT_DRIVER_PARAMETER(AudioOutputDeviceJack, ParameterSampleRate);
     REGISTER_AUDIO_OUTPUT_DRIVER_PARAMETER(AudioOutputDeviceJack, ParameterChannels);
     /* Driver specific parameters */
     REGISTER_AUDIO_OUTPUT_DRIVER_PARAMETER(AudioOutputDeviceJack, ParameterName);

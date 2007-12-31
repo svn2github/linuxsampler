@@ -10,8 +10,10 @@ Version CVS HEAD (?)
   * audio driver:
     - removed the nonsense audio channel constraint (which was hard coded to
       max. 100 audio channels) for most audio drivers
+    - JACK audio driver did not offer a device parameter "SAMPLERATE" as
+      opposed to the LSCP specs
 
-  * instruments database
+  * instruments database:
     - avoid time consuming samples scanning when adding instruments
       to the instruments database
 
