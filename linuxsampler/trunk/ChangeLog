@@ -12,6 +12,8 @@ Version CVS HEAD (?)
       max. 100 audio channels) for most audio drivers
     - JACK audio driver did not offer a device parameter "SAMPLERATE" as
       opposed to the LSCP specs
+    - bugfix: the SAMPLERATE parameter of some drivers (e.g. JACK)
+      reflected the wrong value
 
   * instruments database:
     - avoid time consuming samples scanning when adding instruments

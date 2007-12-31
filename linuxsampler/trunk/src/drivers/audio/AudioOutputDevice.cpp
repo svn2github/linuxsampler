@@ -110,6 +110,11 @@ namespace LinuxSampler {
         return std::vector<int>();
     }
 
+    int AudioOutputDevice::ParameterSampleRate::ValueAsInt() {
+        return (pDevice) ? (int) ((AudioOutputDevice*)pDevice)->SampleRate()
+                         : DeviceCreationParameterInt::ValueAsInt();
+    }
+
     void AudioOutputDevice::ParameterSampleRate::OnSetValue(int i) throw (Exception) {
         /* cannot happen, as parameter is fix */
     }
