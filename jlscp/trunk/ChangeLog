@@ -1,3 +1,8 @@
+CVS HEAD
+  * Bug fixes:
+    - null parameters and parameters with null names are now not sent
+      to LinuxSampler
+
 jlscp v0.7a: 2007-12-06
   * Added support for monitoring the total number of active disk streams
 

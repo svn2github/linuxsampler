@@ -1454,7 +1454,7 @@ public class Client {
 		args.append(' ').append(param);
 		
 		for(Parameter p : deplist) {
-			if(p.getValue() == null) continue;
+			if(p == null || p.getName() == null || p.getValue() == null) continue;
 			args.append(' ').append(p.getName()).append('=').append(p.getStringValue());
 		}
 		
@@ -1518,7 +1518,7 @@ public class Client {
 		StringBuffer args = new StringBuffer(aoDriver);
 		
 		for(Parameter p : paramList) {
-			if(p.getValue() == null) continue;
+			if(p == null || p.getName() == null || p.getValue() == null) continue;
 			args.append(' ').append(p.getName()).append('=').append(p.getStringValue());
 		}
 		
@@ -2040,7 +2040,7 @@ public class Client {
 		args.append(' ').append(param);
 		
 		for(Parameter p : deplist) {
-			if(p.getValue() == null) continue;
+			if(p == null || p.getName() == null || p.getValue() == null) continue;
 			args.append(' ').append(p.getName()).append('=').append(p.getStringValue());
 		}
 		
@@ -2105,7 +2105,7 @@ public class Client {
 		StringBuffer args = new StringBuffer(miDriver);
 		
 		for(Parameter p : paramList) {
-			if(p.getValue() == null) continue;
+			if(p == null || p.getName() == null || p.getValue() == null) continue;
 			args.append(' ').append(p.getName()).append('=').append(p.getStringValue());
 		}
 		
