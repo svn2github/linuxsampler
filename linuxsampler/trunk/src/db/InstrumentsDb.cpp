@@ -1168,6 +1168,7 @@ namespace LinuxSampler {
         try {
             riff = new RIFF::File(File);
             gig::File* gig = new gig::File(riff);
+            gig->SetAutoLoad(false); // avoid time consuming samples scanning
 
             std::stringstream sql;
             sql << "INSERT INTO instruments (dir_id,instr_name,instr_file,";
