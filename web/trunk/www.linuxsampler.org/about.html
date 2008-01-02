@@ -122,34 +122,175 @@
 			</td><td valign=top width="100%">
 			<div id="contents">
 
-			<h2>General</h2>
+			<h2>The Project</h2>
 			<p class="default">
-  			LinuxSampler is a work in progress. The goal is to produce a free, open source pure software audio sampler
-  			with professional grade features, comparable to both hardware and commercial Windows/Mac software samplers
-			and to introduce new features not yet available by any other sampler in the world.<br>
+			The LinuxSampler proect was founded / established / formed with the
+			goal to produce a free, open source pure software audio sampler
+			with professional grade features, comparable to both hardware and
+			commercial Windows/Mac software samplers
+			and to introduce new features not yet available by any other
+			sampler in the world.
+			</p>
+
+			<h2>The Engine</h2>
+			<p class="default">
+			<u><b>LinuxSampler</b></u> was designed very modular, especially
+			(and in contrast to other samplers) it was decoupled from any user
+			interface. LinuxSampler itself usually runs as own process in the
+			background of the computer and usually does not show up anything on
+			the screen, or at most it can be launched to show status
+			informations and debug messages in a console window:<br>
 			<br>
-			LinuxSampler was designed as a sampler backend, decoupled from any user interface. It provides a native C++
-			<a href="http://en.wikipedia.org/wiki/Application_programming_interface">API</a> as well as a network interface
-			using an ASCII based protocol called <a href="http://www.linuxsampler.org/api/draft-linuxsampler-protocol.html">LSCP</a>
-			for controlling the sampler and managing sampler sessions. But don't be afraid, with QSampler (based on the
-			cross-platform C++ GUI library Qt) and JSampler (Java based, thus platform independent) we already have two convenient
-			frontends for LinuxSampler and due to the
-			decoupled design you can even control the sampler with the GUI frontend(s) from another computer, probably even running
-			another OS like Windows or OS X. Beside our own custom network control layer we planned to add existing ones as well
-			(e.g. <a href="http://www.cnmat.berkeley.edu/OpenSoundControl/">OSC</a>). With the planned SMP and cluster support
-			LinuxSampler might become a very interesting tool for high-end studios and concerts in future.<br>
+			<a href="screenshots/ls_0_5_1_console.png">
+				<img src="screenshots/ls_0_5_1_console_preview.png">
+			</a><br>
 			<br>
-			It is planned to support all common sampler formats in LinuxSampler, but at the moment we chose to concentrate on the
-			Gigasampler format, because when we started this project, the Gigasampler format was (in our opinion) the most popular
-			and "best" sampler format in regards of quality and power, especially
-			for the synthesis of natural instruments like pianos, brass and bowed instruments. But we already made good advance in
-			implementing this format, so we are optimistic to start with adding other formats soon. Beside that we also planned to
-			design our own, sophisticated sampler format to introduce a more powerful and more flexible sampler format compared to
-			any sampler format currently available in the world. Be encouraged to share your ideas about such a new format with us!<br>
+			That means LinuxSampler itself is the "engine" of the sampler, it
+			is the software component which performs all the heavy and time
+			critical computational tasks of handling MIDI events, calculating
+			the audio data and sending the final audio data to your sound
+			card(s). We call LinuxSampler the <i>sampler backend</i>.
+			</p>
+
+			<h2>The Face(s)</h2>
+			<p class="default">
+			Obviously you need some way to control the sampler. That's where a
+			2nd application comes into game, which we call a
+			<i>sampler frontend</i> application. A frontend is (usually) a
+			graphical application, visible on the screen, providing the user
+			a set of e.g. menus, buttons, sliders, dials, etc. to allow the
+			user to control the sampler in a convenient way. It merely sends
+			the user requests to the sampler engine (LinuxSampler) and in turn
+			shows the engine's status informations on the screen. A frontend
+			does not perform any signal processing tasks, so you can see it as
+			a "face" of the sampler.<br>
 			<br>
-			You might also want to read <a href="faq.html#aga">this FAQ</a> about explanations of the various subprojects.<br>
+			For luxury we already provide you two different frontends / "faces"
+			for LinuxSampler:
+			</p>
+			<ul>
+				<li>
+				<u><b>QSampler</b></u> is a light-weight frontend written in
+				C++, using straightforward native graphical controls of the
+				underlying operating system. That way the appearance of
+				QSampler on the screen is very fast and it only consumes very
+				little resources. Due to its utilization of the operating
+				system's common GUI controls, it looks slightly different on
+				every operating system (also dependent of the user's selected
+				theme on his OS):<br>
+				<br>
+				<a href="screenshots/qs_0_2_1_win.jpg">
+					<img src="screenshots/qs_0_2_1_win_preview.jpg">
+				</a>&nbsp;
+				<a href="screenshots/qs_0_2_1_ubuntu.jpg">
+					<img src="screenshots/qs_0_2_1_ubuntu_preview.png">
+				</a><br>
+				<br>
+				</li>
+
+				<li>
+				<u><b>JSampler</b></u> is a full-fledged frontend for
+				LinuxSampler, written in Java and currently comes in two
+				flavors: <b>JSampler "Classic"</b> offers straightforward GUI
+				controls whereas <b>JSampler "Fantasia"</b> provides a modern
+				skin based user interface:<br>
+				<br>
+				<a href="screenshots/fantasia.png"><img src="screenshots/fantasia-preview.png"></a>
+				<br>
+				JSampler supports all features currently available in the
+				sampler engine (LinuxSampler).<br>
+				</li>
+			</ul>
+			<p class="default">
+			It's completely up to you which frontend to use. You could even use
+			both parallel at the same time for the same sampler engine
+			instance, really! ;-)
+			</p>
+
+			<h2>The Format</h2>
+			<p class="default">
+			It is planned to support all common sampler formats in
+			LinuxSampler, but at the moment we chose to concentrate on the
+			Gigasampler format, because when we started this project, the
+			Gigasampler format was (in our opinion) the most popular
+			and "best" sampler format in regards of quality and power,
+			especially	for the synthesis of natural instruments like pianos,
+			brass and bowed instruments. But we already made good advance in
+			implementing this format, so we are optimistic to start with
+			adding other formats soon. Beside that we also planned to
+			design our own, sophisticated sampler format to introduce a more
+			powerful and more flexible sampler format compared to
+			any sampler format currently available in the world. Be encouraged
+			to share your ideas about such a new format with us!
+			</p>
+
+			<h2>The Editor</h2>
+			<p class="default">
+			<u><b>gigedit</b></u> allows you to edit and create instruments
+			for the Gigasampler format, which can be used with LinuxSampler
+			as well as with Tascam's Gigastudio. Following our line of
+			modularity we also made the instrument editors independent
+			applications. Because let's face it: every sampler format is
+			different, so in our opinion it is better to honor the specific
+			features of one format with its own instrument editor application
+			instead of trying to fiddle everything into one single bloated
+			application. So gigedit is our first editor, dedicated to the .gig
+			format:<br>
 			<br>
-			Anyway, there are so many things to do and our hands are limited. So don't hesitate on participating to the project!
+			<a href="screenshots/gigedit_0_0_3.png"><img src="screenshots/gigedit_0_0_3_preview.jpg"></a>
+			<br>
+			You can use gigedit as stand-alone application or in conjunction
+			with LinuxSampler. For the latter case gigedit installs a plugin
+			into the sampler engine, so the engine (and with it the frontends)
+			knows that gigedit actually exists and can handle the .gig format.
+			So even though we decoupled the sampler's components into
+			independent applications, they all work seamlessly together. Just
+			press the "Edit" button on a channel strip of a frontend and
+			gigedit will automatically popup on the screen and you're
+			immediately ready to edit your selected instrument, making all your
+			modifications audible in realtime. Even when editing huge
+			instruments of 1GB or more, tweak the instrument with gigedit and
+			immediately hear it while playing on the keyboard at the same time.
+			And the good thing: even with new sampler formats we're going to
+			add soon (and with it new editors), you don't have to remember
+			which instrument you loaded uses which format. Simply click on
+			"Edit" in a frontend and the sampler engine will choose the right
+			instrument editor application for the respective instrument for
+			you.
+			</p>
+
+			<h2>The Technical Interface</h2>
+			<p class="default">
+			As the components of the sampler are independent applications,
+			there must be a way to let the applications communicate with each
+			other. For this LinuxSampler provides a native C++
+			<a href="http://en.wikipedia.org/wiki/Application_programming_interface">API</a>
+			as well as a network interface using an ASCII based protocol which
+			we call "<a href="http://www.linuxsampler.org/api/draft-linuxsampler-protocol.html" title="LinuxSampler Control Protocol">LSCP</a>"
+			for controlling the sampler engine and managing sampler sessions.
+			Our frontends support that network interface, which also allwos
+			control the sampler engine with the GUI frontend(s) remotely from
+			another computer, probably even running a completely different
+			Operating System.
+			</p>
+
+			<h2>The Community</h2>
+			<p class="default">
+			All applications are under active development. However we all work
+			on this project for fun in our spare time. There are still so many
+			things to do and our hands are limited. So don't hesitate on
+			participating to the project! You don't necessarily need to be a
+			skilled programmer to help the project. Testing the applications,
+			<a href="http://bugs.linuxsampler.org.">reporting bugs</a>, writing
+			documentation, providing artwork, themes for frontends, etc. helps
+			us and all users a lot! Simply subscribe to our
+			<a href="http://lists.sourceforge.net/lists/listinfo/linuxsampler-devel">
+				mailing list
+			</a> and we'll of course take you by the hand in case you want to
+			participate with active source code development. Don't be afraid!
+			You have your own ideas and concepts for making the sampler better?
+			Great, share them with us!<br>
+			<br>
 			</p>
 
 	  	</div>
