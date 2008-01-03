@@ -1,5 +1,16 @@
 <?xml version='1.0' ?>
 <news>
+  <entry date="2008-01-03">
+    Hey Mac Users! We hope to give you a good way to start the new year
+    by announcing that LinuxSampler is now officially
+    available for OS X as well! You find an installer (disk image) of the
+    latest release of LinuxSampler and QSampler for OS X on our
+    <link ref="http://www.linuxsampler.org/downloads.html">downloads site</link>.
+    Please note: gigedit is not yet available for Mac, we still need to do some
+    work on this. Same applies to JSampler unfortunately, because the required
+    Java version 1.6 is not officially available for Mac yet. Have a look
+    at the <link ref="osx.html">OS X HOWTO</link> for an easy start.
+  </entry>
   <entry date="2007-12-26">
     You tried out the young Windows version of LinuxSampler and encountered
     problems? Check out the
