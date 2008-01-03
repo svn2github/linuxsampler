@@ -1,0 +1,179 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+  <meta content="text/html; charset=ISO-8859-1"
+ http-equiv="content-type">
+  <title>LinuxSampler For Mac OS X</title>
+  <link rel="shortcut icon" href="http://download.linuxsampler.org/favicon.ico" type="image/x-icon">
+  <link rel="stylesheet" type="text/css" href="libgig/css/content.css" title="content" media="all">
+</head>
+<body>
+<h2><center>LinuxSampler for Mac OS X &nbsp; <img src="gfx/logos/windows.png"> &nbsp; HOWTO by Toshi Nagata&nbsp;</center></h2>
+<br>
+<center>December&nbsp;18th,&nbsp;2007</center><br>
+<div style="background-color: #F4F4FF; margin: 1em 3em 1em 3em; padding: 1em 1em 1em 2.2em;">
+<a href="#intro">1.&nbsp; Introduction</a><br>
+<a href="#requirements">2.&nbsp; Requirements</a><br>
+<a href="#installation">3.&nbsp; Installation</a><br>
+<a href="#using">4.&nbsp; Using the Applications</a><br>
+<a href="#setup_midi">&nbsp;&nbsp;&nbsp;&nbsp;4.1&nbsp; Setting up MIDI Input</a><br>
+<a href="#setup_audio">&nbsp;&nbsp;&nbsp;&nbsp;4.2&nbsp; Setting up Audio Output</a><br>
+<a href="#load_samples">&nbsp;&nbsp;&nbsp;&nbsp;4.3&nbsp; Loading Samples</a><br>
+<a href="#save_session">&nbsp;&nbsp;&nbsp;&nbsp;4.4&nbsp; Saving a Sampler Session</a><br>
+<a href="#houston">5.&nbsp; Installation Troubleshooting</a><br>
+<a href="#docs">6.&nbsp; Detailed Documentation</a><br>
+<a href="#bugs">7.&nbsp; Bugs, Problems and Feature Requests</a><br>
+<a href="#contact">8.&nbsp; Contact</a><br>
+</div>
+
+<a name="intro"></a>
+<h3>1.&nbsp; Introduction</h3>
+The LinuxSampler development team is happy to announce the release of
+a new version of LinuxSampler of Mac OS X. More information will be added here soon, so check back frequently.<br>
+<br>
+For now the sampler supports the CoreMIDI interface 
+for MIDI input and <A HREF="http://www.jackosx.com">jack</A> for audio out. This means it currently runs only
+as a standalone application. An AU/VST interface will follow at a later stage, along with
+a network module to run multiple sampler slaves distributed on OS/X, Windows or
+Linux machines (Linux provides better performance) all controlled from a
+OS X or Windows box i.e. running the AU / VST sequencer.<br>
+<br>
+LinuxSampler is implemented as a client/server application. This means
+the sampling engine (the server / backend) runs
+independently from the GUI (the client / frontend). Sampling engine and
+client can be run on the same box or on different machines too, connected
+over the network.<br>
+<br>
+The Mac OS X version provides all the features of the Linux version
+since it is built from the same source code base. 
+This means when new features will come out the
+Mac OS X version will usually provide the same feature set as the Linux
+version. This was made possible by the very modular design of both
+low level, operating system functions and flexible audio / MIDI driver
+system.<br>
+<br>
+The Mac OS X version comes as an easy to install DMG file which will
+install all the necessary modules to run both the server ( linuxsampler.exe )
+and the GUI client. For now it installes only the qsampler GUI client
+as Jsampler, the sampler frontend written in JAVA requires Java 1.6 which is not
+available on OS/X yet. Of course you can run JSampler on a Windows or Linux box
+connected over the network to your OS X box or you could try to run it in a windows
+virtual machine. We discourage running a virtual machine along with the sampler
+as both applicationes are very CPU and RAM hungry therefore the performance
+of LinuxSampler will be suboptimal.
+<br>
+Download the DMG and mount it on Finder. You
+will find a single folder "linuxsampler051-mac-20080102". Copy this
+folder to wherever you like (e.g. under /Applications).
+<br>
+The folder contains three items, "bin", "linuxsampler" and
+"qsampler". Double-click on qsampler. The application launches, and you
+will see messages saying that linuxsampler is now running. After a
+while, you will also see that the JackPilot application (installed by
+the JackOSX installer) automatically launches showing the Jack server
+already running.
+
+
+<a name="requirements"></a>
+<h3>2.&nbsp; Requirements</h3>
+<ul>
+  <li>PPC or Intel Mac (an Intel Mac should provide much better performance)
+  <li>Mac OS Tiger or later (Leopard should work too)</li>
+  <li><A HREF="http://www.jackosx.com">JackOSX</A>. Install it before LinuxSampler</li>
+</ul>
+<a name="asio_tip"></a>
+
+
+<a name="installation"></a>
+<h3>3.a&nbsp; Installation</h3>
+Simply download the latest version of the LinuxSampler Mac OS X installer
+from the <a href="http://www.linuxsampler.org/downloads.html">LinuxSampler
+Download Page</a>, and install it as any OS X application.
+
+
+<a name="using"></a>
+<h3>4.&nbsp; Using the Applications</h3>
+Now that we installed everything, let's get wet and start the applications:
+<ol>
+  <li>Start qsampler, the GUI frontend. It should automatically start linuxsampler the backend application</li>
+</ol>
+</div>
+
+<a name="setup_midi"></a>
+<h3>4.1&nbsp; Setting up MIDI Input</h3>
+In qsampler click on the device configuration tab. 
+Click on the MIDI devices icon and then on Create.
+
+<br>
+<br>
+You can create an arbitrary number of MIDI input devices by repeating
+the procedure above.
+Each MIDI device can be routed to arbitrary sampler channels.
+
+<a name="setup_audio"></a>
+<h3>4.2&nbsp; Setting up Audio Output</h3>
+LinuxSampler currently only supports the jack driver model for audio output
+on Mac OS X. 
+Click on AUDIO devices icon and then on Create.
+<br>
+<br>
+
+
+<a name="load_samples"></a>
+<h3>4.3&nbsp; Loading Samples</h3>
+Click on Add Channel. A dialog will appear.
+Select the GIG file you want to load, the instrument within the GIG file.
+Audio device, MIDI device, MIDI port and channel.
+Click OK.
+<a name="houston"></a>
+<h3>5.&nbsp; Installation Troubleshooting</h3>
+
+
+<a name="docs"></a>
+<h3>6.&nbsp; Detailed Documentation</h3>
+You find more detailed documentation about our software  on our official <a href="http://linuxsampler.org/documentation.html">
+LinuxSampler documentation site</a>.
+
+<a name="bugs"></a>
+<h3>7.&nbsp; Bugs, Problems and Feature Requests</h3>
+There could be several bugs in the Mac OS X version of LinuxSampler which we hope to root out soon.
+Please report them using our bug tracking system:<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="http://bugs.linuxsampler.org/">http://bugs.linuxsampler.org/</a><br>
+<br>
+Some bugs and problems we discovered so far:
+<ul>
+<li>The current LinuxSampler for Mac OS X binary distribution does not ship with gigedit yet
+<br>
+Toshi writes: I tried gigedit with X11 and gtk on my Mac. It worked, but the
+installation process was too much complicated for ordinary users (so
+complicated that I cannot remember exactly how I did that myself). We
+still have a long way before gigedit can be part of binary distribution
+for Mac.
+</li>
+  <li>if you overload the sampler (CPU overload or disk overload) it
+  produces noises</li>
+<li>  
+  QSampler crashes when one tries to create a second port of jack. 
+  An error dialog saying the device was not created, after the dialog is dismissed the QSampler crashes.
+</li>
+<li>
+   Another problem in QSampler. It sometimes fails to quit
+gracefully, and I need to do "Force Quit". After force quitting, the
+linuxsampler subprocess is still running and I need to stop it by
+"killall linuxsampler".
+</li>
+
+</ul>
+
+<a name="contact"></a>
+<h3>8.&nbsp; Contact</h3>
+If you have questions or want to help us to improve the sampler,
+subscribe to the <a href="http://www.linuxsampler.org/developers.html">
+LinuxSampler Developer's mailing list</a>. 
+<br><br>
+That's it, enjoy!<br>
+<br>
+
+</body>
+</html>
