@@ -37,6 +37,8 @@ as a standalone application. An AU/VST interface will follow at a later stage, a
 a network module to run multiple sampler slaves distributed on OS/X, Windows or
 Linux machines (Linux provides better performance) all controlled from a
 OS X or Windows box i.e. running the AU / VST sequencer.<br>
+Even though LinuxSampler presently runs only as standalone app,
+thanks to jack you can comfortably route the sampler's audio outs back into your sequencer.
 <br>
 LinuxSampler is implemented as a client/server application. This means
 the sampling engine (the server / backend) runs
@@ -54,15 +56,30 @@ system.<br>
 <br>
 The Mac OS X version comes as an easy to install DMG file which will
 install all the necessary modules to run both the server ( linuxsampler.exe )
-and the GUI client. For now it installes only the qsampler GUI client
-as Jsampler, the sampler frontend written in JAVA requires Java 1.6 which is not
-available on OS/X yet. Of course you can run JSampler on a Windows or Linux box
+and the GUI client. For now it installs only the qsampler GUI client
+as JSampler, the sampler frontend written in Java requires Java 1.6 which is not
+available on OS X yet. Of course you can run JSampler on a Windows or Linux box
 connected over the network to your OS X box or you could try to run it in a windows
 virtual machine. We discourage running a virtual machine along with the sampler
 as both applicationes are very CPU and RAM hungry therefore the performance
 of LinuxSampler will be suboptimal.
-<br>
-Download the DMG and mount it on Finder. You
+
+
+
+<a name="requirements"></a>
+<h3>2.&nbsp; Requirements</h3>
+<ul>
+  <li>PPC or Intel Mac (an Intel Mac should provide much better performance)
+  <li>Mac OS Tiger or later (Leopard should work too)</li>
+  <li><A HREF="http://www.jackosx.com">JackOSX</A>. Install it before LinuxSampler</li>
+</ul>
+
+<a name="installation"></a>
+<h3>3.a&nbsp; Installation</h3>
+Simply download the latest version of the LinuxSampler Mac OS X installer
+from the <a href="http://www.linuxsampler.org/downloads.html">LinuxSampler
+Download Page</a>, <br>
+ and mount it on Finder. You
 will find a single folder "linuxsampler051-mac-20080102". Copy this
 folder to wherever you like (e.g. under /Applications).
 <br>
@@ -74,28 +91,11 @@ the JackOSX installer) automatically launches showing the Jack server
 already running.
 
 
-<a name="requirements"></a>
-<h3>2.&nbsp; Requirements</h3>
-<ul>
-  <li>PPC or Intel Mac (an Intel Mac should provide much better performance)
-  <li>Mac OS Tiger or later (Leopard should work too)</li>
-  <li><A HREF="http://www.jackosx.com">JackOSX</A>. Install it before LinuxSampler</li>
-</ul>
-<a name="asio_tip"></a>
-
-
-<a name="installation"></a>
-<h3>3.a&nbsp; Installation</h3>
-Simply download the latest version of the LinuxSampler Mac OS X installer
-from the <a href="http://www.linuxsampler.org/downloads.html">LinuxSampler
-Download Page</a>, and install it as any OS X application.
-
-
 <a name="using"></a>
 <h3>4.&nbsp; Using the Applications</h3>
 Now that we installed everything, let's get wet and start the applications:
 <ol>
-  <li>Start qsampler, the GUI frontend. It should automatically start linuxsampler the backend application</li>
+  <li>Start QSampler, the GUI frontend. It should automatically start LinuxSampler the backend application</li>
 </ol>
 </div>
 
@@ -122,7 +122,7 @@ Click on AUDIO devices icon and then on Create.
 <a name="load_samples"></a>
 <h3>4.3&nbsp; Loading Samples</h3>
 Click on Add Channel. A dialog will appear.
-Select the GIG file you want to load, the instrument within the GIG file.
+Select the GIG file you want to load, the instrument within the GIG file,
 Audio device, MIDI device, MIDI port and channel.
 Click OK.
 <a name="houston"></a>
