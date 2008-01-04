@@ -186,6 +186,12 @@
 					<img src="screenshots/qs_0_2_1_ubuntu_preview.png">
 				</a><br>
 				<br>
+				Note however, QSampler does not fully support all features of
+				the sampler engine (LinuxSampler) yet. Most notably the
+				engine's instruments database feature is not yet covered by
+				QSampler. But if you don't need that particular feature,
+				you're certainly fine with QSampler as well.<br>
+				<br>
 				</li>
 
 				<li>
@@ -198,13 +204,24 @@
 				<a href="screenshots/fantasia.png"><img src="screenshots/fantasia-preview.png"></a>
 				<br>
 				JSampler supports all features currently available in the
-				sampler engine (LinuxSampler).<br>
+				sampler engine (LinuxSampler). Also note that even though
+				JSampler is written in Java and slightly more hungry
+				regarding resources (compared to QSampler), this usually
+				does not have any impact on the audio rendering performance
+				of the sampler, since the engine runs completely independently
+				and with much higher CPU priority than the frontend(s).<br>
 				</li>
 			</ul>
 			<p class="default">
 			It's completely up to you which frontend to use. You could even use
 			both parallel at the same time for the same sampler engine
-			instance, really! ;-)
+			instance, really! ;-) You're concerned that your sampler frontend
+			might waste precious resources of your computer? No problem, just
+			setup the sampler session for your needs and then quit the
+			frontend application. The sampler engine doesn't care! It continues
+			to do its job. You need to change something? Start the frontend
+			again (or another frontend) and you see what you expect to see: the
+			current setup and state of the running sampler engine.
 			</p>
 
 			<h2>The Format</h2>
@@ -244,8 +261,10 @@
 			into the sampler engine, so the engine (and with it the frontends)
 			knows that gigedit actually exists and can handle the .gig format.
 			So even though we decoupled the sampler's components into
-			independent applications, they all work seamlessly together. Just
-			press the "Edit" button on a channel strip of a frontend and
+			independent applications, they all work seamlessly together.
+			<a href="http://download.linuxsampler.org/doc/gigedit/quickstart/gigedit_quickstart.html#live_editing">
+				Just press the "Edit" button
+			</a> on a channel strip of a frontend and
 			gigedit will automatically popup on the screen and you're
 			immediately ready to edit your selected instrument, making all your
 			modifications audible in realtime. Even when editing huge
@@ -268,10 +287,33 @@
 			as well as a network interface using an ASCII based protocol which
 			we call "<a href="http://www.linuxsampler.org/api/draft-linuxsampler-protocol.html" title="LinuxSampler Control Protocol">LSCP</a>"
 			for controlling the sampler engine and managing sampler sessions.
-			Our frontends support that network interface, which also allwos
+			Our frontends support that network interface, which also allows to
 			control the sampler engine with the GUI frontend(s) remotely from
 			another computer, probably even running a completely different
-			Operating System.
+			Operating System. And compared to other remote control solutions,
+			the frontend won't feel sluggish, as the frontend is running on
+			your local machine.<br>
+			<br>
+			You can also configure your computer to automatically start the
+			sampler engine and loading your prefered sampler session without
+			any frontend, simply by using a <i>LSCP session file</i>. How do
+			you get such a "LSCP session file"? Both frontends write LSCP
+			session files for you when you request them to save your current
+			sampler session. And as those LSCP session files are ordinary
+			human readable text files, you can adjust them with any text
+			editor if you want.
+			</p>
+
+			<h2>The Compatibility</h2>
+			<p class="default">
+			LinuxSampler is available for the most popular operating
+			systems and already supports a variety of audio and MIDI driver
+			systems on each OS. It does not require any special dedicated
+			device drivers from the sound card manufacturers, so you can
+			also use it with cheap consumer cards. Due to its clean design
+			the sampler can be ported to other operating systems and
+			extended for further driver systems with a minimum of effort.
+			So we're prepared for the future!
 			</p>
 
 			<h2>The Community</h2>
