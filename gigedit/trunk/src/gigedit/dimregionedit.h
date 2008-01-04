@@ -1,5 +1,5 @@
 /*                                                         -*- c++ -*-
- * Copyright (C) 2006, 2007 Andreas Persson
+ * Copyright (C) 2006-2008 Andreas Persson
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -148,6 +148,8 @@ protected:
     ChoiceEntry<uint32_t> eSampleLoopType;
     BoolEntry eSampleLoopInfinite;
     NumEntryTemp<uint32_t> eSampleLoopPlayCount;
+    Gtk::Label* lEG2;
+    Gtk::Label* lLFO2;
 
     int rowno;
     int pageno;
@@ -159,7 +161,7 @@ protected:
     void addProp(LabelWidget& labelwidget);
     void addString(const char* labelText, Gtk::Label*& label,
                    Gtk::Entry*& widget);
-    void addHeader(const char* text);
+    Gtk::Label* addHeader(const char* text);
     void nextPage();
 
     void VCFEnabled_toggled();

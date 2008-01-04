@@ -1,5 +1,5 @@
 /*                                                         -*- c++ -*-
- * Copyright (C) 2006, 2007 Andreas Persson
+ * Copyright (C) 2006-2008 Andreas Persson
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -87,7 +87,6 @@ protected:
     bool is_in_resize_zone(double x, double y);
 
     int h;
-    int w;
 };
 
 #endif

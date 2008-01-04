@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006, 2007 Andreas Persson
+ * Copyright (C) 2006-2008 Andreas Persson
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -44,7 +44,6 @@ DimRegionChooser::DimRegionChooser()
     resize.active = false;
     cursor_is_resize = false;
     h = 20;
-    w = 800;
     set_flags(Gtk::CAN_FOCUS);
     add_events(Gdk::BUTTON_PRESS_MASK | Gdk::POINTER_MOTION_MASK |
                Gdk::POINTER_MOTION_HINT_MASK);
@@ -71,6 +70,7 @@ bool DimRegionChooser::on_expose_event(GdkEventExpose* event)
     if (!region) return true;
 
     // This is where we draw on the window
+    int w = get_width();
     Glib::RefPtr<Gdk::Window> window = get_window();
     Glib::RefPtr<Pango::Context> context = get_pango_context();
 
@@ -372,6 +372,7 @@ bool DimRegionChooser::on_button_release_event(GdkEventButton* event)
 
 bool DimRegionChooser::on_button_press_event(GdkEventButton* event)
 {
+    int w = get_width();
     if (region && event->y < nbDimensions * h &&
         event->x >= label_width && event->x < w) {
 
@@ -454,6 +455,7 @@ bool DimRegionChooser::on_motion_notify_event(GdkEventMotion* event)
     window->get_pointer(x, y, state);
 
     if (resize.active) {
+        int w = get_width();
         int k = int((x - label_width) * 128.0 / (w - label_width - 1) + 0.5);
 
         if (k < resize.min) k = resize.min;
@@ -516,6 +518,7 @@ bool DimRegionChooser::on_motion_notify_event(GdkEventMotion* event)
 
 bool DimRegionChooser::is_in_resize_zone(double x, double y)
 {
+    int w = get_width();
     if (region && y < nbDimensions * h && x >= label_width && x < w) {
         int ydim = int(y / h);
         int dim;

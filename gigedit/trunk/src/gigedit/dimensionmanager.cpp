@@ -1,5 +1,5 @@
 /*                                                         -*- c++ -*-
- * Copyright (C) 2006, 2007 Andreas Persson
+ * Copyright (C) 2006-2008 Andreas Persson
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -315,10 +315,10 @@ void DimensionManager::removeDimension() {
             Gtk::TreeModel::Row row = *it;
             gig::dimension_def_t* dim = row[tableModel.m_definition];
             region->DeleteDimension(dim);
-            // remove respective row from table
-            refTableModel->erase(it);
             // let everybody know there was a change
             region_changed_signal.emit(region);
+            // update all GUI elements
+            refreshManager();
         } catch (RIFF::Exception e) {
             // notify that the changes are over (i.e. to avoid dead locks)
             region_changed_signal.emit(region);

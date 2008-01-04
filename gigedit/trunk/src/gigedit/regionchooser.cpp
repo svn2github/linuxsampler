@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006, 2007 Andreas Persson
+ * Copyright (C) 2006-2008 Andreas Persson
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -18,6 +18,7 @@
  */
 
 #include "regionchooser.h"
+#include <algorithm>
 #include <gdkmm/cursor.h>
 #include <gtkmm/stock.h>
 #include <gtkmm/spinbutton.h>
@@ -25,6 +26,33 @@
 #include <math.h>
 
 #include "global.h"
+
+void SortedRegions::update(gig::Instrument* instrument) {
+    // Usually, the regions in a gig file are ordered after their key
+    // range, but there are files where they are not. The
+    // RegionChooser code needs a sorted list of regions.
+    regions.clear();
+    if (instrument) {
+        for (gig::Region *r = instrument->GetFirstRegion() ;
+             r ;
+             r = instrument->GetNextRegion()) {
+            regions.push_back(r);
+        }
+        sort(regions.begin(), regions.end(), *this);
+    }
+}
+
+gig::Region* SortedRegions::first() {
+    region_iterator = regions.begin();
+    return region_iterator == regions.end() ? 0 : *region_iterator;
+}
+
+gig::Region* SortedRegions::next() {
+    region_iterator++;
+    return region_iterator == regions.end() ? 0 : *region_iterator;
+}
+
+
 
 RegionChooser::RegionChooser()
 {
@@ -41,7 +69,6 @@ RegionChooser::RegionChooser()
     move.active = false;
     cursor_is_resize = false;
     h1 = 20;
-    width = 800;
 
     actionGroup = Gtk::ActionGroup::create();
     actionGroup->add(Gtk::Action::create("Properties",
@@ -111,7 +138,7 @@ bool RegionChooser::on_expose_event(GdkEventExpose* event)
     Glib::RefPtr<Gdk::Window> window = get_window();
     window->clear();
     const int h = 40;
-    const int w = width - 1;
+    const int w = get_width() - 1;
     const int bh = int(h * 0.55);
 
     Glib::RefPtr<const Gdk::GC> black = get_style()->get_black_gc();
@@ -161,12 +188,10 @@ bool RegionChooser::on_expose_event(GdkEventExpose* event)
         int i = 0;
         gig::Region *next_region;
         int x3 = -1;
-        for (gig::Region *r = instrument->GetFirstRegion() ;
-             r ;
-             r = next_region) {
+        for (gig::Region *r = regions.first() ; r ; r = next_region) {
 
             if (x3 < 0) x3 = int(w * (r->KeyRange.low) / 128.0 + 0.5);
-            next_region = instrument->GetNextRegion();
+            next_region = regions.next();
             if (!next_region || r->KeyRange.high + 1 != next_region->KeyRange.low) {
                 int x2 = int(w * (r->KeyRange.high + 1) / 128.0 + 0.5);
                 window->draw_line(black, x3, 0, x2, 0);
@@ -178,9 +203,7 @@ bool RegionChooser::on_expose_event(GdkEventExpose* event)
             i++;
         }
 
-        for (gig::Region *r = instrument->GetFirstRegion() ;
-             r ;
-             r = instrument->GetNextRegion()) {
+        for (gig::Region *r = regions.first() ; r ; r = regions.next()) {
             int x = int(w * (r->KeyRange.low) / 128.0 + 0.5);
             window->draw_line(black, x, 1, x, h1 - 2);
         }
@@ -208,7 +231,7 @@ void RegionChooser::on_size_request(GtkRequisition* requisition)
 void RegionChooser::draw_region(int from, int to, const Gdk::Color& color)
 {
     const int h = 40;
-    const int w = width;
+    const int w = get_width();
     const int bh = int(h * 0.55);
 
     Glib::RefPtr<Gdk::Window> window = get_window();
@@ -244,7 +267,8 @@ void RegionChooser::draw_region(int from, int to, const Gdk::Color& color)
 void RegionChooser::set_instrument(gig::Instrument* instrument)
 {
     this->instrument = instrument;
-    region = instrument ? instrument->GetFirstRegion() : 0;
+    regions.update(instrument);
+    region = regions.first();
     queue_draw();
     region_selected();
 }
@@ -262,6 +286,7 @@ bool RegionChooser::on_button_release_event(GdkEventButton* event)
                     resize.region->KeyRange.low, // low
                     resize.pos - 1 // high
                 );
+                regions.update(instrument);
                 instrument_changed.emit();
                 instrument_struct_changed_signal.emit(instrument);
             }
@@ -272,6 +297,7 @@ bool RegionChooser::on_button_release_event(GdkEventButton* event)
                     resize.pos, // low
                     resize.region->KeyRange.high // high
                 );
+                regions.update(instrument);
                 instrument_changed.emit();
                 instrument_struct_changed_signal.emit(instrument);
             }
@@ -291,6 +317,7 @@ bool RegionChooser::on_button_release_event(GdkEventButton* event)
                 region->KeyRange.low  + move.pos,
                 region->KeyRange.high + move.pos
             );
+            regions.update(instrument);
             instrument_changed.emit();
             instrument_struct_changed_signal.emit(instrument);
         }
@@ -307,7 +334,7 @@ bool RegionChooser::on_button_press_event(GdkEventButton* event)
 {
     if (!instrument) return true;
 
-    int k = int(event->x / (width - 1) * 128.0);
+    int k = int(event->x / (get_width() - 1) * 128.0);
 
     if (event->type == GDK_BUTTON_PRESS && event->button == 3) {
         gig::Region* r = get_region(k);
@@ -353,9 +380,8 @@ gig::Region* RegionChooser::get_region(int key)
 {
     gig::Region* prev_region = 0;
     gig::Region* next_region;
-    for (gig::Region *r = instrument->GetFirstRegion() ; r ;
-         r = next_region) {
-        next_region = instrument->GetNextRegion();
+    for (gig::Region *r = regions.first() ; r ; r = next_region) {
+        next_region = regions.next();
 
         if (key < r->KeyRange.low) return 0;
         if (key <= r->KeyRange.high) {
@@ -370,7 +396,7 @@ gig::Region* RegionChooser::get_region(int key)
 
 void RegionChooser::motion_resize_region(int x, int y)
 {
-    const int w = width - 1;
+    const int w = get_width() - 1;
     Glib::RefPtr<Gdk::Window> window = get_window();
 
     int k = int(double(x) / w * 128.0 + 0.5);
@@ -427,7 +453,7 @@ void RegionChooser::motion_resize_region(int x, int y)
 
 void RegionChooser::motion_move_region(int x, int y)
 {
-    const int w = width - 1;
+    const int w = get_width() - 1;
     Glib::RefPtr<Gdk::Window> window = get_window();
 
     int k = int(double(x - move.from_x) / w * 128.0 + 0.5);
@@ -437,8 +463,7 @@ void RegionChooser::motion_move_region(int x, int y)
     bool new_touch_right;
     int a = 0;
     if (k > move.pos) {
-        for (gig::Region* r = instrument->GetFirstRegion() ; ;
-             r = instrument->GetNextRegion()) {
+        for (gig::Region* r = regions.first() ; ; r = regions.next()) {
             if (r != region) {
                 int b = r ? r->KeyRange.low : 128;
 
@@ -468,8 +493,7 @@ void RegionChooser::motion_move_region(int x, int y)
             }
         }
     } else {
-        for (gig::Region* r = instrument->GetFirstRegion() ; ;
-             r = instrument->GetNextRegion()) {
+        for (gig::Region* r = regions.first() ; ; r = regions.next()) {
             if (r != region) {
                 int b = r ? r->KeyRange.low : 128;
 
@@ -567,13 +591,13 @@ bool RegionChooser::on_motion_notify_event(GdkEventMotion* event)
 }
 
 bool RegionChooser::is_in_resize_zone(double x, double y) {
-    const int w = width - 1;
+    const int w = get_width() - 1;
 
     if (instrument && y >= 0 && y <= h1) {
         gig::Region* prev_region = 0;
         gig::Region* next_region;
-        for (gig::Region* r = instrument->GetFirstRegion() ; r ; r = next_region) {
-            next_region = instrument->GetNextRegion();
+        for (gig::Region* r = regions.first(); r ; r = next_region) {
+            next_region = regions.next();
 
             int lo = int(w * (r->KeyRange.low) / 128.0 + 0.5);
             if (x <= lo - 2) break;
@@ -589,13 +613,13 @@ bool RegionChooser::is_in_resize_zone(double x, double y) {
                     resize.mode = resize.undecided;
                     resize.min = prev_region->KeyRange.low + 1;
                     resize.prev_region = prev_region;
-                    return true;
+                    return resize.min != resize.max;
                 }
 
                 // edit low limit
                 resize.mode = resize.moving_low_limit;
                 resize.min = prev_region ? prev_region->KeyRange.high + 1 : 0;
-                return true;
+                return resize.min != resize.max;
             }
             if (!next_region || r->KeyRange.high + 1 != next_region->KeyRange.low) {
                 int hi = int(w * (r->KeyRange.high + 1) / 128.0 + 0.5);
@@ -607,7 +631,7 @@ bool RegionChooser::is_in_resize_zone(double x, double y) {
                     resize.mode = resize.moving_high_limit;
                     resize.min = r->KeyRange.low + 1;
                     resize.max = next_region ? next_region->KeyRange.low : 128;
-                    return true;
+                    return resize.min != resize.max;
                 }
             }
             prev_region = r;
@@ -659,6 +683,7 @@ void RegionChooser::add_region()
     region->SetKeyRange(new_region_pos, new_region_pos);
 
     instrument_struct_changed_signal.emit(instrument);
+    regions.update(instrument);
 
     queue_draw();
     region_selected();
@@ -670,6 +695,7 @@ void RegionChooser::delete_region()
     instrument_struct_to_be_changed_signal.emit(instrument);
     instrument->DeleteRegion(region);
     instrument_struct_changed_signal.emit(instrument);
+    regions.update(instrument);
 
     region = 0;
     queue_draw();

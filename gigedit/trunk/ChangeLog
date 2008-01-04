@@ -1,6 +1,12 @@
 Version CVS HEAD (?)
 
   * fixed file properties dialog - properties now can be edited
+  * gig files where regions are not internally ordered are now handled
+  * the resize mouse pointer is not shown anymore for regions that
+    can't be resized
+  * the region and dimregion chooser widgets are now resizable
+  * bugfix: sometimes you could not delete more than one dimension
+  * filter headers are now also greyed out when the filter is inactive
 
 Version 0.1.1 (2007-12-06)
 

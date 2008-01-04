@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006, 2007 Andreas Persson
+ * Copyright (C) 2006-2008 Andreas Persson
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -410,7 +410,7 @@ DimRegionEdit::DimRegionEdit() :
 
     nextPage();
 
-    addHeader(_("Filter Cutoff Envelope (EG2)"));
+    lEG2 = addHeader(_("Filter Cutoff Envelope (EG2)"));
     addProp(eEG2PreAttack);
     addProp(eEG2Attack);
     addProp(eEG2Decay1);
@@ -423,7 +423,7 @@ DimRegionEdit::DimRegionEdit() :
     addProp(eEG2ControllerAttackInfluence);
     addProp(eEG2ControllerDecayInfluence);
     addProp(eEG2ControllerReleaseInfluence);
-    addHeader(_("Filter Cutoff Oscillator (LFO2)"));
+    lLFO2 = addHeader(_("Filter Cutoff Oscillator (LFO2)"));
     addProp(eLFO2Frequency);
     addProp(eLFO2InternalDepth);
     addProp(eLFO2ControlDepth);
@@ -569,7 +569,7 @@ void DimRegionEdit::addString(const char* labelText, Gtk::Label*& label,
     rowno++;
 }
 
-void DimRegionEdit::addHeader(const char* text)
+Gtk::Label* DimRegionEdit::addHeader(const char* text)
 {
     if (firstRowInBlock < rowno - 1)
     {
@@ -587,6 +587,7 @@ void DimRegionEdit::addHeader(const char* text)
                           Gtk::FILL, Gtk::SHRINK);
     rowno++;
     firstRowInBlock = rowno;
+    return label;
 }
 
 void DimRegionEdit::nextPage()
@@ -748,6 +749,7 @@ void DimRegionEdit::VCFEnabled_toggled()
     eVCFResonanceController.set_sensitive(sensitive);
     eVCFKeyboardTracking.set_sensitive(sensitive);
     eVCFKeyboardTrackingBreakpoint.set_sensitive(sensitive);
+    lEG2->set_sensitive(sensitive);
     eEG2PreAttack.set_sensitive(sensitive);
     eEG2Attack.set_sensitive(sensitive);
     eEG2Decay1.set_sensitive(sensitive);
@@ -758,6 +760,7 @@ void DimRegionEdit::VCFEnabled_toggled()
     eEG2ControllerAttackInfluence.set_sensitive(sensitive);
     eEG2ControllerDecayInfluence.set_sensitive(sensitive);
     eEG2ControllerReleaseInfluence.set_sensitive(sensitive);
+    lLFO2->set_sensitive(sensitive);
     eLFO2Frequency.set_sensitive(sensitive);
     eLFO2InternalDepth.set_sensitive(sensitive);
     eLFO2ControlDepth.set_sensitive(sensitive);

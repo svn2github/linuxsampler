@@ -1,5 +1,5 @@
 /*                                                         -*- c++ -*-
- * Copyright (C) 2006, 2007 Andreas Persson
+ * Copyright (C) 2006-2008 Andreas Persson
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -20,6 +20,8 @@
 #ifndef GIGEDIT_REGIONCHOOSER_H
 #define GIGEDIT_REGIONCHOOSER_H
 
+#include <vector>
+
 #include <gtkmm/drawingarea.h>
 #include <gdkmm/colormap.h>
 #include <gtkmm/uimanager.h>
@@ -29,6 +31,20 @@
 #include "dimensionmanager.h"
 
 #include <gig.h>
+
+class SortedRegions {
+private:
+    std::vector<gig::Region*> regions;
+    std::vector<gig::Region*>::iterator region_iterator;
+
+public:
+    void update(gig::Instrument* instrument);
+    gig::Region* first();
+    gig::Region* next();
+    bool operator() (gig::Region* x, gig::Region* y) {
+        return x->KeyRange.low < y->KeyRange.low;
+    }
+};
 
 class RegionChooser : public Gtk::DrawingArea
 {
@@ -75,6 +91,7 @@ protected:
 
     gig::Instrument* instrument;
     gig::Region* region;
+    SortedRegions regions;
 
     void motion_resize_region(int x, int y);
     void motion_move_region(int x, int y);
@@ -107,7 +124,6 @@ protected:
     bool is_in_resize_zone(double x, double y);
 
     int h1;
-    int width;
 
     Gtk::Menu* popup_menu_inside_region;
     Gtk::Menu* popup_menu_outside_region;
