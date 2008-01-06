@@ -10,7 +10,7 @@
 <body>
 <h2><center>LinuxSampler for Mac OS X &nbsp; <img src="gfx/logos/apple.png"> &nbsp; HOWTO by Toshi Nagata&nbsp;</center></h2>
 <br>
-<center>January&nbsp;3rd,&nbsp;2008</center><br>
+<center>January&nbsp;6th,&nbsp;2008</center><br>
 <div style="background-color: #F4F4FF; margin: 1em 3em 1em 3em; padding: 1em 1em 1em 2.2em;">
 <a href="#intro">1.&nbsp; Introduction</a><br>
 <a href="#requirements">2.&nbsp; Requirements</a><br>
@@ -24,6 +24,7 @@
 <a href="#docs">6.&nbsp; Detailed Documentation</a><br>
 <a href="#bugs">7.&nbsp; Bugs, Problems and Feature Requests</a><br>
 <a href="#contact">8.&nbsp; Contact</a><br>
+<a href="#contact">8.&nbsp; Credits</a><br>
 </div>
 
 <a name="intro"></a>
@@ -92,11 +93,23 @@ of LinuxSampler will be suboptimal.
 <a name="using"></a>
 <h3>4.&nbsp; Using the Applications</h3>
 The folder contains three items, "bin", "linuxsampler" and
-"qsampler". Double-click on qsampler. The application launches, and you
+"qsampler". 
+<ol>
+<li>Start qsampler.app. The application launches, and you
 will see messages saying that linuxsampler is now running. After a
 while, you will also see that the JackPilot application (installed by
 the JackOSX installer) automatically launches showing the Jack server
 already running.
+</li>
+<li>
+Since CoreMIDI is sometimes too slow to respond when creating a new MIDI device.
+so you need to increase "Timeout" parameter in the
+Options:Server Settings to, 10000 msec. 
+</li>
+</ol>
+
+
+
 
 <a name="setup_midi"></a>
 <h3>4.1&nbsp; Setting up MIDI Input</h3>
@@ -114,6 +127,21 @@ Each MIDI device can be routed to arbitrary sampler channels.
 LinuxSampler currently only supports the jack driver model for audio output
 on Mac OS X. 
 Click on AUDIO devices icon and then on Create.
+<br>
+You can of course save and load sampler session as LSCP files which will
+automaticall set up audio and midi devices and load samples into the channel strips.
+<ol>
+<li>
+ Connect audio ports:
+ In the "Connections Manager" pane of JackPilot: linuxsampler --> Built-in audio: in1 & in2
+ or
+ In the "Connections" window of qjackctl: linuxsampler --> coreaudio
+ </li>
+ <li>
+ Start MIDI Patchbay.app and connect your MIDI Input instance (probably your MIDI interface or USB-enabled keyboard) to  the "LinuxSampler_in_0"
+ MIDI Output
+</li>
+</ol>
 <br>
 <br>
 
@@ -173,6 +201,8 @@ LinuxSampler Developer's mailing list</a>.
 <br><br>
 That's it, enjoy!<br>
 <br>
-
+<a name="credits"></a>
+<h3>8.&nbsp; Credits</h3>
+Thanks to Toshi Nagata (OS X patches), Stephane Letz (Initial OS X port),  Ebrahim Mayat (OSX Howto fixes, testing, screenshots)
 </body>
 </html>
