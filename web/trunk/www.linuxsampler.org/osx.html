@@ -23,8 +23,8 @@
 <a href="#houston">5.&nbsp; Installation Troubleshooting</a><br>
 <a href="#docs">6.&nbsp; Detailed Documentation</a><br>
 <a href="#bugs">7.&nbsp; Bugs, Problems and Feature Requests</a><br>
-<a href="#contact">8.&nbsp; Contact</a><br>
 <a href="#contact">8.&nbsp; Credits</a><br>
+<a href="#contact">9.&nbsp; Contact</a><br>
 </div>
 
 <a name="intro"></a>
@@ -63,9 +63,10 @@ available on OS X yet. Of course you can run JSampler on a Windows or Linux box
 connected over the network to your OS X box or you could try to run it in a windows
 virtual machine. We discourage running a virtual machine along with the sampler
 as both applicationes are very CPU and RAM hungry therefore the performance
-of LinuxSampler will be suboptimal.
-
-
+of LinuxSampler will be suboptimal.<br>
+<a href="http://download.linuxsampler.org/pix/screenshots/osx_qsampler_0_2_1.jpg">
+ <img src="screenshots/osx_qsampler_0_2_1_preview.png">
+</a>
 
 <a name="requirements"></a>
 <h3>2.&nbsp; Requirements</h3>
@@ -108,9 +109,6 @@ Options:Server Settings to, 10000 msec.
 </li>
 </ol>
 
-
-
-
 <a name="setup_midi"></a>
 <h3>4.1&nbsp; Setting up MIDI Input</h3>
 In qsampler click on the device configuration tab. 
@@ -131,20 +129,23 @@ Click on AUDIO devices icon and then on Create.
 You can of course save and load sampler session as LSCP files which will
 automaticall set up audio and midi devices and load samples into the channel strips.
 <ol>
-<li>
+ <li>
  Connect audio ports:
  In the "Connections Manager" pane of JackPilot: linuxsampler --> Built-in audio: in1 & in2
  or
- In the "Connections" window of qjackctl: linuxsampler --> coreaudio
+ In the "Connections" window of qjackctl: linuxsampler --> coreaudio<br>
+   <a href="http://download.linuxsampler.org/pix/screenshots/osx_qjackctl.jpg">
+    <img src="screenshots/osx_qjackctl_preview.png">
+   </a>
  </li>
  <li>
  Start MIDI Patchbay.app and connect your MIDI Input instance (probably your MIDI interface or USB-enabled keyboard) to  the "LinuxSampler_in_0"
- MIDI Output
-</li>
+ MIDI Output<br>
+   <a href="http://download.linuxsampler.org/pix/screenshots/osx_patchbay.jpg">
+    <img src="screenshots/osx_patchbay_preview.png">
+   </a>
+ </li>
 </ol>
-<br>
-<br>
-
 
 <a name="load_samples"></a>
 <h3>4.3&nbsp; Loading Samples</h3>
@@ -190,19 +191,20 @@ gracefully, and I need to do "Force Quit". After force quitting, the
 linuxsampler subprocess is still running and I need to stop it by
 "killall linuxsampler".
 </li>
-
 </ul>
 
+<a name="credits"></a>
+<h3>8.&nbsp; Credits</h3>
+Thanks to Stephane Letz (Initial OS X port) and  Ebrahim Mayat (OSX Howto fixes, testing, screenshots)
+
 <a name="contact"></a>
-<h3>8.&nbsp; Contact</h3>
+<h3>9.&nbsp; Contact</h3>
 If you have questions or want to help us to improve the sampler,
 subscribe to the <a href="http://www.linuxsampler.org/developers.html">
-LinuxSampler Developer's mailing list</a>. 
+LinuxSampler Developer's mailing list</a>.
 <br><br>
 That's it, enjoy!<br>
 <br>
-<a name="credits"></a>
-<h3>8.&nbsp; Credits</h3>
-Thanks to Toshi Nagata (OS X patches), Stephane Letz (Initial OS X port),  Ebrahim Mayat (OSX Howto fixes, testing, screenshots)
+
 </body>
 </html>
