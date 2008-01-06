@@ -1,3 +1,9 @@
+Version CVS HEAD (?)
+
+  * src/gig.cpp, src/gig.h:
+    - added partial support for MIDI rules, only the Controller
+      Triggered rule is supported so far
+
 Version 3.2.1 (5 Dec 2007)
 
   * src/RIFF.cpp, src/RIFF.h:

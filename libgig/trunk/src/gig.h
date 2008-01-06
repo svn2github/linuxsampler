@@ -639,6 +639,32 @@ namespace gig {
             friend class Instrument;
     };
 
+    /** Abstract base class for all MIDI rules. */
+    class MidiRule {
+        public:
+            virtual ~MidiRule() { }
+    };
+
+    /** MIDI rule for triggering notes by control change events. */
+    class MidiRuleCtrlTrigger : public MidiRule {
+        public:
+            uint8_t ControllerNumber;   ///< MIDI controller number.
+            uint8_t Triggers;           ///< Number of triggers.
+            struct trigger_t {
+                uint8_t TriggerPoint;   ///< The CC value to pass for the note to be triggered.
+                bool    Descending;     ///< If the change in CC value should be downwards.
+                uint8_t VelSensitivity; ///< How sensitive the velocity should be to the speed of the controller change.
+                uint8_t Key;            ///< Key to trigger.
+                bool    NoteOff;        ///< If a note off should be triggered instead of a note on.
+                uint8_t Velocity;       ///< Velocity of the note to trigger. 255 means that velocity should depend on the speed of the controller change.
+                bool    OverridePedal;  ///< If a note off should be triggered even if the sustain pedal is down.
+            } pTriggers[32];
+
+        protected:
+            MidiRuleCtrlTrigger(RIFF::Chunk* _3ewg);
+            friend class Instrument;
+    };
+
     /** Provides all neccessary information for the synthesis of an <i>Instrument</i>. */
     class Instrument : protected DLS::Instrument {
         public:
@@ -671,6 +697,8 @@ namespace gig {
             virtual void UpdateChunks();
             // own methods
             Region*   GetRegion(unsigned int Key);
+            MidiRule* GetFirstMidiRule();
+            MidiRule* GetNextMidiRule();
         protected:
             Region*   RegionKeyTable[128]; ///< fast lookup for the corresponding Region of a MIDI key
 
@@ -679,6 +707,9 @@ namespace gig {
             void UpdateRegionKeyTable();
             friend class File;
             friend class Region; // so Region can call UpdateRegionKeyTable()
+        private:
+            std::list<MidiRule*> MidiRules;
+            std::list<MidiRule*>::iterator MidiRulesIterator;
     };
 
     /** @brief Group of Gigasampler objects

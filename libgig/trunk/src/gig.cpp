@@ -2923,6 +2923,27 @@ namespace {
     }
 
 
+// *************** MidiRule ***************
+// *
+
+MidiRuleCtrlTrigger::MidiRuleCtrlTrigger(RIFF::Chunk* _3ewg) {
+    _3ewg->SetPos(36);
+    Triggers = _3ewg->ReadUint8();
+    _3ewg->SetPos(40);
+    ControllerNumber = _3ewg->ReadUint8();
+    _3ewg->SetPos(46);
+    for (int i = 0 ; i < Triggers ; i++) {
+        pTriggers[i].TriggerPoint = _3ewg->ReadUint8();
+        pTriggers[i].Descending = _3ewg->ReadUint8();
+        pTriggers[i].VelSensitivity = _3ewg->ReadUint8();
+        pTriggers[i].Key = _3ewg->ReadUint8();
+        pTriggers[i].NoteOff = _3ewg->ReadUint8();
+        pTriggers[i].Velocity = _3ewg->ReadUint8();
+        pTriggers[i].OverridePedal = _3ewg->ReadUint8();
+        _3ewg->ReadUint8();
+    }
+}
+
 
 // *************** Instrument ***************
 // *
@@ -2958,6 +2979,18 @@ namespace {
                 PianoReleaseMode       = dimkeystart & 0x01;
                 DimensionKeyRange.low  = dimkeystart >> 1;
                 DimensionKeyRange.high = _3ewg->ReadUint8();
+
+                if (_3ewg->GetSize() > 32) {
+                    // read MIDI rules
+                    _3ewg->SetPos(32);
+                    uint8_t id1 = _3ewg->ReadUint8();
+                    uint8_t id2 = _3ewg->ReadUint8();
+
+                    if (id1 == 4 && id2 == 16) {
+                        MidiRules.push_back(new MidiRuleCtrlTrigger(_3ewg));
+                    }
+                    //TODO: all the other types of rules
+                }
             }
         }
 
@@ -3108,6 +3141,35 @@ namespace {
         UpdateRegionKeyTable();
     }
 
+    /**
+     * Returns the first MIDI rule of the instrument. You have to call
+     * this method once before you use GetNextMidiRule().
+     *
+     * The list of MIDI rules, at least in gig v3, always contains at
+     * most two rules. The second rule can only be the DEF filter
+     * (which currently isn't supported by libgig).
+     *
+     * @returns  pointer address to first MIDI rule or NULL if there is none
+     * @see      GetNextMidiRule()
+     */
+    MidiRule* Instrument::GetFirstMidiRule() {
+        MidiRulesIterator = MidiRules.begin();
+        return MidiRulesIterator != MidiRules.end() ? *MidiRulesIterator : NULL;
+    }
+
+    /**
+     * Returns the next MIDI rule of the instrument. You have to call
+     * GetFirstMidiRule() once before you can use this method. By
+     * calling this method multiple times it iterates through the
+     * available rules.
+     *
+     * @returns  pointer address to the next MIDI rule or NULL if end reached
+     * @see      GetFirstMidiRule()
+     */
+    MidiRule* Instrument::GetNextMidiRule() {
+        MidiRulesIterator++;
+        return MidiRulesIterator != MidiRules.end() ? *MidiRulesIterator : NULL;
+    }
 
 
 // *************** Group ***************
