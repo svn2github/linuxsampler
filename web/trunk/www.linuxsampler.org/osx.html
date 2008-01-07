@@ -56,7 +56,7 @@ low level, operating system functions and flexible audio / MIDI driver
 system.<br>
 <br>
 The Mac OS X version comes as an easy to install DMG file which will
-install all the necessary modules to run both the server ( linuxsampler.exe )
+install all the necessary modules to run both the server ( bin/linuxsampler )
 and the GUI client. For now it installs only the qsampler GUI client
 as JSampler, the sampler frontend written in Java requires Java 1.6 which is not
 available on OS X yet. Of course you can run JSampler on a Windows or Linux box
@@ -87,7 +87,7 @@ of LinuxSampler will be suboptimal.<br>
   from the <a href="http://www.linuxsampler.org/downloads.html">LinuxSampler
   Download Page</a>, and mount it on Finder.
   </li>
-  <li>You will find a single folder "linuxsampler051-mac-20080102". Copy this
+  <li>You will find a single folder "linuxsampler051-mac". Copy this
   folder to wherever you like (e.g. under /Applications).
   </li>
 </ol>
@@ -114,12 +114,12 @@ Options:Server Settings to, 10000 msec.
 <h3>4.1&nbsp; Setting up MIDI Input</h3>
 In qsampler click on the device configuration tab. 
 Click on the MIDI devices icon and then on Create.
-
 <br>
 <br>
-You can create an arbitrary number of MIDI input devices by repeating
-the procedure above.
-Each MIDI device can be routed to arbitrary sampler channels.
+If you need multiple MIDI input device, set the "Number of ports" to 2, 3, ... before creating the MIDI device. The multiple ports will be accessible from other MIDI applications as "Linuxsampler_in_0", "Linuxsampler_in_1", etc.
+<br>
+<br>
+(You should be able to create an arbitrary number of MIDI input devices by repeating "Create", but this feature does not work well yet.)
 
 <a name="setup_audio"></a>
 <h3>4.2&nbsp; Setting up Audio Output</h3>
@@ -191,6 +191,9 @@ for Mac.
 gracefully, and I need to do "Force Quit". After force quitting, the
 linuxsampler subprocess is still running and I need to stop it by
 "killall linuxsampler".
+</li>
+<li>
+   JackPilot may not launch automatically after QSampler launches. On the other hand, if it is already running, the screen of JackPilot may not display correctly the current status of the jack daemon. In such cases please quit and restart JackPilot manually.
 </li>
 </ul>
 
