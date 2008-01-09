@@ -106,7 +106,7 @@ already running.
 <li>
 Since CoreMIDI is sometimes too slow to respond when creating a new MIDI device.
 so you need to increase "Timeout" parameter in the
-Options:Server Settings to, 10000 msec. 
+Options:Server Settings to 10000 msec. (Added note on Jan 7, 2008: this value is now set by default)
 </li>
 </ol>
 
@@ -138,6 +138,7 @@ automaticall set up audio and midi devices and load samples into the channel str
    <a href="http://download.linuxsampler.org/pix/screenshots/osx_qjackctl.jpg">
     <img src="screenshots/osx_qjackctl_preview.png" border="0">
    </a>
+   <br>Intel Mac Note: to use built-in audio in Jack, you need to create an "aggregated device" by using "Audio MIDI Setup". Please look up Jack manual for details.
  </li>
  <li>
  Start MIDI Patchbay.app and connect your MIDI Input instance (probably your MIDI interface or USB-enabled keyboard) to  the "LinuxSampler_in_0"
