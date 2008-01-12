@@ -52,6 +52,7 @@ AC_SUBST(target_cpu)
 AC_SUBST(target_os)
 AC_SUBST(target_vendor)
 
+PKG_PROG_PKG_CONFIG
 
 ###########################################################################
 # General Checks
