@@ -128,6 +128,10 @@ namespace LinuxSampler {
         if ( db != NULL) return db;
 
         if (DbFile.empty()) DbFile = CONFIG_DEFAULT_INSTRUMENTS_DB_LOCATION;
+		#if defined(__APPLE__)  /* 20071224 Toshi Nagata  */
+		if (DbFile.find("~") == 0)
+			DbFile.replace(0, 1, getenv("HOME"));
+		#endif
         int rc = sqlite3_open(DbFile.c_str(), &db);
         if (rc) {
             sqlite3_close(db);

@@ -65,7 +65,14 @@ namespace LinuxSampler {
     MidiInputDeviceCoreMidi::MidiInputPortCoreMidi::MidiInputPortCoreMidi(MidiInputDeviceCoreMidi* pDevice) throw (MidiInputException) : MidiInputPort(pDevice, -1) {
     	// create CoreMidi virtual destination
 
-		MIDIDestinationCreate(pDevice->hCoreMidiClient, CFSTR("LinuxSampler_in"), ReadProc, this, &pDestination);
+	   /*  20080105 Toshi Nagata  */
+		char buf[32];
+		CFStringRef str;
+		snprintf(buf, sizeof buf, "LinuxSampler_in_%d", pPortID);
+		str = CFStringCreateWithCString(NULL, buf, kCFStringEncodingUTF8);
+		MIDIDestinationCreate(pDevice->hCoreMidiClient, str, ReadProc, this, &pDestination);
+		/*  */
+
 		if (!pDestination) throw MidiInputException("Error creating CoreMidi virtual destination");
 		this->portNumber = pPortID++;
 
@@ -169,7 +176,7 @@ namespace LinuxSampler {
     }
 
     String MidiInputDeviceCoreMidi::Version() {
-	    String s = "$Revision: 1.9 $";
+	    String s = "$Revision: 1.10 $";
 	    return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
 

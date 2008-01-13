@@ -175,7 +175,14 @@ namespace LinuxSampler {
             } while (FindNextFile(hDir, &win32FindData));
             if (hDir != INVALID_HANDLE_VALUE) FindClose(hDir);
             #else // POSIX
+			#if defined(__APPLE__)  /*  20071224 Toshi Nagata  */
+			String Config_plugin_dir = (String)CONFIG_PLUGIN_DIR;
+			if (Config_plugin_dir.find("~") == 0)
+				   Config_plugin_dir.replace(0, 1, getenv("HOME"));
+			DIR* hDir = opendir(Config_plugin_dir.c_str());
+			#else
             DIR* hDir = opendir(CONFIG_PLUGIN_DIR);
+			#endif
             if (!hDir) {
                 std::cerr << "Could not open instrument editor plugins directory "
                           << "(" << CONFIG_PLUGIN_DIR << "): "
@@ -184,7 +191,11 @@ namespace LinuxSampler {
             }
             for (dirent* pEntry = readdir(hDir); pEntry; pEntry = readdir(hDir)) {
                 // dir entry name as full qualified path
+			#if defined(__APPLE__)  /*  20080110 Toshi Nagata  */
+                const String sPath = Config_plugin_dir + ("/" + String(pEntry->d_name));
+			#else
                 const String sPath = CONFIG_PLUGIN_DIR + ("/" + String(pEntry->d_name));
+			#endif
                 // skip entries that are not regular files
                 struct stat entry_stat;
                 if (lstat(sPath.c_str(), &entry_stat) != 0 ||

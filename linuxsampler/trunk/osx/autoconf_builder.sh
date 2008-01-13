@@ -43,11 +43,15 @@
 #  SDKROOT: The root directory for SDK
 #  UB_PRODUCTS: The products for which Universal Binaries are to be created. The paths should be
 #		relative to $BUILD_BASE_DIR/$BUILD_STYLE/local. Eg. bin/some_executable, lib/some_library.a.
+#  UB_ARCHS: The target architectures for the "UB" build style. If not specified, "ppc i386" is assumed.
+#  UB_ONEPASS: When non-empty, building "UB" is done with the compiler flag like "-arch i386 -arch ppc".
+#       Otherwise, binaries for each architecture are separately built and combined later by lipo.
 #
 #  The variables marked with (*) are automatically set by Xcode.
 
 BASE_DIR=$PWD
 BASE_NAME=`basename $PWD`
+UB_ARCHS=${UB_ARCHS:-"ppc i386"}
 
 function rel2abs () {
 	(cd "$1"; pwd)
@@ -90,19 +94,19 @@ if test "x$ACTION" = "x"; then
 	ACTION="build"
 fi
 if test "x$BUILD_BASE_DIR" = "x"; then
-	BUILD_BASE_DIR=$PWD/build
+	BUILD_BASE_DIR=$PWD/../temp_build
 fi
 mkdir -p "$BUILD_BASE_DIR" || exit $?
-BUILD_BASE_DIR=`rel2abs "$BUILD_BASE_DIR"`
+export BUILD_BASE_DIR=`rel2abs "$BUILD_BASE_DIR"`
 
 if test -e "$SDKROOT"; then
 	SYSROOT_CFLAGS="-isysroot $SDKROOT"
 else
 	SYSROOT_CFLAGS=
 fi
-PATH="/usr/local/bin:$PATH"
-
-
+if ! expr "$arg" : ".*/usr/local/bin.*" >/dev/null; then
+	PATH=${PATH/\/usr\/bin/\/usr\/local\/bin:\/usr\/bin}
+fi
 ARCH_CFLAGS=""
 ARCH_CONFIG_OPTIONS=""
 case "$BUILD_STYLE" in
@@ -110,10 +114,24 @@ case "$BUILD_STYLE" in
 	ARCH="ppc"
 	ARCH_CFLAGS="-arch ppc"
 	;;
+	*ppc64)
+	ARCH="ppc64"
+	ARCH_CFLAGS="-arch ppc64"
+	ARCH_CONFIG_OPTIONS="--host=ppc64-apple-darwin8"
+	if expr "$BASE_NAME" : "libsndfile" >/dev/null; then
+		#  For shortcut endianness detection in libsndfile 1.0.17
+		export ac_cv_c_byte_order=big
+	fi
+	;;
     *i386)
 	ARCH="i386"
 	ARCH_CFLAGS="-arch i386 -msse -msse2"
 	ARCH_CONFIG_OPTIONS="--host=i386-apple-darwin8"
+	;;
+	*x86_64)
+	ARCH="x86_64"
+	ARCH_CFLAGS="-arch x86_64 -m64"
+	ARCH_CONFIG_OPTIONS="--host=x86_64-apple-darwin8"
 	;;
 	*UB)
 	ARCH="UB"
@@ -138,14 +156,32 @@ case "$BUILD_STYLE" in
 	;;
 esac
 
-export CFLAGS="$SYSROOT_CFLAGS $ARCH_CFLAGS $OPT_CFLAGS $CFLAGS"
-export CXXFLAGS="$SYSROOT_CFLAGS $ARCH_CFLAGS $OPT_CFLAGS $CXXFLAGS"
-
-if test "x$ARCH" = "xUB" -a "x$ACTION" != "xclean"; then
+if test "x$ARCH" = "xUB"; then
+	for arch in $UB_ARCHS; do
+		case $arch in
+			ppc)
+			ARCH_CFLAGS="$ARCH_CFLAGS -arch ppc"
+			;;
+			*ppc64)
+			ARCH_CFLAGS="$ARCH_CFLAGS -arch ppc64"
+			;;
+			*i386)
+			ARCH_CFLAGS="$ARCH_CFLAGS -arch i386 -msse -msse2"
+			;;
+			*x86_64)
+			ARCH_CFLAGS="$ARCH_CFLAGS -arch x86_64 -m64"
+			;;
+		esac
+	done
+fi
+		
+if test "x$ARCH" = "xUB" -a "x$ACTION" != "xclean" -a "x$UB_ONEPASS" = "x"; then
 	#  Test the existence of the products
-	BUILD_STYLE_PPC=${BUILD_STYLE_BASE}ppc
-	BUILD_STYLE_386=${BUILD_STYLE_BASE}i386
-	for style in $BUILD_STYLE_PPC $BUILD_STYLE_386; do
+	for arch in $UB_ARCHS; do
+		style=${BUILD_STYLE_BASE}${arch}
+#	BUILD_STYLE_PPC=${BUILD_STYLE_BASE}ppc
+#	BUILD_STYLE_386=${BUILD_STYLE_BASE}i386
+#	for style in $BUILD_STYLE_PPC $BUILD_STYLE_386; do
 		missing=no
 		for i in $UB_PRODUCTS; do
 			if ! test -e "$BUILD_BASE_DIR/$style/local/$i"; then
@@ -163,12 +199,19 @@ if test "x$ARCH" = "xUB" -a "x$ACTION" != "xclean"; then
 	mkdir -p "$BUILD_BASE_DIR/$BUILD_STYLE/local" || exit $?
 	cd "$BUILD_BASE_DIR"
 	for i in $UB_PRODUCTS; do
+		archbins=""
+		for arch in $UB_ARCHS; do
+			archbins="$archbins $BUILD_BASE_DIR/${BUILD_STYLE_BASE}${arch}/local/$i"
+		done
 		mkdir -p "$BUILD_STYLE/local/"`dirname $i` || exit $?
 		echo "Creating universal binary $BUILD_STYLE/local/$i"
-		lipo -create "$BUILD_STYLE_PPC/local/$i" "$BUILD_STYLE_386/local/$i" -output "$BUILD_STYLE/local/$i" || exit $?
+		lipo -create $archbins -output "$BUILD_STYLE/local/$i" || exit $?
 	done
 	exit $?
 fi
+
+export CFLAGS="$SYSROOT_CFLAGS $ARCH_CFLAGS $OPT_CFLAGS $CFLAGS"
+export CXXFLAGS="$SYSROOT_CFLAGS $ARCH_CFLAGS $OPT_CFLAGS $CXXFLAGS"
 
 #  Move to the working directory
 BUILD_DIR="$BUILD_BASE_DIR/$BUILD_STYLE/$BASE_NAME.build"
@@ -190,6 +233,8 @@ if test "x$ACTION" = "xclean"; then
     echo "Removing files in $BUILD_DIR"
 	cd $BASE_DIR
     rm -rf "$BUILD_DIR"
+	echo "Removing product files in $BUILD_BASE_DIR/$BUILD_STYLE/local"
+	(cd "$BUILD_BASE_DIR/$BUILD_STYLE/local"; rm -rf $UB_PRODUCTS)
     exit $?
 fi
 

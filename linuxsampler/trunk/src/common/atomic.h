@@ -17,7 +17,7 @@
     along with this program; if not, write to the Free Software
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
-    $Id: atomic.h,v 1.3 2006-06-28 19:32:21 schoenebeck Exp $
+    $Id: atomic.h,v 1.4 2008-01-13 16:36:13 nagata Exp $
 */
 
 //TODO: should we put this into namespace? it might clash with system installed atomic.h, because we need to install atomic.h for the LS API
@@ -1239,6 +1239,9 @@ static __inline__ int atomic_inc_and_test(atomic_t *v)
 #else   /* !linux */
 
 typedef unsigned long atomic_t;
+
+/* Added by Toshi Nagata, 20071224 */
+#define ATOMIC_INIT(i)  { (i) }
 
 #if defined(__sgi)
 #undef atomic_set
