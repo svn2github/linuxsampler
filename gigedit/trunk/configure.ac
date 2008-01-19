@@ -102,8 +102,21 @@ else
         # convert absolute LS plugin dir into relative dir
         # (see ch 27.10 of the automake manual,
         #  "Installing to Hard-Coded Locations")
-        LINUXSAMPLER_PLUGIN_DIR=`echo "${LINUXSAMPLER_PLUGIN_DIR}" | sed 's/^.*\/lib\//\${libdir}\//g'`
-        echo "Relative plugin dir: ${LINUXSAMPLER_PLUGIN_DIR}"
+        # this one is extended to work with digit postfixed lib directories
+        # (e.g. "/usr/lib64/linuxsampler") as well
+        LINUXSAMPLER_PLUGIN_DIR=`echo "${LINUXSAMPLER_PLUGIN_DIR}" | sed 's/^.*\/lib[[0-9]]*\//\${libdir}\//g'`
+        if echo "${LINUXSAMPLER_PLUGIN_DIR}" | grep "\${libdir}" > /dev/null; then
+            echo "Relative plugin dir: ${LINUXSAMPLER_PLUGIN_DIR}"
+        else
+            echo "*********************************************************"
+            echo "* ! WARNING ! : Could not resolve LinuxSampler's plugin"
+            echo "* directory as relative path. This is probably not an"
+            echo "* issue if you're just going to install gigedit by"
+            echo "* 'make install', but it IS a problem if you're"
+            echo "* installing to a certain destination directory and/or"
+            echo "* compile in sandbox (e.g. Debian package or Gentoo emerge)"
+            echo "*********************************************************"
+        fi
     fi
 fi
 AC_SUBST(LINUXSAMPLER_CFLAGS)

@@ -7,6 +7,9 @@ Version CVS HEAD (?)
   * the region and dimregion chooser widgets are now resizable
   * bugfix: sometimes you could not delete more than one dimension
   * filter headers are now also greyed out when the filter is inactive
+  * autoconf fix: LS plugin dirs with digits in their prefix
+    (e.g. "/usr/lib64/foo") are now resolved in relative dirs as well
+    (show a warning when resolving the relative path failed)
 
 Version 0.1.1 (2007-12-06)
 
