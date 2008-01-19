@@ -2,8 +2,8 @@
  *                                                                         *
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
- *   Copyright (C) 2003,2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005-2007 Christian Schoenebeck                        *
+ *   Copyright (C) 2003,2004 by Benno Senoner and Christian Schoenebeck    *
+ *   Copyright (C) 2005-2008 Christian Schoenebeck                         *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -1977,7 +1977,7 @@ namespace LinuxSampler { namespace gig {
     }
 
     String Engine::Version() {
-        String s = "$Revision: 1.85 $";
+        String s = "$Revision: 1.86 $";
         return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
 
@@ -1986,9 +1986,9 @@ namespace LinuxSampler { namespace gig {
     }
 
     // static constant initializers
-    const float* Engine::VolumeCurve(InitVolumeCurve());
-    const float* Engine::PanCurve(InitPanCurve());
-    const float* Engine::CrossfadeCurve(InitCrossfadeCurve());
+    const Engine::FloatTable Engine::VolumeCurve(InitVolumeCurve());
+    const Engine::FloatTable Engine::PanCurve(InitPanCurve());
+    const Engine::FloatTable Engine::CrossfadeCurve(InitCrossfadeCurve());
 
     float* Engine::InitVolumeCurve() {
         // line-segment approximation

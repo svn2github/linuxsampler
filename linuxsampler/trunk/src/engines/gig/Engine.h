@@ -2,8 +2,8 @@
  *                                                                         *
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
- *   Copyright (C) 2003,2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005-2007 Christian Schoenebeck                        *
+ *   Copyright (C) 2003,2004 by Benno Senoner and Christian Schoenebeck    *
+ *   Copyright (C) 2005-2008 Christian Schoenebeck                         *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -84,9 +84,20 @@ namespace LinuxSampler { namespace gig {
             virtual String EngineName();
             virtual InstrumentManager* GetInstrumentManager();
 
-            static const float* VolumeCurve;    ///< Table that maps volume control change values 0..127 to amplitude. Unity gain is at 90.
-            static const float* PanCurve;       ///< Table that maps pan control change values 0..128 to right channel amplitude. Unity gain is at 64 (center).
-            static const float* CrossfadeCurve; ///< Table that maps crossfade control change values 0..127 to amplitude. Unity gain is at 127.
+            // Simple array wrapper just to make sure memory is freed
+            // when liblinuxsampler is unloaded
+            class FloatTable {
+            private:
+                const float* array;
+            public:
+                FloatTable(const float* array) : array(array) { }
+                ~FloatTable() { delete[] array; }
+                const float& operator[](int i) const { return array[i]; }
+            };
+
+            static const FloatTable VolumeCurve;    ///< Table that maps volume control change values 0..127 to amplitude. Unity gain is at 90.
+            static const FloatTable PanCurve;       ///< Table that maps pan control change values 0..128 to right channel amplitude. Unity gain is at 64 (center).
+            static const FloatTable CrossfadeCurve; ///< Table that maps crossfade control change values 0..127 to amplitude. Unity gain is at 127.
 
         //protected:
             static InstrumentResourceManager instruments;

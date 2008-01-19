@@ -2,8 +2,8 @@
  *                                                                         *
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
- *   Copyright (C) 2003-2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005-2007 Christian Schoenebeck                        *
+ *   Copyright (C) 2003-2004 by Benno Senoner and Christian Schoenebeck    *
+ *   Copyright (C) 2005-2008 Christian Schoenebeck                         *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -253,9 +253,6 @@ int main(int argc, char **argv) {
     // destructor sends notifications to the lscpserver
     if (pSampler) delete pSampler;
     if (pLSCPServer) delete pLSCPServer;
-#if HAVE_SQLITE3
-    InstrumentsDb::Destroy();
-#endif
     printf("LinuxSampler stopped due to SIGINT.\n");
     return EXIT_SUCCESS;
 }
@@ -400,7 +397,6 @@ void parse_options(int argc, char **argv) {
                         if (optarg) {
                             std::cout << "Creating instruments database..." << std::endl;
                             InstrumentsDb::CreateInstrumentsDb(String(optarg));
-                            InstrumentsDb::Destroy();
                             std::cout << "Done" << std::endl;
                         }
                     } catch(Exception e) {

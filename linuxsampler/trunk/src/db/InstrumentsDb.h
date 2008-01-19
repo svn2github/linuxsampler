@@ -1,6 +1,6 @@
 /***************************************************************************
  *                                                                         *
- *   Copyright (C) 2007 Grigor Iliev                                       *
+ *   Copyright (C) 2007, 2008 Grigor Iliev                                 *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -453,18 +453,12 @@ namespace LinuxSampler {
              */
             static String toEscapedText(String text);
             
-            /**
-             * Closes the database connection if opened and deletes
-             * the InstrumentsDb instance.
-             */
-            static void Destroy();
-
             JobList Jobs;
 
         private:
             sqlite3* db;
             String DbFile;
-            static InstrumentsDb* pInstrumentsDb;
+            static InstrumentsDb instance;
             Mutex DbInstrumentsMutex;
             ListenerList<InstrumentsDb::Listener*> llInstrumentsDbListeners;
             bool InTransaction;

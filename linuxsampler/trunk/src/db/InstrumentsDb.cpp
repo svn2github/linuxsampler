@@ -1,6 +1,6 @@
 /***************************************************************************
  *                                                                         *
- *   Copyright (C) 2007 Grigor Iliev                                       *
+ *   Copyright (C) 2007, 2008 Grigor Iliev                                 *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -33,7 +33,7 @@
 
 namespace LinuxSampler {
 
-    InstrumentsDb* InstrumentsDb::pInstrumentsDb = new InstrumentsDb;
+    InstrumentsDb InstrumentsDb::instance;
 
     void InstrumentsDb::CreateInstrumentsDb(String File) {
         struct stat statBuf;
@@ -95,13 +95,6 @@ namespace LinuxSampler {
         if (db != NULL) sqlite3_close(db);
     }
     
-    void InstrumentsDb::Destroy() {
-        if (pInstrumentsDb != NULL) {
-            delete pInstrumentsDb;
-            pInstrumentsDb = NULL;
-        }
-    }
-
     void InstrumentsDb::AddInstrumentsDbListener(InstrumentsDb::Listener* l) {
         llInstrumentsDbListeners.AddListener(l);
     }
@@ -111,7 +104,7 @@ namespace LinuxSampler {
     }
     
     InstrumentsDb* InstrumentsDb::GetInstrumentsDb() {
-        return pInstrumentsDb;
+        return &instance;
     }
     
     void InstrumentsDb::SetDbFile(String File) {

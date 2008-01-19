@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 - 2007 Christian Schoenebeck                       *
+ *   Copyright (C) 2005 - 2008 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -275,7 +275,7 @@ std::vector<String> getAsioDriverNames() {
     }
 
     for (int i = 0 ; i < ASIO_MAX_DEVICE_INFO ; i++) {
-		delete names[i];
+        delete[] names[i];
     }
 
 	dmsg(1,("getAsioDriverNames: returing from function. asioDriverList.size()=%d\n", asioDriverList.size() ));
@@ -894,7 +894,7 @@ long asioMessages(long selector, long value, void* message, double* opt)
     }
 
     String AudioOutputDeviceAsio::Version() {
-       String s = "$Revision: 1.1 $";
+       String s = "$Revision: 1.2 $";
        return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
 

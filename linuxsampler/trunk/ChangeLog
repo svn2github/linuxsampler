@@ -12,6 +12,9 @@ Version CVS HEAD (?)
       (fixes bug #70, patch by Ronald Baljeu)
     - fixed endless loop which occured when loading an instrument editor
       plugin DLL on Windows systems failed
+    - fixed memory leaks that occurred when liblinuxsampler was unloaded
+    - optimized the SynchronizedConfig class so it doesn't wait
+      unnecessarily long after an update
 
   * audio driver:
     - removed the nonsense audio channel constraint (which was hard coded to
@@ -20,10 +23,15 @@ Version CVS HEAD (?)
       opposed to the LSCP specs
     - bugfix: the SAMPLERATE parameter of some drivers (e.g. JACK)
       reflected the wrong value
+    - fixed a memory management bug in ASIO driver
 
   * instruments database:
     - avoid time consuming samples scanning when adding instruments
       to the instruments database
+
+  * Gigasampler format engine:
+    - fixed a memory leak that could happen when a channel was deleted
+      while notes were playing
 
 Version 0.5.1 (6 December 2007)
 

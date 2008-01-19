@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 - 2007 Christian Schoenebeck                       *
+ *   Copyright (C) 2005 - 2008 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -59,6 +59,13 @@ namespace LinuxSampler { namespace gig {
         CreationQueue->init();
         DeletionQueue->init();
         DeletionNotificationQueue.init();
+
+        // make sure that all DimensionRegions are released
+        while (DeleteDimregQueue->read_space() > 0) {
+            ::gig::DimensionRegion* dimreg;
+            DeleteDimregQueue->pop(&dimreg);
+            pInstruments->HandBackDimReg(dimreg);
+        }
         DeleteDimregQueue->init();
         ActiveStreamCount = 0;
         ActiveStreamCountMax = 0;

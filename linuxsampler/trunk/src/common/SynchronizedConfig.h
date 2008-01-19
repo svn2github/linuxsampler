@@ -1,6 +1,6 @@
 /***************************************************************************
  *                                                                         *
- *   Copyright (C) 2006, 2007 Andreas Persson                              *
+ *   Copyright (C) 2006-2008 Andreas Persson                               *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -79,6 +79,7 @@ namespace LinuxSampler {
                      * time threads are locked anymore.
                      */
                     void Unlock() {
+                        atomicSet(&flag, 0);
                         atomicSet(&lock, 0);
                     }
 
@@ -88,6 +89,7 @@ namespace LinuxSampler {
                     friend class SynchronizedConfig;
                     SynchronizedConfig& parent;
                     atomic_t lock;
+                    atomic_t flag;
                     Reader *next; // only used locally in SwitchConfig
             };
 
@@ -152,7 +154,8 @@ namespace LinuxSampler {
         for (typename std::set<Reader*>::iterator iter = readers.begin() ;
              iter != readers.end() ;
              iter++) {
-            if (atomicRead(&(*iter)->lock)) {
+            atomicSet(&(*iter)->flag, 1);
+            if (atomicRead(&(*iter)->lock) && atomicRead(&(*iter)->flag)) {
                 (*iter)->next = lockingReaders;
                 lockingReaders = *iter;
             }
@@ -163,7 +166,7 @@ namespace LinuxSampler {
             usleep(50000);
             Reader** prev = &lockingReaders;
             for (Reader* p = lockingReaders ; p ; p = p->next) {
-                if (atomicRead(&p->lock)) prev = &p->next;
+                if (atomicRead(&p->lock) && atomicRead(&p->flag)) prev = &p->next;
                 else *prev = p->next; // unlink
             }
         }
