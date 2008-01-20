@@ -32,6 +32,8 @@ Version CVS HEAD (?)
   * Gigasampler format engine:
     - fixed a memory leak that could happen when a channel was deleted
       while notes were playing
+    - made it possible to load an instrument even if the audio thread
+      isn't running
 
 Version 0.5.1 (6 December 2007)
 

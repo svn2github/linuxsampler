@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 - 2007 Christian Schoenebeck                       *
+ *   Copyright (C) 2005 - 2008 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -463,15 +463,15 @@ namespace LinuxSampler { namespace gig {
      * Give back an instrument. This should be used instead of
      * HandBack if there are some dimension regions that are still in
      * use. (When an instrument is changed, the voices currently
-     * playing is allowed to keep playing with the old instrument
+     * playing are allowed to keep playing with the old instrument
      * until note off arrives. New notes will use the new instrument.)
      */
     void InstrumentResourceManager::HandBackInstrument(::gig::Instrument* pResource, InstrumentConsumer* pConsumer,
-                                                       ::gig::DimensionRegion** dimRegionsInUse) {
+                                                       RTList< ::gig::DimensionRegion*>* pDimRegionsInUse) {
         DimRegInfoMutex.Lock();
-        for (int i = 0 ; dimRegionsInUse[i] ; i++) {
-            DimRegInfo[dimRegionsInUse[i]].refCount++;
-            SampleRefCount[dimRegionsInUse[i]->pSample]++;
+        for (RTList< ::gig::DimensionRegion*>::Iterator i = pDimRegionsInUse->first() ; i != pDimRegionsInUse->end() ; i++) {
+            DimRegInfo[*i].refCount++;
+            SampleRefCount[(*i)->pSample]++;
         }
         HandBack(pResource, pConsumer, true);
         DimRegInfoMutex.Unlock();

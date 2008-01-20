@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 - 2007 Christian Schoenebeck                       *
+ *   Copyright (C) 2005 - 2008 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -127,6 +127,18 @@ namespace LinuxSampler { namespace gig {
             std::vector<FxSend*>    fxSends;
             int                     GlobalTranspose;          ///< amount of semi tones all notes should be transposed
 
+            /// Command used by the instrument loader thread to
+            /// request an instrument change on a channel.
+            struct instrument_change_command_t {
+                bool bChangeInstrument;                             ///< Set to true by the loader when the channel should change instrument.
+                ::gig::Instrument* pInstrument;                     ///< The new instrument. Also used by the loader to read the previously loaded instrument.
+                RTList< ::gig::DimensionRegion*>* pDimRegionsInUse; ///< List of dimension regions in use by the currently loaded instrument. Continuously updated by the audio thread.
+            };
+            SynchronizedConfig<instrument_change_command_t> InstrumentChangeCommand;
+            SynchronizedConfig<instrument_change_command_t>::Reader InstrumentChangeCommandReader;
+
+            RTList< ::gig::DimensionRegion*>* pDimRegionsInUse;     ///< temporary pointer into the instrument change command, used by the audio thread
+
             void ResetControllers();
             void ClearEventLists();
             void ImportEvents(uint Samples);
@@ -138,6 +150,7 @@ namespace LinuxSampler { namespace gig {
         private:
             void ResetInternal();
             void RemoveAllFxSends();
+            instrument_change_command_t& ChangeInstrument(::gig::Instrument* pInstrument);
     };
 
 }} // namespace LinuxSampler::gig

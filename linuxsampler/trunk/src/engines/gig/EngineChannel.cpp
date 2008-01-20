@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 - 2007 Christian Schoenebeck                       *
+ *   Copyright (C) 2005 - 2008 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -27,7 +27,8 @@
 
 namespace LinuxSampler { namespace gig {
 
-    EngineChannel::EngineChannel() {
+    EngineChannel::EngineChannel() :
+        InstrumentChangeCommandReader(InstrumentChangeCommand) {
         pMIDIKeyInfo = new midi_key_info_t[128];
         pEngine      = NULL;
         pInstrument  = NULL;
@@ -59,7 +60,6 @@ namespace LinuxSampler { namespace gig {
 
     EngineChannel::~EngineChannel() {
         DisconnectAudioOutputDevice();
-        if (pInstrument) Engine::instruments.HandBack(pInstrument, this);
         if (pEventQueue) delete pEventQueue;
         if (pActiveKeys) delete pActiveKeys;
         if (pMIDIKeyInfo) delete[] pMIDIKeyInfo;
@@ -164,23 +164,15 @@ namespace LinuxSampler { namespace gig {
      * @see PrepareLoadInstrument()
      */
     void EngineChannel::LoadInstrument() {
-        ::gig::Instrument* oldInstrument = pInstrument;
-
-        // free old instrument
-        if (oldInstrument) {
-            if (pEngine) {
-                // make sure we don't trigger any new notes with the
-                // old instrument
-                ::gig::DimensionRegion** dimRegionsInUse = pEngine->ChangeInstrument(this, 0);
-
-                // give old instrument back to instrument manager, but
-                // keep the dimension regions and samples that are in
-                // use
-                Engine::instruments.HandBackInstrument(oldInstrument, this, dimRegionsInUse);
-            } else {
-                Engine::instruments.HandBack(oldInstrument, this);
-            }
+        // make sure we don't trigger any new notes with an old
+        // instrument
+        instrument_change_command_t& cmd = ChangeInstrument(0);
+        if (cmd.pInstrument) {
+            // give old instrument back to instrument manager, but
+            // keep the dimension regions and samples that are in use
+            Engine::instruments.HandBackInstrument(cmd.pInstrument, this, cmd.pDimRegionsInUse);
         }
+        cmd.pDimRegionsInUse->clear();
 
         // delete all key groups
         ActiveKeyGroups.clear();
@@ -221,10 +213,26 @@ namespace LinuxSampler { namespace gig {
         InstrumentIdxName = newInstrument->pInfo->Name;
         InstrumentStat = 100;
 
-        if (pEngine) pEngine->ChangeInstrument(this, newInstrument);
-        else pInstrument = newInstrument;
-        
+        ChangeInstrument(newInstrument);
+
         StatusChanged(true);
+    }
+
+
+    /**
+     * Changes the instrument for an engine channel.
+     *
+     * @param pInstrument - new instrument
+     * @returns the resulting instrument change command after the
+     *          command switch, containing the old instrument and
+     *          the dimregions it is using
+     */
+    EngineChannel::instrument_change_command_t& EngineChannel::ChangeInstrument(::gig::Instrument* pInstrument) {
+        instrument_change_command_t& cmd = InstrumentChangeCommand.GetConfigForUpdate();
+        cmd.pInstrument = pInstrument;
+        cmd.bChangeInstrument = true;
+
+        return InstrumentChangeCommand.SwitchConfig();
     }
 
     /**
@@ -269,6 +277,22 @@ namespace LinuxSampler { namespace gig {
         pEngine = Engine::AcquireEngine(this, pAudioOut);
         ResetInternal();
         pEvents = new RTList<Event>(pEngine->pEventPool);
+
+        // reset the instrument change command struct (need to be done
+        // twice, as it is double buffered)
+        {
+            instrument_change_command_t& cmd = InstrumentChangeCommand.GetConfigForUpdate();
+            cmd.pDimRegionsInUse = new RTList< ::gig::DimensionRegion*>(pEngine->pDimRegionPool[0]);
+            cmd.pInstrument = 0;
+            cmd.bChangeInstrument = false;
+        }
+        {
+            instrument_change_command_t& cmd = InstrumentChangeCommand.SwitchConfig();
+            cmd.pDimRegionsInUse = new RTList< ::gig::DimensionRegion*>(pEngine->pDimRegionPool[1]);
+            cmd.pInstrument = 0;
+            cmd.bChangeInstrument = false;
+        }
+
         for (uint i = 0; i < 128; i++) {
             pMIDIKeyInfo[i].pActiveVoices = new RTList<Voice>(pEngine->pVoicePool);
             pMIDIKeyInfo[i].pEvents       = new RTList<Event>(pEngine->pEventPool);
@@ -291,6 +315,34 @@ namespace LinuxSampler { namespace gig {
 
     void EngineChannel::DisconnectAudioOutputDevice() {
         if (pEngine) { // if clause to prevent disconnect loops
+
+            // delete the structures used for instrument change
+            RTList< ::gig::DimensionRegion*>* d = InstrumentChangeCommand.GetConfigForUpdate().pDimRegionsInUse;
+            if (d) delete d;
+            EngineChannel::instrument_change_command_t& cmd = InstrumentChangeCommand.SwitchConfig();
+            d = cmd.pDimRegionsInUse;
+
+            if (cmd.pInstrument) {
+                // release the currently loaded instrument
+                Engine::instruments.HandBackInstrument(cmd.pInstrument, this, d);
+            }
+            if (d) delete d;
+
+            // release all active dimension regions to resource
+            // manager
+            RTList<uint>::Iterator iuiKey = pActiveKeys->first();
+            RTList<uint>::Iterator end    = pActiveKeys->end();
+            while (iuiKey != end) { // iterate through all active keys
+                midi_key_info_t* pKey = &pMIDIKeyInfo[*iuiKey];
+                ++iuiKey;
+
+                RTList<Voice>::Iterator itVoice     = pKey->pActiveVoices->first();
+                RTList<Voice>::Iterator itVoicesEnd = pKey->pActiveVoices->end();
+                for (; itVoice != itVoicesEnd; ++itVoice) { // iterate through all voices on this key
+                    Engine::instruments.HandBackDimReg(itVoice->pDimRgn);
+                }
+            }
+
             ResetInternal();
             if (pEvents) {
                 delete pEvents;
@@ -397,7 +449,7 @@ namespace LinuxSampler { namespace gig {
         fxSends.push_back(pFxSend);
         if (pEngine) pEngine->Enable();
         fireFxSendCountChanged(iSamplerChannelIndex, GetFxSendCount());
-        
+
         return pFxSend;
     }
 
@@ -705,7 +757,7 @@ namespace LinuxSampler { namespace gig {
                 if (pEngine && pEngine->pAudioOutputDevice) {
                     // fallback to render directly to the AudioOutputDevice's buffer
                     pChannelRight = pEngine->pAudioOutputDevice->Channel(AudioDeviceChannelRight);
-                } else pChannelRight = NULL; 
+                } else pChannelRight = NULL;
             }
         }
         for (int i = 0; i < fxSends.size(); i++) delete fxSends[i];

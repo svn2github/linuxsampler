@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 - 2007 Christian Schoenebeck                       *
+ *   Copyright (C) 2005 - 2008 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -88,7 +88,7 @@ namespace LinuxSampler { namespace gig {
             virtual void OnSampleReferenceChanged(void* pOldSample, void* pNewSample, InstrumentEditor* pSender);
 
             void HandBackInstrument(::gig::Instrument* pResource, InstrumentConsumer* pConsumer,
-                                    ::gig::DimensionRegion** dimRegionsInUse);
+                                    RTList< ::gig::DimensionRegion*>* pDimRegionsInUse);
             void HandBackDimReg(::gig::DimensionRegion* pDimReg);
 
         protected:

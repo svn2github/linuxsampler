@@ -74,7 +74,7 @@ namespace LinuxSampler { namespace gig {
 
     /**
      * Once an engine channel is disconnected from an audio output device,
-     * it wil immediately call this method to unregister itself from the
+     * it will immediately call this method to unregister itself from the
      * engine instance and if that engine instance is not used by any other
      * engine channel anymore, then that engine instance will be destroyed.
      *
@@ -108,11 +108,10 @@ namespace LinuxSampler { namespace gig {
         pEventQueue        = new RingBuffer<Event,false>(CONFIG_MAX_EVENTS_PER_FRAGMENT, 0);
         pEventPool         = new Pool<Event>(CONFIG_MAX_EVENTS_PER_FRAGMENT);
         pVoicePool         = new Pool<Voice>(CONFIG_MAX_VOICES);
-        pDimRegionsInUse   = new ::gig::DimensionRegion*[CONFIG_MAX_VOICES + 1];
+        pDimRegionPool[0]  = new Pool< ::gig::DimensionRegion*>(CONFIG_MAX_VOICES);
+        pDimRegionPool[1]  = new Pool< ::gig::DimensionRegion*>(CONFIG_MAX_VOICES);
         pVoiceStealingQueue = new RTList<Event>(pEventPool);
         pGlobalEvents      = new RTList<Event>(pEventPool);
-        InstrumentChangeQueue      = new RingBuffer<instrument_change_command_t,false>(1, 0);
-        InstrumentChangeReplyQueue = new RingBuffer<instrument_change_reply_t,false>(1, 0);
 
         for (RTList<Voice>::Iterator iterVoice = pVoicePool->allocAppend(); iterVoice == pVoicePool->last(); iterVoice = pVoicePool->allocAppend()) {
             iterVoice->SetEngine(this);
@@ -145,9 +144,8 @@ namespace LinuxSampler { namespace gig {
         if (pVoiceStealingQueue) delete pVoiceStealingQueue;
         if (pSysexBuffer) delete pSysexBuffer;
         if (pGlobalEvents) delete pGlobalEvents;
-        if (InstrumentChangeQueue) delete InstrumentChangeQueue;
-        if (InstrumentChangeReplyQueue) delete InstrumentChangeReplyQueue;
-        if (pDimRegionsInUse) delete[] pDimRegionsInUse;
+        if (pDimRegionPool[0]) delete pDimRegionPool[0];
+        if (pDimRegionPool[1]) delete pDimRegionPool[1];
         ResetSuspendedRegions();
         Unregister();
     }
@@ -460,7 +458,7 @@ namespace LinuxSampler { namespace gig {
             // free request slot for next caller (and to make sure that
             // we're not going to process the same request in the next cycle)
             pPendingRegionSuspension = NULL;
-            // if no disk stream deletions are pending, awaker other side, as
+            // if no disk stream deletions are pending, awaken other side, as
             // we're done in this case
             if (!iPendingStreamDeletions) SuspensionChangeOngoing.Set(false);
         }
@@ -613,39 +611,47 @@ namespace LinuxSampler { namespace gig {
         ActiveVoiceCountTemp = 0;
 
         // handle instrument change commands
-        instrument_change_command_t command;
-        if (InstrumentChangeQueue->pop(&command) > 0) {
-            EngineChannel* pEngineChannel = command.pEngineChannel;
-            pEngineChannel->pInstrument = command.pInstrument;
+        bool instrumentChanged = false;
+        for (int i = 0; i < engineChannels.size(); i++) {
+            EngineChannel* pEngineChannel = engineChannels[i];
 
-            //TODO: this is a lazy solution ATM and not safe in case somebody is currently editing the instrument we're currently switching to (we should store all suspended regions on instrument manager side and when switching to another instrument copy that list to the engine's local list of suspensions
-            ResetSuspendedRegions();
+            // as we're going to (carefully) write some status to the
+            // synchronized struct, we cast away the const
+            EngineChannel::instrument_change_command_t& cmd =
+                const_cast<EngineChannel::instrument_change_command_t&>(pEngineChannel->InstrumentChangeCommandReader.Lock());
 
-            // iterate through all active voices and mark their
-            // dimension regions as "in use". The instrument resource
-            // manager may delete all of the instrument except the
-            // dimension regions and samples that are in use.
-            int i = 0;
-            RTList<uint>::Iterator iuiKey = pEngineChannel->pActiveKeys->first();
-            RTList<uint>::Iterator end    = pEngineChannel->pActiveKeys->end();
-            while (iuiKey != end) { // iterate through all active keys
-                midi_key_info_t* pKey = &pEngineChannel->pMIDIKeyInfo[*iuiKey];
-                ++iuiKey;
+            pEngineChannel->pDimRegionsInUse = cmd.pDimRegionsInUse;
+            pEngineChannel->pDimRegionsInUse->clear();
 
-                RTList<Voice>::Iterator itVoice     = pKey->pActiveVoices->first();
-                RTList<Voice>::Iterator itVoicesEnd = pKey->pActiveVoices->end();
-                for (; itVoice != itVoicesEnd; ++itVoice) { // iterate through all voices on this key
-                    if (!itVoice->Orphan) {
+            if (cmd.bChangeInstrument) {
+                // change instrument
+                dmsg(5,("Engine: instrument change command received\n"));
+                cmd.bChangeInstrument = false;
+                pEngineChannel->pInstrument = cmd.pInstrument;
+                instrumentChanged = true;
+
+                // Iterate through all active voices and mark them as
+                // "orphans", which means that the dimension regions
+                // and samples they use should be released to the
+                // instrument resource manager when the voices die.
+                int i = 0;
+                RTList<uint>::Iterator iuiKey = pEngineChannel->pActiveKeys->first();
+                RTList<uint>::Iterator end    = pEngineChannel->pActiveKeys->end();
+                while (iuiKey != end) { // iterate through all active keys
+                    midi_key_info_t* pKey = &pEngineChannel->pMIDIKeyInfo[*iuiKey];
+                    ++iuiKey;
+
+                    RTList<Voice>::Iterator itVoice     = pKey->pActiveVoices->first();
+                    RTList<Voice>::Iterator itVoicesEnd = pKey->pActiveVoices->end();
+                    for (; itVoice != itVoicesEnd; ++itVoice) { // iterate through all voices on this key
                         itVoice->Orphan = true;
-                        pDimRegionsInUse[i++] = itVoice->pDimRgn;
                     }
                 }
             }
-            pDimRegionsInUse[i] = 0; // end of list
-
-            // send a reply to the calling thread, which is waiting
-            instrument_change_reply_t reply;
-            InstrumentChangeReplyQueue->push(&reply);
+        }
+        if (instrumentChanged) {
+            //TODO: this is a lazy solution ATM and not safe in case somebody is currently editing the instrument we're currently switching to (we should store all suspended regions on instrument manager side and when switching to another instrument copy that list to the engine's local list of suspensions
+            ResetSuspendedRegions();
         }
 
         // handle events on all engine channels
@@ -688,6 +694,9 @@ namespace LinuxSampler { namespace gig {
         // been deleted by the disk thread
         if (iPendingStreamDeletions) ProcessPendingStreamDeletions();
 
+        for (int i = 0; i < engineChannels.size(); i++) {
+            engineChannels[i]->InstrumentChangeCommandReader.Unlock();
+        }
         FrameTime += Samples;
 
         return 0;
@@ -769,6 +778,9 @@ namespace LinuxSampler { namespace gig {
                 // now render current voice
                 itVoice->Render(Samples);
                 if (itVoice->IsActive()) { // still active
+                    if (!itVoice->Orphan) {
+                        *(pEngineChannel->pDimRegionsInUse->allocAppend()) = itVoice->pDimRgn;
+                    }
                     ActiveVoiceCountTemp++;
                     voiceCount++;
 
@@ -809,6 +821,7 @@ namespace LinuxSampler { namespace gig {
             if (itNewVoice) {
                 itNewVoice->Render(Samples);
                 if (itNewVoice->IsActive()) { // still active
+                    *(pEngineChannel->pDimRegionsInUse->allocAppend()) = itNewVoice->pDimRgn;
                     ActiveVoiceCountTemp++;
                     pEngineChannel->SetVoiceCount(pEngineChannel->GetVoiceCount() + 1);
 
@@ -1977,7 +1990,7 @@ namespace LinuxSampler { namespace gig {
     }
 
     String Engine::Version() {
-        String s = "$Revision: 1.86 $";
+        String s = "$Revision: 1.87 $";
         return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
 
@@ -2025,30 +2038,6 @@ namespace LinuxSampler { namespace gig {
                 (segments[3] - segments[1]) / (segments[2] - segments[0]);
         }
         return y;
-    }
-
-    /**
-     * Changes the instrument for an engine channel.
-     *
-     * @param pEngineChannel - engine channel on which the instrument
-     *                         should be changed
-     * @param pInstrument - new instrument
-     * @returns a list of dimension regions from the old instrument
-     *          that are still in use
-     */
-    ::gig::DimensionRegion** Engine::ChangeInstrument(EngineChannel* pEngineChannel, ::gig::Instrument* pInstrument) {
-        instrument_change_command_t command;
-        command.pEngineChannel = pEngineChannel;
-        command.pInstrument = pInstrument;
-        InstrumentChangeQueue->push(&command);
-
-        // wait for the audio thread to confirm that the instrument
-        // change has been done
-        instrument_change_reply_t reply;
-        while (InstrumentChangeReplyQueue->pop(&reply) == 0) {
-            usleep(10000);
-        }
-        return pDimRegionsInUse;
     }
 
 }} // namespace LinuxSampler::gig
