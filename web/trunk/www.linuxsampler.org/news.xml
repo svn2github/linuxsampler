@@ -1,5 +1,10 @@
 <?xml version='1.0' ?>
 <news>
+  <entry date="2008-01-23">
+    Due to popular demand we finally launched a forum for this project. The
+    place to be and share questions, stories and the latest gossip is
+    <link ref="https://bb.linuxsampler.org">bb.linuxsampler.org</link>
+  </entry>
   <entry date="2008-01-03">
     Hey Mac Users! We hope to give you a good way to start the new year
     by announcing that LinuxSampler is now officially
