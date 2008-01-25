@@ -45,7 +45,12 @@ ConditionTest::ConditionCheckerLocking::ConditionCheckerLocking(bool waitFor) : 
 int ConditionTest::ConditionCheckerLocking::Main() {
     staticcondition.WaitIf(!waitFor);
     resource++;
-    while (!doUnlock) usleep(1000); // sleep until ordered to unlock the condition again
+    while (!doUnlock) {
+		usleep(1000); // sleep until ordered to unlock the condition again
+#if CONFIG_PTHREAD_TESTCANCEL
+		TestCancel();
+#endif
+	}
     staticcondition.Unlock();
 }
 

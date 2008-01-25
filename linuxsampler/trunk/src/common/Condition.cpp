@@ -27,6 +27,10 @@
 
 #include "global_private.h"
 
+#if CONFIG_PTHREAD_TESTCANCEL
+#include "Thread.h"
+#endif
+
 namespace LinuxSampler {
 
 // *************** Internal data types (for Windows only) ***************

@@ -17,7 +17,7 @@
     along with this program; if not, write to the Free Software
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
-    $Id: atomic.h,v 1.4 2008-01-13 16:36:13 nagata Exp $
+    $Id: atomic.h,v 1.5 2008-01-25 15:06:01 nagata Exp $
 */
 
 //TODO: should we put this into namespace? it might clash with system installed atomic.h, because we need to install atomic.h for the LS API
@@ -1238,10 +1238,21 @@ static __inline__ int atomic_inc_and_test(atomic_t *v)
 
 #else   /* !linux */
 
+#if defined(__APPLE__)
+
 typedef unsigned long atomic_t;
 
-/* Added by Toshi Nagata, 20071224 */
 #define ATOMIC_INIT(i)  { (i) }
+#define atomic_set(a, v) (*(a) = (v))
+#define atomic_read(a) (*(a))
+
+/*  TODO: should use atomic routines in CoreServices.framework  */
+#define atomic_inc(a) (++(*a))
+#define atomic_dec(a) (--(*a))
+
+#else
+
+typedef unsigned long atomic_t;
 
 #if defined(__sgi)
 #undef atomic_set
@@ -1283,5 +1294,6 @@ atomic_dec (atomic_t * a) {
 #endif
 }
 
+#endif /* __APPLE__  */
 #endif /* linux */
 #endif /* __linuxsampler_atomic_h__ */

@@ -309,6 +309,9 @@ int LSCPServer::Main() {
     timeval timeout;
 
     while (true) {
+	#if CONFIG_PTHREAD_TESTCANCEL
+		TestCancel();
+	#endif
         // check if some engine channel's parameter / status changed, if so notify the respective LSCP event subscribers
         {
             std::set<EngineChannel*> engineChannels = EngineChannelFactory::EngineChannelInstances();

@@ -88,6 +88,11 @@ namespace LinuxSampler {
     // Entry point for the task thread.
     int InstrumentManagerThread::Main() {
         while (true) {
+
+			#if CONFIG_PTHREAD_TESTCANCEL
+			TestCancel();
+			#endif
+
             while (!queue.empty()) {
                 command_t cmd;
 

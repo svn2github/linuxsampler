@@ -150,6 +150,7 @@ int Thread::SignalStartThread() {
         RunningCondition.Set(false);
         return res;
     }
+
     // Create and run the thread
     res = pthread_create(&this->__thread_id, &__thread_attr, __pthread_launcher, this);
     switch (res) {
@@ -218,7 +219,7 @@ int Thread::SignalStopThread() {
     #else
     RunningCondition.Set(false);
     #endif
-#else	
+#else
     pthread_cancel(__thread_id);
 #endif	
     return 0;
@@ -375,7 +376,10 @@ DWORD WINAPI __win32thread_launcher(LPVOID lpParameter) {
 #else
 /// Callback function for the POSIX thread API
 static void* __pthread_launcher(void* thread) {
+#if !CONFIG_PTHREAD_TESTCANCEL
     pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, NULL); // let the thread be killable under any circumstances
+#endif
+
     Thread* t;
     t = (Thread*) thread;
     t->SetSchedulingPriority();

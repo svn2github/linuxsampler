@@ -38,6 +38,10 @@ namespace LinuxSampler {
     // Entry point for the worker thread.
     int WorkerThread::Main() {
         while (true) {
+
+	#if CONFIG_PTHREAD_TESTCANCEL
+			TestCancel();
+	#endif
             while (!queue.empty()) {
                 Runnable* pJob;
 

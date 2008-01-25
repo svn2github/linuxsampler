@@ -274,6 +274,9 @@ namespace LinuxSampler { namespace gig {
             #if !defined(WIN32)
             pthread_testcancel(); // mandatory for OSX
             #endif
+			#if CONFIG_PTHREAD_TESTCANCEL
+			TestCancel();
+			#endif
             IsIdle = true; // will be set to false if a stream got filled
 
             // if there are ghost streams, delete them

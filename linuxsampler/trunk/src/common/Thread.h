@@ -56,6 +56,14 @@ class Thread {
         virtual int  StopThread();
         virtual int  SignalStartThread();
         virtual int  SignalStopThread();
+
+		inline int TestCancel() {
+#if CONFIG_PTHREAD_TESTCANCEL
+			pthread_testcancel();
+#endif
+			return 0;
+		}
+
         virtual bool IsRunning();
         virtual int  SetSchedulingPriority(); //FIXME: should be private
         virtual int  LockMemory();            //FIXME: should be private
@@ -137,7 +145,7 @@ class Thread {
         int             PriorityMax;
         int             PriorityDelta;
         bool            isRealTime;
-        bool            bLockedMemory;
+        bool            bLockedMemory;	
 };
 
 } // namespace LinuxSampler
