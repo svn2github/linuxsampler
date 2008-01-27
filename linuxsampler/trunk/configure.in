@@ -276,20 +276,21 @@ AC_DEFINE_UNQUOTED(HAVE_JACK,$have_jack,[Define to 1 if you have JACK installed.
 # JACK MIDI
 have_jack_midi=0
 if test $have_jack = "1"; then
-   linuxsampler_save_CFLAGS=$CFLAGS
-   linuxsampler_save_LIBS=$LIBS
-   CFLAGS="$JACK_CFLAGS $CFLAGS"
-   LIBS="$JACK_LIBS $LIBS"
-   AC_CHECK_HEADER(jack/midiport.h, have_jack_midi=1, have_jack_midi=0)
-   if test $have_jack_midi = "1"; then
-     AC_CHECK_FUNCS(jack_midi_get_event_count)
-     AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[#include <jack/midiport.h>]], [[
-         jack_midi_clear_buffer(0, 0);
-     ]])], [AC_DEFINE(JACK_MIDI_FUNCS_NEED_NFRAMES, 1,
-             [Define to 1 if you have the old jack midi functions that need an nframes argument.])])
-   fi
-   CFLAGS=$linuxsampler_save_CFLAGS
-   LIBS=$linuxsampler_save_LIBS
+    linuxsampler_save_CFLAGS=$CFLAGS
+    linuxsampler_save_LIBS=$LIBS
+    CFLAGS="$JACK_CFLAGS $CFLAGS"
+    LIBS="$JACK_LIBS $LIBS"
+    AC_CHECK_HEADER(jack/midiport.h, have_jack_midi=1, have_jack_midi=0)
+    if test $have_jack_midi = "1"; then
+        AC_CHECK_FUNCS(jack_midi_get_event_count)
+        AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[#include <jack/midiport.h>]], [[
+            jack_midi_clear_buffer(0, 0);
+        ]])], [AC_DEFINE(JACK_MIDI_FUNCS_NEED_NFRAMES, 1,
+                  [Define to 1 if you have the old jack midi functions that need an nframes argument.])])
+        have_midi_input_driver="true"
+    fi
+    CFLAGS=$linuxsampler_save_CFLAGS
+    LIBS=$linuxsampler_save_LIBS
 fi
 AM_CONDITIONAL(HAVE_JACK_MIDI, test $have_jack_midi = "1")
 AC_DEFINE_UNQUOTED(HAVE_JACK_MIDI, $have_jack_midi,
@@ -430,14 +431,14 @@ AC_DEFINE_UNQUOTED(HAVE_MME_MIDI,$have_mmemidi,[Define to 1 if you have MME MIDI
 if test "$have_midi_input_driver" = "false"; then
     echo "No supported MIDI input system found!"
     echo "Sorry, LinuxSampler only supports the following MIDI drivers at the moment:"
-    echo "ALSA, MIDIShare, CoreMIDI."
+    echo "ALSA, JACK, MIDIShare, CoreMIDI, MME."
     echo "If you think you have one of those available on your system, make sure you"
     echo "also have the respective development (header) files installed."
     exit -1;
 fi
 if test "$have_audio_output_driver" = "false"; then
     echo "No supported audio output system found!"
-    echo "Sorry, LinuxSampler only supports ALSA, JACK and ARTS as audio output"
+    echo "Sorry, LinuxSampler only supports ALSA, JACK, ARTS and ASIO as audio output"
     echo "driver at the moment!"
     exit -1;
 fi

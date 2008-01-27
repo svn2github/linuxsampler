@@ -2,7 +2,7 @@ LinuxSampler - modular, streaming capable sampler
 
 Copyright (C) 2003, 2004 by Benno Senoner (benno@gardena.net)
               and Christian Schoenebeck (cuse@users.sourceforge.net)
-Copyright (C) 2005 - 2007 Christian Schoenebeck
+Copyright (C) 2005 - 2008 Christian Schoenebeck
 
 
 License
@@ -36,7 +36,7 @@ Requirements on Linux
 
     o A low latency enabled kernel
       (see http://www.linuxsampler.org/faq.html#dropouts).
-    o At least one supported MIDI input system (i.e. ALSA, CoreMIDI or
+    o At least one supported MIDI input system (i.e. ALSA, JACK, CoreMIDI or
       MidiShare) and at least one support audio output system (i.e. ALSA,
       JACK or ARTS) have to be installed, along with their respective
       development (header) files.
