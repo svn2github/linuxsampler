@@ -35,6 +35,12 @@ mmemidi_src  =
 mmemidi_ladd =
 endif
 
+if HAVE_JACK_MIDI
+jackmidi_src  = MidiInputDeviceJack.cpp MidiInputDeviceJack.h
+else
+jackmidi_src  =
+endif
+
 liblinuxsamplermididriverincludedir = $(includedir)/linuxsampler/drivers/midi
 liblinuxsamplermididriverinclude_HEADERS = \
 	midi.h \
@@ -52,7 +58,8 @@ liblinuxsamplermididriver_la_SOURCES = \
 	$(alsa_src) \
 	$(midishare_src)\
 	$(coremidi_src)\
-	$(mmemidi_src)
+	$(mmemidi_src)\
+	$(jackmidi_src)
 
 liblinuxsamplermididriver_la_LIBADD = $(alsa_ladd) $(midishare_ladd) $(mmemidi_ladd)
 liblinuxsamplermididriver_la_LDFLAGS = $(coremidi_ldflags)

@@ -25,6 +25,9 @@ Version CVS HEAD (?)
       reflected the wrong value
     - fixed a memory management bug in ASIO driver
 
+  * MIDI driver:
+    - added JACK MIDI driver
+
   * instruments database:
     - avoid time consuming samples scanning when adding instruments
       to the instruments database

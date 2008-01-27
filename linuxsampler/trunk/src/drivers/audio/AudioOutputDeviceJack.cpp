@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005, 2006 Christian Schoenebeck                        *
+ *   Copyright (C) 2005 - 2008 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -66,11 +66,11 @@ namespace LinuxSampler {
     }
 
     std::vector<String> AudioOutputDeviceJack::AudioChannelJack::ParameterJackBindings::PossibilitiesAsString() {
-        const char** pPortNames = jack_get_ports(pChannel->pDevice->hJackClient, NULL, NULL, JackPortIsInput);
+        const char** pPortNames = jack_get_ports(pChannel->pDevice->hJackClient, NULL, JACK_DEFAULT_AUDIO_TYPE, JackPortIsInput);
         if (!pPortNames) return std::vector<String>();
         std::vector<String> result;
         for (int i = 0; pPortNames[i]; i++) result.push_back(pPortNames[i]);
-        //free(pPortNames); FIXME: pPortNames should be freed here
+        free(pPortNames);
         return result;
     }
 
@@ -178,19 +178,10 @@ namespace LinuxSampler {
      * @see AcquireChannels()
      */
     AudioOutputDeviceJack::AudioOutputDeviceJack(std::map<String,DeviceCreationParameter*> Parameters) : AudioOutputDevice(Parameters) {
-        if (((DeviceCreationParameterString*)Parameters["NAME"])->ValueAsString().size() >= jack_client_name_size())
-            throw Exception("JACK client name too long");
-
-        if ((hJackClient = jack_client_new(((DeviceCreationParameterString*)Parameters["NAME"])->ValueAsString().c_str())) == 0)
-            throw AudioOutputException("Seems Jack server not running.");
-
+        JackClient* pJackClient = JackClient::CreateAudio(((DeviceCreationParameterString*)Parameters["NAME"])->ValueAsString());
         existingJackDevices++;
-
-        jack_set_process_callback(hJackClient, __libjack_process_callback, this);
-        jack_on_shutdown(hJackClient, __libjack_shutdown_callback, this);
-        if (jack_activate(hJackClient))
-            throw AudioOutputException("Jack: Cannot activate Jack client.");
-
+        pJackClient->SetAudioOutputDevice(this);
+        hJackClient = pJackClient->hJackClient;
         uiMaxSamplesPerCycle = jack_get_buffer_size(hJackClient);
 
         // create audio channels
@@ -201,8 +192,8 @@ namespace LinuxSampler {
     }
 
     AudioOutputDeviceJack::~AudioOutputDeviceJack() {
-        // destroy jack client
-        jack_client_close(hJackClient);
+        // destroy jack client if there is no midi device associated with it
+        JackClient::ReleaseAudio(((DeviceCreationParameterString*)Parameters["NAME"])->ValueAsString());
         existingJackDevices--;
     }
 
@@ -258,21 +249,126 @@ namespace LinuxSampler {
     }
 
     String AudioOutputDeviceJack::Version() {
-       String s = "$Revision: 1.21 $";
+       String s = "$Revision: 1.22 $";
        return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
 
+
+
+// *************** JackClient ***************
+// *
+
     // libjack callback functions
 
-    int __libjack_process_callback(jack_nframes_t nframes, void* arg) {
-        AudioOutputDeviceJack* pAudioOutputDeviceJack = (AudioOutputDeviceJack*) arg;
-        return pAudioOutputDeviceJack->Process(nframes);
+    int linuxsampler_libjack_process_callback(jack_nframes_t nframes, void* arg) {
+        return static_cast<JackClient*>(arg)->Process(nframes);
     }
 
-    void __libjack_shutdown_callback(void* arg) {
-        AudioOutputDeviceJack* pAudioOutputDeviceJack = (AudioOutputDeviceJack*) arg;
-        pAudioOutputDeviceJack->Stop();
+    void linuxsampler_libjack_shutdown_callback(void* arg) {
+        static_cast<JackClient*>(arg)->Stop();
         fprintf(stderr, "Jack: Jack server shutdown, exiting.\n");
+    }
+
+    std::map<String, JackClient*> JackClient::Clients;
+
+    int JackClient::Process(uint Samples) {
+        const config_t& config = ConfigReader.Lock();
+#if HAVE_JACK_MIDI
+        if (config.MidiDevice) config.MidiDevice->Process(Samples);
+#endif
+        int res = config.AudioDevice ? config.AudioDevice->Process(Samples) : 0;
+        ConfigReader.Unlock();
+        return res;
+    }
+
+    void JackClient::Stop() {
+        const config_t& config = ConfigReader.Lock();
+        if (config.AudioDevice) config.AudioDevice->Stop();
+        ConfigReader.Unlock();
+    }
+
+    JackClient::JackClient(String Name) : ConfigReader(Config) {
+        {
+            config_t& config = Config.GetConfigForUpdate();
+            config.AudioDevice = 0;
+            config.MidiDevice = 0;
+        }
+        {
+            config_t& config = Config.SwitchConfig();
+            config.AudioDevice = 0;
+            config.MidiDevice = 0;
+        }
+        audio = midi = false;
+        if (Name.size() >= jack_client_name_size())
+            throw Exception("JACK client name too long");
+        if ((hJackClient = jack_client_new(Name.c_str())) == 0)
+            throw Exception("Seems Jack server is not running.");
+        jack_set_process_callback(hJackClient, linuxsampler_libjack_process_callback, this);
+        jack_on_shutdown(hJackClient, linuxsampler_libjack_shutdown_callback, this);
+        if (jack_activate(hJackClient))
+            throw Exception("Jack: Cannot activate Jack client.");
+    }
+
+    JackClient::~JackClient() {
+        jack_client_close(hJackClient);
+    }
+
+    void JackClient::SetAudioOutputDevice(AudioOutputDeviceJack* device) {
+        Config.GetConfigForUpdate().AudioDevice = device;
+        Config.SwitchConfig().AudioDevice = device;
+    }
+
+    void JackClient::SetMidiInputDevice(MidiInputDeviceJack* device) {
+        Config.GetConfigForUpdate().MidiDevice = device;
+        Config.SwitchConfig().MidiDevice = device;
+    }
+
+    JackClient* JackClient::CreateAudio(String Name) { // static
+        JackClient* client;
+        std::map<String, JackClient*>::const_iterator it = Clients.find(Name);
+        if (it == Clients.end()) {
+            client = new JackClient(Name);
+            Clients[Name] = client;
+        } else {
+            client = it->second;
+            if (client->audio) throw Exception("Jack audio device '" + Name + "' already exists");
+        }
+        client->audio = true;
+        return client;
+    }
+
+    JackClient* JackClient::CreateMidi(String Name) { // static
+        JackClient* client;
+        std::map<String, JackClient*>::const_iterator it = Clients.find(Name);
+        if (it == Clients.end()) {
+            client = new JackClient(Name);
+            Clients[Name] = client;
+        } else {
+            client = it->second;
+            if (client->midi) throw Exception("Jack MIDI device '" + Name + "' already exists");
+        }
+        client->midi = true;
+        return client;
+    }
+
+    void JackClient::ReleaseAudio(String Name) { // static
+        JackClient* client = Clients[Name];
+        client->SetAudioOutputDevice(0);
+        client->audio = false;
+        if (!client->midi) {
+            Clients.erase(Name);
+            delete client;
+        }
+    }
+
+    void JackClient::ReleaseMidi(String Name) { // static
+        JackClient* client = Clients[Name];
+        client->SetMidiInputDevice(0);
+        client->midi = false;
+        if (!client->audio) {
+            Clients.erase(Name);
+            delete client;
+        }
     }
 
 } // namespace LinuxSampler

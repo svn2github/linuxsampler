@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 - 2007 Christian Schoenebeck                       *
+ *   Copyright (C) 2005 - 2008 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -40,6 +40,11 @@
 #if HAVE_MME_MIDI
 # include "MidiInputDeviceMme.h"
 #endif // HAVE_MME_MIDI
+
+#if HAVE_JACK_MIDI
+# include "MidiInputDeviceJack.h"
+#endif // HAVE_JACK_MIDI
+
 namespace LinuxSampler {
 
     std::map<String, MidiInputDeviceFactory::InnerFactory*> MidiInputDeviceFactory::InnerFactories;
@@ -72,6 +77,15 @@ namespace LinuxSampler {
     REGISTER_MIDI_INPUT_DRIVER_PARAMETER(MidiInputDeviceMme, ParameterActive);
     REGISTER_MIDI_INPUT_DRIVER_PARAMETER(MidiInputDeviceMme, ParameterPorts);
 #endif // HAVE_MME_MIDI
+
+#if HAVE_JACK_MIDI
+    REGISTER_MIDI_INPUT_DRIVER(MidiInputDeviceJack);
+    /* Common parameters */
+    REGISTER_MIDI_INPUT_DRIVER_PARAMETER(MidiInputDeviceJack, ParameterActive);
+    REGISTER_MIDI_INPUT_DRIVER_PARAMETER(MidiInputDeviceJack, ParameterPorts);
+    /* Driver specific parameters */
+    REGISTER_MIDI_INPUT_DRIVER_PARAMETER(MidiInputDeviceJack, ParameterName);
+#endif // HAVE_JACK_MIDI
 
     MidiInputDevice* MidiInputDeviceFactory::Create(String DriverName, std::map<String,String> Parameters, Sampler* pSampler) throw (Exception) {
         if (!InnerFactories.count(DriverName)) throw Exception("There is no midi input driver '" + DriverName + "'.");

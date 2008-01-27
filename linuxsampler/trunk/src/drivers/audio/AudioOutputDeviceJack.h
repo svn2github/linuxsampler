@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 - 2007 Christian Schoenebeck                       *
+ *   Copyright (C) 2005 - 2008 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -34,6 +34,7 @@
 
 #include "AudioOutputDevice.h"
 #include "../../common/ConditionServer.h"
+#include "../midi/MidiInputDeviceJack.h"
 
 namespace LinuxSampler {
 
@@ -119,7 +120,7 @@ namespace LinuxSampler {
             virtual AudioChannel* CreateChannel(uint ChannelNr);
 
 
-	    static String Name();
+            static String Name();
 
             virtual String Driver();
 
@@ -136,8 +137,45 @@ namespace LinuxSampler {
     };
 
     // Callback functions for the libjack API
-    int  __libjack_process_callback(jack_nframes_t nframes, void* arg);
-    void __libjack_shutdown_callback(void* arg);
+    int  linuxsampler_libjack_process_callback(jack_nframes_t nframes, void* arg);
+    void linuxsampler_libjack_shutdown_callback(void* arg);
+
+
+    /** JACK client
+     *
+     * Represents a jack client. This class is shared by
+     * AudioOutputDeviceJack and MidiInputDeviceJack. The jack server
+     * calls JackClient::Process, which in turn calls
+     * AudioOutputDeviceJack::Process and/or
+     * MidiInputDeviceJack::Process.
+     */
+    class JackClient {
+        public:
+            static JackClient* CreateAudio(String Name);
+            static JackClient* CreateMidi(String Name);
+            static void ReleaseAudio(String Name);
+            static void ReleaseMidi(String Name);
+            int Process(uint Samples);
+            void Stop();
+            void SetAudioOutputDevice(AudioOutputDeviceJack* device);
+            void SetMidiInputDevice(MidiInputDeviceJack* device);
+
+            jack_client_t* hJackClient;
+
+        private:
+            static std::map<String, JackClient*> Clients;
+            struct config_t {
+                AudioOutputDeviceJack* AudioDevice;
+                MidiInputDeviceJack* MidiDevice;
+            };
+            SynchronizedConfig<config_t> Config;
+            SynchronizedConfig<config_t>::Reader ConfigReader;
+            bool audio;
+            bool midi;
+
+            JackClient(String Name);
+            ~JackClient();
+    };
 }
 
 #endif // HAVE_JACK

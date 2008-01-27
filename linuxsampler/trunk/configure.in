@@ -273,6 +273,28 @@ fi
 AM_CONDITIONAL(HAVE_JACK, test $have_jack = "1")
 AC_DEFINE_UNQUOTED(HAVE_JACK,$have_jack,[Define to 1 if you have JACK installed.])
 
+# JACK MIDI
+have_jack_midi=0
+if test $have_jack = "1"; then
+   linuxsampler_save_CFLAGS=$CFLAGS
+   linuxsampler_save_LIBS=$LIBS
+   CFLAGS="$JACK_CFLAGS $CFLAGS"
+   LIBS="$JACK_LIBS $LIBS"
+   AC_CHECK_HEADER(jack/midiport.h, have_jack_midi=1, have_jack_midi=0)
+   if test $have_jack_midi = "1"; then
+     AC_CHECK_FUNCS(jack_midi_get_event_count)
+     AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[#include <jack/midiport.h>]], [[
+         jack_midi_clear_buffer(0, 0);
+     ]])], [AC_DEFINE(JACK_MIDI_FUNCS_NEED_NFRAMES, 1,
+             [Define to 1 if you have the old jack midi functions that need an nframes argument.])])
+   fi
+   CFLAGS=$linuxsampler_save_CFLAGS
+   LIBS=$linuxsampler_save_LIBS
+fi
+AM_CONDITIONAL(HAVE_JACK_MIDI, test $have_jack_midi = "1")
+AC_DEFINE_UNQUOTED(HAVE_JACK_MIDI, $have_jack_midi,
+                   [Define to 1 if you have JACK with MIDI support installed.])
+
 # ARTS
 AC_ARG_ENABLE(arts-driver,
   [  --disable-arts-driver
