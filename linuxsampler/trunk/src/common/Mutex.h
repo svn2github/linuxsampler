@@ -30,8 +30,6 @@
 #include <pthread.h>
 #endif
 
-#include "global_private.h"
-
 namespace LinuxSampler {
 
 /** @brief Mutual exclusive objects
