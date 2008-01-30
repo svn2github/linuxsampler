@@ -32,6 +32,7 @@
 #include "../../common/ResourceManager.h"
 #include "../../drivers/audio/AudioOutputDevice.h"
 #include "../InstrumentManager.h"
+#include "../../common/ArrayList.h"
 
 //namespace libgig = gig;
 
@@ -91,6 +92,9 @@ namespace LinuxSampler { namespace gig {
                                     RTList< ::gig::DimensionRegion*>* pDimRegionsInUse);
             void HandBackDimReg(::gig::DimensionRegion* pDimReg);
 
+            void TrySendNoteOnToEditors(uint8_t Key, uint8_t Velocity, ::gig::Instrument* pInstrument);
+            void TrySendNoteOffToEditors(uint8_t Key, uint8_t Velocity, ::gig::Instrument* pInstrument);
+
         protected:
             // implementation of derived abstract methods from 'ResourceManager'
             virtual ::gig::Instrument* Create(instrument_id_t Key, InstrumentConsumer* pConsumer, void*& pArg);
@@ -133,7 +137,7 @@ namespace LinuxSampler { namespace gig {
             std::map< ::gig::Sample*, int> SampleRefCount; ///< contains samples that are still in use but belong to a released instrument
 
             Mutex InstrumentEditorProxiesMutex; ///< protects the 'InstrumentEditorProxies' map
-            std::map<InstrumentEditor*, InstrumentConsumer*> InstrumentEditorProxies; ///< here we store the objects that react on instrument specific notifications on behalf of the respective instrument editor
+            ArrayList<InstrumentConsumer*> InstrumentEditorProxies; ///< here we store the objects that react on instrument specific notifications on behalf of the respective instrument editor
             std::set<Engine*> suspendedEngines; ///< all engines currently completely suspended
             Mutex             suspendedEnginesMutex; ///< protects 'suspendedEngines' set
     };

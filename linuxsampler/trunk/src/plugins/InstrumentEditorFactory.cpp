@@ -1,6 +1,6 @@
 /***************************************************************************
  *                                                                         *
- *   Copyright (C) 2007 Christian Schoenebeck                              *
+ *   Copyright (C) 2007, 2008 Christian Schoenebeck                        *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -210,8 +210,8 @@ namespace LinuxSampler {
                 void* pDLL = dlopen(sPath.c_str(), RTLD_NOW);
                 if (pDLL) LoadedDLLs.push_back(pDLL);
                 else {
-                    std::cerr << "Failed to load instrument editor plugin: "
-                              << sPath << std::endl;
+                    std::cerr << "Failed to load instrument editor plugin: '"
+                              << sPath << "', cause: " << dlerror() << std::endl;
                 }
             }
             closedir(hDir);

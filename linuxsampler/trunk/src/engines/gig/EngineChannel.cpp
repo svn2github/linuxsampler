@@ -508,6 +508,8 @@ namespace LinuxSampler { namespace gig {
             event.pEngineChannel      = this;
             if (this->pEventQueue->write_space() > 0) this->pEventQueue->push(&event);
             else dmsg(1,("EngineChannel: Input event queue full!"));
+            // inform instrument editor(s), if any ...
+            pEngine->instruments.TrySendNoteOnToEditors(Key, Velocity, pInstrument);
         }
     }
 
@@ -534,6 +536,8 @@ namespace LinuxSampler { namespace gig {
             event.pEngineChannel      = this;
             if (this->pEventQueue->write_space() > 0) this->pEventQueue->push(&event);
             else dmsg(1,("EngineChannel: Input event queue full!"));
+            // inform instrument editor(s), if any ...
+            pEngine->instruments.TrySendNoteOnToEditors(Key, Velocity, pInstrument);
         }
     }
 
@@ -555,6 +559,8 @@ namespace LinuxSampler { namespace gig {
             event.pEngineChannel      = this;
             if (this->pEventQueue->write_space() > 0) this->pEventQueue->push(&event);
             else dmsg(1,("EngineChannel: Input event queue full!"));
+            // inform instrument editor(s), if any ...
+            pEngine->instruments.TrySendNoteOffToEditors(Key, Velocity, pInstrument);
         }
     }
 
@@ -581,6 +587,8 @@ namespace LinuxSampler { namespace gig {
             event.pEngineChannel      = this;
             if (this->pEventQueue->write_space() > 0) this->pEventQueue->push(&event);
             else dmsg(1,("EngineChannel: Input event queue full!"));
+            // inform instrument editor(s), if any ...
+            pEngine->instruments.TrySendNoteOffToEditors(Key, Velocity, pInstrument);
         }
     }
 

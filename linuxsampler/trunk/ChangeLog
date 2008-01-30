@@ -15,6 +15,10 @@ Version CVS HEAD (?)
     - fixed memory leaks that occurred when liblinuxsampler was unloaded
     - optimized the SynchronizedConfig class so it doesn't wait
       unnecessarily long after an update
+    - added support for notifying instrument editors on note-on / note-off
+      events (e.g. to highlight the pressed keys on the virtual keyboard
+      of gigedit)
+    - be verbose on DLL load errors (on Linux)
 
   * audio driver:
     - removed the nonsense audio channel constraint (which was hard coded to

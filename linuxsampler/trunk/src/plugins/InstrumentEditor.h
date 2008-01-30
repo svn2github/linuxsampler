@@ -1,6 +1,6 @@
 /***************************************************************************
  *                                                                         *
- *   Copyright (C) 2007 Christian Schoenebeck                              *
+ *   Copyright (C) 2007, 2008 Christian Schoenebeck                        *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -203,10 +203,67 @@ namespace LinuxSampler {
          */
         void RemoveListener(InstrumentEditorListener* pListener);
 
+
+        /**
+         * Informs the instrument editor that a @e note @e on event occured
+         * (e.g. caused by a MIDI keyboard connected to the sampler).
+         * Communication acts asynchronously, that is this method call doesn't
+         * lock in any way and returns immediately. It is thus realtime safe.
+         *
+         * @e Note: this method is usually only called by the sampler.
+         *
+         * @see ActiveNotesChanged(), NoteIsActive()
+         */
+        void SendNoteOnToEditor(uint8_t Key, uint8_t Velocity);
+
+        /**
+         * Informs the instrument editor that a @e note @e off event occured
+         * (e.g. caused by a MIDI keyboard connected to the sampler).
+         * Communication acts asynchronously, that is this method call doesn't
+         * lock in any way and returns immediately. It is thus realtime safe.
+         *
+         * @e Note: this method is usually only called by the sampler.
+         *
+         * @see ActiveNotesChanged(), NoteIsActive()
+         */
+        void SendNoteOffToEditor(uint8_t Key, uint8_t Velocity);
+
+        /**
+         * Can be called by the instrument editor to check whether a new note
+         * on or note off MIDI event arrived to the sampler during the last
+         * call to this method. So this is a asynchronously, "polling" based
+         * communication mechanism, which works in conjunction with the
+         * NoteIsActive() method call.
+         */
+        bool NotesChanged();
+
+        /**
+         * Can be called by the instrument editor to check whether a new note
+         * on or note off MIDI event arrived to the sampler for @a Key during
+         * the last call to this method. So this is a asynchronously,
+         * "polling" based communication mechanism, which works in
+         * conjunction with the NoteIsActive() method call.
+         */
+        bool NoteChanged(uint8_t Key);
+
+        /**
+         * Can be called by the instrument editor to check which key / note
+         * is currently active by the sampler, e.g. to highlight the
+         * respective keys of a virtual keyboard in the instrument editor.
+         *
+         * @see NotesChanged(), NoteChanged()
+         */
+        bool NoteIsActive(uint8_t Key);
+
         /**
          * Constructor
          */
         InstrumentEditor();
+
+        /**
+         * Destructor
+         */
+        virtual ~InstrumentEditor();
 
     protected:
         std::set<InstrumentEditorListener*> listeners;
@@ -217,6 +274,9 @@ namespace LinuxSampler {
         void*    pInstrument;
         String   sTypeName;
         String   sTypeVersion;
+        void*    pNotesChanged;
+        void*    pNoteChanged;
+        void*    pNoteIsActive;
     };
 
     /** @brief Instrument Editor Notifications

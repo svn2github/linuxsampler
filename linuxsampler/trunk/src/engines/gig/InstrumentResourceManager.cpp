@@ -67,6 +67,8 @@ namespace LinuxSampler { namespace gig {
 
         // the instrument we borrowed on behalf of the editor
         ::gig::Instrument* pInstrument;
+        // the instrument editor we work on behalf
+        InstrumentEditor* pEditor;
     };
 
     /**
@@ -196,8 +198,9 @@ namespace LinuxSampler { namespace gig {
         ::gig::Instrument* pInstrument = Borrow(ID, pProxy);
         // remember the proxy and instrument for this instrument editor
         pProxy->pInstrument = pInstrument;
+        pProxy->pEditor     = pEditor;
         InstrumentEditorProxiesMutex.Lock();
-        InstrumentEditorProxies[pEditor] = pProxy;
+        InstrumentEditorProxies.add(pProxy);
         InstrumentEditorProxiesMutex.Unlock();
         // launch the instrument editor for the given instrument
         pEditor->Launch(pInstrument, sDataType, sDataVersion);
@@ -214,23 +217,67 @@ namespace LinuxSampler { namespace gig {
         dmsg(1,("InstrumentResourceManager: instrument editor quit, doing cleanup\n"));
         // hand back instrument and free proxy
         InstrumentEditorProxiesMutex.Lock();
-        if (InstrumentEditorProxies.count(pSender)) {
+        for (int i = 0; i < InstrumentEditorProxies.size(); i++) {
             InstrumentEditorProxy* pProxy =
                 dynamic_cast<InstrumentEditorProxy*>(
-                    InstrumentEditorProxies[pSender]
+                    InstrumentEditorProxies[i]
                 );
-            InstrumentEditorProxies.erase(pSender);
-            InstrumentEditorProxiesMutex.Unlock();
-            HandBack(pProxy->pInstrument, pProxy);
-            if (pProxy) delete pProxy;
-        } else {
-            InstrumentEditorProxiesMutex.Unlock();
-            std::cerr << "Eeeek, could not find instrument editor proxy, this is a bug!\n" << std::flush;
+            if (pProxy->pEditor == pSender) {
+                InstrumentEditorProxies.remove(i);
+                InstrumentEditorProxiesMutex.Unlock();
+                HandBack(pProxy->pInstrument, pProxy);
+                if (pProxy) delete pProxy;
+                return;
+            }
         }
+        InstrumentEditorProxiesMutex.Unlock();
+        std::cerr << "Eeeek, could not find instrument editor proxy, this is a bug!\n" << std::flush;
 
         // Note that we don't need to free the editor here. As it
         // derives from Thread, it will delete itself when the thread
         // dies.
+    }
+
+    /**
+     * Try to inform the respective instrument editor(s), that a note on
+     * event just occured. This method is called by the MIDI thread. If any
+     * obstacles are in the way (e.g. if a wait for an unlock would be
+     * required) we give up immediately, since the RT safeness of the MIDI
+     * thread has absolute priority.
+     */
+    void InstrumentResourceManager::TrySendNoteOnToEditors(uint8_t Key, uint8_t Velocity, ::gig::Instrument* pInstrument) {
+        const bool bGotLock = InstrumentEditorProxiesMutex.Trylock(); // naively assumes RT safe implementation
+        if (!bGotLock) return; // hell, forget it, not worth the hassle
+        for (int i = 0; i < InstrumentEditorProxies.size(); i++) {
+            InstrumentEditorProxy* pProxy =
+                dynamic_cast<InstrumentEditorProxy*>(
+                    InstrumentEditorProxies[i]
+                );
+            if (pProxy->pInstrument == pInstrument)
+                pProxy->pEditor->SendNoteOnToEditor(Key, Velocity);
+        }
+        InstrumentEditorProxiesMutex.Unlock(); // naively assumes RT safe implementation
+    }
+
+    /**
+     * Try to inform the respective instrument editor(s), that a note off
+     * event just occured. This method is called by the MIDI thread. If any
+     * obstacles are in the way (e.g. if a wait for an unlock would be
+     * required) we give up immediately, since the RT safeness of the MIDI
+     * thread has absolute priority.
+     */
+    void InstrumentResourceManager::TrySendNoteOffToEditors(uint8_t Key, uint8_t Velocity, ::gig::Instrument* pInstrument) {
+        const bool bGotLock = InstrumentEditorProxiesMutex.Trylock(); // naively assumes RT safe implementation
+        if (!bGotLock) return; // hell, forget it, not worth the hassle
+        for (int i = 0; i < InstrumentEditorProxies.size(); i++) {
+            InstrumentEditorProxy* pProxy =
+                dynamic_cast<InstrumentEditorProxy*>(
+                    InstrumentEditorProxies[i]
+                );
+            if (pProxy->pInstrument == pInstrument)
+                pProxy->pEditor->SendNoteOffToEditor(Key, Velocity);
+        }
+        InstrumentEditorProxiesMutex.Unlock(); // naively assumes RT safe implementation
     }
 
     void InstrumentResourceManager::OnSamplesToBeRemoved(std::set<void*> Samples, InstrumentEditor* pSender) {
