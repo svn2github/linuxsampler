@@ -274,9 +274,7 @@ namespace LinuxSampler {
         void*    pInstrument;
         String   sTypeName;
         String   sTypeVersion;
-        void*    pNotesChanged;
-        void*    pNoteChanged;
-        void*    pNoteIsActive;
+        void*    pPrivateData;
     };
 
     /** @brief Instrument Editor Notifications
