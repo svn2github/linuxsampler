@@ -10,6 +10,8 @@ Version CVS HEAD (?)
   * autoconf fix: LS plugin dirs with digits in their prefix
     (e.g. "/usr/lib64/foo") are now resolved in relative dirs as well
     (show a warning when resolving the relative path failed)
+  * keys on the virtual keyboard now highlight on note on events on
+    sampler side (unfinished yet)
 
 Version 0.1.1 (2007-12-06)
 

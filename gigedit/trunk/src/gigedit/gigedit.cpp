@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007 Andreas Persson
+ * Copyright (C) 2007, 2008 Andreas Persson
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -20,9 +20,18 @@
 #include "gigedit.h"
 
 #include <gtkmm/main.h>
+#include <glibmm/main.h>
 #include "mainwindow.h"
 
 #include "global.h"
+
+GigEditJob::GigEditJob() {
+    _msecs = 100; // 100ms by default
+}
+
+int GigEditJob::msecs() {
+    return _msecs;
+}
 
 namespace {
 
@@ -38,6 +47,9 @@ class GigEditState : public sigc::trackable {
 public:
     GigEditState(GigEdit* parent) : parent(parent) { }
     void run(gig::Instrument* pInstrument);
+
+    static std::vector< GigEditJob* > timeoutJobs;
+    MainWindow* window;
 
 private:
 
@@ -71,7 +83,6 @@ private:
     Cond open;
     Cond close;
     gig::Instrument* instrument;
-    MainWindow* window;
 
     void open_window();
     void close_window();
@@ -130,8 +141,11 @@ void connect_signals(GigEdit* gigedit, MainWindow* mainwindow) {
     );
 }
 
-}
+} // namespace
 
+GigEdit::GigEdit() {
+    state = NULL;
+}
 
 int GigEdit::run(int argc, char* argv[]) {
     init_app();
@@ -148,8 +162,26 @@ int GigEdit::run(gig::Instrument* pInstrument) {
     init_app();
 
     GigEditState state(this);
+    this->state = &state;
     state.run(pInstrument);
+    this->state = NULL;
     return 0;
+}
+
+void GigEdit::add_timeout_job(GigEditJob* job) {
+    GigEditState::timeoutJobs.push_back(job);
+}
+
+void GigEdit::on_note_on_event(int key, int velocity) {
+    if (!this->state) return;
+    GigEditState* state = (GigEditState*) this->state;
+    state->window->signal_note_on().emit(key, velocity);
+}
+
+void GigEdit::on_note_off_event(int key, int velocity) {
+    if (!this->state) return;
+    GigEditState* state = (GigEditState*) this->state;
+    state->window->signal_note_off().emit(key, velocity);
 }
 
 sigc::signal<void, gig::File*>& GigEdit::signal_file_structure_to_be_changed() {
@@ -192,6 +224,7 @@ sigc::signal<void, gig::Sample*/*old*/, gig::Sample*/*new*/>& GigEdit::signal_sa
 Glib::StaticMutex GigEditState::mutex = GLIBMM_STATIC_MUTEX_INIT;
 Glib::Dispatcher* GigEditState::dispatcher = 0;
 GigEditState* GigEditState::current = 0;
+std::vector<GigEditJob*> GigEditState::timeoutJobs;
 
 void GigEditState::open_window_static() {
     GigEditState* c = GigEditState::current;
@@ -224,6 +257,16 @@ void GigEditState::main_loop_run(Cond* initialized) {
     dispatcher = new Glib::Dispatcher();
     dispatcher->connect(sigc::ptr_fun(&GigEditState::open_window_static));
     initialized->signal();
+
+    for (int i = 0; i < GigEditState::timeoutJobs.size(); i++) {
+        GigEditJob* job = timeoutJobs[i];
+        const Glib::RefPtr<Glib::TimeoutSource> timeout_source =
+            Glib::TimeoutSource::create(job->msecs());
+        timeout_source->connect(
+            sigc::mem_fun(*job, &GigEditJob::runGigEditJob)
+        );
+        timeout_source->attach(Glib::MainContext::get_default());
+    }
 
     main_loop.run();
 }

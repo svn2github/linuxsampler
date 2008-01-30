@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006, 2007 Andreas Persson
+ * Copyright (C) 2006 - 2008 Andreas Persson
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -350,6 +350,11 @@ MainWindow::MainWindow() :
         region_to_be_changed_signal.make_slot());
     m_RegionChooser.signal_region_changed_signal().connect(
         region_changed_signal.make_slot());
+
+    note_on_signal.connect(
+        sigc::mem_fun(m_RegionChooser, &RegionChooser::on_note_on_event));
+    note_off_signal.connect(
+        sigc::mem_fun(m_RegionChooser, &RegionChooser::on_note_off_event));
 
     dimreg_all_regions.signal_toggled().connect(
         sigc::mem_fun(*this, &MainWindow::update_dimregs));
@@ -1736,4 +1741,12 @@ sigc::signal<void, gig::DimensionRegion*>& MainWindow::signal_dimreg_to_be_chang
 
 sigc::signal<void, gig::DimensionRegion*>& MainWindow::signal_dimreg_changed() {
     return dimreg_changed_signal;
+}
+
+sigc::signal<void, int/*key*/, int/*velocity*/>& MainWindow::signal_note_on() {
+    return note_on_signal;
+}
+
+sigc::signal<void, int/*key*/, int/*velocity*/>& MainWindow::signal_note_off() {
+    return note_off_signal;
 }

@@ -60,9 +60,15 @@ RegionChooser::RegionChooser()
 
     red = Gdk::Color("#8070ff");
     grey1 = Gdk::Color("#b0b0b0");
+    activeKeyColor = Gdk::Color("#ff0000");
+    white = Gdk::Color("#ffffff");
+    black = Gdk::Color("#000000");
 
     colormap->alloc_color(red);
     colormap->alloc_color(grey1);
+    colormap->alloc_color(activeKeyColor);
+    colormap->alloc_color(white);
+    colormap->alloc_color(black);
     instrument = 0;
     region = 0;
     resize.active = false;
@@ -120,6 +126,17 @@ RegionChooser::RegionChooser()
 
 RegionChooser::~RegionChooser()
 {
+}
+
+void RegionChooser::on_note_on_event(int key, int velocity) {
+    draw_region(key, key+1, activeKeyColor);
+}
+
+void RegionChooser::on_note_off_event(int key, int velocity) {
+    if (is_black_key(key))
+        draw_region(key, key+1, black);
+    else
+        draw_region(key, key+1, white);
 }
 
 void RegionChooser::on_realize()
@@ -226,8 +243,11 @@ void RegionChooser::on_size_request(GtkRequisition* requisition)
     requisition->width = 500;
 }
 
+bool RegionChooser::is_black_key(int key) {
+    const int note = (key + 3) % 12;
+    return note == 1 || note == 4 || note == 6 || note == 9 || note == 11;
+}
 
-// not used
 void RegionChooser::draw_region(int from, int to, const Gdk::Color& color)
 {
     const int h = 40;
@@ -246,19 +266,19 @@ void RegionChooser::draw_region(int from, int to, const Gdk::Color& color)
         int w1 = x3 - x;
         switch (note) {
         case 0: case 5: case 10:
-            window->draw_rectangle(gc, true, x, h1 + 1, w1, bh);
-            window->draw_rectangle(gc, true, x4, h1 + bh + 1, x2 - x4, h - bh - 2);
+            window->draw_rectangle(gc, true, x - 1, h1 + 1, w1, bh);
+            window->draw_rectangle(gc, true, x4, h1 + bh + 1, x2 - x4 - 1, h - bh - 2);
             break;
         case 2: case 7:
             window->draw_rectangle(gc, true, x, h1 + 1, w1, bh);
-            window->draw_rectangle(gc, true, x4, h1 + bh + 1, x3 - x4, h - bh - 2);
+            window->draw_rectangle(gc, true, x4 - 1, h1 + bh + 1, x3 - x4 + 1, h - bh - 2);
             break;
         case 3: case 8:
             window->draw_rectangle(gc, true, x, h1 + 1, w1, bh);
             window->draw_rectangle(gc, true, x, h1 + bh + 1, x2 - x, h - bh - 2);
             break;
         default:
-            window->draw_rectangle(gc, true, x, h1 + 1, w1, bh - 1);
+            window->draw_rectangle(gc, true, x, h1 + 1, w1 - 1, bh - 1);
             break;
         }
     }

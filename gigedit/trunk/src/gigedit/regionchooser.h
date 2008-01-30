@@ -65,6 +65,9 @@ public:
 
     gig::Region* get_region() { return region; }
 
+    void on_note_on_event(int key, int velocity);
+    void on_note_off_event(int key, int velocity);
+
 protected:
     virtual void on_realize();
     virtual bool on_expose_event(GdkEventExpose* e);
@@ -76,9 +79,7 @@ protected:
     gig::Region* get_region(int key);
 
     Glib::RefPtr<Gdk::GC> gc;
-    Gdk::Color blue, red, grey1;
-
-    void draw_region(int from, int to, const Gdk::Color& color);
+    Gdk::Color activeKeyColor, red, grey1, white, black;
 
     sigc::signal<void> region_selected;
     sigc::signal<void> instrument_changed;
@@ -93,6 +94,8 @@ protected:
     gig::Region* region;
     SortedRegions regions;
 
+    bool is_black_key(int key);
+    void draw_region(int from, int to, const Gdk::Color& color);
     void motion_resize_region(int x, int y);
     void motion_move_region(int x, int y);
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007 Andreas Persson
+ * Copyright (C) 2007, 2008 Andreas Persson
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -23,10 +23,11 @@
 #include <config.h>
 
 #include <linuxsampler/plugins/InstrumentEditor.h>
+#include "../gigedit/gigedit.h"
 
 #include <gig.h>
 
-class LinuxSamplerPlugin : public LinuxSampler::InstrumentEditor {
+class LinuxSamplerPlugin : public LinuxSampler::InstrumentEditor, public GigEditJob {
     public:
         LinuxSamplerPlugin();
         virtual int Main(void* pInstrument, String sTypeName, String sTypeVersion);
@@ -34,8 +35,13 @@ class LinuxSamplerPlugin : public LinuxSampler::InstrumentEditor {
         virtual String Name();
         virtual String Version();
         virtual String Description();
+        virtual ~LinuxSamplerPlugin();
+
+        virtual bool runGigEditJob();
 
     private:
+        void* pApp;
+
         void __onSamplesToBeRemoved(std::list<gig::Sample*> lSamples);
 };
 

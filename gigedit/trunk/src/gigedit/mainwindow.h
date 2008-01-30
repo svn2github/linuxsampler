@@ -1,5 +1,5 @@
 /*                                                         -*- c++ -*-
- * Copyright (C) 2006, 2007 Andreas Persson
+ * Copyright (C) 2006 - 2008 Andreas Persson
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -211,6 +211,9 @@ public:
     sigc::signal<void, gig::DimensionRegion*>& signal_dimreg_changed();
     sigc::signal<void, gig::Sample*/*old*/, gig::Sample*/*new*/>& signal_sample_ref_changed();
 
+    sigc::signal<void, int/*key*/, int/*velocity*/>& signal_note_on();
+    sigc::signal<void, int/*key*/, int/*velocity*/>& signal_note_off();
+
 protected:
     Glib::RefPtr<Gtk::ActionGroup> actionGroup;
     Glib::RefPtr<Gtk::UIManager> uiManager;
@@ -234,6 +237,9 @@ protected:
     sigc::signal<void, gig::DimensionRegion*> dimreg_to_be_changed_signal;
     sigc::signal<void, gig::DimensionRegion*> dimreg_changed_signal;
     sigc::signal<void, gig::Sample*/*old*/, gig::Sample*/*new*/> sample_ref_changed_signal;
+
+    sigc::signal<void, int/*key*/, int/*velocity*/> note_on_signal;
+    sigc::signal<void, int/*key*/, int/*velocity*/> note_off_signal;
 
     void on_instrument_selection_change(int index);
     void on_sel_change();

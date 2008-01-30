@@ -1,5 +1,5 @@
 /*                                                         -*- c++ -*-
- * Copyright (C) 2007 Andreas Persson
+ * Copyright (C) 2007, 2008 Andreas Persson
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -25,8 +25,19 @@
 #include <list>
 #include <sigc++/signal.h>
 
+class GigEditJob {
+public:
+    GigEditJob();
+    virtual bool runGigEditJob() = 0;
+    int msecs();
+private:
+    int _msecs;
+};
+
 class GigEdit {
 public:
+    GigEdit();
+
     int run(int argc, char* argv[]);
     int run(gig::Instrument* pInstrument);
 
@@ -40,6 +51,11 @@ public:
     sigc::signal<void, gig::DimensionRegion*>& signal_dimreg_changed();
     sigc::signal<void, gig::Sample*/*old*/, gig::Sample*/*new*/>& signal_sample_ref_changed();
 
+    void on_note_on_event(int key, int velocity);
+    void on_note_off_event(int key, int velocity);
+
+    void add_timeout_job(GigEditJob* job);
+
 private:
     sigc::signal<void, gig::File*> file_structure_to_be_changed_signal;
     sigc::signal<void, gig::File*> file_structure_changed_signal;
@@ -50,6 +66,7 @@ private:
     sigc::signal<void, gig::DimensionRegion*> dimreg_to_be_changed_signal;
     sigc::signal<void, gig::DimensionRegion*> dimreg_changed_signal;
     sigc::signal<void, gig::Sample*/*old*/, gig::Sample*/*new*/> sample_ref_changed_signal;
+    void* state;
 };
 
 #endif // GIGEDIT_H

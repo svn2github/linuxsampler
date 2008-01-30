@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007 Andreas Persson
+ * Copyright (C) 2007, 2008 Andreas Persson
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -20,7 +20,6 @@
 #include "linuxsamplerplugin.h"
 
 #include <linuxsampler/plugins/InstrumentEditorFactory.h>
-#include "../gigedit/gigedit.h"
 
 #include <iostream>
 #include <sigc++/bind.h>
@@ -28,14 +27,20 @@
 REGISTER_INSTRUMENT_EDITOR(LinuxSamplerPlugin)
 
 LinuxSamplerPlugin::LinuxSamplerPlugin() {
+    pApp = new GigEdit;
+}
+
+LinuxSamplerPlugin::~LinuxSamplerPlugin() {
+    if (pApp) delete (GigEdit*) pApp;
 }
 
 int LinuxSamplerPlugin::Main(void* pInstrument, String sTypeName, String sTypeVersion) {
     std::cout << "Entered Gigedit Main() loop :)\n" << std::flush;
     gig::Instrument* pGigInstr = static_cast<gig::Instrument*>(pInstrument);
-    GigEdit app;
+    GigEdit* app = (GigEdit*) pApp;
+
     // connect notification signals
-    app.signal_file_structure_to_be_changed().connect(
+    app->signal_file_structure_to_be_changed().connect(
         sigc::bind(
             sigc::mem_fun(
                 *this, &LinuxSamplerPlugin::NotifyDataStructureToBeChanged
@@ -43,7 +48,7 @@ int LinuxSamplerPlugin::Main(void* pInstrument, String sTypeName, String sTypeVe
             "gig::File"
         )
     );
-    app.signal_file_structure_changed().connect(
+    app->signal_file_structure_changed().connect(
         sigc::bind(
             sigc::mem_fun(
                 *this, &LinuxSamplerPlugin::NotifyDataStructureChanged
@@ -51,13 +56,13 @@ int LinuxSamplerPlugin::Main(void* pInstrument, String sTypeName, String sTypeVe
             "gig::File"
         )
     );
-    app.signal_samples_to_be_removed().connect(
+    app->signal_samples_to_be_removed().connect(
         sigc::mem_fun(*this, &LinuxSamplerPlugin::__onSamplesToBeRemoved)
     );
-    app.signal_samples_removed().connect(
+    app->signal_samples_removed().connect(
         sigc::mem_fun(*this, &LinuxSamplerPlugin::NotifySamplesRemoved)
     );
-    app.signal_region_to_be_changed().connect(
+    app->signal_region_to_be_changed().connect(
         sigc::bind(
             sigc::mem_fun(
                 *this, &LinuxSamplerPlugin::NotifyDataStructureToBeChanged
@@ -65,7 +70,7 @@ int LinuxSamplerPlugin::Main(void* pInstrument, String sTypeName, String sTypeVe
             "gig::Region"
         )
     );
-    app.signal_region_changed().connect(
+    app->signal_region_changed().connect(
         sigc::bind(
             sigc::mem_fun(
                 *this, &LinuxSamplerPlugin::NotifyDataStructureChanged
@@ -73,7 +78,7 @@ int LinuxSamplerPlugin::Main(void* pInstrument, String sTypeName, String sTypeVe
             "gig::Region"
         )
     );
-    app.signal_dimreg_to_be_changed().connect(
+    app->signal_dimreg_to_be_changed().connect(
         sigc::bind(
             sigc::mem_fun(
                 *this, &LinuxSamplerPlugin::NotifyDataStructureToBeChanged
@@ -81,7 +86,7 @@ int LinuxSamplerPlugin::Main(void* pInstrument, String sTypeName, String sTypeVe
             "gig::DimensionRegion"
         )
     );
-    app.signal_dimreg_changed().connect(
+    app->signal_dimreg_changed().connect(
         sigc::bind(
             sigc::mem_fun(
                 *this, &LinuxSamplerPlugin::NotifyDataStructureChanged
@@ -89,11 +94,25 @@ int LinuxSamplerPlugin::Main(void* pInstrument, String sTypeName, String sTypeVe
             "gig::DimensionRegion"
         )
     );
-    app.signal_sample_ref_changed().connect(
+    app->signal_sample_ref_changed().connect(
         sigc::mem_fun(*this, &LinuxSamplerPlugin::NotifySampleReferenceChanged)
     );
+
+    app->add_timeout_job(this);
+
     // run gigedit application
-    return app.run(pGigInstr);
+    return app->run(pGigInstr);
+}
+
+bool LinuxSamplerPlugin::runGigEditJob() {
+    GigEdit* app = (GigEdit*) pApp;
+    if (!NotesChanged()) return true;
+    for (int iKey = 0; iKey < 128; iKey++)
+        if (NoteChanged(iKey))
+            NoteIsActive(iKey) ? // we don't care about velocity yet
+                app->on_note_on_event(iKey, 127) :
+                app->on_note_off_event(iKey, 127);
+    return true;
 }
 
 void LinuxSamplerPlugin::__onSamplesToBeRemoved(std::list<gig::Sample*> lSamples) {
