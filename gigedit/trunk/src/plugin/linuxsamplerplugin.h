@@ -23,11 +23,10 @@
 #include <config.h>
 
 #include <linuxsampler/plugins/InstrumentEditor.h>
-#include "../gigedit/gigedit.h"
 
 #include <gig.h>
 
-class LinuxSamplerPlugin : public LinuxSampler::InstrumentEditor, public GigEditJob {
+class LinuxSamplerPlugin : public LinuxSampler::InstrumentEditor {
     public:
         LinuxSamplerPlugin();
         virtual int Main(void* pInstrument, String sTypeName, String sTypeVersion);
@@ -43,6 +42,7 @@ class LinuxSamplerPlugin : public LinuxSampler::InstrumentEditor, public GigEdit
         void* pApp;
 
         void __onSamplesToBeRemoved(std::list<gig::Sample*> lSamples);
+        bool __onPollPeriod();
 };
 
 #endif // GIGEDIT_LINUXSAMPLER_PLUGIN_H

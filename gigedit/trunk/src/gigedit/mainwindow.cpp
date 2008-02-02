@@ -1048,11 +1048,20 @@ InstrumentProps::InstrumentProps()
       eFineTune("Fine tune", -8400, 8400),
       ePitchbendRange("Pitchbend range", 0, 12),
       ePianoReleaseMode("Piano release mode"),
-      eDimensionKeyRangeLow("Dimension key range low"),
-      eDimensionKeyRangeHigh("Dimension key range high"),
+      eDimensionKeyRangeLow("Keyswitching range low"),
+      eDimensionKeyRangeHigh("Keyswitching range high"),
       update_model(0)
 {
     set_title("Instrument Properties");
+
+    eDimensionKeyRangeLow.set_tip(
+        _("start of the keyboard area which should switch the "
+          "\"keyswitching\" dimension")
+    );
+    eDimensionKeyRangeHigh.set_tip(
+        _("end of the keyboard area which should switch the "
+          "\"keyswitching\" dimension")
+    );
 
     connect(eIsDrum, &InstrumentProps::set_IsDrum);
     connect(eMIDIBank, &InstrumentProps::set_MIDIBank);

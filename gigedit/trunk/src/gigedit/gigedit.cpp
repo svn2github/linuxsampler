@@ -25,14 +25,6 @@
 
 #include "global.h"
 
-GigEditJob::GigEditJob() {
-    _msecs = 100; // 100ms by default
-}
-
-int GigEditJob::msecs() {
-    return _msecs;
-}
-
 namespace {
 
 // State for a gigedit thread.
@@ -48,7 +40,6 @@ public:
     GigEditState(GigEdit* parent) : parent(parent) { }
     void run(gig::Instrument* pInstrument);
 
-    static std::vector< GigEditJob* > timeoutJobs;
     MainWindow* window;
 
 private:
@@ -168,10 +159,6 @@ int GigEdit::run(gig::Instrument* pInstrument) {
     return 0;
 }
 
-void GigEdit::add_timeout_job(GigEditJob* job) {
-    GigEditState::timeoutJobs.push_back(job);
-}
-
 void GigEdit::on_note_on_event(int key, int velocity) {
     if (!this->state) return;
     GigEditState* state = (GigEditState*) this->state;
@@ -224,7 +211,6 @@ sigc::signal<void, gig::Sample*/*old*/, gig::Sample*/*new*/>& GigEdit::signal_sa
 Glib::StaticMutex GigEditState::mutex = GLIBMM_STATIC_MUTEX_INIT;
 Glib::Dispatcher* GigEditState::dispatcher = 0;
 GigEditState* GigEditState::current = 0;
-std::vector<GigEditJob*> GigEditState::timeoutJobs;
 
 void GigEditState::open_window_static() {
     GigEditState* c = GigEditState::current;
@@ -257,16 +243,6 @@ void GigEditState::main_loop_run(Cond* initialized) {
     dispatcher = new Glib::Dispatcher();
     dispatcher->connect(sigc::ptr_fun(&GigEditState::open_window_static));
     initialized->signal();
-
-    for (int i = 0; i < GigEditState::timeoutJobs.size(); i++) {
-        GigEditJob* job = timeoutJobs[i];
-        const Glib::RefPtr<Glib::TimeoutSource> timeout_source =
-            Glib::TimeoutSource::create(job->msecs());
-        timeout_source->connect(
-            sigc::mem_fun(*job, &GigEditJob::runGigEditJob)
-        );
-        timeout_source->attach(Glib::MainContext::get_default());
-    }
 
     main_loop.run();
 }

@@ -93,7 +93,7 @@ bool DimRegionChooser::on_expose_event(GdkEventExpose* event)
             case gig::dimension_velocity: dstr="velocity"; break;
             case gig::dimension_channelaftertouch: dstr="channelaftertouch"; break;
             case gig::dimension_releasetrigger: dstr="releasetrigger"; break;
-            case gig::dimension_keyboard: dstr="keyboard"; break;
+            case gig::dimension_keyboard: dstr="keyswitching"; break;
             case gig::dimension_roundrobin: dstr="roundrobin"; break;
             case gig::dimension_random: dstr="random"; break;
             case gig::dimension_smartmidi: dstr="smartmidi"; break;

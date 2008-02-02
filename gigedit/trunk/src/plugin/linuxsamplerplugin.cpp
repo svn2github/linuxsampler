@@ -20,9 +20,11 @@
 #include "linuxsamplerplugin.h"
 
 #include <linuxsampler/plugins/InstrumentEditorFactory.h>
+#include "../gigedit/gigedit.h"
 
 #include <iostream>
 #include <sigc++/bind.h>
+#include <glibmm/main.h>
 
 REGISTER_INSTRUMENT_EDITOR(LinuxSamplerPlugin)
 
@@ -98,13 +100,22 @@ int LinuxSamplerPlugin::Main(void* pInstrument, String sTypeName, String sTypeVe
         sigc::mem_fun(*this, &LinuxSamplerPlugin::NotifySampleReferenceChanged)
     );
 
-    app->add_timeout_job(this);
+    // register a timeout job to gigedit's main loop, so we can poll the
+    // the sampler periodically for MIDI events (I HOPE it works on all
+    // archs, because gigedit is actually running in another thread than
+    // the one that is calling this timeout handler register code)
+    const Glib::RefPtr<Glib::TimeoutSource> timeout_source =
+        Glib::TimeoutSource::create(100); // poll every 100ms
+    timeout_source->connect(
+        sigc::mem_fun(this, &LinuxSamplerPlugin::__onPollPeriod)
+    );
+    timeout_source->attach(Glib::MainContext::get_default());
 
     // run gigedit application
     return app->run(pGigInstr);
 }
 
-bool LinuxSamplerPlugin::runGigEditJob() {
+bool LinuxSamplerPlugin::__onPollPeriod() {
     GigEdit* app = (GigEdit*) pApp;
     if (!NotesChanged()) return true;
     for (int iKey = 0; iKey < 128; iKey++)

@@ -25,15 +25,6 @@
 #include <list>
 #include <sigc++/signal.h>
 
-class GigEditJob {
-public:
-    GigEditJob();
-    virtual bool runGigEditJob() = 0;
-    int msecs();
-private:
-    int _msecs;
-};
-
 class GigEdit {
 public:
     GigEdit();
@@ -53,8 +44,6 @@ public:
 
     void on_note_on_event(int key, int velocity);
     void on_note_off_event(int key, int velocity);
-
-    void add_timeout_job(GigEditJob* job);
 
 private:
     sigc::signal<void, gig::File*> file_structure_to_be_changed_signal;

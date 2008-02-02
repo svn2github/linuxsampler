@@ -12,6 +12,12 @@ Version CVS HEAD (?)
     (show a warning when resolving the relative path failed)
   * keys on the virtual keyboard now highlight on note on events on
     sampler side (unfinished yet)
+  * renamed misleading names regarding the gig format's "keyswitching"
+    feature (the dimension is now displayed as "keyswitching" instead of
+    "keyboard" in the dimregchooser widget and the two parameters for
+    defining the actual keyswitching area on the keyboard in the instruments
+    properties dialog are now called "Keyswitching range low/high" instead of
+    "Dimension key range low/high")
 
 Version 0.1.1 (2007-12-06)
 
