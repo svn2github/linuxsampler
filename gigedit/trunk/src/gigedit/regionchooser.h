@@ -96,6 +96,7 @@ protected:
 
     bool is_black_key(int key);
     void draw_region(int from, int to, const Gdk::Color& color);
+    void draw_digit(int key);
     void motion_resize_region(int x, int y);
     void motion_move_region(int x, int y);
 

@@ -161,9 +161,6 @@ bool RegionChooser::on_expose_event(GdkEventExpose* event)
     Glib::RefPtr<const Gdk::GC> black = get_style()->get_black_gc();
     Glib::RefPtr<const Gdk::GC> white = get_style()->get_white_gc();
 
-    Glib::RefPtr<Pango::Context> context = get_pango_context();
-    Glib::RefPtr<Pango::Layout> layout = Pango::Layout::create(context);
-
     window->draw_rectangle(black, false, 0, h1, w, h - 1);
     gc->set_foreground(grey1);
     int x1 = int(w * 20.5 / 128.0 + 0.5);
@@ -173,7 +170,6 @@ bool RegionChooser::on_expose_event(GdkEventExpose* event)
     window->draw_rectangle(white, true, x1 + 1, h1 + 1, x2 - x1 - 1, h - 2);
     window->draw_rectangle(gc, true, x2 + 1, h1 + 1,
                            w - x2 - 1, h - 2);
-    int octave = -1;
     for (int i = 0 ; i < 128 ; i++) {
         int note = (i + 3) % 12;
         int x = int(w * i / 128.0 + 0.5);
@@ -187,18 +183,7 @@ bool RegionChooser::on_expose_event(GdkEventExpose* event)
         } else if (note == 3 || note == 8) {
             window->draw_line(black, x, h1 + 1, x, h1 + h);
         }
-        if (note == 3) {
-            char buf[30];
-            sprintf(buf, "<span size=\"8000\">%d</span>", octave);
-            layout->set_markup(buf);
-            Pango::Rectangle rectangle = layout->get_logical_extents();
-            double text_w = double(rectangle.get_width()) / Pango::SCALE;
-            double text_h = double(rectangle.get_height()) / Pango::SCALE;
-            double x2 = w * (i + 0.75) / 128.0;
-            window->draw_layout(black, int(x2 - text_w / 2 + 1),
-                                int(h1 + h - text_h + 0.5), layout);
-            octave++;
-        }
+        if (note == 3) draw_digit(i);
     }
 
     if (instrument) {
@@ -248,10 +233,25 @@ bool RegionChooser::is_black_key(int key) {
     return note == 1 || note == 4 || note == 6 || note == 9 || note == 11;
 }
 
+void RegionChooser::draw_digit(int key) {
+    const int h = 40;
+    const int w = get_width() - 1;
+    Glib::RefPtr<Pango::Layout> layout = Pango::Layout::create(get_pango_context());
+    char buf[30];
+    sprintf(buf, "<span size=\"8000\">%d</span>", key / 12 - 1);
+    layout->set_markup(buf);
+    Pango::Rectangle rectangle = layout->get_logical_extents();
+    double text_w = double(rectangle.get_width()) / Pango::SCALE;
+    double text_h = double(rectangle.get_height()) / Pango::SCALE;
+    double x = w * (key + 0.75) / 128.0;
+    get_window()->draw_layout(get_style()->get_black_gc(), int(x - text_w / 2 + 1),
+                              int(h1 + h - text_h + 0.5), layout);
+}
+
 void RegionChooser::draw_region(int from, int to, const Gdk::Color& color)
 {
     const int h = 40;
-    const int w = get_width();
+    const int w = get_width() - 1;
     const int bh = int(h * 0.55);
 
     Glib::RefPtr<Gdk::Window> window = get_window();
@@ -262,23 +262,24 @@ void RegionChooser::draw_region(int from, int to, const Gdk::Color& color)
         int x = int(w * i / 128.0 + 0.5) + 1;
         int x2 = int(w * (i + 1.5) / 128.0 + 0.5);
         int x3 = int(w * (i + 1) / 128.0 + 0.5);
-        int x4 = int(w * (i - 0.5) / 128 + 0.5) + 1;
+        int x4 = int(w * (i - 0.5) / 128.0 + 0.5);
         int w1 = x3 - x;
         switch (note) {
         case 0: case 5: case 10:
-            window->draw_rectangle(gc, true, x - 1, h1 + 1, w1, bh);
-            window->draw_rectangle(gc, true, x4, h1 + bh + 1, x2 - x4 - 1, h - bh - 2);
+            window->draw_rectangle(gc, true, x, h1 + 1, w1, bh);
+            window->draw_rectangle(gc, true, x4 + 1, h1 + bh + 1, x2 - x4 - 1, h - bh - 2);
             break;
         case 2: case 7:
             window->draw_rectangle(gc, true, x, h1 + 1, w1, bh);
-            window->draw_rectangle(gc, true, x4 - 1, h1 + bh + 1, x3 - x4 + 1, h - bh - 2);
+            window->draw_rectangle(gc, true, x4 + 1, h1 + bh + 1, x3 - x4 - 1, h - bh - 2);
             break;
         case 3: case 8:
             window->draw_rectangle(gc, true, x, h1 + 1, w1, bh);
             window->draw_rectangle(gc, true, x, h1 + bh + 1, x2 - x, h - bh - 2);
+            if (note == 3) draw_digit(i);
             break;
         default:
-            window->draw_rectangle(gc, true, x, h1 + 1, w1 - 1, bh - 1);
+            window->draw_rectangle(gc, true, x, h1 + 1, w1, bh - 1);
             break;
         }
     }
