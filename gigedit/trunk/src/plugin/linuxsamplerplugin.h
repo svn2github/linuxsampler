@@ -36,8 +36,6 @@ class LinuxSamplerPlugin : public LinuxSampler::InstrumentEditor {
         virtual String Description();
         virtual ~LinuxSamplerPlugin();
 
-        virtual bool runGigEditJob();
-
     private:
         void* pApp;
 
