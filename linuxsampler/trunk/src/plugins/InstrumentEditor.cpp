@@ -26,30 +26,13 @@
 #include <algorithm>
 #include <functional>
 
-#define MIDI_KEYS	128
-
-struct _private_data_t {
-    atomic_t notesChanged; // whether some key changed at all
-    atomic_t pNoteChanged[MIDI_KEYS]; // which key(s) changed
-    atomic_t pNoteIsActive[MIDI_KEYS]; // status of each key (either active or inactive)
-};
-
 namespace LinuxSampler {
 
     InstrumentEditor::InstrumentEditor() : Thread(false, false, -1, 0) {
         pInstrument = NULL;
-        _private_data_t* p = new _private_data_t;
-        pPrivateData = p;
-        atomic_t zero = ATOMIC_INIT(0);
-        p->notesChanged = zero;
-        for (int i = 0; i < MIDI_KEYS; i++) {
-            p->pNoteChanged[i]  = zero;
-            p->pNoteIsActive[i] = zero;
-        }
     }
 
     InstrumentEditor::~InstrumentEditor() {
-        if (pPrivateData) delete (_private_data_t*)pPrivateData;
     }
 
     void InstrumentEditor::Launch(void* pInstrument, String sTypeName, String sTypeVersion) {
@@ -78,41 +61,6 @@ namespace LinuxSampler {
         );
         // done
         return iResult;
-    }
-
-    void InstrumentEditor::SendNoteOnToEditor(uint8_t Key, uint8_t /*Velocity*/) {
-        if (Key >= MIDI_KEYS) return;
-        _private_data_t* p = (_private_data_t*)pPrivateData;
-        atomic_inc( &(p->pNoteIsActive)[Key] );
-        atomic_inc( &(p->pNoteChanged)[Key] );
-        atomic_inc( &p->notesChanged );
-    }
-
-    void InstrumentEditor::SendNoteOffToEditor(uint8_t Key, uint8_t /*Velocity*/) {
-        if (Key >= MIDI_KEYS) return;
-        _private_data_t* p = (_private_data_t*)pPrivateData;
-        atomic_dec( &(p->pNoteIsActive)[Key] );
-        atomic_inc( &(p->pNoteChanged)[Key] );
-        atomic_inc( &p->notesChanged );
-    }
-
-    bool InstrumentEditor::NotesChanged() {
-        _private_data_t* p = (_private_data_t*)pPrivateData;
-        int c = atomic_read( &p->notesChanged );
-        atomic_sub(c, &p->notesChanged );
-        return c;
-    }
-
-    bool InstrumentEditor::NoteChanged(uint8_t Key) {
-        _private_data_t* p = (_private_data_t*)pPrivateData;
-        int c = atomic_read( &(p->pNoteChanged)[Key] );
-        atomic_sub(c, &(p->pNoteChanged)[Key] );
-        return c;
-    }
-
-    bool InstrumentEditor::NoteIsActive(uint8_t Key) {
-        _private_data_t* p = (_private_data_t*)pPrivateData;
-        return atomic_read( &(p->pNoteIsActive)[Key] );
     }
 
     void InstrumentEditor::AddListener(InstrumentEditorListener* pListener) {

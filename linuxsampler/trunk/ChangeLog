@@ -18,6 +18,7 @@ Version CVS HEAD (?)
     - added support for notifying instrument editors on note-on / note-off
       events (e.g. to highlight the pressed keys on the virtual keyboard
       of gigedit)
+    - added support for triggering notes by instrument editors (see above)
     - be verbose on DLL load errors (on Linux)
 
   * audio driver:

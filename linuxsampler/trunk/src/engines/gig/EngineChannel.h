@@ -27,7 +27,9 @@
 #include "../common/Event.h"
 #include "../EngineChannel.h"
 #include "../../common/RingBuffer.h"
+#include "../../common/ArrayList.h"
 #include "../../drivers/audio/AudioChannel.h"
+#include "../../drivers/midi/VirtualMidiDevice.h"
 #include "EngineGlobals.h"
 #include "Engine.h"
 #include "Voice.h"
@@ -90,6 +92,9 @@ namespace LinuxSampler { namespace gig {
             virtual void ResourceUpdated(::gig::Instrument* pOldResource, ::gig::Instrument* pNewResource, void* pUpdateArg);
             virtual void OnResourceProgress(float fProgress);
 
+            void Connect(VirtualMidiDevice* pDevice);
+            void Disconnect(VirtualMidiDevice* pDevice);
+
         //protected:
             Engine*                 pEngine;
             AudioChannel*           pChannelLeft;             ///< encapsulates the audio rendering buffer (left)
@@ -138,6 +143,9 @@ namespace LinuxSampler { namespace gig {
             SynchronizedConfig<instrument_change_command_t>::Reader InstrumentChangeCommandReader;
 
             RTList< ::gig::DimensionRegion*>* pDimRegionsInUse;     ///< temporary pointer into the instrument change command, used by the audio thread
+
+            SynchronizedConfig< ArrayList<VirtualMidiDevice*> > virtualMidiDevices;
+            SynchronizedConfig< ArrayList<VirtualMidiDevice*> >::Reader virtualMidiDevicesReader;
 
             void ResetControllers();
             void ClearEventLists();

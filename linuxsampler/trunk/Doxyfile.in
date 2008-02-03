@@ -75,6 +75,7 @@ INPUT                  = @top_srcdir@/src/Sampler.h \
                          @top_srcdir@/src/drivers/midi/MidiInputPort.h \
                          @top_srcdir@/src/drivers/midi/MidiInputDevice.h \
                          @top_srcdir@/src/drivers/midi/MidiInstrumentMapper.h \
+                         @top_srcdir@/src/drivers/midi/VirtualMidiDevice.h \
                          @top_srcdir@/src/engines/Engine.h \
                          @top_srcdir@/src/engines/EngineChannel.h \
                          @top_srcdir@/src/engines/FxSend.h \

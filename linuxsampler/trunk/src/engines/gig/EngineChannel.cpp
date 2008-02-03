@@ -28,7 +28,9 @@
 namespace LinuxSampler { namespace gig {
 
     EngineChannel::EngineChannel() :
-        InstrumentChangeCommandReader(InstrumentChangeCommand) {
+        InstrumentChangeCommandReader(InstrumentChangeCommand),
+        virtualMidiDevicesReader(virtualMidiDevices)
+    {
         pMIDIKeyInfo = new midi_key_info_t[128];
         pEngine      = NULL;
         pInstrument  = NULL;
@@ -728,6 +730,40 @@ namespace LinuxSampler { namespace gig {
      *                  current audio cycle
      */
     void EngineChannel::ImportEvents(uint Samples) {
+        // import events from pure software MIDI "devices"
+        // (e.g. virtual keyboard in instrument editor)
+        {
+            const int FragmentPos = 0; // randomly chosen, we don't care about jitter for virtual MIDI devices
+            Event event = pEngine->pEventGenerator->CreateEvent(FragmentPos);
+            VirtualMidiDevice::event_t devEvent; // the event format we get from the virtual MIDI device
+            // as we're going to (carefully) write some status to the
+            // synchronized struct, we cast away the const
+            ArrayList<VirtualMidiDevice*>& devices =
+                const_cast<ArrayList<VirtualMidiDevice*>&>(virtualMidiDevicesReader.Lock());
+            // iterate through all virtual MIDI devices
+            for (int i = 0; i < devices.size(); i++) {
+                VirtualMidiDevice* pDev = devices[i];
+                // I think we can simply flush the whole FIFO(s), the user shouldn't be so fast ;-)
+                while (pDev->GetMidiEventFromDevice(devEvent)) {
+                    event.Type =
+                        (devEvent.Type == VirtualMidiDevice::EVENT_TYPE_NOTEON) ?
+                            Event::type_note_on : Event::type_note_off;
+                    event.Param.Note.Key      = devEvent.Key;
+                    event.Param.Note.Velocity = devEvent.Velocity;
+                    event.pEngineChannel      = this;
+                    // copy event to internal event list
+                    if (pEvents->poolIsEmpty()) {
+                        dmsg(1,("Event pool emtpy!\n"));
+                        goto exitVirtualDevicesLoop;
+                    }
+                    *pEvents->allocAppend() = event;
+                }
+            }
+        }
+        exitVirtualDevicesLoop:
+        virtualMidiDevicesReader.Unlock();
+
+        // import events from the regular MIDI devices
         RingBuffer<Event,false>::NonVolatileReader eventQueueReader = pEventQueue->get_non_volatile_reader();
         Event* pEvent;
         while (true) {
@@ -771,6 +807,30 @@ namespace LinuxSampler { namespace gig {
         for (int i = 0; i < fxSends.size(); i++) delete fxSends[i];
         fxSends.clear();
         if (pEngine) pEngine->Enable();
+    }
+
+    void EngineChannel::Connect(VirtualMidiDevice* pDevice) {
+        // double buffer ... double work ...
+        {
+            ArrayList<VirtualMidiDevice*>& devices = virtualMidiDevices.GetConfigForUpdate();
+            devices.add(pDevice);
+        }
+        {
+            ArrayList<VirtualMidiDevice*>& devices = virtualMidiDevices.SwitchConfig();
+            devices.add(pDevice);
+        }
+    }
+
+    void EngineChannel::Disconnect(VirtualMidiDevice* pDevice) {
+        // double buffer ... double work ...
+        {
+            ArrayList<VirtualMidiDevice*>& devices = virtualMidiDevices.GetConfigForUpdate();
+            devices.remove(pDevice);
+        }
+        {
+            ArrayList<VirtualMidiDevice*>& devices = virtualMidiDevices.SwitchConfig();
+            devices.remove(pDevice);
+        }
     }
 
     float EngineChannel::Volume() {

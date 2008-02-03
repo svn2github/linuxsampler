@@ -204,6 +204,22 @@ namespace LinuxSampler { namespace gig {
         InstrumentEditorProxiesMutex.Unlock();
         // launch the instrument editor for the given instrument
         pEditor->Launch(pInstrument, sDataType, sDataVersion);
+
+        // register the instrument editor as virtual MIDI device as well ...
+        VirtualMidiDevice* pVirtualMidiDevice =
+            dynamic_cast<VirtualMidiDevice*>(pEditor);
+        if (!pVirtualMidiDevice) {
+            std::cerr << "Instrument editor not a virtual MIDI device\n" << std::flush;
+            return;
+        }
+        // NOTE: for now connect the virtual MIDI keyboard of the instrument editor (if any) with all engine channels that have the same instrument as the editor was opened for ( other ideas ? )
+        Lock();
+        std::set<gig::EngineChannel*> engineChannels =
+            GetEngineChannelsUsing(pInstrument, false/*don't lock again*/);
+        std::set<gig::EngineChannel*>::iterator iter = engineChannels.begin();
+        std::set<gig::EngineChannel*>::iterator end  = engineChannels.end();
+        for (; iter != end; ++iter) (*iter)->Connect(pVirtualMidiDevice);
+        Unlock();
     }
 
     /**
@@ -215,23 +231,59 @@ namespace LinuxSampler { namespace gig {
      */
     void InstrumentResourceManager::OnInstrumentEditorQuit(InstrumentEditor* pSender) {
         dmsg(1,("InstrumentResourceManager: instrument editor quit, doing cleanup\n"));
-        // hand back instrument and free proxy
+
+        ::gig::Instrument* pInstrument = NULL;
+        InstrumentEditorProxy* pProxy  = NULL;
+        int iProxyIndex                = -1;
+
+        // first find the editor proxy entry for this editor
         InstrumentEditorProxiesMutex.Lock();
         for (int i = 0; i < InstrumentEditorProxies.size(); i++) {
-            InstrumentEditorProxy* pProxy =
+            InstrumentEditorProxy* pCurProxy =
                 dynamic_cast<InstrumentEditorProxy*>(
                     InstrumentEditorProxies[i]
                 );
-            if (pProxy->pEditor == pSender) {
-                InstrumentEditorProxies.remove(i);
-                InstrumentEditorProxiesMutex.Unlock();
-                HandBack(pProxy->pInstrument, pProxy);
-                if (pProxy) delete pProxy;
-                return;
+            if (pCurProxy->pEditor == pSender) {
+                pProxy      = pCurProxy;
+                iProxyIndex = i;
+                pInstrument = pCurProxy->pInstrument;
             }
         }
         InstrumentEditorProxiesMutex.Unlock();
-        std::cerr << "Eeeek, could not find instrument editor proxy, this is a bug!\n" << std::flush;
+
+        if (!pProxy) {
+            std::cerr << "Eeeek, could not find instrument editor proxy, "
+                         "this is a bug!\n" << std::flush;
+            return;
+        }
+
+        // now unregister editor as not being available as a virtual MIDI device anymore
+        VirtualMidiDevice* pVirtualMidiDevice =
+            dynamic_cast<VirtualMidiDevice*>(pSender);
+        if (pVirtualMidiDevice) {
+            Lock();
+            // NOTE: see note in LaunchInstrumentEditor()
+            std::set<gig::EngineChannel*> engineChannels =
+                GetEngineChannelsUsing(pInstrument, false/*don't lock again*/);
+            std::set<gig::EngineChannel*>::iterator iter = engineChannels.begin();
+            std::set<gig::EngineChannel*>::iterator end  = engineChannels.end();
+            for (; iter != end; ++iter) (*iter)->Disconnect(pVirtualMidiDevice);
+            Unlock();
+        } else {
+            std::cerr << "Could not unregister editor as not longer acting as "
+                         "virtual MIDI device. Wasn't it registered?\n"
+                      << std::flush;
+        }
+
+        // finally delete proxy entry and hand back instrument
+        if (pInstrument) {
+            InstrumentEditorProxiesMutex.Lock();
+            InstrumentEditorProxies.remove(iProxyIndex);
+            InstrumentEditorProxiesMutex.Unlock();
+
+            HandBack(pInstrument, pProxy);
+            delete pProxy;
+        }
 
         // Note that we don't need to free the editor here. As it
         // derives from Thread, it will delete itself when the thread
@@ -254,7 +306,7 @@ namespace LinuxSampler { namespace gig {
                     InstrumentEditorProxies[i]
                 );
             if (pProxy->pInstrument == pInstrument)
-                pProxy->pEditor->SendNoteOnToEditor(Key, Velocity);
+                pProxy->pEditor->SendNoteOnToDevice(Key, Velocity);
         }
         InstrumentEditorProxiesMutex.Unlock(); // naively assumes RT safe implementation
     }
@@ -275,7 +327,7 @@ namespace LinuxSampler { namespace gig {
                     InstrumentEditorProxies[i]
                 );
             if (pProxy->pInstrument == pInstrument)
-                pProxy->pEditor->SendNoteOffToEditor(Key, Velocity);
+                pProxy->pEditor->SendNoteOffToDevice(Key, Velocity);
         }
         InstrumentEditorProxiesMutex.Unlock(); // naively assumes RT safe implementation
     }
@@ -635,6 +687,29 @@ namespace LinuxSampler { namespace gig {
                 (::gig::File*) allInstruments[i]->GetParent()
                 == pFile
             ) result.push_back(allInstruments[i]);
+        if (bLock) Unlock();
+        return result;
+    }
+
+    /**
+     * Returns a list with all gig engine channels that are currently using
+     * the given instrument.
+     *
+     * @param pInstrument - search criteria
+     * @param bLock - whether we should lock (mutex) the instrument manager
+     *                during this call and unlock at the end of this call
+     */
+    std::set<gig::EngineChannel*> InstrumentResourceManager::GetEngineChannelsUsing(::gig::Instrument* pInstrument, bool bLock) {
+        if (bLock) Lock();
+        std::set<gig::EngineChannel*> result; 
+        std::set<ResourceConsumer< ::gig::Instrument>*> consumers = ConsumersOf(pInstrument);
+        std::set<ResourceConsumer< ::gig::Instrument>*>::iterator iter = consumers.begin();
+        std::set<ResourceConsumer< ::gig::Instrument>*>::iterator end  = consumers.end();
+        for (; iter != end; ++iter) {
+            gig::EngineChannel* pEngineChannel = dynamic_cast<gig::EngineChannel*>(*iter);
+            if (!pEngineChannel) continue;
+            result.insert(pEngineChannel);
+        }
         if (bLock) Unlock();
         return result;
     }

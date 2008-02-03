@@ -120,7 +120,8 @@ namespace LinuxSampler { namespace gig {
             void CacheInitialSamples(::gig::Sample* pSample, gig::Engine* pEngine);
             void UncacheInitialSamples(::gig::Sample* pSample);
             std::vector< ::gig::Instrument*> GetInstrumentsCurrentlyUsedOf(::gig::File* pFile, bool bLock);
-            std::set<gig::Engine*> GetEnginesUsing(::gig::Instrument* pFile, bool bLock);
+            std::set<gig::EngineChannel*> GetEngineChannelsUsing(::gig::Instrument* pInstrument, bool bLock);
+            std::set<gig::Engine*> GetEnginesUsing(::gig::Instrument* pInstrument, bool bLock);
             std::set<gig::Engine*> GetEnginesUsing(::gig::File* pFile, bool bLock);
             bool SampleReferencedByInstrument(::gig::Sample* pSample, ::gig::Instrument* pInstrument);
             void SuspendEnginesUsing(::gig::Instrument* pInstrument);

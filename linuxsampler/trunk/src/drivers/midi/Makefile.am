@@ -46,7 +46,8 @@ liblinuxsamplermididriverinclude_HEADERS = \
 	midi.h \
 	MidiInputPort.h \
 	MidiInputDevice.h \
-	MidiInstrumentMapper.h
+	MidiInstrumentMapper.h \
+	VirtualMidiDevice.h
 
 noinst_LTLIBRARIES = liblinuxsamplermididriver.la
 liblinuxsamplermididriver_la_SOURCES = \
@@ -55,6 +56,7 @@ liblinuxsamplermididriver_la_SOURCES = \
 	MidiInputDeviceFactory.cpp MidiInputDeviceFactory.h \
 	MidiInputPort.cpp MidiInputPort.h \
 	MidiInstrumentMapper.cpp MidiInstrumentMapper.h \
+	VirtualMidiDevice.cpp VirtualMidiDevice.h \
 	$(alsa_src) \
 	$(midishare_src)\
 	$(coremidi_src)\
