@@ -130,6 +130,12 @@ void connect_signals(GigEdit* gigedit, MainWindow* mainwindow) {
     mainwindow->signal_sample_ref_changed().connect(
         gigedit->signal_sample_ref_changed().make_slot()
     );
+    mainwindow->signal_keyboard_key_hit().connect(
+        gigedit->signal_keyboard_key_hit().make_slot()
+    );
+    mainwindow->signal_keyboard_key_released().connect(
+        gigedit->signal_keyboard_key_released().make_slot()
+    );
 }
 
 } // namespace
@@ -207,6 +213,13 @@ sigc::signal<void, gig::Sample*/*old*/, gig::Sample*/*new*/>& GigEdit::signal_sa
     return sample_ref_changed_signal;
 }
 
+sigc::signal<void, int/*key*/, int/*velocity*/>& GigEdit::signal_keyboard_key_hit() {
+    return keyboard_key_hit_signal;
+}
+
+sigc::signal<void, int/*key*/, int/*velocity*/>& GigEdit::signal_keyboard_key_released() {
+    return keyboard_key_released_signal;
+}
 
 Glib::StaticMutex GigEditState::mutex = GLIBMM_STATIC_MUTEX_INIT;
 Glib::Dispatcher* GigEditState::dispatcher = 0;

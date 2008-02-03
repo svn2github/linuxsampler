@@ -11,7 +11,9 @@ Version CVS HEAD (?)
     (e.g. "/usr/lib64/foo") are now resolved in relative dirs as well
     (show a warning when resolving the relative path failed)
   * keys on the virtual keyboard now highlight on note on events on
-    sampler side (unfinished yet)
+    sampler side
+  * virtual keyboard can now trigger notes for the sampler (only in
+    live-mode of course)
   * renamed misleading names regarding the gig format's "keyswitching"
     feature (the dimension is now displayed as "keyswitching" instead of
     "keyboard" in the dimregchooser widget and the two parameters for

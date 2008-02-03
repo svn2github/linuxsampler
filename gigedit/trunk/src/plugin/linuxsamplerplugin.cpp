@@ -100,6 +100,13 @@ int LinuxSamplerPlugin::Main(void* pInstrument, String sTypeName, String sTypeVe
         sigc::mem_fun(*this, &LinuxSamplerPlugin::NotifySampleReferenceChanged)
     );
 
+    app->signal_keyboard_key_hit().connect(
+        sigc::mem_fun(*this, &LinuxSamplerPlugin::__onVirtualKeyboardKeyHit)
+    );
+    app->signal_keyboard_key_released().connect(
+        sigc::mem_fun(*this, &LinuxSamplerPlugin::__onVirtualKeyboardKeyReleased)
+    );
+
     // register a timeout job to gigedit's main loop, so we can poll the
     // the sampler periodically for MIDI events (I HOPE it works on all
     // archs, because gigedit is actually running in another thread than
@@ -135,6 +142,14 @@ void LinuxSamplerPlugin::__onSamplesToBeRemoved(std::list<gig::Sample*> lSamples
     ) samples.insert((void*)*iter);
     // finally send notification to sampler
     NotifySamplesToBeRemoved(samples);
+}
+
+void LinuxSamplerPlugin::__onVirtualKeyboardKeyHit(int Key, int Velocity) {
+    SendNoteOnToSampler(Key, Velocity);
+}
+
+void LinuxSamplerPlugin::__onVirtualKeyboardKeyReleased(int Key, int Velocity) {
+    SendNoteOffToSampler(Key, Velocity);
 }
 
 bool LinuxSamplerPlugin::IsTypeSupported(String sTypeName, String sTypeVersion) {

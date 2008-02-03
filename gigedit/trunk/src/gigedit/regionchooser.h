@@ -63,6 +63,9 @@ public:
     sigc::signal<void, gig::Region*>& signal_region_to_be_changed();
     sigc::signal<void, gig::Region*>& signal_region_changed_signal();
 
+    sigc::signal<void, int/*key*/, int/*velocity*/>& signal_keyboard_key_hit();
+    sigc::signal<void, int/*key*/, int/*velocity*/>& signal_keyboard_key_released();
+
     gig::Region* get_region() { return region; }
 
     void on_note_on_event(int key, int velocity);
@@ -89,6 +92,9 @@ protected:
 
     sigc::signal<void, gig::Region*> region_to_be_changed_signal;
     sigc::signal<void, gig::Region*> region_changed_signal;
+
+    sigc::signal<void, int/*key*/, int/*velocity*/> keyboard_key_hit_signal;
+    sigc::signal<void, int/*key*/, int/*velocity*/> keyboard_key_released_signal;
 
     gig::Instrument* instrument;
     gig::Region* region;

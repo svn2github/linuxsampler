@@ -214,6 +214,9 @@ public:
     sigc::signal<void, int/*key*/, int/*velocity*/>& signal_note_on();
     sigc::signal<void, int/*key*/, int/*velocity*/>& signal_note_off();
 
+    sigc::signal<void, int/*key*/, int/*velocity*/>& signal_keyboard_key_hit();
+    sigc::signal<void, int/*key*/, int/*velocity*/>& signal_keyboard_key_released();
+
 protected:
     Glib::RefPtr<Gtk::ActionGroup> actionGroup;
     Glib::RefPtr<Gtk::UIManager> uiManager;

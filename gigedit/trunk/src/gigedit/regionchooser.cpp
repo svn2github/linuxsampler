@@ -27,6 +27,9 @@
 
 #include "global.h"
 
+#define REGION_BLOCK_HEIGHT		20
+#define KEYBOARD_HEIGHT			40
+
 void SortedRegions::update(gig::Instrument* instrument) {
     // Usually, the regions in a gig file are ordered after their key
     // range, but there are files where they are not. The
@@ -74,7 +77,7 @@ RegionChooser::RegionChooser()
     resize.active = false;
     move.active = false;
     cursor_is_resize = false;
-    h1 = 20;
+    h1 = REGION_BLOCK_HEIGHT;
 
     actionGroup = Gtk::ActionGroup::create();
     actionGroup->add(Gtk::Action::create("Properties",
@@ -122,6 +125,12 @@ RegionChooser::RegionChooser()
             sigc::mem_fun(*this, &RegionChooser::on_dimension_manager_changed)
         )
     );
+    keyboard_key_hit_signal.connect(
+        sigc::mem_fun(*this, &RegionChooser::on_note_on_event)
+    );
+    keyboard_key_released_signal.connect(
+        sigc::mem_fun(*this, &RegionChooser::on_note_off_event)
+    );
 }
 
 RegionChooser::~RegionChooser()
@@ -154,7 +163,7 @@ bool RegionChooser::on_expose_event(GdkEventExpose* event)
 {
     Glib::RefPtr<Gdk::Window> window = get_window();
     window->clear();
-    const int h = 40;
+    const int h = KEYBOARD_HEIGHT;
     const int w = get_width() - 1;
     const int bh = int(h * 0.55);
 
@@ -224,7 +233,7 @@ bool RegionChooser::on_expose_event(GdkEventExpose* event)
 void RegionChooser::on_size_request(GtkRequisition* requisition)
 {
     *requisition = GtkRequisition();
-    requisition->height = 40 + 20;
+    requisition->height = KEYBOARD_HEIGHT + REGION_BLOCK_HEIGHT;
     requisition->width = 500;
 }
 
@@ -234,7 +243,7 @@ bool RegionChooser::is_black_key(int key) {
 }
 
 void RegionChooser::draw_digit(int key) {
-    const int h = 40;
+    const int h = KEYBOARD_HEIGHT;
     const int w = get_width() - 1;
     Glib::RefPtr<Pango::Layout> layout = Pango::Layout::create(get_pango_context());
     char buf[30];
@@ -250,7 +259,7 @@ void RegionChooser::draw_digit(int key) {
 
 void RegionChooser::draw_region(int from, int to, const Gdk::Color& color)
 {
-    const int h = 40;
+    const int h = KEYBOARD_HEIGHT;
     const int w = get_width() - 1;
     const int bh = int(h * 0.55);
 
@@ -296,6 +305,16 @@ void RegionChooser::set_instrument(gig::Instrument* instrument)
 
 bool RegionChooser::on_button_release_event(GdkEventButton* event)
 {
+    const int k = int(event->x / (get_width() - 1) * 128.0);
+
+    if (event->type == GDK_BUTTON_RELEASE) {
+        if (event->y >= REGION_BLOCK_HEIGHT) {
+            int velocity = (event->y >= REGION_BLOCK_HEIGHT + KEYBOARD_HEIGHT - 1) ? 127 :
+                           int(float(event->y - REGION_BLOCK_HEIGHT) / float(KEYBOARD_HEIGHT) * 128.0f) + 1;
+            keyboard_key_released_signal.emit(k, velocity);
+        }
+    }
+
     if (resize.active) {
         get_window()->pointer_ungrab(event->time);
         resize.active = false;
@@ -355,8 +374,17 @@ bool RegionChooser::on_button_press_event(GdkEventButton* event)
 {
     if (!instrument) return true;
 
-    int k = int(event->x / (get_width() - 1) * 128.0);
+    const int k = int(event->x / (get_width() - 1) * 128.0);
 
+    if (event->type == GDK_BUTTON_PRESS) {
+        if (event->y >= REGION_BLOCK_HEIGHT) {
+            int velocity = (event->y >= REGION_BLOCK_HEIGHT + KEYBOARD_HEIGHT - 1) ? 127 :
+                           int(float(event->y - REGION_BLOCK_HEIGHT) / float(KEYBOARD_HEIGHT) * 128.0f) + 1;
+            keyboard_key_hit_signal.emit(k, velocity);
+        }
+    }
+
+    if (event->y >= REGION_BLOCK_HEIGHT) return true;
     if (event->type == GDK_BUTTON_PRESS && event->button == 3) {
         gig::Region* r = get_region(k);
         if (r) {
@@ -750,4 +778,12 @@ sigc::signal<void, gig::Region*>& RegionChooser::signal_region_to_be_changed() {
 
 sigc::signal<void, gig::Region*>& RegionChooser::signal_region_changed_signal() {
     return region_changed_signal;
+}
+
+sigc::signal<void, int/*key*/, int/*velocity*/>& RegionChooser::signal_keyboard_key_hit() {
+    return keyboard_key_hit_signal;
+}
+
+sigc::signal<void, int/*key*/, int/*velocity*/>& RegionChooser::signal_keyboard_key_released() {
+    return keyboard_key_released_signal;
 }

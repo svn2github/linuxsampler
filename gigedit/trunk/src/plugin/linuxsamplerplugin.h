@@ -40,6 +40,8 @@ class LinuxSamplerPlugin : public LinuxSampler::InstrumentEditor {
         void* pApp;
 
         void __onSamplesToBeRemoved(std::list<gig::Sample*> lSamples);
+        void __onVirtualKeyboardKeyHit(int Key, int Velocity);
+        void __onVirtualKeyboardKeyReleased(int Key, int Velocity);
         bool __onPollPeriod();
 };
 

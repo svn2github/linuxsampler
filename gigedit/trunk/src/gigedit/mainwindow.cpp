@@ -1759,3 +1759,11 @@ sigc::signal<void, int/*key*/, int/*velocity*/>& MainWindow::signal_note_on() {
 sigc::signal<void, int/*key*/, int/*velocity*/>& MainWindow::signal_note_off() {
     return note_off_signal;
 }
+
+sigc::signal<void, int/*key*/, int/*velocity*/>& MainWindow::signal_keyboard_key_hit() {
+    return m_RegionChooser.signal_keyboard_key_hit();
+}
+
+sigc::signal<void, int/*key*/, int/*velocity*/>& MainWindow::signal_keyboard_key_released() {
+    return m_RegionChooser.signal_keyboard_key_released();
+}
