@@ -92,8 +92,10 @@ namespace LinuxSampler { namespace gig {
                                     RTList< ::gig::DimensionRegion*>* pDimRegionsInUse);
             void HandBackDimReg(::gig::DimensionRegion* pDimReg);
 
+#if 0 // currently unused :
             void TrySendNoteOnToEditors(uint8_t Key, uint8_t Velocity, ::gig::Instrument* pInstrument);
             void TrySendNoteOffToEditors(uint8_t Key, uint8_t Velocity, ::gig::Instrument* pInstrument);
+#endif // unused
 
         protected:
             // implementation of derived abstract methods from 'ResourceManager'

@@ -29,7 +29,8 @@ namespace LinuxSampler { namespace gig {
 
     EngineChannel::EngineChannel() :
         InstrumentChangeCommandReader(InstrumentChangeCommand),
-        virtualMidiDevicesReader(virtualMidiDevices)
+        virtualMidiDevicesReader_AudioThread(virtualMidiDevices),
+        virtualMidiDevicesReader_MidiThread(virtualMidiDevices)
     {
         pMIDIKeyInfo = new midi_key_info_t[128];
         pEngine      = NULL;
@@ -510,8 +511,16 @@ namespace LinuxSampler { namespace gig {
             event.pEngineChannel      = this;
             if (this->pEventQueue->write_space() > 0) this->pEventQueue->push(&event);
             else dmsg(1,("EngineChannel: Input event queue full!"));
-            // inform instrument editor(s), if any ...
-            pEngine->instruments.TrySendNoteOnToEditors(Key, Velocity, pInstrument);
+            // inform connected virtual MIDI devices if any ...
+            // (e.g. virtual MIDI keyboard in instrument editor(s))
+            ArrayList<VirtualMidiDevice*>& devices =
+                const_cast<ArrayList<VirtualMidiDevice*>&>(
+                    virtualMidiDevicesReader_MidiThread.Lock()
+                );
+            for (int i = 0; i < devices.size(); i++) {
+                devices[i]->SendNoteOnToDevice(Key, Velocity);
+            }
+            virtualMidiDevicesReader_MidiThread.Unlock();
         }
     }
 
@@ -538,8 +547,16 @@ namespace LinuxSampler { namespace gig {
             event.pEngineChannel      = this;
             if (this->pEventQueue->write_space() > 0) this->pEventQueue->push(&event);
             else dmsg(1,("EngineChannel: Input event queue full!"));
-            // inform instrument editor(s), if any ...
-            pEngine->instruments.TrySendNoteOnToEditors(Key, Velocity, pInstrument);
+            // inform connected virtual MIDI devices if any ...
+            // (e.g. virtual MIDI keyboard in instrument editor(s))
+            ArrayList<VirtualMidiDevice*>& devices =
+                const_cast<ArrayList<VirtualMidiDevice*>&>(
+                    virtualMidiDevicesReader_MidiThread.Lock()
+                );
+            for (int i = 0; i < devices.size(); i++) {
+                devices[i]->SendNoteOnToDevice(Key, Velocity);
+            }
+            virtualMidiDevicesReader_MidiThread.Unlock();
         }
     }
 
@@ -561,8 +578,16 @@ namespace LinuxSampler { namespace gig {
             event.pEngineChannel      = this;
             if (this->pEventQueue->write_space() > 0) this->pEventQueue->push(&event);
             else dmsg(1,("EngineChannel: Input event queue full!"));
-            // inform instrument editor(s), if any ...
-            pEngine->instruments.TrySendNoteOffToEditors(Key, Velocity, pInstrument);
+            // inform connected virtual MIDI devices if any ...
+            // (e.g. virtual MIDI keyboard in instrument editor(s))
+            ArrayList<VirtualMidiDevice*>& devices =
+                const_cast<ArrayList<VirtualMidiDevice*>&>(
+                    virtualMidiDevicesReader_MidiThread.Lock()
+                );
+            for (int i = 0; i < devices.size(); i++) {
+                devices[i]->SendNoteOffToDevice(Key, Velocity);
+            }
+            virtualMidiDevicesReader_MidiThread.Unlock();
         }
     }
 
@@ -589,8 +614,16 @@ namespace LinuxSampler { namespace gig {
             event.pEngineChannel      = this;
             if (this->pEventQueue->write_space() > 0) this->pEventQueue->push(&event);
             else dmsg(1,("EngineChannel: Input event queue full!"));
-            // inform instrument editor(s), if any ...
-            pEngine->instruments.TrySendNoteOffToEditors(Key, Velocity, pInstrument);
+            // inform connected virtual MIDI devices if any ...
+            // (e.g. virtual MIDI keyboard in instrument editor(s))
+            ArrayList<VirtualMidiDevice*>& devices =
+                const_cast<ArrayList<VirtualMidiDevice*>&>(
+                    virtualMidiDevicesReader_MidiThread.Lock()
+                );
+            for (int i = 0; i < devices.size(); i++) {
+                devices[i]->SendNoteOffToDevice(Key, Velocity);
+            }
+            virtualMidiDevicesReader_MidiThread.Unlock();
         }
     }
 
@@ -739,7 +772,7 @@ namespace LinuxSampler { namespace gig {
             // as we're going to (carefully) write some status to the
             // synchronized struct, we cast away the const
             ArrayList<VirtualMidiDevice*>& devices =
-                const_cast<ArrayList<VirtualMidiDevice*>&>(virtualMidiDevicesReader.Lock());
+                const_cast<ArrayList<VirtualMidiDevice*>&>(virtualMidiDevicesReader_AudioThread.Lock());
             // iterate through all virtual MIDI devices
             for (int i = 0; i < devices.size(); i++) {
                 VirtualMidiDevice* pDev = devices[i];
@@ -761,7 +794,7 @@ namespace LinuxSampler { namespace gig {
             }
         }
         exitVirtualDevicesLoop:
-        virtualMidiDevicesReader.Unlock();
+        virtualMidiDevicesReader_AudioThread.Unlock();
 
         // import events from the regular MIDI devices
         RingBuffer<Event,false>::NonVolatileReader eventQueueReader = pEventQueue->get_non_volatile_reader();

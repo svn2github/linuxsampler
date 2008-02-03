@@ -290,6 +290,7 @@ namespace LinuxSampler { namespace gig {
         // dies.
     }
 
+#if 0 // currently unused :
     /**
      * Try to inform the respective instrument editor(s), that a note on
      * event just occured. This method is called by the MIDI thread. If any
@@ -331,6 +332,7 @@ namespace LinuxSampler { namespace gig {
         }
         InstrumentEditorProxiesMutex.Unlock(); // naively assumes RT safe implementation
     }
+#endif // unused
 
     void InstrumentResourceManager::OnSamplesToBeRemoved(std::set<void*> Samples, InstrumentEditor* pSender) {
         if (Samples.empty()) {

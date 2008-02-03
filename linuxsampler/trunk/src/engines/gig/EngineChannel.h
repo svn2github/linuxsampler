@@ -145,7 +145,8 @@ namespace LinuxSampler { namespace gig {
             RTList< ::gig::DimensionRegion*>* pDimRegionsInUse;     ///< temporary pointer into the instrument change command, used by the audio thread
 
             SynchronizedConfig< ArrayList<VirtualMidiDevice*> > virtualMidiDevices;
-            SynchronizedConfig< ArrayList<VirtualMidiDevice*> >::Reader virtualMidiDevicesReader;
+            SynchronizedConfig< ArrayList<VirtualMidiDevice*> >::Reader virtualMidiDevicesReader_AudioThread;
+            SynchronizedConfig< ArrayList<VirtualMidiDevice*> >::Reader virtualMidiDevicesReader_MidiThread;
 
             void ResetControllers();
             void ClearEventLists();
