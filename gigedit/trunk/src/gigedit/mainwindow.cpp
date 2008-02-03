@@ -260,6 +260,7 @@ MainWindow::MainWindow() :
     m_VBox.pack_start(*menuBar, Gtk::PACK_SHRINK);
     m_VBox.pack_start(m_HPaned);
     m_VBox.pack_start(m_RegionChooser, Gtk::PACK_SHRINK);
+    m_VBox.pack_start(m_RegionChooser.m_VirtKeybPropsBox, Gtk::PACK_SHRINK);
     m_VBox.pack_start(m_DimRegionChooser, Gtk::PACK_SHRINK);
     m_VBox.pack_start(m_StatusBar, Gtk::PACK_SHRINK);
 

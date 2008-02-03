@@ -29,8 +29,14 @@
 #include <gtkmm/menu.h>
 
 #include "dimensionmanager.h"
+#include "paramedit.h"
 
 #include <gig.h>
+
+enum virt_keyboard_mode_t {
+    VIRT_KEYBOARD_MODE_NORMAL,
+    VIRT_KEYBOARD_MODE_CHORD
+};
 
 class SortedRegions {
 private:
@@ -70,6 +76,8 @@ public:
 
     void on_note_on_event(int key, int velocity);
     void on_note_off_event(int key, int velocity);
+
+    Gtk::HBox m_VirtKeybPropsBox;
 
 protected:
     virtual void on_realize();
@@ -146,6 +154,14 @@ protected:
 
     Glib::RefPtr<Gtk::ActionGroup> actionGroup;
     Glib::RefPtr<Gtk::UIManager> uiManager;
+
+    // properties of the virtaul keyboard
+    ChoiceEntry<virt_keyboard_mode_t> m_VirtKeybModeChoice;
+    Gtk::Label m_VirtKeybVelocityLabelDescr;
+    Gtk::Label m_VirtKeybVelocityLabel;
+    Gtk::Label m_VirtKeybOffVelocityLabelDescr;
+    Gtk::Label m_VirtKeybOffVelocityLabel;
+    int currentActiveKey;
 
     DimensionManager dimensionManager;
 };

@@ -14,6 +14,10 @@ Version CVS HEAD (?)
     sampler side
   * virtual keyboard can now trigger notes for the sampler (only in
     live-mode of course)
+  * implemented alternative behavior for the virtual MIDI keyboard
+    (selectable by combobox below the keyboard)
+  * show absolute velocity value of note-on & note-off events below
+    the virtual MIDI keyboard
   * renamed misleading names regarding the gig format's "keyswitching"
     feature (the dimension is now displayed as "keyswitching" instead of
     "keyboard" in the dimregchooser widget and the two parameters for

@@ -24,6 +24,7 @@
 #include <gtkmm/spinbutton.h>
 #include <gtkmm/dialog.h>
 #include <math.h>
+#include <sstream>
 
 #include "global.h"
 
@@ -57,7 +58,9 @@ gig::Region* SortedRegions::next() {
 
 
 
-RegionChooser::RegionChooser()
+RegionChooser::RegionChooser() :
+    m_VirtKeybModeChoice(_("Virtual Keyboard Mode")),
+    currentActiveKey(-1)
 {
     Glib::RefPtr<Gdk::Colormap> colormap = get_default_colormap();
 
@@ -78,6 +81,29 @@ RegionChooser::RegionChooser()
     move.active = false;
     cursor_is_resize = false;
     h1 = REGION_BLOCK_HEIGHT;
+
+    // properties of the virtual keyboard 
+    {
+        const char* choices[] = { "normal", "chord", NULL };
+        static const virt_keyboard_mode_t values[] = {
+            VIRT_KEYBOARD_MODE_NORMAL,
+            VIRT_KEYBOARD_MODE_CHORD
+        };
+        m_VirtKeybModeChoice.set_choices(choices, values);
+        m_VirtKeybModeChoice.set_value(VIRT_KEYBOARD_MODE_NORMAL);
+    }
+    m_VirtKeybVelocityLabelDescr.set_text(_("Note-On Velocity:"));
+    m_VirtKeybVelocityLabel.set_text("-");
+    m_VirtKeybOffVelocityLabelDescr.set_text(_("Note-Off Velocity:"));
+    m_VirtKeybOffVelocityLabel.set_text("-");
+    m_VirtKeybPropsBox.pack_start(m_VirtKeybModeChoice.label, Gtk::PACK_SHRINK);
+    m_VirtKeybPropsBox.pack_start(m_VirtKeybModeChoice.widget, Gtk::PACK_SHRINK);
+    m_VirtKeybPropsBox.pack_start(m_VirtKeybVelocityLabelDescr, Gtk::PACK_SHRINK);
+    m_VirtKeybPropsBox.pack_start(m_VirtKeybVelocityLabel, Gtk::PACK_SHRINK);
+    m_VirtKeybPropsBox.pack_start(m_VirtKeybOffVelocityLabelDescr, Gtk::PACK_SHRINK);
+    m_VirtKeybPropsBox.pack_start(m_VirtKeybOffVelocityLabel, Gtk::PACK_SHRINK);
+    m_VirtKeybPropsBox.set_spacing(10);
+    m_VirtKeybPropsBox.show();
 
     actionGroup = Gtk::ActionGroup::create();
     actionGroup->add(Gtk::Action::create("Properties",
@@ -137,8 +163,15 @@ RegionChooser::~RegionChooser()
 {
 }
 
+template<class T> inline std::string ToString(T o) {
+    std::stringstream ss;
+    ss << o;
+    return ss.str();
+}
+
 void RegionChooser::on_note_on_event(int key, int velocity) {
     draw_region(key, key+1, activeKeyColor);
+    m_VirtKeybVelocityLabel.set_text(ToString(velocity));
 }
 
 void RegionChooser::on_note_off_event(int key, int velocity) {
@@ -146,6 +179,7 @@ void RegionChooser::on_note_off_event(int key, int velocity) {
         draw_region(key, key+1, black);
     else
         draw_region(key, key+1, white);
+    m_VirtKeybOffVelocityLabel.set_text(ToString(velocity));
 }
 
 void RegionChooser::on_realize()
@@ -307,11 +341,23 @@ bool RegionChooser::on_button_release_event(GdkEventButton* event)
 {
     const int k = int(event->x / (get_width() - 1) * 128.0);
 
+    // handle-note off on virtual keyboard
     if (event->type == GDK_BUTTON_RELEASE) {
-        if (event->y >= REGION_BLOCK_HEIGHT) {
-            int velocity = (event->y >= REGION_BLOCK_HEIGHT + KEYBOARD_HEIGHT - 1) ? 127 :
-                           int(float(event->y - REGION_BLOCK_HEIGHT) / float(KEYBOARD_HEIGHT) * 128.0f) + 1;
-            keyboard_key_released_signal.emit(k, velocity);
+        int velocity = (event->y >= REGION_BLOCK_HEIGHT + KEYBOARD_HEIGHT - 1) ? 127 :
+                       int(float(event->y - REGION_BLOCK_HEIGHT) / float(KEYBOARD_HEIGHT) * 128.0f) + 1;
+        if (velocity <= 0) velocity = 1;
+        switch (m_VirtKeybModeChoice.get_value()) {
+            case VIRT_KEYBOARD_MODE_CHORD:
+                if (event->y >= REGION_BLOCK_HEIGHT)
+                    keyboard_key_released_signal.emit(k, velocity);
+                break;
+            case VIRT_KEYBOARD_MODE_NORMAL:
+            default:
+                if (currentActiveKey >= 0 && currentActiveKey <= 127) {
+                    keyboard_key_released_signal.emit(currentActiveKey, velocity);
+                    currentActiveKey = -1;
+                }
+                break;
         }
     }
 
@@ -380,6 +426,7 @@ bool RegionChooser::on_button_press_event(GdkEventButton* event)
         if (event->y >= REGION_BLOCK_HEIGHT) {
             int velocity = (event->y >= REGION_BLOCK_HEIGHT + KEYBOARD_HEIGHT - 1) ? 127 :
                            int(float(event->y - REGION_BLOCK_HEIGHT) / float(KEYBOARD_HEIGHT) * 128.0f) + 1;
+            currentActiveKey = k;
             keyboard_key_hit_signal.emit(k, velocity);
         }
     }
@@ -619,6 +666,21 @@ bool RegionChooser::on_motion_notify_event(GdkEventMotion* event)
     int x, y;
     Gdk::ModifierType state = Gdk::ModifierType(0);
     window->get_pointer(x, y, state);
+
+    // handle virtual MIDI keyboard
+    if (m_VirtKeybModeChoice.get_value() != VIRT_KEYBOARD_MODE_CHORD &&
+        currentActiveKey > 0 &&
+        event->y >= REGION_BLOCK_HEIGHT &&
+        event->y < REGION_BLOCK_HEIGHT + KEYBOARD_HEIGHT)
+    {
+        const int k = int(event->x / (get_width() - 1) * 128.0);
+        int velocity = (event->y >= REGION_BLOCK_HEIGHT + KEYBOARD_HEIGHT - 1) ? 127 :
+                       int(float(event->y - REGION_BLOCK_HEIGHT) / float(KEYBOARD_HEIGHT) * 128.0f) + 1;
+        if (velocity <= 0) velocity = 1;
+        keyboard_key_released_signal.emit(currentActiveKey, velocity);
+        currentActiveKey = k;
+        keyboard_key_hit_signal.emit(k, velocity);
+    }
 
     if (resize.active) {
         motion_resize_region(x, y);
