@@ -20,6 +20,8 @@ namespace LinuxSampler {
         atomic_t notesChanged; // whether some key changed at all
         atomic_t pNoteChanged[MIDI_KEYS]; // which key(s) changed
         atomic_t pNoteIsActive[MIDI_KEYS]; // status of each key (either active or inactive)
+        atomic_t pNoteOnVelocity[MIDI_KEYS];
+        atomic_t pNoteOffVelocity[MIDI_KEYS];
         RingBuffer<VirtualMidiDevice::event_t,false> events;
 
         _private_data_t() : events(MAX_EVENTS, 0) {}
@@ -29,10 +31,13 @@ namespace LinuxSampler {
         _private_data_t* p = new _private_data_t;
         pPrivateData = p;
         atomic_t zero = ATOMIC_INIT(0);
+        atomic_t defaultVelocity = ATOMIC_INIT(127);
         p->notesChanged = zero;
         for (int i = 0; i < MIDI_KEYS; i++) {
             p->pNoteChanged[i]  = zero;
             p->pNoteIsActive[i] = zero;
+            p->pNoteOnVelocity[i] = defaultVelocity;
+            p->pNoteOffVelocity[i] = defaultVelocity;
         }
     }
 
@@ -82,17 +87,29 @@ namespace LinuxSampler {
         return atomic_read( &(p->pNoteIsActive)[Key] );
     }
 
-    void VirtualMidiDevice::SendNoteOnToDevice(uint8_t Key, uint8_t /*Velocity*/) {
+    uint8_t VirtualMidiDevice::NoteOnVelocity(uint8_t Key) {
+        _private_data_t* p = (_private_data_t*)pPrivateData;
+        return atomic_read( &(p->pNoteOnVelocity)[Key] );
+    }
+
+    uint8_t VirtualMidiDevice::NoteOffVelocity(uint8_t Key) {
+        _private_data_t* p = (_private_data_t*)pPrivateData;
+        return atomic_read( &(p->pNoteOffVelocity)[Key] );
+    }
+
+    void VirtualMidiDevice::SendNoteOnToDevice(uint8_t Key, uint8_t Velocity) {
         if (Key >= MIDI_KEYS) return;
         _private_data_t* p = (_private_data_t*)pPrivateData;
+        atomic_set( &(p->pNoteOnVelocity)[Key], Velocity );
         atomic_inc( &(p->pNoteIsActive)[Key] );
         atomic_inc( &(p->pNoteChanged)[Key] );
         atomic_inc( &p->notesChanged );
     }
 
-    void VirtualMidiDevice::SendNoteOffToDevice(uint8_t Key, uint8_t /*Velocity*/) {
+    void VirtualMidiDevice::SendNoteOffToDevice(uint8_t Key, uint8_t Velocity) {
         if (Key >= MIDI_KEYS) return;
         _private_data_t* p = (_private_data_t*)pPrivateData;
+        atomic_set( &(p->pNoteOffVelocity)[Key], Velocity );
         atomic_dec( &(p->pNoteIsActive)[Key] );
         atomic_inc( &(p->pNoteChanged)[Key] );
         atomic_inc( &p->notesChanged );

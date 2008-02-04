@@ -77,6 +77,16 @@ public:
      */
     bool NoteIsActive(uint8_t Key);
 
+    /**
+     * Returns the velocity of the @e last note on event. No FIFO is used!
+     */
+    uint8_t NoteOnVelocity(uint8_t Key);
+
+    /**
+     * Returns the velocity of the @e last note off event. No FIFO is used!
+     */
+    uint8_t NoteOffVelocity(uint8_t Key);
+
     /////////////////////////////////////////////////////////////////
     // Sampler methods
     //     (usually only called by the Sampler)
