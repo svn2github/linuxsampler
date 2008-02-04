@@ -2071,7 +2071,7 @@ lscp_status_t lscp_set_fxsend_name ( lscp_client_t *pClient, int iSamplerChannel
 	if (!pClient || iSamplerChannel < 0 || iFxSend < 0 || !pszFxName)
 		return LSCP_FAILED;
 
-	snprintf(szQuery, LSCP_BUFSIZ, "SET FX_SEND NAME %d %d %s\r\n", iSamplerChannel, iFxSend, pszFxName);
+	snprintf(szQuery, LSCP_BUFSIZ, "SET FX_SEND NAME %d %d '%s'\r\n", iSamplerChannel, iFxSend, pszFxName);
 	return lscp_client_query(pClient, szQuery);
 }
 
