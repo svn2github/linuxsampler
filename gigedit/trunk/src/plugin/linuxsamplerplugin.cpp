@@ -127,9 +127,9 @@ bool LinuxSamplerPlugin::__onPollPeriod() {
     if (!NotesChanged()) return true;
     for (int iKey = 0; iKey < 128; iKey++)
         if (NoteChanged(iKey))
-            NoteIsActive(iKey) ? // we don't care about velocity yet
-                app->on_note_on_event(iKey, 127) :
-                app->on_note_off_event(iKey, 127);
+            NoteIsActive(iKey) ?
+                app->on_note_on_event(iKey, NoteOnVelocity(iKey)) :
+                app->on_note_off_event(iKey, NoteOffVelocity(iKey));
     return true;
 }
 
