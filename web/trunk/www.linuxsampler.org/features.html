@@ -179,6 +179,8 @@
 													<li class="partly">support for articulation (.art) files</li>
 													<li class="ok">support for Dimension Splits not equal to two</li>
 													<li class="ok">up to 8 Dimensions or 256 Dimension Regions</li>
+													<li class="partly">MIDI rules</li>
+													<li class="false">convolution</li>
 												</ol>
 											</li>
 										</ol>
@@ -285,7 +287,7 @@
      <li class="partly">MIDI input drivers
       <ol>
        <li class="ok"><a href="http://www.alsa-project.org/">ALSA</a> (Linux)</li>
-       <li class="false"><a href="http://jackit.sourceforge.net/">JACK</a> (Linux, OSX, Windows, ...)</li>
+       <li class="ok"><a href="http://jackit.sourceforge.net/">JACK</a> (Linux, OSX, Windows, ...)</li>
        <li class="false"><a href="http://www.steinberg.net/en/support/3rdparty/">VSTi</a></li>
        <li class="false">MIDI over ethernet (<a href="http://standards.ieee.org/announcements/p1639app.html">Distributed MIDI</a>)</li>
        <li class="ok"><a href="http://developer.apple.com/audio/pdf/coreaudio.pdf">CoreMIDI</a>  (Mac <a href="http://www.apple.com/macosx/">OS X</a>)</li>
@@ -354,10 +356,8 @@
 							<li class="partly"><a href="http://qsampler.sourceforge.net">QSampler</a> (C++ based frontend using Qt)
 								<ol>
 									<li class="ok">Supports all features of LinuxSampler except the following ...</li>
-									<li class="partly"><a href="http://www.linuxsampler.org/api/draft-linuxsampler-protocol.html#CREATE FX_SEND">
-										Effect Sends</a> (qsampler retrieves current FX send settings from the sampler,
-										stores FX send settings in session .lscp files and restores them, but
-										currently does not yet offer a widget to modify FX send settings)
+									<li class="ok"><a href="http://www.linuxsampler.org/api/draft-linuxsampler-protocol.html#CREATE FX_SEND">
+										Effect Sends</a>
 									</li>
 									<li class="partly"><a href="http://www.linuxsampler.org/api/draft-linuxsampler-protocol.html#MIDI Instrument Mapping">MIDI Instrument Maps</a>
 										(qsampler does currently not yet support to create more than two MIDI instrument maps [one intended for chromatic instruments and one for drumkits])
@@ -387,6 +387,7 @@
 									<li class="ok">stand-alone mode (independent of LinuxSampler)</li>
 									<li class="ok">live-mode (attached with LinuxSampler), which makes all modifications audible in the sampler in realtime without having to reload</li>
 									<li class="ok">created / modified files are accepted by LinuxSampler as well as by Gigastudio 3</li>
+									<li class="ok">virtual MIDI keyboard (for triggering notes by mouse click and highlighting the virtual keys on external note events)</li>
 								</ol>
 							</li>
 						</ol>
@@ -406,7 +407,7 @@
 			</p>
 
 			<p>
-			 (Last page update on <b>$Date: 2008-01-03 21:50:44 $</b> by $Author: schoenebeck $,
+			 (Last page update on <b>$Date: 2008-02-05 15:54:42 $</b> by $Author: schoenebeck $,
 			 also see <a href="http://www.linuxsampler.org">CVS Log</a> for recent changes)
 			</p>
 
