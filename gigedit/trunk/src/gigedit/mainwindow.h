@@ -336,6 +336,7 @@ protected:
     void on_action_sample_properties();
     void on_action_add_group();
     void on_action_add_sample();
+    void on_action_replace_all_samples_in_all_groups();
     void on_action_remove_sample();
 
     void on_action_add_instrument();

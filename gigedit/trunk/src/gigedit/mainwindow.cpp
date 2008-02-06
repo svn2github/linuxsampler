@@ -208,6 +208,10 @@ MainWindow::MainWindow() :
         Gtk::Action::create("RemoveSample", Gtk::Stock::REMOVE),
         sigc::mem_fun(*this, &MainWindow::on_action_remove_sample)
     );
+    actionGroup->add(
+        Gtk::Action::create("ReplaceAllSamplesInAllGroups", _("Replace All Samples In All Groups")),
+        sigc::mem_fun(*this, &MainWindow::on_action_replace_all_samples_in_all_groups)
+    );
 
     uiManager = Gtk::UIManager::create();
     uiManager->insert_action_group(actionGroup);
@@ -248,6 +252,7 @@ MainWindow::MainWindow() :
         "    <menuitem action='SampleProperties'/>"
         "    <menuitem action='AddGroup'/>"
         "    <menuitem action='AddSample'/>"
+	"    <menuitem action='ReplaceAllSamplesInAllGroups' />"
         "    <separator/>"
         "    <menuitem action='RemoveSample'/>"
         "  </popup>"
@@ -1487,6 +1492,108 @@ void MainWindow::on_action_add_sample() {
         // show error message box when some file(s) could not be opened / added
         if (error_files.size()) {
             Glib::ustring txt = _("Could not add the following sample(s):\n") + error_files;
+            Gtk::MessageDialog msg(*this, txt, false, Gtk::MESSAGE_ERROR);
+            msg.run();
+        }
+    }
+}
+
+void MainWindow::on_action_replace_all_samples_in_all_groups()
+{
+    if (!file) return;
+    Gtk::FileChooserDialog dialog(*this, _("Select Folder"),
+                                  Gtk::FILE_CHOOSER_ACTION_SELECT_FOLDER);
+    Gtk::Label description(
+        _("This is a very specific function. It tries to replace all samples "
+          "in the current gig file by samples located in the directory chosen "
+          "by you above.\n\n"
+          "It works like this: For each sample in the gig file it tries to "
+          "find a sample file in the selected directory with the same name as "
+          "the sample in the gig file. Optionally you can add a filename "
+          "postfix below, which will be added to the filename expected to be "
+          "found. That is, assume you have a gig file with a sample called "
+          "'Snare', if you enter '.wav' below (like it's done by default), it "
+          "assumes to find a sample file called 'Snare.wav' and will replace "
+          "the sample in the gig file accordingly. If you don't need such a "
+          "postfix, blank the field below. Any gig sample where no "
+          "appropriate sample file could be found, will be reported and left "
+          "untouched.\n\n")
+    );
+    description.set_line_wrap(true);
+    Gtk::HBox entryArea;
+    Gtk::Label entryLabel( _("Add Filename Extension: "), Gtk::ALIGN_RIGHT);
+    Gtk::Entry postfixEntryBox;
+    postfixEntryBox.set_text(".wav");
+    entryArea.pack_start(entryLabel);
+    entryArea.pack_start(postfixEntryBox);
+    dialog.get_vbox()->pack_start(description, Gtk::PACK_SHRINK);
+    dialog.get_vbox()->pack_start(entryArea, Gtk::PACK_SHRINK);
+    description.show();
+    entryLabel.show();
+    postfixEntryBox.show();
+    entryArea.show();
+    dialog.add_button(Gtk::Stock::CANCEL, Gtk::RESPONSE_CANCEL);
+    dialog.add_button(_("Select"), Gtk::RESPONSE_OK);
+    dialog.set_select_multiple(false);
+    // fix label width (because Gtk by design doesn't
+    // know anything about the parent's size)
+#if 0 //FIXME: doesn't work
+    int dialogW, dialogH, labelW, labelH;
+    dialog.get_size_request(dialogW, dialogH);
+    description.get_size_request(labelW, labelH);
+    std::cout << "dialog(" << dialogW << "," << dialogH << ")\nlabel(" << labelW << "," << labelH << ")\n" << std::flush;
+    description.set_size_request(dialogW, labelH);
+#endif
+    if (dialog.run() == Gtk::RESPONSE_OK)
+    {
+        Glib::ustring error_files;
+        Glib::ustring folder = dialog.get_filename();
+        for (gig::Sample* sample = file->GetFirstSample();
+             sample; sample = file->GetNextSample())
+        {
+            std::string filename =
+                folder + G_DIR_SEPARATOR_S + sample->pInfo->Name +
+                postfixEntryBox.get_text().raw();
+            SF_INFO info;
+            info.format = 0;
+            SNDFILE* hFile = sf_open(filename.c_str(), SFM_READ, &info);
+            try
+            {
+                if (!hFile) throw std::string("could not open file");
+                int bitdepth;
+                switch (info.format & 0xff) {
+                    case SF_FORMAT_PCM_S8:
+                    case SF_FORMAT_PCM_16:
+                    case SF_FORMAT_PCM_U8:
+                        bitdepth = 16;
+                        break;
+                    case SF_FORMAT_PCM_24:
+                    case SF_FORMAT_PCM_32:
+                    case SF_FORMAT_FLOAT:
+                    case SF_FORMAT_DOUBLE:
+                        bitdepth = 24;
+                        break;
+                    default:
+                        sf_close(hFile);
+                        throw std::string("format not supported");
+                }
+                SampleImportItem sched_item;
+                sched_item.gig_sample  = sample;
+                sched_item.sample_path = filename;
+                m_SampleImportQueue.push_back(sched_item);
+                sf_close(hFile);
+                file_changed();
+            }
+            catch (std::string what)
+            {
+                if (error_files.size()) error_files += "\n";
+                    error_files += filename += " (" + what + ")";
+            }
+        }
+        // show error message box when some file(s) could not be opened / added
+        if (error_files.size()) {
+            Glib::ustring txt =
+                _("Could not replace the following sample(s):\n") + error_files;
             Gtk::MessageDialog msg(*this, txt, false, Gtk::MESSAGE_ERROR);
             msg.run();
         }

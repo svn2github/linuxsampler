@@ -24,6 +24,8 @@ Version CVS HEAD (?)
     defining the actual keyswitching area on the keyboard in the instruments
     properties dialog are now called "Keyswitching range low/high" instead of
     "Dimension key range low/high")
+  * added "replace all samples" function to samples popup menu
+    (patch by Anders Dahnielson, a bit extended, fixes #73)
 
 Version 0.1.1 (2007-12-06)
 
