@@ -1,0 +1,292 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+  <meta content="text/html; charset=ISO-8859-1"
+ http-equiv="content-type">
+  <title>LinuxSampler for Debian</title>
+  <link rel="shortcut icon" href="http://download.linuxsampler.org/favicon.ico" type="image/x-icon">
+  <link rel="stylesheet" type="text/css" href="libgig/css/content.css" title="content" media="all">
+</head>
+<body>
+<h2><center>LinuxSampler for Debian &nbsp; <img src="gfx/logos/debian.png"> &nbsp; HOWTO by Christian Schoenebeck&nbsp;</center></h2>
+<br>
+<center>February&nbsp;7th,&nbsp;2008</center><br>
+<div style="background-color: #F4F4FF; margin: 1em 3em 1em 3em; padding: 1em 1em 1em 2.2em;">
+<a href="#intro">1.&nbsp; Introduction</a><br>
+<a href="#requirements">2.&nbsp; Requirements</a><br>
+<a href="#build_backend">3.&nbsp; Building the Backend</a><br>
+<a href="#benchmark">4.&nbsp; Benchmark</a><br>
+<a href="#build_frontends">5.&nbsp; Building the Frontend(s) and Instrument Editor</a><br>
+<a href="#houston">6.&nbsp; Troubleshooting</a><br>
+<a href="#docs">7.&nbsp; Detailed Documentation</a><br>
+<a href="#bugs">8.&nbsp; Bugs, Problems and Feature Requests</a><br>
+<a href="#contact">9.&nbsp; Contact</a><br>
+</div>
+
+<a name="intro"></a>
+<h3>1.&nbsp; Introduction</h3>
+There are two ways to install LS &amp; friends on your Debian system. You can
+either <a href="http://linuxsampler.org/downloads.html">download</a> and
+install our precompiled Debian binary packages (x86 only), or you can compile
+those Debian packages by yourself. Our precompiled Debian packages are cooked
+for the latest Debian <i>stable</i> distribution (a.k.a. <i>"etch"</i>).
+Installing them is pretty easy. Just download the latest versions of the
+Debian binary packages from our server and install them (as root) with:
+<pre>
+  dpkg -i REPLACE_BY_DEB_FILE
+</pre>
+However we recommend you to recompile at least libgig and LinuxSampler
+(the backend) by yourself, to get the maximum performance out of your box
+(because libgig and LinuxSampler are the software components which take the
+most of your machine's resources under heavy setups which you're probably
+going to do). Another reason at the moment for you to recompile them is when
+you have an old machine that doesn't support
+<a href="http://en.wikipedia.org/wiki/Streaming_SIMD_Extensions">SSE</a>
+instructions. Because the latest Debian binary packages were accidently
+compiled with using
+<a href="http://en.wikipedia.org/wiki/Streaming_SIMD_Extensions">SSE</a>
+floating point instructions (see
+<a href="https://bugs.linuxsampler.org/cgi-bin/show_bug.cgi?id=71">bug report #71</a>).
+In the latter case, linuxsampler would die with a
+<i>"FATAL ERROR: Illegal instruction (SIGILL) occured!"</i> error message.
+We're going to address this Debian binary issue with the next
+LS (LinuxSampler) release. And of course, if you don't have a x86 based
+system, you currently have to build the Debian packages by yourself as
+well.<br>
+<br>
+So this HOWTO is focused on how to cook optimized Debian packages of
+LS &amp; friends for your specific system. Of course you could also
+compile everything the old fashioned way, that is:
+<pre>
+  cd SOURCEDIR
+  make -f Makefile.cvs
+  ./configure
+  make
+  su
+  make install
+</pre>
+But many users who use a Debian based system (e.g. Ubuntu) prefer
+(building and) installing Debian packages, since it's cleaner for their
+environment and, which is probably more important to you, the Debian
+packaging mechanism takes care of compile time and runtime library
+dependencies etc.
+
+<a name="requirements"></a>
+<h3>2.&nbsp; Requirements</h3>
+<ul>
+  <li>g++ (the GNU C++ compiler, 4.x recommended)</li>
+  <li>debhelper (Debian package build tools)</li>
+  <li>pkg-config (manages compiler and linker flags for libraries)</li>
+  <li>automake (automatic Makefile builder, 1.5 or higher required)</li>
+  <li>autoconf (automatic configure script builder)</li>
+  <li>libtool (generic library build tool)</li>
+  <li>fakeroot (required to build Debian packages as ordinary user)</li>
+  <li>couple more ... :-)</li>
+</ul>
+Each of the software components you're going to compile will have additional
+requirements, but we'll address this later. The ones mentioned above are
+absolute prerequisites for continueing, so make sure you have them installed.
+If not, do so now (as root):
+<pre>
+  apt-get install g++ debhelper pkg-config automake1.8 libtool fakeroot
+</pre>
+If this is the first Debian packages you're going to build, you may wonder
+about the <i>fakeroot</i> tool. This is needed to "fool" the Debian
+packaging tools that we're compiling as root. Because usually you don't
+actually want to compile things as root, but the Debian packaging scripts
+expect it.
+
+<a name="build_backend"></a>
+<h3>3.&nbsp; Building the Backend</h3>
+Grab the source code files  of libgig (e.g. from our CVS server, as
+described on the
+<a href="http://linuxsampler.org/downloads.html">downloads site</a>). Then you
+should optimize the compilation flags for your machine. This really depends 
+on what kind of CPU and other hardware you use. Open the file <i>debian/rules</i> of
+the libgig sources in a text editor and watch out for the following line:
+<pre>
+  ./configure --host=$(DEB_HOST_GNU_TYPE) --build=$(DEB_BUILD_GNU_TYPE) --prefix=/usr --mandir=\$${prefix}/share/man --infodir=\$${prefix}/share/info
+</pre>
+This is the line where you'll place all your optimization options. Remove the 
+arguments --host and --build which are only meant for cross compilation and 
+prefix the line with your preferred optimization flags. So, for a Pentium4 
+machine it could look like:
+<pre>
+  CXXFLAGS="-O3 -msse -march=pentium4 -mfpmath=sse -ffast-math -fomit-frame-pointer -funroll-loops" ./configure --prefix=/usr --mandir=\$${prefix}/share/man --infodir=\$${prefix}/share/info
+</pre>
+save the file and finally you can start the build process (as ordinary user) with: 
+<pre>
+  dpkg-buildpackage -rfakeroot -b
+</pre>
+from the libgig source directory, which should compile and build the .deb
+files for you. In case it immediately aborts with the following error
+message:
+<pre>
+  Unmet build dependencies: ...
+</pre>
+Simply install the requested packages with "apt-get install" (or whatever you 
+prefer for package installation) and call the dpkg-buildpackage command 
+again. After a minute or so it should have left 3 .deb files one directory 
+above your libgig source directory. Install those 3 .deb files now, i.e. with 
+dpkg (as root):
+<pre>
+  dpkg -i libgig_3.2.1-1_i386.deb libgig-dev_3.2.1-1_i386.deb
+  dpkg -i gigtools_3.2.1-1_i386.deb
+</pre>
+and now repeat these steps for LS. That is grab the LS sources, edit the 
+debian/rules files at the similar configure line. The only difference with LS 
+is that you have much more options now. For example on a recent Pentium4 machine,
+the LS compile time options in LS's <i>debian/rules</i> file could become:
+<pre>
+  CXXFLAGS="-O3 -msse -march=pentium4 -mfpmath=sse -ffast-math -fomit-frame-pointer -funroll-loops" ./configure --prefix=/usr --mandir=\$${prefix}/share/man --infodir=\$${prefix}/share/info --enable-refill-streams=2 --enable-stream-size=320000 --enable-preload-samples=65536 --enable-max-voices=200 --enable-max-streams=220
+</pre>
+Just to let you know the difference: the options you apply to the "CXXFLAGS" 
+variable are options of the compiler (usually the GNU compiler,
+see "man gcc" for all available gcc options). The parameters after
+the "./configure" token are LS specific compile time options, i.e. the amount 
+of disk streams etc. For a full list of LS's compile time options and brief 
+explanations of them you can call:
+<pre>
+  ./configure --help
+</pre>
+from LS's source directory. So after you modified the configure line in LS's 
+<i>debian/rules</i> file, you can once again call:
+<pre>
+  dpkg-buildpackage -rfakeroot -b
+</pre>
+to get the LS packages cooked. This time it should take a bit longer. Once 
+again you'll get 3 Debian packages (<i>liblinuxsampler</i>, <i>liblinuxsampler-dev</i> and
+<i>linuxsampler</i>). Install those 3 new LS packages again e.g. with "dpkg -i" like
+already explained above with libgig.<br>
+<br>
+And that's it!</br>
+<br>
+The good thing: if you grabbed the sources of libgig and LS from CVS, you only 
+have to call:
+<pre>
+  cvs update
+  dpkg-buildpackage -rfakeroot -b
+</pre>
+once in a while from the source directory to conveniently compile the latest 
+version with your personal optimizations and configuration parameters for 
+your system, because "cvs update" updates your local source files to the 
+latest bleeding edge version from our CVS server but won't touch your 
+modifications!
+<br>
+The problematic part is to find good compile time options for your specific
+system. Unfortunately there is no real recipe for that, it always requires
+to play around a bit with the various options. A little help on this however is
+described next.
+
+<a name="benchmark"></a>
+<h3>4.&nbsp; Benchmark</h3>
+You're most probably unsure which gcc (compiler) flags to use.
+As said, this always means a bit playing around. For that you can use our stripped
+down benchmark, which is located in the "benchmarks" directory of the LS 
+sources. The good thing about the benchmark: it's really light-weight, that 
+is it's a benchmark of our full gig sampling engine, but it doesn't depend on 
+any MIDI or audio drivers, nor does it require to load any sounds or to 
+handle with automake / ./configure crap and compiles really fast.<br>
+<br>
+Here's how it goes:
+<ol>
+  <li>
+    adjust the file <i>benchmarks/Makefile</i> in the LS source directory with the
+    CFLAGS (pretty much the same as CXXFLAGS) of your choice
+  </li>
+  <li>
+    call "make" from the benchmarks/ directory
+  </li>
+  <li>
+    run the compiled binary "benchmarks/gigsynth"
+  </li>
+</ol>
+which will print you out benchmark values for your system on the console.
+There are different kind of so called "synthesis modes", i.e. one with filter 
+on, one with filter off, one with resampling on, one with no resampling, etc.
+each will shoot its own benchmark result.<br>
+<br>
+So that way you can easily and quickly play around with CFLAGS (a.k.a 
+CXXFLAGS) and figure out which one is beloved by your machine.
+
+<a name="build_frontends"></a>
+<h3>5.&nbsp; Building the Frontend(s) and Instrument Editor</h3>
+<b>QSampler:</b> Building the QSampler Debian package is pretty much the same
+process are described above for the backend. However usually you don't need
+to take the hassle to optimize the compile time flags as thoroughly as you
+would do for the backend. Since the frontend doesn't use much resources
+anyway. Note however that you need to cook <b>and install</b> the liblscp Debian
+packages <b>before</b> starting to build the QSampler package.<br>
+<br>
+<b>JSampler:</b> Many users prefer to use JSampler instead of QSampler,
+since it currently provides more features and has a very slick skin based
+user interface. Unfortunately JSampler hasn't been debianized yet, so there
+is no way at the moment to build JSampler and jlscp Debian packages yet.
+But this certainly going to change as soon as the GPL transition of the
+Java SDK has been completed. So for now please use either the precompiled
+JSampler .jar file (e.g. from our
+<a href="http://linuxsampler.org/downloads.html">downloads site</a>) or
+refer to the
+<a href="http://linuxsampler.org/jsampler/manual/html/jsampler.html#BUILDING_FROM_SOURCE">
+build instructions</a> of the JSampler documentation.<br>
+<br>
+<b>gigedit:</b> This is the graphical instrument editor for .gig files.
+Once again, building Debian packages of gigedit is similar to the
+other software components. Just note that you should build gigedit
+<b>after</b> you compiled <b>and installed</b> libgig and linuxsampler.
+Otherwise gigedit might just be compiled as a stand-alone editor, that is
+you might not use it in conjunction with LS &amp; friends. If you have
+any trouble getting gigedit to work with LS, please refer to the
+<a href="http://download.linuxsampler.org/doc/gigedit/quickstart/gigedit_quickstart.html#live_editing">
+"live mode"</a> chapter of the gigedit documentation and its respective
+<a href="http://download.linuxsampler.org/doc/gigedit/quickstart/gigedit_quickstart.html#live_trouble">
+trouble shooting</a> section.
+
+<a name="houston"></a>
+<h3>6.&nbsp; Troubleshooting</h3>
+<ul>
+  <li>
+    <div style="background-color: #FFF2F2;">
+      <u>Problem:</u> required libgig version not found
+    </div>
+    <div style="background-color: #F2FFF2;">
+      <u>Reason / Solution:</u>
+      make sure you don't have another, old version of libgig installed at another place ( e.g. under /usr/local )
+    </div>
+  </li>
+</ul>
+
+<a name="docs"></a>
+<h3>7.&nbsp; Detailed Documentation</h3>
+You find more detailed documentation about our software, i.e. about JSampler
+or gigedit on our official <a href="http://linuxsampler.org/documentation.html">
+LinuxSampler documentation site</a>.
+
+<a name="bugs"></a>
+<h3>8.&nbsp; Bugs, Problems and Feature Requests</h3>
+Our Forum is a good place to ask for help:<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="https://bb.linuxsampler.org">https://bb.linuxsampler.org</a><br>
+<br>
+We have a dedicated forum section for
+newbies and support.<br>
+<br>
+No software is perfect, nor is ours, if you found bugs, please
+report them using our bug tracking system:<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="http://bugs.linuxsampler.org/">http://bugs.linuxsampler.org/</a>
+
+<a name="contact"></a>
+<h3>9.&nbsp; Contact</h3>
+If you have questions or want to help us to improve the sampler, please
+subscribe to the <a href="http://www.linuxsampler.org/developers.html">
+LinuxSampler Developer's mailing list</a>. If you want to contact a
+certain developer instead, your can find our email addresses here:<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="http://www.linuxsampler.org/developers.html">http://www.linuxsampler.org/developers.html</a>
+<br><br>
+That's it, enjoy!<br>
+<br>
+
+</body>
+</html>
