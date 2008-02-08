@@ -47,6 +47,11 @@
 		downloadsout = new Image();
 		downloadsout.src = dir + "mdownloads.png";
 
+		supportover = new Image();
+		supportover.src = dir + "msupporthover.png";
+		supportout = new Image();
+		supportout.src = dir + "msupport.png";
+
 		developersover = new Image();
 		developersover.src = dir + "mdevelopershover.png";
 
@@ -126,7 +131,9 @@
  href="downloads.html"
  onmouseover="javascript:if(document.images)document.downloads.src = downloadsover.src"
  onmouseout="javascript:if(document.images)document.downloads.src = downloadsout.src"><img
- name="downloads" src="gfx/mdownloads.png" alt="download"></a> <a
+ name="downloads" src="gfx/mdownloads.png" alt="download"></a>
+ <a id="support" href="support.html" onmouseover="javascript:if(document.images)document.support.src = supportover.src" onmouseout="javascript:if(document.images)document.support.src = supportout.src"><img name="support" src="gfx/msupport.png" alt="support"></a>
+ <a
  id="developers" href="developers.html"
  onmouseover="javascript:if(document.images)document.developers.src = developersover.src"
  onmouseout="javascript:if(document.images)document.developers.src = developersout.src"><img
