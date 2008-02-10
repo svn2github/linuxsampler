@@ -38,6 +38,7 @@
 
 #include <string>
 #include <list>
+#include <set>
 #include <map>
 #include <iostream>
 
@@ -310,7 +311,7 @@ namespace RIFF {
             friend class List;
         private:
             stream_mode_t  Mode;
-            ChunkList      ResizedChunks; ///< All chunks which have been resized (enlarged / shortened).
+            std::set<Chunk*> ResizedChunks; ///< All chunks which have been resized (enlarged / shortened).
 
             unsigned long GetFileSize();
             void ResizeFile(unsigned long ulNewSize);

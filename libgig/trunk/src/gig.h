@@ -697,8 +697,7 @@ namespace gig {
             virtual void UpdateChunks();
             // own methods
             Region*   GetRegion(unsigned int Key);
-            MidiRule* GetFirstMidiRule();
-            MidiRule* GetNextMidiRule();
+            MidiRule* GetMidiRule(int i);
         protected:
             Region*   RegionKeyTable[128]; ///< fast lookup for the corresponding Region of a MIDI key
 
@@ -708,8 +707,7 @@ namespace gig {
             friend class File;
             friend class Region; // so Region can call UpdateRegionKeyTable()
         private:
-            std::list<MidiRule*> MidiRules;
-            std::list<MidiRule*>::iterator MidiRulesIterator;
+            MidiRule** pMidiRules;
     };
 
     /** @brief Group of Gigasampler objects

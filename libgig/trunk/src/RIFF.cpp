@@ -89,7 +89,7 @@ namespace RIFF {
     }
 
     Chunk::~Chunk() {
-        if (CurrentChunkSize != NewChunkSize) pFile->UnlogResized(this);
+        pFile->UnlogResized(this);
         if (pChunkData) delete[] pChunkData;
     }
 
@@ -1152,6 +1152,8 @@ namespace RIFF {
         pSubChunks->push_back(pNewChunk);
         (*pSubChunksMap)[uiChunkID] = pNewChunk;
         pNewChunk->Resize(uiBodySize);
+        NewChunkSize += CHUNK_HEADER_SIZE;
+        pFile->LogAsResized(this);
         return pNewChunk;
     }
 
@@ -1187,6 +1189,8 @@ namespace RIFF {
         List* pNewListChunk = new List(pFile, this, uiListType);
         pSubChunks->push_back(pNewListChunk);
         (*pSubChunksMap)[CHUNK_ID_LIST] = pNewListChunk;
+        NewChunkSize += LIST_HEADER_SIZE;
+        pFile->LogAsResized(this);
         return pNewListChunk;
     }
 
@@ -1586,14 +1590,12 @@ namespace RIFF {
 
         // first we sum up all positive chunk size changes (and skip all negative ones)
         unsigned long ulPositiveSizeDiff = 0;
-        for (ChunkList::iterator iter = ResizedChunks.begin(), end = ResizedChunks.end(); iter != end; ++iter) {
+        for (std::set<Chunk*>::const_iterator iter = ResizedChunks.begin(), end = ResizedChunks.end(); iter != end; ++iter) {
             if ((*iter)->GetNewSize() == 0) {
                 throw Exception("There is at least one empty chunk (zero size): " + __resolveChunkPath(*iter));
             }
-            if ((*iter)->GetNewSize() + 1L > (*iter)->GetSize()) {
-                unsigned long ulDiff = (*iter)->GetNewSize() - (*iter)->GetSize() + 1L; // +1 in case we have to add a pad byte
-                ulPositiveSizeDiff += ulDiff;
-            }
+            unsigned long ulDiff = (*iter)->GetNewSize() + (*iter)->GetNewSize() % 2 - (*iter)->GetSize() - (*iter)->GetSize() % 2;
+            if (ulDiff > 0) ulPositiveSizeDiff += ulDiff;
         }
 
         unsigned long ulWorkingFileSize = GetFileSize();
@@ -1611,9 +1613,9 @@ namespace RIFF {
             #else
             int iBytesMoved = 1;
             #endif
-            for (unsigned long ulPos = 0; iBytesMoved > 0; ulPos += iBytesMoved) {
-                const unsigned long ulToMove = ulFileSize - ulPos;
-                iBytesMoved = (ulToMove < 4096) ? ulToMove : 4096;
+            for (unsigned long ulPos = ulFileSize; iBytesMoved > 0; ) {
+                iBytesMoved = (ulPos < 4096) ? ulPos : 4096;
+                ulPos -= iBytesMoved;
                 #if POSIX
                 lseek(hFileRead, ulPos, SEEK_SET);
                 iBytesMoved = read(hFileRead, pCopyBuffer, iBytesMoved);
@@ -1746,11 +1748,11 @@ namespace RIFF {
     }
 
     void File::LogAsResized(Chunk* pResizedChunk) {
-        ResizedChunks.push_back(pResizedChunk);
+        ResizedChunks.insert(pResizedChunk);
     }
 
     void File::UnlogResized(Chunk* pResizedChunk) {
-        ResizedChunks.remove(pResizedChunk);
+        ResizedChunks.erase(pResizedChunk);
     }
 
     unsigned long File::GetFileSize() {

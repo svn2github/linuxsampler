@@ -3,6 +3,11 @@ Version CVS HEAD (?)
   * src/gig.cpp, src/gig.h:
     - added partial support for MIDI rules, only the Controller
       Triggered rule is supported so far
+    - bugfix: removed another iterator invalidation in DeleteSample
+
+  * src/RIFF.cpp, src/RIFF.h:
+    - bugfix: saving to the same file after the file size had been
+      increased made the file corrupt (#82)
 
 Version 3.2.1 (5 Dec 2007)
 

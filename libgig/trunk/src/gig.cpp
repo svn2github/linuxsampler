@@ -2965,6 +2965,8 @@ MidiRuleCtrlTrigger::MidiRuleCtrlTrigger(RIFF::Chunk* _3ewg) {
         PianoReleaseMode = false;
         DimensionKeyRange.low = 0;
         DimensionKeyRange.high = 0;
+        pMidiRules = new MidiRule*[3];
+        pMidiRules[0] = NULL;
 
         // Loading
         RIFF::List* lart = insList->GetSubList(LIST_TYPE_LART);
@@ -2982,14 +2984,17 @@ MidiRuleCtrlTrigger::MidiRuleCtrlTrigger(RIFF::Chunk* _3ewg) {
 
                 if (_3ewg->GetSize() > 32) {
                     // read MIDI rules
+                    int i = 0;
                     _3ewg->SetPos(32);
                     uint8_t id1 = _3ewg->ReadUint8();
                     uint8_t id2 = _3ewg->ReadUint8();
 
                     if (id1 == 4 && id2 == 16) {
-                        MidiRules.push_back(new MidiRuleCtrlTrigger(_3ewg));
+                        pMidiRules[i++] = new MidiRuleCtrlTrigger(_3ewg);
                     }
                     //TODO: all the other types of rules
+
+                    pMidiRules[i] = NULL;
                 }
             }
         }
@@ -3027,6 +3032,7 @@ MidiRuleCtrlTrigger::MidiRuleCtrlTrigger(RIFF::Chunk* _3ewg) {
     }
 
     Instrument::~Instrument() {
+        delete[] pMidiRules;
     }
 
     /**
@@ -3142,33 +3148,17 @@ MidiRuleCtrlTrigger::MidiRuleCtrlTrigger(RIFF::Chunk* _3ewg) {
     }
 
     /**
-     * Returns the first MIDI rule of the instrument. You have to call
-     * this method once before you use GetNextMidiRule().
+     * Returns a MIDI rule of the instrument.
      *
      * The list of MIDI rules, at least in gig v3, always contains at
      * most two rules. The second rule can only be the DEF filter
      * (which currently isn't supported by libgig).
      *
-     * @returns  pointer address to first MIDI rule or NULL if there is none
-     * @see      GetNextMidiRule()
+     * @param i - MIDI rule number
+     * @returns   pointer address to MIDI rule number i or NULL if there is none
      */
-    MidiRule* Instrument::GetFirstMidiRule() {
-        MidiRulesIterator = MidiRules.begin();
-        return MidiRulesIterator != MidiRules.end() ? *MidiRulesIterator : NULL;
-    }
-
-    /**
-     * Returns the next MIDI rule of the instrument. You have to call
-     * GetFirstMidiRule() once before you can use this method. By
-     * calling this method multiple times it iterates through the
-     * available rules.
-     *
-     * @returns  pointer address to the next MIDI rule or NULL if end reached
-     * @see      GetFirstMidiRule()
-     */
-    MidiRule* Instrument::GetNextMidiRule() {
-        MidiRulesIterator++;
-        return MidiRulesIterator != MidiRules.end() ? *MidiRulesIterator : NULL;
+    MidiRule* Instrument::GetMidiRule(int i) {
+        return pMidiRules[i];
     }
 
 
@@ -3413,6 +3403,7 @@ MidiRuleCtrlTrigger::MidiRuleCtrlTrigger(RIFF::Chunk* _3ewg) {
         pSamples->erase(iter);
         delete pSample;
 
+        SampleList::iterator tmp = SamplesIterator;
         // remove all references to the sample
         for (Instrument* instrument = GetFirstInstrument() ; instrument ;
              instrument = GetNextInstrument()) {
@@ -3427,6 +3418,7 @@ MidiRuleCtrlTrigger::MidiRuleCtrlTrigger(RIFF::Chunk* _3ewg) {
                 }
             }
         }
+        SamplesIterator = tmp; // restore iterator
     }
 
     void File::LoadSamples() {
