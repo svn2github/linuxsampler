@@ -37,6 +37,7 @@ public:
 
     DimensionManager();
     void show(gig::Region* region);
+    void set_region(gig::Region* region);
 protected:
     gig::Region* region;
     Gtk::VBox vbox;

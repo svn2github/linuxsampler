@@ -335,6 +335,7 @@ void RegionChooser::set_instrument(gig::Instrument* instrument)
     region = regions.first();
     queue_draw();
     region_selected();
+    dimensionManager.set_region(region);
 }
 
 bool RegionChooser::on_button_release_event(GdkEventButton* event)
@@ -438,6 +439,7 @@ bool RegionChooser::on_button_press_event(GdkEventButton* event)
             region = r;
             queue_draw();
             region_selected();
+            dimensionManager.set_region(region);
             popup_menu_inside_region->popup(event->button, event->time);
         } else {
             new_region_pos = k;
@@ -457,6 +459,7 @@ bool RegionChooser::on_button_press_event(GdkEventButton* event)
                 region = r;
                 queue_draw();
                 region_selected();
+                dimensionManager.set_region(region);
 
                 get_window()->pointer_grab(false,
                                            Gdk::BUTTON_RELEASE_MASK |
@@ -798,6 +801,7 @@ void RegionChooser::add_region()
 
     queue_draw();
     region_selected();
+    dimensionManager.set_region(region);
     instrument_changed();
 }
 
@@ -811,6 +815,7 @@ void RegionChooser::delete_region()
     region = 0;
     queue_draw();
     region_selected();
+    dimensionManager.set_region(region);
     instrument_changed();
 }
 

@@ -218,15 +218,18 @@ addButton(Gtk::Stock::ADD), removeButton(Gtk::Stock::REMOVE)
 // update all GUI elements according to current gig::Region informations
 void DimensionManager::refreshManager() {
     refTableModel->clear();
-    for (int i = 0; i < region->Dimensions; i++) {
-        gig::dimension_def_t* dim = &region->pDimensionDefinitions[i];
-        Gtk::TreeModel::Row row = *(refTableModel->append());
-        row[tableModel.m_dim_type] = __dimTypeAsString(dim->dimension);
-        row[tableModel.m_bits] = dim->bits;
-        row[tableModel.m_zones] = 1 << dim->bits; //TODO: for now we calculate it here until libgig always ensures 'zones' to be correct
-        row[tableModel.m_description] = __dimDescriptionAsString(dim->dimension);
-        row[tableModel.m_definition] = dim;
+    if (region) {
+        for (int i = 0; i < region->Dimensions; i++) {
+            gig::dimension_def_t* dim = &region->pDimensionDefinitions[i];
+            Gtk::TreeModel::Row row = *(refTableModel->append());
+            row[tableModel.m_dim_type] = __dimTypeAsString(dim->dimension);
+            row[tableModel.m_bits] = dim->bits;
+            row[tableModel.m_zones] = 1 << dim->bits; //TODO: for now we calculate it here until libgig always ensures 'zones' to be correct
+            row[tableModel.m_description] = __dimDescriptionAsString(dim->dimension);
+            row[tableModel.m_definition] = dim;
+        }
     }
+    set_sensitive(region);
 }
 
 void DimensionManager::show(gig::Region* region) {
@@ -234,6 +237,11 @@ void DimensionManager::show(gig::Region* region) {
     refreshManager();
     Gtk::Window::show();
     deiconify();
+}
+
+void DimensionManager::set_region(gig::Region* region) {
+    this->region = region;
+    refreshManager();
 }
 
 void DimensionManager::addDimension() {

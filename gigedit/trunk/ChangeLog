@@ -26,6 +26,8 @@ Version CVS HEAD (?)
     "Dimension key range low/high")
   * added "replace all samples" function to samples popup menu
     (patch by Anders Dahnielson, a bit extended, fixes #73)
+  * bugfix: dimension manager window didn't update when another region
+    was selected (#78)
 
 Version 0.1.1 (2007-12-06)
 
