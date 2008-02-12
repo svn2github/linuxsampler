@@ -21,6 +21,7 @@
 
 #include <linuxsampler/plugins/InstrumentEditorFactory.h>
 #include "../gigedit/gigedit.h"
+#include "../gigedit/global.h"
 
 #include <iostream>
 #include <sigc++/bind.h>
@@ -123,6 +124,7 @@ int LinuxSamplerPlugin::Main(void* pInstrument, String sTypeName, String sTypeVe
 }
 
 bool LinuxSamplerPlugin::__onPollPeriod() {
+    #if HAVE_LINUXSAMPLER_VIRTUAL_MIDI_DEVICE
     GigEdit* app = (GigEdit*) pApp;
     if (!NotesChanged()) return true;
     for (int iKey = 0; iKey < 128; iKey++)
@@ -131,6 +133,9 @@ bool LinuxSamplerPlugin::__onPollPeriod() {
                 app->on_note_on_event(iKey, NoteOnVelocity(iKey)) :
                 app->on_note_off_event(iKey, NoteOffVelocity(iKey));
     return true;
+    #else
+    return false;
+    #endif
 }
 
 void LinuxSamplerPlugin::__onSamplesToBeRemoved(std::list<gig::Sample*> lSamples) {
@@ -145,11 +150,15 @@ void LinuxSamplerPlugin::__onSamplesToBeRemoved(std::list<gig::Sample*> lSamples
 }
 
 void LinuxSamplerPlugin::__onVirtualKeyboardKeyHit(int Key, int Velocity) {
+    #if HAVE_LINUXSAMPLER_VIRTUAL_MIDI_DEVICE
     SendNoteOnToSampler(Key, Velocity);
+    #endif
 }
 
 void LinuxSamplerPlugin::__onVirtualKeyboardKeyReleased(int Key, int Velocity) {
+    #if HAVE_LINUXSAMPLER_VIRTUAL_MIDI_DEVICE
     SendNoteOffToSampler(Key, Velocity);
+    #endif
 }
 
 bool LinuxSamplerPlugin::IsTypeSupported(String sTypeName, String sTypeVersion) {
