@@ -28,6 +28,9 @@ Version CVS HEAD (?)
     (patch by Anders Dahnielson, a bit extended, fixes #73)
   * bugfix: dimension manager window didn't update when another region
     was selected (#78)
+  * in "Save As..." dialog set inital filename to "copy_of_<filename>" and
+    show a warning message that saving to the same .gig file will corrupt
+    the sample wave data
 
 Version 0.1.1 (2007-12-06)
 

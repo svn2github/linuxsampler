@@ -752,12 +752,41 @@ bool MainWindow::file_save_as()
     filter.add_pattern("*.gig");
     dialog.set_filter(filter);
 
-    if (Glib::path_is_absolute(filename)) {
-        dialog.set_filename(filename);
-    } else if (current_dir != "") {
-        dialog.set_current_folder(current_dir);
+    // set initial dir and filename of the Save As dialog
+    // and prepare that initial filename as a copy of the gig
+    {
+        std::string basename = Glib::path_get_basename(filename);
+        std::string dir = Glib::path_get_dirname(filename);
+        basename = std::string("copy_of_") + basename;
+        Glib::ustring copyFileName = Glib::build_filename(dir, basename);
+        if (Glib::path_is_absolute(filename)) {
+            dialog.set_filename(copyFileName);
+        } else {
+            if (current_dir != "") dialog.set_current_folder(current_dir);
+        }
+        dialog.set_current_name(Glib::filename_display_basename(copyFileName));
     }
-    dialog.set_current_name(Glib::filename_display_basename(filename));
+
+    // show warning in the dialog
+    Gtk::HBox descriptionArea;
+    descriptionArea.set_spacing(15);
+    Gtk::Image warningIcon(Gtk::Stock::DIALOG_WARNING, Gtk::IconSize(Gtk::ICON_SIZE_DIALOG));
+    descriptionArea.pack_start(warningIcon, Gtk::PACK_SHRINK);
+    warningIcon.show();
+    Gtk::Label description;
+    description.set_markup(
+        _("\n<b>CAUTION:</b> You <b>MUST</b> use the "
+          "<span style=\"italic\">\"Save\"</span> dialog instead of "
+          "<span style=\"italic\">\"Save As...\"</span> if you want to save "
+          "to the same .gig file. Using "
+          "<span style=\"italic\">\"Save As...\"</span> for writing to the "
+          "same .gig file will end up in corrupted sample wave data!\n")
+    );
+    description.set_line_wrap(true);
+    descriptionArea.pack_start(description, Gtk::PACK_SHRINK);
+    description.show();
+    dialog.get_vbox()->pack_start(descriptionArea, Gtk::PACK_SHRINK);
+    descriptionArea.show();
 
     if (dialog.run() == Gtk::RESPONSE_OK) {
         file_structure_to_be_changed_signal.emit(this->file);

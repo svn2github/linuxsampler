@@ -128,6 +128,48 @@ AC_DEFINE_UNQUOTED(
     [Define to 1 if you have LinuxSampler installed.]
 )
 
+have_ls_vmidi=0
+if test $have_linuxsampler = "1"; then
+    AC_MSG_CHECKING([whether LinuxSampler supports virtual MIDI devices])
+    AC_LANG_SAVE
+    AC_LANG_CPLUSPLUS
+    LIBS="$LINUXSAMPLER_LIBS $LIBS"
+    CFLAGS="$CFLAGS $LINUXSAMPLER_CFLAGS"
+    CXXFLAGS="$CXXFLAGS $CFLAGS"
+    AC_TRY_COMPILE([
+            #include <linuxsampler/drivers/midi/VirtualMidiDevice.h>
+            using namespace LinuxSampler;
+        ], [
+            bool (VirtualMidiDevice::*ptr1)(uint8_t, uint8_t) = 0;
+            bool (VirtualMidiDevice::*ptr2)() = 0;
+            bool (VirtualMidiDevice::*ptr3)(uint8_t) = 0;
+            uint8_t (VirtualMidiDevice::*ptr4)(uint8_t) = 0;
+            ptr1 = &VirtualMidiDevice::SendNoteOnToSampler;
+            ptr2 = &VirtualMidiDevice::NotesChanged;
+            ptr3 = &VirtualMidiDevice::NoteChanged;
+            ptr4 = &VirtualMidiDevice::NoteOffVelocity;
+        ], [
+            AC_MSG_RESULT(yes)
+            have_ls_vmidi=1
+        ], [
+            AC_MSG_RESULT(no)
+            echo "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+            echo "! Support for the virtual MIDI keyboard in gigedit will"
+            echo "! be disabled. You'll see the keyboard in gigedit, but"
+            echo "! you won't be able to trigger notes with it nor see"
+            echo "! active notes caused by external MIDI sources of LS."
+            echo "! Update LinuxSampler and recompile gigedit if you want"
+            echo "! this feature."
+            echo "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+        ]
+    )
+    AC_LANG_RESTORE
+fi
+AC_DEFINE_UNQUOTED(
+    HAVE_LINUXSAMPLER_VIRTUAL_MIDI_DEVICE, $have_ls_vmidi,
+    [Define to 1 if LinuxSampler supports virtual MIDI devices.]
+)
+
 AC_CONFIG_HEADERS(config.h)
 AM_INIT_AUTOMAKE(gigedit, "$GIGEDIT_VER_MAJOR.$GIGEDIT_VER_MINOR.$GIGEDIT_VER_RELEASE")
 
