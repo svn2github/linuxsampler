@@ -1,6 +1,6 @@
 /***************************************************************************
  *                                                                         *
- *   Copyright (C) 2005 Christian Schoenebeck                              *
+ *   Copyright (C) 2005, 2008 Christian Schoenebeck                        *
  *                                                                         *
  *   This library is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -24,7 +24,7 @@
 #include "LFOBase.h"
 
 // amplitue of 2nd harmonic (to approximate the triangular wave)
-#define AMP2	0.11425509f
+#define AMP2	-0.11425509f
 
 namespace LinuxSampler {
 
@@ -70,7 +70,7 @@ namespace LinuxSampler {
             inline void update(const uint16_t& ExtControlValue) {
                 const float max = this->InternalDepth + ExtControlValue * this->ExtControlDepthCoeff;
                 if (RANGE == range_unsigned) {
-                    const float harmonicCompensation = 1.0f + AMP2; // to compensate the compensation ;) (see trigger())
+                    const float harmonicCompensation = 1.0f + fabsf(AMP2); // to compensate the compensation ;) (see trigger())
                     normalizer = max * 0.5f;
                     offset     = normalizer * harmonicCompensation;
                 } else { // signed range
@@ -93,8 +93,8 @@ namespace LinuxSampler {
              *                          audio output signal
              */
             void trigger(float Frequency, start_level_t StartLevel, uint16_t InternalDepth, uint16_t ExtControlDepth, bool FlipPhase, unsigned int SampleRate) {
-                const float harmonicCompensation = 1.0f + AMP2; // to compensate the 2nd harmonic's amplitude overhead
-                this->InternalDepth        = (InternalDepth / 1200.0f) * this->Max / harmonicCompensation; 
+                const float harmonicCompensation = 1.0f + fabsf(AMP2); // to compensate the 2nd harmonic's amplitude overhead
+                this->InternalDepth        = (InternalDepth / 1200.0f) * this->Max / harmonicCompensation;
                 this->ExtControlDepthCoeff = (((float) ExtControlDepth / 1200.0f) / 127.0f) * this->Max / harmonicCompensation;
 
                 c1 = 2.0f * M_PI * Frequency / (float) SampleRate;

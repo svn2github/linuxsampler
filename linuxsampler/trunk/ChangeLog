@@ -20,6 +20,9 @@ Version CVS HEAD (?)
       of gigedit)
     - added support for triggering notes by instrument editors (see above)
     - be verbose on DLL load errors (on Linux)
+    - fixed di-harmonic triangle LFO implementation (this LFO implementation
+      is only used by very few systems, most pick the int math
+      implementation, which is usually faster)
 
   * audio driver:
     - removed the nonsense audio channel constraint (which was hard coded to
