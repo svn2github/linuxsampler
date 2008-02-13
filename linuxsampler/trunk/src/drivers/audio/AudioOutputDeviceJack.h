@@ -34,7 +34,10 @@
 
 #include "AudioOutputDevice.h"
 #include "../../common/ConditionServer.h"
+
+#if HAVE_JACK_MIDI
 #include "../midi/MidiInputDeviceJack.h"
+#endif
 
 namespace LinuxSampler {
 
@@ -158,7 +161,9 @@ namespace LinuxSampler {
             int Process(uint Samples);
             void Stop();
             void SetAudioOutputDevice(AudioOutputDeviceJack* device);
+            #if HAVE_JACK_MIDI
             void SetMidiInputDevice(MidiInputDeviceJack* device);
+            #endif
 
             jack_client_t* hJackClient;
 
@@ -166,7 +171,9 @@ namespace LinuxSampler {
             static std::map<String, JackClient*> Clients;
             struct config_t {
                 AudioOutputDeviceJack* AudioDevice;
+                #if HAVE_JACK_MIDI
                 MidiInputDeviceJack* MidiDevice;
+                #endif
             };
             SynchronizedConfig<config_t> Config;
             SynchronizedConfig<config_t>::Reader ConfigReader;

@@ -249,7 +249,7 @@ namespace LinuxSampler {
     }
 
     String AudioOutputDeviceJack::Version() {
-       String s = "$Revision: 1.22 $";
+       String s = "$Revision: 1.23 $";
        return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
 
@@ -291,12 +291,16 @@ namespace LinuxSampler {
         {
             config_t& config = Config.GetConfigForUpdate();
             config.AudioDevice = 0;
+#if HAVE_JACK_MIDI
             config.MidiDevice = 0;
+#endif
         }
         {
             config_t& config = Config.SwitchConfig();
             config.AudioDevice = 0;
+#if HAVE_JACK_MIDI
             config.MidiDevice = 0;
+#endif
         }
         audio = midi = false;
         if (Name.size() >= jack_client_name_size())
@@ -318,10 +322,12 @@ namespace LinuxSampler {
         Config.SwitchConfig().AudioDevice = device;
     }
 
+#if HAVE_JACK_MIDI
     void JackClient::SetMidiInputDevice(MidiInputDeviceJack* device) {
         Config.GetConfigForUpdate().MidiDevice = device;
         Config.SwitchConfig().MidiDevice = device;
     }
+#endif
 
     JackClient* JackClient::CreateAudio(String Name) { // static
         JackClient* client;
@@ -363,7 +369,9 @@ namespace LinuxSampler {
 
     void JackClient::ReleaseMidi(String Name) { // static
         JackClient* client = Clients[Name];
+#if HAVE_JACK_MIDI
         client->SetMidiInputDevice(0);
+#endif
         client->midi = false;
         if (!client->audio) {
             Clients.erase(Name);
