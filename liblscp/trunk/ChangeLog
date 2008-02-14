@@ -3,7 +3,11 @@ liblscp - LinuxSampler Control Protocol API
 
 ChangeLog
 
-CVS HEAD           Added support for new (un)subscribable events:
+CVS HEAD           Bugfix in lscp_client_subscribe(): only the first
+                   lscp_client_subscribe() call succeeded (per client),
+                   all subsequent ones failed.
+
+                   Added support for new (un)subscribable events:
                      LSCP_EVENT_CHANNEL_MIDI
                    Caution: the bitflag approach for the event variable
                    is now abondoned, since otherwise we would soon hit the

@@ -607,7 +607,7 @@ int lscp_client_get_errno ( lscp_client_t *pClient )
  */
 lscp_status_t lscp_client_subscribe ( lscp_client_t *pClient, lscp_event_t events )
 {
-	lscp_status_t ret = LSCP_FAILED;
+	lscp_status_t ret = LSCP_OK;
 
 	if (pClient == NULL)
 		return LSCP_FAILED;
