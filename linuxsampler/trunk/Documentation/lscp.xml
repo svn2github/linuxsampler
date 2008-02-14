@@ -16,7 +16,7 @@
      to an annoying "missing Normative/Informative References" error message -->
 <?rfc strict="no" ?>
 
-<rfc category="std" ipr="full3978" docName="LSCP 1.3">
+<rfc category="std" ipr="full3978" docName="LSCP 1.4">
     <front>
         <title>LinuxSampler Control Protocol</title>
         <author initials='C.S.' surname="Schoenebeck" fullname='C.
@@ -34,7 +34,7 @@ Schoenebeck'>
                 <email>schoenebeck at software minus engineering dot org</email>
             </address>
         </author>
-        <date month="December" year="2007"/>
+        <date month="February" year="2008"/>
         <workgroup>LinuxSampler Developers</workgroup>
         <keyword>LSCP</keyword>
         <abstract>
@@ -6391,6 +6391,8 @@ Schoenebeck'>
 		</t>
 		<t>/ CHANNEL_COUNT
 		</t>
+		<t>/ CHANNEL_MIDI
+		</t>
 		<t>/ VOICE_COUNT
 		</t>
 		<t>/ STREAM_COUNT
@@ -6442,6 +6444,8 @@ Schoenebeck'>
 		<t>/ MIDI_INPUT_DEVICE_INFO
 		</t>
 		<t>/ CHANNEL_COUNT
+		</t>
+		<t>/ CHANNEL_MIDI
 		</t>
 		<t>/ VOICE_COUNT
 		</t>
@@ -7236,6 +7240,31 @@ Schoenebeck'>
                 </t>
                 <t>where &lt;channels&gt; will be replaced by the new number
                 of sampler channels.</t>
+            </section>
+
+            <section title="MIDI data on a sampler channel arrived" anchor="SUBSCRIBE CHANNEL_MIDI">
+                <t>Client may want to be notified when MIDI data arrive on sampler channels on
+                back-end side, by issuing the following command:</t>
+                <t>
+                    <list>
+                        <t>SUBSCRIBE CHANNEL_MIDI</t>
+                    </list>
+                </t>
+                <t>Server will start sending one of the the following notification messages:</t>
+                <t>
+                    <list>
+                        <t>"NOTIFY:CHANNEL_MIDI:&lt;channel-id&gt; NOTE_ON  &lt;note&gt; &lt;velocity&gt;"</t>
+                        <t>"NOTIFY:CHANNEL_MIDI:&lt;channel-id&gt; NOTE_OFF &lt;note&gt; &lt;velocity&gt;"</t>
+                    </list>
+                </t>
+                <t>where &lt;channel-id&gt; will be replaced by the ID of the sampler channel where the MIDI
+                data arrived. &lt;note&gt; and &lt;velocity&gt; are integer values in the range between
+                0 .. 127, reflecting the analog meaning of the MIDI specification.
+                </t>
+                <t>CAUTION: no guarantee whatsoever will be made that MIDI events are actually all
+                delivered by this mechanism! With other words: events could be lost at any time!
+                This restriction was made to keep the RT-safeness of the backend's MIDI and audio
+                thread unaffected by this feature.</t>
             </section>
 
             <section title="Number of active voices changed" anchor="SUBSCRIBE VOICE_COUNT">

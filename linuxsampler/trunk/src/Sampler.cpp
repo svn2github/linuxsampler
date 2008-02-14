@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 - 2007 Christian Schoenebeck                       *
+ *   Copyright (C) 2005 - 2008 Christian Schoenebeck                       *
  *                                                                         *
  *   This library is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -75,6 +75,8 @@ namespace LinuxSampler {
                 return;
             }
         }
+
+        fireEngineToBeChanged();
 
         // create new engine channel
         EngineChannel* pNewEngineChannel = EngineChannelFactory::Create(EngineType);
@@ -225,6 +227,12 @@ namespace LinuxSampler {
        llEngineChangeListeners.RemoveAllListeners();
     }
 
+    void SamplerChannel::fireEngineToBeChanged() {
+        for (int i = 0; i < llEngineChangeListeners.GetListenerCount(); i++) {
+            llEngineChangeListeners.GetListener(i)->EngineToBeChanged(Index());
+        }
+    }
+
     void SamplerChannel::fireEngineChanged() {
         for (int i = 0; i < llEngineChangeListeners.GetListenerCount(); i++) {
             llEngineChangeListeners.GetListener(i)->EngineChanged(Index());
@@ -267,6 +275,18 @@ namespace LinuxSampler {
     void Sampler::fireChannelCountChanged(int NewCount) {
         for (int i = 0; i < llChannelCountListeners.GetListenerCount(); i++) {
             llChannelCountListeners.GetListener(i)->ChannelCountChanged(NewCount);
+        }
+    }
+
+    void Sampler::fireChannelAdded(SamplerChannel* pChannel) {
+        for (int i = 0; i < llChannelCountListeners.GetListenerCount(); i++) {
+            llChannelCountListeners.GetListener(i)->ChannelAdded(pChannel);
+        }
+    }
+
+    void Sampler::fireChannelToBeRemoved(SamplerChannel* pChannel) {
+        for (int i = 0; i < llChannelCountListeners.GetListenerCount(); i++) {
+            llChannelCountListeners.GetListener(i)->ChannelToBeRemoved(pChannel);
         }
     }
 
@@ -382,6 +402,10 @@ namespace LinuxSampler {
         }
     }
 
+    void Sampler::EventHandler::EngineToBeChanged(int ChannelId) {
+        // nothing to do here
+    }
+
     void Sampler::EventHandler::EngineChanged(int ChannelId) {
         EngineChannel* engineChannel = pSampler->GetSamplerChannel(ChannelId)->GetEngineChannel();
         if(engineChannel == NULL) return;
@@ -398,6 +422,7 @@ namespace LinuxSampler {
         if (!mSamplerChannels.size()) {
             SamplerChannel* pChannel = new SamplerChannel(this);
             mSamplerChannels[0] = pChannel;
+            fireChannelAdded(pChannel);
             fireChannelCountChanged(1);
             pChannel->AddEngineChangeListener(&eventHandler);
             return pChannel;
@@ -414,6 +439,7 @@ namespace LinuxSampler {
                 // we found an unused index, so insert the new channel there
                 SamplerChannel* pChannel = new SamplerChannel(this);
                 mSamplerChannels[i] = pChannel;
+                fireChannelAdded(pChannel);
                 fireChannelCountChanged(SamplerChannels());
                 pChannel->AddEngineChangeListener(&eventHandler);
                 return pChannel;
@@ -424,6 +450,7 @@ namespace LinuxSampler {
         // we have not reached the index limit so we just add the channel past the highest index
         SamplerChannel* pChannel = new SamplerChannel(this);
         mSamplerChannels[lastIndex + 1] = pChannel;
+        fireChannelAdded(pChannel);
         fireChannelCountChanged(SamplerChannels());
         pChannel->AddEngineChangeListener(&eventHandler);
         return pChannel;
@@ -441,6 +468,7 @@ namespace LinuxSampler {
         SamplerChannelMap::iterator iterChan = mSamplerChannels.begin();
         for (; iterChan != mSamplerChannels.end(); iterChan++) {
             if (iterChan->second == pSamplerChannel) {
+                fireChannelToBeRemoved(pSamplerChannel);
                 pSamplerChannel->RemoveAllEngineChangeListeners();
                 mSamplerChannels.erase(iterChan);
                 delete pSamplerChannel;

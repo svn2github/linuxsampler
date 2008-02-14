@@ -1,6 +1,6 @@
 /***************************************************************************
  *                                                                         *
- *   Copyright (C) 2005 - 2007 Christian Schoenebeck                       *
+ *   Copyright (C) 2005 - 2008 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -26,6 +26,7 @@
 #include "../drivers/midi/midi.h"
 #include "../drivers/midi/MidiInputDevice.h"
 #include "../drivers/midi/MidiInputPort.h"
+#include "../drivers/midi/VirtualMidiDevice.h"
 #include "Engine.h"
 #include "FxSend.h"
 
@@ -89,6 +90,8 @@ namespace LinuxSampler {
             virtual FxSend* GetFxSend(uint FxSendIndex) = 0;
             virtual uint    GetFxSendCount() = 0;
             virtual void    RemoveFxSend(FxSend* pFxSend) = 0;
+            virtual void    Connect(VirtualMidiDevice* pDevice) = 0;
+            virtual void    Disconnect(VirtualMidiDevice* pDevice) = 0;
 
 
             /////////////////////////////////////////////////////////////////

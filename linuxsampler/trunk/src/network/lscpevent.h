@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005, 2006 Christian Schoenebeck                        *
+ *   Copyright (C) 2005 - 2008 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -66,7 +66,8 @@ class LSCPEvent {
 		    event_misc,
 		    event_total_stream_count,
 		    event_total_voice_count,
-		    event_global_info
+		    event_global_info,
+			event_channel_midi
 	    };
 
 	    /* This constructor will do type lookup based on name
@@ -83,6 +84,7 @@ class LSCPEvent {
 	    LSCPEvent(event_t eventType, String sData, int uiData);
 	    LSCPEvent(event_t eventType, String sData, double dData);
 	    LSCPEvent(event_t eventType, int uiData, String sData);
+	    LSCPEvent(event_t eventType, int uiData1, String sData2, int uiData3, int uiData4);
 	    LSCPEvent(event_t eventType, int uiData1, int uiData2, int uiData3);
         LSCPEvent(event_t eventType, String sData1, String sData2, String sData3);
 	    String Produce( void );

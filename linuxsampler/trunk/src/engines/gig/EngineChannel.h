@@ -29,7 +29,6 @@
 #include "../../common/RingBuffer.h"
 #include "../../common/ArrayList.h"
 #include "../../drivers/audio/AudioChannel.h"
-#include "../../drivers/midi/VirtualMidiDevice.h"
 #include "EngineGlobals.h"
 #include "Engine.h"
 #include "Voice.h"
@@ -86,14 +85,13 @@ namespace LinuxSampler { namespace gig {
             virtual FxSend* GetFxSend(uint FxSendIndex);
             virtual uint    GetFxSendCount();
             virtual void    RemoveFxSend(FxSend* pFxSend);
+            virtual void    Connect(VirtualMidiDevice* pDevice);
+            virtual void    Disconnect(VirtualMidiDevice* pDevice);
 
             // implementation of abstract methods derived from interface class 'InstrumentConsumer'
             virtual void ResourceToBeUpdated(::gig::Instrument* pResource, void*& pUpdateArg);
             virtual void ResourceUpdated(::gig::Instrument* pOldResource, ::gig::Instrument* pNewResource, void* pUpdateArg);
             virtual void OnResourceProgress(float fProgress);
-
-            void Connect(VirtualMidiDevice* pDevice);
-            void Disconnect(VirtualMidiDevice* pDevice);
 
         //protected:
             Engine*                 pEngine;

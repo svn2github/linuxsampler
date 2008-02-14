@@ -1,6 +1,6 @@
 /***************************************************************************
  *                                                                         *
- *   Copyright (C) 2007 Grigor Iliev                                       *
+ *   Copyright (C) 2007, 2008 Grigor Iliev                                 *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -25,6 +25,9 @@
 #include "common/global.h"
 
 namespace LinuxSampler {
+
+    // just symbol prototyping
+    class SamplerChannel;
 
     template<class L>
     class ListenerList {
@@ -87,6 +90,8 @@ namespace LinuxSampler {
              * @param NewCount The new number of sampler channels.
              */
             virtual void ChannelCountChanged(int NewCount) = 0;
+            virtual void ChannelAdded(SamplerChannel* pChannel) = 0;
+            virtual void ChannelToBeRemoved(SamplerChannel* pChannel) = 0;
     };
 
     /**
@@ -263,8 +268,15 @@ namespace LinuxSampler {
     class EngineChangeListener {
         public:
             /**
+             * Invoked when the engine type of the specified sampler channel
+             * is going to be changed soon.
+             * @param ChannelId The numerical ID of the sampler channel
+             */
+            virtual void EngineToBeChanged(int ChannelId) = 0;
+
+            /**
              * Invoked when the engine type of the
-             * specified sampler channel is changed.
+             * specified sampler channel was changed.
              * @param ChannelId The numerical ID of the sampler
              * channel, which engine type has been changed.
              */

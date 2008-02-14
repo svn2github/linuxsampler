@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005, 2006 Christian Schoenebeck                        *
+ *   Copyright (C) 2005 - 2008 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -166,6 +166,12 @@ namespace LinuxSampler {
              * Removes the specified listener.
              */
             void RemoveAllEngineChangeListeners();
+
+            /**
+             * Notifies listeners that the engine type of this sampler
+             * channel is going to be changed soon.
+             */
+            void fireEngineToBeChanged();
 
             /**
              * Notifies listeners that the engine
@@ -533,6 +539,20 @@ namespace LinuxSampler {
             void fireChannelCountChanged(int NewCount);
 
             /**
+             * Notifies listeners that the specified sampler channel has just
+             * been added.
+             * @param pChannel The new sampler channel.
+             */
+            void fireChannelAdded(SamplerChannel* pChannel);
+
+            /**
+             * Notifies listeners that the specified sampler channel is
+             * going to be removed soon.
+             * @param pChannel sampler channel to be removed.
+             */
+            void fireChannelToBeRemoved(SamplerChannel* pChannel);
+
+            /**
              * Notifies listeners that the number of audio output devices has been changed.
              * @param NewCount The new number of audio output devices.
              */
@@ -576,6 +596,13 @@ namespace LinuxSampler {
             class EventHandler : public EngineChangeListener, public FxSendCountListener {
                 public:
                     void SetSampler(Sampler* pSampler) { this->pSampler = pSampler; }
+
+                    /**
+                     * Invoked when the engine type of the specified sampler
+                     * channel is going to be changed soon.
+                     * @param ChannelId The numerical ID of the sampler channel
+                     */
+                    virtual void EngineToBeChanged(int ChannelId);
 
                     /**
                      * Invoked when the engine type of the

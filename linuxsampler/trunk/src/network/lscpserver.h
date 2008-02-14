@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 - 2007 Christian Schoenebeck                       *
+ *   Copyright (C) 2005 - 2008 Christian Schoenebeck                       *
  *                                                                         *
  *   This library is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -52,6 +52,7 @@ typedef int socklen_t;
 #include "../common/global_private.h"
 
 #include "../drivers/midi/MidiInstrumentMapper.h"
+#include "../drivers/midi/VirtualMidiDevice.h"
 
 #if HAVE_SQLITE3
 #include "../db/InstrumentsDb.h"
@@ -270,14 +271,19 @@ class LSCPServer : public Thread {
             public MidiInstrumentInfoListener, public MidiInstrumentMapCountListener,
             public MidiInstrumentMapInfoListener, public FxSendCountListener,
             public VoiceCountListener, public StreamCountListener, public BufferFillListener,
-            public TotalStreamCountListener, public TotalVoiceCountListener {
+            public TotalStreamCountListener, public TotalVoiceCountListener,
+            public EngineChangeListener {
 
             public:
+                EventHandler(LSCPServer* pParent);
+
                 /**
                  * Invoked when the number of sampler channels has changed.
                  * @param NewCount The new number of sampler channels.
                  */
                 virtual void ChannelCountChanged(int NewCount);
+                virtual void ChannelAdded(SamplerChannel* pChannel);
+                virtual void ChannelToBeRemoved(SamplerChannel* pChannel);
 
                 /**
                  * Invoked when the number of audio output devices has changed.
@@ -356,6 +362,22 @@ class LSCPServer : public Thread {
                  */
                 virtual void TotalVoiceCountChanged(int NewCount);
                 virtual void TotalStreamCountChanged(int NewCount);
+
+                virtual void EngineToBeChanged(int ChannelId);
+                virtual void EngineChanged(int ChannelId);
+
+                virtual ~EventHandler();
+
+                struct midi_listener_entry {
+                    SamplerChannel* pSamplerChannel;
+                    EngineChannel* pEngineChannel;
+                    VirtualMidiDevice* pMidiListener;
+                };
+
+                std::vector<midi_listener_entry> channelMidiListeners;
+
+            private:
+                LSCPServer* pParent;
         } eventHandler;
 
 #if HAVE_SQLITE3

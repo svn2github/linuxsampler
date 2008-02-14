@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 - 2007 Christian Schoenebeck                       *
+ *   Copyright (C) 2005 - 2008 Christian Schoenebeck                       *
  *                                                                         *
  *   This library is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -101,7 +101,7 @@ Mutex LSCPServer::NotifyBufferMutex = Mutex();
 Mutex LSCPServer::SubscriptionMutex = Mutex();
 Mutex LSCPServer::RTNotifyMutex = Mutex();
 
-LSCPServer::LSCPServer(Sampler* pSampler, long int addr, short int port) : Thread(true, false, 0, -4) {
+LSCPServer::LSCPServer(Sampler* pSampler, long int addr, short int port) : Thread(true, false, 0, -4), eventHandler(this) {
     SocketAddress.sin_family      = AF_INET;
     SocketAddress.sin_addr.s_addr = addr;
     SocketAddress.sin_port        = port;
@@ -130,6 +130,7 @@ LSCPServer::LSCPServer(Sampler* pSampler, long int addr, short int port) : Threa
     LSCPEvent::RegisterEvent(LSCPEvent::event_total_stream_count, "TOTAL_STREAM_COUNT");
     LSCPEvent::RegisterEvent(LSCPEvent::event_total_voice_count, "TOTAL_VOICE_COUNT");
     LSCPEvent::RegisterEvent(LSCPEvent::event_global_info, "GLOBAL_INFO");
+    LSCPEvent::RegisterEvent(LSCPEvent::event_channel_midi, "CHANNEL_MIDI");
     hSocket = -1;
 }
 
@@ -141,8 +142,61 @@ LSCPServer::~LSCPServer() {
 #endif
 }
 
+LSCPServer::EventHandler::EventHandler(LSCPServer* pParent) {
+    this->pParent = pParent;
+}
+
+LSCPServer::EventHandler::~EventHandler() {
+    std::vector<midi_listener_entry> l = channelMidiListeners;
+    channelMidiListeners.clear();
+    for (int i = 0; i < l.size(); i++)
+        delete l[i].pMidiListener;
+}
+
 void LSCPServer::EventHandler::ChannelCountChanged(int NewCount) {
     LSCPServer::SendLSCPNotify(LSCPEvent(LSCPEvent::event_channel_count, NewCount));
+}
+
+void LSCPServer::EventHandler::ChannelAdded(SamplerChannel* pChannel) {
+    pChannel->AddEngineChangeListener(this);
+}
+
+void LSCPServer::EventHandler::ChannelToBeRemoved(SamplerChannel* pChannel) {
+    if (!pChannel->GetEngineChannel()) return;
+    EngineToBeChanged(pChannel->Index());
+}
+
+void LSCPServer::EventHandler::EngineToBeChanged(int ChannelId) {
+    SamplerChannel* pSamplerChannel =
+        pParent->pSampler->GetSamplerChannel(ChannelId);
+    if (!pSamplerChannel) return;
+    EngineChannel* pEngineChannel =
+        pSamplerChannel->GetEngineChannel();
+    if (!pEngineChannel) return;
+    for (std::vector<midi_listener_entry>::iterator iter = channelMidiListeners.begin(); iter != channelMidiListeners.end(); ++iter) {
+        if ((*iter).pEngineChannel == pEngineChannel) {
+            VirtualMidiDevice* pMidiListener = (*iter).pMidiListener;
+            pEngineChannel->Disconnect(pMidiListener);
+            channelMidiListeners.erase(iter);
+            delete pMidiListener;
+            return;
+        }
+    }
+}
+
+void LSCPServer::EventHandler::EngineChanged(int ChannelId) {
+    SamplerChannel* pSamplerChannel =
+        pParent->pSampler->GetSamplerChannel(ChannelId);
+    if (!pSamplerChannel) return;
+    EngineChannel* pEngineChannel =
+        pSamplerChannel->GetEngineChannel();
+    if (!pEngineChannel) return;
+    VirtualMidiDevice* pMidiListener = new VirtualMidiDevice;
+    pEngineChannel->Connect(pMidiListener);
+    midi_listener_entry entry = {
+        pSamplerChannel, pEngineChannel, pMidiListener
+    };
+    channelMidiListeners.push_back(entry);
 }
 
 void LSCPServer::EventHandler::AudioDeviceCountChanged(int NewCount) {
@@ -328,6 +382,30 @@ int LSCPServer::Main() {
                         int chn = (*itEngineChannel)->iSamplerChannelIndex;
                         LSCPServer::SendLSCPNotify(LSCPEvent(LSCPEvent::event_fx_send_info, chn, fxs->Id()));
                         fxs->SetInfoChanged(false);
+                    }
+                }
+            }
+        }
+
+        // check if MIDI data arrived on some engine channel
+        for (int i = 0; i < eventHandler.channelMidiListeners.size(); ++i) {
+            const EventHandler::midi_listener_entry entry =
+                eventHandler.channelMidiListeners[i];
+            VirtualMidiDevice* pMidiListener = entry.pMidiListener;
+            if (pMidiListener->NotesChanged()) {
+                for (int iNote = 0; iNote < 128; iNote++) {
+                    if (pMidiListener->NoteChanged(iNote)) {
+                        const bool bActive = pMidiListener->NoteIsActive(iNote);
+                        LSCPServer::SendLSCPNotify(
+                            LSCPEvent(
+                                LSCPEvent::event_channel_midi,
+                                entry.pSamplerChannel->Index(),
+                                std::string(bActive ? "NOTE_ON" : "NOTE_OFF"),
+                                iNote,
+                                bActive ? pMidiListener->NoteOnVelocity(iNote)
+                                        : pMidiListener->NoteOffVelocity(iNote)
+                            )
+                        );
                     }
                 }
             }

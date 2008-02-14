@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 - 2007 Christian Schoenebeck                       *
+ *   Copyright (C) 2005 - 2008 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -193,6 +193,7 @@ subscribe_event       :  AUDIO_OUTPUT_DEVICE_COUNT             { $$ = LSCPSERVER
                       |  MIDI_INPUT_DEVICE_COUNT               { $$ = LSCPSERVER->SubscribeNotification(LSCPEvent::event_midi_device_count);    }
                       |  MIDI_INPUT_DEVICE_INFO                { $$ = LSCPSERVER->SubscribeNotification(LSCPEvent::event_midi_device_info);     }
                       |  CHANNEL_COUNT                         { $$ = LSCPSERVER->SubscribeNotification(LSCPEvent::event_channel_count);        }
+                      |  CHANNEL_MIDI                          { $$ = LSCPSERVER->SubscribeNotification(LSCPEvent::event_channel_midi);         }
                       |  VOICE_COUNT                           { $$ = LSCPSERVER->SubscribeNotification(LSCPEvent::event_voice_count);          }
                       |  STREAM_COUNT                          { $$ = LSCPSERVER->SubscribeNotification(LSCPEvent::event_stream_count);         }
                       |  BUFFER_FILL                           { $$ = LSCPSERVER->SubscribeNotification(LSCPEvent::event_buffer_fill);          }
@@ -219,6 +220,7 @@ unsubscribe_event     :  AUDIO_OUTPUT_DEVICE_COUNT             { $$ = LSCPSERVER
                       |  MIDI_INPUT_DEVICE_COUNT               { $$ = LSCPSERVER->UnsubscribeNotification(LSCPEvent::event_midi_device_count);    }
                       |  MIDI_INPUT_DEVICE_INFO                { $$ = LSCPSERVER->UnsubscribeNotification(LSCPEvent::event_midi_device_info);     }
                       |  CHANNEL_COUNT                         { $$ = LSCPSERVER->UnsubscribeNotification(LSCPEvent::event_channel_count);        }
+                      |  CHANNEL_MIDI                          { $$ = LSCPSERVER->UnsubscribeNotification(LSCPEvent::event_channel_midi);         }
                       |  VOICE_COUNT                           { $$ = LSCPSERVER->UnsubscribeNotification(LSCPEvent::event_voice_count);          }
                       |  STREAM_COUNT                          { $$ = LSCPSERVER->UnsubscribeNotification(LSCPEvent::event_stream_count);         }
                       |  BUFFER_FILL                           { $$ = LSCPSERVER->UnsubscribeNotification(LSCPEvent::event_buffer_fill);          }
@@ -815,6 +817,9 @@ DB_INSTRUMENTS_JOB_INFO       :  'D''B''_''I''N''S''T''R''U''M''E''N''T''S''_''J
                               ;
 
 CHANNEL_COUNT        :  'C''H''A''N''N''E''L''_''C''O''U''N''T'
+                     ;
+
+CHANNEL_MIDI         :  'C''H''A''N''N''E''L''_''M''I''D''I'
                      ;
 
 CHANNEL_INFO         :  'C''H''A''N''N''E''L''_''I''N''F''O'

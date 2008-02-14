@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 - 2007 Christian Schoenebeck                       *
+ *   Copyright (C) 2005 - 2008 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -74,6 +74,12 @@ LSCPEvent::LSCPEvent(event_t eventType, String sData, double dData) {
 LSCPEvent::LSCPEvent(event_t eventType, int uiData, String sData) {
 	this->type = eventType;
 	this->storage = ToString(uiData) + " " + sData;
+}
+
+LSCPEvent::LSCPEvent(event_t eventType, int uiData1, String sData2, int uiData3, int uiData4) {
+	this->type = eventType;
+	this->storage = ToString(uiData1) + " " + sData2 + " " +
+	                ToString(uiData3) + " " + ToString(uiData4);
 }
 
 LSCPEvent::LSCPEvent(event_t eventType, int uiData1, int uiData2, int uiData3) {
