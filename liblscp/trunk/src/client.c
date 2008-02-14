@@ -578,7 +578,13 @@ int lscp_client_get_errno ( lscp_client_t *pClient )
 // Client registration protocol functions.
 
 /**
- *  Register frontend for receiving event messages:
+ *  Register frontend for receiving event messages.
+ *  @e Caution: since liblscp v0.5.5.4 you have to call lscp_client_subscribe()
+ *  for @e each event you want to subscribe. That is the old bitflag approach
+ *  was abondoned at this point. You can however still register all older
+ *  events with one lscp_client_subscribe() call at once. Thus, the old
+ *  behavior of this functions was not broken. Those older events are namely:
+ *  @code
  *  SUBSCRIBE CHANNEL_COUNT | VOICE_COUNT | STREAM_COUNT
  *      | BUFFER_FILL | CHANNEL_INFO | TOTAL_VOICE_COUNT
  *      | AUDIO_OUTPUT_DEVICE_COUNT | AUDIO_OUTPUT_DEVICE_INFO
@@ -586,6 +592,13 @@ int lscp_client_get_errno ( lscp_client_t *pClient )
  *      | MIDI_INSTRUMENT_MAP_COUNT | MIDI_INSTRUMENT_MAP_INFO
  *      | MIDI_INSTRUMENT_COUNT | MIDI_INSTRUMENT_INFO
  *      | MISCELLANEOUS
+ *  @endcode
+ *  The old events occupy the lower 16 bits (as bit flags), and all younger
+ *  events enumerate the whole upper 16 bits range. The new, enumerated
+ *  events are namely:
+ *  @code
+ *  SUBSCRIBE CHANNEL_MIDI
+ *  @endcode
  *
  *  @param pClient  Pointer to client instance structure.
  *  @param events   Bit-wise OR'ed event flags to subscribe.
@@ -637,6 +650,9 @@ lscp_status_t lscp_client_subscribe ( lscp_client_t *pClient, lscp_event_t event
 		ret = _lscp_client_evt_request(pClient, 1, LSCP_EVENT_MIDI_INSTRUMENT_INFO);
 	if (ret == LSCP_OK && (events & LSCP_EVENT_MISCELLANEOUS))
 		ret = _lscp_client_evt_request(pClient, 1, LSCP_EVENT_MISCELLANEOUS);
+	// Caution: for the upper 16 bits, we don't use bit flags anymore ...
+	if (ret == LSCP_OK && ((events & 0xffff0000) == LSCP_EVENT_CHANNEL_MIDI))
+		ret = _lscp_client_evt_request(pClient, 1, LSCP_EVENT_CHANNEL_MIDI);
 
 	// Unlock this section down.
 	lscp_mutex_unlock(pClient->mutex);
@@ -647,6 +663,13 @@ lscp_status_t lscp_client_subscribe ( lscp_client_t *pClient, lscp_event_t event
 
 /**
  *  Deregister frontend from receiving UDP event messages anymore:
+ *  @e Caution: since liblscp v0.5.5.4 you have to call
+ *  lscp_client_unsubscribe() for @e each event you want to unsubscribe.
+ *  That is the old bitflag approach was abondoned at this point. You can
+ *  however still register all older events with one lscp_client_subscribe()
+ *  call at once. Thus, the old behavior of this functions was not broken.
+ *  Those older events are namely:
+ *  @code
  *  UNSUBSCRIBE CHANNEL_COUNT | VOICE_COUNT | STREAM_COUNT
  *      | BUFFER_FILL | CHANNEL_INFO | TOTAL_VOICE_COUNT
  *      | AUDIO_OUTPUT_DEVICE_COUNT | AUDIO_OUTPUT_DEVICE_INFO
@@ -654,6 +677,13 @@ lscp_status_t lscp_client_subscribe ( lscp_client_t *pClient, lscp_event_t event
  *      | MIDI_INSTRUMENT_MAP_COUNT | MIDI_INSTRUMENT_MAP_INFO
  *      | MIDI_INSTRUMENT_COUNT | MIDI_INSTRUMENT_INFO
  *      | MISCELLANEOUS
+ *  @endcode
+ *  The old events occupy the lower 16 bits (as bit flags), and all younger
+ *  events enumerate the whole upper 16 bits range. The new, enumerated
+ *  events are namely:
+ *  @code
+ *  UNSUBSCRIBE CHANNEL_MIDI
+ *  @endcode
  *
  *  @param pClient  Pointer to client instance structure.
  *  @param events   Bit-wise OR'ed event flags to unsubscribe.
@@ -701,6 +731,9 @@ lscp_status_t lscp_client_unsubscribe ( lscp_client_t *pClient, lscp_event_t eve
 		ret = _lscp_client_evt_request(pClient, 0, LSCP_EVENT_MIDI_INSTRUMENT_INFO);
 	if (ret == LSCP_OK && (events & LSCP_EVENT_MISCELLANEOUS))
 		ret = _lscp_client_evt_request(pClient, 0, LSCP_EVENT_MISCELLANEOUS);
+	// Caution: for the upper 16 bits, we don't use bit flags anymore ...
+	if (ret == LSCP_OK && ((events & 0xffff0000) == LSCP_EVENT_CHANNEL_MIDI))
+		ret = _lscp_client_evt_request(pClient, 0, LSCP_EVENT_CHANNEL_MIDI);
 
 	// If necessary, close the alternate connection...
 	if (pClient->events == LSCP_EVENT_NONE)
