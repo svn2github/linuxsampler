@@ -1,10 +1,18 @@
 <?xml version='1.0' ?>
 <news>
+  <entry date="2008-02-15">
+    We're happy to announce that the first freely available sample library
+    is now available on our downloads server. Thanks to Mats Helgesson for
+    giving us the permission to share his "Maestro Concert Grand v2" piano
+    library with you. You find the download link along with the library's
+    license informations and a demo track for prelistening on our
+    <link ref="instruments.html">instruments</link> site.
+  </entry>
   <entry date="2008-02-07">
     Added <link ref="debian.html">Debian Howto</link> to the documentation
     site, describing how to cook Debian packages, optimized for your
     specific machine. Get the maximum out of your box! (The
-    <a href="debian.html#benchmark">"Benchmark"</a>
+    <link ref="debian.html#benchmark">"Benchmark"</link>
     chapter might be interesting for users of other systems as well)
   </entry>
   <entry date="2008-01-23">
