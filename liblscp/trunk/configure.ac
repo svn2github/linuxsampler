@@ -2,7 +2,7 @@
 AC_INIT(src/client.c)
 AM_CONFIG_HEADER(src/config.h)
 
-AM_INIT_AUTOMAKE(liblscp, 0.5.5.5)
+AM_INIT_AUTOMAKE(liblscp, 0.5.5.6)
 
 #------------------------------------------------------------------------------------
 # Rules for library version information:

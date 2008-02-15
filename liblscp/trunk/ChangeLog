@@ -3,7 +3,9 @@ liblscp - LinuxSampler Control Protocol API
 
 ChangeLog
 
-CVS HEAD           Bugfix in lscp_client_subscribe(): only the first
+CVS HEAD           Bugfix: _lscp_client_evt_proc() dropped LSCP events.
+
+                   Bugfix in lscp_client_subscribe(): only the first
                    lscp_client_subscribe() call succeeded (per client),
                    all subsequent ones failed.
 

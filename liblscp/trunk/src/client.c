@@ -84,27 +84,30 @@ static void _lscp_client_evt_proc ( void *pvClient )
 			if (cchBuffer > 0) {
 				// Make sure received buffer it's null terminated.
 				achBuffer[cchBuffer] = (char) 0;
-				// Parse for the notification event message...
-				pszToken = lscp_strtok(achBuffer, pszSeps, &(pch)); // Have "NOTIFY".
-				if (strcasecmp(pszToken, "NOTIFY") == 0) {
-					pszToken = lscp_strtok(NULL, pszSeps, &(pch));
-					event    = lscp_event_from_text(pszToken);
-					// And pick the rest of data...
-					pszToken = lscp_strtok(NULL, pszSeps, &(pch));
-					cchToken = (pszToken == NULL ? 0 : strlen(pszToken));
-					// Double-check if we're really up to it...
-					if (pClient->events & event) {
-						// Invoke the client event callback...
-						if ((*pClient->pfnCallback)(
-								pClient,
-								event,
-								pszToken,
-								cchToken,
-								pClient->pvData) != LSCP_OK) {
-							pClient->evt.iState = 0;
+				pch = achBuffer;
+				do {
+					// Parse for the notification event message...
+					pszToken = lscp_strtok(NULL, pszSeps, &(pch)); // Have "NOTIFY"
+					if (strcasecmp(pszToken, "NOTIFY") == 0) {
+						pszToken = lscp_strtok(NULL, pszSeps, &(pch));
+						event    = lscp_event_from_text(pszToken);
+						// And pick the rest of data...
+						pszToken = lscp_strtok(NULL, pszSeps, &(pch));
+						cchToken = (pszToken == NULL ? 0 : strlen(pszToken));
+						// Double-check if we're really up to it...
+						if (pClient->events & event) {
+							// Invoke the client event callback...
+							if ((*pClient->pfnCallback)(
+									pClient,
+									event,
+									pszToken,
+									cchToken,
+									pClient->pvData) != LSCP_OK) {
+								pClient->evt.iState = 0;
+							}
 						}
 					}
-				}
+				} while (*pch);
 			} else {
 				lscp_socket_perror("_lscp_client_evt_proc: recv");
 				pClient->evt.iState = 0;
