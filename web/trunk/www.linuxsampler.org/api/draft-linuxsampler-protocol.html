@@ -145,7 +145,7 @@
 <tr><td class="header">LinuxSampler Developers</td><td class="header">C. Schoenebeck</td></tr>
 <tr><td class="header">Internet-Draft</td><td class="header">Interessengemeinschaft Software</td></tr>
 <tr><td class="header">Intended status: Standards Track</td><td class="header">Engineering e. V.</td></tr>
-<tr><td class="header">Expires: August 17, 2008</td><td class="header">February 14, 2008</td></tr>
+<tr><td class="header">Expires: August 19, 2008</td><td class="header">February 16, 2008</td></tr>
 </table></td></tr></table>
 <h1><br />LinuxSampler Control Protocol<br />LSCP 1.4</h1>
 
@@ -173,7 +173,7 @@ The list of current Internet-Drafts can be accessed at
 The list of Internet-Draft Shadow Directories can be accessed at
 <a href='http://www.ietf.org/shadow.html'>http://www.ietf.org/shadow.html</a>.</p>
 <p>
-This Internet-Draft will expire on August 17, 2008.</p>
+This Internet-Draft will expire on August 19, 2008.</p>
 
 <h3>Copyright Notice</h3>
 <p>
@@ -466,43 +466,45 @@ MIDI input device's settings changed<br />
 Number of sampler channels changed<br />
 &nbsp;&nbsp;&nbsp;&nbsp;<a href="#SUBSCRIBE CHANNEL_MIDI">8.6.</a>&nbsp;
 MIDI data on a sampler channel arrived<br />
-&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SUBSCRIBE VOICE_COUNT">8.7.</a>&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SUBSCRIBE DEVICE_MIDI">8.7.</a>&nbsp;
+MIDI data on a MIDI input device arrived<br />
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SUBSCRIBE VOICE_COUNT">8.8.</a>&nbsp;
 Number of active voices changed<br />
-&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SUBSCRIBE STREAM_COUNT">8.8.</a>&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SUBSCRIBE STREAM_COUNT">8.9.</a>&nbsp;
 Number of active disk streams changed<br />
-&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SUBSCRIBE BUFFER_FILL">8.9.</a>&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SUBSCRIBE BUFFER_FILL">8.10.</a>&nbsp;
 Disk stream buffer fill state changed<br />
-&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SUBSCRIBE CHANNEL_INFO">8.10.</a>&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SUBSCRIBE CHANNEL_INFO">8.11.</a>&nbsp;
 Channel information changed<br />
-&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SUBSCRIBE FX_SEND_COUNT">8.11.</a>&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SUBSCRIBE FX_SEND_COUNT">8.12.</a>&nbsp;
 Number of effect sends changed<br />
-&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SUBSCRIBE FX_SEND_INFO">8.12.</a>&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SUBSCRIBE FX_SEND_INFO">8.13.</a>&nbsp;
 Effect send information changed<br />
-&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SUBSCRIBE TOTAL_VOICE_COUNT">8.13.</a>&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SUBSCRIBE TOTAL_VOICE_COUNT">8.14.</a>&nbsp;
 Total number of active voices changed<br />
-&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SUBSCRIBE TOTAL_STREAM_COUNT">8.14.</a>&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SUBSCRIBE TOTAL_STREAM_COUNT">8.15.</a>&nbsp;
 Total number of active disk streams changed<br />
-&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SUBSCRIBE MIDI_INSTRUMENT_MAP_COUNT">8.15.</a>&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SUBSCRIBE MIDI_INSTRUMENT_MAP_COUNT">8.16.</a>&nbsp;
 Number of MIDI instrument maps changed<br />
-&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SUBSCRIBE MIDI_INSTRUMENT_MAP_INFO">8.16.</a>&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SUBSCRIBE MIDI_INSTRUMENT_MAP_INFO">8.17.</a>&nbsp;
 MIDI instrument map information changed<br />
-&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SUBSCRIBE MIDI_INSTRUMENT_COUNT">8.17.</a>&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SUBSCRIBE MIDI_INSTRUMENT_COUNT">8.18.</a>&nbsp;
 Number of MIDI instruments changed<br />
-&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SUBSCRIBE MIDI_INSTRUMENT_INFO">8.18.</a>&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SUBSCRIBE MIDI_INSTRUMENT_INFO">8.19.</a>&nbsp;
 MIDI instrument information changed<br />
-&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SUBSCRIBE GLOBAL_INFO">8.19.</a>&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SUBSCRIBE GLOBAL_INFO">8.20.</a>&nbsp;
 Global settings changed<br />
-&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SUBSCRIBE DB_INSTRUMENT_DIRECTORY_COUNT">8.20.</a>&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SUBSCRIBE DB_INSTRUMENT_DIRECTORY_COUNT">8.21.</a>&nbsp;
 Number of database instrument directories changed<br />
-&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SUBSCRIBE DB_INSTRUMENT_DIRECTORY_INFO">8.21.</a>&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SUBSCRIBE DB_INSTRUMENT_DIRECTORY_INFO">8.22.</a>&nbsp;
 Database instrument directory information changed<br />
-&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SUBSCRIBE DB_INSTRUMENT_COUNT">8.22.</a>&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SUBSCRIBE DB_INSTRUMENT_COUNT">8.23.</a>&nbsp;
 Number of database instruments changed<br />
-&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SUBSCRIBE DB_INSTRUMENT_INFO">8.23.</a>&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SUBSCRIBE DB_INSTRUMENT_INFO">8.24.</a>&nbsp;
 Database instrument information changed<br />
-&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SUBSCRIBE DB_INSTRUMENTS_JOB_INFO">8.24.</a>&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SUBSCRIBE DB_INSTRUMENTS_JOB_INFO">8.25.</a>&nbsp;
 Database job status information changed<br />
-&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SUBSCRIBE MISCELLANEOUS">8.25.</a>&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SUBSCRIBE MISCELLANEOUS">8.26.</a>&nbsp;
 Miscellaneous and debugging events<br />
 <a href="#anchor14">9.</a>&nbsp;
 Security Considerations<br />
@@ -9642,6 +9644,9 @@ Command Syntax</h3>
 <p>/ CHANNEL_MIDI
 		
 </p>
+<p>/ DEVICE_MIDI
+		
+</p>
 <p>/ VOICE_COUNT
 		
 </p>
@@ -9721,6 +9726,9 @@ Command Syntax</h3>
 		
 </p>
 <p>/ CHANNEL_MIDI
+		
+</p>
+<p>/ DEVICE_MIDI
 		
 </p>
 <p>/ VOICE_COUNT
@@ -10980,9 +10988,47 @@ MIDI data on a sampler channel arrived</h3>
                 This restriction was made to keep the RT-safeness of the backend's MIDI and audio
                 thread unaffected by this feature.
 </p>
-<a name="SUBSCRIBE VOICE_COUNT"></a><br /><hr />
+<a name="SUBSCRIBE DEVICE_MIDI"></a><br /><hr />
 <table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
 <a name="rfc.section.8.7"></a><h3>8.7.&nbsp;
+MIDI data on a MIDI input device arrived</h3>
+
+<p>Client may want to be notified when MIDI data arrive on MIDI input devices by issuing the following command:
+</p>
+<p>
+			    </p>
+<blockquote class="text">
+<p>SUBSCRIBE DEVICE_MIDI
+</p>
+</blockquote><p>
+		    
+</p>
+<p>Server will start sending one of the the following notification messages:
+</p>
+<p>
+			    </p>
+<blockquote class="text">
+<p>"NOTIFY:CHANNEL_MIDI:&lt;device-id&gt; &lt;port-id&gt; NOTE_ON &lt;note&gt; &lt;velocity&gt;"
+</p>
+<p>"NOTIFY:CHANNEL_MIDI:&lt;device-id&gt; &lt;port-id&gt; NOTE_OFF &lt;note&gt; &lt;velocity&gt;"
+</p>
+</blockquote><p>
+		    
+</p>
+<p>where &lt;device-id&gt; &lt;port-id&gt; will be replaced
+		       by the IDs of the respective MIDI input device and the device's MIDI port where the MIDI
+		       data arrived. &lt;note&gt; and &lt;velocity&gt; are integer values in the range between
+		       0 .. 127, reflecting the analog meaning of the MIDI specification.
+		    
+</p>
+<p>CAUTION: no guarantee whatsoever will be made that MIDI events are actually all
+		       delivered by this mechanism! With other words: events could be lost at any time!
+		       This restriction was made to keep the RT-safeness of the backend's MIDI and audio
+		       thread unaffected by this feature.
+</p>
+<a name="SUBSCRIBE VOICE_COUNT"></a><br /><hr />
+<table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
+<a name="rfc.section.8.8"></a><h3>8.8.&nbsp;
 Number of active voices changed</h3>
 
 <p>Client may want to be notified when the number of voices on the
@@ -11012,7 +11058,7 @@ Number of active voices changed</h3>
 </p>
 <a name="SUBSCRIBE STREAM_COUNT"></a><br /><hr />
 <table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
-<a name="rfc.section.8.8"></a><h3>8.8.&nbsp;
+<a name="rfc.section.8.9"></a><h3>8.9.&nbsp;
 Number of active disk streams changed</h3>
 
 <p>Client may want to be notified when the number of streams on the back-end
@@ -11042,7 +11088,7 @@ Number of active disk streams changed</h3>
 </p>
 <a name="SUBSCRIBE BUFFER_FILL"></a><br /><hr />
 <table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
-<a name="rfc.section.8.9"></a><h3>8.9.&nbsp;
+<a name="rfc.section.8.10"></a><h3>8.10.&nbsp;
 Disk stream buffer fill state changed</h3>
 
 <p>Client may want to be notified when the buffer fill state of a disk stream
@@ -11073,7 +11119,7 @@ Disk stream buffer fill state changed</h3>
 </p>
 <a name="SUBSCRIBE CHANNEL_INFO"></a><br /><hr />
 <table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
-<a name="rfc.section.8.10"></a><h3>8.10.&nbsp;
+<a name="rfc.section.8.11"></a><h3>8.11.&nbsp;
 Channel information changed</h3>
 
 <p>Client may want to be notified when changes were made to sampler channels on the
@@ -11106,7 +11152,7 @@ Channel information changed</h3>
 </p>
 <a name="SUBSCRIBE FX_SEND_COUNT"></a><br /><hr />
 <table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
-<a name="rfc.section.8.11"></a><h3>8.11.&nbsp;
+<a name="rfc.section.8.12"></a><h3>8.12.&nbsp;
 Number of effect sends changed</h3>
 
 <p>Client may want to be notified when the number of effect sends on
@@ -11136,7 +11182,7 @@ Number of effect sends changed</h3>
 </p>
 <a name="SUBSCRIBE FX_SEND_INFO"></a><br /><hr />
 <table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
-<a name="rfc.section.8.12"></a><h3>8.12.&nbsp;
+<a name="rfc.section.8.13"></a><h3>8.13.&nbsp;
 Effect send information changed</h3>
 
 <p>Client may want to be notified when changes were made to effect sends on a
@@ -11166,7 +11212,7 @@ Effect send information changed</h3>
 </p>
 <a name="SUBSCRIBE TOTAL_VOICE_COUNT"></a><br /><hr />
 <table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
-<a name="rfc.section.8.13"></a><h3>8.13.&nbsp;
+<a name="rfc.section.8.14"></a><h3>8.14.&nbsp;
 Total number of active voices changed</h3>
 
 <p>Client may want to be notified when the total number of voices on the
@@ -11195,7 +11241,7 @@ Total number of active voices changed</h3>
 </p>
 <a name="SUBSCRIBE TOTAL_STREAM_COUNT"></a><br /><hr />
 <table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
-<a name="rfc.section.8.14"></a><h3>8.14.&nbsp;
+<a name="rfc.section.8.15"></a><h3>8.15.&nbsp;
 Total number of active disk streams changed</h3>
 
 <p>Client may want to be notified when the total number of disk streams on the
@@ -11224,7 +11270,7 @@ Total number of active disk streams changed</h3>
 </p>
 <a name="SUBSCRIBE MIDI_INSTRUMENT_MAP_COUNT"></a><br /><hr />
 <table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
-<a name="rfc.section.8.15"></a><h3>8.15.&nbsp;
+<a name="rfc.section.8.16"></a><h3>8.16.&nbsp;
 Number of MIDI instrument maps changed</h3>
 
 <p>Client may want to be notified when the number of MIDI instrument maps on the
@@ -11253,7 +11299,7 @@ Number of MIDI instrument maps changed</h3>
 </p>
 <a name="SUBSCRIBE MIDI_INSTRUMENT_MAP_INFO"></a><br /><hr />
 <table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
-<a name="rfc.section.8.16"></a><h3>8.16.&nbsp;
+<a name="rfc.section.8.17"></a><h3>8.17.&nbsp;
 MIDI instrument map information changed</h3>
 
 <p>Client may want to be notified when changes were made to MIDI instrument maps on the
@@ -11286,7 +11332,7 @@ MIDI instrument map information changed</h3>
 </p>
 <a name="SUBSCRIBE MIDI_INSTRUMENT_COUNT"></a><br /><hr />
 <table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
-<a name="rfc.section.8.17"></a><h3>8.17.&nbsp;
+<a name="rfc.section.8.18"></a><h3>8.18.&nbsp;
 Number of MIDI instruments changed</h3>
 
 <p>Client may want to be notified when the number of MIDI instrument maps on the
@@ -11316,7 +11362,7 @@ Number of MIDI instruments changed</h3>
 </p>
 <a name="SUBSCRIBE MIDI_INSTRUMENT_INFO"></a><br /><hr />
 <table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
-<a name="rfc.section.8.18"></a><h3>8.18.&nbsp;
+<a name="rfc.section.8.19"></a><h3>8.19.&nbsp;
 MIDI instrument information changed</h3>
 
 <p>Client may want to be notified when changes were made to MIDI instruments on the
@@ -11350,7 +11396,7 @@ MIDI instrument information changed</h3>
 </p>
 <a name="SUBSCRIBE GLOBAL_INFO"></a><br /><hr />
 <table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
-<a name="rfc.section.8.19"></a><h3>8.19.&nbsp;
+<a name="rfc.section.8.20"></a><h3>8.20.&nbsp;
 Global settings changed</h3>
 
 <p>Client may want to be notified when changes to the global settings
@@ -11379,7 +11425,7 @@ Global settings changed</h3>
 </p>
 <a name="SUBSCRIBE DB_INSTRUMENT_DIRECTORY_COUNT"></a><br /><hr />
 <table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
-<a name="rfc.section.8.20"></a><h3>8.20.&nbsp;
+<a name="rfc.section.8.21"></a><h3>8.21.&nbsp;
 Number of database instrument directories changed</h3>
 
 <p>Client may want to be notified when the number of instrument
@@ -11413,7 +11459,7 @@ Number of database instrument directories changed</h3>
 </p>
 <a name="SUBSCRIBE DB_INSTRUMENT_DIRECTORY_INFO"></a><br /><hr />
 <table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
-<a name="rfc.section.8.21"></a><h3>8.21.&nbsp;
+<a name="rfc.section.8.22"></a><h3>8.22.&nbsp;
 Database instrument directory information changed</h3>
 
 <p>Client may want to be notified when changes were made to directories
@@ -11458,7 +11504,7 @@ Database instrument directory information changed</h3>
 </p>
 <a name="SUBSCRIBE DB_INSTRUMENT_COUNT"></a><br /><hr />
 <table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
-<a name="rfc.section.8.22"></a><h3>8.22.&nbsp;
+<a name="rfc.section.8.23"></a><h3>8.23.&nbsp;
 Number of database instruments changed</h3>
 
 <p>Client may want to be notified when the number of instruments
@@ -11492,7 +11538,7 @@ Number of database instruments changed</h3>
 </p>
 <a name="SUBSCRIBE DB_INSTRUMENT_INFO"></a><br /><hr />
 <table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
-<a name="rfc.section.8.23"></a><h3>8.23.&nbsp;
+<a name="rfc.section.8.24"></a><h3>8.24.&nbsp;
 Database instrument information changed</h3>
 
 <p>Client may want to be notified when changes were made to instruments
@@ -11537,7 +11583,7 @@ Database instrument information changed</h3>
 </p>
 <a name="SUBSCRIBE DB_INSTRUMENTS_JOB_INFO"></a><br /><hr />
 <table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
-<a name="rfc.section.8.24"></a><h3>8.24.&nbsp;
+<a name="rfc.section.8.25"></a><h3>8.25.&nbsp;
 Database job status information changed</h3>
 
 <p>Client may want to be notified when the status of particular database
@@ -11570,7 +11616,7 @@ Database job status information changed</h3>
 </p>
 <a name="SUBSCRIBE MISCELLANEOUS"></a><br /><hr />
 <table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
-<a name="rfc.section.8.25"></a><h3>8.25.&nbsp;
+<a name="rfc.section.8.26"></a><h3>8.26.&nbsp;
 Miscellaneous and debugging events</h3>
 
 <p>Client may want to be notified of miscellaneous and debugging events occurring at
