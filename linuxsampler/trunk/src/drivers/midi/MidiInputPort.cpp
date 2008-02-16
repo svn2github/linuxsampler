@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 - 2007 Christian Schoenebeck                       *
+ *   Copyright (C) 2005 - 2008 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -27,6 +27,9 @@
 #include "MidiInstrumentMapper.h"
 #include "../../Sampler.h"
 #include "../../engines/EngineFactory.h"
+#include "VirtualMidiDevice.h"
+
+#include <algorithm>
 
 namespace LinuxSampler {
 
@@ -73,7 +76,8 @@ namespace LinuxSampler {
 
     MidiInputPort::MidiInputPort(MidiInputDevice* pDevice, int portNumber)
         : MidiChannelMapReader(MidiChannelMap),
-          SysexListenersReader(SysexListeners) {
+          SysexListenersReader(SysexListeners),
+          virtualMidiDevicesReader(virtualMidiDevices) {
         this->pDevice = pDevice;
         this->portNumber = portNumber;
         Parameters["NAME"] = new ParameterName(this);
@@ -107,6 +111,13 @@ namespace LinuxSampler {
             for (; engineiter != end; engineiter++) (*engineiter)->SendNoteOn(Key, Velocity);
         }
         MidiChannelMapReader.Unlock();
+
+        // dispatch event to all low priority MIDI listeners
+        const std::vector<VirtualMidiDevice*>& listeners =
+            virtualMidiDevicesReader.Lock();
+        for (int i = 0; i < listeners.size(); ++i)
+            listeners[i]->SendNoteOnToDevice(Key, Velocity);
+        virtualMidiDevicesReader.Unlock();
     }
 
     void MidiInputPort::DispatchNoteOn(uint8_t Key, uint8_t Velocity, uint MidiChannel, int32_t FragmentPos) {
@@ -125,6 +136,13 @@ namespace LinuxSampler {
             for (; engineiter != end; engineiter++) (*engineiter)->SendNoteOn(Key, Velocity, FragmentPos);
         }
         MidiChannelMapReader.Unlock();
+
+        // dispatch event to all low priority MIDI listeners
+        const std::vector<VirtualMidiDevice*>& listeners =
+            virtualMidiDevicesReader.Lock();
+        for (int i = 0; i < listeners.size(); ++i)
+            listeners[i]->SendNoteOnToDevice(Key, Velocity);
+        virtualMidiDevicesReader.Unlock();
     }
 
     void MidiInputPort::DispatchNoteOff(uint8_t Key, uint8_t Velocity, uint MidiChannel) {
@@ -143,6 +161,13 @@ namespace LinuxSampler {
             for (; engineiter != end; engineiter++) (*engineiter)->SendNoteOff(Key, Velocity);
         }
         MidiChannelMapReader.Unlock();
+
+        // dispatch event to all low priority MIDI listeners
+        const std::vector<VirtualMidiDevice*>& listeners =
+            virtualMidiDevicesReader.Lock();
+        for (int i = 0; i < listeners.size(); ++i)
+            listeners[i]->SendNoteOffToDevice(Key, Velocity);
+        virtualMidiDevicesReader.Unlock();
     }
 
     void MidiInputPort::DispatchNoteOff(uint8_t Key, uint8_t Velocity, uint MidiChannel, int32_t FragmentPos) {
@@ -161,6 +186,13 @@ namespace LinuxSampler {
             for (; engineiter != end; engineiter++) (*engineiter)->SendNoteOff(Key, Velocity, FragmentPos);
         }
         MidiChannelMapReader.Unlock();
+
+        // dispatch event to all low priority MIDI listeners
+        const std::vector<VirtualMidiDevice*>& listeners =
+            virtualMidiDevicesReader.Lock();
+        for (int i = 0; i < listeners.size(); ++i)
+            listeners[i]->SendNoteOffToDevice(Key, Velocity);
+        virtualMidiDevicesReader.Unlock();
     }
 
     void MidiInputPort::DispatchPitchbend(int Pitch, uint MidiChannel) {
@@ -437,6 +469,38 @@ namespace LinuxSampler {
         int count = SysexListeners.GetConfigForUpdate().erase(engine);
         if (count) SysexListeners.SwitchConfig().erase(engine);
         return count;
+    }
+
+    void MidiInputPort::Connect(VirtualMidiDevice* pDevice) {
+        virtualMidiDevicesMutex.Lock();
+        // double buffer ... double work ...
+        {
+            std::vector<VirtualMidiDevice*>& devices =
+                virtualMidiDevices.GetConfigForUpdate();
+            devices.push_back(pDevice);
+        }
+        {
+            std::vector<VirtualMidiDevice*>& devices =
+                virtualMidiDevices.SwitchConfig();
+            devices.push_back(pDevice);
+        }
+        virtualMidiDevicesMutex.Unlock();
+    }
+
+    void MidiInputPort::Disconnect(VirtualMidiDevice* pDevice) {
+        virtualMidiDevicesMutex.Lock();
+        // double buffer ... double work ...
+        {
+            std::vector<VirtualMidiDevice*>& devices =
+                virtualMidiDevices.GetConfigForUpdate();
+            devices.erase(std::find(devices.begin(), devices.end(), pDevice));
+        }
+        {
+            std::vector<VirtualMidiDevice*>& devices =
+                virtualMidiDevices.SwitchConfig();
+            devices.erase(std::find(devices.begin(), devices.end(), pDevice));
+        }
+        virtualMidiDevicesMutex.Unlock();
     }
 
 } // namespace LinuxSampler

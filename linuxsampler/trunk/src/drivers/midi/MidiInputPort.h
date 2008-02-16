@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 - 2007 Christian Schoenebeck                       *
+ *   Copyright (C) 2005 - 2008 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -38,6 +38,7 @@ namespace LinuxSampler {
     // just symbol prototyping
     class MidiInputDevice;
     class EngineChannel;
+    class VirtualMidiDevice;
 
     class MidiInputPort {
         public:
@@ -119,6 +120,19 @@ namespace LinuxSampler {
              *          present in the list.
              */
             static bool RemoveSysexListener(Engine* engine);
+
+            /**
+             * Connects the given virtual MIDI device to this MIDI input
+             * device. This can be used to listen to MIDI data arriving on
+             * the MIDI input device's MIDI ports, e.g. to show an MIDI
+             * activity indicator somewhere.
+             */
+            void Connect(VirtualMidiDevice* pDevice);
+
+            /**
+             * Disconnect the previously connected virtual MIDI device.
+             */
+            void Disconnect(VirtualMidiDevice* pDevice);
 
 
             /////////////////////////////////////////////////////////////////
@@ -307,6 +321,9 @@ namespace LinuxSampler {
             SynchronizedConfig<MidiChannelMap_t>::Reader MidiChannelMapReader; ///< MIDI thread access to MidiChannelMap
             Mutex MidiChannelMapMutex; ///< Used to protect the MidiChannelMap from being used at the same time by different threads.
             SynchronizedConfig<std::set<Engine*> >::Reader SysexListenersReader; ///< MIDI thread access to SysexListeners
+            SynchronizedConfig<std::vector<VirtualMidiDevice*> > virtualMidiDevices;
+            SynchronizedConfig<std::vector<VirtualMidiDevice*> >::Reader virtualMidiDevicesReader;
+            Mutex virtualMidiDevicesMutex;
 
             /**
              * Constructor

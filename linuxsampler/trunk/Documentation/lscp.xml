@@ -6393,6 +6393,8 @@ Schoenebeck'>
 		</t>
 		<t>/ CHANNEL_MIDI
 		</t>
+		<t>/ DEVICE_MIDI
+		</t>
 		<t>/ VOICE_COUNT
 		</t>
 		<t>/ STREAM_COUNT
@@ -6446,6 +6448,8 @@ Schoenebeck'>
 		<t>/ CHANNEL_COUNT
 		</t>
 		<t>/ CHANNEL_MIDI
+		</t>
+		<t>/ DEVICE_MIDI
 		</t>
 		<t>/ VOICE_COUNT
 		</t>
@@ -7265,6 +7269,31 @@ Schoenebeck'>
                 delivered by this mechanism! With other words: events could be lost at any time!
                 This restriction was made to keep the RT-safeness of the backend's MIDI and audio
                 thread unaffected by this feature.</t>
+            </section>
+
+	    <section title="MIDI data on a MIDI input device arrived" anchor="SUBSCRIBE DEVICE_MIDI">
+		    <t>Client may want to be notified when MIDI data arrive on MIDI input devices by issuing the following command:</t>
+		    <t>
+			    <list>
+				    <t>SUBSCRIBE DEVICE_MIDI</t>
+			    </list>
+		    </t>
+		    <t>Server will start sending one of the the following notification messages:</t>
+		    <t>
+			    <list>
+				    <t>"NOTIFY:CHANNEL_MIDI:&lt;device-id&gt; &lt;port-id&gt; NOTE_ON &lt;note&gt; &lt;velocity&gt;"</t>
+				    <t>"NOTIFY:CHANNEL_MIDI:&lt;device-id&gt; &lt;port-id&gt; NOTE_OFF &lt;note&gt; &lt;velocity&gt;"</t>
+			    </list>
+		    </t>
+		    <t>where &lt;device-id&gt; &lt;port-id&gt; will be replaced
+		       by the IDs of the respective MIDI input device and the device's MIDI port where the MIDI
+		       data arrived. &lt;note&gt; and &lt;velocity&gt; are integer values in the range between
+		       0 .. 127, reflecting the analog meaning of the MIDI specification.
+		    </t>
+		    <t>CAUTION: no guarantee whatsoever will be made that MIDI events are actually all
+		       delivered by this mechanism! With other words: events could be lost at any time!
+		       This restriction was made to keep the RT-safeness of the backend's MIDI and audio
+		       thread unaffected by this feature.</t>
             </section>
 
             <section title="Number of active voices changed" anchor="SUBSCRIBE VOICE_COUNT">

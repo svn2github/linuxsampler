@@ -28,6 +28,8 @@ namespace LinuxSampler {
 
     // just symbol prototyping
     class SamplerChannel;
+    class MidiInputDevice;
+    class MidiInputPort;
 
     template<class L>
     class ListenerList {
@@ -118,6 +120,47 @@ namespace LinuxSampler {
              * @param NewCount The new number of MIDI input devices.
              */
             virtual void MidiDeviceCountChanged(int NewCount) = 0;
+
+            /**
+             * Invoked right before the supplied MIDI input device is going
+             * to be destroyed.
+             * @param pDevice MidiInputDevice to be deleted
+             */
+            virtual void MidiDeviceToBeDestroyed(MidiInputDevice* pDevice) = 0;
+
+            /**
+             * Invoked to inform that a new MidiInputDevice has just been
+             * created.
+             * @param pDevice newly created MidiInputDevice
+             */
+            virtual void MidiDeviceCreated(MidiInputDevice* pDevice) = 0;
+    };
+
+    /**
+     * This class is used as a listener, which is notified
+     * when the number of MIDI input ports is changed.
+     */
+    class MidiPortCountListener {
+        public:
+            /**
+             * Invoked when the number of MIDI input ports has changed.
+             * @param NewCount The new number of MIDI input ports.
+             */
+            virtual void MidiPortCountChanged(int NewCount) = 0;
+
+            /**
+             * Invoked right before the supplied MIDI input port is going
+             * to be destroyed.
+             * @param pPort MidiInputPort to be deleted
+             */
+            virtual void MidiPortToBeRemoved(MidiInputPort* pPort) = 0;
+
+            /**
+             * Invoked to inform that a new MidiInputPort has just been
+             * added.
+             * @param pPort newly created MidiInputPort
+             */
+            virtual void MidiPortAdded(MidiInputPort* pPort) = 0;
     };
 
     /**

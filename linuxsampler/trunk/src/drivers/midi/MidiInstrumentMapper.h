@@ -1,6 +1,6 @@
 /***************************************************************************
  *                                                                         *
- *   Copyright (C) 2006 Christian Schoenebeck                              *
+ *   Copyright (C) 2006 - 2008 Christian Schoenebeck                       *
  *                                                                         *
  *   This library is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -216,6 +216,9 @@ namespace LinuxSampler {
              */
             static void RemoveAllMaps();
 
+            /**
+             * Returns amount of currently available MIDI instrument maps.
+             */
             static int GetMapCount();
 
             /**

@@ -67,7 +67,8 @@ class LSCPEvent {
 		    event_total_stream_count,
 		    event_total_voice_count,
 		    event_global_info,
-			event_channel_midi
+		    event_channel_midi,
+		    event_device_midi
 	    };
 
 	    /* This constructor will do type lookup based on name
@@ -81,6 +82,7 @@ class LSCPEvent {
 	    LSCPEvent(event_t eventType, int uiData);
 	    LSCPEvent(event_t eventType, String sData);
 	    LSCPEvent(event_t eventType, int uiData1, int uiData2);
+	    LSCPEvent(event_t eventType, int uiData1, int uiData2, String sData3, int uiData4, int uiData5);
 	    LSCPEvent(event_t eventType, String sData, int uiData);
 	    LSCPEvent(event_t eventType, String sData, double dData);
 	    LSCPEvent(event_t eventType, int uiData, String sData);

@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 - 2007 Christian Schoenebeck                       *
+ *   Copyright (C) 2005 - 2008 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -121,7 +121,7 @@ namespace LinuxSampler {
             if (chn->GetMidiInputDevice() == NULL || chn->GetMidiInputDevice() != pDevice) {
                 continue;
             }
-            
+
             int port = chn->GetMidiInputPort();
             if (port >= i) {
                 String err = "Sampler channel " + ToString(iter->first);
@@ -129,7 +129,7 @@ namespace LinuxSampler {
                 throw Exception(err);
             }
         }
-        
+
         ((MidiInputDevice*)pDevice)->AcquirePorts(i);
     }
 
@@ -161,29 +161,64 @@ namespace LinuxSampler {
         return Ports[iPort];
     }
 
+    uint MidiInputDevice::PortCount() {
+        return Ports.size();
+    }
+
     std::map<String,DeviceCreationParameter*> MidiInputDevice::DeviceParameters() {
-	    return Parameters;
+        return Parameters;
+    }
+
+    void MidiInputDevice::AddMidiPortCountListener(MidiPortCountListener* l) {
+        portCountListeners.AddListener(l);
+    }
+
+    void MidiInputDevice::RemoveMidiPortCountListener(MidiPortCountListener* l) {
+        portCountListeners.RemoveListener(l);
+    }
+
+    void MidiInputDevice::fireMidiPortCountChanged(int NewCount) {
+        for (int i = 0; i < portCountListeners.GetListenerCount(); i++) {
+            portCountListeners.GetListener(i)->MidiPortCountChanged(NewCount);
+        }
+    }
+
+    void MidiInputDevice::fireMidiPortToBeRemoved(MidiInputPort* pPort) {
+        for (int i = 0; i < portCountListeners.GetListenerCount(); i++) {
+            portCountListeners.GetListener(i)->MidiPortToBeRemoved(pPort);
+        }
+    }
+
+    void MidiInputDevice::fireMidiPortAdded(MidiInputPort* pPort) {
+        for (int i = 0; i < portCountListeners.GetListenerCount(); i++) {
+            portCountListeners.GetListener(i)->MidiPortAdded(pPort);
+        }
     }
 
     void MidiInputDevice::AcquirePorts(uint newPorts) {
-	 int diff = this->Ports.size() - newPorts;
-	 if (!diff)
-		 return; //Number of ports matches already, nothing to do.
+        //FIXME: hooo, this looks scary, no synchronization AT ALL yet!
+        int diff = this->Ports.size() - newPorts;
+        if (!diff)
+            return; // number of ports matches already, nothing to do
 
-	 while (diff != 0) {
-		 if (diff > 0) {	//We've got too many ports, remove one
-			 std::map<int,MidiInputPort*>::iterator portsIter = Ports.end();
-			 --portsIter;
-			 delete portsIter->second;
-			 Ports.erase(portsIter);
-			 diff--;
-		 }
-		 if (diff < 0) {       //We don't have enough ports, create one
-			 MidiInputPort* midiPort = this->CreateMidiPort();
-			 Ports[midiPort->portNumber] = midiPort;
-			 diff++;
-		 }
-	 }
+        while (diff != 0) {
+            if (diff > 0) { // we've got too many ports, remove one
+                std::map<int,MidiInputPort*>::iterator portsIter = Ports.end();
+                --portsIter;
+
+                fireMidiPortToBeRemoved(portsIter->second);
+                delete portsIter->second;
+                Ports.erase(portsIter);
+                diff--;
+            }
+            if (diff < 0) { // we don't have enough ports, create one
+                MidiInputPort* midiPort = this->CreateMidiPort();
+                Ports[midiPort->portNumber] = midiPort;
+                diff++;
+                fireMidiPortAdded(midiPort);
+            }
+        }
+        fireMidiPortCountChanged(Ports.size());
     }
 
 } // namespace LinuxSampler

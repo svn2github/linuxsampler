@@ -565,6 +565,20 @@ namespace LinuxSampler {
             void fireMidiDeviceCountChanged(int NewCount);
 
             /**
+             * Notifies listeners that the supplied MIDI input device is
+             * going to be destroyed soon.
+             * @param pDevice MIDI input device to be destroyed
+             */
+            void fireMidiDeviceToBeDestroyed(MidiInputDevice* pDevice);
+
+            /**
+             * Notifies listeners that the supplied MIDI input device was
+             * just created.
+             * @param pDevice new MIDI input device 
+             */
+            void fireMidiDeviceCreated(MidiInputDevice* pDevice);
+
+            /**
              * Notifies listeners that the number of effect sends
              * on a particular sampler channel is changed.
              * @param ChannelId The numerical ID of the sampler channel.

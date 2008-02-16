@@ -272,7 +272,7 @@ class LSCPServer : public Thread {
             public MidiInstrumentMapInfoListener, public FxSendCountListener,
             public VoiceCountListener, public StreamCountListener, public BufferFillListener,
             public TotalStreamCountListener, public TotalVoiceCountListener,
-            public EngineChangeListener {
+            public EngineChangeListener, public MidiPortCountListener {
 
             public:
                 EventHandler(LSCPServer* pParent);
@@ -296,6 +296,40 @@ class LSCPServer : public Thread {
                  * @param NewCount The new number of MIDI input devices.
                  */
                 virtual void MidiDeviceCountChanged(int NewCount);
+
+                /**
+                 * Invoked right before the supplied MIDI input device is going
+                 * to be destroyed.
+                 * @param pDevice MidiInputDevice to be deleted
+                 */
+                virtual void MidiDeviceToBeDestroyed(MidiInputDevice* pDevice);
+
+                /**
+                 * Invoked to inform that a new MidiInputDevice has just been
+                 * created.
+                 * @param pDevice newly created MidiInputDevice
+                 */
+                virtual void MidiDeviceCreated(MidiInputDevice* pDevice);
+
+                /**
+                 * Invoked when the number of MIDI input ports has changed.
+                 * @param NewCount The new number of MIDI input ports.
+                 */
+                virtual void MidiPortCountChanged(int NewCount);
+
+                /**
+                 * Invoked right before the supplied MIDI input port is going
+                 * to be destroyed.
+                 * @param pPort MidiInputPort to be deleted
+                 */
+                virtual void MidiPortToBeRemoved(MidiInputPort* pPort);
+
+                /**
+                 * Invoked to inform that a new MidiInputPort has just been
+                 * added.
+                 * @param pPort newly created MidiInputPort
+                 */
+                virtual void MidiPortAdded(MidiInputPort* pPort);
 
                 /**
                  * Invoked when the number of MIDI instruments has changed.
@@ -375,6 +409,14 @@ class LSCPServer : public Thread {
                 };
 
                 std::vector<midi_listener_entry> channelMidiListeners;
+
+                struct device_midi_listener_entry {
+                    MidiInputPort* pPort;
+                    VirtualMidiDevice* pMidiListener;
+                    uint uiDeviceID;
+                };
+
+                std::vector<device_midi_listener_entry> deviceMidiListeners;
 
             private:
                 LSCPServer* pParent;

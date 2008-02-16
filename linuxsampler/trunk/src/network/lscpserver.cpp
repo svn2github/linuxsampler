@@ -131,6 +131,7 @@ LSCPServer::LSCPServer(Sampler* pSampler, long int addr, short int port) : Threa
     LSCPEvent::RegisterEvent(LSCPEvent::event_total_voice_count, "TOTAL_VOICE_COUNT");
     LSCPEvent::RegisterEvent(LSCPEvent::event_global_info, "GLOBAL_INFO");
     LSCPEvent::RegisterEvent(LSCPEvent::event_channel_midi, "CHANNEL_MIDI");
+    LSCPEvent::RegisterEvent(LSCPEvent::event_device_midi, "DEVICE_MIDI");
     hSocket = -1;
 }
 
@@ -205,6 +206,54 @@ void LSCPServer::EventHandler::AudioDeviceCountChanged(int NewCount) {
 
 void LSCPServer::EventHandler::MidiDeviceCountChanged(int NewCount) {
     LSCPServer::SendLSCPNotify(LSCPEvent(LSCPEvent::event_midi_device_count, NewCount));
+}
+
+void LSCPServer::EventHandler::MidiDeviceToBeDestroyed(MidiInputDevice* pDevice) {
+    pDevice->RemoveMidiPortCountListener(this);
+    for (int i = 0; i < pDevice->PortCount(); ++i)
+        MidiPortToBeRemoved(pDevice->GetPort(i));
+}
+
+void LSCPServer::EventHandler::MidiDeviceCreated(MidiInputDevice* pDevice) {
+    pDevice->AddMidiPortCountListener(this);
+    for (int i = 0; i < pDevice->PortCount(); ++i)
+        MidiPortAdded(pDevice->GetPort(i));
+}
+
+void LSCPServer::EventHandler::MidiPortCountChanged(int NewCount) {
+    // yet unused
+}
+
+void LSCPServer::EventHandler::MidiPortToBeRemoved(MidiInputPort* pPort) {
+    for (std::vector<device_midi_listener_entry>::iterator iter = deviceMidiListeners.begin(); iter != deviceMidiListeners.end(); ++iter) {
+        if ((*iter).pPort == pPort) {
+            VirtualMidiDevice* pMidiListener = (*iter).pMidiListener;
+            pPort->Disconnect(pMidiListener);
+            deviceMidiListeners.erase(iter);
+            delete pMidiListener;
+            return;
+        }
+    }
+}
+
+void LSCPServer::EventHandler::MidiPortAdded(MidiInputPort* pPort) {
+    // find out the device ID
+    std::map<uint, MidiInputDevice*> devices =
+        pParent->pSampler->GetMidiInputDevices();
+    for (
+        std::map<uint, MidiInputDevice*>::iterator iter = devices.begin();
+        iter != devices.end(); ++iter
+    ) {
+        if (iter->second == pPort->GetDevice()) { // found
+            VirtualMidiDevice* pMidiListener = new VirtualMidiDevice;
+            pPort->Connect(pMidiListener);
+            device_midi_listener_entry entry = {
+                pPort, pMidiListener, iter->first
+            };
+            deviceMidiListeners.push_back(entry);
+            return;
+        }
+    }
 }
 
 void LSCPServer::EventHandler::MidiInstrumentCountChanged(int MapId, int NewCount) {
@@ -400,6 +449,31 @@ int LSCPServer::Main() {
                             LSCPEvent(
                                 LSCPEvent::event_channel_midi,
                                 entry.pSamplerChannel->Index(),
+                                std::string(bActive ? "NOTE_ON" : "NOTE_OFF"),
+                                iNote,
+                                bActive ? pMidiListener->NoteOnVelocity(iNote)
+                                        : pMidiListener->NoteOffVelocity(iNote)
+                            )
+                        );
+                    }
+                }
+            }
+        }
+
+        // check if MIDI data arrived on some MIDI device
+        for (int i = 0; i < eventHandler.deviceMidiListeners.size(); ++i) {
+            const EventHandler::device_midi_listener_entry entry =
+                eventHandler.deviceMidiListeners[i];
+            VirtualMidiDevice* pMidiListener = entry.pMidiListener;
+            if (pMidiListener->NotesChanged()) {
+                for (int iNote = 0; iNote < 128; iNote++) {
+                    if (pMidiListener->NoteChanged(iNote)) {
+                        const bool bActive = pMidiListener->NoteIsActive(iNote);
+                        LSCPServer::SendLSCPNotify(
+                            LSCPEvent(
+                                LSCPEvent::event_device_midi,
+                                entry.uiDeviceID,
+                                entry.pPort->GetPortNumber(),
                                 std::string(bActive ? "NOTE_ON" : "NOTE_OFF"),
                                 iNote,
                                 bActive ? pMidiListener->NoteOnVelocity(iNote)

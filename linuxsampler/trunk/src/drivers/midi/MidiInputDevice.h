@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005, 2006 Christian Schoenebeck                        *
+ *   Copyright (C) 2005 - 2008 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -34,6 +34,7 @@
 #include "../DeviceParameter.h"
 #include "MidiInputPort.h"
 #include "../../engines/Engine.h"
+#include "../../EventListeners.h"
 
 namespace LinuxSampler {
 
@@ -152,14 +153,33 @@ namespace LinuxSampler {
             MidiInputPort* GetPort(uint iPort) throw (MidiInputException);
 
             /**
+             * Returns amount of MIDI ports this MIDI input device currently
+             * provides.
+             */
+            uint PortCount();
+
+            /**
              * Return all device parameter settings.
              */
             std::map<String,DeviceCreationParameter*> DeviceParameters();
+
+            /**
+             * Registers the specified listener to be notified
+             * when the number of MIDI input ports is changed.
+             */
+            void AddMidiPortCountListener(MidiPortCountListener* l);
+
+            /**
+             * Removes the specified listener, to stop being notified of
+             * further MIDI input port count chances.
+             */
+            void RemoveMidiPortCountListener(MidiPortCountListener* l);
 
         protected:
             std::map<String,DeviceCreationParameter*> Parameters;  ///< All device parameters.
             std::map<int,MidiInputPort*> Ports;                    ///< All MIDI ports.
             void* pSampler;                                        ///< Sampler instance. FIXME: should actually be of type Sampler*
+            ListenerList<MidiPortCountListener*> portCountListeners;
 
             /**
              * Constructor
@@ -176,6 +196,27 @@ namespace LinuxSampler {
              * Destructor
              */
             virtual ~MidiInputDevice();
+
+            /**
+             * Notifies listeners that the amount of MIDI inpurt ports have
+             * been changed.
+             * @param NewCount The new number of MIDI input ports.
+             */
+            void fireMidiPortCountChanged(int NewCount);
+
+            /**
+             * Notifies listeners that the supplied MIDI input port is
+             * going to be removed soon.
+             * @param pPort The MIDI input port that is going to be removed.
+             */
+            void fireMidiPortToBeRemoved(MidiInputPort* pPort);
+
+            /**
+             * Notifies listeners that the supplied MIDI input port has
+             * just been added.
+             * @param pPort The MIDI input port that has been added.
+             */
+            void fireMidiPortAdded(MidiInputPort* pPort);
 
             /**
              * Set number of MIDI ports required by the engine

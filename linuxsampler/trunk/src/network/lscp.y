@@ -194,6 +194,7 @@ subscribe_event       :  AUDIO_OUTPUT_DEVICE_COUNT             { $$ = LSCPSERVER
                       |  MIDI_INPUT_DEVICE_INFO                { $$ = LSCPSERVER->SubscribeNotification(LSCPEvent::event_midi_device_info);     }
                       |  CHANNEL_COUNT                         { $$ = LSCPSERVER->SubscribeNotification(LSCPEvent::event_channel_count);        }
                       |  CHANNEL_MIDI                          { $$ = LSCPSERVER->SubscribeNotification(LSCPEvent::event_channel_midi);         }
+                      |  DEVICE_MIDI                           { $$ = LSCPSERVER->SubscribeNotification(LSCPEvent::event_device_midi);          }
                       |  VOICE_COUNT                           { $$ = LSCPSERVER->SubscribeNotification(LSCPEvent::event_voice_count);          }
                       |  STREAM_COUNT                          { $$ = LSCPSERVER->SubscribeNotification(LSCPEvent::event_stream_count);         }
                       |  BUFFER_FILL                           { $$ = LSCPSERVER->SubscribeNotification(LSCPEvent::event_buffer_fill);          }
@@ -221,6 +222,7 @@ unsubscribe_event     :  AUDIO_OUTPUT_DEVICE_COUNT             { $$ = LSCPSERVER
                       |  MIDI_INPUT_DEVICE_INFO                { $$ = LSCPSERVER->UnsubscribeNotification(LSCPEvent::event_midi_device_info);     }
                       |  CHANNEL_COUNT                         { $$ = LSCPSERVER->UnsubscribeNotification(LSCPEvent::event_channel_count);        }
                       |  CHANNEL_MIDI                          { $$ = LSCPSERVER->UnsubscribeNotification(LSCPEvent::event_channel_midi);         }
+                      |  DEVICE_MIDI                           { $$ = LSCPSERVER->UnsubscribeNotification(LSCPEvent::event_device_midi);          }
                       |  VOICE_COUNT                           { $$ = LSCPSERVER->UnsubscribeNotification(LSCPEvent::event_voice_count);          }
                       |  STREAM_COUNT                          { $$ = LSCPSERVER->UnsubscribeNotification(LSCPEvent::event_stream_count);         }
                       |  BUFFER_FILL                           { $$ = LSCPSERVER->UnsubscribeNotification(LSCPEvent::event_buffer_fill);          }
@@ -820,6 +822,9 @@ CHANNEL_COUNT        :  'C''H''A''N''N''E''L''_''C''O''U''N''T'
                      ;
 
 CHANNEL_MIDI         :  'C''H''A''N''N''E''L''_''M''I''D''I'
+                     ;
+
+DEVICE_MIDI          :  'D''E''V''I''C''E''_''M''I''D''I'
                      ;
 
 CHANNEL_INFO         :  'C''H''A''N''N''E''L''_''I''N''F''O'

@@ -318,6 +318,18 @@ namespace LinuxSampler {
         }
     }
 
+    void Sampler::fireMidiDeviceToBeDestroyed(MidiInputDevice* pDevice) {
+        for (int i = 0; i < llMidiDeviceCountListeners.GetListenerCount(); i++) {
+            llMidiDeviceCountListeners.GetListener(i)->MidiDeviceToBeDestroyed(pDevice);
+        }
+    }
+
+    void Sampler::fireMidiDeviceCreated(MidiInputDevice* pDevice) {
+        for (int i = 0; i < llMidiDeviceCountListeners.GetListenerCount(); i++) {
+            llMidiDeviceCountListeners.GetListener(i)->MidiDeviceCreated(pDevice);
+        }
+    }
+
     void Sampler::AddVoiceCountListener(VoiceCountListener* l) {
         llVoiceCountListeners.AddListener(l);
     }
@@ -559,6 +571,8 @@ namespace LinuxSampler {
                 for (uint i = 0; i < SamplerChannels(); i++)
                     if (GetSamplerChannel(i)->GetMidiInputDevice() == pDevice) throw Exception("Sampler channel " + ToString(i) + " is still connected to the midi input device.");
 
+                fireMidiDeviceToBeDestroyed(pDevice);
+
                 // disable device
                 pDevice->StopListen();
 
@@ -586,6 +600,7 @@ namespace LinuxSampler {
 		}
 	}
 
+        fireMidiDeviceCreated(pDevice);
         fireMidiDeviceCountChanged(MidiInputDevices());
         return pDevice;
     }
