@@ -93,6 +93,9 @@ const char *lscp_event_to_text ( lscp_event_t event )
 	case LSCP_EVENT_CHANNEL_MIDI:
 		pszText = "CHANNEL_MIDI";
 		break;
+	case LSCP_EVENT_DEVICE_MIDI:
+		pszText = "DEVICE_MIDI";
+		break;
 	case LSCP_EVENT_NONE:
 	default:
 		break;
@@ -146,6 +149,8 @@ lscp_event_t lscp_event_from_text ( const char *pszText )
 			event = LSCP_EVENT_MISCELLANEOUS;
 		else if (strcasecmp(pszText, "CHANNEL_MIDI") == 0)
 			event = LSCP_EVENT_CHANNEL_MIDI;
+		else if (strcasecmp(pszText, "DEVICE_MIDI") == 0)
+			event = LSCP_EVENT_DEVICE_MIDI;
 	}
 
 	return event;

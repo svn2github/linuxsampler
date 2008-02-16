@@ -581,7 +581,7 @@ int lscp_client_get_errno ( lscp_client_t *pClient )
 // Client registration protocol functions.
 
 /**
- *  Register frontend for receiving event messages.
+ *  Register frontend for receiving event messages by the sampler backend.
  *  @e Caution: since liblscp v0.5.5.4 you have to call lscp_client_subscribe()
  *  for @e each event you want to subscribe. That is the old bitflag approach
  *  was abondoned at this point. You can however still register all older
@@ -604,13 +604,14 @@ int lscp_client_get_errno ( lscp_client_t *pClient )
  *  @endcode
  *
  *  @param pClient  Pointer to client instance structure.
- *  @param events   Bit-wise OR'ed event flags to subscribe.
+ *  @param events   LSCP event to subscribe.
  *
  *  @returns LSCP_OK on success, LSCP_FAILED otherwise.
  */
 lscp_status_t lscp_client_subscribe ( lscp_client_t *pClient, lscp_event_t events )
 {
 	lscp_status_t ret = LSCP_OK;
+	lscp_event_t currentEvent;
 
 	if (pClient == NULL)
 		return LSCP_FAILED;
@@ -654,8 +655,18 @@ lscp_status_t lscp_client_subscribe ( lscp_client_t *pClient, lscp_event_t event
 	if (ret == LSCP_OK && (events & LSCP_EVENT_MISCELLANEOUS))
 		ret = _lscp_client_evt_request(pClient, 1, LSCP_EVENT_MISCELLANEOUS);
 	// Caution: for the upper 16 bits, we don't use bit flags anymore ...
-	if (ret == LSCP_OK && ((events & 0xffff0000) == LSCP_EVENT_CHANNEL_MIDI))
-		ret = _lscp_client_evt_request(pClient, 1, LSCP_EVENT_CHANNEL_MIDI);
+	currentEvent = events & 0xffff0000;
+	if (ret == LSCP_OK && currentEvent) {
+		switch (currentEvent) {
+			case LSCP_EVENT_CHANNEL_MIDI:
+			case LSCP_EVENT_DEVICE_MIDI:
+				ret = _lscp_client_evt_request(pClient, 1, currentEvent);
+				break;
+			default: // unknown "upper" event type
+				ret = LSCP_FAILED;
+				break;
+		}
+	}
 
 	// Unlock this section down.
 	lscp_mutex_unlock(pClient->mutex);
@@ -665,7 +676,7 @@ lscp_status_t lscp_client_subscribe ( lscp_client_t *pClient, lscp_event_t event
 
 
 /**
- *  Deregister frontend from receiving UDP event messages anymore:
+ *  Deregister frontend from receiving UDP event messages anymore.
  *  @e Caution: since liblscp v0.5.5.4 you have to call
  *  lscp_client_unsubscribe() for @e each event you want to unsubscribe.
  *  That is the old bitflag approach was abondoned at this point. You can
@@ -689,13 +700,14 @@ lscp_status_t lscp_client_subscribe ( lscp_client_t *pClient, lscp_event_t event
  *  @endcode
  *
  *  @param pClient  Pointer to client instance structure.
- *  @param events   Bit-wise OR'ed event flags to unsubscribe.
+ *  @param events   LSCP event to unsubscribe.
  *
  *  @returns LSCP_OK on success, LSCP_FAILED otherwise.
  */
 lscp_status_t lscp_client_unsubscribe ( lscp_client_t *pClient, lscp_event_t events )
 {
 	lscp_status_t ret = LSCP_OK;
+	lscp_event_t currentEvent;
 
 	if (pClient == NULL)
 		return LSCP_FAILED;
@@ -735,8 +747,18 @@ lscp_status_t lscp_client_unsubscribe ( lscp_client_t *pClient, lscp_event_t eve
 	if (ret == LSCP_OK && (events & LSCP_EVENT_MISCELLANEOUS))
 		ret = _lscp_client_evt_request(pClient, 0, LSCP_EVENT_MISCELLANEOUS);
 	// Caution: for the upper 16 bits, we don't use bit flags anymore ...
-	if (ret == LSCP_OK && ((events & 0xffff0000) == LSCP_EVENT_CHANNEL_MIDI))
-		ret = _lscp_client_evt_request(pClient, 0, LSCP_EVENT_CHANNEL_MIDI);
+	currentEvent = events & 0xffff0000;
+	if (ret == LSCP_OK && currentEvent) {
+		switch (currentEvent) {
+			case LSCP_EVENT_CHANNEL_MIDI:
+			case LSCP_EVENT_DEVICE_MIDI:
+				ret = _lscp_client_evt_request(pClient, 0, currentEvent);
+				break;
+			default: // unknown "upper" event type
+				ret = LSCP_FAILED;
+				break;
+		}
+	}
 
 	// If necessary, close the alternate connection...
 	if (pClient->events == LSCP_EVENT_NONE)

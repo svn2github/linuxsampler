@@ -51,7 +51,8 @@ typedef enum _lscp_event_t
 	LSCP_EVENT_MISCELLANEOUS             = 0x8000,
 	// from these new events on, we simply enumerate them,
 	// no dedicated bit flags anymore ...
-	LSCP_EVENT_CHANNEL_MIDI              = 0x00010000
+	LSCP_EVENT_CHANNEL_MIDI              = 0x00010000,
+	LSCP_EVENT_DEVICE_MIDI               = 0x00020000
 } lscp_event_t;
 
 
