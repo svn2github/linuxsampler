@@ -45,6 +45,8 @@ Version CVS HEAD (?)
       while notes were playing
     - made it possible to load an instrument even if the audio thread
       isn't running
+    - added partial support for the "Controller Triggered" MIDI rule,
+      enough for piano gigs with pedal noise samples
 
   * LSCP server:
     - added new LSCP event "CHANNEL_MIDI" which can be used by frontends to
