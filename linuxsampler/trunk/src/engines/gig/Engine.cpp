@@ -1618,6 +1618,64 @@ namespace LinuxSampler { namespace gig {
     void Engine::ProcessControlChange(EngineChannel* pEngineChannel, Pool<Event>::Iterator& itControlChangeEvent) {
         dmsg(4,("Engine::ContinuousController cc=%d v=%d\n", itControlChangeEvent->Param.CC.Controller, itControlChangeEvent->Param.CC.Value));
 
+        // handle the "control triggered" MIDI rule: a control change
+        // event can trigger a new note on or note off event
+        if (pEngineChannel->pInstrument) {
+
+            ::gig::MidiRule* rule;
+            for (int i = 0 ; (rule = pEngineChannel->pInstrument->GetMidiRule(i)) ; i++) {
+
+                if (::gig::MidiRuleCtrlTrigger* ctrlTrigger =
+                    dynamic_cast< ::gig::MidiRuleCtrlTrigger*>(rule)) {
+                    if (itControlChangeEvent->Param.CC.Controller ==
+                        ctrlTrigger->ControllerNumber) {
+
+                        uint8_t oldCCValue = pEngineChannel->ControllerTable[
+                            itControlChangeEvent->Param.CC.Controller];
+                        uint8_t newCCValue = itControlChangeEvent->Param.CC.Value;
+
+                        for (int i = 0 ; i < ctrlTrigger->Triggers ; i++) {
+                            ::gig::MidiRuleCtrlTrigger::trigger_t* pTrigger =
+                                  &ctrlTrigger->pTriggers[i];
+
+                            // check if the controller has passed the
+                            // trigger point in the right direction
+                            if ((pTrigger->Descending &&
+                                 oldCCValue > pTrigger->TriggerPoint &&
+                                 newCCValue <= pTrigger->TriggerPoint) ||
+                                (!pTrigger->Descending &&
+                                 oldCCValue < pTrigger->TriggerPoint &&
+                                 newCCValue >= pTrigger->TriggerPoint)) {
+
+                                RTList<Event>::Iterator itNewEvent = pGlobalEvents->allocAppend();
+                                if (itNewEvent) {
+                                    *itNewEvent = *itControlChangeEvent;
+                                    itNewEvent->Param.Note.Key = pTrigger->Key;
+
+                                    if (pTrigger->NoteOff || pTrigger->Velocity == 0) {
+                                        itNewEvent->Type = Event::type_note_off;
+                                        itNewEvent->Param.Note.Velocity = 100;
+
+                                        ProcessNoteOff(pEngineChannel, itNewEvent);
+                                    } else {
+                                        itNewEvent->Type = Event::type_note_on;
+                                        //TODO: if Velocity is 255, the triggered velocity should
+                                        // depend on how fast the controller is moving
+                                        itNewEvent->Param.Note.Velocity =
+                                            pTrigger->Velocity == 255 ? 100 :
+                                            pTrigger->Velocity;
+
+                                        ProcessNoteOn(pEngineChannel, itNewEvent);
+                                    }
+                                }
+                                else dmsg(1,("Event pool emtpy!\n"));
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
         // update controller value in the engine channel's controller table
         pEngineChannel->ControllerTable[itControlChangeEvent->Param.CC.Controller] = itControlChangeEvent->Param.CC.Value;
 
@@ -1990,7 +2048,7 @@ namespace LinuxSampler { namespace gig {
     }
 
     String Engine::Version() {
-        String s = "$Revision: 1.87 $";
+        String s = "$Revision: 1.88 $";
         return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
 
