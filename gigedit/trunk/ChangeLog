@@ -31,6 +31,7 @@ Version CVS HEAD (?)
   * in "Save As..." dialog set inital filename to "copy_of_<filename>" and
     show a warning message that saving to the same .gig file will corrupt
     the sample wave data
+  * fixed compilation with gcc 4.3
 
 Version 0.1.1 (2007-12-06)
 

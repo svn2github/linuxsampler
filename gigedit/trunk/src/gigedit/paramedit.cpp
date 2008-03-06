@@ -17,6 +17,8 @@
  * 02110-1301 USA.
  */
 
+#include <cstring>
+
 #include "paramedit.h"
 
 namespace {

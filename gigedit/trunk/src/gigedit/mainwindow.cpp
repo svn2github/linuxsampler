@@ -18,6 +18,7 @@
  */
 
 #include <iostream>
+#include <cstring>
 
 #include <gtkmm/filechooserdialog.h>
 #include <gtkmm/messagedialog.h>
