@@ -258,10 +258,10 @@ namespace DLS {
                 uint16_t transform;
                 uint32_t scale;
             };
-            Connection() {};
+            Connection() {}
             void Init(conn_block_t* Header);
             conn_block_t ToConnBlock();
-            virtual ~Connection() {};
+            virtual ~Connection() {}
             friend class Articulation;
     };
 
@@ -341,7 +341,7 @@ namespace DLS {
             Info*    pInfo;  ///< Points (in any case) to an <i>Info</i> object, providing additional, optional infos and comments.
             dlsid_t* pDLSID; ///< Points to a <i>dlsid_t</i> structure if the file provided a DLS ID else is <i>NULL</i>.
 
-            Resource* GetParent() { return pParent; };
+            Resource* GetParent() { return pParent; }
             virtual void UpdateChunks();
             void GenerateDLSID();
         protected:

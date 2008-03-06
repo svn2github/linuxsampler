@@ -1,5 +1,8 @@
 Version CVS HEAD (?)
 
+  * general changes:
+    - fixed compilation with gcc 4.3
+
   * src/gig.cpp, src/gig.h:
     - added partial support for MIDI rules, only the Controller
       Triggered rule is supported so far

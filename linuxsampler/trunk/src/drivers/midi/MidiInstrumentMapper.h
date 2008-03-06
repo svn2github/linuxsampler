@@ -23,11 +23,11 @@
 
 #include <map>
 
-#include "midi.h"
 #include "../../EventListeners.h"
 #include "../../common/global.h"
 #include "../../common/optional.h"
 #include "../../engines/InstrumentManager.h"
+#include "midi.h"
 
 namespace LinuxSampler {
 

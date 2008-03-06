@@ -25,6 +25,7 @@
 
 #include "helper.h"
 
+#include <algorithm>
 #include <math.h>
 #include <iostream>
 

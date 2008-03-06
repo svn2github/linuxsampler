@@ -23,6 +23,7 @@
 #ifndef __LS_INSTRUMENTSDBUTILITIES_H__
 #define __LS_INSTRUMENTSDBUTILITIES_H__
 
+#include <memory>
 #include <vector>
 #include <gig.h>
 #include <sqlite3.h>

@@ -23,6 +23,7 @@
 
 #include "DLS.h"
 
+#include <algorithm>
 #include <time.h>
 
 #ifdef __APPLE__
