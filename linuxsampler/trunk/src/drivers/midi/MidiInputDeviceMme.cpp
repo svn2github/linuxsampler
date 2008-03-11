@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 - 2007 Christian Schoenebeck                       *
+ *   Copyright (C) 2005 - 2008 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -254,8 +254,7 @@ void MidiInputDeviceMme::MidiInputPortMme::MmeCallbackDispatcher(HMIDIIN handle,
                         DispatchBankSelectMsb(data[2], data[0] & 0x0F);
                     else if (data[1] == 32)
                         DispatchBankSelectLsb(data[2], data[0] & 0x0F);
-                    else
-                        DispatchControlChange(data[1], data[2], data[0] & 0x0F);
+                    DispatchControlChange(data[1], data[2], data[0] & 0x0F);
                     break;
 
                 case 0xD0:
@@ -375,7 +374,7 @@ void MidiInputDeviceMme::MidiInputPortMme::MmeCallbackDispatcher(HMIDIIN handle,
     }
 
     String MidiInputDeviceMme::Version() {
-        String s = "$Revision: 1.2 $";
+        String s = "$Revision: 1.3 $";
         return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
 

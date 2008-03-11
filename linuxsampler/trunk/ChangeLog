@@ -36,6 +36,9 @@ Version CVS HEAD (?)
 
   * MIDI driver:
     - added JACK MIDI driver
+    - dispatch bank select as ordinary CC as well, the user might seriously
+      want to (mis)use it for some purpose ("fixed" in all current MIDI
+      input drivers: ALSA, CoreMIDI, JACK, MidiShare, MME)
 
   * instruments database:
     - avoid time consuming samples scanning when adding instruments
@@ -48,6 +51,8 @@ Version CVS HEAD (?)
       isn't running
     - added partial support for the "Controller Triggered" MIDI rule,
       enough for piano gigs with pedal noise samples
+    - minor fix: only mark FX sends as being modified if really the
+      respective FX send MIDI controller was used
 
   * LSCP server:
     - added new LSCP event "CHANNEL_MIDI" which can be used by frontends to

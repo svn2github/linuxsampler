@@ -1849,9 +1849,10 @@ namespace LinuxSampler { namespace gig {
         if (!pEngineChannel->fxSends.empty()) {
             for (int iFxSend = 0; iFxSend < pEngineChannel->GetFxSendCount(); iFxSend++) {
                 FxSend* pFxSend = pEngineChannel->GetFxSend(iFxSend);
-                if (pFxSend->MidiController() == itControlChangeEvent->Param.CC.Controller)
+                if (pFxSend->MidiController() == itControlChangeEvent->Param.CC.Controller) {
                     pFxSend->SetLevel(itControlChangeEvent->Param.CC.Value);
                     pFxSend->SetInfoChanged(true);
+                }
             }
         }
     }
@@ -2048,7 +2049,7 @@ namespace LinuxSampler { namespace gig {
     }
 
     String Engine::Version() {
-        String s = "$Revision: 1.88 $";
+        String s = "$Revision: 1.89 $";
         return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
 

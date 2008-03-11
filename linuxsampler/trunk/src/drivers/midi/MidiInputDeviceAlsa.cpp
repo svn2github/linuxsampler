@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 - 2007 Christian Schoenebeck                       *
+ *   Copyright (C) 2005 - 2008 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -234,7 +234,7 @@ namespace LinuxSampler {
     }
 
     String MidiInputDeviceAlsa::Version() {
-	    String s = "$Revision: 1.21 $";
+	    String s = "$Revision: 1.22 $";
 	    return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
 
@@ -259,8 +259,7 @@ namespace LinuxSampler {
                                 pMidiInputPort->DispatchBankSelectMsb(ev->data.control.value, ev->data.control.channel);
                             else if (ev->data.control.param == 32)
                                 pMidiInputPort->DispatchBankSelectLsb(ev->data.control.value, ev->data.control.channel);
-                            else
-                                pMidiInputPort->DispatchControlChange(ev->data.control.param, ev->data.control.value, ev->data.control.channel);
+                            pMidiInputPort->DispatchControlChange(ev->data.control.param, ev->data.control.value, ev->data.control.channel);
                             break;
 
                         case SND_SEQ_EVENT_CHANPRESS:

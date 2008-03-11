@@ -1,7 +1,7 @@
 /***************************************************************************
  *                                                                         *
  *   Copyright (C) 2004, 2005 Grame                                        *
- *   Copyright (C) 2005 - 2007 Christian Schoenebeck                       *
+ *   Copyright (C) 2005 - 2008 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -102,12 +102,11 @@ namespace LinuxSampler {
 						port->DispatchBankSelectMsb(packet->data[2],packet->data[0]&0x0F);
 					else if (packet->data[1] == 32)
 						port->DispatchBankSelectLsb(packet->data[2],packet->data[0]&0x0F);
-					else
-						port->DispatchControlChange(packet->data[1],packet->data[2],packet->data[0]&0x0F);
+					port->DispatchControlChange(packet->data[1],packet->data[2],packet->data[0]&0x0F);
 					break;
 
 				case 0xD0:
-                                        port->DispatchControlChange(128,packet->data[1],packet->data[0]&0x0F);
+					port->DispatchControlChange(128,packet->data[1],packet->data[0]&0x0F);
 					break;
 
 				case 0xE0:
@@ -176,7 +175,7 @@ namespace LinuxSampler {
     }
 
     String MidiInputDeviceCoreMidi::Version() {
-	    String s = "$Revision: 1.10 $";
+	    String s = "$Revision: 1.11 $";
 	    return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
 

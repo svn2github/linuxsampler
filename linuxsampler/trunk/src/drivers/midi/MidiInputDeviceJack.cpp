@@ -210,7 +210,7 @@ namespace LinuxSampler {
     }
 
     String MidiInputDeviceJack::Version() {
-        String s = "$Revision: 1.1 $";
+        String s = "$Revision: 1.2 $";
         return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
 
@@ -241,9 +241,8 @@ namespace LinuxSampler {
                             port->DispatchBankSelectMsb(data[2], channel);
                         } else if (data[1] == 32) {
                             port->DispatchBankSelectLsb(data[2], channel);
-                        } else {
-                            port->DispatchControlChange(data[1], data[2], channel, ev.time);
                         }
+                        port->DispatchControlChange(data[1], data[2], channel, ev.time);
                         break;
 
                     case 0xd0:
