@@ -20,12 +20,12 @@
 
 #include "InstrumentsDb.h"
 
+#include "../common/File.h"
 #include "../common/global_private.h"
 
 #include <iostream>
 #include <sstream>
 #include <vector>
-#include <dirent.h>
 #include <errno.h>
 #include <fnmatch.h>
 
@@ -35,14 +35,13 @@ namespace LinuxSampler {
 
     InstrumentsDb InstrumentsDb::instance;
 
-    void InstrumentsDb::CreateInstrumentsDb(String File) {
-        struct stat statBuf;
-        int res = stat(File.c_str(), &statBuf);
-        if (!res) {
-            throw Exception("File exists: " + File);
+    void InstrumentsDb::CreateInstrumentsDb(String FilePath) {
+        File f = File(FilePath);
+        if (f.Exist()) {
+            throw Exception("File exists: " + FilePath);
         }
         
-        GetInstrumentsDb()->SetDbFile(File);
+        GetInstrumentsDb()->SetDbFile(FilePath);
 
         String sql = 
             "  CREATE TABLE instr_dirs (                                      "
@@ -661,15 +660,14 @@ namespace LinuxSampler {
             int dirId = GetDirectoryId(DbDir);
             if (dirId == -1) throw Exception("Invalid DB directory: " + toEscapedText(DbDir));
 
-            struct stat statBuf;
-            int res = stat(FilePath.c_str(), &statBuf);
-            if (res) {
+            File f = File(FilePath);
+            if (!f.Exist()) {
                 std::stringstream ss;
-                ss << "Fail to stat `" << FilePath << "`: " << strerror(errno);
+                ss << "Fail to stat `" << FilePath << "`: " << f.GetErrorMsg();
                 throw Exception(ss.str());
             }
 
-            if (!S_ISREG(statBuf.st_mode)) {
+            if (!f.IsFile()) {
                 std::stringstream ss;
                 ss << "`" << FilePath << "` is not an instrument file";
                 throw Exception(ss.str());
@@ -693,46 +691,30 @@ namespace LinuxSampler {
             int dirId = GetDirectoryId(DbDir);
             if (dirId == -1) throw Exception("Invalid DB directory: " + toEscapedPath(DbDir));
 
-            struct stat statBuf;
-            int res = stat(FsDir.c_str(), &statBuf);
-            if (res) {
+            File f = File(FsDir);
+            if (!f.Exist()) {
                 std::stringstream ss;
-                ss << "Fail to stat `" << FsDir << "`: " << strerror(errno);
+                ss << "Fail to stat `" << FsDir << "`: " << f.GetErrorMsg();
                 throw Exception(ss.str());
             }
 
-            if (!S_ISDIR(statBuf.st_mode)) {
-                throw Exception("Directory expected");
+            if (!f.IsDirectory()) {
+                throw Exception("Directory expected: " + FsDir);
             }
             
-            if (FsDir.at(FsDir.length() - 1) != '/') FsDir.append("/");
-
-            DIR* pDir = opendir(FsDir.c_str());
-            if (pDir == NULL) {
-                std::stringstream ss;
-                ss << "The scanning of directory `" << FsDir << "` failed: ";
-                ss << strerror(errno);
-                std::cerr << ss.str();
+            if (FsDir.at(FsDir.length() - 1) != File::DirSeparator) {
+                FsDir.push_back(File::DirSeparator);
+            }
+            
+            try {
+                FileListPtr fileList = File::GetFiles(FsDir);
+                for (int i = 0; i < fileList->size(); i++) {
+                    AddInstrumentsFromFile(DbDir, FsDir + fileList->at(i), -1, pProgress);
+                }
+            } catch(Exception e) {
+                e.PrintMessage();
                 DbInstrumentsMutex.Unlock();
                 return;
-            }
-
-            struct dirent* pEnt = readdir(pDir);
-            while (pEnt != NULL) {
-                if (pEnt->d_type != DT_REG) {
-                    pEnt = readdir(pDir);
-                    continue;
-                }
-
-                AddInstrumentsFromFile(DbDir, FsDir + String(pEnt->d_name), -1, pProgress);
-                pEnt = readdir(pDir);
-            }
-
-            if (closedir(pDir)) {
-                std::stringstream ss;
-                ss << "Failed to close directory `" << FsDir << "`: ";
-                ss << strerror(errno);
-                std::cerr << ss.str();
             }
         } catch (Exception e) {
             DbInstrumentsMutex.Unlock();
@@ -745,10 +727,12 @@ namespace LinuxSampler {
     void InstrumentsDb::AddInstrumentsRecursive(String DbDir, String FsDir, bool Flat, ScanProgress* pProgress) {
         dmsg(2,("InstrumentsDb: AddInstrumentsRecursive(DbDir=%s,FsDir=%s,Flat=%d)\n", DbDir.c_str(), FsDir.c_str(), Flat));
         if (pProgress != NULL) {
-            pProgress->SetTotalFileCount(InstrumentFileCounter::Count(FsDir));
+            InstrumentFileCounter c;
+            pProgress->SetTotalFileCount(c.Count(FsDir));
         }
 
-        DirectoryScanner::Scan(DbDir, FsDir, Flat, pProgress);
+        DirectoryScanner d;
+        d.Scan(DbDir, FsDir, Flat, pProgress);
     }
 
     int InstrumentsDb::GetInstrumentCount(int DirId) {
@@ -1137,33 +1121,32 @@ namespace LinuxSampler {
                 }
             }
         } catch(Exception e) {
-            std::cerr << e.Message() << std::endl;
+            e.PrintMessage();
         }
     }
 
-    void InstrumentsDb::AddGigInstruments(String DbDir, String File, int Index, ScanProgress* pProgress) {
-        dmsg(2,("InstrumentsDb: AddGigInstruments(DbDir=%s,File=%s,Index=%d)\n", DbDir.c_str(), File.c_str(), Index));
+    void InstrumentsDb::AddGigInstruments(String DbDir, String FilePath, int Index, ScanProgress* pProgress) {
+        dmsg(2,("InstrumentsDb: AddGigInstruments(DbDir=%s,FilePath=%s,Index=%d)\n", DbDir.c_str(), FilePath.c_str(), Index));
         int dirId = GetDirectoryId(DbDir);
         if (dirId == -1) throw Exception("Invalid DB directory: " + toEscapedPath(DbDir));
 
-        struct stat statBuf;
-        int res = stat(File.c_str(), &statBuf);
-        if (res) {
+        File f = File(FilePath);
+        if (!f.Exist()) {
             std::stringstream ss;
-            ss << "Fail to stat `" << File << "`: " << strerror(errno);
+            ss << "Fail to stat `" << FilePath << "`: " << f.GetErrorMsg();
             throw Exception(ss.str());
         }
 
-        if (!S_ISREG(statBuf.st_mode)) {
+        if (!f.IsFile()) {
             std::stringstream ss;
-            ss << "`" << File << "` is not a regular file";
+            ss << "`" << FilePath << "` is not a regular file";
             throw Exception(ss.str());
         }
 
         RIFF::File* riff = NULL;
         gig::File* gig = NULL;
         try {
-            riff = new RIFF::File(File);
+            riff = new RIFF::File(FilePath);
             gig::File* gig = new gig::File(riff);
             gig->SetAutoLoad(false); // avoid time consuming samples scanning
 
@@ -1171,7 +1154,7 @@ namespace LinuxSampler {
             sql << "INSERT INTO instruments (dir_id,instr_name,instr_file,";
             sql << "instr_nr,format_family,format_version,instr_size,";
             sql << "description,is_drum,product,artists,keywords) VALUES (";
-            sql << dirId << ",?,?,?,'GIG',?," << statBuf.st_size << ",?,?,?,?,?)";
+            sql << dirId << ",?,?,?,'GIG',?," << f.GetSize() << ",?,?,?,?,?)";
 
             sqlite3_stmt* pStmt = NULL;
 
@@ -1180,7 +1163,7 @@ namespace LinuxSampler {
                 throw Exception("DB error: " + ToString(sqlite3_errmsg(db)));
             }
 
-            String s = toEscapedFsPath(File);
+            String s = toEscapedFsPath(FilePath);
             BindTextParam(pStmt, 2, s);
             String ver = "";
             if (gig->pVersion != NULL) ver = ToString(gig->pVersion->major);
@@ -1194,7 +1177,7 @@ namespace LinuxSampler {
                     BindTextParam(pStmt, 7, gig->pInfo->Product);
                     BindTextParam(pStmt, 8, gig->pInfo->Artists);
                     BindTextParam(pStmt, 9, gig->pInfo->Keywords);
-                    AddGigInstrument(pStmt, DbDir, dirId, File, pInstrument, instrIndex);
+                    AddGigInstrument(pStmt, DbDir, dirId, FilePath, pInstrument, instrIndex);
 
                     instrIndex++;
                     pInstrument = gig->GetNextInstrument();
@@ -1207,7 +1190,7 @@ namespace LinuxSampler {
                     BindTextParam(pStmt, 7, gig->pInfo->Product);
                     BindTextParam(pStmt, 8, gig->pInfo->Artists);
                     BindTextParam(pStmt, 9, gig->pInfo->Keywords);
-                    AddGigInstrument(pStmt, DbDir, dirId, File, pInstrument, Index);
+                    AddGigInstrument(pStmt, DbDir, dirId, FilePath, pInstrument, Index);
                 }
             }
 
@@ -1218,7 +1201,7 @@ namespace LinuxSampler {
             if (gig != NULL) delete gig;
             if (riff != NULL) delete riff;
             std::stringstream ss;
-            ss << "Failed to scan `" << File << "`: " << e.Message;
+            ss << "Failed to scan `" << FilePath << "`: " << e.Message;
             
             throw Exception(ss.str());
         } catch (Exception e) {
@@ -1228,11 +1211,12 @@ namespace LinuxSampler {
         } catch (...) {
             if (gig != NULL) delete gig;
             if (riff != NULL) delete riff;
-            throw Exception("Failed to scan `" + File + "`");
+            throw Exception("Failed to scan `" + FilePath + "`");
         }
     }
 
     void InstrumentsDb::AddGigInstrument(sqlite3_stmt* pStmt, String DbDir, int DirId, String File, gig::Instrument* pInstrument, int Index) {
+        dmsg(2,("InstrumentsDb: AddGigInstrument(DbDir=%s,DirId=%d,File=%s,Index=%d)\n", DbDir.c_str(), DirId, File.c_str(), Index));
         String name = pInstrument->pInfo->Name;
         if (name == "") return;
         name = GetUniqueInstrumentName(DirId, name);

@@ -124,10 +124,10 @@ namespace LinuxSampler {
 
             /**
              * Creates an instruments database file.
-             * @param File the pathname of the file to create.
+             * @param FilePath the pathname of the file to create.
              * @throws Exception If the creation of the database file failed.
              */
-            static void CreateInstrumentsDb(String File);
+            static void CreateInstrumentsDb(String FilePath);
 
             /**
              * This method is used to access the instruments database.
@@ -714,7 +714,7 @@ namespace LinuxSampler {
              * @param DbDir The instruments database directory
              * in which the instrument will be added.
              * All slashes in the directory names should be replaced with '\0'.
-             * @param File The absolute path name of the instrument file.
+             * @param FilePath The absolute path name of the instrument file.
              * @param Index The index of the instrument (in the given
              * instrument file) to add. If -1 is specified, all instruments in
              * the supplied instrument file will be added.
@@ -722,7 +722,7 @@ namespace LinuxSampler {
              * Specify NULL if you don't want to monitor the scanning process.
              * @throws Exception if the operation failed.
              */
-            void AddGigInstruments(String DbDir, String File, int Index = -1, ScanProgress* pProgress = NULL);
+            void AddGigInstruments(String DbDir, String FilePath, int Index = -1, ScanProgress* pProgress = NULL);
 
             /**
              * Adds the specified GIG instrument.

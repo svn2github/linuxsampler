@@ -1,6 +1,6 @@
 /***************************************************************************
  *                                                                         *
- *   Copyright (C) 2007 Grigor Iliev                                       *
+ *   Copyright (C) 2007, 2008 Grigor Iliev                                 *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -20,11 +20,10 @@
 
 #include "InstrumentsDbUtilities.h"
 
+#include "../common/File.h"
 #include "../common/global_private.h"
 
-#include <dirent.h>
 #include <errno.h>
-#include <ftw.h>
 
 #include "../common/Exception.h"
 #include "InstrumentsDb.h"
@@ -505,37 +504,17 @@ namespace LinuxSampler {
     int AddInstrumentsJob::GetFileCount() {
         int count = 0;
 
-        DIR* pDir = opendir(FsDir.c_str());
-        if (pDir == NULL) {
-            std::stringstream ss;
-            ss << "The scanning of directory `" << FsDir << "` failed: ";
-            ss << strerror(errno);
-            std::cerr << ss.str();
+        try {
+            FileListPtr fileList = File::GetFiles(FsDir);
+
+            for (int i = 0; i < fileList->size(); i++) {
+                String s = fileList->at(i);
+                if (s.length() < 4) continue;
+                if(!strcasecmp(".gig", s.substr(s.length() - 4).c_str())) count++;
+            }
+        } catch(Exception e) {
+            e.PrintMessage();
             return 0;
-        }
-
-        struct dirent* pEnt = readdir(pDir);
-        while (pEnt != NULL) {
-            if (pEnt->d_type != DT_REG) {
-                pEnt = readdir(pDir);
-                continue;
-            }
-
-            String s(pEnt->d_name);
-            if(s.length() < 4) {
-                pEnt = readdir(pDir);
-                continue;
-            }
-            if(!strcasecmp(".gig", s.substr(s.length() - 4).c_str())) count++;
-
-            pEnt = readdir(pDir);
-        }
-        
-        if (closedir(pDir)) {
-            std::stringstream ss;
-            ss << "Failed to close directory `" << FsDir << "`: ";
-            ss << strerror(errno);
-            std::cerr << ss.str();
         }
         
         return count;
@@ -567,48 +546,30 @@ namespace LinuxSampler {
     }
 
 
-    String DirectoryScanner::DbDir;
-    String DirectoryScanner::FsDir;
-    bool DirectoryScanner::Flat;
-    ScanProgress* DirectoryScanner::pProgress;
-
     void DirectoryScanner::Scan(String DbDir, String FsDir, bool Flat, ScanProgress* pProgress) {
         dmsg(2,("DirectoryScanner: Scan(DbDir=%s,FsDir=%s,Flat=%d)\n", DbDir.c_str(), FsDir.c_str(), Flat));
         if (DbDir.empty() || FsDir.empty()) throw Exception("Directory expected");
         
-        struct stat statBuf;
-        int res = stat(FsDir.c_str(), &statBuf);
-        if (res) {
-            std::stringstream ss;
-            ss << "Fail to stat `" << FsDir << "`: " << strerror(errno);
-            throw Exception(ss.str());
-        }
-
-        if (!S_ISDIR(statBuf.st_mode)) {
-            throw Exception("Directory expected");
-        }
-        
-        DirectoryScanner::DbDir = DbDir;
-        DirectoryScanner::FsDir = FsDir;
+        this->DbDir = DbDir;
+        this->FsDir = FsDir;
         if (DbDir.at(DbDir.length() - 1) != '/') {
-            DirectoryScanner::DbDir.append("/");
+            this->DbDir.append("/");
         }
-        if (FsDir.at(FsDir.length() - 1) != '/') {
-            DirectoryScanner::FsDir.append("/");
+        if (FsDir.at(FsDir.length() - 1) != File::DirSeparator) {
+            this->FsDir.push_back(File::DirSeparator);
         }
-        DirectoryScanner::Flat = Flat;
-        DirectoryScanner::pProgress = pProgress;
+        this->Flat = Flat;
+        this->pProgress = pProgress;
         
-        ftw(FsDir.c_str(), FtwCallback, 10);
+        File::WalkDirectoryTree(FsDir, this);
     }
 
-    int DirectoryScanner::FtwCallback(const char* fpath, const struct stat* sb, int typeflag) {
-        dmsg(2,("DirectoryScanner: FtwCallback(fpath=%s)\n", fpath));
-        if (typeflag != FTW_D) return 0;
+    void DirectoryScanner::DirectoryEntry(std::string Path) {
+        dmsg(2,("DirectoryScanner: DirectoryEntry(Path=%s)\n", Path.c_str()));
 
         String dir = DbDir;
         if (!Flat) {
-            String subdir = fpath;
+            String subdir = Path;
             if(subdir.length() > FsDir.length()) {
                 subdir = subdir.substr(FsDir.length());
                 dir += subdir;
@@ -617,48 +578,29 @@ namespace LinuxSampler {
         
         InstrumentsDb* db = InstrumentsDb::GetInstrumentsDb();
 
-        if (HasInstrumentFiles(String(fpath))) {
+        if (HasInstrumentFiles(Path)) {
             if (!db->DirectoryExist(dir)) db->AddDirectory(dir);
-            db->AddInstrumentsNonrecursive(dir, String(fpath), pProgress);
+            db->AddInstrumentsNonrecursive(dir, Path, pProgress);
         }
-
-        return 0;
     };
 
     bool DirectoryScanner::HasInstrumentFiles(String Dir) {
-        return InstrumentFileCounter::Count(Dir) > 0;
+        InstrumentFileCounter c;
+        return c.Count(Dir) > 0;
     }
-
-    int InstrumentFileCounter::FileCount;
 
     int InstrumentFileCounter::Count(String FsDir) {
         dmsg(2,("InstrumentFileCounter: Count(FsDir=%s)\n", FsDir.c_str()));
         if (FsDir.empty()) throw Exception("Directory expected");
         FileCount = 0;
 
-        struct stat statBuf;
-        int res = stat(FsDir.c_str(), &statBuf);
-        if (res) {
-            std::stringstream ss;
-            ss << "Fail to stat `" << FsDir << "`: " << strerror(errno);
-            throw Exception(ss.str());
-        }
-
-        if (!S_ISDIR(statBuf.st_mode)) {
-            throw Exception("Directory expected");
-        }
-        
-        ftw(FsDir.c_str(), FtwCallback, 10);
+        File::WalkDirectoryTree(FsDir, this);
         return FileCount;
     }
 
-    int InstrumentFileCounter::FtwCallback(const char* fpath, const struct stat* sb, int typeflag) {
-        if (typeflag != FTW_F) return 0;
-        String s = fpath;
-        if(s.length() < 4) return 0;
-        if(!strcasecmp(".gig", s.substr(s.length() - 4).c_str())) FileCount++;
-
-        return 0;
+    void InstrumentFileCounter::FileEntry(std::string Path) {
+        if(Path.length() < 4) return;
+        if(!strcasecmp(".gig", Path.substr(Path.length() - 4).c_str())) FileCount++;
     };
 
 } // namespace LinuxSampler

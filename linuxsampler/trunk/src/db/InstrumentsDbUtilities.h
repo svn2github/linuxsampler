@@ -1,6 +1,6 @@
 /***************************************************************************
  *                                                                         *
- *   Copyright (C) 2007 Grigor Iliev                                       *
+ *   Copyright (C) 2007, 2008 Grigor Iliev                                 *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -27,7 +27,8 @@
 #include <vector>
 #include <gig.h>
 #include <sqlite3.h>
-#include <sys/stat.h>
+
+#include "../common/File.h"
 
 namespace LinuxSampler {
 
@@ -360,7 +361,7 @@ namespace LinuxSampler {
                 int GetFileCount();
     };
     
-    class DirectoryScanner {
+    class DirectoryScanner: public File::DirectoryWalker {
         public:
             /**
              * Recursively scans all subdirectories of the specified file
@@ -368,18 +369,20 @@ namespace LinuxSampler {
              * @param pProgress The progress used to monitor the scan process.
              * @throws Exception - if the specified directories are invalid.
              */
-            static void Scan(String DbDir, String FsDir, bool Flat, ScanProgress* pProgress = NULL);
+           void Scan(String DbDir, String FsDir, bool Flat, ScanProgress* pProgress = NULL);
+
+           virtual void DirectoryEntry(std::string Path);
+           virtual void FileEntry(std::string Path) { }
 
         private:
-            static String DbDir;
-            static String FsDir;
-            static bool Flat;
-            static ScanProgress* pProgress;
-            static int FtwCallback(const char* fpath, const struct stat* sb, int typeflag);
-            static bool HasInstrumentFiles(String Dir);
+            String DbDir;
+            String FsDir;
+            bool Flat;
+            ScanProgress* pProgress;
+            bool HasInstrumentFiles(String Dir);
     };
     
-    class InstrumentFileCounter {
+    class InstrumentFileCounter: public File::DirectoryWalker {
         public:
             /**
              * Recursively scans all subdirectories of the specified file
@@ -387,12 +390,13 @@ namespace LinuxSampler {
              * @param FsDir The file system directory to process.
              * @throws Exception - if the specified directory is invalid.
              */
-            static int Count(String FsDir);
+            int Count(String FsDir);
 
-            static int FtwCallback(const char* fpath, const struct stat* sb, int typeflag);
+            virtual void DirectoryEntry(std::string Path) { }
+            virtual void FileEntry(std::string Path);
 
         private:
-            static int FileCount;
+            int FileCount;
     };
             
 } // namespace LinuxSampler
