@@ -355,6 +355,7 @@ public class Client {
 			subscribe("DB_INSTRUMENT_DIRECTORY_INFO");
 			subscribe("DB_INSTRUMENT_COUNT");
 			subscribe("DB_INSTRUMENT_INFO");
+			subscribe("DB_INSTRUMENTS_JOB_INFO");
 		}
 		if(!llGI.isEmpty()) subscribe("GLOBAL_INFO");
 	}
@@ -2803,10 +2804,42 @@ public class Client {
 	}
 	
 	/**
-	 * Gets all MIDI instrument contained int the specified MIDI instrument map.
+	 * Gets all MIDI instrument entries contained int the specified MIDI instrument map.
+	 * @param mapId The ID of the map, which instruments should be obtained.
+	 * @return An int array providing all MIDI instrument entries
+	 * in the specified MIDI instrument map.
+	 * @throws IOException If some I/O error occurs.
+	 * @throws LscpException If LSCP protocol corruption occurs.
+	 * @throws LSException If some other error occurs.
+	 */
+	public synchronized int[][]
+	getMidiInstrumentEntries(int mapId) throws IOException, LscpException, LSException {
+		verifyConnection();
+		out.writeLine("LIST MIDI_INSTRUMENTS " + String.valueOf(mapId));
+		if(getPrintOnlyMode()) return null;
+		
+		String[] entries = parseArray(getSingleLineResultSet().getResult());
+		int[][] e = new int[entries.length][3];
+		
+		for(int i = 0; i < entries.length; i++) {
+			Integer[] vals = parseIntList(entries[i]);
+			if(vals.length != 3) {
+				throw new LscpException(LscpI18n.getLogMsg("CommandFailed!"));
+			}
+			
+			e[i][0] = vals[0];
+			e[i][1] = vals[1];
+			e[i][2] = vals[2];
+		}
+		
+		return e;
+	}
+	
+	/**
+	 * Gets all MIDI instruments contained int the specified MIDI instrument map.
 	 * @param mapId The ID of the map, which instruments should be obtained.
 	 * @return A <code>MidiInstrumentInfo</code> array providing
-	 * all MIDI instruments from all MIDI instrument maps.
+	 * all MIDI instruments in the specified MIDI instrument map.
 	 * @throws IOException If some I/O error occurs.
 	 * @throws LscpException If LSCP protocol corruption occurs.
 	 * @throws LSException If some other error occurs.
@@ -2854,14 +2887,25 @@ public class Client {
 					throws IOException, LscpException, LSException {
 	
 		verifyConnection();
+		requestMidiInstrumentInfo(mapId, bank, program);
+		return getMidiInstrumentInfoResponse(mapId, bank, program);
+	}
+	
+	private void
+	requestMidiInstrumentInfo(int mapId, int bank, int program) throws IOException {
 		StringBuffer cmd = new StringBuffer("GET MIDI_INSTRUMENT INFO ");
 		cmd.append(mapId).append(' ');
 		cmd.append(bank).append(' ');
 		cmd.append(program);
 		
 		out.writeLine(cmd.toString());
-		if(getPrintOnlyMode()) return null;
+	}
+	
+	private MidiInstrumentInfo
+	getMidiInstrumentInfoResponse(int mapId, int bank, int program)
+					throws IOException, LscpException, LSException {
 		
+		if(getPrintOnlyMode()) return null;
 		ResultSet rs = getMultiLineResultSet();
 		MidiInstrumentEntry entry = new MidiInstrumentEntry(bank, program);
 		return new MidiInstrumentInfo(mapId, entry, rs.getMultiLineResult());
