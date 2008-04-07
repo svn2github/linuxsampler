@@ -22,6 +22,7 @@
 <a href="#setup_audio">&nbsp;&nbsp;&nbsp;&nbsp;4.2&nbsp; Setting up Audio Output</a><br>
 <a href="#load_samples">&nbsp;&nbsp;&nbsp;&nbsp;4.3&nbsp; Loading Samples</a><br>
 <a href="#save_session">&nbsp;&nbsp;&nbsp;&nbsp;4.4&nbsp; Saving a Sampler Session</a><br>
+<a href="#sequencer_routing">&nbsp;&nbsp;&nbsp;&nbsp;4.5&nbsp; Routing LinuxSampler Outs Into Sequencer</a><br>
 <a href="#houston">5.&nbsp; Installation Troubleshooting</a><br>
 <a href="#docs">6.&nbsp; Detailed Documentation</a><br>
 <a href="#bugs">7.&nbsp; Bugs, Problems and Feature Requests</a><br>
@@ -235,6 +236,22 @@ from the left, then select a .lscp file in the file dialog and press "Open".
 This will automatically set up the MIDI devices and audio devices,
 create the sampler channels and load all the samples that were previously
 loaded by you in the saved sampler session.
+
+<a name="sequencer_routing"></a>
+<h3>4.5&nbsp; Routing LinuxSampler Outs Into Sequencer</h3>
+LinuxSampler currently lacks a VST interface so the only way to route LinuxSampler's outs into a sequencer
+are either by using physical cables or internal routing via ASIO. Some audio cards offer this feature.
+<br>
+The <a href="http://www.reaper.fm">Reaper</A> sequencer allows ASIO routing by implementing a virtual
+ASIO based driver independently from the soundcard type (ReaRoute). Basically in LinuxSampler you select the ReaRoute  as ASIO output driver which
+appear as input ports in Reaper. Coupled with the MIDI controllable FX sends in LinuxSampler you can use
+Reaper's FX egine to add reverb, chorus etc to LinuxSampler instruments, fully MIDI controllable, similar to
+other MIDI based modules.
+<br>
+Our forum user moonskin (thanks Graham!) has described the steps needed to perform in order to set up the routing.
+<a href="http://bb.linuxsampler.org/viewtopic.php?f=6&t=111&sid=d745353791f6cb1ef46946af4168aada&start=10#p944">
+See here</a>
+
 
 <a name="houston"></a>
 <h3>5.&nbsp; Installation Troubleshooting</h3>
