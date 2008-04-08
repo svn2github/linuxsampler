@@ -277,24 +277,23 @@ namespace LinuxSampler {
 
             /**
              * Should be called by the implementing MIDI input device
-             * whenever a program change event arrived, this will cause the
-             * appropriate sampler channel to be connected with this MIDI
-             * device.
+             * whenever a program change event arrived. In case the
+             * respective sampler channel(s) are enabled for MIDI
+             * instrument mapping, the respective sampler engine and
+             * instrument will be loaded on the connected sampler
+             * channel(s) as defined by the respective entry in the
+             * MIDI instrument map.
              *
-             * For example consider a program change event on MIDI channel
-             * 3 for program number 18. This would cause this MIDI input
-             * device to be connected to sampler channel 18 and would cause
-             * sampler channel 18 to listen to MIDI channel 3.
+             * @e Note: the MIDI instrument map is empty by default on
+             * sampler startup. It has to be explicitly filled with
+             * entries and the sampler channel(s) have to be enabled for
+             * a certain MIDI instrument table, otherwise program change
+             * messages are ignored!
              *
-             * This is the current, general implementation of program
-             * change events. It might change in future, e.g to allow
-             * sampler engines to allow by themselfes how to act on a
-             * program change event.
-             *
-             * @param Program     - sampler channel to connect to this MIDI
-             *                      input device
-             * @param MidiChannel - MIDI channel on which sampler channel
-             *                      \a Program should listen to
+             * @param Program     - MIDI program change number
+             * @param MidiChannel - MIDI channel on which this program
+             *                      change occured
+             * @see MidiInstrumentMapper
              */
             void DispatchProgramChange(uint8_t Program, uint MidiChannel);
 
