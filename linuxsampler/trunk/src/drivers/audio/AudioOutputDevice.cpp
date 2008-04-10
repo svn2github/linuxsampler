@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 - 2007 Christian Schoenebeck                       *
+ *   Copyright (C) 2005 - 2008 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -205,6 +205,16 @@ namespace LinuxSampler {
             }
             Parameters.clear();
         }
+
+        // delete all master effect chains
+        {
+            std::vector<EffectChain*>::iterator iter = vEffectChains.begin();
+            while (iter != vEffectChains.end()) {
+                delete *iter;
+                iter++;
+            }
+            vEffectChains.clear();
+        }
     }
 
     void AudioOutputDevice::Connect(Engine* pEngine) {
@@ -247,6 +257,32 @@ namespace LinuxSampler {
         return Parameters;
     }
 
+    EffectChain* AudioOutputDevice::AddMasterEffectChain() {
+        EffectChain* pChain = new EffectChain(this);
+        vEffectChains.push_back(pChain);
+        return pChain;
+    }
+
+    void AudioOutputDevice::RemoveMasterEffectChain(uint iChain) throw (Exception) {
+        if (iChain >= vEffectChains.size())
+            throw Exception(
+                "Could not remove master effect chain " + ToString(iChain) +
+                ", index out of bounds"
+            );
+        std::vector<EffectChain*>::iterator iter = vEffectChains.begin();
+        for (int i = 0; i < iChain; ++i) ++iter;
+        vEffectChains.erase(iter);
+    }
+
+    EffectChain* AudioOutputDevice::MasterEffectChain(uint iChain) const {
+        if (iChain >= vEffectChains.size()) return NULL;
+        return vEffectChains[iChain];
+    }
+
+    uint AudioOutputDevice::MasterEffectChainCount() const {
+        return vEffectChains.size();
+    }
+
     int AudioOutputDevice::RenderAudio(uint Samples) {
         if (Channels.empty()) return 0;
 
@@ -256,6 +292,13 @@ namespace LinuxSampler {
             std::vector<AudioChannel*>::iterator end          = Channels.end();
             for (; iterChannels != end; iterChannels++)
                 (*iterChannels)->Clear(); // zero out audio buffer
+        }
+        // do the same for master effects
+        {
+            std::vector<EffectChain*>::iterator iterChains = vEffectChains.begin();
+            std::vector<EffectChain*>::iterator end        = vEffectChains.end();
+            for (; iterChains != end; ++iterChains)
+                (*iterChains)->ClearAllChannels(); // zero out audio buffers
         }
 
         int result = 0;
@@ -279,8 +322,25 @@ namespace LinuxSampler {
             exit(EXIT_FAILURE);
         }
         #endif // CONFIG_RT_EXCEPTIONS
-
         EnginesReader.Unlock();
+
+        // now that the engines (might) have left fx send signals for master
+        // effects, render all master effects
+        {
+            std::vector<EffectChain*>::iterator iterChains = vEffectChains.begin();
+            std::vector<EffectChain*>::iterator end        = vEffectChains.end();
+            for (; iterChains != end; ++iterChains) {
+                if (!(*iterChains)->EffectCount()) continue;
+                (*iterChains)->RenderAudio(Samples);
+                // mix the result of the last effect in the chain to the audio
+                // output device channel(s)
+                Effect* pLastEffect =
+                    (*iterChains)->GetEffect((*iterChains)->EffectCount() - 1);
+                for (int iChan = 0; iChan < pLastEffect->OutputChannelCount() && iChan < ChannelCount(); ++iChan)
+                    pLastEffect->OutputChannel(iChan)->MixTo(Channel(iChan), Samples);
+            }
+        }
+
         return result;
     }
 

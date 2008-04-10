@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 - 2007 Christian Schoenebeck                       *
+ *   Copyright (C) 2005 - 2008 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -36,6 +36,7 @@
 #include "../../engines/Engine.h"
 #include "AudioChannel.h"
 #include "../../common/SynchronizedConfig.h"
+#include "../../effects/EffectChain.h"
 
 namespace LinuxSampler {
 
@@ -241,11 +242,37 @@ namespace LinuxSampler {
              */
             std::map<String,DeviceCreationParameter*> DeviceParameters();
 
+            /**
+             * Add a chain of master effects to this AudioOutputDevice.
+             * You actually have to add effects to that chain afterwards.
+             */
+            EffectChain* AddMasterEffectChain();
+
+            /**
+             * Remove the master effect chain given by @a iChain .
+             *
+             * @throws Exception - if given master effect chain doesn't exist
+             */
+            void RemoveMasterEffectChain(uint iChain) throw (Exception);
+
+            /**
+             * Returns master effect chain given by @a iChain or @c NULL if
+             * there's no such effect chain.
+             */
+            EffectChain* MasterEffectChain(uint iChain) const;
+
+            /**
+             * Returns amount of master effect chains this AudioOutputDevice
+             * currently provides.
+             */
+            uint MasterEffectChainCount() const;
+
         protected:
             SynchronizedConfig<std::set<Engine*> >    Engines;     ///< All sampler engines that are connected to the audio output device.
             SynchronizedConfig<std::set<Engine*> >::Reader EnginesReader; ///< Audio thread access to Engines.
             std::vector<AudioChannel*>                Channels;    ///< All audio channels of the audio output device. This is just a container; the descendant has to create channels by himself.
             std::map<String,DeviceCreationParameter*> Parameters;  ///< All device parameters.
+            std::vector<EffectChain*>                 vEffectChains;
 
             AudioOutputDevice(std::map<String,DeviceCreationParameter*> DriverParameters);
 

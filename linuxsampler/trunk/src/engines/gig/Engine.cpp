@@ -857,7 +857,7 @@ namespace LinuxSampler { namespace gig {
      *                         this audio fragment cycle
      */
     void Engine::RouteAudio(EngineChannel* pEngineChannel, uint Samples) {
-        // route master signal
+        // route dry signal
         {
             AudioChannel* pDstL = pAudioOutputDevice->Channel(pEngineChannel->AudioDeviceChannelLeft);
             AudioChannel* pDstR = pAudioOutputDevice->Channel(pEngineChannel->AudioDeviceChannelRight);
@@ -868,28 +868,47 @@ namespace LinuxSampler { namespace gig {
         {
             for (int iFxSend = 0; iFxSend < pEngineChannel->GetFxSendCount(); iFxSend++) {
                 FxSend* pFxSend = pEngineChannel->GetFxSend(iFxSend);
-                // left channel
-                const int iDstL = pFxSend->DestinationChannel(0);
-                if (iDstL < 0) {
-                    dmsg(1,("Engine::RouteAudio() Error: invalid FX send (L) destination channel"));
-                } else {
-                    AudioChannel* pDstL = pAudioOutputDevice->Channel(iDstL);
-                    if (!pDstL) {
-                        dmsg(1,("Engine::RouteAudio() Error: invalid FX send (L) destination channel"));
-                    } else pEngineChannel->pChannelLeft->MixTo(pDstL, Samples, pFxSend->Level());
-                }
-                // right channel
-                const int iDstR = pFxSend->DestinationChannel(1);
-                if (iDstR < 0) {
-                    dmsg(1,("Engine::RouteAudio() Error: invalid FX send (R) destination channel"));
-                } else {
-                    AudioChannel* pDstR = pAudioOutputDevice->Channel(iDstR);
-                    if (!pDstR) {
-                        dmsg(1,("Engine::RouteAudio() Error: invalid FX send (R) destination channel"));
-                    } else pEngineChannel->pChannelRight->MixTo(pDstR, Samples, pFxSend->Level());
+                for (int iChan = 0; iChan < 2; ++iChan) {
+                    AudioChannel* pSource =
+                        (iChan)
+                            ? pEngineChannel->pChannelRight
+                            : pEngineChannel->pChannelLeft;
+                    const int iDstChan = pFxSend->DestinationChannel(iChan);
+                    if (iDstChan < 0) {
+                        dmsg(1,("Engine::RouteAudio() Error: invalid FX send (%s) destination channel (%d->%d)", ((iChan) ? "R" : "L"), iChan, iDstChan));
+                        goto channel_cleanup;
+                    }
+                    AudioChannel* pDstChan = NULL;
+                    if (pFxSend->DestinationMasterEffectChain() >= 0) { // fx send routed to an internal master effect
+                        EffectChain* pEffectChain =
+                            pAudioOutputDevice->MasterEffectChain(
+                                pFxSend->DestinationMasterEffectChain()
+                            );
+                        if (!pEffectChain) {
+                            dmsg(1,("Engine::RouteAudio() Error: invalid FX send (%s) destination effect chain %d", ((iChan) ? "R" : "L"), pFxSend->DestinationMasterEffectChain()));
+                            goto channel_cleanup;
+                        }
+                        Effect* pEffect =
+                            pEffectChain->GetEffect(
+                                pFxSend->DestinationMasterEffect()
+                            );
+                        if (!pEffect) {
+                            dmsg(1,("Engine::RouteAudio() Error: invalid FX send (%s) destination effect %d of effect chain %d", ((iChan) ? "R" : "L"), pFxSend->DestinationMasterEffect(), pFxSend->DestinationMasterEffectChain()));
+                            goto channel_cleanup;
+                        }
+                        pDstChan = pEffect->InputChannel(iDstChan);
+                    } else { // FX send routed directly to an audio output channel
+                        pDstChan = pAudioOutputDevice->Channel(iDstChan);
+                    }
+                    if (!pDstChan) {
+                        dmsg(1,("Engine::RouteAudio() Error: invalid FX send (%s) destination channel (%d->%d)", ((iChan) ? "R" : "L"), iChan, iDstChan));
+                        goto channel_cleanup;
+                    }
+                    pSource->MixTo(pDstChan, Samples, pFxSend->Level());
                 }
             }
         }
+        channel_cleanup:
         // reset buffers with silence (zero out) for the next audio cycle
         pEngineChannel->pChannelLeft->Clear();
         pEngineChannel->pChannelRight->Clear();
@@ -2049,7 +2068,7 @@ namespace LinuxSampler { namespace gig {
     }
 
     String Engine::Version() {
-        String s = "$Revision: 1.89 $";
+        String s = "$Revision: 1.90 $";
         return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
 

@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 - 2007 Christian Schoenebeck                       *
+ *   Copyright (C) 2005 - 2008 Christian Schoenebeck                       *
  *                                                                         *
  *   This library is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -33,7 +33,9 @@
 
 namespace LinuxSampler {
 
-    FxSend::FxSend(EngineChannel* pEngineChannel, uint8_t MidiCtrl, String Name) throw (Exception) {
+    FxSend::FxSend(EngineChannel* pEngineChannel, uint8_t MidiCtrl, String Name) throw (Exception)
+        : iMasterEffectChain(-1), iMasterEffect(-1)
+    {
         this->pEngineChannel = pEngineChannel;
         AudioOutputDevice* pDevice = pEngineChannel->GetAudioOutputDevice();
         const int iChanOffset = (pDevice) ? pDevice->ChannelCount() - pEngineChannel->Channels() : 0;
@@ -74,6 +76,31 @@ namespace LinuxSampler {
         __done:
 
         fLevel = DEFAULT_FX_SEND_LEVEL;
+    }
+
+    int FxSend::DestinationMasterEffectChain() const {
+        return iMasterEffectChain;
+    }
+
+    int FxSend::DestinationMasterEffect() const {
+        return iMasterEffect;
+    }
+
+    void FxSend::SetDestinationMasterEffect(int iChain, int iEffect) throw (Exception) {
+        AudioOutputDevice* pDevice = pEngineChannel->GetAudioOutputDevice();
+        if (iChain < 0 || iChain >= pDevice->MasterEffectChainCount())
+            throw Exception(
+                "Could not assign FX Send to master effect chain " +
+                ToString(iChain) + ": effect chain doesn't exist."
+            );
+        if (iEffect < 0 || iEffect >= pDevice->MasterEffectChain(iChain)->EffectCount())
+            throw Exception(
+                "Could not assign FX Send to master effect " +
+                ToString(iEffect) + " of effect chain " + ToString(iChain) +
+                ": effect doesn't exist."
+            );
+        iMasterEffectChain = iChain;
+        iMasterEffect      = iEffect;
     }
 
     int FxSend::DestinationChannel(int SrcChan) {

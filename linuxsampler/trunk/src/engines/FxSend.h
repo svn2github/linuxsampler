@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 - 2007 Christian Schoenebeck                       *
+ *   Copyright (C) 2005 - 2008 Christian Schoenebeck                       *
  *                                                                         *
  *   This library is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -38,10 +38,15 @@ namespace LinuxSampler {
     /** @brief Engine Channel Effect Send
      *
      * This class is used to manage effect sends on Engine Channels. An effect
-     * send is used to route sampler channel's audio signals to sampler
-     * external effect processors. Each effect send entity can define an
-     * arbitrary MIDI controller number which can alter the effect send's
-     * send level.
+     * send is used to route sampler channel's audio signals to either sampler
+     * external effect processors or to sampler internal effect processors.
+     * Each effect send entity can define an arbitrary MIDI controller number
+     * which can alter the effect send's send level.
+     *
+     * Regarding sampler internal effects: only master effects are supported
+     * ATM, no insert effects yet. See AudioOutputDevice regarding management
+     * of master effects, since master effects only live in the context of
+     * exactly @e ONE AudioOutputDevice.
      *
      * Note: effect sends cannot be routed to a different AudioOutputDevice
      * than assigned to the FxSend's EngineChannel. Also note that an effect
@@ -65,6 +70,33 @@ namespace LinuxSampler {
              *                     invalid
              */
             FxSend(EngineChannel* pEngineChannel, uint8_t MidiCtrl, String Name = "") throw (Exception);
+
+            /**
+             * Index of the master effect chain this FX send is routed to or
+             * -1 if FX send is not routed to a master effect.
+             */
+            int DestinationMasterEffectChain() const;
+
+            /**
+             * Index of the master effect of the master effect chain given by
+             * DestinationMasterEffectChain(), in case FX send is routed to
+             * a master effect or -1 otherwise.
+             */
+            int DestinationMasterEffect() const;
+
+            /**
+             * Route this FX send to the given master effect given by index
+             * @a iEffect of the master effect chain given by @a iChain .
+             *
+             * If you want to remove the routing of an FX send, currently
+             * directed to a master effect processor, and want to route it
+             * directly to an audio output device channel instead, then set
+             * both arguments to @c -1 .
+             *
+             * @throw Exception - if given effect / effect chain doesn't exist
+             * @see AudioOutputDevice::MasterEffectChain()
+             */
+            void SetDestinationMasterEffect(int iChain, int iEffect) throw (Exception);
 
             /**
              * Returns the audio output device's audio channel to which effect
@@ -160,6 +192,8 @@ namespace LinuxSampler {
 
         protected:
             EngineChannel*   pEngineChannel;
+            int              iMasterEffectChain;
+            int              iMasterEffect;
             std::vector<int> Routing;
             uint8_t          MidiFxSendController;
             String           sName;

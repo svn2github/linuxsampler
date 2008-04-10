@@ -12,7 +12,7 @@ endif
 
 AM_CXXFLAGS = -Wreturn-type -ffast-math $(CXX_CPU_SWITCH)
 
-SUBDIRS = db network engines common testcases drivers plugins
+SUBDIRS = db network engines common testcases drivers plugins effects
 
 liblinuxsamplerincludedir = $(includedir)/linuxsampler
 liblinuxsamplerinclude_HEADERS = Sampler.h EventListeners.h
@@ -29,6 +29,7 @@ liblinuxsampler_la_LIBADD = \
 	$(top_builddir)/src/drivers/audio/liblinuxsampleraudiodriver.la \
 	$(top_builddir)/src/drivers/midi/liblinuxsamplermididriver.la \
 	$(top_builddir)/src/plugins/liblinuxsamplerplugins.la \
+	$(top_builddir)/src/effects/liblinuxsamplereffects.la \
 	$(top_builddir)/src/common/liblinuxsamplercommon.la
 liblinuxsampler_la_LDFLAGS = -version-info @SHARED_VERSION_INFO@ @SHLIB_VERSION_ARG@ -no-undefined
 
