@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 - 2007 Christian Schoenebeck                       *
+ *   Copyright (C) 2005 - 2008 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -46,7 +46,7 @@ void Features::detect() {
 void Features::detect() {}
 #endif // CONFIG_ASM && ARCH_X86
 
-void Features::enableDenormalsAreZeroMode() {
+bool Features::enableDenormalsAreZeroMode() {
     #if CONFIG_ASM && ARCH_X86
     if (supportsSSE2()) {
         int x;
@@ -59,7 +59,9 @@ void Features::enableDenormalsAreZeroMode() {
             :: "m" (x)
             : "%eax"
         );
+        return true;
     }
+    return false;
     #endif // CONFIG_ASM && ARCH_X86
 }
 

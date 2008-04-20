@@ -531,6 +531,15 @@ namespace LinuxSampler {
              */
             void Reset();
 
+            /**
+             * Advise the FPU to treat denormal floating point numbers as
+             * zero, to avoid severe performance penalty when dealing with
+             * such extreme floating point values.
+             *
+             * @returns @c true if FPU supports it, @c false otherwise
+             */
+            static bool EnableDenormalsAreZeroMode();
+
         protected:
             /**
              * Notifies listeners that the number of sampler channels has been changed.

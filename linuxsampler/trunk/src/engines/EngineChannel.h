@@ -70,6 +70,8 @@ namespace LinuxSampler {
             virtual bool    StatusChanged(bool bNewStatus = false) = 0;
             virtual float   Volume() = 0;
             virtual void    Volume(float f) = 0;
+            virtual float   Pan() = 0;
+            virtual void    Pan(float f) = 0;
             virtual uint    Channels() = 0;
             virtual void    Connect(AudioOutputDevice* pAudioOut) = 0;
             virtual void    DisconnectAudioOutputDevice() = 0;

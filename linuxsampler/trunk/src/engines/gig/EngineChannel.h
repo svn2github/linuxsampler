@@ -65,6 +65,8 @@ namespace LinuxSampler { namespace gig {
             virtual bool    StatusChanged(bool bNewStatus = false);
             virtual float   Volume();
             virtual void    Volume(float f);
+            virtual float   Pan();
+            virtual void    Pan(float f);
             virtual uint    Channels();
             virtual void    Connect(AudioOutputDevice* pAudioOut);
             virtual void    DisconnectAudioOutputDevice();
@@ -129,6 +131,7 @@ namespace LinuxSampler { namespace gig {
             bool                    bStatusChanged;           ///< true in case an engine parameter has changed (e.g. new instrument, another volumet)
             std::vector<FxSend*>    fxSends;
             int                     GlobalTranspose;          ///< amount of semi tones all notes should be transposed
+            int                     iLastPanRequest; ///< just for the return value of Pan(), so we don't have to make an injective function
 
             /// Command used by the instrument loader thread to
             /// request an instrument change on a channel.

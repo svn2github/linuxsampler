@@ -1728,6 +1728,7 @@ namespace LinuxSampler { namespace gig {
                 //TODO: not sample accurate yet
                 pEngineChannel->GlobalPanLeft  = PanCurve[128 - itControlChangeEvent->Param.CC.Value];
                 pEngineChannel->GlobalPanRight = PanCurve[itControlChangeEvent->Param.CC.Value];
+                pEngineChannel->iLastPanRequest = itControlChangeEvent->Param.CC.Value;
                 break;
             }
             case 64: { // sustain
@@ -2068,7 +2069,7 @@ namespace LinuxSampler { namespace gig {
     }
 
     String Engine::Version() {
-        String s = "$Revision: 1.90 $";
+        String s = "$Revision: 1.91 $";
         return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
 

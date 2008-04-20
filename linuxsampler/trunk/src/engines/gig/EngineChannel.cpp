@@ -737,6 +737,7 @@ namespace LinuxSampler { namespace gig {
         MidiVolume     = 1.0;
         GlobalPanLeft  = 1.0f;
         GlobalPanRight = 1.0f;
+        iLastPanRequest = 64;
         GlobalTranspose = 0;
         // set all MIDI controller values to zero
         memset(ControllerTable, 0x00, 129);
@@ -873,6 +874,19 @@ namespace LinuxSampler { namespace gig {
     void EngineChannel::Volume(float f) {
         GlobalVolume = f;
         bStatusChanged = true; // status of engine channel has changed, so set notify flag
+    }
+
+    float EngineChannel::Pan() {
+        return float(iLastPanRequest - 64) / 64.0f;
+    }
+
+    void EngineChannel::Pan(float f) {
+        int iMidiPan = int(f * 64.0f) + 64;
+        if (iMidiPan > 127) iMidiPan = 127;
+        else if (iMidiPan < 0) iMidiPan = 0;
+        GlobalPanLeft  = Engine::PanCurve[128 - iMidiPan];
+        GlobalPanRight = Engine::PanCurve[iMidiPan];
+        iLastPanRequest = iMidiPan;
     }
 
     uint EngineChannel::Channels() {

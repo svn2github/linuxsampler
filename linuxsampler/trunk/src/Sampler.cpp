@@ -32,6 +32,7 @@
 #include "drivers/audio/AudioOutputDeviceFactory.h"
 #include "drivers/midi/MidiInputDeviceFactory.h"
 #include "drivers/midi/MidiInstrumentMapper.h"
+#include "common/Features.h"
 
 namespace LinuxSampler {
 
@@ -678,6 +679,11 @@ namespace LinuxSampler {
 
         // unload all instrument editor DLLs
         InstrumentEditorFactory::ClosePlugins();
+    }
+
+    bool Sampler::EnableDenormalsAreZeroMode() {
+        Features::detect();
+        return Features::enableDenormalsAreZeroMode();
     }
 
 } // namespace LinuxSampler
