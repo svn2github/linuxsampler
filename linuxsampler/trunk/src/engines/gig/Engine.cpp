@@ -1891,6 +1891,26 @@ namespace LinuxSampler { namespace gig {
         if (exclusive_status != 0xF0)       goto free_sysex_data;
 
         switch (id) {
+            case 0x7f: { // (Realtime) Universal Sysex (GM Standard)
+                uint8_t sysex_channel, sub_id1, sub_id2, val_msb, val_lsb;;
+                if (!reader.pop(&sysex_channel)) goto free_sysex_data;
+                if (!reader.pop(&sub_id1)) goto free_sysex_data;
+                if (!reader.pop(&sub_id2)) goto free_sysex_data;
+                if (!reader.pop(&val_lsb)) goto free_sysex_data;
+                if (!reader.pop(&val_msb)) goto free_sysex_data;
+                //TODO: for now we simply ignore the sysex channel, seldom used anyway
+                switch (sub_id1) {
+                    case 0x04: // Device Control
+                        switch (sub_id2) {
+                            case 0x01: // Master Volume
+                                GLOBAL_VOLUME =
+                                    double((uint(val_msb)<<7) | uint(val_lsb)) / 16383.0;
+                                break;
+                        }
+                        break;
+                }
+                break;
+            }
             case 0x41: { // Roland
                 dmsg(3,("Roland Sysex\n"));
                 uint8_t device_id, model_id, cmd_id;
@@ -2069,7 +2089,7 @@ namespace LinuxSampler { namespace gig {
     }
 
     String Engine::Version() {
-        String s = "$Revision: 1.91 $";
+        String s = "$Revision: 1.92 $";
         return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
 

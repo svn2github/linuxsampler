@@ -2557,7 +2557,7 @@ String LSCPServer::SetGlobalVolume(double dVolume) {
     LSCPResultSet result;
     try {
         if (dVolume < 0) throw Exception("Volume may not be negative");
-        GLOBAL_VOLUME = dVolume; // see common/global.cpp
+        GLOBAL_VOLUME = dVolume; // see common/global_private.cpp
         LSCPServer::SendLSCPNotify(LSCPEvent(LSCPEvent::event_global_info, "VOLUME", GLOBAL_VOLUME));
     } catch (Exception e) {
         result.Error(e);

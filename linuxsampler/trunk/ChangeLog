@@ -53,6 +53,7 @@ Version CVS HEAD (?)
       enough for piano gigs with pedal noise samples
     - minor fix: only mark FX sends as being modified if really the
       respective FX send MIDI controller was used
+    - added support for GM global device volume SysEx message
 
   * LSCP server:
     - added new LSCP event "CHANNEL_MIDI" which can be used by frontends to
