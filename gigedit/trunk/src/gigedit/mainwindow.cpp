@@ -624,15 +624,15 @@ void MainWindow::on_action_file_open()
     Gtk::FileFilter filter;
     filter.add_pattern("*.gig");
     dialog.set_filter(filter);
-    if (current_dir != "") {
-        dialog.set_current_folder(current_dir);
+    if (current_gig_dir != "") {
+        dialog.set_current_folder(current_gig_dir);
     }
     if (dialog.run() == Gtk::RESPONSE_OK) {
         std::string filename = dialog.get_filename();
         printf("filename=%s\n", filename.c_str());
         printf("on_action_file_open self=%x\n", Glib::Thread::self());
         load_file(filename.c_str());
-        current_dir = Glib::path_get_dirname(filename);
+        current_gig_dir = Glib::path_get_dirname(filename);
     }
 }
 
@@ -763,7 +763,7 @@ bool MainWindow::file_save_as()
         if (Glib::path_is_absolute(filename)) {
             dialog.set_filename(copyFileName);
         } else {
-            if (current_dir != "") dialog.set_current_folder(current_dir);
+            if (current_gig_dir != "") dialog.set_current_folder(current_gig_dir);
         }
         dialog.set_current_name(Glib::filename_display_basename(copyFileName));
     }
@@ -799,7 +799,7 @@ bool MainWindow::file_save_as()
             printf("filename=%s\n", filename.c_str());
             file->Save(filename);
             this->filename = filename;
-            current_dir = Glib::path_get_dirname(filename);
+            current_gig_dir = Glib::path_get_dirname(filename);
             set_title(Glib::filename_display_basename(filename));
             file_has_name = true;
             file_is_changed = false;
@@ -1415,7 +1415,11 @@ void MainWindow::on_action_add_sample() {
     allpassfilter.set_name("All Files");
     dialog.add_filter(soundfilter);
     dialog.add_filter(allpassfilter);
+    if (current_sample_dir != "") {
+        dialog.set_current_folder(current_sample_dir);
+    }
     if (dialog.run() == Gtk::RESPONSE_OK) {
+        current_sample_dir = dialog.get_current_folder();
         Glib::ustring error_files;
         Glib::SListHandle<Glib::ustring> filenames = dialog.get_filenames();
         for (Glib::SListHandle<Glib::ustring>::iterator iter = filenames.begin();
@@ -1565,6 +1569,9 @@ void MainWindow::on_action_replace_all_samples_in_all_groups()
     dialog.add_button(Gtk::Stock::CANCEL, Gtk::RESPONSE_CANCEL);
     dialog.add_button(_("Select"), Gtk::RESPONSE_OK);
     dialog.set_select_multiple(false);
+    if (current_sample_dir != "") {
+        dialog.set_current_folder(current_sample_dir);
+    }
     // fix label width (because Gtk by design doesn't
     // know anything about the parent's size)
 #if 0 //FIXME: doesn't work
@@ -1576,6 +1583,7 @@ void MainWindow::on_action_replace_all_samples_in_all_groups()
 #endif
     if (dialog.run() == Gtk::RESPONSE_OK)
     {
+        current_sample_dir = dialog.get_current_folder();
         Glib::ustring error_files;
         Glib::ustring folder = dialog.get_filename();
         for (gig::Sample* sample = file->GetFirstSample();

@@ -32,6 +32,8 @@ Version CVS HEAD (?)
     show a warning message that saving to the same .gig file will corrupt
     the sample wave data
   * fixed compilation with gcc 4.3
+  * the "Add Samples" dialog now remembers current directory (patch by
+    Devin Anderson, fixes #81)
 
 Version 0.1.1 (2007-12-06)
 

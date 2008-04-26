@@ -351,7 +351,8 @@ protected:
     bool file_has_name;
     bool file_is_changed;
     std::string filename;
-    std::string current_dir;
+    std::string current_gig_dir;
+    std::string current_sample_dir;
 
     void set_file_is_shared(bool);
 
