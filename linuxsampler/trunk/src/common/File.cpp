@@ -20,6 +20,7 @@
 
 #include "File.h"
 
+#include <cstring>
 #include <errno.h>
 #include <sstream>
 

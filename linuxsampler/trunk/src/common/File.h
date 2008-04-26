@@ -21,6 +21,7 @@
 #ifndef LS_FILE_H
 #define LS_FILE_H
 
+#include <memory>
 #include <string>
 #include <vector>
 
