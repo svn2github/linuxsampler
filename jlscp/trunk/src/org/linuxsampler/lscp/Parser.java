@@ -1,7 +1,7 @@
 /*
  *   jlscp - a java LinuxSampler control protocol API
  *
- *   Copyright (C) 2005-2007 Grigor Iliev <grigor@grigoriliev.com>
+ *   Copyright (C) 2005-2008 Grigor Iliev <grigor@grigoriliev.com>
  *
  *   This file is part of jlscp.
  *
@@ -559,6 +559,29 @@ public final class Parser {
 				case '\\': sb.append("\\\\");  break;
 				default  : sb.append(s.charAt(i));
 			}
+		}
+		
+		return sb.toString();
+	}
+	
+	/**
+	 * Returns more aggressively escaped sequence of the provided escaped string.
+	 * @param escapedString Already escaped string, which should be escaped more aggressively.
+	 */
+	public static String
+	toExtendedEscapeSequence(String escapedString) {
+		StringBuffer sb = new StringBuffer();
+		for(int i = 0; i < escapedString.length(); i++) {
+			char c = escapedString.charAt(i);
+			
+			if(c == '`') sb.append("\\x60");
+			else sb.append(c);
+			/*if(c == '/' || c == '\\' || c == '\'' || c == '"') sb.append(c);
+			else if(c >= '0' && c <='9')  sb.append(c);
+			else if((c >= 'A' && c <='Z') || (c >= 'a' && c <='z')) sb.append(c);
+			else {
+				
+			}*/
 		}
 		
 		return sb.toString();

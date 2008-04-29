@@ -48,7 +48,7 @@ public class InstrumentsDbEvent extends java.util.EventObject {
 	 * @param source The object that originated the event.
 	 * @param pathName Depending on the event this is
 	 * the absolute (escaped) path name of either a directory, or an instrument.
-	 * @param newName When an isntrument or directory is renamed,
+	 * @param newName When an instrument or directory is renamed,
 	 * specifies the new (non-escaped) name for the respective instrument or directory.
 	 */
 	public
@@ -76,7 +76,7 @@ public class InstrumentsDbEvent extends java.util.EventObject {
 	getPathName() { return pathName; }
 	
 	/**
-	 * When an isntrument or directory is renamed, this method
+	 * When an instrument or directory is renamed, this method
 	 * returns the new (non-escaped) name for the respective instrument or directory.
 	 */
 	public String

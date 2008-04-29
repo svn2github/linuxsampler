@@ -1,7 +1,7 @@
 /*
  *   jlscp - a java LinuxSampler control protocol API
  *
- *   Copyright (C) 2005-2007 Grigor Iliev <grigor@grigoriliev.com>
+ *   Copyright (C) 2005-2008 Grigor Iliev <grigor@grigoriliev.com>
  *
  *   This file is part of jlscp.
  *
@@ -41,9 +41,9 @@ import static org.linuxsampler.lscp.Parser.*;
 
 /**
  * This class is the abstraction representing a client endpoint for communication with LinuxSampler
- * instance. Since it implements all commands specified in the LSCP protocol v1.1, for more 
+ * instance. Since it implements all commands specified in the LSCP protocol v1.2, for more 
  * information look at the
- * <a href=http://www.linuxsampler.org/api/lscp-1.1.html>LSCP</a> specification.
+ * <a href=http://www.linuxsampler.org/api/lscp-1.2.html>LSCP</a> specification.
  *
  * <p> The following code establishes connection to LinuxSampler instance and gets the
  * LinuxSampler version:
@@ -162,6 +162,40 @@ public class Client {
 	public
 	Client(boolean printOnlyMode) {
 		if(printOnlyMode) setPrintOnlyMode(true);
+	}
+	
+	private boolean extendedCharacterEscaping = true;
+	
+	/**
+	 * Sets whether strings sent to LinuxSampler should be more aggressively escaped.
+	 */
+	public synchronized void
+	setExtendedCharacterEscaping(boolean b) { extendedCharacterEscaping = b; }
+	
+	/**
+	 * Determines whether strings sent to LinuxSampler should be more aggressively escaped.
+	 */
+	public synchronized boolean
+	getExtendedCharacterEscaping() { return extendedCharacterEscaping; }
+	
+	private String
+	toEscapedText(String s) {
+		s = toEscapedString(s);
+		return conv(s);
+	}
+	
+	private String
+	toEscapedFsEntry(String s) {
+		s = toEscapedFileName(s);
+		return conv(s);
+	}
+	
+	/**
+	 * Applies an extended character escaping to the specified string if needed.
+	 */
+	private String
+	conv(String s) {
+		return getExtendedCharacterEscaping() ? toExtendedEscapeSequence(s) : s;
 	}
 	
 	/**
@@ -2504,7 +2538,7 @@ public class Client {
 	public synchronized int
 	addMidiInstrumentMap(String name) throws IOException, LSException, LscpException {
 		verifyConnection();
-		out.writeLine("ADD MIDI_INSTRUMENT_MAP '" + toEscapedString(name) + "'");
+		out.writeLine("ADD MIDI_INSTRUMENT_MAP '" + toEscapedText(name) + "'");
 		if(getPrintOnlyMode()) return -1;
 		
 		ResultSet rs = getEmptyResultSet();
@@ -2655,7 +2689,7 @@ public class Client {
 				throws IOException, LscpException, LSException {
 		
 		verifyConnection();
-		name = toEscapedString(name);
+		name = toEscapedText(name);
 		out.writeLine("SET MIDI_INSTRUMENT_MAP NAME " +  + mapId + " '" + name + "'");
 		if(getPrintOnlyMode()) return;
 		
@@ -2705,7 +2739,7 @@ public class Client {
 		cmd.append(entry.getMidiBank()).append(' ');
 		cmd.append(entry.getMidiProgram()).append(' ');
 		cmd.append(info.getEngine()).append(" '");
-		cmd.append(info.getFilePath()).append("' ");
+		cmd.append(conv(info.getFilePath())).append("' ");
 		cmd.append(info.getInstrumentIndex()).append(' ');
 		cmd.append(info.getVolume());
 		if(!info.getLoadMode().name().equals("DEFAULT")) {
@@ -2713,7 +2747,7 @@ public class Client {
 		}
 		
 		if(info.getName() != null) {
-			String s = toEscapedString(info.getName());
+			String s = toEscapedText(info.getName());
 			cmd.append(" '").append(s).append("'");
 		}
 		
@@ -2955,7 +2989,7 @@ public class Client {
 						throws IOException, LscpException, LSException {
 		
 		String cmd = nonModal ? "LOAD INSTRUMENT NON_MODAL " : "LOAD INSTRUMENT ";
-		String args = '\'' + filename + "' " + instrIdx + ' ' + samplerChn;
+		String args = '\'' + conv(filename) + "' " + instrIdx + ' ' + samplerChn;
 		
 		out.writeLine(cmd + args);
 		if(getPrintOnlyMode()) return;
@@ -3607,7 +3641,7 @@ public class Client {
 		
 		verifyConnection();
 		String s = String.valueOf(channel) + " " + String.valueOf(midiCtrl);
-		if(name != null) s += " '" + toEscapedString(name) + "'";
+		if(name != null) s += " '" + toEscapedText(name) + "'";
 		out.writeLine("CREATE FX_SEND " + s);
 		if(getPrintOnlyMode()) return -1;
 		
@@ -3738,7 +3772,7 @@ public class Client {
 				throws IOException, LscpException, LSException {
 		
 		verifyConnection();
-		String args = " " + channel + " " + fxSend + " '" + toEscapedString(name) + "'";
+		String args = " " + channel + " " + fxSend + " '" + toEscapedText(name) + "'";
 		out.writeLine("SET FX_SEND NAME" + args);
 		if(getPrintOnlyMode()) return;
 		
@@ -3857,7 +3891,7 @@ public class Client {
 	public synchronized void
 	addDbDirectory(String dir) throws IOException, LSException, LscpException {
 		verifyConnection();
-		out.writeLine("ADD DB_INSTRUMENT_DIRECTORY '" + dir + "'");
+		out.writeLine("ADD DB_INSTRUMENT_DIRECTORY '" + conv(dir) + "'");
 		if(getPrintOnlyMode()) return;
 		
 		ResultSet rs = getEmptyResultSet();
@@ -3892,7 +3926,7 @@ public class Client {
 		verifyConnection();
 		String s = "REMOVE DB_INSTRUMENT_DIRECTORY ";
 		if(force) s += "FORCE ";
-		out.writeLine(s + "'" + dir + "'");
+		out.writeLine(s + "'" + conv(dir) + "'");
 		if(getPrintOnlyMode()) return;
 		
 		ResultSet rs = getEmptyResultSet();
@@ -3915,7 +3949,7 @@ public class Client {
 		String cmd = "REMOVE DB_INSTRUMENT_DIRECTORY ";
 		if(force) cmd += "FORCE ";
 		
-		for(String s : dirs) out.writeLine(cmd + "'" + s + "'");
+		for(String s : dirs) out.writeLine(cmd + "'" + conv(s) + "'");
 		
 		if(getPrintOnlyMode()) return;
 		
@@ -3953,7 +3987,7 @@ public class Client {
 		String s;
 		if(recursive) s = "GET DB_INSTRUMENT_DIRECTORIES RECURSIVE '";
 		else s = "GET DB_INSTRUMENT_DIRECTORIES '";
-		out.writeLine(s + dir + "'");
+		out.writeLine(s + conv(dir) + "'");
 		if(getPrintOnlyMode()) return -1;
 		
 		s = getSingleLineResultSet().getResult();
@@ -3972,7 +4006,7 @@ public class Client {
 	public synchronized String[]
 	getDbDirectoryNames(String dir) throws IOException, LscpException, LSException {
 		verifyConnection();
-		out.writeLine("LIST DB_INSTRUMENT_DIRECTORIES '" + dir + "'");
+		out.writeLine("LIST DB_INSTRUMENT_DIRECTORIES '" + conv(dir) + "'");
 		if(getPrintOnlyMode()) return null;
 		
 		String[] names = parseEscapedStringList(getSingleLineResultSet().getResult());
@@ -3994,7 +4028,7 @@ public class Client {
 	public synchronized DbDirectoryInfo
 	getDbDirectoryInfo(String dir) throws IOException, LscpException, LSException {
 		verifyConnection();
-		out.writeLine("GET DB_INSTRUMENT_DIRECTORY INFO '" + dir + "'");
+		out.writeLine("GET DB_INSTRUMENT_DIRECTORY INFO '" + conv(dir) + "'");
 		if(getPrintOnlyMode()) return null;
 		
 		ResultSet rs = getMultiLineResultSet();
@@ -4027,7 +4061,7 @@ public class Client {
 		if(!hasEndingFileSeparator(dir)) dir += "/";
 		DbDirectoryInfo[] infoS = new DbDirectoryInfo[dirS.length];
 		for(int i = 0; i < dirS.length; i++) {
-			infoS[i] = getDbDirectoryInfo(dir + toEscapedFileName(dirS[i]));
+			infoS[i] = getDbDirectoryInfo(conv(dir) + toEscapedFsEntry(dirS[i]));
 		}
 		return infoS;
 	}
@@ -4043,13 +4077,13 @@ public class Client {
 	 *
 	public synchronized DbDirectoryInfo[]
 	getDbDirectories(String dir) throws IOException, LscpException, LSException {
-		String[] dirS = getDbDirectoryNames(dir);
+		String[] dirS = getDbDirectoryNames(conv(dir));
 		if(dirS.length == 0) return new DbDirectoryInfo[0];
 		
-		if(dir.charAt(dir.length() - 1) != '/') dir += "/";
+		if(dir.charAt(dir.length() - 1) != '/') dir += "/"; // FIXME: 
 		
 		for(int i = 0; i < dirS.length; i++) {
-			out.writeLine("GET DB_INSTRUMENT_DIRECTORY INFO '" + dir + dirS[i] + "'");
+			out.writeLine("GET DB_INSTRUMENT_DIRECTORY INFO '" + conv(dir + dirS[i]) + "'");
 		}
 		
 		if(getPrintOnlyMode()) return null;
@@ -4093,8 +4127,8 @@ public class Client {
 	public synchronized void
 	renameDbDirectory(String dir, String name) throws IOException, LSException, LscpException {
 		verifyConnection();
-		name = toEscapedString(name);
-		out.writeLine("SET DB_INSTRUMENT_DIRECTORY NAME '" + dir + "' '" + name + "'");
+		name = toEscapedText(name);
+		out.writeLine("SET DB_INSTRUMENT_DIRECTORY NAME '" + conv(dir) + "' '" + conv(name) + "'");
 		if(getPrintOnlyMode()) return;
 		
 		ResultSet rs = getEmptyResultSet();
@@ -4111,7 +4145,7 @@ public class Client {
 	public synchronized void
 	moveDbDirectory(String dir, String dst) throws IOException, LSException, LscpException {
 		verifyConnection();
-		out.writeLine("MOVE DB_INSTRUMENT_DIRECTORY '" + dir + "' '" + dst + "'");
+		out.writeLine("MOVE DB_INSTRUMENT_DIRECTORY '" + conv(dir) + "' '" + conv(dst) + "'");
 		if(getPrintOnlyMode()) return;
 		
 		ResultSet rs = getEmptyResultSet();
@@ -4129,7 +4163,7 @@ public class Client {
 	moveDbDirectories(String dirs[], String dst) throws IOException, LSException, LscpException {
 		verifyConnection();
 		for(String s : dirs) {
-			out.writeLine("MOVE DB_INSTRUMENT_DIRECTORY '" + s + "' '" + dst + "'");
+			out.writeLine("MOVE DB_INSTRUMENT_DIRECTORY '" + conv(s) + "' '" + conv(dst) + "'");
 		}
 		if(getPrintOnlyMode()) return;
 		
@@ -4147,7 +4181,7 @@ public class Client {
 	public synchronized void
 	copyDbDirectory(String dir, String dst) throws IOException, LSException, LscpException {
 		verifyConnection();
-		out.writeLine("COPY DB_INSTRUMENT_DIRECTORY '" + dir + "' '" + dst + "'");
+		out.writeLine("COPY DB_INSTRUMENT_DIRECTORY '" + conv(dir) + "' '" + conv(dst) + "'");
 		if(getPrintOnlyMode()) return;
 		
 		ResultSet rs = getEmptyResultSet();
@@ -4165,7 +4199,7 @@ public class Client {
 	copyDbDirectories(String[] dirs, String dst) throws IOException, LSException, LscpException {
 		verifyConnection();
 		for(String s : dirs) {
-			out.writeLine("COPY DB_INSTRUMENT_DIRECTORY '" + s + "' '" + dst + "'");
+			out.writeLine("COPY DB_INSTRUMENT_DIRECTORY '" + conv(s) + "' '" + conv(dst) + "'");
 		}
 		if(getPrintOnlyMode()) return;
 		
@@ -4186,7 +4220,7 @@ public class Client {
 		
 		verifyConnection();
 		String s = "SET DB_INSTRUMENT_DIRECTORY DESCRIPTION '";
-		out.writeLine(s + dir + "' '" + toEscapedString(desc) + "'");
+		out.writeLine(s + conv(dir) + "' '" + toEscapedText(desc) + "'");
 		if(getPrintOnlyMode()) return;
 		
 		ResultSet rs = getEmptyResultSet();
@@ -4235,7 +4269,7 @@ public class Client {
 		verifyConnection();
 		String s = "ADD DB_INSTRUMENTS";
 		if(background) s += " NON_MODAL";
-		s += " '" + dbDir + "' '" + filePath + "' ";
+		s += " '" + conv(dbDir) + "' '" + conv(filePath) + "' ";
 		out.writeLine(s + String.valueOf(instrIndex));
 		if(getPrintOnlyMode()) return -1;
 		
@@ -4282,7 +4316,7 @@ public class Client {
 		verifyConnection();
 		String s = "ADD DB_INSTRUMENTS";
 		if(background) s += " NON_MODAL";
-		out.writeLine(s + " '" + dbDir + "' '" + filePath + "'");
+		out.writeLine(s + " '" + conv(dbDir) + "' '" + conv(filePath) + "'");
 		if(getPrintOnlyMode()) return -1;
 		
 		ResultSet rs = getEmptyResultSet();
@@ -4365,8 +4399,8 @@ public class Client {
 				break;
 		}
 		
-		sb.append(" '").append(dbDir).append("' '");
-		sb.append(fsDir).append("'");
+		sb.append(" '").append(conv(dbDir)).append("' '");
+		sb.append(conv(fsDir)).append("'");
 		out.writeLine(sb.toString());
 		if(getPrintOnlyMode()) return -1;
 		
@@ -4385,7 +4419,7 @@ public class Client {
 	removeDbInstrument(String instr) throws IOException, LscpException, LSException {
 		
 		verifyConnection();
-		out.writeLine("REMOVE DB_INSTRUMENT '" + instr + "'");
+		out.writeLine("REMOVE DB_INSTRUMENT '" + conv(instr) + "'");
 		if(getPrintOnlyMode()) return;
 		
 		ResultSet rs = getEmptyResultSet();
@@ -4402,7 +4436,7 @@ public class Client {
 	removeDbInstruments(String[] instrs) throws IOException, LscpException, LSException {
 		verifyConnection();
 		for(String s : instrs) {
-			out.writeLine("REMOVE DB_INSTRUMENT '" + s + "'");
+			out.writeLine("REMOVE DB_INSTRUMENT '" + conv(s) + "'");
 		}
 		if(getPrintOnlyMode()) return;
 		
@@ -4440,7 +4474,7 @@ public class Client {
 		String s;
 		if(recursive) s = "GET DB_INSTRUMENTS RECURSIVE '";
 		else s = "GET DB_INSTRUMENTS '";
-		out.writeLine(s + dir + "'");
+		out.writeLine(s + conv(dir) + "'");
 		if(getPrintOnlyMode()) return -1;
 		
 		s = getSingleLineResultSet().getResult();
@@ -4459,7 +4493,7 @@ public class Client {
 	public synchronized String[]
 	getDbInstrumentNames(String dir) throws IOException, LscpException, LSException {
 		verifyConnection();
-		out.writeLine("LIST DB_INSTRUMENTS '" + dir + "'");
+		out.writeLine("LIST DB_INSTRUMENTS '" + conv(dir) + "'");
 		if(getPrintOnlyMode()) return null;
 		
 		String[] names = parseEscapedStringList(getSingleLineResultSet().getResult());
@@ -4481,7 +4515,7 @@ public class Client {
 	public synchronized DbInstrumentInfo
 	getDbInstrumentInfo(String instr) throws IOException, LscpException, LSException {
 		verifyConnection();
-		out.writeLine("GET DB_INSTRUMENT INFO '" + instr + "'");
+		out.writeLine("GET DB_INSTRUMENT INFO '" + conv(instr) + "'");
 		if(getPrintOnlyMode()) return null;
 		
 		ResultSet rs = getMultiLineResultSet();
@@ -4510,7 +4544,7 @@ public class Client {
 		
 		DbInstrumentInfo[] infoS = new DbInstrumentInfo[instrS.length];
 		for(int i = 0; i < instrS.length; i++) {
-			infoS[i] = getDbInstrumentInfo(dir + toEscapedFileName(instrS[i]));
+			infoS[i] = getDbInstrumentInfo(conv(dir) + toEscapedFsEntry(instrS[i]));
 		}
 		return infoS;
 	}
@@ -4529,10 +4563,10 @@ public class Client {
 		String[] instrS = getDbInstrumentNames(dir);
 		if(instrS.length == 0) return new DbInstrumentInfo[0];
 		
-		if(dir.charAt(dir.length() - 1) != '/') dir += "/";
+		if(dir.charAt(dir.length() - 1) != '/') dir += "/"; FIXME: 
 		
 		for(int i = 0; i < instrS.length; i++) {
-			out.writeLine("GET DB_INSTRUMENT INFO '" + dir + instrS[i] + "'");
+			out.writeLine("GET DB_INSTRUMENT INFO '" + conv(dir) + instrS[i] + "'");
 		}
 		
 		if(getPrintOnlyMode()) return null;
@@ -4578,8 +4612,8 @@ public class Client {
 				throws IOException, LSException, LscpException {
 		
 		verifyConnection();
-		name = toEscapedString(name);
-		out.writeLine("SET DB_INSTRUMENT NAME '" + instr + "' '" + name + "'");
+		name = toEscapedText(name);
+		out.writeLine("SET DB_INSTRUMENT NAME '" + conv(instr) + "' '" + conv(name) + "'");
 		if(getPrintOnlyMode()) return;
 		
 		ResultSet rs = getEmptyResultSet();
@@ -4596,7 +4630,7 @@ public class Client {
 	public synchronized void
 	moveDbInstrument(String instr, String dst) throws IOException, LSException, LscpException {
 		verifyConnection();
-		out.writeLine("MOVE DB_INSTRUMENT '" + instr + "' '" + dst + "'");
+		out.writeLine("MOVE DB_INSTRUMENT '" + conv(instr) + "' '" + conv(dst) + "'");
 		if(getPrintOnlyMode()) return;
 		
 		ResultSet rs = getEmptyResultSet();
@@ -4614,7 +4648,7 @@ public class Client {
 	moveDbInstruments(String[] instrs, String dst) throws IOException, LSException, LscpException {
 		verifyConnection();
 		for(String s : instrs) {
-			out.writeLine("MOVE DB_INSTRUMENT '" + s + "' '" + dst + "'");
+			out.writeLine("MOVE DB_INSTRUMENT '" + conv(s) + "' '" + conv(dst) + "'");
 		}
 		if(getPrintOnlyMode()) return;
 		
@@ -4632,7 +4666,7 @@ public class Client {
 	public synchronized void
 	copyDbInstrument(String instr, String dst) throws IOException, LSException, LscpException {
 		verifyConnection();
-		out.writeLine("COPY DB_INSTRUMENT '" + instr + "' '" + dst + "'");
+		out.writeLine("COPY DB_INSTRUMENT '" + conv(instr) + "' '" + conv(dst) + "'");
 		if(getPrintOnlyMode()) return;
 		
 		ResultSet rs = getEmptyResultSet();
@@ -4650,7 +4684,7 @@ public class Client {
 	copyDbInstruments(String[] instrs, String dst) throws IOException, LSException, LscpException {
 		verifyConnection();
 		for(String s : instrs) {
-			out.writeLine("COPY DB_INSTRUMENT '" + s + "' '" + dst + "'");
+			out.writeLine("COPY DB_INSTRUMENT '" + conv(s) + "' '" + conv(dst) + "'");
 		}
 		if(getPrintOnlyMode()) return;
 		
@@ -4670,8 +4704,28 @@ public class Client {
 				throws IOException, LSException, LscpException {
 		
 		verifyConnection();
-		desc = toEscapedString(desc);
-		out.writeLine("SET DB_INSTRUMENT DESCRIPTION '" + instr + "' '" + desc + "'");
+		desc = toEscapedText(desc);
+		out.writeLine("SET DB_INSTRUMENT DESCRIPTION '" + conv(instr) + "' '" + desc + "'");
+		if(getPrintOnlyMode()) return;
+		
+		ResultSet rs = getEmptyResultSet();
+	}
+	
+	/**
+	 * Substitutes all occurrences of the instrument file
+	 * <code>oldPath</code> in the database, with <code>newPath</code>.
+	 * @param oldPath The absolute path name of the instrument file to substitute.
+	 * @param newPath The new absolute path name.
+	 * @throws IOException If some I/O error occurs.
+	 * @throws LSException If the operation failed.
+	 * @throws LscpException If LSCP protocol corruption occurs.
+	 */
+	public synchronized void
+	setDbInstrumentFilePath(String oldPath, String newPath)
+				throws IOException, LSException, LscpException {
+		
+		verifyConnection();
+		out.writeLine("SET DB_INSTRUMENT FILE_PATH '" + conv(oldPath) + "' '" + conv(newPath) + "'");
 		if(getPrintOnlyMode()) return;
 		
 		ResultSet rs = getEmptyResultSet();
@@ -4715,10 +4769,10 @@ public class Client {
 		StringBuffer sb = new StringBuffer();
 		sb.append("FIND DB_INSTRUMENT_DIRECTORIES");
 		if(nonRecursive) sb.append(" NON_RECURSIVE");
-		sb.append(" '").append(dir).append("'");
+		sb.append(" '").append(conv(dir)).append("'");
 		
 		if(query.name != null && query.name.length() > 0) {
-			sb.append(" NAME='").append(toEscapedString(query.name)).append("'");
+			sb.append(" NAME='").append(toEscapedText(query.name)).append("'");
 		}
 		
 		String s = query.getCreatedAfter();
@@ -4743,7 +4797,7 @@ public class Client {
 		
 		if(query.description != null && query.description.length() > 0) {
 			sb.append(" DESCRIPTION='");
-			sb.append(toEscapedString(query.description)).append("'");
+			sb.append(toEscapedText(query.description)).append("'");
 		}
 		
 		out.writeLine(sb.toString());
@@ -4796,10 +4850,10 @@ public class Client {
 		StringBuffer sb = new StringBuffer();
 		sb.append("FIND DB_INSTRUMENTS");
 		if(nonRecursive) sb.append(" NON_RECURSIVE");
-		sb.append(" '").append(dir).append("'");
+		sb.append(" '").append(conv(dir)).append("'");
 		
 		if(query.name != null && query.name.length() > 0) {
-			sb.append(" NAME='").append(toEscapedString(query.name)).append("'");
+			sb.append(" NAME='").append(toEscapedText(query.name)).append("'");
 		}
 		
 		if(query.formatFamilies.size() > 0) {
@@ -4840,7 +4894,7 @@ public class Client {
 		
 		if(query.description != null && query.description.length() > 0) {
 			sb.append(" DESCRIPTION='");
-			sb.append(toEscapedString(query.description)).append("'");
+			sb.append(toEscapedText(query.description)).append("'");
 		}
 		
 		if(query.instrumentType != DbSearchQuery.InstrumentType.BOTH) {
@@ -4853,16 +4907,16 @@ public class Client {
 		}
 		
 		if(query.product != null && query.product.length() > 0) {
-			sb.append(" PRODUCT='").append(toEscapedString(query.product)).append("'");
+			sb.append(" PRODUCT='").append(toEscapedText(query.product)).append("'");
 		}
 		
 		if(query.artists != null && query.artists.length() > 0) {
-			sb.append(" ARTISTS='").append(toEscapedString(query.artists)).append("'");
+			sb.append(" ARTISTS='").append(toEscapedText(query.artists)).append("'");
 		}
 		
 		if(query.keywords != null && query.keywords.length() > 0) {
 			sb.append(" KEYWORDS='");
-			sb.append(toEscapedString(query.keywords)).append("'");
+			sb.append(toEscapedText(query.keywords)).append("'");
 		}
 		
 		out.writeLine(sb.toString());
@@ -4875,6 +4929,23 @@ public class Client {
 			infoS[i] = getDbInstrumentInfo(instrS[i]);
 		}
 		return infoS;
+	}
+	
+	/**
+	 * Returns a list of all instrument files in the database
+	 * that that doesn't exist in the filesystem.
+	 * @throws IOException If some I/O error occurs.
+	 * @throws LscpException If LSCP protocol corruption occurs.
+	 * @throws LSException If other error occurs.
+	 */
+	public synchronized String[]
+	findLostDbInstrumentFiles() throws IOException, LscpException, LSException {
+		
+		verifyConnection();
+		out.writeLine("FIND LOST DB_INSTRUMENT_FILES");
+		if(getPrintOnlyMode()) return null;
+		
+		return parseEscapedStringList(getSingleLineResultSet().getResult());
 	}
 	
 	/**
@@ -5067,7 +5138,7 @@ public class Client {
 	public synchronized int
 	getFileInstrumentCount(String filename) throws IOException, LscpException, LSException {
 		verifyConnection();
-		out.writeLine("GET FILE INSTRUMENTS '" + filename +"'");
+		out.writeLine("GET FILE INSTRUMENTS '" + conv(filename) +"'");
 		if(getPrintOnlyMode()) return -1;
 		
 		String s = getSingleLineResultSet().getResult();
@@ -5088,7 +5159,7 @@ public class Client {
 				throws IOException, LscpException, LSException {
 		
 		verifyConnection();
-		out.writeLine("GET FILE INSTRUMENT INFO '" + filename + "' " + String.valueOf(instrIdx));
+		out.writeLine("GET FILE INSTRUMENT INFO '" + conv(filename) + "' " + String.valueOf(instrIdx));
 		if(getPrintOnlyMode()) return null;
 		
 		ResultSet rs = getMultiLineResultSet();
