@@ -3104,6 +3104,44 @@ String LSCPServer::SetDbInstrumentDescription(String Instr, String Desc) {
     return result.Produce();
 }
 
+String LSCPServer::SetDbInstrumentFilePath(String OldPath, String NewPath) {
+    dmsg(2,("LSCPServer: SetDbInstrumentFilePath(OldPath=%s,NewPath=%s)\n", OldPath.c_str(), NewPath.c_str()));
+    LSCPResultSet result;
+#if HAVE_SQLITE3
+    try {
+        InstrumentsDb::GetInstrumentsDb()->SetInstrumentFilePath(OldPath, NewPath);
+    } catch (Exception e) {
+         result.Error(e);
+    }
+#else
+    result.Error(String(DOESNT_HAVE_SQLITE3), 0);
+#endif
+    return result.Produce();
+}
+
+String LSCPServer::FindLostDbInstrumentFiles() {
+    dmsg(2,("LSCPServer: FindLostDbInstrumentFiles()\n"));
+    LSCPResultSet result;
+#if HAVE_SQLITE3
+    try {
+        String list;
+        StringListPtr pLostFiles = InstrumentsDb::GetInstrumentsDb()->FindLostInstrumentFiles();
+
+        for (int i = 0; i < pLostFiles->size(); i++) {
+            if (list != "") list += ",";
+            list += "'" + pLostFiles->at(i) + "'";
+        }
+
+        result.Add(list);
+    } catch (Exception e) {
+         result.Error(e);
+    }
+#else
+    result.Error(String(DOESNT_HAVE_SQLITE3), 0);
+#endif
+    return result.Produce();
+}
+
 String LSCPServer::FindDbInstrumentDirectories(String Dir, std::map<String,String> Parameters, bool Recursive) {
     dmsg(2,("LSCPServer: FindDbInstrumentDirectories(Dir=%s)\n", Dir.c_str()));
     LSCPResultSet result;

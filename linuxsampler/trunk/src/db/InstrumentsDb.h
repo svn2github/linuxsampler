@@ -433,6 +433,29 @@ namespace LinuxSampler {
              * that match the search query.
              */
             StringListPtr FindInstruments(String Dir, SearchQuery* pQuery, bool Recursive);
+            
+            /**
+             * Checks all instrument files in the database and returns a list
+             * of all files that dosn't exist in the filesystem.
+             * @throws Exception - if database error occurs.
+             * @returns The absolute path names of all lost instrument files.
+             */
+            StringListPtr FindLostInstrumentFiles();
+
+            /**
+             * Substitutes all occurrences of the instrument file
+             * OldPath in the database, with NewPath.
+             * @throws Exception - If error occurs.
+             */
+            void SetInstrumentFilePath(String OldPath, String NewPath);
+            
+            /**
+             * Gets a list of all instruments in the instruments database
+             * that are located in the specified instrument file.
+             * @param File The absolute path name of the instrument file.
+             * @throws Exception If database error occurs.
+             */
+            StringListPtr GetInstrumentsByFile(String File);
 
             /**
              * Removes the old instruments datbase and re-creates
@@ -452,6 +475,8 @@ namespace LinuxSampler {
              * <CR> and <LF> are replaced with \r and \n.
              */
             static String toEscapedText(String text);
+
+            static String toNonEscapedText(String text);
             
             JobList Jobs;
 
@@ -521,6 +546,14 @@ namespace LinuxSampler {
              * or -1 if the directory doesn't exist.
              */
             int GetDirectoryId(int ParentDirId, String DirName);
+
+            /**
+             * Gets the ID of the directory, in which the specified instrument is located.
+             * @param InstrId The ID of the instrument.
+             * @returns The directory ID or -1 if the directory is not found.
+             * @throws Exception - if database error occurs.
+             */
+            int GetDirectoryId(int InstrId);
 
             /**
              * Gets the name of the specified directory.
@@ -754,6 +787,11 @@ namespace LinuxSampler {
             void ExecSql(String Sql, String Param);
 
             /**
+             * Used to execute SQL commands which return empty result set.
+             */
+            void ExecSql(String Sql, std::vector<String>& Params);
+
+            /**
              * Used to execute SQL commands which returns integer.
              */
             int ExecSqlInt(String Sql);
@@ -764,7 +802,7 @@ namespace LinuxSampler {
             int ExecSqlInt(String Sql, String Param);
 
             /**
-             * Used to execute SQL commands which returns integer.
+             * Used to execute SQL commands which returns string.
              */
             String ExecSqlString(String Sql);
 
@@ -772,6 +810,16 @@ namespace LinuxSampler {
              * Used to execute SQL commands which returns integer list.
              */
             IntListPtr ExecSqlIntList(String Sql);
+
+            /**
+             * Used to execute SQL commands which returns integer list.
+             */
+            IntListPtr ExecSqlIntList(String Sql, String Param);
+
+            /**
+             * Used to execute SQL commands which returns integer list.
+             */
+            IntListPtr ExecSqlIntList(String Sql, std::vector<String>& Params);
 
             /**
              * Used to execute SQL commands which returns string list.
@@ -811,6 +859,8 @@ namespace LinuxSampler {
             static String toAbstractName(String DbName);
 
             static String toEscapedFsPath(String FsPath);
+            
+            static String toNonEscapedFsPath(String FsPath);
 
             void FireDirectoryCountChanged(String Dir);
             void FireDirectoryInfoChanged(String Dir);

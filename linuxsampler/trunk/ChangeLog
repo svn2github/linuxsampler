@@ -43,6 +43,7 @@ Version CVS HEAD (?)
   * instruments database:
     - avoid time consuming samples scanning when adding instruments
       to the instruments database
+    - added support for handling lost files in the instruments database
 
   * Gigasampler format engine:
     - fixed a memory leak that could happen when a channel was deleted
@@ -62,6 +63,8 @@ Version CVS HEAD (?)
     - added new LSCP event "DEVICE_MIDI" which can be used by frontends to
       react on MIDI data arriving on certain MIDI input devices (so far only
       Note-On and Note-Off events are sent via this LSCP event)
+    - added new LSCP commands: FIND LOST DB_INSTRUMENT_FILES and
+      SET DB_INSTRUMENT FILE_PATH
 
 Version 0.5.1 (6 December 2007)
 

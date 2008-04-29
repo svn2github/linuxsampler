@@ -185,6 +185,8 @@ class LSCPServer : public Thread {
         String MoveDbInstrument(String Instr, String Dst);
         String CopyDbInstrument(String Instr, String Dst);
         String SetDbInstrumentDescription(String Instr, String Desc);
+        String SetDbInstrumentFilePath(String OldPath, String NewPath);
+        String FindLostDbInstrumentFiles();
         String FindDbInstruments(String Dir, std::map<String,String> Parameters, bool Recursive = true);
         String FormatInstrumentsDb();
         String EditSamplerChannelInstrument(uint uiSamplerChannel);

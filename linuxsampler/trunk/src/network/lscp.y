@@ -322,6 +322,7 @@ set_instruction       :  AUDIO_OUTPUT_DEVICE_PARAMETER SP number SP string '=' p
                       |  DB_INSTRUMENT_DIRECTORY SP DESCRIPTION SP db_path SP stringval_escaped           { $$ = LSCPSERVER->SetDbInstrumentDirectoryDescription($5,$7);     }
                       |  DB_INSTRUMENT SP NAME SP db_path SP stringval_escaped                            { $$ = LSCPSERVER->SetDbInstrumentName($5,$7);                     }
                       |  DB_INSTRUMENT SP DESCRIPTION SP db_path SP stringval_escaped                     { $$ = LSCPSERVER->SetDbInstrumentDescription($5,$7);              }
+                      |  DB_INSTRUMENT SP FILE_PATH SP filename SP filename                               { $$ = LSCPSERVER->SetDbInstrumentFilePath($5,$7);                 }
                       |  ECHO SP boolean                                                                  { $$ = LSCPSERVER->SetEcho((yyparse_param_t*) yyparse_param, $3);  }
                       |  VOLUME SP volume_value                                                           { $$ = LSCPSERVER->SetGlobalVolume($3);                            }
                       ;
@@ -345,6 +346,7 @@ find_instruction      :  DB_INSTRUMENTS SP NON_RECURSIVE SP db_path SP query_val
                       |  DB_INSTRUMENTS SP db_path SP query_val_list                               { $$ = LSCPSERVER->FindDbInstruments($3,$5, true);            }
                       |  DB_INSTRUMENT_DIRECTORIES SP NON_RECURSIVE SP db_path SP query_val_list   { $$ = LSCPSERVER->FindDbInstrumentDirectories($5,$7, false); }
                       |  DB_INSTRUMENT_DIRECTORIES SP db_path SP query_val_list                    { $$ = LSCPSERVER->FindDbInstrumentDirectories($3,$5, true);  }
+                      |  LOST SP DB_INSTRUMENT_FILES                                               { $$ = LSCPSERVER->FindLostDbInstrumentFiles();                 }
                       ;
 
 move_instruction      :  DB_INSTRUMENT_DIRECTORY SP db_path SP db_path    { $$ = LSCPSERVER->MoveDbInstrumentDirectory($3,$5); }
@@ -815,6 +817,9 @@ DB_INSTRUMENT_COUNT           :  'D''B''_''I''N''S''T''R''U''M''E''N''T''_''C''O
 DB_INSTRUMENT_INFO            :  'D''B''_''I''N''S''T''R''U''M''E''N''T''_''I''N''F''O'
                               ;
 
+DB_INSTRUMENT_FILES           :  'D''B''_''I''N''S''T''R''U''M''E''N''T''_''F''I''L''E''S'
+                              ;
+
 DB_INSTRUMENTS_JOB_INFO       :  'D''B''_''I''N''S''T''R''U''M''E''N''T''S''_''J''O''B''_''I''N''F''O'
                               ;
 
@@ -984,6 +989,12 @@ RECURSIVE                  :  'R''E''C''U''R''S''I''V''E'
                            ;
 
 NON_RECURSIVE              :  'N''O''N''_''R''E''C''U''R''S''I''V''E'
+                           ;
+
+LOST                       :  'L''O''S''T'
+                           ;
+
+FILE_PATH                  :  'F''I''L''E''_''P''A''T''H'
                            ;
 
 SERVER                :  'S''E''R''V''E''R'

@@ -260,6 +260,13 @@ namespace LinuxSampler {
         return ExecSqlInt(sql.str(), DirName);
     }
 
+    int InstrumentsDb::GetDirectoryId(int InstrId) {
+        dmsg(2,("InstrumentsDb: GetDirectoryId(InstrId=%d)\n", InstrId));
+        std::stringstream sql;
+        sql << "SELECT dir_id FROM instruments WHERE instr_id=" << InstrId;
+        return ExecSqlInt(sql.str());
+    }
+
     String InstrumentsDb::GetDirectoryName(int DirId) {
         String sql = "SELECT dir_name FROM instr_dirs WHERE dir_id=" + ToString(DirId);
         String name = ExecSqlString(sql);
@@ -284,13 +291,37 @@ namespace LinuxSampler {
                 path = "/" + path;
                 break;
             }
-            path = GetDirectoryName(DirId) + path;
+            path = GetDirectoryName(DirId) + "/" + path;
             DirId = GetParentDirectoryId(DirId);
         }
 
         if (!count) throw Exception("Possible infinite loop detected");
 
         return path;
+    }
+    
+    StringListPtr InstrumentsDb::GetInstrumentsByFile(String File) {
+        dmsg(2,("InstrumentsDb: GetInstrumentsByFile(File=%s)\n", File.c_str()));
+
+        StringListPtr instrs(new std::vector<String>);
+        
+        BeginTransaction();
+        try {
+            File = toEscapedFsPath(File);
+            IntListPtr ids = ExecSqlIntList("SELECT instr_id FROM instruments WHERE instr_file=?", File);
+            
+            for (int i = 0; i < ids->size(); i++) {
+                String name = GetInstrumentName(ids->at(i));
+                String dir = GetDirectoryPath(GetDirectoryId(ids->at(i)));
+                instrs->push_back(dir + name);
+            }
+        } catch (Exception e) {
+            EndTransaction();
+            throw e;
+        }
+        EndTransaction();
+        
+        return instrs;
     }
 
     void InstrumentsDb::AddDirectory(String Dir) {
@@ -1315,6 +1346,46 @@ namespace LinuxSampler {
 
         return instrumentFinder.GetInstruments();
     }
+    
+    StringListPtr InstrumentsDb::FindLostInstrumentFiles() {
+        dmsg(2,("InstrumentsDb: FindLostInstrumentFiles()\n"));
+
+        BeginTransaction();
+        try {
+            StringListPtr files = ExecSqlStringList("SELECT DISTINCT instr_file FROM instruments");
+            StringListPtr result(new std::vector<String>);
+            for (int i = 0; i < files->size(); i++) {
+                File f(toNonEscapedFsPath(files->at(i)));
+                if (!f.Exist()) result->push_back(files->at(i));
+            }
+            return result;
+        } catch (Exception e) {
+            EndTransaction();
+            throw e;
+        }
+        EndTransaction();
+    }
+    
+    void InstrumentsDb::SetInstrumentFilePath(String OldPath, String NewPath) {
+        if (OldPath == NewPath) return;
+        StringListPtr instrs;
+        BeginTransaction();
+        try {
+            std::vector<String> params(2);
+            params[0] = toEscapedFsPath(NewPath);
+            params[1] = toEscapedFsPath(OldPath);
+            instrs = GetInstrumentsByFile(OldPath);
+            ExecSql("UPDATE instruments SET instr_file=? WHERE instr_file=?", params);
+        } catch (Exception e) {
+            EndTransaction();
+            throw e;
+        }
+        EndTransaction();
+        
+        for (int i = 0; i < instrs->size(); i++) {
+            FireInstrumentInfoChanged(instrs->at(i));
+        }
+    }
 
     void InstrumentsDb::BeginTransaction() {
         dmsg(2,("InstrumentsDb: BeginTransaction(InTransaction=%d)\n", InTransaction));
@@ -1376,24 +1447,19 @@ namespace LinuxSampler {
 
     void InstrumentsDb::ExecSql(String Sql) {
         dmsg(2,("InstrumentsDb: ExecSql(Sql=%s)\n", Sql.c_str()));
-        sqlite3_stmt *pStmt = NULL;
-        
-        int res = sqlite3_prepare(GetDb(), Sql.c_str(), -1, &pStmt, NULL);
-        if (res != SQLITE_OK) {
-            throw Exception("DB error: " + ToString(sqlite3_errmsg(db)));
-        }
-        
-        res = sqlite3_step(pStmt);
-        if(res != SQLITE_DONE) {
-            sqlite3_finalize(pStmt);
-            throw Exception("DB error: " + ToString(sqlite3_errmsg(db)));
-        }
-
-        sqlite3_finalize(pStmt);
+        std::vector<String> Params;
+        ExecSql(Sql, Params);
     }
 
     void InstrumentsDb::ExecSql(String Sql, String Param) {
         dmsg(2,("InstrumentsDb: ExecSql(Sql=%s,Param=%s)\n", Sql.c_str(), Param.c_str()));
+        std::vector<String> Params;
+        Params.push_back(Param);
+        ExecSql(Sql, Params);
+    }
+
+    void InstrumentsDb::ExecSql(String Sql, std::vector<String>& Params) {
+        dmsg(2,("InstrumentsDb: ExecSql(Sql=%s,Params)\n", Sql.c_str()));
         sqlite3_stmt *pStmt = NULL;
         
         int res = sqlite3_prepare(GetDb(), Sql.c_str(), -1, &pStmt, NULL);
@@ -1402,7 +1468,9 @@ namespace LinuxSampler {
             throw Exception("DB error: " + ToString(sqlite3_errmsg(db)));
         }
 
-        BindTextParam(pStmt, 1, Param);
+        for(int i = 0; i < Params.size(); i++) {
+            BindTextParam(pStmt, i + 1, Params[i]);
+        }
 
         res = sqlite3_step(pStmt);
         if (res != SQLITE_DONE) {
@@ -1484,6 +1552,20 @@ namespace LinuxSampler {
     }
 
     IntListPtr InstrumentsDb::ExecSqlIntList(String Sql) {
+        dmsg(2,("InstrumentsDb: ExecSqlIntList(Sql=%s)\n", Sql.c_str()));
+        std::vector<String> Params;
+        return ExecSqlIntList(Sql, Params);
+    }
+
+    IntListPtr InstrumentsDb::ExecSqlIntList(String Sql, String Param) {
+        dmsg(2,("InstrumentsDb: ExecSqlIntList(Sql=%s,Param=%s)\n", Sql.c_str(), Param.c_str()));
+        std::vector<String> Params;
+        Params.push_back(Param);
+        return ExecSqlIntList(Sql, Params);
+    }
+
+    IntListPtr InstrumentsDb::ExecSqlIntList(String Sql, std::vector<String>& Params) {
+        dmsg(2,("InstrumentsDb: ExecSqlIntList(Sql=%s)\n", Sql.c_str()));
         IntListPtr intList(new std::vector<int>);
         
         sqlite3_stmt *pStmt = NULL;
@@ -1491,6 +1573,10 @@ namespace LinuxSampler {
         int res = sqlite3_prepare(GetDb(), Sql.c_str(), -1, &pStmt, NULL);
         if (res != SQLITE_OK) {
             throw Exception("DB error: " + ToString(sqlite3_errmsg(db)));
+        }
+        
+        for(int i = 0; i < Params.size(); i++) {
+            BindTextParam(pStmt, i + 1, Params[i]);
         }
         
         res = sqlite3_step(pStmt);
@@ -1510,6 +1596,7 @@ namespace LinuxSampler {
     }
     
     StringListPtr InstrumentsDb::ExecSqlStringList(String Sql) {
+        dmsg(2,("InstrumentsDb: ExecSqlStringList(Sql=%s)\n", Sql.c_str()));
         StringListPtr stringList(new std::vector<String>);
         
         sqlite3_stmt *pStmt = NULL;
@@ -1683,8 +1770,35 @@ namespace LinuxSampler {
         return text;
     }
     
+    String InstrumentsDb::toNonEscapedText(String text) {
+        String sb;
+        for (int i = 0; i < text.length(); i++) {
+            char c = text.at(i);
+			if(c == '\\') {
+				if(i >= text.length()) {
+					std::cerr << "Broken escape sequence!" << std::endl;
+					break;
+				}
+				char c2 = text.at(++i);
+				if(c2 == '\'')      sb.push_back('\'');
+				else if(c2 == '"')  sb.push_back('"');
+				else if(c2 == '\\') sb.push_back('\\');
+				else if(c2 == 'r')  sb.push_back('\r');
+				else if(c2 == 'n')  sb.push_back('\n');
+				else std::cerr << "Unknown escape sequence \\" << c2 << std::endl;
+			} else {
+				sb.push_back(c);
+			}
+        }
+        return sb;
+    }
+    
     String InstrumentsDb::toEscapedFsPath(String FsPath) {
         return toEscapedText(FsPath);
+    }
+    
+    String InstrumentsDb::toNonEscapedFsPath(String FsPath) {
+        return toNonEscapedText(FsPath);
     }
     
     String InstrumentsDb::toAbstractName(String DbName) {

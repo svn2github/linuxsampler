@@ -34,7 +34,7 @@ Schoenebeck'>
                 <email>schoenebeck at software minus engineering dot org</email>
             </address>
         </author>
-        <date month="February" year="2008"/>
+        <date month="April" year="2008"/>
         <workgroup>LinuxSampler Developers</workgroup>
         <keyword>LSCP</keyword>
         <abstract>
@@ -6003,6 +6003,72 @@ Schoenebeck'>
                     </t>
                 </section>
 
+                <section title="Checking for lost instrument files" anchor="FIND LOST DB_INSTRUMENT_FILES">
+                    <t>The front-end can retrieve the list of all instrument files in the instruments database
+                    that don't exist in the filesystem by sending the following command:</t>
+                    <t>
+                        <list>
+                            <t>FIND LOST DB_INSTRUMENT_FILES</t>
+                        </list>
+                    </t>
+
+                    <t>Possible Answers:</t>
+                    <t>
+                        <list>
+                            <t>A comma separated list with the absolute path names
+                            (encapsulated into apostrophes) of all lost instrument files.</t>
+                            <t>"ERR:&lt;error-code&gt;:&lt;error-message&gt;" -
+                                <list>
+                                    <t>in case it failed, providing an appropriate error code and error message.</t>
+                                </list>
+                            </t>
+                        </list>
+                    </t>
+                    <t>Example:</t>
+                    <t>
+                        <list>
+                            <t>C: "FIND LOST DB_INSTRUMENT_FILES"</t>
+                            <t>S: "'/gigs/Bosendorfer 290.gig','/gigs/Steinway D.gig','/gigs/Free Piano.gig'"</t>
+                        </list>
+                    </t>
+                </section>
+
+                <section title="Replacing an instrument file" anchor="SET DB_INSTRUMENT FILE_PATH">
+                    <t>The front-end can substitute all occurrences of an instrument file
+                    in the instruments database with a new one by sending the following command:</t>
+                    <t>
+                        <list>
+                            <t>SET DB_INSTRUMENT FILE_PATH &lt;old_path&gt; &lt;new_path&gt;</t>
+                        </list>
+                    </t>
+                    <t>Where &lt;old_path&gt; is the absolute path name of the instrument file
+                    to substitute with &lt;new_path&gt;.</t>
+
+                    <t>Possible Answers:</t>
+                    <t>
+                        <list>
+                            <t>"OK" -
+                                <list>
+                                    <t>on success</t>
+                                </list>
+                            </t>
+                            <t>"ERR:&lt;error-code&gt;:&lt;error-message&gt;" -
+                                <list>
+                                    <t>in case it failed, providing an appropriate error code and error message.</t>
+                                </list>
+                            </t>
+                        </list>
+                    </t>
+
+                    <t>Example:</t>
+                    <t>
+                        <list>
+                            <t>C: "SET DB_INSTRUMENT FILE_PATH '/gigs/Bosendorfer 290.gig' '/gigs/pianos/Bosendorfer 290.gig'"</t>
+                            <t>S: "OK"</t>
+                        </list>
+                    </t>
+                </section>
+
             </section>
 
 
@@ -6649,6 +6715,8 @@ Schoenebeck'>
 		</t>
 		<t>/ DB_INSTRUMENT SP DESCRIPTION SP db_path SP stringval_escaped
 		</t>
+		<t>/ DB_INSTRUMENT SP FILE_PATH SP filename SP filename
+		</t>
 		<t>/ ECHO SP boolean
 		</t>
 		<t>/ VOLUME SP volume_value
@@ -6694,6 +6762,8 @@ Schoenebeck'>
 		<t>/ DB_INSTRUMENT_DIRECTORIES SP NON_RECURSIVE SP db_path SP query_val_list
 		</t>
 		<t>/ DB_INSTRUMENT_DIRECTORIES SP db_path SP query_val_list
+		</t>
+		<t>/ LOST SP DB_INSTRUMENT_FILES
 		</t>
 	</list>
 </t>
@@ -7090,6 +7160,8 @@ Schoenebeck'>
                     <t><xref target="MOVE DB_INSTRUMENT_DIRECTORY">"MOVE DB_INSTRUMENT_DIRECTORY"</xref></t>
                     <t><xref target="COPY DB_INSTRUMENT">"COPY DB_INSTRUMENT"</xref></t>
                     <t><xref target="COPY DB_INSTRUMENT_DIRECTORY">"COPY DB_INSTRUMENT_DIRECTORY"</xref></t>
+                    <t><xref target="FIND LOST DB_INSTRUMENT_FILES">"FIND LOST DB_INSTRUMENT_FILES"</xref></t>
+                    <t><xref target="SET DB_INSTRUMENT FILE_PATH">"SET DB_INSTRUMENT FILE_PATH"</xref></t>
                     <t><xref target="GET FILE INSTRUMENTS">"GET FILE INSTRUMENTS"</xref></t>
                     <t><xref target="LIST FILE INSTRUMENTS">"LIST FILE INSTRUMENTS"</xref></t>
                     <t><xref target="GET FILE INSTRUMENT INFO">"GET FILE INSTRUMENT INFO"</xref></t>
@@ -7281,8 +7353,8 @@ Schoenebeck'>
 		    <t>Server will start sending one of the the following notification messages:</t>
 		    <t>
 			    <list>
-				    <t>"NOTIFY:CHANNEL_MIDI:&lt;device-id&gt; &lt;port-id&gt; NOTE_ON &lt;note&gt; &lt;velocity&gt;"</t>
-				    <t>"NOTIFY:CHANNEL_MIDI:&lt;device-id&gt; &lt;port-id&gt; NOTE_OFF &lt;note&gt; &lt;velocity&gt;"</t>
+				    <t>"NOTIFY:DEVICE_MIDI:&lt;device-id&gt; &lt;port-id&gt; NOTE_ON &lt;note&gt; &lt;velocity&gt;"</t>
+				    <t>"NOTIFY:DEVICE_MIDI:&lt;device-id&gt; &lt;port-id&gt; NOTE_OFF &lt;note&gt; &lt;velocity&gt;"</t>
 			    </list>
 		    </t>
 		    <t>where &lt;device-id&gt; &lt;port-id&gt; will be replaced
