@@ -3,7 +3,7 @@
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 <meta name="description" content="LinuxSampler Control Protocol">
 <meta name="keywords" content="LSCP">
-<meta name="generator" content="xml2rfc v1.32 (http://xml.resource.org/)">
+<meta name="generator" content="xml2rfc v1.33 (http://xml.resource.org/)">
 <style type='text/css'><!--
         body {
                 font-family: verdana, charcoal, helvetica, arial, sans-serif;
@@ -145,7 +145,7 @@
 <tr><td class="header">LinuxSampler Developers</td><td class="header">C. Schoenebeck</td></tr>
 <tr><td class="header">Internet-Draft</td><td class="header">Interessengemeinschaft Software</td></tr>
 <tr><td class="header">Intended status: Standards Track</td><td class="header">Engineering e. V.</td></tr>
-<tr><td class="header">Expires: August 19, 2008</td><td class="header">February 16, 2008</td></tr>
+<tr><td class="header">Expires: October 3, 2008</td><td class="header">April 2008</td></tr>
 </table></td></tr></table>
 <h1><br />LinuxSampler Control Protocol<br />LSCP 1.4</h1>
 
@@ -173,11 +173,7 @@ The list of current Internet-Drafts can be accessed at
 The list of Internet-Draft Shadow Directories can be accessed at
 <a href='http://www.ietf.org/shadow.html'>http://www.ietf.org/shadow.html</a>.</p>
 <p>
-This Internet-Draft will expire on August 19, 2008.</p>
-
-<h3>Copyright Notice</h3>
-<p>
-Copyright &copy; The IETF Trust (2008).</p>
+This Internet-Draft will expire on October 3, 2008.</p>
 
 <h3>Abstract</h3>
 
@@ -436,6 +432,10 @@ Finding instruments<br />
 Getting job status information<br />
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#FORMAT INSTRUMENTS_DB">6.8.22.</a>&nbsp;
 Formatting the instruments database<br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#FIND LOST DB_INSTRUMENT_FILES">6.8.23.</a>&nbsp;
+Checking for lost instrument files<br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SET DB_INSTRUMENT FILE_PATH">6.8.24.</a>&nbsp;
+Replacing an instrument file<br />
 &nbsp;&nbsp;&nbsp;&nbsp;<a href="#editing_instruments">6.9.</a>&nbsp;
 Editing Instruments<br />
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#EDIT INSTRUMENT">6.9.1.</a>&nbsp;
@@ -9104,6 +9104,108 @@ Formatting the instruments database</h3>
 </blockquote><p>
                     
 </p>
+<a name="FIND LOST DB_INSTRUMENT_FILES"></a><br /><hr />
+<table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
+<a name="rfc.section.6.8.23"></a><h3>6.8.23.&nbsp;
+Checking for lost instrument files</h3>
+
+<p>The front-end can retrieve the list of all instrument files in the instruments database
+                    that don't exist in the filesystem by sending the following command:
+</p>
+<p>
+                        </p>
+<blockquote class="text">
+<p>FIND LOST DB_INSTRUMENT_FILES
+</p>
+</blockquote><p>
+                    
+</p>
+<p>Possible Answers:
+</p>
+<p>
+                        </p>
+<blockquote class="text">
+<p>A comma separated list with the absolute path names
+                            (encapsulated into apostrophes) of all lost instrument files.
+</p>
+<p>"ERR:&lt;error-code&gt;:&lt;error-message&gt;" -
+                                </p>
+<blockquote class="text">
+<p>in case it failed, providing an appropriate error code and error message.
+</p>
+</blockquote>
+                            
+
+</blockquote><p>
+                    
+</p>
+<p>Example:
+</p>
+<p>
+                        </p>
+<blockquote class="text">
+<p>C: "FIND LOST DB_INSTRUMENT_FILES"
+</p>
+<p>S: "'/gigs/Bosendorfer 290.gig','/gigs/Steinway D.gig','/gigs/Free Piano.gig'"
+</p>
+</blockquote><p>
+                    
+</p>
+<a name="SET DB_INSTRUMENT FILE_PATH"></a><br /><hr />
+<table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
+<a name="rfc.section.6.8.24"></a><h3>6.8.24.&nbsp;
+Replacing an instrument file</h3>
+
+<p>The front-end can substitute all occurrences of an instrument file
+                    in the instruments database with a new one by sending the following command:
+</p>
+<p>
+                        </p>
+<blockquote class="text">
+<p>SET DB_INSTRUMENT FILE_PATH &lt;old_path&gt; &lt;new_path&gt;
+</p>
+</blockquote><p>
+                    
+</p>
+<p>Where &lt;old_path&gt; is the absolute path name of the instrument file
+                    to substitute with &lt;new_path&gt;.
+</p>
+<p>Possible Answers:
+</p>
+<p>
+                        </p>
+<blockquote class="text">
+<p>"OK" -
+                                </p>
+<blockquote class="text">
+<p>on success
+</p>
+</blockquote>
+                            
+
+<p>"ERR:&lt;error-code&gt;:&lt;error-message&gt;" -
+                                </p>
+<blockquote class="text">
+<p>in case it failed, providing an appropriate error code and error message.
+</p>
+</blockquote>
+                            
+
+</blockquote><p>
+                    
+</p>
+<p>Example:
+</p>
+<p>
+                        </p>
+<blockquote class="text">
+<p>C: "SET DB_INSTRUMENT FILE_PATH '/gigs/Bosendorfer 290.gig' '/gigs/pianos/Bosendorfer 290.gig'"
+</p>
+<p>S: "OK"
+</p>
+</blockquote><p>
+                    
+</p>
 <a name="editing_instruments"></a><br /><hr />
 <table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
 <a name="rfc.section.6.9"></a><h3>6.9.&nbsp;
@@ -10028,6 +10130,9 @@ Command Syntax</h3>
 <p>/ DB_INSTRUMENT SP DESCRIPTION SP db_path SP stringval_escaped
 		
 </p>
+<p>/ DB_INSTRUMENT SP FILE_PATH SP filename SP filename
+		
+</p>
 <p>/ ECHO SP boolean
 		
 </p>
@@ -10095,6 +10200,9 @@ Command Syntax</h3>
 		
 </p>
 <p>/ DB_INSTRUMENT_DIRECTORIES SP db_path SP query_val_list
+		
+</p>
+<p>/ LOST SP DB_INSTRUMENT_FILES
 		
 </p>
 </blockquote><p>
@@ -10652,6 +10760,7 @@ Character Set and Escape Sequences</h3>
 <td align="left">two digit hex ASCII code of the character</td>
 </tr>
 </table>
+<br clear="all" />
 
 <p>Notice: due to the transition of certain parts of the
                 protocol which now support escape sequences, a slight backward
@@ -10713,6 +10822,10 @@ Character Set and Escape Sequences</h3>
 <p><a class='info' href='#COPY DB_INSTRUMENT'>"COPY DB_INSTRUMENT"<span> (</span><span class='info'>Copying instruments</span><span>)</span></a>
 </p>
 <p><a class='info' href='#COPY DB_INSTRUMENT_DIRECTORY'>"COPY DB_INSTRUMENT_DIRECTORY"<span> (</span><span class='info'>Copying instrument directories</span><span>)</span></a>
+</p>
+<p><a class='info' href='#FIND LOST DB_INSTRUMENT_FILES'>"FIND LOST DB_INSTRUMENT_FILES"<span> (</span><span class='info'>Checking for lost instrument files</span><span>)</span></a>
+</p>
+<p><a class='info' href='#SET DB_INSTRUMENT FILE_PATH'>"SET DB_INSTRUMENT FILE_PATH"<span> (</span><span class='info'>Replacing an instrument file</span><span>)</span></a>
 </p>
 <p><a class='info' href='#GET FILE INSTRUMENTS'>"GET FILE INSTRUMENTS"<span> (</span><span class='info'>Retrieving amount of instruments of a file</span><span>)</span></a>
 </p>
@@ -11008,9 +11121,9 @@ MIDI data on a MIDI input device arrived</h3>
 <p>
 			    </p>
 <blockquote class="text">
-<p>"NOTIFY:CHANNEL_MIDI:&lt;device-id&gt; &lt;port-id&gt; NOTE_ON &lt;note&gt; &lt;velocity&gt;"
+<p>"NOTIFY:DEVICE_MIDI:&lt;device-id&gt; &lt;port-id&gt; NOTE_ON &lt;note&gt; &lt;velocity&gt;"
 </p>
-<p>"NOTIFY:CHANNEL_MIDI:&lt;device-id&gt; &lt;port-id&gt; NOTE_OFF &lt;note&gt; &lt;velocity&gt;"
+<p>"NOTIFY:DEVICE_MIDI:&lt;device-id&gt; &lt;port-id&gt; NOTE_OFF &lt;note&gt; &lt;velocity&gt;"
 </p>
 </blockquote><p>
 		    
@@ -11682,13 +11795,13 @@ Acknowledgments</h3>
 <h3>11.&nbsp;References</h3>
 <table width="99%" border="0">
 <tr><td class="author-text" valign="top"><a name="RFC20">[RFC20]</a></td>
-<td class="author-text">UCLA, &ldquo;<a href="ftp://ftp.isi.edu/in-notes/rfc20.txt">ASCII format for Network Interchange</a>,&rdquo; RFC&nbsp;20, 1969.</td></tr>
+<td class="author-text">UCLA, &ldquo;<a href="http://tools.ietf.org/html/rfc20">ASCII format for Network Interchange</a>,&rdquo; RFC&nbsp;20, 1969.</td></tr>
 <tr><td class="author-text" valign="top"><a name="RFC2119">[RFC2119]</a></td>
-<td class="author-text">Bradner, S., &ldquo;<a href="ftp://ftp.isi.edu/in-notes/rfc2119.txt">Key words for use in RFCs to Indicate Requirement Levels</a>,&rdquo; RFC&nbsp;2119, 1997.</td></tr>
+<td class="author-text">Bradner, S., &ldquo;<a href="http://tools.ietf.org/html/rfc2119">Key words for use in RFCs to Indicate Requirement Levels</a>,&rdquo; RFC&nbsp;2119, 1997.</td></tr>
 <tr><td class="author-text" valign="top"><a name="RFC2234">[RFC2234]</a></td>
-<td class="author-text">Crocker, D. and P. Overell, &ldquo;<a href="ftp://ftp.isi.edu/in-notes/rfc2234.txt">Augmented BNF for Syntax Specifications</a>,&rdquo; RFC&nbsp;2234, 1997.</td></tr>
+<td class="author-text">Crocker, D. and P. Overell, &ldquo;<a href="http://tools.ietf.org/html/rfc2234">Augmented BNF for Syntax Specifications</a>,&rdquo; RFC&nbsp;2234, 1997.</td></tr>
 <tr><td class="author-text" valign="top"><a name="RFC793">[RFC793]</a></td>
-<td class="author-text">Defense Advanced Research Projects Agency, &ldquo;<a href="ftp://ftp.isi.edu/in-notes/rfc793.txt">TRANSMISSION CONTROL PROTOCOL</a>,&rdquo; RFC&nbsp;793, 1981.</td></tr>
+<td class="author-text">Defense Advanced Research Projects Agency, &ldquo;<a href="http://tools.ietf.org/html/rfc793">TRANSMISSION CONTROL PROTOCOL</a>,&rdquo; RFC&nbsp;793, 1981.</td></tr>
 </table>
 
 <a name="rfc.authors"></a><br /><hr />
@@ -11755,9 +11868,4 @@ or other
 proprietary rights that may cover technology that may be required
 to implement this standard.
 Please address the information to the IETF at <a href='mailto:ietf-ipr@ietf.org'>ietf-ipr@ietf.org</a>.</p>
-<h3>Acknowledgment</h3>
-<p class='copyright'>
-Funding for the RFC Editor function is provided by
-the IETF Administrative Support Activity (IASA).</p>
 </body></html>
-
