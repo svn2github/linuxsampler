@@ -23,6 +23,8 @@
 #include <gtkmm/messagedialog.h>
 #include <gtkmm/dialog.h>
 #include <gtkmm/comboboxtext.h>
+#include <gtkmm/spinbutton.h>
+#include <gtkmm/table.h>
 
 // returns a human readable name of the given dimension type
 static Glib::ustring __dimTypeAsString(gig::dimension_t d) {
@@ -224,7 +226,7 @@ void DimensionManager::refreshManager() {
             Gtk::TreeModel::Row row = *(refTableModel->append());
             row[tableModel.m_dim_type] = __dimTypeAsString(dim->dimension);
             row[tableModel.m_bits] = dim->bits;
-            row[tableModel.m_zones] = 1 << dim->bits; //TODO: for now we calculate it here until libgig always ensures 'zones' to be correct
+            row[tableModel.m_zones] = dim->zones;
             row[tableModel.m_description] = __dimDescriptionAsString(dim->dimension);
             row[tableModel.m_definition] = dim;
         }
@@ -258,25 +260,46 @@ void DimensionManager::addDimension() {
                 row[comboModel.m_type_name] = sType;
             }
         }
+        Gtk::Table table(2, 2);
+        Gtk::Label labelDimType("Dimension:", Gtk::ALIGN_LEFT);
         Gtk::ComboBox comboDimType;
         comboDimType.set_model(refComboModel);
         comboDimType.pack_start(comboModel.m_type_id);
         comboDimType.pack_start(comboModel.m_type_name);
-        dialog.get_vbox()->pack_start(comboDimType);
-        comboDimType.show();
-        // add zones combo box to the dialog
+        Gtk::Label labelZones("Zones:", Gtk::ALIGN_LEFT);
+        table.attach(labelDimType, 0, 1, 0, 1);
+        table.attach(comboDimType, 1, 2, 0, 1);
+        table.attach(labelZones, 0, 1, 1, 2);
+        dialog.get_vbox()->pack_start(table);
+
+        // number of zones: use a combo box with fix values for gig
+        // v2 and a spin button for v3
         Gtk::ComboBoxText comboZones;
-        for (int i = 1; i <= 7; i++) { //FIXME: is 7 the correct amount of max. bits ???
-            char buf[64];
-            sprintf(buf, "%d Zones (%d Bits)", 1 << i, i); 
-            comboZones.append_text(buf);
+        Gtk::SpinButton spinZones;
+        bool version2 = false;
+        if (region) {
+            gig::File* file = (gig::File*)region->GetParent()->GetParent();
+            version2 = file->pVersion && file->pVersion->major == 2;
         }
-        dialog.get_vbox()->pack_start(comboZones);
-        comboZones.show();
-        // add OK and CANCEL buttons to the dialog
+        if (version2) {
+            for (int i = 1; i <= 5; i++) {
+                char buf[3];
+                sprintf(buf, "%d", 1 << i);
+                comboZones.append_text(buf);
+            }
+            table.attach(comboZones, 1, 2, 1, 2);
+        } else {
+            spinZones.set_increments(1, 8);
+            spinZones.set_numeric(true);
+            spinZones.set_range(2, 128);
+            spinZones.set_value(2);
+            table.attach(spinZones, 1, 2, 1, 2);
+        }
+
         dialog.add_button(Gtk::Stock::OK, 0);
         dialog.add_button(Gtk::Stock::CANCEL, 1);
         dialog.show_all_children();
+
         if (!dialog.run()) { // OK selected ...
             Gtk::TreeModel::iterator iterType = comboDimType.get_active();
             if (!iterType) return;
@@ -285,9 +308,19 @@ void DimensionManager::addDimension() {
             gig::dimension_def_t dim;
             int iTypeID = rowType[comboModel.m_type_id];
             dim.dimension = static_cast<gig::dimension_t>(iTypeID);
-            if (comboZones.get_active_row_number() < 0) return;
-            dim.bits = comboZones.get_active_row_number() + 1;
-            dim.zones = 1 << dim.bits; //TODO: support zones != pow(2,bits) - feature of gig v3
+
+            if (version2) {
+                if (comboZones.get_active_row_number() < 0) return;
+                dim.bits = comboZones.get_active_row_number() + 1;
+                dim.zones = 1 << dim.bits;
+            } else {
+                dim.zones = spinZones.get_value_as_int();
+                // Find the number of bits required to hold the
+                // specified amount of zones.
+                int zoneBits = dim.zones - 1;
+                for (dim.bits = 0; zoneBits > 1; dim.bits += 2, zoneBits >>= 2);
+                dim.bits += zoneBits;
+            }
             printf(
                 "Adding dimension (type=0x%x, bits=%d, zones=%d)\n",
                 dim.dimension, dim.bits, dim.zones

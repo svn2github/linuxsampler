@@ -34,6 +34,9 @@ Version CVS HEAD (?)
   * fixed compilation with gcc 4.3
   * the "Add Samples" dialog now remembers current directory (patch by
     Devin Anderson, fixes #81)
+  * it is now possible to create dimensions where the amount of zones
+    isn't a power of two (patch by Devin Anderson, #89, slightly
+    modified)
 
 Version 0.1.1 (2007-12-06)
 
