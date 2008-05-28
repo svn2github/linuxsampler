@@ -162,6 +162,11 @@ else
     echo "NPTL glibc bug check disabled"
 fi
 
+# FIXME: this is actually a dependency of libgig, not of LS directly, why
+# isn't it hidden by libgig?
+AC_CHECK_HEADERS(uuid/uuid.h)
+AC_SEARCH_LIBS(uuid_generate, uuid)
+
 
 
 ###########################################################################
@@ -559,7 +564,7 @@ fi
 
 AC_ARG_ENABLE(pthread-testcancel,
   [  --enable-pthread-testcancel
-                          Enable pthread_testcancel() calls and avoid asynchronous 
+                          Enable pthread_testcancel() calls and avoid asynchronous
                           cancel of pthreads (default=no).],
   [config_pthread_testcancel="$enableval"],
   [config_pthread_testcancel="no"]

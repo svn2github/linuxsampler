@@ -2,7 +2,7 @@ Source: linuxsampler
 Section: sound
 Priority: optional
 Maintainer: Matt Flax <flatmax@pgb.unsw.edu.au>
-Build-Depends: debhelper (>= 4.0.0), libgig-dev
+Build-Depends: debhelper (>= 4.0.0), libgig-dev, uuid-dev
 Standards-Version: 3.6.1
 
 Package: linuxsampler
