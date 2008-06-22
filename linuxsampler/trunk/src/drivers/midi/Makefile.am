@@ -1,4 +1,3 @@
-INCLUDES = $(all_includes)
 METASOURCES = AUTO
 
 AM_CXXFLAGS = -Wreturn-type -ffast-math $(CXX_CPU_SWITCH)
@@ -36,9 +35,11 @@ mmemidi_ladd =
 endif
 
 if HAVE_JACK_MIDI
-jackmidi_src  = MidiInputDeviceJack.cpp MidiInputDeviceJack.h
+jackmidi_src      = MidiInputDeviceJack.cpp MidiInputDeviceJack.h
+jackmidi_includes = $(JACK_CFLAGS)
 else
-jackmidi_src  =
+jackmidi_src      =
+jackmidi_includes =
 endif
 
 liblinuxsamplermididriverincludedir = $(includedir)/linuxsampler/drivers/midi
@@ -48,6 +49,8 @@ liblinuxsamplermididriverinclude_HEADERS = \
 	MidiInputDevice.h \
 	MidiInstrumentMapper.h \
 	VirtualMidiDevice.h
+
+INCLUDES = $(all_includes) $(jackmidi_includes)
 
 noinst_LTLIBRARIES = liblinuxsamplermididriver.la
 liblinuxsamplermididriver_la_SOURCES = \

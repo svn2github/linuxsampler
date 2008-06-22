@@ -88,8 +88,10 @@ namespace LinuxSampler {
 
             // methods
             inline float*        Buffer()     { return pBuffer;      } ///< Audio signal buffer
+            void SetBuffer(float* pBuffer)    { this->pBuffer = pBuffer; }
             inline AudioChannel* MixChannel() { return pMixChannel;  } ///< In case this channel is a mix channel, then it will return a pointer to the real channel this channel refers to, NULL otherwise.
             inline void          Clear()      { memset(pBuffer, 0, uiBufferSize * sizeof(float)); } ///< Reset audio buffer with silence
+            inline void          Clear(uint Samples) { memset(pBuffer, 0, Samples * sizeof(float)); } ///< Reset audio buffer with silence
             void CopyTo(AudioChannel* pDst, const uint Samples);
             void CopyTo(AudioChannel* pDst, const uint Samples, const float fLevel);
             void MixTo(AudioChannel* pDst, const uint Samples);

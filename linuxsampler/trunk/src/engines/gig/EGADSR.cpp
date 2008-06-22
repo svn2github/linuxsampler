@@ -308,6 +308,19 @@ namespace LinuxSampler { namespace gig {
         if (StepsLeft <= 0) enterEndStage();
     }
 
+    void EGADSR::enterFadeOutStage(int maxFadeOutSteps) {
+        Stage     = stage_fadeout;
+        Segment   = segment_lin;
+        StepsLeft = int(Level / (-FadeOutCoeff));
+        if (StepsLeft > maxFadeOutSteps) {
+            StepsLeft = maxFadeOutSteps;
+            Coeff = -Level / maxFadeOutSteps;
+        } else {
+            Coeff = FadeOutCoeff;
+        }
+        if (StepsLeft <= 0) enterEndStage();
+    }
+
     void EGADSR::enterEndStage() {
         Stage   = stage_end;
         Segment = segment_end;

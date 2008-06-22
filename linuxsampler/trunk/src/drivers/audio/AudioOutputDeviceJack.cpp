@@ -249,7 +249,7 @@ namespace LinuxSampler {
     }
 
     String AudioOutputDeviceJack::Version() {
-       String s = "$Revision: 1.23 $";
+       String s = "$Revision: 1.24 $";
        return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
 
@@ -305,7 +305,12 @@ namespace LinuxSampler {
         audio = midi = false;
         if (Name.size() >= jack_client_name_size())
             throw Exception("JACK client name too long");
-        if ((hJackClient = jack_client_new(Name.c_str())) == 0)
+#if HAVE_JACK_CLIENT_OPEN
+        hJackClient = jack_client_open(Name.c_str(), JackNullOption, NULL);
+#else
+        hJackClient = jack_client_new(Name.c_str());
+#endif
+        if (!hJackClient)
             throw Exception("Seems Jack server is not running.");
         jack_set_process_callback(hJackClient, linuxsampler_libjack_process_callback, this);
         jack_on_shutdown(hJackClient, linuxsampler_libjack_shutdown_callback, this);

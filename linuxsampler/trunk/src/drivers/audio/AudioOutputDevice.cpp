@@ -291,7 +291,7 @@ namespace LinuxSampler {
             std::vector<AudioChannel*>::iterator iterChannels = Channels.begin();
             std::vector<AudioChannel*>::iterator end          = Channels.end();
             for (; iterChannels != end; iterChannels++)
-                (*iterChannels)->Clear(); // zero out audio buffer
+                (*iterChannels)->Clear(Samples); // zero out audio buffer
         }
         // do the same for master effects
         {
@@ -352,7 +352,7 @@ namespace LinuxSampler {
             std::vector<AudioChannel*>::iterator iterChannels = Channels.begin();
             std::vector<AudioChannel*>::iterator end          = Channels.end();
             for (; iterChannels != end; iterChannels++)
-                (*iterChannels)->Clear(); // zero out audio buffer
+                (*iterChannels)->Clear(Samples); // zero out audio buffer
         }
 
         return 0;

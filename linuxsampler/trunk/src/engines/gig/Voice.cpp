@@ -781,13 +781,26 @@ namespace LinuxSampler { namespace gig {
         RTList<Event>::Iterator itCCEvent = pEngineChannel->pEvents->first();
         RTList<Event>::Iterator itNoteEvent = pEngineChannel->pMIDIKeyInfo[MIDIKey].pEvents->first();
 
-        if (Skip) { // skip events that happened before this voice was triggered
+        if (itTriggerEvent) { // skip events that happened before this voice was triggered
             while (itCCEvent && itCCEvent->FragmentPos() <= Skip) ++itCCEvent;
             while (itNoteEvent && itNoteEvent->FragmentPos() <= Skip) ++itNoteEvent;
         }
 
         uint killPos;
-        if (itKillEvent) killPos = RTMath::Min(itKillEvent->FragmentPos(), pEngine->MaxFadeOutPos);
+        if (itKillEvent) {
+            int maxFadeOutPos = Samples - pEngine->MinFadeOutSamples;
+            if (maxFadeOutPos < 0) {
+                // There's not enough space in buffer to do a fade out
+                // from max volume (this can only happen for audio
+                // drivers that use Samples < MaxSamplesPerCycle).
+                // End the EG1 here, at pos 0, with a shorter max fade
+                // out time.
+                EG1.enterFadeOutStage(Samples / CONFIG_DEFAULT_SUBFRAGMENT_SIZE);
+                itKillEvent = Pool<Event>::Iterator();
+            } else {
+                killPos = RTMath::Min(itKillEvent->FragmentPos(), maxFadeOutPos);
+            }
+        }
 
         uint i = Skip;
         while (i < Samples) {

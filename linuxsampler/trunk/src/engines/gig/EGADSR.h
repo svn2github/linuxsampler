@@ -166,6 +166,7 @@ class EGADSR {
         }
 
         void enterFadeOutStage();
+        void enterFadeOutStage(int maxFadeOutSteps);
 
     private:
 

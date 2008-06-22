@@ -124,7 +124,7 @@ namespace LinuxSampler { namespace gig {
             bool                    SuspensionRequested;
             ConditionServer         EngineDisabled;
             int8_t                  ScaleTuning[12];       ///< contains optional detune factors (-64..+63 cents) for all 12 semitones of an octave
-            int                     MaxFadeOutPos;         ///< The last position in an audio fragment to allow an instant fade out (e.g. for voice stealing) without leading to clicks.
+            int                     MinFadeOutSamples;     ///< The number of samples needed to make an instant fade out (e.g. for voice stealing) without leading to clicks.
             uint32_t                RandomSeed;            ///< State of the random number generator used by the random dimension.
             Mutex                   ResetInternalMutex;    ///< Mutex to protect the ResetInternal function for concurrent usage (e.g. by the lscp and instrument loader threads).
             Pool< ::gig::DimensionRegion*>* pDimRegionPool[2]; ///< Double buffered pool, used by the engine channels to keep track of dimension regions in use.

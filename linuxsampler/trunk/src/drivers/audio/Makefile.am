@@ -11,11 +11,13 @@ alsa_ladd =
 endif
 
 if HAVE_JACK
-jack_src    = AudioOutputDeviceJack.cpp AudioOutputDeviceJack.h
-jack_lflags = $(JACK_LIBS)
+jack_src      = AudioOutputDeviceJack.cpp AudioOutputDeviceJack.h
+jack_lflags   = $(JACK_LIBS)
+jack_includes = $(JACK_CFLAGS)
 else
-jack_src    =
-jack_lflags =
+jack_src      =
+jack_lflags   =
+jack_includes =
 endif
 
 if HAVE_ARTS
@@ -45,7 +47,7 @@ liblinuxsampleraudiodriverinclude_HEADERS = \
 	AudioChannel.h \
 	AudioOutputDevice.h
 
-INCLUDES = $(all_includes) $(arts_includes) $(asio_includes)
+INCLUDES = $(all_includes) $(arts_includes) $(asio_includes) $(jack_includes)
 
 noinst_LTLIBRARIES = liblinuxsampleraudiodriver.la
 liblinuxsampleraudiodriver_la_SOURCES = \

@@ -24,6 +24,7 @@ Version CVS HEAD (?)
     - fixed di-harmonic triangle LFO implementation (this LFO implementation
       is only used by very few systems, most pick the int math
       implementation, which is usually faster)
+    - fixes for audio drivers with varying buffer sizes
 
   * audio driver:
     - removed the nonsense audio channel constraint (which was hard coded to
@@ -33,6 +34,9 @@ Version CVS HEAD (?)
     - bugfix: the SAMPLERATE parameter of some drivers (e.g. JACK)
       reflected the wrong value
     - fixed a memory management bug in ASIO driver
+    - Makefile fix: JACK_CFLAGS wasn't used
+    - JACK: use jack_client_open instead of thedeprecated
+      jack_client_new
 
   * MIDI driver:
     - added JACK MIDI driver
@@ -55,6 +59,9 @@ Version CVS HEAD (?)
     - minor fix: only mark FX sends as being modified if really the
       respective FX send MIDI controller was used
     - added support for GM global device volume SysEx message
+    - bugfix: notes triggered at position 0 in the audio buffer were
+      sometimes wrongly killed in the same buffer, causing no sound to
+      be played
 
   * LSCP server:
     - added new LSCP event "CHANNEL_MIDI" which can be used by frontends to
