@@ -1946,6 +1946,30 @@ namespace LinuxSampler { namespace gig {
                             dmsg(3,("\t\t\tNew scale applied.\n"));
                             break;
                         }
+                        case 0x15: { // chromatic / drumkit mode
+                            dmsg(3,("\t\tMIDI Instrument Map Switch\n"));
+                            uint8_t part = addr[1] & 0x0f;
+                            uint8_t map;
+                            if (!reader.pop(&map)) goto free_sysex_data;
+                            for (int i = 0; i < engineChannels.size(); ++i) {
+                                EngineChannel* pEngineChannel = engineChannels[i];
+                                if (pEngineChannel->midiChannel == part ||
+                                    pEngineChannel->midiChannel == midi_chan_all
+                                ) {
+                                    try {
+                                        pEngineChannel->SetMidiInstrumentMap(map);
+                                    } catch (Exception e) {
+                                        dmsg(2,("\t\t\tCould not apply MIDI instrument map %d to part %d: %s\n", map, part, e.Message().c_str()));
+                                        goto free_sysex_data;
+                                    } catch (...) {
+                                        dmsg(2,("\t\t\tCould not apply MIDI instrument map %d to part %d (unknown exception)\n", map, part));
+                                        goto free_sysex_data;
+                                    }
+                                }
+                            }
+                            dmsg(3,("\t\t\tApplied MIDI instrument map %d to part %d.\n", map, part));
+                            break;
+                        }
                     }
                 }
                 else if (addr[0] == 0x40 && (addr[1] & 0xf0) == 0x20) { // Part Parameters (2)
@@ -2088,7 +2112,7 @@ namespace LinuxSampler { namespace gig {
     }
 
     String Engine::Version() {
-        String s = "$Revision: 1.93 $";
+        String s = "$Revision: 1.94 $";
         return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
 

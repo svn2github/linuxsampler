@@ -62,6 +62,12 @@ Version CVS HEAD (?)
     - bugfix: notes triggered at position 0 in the audio buffer were
       sometimes wrongly killed in the same buffer, causing no sound to
       be played
+    - added support for chromatic / drumkit mode Roland GS Sysex message
+      which is usally used to switch a part between chromatic sounds and
+      drumkit sounds (as opposed to their common default setting of MIDI
+      part 10 being a drumkit part and all other ones chromatic parts), in
+      LS however one can switch between the first 16 MIDI instrument maps
+      defined for the sampler
 
   * LSCP server:
     - added new LSCP event "CHANNEL_MIDI" which can be used by frontends to
