@@ -953,12 +953,15 @@ namespace LinuxSampler { namespace gig {
      *
      *  @param pData - pointer to sysex data
      *  @param Size  - lenght of sysex data (in bytes)
+     *  @param pSender - the MIDI input port on which the SysEx message was
+     *                   received
      */
-    void Engine::SendSysex(void* pData, uint Size) {
+    void Engine::SendSysex(void* pData, uint Size, MidiInputPort* pSender) {
         Event event             = pEventGenerator->CreateEvent();
         event.Type              = Event::type_sysex;
         event.Param.Sysex.Size  = Size;
         event.pEngineChannel    = NULL; // as Engine global event
+        event.pMidiInputPort    = pSender;
         if (pEventQueue->write_space() > 0) {
             if (pSysexBuffer->write_space() >= Size) {
                 // copy sysex data to input buffer
@@ -1953,8 +1956,10 @@ namespace LinuxSampler { namespace gig {
                             if (!reader.pop(&map)) goto free_sysex_data;
                             for (int i = 0; i < engineChannels.size(); ++i) {
                                 EngineChannel* pEngineChannel = engineChannels[i];
-                                if (pEngineChannel->midiChannel == part ||
-                                    pEngineChannel->midiChannel == midi_chan_all
+                                if (
+                                    (pEngineChannel->midiChannel == part ||
+                                     pEngineChannel->midiChannel == midi_chan_all) &&
+                                    pEngineChannel->GetMidiInputPort() == itSysexEvent->pMidiInputPort
                                 ) {
                                     try {
                                         pEngineChannel->SetMidiInstrumentMap(map);
@@ -2112,7 +2117,7 @@ namespace LinuxSampler { namespace gig {
     }
 
     String Engine::Version() {
-        String s = "$Revision: 1.94 $";
+        String s = "$Revision: 1.95 $";
         return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
 

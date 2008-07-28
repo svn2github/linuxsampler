@@ -272,7 +272,7 @@ namespace LinuxSampler {
         // dispatch event to all engine instances
         std::set<Engine*>::iterator engineiter = allEngines.begin();
         std::set<Engine*>::iterator end        = allEngines.end();
-        for (; engineiter != end; engineiter++) (*engineiter)->SendSysex(pData, Size);
+        for (; engineiter != end; engineiter++) (*engineiter)->SendSysex(pData, Size, this);
         SysexListenersReader.Unlock();
     }
 

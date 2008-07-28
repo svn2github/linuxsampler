@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003,2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005-2007 Christian Schoenebeck                        *
+ *   Copyright (C) 2005-2008 Christian Schoenebeck                        *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -29,6 +29,9 @@
 
 namespace LinuxSampler {
 
+    // just symbol prototyping
+    class MidiInputPort;
+
     /** @brief LinuxSampler Sampler Engine Interface
      *
      * Abstract base interface class for all LinuxSampler engines which
@@ -43,7 +46,7 @@ namespace LinuxSampler {
             //     (these have to be implemented by the descendant)
 
             virtual int    RenderAudio(uint Samples) = 0;
-            virtual void   SendSysex(void* pData, uint Size) = 0;
+            virtual void   SendSysex(void* pData, uint Size, MidiInputPort* pSender) = 0;
             virtual void   Reset() = 0;
             virtual void   Enable() = 0;
             virtual void   Disable() = 0;

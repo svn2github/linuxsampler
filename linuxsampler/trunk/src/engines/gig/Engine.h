@@ -67,7 +67,7 @@ namespace LinuxSampler { namespace gig {
 
             // implementation of abstract methods derived from class 'LinuxSampler::Engine'
             virtual int    RenderAudio(uint Samples);
-            virtual void   SendSysex(void* pData, uint Size);
+            virtual void   SendSysex(void* pData, uint Size, MidiInputPort* pSender);
             virtual void   Reset();
             virtual void   Enable();
             virtual void   Disable();
