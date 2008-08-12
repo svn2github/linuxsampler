@@ -179,7 +179,7 @@ namespace LinuxSampler {
         EngineFactory::Destroy(pEngine);
         
         if (Replaced) {
-            int Bank = (int(Index.midi_bank_msb) << 7) & int(Index.midi_bank_lsb);
+            int Bank = (int(Index.midi_bank_msb) << 7) | int(Index.midi_bank_lsb);
             fireMidiInstrumentInfoChanged(Map, Bank, Index.midi_prog);
         } else {
             fireMidiInstrumentCountChanged(Map, InstrCount);

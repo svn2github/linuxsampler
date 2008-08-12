@@ -78,6 +78,8 @@ Version CVS HEAD (?)
       Note-On and Note-Off events are sent via this LSCP event)
     - added new LSCP commands: FIND LOST DB_INSTRUMENT_FILES and
       SET DB_INSTRUMENT FILE_PATH
+    - bugfix: the bank number provided by MIDI_INSTRUMENT_INFO notifications
+      was incorrect
 
 Version 0.5.1 (6 December 2007)
 
