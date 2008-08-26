@@ -1,7 +1,7 @@
-<html><head><meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1"><title>JSampler Manual</title><link rel="stylesheet" href="jsampler.css" type="text/css"><meta name="generator" content="DocBook XSL Stylesheets V1.73.2"></head><body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="book" lang="en"><div class="titlepage"><div><div><h1 class="title"><a name="id212764"></a>JSampler Manual</h1></div><div><div class="author"><h3 class="author"><span class="firstname">by Grigor</span> <span class="surname">Iliev</span></h3></div></div><div><p class="copyright">Copyright © 2008 Grigor Iliev &lt;grigor@grigoriliev.com&gt;</p></div><div><div class="legalnotice"><a name="id295081"></a><p>This document is released under the terms of the <a class="ulink" href="gfdl.html" target="_top">GNU Free Documentation License</a>.</p></div></div><div><p class="pubdate">Updated: Tue, 26 August 2008</p></div></div><hr></div><div class="toc"><p><b>Table of Contents</b></p><dl><dt><span class="chapter"><a href="#INTRODUCTION">1. Introduction</a></span></dt><dd><dl><dt><span class="section"><a href="#WHAT_IS_JSAMPLER">What is JSampler?</a></span></dt><dt><span class="section"><a href="#WHAT_IS_JSAMPLER_DISTRIBUTION">What is a JSampler distribution?</a></span></dt></dl></dd><dt><span class="chapter"><a href="#SCREENSHOTS">2. Screenshots</a></span></dt><dt><span class="chapter"><a href="#INSTALLATION">3. Installation</a></span></dt><dd><dl><dt><span class="section"><a href="#DOWNLOAD">What to download?</a></span></dt><dt><span class="section"><a href="#REQUIREMENTS">Requirements</a></span></dt><dt><span class="section"><a href="#RUNNING_JSAMPLER">Running a JSampler distribution</a></span></dt><dt><span class="section"><a href="#USING_SCRIPT">Using a script to run a JSampler distribution</a></span></dt><dt><span class="section"><a href="#GNOME_JAR_ASSOCIATIONS">Telling Gnome how to handle jar files</a></span></dt><dt><span class="section"><a href="#GNOME_LAUNCHER">Adding an application launcher to a Gnome panel</a></span></dt><dt><span class="section"><a href="#RUNING_ON_WINDOWS">Running JSampler on Windows</a></span></dt></dl></dd><dt><span class="chapter"><a href="#BUILDING_FROM_SOURCE">4. Building from source</a></span></dt><dd><dl><dt><span class="section"><a href="#BUILDING_FROM_CVS">Building from CVS</a></span></dt><dt><span class="section"><a href="#COMPILATION">Compilation</a></span></dt></dl></dd><dt><span class="chapter"><a href="#USING_ORCHESTRAS">5. Using Orchestras</a></span></dt><dd><dl><dt><span class="section"><a href="#MANAGING_ORCHESTRAS">Managing Orchestras</a></span></dt><dt><span class="section"><a href="#MANAGING_INSTRUMENTS">Managing Instruments</a></span></dt><dt><span class="section"><a href="#LOADING_ORCHESTRA_INSTRUMENTS">Loading Instruments</a></span></dt></dl></dd><dt><span class="chapter"><a href="#id305250">6. MIDI Instruments</a></span></dt><dd><dl><dt><span class="section"><a href="#id305290">Managing MIDI Instrument Maps</a></span></dt><dt><span class="section"><a href="#id305376">Managing MIDI Instruments</a></span></dt><dt><span class="section"><a href="#id305467">Assigning MIDI Instrument Map To Sampler Channel</a></span></dt></dl></dd><dt><span class="chapter"><a href="#INSTRUMENTS_DATABASE">7. Instruments Database</a></span></dt><dd><dl><dt><span class="section"><a href="#id305578">Adding Instruments To The Instruments Database</a></span></dt><dt><span class="section"><a href="#id305636">Manging Instruments And Directories</a></span></dt><dt><span class="section"><a href="#id305780">Loading Instruments From The Instruments Database</a></span></dt><dt><span class="section"><a href="#INSTRUMENTS_DB_ADD_TO_MAP">Adding Instruments To MIDI Instrument Map</a></span></dt><dt><span class="section"><a href="#id305839">Adding Instruments To Orchestra From The Instruments
-      Database</a></span></dt><dt><span class="section"><a href="#id305874">Finding Instruments</a></span></dt></dl></dd></dl></div><div class="chapter" lang="en"><div class="titlepage"><div><div><h2 class="title"><a name="INTRODUCTION"></a>Chapter 1. Introduction</h2></div></div></div><div class="toc"><p><b>Table of Contents</b></p><dl><dt><span class="section"><a href="#WHAT_IS_JSAMPLER">What is JSampler?</a></span></dt><dt><span class="section"><a href="#WHAT_IS_JSAMPLER_DISTRIBUTION">What is a JSampler distribution?</a></span></dt></dl></div><div class="section" lang="en"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="WHAT_IS_JSAMPLER"></a>What is JSampler?</h2></div></div></div><p>JSampler is an opensource, platform-independent, GUI front-end for
-      <a class="ulink" href="http://www.linuxsampler.org" target="_top">LinuxSampler</a>, written
-      entirely in <a class="ulink" href="http://java.sun.com" target="_top">Java</a>. The main goal
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1"><title>JSampler Manual</title><link rel="stylesheet" href="jsampler.css" type="text/css"><meta name="generator" content="DocBook XSL Stylesheets V1.71.0"></head><body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="book" lang="en"><div class="titlepage"><div><div><h1 class="title"><a name="id2423980"></a>JSampler Manual</h1></div><div><div class="author"><h3 class="author"><span class="firstname">by Grigor</span> <span class="surname">Iliev</span></h3></div></div><div><p class="copyright">Copyright © 2008 Grigor Iliev &lt;grigor@grigoriliev.com&gt;</p></div><div><div class="legalnotice"><a name="id2507296"></a><p>This document is released under the terms of the <a href="gfdl.html" target="_top">GNU Free Documentation License</a>.</p></div></div><div><p class="pubdate">Updated: Tue, 26 August 2008</p></div></div><hr></div><div class="toc"><p><b>Table of Contents</b></p><dl><dt><span class="chapter"><a href="#INTRODUCTION">1. Introduction</a></span></dt><dd><dl><dt><span class="section"><a href="#WHAT_IS_JSAMPLER">What is JSampler?</a></span></dt><dt><span class="section"><a href="#WHAT_IS_JSAMPLER_DISTRIBUTION">What is a JSampler distribution?</a></span></dt></dl></dd><dt><span class="chapter"><a href="#SCREENSHOTS">2. Screenshots</a></span></dt><dt><span class="chapter"><a href="#INSTALLATION">3. Installation</a></span></dt><dd><dl><dt><span class="section"><a href="#DOWNLOAD">What to download?</a></span></dt><dt><span class="section"><a href="#REQUIREMENTS">Requirements</a></span></dt><dt><span class="section"><a href="#RUNNING_JSAMPLER">Running a JSampler distribution</a></span></dt><dt><span class="section"><a href="#USING_SCRIPT">Using a script to run a JSampler distribution</a></span></dt><dt><span class="section"><a href="#GNOME_JAR_ASSOCIATIONS">Telling Gnome how to handle jar files</a></span></dt><dt><span class="section"><a href="#GNOME_LAUNCHER">Adding an application launcher to a Gnome panel</a></span></dt><dt><span class="section"><a href="#RUNING_ON_WINDOWS">Running JSampler on Windows</a></span></dt></dl></dd><dt><span class="chapter"><a href="#BUILDING_FROM_SOURCE">4. Building from source</a></span></dt><dd><dl><dt><span class="section"><a href="#BUILDING_FROM_CVS">Building from CVS</a></span></dt><dt><span class="section"><a href="#COMPILATION">Compilation</a></span></dt></dl></dd><dt><span class="chapter"><a href="#USING_ORCHESTRAS">5. Using Orchestras</a></span></dt><dd><dl><dt><span class="section"><a href="#MANAGING_ORCHESTRAS">Managing Orchestras</a></span></dt><dt><span class="section"><a href="#MANAGING_INSTRUMENTS">Managing Instruments</a></span></dt><dt><span class="section"><a href="#LOADING_ORCHESTRA_INSTRUMENTS">Loading Instruments</a></span></dt></dl></dd><dt><span class="chapter"><a href="#MIDI_INSTRUMENTS">6. MIDI Instruments</a></span></dt><dd><dl><dt><span class="section"><a href="#id2479911">Managing MIDI Instrument Maps</a></span></dt><dt><span class="section"><a href="#id2480012">Managing MIDI Instruments</a></span></dt><dt><span class="section"><a href="#id2480118">Assigning MIDI Instrument Map To Sampler Channel</a></span></dt></dl></dd><dt><span class="chapter"><a href="#INSTRUMENTS_DATABASE">7. Instruments Database</a></span></dt><dd><dl><dt><span class="section"><a href="#id2480256">Adding Instruments To The Instruments Database</a></span></dt><dt><span class="section"><a href="#id2480326">Manging Instruments And Directories</a></span></dt><dt><span class="section"><a href="#id2480489">Loading Instruments From The Instruments Database</a></span></dt><dt><span class="section"><a href="#INSTRUMENTS_DB_ADD_TO_MAP">Adding Instruments To MIDI Instrument Map</a></span></dt><dt><span class="section"><a href="#id2480561">Adding Instruments To Orchestra From The Instruments
+      Database</a></span></dt><dt><span class="section"><a href="#id2480604">Finding Instruments</a></span></dt></dl></dd></dl></div><div class="chapter" lang="en"><div class="titlepage"><div><div><h2 class="title"><a name="INTRODUCTION"></a>Chapter 1. Introduction</h2></div></div></div><div class="toc"><p><b>Table of Contents</b></p><dl><dt><span class="section"><a href="#WHAT_IS_JSAMPLER">What is JSampler?</a></span></dt><dt><span class="section"><a href="#WHAT_IS_JSAMPLER_DISTRIBUTION">What is a JSampler distribution?</a></span></dt></dl></div><div class="section" lang="en"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="WHAT_IS_JSAMPLER"></a>What is JSampler?</h2></div></div></div><p>JSampler is an opensource, platform-independent, GUI front-end for
+      <a href="http://www.linuxsampler.org" target="_top">LinuxSampler</a>, written
+      entirely in <a href="http://java.sun.com" target="_top">Java</a>. The main goal
       of the JSampler's design is to be extensible and more flexible regarding
       the integration of different GUI implementations. JSampler consists of
       two parts:</p><div class="itemizedlist"><ul type="disc"><li><p>JSampler core - handles the LSCP command processing and
@@ -20,27 +20,27 @@
             this writing. JS Classic also provides some additional features to
             facilitate the every day work with the sampler and to automate the
             most frequently used configurations.</p></li><li><p>Fantasia - A distribution with a modern skin based view
-            (initial graphic design by Olivier Boyer).</p></li></ul></div></div></div><div class="chapter" lang="en"><div class="titlepage"><div><div><h2 class="title"><a name="SCREENSHOTS"></a>Chapter 2. Screenshots</h2></div></div></div><p>JS Classic with left pane, LS console, statusbar and toolbars</p><p><a class="ulink" href="images/js-classic1.png" target="_top"><img src="images/js-classic1-preview.png"></a></p><p>JS Classic without left pane, LS console, statusbar and
-    toolbars</p><p><a class="ulink" href="images/js-classic2.png" target="_top"><img src="images/js-classic2-preview.png"></a></p><p>Fantasia</p><p><a class="ulink" href="images/fantasia.png" target="_top"><img src="images/fantasia-preview.png"></a></p></div><div class="chapter" lang="en"><div class="titlepage"><div><div><h2 class="title"><a name="INSTALLATION"></a>Chapter 3. Installation</h2></div></div></div><div class="toc"><p><b>Table of Contents</b></p><dl><dt><span class="section"><a href="#DOWNLOAD">What to download?</a></span></dt><dt><span class="section"><a href="#REQUIREMENTS">Requirements</a></span></dt><dt><span class="section"><a href="#RUNNING_JSAMPLER">Running a JSampler distribution</a></span></dt><dt><span class="section"><a href="#USING_SCRIPT">Using a script to run a JSampler distribution</a></span></dt><dt><span class="section"><a href="#GNOME_JAR_ASSOCIATIONS">Telling Gnome how to handle jar files</a></span></dt><dt><span class="section"><a href="#GNOME_LAUNCHER">Adding an application launcher to a Gnome panel</a></span></dt><dt><span class="section"><a href="#RUNING_ON_WINDOWS">Running JSampler on Windows</a></span></dt></dl></div><p></p><div class="section" lang="en"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="DOWNLOAD"></a>What to download?</h2></div></div></div><p>Currently, there are two distributions available for download -
-      <a class="ulink" href="http://downloads.sourceforge.net/jsampler/JS_Classic-0.8a.jar" target="_top">JS
-      Classic</a> and <a class="ulink" href="http://downloads.sourceforge.net/jsampler/Fantasia-0.8a.jar" target="_top">Fantasia</a>.</p><p>The source code is available in the <a class="ulink" href="http://downloads.sourceforge.net/jsampler/JSampler-0.8a.tar.bz2" target="_top">JSampler
+            (initial graphic design by Olivier Boyer).</p></li></ul></div></div></div><div class="chapter" lang="en"><div class="titlepage"><div><div><h2 class="title"><a name="SCREENSHOTS"></a>Chapter 2. Screenshots</h2></div></div></div><p>JS Classic with left pane, LS console, statusbar and toolbars</p><p><a href="images/js-classic1.png" target="_top"><img src="images/js-classic1-preview.png"></a></p><p>JS Classic without left pane, LS console, statusbar and
+    toolbars</p><p><a href="images/js-classic2.png" target="_top"><img src="images/js-classic2-preview.png"></a></p><p>Fantasia</p><p><a href="images/fantasia.png" target="_top"><img src="images/fantasia-preview.png"></a></p></div><div class="chapter" lang="en"><div class="titlepage"><div><div><h2 class="title"><a name="INSTALLATION"></a>Chapter 3. Installation</h2></div></div></div><div class="toc"><p><b>Table of Contents</b></p><dl><dt><span class="section"><a href="#DOWNLOAD">What to download?</a></span></dt><dt><span class="section"><a href="#REQUIREMENTS">Requirements</a></span></dt><dt><span class="section"><a href="#RUNNING_JSAMPLER">Running a JSampler distribution</a></span></dt><dt><span class="section"><a href="#USING_SCRIPT">Using a script to run a JSampler distribution</a></span></dt><dt><span class="section"><a href="#GNOME_JAR_ASSOCIATIONS">Telling Gnome how to handle jar files</a></span></dt><dt><span class="section"><a href="#GNOME_LAUNCHER">Adding an application launcher to a Gnome panel</a></span></dt><dt><span class="section"><a href="#RUNING_ON_WINDOWS">Running JSampler on Windows</a></span></dt></dl></div><p></p><div class="section" lang="en"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="DOWNLOAD"></a>What to download?</h2></div></div></div><p>Currently, there are two distributions available for download -
+      <a href="http://downloads.sourceforge.net/jsampler/JS_Classic-0.8a.jar" target="_top">JS
+      Classic</a> and <a href="http://downloads.sourceforge.net/jsampler/Fantasia-0.8a.jar" target="_top">Fantasia</a>.</p><p>The source code is available in the <a href="http://downloads.sourceforge.net/jsampler/JSampler-0.8a.tar.bz2" target="_top">JSampler
       package</a>, which also contains this manual and startup scripts
       that can be used to run a particular JSampler distribution.</p><p>The latest source code can be obtained from cvs with the following
-      command:</p><p><span class="command"><strong>cvs -z3
+      command:</p><p><span><strong class="command">cvs -z3
       -d:pserver:anonymous@cvs.linuxsampler.org:/var/cvs/linuxsampler co
       jsampler</strong></span></p></div><div class="section" lang="en"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="REQUIREMENTS"></a>Requirements</h2></div></div></div><p>To run JSampler you need Java Runtime Environment (JRE) version 6
-      or higher. The latest version can be downloaded from <a class="ulink" href="http://java.sun.com/javase/downloads/" target="_top">here</a>.</p><p>To build JSampler distribution from source you need JDK version
-      6.0 or higher and the <a class="ulink" href="http://ant.apache.org/" target="_top">Ant
+      or higher. The latest version can be downloaded from <a href="http://java.sun.com/javase/downloads/" target="_top">here</a>.</p><p>To build JSampler distribution from source you need JDK version
+      6.0 or higher and the <a href="http://ant.apache.org/" target="_top">Ant
       tool</a>.</p></div><div class="section" lang="en"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="RUNNING_JSAMPLER"></a>Running a JSampler distribution</h2></div></div></div><p>Let's assume that you want to run from the command line
       <code class="code">JS_Classic-0.8a.jar</code>, which is located in
       <code class="code">/home/me/soft</code> directory. First you should check whether the
       <code class="code">java</code> command is in your path and the version requirements
-      are met. This can be done by issuing the following command:</p><p><span class="command"><strong>java -version</strong></span></p><p>If the version is 1.6.0 or higher you can run JS Classic by
-      issuing the following command:</p><p><span class="command"><strong>java -jar
-      /home/me/soft/JS_Classic-0.8a.jar</strong></span></p><p>Otherwise, if the shell response is something like</p><p><span class="command"><strong>bash: java: command not found</strong></span></p><p>or the version requirements are not met, make sure that you have
+      are met. This can be done by issuing the following command:</p><p><span><strong class="command">java -version</strong></span></p><p>If the version is 1.6.0 or higher you can run JS Classic by
+      issuing the following command:</p><p><span><strong class="command">java -jar
+      /home/me/soft/JS_Classic-0.8a.jar</strong></span></p><p>Otherwise, if the shell response is something like</p><p><span><strong class="command">bash: java: command not found</strong></span></p><p>or the version requirements are not met, make sure that you have
       installed JRE (or JDK) with the proper version and find its
-      location:</p><div class="literallayout"><p><span class="command"><strong>updatedb<br>
-locate bin/java</strong></span></p></div><p>The shell should return something like:</p><div class="literallayout"><p><span class="command"><strong>/opt/jdk1.6.0/bin/java<br>
+      location:</p><div class="literallayout"><p><span><strong class="command">updatedb<br>
+locate bin/java</strong></span></p></div><p>The shell should return something like:</p><div class="literallayout"><p><span><strong class="command">/opt/jdk1.6.0/bin/java<br>
 /opt/jdk1.6.0/bin/javac<br>
 /opt/jdk1.6.0/bin/javadoc<br>
 /opt/jdk1.6.0/bin/javah<br>
@@ -48,10 +48,10 @@ locate bin/java</strong></span></p></div><p>The shell should return something li
 /opt/jdk1.6.0/jre/bin/java<br>
 /usr/bin/java</strong></span></p></div><p>Now, we know that we have a JDK with a proper version installed
       and its location is <code class="code">/opt/jdk1.6.0</code>. In that case, to run JS
-      Classic issue the following command:</p><p><span class="command"><strong>/opt/jdk1.6.0/bin/java -jar
+      Classic issue the following command:</p><p><span><strong class="command">/opt/jdk1.6.0/bin/java -jar
       /home/me/soft/JS_Classic-0.8a.jar</strong></span></p><div class="note" style="margin-left: 0.5in; margin-right: 0.5in;"><h3 class="title">Note</h3><p>On some systems double clicking on the jar file will be
           enough.</p></div></div><div class="section" lang="en"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="USING_SCRIPT"></a>Using a script to run a JSampler distribution</h2></div></div></div><p>There are scripts In the <code class="code">scripts</code> directory of the
-      <a class="ulink" href="http://downloads.sourceforge.net/jsampler/JSampler-0.8a.tar.bz2" target="_top">JSampler
+      <a href="http://downloads.sourceforge.net/jsampler/JSampler-0.8a.tar.bz2" target="_top">JSampler
       package</a> that, with a little adjustments (if needed), can be used
       to run a JSampler distribution. Copy them to a desired location and edit
       with your preferred editor.</p></div><div class="section" lang="en"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="GNOME_JAR_ASSOCIATIONS"></a>Telling Gnome how to handle jar files</h2></div></div></div><p>This configuration is optional, but necessary if you want to run
@@ -63,25 +63,25 @@ locate bin/java</strong></span></p></div><p>The shell should return something li
       button.</p><div><img src="images/file-properties.png"></div><p>In the <span class="guilabel">Add Application</span> dialog click onto
       <span class="guilabel">Use a custom command</span> label and a text field will
       appear below. If the location of your JRE is <code class="code">/opt/jre1.6.0</code>,
-      then enter the following command in the text box:</p><p><span class="command"><strong>/opt/jre1.6.0/bin/java -jar</strong></span></p><p>And then click the <span class="guibutton">Add</span> button.</p><div><img src="images/add-application.png"></div></div><div class="section" lang="en"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="GNOME_LAUNCHER"></a>Adding an application launcher to a Gnome panel</h2></div></div></div><p>To add an application launcher to a Gnome panel, right click on
+      then enter the following command in the text box:</p><p><span><strong class="command">/opt/jre1.6.0/bin/java -jar</strong></span></p><p>And then click the <span class="guibutton">Add</span> button.</p><div><img src="images/add-application.png"></div></div><div class="section" lang="en"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="GNOME_LAUNCHER"></a>Adding an application launcher to a Gnome panel</h2></div></div></div><p>To add an application launcher to a Gnome panel, right click on
       the panel and choose <span class="guimenu">Add to Panel</span>.</p><div><img src="images/add-to-panel.png"></div><p>Then select <span class="guilabel">Custom Application Launcher</span> and
       click the <span class="guibutton">Add</span> button. In the
       <span class="guilabel">Command</span> field, of the <span class="guilabel">Create
       Launcher</span> dialog, fill in the exact command that you use to
       run the JSampler. For more information on how to run a JSampler
-      distribution from the command line <a class="link" href="#RUNNING_JSAMPLER" title="Running a JSampler distribution">click here</a>.</p><div><img src="images/add-to-panel-create-launcher.png"></div></div><div class="section" lang="en"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="RUNING_ON_WINDOWS"></a>Running JSampler on Windows</h2></div></div></div><p>To run JSampler distribution on Windows, put a shortcut on the
+      distribution from the command line <a href="#RUNNING_JSAMPLER" title="Running a JSampler distribution">click here</a>.</p><div><img src="images/add-to-panel-create-launcher.png"></div></div><div class="section" lang="en"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="RUNING_ON_WINDOWS"></a>Running JSampler on Windows</h2></div></div></div><p>To run JSampler distribution on Windows, put a shortcut on the
       Desktop or Quick Launch, right click on the shortcut and choose
       <span class="guimenu">Properties</span>. In the <span class="guilabel">Target</span> field
       insert the command <code class="code">javaw -jar</code> in the beginning.</p><div><img src="images/win-shortcut.png"></div></div></div><div class="chapter" lang="en"><div class="titlepage"><div><div><h2 class="title"><a name="BUILDING_FROM_SOURCE"></a>Chapter 4. Building from source</h2></div></div></div><div class="toc"><p><b>Table of Contents</b></p><dl><dt><span class="section"><a href="#BUILDING_FROM_CVS">Building from CVS</a></span></dt><dt><span class="section"><a href="#COMPILATION">Compilation</a></span></dt></dl></div><p>If you want to build a JSampler distribution from source, first make
-    sure that all <a class="link" href="#REQUIREMENTS" title="Requirements">requirements</a> are
+    sure that all <a href="#REQUIREMENTS" title="Requirements">requirements</a> are
     met.</p><div class="section" lang="en"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="BUILDING_FROM_CVS"></a>Building from CVS</h2></div></div></div><p>When building from CVS, there are some additional steps that
       should be done. JSampler uses two additional libraries, that should be
-      downloaded and placed in the <code class="code">lib/required</code> directory:</p><div class="itemizedlist"><ul type="disc"><li><p><a class="ulink" href="http://sourceforge.net/projects/jlscp/" target="_top">jlscp</a> - A
-            java LinuxSampler control protocol API</p></li><li><p><a class="ulink" href="http://sourceforge.net/projects/juife/" target="_top">juife</a> - Java
+      downloaded and placed in the <code class="code">lib/required</code> directory:</p><div class="itemizedlist"><ul type="disc"><li><p><a href="http://sourceforge.net/projects/jlscp/" target="_top">jlscp</a> - A
+            java LinuxSampler control protocol API</p></li><li><p><a href="http://sourceforge.net/projects/juife/" target="_top">juife</a> - Java
             User Interface Framework Extensions</p></li></ul></div><p>Download these libraries, create a
       <code class="code">lib/required</code> directory in the JSampler root and copy the
       <code class="code">jlscp.jar</code> and <code class="code">juife.jar</code> files in that
-      directory:</p><div class="literallayout"><p><span class="command"><strong>cd /home/me/soft<br>
+      directory:</p><div class="literallayout"><p><span><strong class="command">cd /home/me/soft<br>
 wget -c http://downloads.sourceforge.net/jlscp/jlscp-0.7a.tar.bz2<br>
 tar -xjf jlscp-0.7a.tar.bz2<br>
 wget -c http://downloads.sourceforge.net/juife/juife-0.4a.tar.bz2<br>
@@ -91,20 +91,20 @@ cd jsampler<br>
 mkdirhier lib/required<br>
 cp ../jlscp-0.5a/lib/jlscp.jar lib/required/jlscp.jar<br>
 cp ../juife-0.4a/lib/juife.jar lib/required/juife.jar</strong></span></p></div><div class="tip" style="margin-left: 0.5in; margin-right: 0.5in;"><h3 class="title">Tip</h3><p>In most cases it is sufficient just to copy the
-        <span class="command"><strong>lib</strong></span> directory from the last release, but first
+        <span><strong class="command">lib</strong></span> directory from the last release, but first
         check if there are some significant recent changes to those
         libraries.</p></div><p>Then follow the steps in the next section.</p></div><div class="section" lang="en"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="COMPILATION"></a>Compilation</h2></div></div></div><p>To build a JSampler distribution, first set the
       <code class="code">JAVA_HOME</code> environment variable to point to your JDK
       directory. If the JDK is installed in /opt/jdk1.6.0 directory, this can
-      be done by issuing the following command:</p><p><span class="command"><strong>export JAVA_HOME=/opt/jdk1.6.0</strong></span></p><p>Windows users should do something like:</p><p><span class="command"><strong>set JAVA_HOME=c:\jdk1.6.0</strong></span></p><p>Go to the JSampler root directory and issue the following
-      command:</p><p><span class="command"><strong>ant [target]</strong></span></p><p>Where <code class="code">target</code> can be one of the following:</p><div class="itemizedlist"><ul type="disc"><li><p><span class="command"><strong>build-jsclassic</strong></span> - Builds a JS Classic
-            distribution.</p></li><li><p><span class="command"><strong>clean-jsclassic</strong></span> - Removes the JS Classic
-            distribution.</p></li><li><p><span class="command"><strong>build-fantasia</strong></span> - Builds a Fantasia
-            distribution.</p></li><li><p><span class="command"><strong>clean-fantasia</strong></span> - Removes the Fantasia
-            distribution.</p></li><li><p><span class="command"><strong>build-coredoc</strong></span> - Generates the API
-            documentation for the JSampler core.</p></li><li><p><span class="command"><strong>clean-coredoc</strong></span> - Removes the API
+      be done by issuing the following command:</p><p><span><strong class="command">export JAVA_HOME=/opt/jdk1.6.0</strong></span></p><p>Windows users should do something like:</p><p><span><strong class="command">set JAVA_HOME=c:\jdk1.6.0</strong></span></p><p>Go to the JSampler root directory and issue the following
+      command:</p><p><span><strong class="command">ant [target]</strong></span></p><p>Where <code class="code">target</code> can be one of the following:</p><div class="itemizedlist"><ul type="disc"><li><p><span><strong class="command">build-jsclassic</strong></span> - Builds a JS Classic
+            distribution.</p></li><li><p><span><strong class="command">clean-jsclassic</strong></span> - Removes the JS Classic
+            distribution.</p></li><li><p><span><strong class="command">build-fantasia</strong></span> - Builds a Fantasia
+            distribution.</p></li><li><p><span><strong class="command">clean-fantasia</strong></span> - Removes the Fantasia
+            distribution.</p></li><li><p><span><strong class="command">build-coredoc</strong></span> - Generates the API
+            documentation for the JSampler core.</p></li><li><p><span><strong class="command">clean-coredoc</strong></span> - Removes the API
             documentation for the JSampler core.</p></li></ul></div><p>So, if you want to build a JS Classic distribution, just issue the
-      following command:</p><p><span class="command"><strong>ant build-jsclassic</strong></span></p><p>Then copy the jar file from the <code class="code">dist</code> directory to the
+      following command:</p><p><span><strong class="command">ant build-jsclassic</strong></span></p><p>Then copy the jar file from the <code class="code">dist</code> directory to the
       desired location.</p></div></div><div class="chapter" lang="en"><div class="titlepage"><div><div><h2 class="title"><a name="USING_ORCHESTRAS"></a>Chapter 5. Using Orchestras</h2></div></div></div><div class="toc"><p><b>Table of Contents</b></p><dl><dt><span class="section"><a href="#MANAGING_ORCHESTRAS">Managing Orchestras</a></span></dt><dt><span class="section"><a href="#MANAGING_INSTRUMENTS">Managing Instruments</a></span></dt><dt><span class="section"><a href="#LOADING_ORCHESTRA_INSTRUMENTS">Loading Instruments</a></span></dt></dl></div><p>Orchestras feature is like bookmarks/favorites for instruments.
     Instead of having a thousands of unsorted instruments you can categorize
     your most used instruments for quick access by adding them to orchestras.
@@ -157,7 +157,7 @@ cp ../juife-0.4a/lib/juife.jar lib/required/juife.jar</strong></span></p></div><
       channel using the instrument chooser of the sampler channel - click
       <span class="guilabel">Select instrument from orchestra</span> radio button,
       choose orchestra and isntrument from the comboboxes and click
-      <span class="guibutton">OK</span> button</p></div></div><div class="chapter" lang="en"><div class="titlepage"><div><div><h2 class="title"><a name="id305250"></a>Chapter 6. MIDI Instruments</h2></div></div></div><div class="toc"><p><b>Table of Contents</b></p><dl><dt><span class="section"><a href="#id305290">Managing MIDI Instrument Maps</a></span></dt><dt><span class="section"><a href="#id305376">Managing MIDI Instruments</a></span></dt><dt><span class="section"><a href="#id305467">Assigning MIDI Instrument Map To Sampler Channel</a></span></dt></dl></div><p>The sole purpose of the MIDI instrument mapping is to provide a way
+      <span class="guibutton">OK</span> button</p></div></div><div class="chapter" lang="en"><div class="titlepage"><div><div><h2 class="title"><a name="MIDI_INSTRUMENTS"></a>Chapter 6. MIDI Instruments</h2></div></div></div><div class="toc"><p><b>Table of Contents</b></p><dl><dt><span class="section"><a href="#id2479911">Managing MIDI Instrument Maps</a></span></dt><dt><span class="section"><a href="#id2480012">Managing MIDI Instruments</a></span></dt><dt><span class="section"><a href="#id2480118">Assigning MIDI Instrument Map To Sampler Channel</a></span></dt></dl></div><p>The sole purpose of the MIDI instrument mapping is to provide a way
     to change the loaded instrument on a specific sampler channel through the
     MIDI keyboard by switching to different MIDI bank/program. To do that you
     need at least one MIDI instrument map with MIDI instruments mapped for the
@@ -168,7 +168,7 @@ cp ../juife-0.4a/lib/juife.jar lib/required/juife.jar</strong></span></p></div><
     before quiting your session to be able to load them again next time you
     start LinuxSampler. This can be done by choosing
     <span class="guimenu">Actions</span>/<span class="guimenu">Export</span>/<span class="guimenu">MIDI
-    Instrument Maps</span>.</p><div class="section" lang="en"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="id305290"></a>Managing MIDI Instrument Maps</h2></div></div></div><p><span class="guilabel">MIDI Instrument Maps</span> tool buttons:</p><p><img src="images/new16.png"> <span class="guilabel">Add MIDI
+    Instrument Maps</span>.</p><div class="section" lang="en"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="id2479911"></a>Managing MIDI Instrument Maps</h2></div></div></div><p><span class="guilabel">MIDI Instrument Maps</span> tool buttons:</p><p><img src="images/new16.png"> <span class="guilabel">Add MIDI
       instrument map</span></p><p><img src="images/edit16.png"> <span class="guilabel">Edit
       selected MIDI instrument map</span></p><p><img src="images/delete16.png"> <span class="guilabel">Remove
       selected MIDI instrument map</span></p><p>To create a new MIDI instrument map, click the <span class="guilabel">MIDI
@@ -177,23 +177,23 @@ cp ../juife-0.4a/lib/juife.jar lib/required/juife.jar</strong></span></p></div><
       button.</p><p>To remove a map, select the map and click the <span class="guibutton">Remove
       selected MIDI instrument map</span> button. To edit a map, select
       the map and click the <span class="guibutton">Edit selected MIDI instrument
-      map</span> button, or just double-click the map to edit.</p></div><div class="section" lang="en"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="id305376"></a>Managing MIDI Instruments</h2></div></div></div><p><span class="guilabel">Managing MIDI Instruments</span> tool
+      map</span> button, or just double-click the map to edit.</p></div><div class="section" lang="en"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="id2480012"></a>Managing MIDI Instruments</h2></div></div></div><p><span class="guilabel">Managing MIDI Instruments</span> tool
       buttons:</p><p><img src="images/new16.png"> <span class="guilabel">Add new
       MIDI instrument</span></p><p><img src="images/edit16.png"> <span class="guilabel">Edit
       selected MIDI instrument</span></p><p><img src="images/delete16.png"> <span class="guilabel">Remove
       selected MIDI instrument or bank</span></p><p>To map a MIDI instrument, first select the desired MIDI instrument
       map from the combobox then click the <span class="guilabel">Add new MIDI
-      instrument</span> button:</p><div align="center"><img src="images/map-midi-instrument.png" align="middle"></div><div class="tip" style="margin-left: 0.5in; margin-right: 0.5in;"><h3 class="title">Tip</h3><p>The <a class="link" href="#INSTRUMENTS_DB_ADD_TO_MAP" title="Adding Instruments To MIDI Instrument Map">easiest way to
-          map a MIDI instrument</a> is from the <a class="link" href="#INSTRUMENTS_DATABASE" title="Chapter 7. Instruments Database">Instruments Database</a>.</p></div><p>To remove a MIDI bank/instrument, select the MIDI
+      instrument</span> button:</p><div align="center"><img src="images/map-midi-instrument.png" align="middle"></div><div class="tip" style="margin-left: 0.5in; margin-right: 0.5in;"><h3 class="title">Tip</h3><p>The <a href="#INSTRUMENTS_DB_ADD_TO_MAP" title="Adding Instruments To MIDI Instrument Map">easiest way to
+          map a MIDI instrument</a> is from the <a href="#INSTRUMENTS_DATABASE" title="Chapter 7. Instruments Database">Instruments Database</a>.</p></div><p>To remove a MIDI bank/instrument, select the MIDI
       bank/instrument and click the <span class="guibutton">Remove selected MIDI instrument
       or bank</span> button. To edit a MIDI instrument, select the MIDI
       instrument and click the <span class="guibutton">Edit selected MIDI
       instrument</span> button, or just double-click the MIDI instrument
-      to edit.</p></div><div class="section" lang="en"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="id305467"></a>Assigning MIDI Instrument Map To Sampler Channel</h2></div></div></div><p>To assign MIDI instrument map to specific sampler channel, click
+      to edit.</p></div><div class="section" lang="en"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="id2480118"></a>Assigning MIDI Instrument Map To Sampler Channel</h2></div></div></div><p>To assign MIDI instrument map to specific sampler channel, click
       the <span class="guibutton">Options</span> button to expand the channel options
       pane then select the desired map from the <span class="guilabel">MIDI Instrument
-      Map</span> combobox:</p><div><img src="images/assign-midi-map.png"></div></div></div><div class="chapter" lang="en"><div class="titlepage"><div><div><h2 class="title"><a name="INSTRUMENTS_DATABASE"></a>Chapter 7. Instruments Database</h2></div></div></div><div class="toc"><p><b>Table of Contents</b></p><dl><dt><span class="section"><a href="#id305578">Adding Instruments To The Instruments Database</a></span></dt><dt><span class="section"><a href="#id305636">Manging Instruments And Directories</a></span></dt><dt><span class="section"><a href="#id305780">Loading Instruments From The Instruments Database</a></span></dt><dt><span class="section"><a href="#INSTRUMENTS_DB_ADD_TO_MAP">Adding Instruments To MIDI Instrument Map</a></span></dt><dt><span class="section"><a href="#id305839">Adding Instruments To Orchestra From The Instruments
-      Database</a></span></dt><dt><span class="section"><a href="#id305874">Finding Instruments</a></span></dt></dl></div><p>The communication between LinuxSampler and its front-ends is TCP/IP
+      Map</span> combobox:</p><div><img src="images/assign-midi-map.png"></div></div></div><div class="chapter" lang="en"><div class="titlepage"><div><div><h2 class="title"><a name="INSTRUMENTS_DATABASE"></a>Chapter 7. Instruments Database</h2></div></div></div><div class="toc"><p><b>Table of Contents</b></p><dl><dt><span class="section"><a href="#id2480256">Adding Instruments To The Instruments Database</a></span></dt><dt><span class="section"><a href="#id2480326">Manging Instruments And Directories</a></span></dt><dt><span class="section"><a href="#id2480489">Loading Instruments From The Instruments Database</a></span></dt><dt><span class="section"><a href="#INSTRUMENTS_DB_ADD_TO_MAP">Adding Instruments To MIDI Instrument Map</a></span></dt><dt><span class="section"><a href="#id2480561">Adding Instruments To Orchestra From The Instruments
+      Database</a></span></dt><dt><span class="section"><a href="#id2480604">Finding Instruments</a></span></dt></dl></div><p>The communication between LinuxSampler and its front-ends is TCP/IP
     based, which provides an option the sampler to be controlled from another
     computer or device, and while instrument loading is a regular task in the
     sampler, there should also be a convenient way to browse and load
@@ -206,17 +206,17 @@ cp ../juife-0.4a/lib/juife.jar lib/required/juife.jar</strong></span></p></div><
     without moving or altering the instrument files located all over your hard
     drives. Another great feature is the search engine with enhanced search
     capabilities providing you fast and easy way of finding instruments by
-    various criteria.</p><p>It is crucial to understand that, unlike <a class="link" href="#USING_ORCHESTRAS" title="Chapter 5. Using Orchestras">Orchestras</a>, the Instruments Database is
+    various criteria.</p><p>It is crucial to understand that, unlike <a href="#USING_ORCHESTRAS" title="Chapter 5. Using Orchestras">Orchestras</a>, the Instruments Database is
     handled by LinuxSampler, not by JSampler, and by default the database file
-    is located in <span class="command"><strong>/var/lib/linuxsampler/instruments.db</strong></span> on
+    is located in <span><strong class="command">/var/lib/linuxsampler/instruments.db</strong></span> on
     the host where the back-end is started.</p><p>Note that you can have more than one instruments database and you
     can specify which one to be used on LinuxSampler startup. To create a new
-    database file issue the following command:</p><p><span class="command"><strong>linuxsampler --create-instruments-db
+    database file issue the following command:</p><p><span><strong class="command">linuxsampler --create-instruments-db
     my_instruments.db</strong></span></p><p>which will create a new database file called
-    <span class="command"><strong>my_instruments.db</strong></span> in the current directory.</p><p>To start LinuxSampler using the newly created instruments database
-    use the <span class="command"><strong>--instruments-db-location</strong></span> option:</p><p><span class="command"><strong>linuxsampler --instruments-db-location
+    <span><strong class="command">my_instruments.db</strong></span> in the current directory.</p><p>To start LinuxSampler using the newly created instruments database
+    use the <span><strong class="command">--instruments-db-location</strong></span> option:</p><p><span><strong class="command">linuxsampler --instruments-db-location
     my_instruments.db</strong></span></p><p>To backup the instruments database just copy the database
-    file.</p><div class="section" lang="en"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="id305578"></a>Adding Instruments To The Instruments Database</h2></div></div></div><p>Choose <span class="guimenu">Window</span> <span class="guimenuitem">Instruments
+    file.</p><div class="section" lang="en"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="id2480256"></a>Adding Instruments To The Instruments Database</h2></div></div></div><p>Choose <span class="guimenu">Window</span> <span class="guimenuitem">Instruments
       Database</span> to bring up the Instruments Database window, or
       click the corresponding tool button. Initialy, the instruments database
       is empty, so you should manually create the desired directories and add
@@ -229,21 +229,21 @@ cp ../juife-0.4a/lib/juife.jar lib/required/juife.jar</strong></span></p></div><
       Instruments</span> submenu, where you have two options - to scan a
       specific instrument file and add the instruments in that file to the
       instruments database or scan a file system directory for instrument
-      files and add the instruments to the instruments database.</p></div><div class="section" lang="en"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="id305636"></a>Manging Instruments And Directories</h2></div></div></div><p>Basic commands:</p><p><span class="command"><strong>Cut</strong></span> -
+      files and add the instruments to the instruments database.</p></div><div class="section" lang="en"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="id2480326"></a>Manging Instruments And Directories</h2></div></div></div><p>Basic commands:</p><p><span><strong class="command">Cut</strong></span> -
       <span class="guimenu">Edit</span>/<span class="guimenu">Cut</span>, or right-click on a
       selected file or directory and choose <span class="guibutton">Cut,</span> or
-      Ctrl+X</p><p><span class="command"><strong>Copy</strong></span> -
+      Ctrl+X</p><p><span><strong class="command">Copy</strong></span> -
       <span class="guimenu">Edit</span>/<span class="guimenu">Copy</span>, or right-click on a
       selected file or directory and choose <span class="guibutton">Copy,</span> or
-      Ctrl+C</p><p><span class="command"><strong>Paste</strong></span> -
+      Ctrl+C</p><p><span><strong class="command">Paste</strong></span> -
       <span class="guimenu">Edit</span>/<span class="guimenu">Paste</span>, or right-click a blank
-      area and choose <span class="guibutton">Paste,</span> or Ctrl+V</p><p><span class="command"><strong>Rename</strong></span> -
+      area and choose <span class="guibutton">Paste,</span> or Ctrl+V</p><p><span><strong class="command">Rename</strong></span> -
       <span class="guimenu">Edit</span>/<span class="guimenu">Rename</span>, or right-click on a
       selected file or directory and choose <span class="guibutton">Rename,</span> or
-      press <span class="command"><strong>F2</strong></span></p><p><span class="command"><strong>Delete</strong></span> -
+      press <span><strong class="command">F2</strong></span></p><p><span><strong class="command">Delete</strong></span> -
       <span class="guimenu">Actions</span>/<span class="guimenu">Delete</span>, or right-click on
       a selected file or directory and choose <span class="guibutton">Delete,</span>
-      or press the <span class="command"><strong>Delete</strong></span> key from the keyboard</p><div class="tip" style="margin-left: 0.5in; margin-right: 0.5in;"><h3 class="title">Tip</h3><p>This commands also work on a multiple selection.</p></div></div><div class="section" lang="en"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="id305780"></a>Loading Instruments From The Instruments Database</h2></div></div></div><p>To load an instrument to a sampler channel from the Instruments
+      or press the <span><strong class="command">Delete</strong></span> key from the keyboard</p><div class="tip" style="margin-left: 0.5in; margin-right: 0.5in;"><h3 class="title">Tip</h3><p>This commands also work on a multiple selection.</p></div></div><div class="section" lang="en"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="id2480489"></a>Loading Instruments From The Instruments Database</h2></div></div></div><p>To load an instrument to a sampler channel from the Instruments
       Database, right-click on the instrument and choose <span class="guimenu">Load
       Instrument</span>, then choose the sampler channel where the
       instrument should be loaded to. Note that you need to have at least one
@@ -253,17 +253,17 @@ cp ../juife-0.4a/lib/juife.jar lib/required/juife.jar</strong></span></p></div><
       Map</span>, then choose the MIDI instrument map to which to add the
       selected instrument. Note that you need to have at least one MIDI
       instrument map, otherwise the <span class="guimenu">Add To MIDI Map</span> submenu
-      is disabled. For more info read <a class="link" href="#MIDI_INSTRUMENTS">MIDI
+      is disabled. For more info read <a href="#MIDI_INSTRUMENTS" title="Chapter 6. MIDI Instruments">MIDI
       Instruments</a>.</p><div class="tip" style="margin-left: 0.5in; margin-right: 0.5in;"><h3 class="title">Tip</h3><p>To add more than one instrument from an instrument directory
           at a time, select the instruments and right-click on one of the
-          selected instruments.</p></div></div><div class="section" lang="en"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="id305839"></a>Adding Instruments To Orchestra From The Instruments
+          selected instruments.</p></div></div><div class="section" lang="en"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="id2480561"></a>Adding Instruments To Orchestra From The Instruments
       Database</h2></div></div></div><p>To add an instrument to orchestra from the Instruments Database,
       right-click on the instrument and choose <span class="guimenu">Add To
       Orchestra</span>, then choose the orchestra to which to add the
       selected instrument. Note that you need to have at least one orchestra,
       otherwise the <span class="guimenu">Add To Orchestra</span> submenu is disabled.
-      For more info read <a class="link" href="#USING_ORCHESTRAS" title="Chapter 5. Using Orchestras">Using
+      For more info read <a href="#USING_ORCHESTRAS" title="Chapter 5. Using Orchestras">Using
       Orchestras</a>.</p><div class="tip" style="margin-left: 0.5in; margin-right: 0.5in;"><h3 class="title">Tip</h3><p>To add more than one instrument from an instrument directory
           at a time, select the instruments and right-click on one of the
-          selected instruments.</p></div></div><div class="section" lang="en"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="id305874"></a>Finding Instruments</h2></div></div></div><p>To start a search, choose
+          selected instruments.</p></div></div><div class="section" lang="en"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="id2480604"></a>Finding Instruments</h2></div></div></div><p>To start a search, choose
       <span class="guimenu">Edit</span>/<span class="guimenu">Find</span>, or Ctrl+F.</p></div></div></div></body></html>
