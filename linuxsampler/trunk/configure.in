@@ -5,7 +5,7 @@ AC_INIT(configure.in)
 
 LINUXSAMPLER_RELEASE_MAJOR=0
 LINUXSAMPLER_RELEASE_MINOR=5
-LINUXSAMPLER_RELEASE_BUILD=1.6cvs
+LINUXSAMPLER_RELEASE_BUILD=1.7cvs
 
 #------------------------------------------------------------------------------------
 # The following is the libtool / shared library version. This doesn't have to
@@ -999,6 +999,22 @@ if test "$config_interpolate_volume" = "yes"; then
   AC_DEFINE_UNQUOTED(CONFIG_INTERPOLATE_VOLUME, 1, [Define to 1 if you want to enable interpolation of volume modulation.])
 fi
 
+AC_ARG_ENABLE(master-volume-sysex-by-port,
+  [  --enable-master-volume-sysex-by-port
+                          Whether global volume sysex message should be
+                          applied globally to the whole sampler or only to
+                          the sampler channels connected to the same MIDI
+                          input port on which the sysex message arrived on.
+                          By default global volume sysex messages apply
+                          globally to the whole sampler, since many MIDI
+                          devices behave that way.],
+  [config_master_volume_sysex_by_port="$enableval"],
+  [config_master_volume_sysex_by_port="no"]
+)
+if test "$config_master_volume_sysex_by_port" = "yes"; then
+  AC_DEFINE_UNQUOTED(CONFIG_MASTER_VOLUME_SYSEX_BY_PORT, 1, [Define to 1 if you want global volume sysex message only be applied to the respective MIDI port.])
+fi
+
 AC_ARG_ENABLE(plugin-dir,
   [  --enable-plugin-dir
                           Directory where the sampler shall look for potential plugins,
@@ -1214,6 +1230,7 @@ echo "# Override Filter Type: ${config_override_filter_type}"
 echo "# Assert GS SysEx Checksum: ${config_assert_gs_sysex_checksum}"
 echo "# Process Muted Channels: ${config_process_muted_channels}"
 echo "# Process All-Notes-Off MIDI message: ${config_process_all_notes_off}"
+echo "# Apply global volume SysEx by MIDI port: ${config_master_volume_sysex_by_port}"
 echo "# Interpolate Volume: ${config_interpolate_volume}"
 echo "# Instruments database support: ${config_instruments_db}"
 if test "$config_instruments_db" = "yes"; then

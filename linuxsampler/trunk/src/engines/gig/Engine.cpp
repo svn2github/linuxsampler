@@ -1904,10 +1904,27 @@ namespace LinuxSampler { namespace gig {
                 switch (sub_id1) {
                     case 0x04: // Device Control
                         switch (sub_id2) {
-                            case 0x01: // Master Volume
-                                GLOBAL_VOLUME =
+                            case 0x01: { // Master Volume
+                                const double volume =
                                     double((uint(val_msb)<<7) | uint(val_lsb)) / 16383.0;
+                                #if CONFIG_MASTER_VOLUME_SYSEX_BY_PORT
+                                // apply volume to all sampler channels that
+                                // are connected to the same MIDI input port
+                                // this sysex message arrived on
+                                for (int i = 0; i < engineChannels.size(); ++i) {
+                                    EngineChannel* pEngineChannel = engineChannels[i];
+                                    if (pEngineChannel->GetMidiInputPort() ==
+                                        itSysexEvent->pMidiInputPort)
+                                    {
+                                        pEngineChannel->Volume(volume);
+                                    }
+                                }
+                                #else
+                                // apply volume globally to the whole sampler
+                                GLOBAL_VOLUME = volume;
+                                #endif // CONFIG_MASTER_VOLUME_SYSEX_BY_PORT
                                 break;
+                            }
                         }
                         break;
                 }
@@ -1959,7 +1976,7 @@ namespace LinuxSampler { namespace gig {
                                 if (
                                     (pEngineChannel->midiChannel == part ||
                                      pEngineChannel->midiChannel == midi_chan_all) &&
-                                    pEngineChannel->GetMidiInputPort() == itSysexEvent->pMidiInputPort
+                                     pEngineChannel->GetMidiInputPort() == itSysexEvent->pMidiInputPort
                                 ) {
                                     try {
                                         pEngineChannel->SetMidiInstrumentMap(map);
@@ -2117,7 +2134,7 @@ namespace LinuxSampler { namespace gig {
     }
 
     String Engine::Version() {
-        String s = "$Revision: 1.95 $";
+        String s = "$Revision: 1.96 $";
         return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
 

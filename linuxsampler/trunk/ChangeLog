@@ -59,6 +59,10 @@ Version CVS HEAD (?)
     - minor fix: only mark FX sends as being modified if really the
       respective FX send MIDI controller was used
     - added support for GM global device volume SysEx message
+      (can be selected at compile time to either apply globally to the
+      whole sampler [default] or only to the sampler channels that are
+      connected to the respective MIDI input port the SysEx message arrived
+      on)
     - bugfix: notes triggered at position 0 in the audio buffer were
       sometimes wrongly killed in the same buffer, causing no sound to
       be played
