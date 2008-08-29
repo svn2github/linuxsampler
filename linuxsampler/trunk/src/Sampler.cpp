@@ -83,8 +83,7 @@ namespace LinuxSampler {
         EngineChannel* pNewEngineChannel = EngineChannelFactory::Create(EngineType);
         if (!pNewEngineChannel) throw Exception("Unknown engine type");
 
-        //FIXME: hack to allow fast retrieval of engine channel's sampler channel index
-        pNewEngineChannel->iSamplerChannelIndex = Index();
+        pNewEngineChannel->SetSamplerChannel(this);
 
         // dereference midi input port.
         MidiInputPort* pMidiInputPort = __GetMidiInputDevicePort(GetMidiInputPort());
@@ -214,6 +213,10 @@ namespace LinuxSampler {
         }
 
         throw Exception("Internal error: SamplerChannel index not found");
+    }
+
+    Sampler* SamplerChannel::GetSampler() {
+        return pSampler;
     }
 
     void SamplerChannel::AddEngineChangeListener(EngineChangeListener* l) {

@@ -25,6 +25,7 @@
 namespace LinuxSampler {
 
     InstrumentManagerThread::InstrumentManagerThread() : Thread(true, false, 0, -4) {
+        eventHandler.pThread = this;
     }
 
     InstrumentManagerThread::~InstrumentManagerThread() {
@@ -43,6 +44,14 @@ namespace LinuxSampler {
      */
     void InstrumentManagerThread::StartNewLoad(String Filename, uint uiInstrumentIndex, EngineChannel* pEngineChannel) {
         dmsg(1,("Scheduling '%s' (Index=%d) to be loaded in background (if not loaded yet).\n",Filename.c_str(),uiInstrumentIndex));
+
+        static bool listenerRegistered = false;
+        if (!listenerRegistered) {
+            pEngineChannel->GetSampler()->AddChannelCountListener(&eventHandler);
+            listenerRegistered = true;
+        }
+        
+        
         // already tell the engine which instrument to load
         pEngineChannel->PrepareLoadInstrument(Filename.c_str(), uiInstrumentIndex);
 
@@ -99,6 +108,7 @@ namespace LinuxSampler {
                 // grab a new command from the queue
                 mutex.Lock();
                 cmd = queue.front();
+                queue.pop_front();
                 mutex.Unlock();
 
                 try {
@@ -117,11 +127,6 @@ namespace LinuxSampler {
                 } catch (...) {
                     std::cerr << "InstrumentManagerThread: some exception occured, could not finish task\n" << std::flush;
                 }
-
-                // remove processed command from queue
-                mutex.Lock();
-                queue.pop_front();
-                mutex.Unlock();
             }
 
             // nothing left to do, sleep until new jobs arrive
@@ -132,5 +137,24 @@ namespace LinuxSampler {
             conditionJobsLeft.Unlock();
         }
     }
-
+    
+    void InstrumentManagerThread::EventHandler::ChannelToBeRemoved(SamplerChannel* pChannel) {
+        /*
+           Removing from the queue an eventual scheduled loading of an instrument
+           to a sampler channel which is going to be removed.
+        */
+        pThread->mutex.Lock();
+        std::list<command_t>::iterator it;
+        for (it = pThread->queue.begin(); it != pThread->queue.end();){
+            if ((*it).type != command_t::DIRECT_LOAD) { ++it; continue; }
+            if ((*it).pEngineChannel == pChannel->GetEngineChannel()) {
+                it = pThread->queue.erase(it);
+                // we don't break here because the same engine channel could
+                // occur more than once in the queue, so don't make optimizations
+            } else {
+                ++it;
+            }
+        } 
+        pThread->mutex.Unlock();
+    }
 } // namespace LinuxSampler

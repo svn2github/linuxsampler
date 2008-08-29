@@ -424,13 +424,13 @@ int LSCPServer::Main() {
             std::set<EngineChannel*>::iterator itEnd           = engineChannels.end();
             for (; itEngineChannel != itEnd; ++itEngineChannel) {
                 if ((*itEngineChannel)->StatusChanged()) {
-                    SendLSCPNotify(LSCPEvent(LSCPEvent::event_channel_info, (*itEngineChannel)->iSamplerChannelIndex));
+                    SendLSCPNotify(LSCPEvent(LSCPEvent::event_channel_info, (*itEngineChannel)->GetSamplerChannel()->Index()));
                 }
 
                 for (int i = 0; i < (*itEngineChannel)->GetFxSendCount(); i++) {
                     FxSend* fxs = (*itEngineChannel)->GetFxSend(i);
                     if(fxs != NULL && fxs->IsInfoChanged()) {
-                        int chn = (*itEngineChannel)->iSamplerChannelIndex;
+                        int chn = (*itEngineChannel)->GetSamplerChannel()->Index();
                         LSCPServer::SendLSCPNotify(LSCPEvent(LSCPEvent::event_fx_send_info, chn, fxs->Id()));
                         fxs->SetInfoChanged(false);
                     }

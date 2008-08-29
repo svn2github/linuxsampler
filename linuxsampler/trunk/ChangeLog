@@ -81,6 +81,11 @@ Version CVS HEAD (?)
     - bugfix: the bank number provided by MIDI_INSTRUMENT_INFO notifications
       was incorrect
 
+  * Bug fixes:
+    - fixed a crash which occurs when removing a sampler channel waiting
+      to start instrument loading after another channel
+
+
 Version 0.5.1 (6 December 2007)
 
   * packaging changes:

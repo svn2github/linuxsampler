@@ -33,6 +33,8 @@
 namespace LinuxSampler {
 
     // just symbol prototyping
+    class Sampler;
+    class SamplerChannel;
     class AudioOutputDevice;
     class MidiInputPort;
     class FxSend;
@@ -299,7 +301,12 @@ namespace LinuxSampler {
              */
             void SetDiskStreamCount(uint Streams);
 
-            int iSamplerChannelIndex; ///< FIXME: nasty hack, might be removed (should be 'virtual EngineChannel* EngineChannel() = 0;', but due to cyclic dependencies only a void* solution would be possible ATM)
+            SamplerChannel* GetSamplerChannel();
+            
+            void SetSamplerChannel(SamplerChannel* pChannel);
+
+            /** Returns the sampler to which this channel belongs */
+            Sampler* GetSampler();
 
         protected:
             EngineChannel();
@@ -330,6 +337,7 @@ namespace LinuxSampler {
             int     iMidiInstrumentMap;
             uint    uiVoiceCount;
             uint    uiDiskStreamCount;
+            SamplerChannel* pSamplerChannel;
             ListenerList<FxSendCountListener*> llFxSendCountListeners;
     };
 

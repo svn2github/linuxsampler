@@ -150,6 +150,9 @@ namespace LinuxSampler {
              * Sampler instance.
              */
             uint Index();
+
+            /** Returns the sampler to which this channel belongs */
+            Sampler* GetSampler();
             
             /**
              * Registers the specified listener to be notified

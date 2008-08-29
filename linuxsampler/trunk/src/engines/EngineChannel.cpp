@@ -25,6 +25,7 @@
 
 #include <algorithm>
 
+#include "../Sampler.h"
 #include "../common/global_private.h"
 #include "../drivers/midi/MidiInstrumentMapper.h"
 
@@ -43,6 +44,7 @@ namespace LinuxSampler {
         iMidiInstrumentMap = NO_MIDI_INSTRUMENT_MAP;
         uiVoiceCount = 0;
         uiDiskStreamCount = 0;
+        pSamplerChannel = NULL;
         ResetMidiRpnController();
     }
 
@@ -202,6 +204,22 @@ namespace LinuxSampler {
     
     void EngineChannel::SetDiskStreamCount(uint Streams) {
         uiDiskStreamCount = Streams;
+    }
+    
+    SamplerChannel* EngineChannel::GetSamplerChannel() {
+        if(pSamplerChannel == NULL) {
+            std::cerr << "EngineChannel::GetSamplerChannel(): pSamplerChannel is NULL, this is a bug!\n" << std::flush;
+        }
+        return pSamplerChannel;
+    }
+
+    void EngineChannel::SetSamplerChannel(SamplerChannel* pChannel) {
+        pSamplerChannel = pChannel;
+    }
+
+    Sampler* EngineChannel::GetSampler() {
+        if (GetSamplerChannel() == NULL) return NULL;
+        return GetSamplerChannel()->GetSampler();
     }
 
     void EngineChannel::AddFxSendCountListener(FxSendCountListener* l) {

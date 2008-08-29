@@ -24,6 +24,7 @@
 #include "EngineChannel.h"
 
 #include "../../common/global_private.h"
+#include "../../Sampler.h"
 
 namespace LinuxSampler { namespace gig {
 
@@ -329,6 +330,7 @@ namespace LinuxSampler { namespace gig {
                 // release the currently loaded instrument
                 Engine::instruments.HandBackInstrument(cmd.pInstrument, this, d);
             }
+
             if (d) delete d;
 
             // release all active dimension regions to resource
@@ -451,7 +453,7 @@ namespace LinuxSampler { namespace gig {
         }
         fxSends.push_back(pFxSend);
         if (pEngine) pEngine->Enable();
-        fireFxSendCountChanged(iSamplerChannelIndex, GetFxSendCount());
+        fireFxSendCountChanged(GetSamplerChannel()->Index(), GetFxSendCount());
 
         return pFxSend;
     }
@@ -490,7 +492,7 @@ namespace LinuxSampler { namespace gig {
             }
         }
         if (pEngine) pEngine->Enable();
-        fireFxSendCountChanged(iSamplerChannelIndex, GetFxSendCount());
+        fireFxSendCountChanged(GetSamplerChannel()->Index(), GetFxSendCount());
     }
 
     /**

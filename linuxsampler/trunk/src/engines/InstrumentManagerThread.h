@@ -26,6 +26,7 @@
 #include "../common/Condition.h"
 #include "../common/Mutex.h"
 #include "../Sampler.h"
+#include "../EventListeners.h"
 #include "InstrumentManager.h"
 
 #include <list>
@@ -40,6 +41,8 @@ namespace LinuxSampler {
      * to the API.
      */
     class InstrumentManagerThread : public Thread {
+        friend class EventHandler;
+        
         public:
             InstrumentManagerThread();
             void StartNewLoad(String Filename, uint uiInstrumentIndex, EngineChannel* pEngineChannel);
@@ -63,6 +66,14 @@ namespace LinuxSampler {
             Condition            conditionJobsLeft; ///< synchronizer to block this thread until a new job arrives
 
             int Main(); ///< Implementation of virtual method from class Thread.
+        private:
+            class EventHandler : public ChannelCountAdapter {
+                public:
+                    InstrumentManagerThread* pThread;
+                    virtual void ChannelToBeRemoved(SamplerChannel* pChannel);
+            };
+            
+            EventHandler eventHandler;
     };
 
 } // namespace LinuxSampler

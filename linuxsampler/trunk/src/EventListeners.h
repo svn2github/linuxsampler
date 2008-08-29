@@ -97,6 +97,17 @@ namespace LinuxSampler {
     };
 
     /**
+     * This class exists as convenience for creating listener objects.
+     * The methods in this class are empty.
+     */
+    class ChannelCountAdapter : public ChannelCountListener {
+        public:
+            virtual void ChannelCountChanged(int NewCount) { };
+            virtual void ChannelAdded(SamplerChannel* pChannel) { };
+            virtual void ChannelToBeRemoved(SamplerChannel* pChannel) { };
+    };
+
+    /**
      * This class is used as a listener, which is notified
      * when the number of audio output devices is changed.
      */
