@@ -84,6 +84,7 @@ Version CVS HEAD (?)
       SET DB_INSTRUMENT FILE_PATH
     - bugfix: the bank number provided by MIDI_INSTRUMENT_INFO notifications
       was incorrect
+    - Optimized the retrieval of the MIDI instrument mappings
 
   * Bug fixes:
     - fixed a crash which occurs when removing a sampler channel waiting

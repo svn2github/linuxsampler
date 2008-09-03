@@ -186,6 +186,64 @@ namespace LinuxSampler {
         }
     }
 
+    void MidiInstrumentMapper::SetLoadMode(entry_t* pEntry) {
+        Engine* pEngine = EngineFactory::Create(pEntry->EngineName);
+        if (!pEngine) { // invalid mapping
+            throw Exception("Invalid mapping");
+        }
+
+        InstrumentManager* pManager = pEngine->GetInstrumentManager();
+        if (pManager) { // engine provides an InstrumentManager
+            InstrumentManager::instrument_id_t id;
+            id.FileName = pEntry->InstrumentFile;
+            id.Index    = pEntry->InstrumentIndex;
+            pEntry->LoadMode = static_cast<mode_t>(pManager->GetMode(id));
+        } else { // engine does not provide an InstrumentManager
+            // use default value
+            pEntry->LoadMode = ON_DEMAND;
+        }
+
+        EngineFactory::Destroy(pEngine);
+    }
+
+    MidiInstrumentMapper::entry_t MidiInstrumentMapper::GetEntry(int Map, uint MidiBank, uint MidiProg) {
+        midiMapsMutex.Lock();
+        std::map<int,MidiInstrumentMap>::iterator iterMap = midiMaps.find(Map);
+        if (iterMap == midiMaps.end()) { // no such map
+            midiMapsMutex.Unlock();
+            throw Exception("There is no MIDI instrument map " + ToString(Map));
+        }
+
+        midi_prog_index_t idx;
+        idx.midi_bank_msb = (MidiBank >> 7) & 0x7f;
+        idx.midi_bank_lsb = MidiBank & 0x7f;
+        idx.midi_prog     = MidiProg;
+
+        std::map<midi_prog_index_t,private_entry_t>::iterator iterEntry = iterMap->second.find(idx);
+        if (iterEntry == iterMap->second.end()) {
+            midiMapsMutex.Unlock();
+            throw Exception("There is no map entry with that index");
+        }
+
+        entry_t entry;
+        entry.EngineName      = iterEntry->second.EngineName;
+        entry.InstrumentFile  = iterEntry->second.InstrumentFile;
+        entry.InstrumentIndex = iterEntry->second.InstrumentIndex;
+        entry.Volume          = iterEntry->second.Volume;
+        entry.Name            = iterEntry->second.Name;
+
+        try {
+            SetLoadMode(&entry);
+        } catch(Exception e) {
+            midiMapsMutex.Unlock();
+            throw e;
+        }
+
+        midiMapsMutex.Unlock();
+        
+        return entry;
+    }
+
     void MidiInstrumentMapper::RemoveEntry(int Map, midi_prog_index_t Index) {
         int InstrCount = -1;
 
@@ -245,24 +303,12 @@ namespace LinuxSampler {
         for (std::map<midi_prog_index_t,entry_t>::iterator iter = result.begin();
              iter != result.end(); iter++)
         {
-            entry_t& entry = iter->second;
-            Engine* pEngine = EngineFactory::Create(entry.EngineName);
-            if (!pEngine) { // invalid mapping
+            try {
+                SetLoadMode(&(iter->second));
+            } catch(Exception e) {
                 RemoveEntry(Map, iter->first);
                 result.erase(iter);
-                continue;
             }
-            InstrumentManager* pManager = pEngine->GetInstrumentManager();
-            if (pManager) { // engine provides an InstrumentManager
-                InstrumentManager::instrument_id_t id;
-                id.FileName = entry.InstrumentFile;
-                id.Index    = entry.InstrumentIndex;
-                entry.LoadMode = static_cast<mode_t>(pManager->GetMode(id));
-            } else { // engine does not provide an InstrumentManager
-                // use default value
-                entry.LoadMode = ON_DEMAND;
-            }
-            EngineFactory::Destroy(pEngine);
         }
         return result;
     }
@@ -284,6 +330,32 @@ namespace LinuxSampler {
         int i = midiMaps.size();
         midiMapsMutex.Unlock();
         return i;
+    }
+
+    int MidiInstrumentMapper::GetInstrumentCount(int Map) {
+        midiMapsMutex.Lock();
+        std::map<int,MidiInstrumentMap>::iterator iterMap = midiMaps.find(Map);
+        if (iterMap == midiMaps.end()) { // no such map
+            midiMapsMutex.Unlock();
+            throw Exception("There is no MIDI instrument map " + ToString(Map));
+        }
+
+        int i = iterMap->second.size();
+        midiMapsMutex.Unlock();
+        return i;
+    }
+
+    int MidiInstrumentMapper::GetInstrumentCount() {
+        int count = 0;
+
+        midiMapsMutex.Lock();
+        std::map<int,MidiInstrumentMap>::iterator iterMap = midiMaps.begin();
+        for (;iterMap != midiMaps.end(); iterMap++) {
+            count += iterMap->second.size();
+        }
+        midiMapsMutex.Unlock();
+
+        return count;
     }
 
     int MidiInstrumentMapper::AddMap(String MapName) throw (Exception) {

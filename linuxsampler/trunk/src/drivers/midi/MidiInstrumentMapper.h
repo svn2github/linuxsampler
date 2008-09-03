@@ -146,6 +146,14 @@ namespace LinuxSampler {
             static void AddOrReplaceEntry(int Map, midi_prog_index_t Index, entry_t Entry, bool bInBackground = false) throw (Exception);
 
             /**
+             * Gets an entry from the MIDI instrument map.
+             *
+             * @param Map   - map index
+             * @param Index - index of entry to retrieve
+             */
+            static entry_t GetEntry(int Map, uint MidiBank, uint MidiProg);
+
+            /**
              * Remove an existing entry from the MIDI instrument map.
              *
              * @param Map   - map index
@@ -222,6 +230,18 @@ namespace LinuxSampler {
             static int GetMapCount();
 
             /**
+             * Returns the amount of currently available MIDI instruments in all maps.
+             * @param Map - ID of the map
+             */
+            static int GetInstrumentCount();
+
+            /**
+             * Returns the amount of currently available MIDI instruments in the specified map.
+             * @param Map - ID of the map
+             */
+            static int GetInstrumentCount(int Map);
+
+            /**
              * Gets the ID of the default map.
              * For now, the default map is the first available map. When
              * the default map is removed, the default map becomes the next available map.
@@ -268,6 +288,13 @@ namespace LinuxSampler {
             friend class MidiInputPort; // allow MidiInputPort to access GetEntry()
 
         private:
+            /**
+             * Sets the load mode of the specified entry.
+             * The following field should be set before calling this method:
+             * pEntry->EngineName, pEntry->InstrumentFile, pEntry->InstrumentIndex
+             */
+            static void SetLoadMode(entry_t* pEntry);
+
             static ListenerList<MidiInstrumentCountListener*> llMidiInstrumentCountListeners;
             static ListenerList<MidiInstrumentInfoListener*> llMidiInstrumentInfoListeners;
             static ListenerList<MidiInstrumentMapCountListener*> llMidiInstrumentMapCountListeners;

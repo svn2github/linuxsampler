@@ -2020,7 +2020,7 @@ String LSCPServer::GetMidiInstrumentMappings(uint MidiMapID) {
     dmsg(2,("LSCPServer: GetMidiInstrumentMappings()\n"));
     LSCPResultSet result;
     try {
-        result.Add(MidiInstrumentMapper::Entries(MidiMapID).size());
+        result.Add(MidiInstrumentMapper::GetInstrumentCount(MidiMapID));
     } catch (Exception e) {
         result.Error(e);
     }
@@ -2031,14 +2031,11 @@ String LSCPServer::GetMidiInstrumentMappings(uint MidiMapID) {
 String LSCPServer::GetAllMidiInstrumentMappings() {
     dmsg(2,("LSCPServer: GetAllMidiInstrumentMappings()\n"));
     LSCPResultSet result;
-    std::vector<int> maps = MidiInstrumentMapper::Maps();
-    int totalMappings = 0;
-    for (int i = 0; i < maps.size(); i++) {
-        try {
-            totalMappings += MidiInstrumentMapper::Entries(maps[i]).size();
-        } catch (Exception e) { /*NOOP*/ }
+    try {
+        result.Add(MidiInstrumentMapper::GetInstrumentCount());
+    } catch (Exception e) {
+        result.Error(e);
     }
-    result.Add(totalMappings);
     return result.Produce();
 }
 
@@ -2046,56 +2043,46 @@ String LSCPServer::GetMidiInstrumentMapping(uint MidiMapID, uint MidiBank, uint 
     dmsg(2,("LSCPServer: GetMidiIstrumentMapping()\n"));
     LSCPResultSet result;
     try {
-        midi_prog_index_t idx;
-        idx.midi_bank_msb = (MidiBank >> 7) & 0x7f;
-        idx.midi_bank_lsb = MidiBank & 0x7f;
-        idx.midi_prog     = MidiProg;
-
-        std::map<midi_prog_index_t,MidiInstrumentMapper::entry_t> mappings = MidiInstrumentMapper::Entries(MidiMapID);
-        std::map<midi_prog_index_t,MidiInstrumentMapper::entry_t>::iterator iter = mappings.find(idx);
-        if (iter == mappings.end()) result.Error("there is no map entry with that index");
-        else { // found
-
-            // convert the filename into the correct encoding as defined for LSCP
-            // (especially in terms of special characters -> escape sequences)
+        MidiInstrumentMapper::entry_t entry = MidiInstrumentMapper::GetEntry(MidiMapID, MidiBank, MidiProg);
+        // convert the filename into the correct encoding as defined for LSCP
+        // (especially in terms of special characters -> escape sequences)
 #if WIN32
-            const String instrumentFileName = Path::fromWindows(iter->second.InstrumentFile).toLscp();
+        const String instrumentFileName = Path::fromWindows(entry.InstrumentFile).toLscp();
 #else
-            // assuming POSIX
-            const String instrumentFileName = Path::fromPosix(iter->second.InstrumentFile).toLscp();
+        // assuming POSIX
+        const String instrumentFileName = Path::fromPosix(entry.InstrumentFile).toLscp();
 #endif
 
-            result.Add("NAME", _escapeLscpResponse(iter->second.Name));
-            result.Add("ENGINE_NAME", iter->second.EngineName);
-            result.Add("INSTRUMENT_FILE", instrumentFileName);
-            result.Add("INSTRUMENT_NR", (int) iter->second.InstrumentIndex);
-            String instrumentName;
-            Engine* pEngine = EngineFactory::Create(iter->second.EngineName);
-            if (pEngine) {
-                if (pEngine->GetInstrumentManager()) {
-                    InstrumentManager::instrument_id_t instrID;
-                    instrID.FileName = iter->second.InstrumentFile;
-                    instrID.Index    = iter->second.InstrumentIndex;
-                    instrumentName = pEngine->GetInstrumentManager()->GetInstrumentName(instrID);
-                }
-                EngineFactory::Destroy(pEngine);
+        result.Add("NAME", _escapeLscpResponse(entry.Name));
+        result.Add("ENGINE_NAME", entry.EngineName);
+        result.Add("INSTRUMENT_FILE", instrumentFileName);
+        result.Add("INSTRUMENT_NR", (int) entry.InstrumentIndex);
+        String instrumentName;
+        Engine* pEngine = EngineFactory::Create(entry.EngineName);
+        if (pEngine) {
+            if (pEngine->GetInstrumentManager()) {
+                InstrumentManager::instrument_id_t instrID;
+                instrID.FileName = entry.InstrumentFile;
+                instrID.Index    = entry.InstrumentIndex;
+                instrumentName = pEngine->GetInstrumentManager()->GetInstrumentName(instrID);
             }
-            result.Add("INSTRUMENT_NAME", _escapeLscpResponse(instrumentName));
-            switch (iter->second.LoadMode) {
-                case MidiInstrumentMapper::ON_DEMAND:
-                    result.Add("LOAD_MODE", "ON_DEMAND");
-                    break;
-                case MidiInstrumentMapper::ON_DEMAND_HOLD:
-                    result.Add("LOAD_MODE", "ON_DEMAND_HOLD");
-                    break;
-                case MidiInstrumentMapper::PERSISTENT:
-                    result.Add("LOAD_MODE", "PERSISTENT");
-                    break;
-                default:
-                    throw Exception("entry reflects invalid LOAD_MODE, consider this as a bug!");
-            }
-            result.Add("VOLUME", iter->second.Volume);
+            EngineFactory::Destroy(pEngine);
         }
+        result.Add("INSTRUMENT_NAME", _escapeLscpResponse(instrumentName));
+        switch (entry.LoadMode) {
+            case MidiInstrumentMapper::ON_DEMAND:
+                result.Add("LOAD_MODE", "ON_DEMAND");
+                break;
+            case MidiInstrumentMapper::ON_DEMAND_HOLD:
+                result.Add("LOAD_MODE", "ON_DEMAND_HOLD");
+                break;
+            case MidiInstrumentMapper::PERSISTENT:
+                result.Add("LOAD_MODE", "PERSISTENT");
+                break;
+            default:
+                throw Exception("entry reflects invalid LOAD_MODE, consider this as a bug!");
+        }
+        result.Add("VOLUME", entry.Volume);
     } catch (Exception e) {
         result.Error(e);
     }
