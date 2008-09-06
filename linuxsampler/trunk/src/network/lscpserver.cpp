@@ -42,6 +42,7 @@
 #include "../drivers/audio/AudioOutputDeviceFactory.h"
 #include "../drivers/midi/MidiInputDeviceFactory.h"
 
+namespace LinuxSampler {
 
 /**
  * Returns a copy of the given string where all special characters are
@@ -3258,4 +3259,6 @@ String LSCPServer::SetEcho(yyparse_param_t* pSession, double boolean_value) {
          result.Error(e);
     }
     return result.Produce();
+}
+
 }

@@ -24,7 +24,7 @@
 /*********************************************************
  * This class helps to constuct valid events per
  * LSCP protocol specification
- * 
+ *
  * It also helps LSCPServer lookup the events when
  * a client is trying to subscribe to an event
  *
@@ -33,6 +33,8 @@
 #include "lscpevent.h"
 
 #include "../common/global_private.h"
+
+namespace LinuxSampler {
 
 std::map<LSCPEvent::event_t, String> LSCPEvent::EventNames = std::map<LSCPEvent::event_t, String>();
 
@@ -132,3 +134,4 @@ std::list<LSCPEvent::event_t> LSCPEvent::List( void ) {
 	return result;
 }
 
+}

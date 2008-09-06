@@ -43,7 +43,6 @@ typedef int socklen_t;
 
 #include "lscp.h"
 #include "lscpparser.h"
-#include "lscp.h"
 #include "lscpevent.h"
 #include "../Sampler.h"
 #include "../common/Thread.h"
@@ -65,10 +64,11 @@ typedef int socklen_t;
 /// try up to 3 minutes to bind server socket
 #define LSCP_SERVER_BIND_TIMEOUT 180
 
-using namespace LinuxSampler;
-
 // External references to the main scanner and parser functions
 extern int yyparse(void* YYPARSE_PARAM);
+
+namespace LinuxSampler {
+
 extern void restart(yyparse_param_t* pparam, int& yychar);
 
 /**
@@ -437,5 +437,7 @@ class LSCPServer : public Thread {
         } dbInstrumentsEventHandler;
 #endif // HAVE_SQLITE3
 };
+
+}
 
 #endif // __LSCPSERVER_H_

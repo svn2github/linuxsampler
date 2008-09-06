@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 - 2007 Christian Schoenebeck                       *
+ *   Copyright (C) 2005 - 2008 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -42,12 +42,12 @@
 #include "../Sampler.h"
 #include "../drivers/midi/MidiInstrumentMapper.h"
 
+namespace LinuxSampler {
+
 /// Will be returned by the parser in case of syntax errors.
 #define LSCP_SYNTAX_ERROR	-69
 #define LSCP_QUIT		-1
 #define LSCP_DONE		0
-
-using namespace LinuxSampler;
 
 // just symbol prototyping
 class LSCPServer;
@@ -109,5 +109,7 @@ struct yyparse_param_t {
  * Prototype of the main scanner function (lexical analyzer).
  */
 #define YY_DECL int yylex(YYSTYPE* yylval)
+
+}
 
 #endif // __LSCPPARSER_H__

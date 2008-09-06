@@ -311,6 +311,16 @@ namespace LinuxSampler {
              */
             void DispatchSysex(void* pData, uint Size);
 
+            /**
+             * Helper function for MIDI input devices that have the
+             * MIDI data as raw bytes.
+             *
+             * @param pData       - pointer to the raw MIDI data
+             * @param FragmentPos - event's sample point position in the
+             *                      current audio fragment
+             */
+            void DispatchRaw(uint8_t* pData, int32_t FragmentPos);
+
         protected:
             MidiInputDevice* pDevice;
             int portNumber;

@@ -397,6 +397,39 @@ namespace LinuxSampler {
         MidiChannelMapReader.Unlock();
     }
 
+    void MidiInputPort::DispatchRaw(uint8_t* pData, int32_t FragmentPos) {
+        uint8_t channel = pData[0] & 0x0f;
+        switch (pData[0] & 0xf0) {
+        case 0x80:
+            DispatchNoteOff(pData[1], pData[2], channel, FragmentPos);
+            break;
+        case 0x90:
+            if (pData[2]) {
+                DispatchNoteOn(pData[1], pData[2], channel, FragmentPos);
+            } else {
+                DispatchNoteOff(pData[1], pData[2], channel, FragmentPos);
+            }
+            break;
+        case 0xb0:
+            if (pData[1] == 0) {
+                DispatchBankSelectMsb(pData[2], channel);
+            } else if (pData[1] == 32) {
+                DispatchBankSelectLsb(pData[2], channel);
+            }
+            DispatchControlChange(pData[1], pData[2], channel, FragmentPos);
+            break;
+        case 0xc0:
+            DispatchProgramChange(pData[1], channel);
+            break;
+        case 0xd0:
+            DispatchControlChange(128, pData[1], channel, FragmentPos);
+            break;
+        case 0xe0:
+            DispatchPitchbend(pData[1], channel, FragmentPos);
+            break;
+        }
+    }
+
     void MidiInputPort::Connect(EngineChannel* pEngineChannel, midi_chan_t MidiChannel) {
         if (MidiChannel < 0 || MidiChannel > 16)
             throw MidiInputException("MIDI channel index out of bounds");

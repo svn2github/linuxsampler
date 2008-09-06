@@ -35,6 +35,8 @@
 #include "lscpserver.h"
 #include "lscpevent.h"
 
+namespace LinuxSampler {
+
 // to save us typing work in the rules action definitions
 #define LSCPSERVER ((yyparse_param_t*) yyparse_param)->pServer
 #define SESSION_PARAM ((yyparse_param_t*) yyparse_param)
@@ -43,9 +45,6 @@
 // clears input buffer
 void restart(yyparse_param_t* pparam, int& yychar);
 #define RESTART restart((yyparse_param_t*) YYPARSE_PARAM, yychar)
-
-// we provide our own version of yyerror() so we don't have to link against the yacc library
-void yyerror(const char* s);
 
 static char buf[1024]; // input buffer to feed the parser with new characters
 static int bytes = 0;  // current number of characters in the input buffer
@@ -100,6 +99,13 @@ int octalsToNumber(char oct_digit0, char oct_digit1 = '0', char oct_digit2 = '0'
     const char d2[] = { oct_digit2, '\0' };
     return atoi(d2)*8*8 + atoi(d1)*8 + atoi(d0);
 }
+
+}
+
+// we provide our own version of yyerror() so we don't have to link against the yacc library
+void yyerror(const char* s);
+
+using namespace LinuxSampler;
 
 %}
 
@@ -1057,6 +1063,8 @@ void yyerror(const char* s) {
     sLastError = msg;
 }
 
+namespace LinuxSampler {
+
 /**
  * Clears input buffer.
  */
@@ -1064,4 +1072,6 @@ void restart(yyparse_param_t* pparam, int& yychar) {
     bytes = 0;
     ptr   = 0;
     sLastError = "";
+}
+
 }

@@ -156,7 +156,7 @@ int main(int argc, char **argv) {
 
     dmsg(1,("LinuxSampler %s\n", VERSION));
     dmsg(1,("Copyright (C) 2003,2004 by Benno Senoner and Christian Schoenebeck\n"));
-    dmsg(1,("Copyright (C) 2005-2007 Christian Schoenebeck\n"));
+    dmsg(1,("Copyright (C) 2005-2008 Christian Schoenebeck\n"));
 
     if (tune) {
         // detect and print system / CPU specific features
@@ -196,12 +196,6 @@ int main(int argc, char **argv) {
 
     printf("LinuxSampler initialization completed. :-)\n\n");
 
-    std::list<LSCPEvent::event_t> rtEvents;
-    rtEvents.push_back(LSCPEvent::event_voice_count);
-    rtEvents.push_back(LSCPEvent::event_stream_count);
-    rtEvents.push_back(LSCPEvent::event_buffer_fill);
-    rtEvents.push_back(LSCPEvent::event_total_voice_count);
-
     while (atomic_read(&running)) {
         if (bPrintStatistics) {
             const std::set<Engine*>& engines = EngineFactory::EngineInstances();
@@ -228,25 +222,7 @@ int main(int argc, char **argv) {
             }
         }
 
-        if (LSCPServer::EventSubscribers(rtEvents))
-        {
-            LSCPServer::LockRTNotify();
-            std::map<uint,SamplerChannel*> channels = pSampler->GetSamplerChannels();
-            std::map<uint,SamplerChannel*>::iterator iter = channels.begin();
-            for (; iter != channels.end(); iter++) {
-                SamplerChannel* pSamplerChannel = iter->second;
-                EngineChannel* pEngineChannel = pSamplerChannel->GetEngineChannel();
-                if (!pEngineChannel) continue;
-                Engine* pEngine = pEngineChannel->GetEngine();
-                if (!pEngine) continue;
-                pSampler->fireVoiceCountChanged(iter->first, pEngineChannel->GetVoiceCount());
-                pSampler->fireStreamCountChanged(iter->first, pEngineChannel->GetDiskStreamCount());
-                pSampler->fireBufferFillChanged(iter->first, pEngine->DiskStreamBufferFillPercentage());
-                pSampler->fireTotalStreamCountChanged(pSampler->GetDiskStreamCount());
-                pSampler->fireTotalVoiceCountChanged(pSampler->GetVoiceCount());
-            }
-            LSCPServer::UnlockRTNotify();
-        }
+        pSampler->fireStatistics();
     }
     if (pLSCPServer) pLSCPServer->StopThread();
     // the delete order here is important: the Sampler

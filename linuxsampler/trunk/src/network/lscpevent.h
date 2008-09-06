@@ -31,8 +31,7 @@
 #include "../common/global.h"
 #include "../common/Exception.h"
 
-using namespace LinuxSampler;
-
+namespace LinuxSampler {
 
 /**
  * Helper class for producing result sets
@@ -72,7 +71,7 @@ class LSCPEvent {
 	    };
 
 	    /* This constructor will do type lookup based on name
-	     **/ 
+	     **/
 	    LSCPEvent(String eventName) throw (Exception);
 
 	    /* These constructors are used to create event and fill it with data for sending
@@ -110,5 +109,7 @@ class LSCPEvent {
 
 	    static std::map<event_t, String> EventNames;
 };
+
+}
 
 #endif // __LSCPEVENT_H_

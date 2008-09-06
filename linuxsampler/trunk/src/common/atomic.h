@@ -17,7 +17,7 @@
     along with this program; if not, write to the Free Software
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
-    $Id: atomic.h,v 1.5 2008-01-25 15:06:01 nagata Exp $
+    $Id: atomic.h,v 1.6 2008-09-06 16:44:42 persson Exp $
 */
 
 //TODO: should we put this into namespace? it might clash with system installed atomic.h, because we need to install atomic.h for the LS API
@@ -32,7 +32,7 @@
 #define CONFIG_SMP   /* ... the macro the kernel headers use */
 #endif
 
-#ifdef linux
+#if defined(linux) || defined(WIN32)
 #ifdef __powerpc__
 
 /*

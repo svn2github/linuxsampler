@@ -210,7 +210,7 @@ namespace LinuxSampler {
     }
 
     String MidiInputDeviceJack::Version() {
-        String s = "$Revision: 1.2 $";
+        String s = "$Revision: 1.3 $";
         return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
 
@@ -233,42 +233,7 @@ namespace LinuxSampler {
 #else
                 jack_midi_event_get(&ev, port_buffer, i);
 #endif
-                uint8_t* data = ev.buffer;
-                uint8_t channel = data[0] & 0x0f;
-                switch (data[0] & 0xf0) {
-                    case 0xb0:
-                        if (data[1] == 0) {
-                            port->DispatchBankSelectMsb(data[2], channel);
-                        } else if (data[1] == 32) {
-                            port->DispatchBankSelectLsb(data[2], channel);
-                        }
-                        port->DispatchControlChange(data[1], data[2], channel, ev.time);
-                        break;
-
-                    case 0xd0:
-                        port->DispatchControlChange(128, data[1], channel, ev.time);
-                        break;
-
-                    case 0xe0:
-                        port->DispatchPitchbend(data[1], channel, ev.time);
-                        break;
-
-                    case 0x90:
-                        if (data[2]) {
-                            port->DispatchNoteOn(data[1], data[2], channel, ev.time);
-                        } else {
-                            port->DispatchNoteOff(data[1], data[2], channel, ev.time);
-                        }
-                        break;
-
-                    case 0x80:
-                        port->DispatchNoteOff(data[1], data[2], channel, ev.time);
-                        break;
-
-                    case 0xc0:
-                        port->DispatchProgramChange(data[1], channel);
-                        break;
-                }
+                port->DispatchRaw(ev.buffer, ev.time);
             }
         }
     }

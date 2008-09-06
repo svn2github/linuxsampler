@@ -543,6 +543,13 @@ namespace LinuxSampler {
              */
             static bool EnableDenormalsAreZeroMode();
 
+            /**
+             * Notifies listeners about the current number of voices,
+             * streams and total voices, and the current fill state of
+             * the disk stream buffers.
+             */
+            void fireStatistics();
+
         protected:
             /**
              * Notifies listeners that the number of sampler channels has been changed.

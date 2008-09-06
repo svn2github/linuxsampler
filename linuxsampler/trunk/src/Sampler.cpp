@@ -33,6 +33,7 @@
 #include "drivers/midi/MidiInputDeviceFactory.h"
 #include "drivers/midi/MidiInstrumentMapper.h"
 #include "common/Features.h"
+#include "network/lscpserver.h"
 
 namespace LinuxSampler {
 
@@ -687,6 +688,34 @@ namespace LinuxSampler {
     bool Sampler::EnableDenormalsAreZeroMode() {
         Features::detect();
         return Features::enableDenormalsAreZeroMode();
+    }
+
+    void Sampler::fireStatistics() {
+        static const LSCPEvent::event_t eventsArr[] = {
+            LSCPEvent::event_voice_count, LSCPEvent::event_stream_count,
+            LSCPEvent::event_buffer_fill, LSCPEvent::event_total_voice_count
+        };
+        static const std::list<LSCPEvent::event_t> events(eventsArr, eventsArr + 4);
+
+        if (LSCPServer::EventSubscribers(events))
+        {
+            LSCPServer::LockRTNotify();
+            std::map<uint,SamplerChannel*> channels = GetSamplerChannels();
+            std::map<uint,SamplerChannel*>::iterator iter = channels.begin();
+            for (; iter != channels.end(); iter++) {
+                SamplerChannel* pSamplerChannel = iter->second;
+                EngineChannel* pEngineChannel = pSamplerChannel->GetEngineChannel();
+                if (!pEngineChannel) continue;
+                Engine* pEngine = pEngineChannel->GetEngine();
+                if (!pEngine) continue;
+                fireVoiceCountChanged(iter->first, pEngineChannel->GetVoiceCount());
+                fireStreamCountChanged(iter->first, pEngineChannel->GetDiskStreamCount());
+                fireBufferFillChanged(iter->first, pEngine->DiskStreamBufferFillPercentage());
+                fireTotalStreamCountChanged(GetDiskStreamCount());
+                fireTotalVoiceCountChanged(GetVoiceCount());
+            }
+            LSCPServer::UnlockRTNotify();
+        }
     }
 
 } // namespace LinuxSampler

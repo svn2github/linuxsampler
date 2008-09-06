@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 - 2007 Christian Schoenebeck                       *
+ *   Copyright (C) 2005 - 2008 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -39,6 +39,9 @@
 #include "lscpresultset.h"
 #include <iomanip>
 #include "../common/global_private.h"
+
+
+namespace LinuxSampler {
 
 //Construct an empty resultset
 //Default index is -1 meaning the resultset doesn't have an index
@@ -166,4 +169,6 @@ String LSCPResultSet::Produce(void) {
 		return storage;
 	//Multiline results MUST end with a line with a single dot
 	return storage + ".\r\n";
+}
+
 }
