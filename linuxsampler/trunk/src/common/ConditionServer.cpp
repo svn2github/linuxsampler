@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 - 2007 Christian Schoenebeck                       *
+ *   Copyright (C) 2005 - 2008 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -21,27 +21,25 @@
  *   MA  02111-1307  USA                                                   *
  ***************************************************************************/
 
-#include "ConditionServer.h"
-
 #include "global_private.h"
+
+#include "ConditionServer.h"
 
 namespace LinuxSampler {
 
-ConditionServer::ConditionServer() {
-    bConditionQuick = false;
-    bChangeRequest  = false;
-    bOldCondition   = false;
+ConditionServer::ConditionServer() : Reader(Condition) {
+    Condition.GetConfigForUpdate() = false;
+    Condition.SwitchConfig() = false;
+    bOldCondition = false;
 }
 
 bool* ConditionServer::Push(bool bCondition, long TimeoutSeconds, long TimeoutNanoSeconds) {
     dmsg(3,("conditionserver:Push() requesting change to %d\n", bCondition));
     PushMutex.Lock();
-    bOldCondition = bConditionQuick;
-    if (bConditionQuick != bCondition) {
-        bChangeRequest = bCondition;
-        int timeoutexceeded = SyncCondition.WaitAndUnlockIf(bOldCondition, TimeoutSeconds, TimeoutNanoSeconds); // wait until actually condition was changed on Pop() side
-        if (timeoutexceeded) return NULL;
-    }
+    bool& c = Condition.GetConfigForUpdate();
+    bOldCondition = c;
+    c = bCondition;
+    Condition.SwitchConfig() = bCondition;
     return &bOldCondition;
 }
 
@@ -56,16 +54,7 @@ void ConditionServer::Unlock() {
 }
 
 bool ConditionServer::GetUnsafe() {
-    return bConditionQuick;
-}
-
-bool ConditionServer::Pop() {
-    if (bConditionQuick == bChangeRequest) return bConditionQuick;
-    dmsg(3,("conditionserver:Pop() change requested\n"));
-    bConditionQuick = bChangeRequest;
-    SyncCondition.Set(bChangeRequest);
-    dmsg(3,("conditionserver:Pop() condition now: %d\n", bConditionQuick));
-    return bConditionQuick;
+    return Condition.GetConfigForUpdate();
 }
 
 } // namespace LinuxSampler

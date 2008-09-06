@@ -573,6 +573,7 @@ namespace LinuxSampler { namespace gig {
         // return if engine disabled
         if (EngineDisabled.Pop()) {
             dmsg(5,("gig::Engine: engine disabled (val=%d)\n",EngineDisabled.GetUnsafe()));
+            EngineDisabled.RttDone();
             return 0;
         }
 
@@ -698,6 +699,7 @@ namespace LinuxSampler { namespace gig {
         }
         FrameTime += Samples;
 
+        EngineDisabled.RttDone();
         return 0;
     }
 
@@ -2134,7 +2136,7 @@ namespace LinuxSampler { namespace gig {
     }
 
     String Engine::Version() {
-        String s = "$Revision: 1.96 $";
+        String s = "$Revision: 1.97 $";
         return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
 

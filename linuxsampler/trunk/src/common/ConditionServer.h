@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 - 2007 Christian Schoenebeck                       *
+ *   Copyright (C) 2005 - 2008 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -25,7 +25,7 @@
 #define __CONDITIONSERVER_H__
 
 #include "Mutex.h"
-#include "Condition.h"
+#include "SynchronizedConfig.h"
 
 namespace LinuxSampler {
 
@@ -41,14 +41,14 @@ namespace LinuxSampler {
  * method will immediately return if the current condition already equals
  * the desired condition given with Push(), if it's not equal then Push()
  * will cause a request to change the condition and will block until the
- * condition actually changed, which happens when the RTT calls the Pop()
- * method, which will also return the new condition to the RTT.
+ * condition actually changed, which happens when the RTT is outside its
+ * critical region, or has called the Pop() method, which will also return
+ * the new condition to the RTT.
  *
  * Advantage of this technique is that the RTT doesn't has to execute system
- * calls whenever it wants to check for a condition change, the RTT only has
- * to execute one system call when the condition changed. Disadvantage on
- * the other hand is that the NRTTs might be blocked for a long time, but
- * this is usually unproblematic for NRTTs.
+ * calls whenever it wants to check for a condition change. Disadvantage on
+ * the other hand is that the NRTTs might be blocked for some time, but this
+ * is usually unproblematic for NRTTs.
  */
 class ConditionServer {
     public:
@@ -62,7 +62,8 @@ class ConditionServer {
          * equals \a bCondition, then this method will immediately return,
          * if not it will block the calling thread until the condition
          * actually changed to the requested condition (which happens when
-         * Pop() is called by the real time thread). If there are multiple
+         * Pop() has been called by the real time thread, or when the real
+         * time thread is outside its critical region). If there are multiple
          * non real time threads calling Push() only one by one will be
          * served, all others blocked meanwhile. When the calling thread
          * returns from Push() the Push() method will still be blocked
@@ -119,21 +120,31 @@ class ConditionServer {
         // method for real time thread (1 RTT)
 
         /**
-         * Should frequently be called by the real time thread (RTT) to
-         * check for a condition change. If a NRTT requested a condition
-         * change by calling Push() ot PushAndUnlock() the NRTT wil be
-         * blocked until the RTT calls Pop(), means until the RTT actually
-         * knows about the condition change.
+         * Should be called by the real time thread (RTT) at the
+         * beginning of the critical region to check for a condition
+         * change. If an NRTT requested a condition change by calling
+         * Push() or PushAndUnlock() the NRTT will be blocked until
+         * it knows that the RTT will not go into its critical region
+         * without being notified about the condition change.
          *
          * @returns  current condition
          */
-        bool Pop();
+        bool Pop() {
+            return Reader.Lock();
+        }
+
+        /**
+         * Should be called by the real time thread (RTT) at the end of
+         * the critical region.
+         */
+        void RttDone() {
+            Reader.Unlock();
+        }
 
     protected:
-        bool      bConditionQuick;
-        bool      bChangeRequest;
+        SynchronizedConfig<bool> Condition;
+        SynchronizedConfig<bool>::Reader Reader;
         bool      bOldCondition;
-        Condition SyncCondition;
         Mutex     PushMutex;
 };
 

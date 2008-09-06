@@ -202,14 +202,17 @@ namespace LinuxSampler {
      * libjack to demand transmission of further sample points.
      */
     int AudioOutputDeviceJack::Process(uint Samples) {
+        int res;
         if (csIsPlaying.Pop()) {
             // let all connected engines render 'Samples' sample points
-            return RenderAudio(Samples);
+            res = RenderAudio(Samples);
         }
         else {
             // playback stop by zeroing output buffer(s) and not calling connected sampler engines to render audio
-            return RenderSilence(Samples);
+            res = RenderSilence(Samples);
         }
+        csIsPlaying.RttDone();
+        return res;
     }
 
     void AudioOutputDeviceJack::Play() {
@@ -249,7 +252,7 @@ namespace LinuxSampler {
     }
 
     String AudioOutputDeviceJack::Version() {
-       String s = "$Revision: 1.24 $";
+       String s = "$Revision: 1.25 $";
        return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
 

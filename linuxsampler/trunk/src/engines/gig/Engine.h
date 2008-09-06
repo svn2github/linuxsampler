@@ -33,6 +33,7 @@
 #include "../../common/RingBuffer.h"
 #include "../../common/Pool.h"
 #include "../../common/ArrayList.h"
+#include "../../common/Condition.h"
 #include "../../common/ConditionServer.h"
 #include "../Engine.h"
 #include "../common/Event.h"
