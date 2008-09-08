@@ -178,6 +178,17 @@ public class Client {
 	public synchronized boolean
 	getExtendedCharacterEscaping() { return extendedCharacterEscaping; }
 	
+	/**
+	 * @see java.net.Socket#setSoTimeout
+	 */
+	public synchronized void
+	setSoTimeout(int timeout) {
+		soTimeout = timeout;
+		
+		try { if(sock != null) sock.setSoTimeout(timeout); }
+		catch(Exception x) { this.getLogger().log(Level.INFO, "Unable to set timeout", x); }
+	}
+	
 	private String
 	toEscapedText(String s) {
 		s = toEscapedString(s);
@@ -384,6 +395,8 @@ public class Client {
 		if(!llMIMI.isEmpty()) subscribe("MIDI_INSTRUMENT_MAP_INFO");
 		if(!llMIC.isEmpty()) subscribe("MIDI_INSTRUMENT_COUNT");
 		if(!llMII.isEmpty()) subscribe("MIDI_INSTRUMENT_INFO");
+		if(!llDMD.isEmpty()) subscribe("DEVICE_MIDI");
+		if(!llCMD.isEmpty()) subscribe("CHANNEL_MIDI");
 		if(!llID.isEmpty()) {
 			subscribe("DB_INSTRUMENT_DIRECTORY_COUNT");
 			subscribe("DB_INSTRUMENT_DIRECTORY_INFO");
@@ -534,6 +547,8 @@ public class Client {
 	/** MIDI instrument info listeners */
 	private final Vector<MidiInstrumentInfoListener> llMII =
 		new Vector<MidiInstrumentInfoListener>();
+	private final Vector<DeviceMidiDataListener> llDMD = new Vector<DeviceMidiDataListener>();
+	private final Vector<ChannelMidiDataListener> llCMD = new Vector<ChannelMidiDataListener>();
 	private final Vector<InstrumentsDbListener> llID = new Vector<InstrumentsDbListener>();
 	private final Vector<GlobalInfoListener> llGI = new Vector<GlobalInfoListener>();
 	
@@ -565,13 +580,88 @@ public class Client {
 			!llMIMI.isEmpty() ||
 			!llMIC.isEmpty()  ||
 			!llMII.isEmpty()  ||
+			!llDMD.isEmpty()  ||
+			!llCMD.isEmpty()  ||
 			!llID.isEmpty()   ||
 			!llGI.isEmpty();
 	}
 	
 	private synchronized void
+	fireDeviceMidiDataEvent(String s) {
+		try {
+			String[] list = parseStringList(s, ' ');
+			if(list.length != 5) {
+				getLogger().warning("Unknown DEVICE_MIDI format");
+				return;
+			}
+			
+			int dev = parseInt(list[0]);
+			int port = parseInt(list[1]);
+			
+			MidiDataEvent.Type type = parseMidiDataType(list[2]);
+			if(type == null) return;
+			
+			int note = parseInt(list[3]);
+			int velocity = parseInt(list[4]);
+			
+			DeviceMidiDataEvent e = new DeviceMidiDataEvent(this, type, note, velocity);
+			e.setDeviceId(dev);
+			e.setPortId(port);
+			for(DeviceMidiDataListener l : llDMD) l.midiDataArrived(e);
+		} catch(LscpException x) {
+			getLogger().log (
+				Level.WARNING, LscpI18n.getLogMsg("CommandFailed!"), x
+			);
+		}
+	}
+	
+	private synchronized void
+	fireChannelMidiDataEvent(String s) {
+		try {
+			String[] list = parseStringList(s, ' ');
+			if(list.length != 4) {
+				getLogger().warning("Unknown CHANNEL_MIDI format");
+				return;
+			}
+			
+			int channel = parseInt(list[0]);
+			
+			MidiDataEvent.Type type = parseMidiDataType(list[1]);
+			if(type == null) return;
+			
+			int note = parseInt(list[2]);
+			int velocity = parseInt(list[3]);
+			
+			ChannelMidiDataEvent e = new ChannelMidiDataEvent(this, type, note, velocity);
+			e.setChannelId(channel);
+			for(ChannelMidiDataListener l : llCMD) l.midiDataArrived(e);
+		} catch(LscpException x) {
+			getLogger().log (
+				Level.WARNING, LscpI18n.getLogMsg("CommandFailed!"), x
+			);
+		}
+	}
+	
+	private MidiDataEvent.Type
+	parseMidiDataType(String s) {
+		if("NOTE_ON".equals(s)) return MidiDataEvent.Type.NOTE_ON;
+		if("NOTE_OFF".equals(s)) return MidiDataEvent.Type.NOTE_OFF;
+		
+		getLogger().warning("Unknown MIDI data type: " + s);
+		return null;
+	}
+	
+	private synchronized void
 	fireEvent(String s) {
-		 if(s.startsWith("DB_INSTRUMENT_DIRECTORY_COUNT:")) {
+		// Sort by priority
+		
+		 if(s.startsWith("CHANNEL_MIDI:")) {
+			s = s.substring("CHANNEL_MIDI:".length());
+			fireChannelMidiDataEvent(s);
+		} else if(s.startsWith("DEVICE_MIDI:")) {
+			s = s.substring("DEVICE_MIDI:".length());
+			fireDeviceMidiDataEvent(s);
+		} else if(s.startsWith("DB_INSTRUMENT_DIRECTORY_COUNT:")) {
 			s = s.substring("DB_INSTRUMENT_DIRECTORY_COUNT:".length());
 			InstrumentsDbEvent e = new InstrumentsDbEvent(this, s);
 			for(InstrumentsDbListener l : llID) l.directoryCountChanged(e);
@@ -1310,6 +1400,50 @@ public class Client {
 	removeMidiInstrumentInfoListener(MidiInstrumentInfoListener l) {
 		boolean b = llMII.remove(l);
 		if(b && llMII.isEmpty()) unsubscribe("MIDI_INSTRUMENT_INFO");
+	}
+	
+	/**
+	 * Registers the specified listener for receiving event messages.
+	 * Listeners can be registered regardless of the connection state.
+	 * @param l The <code>DeviceMidiDataListener</code> to register.
+	 */
+	public synchronized void
+	addDeviceMidiDataListener(DeviceMidiDataListener l) {
+		if(llDMD.isEmpty()) subscribe("DEVICE_MIDI");
+		llDMD.add(l);
+	}
+	
+	/**
+	 * Removes the specified listener.
+	 * Listeners can be removed regardless of the connection state.
+	 * @param l The <code>DeviceMidiDataListener</code> to remove.
+	 */
+	public synchronized void
+	removeDeviceMidiDataListener(DeviceMidiDataListener l) {
+		boolean b = llDMD.remove(l);
+		if(b && llDMD.isEmpty()) unsubscribe("DEVICE_MIDI");
+	}
+	
+	/**
+	 * Registers the specified listener for receiving event messages.
+	 * Listeners can be registered regardless of the connection state.
+	 * @param l The <code>ChannelMidiDataListener</code> to register.
+	 */
+	public synchronized void
+	addChannelMidiDataListener(ChannelMidiDataListener l) {
+		if(llCMD.isEmpty()) subscribe("CHANNEL_MIDI");
+		llCMD.add(l);
+	}
+	
+	/**
+	 * Removes the specified listener.
+	 * Listeners can be removed regardless of the connection state.
+	 * @param l The <code>ChannelMidiDataListener</code> to remove.
+	 */
+	public synchronized void
+	removeChannelMidiDataListener(ChannelMidiDataListener l) {
+		boolean b = llCMD.remove(l);
+		if(b && llCMD.isEmpty()) unsubscribe("CHANNEL_MIDI");
 	}
 	
 	/**
@@ -4933,7 +5067,7 @@ public class Client {
 	
 	/**
 	 * Returns a list of all instrument files in the database
-	 * that that doesn't exist in the filesystem.
+	 * that that don't exist in the filesystem.
 	 * @throws IOException If some I/O error occurs.
 	 * @throws LscpException If LSCP protocol corruption occurs.
 	 * @throws LSException If other error occurs.

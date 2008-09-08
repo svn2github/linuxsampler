@@ -1,7 +1,10 @@
 CVS HEAD
+  * Added support for monitoring MIDI events on sampler channels
+    and MIDI devices
+
   * API Changes
     - Client: added new methods - getMidiInstrumentEntries,
-      findLostDbInstrumentFiles, setDbInstrumentFilePath,
+      findLostDbInstrumentFiles, setDbInstrumentFilePath, setSoTimeout
       getExtendedCharacterEscaping, setExtendedCharacterEscaping
     - Parser: added new method - toExtendedEscapeSequence
 
