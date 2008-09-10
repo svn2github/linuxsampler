@@ -3,7 +3,7 @@
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 <meta name="description" content="LinuxSampler Control Protocol">
 <meta name="keywords" content="LSCP">
-<meta name="generator" content="xml2rfc v1.33 (http://xml.resource.org/)">
+<meta name="generator" content="xml2rfc v1.32 (http://xml.resource.org/)">
 <style type='text/css'><!--
         body {
                 font-family: verdana, charcoal, helvetica, arial, sans-serif;
@@ -145,7 +145,7 @@
 <tr><td class="header">LinuxSampler Developers</td><td class="header">C. Schoenebeck</td></tr>
 <tr><td class="header">Internet-Draft</td><td class="header">Interessengemeinschaft Software</td></tr>
 <tr><td class="header">Intended status: Standards Track</td><td class="header">Engineering e. V.</td></tr>
-<tr><td class="header">Expires: October 3, 2008</td><td class="header">April 2008</td></tr>
+<tr><td class="header">Expires: March 14, 2009</td><td class="header">September 10, 2008</td></tr>
 </table></td></tr></table>
 <h1><br />LinuxSampler Control Protocol<br />LSCP 1.4</h1>
 
@@ -173,7 +173,11 @@ The list of current Internet-Drafts can be accessed at
 The list of Internet-Draft Shadow Directories can be accessed at
 <a href='http://www.ietf.org/shadow.html'>http://www.ietf.org/shadow.html</a>.</p>
 <p>
-This Internet-Draft will expire on October 3, 2008.</p>
+This Internet-Draft will expire on March 14, 2009.</p>
+
+<h3>Copyright Notice</h3>
+<p>
+Copyright &copy; The IETF Trust (2008).</p>
 
 <h3>Abstract</h3>
 
@@ -332,7 +336,9 @@ Altering effect send's audio routing<br />
 Altering effect send's MIDI controller<br />
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SET FX_SEND LEVEL">6.4.33.</a>&nbsp;
 Altering effect send's send level<br />
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#RESET CHANNEL">6.4.34.</a>&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SEND CHANNEL MIDI_DATA">6.4.34.</a>&nbsp;
+Sending MIDI messages to sampler channel<br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#RESET CHANNEL">6.4.35.</a>&nbsp;
 Resetting a sampler channel<br />
 &nbsp;&nbsp;&nbsp;&nbsp;<a href="#anchor12">6.5.</a>&nbsp;
 Controlling connection<br />
@@ -5745,9 +5751,96 @@ Altering effect send's send level</h3>
 </blockquote><p>
                     
 </p>
-<a name="RESET CHANNEL"></a><br /><hr />
+<a name="SEND CHANNEL MIDI_DATA"></a><br /><hr />
 <table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
 <a name="rfc.section.6.4.34"></a><h3>6.4.34.&nbsp;
+Sending MIDI messages to sampler channel</h3>
+
+<p>The front-end can send MIDI events to specific sampler channel
+                    by sending the following command:
+</p>
+<p>
+                        </p>
+<blockquote class="text">
+<p>SEND CHANNEL MIDI_DATA &lt;midi-msg&gt; &lt;sampler-chan&gt; &lt;arg1&gt; &lt;arg2&gt;
+</p>
+</blockquote><p>
+                    
+</p>
+<p>Where &lt;sampler-chan&gt; is the sampler channel number
+                    as returned by the <a class='info' href='#ADD CHANNEL'>"ADD CHANNEL"<span> (</span><span class='info'>Adding a new sampler channel</span><span>)</span></a>
+                    or <a class='info' href='#LIST CHANNELS'>"LIST CHANNELS"<span> (</span><span class='info'>Getting all created sampler channel list</span><span>)</span></a> command,
+                    &lt;arg1&gt; and &lt;arg2&gt; arguments depend on the &lt;midi-msg&gt; argument, which
+                    specifies the MIDI message type. Currently, the following MIDI messages are supported:
+</p>
+<p>
+                        </p>
+<blockquote class="text">
+<p>"NOTE_ON" -
+                                </p>
+<blockquote class="text">
+<p>For turning on MIDI notes, where &lt;arg1&gt;
+                                    specifies the key number and &lt;arg2&gt; the velocity
+                                    as described in the MIDI specification.
+</p>
+</blockquote>
+                            
+
+<p>"NOTE_OFF" -
+                                </p>
+<blockquote class="text">
+<p>For turning a currently playing MIDI note off, where &lt;arg1&gt;
+                                    specifies the key number and &lt;arg2&gt; the velocity
+                                    as described in the MIDI specification.
+</p>
+</blockquote>
+                            
+
+</blockquote><p>
+                    
+</p>
+<p>CAUTION: This command is provided for implementations of virtual MIDI keyboards
+                    and no realtime guarantee whatsoever will be made!
+</p>
+<p>Possible Answers:
+</p>
+<p>
+                        </p>
+<blockquote class="text">
+<p>"OK" -
+                                </p>
+<blockquote class="text">
+<p>on success
+</p>
+</blockquote>
+                            
+
+<p>"ERR:&lt;error-code&gt;:&lt;error-message&gt;" -
+                                </p>
+<blockquote class="text">
+<p>in case it failed, providing an appropriate error code and error message
+</p>
+</blockquote>
+                            
+
+</blockquote><p>
+                    
+</p>
+<p>Example:
+</p>
+<p>
+                        </p>
+<blockquote class="text">
+<p>C: "SEND CHANNEL MIDI_DATA NOTE_ON 0 56 112"
+</p>
+<p>S: "OK"
+</p>
+</blockquote><p>
+                    
+</p>
+<a name="RESET CHANNEL"></a><br /><hr />
+<table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
+<a name="rfc.section.6.4.35"></a><h3>6.4.35.&nbsp;
 Resetting a sampler channel</h3>
 
 <p>The front-end can reset a particular sampler channel by sending the following command:
@@ -9529,6 +9622,26 @@ Retrieving informations about one instrument in a file</h3>
 </blockquote>
                                     
 
+<p>KEY_BINDINGS -
+                                        </p>
+<blockquote class="text">
+<p>comma separated list of integer values representing
+                                               the instrument's key mapping in the range between 0 .. 127,
+                                               reflecting the analog meaning of the MIDI specification.
+</p>
+</blockquote>
+                                    
+
+<p>KEYSWITCH_BINDINGS -
+                                        </p>
+<blockquote class="text">
+<p>comma separated list of integer values representing
+                                               the instrument's keyswitch mapping in the range between 0 .. 127,
+                                               reflecting the analog meaning of the MIDI specification.
+</p>
+</blockquote>
+                                    
+
 </blockquote>
                             
 
@@ -9678,6 +9791,9 @@ Command Syntax</h3>
 		
 </p>
 <p>/ FORMAT SP format_instruction
+                
+</p>
+<p>SEND SP send_instruction
 		
 </p>
 <p>/ RESET
@@ -10412,6 +10528,15 @@ Command Syntax</h3>
 </blockquote><p>
 
 </p>
+<p>send_instruction =
+	</p>
+<blockquote class="text">
+<p>CHANNEL SP MIDI_DATA SP string SP sampler_channel SP number SP number
+		
+</p>
+</blockquote><p>
+
+</p>
 <p>load_instr_args =
 	</p>
 <blockquote class="text">
@@ -10760,7 +10885,6 @@ Character Set and Escape Sequences</h3>
 <td align="left">two digit hex ASCII code of the character</td>
 </tr>
 </table>
-<br clear="all" />
 
 <p>Notice: due to the transition of certain parts of the
                 protocol which now support escape sequences, a slight backward
@@ -11795,13 +11919,13 @@ Acknowledgments</h3>
 <h3>11.&nbsp;References</h3>
 <table width="99%" border="0">
 <tr><td class="author-text" valign="top"><a name="RFC20">[RFC20]</a></td>
-<td class="author-text">UCLA, &ldquo;<a href="http://tools.ietf.org/html/rfc20">ASCII format for Network Interchange</a>,&rdquo; RFC&nbsp;20, 1969.</td></tr>
+<td class="author-text">UCLA, &ldquo;<a href="ftp://ftp.isi.edu/in-notes/rfc20.txt">ASCII format for Network Interchange</a>,&rdquo; RFC&nbsp;20, 1969.</td></tr>
 <tr><td class="author-text" valign="top"><a name="RFC2119">[RFC2119]</a></td>
-<td class="author-text">Bradner, S., &ldquo;<a href="http://tools.ietf.org/html/rfc2119">Key words for use in RFCs to Indicate Requirement Levels</a>,&rdquo; RFC&nbsp;2119, 1997.</td></tr>
+<td class="author-text">Bradner, S., &ldquo;<a href="ftp://ftp.isi.edu/in-notes/rfc2119.txt">Key words for use in RFCs to Indicate Requirement Levels</a>,&rdquo; RFC&nbsp;2119, 1997.</td></tr>
 <tr><td class="author-text" valign="top"><a name="RFC2234">[RFC2234]</a></td>
-<td class="author-text">Crocker, D. and P. Overell, &ldquo;<a href="http://tools.ietf.org/html/rfc2234">Augmented BNF for Syntax Specifications</a>,&rdquo; RFC&nbsp;2234, 1997.</td></tr>
+<td class="author-text">Crocker, D. and P. Overell, &ldquo;<a href="ftp://ftp.isi.edu/in-notes/rfc2234.txt">Augmented BNF for Syntax Specifications</a>,&rdquo; RFC&nbsp;2234, 1997.</td></tr>
 <tr><td class="author-text" valign="top"><a name="RFC793">[RFC793]</a></td>
-<td class="author-text">Defense Advanced Research Projects Agency, &ldquo;<a href="http://tools.ietf.org/html/rfc793">TRANSMISSION CONTROL PROTOCOL</a>,&rdquo; RFC&nbsp;793, 1981.</td></tr>
+<td class="author-text">Defense Advanced Research Projects Agency, &ldquo;<a href="ftp://ftp.isi.edu/in-notes/rfc793.txt">TRANSMISSION CONTROL PROTOCOL</a>,&rdquo; RFC&nbsp;793, 1981.</td></tr>
 </table>
 
 <a name="rfc.authors"></a><br /><hr />
@@ -11868,4 +11992,8 @@ or other
 proprietary rights that may cover technology that may be required
 to implement this standard.
 Please address the information to the IETF at <a href='mailto:ietf-ipr@ietf.org'>ietf-ipr@ietf.org</a>.</p>
+<h3>Acknowledgment</h3>
+<p class='copyright'>
+Funding for the RFC Editor function is provided by
+the IETF Administrative Support Activity (IASA).</p>
 </body></html>
