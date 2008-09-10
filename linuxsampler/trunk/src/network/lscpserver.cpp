@@ -22,6 +22,7 @@
  ***************************************************************************/
 
 #include <algorithm>
+#include <string>
 
 #include "lscpserver.h"
 #include "lscpresultset.h"
@@ -1134,10 +1135,7 @@ String LSCPServer::GetVoiceCount(uint uiSamplerChannel) {
     dmsg(2,("LSCPServer: GetVoiceCount(SamplerChannel=%d)\n", uiSamplerChannel));
     LSCPResultSet result;
     try {
-        SamplerChannel* pSamplerChannel = pSampler->GetSamplerChannel(uiSamplerChannel);
-        if (!pSamplerChannel) throw Exception("Invalid sampler channel number " + ToString(uiSamplerChannel));
-        EngineChannel* pEngineChannel = pSamplerChannel->GetEngineChannel();
-        if (!pEngineChannel) throw Exception("No engine loaded on sampler channel");
+        EngineChannel* pEngineChannel = GetEngineChannel(uiSamplerChannel);
         if (!pEngineChannel->GetEngine()) throw Exception("No audio output device connected to sampler channel");
 	result.Add(pEngineChannel->GetEngine()->VoiceCount());
     }
@@ -1155,10 +1153,7 @@ String LSCPServer::GetStreamCount(uint uiSamplerChannel) {
     dmsg(2,("LSCPServer: GetStreamCount(SamplerChannel=%d)\n", uiSamplerChannel));
     LSCPResultSet result;
     try {
-        SamplerChannel* pSamplerChannel = pSampler->GetSamplerChannel(uiSamplerChannel);
-        if (!pSamplerChannel) throw Exception("Invalid sampler channel number " + ToString(uiSamplerChannel));
-        EngineChannel* pEngineChannel = pSamplerChannel->GetEngineChannel();
-        if (!pEngineChannel) throw Exception("No engine type assigned to sampler channel");
+        EngineChannel* pEngineChannel = GetEngineChannel(uiSamplerChannel);
         if (!pEngineChannel->GetEngine()) throw Exception("No audio output device connected to sampler channel");
         result.Add(pEngineChannel->GetEngine()->DiskStreamCount());
     }
@@ -1176,10 +1171,7 @@ String LSCPServer::GetBufferFill(fill_response_t ResponseType, uint uiSamplerCha
     dmsg(2,("LSCPServer: GetBufferFill(ResponseType=%d, SamplerChannel=%d)\n", ResponseType, uiSamplerChannel));
     LSCPResultSet result;
     try {
-        SamplerChannel* pSamplerChannel = pSampler->GetSamplerChannel(uiSamplerChannel);
-        if (!pSamplerChannel) throw Exception("Invalid sampler channel number " + ToString(uiSamplerChannel));
-        EngineChannel* pEngineChannel = pSamplerChannel->GetEngineChannel();
-        if (!pEngineChannel) throw Exception("No engine type assigned to sampler channel");
+        EngineChannel* pEngineChannel = GetEngineChannel(uiSamplerChannel);
         if (!pEngineChannel->GetEngine()) throw Exception("No audio output device connected to sampler channel");
         if (!pEngineChannel->GetEngine()->DiskStreamSupported()) result.Add("NA");
         else {
@@ -1857,10 +1849,7 @@ String LSCPServer::SetVolume(double dVolume, uint uiSamplerChannel) {
     dmsg(2,("LSCPServer: SetVolume(Volume=%f, SamplerChannel=%d)\n", dVolume, uiSamplerChannel));
     LSCPResultSet result;
     try {
-        SamplerChannel* pSamplerChannel = pSampler->GetSamplerChannel(uiSamplerChannel);
-        if (!pSamplerChannel) throw Exception("Invalid sampler channel number " + ToString(uiSamplerChannel));
-        EngineChannel* pEngineChannel = pSamplerChannel->GetEngineChannel();
-        if (!pEngineChannel) throw Exception("No engine type assigned to sampler channel");
+        EngineChannel* pEngineChannel = GetEngineChannel(uiSamplerChannel);
         pEngineChannel->Volume(dVolume);
     }
     catch (Exception e) {
@@ -1876,11 +1865,7 @@ String LSCPServer::SetChannelMute(bool bMute, uint uiSamplerChannel) {
     dmsg(2,("LSCPServer: SetChannelMute(bMute=%d,uiSamplerChannel=%d)\n",bMute,uiSamplerChannel));
     LSCPResultSet result;
     try {
-        SamplerChannel* pSamplerChannel = pSampler->GetSamplerChannel(uiSamplerChannel);
-        if (!pSamplerChannel) throw Exception("Invalid sampler channel number " + ToString(uiSamplerChannel));
-
-        EngineChannel* pEngineChannel = pSamplerChannel->GetEngineChannel();
-        if (!pEngineChannel) throw Exception("No engine type assigned to sampler channel");
+        EngineChannel* pEngineChannel = GetEngineChannel(uiSamplerChannel);
 
         if(!bMute) pEngineChannel->SetMute((HasSoloChannel() && !pEngineChannel->GetSolo()) ? -1 : 0);
         else pEngineChannel->SetMute(1);
@@ -1897,11 +1882,7 @@ String LSCPServer::SetChannelSolo(bool bSolo, uint uiSamplerChannel) {
     dmsg(2,("LSCPServer: SetChannelSolo(bSolo=%d,uiSamplerChannel=%d)\n",bSolo,uiSamplerChannel));
     LSCPResultSet result;
     try {
-        SamplerChannel* pSamplerChannel = pSampler->GetSamplerChannel(uiSamplerChannel);
-        if (!pSamplerChannel) throw Exception("Invalid sampler channel number " + ToString(uiSamplerChannel));
-
-        EngineChannel* pEngineChannel = pSamplerChannel->GetEngineChannel();
-        if (!pEngineChannel) throw Exception("No engine type assigned to sampler channel");
+        EngineChannel* pEngineChannel = GetEngineChannel(uiSamplerChannel);
 
         bool oldSolo = pEngineChannel->GetSolo();
         bool hadSoloChannel = HasSoloChannel();
@@ -2254,11 +2235,7 @@ String LSCPServer::SetChannelMap(uint uiSamplerChannel, int MidiMapID) {
     dmsg(2,("LSCPServer: SetChannelMap()\n"));
     LSCPResultSet result;
     try {
-        SamplerChannel* pSamplerChannel = pSampler->GetSamplerChannel(uiSamplerChannel);
-        if (!pSamplerChannel) throw Exception("Invalid sampler channel number " + ToString(uiSamplerChannel));
-
-        EngineChannel* pEngineChannel = pSamplerChannel->GetEngineChannel();
-        if (!pEngineChannel) throw Exception("There is no engine deployed on this sampler channel yet");
+        EngineChannel* pEngineChannel = GetEngineChannel(uiSamplerChannel);
 
         if      (MidiMapID == -1) pEngineChannel->SetMidiInstrumentMapToNone();
         else if (MidiMapID == -2) pEngineChannel->SetMidiInstrumentMapToDefault();
@@ -2437,10 +2414,7 @@ String LSCPServer::EditSamplerChannelInstrument(uint uiSamplerChannel) {
     dmsg(2,("LSCPServer: EditSamplerChannelInstrument(SamplerChannel=%d)\n", uiSamplerChannel));
     LSCPResultSet result;
     try {
-        SamplerChannel* pSamplerChannel = pSampler->GetSamplerChannel(uiSamplerChannel);
-        if (!pSamplerChannel) throw Exception("Invalid sampler channel number " + ToString(uiSamplerChannel));
-        EngineChannel* pEngineChannel = pSamplerChannel->GetEngineChannel();
-        if (!pEngineChannel) throw Exception("No engine type assigned to sampler channel");
+        EngineChannel* pEngineChannel = GetEngineChannel(uiSamplerChannel);
         if (pEngineChannel->InstrumentStatus() < 0) throw Exception("No instrument loaded to sampler channel");
         Engine* pEngine = pEngineChannel->GetEngine();
         InstrumentManager* pInstrumentManager = pEngine->GetInstrumentManager();
@@ -2455,6 +2429,42 @@ String LSCPServer::EditSamplerChannelInstrument(uint uiSamplerChannel) {
     return result.Produce();
 }
 
+String LSCPServer::SendChannelMidiData(String MidiMsg, uint uiSamplerChannel, uint Arg1, uint Arg2) {
+    dmsg(2,("LSCPServer: SendChannelMidiData(MidiMsg=%s,uiSamplerChannel=%d,Arg1=%d,Arg2=%d)\n", MidiMsg.c_str(), uiSamplerChannel, Arg1, Arg2));
+    LSCPResultSet result;
+    try {
+        EngineChannel* pEngineChannel = GetEngineChannel(uiSamplerChannel);
+
+        if (Arg1 > 127 || Arg2 > 127) {
+            throw Exception("Invalid MIDI message");
+        }
+
+        VirtualMidiDevice* pMidiDevice = NULL;
+        std::vector<EventHandler::midi_listener_entry>::iterator iter = eventHandler.channelMidiListeners.begin();
+        for (; iter != eventHandler.channelMidiListeners.end(); ++iter) {
+            if ((*iter).pEngineChannel == pEngineChannel) {
+                pMidiDevice = (*iter).pMidiListener;
+                break;
+            }
+        }
+        
+        if(pMidiDevice == NULL) throw Exception("Couldn't find virtual MIDI device");
+
+        if (MidiMsg == "NOTE_ON") {
+            bool b = pMidiDevice->SendNoteOnToSampler(Arg1, Arg2);
+            if (!b) throw Exception("MIDI event failed: " + MidiMsg + " " + ToString(Arg1) + " " + ToString(Arg2));
+        } else if (MidiMsg == "NOTE_OFF") {
+            bool b = pMidiDevice->SendNoteOffToSampler(Arg1, Arg2);
+            if (!b) throw Exception("MIDI event failed: " + MidiMsg + " " + ToString(Arg1) + " " + ToString(Arg2));
+        } else {
+            throw Exception("Unknown MIDI message type: " + MidiMsg);
+        }
+    } catch (Exception e) {
+        result.Error(e);
+    }
+    return result.Produce();
+}
+
 /**
  * Will be called by the parser to reset a particular sampler channel.
  */
@@ -2462,10 +2472,7 @@ String LSCPServer::ResetChannel(uint uiSamplerChannel) {
     dmsg(2,("LSCPServer: ResetChannel(SamplerChannel=%d)\n", uiSamplerChannel));
     LSCPResultSet result;
     try {
-        SamplerChannel* pSamplerChannel = pSampler->GetSamplerChannel(uiSamplerChannel);
-        if (!pSamplerChannel) throw Exception("Invalid sampler channel number " + ToString(uiSamplerChannel));
-        EngineChannel* pEngineChannel = pSamplerChannel->GetEngineChannel();
-        if (!pEngineChannel) throw Exception("No engine type assigned to sampler channel");
+        EngineChannel* pEngineChannel = GetEngineChannel(uiSamplerChannel);
         pEngineChannel->Reset();
     }
     catch (Exception e) {
@@ -2672,6 +2679,25 @@ String LSCPServer::GetFileInstrumentInfo(String Filename, uint InstrumentID) {
                 result.Add("FORMAT_VERSION", info.FormatVersion);
                 result.Add("PRODUCT", info.Product);
                 result.Add("ARTISTS", info.Artists);
+
+                std::stringstream ss;
+                bool b = false;
+                for (int i = 0; i < 128; i++) {
+                    if (info.KeyBindings[i]) {
+                        if (b) ss << ',';
+                        ss << i; b = true;
+                    }
+                }
+                result.Add("KEY_BINDINGS", ss.str());
+
+                std::stringstream ss2;
+                for (int i = 0; i < 128; i++) {
+                    if (info.KeySwitchBindings[i]) {
+                        if (b) ss2 << ',';
+                        ss2 << i; b = true;
+                    }
+                }
+                result.Add("KEYSWITCH_BINDINGS", ss2.str());
                 // no more need to ask other engine types
                 bFound = true;
             } else dmsg(1,("Warning: engine '%s' does not provide an instrument manager\n", engineTypes[i].c_str()));

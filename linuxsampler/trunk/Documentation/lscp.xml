@@ -3711,6 +3711,63 @@ Schoenebeck'>
                     </t>
                 </section>
 
+                <section title="Sending MIDI messages to sampler channel" anchor="SEND CHANNEL MIDI_DATA">
+                    <t>The front-end can send MIDI events to specific sampler channel
+                    by sending the following command:</t>
+                    <t>
+                        <list>
+                            <t>SEND CHANNEL MIDI_DATA &lt;midi-msg&gt; &lt;sampler-chan&gt; &lt;arg1&gt; &lt;arg2&gt;</t>
+                        </list>
+                    </t>
+                    <t>Where &lt;sampler-chan&gt; is the sampler channel number
+                    as returned by the <xref target="ADD CHANNEL">"ADD CHANNEL"</xref>
+                    or <xref target="LIST CHANNELS">"LIST CHANNELS"</xref> command,
+                    &lt;arg1&gt; and &lt;arg2&gt; arguments depend on the &lt;midi-msg&gt; argument, which
+                    specifies the MIDI message type. Currently, the following MIDI messages are supported:</t>
+                    <t>
+                        <list>
+                            <t>"NOTE_ON" -
+                                <list>
+                                    <t>For turning on MIDI notes, where &lt;arg1&gt;
+                                    specifies the key number and &lt;arg2&gt; the velocity
+                                    as described in the MIDI specification.</t>
+                                </list>
+                            </t>
+                            <t>"NOTE_OFF" -
+                                <list>
+                                    <t>For turning a currently playing MIDI note off, where &lt;arg1&gt;
+                                    specifies the key number and &lt;arg2&gt; the velocity
+                                    as described in the MIDI specification.</t>
+                                </list>
+                            </t>
+                        </list>
+                    </t>
+                    <t>CAUTION: This command is provided for implementations of virtual MIDI keyboards
+                    and no realtime guarantee whatsoever will be made!</t>
+                    <t>Possible Answers:</t>
+                    <t>
+                        <list>
+                            <t>"OK" -
+                                <list>
+                                    <t>on success</t>
+                                </list>
+                            </t>
+                            <t>"ERR:&lt;error-code&gt;:&lt;error-message&gt;" -
+                                <list>
+                                    <t>in case it failed, providing an appropriate error code and error message</t>
+                                </list>
+                            </t>
+                        </list>
+                    </t>
+                    <t>Example:</t>
+                    <t>
+                        <list>
+                            <t>C: "SEND CHANNEL MIDI_DATA NOTE_ON 0 56 112"</t>
+                            <t>S: "OK"</t>
+                        </list>
+                    </t>
+                </section>
+
                 <section title="Resetting a sampler channel" anchor="RESET CHANNEL">
                     <t>The front-end can reset a particular sampler channel by sending the following command:</t>
                     <t>
@@ -6307,6 +6364,20 @@ Schoenebeck'>
                                             vendor of the instrument</t>
                                         </list>
                                     </t>
+                                    <t>KEY_BINDINGS -
+                                        <list>
+                                            <t>comma separated list of integer values representing
+                                               the instrument's key mapping in the range between 0 .. 127,
+                                               reflecting the analog meaning of the MIDI specification.</t>
+                                        </list>
+                                    </t>
+                                    <t>KEYSWITCH_BINDINGS -
+                                        <list>
+                                            <t>comma separated list of integer values representing
+                                               the instrument's keyswitch mapping in the range between 0 .. 127,
+                                               reflecting the analog meaning of the MIDI specification.</t>
+                                        </list>
+                                    </t>
                                 </list>
                             </t>
                         </list>
@@ -6414,6 +6485,8 @@ Schoenebeck'>
 		<t>/ EDIT SP edit_instruction
 		</t>
 		<t>/ FORMAT SP format_instruction
+                </t>
+                <t>SEND SP send_instruction
 		</t>
 		<t>/ RESET
 		</t>
@@ -6900,6 +6973,12 @@ Schoenebeck'>
 		<t>/ DB_INSTRUMENTS SP db_path
 		</t>
 		<t>/ FILE SP INSTRUMENTS SP filename
+		</t>
+	</list>
+</t>
+<t>send_instruction =
+	<list>
+		<t>CHANNEL SP MIDI_DATA SP string SP sampler_channel SP number SP number
 		</t>
 	</list>
 </t>

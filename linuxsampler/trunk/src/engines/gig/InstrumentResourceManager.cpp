@@ -146,30 +146,68 @@ namespace LinuxSampler { namespace gig {
     }
 
     InstrumentResourceManager::instrument_info_t InstrumentResourceManager::GetInstrumentInfo(instrument_id_t ID) throw (InstrumentManagerException) {
-        std::vector<instrument_id_t> result;
+        Lock();
+        ::gig::Instrument* pInstrument = Resource(ID, false);
+        bool loaded = (pInstrument != NULL);
+        if (!loaded) Unlock();
+
         ::RIFF::File* riff = NULL;
         ::gig::File*  gig  = NULL;
         try {
-            riff = new ::RIFF::File(ID.FileName);
-            gig  = new ::gig::File(riff);
-            gig->SetAutoLoad(false); // avoid time consuming samples scanning
-            ::gig::Instrument* pInstrument = gig->GetInstrument(ID.Index);
-            if (!pInstrument) throw InstrumentManagerException("There is no instrument " + ToString(ID.Index) + " in " + ID.FileName);
-            instrument_info_t info;
-            if (gig->pVersion) {
-                info.FormatVersion = ToString(gig->pVersion->major);
-                info.Product = gig->pInfo->Product;
-                info.Artists = gig->pInfo->Artists;
+            if(!loaded) {
+                riff = new ::RIFF::File(ID.FileName);
+                gig  = new ::gig::File(riff);
+                gig->SetAutoLoad(false); // avoid time consuming samples scanning
+                pInstrument = gig->GetInstrument(ID.Index);
             }
+            
+            if (!pInstrument) throw InstrumentManagerException("There is no instrument " + ToString(ID.Index) + " in " + ID.FileName);
+
+            instrument_info_t info;
+            for (int i = 0; i < 128; i++) { info.KeyBindings[i] = info.KeySwitchBindings[i] = 0; }
+
+            ::gig::File* pFile = (::gig::File*) pInstrument->GetParent();
+
+            if (pFile->pVersion) {
+                info.FormatVersion = ToString(pFile->pVersion->major);
+                info.Product = pFile->pInfo->Product;
+                info.Artists = pFile->pInfo->Artists;
+            }
+
             info.InstrumentName = pInstrument->pInfo->Name;
+
+            ::gig::Region* pRegion = pInstrument->GetFirstRegion();
+            while (pRegion) {
+                int low = pRegion->KeyRange.low;
+                int high = pRegion->KeyRange.high;
+                if (low < 0 || low > 127 || high < 0 || high > 127 || low > high) {
+                    std::cerr << "Invalid key range: " << low << " - " << high << std::endl;
+                } else {
+                    for (int i = low; i <= high; i++) info.KeyBindings[i] = 1;
+                }
+                pRegion = pInstrument->GetNextRegion();
+            }
+            
+            int low = pInstrument->DimensionKeyRange.low;
+            int high = pInstrument->DimensionKeyRange.high;
+            if (low < 0 || low > 127 || high < 0 || high > 127 || low > high) {
+                std::cerr << "Invalid keyswitch range: " << low << " - " << high << std::endl;
+            } else {
+                for (int i = low; i <= high; i++) info.KeySwitchBindings[i] = 1;
+            }
+
+            if (loaded) Unlock();
+
             if (gig)  delete gig;
             if (riff) delete riff;
             return info;
         } catch (::RIFF::Exception e) {
+            if (loaded) Unlock();
             if (gig)  delete gig;
             if (riff) delete riff;
             throw InstrumentManagerException(e.Message);
         } catch (...) {
+            if (loaded) Unlock();
             if (gig)  delete gig;
             if (riff) delete riff;
             throw InstrumentManagerException("Unknown exception while trying to parse '" + ID.FileName + "'");

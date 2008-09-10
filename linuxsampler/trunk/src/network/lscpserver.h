@@ -202,6 +202,7 @@ class LSCPServer : public Thread {
         String GetFileInstruments(String Filename);
         String ListFileInstruments(String Filename);
         String GetFileInstrumentInfo(String Filename, uint InstrumentID);
+        String SendChannelMidiData(String MidiMsg, uint uiSamplerChannel, uint Arg1, uint Arg2);
         String SubscribeNotification(LSCPEvent::event_t);
         String UnsubscribeNotification(LSCPEvent::event_t);
         String SetEcho(yyparse_param_t* pSession, double boolean_value);

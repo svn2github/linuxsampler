@@ -84,6 +84,8 @@ namespace LinuxSampler {
                 String FormatVersion;
                 String Product;
                 String Artists;
+                uint8_t KeyBindings[128];
+                uint8_t KeySwitchBindings[128];
             };
 
             /**

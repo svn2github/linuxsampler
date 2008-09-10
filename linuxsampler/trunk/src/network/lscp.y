@@ -120,7 +120,7 @@ using namespace LinuxSampler;
 %type <Char> char char_base alpha_char digit digit_oct digit_hex escape_seq escape_seq_octal escape_seq_hex
 %type <Dotnum> dotnum volume_value boolean
 %type <Number> number sampler_channel instrument_index fx_send_id audio_channel_index device_index midi_input_channel_index midi_input_port_index midi_map midi_bank midi_prog midi_ctrl
-%type <String> string string_escaped text text_escaped text_escaped_base stringval stringval_escaped digits param_val_list param_val query_val filename db_path map_name entry_name fx_send_name engine_name command add_instruction create_instruction destroy_instruction get_instruction list_instruction load_instruction set_chan_instruction load_instr_args load_engine_args audio_output_type_name midi_input_type_name remove_instruction unmap_instruction set_instruction subscribe_event unsubscribe_event map_instruction reset_instruction clear_instruction find_instruction move_instruction copy_instruction scan_mode edit_instruction format_instruction
+%type <String> string string_escaped text text_escaped text_escaped_base stringval stringval_escaped digits param_val_list param_val query_val filename db_path map_name entry_name fx_send_name engine_name command add_instruction create_instruction destroy_instruction get_instruction list_instruction load_instruction send_instruction set_chan_instruction load_instr_args load_engine_args audio_output_type_name midi_input_type_name remove_instruction unmap_instruction set_instruction subscribe_event unsubscribe_event map_instruction reset_instruction clear_instruction find_instruction move_instruction copy_instruction scan_mode edit_instruction format_instruction
 %type <FillResponse> buffer_size_type
 %type <KeyValList> key_val_list query_val_list
 %type <LoadMode> instr_load_mode
@@ -178,6 +178,7 @@ command               :  ADD SP add_instruction                { $$ = $3;       
                       |  COPY SP copy_instruction              { $$ = $3;                                                }
                       |  EDIT SP edit_instruction              { $$ = $3;                                                }
                       |  FORMAT SP format_instruction          { $$ = $3;                                                }
+command               :  SEND SP send_instruction              { $$ = $3;                                                }
                       |  RESET                                 { $$ = LSCPSERVER->ResetSampler();                        }
                       |  QUIT                                  { LSCPSERVER->AnswerClient("Bye!\r\n"); return LSCP_QUIT; }
                       ;
@@ -421,6 +422,9 @@ list_instruction      :  AUDIO_OUTPUT_DEVICES                               { $$
                       |  DB_INSTRUMENTS SP RECURSIVE SP db_path             { $$ = LSCPSERVER->GetDbInstruments($5, true);           }
                       |  DB_INSTRUMENTS SP db_path                          { $$ = LSCPSERVER->GetDbInstruments($3);                 }
                       |  FILE SP INSTRUMENTS SP filename                    { $$ = LSCPSERVER->ListFileInstruments($5);              }
+                      ;
+
+send_instruction      :  CHANNEL SP MIDI_DATA SP string SP sampler_channel SP number SP number  { $$ = LSCPSERVER->SendChannelMidiData($5, $7, $9, $11); }
                       ;
 
 load_instr_args       :  filename SP instrument_index SP sampler_channel               { $$ = LSCPSERVER->LoadInstrument($1, $3, $5);       }
@@ -958,6 +962,9 @@ MIDI_INPUT            :  'M''I''D''I''_''I''N''P''U''T'
 MIDI_CONTROLLER       :  'M''I''D''I''_''C''O''N''T''R''O''L''L''E''R'
                       ;
 
+SEND                  :  'S''E''N''D'
+                      ;
+
 FX_SEND               :  'F''X''_''S''E''N''D'
                       ;
 
@@ -1031,6 +1038,9 @@ EDIT                  :  'E''D''I''T'
                       ;
 
 FORMAT                :  'F''O''R''M''A''T'
+                      ;
+
+MIDI_DATA             :  'M''I''D''I''_''D''A''T''A'
                       ;
 
 RESET                 :  'R''E''S''E''T'

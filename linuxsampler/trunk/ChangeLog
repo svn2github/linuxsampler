@@ -84,6 +84,10 @@ Version CVS HEAD (?)
       Note-On and Note-Off events are sent via this LSCP event)
     - added new LSCP commands: FIND LOST DB_INSTRUMENT_FILES and
       SET DB_INSTRUMENT FILE_PATH
+    - added new LSCP command: SEND CHANNEL MIDI_DATA which can be used by
+      frontends to send MIDI messages to specific sampler channel
+    - added two additional fields to GET FILE INSTRUMENT INFO command -
+      KEY_BINDINGS and KEYSWITCH_BINDINGS
     - bugfix: the bank number provided by MIDI_INSTRUMENT_INFO notifications
       was incorrect
     - Optimized the retrieval of the MIDI instrument mappings
