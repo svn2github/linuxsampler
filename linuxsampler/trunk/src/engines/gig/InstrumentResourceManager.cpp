@@ -188,12 +188,14 @@ namespace LinuxSampler { namespace gig {
                 pRegion = pInstrument->GetNextRegion();
             }
             
-            int low = pInstrument->DimensionKeyRange.low;
-            int high = pInstrument->DimensionKeyRange.high;
-            if (low < 0 || low > 127 || high < 0 || high > 127 || low > high) {
-                std::cerr << "Invalid keyswitch range: " << low << " - " << high << std::endl;
-            } else {
-                for (int i = low; i <= high; i++) info.KeySwitchBindings[i] = 1;
+            if (loaded) { // retrieve keyswitching only if the instrument is fully loaded.
+                int low = pInstrument->DimensionKeyRange.low;
+                int high = pInstrument->DimensionKeyRange.high;
+                if (low < 0 || low > 127 || high < 0 || high > 127 || low > high) {
+                    std::cerr << "Invalid keyswitch range: " << low << " - " << high << std::endl;
+                } else {
+                    for (int i = low; i <= high; i++) info.KeySwitchBindings[i] = 1;
+                }
             }
 
             if (loaded) Unlock();

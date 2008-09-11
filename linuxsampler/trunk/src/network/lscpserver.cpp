@@ -2451,9 +2451,11 @@ String LSCPServer::SendChannelMidiData(String MidiMsg, uint uiSamplerChannel, ui
         if(pMidiDevice == NULL) throw Exception("Couldn't find virtual MIDI device");
 
         if (MidiMsg == "NOTE_ON") {
+            pMidiDevice->SendNoteOnToDevice(Arg1, Arg2);
             bool b = pMidiDevice->SendNoteOnToSampler(Arg1, Arg2);
             if (!b) throw Exception("MIDI event failed: " + MidiMsg + " " + ToString(Arg1) + " " + ToString(Arg2));
         } else if (MidiMsg == "NOTE_OFF") {
+            pMidiDevice->SendNoteOffToDevice(Arg1, Arg2);
             bool b = pMidiDevice->SendNoteOffToSampler(Arg1, Arg2);
             if (!b) throw Exception("MIDI event failed: " + MidiMsg + " " + ToString(Arg1) + " " + ToString(Arg2));
         } else {
@@ -2690,6 +2692,7 @@ String LSCPServer::GetFileInstrumentInfo(String Filename, uint InstrumentID) {
                 }
                 result.Add("KEY_BINDINGS", ss.str());
 
+                b = false;
                 std::stringstream ss2;
                 for (int i = 0; i < 128; i++) {
                     if (info.KeySwitchBindings[i]) {
