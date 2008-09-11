@@ -78,4 +78,8 @@ public interface Instrument {
 	 * @return The name of the sampler engine to be used to load the instrument.
 	 */
 	public String getEngine();
+	
+	public Integer[] getKeyMapping();
+	
+	public Integer[] getKeyswitchMapping();
 }

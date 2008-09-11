@@ -35,6 +35,8 @@ public abstract class AbstractInstrument implements Instrument, Parseable {
 	private int instrumentIndex = 0;
 	private String formatFamily = "";
 	private String formatVersion = "";
+	private Integer[] keyMapping = { };
+	private Integer[] keyswitchMapping = { };
 	
 	/**
 	 * Creates a new instance of <code>AbstractInstrument</code>.
@@ -113,6 +115,12 @@ public abstract class AbstractInstrument implements Instrument, Parseable {
 	public String
 	getFormatVersion() { return formatVersion; }
 	
+	public Integer[]
+	getKeyMapping() { return keyMapping; }
+	
+	public Integer[]
+	getKeyswitchMapping() { return keyswitchMapping; }
+	
 	/**
 	 * Parses a line of text.
 	 * @param s The string to be parsed.
@@ -135,6 +143,12 @@ public abstract class AbstractInstrument implements Instrument, Parseable {
 			formatFamily = s.substring("FORMAT_FAMILY: ".length());
 		} else if(s.startsWith("FORMAT_VERSION: ")) {
 			formatVersion = s.substring("FORMAT_VERSION: ".length());
+		} else if(s.startsWith("KEY_BINDINGS: ")) {
+			s = s.substring("KEY_BINDINGS: ".length());
+			keyMapping = Parser.parseIntList(s);
+		} else if(s.startsWith("KEYSWITCH_BINDINGS: ")) {
+			s = s.substring("KEYSWITCH_BINDINGS: ".length());
+			keyswitchMapping = Parser.parseIntList(s);
 		} else return false;
 		
 		return true;

@@ -41,9 +41,9 @@ import static org.linuxsampler.lscp.Parser.*;
 
 /**
  * This class is the abstraction representing a client endpoint for communication with LinuxSampler
- * instance. Since it implements all commands specified in the LSCP protocol v1.2, for more 
+ * instance. Since it implements all commands specified in the LSCP protocol v1.3, for more 
  * information look at the
- * <a href=http://www.linuxsampler.org/api/lscp-1.2.html>LSCP</a> specification.
+ * <a href=http://www.linuxsampler.org/api/lscp-1.3.html>LSCP</a> specification.
  *
  * <p> The following code establishes connection to LinuxSampler instance and gets the
  * LinuxSampler version:
@@ -589,7 +589,7 @@ public class Client {
 	private synchronized void
 	fireDeviceMidiDataEvent(String s) {
 		try {
-			String[] list = parseStringList(s, ' ');
+			String[] list = parseList(s, ' ');
 			if(list.length != 5) {
 				getLogger().warning("Unknown DEVICE_MIDI format");
 				return;
@@ -618,7 +618,7 @@ public class Client {
 	private synchronized void
 	fireChannelMidiDataEvent(String s) {
 		try {
-			String[] list = parseStringList(s, ' ');
+			String[] list = parseList(s, ' ');
 			if(list.length != 4) {
 				getLogger().warning("Unknown CHANNEL_MIDI format");
 				return;
@@ -4013,6 +4013,52 @@ public class Client {
 		ResultSet rs = getEmptyResultSet();
 	}
 	
+	/**
+	 * Sends a MIDI event to this sampler channel.
+	 * @param samplerChn The sampler channel number.
+	 * @param type The type of MIDI message to send.
+	 * @throws IOException If some I/O error occurs.
+	 * @throws LscpException If LSCP protocol corruption occurs.
+	 * @throws LSException If <code>samplerChn</code> is not a valid channel number or if
+	 * there is no instrument loaded on the specified sampler channel.
+	 * @see #getSamplerChannels
+	 */
+	public synchronized void
+	sendChannelMidiData(int samplerChn, MidiDataEvent.Type type, int arg1, int arg2)
+						throws IOException, LscpException, LSException {
+		
+		verifyConnection();
+		StringBuffer sb = new StringBuffer();
+		sb.append("SEND CHANNEL MIDI_DATA ");
+		sb.append(type).append(" ").append(samplerChn).append(" ");
+		sb.append(arg1).append(" ").append(arg2);
+		
+		out.writeLine(sb.toString());
+		if(getPrintOnlyMode()) return;
+		
+		ResultSet rs = getEmptyResultSet();
+	}
+	
+	/**
+	 * Resets the specified sampler channel.
+	 *
+	 * @param samplerChn The sampler channel number.
+	 * 
+	 * @throws IOException If some I/O error occurs.
+	 * @throws LscpException If LSCP protocol corruption occurs.
+	 * @throws LSException If <code>samplerChn</code> is not a valid channel number or if
+	 * there is no engine assigned yet to the specified sampler channel.
+	 * @see #getSamplerChannels
+	 */
+	public synchronized void
+	resetChannel(int samplerChn) throws IOException, LscpException, LSException {
+		verifyConnection();
+		out.writeLine("RESET CHANNEL " + samplerChn);
+		if(getPrintOnlyMode()) return;
+		
+		ResultSet rs = getEmptyResultSet();
+	}
+	
 	
 	
 	/**
@@ -5114,26 +5160,6 @@ public class Client {
 	formatInstrumentsDb() throws IOException, LscpException, LSException {
 		verifyConnection();
 		out.writeLine("FORMAT INSTRUMENTS_DB");
-		if(getPrintOnlyMode()) return;
-		
-		ResultSet rs = getEmptyResultSet();
-	}
-	
-	/**
-	 * Resets the specified sampler channel.
-	 *
-	 * @param samplerChn The sampler channel number.
-	 * 
-	 * @throws IOException If some I/O error occurs.
-	 * @throws LscpException If LSCP protocol corruption occurs.
-	 * @throws LSException If <code>samplerChn</code> is not a valid channel number or if
-	 * there is no engine assigned yet to the specified sampler channel.
-	 * @see #getSamplerChannels
-	 */
-	public synchronized void
-	resetChannel(int samplerChn) throws IOException, LscpException, LSException {
-		verifyConnection();
-		out.writeLine("RESET CHANNEL " + samplerChn);
 		if(getPrintOnlyMode()) return;
 		
 		ResultSet rs = getEmptyResultSet();

@@ -2,6 +2,11 @@ CVS HEAD
   * Added support for monitoring MIDI events on sampler channels
     and MIDI devices
 
+  * Added support for sending MIDI messages to sampler channels
+
+  * Added support for retrieving instrument's key mapping and
+    keyswitch mapping
+
   * API Changes
     - Client: added new methods - getMidiInstrumentEntries,
       findLostDbInstrumentFiles, setDbInstrumentFilePath, setSoTimeout

@@ -27,7 +27,19 @@ package org.linuxsampler.lscp.event;
  * @author Grigor Iliev
  */
 public class MidiDataEvent extends java.util.EventObject {
-	public static enum Type { NOTE_ON, NOTE_OFF }
+	public static enum Type {
+		NOTE_ON  ("NOTE_ON"),
+		NOTE_OFF ("NOTE_OFF");
+		
+		private final String name;
+		
+		Type(String name) {
+			this.name = name;
+		}
+		
+		public String
+		toString() { return name; }
+	}
 	
 	private Type type;
 	private int note;
