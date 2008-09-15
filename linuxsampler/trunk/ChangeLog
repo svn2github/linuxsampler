@@ -25,6 +25,8 @@ Version CVS HEAD (?)
       is only used by very few systems, most pick the int math
       implementation, which is usually faster)
     - fixes for audio drivers with varying buffer sizes
+    - experimental support for running LinuxSampler as a DSSI, LV2 and
+      VST plugin
 
   * audio driver:
     - removed the nonsense audio channel constraint (which was hard coded to
@@ -35,7 +37,7 @@ Version CVS HEAD (?)
       reflected the wrong value
     - fixed a memory management bug in ASIO driver
     - Makefile fix: JACK_CFLAGS wasn't used
-    - JACK: use jack_client_open instead of thedeprecated
+    - JACK: use jack_client_open instead of the deprecated
       jack_client_new
 
   * MIDI driver:

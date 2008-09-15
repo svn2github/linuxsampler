@@ -64,7 +64,8 @@ liblinuxsamplermididriver_la_SOURCES = \
 	$(midishare_src)\
 	$(coremidi_src)\
 	$(mmemidi_src)\
-	$(jackmidi_src)
+	$(jackmidi_src)\
+	MidiInputDevicePlugin.cpp MidiInputDevicePlugin.h
 
 liblinuxsamplermididriver_la_LIBADD = $(alsa_ladd) $(midishare_ladd) $(mmemidi_ladd)
 liblinuxsamplermididriver_la_LDFLAGS = $(coremidi_ldflags)

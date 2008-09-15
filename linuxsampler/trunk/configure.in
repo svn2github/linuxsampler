@@ -39,6 +39,7 @@ AC_DEFINE_UNQUOTED(LSCP_RELEASE_MAJOR, ${LSCP_RELEASE_MAJOR}, [LSCP spec major v
 AC_DEFINE_UNQUOTED(LSCP_RELEASE_MINOR, ${LSCP_RELEASE_MINOR}, [LSCP spec minor version this release complies with.])
 
 AC_PROG_CXX
+AC_LIBTOOL_WIN32_DLL
 AM_PROG_LIBTOOL
 
 AC_SUBST(SHLIB_VERSION_ARG)
@@ -435,6 +436,33 @@ else
 fi
 AM_CONDITIONAL(HAVE_MME_MIDI, test $have_mmemidi = "1")
 AC_DEFINE_UNQUOTED(HAVE_MME_MIDI,$have_mmemidi,[Define to 1 if you have MME MIDI installed.])
+
+
+# DSSI
+AC_CHECK_HEADERS(dssi.h,
+	have_dssi=1,
+	have_dssi=0)
+AM_CONDITIONAL(HAVE_DSSI, test $have_dssi = "1")
+
+# LV2
+PKG_CHECK_MODULES(LV2, lv2core, have_lv2=1, have_lv2=0)
+if test $have_lv2 = "0"; then
+    AC_CHECK_HEADER(lv2.h, have_lv2=1, have_lv2=0)
+fi
+AM_CONDITIONAL(HAVE_LV2, test $have_lv2 = "1")
+
+# VST
+AC_ARG_ENABLE(vstsdk-dir,
+  [  --enable-vstsdk-dir
+                          Directory where the VST SDK is located.
+                          This automatically enables the compilation
+                          of the VST plugin.],
+  [VSTSDK_DIR="${enableval}"],
+  [VSTSDK_DIR=]
+)
+AC_SUBST(VSTSDK_DIR)
+AM_CONDITIONAL(HAVE_VST, test "x$VSTSDK_DIR" != "x")
+
 
 # have we found at least one MIDI input and one audio output driver ?
 if test "$have_midi_input_driver" = "false"; then
@@ -1170,6 +1198,10 @@ AC_OUTPUT( \
     src/drivers/audio/Makefile \
     src/drivers/midi/Makefile \
     src/plugins/Makefile \
+    src/hostplugins/Makefile \
+    src/hostplugins/dssi/Makefile \
+    src/hostplugins/lv2/Makefile \
+    src/hostplugins/vst/Makefile \
     linuxsampler.spec \
     debian/Makefile \
     Artwork/Makefile \

@@ -550,8 +550,9 @@ namespace LinuxSampler {
         for (; iter != mAudioOutputDevices.end(); iter++) {
             if (iter->second == pDevice) {
                 // check if there are still sampler engines connected to this device
-                for (uint i = 0; i < SamplerChannels(); i++)
-                    if (GetSamplerChannel(i)->GetAudioOutputDevice() == pDevice) throw Exception("Sampler channel " + ToString(i) + " is still connected to the audio output device.");
+                for (SamplerChannelMap::iterator iterChan = mSamplerChannels.begin();
+                     iterChan != mSamplerChannels.end(); iterChan++)
+                    if (iterChan->second->GetAudioOutputDevice() == pDevice) throw Exception("Sampler channel " + ToString(iterChan->first) + " is still connected to the audio output device.");
 
                 // disable device
                 pDevice->Stop();
@@ -573,8 +574,9 @@ namespace LinuxSampler {
         for (; iter != mMidiInputDevices.end(); iter++) {
             if (iter->second == pDevice) {
                 // check if there are still sampler engines connected to this device
-                for (uint i = 0; i < SamplerChannels(); i++)
-                    if (GetSamplerChannel(i)->GetMidiInputDevice() == pDevice) throw Exception("Sampler channel " + ToString(i) + " is still connected to the midi input device.");
+                for (SamplerChannelMap::iterator iterChan = mSamplerChannels.begin();
+                     iterChan != mSamplerChannels.end(); iterChan++)
+                    if (iterChan->second->GetMidiInputDevice() == pDevice) throw Exception("Sampler channel " + ToString(iterChan->first) + " is still connected to the midi input device.");
 
                 fireMidiDeviceToBeDestroyed(pDevice);
 
