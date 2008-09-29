@@ -4563,6 +4563,42 @@ public class Client {
 	addDbInstruments(ScanMode mode, String dbDir, String fsDir, boolean background)
 					throws IOException, LSException, LscpException {
 		
+		return addDbInstruments(mode, dbDir, fsDir, background, false);
+	}
+	
+	/**
+	 * Adds the instruments in the specified file system directory
+	 * to the specified instruments database directory.
+	 * @param mode Determines the scanning mode. If RECURSIVE is
+	 * specified, all supported instruments in the specified file system
+	 * direcotry will be added to the specified instruments database
+	 * directory, including the instruments in subdirectories
+	 * of the supplied directory. If NON_RECURSIVE is specified,
+	 * the instruments in the subdirectories will not be processed.
+	 * If FLAT is specified, all supported instruments in the specified
+	 * file system direcotry will be added, including the instruments in
+	 * subdirectories of the supplied directory, but the respective
+	 * subdirectory structure will not be recreated in the instruments
+	 * database and all instruments will be added directly in the
+	 * specified database directory.
+	 * @param dbDir The absolute path name of the database directory
+	 * in which the supported instruments will be added.
+	 * @param fsDir The absolute path name of the file system directory.
+	 * @param background If <code>true</code>, the scan will be done
+	 * in background and this method may return before the job is finished.
+	 * @param insDir If <code>true</code> a drieectory is created for each
+	 * instrument file.
+	 * @return If <code>background</code> is <code>true</code>, the ID
+	 * of the scan job.
+	 * @throws IOException If some I/O error occurs.
+	 * @throws LSException If the operation failed.
+	 * @throws LscpException If LSCP protocol corruption occurs.
+	 * @see #addInstrumentsDbListener
+	 */
+	public synchronized int
+	addDbInstruments(ScanMode mode, String dbDir, String fsDir, boolean background, boolean insDir)
+					throws IOException, LSException, LscpException {
+		
 		verifyConnection();
 		StringBuffer sb = new StringBuffer("ADD DB_INSTRUMENTS");
 		if(background) sb.append(" NON_MODAL");
@@ -4578,6 +4614,8 @@ public class Client {
 				sb.append(" FLAT");
 				break;
 		}
+		if(insDir)
+			sb.append(" FILE_AS_DIR");
 		
 		sb.append(" '").append(conv(dbDir)).append("' '");
 		sb.append(conv(fsDir)).append("'");
@@ -4587,7 +4625,7 @@ public class Client {
 		ResultSet rs = getEmptyResultSet();
 		return rs.getIndex();
 	}
-	
+
 	/**
 	 * Removes the specified instrument from the instruments database.
 	 * @param instr The absolute path name of the instrument to remove.

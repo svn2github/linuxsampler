@@ -463,12 +463,13 @@ namespace LinuxSampler {
         sp->SetStatus((int)(pProgress->factor * 100));
     }
 
-    AddInstrumentsJob::AddInstrumentsJob(int JobId, ScanMode Mode, String DbDir, String FsDir) {
+    AddInstrumentsJob::AddInstrumentsJob(int JobId, ScanMode Mode, String DbDir, String FsDir, bool insDir) {
         this->JobId = JobId;
         Progress.JobId = JobId;
         this->Mode = Mode;
         this->DbDir = DbDir;
         this->FsDir = FsDir;
+		this->insDir = insDir;
     }
 
     void AddInstrumentsJob::Run() {
@@ -478,13 +479,13 @@ namespace LinuxSampler {
             switch (Mode) {
                 case NON_RECURSIVE:
                     Progress.SetTotalFileCount(GetFileCount());
-                    db->AddInstrumentsNonrecursive(DbDir, FsDir, &Progress);
+                    db->AddInstrumentsNonrecursive(DbDir, FsDir, insDir, &Progress);
                     break;
                 case RECURSIVE:
-                    db->AddInstrumentsRecursive(DbDir, FsDir, false, &Progress);
+                    db->AddInstrumentsRecursive(DbDir, FsDir, false, insDir, &Progress);
                     break;
                 case FLAT:
-                    db->AddInstrumentsRecursive(DbDir, FsDir, true, &Progress);
+                    db->AddInstrumentsRecursive(DbDir, FsDir, true, insDir, &Progress);
                     break;
                 default:
                     throw Exception("Unknown scan mode");
@@ -520,7 +521,7 @@ namespace LinuxSampler {
         return count;
     }
 
-    AddInstrumentsFromFileJob::AddInstrumentsFromFileJob(int JobId, String DbDir, String FilePath, int Index) {
+    AddInstrumentsFromFileJob::AddInstrumentsFromFileJob(int JobId, String DbDir, String FilePath, int Index, bool insDir) {
         this->JobId = JobId;
         Progress.JobId = JobId;
         Progress.SetTotalFileCount(1);
@@ -528,11 +529,12 @@ namespace LinuxSampler {
         this->DbDir = DbDir;
         this->FilePath = FilePath;
         this->Index = Index;
+		this->insDir = insDir;
     }
 
     void AddInstrumentsFromFileJob::Run() {
         try {
-            InstrumentsDb::GetInstrumentsDb()->AddInstruments(DbDir, FilePath, Index, &Progress);
+            InstrumentsDb::GetInstrumentsDb()->AddInstruments(DbDir, insDir, FilePath, Index, &Progress);
 
             // Just to be sure that the frontends will be notified about the job completion
             if (Progress.GetTotalFileCount() != Progress.GetScannedFileCount()) {
@@ -546,12 +548,13 @@ namespace LinuxSampler {
     }
 
 
-    void DirectoryScanner::Scan(String DbDir, String FsDir, bool Flat, ScanProgress* pProgress) {
-        dmsg(2,("DirectoryScanner: Scan(DbDir=%s,FsDir=%s,Flat=%d)\n", DbDir.c_str(), FsDir.c_str(), Flat));
+    void DirectoryScanner::Scan(String DbDir, String FsDir, bool Flat, bool insDir, ScanProgress* pProgress) {
+        dmsg(2,("DirectoryScanner: Scan(DbDir=%s,FsDir=%s,Flat=%d,insDir=%d)\n", DbDir.c_str(), FsDir.c_str(), Flat, insDir));
         if (DbDir.empty() || FsDir.empty()) throw Exception("Directory expected");
         
         this->DbDir = DbDir;
         this->FsDir = FsDir;
+        this->insDir = insDir;
         if (DbDir.at(DbDir.length() - 1) != '/') {
             this->DbDir.append("/");
         }
@@ -580,7 +583,7 @@ namespace LinuxSampler {
 
         if (HasInstrumentFiles(Path)) {
             if (!db->DirectoryExist(dir)) db->AddDirectory(dir);
-            db->AddInstrumentsNonrecursive(dir, Path, pProgress);
+            db->AddInstrumentsNonrecursive(dir, Path, insDir, pProgress);
         }
     };
 
@@ -599,6 +602,7 @@ namespace LinuxSampler {
     }
 
     void InstrumentFileCounter::FileEntry(std::string Path) {
+        dmsg(2,("InstrumentFileCounter: FileEntry(Path=%s)\n", Path.c_str()));
         if(Path.length() < 4) return;
         if(!strcasecmp(".gig", Path.substr(Path.length() - 4).c_str())) FileCount++;
     };

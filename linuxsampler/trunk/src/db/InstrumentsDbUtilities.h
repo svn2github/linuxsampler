@@ -302,8 +302,10 @@ namespace LinuxSampler {
              * @param Index The index of the instrument (in the given
              * instrument file) to add. If -1 is specified, all instruments in
              * the supplied instrument file will be added.
+			 * @param insDir if true a separate directory will be created for
+			 * the gig file.
              */
-            AddInstrumentsFromFileJob(int JobId, String DbDir, String FilePath, int Index = -1);
+            AddInstrumentsFromFileJob(int JobId, String DbDir, String FilePath, int Index = -1, bool insDir = false);
             
             /**
              * The entry point of the job.
@@ -316,6 +318,7 @@ namespace LinuxSampler {
                 String FilePath;
                 int Index;
                 ScanProgress Progress;
+				bool insDir;
     };
 
     /**
@@ -343,8 +346,10 @@ namespace LinuxSampler {
              * (that are not already in the database) will be added.
              * @param FsDir The absolute path name of a directory in the
              * file system.
+			 * @param insDir If true a separate directory will be created for 
+			 * each gig file
              */
-            AddInstrumentsJob(int JobId, ScanMode Mode, String DbDir, String FsDir);
+            AddInstrumentsJob(int JobId, ScanMode Mode, String DbDir, String FsDir, bool insDir = false);
             
             /**
              * The entry point of the job.
@@ -357,6 +362,7 @@ namespace LinuxSampler {
                 String DbDir;
                 String FsDir;
                 ScanProgress Progress;
+				bool insDir;
 
                 int GetFileCount();
     };
@@ -366,10 +372,11 @@ namespace LinuxSampler {
             /**
              * Recursively scans all subdirectories of the specified file
              * system directory and adds the supported instruments to the database.
+			 * @param insDir is true this will create a directory for each gig file.
              * @param pProgress The progress used to monitor the scan process.
              * @throws Exception - if the specified directories are invalid.
              */
-           void Scan(String DbDir, String FsDir, bool Flat, ScanProgress* pProgress = NULL);
+           void Scan(String DbDir, String FsDir, bool Flat, bool insDir = false, ScanProgress* pProgress = NULL);
 
            virtual void DirectoryEntry(std::string Path);
            virtual void FileEntry(std::string Path) { }
@@ -380,6 +387,7 @@ namespace LinuxSampler {
             bool Flat;
             ScanProgress* pProgress;
             bool HasInstrumentFiles(String Dir);
+			bool insDir;
     };
     
     class InstrumentFileCounter: public File::DirectoryWalker {

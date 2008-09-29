@@ -2933,19 +2933,19 @@ String LSCPServer::AddDbInstruments(String DbDir, String FilePath, int Index, bo
     return result.Produce();
 }
 
-String LSCPServer::AddDbInstruments(String ScanMode, String DbDir, String FsDir, bool bBackground) {
-    dmsg(2,("LSCPServer: AddDbInstruments(ScanMode=%s,DbDir=%s,FsDir=%s,bBackground=%d)\n", ScanMode.c_str(), DbDir.c_str(), FsDir.c_str(), bBackground));
+String LSCPServer::AddDbInstruments(String ScanMode, String DbDir, String FsDir, bool bBackground, bool insDir) {
+    dmsg(2,("LSCPServer: AddDbInstruments(ScanMode=%s,DbDir=%s,FsDir=%s,bBackground=%d,insDir=%d)\n", ScanMode.c_str(), DbDir.c_str(), FsDir.c_str(), bBackground, insDir));
     LSCPResultSet result;
 #if HAVE_SQLITE3
     try {
         int id;
         InstrumentsDb* db = InstrumentsDb::GetInstrumentsDb();
         if (ScanMode.compare("RECURSIVE") == 0) {
-           id = db->AddInstruments(RECURSIVE, DbDir, FsDir, bBackground);
+            id = db->AddInstruments(RECURSIVE, DbDir, FsDir, bBackground, insDir);
         } else if (ScanMode.compare("NON_RECURSIVE") == 0) {
-           id = db->AddInstruments(NON_RECURSIVE, DbDir, FsDir, bBackground);
+            id = db->AddInstruments(NON_RECURSIVE, DbDir, FsDir, bBackground, insDir);
         } else if (ScanMode.compare("FLAT") == 0) {
-           id = db->AddInstruments(FLAT, DbDir, FsDir, bBackground);
+            id = db->AddInstruments(FLAT, DbDir, FsDir, bBackground, insDir);
         } else {
             throw Exception("Unknown scan mode: " + ScanMode);
         }

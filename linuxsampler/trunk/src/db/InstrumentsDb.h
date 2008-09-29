@@ -305,7 +305,7 @@ namespace LinuxSampler {
              * @param pProgress The progress used to monitor the scan process.
              * @throws Exception if the operation failed.
              */
-            void AddInstruments(String DbDir, String FilePath, int Index = -1, ScanProgress* pProgress = NULL);
+            void AddInstruments(String DbDir, bool insDir, String FilePath, int Index = -1, ScanProgress* pProgress = NULL);
 
             /**
              * Adds all supported instruments in the specified file system
@@ -331,10 +331,11 @@ namespace LinuxSampler {
              * @param bBackground Determines whether
              * the task should be done in the background.
              * @returns If bBackground is true, the ID of the scan job;
+			 * @param insDir if true a directory is added for each instrument file
              * -1 otherwise.
              * @throws Exception if the operation failed.
              */
-            int AddInstruments(ScanMode Mode, String DbDir, String FsDir, bool bBackground);
+            int AddInstruments(ScanMode Mode, String DbDir, String FsDir, bool bBackground, bool insDir = false);
 
             /**
              * Gets the number of instruments in the specified directory.
@@ -700,10 +701,11 @@ namespace LinuxSampler {
              * All slashes in the directory names should be replaced with '\0'.
              * @param FsDir The absolute path name of a directory in the file
              * system.
+			 * @param insDir If true a directory will be create for each gig file
              * @param pProgress The progress used to monitor the scan process.
              * @throws Exception if the operation failed.
              */
-            void AddInstrumentsNonrecursive(String DbDir, String FsDir, ScanProgress* pProgress = NULL);
+            void AddInstrumentsNonrecursive(String DbDir, String FsDir, bool insDir = false, ScanProgress* pProgress = NULL);
 
             /**
              * Adds all supported instruments in the specified file system
@@ -722,7 +724,7 @@ namespace LinuxSampler {
              * @param pProgress The progress used to monitor the scan process.
              * @throws Exception if the operation failed.
              */
-            void AddInstrumentsRecursive(String DbDir, String FsDir, bool Flat = false, ScanProgress* pProgress = NULL);
+            void AddInstrumentsRecursive(String DbDir, String FsDir, bool Flat = false, bool insDir = false, ScanProgress* pProgress = NULL);
 
             /**
              * Adds the instruments in the specified file

@@ -7,6 +7,9 @@ CVS HEAD
   * Added support for retrieving instrument's key mapping and
     keyswitch mapping
 
+  * Implemented option for adding instruments in separate directories in the
+    instruments DB (patch by Chris Cherrett & Andrew Williams, a bit adjusted)
+
   * API Changes
     - Client: added new methods - getMidiInstrumentEntries,
       findLostDbInstrumentFiles, setDbInstrumentFilePath, setSoTimeout

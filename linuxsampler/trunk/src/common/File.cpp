@@ -169,4 +169,25 @@ namespace LinuxSampler {
         return 0;
     };
 #endif
+	std::string File::basename(std::string path) {
+		size_t begin = 0;
+		size_t end = path.length();
+		
+		for(size_t i=0; i<path.length(); ++i){
+			if(path[i] == File::DirSeparator) begin = i+1;
+		}
+		return path.substr(begin, end).c_str();
+	}
+	
+	std::string File::basename(std::string path, std::string sep) {
+		std::string tmp = File::basename(path);
+		if(sep.empty())
+			sep = ".";
+		size_t begin = 0;
+		size_t end = tmp.length();
+		size_t lastdot = tmp.find_last_of(sep)-1;
+		if(lastdot > 0)
+			end = lastdot;
+		return tmp.substr(begin, end).c_str();
+	}
 }

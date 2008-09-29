@@ -185,12 +185,14 @@ command               :  SEND SP send_instruction              { $$ = $3;       
 
 add_instruction       :  CHANNEL                               { $$ = LSCPSERVER->AddChannel();                  }
                       |  DB_INSTRUMENT_DIRECTORY SP db_path    { $$ = LSCPSERVER->AddDbInstrumentDirectory($3);  }
-                      |  DB_INSTRUMENTS SP NON_MODAL SP scan_mode SP db_path SP filename         { $$ = LSCPSERVER->AddDbInstruments($5,$7,$9, true);  }
-                      |  DB_INSTRUMENTS SP scan_mode SP db_path SP filename                      { $$ = LSCPSERVER->AddDbInstruments($3,$5,$7);        }
-                      |  DB_INSTRUMENTS SP NON_MODAL SP db_path SP filename                      { $$ = LSCPSERVER->AddDbInstruments($5,$7, -1, true); }
-                      |  DB_INSTRUMENTS SP NON_MODAL SP db_path SP filename SP instrument_index  { $$ = LSCPSERVER->AddDbInstruments($5,$7,$9, true);  }
-                      |  DB_INSTRUMENTS SP db_path SP filename                                   { $$ = LSCPSERVER->AddDbInstruments($3,$5);           }
-                      |  DB_INSTRUMENTS SP db_path SP filename SP instrument_index               { $$ = LSCPSERVER->AddDbInstruments($3,$5,$7);        }
+                      |  DB_INSTRUMENTS SP NON_MODAL SP scan_mode SP db_path SP filename                        { $$ = LSCPSERVER->AddDbInstruments($5,$7,$9, true);        }
+                      |  DB_INSTRUMENTS SP NON_MODAL SP scan_mode SP FILE_AS_DIR SP db_path SP filename         { $$ = LSCPSERVER->AddDbInstruments($5,$9,$11, true, true); }
+                      |  DB_INSTRUMENTS SP scan_mode SP db_path SP filename                                     { $$ = LSCPSERVER->AddDbInstruments($3,$5,$7);              }
+                      |  DB_INSTRUMENTS SP scan_mode SP FILE_AS_DIR SP db_path SP filename                      { $$ = LSCPSERVER->AddDbInstruments($3,$7,$9, false, true); }
+                      |  DB_INSTRUMENTS SP NON_MODAL SP db_path SP filename                                     { $$ = LSCPSERVER->AddDbInstruments($5,$7, -1, true);       }
+                      |  DB_INSTRUMENTS SP NON_MODAL SP db_path SP filename SP instrument_index                 { $$ = LSCPSERVER->AddDbInstruments($5,$7,$9, true);        }
+                      |  DB_INSTRUMENTS SP db_path SP filename                                                  { $$ = LSCPSERVER->AddDbInstruments($3,$5);                 }
+                      |  DB_INSTRUMENTS SP db_path SP filename SP instrument_index                              { $$ = LSCPSERVER->AddDbInstruments($3,$5,$7);              }
                       |  MIDI_INSTRUMENT_MAP                   { $$ = LSCPSERVER->AddMidiInstrumentMap();                }
                       |  MIDI_INSTRUMENT_MAP SP map_name       { $$ = LSCPSERVER->AddMidiInstrumentMap($3);              }
                       ;
@@ -732,6 +734,9 @@ CLEAR                 :  'C''L''E''A''R'
                       ;
 
 FIND                  :  'F''I''N''D'
+                      ;
+
+FILE_AS_DIR           :  'F''I''L''E''_''A''S''_''D''I''R'
                       ;
 
 MOVE                  :  'M''O''V''E'

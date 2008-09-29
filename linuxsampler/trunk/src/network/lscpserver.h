@@ -176,7 +176,7 @@ class LSCPServer : public Thread {
         String SetDbInstrumentDirectoryDescription(String Dir, String Desc);
         String FindDbInstrumentDirectories(String Dir, std::map<String,String> Parameters, bool Recursive = true);
         String AddDbInstruments(String DbDir, String FilePath, int Index = -1, bool bBackground = false);
-        String AddDbInstruments(String ScanMode, String DbDir, String FsDir, bool bBackground = false);
+        String AddDbInstruments(String ScanMode, String DbDir, String FsDir, bool bBackground = false, bool insDir = false);
         String RemoveDbInstrument(String Instr);
         String GetDbInstrumentCount(String Dir, bool Recursive = false);
         String GetDbInstruments(String Dir, bool Recursive = false);

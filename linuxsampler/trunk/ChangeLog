@@ -50,6 +50,9 @@ Version CVS HEAD (?)
     - avoid time consuming samples scanning when adding instruments
       to the instruments database
     - added support for handling lost files in the instruments database
+    - Implemented option for adding instruments in separate directories
+      in the instruments database
+      (patch by Chris Cherrett & Andrew Williams, a bit adjusted)
 
   * Gigasampler format engine:
     - fixed a memory leak that could happen when a channel was deleted

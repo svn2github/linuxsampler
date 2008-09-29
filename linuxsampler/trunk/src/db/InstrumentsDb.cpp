@@ -641,18 +641,18 @@ namespace LinuxSampler {
         FireDirectoryInfoChanged(Dir);
     }
 
-    int InstrumentsDb::AddInstruments(ScanMode Mode, String DbDir, String FsDir, bool bBackground) {
-        dmsg(2,("InstrumentsDb: AddInstruments(Mode=%d,DbDir=%s,FsDir=%s,bBackground=%d)\n", Mode, DbDir.c_str(), FsDir.c_str(), bBackground));
+    int InstrumentsDb::AddInstruments(ScanMode Mode, String DbDir, String FsDir, bool bBackground, bool insDir) {
+        dmsg(2,("InstrumentsDb: AddInstruments(Mode=%d,DbDir=%s,FsDir=%s,bBackground=%d,insDir=%d)\n", Mode, DbDir.c_str(), FsDir.c_str(), bBackground, insDir));
         if(!bBackground) {
             switch (Mode) {
                 case NON_RECURSIVE:
-                    AddInstrumentsNonrecursive(DbDir, FsDir);
+                    AddInstrumentsNonrecursive(DbDir, FsDir, insDir);
                     break;
                 case RECURSIVE:
-                    AddInstrumentsRecursive(DbDir, FsDir);
+                    AddInstrumentsRecursive(DbDir, FsDir, false, insDir);
                     break;
                 case FLAT:
-                    AddInstrumentsRecursive(DbDir, FsDir, true);
+                    AddInstrumentsRecursive(DbDir, FsDir, true, insDir);
                     break;
                 default:
                     throw Exception("Unknown scan mode");
@@ -663,7 +663,7 @@ namespace LinuxSampler {
 
         ScanJob job;
         int jobId = Jobs.AddJob(job);
-        InstrumentsDbThread.Execute(new AddInstrumentsJob(jobId, Mode, DbDir, FsDir));
+        InstrumentsDbThread.Execute(new AddInstrumentsJob(jobId, Mode, DbDir, FsDir, insDir));
 
         return jobId;
     }
@@ -671,19 +671,19 @@ namespace LinuxSampler {
     int InstrumentsDb::AddInstruments(String DbDir, String FilePath, int Index, bool bBackground) {
         dmsg(2,("InstrumentsDb: AddInstruments(DbDir=%s,FilePath=%s,Index=%d,bBackground=%d)\n", DbDir.c_str(), FilePath.c_str(), Index, bBackground));
         if(!bBackground) {
-            AddInstruments(DbDir, FilePath, Index);
+            AddInstruments(DbDir, false, FilePath, Index);
             return -1;
         }
 
         ScanJob job;
         int jobId = Jobs.AddJob(job);
-        InstrumentsDbThread.Execute(new AddInstrumentsFromFileJob(jobId, DbDir, FilePath, Index));
+        InstrumentsDbThread.Execute(new AddInstrumentsFromFileJob(jobId, DbDir, FilePath, Index, false));
 
         return jobId;
-    }
+    } 
 
-    void InstrumentsDb::AddInstruments(String DbDir, String FilePath, int Index, ScanProgress* pProgress) {
-        dmsg(2,("InstrumentsDb: AddInstruments(DbDir=%s,FilePath=%s,Index=%d)\n", DbDir.c_str(), FilePath.c_str(), Index));
+    void InstrumentsDb::AddInstruments(String DbDir, bool insDir, String FilePath, int Index, ScanProgress* pProgress) {
+        dmsg(2,("InstrumentsDb: AddInstruments(DbDir=%s,insDir=%d,FilePath=%s,Index=%d)\n", DbDir.c_str(), insDir, FilePath.c_str(), Index));
         if (DbDir.empty() || FilePath.empty()) return;
         
         DbInstrumentsMutex.Lock();
@@ -704,7 +704,21 @@ namespace LinuxSampler {
                 throw Exception(ss.str());
             }
 
-            AddInstrumentsFromFile(DbDir, FilePath, Index, pProgress);
+			if(insDir) {
+				std::string tmp = f.basename(FilePath, ".");
+				String gigDir;
+				if(DbDir.length() == 1 && DbDir.at(0) == '/') //DbDir is /
+					gigDir = DbDir + (String)tmp + "/";
+				else
+					gigDir = DbDir +"/"+ (String)tmp + "/";
+				dmsg(2,("InstrumentsDb: AddInstrumentsNonrecursive(Dir from file mode=%d, Created SubDir=%s)\n",insDir, gigDir.c_str()));
+            	DbInstrumentsMutex.Unlock();
+				AddDirectory(gigDir);//TODO: Add some error checking here to make sure the dir is created
+            	DbInstrumentsMutex.Lock();
+            	AddInstrumentsFromFile(gigDir, FilePath, Index, pProgress);
+			} else {
+            	AddInstrumentsFromFile(DbDir, FilePath, Index, pProgress);
+			}
         } catch (Exception e) {
             DbInstrumentsMutex.Unlock();
             throw e;
@@ -713,8 +727,8 @@ namespace LinuxSampler {
         DbInstrumentsMutex.Unlock();
     }
 
-    void InstrumentsDb::AddInstrumentsNonrecursive(String DbDir, String FsDir, ScanProgress* pProgress) {
-        dmsg(2,("InstrumentsDb: AddInstrumentsNonrecursive(DbDir=%s,FsDir=%s)\n", DbDir.c_str(), FsDir.c_str()));
+    void InstrumentsDb::AddInstrumentsNonrecursive(String DbDir, String FsDir, bool insDir, ScanProgress* pProgress) {
+        dmsg(2,("InstrumentsDb: AddInstrumentsNonrecursive(DbDir=%s,FsDir=%s,insDir=%d)\n", DbDir.c_str(), FsDir.c_str(), insDir));
         if (DbDir.empty() || FsDir.empty()) return;
         
         DbInstrumentsMutex.Lock();
@@ -740,7 +754,24 @@ namespace LinuxSampler {
             try {
                 FileListPtr fileList = File::GetFiles(FsDir);
                 for (int i = 0; i < fileList->size(); i++) {
-                    AddInstrumentsFromFile(DbDir, FsDir + fileList->at(i), -1, pProgress);
+					if(insDir)
+					{
+						//File gFile = File(fileList->at(i));
+						String gigDir;
+						if(DbDir.length() == 1 && DbDir.at(0) == '/') //DbDir is /
+							gigDir  = DbDir + f.basename(fileList->at(i),".") + "/";
+						else
+							gigDir  = DbDir +"/"+ f.basename(fileList->at(i),".") + "/";
+						dmsg(2,("InstrumentsDb: AddInstrumentsNonrecursive(Dir from file mode=%d, Created SubDir=%s)\n",insDir, gigDir.c_str()));
+                		DbInstrumentsMutex.Unlock(); // UnLock the db so we can add our extra directory
+						AddDirectory(gigDir);//TODO: Add some error checking here to make sure the dir is created
+        				DbInstrumentsMutex.Lock(); //Lock and carry on
+                    	AddInstrumentsFromFile(gigDir, FsDir + fileList->at(i), -1, pProgress);
+					}
+					else
+					{
+                    	AddInstrumentsFromFile(DbDir, FsDir + fileList->at(i), -1, pProgress);
+					}
                 }
             } catch(Exception e) {
                 e.PrintMessage();
@@ -755,15 +786,15 @@ namespace LinuxSampler {
         DbInstrumentsMutex.Unlock();
     }
 
-    void InstrumentsDb::AddInstrumentsRecursive(String DbDir, String FsDir, bool Flat, ScanProgress* pProgress) {
-        dmsg(2,("InstrumentsDb: AddInstrumentsRecursive(DbDir=%s,FsDir=%s,Flat=%d)\n", DbDir.c_str(), FsDir.c_str(), Flat));
+    void InstrumentsDb::AddInstrumentsRecursive(String DbDir, String FsDir, bool Flat, bool insDir, ScanProgress* pProgress) {
+        dmsg(2,("InstrumentsDb: AddInstrumentsRecursive(DbDir=%s,FsDir=%s,Flat=%d,insDir=%d)\n", DbDir.c_str(), FsDir.c_str(), Flat, insDir));
         if (pProgress != NULL) {
             InstrumentFileCounter c;
             pProgress->SetTotalFileCount(c.Count(FsDir));
         }
 
         DirectoryScanner d;
-        d.Scan(DbDir, FsDir, Flat, pProgress);
+        d.Scan(DbDir, FsDir, Flat, insDir, pProgress);
     }
 
     int InstrumentsDb::GetInstrumentCount(int DirId) {
