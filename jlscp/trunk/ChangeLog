@@ -23,6 +23,7 @@ CVS HEAD
       to LinuxSampler
     - fixed a bug in DB_INSTRUMENTS_JOB_INFO notifications
     - fixed bug #75
+    - fixed bug #104
 
 jlscp v0.7a: 2007-12-06
   * Added support for monitoring the total number of active disk streams
