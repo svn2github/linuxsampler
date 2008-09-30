@@ -575,6 +575,7 @@ public final class Parser {
 			char c = escapedString.charAt(i);
 			
 			if(c == '`') sb.append("\\x60");
+			else if(c < ' ' || c > '~') sb.append(toEscapeString(c));
 			else sb.append(c);
 			/*if(c == '/' || c == '\\' || c == '\'' || c == '"') sb.append(c);
 			else if(c >= '0' && c <='9')  sb.append(c);
@@ -582,6 +583,19 @@ public final class Parser {
 			else {
 				
 			}*/
+		}
+		
+		return sb.toString();
+	}
+	
+	private static String
+	toEscapeString(char c) {
+		String s = Integer.toHexString((int)c);
+		if(s.length() % 2 != 0) s = "0" + s;
+		StringBuffer sb = new StringBuffer();
+		for(int i = 0; i < s.length();) {
+			sb.append("\\x").append(s.charAt(i)).append(s.charAt(i + 1));
+			i += 2;
 		}
 		
 		return sb.toString();

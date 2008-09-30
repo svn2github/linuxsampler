@@ -10,6 +10,8 @@ CVS HEAD
   * Implemented option for adding instruments in separate directories in the
     instruments DB (patch by Chris Cherrett & Andrew Williams, a bit adjusted)
 
+  * Added support for escaping unicode characters
+
   * API Changes
     - Client: added new methods - getMidiInstrumentEntries,
       findLostDbInstrumentFiles, setDbInstrumentFilePath, setSoTimeout
