@@ -111,6 +111,32 @@ public:
      */
     static Path fromWindows(std::string path);
 
+    /**
+     * Returns the name of the file or directory represented by
+     * this path in abstract/raw form. This is the last name in
+     * the path's name sequence.
+     */
+    std::string getName();
+
+    /**
+     * Returns the name of the file or directory
+     * represented by the specified path in abstract/raw form.
+     * This is the last name in the path's name sequence.
+     */
+    static std::string getName(std::string path);
+
+    /**
+     * Returns the last name in the path's name sequence
+     * of this path with the file extension stripped off.
+     */
+    std::string getBaseName();
+
+    /**
+     * Returns the last name in the path's name sequence
+     * of the specified path with the file extension stripped off.
+     */
+    static std::string getBaseName(std::string path);
+
 private:
     std::vector<std::string> elements; ///< stores the path names raw = unencoded, each element is one node of the path
     char                     drive;

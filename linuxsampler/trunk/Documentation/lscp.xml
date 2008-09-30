@@ -5350,7 +5350,7 @@ Schoenebeck'>
                     to the instruments database by sending the following command:</t>
                     <t>
                         <list>
-                            <t>ADD DB_INSTRUMENTS [NON_MODAL] [&lt;mode&gt;] &lt;db_dir&gt; &lt;file_path&gt; [&lt;instr_index&gt;]</t>
+                            <t>ADD DB_INSTRUMENTS [NON_MODAL] [&lt;mode&gt;[ FILE_AS_DIR]] &lt;db_dir&gt; &lt;file_path&gt; [&lt;instr_index&gt;]</t>
                         </list>
                     </t>
                     <t>Where &lt;db_dir&gt; is the absolute path name of a directory
@@ -5395,6 +5395,10 @@ Schoenebeck'>
                         </list>
                     </t>
 
+                 <t> If FILE_AS_DIR argument is supplied, all instruments in an instrument
+		 file will be added to a separate directory in the instruments database, which
+		 name will be the name of the instrument file with the file extension stripped off.
+                 </t>
                  <t>The difference between regular and NON_MODAL versions of the command
                     is that the regular command returns when the scanning is finished
                     while NON_MODAL version returns immediately and a background process is launched.
@@ -6485,8 +6489,8 @@ Schoenebeck'>
 		<t>/ EDIT SP edit_instruction
 		</t>
 		<t>/ FORMAT SP format_instruction
-                </t>
-                <t>SEND SP send_instruction
+		</t>
+		<t>/ SEND SP send_instruction
 		</t>
 		<t>/ RESET
 		</t>
@@ -6502,7 +6506,11 @@ Schoenebeck'>
 		</t>
 		<t>/ DB_INSTRUMENTS SP NON_MODAL SP scan_mode SP db_path SP filename
 		</t>
+		<t>/ DB_INSTRUMENTS SP NON_MODAL SP scan_mode SP FILE_AS_DIR SP db_path SP filename
+		</t>
 		<t>/ DB_INSTRUMENTS SP scan_mode SP db_path SP filename
+		</t>
+		<t>/ DB_INSTRUMENTS SP scan_mode SP FILE_AS_DIR SP db_path SP filename
 		</t>
 		<t>/ DB_INSTRUMENTS SP NON_MODAL SP db_path SP filename
 		</t>

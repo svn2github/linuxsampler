@@ -92,10 +92,6 @@ namespace LinuxSampler {
              * throws Exception.
              */
             static void WalkDirectoryTree(std::string Dir, DirectoryWalker* pWalker);
-            
-			std::string basename(std::string path);
-
-			std::string basename(std::string path, std::string sep);
 
             static char DirSeparator;
 

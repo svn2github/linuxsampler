@@ -21,6 +21,7 @@
 #include "InstrumentsDb.h"
 
 #include "../common/File.h"
+#include "../common/Path.h"
 #include "../common/global_private.h"
 
 #include <iostream>
@@ -704,21 +705,8 @@ namespace LinuxSampler {
                 throw Exception(ss.str());
             }
 
-			if(insDir) {
-				std::string tmp = f.basename(FilePath, ".");
-				String gigDir;
-				if(DbDir.length() == 1 && DbDir.at(0) == '/') //DbDir is /
-					gigDir = DbDir + (String)tmp + "/";
-				else
-					gigDir = DbDir +"/"+ (String)tmp + "/";
-				dmsg(2,("InstrumentsDb: AddInstrumentsNonrecursive(Dir from file mode=%d, Created SubDir=%s)\n",insDir, gigDir.c_str()));
-            	DbInstrumentsMutex.Unlock();
-				AddDirectory(gigDir);//TODO: Add some error checking here to make sure the dir is created
-            	DbInstrumentsMutex.Lock();
-            	AddInstrumentsFromFile(gigDir, FilePath, Index, pProgress);
-			} else {
-            	AddInstrumentsFromFile(DbDir, FilePath, Index, pProgress);
-			}
+            String dir = insDir ? PrepareSubdirectory(DbDir, FilePath) : DbDir;
+            AddInstrumentsFromFile(dir, FilePath, Index, pProgress);
         } catch (Exception e) {
             DbInstrumentsMutex.Unlock();
             throw e;
@@ -754,24 +742,8 @@ namespace LinuxSampler {
             try {
                 FileListPtr fileList = File::GetFiles(FsDir);
                 for (int i = 0; i < fileList->size(); i++) {
-					if(insDir)
-					{
-						//File gFile = File(fileList->at(i));
-						String gigDir;
-						if(DbDir.length() == 1 && DbDir.at(0) == '/') //DbDir is /
-							gigDir  = DbDir + f.basename(fileList->at(i),".") + "/";
-						else
-							gigDir  = DbDir +"/"+ f.basename(fileList->at(i),".") + "/";
-						dmsg(2,("InstrumentsDb: AddInstrumentsNonrecursive(Dir from file mode=%d, Created SubDir=%s)\n",insDir, gigDir.c_str()));
-                		DbInstrumentsMutex.Unlock(); // UnLock the db so we can add our extra directory
-						AddDirectory(gigDir);//TODO: Add some error checking here to make sure the dir is created
-        				DbInstrumentsMutex.Lock(); //Lock and carry on
-                    	AddInstrumentsFromFile(gigDir, FsDir + fileList->at(i), -1, pProgress);
-					}
-					else
-					{
-                    	AddInstrumentsFromFile(DbDir, FsDir + fileList->at(i), -1, pProgress);
-					}
+                    String dir = insDir ? PrepareSubdirectory(DbDir, fileList->at(i)) : DbDir;
+					AddInstrumentsFromFile(dir, FsDir + fileList->at(i), -1, pProgress);
                 }
             } catch(Exception e) {
                 e.PrintMessage();
@@ -1281,7 +1253,7 @@ namespace LinuxSampler {
         dmsg(2,("InstrumentsDb: AddGigInstrument(DbDir=%s,DirId=%d,File=%s,Index=%d)\n", DbDir.c_str(), DirId, File.c_str(), Index));
         String name = pInstrument->pInfo->Name;
         if (name == "") return;
-        name = GetUniqueInstrumentName(DirId, name);
+        name = GetUniqueName(DirId, name);
         
         std::stringstream sql2;
         sql2 << "SELECT COUNT(*) FROM instruments WHERE instr_file=? AND ";
@@ -1755,7 +1727,7 @@ namespace LinuxSampler {
         if (File.empty()) throw Exception("Invalid file name: " + File);
     }
 
-    String InstrumentsDb::GetUniqueInstrumentName(int DirId, String Name) {
+    String InstrumentsDb::GetUniqueName(int DirId, String Name) {
         dmsg(2,("InstrumentsDb: GetUniqueInstrumentName(DirId=%d,Name=%s)\n", DirId, Name.c_str()));
 
         if (GetInstrumentId(DirId, Name) == -1 && GetDirectoryId(DirId, Name) == -1) return Name;
@@ -1769,6 +1741,21 @@ namespace LinuxSampler {
         }
 
         throw Exception("Unable to find an unique name: " + Name);
+    }
+    
+    String InstrumentsDb::PrepareSubdirectory(String DbDir, String FsPath) {
+        std::string dir = Path::getBaseName(FsPath);
+        dir = toAbstractName(dir);
+        if(dir.empty()) dir = "New Directory";
+        dir = GetUniqueName(GetDirectoryId(DbDir), dir);
+        dir = AppendNode(DbDir, dir);
+        AddDirectory(dir);
+        return dir;
+    }
+
+    String InstrumentsDb::AppendNode(String DbDir, String Node) {
+        if(DbDir.length() == 1 && DbDir.at(0) == '/') return DbDir + Node + "/";
+        return DbDir + "/" + Node + "/";  
     }
 
     String InstrumentsDb::toDbName(String AbstractName) {

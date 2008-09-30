@@ -243,4 +243,38 @@ Path Path::fromWindows(std::string path) {
     return result;
 }
 
+std::string Path::getName(std::string path) {
+    Path p;
+    #if WIN32
+    p.fromWindows(path);
+    #else
+    p.fromPosix(path);
+    #endif
+    
+    return p.getName();
+}
+
+std::string Path::getName() {
+    if(elements.empty()) return "";
+    return elements[elements.size() - 1];
+}
+
+std::string Path::getBaseName(std::string path) {
+     Path p;
+    #if WIN32
+    p = fromWindows(path);
+    #else
+    p = fromPosix(path);
+    #endif
+    
+    return p.getBaseName();
+}
+
+std::string Path::getBaseName() {
+    std::string name = getName();
+    size_t lastdot = name.find_last_of('.');
+    if(lastdot == std::string::npos) return name;
+    return name.substr(0, lastdot);
+}
+
 } // namespace LinuxSampler
