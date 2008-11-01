@@ -84,6 +84,8 @@ namespace LinuxSampler { namespace gig {
             virtual String EngineName();
             virtual InstrumentManager* GetInstrumentManager();
 
+            void SetVoiceCount(uint Count);
+
             // Simple array wrapper just to make sure memory is freed
             // when liblinuxsampler is unloaded
             class FloatTable {
@@ -113,7 +115,6 @@ namespace LinuxSampler { namespace gig {
             RTList<Event>*          pGlobalEvents;         ///< All engine global events for the current audio fragment (usually only SysEx messages).
             Pool<Event>*            pEventPool;            ///< Contains all Event objects that can be used.
             RingBuffer<uint8_t,false>* pSysexBuffer;       ///< Input buffer for MIDI system exclusive messages.
-            int                     ActiveVoiceCount;      ///< number of currently active voices (this value will be returned for public calls)
             int                     ActiveVoiceCountTemp;  ///< number of currently active voices (for internal usage, will be used for incrementation)
             int                     ActiveVoiceCountMax;   ///< the maximum voice usage since application start
             int                     VoiceSpawnsLeft;       ///< We only allow CONFIG_MAX_VOICES voices to be spawned per audio fragment, we use this variable to ensure this limit.
@@ -185,6 +186,9 @@ namespace LinuxSampler { namespace gig {
             static float* InitCurve(const float* segments, int size = 128);
 
             unsigned long FrameTime; ///< Time in frames of the start of the current audio fragment
+
+            atomic_t ActiveVoiceCount; ///< number of currently active voices
+            
     };
 
 }} // namespace LinuxSampler::gig

@@ -259,6 +259,7 @@ namespace LinuxSampler {
 
     Sampler::Sampler() {
         eventHandler.SetSampler(this);
+        uiOldTotalVoiceCount = uiOldTotalStreamCount = 0;
     }
 
     Sampler::~Sampler() {
@@ -344,6 +345,14 @@ namespace LinuxSampler {
     }
 
     void Sampler::fireVoiceCountChanged(int ChannelId, int NewCount) {
+        std::map<uint, uint>::iterator it = mOldVoiceCounts.find(ChannelId);
+        if (it != mOldVoiceCounts.end()) {
+            uint oldCount = it->second;
+            if (NewCount == oldCount) return;
+        }
+
+        mOldVoiceCounts[ChannelId] = NewCount;
+
         for (int i = 0; i < llVoiceCountListeners.GetListenerCount(); i++) {
             llVoiceCountListeners.GetListener(i)->VoiceCountChanged(ChannelId, NewCount);
         }
@@ -358,6 +367,14 @@ namespace LinuxSampler {
     }
 
     void Sampler::fireStreamCountChanged(int ChannelId, int NewCount) {
+        std::map<uint, uint>::iterator it = mOldStreamCounts.find(ChannelId);
+        if (it != mOldStreamCounts.end()) {
+            uint oldCount = it->second;
+            if (NewCount == oldCount) return;
+        }
+
+        mOldStreamCounts[ChannelId] = NewCount;
+
         for (int i = 0; i < llStreamCountListeners.GetListenerCount(); i++) {
             llStreamCountListeners.GetListener(i)->StreamCountChanged(ChannelId, NewCount);
         }
@@ -386,6 +403,9 @@ namespace LinuxSampler {
     }
 
     void Sampler::fireTotalStreamCountChanged(int NewCount) {
+        if (NewCount == uiOldTotalStreamCount) return;
+        uiOldTotalStreamCount = NewCount;
+
         for (int i = 0; i < llTotalStreamCountListeners.GetListenerCount(); i++) {
             llTotalStreamCountListeners.GetListener(i)->TotalStreamCountChanged(NewCount);
         }
@@ -400,6 +420,9 @@ namespace LinuxSampler {
     }
 
     void Sampler::fireTotalVoiceCountChanged(int NewCount) {
+        if (NewCount == uiOldTotalVoiceCount) return;
+        uiOldTotalVoiceCount = NewCount;
+
         for (int i = 0; i < llTotalVoiceCountListeners.GetListenerCount(); i++) {
             llTotalVoiceCountListeners.GetListener(i)->TotalVoiceCountChanged(NewCount);
         }
@@ -486,6 +509,8 @@ namespace LinuxSampler {
         for (; iterChan != mSamplerChannels.end(); iterChan++) {
             if (iterChan->second == pSamplerChannel) {
                 fireChannelToBeRemoved(pSamplerChannel);
+                mOldVoiceCounts.erase(pSamplerChannel->Index());
+                mOldStreamCounts.erase(pSamplerChannel->Index());
                 pSamplerChannel->RemoveAllEngineChangeListeners();
                 mSamplerChannels.erase(iterChan);
                 delete pSamplerChannel;
@@ -713,9 +738,11 @@ namespace LinuxSampler {
                 fireVoiceCountChanged(iter->first, pEngineChannel->GetVoiceCount());
                 fireStreamCountChanged(iter->first, pEngineChannel->GetDiskStreamCount());
                 fireBufferFillChanged(iter->first, pEngine->DiskStreamBufferFillPercentage());
-                fireTotalStreamCountChanged(GetDiskStreamCount());
-                fireTotalVoiceCountChanged(GetVoiceCount());
             }
+            
+            fireTotalStreamCountChanged(GetDiskStreamCount());
+            fireTotalVoiceCountChanged(GetVoiceCount());
+
             LSCPServer::UnlockRTNotify();
         }
     }

@@ -67,7 +67,7 @@ namespace LinuxSampler { namespace gig {
             pInstruments->HandBackDimReg(dimreg);
         }
         DeleteDimregQueue->init();
-        ActiveStreamCount = 0;
+        SetActiveStreamCount(0);
         ActiveStreamCountMax = 0;
         if (running) this->StartThread(); // start thread only if it was running before
     }
@@ -329,7 +329,7 @@ namespace LinuxSampler { namespace gig {
             for (int i = Streams - 1; i >= 0; i--) {
                 if (pStreams[i]->GetState() != Stream::state_unused) streamsInUsage++;
             }
-            ActiveStreamCount = streamsInUsage;
+            SetActiveStreamCount(streamsInUsage);
             if (streamsInUsage > ActiveStreamCountMax) ActiveStreamCountMax = streamsInUsage;
         }
 

@@ -27,6 +27,8 @@ Version CVS HEAD (?)
     - fixes for audio drivers with varying buffer sizes
     - experimental support for running LinuxSampler as a DSSI, LV2 and
       VST plugin
+    - notification events for stream/voice count statistics are now sent
+      only when there are actual changes
 
   * audio driver:
     - removed the nonsense audio channel constraint (which was hard coded to

@@ -42,8 +42,8 @@ namespace LinuxSampler {
         uiMidiProgram = 0;
         bProgramChangeReceived = bMidiBankMsbReceived = bMidiBankLsbReceived = false;
         iMidiInstrumentMap = NO_MIDI_INSTRUMENT_MAP;
-        uiVoiceCount = 0;
-        uiDiskStreamCount = 0;
+        SetVoiceCount(0);
+        SetDiskStreamCount(0);
         pSamplerChannel = NULL;
         ResetMidiRpnController();
     }
@@ -191,19 +191,19 @@ namespace LinuxSampler {
     }
 
     uint EngineChannel::GetVoiceCount() {
-        return uiVoiceCount;
+        return atomic_read(&voiceCount);
     }
     
     void EngineChannel::SetVoiceCount(uint Voices) {
-        uiVoiceCount = Voices;
+        atomic_set(&voiceCount, Voices);
     }
 
     uint EngineChannel::GetDiskStreamCount() {
-        return uiDiskStreamCount;
+        return atomic_read(&diskStreamCount);
     }
     
     void EngineChannel::SetDiskStreamCount(uint Streams) {
-        uiDiskStreamCount = Streams;
+        atomic_set(&diskStreamCount, Streams);
     }
     
     SamplerChannel* EngineChannel::GetSamplerChannel() {

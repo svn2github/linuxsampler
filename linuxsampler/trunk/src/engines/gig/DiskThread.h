@@ -62,7 +62,8 @@ namespace LinuxSampler { namespace gig {
 
             // the number of streams currently in usage
             // printed on the console the main thread (along with the active voice count)
-            int ActiveStreamCount;
+            uint GetActiveStreamCount() { return atomic_read(&ActiveStreamCount); }
+            void SetActiveStreamCount(uint Streams) { atomic_set(&ActiveStreamCount, Streams); }
             int ActiveStreamCountMax;
 
         protected:
@@ -108,6 +109,8 @@ namespace LinuxSampler { namespace gig {
             void                           RefillStreams();
             Stream::Handle                 CreateHandle();
             Stream::OrderID_t              CreateOrderID();
+
+            atomic_t ActiveStreamCount;
     };
 
 }} // namespace LinuxSampler::gig

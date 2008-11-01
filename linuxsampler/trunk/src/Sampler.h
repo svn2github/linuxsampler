@@ -613,6 +613,12 @@ namespace LinuxSampler {
             AudioOutputDeviceMap  mAudioOutputDevices; ///< contains all created audio output devices
             MidiInputDeviceMap    mMidiInputDevices;   ///< contains all created MIDI input devices
 
+            // statistics cache
+            uint uiOldTotalVoiceCount;
+            uint uiOldTotalStreamCount;
+            std::map<uint, uint> mOldVoiceCounts;
+            std::map<uint, uint> mOldStreamCounts;
+
             friend class SamplerChannel;
 
         private:

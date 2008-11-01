@@ -22,6 +22,7 @@
 #define __LS_ENGINECHANNEL_H__
 
 #include "../EventListeners.h"
+#include "../common/atomic.h"
 #include "../drivers/audio/AudioOutputDevice.h"
 #include "../drivers/midi/midi.h"
 #include "../drivers/midi/MidiInputDevice.h"
@@ -335,8 +336,8 @@ namespace LinuxSampler {
             bool    bProgramChangeReceived;
             bool    bMidiRpnReceived;
             int     iMidiInstrumentMap;
-            uint    uiVoiceCount;
-            uint    uiDiskStreamCount;
+            atomic_t voiceCount;
+            atomic_t diskStreamCount;
             SamplerChannel* pSamplerChannel;
             ListenerList<FxSendCountListener*> llFxSendCountListeners;
     };

@@ -291,7 +291,7 @@ namespace LinuxSampler { namespace gig {
         // make sure that the engine does not get any sysex messages
         // while it's reseting
         bool sysexDisabled = MidiInputPort::RemoveSysexListener(this);
-        ActiveVoiceCount    = 0;
+        SetVoiceCount(0);
         ActiveVoiceCountMax = 0;
 
         // reset voice stealing parameters
@@ -686,8 +686,8 @@ namespace LinuxSampler { namespace gig {
         pVoiceStealingQueue->clear();
 
         // just some statistics about this engine instance
-        ActiveVoiceCount = ActiveVoiceCountTemp;
-        if (ActiveVoiceCount > ActiveVoiceCountMax) ActiveVoiceCountMax = ActiveVoiceCount;
+        SetVoiceCount(ActiveVoiceCountTemp);
+        if (VoiceCount() > ActiveVoiceCountMax) ActiveVoiceCountMax = VoiceCount();
 
         // in case regions were previously suspended and we killed voices
         // with disk streams due to that, check if those streams have finally
@@ -786,7 +786,7 @@ namespace LinuxSampler { namespace gig {
                     voiceCount++;
 
                     if (itVoice->PlaybackState == Voice::playback_state_disk) {
-                        if ((itVoice->DiskStreamRef).State == Stream::state_active) streamCount++;
+                        if ((itVoice->DiskStreamRef).State != Stream::state_unused) streamCount++;
                     }
                 }  else { // voice reached end, is now inactive
                     FreeVoice(pEngineChannel, itVoice); // remove voice from the list of active voices
@@ -827,7 +827,7 @@ namespace LinuxSampler { namespace gig {
                     pEngineChannel->SetVoiceCount(pEngineChannel->GetVoiceCount() + 1);
 
                     if (itNewVoice->PlaybackState == Voice::playback_state_disk) {
-                        if (itNewVoice->DiskStreamRef.State == Stream::state_active) {
+                        if (itNewVoice->DiskStreamRef.State != Stream::state_unused) {
                             pEngineChannel->SetDiskStreamCount(pEngineChannel->GetDiskStreamCount() + 1);
                         }
                     }
@@ -2100,7 +2100,11 @@ namespace LinuxSampler { namespace gig {
     }
 
     uint Engine::VoiceCount() {
-        return ActiveVoiceCount;
+        return atomic_read(&ActiveVoiceCount);
+    }
+
+    void Engine::SetVoiceCount(uint Count) {
+        atomic_set(&ActiveVoiceCount, Count);
     }
 
     uint Engine::VoiceCountMax() {
@@ -2112,7 +2116,7 @@ namespace LinuxSampler { namespace gig {
     }
 
     uint Engine::DiskStreamCount() {
-        return (pDiskThread) ? pDiskThread->ActiveStreamCount : 0;
+        return (pDiskThread) ? pDiskThread->GetActiveStreamCount() : 0;
     }
 
     uint Engine::DiskStreamCountMax() {
@@ -2136,7 +2140,7 @@ namespace LinuxSampler { namespace gig {
     }
 
     String Engine::Version() {
-        String s = "$Revision: 1.97 $";
+        String s = "$Revision: 1.98 $";
         return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
 
