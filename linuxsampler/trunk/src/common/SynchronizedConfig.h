@@ -18,10 +18,12 @@
  *   MA  02110-1301  USA                                                   *
  ***************************************************************************/
 
-#ifndef __SYNCHRONIZEDCONFIG_H__
-#define __SYNCHRONIZEDCONFIG_H__
+#ifndef SYNCHRONIZEDCONFIG_H
+#define SYNCHRONIZEDCONFIG_H
 
 #include <set>
+#include <unistd.h>
+#include "lsatomic.h"
 
 namespace LinuxSampler {
 
@@ -47,8 +49,6 @@ namespace LinuxSampler {
      */
     template<class T>
     class SynchronizedConfig {
-        struct atomic_t { volatile int word; };
-
         public:
             SynchronizedConfig();
 
@@ -66,8 +66,10 @@ namespace LinuxSampler {
                      *          thread
                      */
                     const T& Lock() {
-                        atomicSet(&lock, 1);
-                        return parent.config[atomicRead(&parent.indexAtomic)];
+                        lock.store(1, memory_order_relaxed);
+                        atomic_thread_fence(memory_order_seq_cst);
+                        return parent.config[parent.indexAtomic.load(
+                                memory_order_acquire)];
                     }
 
                     /**
@@ -79,8 +81,9 @@ namespace LinuxSampler {
                      * time threads are locked anymore.
                      */
                     void Unlock() {
-                        atomicSet(&flag, 0);
-                        atomicSet(&lock, 0);
+                        atomic_thread_fence(memory_order_release);
+                        lock.store(0, memory_order_relaxed);
+                        flag.store(0, memory_order_relaxed);
                     }
 
                     Reader(SynchronizedConfig& config);
@@ -88,8 +91,8 @@ namespace LinuxSampler {
                 private:
                     friend class SynchronizedConfig;
                     SynchronizedConfig& parent;
-                    atomic_t lock;
-                    atomic_t flag;
+                    atomic<int> lock;
+                    atomic<int> flag;
                     Reader *next; // only used locally in SwitchConfig
             };
 
@@ -123,22 +126,14 @@ namespace LinuxSampler {
             T& SwitchConfig();
 
         private:
-            atomic_t indexAtomic;
+            atomic<int> indexAtomic;
             int updateIndex;
             T config[2];
             std::set<Reader*> readers;
-
-            static int atomicRead(atomic_t* pSharedVariable) {
-                return pSharedVariable->word;
-            }
-
-            static void atomicSet(atomic_t* pSharedVariable, int value) {
-                pSharedVariable->word = value;
-            }
     };
 
-    template<class T> SynchronizedConfig<T>::SynchronizedConfig() {
-        atomicSet(&indexAtomic, 0);
+    template<class T> SynchronizedConfig<T>::SynchronizedConfig() :
+        indexAtomic(0) {
         updateIndex = 1;
     }
 
@@ -147,15 +142,17 @@ namespace LinuxSampler {
     }
 
     template<class T> T& SynchronizedConfig<T>::SwitchConfig() {
-        atomicSet(&indexAtomic, updateIndex);
+        indexAtomic.store(updateIndex, memory_order_release);
+        atomic_thread_fence(memory_order_seq_cst);
 
         // first put all locking readers in a linked list
         Reader* lockingReaders = 0;
         for (typename std::set<Reader*>::iterator iter = readers.begin() ;
              iter != readers.end() ;
              iter++) {
-            atomicSet(&(*iter)->flag, 1);
-            if (atomicRead(&(*iter)->lock) && atomicRead(&(*iter)->flag)) {
+            (*iter)->flag.store(1, memory_order_relaxed);
+            if ((*iter)->lock.load(memory_order_acquire) &&
+                (*iter)->flag.load(memory_order_acquire)) {
                 (*iter)->next = lockingReaders;
                 lockingReaders = *iter;
             }
@@ -166,7 +163,8 @@ namespace LinuxSampler {
             usleep(50000);
             Reader** prev = &lockingReaders;
             for (Reader* p = lockingReaders ; p ; p = p->next) {
-                if (atomicRead(&p->lock) && atomicRead(&p->flag)) prev = &p->next;
+               if (p->lock.load(memory_order_acquire) &&
+                   p->flag.load(memory_order_acquire)) prev = &p->next;
                 else *prev = p->next; // unlink
             }
         }
@@ -179,8 +177,8 @@ namespace LinuxSampler {
     // ----- Reader ----
 
     template <class T>
-    SynchronizedConfig<T>::Reader::Reader(SynchronizedConfig& config) : parent(config) {
-        atomicSet(&lock, 0);
+    SynchronizedConfig<T>::Reader::Reader(SynchronizedConfig& config) :
+        parent(config), lock(0), flag(0) {
         parent.readers.insert(this);
     }
 

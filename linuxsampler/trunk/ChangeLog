@@ -29,6 +29,8 @@ Version CVS HEAD (?)
       VST plugin
     - notification events for stream/voice count statistics are now sent
       only when there are actual changes
+    - added memory ordering constraints to improve stability on
+      multi-core and multi-cpu systems
 
   * audio driver:
     - removed the nonsense audio channel constraint (which was hard coded to

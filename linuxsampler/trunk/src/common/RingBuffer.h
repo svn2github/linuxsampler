@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005, 2006 Christian Schoenebeck                        *
+ *   Copyright (C) 2005 - 2008 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -28,7 +28,13 @@
 
 #include <string.h>
 
-#include "atomic.h"
+#include "lsatomic.h"
+
+using LinuxSampler::atomic;
+using LinuxSampler::memory_order_relaxed;
+using LinuxSampler::memory_order_acquire;
+using LinuxSampler::memory_order_release;
+
 
 /** @brief Real-time safe and type safe RingBuffer implementation.
  *
@@ -61,7 +67,8 @@ template<class T, bool T_DEEP_COPY>
 class RingBuffer
 {
 public:
-    RingBuffer (int sz, int wrap_elements = DEFAULT_WRAP_ELEMENTS) {
+    RingBuffer (int sz, int wrap_elements = DEFAULT_WRAP_ELEMENTS) :
+        write_ptr(0), read_ptr(0) {
             int power_of_two;
 
             this->wrap_elements = wrap_elements;
@@ -73,8 +80,6 @@ public:
             size = 1<<power_of_two;
             size_mask = size;
             size_mask -= 1;
-            atomic_set(&write_ptr, 0);
-            atomic_set(&read_ptr, 0);
             buf = new T[size + wrap_elements];
     };
 
@@ -92,8 +97,8 @@ public:
      * any additional data on the heap by itself.
      */
     inline void fill_write_space_with_null() {
-             int w = atomic_read(&write_ptr),
-                 r = atomic_read(&read_ptr);
+             int w = write_ptr.load(memory_order_relaxed),
+                 r = read_ptr.load(memory_order_acquire);
              memset(get_write_ptr(), 0, sizeof(T)*write_space_to_end());
              if (r && w >= r) {
                memset(get_buffer_begin(), 0, sizeof(T)*(r - 1));
@@ -112,7 +117,7 @@ public:
     __inline T *get_buffer_begin();
 
     __inline T *get_read_ptr(void) {
-      return(&buf[atomic_read(&read_ptr)]);
+      return(&buf[read_ptr.load(memory_order_relaxed)]);
     }
 
     /**
@@ -120,7 +125,7 @@ public:
      * advanced by \a offset elements.
      */
     /*inline T* get_read_ptr(int offset) {
-        int r = atomic_read(&read_ptr);
+        int r = read_ptr.load(memory_order_relaxed);
         r += offset;
         r &= size_mask;
         return &buf[r];
@@ -128,14 +133,14 @@ public:
 
     __inline T *get_write_ptr();
     __inline void increment_read_ptr(int cnt) {
-               atomic_set(&read_ptr , (atomic_read(&read_ptr) + cnt) & size_mask);
+               read_ptr.store((read_ptr.load(memory_order_relaxed) + cnt) & size_mask, memory_order_release);
              }
     __inline void set_read_ptr(int val) {
-               atomic_set(&read_ptr , val);
+               read_ptr.store(val, memory_order_release);
              }
 
     __inline void increment_write_ptr(int cnt) {
-               atomic_set(&write_ptr,  (atomic_read(&write_ptr) + cnt) & size_mask);
+               write_ptr.store((write_ptr.load(memory_order_relaxed) + cnt) & size_mask, memory_order_release);
              }
 
     /* this function increments the write_ptr by cnt, if the buffer wraps then
@@ -150,14 +155,14 @@ public:
        and the write ptr incremented accordingly.
     */
     __inline void increment_write_ptr_with_wrap(int cnt) {
-               int w=atomic_read(&write_ptr);
+               int w = write_ptr.load(memory_order_relaxed);
                w += cnt;
                if(w >= size) {
                  w -= size;
                  copy(&buf[0], &buf[size], w);
 //printf("DEBUG !!!! increment_write_ptr_with_wrap: buffer wrapped, elements wrapped = %d (wrap_elements %d)\n",w,wrap_elements);
                }
-               atomic_set(&write_ptr, w);
+               write_ptr.store(w, memory_order_release);
              }
 
     /* this function returns the available write space in the buffer
@@ -177,8 +182,8 @@ public:
     __inline int write_space_to_end_with_wrap() {
               int w, r;
 
-              w = atomic_read(&write_ptr);
-              r = atomic_read(&read_ptr);
+              w = write_ptr.load(memory_order_relaxed);
+              r = read_ptr.load(memory_order_acquire);
 //printf("write_space_to_end: w=%d r=%d\n",w,r);
               if(r > w) {
                 //printf("DEBUG: write_space_to_end_with_wrap: r>w r=%d w=%d val=%d\n",r,w,r - w - 1);
@@ -216,7 +221,7 @@ public:
            */
     __inline int adjust_write_space_to_avoid_boundary(int cnt, int capped_cnt) {
                int w;
-               w = atomic_read(&write_ptr);
+               w = write_ptr.load(memory_order_relaxed);
                if((w+capped_cnt) >= size && (w+capped_cnt) < (size+wrap_elements)) {
 //printf("adjust_write_space_to_avoid_boundary returning cnt = %d\n",cnt);
                  return(cnt);
@@ -228,8 +233,8 @@ public:
     __inline int write_space_to_end() {
               int w, r;
 
-              w = atomic_read(&write_ptr);
-              r = atomic_read(&read_ptr);
+              w = write_ptr.load(memory_order_relaxed);
+              r = read_ptr.load(memory_order_acquire);
 //printf("write_space_to_end: w=%d r=%d\n",w,r);
               if(r > w) return(r - w - 1);
               if(r) return(size - w);
@@ -239,22 +244,22 @@ public:
     __inline int read_space_to_end() {
               int w, r;
 
-              w = atomic_read(&write_ptr);
-              r = atomic_read(&read_ptr);
+              w = write_ptr.load(memory_order_acquire);
+              r = read_ptr.load(memory_order_relaxed);
               if(w >= r) return(w - r);
               return(size - r);
             }
     __inline void init() {
-                   atomic_set(&write_ptr, 0);
-                   atomic_set(&read_ptr, 0);
+                   write_ptr.store(0, memory_order_relaxed);
+                   read_ptr.store(0, memory_order_relaxed);
                  //  wrap=0;
             }
 
     int write_space () {
             int w, r;
 
-            w = atomic_read(&write_ptr);
-            r = atomic_read(&read_ptr);
+            w = write_ptr.load(memory_order_relaxed);
+            r = read_ptr.load(memory_order_acquire);
 
             if (w > r) {
                     return ((r - w + size) & size_mask) - 1;
@@ -268,8 +273,8 @@ public:
     int read_space () {
             int w, r;
 
-            w = atomic_read(&write_ptr);
-            r = atomic_read(&read_ptr);
+            w = write_ptr.load(memory_order_acquire);
+            r = read_ptr.load(memory_order_relaxed);
 
             if (w >= r) {
                     return w - r;
@@ -291,7 +296,7 @@ public:
         public:
             int read_space() {
                 int r = read_ptr;
-                int w = atomic_read(&pBuf->write_ptr);
+                int w = pBuf->write_ptr.load(memory_order_acquire);
                 return (w >= r) ? w - r : (w - r + pBuf->size) & pBuf->size_mask;
             }
 
@@ -300,7 +305,7 @@ public:
              * read position by one.
              */
             inline void operator--() {
-                if (read_ptr == atomic_read(&pBuf->read_ptr)) return; //TODO: or should we react oh this case (e.g. force segfault), as this is a very odd case?
+                if (read_ptr == pBuf->read_ptr.load(memory_order_relaxed)) return; //TODO: or should we react oh this case (e.g. force segfault), as this is a very odd case?
                 read_ptr = (read_ptr-1) & pBuf->size_mask;
             }
 
@@ -391,13 +396,13 @@ public:
              * @see RingBuffer::increment_read_ptr()
              */
             void free() {
-                atomic_set(&pBuf->read_ptr, read_ptr);
+                pBuf->read_ptr.store(read_ptr, memory_order_release);
             }
 
         protected:
             _NonVolatileReader(RingBuffer<T1,T1_DEEP_COPY>* pBuf) {
                 this->pBuf     = pBuf;
-                this->read_ptr = atomic_read(&pBuf->read_ptr);
+                this->read_ptr = pBuf->read_ptr.load(memory_order_relaxed);
             }
 
             RingBuffer<T1,T1_DEEP_COPY>* pBuf;
@@ -412,8 +417,8 @@ public:
 
   protected:
     T *buf;
-    atomic_t write_ptr;
-    atomic_t read_ptr;
+    atomic<int> write_ptr;
+    atomic<int> read_ptr;
     int size_mask;
 
     /**
@@ -427,7 +432,7 @@ public:
 
 template<class T, bool T_DEEP_COPY>
 T* RingBuffer<T,T_DEEP_COPY>::get_write_ptr (void) {
-  return(&buf[atomic_read(&write_ptr)]);
+  return(&buf[write_ptr.load(memory_order_relaxed)]);
 }
 
 template<class T, bool T_DEEP_COPY>
@@ -446,7 +451,7 @@ int RingBuffer<T,T_DEEP_COPY>::read(T* dest, int cnt)
         int n1, n2;
         int priv_read_ptr;
 
-        priv_read_ptr=atomic_read(&read_ptr);
+        priv_read_ptr = read_ptr.load(memory_order_relaxed);
 
         if ((free_cnt = read_space ()) == 0) {
                 return 0;
@@ -472,7 +477,7 @@ int RingBuffer<T,T_DEEP_COPY>::read(T* dest, int cnt)
                 priv_read_ptr = n2;
         }
 
-        atomic_set(&read_ptr, priv_read_ptr);
+        read_ptr.store(priv_read_ptr, memory_order_release);
         return to_read;
 }
 
@@ -485,7 +490,7 @@ int RingBuffer<T,T_DEEP_COPY>::write(T* src, int cnt)
         int n1, n2;
         int priv_write_ptr;
 
-        priv_write_ptr=atomic_read(&write_ptr);
+        priv_write_ptr = write_ptr.load(memory_order_relaxed);
 
         if ((free_cnt = write_space ()) == 0) {
                 return 0;
@@ -510,7 +515,7 @@ int RingBuffer<T,T_DEEP_COPY>::write(T* src, int cnt)
                 copy(buf, src+n1, n2);
                 priv_write_ptr = n2;
         }
-        atomic_set(&write_ptr, priv_write_ptr);
+        write_ptr.store(priv_write_ptr, memory_order_release);
         return to_write;
 }
 
