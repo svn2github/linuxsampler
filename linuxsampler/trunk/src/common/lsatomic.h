@@ -49,7 +49,7 @@ namespace LinuxSampler {
         case memory_order_release:
 #ifdef _ARCH_PPC64
             asm volatile("lwsync" : : : "memory");
-#elif defined(__powerpc__)
+#elif defined(_ARCH_PPC)
             asm volatile("sync" : : : "memory");
 #else
             asm volatile("" : : : "memory");
@@ -57,7 +57,7 @@ namespace LinuxSampler {
             break;
 
         case memory_order_seq_cst:
-#ifdef __powerpc__
+#ifdef _ARCH_PPC
             asm volatile("sync" : : : "memory");
 #elif defined(__i386__) || defined(__x86_64__)
             asm volatile("lock; addl $0,0(%%esp)" : : : "memory");
@@ -85,7 +85,7 @@ namespace LinuxSampler {
                 // fall-through
 
             case memory_order_acquire:
-#ifdef __powerpc__
+#ifdef _ARCH_PPC
                 // PPC load-acquire: artificial dependency + isync
                 asm volatile(
 #ifdef _ARCH_PPC64

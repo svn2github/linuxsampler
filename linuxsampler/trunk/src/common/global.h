@@ -46,6 +46,8 @@ typedef unsigned int uint;
 #else
 // needed for usleep under POSIX
 #include <stdio.h>
+// for uint
+#include <sys/types.h>
 #endif
 
 

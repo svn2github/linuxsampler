@@ -2,7 +2,7 @@
     Copyright (C) 2001 Paul Davis and others (see below)
     Code derived from various headers from the Linux kernel.
        Copyright attributions maintained where present.
-    
+
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -17,7 +17,7 @@
     along with this program; if not, write to the Free Software
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
-    $Id: atomic.h,v 1.6 2008-09-06 16:44:42 persson Exp $
+    $Id: atomic.h,v 1.7 2008-11-16 19:19:26 persson Exp $
 */
 
 //TODO: should we put this into namespace? it might clash with system installed atomic.h, because we need to install atomic.h for the LS API
@@ -32,8 +32,8 @@
 #define CONFIG_SMP   /* ... the macro the kernel headers use */
 #endif
 
-#if defined(linux) || defined(WIN32)
-#ifdef __powerpc__
+#if defined(__linux__) || defined(WIN32) || defined(__APPLE__)
+#ifdef _ARCH_PPC
 
 /*
  * BK Id: SCCS/s.atomic.h 1.15 10/28/01 10:37:22 trini
@@ -42,7 +42,7 @@
  * PowerPC atomic operations
  */
 
-#ifndef _ASM_PPC_ATOMIC_H_ 
+#ifndef _ASM_PPC_ATOMIC_H_
 #define _ASM_PPC_ATOMIC_H_
 
 typedef struct { volatile int counter; } atomic_t;
@@ -67,7 +67,7 @@ static __inline__ void atomic_add(int a, atomic_t *v)
 	int t;
 
 	__asm__ __volatile__(
-"1:	lwarx	%0,0,%3		# atomic_add\n\
+"1:	lwarx	%0,0,%3\n\
 	add	%0,%2,%0\n\
 	stwcx.	%0,0,%3\n\
 	bne-	1b"
@@ -81,7 +81,7 @@ static __inline__ int atomic_add_return(int a, atomic_t *v)
 	int t;
 
 	__asm__ __volatile__(
-"1:	lwarx	%0,0,%2		# atomic_add_return\n\
+"1:	lwarx	%0,0,%2\n\
 	add	%0,%1,%0\n\
 	stwcx.	%0,0,%2\n\
 	bne-	1b"
@@ -98,7 +98,7 @@ static __inline__ void atomic_sub(int a, atomic_t *v)
 	int t;
 
 	__asm__ __volatile__(
-"1:	lwarx	%0,0,%3		# atomic_sub\n\
+"1:	lwarx	%0,0,%3\n\
 	subf	%0,%2,%0\n\
 	stwcx.	%0,0,%3\n\
 	bne-	1b"
@@ -112,7 +112,7 @@ static __inline__ int atomic_sub_return(int a, atomic_t *v)
 	int t;
 
 	__asm__ __volatile__(
-"1:	lwarx	%0,0,%2		# atomic_sub_return\n\
+"1:	lwarx	%0,0,%2\n\
 	subf	%0,%1,%0\n\
 	stwcx.	%0,0,%2\n\
 	bne-	1b"
@@ -129,7 +129,7 @@ static __inline__ void atomic_inc(atomic_t *v)
 	int t;
 
 	__asm__ __volatile__(
-"1:	lwarx	%0,0,%2		# atomic_inc\n\
+"1:	lwarx	%0,0,%2\n\
 	addic	%0,%0,1\n\
 	stwcx.	%0,0,%2\n\
 	bne-	1b"
@@ -143,7 +143,7 @@ static __inline__ int atomic_inc_return(atomic_t *v)
 	int t;
 
 	__asm__ __volatile__(
-"1:	lwarx	%0,0,%1		# atomic_inc_return\n\
+"1:	lwarx	%0,0,%1\n\
 	addic	%0,%0,1\n\
 	stwcx.	%0,0,%1\n\
 	bne-	1b"
@@ -160,7 +160,7 @@ static __inline__ void atomic_dec(atomic_t *v)
 	int t;
 
 	__asm__ __volatile__(
-"1:	lwarx	%0,0,%2		# atomic_dec\n\
+"1:	lwarx	%0,0,%2\n\
 	addic	%0,%0,-1\n\
 	stwcx.	%0,0,%2\n\
 	bne-	1b"
@@ -174,7 +174,7 @@ static __inline__ int atomic_dec_return(atomic_t *v)
 	int t;
 
 	__asm__ __volatile__(
-"1:	lwarx	%0,0,%1		# atomic_dec_return\n\
+"1:	lwarx	%0,0,%1\n\
 	addic	%0,%0,-1\n\
 	stwcx.	%0,0,%1\n\
 	bne-	1b"
@@ -198,7 +198,7 @@ static __inline__ int atomic_dec_if_positive(atomic_t *v)
 	int t;
 
 	__asm__ __volatile__(
-"1:	lwarx	%0,0,%1		# atomic_dec_if_positive\n\
+"1:	lwarx	%0,0,%1\n\
 	addic.	%0,%0,-1\n\
 	blt-	2f\n\
 	stwcx.	%0,0,%1\n\
@@ -1238,20 +1238,6 @@ static __inline__ int atomic_inc_and_test(atomic_t *v)
 
 #else   /* !linux */
 
-#if defined(__APPLE__)
-
-typedef unsigned long atomic_t;
-
-#define ATOMIC_INIT(i)  { (i) }
-#define atomic_set(a, v) (*(a) = (v))
-#define atomic_read(a) (*(a))
-
-/*  TODO: should use atomic routines in CoreServices.framework  */
-#define atomic_inc(a) (++(*a))
-#define atomic_dec(a) (--(*a))
-
-#else
-
 typedef unsigned long atomic_t;
 
 #if defined(__sgi)
@@ -1294,6 +1280,5 @@ atomic_dec (atomic_t * a) {
 #endif
 }
 
-#endif /* __APPLE__  */
 #endif /* linux */
 #endif /* __linuxsampler_atomic_h__ */

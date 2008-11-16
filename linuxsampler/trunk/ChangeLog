@@ -6,6 +6,7 @@ Version CVS HEAD (?)
       "./configure --disable-jack-driver" was used
       (patch by Alexis Ballier)
     - fixed compilation with gcc 4.3
+    - fixes for building on OS X (thanks to Ebrahim Mayat for testing)
 
   * general changes:
     - bugfix: on some POSIX systems instrument editor plugins refused to
