@@ -37,6 +37,7 @@ Version CVS HEAD (?)
   * it is now possible to create dimensions where the amount of zones
     isn't a power of two (patch by Devin Anderson, #89, slightly
     modified)
+  * fixed configure check for libsndfile loop support
 
 Version 0.1.1 (2007-12-06)
 
