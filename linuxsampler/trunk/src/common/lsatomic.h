@@ -59,8 +59,10 @@ namespace LinuxSampler {
         case memory_order_seq_cst:
 #ifdef _ARCH_PPC
             asm volatile("sync" : : : "memory");
-#elif defined(__i386__) || defined(__x86_64__)
+#elif defined(__i386__)
             asm volatile("lock; addl $0,0(%%esp)" : : : "memory");
+#elif defined(__x86_64__)
+            asm volatile("mfence" : : : "memory");
 #else
             asm volatile("" : : : "memory");
 #endif

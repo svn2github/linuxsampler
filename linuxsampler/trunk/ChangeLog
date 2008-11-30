@@ -7,6 +7,7 @@ Version CVS HEAD (?)
       (patch by Alexis Ballier)
     - fixed compilation with gcc 4.3
     - fixes for building on OS X (thanks to Ebrahim Mayat for testing)
+    - fixed configure so it detects x86_64 (#107)
 
   * general changes:
     - bugfix: on some POSIX systems instrument editor plugins refused to
