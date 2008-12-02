@@ -55,7 +55,7 @@ if [ -d $RPM_BUILD_ROOT ]; then rm -rf $RPM_BUILD_ROOT; fi
 %doc AUTHORS COPYING ChangeLog NEWS README TODO
 %{prefix}/bin/*
 %{prefix}/lib/libgig.so*
-%{prefix}/man/man1/*
+%{prefix}/share/man/man1/*
 
 %files devel
 %defattr(-,root,root)
@@ -66,6 +66,9 @@ if [ -d $RPM_BUILD_ROOT ]; then rm -rf $RPM_BUILD_ROOT; fi
 %{prefix}/include/*
 
 %changelog
+* Wed Dec 03 2008 Christian Schoenebeck <cuse@users.sourceforge.net>
+- fixed rpmbuild error on Fedora Core 8
+  (fixes #86, patch by Devin Anderson)
 * Wed Dec 05 2007 Christian Schoenebeck <cuse@users.sourceforge.net>
 - prepared for release 3.2.1
 * Sun Oct 14 2007 Christian Schoenebeck <cuse@users.sourceforge.net>
