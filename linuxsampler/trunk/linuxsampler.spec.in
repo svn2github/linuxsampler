@@ -76,13 +76,15 @@ if [ -d $RPM_BUILD_ROOT ]; then rm -rf $RPM_BUILD_ROOT; fi
 %files devel
 %defattr(-,root,root)
 %doc doc/html/*
-%{prefix}/lib/linuxsampler/include/config.h
 %{prefix}/lib/linuxsampler/liblinuxsampler.a
 %{prefix}/lib/linuxsampler/liblinuxsampler.la
 %{prefix}/lib/pkgconfig/linuxsampler.pc
 %{prefix}/include/*
 
 %changelog
+* Wed Dec 03 2008 Christian Schoenebeck <cuse@users.sourceforge.net>
+- fixed rpmbuild: config.h is no longer exported
+  (fixes #87, patch by Devin Anderson)
 * Thu Dec 06 2007 Christian Schoenebeck <cuse@users.sourceforge.net>
 - Going for linuxsampler 0.5.1 release.
 * Mon Oct 15 2007 Christian Schoenebeck <cuse@users.sourceforge.net>
