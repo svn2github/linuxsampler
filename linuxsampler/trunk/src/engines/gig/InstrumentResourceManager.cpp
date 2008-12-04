@@ -185,16 +185,33 @@ namespace LinuxSampler { namespace gig {
                 } else {
                     for (int i = low; i <= high; i++) info.KeyBindings[i] = 1;
                 }
+
                 pRegion = pInstrument->GetNextRegion();
             }
-            
+
             if (loaded) { // retrieve keyswitching only if the instrument is fully loaded.
-                int low = pInstrument->DimensionKeyRange.low;
-                int high = pInstrument->DimensionKeyRange.high;
-                if (low < 0 || low > 127 || high < 0 || high > 127 || low > high) {
-                    std::cerr << "Invalid keyswitch range: " << low << " - " << high << std::endl;
-                } else {
-                    for (int i = low; i <= high; i++) info.KeySwitchBindings[i] = 1;
+
+                // only return keyswitch range if keyswitching is used
+                bool hasKeyswitches = false;
+                for (::gig::Region* pRegion = pInstrument->GetFirstRegion() ;
+                     pRegion && !hasKeyswitches ;
+                     pRegion = pInstrument->GetNextRegion()) {
+                    for (int i = 0 ; i < pRegion->Dimensions ; i++) {
+                        if (pRegion->pDimensionDefinitions[i].dimension == ::gig::dimension_keyboard) {
+                            hasKeyswitches = true;
+                            break;
+                        }
+                    }
+                }
+
+                if (hasKeyswitches) {
+                    int low = pInstrument->DimensionKeyRange.low;
+                    int high = pInstrument->DimensionKeyRange.high;
+                    if (low < 0 || low > 127 || high < 0 || high > 127 || low > high) {
+                        std::cerr << "Invalid keyswitch range: " << low << " - " << high << std::endl;
+                    } else {
+                        for (int i = low; i <= high; i++) info.KeySwitchBindings[i] = 1;
+                    }
                 }
             }
 
