@@ -38,6 +38,8 @@ Version CVS HEAD (?)
     isn't a power of two (patch by Devin Anderson, #89, slightly
     modified)
   * fixed configure check for libsndfile loop support
+  * bugfix: when a stereo sample is replaced, make sure both zones of
+    the sample channel dimension get updated with the new sample
 
 Version 0.1.1 (2007-12-06)
 

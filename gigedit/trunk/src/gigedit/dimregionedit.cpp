@@ -958,27 +958,60 @@ bool DimRegionEdit::set_sample(gig::Sample* sample)
         // currently commented because we're sending a similar signal in MainWindow::on_sample_label_drop_drag_data_received()
         //dimreg_to_be_changed_signal.emit(dimregion);
 
+        // make sure stereo samples always are the same in both
+        // dimregs in the samplechannel dimension
+        int nbDimregs = 1;
+        gig::DimensionRegion* d[2] = { dimregion, 0 };
+        if (sample->Channels == 2) {
+            gig::Region* region = dimregion->GetParent();
+
+            int bitcount = 0;
+            int stereo_bit = 0;
+            for (int dim = 0 ; dim < region->Dimensions ; dim++) {
+                if (region->pDimensionDefinitions[dim].dimension == gig::dimension_samplechannel) {
+                    stereo_bit = 1 << bitcount;
+                    break;
+                }
+                bitcount += region->pDimensionDefinitions[dim].bits;
+            }
+
+            if (stereo_bit) {
+                int dimregno;
+                for (dimregno = 0 ; dimregno < region->DimensionRegions ; dimregno++) {
+                    if (region->pDimensionRegions[dimregno] == dimregion) {
+                        break;
+                    }
+                }
+                d[0] = region->pDimensionRegions[dimregno & ~stereo_bit];
+                d[1] = region->pDimensionRegions[dimregno | stereo_bit];
+                nbDimregs = 2;
+            }
+        }
+
         gig::Sample* oldref = dimregion->pSample;
-        dimregion->pSample = sample;
 
-        // copy sample information from Sample to DimensionRegion
+        for (int i = 0 ; i < nbDimregs ; i++) {
+            d[i]->pSample = sample;
 
-        dimregion->UnityNote = sample->MIDIUnityNote;
-        dimregion->FineTune = sample->FineTune;
+            // copy sample information from Sample to DimensionRegion
 
-        int loops = sample->Loops ? 1 : 0;
-        while (dimregion->SampleLoops > loops) {
-            dimregion->DeleteSampleLoop(&dimregion->pSampleLoops[0]);
-        }
-        while (dimregion->SampleLoops < sample->Loops) {
-            DLS::sample_loop_t loop;
-            dimregion->AddSampleLoop(&loop);
-        }
-        if (loops) {
-            dimregion->pSampleLoops[0].Size = sizeof(DLS::sample_loop_t);
-            dimregion->pSampleLoops[0].LoopType = sample->LoopType;
-            dimregion->pSampleLoops[0].LoopStart = sample->LoopStart;
-            dimregion->pSampleLoops[0].LoopLength = sample->LoopEnd - sample->LoopStart + 1;
+            d[i]->UnityNote = sample->MIDIUnityNote;
+            d[i]->FineTune = sample->FineTune;
+
+            int loops = sample->Loops ? 1 : 0;
+            while (d[i]->SampleLoops > loops) {
+                d[i]->DeleteSampleLoop(&d[i]->pSampleLoops[0]);
+            }
+            while (d[i]->SampleLoops < sample->Loops) {
+                DLS::sample_loop_t loop;
+                d[i]->AddSampleLoop(&loop);
+            }
+            if (loops) {
+                d[i]->pSampleLoops[0].Size = sizeof(DLS::sample_loop_t);
+                d[i]->pSampleLoops[0].LoopType = sample->LoopType;
+                d[i]->pSampleLoops[0].LoopStart = sample->LoopStart;
+                d[i]->pSampleLoops[0].LoopLength = sample->LoopEnd - sample->LoopStart + 1;
+            }
         }
 
         // update ui
