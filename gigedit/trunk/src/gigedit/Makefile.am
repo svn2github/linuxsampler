@@ -10,7 +10,8 @@ libgigedit_la_SOURCES = \
 	dimregionchooser.cpp dimregionchooser.h \
 	dimregionedit.cpp dimregionedit.h \
 	paramedit.cpp paramedit.h \
-	dimensionmanager.cpp dimensionmanager.h
+	dimensionmanager.cpp dimensionmanager.h \
+	wrapLabel.cc wrapLabel.hh
 libgigedit_la_LIBADD = \
 	$(GTKMM_LIBS) $(GIG_LIBS) $(SNDFILE_LIBS)
 libgigedit_la_CXXFLAGS = \

@@ -26,6 +26,7 @@
 #include <gtkmm/targetentry.h>
 #include <gtkmm/main.h>
 #include <gtkmm/toggleaction.h>
+#include "wrapLabel.hh"
 
 #include "global.h"
 
@@ -202,7 +203,7 @@ MainWindow::MainWindow() :
         sigc::mem_fun(*this, &MainWindow::on_action_add_group)
     );
     actionGroup->add(
-        Gtk::Action::create("AddSample", _("Add _Sample(s)")),
+        Gtk::Action::create("AddSample", _("Add _Sample(s)...")),
         sigc::mem_fun(*this, &MainWindow::on_action_add_sample)
     );
     actionGroup->add(
@@ -210,7 +211,8 @@ MainWindow::MainWindow() :
         sigc::mem_fun(*this, &MainWindow::on_action_remove_sample)
     );
     actionGroup->add(
-        Gtk::Action::create("ReplaceAllSamplesInAllGroups", _("Replace All Samples In All Groups")),
+        Gtk::Action::create("ReplaceAllSamplesInAllGroups",
+                            _("Replace All Samples in All Groups...")),
         sigc::mem_fun(*this, &MainWindow::on_action_replace_all_samples_in_all_groups)
     );
 
@@ -773,8 +775,7 @@ bool MainWindow::file_save_as()
     descriptionArea.set_spacing(15);
     Gtk::Image warningIcon(Gtk::Stock::DIALOG_WARNING, Gtk::IconSize(Gtk::ICON_SIZE_DIALOG));
     descriptionArea.pack_start(warningIcon, Gtk::PACK_SHRINK);
-    warningIcon.show();
-    Gtk::Label description;
+    view::WrapLabel description;
     description.set_markup(
         _("\n<b>CAUTION:</b> You <b>MUST</b> use the "
           "<span style=\"italic\">\"Save\"</span> dialog instead of "
@@ -783,11 +784,9 @@ bool MainWindow::file_save_as()
           "<span style=\"italic\">\"Save As...\"</span> for writing to the "
           "same .gig file will end up in corrupted sample wave data!\n")
     );
-    description.set_line_wrap(true);
-    descriptionArea.pack_start(description, Gtk::PACK_SHRINK);
-    description.show();
+    descriptionArea.pack_start(description);
     dialog.get_vbox()->pack_start(descriptionArea, Gtk::PACK_SHRINK);
-    descriptionArea.show();
+    descriptionArea.show_all();
 
     if (dialog.run() == Gtk::RESPONSE_OK) {
         file_structure_to_be_changed_signal.emit(this->file);
@@ -1537,25 +1536,24 @@ void MainWindow::on_action_replace_all_samples_in_all_groups()
     if (!file) return;
     Gtk::FileChooserDialog dialog(*this, _("Select Folder"),
                                   Gtk::FILE_CHOOSER_ACTION_SELECT_FOLDER);
-    Gtk::Label description(
+    view::WrapLabel description(
         _("This is a very specific function. It tries to replace all samples "
-          "in the current gig file by samples located in the directory chosen "
-          "by you above.\n\n"
-          "It works like this: For each sample in the gig file it tries to "
+          "in the current gig file by samples located in the chosen "
+          "directory.\n\n"
+          "It works like this: For each sample in the gig file, it tries to "
           "find a sample file in the selected directory with the same name as "
-          "the sample in the gig file. Optionally you can add a filename "
-          "postfix below, which will be added to the filename expected to be "
+          "the sample in the gig file. Optionally, you can add a filename "
+          "extension below, which will be added to the filename expected to be "
           "found. That is, assume you have a gig file with a sample called "
           "'Snare', if you enter '.wav' below (like it's done by default), it "
-          "assumes to find a sample file called 'Snare.wav' and will replace "
-          "the sample in the gig file accordingly. If you don't need such a "
-          "postfix, blank the field below. Any gig sample where no "
-          "appropriate sample file could be found, will be reported and left "
-          "untouched.\n\n")
+          "expects to find a sample file called 'Snare.wav' and will replace "
+          "the sample in the gig file accordingly. If you don't need an "
+          "extension, blank the field below. Any gig sample where no "
+          "appropriate sample file could be found will be reported and left "
+          "untouched.\n")
     );
-    description.set_line_wrap(true);
     Gtk::HBox entryArea;
-    Gtk::Label entryLabel( _("Add Filename Extension: "), Gtk::ALIGN_RIGHT);
+    Gtk::Label entryLabel( _("Add filename extension: "), Gtk::ALIGN_RIGHT);
     Gtk::Entry postfixEntryBox;
     postfixEntryBox.set_text(".wav");
     entryArea.pack_start(entryLabel);
@@ -1563,24 +1561,13 @@ void MainWindow::on_action_replace_all_samples_in_all_groups()
     dialog.get_vbox()->pack_start(description, Gtk::PACK_SHRINK);
     dialog.get_vbox()->pack_start(entryArea, Gtk::PACK_SHRINK);
     description.show();
-    entryLabel.show();
-    postfixEntryBox.show();
-    entryArea.show();
+    entryArea.show_all();
     dialog.add_button(Gtk::Stock::CANCEL, Gtk::RESPONSE_CANCEL);
     dialog.add_button(_("Select"), Gtk::RESPONSE_OK);
     dialog.set_select_multiple(false);
     if (current_sample_dir != "") {
         dialog.set_current_folder(current_sample_dir);
     }
-    // fix label width (because Gtk by design doesn't
-    // know anything about the parent's size)
-#if 0 //FIXME: doesn't work
-    int dialogW, dialogH, labelW, labelH;
-    dialog.get_size_request(dialogW, dialogH);
-    description.get_size_request(labelW, labelH);
-    std::cout << "dialog(" << dialogW << "," << dialogH << ")\nlabel(" << labelW << "," << labelH << ")\n" << std::flush;
-    description.set_size_request(dialogW, labelH);
-#endif
     if (dialog.run() == Gtk::RESPONSE_OK)
     {
         current_sample_dir = dialog.get_current_folder();
