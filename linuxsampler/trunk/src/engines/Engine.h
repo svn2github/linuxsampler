@@ -52,9 +52,13 @@ namespace LinuxSampler {
             virtual void   Disable() = 0;
             virtual uint   VoiceCount() = 0;
             virtual uint   VoiceCountMax() = 0;
+            virtual int    MaxVoices() = 0;
+            virtual void   SetMaxVoices(int iVoices) throw (Exception) = 0;
             virtual bool   DiskStreamSupported() = 0;
             virtual uint   DiskStreamCount() = 0;
             virtual uint   DiskStreamCountMax() = 0;
+            virtual int    MaxDiskStreams() = 0;
+            virtual void   SetMaxDiskStreams(int iStreams) throw (Exception) = 0;
             virtual String DiskStreamBufferFillBytes() = 0;
             virtual String DiskStreamBufferFillPercentage() = 0;
             virtual String Description() = 0;

@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 - 2007 Christian Schoenebeck                       *
+ *   Copyright (C) 2005 - 2008 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -57,12 +57,12 @@
 #ifndef CONFIG_STREAM_BUFFER_SIZE
 # error "Configuration macro CONFIG_STREAM_BUFFER_SIZE not defined!"
 #endif // CONFIG_STREAM_BUFFER_SIZE
-#ifndef CONFIG_MAX_STREAMS
-# error "Configuration macro CONFIG_MAX_STREAMS not defined!"
-#endif // CONFIG_MAX_STREAMS
-#ifndef CONFIG_MAX_VOICES
-# error "Configuration macro CONFIG_MAX_VOICES not defined!"
-#endif // CONFIG_MAX_VOICES
+#ifndef CONFIG_DEFAULT_MAX_STREAMS
+# error "Configuration macro CONFIG_DEFAULT_MAX_STREAMS not defined!"
+#endif // CONFIG_DEFAULT_MAX_STREAMS
+#ifndef CONFIG_DEFAULT_MAX_VOICES
+# error "Configuration macro CONFIG_DEFAULT_MAX_VOICES not defined!"
+#endif // CONFIG_DEFAULT_MAX_VOICES
 #ifndef CONFIG_DEFAULT_SUBFRAGMENT_SIZE
 # error "Configuration macro CONFIG_DEFAULT_SUBFRAGMENT_SIZE not defined!"
 #endif // CONFIG_DEFAULT_SUBFRAGMENT_SIZE
@@ -91,6 +91,12 @@
 // this is the sampler global volume coefficient that should be obeyed by all
 // sampler engine implementations
 double GLOBAL_VOLUME = CONFIG_GLOBAL_ATTENUATION_DEFAULT;
+
+// this is the sampler global setting for maximum voices
+int GLOBAL_MAX_VOICES = CONFIG_DEFAULT_MAX_VOICES;
+
+// this is the sampler global setting for maximum disk streams
+int GLOBAL_MAX_STREAMS = CONFIG_DEFAULT_MAX_STREAMS;
 
 int hexToNumber(char hex_digit) {
     switch (hex_digit) {

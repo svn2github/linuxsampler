@@ -5,7 +5,7 @@ AC_INIT(configure.in)
 
 LINUXSAMPLER_RELEASE_MAJOR=0
 LINUXSAMPLER_RELEASE_MINOR=5
-LINUXSAMPLER_RELEASE_BUILD=1.7cvs
+LINUXSAMPLER_RELEASE_BUILD=1.8cvs
 
 #------------------------------------------------------------------------------------
 # The following is the libtool / shared library version. This doesn't have to
@@ -709,23 +709,25 @@ AC_DEFINE_UNQUOTED(CONFIG_STREAM_BUFFER_SIZE, $config_stream_size, [Define each 
 
 AC_ARG_ENABLE(max-streams,
   [  --enable-max-streams
-                          Maximum amount of disk streams (default=90). This
-                          value should always be higher than the maximum
-                          amount of voices.],
+                          Initial maximum amount of disk streams
+                          (default=90). This value can be changed at
+                          runtime. It should always be higher than the
+                          maximum amount of voices.],
   [config_max_streams="${enableval}"],
   [config_max_streams="90"]
 )
-AC_DEFINE_UNQUOTED(CONFIG_MAX_STREAMS, $config_max_streams, [Define max. streams.])
+AC_DEFINE_UNQUOTED(CONFIG_DEFAULT_MAX_STREAMS, $config_max_streams, [Define initial max. streams.])
 
 AC_ARG_ENABLE(max-voices,
   [  --enable-max-voices
-                          Maximum amount of voices (default=64). This value
-                          should always be lower than the maximum amount of
-                          disk streams.],
+                          Initial maximum amount of voices (default=64).
+                          This value can be changed at runtime. It should
+                          always be lower than the maximum amount of disk
+                          streams.],
   [config_max_voices="${enableval}"],
   [config_max_voices="64"]
 )
-AC_DEFINE_UNQUOTED(CONFIG_MAX_VOICES, $config_max_voices, [Define max. voices.])
+AC_DEFINE_UNQUOTED(CONFIG_DEFAULT_MAX_VOICES, $config_max_voices, [Define initial max. voices.])
 
 AC_ARG_ENABLE(subfragment-size,
   [  --enable-subfragment-size
@@ -1242,8 +1244,8 @@ echo "# Streams to be refilled per Disk Thread Cycle: ${config_refill_streams}"
 echo "# Minimum Stream Refill Size: ${config_stream_min_refill}"
 echo "# Maximum Stream Refill Size: ${config_stream_max_refill}"
 echo "# Stream Size: ${config_stream_size}"
-echo "# Maximum Disk Streams: ${config_max_streams}"
-echo "# Maximum Voices: ${config_max_voices}"
+echo "# Default Maximum Disk Streams: ${config_max_streams}"
+echo "# Default Maximum Voices: ${config_max_voices}"
 echo "# Default Subfragment Size: ${config_subfragment_size}"
 echo "# Default Global Volume Attenuation: ${config_global_attenuation_default}"
 echo "# Voice Stealing Algorithm: ${config_voice_steal_algo}"

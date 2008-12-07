@@ -74,9 +74,13 @@ namespace LinuxSampler { namespace gig {
             virtual void   Disable();
             virtual uint   VoiceCount();
             virtual uint   VoiceCountMax();
+            virtual int    MaxVoices();
+            virtual void   SetMaxVoices(int iVoices) throw (Exception);
             virtual bool   DiskStreamSupported();
             virtual uint   DiskStreamCount();
             virtual uint   DiskStreamCountMax();
+            virtual int    MaxDiskStreams();
+            virtual void   SetMaxDiskStreams(int iStreams) throw (Exception);
             virtual String DiskStreamBufferFillBytes();
             virtual String DiskStreamBufferFillPercentage();
             virtual String Description();
@@ -188,7 +192,7 @@ namespace LinuxSampler { namespace gig {
             unsigned long FrameTime; ///< Time in frames of the start of the current audio fragment
 
             atomic_t ActiveVoiceCount; ///< number of currently active voices
-            
+            int iMaxDiskStreams;
     };
 
 }} // namespace LinuxSampler::gig

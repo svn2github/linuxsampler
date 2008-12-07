@@ -197,6 +197,10 @@ class LSCPServer : public Thread {
         String GetTotalStreamCount();
         String GetTotalVoiceCount();
         String GetTotalVoiceCountMax();
+        String GetGlobalMaxVoices();
+        String SetGlobalMaxVoices(int iVoices);
+        String GetGlobalMaxStreams();
+        String SetGlobalMaxStreams(int iStreams);
         String GetGlobalVolume();
         String SetGlobalVolume(double dVolume);
         String GetFileInstruments(String Filename);

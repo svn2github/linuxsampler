@@ -34,7 +34,7 @@ Schoenebeck'>
                 <email>schoenebeck at software minus engineering dot org</email>
             </address>
         </author>
-        <date month="September" year="2008"/>
+        <date month="December" year="2008"/>
         <workgroup>LinuxSampler Developers</workgroup>
         <keyword>LSCP</keyword>
         <abstract>
@@ -4142,6 +4142,143 @@ Schoenebeck'>
                         </list>
                     </t>
                 </section>
+
+                <section title="Getting global voice limit" anchor="GET VOICES">
+                    <t>The client can ask for the current global sampler-wide limit
+                       for maximum voices by sending the following command:</t>
+                    <t>
+                        <list>
+                            <t>GET VOICES</t>
+                        </list>
+                    </t>
+                    <t>Possible Answers:</t>
+                    <t>
+                        <list>
+                            <t>LinuxSampler will answer by returning the number for
+                               the current limit of maximum voices.</t>
+                        </list>
+                    </t>
+
+                    <t>The voice limit setting defines how many voices should maximum
+                       be processed by the sampler at the same time. If the user
+                       triggers new notes which would exceed that voice limit, the
+                       sampler engine will react by stealing old voices for those
+                       newly triggered notes. Note that the amount of voices triggered
+                       by a new note can be larger than one and is dependent to the
+                       respective instrument and probably further criterias.</t>
+                </section>
+
+                <section title="Setting global voice limit" anchor="SET VOICES">
+                    <t>The client can alter the current global sampler-wide limit
+                    for maximum voices by sending the following command:</t>
+                    <t>
+                        <list>
+                            <t>SET VOICES &lt;max-voices&gt;</t>
+                        </list>
+                    </t>
+                   <t>Where &lt;max-voices&gt; should be replaced by the integer
+                   value, reflecting the new global amount limit of maximum voices.
+                   This value has to be larger than 0.</t>
+
+                    <t>Possible Answers:</t>
+                    <t>
+                        <list>
+                            <t>"OK" -
+                                <list>
+                                    <t>on success</t>
+                                </list>
+                            </t>
+                            <t>"WRN:&lt;warning-code&gt;:&lt;warning-message&gt;" -
+                                <list>
+                                    <t>if the voice limit was set, but there are noteworthy
+                                    issue(s) related, providing an appropriate warning code and
+                                    warning message</t>
+                                </list>
+                            </t>
+                            <t>"ERR:&lt;error-code&gt;:&lt;error-message&gt;" -
+                                <list>
+                                    <t>in case it failed, providing an appropriate error code and error message</t>
+                                </list>
+                            </t>
+                        </list>
+                    </t>
+
+                    <t>Note: the given value will be passed to all sampler engine instances.
+                       The total amount of maximum voices on the running system might thus
+                       be as big as the given value multiplied by the current amount of engine
+                       instances.</t>
+
+                     <t>Caution: when adjusting the voice limit, you SHOULD also
+                        adjust the disk stream limit respectively and vice versa.</t>
+                </section>
+
+                <section title="Getting global disk stream limit" anchor="GET STREAMS">
+                    <t>The client can ask for the current global sampler-wide limit
+                       for maximum disk streams by sending the following command:</t>
+                    <t>
+                        <list>
+                            <t>GET STREAMS</t>
+                        </list>
+                    </t>
+                    <t>Possible Answers:</t>
+                    <t>
+                        <list>
+                            <t>LinuxSampler will answer by returning the number for
+                               the current limit of maximum disk streams.</t>
+                        </list>
+                    </t>
+
+                    <t>The disk stream limit setting defines how many disk streams should
+                       maximum be processed by a sampler engine at the same time. The
+                       higher this value, the more memory (RAM) will be occupied, since
+                       every disk streams allocates a certain buffer size for being able
+                       to perform its streaming operations.</t>
+                </section>
+
+                <section title="Setting global disk stream limit" anchor="SET STREAMS">
+                    <t>The client can alter the current global sampler-wide limit
+                    for maximum disk streams by sending the following command:</t>
+                    <t>
+                        <list>
+                            <t>SET STREAMS &lt;max-streams&gt;</t>
+                        </list>
+                    </t>
+                   <t>Where &lt;max-streams&gt; should be replaced by the integer
+                   value, reflecting the new global amount limit of maximum disk streams.
+                   This value has to be positive.</t>
+
+                    <t>Possible Answers:</t>
+                    <t>
+                        <list>
+                            <t>"OK" -
+                                <list>
+                                    <t>on success</t>
+                                </list>
+                            </t>
+                            <t>"WRN:&lt;warning-code&gt;:&lt;warning-message&gt;" -
+                                <list>
+                                    <t>if the disk stream limit was set, but there are noteworthy
+                                    issue(s) related, providing an appropriate warning code and
+                                    warning message</t>
+                                </list>
+                            </t>
+                            <t>"ERR:&lt;error-code&gt;:&lt;error-message&gt;" -
+                                <list>
+                                    <t>in case it failed, providing an appropriate error code and error message</t>
+                                </list>
+                            </t>
+                        </list>
+                    </t>
+
+                    <t>Note: the given value will be passed to all sampler engine instances.
+                       The total amount of maximum disk streams on the running system might
+                       thus be as big as the given value multiplied by the current amount of
+                       engine instances.</t>
+
+                     <t>Caution: when adjusting the disk stream limit, you SHOULD also
+                        adjust the voice limit respectively and vice versa.</t>
+                </section>
+
             </section>
 
 
@@ -6758,6 +6895,10 @@ Schoenebeck'>
 		</t>
 		<t>/ VOLUME
 		</t>
+		<t>/ VOICES
+		</t>
+		<t>/ STREAMS
+		</t>
 		<t>/ FILE SP INSTRUMENTS SP filename
 		</t>
 		<t>/ FILE SP INSTRUMENT SP INFO SP filename SP instrument_index
@@ -6801,6 +6942,10 @@ Schoenebeck'>
 		<t>/ ECHO SP boolean
 		</t>
 		<t>/ VOLUME SP volume_value
+		</t>
+		<t>/ VOICES SP number
+		</t>
+		<t>/ STREAMS SP number
 		</t>
 	</list>
 </t>
@@ -7707,6 +7852,18 @@ Schoenebeck'>
                         golbal volume of the sampler is changed, where &lt;volume&gt; will be
                         replaced by the optional dotted floating point value, reflecting the
                         new global volume parameter.</t>
+                    </list>
+                    <list>
+                        <t>"NOTIFY:GLOBAL_INFO:VOICES &lt;max-voices&gt;" - Notifies that the
+                        golbal limit of the sampler for maximum voices is changed, where
+                        &lt;max-voices&gt; will be an integer value, reflecting the
+                        new global voice limit parameter.</t>
+                    </list>
+                    <list>
+                        <t>"NOTIFY:GLOBAL_INFO:STREAMS &lt;max-streams&gt;" - Notifies that the
+                        golbal limit of the sampler for maximum disk streams is changed, where
+                        &lt;max-streams&gt; will be an integer value, reflecting the
+                        new global disk streams limit parameter.</t>
                     </list>
                 </t>
             </section>

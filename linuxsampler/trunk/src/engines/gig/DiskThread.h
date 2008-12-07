@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 - 2007 Christian Schoenebeck                       *
+ *   Copyright (C) 2005 - 2008 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -49,7 +49,7 @@ namespace LinuxSampler { namespace gig {
     class DiskThread : public Thread {
         public:
             // Methods
-            DiskThread(uint BufferWrapElements, InstrumentResourceManager* pInstruments);
+            DiskThread(int MaxStreams, uint BufferWrapElements, InstrumentResourceManager* pInstruments);
             virtual ~DiskThread();
             void    Reset();
             String  GetBufferFillBytes();
@@ -98,8 +98,8 @@ namespace LinuxSampler { namespace gig {
             RingBuffer<Stream::Handle,false>    DeletionNotificationQueue;          ///< In case the original sender requested a notification for its stream deletion order, this queue will receive the handle of the respective stream once actually be deleted by the disk thread.
             RingBuffer< ::gig::DimensionRegion*,false>* DeleteDimregQueue;          ///< Contains dimension regions that are not used anymore and should be handed back to the instrument resource manager
             unsigned int                   RefillStreamsPerRun;                    ///< How many streams should be refilled in each loop run
-            Stream*                        pStreams[CONFIG_MAX_STREAMS];            ///< Contains all disk streams (whether used or unused)
-            Stream*                        pCreatedStreams[CONFIG_MAX_STREAMS + 1]; ///< This is where the voice (audio thread) picks up it's meanwhile hopefully created disk stream.
+            Stream**                       pStreams; ///< Contains all disk streams (whether used or unused)
+            Stream**                       pCreatedStreams; ///< This is where the voice (audio thread) picks up it's meanwhile hopefully created disk stream.
             static Stream*                 SLOT_RESERVED;                          ///< This value is used to mark an entry in pCreatedStreams[] as reserved.
             InstrumentResourceManager*     pInstruments;                           ///< The instrument resource manager of the engine that is using this disk thread. Used by the dimension region deletion feature.
 

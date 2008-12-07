@@ -178,7 +178,7 @@ command               :  ADD SP add_instruction                { $$ = $3;       
                       |  COPY SP copy_instruction              { $$ = $3;                                                }
                       |  EDIT SP edit_instruction              { $$ = $3;                                                }
                       |  FORMAT SP format_instruction          { $$ = $3;                                                }
-command               :  SEND SP send_instruction              { $$ = $3;                                                }
+                      |  SEND SP send_instruction              { $$ = $3;                                                }
                       |  RESET                                 { $$ = LSCPSERVER->ResetSampler();                        }
                       |  QUIT                                  { LSCPSERVER->AnswerClient("Bye!\r\n"); return LSCP_QUIT; }
                       ;
@@ -312,6 +312,8 @@ get_instruction       :  AVAILABLE_ENGINES                                      
                       |  DB_INSTRUMENT SP INFO SP db_path                                           { $$ = LSCPSERVER->GetDbInstrumentInfo($5);                        }
                       |  DB_INSTRUMENTS_JOB SP INFO SP number                                       { $$ = LSCPSERVER->GetDbInstrumentsJobInfo($5);                    }
                       |  VOLUME                                                                     { $$ = LSCPSERVER->GetGlobalVolume();                              }
+                      |  VOICES                                                                     { $$ = LSCPSERVER->GetGlobalMaxVoices();                           }
+                      |  STREAMS                                                                    { $$ = LSCPSERVER->GetGlobalMaxStreams();                          }
                       |  FILE SP INSTRUMENTS SP filename                                            { $$ = LSCPSERVER->GetFileInstruments($5);                         }
                       |  FILE SP INSTRUMENT SP INFO SP filename SP instrument_index                 { $$ = LSCPSERVER->GetFileInstrumentInfo($7,$9);                   }
                       ;
@@ -334,6 +336,8 @@ set_instruction       :  AUDIO_OUTPUT_DEVICE_PARAMETER SP number SP string '=' p
                       |  DB_INSTRUMENT SP FILE_PATH SP filename SP filename                               { $$ = LSCPSERVER->SetDbInstrumentFilePath($5,$7);                 }
                       |  ECHO SP boolean                                                                  { $$ = LSCPSERVER->SetEcho((yyparse_param_t*) yyparse_param, $3);  }
                       |  VOLUME SP volume_value                                                           { $$ = LSCPSERVER->SetGlobalVolume($3);                            }
+                      |  VOICES SP number                                                                 { $$ = LSCPSERVER->SetGlobalMaxVoices($3);                         }
+                      |  STREAMS SP number                                                                { $$ = LSCPSERVER->SetGlobalMaxStreams($3);                        }
                       ;
 
 create_instruction    :  AUDIO_OUTPUT_DEVICE SP string SP key_val_list  { $$ = LSCPSERVER->CreateAudioOutputDevice($3,$5); }
@@ -1028,6 +1032,12 @@ MUTE                  :  'M''U''T''E'
                       ;
 
 SOLO                  :  'S''O''L''O'
+                      ;
+
+VOICES                :  'V''O''I''C''E''S'
+                      ;
+
+STREAMS               :  'S''T''R''E''A''M''S'
                       ;
 
 BYTES                 :  'B''Y''T''E''S'

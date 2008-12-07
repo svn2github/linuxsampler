@@ -49,10 +49,10 @@ namespace LinuxSampler { namespace gig {
     void DiskThread::Reset() {
         bool running = this->IsRunning();
         if (running) this->StopThread();
-        for (int i = 0; i < CONFIG_MAX_STREAMS; i++) {
+        for (int i = 0; i < Streams; i++) {
             pStreams[i]->Kill();
         }
-        for (int i = 1; i <= CONFIG_MAX_STREAMS; i++) {
+        for (int i = 1; i <= Streams; i++) {
             pCreatedStreams[i] = NULL;
         }
         GhostQueue->init();
@@ -236,35 +236,40 @@ namespace LinuxSampler { namespace gig {
     // #         (following code should only be executed by the disk thread)
 
 
-    DiskThread::DiskThread(uint BufferWrapElements, InstrumentResourceManager* pInstruments) :
+    DiskThread::DiskThread(int MaxStreams, uint BufferWrapElements, InstrumentResourceManager* pInstruments) :
         Thread(true, false, 1, -2),
         pInstruments(pInstruments),
-        DeletionNotificationQueue(4*CONFIG_MAX_STREAMS)
+        DeletionNotificationQueue(4*MaxStreams)
     {
         DecompressionBuffer = ::gig::Sample::CreateDecompressionBuffer(CONFIG_STREAM_MAX_REFILL_SIZE);
-        CreationQueue       = new RingBuffer<create_command_t,false>(4*CONFIG_MAX_STREAMS);
-        DeletionQueue       = new RingBuffer<delete_command_t,false>(4*CONFIG_MAX_STREAMS);
-        GhostQueue          = new RingBuffer<delete_command_t,false>(CONFIG_MAX_STREAMS);
-        DeleteDimregQueue   = new RingBuffer< ::gig::DimensionRegion*,false>(4*CONFIG_MAX_STREAMS);
-        Streams             = CONFIG_MAX_STREAMS;
+        CreationQueue       = new RingBuffer<create_command_t,false>(4*MaxStreams);
+        DeletionQueue       = new RingBuffer<delete_command_t,false>(4*MaxStreams);
+        GhostQueue          = new RingBuffer<delete_command_t,false>(MaxStreams);
+        DeleteDimregQueue   = new RingBuffer< ::gig::DimensionRegion*,false>(4*MaxStreams);
+        pStreams            = new Stream*[MaxStreams];
+        pCreatedStreams     = new Stream*[MaxStreams + 1];
+        Streams             = MaxStreams;
         RefillStreamsPerRun = CONFIG_REFILL_STREAMS_PER_RUN;
-        for (int i = 0; i < CONFIG_MAX_STREAMS; i++) {
+        for (int i = 0; i < MaxStreams; i++) {
             pStreams[i] = new Stream(&DecompressionBuffer, CONFIG_STREAM_BUFFER_SIZE, BufferWrapElements); // 131072 sample words
         }
-        for (int i = 1; i <= CONFIG_MAX_STREAMS; i++) {
+        for (int i = 1; i <= MaxStreams; i++) {
             pCreatedStreams[i] = NULL;
         }
         ActiveStreamCountMax = 0;
     }
 
     DiskThread::~DiskThread() {
-        for (int i = 0; i < CONFIG_MAX_STREAMS; i++) {
+        for (int i = 0; i < Streams; i++) {
             if (pStreams[i]) delete pStreams[i];
         }
         if (CreationQueue) delete CreationQueue;
         if (DeletionQueue) delete DeletionQueue;
         if (GhostQueue)    delete GhostQueue;
         if (DeleteDimregQueue) delete DeleteDimregQueue;
+        if (pStreams)        delete[] pStreams;
+        if (pCreatedStreams) delete[] pCreatedStreams;
+
         ::gig::Sample::DestroyDecompressionBuffer(DecompressionBuffer);
     }
 
@@ -274,9 +279,9 @@ namespace LinuxSampler { namespace gig {
             #if !defined(WIN32)
             pthread_testcancel(); // mandatory for OSX
             #endif
-			#if CONFIG_PTHREAD_TESTCANCEL
-			TestCancel();
-			#endif
+            #if CONFIG_PTHREAD_TESTCANCEL
+            TestCancel();
+            #endif
             IsIdle = true; // will be set to false if a stream got filled
 
             // if there are ghost streams, delete them
@@ -426,9 +431,9 @@ namespace LinuxSampler { namespace gig {
     /// order ID Generator
     Stream::OrderID_t DiskThread::CreateOrderID() {
         static Stream::OrderID_t counter(0);
-        for (int i = 0; i < CONFIG_MAX_STREAMS; i++) {
-            if (counter == CONFIG_MAX_STREAMS) counter = 1; // we use '0' as 'invalid order' only, so we skip 0
-            else                              counter++;
+        for (int i = 0; i < Streams; i++) {
+            if (counter == Streams) counter = 1; // we use '0' as 'invalid order' only, so we skip 0
+            else                    counter++;
             if (!pCreatedStreams[counter]) {
                 pCreatedStreams[counter] = SLOT_RESERVED; // mark this slot as reserved
                 return counter;                           // found empty slot

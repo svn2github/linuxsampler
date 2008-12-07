@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 Christian Schoenebeck                              *
+ *   Copyright (C) 2005 - 2008 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -43,6 +43,8 @@
 # include <iostream>
 const std::string __err_msg_iterator_invalidated = "Pool/RTList iterator invalidated";
 #endif // CONFIG_DEVMODE
+
+const std::string __err_msg_resize_while_in_use = "Pool::resizePool() ERROR: elements still in use!";
 
 // just symbol prototyping
 template<typename T> class Pool;
@@ -260,11 +262,21 @@ class RTListBase {
             return _begin.next == &_end;
         }
 
+        inline int count() {
+            int elements = 0;
+            for (Iterator it = first(); it != end(); ++it) ++elements;
+            return elements;
+        }
+
     protected:
         Node _begin; // fake node (without data) which represents the begin of the list - not the first element!
         Node _end;   // fake node (without data) which represents the end of the list - not the last element!
 
         RTListBase() {
+            init();
+        }
+
+        void init() {
             // initialize boundary nodes
             _begin.prev = &_begin;
             _begin.next = &_end;
@@ -426,14 +438,10 @@ class Pool : public RTList<T> {
         Node*         nodes;
         T*            data;
         RTListBase<T> freelist; // not yet allocated elements
+        int           poolsize;
 
         Pool(int Elements) : RTList<T>::RTList(this) {
-            data  = new T[Elements];
-            nodes = new Node[Elements];
-            for (int i = 0; i < Elements; i++) {
-                nodes[i].data = &data[i];
-                freelist.append(&nodes[i]);
-            }
+            _init(Elements);
         }
 
         virtual ~Pool() {
@@ -443,6 +451,47 @@ class Pool : public RTList<T> {
 
         inline bool poolIsEmpty() {
             return freelist.isEmpty();
+        }
+
+        /**
+         * Returns the current size of the pool, that is the amount of
+         * pre-allocated elements from the operating system. It equals the
+         * amount of elements given to the constructor unless resizePool()
+         * is called.
+         *
+         * @see resizePool()
+         */
+        int poolSize() const {
+            return poolsize;
+        }
+
+        /**
+         * Alters the amount of elements to be pre-allocated from the
+         * operating system for this pool object.
+         *
+         * @e CAUTION: you MUST free all elements in use before calling this
+         * method ( e.g. by calling clear() )! Also make sure that no
+         * references of elements before this call will still be used after this
+         * call, since all elements will be reallocated and their old memory
+         * addresses become invalid!
+         *
+         * @see poolSize()
+         */
+        void resizePool(int Elements) {
+            if (freelist.count() != poolsize) {
+                #if CONFIG_DEVMODE
+                throw std::runtime_error(__err_msg_resize_while_in_use);
+                #else
+                std::cerr << __err_msg_resize_while_in_use << std::endl << std::flush;
+                // if we're here something's terribly wrong, but we try to do the best
+                RTList<T>::clear();
+                #endif
+            }
+            if (nodes) delete[] nodes;
+            if (data)  delete[] data;
+            freelist.init();
+            RTListBase<T>::init();
+            _init(Elements);
         }
 
     protected:
@@ -462,6 +511,17 @@ class Pool : public RTList<T> {
         }
 
         friend class RTList<T>;
+
+    private:
+        void _init(int Elements) {
+            data  = new T[Elements];
+            nodes = new Node[Elements];
+            for (int i = 0; i < Elements; i++) {
+                nodes[i].data = &data[i];
+                freelist.append(&nodes[i]);
+            }
+            poolsize = Elements;
+        }
 };
 
 #endif // __LS_POOL_H__

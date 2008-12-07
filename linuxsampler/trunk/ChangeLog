@@ -33,6 +33,7 @@ Version CVS HEAD (?)
       only when there are actual changes
     - added memory ordering constraints to improve stability on
       multi-core and multi-cpu systems
+    - maximum voices and disk streams can now be altered at runtime
 
   * audio driver:
     - removed the nonsense audio channel constraint (which was hard coded to
@@ -102,6 +103,12 @@ Version CVS HEAD (?)
     - bugfix: the bank number provided by MIDI_INSTRUMENT_INFO notifications
       was incorrect
     - Optimized the retrieval of the MIDI instrument mappings
+    - added new LSCP command "SET VOICES" to globally alter the maximum
+      amount of voices, added new LSCP event "GLOBAL_INFO:VOICES" which will
+      be triggered respectively
+    - added new LSCP command "SET STREAMS" to globally alter the maximum
+      amount of disk streams, added new LSCP event "GLOBAL_INFO:STREAMS"
+      which will be triggered respectively
 
   * Bug fixes:
     - fixed a crash which occurs when removing a sampler channel waiting

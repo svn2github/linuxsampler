@@ -107,11 +107,12 @@ namespace LinuxSampler { namespace gig {
         pSysexBuffer       = new RingBuffer<uint8_t,false>(CONFIG_SYSEX_BUFFER_SIZE, 0);
         pEventQueue        = new RingBuffer<Event,false>(CONFIG_MAX_EVENTS_PER_FRAGMENT, 0);
         pEventPool         = new Pool<Event>(CONFIG_MAX_EVENTS_PER_FRAGMENT);
-        pVoicePool         = new Pool<Voice>(CONFIG_MAX_VOICES);
-        pDimRegionPool[0]  = new Pool< ::gig::DimensionRegion*>(CONFIG_MAX_VOICES);
-        pDimRegionPool[1]  = new Pool< ::gig::DimensionRegion*>(CONFIG_MAX_VOICES);
+        pVoicePool         = new Pool<Voice>(GLOBAL_MAX_VOICES);
+        pDimRegionPool[0]  = new Pool< ::gig::DimensionRegion*>(GLOBAL_MAX_VOICES);
+        pDimRegionPool[1]  = new Pool< ::gig::DimensionRegion*>(GLOBAL_MAX_VOICES);
         pVoiceStealingQueue = new RTList<Event>(pEventPool);
         pGlobalEvents      = new RTList<Event>(pEventPool);
+        iMaxDiskStreams    = GLOBAL_MAX_STREAMS;
 
         for (RTList<Voice>::Iterator iterVoice = pVoicePool->allocAppend(); iterVoice == pVoicePool->last(); iterVoice = pVoicePool->allocAppend()) {
             iterVoice->SetEngine(this);
@@ -342,6 +343,9 @@ namespace LinuxSampler { namespace gig {
      * @param pAudioOut - audio output device to connect to
      */
     void Engine::Connect(AudioOutputDevice* pAudioOut) {
+        // caution: don't ignore if connecting to the same device here,
+        // because otherwise SetMaxDiskStreams() implementation won't work anymore!
+
         pAudioOutputDevice = pAudioOut;
 
         ResetInternal();
@@ -380,8 +384,13 @@ namespace LinuxSampler { namespace gig {
             delete this->pDiskThread;
             dmsg(1,("OK\n"));
         }
-        this->pDiskThread = new DiskThread(((pAudioOut->MaxSamplesPerCycle() << CONFIG_MAX_PITCH) << 1) + 6, //FIXME: assuming stereo
-                                           &instruments);
+        this->pDiskThread =
+            new DiskThread(
+                iMaxDiskStreams,
+                ((pAudioOut->MaxSamplesPerCycle() << CONFIG_MAX_PITCH) << 1) + 6, //FIXME: assuming stereo
+                &instruments
+            );
+
         if (!pDiskThread) {
             dmsg(0,("gig::Engine  new diskthread = NULL\n"));
             exit(EXIT_FAILURE);
@@ -407,6 +416,7 @@ namespace LinuxSampler { namespace gig {
                 exit(EXIT_FAILURE);
             }
         }
+        pVoicePool->clear();
     }
 
     /**
@@ -584,10 +594,10 @@ namespace LinuxSampler { namespace gig {
         // update time of start and end of this audio fragment (as events' time stamps relate to this)
         pEventGenerator->UpdateFragmentTime(Samples);
 
-        // We only allow a maximum of CONFIG_MAX_VOICES voices to be spawned
+        // We only allow the given maximum number of voices to be spawned
         // in each audio fragment. All subsequent request for spawning new
         // voices in the same audio fragment will be ignored.
-        VoiceSpawnsLeft = CONFIG_MAX_VOICES;
+        VoiceSpawnsLeft = MaxVoices();
 
         // get all events from the engine's global input event queue which belong to the current fragment
         // (these are usually just SysEx messages)
@@ -2111,6 +2121,37 @@ namespace LinuxSampler { namespace gig {
         return ActiveVoiceCountMax;
     }
 
+    int Engine::MaxVoices() {
+        return pVoicePool->poolSize();
+    }
+
+    void Engine::SetMaxVoices(int iVoices) throw (Exception) {
+        if (iVoices < 1)
+            throw Exception("Maximum voices for an engine cannot be set lower than 1");
+
+        SuspendAll();
+
+        if (pDimRegionPool[0]) delete pDimRegionPool[0];
+        if (pDimRegionPool[1]) delete pDimRegionPool[1];
+
+        pDimRegionPool[0] = new Pool< ::gig::DimensionRegion*>(iVoices);
+        pDimRegionPool[1] = new Pool< ::gig::DimensionRegion*>(iVoices);
+
+        try {
+            pVoicePool->resizePool(iVoices);
+        } catch (...) {
+            throw Exception("FATAL: Could not resize voice pool!");
+        }
+
+        for (RTList<Voice>::Iterator iterVoice = pVoicePool->allocAppend(); iterVoice == pVoicePool->last(); iterVoice = pVoicePool->allocAppend()) {
+            iterVoice->SetEngine(this);
+            iterVoice->pDiskThread = this->pDiskThread;
+        }
+        pVoicePool->clear();
+
+        ResumeAll();
+    }
+
     bool Engine::DiskStreamSupported() {
         return true;
     }
@@ -2121,6 +2162,25 @@ namespace LinuxSampler { namespace gig {
 
     uint Engine::DiskStreamCountMax() {
         return (pDiskThread) ? pDiskThread->ActiveStreamCountMax : 0;
+    }
+
+    int Engine::MaxDiskStreams() {
+        return iMaxDiskStreams;
+    }
+
+    void Engine::SetMaxDiskStreams(int iStreams) throw (Exception) {
+        if (iStreams < 0)
+            throw Exception("Maximum disk streams for an engine cannot be set lower than 0");
+
+        SuspendAll();
+
+        iMaxDiskStreams = iStreams;
+
+        // reconnect to audio output device, because that will automatically
+        // recreate the disk thread with the required amount of streams
+        if (pAudioOutputDevice) Connect(pAudioOutputDevice);
+
+        ResumeAll();
     }
 
     String Engine::DiskStreamBufferFillBytes() {
@@ -2140,7 +2200,7 @@ namespace LinuxSampler { namespace gig {
     }
 
     String Engine::Version() {
-        String s = "$Revision: 1.98 $";
+        String s = "$Revision: 1.99 $";
         return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
 
