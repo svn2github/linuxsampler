@@ -1726,7 +1726,7 @@ lscp_status_t lscp_reset_channel ( lscp_client_t *pClient, int iSamplerChannel )
  */
 lscp_status_t lscp_reset_sampler ( lscp_client_t *pClient )
 {
-	// Do actual whole sampler reset... 
+	// Do actual whole sampler reset...
 	return lscp_client_query(pClient, "RESET\r\n");
 }
 
@@ -1898,6 +1898,129 @@ lscp_status_t lscp_set_volume ( lscp_client_t *pClient, float fVolume )
 	return lscp_client_query(pClient, szQuery);
 }
 
+/**
+ *  Get global voice limit setting:
+ *  @code
+ *  GET VOICES
+ *  @endcode
+ *  This value reflects the maximum amount of voices a sampler engine
+ *  processes simultaniously before voice stealing kicks in.
+ *
+ *  @param pClient  Pointer to client instance structure.
+ *
+ *  @returns The current global maximum amount of voices limit or a
+ *           negative value on error (e.g. if sampler doesn't support
+ *           this command).
+ */
+int lscp_get_voices(lscp_client_t *pClient)
+{
+	int iVoices = -1;
+
+	if (pClient == NULL)
+		return -1;
+
+	// Lock this section up.
+	lscp_mutex_lock(pClient->mutex);
+
+	if (lscp_client_call(pClient, "GET VOICES\r\n", 0) == LSCP_OK)
+		iVoices = atoi(lscp_client_get_result(pClient));
+
+	// Unlock this section down.
+	lscp_mutex_unlock(pClient->mutex);
+
+	return iVoices;
+}
+
+/**
+ *  Setting global voice limit setting:
+ *  @code
+ *  SET VOICES <max-voices>
+ *  @endcode
+ *  This value reflects the maximum amount of voices a sampler engine
+ *  processes simultaniously before voice stealing kicks in. Note that
+ *  this value will be passed to all sampler engine instances, that is
+ *  the total amount of maximum voices on the running system is thus
+ *  @param iMaxVoices multiplied with the current amount of sampler
+ *  engine instances.
+ *
+ *  @param pClient     Pointer to client instance structure.
+ *  @param iMaxVoices  Global voice limit setting as integer value larger
+ *                     or equal to 1.
+ *
+ *  @returns LSCP_OK on success, LSCP_FAILED otherwise.
+ */
+lscp_status_t lscp_set_voices(lscp_client_t *pClient, int iMaxVoices)
+{
+	char szQuery[LSCP_BUFSIZ];
+
+	if (iMaxVoices < 1)
+		return LSCP_FAILED;
+
+	sprintf(szQuery, "SET VOICES %d\r\n", iMaxVoices);
+	return lscp_client_query(pClient, szQuery);
+}
+
+/**
+ *  Get global disk streams limit setting:
+ *  @code
+ *  GET STREAMS
+ *  @endcode
+ *  This value reflects the maximum amount of disk streams a sampler
+ *  engine processes simultaniously.
+ *
+ *  @param pClient  Pointer to client instance structure.
+ *
+ *  @returns The current global maximum amount of disk streams limit
+ *           or a negative value on error (e.g. if sampler doesn't
+ *           support this command).
+ */
+int lscp_get_streams(lscp_client_t *pClient)
+{
+	int iStreams = -1;
+
+	if (pClient == NULL)
+		return -1;
+
+	// Lock this section up.
+	lscp_mutex_lock(pClient->mutex);
+
+	if (lscp_client_call(pClient, "GET STREAMS\r\n", 0) == LSCP_OK)
+		iStreams = atoi(lscp_client_get_result(pClient));
+
+	// Unlock this section down.
+	lscp_mutex_unlock(pClient->mutex);
+
+	return iStreams;
+}
+
+/**
+ *  Setting global disk streams limit setting:
+ *  @code
+ *  SET STREAMS <max-streams>
+ *  @endcode
+ *  This value reflects the maximum amount of dist streams a sampler
+ *  engine instance processes simultaniously. Note that this value will
+ *  be passed to all sampler engine instances, that is the total amount
+ *  of maximum disk streams on the running system is thus
+ *  @param iMaxStreams multiplied with the current amount of sampler
+ *  engine instances.
+ *
+ *  @param pClient      Pointer to client instance structure.
+ *  @param iMaxStreams  Global streams limit setting as positive integer
+ *                      value (larger or equal to 0).
+ *
+ *  @returns LSCP_OK on success, LSCP_FAILED otherwise.
+ */
+lscp_status_t lscp_set_streams(lscp_client_t *pClient, int iMaxStreams)
+{
+	char szQuery[LSCP_BUFSIZ];
+
+	if (iMaxStreams < 0)
+		return LSCP_FAILED;
+
+	sprintf(szQuery, "SET STREAMS %d\r\n", iMaxStreams);
+	return lscp_client_query(pClient, szQuery);
+}
 
 /**
  *  Add an effect send to a sampler channel:
@@ -1926,7 +2049,7 @@ int lscp_create_fxsend ( lscp_client_t *pClient, int iSamplerChannel, int iMidiC
 	lscp_mutex_lock(pClient->mutex);
 
 	sprintf(szQuery, "CREATE FX_SEND %d %d", iSamplerChannel, iMidiController);
-	
+
 	if (pszFxName)
 		sprintf(szQuery + strlen(szQuery), " '%s'", pszFxName);
 
@@ -2227,7 +2350,7 @@ int lscp_add_midi_instrument_map ( lscp_client_t *pClient, const char *pszMapNam
 	lscp_mutex_lock(pClient->mutex);
 
 	strcpy(szQuery, "ADD MIDI_INSTRUMENT_MAP");
-	
+
 	if (pszMapName)
 		sprintf(szQuery + strlen(szQuery), " '%s'", pszMapName);
 
@@ -2353,7 +2476,7 @@ const char *lscp_get_midi_instrument_map_name ( lscp_client_t *pClient, int iMid
 
 	// Lock this section up.
 	lscp_mutex_lock(pClient->mutex);
-	
+
 	if (pClient->midi_map_name) {
 		free(pClient->midi_map_name);
 		pClient->midi_map_name = NULL;
@@ -2417,7 +2540,7 @@ lscp_status_t lscp_set_midi_instrument_map_name ( lscp_client_t *pClient, int iM
  *  @param pszFileName      Instrument file name.
  *  @param iInstrIndex      Instrument index number.
  *  @param fVolume          Reflects the master volume of the instrument as
- *                          a positive floating point number, where a value 
+ *                          a positive floating point number, where a value
  *                          less than 1.0 for attenuation, and greater than
  *                          1.0 for amplification.
  *  @param load_mode        Instrument load life-time strategy, either
@@ -2616,7 +2739,7 @@ lscp_midi_instrument_info_t *lscp_get_midi_instrument_info ( lscp_client_t *pCli
 
 	// Lock this section up.
 	lscp_mutex_lock(pClient->mutex);
-	
+
 	pInstrInfo = &(pClient->midi_instrument_info);
 	lscp_midi_instrument_info_reset(pInstrInfo);
 
