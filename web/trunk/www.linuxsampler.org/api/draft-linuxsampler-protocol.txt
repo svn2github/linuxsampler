@@ -4,7 +4,7 @@
 LinuxSampler Developers                                   C. Schoenebeck
 Internet-Draft                           Interessengemeinschaft Software
 Intended status: Standards Track                       Engineering e. V.
-Expires: March 14, 2009                               September 10, 2008
+Expires: June 9, 2009                                   December 6, 2008
 
 
                      LinuxSampler Control Protocol
@@ -33,11 +33,7 @@ Status of this Memo
    The list of Internet-Draft Shadow Directories can be accessed at
    http://www.ietf.org/shadow.html.
 
-   This Internet-Draft will expire on March 14, 2009.
-
-Copyright Notice
-
-   Copyright (C) The IETF Trust (2008).
+   This Internet-Draft will expire on June 9, 2009.
 
 
 
@@ -52,9 +48,13 @@ Copyright Notice
 
 
 
-Schoenebeck              Expires March 14, 2009                 [Page 1]
+
+
+
+
+Schoenebeck               Expires June 9, 2009                  [Page 1]
 
-Internet-Draft        LinuxSampler Control Protocol       September 2008
+Internet-Draft        LinuxSampler Control Protocol        December 2008
 
 
 Abstract
@@ -108,9 +108,9 @@ Table of Contents
 
 
 
-Schoenebeck              Expires March 14, 2009                 [Page 2]
+Schoenebeck               Expires June 9, 2009                  [Page 2]
 
-Internet-Draft        LinuxSampler Control Protocol       September 2008
+Internet-Draft        LinuxSampler Control Protocol        December 2008
 
 
        6.3.8.  Getting all created MIDI input device list  . . . . .  37
@@ -164,9 +164,9 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
 
 
 
-Schoenebeck              Expires March 14, 2009                 [Page 3]
+Schoenebeck               Expires June 9, 2009                  [Page 3]
 
-Internet-Draft        LinuxSampler Control Protocol       September 2008
+Internet-Draft        LinuxSampler Control Protocol        December 2008
 
 
        6.5.3.  Enable or disable echo of commands  . . . . . . . . .  73
@@ -179,106 +179,106 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
        6.6.5.  General sampler informations  . . . . . . . . . . . .  75
        6.6.6.  Getting global volume attenuation . . . . . . . . . .  76
        6.6.7.  Setting global volume attenuation . . . . . . . . . .  76
-     6.7.  MIDI Instrument Mapping . . . . . . . . . . . . . . . . .  77
-       6.7.1.  Create a new MIDI instrument map  . . . . . . . . . .  77
-       6.7.2.  Delete one particular or all MIDI instrument maps . .  78
-       6.7.3.  Get amount of existing MIDI instrument maps . . . . .  79
-       6.7.4.  Getting all created MIDI instrument maps  . . . . . .  79
-       6.7.5.  Getting MIDI instrument map information . . . . . . .  80
-       6.7.6.  Renaming a MIDI instrument map  . . . . . . . . . . .  81
-       6.7.7.  Create or replace a MIDI instrument map entry . . . .  81
-       6.7.8.  Getting ammount of MIDI instrument map entries  . . .  84
+       6.6.8.  Getting global voice limit  . . . . . . . . . . . . .  77
+       6.6.9.  Setting global voice limit  . . . . . . . . . . . . .  77
+       6.6.10. Getting global disk stream limit  . . . . . . . . . .  78
+       6.6.11. Setting global disk stream limit  . . . . . . . . . .  78
+     6.7.  MIDI Instrument Mapping . . . . . . . . . . . . . . . . .  79
+       6.7.1.  Create a new MIDI instrument map  . . . . . . . . . .  80
+       6.7.2.  Delete one particular or all MIDI instrument maps . .  81
+       6.7.3.  Get amount of existing MIDI instrument maps . . . . .  81
+       6.7.4.  Getting all created MIDI instrument maps  . . . . . .  82
+       6.7.5.  Getting MIDI instrument map information . . . . . . .  82
+       6.7.6.  Renaming a MIDI instrument map  . . . . . . . . . . .  83
+       6.7.7.  Create or replace a MIDI instrument map entry . . . .  84
+       6.7.8.  Getting ammount of MIDI instrument map entries  . . .  86
        6.7.9.  Getting indeces of all entries of a MIDI
-               instrument map  . . . . . . . . . . . . . . . . . . .  85
-       6.7.10. Remove an entry from the MIDI instrument map  . . . .  85
-       6.7.11. Get current settings of MIDI instrument map entry . .  86
-       6.7.12. Clear MIDI instrument map . . . . . . . . . . . . . .  88
-     6.8.  Managing Instruments Database . . . . . . . . . . . . . .  89
-       6.8.1.  Creating a new instrument directory . . . . . . . . .  89
-       6.8.2.  Deleting an instrument directory  . . . . . . . . . .  89
-       6.8.3.  Getting amount of instrument directories  . . . . . .  90
-       6.8.4.  Listing all directories in specific directory . . . .  91
-       6.8.5.  Getting instrument directory information  . . . . . .  91
-       6.8.6.  Renaming an instrument directory  . . . . . . . . . .  92
-       6.8.7.  Moving an instrument directory  . . . . . . . . . . .  93
-       6.8.8.  Copying instrument directories  . . . . . . . . . . .  94
-       6.8.9.  Changing the description of directory . . . . . . . .  94
-       6.8.10. Finding directories . . . . . . . . . . . . . . . . .  95
-       6.8.11. Adding instruments to the instruments database  . . .  96
-       6.8.12. Removing an instrument  . . . . . . . . . . . . . . .  98
-       6.8.13. Getting amount of instruments . . . . . . . . . . . .  98
-       6.8.14. Listing all instruments in specific directory . . . .  99
-       6.8.15. Getting instrument information  . . . . . . . . . . . 100
-       6.8.16. Renaming an instrument  . . . . . . . . . . . . . . . 102
-       6.8.17. Moving an instrument  . . . . . . . . . . . . . . . . 103
-       6.8.18. Copying instruments . . . . . . . . . . . . . . . . . 103
-       6.8.19. Changing the description of instrument  . . . . . . . 104
-       6.8.20. Finding instruments . . . . . . . . . . . . . . . . . 104
-       6.8.21. Getting job status information  . . . . . . . . . . . 107
-       6.8.22. Formatting the instruments database . . . . . . . . . 108
-       6.8.23. Checking for lost instrument files  . . . . . . . . . 108
+               instrument map  . . . . . . . . . . . . . . . . . . .  87
+       6.7.10. Remove an entry from the MIDI instrument map  . . . .  88
+       6.7.11. Get current settings of MIDI instrument map entry . .  88
+       6.7.12. Clear MIDI instrument map . . . . . . . . . . . . . .  90
+     6.8.  Managing Instruments Database . . . . . . . . . . . . . .  91
+       6.8.1.  Creating a new instrument directory . . . . . . . . .  91
+       6.8.2.  Deleting an instrument directory  . . . . . . . . . .  92
+       6.8.3.  Getting amount of instrument directories  . . . . . .  92
+       6.8.4.  Listing all directories in specific directory . . . .  93
+       6.8.5.  Getting instrument directory information  . . . . . .  94
+       6.8.6.  Renaming an instrument directory  . . . . . . . . . .  95
+       6.8.7.  Moving an instrument directory  . . . . . . . . . . .  95
+       6.8.8.  Copying instrument directories  . . . . . . . . . . .  96
+       6.8.9.  Changing the description of directory . . . . . . . .  97
+       6.8.10. Finding directories . . . . . . . . . . . . . . . . .  97
+       6.8.11. Adding instruments to the instruments database  . . .  99
+       6.8.12. Removing an instrument  . . . . . . . . . . . . . . . 100
+       6.8.13. Getting amount of instruments . . . . . . . . . . . . 101
+       6.8.14. Listing all instruments in specific directory . . . . 101
+       6.8.15. Getting instrument information  . . . . . . . . . . . 102
+       6.8.16. Renaming an instrument  . . . . . . . . . . . . . . . 104
+       6.8.17. Moving an instrument  . . . . . . . . . . . . . . . . 105
+       6.8.18. Copying instruments . . . . . . . . . . . . . . . . . 106
+       6.8.19. Changing the description of instrument  . . . . . . . 106
 
 
 
-Schoenebeck              Expires March 14, 2009                 [Page 4]
+Schoenebeck               Expires June 9, 2009                  [Page 4]
 
-Internet-Draft        LinuxSampler Control Protocol       September 2008
+Internet-Draft        LinuxSampler Control Protocol        December 2008
 
 
-       6.8.24. Replacing an instrument file  . . . . . . . . . . . . 109
-     6.9.  Editing Instruments . . . . . . . . . . . . . . . . . . . 109
+       6.8.20. Finding instruments . . . . . . . . . . . . . . . . . 107
+       6.8.21. Getting job status information  . . . . . . . . . . . 109
+       6.8.22. Formatting the instruments database . . . . . . . . . 110
+       6.8.23. Checking for lost instrument files  . . . . . . . . . 111
+       6.8.24. Replacing an instrument file  . . . . . . . . . . . . 111
+     6.9.  Editing Instruments . . . . . . . . . . . . . . . . . . . 112
        6.9.1.  Opening an appropriate instrument editor
-               application . . . . . . . . . . . . . . . . . . . . . 110
-     6.10. Managing Files  . . . . . . . . . . . . . . . . . . . . . 111
-       6.10.1. Retrieving amount of instruments of a file  . . . . . 111
-       6.10.2. Retrieving all instruments of a file  . . . . . . . . 111
+               application . . . . . . . . . . . . . . . . . . . . . 112
+     6.10. Managing Files  . . . . . . . . . . . . . . . . . . . . . 113
+       6.10.1. Retrieving amount of instruments of a file  . . . . . 113
+       6.10.2. Retrieving all instruments of a file  . . . . . . . . 114
        6.10.3. Retrieving informations about one instrument in a
-               file  . . . . . . . . . . . . . . . . . . . . . . . . 112
-   7.  Command Syntax  . . . . . . . . . . . . . . . . . . . . . . . 115
-     7.1.  Character Set and Escape Sequences  . . . . . . . . . . . 129
-   8.  Events  . . . . . . . . . . . . . . . . . . . . . . . . . . . 133
-     8.1.  Number of audio output devices changed  . . . . . . . . . 133
-     8.2.  Audio output device's settings changed  . . . . . . . . . 133
-     8.3.  Number of MIDI input devices changed  . . . . . . . . . . 133
-     8.4.  MIDI input device's settings changed  . . . . . . . . . . 134
-     8.5.  Number of sampler channels changed  . . . . . . . . . . . 134
-     8.6.  MIDI data on a sampler channel arrived  . . . . . . . . . 134
-     8.7.  MIDI data on a MIDI input device arrived  . . . . . . . . 135
-     8.8.  Number of active voices changed . . . . . . . . . . . . . 135
-     8.9.  Number of active disk streams changed . . . . . . . . . . 136
-     8.10. Disk stream buffer fill state changed . . . . . . . . . . 136
-     8.11. Channel information changed . . . . . . . . . . . . . . . 136
-     8.12. Number of effect sends changed  . . . . . . . . . . . . . 137
-     8.13. Effect send information changed . . . . . . . . . . . . . 137
-     8.14. Total number of active voices changed . . . . . . . . . . 138
-     8.15. Total number of active disk streams changed . . . . . . . 138
-     8.16. Number of MIDI instrument maps changed  . . . . . . . . . 138
-     8.17. MIDI instrument map information changed . . . . . . . . . 138
-     8.18. Number of MIDI instruments changed  . . . . . . . . . . . 139
-     8.19. MIDI instrument information changed . . . . . . . . . . . 139
-     8.20. Global settings changed . . . . . . . . . . . . . . . . . 140
-     8.21. Number of database instrument directories changed . . . . 140
-     8.22. Database instrument directory information changed . . . . 140
-     8.23. Number of database instruments changed  . . . . . . . . . 141
-     8.24. Database instrument information changed . . . . . . . . . 141
-     8.25. Database job status information changed . . . . . . . . . 142
-     8.26. Miscellaneous and debugging events  . . . . . . . . . . . 142
-   9.  Security Considerations . . . . . . . . . . . . . . . . . . . 143
-   10. Acknowledgments . . . . . . . . . . . . . . . . . . . . . . . 144
-   11. References  . . . . . . . . . . . . . . . . . . . . . . . . . 145
-   Author's Address  . . . . . . . . . . . . . . . . . . . . . . . . 146
-   Intellectual Property and Copyright Statements  . . . . . . . . . 147
+               file  . . . . . . . . . . . . . . . . . . . . . . . . 114
+   7.  Command Syntax  . . . . . . . . . . . . . . . . . . . . . . . 117
+     7.1.  Character Set and Escape Sequences  . . . . . . . . . . . 131
+   8.  Events  . . . . . . . . . . . . . . . . . . . . . . . . . . . 136
+     8.1.  Number of audio output devices changed  . . . . . . . . . 136
+     8.2.  Audio output device's settings changed  . . . . . . . . . 136
+     8.3.  Number of MIDI input devices changed  . . . . . . . . . . 136
+     8.4.  MIDI input device's settings changed  . . . . . . . . . . 137
+     8.5.  Number of sampler channels changed  . . . . . . . . . . . 137
+     8.6.  MIDI data on a sampler channel arrived  . . . . . . . . . 137
+     8.7.  MIDI data on a MIDI input device arrived  . . . . . . . . 138
+     8.8.  Number of active voices changed . . . . . . . . . . . . . 138
+     8.9.  Number of active disk streams changed . . . . . . . . . . 139
+     8.10. Disk stream buffer fill state changed . . . . . . . . . . 139
+     8.11. Channel information changed . . . . . . . . . . . . . . . 139
+     8.12. Number of effect sends changed  . . . . . . . . . . . . . 140
+     8.13. Effect send information changed . . . . . . . . . . . . . 140
+     8.14. Total number of active voices changed . . . . . . . . . . 141
+     8.15. Total number of active disk streams changed . . . . . . . 141
+     8.16. Number of MIDI instrument maps changed  . . . . . . . . . 141
+     8.17. MIDI instrument map information changed . . . . . . . . . 141
+     8.18. Number of MIDI instruments changed  . . . . . . . . . . . 142
+     8.19. MIDI instrument information changed . . . . . . . . . . . 142
+     8.20. Global settings changed . . . . . . . . . . . . . . . . . 143
+     8.21. Number of database instrument directories changed . . . . 143
+     8.22. Database instrument directory information changed . . . . 143
+     8.23. Number of database instruments changed  . . . . . . . . . 144
+     8.24. Database instrument information changed . . . . . . . . . 144
+     8.25. Database job status information changed . . . . . . . . . 145
+     8.26. Miscellaneous and debugging events  . . . . . . . . . . . 145
+   9.  Security Considerations . . . . . . . . . . . . . . . . . . . 147
+   10. Acknowledgments . . . . . . . . . . . . . . . . . . . . . . . 148
+   11. References  . . . . . . . . . . . . . . . . . . . . . . . . . 149
+   Author's Address  . . . . . . . . . . . . . . . . . . . . . . . . 150
+   Intellectual Property and Copyright Statements  . . . . . . . . . 151
 
 
 
 
-
-
-
-
-Schoenebeck              Expires March 14, 2009                 [Page 5]
+Schoenebeck               Expires June 9, 2009                  [Page 5]
 
-Internet-Draft        LinuxSampler Control Protocol       September 2008
+Internet-Draft        LinuxSampler Control Protocol        December 2008
 
 
 1.  Requirements notation
@@ -332,9 +332,9 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
 
 
 
-Schoenebeck              Expires March 14, 2009                 [Page 6]
+Schoenebeck               Expires June 9, 2009                  [Page 6]
 
-Internet-Draft        LinuxSampler Control Protocol       September 2008
+Internet-Draft        LinuxSampler Control Protocol        December 2008
 
 
 2.  Versioning of this specification
@@ -388,9 +388,9 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
 
 
 
-Schoenebeck              Expires March 14, 2009                 [Page 7]
+Schoenebeck               Expires June 9, 2009                  [Page 7]
 
-Internet-Draft        LinuxSampler Control Protocol       September 2008
+Internet-Draft        LinuxSampler Control Protocol        December 2008
 
 
 3.  Introduction
@@ -444,9 +444,9 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
 
 
 
-Schoenebeck              Expires March 14, 2009                 [Page 8]
+Schoenebeck               Expires June 9, 2009                  [Page 8]
 
-Internet-Draft        LinuxSampler Control Protocol       September 2008
+Internet-Draft        LinuxSampler Control Protocol        December 2008
 
 
 4.  Focus of this protocol
@@ -500,9 +500,9 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
 
 
 
-Schoenebeck              Expires March 14, 2009                 [Page 9]
+Schoenebeck               Expires June 9, 2009                  [Page 9]
 
-Internet-Draft        LinuxSampler Control Protocol       September 2008
+Internet-Draft        LinuxSampler Control Protocol        December 2008
 
 
 5.  Communication Overview
@@ -556,9 +556,9 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
 
 
 
-Schoenebeck              Expires March 14, 2009                [Page 10]
+Schoenebeck               Expires June 9, 2009                 [Page 10]
 
-Internet-Draft        LinuxSampler Control Protocol       September 2008
+Internet-Draft        LinuxSampler Control Protocol        December 2008
 
 
 5.1.1.  Result format
@@ -612,9 +612,9 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
 
 
 
-Schoenebeck              Expires March 14, 2009                [Page 11]
+Schoenebeck               Expires June 9, 2009                 [Page 11]
 
-Internet-Draft        LinuxSampler Control Protocol       September 2008
+Internet-Draft        LinuxSampler Control Protocol        December 2008
 
 
    set has the following format:
@@ -668,9 +668,9 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
 
 
 
-Schoenebeck              Expires March 14, 2009                [Page 12]
+Schoenebeck               Expires June 9, 2009                 [Page 12]
 
-Internet-Draft        LinuxSampler Control Protocol       September 2008
+Internet-Draft        LinuxSampler Control Protocol        December 2008
 
 
    Each line of the result set MUST end with <CRLF>.
@@ -724,9 +724,9 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
 
 
 
-Schoenebeck              Expires March 14, 2009                [Page 13]
+Schoenebeck               Expires June 9, 2009                 [Page 13]
 
-Internet-Draft        LinuxSampler Control Protocol       September 2008
+Internet-Draft        LinuxSampler Control Protocol        December 2008
 
 
        inserted in the middle of the event message as well as any other
@@ -780,9 +780,9 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
 
 
 
-Schoenebeck              Expires March 14, 2009                [Page 14]
+Schoenebeck               Expires June 9, 2009                 [Page 14]
 
-Internet-Draft        LinuxSampler Control Protocol       September 2008
+Internet-Draft        LinuxSampler Control Protocol        December 2008
 
 
 6.  Description for control commands
@@ -836,9 +836,9 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
 
 
 
-Schoenebeck              Expires March 14, 2009                [Page 15]
+Schoenebeck               Expires June 9, 2009                 [Page 15]
 
-Internet-Draft        LinuxSampler Control Protocol       September 2008
+Internet-Draft        LinuxSampler Control Protocol        December 2008
 
 
 6.2.1.  Getting amount of available audio output drivers
@@ -892,9 +892,9 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
 
 
 
-Schoenebeck              Expires March 14, 2009                [Page 16]
+Schoenebeck               Expires June 9, 2009                 [Page 16]
 
-Internet-Draft        LinuxSampler Control Protocol       September 2008
+Internet-Draft        LinuxSampler Control Protocol        December 2008
 
 
       LinuxSampler will answer by sending a <CRLF> separated list.  Each
@@ -948,9 +948,9 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
 
 
 
-Schoenebeck              Expires March 14, 2009                [Page 17]
+Schoenebeck               Expires June 9, 2009                 [Page 17]
 
-Internet-Draft        LinuxSampler Control Protocol       September 2008
+Internet-Draft        LinuxSampler Control Protocol        December 2008
 
 
    obtained (as returned by the "GET AUDIO_OUTPUT_DRIVER INFO"
@@ -1004,9 +1004,9 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
 
 
 
-Schoenebeck              Expires March 14, 2009                [Page 18]
+Schoenebeck               Expires June 9, 2009                 [Page 18]
 
-Internet-Draft        LinuxSampler Control Protocol       September 2008
+Internet-Draft        LinuxSampler Control Protocol        December 2008
 
 
       MULTIPLICITY -
@@ -1060,9 +1060,9 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
 
 
 
-Schoenebeck              Expires March 14, 2009                [Page 19]
+Schoenebeck               Expires June 9, 2009                 [Page 19]
 
-Internet-Draft        LinuxSampler Control Protocol       September 2008
+Internet-Draft        LinuxSampler Control Protocol        December 2008
 
 
          returned, dependent to driver parameter)
@@ -1116,9 +1116,9 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
 
 
 
-Schoenebeck              Expires March 14, 2009                [Page 20]
+Schoenebeck               Expires June 9, 2009                 [Page 20]
 
-Internet-Draft        LinuxSampler Control Protocol       September 2008
+Internet-Draft        LinuxSampler Control Protocol        December 2008
 
 
          "TYPE: INT"
@@ -1172,9 +1172,9 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
 
 
 
-Schoenebeck              Expires March 14, 2009                [Page 21]
+Schoenebeck               Expires June 9, 2009                 [Page 21]
 
-Internet-Draft        LinuxSampler Control Protocol       September 2008
+Internet-Draft        LinuxSampler Control Protocol        December 2008
 
 
          providing an appropriate warning code and warning message
@@ -1228,9 +1228,9 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
 
 
 
-Schoenebeck              Expires March 14, 2009                [Page 22]
+Schoenebeck               Expires June 9, 2009                 [Page 22]
 
-Internet-Draft        LinuxSampler Control Protocol       September 2008
+Internet-Draft        LinuxSampler Control Protocol        December 2008
 
 
       C: "DESTROY AUDIO_OUTPUT_DEVICE 0"
@@ -1284,9 +1284,9 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
 
 
 
-Schoenebeck              Expires March 14, 2009                [Page 23]
+Schoenebeck               Expires June 9, 2009                 [Page 23]
 
-Internet-Draft        LinuxSampler Control Protocol       September 2008
+Internet-Draft        LinuxSampler Control Protocol        December 2008
 
 
    Possible Answers:
@@ -1340,9 +1340,9 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
 
 
 
-Schoenebeck              Expires March 14, 2009                [Page 24]
+Schoenebeck               Expires June 9, 2009                 [Page 24]
 
-Internet-Draft        LinuxSampler Control Protocol       September 2008
+Internet-Draft        LinuxSampler Control Protocol        December 2008
 
 
          "FRAGMENTS: 2"
@@ -1396,9 +1396,9 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
 
 
 
-Schoenebeck              Expires March 14, 2009                [Page 25]
+Schoenebeck               Expires June 9, 2009                 [Page 25]
 
-Internet-Draft        LinuxSampler Control Protocol       September 2008
+Internet-Draft        LinuxSampler Control Protocol        December 2008
 
 
 6.2.11.  Getting information about an audio channel
@@ -1452,9 +1452,9 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
 
 
 
-Schoenebeck              Expires March 14, 2009                [Page 26]
+Schoenebeck               Expires June 9, 2009                 [Page 26]
 
-Internet-Draft        LinuxSampler Control Protocol       September 2008
+Internet-Draft        LinuxSampler Control Protocol        December 2008
 
 
    Examples:
@@ -1508,9 +1508,9 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
 
 
 
-Schoenebeck              Expires March 14, 2009                [Page 27]
+Schoenebeck               Expires June 9, 2009                 [Page 27]
 
-Internet-Draft        LinuxSampler Control Protocol       September 2008
+Internet-Draft        LinuxSampler Control Protocol        December 2008
 
 
    channel number and <param> a specific channel parameter name for
@@ -1564,9 +1564,9 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
 
 
 
-Schoenebeck              Expires March 14, 2009                [Page 28]
+Schoenebeck               Expires June 9, 2009                 [Page 28]
 
-Internet-Draft        LinuxSampler Control Protocol       September 2008
+Internet-Draft        LinuxSampler Control Protocol        December 2008
 
 
          RANGE_MAX -
@@ -1620,9 +1620,9 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
 
 
 
-Schoenebeck              Expires March 14, 2009                [Page 29]
+Schoenebeck               Expires June 9, 2009                 [Page 29]
 
-Internet-Draft        LinuxSampler Control Protocol       September 2008
+Internet-Draft        LinuxSampler Control Protocol        December 2008
 
 
       "OK" -
@@ -1676,9 +1676,9 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
 
 
 
-Schoenebeck              Expires March 14, 2009                [Page 30]
+Schoenebeck               Expires June 9, 2009                 [Page 30]
 
-Internet-Draft        LinuxSampler Control Protocol       September 2008
+Internet-Draft        LinuxSampler Control Protocol        December 2008
 
 
    Note: examples in this chapter showing particular parameters of
@@ -1732,9 +1732,9 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
 
 
 
-Schoenebeck              Expires March 14, 2009                [Page 31]
+Schoenebeck               Expires June 9, 2009                 [Page 31]
 
-Internet-Draft        LinuxSampler Control Protocol       September 2008
+Internet-Draft        LinuxSampler Control Protocol        December 2008
 
 
 6.3.3.  Getting information about a specific MIDI input driver
@@ -1788,9 +1788,9 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
 
 
 
-Schoenebeck              Expires March 14, 2009                [Page 32]
+Schoenebeck               Expires June 9, 2009                 [Page 32]
 
-Internet-Draft        LinuxSampler Control Protocol       September 2008
+Internet-Draft        LinuxSampler Control Protocol        December 2008
 
 
 6.3.4.  Getting information about specific MIDI input driver parameter
@@ -1844,9 +1844,9 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
 
 
 
-Schoenebeck              Expires March 14, 2009                [Page 33]
+Schoenebeck               Expires June 9, 2009                 [Page 33]
 
-Internet-Draft        LinuxSampler Control Protocol       September 2008
+Internet-Draft        LinuxSampler Control Protocol        December 2008
 
 
       FIX -
@@ -1900,9 +1900,9 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
 
 
 
-Schoenebeck              Expires March 14, 2009                [Page 34]
+Schoenebeck               Expires June 9, 2009                 [Page 34]
 
-Internet-Draft        LinuxSampler Control Protocol       September 2008
+Internet-Draft        LinuxSampler Control Protocol        December 2008
 
 
          may also appear without (optionally returned, dependent to
@@ -1956,9 +1956,9 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
 
 
 
-Schoenebeck              Expires March 14, 2009                [Page 35]
+Schoenebeck               Expires June 9, 2009                 [Page 35]
 
-Internet-Draft        LinuxSampler Control Protocol       September 2008
+Internet-Draft        LinuxSampler Control Protocol        December 2008
 
 
       "OK[<device-id>]" -
@@ -2012,9 +2012,9 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
 
 
 
-Schoenebeck              Expires March 14, 2009                [Page 36]
+Schoenebeck               Expires June 9, 2009                 [Page 36]
 
-Internet-Draft        LinuxSampler Control Protocol       September 2008
+Internet-Draft        LinuxSampler Control Protocol        December 2008
 
 
          in case it failed, providing an appropriate error code and
@@ -2068,9 +2068,9 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
 
 
 
-Schoenebeck              Expires March 14, 2009                [Page 37]
+Schoenebeck               Expires June 9, 2009                 [Page 37]
 
-Internet-Draft        LinuxSampler Control Protocol       September 2008
+Internet-Draft        LinuxSampler Control Protocol        December 2008
 
 
 6.3.9.  Getting current settings of a MIDI input device
@@ -2124,9 +2124,9 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
 
 
 
-Schoenebeck              Expires March 14, 2009                [Page 38]
+Schoenebeck               Expires June 9, 2009                 [Page 38]
 
-Internet-Draft        LinuxSampler Control Protocol       September 2008
+Internet-Draft        LinuxSampler Control Protocol        December 2008
 
 
          "ACTIVE: true"
@@ -2180,9 +2180,9 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
 
 
 
-Schoenebeck              Expires March 14, 2009                [Page 39]
+Schoenebeck               Expires June 9, 2009                 [Page 39]
 
-Internet-Draft        LinuxSampler Control Protocol       September 2008
+Internet-Draft        LinuxSampler Control Protocol        December 2008
 
 
    MIDI_INPUT_DEVICES" (Section 6.3.8) command and <midi-port> the MIDI
@@ -2236,9 +2236,9 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
 
 
 
-Schoenebeck              Expires March 14, 2009                [Page 40]
+Schoenebeck               Expires June 9, 2009                 [Page 40]
 
-Internet-Draft        LinuxSampler Control Protocol       September 2008
+Internet-Draft        LinuxSampler Control Protocol        December 2008
 
 
       character string to that info category.  There is information
@@ -2292,9 +2292,9 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
 
 
 
-Schoenebeck              Expires March 14, 2009                [Page 41]
+Schoenebeck               Expires June 9, 2009                 [Page 41]
 
-Internet-Draft        LinuxSampler Control Protocol       September 2008
+Internet-Draft        LinuxSampler Control Protocol        December 2008
 
 
          returned, dependent to device and port parameter)
@@ -2348,9 +2348,9 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
 
 
 
-Schoenebeck              Expires March 14, 2009                [Page 42]
+Schoenebeck               Expires June 9, 2009                 [Page 42]
 
-Internet-Draft        LinuxSampler Control Protocol       September 2008
+Internet-Draft        LinuxSampler Control Protocol        December 2008
 
 
       "ERR:<error-code>:<error-message>" -
@@ -2404,9 +2404,9 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
 
 
 
-Schoenebeck              Expires March 14, 2009                [Page 43]
+Schoenebeck               Expires June 9, 2009                 [Page 43]
 
-Internet-Draft        LinuxSampler Control Protocol       September 2008
+Internet-Draft        LinuxSampler Control Protocol        December 2008
 
 
    format and SHOULD return ERR and SHOULD not launch the background
@@ -2460,9 +2460,9 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
 
 
 
-Schoenebeck              Expires March 14, 2009                [Page 44]
+Schoenebeck               Expires June 9, 2009                 [Page 44]
 
-Internet-Draft        LinuxSampler Control Protocol       September 2008
+Internet-Draft        LinuxSampler Control Protocol        December 2008
 
 
    sampler channel.  This command has (currently) no way to define or
@@ -2516,9 +2516,9 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
 
 
 
-Schoenebeck              Expires March 14, 2009                [Page 45]
+Schoenebeck               Expires June 9, 2009                 [Page 45]
 
-Internet-Draft        LinuxSampler Control Protocol       September 2008
+Internet-Draft        LinuxSampler Control Protocol        December 2008
 
 
 6.4.4.  Getting all created sampler channel list
@@ -2572,9 +2572,9 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
 
 
 
-Schoenebeck              Expires March 14, 2009                [Page 46]
+Schoenebeck               Expires June 9, 2009                 [Page 46]
 
-Internet-Draft        LinuxSampler Control Protocol       September 2008
+Internet-Draft        LinuxSampler Control Protocol        December 2008
 
 
          in case a new channel was added successfully, but there are
@@ -2628,9 +2628,9 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
 
 
 
-Schoenebeck              Expires March 14, 2009                [Page 47]
+Schoenebeck               Expires June 9, 2009                 [Page 47]
 
-Internet-Draft        LinuxSampler Control Protocol       September 2008
+Internet-Draft        LinuxSampler Control Protocol        December 2008
 
 
 6.4.7.  Getting amount of available engines
@@ -2684,9 +2684,9 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
 
 
 
-Schoenebeck              Expires March 14, 2009                [Page 48]
+Schoenebeck               Expires June 9, 2009                 [Page 48]
 
-Internet-Draft        LinuxSampler Control Protocol       September 2008
+Internet-Draft        LinuxSampler Control Protocol        December 2008
 
 
    Possible Answers:
@@ -2740,9 +2740,9 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
 
 
 
-Schoenebeck              Expires March 14, 2009                [Page 49]
+Schoenebeck               Expires June 9, 2009                 [Page 49]
 
-Internet-Draft        LinuxSampler Control Protocol       September 2008
+Internet-Draft        LinuxSampler Control Protocol        December 2008
 
 
       following categories are defined:
@@ -2796,9 +2796,9 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
 
 
 
-Schoenebeck              Expires March 14, 2009                [Page 50]
+Schoenebeck               Expires June 9, 2009                 [Page 50]
 
-Internet-Draft        LinuxSampler Control Protocol       September 2008
+Internet-Draft        LinuxSampler Control Protocol        December 2008
 
 
          INSTRUMENT_STATUS -
@@ -2852,9 +2852,9 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
 
 
 
-Schoenebeck              Expires March 14, 2009                [Page 51]
+Schoenebeck               Expires June 9, 2009                 [Page 51]
 
-Internet-Draft        LinuxSampler Control Protocol       September 2008
+Internet-Draft        LinuxSampler Control Protocol        December 2008
 
 
    The mentioned fields above don't have to be in particular order.
@@ -2908,9 +2908,9 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
 
 
 
-Schoenebeck              Expires March 14, 2009                [Page 52]
+Schoenebeck               Expires June 9, 2009                 [Page 52]
 
-Internet-Draft        LinuxSampler Control Protocol       September 2008
+Internet-Draft        LinuxSampler Control Protocol        December 2008
 
 
    is interested in as returned by the "ADD CHANNEL" (Section 6.4.5) or
@@ -2964,9 +2964,9 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
 
 
 
-Schoenebeck              Expires March 14, 2009                [Page 53]
+Schoenebeck               Expires June 9, 2009                 [Page 53]
 
-Internet-Draft        LinuxSampler Control Protocol       September 2008
+Internet-Draft        LinuxSampler Control Protocol        December 2008
 
 
    command.
@@ -3020,9 +3020,9 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
 
 
 
-Schoenebeck              Expires March 14, 2009                [Page 54]
+Schoenebeck               Expires June 9, 2009                 [Page 54]
 
-Internet-Draft        LinuxSampler Control Protocol       September 2008
+Internet-Draft        LinuxSampler Control Protocol        December 2008
 
 
       "OK" -
@@ -3076,9 +3076,9 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
 
 
 
-Schoenebeck              Expires March 14, 2009                [Page 55]
+Schoenebeck               Expires June 9, 2009                 [Page 55]
 
-Internet-Draft        LinuxSampler Control Protocol       September 2008
+Internet-Draft        LinuxSampler Control Protocol        December 2008
 
 
    Examples:
@@ -3132,9 +3132,9 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
 
 
 
-Schoenebeck              Expires March 14, 2009                [Page 56]
+Schoenebeck               Expires June 9, 2009                 [Page 56]
 
-Internet-Draft        LinuxSampler Control Protocol       September 2008
+Internet-Draft        LinuxSampler Control Protocol        December 2008
 
 
    the "ADD CHANNEL" (Section 6.4.5) or "LIST CHANNELS" (Section 6.4.4)
@@ -3188,9 +3188,9 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
 
 
 
-Schoenebeck              Expires March 14, 2009                [Page 57]
+Schoenebeck               Expires June 9, 2009                 [Page 57]
 
-Internet-Draft        LinuxSampler Control Protocol       September 2008
+Internet-Draft        LinuxSampler Control Protocol        December 2008
 
 
          message
@@ -3244,9 +3244,9 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
 
 
 
-Schoenebeck              Expires March 14, 2009                [Page 58]
+Schoenebeck               Expires June 9, 2009                 [Page 58]
 
-Internet-Draft        LinuxSampler Control Protocol       September 2008
+Internet-Draft        LinuxSampler Control Protocol        December 2008
 
 
       SET CHANNEL MIDI_INPUT_CHANNEL <sampler-channel> <midi-input-chan>
@@ -3300,9 +3300,9 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
 
 
 
-Schoenebeck              Expires March 14, 2009                [Page 59]
+Schoenebeck               Expires June 9, 2009                 [Page 59]
 
-Internet-Draft        LinuxSampler Control Protocol       September 2008
+Internet-Draft        LinuxSampler Control Protocol        December 2008
 
 
          if channel volume was set, but there are noteworthy issue(s)
@@ -3356,9 +3356,9 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
 
 
 
-Schoenebeck              Expires March 14, 2009                [Page 60]
+Schoenebeck               Expires June 9, 2009                 [Page 60]
 
-Internet-Draft        LinuxSampler Control Protocol       September 2008
+Internet-Draft        LinuxSampler Control Protocol        December 2008
 
 
 6.4.23.  Soloing a sampler channel
@@ -3412,9 +3412,9 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
 
 
 
-Schoenebeck              Expires March 14, 2009                [Page 61]
+Schoenebeck               Expires June 9, 2009                 [Page 61]
 
-Internet-Draft        LinuxSampler Control Protocol       September 2008
+Internet-Draft        LinuxSampler Control Protocol        December 2008
 
 
          This is the default setting.  In this case the sampler channel
@@ -3468,9 +3468,9 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
 
 
 
-Schoenebeck              Expires March 14, 2009                [Page 62]
+Schoenebeck               Expires June 9, 2009                 [Page 62]
 
-Internet-Draft        LinuxSampler Control Protocol       September 2008
+Internet-Draft        LinuxSampler Control Protocol        December 2008
 
 
    effect send entity.  The name does not have to be unique, but MUST be
@@ -3524,9 +3524,9 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
 
 
 
-Schoenebeck              Expires March 14, 2009                [Page 63]
+Schoenebeck               Expires June 9, 2009                 [Page 63]
 
-Internet-Draft        LinuxSampler Control Protocol       September 2008
+Internet-Draft        LinuxSampler Control Protocol        December 2008
 
 
 6.4.26.  Removing an effect send from a sampler channel
@@ -3580,9 +3580,9 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
 
 
 
-Schoenebeck              Expires March 14, 2009                [Page 64]
+Schoenebeck               Expires June 9, 2009                 [Page 64]
 
-Internet-Draft        LinuxSampler Control Protocol       September 2008
+Internet-Draft        LinuxSampler Control Protocol        December 2008
 
 
       C: "GET FX_SENDS 0"
@@ -3636,9 +3636,9 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
 
 
 
-Schoenebeck              Expires March 14, 2009                [Page 65]
+Schoenebeck               Expires June 9, 2009                 [Page 65]
 
-Internet-Draft        LinuxSampler Control Protocol       September 2008
+Internet-Draft        LinuxSampler Control Protocol        December 2008
 
 
       character string to that setting category.  At the moment the
@@ -3692,9 +3692,9 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
 
 
 
-Schoenebeck              Expires March 14, 2009                [Page 66]
+Schoenebeck               Expires June 9, 2009                 [Page 66]
 
-Internet-Draft        LinuxSampler Control Protocol       September 2008
+Internet-Draft        LinuxSampler Control Protocol        December 2008
 
 
 6.4.30.  Changing effect send's name
@@ -3748,9 +3748,9 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
 
 
 
-Schoenebeck              Expires March 14, 2009                [Page 67]
+Schoenebeck               Expires June 9, 2009                 [Page 67]
 
-Internet-Draft        LinuxSampler Control Protocol       September 2008
+Internet-Draft        LinuxSampler Control Protocol        December 2008
 
 
    of the effect send's audio channel which should be rerouted and
@@ -3804,9 +3804,9 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
 
 
 
-Schoenebeck              Expires March 14, 2009                [Page 68]
+Schoenebeck               Expires June 9, 2009                 [Page 68]
 
-Internet-Draft        LinuxSampler Control Protocol       September 2008
+Internet-Draft        LinuxSampler Control Protocol        December 2008
 
 
    "ADD CHANNEL" (Section 6.4.5) or "LIST CHANNELS" (Section 6.4.4)
@@ -3860,9 +3860,9 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
 
 
 
-Schoenebeck              Expires March 14, 2009                [Page 69]
+Schoenebeck               Expires June 9, 2009                 [Page 69]
 
-Internet-Draft        LinuxSampler Control Protocol       September 2008
+Internet-Draft        LinuxSampler Control Protocol        December 2008
 
 
       "OK" -
@@ -3916,9 +3916,9 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
 
 
 
-Schoenebeck              Expires March 14, 2009                [Page 70]
+Schoenebeck               Expires June 9, 2009                 [Page 70]
 
-Internet-Draft        LinuxSampler Control Protocol       September 2008
+Internet-Draft        LinuxSampler Control Protocol        December 2008
 
 
    Possible Answers:
@@ -3972,9 +3972,9 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
 
 
 
-Schoenebeck              Expires March 14, 2009                [Page 71]
+Schoenebeck               Expires June 9, 2009                 [Page 71]
 
-Internet-Draft        LinuxSampler Control Protocol       September 2008
+Internet-Draft        LinuxSampler Control Protocol        December 2008
 
 
 
@@ -4028,9 +4028,9 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
 
 
 
-Schoenebeck              Expires March 14, 2009                [Page 72]
+Schoenebeck               Expires June 9, 2009                 [Page 72]
 
-Internet-Draft        LinuxSampler Control Protocol       September 2008
+Internet-Draft        LinuxSampler Control Protocol        December 2008
 
 
    Possible Answers:
@@ -4084,9 +4084,9 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
 
 
 
-Schoenebeck              Expires March 14, 2009                [Page 73]
+Schoenebeck               Expires June 9, 2009                 [Page 73]
 
-Internet-Draft        LinuxSampler Control Protocol       September 2008
+Internet-Draft        LinuxSampler Control Protocol        December 2008
 
 
 
@@ -4140,9 +4140,9 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
 
 
 
-Schoenebeck              Expires March 14, 2009                [Page 74]
+Schoenebeck               Expires June 9, 2009                 [Page 74]
 
-Internet-Draft        LinuxSampler Control Protocol       September 2008
+Internet-Draft        LinuxSampler Control Protocol        December 2008
 
 
       LinuxSampler will answer by returning the number of all active
@@ -4196,9 +4196,9 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
 
 
 
-Schoenebeck              Expires March 14, 2009                [Page 75]
+Schoenebeck               Expires June 9, 2009                 [Page 75]
 
-Internet-Draft        LinuxSampler Control Protocol       September 2008
+Internet-Draft        LinuxSampler Control Protocol        December 2008
 
 
          PROTOCOL_VERSION -
@@ -4252,9 +4252,9 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
 
 
 
-Schoenebeck              Expires March 14, 2009                [Page 76]
+Schoenebeck               Expires June 9, 2009                 [Page 76]
 
-Internet-Draft        LinuxSampler Control Protocol       September 2008
+Internet-Draft        LinuxSampler Control Protocol        December 2008
 
 
       "WRN:<warning-code>:<warning-message>" -
@@ -4267,6 +4267,132 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
 
          in case it failed, providing an appropriate error code and
          error message
+
+6.6.8.  Getting global voice limit
+
+   The client can ask for the current global sampler-wide limit for
+   maximum voices by sending the following command:
+
+      GET VOICES
+
+   Possible Answers:
+
+      LinuxSampler will answer by returning the number for the current
+      limit of maximum voices.
+
+   The voice limit setting defines how many voices should maximum be
+   processed by the sampler at the same time.  If the user triggers new
+   notes which would exceed that voice limit, the sampler engine will
+   react by stealing old voices for those newly triggered notes.  Note
+   that the amount of voices triggered by a new note can be larger than
+   one and is dependent to the respective instrument and probably
+   further criterias.
+
+6.6.9.  Setting global voice limit
+
+   The client can alter the current global sampler-wide limit for
+   maximum voices by sending the following command:
+
+      SET VOICES <max-voices>
+
+   Where <max-voices> should be replaced by the integer value,
+   reflecting the new global amount limit of maximum voices.  This value
+   has to be larger than 0.
+
+   Possible Answers:
+
+      "OK" -
+
+         on success
+
+
+
+
+Schoenebeck               Expires June 9, 2009                 [Page 77]
+
+Internet-Draft        LinuxSampler Control Protocol        December 2008
+
+
+      "WRN:<warning-code>:<warning-message>" -
+
+         if the voice limit was set, but there are noteworthy issue(s)
+         related, providing an appropriate warning code and warning
+         message
+
+      "ERR:<error-code>:<error-message>" -
+
+         in case it failed, providing an appropriate error code and
+         error message
+
+   Note: the given value will be passed to all sampler engine instances.
+   The total amount of maximum voices on the running system might thus
+   be as big as the given value multiplied by the current amount of
+   engine instances.
+
+   Caution: when adjusting the voice limit, you SHOULD also adjust the
+   disk stream limit respectively and vice versa.
+
+6.6.10.  Getting global disk stream limit
+
+   The client can ask for the current global sampler-wide limit for
+   maximum disk streams by sending the following command:
+
+      GET STREAMS
+
+   Possible Answers:
+
+      LinuxSampler will answer by returning the number for the current
+      limit of maximum disk streams.
+
+   The disk stream limit setting defines how many disk streams should
+   maximum be processed by a sampler engine at the same time.  The
+   higher this value, the more memory (RAM) will be occupied, since
+   every disk streams allocates a certain buffer size for being able to
+   perform its streaming operations.
+
+6.6.11.  Setting global disk stream limit
+
+   The client can alter the current global sampler-wide limit for
+   maximum disk streams by sending the following command:
+
+      SET STREAMS <max-streams>
+
+   Where <max-streams> should be replaced by the integer value,
+   reflecting the new global amount limit of maximum disk streams.  This
+   value has to be positive.
+
+
+
+
+Schoenebeck               Expires June 9, 2009                 [Page 78]
+
+Internet-Draft        LinuxSampler Control Protocol        December 2008
+
+
+   Possible Answers:
+
+      "OK" -
+
+         on success
+
+      "WRN:<warning-code>:<warning-message>" -
+
+         if the disk stream limit was set, but there are noteworthy
+         issue(s) related, providing an appropriate warning code and
+         warning message
+
+      "ERR:<error-code>:<error-message>" -
+
+         in case it failed, providing an appropriate error code and
+         error message
+
+   Note: the given value will be passed to all sampler engine instances.
+   The total amount of maximum disk streams on the running system might
+   thus be as big as the given value multiplied by the current amount of
+   engine instances.
+
+   Caution: when adjusting the disk stream limit, you SHOULD also adjust
+   the voice limit respectively and vice versa.
 
 6.7.  MIDI Instrument Mapping
 
@@ -4291,6 +4417,14 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
    (Section 6.4.24) for how to assign a MIDI instrument map to a sampler
    channel.
 
+
+
+
+Schoenebeck               Expires June 9, 2009                 [Page 79]
+
+Internet-Draft        LinuxSampler Control Protocol        December 2008
+
+
    Also note per MIDI specification a bank select message does not cause
    to switch to another instrument.  Instead when receiving a bank
    select message the bank value will be stored and a subsequent program
@@ -4302,16 +4436,6 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
 
    The front-end can add a new MIDI instrument map by sending the
    following command:
-
-
-
-
-
-
-Schoenebeck              Expires March 14, 2009                [Page 77]
-
-Internet-Draft        LinuxSampler Control Protocol       September 2008
-
 
       ADD MIDI_INSTRUMENT_MAP [<name>]
 
@@ -4347,6 +4471,16 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
 
       S: "OK[5]"
 
+
+
+
+
+
+Schoenebeck               Expires June 9, 2009                 [Page 80]
+
+Internet-Draft        LinuxSampler Control Protocol        December 2008
+
+
 6.7.2.  Delete one particular or all MIDI instrument maps
 
    The front-end can delete a particular MIDI instrument map by sending
@@ -4359,15 +4493,6 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
 
    The front-end can delete all MIDI instrument maps by sending the
    following command:
-
-
-
-
-
-Schoenebeck              Expires March 14, 2009                [Page 78]
-
-Internet-Draft        LinuxSampler Control Protocol       September 2008
-
 
       REMOVE MIDI_INSTRUMENT_MAP ALL
 
@@ -4405,6 +4530,13 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
 
    Example:
 
+
+
+Schoenebeck               Expires June 9, 2009                 [Page 81]
+
+Internet-Draft        LinuxSampler Control Protocol        December 2008
+
+
       C: "GET MIDI_INSTRUMENT_MAPS"
 
       S: "2"
@@ -4414,16 +4546,6 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
    The number of MIDI instrument maps can change on runtime.  To get the
    current list of MIDI instrument maps, the front-end can send the
    following command:
-
-
-
-
-
-
-Schoenebeck              Expires March 14, 2009                [Page 79]
-
-Internet-Draft        LinuxSampler Control Protocol       September 2008
-
 
       LIST MIDI_INSTRUMENT_MAPS
 
@@ -4463,6 +4585,14 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
 
             custom name of the given map, which does not have to be
             unique (note that this character string may contain escape
+
+
+
+Schoenebeck               Expires June 9, 2009                 [Page 82]
+
+Internet-Draft        LinuxSampler Control Protocol        December 2008
+
+
             sequences (Section 7.1))
 
          DEFAULT -
@@ -4473,13 +4603,6 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
    The mentioned fields above don't have to be in particular order.
 
    Example:
-
-
-
-Schoenebeck              Expires March 14, 2009                [Page 80]
-
-Internet-Draft        LinuxSampler Control Protocol       September 2008
-
 
       C: "GET MIDI_INSTRUMENT_MAP INFO 0"
 
@@ -4518,6 +4641,14 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
 
       S: "OK"
 
+
+
+
+Schoenebeck               Expires June 9, 2009                 [Page 83]
+
+Internet-Draft        LinuxSampler Control Protocol        December 2008
+
+
 6.7.7.  Create or replace a MIDI instrument map entry
 
    The front-end can create a new or replace an existing entry in a
@@ -4529,14 +4660,6 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
 
    Where <map> is the numeric ID of the map to alter, <midi_bank> is an
    integer value between 0..16383 reflecting the MIDI bank select index,
-
-
-
-Schoenebeck              Expires March 14, 2009                [Page 81]
-
-Internet-Draft        LinuxSampler Control Protocol       September 2008
-
-
    <midi_prog> an integer value between 0..127 reflecting the MIDI
    program change index, <engine_name> a sampler engine name as returned
    by the "LIST AVAILABLE_ENGINES" (Section 6.4.8) command (not
@@ -4573,6 +4696,15 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
 
       "PERSISTENT" -
 
+
+
+
+
+Schoenebeck               Expires June 9, 2009                 [Page 84]
+
+Internet-Draft        LinuxSampler Control Protocol        December 2008
+
+
          The instrument will immediately be loaded into memory when this
          mapping command is sent and the instrument is kept all the
          time.  Instruments with this mode are only freed when the
@@ -4585,14 +4717,6 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
          In case there is no <instr_load_mode> argument given, it will
          be up to the InstrumentManager to decide which mode to use.
          Usually it will use "ON_DEMAND" if an entry for the given
-
-
-
-Schoenebeck              Expires March 14, 2009                [Page 82]
-
-Internet-Draft        LinuxSampler Control Protocol       September 2008
-
-
          instrument does not exist in the InstrumentManager's list yet,
          otherwise if an entry already exists, it will simply stick with
          the mode currently reflected by the already existing entry,
@@ -4629,6 +4753,14 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
    a very long time.  It is recommended however to use the OPTIONAL
    "NON_MODAL" argument only if really necessary, because it has the
    following drawbacks: as "NON_MODAL" instructions return immediately,
+
+
+
+Schoenebeck               Expires June 9, 2009                 [Page 85]
+
+Internet-Draft        LinuxSampler Control Protocol        December 2008
+
+
    they may not necessarily return an error i.e. when the given
    instrument file turns out to be corrupt, beside that subsequent
    commands in a LSCP instruction sequence might fail, because mandatory
@@ -4639,15 +4771,6 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
       "OK" -
 
          usually
-
-
-
-
-
-Schoenebeck              Expires March 14, 2009                [Page 83]
-
-Internet-Draft        LinuxSampler Control Protocol       September 2008
-
 
       "ERR:<error-code>:<error-message>" -
 
@@ -4686,6 +4809,14 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
    The front-end can query the amount of currently existing entries in a
    MIDI instrument map by sending the following command:
 
+
+
+
+Schoenebeck               Expires June 9, 2009                 [Page 86]
+
+Internet-Draft        LinuxSampler Control Protocol        December 2008
+
+
       GET MIDI_INSTRUMENTS <map>
 
    The front-end can query the amount of currently existing entries in
@@ -4694,16 +4825,6 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
       GET MIDI_INSTRUMENTS ALL
 
    Possible Answers:
-
-
-
-
-
-
-Schoenebeck              Expires March 14, 2009                [Page 84]
-
-Internet-Draft        LinuxSampler Control Protocol       September 2008
-
 
       The sampler will answer by sending the current number of entries
       in the MIDI instrument map(s).
@@ -4744,6 +4865,14 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
 
    Example:
 
+
+
+
+Schoenebeck               Expires June 9, 2009                 [Page 87]
+
+Internet-Draft        LinuxSampler Control Protocol        December 2008
+
+
       C: "LIST MIDI_INSTRUMENTS 0"
 
       S: "{0,0,0},{0,0,1},{0,0,3},{0,1,4},{1,127,127}"
@@ -4752,14 +4881,6 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
 
    The front-end can delete an entry from a MIDI instrument map by
    sending the following command:
-
-
-
-
-Schoenebeck              Expires March 14, 2009                [Page 85]
-
-Internet-Draft        LinuxSampler Control Protocol       September 2008
-
 
       UNMAP MIDI_INSTRUMENT <map> <midi_bank> <midi_prog>
 
@@ -4799,6 +4920,15 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
 
    Possible Answers:
 
+
+
+
+
+Schoenebeck               Expires June 9, 2009                 [Page 88]
+
+Internet-Draft        LinuxSampler Control Protocol        December 2008
+
+
       LinuxSampler will answer by sending a <CRLF> separated list.  Each
       answer line begins with the information category name followed by
       a colon and then a space character <SP> and finally the info
@@ -4809,14 +4939,6 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
 
          Name for this MIDI instrument map entry (if defined).  This
          name shall be used by frontends for displaying a name for this
-
-
-
-Schoenebeck              Expires March 14, 2009                [Page 86]
-
-Internet-Draft        LinuxSampler Control Protocol       September 2008
-
-
          mapped instrument.  It can be set and changed with the "MAP
          MIDI_INSTRUMENT" (Section 6.7.7) command and does not have to
          be unique. (note that this character string may contain escape
@@ -4853,6 +4975,16 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
          (where a value < 1.0 means attenuation and a value > 1.0 means
          amplification)
 
+
+
+
+
+
+Schoenebeck               Expires June 9, 2009                 [Page 89]
+
+Internet-Draft        LinuxSampler Control Protocol        December 2008
+
+
       The mentioned fields above don't have to be in particular order.
 
    Example:
@@ -4864,14 +4996,6 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
          "ENGINE_NAME: GigEngine"
 
          "INSTRUMENT_FILE: /usr/share/joesdrumkit.gig"
-
-
-
-
-Schoenebeck              Expires March 14, 2009                [Page 87]
-
-Internet-Draft        LinuxSampler Control Protocol       September 2008
-
 
          "INSTRUMENT_NR: 0"
 
@@ -4909,6 +5033,14 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
 
    Examples:
 
+
+
+
+Schoenebeck               Expires June 9, 2009                 [Page 90]
+
+Internet-Draft        LinuxSampler Control Protocol        December 2008
+
+
       C: "CLEAR MIDI_INSTRUMENTS 0"
 
       S: "OK"
@@ -4916,18 +5048,6 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
       C: "CLEAR MIDI_INSTRUMENTS ALL"
 
       S: "OK"
-
-
-
-
-
-
-
-
-Schoenebeck              Expires March 14, 2009                [Page 88]
-
-Internet-Draft        LinuxSampler Control Protocol       September 2008
-
 
 6.8.  Managing Instruments Database
 
@@ -4968,6 +5088,15 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
 
    Examples:
 
+
+
+
+
+Schoenebeck               Expires June 9, 2009                 [Page 91]
+
+Internet-Draft        LinuxSampler Control Protocol        December 2008
+
+
       C: "ADD DB_INSTRUMENT_DIRECTORY '/Piano Collection'"
 
       S: "OK"
@@ -4976,14 +5105,6 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
 
    The front-end can delete a particular instrument directory from the
    instruments database by sending the following command:
-
-
-
-
-Schoenebeck              Expires March 14, 2009                [Page 89]
-
-Internet-Draft        LinuxSampler Control Protocol       September 2008
-
 
       REMOVE DB_INSTRUMENT_DIRECTORY [FORCE] <dir>
 
@@ -5022,6 +5143,16 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
 
    Possible Answers:
 
+
+
+
+
+
+Schoenebeck               Expires June 9, 2009                 [Page 92]
+
+Internet-Draft        LinuxSampler Control Protocol        December 2008
+
+
       The current number of instrument directories in the specified
       directory.
 
@@ -5030,16 +5161,6 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
          if the given directory does not exist.
 
    Example:
-
-
-
-
-
-
-Schoenebeck              Expires March 14, 2009                [Page 90]
-
-Internet-Draft        LinuxSampler Control Protocol       September 2008
-
 
       C: "GET DB_INSTRUMENT_DIRECTORIES '/'"
 
@@ -5077,6 +5198,17 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
       S: "'/Piano Collection','/Piano Collection/Acoustic','/Piano
       Collection/Acoustic/New','/Percussion Collection'"
 
+
+
+
+
+
+
+Schoenebeck               Expires June 9, 2009                 [Page 93]
+
+Internet-Draft        LinuxSampler Control Protocol        December 2008
+
+
 6.8.5.  Getting instrument directory information
 
    The front-end can ask for the current settings of an instrument
@@ -5088,14 +5220,6 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
    directory the front-end is interested in.
 
    Possible Answers:
-
-
-
-
-Schoenebeck              Expires March 14, 2009                [Page 91]
-
-Internet-Draft        LinuxSampler Control Protocol       September 2008
-
 
       LinuxSampler will answer by sending a <CRLF> separated list.  Each
       answer line begins with the settings category name followed by a
@@ -5133,6 +5257,14 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
 
          "MODIFIED: 2007-04-07 12:50:21"
 
+
+
+
+Schoenebeck               Expires June 9, 2009                 [Page 94]
+
+Internet-Draft        LinuxSampler Control Protocol        December 2008
+
+
          "."
 
 6.8.6.  Renaming an instrument directory
@@ -5144,14 +5276,6 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
 
    Where <dir> is the absolute path name of the directory and <name> is
    the new name for that directory.
-
-
-
-
-Schoenebeck              Expires March 14, 2009                [Page 92]
-
-Internet-Draft        LinuxSampler Control Protocol       September 2008
-
 
    Possible Answers:
 
@@ -5187,6 +5311,16 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
 
          on success
 
+
+
+
+
+
+Schoenebeck               Expires June 9, 2009                 [Page 95]
+
+Internet-Draft        LinuxSampler Control Protocol        December 2008
+
+
       "ERR:<error-code>:<error-message>" -
 
          in case a given directory does not exists, or if a directory
@@ -5200,14 +5334,6 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
       Acoustic'"
 
       S: "OK"
-
-
-
-
-Schoenebeck              Expires March 14, 2009                [Page 93]
-
-Internet-Draft        LinuxSampler Control Protocol       September 2008
-
 
 6.8.8.  Copying instrument directories
 
@@ -5239,6 +5365,18 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
 
       S: "OK"
 
+
+
+
+
+
+
+
+Schoenebeck               Expires June 9, 2009                 [Page 96]
+
+Internet-Draft        LinuxSampler Control Protocol        December 2008
+
+
 6.8.9.  Changing the description of directory
 
    The front-end can alter the description of a specific instrument
@@ -5256,14 +5394,6 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
       "OK" -
 
          on success
-
-
-
-
-Schoenebeck              Expires March 14, 2009                [Page 94]
-
-Internet-Draft        LinuxSampler Control Protocol       September 2008
-
 
       "ERR:<error-code>:<error-message>" -
 
@@ -5295,6 +5425,14 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
 
       Restricts the search to directories, which names satisfy the
       supplied search string (encapsulated into apostrophes, supporting
+
+
+
+Schoenebeck               Expires June 9, 2009                 [Page 97]
+
+Internet-Draft        LinuxSampler Control Protocol        December 2008
+
+
       escape sequences as described in chapter "Character Set and Escape
       Sequences (Section 7.1)").
 
@@ -5313,14 +5451,6 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
       modification satisfies the specified period, where <date-after>
       and <date-before> are in "YYYY-MM-DD HH:MM:SS" format.  If <date-
       after> is omitted the search is restricted to directories, which
-
-
-
-Schoenebeck              Expires March 14, 2009                [Page 95]
-
-Internet-Draft        LinuxSampler Control Protocol       September 2008
-
-
       are last modified before <date-before>.  If <date-before> is
       omitted, the search is restricted to directories, which are last
       modified after <date-after>.
@@ -5351,6 +5481,14 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
 
       S: "'/Piano Collection'"
 
+
+
+
+Schoenebeck               Expires June 9, 2009                 [Page 98]
+
+Internet-Draft        LinuxSampler Control Protocol        December 2008
+
+
       C: "FIND DB_INSTRUMENT_DIRECTORIES '/' CREATED='..2007-04-01 09:
       30:13'"
 
@@ -5361,22 +5499,14 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
    The front-end can add one or more instruments to the instruments
    database by sending the following command:
 
-      ADD DB_INSTRUMENTS [NON_MODAL] [<mode>] <db_dir> <file_path>
-      [<instr_index>]
+      ADD DB_INSTRUMENTS [NON_MODAL] [<mode>[ FILE_AS_DIR]] <db_dir>
+      <file_path> [<instr_index>]
 
    Where <db_dir> is the absolute path name of a directory (encapsulated
    into apostrophes) in the instruments database in which only the new
    instruments (that are not already in the database) will be added,
    <file_path> is the absolute path name of a file or directory in the
    file system (encapsulated into apostrophes).  In case an instrument
-
-
-
-Schoenebeck              Expires March 14, 2009                [Page 96]
-
-Internet-Draft        LinuxSampler Control Protocol       September 2008
-
-
    file is supplied, only the instruments in the specified file will be
    added to the instruments database.  If the optional <instr_index>
    (the index of the instrument within the given file) is supplied too,
@@ -5404,6 +5534,19 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
          not be recreated in the instruments database.  All instruments
          will be added directly in the specified database directory.
 
+   If FILE_AS_DIR argument is supplied, all instruments in an instrument
+   file will be added to a separate directory in the instruments
+   database, which name will be the name of the instrument file with the
+
+
+
+Schoenebeck               Expires June 9, 2009                 [Page 99]
+
+Internet-Draft        LinuxSampler Control Protocol        December 2008
+
+
+   file extension stripped off.
+
    The difference between regular and NON_MODAL versions of the command
    is that the regular command returns when the scanning is finished
    while NON_MODAL version returns immediately and a background process
@@ -5423,15 +5566,6 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
          progress.  See GET DB_INSTRUMENTS_JOB INFO (Section 6.8.21)
 
       "ERR:<error-code>:<error-message>" -
-
-
-
-
-
-Schoenebeck              Expires March 14, 2009                [Page 97]
-
-Internet-Draft        LinuxSampler Control Protocol       September 2008
-
 
          if an invalid path is specified.
 
@@ -5458,6 +5592,15 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
 
          if the instrument is removed successfully
 
+
+
+
+
+Schoenebeck               Expires June 9, 2009                [Page 100]
+
+Internet-Draft        LinuxSampler Control Protocol        December 2008
+
+
       "ERR:<error-code>:<error-message>" -
 
          if the given path does not exist or is a directory.
@@ -5481,13 +5624,6 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
    will be returned.
 
    Possible Answers:
-
-
-
-Schoenebeck              Expires March 14, 2009                [Page 98]
-
-Internet-Draft        LinuxSampler Control Protocol       September 2008
-
 
       The current number of instruments in the specified directory.
 
@@ -5513,6 +5649,14 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
    instruments, including those located in subdirectories of the
    specified directory, will be returned.
 
+
+
+
+Schoenebeck               Expires June 9, 2009                [Page 101]
+
+Internet-Draft        LinuxSampler Control Protocol        December 2008
+
+
    Possible Answers:
 
       A comma separated list of all instruments (encapsulated into
@@ -5532,18 +5676,6 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
 
       S: "'/Piano Collection/Bosendorfer 290','/Piano Collection/
       Steinway D','/Piano Collection/Lite/Free Piano'"
-
-
-
-
-
-
-
-
-Schoenebeck              Expires March 14, 2009                [Page 99]
-
-Internet-Draft        LinuxSampler Control Protocol       September 2008
-
 
 6.8.15.  Getting instrument information
 
@@ -5572,6 +5704,15 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
 
          INSTRUMENT_NR -
 
+
+
+
+
+Schoenebeck               Expires June 9, 2009                [Page 102]
+
+Internet-Draft        LinuxSampler Control Protocol        December 2008
+
+
             Index of the instrument within the file.
 
          FORMAT_FAMILY -
@@ -5591,15 +5732,6 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
             The date and time when the instrument is added in the
             instruments database, represented in "YYYY-MM-DD HH:MM:SS"
             format
-
-
-
-
-
-Schoenebeck              Expires March 14, 2009               [Page 100]
-
-Internet-Draft        LinuxSampler Control Protocol       September 2008
-
 
          MODIFIED -
 
@@ -5627,6 +5759,16 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
             Lists the artist names.  Note that the character string may
             contain escape sequences (Section 7.1).
 
+
+
+
+
+
+Schoenebeck               Expires June 9, 2009                [Page 103]
+
+Internet-Draft        LinuxSampler Control Protocol        December 2008
+
+
          KEYWORDS -
 
             Provides a list of keywords that refer to the instrument.
@@ -5647,15 +5789,6 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
          "FORMAT_FAMILY: GIG"
 
          "FORMAT_VERSION: 2"
-
-
-
-
-
-Schoenebeck              Expires March 14, 2009               [Page 101]
-
-Internet-Draft        LinuxSampler Control Protocol       September 2008
-
 
          "SIZE: 2050871870"
 
@@ -5685,6 +5818,13 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
    Where <instr> is the absolute path name of the instrument and <name>
    is the new name for that instrument.
 
+
+
+Schoenebeck               Expires June 9, 2009                [Page 104]
+
+Internet-Draft        LinuxSampler Control Protocol        December 2008
+
+
    Possible Answers:
 
       "OK" -
@@ -5702,16 +5842,6 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
       'Bosendorfer 290'"
 
       S: "OK"
-
-
-
-
-
-
-Schoenebeck              Expires March 14, 2009               [Page 102]
-
-Internet-Draft        LinuxSampler Control Protocol       September 2008
-
 
 6.8.17.  Moving an instrument
 
@@ -5742,6 +5872,15 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
 
       S: "OK"
 
+
+
+
+
+Schoenebeck               Expires June 9, 2009                [Page 105]
+
+Internet-Draft        LinuxSampler Control Protocol        December 2008
+
+
 6.8.18.  Copying instruments
 
    The front-end can copy a specific instrument to another directory by
@@ -5759,15 +5898,6 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
          on success
 
       "ERR:<error-code>:<error-message>" -
-
-
-
-
-
-Schoenebeck              Expires March 14, 2009               [Page 103]
-
-Internet-Draft        LinuxSampler Control Protocol       September 2008
-
 
          in case the given instrument does not exists, or if an
          instrument with name equal to the name of the specified
@@ -5798,6 +5928,15 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
 
          on success
 
+
+
+
+
+Schoenebeck               Expires June 9, 2009                [Page 106]
+
+Internet-Draft        LinuxSampler Control Protocol        December 2008
+
+
       "ERR:<error-code>:<error-message>" -
 
          in case the given instrument does not exists.
@@ -5817,14 +5956,6 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
       FIND DB_INSTRUMENTS [NON_RECURSIVE] <dir> <criteria-list>
 
    Where <dir> should be replaced by the absolute path name of the
-
-
-
-Schoenebeck              Expires March 14, 2009               [Page 104]
-
-Internet-Draft        LinuxSampler Control Protocol       September 2008
-
-
    directory to search in.  If NON_RECURSIVE is specified, the
    directories located in subdirectories of the specified directory will
    not be searched. <criteria-list> is a list of search criterias in
@@ -5855,6 +5986,13 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
       If <date-before> is omitted, the search is restricted to
       instruments created after <date-after>.
 
+
+
+Schoenebeck               Expires June 9, 2009                [Page 107]
+
+Internet-Draft        LinuxSampler Control Protocol        December 2008
+
+
    MODIFIED='[<date-after>]..[<date-before>]'
 
       Restricts the search to instruments, which date of last
@@ -5873,13 +6011,6 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
       "Character Set and Escape Sequences (Section 7.1)").
 
    PRODUCT='<search-string>'
-
-
-
-Schoenebeck              Expires March 14, 2009               [Page 105]
-
-Internet-Draft        LinuxSampler Control Protocol       September 2008
-
 
       Restricts the search to instruments with product info that
       satisfies the supplied search string (encapsulated into
@@ -5911,6 +6042,13 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
       families, where <format-list> is a comma separated list of format
       families.
 
+
+
+Schoenebeck               Expires June 9, 2009                [Page 108]
+
+Internet-Draft        LinuxSampler Control Protocol        December 2008
+
+
    Where <search-string> is either a regular expression, or a word list
    separated with spaces for OR search and with '+' for AND search.
 
@@ -5928,14 +6066,6 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
 
       C: "FIND DB_INSTRUMENTS '/Piano Collection' NAME='bosendorfer+
       290'"
-
-
-
-
-Schoenebeck              Expires March 14, 2009               [Page 106]
-
-Internet-Draft        LinuxSampler Control Protocol       September 2008
-
 
       S: "'/Piano Collection/Bosendorfer 290'"
 
@@ -5967,6 +6097,14 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
 
          FILES_TOTAL -
 
+
+
+
+Schoenebeck               Expires June 9, 2009                [Page 109]
+
+Internet-Draft        LinuxSampler Control Protocol        December 2008
+
+
             The total number of files scheduled for scanning
 
          FILES_SCANNED -
@@ -5985,13 +6123,6 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
             scanned
 
    The mentioned fields above don't have to be in particular order.
-
-
-
-Schoenebeck              Expires March 14, 2009               [Page 107]
-
-Internet-Draft        LinuxSampler Control Protocol       September 2008
-
 
    Example:
 
@@ -6021,6 +6152,15 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
 
          on success
 
+
+
+
+
+Schoenebeck               Expires June 9, 2009                [Page 110]
+
+Internet-Draft        LinuxSampler Control Protocol        December 2008
+
+
       "ERR:<error-code>:<error-message>" -
 
          If the formatting of the instruments database failed.
@@ -6039,15 +6179,6 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
       into apostrophes) of all lost instrument files.
 
       "ERR:<error-code>:<error-message>" -
-
-
-
-
-
-Schoenebeck              Expires March 14, 2009               [Page 108]
-
-Internet-Draft        LinuxSampler Control Protocol       September 2008
-
 
          in case it failed, providing an appropriate error code and
          error message.
@@ -6076,6 +6207,16 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
 
          on success
 
+
+
+
+
+
+Schoenebeck               Expires June 9, 2009                [Page 111]
+
+Internet-Draft        LinuxSampler Control Protocol        December 2008
+
+
       "ERR:<error-code>:<error-message>" -
 
          in case it failed, providing an appropriate error code and
@@ -6096,14 +6237,6 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
    have to place a respective plugin DLL file into the sampler's plugins
    directory.  The sampler will automatically try to load all plugin
    DLLs in that directory on startup and only on startup!
-
-
-
-
-Schoenebeck              Expires March 14, 2009               [Page 109]
-
-Internet-Draft        LinuxSampler Control Protocol       September 2008
-
 
    At the moment there is only one command for this feature set, but
    this will most probably change in future.
@@ -6133,6 +6266,13 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
    Note: consequently instrument editors are always spawned locally on
    the same machine where the sampler is running on!
 
+
+
+Schoenebeck               Expires June 9, 2009                [Page 112]
+
+Internet-Draft        LinuxSampler Control Protocol        December 2008
+
+
    Possible Answers:
 
       "OK" -
@@ -6151,15 +6291,6 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
    Examples:
 
       C: "EDIT CHANNEL INSTRUMENT 0"
-
-
-
-
-
-Schoenebeck              Expires March 14, 2009               [Page 110]
-
-Internet-Draft        LinuxSampler Control Protocol       September 2008
-
 
       S: "OK"
 
@@ -6190,6 +6321,14 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
       On success, the sampler will answer by returning the amount of
       instruments.
 
+
+
+
+Schoenebeck               Expires June 9, 2009                [Page 113]
+
+Internet-Draft        LinuxSampler Control Protocol        December 2008
+
+
       "ERR:<error-code>:<error-message>" -
 
          if the file could not be handled
@@ -6209,14 +6348,6 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
 
    Where <filename> is the name of the instrument file (encapsulated
    into apostrophes, supporting escape sequences as described in chapter
-
-
-
-Schoenebeck              Expires March 14, 2009               [Page 111]
-
-Internet-Draft        LinuxSampler Control Protocol       September 2008
-
-
    "Character Set and Escape Sequences (Section 7.1)").
 
    The sampler will try to ask all sampler engines, whether they support
@@ -6244,6 +6375,16 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
    instrument within a given instrument file by sending the following
    command:
 
+
+
+
+
+
+Schoenebeck               Expires June 9, 2009                [Page 114]
+
+Internet-Draft        LinuxSampler Control Protocol        December 2008
+
+
       GET FILE INSTRUMENT INFO <filename> <instr-id>
 
    Where <filename> is the name of the instrument file (encapsulated
@@ -6263,15 +6404,6 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
       colon and then a space character <SP> and finally the info
       character string to that setting category.  At the moment the
       following categories are defined:
-
-
-
-
-
-Schoenebeck              Expires March 14, 2009               [Page 112]
-
-Internet-Draft        LinuxSampler Control Protocol       September 2008
-
 
 
 
@@ -6302,6 +6434,13 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
             instrument's key mapping in the range between 0 .. 127,
             reflecting the analog meaning of the MIDI specification.
 
+
+
+Schoenebeck               Expires June 9, 2009                [Page 115]
+
+Internet-Draft        LinuxSampler Control Protocol        December 2008
+
+
          KEYSWITCH_BINDINGS -
 
             comma separated list of integer values representing the
@@ -6320,14 +6459,6 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
          "FORMAT_FAMILY: GIG"
 
          "FORMAT_VERSION: 3"
-
-
-
-
-Schoenebeck              Expires March 14, 2009               [Page 113]
-
-Internet-Draft        LinuxSampler Control Protocol       September 2008
-
 
          "PRODUCT: The Backbone Bongo Beats"
 
@@ -6361,28 +6492,9 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Schoenebeck              Expires March 14, 2009               [Page 114]
+Schoenebeck               Expires June 9, 2009                [Page 116]
 
-Internet-Draft        LinuxSampler Control Protocol       September 2008
+Internet-Draft        LinuxSampler Control Protocol        December 2008
 
 
 7.  Command Syntax
@@ -6436,9 +6548,9 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
 
 
 
-Schoenebeck              Expires March 14, 2009               [Page 115]
+Schoenebeck               Expires June 9, 2009                [Page 117]
 
-Internet-Draft        LinuxSampler Control Protocol       September 2008
+Internet-Draft        LinuxSampler Control Protocol        December 2008
 
 
       / LIST SP list_instruction
@@ -6467,7 +6579,7 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
 
       / FORMAT SP format_instruction
 
-      SEND SP send_instruction
+      / SEND SP send_instruction
 
       / RESET
 
@@ -6481,21 +6593,26 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
 
       / DB_INSTRUMENTS SP NON_MODAL SP scan_mode SP db_path SP filename
 
+      / DB_INSTRUMENTS SP NON_MODAL SP scan_mode SP FILE_AS_DIR SP
+      db_path SP filename
+
       / DB_INSTRUMENTS SP scan_mode SP db_path SP filename
+
+      / DB_INSTRUMENTS SP scan_mode SP FILE_AS_DIR SP db_path SP
+      filename
+
+
+
+
+Schoenebeck               Expires June 9, 2009                [Page 118]
+
+Internet-Draft        LinuxSampler Control Protocol        December 2008
+
 
       / DB_INSTRUMENTS SP NON_MODAL SP db_path SP filename
 
       / DB_INSTRUMENTS SP NON_MODAL SP db_path SP filename SP
       instrument_index
-
-
-
-
-
-Schoenebeck              Expires March 14, 2009               [Page 116]
-
-Internet-Draft        LinuxSampler Control Protocol       September 2008
-
 
       / DB_INSTRUMENTS SP db_path SP filename
 
@@ -6539,19 +6656,20 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
 
       / MIDI_INSTRUMENT_COUNT
 
+
+
+
+
+Schoenebeck               Expires June 9, 2009                [Page 119]
+
+Internet-Draft        LinuxSampler Control Protocol        December 2008
+
+
       / MIDI_INSTRUMENT_INFO
 
       / DB_INSTRUMENT_DIRECTORY_COUNT
 
       / DB_INSTRUMENT_DIRECTORY_INFO
-
-
-
-
-Schoenebeck              Expires March 14, 2009               [Page 117]
-
-Internet-Draft        LinuxSampler Control Protocol       September 2008
-
 
       / DB_INSTRUMENT_COUNT
 
@@ -6595,19 +6713,19 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
 
       / FX_SEND_INFO
 
+
+
+
+Schoenebeck               Expires June 9, 2009                [Page 120]
+
+Internet-Draft        LinuxSampler Control Protocol        December 2008
+
+
       / MIDI_INSTRUMENT_MAP_COUNT
 
       / MIDI_INSTRUMENT_MAP_INFO
 
       / MIDI_INSTRUMENT_COUNT
-
-
-
-
-Schoenebeck              Expires March 14, 2009               [Page 118]
-
-Internet-Draft        LinuxSampler Control Protocol       September 2008
-
 
       / MIDI_INSTRUMENT_INFO
 
@@ -6652,18 +6770,16 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
 
    remove_instruction =
 
+
+
+Schoenebeck               Expires June 9, 2009                [Page 121]
+
+Internet-Draft        LinuxSampler Control Protocol        December 2008
+
+
       CHANNEL SP sampler_channel
 
       / MIDI_INSTRUMENT_MAP SP midi_map
-
-
-
-
-
-Schoenebeck              Expires March 14, 2009               [Page 119]
-
-Internet-Draft        LinuxSampler Control Protocol       September 2008
-
 
       / MIDI_INSTRUMENT_MAP SP ALL
 
@@ -6709,17 +6825,16 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
 
       / AUDIO_OUTPUT_CHANNEL SP INFO SP number SP number
 
+
+
+
+Schoenebeck               Expires June 9, 2009                [Page 122]
+
+Internet-Draft        LinuxSampler Control Protocol        December 2008
+
+
       / AUDIO_OUTPUT_CHANNEL_PARAMETER SP INFO SP number SP number SP
       string
-
-
-
-
-
-Schoenebeck              Expires March 14, 2009               [Page 120]
-
-Internet-Draft        LinuxSampler Control Protocol       September 2008
-
 
       / CHANNELS
 
@@ -6765,19 +6880,24 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
 
       / DB_INSTRUMENTS SP db_path
 
+
+
+
+
+Schoenebeck               Expires June 9, 2009                [Page 123]
+
+Internet-Draft        LinuxSampler Control Protocol        December 2008
+
+
       / DB_INSTRUMENT SP INFO SP db_path
 
       / DB_INSTRUMENTS_JOB SP INFO SP number
 
-
-
-
-Schoenebeck              Expires March 14, 2009               [Page 121]
-
-Internet-Draft        LinuxSampler Control Protocol       September 2008
-
-
       / VOLUME
+
+      / VOICES
+
+      / STREAMS
 
       / FILE SP INSTRUMENTS SP filename
 
@@ -6816,6 +6936,15 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
 
       / DB_INSTRUMENT_DIRECTORY SP NAME SP db_path SP stringval_escaped
 
+
+
+
+
+Schoenebeck               Expires June 9, 2009                [Page 124]
+
+Internet-Draft        LinuxSampler Control Protocol        December 2008
+
+
       / DB_INSTRUMENT_DIRECTORY SP DESCRIPTION SP db_path SP
       stringval_escaped
 
@@ -6825,17 +6954,13 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
 
       / DB_INSTRUMENT SP FILE_PATH SP filename SP filename
 
-
-
-
-Schoenebeck              Expires March 14, 2009               [Page 122]
-
-Internet-Draft        LinuxSampler Control Protocol       September 2008
-
-
       / ECHO SP boolean
 
       / VOLUME SP volume_value
+
+      / VOICES SP number
+
+      / STREAMS SP number
 
    create_instruction =
 
@@ -6867,6 +6992,15 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
 
       / DB_INSTRUMENTS SP db_path SP query_val_list
 
+
+
+
+
+Schoenebeck               Expires June 9, 2009                [Page 125]
+
+Internet-Draft        LinuxSampler Control Protocol        December 2008
+
+
       / DB_INSTRUMENT_DIRECTORIES SP NON_RECURSIVE SP db_path SP
       query_val_list
 
@@ -6881,13 +7015,6 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
       / DB_INSTRUMENT SP db_path SP db_path
 
    copy_instruction =
-
-
-
-Schoenebeck              Expires March 14, 2009               [Page 123]
-
-Internet-Draft        LinuxSampler Control Protocol       September 2008
-
 
       DB_INSTRUMENT_DIRECTORY SP db_path SP db_path
 
@@ -6921,6 +7048,15 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
 
       / MIDI_INPUT_DEVICE SP sampler_channel SP device_index
 
+
+
+
+
+Schoenebeck               Expires June 9, 2009                [Page 126]
+
+Internet-Draft        LinuxSampler Control Protocol        December 2008
+
+
       / MIDI_INPUT_PORT SP sampler_channel SP midi_input_port_index
 
       / MIDI_INPUT_CHANNEL SP sampler_channel SP
@@ -6935,15 +7071,6 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
       / SOLO SP sampler_channel SP boolean
 
       / MIDI_INSTRUMENT_MAP SP sampler_channel SP midi_map
-
-
-
-
-
-Schoenebeck              Expires March 14, 2009               [Page 124]
-
-Internet-Draft        LinuxSampler Control Protocol       September 2008
-
 
       / MIDI_INSTRUMENT_MAP SP sampler_channel SP NONE
 
@@ -6977,6 +7104,15 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
 
    list_instruction =
 
+
+
+
+
+Schoenebeck               Expires June 9, 2009                [Page 127]
+
+Internet-Draft        LinuxSampler Control Protocol        December 2008
+
+
       AUDIO_OUTPUT_DEVICES
 
       / MIDI_INPUT_DEVICES
@@ -6992,14 +7128,6 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
       / MIDI_INSTRUMENTS SP midi_map
 
       / MIDI_INSTRUMENTS SP ALL
-
-
-
-
-Schoenebeck              Expires March 14, 2009               [Page 125]
-
-Internet-Draft        LinuxSampler Control Protocol       September 2008
-
 
       / MIDI_INSTRUMENT_MAPS
 
@@ -7032,6 +7160,15 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
 
    instr_load_mode =
 
+
+
+
+
+Schoenebeck               Expires June 9, 2009                [Page 128]
+
+Internet-Draft        LinuxSampler Control Protocol        December 2008
+
+
       ON_DEMAND
 
       / ON_DEMAND_HOLD
@@ -7047,15 +7184,6 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
       number
 
    audio_output_type_name =
-
-
-
-
-
-Schoenebeck              Expires March 14, 2009               [Page 126]
-
-Internet-Draft        LinuxSampler Control Protocol       September 2008
-
 
       string
 
@@ -7089,6 +7217,14 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
 
       number
 
+
+
+
+Schoenebeck               Expires June 9, 2009                [Page 129]
+
+Internet-Draft        LinuxSampler Control Protocol        December 2008
+
+
    volume_value =
 
       dotnum
@@ -7104,14 +7240,6 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
       number
 
    fx_send_id =
-
-
-
-
-Schoenebeck              Expires March 14, 2009               [Page 127]
-
-Internet-Draft        LinuxSampler Control Protocol       September 2008
-
 
       number
 
@@ -7145,6 +7273,14 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
 
       / param_val_list','param_val
 
+
+
+
+Schoenebeck               Expires June 9, 2009                [Page 130]
+
+Internet-Draft        LinuxSampler Control Protocol        December 2008
+
+
    param_val =
 
       string
@@ -7160,14 +7296,6 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
       string '=' query_val
 
       / query_val_list SP string '=' query_val
-
-
-
-
-Schoenebeck              Expires March 14, 2009               [Page 128]
-
-Internet-Draft        LinuxSampler Control Protocol       September 2008
-
 
    query_val =
 
@@ -7193,6 +7321,22 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
    certain, explicitly declared parts of the protocol.  The supported
    escape sequences are defined as follows:
 
+
+
+
+
+
+
+
+
+
+
+
+Schoenebeck               Expires June 9, 2009                [Page 131]
+
+Internet-Draft        LinuxSampler Control Protocol        December 2008
+
+
    +------------------------+------------------------------------------+
    | ASCII Character        | Translated into (Name)                   |
    | Sequence               |                                          |
@@ -7216,15 +7360,6 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
    | \OOO                   | three digit octal ASCII code of the      |
    |                        | character                                |
    |                        |                                          |
-
-
-
-
-Schoenebeck              Expires March 14, 2009               [Page 129]
-
-Internet-Draft        LinuxSampler Control Protocol       September 2008
-
-
    | \xHH                   | two digit hex ASCII code of the          |
    |                        | character                                |
    +------------------------+------------------------------------------+
@@ -7248,6 +7383,15 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
       "MAP MIDI_INSTRUMENT" (Section 6.7.7)
 
       "GET MIDI_INSTRUMENT INFO" (Section 6.7.11)
+
+
+
+
+
+Schoenebeck               Expires June 9, 2009                [Page 132]
+
+Internet-Draft        LinuxSampler Control Protocol        December 2008
+
 
       "ADD DB_INSTRUMENT_DIRECTORY" (Section 6.8.1)
 
@@ -7273,14 +7417,6 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
 
       "SET DB_INSTRUMENT_DIRECTORY DESCRIPTION" (Section 6.8.9)
 
-
-
-
-Schoenebeck              Expires March 14, 2009               [Page 130]
-
-Internet-Draft        LinuxSampler Control Protocol       September 2008
-
-
       "SET DB_INSTRUMENT NAME" (Section 6.8.16)
 
       "SET DB_INSTRUMENT DESCRIPTION" (Section 6.8.19)
@@ -7305,6 +7441,14 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
 
       "LIST FILE INSTRUMENTS" (Section 6.10.2)
 
+
+
+
+Schoenebeck               Expires June 9, 2009                [Page 133]
+
+Internet-Draft        LinuxSampler Control Protocol        December 2008
+
+
       "GET FILE INSTRUMENT INFO" (Section 6.10.3)
 
    Note that the forward slash character ('/') has a special meaning in
@@ -7327,15 +7471,6 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
    their text-based fields in their response:
 
       "GET SERVER INFO" (Section 6.6.5)
-
-
-
-
-
-Schoenebeck              Expires March 14, 2009               [Page 131]
-
-Internet-Draft        LinuxSampler Control Protocol       September 2008
-
 
       "GET ENGINE INFO" (Section 6.4.9)
 
@@ -7360,6 +7495,15 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
       "GET DB_INSTRUMENT_DIRECTORY INFO" (Section 6.8.5)
 
       "SET DB_INSTRUMENT_DIRECTORY NAME" (Section 6.8.6)
+
+
+
+
+
+Schoenebeck               Expires June 9, 2009                [Page 134]
+
+Internet-Draft        LinuxSampler Control Protocol        December 2008
+
 
       "SET DB_INSTRUMENT_DIRECTORY DESCRIPTION" (Section 6.8.9)
 
@@ -7388,9 +7532,33 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
 
 
 
-Schoenebeck              Expires March 14, 2009               [Page 132]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Schoenebeck               Expires June 9, 2009                [Page 135]
 
-Internet-Draft        LinuxSampler Control Protocol       September 2008
+Internet-Draft        LinuxSampler Control Protocol        December 2008
 
 
 8.  Events
@@ -7444,9 +7612,9 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
 
 
 
-Schoenebeck              Expires March 14, 2009               [Page 133]
+Schoenebeck               Expires June 9, 2009                [Page 136]
 
-Internet-Draft        LinuxSampler Control Protocol       September 2008
+Internet-Draft        LinuxSampler Control Protocol        December 2008
 
 
       "NOTIFY:MIDI_INPUT_DEVICE_COUNT:<devices>"
@@ -7500,9 +7668,9 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
 
 
 
-Schoenebeck              Expires March 14, 2009               [Page 134]
+Schoenebeck               Expires June 9, 2009                [Page 137]
 
-Internet-Draft        LinuxSampler Control Protocol       September 2008
+Internet-Draft        LinuxSampler Control Protocol        December 2008
 
 
       "NOTIFY:CHANNEL_MIDI:<channel-id> NOTE_ON <note> <velocity>"
@@ -7556,9 +7724,9 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
 
 
 
-Schoenebeck              Expires March 14, 2009               [Page 135]
+Schoenebeck               Expires June 9, 2009                [Page 138]
 
-Internet-Draft        LinuxSampler Control Protocol       September 2008
+Internet-Draft        LinuxSampler Control Protocol        December 2008
 
 
       SUBSCRIBE VOICE_COUNT
@@ -7612,9 +7780,9 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
 
 
 
-Schoenebeck              Expires March 14, 2009               [Page 136]
+Schoenebeck               Expires June 9, 2009                [Page 139]
 
-Internet-Draft        LinuxSampler Control Protocol       September 2008
+Internet-Draft        LinuxSampler Control Protocol        December 2008
 
 
       SUBSCRIBE CHANNEL_INFO
@@ -7668,9 +7836,9 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
 
 
 
-Schoenebeck              Expires March 14, 2009               [Page 137]
+Schoenebeck               Expires June 9, 2009                [Page 140]
 
-Internet-Draft        LinuxSampler Control Protocol       September 2008
+Internet-Draft        LinuxSampler Control Protocol        December 2008
 
 
 8.14.  Total number of active voices changed
@@ -7724,9 +7892,9 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
 
 
 
-Schoenebeck              Expires March 14, 2009               [Page 138]
+Schoenebeck               Expires June 9, 2009                [Page 141]
 
-Internet-Draft        LinuxSampler Control Protocol       September 2008
+Internet-Draft        LinuxSampler Control Protocol        December 2008
 
 
       SUBSCRIBE MIDI_INSTRUMENT_MAP_INFO
@@ -7780,9 +7948,9 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
 
 
 
-Schoenebeck              Expires March 14, 2009               [Page 139]
+Schoenebeck               Expires June 9, 2009                [Page 142]
 
-Internet-Draft        LinuxSampler Control Protocol       September 2008
+Internet-Draft        LinuxSampler Control Protocol        December 2008
 
 
 8.20.  Global settings changed
@@ -7799,6 +7967,16 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
       volume of the sampler is changed, where <volume> will be replaced
       by the optional dotted floating point value, reflecting the new
       global volume parameter.
+
+      "NOTIFY:GLOBAL_INFO:VOICES <max-voices>" - Notifies that the
+      golbal limit of the sampler for maximum voices is changed, where
+      <max-voices> will be an integer value, reflecting the new global
+      voice limit parameter.
+
+      "NOTIFY:GLOBAL_INFO:STREAMS <max-streams>" - Notifies that the
+      golbal limit of the sampler for maximum disk streams is changed,
+      where <max-streams> will be an integer value, reflecting the new
+      global disk streams limit parameter.
 
 8.21.  Number of database instrument directories changed
 
@@ -7824,6 +8002,13 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
    Client may want to be notified when changes were made to directories
    in the instruments database by issuing the following command:
 
+
+
+Schoenebeck               Expires June 9, 2009                [Page 143]
+
+Internet-Draft        LinuxSampler Control Protocol        December 2008
+
+
       SUBSCRIBE DB_INSTRUMENT_DIRECTORY_INFO
 
    Server will start sending the following notification messages:
@@ -7833,14 +8018,6 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
    where <dir-path> will be replaced by the absolute path name of the
    directory, for which information changes occurred.  The front-end
    will have to send the respective command to actually get the updated
-
-
-
-Schoenebeck              Expires March 14, 2009               [Page 140]
-
-Internet-Draft        LinuxSampler Control Protocol       September 2008
-
-
    directory info.  Because these messages will be triggered by LSCP
    commands issued by other clients rather than real time events
    happening on the server, it is believed that an empty notification
@@ -7881,6 +8058,13 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
 
    Server will start sending the following notification messages:
 
+
+
+Schoenebeck               Expires June 9, 2009                [Page 144]
+
+Internet-Draft        LinuxSampler Control Protocol        December 2008
+
+
       "NOTIFY:DB_INSTRUMENT_INFO:<instr-path>"
 
    where <instr-path> will be replaced by the absolute path name of the
@@ -7889,14 +8073,6 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
    info.  Because these messages will be triggered by LSCP commands
    issued by other clients rather than real time events happening on the
    server, it is believed that an empty notification message is
-
-
-
-Schoenebeck              Expires March 14, 2009               [Page 141]
-
-Internet-Draft        LinuxSampler Control Protocol       September 2008
-
-
    sufficient here.
 
       "NOTIFY:DB_INSTRUMENT_INFO:NAME <old-instr-path> <new-name>"
@@ -7937,6 +8113,14 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
 
    where <string> will be replaced by whatever data server wants to send
    to the client.  Client MAY display this data to the user AS IS to
+
+
+
+Schoenebeck               Expires June 9, 2009                [Page 145]
+
+Internet-Draft        LinuxSampler Control Protocol        December 2008
+
+
    facilitate debugging.
 
 
@@ -7948,9 +8132,49 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
 
 
 
-Schoenebeck              Expires March 14, 2009               [Page 142]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Schoenebeck               Expires June 9, 2009                [Page 146]
 
-Internet-Draft        LinuxSampler Control Protocol       September 2008
+Internet-Draft        LinuxSampler Control Protocol        December 2008
 
 
 9.  Security Considerations
@@ -8004,9 +8228,9 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
 
 
 
-Schoenebeck              Expires March 14, 2009               [Page 143]
+Schoenebeck               Expires June 9, 2009                [Page 147]
 
-Internet-Draft        LinuxSampler Control Protocol       September 2008
+Internet-Draft        LinuxSampler Control Protocol        December 2008
 
 
 10.  Acknowledgments
@@ -8060,9 +8284,9 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
 
 
 
-Schoenebeck              Expires March 14, 2009               [Page 144]
+Schoenebeck               Expires June 9, 2009                [Page 148]
 
-Internet-Draft        LinuxSampler Control Protocol       September 2008
+Internet-Draft        LinuxSampler Control Protocol        December 2008
 
 
 11.  References
@@ -8116,9 +8340,9 @@ Internet-Draft        LinuxSampler Control Protocol       September 2008
 
 
 
-Schoenebeck              Expires March 14, 2009               [Page 145]
+Schoenebeck               Expires June 9, 2009                [Page 149]
 
-Internet-Draft        LinuxSampler Control Protocol       September 2008
+Internet-Draft        LinuxSampler Control Protocol        December 2008
 
 
 Author's Address
@@ -8172,9 +8396,9 @@ Author's Address
 
 
 
-Schoenebeck              Expires March 14, 2009               [Page 146]
+Schoenebeck               Expires June 9, 2009                [Page 150]
 
-Internet-Draft        LinuxSampler Control Protocol       September 2008
+Internet-Draft        LinuxSampler Control Protocol        December 2008
 
 
 Full Copyright Statement
@@ -8219,14 +8443,15 @@ Intellectual Property
    ietf-ipr@ietf.org.
 
 
-Acknowledgment
-
-   Funding for the RFC Editor function is provided by the IETF
-   Administrative Support Activity (IASA).
 
 
 
 
 
-Schoenebeck              Expires March 14, 2009               [Page 147]
+
+
+
+
+Schoenebeck               Expires June 9, 2009                [Page 151]
 
+

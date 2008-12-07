@@ -3,7 +3,7 @@
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 <meta name="description" content="LinuxSampler Control Protocol">
 <meta name="keywords" content="LSCP">
-<meta name="generator" content="xml2rfc v1.32 (http://xml.resource.org/)">
+<meta name="generator" content="xml2rfc v1.33 (http://xml.resource.org/)">
 <style type='text/css'><!--
         body {
                 font-family: verdana, charcoal, helvetica, arial, sans-serif;
@@ -145,7 +145,7 @@
 <tr><td class="header">LinuxSampler Developers</td><td class="header">C. Schoenebeck</td></tr>
 <tr><td class="header">Internet-Draft</td><td class="header">Interessengemeinschaft Software</td></tr>
 <tr><td class="header">Intended status: Standards Track</td><td class="header">Engineering e. V.</td></tr>
-<tr><td class="header">Expires: March 14, 2009</td><td class="header">September 10, 2008</td></tr>
+<tr><td class="header">Expires: June 9, 2009</td><td class="header">December 6, 2008</td></tr>
 </table></td></tr></table>
 <h1><br />LinuxSampler Control Protocol<br />LSCP 1.4</h1>
 
@@ -173,11 +173,7 @@ The list of current Internet-Drafts can be accessed at
 The list of Internet-Draft Shadow Directories can be accessed at
 <a href='http://www.ietf.org/shadow.html'>http://www.ietf.org/shadow.html</a>.</p>
 <p>
-This Internet-Draft will expire on March 14, 2009.</p>
-
-<h3>Copyright Notice</h3>
-<p>
-Copyright &copy; The IETF Trust (2008).</p>
+This Internet-Draft will expire on June 9, 2009.</p>
 
 <h3>Abstract</h3>
 
@@ -366,6 +362,14 @@ General sampler informations<br />
 Getting global volume attenuation<br />
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SET VOLUME">6.6.7.</a>&nbsp;
 Setting global volume attenuation<br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#GET VOICES">6.6.8.</a>&nbsp;
+Getting global voice limit<br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SET VOICES">6.6.9.</a>&nbsp;
+Setting global voice limit<br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#GET STREAMS">6.6.10.</a>&nbsp;
+Getting global disk stream limit<br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SET STREAMS">6.6.11.</a>&nbsp;
+Setting global disk stream limit<br />
 &nbsp;&nbsp;&nbsp;&nbsp;<a href="#MIDI Instrument Mapping">6.7.</a>&nbsp;
 MIDI Instrument Mapping<br />
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ADD MIDI_INSTRUMENT_MAP">6.7.1.</a>&nbsp;
@@ -6407,6 +6411,198 @@ Setting global volume attenuation</h3>
 </blockquote><p>
                     
 </p>
+<a name="GET VOICES"></a><br /><hr />
+<table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
+<a name="rfc.section.6.6.8"></a><h3>6.6.8.&nbsp;
+Getting global voice limit</h3>
+
+<p>The client can ask for the current global sampler-wide limit
+                       for maximum voices by sending the following command:
+</p>
+<p>
+                        </p>
+<blockquote class="text">
+<p>GET VOICES
+</p>
+</blockquote><p>
+                    
+</p>
+<p>Possible Answers:
+</p>
+<p>
+                        </p>
+<blockquote class="text">
+<p>LinuxSampler will answer by returning the number for
+                               the current limit of maximum voices.
+</p>
+</blockquote><p>
+                    
+</p>
+<p>The voice limit setting defines how many voices should maximum
+                       be processed by the sampler at the same time. If the user
+                       triggers new notes which would exceed that voice limit, the
+                       sampler engine will react by stealing old voices for those
+                       newly triggered notes. Note that the amount of voices triggered
+                       by a new note can be larger than one and is dependent to the
+                       respective instrument and probably further criterias.
+</p>
+<a name="SET VOICES"></a><br /><hr />
+<table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
+<a name="rfc.section.6.6.9"></a><h3>6.6.9.&nbsp;
+Setting global voice limit</h3>
+
+<p>The client can alter the current global sampler-wide limit
+                    for maximum voices by sending the following command:
+</p>
+<p>
+                        </p>
+<blockquote class="text">
+<p>SET VOICES &lt;max-voices&gt;
+</p>
+</blockquote><p>
+                    
+</p>
+<p>Where &lt;max-voices&gt; should be replaced by the integer
+                   value, reflecting the new global amount limit of maximum voices.
+                   This value has to be larger than 0.
+</p>
+<p>Possible Answers:
+</p>
+<p>
+                        </p>
+<blockquote class="text">
+<p>"OK" -
+                                </p>
+<blockquote class="text">
+<p>on success
+</p>
+</blockquote>
+                            
+
+<p>"WRN:&lt;warning-code&gt;:&lt;warning-message&gt;" -
+                                </p>
+<blockquote class="text">
+<p>if the voice limit was set, but there are noteworthy
+                                    issue(s) related, providing an appropriate warning code and
+                                    warning message
+</p>
+</blockquote>
+                            
+
+<p>"ERR:&lt;error-code&gt;:&lt;error-message&gt;" -
+                                </p>
+<blockquote class="text">
+<p>in case it failed, providing an appropriate error code and error message
+</p>
+</blockquote>
+                            
+
+</blockquote><p>
+                    
+</p>
+<p>Note: the given value will be passed to all sampler engine instances.
+                       The total amount of maximum voices on the running system might thus
+                       be as big as the given value multiplied by the current amount of engine
+                       instances.
+</p>
+<p>Caution: when adjusting the voice limit, you SHOULD also
+                        adjust the disk stream limit respectively and vice versa.
+</p>
+<a name="GET STREAMS"></a><br /><hr />
+<table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
+<a name="rfc.section.6.6.10"></a><h3>6.6.10.&nbsp;
+Getting global disk stream limit</h3>
+
+<p>The client can ask for the current global sampler-wide limit
+                       for maximum disk streams by sending the following command:
+</p>
+<p>
+                        </p>
+<blockquote class="text">
+<p>GET STREAMS
+</p>
+</blockquote><p>
+                    
+</p>
+<p>Possible Answers:
+</p>
+<p>
+                        </p>
+<blockquote class="text">
+<p>LinuxSampler will answer by returning the number for
+                               the current limit of maximum disk streams.
+</p>
+</blockquote><p>
+                    
+</p>
+<p>The disk stream limit setting defines how many disk streams should
+                       maximum be processed by a sampler engine at the same time. The
+                       higher this value, the more memory (RAM) will be occupied, since
+                       every disk streams allocates a certain buffer size for being able
+                       to perform its streaming operations.
+</p>
+<a name="SET STREAMS"></a><br /><hr />
+<table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
+<a name="rfc.section.6.6.11"></a><h3>6.6.11.&nbsp;
+Setting global disk stream limit</h3>
+
+<p>The client can alter the current global sampler-wide limit
+                    for maximum disk streams by sending the following command:
+</p>
+<p>
+                        </p>
+<blockquote class="text">
+<p>SET STREAMS &lt;max-streams&gt;
+</p>
+</blockquote><p>
+                    
+</p>
+<p>Where &lt;max-streams&gt; should be replaced by the integer
+                   value, reflecting the new global amount limit of maximum disk streams.
+                   This value has to be positive.
+</p>
+<p>Possible Answers:
+</p>
+<p>
+                        </p>
+<blockquote class="text">
+<p>"OK" -
+                                </p>
+<blockquote class="text">
+<p>on success
+</p>
+</blockquote>
+                            
+
+<p>"WRN:&lt;warning-code&gt;:&lt;warning-message&gt;" -
+                                </p>
+<blockquote class="text">
+<p>if the disk stream limit was set, but there are noteworthy
+                                    issue(s) related, providing an appropriate warning code and
+                                    warning message
+</p>
+</blockquote>
+                            
+
+<p>"ERR:&lt;error-code&gt;:&lt;error-message&gt;" -
+                                </p>
+<blockquote class="text">
+<p>in case it failed, providing an appropriate error code and error message
+</p>
+</blockquote>
+                            
+
+</blockquote><p>
+                    
+</p>
+<p>Note: the given value will be passed to all sampler engine instances.
+                       The total amount of maximum disk streams on the running system might
+                       thus be as big as the given value multiplied by the current amount of
+                       engine instances.
+</p>
+<p>Caution: when adjusting the disk stream limit, you SHOULD also
+                        adjust the voice limit respectively and vice versa.
+</p>
 <a name="MIDI Instrument Mapping"></a><br /><hr />
 <table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
 <a name="rfc.section.6.7"></a><h3>6.7.&nbsp;
@@ -8153,7 +8349,7 @@ Adding instruments to the instruments database</h3>
 <p>
                         </p>
 <blockquote class="text">
-<p>ADD DB_INSTRUMENTS [NON_MODAL] [&lt;mode&gt;] &lt;db_dir&gt; &lt;file_path&gt; [&lt;instr_index&gt;]
+<p>ADD DB_INSTRUMENTS [NON_MODAL] [&lt;mode&gt;[ FILE_AS_DIR]] &lt;db_dir&gt; &lt;file_path&gt; [&lt;instr_index&gt;]
 </p>
 </blockquote><p>
                     
@@ -8210,6 +8406,11 @@ Adding instruments to the instruments database</h3>
 
 </blockquote><p>
                     
+</p>
+<p> If FILE_AS_DIR argument is supplied, all instruments in an instrument
+		 file will be added to a separate directory in the instruments database, which
+		 name will be the name of the instrument file with the file extension stripped off.
+                 
 </p>
 <p>The difference between regular and NON_MODAL versions of the command
                     is that the regular command returns when the scanning is finished
@@ -9791,9 +9992,9 @@ Command Syntax</h3>
 		
 </p>
 <p>/ FORMAT SP format_instruction
-                
+		
 </p>
-<p>SEND SP send_instruction
+<p>/ SEND SP send_instruction
 		
 </p>
 <p>/ RESET
@@ -9817,7 +10018,13 @@ Command Syntax</h3>
 <p>/ DB_INSTRUMENTS SP NON_MODAL SP scan_mode SP db_path SP filename
 		
 </p>
+<p>/ DB_INSTRUMENTS SP NON_MODAL SP scan_mode SP FILE_AS_DIR SP db_path SP filename
+		
+</p>
 <p>/ DB_INSTRUMENTS SP scan_mode SP db_path SP filename
+		
+</p>
+<p>/ DB_INSTRUMENTS SP scan_mode SP FILE_AS_DIR SP db_path SP filename
 		
 </p>
 <p>/ DB_INSTRUMENTS SP NON_MODAL SP db_path SP filename
@@ -10189,6 +10396,12 @@ Command Syntax</h3>
 <p>/ VOLUME
 		
 </p>
+<p>/ VOICES
+		
+</p>
+<p>/ STREAMS
+		
+</p>
 <p>/ FILE SP INSTRUMENTS SP filename
 		
 </p>
@@ -10253,6 +10466,12 @@ Command Syntax</h3>
 		
 </p>
 <p>/ VOLUME SP volume_value
+		
+</p>
+<p>/ VOICES SP number
+		
+</p>
+<p>/ STREAMS SP number
 		
 </p>
 </blockquote><p>
@@ -10885,6 +11104,7 @@ Character Set and Escape Sequences</h3>
 <td align="left">two digit hex ASCII code of the character</td>
 </tr>
 </table>
+<br clear="all" />
 
 <p>Notice: due to the transition of certain parts of the
                 protocol which now support escape sequences, a slight backward
@@ -11658,6 +11878,22 @@ Global settings changed</h3>
                         new global volume parameter.
 </p>
 </blockquote><p>
+                    </p>
+<blockquote class="text">
+<p>"NOTIFY:GLOBAL_INFO:VOICES &lt;max-voices&gt;" - Notifies that the
+                        golbal limit of the sampler for maximum voices is changed, where
+                        &lt;max-voices&gt; will be an integer value, reflecting the
+                        new global voice limit parameter.
+</p>
+</blockquote><p>
+                    </p>
+<blockquote class="text">
+<p>"NOTIFY:GLOBAL_INFO:STREAMS &lt;max-streams&gt;" - Notifies that the
+                        golbal limit of the sampler for maximum disk streams is changed, where
+                        &lt;max-streams&gt; will be an integer value, reflecting the
+                        new global disk streams limit parameter.
+</p>
+</blockquote><p>
                 
 </p>
 <a name="SUBSCRIBE DB_INSTRUMENT_DIRECTORY_COUNT"></a><br /><hr />
@@ -11919,13 +12155,13 @@ Acknowledgments</h3>
 <h3>11.&nbsp;References</h3>
 <table width="99%" border="0">
 <tr><td class="author-text" valign="top"><a name="RFC20">[RFC20]</a></td>
-<td class="author-text">UCLA, &ldquo;<a href="ftp://ftp.isi.edu/in-notes/rfc20.txt">ASCII format for Network Interchange</a>,&rdquo; RFC&nbsp;20, 1969.</td></tr>
+<td class="author-text">UCLA, &ldquo;<a href="http://tools.ietf.org/html/rfc20">ASCII format for Network Interchange</a>,&rdquo; RFC&nbsp;20, 1969.</td></tr>
 <tr><td class="author-text" valign="top"><a name="RFC2119">[RFC2119]</a></td>
-<td class="author-text">Bradner, S., &ldquo;<a href="ftp://ftp.isi.edu/in-notes/rfc2119.txt">Key words for use in RFCs to Indicate Requirement Levels</a>,&rdquo; RFC&nbsp;2119, 1997.</td></tr>
+<td class="author-text">Bradner, S., &ldquo;<a href="http://tools.ietf.org/html/rfc2119">Key words for use in RFCs to Indicate Requirement Levels</a>,&rdquo; RFC&nbsp;2119, 1997.</td></tr>
 <tr><td class="author-text" valign="top"><a name="RFC2234">[RFC2234]</a></td>
-<td class="author-text">Crocker, D. and P. Overell, &ldquo;<a href="ftp://ftp.isi.edu/in-notes/rfc2234.txt">Augmented BNF for Syntax Specifications</a>,&rdquo; RFC&nbsp;2234, 1997.</td></tr>
+<td class="author-text">Crocker, D. and P. Overell, &ldquo;<a href="http://tools.ietf.org/html/rfc2234">Augmented BNF for Syntax Specifications</a>,&rdquo; RFC&nbsp;2234, 1997.</td></tr>
 <tr><td class="author-text" valign="top"><a name="RFC793">[RFC793]</a></td>
-<td class="author-text">Defense Advanced Research Projects Agency, &ldquo;<a href="ftp://ftp.isi.edu/in-notes/rfc793.txt">TRANSMISSION CONTROL PROTOCOL</a>,&rdquo; RFC&nbsp;793, 1981.</td></tr>
+<td class="author-text">Defense Advanced Research Projects Agency, &ldquo;<a href="http://tools.ietf.org/html/rfc793">TRANSMISSION CONTROL PROTOCOL</a>,&rdquo; RFC&nbsp;793, 1981.</td></tr>
 </table>
 
 <a name="rfc.authors"></a><br /><hr />
@@ -11992,8 +12228,5 @@ or other
 proprietary rights that may cover technology that may be required
 to implement this standard.
 Please address the information to the IETF at <a href='mailto:ietf-ipr@ietf.org'>ietf-ipr@ietf.org</a>.</p>
-<h3>Acknowledgment</h3>
-<p class='copyright'>
-Funding for the RFC Editor function is provided by
-the IETF Administrative Support Activity (IASA).</p>
 </body></html>
+
