@@ -2512,7 +2512,7 @@ Schoenebeck'>
                                         <list>
                                             <t>numerical ID of the audio output device which is
                                             currently connected to this sampler channel to output
-                                            the audio signal, "NONE" if there's no device
+                                            the audio signal, "-1" if there's no device
                                             connected to this sampler channel</t>
                                         </list>
                                     </t>
@@ -2543,7 +2543,9 @@ Schoenebeck'>
                                     </t>
                                     <t>INSTRUMENT_NR -
                                         <list>
-                                            <t>the instrument index number of the loaded instrument</t>
+                                            <t>the instrument index number of the loaded instrument,
+                                            "-1" if there's no instrument loaded for this sampler
+                                            channel</t>
                                         </list>
                                     </t>
                                     <t>INSTRUMENT_NAME -
@@ -2555,8 +2557,11 @@ Schoenebeck'>
                                     </t>
                                     <t>INSTRUMENT_STATUS -
                                         <list>
-                                            <t>integer values 0 to 100 indicating loading progress percentage for the instrument. Negative
-                                            value indicates a loading exception. Value of 100 indicates that the instrument is fully
+                                            <t>Integer values 0 to 100 indicating loading progress
+                                            percentage for the instrument. Negative
+                                            value indicates a loading exception (also returns "-1" in case no
+                                            instrument was yet to be loaded on the sampler channel).
+                                            Value of 100 indicates that the instrument is fully
                                             loaded.</t>
                                         </list>
                                     </t>
@@ -2564,13 +2569,15 @@ Schoenebeck'>
                                         <list>
                                             <t>numerical ID of the MIDI input device which is
                                             currently connected to this sampler channel to deliver
-                                            MIDI input commands, "NONE" if there's no device
+                                            MIDI input commands, "-1" if there's no device
                                             connected to this sampler channel</t>
                                         </list>
                                     </t>
                                     <t>MIDI_INPUT_PORT -
                                         <list>
-                                            <t>port number of the MIDI input device</t>
+                                            <t>port number of the MIDI input device (in case a
+                                            MIDI device was already assigned to the sampler
+                                            channel)</t>
                                         </list>
                                     </t>
                                     <t>MIDI_INPUT_CHANNEL -
