@@ -145,7 +145,7 @@
 <tr><td class="header">LinuxSampler Developers</td><td class="header">C. Schoenebeck</td></tr>
 <tr><td class="header">Internet-Draft</td><td class="header">Interessengemeinschaft Software</td></tr>
 <tr><td class="header">Intended status: Standards Track</td><td class="header">Engineering e. V.</td></tr>
-<tr><td class="header">Expires: June 9, 2009</td><td class="header">December 6, 2008</td></tr>
+<tr><td class="header">Expires: June 13, 2009</td><td class="header">December 10, 2008</td></tr>
 </table></td></tr></table>
 <h1><br />LinuxSampler Control Protocol<br />LSCP 1.4</h1>
 
@@ -173,7 +173,7 @@ The list of current Internet-Drafts can be accessed at
 The list of Internet-Draft Shadow Directories can be accessed at
 <a href='http://www.ietf.org/shadow.html'>http://www.ietf.org/shadow.html</a>.</p>
 <p>
-This Internet-Draft will expire on June 9, 2009.</p>
+This Internet-Draft will expire on June 13, 2009.</p>
 
 <h3>Abstract</h3>
 
@@ -3996,7 +3996,7 @@ Getting sampler channel information</h3>
 <blockquote class="text">
 <p>numerical ID of the audio output device which is
                                             currently connected to this sampler channel to output
-                                            the audio signal, "NONE" if there's no device
+                                            the audio signal, "-1" if there's no device
                                             connected to this sampler channel
 </p>
 </blockquote>
@@ -4039,7 +4039,9 @@ Getting sampler channel information</h3>
 <p>INSTRUMENT_NR -
                                         </p>
 <blockquote class="text">
-<p>the instrument index number of the loaded instrument
+<p>the instrument index number of the loaded instrument,
+                                            "-1" if there's no instrument loaded for this sampler
+                                            channel
 </p>
 </blockquote>
                                     
@@ -4057,8 +4059,11 @@ Getting sampler channel information</h3>
 <p>INSTRUMENT_STATUS -
                                         </p>
 <blockquote class="text">
-<p>integer values 0 to 100 indicating loading progress percentage for the instrument. Negative
-                                            value indicates a loading exception. Value of 100 indicates that the instrument is fully
+<p>Integer values 0 to 100 indicating loading progress
+                                            percentage for the instrument. Negative
+                                            value indicates a loading exception (also returns "-1" in case no
+                                            instrument was yet to be loaded on the sampler channel).
+                                            Value of 100 indicates that the instrument is fully
                                             loaded.
 </p>
 </blockquote>
@@ -4069,7 +4074,7 @@ Getting sampler channel information</h3>
 <blockquote class="text">
 <p>numerical ID of the MIDI input device which is
                                             currently connected to this sampler channel to deliver
-                                            MIDI input commands, "NONE" if there's no device
+                                            MIDI input commands, "-1" if there's no device
                                             connected to this sampler channel
 </p>
 </blockquote>
@@ -4078,7 +4083,9 @@ Getting sampler channel information</h3>
 <p>MIDI_INPUT_PORT -
                                         </p>
 <blockquote class="text">
-<p>port number of the MIDI input device
+<p>port number of the MIDI input device (in case a
+                                            MIDI device was already assigned to the sampler
+                                            channel)
 </p>
 </blockquote>
                                     
