@@ -34,6 +34,9 @@ CVS HEAD           _lscp_device_port_info_query(): take port parameter
                      lscp_get_streams();
                      lscp_set_streams();
 
+                   Bugfix: fixed buggy behavior on different locale
+                   settings (e.g. when parsing floating point numbers).
+
 0.5.5  2007-10-12  Changed client interface function, for editing
                    instrument, from:
                      lscp_edit_instrument();
