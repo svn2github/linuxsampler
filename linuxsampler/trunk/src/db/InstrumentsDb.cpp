@@ -1754,8 +1754,9 @@ namespace LinuxSampler {
     }
 
     String InstrumentsDb::AppendNode(String DbDir, String Node) {
-        if(DbDir.length() == 1 && DbDir.at(0) == '/') return DbDir + Node + "/";
-        return DbDir + "/" + Node + "/";  
+        if(DbDir.length() == 1 && DbDir.at(0) == '/') return DbDir + Node;
+        if(DbDir.at(DbDir.length() - 1) == '/') return DbDir + Node;
+        return DbDir + "/" + Node;
     }
 
     String InstrumentsDb::toDbName(String AbstractName) {
