@@ -1,0 +1,247 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+  <meta content="text/html; charset=ISO-8859-1"
+ http-equiv="content-type">
+  <title>Windows Build Instructions</title>
+  <link rel="shortcut icon" href="http://download.linuxsampler.org/favicon.ico" type="image/x-icon">
+  <link rel="stylesheet" type="text/css" href="libgig/css/content.css" title="content" media="all">
+</head>
+<body>
+<h2 align="center">Windows Build Instructions &nbsp; <img src="gfx/logos/msys.png" alt="msys logo"> &nbsp; HOWTO by Andreas Persson</h2>
+<br>
+<center>December&nbsp;14th,&nbsp;2008</center><br>
+<div style="background-color: #F4F4FF; margin: 1em 3em 1em 3em; padding: 1em 1em 1em 2.2em;">
+<a href="#intro">1.&nbsp; Introduction</a><br>
+<a href="#mingw">2.&nbsp; MinGW</a><br>
+<a href="#pkg">3.&nbsp; pkg-config and gtkmm</a><br>
+<a href="#msys">4.&nbsp; MSYS</a><br>
+<a href="#asio">5.&nbsp; ASIO SDK</a><br>
+<a href="#vst">6.&nbsp; VST SDK</a><br>
+<a href="#intl">7.&nbsp; intltool</a><br>
+<a href="#perl">8.&nbsp; Perl</a><br>
+<a href="#xslt">9.&nbsp; xsltproc</a><br>
+<a href="#setup">10.&nbsp; MSYS setup</a><br>
+<a href="#sndfile">11.&nbsp; Building libsndfile</a><br>
+<a href="#gig">12.&nbsp; Building libgig</a><br>
+<a href="#ls">13.&nbsp; Building linuxsampler</a><br>
+<a href="#gigedit">14.&nbsp; Building gigedit</a><br>
+</div>
+
+
+<h3><a name="intro">1.&nbsp; Introduction</a></h3>
+
+<p>These are instructions for building libgig, linuxsampler and
+gigedit on Windows (32 bit) with help of MinGW and MSYS. After the
+MinGW and MSYS environment and the other prerequisites are installed,
+the build procedure will be the same as in Linux, that is, basically:
+./configure ; make ; make install.</p>
+
+<p>The versions of the files to download are just the ones I used
+before writing this text. You can probably use later ones if
+available.</p>
+
+<p>Some of the instructions below are marked with ** and ***:</p>
+
+<p>** = only needed if you are going to build from CVS, not if you are
+     using the tar file releases</p>
+
+<p>*** = only needed if you are going to build gigedit</p>
+
+
+<h3><a name="mingw">2.&nbsp; MinGW</a></h3>
+
+<p>Download the MinGW installer, MinGW-5.1.4.exe,
+from <a href="http://www.mingw.org">www.mingw.org</a> and run it.</p>
+
+
+<h3><a name="pkg">3.&nbsp; pkg-config and gtkmm</a></h3>
+
+<p>The pkg-config tool is needed by the configure script in all the
+LinuxSampler packages. pkg-config is included in gtkmm, which is
+needed by gigedit. (If you are not going to build gigedit, you can
+download just GLib and pkg-config
+from <a href="http://www.gtk.org">www.gtk.org</a>.)</p>
+
+<p>Download the gtkmm windows installer,
+gtkmm-win32-runtime-2.14.1-3.exe,
+from <a href="http://www.gtkmm.org">www.gtkmm.org</a>, and run it. Let
+the installer adjust the PATH variable as it wants.</p>
+
+
+<h3><a name="msys">4.&nbsp; MSYS</a></h3>
+
+<p>I use the 1.0.11 Technology Preview version, as I had problems
+building DLLs with the 1.0.10 current version.</p>
+
+<p>Download from "MSYS Base System, Technology Preview: MSYS-1.0.11":</p>
+
+<pre>msysCORE-1.0.11-20080826.tar.gz
+bash-3.1-MSYS-1.0.11-1.tar.bz2</pre>
+
+<p>Unpack these to a directory of your choice, for example C:\msys. As
+1.0.11 doesn't have an installer yet, you need to have an unpacker
+that supports tar.gz/tar.bz, for example 7-Zip. The rest of the files
+you can unpack with the tar included in msysCORE.</p>
+
+<p>Run the postinstall\pi.bat file and specify your MinGW
+directory.</p>
+
+
+<p>Download from "MSYS Supplementary Tools, Technology Preview: Tools for
+MSYS-1.0.11":</p>
+
+<pre>autoconf2.5-2.61-1-bin.tar.bz2 **
+autoconf-4-1-bin.tar.bz2 **
+automake1.10-1.10-1-bin.tar.bz2 **
+automake-3-1-bin.tar.bz2 **
+bison-2.3-MSYS-1.0.11-1.tar.bz2 **
+crypt-1.1-1-MSYS-1.0.11-1.tar.bz2 **
+cvs-1.11.22-MSYS-1.0.11-1-bin.tar.gz **
+gettext-0.16.1-1-bin.tar.bz2 ***
+gettext-0.16.1-1-dll.tar.bz2 ***
+libiconv-1.11-1-bin.tar.bz2 ***
+libiconv-1.11-1-dll.tar.bz2 ***
+libtool1.5-1.5.25a-1-bin.tar.bz2
+perl-5.6.1-MSYS-1.0.11-1.tar.bz2 ***</pre>
+
+<p>Download from "MSYS Supplementary Tools, Current Release:
+msysDTK-1.0.1":</p>
+
+<pre>m4-1.4.7-MSYS.tar.bz2 **</pre>
+
+
+<p>Extract all these files to the msys directory, by starting msys,
+do "cd /" and use tar.</p>
+
+
+<h3><a name="asio">5.&nbsp; ASIO SDK</a></h3>
+
+<p>Download asiosdk2.2.zip from Steinberg. Extract it to your msys
+$HOME.</p>
+
+
+<h3><a name="vst">6.&nbsp; VST SDK</a></h3>
+
+<p>If you want to build the LinuxSampler VST plugin, download
+vst_sdk2_4_rev2.zip from Steinberg (note that you should not choose
+version 3). Extract it to msys $HOME.</p>
+
+
+<h3><a name="intl">7.&nbsp; intltool ***</a></h3>
+
+<p>Download intltool_0.40.4-1_win32.zip from
+<a href="http://ftp.gnome.org/pub/GNOME/binaries/win32/intltool">http://ftp.gnome.org/pub/GNOME/binaries/win32/intltool</a></p>
+
+<p>Unzip this into the msys local directory, (C:\msys\local for
+example)</p>
+
+
+<h3><a name="perl">8.&nbsp; Perl ***</a></h3>
+
+<p>The perl in MSYS is lacking an XML parser which is needed by
+intltool. Download ActivePerl
+from <a href="http://www.activestate.com">www.activestate.com</a> and
+install it.</p>
+
+
+<h3><a name="xslt">9.&nbsp; xsltproc ***</a></h3>
+
+<p>The gigedit Makefile wants to build the gigedit quick start
+documentation, so it needs the xsltproc command. Download from
+<a href="ftp://ftp.zlatkovic.com/pub/libxml/">ftp://ftp.zlatkovic.com/pub/libxml/</a>:</p>
+
+<pre>libxml2-2.7.2+.win32.zip
+libxslt-1.1.24.win32.zip</pre>
+
+<p>Copy the contents of the bin directories from both zip files to a
+directory of your choice. Add this directory last in your msys PATH,
+for example:</p>
+
+<pre>export PATH=$PATH:$HOME/xsltproc</pre>
+
+
+<h3><a name="setup">10.&nbsp; MSYS setup</a></h3>
+
+<p>Add the gtkmm aclocal directory to the list of extra directories used
+by autoconf (make sure the gtkmm path is the one where you installed
+it):</p>
+
+<pre>echo "/c/Program Files/gtkmm/share/aclocal" >> /usr/local/share/aclocal/dirlist</pre>
+
+
+<p>Make sure pkg-config will find the LinuxSampler libraries:</p>
+
+<pre>export PKG_CONFIG_PATH=/usr/local/lib/pkgconfig</pre>
+
+
+<p>*** The intltool scripts expect perl to be in /opt/perl/bin, so
+make a link to the ActivePerl installation. Also add ActivePerl to
+PATH:</p>
+
+<pre>mkdir -p /opt/perl/bin
+ln -s /c/Perl/bin/perl.exe /opt/perl/bin
+export PATH=/c/Perl/bin:$PATH</pre>
+
+
+<p>*** MSYS gettext and gtkmm both include libintl. We want the gtkmm
+version. Remove the MSYS files so the gettext configure tools don't
+choose the wrong version:</p>
+
+<pre>rm /usr/local/include/libintl.h /usr/local/lib/libintl*</pre>
+
+
+<p>*** The gettext configure tools also need:</p>
+
+<pre>export CPPFLAGS="-I/c/Program Files/gtkmm/include"
+export LDFLAGS="-L/c/Program Files/gtkmm/lib"</pre>
+
+
+<h3><a name="sndfile">11.&nbsp; Building libsndfile</a></h3>
+
+<p>The windows precompiled version of libsndfile doesn't include the
+neccessary pkg-config file, so it's best to build libsndfile
+yourself. Download libsndfile-1.0.17.tar.gz
+from <a href="http://www.mega-nerd.com/libsndfile/">www.mega-nerd.com</a> and
+extract it to your $HOME:</p>
+
+<pre>cd
+tar xzf libsndfile-1.0.17.tar.gz</pre>
+
+<p>To prevent a compilation error for the test cases, add</p>
+
+<pre>#include &lt;stdint.h></pre>
+
+<p>to tests/utils.h.</p>
+
+<pre>./configure
+make
+make install</pre>
+
+
+<h3><a name="gig">12.&nbsp; Building libgig</a></h3>
+
+<p>Just use the same commands as you would in linux:</p>
+
+<pre>make -f Makefile.cvs    (if you build from CVS)
+./configure             (add any configuration parameters as you wish)
+make
+make install</pre>
+
+
+<h3><a name="ls">13.&nbsp; Building linuxsampler</a></h3>
+
+<pre>make -f Makefile.cvs    (if you build from CVS)
+./configure --enable-asiosdk-dir=$HOME --enable-vstsdk-dir=$HOME/vstsdk2.4
+make
+make install</pre>
+
+
+<h3><a name="gigedit">14.&nbsp; Building gigedit</a></h3>
+
+<pre>make -f Makefile.cvs    (if you build from CVS)
+./configure
+make
+make install</pre>
+</body>
+</html>
