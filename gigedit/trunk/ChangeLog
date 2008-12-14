@@ -41,6 +41,7 @@ Version CVS HEAD (?)
   * bugfix: when a stereo sample is replaced, make sure both zones of
     the sample channel dimension get updated with the new sample
   * minor gui fix: made multi line lables expand to use full width
+  * fixes for building the plugin with MinGW
 
 Version 0.1.1 (2007-12-06)
 

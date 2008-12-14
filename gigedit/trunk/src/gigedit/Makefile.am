@@ -17,7 +17,7 @@ libgigedit_la_LIBADD = \
 libgigedit_la_CXXFLAGS = \
 	$(SNDFILE_CFLAGS)
 libgigedit_la_LDFLAGS = \
-	-version-info @SHARED_VERSION_INFO@ @SHLIB_VERSION_ARG@
+	-version-info @SHARED_VERSION_INFO@ @SHLIB_VERSION_ARG@ -no-undefined
 
 bin_PROGRAMS = gigedit
 gigedit_SOURCES = main.cpp

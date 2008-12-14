@@ -8,9 +8,10 @@ libgigeditlinuxsamplerplugin_la_SOURCES = \
 	linuxsamplerplugin.cpp \
 	linuxsamplerplugin.h
 libgigeditlinuxsamplerplugin_la_LIBADD = \
-	$(top_builddir)/src/gigedit/libgigedit.la
+	$(top_builddir)/src/gigedit/libgigedit.la \
+	$(GTKMM_LIBS) $(GIG_LIBS)
 libgigeditlinuxsamplerplugin_la_CXXFLAGS = \
 	$(LINUXSAMPLER_CFLAGS)
 libgigeditlinuxsamplerplugin_la_LDFLAGS = \
 	-version-info @SHARED_VERSION_INFO@ @SHLIB_VERSION_ARG@ \
-	$(LINUXSAMPLER_LIBS)
+	-module -no-undefined
