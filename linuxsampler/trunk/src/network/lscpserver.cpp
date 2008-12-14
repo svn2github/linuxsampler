@@ -507,7 +507,7 @@ int LSCPServer::Main() {
 
         int retval = select(maxSessions+1, &selectSet, NULL, NULL, &timeout);
 
-	if (retval == 0)
+	if (retval == 0 || (retval == -1 && errno == EINTR))
 		continue; //Nothing try again
 	if (retval == -1) {
 		std::cerr << "LSCPServer: Socket select error." << std::endl;

@@ -34,6 +34,7 @@
 #include "lscpparser.h"
 #include "lscpserver.h"
 #include "lscpevent.h"
+#include "lscpsymbols.h"
 
 namespace LinuxSampler {
 

@@ -37,7 +37,13 @@ typedef std::string String;
 
 #if defined(WIN32)
 #include <windows.h>
+
+// modern MinGW has usleep
+#if __MINGW32_MAJOR_VERSION < 3 || \
+    (__MINGW32_MAJOR_VERSION == 3 && __MINGW32_MINOR_VERSION < 15)
 #define usleep(a) Sleep(a/1000)
+#endif
+
 #define sleep(a) Sleep(a*1000)
 typedef unsigned int uint;
 // FIXME: define proper functions which do proper alignement under Win32

@@ -127,6 +127,12 @@
 #endif
 
 #include <windows.h>
+
+// bug work-around for incompability between ASIO SDK and MinGW 3.15:
+#define InterlockedIncrement DummyInterlockedIncrement
+#define InterlockedDecrement DummyInterlockedDecrement
+#define InterlockedExchange DummyInterlockedExchange
+
 #include <asiodrvr.h> /* From ASIO SDK */
 
 class IASIOThiscallResolver : public IASIO {

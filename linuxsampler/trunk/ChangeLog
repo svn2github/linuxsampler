@@ -8,6 +8,8 @@ Version CVS HEAD (?)
     - fixed compilation with gcc 4.3
     - fixes for building on OS X (thanks to Ebrahim Mayat for testing)
     - fixed configure so it detects x86_64 (#107)
+    - fixes for building with newer MinGW versions
+    - fix for building with bison 2.4 (#111)
 
   * general changes:
     - bugfix: on some POSIX systems instrument editor plugins refused to
@@ -109,6 +111,8 @@ Version CVS HEAD (?)
     - added new LSCP command "SET STREAMS" to globally alter the maximum
       amount of disk streams, added new LSCP event "GLOBAL_INFO:STREAMS"
       which will be triggered respectively
+    - bugfix: retry if "select" returns EINTR (this fixes a crash when
+      a gigedit file dialog is opened)
 
   * Bug fixes:
     - fixed a crash which occurs when removing a sampler channel waiting
