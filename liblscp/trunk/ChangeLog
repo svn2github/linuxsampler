@@ -3,7 +3,14 @@ liblscp - LinuxSampler Control Protocol API
 
 ChangeLog
 
-CVS HEAD           _lscp_device_port_info_query(): take port parameter
+CVS HERAD          Fixed locale related parser bug (fixes #59). 
+
+                   Added new client interface functions, for managing
+                   the global limit of maximum voices and disk streams:
+                   lscp_get_voices(), lscp_set_voices(), lscp_get_streams(),
+                   lscp_set_streams().
+
+                   _lscp_device_port_info_query(): take port parameter
                    "NAME" into the result list.
 
                    Bugfix: _lscp_client_evt_proc() dropped LSCP events.
