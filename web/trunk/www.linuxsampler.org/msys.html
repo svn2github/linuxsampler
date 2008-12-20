@@ -64,7 +64,7 @@ download just GLib and pkg-config
 from <a href="http://www.gtk.org">www.gtk.org</a>.)</p>
 
 <p>Download the gtkmm windows installer,
-gtkmm-win32-runtime-2.14.1-3.exe,
+gtkmm-win32-devel-2.14.3-2.exe,
 from <a href="http://www.gtkmm.org">www.gtkmm.org</a>, and run it. Let
 the installer adjust the PATH variable as it wants.</p>
 
@@ -87,6 +87,10 @@ you can unpack with the tar included in msysCORE.</p>
 <p>Run the postinstall\pi.bat file and specify your MinGW
 directory.</p>
 
+<p>Download, also from "MSYS Base System, Technology Preview:
+MSYS-1.0.11":</p>
+
+<pre>gawk-3.1.5-MSYS-1.0.11-1.tar.bz2 **</pre>
 
 <p>Download from "MSYS Supplementary Tools, Technology Preview: Tools for
 MSYS-1.0.11":</p>
@@ -111,8 +115,9 @@ msysDTK-1.0.1":</p>
 <pre>m4-1.4.7-MSYS.tar.bz2 **</pre>
 
 
-<p>Extract all these files to the msys directory, by starting msys,
-do "cd /" and use tar.</p>
+<p>Extract all these files to the msys directory, by starting msys, do
+"cd /" followed by "tar xjf <i>filename</i>" for .tar.bz2 files and
+"tar xzf <i>filename</i>" for .tar.gz files.</p>
 
 
 <h3><a name="asio">5.&nbsp; ASIO SDK</a></h3>
@@ -163,12 +168,18 @@ for example:</p>
 
 <h3><a name="setup">10.&nbsp; MSYS setup</a></h3>
 
-<p>Add the gtkmm aclocal directory to the list of extra directories used
-by autoconf (make sure the gtkmm path is the one where you installed
-it):</p>
+<p>Add the gtkmm aclocal directory to the list of extra directories
+used by autoconf. (Make sure the gtkmm path is the one where you
+installed it. The space in "Program Files" causes problems, so the
+short file name form is used here):</p>
 
-<pre>echo "/c/Program Files/gtkmm/share/aclocal" >> /usr/local/share/aclocal/dirlist</pre>
+<pre>echo "/c/Progra~1/gtkmm/share/aclocal" >> /usr/local/share/aclocal/dirlist</pre>
 
+<p>Add the gtkmm bin directory first in your PATH (the installer has
+already added gtkmm to the PATH, but it may have used "Program Files"
+with a space in it, which causes configure to fail):</p>
+
+<pre>export PATH=/c/Progra~1/gtkmm/bin:$PATH</pre>
 
 <p>Make sure pkg-config will find the LinuxSampler libraries:</p>
 
@@ -193,8 +204,8 @@ choose the wrong version:</p>
 
 <p>*** The gettext configure tools also need:</p>
 
-<pre>export CPPFLAGS="-I/c/Program Files/gtkmm/include"
-export LDFLAGS="-L/c/Program Files/gtkmm/lib"</pre>
+<pre>export CPPFLAGS="-I/c/Progra~1/gtkmm/include"
+export LDFLAGS="-L/c/Progra~1/gtkmm/lib"</pre>
 
 
 <h3><a name="sndfile">11.&nbsp; Building libsndfile</a></h3>
