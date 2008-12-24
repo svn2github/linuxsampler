@@ -1,7 +1,7 @@
 /*
  *   jlscp - a java LinuxSampler control protocol API
  *
- *   Copyright (C) 2005-2007 Grigor Iliev <grigor@grigoriliev.com>
+ *   Copyright (C) 2005-2008 Grigor Iliev <grigor@grigoriliev.com>
  *
  *   This file is part of jlscp.
  *
@@ -29,6 +29,11 @@ package org.linuxsampler.lscp.event;
  */
 public interface GlobalInfoListener extends java.util.EventListener {
 	/** Invoked when the global volume of the sampler is changed. */
-	public void
-	volumeChanged(GlobalInfoEvent e);
+	public void volumeChanged(GlobalInfoEvent e);
+	
+	/** Invoked when the global sampler-wide limit of maximum voices is changed. */
+	public void voiceLimitChanged(GlobalInfoEvent e);
+	
+	/** Invoked when the global sampler-wide limit of maximum disk streams is changed. */
+	public void streamLimitChanged(GlobalInfoEvent e);
 }

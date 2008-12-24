@@ -28,7 +28,6 @@ import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
-import java.net.UnknownHostException;
 
 import java.util.Vector;
 import java.util.logging.Level;
@@ -85,6 +84,7 @@ public class Client {
 		
 		EventThread() { super("LSCP-Event-Thread"); }
 		
+		@Override
 		public void
 		run() {
 			while(!mustTerminate()) {
@@ -186,7 +186,7 @@ public class Client {
 		soTimeout = timeout;
 		
 		try { if(sock != null) sock.setSoTimeout(timeout); }
-		catch(Exception x) { this.getLogger().log(Level.INFO, "Unable to set timeout", x); }
+		catch(Exception x) { getLogger().log(Level.INFO, "Unable to set timeout", x); }
 	}
 	
 	private String
@@ -964,6 +964,16 @@ public class Client {
 				float f = Float.parseFloat(s.substring("VOLUME ".length()));
 				GlobalInfoEvent e = new GlobalInfoEvent(this, f);
 				for(GlobalInfoListener l : llGI) l.volumeChanged(e);
+			} else if(s.startsWith("VOICES ")) {
+				int i = Integer.parseInt(s.substring("VOICES ".length()));
+				GlobalInfoEvent e = new GlobalInfoEvent(this, i, -1);
+				for(GlobalInfoListener l : llGI) l.voiceLimitChanged(e);
+			} else if(s.startsWith("STREAMS ")) {
+				int i = Integer.parseInt(s.substring("STREAMS ".length()));
+				GlobalInfoEvent e = new GlobalInfoEvent(this, -1, i);
+				for(GlobalInfoListener l : llGI) l.streamLimitChanged(e);
+			} else {
+				getLogger().info("Unknown GLOBAL_INFO format: " + s);
 			}
 		} catch(NumberFormatException x) {
 			getLogger().log(Level.WARNING, "Unknown GLOBAL_INFO format", x);
@@ -5291,8 +5301,8 @@ public class Client {
 	}
 	
 	/**
-	 * Gets the golobal volume of the sampler.
-	 * @return The golobal volume of the sampler.
+	 * Gets the global volume of the sampler.
+	 * @return The global volume of the sampler.
 	 * @throws IOException If some I/O error occurs.
 	 * @throws LscpException If LSCP protocol corruption occurs.
 	 * @throws LSException If some other error occurs.
@@ -5320,6 +5330,74 @@ public class Client {
 	
 		verifyConnection();
 		out.writeLine("SET VOLUME " + volume);
+		if(getPrintOnlyMode()) return;
+		
+		ResultSet rs = getEmptyResultSet();
+	}
+	
+	/**
+	 * Gets the global sampler-wide limit of maximum voices.
+	 * @return The global sampler-wide limit of maximum voices.
+	 * @throws IOException If some I/O error occurs.
+	 * @throws LscpException If LSCP protocol corruption occurs.
+	 * @throws LSException If some other error occurs.
+	 */
+	public synchronized int
+	getGlobalVoiceLimit() throws IOException, LscpException, LSException {
+		verifyConnection();
+		out.writeLine("GET VOICES");
+		if(getPrintOnlyMode()) return -1;
+		
+		String s = getSingleLineResultSet().getResult();
+		return parseInt(s);
+	}
+	
+	/**
+	 * Sets the global sampler-wide limit of maximum voices.
+	 * @param maxVoices The new global limit of maximum voices.
+	 * @throws IOException If some I/O error occurs.
+	 * @throws LscpException If LSCP protocol corruption occurs.
+	 * @throws LSException If some other error occurs.
+	 * @see #getVolume
+	 */
+	public synchronized void
+	setGlobalVoiceLimit(int maxVoices) throws IOException, LscpException, LSException {
+		verifyConnection();
+		out.writeLine("SET VOICES " + maxVoices);
+		if(getPrintOnlyMode()) return;
+		
+		ResultSet rs = getEmptyResultSet();
+	}
+	
+	/**
+	 * Gets the global sampler-wide limit of maximum disk streams.
+	 * @return The global sampler-wide limit of maximum disk streams.
+	 * @throws IOException If some I/O error occurs.
+	 * @throws LscpException If LSCP protocol corruption occurs.
+	 * @throws LSException If some other error occurs.
+	 */
+	public synchronized int
+	getGlobalStreamLimit() throws IOException, LscpException, LSException {
+		verifyConnection();
+		out.writeLine("GET STREAMS");
+		if(getPrintOnlyMode()) return -1;
+		
+		String s = getSingleLineResultSet().getResult();
+		return parseInt(s);
+	}
+	
+	/**
+	 * Sets the global sampler-wide limit for maximum disk streams.
+	 * @param maxVoices The new global limit of maximum disk streams.
+	 * @throws IOException If some I/O error occurs.
+	 * @throws LscpException If LSCP protocol corruption occurs.
+	 * @throws LSException If some other error occurs.
+	 * @see #getVolume
+	 */
+	public synchronized void
+	setGlobalStreamLimit(int maxStreams) throws IOException, LscpException, LSException {
+		verifyConnection();
+		out.writeLine("SET STREAMS " + maxStreams);
 		if(getPrintOnlyMode()) return;
 		
 		ResultSet rs = getEmptyResultSet();
@@ -5392,12 +5470,14 @@ public class Client {
 			super(resultSet);
 		}
 		
+		@Override
 		public String
 		getEngine() {
 			// TODO: engine lookup?
 			return getFormatFamily();
 		}
 		
+		@Override
 		public boolean
 		parse(String s) throws LscpException {
 			if(s.startsWith("PRODUCT: ") || s.startsWith("ARTISTS: ")) return true;

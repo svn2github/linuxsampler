@@ -1,7 +1,7 @@
 /*
  *   jlscp - a java LinuxSampler control protocol API
  *
- *   Copyright (C) 2005-2007 Grigor Iliev <grigor@grigoriliev.com>
+ *   Copyright (C) 2005-2008 Grigor Iliev <grigor@grigoriliev.com>
  *
  *   This file is part of jlscp.
  *
@@ -28,6 +28,8 @@ package org.linuxsampler.lscp.event;
  */
 public class GlobalInfoEvent extends java.util.EventObject {
 	private float volume = 0;
+	private int voiceLimit;
+	private int streamLimit;
 	
 	/**
 	 * Constructs a <code>GlobalInfoEvent</code> object.
@@ -50,6 +52,17 @@ public class GlobalInfoEvent extends java.util.EventObject {
 	}
 	
 	/**
+	 * Constructs a <code>GlobalInfoEvent</code> object.
+	 * @param source The object that originated the event.
+	 */
+	public
+	GlobalInfoEvent(Object source, int maxVoices, int maxStreams) {
+		super(source);
+		voiceLimit = maxVoices;
+		streamLimit = maxStreams;
+	}
+	
+	/**
 	 * Gets the new global volume value of the sampler.
 	 * The returned value is only valid when {@link GlobalInfoListener#volumeChanged}
 	 * event is fired.
@@ -57,4 +70,22 @@ public class GlobalInfoEvent extends java.util.EventObject {
 	 */
 	public float
 	getVolume() { return volume; }
+	
+	/**
+	 * Gets the new global sampler-wide limit of maximum voices.
+	 * The returned value is only valid when {@link GlobalInfoListener#voiceLimitChanged}
+	 * event is fired.
+	 * @return The new global sampler-wide limit of maximum voices.
+	 */
+	public int
+	getVoiceLimit() { return voiceLimit; }
+	
+	/**
+	 * Gets the new global sampler-wide limit of maximum disk streams.
+	 * The returned value is only valid when {@link GlobalInfoListener#streamLimitChanged}
+	 * event is fired.
+	 * @return The new global sampler-wide limit of maximum disk streams.
+	 */
+	public int
+	getStreamLimit() { return streamLimit; }
 }
