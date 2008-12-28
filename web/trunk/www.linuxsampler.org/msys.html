@@ -10,7 +10,7 @@
 <body>
 <h2 align="center">Windows Build Instructions &nbsp; <img src="gfx/logos/msys.png" alt="msys logo"> &nbsp; HOWTO by Andreas Persson</h2>
 <br>
-<center>December&nbsp;20th,&nbsp;2008</center><br>
+<center>December&nbsp;28th,&nbsp;2008</center><br>
 <div style="background-color: #F4F4FF; margin: 1em 3em 1em 3em; padding: 1em 1em 1em 2.2em;">
 <a href="#intro">1.&nbsp; Introduction</a><br>
 <a href="#mingw">2.&nbsp; MinGW</a><br>
@@ -52,7 +52,9 @@ available.</p>
 <h3><a name="mingw">2.&nbsp; MinGW</a></h3>
 
 <p>Download the MinGW installer, MinGW-5.1.4.exe,
-from <a href="http://www.mingw.org">www.mingw.org</a> and run it.</p>
+from <a href="http://www.mingw.org">www.mingw.org</a> and run it. The
+installer will automatically download and install further
+packages. Choose the base tools and the g++ compiler.</p>
 
 
 <h3><a name="pkg">3.&nbsp; pkg-config and gtkmm</a></h3>
@@ -76,21 +78,15 @@ building DLLs with the 1.0.10 current version.</p>
 
 <p>Download from "MSYS Base System, Technology Preview: MSYS-1.0.11":</p>
 
-<pre>msysCORE-1.0.11-20080826.tar.gz
-bash-3.1-MSYS-1.0.11-1.tar.bz2</pre>
+<pre>msysCORE-1.0.11-20080826.tar.gz</pre>
 
-<p>Unpack these to a directory of your choice, for example C:\msys. As
+<p>Unpack the file to a directory of your choice, for example C:\msys. As
 1.0.11 doesn't have an installer yet, you need to have an unpacker
 that supports tar.gz/tar.bz, for example 7-Zip. The rest of the files
 you can unpack with the tar included in msysCORE.</p>
 
 <p>Run the postinstall\pi.bat file and specify your MinGW
 directory.</p>
-
-<p>Download, also from "MSYS Base System, Technology Preview:
-MSYS-1.0.11":</p>
-
-<pre>gawk-3.1.5-MSYS-1.0.11-1.tar.bz2 **</pre>
 
 <p>Download from "MSYS Supplementary Tools, Technology Preview: Tools for
 MSYS-1.0.11":</p>
@@ -108,12 +104,6 @@ libiconv-1.11-1-bin.tar.bz2 ***
 libiconv-1.11-1-dll.tar.bz2 ***
 libtool1.5-1.5.25a-1-bin.tar.bz2
 perl-5.6.1-MSYS-1.0.11-1.tar.bz2 ***</pre>
-
-<p>Download from "MSYS Supplementary Tools, Current Release:
-msysDTK-1.0.1":</p>
-
-<pre>m4-1.4.7-MSYS.tar.bz2 **</pre>
-
 
 <p>Extract all these files to the msys directory, by starting msys, do
 "cd /" followed by "tar xjf <i>filename</i>" for .tar.bz2 files and
