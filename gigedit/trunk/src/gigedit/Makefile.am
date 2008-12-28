@@ -23,3 +23,6 @@ bin_PROGRAMS = gigedit
 gigedit_SOURCES = main.cpp
 gigedit_LDADD = \
 	$(top_builddir)/src/gigedit/libgigedit.la
+if WINDOWS
+gigedit_LDFLAGS = -mwindows
+endif
