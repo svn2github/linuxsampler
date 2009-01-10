@@ -194,5 +194,6 @@ AC_CONFIG_FILES([
 	win32/gigedit.dev
 	win32/gigedit.nsi
 	win32/Makefile
+	gigedit.spec
 ])
 AC_OUTPUT

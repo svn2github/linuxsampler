@@ -42,6 +42,8 @@ Version CVS HEAD (?)
     the sample channel dimension get updated with the new sample
   * minor gui fix: made multi line lables expand to use full width
   * fixes for building the plugin with MinGW
+  * added rpm packaging file
+    (patch by Devin Anderson, slightly modified, fixes #88)
 
 Version 0.1.1 (2007-12-06)
 
