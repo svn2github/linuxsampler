@@ -29,6 +29,17 @@ bool Features::bSSE(false);
 bool Features::bSSE2(false);
 
 void Features::detect() {
+#ifdef __x86_64__
+    int64_t edx;
+    __asm__ __volatile__ (
+        "mov %%rbx,%%rdi\n\t" /*save PIC register*/
+        "movl $1,%%eax\n\t"
+        "cpuid\n\t"
+        "mov %%rdi,%%rbx\n\t" /*restore PIC register*/
+        : "=d" (edx)
+        : : "%rax", "%rcx", "%rdi"
+    );
+#else
     int edx;
     __asm__ __volatile__ (
         "movl %%ebx,%%edi\n\t" /*save PIC register*/
@@ -38,6 +49,7 @@ void Features::detect() {
         : "=d" (edx)
         : : "%eax", "%ecx", "%edi"
     );
+#endif
     bMMX = (edx & 0x00800000);
     bSSE = (edx & 0x02000000);
     bSSE2 = (edx & 0x04000000);

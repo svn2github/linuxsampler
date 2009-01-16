@@ -36,6 +36,7 @@ Version CVS HEAD (?)
     - added memory ordering constraints to improve stability on
       multi-core and multi-cpu systems
     - maximum voices and disk streams can now be altered at runtime
+    - fixed CPU feature detection on x86_64 (maybe fixes #108)
 
   * audio driver:
     - removed the nonsense audio channel constraint (which was hard coded to
