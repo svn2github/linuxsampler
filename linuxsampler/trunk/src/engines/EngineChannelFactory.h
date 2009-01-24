@@ -52,6 +52,17 @@ namespace LinuxSampler {
              * Returns all EngineChannel instances.
              */
             static const std::set<EngineChannel*>& EngineChannelInstances();
+
+            /**
+             * Specifies whether the deallocation of the specified EngineChannel
+             * object should be postponed. When the object deletion is diabled
+             * it is not freed from memory (when destroyed) until it is enabled.
+             * Used to prevent orphaned pointers.
+             */
+            static void SetDeleteEnabled(const EngineChannel* pEngineChannel, bool enable);
+
+        private:
+            static Mutex LockedChannelsMutex;
     };
 
 } // namespace LinuxSampler

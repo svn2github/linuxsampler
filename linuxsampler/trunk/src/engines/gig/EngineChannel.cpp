@@ -64,6 +64,15 @@ namespace LinuxSampler { namespace gig {
 
     EngineChannel::~EngineChannel() {
         DisconnectAudioOutputDevice();
+
+        // In case the channel was removed before the instrument was
+        // fully loaded, try to give back instrument again (see bug #113)
+        instrument_change_command_t& cmd = ChangeInstrument(NULL);
+        if (cmd.pInstrument) {
+                Engine::instruments.HandBack(cmd.pInstrument, this);
+        }
+        ///////
+
         if (pEventQueue) delete pEventQueue;
         if (pActiveKeys) delete pActiveKeys;
         if (pMIDIKeyInfo) delete[] pMIDIKeyInfo;

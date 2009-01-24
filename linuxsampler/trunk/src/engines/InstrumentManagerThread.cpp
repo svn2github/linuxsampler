@@ -21,6 +21,7 @@
 #include "InstrumentManagerThread.h"
 
 #include "../common/global_private.h"
+#include "EngineChannelFactory.h"
 
 namespace LinuxSampler {
 
@@ -114,7 +115,9 @@ namespace LinuxSampler {
                 try {
                     switch (cmd.type) {
                         case command_t::DIRECT_LOAD:
+                            EngineChannelFactory::SetDeleteEnabled(cmd.pEngineChannel, false);
                             cmd.pEngineChannel->LoadInstrument();
+                            EngineChannelFactory::SetDeleteEnabled(cmd.pEngineChannel, true);
                             break;
                         case command_t::INSTR_MODE:
                             cmd.pManager->SetMode(cmd.instrumentId, cmd.mode);
@@ -124,8 +127,14 @@ namespace LinuxSampler {
                     }
                 } catch (Exception e) {
                     e.PrintMessage();
+                    if (cmd.type == command_t::DIRECT_LOAD) {
+                        EngineChannelFactory::SetDeleteEnabled(cmd.pEngineChannel, true);
+                    }
                 } catch (...) {
                     std::cerr << "InstrumentManagerThread: some exception occured, could not finish task\n" << std::flush;
+                    if (cmd.type == command_t::DIRECT_LOAD) {
+                        EngineChannelFactory::SetDeleteEnabled(cmd.pEngineChannel, true);
+                    }
                 }
             }
 

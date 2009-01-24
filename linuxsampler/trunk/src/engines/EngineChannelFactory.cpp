@@ -25,6 +25,78 @@
 #include "gig/EngineChannel.h"
 
 namespace LinuxSampler {
+    class LockedChannel {
+        public:
+            const EngineChannel* pChannel;
+            bool bDestroyed;
+
+            LockedChannel(const EngineChannel* pChannel)  {
+                this->pChannel = pChannel;
+                bDestroyed = false;
+            }
+    };
+
+    class LockedChannelList {
+        public:
+            void Add(const EngineChannel* pChannel) {
+                vChannelList.push_back(LockedChannel(pChannel));
+            }
+
+            bool IsDestroyed(const EngineChannel* pChannel) {
+                LockedChannel* pLockedChannel = get(pChannel);
+                if (pLockedChannel == NULL) return false;
+                return pLockedChannel->bDestroyed;
+            }
+
+            void SetDestroyed(const EngineChannel* pChannel, bool bDestroyed = true) {
+                LockedChannel* pLockedChannel = get(pChannel);
+                if (pLockedChannel == NULL) return;
+                pLockedChannel->bDestroyed = bDestroyed;
+            }
+
+            void Remove(const EngineChannel* pChannel) {
+                std::vector<LockedChannel>::iterator it = vChannelList.begin();
+                for (; it != vChannelList.end(); it++) {
+                    if ((*it).pChannel == pChannel) {
+                        vChannelList.erase(it);
+                        return;
+                    }
+                }
+            }
+
+            bool Contains(const EngineChannel* pChannel) {
+                return get(pChannel) != NULL;
+            }
+
+        private:
+            std::vector<LockedChannel> vChannelList;
+
+            LockedChannel* get(const EngineChannel* pChannel) {
+                for (int i = 0; i < vChannelList.size(); i++) {
+                    if (vChannelList[i].pChannel == pChannel) {
+                        return &vChannelList[i];
+                    }
+                }
+
+                return NULL;
+            }
+    } lockedChannels;
+
+    Mutex EngineChannelFactory::LockedChannelsMutex;
+
+    void EngineChannelFactory::SetDeleteEnabled(const EngineChannel* pEngineChannel, bool enable) {
+        LockedChannelsMutex.Lock();
+        if (!enable) {
+            if (!lockedChannels.Contains(pEngineChannel)) lockedChannels.Add(pEngineChannel);
+            LockedChannelsMutex.Unlock();
+        } else {
+            bool b = lockedChannels.IsDestroyed(pEngineChannel);
+            lockedChannels.Remove(pEngineChannel);
+            LockedChannelsMutex.Unlock();
+
+            if (b) delete pEngineChannel;
+        }
+    }
 
     // all currently existing engine channel instances
     static std::set<LinuxSampler::EngineChannel*> engineChannels;
@@ -41,6 +113,18 @@ namespace LinuxSampler {
     void EngineChannelFactory::Destroy(LinuxSampler::EngineChannel* pEngineChannel) {
         pEngineChannel->RemoveAllFxSendCountListeners();
         engineChannels.erase(pEngineChannel);
+
+        // Postpone the deletion of the specified EngineChannel if needed (bug #113)
+        LockedChannelsMutex.Lock();
+        if (lockedChannels.Contains(pEngineChannel)) {
+            lockedChannels.SetDestroyed(pEngineChannel);
+            pEngineChannel->SetSamplerChannel(NULL);
+            LockedChannelsMutex.Unlock();
+            return;
+        }
+        LockedChannelsMutex.Unlock();
+        ///////
+
         delete pEngineChannel;
     }
 
