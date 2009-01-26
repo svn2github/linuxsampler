@@ -25,6 +25,8 @@
 #include "../../engines/EngineFactory.h"
 #include "../../engines/Engine.h"
 
+#include <RIFF.h>
+
 namespace LinuxSampler {
 
     // same as entry_t but without 'LoadMode'
@@ -149,7 +151,8 @@ namespace LinuxSampler {
                 if (bInBackground)
                     pEngine->GetInstrumentManager()->SetModeInBackground(id, static_cast<InstrumentManager::mode_t>(Entry.LoadMode));
                 else
-                    pEngine->GetInstrumentManager()->SetMode(id, static_cast<InstrumentManager::mode_t>(Entry.LoadMode));
+                    try { pEngine->GetInstrumentManager()->SetMode(id, static_cast<InstrumentManager::mode_t>(Entry.LoadMode)); }
+                    catch (RIFF::Exception e) { throw Exception(e.Message); }
             }
         } else {
             dmsg(1,("WARNING: no InstrumentManager for engine '%s'\n",Entry.EngineName.c_str()));

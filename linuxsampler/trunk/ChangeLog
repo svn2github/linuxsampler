@@ -120,6 +120,8 @@ Version CVS HEAD (?)
       to start instrument loading after another channel
     - fixed a crash which occurs when removing a sampler channel with
       instrument loading in progress (bug #113)
+    - fixed termination caused by uncaught exception when adding MIDI
+      instrument with PERSISTENT load mode
 
 
 Version 0.5.1 (6 December 2007)
