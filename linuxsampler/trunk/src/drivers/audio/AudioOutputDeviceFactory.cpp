@@ -40,6 +40,11 @@
 #if HAVE_ASIO
 # include "AudioOutputDeviceAsio.h"
 #endif // HAVE_ASIO
+
+#if HAVE_COREAUDIO
+# include "AudioOutputDeviceCoreAudio.h"
+#endif // HAVE_COREAUDIO
+
 namespace LinuxSampler {
 
     std::map<String, AudioOutputDeviceFactory::InnerFactory*> AudioOutputDeviceFactory::InnerFactories;
@@ -87,6 +92,16 @@ namespace LinuxSampler {
     REGISTER_AUDIO_OUTPUT_DRIVER_PARAMETER(AudioOutputDeviceAsio, ParameterCard);
     REGISTER_AUDIO_OUTPUT_DRIVER_PARAMETER(AudioOutputDeviceAsio, ParameterFragmentSize);
 #endif // HAVE_ASIO
+
+#if HAVE_COREAUDIO
+    REGISTER_AUDIO_OUTPUT_DRIVER(AudioOutputDeviceCoreAudio);
+    /* Common parameters for now they'll have to be registered here. */
+    REGISTER_AUDIO_OUTPUT_DRIVER_PARAMETER(AudioOutputDeviceCoreAudio, ParameterActive);
+    REGISTER_AUDIO_OUTPUT_DRIVER_PARAMETER(AudioOutputDeviceCoreAudio, ParameterSampleRate);
+    REGISTER_AUDIO_OUTPUT_DRIVER_PARAMETER(AudioOutputDeviceCoreAudio, ParameterChannels);
+    REGISTER_AUDIO_OUTPUT_DRIVER_PARAMETER(AudioOutputDeviceCoreAudio, ParameterBuffers);
+    REGISTER_AUDIO_OUTPUT_DRIVER_PARAMETER(AudioOutputDeviceCoreAudio, ParameterBufferSize);
+#endif // HAVE_COREAUDIO
 
     AudioOutputDevice* AudioOutputDeviceFactory::Create(String DriverName, std::map<String,String> Parameters) throw (Exception) {
         if (!InnerFactories.count(DriverName)) throw Exception("There is no audio output driver '" + DriverName + "'.");

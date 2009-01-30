@@ -42,6 +42,15 @@ asio_includes  =
 asio_ladd =
 endif
 
+
+if HAVE_COREAUDIO
+coreaudio_src  = AudioOutputDeviceCoreAudio.cpp AudioOutputDeviceCoreAudio.h
+coreaudio_ldflags = -framework CoreAudio -framework AudioToolbox
+else
+coreaudio_src  =
+coreaudio_ldflags =
+endif
+
 liblinuxsampleraudiodriverincludedir = $(includedir)/linuxsampler/drivers/audio
 liblinuxsampleraudiodriverinclude_HEADERS = \
 	AudioChannel.h \
@@ -54,10 +63,10 @@ liblinuxsampleraudiodriver_la_SOURCES = \
 	AudioChannel.cpp AudioChannel.h \
 	AudioOutputDevice.cpp AudioOutputDevice.h \
 	AudioOutputDeviceFactory.cpp AudioOutputDeviceFactory.h \
-	$(alsa_src) $(jack_src) $(arts_src) $(asio_src) \
+	$(alsa_src) $(jack_src) $(arts_src) $(asio_src) $(coreaudio_src) \
 	AudioOutputDevicePlugin.cpp AudioOutputDevicePlugin.h
 
 nodist_liblinuxsampleraudiodriver_la_SOURCES = \
 	$(asio_3rd_party_src)
 liblinuxsampleraudiodriver_la_LIBADD = $(alsa_ladd) $(arts_ladd)
-liblinuxsampleraudiodriver_la_LDFLAGS = $(jack_lflags)
+liblinuxsampleraudiodriver_la_LDFLAGS = $(jack_lflags) $(coreaudio_ldflags)

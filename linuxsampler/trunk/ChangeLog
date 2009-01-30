@@ -49,6 +49,7 @@ Version CVS HEAD (?)
     - Makefile fix: JACK_CFLAGS wasn't used
     - JACK: use jack_client_open instead of the deprecated
       jack_client_new
+    - added (experimental) CoreAudio driver
 
   * MIDI driver:
     - added JACK MIDI driver
