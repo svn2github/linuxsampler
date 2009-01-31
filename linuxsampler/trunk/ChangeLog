@@ -37,6 +37,9 @@ Version CVS HEAD (?)
       multi-core and multi-cpu systems
     - maximum voices and disk streams can now be altered at runtime
     - fixed CPU feature detection on x86_64 (maybe fixes #108)
+    - automatic stacktrace mechanism is now turned off by default and can
+      be switched on by command line option "--stacktrace" (the automatic
+      stacktrace mechanism seems to be broken on most systems at the moment)
 
   * audio driver:
     - removed the nonsense audio channel constraint (which was hard coded to

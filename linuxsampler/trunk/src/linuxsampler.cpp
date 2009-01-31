@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003-2004 by Benno Senoner and Christian Schoenebeck    *
- *   Copyright (C) 2005-2008 Christian Schoenebeck                         *
+ *   Copyright (C) 2005-2009 Christian Schoenebeck                         *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -63,6 +63,7 @@ pid_t       main_pid;
 bool bPrintStatistics = false;
 bool profile = false;
 bool tune = true;
+static bool bShowStackTrace = false;
 unsigned long int lscp_addr;
 unsigned short int lscp_port;
 
@@ -73,8 +74,44 @@ static atomic_t running = ATOMIC_INIT(1);
 
 int main(int argc, char **argv) {
 
+    lscp_addr = htonl(LSCP_ADDR);
+    lscp_port = htons(LSCP_PORT);
+
+    #if !defined(WIN32)
+    main_pid = getpid();
+    #endif
+
+    // parse and assign command line options
+    parse_options(argc, argv);
+
+    // setting signal handler for catching SIGINT (thus e.g. <CTRL><C>)
+    signal(SIGINT, signal_handler);
+
     // initialize the stack trace mechanism with our binary file
-    StackTraceInit(argv[0], -1);
+    // (if requested by command line option)
+    if (bShowStackTrace) {
+        #if defined(WIN32)
+        // FIXME: sigaction() not supported on WIN32, we ignore it for now
+        #else
+        StackTraceInit(argv[0], -1);
+        // register signal handler for all unusual signals
+        // (we will print the stack trace and exit)
+        struct sigaction sact;
+        sigemptyset(&sact.sa_mask);
+        sact.sa_flags   = 0;
+        sact.sa_handler = signal_handler;
+        sigaction(SIGSEGV, &sact, NULL);
+        sigaction(SIGBUS,  &sact, NULL);
+        sigaction(SIGILL,  &sact, NULL);
+        sigaction(SIGFPE,  &sact, NULL);
+        sigaction(SIGUSR1, &sact, NULL);
+        sigaction(SIGUSR2, &sact, NULL);
+        #endif
+    }
+
+    dmsg(1,("LinuxSampler %s\n", VERSION));
+    dmsg(1,("Copyright (C) 2003,2004 by Benno Senoner and Christian Schoenebeck\n"));
+    dmsg(1,("Copyright (C) 2005-2009 Christian Schoenebeck\n"));
 
     #if defined(WIN32)
     // some WIN32 memory info code which tries to determine the maximum lockable amount of memory (for debug purposes)
@@ -122,41 +159,7 @@ int main(int argc, char **argv) {
     }
 
     dmsg(1,("AFTER GetProcessWorkingSetSize: res = %d  MinimumWorkingSetSize=%d, MaximumWorkingSetSize=%d\n", res,MinimumWorkingSetSize, MaximumWorkingSetSize));
-    #endif
-
-    #if !defined(WIN32)
-    main_pid = getpid();
-    #endif
-
-    // setting signal handler for catching SIGINT (thus e.g. <CTRL><C>)
-    signal(SIGINT, signal_handler);
-
-    #if defined(WIN32)
-    // FIXME: sigaction() not supported on WIN32, we ignore it for now
-    #else
-    // register signal handler for all unusual signals
-    // (we will print the stack trace and exit)
-    struct sigaction sact;
-    sigemptyset(&sact.sa_mask);
-    sact.sa_flags   = 0;
-    sact.sa_handler = signal_handler;
-    sigaction(SIGSEGV, &sact, NULL);
-    sigaction(SIGBUS,  &sact, NULL);
-    sigaction(SIGILL,  &sact, NULL);
-    sigaction(SIGFPE,  &sact, NULL);
-    sigaction(SIGUSR1, &sact, NULL);
-    sigaction(SIGUSR2, &sact, NULL);
-    #endif
-
-    lscp_addr = htonl(LSCP_ADDR);
-    lscp_port = htons(LSCP_PORT);
-
-    // parse and assign command line options
-    parse_options(argc, argv);
-
-    dmsg(1,("LinuxSampler %s\n", VERSION));
-    dmsg(1,("Copyright (C) 2003,2004 by Benno Senoner and Christian Schoenebeck\n"));
-    dmsg(1,("Copyright (C) 2005-2008 Christian Schoenebeck\n"));
+    #endif // WIN32
 
     if (tune) {
         // detect and print system / CPU specific features
@@ -165,6 +168,8 @@ int main(int argc, char **argv) {
         // prevent slow denormal FPU modes
         Features::enableDenormalsAreZeroMode();
     }
+
+    dmsg(1,("Automatic Stacktrace: %s\n", (bShowStackTrace) ? "On" : "Off"));
 
     // create LinuxSampler instance
     dmsg(1,("Creating Sampler..."));
@@ -266,9 +271,11 @@ void signal_handler(int iSignal) {
         }
     }
     signal(iSignal, SIG_DFL); // Reinstall default handler to prevent race conditions
-    std::cerr << "Showing stack trace...\n" << std::flush;
-    StackTrace();
-    sleep(2);
+    if (bShowStackTrace) {
+        std::cerr << "Showing stack trace...\n" << std::flush;
+        StackTrace();
+        sleep(2);
+    }
     std::cerr << "Killing LinuxSampler...\n" << std::flush;
     kill_app(); // Use abort() if we want to generate a core dump.
 }
@@ -296,6 +303,7 @@ void parse_options(int argc, char **argv) {
             {"create-instruments-db",1,0,0},
             {"lscp-addr",1,0,0},
             {"lscp-port",1,0,0},
+            {"stacktrace",0,0,0},
             {0,0,0,0}
         };
 
@@ -319,6 +327,8 @@ void parse_options(int argc, char **argv) {
                     printf("--lscp-port                 set LSCP port (default: 8888)\n");
                     printf("--create-instruments-db     creates an instruments DB\n");
                     printf("--instruments-db-location   specifies the instruments DB file\n");
+                    printf("--stacktrace                automatically shows stacktrace if crashes\n");
+                    printf("                            (broken on most systems at the moment)\n");
                     exit(EXIT_SUCCESS);
                     break;
                 case 1: // --version
@@ -389,19 +399,24 @@ void parse_options(int argc, char **argv) {
                     exit(EXIT_FAILURE);
                     return;
 #endif
-                case 7: // --lscp-addr
+                case 7: { // --lscp-addr
                     struct in_addr addr;
                     if (inet_aton(optarg, &addr) == 0)
                         printf("WARNING: Failed to parse lscp-addr argument, ignoring!\n");
                     else
                         lscp_addr = addr.s_addr;
                     break;
-                case 8: // --lscp-port
+                }
+                case 8: {// --lscp-port
                     long unsigned int port = 0;
                     if ((sscanf(optarg, "%u", &port) != 1) || (port == 0) || (port > 65535))
                         printf("WARNING: Failed to parse lscp-port argument, ignoring!\n");
                     else
                         lscp_port = htons(port);
+                    break;
+                }
+                case 9: // --stacktrace
+                    bShowStackTrace = true;
                     break;
             }
         }
