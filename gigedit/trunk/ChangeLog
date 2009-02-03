@@ -44,6 +44,7 @@ Version CVS HEAD (?)
   * fixes for building the plugin with MinGW
   * added rpm packaging file
     (patch by Devin Anderson, slightly modified, fixes #88)
+  * made all visible strings translatable
 
 Version 0.1.1 (2007-12-06)
 

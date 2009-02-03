@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2008 Andreas Persson
+ * Copyright (C) 2006-2009 Andreas Persson
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -22,94 +22,94 @@
 #include "global.h"
 
 DimRegionEdit::DimRegionEdit() :
-    eEG1PreAttack("Pre-attack", 0, 100, 2),
-    eEG1Attack("Attack", 0, 60, 3),
-    eEG1Decay1("Decay 1", 0.005, 60, 3),
-    eEG1Decay2("Decay 2", 0, 60, 3),
-    eEG1InfiniteSustain("Infinite sustain"),
-    eEG1Sustain("Sustain", 0, 100, 2),
-    eEG1Release("Release", 0, 60, 3),
-    eEG1Hold("Hold"),
-    eEG1Controller("Controller"),
-    eEG1ControllerInvert("Controller invert"),
-    eEG1ControllerAttackInfluence("Controller attack influence", 0, 3),
-    eEG1ControllerDecayInfluence("Controller decay influence", 0, 3),
-    eEG1ControllerReleaseInfluence("Controller release influence", 0, 3),
-    eLFO1Frequency("Frequency", 0.1, 10, 2),
-    eLFO1InternalDepth("Internal depth", 0, 1200),
-    eLFO1ControlDepth("Control depth", 0, 1200),
-    eLFO1Controller("Controller"),
-    eLFO1FlipPhase("Flip phase"),
-    eLFO1Sync("Sync"),
-    eEG2PreAttack("Pre-attack", 0, 100, 2),
-    eEG2Attack("Attack", 0, 60, 3),
-    eEG2Decay1("Decay 1", 0.005, 60, 3),
-    eEG2Decay2("Decay 2", 0, 60, 3),
-    eEG2InfiniteSustain("Infinite sustain"),
-    eEG2Sustain("Sustain", 0, 100, 2),
-    eEG2Release("Release", 0, 60, 3),
-    eEG2Controller("Controller"),
-    eEG2ControllerInvert("Controller invert"),
-    eEG2ControllerAttackInfluence("Controller attack influence", 0, 3),
-    eEG2ControllerDecayInfluence("Controller decay influence", 0, 3),
-    eEG2ControllerReleaseInfluence("Controller release influence", 0, 3),
-    eLFO2Frequency("Frequency", 0.1, 10, 2),
-    eLFO2InternalDepth("Internal depth", 0, 1200),
-    eLFO2ControlDepth("Control depth", 0, 1200),
-    eLFO2Controller("Controller"),
-    eLFO2FlipPhase("Flip phase"),
-    eLFO2Sync("Sync"),
-    eEG3Attack("Attack", 0, 10, 3),
-    eEG3Depth("Depth", -1200, 1200),
-    eLFO3Frequency("Frequency", 0.1, 10, 2),
-    eLFO3InternalDepth("Internal depth", 0, 1200),
-    eLFO3ControlDepth("Control depth", 0, 1200),
-    eLFO3Controller("Controller"),
-    eLFO3Sync("Sync"),
-    eVCFEnabled("Enabled"),
-    eVCFType("Type"),
-    eVCFCutoffController("Cutoff controller"),
-    eVCFCutoffControllerInvert("Cutoff controller invert"),
-    eVCFCutoff("Cutoff"),
-    eVCFVelocityCurve("Velocity curve"),
-    eVCFVelocityScale("Velocity scale"),
-    eVCFVelocityDynamicRange("Velocity dynamic range", 0, 4),
-    eVCFResonance("Resonance"),
-    eVCFResonanceDynamic("Resonance dynamic"),
-    eVCFResonanceController("Resonance controller"),
-    eVCFKeyboardTracking("Keyboard tracking"),
-    eVCFKeyboardTrackingBreakpoint("Keyboard tracking breakpoint"),
-    eVelocityResponseCurve("Velocity response curve"),
-    eVelocityResponseDepth("Velocity response depth", 0, 4),
-    eVelocityResponseCurveScaling("Velocity response curve scaling"),
-    eReleaseVelocityResponseCurve("Release velocity response curve"),
-    eReleaseVelocityResponseDepth("Release velocity response depth", 0, 4),
-    eReleaseTriggerDecay("Release trigger decay", 0, 8),
-    eCrossfade_in_start("Crossfade-in start"),
-    eCrossfade_in_end("Crossfade-in end"),
-    eCrossfade_out_start("Crossfade-out start"),
-    eCrossfade_out_end("Crossfade-out end"),
-    ePitchTrack("Pitch track"),
-    eDimensionBypass("Dimension bypass"),
-    ePan("Pan", -64, 63),
-    eSelfMask("Self mask"),
-    eAttenuationController("Attenuation controller"),
-    eInvertAttenuationController("Invert attenuation controller"),
-    eAttenuationControllerThreshold("Attenuation controller threshold"),
-    eChannelOffset("Channel offset", 0, 9),
-    eSustainDefeat("Sustain defeat"),
-    eMSDecode("MS decode"),
-    eSampleStartOffset("Sample start offset", 0, 2000),
-    eUnityNote("Unity note"),
-    eFineTune("Fine tune", -49, 50),
-    eGain("Gain", -96, 0, 2, -655360),
-    eGainPlus6("Gain +6dB", eGain, 6 * -655360),
-    eSampleLoopEnabled("Enabled"),
-    eSampleLoopStart("Loop start positon"),
-    eSampleLoopLength("Loop size"),
-    eSampleLoopType("Loop type"),
-    eSampleLoopInfinite("Infinite loop"),
-    eSampleLoopPlayCount("Playback count", 1),
+    eEG1PreAttack(_("Pre-attack"), 0, 100, 2),
+    eEG1Attack(_("Attack"), 0, 60, 3),
+    eEG1Decay1(_("Decay 1"), 0.005, 60, 3),
+    eEG1Decay2(_("Decay 2"), 0, 60, 3),
+    eEG1InfiniteSustain(_("Infinite sustain")),
+    eEG1Sustain(_("Sustain"), 0, 100, 2),
+    eEG1Release(_("Release"), 0, 60, 3),
+    eEG1Hold(_("Hold")),
+    eEG1Controller(_("Controller")),
+    eEG1ControllerInvert(_("Controller invert")),
+    eEG1ControllerAttackInfluence(_("Controller attack influence"), 0, 3),
+    eEG1ControllerDecayInfluence(_("Controller decay influence"), 0, 3),
+    eEG1ControllerReleaseInfluence(_("Controller release influence"), 0, 3),
+    eLFO1Frequency(_("Frequency"), 0.1, 10, 2),
+    eLFO1InternalDepth(_("Internal depth"), 0, 1200),
+    eLFO1ControlDepth(_("Control depth"), 0, 1200),
+    eLFO1Controller(_("Controller")),
+    eLFO1FlipPhase(_("Flip phase")),
+    eLFO1Sync(_("Sync")),
+    eEG2PreAttack(_("Pre-attack"), 0, 100, 2),
+    eEG2Attack(_("Attack"), 0, 60, 3),
+    eEG2Decay1(_("Decay 1"), 0.005, 60, 3),
+    eEG2Decay2(_("Decay 2"), 0, 60, 3),
+    eEG2InfiniteSustain(_("Infinite sustain")),
+    eEG2Sustain(_("Sustain"), 0, 100, 2),
+    eEG2Release(_("Release"), 0, 60, 3),
+    eEG2Controller(_("Controller")),
+    eEG2ControllerInvert(_("Controller invert")),
+    eEG2ControllerAttackInfluence(_("Controller attack influence"), 0, 3),
+    eEG2ControllerDecayInfluence(_("Controller decay influence"), 0, 3),
+    eEG2ControllerReleaseInfluence(_("Controller release influence"), 0, 3),
+    eLFO2Frequency(_("Frequency"), 0.1, 10, 2),
+    eLFO2InternalDepth(_("Internal depth"), 0, 1200),
+    eLFO2ControlDepth(_("Control depth"), 0, 1200),
+    eLFO2Controller(_("Controller")),
+    eLFO2FlipPhase(_("Flip phase")),
+    eLFO2Sync(_("Sync")),
+    eEG3Attack(_("Attack"), 0, 10, 3),
+    eEG3Depth(_("Depth"), -1200, 1200),
+    eLFO3Frequency(_("Frequency"), 0.1, 10, 2),
+    eLFO3InternalDepth(_("Internal depth"), 0, 1200),
+    eLFO3ControlDepth(_("Control depth"), 0, 1200),
+    eLFO3Controller(_("Controller")),
+    eLFO3Sync(_("Sync")),
+    eVCFEnabled(_("Enabled")),
+    eVCFType(_("Type")),
+    eVCFCutoffController(_("Cutoff controller")),
+    eVCFCutoffControllerInvert(_("Cutoff controller invert")),
+    eVCFCutoff(_("Cutoff")),
+    eVCFVelocityCurve(_("Velocity curve")),
+    eVCFVelocityScale(_("Velocity scale")),
+    eVCFVelocityDynamicRange(_("Velocity dynamic range"), 0, 4),
+    eVCFResonance(_("Resonance")),
+    eVCFResonanceDynamic(_("Resonance dynamic")),
+    eVCFResonanceController(_("Resonance controller")),
+    eVCFKeyboardTracking(_("Keyboard tracking")),
+    eVCFKeyboardTrackingBreakpoint(_("Keyboard tracking breakpoint")),
+    eVelocityResponseCurve(_("Velocity response curve")),
+    eVelocityResponseDepth(_("Velocity response depth"), 0, 4),
+    eVelocityResponseCurveScaling(_("Velocity response curve scaling")),
+    eReleaseVelocityResponseCurve(_("Release velocity response curve")),
+    eReleaseVelocityResponseDepth(_("Release velocity response depth"), 0, 4),
+    eReleaseTriggerDecay(_("Release trigger decay"), 0, 8),
+    eCrossfade_in_start(_("Crossfade-in start")),
+    eCrossfade_in_end(_("Crossfade-in end")),
+    eCrossfade_out_start(_("Crossfade-out start")),
+    eCrossfade_out_end(_("Crossfade-out end")),
+    ePitchTrack(_("Pitch track")),
+    eDimensionBypass(_("Dimension bypass")),
+    ePan(_("Pan"), -64, 63),
+    eSelfMask(_("Self mask")),
+    eAttenuationController(_("Attenuation controller")),
+    eInvertAttenuationController(_("Invert attenuation controller")),
+    eAttenuationControllerThreshold(_("Attenuation controller threshold")),
+    eChannelOffset(_("Channel offset"), 0, 9),
+    eSustainDefeat(_("Sustain defeat")),
+    eMSDecode(_("MS decode")),
+    eSampleStartOffset(_("Sample start offset"), 0, 2000),
+    eUnityNote(_("Unity note")),
+    eFineTune(_("Fine tune"), -49, 50),
+    eGain(_("Gain"), -96, 0, 2, -655360),
+    eGainPlus6(_("Gain +6dB"), eGain, 6 * -655360),
+    eSampleLoopEnabled(_("Enabled")),
+    eSampleLoopStart(_("Loop start positon")),
+    eSampleLoopLength(_("Loop size")),
+    eSampleLoopType(_("Loop type")),
+    eSampleLoopInfinite(_("Infinite loop")),
+    eSampleLoopPlayCount(_("Playback count"), 1),
     update_model(0)
 {
     connect(eEG1PreAttack, &gig::DimensionRegion::EG1PreAttack);
@@ -265,19 +265,19 @@ DimRegionEdit::DimRegionEdit() :
     firstRowInBlock = 0;
 
     addHeader(_("Mandatory Settings"));
-    addString("Sample", lSample, wSample);
+    addString(_("Sample"), lSample, wSample);
     //TODO: the following would break drag&drop:   wSample->property_editable().set_value(false);  or this:    wSample->set_editable(false);
     tooltips.set_tip(*wSample, _("Drop a sample here"));
     addProp(eUnityNote);
     addHeader(_("Optional Settings"));
     addProp(eSampleStartOffset);
     addProp(eChannelOffset);
-    addHeader("Loops");
+    addHeader(_("Loops"));
     addProp(eSampleLoopEnabled);
     addProp(eSampleLoopStart);
     addProp(eSampleLoopLength);
     {
-        const char* choices[] = { "normal", "bidirectional", "backward", 0 };
+        const char* choices[] = { _("normal"), _("bidirectional"), _("backward"), 0 };
         static const uint32_t values[] = {
             gig::loop_type_normal,
             gig::loop_type_bidirectional,
@@ -317,8 +317,8 @@ DimRegionEdit::DimRegionEdit() :
     addProp(eLFO1InternalDepth);
     addProp(eLFO1ControlDepth);
     {
-        const char* choices[] = { "internal", "modwheel", "breath",
-                                  "internal+modwheel", "internal+breath", 0 };
+        const char* choices[] = { _("internal"), _("modwheel"), _("breath"),
+                                  _("internal+modwheel"), _("internal+breath"), 0 };
         static const gig::lfo1_ctrl_t values[] = {
             gig::lfo1_ctrl_internal,
             gig::lfo1_ctrl_modwheel,
@@ -331,7 +331,7 @@ DimRegionEdit::DimRegionEdit() :
     addProp(eLFO1Controller);
     addProp(eLFO1FlipPhase);
     addProp(eLFO1Sync);
-    addHeader("Crossfade");
+    addHeader(_("Crossfade"));
     addProp(eAttenuationController);
     addProp(eInvertAttenuationController);
     addProp(eAttenuationControllerThreshold);
@@ -345,8 +345,8 @@ DimRegionEdit::DimRegionEdit() :
     addHeader(_("General Filter Settings"));
     addProp(eVCFEnabled);
     {
-        const char* choices[] = { "lowpass", "lowpassturbo", "bandpass",
-                                  "highpass", "bandreject", 0 };
+        const char* choices[] = { _("lowpass"), _("lowpassturbo"), _("bandpass"),
+                                  _("highpass"), _("bandreject"), 0 };
         static const gig::vcf_type_t values[] = {
             gig::vcf_type_lowpass,
             gig::vcf_type_lowpassturbo,
@@ -358,9 +358,9 @@ DimRegionEdit::DimRegionEdit() :
     }
     addProp(eVCFType);
     {
-        const char* choices[] = { "none", "none2", "modwheel", "effect1", "effect2",
-                                  "breath", "foot", "sustainpedal", "softpedal",
-                                  "genpurpose7", "genpurpose8", "aftertouch", 0 };
+        const char* choices[] = { _("none"), _("none2"), _("modwheel"), _("effect1"), _("effect2"),
+                                  _("breath"), _("foot"), _("sustainpedal"), _("softpedal"),
+                                  _("genpurpose7"), _("genpurpose8"), _("aftertouch"), 0 };
         static const gig::vcf_cutoff_ctrl_t values[] = {
             gig::vcf_cutoff_ctrl_none,
             gig::vcf_cutoff_ctrl_none2,
@@ -380,7 +380,7 @@ DimRegionEdit::DimRegionEdit() :
     addProp(eVCFCutoffController);
     addProp(eVCFCutoffControllerInvert);
     addProp(eVCFCutoff);
-    const char* curve_type_texts[] = { "nonlinear", "linear", "special", 0 };
+    const char* curve_type_texts[] = { _("nonlinear"), _("linear"), _("special"), 0 };
     static const gig::curve_type_t curve_type_values[] = {
         gig::curve_type_nonlinear,
         gig::curve_type_linear,
@@ -393,8 +393,8 @@ DimRegionEdit::DimRegionEdit() :
     addProp(eVCFResonance);
     addProp(eVCFResonanceDynamic);
     {
-        const char* choices[] = { "none", "genpurpose3", "genpurpose4",
-                                  "genpurpose5", "genpurpose6", 0 };
+        const char* choices[] = { _("none"), _("genpurpose3"), _("genpurpose4"),
+                                  _("genpurpose5"), _("genpurpose6"), 0 };
         static const gig::vcf_res_ctrl_t values[] = {
             gig::vcf_res_ctrl_none,
             gig::vcf_res_ctrl_genpurpose3,
@@ -428,8 +428,8 @@ DimRegionEdit::DimRegionEdit() :
     addProp(eLFO2InternalDepth);
     addProp(eLFO2ControlDepth);
     {
-        const char* choices[] = { "internal", "modwheel", "foot",
-                                  "internal+modwheel", "internal+foot", 0 };
+        const char* choices[] = { _("internal"), _("modwheel"), _("foot"),
+                                  _("internal+modwheel"), _("internal+foot"), 0 };
         static const gig::lfo2_ctrl_t values[] = {
             gig::lfo2_ctrl_internal,
             gig::lfo2_ctrl_modwheel,
@@ -456,8 +456,8 @@ DimRegionEdit::DimRegionEdit() :
     addProp(eLFO3InternalDepth);
     addProp(eLFO3ControlDepth);
     {
-        const char* choices[] = { "internal", "modwheel", "aftertouch",
-                                  "internal+modwheel", "internal+aftertouch", 0 };
+        const char* choices[] = { _("internal"), _("modwheel"), _("aftertouch"),
+                                  _("internal+modwheel"), _("internal+aftertouch"), 0 };
         static const gig::lfo3_ctrl_t values[] = {
             gig::lfo3_ctrl_internal,
             gig::lfo3_ctrl_modwheel,
@@ -482,7 +482,7 @@ DimRegionEdit::DimRegionEdit() :
     addProp(eReleaseVelocityResponseDepth);
     addProp(eReleaseTriggerDecay);
     {
-        const char* choices[] = { "none", "effect4depth", "effect5depth", 0 };
+        const char* choices[] = { _("none"), _("effect4depth"), _("effect5depth"), 0 };
         static const gig::dim_bypass_ctrl_t values[] = {
             gig::dim_bypass_ctrl_none,
             gig::dim_bypass_ctrl_94,
@@ -539,13 +539,13 @@ DimRegionEdit::DimRegionEdit() :
     eSampleLoopInfinite.signal_value_changed().connect(
         sigc::mem_fun(*this, &DimRegionEdit::loop_infinite_toggled));
 
-    append_page(*table[0], "Sample");
-    append_page(*table[1], "Amplitude (1)");
-    append_page(*table[2], "Amplitude (2)");
-    append_page(*table[3], "Filter (1)");
-    append_page(*table[4], "Filter (2)");
-    append_page(*table[5], "Pitch");
-    append_page(*table[6], "Misc");
+    append_page(*table[0], _("Sample"));
+    append_page(*table[1], _("Amplitude (1)"));
+    append_page(*table[2], _("Amplitude (2)"));
+    append_page(*table[3], _("Filter (1)"));
+    append_page(*table[4], _("Filter (2)"));
+    append_page(*table[5], _("Pitch"));
+    append_page(*table[6], _("Misc"));
 }
 
 DimRegionEdit::~DimRegionEdit()
@@ -730,7 +730,7 @@ void DimRegionEdit::set_dim_region(gig::DimensionRegion* d)
         d->pSample ? d->pSample->LoopPlayCount : 0);
     update_model--;
 
-    wSample->set_text(d->pSample ? d->pSample->pInfo->Name.c_str() : "NULL");
+    wSample->set_text(d->pSample ? d->pSample->pInfo->Name.c_str() : _("NULL"));
 
     update_loop_elements();
     VCFEnabled_toggled();
@@ -793,8 +793,8 @@ void DimRegionEdit::VCFCutoffController_changed()
     eVCFCutoffControllerInvert.set_sensitive(hasController);
     eVCFCutoff.set_sensitive(!hasController);
     eVCFResonanceDynamic.set_sensitive(!hasController);
-    eVCFVelocityScale.label.set_text(hasController ? "Minimum cutoff:" :
-                                     "Velocity scale:");
+    eVCFVelocityScale.label.set_text(hasController ? _("Minimum cutoff:") :
+                                     _("Velocity scale:"));
 }
 
 void DimRegionEdit::VCFResonanceController_changed()

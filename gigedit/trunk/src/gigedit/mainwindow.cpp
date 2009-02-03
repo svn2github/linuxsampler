@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006 - 2008 Andreas Persson
+ * Copyright (C) 2006-2009 Andreas Persson
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -130,8 +130,8 @@ MainWindow::MainWindow() :
     m_HPaned.add2(dimreg_vbox);
 
 
-    m_TreeViewNotebook.append_page(m_ScrolledWindowSamples, "Samples");
-    m_TreeViewNotebook.append_page(m_ScrolledWindow, "Instruments");
+    m_TreeViewNotebook.append_page(m_ScrolledWindowSamples, _("Samples"));
+    m_TreeViewNotebook.append_page(m_ScrolledWindow, _("Instruments"));
 
 
     actionGroup = Gtk::ActionGroup::create();
@@ -571,7 +571,7 @@ void MainWindow::on_action_file_new()
     gig::File* pFile = new gig::File;
     // already add one new instrument by default
     gig::Instrument* pInstrument = pFile->AddInstrument();
-    pInstrument->pInfo->Name = "Unnamed Instrument";
+    pInstrument->pInfo->Name = _("Unnamed Instrument");
     // update GUI with that new gig::File
     load_gig(pFile, 0 /*no file name yet*/);
 }
@@ -641,7 +641,7 @@ void MainWindow::on_action_file_open()
 void MainWindow::load_file(const char* name)
 {
     __clear();
-    load_dialog = new LoadDialog("Loading...", *this);
+    load_dialog = new LoadDialog(_("Loading..."), *this);
     load_dialog->show_all();
     loader = new Loader(strdup(name));
     loader->signal_progress().connect(
@@ -760,7 +760,7 @@ bool MainWindow::file_save_as()
     {
         std::string basename = Glib::path_get_basename(filename);
         std::string dir = Glib::path_get_dirname(filename);
-        basename = std::string("copy_of_") + basename;
+        basename = std::string(_("copy_of_")) + basename;
         Glib::ustring copyFileName = Glib::build_filename(dir, basename);
         if (Glib::path_is_absolute(filename)) {
             dialog.set_filename(copyFileName);
@@ -828,7 +828,7 @@ void MainWindow::__import_queued_samples() {
         info.format = 0;
         SNDFILE* hFile = sf_open((*iter).sample_path.c_str(), SFM_READ, &info);
         try {
-            if (!hFile) throw std::string("could not open file");
+            if (!hFile) throw std::string(_("could not open file"));
             // determine sample's bit depth
             int bitdepth;
             switch (info.format & 0xff) {
@@ -845,7 +845,7 @@ void MainWindow::__import_queued_samples() {
                     break;
                 default:
                     sf_close(hFile); // close sound file
-                    throw std::string("format not supported"); // unsupported subformat (yet?)
+                    throw std::string(_("format not supported")); // unsupported subformat (yet?)
             }
 
             const int bufsize = 10000;
@@ -918,15 +918,15 @@ void MainWindow::on_action_help_about()
 #ifdef ABOUT_DIALOG
     Gtk::AboutDialog dialog;
     dialog.set_version(VERSION);
-    dialog.set_copyright("Copyright (C) 2006,2007 Andreas Persson");
-    dialog.set_comments(
+    dialog.set_copyright("Copyright (C) 2006-2009 Andreas Persson");
+    dialog.set_comments(_(
         "Released under the GNU General Public License.\n"
         "\n"
         "Please notice that this is still a very young instrument editor. "
         "So better backup your Gigasampler files before editing them with "
         "this application.\n"
         "\n"
-        "Please report bugs to: http://bugs.linuxsampler.org"
+        "Please report bugs to: http://bugs.linuxsampler.org")
     );
     dialog.set_website("http://www.linuxsampler.org");
     dialog.set_website_label("http://www.linuxsampler.org");
@@ -936,26 +936,26 @@ void MainWindow::on_action_help_about()
 
 PropDialog::PropDialog()
     : table(2,1),
-      eName("Name"),
-      eCreationDate("Creation date"),
-      eComments("Comments"),
-      eProduct("Product"),
-      eCopyright("Copyright"),
-      eArtists("Artists"),
-      eGenre("Genre"),
-      eKeywords("Keywords"),
-      eEngineer("Engineer"),
-      eTechnician("Technician"),
-      eSoftware("Software"),
-      eMedium("Medium"),
-      eSource("Source"),
-      eSourceForm("Source form"),
-      eCommissioned("Commissioned"),
-      eSubject("Subject"),
+      eName(_("Name")),
+      eCreationDate(_("Creation date")),
+      eComments(_("Comments")),
+      eProduct(_("Product")),
+      eCopyright(_("Copyright")),
+      eArtists(_("Artists")),
+      eGenre(_("Genre")),
+      eKeywords(_("Keywords")),
+      eEngineer(_("Engineer")),
+      eTechnician(_("Technician")),
+      eSoftware(_("Software")),
+      eMedium(_("Medium")),
+      eSource(_("Source")),
+      eSourceForm(_("Source form")),
+      eCommissioned(_("Commissioned")),
+      eSubject(_("Subject")),
       quitButton(Gtk::Stock::CLOSE),
       update_model(0)
 {
-    set_title("File Properties");
+    set_title(_("File Properties"));
     eName.set_width_chars(50);
 
     connect(eName, &DLS::Info::Name);
@@ -1073,21 +1073,21 @@ void InstrumentProps::set_DimensionKeyRange_high(uint8_t value)
 InstrumentProps::InstrumentProps()
     : table(2,1),
       quitButton(Gtk::Stock::CLOSE),
-      eName("Name"),
-      eIsDrum("Is drum"),
-      eMIDIBank("MIDI bank", 0, 16383),
-      eMIDIProgram("MIDI program"),
-      eAttenuation("Attenuation", 0, 96, 0, 1),
-      eGainPlus6("Gain +6dB", eAttenuation, -6),
-      eEffectSend("Effect send", 0, 65535),
-      eFineTune("Fine tune", -8400, 8400),
-      ePitchbendRange("Pitchbend range", 0, 12),
-      ePianoReleaseMode("Piano release mode"),
-      eDimensionKeyRangeLow("Keyswitching range low"),
-      eDimensionKeyRangeHigh("Keyswitching range high"),
+      eName(_("Name")),
+      eIsDrum(_("Is drum")),
+      eMIDIBank(_("MIDI bank"), 0, 16383),
+      eMIDIProgram(_("MIDI program")),
+      eAttenuation(_("Attenuation"), 0, 96, 0, 1),
+      eGainPlus6(_("Gain +6dB"), eAttenuation, -6),
+      eEffectSend(_("Effect send"), 0, 65535),
+      eFineTune(_("Fine tune"), -8400, 8400),
+      ePitchbendRange(_("Pitchbend range"), 0, 12),
+      ePianoReleaseMode(_("Piano release mode")),
+      eDimensionKeyRangeLow(_("Keyswitching range low")),
+      eDimensionKeyRangeHigh(_("Keyswitching range high")),
       update_model(0)
 {
-    set_title("Instrument Properties");
+    set_title(_("Instrument Properties"));
 
     eDimensionKeyRangeLow.set_tip(
         _("start of the keyboard area which should switch the "
@@ -1312,7 +1312,7 @@ void MainWindow::on_action_add_instrument() {
     gig::Instrument* instrument = file->AddInstrument();
     __instrument_indexer++;
     instrument->pInfo->Name =
-        "Unnamed Instrument " + ToString(__instrument_indexer);
+        _("Unnamed Instrument ") + ToString(__instrument_indexer);
     // update instrument tree view
     Gtk::TreeModel::iterator iterInstr = m_refTreeModel->append();
     Gtk::TreeModel::Row rowInstr = *iterInstr;
@@ -1355,7 +1355,7 @@ void MainWindow::on_action_remove_instrument() {
 void MainWindow::on_action_sample_properties() {
     //TODO: show a dialog where the selected sample's properties can be edited
     Gtk::MessageDialog msg(
-        *this, "Sorry, yet to be implemented!", false, Gtk::MESSAGE_INFO
+        *this, _("Sorry, yet to be implemented!"), false, Gtk::MESSAGE_INFO
     );
     msg.run();
 }
@@ -1364,7 +1364,7 @@ void MainWindow::on_action_add_group() {
     static int __sample_indexer = 0;
     if (!file) return;
     gig::Group* group = file->AddGroup();
-    group->Name = "Unnamed Group";
+    group->Name = _("Unnamed Group");
     if (__sample_indexer) group->Name += " " + ToString(__sample_indexer);
     __sample_indexer++;
     // update sample tree view
@@ -1408,10 +1408,10 @@ void MainWindow::on_action_add_sample() {
     };
     for (int i = 0; supportedFileTypes[i]; i++)
         soundfilter.add_pattern(supportedFileTypes[i]);
-    soundfilter.set_name("Sound Files");
+    soundfilter.set_name(_("Sound Files"));
     Gtk::FileFilter allpassfilter; // matches every file
     allpassfilter.add_pattern("*.*");
-    allpassfilter.set_name("All Files");
+    allpassfilter.set_name(_("All Files"));
     dialog.add_filter(soundfilter);
     dialog.add_filter(allpassfilter);
     if (current_sample_dir != "") {
@@ -1429,7 +1429,7 @@ void MainWindow::on_action_add_sample() {
             info.format = 0;
             SNDFILE* hFile = sf_open((*iter).c_str(), SFM_READ, &info);
             try {
-                if (!hFile) throw std::string("could not open file");
+                if (!hFile) throw std::string(_("could not open file"));
                 int bitdepth;
                 switch (info.format & 0xff) {
                     case SF_FORMAT_PCM_S8:
@@ -1445,7 +1445,7 @@ void MainWindow::on_action_add_sample() {
                         break;
                     default:
                         sf_close(hFile); // close sound file
-                        throw std::string("format not supported"); // unsupported subformat (yet?)
+                        throw std::string(_("format not supported")); // unsupported subformat (yet?)
                 }
                 // add a new sample to the .gig file
                 gig::Sample* sample = file->AddSample();
@@ -1584,7 +1584,7 @@ void MainWindow::on_action_replace_all_samples_in_all_groups()
             SNDFILE* hFile = sf_open(filename.c_str(), SFM_READ, &info);
             try
             {
-                if (!hFile) throw std::string("could not open file");
+                if (!hFile) throw std::string(_("could not open file"));
                 int bitdepth;
                 switch (info.format & 0xff) {
                     case SF_FORMAT_PCM_S8:
@@ -1600,7 +1600,7 @@ void MainWindow::on_action_replace_all_samples_in_all_groups()
                         break;
                     default:
                         sf_close(hFile);
-                        throw std::string("format not supported");
+                        throw std::string(_("format not supported"));
                 }
                 SampleImportItem sched_item;
                 sched_item.gig_sample  = sample;

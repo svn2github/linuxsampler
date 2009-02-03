@@ -1,3 +1,6 @@
 src/gigedit/mainwindow.cpp
 src/gigedit/dimregionedit.cpp
 src/gigedit/regionchooser.cpp
+src/gigedit/dimensionmanager.cpp
+src/gigedit/dimregionchooser.cpp
+src/gigedit/paramedit.cpp

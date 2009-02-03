@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006, 2007 Andreas Persson
+ * Copyright (C) 2006-2009 Andreas Persson
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -21,41 +21,43 @@
 
 #include "paramedit.h"
 
+#include "global.h"
+
 namespace {
     const char* const controlChangeTexts[] = {
-        "none", "channelaftertouch", "velocity",
+        _("none"), _("channelaftertouch"), _("velocity"),
         0,
-        "modwheel", // "Modulation Wheel or Lever",
-        "breath", // "Breath Controller",
+        _("modwheel"), // "Modulation Wheel or Lever",
+        _("breath"), // "Breath Controller",
         0,
-        "foot", // "Foot Controller",
-        "portamentotime", // "Portamento Time",
+        _("foot"), // "Foot Controller",
+        _("portamentotime"), // "Portamento Time",
         0, 0, 0, 0, 0, 0,
-        "effect1", // "Effect Control 1",
-        "effect2", // "Effect Control 2",
+        _("effect1"), // "Effect Control 1",
+        _("effect2"), // "Effect Control 2",
         0, 0,
-        "genpurpose1", // "General Purpose Controller 1",
-        "genpurpose2", // "General Purpose Controller 2",
-        "genpurpose3", // "General Purpose Controller 3",
-        "genpurpose4", // "General Purpose Controller 4",
+        _("genpurpose1"), // "General Purpose Controller 1",
+        _("genpurpose2"), // "General Purpose Controller 2",
+        _("genpurpose3"), // "General Purpose Controller 3",
+        _("genpurpose4"), // "General Purpose Controller 4",
         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
         0, 0, 0, 0, 0, 0,
-        "sustainpedal", // "Damper Pedal on/off (Sustain)",
-        "portamento", // "Portamento On/Off",
-        "sostenuto", // "Sustenuto On/Off",
-        "softpedal", // "Soft Pedal On/Off",
+        _("sustainpedal"), // "Damper Pedal on/off (Sustain)",
+        _("portamento"), // "Portamento On/Off",
+        _("sostenuto"), // "Sustenuto On/Off",
+        _("softpedal"), // "Soft Pedal On/Off",
         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        "genpurpose5", // "General Purpose Controller 5",
-        "genpurpose6", // "General Purpose Controller 6",
-        "genpurpose7", // "General Purpose Controller 7",
-        "genpurpose8", // "General Purpose Controller 8",
+        _("genpurpose5"), // "General Purpose Controller 5",
+        _("genpurpose6"), // "General Purpose Controller 6",
+        _("genpurpose7"), // "General Purpose Controller 7",
+        _("genpurpose8"), // "General Purpose Controller 8",
         0, 0, 0, 0, 0, 0, 0,
-        "effect1depth", // "Effects 1 Depth",
-        "effect2depth", // "Effects 2 Depth",
-        "effect3depth", // "Effects 3 Depth",
-        "effect4depth", // "Effects 4 Depth",
-        "effect5depth", // "Effects 5 Depth"
+        _("effect1depth"), // "Effects 1 Depth",
+        _("effect2depth"), // "Effects 2 Depth",
+        _("effect3depth"), // "Effects 3 Depth",
+        _("effect4depth"), // "Effects 4 Depth",
+        _("effect5depth"), // "Effects 5 Depth"
     };
 }
 
@@ -188,7 +190,8 @@ NoteEntry::NoteEntry(const char* labelText) :
 }
 
 const char* notes[] = {
-    "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"
+    _("C"), _("C#"), _("D"), _("D#"), _("E"), _("F"),_("F#"),
+    _("G"), _("G#"), _("A"), _("A#"), _("B")
 };
 
 

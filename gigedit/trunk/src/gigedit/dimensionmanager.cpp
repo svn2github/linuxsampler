@@ -1,5 +1,5 @@
 /*                                                         -*- c++ -*-
- * Copyright (C) 2006-2008 Andreas Persson
+ * Copyright (C) 2006-2009 Andreas Persson
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -26,78 +26,80 @@
 #include <gtkmm/spinbutton.h>
 #include <gtkmm/table.h>
 
+#include "global.h"
+
 // returns a human readable name of the given dimension type
 static Glib::ustring __dimTypeAsString(gig::dimension_t d) {
     char buf[32];
     switch (d) {
         case gig::dimension_none:
-            return "None";
+            return _("None");
         case gig::dimension_samplechannel:
-            return "Sample Channel";
+            return _("Sample Channel");
         case gig::dimension_layer:
-            return "Layer";
+            return _("Layer");
         case gig::dimension_velocity:
-            return "Velocity";
+            return _("Velocity");
         case gig::dimension_channelaftertouch:
-            return "Aftertouch";
+            return _("Aftertouch");
         case gig::dimension_releasetrigger:
-            return "Release Trigger";
+            return _("Release Trigger");
         case gig::dimension_keyboard:
-            return "Keyswitching";
+            return _("Keyswitching");
         case gig::dimension_roundrobin:
-            return "Round Robin";
+            return _("Round Robin");
         case gig::dimension_random:
-            return "Random Generator";
+            return _("Random Generator");
         case gig::dimension_smartmidi:
-            return "Smart MIDI";
+            return _("Smart MIDI");
         case gig::dimension_roundrobinkeyboard:
-            return "Keyboard Round Robin";
+            return _("Keyboard Round Robin");
         case gig::dimension_modwheel:
-            return "Modulation Wheel";
+            return _("Modulation Wheel");
         case gig::dimension_breath:
-            return "Breath Ctrl.";
+            return _("Breath Ctrl.");
         case gig::dimension_foot:
-            return "Foot Ctrl.";
+            return _("Foot Ctrl.");
         case gig::dimension_portamentotime:
-            return "Portamento Time Ctrl.";
+            return _("Portamento Time Ctrl.");
         case gig::dimension_effect1:
-            return "Effect Ctrl. 1";
+            return _("Effect Ctrl. 1");
         case gig::dimension_effect2:
-            return "Effect Ctrl. 2";
+            return _("Effect Ctrl. 2");
         case gig::dimension_genpurpose1:
-            return "General Purpose Ctrl. 1";
+            return _("General Purpose Ctrl. 1");
         case gig::dimension_genpurpose2:
-            return "General Purpose Ctrl. 2";
+            return _("General Purpose Ctrl. 2");
         case gig::dimension_genpurpose3:
-            return "General Purpose Ctrl. 3";
+            return _("General Purpose Ctrl. 3");
         case gig::dimension_genpurpose4:
-            return "General Purpose Ctrl. 4";
+            return _("General Purpose Ctrl. 4");
         case gig::dimension_sustainpedal:
-            return "Sustain Pedal";
+            return _("Sustain Pedal");
         case gig::dimension_portamento:
-            return "Portamento Ctrl.";
+            return _("Portamento Ctrl.");
         case gig::dimension_sostenutopedal:
-            return "Sostenuto Pedal";
+            return _("Sostenuto Pedal");
         case gig::dimension_softpedal:
-            return "Soft Pedal";
+            return _("Soft Pedal");
         case gig::dimension_genpurpose5:
-            return "General Purpose Ctrl. 5";
+            return _("General Purpose Ctrl. 5");
         case gig::dimension_genpurpose6:
-            return "General Purpose Ctrl. 6";
+            return _("General Purpose Ctrl. 6");
         case gig::dimension_genpurpose7:
-            return "General Purpose Ctrl. 7";
+            return _("General Purpose Ctrl. 7");
         case gig::dimension_genpurpose8:
-            return "General Purpose Ctrl. 8";
+            return _("General Purpose Ctrl. 8");
         case gig::dimension_effect1depth:
-            return "Effect 1 Depth";
+            return _("Effect 1 Depth");
         case gig::dimension_effect2depth:
-            return "Effect 2 Depth";
+            return _("Effect 2 Depth");
         case gig::dimension_effect3depth:
-            return "Effect 3 Depth";
+            return _("Effect 3 Depth");
         case gig::dimension_effect4depth:
-            return "Effect 4 Depth";
+            return _("Effect 4 Depth");
         case gig::dimension_effect5depth:
-            return "Effect 5 Depth";
+            return _("Effect 5 Depth");
         default:
             sprintf(buf, "Unknown Type (0x%x) !!!", d);
             return buf;
@@ -108,82 +110,82 @@ static Glib::ustring __dimTypeAsString(gig::dimension_t d) {
 static Glib::ustring __dimDescriptionAsString(gig::dimension_t d) {
     switch (d) {
         case gig::dimension_none:
-            return "Dimension not in use";
+            return _("Dimension not in use");
         case gig::dimension_samplechannel:
-            return "If used sample has more than one channel (thus is not mono)";
+            return _("If used sample has more than one channel (thus is not mono)");
         case gig::dimension_layer:
-            return "For layering of up to 8 instruments (and eventually crossfading of 2 or 4 layers";
+            return _("For layering of up to 8 instruments (and eventually crossfading of 2 or 4 layers");
         case gig::dimension_velocity:
-            return "Key Velocity (this is the only dimension in gig2 where the ranges can exactly be defined)";
+            return _("Key Velocity (this is the only dimension in gig2 where the ranges can exactly be defined)");
         case gig::dimension_channelaftertouch:
-            return "Channel Key Pressure";
+            return _("Channel Key Pressure");
         case gig::dimension_releasetrigger:
-            return "Special dimension for triggering samples on releasing a key";
+            return _("Special dimension for triggering samples on releasing a key");
         case gig::dimension_keyboard:
-            return "Dimension for keyswitching (keyboard)";
+            return _("Dimension for keyswitching (keyboard)");
         case gig::dimension_roundrobin:
-            return "Different samples triggered each time a note is played, dimension regions selected in sequence";
+            return _("Different samples triggered each time a note is played, dimension regions selected in sequence");
         case gig::dimension_random:
-            return "Different samples triggered each time a note is played, random order";
+            return _("Different samples triggered each time a note is played, random order");
         case gig::dimension_smartmidi:
-            return "For MIDI tools like legato and repetition mode";
+            return _("For MIDI tools like legato and repetition mode");
         case gig::dimension_roundrobinkeyboard:
-            return "Different samples triggered each time a note is played, any key advances the counter";
+            return _("Different samples triggered each time a note is played, any key advances the counter");
         case gig::dimension_modwheel:
-            return "MIDI Controller 1";
+            return _("MIDI Controller 1");
         case gig::dimension_breath:
-            return "MIDI Controller 2";
+            return _("MIDI Controller 2");
         case gig::dimension_foot:
-            return "MIDI Controller 4";
+            return _("MIDI Controller 4");
         case gig::dimension_portamentotime:
-            return "MIDI Controller 5";
+            return _("MIDI Controller 5");
         case gig::dimension_effect1:
-            return "MIDI Controller 12";
+            return _("MIDI Controller 12");
         case gig::dimension_effect2:
-            return "MIDI Controller 13";
+            return _("MIDI Controller 13");
         case gig::dimension_genpurpose1:
-            return "Slider, MIDI Controller 16";
+            return _("Slider, MIDI Controller 16");
         case gig::dimension_genpurpose2:
-            return "Slider, MIDI Controller 17";
+            return _("Slider, MIDI Controller 17");
         case gig::dimension_genpurpose3:
-            return "Slider, MIDI Controller 18";
+            return _("Slider, MIDI Controller 18");
         case gig::dimension_genpurpose4:
-            return "Slider, MIDI Controller 19";
+            return _("Slider, MIDI Controller 19");
         case gig::dimension_sustainpedal:
-            return "MIDI Controller 64";
+            return _("MIDI Controller 64");
         case gig::dimension_portamento:
-            return "MIDI Controller 65";
+            return _("MIDI Controller 65");
         case gig::dimension_sostenutopedal:
-            return "MIDI Controller 66";
+            return _("MIDI Controller 66");
         case gig::dimension_softpedal:
-            return "MIDI Controller 67";
+            return _("MIDI Controller 67");
         case gig::dimension_genpurpose5:
-            return "Button, MIDI Controller 80";
+            return _("Button, MIDI Controller 80");
         case gig::dimension_genpurpose6:
-            return "Button, MIDI Controller 81";
+            return _("Button, MIDI Controller 81");
         case gig::dimension_genpurpose7:
-            return "Button, MIDI Controller 82";
+            return _("Button, MIDI Controller 82");
         case gig::dimension_genpurpose8:
-            return "Button, MIDI Controller 83";
+            return _("Button, MIDI Controller 83");
         case gig::dimension_effect1depth:
-            return "MIDI Controller 91";
+            return _("MIDI Controller 91");
         case gig::dimension_effect2depth:
-            return "MIDI Controller 92";
+            return _("MIDI Controller 92");
         case gig::dimension_effect3depth:
-            return "MIDI Controller 93";
+            return _("MIDI Controller 93");
         case gig::dimension_effect4depth:
-            return "MIDI Controller 94";
+            return _("MIDI Controller 94");
         case gig::dimension_effect5depth:
-            return "MIDI Controller 95";
+            return _("MIDI Controller 95");
         default:
-            return "Please report this !!!";
+            return _("Please report this !!!");
     }
 }
 
 DimensionManager::DimensionManager() :
 addButton(Gtk::Stock::ADD), removeButton(Gtk::Stock::REMOVE)
 {
-    set_title("Dimensions of selected Region");
+    set_title(_("Dimensions of selected Region"));
     add(vbox);
     scrolledWindow.add(treeView);
     vbox.pack_start(scrolledWindow);
@@ -200,10 +202,10 @@ addButton(Gtk::Stock::ADD), removeButton(Gtk::Stock::REMOVE)
     // setup the table
     refTableModel = Gtk::ListStore::create(tableModel);
     treeView.set_model(refTableModel);
-    treeView.append_column("Dimension Type", tableModel.m_dim_type);
-    treeView.append_column("Bits", tableModel.m_bits);
-    treeView.append_column("Zones", tableModel.m_zones);
-    treeView.append_column("Description", tableModel.m_description);
+    treeView.append_column(_("Dimension Type"), tableModel.m_dim_type);
+    treeView.append_column(_("Bits"), tableModel.m_bits);
+    treeView.append_column(_("Zones"), tableModel.m_zones);
+    treeView.append_column(_("Description"), tableModel.m_description);
     treeView.show();
 
     addButton.signal_clicked().connect(
@@ -248,7 +250,7 @@ void DimensionManager::set_region(gig::Region* region) {
 
 void DimensionManager::addDimension() {
     try {
-        Gtk::Dialog dialog("New Dimension", true /*modal*/);
+        Gtk::Dialog dialog(_("New Dimension"), true /*modal*/);
         // add dimension type combo box to the dialog
         Glib::RefPtr<Gtk::ListStore> refComboModel = Gtk::ListStore::create(comboModel);
         for (int i = 0x01; i < 0xff; i++) {
@@ -261,12 +263,12 @@ void DimensionManager::addDimension() {
             }
         }
         Gtk::Table table(2, 2);
-        Gtk::Label labelDimType("Dimension:", Gtk::ALIGN_LEFT);
+        Gtk::Label labelDimType(_("Dimension:"), Gtk::ALIGN_LEFT);
         Gtk::ComboBox comboDimType;
         comboDimType.set_model(refComboModel);
         comboDimType.pack_start(comboModel.m_type_id);
         comboDimType.pack_start(comboModel.m_type_name);
-        Gtk::Label labelZones("Zones:", Gtk::ALIGN_LEFT);
+        Gtk::Label labelZones(_("Zones:"), Gtk::ALIGN_LEFT);
         table.attach(labelDimType, 0, 1, 0, 1);
         table.attach(comboDimType, 1, 2, 0, 1);
         table.attach(labelZones, 0, 1, 1, 2);
@@ -339,7 +341,7 @@ void DimensionManager::addDimension() {
         // notify that the changes are over (i.e. to avoid dead locks)
         region_changed_signal.emit(region);
         // show error message
-        Glib::ustring txt = "Could not add dimension: " + e.Message;
+        Glib::ustring txt = _("Could not add dimension: ") + e.Message;
         Gtk::MessageDialog msg(*this, txt, false, Gtk::MESSAGE_ERROR);
         msg.run();
     }
@@ -364,7 +366,7 @@ void DimensionManager::removeDimension() {
             // notify that the changes are over (i.e. to avoid dead locks)
             region_changed_signal.emit(region);
             // show error message
-            Glib::ustring txt = "Could not remove dimension: " + e.Message;
+            Glib::ustring txt = _("Could not remove dimension: ") + e.Message;
             Gtk::MessageDialog msg(*this, txt, false, Gtk::MESSAGE_ERROR);
             msg.run();
         }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2008 Andreas Persson
+ * Copyright (C) 2006-2009 Andreas Persson
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -19,6 +19,8 @@
 
 #include "dimregionchooser.h"
 #include <gdkmm/cursor.h>
+
+#include "global.h"
 
 DimRegionChooser::DimRegionChooser()
 {
@@ -87,40 +89,40 @@ bool DimRegionChooser::on_expose_event(GdkEventExpose* event)
             const char* dstr;
             char dstrbuf[10];
             switch (region->pDimensionDefinitions[i].dimension) {
-            case gig::dimension_none: dstr="none"; break;
-            case gig::dimension_samplechannel: dstr="samplechannel"; break;
-            case gig::dimension_layer: dstr="layer"; break;
-            case gig::dimension_velocity: dstr="velocity"; break;
-            case gig::dimension_channelaftertouch: dstr="channelaftertouch"; break;
-            case gig::dimension_releasetrigger: dstr="releasetrigger"; break;
-            case gig::dimension_keyboard: dstr="keyswitching"; break;
-            case gig::dimension_roundrobin: dstr="roundrobin"; break;
-            case gig::dimension_random: dstr="random"; break;
-            case gig::dimension_smartmidi: dstr="smartmidi"; break;
-            case gig::dimension_roundrobinkeyboard: dstr="roundrobinkeyboard"; break;
-            case gig::dimension_modwheel: dstr="modwheel"; break;
-            case gig::dimension_breath: dstr="breath"; break;
-            case gig::dimension_foot: dstr="foot"; break;
-            case gig::dimension_portamentotime: dstr="portamentotime"; break;
-            case gig::dimension_effect1: dstr="effect1"; break;
-            case gig::dimension_effect2: dstr="effect2"; break;
-            case gig::dimension_genpurpose1: dstr="genpurpose1"; break;
-            case gig::dimension_genpurpose2: dstr="genpurpose2"; break;
-            case gig::dimension_genpurpose3: dstr="genpurpose3"; break;
-            case gig::dimension_genpurpose4: dstr="genpurpose4"; break;
-            case gig::dimension_sustainpedal: dstr="sustainpedal"; break;
-            case gig::dimension_portamento: dstr="portamento"; break;
-            case gig::dimension_sostenutopedal: dstr="sostenutopedal"; break;
-            case gig::dimension_softpedal: dstr="softpedal"; break;
-            case gig::dimension_genpurpose5: dstr="genpurpose5"; break;
-            case gig::dimension_genpurpose6: dstr="genpurpose6"; break;
-            case gig::dimension_genpurpose7: dstr="genpurpose7"; break;
-            case gig::dimension_genpurpose8: dstr="genpurpose8"; break;
-            case gig::dimension_effect1depth: dstr="effect1depth"; break;
-            case gig::dimension_effect2depth: dstr="effect2depth"; break;
-            case gig::dimension_effect3depth: dstr="effect3depth"; break;
-            case gig::dimension_effect4depth: dstr="effect4depth"; break;
-            case gig::dimension_effect5depth: dstr="effect5depth"; break;
+            case gig::dimension_none: dstr=_("none"); break;
+            case gig::dimension_samplechannel: dstr=_("samplechannel"); break;
+            case gig::dimension_layer: dstr=_("layer"); break;
+            case gig::dimension_velocity: dstr=_("velocity"); break;
+            case gig::dimension_channelaftertouch: dstr=_("channelaftertouch"); break;
+            case gig::dimension_releasetrigger: dstr=_("releasetrigger"); break;
+            case gig::dimension_keyboard: dstr=_("keyswitching"); break;
+            case gig::dimension_roundrobin: dstr=_("roundrobin"); break;
+            case gig::dimension_random: dstr=_("random"); break;
+            case gig::dimension_smartmidi: dstr=_("smartmidi"); break;
+            case gig::dimension_roundrobinkeyboard: dstr=_("roundrobinkeyboard"); break;
+            case gig::dimension_modwheel: dstr=_("modwheel"); break;
+            case gig::dimension_breath: dstr=_("breath"); break;
+            case gig::dimension_foot: dstr=_("foot"); break;
+            case gig::dimension_portamentotime: dstr=_("portamentotime"); break;
+            case gig::dimension_effect1: dstr=_("effect1"); break;
+            case gig::dimension_effect2: dstr=_("effect2"); break;
+            case gig::dimension_genpurpose1: dstr=_("genpurpose1"); break;
+            case gig::dimension_genpurpose2: dstr=_("genpurpose2"); break;
+            case gig::dimension_genpurpose3: dstr=_("genpurpose3"); break;
+            case gig::dimension_genpurpose4: dstr=_("genpurpose4"); break;
+            case gig::dimension_sustainpedal: dstr=_("sustainpedal"); break;
+            case gig::dimension_portamento: dstr=_("portamento"); break;
+            case gig::dimension_sostenutopedal: dstr=_("sostenutopedal"); break;
+            case gig::dimension_softpedal: dstr=_("softpedal"); break;
+            case gig::dimension_genpurpose5: dstr=_("genpurpose5"); break;
+            case gig::dimension_genpurpose6: dstr=_("genpurpose6"); break;
+            case gig::dimension_genpurpose7: dstr=_("genpurpose7"); break;
+            case gig::dimension_genpurpose8: dstr=_("genpurpose8"); break;
+            case gig::dimension_effect1depth: dstr=_("effect1depth"); break;
+            case gig::dimension_effect2depth: dstr=_("effect2depth"); break;
+            case gig::dimension_effect3depth: dstr=_("effect3depth"); break;
+            case gig::dimension_effect4depth: dstr=_("effect4depth"); break;
+            case gig::dimension_effect5depth: dstr=_("effect5depth"); break;
             default:
                 sprintf(dstrbuf, "%d",
                         region->pDimensionDefinitions[i].dimension);

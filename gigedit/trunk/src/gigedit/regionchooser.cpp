@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2008 Andreas Persson
+ * Copyright (C) 2006-2009 Andreas Persson
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -82,9 +82,9 @@ RegionChooser::RegionChooser() :
     cursor_is_resize = false;
     h1 = REGION_BLOCK_HEIGHT;
 
-    // properties of the virtual keyboard 
+    // properties of the virtual keyboard
     {
-        const char* choices[] = { "normal", "chord", NULL };
+        const char* choices[] = { _("normal"), _("chord"), NULL };
         static const virt_keyboard_mode_t values[] = {
             VIRT_KEYBOARD_MODE_NORMAL,
             VIRT_KEYBOARD_MODE_CHORD
@@ -767,9 +767,9 @@ sigc::signal<void>& RegionChooser::signal_instrument_changed()
 void RegionChooser::show_region_properties()
 {
     if (!region) return;
-    Gtk::Dialog dialog("Region Properties", true /*modal*/);
+    Gtk::Dialog dialog(_("Region Properties"), true /*modal*/);
     // add "Keygroup" checkbox
-    Gtk::CheckButton checkBoxKeygroup("Member of a Keygroup (Exclusive Group)");
+    Gtk::CheckButton checkBoxKeygroup(_("Member of a Keygroup (Exclusive Group)"));
     checkBoxKeygroup.set_active(region->KeyGroup);
     dialog.get_vbox()->pack_start(checkBoxKeygroup);
     checkBoxKeygroup.show();
