@@ -28,6 +28,7 @@
 #include "../../common/Thread.h"
 
 #include "AudioOutputDevice.h"
+#include "CAAudioDeviceModel.h"
 
 #include <AudioToolbox/AudioToolbox.h>
 #include <CoreAudio/CoreAudio.h>
@@ -38,7 +39,9 @@ namespace LinuxSampler {
      *
      * Implements audio output to the Core Audio architecture.
      */
-    class AudioOutputDeviceCoreAudio : public AudioOutputDevice, protected Thread {
+    class AudioOutputDeviceCoreAudio : public AudioOutputDevice,
+            public CAAudioDeviceModelListener, protected Thread {
+
         private:
             struct AQPlayerState {
                 AudioStreamBasicDescription   mDataFormat;
@@ -50,14 +53,11 @@ namespace LinuxSampler {
                 AudioOutputDeviceCoreAudio*   pDevice; // needed for the callback
             };
 
-            struct DeviceInfo {
-                uint uiSamplerate;
-                uint uiChannelNumber;
-            };
-
         public:
             AudioOutputDeviceCoreAudio(std::map<String,DeviceCreationParameter*> Parameters);
             virtual ~AudioOutputDeviceCoreAudio();
+
+            virtual void DeviceChanged(); // from CAAudioDeviceModelListener
 
             // derived abstract methods from class 'AudioOutputDevice'
             virtual void Play();
@@ -75,6 +75,28 @@ namespace LinuxSampler {
 
 // *************** PARAMETERS ***************
 
+            /** Device Parameter 'DEVICE'
+             *
+             * Used to select the desired output device.
+             */
+            class ParameterDevice : public DeviceCreationParameterString {
+                public:
+                    ParameterDevice();
+                    ParameterDevice(String s) throw (Exception);
+                    virtual String Description();
+                    virtual bool   Fix();
+                    virtual bool   Mandatory();
+                    virtual std::map<String,DeviceCreationParameter*> DependsAsParameters();
+                    virtual optional<String>    DefaultAsString(std::map<String,String> Parameters);
+                    virtual std::vector<String> PossibilitiesAsString(std::map<String,String> Parameters);
+                    virtual void                OnSetValue(String s) throw (Exception);
+                    int GetDeviceIndex();
+                    static String Name();
+
+                private:
+                    String CreateDeviceName(int devIndex);
+            };
+
             /** Device Parameter 'SAMPLERATE'
              *
              * Used to set the sample rate of the audio output device.
@@ -83,7 +105,9 @@ namespace LinuxSampler {
                 public:
                     ParameterSampleRate();
                     ParameterSampleRate(String s);
+                    virtual std::map<String,DeviceCreationParameter*> DependsAsParameters();
                     virtual optional<int> DefaultAsInt(std::map<String,String> Parameters);
+                    virtual std::vector<int> PossibilitiesAsInt(std::map<String,String> Parameters);
             };
 
             /** Device Parameters 'CHANNELS'
@@ -96,6 +120,7 @@ namespace LinuxSampler {
                     ParameterChannels();
                     ParameterChannels(String s);
                     virtual optional<int> DefaultAsInt(std::map<String,String> Parameters);
+                    virtual std::vector<int> PossibilitiesAsInt(std::map<String,String> Parameters);
             };
 
             /** Device Parameter 'BUFFERS'
@@ -142,19 +167,24 @@ namespace LinuxSampler {
             int Main();  ///< Implementation of virtual method from class Thread
 
         private:
-            uint           uiCoreAudioChannels;
-            uint           uiBufferNumber; // once initialized this value shouldn't be changed
-            uint           uiBufferSize; // once initialized this value shouldn't be changed
-            AQPlayerState  aqPlayerState;
-            atomic_t       pausedNew;
-            uint           pausedOld;
-            Mutex          destroyMutex;
+            CAAudioDeviceModel  CurrentDevice;
+            uint                uiCoreAudioChannels;
+            uint                uiBufferNumber; // once initialized this value shouldn't be changed
+            uint                uiBufferSize; // once initialized this value shouldn't be changed
+            AQPlayerState       aqPlayerState;
+            atomic_t            pausedNew;
+            uint                pausedOld;
+            atomic_t            restartQueue;
+            Mutex               destroyMutex;
 
-            static DeviceInfo* pDeviceInfo;
+            void CreateAndStartAudioQueue();
+            void DestroyAudioQueue();
+            void FillBuffers();
+            void PrimeAudioQueue();
 
+            static void AudioQueueListener(void *inUserData, AudioQueueRef inAQ, AudioQueuePropertyID inID);
             static void HandleOutputBuffer(void *aqData, AudioQueueRef inAQ, AudioQueueBufferRef inBuffer);
             static void SetAudioDataFormat(AudioStreamBasicDescription* pDataFormat);
-            static DeviceInfo* GetDeviceInfo();
     };
 } // namespace LinuxSampler
 

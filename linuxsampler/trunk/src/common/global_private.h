@@ -28,7 +28,7 @@
 #define __LS_GLOBAL_PRIVATE_H__
 
 #include "global.h"
-
+#include "Exception.h"
 #include <sstream>
 
 #if HAVE_CONFIG_H
@@ -70,6 +70,13 @@ template<class T> inline String ToString(T o) {
 	std::stringstream ss;
 	ss << o;
 	return ss.str();
+}
+
+inline int ToInt(const std::string& s) throw(LinuxSampler::Exception) {
+    int i;
+    std::istringstream iss(s);
+    if(!(iss >> i)) throw LinuxSampler::Exception("Not an integer");
+    return i;
 }
 
 class Runnable {

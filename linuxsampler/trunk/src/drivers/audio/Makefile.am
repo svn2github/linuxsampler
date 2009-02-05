@@ -44,7 +44,8 @@ endif
 
 
 if HAVE_COREAUDIO
-coreaudio_src  = AudioOutputDeviceCoreAudio.cpp AudioOutputDeviceCoreAudio.h
+coreaudio_src  = AudioOutputDeviceCoreAudio.cpp AudioOutputDeviceCoreAudio.h \
+    CAAudioDeviceModel.cpp CAAudioDeviceModel.h
 coreaudio_ldflags = -framework CoreAudio -framework AudioToolbox
 else
 coreaudio_src  =

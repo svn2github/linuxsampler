@@ -74,6 +74,9 @@ bool Features::enableDenormalsAreZeroMode() {
         return true;
     }
     return false;
+    #else
+
+    return false;
     #endif // CONFIG_ASM && ARCH_X86
 }
 

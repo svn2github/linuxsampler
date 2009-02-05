@@ -99,6 +99,7 @@ namespace LinuxSampler {
     REGISTER_AUDIO_OUTPUT_DRIVER_PARAMETER(AudioOutputDeviceCoreAudio, ParameterActive);
     REGISTER_AUDIO_OUTPUT_DRIVER_PARAMETER(AudioOutputDeviceCoreAudio, ParameterSampleRate);
     REGISTER_AUDIO_OUTPUT_DRIVER_PARAMETER(AudioOutputDeviceCoreAudio, ParameterChannels);
+    REGISTER_AUDIO_OUTPUT_DRIVER_PARAMETER(AudioOutputDeviceCoreAudio, ParameterDevice);
     REGISTER_AUDIO_OUTPUT_DRIVER_PARAMETER(AudioOutputDeviceCoreAudio, ParameterBuffers);
     REGISTER_AUDIO_OUTPUT_DRIVER_PARAMETER(AudioOutputDeviceCoreAudio, ParameterBufferSize);
 #endif // HAVE_COREAUDIO
