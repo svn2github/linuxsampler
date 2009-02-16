@@ -63,6 +63,7 @@ namespace LinuxSampler {
     PluginGlobal::~PluginGlobal() {
         pEventThread->StopThread();
         pLSCPServer->StopThread();
+        pLSCPServer->RemoveListeners();
 
         delete pEventThread;
         delete pSampler;
@@ -92,19 +93,28 @@ namespace LinuxSampler {
 
     PluginGlobal* Plugin::global = 0;
 
-    Plugin::Plugin() :
+    Plugin::Plugin(bool bDoPreInit) :
         pAudioDevice(0),
         pMidiDevice(0) {
+        bPreInitDone = false;
+        if (bDoPreInit) PreInit();
+    }
+
+    void Plugin::PreInit() {
+        if (bPreInitDone) return;
+
+        bPreInitDone = true;
         if (!global) {
             global = new PluginGlobal;
         }
         global->RefCount++;
     }
 
-    void Plugin::Init(int SampleRate, int FragmentSize) {
+    void Plugin::Init(int SampleRate, int FragmentSize, int Channels) {
         std::map<String, String> params;
         params["SAMPLERATE"] = ToString(SampleRate);
         params["FRAGMENTSIZE"] = ToString(FragmentSize);
+        if (Channels > 0) params["CHANNELS"] = ToString(Channels);
         pAudioDevice = dynamic_cast<AudioOutputDevicePlugin*>(
             global->pSampler->CreateAudioOutputDevice(AudioOutputDevicePlugin::Name(), params));
 
@@ -117,9 +127,11 @@ namespace LinuxSampler {
         RemoveChannels();
         if (pAudioDevice) global->pSampler->DestroyAudioOutputDevice(pAudioDevice);
         if (pMidiDevice) global->pSampler->DestroyMidiInputDevice(pMidiDevice);
-        if (--global->RefCount == 0) {
-            delete global;
-            global = 0;
+        if (bPreInitDone) {
+            if (--global->RefCount == 0) {
+                delete global;
+                global = 0;
+            }
         }
     }
 
@@ -155,7 +167,10 @@ namespace LinuxSampler {
     }
 
     void Plugin::RemoveChannels() {
+        if(global == NULL) return;
+
         std::map<uint, SamplerChannel*> channels = global->pSampler->GetSamplerChannels();
+
         for (std::map<uint, SamplerChannel*>::iterator iter = channels.begin() ;
              iter != channels.end() ; iter++) {
             if (iter->second->GetAudioOutputDevice() == pAudioDevice) {

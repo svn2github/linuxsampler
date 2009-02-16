@@ -10,6 +10,12 @@ else
 coremidi_ldflags =
 endif
 
+if HAVE_SQLITE3
+sqlite3_lib = $(top_builddir)/src/db/liblinuxsamplerdb.la
+else
+sqlite3_lib =
+endif
+
 AM_CXXFLAGS = -Wreturn-type -ffast-math $(CXX_CPU_SWITCH)
 
 SUBDIRS = db network engines common testcases drivers plugins effects . hostplugins
@@ -20,7 +26,7 @@ liblinuxsamplerinclude_HEADERS = Sampler.h EventListeners.h
 pkglib_LTLIBRARIES = liblinuxsampler.la
 liblinuxsampler_la_SOURCES = Sampler.cpp
 liblinuxsampler_la_LIBADD = \
-	$(top_builddir)/src/db/liblinuxsamplerdb.la \
+	$(sqlite3_lib) \
 	$(top_builddir)/src/network/liblinuxsamplernetwork.la \
 	$(top_builddir)/src/engines/gig/liblinuxsamplergigengine.la \
 	$(top_builddir)/src/engines/common/liblinuxsamplercommonengine.la \

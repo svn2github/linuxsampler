@@ -317,6 +317,12 @@ namespace LinuxSampler {
             void RemoveSamplerChannel(uint uiSamplerChannel);
 
             /**
+             * Destroy and remove all sampler channels from this
+             * Sampler instance.
+             */
+            void RemoveAllSamplerChannels();
+
+            /**
              * Registers the specified listener to be notified
              * when the number of sampler chanels is changed.
              */
@@ -500,7 +506,7 @@ namespace LinuxSampler {
 
             /**
              * Destroy the given audio output device and takes care if there
-             * are still sampler angines connected to this device, etc.
+             * are still sampler engines connected to this device, etc.
              *
              * @throws Exception  if sampler channels are still
              *                    connected to the device
@@ -508,13 +514,31 @@ namespace LinuxSampler {
             void DestroyAudioOutputDevice(AudioOutputDevice* pDevice) throw (Exception);
 
             /**
+             * Destroy all audio output devices and takes care if there
+             * are still sampler engines connected to devices, etc.
+             *
+             * @throws Exception  if sampler channels are still
+             *                    connected to device
+             */
+            void DestroyAllAudioOutputDevices() throw (Exception);
+
+            /**
              * Destroy the given MIDI input device and takes care if there
-             * are still sampler angines connected to this device, etc.
+             * are still sampler engines connected to this device, etc.
              *
              * @throws Exception  if sampler channels are still
              *                    connected to the device
              */
             void DestroyMidiInputDevice(MidiInputDevice* pDevice) throw (Exception);
+
+            /**
+             * Destroy all MIDI input devices and take care if there
+             * are still sampler engines connected to device, etc.
+             *
+             * @throws Exception  if sampler channels are still
+             *                    connected to device
+             */
+            void DestroyAllMidiInputDevices() throw (Exception);
 
              /**
              * Gets the current number of all active streams.

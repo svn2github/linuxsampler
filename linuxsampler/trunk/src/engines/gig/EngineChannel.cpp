@@ -60,6 +60,21 @@ namespace LinuxSampler { namespace gig {
         SoloMode       = false;
         PortamentoMode = false;
         PortamentoTime = CONFIG_PORTAMENTO_TIME_DEFAULT;
+
+        // reset the instrument change command struct (need to be done
+        // twice, as it is double buffered)
+        {
+            instrument_change_command_t& cmd = InstrumentChangeCommand.GetConfigForUpdate();
+            cmd.pDimRegionsInUse = NULL;
+            cmd.pInstrument = NULL;
+            cmd.bChangeInstrument = false;
+        }
+        {
+            instrument_change_command_t& cmd = InstrumentChangeCommand.SwitchConfig();
+            cmd.pDimRegionsInUse = NULL;
+            cmd.pInstrument = NULL;
+            cmd.bChangeInstrument = false;
+        }
     }
 
     EngineChannel::~EngineChannel() {

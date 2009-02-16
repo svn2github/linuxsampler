@@ -79,6 +79,7 @@ class LSCPServer : public Thread {
         LSCPServer(Sampler* pSampler, long int addr, short int port);
         virtual ~LSCPServer();
         int WaitUntilInitialized(long TimeoutSeconds = 0L, long TimeoutNanoSeconds = 0L);
+        void RemoveListeners();
 
         // Methods called by the parser
         String DestroyAudioOutputDevice(uint DeviceIndex);

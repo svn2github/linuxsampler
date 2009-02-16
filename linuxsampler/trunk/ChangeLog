@@ -126,6 +126,13 @@ Version CVS HEAD (?)
       instrument loading in progress (bug #113)
     - fixed termination caused by uncaught exception when adding MIDI
       instrument with PERSISTENT load mode
+    - fixed possible iterator invalidations when resetting the sampler
+    - fixed memory leaks when issuing the following LSCP commands:
+      GET AUDIO_OUTPUT_DRIVER INFO
+      GET AUDIO_OUTPUT_DRIVER_PARAMETER INFO
+      GET MIDI_INPUT_DRIVER INFO
+      GET MIDI_INPUT_DRIVER_PARAMETER INFO
+    - fixed possible compilation error when sqlite is not present
 
 
 Version 0.5.1 (6 December 2007)

@@ -24,6 +24,7 @@
 #include <algorithm>
 #include <string>
 
+#include "../common/File.h"
 #include "lscpserver.h"
 #include "lscpresultset.h"
 #include "lscpevent.h"
@@ -334,6 +335,24 @@ void LSCPServer::DbInstrumentsEventHandler::JobStatusChanged(int JobId) {
 }
 #endif // HAVE_SQLITE3
 
+void LSCPServer::RemoveListeners() {
+    pSampler->RemoveChannelCountListener(&eventHandler);
+    pSampler->RemoveAudioDeviceCountListener(&eventHandler);
+    pSampler->RemoveMidiDeviceCountListener(&eventHandler);
+    pSampler->RemoveVoiceCountListener(&eventHandler);
+    pSampler->RemoveStreamCountListener(&eventHandler);
+    pSampler->RemoveBufferFillListener(&eventHandler);
+    pSampler->RemoveTotalStreamCountListener(&eventHandler);
+    pSampler->RemoveTotalVoiceCountListener(&eventHandler);
+    pSampler->RemoveFxSendCountListener(&eventHandler);
+    MidiInstrumentMapper::RemoveMidiInstrumentCountListener(&eventHandler);
+    MidiInstrumentMapper::RemoveMidiInstrumentInfoListener(&eventHandler);
+    MidiInstrumentMapper::RemoveMidiInstrumentMapCountListener(&eventHandler);
+    MidiInstrumentMapper::RemoveMidiInstrumentMapInfoListener(&eventHandler);
+#if HAVE_SQLITE3
+    InstrumentsDb::GetInstrumentsDb()->RemoveInstrumentsDbListener(&dbInstrumentsEventHandler);
+#endif
+}
 
 /**
  * Blocks the calling thread until the LSCP Server is initialized and
@@ -1259,6 +1278,7 @@ String LSCPServer::GetMidiInputDriverInfo(String Driver) {
             for (;iter != parameters.end(); iter++) {
                 if (s != "") s += ",";
                 s += iter->first;
+                delete iter->second;
             }
             result.Add("PARAMETERS", s);
         }
@@ -1283,6 +1303,7 @@ String LSCPServer::GetAudioOutputDriverInfo(String Driver) {
             for (;iter != parameters.end(); iter++) {
                 if (s != "") s += ",";
                 s += iter->first;
+                delete iter->second;
             }
             result.Add("PARAMETERS", s);
         }
@@ -1313,6 +1334,7 @@ String LSCPServer::GetMidiInputDriverParameterInfo(String Driver, String Paramet
         if (oRangeMin)      result.Add("RANGE_MIN",     *oRangeMin);
         if (oRangeMax)      result.Add("RANGE_MAX",     *oRangeMax);
         if (oPossibilities) result.Add("POSSIBILITIES", *oPossibilities);
+        delete pParameter;
     }
     catch (Exception e) {
         result.Error(e);
@@ -1340,6 +1362,7 @@ String LSCPServer::GetAudioOutputDriverParameterInfo(String Driver, String Param
         if (oRangeMin)      result.Add("RANGE_MIN",     *oRangeMin);
         if (oRangeMax)      result.Add("RANGE_MAX",     *oRangeMax);
         if (oPossibilities) result.Add("POSSIBILITIES", *oPossibilities);
+        delete pParameter;
     }
     catch (Exception e) {
         result.Error(e);
@@ -2800,17 +2823,9 @@ void LSCPServer::VerifyFile(String Filename) {
         throw Exception("Directory is specified");
     }
     #else
-    struct stat statBuf;
-    int res = stat(Filename.c_str(), &statBuf);
-    if (res) {
-        std::stringstream ss;
-        ss << "Fail to stat `" << Filename << "`: " << strerror(errno);
-        throw Exception(ss.str());
-    }
-
-    if (S_ISDIR(statBuf.st_mode)) {
-        throw Exception("Directory is specified");
-    }
+    File f(Filename);
+    if(!f.Exist()) throw Exception(f.GetErrorMsg());
+    if (f.IsDirectory()) throw Exception("Directory is specified");
     #endif
 }
 

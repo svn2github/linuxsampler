@@ -64,19 +64,22 @@ namespace LinuxSampler {
      */
     class Plugin {
     protected:
-        Plugin();
-        ~Plugin();
-        void Init(int SampleRate, int FragmentSize);
+        Plugin(bool bDoPreInit = true);
+        virtual ~Plugin();
+        void PreInit();
+        void Init(int SampleRate, int FragmentSize, int Channels = -1);
 
         void InitState();
         String GetState();
         bool SetState(String State);
+        void RemoveChannels();
 
         AudioOutputDevicePlugin* pAudioDevice;
         MidiInputDevicePlugin* pMidiDevice;
         static PluginGlobal* global;
+
     private:
-        void RemoveChannels();
+        bool bPreInitDone;
     };
 }
 

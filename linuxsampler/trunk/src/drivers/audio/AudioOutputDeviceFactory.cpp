@@ -156,9 +156,13 @@ namespace LinuxSampler {
     }
 
     DeviceCreationParameter* AudioOutputDeviceFactory::GetDriverParameter(String DriverName, String ParameterName) throw (Exception) {
-        std::map<String,DeviceCreationParameter*> parameters = GetAvailableDriverParameters(DriverName);
-        if (!parameters.count(ParameterName)) throw Exception("Audio output driver '" + DriverName + "' does not have a parameter '" + ParameterName + "'.");
-        return parameters[ParameterName];
+        if (!InnerFactories.count(DriverName)) throw Exception("There is no audio output driver '" + DriverName + "'.");
+        DeviceParameterFactory* pParamFactory = ParameterFactories[DriverName];
+        if (pParamFactory) {
+            try { return pParamFactory->Create(ParameterName); }
+            catch(Exception e) { }
+        }
+        throw Exception("Audio output driver '" + DriverName + "' does not have a parameter '" + ParameterName + "'.");
     }
 
     String AudioOutputDeviceFactory::GetDriverDescription(String DriverName) throw (Exception) {

@@ -526,6 +526,19 @@ namespace LinuxSampler {
         RemoveSamplerChannel(pChannel);
     }
 
+    void Sampler::RemoveAllSamplerChannels() {
+        /*
+         * In maps iterator invalidation occurs when the iterator point
+         * to the element that is being erased. So we need to copy the map
+         * by calling GetSamplerChannels() to prevent that.
+         */
+        SamplerChannelMap chns = GetSamplerChannels();
+        SamplerChannelMap::iterator iter = chns.begin();
+        for(; iter != chns.end(); iter++) {
+            RemoveSamplerChannel(iter->second);
+        }
+    }
+
     std::vector<String> Sampler::AvailableAudioOutputDrivers() {
         return AudioOutputDeviceFactory::AvailableDrivers();
     }
@@ -594,6 +607,19 @@ namespace LinuxSampler {
         }
     }
 
+    void Sampler::DestroyAllAudioOutputDevices() throw (Exception) {
+        /*
+         * In maps iterator invalidation occurs when the iterator point
+         * to the element that is being erased. So we need to copy the map
+         * by calling GetAudioOutputDevices() to prevent that.
+         */
+        AudioOutputDeviceMap devs = GetAudioOutputDevices();
+        AudioOutputDeviceMap::iterator iter = devs.begin();
+        for(; iter != devs.end(); iter++) {
+            DestroyAudioOutputDevice(iter->second);
+        }
+    }
+
     void Sampler::DestroyMidiInputDevice(MidiInputDevice* pDevice) throw (Exception) {
         MidiInputDeviceMap::iterator iter = mMidiInputDevices.begin();
         for (; iter != mMidiInputDevices.end(); iter++) {
@@ -617,6 +643,19 @@ namespace LinuxSampler {
                 fireMidiDeviceCountChanged(MidiInputDevices());
                 break;
             }
+        }
+    }
+
+    void Sampler::DestroyAllMidiInputDevices() throw (Exception) {
+        /*
+         * In maps iterator invalidation occurs when the iterator point
+         * to the element that is being erased. So we need to copy the map
+         * by calling GetMidiInputDevices() to prevent that.
+         */
+        MidiInputDeviceMap devs = GetMidiInputDevices();
+        MidiInputDeviceMap::iterator iter = devs.begin();
+        for(; iter != devs.end(); iter++) {
+            DestroyMidiInputDevice(iter->second);
         }
     }
 
@@ -662,11 +701,7 @@ namespace LinuxSampler {
     void Sampler::Reset() {
         // delete sampler channels
         try {
-	    while (true) {
-		    SamplerChannelMap::iterator iter = mSamplerChannels.begin();
-		    if (iter == mSamplerChannels.end()) break;
-		    RemoveSamplerChannel(iter->second);
-            }
+	    RemoveAllSamplerChannels();
         }
         catch(...) {
             std::cerr << "Sampler::Reset(): Exception occured while trying to delete all sampler channels, exiting.\n" << std::flush;
@@ -675,11 +710,7 @@ namespace LinuxSampler {
 
         // delete midi input devices
         try {
-	    while (true) {
-		    MidiInputDeviceMap::iterator iter = mMidiInputDevices.begin();
-		    if (iter == mMidiInputDevices.end()) break;
-		    DestroyMidiInputDevice(iter->second);
-            }
+	    DestroyAllMidiInputDevices();
         }
         catch(...) {
             std::cerr << "Sampler::Reset(): Exception occured while trying to delete all MIDI input devices, exiting.\n" << std::flush;
@@ -688,11 +719,7 @@ namespace LinuxSampler {
 
         // delete audio output devices
         try {
-	    while (true) {
-		    AudioOutputDeviceMap::iterator iter = mAudioOutputDevices.begin();
-		    if (iter == mAudioOutputDevices.end()) break;
-		    DestroyAudioOutputDevice(iter->second);
-            }
+	    DestroyAllAudioOutputDevices();
         }
         catch(...) {
             std::cerr << "Sampler::Reset(): Exception occured while trying to delete all audio output devices, exiting.\n" << std::flush;

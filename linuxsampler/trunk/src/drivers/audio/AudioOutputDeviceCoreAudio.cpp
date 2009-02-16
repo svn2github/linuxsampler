@@ -175,7 +175,7 @@ namespace LinuxSampler {
     }
 
     String AudioOutputDeviceCoreAudio::Version() {
-       String s = "$Revision: 1.2 $";
+       String s = "$Revision: 1.3 $";
        return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
 
@@ -318,9 +318,8 @@ namespace LinuxSampler {
      * Entry point for the thread.
      */
     int AudioOutputDeviceCoreAudio::Main() {
-        dmsg(2,("CoreAudio thread started\n"));
+        dmsg(1,("CoreAudio thread started\n"));
         OSStatus res;
-        std::cout<<"thread started ca\n";
         if(aqPlayerState.mQueue == NULL) {
             /*
              * Need to be run from this thread because of CFRunLoopGetCurrent()

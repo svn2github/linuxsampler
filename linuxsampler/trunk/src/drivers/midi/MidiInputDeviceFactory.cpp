@@ -139,9 +139,13 @@ namespace LinuxSampler {
     }
 
     DeviceCreationParameter* MidiInputDeviceFactory::GetDriverParameter(String DriverName, String ParameterName) throw (Exception) {
-        std::map<String,DeviceCreationParameter*> parameters = GetAvailableDriverParameters(DriverName);
-        if (!parameters.count(ParameterName)) throw Exception("Midi input driver '" + DriverName + "' does not have a parameter '" + ParameterName + "'.");
-        return parameters[ParameterName];
+        if (!InnerFactories.count(DriverName)) throw Exception("There is no midi input driver '" + DriverName + "'.");
+        DeviceParameterFactory* pParamFactory = ParameterFactories[DriverName];
+        if (pParamFactory) {
+            try { return pParamFactory->Create(ParameterName); }
+            catch(Exception e) { }
+        }
+        throw Exception("Midi input driver '" + DriverName + "' does not have a parameter '" + ParameterName + "'.");
     }
 
     String MidiInputDeviceFactory::GetDriverDescription(String DriverName) throw (Exception) {
