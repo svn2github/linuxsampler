@@ -145,7 +145,9 @@
                     <table class="cvs_project" width=100%>
                       <thead>
                         <tr>
-                          <th scope=col>linuxsampler</th>
+                          <th scope=col>
+                            <a href="faq.html#aga">linuxsampler</a>
+                          </th>
                         </tr>
                       </thead>
                       <tbody>
@@ -172,7 +174,9 @@
                     <table class="cvs_project" width=100%>
                       <thead>
                         <tr>
-                          <th scope=col>gigedit</th>
+                          <th scope=col>
+                            <a href="faq.html#aga">gigedit</a>
+                          </th>
                         </tr>
                       </thead>
                       <tbody>
@@ -199,7 +203,9 @@
                     <table class="cvs_project" width=100%>
                       <thead>
                         <tr>
-                          <th scope=col>libgig</th>
+                          <th scope=col>
+                            <a href="faq.html#aga">libgig</a>
+                          </th>
                         </tr>
                       </thead>
                       <tbody>
@@ -224,7 +230,9 @@
                     <table class="cvs_project" width=100%>
                       <thead>
                         <tr>
-                          <th scope=col>qsampler</th>
+                          <th scope=col>
+                            <a href="faq.html#aga">qsampler</a>
+                          </th>
                         </tr>
                       </thead>
                       <tbody>
@@ -251,7 +259,9 @@
                     <table class="cvs_project" width=100%>
                       <thead>
                         <tr>
-                          <th scope=col>liblscp</th>
+                          <th scope=col>
+                            <a href="faq.html#aga">liblscp</a>
+                          </th>
                         </tr>
                       </thead>
                       <tbody>
@@ -276,7 +286,9 @@
                     <table class="cvs_project" width=100%>
                       <thead>
                         <tr>
-                          <th scope=col>jsampler</th>
+                          <th scope=col>
+                            <a href="faq.html#aga">jsampler</a>
+                          </th>
                         </tr>
                       </thead>
                       <tbody>
@@ -303,7 +315,9 @@
                     <table class="cvs_project" width=100%>
                       <thead>
                         <tr>
-                          <th scope=col>jlscp</th>
+                          <th scope=col>
+                            <a href="faq.html#aga">jlscp</a>
+                          </th>
                         </tr>
                       </thead>
                       <tbody>
