@@ -1,5 +1,16 @@
 <?xml version='1.0' ?>
 <news>
+  <entry date="2009-02-17">
+    Cheers Mac users! LinuxSampler is finally available as AudioUnit plugin!
+    It's still a work in progress, but you might already want to checkout
+    the experimental AU binary package of LinuxSampler, available from our
+    <link ref="http://download.linuxsampler.org/dev/mac/">download server</link>.
+    As this is still an early development version, please follow the ongoing
+    discussion and development on our
+    <link ref="https://bb.linuxsampler.org/viewtopic.php?f=2&t=295">web forum</link>
+    and <link ref="http://sourceforge.net/mailarchive/forum.php?forum_name=linuxsampler-devel">developers' mailing list</link>
+    to avoid known problems. Feedback appreciated!
+  </entry>
   <entry date="2008-02-15">
     We're happy to announce that the first freely available sample library
     is now available on our downloads server. Thanks to Mats Helgesson for
