@@ -7,7 +7,7 @@
     <link ref="http://download.linuxsampler.org/dev/mac/">download server</link>.
     As this is still an early development version, please follow the ongoing
     discussion and development on our
-    <link ref="https://bb.linuxsampler.org/viewtopic.php?f=2&t=295">web forum</link>
+    <link ref="https://bb.linuxsampler.org/viewtopic.php?f=2&amp;t=295">web forum</link>
     and <link ref="http://sourceforge.net/mailarchive/forum.php?forum_name=linuxsampler-devel">developers' mailing list</link>
     to avoid known problems. Feedback appreciated!
   </entry>
