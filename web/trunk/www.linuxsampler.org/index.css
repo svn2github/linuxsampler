@@ -184,6 +184,14 @@ td.default {
 	text-decoration: underline;
 	}
 
+a:link {
+	color: #007;
+}
+
+a:visited {
+	color: #889;
+}
+
 p {
 	font-size: 10pt;
 	font-family: sans-serif,Arial,Helvetica;
