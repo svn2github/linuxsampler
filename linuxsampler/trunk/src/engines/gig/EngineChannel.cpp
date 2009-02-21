@@ -939,4 +939,32 @@ namespace LinuxSampler { namespace gig {
         return LS_GIG_ENGINE_NAME;
     }
 
+    void EngineChannel::ClearDimRegionsInUse() {
+        {
+            instrument_change_command_t& cmd = InstrumentChangeCommand.GetConfigForUpdate();
+            if(cmd.pDimRegionsInUse != NULL) cmd.pDimRegionsInUse->clear();
+        }
+        {
+            instrument_change_command_t& cmd = InstrumentChangeCommand.SwitchConfig();
+            if(cmd.pDimRegionsInUse != NULL) cmd.pDimRegionsInUse->clear();
+        }
+    }
+
+    void EngineChannel::ResetDimRegionsInUse() {
+        {
+            instrument_change_command_t& cmd = InstrumentChangeCommand.GetConfigForUpdate();
+            if(cmd.pDimRegionsInUse != NULL) {
+                delete cmd.pDimRegionsInUse;
+                cmd.pDimRegionsInUse = new RTList< ::gig::DimensionRegion*>(pEngine->pDimRegionPool[0]);
+            }
+        }
+        {
+            instrument_change_command_t& cmd = InstrumentChangeCommand.SwitchConfig();
+            if(cmd.pDimRegionsInUse != NULL) {
+                delete cmd.pDimRegionsInUse;
+                cmd.pDimRegionsInUse = new RTList< ::gig::DimensionRegion*>(pEngine->pDimRegionPool[1]);
+            }
+        }
+    }
+
 }} // namespace LinuxSampler::gig

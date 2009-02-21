@@ -160,6 +160,8 @@ namespace LinuxSampler { namespace gig {
         private:
             void ResetInternal();
             void RemoveAllFxSends();
+            void ClearDimRegionsInUse();
+            void ResetDimRegionsInUse();
             instrument_change_command_t& ChangeInstrument(::gig::Instrument* pInstrument);
     };
 

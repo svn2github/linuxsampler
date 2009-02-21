@@ -134,6 +134,7 @@ Version CVS HEAD (?)
       GET MIDI_INPUT_DRIVER INFO
       GET MIDI_INPUT_DRIVER_PARAMETER INFO
     - fixed possible compilation error when sqlite is not present
+    - fixed orphaned pointers when setting maximum voices limit (bug #118)
 
 
 Version 0.5.1 (6 December 2007)

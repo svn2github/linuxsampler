@@ -2131,11 +2131,21 @@ namespace LinuxSampler { namespace gig {
 
         SuspendAll();
 
+        // NOTE: we need to clear pDimRegionsInUse before deleting pDimRegionPool,
+        // otherwise memory corruption will occur if there are active voices (see bug #118)
+        for (int iChannel = 0; iChannel < engineChannels.size(); iChannel++) {
+            engineChannels[iChannel]->ClearDimRegionsInUse();
+        }
+
         if (pDimRegionPool[0]) delete pDimRegionPool[0];
         if (pDimRegionPool[1]) delete pDimRegionPool[1];
 
         pDimRegionPool[0] = new Pool< ::gig::DimensionRegion*>(iVoices);
         pDimRegionPool[1] = new Pool< ::gig::DimensionRegion*>(iVoices);
+
+        for (int iChannel = 0; iChannel < engineChannels.size(); iChannel++) {
+            engineChannels[iChannel]->ResetDimRegionsInUse();
+        }
 
         try {
             pVoicePool->resizePool(iVoices);
@@ -2200,7 +2210,7 @@ namespace LinuxSampler { namespace gig {
     }
 
     String Engine::Version() {
-        String s = "$Revision: 1.99 $";
+        String s = "$Revision: 1.100 $";
         return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
 
