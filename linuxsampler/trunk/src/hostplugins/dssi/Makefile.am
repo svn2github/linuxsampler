@@ -1,4 +1,5 @@
 if HAVE_DSSI
+INCLUDES = $(GIG_CFLAGS)
 plugindir = $(libdir)/dssi
 plugin_LTLIBRARIES = linuxsampler.la
 linuxsampler_la_SOURCES = PluginDssi.cpp PluginDssi.h

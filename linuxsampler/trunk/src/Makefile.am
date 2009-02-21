@@ -1,5 +1,5 @@
 # set the include path found by configure
-INCLUDES= $(all_includes)
+INCLUDES= $(all_includes) $(GIG_CFLAGS)
 
 if HAVE_COREMIDI
 coremidi_ldflags = -framework CoreAudio \

@@ -1,5 +1,5 @@
 if HAVE_SQLITE3
-INCLUDES = $(all_includes)
+INCLUDES = $(all_includes) $(GIG_CFLAGS)
 AM_CXXFLAGS = -Wreturn-type -ffast-math $(CXX_CPU_SWITCH)
 METASOURCES = AUTO
 

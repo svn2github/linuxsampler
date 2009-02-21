@@ -50,7 +50,7 @@ liblinuxsamplermididriverinclude_HEADERS = \
 	MidiInstrumentMapper.h \
 	VirtualMidiDevice.h
 
-INCLUDES = $(all_includes) $(jackmidi_includes)
+INCLUDES = $(all_includes) $(jackmidi_includes) $(GIG_CFLAGS)
 
 noinst_LTLIBRARIES = liblinuxsamplermididriver.la
 liblinuxsamplermididriver_la_SOURCES = \

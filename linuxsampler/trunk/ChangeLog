@@ -10,6 +10,7 @@ Version CVS HEAD (?)
     - fixed configure so it detects x86_64 (#107)
     - fixes for building with newer MinGW versions
     - fix for building with bison 2.4 (#111)
+    - fixed building with libgig installed in a non-standard directory
 
   * general changes:
     - bugfix: on some POSIX systems instrument editor plugins refused to
