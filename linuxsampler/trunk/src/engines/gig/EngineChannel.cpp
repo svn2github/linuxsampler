@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 - 2008 Christian Schoenebeck                       *
+ *   Copyright (C) 2005 - 2009 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -344,35 +344,20 @@ namespace LinuxSampler { namespace gig {
     void EngineChannel::DisconnectAudioOutputDevice() {
         if (pEngine) { // if clause to prevent disconnect loops
 
+            ResetInternal();
+
             // delete the structures used for instrument change
             RTList< ::gig::DimensionRegion*>* d = InstrumentChangeCommand.GetConfigForUpdate().pDimRegionsInUse;
             if (d) delete d;
             EngineChannel::instrument_change_command_t& cmd = InstrumentChangeCommand.SwitchConfig();
             d = cmd.pDimRegionsInUse;
+            if (d) delete d;
 
             if (cmd.pInstrument) {
                 // release the currently loaded instrument
-                Engine::instruments.HandBackInstrument(cmd.pInstrument, this, d);
+                Engine::instruments.HandBack(cmd.pInstrument, this);
             }
 
-            if (d) delete d;
-
-            // release all active dimension regions to resource
-            // manager
-            RTList<uint>::Iterator iuiKey = pActiveKeys->first();
-            RTList<uint>::Iterator end    = pActiveKeys->end();
-            while (iuiKey != end) { // iterate through all active keys
-                midi_key_info_t* pKey = &pMIDIKeyInfo[*iuiKey];
-                ++iuiKey;
-
-                RTList<Voice>::Iterator itVoice     = pKey->pActiveVoices->first();
-                RTList<Voice>::Iterator itVoicesEnd = pKey->pActiveVoices->end();
-                for (; itVoice != itVoicesEnd; ++itVoice) { // iterate through all voices on this key
-                    Engine::instruments.HandBackDimReg(itVoice->pDimRgn);
-                }
-            }
-
-            ResetInternal();
             if (pEvents) {
                 delete pEvents;
                 pEvents = NULL;
@@ -387,7 +372,6 @@ namespace LinuxSampler { namespace gig {
                     pMIDIKeyInfo[i].pEvents = NULL;
                 }
             }
-            Engine* oldEngine = pEngine;
             AudioOutputDevice* oldAudioDevice = pEngine->pAudioOutputDevice;
             pEngine = NULL;
             Engine::FreeEngine(this, oldAudioDevice);

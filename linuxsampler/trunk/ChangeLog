@@ -94,6 +94,7 @@ Version CVS HEAD (?)
       defined for the sampler
     - made it possible to create multiple sample channels even if the
       audio thread isn't running
+    - fixed crash when removing channel with active voices (#116)
 
   * LSCP server:
     - added new LSCP event "CHANNEL_MIDI" which can be used by frontends to
