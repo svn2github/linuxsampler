@@ -117,6 +117,7 @@ namespace LinuxSampler {
         if(charBufSize < len) {
             delete [] charBuf;
             charBufSize *= 2;
+            if(charBufSize < len) charBufSize = len;
             charBuf = new char[charBufSize];
         }
         

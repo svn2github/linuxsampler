@@ -246,6 +246,8 @@ COMPONENT_ENTRY(PluginAU)
 
         switch (inStatus) {
             case 0x90:
+                if(inData1 >= 0x80) break;
+
                 if(inData2) {
                     port->DispatchNoteOn (
                         inData1, inData2, inChannel, inStartFrame
@@ -257,25 +259,30 @@ COMPONENT_ENTRY(PluginAU)
                 }
                 break;
             case 0x80:
+                if(inData1 >= 0x80) break;
                 port->DispatchNoteOff (
                     inData1, inData2, inChannel, inStartFrame
                 );
                 break;
             case 0xB0:
+                if(inData1 == 0) {
+                    port->DispatchBankSelectMsb(inData2, inChannel);
+                } else if(inData1 == 32) {
+                    port->DispatchBankSelectLsb(inData2, inChannel);
+                }
+
                 port->DispatchControlChange (
                     inData1, inData2, inChannel, inStartFrame
                 );
                 break;
             case 0xC0:
-                port->DispatchProgramChange(inData1, inChannel);
+                if(inData1 < 0x80) port->DispatchProgramChange(inData1, inChannel);
                 break;
             case 0xE0:
-                port->DispatchPitchbend(inData2, inChannel, inStartFrame);
+                port->DispatchPitchbend(inData1, inChannel, inStartFrame);
                 break;
             case 0xD0:
-                port->DispatchControlChange (
-                    inData1, inData2, inChannel, inStartFrame
-                );
+                port->DispatchControlChange(128, inData1, inChannel);
                 break;
         }
 

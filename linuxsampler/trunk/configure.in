@@ -485,6 +485,13 @@ AC_ARG_ENABLE(vstsdk-dir,
 AC_SUBST(VSTSDK_DIR)
 AM_CONDITIONAL(HAVE_VST, test "x$VSTSDK_DIR" != "x")
 
+# AU
+AC_CHECK_HEADERS(AudioUnit/AudioUnit.h,
+	have_au=1,
+	have_au=0)
+AM_CONDITIONAL(HAVE_AU, test $have_au = "1")
+AM_CONDITIONAL(HAVE_AUFLAGS, test test "$AUFLAGS" != "")
+
 
 # have we found at least one MIDI input and one audio output driver ?
 if test "$have_midi_input_driver" = "false"; then
@@ -1226,6 +1233,7 @@ AC_OUTPUT( \
     src/hostplugins/dssi/Makefile \
     src/hostplugins/lv2/Makefile \
     src/hostplugins/vst/Makefile \
+    src/hostplugins/au/Makefile \
     linuxsampler.spec \
     debian/Makefile \
     Artwork/Makefile \

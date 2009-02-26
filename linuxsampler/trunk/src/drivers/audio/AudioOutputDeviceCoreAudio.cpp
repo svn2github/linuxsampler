@@ -175,7 +175,7 @@ namespace LinuxSampler {
     }
 
     String AudioOutputDeviceCoreAudio::Version() {
-       String s = "$Revision: 1.3 $";
+       String s = "$Revision: 1.4 $";
        return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
 
@@ -361,6 +361,7 @@ namespace LinuxSampler {
 
         dmsg(2,("CoreAudio thread stopped\n"));
 
+        pthread_exit(NULL);
         return 0;
     }
 
