@@ -321,6 +321,15 @@ namespace LinuxSampler { namespace gig {
             cmd.bChangeInstrument = false;
         }
 
+        if (pInstrument != NULL) {
+            pInstrument = NULL;
+            InstrumentStat = -1;
+            InstrumentIdx  = -1;
+            InstrumentIdxName = "";
+            InstrumentFile = "";
+            bStatusChanged = true;
+        }
+
         for (uint i = 0; i < 128; i++) {
             pMIDIKeyInfo[i].pActiveVoices = new RTList<Voice>(pEngine->pVoicePool);
             pMIDIKeyInfo[i].pEvents       = new RTList<Event>(pEngine->pEventPool);
