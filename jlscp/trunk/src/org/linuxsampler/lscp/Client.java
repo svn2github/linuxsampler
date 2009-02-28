@@ -5470,7 +5470,6 @@ public class Client {
 			super(resultSet);
 		}
 		
-		@Override
 		public String
 		getEngine() {
 			// TODO: engine lookup?
