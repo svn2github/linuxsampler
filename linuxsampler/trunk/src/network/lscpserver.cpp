@@ -141,6 +141,7 @@ LSCPServer::LSCPServer(Sampler* pSampler, long int addr, short int port) : Threa
 }
 
 LSCPServer::~LSCPServer() {
+    CloseAllConnections();
 #if defined(WIN32)
     if (hSocket >= 0) closesocket(hSocket);
 #else
@@ -622,6 +623,14 @@ void LSCPServer::CloseConnection( std::vector<yyparse_param_t>::iterator iter ) 
 	close(socket);
 	#endif
 	NotifyMutex.Unlock();
+}
+
+void LSCPServer::CloseAllConnections() {
+    std::vector<yyparse_param_t>::iterator iter = Sessions.begin();
+    while(iter != Sessions.end()) {
+        CloseConnection(iter);
+        iter = Sessions.begin();
+    }
 }
 
 void LSCPServer::LockRTNotify() {

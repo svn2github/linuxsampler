@@ -212,6 +212,7 @@ class LSCPServer : public Thread {
         String UnsubscribeNotification(LSCPEvent::event_t);
         String SetEcho(yyparse_param_t* pSession, double boolean_value);
         void   AnswerClient(String ReturnMessage);
+        void   CloseAllConnections();
 
 	static int currentSocket;
 	static std::map<int,String> bufferedCommands;
