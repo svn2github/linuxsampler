@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 - 2008 Christian Schoenebeck                       *
+ *   Copyright (C) 2005 - 2009 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -160,7 +160,7 @@ namespace LinuxSampler { namespace gig {
                 gig->SetAutoLoad(false); // avoid time consuming samples scanning
                 pInstrument = gig->GetInstrument(ID.Index);
             }
-            
+
             if (!pInstrument) throw InstrumentManagerException("There is no instrument " + ToString(ID.Index) + " in " + ID.FileName);
 
             instrument_info_t info;
@@ -470,6 +470,28 @@ namespace LinuxSampler { namespace gig {
         } else if (sStructType == "gig::Instrument") {
             // resume all previously suspended engines
             ResumeAllEngines();
+        } else if (sStructType == "gig::Sample") {
+            // we're assuming here, that OnDataStructureToBeChanged() with
+            // "gig::File" was called previously, so we won't resume anything
+            // here, but just re-cache the given sample
+            Lock();
+            ::gig::Sample* pSample = (::gig::Sample*) pStruct;
+            ::gig::File* pFile = (::gig::File*) pSample->GetParent();
+            UncacheInitialSamples(pSample);
+            // now re-cache ...
+            std::vector< ::gig::Instrument*> instruments =
+                GetInstrumentsCurrentlyUsedOf(pFile, false/*don't lock again*/);
+            for (int i = 0; i < instruments.size(); i++) {
+                if (SampleReferencedByInstrument(pSample, instruments[i])) {
+                    std::set<gig::EngineChannel*> engineChannels =
+                        GetEngineChannelsUsing(instruments[i], false/*don't lock again*/);
+                    std::set<gig::EngineChannel*>::iterator iter = engineChannels.begin();
+                    std::set<gig::EngineChannel*>::iterator end  = engineChannels.end();
+                    for (; iter != end; ++iter)
+                        CacheInitialSamples(pSample, *iter);
+                }
+            }
+            Unlock();
         } else if (sStructType == "gig::Region") {
             // advice the engines to resume the given region, that is to
             // using it for playback again
@@ -513,11 +535,16 @@ namespace LinuxSampler { namespace gig {
             Lock();
             ::gig::Sample* pSample = (::gig::Sample*) pOldSample;
             ::gig::File* pFile = (::gig::File*) pSample->GetParent();
+            bool bSampleStillInUse = false;
             std::vector< ::gig::Instrument*> instruments =
                 GetInstrumentsCurrentlyUsedOf(pFile, false/*don't lock again*/);
-            for (int i = 0; i < instruments.size(); i++)
-                if (!SampleReferencedByInstrument(pSample, instruments[i]))
-                    UncacheInitialSamples(pSample);
+            for (int i = 0; i < instruments.size(); i++) {
+                if (SampleReferencedByInstrument(pSample, instruments[i])) {
+                    bSampleStillInUse = true;
+                    break;
+                }
+            }
+            if (!bSampleStillInUse) UncacheInitialSamples(pSample);
             Unlock();
         }
         // make sure new sample reference is cached
@@ -760,7 +787,7 @@ namespace LinuxSampler { namespace gig {
      */
     std::set<gig::EngineChannel*> InstrumentResourceManager::GetEngineChannelsUsing(::gig::Instrument* pInstrument, bool bLock) {
         if (bLock) Lock();
-        std::set<gig::EngineChannel*> result; 
+        std::set<gig::EngineChannel*> result;
         std::set<ResourceConsumer< ::gig::Instrument>*> consumers = ConsumersOf(pInstrument);
         std::set<ResourceConsumer< ::gig::Instrument>*>::iterator iter = consumers.begin();
         std::set<ResourceConsumer< ::gig::Instrument>*>::iterator end  = consumers.end();
@@ -783,7 +810,7 @@ namespace LinuxSampler { namespace gig {
      */
     std::set<gig::Engine*> InstrumentResourceManager::GetEnginesUsing(::gig::Instrument* pInstrument, bool bLock) {
         if (bLock) Lock();
-        std::set<gig::Engine*> result; 
+        std::set<gig::Engine*> result;
         std::set<ResourceConsumer< ::gig::Instrument>*> consumers = ConsumersOf(pInstrument);
         std::set<ResourceConsumer< ::gig::Instrument>*>::iterator iter = consumers.begin();
         std::set<ResourceConsumer< ::gig::Instrument>*>::iterator end  = consumers.end();

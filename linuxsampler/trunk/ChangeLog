@@ -95,6 +95,11 @@ Version CVS HEAD (?)
     - made it possible to create multiple sample channels even if the
       audio thread isn't running
     - fixed crash when removing channel with active voices (#116)
+    - bugfix: on sample reference changes (instrument editor), only
+      un-cache the respective sample if it's really not used by any
+      sampler engine anymore
+    - re-cache samples in case they were changed by an instrument editor,
+      e.g. when a sample was added while playing (#82)
 
   * LSCP server:
     - added new LSCP event "CHANNEL_MIDI" which can be used by frontends to
