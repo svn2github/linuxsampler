@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 - 2007 Christian Schoenebeck                       *
+ *   Copyright (C) 2005 - 2009 Christian Schoenebeck                       *
  *                                                                         *
  *   This library is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -127,6 +127,12 @@ namespace LinuxSampler {
              *                         should be loaded
              */
             static void LoadInstrumentInBackground(instrument_id_t ID, EngineChannel* pEngineChannel);
+
+            /**
+             * Stops the background thread that has been started by
+             * LoadInstrumentInBackground.
+             */
+            static void StopBackgroundThread();
 
             /**
              * Returns the name of the given instrument as reflected by its
