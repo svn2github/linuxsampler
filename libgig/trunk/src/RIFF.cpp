@@ -2,7 +2,7 @@
  *                                                                         *
  *   libgig - C++ cross-platform Gigasampler format file access library    *
  *                                                                         *
- *   Copyright (C) 2003-2007 by Christian Schoenebeck                      *
+ *   Copyright (C) 2003-2009 by Christian Schoenebeck                      *
  *                              <cuse@users.sourceforge.net>               *
  *                                                                         *
  *   This library is free software; you can redistribute it and/or modify  *
@@ -274,6 +274,7 @@ namespace RIFF {
        #if DEBUG
        std::cout << "Chunk::Read(void*,ulong,ulong)" << std::endl;
        #endif // DEBUG
+        if (ulStartPos == 0) return 0; // is only 0 if this is a new chunk, so nothing to read (yet)
         if (ulPos >= CurrentChunkSize) return 0;
         if (ulPos + WordCount * WordSize >= CurrentChunkSize) WordCount = (CurrentChunkSize - ulPos) / WordSize;
         #if POSIX
@@ -726,7 +727,7 @@ namespace RIFF {
      * @see ReleaseChunkData()
      */
     void* Chunk::LoadChunkData() {
-        if (!pChunkData && pFile->Filename != "") {
+        if (!pChunkData && pFile->Filename != "" && ulStartPos != 0) {
             #if POSIX
             if (lseek(pFile->hFileRead, ulStartPos, SEEK_SET) == -1) return NULL;
             #elif defined(WIN32)

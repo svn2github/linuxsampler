@@ -7,10 +7,14 @@ Version CVS HEAD (?)
     - added partial support for MIDI rules, only the Controller
       Triggered rule is supported so far
     - bugfix: removed another iterator invalidation in DeleteSample
+    - bugfix in Sample::LoadSampleData*(): reset sample read position to
+      sample start before trying to (re)load sample data from file (#82)
 
   * src/RIFF.cpp, src/RIFF.h:
     - bugfix: saving to the same file after the file size had been
       increased made the file corrupt (#82)
+    - bugfix: refuse Chunk::Read() in case chunk has just been added, that
+      is not written physically yet (#82)
 
 Version 3.2.1 (5 Dec 2007)
 

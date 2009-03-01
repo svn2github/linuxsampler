@@ -2,7 +2,7 @@
  *                                                                         *
  *   libgig - C++ cross-platform Gigasampler format file access library    *
  *                                                                         *
- *   Copyright (C) 2003-2007 by Christian Schoenebeck                      *
+ *   Copyright (C) 2003-2009 by Christian Schoenebeck                      *
  *                              <cuse@users.sourceforge.net>               *
  *                                                                         *
  *   This library is free software; you can redistribute it and/or modify  *
@@ -677,6 +677,7 @@ namespace {
         if (SampleCount > this->SamplesTotal) SampleCount = this->SamplesTotal;
         if (RAMCache.pStart) delete[] (int8_t*) RAMCache.pStart;
         unsigned long allocationsize = (SampleCount + NullSamplesCount) * this->FrameSize;
+        SetPos(0); // reset read position to begin of sample
         RAMCache.pStart            = new int8_t[allocationsize];
         RAMCache.Size              = Read(RAMCache.pStart, SampleCount) * this->FrameSize;
         RAMCache.NullExtensionSize = allocationsize - RAMCache.Size;
@@ -714,6 +715,7 @@ namespace {
         if (RAMCache.pStart) delete[] (int8_t*) RAMCache.pStart;
         RAMCache.pStart = NULL;
         RAMCache.Size   = 0;
+        RAMCache.NullExtensionSize = 0;
     }
 
     /** @brief Resize sample.
