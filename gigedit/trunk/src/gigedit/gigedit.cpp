@@ -144,6 +144,9 @@ void connect_signals(GigEdit* gigedit, MainWindow* mainwindow) {
     mainwindow->signal_dimreg_changed().connect(
         gigedit->signal_dimreg_changed().make_slot()
     );
+    mainwindow->signal_sample_changed().connect(
+        gigedit->signal_sample_changed().make_slot()
+    );
     mainwindow->signal_sample_ref_changed().connect(
         gigedit->signal_sample_ref_changed().make_slot()
     );
@@ -224,6 +227,10 @@ sigc::signal<void, gig::DimensionRegion*>& GigEdit::signal_dimreg_to_be_changed(
 
 sigc::signal<void, gig::DimensionRegion*>& GigEdit::signal_dimreg_changed() {
     return dimreg_changed_signal;
+}
+
+sigc::signal<void, gig::Sample*>& GigEdit::signal_sample_changed() {
+    return sample_changed_signal;
 }
 
 sigc::signal<void, gig::Sample*/*old*/, gig::Sample*/*new*/>& GigEdit::signal_sample_ref_changed() {

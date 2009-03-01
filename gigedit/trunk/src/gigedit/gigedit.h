@@ -40,6 +40,7 @@ public:
     sigc::signal<void, gig::Region*>& signal_region_changed();
     sigc::signal<void, gig::DimensionRegion*>& signal_dimreg_to_be_changed();
     sigc::signal<void, gig::DimensionRegion*>& signal_dimreg_changed();
+    sigc::signal<void, gig::Sample*>& signal_sample_changed();
     sigc::signal<void, gig::Sample*/*old*/, gig::Sample*/*new*/>& signal_sample_ref_changed();
     sigc::signal<void, int/*key*/, int/*velocity*/>& signal_keyboard_key_hit();
     sigc::signal<void, int/*key*/, int/*velocity*/>& signal_keyboard_key_released();
@@ -56,6 +57,7 @@ private:
     sigc::signal<void, gig::Region*> region_changed_signal;
     sigc::signal<void, gig::DimensionRegion*> dimreg_to_be_changed_signal;
     sigc::signal<void, gig::DimensionRegion*> dimreg_changed_signal;
+    sigc::signal<void, gig::Sample*> sample_changed_signal;
     sigc::signal<void, gig::Sample*/*old*/, gig::Sample*/*new*/> sample_ref_changed_signal;
     sigc::signal<void, int/*key*/, int/*velocity*/> keyboard_key_hit_signal;
     sigc::signal<void, int/*key*/, int/*velocity*/> keyboard_key_released_signal;

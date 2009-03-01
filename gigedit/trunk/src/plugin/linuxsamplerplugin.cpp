@@ -97,6 +97,14 @@ int LinuxSamplerPlugin::Main(void* pInstrument, String sTypeName, String sTypeVe
             "gig::DimensionRegion"
         )
     );
+    app->signal_sample_changed().connect(
+        sigc::bind(
+            sigc::mem_fun(
+                *this, &LinuxSamplerPlugin::NotifyDataStructureChanged
+            ),
+            "gig::Sample"
+        )
+    );
     app->signal_sample_ref_changed().connect(
         sigc::mem_fun(*this, &LinuxSamplerPlugin::NotifySampleReferenceChanged)
     );

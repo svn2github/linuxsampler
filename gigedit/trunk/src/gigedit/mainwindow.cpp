@@ -887,6 +887,8 @@ void MainWindow::__import_queued_samples() {
             }
             // cleanup
             sf_close(hFile);
+            // let the sampler re-cache the sample if needed
+            sample_changed_signal.emit(iter->gig_sample);
             // on success we remove the sample from the import queue,
             // otherwise keep it, maybe it works the next time ?
             std::list<SampleImportItem>::iterator cur = iter;
@@ -1871,6 +1873,10 @@ sigc::signal<void, gig::Region*>& MainWindow::signal_region_to_be_changed() {
 
 sigc::signal<void, gig::Region*>& MainWindow::signal_region_changed() {
     return region_changed_signal;
+}
+
+sigc::signal<void, gig::Sample*>& MainWindow::signal_sample_changed() {
+    return sample_changed_signal;
 }
 
 sigc::signal<void, gig::Sample*/*old*/, gig::Sample*/*new*/>& MainWindow::signal_sample_ref_changed() {

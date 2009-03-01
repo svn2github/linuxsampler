@@ -45,6 +45,8 @@ Version CVS HEAD (?)
   * added rpm packaging file
     (patch by Devin Anderson, slightly modified, fixes #88)
   * made all visible strings translatable
+  * bugfix: inform the sampler when new file(s) has been imported on save
+    operation (#82)
 
 Version 0.1.1 (2007-12-06)
 
