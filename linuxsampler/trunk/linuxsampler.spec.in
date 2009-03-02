@@ -55,7 +55,7 @@ make docs
 %install
 if [ -d $RPM_BUILD_ROOT ]; then rm -rf $RPM_BUILD_ROOT; fi
 mkdir -p $RPM_BUILD_ROOT
-make prefix=$RPM_BUILD_ROOT%{prefix} install
+make DESTDIR=%{buildroot} install
 
 %post
 /sbin/ldconfig
@@ -72,6 +72,7 @@ if [ -d $RPM_BUILD_ROOT ]; then rm -rf $RPM_BUILD_ROOT; fi
 %{prefix}/bin/linuxsampler
 %{prefix}/lib/linuxsampler/liblinuxsampler.so*
 %{prefix}/share/man/man1/linuxsampler.*
+/var/lib/linuxsampler/instruments.db
 
 %files devel
 %defattr(-,root,root)
