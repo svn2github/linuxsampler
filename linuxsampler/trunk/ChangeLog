@@ -144,6 +144,7 @@ Version CVS HEAD (?)
     - fixed orphaned pointers when setting maximum voices limit (bug #118)
     - fixed crash when changing the audio output device of a sampler
       channel with loaded instrument and start playing notes
+    - fixed endless loop in Engine::SuspendAll() (bug #120)
 
 
 Version 0.5.1 (6 December 2007)

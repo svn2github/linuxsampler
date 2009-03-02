@@ -14,7 +14,7 @@ noinst_LIBRARIES = libpluginau.a
 
 libpluginau_a_CXXFLAGS = $(debug_messages)
 
-libpluginau_a_SOURCES = $(ca_public_dir)/CAHostTimeBase.cpp \
+nodist_libpluginau_a_SOURCES = $(ca_public_dir)/CAHostTimeBase.cpp \
     $(ca_public_dir)/CAHostTimeBase.h \
     $(ca_public_dir)/CAAUMIDIMap.cpp \
     $(ca_public_dir)/CAAUMIDIMap.h \

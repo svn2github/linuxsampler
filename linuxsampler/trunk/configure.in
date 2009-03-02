@@ -490,7 +490,7 @@ AC_CHECK_HEADERS(AudioUnit/AudioUnit.h,
 	have_au=1,
 	have_au=0)
 AM_CONDITIONAL(HAVE_AU, test $have_au = "1")
-AM_CONDITIONAL(HAVE_AUFLAGS, test test "$AUFLAGS" != "")
+AM_CONDITIONAL(HAVE_AUFLAGS, test "$AUFLAGS" != "")
 
 
 # have we found at least one MIDI input and one audio output driver ?

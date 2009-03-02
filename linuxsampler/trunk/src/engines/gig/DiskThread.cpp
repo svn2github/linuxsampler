@@ -365,7 +365,10 @@ namespace LinuxSampler { namespace gig {
     }
 
     void DiskThread::DeleteStream(delete_command_t& Command) {
-        if (Command.pStream) Command.pStream->Kill();
+        if (Command.pStream) {
+            Command.pStream->Kill();
+            if (Command.bNotify) DeletionNotificationQueue.push(&Command.hStream);
+        }
         else { // the stream wasn't created by disk thread or picked up by audio thread yet
 
             // if stream was created but not picked up yet
