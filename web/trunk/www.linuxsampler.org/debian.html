@@ -101,20 +101,20 @@ expect it.
 Grab the source code files  of libgig (e.g. from our CVS server, as
 described on the
 <a href="http://linuxsampler.org/downloads.html">downloads site</a>). Then you
-should optimize the compilation flags for your machine. This really depends 
+should optimize the compilation flags for your machine. This really depends
 on what kind of CPU and other hardware you use. Open the file <i>debian/rules</i> of
 the libgig sources in a text editor and watch out for the following line:
 <pre>
   ./configure --host=$(DEB_HOST_GNU_TYPE) --build=$(DEB_BUILD_GNU_TYPE) --prefix=/usr --mandir=\$${prefix}/share/man --infodir=\$${prefix}/share/info
 </pre>
-This is the line where you'll place all your optimization options. Remove the 
-arguments --host and --build which are only meant for cross compilation and 
-prefix the line with your preferred optimization flags. So, for a Pentium4 
+This is the line where you'll place all your optimization options. Remove the
+arguments --host and --build which are only meant for cross compilation and
+prefix the line with your preferred optimization flags. So, for a Pentium4
 machine it could look like:
 <pre>
   CXXFLAGS="-O3 -msse -march=pentium4 -mfpmath=sse -ffast-math -fomit-frame-pointer -funroll-loops" ./configure --prefix=/usr --mandir=\$${prefix}/share/man --infodir=\$${prefix}/share/info
 </pre>
-save the file and finally you can start the build process (as ordinary user) with: 
+save the file and finally you can start the build process (as ordinary user) with:
 <pre>
   dpkg-buildpackage -rfakeroot -b
 </pre>
@@ -124,53 +124,53 @@ message:
 <pre>
   Unmet build dependencies: ...
 </pre>
-Simply install the requested packages with "apt-get install" (or whatever you 
-prefer for package installation) and call the dpkg-buildpackage command 
-again. After a minute or so it should have left 3 .deb files one directory 
-above your libgig source directory. Install those 3 .deb files now, i.e. with 
+Simply install the requested packages with "apt-get install" (or whatever you
+prefer for package installation) and call the dpkg-buildpackage command
+again. After a minute or so it should have left 3 .deb files one directory
+above your libgig source directory. Install those 3 .deb files now, i.e. with
 dpkg (as root):
 <pre>
   dpkg -i libgig_3.2.1-1_i386.deb libgig-dev_3.2.1-1_i386.deb
   dpkg -i gigtools_3.2.1-1_i386.deb
 </pre>
-and now repeat these steps for LS. That is grab the LS sources, edit the 
-debian/rules files at the similar configure line. The only difference with LS 
+and now repeat these steps for LS. That is grab the LS sources, edit the
+debian/rules files at the similar configure line. The only difference with LS
 is that you have much more options now. For example on a recent Pentium4 machine,
 the LS compile time options in LS's <i>debian/rules</i> file could become:
 <pre>
   CXXFLAGS="-O3 -msse -march=pentium4 -mfpmath=sse -ffast-math -fomit-frame-pointer -funroll-loops" ./configure --prefix=/usr --mandir=\$${prefix}/share/man --infodir=\$${prefix}/share/info --enable-refill-streams=2 --enable-stream-size=320000 --enable-preload-samples=65536 --enable-max-voices=200 --enable-max-streams=220
 </pre>
-Just to let you know the difference: the options you apply to the "CXXFLAGS" 
+Just to let you know the difference: the options you apply to the "CXXFLAGS"
 variable are options of the compiler (usually the GNU compiler,
 see "man gcc" for all available gcc options). The parameters after
-the "./configure" token are LS specific compile time options, i.e. the amount 
-of disk streams etc. For a full list of LS's compile time options and brief 
+the "./configure" token are LS specific compile time options, i.e. the amount
+of disk streams etc. For a full list of LS's compile time options and brief
 explanations of them you can call:
 <pre>
   ./configure --help
 </pre>
-from LS's source directory. So after you modified the configure line in LS's 
+from LS's source directory. So after you modified the configure line in LS's
 <i>debian/rules</i> file, you can once again call:
 <pre>
   dpkg-buildpackage -rfakeroot -b
 </pre>
-to get the LS packages cooked. This time it should take a bit longer. Once 
+to get the LS packages cooked. This time it should take a bit longer. Once
 again you'll get 3 Debian packages (<i>liblinuxsampler</i>, <i>liblinuxsampler-dev</i> and
 <i>linuxsampler</i>). Install those 3 new LS packages again e.g. with "dpkg -i" like
 already explained above with libgig.<br>
 <br>
 And that's it!</br>
 <br>
-The good thing: if you grabbed the sources of libgig and LS from CVS, you only 
+The good thing: if you grabbed the sources of libgig and LS from CVS, you only
 have to call:
 <pre>
   cvs update
   dpkg-buildpackage -rfakeroot -b
 </pre>
-once in a while from the source directory to conveniently compile the latest 
-version with your personal optimizations and configuration parameters for 
-your system, because "cvs update" updates your local source files to the 
-latest bleeding edge version from our CVS server but won't touch your 
+once in a while from the source directory to conveniently compile the latest
+version with your personal optimizations and configuration parameters for
+your system, because "cvs update" updates your local source files to the
+latest bleeding edge version from our CVS server but won't touch your
 modifications!
 <br>
 The problematic part is to find good compile time options for your specific
@@ -182,10 +182,10 @@ described next.
 <h3>4.&nbsp; Benchmark</h3>
 You're most probably unsure which gcc (compiler) flags to use.
 As said, this always means a bit playing around. For that you can use our stripped
-down benchmark, which is located in the "benchmarks" directory of the LS 
-sources. The good thing about the benchmark: it's really light-weight, that 
-is it's a benchmark of our full gig sampling engine, but it doesn't depend on 
-any MIDI or audio drivers, nor does it require to load any sounds or to 
+down benchmark, which is located in the "benchmarks" directory of the LS
+sources. The good thing about the benchmark: it's really light-weight, that
+is it's a benchmark of our full gig sampling engine, but it doesn't depend on
+any MIDI or audio drivers, nor does it require to load any sounds or to
 handle with automake / ./configure crap and compiles really fast.<br>
 <br>
 Here's how it goes:
@@ -202,11 +202,11 @@ Here's how it goes:
   </li>
 </ol>
 which will print you out benchmark values for your system on the console.
-There are different kind of so called "synthesis modes", i.e. one with filter 
+There are different kind of so called "synthesis modes", i.e. one with filter
 on, one with filter off, one with resampling on, one with no resampling, etc.
 each will shoot its own benchmark result.<br>
 <br>
-So that way you can easily and quickly play around with CFLAGS (a.k.a 
+So that way you can easily and quickly play around with CFLAGS (a.k.a
 CXXFLAGS) and figure out which one is beloved by your machine.
 
 <a name="build_frontends"></a>
@@ -266,7 +266,7 @@ LinuxSampler documentation site</a>.
 <h3>8.&nbsp; Bugs, Problems and Feature Requests</h3>
 Our Forum is a good place to ask for help:<br>
 <br>
-&nbsp;&nbsp;&nbsp;&nbsp;<a href="https://bb.linuxsampler.org">https://bb.linuxsampler.org</a><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="http://bb.linuxsampler.org">http://bb.linuxsampler.org</a><br>
 <br>
 We have a dedicated forum section for
 newbies and support.<br>
