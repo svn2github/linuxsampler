@@ -100,6 +100,9 @@ Version CVS HEAD (?)
       sampler engine anymore
     - re-cache samples in case they were changed by an instrument editor,
       e.g. when a sample was added while playing (#82)
+    - fixed hanging notes which occured when note-off event had the exact
+      same time stamp as the voice's note-on event and occured both in the
+      same audio fragment cycle (fixes bug #112)
 
   * LSCP server:
     - added new LSCP event "CHANNEL_MIDI" which can be used by frontends to

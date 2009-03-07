@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 - 2007 Christian Schoenebeck                       *
+ *   Copyright (C) 2005 - 2009 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -783,7 +783,15 @@ namespace LinuxSampler { namespace gig {
 
         if (itTriggerEvent) { // skip events that happened before this voice was triggered
             while (itCCEvent && itCCEvent->FragmentPos() <= Skip) ++itCCEvent;
-            while (itNoteEvent && itNoteEvent->FragmentPos() <= Skip) ++itNoteEvent;
+            // we can't simply compare the timestamp here, because note events
+            // might happen on the same time stamp, so we have to deal on the
+            // actual sequence the note events arrived instead (see bug #112)
+            for (; itNoteEvent; ++itNoteEvent) {
+                if (itTriggerEvent == itNoteEvent) {
+                    ++itNoteEvent;
+                    break;
+                }
+            }
         }
 
         uint killPos;
