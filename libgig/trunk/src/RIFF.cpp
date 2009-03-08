@@ -1596,8 +1596,9 @@ namespace RIFF {
             if ((*iter)->GetNewSize() == 0) {
                 throw Exception("There is at least one empty chunk (zero size): " + __resolveChunkPath(*iter));
             }
-            unsigned long ulDiff = (*iter)->GetNewSize() + (*iter)->GetNewSize() % 2 - (*iter)->GetSize() - (*iter)->GetSize() % 2;
-            if (ulDiff > 0) ulPositiveSizeDiff += ulDiff;
+            unsigned long newSizePadded = (*iter)->GetNewSize() + (*iter)->GetNewSize() % 2;
+            unsigned long oldSizePadded = (*iter)->GetSize() + (*iter)->GetSize() % 2;
+            if (newSizePadded > oldSizePadded) ulPositiveSizeDiff += newSizePadded - oldSizePadded;
         }
 
         unsigned long ulWorkingFileSize = GetFileSize();

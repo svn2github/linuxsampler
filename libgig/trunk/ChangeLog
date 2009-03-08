@@ -15,6 +15,8 @@ Version CVS HEAD (?)
       increased made the file corrupt (#82)
     - bugfix: refuse Chunk::Read() in case chunk has just been added, that
       is not written physically yet (#82)
+    - bugfix: saving to the same file after the file size had been
+      decreased sometimes also made the file corrupt!
 
 Version 3.2.1 (5 Dec 2007)
 
