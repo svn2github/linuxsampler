@@ -1,6 +1,6 @@
 /***************************************************************************
  *                                                                         *
- *   Copyright (C) 2008 Andreas Persson                                    *
+ *   Copyright (C) 2008 - 2009 Andreas Persson                             *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -43,7 +43,7 @@ namespace LinuxSampler {
          */
         class MidiInputPortPlugin : public MidiInputPort {
         protected:
-            MidiInputPortPlugin(MidiInputDevicePlugin* pDevice);
+            MidiInputPortPlugin(MidiInputDevicePlugin* pDevice, int portNumber);
             friend class MidiInputDevicePlugin;
         };
 
@@ -64,6 +64,8 @@ namespace LinuxSampler {
         MidiInputPort* Port() {
             return Ports[0];
         }
+
+        static void DeleteMidiPort(MidiInputPort* pPort);
     };
 }
 

@@ -1,6 +1,6 @@
 /***************************************************************************
  *                                                                         *
- *   Copyright (C) 2008 Andreas Persson                                    *
+ *   Copyright (C) 2008 - 2009 Andreas Persson                             *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -25,8 +25,9 @@ namespace LinuxSampler {
 // *************** MidiInputPortPlugin ***************
 // *
 
-    MidiInputDevicePlugin::MidiInputPortPlugin::MidiInputPortPlugin(MidiInputDevicePlugin* pDevice) :
-        MidiInputPort(pDevice, 0) {
+    MidiInputDevicePlugin::MidiInputPortPlugin::MidiInputPortPlugin(MidiInputDevicePlugin* pDevice,
+                                                                    int portNumber) :
+        MidiInputPort(pDevice, portNumber) {
     }
 
 
@@ -63,7 +64,7 @@ namespace LinuxSampler {
     }
 
     String MidiInputDevicePlugin::Version() {
-        String s = "$Revision: 1.1 $";
+        String s = "$Revision: 1.2 $";
         return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
 
@@ -72,6 +73,10 @@ namespace LinuxSampler {
     }
 
     MidiInputPort* MidiInputDevicePlugin::CreateMidiPort() {
-        return new MidiInputPortPlugin(this);
+        return new MidiInputPortPlugin(this, Ports.size());
+    }
+
+    void MidiInputDevicePlugin::DeleteMidiPort(MidiInputPort* pPort) {
+        delete (MidiInputPortPlugin*)pPort;
     }
 }

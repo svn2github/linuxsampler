@@ -1,6 +1,6 @@
 /***************************************************************************
  *                                                                         *
- *   Copyright (C) 2008 Andreas Persson                                    *
+ *   Copyright (C) 2008 - 2009 Andreas Persson                             *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -31,13 +31,25 @@ namespace {
     class PluginDssi : public LinuxSampler::Plugin {
     public:
         PluginDssi(unsigned long SampleRate);
-        ~PluginDssi();
+    private:
+        int RefCount;
+        friend class PluginInstance;
+    };
+
+    class PluginInstance {
+    public:
+        PluginInstance(unsigned long SampleRate);
+        ~PluginInstance();
         void ConnectPort(unsigned long Port, LADSPA_Data* DataLocation);
         char* Configure(const char* Key, const char* Value);
         void Activate();
-        void RunSynth(unsigned long SampleCount, snd_seq_event_t* Events,
-                      unsigned long EventCount);
+        static void RunMultipleSynths(unsigned long InstanceCount,
+                                      LADSPA_Handle* Instances,
+                                      unsigned long SampleCount,
+                                      snd_seq_event_t** Events,
+                                      unsigned long* EventCounts);
     private:
+        static PluginDssi* plugin;
         LinuxSampler::SamplerChannel* pChannel;
         LADSPA_Data* Out[2];
     };
@@ -75,10 +87,6 @@ namespace {
         static char* configure(LADSPA_Handle Instance,
                                const char* Key,
                                const char* Value);
-        static void run_synth(LADSPA_Handle Instance,
-                              unsigned long SampleCount,
-                              snd_seq_event_t* Events,
-                              unsigned long EventCount);
         static void run_multiple_synths(unsigned long InstanceCount,
                                         LADSPA_Handle* Instances,
                                         unsigned long SampleCount,

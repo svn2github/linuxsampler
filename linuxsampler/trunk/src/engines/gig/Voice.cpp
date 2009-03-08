@@ -183,7 +183,7 @@ namespace LinuxSampler { namespace gig {
 
         // calculate initial pitch value
         {
-            double pitchbasecents = pDimRgn->FineTune + (int) pEngine->ScaleTuning[MIDIKey % 12];
+            double pitchbasecents = pEngineChannel->pInstrument->FineTune + pDimRgn->FineTune + pEngine->ScaleTuning[MIDIKey % 12];
 
             // GSt behaviour: maximum transpose up is 40 semitones. If
             // MIDI key is more than 40 semitones above unity note,
@@ -191,7 +191,7 @@ namespace LinuxSampler { namespace gig {
             if (pDimRgn->PitchTrack && (MIDIKey - (int) pDimRgn->UnityNote) < 40) pitchbasecents += (MIDIKey - (int) pDimRgn->UnityNote) * 100;
 
             this->PitchBase = RTMath::CentsToFreqRatio(pitchbasecents) * (double(pSample->SamplesPerSecond) / double(pEngine->SampleRate));
-            this->PitchBend = RTMath::CentsToFreqRatio(((double) PitchBend / 8192.0) * 200.0); // pitchbend wheel +-2 semitones = 200 cents
+            this->PitchBend = RTMath::CentsToFreqRatio(PitchBend / 8192.0 * 100.0 * pEngineChannel->pInstrument->PitchbendRange);
         }
 
         // the length of the decay and release curves are dependent on the velocity
@@ -737,9 +737,7 @@ namespace LinuxSampler { namespace gig {
     }
 
     void Voice::processPitchEvent(RTList<Event>::Iterator& itEvent) {
-        const float pitch = RTMath::CentsToFreqRatio(((double) itEvent->Param.Pitch.Pitch / 8192.0) * 200.0); // +-two semitones = +-200 cents
-        finalSynthesisParameters.fFinalPitch *= pitch;
-        PitchBend = pitch;
+        PitchBend = RTMath::CentsToFreqRatio(itEvent->Param.Pitch.Pitch / 8192.0 * 100.0 * pEngineChannel->pInstrument->PitchbendRange);
     }
 
     void Voice::processCutoffEvent(RTList<Event>::Iterator& itEvent) {
@@ -815,13 +813,13 @@ namespace LinuxSampler { namespace gig {
             int iSubFragmentEnd = RTMath::Min(i + CONFIG_DEFAULT_SUBFRAGMENT_SIZE, Samples);
 
             // initialize all final synthesis parameters
-            finalSynthesisParameters.fFinalPitch = PitchBase * PitchBend;
             fFinalCutoff    = VCFCutoffCtrl.fvalue;
             fFinalResonance = VCFResonanceCtrl.fvalue;
 
             // process MIDI control change and pitchbend events for this subfragment
             processCCEvents(itCCEvent, iSubFragmentEnd);
 
+            finalSynthesisParameters.fFinalPitch = PitchBase * PitchBend;
             float fFinalVolume = VolumeSmoother.render() * CrossfadeSmoother.render();
 #ifdef CONFIG_PROCESS_MUTED_CHANNELS
             if (pEngineChannel->GetMute()) fFinalVolume = 0;

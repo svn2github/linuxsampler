@@ -1,6 +1,6 @@
 /***************************************************************************
  *                                                                         *
- *   Copyright (C) 2008 Andreas Persson                                    *
+ *   Copyright (C) 2008 - 2009 Andreas Persson                             *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -26,35 +26,71 @@
 
 #include "PluginDssi.h"
 
+#include "../../engines/gig/EngineChannel.h"
 
 namespace {
 
 // *************** PluginDssi ***************
 // *
 
-    PluginDssi::PluginDssi(unsigned long SampleRate) {
-        Out[0] = 0;
-        Out[1] = 0;
-
+    PluginDssi::PluginDssi(unsigned long SampleRate) :
+        RefCount(0) {
         // As there is no way in DSSI of knowing a max value of the
         // output buffer size, we set the audio device buffer size to
         // 128 and let RunSynth call Render in a loop if needed.
         Init(SampleRate, 128);
+    }
 
-        pChannel = global->pSampler->AddSamplerChannel();
+    PluginDssi* PluginInstance::plugin = 0;
+
+    PluginInstance::PluginInstance(unsigned long SampleRate) {
+        Out[0] = 0;
+        Out[1] = 0;
+
+        uint outputChannel = 0;
+        uint midiPort = 0;
+        if (!plugin) {
+            plugin = new PluginDssi(SampleRate);
+        }
+        plugin->RefCount++;
+
+        pChannel = plugin->global->pSampler->AddSamplerChannel();
         pChannel->SetEngineType("gig");
-        pChannel->SetAudioOutputDevice(pAudioDevice);
-        pChannel->SetMidiInputDevice(pMidiDevice);
+        pChannel->SetAudioOutputDevice(plugin->pAudioDevice);
+        LinuxSampler::MidiInputPort* port = plugin->pMidiDevice->CreateMidiPort();
+        port->Connect(pChannel->GetEngineChannel(), LinuxSampler::midi_chan_all);
+
+        // TODO: remove dependency on gig engine
+        LinuxSampler::gig::EngineChannel* engineChannel =
+            (LinuxSampler::gig::EngineChannel*)pChannel->GetEngineChannel();
+        // TODO: pChannelLeft and pChannelRight are meant to be
+        // protected
+        engineChannel->pChannelLeft = new LinuxSampler::AudioChannel(0, 0, 0);
+        engineChannel->pChannelRight = new LinuxSampler::AudioChannel(1, 0, 0);
     }
 
-    PluginDssi::~PluginDssi() {
+    PluginInstance::~PluginInstance() {
+        LinuxSampler::gig::EngineChannel* engineChannel =
+            (LinuxSampler::gig::EngineChannel*)pChannel->GetEngineChannel();
+        delete engineChannel->pChannelLeft;
+        delete engineChannel->pChannelRight;
+        LinuxSampler::MidiInputPort* port = engineChannel->pMidiInputPort;
+
+        if (--plugin->RefCount == 0) {
+            delete plugin;
+            plugin = 0;
+        } else {
+            plugin->global->pSampler->RemoveSamplerChannel(pChannel);
+        }
+
+        LinuxSampler::MidiInputDevicePlugin::DeleteMidiPort(port);
     }
 
-    void PluginDssi::ConnectPort(unsigned long Port, LADSPA_Data* DataLocation) {
+    void PluginInstance::ConnectPort(unsigned long Port, LADSPA_Data* DataLocation) {
         if (Port < 2) Out[Port] = DataLocation;
     }
 
-    char* PluginDssi::Configure(const char* Key, const char* Value) {
+    char* PluginInstance::Configure(const char* Key, const char* Value) {
         dmsg(2, ("linuxsampler: configure Key=%s Value=%s\n", Key, Value));
 
         if (strcmp(Key, "instrument") == 0 && strcmp(Value, "") != 0) {
@@ -82,66 +118,96 @@ namespace {
         return 0;
     }
 
-    inline void PluginDssi::RunSynth(unsigned long SampleCount,
-                                     snd_seq_event_t* Events,
-                                     unsigned long EventCount) {
-        LinuxSampler::MidiInputPort* port = pMidiDevice->Port();
+    inline void PluginInstance::RunMultipleSynths(unsigned long InstanceCount,
+                                                  LADSPA_Handle* Instances,
+                                                  unsigned long SampleCount,
+                                                  snd_seq_event_t** Events,
+                                                  unsigned long* EventCounts) {
+        if (InstanceCount == 0) return;
+
+        LinuxSampler::AudioOutputDevicePlugin* audioDevice =
+            static_cast<PluginInstance*>(Instances[0])->plugin->pAudioDevice;
+
+        unsigned eventPosArr[InstanceCount];
+        for (unsigned long i = 0 ; i < InstanceCount ; i++) eventPosArr[i] = 0;
+
         int samplePos = 0;
-        unsigned eventPos = 0;
         while (SampleCount) {
             int samples = std::min(SampleCount, 128UL);
 
-            for ( ; eventPos < EventCount ; eventPos++) {
-                snd_seq_event_t* ev = &Events[eventPos];
-                int time = ev->time.tick - samplePos;
-                if (time >= samples) break;
-                switch (ev->type) {
-                case SND_SEQ_EVENT_CONTROLLER:
-                    port->DispatchControlChange(ev->data.control.param,
-                                                ev->data.control.value,
+            for (unsigned long i = 0 ; i < InstanceCount ; i++) {
+                PluginInstance* instance = static_cast<PluginInstance*>(Instances[i]);
+                LinuxSampler::EngineChannel* engineChannel =
+                    instance->pChannel->GetEngineChannel();
+                LinuxSampler::MidiInputPort* port = engineChannel->GetMidiInputPort();
+
+                snd_seq_event_t* events = Events[i];
+                unsigned& eventPos = eventPosArr[i];
+
+                for ( ; eventPos < EventCounts[i] ; eventPos++) {
+                    snd_seq_event_t* ev = &events[eventPos];
+                    int time = ev->time.tick - samplePos;
+                    if (time >= samples) break;
+                    switch (ev->type) {
+                    case SND_SEQ_EVENT_CONTROLLER:
+                        port->DispatchControlChange(ev->data.control.param,
+                                                    ev->data.control.value,
+                                                    ev->data.control.channel, time);
+                        break;
+
+                    case SND_SEQ_EVENT_CHANPRESS:
+                        port->DispatchControlChange(128, ev->data.control.value,
+                                                    ev->data.control.channel, time);
+                        break;
+
+                    case SND_SEQ_EVENT_PITCHBEND:
+                        port->DispatchPitchbend(ev->data.control.value,
                                                 ev->data.control.channel, time);
-                    break;
+                        break;
 
-                case SND_SEQ_EVENT_CHANPRESS:
-                    port->DispatchControlChange(128, ev->data.control.value,
-                                                ev->data.control.channel, time);
-                    break;
+                    case SND_SEQ_EVENT_NOTEON:
+                        port->DispatchNoteOn(ev->data.note.note,
+                                             ev->data.note.velocity,
+                                             ev->data.control.channel, time);
+                        break;
 
-                case SND_SEQ_EVENT_PITCHBEND:
-                    port->DispatchPitchbend(ev->data.control.value,
-                                            ev->data.control.channel, time);
-                    break;
+                    case SND_SEQ_EVENT_NOTEOFF:
+                        port->DispatchNoteOff(ev->data.note.note,
+                                              ev->data.note.velocity,
+                                              ev->data.control.channel, time);
+                        break;
 
-                case SND_SEQ_EVENT_NOTEON:
-                    port->DispatchNoteOn(ev->data.note.note,
-                                         ev->data.note.velocity,
-                                         ev->data.control.channel, time);
-                    break;
+                    case SND_SEQ_EVENT_SYSEX:
+                        port->DispatchSysex(ev->data.ext.ptr, ev->data.ext.len);
+                        break;
+                    }
+                }
 
-                case SND_SEQ_EVENT_NOTEOFF:
-                    port->DispatchNoteOff(ev->data.note.note,
-                                          ev->data.note.velocity,
-                                          ev->data.control.channel, time);
-                    break;
-
-                case SND_SEQ_EVENT_SYSEX:
-                    port->DispatchSysex(ev->data.ext.ptr, ev->data.ext.len);
-                    break;
+                LinuxSampler::gig::EngineChannel* gigEngineChannel =
+                    (LinuxSampler::gig::EngineChannel*)engineChannel;
+                gigEngineChannel->pChannelLeft->SetBuffer(instance->Out[0] + samplePos);
+                gigEngineChannel->pChannelRight->SetBuffer(instance->Out[1] + samplePos);
+                if (i) {
+                    gigEngineChannel->pChannelLeft->Clear(samples);
+                    gigEngineChannel->pChannelRight->Clear(samples);
+                } else {
+                    // the buffer set in the audio device is cleared
+                    // by Render
+                    audioDevice->Channel(0)->SetBuffer(instance->Out[0] + samplePos);
+                    audioDevice->Channel(1)->SetBuffer(instance->Out[1] + samplePos);
                 }
             }
 
-            pAudioDevice->Channel(0)->SetBuffer(Out[0] + samplePos);
-            pAudioDevice->Channel(1)->SetBuffer(Out[1] + samplePos);
-            pAudioDevice->Render(samples);
+            audioDevice->Render(samples);
 
             samplePos += samples;
             SampleCount -= samples;
         }
     }
 
-    void PluginDssi::Activate() {
+    void PluginInstance::Activate() {
         dmsg(2, ("linuxsampler: activate instance=%p\n", static_cast<void*>(this)));
-        pMidiDevice->Port()->DispatchControlChange(123, 0, 0, 0); // all sound off
+        pChannel->GetEngineChannel()->GetMidiInputPort()->DispatchControlChange(123, 0, 0, 0); // all sound off
     }
 
 
@@ -150,50 +216,43 @@ namespace {
 
     LADSPA_Handle instantiate(const LADSPA_Descriptor* Descriptor,
                               unsigned long SampleRate) {
-        return new PluginDssi(SampleRate);
+        return new PluginInstance(SampleRate);
     }
 
     void cleanup(LADSPA_Handle Instance) {
         dmsg(2, ("linuxsampler: cleanup Instance=%p\n", static_cast<void*>(Instance)));
-        delete static_cast<PluginDssi*>(Instance);
+        delete static_cast<PluginInstance*>(Instance);
     }
 
     void activate(LADSPA_Handle Instance) {
-        static_cast<PluginDssi*>(Instance)->Activate();
+        static_cast<PluginInstance*>(Instance)->Activate();
     }
 
     void connect_port(LADSPA_Handle Instance, unsigned long Port,
                       LADSPA_Data* DataLocation) {
-        static_cast<PluginDssi*>(Instance)->ConnectPort(Port, DataLocation);
+        static_cast<PluginInstance*>(Instance)->ConnectPort(Port, DataLocation);
     }
 
     void run(LADSPA_Handle Instance, unsigned long SampleCount) {
-        static_cast<PluginDssi*>(Instance)->RunSynth(SampleCount, 0, 0);
+        return;
     }
 
 
 // *************** DSSI callback functions ***************
 // *
 
-    void run_synth(LADSPA_Handle Instance, unsigned long SampleCount,
-                   snd_seq_event_t* Events, unsigned long EventCount) {
-        static_cast<PluginDssi*>(Instance)->RunSynth(SampleCount, Events, EventCount);
-    }
-
     void run_multiple_synths(unsigned long InstanceCount,
                              LADSPA_Handle* Instances,
                              unsigned long SampleCount,
                              snd_seq_event_t** Events,
-                             unsigned long* EventCounts)
-    {
-        for (unsigned long i = 0 ; i < InstanceCount ; i++) {
-            static_cast<PluginDssi*>(Instances[i])->RunSynth(SampleCount, Events[i],
-                                                             EventCounts[i]);
-        }
+                             unsigned long* EventCounts) {
+        PluginInstance::RunMultipleSynths(InstanceCount, Instances,
+                                          SampleCount, Events,
+                                          EventCounts);
     }
 
     char* configure(LADSPA_Handle Instance, const char* Key, const char* Value) {
-        return static_cast<PluginDssi*>(Instance)->Configure(Key, Value);
+        return static_cast<PluginInstance*>(Instance)->Configure(Key, Value);
     }
 
 
@@ -209,7 +268,7 @@ namespace {
         Ladspa.Name = "LinuxSampler";
         Ladspa.Maker = "linuxsampler.org";
         Ladspa.Copyright = "(C) 2003,2004 Benno Senoner and Christian Schoenebeck, "
-            "2005-2008 Christian Schoenebeck";
+            "2005-2009 Christian Schoenebeck";
         Ladspa.PortCount = 2;
         Ladspa.ImplementationData = 0;
         Ladspa.PortDescriptors = PortDescriptors;
@@ -238,7 +297,7 @@ namespace {
         Dssi.get_program = 0;
         Dssi.get_midi_controller_for_port = 0;
         Dssi.select_program = 0;
-        Dssi.run_synth = run_synth;
+        Dssi.run_synth = 0;
         Dssi.run_synth_adding = 0;
         Dssi.run_multiple_synths = run_multiple_synths;
         Dssi.run_multiple_synths_adding = 0;

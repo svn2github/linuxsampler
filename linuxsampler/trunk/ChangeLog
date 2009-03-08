@@ -103,6 +103,9 @@ Version CVS HEAD (?)
     - fixed hanging notes which occured when note-off event had the exact
       same time stamp as the voice's note-on event and occured both in the
       same audio fragment cycle (fixes bug #112)
+    - added support for the "fine tune" and "pitch bend range"
+      instrument-level gig parameters
+    - fixed minor artifacts in pitch bend handling
 
   * LSCP server:
     - added new LSCP event "CHANNEL_MIDI" which can be used by frontends to
