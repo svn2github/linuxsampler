@@ -76,6 +76,18 @@ class RTMathBase {
         }
 
         /**
+         * Slower version of CentsToFreqRatio, for big values.
+         *
+         * @param cents - pitch value in cents (+1200 cents means +1 octave)
+         * @returns  frequency ratio (e.g. +2.0 for +1 octave)
+         */
+        static double CentsToFreqRatioUnlimited(double Cents) {
+            int octaves = int(Cents / 1200);
+            double x = CentsToFreqRatio(Cents - octaves * 1200);
+            return  octaves < 0 ? x / (1 << -octaves) : x * (1 << octaves);
+        }
+
+        /**
          * Inverse function to CentsToFreqRatio(). This function is a bit
          * slow, so it should not be called too frequently.
          */

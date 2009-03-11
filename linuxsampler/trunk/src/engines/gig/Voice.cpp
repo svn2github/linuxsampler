@@ -190,7 +190,7 @@ namespace LinuxSampler { namespace gig {
             // the transpose is not done.
             if (pDimRgn->PitchTrack && (MIDIKey - (int) pDimRgn->UnityNote) < 40) pitchbasecents += (MIDIKey - (int) pDimRgn->UnityNote) * 100;
 
-            this->PitchBase = RTMath::CentsToFreqRatio(pitchbasecents) * (double(pSample->SamplesPerSecond) / double(pEngine->SampleRate));
+            this->PitchBase = RTMath::CentsToFreqRatioUnlimited(pitchbasecents) * (double(pSample->SamplesPerSecond) / double(pEngine->SampleRate));
             this->PitchBend = RTMath::CentsToFreqRatio(PitchBend / 8192.0 * 100.0 * pEngineChannel->pInstrument->PitchbendRange);
         }
 
@@ -866,6 +866,9 @@ namespace LinuxSampler { namespace gig {
             if (bLFO1Enabled) fFinalVolume *= (1.0f - pLFO1->render());
             if (bLFO2Enabled) fFinalCutoff *= pLFO2->render();
             if (bLFO3Enabled) finalSynthesisParameters.fFinalPitch *= RTMath::CentsToFreqRatio(pLFO3->render());
+
+            // limit the pitch so we don't read outside the buffer
+            finalSynthesisParameters.fFinalPitch = RTMath::Min(finalSynthesisParameters.fFinalPitch, float(1 << CONFIG_MAX_PITCH));
 
             // if filter enabled then update filter coefficients
             if (SYNTHESIS_MODE_GET_FILTER(SynthesisMode)) {
