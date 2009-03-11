@@ -106,6 +106,7 @@ Version CVS HEAD (?)
     - added support for the "fine tune" and "pitch bend range"
       instrument-level gig parameters
     - fixed minor artifacts in pitch bend handling
+    - added support for GS Reset SysEx message
 
   * LSCP server:
     - added new LSCP event "CHANNEL_MIDI" which can be used by frontends to

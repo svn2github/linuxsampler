@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003,2004 by Benno Senoner and Christian Schoenebeck    *
- *   Copyright (C) 2005-2008 Christian Schoenebeck                         *
+ *   Copyright (C) 2005-2009 Christian Schoenebeck                         *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -1957,6 +1957,15 @@ namespace LinuxSampler { namespace gig {
                 if (reader.read(&addr[0], 3) != 3) goto free_sysex_data;
                 if (addr[0] == 0x40 && addr[1] == 0x00) { // System Parameters
                     dmsg(3,("\tSystem Parameter\n"));
+                    if (addr[2] == 0x7f) { // GS reset
+                        for (int i = 0; i < engineChannels.size(); ++i) {
+                            EngineChannel* pEngineChannel = engineChannels[i];
+                            if (pEngineChannel->GetMidiInputPort() == itSysexEvent->pMidiInputPort) {
+                                KillAllVoices(pEngineChannel, itSysexEvent);
+                                pEngineChannel->ResetControllers();
+                            }
+                        }
+                    }
                 }
                 else if (addr[0] == 0x40 && addr[1] == 0x01) { // Common Parameters
                     dmsg(3,("\tCommon Parameter\n"));
@@ -2210,7 +2219,7 @@ namespace LinuxSampler { namespace gig {
     }
 
     String Engine::Version() {
-        String s = "$Revision: 1.100 $";
+        String s = "$Revision: 1.101 $";
         return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
 
