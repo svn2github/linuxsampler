@@ -10,7 +10,7 @@
 <body>
 <h2 align="center">Windows Build Instructions &nbsp; <img src="gfx/logos/msys.png" alt="msys logo"> &nbsp; HOWTO by Andreas Persson</h2>
 <br>
-<center>December&nbsp;28th,&nbsp;2008</center><br>
+<center>March&nbsp;11th,&nbsp;2009</center><br>
 <div style="background-color: #F4F4FF; margin: 1em 3em 1em 3em; padding: 1em 1em 1em 2.2em;">
 <a href="#intro">1.&nbsp; Introduction</a><br>
 <a href="#mingw">2.&nbsp; MinGW</a><br>
@@ -146,7 +146,7 @@ install it.</p>
 documentation, so it needs the xsltproc command. Download from
 <a href="ftp://ftp.zlatkovic.com/pub/libxml/">ftp://ftp.zlatkovic.com/pub/libxml/</a>:</p>
 
-<pre>libxml2-2.7.2+.win32.zip
+<pre>libxml2-2.7.3.win32.zip
 libxslt-1.1.24.win32.zip</pre>
 
 <p>Copy the contents of the bin directories from both zip files to a
@@ -202,20 +202,17 @@ export LDFLAGS="-L/c/Progra~1/gtkmm/lib"</pre>
 
 <p>The windows precompiled version of libsndfile doesn't include the
 neccessary pkg-config file, so it's best to build libsndfile
-yourself. Download libsndfile-1.0.17.tar.gz
+yourself. Download libsndfile-1.0.19.tar.gz
 from <a href="http://www.mega-nerd.com/libsndfile/">www.mega-nerd.com</a> and
 extract it to your $HOME:</p>
 
 <pre>cd
-tar xzf libsndfile-1.0.17.tar.gz</pre>
+tar xzf libsndfile-1.0.19.tar.gz</pre>
 
-<p>To prevent a compilation error for the test cases, add</p>
+<p>Build and install:</p>
 
-<pre>#include &lt;stdint.h></pre>
-
-<p>to tests/utils.h.</p>
-
-<pre>./configure
+<pre>cd libsndfile-1.0.19
+./configure
 make
 make install</pre>
 
