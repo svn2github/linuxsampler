@@ -59,6 +59,8 @@ namespace RIFF {
         ulPos      = 0;
         pParent    = NULL;
         pChunkData = NULL;
+        CurrentChunkSize = 0;
+        NewChunkSize = 0;
         ulChunkDataSize = 0;
         ChunkID    = CHUNK_ID_RIFF;
         this->pFile = pFile;
@@ -73,6 +75,8 @@ namespace RIFF {
         pParent       = Parent;
         ulPos         = 0;
         pChunkData    = NULL;
+        CurrentChunkSize = 0;
+        NewChunkSize = 0;
         ulChunkDataSize = 0;
         ReadHeader(StartPos);
     }
@@ -83,8 +87,8 @@ namespace RIFF {
         this->pParent    = pParent;
         ulPos            = 0;
         pChunkData       = NULL;
-        ulChunkDataSize  = 0;
         ChunkID          = uiChunkID;
+        ulChunkDataSize  = 0;
         CurrentChunkSize = 0;
         NewChunkSize     = uiBodySize;
     }
@@ -98,6 +102,8 @@ namespace RIFF {
         #if DEBUG
         std::cout << "Chunk::Readheader(" << fPos << ") ";
         #endif // DEBUG
+        ChunkID = 0;
+        NewChunkSize = CurrentChunkSize = 0;
         #if POSIX
         if (lseek(pFile->hFileRead, fPos, SEEK_SET) != -1) {
             read(pFile->hFileRead, &ChunkID, 4);
@@ -128,8 +134,8 @@ namespace RIFF {
             }
             #if DEBUG
             std::cout << "ckID=" << convertToString(ChunkID) << " ";
-            std::cout << "ckSize=" << ChunkSize << " ";
-            std::cout << "bEndianNative=" << bEndianNative << std::endl;
+            std::cout << "ckSize=" << CurrentChunkSize << " ";
+            std::cout << "bEndianNative=" << pFile->bEndianNative << std::endl;
             #endif // DEBUG
             NewChunkSize = CurrentChunkSize;
         }
@@ -225,7 +231,7 @@ namespace RIFF {
        #if DEBUG
        std::cout << "Chunk::Remainingbytes()=" << CurrentChunkSize - ulPos << std::endl;
        #endif // DEBUG
-        return CurrentChunkSize - ulPos;
+        return (CurrentChunkSize > ulPos) ? CurrentChunkSize - ulPos : 0;
     }
 
     /**
@@ -1229,6 +1235,7 @@ namespace RIFF {
       std::cout << "List::Readheader(ulong) ";
       #endif // DEBUG
         Chunk::ReadHeader(fPos);
+        if (CurrentChunkSize < 8) return;
         NewChunkSize = CurrentChunkSize -= 4;
         #if POSIX
         lseek(pFile->hFileRead, fPos + CHUNK_HEADER_SIZE, SEEK_SET);
@@ -1432,7 +1439,7 @@ namespace RIFF {
         Mode = stream_mode_read;
         ulStartPos = RIFF_HEADER_SIZE;
         ReadHeader(0);
-        if (ChunkID != CHUNK_ID_RIFF) {
+        if (ChunkID != CHUNK_ID_RIFF && ChunkID != CHUNK_ID_RIFX) {
             throw RIFF::Exception("Not a RIFF file");
         }
     }

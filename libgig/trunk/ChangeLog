@@ -17,6 +17,8 @@ Version CVS HEAD (?)
       is not written physically yet (#82)
     - bugfix: saving to the same file after the file size had been
       decreased sometimes also made the file corrupt!
+    - bugfix: undefined behavior (e.g. endless loop) when opening zero
+      length files, now throws a RIFF::Exception instead (fixes bug #121)
 
 Version 3.2.1 (5 Dec 2007)
 
