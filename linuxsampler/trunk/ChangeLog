@@ -41,6 +41,8 @@ Version CVS HEAD (?)
     - automatic stacktrace mechanism is now turned off by default and can
       be switched on by command line option "--stacktrace" (the automatic
       stacktrace mechanism seems to be broken on most systems at the moment)
+    - C++ API method InstrumentManager::LaunchInstrumentEditor() now returns
+      a pointer to the launched InstrumentEditor object
 
   * audio driver:
     - removed the nonsense audio channel constraint (which was hard coded to

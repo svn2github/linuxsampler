@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 - 2008 Christian Schoenebeck                       *
+ *   Copyright (C) 2005 - 2009 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -76,7 +76,7 @@ namespace LinuxSampler { namespace gig {
             virtual String GetInstrumentName(instrument_id_t ID);
             virtual String GetInstrumentDataStructureName(instrument_id_t ID);
             virtual String GetInstrumentDataStructureVersion(instrument_id_t ID);
-            virtual void LaunchInstrumentEditor(instrument_id_t ID) throw (InstrumentManagerException);
+            virtual InstrumentEditor* LaunchInstrumentEditor(instrument_id_t ID) throw (InstrumentManagerException);
             virtual std::vector<instrument_id_t> GetInstrumentFileContent(String File) throw (InstrumentManagerException);
             virtual instrument_info_t GetInstrumentInfo(instrument_id_t ID) throw (InstrumentManagerException);
 

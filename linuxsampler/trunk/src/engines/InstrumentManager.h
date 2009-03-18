@@ -33,6 +33,7 @@ namespace LinuxSampler {
 
     // just symbol prototyping
     class EngineChannel;
+    class InstrumentEditor;
 
     /**
      * Will be thrown by InstrumentManager implementations on errors.
@@ -175,10 +176,11 @@ namespace LinuxSampler {
              *
              * This method has to be implemented by the descendant.
              *
+             * @returns pointer to the launched editor
              * @throws InstrumentManagerException - in case no compatible
              *         instrument editor is registered to the sampler
              */
-            virtual void LaunchInstrumentEditor(instrument_id_t ID) throw (InstrumentManagerException) = 0;
+            virtual InstrumentEditor* LaunchInstrumentEditor(instrument_id_t ID) throw (InstrumentManagerException) = 0;
 
             /**
              * Returns a list of instrument IDs of the provided instrument

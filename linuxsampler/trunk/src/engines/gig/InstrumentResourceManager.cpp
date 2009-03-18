@@ -233,7 +233,7 @@ namespace LinuxSampler { namespace gig {
         }
     }
 
-    void InstrumentResourceManager::LaunchInstrumentEditor(instrument_id_t ID) throw (InstrumentManagerException) {
+    InstrumentEditor* InstrumentResourceManager::LaunchInstrumentEditor(instrument_id_t ID) throw (InstrumentManagerException) {
         const String sDataType    = GetInstrumentDataStructureName(ID);
         const String sDataVersion = GetInstrumentDataStructureVersion(ID);
         // find instrument editors capable to handle given instrument
@@ -267,7 +267,7 @@ namespace LinuxSampler { namespace gig {
             dynamic_cast<VirtualMidiDevice*>(pEditor);
         if (!pVirtualMidiDevice) {
             std::cerr << "Instrument editor not a virtual MIDI device\n" << std::flush;
-            return;
+            return pEditor;
         }
         // NOTE: for now connect the virtual MIDI keyboard of the instrument editor (if any) with all engine channels that have the same instrument as the editor was opened for ( other ideas ? )
         Lock();
@@ -277,6 +277,8 @@ namespace LinuxSampler { namespace gig {
         std::set<gig::EngineChannel*>::iterator end  = engineChannels.end();
         for (; iter != end; ++iter) (*iter)->Connect(pVirtualMidiDevice);
         Unlock();
+
+        return pEditor;
     }
 
     /**
