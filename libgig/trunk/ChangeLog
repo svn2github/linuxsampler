@@ -2,6 +2,7 @@ Version CVS HEAD (?)
 
   * general changes:
     - fixed compilation with gcc 4.3
+    - fixes for building with Visual C++
 
   * src/gig.cpp, src/gig.h:
     - added partial support for MIDI rules, only the Controller
@@ -9,6 +10,7 @@ Version CVS HEAD (?)
     - bugfix: removed another iterator invalidation in DeleteSample
     - bugfix in Sample::LoadSampleData*(): reset sample read position to
       sample start before trying to (re)load sample data from file (#82)
+    - bugfix: EG3 depth parameter was not saved correctly
 
   * src/RIFF.cpp, src/RIFF.h:
     - bugfix: saving to the same file after the file size had been
@@ -19,6 +21,9 @@ Version CVS HEAD (?)
       decreased sometimes also made the file corrupt!
     - bugfix: undefined behavior (e.g. endless loop) when opening zero
       length files, now throws a RIFF::Exception instead (fixes bug #121)
+    - bugfix: destructor for base class RIFF::Chunk accessed members
+      of derived class RIFF::File, which is bad, and caused crashes
+      when using Visual C++
 
 Version 3.2.1 (5 Dec 2007)
 

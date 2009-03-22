@@ -46,10 +46,15 @@
 #include <stdlib.h>
 #include <sys/types.h>
 #include <sys/stat.h>
-#include <dirent.h>
 #include <errno.h>
 
 #include "gig.h"
+
+#ifdef _MSC_VER
+#define S_ISDIR(x) (S_IFDIR & (x))
+#define S_IWUSR S_IWRITE
+#define S_IXUSR S_IEXEC
+#endif
 
 #if POSIX
 # include <dlfcn.h>
@@ -128,15 +133,11 @@ int main(int argc, char *argv[]) {
         return EXIT_FAILURE;
     }
     fclose(hFile);
-    DIR* dir = opendir(argv[2]);
-    if (!dir) {
+    struct stat buf;
+    if (stat(argv[2], &buf) == -1) {
         cout << "Unable to open DESTDIR: ";
         switch (errno) {
             case EACCES:  cout << "Permission denied." << endl;
-                          break;
-            case EMFILE:  cout << "Too many file descriptors in use by process." << endl;
-                          break;
-            case ENFILE:  cout << "Too many files are currently open in the system." << endl;
                           break;
             case ENOENT:  cout << "Directory does not exist, or name is an empty string." << endl;
                           break;
@@ -147,8 +148,13 @@ int main(int argc, char *argv[]) {
             default:      cout << "Unknown error" << endl;
         }
         return EXIT_FAILURE;
+    } else if (!S_ISDIR(buf.st_mode)) {
+        cout << "Unable to open DESTDIR: Is not a directory." << endl;
+        return EXIT_FAILURE;
+    } else if (!(S_IWUSR & buf.st_mode) || !(S_IXUSR & buf.st_mode)) {
+        cout << "Unable to open DESTDIR: Permission denied." << endl;
+        return EXIT_FAILURE;
     }
-    if (dir) closedir(dir);
     try {
         RIFF::File* riff = new RIFF::File(argv[1]);
         gig::File*  gig  = new gig::File(riff);
@@ -182,7 +188,6 @@ void ExtractSamples(gig::File* gig, char* destdir, OrderMap* ordered) {
     int samples     = 0;
     gig::buffer_t decompressionBuffer;
     decompressionBuffer.Size = 0;
-    unsigned long decompressionBufferSize = 0;
     cout << "Seeking for available samples..." << flush;
     gig::Sample* pSample = gig->GetFirstSample();
     cout << "OK" << endl << flush;
@@ -384,7 +389,7 @@ void closeAFlib() {
 #endif // !HAVE_SNDFILE
 
 string Revision() {
-    string s = "$Revision: 1.10 $";
+    string s = "$Revision: 1.11 $";
     return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
 }
 

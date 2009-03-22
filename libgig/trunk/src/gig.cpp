@@ -1837,7 +1837,7 @@ namespace {
 
         const uint16_t eg3depth = (EG3Depth >= 0) ? EG3Depth
                                                   : uint16_t(((-EG3Depth) - 1) ^ 0xffff); /* binary complementary for negatives */
-        pData[116] = eg3depth;
+        store16(&pData[116], eg3depth);
 
         // next 2 bytes unknown
 

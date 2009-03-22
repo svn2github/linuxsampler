@@ -94,7 +94,7 @@ namespace RIFF {
     }
 
     Chunk::~Chunk() {
-        pFile->UnlogResized(this);
+        if (pFile) pFile->UnlogResized(this);
         if (pChunkData) delete[] pChunkData;
     }
 
@@ -950,6 +950,10 @@ namespace RIFF {
       #if DEBUG
       std::cout << "List::~List()" << std::endl;
       #endif // DEBUG
+        DeleteChunkList();
+    }
+
+    void List::DeleteChunkList() {
         if (pSubChunks) {
             ChunkList::iterator iter = pSubChunks->begin();
             ChunkList::iterator end  = pSubChunks->end();
@@ -958,8 +962,12 @@ namespace RIFF {
                 iter++;
             }
             delete pSubChunks;
+            pSubChunks = NULL;
         }
-        if (pSubChunksMap) delete pSubChunksMap;
+        if (pSubChunksMap) {
+            delete pSubChunksMap;
+            pSubChunksMap = NULL;
+        }
     }
 
     /**
@@ -1755,6 +1763,8 @@ namespace RIFF {
         #else
         if (hFileRead) fclose(hFileRead);
         #endif // POSIX
+        DeleteChunkList();
+        pFile = NULL;
     }
 
     void File::LogAsResized(Chunk* pResizedChunk) {

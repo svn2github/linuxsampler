@@ -53,7 +53,19 @@
 # include <unistd.h>
 #endif // POSIX
 
+#ifdef _MSC_VER
+// Visual C++ 2008 doesn't have stdint.h
+typedef __int8 int8_t;
+typedef __int16 int16_t;
+typedef __int32 int32_t;
+typedef __int64 int64_t;
+typedef unsigned __int8 uint8_t;
+typedef unsigned __int16 uint16_t;
+typedef unsigned __int32 uint32_t;
+typedef unsigned __int64 uint64_t;
+#else
 #include <stdint.h>
+#endif
 
 #ifdef WIN32
 # include <windows.h>
@@ -272,6 +284,7 @@ namespace RIFF {
             void LoadSubChunksRecursively();
             virtual unsigned long WriteChunk(unsigned long ulWritePos, unsigned long ulCurrentDataOffset);
             virtual void __resetPos(); ///< Sets List Chunk's read/write position to zero and causes all sub chunks to do the same.
+            void DeleteChunkList();
     };
 
     /** @brief RIFF File
