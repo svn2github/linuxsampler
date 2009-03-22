@@ -70,12 +70,13 @@ namespace LinuxSampler {
         }
     }
 
-    template<typename T> class atomic {
+    template<typename T> class atomic;
+    template<> class atomic<int> { // int is the only implemented type
     public:
         atomic() { }
-        atomic(T m) : f(m) { }
-        T load(memory_order order = memory_order_seq_cst) const volatile {
-            T m;
+        explicit atomic(int m) : f(m) { }
+        int load(memory_order order = memory_order_seq_cst) const volatile {
+            int m;
             switch (order) {
             case memory_order_relaxed:
                 m = f;
@@ -90,17 +91,13 @@ namespace LinuxSampler {
 #ifdef _ARCH_PPC
                 // PPC load-acquire: artificial dependency + isync
                 asm volatile(
-#ifdef _ARCH_PPC64
-                    "ld %0,%1\n\t"
-#else
                     "lwz%U1%X1 %0,%1\n\t"
-#endif
                     "cmpw %0,%0\n\t"
                     "bne- 1f\n\t"
                     "1: isync"
                     : "=r" (m)
                     : "m"  (f)
-                    : "memory", "cc");
+                    : "memory", "cr0");
 #else
                 m = f;
                 asm volatile("" : : : "memory");
@@ -110,7 +107,7 @@ namespace LinuxSampler {
             return m;
         }
 
-        void store(T m, memory_order order = memory_order_seq_cst) volatile {
+        void store(int m, memory_order order = memory_order_seq_cst) volatile {
             switch (order) {
             case memory_order_relaxed:
                 f = m;
@@ -119,7 +116,6 @@ namespace LinuxSampler {
             case memory_order_release:
                 atomic_thread_fence(memory_order_release);
                 f = m;
-                asm volatile("" : : : "memory");
                 break;
 
             case memory_order_seq_cst:
@@ -131,7 +127,9 @@ namespace LinuxSampler {
             }
         }
     private:
-        T f;
+        int f;
+        atomic(const atomic&); // not allowed
+        atomic& operator=(const atomic&); // not allowed
     };
 }
 #endif
