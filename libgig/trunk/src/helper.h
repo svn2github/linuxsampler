@@ -2,7 +2,7 @@
  *                                                                         *
  *   libgig - C++ cross-platform Gigasampler format file access library    *
  *                                                                         *
- *   Copyright (C) 2003-2006 by Christian Schoenebeck                      *
+ *   Copyright (C) 2003-2009 by Christian Schoenebeck                      *
  *                              <cuse@users.sourceforge.net>               *
  *                                                                         *
  *   This library is free software; you can redistribute it and/or modify  *
@@ -86,6 +86,7 @@ inline void store32(uint8_t* pData, uint32_t data) {
  * @param WordSize - size of the data words (in bytes)
  */
 inline void SwapMemoryArea(void* pData, unsigned long AreaSize, uint WordSize) {
+    if (!AreaSize) return; // AreaSize==0 would cause a segfault here
     switch (WordSize) { // TODO: unefficient
         case 1: {
             uint8_t* pDst = (uint8_t*) pData;
@@ -128,7 +129,7 @@ inline void SwapMemoryArea(void* pData, unsigned long AreaSize, uint WordSize) {
                 memcpy((uint8_t*) pData + lo, (uint8_t*) pData + hi, WordSize);
                 memcpy((uint8_t*) pData + hi, pCache, WordSize);
             }
-            delete[] pCache;
+            if (pCache) delete[] pCache;
             break;
         }
     }

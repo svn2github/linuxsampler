@@ -11,6 +11,8 @@ Version CVS HEAD (?)
     - bugfix in Sample::LoadSampleData*(): reset sample read position to
       sample start before trying to (re)load sample data from file (#82)
     - bugfix: EG3 depth parameter was not saved correctly
+    - fixed crash which occured when streaming a gig sample with
+      bi-directional (a.k.a. 'pingpong') loop type (fixes #102)
 
   * src/RIFF.cpp, src/RIFF.h:
     - bugfix: saving to the same file after the file size had been

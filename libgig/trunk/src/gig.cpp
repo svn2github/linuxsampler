@@ -910,7 +910,8 @@ namespace {
                                 }
 
                                 // reverse the sample frames for backward playback
-                                SwapMemoryArea(&pDst[swapareastart * this->FrameSize], (totalreadsamples - swapareastart) * this->FrameSize, this->FrameSize);
+                                if (totalreadsamples > swapareastart) //FIXME: this if() is just a crash workaround for now (#102), but totalreadsamples <= swapareastart should never be the case, so there's probably still a bug above!
+                                    SwapMemoryArea(&pDst[swapareastart * this->FrameSize], (totalreadsamples - swapareastart) * this->FrameSize, this->FrameSize);
                             }
                         } while (samplestoread && readsamples);
                         break;
