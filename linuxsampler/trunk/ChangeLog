@@ -43,6 +43,10 @@ Version CVS HEAD (?)
       stacktrace mechanism seems to be broken on most systems at the moment)
     - C++ API method InstrumentManager::LaunchInstrumentEditor() now returns
       a pointer to the launched InstrumentEditor object
+    - added optional 3rd party user data parameter for following
+      liblinuxsampler C++ API methods: InstrumentEditor::Main(),
+      InstrumentEditor::Launch(),
+      InstrumentManager::LaunchInstrumentEditor()
 
   * audio driver:
     - removed the nonsense audio channel constraint (which was hard coded to

@@ -56,6 +56,7 @@ Description: realtime audio sampler (base library)
  possibilities and sound quality.
  .
  This package provides the LinuxSampler backend library (liblinuxsampler),
- that is the sampler engine together with audio and MIDI drivers.
+ that is the sampler engine together with audio and MIDI drivers. It also
+ includes the DSSI and LV2 plugin binaries of the sampler.
  .
  For more informations please visit http://www.linuxsampler.org

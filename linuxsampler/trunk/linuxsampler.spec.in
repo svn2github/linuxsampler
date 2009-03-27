@@ -1,7 +1,7 @@
 
 %define name    @PACKAGE@
 %define version @VERSION@
-%define release 11
+%define release 12
 %define prefix  @prefix@
 
 Summary:	LinuxSampler - modular, streaming capable, realtime audio sampler
@@ -72,6 +72,8 @@ if [ -d $RPM_BUILD_ROOT ]; then rm -rf $RPM_BUILD_ROOT; fi
 %{prefix}/bin/linuxsampler
 %{prefix}/lib/linuxsampler/liblinuxsampler.so*
 %{prefix}/share/man/man1/linuxsampler.*
+%{prefix}/lib/dssi/*
+%{prefix}/lib/lv2/linuxsampler*
 /var/lib/linuxsampler/instruments.db
 
 %files devel
@@ -83,6 +85,8 @@ if [ -d $RPM_BUILD_ROOT ]; then rm -rf $RPM_BUILD_ROOT; fi
 %{prefix}/include/*
 
 %changelog
+* Fri Mar 27 2009 Christian Schoenebeck <cuse@users.sourceforge.net>
+- included DSSI and LV2 binaries into linuxsampler package
 * Wed Dec 03 2008 Christian Schoenebeck <cuse@users.sourceforge.net>
 - fixed rpmbuild: config.h is no longer exported
   (fixes #87, patch by Devin Anderson)

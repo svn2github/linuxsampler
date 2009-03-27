@@ -233,7 +233,7 @@ namespace LinuxSampler { namespace gig {
         }
     }
 
-    InstrumentEditor* InstrumentResourceManager::LaunchInstrumentEditor(instrument_id_t ID) throw (InstrumentManagerException) {
+    InstrumentEditor* InstrumentResourceManager::LaunchInstrumentEditor(instrument_id_t ID, void* pUserData) throw (InstrumentManagerException) {
         const String sDataType    = GetInstrumentDataStructureName(ID);
         const String sDataVersion = GetInstrumentDataStructureVersion(ID);
         // find instrument editors capable to handle given instrument
@@ -260,7 +260,7 @@ namespace LinuxSampler { namespace gig {
         InstrumentEditorProxies.add(pProxy);
         InstrumentEditorProxiesMutex.Unlock();
         // launch the instrument editor for the given instrument
-        pEditor->Launch(pInstrument, sDataType, sDataVersion);
+        pEditor->Launch(pInstrument, sDataType, sDataVersion, pUserData);
 
         // register the instrument editor as virtual MIDI device as well ...
         VirtualMidiDevice* pVirtualMidiDevice =

@@ -1,6 +1,6 @@
 /***************************************************************************
  *                                                                         *
- *   Copyright (C) 2007, 2008 Christian Schoenebeck                        *
+ *   Copyright (C) 2007 - 2009 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -67,8 +67,10 @@ namespace LinuxSampler {
          *                    (i.e. @c "libgig" )
          * @param sTypeVersion - version of the instrument data structure
          *                       (i.e. @c "3.0.1" ).
+         * @param pUserData - (optional) arbitrary 3rd party data that might
+         *                    been passed by Launch()
          */
-        virtual int Main(void* pInstrument, String sTypeName, String sTypeVersion) = 0;
+        virtual int Main(void* pInstrument, String sTypeName, String sTypeVersion, void* pUserData = NULL) = 0;
 
         /**
          * The instrument editor has to return @c true in case it supports
@@ -191,8 +193,12 @@ namespace LinuxSampler {
          * Launch the instrument editor for the given instrument. The
          * editor will be spawned in its own thread and this method will
          * return as soon as the editor's thread actually started.
+         *
+         * @param pUserData - (optional) arbitrary 3rd party data that might
+         *                    e.g. been passed by
+         *                    InstrumentManager::LaunchInstrumentEditor()
          */
-        void Launch(void* pInstrument, String sTypeName, String sTypeVersion);
+        void Launch(void* pInstrument, String sTypeName, String sTypeVersion, void* pUserData = NULL);
 
         /**
          * Registers object that wants to be notified on events.
@@ -223,6 +229,7 @@ namespace LinuxSampler {
         void*    pInstrument;
         String   sTypeName;
         String   sTypeVersion;
+        void*    pUserData;
     };
 
     /** @brief Instrument Editor Notifications

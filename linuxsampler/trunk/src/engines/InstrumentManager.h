@@ -176,11 +176,16 @@ namespace LinuxSampler {
              *
              * This method has to be implemented by the descendant.
              *
+             * @param ID - the instrument for which an editor should be
+             *             spawned for
+             * @param pUserData - (optional) arbitrary 3rd party user data
+             *                    that will blindly be passed to
+             *                    InstrumentEditor::Main()
              * @returns pointer to the launched editor
              * @throws InstrumentManagerException - in case no compatible
              *         instrument editor is registered to the sampler
              */
-            virtual InstrumentEditor* LaunchInstrumentEditor(instrument_id_t ID) throw (InstrumentManagerException) = 0;
+            virtual InstrumentEditor* LaunchInstrumentEditor(instrument_id_t ID, void* pUserData = NULL) throw (InstrumentManagerException) = 0;
 
             /**
              * Returns a list of instrument IDs of the provided instrument

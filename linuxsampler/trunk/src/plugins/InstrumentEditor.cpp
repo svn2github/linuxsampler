@@ -1,6 +1,6 @@
 /***************************************************************************
  *                                                                         *
- *   Copyright (C) 2007, 2008 Christian Schoenebeck                        *
+ *   Copyright (C) 2007 - 2009 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -30,17 +30,19 @@ namespace LinuxSampler {
 
     InstrumentEditor::InstrumentEditor() : Thread(false, false, -1, 0) {
         pInstrument = NULL;
+        pUserData   = NULL;
     }
 
     InstrumentEditor::~InstrumentEditor() {
     }
 
-    void InstrumentEditor::Launch(void* pInstrument, String sTypeName, String sTypeVersion) {
+    void InstrumentEditor::Launch(void* pInstrument, String sTypeName, String sTypeVersion, void* pUserData) {
         dmsg(1,("InstrumentEditor::Launch(instr=%x,type=%s,version=%s)\n", pInstrument, sTypeName.c_str(), sTypeVersion.c_str()));
         // prepare the editor's mandatory parameters
         this->pInstrument  = pInstrument;
         this->sTypeName    = sTypeName;
         this->sTypeVersion = sTypeVersion;
+        this->pUserData    = pUserData;
         // start the editor in its own thread
         StartThread();
     }
@@ -48,11 +50,12 @@ namespace LinuxSampler {
     int InstrumentEditor::Main() {
         dmsg(1,("InstrumentEditor::Main()\n"));
         // run the editor's main loop
-        int iResult = Main(pInstrument, sTypeName, sTypeVersion);
+        int iResult = Main(pInstrument, sTypeName, sTypeVersion, pUserData);
         // reset editor parameters
         this->pInstrument  = NULL;
         this->sTypeName    = "";
         this->sTypeVersion = "";
+        this->pUserData    = NULL;
         dmsg(1,("Instrument editor '%s' returned with exit status %d\n", Name().c_str(), iResult));
         // notify all registered listeners
         std::for_each(

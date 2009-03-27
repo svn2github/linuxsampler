@@ -5,7 +5,7 @@ AC_INIT(configure.in)
 
 LINUXSAMPLER_RELEASE_MAJOR=0
 LINUXSAMPLER_RELEASE_MINOR=5
-LINUXSAMPLER_RELEASE_BUILD=1.11cvs
+LINUXSAMPLER_RELEASE_BUILD=1.12cvs
 
 #------------------------------------------------------------------------------------
 # The following is the libtool / shared library version. This doesn't have to
@@ -256,6 +256,10 @@ else
 fi
 AM_CONDITIONAL(HAVE_ALSA, test $have_alsa = "1")
 AC_DEFINE_UNQUOTED(HAVE_ALSA,$have_alsa,[Define to 1 if you have ALSA installed.])
+config_have_alsa="no"
+if test $have_alsa = "1"; then
+    config_have_alsa="yes"
+fi
 
 # JACK
 AC_ARG_ENABLE(jack-driver,
@@ -282,6 +286,10 @@ else
 fi
 AM_CONDITIONAL(HAVE_JACK, test $have_jack = "1")
 AC_DEFINE_UNQUOTED(HAVE_JACK,$have_jack,[Define to 1 if you have JACK installed.])
+config_have_jack="no"
+if test $have_jack = "1"; then
+    config_have_jack="yes"
+fi
 
 # JACK MIDI
 have_jack_midi=0
@@ -305,6 +313,10 @@ fi
 AM_CONDITIONAL(HAVE_JACK_MIDI, test $have_jack_midi = "1")
 AC_DEFINE_UNQUOTED(HAVE_JACK_MIDI, $have_jack_midi,
                    [Define to 1 if you have JACK with MIDI support installed.])
+config_have_jack_midi="no"
+if test $have_jack_midi = "1"; then
+    config_have_jack_midi="yes"
+fi
 
 # ARTS
 AC_ARG_ENABLE(arts-driver,
@@ -327,6 +339,10 @@ else
 fi
 AM_CONDITIONAL(HAVE_ARTS, test "$have_arts" = "1")
 AC_DEFINE_UNQUOTED(HAVE_ARTS,$have_arts,[Define to 1 if you have aRts installed.])
+config_have_arts="no"
+if test $have_arts = "1"; then
+    config_have_arts="yes"
+fi
 
 # ASIO AUDIO (Win32)
 AC_ARG_ENABLE(asiosdk-dir,
@@ -366,6 +382,10 @@ fi
 AC_SUBST(ASIOSDK_BASEDIR)
 AM_CONDITIONAL(HAVE_ASIO, test $have_asio = "1")
 AC_DEFINE_UNQUOTED(HAVE_ASIO,$have_asio,[Define to 1 if you have ASIO installed.])
+config_have_asio="no"
+if test $have_asio = "1"; then
+    config_have_asio="yes"
+fi
 
 # MidiShare (Linux, OS X, Windows)
 AC_ARG_ENABLE(midishare-driver,
@@ -392,6 +412,10 @@ else
 fi
 AM_CONDITIONAL(HAVE_MIDISHARE, test $have_midishare = "1")
 AC_DEFINE_UNQUOTED(HAVE_MIDISHARE,$have_midishare,[Define to 1 if you have MidiShare installed.])
+config_have_midishare="no"
+if test $have_midishare = "1"; then
+    config_have_midishare="yes"
+fi
 
 # CoreMIDI (OS X)
 AC_ARG_ENABLE(coremidi-driver,
@@ -414,6 +438,10 @@ else
 fi
 AM_CONDITIONAL(HAVE_COREMIDI, test $have_coremidi = "1")
 AC_DEFINE_UNQUOTED(HAVE_COREMIDI,$have_coremidi,[Define to 1 if you have CoreMIDI installed.])
+config_have_coremidi="no"
+if test $have_coremidi = "1"; then
+    config_have_coremidi="yes"
+fi
 
 # CoreAudio (OS X)
 AC_ARG_ENABLE(coreaudio-driver,
@@ -436,6 +464,10 @@ else
 fi
 AM_CONDITIONAL(HAVE_COREAUDIO, test $have_coreaudio = "1")
 AC_DEFINE_UNQUOTED(HAVE_COREAUDIO,$have_coreaudio,[Define to 1 if you have CoreAudio installed.])
+config_have_coreaudio="no"
+if test $have_coreaudio = "1"; then
+    config_have_coreaudio="yes"
+fi
 
 # MME MIDI (Win32)
 AC_ARG_ENABLE(mmemidi-driver,
@@ -458,20 +490,23 @@ else
 fi
 AM_CONDITIONAL(HAVE_MME_MIDI, test $have_mmemidi = "1")
 AC_DEFINE_UNQUOTED(HAVE_MME_MIDI,$have_mmemidi,[Define to 1 if you have MME MIDI installed.])
-
+config_have_mme="no"
+if test $have_mmemidi = "1"; then
+    config_have_mme="yes"
+fi
 
 # DSSI
 AC_CHECK_HEADERS(dssi.h,
-	have_dssi=1,
-	have_dssi=0)
-AM_CONDITIONAL(HAVE_DSSI, test $have_dssi = "1")
+	config_have_dssi="yes",
+	config_have_dssi="no")
+AM_CONDITIONAL(HAVE_DSSI, test $config_have_dssi = "yes")
 
 # LV2
-PKG_CHECK_MODULES(LV2, lv2core, have_lv2=1, have_lv2=0)
-if test $have_lv2 = "0"; then
-    AC_CHECK_HEADER(lv2.h, have_lv2=1, have_lv2=0)
+PKG_CHECK_MODULES(LV2, lv2core, config_have_lv2="yes", config_have_lv2="no")
+if test $config_have_lv2 = "no"; then
+    AC_CHECK_HEADER(lv2.h, config_have_lv2="yes", config_have_lv2="no")
 fi
-AM_CONDITIONAL(HAVE_LV2, test $have_lv2 = "1")
+AM_CONDITIONAL(HAVE_LV2, test $config_have_lv2 = "yes")
 
 # VST
 AC_ARG_ENABLE(vstsdk-dir,
@@ -484,12 +519,16 @@ AC_ARG_ENABLE(vstsdk-dir,
 )
 AC_SUBST(VSTSDK_DIR)
 AM_CONDITIONAL(HAVE_VST, test "x$VSTSDK_DIR" != "x")
+config_have_vst="no"
+if test "x$VSTSDK_DIR" != "x"; then
+    config_have_vst="yes"
+fi
 
 # AU
 AC_CHECK_HEADERS(AudioUnit/AudioUnit.h,
-	have_au=1,
-	have_au=0)
-AM_CONDITIONAL(HAVE_AU, test $have_au = "1")
+	config_have_au="yes",
+	config_have_au="no")
+AM_CONDITIONAL(HAVE_AU, test $config_have_au = "yes")
 AM_CONDITIONAL(HAVE_AUFLAGS, test "$AUFLAGS" != "")
 
 
@@ -1261,6 +1300,9 @@ echo ""
 echo "#####################################################################"
 echo "# LinuxSampler Configuration                                        #"
 echo "#-------------------------------------------------------------------#"
+echo "# Release Version: ${LINUXSAMPLER_RELEASE_MAJOR}.${LINUXSAMPLER_RELEASE_MINOR}.${LINUXSAMPLER_RELEASE_BUILD}"
+echo "# LSCP Version: ${LSCP_RELEASE_MAJOR}.${LSCP_RELEASE_MINOR}"
+echo "#-------------------------------------------------------------------"
 echo "# Assembly Optimizations: ${config_asm}"
 echo "# Development Mode: ${config_dev_mode}"
 echo "# Debug Level: ${config_debug_level}"
@@ -1301,6 +1343,15 @@ if test "$config_instruments_db" = "yes"; then
 echo "# Instruments DB default location: ${config_default_instruments_db_file}"
 fi
 echo "# Plugin Path: ${config_plugin_dir}"
+echo "#-------------------------------------------------------------------"
+echo "# MIDI Input Drivers:"
+echo "# ALSA: ${config_have_alsa}, JACK: ${config_have_jack_midi}, CoreMIDI: ${config_have_coremidi}, MME: ${config_have_mme}, MidiShare: ${config_have_midishare}"
+echo "#-------------------------------------------------------------------"
+echo "# Audio Output Drivers:"
+echo "# ALSA: ${config_have_alsa}, JACK: ${config_have_jack}, ARTS: ${config_have_arts}, CoreAudio: ${config_have_coreaudio}, ASIO: ${config_have_asio}"
+echo "#-------------------------------------------------------------------"
+echo "# Building sampler as plugin for following host standards:"
+echo "# DSSI: ${config_have_dssi}, LV2: ${config_have_lv2}, VST: ${config_have_vst}, AU: ${config_have_au}"
 echo "#-------------------------------------------------------------------#"
 echo "# Read './configure --help' or file 'configure.in' for details.     #"
 echo "#####################################################################"
