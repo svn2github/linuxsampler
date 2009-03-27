@@ -29,7 +29,8 @@
 class LinuxSamplerPlugin : public LinuxSampler::InstrumentEditor {
     public:
         LinuxSamplerPlugin();
-        virtual int Main(void* pInstrument, String sTypeName, String sTypeVersion);
+        virtual int Main(void* pInstrument, String sTypeName, String sTypeVersion); // old LS plugin API entry point
+        virtual int Main(void* pInstrument, String sTypeName, String sTypeVersion, void* pUserData); // new LS plugin API entry point
         virtual bool IsTypeSupported(String sTypeName, String sTypeVersion);
         virtual String Name();
         virtual String Version();

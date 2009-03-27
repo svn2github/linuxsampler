@@ -47,6 +47,8 @@ Version CVS HEAD (?)
   * made all visible strings translatable
   * bugfix: inform the sampler when new file(s) has been imported on save
     operation (#82)
+  * updated LinuxSampler plugin of gigedit to the latest liblinuxsampler
+    C++ API changes
 
 Version 0.1.1 (2007-12-06)
 

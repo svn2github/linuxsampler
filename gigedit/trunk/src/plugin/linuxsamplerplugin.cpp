@@ -37,6 +37,10 @@ LinuxSamplerPlugin::~LinuxSamplerPlugin() {
     if (pApp) delete (GigEdit*) pApp;
 }
 
+int LinuxSamplerPlugin::Main(void* pInstrument, String sTypeName, String sTypeVersion, void* /*pUserData*/) {
+    return Main(pInstrument, sTypeName, sTypeVersion);
+}
+
 int LinuxSamplerPlugin::Main(void* pInstrument, String sTypeName, String sTypeVersion) {
     std::cout << "Entered Gigedit Main() loop :)\n" << std::flush;
     gig::Instrument* pGigInstr = static_cast<gig::Instrument*>(pInstrument);
