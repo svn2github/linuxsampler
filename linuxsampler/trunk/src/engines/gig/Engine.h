@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003,2004 by Benno Senoner and Christian Schoenebeck    *
- *   Copyright (C) 2005-2008 Christian Schoenebeck                         *
+ *   Copyright (C) 2005-2009 Christian Schoenebeck                         *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -35,6 +35,7 @@
 #include "../../common/ArrayList.h"
 #include "../../common/Condition.h"
 #include "../../common/ConditionServer.h"
+#include "../../common/atomic.h"
 #include "../Engine.h"
 #include "../common/Event.h"
 #include "../../network/lscp.h"

@@ -1,6 +1,6 @@
 /***************************************************************************
  *                                                                         *
- *   Copyright (C) 2005 - 2008 Christian Schoenebeck                       *
+ *   Copyright (C) 2005 - 2009 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -22,7 +22,6 @@
 #define __LS_ENGINECHANNEL_H__
 
 #include "../EventListeners.h"
-#include "../common/atomic.h"
 #include "../drivers/audio/AudioOutputDevice.h"
 #include "../drivers/midi/midi.h"
 #include "../drivers/midi/MidiInputDevice.h"
@@ -250,7 +249,7 @@ namespace LinuxSampler {
              * Reset to no RPN controller currently selected.
              */
             void ResetMidiRpnController();
-            
+
              /**
              * Registers the specified listener to be notified when the number
              * of effect sends on this channel is changed.
@@ -303,7 +302,7 @@ namespace LinuxSampler {
             void SetDiskStreamCount(uint Streams);
 
             SamplerChannel* GetSamplerChannel();
-            
+
             void SetSamplerChannel(SamplerChannel* pChannel);
 
             /** Returns the sampler to which this channel belongs */
@@ -311,7 +310,7 @@ namespace LinuxSampler {
 
         protected:
             EngineChannel();
-            virtual ~EngineChannel() {}; // MUST only be destroyed by EngineChannelFactory
+            virtual ~EngineChannel(); // MUST only be destroyed by EngineChannelFactory
 
             /**
              * Notifies listeners that the number of effect sends
@@ -324,22 +323,7 @@ namespace LinuxSampler {
             friend class EngineChannelFactory;
 
         private:
-            int     iMute;
-            bool    bSolo;
-            uint8_t uiMidiProgram;
-            uint8_t uiMidiBankMsb;
-            uint8_t uiMidiBankLsb;
-            uint8_t uiMidiRpnMsb; ///< MIDI Registered Parameter Number (upper 8 bits / coarse)
-            uint8_t uiMidiRpnLsb; ///< MIDI Registered Parameter Number (lower 8 bits / fine)
-            bool    bMidiBankMsbReceived;
-            bool    bMidiBankLsbReceived;
-            bool    bProgramChangeReceived;
-            bool    bMidiRpnReceived;
-            int     iMidiInstrumentMap;
-            atomic_t voiceCount;
-            atomic_t diskStreamCount;
-            SamplerChannel* pSamplerChannel;
-            ListenerList<FxSendCountListener*> llFxSendCountListeners;
+            void* pPrivateData;
     };
 
 } // namespace LinuxSampler

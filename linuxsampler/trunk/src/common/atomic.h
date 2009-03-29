@@ -17,10 +17,16 @@
     along with this program; if not, write to the Free Software
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
-    $Id: atomic.h,v 1.7 2008-11-16 19:19:26 persson Exp $
+    $Id: atomic.h,v 1.8 2009-03-29 18:43:39 schoenebeck Exp $
 */
 
-//TODO: should we put this into namespace? it might clash with system installed atomic.h, because we need to install atomic.h for the LS API
+/*
+  CAUTION: don't ever include this file in header files that are exposed
+  to the liblinuxsampler C++ API !!! This file will not be installed along
+  with liblinuxsampler's header files! This is due to the fact that
+  atomic.h is architecture specific and would in turn require us to include
+  and export config.h, which is definitely a bad idea.
+*/
 
 #ifndef __linuxsampler_atomic_h__
 #define __linuxsampler_atomic_h__
@@ -251,27 +257,27 @@ typedef struct { volatile int counter; } atomic_t;
 /**
  * atomic_read - read atomic variable
  * @v: pointer of type atomic_t
- * 
+ *
  * Atomically reads the value of @v.  Note that the guaranteed
  * useful range of an atomic_t is only 24 bits.
- */ 
+ */
 #define atomic_read(v)		((v)->counter)
 
 /**
  * atomic_set - set atomic variable
  * @v: pointer of type atomic_t
  * @i: required value
- * 
+ *
  * Atomically sets the value of @v to @i.  Note that the guaranteed
  * useful range of an atomic_t is only 24 bits.
- */ 
+ */
 #define atomic_set(v,i)		(((v)->counter) = (i))
 
 /**
  * atomic_add - add integer to atomic variable
  * @i: integer value to add
  * @v: pointer of type atomic_t
- * 
+ *
  * Atomically adds @i to @v.  Note that the guaranteed useful range
  * of an atomic_t is only 24 bits.
  */
@@ -287,7 +293,7 @@ static __inline__ void atomic_add(int i, atomic_t *v)
  * atomic_sub - subtract the atomic variable
  * @i: integer value to subtract
  * @v: pointer of type atomic_t
- * 
+ *
  * Atomically subtracts @i from @v.  Note that the guaranteed
  * useful range of an atomic_t is only 24 bits.
  */
@@ -303,7 +309,7 @@ static __inline__ void atomic_sub(int i, atomic_t *v)
  * atomic_sub_and_test - subtract value from variable and test result
  * @i: integer value to subtract
  * @v: pointer of type atomic_t
- * 
+ *
  * Atomically subtracts @i from @v and returns
  * true if the result is zero, or false for all
  * other cases.  Note that the guaranteed
@@ -323,10 +329,10 @@ static __inline__ int atomic_sub_and_test(int i, atomic_t *v)
 /**
  * atomic_inc - increment atomic variable
  * @v: pointer of type atomic_t
- * 
+ *
  * Atomically increments @v by 1.  Note that the guaranteed
  * useful range of an atomic_t is only 24 bits.
- */ 
+ */
 static __inline__ void atomic_inc(atomic_t *v)
 {
 	__asm__ __volatile__(
@@ -338,10 +344,10 @@ static __inline__ void atomic_inc(atomic_t *v)
 /**
  * atomic_dec - decrement atomic variable
  * @v: pointer of type atomic_t
- * 
+ *
  * Atomically decrements @v by 1.  Note that the guaranteed
  * useful range of an atomic_t is only 24 bits.
- */ 
+ */
 static __inline__ void atomic_dec(atomic_t *v)
 {
 	__asm__ __volatile__(
@@ -353,12 +359,12 @@ static __inline__ void atomic_dec(atomic_t *v)
 /**
  * atomic_dec_and_test - decrement and test
  * @v: pointer of type atomic_t
- * 
+ *
  * Atomically decrements @v by 1 and
  * returns true if the result is 0, or false for all other
  * cases.  Note that the guaranteed
  * useful range of an atomic_t is only 24 bits.
- */ 
+ */
 static __inline__ int atomic_dec_and_test(atomic_t *v)
 {
 	unsigned char c;
@@ -371,14 +377,14 @@ static __inline__ int atomic_dec_and_test(atomic_t *v)
 }
 
 /**
- * atomic_inc_and_test - increment and test 
+ * atomic_inc_and_test - increment and test
  * @v: pointer of type atomic_t
- * 
+ *
  * Atomically increments @v by 1
  * and returns true if the result is zero, or false for all
  * other cases.  Note that the guaranteed
  * useful range of an atomic_t is only 24 bits.
- */ 
+ */
 static __inline__ int atomic_inc_and_test(atomic_t *v)
 {
 	unsigned char c;
@@ -394,12 +400,12 @@ static __inline__ int atomic_inc_and_test(atomic_t *v)
  * atomic_add_negative - add and test if negative
  * @v: pointer of type atomic_t
  * @i: integer value to add
- * 
+ *
  * Atomically adds @i to @v and returns true
  * if the result is negative, or false when
  * result is greater than or equal to zero.  Note that the guaranteed
  * useful range of an atomic_t is only 24 bits.
- */ 
+ */
 static __inline__ int atomic_add_negative(int i, atomic_t *v)
 {
 	unsigned char c;
@@ -1185,8 +1191,8 @@ static __inline__ int atomic_dec_and_test(volatile atomic_t *v)
 
 #define __NO_STRICT_ATOMIC
 #ifdef __NO_STRICT_ATOMIC
-	
-/* 
+
+/*
  * Because the implementations from the kernel (where all these come
  * from) use cli and spinlocks for hppa and arm...
  */
@@ -1207,7 +1213,7 @@ static __inline__ void atomic_dec(atomic_t *v)
 {
 	v->counter--;
 }
-    
+
 static __inline__ int atomic_dec_and_test(atomic_t *v)
 {
 	int res;
@@ -1215,7 +1221,7 @@ static __inline__ int atomic_dec_and_test(atomic_t *v)
 	res = v->counter;
 	return res == 0;
 }
-    
+
 static __inline__ int atomic_inc_and_test(atomic_t *v)
 {
 	int res;
