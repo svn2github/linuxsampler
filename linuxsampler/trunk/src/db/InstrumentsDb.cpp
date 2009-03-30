@@ -1,6 +1,6 @@
 /***************************************************************************
  *                                                                         *
- *   Copyright (C) 2007, 2008 Grigor Iliev                                 *
+ *   Copyright (C) 2007-2009 Grigor Iliev                                 *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -1177,6 +1177,7 @@ namespace LinuxSampler {
             throw Exception(ss.str());
         }
 
+        bool unlocked = false;
         RIFF::File* riff = NULL;
         gig::File* gig = NULL;
         try {
@@ -1205,8 +1206,19 @@ namespace LinuxSampler {
 
             if (Index == -1) {
                 int instrIndex = 0;
+                // Assume that it's locked and should be unlocked at this point
+                // to be able to use the database from another threads
+                if (!InTransaction) {
+                    DbInstrumentsMutex.Unlock();
+                    unlocked = true;
+                } else {
+                    std::cerr << "Shouldn't be in transaction when adding instruments." << std::endl;
+                }
+
                 if (pProgress != NULL) gig->GetInstrument(0, &(pProgress->GigFileProgress)); // TODO: this workaround should be fixed
                 gig::Instrument* pInstrument = gig->GetFirstInstrument();
+
+                if (!InTransaction) DbInstrumentsMutex.Lock();
                 while (pInstrument) {
                     BindTextParam(pStmt, 7, gig->pInfo->Product);
                     BindTextParam(pStmt, 8, gig->pInfo->Artists);
@@ -1234,6 +1246,7 @@ namespace LinuxSampler {
         } catch (RIFF::Exception e) {
             if (gig != NULL) delete gig;
             if (riff != NULL) delete riff;
+            if (unlocked) DbInstrumentsMutex.Lock();
             std::stringstream ss;
             ss << "Failed to scan `" << FilePath << "`: " << e.Message;
             
@@ -1241,10 +1254,12 @@ namespace LinuxSampler {
         } catch (Exception e) {
             if (gig != NULL) delete gig;
             if (riff != NULL) delete riff;
+            if (unlocked) DbInstrumentsMutex.Lock();
             throw e;
         } catch (...) {
             if (gig != NULL) delete gig;
             if (riff != NULL) delete riff;
+            if (unlocked) DbInstrumentsMutex.Lock();
             throw Exception("Failed to scan `" + FilePath + "`");
         }
     }
