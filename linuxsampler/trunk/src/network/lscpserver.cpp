@@ -555,6 +555,13 @@ int LSCPServer::Main() {
 		  exit(EXIT_FAILURE);
 		}
         #else
+                struct linger linger;
+                linger.l_onoff = 1;
+                linger.l_linger = 0;
+                if(setsockopt(socket, SOL_SOCKET, SO_LINGER, &linger, sizeof(linger))) {
+                    std::cerr << "LSCPServer: Failed to set SO_LINGER\n";
+                }
+
 		if (fcntl(socket, F_SETFL, O_NONBLOCK)) {
 			std::cerr << "LSCPServer: F_SETFL O_NONBLOCK failed." << std::endl;
 			exit(EXIT_FAILURE);

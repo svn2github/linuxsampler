@@ -141,6 +141,7 @@ Version CVS HEAD (?)
     - bugfix: retry if "select" returns EINTR (this fixes a crash when
       a gigedit file dialog is opened)
     - close all connections when LSCPServer is deleted
+    - hard close of all sockets on exit
 
   * Bug fixes:
     - fixed a crash which occurs when removing a sampler channel waiting

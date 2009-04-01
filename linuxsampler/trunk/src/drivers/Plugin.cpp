@@ -205,8 +205,10 @@ namespace LinuxSampler {
             EngineChannel* engine_channel = channel->GetEngineChannel();
             engine_channel->Volume(volume);
             if (!filename.empty() && index != -1) {
-                engine_channel->PrepareLoadInstrument(filename.c_str(), index);
-                engine_channel->LoadInstrument();
+                InstrumentManager::instrument_id_t id;
+                id.FileName = filename;
+                id.Index    = index;
+                InstrumentManager::LoadInstrumentInBackground(id, engine_channel);
             }
             if (solo) engine_channel->SetSolo(solo);
             if (mute) engine_channel->SetMute(1);
