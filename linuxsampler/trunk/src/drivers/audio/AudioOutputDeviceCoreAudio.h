@@ -177,7 +177,7 @@ namespace LinuxSampler {
             atomic_t            restartQueue;
             Mutex               destroyMutex;
 
-            void CreateAndStartAudioQueue();
+            void CreateAndStartAudioQueue() throw(Exception);
             void DestroyAudioQueue();
             void FillBuffers();
             void PrimeAudioQueue();

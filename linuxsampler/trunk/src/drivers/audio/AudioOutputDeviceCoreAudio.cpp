@@ -58,22 +58,17 @@ namespace LinuxSampler {
         // let all connected engines render 'fragmentSize' sample points
         pAqData->pDevice->RenderAudio(bufferSize);
 
-        int16_t* pDataBuf = (int16_t*)(inBuffer->mAudioData);
+        Float32* pDataBuf = (Float32*)(inBuffer->mAudioData);
 
         uint uiCoreAudioChannels = pAqData->pDevice->uiCoreAudioChannels;
-        // convert from DSP value range (-1.0..+1.0) to 16 bit integer value
-        // range (-32768..+32767), check clipping  and copy to Alsa output buffer
         for (int c = 0; c < uiCoreAudioChannels; c++) {
             float* in  = pAqData->pDevice->Channels[c]->Buffer();
             for (int i = 0, o = c; i < bufferSize; i++ , o += uiCoreAudioChannels) {
-                float sample_point = in[i] * 32768.0f;
-                if (sample_point < -32768.0) sample_point = -32768.0;
-                if (sample_point >  32767.0) sample_point =  32767.0;
-                pDataBuf[o] = (int16_t) sample_point;
+                pDataBuf[o] = in[i];
             }
         }
 
-        inBuffer->mAudioDataByteSize = (uiCoreAudioChannels * 2) * bufferSize;
+        inBuffer->mAudioDataByteSize = (uiCoreAudioChannels * 4) * bufferSize;
 
         OSStatus res = AudioQueueEnqueueBuffer(pAqData->mQueue, inBuffer, 0, NULL);
         if(res) std::cerr << "AudioQueueEnqueueBuffer: Error " << res << std::endl;
@@ -107,17 +102,21 @@ namespace LinuxSampler {
         CurrentDevice = CAAudioDeviceListModel::GetModel()->GetOutputDevice(device);
         CurrentDevice.AddListener(this);
 
+        memset (&aqPlayerState.mDataFormat, 0, sizeof(AudioStreamBasicDescription));
+
         aqPlayerState.mDataFormat.mSampleRate = samplerate;
         aqPlayerState.mDataFormat.mFormatID = kAudioFormatLinearPCM;
 
         aqPlayerState.mDataFormat.mFormatFlags =
-            kAudioFormatFlagIsSignedInteger | kAudioFormatFlagIsPacked;
+            kLinearPCMFormatFlagIsFloat | kLinearPCMFormatFlagIsPacked;
 
-        aqPlayerState.mDataFormat.mBytesPerPacket = uiCoreAudioChannels * 2;
+        int samplesize = 4;
+        aqPlayerState.mDataFormat.mBytesPerPacket = uiCoreAudioChannels * samplesize;
         aqPlayerState.mDataFormat.mFramesPerPacket = 1;
-        aqPlayerState.mDataFormat.mBytesPerFrame = uiCoreAudioChannels * 2;
+        aqPlayerState.mDataFormat.mBytesPerFrame = uiCoreAudioChannels * samplesize;
         aqPlayerState.mDataFormat.mChannelsPerFrame = uiCoreAudioChannels;
-        aqPlayerState.mDataFormat.mBitsPerChannel = 16;
+        aqPlayerState.mDataFormat.mBitsPerChannel = 8 * samplesize;
+        aqPlayerState.mDataFormat.mReserved = 0;
 
         aqPlayerState.mBuffers = new AudioQueueBufferRef[uiBufferNumber];
 
@@ -152,20 +151,6 @@ namespace LinuxSampler {
         CurrentDevice.RemoveListener(this);
     }
 
-    void AudioOutputDeviceCoreAudio::SetAudioDataFormat(AudioStreamBasicDescription* pDataFormat) {
-        pDataFormat->mSampleRate = 44100;
-        pDataFormat->mFormatID = kAudioFormatLinearPCM;
-
-        pDataFormat->mFormatFlags =
-            kAudioFormatFlagIsSignedInteger | kAudioFormatFlagIsPacked;
-
-        pDataFormat->mBytesPerPacket = 4;
-        pDataFormat->mFramesPerPacket = 1;
-        pDataFormat->mBytesPerFrame = 4;
-        pDataFormat->mChannelsPerFrame = 2;
-        pDataFormat->mBitsPerChannel = 16;
-    }
-
     String AudioOutputDeviceCoreAudio::Name() {
         return "COREAUDIO";
     }
@@ -175,7 +160,7 @@ namespace LinuxSampler {
     }
 
     String AudioOutputDeviceCoreAudio::Version() {
-       String s = "$Revision: 1.4 $";
+       String s = "$Revision: 1.5 $";
        return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
 
@@ -226,7 +211,7 @@ namespace LinuxSampler {
         }
     }
 
-    void AudioOutputDeviceCoreAudio::CreateAndStartAudioQueue() {
+    void AudioOutputDeviceCoreAudio::CreateAndStartAudioQueue() throw(Exception) {
         OSStatus res = AudioQueueNewOutput (
             &aqPlayerState.mDataFormat,
             HandleOutputBuffer,
@@ -325,7 +310,11 @@ namespace LinuxSampler {
              * Need to be run from this thread because of CFRunLoopGetCurrent()
              * which returns the CFRunLoop object for the current thread.
              */
-            CreateAndStartAudioQueue();
+            try { CreateAndStartAudioQueue(); }
+            catch(Exception e) {
+                std::cerr << "Failed to star audio queue: " + e.Message() << std::endl;
+                return 0;
+            }
         }
 
         destroyMutex.Lock();
@@ -623,7 +612,7 @@ namespace LinuxSampler {
 
     optional<int>
     AudioOutputDeviceCoreAudio::ParameterBufferSize::DefaultAsInt(std::map<String,String> Parameters) {
-        return 128;
+        return 256;
     }
 
     optional<int>
