@@ -26,6 +26,8 @@ Version CVS HEAD (?)
     - bugfix: destructor for base class RIFF::Chunk accessed members
       of derived class RIFF::File, which is bad, and caused crashes
       when using Visual C++
+    - bugfix: files that contain zero length RIFF lists were not read
+      correctly (fixes #127) (bug was introduced 2009-03-13)
 
 Version 3.2.1 (5 Dec 2007)
 

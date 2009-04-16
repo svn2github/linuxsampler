@@ -1243,7 +1243,7 @@ namespace RIFF {
       std::cout << "List::Readheader(ulong) ";
       #endif // DEBUG
         Chunk::ReadHeader(fPos);
-        if (CurrentChunkSize < 8) return;
+        if (CurrentChunkSize < 4) return;
         NewChunkSize = CurrentChunkSize -= 4;
         #if POSIX
         lseek(pFile->hFileRead, fPos + CHUNK_HEADER_SIZE, SEEK_SET);
