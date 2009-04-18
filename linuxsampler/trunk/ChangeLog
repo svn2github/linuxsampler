@@ -62,6 +62,9 @@ Version CVS HEAD (?)
     - JACK: use jack_client_open instead of the deprecated
       jack_client_new
     - added (experimental) CoreAudio driver
+    - applied old fixes to the ASIO driver that were included in the
+      previous binary release but accidentally never committed to CVS
+      (fixes #117)
 
   * MIDI driver:
     - added JACK MIDI driver

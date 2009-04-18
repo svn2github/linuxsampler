@@ -114,18 +114,19 @@ int main(int argc, char **argv) {
     dmsg(1,("Copyright (C) 2005-2009 Christian Schoenebeck\n"));
 
     #if defined(WIN32)
+    #if 0
     // some WIN32 memory info code which tries to determine the maximum lockable amount of memory (for debug purposes)
     SYSTEM_INFO siSysInfo;
     long physical_memory;
     GetSystemInfo(&siSysInfo);
-    dmsg(1,("page size=%d\n", siSysInfo.dwPageSize));
+    dmsg(2,("page size=%d\n", siSysInfo.dwPageSize));
 
     MEMORYSTATUSEX statex;
 	statex.dwLength = sizeof (statex);
     GlobalMemoryStatusEx (&statex);
-    dmsg(1, ("There are %*I64d total Kbytes of physical memory.\n",
+    dmsg(2, ("There are %*I64d total Kbytes of physical memory.\n",
           8, statex.ullTotalPhys));
-    dmsg(1, ("There are %*I64d free Kbytes of physical memory.\n",
+    dmsg(2, ("There are %*I64d free Kbytes of physical memory.\n",
           8, statex.ullAvailPhys));
     physical_memory = statex.ullTotalPhys;
 
@@ -158,7 +159,8 @@ int main(int argc, char **argv) {
         if(RequestedMinimumWorkingSetSize < DefaultMinimumWorkingSetSize) break;
     }
 
-    dmsg(1,("AFTER GetProcessWorkingSetSize: res = %d  MinimumWorkingSetSize=%d, MaximumWorkingSetSize=%d\n", res,MinimumWorkingSetSize, MaximumWorkingSetSize));
+    dmsg(2,("AFTER GetProcessWorkingSetSize: res = %d  MinimumWorkingSetSize=%d, MaximumWorkingSetSize=%d\n", res,MinimumWorkingSetSize, MaximumWorkingSetSize));
+    #endif
     #endif // WIN32
 
     if (tune) {
