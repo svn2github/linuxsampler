@@ -47,6 +47,8 @@ Version CVS HEAD (?)
       liblinuxsampler C++ API methods: InstrumentEditor::Main(),
       InstrumentEditor::Launch(),
       InstrumentManager::LaunchInstrumentEditor()
+    - theoretical fix: made SynchronizedConfig follow C++0x memory
+      model more strictly
 
   * audio driver:
     - removed the nonsense audio channel constraint (which was hard coded to
@@ -66,6 +68,8 @@ Version CVS HEAD (?)
     - dispatch bank select as ordinary CC as well, the user might seriously
       want to (mis)use it for some purpose ("fixed" in all current MIDI
       input drivers: ALSA, CoreMIDI, JACK, MidiShare, MME)
+    - bugfix: pitch bend wasn't working with JackMidi, VST, LV2, Mme,
+      CoreMidi or AU
 
   * instruments database:
     - avoid time consuming samples scanning when adding instruments

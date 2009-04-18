@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 - 2008 Christian Schoenebeck                       *
+ *   Copyright (C) 2005 - 2009 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -89,9 +89,9 @@ void CALLBACK MidiInputDeviceMme::MidiInputPortMme::win32_midiin_callback(HMIDII
     String MidiInputDeviceMme::ParameterPorts::Name() {
         return "PORTS";
     }
-    
+
     // the MME driver supports only one port so to manage multiple MME MIDI ports the user just creates several MME drivers and connects each one to the desired MME port
-    
+
 
 
 // *************** ParameterPort ***************
@@ -203,7 +203,7 @@ void MidiInputDeviceMme::MidiInputPortMme::ConnectToMmeMidiSource(const char* Mi
     if(res != MMSYSERR_NOERROR) {
         throw MidiInputException("MIDI port connect failed. midiInOpen error");
     }
-    
+
     MidiInOpened = true;
 
     /* Store pointer to our input buffer for System Exclusive messages in MIDIHDR */
@@ -221,7 +221,7 @@ void MidiInputDeviceMme::MidiInputPortMme::ConnectToMmeMidiSource(const char* Mi
         CloseMmeMidiPort();
         throw MidiInputException("MIDI port connect failed. midiInPrepareHeader error");
     }
-		
+
     /* Queue MIDI input buffer */
     res = midiInAddBuffer(MidiInHandle, &midiHdr, sizeof(MIDIHDR));
     if(res != MMSYSERR_NOERROR) {
@@ -229,7 +229,7 @@ void MidiInputDeviceMme::MidiInputPortMme::ConnectToMmeMidiSource(const char* Mi
         throw MidiInputException("MIDI port connect failed. midiInAddBuffer error");
     }
 
- 
+
     res = midiInStart(MidiInHandle);
     if(res != MMSYSERR_NOERROR) {
         CloseMmeMidiPort();
@@ -237,7 +237,7 @@ void MidiInputDeviceMme::MidiInputPortMme::ConnectToMmeMidiSource(const char* Mi
     }
 
 }
-	
+
 void MidiInputDeviceMme::MidiInputPortMme::MmeCallbackDispatcher(HMIDIIN handle, UINT uMsg, DWORD dwParam1, DWORD dwParam2) {
 
     unsigned char *DataPtr; // pointer to SysEx data
@@ -247,49 +247,9 @@ void MidiInputDeviceMme::MidiInputPortMme::MmeCallbackDispatcher(HMIDIIN handle,
 
     switch(uMsg) {
         case MIM_DATA:
-            switch(data[0] & 0xF0) { // status byte
-
-                case 0xB0:
-                    if (data[1] == 0)
-                        DispatchBankSelectMsb(data[2], data[0] & 0x0F);
-                    else if (data[1] == 32)
-                        DispatchBankSelectLsb(data[2], data[0] & 0x0F);
-                    DispatchControlChange(data[1], data[2], data[0] & 0x0F);
-                    break;
-
-                case 0xD0:
-                        DispatchControlChange(128, data[1], data[0] & 0x0F);
-                    break;
-
-                case 0xE0:
-                        DispatchPitchbend(data[1], data[0] & 0x0F);
-                    break;
-
-                case 0x90:
-                    if (data[1] < 0x80) {
-                        if (data[2] > 0){
-                            DispatchNoteOn(data[1], data[2], data[0] & 0x0F);
-                        }else{
-                            DispatchNoteOff(data[1], data[2], data[0] & 0x0F);
-                        }
-                    }
-                    break;
-
-                case 0x80:
-                    if (data[1] < 0x80) {
-                        DispatchNoteOff(data[1], data[2], data[0] & 0x0F);
-                    }
-                    break;
-
-                case 0xC0:
-                    if (data[1] < 0x80) {
-                        DispatchProgramChange(data[1], data[0] & 0x0F);
-                    }
-                    break;
-            }
-		
+            DispatchRaw(data);
             break;
-			
+
         case MIM_LONGDATA:
             if(!ExitFlag) {
                 LPMIDIHDR lpMIDIHeader = (LPMIDIHDR)dwParam1;
@@ -316,11 +276,11 @@ void MidiInputDeviceMme::MidiInputPortMme::MmeCallbackDispatcher(HMIDIIN handle,
 
                 if(SysExMsgComplete) DispatchSysex(SysExBuf, SysExOffset);
 
-                /* Queue the MIDIHDR for more input, only if ExitFlag was not set otherwise we risk an infinite loop   
+                /* Queue the MIDIHDR for more input, only if ExitFlag was not set otherwise we risk an infinite loop
                 because when we call midiInReset() below, Windows will send a final  MIM_LONGDATA message to that callback.
     */
-                midiInAddBuffer(MidiInHandle, lpMIDIHeader, sizeof(MIDIHDR));			
-            }		
+                midiInAddBuffer(MidiInHandle, lpMIDIHeader, sizeof(MIDIHDR));
+            }
             break;
     }
 
@@ -374,10 +334,10 @@ void MidiInputDeviceMme::MidiInputPortMme::MmeCallbackDispatcher(HMIDIIN handle,
     }
 
     String MidiInputDeviceMme::Version() {
-        String s = "$Revision: 1.3 $";
+        String s = "$Revision: 1.4 $";
         return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
 
-	
-	
+
+
 } // namespace LinuxSampler

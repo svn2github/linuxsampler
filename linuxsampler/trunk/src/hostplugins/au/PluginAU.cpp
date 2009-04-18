@@ -279,7 +279,7 @@ COMPONENT_ENTRY(PluginAU)
                 if(inData1 < 0x80) port->DispatchProgramChange(inData1, inChannel);
                 break;
             case 0xE0:
-                port->DispatchPitchbend(inData1, inChannel, inStartFrame);
+                port->DispatchPitchbend((inData1 | inData2 << 7) - 8192, inChannel, inStartFrame);
                 break;
             case 0xD0:
                 port->DispatchControlChange(128, inData1, inChannel);

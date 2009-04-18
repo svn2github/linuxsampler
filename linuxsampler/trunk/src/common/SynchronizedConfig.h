@@ -1,6 +1,6 @@
 /***************************************************************************
  *                                                                         *
- *   Copyright (C) 2006-2008 Andreas Persson                               *
+ *   Copyright (C) 2006-2009 Andreas Persson                               *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -66,7 +66,7 @@ namespace LinuxSampler {
                      *          thread
                      */
                     const T& Lock() {
-                        lock.store(1, memory_order_relaxed);
+                        lock.store(lockCount += 2, memory_order_relaxed);
                         atomic_thread_fence(memory_order_seq_cst);
                         return parent.config[parent.indexAtomic.load(
                                 memory_order_acquire)];
@@ -81,9 +81,7 @@ namespace LinuxSampler {
                      * time threads are locked anymore.
                      */
                     void Unlock() {
-                        atomic_thread_fence(memory_order_release);
-                        lock.store(0, memory_order_relaxed);
-                        flag.store(0, memory_order_relaxed);
+                        lock.store(0, memory_order_release);
                     }
 
                     Reader(SynchronizedConfig& config);
@@ -91,9 +89,12 @@ namespace LinuxSampler {
                 private:
                     friend class SynchronizedConfig;
                     SynchronizedConfig& parent;
-                    atomic<int> lock;
-                    atomic<int> flag;
-                    Reader *next; // only used locally in SwitchConfig
+                    int lockCount; // increased in every Lock(),
+                                   // lowest bit is always set.
+                    atomic<int> lock; // equals lockCount when inside
+                                      // critical region, otherwise 0
+                    Reader* next; // only used locally in SwitchConfig
+                    int prevLock; // only used locally in SwitchConfig
             };
 
 
@@ -150,9 +151,8 @@ namespace LinuxSampler {
         for (typename std::set<Reader*>::iterator iter = readers.begin() ;
              iter != readers.end() ;
              iter++) {
-            (*iter)->flag.store(1, memory_order_relaxed);
-            if ((*iter)->lock.load(memory_order_acquire) &&
-                (*iter)->flag.load(memory_order_acquire)) {
+            (*iter)->prevLock = (*iter)->lock.load(memory_order_acquire);
+            if ((*iter)->prevLock) {
                 (*iter)->next = lockingReaders;
                 lockingReaders = *iter;
             }
@@ -163,9 +163,11 @@ namespace LinuxSampler {
             usleep(50000);
             Reader** prev = &lockingReaders;
             for (Reader* p = lockingReaders ; p ; p = p->next) {
-               if (p->lock.load(memory_order_acquire) &&
-                   p->flag.load(memory_order_acquire)) prev = &p->next;
-                else *prev = p->next; // unlink
+                if (p->lock.load(memory_order_acquire) == p->prevLock) {
+                    prev = &p->next;
+                } else {
+                    *prev = p->next; // unlink
+                }
             }
         }
 
@@ -178,7 +180,7 @@ namespace LinuxSampler {
 
     template <class T>
     SynchronizedConfig<T>::Reader::Reader(SynchronizedConfig& config) :
-        parent(config), lock(0), flag(0) {
+        parent(config), lock(0), lockCount(1) {
         parent.readers.insert(this);
     }
 

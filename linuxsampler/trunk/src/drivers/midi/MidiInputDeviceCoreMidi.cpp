@@ -1,7 +1,7 @@
 /***************************************************************************
  *                                                                         *
  *   Copyright (C) 2004, 2005 Grame                                        *
- *   Copyright (C) 2005 - 2008 Christian Schoenebeck                       *
+ *   Copyright (C) 2005 - 2009 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -91,50 +91,9 @@ namespace LinuxSampler {
 
 		for (unsigned int i = 0; i < pktlist->numPackets; ++i) {
 
-			int cin = packet->data[0] & 0xF0;
-
 			// To be checked : several events per packet
 
-			switch(cin) { // status byte
-
-				case 0xB0:
-					if (packet->data[1] == 0)
-						port->DispatchBankSelectMsb(packet->data[2],packet->data[0]&0x0F);
-					else if (packet->data[1] == 32)
-						port->DispatchBankSelectLsb(packet->data[2],packet->data[0]&0x0F);
-					port->DispatchControlChange(packet->data[1],packet->data[2],packet->data[0]&0x0F);
-					break;
-
-				case 0xD0:
-					port->DispatchControlChange(128,packet->data[1],packet->data[0]&0x0F);
-					break;
-
-				case 0xE0:
-					port->DispatchPitchbend(packet->data[1],packet->data[0]&0x0F);
-					break;
-
-				case 0x90:
-					if (packet->data[1] < 0x80) {
-						if (packet->data[2] > 0){
-							port->DispatchNoteOn(packet->data[1],packet->data[2], packet->data[0]&0x0F);
-						}else{
-							port->DispatchNoteOff(packet->data[1],packet->data[2],packet->data[0]&0x0F);
-						}
-					}
-					break;
-
-				case 0x80:
-					if (packet->data[1] < 0x80) {
-						port->DispatchNoteOff(packet->data[1],packet->data[2],packet->data[0]&0x0F);
-					}
-					break;
-
-				case 0xC0:
-					if (packet->data[1] < 0x80) {
-						port->DispatchProgramChange(packet->data[1], packet->data[0] & 0x0F);
-					}
-					break;
-			}
+			port->DispatchRaw(packet->data);
 
 			packet = MIDIPacketNext(packet);
 		}
@@ -175,7 +134,7 @@ namespace LinuxSampler {
     }
 
     String MidiInputDeviceCoreMidi::Version() {
-	    String s = "$Revision: 1.11 $";
+	    String s = "$Revision: 1.12 $";
 	    return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
 

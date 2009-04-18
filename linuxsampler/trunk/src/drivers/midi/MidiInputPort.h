@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 - 2008 Christian Schoenebeck                       *
+ *   Copyright (C) 2005 - 2009 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -310,6 +310,14 @@ namespace LinuxSampler {
              * @param Size  - length of the sysex data (in bytes)
              */
             void DispatchSysex(void* pData, uint Size);
+
+            /**
+             * Helper function for MIDI input devices that have the
+             * MIDI data as raw bytes.
+             *
+             * @param pData       - pointer to the raw MIDI data
+             */
+            void DispatchRaw(uint8_t* pData);
 
             /**
              * Helper function for MIDI input devices that have the

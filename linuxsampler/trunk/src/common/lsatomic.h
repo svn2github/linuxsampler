@@ -1,6 +1,6 @@
 /***************************************************************************
  *                                                                         *
- *   Copyright (C) 2008 Andreas Persson                                    *
+ *   Copyright (C) 2008-2009 Andreas Persson                               *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -27,7 +27,7 @@
  *
  * The supported operations are:
  *
- * - fences (acquire, release and full)
+ * - fences (acquire, release and seq_cst)
  *
  * - load and store of atomic<int> with relaxed, acquire/release or
  *   seq_cst memory ordering

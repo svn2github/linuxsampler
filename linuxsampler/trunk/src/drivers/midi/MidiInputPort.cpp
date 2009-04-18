@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 - 2008 Christian Schoenebeck                       *
+ *   Copyright (C) 2005 - 2009 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -397,6 +397,39 @@ namespace LinuxSampler {
         MidiChannelMapReader.Unlock();
     }
 
+    void MidiInputPort::DispatchRaw(uint8_t* pData) {
+        uint8_t channel = pData[0] & 0x0f;
+        switch (pData[0] & 0xf0) {
+        case 0x80:
+            DispatchNoteOff(pData[1], pData[2], channel);
+            break;
+        case 0x90:
+            if (pData[2]) {
+                DispatchNoteOn(pData[1], pData[2], channel);
+            } else {
+                DispatchNoteOff(pData[1], pData[2], channel);
+            }
+            break;
+        case 0xb0:
+            if (pData[1] == 0) {
+                DispatchBankSelectMsb(pData[2], channel);
+            } else if (pData[1] == 32) {
+                DispatchBankSelectLsb(pData[2], channel);
+            }
+            DispatchControlChange(pData[1], pData[2], channel);
+            break;
+        case 0xc0:
+            DispatchProgramChange(pData[1], channel);
+            break;
+        case 0xd0:
+            DispatchControlChange(128, pData[1], channel);
+            break;
+        case 0xe0:
+            DispatchPitchbend((pData[1] | pData[2] << 7) - 8192, channel);
+            break;
+        }
+    }
+
     void MidiInputPort::DispatchRaw(uint8_t* pData, int32_t FragmentPos) {
         uint8_t channel = pData[0] & 0x0f;
         switch (pData[0] & 0xf0) {
@@ -425,7 +458,7 @@ namespace LinuxSampler {
             DispatchControlChange(128, pData[1], channel, FragmentPos);
             break;
         case 0xe0:
-            DispatchPitchbend(pData[1], channel, FragmentPos);
+            DispatchPitchbend((pData[1] | pData[2] << 7) - 8192, channel, FragmentPos);
             break;
         }
     }
