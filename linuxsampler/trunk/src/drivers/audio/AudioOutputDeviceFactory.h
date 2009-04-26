@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005, 2006 Christian Schoenebeck                        *
+ *   Copyright (C) 2005 - 2009 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -61,13 +61,7 @@ namespace LinuxSampler {
 		      AudioOutputDeviceFactory::ParameterFactories[Driver_T::Name()] = new DeviceParameterFactory();
                   }
                   ~InnerFactoryRegistrator() {
-                      std::map<String, InnerFactory*>::iterator iter = AudioOutputDeviceFactory::InnerFactories.find(Driver_T::Name());
-                      delete iter->second;
-                      AudioOutputDeviceFactory::InnerFactories.erase(iter);
-
-                      std::map<String, DeviceParameterFactory*>::iterator iterpf = AudioOutputDeviceFactory::ParameterFactories.find(Driver_T::Name());
-                      delete iterpf->second;
-                      AudioOutputDeviceFactory::ParameterFactories.erase(iterpf);
+                      AudioOutputDeviceFactory::Unregister(Driver_T::Name());
                   }
           };
 
@@ -77,9 +71,6 @@ namespace LinuxSampler {
                   ParameterRegistrator() {
                       DeviceParameterFactory::Register<Parameter_T>(AudioOutputDeviceFactory::ParameterFactories[Driver_T::Name()]);
 		  }
-                  ~ParameterRegistrator() {
-                      DeviceParameterFactory::Unregister<Parameter_T>(AudioOutputDeviceFactory::ParameterFactories[Driver_T::Name()]);
-                  }
 	  };
 
           static AudioOutputDevice*                        Create(String DriverName, std::map<String,String> Parameters) throw (Exception);
@@ -89,6 +80,7 @@ namespace LinuxSampler {
           static DeviceCreationParameter*                  GetDriverParameter(String DriverName, String ParameterName) throw (Exception);
           static String                                    GetDriverDescription(String DriverName) throw (Exception);
           static String                                    GetDriverVersion(String DriverName) throw (Exception);
+          static void                                      Unregister(String DriverName);
 
 //      protected: /* FIXME: fields below should be protected, causes errors on gcc 2.95 though */
           static std::map<String, InnerFactory*> InnerFactories;

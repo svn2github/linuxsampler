@@ -1,6 +1,6 @@
 /***************************************************************************
  *                                                                         *
- *   Copyright (C) 2008 Andreas Persson                                    *
+ *   Copyright (C) 2008 - 2009 Andreas Persson                             *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -33,8 +33,7 @@ namespace LinuxSampler {
         RefCount(0) {
         // we need to remove the ASIO driver, otherwise the lscp info
         // methods will lock up the audio device
-        AudioOutputDeviceFactory::InnerFactories.erase("ASIO");
-        AudioOutputDeviceFactory::ParameterFactories.erase("ASIO");
+        AudioOutputDeviceFactory::Unregister("ASIO");
 
         REGISTER_AUDIO_OUTPUT_DRIVER(AudioOutputDevicePlugin);
         REGISTER_AUDIO_OUTPUT_DRIVER_PARAMETER(AudioOutputDevicePlugin, ParameterActive);

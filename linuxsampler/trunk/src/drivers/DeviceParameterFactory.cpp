@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 - 2007 Christian Schoenebeck                       *
+ *   Copyright (C) 2005 - 2009 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -61,6 +61,12 @@ namespace LinuxSampler {
 		result[iter->first] = iter->second->Create();
 	}
 	return result;
+    }
+
+    DeviceParameterFactory::~DeviceParameterFactory() {
+        for (std::map<String, InnerFactory*>::iterator iter = InnerFactories.begin(); iter != InnerFactories.end(); iter++) {
+            delete iter->second;
+        }
     }
 
 } // namespace LinuxSampler

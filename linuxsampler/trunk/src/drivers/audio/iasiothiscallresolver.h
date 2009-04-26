@@ -112,6 +112,9 @@
 // to be safely #include'd whatever the platform to keep client code portable
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32__)
 
+// gcc 4.4 is using the same calling conventions as Microsoft on Win64
+#if !defined(__WIN64__)
+
 // If microsoft compiler we can call IASIO directly so IASIOThiscallResolver
 // is not used.
 #if !defined(_MSC_VER)
@@ -189,7 +192,7 @@ public:
 #define ASIOInit(name) IASIOThiscallResolver::ASIOInit((name))
 
 #endif /* !defined(_MSC_VER) */
-
+#endif /* !defined(__WIN64__) */
 #endif /* Win32 */
 
 #endif /* included_iasiothiscallresolver_h */

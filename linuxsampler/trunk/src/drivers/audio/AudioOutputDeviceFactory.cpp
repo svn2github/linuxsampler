@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 - 2007 Christian Schoenebeck                       *
+ *   Copyright (C) 2005 - 2009 Christian Schoenebeck                       *
  *                                                                         *
  *   This library is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -173,6 +173,20 @@ namespace LinuxSampler {
     String AudioOutputDeviceFactory::GetDriverVersion(String DriverName) throw (Exception) {
         if (!InnerFactories.count(DriverName)) throw Exception("There is no audio output driver '" + DriverName + "'.");
         return InnerFactories[DriverName]->Version();
+    }
+
+    void AudioOutputDeviceFactory::Unregister(String DriverName) {
+        std::map<String, InnerFactory*>::iterator iter = InnerFactories.find(DriverName);
+        if (iter != InnerFactories.end()) {
+            delete iter->second;
+            InnerFactories.erase(iter);
+        }
+
+        std::map<String, DeviceParameterFactory*>::iterator iterpf = ParameterFactories.find(DriverName);
+        if (iterpf != ParameterFactories.end()) {
+            delete iterpf->second;
+            ParameterFactories.erase(iterpf);
+        }
     }
 
 } // namespace LinuxSampler

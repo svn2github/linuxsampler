@@ -199,7 +199,7 @@ void MidiInputDeviceMme::MidiInputPortMme::ConnectToMmeMidiSource(const char* Mi
     if(FoundMidiInDeviceId == -1) throw MidiInputException("MIDI port connect failed");
 
     int res;
-    res = midiInOpen(&MidiInHandle, FoundMidiInDeviceId, (DWORD)win32_midiin_callback, (DWORD)this, CALLBACK_FUNCTION);
+    res = midiInOpen(&MidiInHandle, FoundMidiInDeviceId, (DWORD_PTR)win32_midiin_callback, (DWORD_PTR)this, CALLBACK_FUNCTION);
     if(res != MMSYSERR_NOERROR) {
         throw MidiInputException("MIDI port connect failed. midiInOpen error");
     }
@@ -334,7 +334,7 @@ void MidiInputDeviceMme::MidiInputPortMme::MmeCallbackDispatcher(HMIDIIN handle,
     }
 
     String MidiInputDeviceMme::Version() {
-        String s = "$Revision: 1.4 $";
+        String s = "$Revision: 1.5 $";
         return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
 

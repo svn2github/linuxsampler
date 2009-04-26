@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 - 2007 Christian Schoenebeck                       *
+ *   Copyright (C) 2005 - 2009 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -91,18 +91,13 @@ namespace LinuxSampler {
 				factory->InnerFactories[Parameter_T::Name()] = new InnerFactoryTemplate<Parameter_T>(factory);
 			}
 
-			template <class Parameter_T>
-                        static void Unregister(DeviceParameterFactory* factory) {
-                            std::map<String, InnerFactory*>::iterator iter = factory->InnerFactories.find(Parameter_T::Name());
-                            delete iter->second;
-                            factory->InnerFactories.erase(Parameter_T::Name());
-                        }
-
 			std::map<String,DeviceCreationParameter*> CreateAllParams ( std::map<String,String> Parameters );
 			std::map<String,DeviceCreationParameter*> CreateAllParams ();
 
 			DeviceCreationParameter* Create(String ParameterName, std::map<String,String> Parameters = StringMap()) throw (Exception);
 			DeviceCreationParameter* Create(String ParameterName, String val) throw (Exception);
+
+			~DeviceParameterFactory();
 
 		protected:
 			std::map<String, InnerFactory*> InnerFactories;

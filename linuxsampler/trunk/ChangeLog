@@ -65,14 +65,17 @@ Version CVS HEAD (?)
     - applied old fixes to the ASIO driver that were included in the
       previous binary release but accidentally never committed to CVS
       (fixes #117)
+    - fixes for ASIO on mingw-w64 (iasio wrapper is not needed on
+      win64)
 
   * MIDI driver:
     - added JACK MIDI driver
     - dispatch bank select as ordinary CC as well, the user might seriously
       want to (mis)use it for some purpose ("fixed" in all current MIDI
       input drivers: ALSA, CoreMIDI, JACK, MidiShare, MME)
-    - bugfix: pitch bend wasn't working with JackMidi, VST, LV2, Mme,
+    - bugfix: pitch bend wasn't working with JackMidi, VST, LV2, MME,
       CoreMidi or AU
+    - fixed mingw-w64 compilation error in MME driver
 
   * instruments database:
     - avoid time consuming samples scanning when adding instruments
@@ -170,6 +173,8 @@ Version CVS HEAD (?)
     - fixed endless loop in Engine::SuspendAll() (bug #120)
     - fixed a low-level atomic load function that was broken on 64-bit
       PowerPC, which probably could cause crashes on that platform
+    - fixed a memory management error which could cause a crash when a
+      plugin was unloaded
 
 
 Version 0.5.1 (6 December 2007)
