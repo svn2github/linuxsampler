@@ -212,6 +212,8 @@ namespace LinuxSampler { namespace gig {
                     if (hStream != Stream::INVALID_HANDLE) { // voice actually used a stream
                         iPendingStreamDeletions++;
                     }
+                    // free the voice to the voice pool and update key info
+                    FreeVoice(pEngineChannel, itVoice);
                 }
             }
         }
@@ -443,6 +445,7 @@ namespace LinuxSampler { namespace gig {
                         if (hStream != Stream::INVALID_HANDLE) { // voice actually used a stream
                             iPendingStreamDeletions++;
                         }
+                        //NOTE: maybe we should call FreeVoice() here, shouldn't cause a harm though I think, since the voices should be freed by RenderActiveVoices() in the render loop, they are probably just freed a bit later than they could/should be
                     }
                 }
             }
@@ -2219,7 +2222,7 @@ namespace LinuxSampler { namespace gig {
     }
 
     String Engine::Version() {
-        String s = "$Revision: 1.101 $";
+        String s = "$Revision: 1.102 $";
         return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
 
