@@ -3,6 +3,7 @@ Version CVS HEAD (?)
   * general changes:
     - fixed compilation with gcc 4.3
     - fixes for building with Visual C++
+    - minor fix in configure for building DLL on Windows
 
   * src/gig.cpp, src/gig.h:
     - added partial support for MIDI rules, only the Controller
