@@ -74,6 +74,7 @@ namespace LinuxSampler {
             // unlock condition object so it can be turned again by other thread
             conditionJobsLeft.Unlock();
         }
+        return 0;
     }
 
 } // namespace LinuxSampler

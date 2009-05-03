@@ -156,7 +156,16 @@ namespace LinuxSampler { namespace gig {
         const DLS::sample_loop_t& loopinfo = pDimRgn->pSampleLoops[0];
 
         if (DiskVoice) { // voice to be streamed from disk
-            MaxRAMPos = cachedsamples - (pEngine->MaxSamplesPerCycle << CONFIG_MAX_PITCH) / pSample->Channels; //TODO: this calculation is too pessimistic and may better be moved to Render() method, so it calculates MaxRAMPos dependent to the current demand of sample points to be rendered (e.g. in case of JACK)
+            if (cachedsamples > (pEngine->MaxSamplesPerCycle << CONFIG_MAX_PITCH)) {
+                MaxRAMPos = cachedsamples - (pEngine->MaxSamplesPerCycle << CONFIG_MAX_PITCH) / pSample->Channels; //TODO: this calculation is too pessimistic and may better be moved to Render() method, so it calculates MaxRAMPos dependent to the current demand of sample points to be rendered (e.g. in case of JACK)
+            } else {
+                // The cache is too small to fit a max sample buffer.
+                // Setting MaxRAMPos to 0 will probably cause a click
+                // in the audio, but it's better than not handling
+                // this case at all, which would have caused the
+                // unsigned MaxRAMPos to be set to a negative number.
+                MaxRAMPos = 0;
+            }
 
             // check if there's a loop defined which completely fits into the cached (RAM) part of the sample
             RAMLoop = (pDimRgn->SampleLoops && (loopinfo.LoopStart + loopinfo.LoopLength) <= MaxRAMPos);

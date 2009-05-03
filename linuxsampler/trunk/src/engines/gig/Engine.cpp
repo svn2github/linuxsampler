@@ -113,6 +113,7 @@ namespace LinuxSampler { namespace gig {
         pVoiceStealingQueue = new RTList<Event>(pEventPool);
         pGlobalEvents      = new RTList<Event>(pEventPool);
         iMaxDiskStreams    = GLOBAL_MAX_STREAMS;
+        FrameTime          = 0;
 
         for (RTList<Voice>::Iterator iterVoice = pVoicePool->allocAppend(); iterVoice == pVoicePool->last(); iterVoice = pVoicePool->allocAppend()) {
             iterVoice->SetEngine(this);
@@ -2222,7 +2223,7 @@ namespace LinuxSampler { namespace gig {
     }
 
     String Engine::Version() {
-        String s = "$Revision: 1.102 $";
+        String s = "$Revision: 1.103 $";
         return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
 

@@ -66,6 +66,13 @@ namespace {
     LinuxSamplerEditor::LinuxSamplerEditor(AudioEffect* effect) :
         AEffEditor(effect) {
         dmsg(2, ("-->LinuxSamplerEditor constructor\n"));
+#ifdef WIN32
+        ProcessHandle = INVALID_HANDLE_VALUE;
+#endif
+    }
+
+    LinuxSamplerEditor::~LinuxSamplerEditor() {
+        close();
     }
 
     bool LinuxSamplerEditor::open(void* ptr) {
@@ -109,6 +116,7 @@ namespace {
         if (ProcessHandle != INVALID_HANDLE_VALUE) {
             TerminateProcess(ProcessHandle, 0);
             free(Command);
+            ProcessHandle = INVALID_HANDLE_VALUE;
         }
 #endif
     }
@@ -153,12 +161,14 @@ namespace {
         if (!pAudioDevice) {
             Init(int(sampleRate), blockSize);
 
-            if (SavedChunk.length()) {
+            if (!SavedChunk.empty()) {
                 SetState(SavedChunk);
-                SavedChunk = "";
+                SavedChunk.clear();
             } else {
                 InitState();
             }
+        } else {
+            Init(int(sampleRate), blockSize);
         }
         dmsg(2, ("<--resume\n"));
     }

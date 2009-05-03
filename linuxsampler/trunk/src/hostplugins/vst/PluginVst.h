@@ -39,6 +39,7 @@ namespace {
     class LinuxSamplerEditor : public AEffEditor {
     public:
         LinuxSamplerEditor(AudioEffect* effect);
+        ~LinuxSamplerEditor();
         bool open(void* ptr);
         void close();
         bool getRect(ERect** rect);

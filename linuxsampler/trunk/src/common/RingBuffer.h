@@ -73,6 +73,10 @@ public:
 
             this->wrap_elements = wrap_elements;
 
+            // the write-with-wrap functions need wrap_elements extra
+            // space in the buffer to be able to copy the wrap space
+            sz += wrap_elements;
+
             for (power_of_two = 1;
                  1<<power_of_two < sz;
                  power_of_two++);

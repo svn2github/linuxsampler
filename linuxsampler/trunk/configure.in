@@ -46,13 +46,7 @@ AC_SUBST(SHLIB_VERSION_ARG)
 AC_SUBST(SHARED_VERSION_INFO)
 
 AC_C_BIGENDIAN
-AC_CANONICAL_SYSTEM
-
-AC_SUBST(target)
-AC_SUBST(target_alias)
-AC_SUBST(target_cpu)
-AC_SUBST(target_os)
-AC_SUBST(target_vendor)
+AC_CANONICAL_HOST
 
 PKG_PROG_PKG_CONFIG
 
@@ -61,7 +55,7 @@ PKG_PROG_PKG_CONFIG
 
 AC_MSG_CHECKING([whether x86 architecture])
 def_arch_x86=0
-case $target_cpu in
+case $host_cpu in
   "i386" | "i486" | "i586" | "i686" | "i786" | "x86_64")
     echo "yes"
     def_arch_x86=1;;
@@ -74,10 +68,10 @@ AC_DEFINE_UNQUOTED(ARCH_X86,$def_arch_x86,[Define to 1 if you build for x86 arch
 # (only if the user did not provide one)
 CXX_CPU_SWITCH=
 if ! echo "X $CXXFLAGS " | grep -q -- " \(-march=\|-mcpu=\|-mtune=\|-arch=\)" ; then
-  if test "$def_arch_x86" = 1 -a "$target_cpu" != "x86_64"; then
-    CXX_CPU_SWITCH="-march=$target_cpu"
+  if test "$def_arch_x86" = 1 -a "$host_cpu" != "x86_64"; then
+    CXX_CPU_SWITCH="-march=$host_cpu"
   elif test "$target_cpu" = "ppc"; then
-    CXX_CPU_SWITCH="-arch=$target_cpu"
+    CXX_CPU_SWITCH="-arch=$host_cpu"
   fi
 fi
 AC_SUBST([CXX_CPU_SWITCH])
@@ -86,7 +80,8 @@ AC_SUBST([CXX_CPU_SWITCH])
 AC_CHECK_HEADERS(
     mmsystem.h,
     have_windows=1,
-    have_windows=0
+    have_windows=0,
+    [#include <windef.h>]
 )
 AM_CONDITIONAL(HAVE_WINDOWS, test $have_windows = "1")
 

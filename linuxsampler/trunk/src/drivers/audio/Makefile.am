@@ -31,8 +31,8 @@ arts_includes =
 endif
 
 if HAVE_ASIO
-asio_includes = -I@ASIOSDK_BASEDIR@/asiosdk2/common -I@ASIOSDK_BASEDIR@/asiosdk2/host -I@ASIOSDK_BASEDIR@/asiosdk2/host/pc
-asio_3rd_party_src = @ASIOSDK_BASEDIR@/asiosdk2/common/asio.cpp @ASIOSDK_BASEDIR@/asiosdk2/common/asio.h @ASIOSDK_BASEDIR@/asiosdk2/host/asiodrivers.cpp @ASIOSDK_BASEDIR@/asiosdk2/host/asiodrivers.h @ASIOSDK_BASEDIR@/asiosdk2/host/pc/asiolist.cpp @ASIOSDK_BASEDIR@/asiosdk2/host/pc/asiolist.h
+asio_includes = -I@ASIOSDK_BASEDIR@/ASIOSDK2/common -I@ASIOSDK_BASEDIR@/ASIOSDK2/host -I@ASIOSDK_BASEDIR@/ASIOSDK2/host/pc
+asio_3rd_party_src = @ASIOSDK_BASEDIR@/ASIOSDK2/common/asio.cpp @ASIOSDK_BASEDIR@/ASIOSDK2/common/asio.h @ASIOSDK_BASEDIR@/ASIOSDK2/host/asiodrivers.cpp @ASIOSDK_BASEDIR@/ASIOSDK2/host/asiodrivers.h @ASIOSDK_BASEDIR@/ASIOSDK2/host/pc/asiolist.cpp @ASIOSDK_BASEDIR@/ASIOSDK2/host/pc/asiolist.h
 asio_src  = AudioOutputDeviceAsio.cpp AudioOutputDeviceAsio.h iasiothiscallresolver.cpp iasiothiscallresolver.h
 asio_ladd =
 else

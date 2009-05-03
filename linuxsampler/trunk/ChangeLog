@@ -11,6 +11,7 @@ Version CVS HEAD (?)
     - fixes for building with newer MinGW versions
     - fix for building with bison 2.4 (#111)
     - fixed building with libgig installed in a non-standard directory
+    - minor fix in configure for mmsystem.h detection on MinGW
 
   * general changes:
     - bugfix: on some POSIX systems instrument editor plugins refused to
@@ -49,6 +50,7 @@ Version CVS HEAD (?)
       InstrumentManager::LaunchInstrumentEditor()
     - theoretical fix: made SynchronizedConfig follow C++0x memory
       model more strictly
+    - fixes for using large audio device buffers
 
   * audio driver:
     - removed the nonsense audio channel constraint (which was hard coded to
@@ -67,6 +69,8 @@ Version CVS HEAD (?)
       (fixes #117)
     - fixes for ASIO on mingw-w64 (iasio wrapper is not needed on
       win64)
+    - VST: added support for sample rate and buffer size changes
+    - VST: close editor (Fantasia) when the VST is removed
 
   * MIDI driver:
     - added JACK MIDI driver

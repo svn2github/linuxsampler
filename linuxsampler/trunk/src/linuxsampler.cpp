@@ -26,7 +26,12 @@
 
 #if defined(WIN32)
 // require at least Windows 2000 for the GlobalMemoryStatusEx() call
+#if _WIN32_WINNT < 0x0500
+#ifdef _WIN32_WINNT
+#undef _WIN32_WINNT
+#endif
 #define _WIN32_WINNT 0x0500
+#endif
 #endif
 
 #include "Sampler.h"

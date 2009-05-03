@@ -145,8 +145,9 @@ namespace LinuxSampler {
             // unlock condition object so it can be turned again by other thread
             conditionJobsLeft.Unlock();
         }
+        return 0;
     }
-    
+
     void InstrumentManagerThread::EventHandler::ChannelToBeRemoved(SamplerChannel* pChannel) {
         /*
            Removing from the queue an eventual scheduled loading of an instrument

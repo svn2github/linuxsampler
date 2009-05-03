@@ -84,6 +84,7 @@ namespace LinuxSampler {
             sleep(1);
             pSampler->fireStatistics();
         }
+        return 0;
     }
 
 
@@ -110,6 +111,17 @@ namespace LinuxSampler {
     }
 
     void Plugin::Init(int SampleRate, int FragmentSize, int Channels) {
+        if (pAudioDevice && SampleRate == pAudioDevice->SampleRate() &&
+            FragmentSize == pAudioDevice->MaxSamplesPerCycle()) {
+            return; // nothing has changed
+        }
+
+        String oldState;
+        if (pAudioDevice) {
+            oldState = GetState();
+            RemoveChannels();
+            global->pSampler->DestroyAudioOutputDevice(pAudioDevice);
+        }
         std::map<String, String> params;
         params["SAMPLERATE"] = ToString(SampleRate);
         params["FRAGMENTSIZE"] = ToString(FragmentSize);
@@ -117,9 +129,15 @@ namespace LinuxSampler {
         pAudioDevice = dynamic_cast<AudioOutputDevicePlugin*>(
             global->pSampler->CreateAudioOutputDevice(AudioOutputDevicePlugin::Name(), params));
 
-        pMidiDevice = dynamic_cast<MidiInputDevicePlugin*>(
-            global->pSampler->CreateMidiInputDevice(MidiInputDevicePlugin::Name(),
-                                                    std::map<String,String>()));
+        if (!pMidiDevice) {
+            pMidiDevice = dynamic_cast<MidiInputDevicePlugin*>(
+                global->pSampler->CreateMidiInputDevice(MidiInputDevicePlugin::Name(),
+                                                        std::map<String,String>()));
+        }
+
+        if (!oldState.empty()) {
+            SetState(oldState);
+        }
     }
 
     Plugin::~Plugin() {

@@ -138,13 +138,13 @@ static void floatToASIOSTInt32LSB(float *in, void *dest, int numSamples) {
 
 std::vector<String> getAsioDriverNames();
 
-static bool ASIO_loadAsioDriver(char *name)
+static bool ASIO_loadAsioDriver(const char *name)
 {
     dmsg(2,("ASIO_loadAsioDriver: trying to load '%s'\n",name));
 	#ifdef	WINDOWS
 		CoInitialize(0);
 	#endif
-	return loadAsioDriver(name);
+                return loadAsioDriver(const_cast<char*>(name));
 }
 
 int ASIO_OpenAndQueryDeviceInfo(char *driverName, DriverInfo *driverInfo, ASIODriverInfo *asioDriverInfo)
@@ -933,7 +933,7 @@ long asioMessages(long selector, long value, void* message, double* opt)
     }
 
     String AudioOutputDeviceAsio::Version() {
-       String s = "$Revision: 1.3 $";
+       String s = "$Revision: 1.4 $";
        return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
 
