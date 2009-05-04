@@ -35,7 +35,7 @@
 
 namespace LinuxSampler {
 
-    struct _private_data_t {
+    struct EngineChannel::private_data_t {
         int     iMute;
         bool    bSolo;
         uint8_t uiMidiProgram;
@@ -54,50 +54,48 @@ namespace LinuxSampler {
         ListenerList<FxSendCountListener*> llFxSendCountListeners;
     };
 
-    #define PTHIS ((_private_data_t*)pPrivateData)
-
-    EngineChannel::EngineChannel() : pPrivateData(new _private_data_t) {
-        PTHIS->iMute = 0;
-        PTHIS->bSolo = false;
-        PTHIS->uiMidiBankMsb = 0;
-        PTHIS->uiMidiBankLsb = 0;
-        PTHIS->uiMidiProgram = 0;
-        PTHIS->bProgramChangeReceived =
-        PTHIS->bMidiBankMsbReceived =
-        PTHIS->bMidiBankLsbReceived = false;
-        PTHIS->iMidiInstrumentMap = NO_MIDI_INSTRUMENT_MAP;
+    EngineChannel::EngineChannel() : p(new private_data_t) {
+        p->iMute = 0;
+        p->bSolo = false;
+        p->uiMidiBankMsb = 0;
+        p->uiMidiBankLsb = 0;
+        p->uiMidiProgram = 0;
+        p->bProgramChangeReceived =
+        p->bMidiBankMsbReceived =
+        p->bMidiBankLsbReceived = false;
+        p->iMidiInstrumentMap = NO_MIDI_INSTRUMENT_MAP;
         SetVoiceCount(0);
         SetDiskStreamCount(0);
-        PTHIS->pSamplerChannel = NULL;
+        p->pSamplerChannel = NULL;
         ResetMidiRpnController();
     }
 
     EngineChannel::~EngineChannel() {
-        if (PTHIS) delete PTHIS;
+        delete p;
     }
 
     void EngineChannel::SetMute(int state) throw (Exception) {
-        if (PTHIS->iMute == state) return;
+        if (p->iMute == state) return;
         if (state < -1 || state > 1)
             throw Exception("Invalid Mute state: " + ToString(state));
 
-        PTHIS->iMute = state;
+        p->iMute = state;
 
         StatusChanged(true);
     }
 
     int EngineChannel::GetMute() {
-        return PTHIS->iMute;
+        return p->iMute;
     }
 
     void EngineChannel::SetSolo(bool solo) {
-        if (PTHIS->bSolo == solo) return;
-        PTHIS->bSolo = solo;
+        if (p->bSolo == solo) return;
+        p->bSolo = solo;
         StatusChanged(true);
     }
 
     bool EngineChannel::GetSolo() {
-        return PTHIS->bSolo;
+        return p->bSolo;
     }
 
     /*
@@ -119,51 +117,51 @@ namespace LinuxSampler {
     */
 
     uint8_t EngineChannel::GetMidiProgram() {
-        return PTHIS->uiMidiProgram; // AFAIK atomic on all systems
+        return p->uiMidiProgram; // AFAIK atomic on all systems
     }
 
     void EngineChannel::SetMidiProgram(uint8_t Program) {
-        PTHIS->bProgramChangeReceived = true;
-        PTHIS->uiMidiProgram = Program; // AFAIK atomic on all systems
+        p->bProgramChangeReceived = true;
+        p->uiMidiProgram = Program; // AFAIK atomic on all systems
     }
 
     uint8_t EngineChannel::GetMidiBankMsb() {
-        return (PTHIS->bMidiBankMsbReceived && PTHIS->bMidiBankLsbReceived)
-            ? PTHIS->uiMidiBankMsb : 0;
+        return (p->bMidiBankMsbReceived && p->bMidiBankLsbReceived)
+            ? p->uiMidiBankMsb : 0;
     }
 
     void EngineChannel::SetMidiBankMsb(uint8_t BankMSB) {
-        if (PTHIS->bProgramChangeReceived) {
-            PTHIS->bProgramChangeReceived =
-            PTHIS->bMidiBankLsbReceived = false;
+        if (p->bProgramChangeReceived) {
+            p->bProgramChangeReceived =
+            p->bMidiBankLsbReceived = false;
         }
-        PTHIS->bMidiBankMsbReceived = true;
-        PTHIS->uiMidiBankMsb = BankMSB; // AFAIK atomic on all systems
+        p->bMidiBankMsbReceived = true;
+        p->uiMidiBankMsb = BankMSB; // AFAIK atomic on all systems
     }
 
     uint8_t EngineChannel::GetMidiBankLsb() {
-        return (!PTHIS->bMidiBankMsbReceived && !PTHIS->bMidiBankLsbReceived)
+        return (!p->bMidiBankMsbReceived && !p->bMidiBankLsbReceived)
                    ? 0
-                   : (PTHIS->bMidiBankMsbReceived && !PTHIS->bMidiBankLsbReceived)
-                         ? PTHIS->uiMidiBankMsb
-                         : PTHIS->uiMidiBankLsb;
+                   : (p->bMidiBankMsbReceived && !p->bMidiBankLsbReceived)
+                         ? p->uiMidiBankMsb
+                         : p->uiMidiBankLsb;
     }
 
     void EngineChannel::SetMidiBankLsb(uint8_t BankLSB) {
-        if (PTHIS->bProgramChangeReceived) {
-            PTHIS->bProgramChangeReceived =
-            PTHIS->bMidiBankMsbReceived = false;
+        if (p->bProgramChangeReceived) {
+            p->bProgramChangeReceived =
+            p->bMidiBankMsbReceived = false;
         }
-        PTHIS->bMidiBankLsbReceived = true;
-        PTHIS->uiMidiBankLsb = BankLSB; // AFAIK atomic on all systems
+        p->bMidiBankLsbReceived = true;
+        p->uiMidiBankLsb = BankLSB; // AFAIK atomic on all systems
     }
 
     bool EngineChannel::UsesNoMidiInstrumentMap() {
-        return (PTHIS->iMidiInstrumentMap == NO_MIDI_INSTRUMENT_MAP);
+        return (p->iMidiInstrumentMap == NO_MIDI_INSTRUMENT_MAP);
     }
 
     bool EngineChannel::UsesDefaultMidiInstrumentMap() {
-        return (PTHIS->iMidiInstrumentMap == DEFAULT_MIDI_INSTRUMENT_MAP);
+        return (p->iMidiInstrumentMap == DEFAULT_MIDI_INSTRUMENT_MAP);
     }
 
     int EngineChannel::GetMidiInstrumentMap() throw (Exception) {
@@ -173,82 +171,82 @@ namespace LinuxSampler {
             throw Exception("EngineChannel is using default MIDI instrument map");
         // check if the stored map still exists in the MIDI instrument mapper
         std::vector<int> maps = MidiInstrumentMapper::Maps();
-        if (find(maps.begin(), maps.end(), PTHIS->iMidiInstrumentMap) == maps.end()) {
+        if (find(maps.begin(), maps.end(), p->iMidiInstrumentMap) == maps.end()) {
             // it doesn't exist anymore, so fall back to NONE and throw an exception
-            PTHIS->iMidiInstrumentMap = NO_MIDI_INSTRUMENT_MAP;
+            p->iMidiInstrumentMap = NO_MIDI_INSTRUMENT_MAP;
             throw Exception("Assigned MIDI instrument map doesn't exist anymore, falling back to NONE");
         }
-        return PTHIS->iMidiInstrumentMap;
+        return p->iMidiInstrumentMap;
     }
 
     void EngineChannel::SetMidiInstrumentMapToNone() {
-        if (PTHIS->iMidiInstrumentMap == NO_MIDI_INSTRUMENT_MAP) return;
-        PTHIS->iMidiInstrumentMap = NO_MIDI_INSTRUMENT_MAP;
+        if (p->iMidiInstrumentMap == NO_MIDI_INSTRUMENT_MAP) return;
+        p->iMidiInstrumentMap = NO_MIDI_INSTRUMENT_MAP;
         StatusChanged(true);
     }
 
     void EngineChannel::SetMidiInstrumentMapToDefault() {
-        if (PTHIS->iMidiInstrumentMap == DEFAULT_MIDI_INSTRUMENT_MAP) return;
-        PTHIS->iMidiInstrumentMap = DEFAULT_MIDI_INSTRUMENT_MAP;
+        if (p->iMidiInstrumentMap == DEFAULT_MIDI_INSTRUMENT_MAP) return;
+        p->iMidiInstrumentMap = DEFAULT_MIDI_INSTRUMENT_MAP;
         StatusChanged(true);
     }
 
     void EngineChannel::SetMidiInstrumentMap(int MidiMap) throw (Exception) {
-        if (PTHIS->iMidiInstrumentMap == MidiMap) return;
+        if (p->iMidiInstrumentMap == MidiMap) return;
 
         // check if given map actually exists in the MIDI instrument mapper
         std::vector<int> maps = MidiInstrumentMapper::Maps();
         if (find(maps.begin(), maps.end(), MidiMap) == maps.end())
             throw Exception("MIDI instrument map doesn't exist");
-        PTHIS->iMidiInstrumentMap = MidiMap; // assign the new map ID
+        p->iMidiInstrumentMap = MidiMap; // assign the new map ID
         StatusChanged(true);
     }
 
     void EngineChannel::SetMidiRpnControllerMsb(uint8_t CtrlMSB) {
-        PTHIS->uiMidiRpnMsb = CtrlMSB;
-        PTHIS->bMidiRpnReceived = true;
+        p->uiMidiRpnMsb = CtrlMSB;
+        p->bMidiRpnReceived = true;
     }
 
     void EngineChannel::SetMidiRpnControllerLsb(uint8_t CtrlLSB) {
-        PTHIS->uiMidiRpnLsb = CtrlLSB;
-        PTHIS->bMidiRpnReceived = true;
+        p->uiMidiRpnLsb = CtrlLSB;
+        p->bMidiRpnReceived = true;
     }
 
     void EngineChannel::ResetMidiRpnController() {
-        PTHIS->uiMidiRpnMsb = PTHIS->uiMidiRpnLsb = 0;
-        PTHIS->bMidiRpnReceived = false;
+        p->uiMidiRpnMsb = p->uiMidiRpnLsb = 0;
+        p->bMidiRpnReceived = false;
     }
 
     int EngineChannel::GetMidiRpnController() {
-        return (PTHIS->bMidiRpnReceived) ?
-               (PTHIS->uiMidiRpnMsb << 8) | PTHIS->uiMidiRpnLsb : -1;
+        return (p->bMidiRpnReceived) ?
+               (p->uiMidiRpnMsb << 8) | p->uiMidiRpnLsb : -1;
     }
 
     uint EngineChannel::GetVoiceCount() {
-        return atomic_read(&PTHIS->voiceCount);
+        return atomic_read(&p->voiceCount);
     }
 
     void EngineChannel::SetVoiceCount(uint Voices) {
-        atomic_set(&PTHIS->voiceCount, Voices);
+        atomic_set(&p->voiceCount, Voices);
     }
 
     uint EngineChannel::GetDiskStreamCount() {
-        return atomic_read(&PTHIS->diskStreamCount);
+        return atomic_read(&p->diskStreamCount);
     }
 
     void EngineChannel::SetDiskStreamCount(uint Streams) {
-        atomic_set(&PTHIS->diskStreamCount, Streams);
+        atomic_set(&p->diskStreamCount, Streams);
     }
 
     SamplerChannel* EngineChannel::GetSamplerChannel() {
-        if (PTHIS->pSamplerChannel == NULL) {
+        if (p->pSamplerChannel == NULL) {
             std::cerr << "EngineChannel::GetSamplerChannel(): pSamplerChannel is NULL, this is a bug!\n" << std::flush;
         }
-        return PTHIS->pSamplerChannel;
+        return p->pSamplerChannel;
     }
 
     void EngineChannel::SetSamplerChannel(SamplerChannel* pChannel) {
-        PTHIS->pSamplerChannel = pChannel;
+        p->pSamplerChannel = pChannel;
     }
 
     Sampler* EngineChannel::GetSampler() {
@@ -257,20 +255,20 @@ namespace LinuxSampler {
     }
 
     void EngineChannel::AddFxSendCountListener(FxSendCountListener* l) {
-        PTHIS->llFxSendCountListeners.AddListener(l);
+        p->llFxSendCountListeners.AddListener(l);
     }
 
     void EngineChannel::RemoveFxSendCountListener(FxSendCountListener* l) {
-        PTHIS->llFxSendCountListeners.RemoveListener(l);
+        p->llFxSendCountListeners.RemoveListener(l);
     }
 
     void EngineChannel::RemoveAllFxSendCountListeners() {
-        PTHIS->llFxSendCountListeners.RemoveAllListeners();
+        p->llFxSendCountListeners.RemoveAllListeners();
     }
 
     void EngineChannel::fireFxSendCountChanged(int ChannelId, int NewCount) {
-        for (int i = 0; i < PTHIS->llFxSendCountListeners.GetListenerCount(); i++) {
-            PTHIS->llFxSendCountListeners.GetListener(i)->FxSendCountChanged(ChannelId, NewCount);
+        for (int i = 0; i < p->llFxSendCountListeners.GetListenerCount(); i++) {
+            p->llFxSendCountListeners.GetListener(i)->FxSendCountChanged(ChannelId, NewCount);
         }
     }
 

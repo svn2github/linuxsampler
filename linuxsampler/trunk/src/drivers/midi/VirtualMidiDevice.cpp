@@ -16,7 +16,7 @@
 
 namespace LinuxSampler {
 
-    struct _private_data_t {
+    struct VirtualMidiDevice::private_data_t {
         atomic_t notesChanged; // whether some key changed at all
         atomic_t pNoteChanged[MIDI_KEYS]; // which key(s) changed
         atomic_t pNoteIsActive[MIDI_KEYS]; // status of each key (either active or inactive)
@@ -24,12 +24,10 @@ namespace LinuxSampler {
         atomic_t pNoteOffVelocity[MIDI_KEYS];
         RingBuffer<VirtualMidiDevice::event_t,false> events;
 
-        _private_data_t() : events(MAX_EVENTS, 0) {}
+        private_data_t() : events(MAX_EVENTS, 0) {}
     };
 
-    VirtualMidiDevice::VirtualMidiDevice() {
-        _private_data_t* p = new _private_data_t;
-        pPrivateData = p;
+    VirtualMidiDevice::VirtualMidiDevice() : p(new private_data_t) {
         atomic_t zero = ATOMIC_INIT(0);
         atomic_t defaultVelocity = ATOMIC_INIT(127);
         p->notesChanged = zero;
@@ -42,12 +40,11 @@ namespace LinuxSampler {
     }
 
     VirtualMidiDevice::~VirtualMidiDevice() {
-        if (pPrivateData) delete (_private_data_t*)pPrivateData;
+        delete p;
     }
 
     bool VirtualMidiDevice::SendNoteOnToSampler(uint8_t Key, uint8_t Velocity) {
         if (Key >= MIDI_KEYS || Velocity > 127) return false;
-        _private_data_t* p = (_private_data_t*)pPrivateData;
         event_t ev = { EVENT_TYPE_NOTEON, Key, Velocity };
         if (p->events.write_space() <= 0) return false;
         p->events.push(&ev);
@@ -56,7 +53,6 @@ namespace LinuxSampler {
 
     bool VirtualMidiDevice::SendNoteOffToSampler(uint8_t Key, uint8_t Velocity) {
         if (Key >= MIDI_KEYS || Velocity > 127) return false;
-        _private_data_t* p = (_private_data_t*)pPrivateData;
         event_t ev = { EVENT_TYPE_NOTEOFF, Key, Velocity };
         if (p->events.write_space() <= 0) return false;
         p->events.push(&ev);
@@ -64,42 +60,35 @@ namespace LinuxSampler {
     }
 
     bool VirtualMidiDevice::GetMidiEventFromDevice(event_t& Event) {
-        _private_data_t* p = (_private_data_t*)pPrivateData;
         return (p->events.pop(&Event) > 0);
     }
 
     bool VirtualMidiDevice::NotesChanged() {
-        _private_data_t* p = (_private_data_t*)pPrivateData;
         int c = atomic_read( &p->notesChanged );
         atomic_sub(c, &p->notesChanged );
         return c;
     }
 
     bool VirtualMidiDevice::NoteChanged(uint8_t Key) {
-        _private_data_t* p = (_private_data_t*)pPrivateData;
         int c = atomic_read( &(p->pNoteChanged)[Key] );
         atomic_sub(c, &(p->pNoteChanged)[Key] );
         return c;
     }
 
     bool VirtualMidiDevice::NoteIsActive(uint8_t Key) {
-        _private_data_t* p = (_private_data_t*)pPrivateData;
         return atomic_read( &(p->pNoteIsActive)[Key] );
     }
 
     uint8_t VirtualMidiDevice::NoteOnVelocity(uint8_t Key) {
-        _private_data_t* p = (_private_data_t*)pPrivateData;
         return atomic_read( &(p->pNoteOnVelocity)[Key] );
     }
 
     uint8_t VirtualMidiDevice::NoteOffVelocity(uint8_t Key) {
-        _private_data_t* p = (_private_data_t*)pPrivateData;
         return atomic_read( &(p->pNoteOffVelocity)[Key] );
     }
 
     void VirtualMidiDevice::SendNoteOnToDevice(uint8_t Key, uint8_t Velocity) {
         if (Key >= MIDI_KEYS) return;
-        _private_data_t* p = (_private_data_t*)pPrivateData;
         atomic_set( &(p->pNoteOnVelocity)[Key], Velocity );
         atomic_inc( &(p->pNoteIsActive)[Key] );
         atomic_inc( &(p->pNoteChanged)[Key] );
@@ -108,7 +97,6 @@ namespace LinuxSampler {
 
     void VirtualMidiDevice::SendNoteOffToDevice(uint8_t Key, uint8_t Velocity) {
         if (Key >= MIDI_KEYS) return;
-        _private_data_t* p = (_private_data_t*)pPrivateData;
         atomic_set( &(p->pNoteOffVelocity)[Key], Velocity );
         atomic_dec( &(p->pNoteIsActive)[Key] );
         atomic_inc( &(p->pNoteChanged)[Key] );

@@ -179,6 +179,8 @@ Version CVS HEAD (?)
       PowerPC, which probably could cause crashes on that platform
     - fixed a memory management error which could cause a crash when a
       plugin was unloaded
+    - bugfix: two private structs had the same name, which could cause
+      problems if the linker chose the wrong constructor
 
 
 Version 0.5.1 (6 December 2007)

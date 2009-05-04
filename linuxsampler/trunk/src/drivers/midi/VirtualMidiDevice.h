@@ -137,7 +137,8 @@ public:
     virtual ~VirtualMidiDevice();
 
 private:
-    void* pPrivateData;
+    struct private_data_t;
+    private_data_t* const p;
 };
 
 } // namespace LinuxSampler
