@@ -18,4 +18,4 @@ gigedit_quickstart.html: $(doc_sources)
 	xsltproc --output $@ \
 	--stringparam html.stylesheet style.css \
 	http://docbook.sourceforge.net/release/xsl/current/html/docbook.xsl \
-	gigedit_quickstart.xml
+	$(srcdir)/gigedit_quickstart.xml

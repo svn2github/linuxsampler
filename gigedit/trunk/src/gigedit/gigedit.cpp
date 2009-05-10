@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007, 2008 Andreas Persson
+ * Copyright (C) 2007-2009 Andreas Persson
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -79,6 +79,10 @@ private:
     void close_window();
 };
 
+#ifdef WIN32
+HINSTANCE gigedit_dll_handle = 0;
+#endif
+
 void init_app() {
     static bool process_initialized = false;
     if (!process_initialized) {
@@ -91,7 +95,7 @@ void init_app() {
 #ifdef WIN32
 #if GLIB_CHECK_VERSION(2, 16, 0)
         gchar* root =
-            g_win32_get_package_installation_directory_of_module(NULL);
+            g_win32_get_package_installation_directory_of_module(gigedit_dll_handle);
 #else
         gchar* root =
             g_win32_get_package_installation_directory(NULL, NULL);
@@ -304,3 +308,17 @@ void GigEditState::run(gig::Instrument* pInstrument) {
     mutex.unlock();
     close.wait(); // sleep until window is closed
 }
+
+#if defined(WIN32)
+extern "C" {
+    BOOL WINAPI DllMain(HINSTANCE instance, DWORD reason, LPVOID reserved)
+    {
+        switch (reason) {
+        case DLL_PROCESS_ATTACH:
+            gigedit_dll_handle = instance;
+            break;
+        }
+        return TRUE;
+    }
+}
+#endif

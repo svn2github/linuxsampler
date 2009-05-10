@@ -49,6 +49,10 @@ Version CVS HEAD (?)
     operation (#82)
   * updated LinuxSampler plugin of gigedit to the latest liblinuxsampler
     C++ API changes
+  * Windows: look for translations using base directory of libgigedit
+    dll
+  * virtual keyboard fixes: restore to grey when outside keyboard.
+    Don't trigger multiple notes for each key when moving mouse.
 
 Version 0.1.1 (2007-12-06)
 

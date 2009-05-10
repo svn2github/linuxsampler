@@ -175,10 +175,11 @@ void RegionChooser::on_note_on_event(int key, int velocity) {
 }
 
 void RegionChooser::on_note_off_event(int key, int velocity) {
-    if (is_black_key(key))
+    if (is_black_key(key)) {
         draw_region(key, key+1, black);
-    else
-        draw_region(key, key+1, white);
+    } else {
+        draw_region(key, key+1, key >= 21 && key <= 108 ? white : grey1);
+    }
     m_VirtKeybOffVelocityLabel.set_text(ToString(velocity));
 }
 
@@ -677,12 +678,16 @@ bool RegionChooser::on_motion_notify_event(GdkEventMotion* event)
         event->y < REGION_BLOCK_HEIGHT + KEYBOARD_HEIGHT)
     {
         const int k = int(event->x / (get_width() - 1) * 128.0);
-        int velocity = (event->y >= REGION_BLOCK_HEIGHT + KEYBOARD_HEIGHT - 1) ? 127 :
-                       int(float(event->y - REGION_BLOCK_HEIGHT) / float(KEYBOARD_HEIGHT) * 128.0f) + 1;
-        if (velocity <= 0) velocity = 1;
-        keyboard_key_released_signal.emit(currentActiveKey, velocity);
-        currentActiveKey = k;
-        keyboard_key_hit_signal.emit(k, velocity);
+        if (k != currentActiveKey) {
+            int velocity =
+                (event->y >= REGION_BLOCK_HEIGHT + KEYBOARD_HEIGHT - 1) ? 127 :
+                int(float(event->y - REGION_BLOCK_HEIGHT) /
+                    float(KEYBOARD_HEIGHT) * 128.0f) + 1;
+            if (velocity <= 0) velocity = 1;
+            keyboard_key_released_signal.emit(currentActiveKey, velocity);
+            currentActiveKey = k;
+            keyboard_key_hit_signal.emit(k, velocity);
+        }
     }
 
     if (resize.active) {
