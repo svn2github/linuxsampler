@@ -14,6 +14,7 @@ Version CVS HEAD (?)
     - minor fix in configure for mmsystem.h detection on MinGW
     - Windows: look for editor plugins and Fantasia using base
       directory of liblinuxsampler dll
+    - configure script fix: removed unconditional use of SSE
 
   * general changes:
     - bugfix: on some POSIX systems instrument editor plugins refused to

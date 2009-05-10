@@ -1235,13 +1235,6 @@ AM_INIT_AUTOMAKE(linuxsampler, "$LINUXSAMPLER_RELEASE_MAJOR.$LINUXSAMPLER_RELEAS
 
 AC_LANG_CPLUSPLUS
 
-# some gcc 4.0 versions need -msse for SSE register allocations
-if test "$config_asm" = "yes"; then
-  if test "$def_arch_x86" = 1; then
-    CXXFLAGS="$CXXFLAGS -msse"
-  fi
-fi
-
 # autoconf 2.59/libtool 1.5.12 bug? work-around. Without a check like
 # this, the dlfcn.h check in am_prog_libtool may fail.
 AC_CHECK_HEADER(stdlib.h)
