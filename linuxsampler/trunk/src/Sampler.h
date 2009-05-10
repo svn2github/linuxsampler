@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 - 2008 Christian Schoenebeck                       *
+ *   Copyright (C) 2005 - 2009 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -574,6 +574,14 @@ namespace LinuxSampler {
              */
             void fireStatistics();
 
+#if defined(WIN32)
+            /**
+             * Gets the directory where the liblinuxsampler dll is
+             * located.
+             * @returns installation directory
+             */
+            static String GetInstallDir();
+#endif
         protected:
             /**
              * Notifies listeners that the number of sampler channels has been changed.

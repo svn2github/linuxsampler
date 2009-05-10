@@ -12,6 +12,8 @@ Version CVS HEAD (?)
     - fix for building with bison 2.4 (#111)
     - fixed building with libgig installed in a non-standard directory
     - minor fix in configure for mmsystem.h detection on MinGW
+    - Windows: look for editor plugins and Fantasia using base
+      directory of liblinuxsampler dll
 
   * general changes:
     - bugfix: on some POSIX systems instrument editor plugins refused to
@@ -156,6 +158,8 @@ Version CVS HEAD (?)
       a gigedit file dialog is opened)
     - close all connections when LSCPServer is deleted
     - hard close of all sockets on exit
+    - bugfix: SET CHANNEL MIDI_INPUT_TYPE didn't work with the MME
+      driver
 
   * Bug fixes:
     - fixed a crash which occurs when removing a sampler channel waiting

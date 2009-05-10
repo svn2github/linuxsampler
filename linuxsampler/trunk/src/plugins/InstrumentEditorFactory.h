@@ -1,6 +1,6 @@
 /***************************************************************************
  *                                                                         *
- *   Copyright (C) 2007 Christian Schoenebeck                              *
+ *   Copyright (C) 2007 - 2009 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -103,6 +103,9 @@ namespace LinuxSampler {
         static std::map<String, InnerFactory*> InnerFactories;
         static bool                            bPluginsLoaded;
         static std::list<void*>                LoadedDLLs;
+
+    private:
+        static bool LoadPlugins(String plugindir);
     };
 
 } // namespace LinuxSampler

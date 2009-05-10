@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 - 2008 Christian Schoenebeck                       *
+ *   Copyright (C) 2005 - 2009 Christian Schoenebeck                       *
  *                                                                         *
  *   This library is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -774,4 +774,33 @@ namespace LinuxSampler {
         }
     }
 
+#if defined(WIN32)
+    static HINSTANCE dllInstance = NULL;
+
+    String Sampler::GetInstallDir() {
+        char buf[MAX_PATH + 1];
+        if (GetModuleFileName(dllInstance, buf, MAX_PATH)) {
+            String s(buf);
+            size_t n = s.rfind('\\');
+            if (n != String::npos) {
+                return s.substr(0, n);
+            }
+        }
+        return "";
+    }
+#endif
 } // namespace LinuxSampler
+
+#if defined(WIN32)
+extern "C" {
+    BOOL WINAPI DllMain(HINSTANCE instance, DWORD reason, LPVOID reserved)
+    {
+        switch (reason) {
+        case DLL_PROCESS_ATTACH:
+            LinuxSampler::dllInstance = instance;
+            break;
+        }
+        return TRUE;
+    }
+}
+#endif

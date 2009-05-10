@@ -16,7 +16,7 @@ LinuxSampler_la_LIBADD = $(top_builddir)/src/liblinuxsampler.la
 EXTRA_DIST = PluginVst.def
 
 if HAVE_WINDOWS
-LinuxSampler_la_LDFLAGS += -Wl,PluginVst.def
+LinuxSampler_la_LDFLAGS += -Wl,$(srcdir)/PluginVst.def
 LinuxSampler_la_LIBADD += -lws2_32
 else
 LinuxSampler_la_CPPFLAGS = -D__cdecl=

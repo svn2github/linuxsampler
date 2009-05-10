@@ -1846,7 +1846,6 @@ String LSCPServer::SetMIDIInputType(String MidiInputDriver, uint uiSamplerChanne
             pDevice = pSampler->CreateMidiInputDevice(MidiInputDriver, params);
             // Make it with at least one initial port.
             std::map<String,DeviceCreationParameter*> parameters = pDevice->DeviceParameters();
-            parameters["PORTS"]->SetValue("1");
         }
         // Must have a device...
         if (pDevice == NULL)

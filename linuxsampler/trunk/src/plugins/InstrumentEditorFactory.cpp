@@ -1,6 +1,6 @@
 /***************************************************************************
  *                                                                         *
- *   Copyright (C) 2007, 2008 Christian Schoenebeck                        *
+ *   Copyright (C) 2007 - 2009 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -21,6 +21,7 @@
 #include "InstrumentEditorFactory.h"
 
 #include "../common/global_private.h"
+#include "../Sampler.h"
 
 #if defined(WIN32)
 #include <windows.h>
@@ -37,10 +38,6 @@
 #ifndef CONFIG_PLUGIN_DIR
 # error "Configuration macro CONFIG_PLUGIN_DIR not defined!"
 #endif // CONFIG_PLUGIN_DIR
-
-#if defined(WIN32)
-typedef void* (*InnerFactoryRegisterFunction)(void);
-#endif
 
 namespace LinuxSampler {
 
@@ -105,120 +102,128 @@ namespace LinuxSampler {
         if (!bPluginsLoaded) {
             dmsg(1,("Loading instrument editor plugins..."));
             #if defined(WIN32)
-            WIN32_FIND_DATA win32FindData;
-            const String plugindir = (String)CONFIG_PLUGIN_DIR + (String)("\\*.DLL");
-            HANDLE hDir = FindFirstFile(plugindir.c_str(), &win32FindData);
-            if (hDir == INVALID_HANDLE_VALUE) {
-                if (GetLastError() != ERROR_FILE_NOT_FOUND) {
+            String dir = Sampler::GetInstallDir();
+            if (dir.empty() || !LoadPlugins(dir + "\\plugins")) {
+                if (!LoadPlugins(CONFIG_PLUGIN_DIR)) {
                     std::cerr << "Could not open instrument editor plugins "
-                              << "directory (" << CONFIG_PLUGIN_DIR << "), "
-                              << "Error: " << GetLastError() << std::endl;
-                } else {
-                    dmsg(1,("None"));
+                              << "directory (" << dir << "\\plugins or "
+                              << CONFIG_PLUGIN_DIR << "), Error: "
+                              << GetLastError() << std::endl;
+                    return;
                 }
-                // either dir doesn't exist or is empty
-                return;
             }
-
-            do {
-                // skip directory entries
-                if (win32FindData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
-                    continue;
-                // dir entry name as full qualified path
-                const String sPath = (String)CONFIG_PLUGIN_DIR + ((String)"\\" + (String)win32FindData.cFileName);
-                // load the DLL
-                HINSTANCE hinstLib;
-                void* pDLL = hinstLib = LoadLibrary(sPath.c_str());
-                if (!pDLL) {
-                    std::cerr << "Failed to load instrument editor plugin: "
-                              << sPath << std::endl;
-                    continue;
-                }
-
-                //(InnerFactory*) (*fn)(void);
-                InnerFactoryRegisterFunction fn =
-                    (InnerFactoryRegisterFunction)
-                        GetProcAddress(
-                            hinstLib,
-                            "createInstrumentEditorInnerFactory"
-                        );
-                if (fn == NULL) {
-                    std::cerr << "ERROR: unable to find "
-                                 "createInstrumentEditorInnerFactory() "
-                                 "in DLL\n" << std::flush;
-                    FreeLibrary(hinstLib);
-                    continue;
-                }
-
-                // get the plugin instance and register it to the factory
-
-                InnerFactory* pInnerFactory = (InnerFactory*)fn();
-                if (!pInnerFactory) {
-                    std::cerr << "ERROR: !pInnerFactory\n" << std::flush;
-                    FreeLibrary(hinstLib);
-                    continue;
-                }
-                InstrumentEditor* pEditor = pInnerFactory->Create();
-                if (InnerFactories.count(pEditor->Name())) {
-                    std::cerr << "ERROR: a plugin with name '"
-                              << pEditor->Name()
-                              << "' already loaded (skipping)\n"
-                              << std::flush;
-                    pInnerFactory->Destroy(pEditor);
-                    FreeLibrary(hinstLib);
-                    continue;
-                }
-                InnerFactories[pEditor->Name()] = pInnerFactory;
-                pInnerFactory->Destroy(pEditor);
-
-                LoadedDLLs.push_back(pDLL);
-            } while (FindNextFile(hDir, &win32FindData));
-            if (hDir != INVALID_HANDLE_VALUE) FindClose(hDir);
-            #else // POSIX
-			#if defined(__APPLE__)  /*  20071224 Toshi Nagata  */
-			String Config_plugin_dir = (String)CONFIG_PLUGIN_DIR;
-			if (Config_plugin_dir.find("~") == 0)
-				   Config_plugin_dir.replace(0, 1, getenv("HOME"));
-			DIR* hDir = opendir(Config_plugin_dir.c_str());
-			#else
-            DIR* hDir = opendir(CONFIG_PLUGIN_DIR);
-			#endif
-            if (!hDir) {
-                std::cerr << "Could not open instrument editor plugins directory "
-                          << "(" << CONFIG_PLUGIN_DIR << "): "
+            #else
+            if (!LoadPlugins(CONFIG_PLUGIN_DIR)) {
+                std::cerr << "Could not open instrument editor plugins "
+                          << "directory (" << CONFIG_PLUGIN_DIR << "): "
                           << strerror(errno) << std::endl;
                 return;
             }
-            for (dirent* pEntry = readdir(hDir); pEntry; pEntry = readdir(hDir)) {
-                // dir entry name as full qualified path
-			#if defined(__APPLE__)  /*  20080110 Toshi Nagata  */
-                const String sPath = Config_plugin_dir + ("/" + String(pEntry->d_name));
-			#else
-                const String sPath = CONFIG_PLUGIN_DIR + ("/" + String(pEntry->d_name));
-			#endif
-                // skip entries that are not regular files
-                struct stat entry_stat;
-                if (lstat(sPath.c_str(), &entry_stat) != 0 ||
-                   (entry_stat.st_mode & S_IFMT) != S_IFREG)
-                   continue;
-                // skip files that are not .so files
-                if (sPath.length() < 3 ||
-                    sPath.substr(sPath.length() - 3) != ".so" &&
-                    sPath.find(".so.") == String::npos
-                ) continue;
-                // load the DLL (the plugins should register themselfes automatically)
-                void* pDLL = dlopen(sPath.c_str(), RTLD_NOW);
-                if (pDLL) LoadedDLLs.push_back(pDLL);
-                else {
-                    std::cerr << "Failed to load instrument editor plugin: '"
-                              << sPath << "', cause: " << dlerror() << std::endl;
-                }
-            }
-            closedir(hDir);
             #endif
             bPluginsLoaded = true;
             dmsg(1,("OK\n"));
         }
+    }
+
+    bool InstrumentEditorFactory::LoadPlugins(String plugindir) {
+        #if defined(WIN32)
+        WIN32_FIND_DATA win32FindData;
+        const String pluginpattern = plugindir + "\\*.dll";
+        HANDLE hDir = FindFirstFile(pluginpattern.c_str(), &win32FindData);
+        if (hDir == INVALID_HANDLE_VALUE) {
+            if (GetLastError() != ERROR_FILE_NOT_FOUND) {
+                return false;
+            } else {
+                dmsg(1,("None"));
+                return true;
+            }
+        }
+
+        do {
+            // skip directory entries
+            if (win32FindData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
+                continue;
+            // dir entry name as full qualified path
+            const String sPath = plugindir + "\\" + win32FindData.cFileName;
+            // load the DLL
+            HINSTANCE hinstLib;
+            void* pDLL = hinstLib = LoadLibrary(sPath.c_str());
+            if (!pDLL) {
+                std::cerr << "Failed to load instrument editor plugin: "
+                          << sPath << std::endl;
+                continue;
+            }
+
+            InnerFactory* (*fn)() = (InnerFactory* (*)())
+                GetProcAddress(hinstLib, "createInstrumentEditorInnerFactory");
+            if (fn == NULL) {
+                std::cerr << "ERROR: unable to find "
+                             "createInstrumentEditorInnerFactory() "
+                             "in DLL\n" << std::flush;
+                FreeLibrary(hinstLib);
+                continue;
+            }
+
+            // get the plugin instance and register it to the factory
+
+            InnerFactory* pInnerFactory = fn();
+            if (!pInnerFactory) {
+                std::cerr << "ERROR: !pInnerFactory\n" << std::flush;
+                FreeLibrary(hinstLib);
+                continue;
+            }
+            InstrumentEditor* pEditor = pInnerFactory->Create();
+            if (InnerFactories.count(pEditor->Name())) {
+                std::cerr << "ERROR: a plugin with name '"
+                          << pEditor->Name()
+                          << "' already loaded (skipping)\n"
+                          << std::flush;
+                pInnerFactory->Destroy(pEditor);
+                FreeLibrary(hinstLib);
+                continue;
+            }
+            InnerFactories[pEditor->Name()] = pInnerFactory;
+            pInnerFactory->Destroy(pEditor);
+
+            LoadedDLLs.push_back(pDLL);
+        } while (FindNextFile(hDir, &win32FindData));
+
+        if (hDir != INVALID_HANDLE_VALUE) FindClose(hDir);
+
+        #else // POSIX
+
+        #if defined(__APPLE__)  /*  20071224 Toshi Nagata  */
+        if (plugindir.find("~") == 0)
+            plugindir.replace(0, 1, getenv("HOME"));
+        #endif
+        DIR* hDir = opendir(plugindir.c_str());
+        if (!hDir) {
+            return false;
+        }
+        for (dirent* pEntry = readdir(hDir); pEntry; pEntry = readdir(hDir)) {
+            // dir entry name as full qualified path
+            const String sPath = plugindir + "/" + pEntry->d_name;
+            // skip entries that are not regular files
+            struct stat entry_stat;
+            if (lstat(sPath.c_str(), &entry_stat) != 0 ||
+                (entry_stat.st_mode & S_IFMT) != S_IFREG)
+                continue;
+            // skip files that are not .so files
+            if (sPath.length() < 3 ||
+                sPath.substr(sPath.length() - 3) != ".so" &&
+                sPath.find(".so.") == String::npos)
+                continue;
+            // load the DLL (the plugins should register themselfes automatically)
+            void* pDLL = dlopen(sPath.c_str(), RTLD_NOW);
+            if (pDLL) LoadedDLLs.push_back(pDLL);
+            else {
+                std::cerr << "Failed to load instrument editor plugin: '"
+                          << sPath << "', cause: " << dlerror() << std::endl;
+            }
+        }
+        closedir(hDir);
+        #endif
+        return true;
     }
 
     void InstrumentEditorFactory::ClosePlugins() {

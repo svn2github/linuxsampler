@@ -84,9 +84,11 @@ namespace {
 
         ProcessHandle = INVALID_HANDLE_VALUE;
 
-        // look for a Fantasia jar file in %programfiles%\LinuxSampler
-        if (const char* programfiles = getenv("PROGRAMFILES")) {
-            String lspath = String(programfiles) + "\\LinuxSampler\\";
+        // assume Fantasia is in the same directory as the
+        // liblinuxsampler dll
+        String lspath = LinuxSampler::Sampler::GetInstallDir();
+        if (!lspath.empty()) {
+            lspath += "\\";
             WIN32_FIND_DATA fd;
             HANDLE hFind = FindFirstFile((lspath + "Fantasia*.jar").c_str(), &fd);
             if (hFind != INVALID_HANDLE_VALUE) {
