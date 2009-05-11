@@ -10,7 +10,7 @@
 ; -> You must install the file cpudesc\cpudesc.dll into the NSIS's
 ;    plugin directory before being able to compile this installer!
 ;
-; -> The compiled binaries must be placed into the respecitve directories
+; -> The compiled binaries must be placed into the respective directories
 ;    under bin\ (you have to read this file in order to get those exact
 ;    locations and expected file names).
 
@@ -19,8 +19,9 @@ SetCompressor lzma
 
 ;Include Modern UI
 !include "MUI.nsh"
+!include "EnvVarUpdate.nsh"
 
-!define RELEASE_DATE "20090428"
+!define RELEASE_DATE "20090511"
 
 ; The name of the installer
 Name "LinuxSampler (${RELEASE_DATE})"
@@ -176,17 +177,46 @@ Function DetectJRE
   done:
 FunctionEnd
 
+; Tries to find the location where VST plugins should be installed to
+Function DetectVstPath
+  Var /GLOBAL vstPluginPath
+
+  ClearErrors
+  ReadRegStr $0 HKCU "Software\VST" "VSTPluginsPath"
+  IfErrors check2ndRegistryKey 0
+  StrCpy $vstPluginPath $0
+  DetailPrint "Found VST plugin directory in HKCU registry."
+  Goto done
+
+  check2ndRegistryKey:
+  ClearErrors
+  ReadRegStr $0 HKLM "Software\VST" "VSTPluginsPath"
+  IfErrors noRegistryKeyExists 0
+  StrCpy $vstPluginPath $0
+  DetailPrint "Found VST plugin directory in HKLM registry."
+  Goto done
+
+  noRegistryKeyExists:
+  ClearErrors
+  DetailPrint "No VST plugin directory defined in registry."
+  StrCpy $vstPluginPath "$PROGRAMFILES\Steinberg\VstPlugins"
+
+  done:
+  DetailPrint "Using the following as VST plugin directory: $vstPluginPath"
+FunctionEnd
+
 ;--------------------------------
 
 ; primer things to do
 Section ""
   Call DetectSystemType
+  Call DetectVstPath
 SectionEnd
 
 ;--------------------------------
 
 ; The stuff to install
-Section "LinuxSampler 0.5.1" SecLinuxSampler
+Section "LinuxSampler 0.5.1.12cvs" SecLinuxSampler
   DetailPrint "Installing LinuxSampler binaries ..."
   StrCpy $installingLinuxSampler "1"
 
@@ -200,24 +230,30 @@ Section "LinuxSampler 0.5.1" SecLinuxSampler
   ; Files to install
 
   linuxsampler64:
-  ;File bin\64\linuxsampler.exe
-  ;File bin\64\liblinuxsampler-1.dll
+  File bin\64\linuxsampler.exe
+  File bin\64\liblinuxsampler-1.dll
+  SetOutPath $vstPluginPath
+  File bin\64\LinuxSampler.dll
   Goto done
 
   linuxsampler686sse:
-  ;File bin\686sse\linuxsampler.exe
-  ;File bin\686sse\liblinuxsampler-1.dll
+  File bin\686sse\linuxsampler.exe
+  File bin\686sse\liblinuxsampler-1.dll
+  SetOutPath $vstPluginPath
+  File bin\686sse\LinuxSampler.dll
   Goto done
 
   linuxsampler686:
-  ;File bin\686\linuxsampler.exe
-  ;File bin\686\liblinuxsampler-1.dll
+  File bin\686\linuxsampler.exe
+  File bin\686\liblinuxsampler-1.dll
+  SetOutPath $vstPluginPath
+  File bin\686\LinuxSampler.dll
   Goto done
 
   done:
 SectionEnd
 
-Section "JSampler 'Fantasia' 0.8a" SecJSampler
+Section "JSampler 'Fantasia' 0.8a-cvs6" SecJSampler
   DetailPrint "Installing JSampler binaries ..."
   ; make sure JRE is installed
   Call DetectJRE
@@ -225,60 +261,157 @@ Section "JSampler 'Fantasia' 0.8a" SecJSampler
   ; Set output path to the installation directory.
   SetOutPath $INSTDIR
   ; Files to install
-  ;File bin\Fantasia-0.8a.jar
-  ;File jsampler.ico
+  File bin\Fantasia-0.8a-cvs6.jar
+  File jsampler.ico
 SectionEnd
 
-Section "QSampler 0.2.1" SecQSampler
+Section "QSampler 0.2.1.26" SecQSampler
   DetailPrint "Installing QSampler binaries ..."
   StrCpy $installingQSampler "1"
   ; Set output path to the installation directory.
   SetOutPath $INSTDIR
   ; Files to install
-  ;File bin\qsampler.exe
-  ;File bin\QtCore4.dll
-  ;File bin\QtGui4.dll
-  ;File bin\mingwm10.dll
-  ;File qsampler.ico
+  File bin\686\qsampler.exe
+  File bin\686\QtCore4.dll
+  File bin\686\QtGui4.dll
+  File bin\686\mingwm10.dll
+  File qsampler.ico
+  SetOutPath $INSTDIR\share\locale
+  File bin\686\share\locale\qsampler_ru.qm
 SectionEnd
 
-Section "gigedit 0.1.1" Secgigedit
+Section "gigedit 0.1.1.x (cvs2009-05-10)" Secgigedit
   DetailPrint "Installing gigedit binaries ..."
   StrCpy $installinggigedit "1"
 
   ; make sure gtkmm is installed
-  Call CheckForGtkmm
+  ; (commented out for now, since we include gtk(mm) DLLs with this
+  ; installer, so no check and no download necessary ATM)
+  ;Call CheckForGtkmm
+
   ; Set output path to the installation directory.
   SetOutPath $INSTDIR
 
   StrCmp $binType BIN_TYPE_64BIT gigedit64
-  StrCmp $binType BIN_TYPE_686SSE gigedit686sse
+  ; I think we don't need a SSE optimized 32 bit binary for gigedit, one 64bit and one simple 32 bit version should be sufficient
+  ;StrCmp $binType BIN_TYPE_686SSE gigedit686sse
   Goto gigedit686
 
   ; Files to install
 
   gigedit64:
-  ;File bin\64\gigedit.exe
-  SetOutPath "$INSTDIR\Plugins"
-  ;File bin\64\libgigedit.dll
-  Goto done
-
-  gigedit686sse:
-  ;File bin\686sse\gigedit.exe
-  SetOutPath "$INSTDIR\Plugins"
-  ;File bin\686sse\libgigedit.dll
+  File bin\64\gigedit.exe
+  File bin\64\libgigedit-1.dll
+  SetOutPath "$INSTDIR\plugins"
+  File bin\64\plugins\libgigeditlinuxsamplerplugin-1.dll
+  SetOutPath $INSTDIR
+  File bin\64\libatk-1.0-0.dll
+  File bin\64\libatkmm-1.6-1.dll
+  File bin\64\libcairo-2.dll
+  File bin\64\libcairomm-1.0-1.dll
+  File bin\64\libgdkmm-2.4-1.dll
+  File bin\64\libgdk_pixbuf-2.0-0.dll
+  File bin\64\libgdk-win32-2.0-0.dll
+  File bin\64\libgio-2.0-0.dll
+  File bin\64\libgiomm-2.4-1.dll
+  File bin\64\libglib-2.0-0.dll
+  File bin\64\libglibmm-2.4-1.dll
+  File bin\64\libgmodule-2.0-0.dll
+  File bin\64\libgobject-2.0-0.dll
+  File bin\64\libgthread-2.0-0.dll
+  File bin\64\libgtkmm-2.4-1.dll
+  File bin\64\libgtk-win32-2.0-0.dll
+  File bin\64\libintl-8.dll
+  File bin\64\libjpeg-62.dll
+  File bin\64\libpango-1.0-0.dll
+  File bin\64\libpangocairo-1.0-0.dll
+  File bin\64\libpangomm-1.4-1.dll
+  File bin\64\libpangowin32-1.0-0.dll
+  File bin\64\libpng12-0.dll
+  File bin\64\libsigc-2.0-0.dll
+  File bin\64\libtiff.dll
+  File bin\64\zlib1.dll
+  SetOutPath $INSTDIR\etc\gtk-2.0
+  File bin\64\etc\gtk-2.0\gtkrc
+  SetOutPath $INSTDIR\lib\gtk-2.0\2.10.0\engines
+  File bin\64\lib\gtk-2.0\2.10.0\engines\libwimp.dll
+  SetOutPath $INSTDIR\share\locale\de\LC_MESSAGES
+  File bin\64\share\locale\de\LC_MESSAGES\gigedit.mo
+  File bin\64\share\locale\de\LC_MESSAGES\gtk20.mo
+  SetOutPath $INSTDIR\share\locale\sv\LC_MESSAGES
+  File bin\64\share\locale\sv\LC_MESSAGES\gigedit.mo
+  File bin\64\share\locale\sv\LC_MESSAGES\gtk20.mo
+  SetOutPath $INSTDIR\share\themes\MS-Windows\gtk-2.0
+  File bin\64\share\themes\MS-Windows\gtk-2.0\gtkrc
   Goto done
 
   gigedit686:
-  ;File bin\686\gigedit.exe
-  SetOutPath "$INSTDIR\Plugins"
-  ;File bin\686\libgigedit.dll
+  File bin\686\gigedit.exe
+  File bin\686\libgigedit-1.dll
+  SetOutPath "$INSTDIR\plugins"
+  File bin\686\plugins\libgigeditlinuxsamplerplugin-1.dll
+  SetOutPath $INSTDIR
+  File bin\686\intl.dll
+  File bin\686\jpeg62.dll
+  File bin\686\libatk-1.0-0.dll
+  File bin\686\libatkmm-1.6-1.dll
+  File bin\686\libcairo-2.dll
+  File bin\686\libcairomm-1.0-1.dll
+  File bin\686\libgdkmm-2.4-1.dll
+  File bin\686\libgdk_pixbuf-2.0-0.dll
+  File bin\686\libgdk-win32-2.0-0.dll
+  File bin\686\libgio-2.0-0.dll
+  File bin\686\libgiomm-2.4-1.dll
+  File bin\686\libglib-2.0-0.dll
+  File bin\686\libglibmm-2.4-1.dll
+  File bin\686\libgmodule-2.0-0.dll
+  File bin\686\libgobject-2.0-0.dll
+  File bin\686\libgthread-2.0-0.dll
+  File bin\686\libgtkmm-2.4-1.dll
+  File bin\686\libgtk-win32-2.0-0.dll
+  File bin\686\libpango-1.0-0.dll
+  File bin\686\libpangocairo-1.0-0.dll
+  File bin\686\libpangomm-1.4-1.dll
+  File bin\686\libpangowin32-1.0-0.dll
+  File bin\686\libpng12-0.dll
+  File bin\686\libsigc-2.0-0.dll
+  File bin\686\libtiff3.dll
+  File bin\686\zlib1.dll
+  SetOutPath $INSTDIR\etc\gtk-2.0
+  File bin\686\etc\gtk-2.0\gdk-pixbuf.loaders
+  File bin\686\etc\gtk-2.0\gtkrc
+  SetOutPath $INSTDIR\lib\gtk-2.0\2.10.0\engines
+  File bin\686\lib\gtk-2.0\2.10.0\engines\libwimp.dll
+  SetOutPath $INSTDIR\lib\gtk-2.0\2.10.0\loaders
+  File bin\686\lib\gtk-2.0\2.10.0\loaders\libpixbufloader-ani.dll
+  File bin\686\lib\gtk-2.0\2.10.0\loaders\libpixbufloader-bmp.dll
+  File bin\686\lib\gtk-2.0\2.10.0\loaders\libpixbufloader-gif.dll
+  File bin\686\lib\gtk-2.0\2.10.0\loaders\libpixbufloader-icns.dll
+  File bin\686\lib\gtk-2.0\2.10.0\loaders\libpixbufloader-ico.dll
+  File bin\686\lib\gtk-2.0\2.10.0\loaders\libpixbufloader-jpeg.dll
+  File bin\686\lib\gtk-2.0\2.10.0\loaders\libpixbufloader-pcx.dll
+  File bin\686\lib\gtk-2.0\2.10.0\loaders\libpixbufloader-png.dll
+  File bin\686\lib\gtk-2.0\2.10.0\loaders\libpixbufloader-pnm.dll
+  File bin\686\lib\gtk-2.0\2.10.0\loaders\libpixbufloader-ras.dll
+  File bin\686\lib\gtk-2.0\2.10.0\loaders\libpixbufloader-tga.dll
+  File bin\686\lib\gtk-2.0\2.10.0\loaders\libpixbufloader-tiff.dll
+  File bin\686\lib\gtk-2.0\2.10.0\loaders\libpixbufloader-wbmp.dll
+  File bin\686\lib\gtk-2.0\2.10.0\loaders\libpixbufloader-xbm.dll
+  File bin\686\lib\gtk-2.0\2.10.0\loaders\libpixbufloader-xpm.dll
+  SetOutPath $INSTDIR\share\locale\de\LC_MESSAGES
+  File bin\686\share\locale\de\LC_MESSAGES\gigedit.mo
+  File bin\686\share\locale\de\LC_MESSAGES\gtk20.mo
+  SetOutPath $INSTDIR\share\locale\sv\LC_MESSAGES
+  File bin\686\share\locale\sv\LC_MESSAGES\gigedit.mo
+  File bin\686\share\locale\sv\LC_MESSAGES\gtk20.mo
+  SetOutPath $INSTDIR\share\themes\MS-Windows\gtk-2.0
+  File bin\686\share\themes\MS-Windows\gtk-2.0\gtkrc
   Goto done
 
   done:
 SectionEnd
 
-Section "libgig 3.2.1" Seclibgig
+Section "libgig 3.2.1.x (cvs2009-05-03)" Seclibgig
   DetailPrint "Installing libgig binaries ..."
   ; We make this a mandatory component
   SectionIn RO
@@ -292,30 +425,36 @@ Section "libgig 3.2.1" Seclibgig
   ; Files to install
 
   libgig64:
-  ;File bin\64\libgig-6.dll
-  ;File bin\64\rifftree.exe
-  ;File bin\64\dlsdump.exe
-  ;File bin\64\gigdump.exe
-  ;File bin\64\gigextract.exe
+  File bin\64\libgig-6.dll
+  File bin\64\rifftree.exe
+  File bin\64\dlsdump.exe
+  File bin\64\gigdump.exe
+  File bin\64\gigextract.exe
+  ; special dependency for the 64 bit version
+  File bin\64\libgcc_s_sjlj-1.dll
   Goto done
 
   libgig686sse:
-  ;File bin\686sse\libgig-6.dll
-  ;File bin\686sse\rifftree.exe
-  ;File bin\686sse\dlsdump.exe
-  ;File bin\686sse\gigdump.exe
-  ;File bin\686sse\gigextract.exe
+  File bin\686sse\libgig-6.dll
+  File bin\686sse\rifftree.exe
+  File bin\686sse\dlsdump.exe
+  File bin\686sse\gigdump.exe
+  File bin\686sse\gigextract.exe
   Goto done
 
   libgig686:
-  ;File bin\686\libgig-6.dll
-  ;File bin\686\rifftree.exe
-  ;File bin\686\dlsdump.exe
-  ;File bin\686\gigdump.exe
-  ;File bin\686\gigextract.exe
+  File bin\686\libgig-6.dll
+  File bin\686\rifftree.exe
+  File bin\686\dlsdump.exe
+  File bin\686\gigdump.exe
+  File bin\686\gigextract.exe
   Goto done
 
   done:
+
+  ; As this is a mandatory component, we add the common binary directory
+  ; of LinuxSampler and friends to the system's PATH variable here ...
+  ${EnvVarUpdate} $0 "PATH" "A" "HKLM" "$INSTDIR"
 
   ; As this is a mandatory component, we misuse it to install the uninstaller as well ...
   ; Write the uninstall keys for Windows
@@ -328,7 +467,7 @@ Section "libgig 3.2.1" Seclibgig
   WriteRegStr HKCU "Software\LinuxSampler" "" $INSTDIR
 SectionEnd
 
-Section "libsndfile 1.0.17" Seclibsndfile
+Section "libsndfile 1.0.19" Seclibsndfile
   DetailPrint "Installing libsndfile binaries ..."
   ; We make this a mandatory component
   SectionIn RO
@@ -343,11 +482,11 @@ Section "libsndfile 1.0.17" Seclibsndfile
   ; Files to install
 
   libsndfile64:
-  ;File bin\64\libsndfile-1.dll
+  File bin\64\libsndfile-1.dll
   Goto done
 
   libsndfile686:
-  ;File bin\686\libsndfile-1.dll
+  File bin\686\libsndfile-1.dll
   Goto done
 
   done:
@@ -359,7 +498,7 @@ Section "Start Menu Shortcuts" SecShortcuts
   CreateShortCut "$SMPROGRAMS\LinuxSampler\Uninstall.lnk" "$INSTDIR\uninstall.exe" "" "$INSTDIR\uninstall.exe" 0
 
   StrCmp $installingLinuxSampler '1' 0 +2
-  CreateShortCut "$SMPROGRAMS\LinuxSampler\LinuxSampler 0.5.1 (backend).lnk" "$INSTDIR\linuxsampler.exe" "" "$INSTDIR\linuxsampler.exe" 0
+  CreateShortCut "$SMPROGRAMS\LinuxSampler\LinuxSampler 0.5.1 (stand alone backend).lnk" "$INSTDIR\linuxsampler.exe" "" "$INSTDIR\linuxsampler.exe" 0
 
   StrCmp $installingJSampler '1' 0 +2
   CreateShortCut '$SMPROGRAMS\LinuxSampler\JSampler Fantasia 0.8a (frontend).lnk' 'javaw' '-jar "$INSTDIR\Fantasia-0.8a.jar"' '$INSTDIR\jsampler.ico' 0
@@ -376,24 +515,28 @@ SectionEnd
 ; Uninstaller
 
 Section "Uninstall"
-  ; Remove registry keys
+  DetailPrint "Removing LinuxSampler directory from PATH variable ..."
+  ${un.EnvVarUpdate} $0 "PATH" "R" "HKLM" "$INSTDIR"
+
+  DetailPrint "Removing registry keys ..."
   DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\LinuxSampler"
-  ; Remove files and uninstaller
-  Delete $INSTDIR\*.*
-  Delete $INSTDIR\plugins\*.*
-  ; Remove shortcuts, if any
+
+  DetailPrint "Removing VST plugin ..."
+  Delete $vstPluginPath\LinuxSampler.dll
+
+  DetailPrint "Removing shortcuts (if any) ..."
   Delete "$SMPROGRAMS\LinuxSampler\*.*"
-  ; Remove directories used
+
+  DetailPrint "Removing directories used ..."
   RMDir "$SMPROGRAMS\LinuxSampler"
-  RMDir "$INSTDIR\plugins"
-  RMDir "$INSTDIR"
+  RMDir /r "$INSTDIR"
 SectionEnd
 
 ;--------------------------------
 ;Descriptions
 
 ;Language strings
-LangString DESC_SecLinuxSampler ${LANG_ENGLISH} "Sampler backend, including sampler engine, MIDI and audio drivers, native C++ API as well as network (LSCP) API. Use a frontend application like JSampler or QSampler to control the sampler."
+LangString DESC_SecLinuxSampler ${LANG_ENGLISH} "Sampler backend (stand-alone application and VST plugin), including sampler engine, MIDI and audio drivers, native C++ API as well as network (LSCP) API. Use a frontend application like JSampler or QSampler to control the sampler."
 LangString DESC_SecJSampler ${LANG_ENGLISH} "Graphical frontend (user interface) for LinuxSampler written in Java, supporting all current features of LinuxSampler. This is the 'Fantasia' distribution of JSampler, offering a modern skin based look."
 LangString DESC_SecQSampler ${LANG_ENGLISH} "Graphical light-weight frontend (user interface) for LinuxSampler written in C++, offering a fast native user interface. NOTE: QSampler doesn't support all LinuxSampler features yet!"
 LangString DESC_Secgigedit ${LANG_ENGLISH} "Graphical instrument editor for Gigasampler format v2 and v3 files. Can be used stand-alone or in conjunction with LinuxSampler. NOTE: this is yet an early development version!"
