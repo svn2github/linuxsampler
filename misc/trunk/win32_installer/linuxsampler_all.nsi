@@ -65,6 +65,8 @@ VIAddVersionKey /LANG=${LANG_ENGLISH} "FileVersion" "0.0.0"
 !define BIN_TYPE_686SSE "686 SSE"
 !define BIN_TYPE_686    "686"
 
+Var /GLOBAL binType
+
 ;--------------------------------
 ; Pages
 
@@ -91,18 +93,12 @@ Function .onInit
   StrCpy $installingJSampler "0"
   StrCpy $installingQSampler "0"
   StrCpy $installinggigedit "0"
-
-  ; We call this here for the uninstaller, its also called in the ""
-  ; section (for installing) just for seeing the debug output, as ouput
-  ; this init handler wont make it into the "Details" list.
-  Call DetectSystemType
 FunctionEnd
 
 ; detects CPU capabilities, determmines which native binary type to install
 ; and selects the appropriate windows registry view (32 bit or 64 bit)
-Function DetectSystemType
-  Var /GLOBAL binType
-
+!macro DetectSystemType un
+Function ${un}DetectSystemType
   ; check if this is a 64 bit windows
   System::Call "kernel32::GetCurrentProcess() i .s"
   System::Call "kernel32::IsWow64Process(i s, *i .r0)"
@@ -130,6 +126,9 @@ Function DetectSystemType
 
   DetectSystemDone:
 FunctionEnd
+!macroend
+!insertmacro DetectSystemType ""
+!insertmacro DetectSystemType "un."
 
 ; Check for the presence of gtkmm, and if false, ask the user whether to
 ; download and install gtkmm now from the internet.
@@ -168,15 +167,17 @@ Function GetJRE
   Var /GLOBAL jreUri
 
   StrCmp $binType BIN_TYPE_64BIT 0 +3
-  StrCpy $jreUri JRE_64_URL
+  StrCpy $jreUri ${JRE_64_URL}
   Goto +2
-  StrCpy $jreUri JRE_32_URL
+  StrCpy $jreUri ${JRE_32_URL}
+
+  DetailPrint "Downloading JRE from: $jreUri"
 
   MessageBox MB_OK "JSampler requires Java ${JRE_VERSION}, it will now \
                     be downloaded and installed"
 
   StrCpy $2 "$TEMP\Java Runtime Environment.exe"
-  nsisdl::download /TIMEOUT=30000 $jreUri $2
+  nsisdl::download /TIMEOUT=30000 "$jreUri" $2
   Pop $R0  ; Get the return value
   StrCmp $R0 "success" +3
   MessageBox MB_OK "Download failed: $R0"
@@ -237,7 +238,7 @@ FunctionEnd
 
 ;--------------------------------
 
-; primer things to do
+; primer things to do (before installing, not called on uninstall)
 Section ""
   Call DetectSystemType
   Call DetectVstPath
@@ -568,6 +569,8 @@ SectionEnd
 
 Section "Uninstall"
   Var /GLOBAL vstdir
+
+  Call un.DetectSystemType
 
   DetailPrint "Removing LinuxSampler directory from PATH variable ..."
   ${un.EnvVarUpdate} $0 "PATH" "R" "HKLM" "$INSTDIR"
