@@ -31,12 +31,13 @@ OutFile "linuxsampler_${RELEASE_DATE}_setup.exe"
 
 ; Java Runtime Environment, needed for JSampler
 !define JRE_VERSION "1.6"
-!define JRE_URL "http://javadl.sun.com/webapps/download/AutoDL?BundleId=11292"
+!define JRE_32_URL "http://javadl.sun.com/webapps/download/AutoDL?BundleId=29220"
+!define JRE_64_URL "http://javadl.sun.com/webapps/download/AutoDL?BundleId=29222"
 
 ; The default installation directory
 InstallDir "$PROGRAMFILES64\LinuxSampler"
 
-!define DEFAULT_VST_DIR "$PROGRAMFILES\Steinberg\VstPlugins"
+!define DEFAULT_VST_DIR "$PROGRAMFILES64\Steinberg\VstPlugins"
 
 ; Get installation folder from registry if available
 InstallDirRegKey HKLM "Software\LinuxSampler" "Main Directory"
@@ -91,6 +92,9 @@ Function .onInit
   StrCpy $installingQSampler "0"
   StrCpy $installinggigedit "0"
 
+  ; We call this here for the uninstaller, its also called in the ""
+  ; section (for installing) just for seeing the debug output, as ouput
+  ; this init handler wont make it into the "Details" list.
   Call DetectSystemType
 FunctionEnd
 
@@ -161,17 +165,24 @@ FunctionEnd
 
 ; Downloads and launches the JRE installer from the internet
 Function GetJRE
-        MessageBox MB_OK "JSampler requires Java ${JRE_VERSION}, it will now \
-                         be downloaded and installed"
+  Var /GLOBAL jreUri
 
-        StrCpy $2 "$TEMP\Java Runtime Environment.exe"
-        nsisdl::download /TIMEOUT=30000 ${JRE_URL} $2
-        Pop $R0 ;Get the return value
-                StrCmp $R0 "success" +3
-                MessageBox MB_OK "Download failed: $R0"
-                Quit
-        ExecWait $2
-        Delete $2
+  StrCmp $binType BIN_TYPE_64BIT 0 +3
+  StrCpy $jreUri JRE_64_URL
+  Goto +2
+  StrCpy $jreUri JRE_32_URL
+
+  MessageBox MB_OK "JSampler requires Java ${JRE_VERSION}, it will now \
+                    be downloaded and installed"
+
+  StrCpy $2 "$TEMP\Java Runtime Environment.exe"
+  nsisdl::download /TIMEOUT=30000 $jreUri $2
+  Pop $R0  ; Get the return value
+  StrCmp $R0 "success" +3
+  MessageBox MB_OK "Download failed: $R0"
+  Quit
+  ExecWait $2
+  Delete $2
 FunctionEnd
 
 ; Checks if the JRE is already installed, if not it will download and install it from the internet
@@ -180,6 +191,17 @@ Function DetectJRE
              "CurrentVersion"
   StrCmp $2 ${JRE_VERSION} done
 
+  StrCmp $binType BIN_TYPE_64BIT 0 downloadjre
+
+  ; on 64 bit systems also check the 32 bit view of the registry, maybe
+  ; a 32 bit JRE was already installed
+  SetRegView 32
+  ReadRegStr $3 HKLM "SOFTWARE\JavaSoft\Java Runtime Environment" \
+             "CurrentVersion"
+  SetRegView 64  ; restore 64 bit view
+  StrCmp $3 ${JRE_VERSION} done
+
+  downloadjre:
   Call GetJRE
 
   done:
@@ -217,6 +239,7 @@ FunctionEnd
 
 ; primer things to do
 Section ""
+  Call DetectSystemType
   Call DetectVstPath
 SectionEnd
 
@@ -506,9 +529,21 @@ Section "libsndfile 1.0.19" Seclibsndfile
 SectionEnd
 
 Section "Start Menu Shortcuts" SecShortcuts
+  Var /GLOBAL javawbin
+
   ; Switch system variables to 'all users', to ensure we create the start
   ; menu shortcuts for all users and not just for the current user.
   SetShellVarContext all
+
+  ; try to resolve the full qualified path of the javaw binary
+  ClearErrors
+  SearchPath $javawbin javaw.exe
+  IfErrors 0 javawDetected
+  ClearErrors
+  ; if all fails, simply use SYSDIR (which should work almost always anyway)
+  DetailPrint "WRN: Could not resolve javaw.exe path, using SYSDIR."
+  StrCpy $javawbin "$SYSDIR\javaw.exe"
+  javawDetected:
 
   CreateDirectory "$SMPROGRAMS\LinuxSampler"
 
@@ -518,7 +553,7 @@ Section "Start Menu Shortcuts" SecShortcuts
   CreateShortCut "$SMPROGRAMS\LinuxSampler\LinuxSampler 0.5.1.12cvs (stand alone backend).lnk" "$INSTDIR\linuxsampler.exe" "" "$INSTDIR\linuxsampler.exe" 0
 
   StrCmp $installingJSampler '1' 0 +2
-  CreateShortCut '$SMPROGRAMS\LinuxSampler\JSampler Fantasia 0.8a-cvs6 (frontend).lnk' 'javaw' '-jar "$INSTDIR\Fantasia-0.8a-cvs6.jar"' '$INSTDIR\jsampler.ico' 0
+  CreateShortCut '$SMPROGRAMS\LinuxSampler\JSampler Fantasia 0.8a-cvs6 (frontend).lnk' '$javawbin' '-jar "$INSTDIR\Fantasia-0.8a-cvs6.jar"' '$INSTDIR\jsampler.ico' 0
 
   StrCmp $installingQSampler '1' 0 +2
   CreateShortCut "$SMPROGRAMS\LinuxSampler\QSampler 0.2.1.26 (frontend).lnk" "$INSTDIR\qsampler.exe" "" "$INSTDIR\qsampler.ico" 0
