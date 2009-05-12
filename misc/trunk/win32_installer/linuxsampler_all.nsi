@@ -21,7 +21,7 @@ SetCompressor lzma
 !include "MUI.nsh"
 !include "EnvVarUpdate.nsh"
 
-!define RELEASE_DATE "20090511"
+!define RELEASE_DATE "20090512"
 
 ; The name of the installer
 Name "LinuxSampler (${RELEASE_DATE})"
@@ -34,10 +34,12 @@ OutFile "linuxsampler_${RELEASE_DATE}_setup.exe"
 !define JRE_URL "http://javadl.sun.com/webapps/download/AutoDL?BundleId=11292"
 
 ; The default installation directory
-InstallDir $PROGRAMFILES\LinuxSampler
+InstallDir "$PROGRAMFILES64\LinuxSampler"
+
+!define DEFAULT_VST_DIR "$PROGRAMFILES\Steinberg\VstPlugins"
 
 ; Get installation folder from registry if available
-InstallDirRegKey HKCU "Software\LinuxSampler" ""
+InstallDirRegKey HKLM "Software\LinuxSampler" "Main Directory"
 
 ;--------------------------------
 ;Interface Settings
@@ -88,9 +90,12 @@ Function .onInit
   StrCpy $installingJSampler "0"
   StrCpy $installingQSampler "0"
   StrCpy $installinggigedit "0"
+
+  Call DetectSystemType
 FunctionEnd
 
-; detects CPU capabilities and determmines which native binary type to install
+; detects CPU capabilities, determmines which native binary type to install
+; and selects the appropriate windows registry view (32 bit or 64 bit)
 Function DetectSystemType
   Var /GLOBAL binType
 
@@ -100,9 +105,12 @@ Function DetectSystemType
   IntCmp $0 0 not64bit
   StrCpy $binType BIN_TYPE_64BIT
   DetailPrint "64 bit Windows detected."
+  SetRegView 64
   Goto DetectSystemDone
 
   not64bit: ; a 32 bit system
+
+  SetRegView 32
 
   ; check if CPU supports SSE
   cpudesc::tell
@@ -199,7 +207,7 @@ Function DetectVstPath
   noRegistryKeyExists:
   ClearErrors
   DetailPrint "No VST plugin directory defined in registry."
-  StrCpy $vstPluginPath "$PROGRAMFILES\Steinberg\VstPlugins"
+  StrCpy $vstPluginPath "${DEFAULT_VST_DIR}"
 
   done:
   DetailPrint "Using the following as VST plugin directory: $vstPluginPath"
@@ -209,7 +217,6 @@ FunctionEnd
 
 ; primer things to do
 Section ""
-  Call DetectSystemType
   Call DetectVstPath
 SectionEnd
 
@@ -452,19 +459,25 @@ Section "libgig 3.2.1.x (cvs2009-05-03)" Seclibgig
 
   done:
 
-  ; As this is a mandatory component, we add the common binary directory
-  ; of LinuxSampler and friends to the system's PATH variable here ...
+  ; As this is a mandatory component, we misuse is for the following
+  ; common tasks as well ...
+
+  ; Add LinuxSampler and friends to the system's PATH variable
   ${EnvVarUpdate} $0 "PATH" "A" "HKLM" "$INSTDIR"
 
-  ; As this is a mandatory component, we misuse it to install the uninstaller as well ...
   ; Write the uninstall keys for Windows
   WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\LinuxSampler" "DisplayName" "LinuxSampler ${RELEASE_DATE}"
   WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\LinuxSampler" "UninstallString" '"$INSTDIR\uninstall.exe"'
   WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\LinuxSampler" "NoModify" 1
   WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\LinuxSampler" "NoRepair" 1
   WriteUninstaller "uninstall.exe"
-  ;Store installation folder
-  WriteRegStr HKCU "Software\LinuxSampler" "" $INSTDIR
+
+  ; Store installation folders
+  WriteRegStr HKLM "Software\LinuxSampler" "Main Directory" $INSTDIR
+  WriteRegStr HKLM "Software\LinuxSampler" "VST Directory" $vstPluginPath
+
+  ; Just for info, store the release date as well
+  WriteRegStr HKLM "Software\LinuxSampler" "Release Date" ${RELEASE_DATE}
 SectionEnd
 
 Section "libsndfile 1.0.19" Seclibsndfile
@@ -493,21 +506,25 @@ Section "libsndfile 1.0.19" Seclibsndfile
 SectionEnd
 
 Section "Start Menu Shortcuts" SecShortcuts
+  ; Switch system variables to 'all users', to ensure we create the start
+  ; menu shortcuts for all users and not just for the current user.
+  SetShellVarContext all
+
   CreateDirectory "$SMPROGRAMS\LinuxSampler"
 
   CreateShortCut "$SMPROGRAMS\LinuxSampler\Uninstall.lnk" "$INSTDIR\uninstall.exe" "" "$INSTDIR\uninstall.exe" 0
 
   StrCmp $installingLinuxSampler '1' 0 +2
-  CreateShortCut "$SMPROGRAMS\LinuxSampler\LinuxSampler 0.5.1 (stand alone backend).lnk" "$INSTDIR\linuxsampler.exe" "" "$INSTDIR\linuxsampler.exe" 0
+  CreateShortCut "$SMPROGRAMS\LinuxSampler\LinuxSampler 0.5.1.12cvs (stand alone backend).lnk" "$INSTDIR\linuxsampler.exe" "" "$INSTDIR\linuxsampler.exe" 0
 
   StrCmp $installingJSampler '1' 0 +2
-  CreateShortCut '$SMPROGRAMS\LinuxSampler\JSampler Fantasia 0.8a (frontend).lnk' 'javaw' '-jar "$INSTDIR\Fantasia-0.8a.jar"' '$INSTDIR\jsampler.ico' 0
+  CreateShortCut '$SMPROGRAMS\LinuxSampler\JSampler Fantasia 0.8a-cvs6 (frontend).lnk' 'javaw' '-jar "$INSTDIR\Fantasia-0.8a-cvs6.jar"' '$INSTDIR\jsampler.ico' 0
 
   StrCmp $installingQSampler '1' 0 +2
-  CreateShortCut "$SMPROGRAMS\LinuxSampler\QSampler 0.2.1 (frontend).lnk" "$INSTDIR\qsampler.exe" "" "$INSTDIR\qsampler.ico" 0
+  CreateShortCut "$SMPROGRAMS\LinuxSampler\QSampler 0.2.1.26 (frontend).lnk" "$INSTDIR\qsampler.exe" "" "$INSTDIR\qsampler.ico" 0
 
   StrCmp $installinggigedit '1' 0 +2
-  CreateShortCut "$SMPROGRAMS\LinuxSampler\gigedit 0.1.1 (stand alone).lnk" "$INSTDIR\gigedit.exe" "" "$INSTDIR\gigedit.exe" 0
+  CreateShortCut "$SMPROGRAMS\LinuxSampler\gigedit 0.1.1.x cvs2009-05-10 (stand alone).lnk" "$INSTDIR\gigedit.exe" "" "$INSTDIR\gigedit.exe" 0
 SectionEnd
 
 ;--------------------------------
@@ -515,20 +532,41 @@ SectionEnd
 ; Uninstaller
 
 Section "Uninstall"
+  Var /GLOBAL vstdir
+
   DetailPrint "Removing LinuxSampler directory from PATH variable ..."
   ${un.EnvVarUpdate} $0 "PATH" "R" "HKLM" "$INSTDIR"
 
+  DetailPrint "Searching for VST plugin ..."
+  ClearErrors
+  ReadRegStr $0 HKLM "Software\LinuxSampler" "VST Directory"
+  IfErrors usedefaultvstdir 0
+  StrCpy $vstdir $0
+  DetailPrint "VST plugin location found in registry."
+  Goto vstdirDetected
+  usedefaultvstdir:
+  DetailPrint "WRN: No VST plugin location found in registry, trying default location."
+  ClearErrors
+  StrCpy $vstdir "${DEFAULT_VST_DIR}"
+  vstdirDetected:
+
   DetailPrint "Removing registry keys ..."
   DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\LinuxSampler"
+  DeleteRegKey HKLM "Software\LinuxSampler"
 
-  DetailPrint "Removing VST plugin ..."
-  Delete $vstPluginPath\LinuxSampler.dll
+  ; Workaround for Vista and younger: switch system variables to 'all users'
+  ; otherwise e.g. we couldn't delete start menu shortcuts below on those
+  ; systems, as those variables would point to the current user.
+  SetShellVarContext all
 
-  DetailPrint "Removing shortcuts (if any) ..."
+  DetailPrint "Removing shortcuts (if any) from: $SMPROGRAMS ..."
   Delete "$SMPROGRAMS\LinuxSampler\*.*"
 
+  DetailPrint "Removing VST plugin from: $vstdir ..."
+  Delete "$vstdir\LinuxSampler.dll"
+
   DetailPrint "Removing directories used ..."
-  RMDir "$SMPROGRAMS\LinuxSampler"
+  RMDir /r "$SMPROGRAMS\LinuxSampler"
   RMDir /r "$INSTDIR"
 SectionEnd
 
@@ -536,10 +574,10 @@ SectionEnd
 ;Descriptions
 
 ;Language strings
-LangString DESC_SecLinuxSampler ${LANG_ENGLISH} "Sampler backend (stand-alone application and VST plugin), including sampler engine, MIDI and audio drivers, native C++ API as well as network (LSCP) API. Use a frontend application like JSampler or QSampler to control the sampler."
+LangString DESC_SecLinuxSampler ${LANG_ENGLISH} "Sampler backend (stand-alone and VST), including sampler engine, MIDI and audio drivers, native C++ API as well as network (LSCP) API. Use a frontend application like JSampler or QSampler to control the sampler."
 LangString DESC_SecJSampler ${LANG_ENGLISH} "Graphical frontend (user interface) for LinuxSampler written in Java, supporting all current features of LinuxSampler. This is the 'Fantasia' distribution of JSampler, offering a modern skin based look."
 LangString DESC_SecQSampler ${LANG_ENGLISH} "Graphical light-weight frontend (user interface) for LinuxSampler written in C++, offering a fast native user interface. NOTE: QSampler doesn't support all LinuxSampler features yet!"
-LangString DESC_Secgigedit ${LANG_ENGLISH} "Graphical instrument editor for Gigasampler format v2 and v3 files. Can be used stand-alone or in conjunction with LinuxSampler. NOTE: this is yet an early development version!"
+LangString DESC_Secgigedit ${LANG_ENGLISH} "Graphical instrument editor for Gigasampler format v2 and v3 files. Can be used stand-alone or in conjunction with LinuxSampler."
 LangString DESC_Seclibgig ${LANG_ENGLISH} "C++ program library for accessing DLS (Level 1 and Level 2) and Gigasampler format (v2 and v3) files. This library is required by LinuxSampler, gigedit and QSampler."
 LangString DESC_Seclibsndfile ${LANG_ENGLISH} "C program library for reading and writing files containing sampled sound (such as MS Windows WAV and the Apple/SGI AIFF format), used by gigedit to import samples."
 LangString DESC_SecShortcuts ${LANG_ENGLISH} "Installs start menu shortcuts for all applications."
