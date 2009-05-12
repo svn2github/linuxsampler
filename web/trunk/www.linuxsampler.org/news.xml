@@ -1,5 +1,19 @@
 <?xml version='1.0' ?>
 <news>
+  <entry date="2009-05-12">
+    On the finish line to the upcoming next release of LinuxSampler and
+    friends, a beta pre-release for the Windows platform is now available
+    from our
+    <link ref="http://download.linuxsampler.org/dev/win/">download server</link>.
+    This is the first Windows version which includes a VST plugin version
+    of the sampler. The installer includes both, native 64 bit binaries and
+    32 bit binaries. The installer detects the system type and installs the
+    appropriate binaries automatically.
+    Please follow the ongoing discussion and development on our
+    <link ref="http://bb.linuxsampler.org/viewtopic.php?f=2&amp;t=339">web forum</link>
+    and <link ref="http://sourceforge.net/mailarchive/forum.php?forum_name=linuxsampler-devel">developers' mailing list</link>
+    to avoid known problems. Feedback appreciated!
+  </entry>
   <entry date="2009-02-17">
     Cheers Mac users! LinuxSampler is finally available as AudioUnit plugin!
     It's still a work in progress, but you might already want to checkout
