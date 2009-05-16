@@ -132,6 +132,8 @@ Version CVS HEAD (?)
     - added support for GS Reset SysEx message
     - allow gig files to use unlimited downward pitch shifting
     - added a limit check for upward pitch shifting
+    - bugfix: sometimes, when playing a note twice fast, the second
+      note was silent
 
   * LSCP server:
     - added new LSCP event "CHANNEL_MIDI" which can be used by frontends to

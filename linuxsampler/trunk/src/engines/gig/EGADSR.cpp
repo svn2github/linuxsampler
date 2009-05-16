@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 - 2007 Christian Schoenebeck                       *
+ *   Copyright (C) 2005 - 2009 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -47,9 +47,6 @@ namespace LinuxSampler { namespace gig {
                     case event_release:
                         enterReleasePart1Stage();
                         break;
-                    case event_cancel_release:
-                        enterSustainStage();
-                        break;
                     case event_stage_end:
                         if (HoldAttack)
                             enterAttackHoldStage();
@@ -71,21 +68,12 @@ namespace LinuxSampler { namespace gig {
                     case event_release:
                         enterReleasePart1Stage();
                         break;
-                    case event_cancel_release:
-                        if (InfiniteSustain)
-                            enterSustainStage();
-                        else
-                            enterDecay1Part1Stage(SampleRate);
-                        break;
                 }
                 break;
             case stage_decay1_part1:
                 switch (Event) {
                     case event_stage_end:
                         enterDecay1Part2Stage(SampleRate);
-                        break;
-                    case event_release:
-                        enterReleasePart1Stage();
                         break;
                     case event_cancel_release:
                         if (InfiniteSustain)
@@ -100,8 +88,7 @@ namespace LinuxSampler { namespace gig {
                     case event_release:
                         enterReleasePart1Stage();
                         break;
-                    case event_stage_end: // fall through
-                    case event_cancel_release:
+                    case event_stage_end:
                         if (Level < CONFIG_EG_BOTTOM)
                             enterEndStage();
                         else if (InfiniteSustain)
