@@ -47,6 +47,16 @@ namespace LinuxSampler {
             friend class MidiInputDevicePlugin;
         };
 
+        /**
+         * Device Parameter 'PORTS'
+         */
+        class ParameterPortsPlugin : public ParameterPorts {
+        public:
+            ParameterPortsPlugin() : ParameterPorts() { }
+            ParameterPortsPlugin(String s) : ParameterPorts(s) { }
+            virtual bool Fix() { return true; }
+        };
+
         // derived abstract methods from class 'MidiInputDevice'
         void Listen();
         void StopListen();

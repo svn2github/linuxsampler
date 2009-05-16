@@ -38,12 +38,12 @@ namespace LinuxSampler {
         REGISTER_AUDIO_OUTPUT_DRIVER(AudioOutputDevicePlugin);
         REGISTER_AUDIO_OUTPUT_DRIVER_PARAMETER(AudioOutputDevicePlugin, ParameterActive);
         REGISTER_AUDIO_OUTPUT_DRIVER_PARAMETER(AudioOutputDevicePlugin, ParameterSampleRate);
-        REGISTER_AUDIO_OUTPUT_DRIVER_PARAMETER(AudioOutputDevicePlugin, ParameterChannels);
+        REGISTER_AUDIO_OUTPUT_DRIVER_PARAMETER(AudioOutputDevicePlugin, ParameterChannelsPlugin);
         REGISTER_AUDIO_OUTPUT_DRIVER_PARAMETER(AudioOutputDevicePlugin, ParameterFragmentSize);
 
         REGISTER_MIDI_INPUT_DRIVER(MidiInputDevicePlugin);
         REGISTER_MIDI_INPUT_DRIVER_PARAMETER(MidiInputDevicePlugin, ParameterActive);
-        REGISTER_MIDI_INPUT_DRIVER_PARAMETER(MidiInputDevicePlugin, ParameterPorts);
+        REGISTER_MIDI_INPUT_DRIVER_PARAMETER(MidiInputDevicePlugin, ParameterPortsPlugin);
 
         pSampler = new Sampler;
 

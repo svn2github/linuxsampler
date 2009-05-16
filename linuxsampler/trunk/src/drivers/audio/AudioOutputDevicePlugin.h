@@ -48,6 +48,16 @@ namespace LinuxSampler {
         };
 
         /**
+         * Device Parameter 'CHANNELS'
+         */
+        class ParameterChannelsPlugin : public ParameterChannels {
+        public:
+            ParameterChannelsPlugin() : ParameterChannels() { }
+            ParameterChannelsPlugin(String s) : ParameterChannels(s) { }
+            virtual bool Fix() { return true; }
+        };
+
+        /**
          * Device Parameter 'FRAGMENTSIZE'
          *
          * Used to set the audio fragment size / period size.
