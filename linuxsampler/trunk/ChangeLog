@@ -74,6 +74,9 @@ Version CVS HEAD (?)
       win64)
     - VST: added support for sample rate and buffer size changes
     - VST: close editor (Fantasia) when the VST is removed
+    - VST: avoid opening Fantasia more than once for each VST instance
+    - VST: export main function as "main" on Linux too (fix for
+      energyXT)
 
   * MIDI driver:
     - added JACK MIDI driver
@@ -91,6 +94,8 @@ Version CVS HEAD (?)
     - Implemented option for adding instruments in separate directories
       in the instruments database
       (patch by Chris Cherrett & Andrew Williams, a bit adjusted)
+    - work-around for missing fnmatch function on Windows to make
+      instrument database compilable
 
   * Gigasampler format engine:
     - fixed a memory leak that could happen when a channel was deleted

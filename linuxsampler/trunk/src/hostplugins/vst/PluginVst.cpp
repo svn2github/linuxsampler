@@ -1,6 +1,6 @@
 /***************************************************************************
  *                                                                         *
- *   Copyright (C) 2008 Andreas Persson                                    *
+ *   Copyright (C) 2008 - 2009 Andreas Persson                             *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -27,6 +27,10 @@
 #endif
 
 #include "PluginVst.h"
+
+#ifndef CHANNELS
+#define CHANNELS 2
+#endif
 
 namespace {
 
@@ -82,7 +86,16 @@ namespace {
 #ifdef WIN32
         // try to start the JSample Fantasia GUI as a separate process
 
-        ProcessHandle = INVALID_HANDLE_VALUE;
+        // first check if it's already running
+        if (ProcessHandle != INVALID_HANDLE_VALUE) {
+            DWORD exitCode;
+            if (GetExitCodeProcess(ProcessHandle, &exitCode)) {
+                if (exitCode == STILL_ACTIVE) return true;
+            }
+            free(Command);
+            CloseHandle(ProcessHandle);
+            ProcessHandle = INVALID_HANDLE_VALUE;
+        }
 
         // assume Fantasia is in the same directory as the
         // liblinuxsampler dll
@@ -105,6 +118,7 @@ namespace {
                 Command = _tcsdup(TEXT((String("javaw -jar \"") + lspath + fantasia + "\" &").c_str()));
                 CreateProcess(NULL, Command, NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi);
                 ProcessHandle = pi.hProcess;
+                CloseHandle(pi.hThread);
             }
         }
 #endif
@@ -118,6 +132,7 @@ namespace {
         if (ProcessHandle != INVALID_HANDLE_VALUE) {
             TerminateProcess(ProcessHandle, 0);
             free(Command);
+            CloseHandle(ProcessHandle);
             ProcessHandle = INVALID_HANDLE_VALUE;
         }
 #endif
@@ -146,7 +161,7 @@ namespace {
         Programs = new LinuxSamplerVstProgram[NbPrograms];
         setProgram(0);
         setNumInputs(0);
-        setNumOutputs(2);
+        setNumOutputs(CHANNELS);
         canProcessReplacing();
         isSynth();
         programsAreChunks();
@@ -161,7 +176,7 @@ namespace {
     void LinuxSamplerVst::resume() {
         dmsg(2, ("-->resume\n"));
         if (!pAudioDevice) {
-            Init(int(sampleRate), blockSize);
+            Init(int(sampleRate), blockSize, CHANNELS);
 
             if (!SavedChunk.empty()) {
                 SetState(SavedChunk);
@@ -202,7 +217,7 @@ namespace {
 
     bool LinuxSamplerVst::getOutputProperties(VstInt32 index,
                                               VstPinProperties* properties) {
-        if (index < 2) {
+        if (index < CHANNELS) {
             sprintf(properties->label, "LS %d", index + 1);
             properties->flags = kVstPinIsActive | kVstPinIsStereo;
             return true;
@@ -265,12 +280,14 @@ namespace {
     void LinuxSamplerVst::processReplacing(float** inputs, float** outputs,
                                            VstInt32 sampleFrames) {
         if (pAudioDevice) {
-            pAudioDevice->Channel(0)->SetBuffer(outputs[0]);
-            pAudioDevice->Channel(1)->SetBuffer(outputs[1]);
+            for (int i = 0 ; i < CHANNELS ; i++) {
+                pAudioDevice->Channel(i)->SetBuffer(outputs[i]);
+            }
             pAudioDevice->Render(sampleFrames);
         } else {
-            memset(outputs[0], 0, sampleFrames * sizeof(float));
-            memset(outputs[1], 0, sampleFrames * sizeof(float));
+            for (int i = 0 ; i < CHANNELS ; i++) {
+                memset(outputs[i], 0, sampleFrames * sizeof(float));
+            }
         }
     }
 

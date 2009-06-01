@@ -28,7 +28,9 @@
 #include <sstream>
 #include <vector>
 #include <errno.h>
+#ifndef WIN32
 #include <fnmatch.h>
+#endif
 
 #include "../common/Exception.h"
 
@@ -131,8 +133,10 @@ namespace LinuxSampler {
             db = NULL;
             throw Exception("Cannot open instruments database: " + DbFile);
         }
+#ifndef WIN32
         rc = sqlite3_create_function(db, "regexp", 2, SQLITE_UTF8, NULL, Regexp, NULL, NULL);
         if (rc) { throw Exception("Failed to add user function for handling regular expressions."); }
+#endif
 
         // TODO: remove this in the next version
         try {
@@ -1658,6 +1662,7 @@ namespace LinuxSampler {
         }
     }
 
+#ifndef WIN32
     void InstrumentsDb::Regexp(sqlite3_context* pContext, int argc, sqlite3_value** ppValue) {
         if (argc != 2) return;
 
@@ -1668,6 +1673,7 @@ namespace LinuxSampler {
             sqlite3_result_int(pContext, 1);
         }
     }
+#endif
 
     String InstrumentsDb::GetDirectoryPath(String File) {
         if (File.empty()) return String("");

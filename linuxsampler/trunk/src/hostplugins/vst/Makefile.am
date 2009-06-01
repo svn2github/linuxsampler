@@ -20,6 +20,7 @@ LinuxSampler_la_LDFLAGS += -Wl,$(srcdir)/PluginVst.def
 LinuxSampler_la_LIBADD += -lws2_32
 else
 LinuxSampler_la_CPPFLAGS = -D__cdecl=
+LinuxSampler_la_LDFLAGS += -Wl,--defsym -Wl,main=VSTPluginMain
 endif
 
 endif

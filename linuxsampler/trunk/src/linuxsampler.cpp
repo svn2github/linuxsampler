@@ -23,6 +23,7 @@
 
 #include <getopt.h>
 #include <signal.h>
+#include <sys/stat.h>
 
 #if defined(WIN32)
 // require at least Windows 2000 for the GlobalMemoryStatusEx() call

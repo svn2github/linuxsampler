@@ -1,6 +1,6 @@
 /***************************************************************************
  *                                                                         *
- *   Copyright (C) 2007, 2008 Grigor Iliev                                 *
+ *   Copyright (C) 2007 - 2009 Grigor Iliev                                *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -920,9 +920,11 @@ namespace LinuxSampler {
              * @throws Exception - if the specified file name is invalid.
              */
             static void CheckFileName(String File);
-            
+
+#ifndef WIN32
             /** SQLite user function for handling regular expressions */
             static void Regexp(sqlite3_context* pContext, int argc, sqlite3_value** ppValue);
+#endif
     };
 
 } // namespace LinuxSampler

@@ -1,6 +1,6 @@
 /***************************************************************************
  *                                                                         *
- *   Copyright (C) 2007, 2008 Grigor Iliev                                 *
+ *   Copyright (C) 2007 - 2009 Grigor Iliev                                *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -152,7 +152,15 @@ namespace LinuxSampler {
         if (Pattern.length() == 0) return;
 
         if (IsRegex(Pattern)) {
+#ifndef WIN32
             Sql << " AND " << Col << " regexp ?";
+#else
+            for (int i = 0; i < Pattern.length(); i++) {
+                if (Pattern.at(i) == '?') Pattern.at(i) = '_';
+                else if (Pattern.at(i) == '*') Pattern.at(i) = '%';
+            }
+            Sql << " AND " << Col << " LIKE ?";
+#endif
             Params.push_back(Pattern);
             return;
         }
