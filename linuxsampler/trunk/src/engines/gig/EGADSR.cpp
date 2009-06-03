@@ -75,11 +75,8 @@ namespace LinuxSampler { namespace gig {
                     case event_stage_end:
                         enterDecay1Part2Stage(SampleRate);
                         break;
-                    case event_cancel_release:
-                        if (InfiniteSustain)
-                            enterSustainStage();
-                        else
-                            enterDecay2Stage(SampleRate);
+                    case event_release:
+                        enterReleasePart1Stage();
                         break;
                 }
                 break;
