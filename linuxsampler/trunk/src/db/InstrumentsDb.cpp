@@ -1,6 +1,6 @@
 /***************************************************************************
  *                                                                         *
- *   Copyright (C) 2007-2009 Grigor Iliev                                 *
+ *   Copyright (C) 2007-2009 Grigor Iliev, Benno Senoner                   *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -89,7 +89,6 @@ namespace LinuxSampler {
 
     InstrumentsDb::InstrumentsDb() {
         db = NULL;
-        DbInstrumentsMutex = Mutex();
         InTransaction = false;
     }
 
@@ -1202,7 +1201,15 @@ namespace LinuxSampler {
                 throw Exception("DB error: " + ToString(sqlite3_errmsg(db)));
             }
 
-            String s = toEscapedFsPath(FilePath);
+            String s = FilePath;
+
+            #if WIN32
+            for (int i = 0; i < s.length(); i++) {
+                if (s[i] == '\\') s[i] = '/';
+            }
+            #endif
+
+            s = toEscapedFsPath(s);
             BindTextParam(pStmt, 2, s);
             String ver = "";
             if (gig->pVersion != NULL) ver = ToString(gig->pVersion->major);
