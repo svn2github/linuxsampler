@@ -77,18 +77,8 @@ int ftw(const char *dirpath,
 
 int dirfd(DIR *dirp);
 
-#define S_IFMT        0170000
-#define S_IFDIR       0040000
-#define S_IFREG       0100000
-
-#define __S_ISTYPE(mode, mask)  (((mode) & S_IFMT) == (mask))
-#define S_ISDIR(mode)    __S_ISTYPE((mode), S_IFDIR)
-#define S_ISREG(mode)    __S_ISTYPE((mode), S_IFREG)
-
 #define DT_DIR  4
 #define DT_REG  8
-
-int	stat(const char *path, struct stat *buf);
 
 #define FTW_F 0x01
 #define FTW_D 0x02

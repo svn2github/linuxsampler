@@ -23,6 +23,7 @@
 #include <cstring>
 #include <errno.h>
 #include <sstream>
+#include <sys/stat.h>
 
 #include "Exception.h"
 #include "global_private.h"
@@ -154,35 +155,6 @@ void rewinddir(DIR *dir)
     {
         errno = EBADF;
     }
-}
-
-int	stat(const char *path, struct stat *buf)
-{
-	struct _finddata_t  info;
-	long handle;
-	mode_t mode = 0;
-
-	if(!buf | !path)
-		return -1;
-
-	handle = _findfirst(path, &info);
-	if(handle == -1) 
-	    return -1;
-	_findclose(handle);
-	
-	
-	buf->st_size = info.size;
-	buf->st_atime = info.time_access;
-	buf->st_ctime = info.time_create;
-
-		
-	/* | dir/regular | systemfile | readonly | write |*/
-	
-    mode = S_IFREG;
-	if(info.attrib & _A_SUBDIR) mode = S_IFDIR;
-	buf->st_mode = mode;
-
-	return 0;
 }
 
 int dirfd(DIR *dirp)

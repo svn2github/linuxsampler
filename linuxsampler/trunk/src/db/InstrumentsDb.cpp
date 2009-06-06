@@ -121,7 +121,21 @@ namespace LinuxSampler {
     sqlite3* InstrumentsDb::GetDb() {
         if ( db != NULL) return db;
 
-        if (DbFile.empty()) DbFile = CONFIG_DEFAULT_INSTRUMENTS_DB_LOCATION;
+        if (DbFile.empty()) {
+		    #ifndef WIN32
+		    DbFile = CONFIG_DEFAULT_INSTRUMENTS_DB_LOCATION;
+			#else
+			char *userprofile = getenv("USERPROFILE");
+			if(userprofile) {
+			    DbFile = userprofile;
+				DbFile += "\\.linuxsampler\\instruments.db";
+		    }
+			else {
+			    // in case USERPROFILE is not set (which should not occur)
+			    DbFile = "instruments.db";
+			}
+			#endif
+	    }
 		#if defined(__APPLE__)  /* 20071224 Toshi Nagata  */
 		if (DbFile.find("~") == 0)
 			DbFile.replace(0, 1, getenv("HOME"));

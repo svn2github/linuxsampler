@@ -97,9 +97,10 @@ Version CVS HEAD (?)
     - work-around for missing fnmatch function on Windows to make
       instrument database compilable
 	- added instrument database support on Windows
-      relative file path for instruments db in order to work in both
-      standalone and VST similar to the editor plugins still need to
-      be implemented	  
+	  works with both standalone mode and VST plugin.
+	  the instruments DB file is located in
+	  %USERPROFILE%\.linuxsampler\instruments.db which allows different
+	  databases for each windows user
 
   * Gigasampler format engine:
     - fixed a memory leak that could happen when a channel was deleted
