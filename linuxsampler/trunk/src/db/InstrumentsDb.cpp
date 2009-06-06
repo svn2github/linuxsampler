@@ -30,8 +30,9 @@
 #include <errno.h>
 #ifndef WIN32
 #include <fnmatch.h>
+#else
+#include <direct.h>
 #endif
-
 #include "../common/Exception.h"
 
 namespace LinuxSampler {
@@ -127,8 +128,16 @@ namespace LinuxSampler {
 			#else
 			char *userprofile = getenv("USERPROFILE");
 			if(userprofile) {
-			    DbFile = userprofile;
-				DbFile += "\\.linuxsampler\\instruments.db";
+			    String DbPath = userprofile;
+				DbPath += "\\.linuxsampler";
+			    DbFile = DbPath + "\\instruments.db";
+				File InstrumentsDbFile(DbFile);
+				// if no DB exists create the subdir and then the DB
+				if( !InstrumentsDbFile.Exist() ) {
+				    _mkdir( DbPath.c_str() );
+					// formats the DB, which creates a new instruments.db file
+					Format();
+				}
 		    }
 			else {
 			    // in case USERPROFILE is not set (which should not occur)
