@@ -133,10 +133,19 @@ namespace LinuxSampler {
     void AudioChannel::CopyTo(AudioChannel* pDst, const uint Samples, const float fLevel) {
         if (fLevel == 1.0f) CopyTo(pDst, Samples);
         else {
+		#ifndef HAVE_GCC_VECTOR_EXTENSIONS
             float* pSrcBuf = Buffer();
             float* pDstBuf = pDst->Buffer();
             for (int i = 0; i < Samples; i++)
                 pDstBuf[i] = pSrcBuf[i] * fLevel;
+		#else
+		const v4sf vcoeff = { fLevel, fLevel, fLevel, fLevel };
+        const v4sf* src = static_cast<v4sf*>((void*)Buffer());
+        v4sf* dst       = static_cast<v4sf*>((void*)pDst->Buffer());
+        const int cells = Samples / 4;
+        for (int i = 0; i < cells; ++i)
+            dst[i] = src[i] * vcoeff;
+		#endif
         }
     }
 
@@ -148,11 +157,18 @@ namespace LinuxSampler {
      * @param Samples - amount of sample points to be mixed over
      */
     void AudioChannel::MixTo(AudioChannel* pDst, const uint Samples) {
-        //TODO: there's probably a more efficient way to do this ...
+		#ifndef HAVE_GCC_VECTOR_EXTENSIONS
         float* pSrcBuf = Buffer();
         float* pDstBuf = pDst->Buffer();
         for (int i = 0; i < Samples; i++)
             pDstBuf[i] += pSrcBuf[i];
+		#else
+		const v4sf* src = static_cast<v4sf*>((void*)Buffer());
+        v4sf* dst       = static_cast<v4sf*>((void*)pDst->Buffer());
+        const int cells = Samples / 4;
+        for (int i = 0; i < cells; ++i)
+            dst[i] += src[i];
+		#endif
     }
 
     /**
@@ -167,10 +183,19 @@ namespace LinuxSampler {
     void AudioChannel::MixTo(AudioChannel* pDst, const uint Samples, const float fLevel) {
         if (fLevel == 1.0f) MixTo(pDst, Samples);
         else {
+		    #ifndef HAVE_GCC_VECTOR_EXTENSIONS
             float* pSrcBuf = Buffer();
             float* pDstBuf = pDst->Buffer();
             for (int i = 0; i < Samples; i++)
                 pDstBuf[i] += pSrcBuf[i] * fLevel;
+		    #else
+			const v4sf vcoeff = { fLevel, fLevel, fLevel, fLevel };
+            const v4sf* src = static_cast<v4sf*>((void*)Buffer());
+            v4sf* dst       = static_cast<v4sf*>((void*)pDst->Buffer());
+            const int cells = Samples / 4;
+            for (int i = 0; i < cells; ++i)
+                dst[i] += src[i] * vcoeff;
+			#endif
         }
     }
 

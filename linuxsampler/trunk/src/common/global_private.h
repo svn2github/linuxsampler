@@ -46,6 +46,13 @@
 /// defines globally the bit depth of used samples
 typedef int16_t sample_t;
 
+// macro to check for a certain version (or newer) of GCC
+#define GNUC_VERSION_PREREQ(major,minor) (__GNUC__ > (major) || (__GNUC__ == (major) && __GNUC_MINOR__ >= (minor)))
+// macro which checks if GCC vector extensions are avialable
+#define HAVE_GCC_VECTOR_EXTENSIONS ( GNUC_VERSION_PREREQ(3,3) && ( defined(__i386__) || defined(__x86_64__) || defined(_ARCH_PPC) ) )
+// v4sf is used by some routines that make use of GCC vector extensions (ie AudioChannel.cpp)
+typedef float v4sf __attribute__ ((vector_size(16)));
+
 /**
  * Whether a function / method call was successful, or if warnings or even an
  * error occured.
