@@ -29,7 +29,7 @@
 #include "PluginVst.h"
 
 #ifndef CHANNELS
-#define CHANNELS 2
+#define CHANNELS 32
 #endif
 
 namespace {

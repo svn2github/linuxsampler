@@ -77,6 +77,8 @@ Version CVS HEAD (?)
     - VST: avoid opening Fantasia more than once for each VST instance
     - VST: export main function as "main" on Linux too (fix for
       energyXT)
+    - VST: changed number of output channels from one stereo to 16
+      stereo
 
   * MIDI driver:
     - added JACK MIDI driver
