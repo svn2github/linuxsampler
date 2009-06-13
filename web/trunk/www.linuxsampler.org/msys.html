@@ -10,7 +10,7 @@
 <body>
 <h2 align="center">Windows Build Instructions &nbsp; <img src="gfx/logos/msys.png" alt="msys logo"> &nbsp; HOWTO by Andreas Persson</h2>
 <br>
-<center>April&nbsp;16th,&nbsp;2009</center><br>
+<center>June&nbsp;13th,&nbsp;2009</center><br>
 <div style="background-color: #F4F4FF; margin: 1em 3em 1em 3em; padding: 1em 1em 1em 2.2em;">
 <a href="#intro">1.&nbsp; Introduction</a><br>
 <a href="#mingw">2.&nbsp; MinGW</a><br>
@@ -22,10 +22,11 @@
 <a href="#perl">8.&nbsp; Perl</a><br>
 <a href="#xslt">9.&nbsp; xsltproc</a><br>
 <a href="#setup">10.&nbsp; MSYS setup</a><br>
-<a href="#sndfile">11.&nbsp; Building libsndfile</a><br>
-<a href="#gig">12.&nbsp; Building libgig</a><br>
-<a href="#ls">13.&nbsp; Building linuxsampler</a><br>
-<a href="#gigedit">14.&nbsp; Building gigedit</a><br>
+<a href="#sqlite">11.&nbsp; Building SQLite</a><br>
+<a href="#sndfile">12.&nbsp; Building libsndfile</a><br>
+<a href="#gig">13.&nbsp; Building libgig</a><br>
+<a href="#ls">14.&nbsp; Building linuxsampler</a><br>
+<a href="#gigedit">15.&nbsp; Building gigedit</a><br>
 </div>
 
 
@@ -38,7 +39,7 @@ the build procedure will be the same as in Linux, that is, basically:
 ./configure ; make ; make install.</p>
 
 <p>The versions of the files to download are just the ones I used
-before writing this text. You can probably use later ones if
+before updating this text. You can probably use later ones if
 available.</p>
 
 <p>Some of the instructions below are marked with ** and ***:</p>
@@ -66,27 +67,21 @@ download just GLib and pkg-config
 from <a href="http://www.gtk.org">www.gtk.org</a>.)</p>
 
 <p>Download the gtkmm windows installer,
-gtkmm-win32-devel-2.16.0-2.exe,
+gtkmm-win32-devel-2.16.0-3.exe,
 from <a href="http://www.gtkmm.org">www.gtkmm.org</a>, and run it. Let
 the installer adjust the PATH variable as it wants.</p>
 
 
 <h3><a name="msys">4.&nbsp; MSYS</a></h3>
 
-<p>I use the 1.0.11 Technology Preview version, as I had problems
+<p>I use the 1.0.11 Release Candiadate version, as I had problems
 building DLLs with the 1.0.10 current version.</p>
 
-<p>Download from "MSYS Base System, Technology Preview: MSYS-1.0.11":</p>
+<p>Download from "MSYS Base System, Release Candidate: MSYS-1.0.11":</p>
 
-<pre>msysCORE-1.0.11-20080826.tar.gz</pre>
+<pre>MSYS-1.0.11-rc-1.exe</pre>
 
-<p>Unpack the file to a directory of your choice, for example C:\msys. As
-1.0.11 doesn't have an installer yet, you need to have an unpacker
-that supports tar.gz/tar.bz, for example 7-Zip. The rest of the files
-you can unpack with the tar included in msysCORE.</p>
-
-<p>Run the postinstall\pi.bat file and specify your MinGW
-directory.</p>
+<p>Run the installer.</p>
 
 <p>Download from "MSYS Supplementary Tools, Technology Preview: Tools for
 MSYS-1.0.11":</p>
@@ -128,8 +123,7 @@ version 3). Extract it to msys $HOME.</p>
 <p>Download intltool_0.40.4-1_win32.zip from
 <a href="http://ftp.gnome.org/pub/GNOME/binaries/win32/intltool">http://ftp.gnome.org/pub/GNOME/binaries/win32/intltool</a></p>
 
-<p>Unzip this into the msys local directory, (C:\msys\local for
-example)</p>
+<p>Unzip this into the msys local directory (C:\msys\1.0\local)</p>
 
 
 <h3><a name="perl">8.&nbsp; Perl ***</a></h3>
@@ -198,26 +192,47 @@ choose the wrong version:</p>
 export LDFLAGS="-L/c/Progra~1/gtkmm/lib"</pre>
 
 
-<h3><a name="sndfile">11.&nbsp; Building libsndfile</a></h3>
+<h3><a name="sqlite">11.&nbsp; Building SQLite</a></h3>
+
+<p>The windows precompiled version of SQLite doesn't include the
+neccessary development files, so it's best to build SQLite yourself.
+Download sqlite-amalgamation-3.6.14.2.tar.gz
+from <a href="http://www.sqlite.org">www.sqlite.org</a>
+and extract it to your $HOME:</p>
+
+<pre>cd
+tar xzf sqlite-amalgamation-3.6.14.2.tar.gz</pre>
+
+<p>Build and install:</p>
+
+<pre>cd sqlite-3.6.14.2
+CFLAGS=-O2 ./configure
+make
+make install</pre>
+
+<p>(Without CFLAGS=-O2, the build will fail. The MinGW compiler has
+some problems with creating the debug info for some reason.)</p>
+
+<h3><a name="sndfile">12.&nbsp; Building libsndfile</a></h3>
 
 <p>The windows precompiled version of libsndfile doesn't include the
 neccessary pkg-config file, so it's best to build libsndfile
-yourself. Download libsndfile-1.0.19.tar.gz
+yourself. Download libsndfile-1.0.20.tar.gz
 from <a href="http://www.mega-nerd.com/libsndfile/">www.mega-nerd.com</a> and
 extract it to your $HOME:</p>
 
 <pre>cd
-tar xzf libsndfile-1.0.19.tar.gz</pre>
+tar xzf libsndfile-1.0.20.tar.gz</pre>
 
 <p>Build and install:</p>
 
-<pre>cd libsndfile-1.0.19
+<pre>cd libsndfile-1.0.20
 ./configure
 make
 make install</pre>
 
 
-<h3><a name="gig">12.&nbsp; Building libgig</a></h3>
+<h3><a name="gig">13.&nbsp; Building libgig</a></h3>
 
 <p>Just use the same commands as you would in linux:</p>
 
@@ -227,7 +242,7 @@ make
 make install</pre>
 
 
-<h3><a name="ls">13.&nbsp; Building linuxsampler</a></h3>
+<h3><a name="ls">14.&nbsp; Building linuxsampler</a></h3>
 
 <pre>make -f Makefile.cvs    (if you build from CVS)
 ./configure --enable-asiosdk-dir=$HOME --enable-vstsdk-dir=$HOME/vstsdk2.4
@@ -235,7 +250,7 @@ make
 make install</pre>
 
 
-<h3><a name="gigedit">14.&nbsp; Building gigedit</a></h3>
+<h3><a name="gigedit">15.&nbsp; Building gigedit</a></h3>
 
 <pre>make -f Makefile.cvs    (if you build from CVS)
 ./configure
