@@ -115,7 +115,7 @@ namespace {
                 si.cb = sizeof(si);
                 ZeroMemory(&pi, sizeof(pi));
 
-                Command = _tcsdup(TEXT((String("javaw -jar \"") + lspath + fantasia + "\" &").c_str()));
+                Command = _tcsdup(TEXT((String("javaw -jar \"") + lspath + fantasia + "\"").c_str()));
                 CreateProcess(NULL, Command, NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi);
                 ProcessHandle = pi.hProcess;
                 CloseHandle(pi.hThread);
