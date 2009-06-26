@@ -38,8 +38,8 @@ namespace LinuxSampler {
 
         Sampler* pSampler;
         int RefCount;
-    private:
         LSCPServer* pLSCPServer;
+    private:
         EventThread* pEventThread;
     };
 

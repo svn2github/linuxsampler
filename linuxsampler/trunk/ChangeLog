@@ -79,6 +79,8 @@ Version CVS HEAD (?)
       energyXT)
     - VST: changed number of output channels from one stereo to 16
       stereo
+    - added channel routing, fxsends and midi maps to the settings
+      stored in the plugin state
 
   * MIDI driver:
     - added JACK MIDI driver

@@ -18,6 +18,7 @@
  *   MA  02110-1301  USA                                                   *
  ***************************************************************************/
 
+#include <limits>
 #include <sstream>
 
 #include "Plugin.h"
@@ -160,11 +161,65 @@ namespace LinuxSampler {
         channel->SetMidiInputChannel(midi_chan_1);
     }
 
+    /*
+      The sampler state is stored in a text base format, designed to
+      be easy to parse with the istream >> operator. Values are
+      separated by spaces or newlines. All string values that may
+      contain spaces end with a newline.
+
+      The first line contains the global volume.
+
+      The rest of the lines have an integer first representing the
+      type of information on the line, except for the two lines that
+      describe each sampler channel. The first of these two starts
+      with an integer from 0 to 16 (the midi channel for the sampler
+      channel).
+
+      Note that we should try to keep the parsing of this format both
+      backwards and forwards compatible between versions. The parser
+      ignores lines with unknown type integers and accepts that new
+      types are missing.
+    */
+
+    enum {
+        FXSEND = 17,
+        MIDIMAP,
+        MIDIMAPPING,
+        DEFAULTMIDIMAP
+    };
 
     String Plugin::GetState() {
         std::stringstream s;
 
         s << GLOBAL_VOLUME << '\n';
+
+        std::vector<int> maps = MidiInstrumentMapper::Maps();
+        for (int i = 0 ; i < maps.size() ; i++) {
+            s << MIDIMAP << ' ' <<
+                maps[i] << ' ' <<
+                MidiInstrumentMapper::MapName(maps[i]) << '\n';
+
+            std::map<midi_prog_index_t, MidiInstrumentMapper::entry_t> mappings = MidiInstrumentMapper::Entries(maps[i]);
+            for (std::map<midi_prog_index_t, MidiInstrumentMapper::entry_t>::iterator iter = mappings.begin() ;
+                 iter != mappings.end(); iter++) {
+                s << MIDIMAPPING << ' ' <<
+                    ((int(iter->first.midi_bank_msb) << 7) |
+                     int(iter->first.midi_bank_lsb)) << ' ' <<
+                    int(iter->first.midi_prog) << ' ' <<
+                    iter->second.EngineName << ' ' <<
+                    iter->second.InstrumentFile << '\n' <<
+                    MIDIMAPPING << ' ' <<
+                    iter->second.InstrumentIndex << ' ' <<
+                    iter->second.Volume << ' ' <<
+                    iter->second.LoadMode << ' ' <<
+                    iter->second.Name << '\n';
+            }
+        }
+        if (maps.size()) {
+            s << DEFAULTMIDIMAP << ' ' <<
+                MidiInstrumentMapper::GetDefaultMap() << '\n';
+        }
+
         std::map<uint, SamplerChannel*> channels = global->pSampler->GetSamplerChannels();
         for (std::map<uint, SamplerChannel*>::iterator iter = channels.begin() ;
              iter != channels.end() ; iter++) {
@@ -177,7 +232,22 @@ namespace LinuxSampler {
                     filename << '\n' <<
                     engine_channel->InstrumentIndex() << ' ' <<
                     engine_channel->GetSolo() << ' ' <<
-                    (engine_channel->GetMute() == 1) << '\n';
+                    (engine_channel->GetMute() == 1) << ' ' <<
+                    engine_channel->OutputChannel(0) << ' ' <<
+                    engine_channel->OutputChannel(1) << ' ' <<
+                    (engine_channel->UsesNoMidiInstrumentMap() ? -2 :
+                     (engine_channel->UsesDefaultMidiInstrumentMap() ? -1 :
+                      engine_channel->GetMidiInstrumentMap())) << '\n';
+
+                for (int i = 0 ; i < engine_channel->GetFxSendCount() ; i++) {
+                    FxSend* fxsend = engine_channel->GetFxSend(i);
+                    s << FXSEND << ' ' <<
+                        fxsend->Level() << ' ' <<
+                        int(fxsend->MidiController()) << ' ' <<
+                        fxsend->DestinationChannel(0) << ' ' <<
+                        fxsend->DestinationChannel(1) << ' ' <<
+                        fxsend->Name() << '\n';
+                }
             }
         }
         return s.str();
@@ -198,37 +268,116 @@ namespace LinuxSampler {
 
     bool Plugin::SetState(String State) {
         RemoveChannels();
+        MidiInstrumentMapper::RemoveAllMaps();
 
         std::stringstream s(State);
         s >> GLOBAL_VOLUME;
 
-        int midiChannel;
-        float volume;
-        while (s >> midiChannel >> volume) {
-            s.ignore();
-            String filename;
-            std::getline(s, filename);
-            int index;
-            bool solo;
-            bool mute;
-            s >> index >> solo >> mute;
+        EngineChannel* engine_channel;
+        int midiMapId;
+        std::map<int, int> oldToNewId;
+        int type;
+        while (s >> type) {
 
-            SamplerChannel* channel = global->pSampler->AddSamplerChannel();
-            channel->SetEngineType("gig");
-            channel->SetAudioOutputDevice(pAudioDevice);
-            channel->SetMidiInputDevice(pMidiDevice);
-            channel->SetMidiInputChannel(midi_chan_t(midiChannel));
+            if (type <= 16) { // sampler channel
+                int midiChannel = type;
+                float volume;
+                s >> volume;
+                s.ignore();
+                String filename;
+                std::getline(s, filename);
+                int index;
+                bool solo;
+                bool mute;
+                s >> index >> solo >> mute;
 
-            EngineChannel* engine_channel = channel->GetEngineChannel();
-            engine_channel->Volume(volume);
-            if (!filename.empty() && index != -1) {
-                InstrumentManager::instrument_id_t id;
-                id.FileName = filename;
-                id.Index    = index;
-                InstrumentManager::LoadInstrumentInBackground(id, engine_channel);
+                SamplerChannel* channel = global->pSampler->AddSamplerChannel();
+                channel->SetEngineType("gig");
+                channel->SetAudioOutputDevice(pAudioDevice);
+                channel->SetMidiInputDevice(pMidiDevice);
+                channel->SetMidiInputChannel(midi_chan_t(midiChannel));
+
+                engine_channel = channel->GetEngineChannel();
+                engine_channel->Volume(volume);
+                if (s.get() == ' ') {
+                    int left;
+                    int right;
+                    int oldMapId;
+                    s >> left >> right >> oldMapId;
+                    engine_channel->SetOutputChannel(0, left);
+                    engine_channel->SetOutputChannel(1, right);
+
+                    if (oldMapId == -1) {
+                        engine_channel->SetMidiInstrumentMapToDefault();
+                    } else if (oldMapId >= 0) {
+                        engine_channel->SetMidiInstrumentMap(oldToNewId[oldMapId]);
+                    }
+                    // skip rest of line
+                    s.ignore(std::numeric_limits<int>::max(), '\n');
+                }
+                if (!filename.empty() && index != -1) {
+                    InstrumentManager::instrument_id_t id;
+                    id.FileName = filename;
+                    id.Index    = index;
+                    InstrumentManager::LoadInstrumentInBackground(id, engine_channel);
+                }
+                if (solo) engine_channel->SetSolo(solo);
+                if (mute) engine_channel->SetMute(1);
+
+            } else if (type == FXSEND) {
+                float level;
+                int controller;
+                int fxleft;
+                int fxright;
+                String name;
+
+                s >> level >> controller >> fxleft >> fxright;
+                s.ignore();
+                std::getline(s, name);
+                FxSend* send = engine_channel->AddFxSend(controller, name);
+                send->SetLevel(level);
+                send->SetDestinationChannel(0, fxleft);
+                send->SetDestinationChannel(1, fxright);
+
+            } else if (type == MIDIMAP) {
+                int oldId;
+                s >> oldId;
+                String name;
+                s.ignore();
+                std::getline(s, name);
+                midiMapId = MidiInstrumentMapper::AddMap(name);
+                oldToNewId[oldId] = midiMapId;
+
+            } else if (type == MIDIMAPPING) {
+                int bank;
+                int prog;
+                String engine;
+                String file;
+                int index;
+                float volume;
+                int loadmode;
+                String name;
+
+                s >> bank >> prog >> engine;
+                s.ignore();
+                std::getline(s, file);
+                s >> type >> index >> volume >> loadmode;
+                s.ignore();
+                std::getline(s, name);
+
+                global->pLSCPServer->AddOrReplaceMIDIInstrumentMapping(
+                    midiMapId, bank, prog, engine, file, index, volume,
+                    MidiInstrumentMapper::mode_t(loadmode), name, false);
+
+            } else if (type == DEFAULTMIDIMAP) {
+                int oldId;
+                s >> oldId;
+                MidiInstrumentMapper::SetDefaultMap(oldToNewId[oldId]);
+
+            } else { // unknown type
+                // try to be forward-compatible and just skip the line
+                s.ignore(std::numeric_limits<int>::max(), '\n');
             }
-            if (solo) engine_channel->SetSolo(solo);
-            if (mute) engine_channel->SetMute(1);
         }
 
         return true;
