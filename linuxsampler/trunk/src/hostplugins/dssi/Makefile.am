@@ -1,5 +1,5 @@
 if HAVE_DSSI
-INCLUDES = $(GIG_CFLAGS)
+INCLUDES = $(GIG_CFLAGS) $(SQLITE3_CFLAGS)
 plugindir = $(libdir)/dssi
 plugin_LTLIBRARIES = linuxsampler.la
 linuxsampler_la_SOURCES = PluginDssi.cpp PluginDssi.h

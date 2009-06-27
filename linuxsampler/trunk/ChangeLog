@@ -15,6 +15,7 @@ Version CVS HEAD (?)
     - Windows: look for editor plugins and Fantasia using base
       directory of liblinuxsampler dll
     - configure script fix: removed unconditional use of SSE
+    - fixed building with sqlite installed in a non-standard directory
 
   * general changes:
     - bugfix: on some POSIX systems instrument editor plugins refused to
@@ -150,6 +151,8 @@ Version CVS HEAD (?)
     - added a limit check for upward pitch shifting
     - bugfix: sometimes, when playing a note twice fast, the second
       note was silent
+    - fixed crash happening when a pitch bend event arrived at the
+      same time a new instrument was loading
 
   * LSCP server:
     - added new LSCP event "CHANNEL_MIDI" which can be used by frontends to

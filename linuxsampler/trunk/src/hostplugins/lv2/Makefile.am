@@ -1,5 +1,5 @@
 if HAVE_LV2
-INCLUDES = $(LV2_CFLAGS) $(GIG_CFLAGS)
+INCLUDES = $(LV2_CFLAGS) $(GIG_CFLAGS) $(SQLITE3_CFLAGS)
 plugindir = $(libdir)/lv2/linuxsampler.lv2
 plugin_LTLIBRARIES = linuxsampler.la
 plugin_DATA = manifest.ttl linuxsampler.ttl

@@ -1,4 +1,4 @@
-INCLUDES = $(all_includes) $(GIG_CFLAGS)
+INCLUDES = $(all_includes) $(GIG_CFLAGS) $(SQLITE3_CFLAGS)
 METASOURCES = AUTO
 
 AM_CXXFLAGS = -Wreturn-type -ffast-math $(CXX_CPU_SWITCH)

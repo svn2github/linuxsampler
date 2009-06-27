@@ -5,7 +5,7 @@ examples_dir = /Developer/Examples
 au_public_dir = $(examples_dir)/CoreAudio/AudioUnits/AUPublic
 ca_public_dir = $(examples_dir)/CoreAudio/PublicUtility
 INCLUDES = -I$(au_public_dir)/AUBase -I$(au_public_dir)/OtherBases \
-    -I$(au_public_dir)/Utility -I$(ca_public_dir) $(GIG_CFLAGS)
+    -I$(au_public_dir)/Utility -I$(ca_public_dir) $(GIG_CFLAGS) $(SQLITE3_CFLAGS)
 
 noinst_LIBRARIES = libpluginau.a
 

@@ -200,7 +200,8 @@ namespace LinuxSampler { namespace gig {
             if (pDimRgn->PitchTrack && (MIDIKey - (int) pDimRgn->UnityNote) < 40) pitchbasecents += (MIDIKey - (int) pDimRgn->UnityNote) * 100;
 
             this->PitchBase = RTMath::CentsToFreqRatioUnlimited(pitchbasecents) * (double(pSample->SamplesPerSecond) / double(pEngine->SampleRate));
-            this->PitchBend = RTMath::CentsToFreqRatio(PitchBend / 8192.0 * 100.0 * pEngineChannel->pInstrument->PitchbendRange);
+            this->PitchBendRange = 1.0 / 8192.0 * 100.0 * pEngineChannel->pInstrument->PitchbendRange;
+            this->PitchBend = RTMath::CentsToFreqRatio(PitchBend * PitchBendRange);
         }
 
         // the length of the decay and release curves are dependent on the velocity
@@ -746,7 +747,7 @@ namespace LinuxSampler { namespace gig {
     }
 
     void Voice::processPitchEvent(RTList<Event>::Iterator& itEvent) {
-        PitchBend = RTMath::CentsToFreqRatio(itEvent->Param.Pitch.Pitch / 8192.0 * 100.0 * pEngineChannel->pInstrument->PitchbendRange);
+        PitchBend = RTMath::CentsToFreqRatio(itEvent->Param.Pitch.Pitch * PitchBendRange);
     }
 
     void Voice::processCutoffEvent(RTList<Event>::Iterator& itEvent) {

@@ -144,6 +144,7 @@ namespace LinuxSampler { namespace gig {
             double                      Pos;                ///< Current playback position in sample
             float                       PitchBase;          ///< Basic pitch depth, stays the same for the whole life time of the voice
             float                       PitchBend;          ///< Current pitch value of the pitchbend wheel
+            float                       PitchBendRange;     ///< The pitch range of the pitchbend wheel, value is in cents / 8192
             float                       CutoffBase;         ///< Cutoff frequency before control change, EG and LFO are applied
             ::gig::Sample*              pSample;            ///< Pointer to the sample to be played back
             ::gig::DimensionRegion*     pDimRgn;            ///< Pointer to the articulation information of current dimension region of this voice

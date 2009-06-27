@@ -2,7 +2,8 @@ if HAVE_VST
 
 plugindir = $(libdir)/vst
 plugin_LTLIBRARIES = LinuxSampler.la
-INCLUDES = -I@VSTSDK_DIR@ -I@VSTSDK_DIR@/public.sdk/source/vst2.x $(GIG_CFLAGS)
+INCLUDES = -I@VSTSDK_DIR@ -I@VSTSDK_DIR@/public.sdk/source/vst2.x \
+	$(GIG_CFLAGS) $(SQLITE3_CFLAGS)
 
 LinuxSampler_la_SOURCES = PluginVst.cpp PluginVst.h
 nodist_LinuxSampler_la_SOURCES = \
