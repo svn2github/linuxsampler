@@ -736,6 +736,20 @@ namespace LinuxSampler { namespace gig {
         }
     }
 
+    /**
+     *  Will be called by the MIDIIn Thread to signal that a program
+     *  change should be performed. As a program change isn't
+     *  real-time safe, the actual change is performed by the disk
+     *  thread.
+     *
+     *  @param Program     - MIDI program change number
+     */
+    void EngineChannel::SendProgramChange(uint8_t Program) {
+        if (pEngine) {
+            pEngine->pDiskThread->OrderProgramChange(Program, this);
+        }
+    }
+
     void EngineChannel::ClearEventLists() {
         pEvents->clear();
         // empty MIDI key specific event lists

@@ -272,4 +272,32 @@ namespace LinuxSampler {
         }
     }
 
+    void EngineChannel::ExecuteProgramChange(uint8_t Program) {
+        dmsg(1,("Received MIDI program change (prog=%d)\n",Program));
+        std::vector<int> maps = MidiInstrumentMapper::Maps();
+        if (maps.empty()) return;
+
+        SetMidiProgram(Program);
+        if (UsesNoMidiInstrumentMap()) return;
+        if (MidiInstrumentMapper::GetMapCount() == 0) return;
+        // retrieve the MIDI instrument map this engine channel is assigned to
+        int iMapID = (UsesDefaultMidiInstrumentMap())
+            ? MidiInstrumentMapper::GetDefaultMap() /*default*/ : GetMidiInstrumentMap();
+        // is there an entry for this MIDI bank&prog pair in that map?
+        midi_prog_index_t midiIndex;
+        midiIndex.midi_bank_msb = GetMidiBankMsb();
+        midiIndex.midi_bank_lsb = GetMidiBankLsb();
+        midiIndex.midi_prog     = GetMidiProgram();
+        optional<MidiInstrumentMapper::entry_t> mapping =
+            MidiInstrumentMapper::GetEntry(iMapID, midiIndex);
+        if (mapping) { // if mapping exists ...
+            InstrumentManager::instrument_id_t id;
+            id.FileName = mapping->InstrumentFile;
+            id.Index    = mapping->InstrumentIndex;
+            //TODO: we should switch the engine type here
+            InstrumentManager::LoadInstrumentInBackground(id, this);
+            Volume(mapping->Volume);
+        }
+    }
+
 } // namespace LinuxSampler

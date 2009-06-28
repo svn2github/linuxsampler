@@ -69,6 +69,7 @@ namespace LinuxSampler {
             virtual void    SendPitchbend(int Pitch, int32_t FragmentPos) = 0;
             virtual void    SendControlChange(uint8_t Controller, uint8_t Value) = 0;
             virtual void    SendControlChange(uint8_t Controller, uint8_t Value, int32_t FragmentPos) = 0;
+            virtual void    SendProgramChange(uint8_t Program) = 0;
             virtual bool    StatusChanged(bool bNewStatus = false) = 0;
             virtual float   Volume() = 0;
             virtual void    Volume(float f) = 0;
@@ -307,6 +308,13 @@ namespace LinuxSampler {
 
             /** Returns the sampler to which this channel belongs */
             Sampler* GetSampler();
+
+            /**
+             * Performs a program change on the channel.
+             *
+             * This method is not real-time safe.
+             */
+            void ExecuteProgramChange(uint8_t Program);
 
         protected:
             EngineChannel();

@@ -277,72 +277,25 @@ namespace LinuxSampler {
     }
 
     void MidiInputPort::DispatchProgramChange(uint8_t Program, uint MidiChannel) {
-        dmsg(1,("Received MIDI program change (prog=%d,ch=%d)\n",Program,MidiChannel));
         if (Program > 127 || MidiChannel > 16) return;
         if (!pDevice || !pDevice->pSampler) {
             std::cerr << "MidiInputPort: ERROR, no sampler instance to handle program change."
                       << "This is a bug, please report it!\n" << std::flush;
             return;
         }
-        std::vector<int> maps = MidiInstrumentMapper::Maps();
-        if (maps.empty()) return;
 
         const MidiChannelMap_t& midiChannelMap = MidiChannelMapReader.Lock();
         // dispatch event for engines listening to the same MIDI channel
         {
             std::set<EngineChannel*>::iterator engineiter = midiChannelMap[MidiChannel].begin();
             std::set<EngineChannel*>::iterator end        = midiChannelMap[MidiChannel].end();
-            for (; engineiter != end; engineiter++) {
-                (*engineiter)->SetMidiProgram(Program);
-                if ((*engineiter)->UsesNoMidiInstrumentMap()) continue;
-                if (MidiInstrumentMapper::GetMapCount() == 0) continue;
-                // retrieve the MIDI instrument map this engine channel is assigned to
-                int iMapID = ((*engineiter)->UsesDefaultMidiInstrumentMap())
-                    ? MidiInstrumentMapper::GetDefaultMap() /*default*/ : (*engineiter)->GetMidiInstrumentMap();
-                // is there an entry for this MIDI bank&prog pair in that map?
-                midi_prog_index_t midiIndex;
-                midiIndex.midi_bank_msb = (*engineiter)->GetMidiBankMsb();
-                midiIndex.midi_bank_lsb = (*engineiter)->GetMidiBankLsb();
-                midiIndex.midi_prog     = (*engineiter)->GetMidiProgram();
-                optional<MidiInstrumentMapper::entry_t> mapping =
-                    MidiInstrumentMapper::GetEntry(iMapID, midiIndex);
-                if (mapping) { // if mapping exists ...
-                    InstrumentManager::instrument_id_t id;
-                    id.FileName = mapping->InstrumentFile;
-                    id.Index    = mapping->InstrumentIndex;
-                    //TODO: we should switch the engine type here
-                    InstrumentManager::LoadInstrumentInBackground(id, *engineiter);
-                    (*engineiter)->Volume(mapping->Volume);
-                }
-            }
+            for (; engineiter != end; engineiter++) (*engineiter)->SendProgramChange(Program);
         }
         // dispatch event for engines listening to ALL MIDI channels
         {
             std::set<EngineChannel*>::iterator engineiter = midiChannelMap[midi_chan_all].begin();
             std::set<EngineChannel*>::iterator end        = midiChannelMap[midi_chan_all].end();
-            for (; engineiter != end; engineiter++) {
-                (*engineiter)->SetMidiProgram(Program);
-                if ((*engineiter)->UsesNoMidiInstrumentMap()) continue;
-                if (MidiInstrumentMapper::GetMapCount() == 0) continue;
-                // retrieve the MIDI instrument map this engine channel is assigned to
-                int iMapID = ((*engineiter)->UsesDefaultMidiInstrumentMap())
-                    ? MidiInstrumentMapper::GetDefaultMap() /*default*/ : (*engineiter)->GetMidiInstrumentMap();
-                // is there an entry for this MIDI bank&prog pair in that map?
-                midi_prog_index_t midiIndex;
-                midiIndex.midi_bank_msb = (*engineiter)->GetMidiBankMsb();
-                midiIndex.midi_bank_lsb = (*engineiter)->GetMidiBankLsb();
-                midiIndex.midi_prog     = (*engineiter)->GetMidiProgram();
-                optional<MidiInstrumentMapper::entry_t> mapping =
-                    MidiInstrumentMapper::GetEntry(iMapID, midiIndex);
-                if (mapping) { // if mapping exists ...
-                    InstrumentManager::instrument_id_t id;
-                    id.FileName = mapping->InstrumentFile;
-                    id.Index    = mapping->InstrumentIndex;
-                    //TODO: we should switch the engine type here
-                    InstrumentManager::LoadInstrumentInBackground(id, *engineiter);
-                    (*engineiter)->Volume(mapping->Volume);
-                }
-            }
+            for (; engineiter != end; engineiter++) (*engineiter)->SendProgramChange(Program);
         }
         MidiChannelMapReader.Unlock();
     }

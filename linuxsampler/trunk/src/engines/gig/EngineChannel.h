@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 - 2008 Christian Schoenebeck                       *
+ *   Copyright (C) 2005 - 2009 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -62,6 +62,7 @@ namespace LinuxSampler { namespace gig {
             virtual void    SendPitchbend(int Pitch, int32_t FragmentPos);
             virtual void    SendControlChange(uint8_t Controller, uint8_t Value);
             virtual void    SendControlChange(uint8_t Controller, uint8_t Value, int32_t FragmentPos);
+            virtual void    SendProgramChange(uint8_t Program);
             virtual bool    StatusChanged(bool bNewStatus = false);
             virtual float   Volume();
             virtual void    Volume(float f);

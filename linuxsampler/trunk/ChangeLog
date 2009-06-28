@@ -91,6 +91,8 @@ Version CVS HEAD (?)
     - bugfix: pitch bend wasn't working with JackMidi, VST, LV2, MME,
       CoreMidi or AU
     - fixed mingw-w64 compilation error in MME driver
+    - made program change handling in MIDI thread real-time safe by
+      moving the logic to a non-RT thread
 
   * instruments database:
     - avoid time consuming samples scanning when adding instruments

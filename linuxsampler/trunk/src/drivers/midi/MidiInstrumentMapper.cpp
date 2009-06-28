@@ -1,6 +1,6 @@
 /***************************************************************************
  *                                                                         *
- *   Copyright (C) 2006 - 2007 Christian Schoenebeck                       *
+ *   Copyright (C) 2006 - 2009 Christian Schoenebeck                       *
  *                                                                         *
  *   This library is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -462,7 +462,7 @@ namespace LinuxSampler {
                 entry.InstrumentFile  = iterEntry->second.InstrumentFile;
                 entry.InstrumentIndex = iterEntry->second.InstrumentIndex;
                 entry.Volume          = iterEntry->second.Volume;
-                //TODO: for now we skip the LoadMode and Name entry here, since we don't need it in the MidiInputPort
+                //TODO: for now we skip the LoadMode and Name entry here, since we don't need it in the EngineChannel
                 result = entry;
             }
         }

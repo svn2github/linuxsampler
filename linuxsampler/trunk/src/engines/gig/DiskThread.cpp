@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 - 2008 Christian Schoenebeck                       *
+ *   Copyright (C) 2005 - 2009 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -189,6 +189,24 @@ namespace LinuxSampler { namespace gig {
     }
 
     /**
+     * Tell the disk thread to do a program change on the specified
+     * EngineChannel.
+     */
+    int DiskThread::OrderProgramChange(uint8_t Program, EngineChannel* pEngineChannel) {
+        program_change_command_t cmd;
+        cmd.Program = Program;
+        cmd.pEngineChannel = pEngineChannel;
+
+        dmsg(4,("Disk Thread: program change ordered\n"));
+        if (ProgramChangeQueue.write_space() < 1) {
+            dmsg(1,("DiskThread: ProgramChange queue full!\n"));
+            return -1;
+        }
+        ProgramChangeQueue.push(&cmd);
+        return 0;
+    }
+
+    /**
      * Returns the pointer to a disk stream if the ordered disk stream
      * represented by the \a StreamOrderID was already activated by the disk
      * thread, returns NULL otherwise. If the call was successful, thus if it
@@ -239,7 +257,8 @@ namespace LinuxSampler { namespace gig {
     DiskThread::DiskThread(int MaxStreams, uint BufferWrapElements, InstrumentResourceManager* pInstruments) :
         Thread(true, false, 1, -2),
         pInstruments(pInstruments),
-        DeletionNotificationQueue(4*MaxStreams)
+        DeletionNotificationQueue(4*MaxStreams),
+        ProgramChangeQueue(100)
     {
         DecompressionBuffer = ::gig::Sample::CreateDecompressionBuffer(CONFIG_STREAM_MAX_REFILL_SIZE);
         CreationQueue       = new RingBuffer<create_command_t,false>(4*MaxStreams);
@@ -324,6 +343,12 @@ namespace LinuxSampler { namespace gig {
                 pInstruments->HandBackDimReg(dimreg);
             }
 
+            // perform MIDI program change commands
+            while (ProgramChangeQueue.read_space() > 0) {
+                program_change_command_t cmd;
+                ProgramChangeQueue.pop(&cmd);
+                cmd.pEngineChannel->ExecuteProgramChange(cmd.Program);
+            }
             RefillStreams(); // refill the most empty streams
 
             // if nothing was done during this iteration (eg no streambuffer

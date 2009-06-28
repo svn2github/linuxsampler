@@ -1,6 +1,6 @@
 /***************************************************************************
  *                                                                         *
- *   Copyright (C) 2006 - 2008 Christian Schoenebeck                       *
+ *   Copyright (C) 2006 - 2009 Christian Schoenebeck                       *
  *                                                                         *
  *   This library is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -284,8 +284,8 @@ namespace LinuxSampler {
              */
             static void fireMidiInstrumentMapInfoChanged(int MapId);
 
-            static optional<entry_t> GetEntry(int Map, midi_prog_index_t Index); // shall only be used by MidiInputPort ATM (see source comment)
-            friend class MidiInputPort; // allow MidiInputPort to access GetEntry()
+            static optional<entry_t> GetEntry(int Map, midi_prog_index_t Index); // shall only be used by EngineChannel ATM (see source comment)
+            friend class EngineChannel; // allow EngineChannel to access GetEntry()
 
         private:
             /**

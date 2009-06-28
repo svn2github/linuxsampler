@@ -58,6 +58,7 @@ namespace LinuxSampler { namespace gig {
             int     OrderNewStream(Stream::reference_t* pStreamRef, ::gig::DimensionRegion* pDimRgn, unsigned long SampleOffset, bool DoLoop);
             int     OrderDeletionOfStream(Stream::reference_t* pStreamRef, bool bRequestNotification = false);
             int     OrderDeletionOfDimreg(::gig::DimensionRegion* dimreg);
+            int     OrderProgramChange(uint8_t Program, EngineChannel* pEngineChannel);
             Stream* AskForCreatedStream(Stream::OrderID_t StreamOrderID);
             Stream::Handle AskForDeletedStream();
 
@@ -89,7 +90,10 @@ namespace LinuxSampler { namespace gig {
                 Stream::OrderID_t OrderID;
                 bool              bNotify;
             };
-
+            struct program_change_command_t {
+                uint8_t Program;
+                EngineChannel* pEngineChannel;
+            };
             // Attributes
             bool                           IsIdle;
             uint                           Streams;
@@ -98,6 +102,7 @@ namespace LinuxSampler { namespace gig {
             RingBuffer<delete_command_t,false>* GhostQueue;                         ///< Contains handles to streams that are not used anymore and weren't deletable immediately
             RingBuffer<Stream::Handle,false>    DeletionNotificationQueue;          ///< In case the original sender requested a notification for its stream deletion order, this queue will receive the handle of the respective stream once actually be deleted by the disk thread.
             RingBuffer< ::gig::DimensionRegion*,false>* DeleteDimregQueue;          ///< Contains dimension regions that are not used anymore and should be handed back to the instrument resource manager
+            RingBuffer<program_change_command_t,false> ProgramChangeQueue;          ///< Contains requests for MIDI program change
             unsigned int                   RefillStreamsPerRun;                    ///< How many streams should be refilled in each loop run
             Stream**                       pStreams; ///< Contains all disk streams (whether used or unused)
             Stream**                       pCreatedStreams; ///< This is where the voice (audio thread) picks up it's meanwhile hopefully created disk stream.
