@@ -21,7 +21,7 @@ SetCompressor lzma
 !include "MUI.nsh"
 !include "EnvVarUpdate.nsh"
 
-!define RELEASE_DATE "20090512"
+!define RELEASE_DATE "20090623"
 
 ; The name of the installer
 Name "LinuxSampler (${RELEASE_DATE})"
@@ -263,6 +263,7 @@ Section "LinuxSampler 0.5.1.12cvs" SecLinuxSampler
   linuxsampler64:
   File bin\64\linuxsampler.exe
   File bin\64\liblinuxsampler-1.dll
+  File bin\64\libsqlite3-0.dll
   SetOutPath $vstPluginPath
   File bin\64\LinuxSampler.dll
   Goto done
@@ -270,6 +271,7 @@ Section "LinuxSampler 0.5.1.12cvs" SecLinuxSampler
   linuxsampler686sse:
   File bin\686sse\linuxsampler.exe
   File bin\686sse\liblinuxsampler-1.dll
+  File bin\686\libsqlite3-0.dll
   SetOutPath $vstPluginPath
   File bin\686sse\LinuxSampler.dll
   Goto done
@@ -277,6 +279,7 @@ Section "LinuxSampler 0.5.1.12cvs" SecLinuxSampler
   linuxsampler686:
   File bin\686\linuxsampler.exe
   File bin\686\liblinuxsampler-1.dll
+  File bin\686\libsqlite3-0.dll
   SetOutPath $vstPluginPath
   File bin\686\LinuxSampler.dll
   Goto done
@@ -284,7 +287,7 @@ Section "LinuxSampler 0.5.1.12cvs" SecLinuxSampler
   done:
 SectionEnd
 
-Section "JSampler 'Fantasia' 0.8a-cvs6" SecJSampler
+Section "JSampler 'Fantasia' 0.8a-cvs8" SecJSampler
   DetailPrint "Installing JSampler binaries ..."
   ; make sure JRE is installed
   Call DetectJRE
@@ -292,7 +295,7 @@ Section "JSampler 'Fantasia' 0.8a-cvs6" SecJSampler
   ; Set output path to the installation directory.
   SetOutPath $INSTDIR
   ; Files to install
-  File bin\Fantasia-0.8a-cvs6.jar
+  File bin\Fantasia-0.8a-cvs8.jar
   File jsampler.ico
 SectionEnd
 
@@ -554,7 +557,7 @@ Section "Start Menu Shortcuts" SecShortcuts
   CreateShortCut "$SMPROGRAMS\LinuxSampler\LinuxSampler 0.5.1.12cvs (stand alone backend).lnk" "$INSTDIR\linuxsampler.exe" "" "$INSTDIR\linuxsampler.exe" 0
 
   StrCmp $installingJSampler '1' 0 +2
-  CreateShortCut '$SMPROGRAMS\LinuxSampler\JSampler Fantasia 0.8a-cvs6 (frontend).lnk' '$javawbin' '-jar "$INSTDIR\Fantasia-0.8a-cvs6.jar"' '$INSTDIR\jsampler.ico' 0
+  CreateShortCut '$SMPROGRAMS\LinuxSampler\JSampler Fantasia 0.8a-cvs8 (frontend).lnk' '$javawbin' '-jar "$INSTDIR\Fantasia-0.8a-cvs8.jar"' '$INSTDIR\jsampler.ico' 0
 
   StrCmp $installingQSampler '1' 0 +2
   CreateShortCut "$SMPROGRAMS\LinuxSampler\QSampler 0.2.1.26 (frontend).lnk" "$INSTDIR\qsampler.exe" "" "$INSTDIR\qsampler.ico" 0
