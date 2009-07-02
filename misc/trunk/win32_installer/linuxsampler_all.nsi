@@ -36,8 +36,11 @@ OutFile "linuxsampler_${RELEASE_DATE}_setup.exe"
 
 ; The default installation directory
 InstallDir "$PROGRAMFILES64\LinuxSampler"
+!define SUBDIR_32_BIT "32"
+!define SUBDIR_64_BIT "64"
 
-!define DEFAULT_VST_DIR "$PROGRAMFILES64\Steinberg\VstPlugins"
+!define DEFAULT_VST_DIR64 "$PROGRAMFILES64\Steinberg\VstPlugins"
+!define DEFAULT_VST_DIR "$PROGRAMFILES\Steinberg\VstPlugins"
 
 ; Get installation folder from registry if available
 InstallDirRegKey HKLM "Software\LinuxSampler" "Main Directory"
@@ -89,13 +92,15 @@ Function .onInit
   Var /GLOBAL installingJSampler
   Var /GLOBAL installingQSampler
   Var /GLOBAL installinggigedit
+  Var /GLOBAL installing32BitToo
   StrCpy $installingLinuxSampler "0"
   StrCpy $installingJSampler "0"
   StrCpy $installingQSampler "0"
   StrCpy $installinggigedit "0"
+  StrCpy $installing32BitToo "0"
 FunctionEnd
 
-; detects CPU capabilities, determmines which native binary type to install
+; detects CPU capabilities, determines which native binary type to install
 ; and selects the appropriate windows registry view (32 bit or 64 bit)
 !macro DetectSystemType un
 Function ${un}DetectSystemType
@@ -132,6 +137,9 @@ FunctionEnd
 
 ; Check for the presence of gtkmm, and if false, ask the user whether to
 ; download and install gtkmm now from the internet.
+; (NOTE: this function is currently unused, since we include the gtk(mm)
+; DLLs with the installer ATM, this is the recommended way by the gtk
+; project)
 Function CheckForGtkmm
   Var /GLOBAL gtkmmSetupFile
 
@@ -211,12 +219,45 @@ FunctionEnd
 ; Tries to find the location where VST plugins should be installed to
 Function DetectVstPath
   Var /GLOBAL vstPluginPath
+  Var /GLOBAL vstPluginPath64
+
+  StrCmp $binType BIN_TYPE_64BIT 0 detectVst32
+  SetRegView 64 ; make sure we have the 64 bit registry view
+
+  ; ------- VST 64 bit detection -------
+
+  ClearErrors
+  ReadRegStr $0 HKCU "Software\VST" "VSTPluginsPath"
+  IfErrors check2ndRegistryKey64 0
+  StrCpy $vstPluginPath64 $0
+  DetailPrint "Found VST plugin (64 bit) directory in HKCU registry."
+  Goto done64
+
+  check2ndRegistryKey64:
+  ClearErrors
+  ReadRegStr $0 HKLM "Software\VST" "VSTPluginsPath"
+  IfErrors noRegistryKeyExists64 0
+  StrCpy $vstPluginPath64 $0
+  DetailPrint "Found VST plugin (64 bit) directory in HKLM registry."
+  Goto done64
+
+  noRegistryKeyExists64:
+  ClearErrors
+  DetailPrint "No VST plugin directory (64 bit) defined in registry."
+  StrCpy $vstPluginPath64 "${DEFAULT_VST_DIR64}"
+
+  done64:
+  SetRegView 32 ; make sure we have a 32 bit registry view
+
+  detectVst32: ; it follows the same thing for the 32 bit registry view
+
+  ; ------- VST 32 bit detection -------
 
   ClearErrors
   ReadRegStr $0 HKCU "Software\VST" "VSTPluginsPath"
   IfErrors check2ndRegistryKey 0
   StrCpy $vstPluginPath $0
-  DetailPrint "Found VST plugin directory in HKCU registry."
+  DetailPrint "Found VST plugin (32 bit) directory in HKCU registry."
   Goto done
 
   check2ndRegistryKey:
@@ -224,16 +265,21 @@ Function DetectVstPath
   ReadRegStr $0 HKLM "Software\VST" "VSTPluginsPath"
   IfErrors noRegistryKeyExists 0
   StrCpy $vstPluginPath $0
-  DetailPrint "Found VST plugin directory in HKLM registry."
+  DetailPrint "Found VST plugin (32 bit) directory in HKLM registry."
   Goto done
 
   noRegistryKeyExists:
   ClearErrors
-  DetailPrint "No VST plugin directory defined in registry."
+  DetailPrint "No VST plugin directory (32 bit) defined in registry."
   StrCpy $vstPluginPath "${DEFAULT_VST_DIR}"
 
-  done:
-  DetailPrint "Using the following as VST plugin directory: $vstPluginPath"
+  done: ; ------- summary of detection -------
+
+  StrCmp $binType BIN_TYPE_64BIT 0 summaryVst32
+  SetRegView 64  ; restore 64 bit view
+  DetailPrint "Using the following as VST (64 bit) plugin directory: $vstPluginPath64"
+  summaryVst32:
+  DetailPrint "Using the following as VST (32 bit) plugin directory: $vstPluginPath"
 FunctionEnd
 
 ;--------------------------------
@@ -251,9 +297,6 @@ Section "LinuxSampler 0.5.1.12cvs" SecLinuxSampler
   DetailPrint "Installing LinuxSampler binaries ..."
   StrCpy $installingLinuxSampler "1"
 
-  ; Set output path to the installation directory.
-  SetOutPath $INSTDIR
-
   StrCmp $binType BIN_TYPE_64BIT linuxsampler64
   StrCmp $binType BIN_TYPE_686SSE linuxsampler686sse
   Goto linuxsampler686
@@ -261,27 +304,35 @@ Section "LinuxSampler 0.5.1.12cvs" SecLinuxSampler
   ; Files to install
 
   linuxsampler64:
+  SetOutPath "$INSTDIR\${SUBDIR_64_BIT}"
   File bin\64\linuxsampler.exe
   File bin\64\liblinuxsampler-1.dll
   File bin\64\libsqlite3-0.dll
-  SetOutPath $vstPluginPath
-  File bin\64\LinuxSampler.dll
-  Goto done
+  SetOutPath $vstPluginPath64
+  File /oname=LinuxSampler64.dll bin\64\LinuxSampler.dll
+  MessageBox MB_YESNO \
+    "It seems you are using a 64 bit Windows system. A native 64 bit\nversion of LinuxSampler and its VST plugin version will be\ninstalled accordingly.\n\nShall a 32 bit version of the LinuxSampler VST be installed as well?" \
+    IDNO done
+
+  ; so the other sections install their 32 bit versions as well
+  StrCpy $installing32BitToo "1"
 
   linuxsampler686sse:
+  SetOutPath "$INSTDIR\${SUBDIR_32_BIT}"
   File bin\686sse\linuxsampler.exe
   File bin\686sse\liblinuxsampler-1.dll
   File bin\686\libsqlite3-0.dll
   SetOutPath $vstPluginPath
-  File bin\686sse\LinuxSampler.dll
+  File /oname=LinuxSampler32.dll bin\686sse\LinuxSampler.dll
   Goto done
 
   linuxsampler686:
+  SetOutPath "$INSTDIR\${SUBDIR_32_BIT}"
   File bin\686\linuxsampler.exe
   File bin\686\liblinuxsampler-1.dll
   File bin\686\libsqlite3-0.dll
   SetOutPath $vstPluginPath
-  File bin\686\LinuxSampler.dll
+  File /oname=LinuxSampler32.dll bin\686\LinuxSampler.dll
   Goto done
 
   done:
@@ -323,9 +374,6 @@ Section "gigedit 0.1.1.x (cvs2009-05-10)" Secgigedit
   ; installer, so no check and no download necessary ATM)
   ;Call CheckForGtkmm
 
-  ; Set output path to the installation directory.
-  SetOutPath $INSTDIR
-
   StrCmp $binType BIN_TYPE_64BIT gigedit64
   ; I think we don't need a SSE optimized 32 bit binary for gigedit, one 64bit and one simple 32 bit version should be sufficient
   ;StrCmp $binType BIN_TYPE_686SSE gigedit686sse
@@ -334,11 +382,12 @@ Section "gigedit 0.1.1.x (cvs2009-05-10)" Secgigedit
   ; Files to install
 
   gigedit64:
+  SetOutPath "$INSTDIR\${SUBDIR_64_BIT}"
   File bin\64\gigedit.exe
   File bin\64\libgigedit-1.dll
-  SetOutPath "$INSTDIR\plugins"
+  SetOutPath "$INSTDIR\${SUBDIR_64_BIT}\plugins"
   File bin\64\plugins\libgigeditlinuxsamplerplugin-1.dll
-  SetOutPath $INSTDIR
+  SetOutPath "$INSTDIR\${SUBDIR_64_BIT}"
   File bin\64\libatk-1.0-0.dll
   File bin\64\libatkmm-1.6-1.dll
   File bin\64\libcairo-2.dll
@@ -365,26 +414,29 @@ Section "gigedit 0.1.1.x (cvs2009-05-10)" Secgigedit
   File bin\64\libsigc-2.0-0.dll
   File bin\64\libtiff.dll
   File bin\64\zlib1.dll
-  SetOutPath $INSTDIR\etc\gtk-2.0
+  SetOutPath $INSTDIR\${SUBDIR_64_BIT}\etc\gtk-2.0
   File bin\64\etc\gtk-2.0\gtkrc
-  SetOutPath $INSTDIR\lib\gtk-2.0\2.10.0\engines
+  SetOutPath $INSTDIR\${SUBDIR_64_BIT}\lib\gtk-2.0\2.10.0\engines
   File bin\64\lib\gtk-2.0\2.10.0\engines\libwimp.dll
-  SetOutPath $INSTDIR\share\locale\de\LC_MESSAGES
+  SetOutPath $INSTDIR\${SUBDIR_64_BIT}\share\locale\de\LC_MESSAGES
   File bin\64\share\locale\de\LC_MESSAGES\gigedit.mo
   File bin\64\share\locale\de\LC_MESSAGES\gtk20.mo
-  SetOutPath $INSTDIR\share\locale\sv\LC_MESSAGES
+  SetOutPath $INSTDIR\${SUBDIR_64_BIT}\share\locale\sv\LC_MESSAGES
   File bin\64\share\locale\sv\LC_MESSAGES\gigedit.mo
   File bin\64\share\locale\sv\LC_MESSAGES\gtk20.mo
-  SetOutPath $INSTDIR\share\themes\MS-Windows\gtk-2.0
+  SetOutPath $INSTDIR\${SUBDIR_64_BIT}\share\themes\MS-Windows\gtk-2.0
   File bin\64\share\themes\MS-Windows\gtk-2.0\gtkrc
-  Goto done
+
+  ; shall we install the 32 bit version as well?
+  StrCmp $installing32BitToo "1" gigedit686 done
 
   gigedit686:
+  SetOutPath "$INSTDIR\${SUBDIR_32_BIT}"
   File bin\686\gigedit.exe
   File bin\686\libgigedit-1.dll
-  SetOutPath "$INSTDIR\plugins"
+  SetOutPath "$INSTDIR\${SUBDIR_32_BIT}\plugins"
   File bin\686\plugins\libgigeditlinuxsamplerplugin-1.dll
-  SetOutPath $INSTDIR
+  SetOutPath "$INSTDIR\${SUBDIR_32_BIT}"
   File bin\686\intl.dll
   File bin\686\jpeg62.dll
   File bin\686\libatk-1.0-0.dll
@@ -411,12 +463,12 @@ Section "gigedit 0.1.1.x (cvs2009-05-10)" Secgigedit
   File bin\686\libsigc-2.0-0.dll
   File bin\686\libtiff3.dll
   File bin\686\zlib1.dll
-  SetOutPath $INSTDIR\etc\gtk-2.0
+  SetOutPath $INSTDIR\${SUBDIR_32_BIT}\etc\gtk-2.0
   File bin\686\etc\gtk-2.0\gdk-pixbuf.loaders
   File bin\686\etc\gtk-2.0\gtkrc
-  SetOutPath $INSTDIR\lib\gtk-2.0\2.10.0\engines
+  SetOutPath $INSTDIR\${SUBDIR_32_BIT}\lib\gtk-2.0\2.10.0\engines
   File bin\686\lib\gtk-2.0\2.10.0\engines\libwimp.dll
-  SetOutPath $INSTDIR\lib\gtk-2.0\2.10.0\loaders
+  SetOutPath $INSTDIR\${SUBDIR_32_BIT}\lib\gtk-2.0\2.10.0\loaders
   File bin\686\lib\gtk-2.0\2.10.0\loaders\libpixbufloader-ani.dll
   File bin\686\lib\gtk-2.0\2.10.0\loaders\libpixbufloader-bmp.dll
   File bin\686\lib\gtk-2.0\2.10.0\loaders\libpixbufloader-gif.dll
@@ -432,13 +484,13 @@ Section "gigedit 0.1.1.x (cvs2009-05-10)" Secgigedit
   File bin\686\lib\gtk-2.0\2.10.0\loaders\libpixbufloader-wbmp.dll
   File bin\686\lib\gtk-2.0\2.10.0\loaders\libpixbufloader-xbm.dll
   File bin\686\lib\gtk-2.0\2.10.0\loaders\libpixbufloader-xpm.dll
-  SetOutPath $INSTDIR\share\locale\de\LC_MESSAGES
+  SetOutPath $INSTDIR\${SUBDIR_32_BIT}\share\locale\de\LC_MESSAGES
   File bin\686\share\locale\de\LC_MESSAGES\gigedit.mo
   File bin\686\share\locale\de\LC_MESSAGES\gtk20.mo
-  SetOutPath $INSTDIR\share\locale\sv\LC_MESSAGES
+  SetOutPath $INSTDIR\${SUBDIR_32_BIT}\share\locale\sv\LC_MESSAGES
   File bin\686\share\locale\sv\LC_MESSAGES\gigedit.mo
   File bin\686\share\locale\sv\LC_MESSAGES\gtk20.mo
-  SetOutPath $INSTDIR\share\themes\MS-Windows\gtk-2.0
+  SetOutPath $INSTDIR\${SUBDIR_32_BIT}\share\themes\MS-Windows\gtk-2.0
   File bin\686\share\themes\MS-Windows\gtk-2.0\gtkrc
   Goto done
 
@@ -449,8 +501,6 @@ Section "libgig 3.2.1.x (cvs2009-05-03)" Seclibgig
   DetailPrint "Installing libgig binaries ..."
   ; We make this a mandatory component
   SectionIn RO
-  ; Set output path to the installation directory.
-  SetOutPath $INSTDIR
 
   StrCmp $binType BIN_TYPE_64BIT libgig64
   StrCmp $binType BIN_TYPE_686SSE libgig686sse
@@ -459,6 +509,7 @@ Section "libgig 3.2.1.x (cvs2009-05-03)" Seclibgig
   ; Files to install
 
   libgig64:
+  SetOutPath "$INSTDIR\${SUBDIR_64_BIT}"
   File bin\64\libgig-6.dll
   File bin\64\rifftree.exe
   File bin\64\dlsdump.exe
@@ -466,9 +517,12 @@ Section "libgig 3.2.1.x (cvs2009-05-03)" Seclibgig
   File bin\64\gigextract.exe
   ; special dependency for the 64 bit version
   File bin\64\libgcc_s_sjlj-1.dll
-  Goto done
+
+  ; shall we install the 32 bit version as well?
+  StrCmp $installing32BitToo "1" libgig686sse done
 
   libgig686sse:
+  SetOutPath "$INSTDIR\${SUBDIR_32_BIT}"
   File bin\686sse\libgig-6.dll
   File bin\686sse\rifftree.exe
   File bin\686sse\dlsdump.exe
@@ -477,6 +531,7 @@ Section "libgig 3.2.1.x (cvs2009-05-03)" Seclibgig
   Goto done
 
   libgig686:
+  SetOutPath "$INSTDIR\${SUBDIR_32_BIT}"
   File bin\686\libgig-6.dll
   File bin\686\rifftree.exe
   File bin\686\dlsdump.exe
@@ -491,6 +546,8 @@ Section "libgig 3.2.1.x (cvs2009-05-03)" Seclibgig
 
   ; Add LinuxSampler and friends to the system's PATH variable
   ${EnvVarUpdate} $0 "PATH" "A" "HKLM" "$INSTDIR"
+  ${EnvVarUpdate} $0 "PATH" "A" "HKLM" "$INSTDIR\${SUBDIR_64_BIT}"
+  ${EnvVarUpdate} $0 "PATH" "A" "HKLM" "$INSTDIR\${SUBDIR_32_BIT}"
 
   ; Write the uninstall keys for Windows
   WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\LinuxSampler" "DisplayName" "LinuxSampler ${RELEASE_DATE}"
@@ -501,7 +558,10 @@ Section "libgig 3.2.1.x (cvs2009-05-03)" Seclibgig
 
   ; Store installation folders
   WriteRegStr HKLM "Software\LinuxSampler" "Main Directory" $INSTDIR
-  WriteRegStr HKLM "Software\LinuxSampler" "VST Directory" $vstPluginPath
+  StrCmp $binType BIN_TYPE_64BIT 0 +3
+  WriteRegStr HKLM "Software\LinuxSampler" "VST 64 Directory" $vstPluginPath64
+  StrCmp $installing32BitToo "1" 0 +2
+  WriteRegStr HKLM "Software\LinuxSampler" "VST 32 Directory" $vstPluginPath
 
   ; Just for info, store the release date as well
   WriteRegStr HKLM "Software\LinuxSampler" "Release Date" ${RELEASE_DATE}
@@ -511,8 +571,6 @@ Section "libsndfile 1.0.19" Seclibsndfile
   DetailPrint "Installing libsndfile binaries ..."
   ; We make this a mandatory component
   SectionIn RO
-  ; Set output path to the installation directory.
-  SetOutPath $INSTDIR
 
   StrCmp $binType BIN_TYPE_64BIT libsndfile64
   ; I think we don't need a SSE optimized 32 bit binary for libsndfile, one 64bit and one simple 32 bit DLL should be sufficient
@@ -522,10 +580,14 @@ Section "libsndfile 1.0.19" Seclibsndfile
   ; Files to install
 
   libsndfile64:
+  SetOutPath "$INSTDIR\${SUBDIR_64_BIT}"
   File bin\64\libsndfile-1.dll
-  Goto done
+
+  ; shall we install the 32 bit version as well?
+  StrCmp $installing32BitToo "1" libsndfile686 done
 
   libsndfile686:
+  SetOutPath "$INSTDIR\${SUBDIR_32_BIT}"
   File bin\686\libsndfile-1.dll
   Goto done
 
@@ -534,6 +596,12 @@ SectionEnd
 
 Section "Start Menu Shortcuts" SecShortcuts
   Var /GLOBAL javawbin
+  Var /GLOBAL samplerDir
+
+  StrCmp $binType BIN_TYPE_64BIT 0 +3
+  StrCpy $samplerDir "$INSTDIR\${SUBDIR_64_BIT}"
+  Goto +2
+  StrCpy $samplerDir "$INSTDIR\${SUBDIR_32_BIT}"
 
   ; Switch system variables to 'all users', to ensure we create the start
   ; menu shortcuts for all users and not just for the current user.
@@ -554,7 +622,7 @@ Section "Start Menu Shortcuts" SecShortcuts
   CreateShortCut "$SMPROGRAMS\LinuxSampler\Uninstall.lnk" "$INSTDIR\uninstall.exe" "" "$INSTDIR\uninstall.exe" 0
 
   StrCmp $installingLinuxSampler '1' 0 +2
-  CreateShortCut "$SMPROGRAMS\LinuxSampler\LinuxSampler 0.5.1.12cvs (stand alone backend).lnk" "$INSTDIR\linuxsampler.exe" "" "$INSTDIR\linuxsampler.exe" 0
+  CreateShortCut "$SMPROGRAMS\LinuxSampler\LinuxSampler 0.5.1.12cvs (stand alone backend).lnk" "$samplerDir\linuxsampler.exe" "" "$samplerDir\linuxsampler.exe" 0
 
   StrCmp $installingJSampler '1' 0 +2
   CreateShortCut '$SMPROGRAMS\LinuxSampler\JSampler Fantasia 0.8a-cvs8 (frontend).lnk' '$javawbin' '-jar "$INSTDIR\Fantasia-0.8a-cvs8.jar"' '$INSTDIR\jsampler.ico' 0
@@ -563,7 +631,7 @@ Section "Start Menu Shortcuts" SecShortcuts
   CreateShortCut "$SMPROGRAMS\LinuxSampler\QSampler 0.2.1.26 (frontend).lnk" "$INSTDIR\qsampler.exe" "" "$INSTDIR\qsampler.ico" 0
 
   StrCmp $installinggigedit '1' 0 +2
-  CreateShortCut "$SMPROGRAMS\LinuxSampler\gigedit 0.1.1.x cvs2009-05-10 (stand alone).lnk" "$INSTDIR\gigedit.exe" "" "$INSTDIR\gigedit.exe" 0
+  CreateShortCut "$SMPROGRAMS\LinuxSampler\gigedit 0.1.1.x cvs2009-05-10 (stand alone).lnk" "$samplerDir\gigedit.exe" "" "$samplerDir\gigedit.exe" 0
 SectionEnd
 
 ;--------------------------------
@@ -571,25 +639,37 @@ SectionEnd
 ; Uninstaller
 
 Section "Uninstall"
-  Var /GLOBAL vstdir
+  Var /GLOBAL vstdir32
+  Var /GLOBAL vstdir64
 
   Call un.DetectSystemType
 
-  DetailPrint "Removing LinuxSampler directory from PATH variable ..."
+  DetailPrint "Removing LinuxSampler directories from PATH variable ..."
   ${un.EnvVarUpdate} $0 "PATH" "R" "HKLM" "$INSTDIR"
+  ${un.EnvVarUpdate} $0 "PATH" "R" "HKLM" "$INSTDIR\${SUBDIR_32_BIT}"
+  ${un.EnvVarUpdate} $0 "PATH" "R" "HKLM" "$INSTDIR\${SUBDIR_64_BIT}"
 
-  DetailPrint "Searching for VST plugin ..."
+  StrCmp $binType BIN_TYPE_64BIT 0 uninstallVst32
+  DetailPrint "Searching for VST plugin (64 bit) ..."
   ClearErrors
-  ReadRegStr $0 HKLM "Software\LinuxSampler" "VST Directory"
-  IfErrors usedefaultvstdir 0
-  StrCpy $vstdir $0
-  DetailPrint "VST plugin location found in registry."
-  Goto vstdirDetected
-  usedefaultvstdir:
-  DetailPrint "WRN: No VST plugin location found in registry, trying default location."
+  ReadRegStr $0 HKLM "Software\LinuxSampler" "VST 64 Directory"
+  IfErrors uninstallVst32 0
+  StrCpy $vstdir64 $0
+  DetailPrint "Removing VST plugin (64 bit) from: $vstdir64 ..."
+  Delete "$vstdir64\LinuxSampler64.dll"
+
+  uninstallVst32:
+
+  DetailPrint "Searching for VST plugin (32 bit) ..."
   ClearErrors
-  StrCpy $vstdir "${DEFAULT_VST_DIR}"
-  vstdirDetected:
+  ReadRegStr $0 HKLM "Software\LinuxSampler" "VST 32 Directory"
+  IfErrors uninstallVstDone 0
+  StrCpy $vstdir32 $0
+  DetailPrint "Removing VST plugin (32 bit) from: $vstdir32 ..."
+  Delete "$vstdir32\LinuxSampler32.dll"
+
+  uninstallVstDone:
+  ClearErrors
 
   DetailPrint "Removing registry keys ..."
   DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\LinuxSampler"
@@ -602,9 +682,6 @@ Section "Uninstall"
 
   DetailPrint "Removing shortcuts (if any) from: $SMPROGRAMS ..."
   Delete "$SMPROGRAMS\LinuxSampler\*.*"
-
-  DetailPrint "Removing VST plugin from: $vstdir ..."
-  Delete "$vstdir\LinuxSampler.dll"
 
   DetailPrint "Removing directories used ..."
   RMDir /r "$SMPROGRAMS\LinuxSampler"
