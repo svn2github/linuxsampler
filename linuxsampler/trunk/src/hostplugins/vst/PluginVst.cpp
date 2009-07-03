@@ -97,13 +97,17 @@ namespace {
             ProcessHandle = INVALID_HANDLE_VALUE;
         }
 
-        // assume Fantasia is in the same directory as the
-        // liblinuxsampler dll
+        // assume Fantasia is in the same directory or one directory above
+        // the liblinuxsampler dll
         String lspath = LinuxSampler::Sampler::GetInstallDir();
         if (!lspath.empty()) {
             lspath += "\\";
             WIN32_FIND_DATA fd;
             HANDLE hFind = FindFirstFile((lspath + "Fantasia*.jar").c_str(), &fd);
+            if (hFind == INVALID_HANDLE_VALUE) {
+                lspath += "..\\";
+                hFind = FindFirstFile((lspath + "Fantasia*.jar").c_str(), &fd);
+            }
             if (hFind != INVALID_HANDLE_VALUE) {
                 String fantasia(fd.cFileName);
                 FindClose(hFind);

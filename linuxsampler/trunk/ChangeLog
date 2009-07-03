@@ -13,7 +13,8 @@ Version CVS HEAD (?)
     - fixed building with libgig installed in a non-standard directory
     - minor fix in configure for mmsystem.h detection on MinGW
     - Windows: look for editor plugins and Fantasia using base
-      directory of liblinuxsampler dll
+      directory of liblinuxsampler dll (look in the same directory and one
+      directory above)
     - configure script fix: removed unconditional use of SSE
     - fixed building with sqlite installed in a non-standard directory
 
@@ -108,7 +109,7 @@ Version CVS HEAD (?)
 	  the instruments DB file is located in
 	  %USERPROFILE%\.linuxsampler\instruments.db which allows different
 	  databases for each windows user
-	  if no DB is present it automatically creates the .linuxsampler subdir 
+	  if no DB is present it automatically creates the .linuxsampler subdir
 	  and then creates an empty DB
 
   * Gigasampler format engine:
