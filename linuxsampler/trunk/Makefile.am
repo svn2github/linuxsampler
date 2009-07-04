@@ -21,6 +21,7 @@ else
 have_sqlite = "no"
 endif
 
+if !CROSS_COMPILING
 install-data-local:
 	@if [ ! -e "$(DESTDIR)/var/lib/linuxsampler/instruments.db" -a \
 	$(have_sqlite) = "yes" ] ; then \
@@ -31,6 +32,7 @@ install-data-local:
 	mkdir -p $(DESTDIR)/var/lib/linuxsampler && ./src/linuxsampler \
 	--create-instruments-db $(DESTDIR)/var/lib/linuxsampler/instruments.db ; \
 	fi
+endif
 
 # generate parser with yacc
 parser:

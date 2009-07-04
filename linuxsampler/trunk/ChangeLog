@@ -17,6 +17,8 @@ Version CVS HEAD (?)
       directory above)
     - configure script fix: removed unconditional use of SSE
     - fixed building with sqlite installed in a non-standard directory
+    - when cross-compiling, don't try to create instruments.db
+    - fix for new mingw-w64 version, which has usleep
 
   * general changes:
     - bugfix: on some POSIX systems instrument editor plugins refused to

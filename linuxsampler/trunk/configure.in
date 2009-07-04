@@ -53,6 +53,8 @@ PKG_PROG_PKG_CONFIG
 ###########################################################################
 # General Checks
 
+AM_CONDITIONAL(CROSS_COMPILING, test $cross_compiling = yes)
+
 AC_MSG_CHECKING([whether x86 architecture])
 def_arch_x86=0
 case $host_cpu in

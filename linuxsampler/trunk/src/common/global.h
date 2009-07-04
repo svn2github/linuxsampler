@@ -39,8 +39,9 @@ typedef std::string String;
 #include <windows.h>
 
 // modern MinGW has usleep
-#if __MINGW32_MAJOR_VERSION < 3 || \
-    (__MINGW32_MAJOR_VERSION == 3 && __MINGW32_MINOR_VERSION < 15)
+#if (__MINGW32_MAJOR_VERSION < 3 ||                                     \
+     (__MINGW32_MAJOR_VERSION == 3 && __MINGW32_MINOR_VERSION < 15)) && \
+    !defined(__MINGW64)
 #define usleep(a) Sleep(a/1000)
 #endif
 
