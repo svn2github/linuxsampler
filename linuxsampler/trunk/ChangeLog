@@ -83,6 +83,9 @@ Version CVS HEAD (?)
       stereo
     - added channel routing, fxsends and midi maps to the settings
       stored in the plugin state
+    - performance optimization of AudioChannel::MixTo() and
+      AudioChannel::CopyTo() methods using GCC vector exensions
+      (if available)
 
   * MIDI driver:
     - added JACK MIDI driver
@@ -104,13 +107,13 @@ Version CVS HEAD (?)
       (patch by Chris Cherrett & Andrew Williams, a bit adjusted)
     - work-around for missing fnmatch function on Windows to make
       instrument database compilable
-	- added instrument database support on Windows
-	  works with both standalone mode and VST plugin.
-	  the instruments DB file is located in
-	  %USERPROFILE%\.linuxsampler\instruments.db which allows different
-	  databases for each windows user
-	  if no DB is present it automatically creates the .linuxsampler subdir
-	  and then creates an empty DB
+    - added instrument database support on Windows
+      works with both standalone mode and VST plugin.
+      the instruments DB file is located in
+      %USERPROFILE%\.linuxsampler\instruments.db which allows different
+      databases for each windows user
+      if no DB is present it automatically creates the .linuxsampler subdir
+      and then creates an empty DB
 
   * Gigasampler format engine:
     - fixed a memory leak that could happen when a channel was deleted

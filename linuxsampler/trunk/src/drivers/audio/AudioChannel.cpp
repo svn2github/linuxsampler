@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 - 2007 Christian Schoenebeck                       *
+ *   Copyright (C) 2005 - 2009 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -133,19 +133,23 @@ namespace LinuxSampler {
     void AudioChannel::CopyTo(AudioChannel* pDst, const uint Samples, const float fLevel) {
         if (fLevel == 1.0f) CopyTo(pDst, Samples);
         else {
-		#ifndef HAVE_GCC_VECTOR_EXTENSIONS
             float* pSrcBuf = Buffer();
             float* pDstBuf = pDst->Buffer();
-            for (int i = 0; i < Samples; i++)
-                pDstBuf[i] = pSrcBuf[i] * fLevel;
-		#else
-		const v4sf vcoeff = { fLevel, fLevel, fLevel, fLevel };
-        const v4sf* src = static_cast<v4sf*>((void*)Buffer());
-        v4sf* dst       = static_cast<v4sf*>((void*)pDst->Buffer());
-        const int cells = Samples / 4;
-        for (int i = 0; i < cells; ++i)
-            dst[i] = src[i] * vcoeff;
-		#endif
+            #if HAVE_GCC_VECTOR_EXTENSIONS
+            if ((size_t)pSrcBuf % 16 == 0 && (size_t)pDstBuf % 16 == 0) {
+                const v4sf vcoeff = { fLevel, fLevel, fLevel, fLevel };
+                const v4sf* src = static_cast<v4sf*>((void*)Buffer());
+                v4sf* dst       = static_cast<v4sf*>((void*)pDst->Buffer());
+                const int cells = Samples / 4;
+                for (int i = 0; i < cells; ++i)
+                    dst[i] = src[i] * vcoeff;
+            } else {
+            #endif
+                for (int i = 0; i < Samples; i++)
+                    pDstBuf[i] = pSrcBuf[i] * fLevel;
+            #if HAVE_GCC_VECTOR_EXTENSIONS
+            }
+            #endif
         }
     }
 
@@ -157,18 +161,22 @@ namespace LinuxSampler {
      * @param Samples - amount of sample points to be mixed over
      */
     void AudioChannel::MixTo(AudioChannel* pDst, const uint Samples) {
-		#ifndef HAVE_GCC_VECTOR_EXTENSIONS
         float* pSrcBuf = Buffer();
         float* pDstBuf = pDst->Buffer();
-        for (int i = 0; i < Samples; i++)
-            pDstBuf[i] += pSrcBuf[i];
-		#else
-		const v4sf* src = static_cast<v4sf*>((void*)Buffer());
-        v4sf* dst       = static_cast<v4sf*>((void*)pDst->Buffer());
-        const int cells = Samples / 4;
-        for (int i = 0; i < cells; ++i)
-            dst[i] += src[i];
-		#endif
+        #if HAVE_GCC_VECTOR_EXTENSIONS
+        if ((size_t)pSrcBuf % 16 == 0 && (size_t)pDstBuf % 16 == 0) {
+            const v4sf* src = static_cast<v4sf*>((void*)Buffer());
+            v4sf* dst       = static_cast<v4sf*>((void*)pDst->Buffer());
+            const int cells = Samples / 4;
+            for (int i = 0; i < cells; ++i)
+                dst[i] += src[i];
+        } else {
+        #endif
+            for (int i = 0; i < Samples; i++)
+                pDstBuf[i] += pSrcBuf[i];
+        #if HAVE_GCC_VECTOR_EXTENSIONS
+        }
+        #endif
     }
 
     /**
@@ -183,19 +191,23 @@ namespace LinuxSampler {
     void AudioChannel::MixTo(AudioChannel* pDst, const uint Samples, const float fLevel) {
         if (fLevel == 1.0f) MixTo(pDst, Samples);
         else {
-		    #ifndef HAVE_GCC_VECTOR_EXTENSIONS
             float* pSrcBuf = Buffer();
             float* pDstBuf = pDst->Buffer();
-            for (int i = 0; i < Samples; i++)
-                pDstBuf[i] += pSrcBuf[i] * fLevel;
-		    #else
-			const v4sf vcoeff = { fLevel, fLevel, fLevel, fLevel };
-            const v4sf* src = static_cast<v4sf*>((void*)Buffer());
-            v4sf* dst       = static_cast<v4sf*>((void*)pDst->Buffer());
-            const int cells = Samples / 4;
-            for (int i = 0; i < cells; ++i)
-                dst[i] += src[i] * vcoeff;
-			#endif
+            #if HAVE_GCC_VECTOR_EXTENSIONS
+            if ((size_t)pSrcBuf % 16 == 0 && (size_t)pDstBuf % 16 == 0) {
+                const v4sf vcoeff = { fLevel, fLevel, fLevel, fLevel };
+                const v4sf* src = static_cast<v4sf*>((void*)Buffer());
+                v4sf* dst       = static_cast<v4sf*>((void*)pDst->Buffer());
+                const int cells = Samples / 4;
+                for (int i = 0; i < cells; ++i)
+                    dst[i] += src[i] * vcoeff;
+            } else {
+            #endif
+                for (int i = 0; i < Samples; i++)
+                    pDstBuf[i] += pSrcBuf[i] * fLevel;
+            #if HAVE_GCC_VECTOR_EXTENSIONS
+            }
+            #endif
         }
     }
 
