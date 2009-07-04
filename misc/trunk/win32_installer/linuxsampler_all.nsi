@@ -311,7 +311,7 @@ Section "LinuxSampler 0.5.1.12cvs" SecLinuxSampler
   SetOutPath $vstPluginPath64
   File /oname=LinuxSampler64.dll bin\64\LinuxSampler.dll
   MessageBox MB_YESNO \
-    "It seems you are using a 64 bit Windows system. A native 64 bit\nversion of LinuxSampler and its VST plugin version will be\ninstalled accordingly.\n\nShall a 32 bit version of the LinuxSampler VST be installed as well?" \
+    "It seems you are using a 64 bit Windows system. A native 64 bit version of LinuxSampler and its VST plugin version will be installed accordingly.$\r$\n$\r$\nShall a 32 bit version of the LinuxSampler VST be installed as well?" \
     IDNO done
 
   ; so the other sections install their 32 bit versions as well
