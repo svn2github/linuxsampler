@@ -619,18 +619,23 @@ Section "Start Menu Shortcuts" SecShortcuts
 
   CreateDirectory "$SMPROGRAMS\LinuxSampler"
 
+  SetOutPath $INSTDIR
   CreateShortCut "$SMPROGRAMS\LinuxSampler\Uninstall.lnk" "$INSTDIR\uninstall.exe" "" "$INSTDIR\uninstall.exe" 0
 
-  StrCmp $installingLinuxSampler '1' 0 +2
+  StrCmp $installingLinuxSampler '1' 0 +3
+  SetOutPath $samplerDir
   CreateShortCut "$SMPROGRAMS\LinuxSampler\LinuxSampler 0.5.1.12cvs (stand alone backend).lnk" "$samplerDir\linuxsampler.exe" "" "$samplerDir\linuxsampler.exe" 0
 
-  StrCmp $installingJSampler '1' 0 +2
+  StrCmp $installingJSampler '1' 0 +3
+  SetOutPath $INSTDIR
   CreateShortCut '$SMPROGRAMS\LinuxSampler\JSampler Fantasia 0.8a-cvs8 (frontend).lnk' '$javawbin' '-jar "$INSTDIR\Fantasia-0.8a-cvs8.jar"' '$INSTDIR\jsampler.ico' 0
 
-  StrCmp $installingQSampler '1' 0 +2
+  StrCmp $installingQSampler '1' 0 +3
+  SetOutPath $INSTDIR
   CreateShortCut "$SMPROGRAMS\LinuxSampler\QSampler 0.2.1.26 (frontend).lnk" "$INSTDIR\qsampler.exe" "" "$INSTDIR\qsampler.ico" 0
 
-  StrCmp $installinggigedit '1' 0 +2
+  StrCmp $installinggigedit '1' 0 +3
+  SetOutPath $samplerDir
   CreateShortCut "$SMPROGRAMS\LinuxSampler\gigedit 0.1.1.x cvs2009-05-10 (stand alone).lnk" "$samplerDir\gigedit.exe" "" "$samplerDir\gigedit.exe" 0
 SectionEnd
 
