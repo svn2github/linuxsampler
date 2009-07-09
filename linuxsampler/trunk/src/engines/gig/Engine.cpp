@@ -154,7 +154,7 @@ namespace LinuxSampler { namespace gig {
 
     void Engine::Enable() {
         dmsg(3,("gig::Engine: enabling\n"));
-        EngineDisabled.PushAndUnlock(false, 2); // set condition object 'EngineDisabled' to false (wait max. 2s)
+        EngineDisabled.PushAndUnlock(false, 2, 0, true); // set condition object 'EngineDisabled' to false (wait max. 2s)
         dmsg(3,("gig::Engine: enabled (val=%d)\n", EngineDisabled.GetUnsafe()));
     }
 
@@ -2223,7 +2223,7 @@ namespace LinuxSampler { namespace gig {
     }
 
     String Engine::Version() {
-        String s = "$Revision: 1.103 $";
+        String s = "$Revision: 1.104 $";
         return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
 

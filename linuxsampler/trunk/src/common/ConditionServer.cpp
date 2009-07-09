@@ -43,10 +43,15 @@ bool* ConditionServer::Push(bool bCondition, long TimeoutSeconds, long TimeoutNa
     return &bOldCondition;
 }
 
-bool* ConditionServer::PushAndUnlock(bool bCondition, long TimeoutSeconds, long TimeoutNanoSeconds) {
-    bool* pBefore = Push(bCondition, TimeoutSeconds, TimeoutNanoSeconds);
+bool* ConditionServer::PushAndUnlock(bool bCondition, long TimeoutSeconds, long TimeoutNanoSeconds, bool bAlreadyLocked) {
+    dmsg(3,("conditionserver:PushAndUnlock() requesting change to %d\n", bCondition));
+    if (!bAlreadyLocked) PushMutex.Lock();
+    bool& c = Condition.GetConfigForUpdate();
+    bOldCondition = c;
+    c = bCondition;
+    Condition.SwitchConfig() = bCondition;
     Unlock();
-    return pBefore;
+    return &bOldCondition;
 }
 
 void ConditionServer::Unlock() {

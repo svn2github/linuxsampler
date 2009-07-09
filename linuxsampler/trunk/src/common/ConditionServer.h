@@ -95,10 +95,16 @@ class ConditionServer {
          *                             (default: 0s)
          * @param TimeoutNanoSeconds - optional: max wait time in nano
          *                             seconds (default: 0ns)
+         * @param bAlreadyLocked     - optional: you must set this to true if
+         *                             you have called Push() before and are
+         *                             using PushAndUnlock to end the
+         *                             critical region (default: false)
          * @returns  bool pointer with condition before PushAndUnlock()
          *           call, NULL if timeout exceeded
          */
-        bool* PushAndUnlock(bool bCondition, long TimeoutSeconds = 0L, long TimeoutNanoSeconds = 0L);
+        bool* PushAndUnlock(bool bCondition, long TimeoutSeconds = 0L, long TimeoutNanoSeconds = 0L, bool bAlreadyLocked = false);
+
+        void PushAndUnlock2(bool bCondition);
 
         /**
          * Should be called by the NRTT after it left it's critical section
