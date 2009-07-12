@@ -127,6 +127,23 @@
 			<a id="instruments" href="instruments.html" onmouseover="javascript:if(document.images)document.instruments.src = instrumentsover.src" onmouseout="javascript:if(document.images)document.instruments.src = instrumentsout.src"><img name="instruments" src="gfx/minstruments.png" alt="instruments"></a>
 			<a id="links" href="links.html" onmouseover="javascript:if(document.images)document.links.src = linksover.src" onmouseout="javascript:if(document.images)document.links.src = linksout.src"><img name="links" src="gfx/mlinks.png" alt="links"></a>
 			<a id="credits" href="credits.html" onmouseover="javascript:if(document.images)document.credits.src = creditsover.src" onmouseout="javascript:if(document.images)document.credits.src = creditsout.src"><img name="credits" src="gfx/mcredits.png" alt="credits"></a>
+
+<img alt="" border="0" src="https://www.paypal.com/en_US/i/scr/pixel.gif" width="10" height="20">
+
+<form action="https://www.paypal.com/cgi-bin/webscr" method="post">
+<input type="hidden" name="cmd" value="_s-xclick">
+<input type="hidden" name="hosted_button_id" value="6746056">
+<input type="image" src="https://www.paypal.com/en_US/i/btn/btn_subscribeCC_LG.gif" border="0" name="submit" alt="PayPal - The safer, easier way to pay online!">
+<img alt="" border="0" src="https://www.paypal.com/en_US/i/scr/pixel.gif" width="1" height="1">
+</form>
+
+<form action="https://www.paypal.com/cgi-bin/webscr" method="post">
+<input type="hidden" name="cmd" value="_s-xclick">
+<input type="hidden" name="hosted_button_id" value="6746149">
+<input type="image" src="https://www.paypal.com/en_US/i/btn/btn_donateCC_LG.gif" border="0" name="submit" alt="PayPal - The safer, easier way to pay online!">
+<img alt="" border="0" src="https://www.paypal.com/en_US/i/scr/pixel.gif" width="1" height="1">
+</form>
+
 			</td><td valign=top width="100%">
 			<div id="contents">
 
