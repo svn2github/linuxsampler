@@ -1,6 +1,6 @@
 /***************************************************************************
  *                                                                         *
- *   Copyright (C) 2008 Andreas Persson                                    *
+ *   Copyright (C) 2008 - 2009 Andreas Persson                             *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -123,7 +123,7 @@ namespace LinuxSampler {
     }
 
     String AudioOutputDevicePlugin::Version() {
-        String s = "$Revision: 1.1 $";
+        String s = "$Revision: 1.2 $";
         return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
 
@@ -133,5 +133,13 @@ namespace LinuxSampler {
 
     AudioChannel* AudioOutputDevicePlugin::CreateChannel(uint ChannelNr) {
         return new AudioChannelPlugin(ChannelNr);
+    }
+
+    bool AudioOutputDevicePlugin::isAutonomousDevice() {
+        return false;
+    }
+
+    bool AudioOutputDevicePlugin::isAutonomousDriver() {
+        return false;
     }
 }

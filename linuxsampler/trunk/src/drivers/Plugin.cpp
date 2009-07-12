@@ -121,19 +121,25 @@ namespace LinuxSampler {
         if (pAudioDevice) {
             oldState = GetState();
             RemoveChannels();
-            global->pSampler->DestroyAudioOutputDevice(pAudioDevice);
+            AudioOutputDeviceFactory::DestroyPrivate(pAudioDevice);
         }
         std::map<String, String> params;
         params["SAMPLERATE"] = ToString(SampleRate);
         params["FRAGMENTSIZE"] = ToString(FragmentSize);
         if (Channels > 0) params["CHANNELS"] = ToString(Channels);
         pAudioDevice = dynamic_cast<AudioOutputDevicePlugin*>(
-            global->pSampler->CreateAudioOutputDevice(AudioOutputDevicePlugin::Name(), params));
+            AudioOutputDeviceFactory::CreatePrivate(
+                AudioOutputDevicePlugin::Name(), params
+            )
+        );
 
         if (!pMidiDevice) {
             pMidiDevice = dynamic_cast<MidiInputDevicePlugin*>(
-                global->pSampler->CreateMidiInputDevice(MidiInputDevicePlugin::Name(),
-                                                        std::map<String,String>()));
+                MidiInputDeviceFactory::CreatePrivate(
+                    MidiInputDevicePlugin::Name(), std::map<String,String>(),
+                    global->pSampler
+                )
+            );
         }
 
         if (!oldState.empty()) {
@@ -143,8 +149,8 @@ namespace LinuxSampler {
 
     Plugin::~Plugin() {
         RemoveChannels();
-        if (pAudioDevice) global->pSampler->DestroyAudioOutputDevice(pAudioDevice);
-        if (pMidiDevice) global->pSampler->DestroyMidiInputDevice(pMidiDevice);
+        if (pAudioDevice) AudioOutputDeviceFactory::DestroyPrivate(pAudioDevice);
+        if (pMidiDevice) MidiInputDeviceFactory::DestroyPrivate(pMidiDevice);
         if (bPreInitDone) {
             if (--global->RefCount == 0) {
                 delete global;

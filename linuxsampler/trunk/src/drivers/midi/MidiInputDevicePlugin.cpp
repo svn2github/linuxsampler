@@ -64,7 +64,7 @@ namespace LinuxSampler {
     }
 
     String MidiInputDevicePlugin::Version() {
-        String s = "$Revision: 1.2 $";
+        String s = "$Revision: 1.3 $";
         return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
 
@@ -78,5 +78,13 @@ namespace LinuxSampler {
 
     void MidiInputDevicePlugin::DeleteMidiPort(MidiInputPort* pPort) {
         delete (MidiInputPortPlugin*)pPort;
+    }
+
+    bool MidiInputDevicePlugin::isAutonomousDevice() {
+        return false;
+    }
+
+    bool MidiInputDevicePlugin::isAutonomousDriver() {
+        return false;
     }
 }

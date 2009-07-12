@@ -153,7 +153,10 @@ namespace LinuxSampler {
 
             /** Returns the sampler to which this channel belongs */
             Sampler* GetSampler();
-            
+
+            ///////////////////////////////////////////////////////////////
+            // Event Listener methods
+
             /**
              * Registers the specified listener to be notified
              * when the engine type of this sampler channel is changed.
@@ -323,6 +326,129 @@ namespace LinuxSampler {
             void RemoveAllSamplerChannels();
 
             /**
+             * Returns the names of all available audio output drivers.
+             */
+            std::vector<String> AvailableAudioOutputDrivers();
+
+            /**
+             * Returns the names of all available MIDI input drivers.
+             */
+            std::vector<String> AvailableMidiInputDrivers();
+
+            /**
+             * Returns the names of all available sampler engine types.
+             * @see SamplerChannel::SetEngineType()
+             */
+            std::vector<String> AvailableEngineTypes();
+
+            /**
+             * Create an audio output device.
+             *
+             * @param AudioDriver - name of the audio driver
+             * @param Parameters - eventually needed driver parameters to
+             *                     create the device
+             * @returns  pointer to created audio output device
+             * @throws Exception  if device could not be created
+             */
+            AudioOutputDevice* CreateAudioOutputDevice(String AudioDriver, std::map<String,String> Parameters) throw (Exception);
+
+            /**
+             * Create a midi input device.
+             *
+             * @param MidiDriver - name of the midi driver
+             * @param Parameters - eventually needed driver parameters to
+             *                     create the device
+             * @returns  pointer to created midi input device
+             * @throws Exception  if device could not be created
+             */
+            MidiInputDevice* CreateMidiInputDevice(String MidiDriver, std::map<String,String> Parameters) throw (Exception);
+
+            /**
+             * Returns the number of all created audio output devices.
+             */
+            uint AudioOutputDevices();
+
+            /**
+             * Returns the number of all created MIDI input devices.
+             */
+            uint MidiInputDevices();
+
+            /**
+             * Returns all created audio output devices.
+             */
+            std::map<uint, AudioOutputDevice*> GetAudioOutputDevices();
+
+            /**
+             * Returns all created MIDI input devices.
+             */
+            std::map<uint, MidiInputDevice*> GetMidiInputDevices();
+
+            /**
+             * Destroy the given audio output device and takes care if there
+             * are still sampler engines connected to this device, etc.
+             *
+             * @throws Exception  if sampler channels are still
+             *                    connected to the device
+             */
+            void DestroyAudioOutputDevice(AudioOutputDevice* pDevice) throw (Exception);
+
+            /**
+             * Destroy all audio output devices and takes care if there
+             * are still sampler engines connected to devices, etc.
+             *
+             * Note: non-autonomous devices, that is devices associated with
+             * host plugin instances like VST, AU, DSSI, LV2 are not
+             * destroyed by this method.
+             *
+             * @throws Exception  if sampler channels are still
+             *                    connected to device
+             */
+            void DestroyAllAudioOutputDevices() throw (Exception);
+
+            /**
+             * Destroy the given MIDI input device and takes care if there
+             * are still sampler engines connected to this device, etc.
+             *
+             * @throws Exception  if sampler channels are still
+             *                    connected to the device
+             */
+            void DestroyMidiInputDevice(MidiInputDevice* pDevice) throw (Exception);
+
+            /**
+             * Destroy all MIDI input devices and take care if there
+             * are still sampler engines connected to device, etc.
+             *
+             * Note: non-autonomous devices, that is devices associated with
+             * host plugin instances like VST, AU, DSSI, LV2 are not
+             * destroyed by this method.
+             *
+             * @throws Exception  if sampler channels are still
+             *                    connected to device
+             */
+            void DestroyAllMidiInputDevices() throw (Exception);
+
+             /**
+             * Gets the current number of all active streams.
+             * @returns The current number of all active streams.
+             */
+            int GetDiskStreamCount();
+
+            /**
+             * Gets the current number of all active voices.
+             * @returns The current number of all active voices.
+             */
+            int GetVoiceCount();
+
+            /**
+             * Reset the whole sampler. Destroy all engines, sampler
+             * channels, MIDI input devices and audio output devices.
+             */
+            void Reset();
+
+            ///////////////////////////////////////////////////////////////
+            // Event Listener methods
+
+            /**
              * Registers the specified listener to be notified
              * when the number of sampler chanels is changed.
              */
@@ -344,7 +470,6 @@ namespace LinuxSampler {
              */
             void RemoveAudioDeviceCountListener(AudioDeviceCountListener* l);
 
-            
             /**
              * Registers the specified listener to be notified
              * when the number of MIDI input devices is changed.
@@ -430,9 +555,22 @@ namespace LinuxSampler {
              * @param NewCount The new number of active voices.
              */
             void fireTotalVoiceCountChanged(int NewCount);
-            
+
+            /**
+             * Registers the specified listener to be notified when the number
+             * of total streams is changed.
+             */
             void AddTotalStreamCountListener(TotalStreamCountListener* l);
+
+            /**
+             * Removes the specified listener.
+             */
             void RemoveTotalStreamCountListener(TotalStreamCountListener* l);
+
+            /**
+             * Notifies listeners that the total number of total streams changed.
+             * @param NewCount The new number of total streams.
+             */
             void fireTotalStreamCountChanged(int NewCount);
 
             /**
@@ -447,116 +585,14 @@ namespace LinuxSampler {
             void RemoveFxSendCountListener(FxSendCountListener* l);
 
             /**
-             * Returns the names of all available audio output drivers.
+             * Notifies listeners about the current number of voices,
+             * streams and total voices, and the current fill state of
+             * the disk stream buffers.
              */
-            std::vector<String> AvailableAudioOutputDrivers();
+            void fireStatistics();
 
-            /**
-             * Returns the names of all available MIDI input drivers.
-             */
-            std::vector<String> AvailableMidiInputDrivers();
-
-            /**
-             * Returns the names of all available sampler engine types.
-             * @see SamplerChannel::SetEngineType()
-             */
-            std::vector<String> AvailableEngineTypes();
-
-            /**
-             * Create an audio output device.
-             *
-             * @param AudioDriver - name of the audio driver
-             * @param Parameters - eventually needed driver parameters to
-             *                     create the device
-             * @returns  pointer to created audio output device
-             * @throws Exception  if device could not be created
-             */
-            AudioOutputDevice* CreateAudioOutputDevice(String AudioDriver, std::map<String,String> Parameters) throw (Exception);
-
-            /**
-             * Create a midi input device.
-             *
-             * @param MidiDriver - name of the midi driver
-             * @param Parameters - eventually needed driver parameters to
-             *                     create the device
-             * @returns  pointer to created midi input device
-             * @throws Exception  if device could not be created
-             */
-            MidiInputDevice* CreateMidiInputDevice(String MidiDriver, std::map<String,String> Parameters) throw (Exception);
-
-            /**
-             * Returns the number of all created audio output devices.
-             */
-            uint AudioOutputDevices();
-
-            /**
-             * Returns the number of all created MIDI input devices.
-             */
-            uint MidiInputDevices();
-
-            /**
-             * Returns all created audio output devices.
-             */
-            std::map<uint, AudioOutputDevice*> GetAudioOutputDevices();
-
-            /**
-             * Returns all created MIDI input devices.
-             */
-            std::map<uint, MidiInputDevice*> GetMidiInputDevices();
-
-            /**
-             * Destroy the given audio output device and takes care if there
-             * are still sampler engines connected to this device, etc.
-             *
-             * @throws Exception  if sampler channels are still
-             *                    connected to the device
-             */
-            void DestroyAudioOutputDevice(AudioOutputDevice* pDevice) throw (Exception);
-
-            /**
-             * Destroy all audio output devices and takes care if there
-             * are still sampler engines connected to devices, etc.
-             *
-             * @throws Exception  if sampler channels are still
-             *                    connected to device
-             */
-            void DestroyAllAudioOutputDevices() throw (Exception);
-
-            /**
-             * Destroy the given MIDI input device and takes care if there
-             * are still sampler engines connected to this device, etc.
-             *
-             * @throws Exception  if sampler channels are still
-             *                    connected to the device
-             */
-            void DestroyMidiInputDevice(MidiInputDevice* pDevice) throw (Exception);
-
-            /**
-             * Destroy all MIDI input devices and take care if there
-             * are still sampler engines connected to device, etc.
-             *
-             * @throws Exception  if sampler channels are still
-             *                    connected to device
-             */
-            void DestroyAllMidiInputDevices() throw (Exception);
-
-             /**
-             * Gets the current number of all active streams.
-             * @returns The current number of all active streams.
-             */
-            int GetDiskStreamCount();
-
-            /**
-             * Gets the current number of all active voices.
-             * @returns The current number of all active voices.
-             */
-            int GetVoiceCount();
-
-            /**
-             * Reset the whole sampler. Destroy all engines, sampler
-             * channels, MIDI input devices and audio output devices.
-             */
-            void Reset();
+            ///////////////////////////////////////////////////////////////
+            // system specific methods
 
             /**
              * Advise the FPU to treat denormal floating point numbers as
@@ -567,17 +603,10 @@ namespace LinuxSampler {
              */
             static bool EnableDenormalsAreZeroMode();
 
-            /**
-             * Notifies listeners about the current number of voices,
-             * streams and total voices, and the current fill state of
-             * the disk stream buffers.
-             */
-            void fireStatistics();
-
 #if defined(WIN32)
             /**
-             * Gets the directory where the liblinuxsampler dll is
-             * located.
+             * Gets the directory where the liblinuxsampler dll is located.
+             * Note: this method is currently only available for Windows.
              * @returns installation directory
              */
             static String GetInstallDir();
@@ -637,13 +666,9 @@ namespace LinuxSampler {
              */
             void fireFxSendCountChanged(int ChannelId, int NewCount);
 
-            typedef std::map<uint, AudioOutputDevice*> AudioOutputDeviceMap;
-            typedef std::map<uint, MidiInputDevice*> MidiInputDeviceMap;
             typedef std::map<uint, SamplerChannel*> SamplerChannelMap;
 
-            SamplerChannelMap     mSamplerChannels;    ///< contains all created sampler channels
-            AudioOutputDeviceMap  mAudioOutputDevices; ///< contains all created audio output devices
-            MidiInputDeviceMap    mMidiInputDevices;   ///< contains all created MIDI input devices
+            SamplerChannelMap mSamplerChannels; ///< contains all created sampler channels
 
             // statistics cache
             uint uiOldTotalVoiceCount;

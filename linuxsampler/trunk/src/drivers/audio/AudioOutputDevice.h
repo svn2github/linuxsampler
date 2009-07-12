@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 - 2008 Christian Schoenebeck                       *
+ *   Copyright (C) 2005 - 2009 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -42,6 +42,7 @@ namespace LinuxSampler {
 
     // just symbol prototyping
     class Engine;
+    class AudioOutputDeviceFactory;
 
     /** Abstract base class for audio output drivers in LinuxSampler
      *
@@ -303,7 +304,7 @@ namespace LinuxSampler {
              */
             int RenderSilence(uint Samples);
 
-            friend class Sampler; // allow Sampler class to destroy audio devices
+            friend class AudioOutputDeviceFactory; // allow AudioOutputDeviceFactory class to destroy audio devices
 
     };
 

@@ -70,7 +70,7 @@ namespace LinuxSampler {
 
     void SamplerChannel::SetEngineType(String EngineType) throw (Exception) {
         dmsg(2,("SamplerChannel: Assigning engine type..."));
-        
+
         if (pEngineChannel) {
             if (!strcasecmp(pEngineChannel->EngineName().c_str(), EngineType.c_str())) {
                 dmsg(2,("OK\n"));
@@ -555,55 +555,36 @@ namespace LinuxSampler {
         // create new device
         AudioOutputDevice* pDevice = AudioOutputDeviceFactory::Create(AudioDriver, Parameters);
 
-        // add new audio device to the audio device list
-        for (uint i = 0; ; i++) { // seek for a free place starting from the beginning
-            if (!mAudioOutputDevices[i]) {
-                mAudioOutputDevices[i] = pDevice;
-                break;
-            }
-        }
-
         fireAudioDeviceCountChanged(AudioOutputDevices());
         return pDevice;
     }
 
     uint Sampler::AudioOutputDevices() {
-        return mAudioOutputDevices.size();
+        return AudioOutputDeviceFactory::Devices().size();
     }
 
     uint Sampler::MidiInputDevices() {
-        return mMidiInputDevices.size();
+        return MidiInputDeviceFactory::Devices().size();
     }
 
     std::map<uint, AudioOutputDevice*> Sampler::GetAudioOutputDevices() {
-        return mAudioOutputDevices;
+        return AudioOutputDeviceFactory::Devices();
     }
 
     std::map<uint, MidiInputDevice*> Sampler::GetMidiInputDevices() {
-        return mMidiInputDevices;
+        return MidiInputDeviceFactory::Devices();
     }
 
     void Sampler::DestroyAudioOutputDevice(AudioOutputDevice* pDevice) throw (Exception) {
-        AudioOutputDeviceMap::iterator iter = mAudioOutputDevices.begin();
-        for (; iter != mAudioOutputDevices.end(); iter++) {
-            if (iter->second == pDevice) {
-                // check if there are still sampler engines connected to this device
-                for (SamplerChannelMap::iterator iterChan = mSamplerChannels.begin();
-                     iterChan != mSamplerChannels.end(); iterChan++)
-                    if (iterChan->second->GetAudioOutputDevice() == pDevice) throw Exception("Sampler channel " + ToString(iterChan->first) + " is still connected to the audio output device.");
+        if (pDevice) {
+            // check if there are still sampler engines connected to this device
+            for (SamplerChannelMap::iterator iterChan = mSamplerChannels.begin();
+                 iterChan != mSamplerChannels.end(); iterChan++
+            ) if (iterChan->second->GetAudioOutputDevice() == pDevice) throw Exception("Sampler channel " + ToString(iterChan->first) + " is still connected to the audio output device.");
 
-                // disable device
-                pDevice->Stop();
-
-                // remove device from the device list
-                mAudioOutputDevices.erase(iter);
-
-                // destroy and free device from memory
-                delete pDevice;
-
-                fireAudioDeviceCountChanged(AudioOutputDevices());
-                break;
-            }
+            //TODO: should we add fireAudioDeviceToBeDestroyed() here ?
+            AudioOutputDeviceFactory::Destroy(pDevice);
+            fireAudioDeviceCountChanged(AudioOutputDevices());
         }
     }
 
@@ -613,36 +594,28 @@ namespace LinuxSampler {
          * to the element that is being erased. So we need to copy the map
          * by calling GetAudioOutputDevices() to prevent that.
          */
-        AudioOutputDeviceMap devs = GetAudioOutputDevices();
-        AudioOutputDeviceMap::iterator iter = devs.begin();
-        for(; iter != devs.end(); iter++) {
-            DestroyAudioOutputDevice(iter->second);
+        std::map<uint, AudioOutputDevice*> devs = GetAudioOutputDevices();
+        std::map<uint, AudioOutputDevice*>::iterator iter = devs.begin();
+        for (; iter != devs.end(); iter++) {
+            AudioOutputDevice* pDevice = iter->second;
+
+            // skip non-autonomous devices
+            if (!pDevice->isAutonomousDevice()) continue;
+
+            DestroyAudioOutputDevice(pDevice);
         }
     }
 
     void Sampler::DestroyMidiInputDevice(MidiInputDevice* pDevice) throw (Exception) {
-        MidiInputDeviceMap::iterator iter = mMidiInputDevices.begin();
-        for (; iter != mMidiInputDevices.end(); iter++) {
-            if (iter->second == pDevice) {
-                // check if there are still sampler engines connected to this device
-                for (SamplerChannelMap::iterator iterChan = mSamplerChannels.begin();
-                     iterChan != mSamplerChannels.end(); iterChan++)
-                    if (iterChan->second->GetMidiInputDevice() == pDevice) throw Exception("Sampler channel " + ToString(iterChan->first) + " is still connected to the midi input device.");
+        if (pDevice) {
+            // check if there are still sampler engines connected to this device
+            for (SamplerChannelMap::iterator iterChan = mSamplerChannels.begin();
+                 iterChan != mSamplerChannels.end(); iterChan++
+            ) if (iterChan->second->GetMidiInputDevice() == pDevice) throw Exception("Sampler channel " + ToString(iterChan->first) + " is still connected to the midi input device.");
 
-                fireMidiDeviceToBeDestroyed(pDevice);
-
-                // disable device
-                pDevice->StopListen();
-
-                // remove device from the device list
-                mMidiInputDevices.erase(iter);
-
-                // destroy and free device from memory
-                delete pDevice;
-
-                fireMidiDeviceCountChanged(MidiInputDevices());
-                break;
-            }
+            fireMidiDeviceToBeDestroyed(pDevice);
+            MidiInputDeviceFactory::Destroy(pDevice);
+            fireMidiDeviceCountChanged(MidiInputDevices());
         }
     }
 
@@ -652,24 +625,21 @@ namespace LinuxSampler {
          * to the element that is being erased. So we need to copy the map
          * by calling GetMidiInputDevices() to prevent that.
          */
-        MidiInputDeviceMap devs = GetMidiInputDevices();
-        MidiInputDeviceMap::iterator iter = devs.begin();
-        for(; iter != devs.end(); iter++) {
-            DestroyMidiInputDevice(iter->second);
+        std::map<uint, MidiInputDevice*> devs = GetMidiInputDevices();
+        std::map<uint, MidiInputDevice*>::iterator iter = devs.begin();
+        for (; iter != devs.end(); iter++) {
+            MidiInputDevice* pDevice = iter->second;
+
+            // skip non-autonomous devices
+            if (!pDevice->isAutonomousDevice()) continue;
+
+            DestroyMidiInputDevice(pDevice);
         }
     }
 
     MidiInputDevice* Sampler::CreateMidiInputDevice(String MidiDriver, std::map<String,String> Parameters) throw (Exception) {
         // create new device
         MidiInputDevice* pDevice = MidiInputDeviceFactory::Create(MidiDriver, Parameters, this);
-
-	// add new device to the midi device list
-	for (uint i = 0; ; i++) { // seek for a free place starting from the beginning
-		if (!mMidiInputDevices[i]) {
-			mMidiInputDevices[i] = pDevice;
-			break;
-		}
-	}
 
         fireMidiDeviceCreated(pDevice);
         fireMidiDeviceCountChanged(MidiInputDevices());
@@ -701,7 +671,7 @@ namespace LinuxSampler {
     void Sampler::Reset() {
         // delete sampler channels
         try {
-	    RemoveAllSamplerChannels();
+            RemoveAllSamplerChannels();
         }
         catch(...) {
             std::cerr << "Sampler::Reset(): Exception occured while trying to delete all sampler channels, exiting.\n" << std::flush;
@@ -710,7 +680,7 @@ namespace LinuxSampler {
 
         // delete midi input devices
         try {
-	    DestroyAllMidiInputDevices();
+            DestroyAllMidiInputDevices();
         }
         catch(...) {
             std::cerr << "Sampler::Reset(): Exception occured while trying to delete all MIDI input devices, exiting.\n" << std::flush;
@@ -719,7 +689,7 @@ namespace LinuxSampler {
 
         // delete audio output devices
         try {
-	    DestroyAllAudioOutputDevices();
+            DestroyAllAudioOutputDevices();
         }
         catch(...) {
             std::cerr << "Sampler::Reset(): Exception occured while trying to delete all audio output devices, exiting.\n" << std::flush;
@@ -766,7 +736,7 @@ namespace LinuxSampler {
                 fireStreamCountChanged(iter->first, pEngineChannel->GetDiskStreamCount());
                 fireBufferFillChanged(iter->first, pEngine->DiskStreamBufferFillPercentage());
             }
-            
+
             fireTotalStreamCountChanged(GetDiskStreamCount());
             fireTotalVoiceCountChanged(GetVoiceCount());
 

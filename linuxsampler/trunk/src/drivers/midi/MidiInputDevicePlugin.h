@@ -61,10 +61,12 @@ namespace LinuxSampler {
         void Listen();
         void StopListen();
         String Driver();
+        bool isAutonomousDevice();
         static String Name();
         static String Version();
         static String Description();
         MidiInputPort* CreateMidiPort();
+        static bool isAutonomousDriver();
 
         /**
          * Returns the MIDI port to which events can be dispatched.

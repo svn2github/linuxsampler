@@ -10,7 +10,8 @@ liblinuxsamplerdriversinclude_HEADERS = \
 
 noinst_LTLIBRARIES = liblinuxsamplerdrivers.la
 liblinuxsamplerdrivers_la_SOURCES = \
-	DeviceParameter.cpp DeviceParameter.h Device.h \
+	Device.cpp Device.h \
+	DeviceParameter.cpp DeviceParameter.h \
 	DeviceParameterFactory.cpp DeviceParameterFactory.h \
 	Plugin.cpp Plugin.h
 liblinuxsamplerdrivers_la_LDFLAGS =

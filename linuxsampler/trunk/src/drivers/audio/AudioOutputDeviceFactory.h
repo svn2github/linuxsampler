@@ -36,6 +36,8 @@
 
 namespace LinuxSampler {
 
+  class Plugin;
+
   class AudioOutputDeviceFactory {
       public:
           class InnerFactory {
@@ -43,6 +45,7 @@ namespace LinuxSampler {
                   virtual AudioOutputDevice* Create(std::map<String,DeviceCreationParameter*> Parameters)  = 0;
                   virtual String Description() = 0;
                   virtual String Version() = 0;
+                  virtual bool isAutonomousDriver() = 0;
           };
 
           template <class Driver_T>
@@ -51,6 +54,7 @@ namespace LinuxSampler {
                   virtual AudioOutputDevice* Create(std::map<String,DeviceCreationParameter*> Parameters)  { return new Driver_T(Parameters); }
                   virtual String Description() { return Driver_T::Description(); }
                   virtual String Version()     { return Driver_T::Version();     }
+                  virtual bool isAutonomousDriver() { return Driver_T::isAutonomousDriver(); }
           };
 
           template <class Driver_T>
@@ -58,22 +62,23 @@ namespace LinuxSampler {
               public:
                   InnerFactoryRegistrator() {
                       AudioOutputDeviceFactory::InnerFactories[Driver_T::Name()] = new AudioOutputDeviceFactory::InnerFactoryTemplate<Driver_T>;
-		      AudioOutputDeviceFactory::ParameterFactories[Driver_T::Name()] = new DeviceParameterFactory();
+                      AudioOutputDeviceFactory::ParameterFactories[Driver_T::Name()] = new DeviceParameterFactory();
                   }
                   ~InnerFactoryRegistrator() {
                       AudioOutputDeviceFactory::Unregister(Driver_T::Name());
                   }
           };
 
-	  template <class Driver_T, class Parameter_T>
+          template <class Driver_T, class Parameter_T>
           class ParameterRegistrator {
-	      public:
+              public:
                   ParameterRegistrator() {
                       DeviceParameterFactory::Register<Parameter_T>(AudioOutputDeviceFactory::ParameterFactories[Driver_T::Name()]);
-		  }
-	  };
+                  }
+          };
 
           static AudioOutputDevice*                        Create(String DriverName, std::map<String,String> Parameters) throw (Exception);
+          static void                                      Destroy(AudioOutputDevice* pDevice) throw (Exception);
           static std::vector<String>                       AvailableDrivers();
           static String                                    AvailableDriversAsString();
           static std::map<String,DeviceCreationParameter*> GetAvailableDriverParameters(String DriverName) throw (Exception);
@@ -81,10 +86,20 @@ namespace LinuxSampler {
           static String                                    GetDriverDescription(String DriverName) throw (Exception);
           static String                                    GetDriverVersion(String DriverName) throw (Exception);
           static void                                      Unregister(String DriverName);
+          static std::map<uint, AudioOutputDevice*>        Devices();
 
-//      protected: /* FIXME: fields below should be protected, causes errors on gcc 2.95 though */
+      protected:
+          static AudioOutputDevice*                        CreatePrivate(String DriverName, std::map<String,String> Parameters) throw (Exception);
+          static void                                      DestroyPrivate(AudioOutputDevice* pDevice) throw (Exception);
+          friend class Plugin; // host plugin base class (e.g. for VST, AU, DSSI, LV2)
+
+      public: /* FIXME: fields below should be protected, causes errors on gcc 2.95 though */
           static std::map<String, InnerFactory*> InnerFactories;
-	  static std::map<String, DeviceParameterFactory*> ParameterFactories;
+          static std::map<String, DeviceParameterFactory*> ParameterFactories;
+
+      private:
+          typedef std::map<uint, AudioOutputDevice*> AudioOutputDeviceMap;
+          static AudioOutputDeviceMap mAudioOutputDevices; ///< contains all created audio output devices
   };
 
 } // namespace LinuxSampler

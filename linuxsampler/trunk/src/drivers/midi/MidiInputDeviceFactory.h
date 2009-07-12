@@ -37,6 +37,8 @@
 
 namespace LinuxSampler {
 
+  class Plugin;
+
   class MidiInputDeviceFactory {
       public:
           class InnerFactory {
@@ -44,6 +46,7 @@ namespace LinuxSampler {
                   virtual MidiInputDevice* Create(std::map<String,DeviceCreationParameter*>& Parameters, Sampler* pSampler) = 0;
                   virtual String Description() = 0;
                   virtual String Version() = 0;
+                  virtual bool isAutonomousDriver() = 0;
           };
 
           template <class Driver_T>
@@ -52,6 +55,7 @@ namespace LinuxSampler {
                   virtual MidiInputDevice* Create(std::map<String,DeviceCreationParameter*>& Parameters, Sampler* pSampler) { return new Driver_T(Parameters, pSampler); }
                   virtual String Description() { return Driver_T::Description(); }
                   virtual String Version()     { return Driver_T::Version();     }
+                  virtual bool isAutonomousDriver() { return Driver_T::isAutonomousDriver(); }
           };
 
           template <class Driver_T>
@@ -59,7 +63,7 @@ namespace LinuxSampler {
               public:
                   InnerFactoryRegistrator() {
                       MidiInputDeviceFactory::InnerFactories[Driver_T::Name()] = new MidiInputDeviceFactory::InnerFactoryTemplate<Driver_T>;
-		      MidiInputDeviceFactory::ParameterFactories[Driver_T::Name()] = new DeviceParameterFactory();
+                      MidiInputDeviceFactory::ParameterFactories[Driver_T::Name()] = new DeviceParameterFactory();
                   }
                   ~InnerFactoryRegistrator() {
                       std::map<String, InnerFactory*>::iterator iter = MidiInputDeviceFactory::InnerFactories.find(Driver_T::Name());
@@ -72,26 +76,36 @@ namespace LinuxSampler {
                   }
           };
 
-	  template <class Driver_T, class Parameter_T>
-	  class ParameterRegistrator {
-	      public:
-		  ParameterRegistrator() {
+          template <class Driver_T, class Parameter_T>
+          class ParameterRegistrator {
+              public:
+                  ParameterRegistrator() {
                       DeviceParameterFactory::Register<Parameter_T>(MidiInputDeviceFactory::ParameterFactories[Driver_T::Name()]);
-		  }
-	  };
-
+                  }
+          };
 
           static MidiInputDevice*                          Create(String DriverName, std::map<String,String> Parameters, Sampler* pSampler) throw (Exception);
+          static void                                      Destroy(MidiInputDevice* pDevice) throw (Exception);
           static std::vector<String>                       AvailableDrivers();
           static String                                    AvailableDriversAsString();
           static std::map<String,DeviceCreationParameter*> GetAvailableDriverParameters(String DriverName) throw (Exception);
           static DeviceCreationParameter*                  GetDriverParameter(String DriverName, String ParameterName) throw (Exception);
           static String                                    GetDriverDescription(String DriverName) throw (Exception);
           static String                                    GetDriverVersion(String DriverName) throw (Exception);
+          static std::map<uint, MidiInputDevice*>          Devices();
 
-//      protected: /* FIXME: fields below should be protected, causes errors on gcc 2.95 though */
+      protected:
+          static MidiInputDevice*                          CreatePrivate(String DriverName, std::map<String,String> Parameters, Sampler* pSampler) throw (Exception);
+          static void                                      DestroyPrivate(MidiInputDevice* pDevice) throw (Exception);
+          friend class Plugin; // host plugin base class (e.g. for VST, AU, DSSI, LV2)
+
+      public: /* FIXME: fields below should be protected, causes errors on gcc 2.95 though */
           static std::map<String, InnerFactory*> InnerFactories;
-	  static std::map<String, DeviceParameterFactory*> ParameterFactories;
+          static std::map<String, DeviceParameterFactory*> ParameterFactories;
+
+      private:
+          typedef std::map<uint, MidiInputDevice*> MidiInputDeviceMap;
+          static MidiInputDeviceMap mMidiInputDevices; ///< contains all created MIDI input devices
   };
 
 } // namespace LinuxSampler

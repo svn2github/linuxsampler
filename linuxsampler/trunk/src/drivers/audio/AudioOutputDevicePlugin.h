@@ -1,6 +1,6 @@
 /***************************************************************************
  *                                                                         *
- *   Copyright (C) 2008 Andreas Persson                                    *
+ *   Copyright (C) 2008 - 2009 Andreas Persson                             *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -86,9 +86,11 @@ namespace LinuxSampler {
         uint SampleRate();
         String Driver();
         AudioChannel* CreateChannel(uint ChannelNr);
+        bool isAutonomousDevice();
         static String Name();
         static String Version();
         static String Description();
+        static bool isAutonomousDriver();
 
         /**
          * This should be called by the plugin implementation to let
