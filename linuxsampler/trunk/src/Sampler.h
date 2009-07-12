@@ -64,22 +64,35 @@ namespace LinuxSampler {
              * the old connection will automatically be removed before.
              *
              * @param pDevice - audio output device to connect to
+             * @throws Exception in case the audio device is tried to be
+             *                   changed while the sampler channel is used by a
+             *                   host plugin (e.g. VST, AU, DSSI, LV2) which
+             *                   don't allow to change the audio output device
              */
-            void SetAudioOutputDevice(AudioOutputDevice* pDevice);
+            void SetAudioOutputDevice(AudioOutputDevice* pDevice) throw (Exception);
 
             /**
              * Connect this sampler channel to a MIDI input device.
              *
              * @param pDevice - MIDI input device to connect to
+             * @throws Exception in case the MIDI device is tried to be changed
+             *                   while the sampler channel is being used by a
+             *                   host plugin (e.g. VST, AU, DSSI, LV2) which
+             *                   don't allow to change the MIDI port or even
+             *                   device
              */
-            void SetMidiInputDevice(MidiInputDevice *pDevice);
+            void SetMidiInputDevice(MidiInputDevice *pDevice) throw (Exception);
 
             /**
              * Connect this sampler channel to a MIDI input port.
              *
              * @param MidiPort - MIDI port to connect to
+             * @throws Exception in case the MIDI port is tried to be changed
+             *                   while the sampler channel is being used by a
+             *                   host plugin (e.g. VST, AU, DSSI, LV2) which
+             *                   don't allow to change the MIDI port
              */
-            void SetMidiInputPort(int MidiPort);
+            void SetMidiInputPort(int MidiPort) throw (Exception);
 
             /**
              * Define on which MIDI channel(s) this sampler channel should
@@ -99,8 +112,12 @@ namespace LinuxSampler {
              * @param MidiChannel - optional: MIDI channel on which the
              *                      sampler channel should listen to
              *                      (default: listen on all MIDI channels)
+             * @throws Exception in case the MIDI port is tried to be changed
+             *                   while the sampler channel is being used by a
+             *                   host plugin (e.g. VST, AU, DSSI, LV2) which
+             *                   don't allow to change the MIDI port
              */
-            void SetMidiInput(MidiInputDevice* pDevice, int iMidiPort, midi_chan_t MidiChannel = midi_chan_all);
+            void SetMidiInput(MidiInputDevice* pDevice, int iMidiPort, midi_chan_t MidiChannel = midi_chan_all) throw (Exception);
 
             /**
              * Returns the EngineChannel object that was deployed on this

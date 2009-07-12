@@ -119,11 +119,14 @@ namespace LinuxSampler {
         dmsg(2,("OK\n"));
     }
 
-    void SamplerChannel::SetAudioOutputDevice(AudioOutputDevice* pDevice) {
+    void SamplerChannel::SetAudioOutputDevice(AudioOutputDevice* pDevice) throw (Exception) {
         if(pAudioOutputDevice == pDevice) return;
 
         // disconnect old device
         if (pAudioOutputDevice && pEngineChannel) {
+            if (!pAudioOutputDevice->isAutonomousDevice())
+                throw Exception("The audio output device '" + pAudioOutputDevice->Driver() + "' cannot be dropped from this sampler channel!");
+
             Engine* engine = pEngineChannel->GetEngine();
             pAudioOutputDevice->Disconnect(engine);
 
@@ -142,11 +145,11 @@ namespace LinuxSampler {
         }
     }
 
-    void SamplerChannel::SetMidiInputDevice(MidiInputDevice* pDevice) {
+    void SamplerChannel::SetMidiInputDevice(MidiInputDevice* pDevice) throw (Exception) {
        SetMidiInput(pDevice, 0, GetMidiInputChannel());
     }
 
-    void SamplerChannel::SetMidiInputPort(int MidiPort) {
+    void SamplerChannel::SetMidiInputPort(int MidiPort) throw (Exception) {
        SetMidiInput(GetMidiInputDevice(), MidiPort, GetMidiInputChannel());
     }
 
@@ -154,7 +157,7 @@ namespace LinuxSampler {
        SetMidiInput(GetMidiInputDevice(), GetMidiInputPort(), MidiChannel);
     }
 
-    void SamplerChannel::SetMidiInput(MidiInputDevice* pDevice, int iMidiPort, midi_chan_t MidiChannel) {
+    void SamplerChannel::SetMidiInput(MidiInputDevice* pDevice, int iMidiPort, midi_chan_t MidiChannel) throw (Exception) {
         if (!pDevice) throw Exception("No MIDI input device assigned.");
 
         // get old and new midi input port
@@ -162,7 +165,15 @@ namespace LinuxSampler {
         MidiInputPort* pNewMidiInputPort = pDevice->GetPort(iMidiPort);
 
         // disconnect old device port
-        if (pOldMidiInputPort && pEngineChannel) pOldMidiInputPort->Disconnect(pEngineChannel);
+        if (pOldMidiInputPort && pEngineChannel) {
+            MidiInputDevice* pOldDevice = pOldMidiInputPort->GetDevice();
+            if (pOldMidiInputPort != pNewMidiInputPort &&
+                pOldDevice && !pOldDevice->isAutonomousDevice()
+            ) throw Exception("The MIDI input port '" + pOldDevice->Driver() + "' cannot be altered on this sampler channel!");
+
+            pOldMidiInputPort->Disconnect(pEngineChannel);
+        }
+
         // remember new device, port and channel if not engine channel yet created
         if (!pEngineChannel) {
             this->pMidiInputDevice = pDevice;
