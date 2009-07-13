@@ -100,6 +100,12 @@ Function .onInit
   StrCpy $installing32BitToo "0"
 FunctionEnd
 
+!macro CreateInternetShortcut FILENAME URL ICONFILE ICONINDEX
+WriteINIStr "${FILENAME}.url" "InternetShortcut" "URL" "${URL}"
+WriteINIStr "${FILENAME}.url" "InternetShortcut" "IconFile" "${ICONFILE}"
+WriteINIStr "${FILENAME}.url" "InternetShortcut" "IconIndex" "${ICONINDEX}"
+!macroend
+
 ; detects CPU capabilities, determines which native binary type to install
 ; and selects the appropriate windows registry view (32 bit or 64 bit)
 !macro DetectSystemType un
@@ -637,6 +643,11 @@ Section "Start Menu Shortcuts" SecShortcuts
   StrCmp $installinggigedit '1' 0 +3
   SetOutPath $samplerDir
   CreateShortCut "$SMPROGRAMS\LinuxSampler\gigedit 0.1.1.x cvs2009-05-10 (stand alone).lnk" "$samplerDir\gigedit.exe" "" "$samplerDir\gigedit.exe" 0
+
+  !insertmacro CreateInternetShortcut \
+  "$SMPROGRAMS\LinuxSampler\\Support LinuxSampler" \
+  "http://www.linuxsampler.org/donations.html" \
+  "" "0"
 SectionEnd
 
 ;--------------------------------
