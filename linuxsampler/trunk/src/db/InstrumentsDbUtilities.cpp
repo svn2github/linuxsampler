@@ -23,6 +23,7 @@
 #include "../common/File.h"
 #include "../common/global_private.h"
 
+#include <algorithm>
 #include <errno.h>
 
 #include "../common/Exception.h"
@@ -583,6 +584,9 @@ namespace LinuxSampler {
             String subdir = Path;
             if(subdir.length() > FsDir.length()) {
                 subdir = subdir.substr(FsDir.length());
+#ifdef WIN32
+                replace(subdir.begin(), subdir.end(), '\\', '/');
+#endif
                 dir += subdir;
             }
         }

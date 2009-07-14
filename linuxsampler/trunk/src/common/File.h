@@ -1,6 +1,6 @@
 /***************************************************************************
  *                                                                         *
- *   Copyright (C) 2008 Grigor Iliev, Benno Senoner                        *
+ *   Copyright (C) 2008 - 2009 Grigor Iliev, Benno Senoner                 *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -26,74 +26,7 @@
 #include <vector>
 
 #include "Mutex.h"
-
-#if WIN32
-
-/*
-dirent.h
-POSIX WIN32 Directory Browsing parts
-Copyright (C) 2005 OpenAsthra
-blogs.openasthra AT gmail.com
-modifications copyright 2009 by Benno Senoner
-Licence: LGPL
-*/
-
-#ifndef _DIRENT_H_
-#define _DIRENT_H_
-
-#ifdef __cplusplus
-extern "C"
-{
-#endif
-
-typedef struct DIR DIR;
-
-struct dirent{
-  long		d_ino;
-  long		d_off;
-  unsigned short	d_reclen;
-  unsigned char d_type;
-  unsigned short  d_namlen; 
-  char		d_name[1];
-};
-
-DIR           *opendir(const char *);
-int           closedir(DIR *);
-struct dirent *readdir(DIR *);
-void          rewinddir(DIR *);
-
-void seekdir (DIR *dirp, long int pos);
-long int telldir (DIR *dirp);
-
-int scandir(const char *dir, struct dirent ***namelist,
-      int (*filter)(const struct dirent *),
-      int (*compar)(const struct dirent **, const struct dirent **));
-
-int ftw(const char *dirpath,
-        int (*fn) (const char *fpath, const struct stat *sb,
-        int typeflag),
-        int nopenfd);
-
-
-int dirfd(DIR *dirp);
-
-#define DT_DIR  4
-#define DT_REG  8
-
-#define FTW_F 0x01
-#define FTW_D 0x02
-#define FTW_DNR 0x03
-#define FTW_NS 0x04
-#define FTW_SL 0x05
-
-#ifdef __cplusplus
-}
-#endif
-
-#endif
-/* end of POSIX WIN32 Directory Browsing implementation */ 
-
-#else
+#ifndef WIN32
 #include <sys/stat.h>
 #endif
 
@@ -167,7 +100,11 @@ namespace LinuxSampler {
             static std::string DWErrorMsg;
 
             struct stat Status;
+#ifdef WIN32
+            static void WalkDirectoryTreeSub(std::string Dir, DirectoryWalker* pWalker);
+#else
             static int FtwCallback(const char* fpath, const struct stat* sb, int typeflag);
+#endif
     };
 }
 

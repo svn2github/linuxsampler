@@ -1225,13 +1225,6 @@ namespace LinuxSampler {
             }
 
             String s = FilePath;
-
-            #if WIN32
-            for (int i = 0; i < s.length(); i++) {
-                if (s[i] == '\\') s[i] = '/';
-            }
-            #endif
-
             s = toEscapedFsPath(s);
             BindTextParam(pStmt, 2, s);
             String ver = "";
@@ -1864,11 +1857,18 @@ namespace LinuxSampler {
     }
     
     String InstrumentsDb::toEscapedFsPath(String FsPath) {
+#ifdef WIN32
+        replace(FsPath.begin(), FsPath.end(), '\\', '/');
+#endif
         return toEscapedText(FsPath);
     }
     
     String InstrumentsDb::toNonEscapedFsPath(String FsPath) {
-        return toNonEscapedText(FsPath);
+        FsPath = toNonEscapedText(FsPath);
+#ifdef WIN32
+        replace(FsPath.begin(), FsPath.end(), '/', '\\');
+#endif
+        return FsPath;
     }
     
     String InstrumentsDb::toAbstractName(String DbName) {

@@ -116,6 +116,7 @@ Version CVS HEAD (?)
       databases for each windows user
       if no DB is present it automatically creates the .linuxsampler subdir
       and then creates an empty DB
+    - fixed recursive import, which was broken on Windows
 
   * Gigasampler format engine:
     - fixed a memory leak that could happen when a channel was deleted

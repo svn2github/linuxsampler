@@ -1,6 +1,6 @@
 /***************************************************************************
  *                                                                         *
- *   Copyright (C) 2007, 2008 Grigor Iliev                                 *
+ *   Copyright (C) 2007 - 2009 Grigor Iliev                                *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -115,7 +115,7 @@ namespace LinuxSampler {
             String Scanning;
             int Status;
 
-            ScanJob() { }
+            ScanJob() : FilesTotal(0), FilesScanned(0), Status(0) { }
             ScanJob(const ScanJob& Job) { Copy(Job); }
             void operator=(const ScanJob& Job) { Copy(Job); }
             void Copy(const ScanJob&);

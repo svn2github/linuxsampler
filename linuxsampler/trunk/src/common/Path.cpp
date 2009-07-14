@@ -130,6 +130,7 @@ std::string Path::toWindows() const {
         // append encoded node to full encoded path
         result << "\\" << elements[iElement];
     }
+    if (elements.empty()) result << '\\';
     return result.str();
 }
 
