@@ -27,6 +27,7 @@
 #include <iostream>
 #include <sstream>
 #include <vector>
+#include <algorithm>
 #include <errno.h>
 #ifndef WIN32
 #include <fnmatch.h>
