@@ -191,6 +191,7 @@ namespace {
         } else {
             Init(int(sampleRate), blockSize);
         }
+        AudioEffectX::resume();
         dmsg(2, ("<--resume\n"));
     }
 
