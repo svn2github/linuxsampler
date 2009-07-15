@@ -122,6 +122,17 @@ td.decorated_header {
 	padding: 0.6em;
 }
 
+.boxed {
+	padding: 0.6em;
+	border: 1px outset White;
+	background-color: #F0F0F0;
+	font-size: 10pt;
+	font-family: sans-serif,Arial,Helvetica;
+	text-align: justify;
+	font-style: normal;
+	font-weight: normal;
+}
+
 td.bordered {
 	text-align: center;
 	padding: 0.6em;
