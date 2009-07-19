@@ -41,5 +41,5 @@ liblinuxsampler_la_LDFLAGS = -version-info @SHARED_VERSION_INFO@ @SHLIB_VERSION_
 
 bin_PROGRAMS = linuxsampler
 linuxsampler_SOURCES = linuxsampler.cpp
-linuxsampler_LDADD = $(top_builddir)/src/liblinuxsampler.la
+linuxsampler_LDADD = liblinuxsampler.la
 linuxsampler_LDFLAGS = $(coremidi_ldflags)
