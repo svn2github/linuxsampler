@@ -10,7 +10,7 @@
 <body>
 <h2 align="center">Windows Build Instructions &nbsp; <img src="gfx/logos/msys.png" alt="msys logo"> &nbsp; HOWTO by Andreas Persson</h2>
 <br>
-<center>June&nbsp;13th,&nbsp;2009</center><br>
+<center>July&nbsp;26th,&nbsp;2009</center><br>
 <div style="background-color: #F4F4FF; margin: 1em 3em 1em 3em; padding: 1em 1em 1em 2.2em;">
 <a href="#intro">1.&nbsp; Introduction</a><br>
 <a href="#mingw">2.&nbsp; MinGW</a><br>
@@ -67,42 +67,56 @@ download just GLib and pkg-config
 from <a href="http://www.gtk.org">www.gtk.org</a>.)</p>
 
 <p>Download the gtkmm windows installer,
-gtkmm-win32-devel-2.16.0-3.exe,
+gtkmm-win32-devel-2.16.0-4.exe,
 from <a href="http://www.gtkmm.org">www.gtkmm.org</a>, and run it. Let
 the installer adjust the PATH variable as it wants.</p>
 
 
 <h3><a name="msys">4.&nbsp; MSYS</a></h3>
 
-<p>I use the 1.0.11 Release Candiadate version, as I had problems
-building DLLs with the 1.0.10 current version.</p>
-
-<p>Download from "MSYS Base System, Release Candidate: MSYS-1.0.11":</p>
-
-<pre>MSYS-1.0.11-rc-1.exe</pre>
+<p>Download from "MSYS Base System, Current Release_ MSYS-1.0.11":</p>
+<pre>MSYS-1.0.11.exe</pre>
 
 <p>Run the installer.</p>
 
-<p>Download from "MSYS Supplementary Tools, Technology Preview: Tools for
-MSYS-1.0.11":</p>
-
-<pre>autoconf2.5-2.61-1-bin.tar.bz2 **
-autoconf-4-1-bin.tar.bz2 **
-automake1.10-1.10-1-bin.tar.bz2 **
-automake-3-1-bin.tar.bz2 **
-bison-2.3-MSYS-1.0.11-1.tar.bz2 **
+<p>Download from "MSYS Supplementary Tools, Technology Preview_ Tools for MSYS-1.0.11":</p>
+<pre>bison-2.3-MSYS-1.0.11-1.tar.bz2 **
 crypt-1.1-1-MSYS-1.0.11-1.tar.bz2 **
 cvs-1.11.22-MSYS-1.0.11-1-bin.tar.gz **
-gettext-0.16.1-1-bin.tar.bz2 ***
-gettext-0.16.1-1-dll.tar.bz2 ***
-libiconv-1.11-1-bin.tar.bz2 ***
-libiconv-1.11-1-dll.tar.bz2 ***
-libtool1.5-1.5.25a-1-bin.tar.bz2
-perl-5.6.1-MSYS-1.0.11-1.tar.bz2 ***</pre>
+perl-5.6.1-MSYS-1.0.11-1.tar.bz2 **</pre>
 
-<p>Extract all these files to the msys directory, by starting msys, do
-"cd /" followed by "tar xjf <i>filename</i>" for .tar.bz2 files and
-"tar xzf <i>filename</i>" for .tar.gz files.</p>
+<p>Extract these files to the msys root directory, by starting msys, do
+"cd /" followed by "tar xaf <i>filename</i>".</p>
+
+<p>Download from "MinGW autoconf, autoconf2.5, autoconf2.5-2.63-1":</p>
+<pre>autoconf2.5-2.63-1-mingw32-bin.tar.lzma **</pre>
+
+<p>From "MinGW autoconf, wrapper, autoconf-6-1":</p>
+<pre>autoconf-6-1-mingw32-bin.tar.lzma **</pre>
+
+<p>From "MinGW automake, automake1.11, automake1.11-1.11-1":</p>
+<pre>automake1.11-1.11-1-mingw32-bin.tar.lzma **</pre>
+
+<p>From "MinGW automake, wrapper, automake-4-1":</p>
+<pre>automake-4-1-mingw32-bin.tar.lzma **</pre>
+
+<p>From "MinGW gettext, gettext-0.17-1":</p>
+<pre>gettext-0.17.1-1-mingw32-dev.tar.lzma ***
+libgettextpo-0.17-1-mingw32-dll-0.tar.lzma ***
+libintl-0.17-1-mingw32-dll-8.tar.lzma ***</pre>
+
+<p>From "MinGW libiconv, libiconv-1.13.1-1":</p>
+<pre>libiconv-1.13.1-1-mingw32-dll-2.tar.lzma ***</pre>
+
+<p>From "GCC Version 4, Current Release_ gcc-4.4.0":</p>
+<pre>gcc-core-4.4.0-mingw32-dll.tar.gz ***</pre>
+
+<p>From "MinGW libtool, libtool-2.27a-1":</p>
+<pre>libtool-2.2.7a-1-mingw32-bin.tar.lzma</pre>
+
+<p>Extract all these files to the MinGW directory, by starting msys, do
+"cd /mingw" followed by "tar -x --lzma -f <i>filename</i>" for the
+.tar.lzma files and "tar xaf <i>filename</i>" for the .tar.gz file.</p>
 
 
 <h3><a name="asio">5.&nbsp; ASIO SDK</a></h3>
@@ -123,7 +137,7 @@ version 3). Extract it to msys $HOME.</p>
 <p>Download intltool_0.40.4-1_win32.zip from
 <a href="http://ftp.gnome.org/pub/GNOME/binaries/win32/intltool">http://ftp.gnome.org/pub/GNOME/binaries/win32/intltool</a></p>
 
-<p>Unzip this into the msys local directory (C:\msys\1.0\local)</p>
+<p>Unzip this into the gtkmm directory (C:\Program Files\gtkmm)</p>
 
 
 <h3><a name="perl">8.&nbsp; Perl ***</a></h3>
@@ -138,7 +152,7 @@ install it.</p>
 
 <p>The gigedit Makefile wants to build the gigedit quick start
 documentation, so it needs the xsltproc command. Download from
-<a href="ftp://ftp.zlatkovic.com/pub/libxml/">ftp://ftp.zlatkovic.com/pub/libxml/</a>:</p>
+<a href="http://www.zlatkovic.com/pub/libxml/">http://www.zlatkovic.com/pub/libxml/</a>:</p>
 
 <pre>libxml2-2.7.3.win32.zip
 libxslt-1.1.24.win32.zip</pre>
@@ -157,7 +171,7 @@ used by autoconf. (Make sure the gtkmm path is the one where you
 installed it. The space in "Program Files" causes problems, so the
 short file name form is used here):</p>
 
-<pre>echo "/c/Progra~1/gtkmm/share/aclocal" >> /usr/local/share/aclocal/dirlist</pre>
+<pre>echo "/c/Progra~1/gtkmm/share/aclocal" >> /mingw/share/aclocal/dirlist</pre>
 
 <p>Add the gtkmm bin directory first in your PATH (the installer has
 already added gtkmm to the PATH, but it may have used "Program Files"
@@ -165,7 +179,7 @@ with a space in it, which causes configure to fail):</p>
 
 <pre>export PATH=/c/Progra~1/gtkmm/bin:$PATH</pre>
 
-<p>Make sure pkg-config will find the LinuxSampler libraries:</p>
+<p>Make sure pkg-config will find the libraries you build:</p>
 
 <pre>export PKG_CONFIG_PATH=/usr/local/lib/pkgconfig</pre>
 
@@ -179,11 +193,11 @@ ln -s /c/Perl/bin/perl.exe /opt/perl/bin
 export PATH=/c/Perl/bin:$PATH</pre>
 
 
-<p>*** MSYS gettext and gtkmm both include libintl. We want the gtkmm
-version. Remove the MSYS files so the gettext configure tools don't
+<p>*** MinGW gettext and gtkmm both include libintl. We want the gtkmm
+version. Remove the MinGW files so the gettext configure tools don't
 choose the wrong version:</p>
 
-<pre>rm /usr/local/include/libintl.h /usr/local/lib/libintl*</pre>
+<pre>rm /mingw/include/libintl.h /mingw/lib/libintl*</pre>
 
 
 <p>*** The gettext configure tools also need:</p>
@@ -196,16 +210,16 @@ export LDFLAGS="-L/c/Progra~1/gtkmm/lib"</pre>
 
 <p>The windows precompiled version of SQLite doesn't include the
 neccessary development files, so it's best to build SQLite yourself.
-Download sqlite-amalgamation-3.6.14.2.tar.gz
+Download sqlite-amalgamation-3.6.16.tar.gz
 from <a href="http://www.sqlite.org">www.sqlite.org</a>
 and extract it to your $HOME:</p>
 
 <pre>cd
-tar xzf sqlite-amalgamation-3.6.14.2.tar.gz</pre>
+tar xzf sqlite-amalgamation-3.6.16.tar.gz</pre>
 
 <p>Build and install:</p>
 
-<pre>cd sqlite-3.6.14.2
+<pre>cd sqlite-3.6.16
 CFLAGS=-O2 ./configure
 make
 make install</pre>
