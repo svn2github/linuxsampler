@@ -26,7 +26,7 @@ check_dependencies:
 
 configure: check_dependencies configure.ac Makefile.am \
            src/Makefile.am
-	@intltoolize --force --automake
+	@intltoolize --copy --force --automake
 	@aclocal
 	@libtoolize --force --copy
 	@autoheader
@@ -52,4 +52,4 @@ clean:
 	@rm -rvf *~ autom4te.cache \
 		depcomp INSTALL install-sh Makefile Makefile.in missing mkinstalldirs \
 		gigedit-*.tar.gz po/*~ src/*~ gigedit.kdevelop.pcs debug src/a.out \
-		Doxyfile COPYING
+		Doxyfile intltool-extract.in intltool-merge.in intltool-update.in
