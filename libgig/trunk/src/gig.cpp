@@ -3036,6 +3036,9 @@ MidiRuleCtrlTrigger::MidiRuleCtrlTrigger(RIFF::Chunk* _3ewg) {
     }
 
     Instrument::~Instrument() {
+        for (int i = 0 ; pMidiRules[i] ; i++) {
+            delete pMidiRules[i];
+        }
         delete[] pMidiRules;
     }
 
