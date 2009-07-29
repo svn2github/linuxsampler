@@ -58,6 +58,9 @@ Version CVS HEAD (?)
     - theoretical fix: made SynchronizedConfig follow C++0x memory
       model more strictly
     - fixes for using large audio device buffers
+    - Windows: add the installation directory to the DLL search path
+      when loading an editor plugin (solves problems with VST and
+      gigedit on systems with other GTK versions installed)
 
   * audio driver:
     - removed the nonsense audio channel constraint (which was hard coded to
@@ -88,6 +91,8 @@ Version CVS HEAD (?)
     - performance optimization of AudioChannel::MixTo() and
       AudioChannel::CopyTo() methods using GCC vector exensions
       (if available)
+    - ASIO fixes: avoid initializing the device twice, avoid throwing
+      exception when getting parameters from a disconnected device
 
   * MIDI driver:
     - added JACK MIDI driver
@@ -99,6 +104,7 @@ Version CVS HEAD (?)
     - fixed mingw-w64 compilation error in MME driver
     - made program change handling in MIDI thread real-time safe by
       moving the logic to a non-RT thread
+    - fixed minor memory leak in ALSA driver
 
   * instruments database:
     - avoid time consuming samples scanning when adding instruments

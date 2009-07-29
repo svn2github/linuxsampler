@@ -96,6 +96,7 @@ namespace LinuxSampler {
 
                     friend class ParameterName;
                     friend class ParameterAlsaSeqBindings;
+                    void UnsubscribeAll();
             };
 
             MidiInputDeviceAlsa(std::map<String,DeviceCreationParameter*> Parameters, void* pSampler);

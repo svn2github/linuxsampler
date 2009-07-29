@@ -86,14 +86,7 @@ namespace LinuxSampler {
     }
 
     void MidiInputDeviceAlsa::MidiInputPortAlsa::ParameterAlsaSeqBindings::OnSetValue(std::vector<String> vS) throw (Exception) {
-        std::vector<snd_seq_port_subscribe_t*>::iterator it = pPort->subscriptions.begin();
-        for (; it != pPort->subscriptions.end(); it++) {
-            if(snd_seq_unsubscribe_port(pPort->pDevice->hAlsaSeq, *it)) {
-                dmsg(1,("ParameterAlsaSeqBindings::OnSetValue: Can't unsubscribe port connection!.\n"));
-            }
-            snd_seq_port_subscribe_free(*it);
-        }
-        pPort->subscriptions.clear();
+        pPort->UnsubscribeAll();
 
         std::vector<String>::iterator iter = vS.begin();
         for (; iter != vS.end(); iter++) pPort->ConnectToAlsaMidiSource((*iter).c_str());
@@ -146,7 +139,8 @@ namespace LinuxSampler {
     }
 
     MidiInputDeviceAlsa::MidiInputPortAlsa::~MidiInputPortAlsa() {
-	    snd_seq_delete_simple_port(pDevice->hAlsaSeq, portNumber);
+        UnsubscribeAll();
+        snd_seq_delete_simple_port(pDevice->hAlsaSeq, portNumber);
     }
 
     /**
@@ -180,7 +174,16 @@ namespace LinuxSampler {
         subscriptions.push_back(subs);
     }
 
-
+    void MidiInputDeviceAlsa::MidiInputPortAlsa::UnsubscribeAll() {
+        for (std::vector<snd_seq_port_subscribe_t*>::iterator it = subscriptions.begin();
+             it != subscriptions.end(); it++) {
+            if (snd_seq_unsubscribe_port(pDevice->hAlsaSeq, *it)) {
+                dmsg(1,("MidiInputPortAlsa::UnsubscribeAll: Can't unsubscribe port connection!.\n"));
+            }
+            snd_seq_port_subscribe_free(*it);
+        }
+        subscriptions.clear();
+    }
 
 // *************** MidiInputDeviceAlsa ***************
 // *
@@ -234,7 +237,7 @@ namespace LinuxSampler {
     }
 
     String MidiInputDeviceAlsa::Version() {
-	    String s = "$Revision: 1.22 $";
+	    String s = "$Revision: 1.23 $";
 	    return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
 

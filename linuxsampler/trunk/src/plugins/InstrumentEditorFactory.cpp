@@ -103,6 +103,23 @@ namespace LinuxSampler {
             dmsg(1,("Loading instrument editor plugins..."));
             #if defined(WIN32)
             String dir = Sampler::GetInstallDir();
+
+            // Put the LS installation directory first in DLL search
+            // path, so the plugin finds for example the bundled GTK
+            // libraries before any other installed versions
+            if (!dir.empty()) {
+                // The SetDllDirectory function is only available on
+                // XP and higher, so we call it dynamically
+                HMODULE k32 = GetModuleHandleA("kernel32.dll");
+                if (k32) {
+                    BOOL WINAPI (*setDllDirectory)(LPCSTR) =
+                        (BOOL WINAPI (*)(LPCSTR))GetProcAddress(k32, "SetDllDirectoryA");
+                    if (setDllDirectory) {
+                        setDllDirectory(dir.c_str());
+                    }
+                }
+            }
+
             if (dir.empty() || !LoadPlugins(dir + "\\plugins")) {
                 if (!LoadPlugins(CONFIG_PLUGIN_DIR)) {
                     std::cerr << "Could not open instrument editor plugins "

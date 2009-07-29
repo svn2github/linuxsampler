@@ -50,7 +50,6 @@ struct DriverInfo {
 
     // ASIOGetSampleRate()
     ASIOSampleRate sampleRate;
-    int            numSampleRates;
     std::vector<int> sampleRates;
 
     // ASIOOutputReady()
@@ -86,7 +85,6 @@ struct DriverInfo {
 extern AsioDrivers* asioDrivers;
 extern bool loadAsioDriver(char* name);
 
-static ASIODriverInfo MyAsioDriverInfo;
 static DriverInfo asioDriverInfo = { { 0 }, 0 };
 
 static bool asioDriverOpened = false;
@@ -145,10 +143,7 @@ static bool ASIO_loadAsioDriver(const char* name) {
     return loadAsioDriver(const_cast<char*>(name));
 }
 
-void ASIO_OpenAndQueryDeviceInfo(String driverName, DriverInfo* driverInfo,
-                                 ASIODriverInfo* asioDriverInfo) throw (AudioOutputException) {
-    static const char* errmsg = "Error: ASIO Initalization Error";
-
+int ASIO_OpenAndQueryDeviceInfo(String driverName, DriverInfo* driverInfo) {
     ASIOSampleRate possibleSampleRates[] =
         { 8000.0, 9600.0, 11025.0, 12000.0, 16000.0, 22050.0, 24000.0,
           32000.0, 44100.0, 48000.0, 88200.0, 96000.0 };
@@ -177,25 +172,25 @@ void ASIO_OpenAndQueryDeviceInfo(String driverName, DriverInfo* driverInfo,
         // if the given ASIO driver name == current ASIO driver name
         // and the driver was already opened then do nothing
         if (asioDriverOpened) {
-            dmsg(2,("asioDriver ALREADY OPENED, DOING NOTHING !\n"));
-            return;
+            dmsg(2,("asioDriver already opened, doing nothing\n"));
+            return 0;
         }
     }
     else {
-        dmsg(2,("driverName != currentAsioDriverName, new asio driver specified, opening device ....\n"));
+        dmsg(2,("driverName != currentAsioDriverName, new asio driver specified, opening device...\n"));
         // if a new ASIO driver name was specified then first check if
         // we need to close the old one
         if (asioDriverOpened) {
-            dmsg(2,("different asioDriver ALREADY OPENED, closing old one !\n"));
+            dmsg(2,("different asioDriver already opened, closing old one\n"));
             asioDriverOpened = false;
             ASIOExit(); // close the old ASIO driver
         }
     }
     currentAsioDriverName = driverName;
 
-    memset((void*)asioDriverInfo, 0, sizeof(ASIODriverInfo));
-    asioDriverInfo->asioVersion = 1;
-    asioDriverInfo->sysRef = NULL;
+    memset(&driverInfo->driverInfo, 0, sizeof(ASIODriverInfo));
+    driverInfo->driverInfo.asioVersion = 1;
+    driverInfo->driverInfo.sysRef = NULL;
 
     // MUST BE CHECKED : to force fragments loading on Mac
     // ASIO_loadAsioDriver("dummy");
@@ -203,20 +198,20 @@ void ASIO_OpenAndQueryDeviceInfo(String driverName, DriverInfo* driverInfo,
     dmsg(2,("Before ASIO_loadAsioDriver('%s')\n", driverName.c_str()));
     if (!ASIO_loadAsioDriver(driverName.c_str())) {
         dmsg(2,("ASIO_OpenAndQueryDeviceInfo could not loadAsioDriver %s\n", driverName.c_str()));
-        throw AudioOutputException(errmsg);
+        return -1;
     }
     dmsg(2,("Before ASIOInit()\n"));
-    if ((asioError = ASIOInit(asioDriverInfo)) != ASE_OK) {
-        dmsg(1,("ASIO_OpenAndQueryDeviceInfo: ASIOInit returned %d for %s\n",
+    if ((asioError = ASIOInit(&driverInfo->driverInfo)) != ASE_OK) {
+        dmsg(2,("ASIO_OpenAndQueryDeviceInfo: ASIOInit returned %d for %s\n",
                 int(asioError), driverName.c_str()));
-        throw AudioOutputException(errmsg);
+        return asioError;
     }
     dmsg(2,("Before ASIOGetChannels()\n"));
     if ((asioError = ASIOGetChannels(&driverInfo->numInputChannels,
                                      &driverInfo->numOutputChannels)) != ASE_OK) {
         dmsg(1,("ASIO_OpenAndQueryDeviceInfo could not ASIOGetChannels for %s: %d\n",
                 driverName.c_str(), int(asioError)));
-        throw AudioOutputException(errmsg);
+        return asioError;
     }
 
     dmsg(2,("Before ASIOGetBufferSize()\n"));
@@ -226,7 +221,7 @@ void ASIO_OpenAndQueryDeviceInfo(String driverName, DriverInfo* driverInfo,
                                        &driverInfo->bufGranularity)) != ASE_OK) {
         dmsg(1,("ASIO_OpenAndQueryDeviceInfo could not ASIOGetBufferSize for %s: %d\n",
                 driverName.c_str(), int(asioError)));
-        throw AudioOutputException(errmsg);
+        return asioError;
     }
 
     dmsg(2,("ASIO_OpenAndQueryDeviceInfo: InputChannels = %ld\n", driverInfo->numInputChannels));
@@ -234,14 +229,12 @@ void ASIO_OpenAndQueryDeviceInfo(String driverName, DriverInfo* driverInfo,
 
     // Loop through the possible sampling rates and check each to see
     // if the device supports it.
-    driverInfo->numSampleRates = 0;
     driverInfo->sampleRates.clear();
     for (int index = 0; index < MAX_NUMSAMPLINGRATES; index++) {
         if (ASIOCanSampleRate(possibleSampleRates[index]) != ASE_NoClock) {
             dmsg(2,("ASIOCanSampleRate: possible sample rate = %ld\n",
                     (long)possibleSampleRates[index]));
             driverInfo->sampleRates.push_back((int)possibleSampleRates[index]);
-            driverInfo->numSampleRates++;
         }
     }
 
@@ -256,6 +249,7 @@ void ASIO_OpenAndQueryDeviceInfo(String driverName, DriverInfo* driverInfo,
 
     dmsg(2,("ASIO_OpenAndQueryDeviceInfo: driver opened.\n"));
     asioDriverOpened = true;
+    return ASE_OK;
 }
 
 
@@ -292,19 +286,19 @@ std::vector<String> getAsioDriverNames() {
 #if 1
         asioDriverList.push_back(names[i]);
 #else
-        int asioError;
         // FIXME: We currently try what is the best method to exclude
         // not connected devices or not working drivers. The code
         // below is for testing only, it tries to load each ASIO
         // driver and if it gives an error it is not included in the
         // list of available drivers (asioDriverList).
         if (ASIO_loadAsioDriver(names[i])) {
-            if ((asioError = ASIOInit(&MyAsioDriverInfo)) == ASE_OK) {
+            ASIOError asioError;
+            if ((asioError = ASIOInit(&asioDriverInfo.driverInfo)) == ASE_OK) {
                 asioDriverList.push_back(names[i]);
             }
             else {
                 dmsg(2,("getDriverList: ASIOInit of driver %s gave Error %d! ignoring it.\n",
-                        names[i], asioError));
+                        names[i], int(asioError)));
             }
         }
         else {
@@ -486,7 +480,7 @@ void AudioOutputDeviceAsio::bufferSwitch(long index, ASIOBool processNow) {
     // timeInfo needs to be created, though it will only set the
     // timeInfo.samplePosition and timeInfo.systemTime fields and the
     // according flags.
-    ASIOTime  timeInfo;
+    ASIOTime timeInfo;
     memset(&timeInfo, 0, sizeof(timeInfo));
 
     // Get the time stamp of the buffer. Not necessary if no
@@ -602,7 +596,6 @@ std::map<String,DeviceCreationParameter*> AudioOutputDeviceAsio::ParameterCard::
 optional<String> AudioOutputDeviceAsio::ParameterCard::DefaultAsString(std::map<String,String> Parameters) {
     std::vector<String> cards = PossibilitiesAsString(Parameters);
     if (cards.empty()) throw Exception("AudioOutputDeviceAsio: Can't find any card");
-    dmsg(2,("AudioOutputDeviceAsio::ParameterCard::DefaultAsString='%s'\n", cards[0].c_str()));
 
     // If currentAsioDriverName is empty then return the first card,
     // otherwise return the currentAsioDriverName. This avoids closing
@@ -611,9 +604,11 @@ optional<String> AudioOutputDeviceAsio::ParameterCard::DefaultAsString(std::map<
     // would load the default card (without this check it would always
     // be the same which would cause the above problem).
     if (currentAsioDriverName == "") {
+        dmsg(2,("AudioOutputDeviceAsio::ParameterCard::DefaultAsString='%s' (first card by default)\n", cards[0].c_str()));
         return cards[0]; // first card by default
     }
     else {
+        dmsg(2,("AudioOutputDeviceAsio::ParameterCard::DefaultAsString='%s'\n", currentAsioDriverName.c_str()));
         return currentAsioDriverName;
     }
 
@@ -652,18 +647,18 @@ std::map<String,DeviceCreationParameter*> AudioOutputDeviceAsio::ParameterSample
 
 optional<int> AudioOutputDeviceAsio::ParameterSampleRate::DefaultAsInt(std::map<String,String> Parameters) {
     if (!Parameters.count("CARD")) {
-        dmsg(2,("AudioOutputDeviceAsio::ParameterSampleRate::DefaultAsInt returning optional<int>::nothing  (parameter CARD not supplied)\n"));
+        dmsg(2,("AudioOutputDeviceAsio::ParameterSampleRate::DefaultAsInt returning optional<int>::nothing (parameter CARD not supplied)\n"));
         return optional<int>::nothing;
     }
 
     // return the default samplerate. first try 44100 then 48000, then
     // the first samplerate found in the list
     ParameterCard card(Parameters["CARD"]);
-    ASIO_OpenAndQueryDeviceInfo(card.ValueAsString(), &asioDriverInfo, &MyAsioDriverInfo);
+    if (ASIO_OpenAndQueryDeviceInfo(card.ValueAsString(), &asioDriverInfo) != 0) return optional<int>::nothing;
     for (uint i = 0; i < asioDriverInfo.sampleRates.size(); i++) {
         if (asioDriverInfo.sampleRates[i] == 44100) {
-            return 44100;
             dmsg(2,("AudioOutputDeviceAsio::ParameterSampleRate::DefaultAsInt returning 44100\n"));
+            return 44100;
         }
         if (asioDriverInfo.sampleRates[i] == 48000) {
             dmsg(2,("AudioOutputDeviceAsio::ParameterSampleRate::DefaultAsInt returning 48000\n"));
@@ -678,12 +673,12 @@ optional<int> AudioOutputDeviceAsio::ParameterSampleRate::DefaultAsInt(std::map<
 std::vector<int> AudioOutputDeviceAsio::ParameterSampleRate::PossibilitiesAsInt(std::map<String,String> Parameters) {
     dmsg(2,("AudioOutputDeviceAsio::ParameterSampleRate::PossibilitiesAsInt\n"));
     if (!Parameters.count("CARD")) {
-        dmsg(2,("AudioOutputDeviceAsio::ParameterSampleRate::PossibilitiesAsInt returning empty vector  (parameter CARD not supplied)\n"));
+        dmsg(2,("AudioOutputDeviceAsio::ParameterSampleRate::PossibilitiesAsInt returning empty vector (parameter CARD not supplied)\n"));
         return std::vector<int>();
     }
 
     ParameterCard card(Parameters["CARD"]);
-    ASIO_OpenAndQueryDeviceInfo(card.ValueAsString(), &asioDriverInfo, &MyAsioDriverInfo);
+    if (ASIO_OpenAndQueryDeviceInfo(card.ValueAsString(), &asioDriverInfo) != 0) return std::vector<int>();
 
     for (uint i = 0; i < asioDriverInfo.sampleRates.size(); i++) {
         dmsg(2,("AudioOutputDeviceAsio::ParameterSampleRate::PossibilitiesAsInt samplerate[%d]=%d\n", i, asioDriverInfo.sampleRates[i]));
@@ -721,14 +716,14 @@ optional<int> AudioOutputDeviceAsio::ParameterChannels::DefaultAsInt(std::map<St
     }
 
     ParameterCard card(Parameters["CARD"]);
-    ASIO_OpenAndQueryDeviceInfo(card.ValueAsString(), &asioDriverInfo, &MyAsioDriverInfo);
+    if (ASIO_OpenAndQueryDeviceInfo(card.ValueAsString(), &asioDriverInfo) != 0) return optional<int>::nothing;
     dmsg(2,("AudioOutputDeviceAsio::ParameterChannels::DefaultAsInt returning %ld\n",
             asioDriverInfo.numOutputChannels));
     return asioDriverInfo.numOutputChannels;
 }
 
 optional<int> AudioOutputDeviceAsio::ParameterChannels::RangeMinAsInt(std::map<String,String> Parameters) {
-    dmsg(2,("AudioOutputDeviceAsio::ParameterChannels::RangeMinAsInt!\n"));
+    dmsg(2,("AudioOutputDeviceAsio::ParameterChannels::RangeMinAsInt\n"));
     if (!Parameters.count("CARD")) {
         dmsg(2,("AudioOutputDeviceAsio::ParameterChannels::RangeMinAsInt returning optional<int>::nothing (CARD parameter not supplied)\n"));
         return optional<int>::nothing;
@@ -738,14 +733,14 @@ optional<int> AudioOutputDeviceAsio::ParameterChannels::RangeMinAsInt(std::map<S
 }
 
 optional<int> AudioOutputDeviceAsio::ParameterChannels::RangeMaxAsInt(std::map<String,String> Parameters) {
-    dmsg(2,("AudioOutputDeviceAsio::ParameterChannels::RangeMaxAsInt!\n"));
+    dmsg(2,("AudioOutputDeviceAsio::ParameterChannels::RangeMaxAsInt\n"));
     if (!Parameters.count("CARD")) {
         dmsg(2,("AudioOutputDeviceAsio::ParameterChannels::RangeMaxAsInt returning optional<int>::nothing (CARD parameter not supplied)\n"));
         return optional<int>::nothing;
     }
 
     ParameterCard card(Parameters["CARD"]);
-    ASIO_OpenAndQueryDeviceInfo(card.ValueAsString(), &asioDriverInfo, &MyAsioDriverInfo);
+    if (ASIO_OpenAndQueryDeviceInfo(card.ValueAsString(), &asioDriverInfo) != 0) return optional<int>::nothing;
     dmsg(2,("AudioOutputDeviceAsio::ParameterChannels::RangeMaxAsInt returning %ld\n",
             asioDriverInfo.numOutputChannels));
     return asioDriverInfo.numOutputChannels;
@@ -783,49 +778,49 @@ std::map<String,DeviceCreationParameter*> AudioOutputDeviceAsio::ParameterFragme
 }
 
 optional<int> AudioOutputDeviceAsio::ParameterFragmentSize::DefaultAsInt(std::map<String,String> Parameters) {
-    dmsg(2,("AudioOutputDeviceAsio::ParameterFragmentSize::DefaultAsInt!\n"));
+    dmsg(2,("AudioOutputDeviceAsio::ParameterFragmentSize::DefaultAsInt\n"));
     if (!Parameters.count("CARD")) {
         dmsg(2,("AudioOutputDeviceAsio::ParameterFragmentSize::DefaultAsInt returning optional<int>::nothing (no CARD parameter supplied\n"));
         return optional<int>::nothing;
     }
 
     ParameterCard card(Parameters["CARD"]);
-    ASIO_OpenAndQueryDeviceInfo(card.ValueAsString(), &asioDriverInfo, &MyAsioDriverInfo);
+    if (ASIO_OpenAndQueryDeviceInfo(card.ValueAsString(), &asioDriverInfo) != 0) return optional<int>::nothing;
     dmsg(2,("AudioOutputDeviceAsio::ParameterFragmentSize::DefaultAsInt returning %ld\n",
             asioDriverInfo.preferredBufSize));
     return asioDriverInfo.preferredBufSize;
 }
 
 optional<int> AudioOutputDeviceAsio::ParameterFragmentSize::RangeMinAsInt(std::map<String,String> Parameters) {
-    dmsg(2,("AudioOutputDeviceAsio::ParameterFragmentSize::RangeMinAsInt!\n"));
+    dmsg(2,("AudioOutputDeviceAsio::ParameterFragmentSize::RangeMinAsInt\n"));
     if (!Parameters.count("CARD")) {
         dmsg(2,("AudioOutputDeviceAsio::ParameterFragmentSize::RangeMinAsInt returning optional<int>::nothing (no CARD parameter supplied\n"));
         return optional<int>::nothing;
     }
 
     ParameterCard card(Parameters["CARD"]);
-    ASIO_OpenAndQueryDeviceInfo(card.ValueAsString(), &asioDriverInfo, &MyAsioDriverInfo);
+    if (ASIO_OpenAndQueryDeviceInfo(card.ValueAsString(), &asioDriverInfo) != 0) return optional<int>::nothing;
     dmsg(2,("AudioOutputDeviceAsio::ParameterFragmentSize::RangeMinAsInt returning %ld\n",
             asioDriverInfo.minBufSize));
     return asioDriverInfo.minBufSize;
 }
 
 optional<int> AudioOutputDeviceAsio::ParameterFragmentSize::RangeMaxAsInt(std::map<String,String> Parameters) {
-    dmsg(2,("AudioOutputDeviceAsio::ParameterFragmentSize::RangeMaxAsInt!\n"));
+    dmsg(2,("AudioOutputDeviceAsio::ParameterFragmentSize::RangeMaxAsInt\n"));
     if (!Parameters.count("CARD")) {
         dmsg(2,("AudioOutputDeviceAsio::ParameterFragmentSize::RangeMaxAsInt returning optional<int>::nothing (no CARD parameter supplied\n"));
         return optional<int>::nothing;
     }
 
     ParameterCard card(Parameters["CARD"]);
-    ASIO_OpenAndQueryDeviceInfo(card.ValueAsString(), &asioDriverInfo, &MyAsioDriverInfo);
+    if (ASIO_OpenAndQueryDeviceInfo(card.ValueAsString(), &asioDriverInfo) != 0) return optional<int>::nothing;
     dmsg(2,("AudioOutputDeviceAsio::ParameterFragmentSize::RangeMaxAsInt returning %ld\n",
             asioDriverInfo.maxBufSize));
     return asioDriverInfo.maxBufSize;
 }
 
 std::vector<int> AudioOutputDeviceAsio::ParameterFragmentSize::PossibilitiesAsInt(std::map<String,String> Parameters) {
-    dmsg(2,("AudioOutputDeviceAsio::ParameterFragmentSize::PossibilitiesAsInt!\n"));
+    dmsg(2,("AudioOutputDeviceAsio::ParameterFragmentSize::PossibilitiesAsInt\n"));
     return std::vector<int>();
 }
 
@@ -851,28 +846,32 @@ String AudioOutputDeviceAsio::ParameterFragmentSize::Name() {
 AudioOutputDeviceAsio::AudioOutputDeviceAsio(std::map<String,DeviceCreationParameter*> Parameters) : AudioOutputDevice(Parameters) {
     if (AudioOutputDeviceAsioInstantiated) throw Exception("AudioOutputDeviceAsio: Sorry, only one ASIO card at time can be opened");
     AudioOutputDeviceAsioInstantiated = true;
-    asioDriverOpened = false;
     this->uiAsioChannels = ((DeviceCreationParameterInt*)Parameters["CHANNELS"])->ValueAsInt();
     this->uiSamplerate   = ((DeviceCreationParameterInt*)Parameters["SAMPLERATE"])->ValueAsInt();
     this->FragmentSize   = ((DeviceCreationParameterInt*)Parameters["FRAGMENTSIZE"])->ValueAsInt();
     String card          = ((DeviceCreationParameterString*)Parameters["CARD"])->ValueAsString();
 
 
-    dmsg(2,("AudioOutputDeviceAsio::AudioOutputDeviceAsio constructor\n"));
+    dmsg(2,("AudioOutputDeviceAsio::AudioOutputDeviceAsio constructor channels=%d samplerate=%d fragmentsize=%d card=%s\n",
+            uiAsioChannels, uiSamplerate, FragmentSize, card.c_str()));
 
     asioIsPlaying = false;
 
-    ASIO_OpenAndQueryDeviceInfo(card, &asioDriverInfo, &MyAsioDriverInfo);
+    if (ASIO_OpenAndQueryDeviceInfo(card, &asioDriverInfo) != 0) {
+        throw AudioOutputException("Error: ASIO Initialization error");
+    }
     dmsg(2,("AudioOutputDeviceAsio::AudioOutputDeviceAsio: after ASIO_OpenAndQueryDeviceInfo\n"));
 
-    if (ASIOSetSampleRate(uiSamplerate) != ASE_OK) {
+    ASIOError asioError;
+    if ((asioError = ASIOSetSampleRate(uiSamplerate)) != ASE_OK) {
+        dmsg(1,("AudioOutputDeviceAsio::AudioOutputDeviceAsio: ASIOSetSampleRate failed: %d\n", int(asioError)));
         throw AudioOutputException("Error: ASIOSetSampleRate: cannot set samplerate.");
     }
     dmsg(2,("AudioOutputDeviceAsio::AudioOutputDeviceAsio: after ASIOSetSampleRate\n"));
 
-    if (ASIOOutputReady() == ASE_OK) asioDriverInfo.ASIOOutputReadySupported = true;
-    else asioDriverInfo.ASIOOutputReadySupported = false;
-    dmsg(2,("AudioOutputDeviceAsio::AudioOutputDeviceAsio: after ASIOOutputReady\n"));
+    asioDriverInfo.ASIOOutputReadySupported = (ASIOOutputReady() == ASE_OK);
+    dmsg(2,("AudioOutputDeviceAsio::AudioOutputDeviceAsio: after ASIOOutputReady: %d\n",
+             asioDriverInfo.ASIOOutputReadySupported));
 
     asioDriverInfo.numInputBuffers = 0;
     asioDriverInfo.numOutputBuffers = uiAsioChannels;
@@ -888,10 +887,11 @@ AudioOutputDeviceAsio::AudioOutputDeviceAsio(std::map<String,DeviceCreationParam
     asioCallbacks.asioMessage = &asioMessages;
     asioCallbacks.bufferSwitchTimeInfo = &bufferSwitchTimeInfo;
 
-    if (ASIOCreateBuffers(asioDriverInfo.bufferInfos,
-                          asioDriverInfo.numOutputBuffers,
-                          asioDriverInfo.chosenBufSize = FragmentSize,
-                          &asioCallbacks) != ASE_OK) {
+    if ((asioError = ASIOCreateBuffers(asioDriverInfo.bufferInfos,
+                                       asioDriverInfo.numOutputBuffers,
+                                       asioDriverInfo.chosenBufSize,
+                                       &asioCallbacks)) != ASE_OK) {
+        dmsg(1,("AudioOutputDeviceAsio::AudioOutputDeviceAsio: ASIOCreateBuffers failed: %d\n", int(asioError)));
         throw AudioOutputException("AudioOutputDeviceAsio: Error: ASIOCreateBuffers failed.");
     }
     dmsg(2,("AudioOutputDeviceAsio::AudioOutputDeviceAsio: after ASIOCreateBuffers\n"));
@@ -918,10 +918,12 @@ AudioOutputDeviceAsio::~AudioOutputDeviceAsio() {
 }
 
 void AudioOutputDeviceAsio::Play() {
-    dmsg(2,("AudioOutputDeviceAsio::Play() !\n"));
-    if (ASIOStart() != ASE_OK) {
+    dmsg(2,("AudioOutputDeviceAsio::Play()\n"));
+    ASIOError asioError;
+    if ((asioError = ASIOStart()) != ASE_OK) {
         asioIsPlaying = false;
-        throw AudioOutputException("AudioOutputDeviceAsio: Error: ASIOStart failed.");
+        dmsg(1,("AudioOutputDeviceAsio::Play: ASIOStart failed: %d\n", int(asioError)));
+        throw AudioOutputException("AudioOutputDeviceAsio: Error: ASIOStart failed");
     }
     else asioIsPlaying = true;
 }
@@ -931,13 +933,13 @@ bool AudioOutputDeviceAsio::IsPlaying() {
 }
 
 void AudioOutputDeviceAsio::Stop() {
-    dmsg(2,("AudioOutputDeviceAsio::Stop() !\n"));
+    dmsg(2,("AudioOutputDeviceAsio::Stop()\n"));
     ASIOStop();
     asioIsPlaying = false;
 }
 
 AudioChannel* AudioOutputDeviceAsio::CreateChannel(uint ChannelNr) {
-    dmsg(2,("AudioOutputDeviceAsio::CreateChannel value=%d  uiAsioChannels=%d\n",
+    dmsg(2,("AudioOutputDeviceAsio::CreateChannel value=%d uiAsioChannels=%d\n",
             ChannelNr, uiAsioChannels));
     // just create a mix channel
     return new AudioChannel(ChannelNr, Channel(ChannelNr % uiAsioChannels));
@@ -966,7 +968,7 @@ String AudioOutputDeviceAsio::Description() {
 }
 
 String AudioOutputDeviceAsio::Version() {
-    String s = "$Revision: 1.5 $";
+    String s = "$Revision: 1.6 $";
     return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
 }
 
