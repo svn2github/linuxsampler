@@ -1,3 +1,10 @@
+libgig (3.3.0-1) unstable; urgency=low
+
+  * changed package name to libgig6 according to Debian standards
+  * new release
+
+ -- Christian Schoenebeck <cuse@users.sourceforge.net>  Thu, 30 Jul 2009 09:13:47 +0200
+
 libgig (3.2.1-1) unstable; urgency=low
 
   * new release

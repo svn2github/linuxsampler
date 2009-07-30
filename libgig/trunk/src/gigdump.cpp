@@ -2,7 +2,7 @@
  *                                                                         *
  *   libgig - C++ cross-platform Gigasampler format file access library    *
  *                                                                         *
- *   Copyright (C) 2003-2006 by Christian Schoenebeck                      *
+ *   Copyright (C) 2003-2009 by Christian Schoenebeck                      *
  *                              <cuse@users.sourceforge.net>               *
  *                                                                         *
  *   This program is part of libgig.                                       *
@@ -93,10 +93,10 @@ void PrintFileInformations(gig::File* gig) {
     cout << "Global File Informations:" << endl;
     cout << "    Total instruments: " << gig->Instruments << endl;
     if (gig->pVersion) {
-       cout << "    Version: " << gig->pVersion->major   << "." 
+       cout << "    Version: " << gig->pVersion->major   << "."
                            << gig->pVersion->minor   << "."
                            << gig->pVersion->release << "."
-                           << gig->pVersion->build   << endl; 
+                           << gig->pVersion->build   << endl;
     }
     if (gig->pInfo) {
         if (gig->pInfo->Name.size())
@@ -401,7 +401,7 @@ void PrintDimensionRegions(gig::Region* rgn) {
 }
 
 string Revision() {
-    string s = "$Revision: 1.23 $";
+    string s = "$Revision: 1.24 $";
     return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
 }
 

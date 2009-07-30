@@ -22,6 +22,7 @@
  ***************************************************************************/
 
 #include <algorithm>
+#include <set>
 #include <string.h>
 
 #include "RIFF.h"
@@ -1383,6 +1384,10 @@ namespace RIFF {
 // *************** File ***************
 // *
 
+//HACK: to avoid breaking DLL compatibility to older versions of libgig we roll the new std::set<Chunk*> into the old std::list<Chunk*> container, should be replaced on member variable level soon though
+#define _GET_RESIZED_CHUNKS() \
+	(reinterpret_cast<std::set<Chunk*>*>(ResizedChunks.front()))
+
     /** @brief Create new RIFF file.
      *
      * Use this constructor if you want to create a new RIFF file completely
@@ -1398,6 +1403,8 @@ namespace RIFF {
      * @see AddSubChunk(), AddSubList(), SetByteOrder()
      */
     File::File(uint32_t FileType) : List(this) {
+        //HACK: see _GET_RESIZED_CHUNKS() comment
+        ResizedChunks.push_back(reinterpret_cast<Chunk*>(new std::set<Chunk*>));
         #if defined(WIN32)
         hFileRead = hFileWrite = INVALID_HANDLE_VALUE;
         #else
@@ -1422,6 +1429,8 @@ namespace RIFF {
       std::cout << "File::File("<<path<<")" << std::endl;
       #endif // DEBUG
         bEndianNative = true;
+        //HACK: see _GET_RESIZED_CHUNKS() comment
+        ResizedChunks.push_back(reinterpret_cast<Chunk*>(new std::set<Chunk*>));
         #if POSIX
         hFileRead = hFileWrite = open(path.c_str(), O_RDONLY | O_NONBLOCK);
         if (hFileRead <= 0) {
@@ -1607,7 +1616,8 @@ namespace RIFF {
 
         // first we sum up all positive chunk size changes (and skip all negative ones)
         unsigned long ulPositiveSizeDiff = 0;
-        for (std::set<Chunk*>::const_iterator iter = ResizedChunks.begin(), end = ResizedChunks.end(); iter != end; ++iter) {
+        std::set<Chunk*>* resizedChunks = _GET_RESIZED_CHUNKS();
+        for (std::set<Chunk*>::const_iterator iter = resizedChunks->begin(), end = resizedChunks->end(); iter != end; ++iter) {
             if ((*iter)->GetNewSize() == 0) {
                 throw Exception("There is at least one empty chunk (zero size): " + __resolveChunkPath(*iter));
             }
@@ -1663,7 +1673,7 @@ namespace RIFF {
         if (ulTotalSize < ulActualSize) ResizeFile(ulTotalSize);
 
         // forget all resized chunks
-        ResizedChunks.clear();
+        resizedChunks->clear();
     }
 
     /** @brief Save changes to another file.
@@ -1720,7 +1730,7 @@ namespace RIFF {
         if (ulTotalSize < ulActualSize) ResizeFile(ulTotalSize);
 
         // forget all resized chunks
-        ResizedChunks.clear();
+        _GET_RESIZED_CHUNKS()->clear();
 
         #if POSIX
         if (hFileWrite) close(hFileWrite);
@@ -1765,14 +1775,16 @@ namespace RIFF {
         #endif // POSIX
         DeleteChunkList();
         pFile = NULL;
+        //HACK: see _GET_RESIZED_CHUNKS() comment
+        delete _GET_RESIZED_CHUNKS();
     }
 
     void File::LogAsResized(Chunk* pResizedChunk) {
-        ResizedChunks.insert(pResizedChunk);
+        _GET_RESIZED_CHUNKS()->insert(pResizedChunk);
     }
 
     void File::UnlogResized(Chunk* pResizedChunk) {
-        ResizedChunks.erase(pResizedChunk);
+        _GET_RESIZED_CHUNKS()->erase(pResizedChunk);
     }
 
     unsigned long File::GetFileSize() {

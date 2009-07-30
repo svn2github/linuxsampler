@@ -1,4 +1,4 @@
-Version CVS HEAD (?)
+Version 3.3.0 (30 Jul 2009)
 
   * general changes:
     - fixed compilation with gcc 4.3
