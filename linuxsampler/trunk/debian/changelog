@@ -1,3 +1,9 @@
+linuxsampler (1.0.0-1) unstable; urgency=low
+
+  * New release.
+
+ -- Christian Schoenebeck <cuse@users.sourceforge.net>  Fri, 31 Jul 2009 09:10:43 +0200
+
 linuxsampler (0.5.1-1) unstable; urgency=low
 
   * New release.

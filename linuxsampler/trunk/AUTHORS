@@ -22,12 +22,13 @@ implementation.
 Andreas Persson made a lot of important fixes and improvents regarding the
 Gigasampler format handling. Especially the Gigasmpler v3 format support was
 developed by him. He also had his hands on a lot of quality improvements
-and bug fixes.
+and bug fixes and developed the base host plugin system and implemented
+support for the sampler being used as VST, DSSI and LV2 plugin.
 
 Grigor Iliev <grishata@users.sourceforge.net> added and implemented LSCP
 commands for muting and solo-ing sampler channels, added sostenuto pedal
-support, implemented the instruments database system and fixed a lot of
-bugs.
+support, implemented the instruments database system and the Audio Unit
+plugin version of the sampler for Mac and fixed a lot of bugs.
 
 Toshi Nagata was responsible for the current OS X port and added autoconf
 support to the XCode project file.
@@ -42,3 +43,6 @@ people:
     Till Wimmer
     Ronald Baljeu
     Alexis Ballier
+    Andrew Williams
+    Devin Anderson
+    Chris Cherrett

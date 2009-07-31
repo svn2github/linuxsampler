@@ -1,3 +1,19 @@
+Version 1.0.0 (30 July 2009)
+
+  This is the first release which allows the sampler to be used as audio
+  host plugin, namely supporting the standards VST, AU, DSSI and LV2. The
+  sampler's limits for max. voices & disk streams can now be altered at
+  runtime by frontends, no need to recompile the sampler anymore. The Mac
+  version now also supports CoreAudio as audio driver. The Windows version
+  finally supports the sampler's instruments DB feature as well, however
+  expect it still to be unstable at this point. Along to the already
+  existing JACK audio driver, Jack MIDI support has been added in this
+  release. The sampler allows frontends now basic MIDI control, that is to
+  monitor incoming MIDI data on MIDI input devices and sampler channels and
+  to send note-on and note-off MIDI events to sampler channels, which
+  allows frontends to provide a virtual MIDI keyboard to the user. Besides
+  these major changes there were countless bugfixes and optimizations.
+
 Version 0.5.1 (6 December 2007)
 
   This is the first release for the Windows platform, providing a MME MIDI
