@@ -1,4 +1,4 @@
-Version 1.0.0 (30 July 2009)
+Version 1.0.0 (31 July 2009)
 
   * packaging changes:
     - autoconf bugfix: the PKG_CONFIG variable wasn't initialized properly,

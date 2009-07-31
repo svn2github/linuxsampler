@@ -1,4 +1,4 @@
-Version 1.0.0 (30 July 2009)
+Version 1.0.0 (31 July 2009)
 
   This is the first release which allows the sampler to be used as audio
   host plugin, namely supporting the standards VST, AU, DSSI and LV2. The
