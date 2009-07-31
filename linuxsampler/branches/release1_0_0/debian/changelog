@@ -1,0 +1,61 @@
+linuxsampler (1.0.0-1) unstable; urgency=low
+
+  * New release.
+
+ -- Christian Schoenebeck <cuse@users.sourceforge.net>  Fri, 31 Jul 2009 09:10:43 +0200
+
+linuxsampler (0.5.1-1) unstable; urgency=low
+
+  * New release.
+  * DSSI and LV2 plugin binaries of the sampler now included with
+    liblinuxsampler package.
+
+ -- Christian Schoenebeck <cuse@users.sourceforge.net>  Fri, 27 Mar 2009 11:06:01 +0100
+
+linuxsampler (0.5.0-1) unstable; urgency=low
+
+  * fixed debian rules file for working with official release tarballs as
+    well (expected a Makefile.cvs file)
+  * don't strip binary (to allow debugging)
+  * abort packaging build process when Makefile.cvs failed
+    (only relevant to CVS versions of LinuxSampler)
+  * new release
+
+ -- Christian Schoenebeck <cuse@users.sourceforge.net>  Mon, 15 Oct 2007 00:28:03 +0200
+
+linuxsampler (0.4.0-1) unstable; urgency=low
+
+  * Updated packaging files for the library nature of LinuxSampler.
+  * Automatically generate Doxygen API documentation.
+  * Include NEWS file on installation.
+  * Include config.h on installation of liblinuxsampler-dev package.
+
+ -- Christian Schoenebeck <cuse@users.sourceforge.net>  Fri, 24 Nov 2006 18:28:51 +0100
+
+linuxsampler (0.3.3-1) unstable; urgency=low
+
+  * New release.
+
+ -- Christian Schoenebeck <cuse@users.sourceforge.net>  Fri, 15 Jul 2005 16:24:20 +0200
+
+linuxsampler (0.3.2-1) unstable; urgency=low
+
+  * New release.
+
+ -- Christian Schoenebeck <cuse@users.sourceforge.net>  Fri, 24 Jun 2005 00:29:51 +0200
+
+linuxsampler (0.3.cvs20050602-1) unstable; urgency=low
+
+  * Fixed original make problems stopping multiport builds.
+  * fixed other man and depends issues (Closes: #311431)
+
+ -- Matt Flax <flatmax@pgb.unsw.edu.au>  Thu,  2 Jun 2005 17:55:50 +1000
+
+linuxsampler (0.3.cvs20050531-1) unstable; urgency=low
+
+  * Fixed libtool error by applying :
+    http://lists.debian.org/debian-devel/1998/02/msg01322.html
+  * Fixed debian dir. for packaging (Closes: #279933)
+  * Initial Release (by Cristian S.).
+
+ -- Matt Flax <flatmax@pgb.unsw.edu.au>  Mon, 21 Mar 2005 23:57:39 +1100

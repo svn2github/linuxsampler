@@ -1,0 +1,603 @@
+Version 1.0.0 (31 July 2009)
+
+  * packaging changes:
+    - autoconf bugfix: the PKG_CONFIG variable wasn't initialized properly,
+      causing e.g. the libgig test to fail when
+      "./configure --disable-jack-driver" was used
+      (patch by Alexis Ballier)
+    - fixed compilation with gcc 4.3
+    - fixes for building on OS X (thanks to Ebrahim Mayat for testing)
+    - fixed configure so it detects x86_64 (#107)
+    - fixes for building with newer MinGW versions
+    - fix for building with bison 2.4 (#111)
+    - fixed building with libgig installed in a non-standard directory
+    - minor fix in configure for mmsystem.h detection on MinGW
+    - Windows: look for editor plugins and Fantasia using base
+      directory of liblinuxsampler dll (look in the same directory and one
+      directory above)
+    - configure script fix: removed unconditional use of SSE
+    - fixed building with sqlite installed in a non-standard directory
+    - when cross-compiling, don't try to create instruments.db
+    - fix for new mingw-w64 version, which has usleep
+
+  * general changes:
+    - bugfix: on some POSIX systems instrument editor plugins refused to
+      load as we used a non-portable Linux specific struct field
+      (fixes bug #70, patch by Ronald Baljeu)
+    - fixed endless loop which occured when loading an instrument editor
+      plugin DLL on Windows systems failed
+    - fixed memory leaks that occurred when liblinuxsampler was unloaded
+    - optimized the SynchronizedConfig class so it doesn't wait
+      unnecessarily long after an update
+    - added support for notifying instrument editors on note-on / note-off
+      events (e.g. to highlight the pressed keys on the virtual keyboard
+      of gigedit)
+    - added support for triggering notes by instrument editors (see above)
+    - be verbose on DLL load errors (on Linux)
+    - fixed di-harmonic triangle LFO implementation (this LFO implementation
+      is only used by very few systems, most pick the int math
+      implementation, which is usually faster)
+    - fixes for audio drivers with varying buffer sizes
+    - experimental support for running LinuxSampler as a DSSI, LV2 and
+      VST plugin
+    - notification events for stream/voice count statistics are now sent
+      only when there are actual changes
+    - added memory ordering constraints to improve stability on
+      multi-core and multi-cpu systems
+    - maximum voices and disk streams can now be altered at runtime
+    - fixed CPU feature detection on x86_64 (maybe fixes #108)
+    - automatic stacktrace mechanism is now turned off by default and can
+      be switched on by command line option "--stacktrace" (the automatic
+      stacktrace mechanism seems to be broken on most systems at the moment)
+    - C++ API method InstrumentManager::LaunchInstrumentEditor() now returns
+      a pointer to the launched InstrumentEditor object
+    - added optional 3rd party user data parameter for following
+      liblinuxsampler C++ API methods: InstrumentEditor::Main(),
+      InstrumentEditor::Launch(),
+      InstrumentManager::LaunchInstrumentEditor()
+    - theoretical fix: made SynchronizedConfig follow C++0x memory
+      model more strictly
+    - fixes for using large audio device buffers
+    - Windows: add the installation directory to the DLL search path
+      when loading an editor plugin (solves problems with VST and
+      gigedit on systems with other GTK versions installed)
+
+  * audio driver:
+    - removed the nonsense audio channel constraint (which was hard coded to
+      max. 100 audio channels) for most audio drivers
+    - JACK audio driver did not offer a device parameter "SAMPLERATE" as
+      opposed to the LSCP specs
+    - bugfix: the SAMPLERATE parameter of some drivers (e.g. JACK)
+      reflected the wrong value
+    - fixed a memory management bug in ASIO driver
+    - Makefile fix: JACK_CFLAGS wasn't used
+    - JACK: use jack_client_open instead of the deprecated
+      jack_client_new
+    - added (experimental) CoreAudio driver
+    - applied old fixes to the ASIO driver that were included in the
+      previous binary release but accidentally never committed to CVS
+      (fixes #117)
+    - fixes for ASIO on mingw-w64 (iasio wrapper is not needed on
+      win64)
+    - VST: added support for sample rate and buffer size changes
+    - VST: close editor (Fantasia) when the VST is removed
+    - VST: avoid opening Fantasia more than once for each VST instance
+    - VST: export main function as "main" on Linux too (fix for
+      energyXT)
+    - VST: changed number of output channels from one stereo to 16
+      stereo
+    - added channel routing, fxsends and midi maps to the settings
+      stored in the plugin state
+    - performance optimization of AudioChannel::MixTo() and
+      AudioChannel::CopyTo() methods using GCC vector exensions
+      (if available)
+    - ASIO fixes: avoid initializing the device twice, avoid throwing
+      exception when getting parameters from a disconnected device
+
+  * MIDI driver:
+    - added JACK MIDI driver
+    - dispatch bank select as ordinary CC as well, the user might seriously
+      want to (mis)use it for some purpose ("fixed" in all current MIDI
+      input drivers: ALSA, CoreMIDI, JACK, MidiShare, MME)
+    - bugfix: pitch bend wasn't working with JackMidi, VST, LV2, MME,
+      CoreMidi or AU
+    - fixed mingw-w64 compilation error in MME driver
+    - made program change handling in MIDI thread real-time safe by
+      moving the logic to a non-RT thread
+    - fixed minor memory leak in ALSA driver
+
+  * instruments database:
+    - avoid time consuming samples scanning when adding instruments
+      to the instruments database
+    - added support for handling lost files in the instruments database
+    - Implemented option for adding instruments in separate directories
+      in the instruments database
+      (patch by Chris Cherrett & Andrew Williams, a bit adjusted)
+    - work-around for missing fnmatch function on Windows to make
+      instrument database compilable
+    - added instrument database support on Windows
+      works with both standalone mode and VST plugin.
+      the instruments DB file is located in
+      %USERPROFILE%\.linuxsampler\instruments.db which allows different
+      databases for each windows user
+      if no DB is present it automatically creates the .linuxsampler subdir
+      and then creates an empty DB
+    - fixed recursive import, which was broken on Windows
+
+  * Gigasampler format engine:
+    - fixed a memory leak that could happen when a channel was deleted
+      while notes were playing
+    - made it possible to load an instrument even if the audio thread
+      isn't running
+    - added partial support for the "Controller Triggered" MIDI rule,
+      enough for piano gigs with pedal noise samples
+    - minor fix: only mark FX sends as being modified if really the
+      respective FX send MIDI controller was used
+    - added support for GM global device volume SysEx message
+      (can be selected at compile time to either apply globally to the
+      whole sampler [default] or only to the sampler channels that are
+      connected to the respective MIDI input port the SysEx message arrived
+      on)
+    - bugfix: notes triggered at position 0 in the audio buffer were
+      sometimes wrongly killed in the same buffer, causing no sound to
+      be played
+    - added support for chromatic / drumkit mode Roland GS Sysex message
+      which is usally used to switch a part between chromatic sounds and
+      drumkit sounds (as opposed to their common default setting of MIDI
+      part 10 being a drumkit part and all other ones chromatic parts), in
+      LS however one can switch between the first 16 MIDI instrument maps
+      defined for the sampler
+    - made it possible to create multiple sample channels even if the
+      audio thread isn't running
+    - fixed crash when removing channel with active voices (#116)
+    - bugfix: on sample reference changes (instrument editor), only
+      un-cache the respective sample if it's really not used by any
+      sampler engine anymore
+    - re-cache samples in case they were changed by an instrument editor,
+      e.g. when a sample was added while playing (#82)
+    - fixed hanging notes which occured when note-off event had the exact
+      same time stamp as the voice's note-on event and occured both in the
+      same audio fragment cycle (fixes bug #112)
+    - added support for the "fine tune" and "pitch bend range"
+      instrument-level gig parameters
+    - fixed minor artifacts in pitch bend handling
+    - added support for GS Reset SysEx message
+    - allow gig files to use unlimited downward pitch shifting
+    - added a limit check for upward pitch shifting
+    - bugfix: sometimes, when playing a note twice fast, the second
+      note was silent
+    - fixed crash happening when a pitch bend event arrived at the
+      same time a new instrument was loading
+
+  * LSCP server:
+    - added new LSCP event "CHANNEL_MIDI" which can be used by frontends to
+      react on MIDI data arriving on certain sampler channels (so far only
+      Note-On and Note-Off events are sent via this LSCP event)
+    - added new LSCP event "DEVICE_MIDI" which can be used by frontends to
+      react on MIDI data arriving on certain MIDI input devices (so far only
+      Note-On and Note-Off events are sent via this LSCP event)
+    - added new LSCP commands: FIND LOST DB_INSTRUMENT_FILES and
+      SET DB_INSTRUMENT FILE_PATH
+    - added new LSCP command: SEND CHANNEL MIDI_DATA which can be used by
+      frontends to send MIDI messages to specific sampler channel
+    - added two additional fields to GET FILE INSTRUMENT INFO command -
+      KEY_BINDINGS and KEYSWITCH_BINDINGS
+    - bugfix: the bank number provided by MIDI_INSTRUMENT_INFO notifications
+      was incorrect
+    - Optimized the retrieval of the MIDI instrument mappings
+    - added new LSCP command "SET VOICES" to globally alter the maximum
+      amount of voices, added new LSCP event "GLOBAL_INFO:VOICES" which will
+      be triggered respectively
+    - added new LSCP command "SET STREAMS" to globally alter the maximum
+      amount of disk streams, added new LSCP event "GLOBAL_INFO:STREAMS"
+      which will be triggered respectively
+    - bugfix: retry if "select" returns EINTR (this fixes a crash when
+      a gigedit file dialog is opened)
+    - close all connections when LSCPServer is deleted
+    - hard close of all sockets on exit
+    - bugfix: SET CHANNEL MIDI_INPUT_TYPE didn't work with the MME
+      driver
+
+  * Bug fixes:
+    - fixed a crash which occurs when removing a sampler channel waiting
+      to start instrument loading after another channel
+    - fixed a crash which occurs when removing a sampler channel with
+      instrument loading in progress (bug #113)
+    - fixed termination caused by uncaught exception when adding MIDI
+      instrument with PERSISTENT load mode
+    - fixed possible iterator invalidations when resetting the sampler
+    - fixed memory leaks when issuing the following LSCP commands:
+      GET AUDIO_OUTPUT_DRIVER INFO
+      GET AUDIO_OUTPUT_DRIVER_PARAMETER INFO
+      GET MIDI_INPUT_DRIVER INFO
+      GET MIDI_INPUT_DRIVER_PARAMETER INFO
+    - fixed possible compilation error when sqlite is not present
+    - fixed orphaned pointers when setting maximum voices limit (bug #118)
+    - fixed crash when changing the audio output device of a sampler
+      channel with loaded instrument and start playing notes
+    - fixed endless loop in Engine::SuspendAll() (bug #120)
+    - fixed a low-level atomic load function that was broken on 64-bit
+      PowerPC, which probably could cause crashes on that platform
+    - fixed a memory management error which could cause a crash when a
+      plugin was unloaded
+    - bugfix: two private structs had the same name, which could cause
+      problems if the linker chose the wrong constructor
+    - fixed low-level ConditionServer usage bug that caused lockups on
+      Windows
+
+
+Version 0.5.1 (6 December 2007)
+
+  * packaging changes:
+    - added autoconf checks for pthread library
+    - added autoconf check for pthread bug found on certain NPTL-enabled
+      glibc versions (see Gentoo bug report #194076)
+    - added autoconf checks for MS Windows
+
+  * general changes:
+    - bugfix: the thread used by an editor plugin didn't die when the
+      editor closed
+    - bugfix: Ringbuffer.h: fill_write_space_with_null() did not zero
+      out all the space. operator--() did not apply size_mask after
+      decrementing the read_ptr. DEFAULT_WRAP_ELEMENTS set to 0 in
+      order to avoid problems with the _NonVolatileReader functions.
+    - bugfix: Stream.h: added a missing divide by BytesPerSample in
+      GetWriteSpace(). Since this function is currently only used in
+      the stream's qsort() compare function, it didn't trigger any
+      bugs.
+    - Resampler.h, Synthesizer.h: cubic interpolation now works in
+      24bit mode too. Faster method to read 24bit words on little
+      endian machines (x86): replaced 3 byte reads + shifts with a 1
+      unaligned 32bit read and shift
+    - experimental support for MS Windows (MIDI input via MME, AUDIO
+      output via ASIO)
+    - made handling of SIGINT signal (Ctrl-C) a bit more robust
+    - support for monitoring the total number of active disk streams
+      (new LSCP commands: GET TOTAL_STREAM_COUNT,
+      SUBSCRIBE TOTAL_STREAM_COUNT, UNSUBSCRIBE TOTAL_STREAM_COUNT)
+
+  * AUDIO driver:
+    - added Windows ASIO low latency audio driver
+
+  * MIDI driver:
+    - added MME Windows MIDI driver
+
+  * LSCP server:
+    - added support for Windows style path / filenames, however with
+      forward slash path separators instead of backslash
+      (i.e. "C:/foo/bar.gig")
+    - allow naughty liblscp to send non-string device parameters within
+      apostrophes as well
+    - added new LSCP commands: "GET FILE INSTRUMENTS <file>",
+      "LIST FILE INSTRUMENTS <file>" and
+      "GET FILE INSTRUMENT INFO <file> <index>" for retrieving informations
+      about an arbitrary instrument file on the system where the sampler is
+      running on
+
+Version 0.5.0 (15 October 2007)
+
+  * packaging changes:
+    - config.h is not going to be installed along with liblinuxsampler's
+      API header files anymore
+    - only the API relevant header (and source) files will be exported to
+      the Doxygen API documentation (explicitly listed in Doxyfile.in)
+    - added completely new XCode project files for Mac OSX which is now
+      capable to execute our autoconf environment, thus no need anymore
+      to maintain the compile time configuration file (osx/version.h) for
+      OSX manually (patch by Toshi Nagata)
+    - fixed buggy boolean --enable-foo / --disable-foo configure script
+      parameters
+    - global.h now only covers global definitions that are needed for the
+      C++ API header files, all implementation internal global definitions
+      are now in global_private.h
+    - atomic.h is not exposed to the C++ API anymore
+    - no need to include config.h anymore for using LS's API header files
+    - fixed warnings in API doc generation
+
+  * general changes:
+    - replaced the old, confusing MIDI program change mechanism by a
+      flexible MIDI instrument mapper which allows to map arbitrary
+      (MIDI bank, MIDI program) pairs with arbitrary
+      (engine type, instrument file, file index) triplets which will be
+      loaded on the respective channel when such MIDI program change
+      messages arrive, beside that, each entry allows to define a life-time
+      strategy for the instrument, so the user can define whether the
+      instrument should i.e. be permanently loaded (to be able to switch
+      quickly among sounds) or i.e. loaded just on demand when the
+      respective program change arrives (to safe RAM space), as well as a
+      global volume factor for each entry, so the user can adjust the volume
+      dynamic of his mapped instrument collection without having to modify
+      the instrument files, also one can manage arbitrary amount of such
+      MIDI instrument maps and assign each sampler channel individually
+      a certain map, so that i.e. separation of normal instruments and
+      drumkits is possible
+    - new notification events for tracking changes to audio/MIDI devices,
+      MIDI instrument maps, MIDI instruments, FX sends, global volume.
+    - sampler was limited to load max. 200 instruments in the background
+      due to a constant size RingBuffer FIFO which is now replaced by a
+      dynamic (unlimited) size std::list FIFO
+    - added FX sends, these allow to route audio signals to arbitrary audio
+      output channels for being processed by external effect processors
+      (i.e. jack-rack), the send levels are controllable via arbitrary MIDI
+      controllers
+    - global (sampler wide) volume can now be controlled at runtime
+    - Implemented new, improved notification system
+    - fixed compilation errors regarding OSX
+      (patch by Toshi Nagata)
+    - implemented instruments database
+    - added support for escape sequences to the instruments database
+    - added highly experimental support for on-the-fly instrument editing
+      within the sampler's process (by using instrument editor plugins),
+      you'll notice the new "Registered instrument editors:" message on
+      startup, added a new LSCP command:
+      "EDIT CHANNEL INSTRUMENT <sampler-channel>"
+      to spawn a matching instrument editor for the instrument on the
+      given sampler channel, the plugin path can be overridden at compile
+      time with ./configure --enable-plugin-dir=/some/dir
+    - added experimental code for synchronizing instrument editors hosted
+      in the sampler's process to safely edit instruments while playing
+      without a crash (hopefully) by either suspending single regions
+      wherever possible or if unavoidable whole engine(s)
+    - fixed several issues in fundamental "Thread" class: set scheduling
+      policy and priority on thread level, set a minimum stack size for
+      thread (TODO: a reasonable value yet to be tested), bugfix: non-RT
+      threads simply inherited properties of starting thread instead of
+      setting their own policy and priority
+    - minor fix in our automatic stack trace mechanism on crashes, the
+      main process did not wait for the stack trace process to finish
+      its output
+    - fixed some minor memory leaks
+    - reenabled assembly features support, at the moment only for
+      enabling a fast denormal FPU mode (x86 platforms supporting SSE2)
+    - minor assembly fix in x86 features detection (don't use the PIC
+      register, to avoid relocations in the text segment at runtime)
+    - POSIX callback functions of Thread.h are hidden
+
+  * MIDI driver:
+    - dispatch bank select (MSB and LSB) messages
+
+  * audio driver:
+    - the ALSA audio output driver parameters now reflect the correct
+      parameter value ranges for the respective selected sound card
+      (patch by Till Wimmer, a bit fixed and extended)
+
+  * Gigasampler format engine:
+    - if a filter is used and EG2 finishes before EG1, let the voice
+      die when EG2 has finished (this fixes a problem with clicks and
+      voice starvation for some gigs)
+    - playback is no longer disabled during instrument loading
+    - all notes playing on a channel that changes its instrument keep
+      playing with the old instrument until they get a note off
+      command
+    - EG fix: a release value of zero could cause noises or crash
+    - handle MIDI coarse tuning messages (MIDI RPN #0 MSB #2 LSB)
+    - EG fine tuning: when attack is zero the EG starts at a level
+      above max sustain level, which means that there is a decay phase
+      even if sustain is 100%
+    - more EG fixes: the level could sometimes go below zero and cause
+      noises or crashes
+    - minor fix of EGDecay (patch by Toshi Nagata)
+    - fixed compiler error when --enable-override-filter-type was
+      supplied to the configure script (fixes #46)
+    - disk thread: queue sizes are now proportional to CONFIG_MAX_STREAMS
+      instead of a fix value
+    - behavior fix: on MIDI CC# 65 (portamento on / off), 126 (mono mode),
+      127 (solo mode) only kill voices if the respective mode really
+      changed
+
+  * LSCP server:
+    - fixed compile time error for old Bison versions
+      (i.e. v1.28 found on MacOS 10.4, patch by Toshi Nagata)
+    - parser now supports extended ASCII character set
+      (up to ASCII code 255, i.e. includes now umlauts and accents)
+    - filename arguments in LSCP commands now allow to use escape
+      sequences, that is directly literal as one of: \', \", \\, \n, \r,
+      \f, \t, \v, or as octal ASCII code value like \132, or as hex ASCII
+      code value like \xf2) (fixes bug #24)
+    - the following LSCP commands now also support escape sequences for at
+      least one of their text-based parameters (i.e. name, description):
+      "ADD MIDI_INSTRUMENT_MAP", "MAP MIDI_INSTRUMENT",
+      "SET MIDI_INSTRUMENT_MAP NAME", "SET FX_SEND NAME", "CREATE FX_SEND",
+      "SET DB_INSTRUMENT_DIRECTORY NAME",
+      "SET DB_INSTRUMENT_DIRECTORY DESCRIPTION", "SET DB_INSTRUMENT NAME",
+      "SET DB_INSTRUMENT DESCRIPTION", "FIND DB_INSTRUMENTS",
+      "FIND DB_INSTRUMENT_DIRECTORIES"
+    - returns verbose syntax errors (line and column where syntax error
+      occured, the unexpected character and the actually expected, possible
+      character(s), the latter only if less than 5 possibilities)
+    - made sure that LSCP syntax is not affected by gigedit locale
+      settings
+    - bugfix regarding strings parameter lists: all comma separated lists
+      of strings were treated as being one string containing commas
+      (fixes #57)
+
+  * Bug fixes:
+    - fixed crash occurring on certain LSCP scripts (Bug 39)
+    - another thread safety fix for lscp "load engine" and "set
+      channel audio output device"
+    - fixed a crash which occurs when reassigning the same engine
+      on a sampler channel with connected MIDI device
+    - fixed a crash which occurs when changing the number of ports of a MIDI
+      device connected to a sampler channel to number less then or equal
+      to the index of the port to which the sampler channel is connected.
+    - The previous bindings were not been disconnected when altering
+      the ALSA_SEQ_BINDINGS parameter. Introduced a NONE keyword for
+      unsubscribing from all bindings (e.g. ALSA_SEQ_BINDINGS=NONE).
+    - The active stream/voice count statistic was incorrect.
+    - notification events were not been sent for some sampler
+      channel changes
+    - added default min and max values to restrict the number of allowed
+      audio output channels and MIDI input ports
+    - the connection to the PCM interface is now closed when destroying
+      an audio output device
+    - files with slash in their path or filename could not be loaded
+
+  * test cases:
+    - updated and fixed (haven't been touched in a while)
+
+Version 0.4.0 (24 November 2006)
+
+  * packaging changes:
+    - changed deprecated copyright attribute to license; added ldconfig
+      to post-(un)install steps; added devel package for liblinuxsampler;
+      to linuxsampler.spec (RPM)
+    - install necessary development header files for allowing 3rd party
+      applications to link against liblinuxsampler
+    - liblinuxsampler's API documentation can be generated with 'make docs'
+      (Doxygen required)
+    - added benchmark to automatically detect the best triangle LFO
+      implementation (currently either an integer math solution or a
+      di-harmonic approximation), automatic detection can be overriden
+      with --enable-signed-triang-algo=x and --enable-unsigned-triang-algo=x
+      configure script argument though (mandatory for cross-compilation)
+    - do not automatically pick optimized gcc flags if the user already
+      provided some on his own (as CXXFLAGS)
+    - added compile time option to disable processing of All-Notes-Off MIDI
+      messages
+    - added compile time options to allow disabling the various audio and
+      MIDI drivers
+    - fixed automatic GCC CPU switch detection on PPC
+      (patch by Ebrahim Mayat)
+
+  * Gigasampler format engine:
+    - extensive synthesis optimization
+      (reimplementation of EGs and LFO(s), removed synthesis parameter
+      prerendering and the synthesis parameter matrix in general, splitting
+      each audio fragment into subfragments now where each subfragment uses
+      constant pitch and filter coefficients. The volume coefficient is
+      linearly interpolated inside a subfragment, unless
+      --disable-interpolate-volume is set.)
+    - fine tuning of the EG modulation parameters
+    - improved filter cutoff calculation by adding support for the
+      following gig parameters: Cutoff freq (used when no cutoff
+      controller is defined), Control invert, Minimum cutoff, Velocity
+      curve and Velocity range. The keyboard tracking now scales
+      cutoff frequency instead of resonance.
+    - added support for gig parameter Resonance.
+    - fixed bug in sysex handling (patch by Juan Linietsky)
+    - added global volume attenuation of -9 dB (0.35f) to prevent clipping
+      which can be overridden with --enable-global-attenuation
+    - EG fixes: made the length of "attack hold" stage more
+      accurate. Release stage can now start before attack stage
+      ends. Cancel release didn't work when sustain was zero. Attack
+      time now has a minimal value to prevent clicks.
+    - fixed pitch changes larger than one octave
+    - fixed EG3 (pitch envelope) synthesis which was neutral all the time
+    - implemented portamento mode and solo mode (a.k.a 'mono mode'):
+      all modes can be altered via standard GM messages, that is CC5 for
+      altering portamento time, CC65 for enabling / disabling portamento
+      mode, CC126 for enabling solo mode and CC127 for disabling solo mode
+    - fine tuning of the curves for volume (CC7), pan (CC10 and gig
+      parameter) and crossfade
+    - added support for the "attenuation controller threshold" gig
+      parameter
+    - added smoothing of volume changes caused by control change
+      messages
+    - sample loop parameters are now taken from the DimensionRegion
+      instead of the wave chunk
+    - fixed keyswitching for v3 gigs with a number of keyswitch splits
+      not equal to a power of two
+    - reimplementation of the filter algorithm. The new filter is more
+      accurate and supports all gig filter types, including bandreject
+      and lowpass turbo.
+    - real support for 24 bit samples - samples are not truncated to
+      16 bits anymore
+    - support for aftertouch (channel pressure, not polyphonic
+      aftertouch)
+    - LFO1 behaviour fixed (dampening from max volume instead of
+      amplifying from 0)
+
+  * LSCP server:
+    - fixed application exit on broken pipe error (fixes bug #20)
+    - fixed the notification messages delay due to lack of
+      network activity (fixes bug #26)
+    - fixed parser bug which occured on space(s) within device parameters
+      (e.g. "SET AUDIO_OUTPUT_CHANNEL_PARAMETER 0 0 SOMEPARAM='foo bar'")
+
+  * audio driver:
+    - added aRts audio output driver (by no means RT safe)
+
+  * MIDI driver:
+    - fixed legacy sysex code which caused dispatching of MIDI SysEx
+      messages several times instead of once
+    - API extension for MIDI drivers which already supply exact time stamps
+      for events (i.e. for offline rendering based MIDI drivers)
+    - added checks for bad MIDI data
+
+  * linuxsampler application:
+    - show available sampler engine types on startup
+
+  * general changes:
+    - support for muting sampler channels and solo mode of the same, two new
+      LSCP commands ("SET CHANNEL MUTE" and "SET CHANNEL SOLO") and two new
+      fields ("MUTE" and "SOLO") for command "GET CHANNEL INFO" were
+      introduced for this, the behavior is the same like on a mixer console
+      (patch by Grigor Iliev, a bit adjusted). Also added configure option
+      --enable-process-muted-channels which can be used to enable the
+      processing of muted channels.
+    - support for sostenuto pedal
+    - support for monitoring the total number of active voices
+      (new LSCP commands: GET TOTAL_VOICE_COUNT, GET TOTAL_VOICE_COUNT_MAX,
+      SUBSCRIBE TOTAL_VOICE_COUNT, UNSUBSCRIBE TOTAL_VOICE_COUNT)
+    - fixed some memory management errors
+    - fixed some concurrency problems that could lead to crashes when
+      LSCP commands were executed
+    - fixed crash when instrument loading failed previously on the same
+      sampler channel (fixes bug #36)
+
+Version 0.3.3 (15 July 2005)
+
+  * packaging changes:
+    - fixed compilation with gcc 4.0
+
+  * Gigasampler format engine:
+    - LFO preprocessing was performed even though the respective LFO was
+      disabled by the instrument patch (minor efficiency fix)
+    - if period time of chosen audio device is too small (< MIN_RELEASE_TIME)
+      for volume ramp downs in the same fragment (needed for current voice
+      stealing implementation) then simply inform the user with a warning
+      about possible click sounds and reduce the volume ramp down
+      appropriately instead of cancelling the audio device connection
+
+Version 0.3.2 (24 June 2005)
+
+  * packaging changes:
+    - updated autotools build files to compile on OS X
+      (conditional compilation of CoreMIDI and MidiShare drivers)
+    - hand-crafted assembly optimization code can be disabled with
+      './configure --disable-asm' (definitely not recommended)
+    - fixed 'make dist' rule to include all necessary files
+    - require automake (>= 1.5) for 'make -f Makefile.cvs'
+      (due to 'dist-bzip2' automake option)
+
+  * Gigasampler format engine:
+    - support for the gig parameters for "release velocity response" curves
+    - fine tuning of the EGADSR envelope
+    - volume of release triggered samples now depends on note-on velocity,
+      note length and gig parameter "release trigger decay" instead of
+      note-off velocity.
+    - revised voice stealing
+      (fixes crash and endless loop caused by voice stealing)
+    - don't reset scale tuning on instrument or audio output device change
+    - handle key group conflicts right at the beginning of each fragment
+      instead of when the respective voice is actually launched
+      (fixes undefined behavior if stolen voices belonged to a key group -
+      this case was followed by a "killed voice survived" error message)
+    - fixed minor issue with null/silence samples
+      (those stole voices even though they don't need a voice at all which
+      resulted in "voice stealing didn't work out" messages)
+    - don't reset volume, pan, pitch and MIDI controller values on
+      instrument or audio output device change
+
+  * LSCP server:
+    - fixed some crashes (patch by Grigor Iliev, fixes #19)
+    - fixed LSCP event "CHANNEL_INFO" notification
+      (e.g. did not notify on volume changes or MIDI program change events)
+
+  * linuxsampler application:
+    - added command line parameters --lscp-addr and --lscp-port to override
+      default IP address and port of LSCP server
+
+Version 0.3.1 (24 May 2005)
+
+  * initial release

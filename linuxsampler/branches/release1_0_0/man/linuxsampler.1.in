@@ -1,0 +1,54 @@
+.TH "linuxsampler" "1" "15 Oct 2007" "linuxsampler @VERSION@" "User Manuals"
+.SH NAME
+linuxsampler \- modular, streaming capable sampler
+.SH SYNOPSIS
+.B linuxsampler
+[OPTIONS]
+.SH DESCRIPTION
+LinuxSampler is a modular, streaming capable sampler. The sampler is designed as
+backend, that is server-like console application. You will need a frontend
+application like QSampler or JSampler to control the sampler and manage sampler
+sessions. Or you have to send LSCP commands manually to the sampler e.g. by
+using telnet or netcat.
+.SH OPTIONS
+.IP "--help"
+Print command line help and exit.
+.IP "--version"
+Print version information and exit.
+.IP "--profile"
+Output benchmark messages on the console. This reflects the current
+efficiency as abstract BogoVoice count which is something like a
+theoretical limit of the amount of voices which can be rendered in the given
+scenario. It does not include all aspects of the sampler, that's why this
+value is usually higher than what you really can achieve on your box. Also
+note that this value is as well dependant on what instrument patch you are
+using and what you are playing.
+For a compact synthesis core benchmark, independent from drivers and
+instrument files, you might want to use the one coming with the sampler's
+source files instead (directory "benchmarks" of the source files).
+.IP "--no-tune"
+Disable assembly optimizations. Usually the sampler will detect CPU specific
+features like MMX and SSE at runtime and use an appropriate assembly
+optimized code in that case. With that switch you can disable this feature
+and force the sampler to skip the assembly optimizations at runtime.
+.IP "--statistics"
+Output voice and disk stream count periodically on the console.
+.IP "--lscp-addr IPADDRESS"
+Defines IP address on which the LSCP server should listen to (default: any).
+.IP "--lscp-port NUMBER"
+Defines TCP port on which the LSCP server should listen to (default: 8888).
+.IP "--create-instruments-db FILE"
+Creates a database file with the given filename which can be used by the
+sampler's instruments database system to maintain the user's collection of
+instrument libraries. When this argument is given, the sampler will just
+create the instruments DB file and exit.
+.IP "--instruments-db-location FILE"
+Overrides the location of the database file, which the sampler shall use for
+its instruments database system
+(default: @config_default_instruments_db_file@).
+.SH "SEE ALSO"
+qsampler(1)
+.SH "BUGS"
+Report bugs to http://bugs.linuxsampler.org
+.SH "Author"
+Written by Christian Schoenebeck <cuse@users.sf.net>
