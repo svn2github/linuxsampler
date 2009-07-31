@@ -1,6 +1,6 @@
 %define name    @PACKAGE@
 %define version @VERSION@
-%define release 1
+%define release 2
 %define prefix  @prefix@
 
 Summary:	instrument editor for Gigasampler files
@@ -51,5 +51,7 @@ if [ -d $RPM_BUILD_ROOT ]; then rm -rf $RPM_BUILD_ROOT; fi
 %{prefix}/share/locale/*
 
 %changelog
+* Fri Jul 31 2009 Christian Schoenebeck <cuse@users.sourceforge.net>
+- Going for release 0.2.0
 * Sat Jan 10 2009 Christian Schoenebeck <cuse@users.sourceforge.net>
 - Created initial gigedit.spec (patch by Devin Anderson, slightly modified)
