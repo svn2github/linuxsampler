@@ -919,6 +919,11 @@ void MainWindow::on_action_help_about()
 {
 #ifdef ABOUT_DIALOG
     Gtk::AboutDialog dialog;
+#if (GTKMM_MAJOR_VERSION == 2 && GTKMM_MINOR_VERSION >= 12) || GTKMM_MAJOR_VERSION > 2
+    dialog.set_program_name("Gigedit");
+#else
+    dialog.set_name("Gigedit");
+#endif
     dialog.set_version(VERSION);
     dialog.set_copyright("Copyright (C) 2006-2009 Andreas Persson");
     dialog.set_comments(_(

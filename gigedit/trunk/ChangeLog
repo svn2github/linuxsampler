@@ -1,4 +1,4 @@
-Version CVS HEAD (?)
+Version 0.2.0 (2009-07-31)
 
   * fixed file properties dialog - properties now can be edited
   * gig files where regions are not internally ordered are now handled

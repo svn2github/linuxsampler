@@ -1,3 +1,12 @@
+Version 0.2.0 (2009-07-31)
+
+  When gigedit is running as a plugin in LinuxSampler the gigedit
+  keyboard may now be used to trigger notes. The settings in the file
+  properties window are now editable. A new function for replacing all
+  samples is added. Otherwise this is mostly a bug fix release, and
+  upgrading gigedit and libgig is strongly recommended, as previous
+  versions had bugs that may cause edited gig files to be corrupted.
+
 Version 0.1.1 (2007-12-06)
 
   Parameter edits can now be applied to multiple regions and dimension

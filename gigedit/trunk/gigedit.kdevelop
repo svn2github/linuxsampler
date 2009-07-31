@@ -3,7 +3,7 @@
   <general>
     <author>Andreas Persson</author>
     <email>linuxsampler-devel@lists.sourceforge.net</email>
-    <version>0.1.0</version>
+    <version>0.2.0</version>
     <projectmanagement>KDevAutoProject</projectmanagement>
     <primarylanguage>C++</primarylanguage>
     <keywords>

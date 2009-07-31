@@ -13,5 +13,4 @@ libgigeditlinuxsamplerplugin_la_LIBADD = \
 libgigeditlinuxsamplerplugin_la_CXXFLAGS = \
 	$(LINUXSAMPLER_CFLAGS)
 libgigeditlinuxsamplerplugin_la_LDFLAGS = \
-	-version-info @SHARED_VERSION_INFO@ @SHLIB_VERSION_ARG@ \
-	-module -no-undefined
+	-module -avoid-version -no-undefined

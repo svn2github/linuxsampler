@@ -6,8 +6,8 @@ AC_CONFIG_AUX_DIR([.])
 # The following is the current, official release version of gigedit:
 
 GIGEDIT_VER_MAJOR=0
-GIGEDIT_VER_MINOR=1
-GIGEDIT_VER_RELEASE=1
+GIGEDIT_VER_MINOR=2
+GIGEDIT_VER_RELEASE=0
 
 #------------------------------------------------------------------------------------
 # The following is the libtool / shared library version. This doesn't have to
@@ -26,7 +26,7 @@ GIGEDIT_VER_RELEASE=1
 #  6. If any interfaces have been removed since the last public release, then set age
 #     to 0.
 
-LIBGIGEDIT_LT_CURRENT=1
+LIBGIGEDIT_LT_CURRENT=2
 LIBGIGEDIT_LT_REVISION=0
 LIBGIGEDIT_LT_AGE=0
 
