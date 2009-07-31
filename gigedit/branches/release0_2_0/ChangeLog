@@ -1,0 +1,119 @@
+Version 0.2.0 (2009-07-31)
+
+  * fixed file properties dialog - properties now can be edited
+  * gig files where regions are not internally ordered are now handled
+  * the resize mouse pointer is not shown anymore for regions that
+    can't be resized
+  * the region and dimregion chooser widgets are now resizable
+  * bugfix: sometimes you could not delete more than one dimension
+  * filter headers are now also greyed out when the filter is inactive
+  * autoconf fix: LS plugin dirs with digits in their prefix
+    (e.g. "/usr/lib64/foo") are now resolved in relative dirs as well
+    (show a warning when resolving the relative path failed)
+  * keys on the virtual keyboard now highlight on note on events on
+    sampler side
+  * virtual keyboard can now trigger notes for the sampler (only in
+    live-mode of course)
+  * implemented alternative behavior for the virtual MIDI keyboard
+    (selectable by combobox below the keyboard)
+  * show absolute velocity value of note-on & note-off events below
+    the virtual MIDI keyboard
+  * renamed misleading names regarding the gig format's "keyswitching"
+    feature (the dimension is now displayed as "keyswitching" instead of
+    "keyboard" in the dimregchooser widget and the two parameters for
+    defining the actual keyswitching area on the keyboard in the instruments
+    properties dialog are now called "Keyswitching range low/high" instead of
+    "Dimension key range low/high")
+  * added "replace all samples" function to samples popup menu
+    (patch by Anders Dahnielson, a bit extended, fixes #73)
+  * bugfix: dimension manager window didn't update when another region
+    was selected (#78)
+  * in "Save As..." dialog set inital filename to "copy_of_<filename>" and
+    show a warning message that saving to the same .gig file will corrupt
+    the sample wave data
+  * fixed compilation with gcc 4.3
+  * the "Add Samples" dialog now remembers current directory (patch by
+    Devin Anderson, fixes #81)
+  * it is now possible to create dimensions where the amount of zones
+    isn't a power of two (patch by Devin Anderson, #89, slightly
+    modified)
+  * fixed configure check for libsndfile loop support
+  * bugfix: when a stereo sample is replaced, make sure both zones of
+    the sample channel dimension get updated with the new sample
+  * minor gui fix: made multi line lables expand to use full width
+  * fixes for building the plugin with MinGW
+  * added rpm packaging file
+    (patch by Devin Anderson, slightly modified, fixes #88)
+  * made all visible strings translatable
+  * bugfix: inform the sampler when new file(s) has been imported on save
+    operation (#82)
+  * updated LinuxSampler plugin of gigedit to the latest liblinuxsampler
+    C++ API changes
+  * Windows: look for translations using base directory of libgigedit
+    dll
+  * virtual keyboard fixes: restore to grey when outside keyboard.
+    Don't trigger multiple notes for each key when moving mouse.
+
+Version 0.1.1 (2007-12-06)
+
+  * multiple editor windows can now be opened by the plugin
+  * bugfix: gigedit didn't start on windows 2000
+  * standard gtk command line parameters is now handled
+  * parameter edits can now be applied to multiple regions and
+    dimension regions simultaneously - three checkboxes were added
+    that select if changes apply to all regions and/or all dimension
+    regions
+
+Version 0.1.0 (2007-10-15)
+
+  * fixed compilation with older gcc versions
+  * added German translation
+  * reworked instrument properties dialog - properties can now be
+    edited
+  * restructured dimension region editor for elements to be in a more
+    logical and intuitive order
+  * added Makefile.cvs (just for standard compliance with other projects)
+  * added Debian packaging infrastructure
+  * implemented sample loop editing
+  * improved labels in dimension region editor
+  * use normal layout for checkboxes
+  * allow to resize dimension zones even when the respective dimension has
+    no custom dimension splits yet
+  * moved instrument editor into a shared library 'libgigedit', the 'gigedit'
+    binary is now just calling that shared library
+  * implemented an "instrument editor plugin" for LinuxSampler to allow
+    on-the-fly instrument editing within the sampler's own process
+    (revised directories to a more automake-friendly structure for this, to
+    avoid compilation and install errors)
+  * added experimental support to synchronize gigedit with LinuxSampler to
+    avoid race conditions / crash while modifying data structures
+  * added quick start documentation by Alexander Methke
+  * a changed file is now marked with an asterisk in the window title
+  * added close confirmation dialog, shown if file is changed
+  * "save" means "save as" for new files
+  * enabled acceleration keys
+  * add .gig to filename in "save as" if it's not already there
+  * filename character encodings other than utf-8 supported
+  * regions can now be moved, not just resized
+  * improved labels in instrument properties dialog
+  * remove file extensions from file names when importing samples
+  * added digits for octave numbers on the keyboard and made keys
+    outside piano range grey
+  * added support for 24 bit sample import
+  * when importing samples, settings for loops and root note are
+    copied from the sample files (if they have such settings)
+  * start with a new gig file by default
+  * make sure samplechannel dimension gets created for stereo samples
+  * allow building with older versions of gtk and libsndfile
+  * remember selected dimension when switching regions
+  * check if file is savable before trying to save
+  * gettext is now an optional dependency
+  * added Dev-C++ project files for Windows systems
+  * added status bar to the bottom of main window (independent area on the
+    right shows whether gigedit is running stand-alone or attached to
+    LinuxSampler)
+  * fixed crash when gigedit was compiled with CXXFLAGS="-g"
+
+Version 0.0.3 (2007-03-24)
+
+  * first release of gigedit

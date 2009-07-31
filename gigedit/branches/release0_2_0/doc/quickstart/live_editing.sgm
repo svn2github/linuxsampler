@@ -1,0 +1,219 @@
+<chapter id="live_editing"><title>Live Editing</title>
+ <section id="about"><title>Only trust what you hear...</title>
+  <para>
+	So far we've been using <application>gigedit</application> as stand-alone
+	application. The main drawback of this approach is that you cannot
+	immediately hear the effect of your modifications unless you explicitly
+	(re)load the respective instrument into a sampler, which is unconvenient
+	and wastes a lot of time (especially with big instruments). Fortunately
+	gigedit and <application>LinuxSampler</application> are friends and
+	politely share the same instrument(s) at the same time if you tell them to
+	do so.
+  </para>
+  <para>
+	To do this, you first have to load the respective instrument(s) into
+	<application>LinuxSampler</application>, i.e. by using a frontend
+	application like <application>JSampler</application> or
+	<application>QSampler</application>. Here's how you do it with
+	<application>QSampler</application>: Select the channel strip of the
+	instrument you want to edit and click on the "Edit" button on the same
+	channel strip, like shown in <xref linkend="shot_qsampler_edit" />.
+
+	Alternatively you can also select this function from the menu (
+	<menuchoice>
+	   <guimenu>"Edit"</guimenu>
+	   <guimenuitem>"Edit Channel..."</guimenuitem>
+	</menuchoice> ). In any case
+	<application>gigedit</application> should popup on the screen in less
+	than 5 seconds. This time you can see <application>gigedit</application>
+	like being "attached" to <application>LinuxSampler</application>.
+
+  <figure id="shot_qsampler_edit"><title>Selecting an instrument to edit from QSampler</title>
+	<screenshot><mediaobject><imageobject>
+	<imagedata fileref="shot_qsampler_edit.png" format="PNG"/>
+	</imageobject></mediaobject></screenshot>
+  </figure>
+
+	In <application>JSampler</application> you won't see an "Edit" button
+	by default. Instead you have to move the mouse pointer over the channel
+	strip which contains the instrument you want to edit. The channel strip
+	display will change immediately and a round, small "Edit" button
+	appears like shown in <xref linkend="shot_jsampler_edit" />. Click on
+	that button and gigedit will appear like with
+	<application>QSampler</application>, so it's pretty much the same thing.
+
+  <figure id="shot_jsampler_edit"><title>Selecting an instrument to edit from JSampler "Fantasia" 0.8a</title>
+	<screenshot><mediaobject><imageobject>
+	<imagedata fileref="shot_jsampler_edit.png" format="PNG"/>
+	</imageobject></mediaobject></screenshot>
+  </figure>
+
+  <figure id="shot_gigedit_hosted"><title>Gigedit running "attached" to LinuxSampler</title>
+	<screenshot><mediaobject><imageobject>
+	<imagedata fileref="shot_gigedit_hosted.png" format="PNG"/>
+	</imageobject></mediaobject></screenshot>
+  </figure>
+
+	If nothing appears on the screen or in case you get an error when clicking
+	on the "Edit" button, refer to <xref linkend="live_trouble" />.
+  </para>
+  <para>
+	All modifications you do on the selected instrument with
+	<application>gigedit</application> will immediately be audible when you
+	play notes.
+	When you close <application>gigedit</application> you'll notice that it
+	won't ask you to save the instrument, which it would usually do when you
+	run <application>gigedit</application> as stand-alone application. This is
+	because the modifications are not lost when you close it, at least not
+	unless you kill the sampler as well. So when you click again on "Edit"
+	you'll see that all the modifications you made are still there. Also note
+	when selecting "New" or "Open" from the menu to create a completely new
+	instrument or open another one from a file,
+	<application>gigedit</application> will be "detached" from the sampler,
+	that is the other instrument will not be audible with the sampler. This is
+	currently (2007-10-07) a minor limitation of the sampler and
+	<application>gigedit</application>. So if you want to create a completely
+	new instrument from scratch you first have to create that instrument with
+	<application>gigedit</application>, save it to a file and then load it into
+	the sampler. After that you can continue like described in this chapter and
+	edit the new instrument "live" by clicking on the respective "Edit" button
+	in <application>QSampler</application>.
+  </para>
+ </section>
+
+ <section id="live_trouble"><title>Trouble with live-editing</title>
+  <para>
+	<application>LinuxSampler</application> and
+	<application>gigedit</application> need to be compiled properly to be able
+	to use the described "live editing" feature between those two applications.
+	So here is a short technical explanation how the interaction between those
+	two applications work: <application>LinuxSampler</application> per se
+	doesn't actually know anything that an application like
+	<application>gigedit</application> exists in this world. However the
+	sampler provides a plugin system to extend it for this functionality. When
+	you compile the sampler you define a directory where the sampler shall look
+	for plugin DLLs to load on startup. So first check if that directory
+	actually exists or if the sampler was not compiled with the correct /
+	desired plugin directory. When you start the sampler from the console
+	simply by typing the command <command>linuxsampler</command> and you see
+	something like this:
+	<screen>
+<prompt>bob@mybox ~ $</prompt> <command>linuxsampler</command>
+LinuxSampler 0.4.0.7cvs
+Copyright (C) 2003,2004 by Benno Senoner and Christian Schoenebeck
+Copyright (C) 2005-2007 Christian Schoenebeck
+Detected features: MMX SSE
+Creating Sampler...OK
+Registered sampler engines: 'GIG'
+Registered MIDI input drivers: ALSA
+Registered audio output drivers: ALSA,ARTS,JACK
+Loading instrument editor plugins...<errortext>Could not open instrument editor plugins directory (/usr/local/lib/linuxsampler/plugins): No such file or directory</errortext>
+Registered instrument editors:
+Starting LSCP network server (0.0.0.0:8888)...OK
+LinuxSampler initialization completed. :-)
+	</screen>
+	Then there's definitely something wrong. :) So either create the mentioned
+	directory (in this case "/usr/local/lib/linuxsampler/plugins") manually or
+	recompile <application>LinuxSampler</application> in case you want it to use
+	another directory as plugins directory. Assuming you want it to use the directory "/usr/lib/linuxsampler/plugins" instead you could compile the sampler i.e. this way:
+	<screen>
+<prompt>bob@mybox ~/cvs/linuxsampler $</prompt> <command>./configure --enable-plugin-dir=/usr/lib/linuxsampler/plugins &amp;&amp; make</command>
+	</screen>
+	probably in conjunction with some other configure script parameters and some
+	nice CXXFLAGS to optimize the sampler for your machine, but this is out of
+	the scope of this document. After the compilation completed, you would
+	install the sampler as user root as usual:
+	<screen>
+<prompt>bob@mybox ~/cvs/linuxsampler $</prompt> <command>su</command>
+Password:
+<prompt>mybox linuxsampler #</prompt> <command>make install</command>
+	</screen>
+	Again make sure that your chosen plugin directory exists, if not create it
+	and when running <application>LinuxSampler</application> now again, the
+	error message on the console ("Could not open instrument editor plugins
+	directory") should be gone.
+  </para>
+  <para>
+	Now you must recompile <application>gigedit</application>, because it has
+	to compile the appropriate plugin and has to place that plugin DLL into the
+	samplers plugins directory. It should look like this:
+	<screen>
+<prompt>bob@mybox ~/cvs/gigedit $</prompt> <command>./configure</command>
+checking build system type... i686-pc-linux-gnu
+checking host system type... i686-pc-linux-gnu
+checking for gcc... gcc
+checking for C compiler default output file name... a.out
+checking whether the C compiler works... yes
+checking whether we are cross compiling... no
+...
+checking for gmsgfmt... /usr/bin/gmsgfmt
+checking for xgettext... /usr/bin/xgettext
+checking for pkg-config... /usr/bin/pkg-config
+checking pkg-config is at least version 0.9.0... yes
+checking for GTKMM... yes
+checking for GIG... yes
+checking for SNDFILE... yes
+checking for SF_INSTRUMENT.loops... yes
+<errortext>checking for LINUXSAMPLER... yes
+Found linuxsampler 0.4.0.5cvs
+Retrieving LinuxSampler's plugin dir... /usr/lib/linuxsampler/plugins
+Relative plugin dir: ${libdir}/linuxsampler/plugins</errortext>
+configure: creating ./config.status
+config.status: creating Makefile
+config.status: creating src/Makefile
+config.status: creating src/gigedit/Makefile
+config.status: creating src/plugin/Makefile
+config.status: creating po/Makefile.in
+config.status: creating debian/Makefile
+config.status: creating doc/Makefile
+config.status: creating doc/quickstart/Makefile
+config.status: creating config.h
+config.status: config.h is unchanged
+config.status: executing depfiles commands
+config.status: executing intltool commands
+config.status: executing default-1 commands
+config.status: executing po/stamp-it commands
+<prompt>bob@mybox ~/cvs/gigedit $</prompt> <command>make</command>
+	</screen>
+	Make sure the higlighted section of the configure script output looks
+	similar like above. After compilation completed, you once again install
+	with the common procedure:
+	<screen>
+<prompt>bob@mybox ~/cvs/gigedit $</prompt> <command>su</command>
+Password:
+<prompt>mybox gigedit #</prompt> <command>make install</command>
+	</screen>
+	This will install the <application>gigedit</application> binary, as well
+	as its plugin .so file into the directory "/usr/lib/linuxsampler/plugins"
+	(or whatever you chose). And when you start the sampler now from the
+	console, it should look like this:
+	<screen>
+<prompt>bob@mybox ~ $</prompt> <command>linuxsampler</command>
+LinuxSampler 0.4.0.7cvs
+Copyright (C) 2003,2004 by Benno Senoner and Christian Schoenebeck
+Copyright (C) 2005-2007 Christian Schoenebeck
+Detected features: MMX SSE
+Creating Sampler...OK
+Registered sampler engines: 'GIG'
+Registered MIDI input drivers: ALSA
+Registered audio output drivers: ALSA,ARTS,JACK
+Loading instrument editor plugins...OK
+<errortext>Registered instrument editors: 'gigedit'</errortext>
+Starting LSCP network server (0.0.0.0:8888)...OK
+LinuxSampler initialization completed. :-)
+	</screen>
+	Now you're done with setup and the steps described in
+	<xref linkend="about" /> should work for you. If not, you probably found a
+	bug. Feel free to contact us via our mailing list or open a bug report on
+	our website.
+	<note>If you just used precompiled binary packages of
+	<application>LinuxSampler</application> and
+	<application>gigedit</application>, i.e. from the Linux distribution of
+	your choice, you shouldn't have to recompile them by yourself. Either the
+	versions of <application>LinuxSampler</application> and / or
+	<application>gigedit</application> are too old or they were simply not
+	compiled / packaged correctly. In both cases, please report it to the
+	respective package maintainer of your distribution!</note>
+  </para>
+ </section>
+</chapter>

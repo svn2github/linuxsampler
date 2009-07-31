@@ -1,0 +1,23 @@
+<chapter id="keybindings"><title>Keybindings</title>
+ <section id="key_global"><title>Global Bindings</title>
+  <note><title>Todo:</title>
+   <itemizedlist>
+    <listitem><simpara><keycap>Ctrl+N</keycap> - New File</simpara></listitem>
+    <listitem><simpara><keycap>Ctrl+S</keycap> - Save File</simpara></listitem>
+    <listitem><simpara><keycap>Ctrl+Q</keycap> - Quit/ Exit (<keycap>Ctrl+X</keycap> alternativly?)</simpara></listitem>
+   </itemizedlist>
+  </note>
+ </section>
+
+ <section id="key_group"><title>Group Tab</title>
+   <para/>
+ </section>
+
+ <section id="key_instrument"><title>Instrument Tab</title>
+   <para/>
+ </section>
+
+ <section id="key_region"><title>Region Area</title>
+   <para/>
+ </section>
+</chapter>

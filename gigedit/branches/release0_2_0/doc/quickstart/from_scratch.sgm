@@ -1,0 +1,123 @@
+<chapter id="start"><title>Starting From Scratch</title>
+ <section id="start_gui"><title>The Graphical User Interface</title>
+
+  <para>
+	Now you have <application>gigedit</application> running and can see
+	something like the following screenshot. On the left you see an
+	empty white field, on the right a set of tabbed dialogs and below
+	all that some piano keys. At this early stage everything is disabled,
+	except the topmost menu.
+  </para>
+
+  <figure id="shot_whole_app"><title>Screenshot of the whole application</title>
+	<screenshot><mediaobject><imageobject>
+	<imagedata fileref="shot_whole_app.png" format="PNG"/>
+	</imageobject></mediaobject></screenshot>
+  </figure>
+
+  <para>
+	In the next paragraphs you will add a few samples and stuff to create
+	a totally new GIG file. If you're interested in some technical background
+	and help on the terms used here, refere to <xref linkend="gig" />.
+  </para>
+ </section>
+
+ <section id="start_region"><title>Creating a Region</title>
+  <para>
+	To start with a new file, we need a new file. Choose
+	<menuchoice>
+	 <guimenu>File</guimenu>
+	 <guimenuitem>New</guimenuitem>
+	</menuchoice>
+	and the only thing changing is an entry <emphasis>Default Group</emphasis>
+	on the previously white field on the left.
+  </para>
+
+  <figure id="shot_default_group"><title>Screenshot of the new default group</title>
+	<screenshot><mediaobject><imageobject>
+	<imagedata fileref="shot_default_group.png" format="PNG"/>
+	</imageobject></mediaobject></screenshot>
+  </figure>
+
+  <para>
+	Now there's a lot more possible on the gui and lacking such a fine
+	quickstart I had to figure it out myself: Right click somewhere
+	in the gray area above the piano keys. There's a small gray band
+	and you'll get the following popup menu (Says: <emphasis>Add</emphasis>,
+	the red arrows mark the area's width where you can cause this
+	popup to pop up):
+  </para>
+
+  <figure id="shot_new_dimension"><title>Screenshot of the new dimension action</title>
+	<screenshot><mediaobject><imageobject>
+	<imagedata fileref="shot_new_dimension.png" format="PNG"/>
+	</imageobject></mediaobject></screenshot>
+  </figure>
+
+  <para>
+	If you click this action a small rectangle occurs and some of the input
+	fields and sliders on the tab <emphasis>EG1</emphasis> are enabled. By
+	moving the curser above the rectangle's left and right border you can
+	resize it and define the region's width, e.g. it's lowest and highest
+	key. Now you have a region and all you need is a sample, to play
+	when pressing the region's keys.
+  </para>
+  <tip><simpara>
+	Until the alpha version it was necessary to do it that way around
+	instead of first adding a sample and then a region. It caused some
+	additional dimensions to show up, which could not be removed.
+  </simpara></tip>
+ </section>
+
+ <section id="start_sample"><title>Adding a sample</title>
+  <para>
+	Hopefully you have some WAV samples somewhere available on
+	your computer. If not: get some from your microphone, the
+	internet or a friend who knows, what a WAV is ;-). Select
+	the entry <guimenuitem>Default Group</guimenuitem> on the left
+	and right click it (or right click it twice, so that <guimenuitem>
+	Add Sample(s)</guimenuitem> is enabled). And click
+	<guimenuitem>Add Sample(s)</guimenuitem>. Browse with the
+	file chooser through your harddisk and select a wav sample.
+	If you did so, your Default Group will look like this (maybe
+	you need to open the tree like structure by clicking the
+	triangle in front).
+  </para>
+
+  <figure id="shot_add_sample"><title>Screenshot after adding the sample</title>
+	<screenshot><mediaobject><imageobject>
+	<imagedata fileref="shot_add_sample.png" format="PNG"/>
+	</imageobject></mediaobject></screenshot>
+  </figure>
+
+  <para>
+	On the left you see the popup menu, the added sample below, on the
+	right side the enabled input elements and below all that the
+	piano key roll with a blueish rectangle from C2 to C3. The
+	input field <emphasis>Sample</emphasis> says <constant>NULL</constant>.
+	That means our region has no sample assigned. I tried to enter
+	the sample's name, but that did not work. Drag and Drop is
+	the key: Drag the added sample onto the input field
+	<emphasis>Sample</emphasis> and the cursor changes. Drop
+	it and you'll see the name inside the field.
+  </para>
+ </section>
+
+ <section id="start_where_to_go"><title>Where to go from here?</title>
+  <para>
+	Weeeee, no you can save your changes with <guimenuitem>Save As</guimenuitem>.
+	When I wrote this quickstart the <guimenuitem>Save</guimenuitem> action
+	did not show a file name dialog but an error. So save it and
+	play with it. Load it into your sampler, perferrably
+	<application>LinuxSampler</application> and hit the keys. But only
+	in the region's range you'll here some noise...your sample.
+  </para>
+  <para>
+	If it did not work: check your equipment, hard- and software, maybe
+	use some tools like <command>gigdump</command> or <command>gigextract</command>
+	to verify, that the sample(s) are inside the gig file and it's structure
+	is correct. Otherwise join the <application>LinuxSampler</application>'s
+	mailing list (<ulink url="http://www.linuxsampler.org/developers.html" />).
+  </para>
+ </section>
+</chapter>
