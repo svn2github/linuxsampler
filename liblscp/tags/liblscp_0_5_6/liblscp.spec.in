@@ -1,0 +1,152 @@
+
+%define name	@PACKAGE@
+%define version	@VERSION@
+%define release	17
+%define prefix	@prefix@
+
+Summary:	LinuxSampler control protocol API.
+Name:		%{name}
+Version:	%{version}
+Release:	%{release}
+Prefix:		%{prefix}
+License:	LGPL
+Group:		Sound
+Source0:	%{name}-%{version}.tar.gz
+URL:		http://www.linuxsampler.org/
+BuildRoot:	%{_tmppath}/%{name}-%{version}-root-%(id -u -n)
+
+%description
+LinuxSampler control protocol API.
+
+%package devel
+Summary:	LinuxSampler control protocol API libraries and include files.
+Group:		Development/Libraries
+Requires:	%{name} = %{version}
+
+%description devel
+LinuxSampler control protocol API libraries and include files.
+
+%prep
+
+%setup
+if [ -f Makefile.cvs ]; then make -f Makefile.cvs; fi
+
+%build
+%configure
+make
+
+%install
+%{__rm} -rf %{buildroot}
+%makeinstall
+
+%post
+/sbin/ldconfig
+
+%postun
+/sbin/ldconfig
+
+%clean
+%{__rm} -rf %{buildroot}
+
+%files
+%defattr(-,root,root)
+%doc AUTHORS COPYING ChangeLog NEWS README TODO
+%{_libdir}/liblscp.so*
+
+%files devel
+%defattr(-,root,root)
+%doc doc/html/*
+%{_libdir}/liblscp.a
+%{_libdir}/liblscp.la
+%{_libdir}/pkgconfig/lscp.pc
+%dir %{_includedir}/lscp
+%{_includedir}/lscp/*.h
+
+%changelog
+* Sat Aug  1 2009 Rui Nuno Capela <rncbc@users.sourceforge.net>
+- New 0.5.6 release.
+
+* Fri Oct 12 2007 Rui Nuno Capela <rncbc@users.sourceforge.net>
+- Changed client interface function, for editing channel instrument.
+- New 0.5.5 release.
+
+* Tue Oct  2 2007 Rui Nuno Capela <rncbc@users.sourceforge.net>
+- Added new client interface function, for editing instrument.
+- New 0.5.4 release.
+
+* Mon Jan 15 2007 Rui Nuno Capela <rncbc@users.sourceforge.net>
+- New 0.5.3 release.
+
+* Thu Jan 11 2007 Rui Nuno Capela <rncbc@users.sourceforge.net>
+- Sampler channel effect sends control and global volume support.
+- Audio routing representation changed to integer array.
+- New 0.5.2 release.
+
+* Fri Dec 22 2006 Rui Nuno Capela <rncbc@users.sourceforge.net>
+- Added support for new (un)subscribable events.
+- Examples update.
+- Prepared for 0.5.1 maintenance release.
+
+* Sun Dec 17 2006 Rui Nuno Capela <rncbc@users.sourceforge.net>
+- Multi MIDI instrument maps introduced, sampler channel assignable.
+- Moved on up to a brand new 0.5.0 release.
+
+* Mon Dec  4 2006 Rui Nuno Capela <rncbc@users.sourceforge.net>
+- Going up to 0.4.2 fast.
+
+* Tue Nov 28 2006 Rui Nuno Capela <rncbc@users.sourceforge.net>
+- Bumped directly to 0.4.1 release.
+- Getting ready for the new MIDI instrument mapping features.
+
+* Thu Jun 01 2006 Rui Nuno Capela <rncbc@users.sourceforge.net>
+- Take a chance for a new 0.3.3 release.
+- Changed deprecated copyright attribute to license.
+- Added ldconfig to post-(un)install steps.
+
+* Mon Aug 29 2005 Rui Nuno Capela <rncbc@users.sourceforge.net>
+- Fixed for 0.3.2 release.
+
+* Tue Aug 10 2005 Rui Nuno Capela <rncbc@users.sourceforge.net>
+- Prepare 0.3.1 release for sampler channel mute/solo support.
+
+* Thu Jun 10 2005 Rui Nuno Capela <rncbc@users.sourceforge.net>
+- Prepare 0.3.0 release featuring timeout flush idiosyncrasies.
+
+* Sun May 22 2005 Rui Nuno Capela <rncbc@users.sourceforge.net>
+- Prepare 0.2.9 release due to event subscription LSCP command changes.
+
+* Tue May  6 2005 Rui Nuno Capela <rncbc@users.sourceforge.net>
+- Prepare 0.2.8 release in response to [bug #9].
+
+* Tue Mar 10 2005 Rui Nuno Capela <rncbc@users.sourceforge.net>
+- Prepare 0.2.7 yet another bug-fix release.
+
+* Tue Mar  1 2005 Rui Nuno Capela <rncbc@users.sourceforge.net>
+- Prepare 0.2.6 bug-fix release.
+
+* Tue Feb 14 2005 Rui Nuno Capela <rncbc@users.sourceforge.net>
+- Prepare 0.2.5 release.
+
+* Tue Oct 11 2004 Rui Nuno Capela <rncbc@users.sourceforge.net>
+- Fixed 0.2.4 release.
+
+* Tue Sep 28 2004 Rui Nuno Capela <rncbc@users.sourceforge.net>
+- Fixed 0.2.3 release.
+
+* Tue Jul 29 2004 Rui Nuno Capela <rncbc@users.sourceforge.net>
+- Prepare 0.2.2 release.
+
+* Tue Jul 13 2004 Christian Schoenebeck <cuse@users.sourceforge.net>
+- renamed 'liblscp.pc' to 'lscp.pc' as well as the pkg-config lib name
+
+* Thu Jul  8 2004 Rui Nuno Capela <rncbc@users.sourceforge.net>
+- Prepare 0.2.1 bugfix release.
+
+* Tue Jul  6 2004 Rui Nuno Capela <rncbc@users.sourceforge.net>
+- Catch up on 0.2.0 release.
+
+* Mon Apr 26 2004 Rui Nuno Capela <rncbc@users.sourceforge.net>
+- Server stuff moved out (stays on examples source package)
+
+* Sat Apr 24 2004 Rui Nuno Capela <rncbc@users.sourceforge.net>
+- Created initial liblscp.spec.in
