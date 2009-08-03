@@ -21,7 +21,7 @@ SetCompressor lzma
 !include "MUI.nsh"
 !include "EnvVarUpdate.nsh"
 
-!define RELEASE_DATE "20090623"
+!define RELEASE_DATE "20090803"
 
 ; The name of the installer
 Name "LinuxSampler (${RELEASE_DATE})"
@@ -299,7 +299,7 @@ SectionEnd
 ;--------------------------------
 
 ; The stuff to install
-Section "LinuxSampler 0.5.1.12cvs" SecLinuxSampler
+Section "LinuxSampler 1.0.0" SecLinuxSampler
   DetailPrint "Installing LinuxSampler binaries ..."
   StrCpy $installingLinuxSampler "1"
 
@@ -312,7 +312,7 @@ Section "LinuxSampler 0.5.1.12cvs" SecLinuxSampler
   linuxsampler64:
   SetOutPath "$INSTDIR\${SUBDIR_64_BIT}"
   File bin\64\linuxsampler.exe
-  File bin\64\liblinuxsampler-1.dll
+  File bin\64\liblinuxsampler-3.dll
   File bin\64\libsqlite3-0.dll
   SetOutPath $vstPluginPath64
   File /oname=LinuxSampler64.dll bin\64\LinuxSampler.dll
@@ -326,7 +326,7 @@ Section "LinuxSampler 0.5.1.12cvs" SecLinuxSampler
   linuxsampler686sse:
   SetOutPath "$INSTDIR\${SUBDIR_32_BIT}"
   File bin\686sse\linuxsampler.exe
-  File bin\686sse\liblinuxsampler-1.dll
+  File bin\686sse\liblinuxsampler-3.dll
   File bin\686\libsqlite3-0.dll
   SetOutPath $vstPluginPath
   File /oname=LinuxSampler32.dll bin\686sse\LinuxSampler.dll
@@ -335,7 +335,7 @@ Section "LinuxSampler 0.5.1.12cvs" SecLinuxSampler
   linuxsampler686:
   SetOutPath "$INSTDIR\${SUBDIR_32_BIT}"
   File bin\686\linuxsampler.exe
-  File bin\686\liblinuxsampler-1.dll
+  File bin\686\liblinuxsampler-3.dll
   File bin\686\libsqlite3-0.dll
   SetOutPath $vstPluginPath
   File /oname=LinuxSampler32.dll bin\686\LinuxSampler.dll
@@ -344,7 +344,7 @@ Section "LinuxSampler 0.5.1.12cvs" SecLinuxSampler
   done:
 SectionEnd
 
-Section "JSampler 'Fantasia' 0.8a-cvs8" SecJSampler
+Section "JSampler 'Fantasia' 0.9" SecJSampler
   DetailPrint "Installing JSampler binaries ..."
   ; make sure JRE is installed
   Call DetectJRE
@@ -352,11 +352,11 @@ Section "JSampler 'Fantasia' 0.8a-cvs8" SecJSampler
   ; Set output path to the installation directory.
   SetOutPath $INSTDIR
   ; Files to install
-  File bin\Fantasia-0.8a-cvs8.jar
+  File bin\Fantasia-0.9.jar
   File jsampler.ico
 SectionEnd
 
-Section "QSampler 0.2.1.26" SecQSampler
+Section "QSampler 0.2.2" SecQSampler
   DetailPrint "Installing QSampler binaries ..."
   StrCpy $installingQSampler "1"
   ; Set output path to the installation directory.
@@ -371,7 +371,7 @@ Section "QSampler 0.2.1.26" SecQSampler
   File bin\686\share\locale\qsampler_ru.qm
 SectionEnd
 
-Section "gigedit 0.1.1.x (cvs2009-05-10)" Secgigedit
+Section "gigedit 0.2.0" Secgigedit
   DetailPrint "Installing gigedit binaries ..."
   StrCpy $installinggigedit "1"
 
@@ -390,9 +390,9 @@ Section "gigedit 0.1.1.x (cvs2009-05-10)" Secgigedit
   gigedit64:
   SetOutPath "$INSTDIR\${SUBDIR_64_BIT}"
   File bin\64\gigedit.exe
-  File bin\64\libgigedit-1.dll
+  File bin\64\libgigedit-2.dll
   SetOutPath "$INSTDIR\${SUBDIR_64_BIT}\plugins"
-  File bin\64\plugins\libgigeditlinuxsamplerplugin-1.dll
+  File bin\64\plugins\libgigeditlinuxsamplerplugin.dll
   SetOutPath "$INSTDIR\${SUBDIR_64_BIT}"
   File bin\64\libatk-1.0-0.dll
   File bin\64\libatkmm-1.6-1.dll
@@ -439,9 +439,9 @@ Section "gigedit 0.1.1.x (cvs2009-05-10)" Secgigedit
   gigedit686:
   SetOutPath "$INSTDIR\${SUBDIR_32_BIT}"
   File bin\686\gigedit.exe
-  File bin\686\libgigedit-1.dll
+  File bin\686\libgigedit-2.dll
   SetOutPath "$INSTDIR\${SUBDIR_32_BIT}\plugins"
-  File bin\686\plugins\libgigeditlinuxsamplerplugin-1.dll
+  File bin\686\plugins\libgigeditlinuxsamplerplugin.dll
   SetOutPath "$INSTDIR\${SUBDIR_32_BIT}"
   File bin\686\intl.dll
   File bin\686\jpeg62.dll
@@ -503,7 +503,7 @@ Section "gigedit 0.1.1.x (cvs2009-05-10)" Secgigedit
   done:
 SectionEnd
 
-Section "libgig 3.2.1.x (cvs2009-05-03)" Seclibgig
+Section "libgig 3.3.0" Seclibgig
   DetailPrint "Installing libgig binaries ..."
   ; We make this a mandatory component
   SectionIn RO
@@ -573,7 +573,7 @@ Section "libgig 3.2.1.x (cvs2009-05-03)" Seclibgig
   WriteRegStr HKLM "Software\LinuxSampler" "Release Date" ${RELEASE_DATE}
 SectionEnd
 
-Section "libsndfile 1.0.19" Seclibsndfile
+Section "libsndfile 1.0.20" Seclibsndfile
   DetailPrint "Installing libsndfile binaries ..."
   ; We make this a mandatory component
   SectionIn RO
@@ -630,19 +630,19 @@ Section "Start Menu Shortcuts" SecShortcuts
 
   StrCmp $installingLinuxSampler '1' 0 +3
   SetOutPath $samplerDir
-  CreateShortCut "$SMPROGRAMS\LinuxSampler\LinuxSampler 0.5.1.12cvs (stand alone backend).lnk" "$samplerDir\linuxsampler.exe" "" "$samplerDir\linuxsampler.exe" 0
+  CreateShortCut "$SMPROGRAMS\LinuxSampler\LinuxSampler 1.0.0 (stand alone backend).lnk" "$samplerDir\linuxsampler.exe" "" "$samplerDir\linuxsampler.exe" 0
 
   StrCmp $installingJSampler '1' 0 +3
   SetOutPath $INSTDIR
-  CreateShortCut '$SMPROGRAMS\LinuxSampler\JSampler Fantasia 0.8a-cvs8 (frontend).lnk' '$javawbin' '-jar "$INSTDIR\Fantasia-0.8a-cvs8.jar"' '$INSTDIR\jsampler.ico' 0
+  CreateShortCut '$SMPROGRAMS\LinuxSampler\JSampler Fantasia 0.9 (frontend).lnk' '$javawbin' '-jar "$INSTDIR\Fantasia-0.9.jar"' '$INSTDIR\jsampler.ico' 0
 
   StrCmp $installingQSampler '1' 0 +3
   SetOutPath $INSTDIR
-  CreateShortCut "$SMPROGRAMS\LinuxSampler\QSampler 0.2.1.26 (frontend).lnk" "$INSTDIR\qsampler.exe" "" "$INSTDIR\qsampler.ico" 0
+  CreateShortCut "$SMPROGRAMS\LinuxSampler\QSampler 0.2.2 (frontend).lnk" "$INSTDIR\qsampler.exe" "" "$INSTDIR\qsampler.ico" 0
 
   StrCmp $installinggigedit '1' 0 +3
   SetOutPath $samplerDir
-  CreateShortCut "$SMPROGRAMS\LinuxSampler\gigedit 0.1.1.x cvs2009-05-10 (stand alone).lnk" "$samplerDir\gigedit.exe" "" "$samplerDir\gigedit.exe" 0
+  CreateShortCut "$SMPROGRAMS\LinuxSampler\gigedit 0.2.0 (stand alone).lnk" "$samplerDir\gigedit.exe" "" "$samplerDir\gigedit.exe" 0
 
   !insertmacro CreateInternetShortcut \
   "$SMPROGRAMS\LinuxSampler\\Support LinuxSampler" \
