@@ -1,0 +1,326 @@
+JSampler v0.9: 2009-08-03
+  * Implemented a backend list with option to manually choose a backend
+    to connect on startup(Edit/Preferences, then click the `Backend' tab)
+    and option to change the backend without restarting JSampler
+    (Actions/Change Backend or Ctrl + B)
+
+  * Added confirmation messages for removing sampler channels and
+    audio/MIDI devices (Edit/Preferences, then click the `View' tab)
+
+  * The column sort order in the Instruments Database window is now saved
+    for the next session
+
+  * Optimized the MIDI instrument update process
+
+  * Added support for handling lost files in the Instruments Database
+    (In the Instruments Database window choose Actions/Check For Lost Files)
+
+  * Added new menu item in the Instruments Database window: Edit/Find
+
+  * Remember the last used tab in the Preferences dialog
+
+  * Renamed the column labels in the Channel Routing dialog: The column
+    representing the sampler channel's audio channels is "Audio In" and
+    the column representing the audio device's channels is "Audio Out"
+
+  * Orchestras, orchestra instruments, MIDI maps and MIDI instruments
+    can now be removed using the `Delete' key from the keyboard
+
+  * Added toolbar to the Database Instrument Chooser dialog
+
+  * Instrument Chooser and Database Instrument Chooser dialogs
+    are now resizable
+
+  * Reimplemented the MIDI bank/program assignment algorithm
+
+  * Added `Copy To' and `Move To' commands to the MIDI bank context menu
+    and to the MIDI instrument context menu
+
+  * Added commands to the MIDI instrument context menu for moving
+    a MIDI instrument to another program
+    (right-click on a MIDI instrument and choose `Change Program')
+
+  * Added option to choose between zero-based and one-based
+    MIDI bank/program numbering
+    (choose Edit/Preferences, then click the `Advanced' button)
+
+  * Added option to choose whether to include MIDI instrument
+    mappings when exporting a sampler configuration to LSCP script.
+    (choose Edit/Preferences, then click the `Advanced' button)
+
+  * Added option to set the MIDI instrument loading in background
+    when exporting MIDI instrument mappings to LSCP script.
+    (choose Edit/Preferences, then click the `Advanced' button)
+
+  * Implemented an option to change the socket read timeout
+    (choose Edit/Preferences, then click the `Backend' tab)
+
+  * Implemented option for adding instruments in separate directories in the
+    instruments DB (patch by Chris Cherrett & Andrew Williams, a bit adjusted)
+
+  * Implemented option to launch the backend if it is not yet started
+    (choose Edit/Preferences, then click the `Backend' tab)
+
+  * LSCP scripts can now be run by passing them to jsampler
+    as command-line arguments
+
+  * Added support for controlling the global sampler-wide limit of
+    maximum voices and disk streams
+    (choose Edit/Preferences, then click the `General' tab)
+
+  * Added support for exporting the MIDI instrument maps
+    as text file, web page or Rosegarden device file
+
+  * Updated LscpTree
+
+  * The scripts in the `scripts' directory now pass the command-line
+    arguments to the respective jsampler distribution
+
+  * Show controller names in fx sends dialogs
+
+  * Proper handling of connection failures
+
+  * ant: the default target is now build-fantasia
+  * ant: added new target build-fantasia-osx
+
+  * Fantasia:
+    - Major memory optimizations when too many sampler channels are present
+    - Improved look and feel
+    - Implemented virtual MIDI keyboard
+    - Added option to show the Instruments Database on
+      the Right-Side Pane of the Fantasia's main window
+      (choose Edit/Preferences, then click the `View' tab)
+    - Implemented pluggable channel view
+    - Implemented Small View for sampler channels
+      (right-click on the sampler channel then choose Small View)
+    - Implemented option to choose default sampler channel view
+      (choose Edit/Preferences, then click the `Defaults' tab)
+    - Implemented multiple channels panels
+    - Store the view configuration of audio/MIDI devices and sampler
+      channels in the LSCP script when exporting sampler configuration
+    - Added context menu to sampler channels
+    - Implemented option to show different channel view when
+      the mouse pointer is over sampler channel
+      (choose Edit/Preferences, then click the `Defaults' tab)
+    - The sampler channels are now referenced by their position
+      in the list, not by their ID
+    - Implemented options to show the channel number and/or the MIDI
+      input port/channel on the sampler channel screen when using Small View
+      (choose Edit/Preferences, then click the `Channels' tab)
+    - Implemented multiple sampler channels' selection
+    - Added option to move sampler channels up and down in the channels list
+    - Added option to move sampler channels to another channels panels
+    - Added toolbar to the Right-Side Pane's Instruments Database
+    - Added option to hide the active stream/voice count statistic in
+      the sampler channel's small view
+      (choose Edit/Preferences, then click the `Channels' tab)
+    - `Turn off animation effects' checkbox moved to the `View' tab
+    - Refactoring: All basic UI components moved to
+      org.jsampler.view.fantasia.basic package
+    - Ask when removing nonempty map
+    - Migrated to substance 5
+
+    * Mac OS Integration
+      - Moved the menu bar on top of the screen
+      - Use custom application icon
+      - Register LSCP scripts to be opened with Fantasia
+      - Changed shortcut keys (use command key instead of ctrl key)
+      - Added option to use native file choosers
+        (choose Edit/Preferences, then click the `View' tab)
+
+  * Bug fixes:
+    - Bugfix: JSampler took forever to load a configuration with
+      too many sampler channels
+    - Fixed bug #66
+    - Fixed a null pointer exception in the AudioDevicePane, when JACK
+      driver is used and the additional device parameters are shown.
+    - Fixed bug #76
+    - Fixed bug #77
+    - Fixed bug #84
+    - Fixed bug #98
+    - Backend address was always set to 127.0.0.1 when adding backend
+      to the backend list
+    - Fixed bug in the parameter table when editing
+      string list parameters with no possibilities
+    - Save send levels when exporting sampler configuration
+    - Some minor bugfixes and enhancements
+
+JSampler v0.8a: 2007-12-06
+  * Added new menu item: Help/Online Tutorial
+
+  * Implemented support for retrieving instrument information
+    from instrument files
+
+  * Added support for monitoring the total number of active disk streams
+
+  * Added Windows file path support
+
+  * The volume values are now shown in decibels
+
+  * Added confirmation dialog on exit
+
+  * Fantasia:
+    - Added option for turning off the custom window decoration
+      (choose Edit/Preferences, then click the `View' tab)
+
+  * Bug fixes:
+    - The parameter changes were discarded when creating
+      new audio/MIDI device
+    - The orchestras changes were not saved for the next session
+      when orchestras.xml does not exist in the JSampler's home directory
+    - In some cases the sampler configuration was not exported
+      properly to LSCP script
+    - Fixed a bug in the parameter table occuring when combo box
+      is used as cell editor
+    - If there is a cell editing in progress in the parameter table,
+      it is now finalized before creating new audio/MIDI device
+    - Fantasia: Fixed the view of the channel's stream/voice count statistic
+    - Some minor bugfixes and enhancements
+
+JSampler v0.7a: 2007-10-15
+  * Added options for choosing default actions when channel is
+    created and assignment of default MIDI/audio drivers to be used
+    (choose Edit/Preferences, then click the `Defaults' tab)
+
+  * A lists of recently used instrument files, directories,
+    database instruments, database directories are now available
+    for quick access, where appropriate.
+
+  * The locations of the last loaded instrument, last scanned
+    instrument/directory, last added instrument to orchestra are
+    now saved for the next session
+
+  * The last used instrument selection method is now saved
+    for the next session
+
+  * Implemented automatic scrolling when new channel is created to
+    ensure that it is visible on the screen
+
+  * Added context menu to the orchestra's instrument table with
+    commands for editing an instrument, deleting an instrument,
+    loading an instrument to a sampler channel and adding an
+    instrument to MIDI instrument map
+
+  * Implemented more proper retrieval of the MIDI/audio driver settings
+
+  * Implemented some UI enhancements for speeding up the
+    MIDI instrument mapping process
+
+  * Implemented new table cell editor for editing string list
+    parameters with possibilities
+
+  * Added support for escape sequences
+
+  * Now database instruments and directories can have multiline descriptions
+
+  * Added support for formatting the instruments database
+    (Choose from the instruments database window Actions/Format Database)
+
+  * Added options for setting the maximum master and channel volume
+    (choose Edit/Preferences)
+
+  * JS Classic:
+    - Added new button to sampler channels for starting an instrument editor
+
+  * Fantasia:
+    - Added scrollbar to the channels pane
+    - Added new menu items: Edit/Add Channel, Edit/Create MIDI Device,
+      Edit/Create Audio Device, View/Toolbar, View/Side Pane,
+      View/Devices Pane
+    - Added button to the channel screen for starting an instrument editor
+      (point the mouse cursor over the channel screen and click 'Edit')
+    - Removed the lock border from non-editable text fields in
+      properties panes and LS Console
+    - Added detailed error dialog
+    - Master volume is now fully implemented
+    - Added options for showing additional device parameters in audio/MIDI
+      device panes (choose Edit/Preferences, then click the `View' tab)
+
+  * Bug fixes:
+    - fixed bug #49
+    - the first loaded script was not always been executed
+    - some javadoc documentation fixes
+    - some minor bugfixes
+
+  * Some GUI enhancements and code cleanup
+
+JSampler v0.6a: 2007-08-10
+  * The Fantasia distribution is now capable of
+    controlling all features available in LinuxSampler
+
+  * Refactoring: all common UI components are moved
+    to a new package - org.jsampler.view.std
+
+  * Some GUI enhancements, bugfixes and code cleanup.
+
+JSampler v0.5a: 2007-05-24
+  * Implemented instruments database support
+  * Added context menu to the MIDI instrument tree
+
+JSampler v0.4a: 2007-04-02
+  * Added support for MIDI instrument mapping
+
+  * Added support for effect sends
+
+  * Implemented export of the current sampler configuration
+    to LSCP script (Actions/Export/Sampler Configuration or Ctrl + S)
+
+  * The JSampler's data is now stored in a user specified location.
+    To change the JSampler's home directory choose Edit/Preferences.
+
+  * Implemented Global Controls bar (View/Global Controls).
+    
+  * Saving the LS Console's command history on exit is now optional.
+    (Edit/Preferences, then click the `LS Console' tab)
+
+  * Some GUI enhancements, bugfixes and code cleanup.
+
+JSampler v0.3a: 2006-08-07
+  * Partially implemented a new view - Fantasia
+    (Graphic design: Olivier Boyer).
+  
+  * Implemented LS Console with command autocompletion
+    (using the Tab key), command history (using Up, Down keys),
+    command history search (Ctrl + R), command list search (Ctrl + F).
+    To edit the console settings (colors, command history size, etc),
+    choose Edit/Preferences, then click the `LS Console' tab.
+  
+  * Implemented Orchestras (something like Bookmarks/Favorites
+    for instruments). Instrument can also be added to orchestra using
+    Drag & Drop (drag the loaded instrument from a sampler channel
+    and drop it in the instrument list on the desired position).
+    Drag & Drop can also be used to load an instrument and to
+    autocomplete an instrument loading command in the LS Console.
+  
+  * Implemented LSCP script execution (Actions/Run Script).
+  
+  * Added more properties to the Preferences dialog.
+  
+  * API documentation updates.
+
+  * Some bugfixes, optimizations and code cleanup.
+	
+JSampler v0.2a: 2006-03-16
+  * Implemented a wizard for creating sampler channels
+    (Channels/New Channel Wizard or Ctrl+Shift+N)
+
+  * Improved the look of the sampler channels' border
+
+  * Added `Custom Colors' section in the Preferences dialog
+    (choose Edit/Preferences, then click the View tab)
+
+  * Support for saving the window size and location for the
+    next session (choose Edit/Preferences, then select 
+    `Remember window size and location' checkbox)
+	
+  * Support for saving the visibility state of the
+    Toolbar, Statusbar and Left Pane for the next session
+	
+  * Added information about the total number of sampler
+    channels in the statusbar.
+
+  * Changes to the focus subsystem in some dialogs to
+    improve the usability of the keyboard.
+
+  * Some bugfixes
+
