@@ -1,7 +1,7 @@
 <project name="jlscp" default="build-lib" basedir=".">
     <description>This buildfile is used to build the jlscp library</description>
     
-    <property name="jlscp.version" value="0.7a"/>
+    <property name="jlscp.version" value="0.8"/>
     
     <target name="build-all" depends="build-lib,build-examples,build-doc"/>
         
@@ -21,7 +21,7 @@
             <package name="org.linuxsampler.lscp.event"/>
             <doctitle>jlscp ${jlscp.version} API specification</doctitle>
             <header><![CDATA[<b>jlscp</b><br><font size=-1>v${jlscp.version}</font>]]></header>
-            <bottom><![CDATA[<font size=-1>Copyright &copy; 2007 Grigor Iliev. All rights reserved.</font>]]></bottom>
+            <bottom><![CDATA[<font size=-1>Copyright &copy; 2009 Grigor Iliev. All rights reserved.</font>]]></bottom>
         </javadoc>
     </target>
     
@@ -35,7 +35,7 @@
         <manifest file="./lib/build/Manifest">
             <section name="org/linuxsampler/lscp/">
                 <attribute name="Specification-Title" value="A java LinuxSampler control protocol API"/>
-                <attribute name="Specification-Version" value="1.2"/>
+                <attribute name="Specification-Version" value="1.4"/>
                 <attribute name="Specification-Vendor" value="Grigor Iliev"/>
                 <attribute name="Implementation-Title" value="org.linuxsampler.lscp"/>
                 <attribute name="Implementation-Version" value="${jlscp.version}"/>
