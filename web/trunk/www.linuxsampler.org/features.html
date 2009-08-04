@@ -215,8 +215,36 @@ src="http://pagead2.googlesyndication.com/pagead/show_ads.js">
 					<li class="partly"> Operating Systems
 						<ol>
 							<li class="ok">Linux</li>
+							<li class="ok">Windows</a> (we provide a convenient Windows installer for all components of the project, including native 64 bit and native 32 bit binaries, standalone and VSTi plugin versions)</li>
 							<li class="partly">Mac <a href="http://www.apple.com/macosx/">OS X</a> (gigedit and JSampler are not yet available for OS X and thus not included with the installer yet)</li>
-							<li class="partly">Windows</a> (we provide a convenient Windows installer for all components of the project, only the <a href="#instruments_db">instruments DB feature</a> is not yet supported on Windows)</li>
+						</ol>
+					</li>
+					<li class="ok">Host plugin versions of the sampler
+						<ol>
+							<li class="ok"><a href="http://en.wikipedia.org/wiki/Virtual_Studio_Technology">VSTi</a> (Windows)</li>
+							<li class="ok"><a href="http://en.wikipedia.org/wiki/Audio_Units">Audio Units</a> (Mac)</li>
+							<li class="ok"><a href="http://dssi.sourceforge.net/">DSSI</a> (Linux)</li>
+							<li class="ok"><a href="http://lv2plug.in/">LV2</a> (Linux)</li>
+						</ol>
+					</li>
+					<li class="partly">MIDI input drivers
+						<ol>
+							<li class="ok"><a href="http://www.alsa-project.org/">ALSA</a> (Linux)</li>
+							<li class="ok"><a href="http://jackit.sourceforge.net/">JACK</a> (Linux, OSX, Windows, ...)</li>
+							<li class="ok"><a href="http://developer.apple.com/audio/pdf/coreaudio.pdf">CoreMIDI</a>  (Mac <a href="http://www.apple.com/macosx/">OS X</a>)</li>
+							<li class="ok"><a href="http://midishare.sourceforge.net/">MidiShare</a> (Linux, OS X, Windows)</li>
+							<li class="ok"><a href="http://en.wikipedia.org/wiki/MultiMedia_Extensions">MME</a> (Windows)</li>
+							<li class="false">MIDI over ethernet (<a href="http://standards.ieee.org/announcements/p1639app.html">Distributed MIDI</a>)</li>
+						</ol>
+					</li>
+					<li class="partly">Audio output drivers
+						<ol>
+							<li class="ok"><a href="http://www.alsa-project.org/">ALSA</a> (Linux)</li>
+							<li class="ok"><a href="http://jackit.sourceforge.net/">JACK</a> (Linux, OSX, Windows, ...)</li>
+							<li class="ok"><a href="http://www.arts-project.org/">aRts</a> (not RT safe!)</li>
+							<li class="ok"><a href="http://en.wikipedia.org/wiki/Audio_stream_input_output">ASIO</a> (Windows)</li>
+							<li class="ok"><a href="http://developer.apple.com/audio/pdf/coreaudio.pdf">CoreAudio</a>  (Mac <a href="http://www.apple.com/macosx/">OS X</a>)</li>
+							<li class="false">Audio over ethernet</li>
 						</ol>
 					</li>
 					<li class="partly"> Sampler Engines
@@ -339,28 +367,6 @@ src="http://pagead2.googlesyndication.com/pagead/show_ads.js">
        </li>
 						</ol>
 					</li>
-     <li class="partly">MIDI input drivers
-      <ol>
-       <li class="ok"><a href="http://www.alsa-project.org/">ALSA</a> (Linux)</li>
-       <li class="ok"><a href="http://jackit.sourceforge.net/">JACK</a> (Linux, OSX, Windows, ...)</li>
-       <li class="false"><a href="http://www.steinberg.net/en/support/3rdparty/">VSTi</a></li>
-       <li class="false">MIDI over ethernet (<a href="http://standards.ieee.org/announcements/p1639app.html">Distributed MIDI</a>)</li>
-       <li class="ok"><a href="http://developer.apple.com/audio/pdf/coreaudio.pdf">CoreMIDI</a>  (Mac <a href="http://www.apple.com/macosx/">OS X</a>)</li>
-       <li class="ok"><a href="http://midishare.sourceforge.net/">MidiShare</a> (Linux, OS X, Windows)</li>
-       <li class="ok"><a href="http://en.wikipedia.org/wiki/MultiMedia_Extensions">MME</a> (Windows)</li>
-      </ol>
-     </li>
-					<li class="partly">Audio output drivers
-						<ol>
-							<li class="ok"><a href="http://www.alsa-project.org/">ALSA</a> (Linux)</li>
-							<li class="ok"><a href="http://jackit.sourceforge.net/">JACK</a> (Linux, OSX, Windows, ...)</li>
-							<li class="ok"><a href="http://www.arts-project.org/">aRts</a> (not RT safe!)</li>
-							<li class="ok"><a href="http://en.wikipedia.org/wiki/Audio_stream_input_output">ASIO</a> (Windows)</li>
-							<li class="false"><a href="http://www.steinberg.net/en/support/3rdparty/">VSTi</a></li>
-							<li class="false">Audio over ethernet</li>
-							<li class="false"><a href="http://developer.apple.com/audio/pdf/coreaudio.pdf">CoreAudio</a>  (Mac <a href="http://www.apple.com/macosx/">OS X</a>)</li>
-						</ol>
-					</li>
 					<li class="ok">Time stamp event system &#038; jitter correction</li>
 					<li class="ok">Multi channel &#038;  multi engine support</li>
 					<li class="partly">Pitch shifter / Interpolation
@@ -406,32 +412,28 @@ src="http://pagead2.googlesyndication.com/pagead/show_ads.js">
 							<li class="ok">Transparently maintained on backend side</li>
 						</ol>
 					</li>
-					<li class="partly">(Graphical) frontends
+					<li class="ok">(Graphical) frontends
 						<ol>
-							<li class="partly"><a href="http://qsampler.sourceforge.net">QSampler</a> (C++ based frontend using Qt)
-								<ol>
-									<li class="ok">Supports all features of LinuxSampler except the following ...</li>
-									<li class="ok"><a href="http://www.linuxsampler.org/api/draft-linuxsampler-protocol.html#CREATE FX_SEND">
-										Effect Sends</a>
-									</li>
-									<li class="partly"><a href="http://www.linuxsampler.org/api/draft-linuxsampler-protocol.html#MIDI Instrument Mapping">MIDI Instrument Maps</a>
-										(qsampler does currently not yet support to create more than two MIDI instrument maps [one intended for chromatic instruments and one for drumkits])
-									</li>
-									<li class="false"><a href="http://www.linuxsampler.org/api/draft-linuxsampler-protocol.html#Managing Instruments Database">Instruments DB support</a> (to ease handling of huge sample library collections)</li>
-									<li class="false"><a href="http://www.linuxsampler.org/api/draft-linuxsampler-protocol.html#events">Sampler events</a> (to let qsampler react on certain events occuring on sampler side)</li>
-									<li class="partly">Audio and MIDI device management (only minor thing that qsampler lacks support yet are <a href="http://www.linuxsampler.org/api/draft-linuxsampler-protocol.html#GET MIDI_INPUT_DRIVER_PARAMETER INFO">"multiplicity"</a> type device parameters, that is parameters which don't just accept one value, but also a list of values, i.e. for the "ALSA_SEQ_BINDINGS" parameter of the ALSA MIDI driver)</li>
-								</ol>
-							</li>
-							<li class="ok"><a href="http://sourceforge.net/projects/jsampler">JSampler</a> (Java based frontend)
+							<li class="ok"><a href="http://sourceforge.net/projects/jsampler">JSampler a.k.a "Fantasia"</a> (Java based frontend)
 								<ol>
 									<li class="ok">Supports all currently available features of LinuxSampler</li>
 								</ol>
 							</li>
-							<li class="false">VSTi frontend</li>
+							<li class="partly"><a href="http://qsampler.sourceforge.net">QSampler</a> (C++ based frontend using Qt)
+								<ol>
+									<li class="ok">Supports all features of LinuxSampler except the following ...</li>
+									<li class="partly"><a href="http://www.linuxsampler.org/api/draft-linuxsampler-protocol.html#MIDI Instrument Mapping">MIDI Instrument Maps</a>
+										(qsampler does currently not yet support to create more than two MIDI instrument maps [one intended for chromatic instruments and one for drumkits])
+									</li>
+									<li class="false"><a href="http://www.linuxsampler.org/api/draft-linuxsampler-protocol.html#Managing Instruments Database">Instruments DB support</a> (to ease handling of huge sample library collections)</li>
+									<li class="partly">Audio and MIDI device management (only minor thing that qsampler lacks support yet are <a href="http://www.linuxsampler.org/api/draft-linuxsampler-protocol.html#GET MIDI_INPUT_DRIVER_PARAMETER INFO">"multiplicity"</a> type device parameters, that is parameters which don't just accept one value, but also a list of values, i.e. for the "ALSA_SEQ_BINDINGS" parameter of the ALSA MIDI driver)</li>
+								</ol>
+							</li>
 						</ol>
 					</li>
 					<li class="ok">Playing while Loading, i.e. allowing to play and hold notes on the keyboard
 						while loading a new instrument on the same sampler channel at the same time</li>
+					<li class="ok">Limits for max. voices and max. disk streams can be altered at runtime</li>
 					<li class="ok">Instrument Editor Plugin System for 3rd Party Instrument Editors</li>
 					<li class="ok">Instrument Editors
 						<ol>
@@ -462,7 +464,7 @@ src="http://pagead2.googlesyndication.com/pagead/show_ads.js">
 			</p>
 
 			<p>
-			 (Last page update on <b>$Date: 2009-08-03 12:32:43 $</b> by $Author: senoner $,
+			 (Last page update on <b>$Date: 2009-08-04 17:00:45 $</b> by $Author: schoenebeck $,
 			 also see <a href="http://www.linuxsampler.org">CVS Log</a> for recent changes)
 			</p>
 
