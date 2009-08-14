@@ -10,7 +10,7 @@
 <body>
 <h2><center>LinuxSampler for Windows &nbsp; <img src="gfx/logos/windows.png"> &nbsp; HOWTO by Benno Senoner&nbsp;</center></h2>
 <br>
-<center>December&nbsp;18th,&nbsp;2007</center><br>
+<center>August&nbsp;14,&nbsp;2009</center><br>
 <div style="background-color: #F4F4FF; margin: 1em 3em 1em 3em; padding: 1em 1em 1em 2.2em;">
 <a href="#intro">1.&nbsp; Introduction</a><br>
 <a href="#requirements">2.&nbsp; Requirements</a><br>
@@ -18,8 +18,10 @@
 <a href="#install_w_inet">&nbsp;&nbsp;&nbsp;&nbsp;3.a&nbsp; with Internet Connection</a><br>
 <a href="#install_wo_inet">&nbsp;&nbsp;&nbsp;&nbsp;3.b&nbsp; without Internet</a><br>
 <a href="#using">4.&nbsp; Using the Applications</a><br>
-<a href="#setup_midi">&nbsp;&nbsp;&nbsp;&nbsp;4.1&nbsp; Setting up MIDI Input</a><br>
-<a href="#setup_audio">&nbsp;&nbsp;&nbsp;&nbsp;4.2&nbsp; Setting up Audio Output</a><br>
+<a href="#using_vst">&nbsp;&nbsp;&nbsp;&nbsp;4.1&nbsp VST plugin Mode</a><br>
+<a href="#using_standalone">&nbsp;&nbsp;&nbsp;&nbsp;4.2&nbsp Standalone Mode</a><br>
+<a href="#setup_midi">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;4.2.1&nbsp; Setting up MIDI Input</a><br>
+<a href="#setup_audio">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;4.2.2&nbsp; Setting up Audio Output</a><br>
 <a href="#load_samples">&nbsp;&nbsp;&nbsp;&nbsp;4.3&nbsp; Loading Samples</a><br>
 <a href="#save_session">&nbsp;&nbsp;&nbsp;&nbsp;4.4&nbsp; Saving a Sampler Session</a><br>
 <a href="#sequencer_routing">&nbsp;&nbsp;&nbsp;&nbsp;4.5&nbsp; Routing LinuxSampler Outs Into Sequencer</a><br>
@@ -49,10 +51,19 @@ The LinuxSampler development team is happy to announce that
 LinuxSampler, the most advanced free, open source sampler finally runs on
 MS Windows too. More information will be added here soon, so check back frequently.<br>
 <br>
-For now the sampler supports the Windows Multimedia Extensions System (MME)
-for MIDI input and ASIO for audio out. This means it currently runs only
-as a standalone application. A VST interface will follow soon, along with
-a network module to run multiple sampler slaves distributed on Windows or
+
+The sampler can work in standalone mode or as a VSTi plugin.
+In standalone mode it uses the Windows Multimedia Extensions System (MME)
+for MIDI input and ASIO for audio out.
+In VST mode it it can be loaded in any VST compatible sequencer. It uses intelligent
+resource sharing where a single LinuxSampler engine can serve multiple VST instance offering
+maximum performance and better memory utilization.
+The VST plugin provides user definable effect sends which can be MIDI controlled and routed
+to any LinuxSampler's VST audio out channels. That way you can use the sequencer's internal
+FXes or VST effects to ie. add reverb, chorus, delay and other kind of effects which are all
+MIDI controllable in real time. For example one can use a large General MIDI sample set and
+for faithful playback of GM MIDI files including effects.
+Planned additions are network module to run multiple sampler slaves distributed on Windows or
 Linux machines (Linux provides better performance) all controlled from a
 Windows box i.e. running the VST sequencer.<br>
 <br>
@@ -63,8 +74,7 @@ client can be run on the same box or on different machines too, connected
 over the network.<br>
 <br>
 The MS Windows version provides all the features of the Linux version
-(except of the instruments DB feature yet) since it is built from the
-same source code base. This means when new features will come out the
+ since it is built from the same source code base. This means when new features will come out the
 Windows version will usually provide the same feature set as the Linux
 version. This was made possible by the very modular design of both
 low level, operating system functions and flexible audio / MIDI driver
@@ -72,7 +82,10 @@ system.<br>
 <br>
 The Windows version comes as a self extracting .exe file which will
 install all the necessary modules to run both the server ( linuxsampler.exe )
-and the GUI client. It installs 2 GUI clients:
+and the GUI client. In addition it installs the VST plugin ( LinuxSampler.dll )
+in the default VST path (which usually is C:\Program Files\Steinberg\VstPlugins ).
+<br>
+LinuxSampler provides 2 GUI clients:
 <ul>
   <li>One is <b>QSampler</b>, a light-weight frontend based on the
       cross-platform Qt4 GUI toolkit with native OS GUI widgets</li>
@@ -88,11 +101,8 @@ but on a 1GB+ RAM box the difference should be negligible.
 <a name="requirements"></a>
 <h3>2.&nbsp; Requirements</h3>
 <ul>
-  <li>Intel Pentium4 or recent AMD processor (use
-    <a href="#old_cpu_workaround">this workaround for older processors</a>)
-  <li>Windows 2000, ME, XP or Vista</li>
-  <li><a href="http://www.gtk.org/">GTK+</a> (<a href="http://downloads.sourceforge.net/gladewin32/gtk-2.10.11-win32-1.exe?modtime=1175123376&big_mirror=0">version 2.10.11</a>)</li>
-  <li><a href="http://www.gtkmm.org/">gtkmm</a> (<a href="http://ftp.gnome.org/pub/gnome/binaries/win32/gtkmm/2.10/gtkmm-win32-runtime-2.10.11-1.exe">version 2.10.11</a>)</li>
+  <li>Modern Intel Pentium or recent AMD processor 
+  <li>Windows 2000, ME, XP, Vista, Windows 7</li>
   <li><a href="http://en.wikipedia.org/wiki/Java_(Sun)">Java Runtime Environment</a> (<a href="http://www.java.com/getjava/">version 6</a>)</a></li>
   <li>sound card with <a href="http://en.wikipedia.org/wiki/Audio_Stream_Input/Output">ASIO</a> driver</li>
 </ul>
@@ -118,8 +128,6 @@ computer.
 First download the required components with a machine which has connection to
 the internet:
 <ul>
-  <li><a href="http://downloads.sourceforge.net/gladewin32/gtk-2.10.11-win32-1.exe?modtime=1175123376&big_mirror=0">gtk+ 2.10.11</a></li>
-  <li><a href="http://ftp.gnome.org/pub/gnome/binaries/win32/gtkmm/2.10/gtkmm-win32-runtime-2.10.11-1.exe">gtkmm 2.10.11</a></li>
   <li><a href="http://www.java.com/getjava/">Java Runtime Environment 6</a></li>
   <li>and of course the latest <a href="http://www.linuxsampler.org/downloads.html">
      LinuxSampler Windows installer</a></li>
@@ -127,10 +135,8 @@ the internet:
 Transfer the downloaded files to the computer where you want to install
 LinuxSampler and install them in the following order:
 <ol>
-  <li>gtk-2.10.11-win32-1.exe</li>
-  <li>gtkmm-win32-runtime-2.10.11-1.exe</li>
-  <li>jre-6u2-windows-i586-p.exe</li>
-  <li>linuxsampler_20071207_setup.exe</li>
+  <li>the JAVA runtime environment</li>
+  <li>linuxsampler setup EXE file</li>
 </ol>
 The order is important, since the components depend on each other and would
 otherwise try to download the missing component from the internet.
@@ -138,23 +144,31 @@ otherwise try to download the missing component from the internet.
 <a name="using"></a>
 <h3>4.&nbsp; Using the Applications</h3>
 Now that we installed everything, let's get wet and start the applications:
+<a name="using_vst"></a>
+<h3>4.1 VST plugin Mode</h3>
 <ol>
-  <li>First start the LinuxSampler backend: Click on <i>"Start" ->
-      "LinuxSampler" -> "LinuxSampler 0.5.1 (backend)"</i>. A black console
+  <li>Figure out where your default VST plugin path resides. The installer looks at the registry key  Software\VST\VSTPluginsPath and if this key does not exist then it uses the default path C:\Program Files\Steinberg\VstPlugins. In this directory you should find a file LinuxSampler.dll which is the LinuxSampler VST plugin.</li>
+<li>Add the path to your sequencer's VST paths and rescan the plugin list (in some cases restarting the sequencer app is probably better). LinuxSampler should now appear in the list of your plugins.</li>
+<li>Load the LinuxSampler VST plugin into the sequencer. After a short delay the Fantasia LinuxSampler GUI should appear and you are ready to go. Please skip to the <a href="#load_samples">Loading Samples</a> section.
+</ol>
+<B>Important:</B> don't start the LinuxSampler standalone backend when using the VST plugin or don't set up MIDI and Audio ports in the GUI (The VST plugin does it automatically), otherwise it not work correctly. 
+<a name="using_standalone"></a>
+<h3>4.2 Standalone Mode</h3>
+<ul style="list-style-type: none;">
+  <li>1. First start the LinuxSampler backend: Click on <i>"Start" ->
+      "LinuxSampler" -> "LinuxSampler (backend)"</i>. A black console
       window should immediately popup. It does what you think it does:
       nothing ... yet ... because this is "just" the raw sampler, without a
       user interface.</li>
-  <li>Now start a "frontend" application to actually control the previously
+  <li>2. Now start a "frontend" application to actually control the previously
       started sampler. For beginners and / or unpatient people, we recommend
       you to use JSampler: Click on <i>"Start" -> "LinuxSampler" ->
-      "JSampler 'Fantasia' 0.8a (frontend)"</i>. This usually takes about
+      "JSampler 'Fantasia' (frontend)"</i>. This usually takes about
       20 seconds or so until the application finally appears on the
       screens.</li>
-</ol>
-</div>
-
+<li>
 <a name="setup_midi"></a>
-<h3>4.1&nbsp; Setting up MIDI Input</h3>
+<h3>4.2.1&nbsp; Setting up MIDI Input</h3>
 Once the GUI opens, click on the left round button in the MIDI devices
 tab.
 At this point a window will open where you can create a new MIDI device.
@@ -174,9 +188,10 @@ Each MIDI input device is connected to a single Windows MME MIDI port.
 This means LinuxSampler has no limitation in terms of number of MIDI
 ports.
 Each MIDI device can be routed to arbitrary sampler channels.
-
+</li>
+<li>
 <a name="setup_audio"></a>
-<h3>4.2&nbsp; Setting up Audio Output</h3>
+<h3>4.2.2&nbsp; Setting up Audio Output</h3>
 LinuxSampler currently only supports the ASIO driver model for audio output
 on Windows. ASIO drivers ensure reliable low-latency operation and are
 virtually available for any soundcard (see <a href="#asio_tip">
@@ -200,6 +215,9 @@ When creating the Audio device you can set several parameters:
 </ul>
 Now Press "Create". The window will close and the Audio device will be
 created: "AUDIO DEVICE 0 (ASIO)" appears.
+</li>
+</ul>
+</div>
 
 <a name="load_samples"></a>
 <h3>4.3&nbsp; Loading Samples</h3>
@@ -238,6 +256,14 @@ MIDI input device) and the MIDI channel (from 1 to 16).
 
 <a name="save_session"></a>
 <h3>4.4&nbsp; Saving a Sampler Session</h3>
+When in VST plugin mode saving the current LinuxSampler session happens transparently.
+Just save the session in your sequencer and it will automatically save the current settings
+and loaded samples in LinuxSampler too. When you load the session in your VST sequencer 
+LinuxSampler reloads all the settings and samples accordingly.
+<p>
+When running LinuxSampler in standalone mode you can load and save LSCP files
+from within the Fantasia GUI:
+<br>
 Click on the 3rd icon from the left on the row where you see the round
 icon with the LinuxSampler "S"-shape logo.
 Now select the directory where you want to save the file to (extension
@@ -253,8 +279,10 @@ loaded by you in the saved sampler session.
 
 <a name="sequencer_routing"></a>
 <h3>4.5&nbsp; Routing LinuxSampler Outs Into Sequencer</h3>
-LinuxSampler currently lacks a VST interface so the only way to route LinuxSampler's outs into a sequencer
-are either by using physical cables or internal routing via ASIO. Some audio cards offer this feature.
+When running LinuxSampler as a VST plugin it is fully integrated within the VST sequencer so for routing refer to the
+documentation that comes with your sequencer. 
+If you run LinuxSampler in standalone mode you can route the audio into your sequencer either 
+ by using physical cables or internal routing via ASIO. Some audio cards offer this feature.
 <br>
 The <a href="http://www.reaper.fm">Reaper</A> sequencer allows ASIO routing by implementing a virtual
 ASIO based driver independently from the soundcard type (ReaRoute). Basically in LinuxSampler you select the ReaRoute  as ASIO output driver which
@@ -269,61 +297,6 @@ See here</a>
 
 <a name="houston"></a>
 <h3>5.&nbsp; Installation Troubleshooting</h3>
-<ul>
-  <li>
-    <div style="background-color: #FFF2F2;">
-      <u>Problem:</u> The LinuxSampler backend application
-      (<i>linuxsampler.exe</i>) fails to start with an error message that
-      claims that a DLL file is missing (e.g. <i>libatkmm-1.6-1.dll</i>)
-    </div>
-    <div style="background-color: #F2FFF2;">
-      <u>Reason / Solution:</u>
-      It could happen that due to previous installations of Gtk+ and gtkmm
-      DLLs even after deinstallation leave some stale keys in the windows
-      registry which could fool the installer into believing that the needed
-      DLLs are already installed therefore skipping its installation which
-      will cause the sampler not being able to start due to the missing
-      DLLs. We recommend in this case to install gtk+ and gtkmm manually as
-      described above in "<a href="#install_wo_inet">Installation without
-      Internet</a>". Just install those mentioned Gtk+ and gtkmm versions
-      and then LinuxSampler should work correctly.
-    </div>
-  </li>
-  <li>
-    <div style="background-color: #FFF2F2;">
-      <u>Problem:</u> The LinuxSampler backend application
-      (<i>linuxsampler.exe</i>) fails to start with the error message
-      "<i>The application failed to initialize properly (0xc000001d). Click
-      on OK to terminate the application.</i>"
-    </div>
-    <div style="background-color: #F2FFF2;">
-      <u>Reason / Solution:</u><a name="old_cpu_workaround"></a>
-      This first Windows release of LinuxSampler requires at least an Intel
-      Pentium4 processor or a recent AMD processor. If you have an older
-      processor and get the error message from above, you can use the
-      following workaround for now:
-      <ol>
-        <li>Download and extract
-          <a href="http://download.linuxsampler.org/dev/win32_probs/ls686_20071207.zip">
-            these replacement binaries.
-          </a>
-        </li>
-        <li>Copy the 3 binaries manually in your LinuxSampler installation
-          directory (default installation directory:
-          "C:\Program Files\LinuxSampler"), that is overwrite the existing
-          binaries in the LS installation directory with the 3 ones from the
-          zip file.
-        </li>
-      </ol>
-      Use this workaround only if you got the mentioned error message,
-      because the replacement binaries will otherwise decrease runtime
-      efficiency! This is of course just a temporary workaround. We'll
-      address this issue with the next release of LinuxSampler (see also
-      <a href="https://bugs.linuxsampler.org/cgi-bin/show_bug.cgi?id=67">
-      bug report #67</a>).
-    </div>
-  </li>
-</ul>
 
 <a name="docs"></a>
 <h3>6.&nbsp; Detailed Documentation</h3>
