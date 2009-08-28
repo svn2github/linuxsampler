@@ -73,6 +73,8 @@ namespace LinuxSampler {
         String GetState();
         bool SetState(String State);
         void RemoveChannels();
+        void DestroyDevice(AudioOutputDevicePlugin* pDevice);
+        void DestroyDevice(MidiInputDevicePlugin* pDevice);
 
         AudioOutputDevicePlugin* pAudioDevice;
         MidiInputDevicePlugin* pMidiDevice;

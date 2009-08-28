@@ -183,12 +183,12 @@ COMPONENT_ENTRY(PluginAU)
 
         if(pAudioDevice) {
             RemoveChannels();
-            global->pSampler->DestroyAudioOutputDevice(pAudioDevice);
+            DestroyDevice(pAudioDevice);
             pAudioDevice = NULL;
         }
 
         if(pMidiDevice) {
-            global->pSampler->DestroyMidiInputDevice(pMidiDevice);
+            DestroyDevice(pMidiDevice);
             pMidiDevice = NULL;
         }
 

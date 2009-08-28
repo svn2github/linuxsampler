@@ -388,4 +388,12 @@ namespace LinuxSampler {
 
         return true;
     }
+
+    void Plugin::DestroyDevice(AudioOutputDevicePlugin* pDevice) {
+        AudioOutputDeviceFactory::DestroyPrivate(pDevice);
+    }
+
+    void Plugin::DestroyDevice(MidiInputDevicePlugin* pDevice) {
+        MidiInputDeviceFactory::DestroyPrivate(pDevice);
+    }
 }
