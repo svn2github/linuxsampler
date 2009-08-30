@@ -55,6 +55,8 @@ namespace LinuxSampler {
     /* Common parameters */
     REGISTER_MIDI_INPUT_DRIVER_PARAMETER(MidiInputDeviceAlsa, ParameterActive);
     REGISTER_MIDI_INPUT_DRIVER_PARAMETER(MidiInputDeviceAlsa, ParameterPorts);
+    /* Driver specific parameters */
+    REGISTER_MIDI_INPUT_DRIVER_PARAMETER(MidiInputDeviceAlsa, ParameterName);
 #endif // HAVE_ALSA
 
 #if HAVE_COREMIDI

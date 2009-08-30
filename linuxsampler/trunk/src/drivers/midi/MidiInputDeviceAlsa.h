@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 - 2007 Christian Schoenebeck                       *
+ *   Copyright (C) 2005 - 2009 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -97,6 +97,25 @@ namespace LinuxSampler {
                     friend class ParameterName;
                     friend class ParameterAlsaSeqBindings;
                     void UnsubscribeAll();
+            };
+
+            /** MIDI Device Parameter 'NAME'
+             *
+             * Used to assign an arbitrary name to the ALSA client of this
+             * MIDI device.
+             */
+            class ParameterName : public DeviceCreationParameterString {
+                public:
+                    ParameterName();
+                    ParameterName(String s);
+                    virtual String              Description();
+                    virtual bool                Fix();
+                    virtual bool                Mandatory();
+                    virtual std::map<String,DeviceCreationParameter*> DependsAsParameters();
+                    virtual std::vector<String> PossibilitiesAsString(std::map<String,String> Parameters);
+                    virtual optional<String>    DefaultAsString(std::map<String,String> Parameters);
+                    virtual void                OnSetValue(String s) throw (Exception);
+                    static String Name();
             };
 
             MidiInputDeviceAlsa(std::map<String,DeviceCreationParameter*> Parameters, void* pSampler);

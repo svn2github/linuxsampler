@@ -182,7 +182,7 @@ namespace LinuxSampler {
         Ports.clear();
 
         JackClient::ReleaseMidi(((DeviceCreationParameterString*)Parameters["NAME"])->ValueAsString());
-        existingJackDevices--;
+        existingJackDevices--; //FIXME: this is too simple, can lead to multiple clients with the same name
     }
 
     MidiInputDeviceJack::MidiInputPortJack* MidiInputDeviceJack::CreateMidiPort() {
@@ -210,7 +210,7 @@ namespace LinuxSampler {
     }
 
     String MidiInputDeviceJack::Version() {
-        String s = "$Revision: 1.3 $";
+        String s = "$Revision: 1.4 $";
         return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
 

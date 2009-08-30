@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 - 2008 Christian Schoenebeck                       *
+ *   Copyright (C) 2005 - 2009 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -27,6 +27,9 @@
 #define perm_ok(pinfo,bits) ((snd_seq_port_info_get_capability(pinfo) & (bits)) == (bits))
 
 namespace LinuxSampler {
+
+    /// number of currently existing ALSA midi input devices in LinuxSampler
+    static int existingAlsaDevices = 0;
 
 // *************** ParameterName ***************
 // *
@@ -119,6 +122,50 @@ namespace LinuxSampler {
 
 
 
+// *************** MidiInputDeviceAlsa::ParameterName ***************
+// *
+
+    MidiInputDeviceAlsa::ParameterName::ParameterName() : DeviceCreationParameterString() {
+        InitWithDefault(); // use default name
+    }
+
+    MidiInputDeviceAlsa::ParameterName::ParameterName(String s) : DeviceCreationParameterString(s) {
+    }
+
+    String MidiInputDeviceAlsa::ParameterName::Description() {
+        return "Arbitrary ALSA client name";
+    }
+
+    bool MidiInputDeviceAlsa::ParameterName::Fix() {
+        return true;
+    }
+
+    bool MidiInputDeviceAlsa::ParameterName::Mandatory() {
+        return false;
+    }
+
+    std::map<String,DeviceCreationParameter*> MidiInputDeviceAlsa::ParameterName::DependsAsParameters() {
+        return std::map<String,DeviceCreationParameter*>(); // no dependencies
+    }
+
+    std::vector<String> MidiInputDeviceAlsa::ParameterName::PossibilitiesAsString(std::map<String,String> Parameters) {
+        return std::vector<String>();
+    }
+
+    optional<String> MidiInputDeviceAlsa::ParameterName::DefaultAsString(std::map<String,String> Parameters) {
+        return (existingAlsaDevices) ? "LinuxSampler" + ToString(existingAlsaDevices) : "LinuxSampler";
+    }
+
+    void MidiInputDeviceAlsa::ParameterName::OnSetValue(String s) throw (Exception) {
+        // not possible, as parameter is fix
+    }
+
+    String MidiInputDeviceAlsa::ParameterName::Name() {
+        return "NAME";
+    }
+
+
+
 // *************** MidiInputPortAlsa ***************
 // *
 
@@ -192,12 +239,13 @@ namespace LinuxSampler {
         if (snd_seq_open(&hAlsaSeq, "default", SND_SEQ_OPEN_INPUT, 0) < 0) {
             throw MidiInputException("Error opening ALSA sequencer");
         }
+        existingAlsaDevices++;
         this->hAlsaSeqClient = snd_seq_client_id(hAlsaSeq);
-        snd_seq_set_client_name(hAlsaSeq, "LinuxSampler");
-	AcquirePorts(((DeviceCreationParameterInt*)Parameters["PORTS"])->ValueAsInt());
-	if (((DeviceCreationParameterBool*)Parameters["ACTIVE"])->ValueAsBool()) {
-		Listen();
-	}
+        snd_seq_set_client_name(hAlsaSeq, ((DeviceCreationParameterString*)Parameters["NAME"])->ValueAsString().c_str());
+        AcquirePorts(((DeviceCreationParameterInt*)Parameters["PORTS"])->ValueAsInt());
+        if (((DeviceCreationParameterBool*)Parameters["ACTIVE"])->ValueAsBool()) {
+            Listen();
+        }
     }
 
     MidiInputDeviceAlsa::~MidiInputDeviceAlsa() {
@@ -210,6 +258,7 @@ namespace LinuxSampler {
         Ports.clear();
 
         snd_seq_close(hAlsaSeq);
+        existingAlsaDevices--; //FIXME: this is too simple, can lead to multiple clients with the same name
     }
 
     MidiInputDeviceAlsa::MidiInputPortAlsa* MidiInputDeviceAlsa::CreateMidiPort() {
@@ -237,7 +286,7 @@ namespace LinuxSampler {
     }
 
     String MidiInputDeviceAlsa::Version() {
-	    String s = "$Revision: 1.23 $";
+	    String s = "$Revision: 1.24 $";
 	    return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
 

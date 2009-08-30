@@ -1,3 +1,12 @@
+Version CVS HEAD (?)
+
+  * host plugins:
+    - AU bugfix: failed to destroy its audio/MIDI devices
+
+  * MIDI driver:
+    - ALSA MIDI driver supports now "NAME" device parameter, for overriding
+      the ALSA sequencer client name
+
 Version 1.0.0 (31 July 2009)
 
   * packaging changes:
