@@ -48,10 +48,15 @@ namespace LinuxSampler {
 
         pSampler = new Sampler;
 
+        #if defined(__APPLE__)
+        // AU plugin sometimes hangs if bound to loopback
+        pLSCPServer = new LSCPServer(pSampler, htonl(INADDR_ANY), htons(LSCP_PORT));
+        #else
         // using LOOPBACK instead of ANY to prevent windows firewall
         // warnings
-        pLSCPServer = new LSCPServer(pSampler, htonl(INADDR_LOOPBACK),
-                                     htons(LSCP_PORT));
+        pLSCPServer = new LSCPServer(pSampler, htonl(INADDR_LOOPBACK), htons(LSCP_PORT));
+        #endif
+
         pLSCPServer->StartThread();
         pLSCPServer->WaitUntilInitialized();
 

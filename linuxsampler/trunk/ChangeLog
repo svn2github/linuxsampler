@@ -2,6 +2,7 @@ Version CVS HEAD (?)
 
   * host plugins:
     - AU bugfix: failed to destroy its audio/MIDI devices
+    - Listen to all interfaces on Mac OS X (INADDR_ANY)
 
   * MIDI driver:
     - ALSA MIDI driver supports now "NAME" device parameter, for overriding
