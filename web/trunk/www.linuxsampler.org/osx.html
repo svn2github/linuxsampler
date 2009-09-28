@@ -101,8 +101,6 @@ Track / Show track Info. Then in the Track Info window select "LinuxSampler Unit
   <br><br>
   <li> A gig file can then be loaded using the "qsampler" or "Fantasia" application. Click on the "Add channel" icon
   in qsampler in order to load a gig file.
-        
-	   
   </li>
 <br>
 <a href="http://download.linuxsampler.org/pix/screenshots/osx_qsampler_0_2_1.jpg">
@@ -114,7 +112,7 @@ You are now ready to lay down your track...
 (Note: JackOSX installation is NOT recommended in this setup since the Jack Audio Connection Kit hinders the initialization
 of both <i>qsampler</i> and <i>Fantasia</i>.)
 </ol></ol>
-<h3>5.&nbsp; The LinuxSampler(JACK) package</h3>
+<h3>4.&nbsp; The LinuxSampler(JACK) package</h3>
 </ol>
 <li>
 This archive contains dual-architecture ppc/i386 binaries of <i>linuxsampler</i> and "qsampler" which function together with
@@ -136,7 +134,7 @@ In qsampler click on the "Device configuration" icon and then on Create.
 </ol></ol>
 <img src="screenshots/qs_midi_device.jpg" border="0">
 <br><br>
-If you need multiple MIDI input device, set the "Number of ports" to 2, 3, ... before creating the MIDI device. The multiple ports will be accessible from other MIDI applications as "Linuxsampler_in_0", "Linuxsampler_in_1", etc.
+If you need multiple MIDI input devices, set the "Number of ports" to 2, 3, ... before creating the MIDI device. The multiple ports will be accessible from other MIDI applications as "Linuxsampler_in_0", "Linuxsampler_in_1", etc.
 <br>
 <br>
 (You should be able to create an arbitrary number of MIDI input devices by repeating "Create", but this feature does not work well yet.)
@@ -147,7 +145,7 @@ Start the Jack audio server using JackPilot.app. The <i>qsampler</i> application
 <br>
 
 <ol><br>
- <li>
+
  Connect audio ports:
  In the "Connections Manager" pane of JackPilot: linuxsampler --> Built-in audio: in1 & in2
  or
@@ -158,20 +156,21 @@ Start the Jack audio server using JackPilot.app. The <i>qsampler</i> application
     <img src="screenshots/qjackctl-osx.jpg" border="0">
    </a>
    <br><br>Intel Mac Note: to use built-in audio in Jack, you need to create an "aggregated device" by using "Audio MIDI Setup". Please look up Jack manual for details.
- </li>
+
  <br>
- <li>
+
+ <h3>4.3&nbsp; Configuring MIDI Input/Output</h3>
  Start MIDI Patchbay.app and connect your MIDI Input instance (probably your MIDI interface or USB-enabled keyboard) to  the "LinuxSampler_in_0"
  MIDI Output<br><br>
  </ol></ol>
    <a href="http://download.linuxsampler.org/pix/screenshots/osx_patchbay.jpg">
     <img src="screenshots/midi-patchbay-osx.jpg" border="0">
    </a>
- </li>
+
 <ol>
 
 <a name="load_samples"></a>
-<h3>4.3&nbsp; Loading Samples</h3>
+<h3>4.4&nbsp; Loading Samples</h3>
 Click on Add Channel. A dialog will appear.
 Select the GIG file you want to load, the instrument within the GIG file,
 Audio device, MIDI device, MIDI port and channel.
@@ -212,7 +211,7 @@ on external libraries makes it very arduous to prepare a universal binary.
   produces noise.</li>
 <li>  
   QSampler crashes when one tries to create a second port of jack. 
-  An error dialog saying the device was not created, after the dialog is dismissed the QSampler crashes.
+  An error dialog saying that "the device was not created" appears. After the dialog is dismissed qsampler crashes.
 </li>
 <li>
    Sometimes qsampler fails to quit gracefully; this calls for "Force Quit". After force quitting, the
