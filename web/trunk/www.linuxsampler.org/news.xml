@@ -1,5 +1,30 @@
 <?xml version='1.0' ?>
 <news>
+  <entry date="2009-10-16">
+    Better a late than no announcement at all:
+    <list>
+      <li>linuxsampler 1.0.0</li>
+      <li>Fantasia 0.9</li>
+      <li>qsampler 0.2.2</li>
+      <li>gigedit 0.2.0</li>
+      <li>libgig 3.3.0</li>
+      <li>jlscp 0.8</li>
+      <li>liblscp 0.5.6</li>
+    </list>
+    This is the first release which allows the sampler to be used as audio
+    host plugin, namely supporting the standards VST, AU, DSSI and LV2. The
+    sampler's limits for max. voices &amp; disk streams can now be altered at
+    runtime by frontends, no need to recompile the sampler anymore. The Mac
+    version now also supports CoreAudio as audio driver. The Windows version
+    finally supports the sampler's instruments DB feature as well, however
+    expect it still to be unstable at this point. Along to the already
+    existing JACK audio driver, Jack MIDI support has been added in this
+    release. The sampler allows frontends now basic MIDI control, that is to
+    monitor incoming MIDI data on MIDI input devices and sampler channels and
+    to send note-on and note-off MIDI events to sampler channels, which
+    allows frontends to provide a virtual MIDI keyboard to the user. Besides
+    these major changes there were countless bugfixes and optimizations.
+  </entry>
   <entry date="2009-05-12">
     On the finish line to the upcoming next release of LinuxSampler and
     friends, a beta pre-release for the Windows platform is now available
