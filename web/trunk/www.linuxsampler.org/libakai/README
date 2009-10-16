@@ -1,0 +1,6 @@
+Currently supported formats: S1000, S01, S2000 and S3000 series
+
+libakai.pdf      -  UML diagram for libakai (focused on the aspect of actually using the library)
+libakai.ps       -  UML diagram for libakai (focused on the aspect of actually using the library)
+libakai.ssd      -  UML diagram source file (created with TCM - http://wwwhome.cs.utwente.nl/~tcm/)
+libakai.tar.bz2  -  libakai C++ source files (Linux port)

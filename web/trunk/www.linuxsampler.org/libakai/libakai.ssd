@@ -1,0 +1,1614 @@
+Storage 
+{
+	{ Format 1.33 }
+	{ GeneratedFrom TSSD-version-2.20 }
+	{ WrittenBy cuse }
+	{ WrittenOn "" }
+}
+
+Document 
+{
+	{ Type "Static Structure Diagram" }
+	{ Name libakai.ssd }
+	{ Author cuse }
+	{ CreatedOn "" }
+	{ Annotation "" }
+	{ Hierarchy False }
+}
+
+Page 
+{
+	{ PageOrientation Portrait }
+	{ PageSize A4 }
+	{ ShowHeaders False }
+	{ ShowFooters False }
+	{ ShowNumbers False }
+}
+
+Scale 
+{
+	{ ScaleValue 0.833333 }
+}
+
+# GRAPH NODES
+
+SSDClassNode 4
+{
+	{ Name "DiskImage" }
+	{ Annotation "" }
+	{ Parent 0 }
+	{ Index "" }
+	{ Attributes 0 }
+	{ Operations 2 }
+	{ Operation "DiskImage(char* path)" }
+	{ Operation "WriteImage(char* path)" }
+	{ Stereotype "<< - >>" }
+	{ Properties "{ - }" }
+}
+
+Note 5
+{
+	{ Name "Just a stream abstraction which will\rhandle to access the data track. It\rhas of course more methods, but\rwhich you shouldn't care of; just use\rthe mentioned cunstructor to open the\rcdrom device (e.g. \"/dev/cdrom\" or\r\"/dev/hdc\").\r\rWriteImage() allows to extract an Akai\rdata track from CDROM into an regular\rfile. This is handy as many sample CDs\re.g also contain audio demo tracks." }
+	{ Annotation "" }
+	{ Parent 0 }
+	{ Index "" }
+}
+
+SSDClassNode 10
+{
+	{ Name "Ressource" }
+	{ Annotation "" }
+	{ Parent 0 }
+	{ Index "" }
+	{ Attributes 0 }
+	{ Operations 0 }
+	{ Stereotype "<< abstract >>" }
+	{ Properties "{ - }" }
+}
+
+SSDClassNode 11
+{
+	{ Name "AkaiPartition" }
+	{ Annotation "" }
+	{ Parent 0 }
+	{ Index "" }
+	{ Attributes 0 }
+	{ Operations 5 }
+	{ Operation "AkaiVolume* GetVolume(uint)" }
+	{ Operation "AkaiVolume* GetVolume(String& name)" }
+	{ Operation "bool IsEmpty()" }
+	{ Operation "AkaiDisk* GetParent()" }
+	{ Operation "uint ListVolumes(std::list<AkaiDirEntry> rVolumes)" }
+	{ Stereotype "<< - >>" }
+	{ Properties "{ - }" }
+}
+
+SSDClassNode 12
+{
+	{ Name "AkaiDisk" }
+	{ Annotation "" }
+	{ Parent 0 }
+	{ Index "" }
+	{ Attributes 0 }
+	{ Operations 3 }
+	{ Operation "AkaiDisk(DiskImage*)" }
+	{ Operation "uint GetPartitionCount()" }
+	{ Operation "AkaiPartition* GetPartition(uint)" }
+	{ Stereotype "<< - >>" }
+	{ Properties "{ - }" }
+}
+
+SSDClassNode 13
+{
+	{ Name "AkaiDiskElement" }
+	{ Annotation "" }
+	{ Parent 0 }
+	{ Index "" }
+	{ Attributes 0 }
+	{ Operations 0 }
+	{ Stereotype "<< abstract >>" }
+	{ Properties "{ - }" }
+}
+
+Note 14
+{
+	{ Name "Note to ListVolumes(): you have to define a\rstd::list object and pass it to\rListVolumes(), that will fill the list with\rall AkaiVolumes in it's partition" }
+	{ Annotation "" }
+	{ Parent 0 }
+	{ Index "" }
+}
+
+SSDClassNode 28
+{
+	{ Name "AkaiVolume" }
+	{ Annotation "" }
+	{ Parent 0 }
+	{ Index "" }
+	{ Attributes 0 }
+	{ Operations 9 }
+	{ Operation "AkaiDirEntry GetDirEntry()" }
+	{ Operation "bool IsEmpty()" }
+	{ Operation "AkaiPartition* GetParent()" }
+	{ Operation "uint ListPrograms(std::list<AkaiDirEntry>)" }
+	{ Operation "AkaiProgram* GetProgram(uint)" }
+	{ Operation "AkaiProgram* GetProgram(String name)" }
+	{ Operation "uint ListSamples(std::list<AkaiDirEntry>)" }
+	{ Operation "AkaiSample* GetSample(uint)" }
+	{ Operation "AkaiSample* GetSample(String name)" }
+	{ Stereotype "<< - >>" }
+	{ Properties "{ - }" }
+}
+
+SSDClassNode 38
+{
+	{ Name "AkaiProgram" }
+	{ Annotation "" }
+	{ Parent 0 }
+	{ Index "" }
+	{ Attributes 47 }
+	{ Attribute "String mName" }
+	{ Attribute "uint8_t mMidiProgramNumber" }
+	{ Attribute "uint8_t mMidiChannel" }
+	{ Attribute "uint8_t mPolyphony" }
+	{ Attribute "uint8_t mPriority" }
+	{ Attribute "uint8_t mLowKey" }
+	{ Attribute "uint8_t mHighKey" }
+	{ Attribute "int8_t mOctaveShift" }
+	{ Attribute "uint8_t mAuxOutputSelect" }
+	{ Attribute "uint8_t mMixOutputSelect" }
+	{ Attribute "int8_t mMixPan" }
+	{ Attribute "uint8_t mVolume" }
+	{ Attribute "int8_t mVelocityToVolume" }
+	{ Attribute "int8_t mKeyToVolume" }
+	{ Attribute "int8_t mPressureToVolume" }
+	{ Attribute "uint8_t mPanLFORate" }
+	{ Attribute "uint8_t mPanLFODepth" }
+	{ Attribute "uint8_t mPanLFODelay" }
+	{ Attribute "int8_t mKeyToPan" }
+	{ Attribute "uint8_t mLFORate" }
+	{ Attribute "uint8_t mLFODepth" }
+	{ Attribute "uint8_t mLFODelay" }
+	{ Attribute "uint8_t mModulationToLFODepth" }
+	{ Attribute "uint8_t mPressureToLFODepth" }
+	{ Attribute "uint8_t mVelocityToLFODepth" }
+	{ Attribute "uint8_t mBendToPitch" }
+	{ Attribute "int8_t mPressureToPitch" }
+	{ Attribute "bool mKeygroupCrossfade" }
+	{ Attribute "uint8_t mNumberOfKeygroups" }
+	{ Attribute "int8_t mKeyTemperament" }
+	{ Attribute "bool mFXOutput" }
+	{ Attribute "int8_t mModulationToPan" }
+	{ Attribute "bool mStereoCoherence" }
+	{ Attribute "bool mLFODesync" }
+	{ Attribute "uint8_t mPitchLaw" }
+	{ Attribute "unt8_t mVoiceReassign" }
+	{ Attribute "uint8_t mSoftpedToVolume" }
+	{ Attribute "uint8_t mSoftpadToAttack" }
+	{ Attribute "uint8_t mSoftpedToFilter" }
+	{ Attribute "int8_t mSoftpedToTuneCents" }
+	{ Attribute "int8_t mSoftpedToTuneSemitones" }
+	{ Attribute "int8_t mKeyToLFORate" }
+	{ Attribute "int8_t mKeyToLFODepth" }
+	{ Attribute "int8_t mKeyToLFODelay" }
+	{ Attribute "uint8_t mVoiceOutputScale" }
+	{ Attribute "uint8_t mStereoOutputScale" }
+	{ Attribute "AkaiKeygroup* mpKeygroups" }
+	{ Operations 5 }
+	{ Operation "AkaiDirEntry GetDirentry()" }
+	{ Operation "uint ListSamples(std::list<String>& rSamples)" }
+	{ Operation "AkaiSample* GetSample(uint)" }
+	{ Operation "AkaiSample* GetSample(String name)" }
+	{ Operation "AkaiVolume* GetParent()" }
+	{ Stereotype "<< - >>" }
+	{ Properties "{ - }" }
+}
+
+SSDClassNode 39
+{
+	{ Name "AkaiSample" }
+	{ Annotation "" }
+	{ Parent 0 }
+	{ Index "" }
+	{ Attributes 14 }
+	{ Attribute "String mName" }
+	{ Attribute "uint8_t mMidiRootNote" }
+	{ Attribute "uint8_t mActiveLoops" }
+	{ Attribute "uint8_t mFirstActiveLoop" }
+	{ Attribute "uint8_t mLoopMode" }
+	{ Attribute "int8_t mTuneCents" }
+	{ Attribute "int8_t mTuneSemitones" }
+	{ Attribute "uint32_t mNumberOfSamples" }
+	{ Attribute "uint32_t mStartMarker" }
+	{ Attribute "uint32_t mEndMarker" }
+	{ Attribute "AkaiSampleLoop mLoops[8]" }
+	{ Attribute "uint16_t mSamplingFrequency" }
+	{ Attribute "int8_t mLoopTuneOffset" }
+	{ Attribute "int16_t* mpSamples" }
+	{ Operations 5 }
+	{ Operation "AkaiDirentry GetDirEntry()" }
+	{ Operation "bool LoadSampleData()" }
+	{ Operation "void ReleaseSampleData()" }
+	{ Operation "int SetPos(int Where, akai_stream_whence_t Whence)" }
+	{ Operation "int Read(void* pBuffer, uint SampleCount)" }
+	{ Stereotype "<< - >>" }
+	{ Properties "{ - }" }
+}
+
+Note 46
+{
+	{ Name "You need a DiskImage\rObject for this." }
+	{ Annotation "" }
+	{ Parent 0 }
+	{ Index "" }
+}
+
+SSDClassNode 50
+{
+	{ Name "AkaiDirEntry" }
+	{ Annotation "" }
+	{ Parent 0 }
+	{ Index "" }
+	{ Attributes 1 }
+	{ Attribute "String mName" }
+	{ Operations 0 }
+	{ Stereotype "<< - >>" }
+	{ Properties "{ - }" }
+}
+
+Note 56
+{
+	{ Name "use mpKeygroups as an array to\raccess one of the keygroups of\rthe program, where mNumberOfKeygroups\rwill of course tell you the size of\rthat array" }
+	{ Annotation "" }
+	{ Parent 0 }
+	{ Index "" }
+}
+
+SSDClassNode 66
+{
+	{ Name "AkaiKeygroup" }
+	{ Annotation "" }
+	{ Parent 0 }
+	{ Index "" }
+	{ Attributes 21 }
+	{ Attribute "uint8_t mLowKey" }
+	{ Attribute "uint8_t mHighKey" }
+	{ Attribute "int8_t mTuneCents" }
+	{ Attribute "int8_t mTuneSemitones" }
+	{ Attribute "uint8_t mFilter" }
+	{ Attribute "uint8_t mKeyToFilter" }
+	{ Attribute "uint8_t mVelocityToFilter" }
+	{ Attribute "uint8_t mPressureToFilter" }
+	{ Attribute "uint8_t mEnvelope2ToFilter" }
+	{ Attribute "AkaiEnvelope mEnvelopes[2]" }
+	{ Attribute "int8_t mVelocityToEnvelope2ToFilter" }
+	{ Attribute "int8_t mEnvelope2ToPitch" }
+	{ Attribute "bool mVelocityZoneCrossfade" }
+	{ Attribute "uint mVelocityZoneUsed" }
+	{ Attribute "AkaiKeygroupSample mSamples[4]" }
+	{ Attribute "int8_t mBeatDetune" }
+	{ Attribute "bool mHldAttackUntilLoop" }
+	{ Attribute "bool mSampleKeyTracking[4]" }
+	{ Attribute "uint8_t mSampleAuxOutOffset[4]" }
+	{ Attribute "int16_t mVelocityToSampleStart[4]" }
+	{ Attribute "int8_t mVelocityToVolumeOffset[4]" }
+	{ Operations 0 }
+	{ Stereotype "<< - >>" }
+	{ Properties "{ - }" }
+}
+
+SSDClassNode 68
+{
+	{ Name "AkaiEnvelope" }
+	{ Annotation "" }
+	{ Parent 0 }
+	{ Index "" }
+	{ Attributes 8 }
+	{ Attribute "uint_t mAttack" }
+	{ Attribute "uint8_t mDecay" }
+	{ Attribute "uint8_t mSustain" }
+	{ Attribute "uint8_t mRelease" }
+	{ Attribute "int8_t mVelocityToAttack" }
+	{ Attribute "int8_t mVelocityToRelease" }
+	{ Attribute "int8_t mOffVelocityToRelease" }
+	{ Attribute "int8_t mKeyToDecayAndRelease" }
+	{ Operations 0 }
+	{ Stereotype "<< - >>" }
+	{ Properties "{ - }" }
+}
+
+SSDClassNode 74
+{
+	{ Name "AkaiKeygroupSample" }
+	{ Annotation "" }
+	{ Parent 0 }
+	{ Index "" }
+	{ Attributes 9 }
+	{ Attribute "String mName" }
+	{ Attribute "uint8_t mLowLevel" }
+	{ Attribute "uint8_t mHighLevel" }
+	{ Attribute "int8_t mTuneCents" }
+	{ Attribute "int8_t mTuneSemitones" }
+	{ Attribute "int8_t mLoudness" }
+	{ Attribute "int8_t mFilter" }
+	{ Attribute "int8_t mPan" }
+	{ Attribute "uint8_t mLoopMode" }
+	{ Operations 0 }
+	{ Stereotype "<< - >>" }
+	{ Properties "{ - }" }
+}
+
+Note 82
+{
+	{ Name "Use LoadSampleData() to load\rthe sample wave into memory,\rmpSamples will then point to\rthe beginning of the wave in\rmemory. If you're finished\ruse ReleaseSampleData() to\rfree the sample wave from\rmemory.\r\rOr instead of loading samples\rinto RAM you can use the\rSetPos() and Read() methods,\rThis allows disk streaming." }
+	{ Annotation "" }
+	{ Parent 0 }
+	{ Index "" }
+}
+
+SSDClassNode 86
+{
+	{ Name "AkaiSampleLoop" }
+	{ Annotation "" }
+	{ Parent 0 }
+	{ Index "" }
+	{ Attributes 4 }
+	{ Attribute "uint32_t mMarker" }
+	{ Attribute "uint16_t mFineLength" }
+	{ Attribute "uint32_t mCoarseLength" }
+	{ Attribute "uint16_t mTime" }
+	{ Operations 0 }
+	{ Stereotype "<< - >>" }
+	{ Properties "{ - }" }
+}
+
+# GRAPH EDGES
+
+CommentLink 6
+{
+	{ Name "" }
+	{ Annotation "" }
+	{ Parent 0 }
+	{ Subject1 5 }
+	{ Subject2 4 }
+}
+
+SSDGeneralizationEdge 16
+{
+	{ Name "" }
+	{ Annotation "" }
+	{ Parent 0 }
+	{ Subject1 11 }
+	{ Subject2 13 }
+}
+
+CommentLink 18
+{
+	{ Name "" }
+	{ Annotation "" }
+	{ Parent 0 }
+	{ Subject1 14 }
+	{ Subject2 11 }
+}
+
+SSDGeneralizationEdge 30
+{
+	{ Name "" }
+	{ Annotation "" }
+	{ Parent 0 }
+	{ Subject1 28 }
+	{ Subject2 13 }
+}
+
+CommentLink 47
+{
+	{ Name "" }
+	{ Annotation "" }
+	{ Parent 0 }
+	{ Subject1 12 }
+	{ Subject2 46 }
+}
+
+SSDAggregationEdge 51
+{
+	{ Name "" }
+	{ Annotation "" }
+	{ Parent 0 }
+	{ Subject1 50 }
+	{ Subject2 28 }
+	{ Constraint1 "1" }
+	{ Constraint2 "" }
+	{ RoleName1 "" }
+	{ RoleName2 "" }
+}
+
+SSDAggregationEdge 52
+{
+	{ Name "" }
+	{ Annotation "" }
+	{ Parent 0 }
+	{ Subject1 50 }
+	{ Subject2 38 }
+	{ Constraint1 "1" }
+	{ Constraint2 "" }
+	{ RoleName1 "" }
+	{ RoleName2 "" }
+}
+
+SSDGeneralizationEdge 57
+{
+	{ Name "" }
+	{ Annotation "" }
+	{ Parent 0 }
+	{ Subject1 38 }
+	{ Subject2 13 }
+}
+
+SSDGeneralizationEdge 58
+{
+	{ Name "" }
+	{ Annotation "" }
+	{ Parent 0 }
+	{ Subject1 39 }
+	{ Subject2 13 }
+}
+
+SSDBinaryAssociationEdge 59
+{
+	{ Name "" }
+	{ Annotation "" }
+	{ Parent 0 }
+	{ Subject1 38 }
+	{ Subject2 39 }
+	{ Constraint1 "0..99" }
+	{ Constraint2 "0..99" }
+	{ RoleName1 "" }
+	{ RoleName2 "" }
+}
+
+CommentLink 60
+{
+	{ Name "" }
+	{ Annotation "" }
+	{ Parent 0 }
+	{ Subject1 56 }
+	{ Subject2 38 }
+}
+
+SSDBinaryAssociationEdge 69
+{
+	{ Name "" }
+	{ Annotation "" }
+	{ Parent 0 }
+	{ Subject1 38 }
+	{ Subject2 66 }
+	{ Constraint1 "" }
+	{ Constraint2 "" }
+	{ RoleName1 "" }
+	{ RoleName2 "" }
+}
+
+SSDBinaryAssociationEdge 70
+{
+	{ Name "" }
+	{ Annotation "" }
+	{ Parent 0 }
+	{ Subject1 66 }
+	{ Subject2 68 }
+	{ Constraint1 "1" }
+	{ Constraint2 "2" }
+	{ RoleName1 "" }
+	{ RoleName2 "" }
+}
+
+SSDAggregationEdge 80
+{
+	{ Name "" }
+	{ Annotation "" }
+	{ Parent 0 }
+	{ Subject1 50 }
+	{ Subject2 39 }
+	{ Constraint1 "1" }
+	{ Constraint2 "" }
+	{ RoleName1 "" }
+	{ RoleName2 "" }
+}
+
+CommentLink 83
+{
+	{ Name "" }
+	{ Annotation "" }
+	{ Parent 0 }
+	{ Subject1 82 }
+	{ Subject2 39 }
+}
+
+SSDBinaryAssociationEdge 87
+{
+	{ Name "" }
+	{ Annotation "" }
+	{ Parent 0 }
+	{ Subject1 66 }
+	{ Subject2 74 }
+	{ Constraint1 "1" }
+	{ Constraint2 "4" }
+	{ RoleName1 "" }
+	{ RoleName2 "" }
+}
+
+SSDAggregationEdge 103
+{
+	{ Name "" }
+	{ Annotation "" }
+	{ Parent 0 }
+	{ Subject1 39 }
+	{ Subject2 28 }
+	{ Constraint1 "0..100" }
+	{ Constraint2 "" }
+	{ RoleName1 "" }
+	{ RoleName2 "" }
+}
+
+SSDAggregationEdge 104
+{
+	{ Name "" }
+	{ Annotation "" }
+	{ Parent 0 }
+	{ Subject1 38 }
+	{ Subject2 28 }
+	{ Constraint1 "0..100" }
+	{ Constraint2 "" }
+	{ RoleName1 "" }
+	{ RoleName2 "" }
+}
+
+SSDAggregationEdge 105
+{
+	{ Name "" }
+	{ Annotation "" }
+	{ Parent 0 }
+	{ Subject1 28 }
+	{ Subject2 11 }
+	{ Constraint1 "0..100" }
+	{ Constraint2 "" }
+	{ RoleName1 "" }
+	{ RoleName2 "" }
+}
+
+SSDAggregationEdge 106
+{
+	{ Name "" }
+	{ Annotation "" }
+	{ Parent 0 }
+	{ Subject1 11 }
+	{ Subject2 12 }
+	{ Constraint1 "0..9" }
+	{ Constraint2 "" }
+	{ RoleName1 "" }
+	{ RoleName2 "" }
+}
+
+SSDGeneralizationEdge 114
+{
+	{ Name "" }
+	{ Annotation "" }
+	{ Parent 0 }
+	{ Subject1 13 }
+	{ Subject2 10 }
+}
+
+SSDCompositionEdge 120
+{
+	{ Name "" }
+	{ Annotation "" }
+	{ Parent 0 }
+	{ Subject1 4 }
+	{ Subject2 12 }
+	{ Constraint1 "" }
+	{ Constraint2 "" }
+	{ RoleName1 "" }
+	{ RoleName2 "" }
+}
+
+SSDBinaryAssociationEdge 123
+{
+	{ Name "" }
+	{ Annotation "" }
+	{ Parent 0 }
+	{ Subject1 39 }
+	{ Subject2 86 }
+	{ Constraint1 "1" }
+	{ Constraint2 "8" }
+	{ RoleName1 "" }
+	{ RoleName2 "" }
+}
+
+SSDGeneralizationEdge 124
+{
+	{ Name "" }
+	{ Annotation "" }
+	{ Parent 0 }
+	{ Subject1 12 }
+	{ Subject2 13 }
+}
+
+# VIEWS AND GRAPHICAL SHAPES
+
+View 2
+{
+	{ Index "0" }
+	{ Parent 0 }
+}
+
+SSDTripleClassBox 7
+{
+	{ View 2 }
+	{ Subject 4 }
+	{ Position 430 90 }
+	{ Size 140 71 }
+	{ Color "black" }
+	{ LineWidth 1 }
+	{ LineStyle Solid }
+	{ FillStyle Unfilled }
+	{ FillColor "white" }
+	{ FixedName False }
+	{ Font "-*-courier-medium-r-normal--8*" }
+	{ TextAlignment Center }
+	{ TextColor "black" }
+	{ NameUnderlined False }
+	{ ShowStereotype False }
+	{ ShowProperties False }
+}
+
+NoteBox 8
+{
+	{ View 2 }
+	{ Subject 5 }
+	{ Position 660 130 }
+	{ Size 248 158 }
+	{ Color "black" }
+	{ LineWidth 1 }
+	{ LineStyle Solid }
+	{ FillStyle Unfilled }
+	{ FillColor "white" }
+	{ FixedName False }
+	{ Font "-*-courier-medium-r-normal--8*" }
+	{ TextAlignment Center }
+	{ TextColor "black" }
+	{ NameUnderlined False }
+}
+
+Line 9
+{
+	{ View 2 }
+	{ Subject 6 }
+	{ FromShape 8 }
+	{ ToShape 7 }
+	{ Curved False }
+	{ End1 Empty }
+	{ End2 Empty }
+	{ Points 2 }
+	{ Point 536 108 }
+	{ Point 500 102 }
+	{ NamePosition 520 96 }
+	{ Color "black" }
+	{ LineWidth 1 }
+	{ LineStyle WideDotted }
+	{ FixedName True }
+	{ Font "-*-courier-medium-r-normal--8*" }
+	{ TextAlignment Center }
+	{ TextColor "black" }
+	{ NameUnderlined False }
+}
+
+SSDSingleClassBox 19
+{
+	{ View 2 }
+	{ Subject 10 }
+	{ Position 730 260 }
+	{ Size 94 33 }
+	{ Color "black" }
+	{ LineWidth 1 }
+	{ LineStyle Solid }
+	{ FillStyle Unfilled }
+	{ FillColor "white" }
+	{ FixedName False }
+	{ Font "-*-courier-medium-r-normal--8*" }
+	{ TextAlignment Center }
+	{ TextColor "black" }
+	{ NameUnderlined False }
+	{ ShowStereotype True }
+	{ ShowProperties False }
+}
+
+SSDTripleClassBox 20
+{
+	{ View 2 }
+	{ Subject 11 }
+	{ Position 160 250 }
+	{ Size 308 104 }
+	{ Color "black" }
+	{ LineWidth 1 }
+	{ LineStyle Solid }
+	{ FillStyle Unfilled }
+	{ FillColor "white" }
+	{ FixedName False }
+	{ Font "-*-courier-medium-r-normal--8*" }
+	{ TextAlignment Center }
+	{ TextColor "black" }
+	{ NameUnderlined False }
+	{ ShowStereotype False }
+	{ ShowProperties False }
+}
+
+SSDTripleClassBox 21
+{
+	{ View 2 }
+	{ Subject 12 }
+	{ Position 150 90 }
+	{ Size 206 82 }
+	{ Color "black" }
+	{ LineWidth 1 }
+	{ LineStyle Solid }
+	{ FillStyle Unfilled }
+	{ FillColor "white" }
+	{ FixedName False }
+	{ Font "-*-courier-medium-r-normal--8*" }
+	{ TextAlignment Center }
+	{ TextColor "black" }
+	{ NameUnderlined False }
+	{ ShowStereotype False }
+	{ ShowProperties False }
+}
+
+Line 24
+{
+	{ View 2 }
+	{ Subject 16 }
+	{ FromShape 20 }
+	{ ToShape 95 }
+	{ Curved False }
+	{ End1 Empty }
+	{ End2 WhiteTriangle }
+	{ Points 2 }
+	{ Point 314 258 }
+	{ Point 520 268 }
+	{ NamePosition 417 254 }
+	{ Color "black" }
+	{ LineWidth 1 }
+	{ LineStyle Solid }
+	{ FixedName False }
+	{ Font "-*-courier-medium-r-normal--8*" }
+	{ TextAlignment Center }
+	{ TextColor "black" }
+	{ NameUnderlined False }
+}
+
+NoteBox 26
+{
+	{ View 2 }
+	{ Subject 14 }
+	{ Position 330 170 }
+	{ Size 266 48 }
+	{ Color "black" }
+	{ LineWidth 1 }
+	{ LineStyle Solid }
+	{ FillStyle Unfilled }
+	{ FillColor "white" }
+	{ FixedName False }
+	{ Font "-*-courier-medium-r-normal--8*" }
+	{ TextAlignment Center }
+	{ TextColor "black" }
+	{ NameUnderlined False }
+}
+
+Line 27
+{
+	{ View 2 }
+	{ Subject 18 }
+	{ FromShape 26 }
+	{ ToShape 20 }
+	{ Curved False }
+	{ End1 Empty }
+	{ End2 Empty }
+	{ Points 2 }
+	{ Point 279 194 }
+	{ Point 271 198 }
+	{ NamePosition 269 188 }
+	{ Color "black" }
+	{ LineWidth 1 }
+	{ LineStyle WideDotted }
+	{ FixedName True }
+	{ Font "-*-courier-medium-r-normal--8*" }
+	{ TextAlignment Center }
+	{ TextColor "black" }
+	{ NameUnderlined False }
+}
+
+SSDTripleClassBox 32
+{
+	{ View 2 }
+	{ Subject 28 }
+	{ Position 160 410 }
+	{ Size 254 148 }
+	{ Color "black" }
+	{ LineWidth 1 }
+	{ LineStyle Solid }
+	{ FillStyle Unfilled }
+	{ FillColor "white" }
+	{ FixedName False }
+	{ Font "-*-courier-medium-r-normal--8*" }
+	{ TextAlignment Center }
+	{ TextColor "black" }
+	{ NameUnderlined False }
+	{ ShowStereotype False }
+	{ ShowProperties False }
+}
+
+Line 34
+{
+	{ View 2 }
+	{ Subject 30 }
+	{ FromShape 32 }
+	{ ToShape 95 }
+	{ Curved False }
+	{ End1 Empty }
+	{ End2 WhiteTriangle }
+	{ Points 2 }
+	{ Point 287 367 }
+	{ Point 524 287 }
+	{ NamePosition 400 318 }
+	{ Color "black" }
+	{ LineWidth 1 }
+	{ LineStyle Solid }
+	{ FixedName False }
+	{ Font "-*-courier-medium-r-normal--8*" }
+	{ TextAlignment Center }
+	{ TextColor "black" }
+	{ NameUnderlined False }
+}
+
+SSDTripleClassBox 42
+{
+	{ View 2 }
+	{ Subject 38 }
+	{ Position 160 820 }
+	{ Size 278 616 }
+	{ Color "black" }
+	{ LineWidth 1 }
+	{ LineStyle Solid }
+	{ FillStyle Unfilled }
+	{ FillColor "white" }
+	{ FixedName False }
+	{ Font "-*-courier-medium-r-normal--8*" }
+	{ TextAlignment Center }
+	{ TextColor "black" }
+	{ NameUnderlined False }
+	{ ShowStereotype False }
+	{ ShowProperties False }
+}
+
+SSDTripleClassBox 43
+{
+	{ View 2 }
+	{ Subject 39 }
+	{ Position 620 530 }
+	{ Size 308 253 }
+	{ Color "black" }
+	{ LineWidth 1 }
+	{ LineStyle Solid }
+	{ FillStyle Unfilled }
+	{ FillColor "white" }
+	{ FixedName False }
+	{ Font "-*-courier-medium-r-normal--8*" }
+	{ TextAlignment Center }
+	{ TextColor "black" }
+	{ NameUnderlined False }
+	{ ShowStereotype False }
+	{ ShowProperties False }
+}
+
+NoteBox 48
+{
+	{ View 2 }
+	{ Subject 46 }
+	{ Position 80 170 }
+	{ Size 140 40 }
+	{ Color "black" }
+	{ LineWidth 1 }
+	{ LineStyle Solid }
+	{ FillStyle Unfilled }
+	{ FillColor "white" }
+	{ FixedName False }
+	{ Font "-*-courier-medium-r-normal--8*" }
+	{ TextAlignment Center }
+	{ TextColor "black" }
+	{ NameUnderlined False }
+}
+
+Line 49
+{
+	{ View 2 }
+	{ Subject 47 }
+	{ FromShape 21 }
+	{ ToShape 48 }
+	{ Curved False }
+	{ End1 Empty }
+	{ End2 Empty }
+	{ Points 2 }
+	{ Point 114 131 }
+	{ Point 98 150 }
+	{ NamePosition 96 134 }
+	{ Color "black" }
+	{ LineWidth 1 }
+	{ LineStyle WideDotted }
+	{ FixedName True }
+	{ Font "-*-courier-medium-r-normal--8*" }
+	{ TextAlignment Center }
+	{ TextColor "black" }
+	{ NameUnderlined False }
+}
+
+SSDDoubleClassBox 53
+{
+	{ View 2 }
+	{ Subject 50 }
+	{ Position 380 390 }
+	{ Size 82 44 }
+	{ Color "black" }
+	{ LineWidth 1 }
+	{ LineStyle Solid }
+	{ FillStyle Unfilled }
+	{ FillColor "white" }
+	{ FixedName False }
+	{ Font "-*-courier-medium-r-normal--8*" }
+	{ TextAlignment Center }
+	{ TextColor "black" }
+	{ NameUnderlined False }
+	{ ShowStereotype False }
+	{ ShowProperties False }
+}
+
+C2R2Line 54
+{
+	{ View 2 }
+	{ Subject 51 }
+	{ FromShape 53 }
+	{ ToShape 32 }
+	{ Curved False }
+	{ End1 Empty }
+	{ End2 WhiteDiamond }
+	{ Points 2 }
+	{ Point 339 394 }
+	{ Point 287 398 }
+	{ NamePosition 312 387 }
+	{ Color "black" }
+	{ LineWidth 1 }
+	{ LineStyle Solid }
+	{ FixedName True }
+	{ Font "-*-courier-medium-r-normal--8*" }
+	{ TextAlignment Center }
+	{ TextColor "black" }
+	{ NameUnderlined False }
+	{ T1Position 330 403 }
+	{ T2Position 298 407 }
+	{ T3Position 328 385 }
+	{ T4Position 296 389 }
+	{ NameDirection None }
+}
+
+C2R2Line 55
+{
+	{ View 2 }
+	{ Subject 52 }
+	{ FromShape 53 }
+	{ ToShape 42 }
+	{ Curved False }
+	{ End1 Empty }
+	{ End2 WhiteDiamond }
+	{ Points 2 }
+	{ Point 369 412 }
+	{ Point 299 548 }
+	{ NamePosition 322 476 }
+	{ Color "black" }
+	{ LineWidth 1 }
+	{ LineStyle Solid }
+	{ FixedName True }
+	{ Font "-*-courier-medium-r-normal--8*" }
+	{ TextAlignment Center }
+	{ TextColor "black" }
+	{ NameUnderlined False }
+	{ T1Position 373 433 }
+	{ T2Position 319 535 }
+	{ T3Position 349 425 }
+	{ T4Position 295 527 }
+	{ NameDirection None }
+}
+
+Line 61
+{
+	{ View 2 }
+	{ Subject 57 }
+	{ FromShape 42 }
+	{ ToShape 95 }
+	{ Curved False }
+	{ End1 Empty }
+	{ End2 WhiteTriangle }
+	{ Points 2 }
+	{ Point 299 634 }
+	{ Point 558 287 }
+	{ NamePosition 417 455 }
+	{ Color "black" }
+	{ LineWidth 1 }
+	{ LineStyle Solid }
+	{ FixedName False }
+	{ Font "-*-courier-medium-r-normal--8*" }
+	{ TextAlignment Center }
+	{ TextColor "black" }
+	{ NameUnderlined False }
+}
+
+Line 62
+{
+	{ View 2 }
+	{ Subject 58 }
+	{ FromShape 43 }
+	{ ToShape 95 }
+	{ Curved False }
+	{ End1 Empty }
+	{ End2 WhiteTriangle }
+	{ Points 2 }
+	{ Point 596 404 }
+	{ Point 573 287 }
+	{ NamePosition 597 344 }
+	{ Color "black" }
+	{ LineWidth 1 }
+	{ LineStyle Solid }
+	{ FixedName False }
+	{ Font "-*-courier-medium-r-normal--8*" }
+	{ TextAlignment Center }
+	{ TextColor "black" }
+	{ NameUnderlined False }
+}
+
+C2R2Line 63
+{
+	{ View 2 }
+	{ Subject 59 }
+	{ FromShape 42 }
+	{ ToShape 43 }
+	{ Curved False }
+	{ End1 Empty }
+	{ End2 Empty }
+	{ Points 2 }
+	{ Point 299 732 }
+	{ Point 466 627 }
+	{ NamePosition 375 671 }
+	{ Color "black" }
+	{ LineWidth 1 }
+	{ LineStyle Solid }
+	{ FixedName False }
+	{ Font "-*-courier-medium-r-normal--8*" }
+	{ TextAlignment Center }
+	{ TextColor "black" }
+	{ NameUnderlined False }
+	{ T1Position 327 730 }
+	{ T2Position 443 661 }
+	{ T3Position 312 711 }
+	{ T4Position 439 632 }
+	{ NameDirection None }
+}
+
+NoteBox 64
+{
+	{ View 2 }
+	{ Subject 56 }
+	{ Position 440 790 }
+	{ Size 242 59 }
+	{ Color "black" }
+	{ LineWidth 1 }
+	{ LineStyle Solid }
+	{ FillStyle Unfilled }
+	{ FillColor "white" }
+	{ FixedName False }
+	{ Font "-*-courier-medium-r-normal--8*" }
+	{ TextAlignment Center }
+	{ TextColor "black" }
+	{ NameUnderlined False }
+}
+
+Line 65
+{
+	{ View 2 }
+	{ Subject 60 }
+	{ FromShape 64 }
+	{ ToShape 42 }
+	{ Curved False }
+	{ End1 Empty }
+	{ End2 Empty }
+	{ Points 2 }
+	{ Point 319 803 }
+	{ Point 299 805 }
+	{ NamePosition 308 795 }
+	{ Color "black" }
+	{ LineWidth 1 }
+	{ LineStyle WideDotted }
+	{ FixedName True }
+	{ Font "-*-courier-medium-r-normal--8*" }
+	{ TextAlignment Center }
+	{ TextColor "black" }
+	{ NameUnderlined False }
+}
+
+SSDDoubleClassBox 67
+{
+	{ View 2 }
+	{ Subject 66 }
+	{ Position 450 990 }
+	{ Size 218 264 }
+	{ Color "black" }
+	{ LineWidth 1 }
+	{ LineStyle Solid }
+	{ FillStyle Unfilled }
+	{ FillColor "white" }
+	{ FixedName False }
+	{ Font "-*-courier-medium-r-normal--8*" }
+	{ TextAlignment Center }
+	{ TextColor "black" }
+	{ NameUnderlined False }
+	{ ShowStereotype False }
+	{ ShowProperties False }
+}
+
+C2R2Line 71
+{
+	{ View 2 }
+	{ Subject 69 }
+	{ FromShape 42 }
+	{ ToShape 67 }
+	{ Curved False }
+	{ End1 Empty }
+	{ End2 Empty }
+	{ Points 2 }
+	{ Point 299 901 }
+	{ Point 341 926 }
+	{ NamePosition 327 905 }
+	{ Color "black" }
+	{ LineWidth 1 }
+	{ LineStyle Solid }
+	{ FixedName False }
+	{ Font "-*-courier-medium-r-normal--8*" }
+	{ TextAlignment Center }
+	{ TextColor "black" }
+	{ NameUnderlined False }
+	{ T1Position 302 912 }
+	{ T2Position 324 924 }
+	{ T3Position 316 896 }
+	{ T4Position 338 908 }
+	{ NameDirection None }
+}
+
+SSDDoubleClassBox 72
+{
+	{ View 2 }
+	{ Subject 68 }
+	{ Position 690 1060 }
+	{ Size 176 121 }
+	{ Color "black" }
+	{ LineWidth 1 }
+	{ LineStyle Solid }
+	{ FillStyle Unfilled }
+	{ FillColor "white" }
+	{ FixedName False }
+	{ Font "-*-courier-medium-r-normal--8*" }
+	{ TextAlignment Center }
+	{ TextColor "black" }
+	{ NameUnderlined False }
+	{ ShowStereotype False }
+	{ ShowProperties False }
+}
+
+C2R2Line 73
+{
+	{ View 2 }
+	{ Subject 70 }
+	{ FromShape 67 }
+	{ ToShape 72 }
+	{ Curved False }
+	{ End1 Empty }
+	{ End2 Empty }
+	{ Points 2 }
+	{ Point 559 1022 }
+	{ Point 602 1034 }
+	{ NamePosition 583 1019 }
+	{ Color "black" }
+	{ LineWidth 1 }
+	{ LineStyle Solid }
+	{ FixedName False }
+	{ Font "-*-courier-medium-r-normal--8*" }
+	{ TextAlignment Center }
+	{ TextColor "black" }
+	{ NameUnderlined False }
+	{ T1Position 567 1041 }
+	{ T2Position 593 1045 }
+	{ T3Position 572 1014 }
+	{ T4Position 595 1015 }
+	{ NameDirection None }
+}
+
+SSDDoubleClassBox 77
+{
+	{ View 2 }
+	{ Subject 74 }
+	{ Position 710 920 }
+	{ Size 134 132 }
+	{ Color "black" }
+	{ LineWidth 1 }
+	{ LineStyle Solid }
+	{ FillStyle Unfilled }
+	{ FillColor "white" }
+	{ FixedName False }
+	{ Font "-*-courier-medium-r-normal--8*" }
+	{ TextAlignment Center }
+	{ TextColor "black" }
+	{ NameUnderlined False }
+	{ ShowStereotype False }
+	{ ShowProperties False }
+}
+
+C2R2Line 81
+{
+	{ View 2 }
+	{ Subject 80 }
+	{ FromShape 53 }
+	{ ToShape 43 }
+	{ Curved False }
+	{ End1 Empty }
+	{ End2 WhiteDiamond }
+	{ Points 2 }
+	{ Point 418 412 }
+	{ Point 466 440 }
+	{ NamePosition 449 418 }
+	{ Color "black" }
+	{ LineWidth 1 }
+	{ LineStyle Solid }
+	{ FixedName True }
+	{ Font "-*-courier-medium-r-normal--8*" }
+	{ TextAlignment Center }
+	{ TextColor "black" }
+	{ NameUnderlined False }
+	{ T1Position 421 423 }
+	{ T2Position 449 438 }
+	{ T3Position 435 407 }
+	{ T4Position 463 422 }
+	{ NameDirection None }
+}
+
+NoteBox 84
+{
+	{ View 2 }
+	{ Subject 82 }
+	{ Position 680 750 }
+	{ Size 194 147 }
+	{ Color "black" }
+	{ LineWidth 1 }
+	{ LineStyle Solid }
+	{ FillStyle Unfilled }
+	{ FillColor "white" }
+	{ FixedName False }
+	{ Font "-*-courier-medium-r-normal--8*" }
+	{ TextAlignment Center }
+	{ TextColor "black" }
+	{ NameUnderlined False }
+}
+
+Line 85
+{
+	{ View 2 }
+	{ Subject 83 }
+	{ FromShape 84 }
+	{ ToShape 43 }
+	{ Curved False }
+	{ End1 Empty }
+	{ End2 Empty }
+	{ Points 2 }
+	{ Point 660 677 }
+	{ Point 655 657 }
+	{ NamePosition 670 664 }
+	{ Color "black" }
+	{ LineWidth 1 }
+	{ LineStyle WideDotted }
+	{ FixedName True }
+	{ Font "-*-courier-medium-r-normal--8*" }
+	{ TextAlignment Center }
+	{ TextColor "black" }
+	{ NameUnderlined False }
+}
+
+SSDDoubleClassBox 88
+{
+	{ View 2 }
+	{ Subject 86 }
+	{ Position 710 330 }
+	{ Size 140 77 }
+	{ Color "black" }
+	{ LineWidth 1 }
+	{ LineStyle Solid }
+	{ FillStyle Unfilled }
+	{ FillColor "white" }
+	{ FixedName False }
+	{ Font "-*-courier-medium-r-normal--8*" }
+	{ TextAlignment Center }
+	{ TextColor "black" }
+	{ NameUnderlined False }
+	{ ShowStereotype False }
+	{ ShowProperties False }
+}
+
+C2R2Line 89
+{
+	{ View 2 }
+	{ Subject 87 }
+	{ FromShape 67 }
+	{ ToShape 77 }
+	{ Curved False }
+	{ End1 Empty }
+	{ End2 Empty }
+	{ Points 2 }
+	{ Point 559 961 }
+	{ Point 643 938 }
+	{ NamePosition 598 940 }
+	{ Color "black" }
+	{ LineWidth 1 }
+	{ LineStyle Solid }
+	{ FixedName False }
+	{ Font "-*-courier-medium-r-normal--8*" }
+	{ TextAlignment Center }
+	{ TextColor "black" }
+	{ NameUnderlined False }
+	{ T1Position 570 972 }
+	{ T2Position 636 949 }
+	{ T3Position 566 950 }
+	{ T4Position 630 931 }
+	{ NameDirection None }
+}
+
+SSDSingleClassBox 95
+{
+	{ View 2 }
+	{ Subject 13 }
+	{ Position 570 270 }
+	{ Size 100 33 }
+	{ Color "black" }
+	{ LineWidth 1 }
+	{ LineStyle Solid }
+	{ FillStyle Unfilled }
+	{ FillColor "white" }
+	{ FixedName False }
+	{ Font "-*-courier-medium-r-normal--8*" }
+	{ TextAlignment Center }
+	{ TextColor "black" }
+	{ NameUnderlined False }
+	{ ShowStereotype True }
+	{ ShowProperties False }
+}
+
+C2R2Line 107
+{
+	{ View 2 }
+	{ Subject 103 }
+	{ FromShape 43 }
+	{ ToShape 32 }
+	{ Curved False }
+	{ End1 Empty }
+	{ End2 WhiteDiamond }
+	{ Points 2 }
+	{ Point 466 490 }
+	{ Point 287 443 }
+	{ NamePosition 379 457 }
+	{ Color "black" }
+	{ LineWidth 1 }
+	{ LineStyle Solid }
+	{ FixedName True }
+	{ Font "-*-courier-medium-r-normal--8*" }
+	{ TextAlignment Center }
+	{ TextColor "black" }
+	{ NameUnderlined False }
+	{ T1Position 441 494 }
+	{ T2Position 306 457 }
+	{ T3Position 447 476 }
+	{ T4Position 312 439 }
+	{ NameDirection None }
+}
+
+C2R2Line 108
+{
+	{ View 2 }
+	{ Subject 104 }
+	{ FromShape 42 }
+	{ ToShape 32 }
+	{ Curved False }
+	{ End1 Empty }
+	{ End2 WhiteDiamond }
+	{ Points 2 }
+	{ Point 160 512 }
+	{ Point 160 484 }
+	{ NamePosition 146 498 }
+	{ Color "black" }
+	{ LineWidth 1 }
+	{ LineStyle Solid }
+	{ FixedName True }
+	{ Font "-*-courier-medium-r-normal--8*" }
+	{ TextAlignment Center }
+	{ TextColor "black" }
+	{ NameUnderlined False }
+	{ T1Position 184 507 }
+	{ T2Position 174 494 }
+	{ T3Position 146 502 }
+	{ T4Position 146 494 }
+	{ NameDirection None }
+}
+
+C2R2Line 109
+{
+	{ View 2 }
+	{ Subject 105 }
+	{ FromShape 32 }
+	{ ToShape 20 }
+	{ Curved False }
+	{ End1 Empty }
+	{ End2 WhiteDiamond }
+	{ Points 2 }
+	{ Point 160 336 }
+	{ Point 160 302 }
+	{ NamePosition 146 319 }
+	{ Color "black" }
+	{ LineWidth 1 }
+	{ LineStyle Solid }
+	{ FixedName True }
+	{ Font "-*-courier-medium-r-normal--8*" }
+	{ TextAlignment Center }
+	{ TextColor "black" }
+	{ NameUnderlined False }
+	{ T1Position 182 330 }
+	{ T2Position 174 312 }
+	{ T3Position 146 326 }
+	{ T4Position 146 312 }
+	{ NameDirection None }
+}
+
+C2R2Line 110
+{
+	{ View 2 }
+	{ Subject 106 }
+	{ FromShape 20 }
+	{ ToShape 21 }
+	{ Curved False }
+	{ End1 Empty }
+	{ End2 WhiteDiamond }
+	{ Points 3 }
+	{ Point 160 198 }
+	{ Point 160 150 }
+	{ Point 160 131 }
+	{ NamePosition 146 174 }
+	{ Color "black" }
+	{ LineWidth 1 }
+	{ LineStyle Solid }
+	{ FixedName True }
+	{ Font "-*-courier-medium-r-normal--8*" }
+	{ TextAlignment Center }
+	{ TextColor "black" }
+	{ NameUnderlined False }
+	{ T1Position 174 188 }
+	{ T2Position 174 141 }
+	{ T3Position 146 188 }
+	{ T4Position 146 141 }
+	{ NameDirection None }
+}
+
+Line 117
+{
+	{ View 2 }
+	{ Subject 114 }
+	{ FromShape 95 }
+	{ ToShape 19 }
+	{ Curved False }
+	{ End1 Empty }
+	{ End2 WhiteTriangle }
+	{ Points 2 }
+	{ Point 620 267 }
+	{ Point 683 263 }
+	{ NamePosition 651 256 }
+	{ Color "black" }
+	{ LineWidth 1 }
+	{ LineStyle Solid }
+	{ FixedName False }
+	{ Font "-*-courier-medium-r-normal--10*" }
+	{ TextAlignment Center }
+	{ TextColor "black" }
+	{ NameUnderlined False }
+}
+
+C2R2Line 122
+{
+	{ View 2 }
+	{ Subject 120 }
+	{ FromShape 7 }
+	{ ToShape 21 }
+	{ Curved False }
+	{ End1 Empty }
+	{ End2 BlackDiamond }
+	{ Points 2 }
+	{ Point 360 90 }
+	{ Point 253 90 }
+	{ NamePosition 306 80 }
+	{ Color "black" }
+	{ LineWidth 1 }
+	{ LineStyle Solid }
+	{ FixedName True }
+	{ Font "-*-courier-medium-r-normal--10*" }
+	{ TextAlignment Center }
+	{ TextColor "black" }
+	{ NameUnderlined False }
+	{ T1Position 347 100 }
+	{ T2Position 266 100 }
+	{ T3Position 347 80 }
+	{ T4Position 266 80 }
+	{ NameDirection None }
+}
+
+C2R2Line 125
+{
+	{ View 2 }
+	{ Subject 123 }
+	{ FromShape 43 }
+	{ ToShape 88 }
+	{ Curved False }
+	{ End1 Empty }
+	{ End2 Empty }
+	{ Points 2 }
+	{ Point 677 404 }
+	{ Point 693 369 }
+	{ NamePosition 673 382 }
+	{ Color "black" }
+	{ LineWidth 1 }
+	{ LineStyle Solid }
+	{ FixedName False }
+	{ Font "-*-courier-medium-r-normal--10*" }
+	{ TextAlignment Center }
+	{ TextColor "black" }
+	{ NameUnderlined False }
+	{ T1Position 695 396 }
+	{ T2Position 704 376 }
+	{ T3Position 675 396 }
+	{ T4Position 679 375 }
+	{ NameDirection None }
+}
+
+Line 126
+{
+	{ View 2 }
+	{ Subject 124 }
+	{ FromShape 21 }
+	{ ToShape 95 }
+	{ Curved False }
+	{ End1 Empty }
+	{ End2 WhiteTriangle }
+	{ Points 7 }
+	{ Point 253 108 }
+	{ Point 300 108 }
+	{ Point 300 144 }
+	{ Point 504 144 }
+	{ Point 504 228 }
+	{ Point 564 228 }
+	{ Point 564 254 }
+	{ NamePosition 402 134 }
+	{ Color "black" }
+	{ LineWidth 1 }
+	{ LineStyle Solid }
+	{ FixedName False }
+	{ Font "-*-courier-medium-r-normal--10*" }
+	{ TextAlignment Center }
+	{ TextColor "black" }
+	{ NameUnderlined False }
+}
+
