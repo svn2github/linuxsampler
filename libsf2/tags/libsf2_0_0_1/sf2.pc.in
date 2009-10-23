@@ -1,0 +1,10 @@
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+libdir=@libdir@
+includedir=@includedir@
+
+Name: sf2
+Description: C++ library for loading SF2 files
+Version: @VERSION@
+Libs: -L${libdir} -lsf2
+Cflags: -I${includedir}

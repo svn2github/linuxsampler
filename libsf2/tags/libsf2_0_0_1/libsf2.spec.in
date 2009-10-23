@@ -1,0 +1,67 @@
+
+%define name    @PACKAGE@
+%define version @VERSION@
+%define release 1
+%define prefix  @prefix@
+
+Summary:	C++ library for loading SF2 files.
+Name:		%{name}
+Version:	%{version}
+Release:	%{release}
+Prefix:		%{prefix}
+License:	GPL
+Group:		Sound
+Source0:	%{name}-%{version}.tar.bz2
+URL:		http://www.linuxsampler.org/libsf2/
+BuildRoot:	/var/tmp/%{name}-%{version}-buildroot
+
+%description
+C++ library for loading SF2 files.
+
+%package devel
+Summary:	C++ library for loading SF2 files.
+Group:		Development/Libraries
+Requires:	%{name} = %{version}
+
+%description devel
+C++ library for loading SF2 files.
+
+%prep
+
+%setup
+if [ -f Makefile.cvs ]; then make -f Makefile.cvs; fi
+
+%build
+./configure --prefix=%{prefix}
+make
+make docs
+
+%install
+if [ -d $RPM_BUILD_ROOT ]; then rm -rf $RPM_BUILD_ROOT; fi
+mkdir -p $RPM_BUILD_ROOT
+make prefix=$RPM_BUILD_ROOT%{prefix} install
+
+%post
+/sbin/ldconfig
+
+%postun
+/sbin/ldconfig
+
+%clean
+if [ -d $RPM_BUILD_ROOT ]; then rm -rf $RPM_BUILD_ROOT; fi
+
+%files
+%defattr(-,root,root)
+%doc AUTHORS COPYING ChangeLog NEWS README TODO
+%{prefix}/bin/*
+%{prefix}/lib/libsf2.so*
+%{prefix}/share/man/man1/*
+
+%files devel
+%defattr(-,root,root)
+%doc doc/html/*
+%{prefix}/lib/libsf2.a
+%{prefix}/lib/libsf2.la
+%{prefix}/lib/pkgconfig/sf2.pc
+%{prefix}/include/*
+
