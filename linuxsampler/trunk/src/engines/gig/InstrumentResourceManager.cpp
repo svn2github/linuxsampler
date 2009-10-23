@@ -24,6 +24,8 @@
 #include <sstream>
 
 #include "InstrumentResourceManager.h"
+#include "EngineChannel.h"
+#include "Engine.h"
 
 #include "../../common/global_private.h"
 #include "../../plugins/InstrumentEditorFactory.h"
@@ -90,15 +92,6 @@ namespace LinuxSampler { namespace gig {
 
     std::vector<InstrumentResourceManager::instrument_id_t> InstrumentResourceManager::Instruments() {
         return Entries();
-    }
-
-    InstrumentManager::mode_t InstrumentResourceManager::GetMode(const instrument_id_t& ID) {
-        return static_cast<InstrumentManager::mode_t>(AvailabilityMode(ID));
-    }
-
-    void InstrumentResourceManager::SetMode(const instrument_id_t& ID, InstrumentManager::mode_t Mode) {
-        dmsg(2,("gig::InstrumentResourceManager: setting mode for %s (Index=%d) to %d\n",ID.FileName.c_str(),ID.Index,Mode));
-        SetAvailabilityMode(ID, static_cast<ResourceManager<InstrumentManager::instrument_id_t, ::gig::Instrument>::mode_t>(Mode));
     }
 
     String InstrumentResourceManager::GetInstrumentName(instrument_id_t ID) {
@@ -271,11 +264,11 @@ namespace LinuxSampler { namespace gig {
         }
         // NOTE: for now connect the virtual MIDI keyboard of the instrument editor (if any) with all engine channels that have the same instrument as the editor was opened for ( other ideas ? )
         Lock();
-        std::set<gig::EngineChannel*> engineChannels =
+        std::set<EngineChannel*> engineChannels =
             GetEngineChannelsUsing(pInstrument, false/*don't lock again*/);
-        std::set<gig::EngineChannel*>::iterator iter = engineChannels.begin();
-        std::set<gig::EngineChannel*>::iterator end  = engineChannels.end();
-        for (; iter != end; ++iter) (*iter)->Connect(pVirtualMidiDevice);
+        std::set<EngineChannel*>::iterator iter = engineChannels.begin();
+        std::set<EngineChannel*>::iterator end  = engineChannels.end();
+        for (; iter != end; ++iter) (static_cast<AbstractEngineChannel*>(*iter))->Connect(pVirtualMidiDevice);
         Unlock();
 
         return pEditor;
@@ -322,10 +315,10 @@ namespace LinuxSampler { namespace gig {
         if (pVirtualMidiDevice) {
             Lock();
             // NOTE: see note in LaunchInstrumentEditor()
-            std::set<gig::EngineChannel*> engineChannels =
+            std::set<EngineChannel*> engineChannels =
                 GetEngineChannelsUsing(pInstrument, false/*don't lock again*/);
-            std::set<gig::EngineChannel*>::iterator iter = engineChannels.begin();
-            std::set<gig::EngineChannel*>::iterator end  = engineChannels.end();
+            std::set<EngineChannel*>::iterator iter = engineChannels.begin();
+            std::set<EngineChannel*>::iterator end  = engineChannels.end();
             for (; iter != end; ++iter) (*iter)->Disconnect(pVirtualMidiDevice);
             Unlock();
         } else {
@@ -432,10 +425,10 @@ namespace LinuxSampler { namespace gig {
             ::gig::Instrument* pInstrument =
                 (::gig::Instrument*) pRegion->GetParent();
             Lock();
-            std::set<gig::Engine*> engines =
+            std::set<Engine*> engines =
                 GetEnginesUsing(pInstrument, false/*don't lock again*/);
-            std::set<gig::Engine*>::iterator iter = engines.begin();
-            std::set<gig::Engine*>::iterator end  = engines.end();
+            std::set<Engine*>::iterator iter = engines.begin();
+            std::set<Engine*>::iterator end  = engines.end();
             for (; iter != end; ++iter) (*iter)->Suspend(pRegion);
             Unlock();
         } else if (sStructType == "gig::DimensionRegion") {
@@ -449,10 +442,10 @@ namespace LinuxSampler { namespace gig {
             ::gig::Instrument* pInstrument =
                 (::gig::Instrument*) pRegion->GetParent();
             Lock();
-            std::set<gig::Engine*> engines =
+            std::set<Engine*> engines =
                 GetEnginesUsing(pInstrument, false/*don't lock again*/);
-            std::set<gig::Engine*>::iterator iter = engines.begin();
-            std::set<gig::Engine*>::iterator end  = engines.end();
+            std::set<Engine*>::iterator iter = engines.begin();
+            std::set<Engine*>::iterator end  = engines.end();
             for (; iter != end; ++iter) (*iter)->Suspend(pRegion);
             Unlock();
         } else {
@@ -485,10 +478,10 @@ namespace LinuxSampler { namespace gig {
                 GetInstrumentsCurrentlyUsedOf(pFile, false/*don't lock again*/);
             for (int i = 0; i < instruments.size(); i++) {
                 if (SampleReferencedByInstrument(pSample, instruments[i])) {
-                    std::set<gig::EngineChannel*> engineChannels =
+                    std::set<EngineChannel*> engineChannels =
                         GetEngineChannelsUsing(instruments[i], false/*don't lock again*/);
-                    std::set<gig::EngineChannel*>::iterator iter = engineChannels.begin();
-                    std::set<gig::EngineChannel*>::iterator end  = engineChannels.end();
+                    std::set<EngineChannel*>::iterator iter = engineChannels.begin();
+                    std::set<EngineChannel*>::iterator end  = engineChannels.end();
                     for (; iter != end; ++iter)
                         CacheInitialSamples(pSample, *iter);
                 }
@@ -501,10 +494,10 @@ namespace LinuxSampler { namespace gig {
             ::gig::Instrument* pInstrument =
                 (::gig::Instrument*) pRegion->GetParent();
             Lock();
-            std::set<gig::Engine*> engines =
+            std::set<Engine*> engines =
                 GetEnginesUsing(pInstrument, false/*don't lock again*/);
-            std::set<gig::Engine*>::iterator iter = engines.begin();
-            std::set<gig::Engine*>::iterator end  = engines.end();
+            std::set<Engine*>::iterator iter = engines.begin();
+            std::set<Engine*>::iterator end  = engines.end();
             for (; iter != end; ++iter) (*iter)->Resume(pRegion);
             Unlock();
         } else if (sStructType == "gig::DimensionRegion") {
@@ -516,10 +509,10 @@ namespace LinuxSampler { namespace gig {
             ::gig::Instrument* pInstrument =
                 (::gig::Instrument*) pRegion->GetParent();
             Lock();
-            std::set<gig::Engine*> engines =
+            std::set<Engine*> engines =
                 GetEnginesUsing(pInstrument, false/*don't lock again*/);
-            std::set<gig::Engine*>::iterator iter = engines.begin();
-            std::set<gig::Engine*>::iterator end  = engines.end();
+            std::set<Engine*>::iterator iter = engines.begin();
+            std::set<Engine*>::iterator end  = engines.end();
             for (; iter != end; ++iter) (*iter)->Resume(pRegion);
             Unlock();
         } else {
@@ -555,9 +548,9 @@ namespace LinuxSampler { namespace gig {
             ::gig::Sample* pSample = (::gig::Sample*) pNewSample;
             ::gig::File* pFile = (::gig::File*) pSample->GetParent();
             // get all engines that use that same gig::File
-            std::set<gig::Engine*> engines = GetEnginesUsing(pFile, false/*don't lock again*/);
-            std::set<gig::Engine*>::iterator iter = engines.begin();
-            std::set<gig::Engine*>::iterator end  = engines.end();
+            std::set<Engine*> engines = GetEnginesUsing(pFile, false/*don't lock again*/);
+            std::set<Engine*>::iterator iter = engines.begin();
+            std::set<Engine*>::iterator end  = engines.end();
             for (; iter != end; ++iter)
                 CacheInitialSamples(pSample, *iter);
             Unlock();
@@ -598,10 +591,10 @@ namespace LinuxSampler { namespace gig {
 
             if (pRgn->GetSample() && !pRgn->GetSample()->GetCache().Size) {
                 dmsg(2,("C"));
-                CacheInitialSamples(pRgn->GetSample(), (gig::EngineChannel*) pConsumer);
+                CacheInitialSamples(pRgn->GetSample(), (EngineChannel*) pConsumer);
             }
             for (uint i = 0; i < pRgn->DimensionRegions; i++) {
-                CacheInitialSamples(pRgn->pDimensionRegions[i]->pSample, (gig::EngineChannel*) pConsumer);
+                CacheInitialSamples(pRgn->pDimensionRegions[i]->pSample, (EngineChannel*) pConsumer);
             }
 
             pRgn = pInstrument->GetNextRegion();
@@ -616,12 +609,12 @@ namespace LinuxSampler { namespace gig {
         pEntry->ID.Index      = Key.Index;
         pEntry->pGig          = pGig;
 
-        gig::EngineChannel* pEngineChannel = dynamic_cast<gig::EngineChannel*>(pConsumer);
+        EngineChannel* pEngineChannel = dynamic_cast<EngineChannel*>(pConsumer);
         // and we save this to check if we need to reallocate for a engine with higher value of 'MaxSamplesPerSecond'
         pEntry->MaxSamplesPerCycle =
             (!pEngineChannel) ? 0 /* don't care for instrument editors */ :
                 (pEngineChannel->GetEngine()) ?
-                    dynamic_cast<gig::Engine*>(pEngineChannel->GetEngine())->pAudioOutputDevice->MaxSamplesPerCycle()
+                    dynamic_cast<Engine*>(pEngineChannel->GetEngine())->pAudioOutputDevice->MaxSamplesPerCycle()
                     : GIG_RESOURCE_MANAGER_DEFAULT_MAX_SAMPLES_PER_CYCLE;
         pArg = pEntry;
 
@@ -637,63 +630,29 @@ namespace LinuxSampler { namespace gig {
 
     void InstrumentResourceManager::OnBorrow(::gig::Instrument* pResource, InstrumentConsumer* pConsumer, void*& pArg) {
         instr_entry_t* pEntry = (instr_entry_t*) pArg;
-        gig::EngineChannel* pEngineChannel = dynamic_cast<gig::EngineChannel*>(pConsumer);
+        EngineChannel* pEngineChannel = dynamic_cast<EngineChannel*>(pConsumer);
         uint maxSamplesPerCycle =
-            (pEngineChannel && pEngineChannel->GetEngine()) ? dynamic_cast<gig::Engine*>(pEngineChannel->GetEngine())->pAudioOutputDevice->MaxSamplesPerCycle()
+            (pEngineChannel && pEngineChannel->GetEngine()) ? dynamic_cast<Engine*>(pEngineChannel->GetEngine())->pAudioOutputDevice->MaxSamplesPerCycle()
                                           : GIG_RESOURCE_MANAGER_DEFAULT_MAX_SAMPLES_PER_CYCLE;
         if (pEntry->MaxSamplesPerCycle < maxSamplesPerCycle) {
             Update(pResource, pConsumer);
         }
     }
 
-    /**
-     * Give back an instrument. This should be used instead of
-     * HandBack if there are some dimension regions that are still in
-     * use. (When an instrument is changed, the voices currently
-     * playing are allowed to keep playing with the old instrument
-     * until note off arrives. New notes will use the new instrument.)
-     */
-    void InstrumentResourceManager::HandBackInstrument(::gig::Instrument* pResource, InstrumentConsumer* pConsumer,
-                                                       RTList< ::gig::DimensionRegion*>* pDimRegionsInUse) {
-        DimRegInfoMutex.Lock();
-        for (RTList< ::gig::DimensionRegion*>::Iterator i = pDimRegionsInUse->first() ; i != pDimRegionsInUse->end() ; i++) {
-            DimRegInfo[*i].refCount++;
-            SampleRefCount[(*i)->pSample]++;
-        }
-        HandBack(pResource, pConsumer, true);
-        DimRegInfoMutex.Unlock();
+    void InstrumentResourceManager::DeleteRegionIfNotUsed(::gig::DimensionRegion* pRegion, region_info_t* pRegInfo) {
+        // TODO: we could delete Region and Instrument here if they have become unused
     }
-
-    /**
-     * Give back a dimension region that belongs to an instrument that
-     * was previously handed back.
-     */
-    void InstrumentResourceManager::HandBackDimReg(::gig::DimensionRegion* pDimReg) {
-        DimRegInfoMutex.Lock();
-        dimreg_info_t& dimRegInfo = DimRegInfo[pDimReg];
-        int dimRegRefCount = --dimRegInfo.refCount;
-        int sampleRefCount = --SampleRefCount[pDimReg->pSample];
-        if (dimRegRefCount == 0) {
-            ::gig::File* gig = dimRegInfo.file;
-            ::RIFF::File* riff = dimRegInfo.riff;
-            DimRegInfo.erase(pDimReg);
-            // TODO: we could delete Region and Instrument here if
-            // they have become unused
-
-            if (sampleRefCount == 0) {
-                SampleRefCount.erase(pDimReg->pSample);
-
-                if (gig) {
-                    gig->DeleteSample(pDimReg->pSample);
-                    if (!gig->GetFirstSample()) {
-                        dmsg(2,("No more samples in use - freeing gig\n"));
-                        delete gig;
-                        delete riff;
-                    }
-                }
+    void InstrumentResourceManager::DeleteSampleIfNotUsed(::gig::Sample* pSample, region_info_t* pRegInfo) {
+        ::gig::File* gig = pRegInfo->file;
+        ::RIFF::File* riff = static_cast< ::RIFF::File*>(pRegInfo->pArg);
+        if (gig) {
+            gig->DeleteSample(pSample);
+            if (!gig->GetFirstSample()) {
+                dmsg(2,("No more samples in use - freeing gig\n"));
+                delete gig;
+                delete riff;
             }
         }
-        DimRegInfoMutex.Unlock();
     }
 
     /**
@@ -704,10 +663,10 @@ namespace LinuxSampler { namespace gig {
      *                   (may be NULL, in this case default amount of samples
      *                   will be cached)
      */
-    void InstrumentResourceManager::CacheInitialSamples(::gig::Sample* pSample, gig::EngineChannel* pEngineChannel) {
-        gig::Engine* pEngine =
+    void InstrumentResourceManager::CacheInitialSamples(::gig::Sample* pSample, EngineChannel* pEngineChannel) {
+        Engine* pEngine =
             (pEngineChannel && pEngineChannel->GetEngine()) ?
-                dynamic_cast<gig::Engine*>(pEngineChannel->GetEngine()) : NULL;
+                dynamic_cast<Engine*>(pEngineChannel->GetEngine()) : NULL;
         CacheInitialSamples(pSample, pEngine);
     }
 
@@ -722,7 +681,7 @@ namespace LinuxSampler { namespace gig {
      *                   (may be NULL, in this case default amount of samples
      *                   will be cached)
      */
-    void InstrumentResourceManager::CacheInitialSamples(::gig::Sample* pSample, gig::Engine* pEngine) {
+    void InstrumentResourceManager::CacheInitialSamples(::gig::Sample* pSample, AbstractEngine* pEngine) {
         if (!pSample) {
             dmsg(4,("gig::InstrumentResourceManager: Skipping sample (pSample == NULL)\n"));
             return;
@@ -787,14 +746,14 @@ namespace LinuxSampler { namespace gig {
      * @param bLock - whether we should lock (mutex) the instrument manager
      *                during this call and unlock at the end of this call
      */
-    std::set<gig::EngineChannel*> InstrumentResourceManager::GetEngineChannelsUsing(::gig::Instrument* pInstrument, bool bLock) {
+    std::set<EngineChannel*> InstrumentResourceManager::GetEngineChannelsUsing(::gig::Instrument* pInstrument, bool bLock) {
         if (bLock) Lock();
-        std::set<gig::EngineChannel*> result;
+        std::set<EngineChannel*> result;
         std::set<ResourceConsumer< ::gig::Instrument>*> consumers = ConsumersOf(pInstrument);
         std::set<ResourceConsumer< ::gig::Instrument>*>::iterator iter = consumers.begin();
         std::set<ResourceConsumer< ::gig::Instrument>*>::iterator end  = consumers.end();
         for (; iter != end; ++iter) {
-            gig::EngineChannel* pEngineChannel = dynamic_cast<gig::EngineChannel*>(*iter);
+            EngineChannel* pEngineChannel = dynamic_cast<EngineChannel*>(*iter);
             if (!pEngineChannel) continue;
             result.insert(pEngineChannel);
         }
@@ -810,16 +769,16 @@ namespace LinuxSampler { namespace gig {
      * @param bLock - whether we should lock (mutex) the instrument manager
      *                during this call and unlock at the end of this call
      */
-    std::set<gig::Engine*> InstrumentResourceManager::GetEnginesUsing(::gig::Instrument* pInstrument, bool bLock) {
+    std::set<Engine*> InstrumentResourceManager::GetEnginesUsing(::gig::Instrument* pInstrument, bool bLock) {
         if (bLock) Lock();
-        std::set<gig::Engine*> result;
+        std::set<Engine*> result;
         std::set<ResourceConsumer< ::gig::Instrument>*> consumers = ConsumersOf(pInstrument);
         std::set<ResourceConsumer< ::gig::Instrument>*>::iterator iter = consumers.begin();
         std::set<ResourceConsumer< ::gig::Instrument>*>::iterator end  = consumers.end();
         for (; iter != end; ++iter) {
-            gig::EngineChannel* pEngineChannel = dynamic_cast<gig::EngineChannel*>(*iter);
+            EngineChannel* pEngineChannel = dynamic_cast<EngineChannel*>(*iter);
             if (!pEngineChannel) continue;
-            gig::Engine* pEngine = dynamic_cast<gig::Engine*>(pEngineChannel->GetEngine());
+            Engine* pEngine = dynamic_cast<Engine*>(pEngineChannel->GetEngine());
             if (!pEngine) continue;
             result.insert(pEngine);
         }
@@ -835,23 +794,23 @@ namespace LinuxSampler { namespace gig {
      * @param bLock - whether we should lock (mutex) the instrument manager
      *                during this call and unlock at the end of this call
      */
-    std::set<gig::Engine*> InstrumentResourceManager::GetEnginesUsing(::gig::File* pFile, bool bLock) {
+    std::set<Engine*> InstrumentResourceManager::GetEnginesUsing(::gig::File* pFile, bool bLock) {
         if (bLock) Lock();
         // get all instruments (currently in usage) that use that same gig::File
         std::vector< ::gig::Instrument*> instrumentsOfInterest =
             GetInstrumentsCurrentlyUsedOf(pFile, false/*don't lock again*/);
 
         // get all engines that use that same gig::File
-        std::set<gig::Engine*> result;
+        std::set<Engine*> result;
         {
             for (int i = 0; i < instrumentsOfInterest.size(); i++) {
                 std::set<ResourceConsumer< ::gig::Instrument>*> consumers = ConsumersOf(instrumentsOfInterest[i]);
                 std::set<ResourceConsumer< ::gig::Instrument>*>::iterator iter = consumers.begin();
                 std::set<ResourceConsumer< ::gig::Instrument>*>::iterator end  = consumers.end();
                 for (; iter != end; ++iter) {
-                    gig::EngineChannel* pEngineChannel = dynamic_cast<gig::EngineChannel*>(*iter);
+                    EngineChannel* pEngineChannel = dynamic_cast<EngineChannel*>(*iter);
                     if (!pEngineChannel) continue;
-                    gig::Engine* pEngine = dynamic_cast<gig::Engine*>(pEngineChannel->GetEngine());
+                    Engine* pEngine = dynamic_cast<Engine*>(pEngineChannel->GetEngine());
                     if (!pEngine) continue;
                     // the unique, sorted container std::set makes
                     // sure we won't have duplicates
@@ -905,8 +864,8 @@ namespace LinuxSampler { namespace gig {
         // get all engines that use that same gig::Instrument
         suspendedEngines = GetEnginesUsing(pInstrument, true/*lock*/);
         // finally, completely suspend all engines that use that same gig::Instrument
-        std::set<gig::Engine*>::iterator iter = suspendedEngines.begin();
-        std::set<gig::Engine*>::iterator end  = suspendedEngines.end();
+        std::set<Engine*>::iterator iter = suspendedEngines.begin();
+        std::set<Engine*>::iterator end  = suspendedEngines.end();
         for (; iter != end; ++iter) (*iter)->SuspendAll();
     }
 
@@ -929,8 +888,8 @@ namespace LinuxSampler { namespace gig {
         // get all engines that use that same gig::File
         suspendedEngines = GetEnginesUsing(pFile, true/*lock*/);
         // finally, completely suspend all engines that use that same gig::File
-        std::set<gig::Engine*>::iterator iter = suspendedEngines.begin();
-        std::set<gig::Engine*>::iterator end  = suspendedEngines.end();
+        std::set<Engine*>::iterator iter = suspendedEngines.begin();
+        std::set<Engine*>::iterator end  = suspendedEngines.end();
         for (; iter != end; ++iter) (*iter)->SuspendAll();
     }
 
@@ -986,11 +945,11 @@ namespace LinuxSampler { namespace gig {
                 for (int i = 0 ; i < region->DimensionRegions ; i++)
                 {
                     ::gig::DimensionRegion *d = region->pDimensionRegions[i];
-                    std::map< ::gig::DimensionRegion*, dimreg_info_t>::iterator iter = parent->DimRegInfo.find(d);
-                    if (iter != parent->DimRegInfo.end()) {
-                        dimreg_info_t& dimRegInfo = (*iter).second;
+                    std::map< ::gig::DimensionRegion*, region_info_t>::iterator iter = parent->RegionInfo.find(d);
+                    if (iter != parent->RegionInfo.end()) {
+                        region_info_t& dimRegInfo = (*iter).second;
                         dimRegInfo.file = pResource;
-                        dimRegInfo.riff = (::RIFF::File*)pArg;
+                        dimRegInfo.pArg = (::RIFF::File*)pArg;
                         deleteFile = deleteInstrument = deleteRegion = false;
                     }
                 }

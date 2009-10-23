@@ -16,6 +16,12 @@ else
 sqlite3_lib =
 endif
 
+if HAVE_SF2
+sf2_engine_lib = $(top_builddir)/src/engines/sf2/liblinuxsamplersf2engine.la
+else
+sf2_engine_lib =
+endif
+
 AM_CXXFLAGS = -Wreturn-type -ffast-math $(CXX_CPU_SWITCH)
 
 SUBDIRS = db network engines common testcases drivers plugins effects . hostplugins
@@ -29,6 +35,8 @@ liblinuxsampler_la_LIBADD = \
 	$(sqlite3_lib) \
 	$(top_builddir)/src/network/liblinuxsamplernetwork.la \
 	$(top_builddir)/src/engines/gig/liblinuxsamplergigengine.la \
+	$(sf2_engine_lib) \
+	$(top_builddir)/src/engines/sfz/liblinuxsamplersfzengine.la \
 	$(top_builddir)/src/engines/common/liblinuxsamplercommonengine.la \
 	$(top_builddir)/src/engines/liblinuxsamplerengines.la \
 	$(top_builddir)/src/drivers/liblinuxsamplerdrivers.la \

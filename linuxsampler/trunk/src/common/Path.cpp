@@ -261,7 +261,7 @@ std::string Path::getName() {
 }
 
 std::string Path::getBaseName(std::string path) {
-     Path p;
+    Path p;
     #if WIN32
     p = fromWindows(path);
     #else
@@ -276,6 +276,26 @@ std::string Path::getBaseName() {
     size_t lastdot = name.find_last_of('.');
     if(lastdot == std::string::npos) return name;
     return name.substr(0, lastdot);
+}
+
+std::string Path::stripLastName() {
+    if (elements.size() > 0) elements.pop_back();
+    #if WIN32
+    return toWindows();
+    #endif
+
+    return toPosix();
+}
+
+std::string Path::stripLastName(std::string path) {
+    Path p;
+    #if WIN32
+    p = fromWindows(path);
+    #else
+    p = fromPosix(path);
+    #endif
+
+    return p.stripLastName();
 }
 
 } // namespace LinuxSampler

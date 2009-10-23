@@ -1,12 +1,25 @@
 Version CVS HEAD (?)
 
-  * host plugins:
+  * General changes:
+    - Refactoring: moved the independent code from
+      the Gigasampler format engine to base classes
+
+  * SFZ format engine
+    - Initial implementation (not usable yet)
+
+  * SoundFont format engine
+    - Initial implementation (not usable yet)
+
+  * Host plugins:
     - AU bugfix: failed to destroy its audio/MIDI devices
     - Listen to all interfaces on Mac OS X (INADDR_ANY)
 
   * MIDI driver:
     - ALSA MIDI driver supports now "NAME" device parameter, for overriding
       the ALSA sequencer client name
+
+  * Bug fixes:
+    - Fixed crash which may occur when MIDI key + transpose is out of range
 
 Version 1.0.0 (31 July 2009)
 

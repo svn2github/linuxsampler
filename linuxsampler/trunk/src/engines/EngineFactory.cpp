@@ -24,6 +24,12 @@
 
 #include "gig/Engine.h"
 
+#if HAVE_SF2
+#include "sf2/Engine.h"
+#endif
+
+#include "sfz/Engine.h"
+
 #include "../common/global.h"
 
 namespace LinuxSampler {
@@ -33,7 +39,11 @@ namespace LinuxSampler {
 
     std::vector<String> EngineFactory::AvailableEngineTypes() {
         std::vector<String> result;
-        result.push_back("GIG"); // we only have one sampler engine implementation ATM
+        result.push_back("GIG");
+    #if HAVE_SF2
+        result.push_back("SF2");
+    #endif
+        result.push_back("SFZ");
         return result;
     }
 
@@ -53,7 +63,20 @@ namespace LinuxSampler {
             Engine* pEngine = new gig::Engine;
             engines.insert(pEngine);
             return pEngine;
+        } else if (!strcasecmp(EngineType.c_str(),"sf2")) {
+        #if HAVE_SF2
+            Engine* pEngine = new sf2::Engine;
+            engines.insert(pEngine);
+            return pEngine;
+        #else
+            throw Exception("LinuxSampler is not compiled with SF2 support");
+        #endif
+        } else if (!strcasecmp(EngineType.c_str(),"sfz")) {
+            Engine* pEngine = new sfz::Engine;
+            engines.insert(pEngine);
+            return pEngine;
         }
+
         throw Exception("Unknown engine type");
     }
 

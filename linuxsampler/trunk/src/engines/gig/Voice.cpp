@@ -24,6 +24,8 @@
 #include "../../common/Features.h"
 #include "Synthesizer.h"
 #include "Profiler.h"
+#include "Engine.h"
+#include "EngineChannel.h"
 
 #include "Voice.h"
 
@@ -56,9 +58,10 @@ namespace LinuxSampler { namespace gig {
         if (pLFO3) delete pLFO3;
     }
 
-    void Voice::SetEngine(Engine* pEngine) {
-        this->pEngine     = pEngine;
-        this->pDiskThread = pEngine->pDiskThread;
+    void Voice::SetEngine(LinuxSampler::Engine* pEngine) {
+        Engine* engine = static_cast<Engine*>(pEngine);
+        this->pEngine     = engine;
+        this->pDiskThread = engine->pDiskThread;
         dmsg(6,("Voice::SetEngine()\n"));
     }
 

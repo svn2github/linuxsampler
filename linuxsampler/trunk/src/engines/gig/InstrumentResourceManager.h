@@ -28,8 +28,9 @@
 
 #include <gig.h>
 
-#include "../../common/global.h"
+#include "../../common/Pool.h"
 #include "../../common/ResourceManager.h"
+#include "../InstrumentManagerBase.h"
 #include "../../drivers/audio/AudioOutputDevice.h"
 #include "../InstrumentManager.h"
 #include "../../common/ArrayList.h"
@@ -42,15 +43,11 @@ namespace LinuxSampler { namespace gig {
 
 }} // namespace LinuxSampler::gig
 
-#include "EngineChannel.h"
-#include "Engine.h"
 #include "../../plugins/InstrumentEditor.h"
 
 namespace LinuxSampler { namespace gig {
-
-    // just symbol prototyping
-    class EngineChannel;
     class Engine;
+    class EngineChannel;
 
     /** @brief Gig instrument manager
      *
@@ -63,7 +60,7 @@ namespace LinuxSampler { namespace gig {
      * instrument / file is not needed anymore, then it will be freed from
      * memory.
      */
-    class InstrumentResourceManager : public InstrumentManager, public ResourceManager<InstrumentManager::instrument_id_t, ::gig::Instrument>, public InstrumentEditorListener {
+    class InstrumentResourceManager : public InstrumentManagerBase< ::gig::File, ::gig::Instrument, ::gig::DimensionRegion, ::gig::Sample>, public InstrumentEditorListener {
         public:
             InstrumentResourceManager() : Gigs(this) {}
             virtual ~InstrumentResourceManager() {}
@@ -71,8 +68,6 @@ namespace LinuxSampler { namespace gig {
 
             // implementation of derived abstract methods from 'InstrumentManager'
             virtual std::vector<instrument_id_t> Instruments();
-            virtual InstrumentManager::mode_t GetMode(const instrument_id_t& ID);
-            virtual void SetMode(const instrument_id_t& ID, InstrumentManager::mode_t Mode);
             virtual String GetInstrumentName(instrument_id_t ID);
             virtual String GetInstrumentDataStructureName(instrument_id_t ID);
             virtual String GetInstrumentDataStructureVersion(instrument_id_t ID);
@@ -88,10 +83,6 @@ namespace LinuxSampler { namespace gig {
             virtual void OnDataStructureChanged(void* pStruct, String sStructType, InstrumentEditor* pSender);
             virtual void OnSampleReferenceChanged(void* pOldSample, void* pNewSample, InstrumentEditor* pSender);
 
-            void HandBackInstrument(::gig::Instrument* pResource, InstrumentConsumer* pConsumer,
-                                    RTList< ::gig::DimensionRegion*>* pDimRegionsInUse);
-            void HandBackDimReg(::gig::DimensionRegion* pDimReg);
-
 #if 0 // currently unused :
             void TrySendNoteOnToEditors(uint8_t Key, uint8_t Velocity, ::gig::Instrument* pInstrument);
             void TrySendNoteOffToEditors(uint8_t Key, uint8_t Velocity, ::gig::Instrument* pInstrument);
@@ -102,6 +93,10 @@ namespace LinuxSampler { namespace gig {
             virtual ::gig::Instrument* Create(instrument_id_t Key, InstrumentConsumer* pConsumer, void*& pArg);
             virtual void               Destroy(::gig::Instrument* pResource, void* pArg);
             virtual void               OnBorrow(::gig::Instrument* pResource, InstrumentConsumer* pConsumer, void*& pArg);
+            virtual void               CacheInitialSamples(::gig::Sample* pSample, AbstractEngine* pEngine);
+            virtual void               CacheInitialSamples(::gig::Sample* pSample, EngineChannel* pEngineChannel);
+            virtual void               DeleteRegionIfNotUsed(::gig::DimensionRegion* pRegion, region_info_t* pRegInfo);
+            virtual void               DeleteSampleIfNotUsed(::gig::Sample* pSample, region_info_t* pRegInfo);
         private:
             typedef ResourceConsumer< ::gig::File> GigConsumer;
 
@@ -118,26 +113,15 @@ namespace LinuxSampler { namespace gig {
                     InstrumentResourceManager* parent;
             } Gigs;
 
-            void CacheInitialSamples(::gig::Sample* pSample, gig::EngineChannel* pEngineChannel);
-            void CacheInitialSamples(::gig::Sample* pSample, gig::Engine* pEngine);
             void UncacheInitialSamples(::gig::Sample* pSample);
             std::vector< ::gig::Instrument*> GetInstrumentsCurrentlyUsedOf(::gig::File* pFile, bool bLock);
-            std::set<gig::EngineChannel*> GetEngineChannelsUsing(::gig::Instrument* pInstrument, bool bLock);
-            std::set<gig::Engine*> GetEnginesUsing(::gig::Instrument* pInstrument, bool bLock);
-            std::set<gig::Engine*> GetEnginesUsing(::gig::File* pFile, bool bLock);
+            std::set<EngineChannel*> GetEngineChannelsUsing(::gig::Instrument* pInstrument, bool bLock);
+            std::set<Engine*> GetEnginesUsing(::gig::Instrument* pInstrument, bool bLock);
+            std::set<Engine*> GetEnginesUsing(::gig::File* pFile, bool bLock);
             bool SampleReferencedByInstrument(::gig::Sample* pSample, ::gig::Instrument* pInstrument);
             void SuspendEnginesUsing(::gig::Instrument* pInstrument);
             void SuspendEnginesUsing(::gig::File* pFile);
             void ResumeAllEngines();
-
-            struct dimreg_info_t {
-                int           refCount;
-                ::gig::File*  file;
-                ::RIFF::File* riff;
-            };
-            Mutex DimRegInfoMutex; ///< protects the DimRegInfo and SampleRefCount maps from concurrent access by the instrument loader and disk threads
-            std::map< ::gig::DimensionRegion*, dimreg_info_t> DimRegInfo; ///< contains dimension regions that are still in use but belong to released instrument
-            std::map< ::gig::Sample*, int> SampleRefCount; ///< contains samples that are still in use but belong to a released instrument
 
             Mutex InstrumentEditorProxiesMutex; ///< protects the 'InstrumentEditorProxies' map
             ArrayList<InstrumentConsumer*> InstrumentEditorProxies; ///< here we store the objects that react on instrument specific notifications on behalf of the respective instrument editor

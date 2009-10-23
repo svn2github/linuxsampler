@@ -81,6 +81,15 @@ namespace LinuxSampler {
             std::vector<L> vListenerList;
     };
 
+#define REGISTER_FIRE_EVENT_METHOD(method) virtual void method() \
+    { for(int i = 0; i < GetListenerCount(); i++) GetListener(i)->method(); }
+
+#define REGISTER_FIRE_EVENT_METHOD_ARG1(method, T1) virtual void method(T1 _evt_arg1_) \
+    { for(int i = 0; i < GetListenerCount(); i++) GetListener(i)->method(_evt_arg1_); }
+
+#define REGISTER_FIRE_EVENT_METHOD_ARG2(method, T1, T2) virtual void method(T1 _evt_arg1_, T2 _evt_arg2_) \
+    { for(int i = 0; i < GetListenerCount(); i++) GetListener(i)->method(_evt_arg1_, _evt_arg2_); }
+
     /**
      * This class is used as a listener, which is notified
      * when the number of sampler channels is changed.

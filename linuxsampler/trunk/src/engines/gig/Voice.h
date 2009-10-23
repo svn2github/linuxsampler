@@ -31,14 +31,13 @@
 #include "../../common/RTMath.h"
 #include "../../common/Pool.h"
 #include "../../drivers/audio/AudioOutputDevice.h"
-#include "Engine.h"
-#include "EngineChannel.h"
 #include "Stream.h"
 #include "DiskThread.h"
 #include "EGADSR.h"
 #include "EGDecay.h"
 #include "Filter.h"
 #include "../common/LFOBase.h"
+#include "../common/VoiceBase.h"
 #include "SynthesisParam.h"
 #include "SmoothVolume.h"
 
@@ -65,8 +64,8 @@
 #endif
 
 namespace LinuxSampler { namespace gig {
-
     class Engine;
+    class EngineChannel;
 
     /// Reflects a MIDI controller
     struct midi_ctrl {
@@ -95,15 +94,8 @@ namespace LinuxSampler { namespace gig {
      *
      * Renders a voice for the Gigasampler format.
      */
-    class Voice {
+    class Voice : public LinuxSampler::VoiceBase< ::gig::DimensionRegion> {
         public:
-            // Types
-            enum type_t {
-                type_normal,
-                type_release_trigger_required,  ///< If the key of this voice will be released, it causes a release triggered voice to be spawned
-                type_release_trigger            ///< Release triggered voice which cannot be killed by releasing its key
-            };
-
             // Attributes
             type_t       Type;         ///< Voice Type
             int          MIDIKey;      ///< MIDI key number of the key that triggered the voice
@@ -117,21 +109,15 @@ namespace LinuxSampler { namespace gig {
             void Render(uint Samples);
             void Reset();
             void SetOutput(AudioOutputDevice* pAudioOutputDevice);
-            void SetEngine(Engine* pEngine);
+            void SetEngine(LinuxSampler::Engine* pEngine);
             int  Trigger(EngineChannel* pEngineChannel, Pool<Event>::Iterator& itNoteOnEvent, int PitchBend, ::gig::DimensionRegion* pDimRgn, type_t VoiceType, int iKeyGroup);
             inline bool IsActive() { return PlaybackState; }
             inline bool IsStealable() { return !itKillEvent && PlaybackState >= playback_state_ram; }
             void UpdatePortamentoPos(Pool<Event>::Iterator& itNoteOffEvent);
 
-        //private:
-            // Types
-            enum playback_state_t {
-                playback_state_end  = 0,
-                playback_state_init = 1,
-                playback_state_ram  = 2,
-                playback_state_disk = 3
-            };
+            virtual ::gig::DimensionRegion* GetRegion() { return pDimRgn; }
 
+        //private:
             // Attributes
             EngineChannel*              pEngineChannel;
             Engine*                     pEngine;            ///< Pointer to the sampler engine, to be able to access the event lists.

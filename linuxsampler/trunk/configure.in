@@ -5,7 +5,7 @@ AC_INIT(configure.in)
 
 LINUXSAMPLER_RELEASE_MAJOR=1
 LINUXSAMPLER_RELEASE_MINOR=0
-LINUXSAMPLER_RELEASE_BUILD=0
+LINUXSAMPLER_RELEASE_BUILD=0.cvs1
 
 #------------------------------------------------------------------------------------
 # The following is the libtool / shared library version. This doesn't have to
@@ -562,6 +562,54 @@ else
 fi
 AC_SUBST(GIG_CFLAGS)
 AC_SUBST(GIG_LIBS)
+
+# SF2 Engine (requires libsf2)
+AC_ARG_ENABLE(sf2-engine,
+  [  --disable-sf2-engine
+                          Disable compilation of the SF2 engine.
+			  You need to have libsf2 installed.],
+  [config_sf2_engine="$enableval"],
+  [config_sf2_engine="yes"]
+)
+HAVE_SF2=0;
+if test "$config_sf2_engine" = "yes"; then
+    # Check presence of libsf2
+    libsf2_version="0.0.1"
+    PKG_CHECK_MODULES(SF2, sf2 >= $libsf2_version, HAVE_SF2=true, HAVE_SF2=false)
+    AC_SUBST(SF2_LIBS)
+    AC_SUBST(SF2_CFLAGS)
+    if test $HAVE_SF2 = false; then
+        HAVE_SF2=0
+        config_sf2_engine="no"
+        echo "*** Required libsf2 version not found!"
+        echo "*** You need to have libsf2 version ${libsf2_version} or higher"
+        echo "*** for SF2 engine to be enabled."
+        echo "*** Support for SF2 instruments will be disabled!"
+    else
+        HAVE_SF2=1
+    fi
+else
+    echo "SF2 engine disabled by configure script parameter"
+fi
+AM_CONDITIONAL(HAVE_SF2, test $HAVE_SF2 = 1)
+AC_DEFINE_UNQUOTED(HAVE_SF2,$HAVE_SF2,[Define to 1 if you want SF2 engine and have libsf2 installed.])
+config_have_sf2="no"
+if test $HAVE_SF2 = "1"; then
+    config_have_sf2="yes"
+fi
+
+# Check presence of libsndfile
+libsndfile_version="1.0"
+PKG_CHECK_MODULES(SNDFILE, sndfile >= $libsndfile_version, HAVE_SNDFILE=true, HAVE_SNDFILE=false)
+if test "$HAVE_SNDFILE" = "false"; then
+    echo "Required libsndfile version not found!"
+    echo "You need to have libsndfile version ${libsndfile_version} installed!"
+    exit -1;
+else
+    echo "yes, found libsndfile $libsndfile_version"
+fi
+AC_SUBST(SNDFILE_CFLAGS)
+AC_SUBST(SNDFILE_LIBS)
 
 # Instruments DB feature (requires SQLite 3.3)
 AC_ARG_ENABLE(instruments-db,
@@ -1250,6 +1298,8 @@ AC_OUTPUT( \
     src/network/Makefile \
     src/engines/Makefile \
     src/engines/gig/Makefile \
+    src/engines/sf2/Makefile \
+    src/engines/sfz/Makefile \
     src/engines/common/Makefile \
     src/effects/Makefile \
     src/common/Makefile \
@@ -1339,6 +1389,9 @@ echo "# ALSA: ${config_have_alsa}, JACK: ${config_have_jack_midi}, CoreMIDI: ${c
 echo "#-------------------------------------------------------------------"
 echo "# Audio Output Drivers:"
 echo "# ALSA: ${config_have_alsa}, JACK: ${config_have_jack}, ARTS: ${config_have_arts}, CoreAudio: ${config_have_coreaudio}, ASIO: ${config_have_asio}"
+echo "#-------------------------------------------------------------------"
+echo "# Sampler Engines:"
+echo "# GIG: yes, SF2: ${config_have_sf2}, SFZ: yes"
 echo "#-------------------------------------------------------------------"
 echo "# Building sampler as plugin for following host standards:"
 echo "# DSSI: ${config_have_dssi}, LV2: ${config_have_lv2}, VST: ${config_have_vst}, AU: ${config_have_au}"

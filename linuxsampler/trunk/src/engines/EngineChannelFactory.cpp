@@ -24,6 +24,12 @@
 
 #include "gig/EngineChannel.h"
 
+#if HAVE_SF2
+#include "sf2/EngineChannel.h"
+#endif
+
+#include "sfz/EngineChannel.h"
+
 namespace LinuxSampler {
     class LockedChannel {
         public:
@@ -104,6 +110,18 @@ namespace LinuxSampler {
     LinuxSampler::EngineChannel* EngineChannelFactory::Create(String EngineType) throw (Exception) {
         if (!strcasecmp(EngineType.c_str(),"GigEngine") || !strcasecmp(EngineType.c_str(),"gig")) {
             LinuxSampler::EngineChannel* pEngineChannel = new gig::EngineChannel;
+            engineChannels.insert(pEngineChannel);
+            return pEngineChannel;
+        } else if (!strcasecmp(EngineType.c_str(),"sf2")) {
+        #if HAVE_SF2
+            LinuxSampler::EngineChannel* pEngineChannel = new sf2::EngineChannel;
+            engineChannels.insert(pEngineChannel);
+            return pEngineChannel;
+        #else
+            throw Exception("LinuxSampler is not compiled with SF2 support");
+        #endif
+        } else if (!strcasecmp(EngineType.c_str(),"sfz")) {
+            LinuxSampler::EngineChannel* pEngineChannel = new sfz::EngineChannel;
             engineChannels.insert(pEngineChannel);
             return pEngineChannel;
         }

@@ -90,6 +90,13 @@ inline int ToInt(const std::string& s) throw(LinuxSampler::Exception) {
     return i;
 }
 
+inline float ToFloat(const std::string& s) throw(LinuxSampler::Exception) {
+    float i;
+    std::istringstream iss(s);
+    if(!(iss >> i)) throw LinuxSampler::Exception("Not a floating-point number");
+    return i;
+}
+
 class Runnable {
     public:
         virtual ~Runnable() { }

@@ -1,0 +1,174 @@
+/***************************************************************************
+ *                                                                         *
+ *   LinuxSampler - modular, streaming capable sampler                     *
+ *                                                                         *
+ *   Copyright (C) 2003 - 2009 Christian Schoenebeck                       *
+ *   Copyright (C) 2009 Grigor Iliev                                       *
+ *                                                                         *
+ *   This program is free software; you can redistribute it and/or modify  *
+ *   it under the terms of the GNU General Public License as published by  *
+ *   the Free Software Foundation; either version 2 of the License, or     *
+ *   (at your option) any later version.                                   *
+ *                                                                         *
+ *   This program is distributed in the hope that it will be useful,       *
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
+ *   GNU General Public License for more details.                          *
+ *                                                                         *
+ *   You should have received a copy of the GNU General Public License     *
+ *   along with this program; if not, write to the Free Software           *
+ *   Foundation, Inc., 59 Temple Place, Suite 330, Boston,                 *
+ *   MA  02111-1307  USA                                                   *
+ ***************************************************************************/
+
+#include "SampleFile.h"
+#include "../../common/Exception.h"
+
+#include <cstring>
+
+namespace LinuxSampler {
+    #if CONFIG_DEVMODE
+    int SampleFile_OpenFilesCount = 0;
+    #endif
+
+    SampleFile::SampleFile(String File, bool DontClose) {
+        this->File      = File;
+        this->pSndFile  = NULL;
+
+        SF_INFO sfInfo;
+        sfInfo.format = 0;
+        pSndFile = sf_open(File.c_str(), SFM_READ, &sfInfo);
+        if(pSndFile == NULL) throw Exception(File + ": Can't get sample info: " + String(sf_strerror (NULL)));
+        #if CONFIG_DEVMODE
+        std::cout << "Number of opened sample files: " << ++SampleFile_OpenFilesCount << std::endl;
+        #endif
+        SampleRate = sfInfo.samplerate;
+        ChannelCount = sfInfo.channels;
+        Format = sfInfo.format;
+
+        switch(Format & 0xF) {
+            case SF_FORMAT_PCM_S8:
+            case SF_FORMAT_PCM_U8:
+            case SF_FORMAT_PCM_16:
+            case SF_FORMAT_DPCM_8:
+            case SF_FORMAT_DPCM_16:
+                FrameSize = sizeof(short) * ChannelCount;
+                break;
+            default:
+                FrameSize = sizeof(int) * ChannelCount;
+        }
+        TotalFrameCount = sfInfo.frames;
+
+        if(!DontClose) Close();
+    }
+
+    SampleFile::~SampleFile() {
+        Close();
+    }
+
+    void SampleFile::Open() {
+        if(pSndFile) return; // Already opened
+        SF_INFO sfInfo;
+        sfInfo.format = 0;
+        pSndFile = sf_open(File.c_str(), SFM_READ, &sfInfo);
+        if(pSndFile == NULL) throw Exception(File + ": Can't load sample");
+        #if CONFIG_DEVMODE
+        std::cout << "Number of opened sample files: " << ++SampleFile_OpenFilesCount << std::endl;
+        #endif
+    }
+
+    void SampleFile::Close() {
+        if(pSndFile == NULL) return;
+        if(sf_close(pSndFile)) std::cerr << "Sample::Close() " << "Failed to close " << File << std::endl;
+        pSndFile = NULL;
+        #if CONFIG_DEVMODE
+        std::cout << "Number of opened sample files: " << --SampleFile_OpenFilesCount << std::endl;
+        #endif
+    }
+
+    long SampleFile::SetPos(unsigned long FrameOffset) {
+        return SetPos(FrameOffset, SEEK_SET);
+    }
+
+    long SampleFile::SetPos(unsigned long FrameCount, int Whence) {
+        if(pSndFile == NULL) {
+            std::cerr << "Sample::SetPos() " << File << " not opened" << std::endl;
+            return -1;
+        }
+
+        return sf_seek(pSndFile, FrameCount, Whence);
+    }
+
+    long SampleFile::GetPos() {
+        if(pSndFile == NULL) {
+            std::cerr << "Sample::GetPos() " << File << " not opened" << std::endl;
+            return -1;
+        }
+
+        return sf_seek(pSndFile, 0, SEEK_CUR);
+    }
+
+    Sample::buffer_t SampleFile::LoadSampleData() {
+        return LoadSampleDataWithNullSamplesExtension(this->TotalFrameCount, 0); // 0 amount of NullSamples
+    }
+
+    Sample::buffer_t SampleFile::LoadSampleData(unsigned long FrameCount) {
+        return LoadSampleDataWithNullSamplesExtension(FrameCount, 0); // 0 amount of NullSamples
+    }
+
+    Sample::buffer_t SampleFile::LoadSampleDataWithNullSamplesExtension(uint NullFrameCount) {
+        return LoadSampleDataWithNullSamplesExtension(this->TotalFrameCount, NullFrameCount);
+    }
+
+    Sample::buffer_t SampleFile::LoadSampleDataWithNullSamplesExtension(unsigned long FrameCount, uint NullFramesCount) {
+        Open();
+        if (FrameCount > this->TotalFrameCount) FrameCount = this->TotalFrameCount;
+        if (RAMCache.pStart) delete[] (int8_t*) RAMCache.pStart;
+        unsigned long allocationsize = (FrameCount + NullFramesCount) * this->FrameSize;
+        SetPos(0, SEEK_SET); // reset read position to begin of sample
+        RAMCache.pStart            = new int8_t[allocationsize];
+
+        RAMCache.Size = Read(RAMCache.pStart, FrameCount) * this->FrameSize;
+        RAMCache.NullExtensionSize = allocationsize - RAMCache.Size;
+        // fill the remaining buffer space with silence samples
+        memset((int8_t*)RAMCache.pStart + RAMCache.Size, 0, RAMCache.NullExtensionSize);
+        Close();
+        return GetCache();
+    }
+
+    long SampleFile::Read(void* pBuffer, unsigned long FrameCount) {
+        Open();
+        if(FrameSize == sizeof(short) * ChannelCount) {
+            return sf_readf_short(pSndFile, (short*)pBuffer, FrameCount);
+        } else {
+            return sf_readf_int(pSndFile, (int*)pBuffer, FrameCount);
+        }
+    }
+
+    unsigned long SampleFile::ReadAndLoop (
+        void*           pBuffer,
+        unsigned long   FrameCount,
+        PlaybackState*  pPlaybackState
+    ) {
+        // TODO:
+        SetPos(pPlaybackState->position);
+        Read(pBuffer, FrameCount);
+        pPlaybackState->position = GetPos();
+    }
+
+    void SampleFile::ReleaseSampleData() {
+        if (RAMCache.pStart) delete[] (int8_t*) RAMCache.pStart;
+        RAMCache.pStart = NULL;
+        RAMCache.Size   = 0;
+        RAMCache.NullExtensionSize = 0;
+    }
+
+    Sample::buffer_t SampleFile::GetCache() {
+        // return a copy of the buffer_t structure
+        buffer_t result;
+        result.Size              = this->RAMCache.Size;
+        result.pStart            = this->RAMCache.pStart;
+        result.NullExtensionSize = this->RAMCache.NullExtensionSize;
+        return result;
+    }
+} // namespace LinuxSampler

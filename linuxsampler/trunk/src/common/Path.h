@@ -126,6 +126,18 @@ public:
     static std::string getName(std::string path);
 
     /**
+     * Returns the path with the last name
+     * of the path's name sequence stripped off.
+     */
+    std::string stripLastName();
+
+    /**
+     * Returns the path with the last name
+     * of the path's name sequence stripped off.
+     */
+    static std::string stripLastName(std::string path);
+
+    /**
      * Returns the last name in the path's name sequence
      * of this path with the file extension stripped off.
      */

@@ -2,8 +2,9 @@
  *                                                                         *
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
- *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 - 2007 Christian Schoenebeck                       *
+ *   Copyright (C) 2003,2004 by Benno Senoner and Christian Schoenebeck    *
+ *   Copyright (C) 2005-2009 Christian Schoenebeck                         *
+ *   Copyright (C) 2009 Grigor Iliev                                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -22,30 +23,34 @@
  ***************************************************************************/
 
 #include "Stream.h"
-
 #include "../../common/global_private.h"
 
 namespace LinuxSampler { namespace gig {
 
-    uint Stream::UnusedStreams = 0;
-    uint Stream::TotalStreams = 0;
+    Stream::Stream (
+        ::gig::buffer_t* pDecompressionBuffer,
+        uint             BufferSize,
+        uint             BufferWrapElements) : LinuxSampler::StreamBase< ::gig::DimensionRegion>(BufferSize, BufferWrapElements)
+    {
+        this->pDecompressionBuffer = pDecompressionBuffer;
+    }
 
-    /// Returns number of refilled sample points or a value < 0 on error.
-    int Stream::ReadAhead(unsigned long SampleCount) {
-        if (this->State == state_unused) return -1;
-        if (this->State == state_end)    return  0;
-        if (!SampleCount)                return  0;
-        if (!pRingBuffer->write_space()) return  0;
-
-        ::gig::Sample* pSample = pDimRgn->pSample;
+    long Stream::Read(uint8_t* pBuf, long SamplesToRead) {
+        ::gig::Sample* pSample = pRegion->pSample;
         long total_readsamples = 0, readsamples = 0;
-        long samplestoread = SampleCount / pSample->Channels;
-        uint8_t* pBuf = pRingBuffer->get_write_ptr();
         bool endofsamplereached;
 
         // refill the disk stream buffer
         if (this->DoLoop) { // honor looping
-            total_readsamples  = pSample->ReadAndLoop(pBuf, samplestoread, &this->PlaybackState, pDimRgn, pDecompressionBuffer);
+            ::gig::playback_state_t pbs;
+            pbs.position = PlaybackState.position;
+            pbs.reverse = PlaybackState.reverse;
+            pbs.loop_cycles_left = PlaybackState.loop_cycles_left;
+
+            total_readsamples  = pSample->ReadAndLoop(pBuf, SamplesToRead, &pbs, pRegion, pDecompressionBuffer);
+            PlaybackState.position = pbs.position;
+            PlaybackState.reverse = pbs.reverse;
+            PlaybackState.loop_cycles_left = pbs.loop_cycles_left;
             endofsamplereached = (this->PlaybackState.position >= pSample->SamplesTotal);
             dmsg(5,("Refilled stream %d with %d (SamplePos: %d)", this->hThis, total_readsamples, this->PlaybackState.position));
         }
@@ -54,10 +59,10 @@ namespace LinuxSampler { namespace gig {
             pSample->SetPos(this->SampleOffset); // recover old position
 
             do {
-                readsamples        = pSample->Read(&pBuf[total_readsamples * pSample->FrameSize], samplestoread, pDecompressionBuffer);
-                samplestoread     -= readsamples;
+                readsamples        = pSample->Read(&pBuf[total_readsamples * pSample->FrameSize], SamplesToRead, pDecompressionBuffer);
+                SamplesToRead     -= readsamples;
                 total_readsamples += readsamples;
-            } while (samplestoread && readsamples > 0);
+            } while (SamplesToRead && readsamples > 0);
 
             // we have to store the position within the sample, because other streams might use the same sample
             this->SampleOffset = pSample->GetPos();
@@ -66,10 +71,6 @@ namespace LinuxSampler { namespace gig {
             dmsg(5,("Refilled stream %d with %d (SamplePos: %d)", this->hThis, total_readsamples, this->SampleOffset));
         }
 
-        // we must delay the increment_write_ptr_with_wrap() after the while() loop because we need to
-        // ensure that we read exactly SampleCount sample, otherwise the buffer wrapping code will fail
-        pRingBuffer->increment_write_ptr_with_wrap(total_readsamples * pSample->FrameSize);
-
         // update stream state
         if (endofsamplereached) SetState(state_end);
         else                    SetState(state_active);
@@ -77,45 +78,27 @@ namespace LinuxSampler { namespace gig {
         return total_readsamples;
     }
 
-    void Stream::WriteSilence(unsigned long SilenceSampleWords) {
-        memset(pRingBuffer->get_write_ptr(), 0, SilenceSampleWords * BytesPerSample);
-        pRingBuffer->increment_write_ptr_with_wrap(SilenceSampleWords * BytesPerSample);
-    }
+    void Stream::Launch (
+        Stream::Handle           hStream,
+        reference_t*             pExportReference,
+        ::gig::DimensionRegion*  pRgn,
+        unsigned long            SampleOffset,
+        bool                     DoLoop
+    ) {
+        SampleDescription info;
+        info.ChannelsPerFrame = pRgn->pSample->Channels;
+        info.FrameSize        = pRgn->pSample->FrameSize;
+        info.BytesPerSample   = pRgn->pSample->BitDepth / 8;
+        info.TotalSampleCount = pRgn->pSample->SamplesTotal;
 
-    Stream::Stream( ::gig::buffer_t* pDecompressionBuffer, uint BufferSize, uint BufferWrapElements) {
-        this->pExportReference       = NULL;
-        this->State                  = state_unused;
-        this->hThis                  = 0;
-        this->pDimRgn                = NULL;
-        this->SampleOffset           = 0;
-        this->PlaybackState.position = 0;
-        this->PlaybackState.reverse  = false;
-        this->pRingBuffer            = new RingBuffer<uint8_t,false>(BufferSize * 3, BufferWrapElements * 3);
-        this->pDecompressionBuffer   = pDecompressionBuffer;
-        UnusedStreams++;
-	TotalStreams++;
-    }
+        Sample::PlaybackState playbackState;
+        playbackState.position         = SampleOffset;
+        playbackState.reverse          = false;
+        playbackState.loop_cycles_left = pRgn->pSample->LoopPlayCount;
 
-    Stream::~Stream() {
-        Reset();
-        if (pRingBuffer) delete pRingBuffer;
-	UnusedStreams--;
-	TotalStreams--;
-    }
-
-    /// Called by disk thread to activate the disk stream.
-    void Stream::Launch(Stream::Handle hStream, reference_t* pExportReference, ::gig::DimensionRegion* pDimRgn, unsigned long SampleOffset, bool DoLoop) {
-        UnusedStreams--;
-        this->pExportReference               = pExportReference;
-        this->hThis                          = hStream;
-        this->pDimRgn                        = pDimRgn;
-        this->SampleOffset                   = SampleOffset;
-        this->PlaybackState.position         = SampleOffset;
-        this->PlaybackState.reverse          = false;
-        this->PlaybackState.loop_cycles_left = pDimRgn->pSample->LoopPlayCount;
-        this->DoLoop                         = DoLoop;
-        BytesPerSample                       = pDimRgn->pSample->BitDepth / 8;
-        SetState(state_active);
+        LinuxSampler::StreamBase< ::gig::DimensionRegion>::Launch (
+            hStream, pExportReference, pRgn, info, playbackState, SampleOffset, DoLoop
+        );
     }
 
 }} // namespace LinuxSampler::gig
