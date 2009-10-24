@@ -51,6 +51,7 @@ namespace {
     private:
         static PluginDssi* plugin;
         LinuxSampler::SamplerChannel* pChannel;
+        LinuxSampler::MidiInputPort* pPort;
         LADSPA_Data* Out[2];
     };
 

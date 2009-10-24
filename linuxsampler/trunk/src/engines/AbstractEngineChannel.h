@@ -83,8 +83,10 @@ namespace LinuxSampler {
             virtual ~AbstractEngineChannel();
 
             AbstractEngine*           pEngine;
+        public: // TODO: should be protected
             AudioChannel*             pChannelLeft;             ///< encapsulates the audio rendering buffer (left)
             AudioChannel*             pChannelRight;            ///< encapsulates the audio rendering buffer (right)
+        protected:
             int                       AudioDeviceChannelLeft;   ///< audio device channel number to which the left channel is connected to
             int                       AudioDeviceChannelRight;  ///< audio device channel number to which the right channel is connected to
             MidiInputPort*            pMidiInputPort;           ///< Points to the connected MIDI input port or NULL if none assigned.
