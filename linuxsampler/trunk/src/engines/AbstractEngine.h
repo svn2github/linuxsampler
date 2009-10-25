@@ -79,8 +79,10 @@ namespace LinuxSampler {
 
             AudioOutputDevice* pAudioOutputDevice;
 
+            friend class AbstractVoice;
             friend class AbstractEngineChannel;
             template<class V, class R, class I> friend class EngineChannelBase;
+            template<class EC, class R, class S, class D> friend class VoiceBase;
 
         protected:
             ArrayList<EngineChannel*>  engineChannels; ///< All engine channels of a Engine instance.
@@ -116,6 +118,7 @@ namespace LinuxSampler {
             virtual void ProcessNoteOn(EngineChannel* pEngineChannel, Pool<Event>::Iterator& itNoteOnEvent) = 0;
             virtual void ProcessNoteOff(EngineChannel* pEngineChannel, Pool<Event>::Iterator& itNoteOffEvent) = 0;
             virtual void ProcessControlChange(EngineChannel* pEngineChannel, Pool<Event>::Iterator& itControlChangeEvent) = 0;
+            virtual int  GetMinFadeOutSamples() = 0;
 
         private:
             static std::map<Format, std::map<AudioOutputDevice*,AbstractEngine*> > engines;

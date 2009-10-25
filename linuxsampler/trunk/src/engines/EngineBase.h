@@ -1304,6 +1304,8 @@ namespace LinuxSampler {
                 bool                    HandleKeyGroupConflicts
             ) = 0;
 
+            virtual int GetMinFadeOutSamples() { return MinFadeOutSamples; }
+
         private:
             Pool<V>*    pVoicePool;            ///< Contains all voices that can be activated.
             Pool<RR*>   SuspendedRegions;

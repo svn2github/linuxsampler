@@ -27,6 +27,8 @@
 #include "Event.h"
 #include "../../common/Pool.h"
 
+#include <gig.h> // TODO: remove gig dependency
+
 namespace LinuxSampler {
 
     class Voice {
@@ -44,6 +46,78 @@ namespace LinuxSampler {
                 type_release_trigger_required,  ///< If the key of this voice will be released, it causes a release triggered voice to be spawned
                 type_release_trigger            ///< Release triggered voice which cannot be killed by releasing its key
             };
+
+            struct PitchInfo {
+                float PitchBase;      ///< Basic pitch depth, stays the same for the whole life time of the voice
+                float PitchBend;      ///< Current pitch value of the pitchbend wheel
+                float PitchBendRange; ///< The pitch range of the pitchbend wheel, value is in cents / 8192
+            };
+
+            struct EGInfo {
+                double Attack;
+                double Decay;
+                double Release;
+            };
+
+            struct SampleInfo {
+                uint SampleRate;
+                uint ChannelCount;
+                uint FrameSize;
+                uint TotalFrameCount;
+                uint BitDepth;
+                bool HasLoops;
+                uint LoopStart;
+                uint LoopLength;
+                uint LoopPlayCount; ///< Number of times the loop should be played (a value of 0 = infinite).
+                bool Unpitched; ///< sound which is not characterized by a perceived frequency
+            };
+
+            struct RegionInfo {
+                uint8_t UnityNote; ///< The MIDI key number of the recorded pitch of the sample
+                int16_t FineTune;
+                int     Pan; ///< Panorama / Balance (-64..0..63 <-> left..middle..right)
+                uint    SampleStartOffset; ///< Number of samples the sample start should be moved
+
+                double  EG1PreAttack; ///< Preattack value of the sample amplitude EG (in permilles)
+                double  EG1Attack; ///< Attack time of the sample amplitude EG (in seconds)
+                double  EG1Hold;  ///< If true, Decay1 stage should be postponed until the sample reached the sample loop start
+                double  EG1Decay1;  ///< Decay time of the sample amplitude EG (in seconds)
+                double  EG1Decay2;  ///< Only if (EG1InfiniteSustain == false): 2nd decay stage time of the sample amplitude EG (in seconds)
+                double  EG1Sustain; ///< Sustain value of the sample amplitude EG (in permilles)
+                bool    EG1InfiniteSustain; ///< If true, instead of going into Decay2 phase, Decay1 level will be hold until note will be released.
+                double  EG1Release; ///< Release time of the sample amplitude EG (in seconds)
+
+                double  EG2PreAttack; ///< Preattack value of the filter cutoff EG (in permilles)
+                double  EG2Attack; ///< Attack time of the filter cutoff EG (in seconds)
+                double  EG2Decay1;  ///< Decay time of the filter cutoff EG (in seconds)
+                double  EG2Decay2;  ///< Only if (EG2InfiniteSustain == false): 2nd decay stage time of the filter cutoff EG (in seconds)
+                double  EG2Sustain; ///< Sustain value of the filter cutoff EG (in permilles)
+                bool    EG2InfiniteSustain; ///< If true, instead of going into Decay2 phase, Decay1 level will be hold until note will be released.
+                double  EG2Release; ///< Release time of the filter cutoff EG (in seconds)
+
+                double  EG3Attack;  ///< Attack time of the sample pitch EG (in seconds)
+                int     EG3Depth;   ///< Depth of the sample pitch EG (-1200 - +1200)
+                uint8_t ReleaseTriggerDecay; ///< 0 - 8
+
+                bool               VCFEnabled;    ///< If filter should be used.
+                ::gig::vcf_type_t  VCFType;       ///< Defines the general filter characteristic (lowpass, highpass, bandpass, etc.).
+                uint8_t            VCFResonance;  ///< Firm internal filter resonance weight.
+            };
+
+            struct InstrumentInfo {
+                int   FineTune; // in cents
+                uint  PitchbendRange;    ///< Number of semitones pitchbend controller can pitch
+            };
+
+            /// Reflects a MIDI controller
+            struct midi_ctrl {
+                uint8_t controller; ///< MIDI control change controller number
+                uint8_t value;      ///< Current MIDI controller value
+                float   fvalue;     ///< Transformed / effective value (e.g. volume level or filter cutoff frequency)
+            };
+
+            Voice() { }
+            virtual ~Voice() { }
     };
 } // namespace LinuxSampler
 

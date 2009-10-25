@@ -75,8 +75,10 @@ namespace LinuxSampler {
 
             virtual AbstractEngine::Format GetEngineFormat() = 0;
 
+            friend class AbstractVoice;
             friend class AbstractEngine;
             template<class TV, class TRR, class TR, class TD, class TIM, class TI> friend class EngineBase;
+            template<class EC, class R, class S, class D> friend class VoiceBase;
 
         protected:
             AbstractEngineChannel();

@@ -50,6 +50,9 @@ namespace LinuxSampler { namespace sf2 {
             pbs.loop_cycles_left = PlaybackState.loop_cycles_left;
 
             total_readsamples  = pSample->ReadAndLoop(pBuf, SamplesToRead, &pbs);
+            PlaybackState.position = pbs.position;
+            PlaybackState.reverse = pbs.reverse;
+            PlaybackState.loop_cycles_left = pbs.loop_cycles_left;
             endofsamplereached = (this->PlaybackState.position >= pSample->GetTotalFrameCount());
             dmsg(5,("Refilled stream %d with %d (SamplePos: %d)", this->hThis, total_readsamples, this->PlaybackState.position));
         }

@@ -10,7 +10,8 @@ liblinuxsamplercommonengine_la_SOURCES = \
 	Sample.h SampleManager.h SampleFile.cpp SampleFile.h \
 	Stream.h StreamBase.cpp StreamBase.h \
 	DiskThreadBase.cpp DiskThreadBase.h \
-	Voice.h VoiceBase.h MidiKeyboardManager.h \
+	Voice.h AbstractVoice.cpp AbstractVoice.h VoiceBase.h \
+	MidiKeyboardManager.h \
 	LFOBase.h \
 	LFOTriangleDiHarmonic.h \
 	LFOTriangleIntAbsMath.h \
