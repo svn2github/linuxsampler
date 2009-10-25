@@ -172,9 +172,13 @@ void PrintRegion(int idx, sf2::Region* reg) {
         cout << "\t\t    Instrument: " << reg->pInstrument->Name << endl;
     }
 
-    cout << "\t\t\tEG1PreAttack=" << reg->EG1PreAttack << "s, EG1Attack=" << reg->EG1Attack;
+    cout << "\t\t\tEG1PreAttackDelay=" << reg->EG1PreAttackDelay << "s, EG1Attack=" << reg->EG1Attack;
     cout << "s, EG1Hold=" << reg->EG1Hold << "s, EG1Decay=" << reg->EG1Decay << "s,  EG1Sustain=";
     cout << reg->EG1Sustain << "permille, EG1Release=" << reg->EG1Release << "s" << endl;
+
+    cout << "\t\t\tEG2PreAttackDelay=" << reg->EG2PreAttackDelay << "s, EG2Attack=" << reg->EG2Attack;
+    cout << "s, EG2Hold=" << reg->EG2Hold << "s, EG2Decay=" << reg->EG2Decay << "s,  EG2Sustain=";
+    cout << reg->EG2Sustain << "permille, EG2Release=" << reg->EG2Release << "s" << endl;
 
     cout << "\t\t\tModulators (" << reg->modulators.size() << ")" << endl;
 
@@ -256,7 +260,7 @@ string GetControllerSource(sf2::Modulator& mod) {
 }
 
 string Revision() {
-    string s = "$Revision: 1.1.1.1 $";
+    string s = "$Revision: 1.2 $";
     return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
 }
 

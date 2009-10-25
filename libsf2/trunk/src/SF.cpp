@@ -31,13 +31,20 @@
 #include "helper.h"
 #include <math.h>
 
-#define _1200TH_ROOT_OF_2 1.0005777900
+#define _1200TH_ROOT_OF_2 1.000577789506555
+#define _200TH_ROOT_OF_10 1.011579454259899
 
 namespace sf2 {
     double ToSeconds(int Timecents) {
         if (Timecents == 0) return 1.0;
         if (Timecents == -32768) return 0.0;
         return pow(_1200TH_ROOT_OF_2, Timecents);
+    }
+
+    double ToPermilles(int Centibels) {
+        if (Centibels == 0) return 1000.0;
+        if (Centibels < 0) return 0.0;
+        return pow(_200TH_ROOT_OF_10, Centibels);
     }
 
     RIFF::Chunk* GetMandatoryChunk(RIFF::List* list, uint32_t chunkId) {
@@ -189,6 +196,10 @@ namespace sf2 {
         return ChannelCount * ((pCkSm24 != NULL) ? 3 : 2);
     }
 
+    bool Sample::HasLoops() {
+        return StartLoop != 0 && EndLoop != 0;
+    }
+
     /**
      * Reads \a SampleCount number of sample points from the position stored
      * in \a pPlaybackState into the buffer pointed by \a pBuffer and moves
@@ -220,8 +231,11 @@ namespace sf2 {
         unsigned long   FrameCount,
         PlaybackState*  pPlaybackState
     ) {
-        // TODO:
-        return 0;
+        SetPos(pPlaybackState->position);
+        long frames = Read(pBuffer, FrameCount);
+        pPlaybackState->position = GetPos();
+        // TODO: Implement looping
+        return frames;
     }
 
     Region::Region() {
@@ -233,8 +247,10 @@ namespace sf2 {
         startloopAddrsOffset = endloopAddrsOffset = 0;
         pan = fineTune = 0;
 
-        EG1PreAttack = EG1Attack = EG1Hold = EG1Decay = EG1Release = ToSeconds(-12000);
+        EG1PreAttackDelay = EG1Attack = EG1Hold = EG1Decay = EG1Release = ToSeconds(-12000);
         EG1Sustain = 0;
+        EG2PreAttackDelay = EG2Attack = EG2Hold = EG2Decay = EG2Release = ToSeconds(-12000);
+        EG2Sustain = 0;
     }
 
     void Region::SetGenerator(sf2::File* pFile, GenList& Gen) {
@@ -295,23 +311,29 @@ namespace sf2 {
             case FREQ_VIB_LFO:
                 break;
             case DELAY_MOD_ENV:
+                EG2PreAttackDelay = ToSeconds(Gen.GenAmount.shAmount);
                 break;
             case ATTACK_MOD_ENV:
+                EG2Attack = ToSeconds(Gen.GenAmount.shAmount);
                 break;
             case HOLD_MOD_ENV:
+                EG2Hold = ToSeconds(Gen.GenAmount.shAmount);
                 break;
             case DECAY_MOD_ENV:
+                EG2Decay = ToSeconds(Gen.GenAmount.shAmount);
                 break;
             case SUSTAIN_MOD_ENV:
+                EG2Sustain = 1000 - Gen.GenAmount.shAmount;
                 break;
             case RELEASEMODENV:
+                EG2Release = ToSeconds(Gen.GenAmount.shAmount);
                 break;
             case KEYNUM_TO_MOD_ENV_HOLD:
                 break;
             case KEYNUM_TO_MOD_ENV_DECAY:
                 break;
             case DELAY_VOL_ENV:
-                EG1PreAttack = ToSeconds(Gen.GenAmount.shAmount);
+                EG1PreAttackDelay = ToSeconds(Gen.GenAmount.shAmount);
                 break;
             case ATTACK_VOL_ENV:
                 EG1Attack = ToSeconds(Gen.GenAmount.shAmount);
@@ -323,7 +345,7 @@ namespace sf2 {
                 EG1Decay = ToSeconds(Gen.GenAmount.shAmount);
                 break;
             case SUSTAIN_VOL_ENV:
-                EG1Sustain = Gen.GenAmount.shAmount;
+                EG1Sustain = ToPermilles(Gen.GenAmount.shAmount);
                 break;
             case RELEASE_VOL_ENV:
                 EG1Release = ToSeconds(Gen.GenAmount.shAmount);
@@ -617,7 +639,7 @@ namespace sf2 {
             ml.ModTransOper = ck->ReadInt16();
             PresetModLists.push_back(ml);
         }
-        std::cout << "Preset mod lists: " << PresetModLists.size() << std::endl;
+        //std::cout << "Preset mod lists: " << PresetModLists.size() << std::endl;
 
         ck = GetMandatoryChunk(lstPDTA, CHUNK_ID_PGEN);
         if (ck->GetSize() < 4 || (ck->GetSize() % 4)) {
@@ -671,7 +693,7 @@ namespace sf2 {
             ml.ModTransOper = ck->ReadInt16();
             InstModLists.push_back(ml);
         }
-        std::cout << "Instrument mod lists: " << InstModLists.size() << std::endl;
+        //std::cout << "Instrument mod lists: " << InstModLists.size() << std::endl;
 
         ck = GetMandatoryChunk(lstPDTA, CHUNK_ID_IGEN);
         if (ck->GetSize() < 4 || (ck->GetSize() % 4)) {

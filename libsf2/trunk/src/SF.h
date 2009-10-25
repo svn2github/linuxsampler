@@ -304,6 +304,8 @@ namespace sf2 {
             int     GetChannelCount();
             long    GetTotalFrameCount();
             int     GetFrameSize();
+            bool    HasLoops();
+            bool    IsUnpitched() { return OriginalPitch == 255; }
 
             buffer_t  LoadSampleData();
             buffer_t  LoadSampleData(unsigned long SampleCount);
@@ -357,12 +359,19 @@ namespace sf2 {
             int startAddrsOffset, startAddrsCoarseOffset, endAddrsOffset;
             int startloopAddrsOffset, endloopAddrsOffset;
 
-            double EG1PreAttack;
+            double EG1PreAttackDelay;
             double EG1Attack;
             double EG1Hold;
             double EG1Decay;
-            double EG1Sustain;
+            double EG1Sustain; // Sustain value of the sample amplitude EG (in permilles)
             double EG1Release;
+
+            double EG2PreAttackDelay;
+            double EG2Attack;
+            double EG2Hold;
+            double EG2Decay;
+            double EG2Sustain; // Sustain value of the filter cutoff EG (in permilles)
+            double EG2Release;
 
             Sample* pSample;
             Instrument* pInstrument; // used when the region belongs to preset
