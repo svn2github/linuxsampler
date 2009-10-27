@@ -1,3 +1,7 @@
+Version CVS HEAD (?)
+  * SoundFont file format
+    - initial implementation
+
 Version 3.3.0 (30 Jul 2009)
 
   * general changes:

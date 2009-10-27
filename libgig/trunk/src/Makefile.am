@@ -14,16 +14,16 @@ gigextract_flags = $(AUDIOFILE_CFLAGS)
 endif
 
 libgigincludedir = $(includedir)
-libgiginclude_HEADERS = RIFF.h DLS.h gig.h
+libgiginclude_HEADERS = RIFF.h DLS.h SF.h gig.h
 
 lib_LTLIBRARIES = libgig.la
-libgig_la_SOURCES = RIFF.cpp DLS.cpp gig.cpp
+libgig_la_SOURCES = RIFF.cpp DLS.cpp SF.cpp gig.cpp
 libgig_la_LDFLAGS = -no-undefined -version-info @SHARED_VERSION_INFO@ @SHLIB_VERSION_ARG@
 if WIN32
 libgig_la_LIBADD = -lrpcrt4
 endif
 
-bin_PROGRAMS = rifftree dlsdump gigdump gigextract
+bin_PROGRAMS = rifftree dlsdump gigdump gigextract sf2dump
 rifftree_SOURCES = rifftree.cpp
 rifftree_LDADD = $(top_builddir)/src/libgig.la
 dlsdump_SOURCES = dlsdump.cpp
@@ -34,5 +34,7 @@ gigextract_SOURCES = gigextract.cpp
 gigextract_LDADD = $(top_builddir)/src/libgig.la $(gigextract_libs)
 gigextract_CFLAGS = $(gigextract_flags)
 gigextract_CXXFLAGS = $(gigextract_flags)
+sf2dump_SOURCES = sf2dump.cpp
+sf2dump_LDADD = $(top_builddir)/src/libgig.la
 
 EXTRA_DIST = helper.h
