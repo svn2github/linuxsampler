@@ -49,13 +49,19 @@ namespace LinuxSampler {
         switch(Format & 0xF) {
             case SF_FORMAT_PCM_S8:
             case SF_FORMAT_PCM_U8:
-            case SF_FORMAT_PCM_16:
             case SF_FORMAT_DPCM_8:
+                FrameSize = ChannelCount;
+                break;
+            case SF_FORMAT_PCM_16:
             case SF_FORMAT_DPCM_16:
-                FrameSize = sizeof(short) * ChannelCount;
+                FrameSize = 2 * ChannelCount;
+                break;
+            case SF_FORMAT_PCM_24:
+            case SF_FORMAT_DWVW_24:
+                FrameSize = 3 * ChannelCount;
                 break;
             default:
-                FrameSize = sizeof(int) * ChannelCount;
+                FrameSize = 2 * ChannelCount;
         }
         TotalFrameCount = sfInfo.frames;
 
@@ -138,11 +144,8 @@ namespace LinuxSampler {
 
     long SampleFile::Read(void* pBuffer, unsigned long FrameCount) {
         Open();
-        if(FrameSize == sizeof(short) * ChannelCount) {
-            return sf_readf_short(pSndFile, (short*)pBuffer, FrameCount);
-        } else {
-            return sf_readf_int(pSndFile, (int*)pBuffer, FrameCount);
-        }
+        int bytes = sf_read_raw(pSndFile, pBuffer, FrameCount * GetFrameSize());
+        return bytes / GetFrameSize();
     }
 
     unsigned long SampleFile::ReadAndLoop (
