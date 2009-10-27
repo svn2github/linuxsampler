@@ -27,7 +27,7 @@
 
 #include "../../common/global.h"
 
-#include <sf2/SF.h>
+#include <SF.h>
 
 #include "../../common/global.h"
 #include "../../common/Pool.h"

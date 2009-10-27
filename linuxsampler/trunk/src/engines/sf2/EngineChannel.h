@@ -29,7 +29,7 @@
 #include "../EngineChannelBase.h"
 #include "../EngineChannelFactory.h"
 #include "Voice.h"
-#include <sf2/SF.h>
+#include <SF.h>
 
 namespace LinuxSampler { namespace sf2 {
     class EngineChannel: public LinuxSampler::EngineChannelBase<Voice, ::sf2::Region, ::sf2::InstrumentBase> {

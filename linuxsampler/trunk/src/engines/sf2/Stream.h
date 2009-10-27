@@ -26,7 +26,7 @@
 #define	__LS_SF2_STREAM_H__
 
 #include "../common/StreamBase.h"
-#include <sf2/SF.h>
+#include <SF.h>
 
 namespace LinuxSampler { namespace sf2 {
 

@@ -486,6 +486,31 @@ namespace sfz
             eq2_gain_oncc[i] = 0;
             eq3_gain_oncc[i] = 0;
         }
+
+        // deprecated
+        ampeg_delay    = 0;
+        ampeg_start    = 0; //in percentage
+        ampeg_attack   = 0;
+        ampeg_hold     = 0;
+        ampeg_decay    = 0;
+        ampeg_sustain  = 100; // in percentage
+        ampeg_release  = 0;
+
+        fileg_delay    = 0;
+        fileg_start    = 0; //in percentage
+        fileg_attack   = 0;
+        fileg_hold     = 0;
+        fileg_decay    = 0;
+        fileg_sustain  = 100; // in percentage
+        fileg_release  = 0;
+
+        pitcheg_delay    = 0;
+        pitcheg_start    = 0; //in percentage
+        pitcheg_attack   = 0;
+        pitcheg_hold     = 0;
+        pitcheg_decay    = 0;
+        pitcheg_sustain  = 100; // in percentage
+        pitcheg_release  = 0;
     }
 
     Region*
@@ -664,6 +689,31 @@ namespace sfz
         region->eq1_vel2gain = eq1_vel2gain;
         region->eq2_vel2gain = eq2_vel2gain;
         region->eq3_vel2gain = eq3_vel2gain;
+
+        // deprecated
+        region->ampeg_delay    = ampeg_delay;
+        region->ampeg_start    = ampeg_start;
+        region->ampeg_attack   = ampeg_attack;
+        region->ampeg_hold     = ampeg_hold;
+        region->ampeg_decay    = ampeg_decay;
+        region->ampeg_sustain  = ampeg_sustain;
+        region->ampeg_release  = ampeg_release;
+
+        region->fileg_delay    = fileg_delay;
+        region->fileg_start    = fileg_start;
+        region->fileg_attack   = fileg_attack;
+        region->fileg_hold     = fileg_hold;
+        region->fileg_decay    = fileg_decay;
+        region->fileg_sustain  = fileg_sustain;
+        region->fileg_release  = fileg_release;
+
+        region->pitcheg_delay    = pitcheg_delay;
+        region->pitcheg_start    = pitcheg_start;
+        region->pitcheg_attack   = pitcheg_attack;
+        region->pitcheg_hold     = pitcheg_hold;
+        region->pitcheg_decay    = pitcheg_decay;
+        region->pitcheg_sustain  = pitcheg_sustain;
+        region->pitcheg_release  = pitcheg_release;
 
         return region;
     }
@@ -1130,7 +1180,30 @@ namespace sfz
             else if ("eq2_gain_on" == key_cc) pCurDef->eq2_gain_oncc[num_cc] = ToInt(value);
             else if ("eq3_gain_on" == key_cc) pCurDef->eq3_gain_oncc[num_cc] = ToInt(value);
             else std::cerr << "The opcode '" << key << "' is unsupported by libsfz!" << std::endl;
-        } else {
+        }
+        // Deprecated opcodes
+        else if ("ampeg_delay"   == key) pCurDef->ampeg_delay = ToFloat(value);
+        else if ("ampeg_start"   == key) pCurDef->ampeg_start = ToFloat(value);
+        else if ("ampeg_attack"   == key) pCurDef->ampeg_attack = ToFloat(value);
+        else if ("ampeg_hold"   == key) pCurDef->ampeg_hold = ToFloat(value);
+        else if ("ampeg_decay"   == key) pCurDef->ampeg_decay = ToFloat(value);
+        else if ("ampeg_sustain"   == key) pCurDef->ampeg_sustain = ToFloat(value);
+        else if ("ampeg_release"   == key) pCurDef->ampeg_release = ToFloat(value);
+        else if ("fileg_delay"   == key) pCurDef->fileg_delay = ToFloat(value);
+        else if ("fileg_start"   == key) pCurDef->fileg_start = ToFloat(value);
+        else if ("fileg_attack"   == key) pCurDef->fileg_attack = ToFloat(value);
+        else if ("fileg_hold"   == key) pCurDef->fileg_hold = ToFloat(value);
+        else if ("fileg_decay"   == key) pCurDef->fileg_decay = ToFloat(value);
+        else if ("fileg_sustain"   == key) pCurDef->fileg_sustain = ToFloat(value);
+        else if ("fileg_release"   == key) pCurDef->fileg_release = ToFloat(value);
+        else if ("pitcheg_delay"   == key) pCurDef->pitcheg_delay = ToFloat(value);
+        else if ("pitcheg_start"   == key) pCurDef->pitcheg_start = ToFloat(value);
+        else if ("pitcheg_attack"   == key) pCurDef->pitcheg_attack = ToFloat(value);
+        else if ("pitcheg_hold"   == key) pCurDef->pitcheg_hold = ToFloat(value);
+        else if ("pitcheg_decay"   == key) pCurDef->pitcheg_decay = ToFloat(value);
+        else if ("pitcheg_sustain"   == key) pCurDef->pitcheg_sustain = ToFloat(value);
+        else if ("pitcheg_release"   == key) pCurDef->pitcheg_release = ToFloat(value);
+        else {
             std::cerr << "The opcode '" << key << "' is unsupported by libsfz!" << std::endl;
         }
     }

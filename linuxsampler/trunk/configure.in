@@ -563,31 +563,17 @@ fi
 AC_SUBST(GIG_CFLAGS)
 AC_SUBST(GIG_LIBS)
 
-# SF2 Engine (requires libsf2)
+# SF2 Engine (requires libgig)
 AC_ARG_ENABLE(sf2-engine,
   [  --disable-sf2-engine
                           Disable compilation of the SF2 engine.
-			  You need to have libsf2 installed.],
+			  You need to have libgig installed.],
   [config_sf2_engine="$enableval"],
   [config_sf2_engine="yes"]
 )
 HAVE_SF2=0;
 if test "$config_sf2_engine" = "yes"; then
-    # Check presence of libsf2
-    libsf2_version="0.0.1"
-    PKG_CHECK_MODULES(SF2, sf2 >= $libsf2_version, HAVE_SF2=true, HAVE_SF2=false)
-    AC_SUBST(SF2_LIBS)
-    AC_SUBST(SF2_CFLAGS)
-    if test $HAVE_SF2 = false; then
-        HAVE_SF2=0
-        config_sf2_engine="no"
-        echo "*** Required libsf2 version not found!"
-        echo "*** You need to have libsf2 version ${libsf2_version} or higher"
-        echo "*** for SF2 engine to be enabled."
-        echo "*** Support for SF2 instruments will be disabled!"
-    else
-        HAVE_SF2=1
-    fi
+    HAVE_SF2=1
 else
     echo "SF2 engine disabled by configure script parameter"
 fi

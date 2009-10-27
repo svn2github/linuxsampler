@@ -66,36 +66,36 @@ namespace LinuxSampler { namespace sfz {
 
     Voice::RegionInfo Voice::GetRegionInfo() {
         RegionInfo ri;
-        /*ri.UnityNote = pSample->OriginalPitch;
+        ri.UnityNote = pRegion->pitch_keycenter;
         ri.FineTune  = pRegion->tune;
         ri.Pan       = pRegion->pan;
-        ri.SampleStartOffset = pRegion->startAddrsOffset + pRegion->startAddrsCoarseOffset;
+        ri.SampleStartOffset = 0; // TODO: 
 
-        ri.EG1PreAttack        = 1000;
-        ri.EG1Attack           = pRegion->EG1Attack;
-        ri.EG1Hold             = pRegion->EG1Hold;
-        ri.EG1Decay1           = pRegion->EG1Decay;
-        ri.EG1Decay2           = pRegion->EG1Decay;
-        ri.EG1Sustain          = pRegion->EG1Sustain;
+        ri.EG1PreAttack        = pRegion->ampeg_start * 10;
+        ri.EG1Attack           = pRegion->ampeg_attack;
+        ri.EG1Hold             = pRegion->ampeg_hold;
+        ri.EG1Decay1           = pRegion->ampeg_decay;
+        ri.EG1Decay2           = pRegion->ampeg_decay;
+        ri.EG1Sustain          = pRegion->ampeg_sustain;
         ri.EG1InfiniteSustain  = true;
-        ri.EG1Release          = pRegion->EG1Release;
+        ri.EG1Release          = pRegion->ampeg_release;
 
-        ri.EG2PreAttack        = 1000;
-        ri.EG2Attack           = pRegion->EG2Attack;
-        //ri.EG2Hold             = pRegion->EG2Hold; // TODO:
-        ri.EG2Decay1           = pRegion->EG2Decay;
-        ri.EG2Decay2           = pRegion->EG2Decay;
-        ri.EG2Sustain          = pRegion->EG2Sustain;
+        ri.EG2PreAttack        = pRegion->fileg_start;
+        ri.EG2Attack           = pRegion->fileg_attack;
+        //ri.EG2Hold             = pRegion->fileg_hold; // TODO: 
+        ri.EG2Decay1           = pRegion->fileg_decay;
+        ri.EG2Decay2           = pRegion->fileg_decay;
+        ri.EG2Sustain          = pRegion->fileg_sustain;
         ri.EG2InfiniteSustain  = true;
-        ri.EG2Release          = pRegion->EG2Release;
+        ri.EG2Release          = pRegion->fileg_release;
 
-        ri.EG3Attack     = 0; // TODO:
+        ri.EG3Attack     = pRegion->pitcheg_attack;
         ri.EG3Depth      = 0; // TODO:
         ri.VCFEnabled    = false; // TODO:
         ri.VCFType       = ::gig::vcf_type_lowpass; // TODO:
         ri.VCFResonance  = 0; // TODO:
 
-        ri.ReleaseTriggerDecay = 0;*/
+        ri.ReleaseTriggerDecay = 0;
 
         return ri;
     }
@@ -117,7 +117,7 @@ namespace LinuxSampler { namespace sfz {
     }
 
     double Voice::GetVelocityRelease(uint8_t MIDIKeyVelocity) {
-        return 0.0; // TODO: 
+        return 0.9; // TODO:
     }
 
     void Voice::ProcessCCEvent(RTList<Event>::Iterator& itEvent) {

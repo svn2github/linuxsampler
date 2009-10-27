@@ -152,8 +152,9 @@ namespace LinuxSampler {
     ) {
         // TODO:
         SetPos(pPlaybackState->position);
-        Read(pBuffer, FrameCount);
+        unsigned long count = Read(pBuffer, FrameCount);
         pPlaybackState->position = GetPos();
+        return count;
     }
 
     void SampleFile::ReleaseSampleData() {

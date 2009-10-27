@@ -320,6 +320,11 @@ namespace sfz
         float eq1_gain; float eq2_gain; float eq3_gain;
         std::vector<float> eq1_gain_oncc; std::vector<float> eq2_gain_oncc; std::vector<float> eq3_gain_oncc;
         float eq1_vel2gain; float eq2_vel2gain; float eq3_vel2gain;
+
+        //Deprecated (from version 1)
+        float ampeg_delay, ampeg_start, ampeg_attack, ampeg_hold, ampeg_decay, ampeg_sustain, ampeg_release;
+        float fileg_delay, fileg_start, fileg_attack, fileg_hold, fileg_decay, fileg_sustain, fileg_release;
+        float pitcheg_delay, pitcheg_start, pitcheg_attack, pitcheg_hold, pitcheg_decay, pitcheg_sustain, pitcheg_release;
     };
 
     /////////////////////////////////////////////////////////////

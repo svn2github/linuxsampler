@@ -23,7 +23,6 @@
  ***************************************************************************/
 
 #include <sstream>
-#include <sf2/SF.h>
 
 #include "InstrumentResourceManager.h"
 #include "EngineChannel.h"

@@ -28,7 +28,7 @@
 #include "DiskThread.h"
 #include "../EngineBase.h"
 #include "Voice.h"
-#include <sf2/SF.h>
+#include <SF.h>
 
 namespace LinuxSampler { namespace sf2 {
 

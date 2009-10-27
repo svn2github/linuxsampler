@@ -62,7 +62,7 @@ LinuxSamplerAU_LDADD = $(top_builddir)/src/.libs/liblinuxsampler.a libpluginau.a
 
 if HAVE_AUFLAGS
 else
-AUFLAGS = $(GIG_LIBS) $(SF2_LIBS) $(JACK_LIBS) $(SQLITE3_LIBS) $(SNDFILE_LIBS)
+AUFLAGS = $(GIG_LIBS) $(JACK_LIBS) $(SQLITE3_LIBS) $(SNDFILE_LIBS)
 endif
 
 LinuxSamplerAU_CXXFLAGS = -bundle $(debug_messages)

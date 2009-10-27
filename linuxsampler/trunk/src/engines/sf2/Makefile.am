@@ -1,5 +1,5 @@
 if HAVE_SF2
-INCLUDES = $(all_includes) $(SF2_CFLAGS) $(GIG_CFLAGS)
+INCLUDES = $(all_includes) $(GIG_CFLAGS)
 METASOURCES = AUTO
 
 AM_CXXFLAGS = -Wreturn-type -ffast-math
@@ -12,6 +12,6 @@ liblinuxsamplersf2engine_la_SOURCES = \
 	Engine.cpp Engine.h \
 	Voice.cpp Voice.h \
 	Stream.cpp Stream.h
-liblinuxsamplersf2engine_la_LIBADD = $(SF2_LIBS)
-liblinuxsamplersf2engine_la_LDFLAGS = $(SF2_CFLAGS)
+liblinuxsamplersf2engine_la_LIBADD = $(GIG_LIBS)
+liblinuxsamplersf2engine_la_LDFLAGS = $(GIG_CFLAGS)
 endif
