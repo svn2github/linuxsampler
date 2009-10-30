@@ -262,6 +262,8 @@ namespace sf2 {
             static void LoadString(uint32_t ChunkID, RIFF::List* lstINFO, String& s);
     };
 
+    class Region;
+
     class Sample {
         public:
 
@@ -320,7 +322,8 @@ namespace sf2 {
             unsigned long ReadAndLoop (
                 void*           pBuffer,
                 unsigned long   FrameCount,
-                PlaybackState*  pPlaybackState
+                PlaybackState*  pPlaybackState,
+                Region*         pRegion
             );
 
         //protected:
@@ -331,10 +334,10 @@ namespace sf2 {
         //private:
             int ChannelCount; // 2 for left and right samples
 
-            uint32_t Start;     // in sample data points (frames)
-            uint32_t End;       // in sample data points (frames)
-            uint32_t StartLoop; // in sample data points (frames)
-            uint32_t EndLoop;   // in sample data points (frames)
+            uint32_t Start;     // in sample data points (frames) from the begining of the sample data field
+            uint32_t End;       // in sample data points (frames) from the begining of the sample data field
+            uint32_t StartLoop; // in sample data points (frames) from the begining of the sample data field
+            uint32_t EndLoop;   // in sample data points (frames) from the begining of the sample data field
             uint32_t SampleRate;
             uint8_t  OriginalPitch;
             uint8_t  PitchCorrection;
@@ -356,8 +359,10 @@ namespace sf2 {
             int minVel, maxVel;
             int pan; // -64 - +63
             int fineTune; // -99 - +99
-            int startAddrsOffset, startAddrsCoarseOffset, endAddrsOffset;
-            int startloopAddrsOffset, endloopAddrsOffset;
+            int coarseTune; // TODO:
+            int overridingRootKey; // represents the MIDI key number at which the sample is to be played back at its original sample rate.
+            int startAddrsOffset, startAddrsCoarseOffset, endAddrsOffset, endAddrsCoarseOffset;
+            int startloopAddrsOffset, startloopAddrsCoarseOffset, endloopAddrsOffset, endloopAddrsCoarseOffset;
 
             double EG1PreAttackDelay;
             double EG1Attack;
@@ -374,11 +379,16 @@ namespace sf2 {
             double EG2Release;
 
             Sample* pSample;
+            bool    HasLoop;
+            uint    LoopStart; // index (in frames) from the beginning of the sample
+            uint    LoopEnd;   // index (in frames) from the beginning of the sample
             Instrument* pInstrument; // used when the region belongs to preset
 
             Region();
             Sample* GetSample() { return pSample; }
             Region* GetParent() { return this; }
+
+            int GetUnityNote();
 
             std::vector<ModulatorItem> modulators;
 
@@ -415,6 +425,8 @@ namespace sf2 {
         public:
             Instrument(sf2::File* pFile, RIFF::Chunk* ck);
             ~Instrument();
+
+            void DeleteRegion(Region* pRegion);
         //private:
             uint16_t InstBagNdx;
             
@@ -422,6 +434,8 @@ namespace sf2 {
              * Load all regions (zones, bags) in the range idx1 - idx2
              */
             void LoadRegions(int idx1, int idx2);
+
+            Region* CreateRegion();
     };
 
     class Preset : public InstrumentBase {
@@ -456,6 +470,7 @@ namespace sf2 {
             Preset*      GetPreset(int idx);
             int          GetInstrumentCount();
             Instrument*  GetInstrument(int idx);
+            void         DeleteInstrument(Instrument* pInstrument);
             int          GetSampleCount();
             Sample*      GetSample(int idx);
             void         DeleteSample(Sample* pSample);

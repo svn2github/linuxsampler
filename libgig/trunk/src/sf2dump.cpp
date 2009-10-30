@@ -114,7 +114,8 @@ void PrintSamples(sf2::File* sf) {
     cout << "Samples (" << sf->GetSampleCount() << "): " << endl;
     for (int i = 0; i < sf->GetSampleCount(); i++) {
         sf2::Sample* s = sf->GetSample(i);
-        cout << "\t" << s->Name << " (" << "SampleRate: " << s->SampleRate;
+        cout << "\t" << s->Name << " (Depth: " << ((s->GetFrameSize() / s->GetChannelCount()) * 8);
+        cout << " SampleRate: " << s->SampleRate;
         cout << ", Pitch: " << ((int)s->OriginalPitch);
         cout << ", Pitch Correction: " << ((int)s->PitchCorrection )<< endl;
         cout << "\t\tStart: " << s->Start << ", End: " << s->End;
@@ -160,7 +161,15 @@ void PrintRegion(int idx, sf2::Region* reg) {
     if (idx == -1) cout << "\t\tGlobal Region " << endl;
     else cout << "\t\tRegion " << idx << endl;
     sf2::Sample* s = reg->GetSample();
-    if (s != NULL) cout << "\t\t    Sample: " << s->Name << endl;
+    if (s != NULL) {
+        cout << "\t\t    Sample: " << s->Name << ", Fine Tune: " << reg->fineTune;
+        if (reg->coarseTune) cout  << ", Coarse Tune: " << reg->coarseTune;
+        if (reg->overridingRootKey != -1) cout  << ", Overriding Root Key: " << reg->overridingRootKey;
+        if (reg->HasLoop) {
+            cout << ", Loop Start: " << reg->LoopStart << ", Loop End: " << reg->LoopEnd;
+        }
+        cout << endl;
+    }
     cout << "\t\t    Key range=";
     if (reg->loKey == NONE && reg->hiKey == NONE) cout << "None";
     else cout << reg->loKey << "-" << reg->hiKey;
@@ -260,7 +269,7 @@ string GetControllerSource(sf2::Modulator& mod) {
 }
 
 string Revision() {
-    string s = "$Revision: 1.1 $";
+    string s = "$Revision: 1.2 $";
     return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
 }
 

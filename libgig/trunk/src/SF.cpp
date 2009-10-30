@@ -229,13 +229,30 @@ namespace sf2 {
     unsigned long Sample::ReadAndLoop (
         void*           pBuffer,
         unsigned long   FrameCount,
-        PlaybackState*  pPlaybackState
+        PlaybackState*  pPlaybackState,
+        Region*         pRegion
     ) {
+        // TODO: startAddrsCoarseOffset, endAddrsCoarseOffset
+        unsigned long samplestoread = FrameCount, totalreadsamples = 0, readsamples, samplestoloopend;
+        uint8_t* pDst = (uint8_t*) pBuffer;
         SetPos(pPlaybackState->position);
-        long frames = Read(pBuffer, FrameCount);
+        if (pRegion->HasLoop) {
+            do {
+                samplestoloopend  = pRegion->LoopEnd - GetPos();
+                readsamples       = Read(&pDst[totalreadsamples * GetFrameSize()], Min(samplestoread, samplestoloopend));
+                samplestoread    -= readsamples;
+                totalreadsamples += readsamples;
+                if (readsamples == samplestoloopend) {
+                    SetPos(pRegion->LoopStart);
+                }
+            } while (samplestoread && readsamples);
+        } else {
+            totalreadsamples = Read(pBuffer, FrameCount);
+        }
+
         pPlaybackState->position = GetPos();
-        // TODO: Implement looping
-        return frames;
+
+        return totalreadsamples;
     }
 
     Region::Region() {
@@ -243,14 +260,22 @@ namespace sf2 {
         pInstrument = NULL;
         loKey = hiKey = NONE;
         minVel = maxVel = NONE;
-        startAddrsOffset = startAddrsCoarseOffset = endAddrsOffset = 0;
-        startloopAddrsOffset = endloopAddrsOffset = 0;
-        pan = fineTune = 0;
+        startAddrsOffset = startAddrsCoarseOffset = endAddrsOffset = endAddrsCoarseOffset = 0;
+        startloopAddrsOffset = startloopAddrsCoarseOffset = endloopAddrsOffset = endloopAddrsCoarseOffset = 0;
+        pan = fineTune = coarseTune = 0;
+        overridingRootKey = -1; // -1 means not used
+
+        HasLoop = false;
+        LoopStart = LoopEnd = 0;
 
         EG1PreAttackDelay = EG1Attack = EG1Hold = EG1Decay = EG1Release = ToSeconds(-12000);
         EG1Sustain = 0;
         EG2PreAttackDelay = EG2Attack = EG2Hold = EG2Decay = EG2Release = ToSeconds(-12000);
         EG2Sustain = 0;
+    }
+
+    int Region::GetUnityNote() {
+        return overridingRootKey != -1 ? overridingRootKey : pSample->OriginalPitch;
     }
 
     void Region::SetGenerator(sf2::File* pFile, GenList& Gen) {
@@ -267,9 +292,11 @@ namespace sf2 {
                 break;
             case STARTLOOP_ADDRS_OFFSET:
                 startloopAddrsOffset = Gen.GenAmount.shAmount;
+                LoopStart += startloopAddrsOffset;
                 break;
             case ENDLOOP_ADDRS_OFFSET:
                 endloopAddrsOffset = Gen.GenAmount.shAmount;
+                LoopEnd += endloopAddrsOffset;
                 break;
             case START_ADDRS_COARSE_OFFSET:
                 startAddrsCoarseOffset = Gen.GenAmount.wAmount;
@@ -289,6 +316,7 @@ namespace sf2 {
             case MOD_ENV_TO_FILTER_FC:
                 break;
             case END_ADDRS_COARSE_OFFSET:
+                endAddrsCoarseOffset = Gen.GenAmount.wAmount;
                 break;
             case MOD_LFO_TO_VOLUME:
                 break;
@@ -371,6 +399,8 @@ namespace sf2 {
                 maxVel = Gen.GenAmount.ranges.byHi;
                 break;
             case STARTLOOP_ADDRS_COARSE_OFFSET:
+                startloopAddrsCoarseOffset = Gen.GenAmount.wAmount;
+                LoopStart += startloopAddrsCoarseOffset * 32768;
                 break;
             case KEYNUM:
                 break;
@@ -379,8 +409,11 @@ namespace sf2 {
             case INITIAL_ATTENUATION:
                 break;
             case ENDLOOP_ADDRS_COARSE_OFFSET:
+                endloopAddrsCoarseOffset = Gen.GenAmount.wAmount;
+                LoopEnd += endloopAddrsCoarseOffset * 32768;
                 break;
             case COARSE_TUNE:
+                coarseTune = Gen.GenAmount.shAmount;
                 break;
             case FINE_TUNE:
                 fineTune = Gen.GenAmount.shAmount;
@@ -391,15 +424,30 @@ namespace sf2 {
                     throw Exception("Broken SF2 file (missing samples)");
                 }
                 pSample = pFile->Samples[sid];
+
+                if (HasLoop) {
+                    LoopStart += pSample->StartLoop;
+                    LoopEnd   += pSample->EndLoop;
+                    if ( LoopStart < pSample->Start || LoopStart > pSample->End ||
+                         LoopStart > LoopEnd        || LoopEnd   > pSample->End    ) {
+                        throw Exception("Broken SF2 file (invalid loops)");
+                    }
+                    LoopStart -= pSample->Start; // Relative to the sample start
+                    LoopEnd   -= pSample->Start; // Relative to the sample start
+                }
                 break;
             }
             case SAMPLE_MODES:
+                HasLoop = Gen.GenAmount.wAmount & 1;
+                // TODO: 3 indicates a sound which loops for the duration of key depression
+                //       then proceeds to play the remainder of the sample.
                 break;
             case SCALE_TUNING:
                 break;
             case EXCLUSIVE_CLASS:
                 break;
             case OVERRIDING_ROOT_KEY:
+                overridingRootKey = Gen.GenAmount.shAmount;
                 break;
         }
     }
@@ -440,7 +488,7 @@ namespace sf2 {
     }
 
     int InstrumentBase::GetRegionCount() {
-        return regions.size() - 1; // exclude terminal region
+        return regions.size();
     }
 
     Region* InstrumentBase::GetRegion(int idx) {
@@ -476,8 +524,62 @@ namespace sf2 {
         
     }
 
+    Region* Instrument::CreateRegion() {
+        Region* r = new Region;
+        if (pGlobalRegion != NULL) {
+            r->loKey       = pGlobalRegion->loKey;
+            r->hiKey       = pGlobalRegion->hiKey;
+            r->minVel      = pGlobalRegion->minVel;
+            r->maxVel      = pGlobalRegion->maxVel;
+            r->pan         = pGlobalRegion->pan;
+            r->fineTune    = pGlobalRegion->fineTune;
+            r->coarseTune  = pGlobalRegion->coarseTune;
+            r->overridingRootKey = pGlobalRegion->overridingRootKey;
+            r->startAddrsOffset            = pGlobalRegion->startAddrsOffset;
+            r->startAddrsCoarseOffset      = pGlobalRegion->startAddrsCoarseOffset;
+            r->endAddrsOffset              = pGlobalRegion->endAddrsOffset;
+            r->endAddrsCoarseOffset        = pGlobalRegion->endAddrsCoarseOffset;
+            r->startloopAddrsOffset        = pGlobalRegion->startloopAddrsOffset;
+            r->startloopAddrsCoarseOffset  = pGlobalRegion->startloopAddrsCoarseOffset;
+            r->endloopAddrsOffset          = pGlobalRegion->endloopAddrsOffset;
+            r->endloopAddrsCoarseOffset    = pGlobalRegion->endloopAddrsCoarseOffset;
+
+            r->EG1PreAttackDelay  = pGlobalRegion->EG1PreAttackDelay;
+            r->EG1Attack          = pGlobalRegion->EG1Attack;
+            r->EG1Hold            = pGlobalRegion->EG1Hold;
+            r->EG1Decay           = pGlobalRegion->EG1Decay;
+            r->EG1Sustain         = pGlobalRegion->EG1Sustain;
+            r->EG1Release         = pGlobalRegion->EG1Release;
+
+            r->EG2PreAttackDelay  = pGlobalRegion->EG2PreAttackDelay;
+            r->EG2Attack          = pGlobalRegion->EG2Attack;
+            r->EG2Hold            = pGlobalRegion->EG2Hold;
+            r->EG2Decay           = pGlobalRegion->EG2Decay;
+            r->EG2Sustain         = pGlobalRegion->EG2Sustain;
+            r->EG2Release         = pGlobalRegion->EG2Release;
+
+            r->HasLoop    = pGlobalRegion->HasLoop;
+            r->LoopStart  = pGlobalRegion->LoopStart;
+            r->LoopEnd    = pGlobalRegion->LoopEnd;
+        }
+
+        return r;
+    }
+
+    void Instrument::DeleteRegion(Region* pRegion) {
+        for (int i = 0; i < regions.size(); i++) {
+            if (regions[i] == pRegion) {
+                delete pRegion;
+                regions[i] = NULL;
+                return;
+            }
+        }
+
+        std::cerr << "Can't remove unknown Region" << std::endl;
+    }
+
     void Instrument::LoadRegions(int idx1, int idx2) {
-        for (int i = idx1; i < idx2 - 1; i++) {
+        for (int i = idx1; i < idx2; i++) {
             int gIdx1 = pFile->InstBags[i].InstGenNdx;
             int gIdx2 = pFile->InstBags[i + 1].InstGenNdx;
 
@@ -492,7 +594,7 @@ namespace sf2 {
                 throw Exception("Broken SF2 file (invalid InstModNdx)");
             }
 
-            Region* reg = new Region;
+            Region* reg = CreateRegion();
             
             for (int j = gIdx1; j < gIdx2; j++) {
                 reg->SetGenerator(pFile, pFile->InstGenLists[j]);
@@ -504,7 +606,7 @@ namespace sf2 {
             }
 
             if (reg->pSample == NULL) {
-                if (i == idx1) {
+                if (i == idx1 && idx2 - idx1 > 1) {
                     pGlobalRegion = reg;  // global zone
                 } else {
                     std::cerr << "Ignoring instrument's region without sample" << std::endl;
@@ -532,7 +634,7 @@ namespace sf2 {
     }
 
     void Preset::LoadRegions(int idx1, int idx2) {
-        for (int i = idx1; i < idx2 - 1; i++) {
+        for (int i = idx1; i < idx2; i++) {
             int gIdx1 = pFile->PresetBags[i].GenNdx;
             int gIdx2 = pFile->PresetBags[i + 1].GenNdx;
 
@@ -546,7 +648,7 @@ namespace sf2 {
                 reg->SetGenerator(pFile, pFile->PresetGenLists[j]);
             }
             if (reg->pInstrument == NULL) {
-                if (i == idx1) {
+                if (i == idx1 && idx2 - idx1 > 1) {
                     pGlobalRegion = reg;  // global zone
                 } else {
                     std::cerr << "Ignoring preset's region without instrument" << std::endl;
@@ -780,6 +882,25 @@ namespace sf2 {
         return Instruments[idx];
     }
 
+    void File::DeleteInstrument(Instrument* pInstrument) {
+        for (int i = 0; i < GetPresetCount(); i++) {
+            Preset* p = GetPreset(i);
+            if (p == NULL) continue;
+            for (int j = p->GetRegionCount() - 1; j >= 0 ; j--) {
+                if (p->GetRegion(j) && p->GetRegion(j)->pInstrument == pInstrument) {
+                    p->GetRegion(j)->pInstrument = NULL;
+                }
+            }
+        }
+
+        for (int i = 0; i < GetInstrumentCount(); i++) {
+            if (GetInstrument(i) == pInstrument) {
+                Instruments[i] = NULL;
+                delete pInstrument;
+            }
+        }
+    }
+
     int File::GetSampleCount() {
         return Samples.size() - 1; // exclude terminal sample (EOS)
     }
@@ -793,6 +914,19 @@ namespace sf2 {
     }
 
     void File::DeleteSample(Sample* pSample) {
+        // Sanity check
+        for (int i = GetInstrumentCount() - 1; i >= 0; i--) {
+            Instrument* pInstr = GetInstrument(i);
+            if (pInstr == NULL) continue;
+
+            for (int j = pInstr->GetRegionCount() - 1; j >= 0 ; j--) {
+                if (pInstr->GetRegion(j) && pInstr->GetRegion(j)->GetSample() == pSample) {
+                    std::cerr << "Deleting sample which is still in use" << std::endl;
+                }
+            }
+        }
+        ///////
+
         for (int i = 0; i < GetSampleCount(); i++) {
             if (Samples[i] == pSample) {
                 delete pSample;
@@ -982,6 +1116,7 @@ namespace sf2 {
      * @see                SetPos()
      */
     unsigned long Sample::Read(void* pBuffer, unsigned long SampleCount) {
+        // TODO: startAddrsCoarseOffset, endAddrsCoarseOffset
         if (SampleCount == 0) return 0;
         long pos = GetPos();
         if (pos + SampleCount > GetTotalFrameCount()) SampleCount = GetTotalFrameCount() - pos;
@@ -989,21 +1124,30 @@ namespace sf2 {
         if (GetFrameSize() / GetChannelCount() == 3 /* 24 bit */) {
             uint8_t* pBuf = (uint8_t*)pBuffer;
             if (SampleType == MONO_SAMPLE || SampleType == ROM_MONO_SAMPLE) {
-                for (int i = 0; i < SampleCount; i++) {
-                    pBuf[i*3] = pCkSmpl->ReadInt16();
-                    pBuf[i*3 + 2] = pCkSm24->ReadInt8();
+                pCkSmpl->Read(pBuf, SampleCount, 2);
+                pCkSm24->Read(pBuf + SampleCount * 2, SampleCount, 1);
+                for (int i = SampleCount - 1; i >= 0; i--) {
+                    pBuf[i*3] = pBuf[(SampleCount * 2) + i];
+                    pBuf[i*3 + 2] = pBuf[i*2 + 1];
+                    pBuf[i*3 + 1] = pBuf[i*2];
                 }
             } else if (SampleType == LEFT_SAMPLE || SampleType == ROM_LEFT_SAMPLE) {
-                for (int i = 0; i < SampleCount; i++) {
-                    pBuf[i*6] = pCkSmpl->ReadInt16();
-                    pBuf[i*6 + 2] = pCkSm24->ReadInt8();
+                pCkSmpl->Read(pBuf, SampleCount, 2);
+                pCkSm24->Read(pBuf + SampleCount * 2, SampleCount, 1);
+                for (int i = SampleCount - 1; i >= 0; i--) {
+                    pBuf[i*6] = pBuf[(SampleCount * 2) + i];
+                    pBuf[i*6 + 2] = pBuf[i*2 + 1];
+                    pBuf[i*6 + 1] = pBuf[i*2];
                     pBuf[i*6 + 3] = pBuf[i*6 + 4] = pBuf[i*6 + 5] = 0;
                 }
             } else if (SampleType == RIGHT_SAMPLE || SampleType == ROM_RIGHT_SAMPLE) {
-                for (int i = 0; i < SampleCount; i++) {
+                pCkSmpl->Read(pBuf, SampleCount, 2);
+                pCkSm24->Read(pBuf + SampleCount * 2, SampleCount, 1);
+                for (int i = SampleCount - 1; i >= 0; i--) {
+                    pBuf[i*6 + 3] = pBuf[(SampleCount * 2) + i];
+                    pBuf[i*6 + 5] = pBuf[i*2 + 1];
+                    pBuf[i*6 + 4] = pBuf[i*2];
                     pBuf[i*6] = pBuf[i*6 + 1] = pBuf[i*6 + 2] = 0;
-                    pBuf[i*6 + 3] = pCkSmpl->ReadInt16();
-                    pBuf[i*6 + 5] = pCkSm24->ReadInt8();
                 }
             }
         } else {
