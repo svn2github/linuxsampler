@@ -244,28 +244,42 @@ namespace LinuxSampler { namespace sf2 {
     void InstrumentResourceManager::Sf2ResourceManager::Destroy(::sf2::File* pResource, void* pArg) {
         dmsg(1,("Freeing sf2 file from memory..."));
 
-      /*  // Delete as much as possible of the sfz file. Some of the
+        // Delete as much as possible of the sf2 file. Some of the
         // regions and samples may still be in use - these
         // will be deleted later by the HandBackRegion function.
-        bool deleteInstrument = true;
-        ::sf2::Instrument* pInstr = pResource->GetInstrument();
+        bool deleteFile = true;
 
-        for (int i = pInstr->regions.size() - 1; i >= 0 ; i--) {
-            ::sfz::Region* pRegion = pInstr->regions[i];
-            std::map< ::sfz::Region*, region_info_t>::iterator iter = parent->RegionInfo.find(pRegion);
-            if (iter != parent->RegionInfo.end()) {
-                region_info_t& regInfo = (*iter).second;
-                regInfo.file = pResource;
-                deleteInstrument = false;
-            } else {
-                SampleFile* sf = pRegion->GetSample(false);
-                if (sf != NULL) pInstr->GetSampleManager()->RemoveSampleConsumer(sf, pRegion);
-                if (sf == NULL || !pInstr->GetSampleManager()->HasSampleConsumers(sf)) pInstr->DestroyRegion(pRegion);
+        for (int i = pResource->GetInstrumentCount() - 1; i >= 0; i--) {
+            ::sf2::Instrument* pInstr = pResource->GetInstrument(i);
+            bool deleteInstrument = true;
+
+            for (int j = pInstr->GetRegionCount() - 1; j >= 0 ; j--) {
+                ::sf2::Region* pRegion = pInstr->GetRegion(j);
+                std::map< ::sf2::Region*, region_info_t>::iterator iter = parent->RegionInfo.find(pRegion);
+                if (iter != parent->RegionInfo.end()) {
+                    region_info_t& regInfo = (*iter).second;
+                    regInfo.file = pResource;
+                    deleteFile = deleteInstrument = false;
+                } else {
+                    pInstr->DeleteRegion(pRegion);
+                }
             }
+
+            if (deleteInstrument) pResource->DeleteInstrument(pInstr);
         }
 
-        if(deleteInstrument) delete pResource;
-        else dmsg(2,("keeping some samples that are in use..."));*/
+        if (deleteFile) {
+            delete pResource;
+            delete (::RIFF::File*) pArg;
+        } else {
+            dmsg(2,("keeping some samples that are in use..."));
+            for (int i = pResource->GetSampleCount() - 1; i >= 0; i--) {
+                ::sf2::Sample* sample = pResource->GetSample(i);
+                if (parent->SampleRefCount.find(sample) == parent->SampleRefCount.end()) {
+                    pResource->DeleteSample(sample);
+                }
+            }
+        }
 
         dmsg(1,("OK\n"));
     }

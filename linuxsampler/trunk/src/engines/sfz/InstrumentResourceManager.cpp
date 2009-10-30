@@ -217,7 +217,7 @@ namespace LinuxSampler { namespace sfz {
                 regInfo.file = pResource;
                 deleteInstrument = false;
             } else {
-                SampleFile* sf = pRegion->GetSample(false);
+                ::sfz::Sample* sf = pRegion->GetSample(false);
                 if (sf != NULL) pInstr->GetSampleManager()->RemoveSampleConsumer(sf, pRegion);
                 if (sf == NULL || !pInstr->GetSampleManager()->HasSampleConsumers(sf)) pInstr->DestroyRegion(pRegion);
             }

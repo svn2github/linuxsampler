@@ -49,7 +49,7 @@ namespace LinuxSampler { namespace sf2 {
             pbs.reverse = PlaybackState.reverse;
             pbs.loop_cycles_left = PlaybackState.loop_cycles_left;
 
-            total_readsamples  = pSample->ReadAndLoop(pBuf, SamplesToRead, &pbs);
+            total_readsamples  = pSample->ReadAndLoop(pBuf, SamplesToRead, &pbs, pRegion);
             PlaybackState.position = pbs.position;
             PlaybackState.reverse = pbs.reverse;
             PlaybackState.loop_cycles_left = pbs.loop_cycles_left;

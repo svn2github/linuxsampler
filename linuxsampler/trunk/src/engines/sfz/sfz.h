@@ -46,11 +46,17 @@ namespace sfz
     class Group;
     class Instrument;
     class File;
+    
+    class Sample : public LinuxSampler::SampleFileBase<Region> {
+        public:
+            Sample(String File, bool DontClose = false) : LinuxSampler::SampleFileBase<Region>(File, DontClose) { }
+            virtual ~Sample() { }
+    };
 
     // Enumerations
     enum sw_vel_t    { VEL_CURRENT, VEL_PREVIOUS };
     enum off_mode_t  { OFF_FAST, OFF_NORMAL };
-    enum loop_mode_t { NO_LOOP, ONE_SHOT, LOOP_CONTINOUS, LOOP_SUSTAIN };
+    enum loop_mode_t { NO_LOOP, ONE_SHOT, LOOP_CONTINUOUS, LOOP_SUSTAIN };
     enum curve_t     { GAIN, POWER };
     enum filter_t    { LPF_1P, HPF_1P, BPF_1P, BRF_1P, APF_1P,
                        LPF_2P, HPF_2P, BPF_2P, BRF_2P, PKF_2P,
@@ -60,16 +66,16 @@ namespace sfz
     typedef unsigned char trigger_t;
     typedef unsigned char uint8_t;
 
-    class SampleManager : public LinuxSampler::SampleManager<LinuxSampler::SampleFile, Region> {
+    class SampleManager : public LinuxSampler::SampleManager<Sample, Region> {
     public:
-        LinuxSampler::SampleFile* FindSample(std::string samplePath);
+        Sample* FindSample(std::string samplePath);
 
     protected:
-        virtual void OnSampleInUse(LinuxSampler::SampleFile* pSample) {
+        virtual void OnSampleInUse(Sample* pSample) {
             pSample->Open();
         }
 
-        virtual void OnSampleInNotUse(LinuxSampler::SampleFile* pSample) {
+        virtual void OnSampleInNotUse(Sample* pSample) {
             pSample->Close();
         }
     };
@@ -338,13 +344,18 @@ namespace sfz
         Region();
         virtual ~Region();
 
-        LinuxSampler::SampleFile* pSample;
-        LinuxSampler::SampleFile* GetSample(bool create = true);
+        Sample* pSample;
+        Sample* GetSample(bool create = true);
         void DestroySampleIfNotUsed();
 
         Region*      GetParent() { return this; }; // needed by EngineBase
         Instrument*  GetInstrument() { return pInstrument; }
         void         SetInstrument(Instrument* pInstrument) { this->pInstrument = pInstrument; }
+
+        bool HasLoop();
+        uint GetLoopStart();
+        uint GetLoopEnd();
+        uint GetLoopCount();
 
         /// Return true if region is triggered by key
         bool OnKey(uint8_t chan, uint8_t key, uint8_t vel,

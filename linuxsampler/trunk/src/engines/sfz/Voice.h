@@ -30,7 +30,6 @@
 #include "../../common/RTMath.h"
 #include "../../common/Pool.h"
 #include "../../drivers/audio/AudioOutputDevice.h"
-#include "Stream.h"
 #include "DiskThread.h"
 #include "../gig/Filter.h"
 #include "../common/VoiceBase.h"
@@ -44,7 +43,7 @@ namespace LinuxSampler { namespace sfz {
      *
      * Renders a voice for the SoundFont format.
      */
-    class Voice : public LinuxSampler::VoiceBase<EngineChannel, ::sfz::Region, SampleFile, DiskThread> {
+    class Voice : public LinuxSampler::VoiceBase<EngineChannel, ::sfz::Region, Sample, DiskThread> {
         public:
             Voice();
             virtual ~Voice();

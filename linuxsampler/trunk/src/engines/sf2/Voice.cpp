@@ -56,9 +56,9 @@ namespace LinuxSampler { namespace sf2 {
         si.BitDepth         = (pSample->GetFrameSize() / pSample->GetChannelCount()) * 8;
         si.TotalFrameCount  = pSample->GetTotalFrameCount();
 
-        si.HasLoops       = pSample->HasLoops();
-        si.LoopStart      = (si.HasLoops) ? pSample->StartLoop : 0; // TODO: region loop offsets
-        si.LoopLength     = (si.HasLoops) ? pSample->EndLoop   : 0; // TODO: region loop offsets
+        si.HasLoops       = pRegion->HasLoop;
+        si.LoopStart      = (si.HasLoops) ? pRegion->LoopStart : 0;
+        si.LoopLength     = (si.HasLoops) ? ((pRegion->LoopEnd) - pRegion->LoopStart): 0;
         si.LoopPlayCount  = 0; // TODO:
         si.Unpitched      = pSample->IsUnpitched();
 
@@ -67,7 +67,7 @@ namespace LinuxSampler { namespace sf2 {
 
     Voice::RegionInfo Voice::GetRegionInfo() {
         RegionInfo ri;
-        ri.UnityNote = pSample->OriginalPitch;
+        ri.UnityNote = pRegion->GetUnityNote();
         ri.FineTune  = pRegion->fineTune;
         ri.Pan       = pRegion->pan;
         ri.SampleStartOffset = pRegion->startAddrsOffset + pRegion->startAddrsCoarseOffset;

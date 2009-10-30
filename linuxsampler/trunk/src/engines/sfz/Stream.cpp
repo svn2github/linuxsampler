@@ -39,13 +39,13 @@ namespace LinuxSampler { namespace sfz {
     }
 
     long Stream::Read(uint8_t* pBuf, long SamplesToRead) {
-        Sample* pSample = pRegion->pSample;
+        ::sfz::Sample* pSample = pRegion->pSample;
         long total_readsamples = 0, readsamples = 0;
         bool endofsamplereached;
 
         // refill the disk stream buffer
         if (this->DoLoop) { // honor looping
-            total_readsamples  = pSample->ReadAndLoop(pBuf, SamplesToRead, &PlaybackState);
+            total_readsamples  = pSample->ReadAndLoop(pBuf, SamplesToRead, &PlaybackState, pRegion);
             endofsamplereached = (this->PlaybackState.position >= pSample->GetTotalFrameCount());
             dmsg(5,("Refilled stream %d with %d (SamplePos: %d)", this->hThis, total_readsamples, this->PlaybackState.position));
         }

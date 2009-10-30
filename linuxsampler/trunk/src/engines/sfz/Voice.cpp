@@ -56,11 +56,11 @@ namespace LinuxSampler { namespace sfz {
         si.BitDepth         = (pSample->GetFrameSize() / pSample->GetChannelCount()) * 8;
         si.TotalFrameCount  = pSample->GetTotalFrameCount();
 
-        si.HasLoops       = false; // TODO: 
-        si.LoopStart      = 0; // TODO: 
-        si.LoopLength     = 0; // TODO: 
-        si.LoopPlayCount  = 0; // TODO:
-        si.Unpitched      = false; // TODO: 
+        si.HasLoops       = pRegion->HasLoop();
+        si.LoopStart      = pRegion->GetLoopStart();
+        si.LoopLength     = pRegion->GetLoopEnd() - pRegion->GetLoopStart();
+        si.LoopPlayCount  = pRegion->GetLoopCount();
+        si.Unpitched      = pRegion->pitch_keytrack == 0;
         return si;
     }
 

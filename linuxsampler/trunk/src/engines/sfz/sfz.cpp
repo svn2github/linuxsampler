@@ -33,8 +33,8 @@
 namespace sfz
 {
 
-    LinuxSampler::SampleFile* SampleManager::FindSample(std::string samplePath) {
-        std::map<LinuxSampler::SampleFile*, std::set<Region*> >::iterator it = sampleMap.begin();
+    Sample* SampleManager::FindSample(std::string samplePath) {
+        std::map<Sample*, std::set<Region*> >::iterator it = sampleMap.begin();
         for (; it != sampleMap.end(); it++) {
             if (it->first->GetFile() == samplePath) return it->first;
         }
@@ -93,12 +93,12 @@ namespace sfz
         DestroySampleIfNotUsed();
     }
 
-    LinuxSampler::SampleFile* Region::GetSample(bool create)
+    Sample* Region::GetSample(bool create)
     {
         if(pSample == NULL && create) {
-            LinuxSampler::SampleFile* sf = GetInstrument()->GetSampleManager()->FindSample(sample);
+            Sample* sf = GetInstrument()->GetSampleManager()->FindSample(sample);
             if (sf != NULL) pSample = sf; // Reuse already created sample
-            else pSample = new LinuxSampler::SampleFile(sample);
+            else pSample = new Sample(sample);
             GetInstrument()->GetSampleManager()->AddSampleConsumer(pSample, this);
         }
         return pSample;
@@ -244,6 +244,23 @@ namespace sfz
     Region::GetArticulation(int bend, uint8_t bpm, uint8_t chanaft, uint8_t polyaft, uint8_t* cc)
     {
         return new Articulation(); //todo: implement GetArticulation()
+    }
+
+    bool Region::HasLoop() {
+        bool b = loop_mode == ::sfz::LOOP_CONTINUOUS || loop_mode == ::sfz::LOOP_SUSTAIN; // TODO: ONE_SHOT mode
+        return b && GetLoopStart() && GetLoopEnd() && GetLoopEnd() > GetLoopStart();
+    }
+
+    uint Region::GetLoopStart() {
+        return (!loop_start) ? 0 : *loop_start; // TODO: use sample loop when loop_start not defined
+    }
+
+    uint Region::GetLoopEnd() {
+        return (!loop_end) ? 0 : *loop_end; // TODO: use sample loop when loop_end not defined
+    }
+
+    uint Region::GetLoopCount() {
+        return (!count) ? 0 : *count;
     }
 
     /////////////////////////////////////////////////////////////
@@ -985,7 +1002,7 @@ namespace sfz
         }
 
         // sample player
-        else if ("count" == key) pCurDef->count = ToInt(value);
+        else if ("count" == key) { pCurDef->count = ToInt(value); pCurDef->loop_mode = ONE_SHOT; }
         else if ("delay" == key) pCurDef->delay = ToFloat(value);
         else if ("delay_random"   == key) pCurDef->delay_random = ToFloat(value);
         else if ("delay_beats"    == key) pCurDef->delay_beats = ToInt(value);
@@ -998,11 +1015,13 @@ namespace sfz
         {
             if (value == "no_loop") pCurDef->loop_mode = NO_LOOP;
             else if (value == "one_shot") pCurDef->loop_mode = ONE_SHOT;
-            else if (value == "loop_continous") pCurDef->loop_mode = LOOP_CONTINOUS;
+            else if (value == "loop_continuous") pCurDef->loop_mode = LOOP_CONTINUOUS;
             else if (value == "loop_sustain") pCurDef->loop_mode = LOOP_SUSTAIN;
         }
         else if ("loop_start" == key) pCurDef->loop_start = ToInt(value);
+        else if ("loopstart" == key) pCurDef->loop_start = ToInt(value); // nonstandard
         else if ("loop_end" == key) pCurDef->loop_end = ToInt(value);
+        else if ("loopend" == key) pCurDef->loop_end = ToInt(value); // nonstandard
         else if ("sync_beats" == key) pCurDef->sync_beats = ToInt(value);
         else if ("sync_offset" == key) pCurDef->sync_offset = ToInt(value);
 
