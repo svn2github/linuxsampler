@@ -1,5 +1,5 @@
 /*
-    Copyright (C) 2008 Christian Schoenebeck
+    Copyright (C) 2008 - 2009 Christian Schoenebeck
  */
 
 #ifndef LS_VIRTUALMIDIDEVICE_H
@@ -21,13 +21,14 @@ class VirtualMidiDevice {
 public:
     enum event_type_t {
         EVENT_TYPE_NOTEON  = 1,
-        EVENT_TYPE_NOTEOFF = 2
+        EVENT_TYPE_NOTEOFF = 2,
+        EVENT_TYPE_CC      = 3
     };
 
     struct event_t {
         event_type_t Type;
-        uint8_t      Key;
-        uint8_t      Velocity;
+        uint8_t      Arg1; ///< Depends on @c Type (e.g. key number for note on/off events).
+        uint8_t      Arg2; ///< Depends on @c Type (e.g. velocity for note on/off events).
     };
 
     /////////////////////////////////////////////////////////////////
@@ -49,6 +50,14 @@ public:
      *          (or provided values invalid)
      */
     bool SendNoteOffToSampler(uint8_t Key, uint8_t Velocity);
+
+    /**
+     * Sends a MIDI @e Control @e Change event to the sampler.
+     *
+     * @returns true on success, false if internal FIFO full
+     *          (or provided values invalid)
+     */
+    bool SendCCToSampler(uint8_t Controller, uint8_t Value);
 
     /**
      * Can be called by the virtual MIDI device to check whether a new note
@@ -87,6 +96,29 @@ public:
      */
     uint8_t NoteOffVelocity(uint8_t Key);
 
+    /**
+     * Can be called by the virtual MIDI device to check whether a Control
+     * Change MIDI event arrived to the sampler during the last
+     * call to this method. So this is a asynchronously, "polling" based
+     * communication mechanism, which works in conjunction with the
+     * ControllerValue() method call.
+     */
+    bool ControllersChanged();
+
+    /**
+     * Can be called by the virtual MIDI device to check whether a Control
+     * Change MIDI event arrived to the sampler for @a Controller during
+     * the last call to this method. So this is a asynchronously,
+     * "polling" based communication mechanism, which works in
+     * conjunction with the ControllerValue() method call.
+     */
+    bool ControllerChanged(uint8_t Controller);
+
+    /**
+     * Returns the value of the @e last Control Change event. No FIFO is used!
+     */
+    uint8_t ControllerValue(uint8_t Controller);
+
     /////////////////////////////////////////////////////////////////
     // Sampler methods
     //     (usually only called by the Sampler)
@@ -114,6 +146,18 @@ public:
      * @see ActiveNotesChanged(), NoteIsActive()
      */
     void SendNoteOffToDevice(uint8_t Key, uint8_t Velocity);
+
+    /**
+     * Informs the virtual MIDI device that a @e Control @e Change event
+     * occured (e.g. caused by a MIDI keyboard connected to the sampler).
+     * Communication acts asynchronously, that is this method call doesn't
+     * lock in any way and returns immediately. It is thus realtime safe.
+     *
+     * @e Note: this method is usually only called by the sampler.
+     *
+     * @see ControllersChanged(), ControllerValue()
+     */
+    void SendCCToDevice(uint8_t Controller, uint8_t Value);
 
     /**
      * Gets the next pending MIDI event from the virtual MIDI device by

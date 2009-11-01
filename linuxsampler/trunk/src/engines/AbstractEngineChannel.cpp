@@ -522,12 +522,28 @@ namespace LinuxSampler {
                 VirtualMidiDevice* pDev = devices[i];
                 // I think we can simply flush the whole FIFO(s), the user shouldn't be so fast ;-)
                 while (pDev->GetMidiEventFromDevice(devEvent)) {
-                    event.Type =
-                        (devEvent.Type == VirtualMidiDevice::EVENT_TYPE_NOTEON) ?
-                            Event::type_note_on : Event::type_note_off;
-                    event.Param.Note.Key      = devEvent.Key;
-                    event.Param.Note.Velocity = devEvent.Velocity;
-                    event.pEngineChannel      = this;
+                    switch (devEvent.Type) {
+                        case VirtualMidiDevice::EVENT_TYPE_NOTEON:
+                            event.Type = Event::type_note_on;
+                            event.Param.Note.Key      = devEvent.Arg1;
+                            event.Param.Note.Velocity = devEvent.Arg2;
+                            break;
+                        case VirtualMidiDevice::EVENT_TYPE_NOTEOFF:
+                            event.Type = Event::type_note_off;
+                            event.Param.Note.Key      = devEvent.Arg1;
+                            event.Param.Note.Velocity = devEvent.Arg2;
+                            break;
+                        case VirtualMidiDevice::EVENT_TYPE_CC:
+                            event.Type = Event::type_control_change;
+                            event.Param.CC.Controller = devEvent.Arg1;
+                            event.Param.CC.Value      = devEvent.Arg2;
+                            break;
+                        default:
+                            std::cerr << "AbstractEngineChannel::ImportEvents() ERROR: unknown event type ("
+                                      << devEvent.Type << "). This is a bug!";
+                            continue;
+                    }
+                    event.pEngineChannel = this;
                     // copy event to internal event list
                     if (pEvents->poolIsEmpty()) {
                         dmsg(1,("Event pool emtpy!\n"));

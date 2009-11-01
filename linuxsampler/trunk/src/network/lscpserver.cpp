@@ -2497,6 +2497,10 @@ String LSCPServer::SendChannelMidiData(String MidiMsg, uint uiSamplerChannel, ui
             pMidiDevice->SendNoteOffToDevice(Arg1, Arg2);
             bool b = pMidiDevice->SendNoteOffToSampler(Arg1, Arg2);
             if (!b) throw Exception("MIDI event failed: " + MidiMsg + " " + ToString(Arg1) + " " + ToString(Arg2));
+        } else if (MidiMsg == "CC") {
+            pMidiDevice->SendCCToDevice(Arg1, Arg2);
+            bool b = pMidiDevice->SendCCToSampler(Arg1, Arg2);
+            if (!b) throw Exception("MIDI event failed: " + MidiMsg + " " + ToString(Arg1) + " " + ToString(Arg2));
         } else {
             throw Exception("Unknown MIDI message type: " + MidiMsg);
         }

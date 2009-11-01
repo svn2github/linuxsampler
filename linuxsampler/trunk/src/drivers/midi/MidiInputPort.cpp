@@ -247,6 +247,13 @@ namespace LinuxSampler {
             for (; engineiter != end; engineiter++) (*engineiter)->SendControlChange(Controller, Value);
         }
         MidiChannelMapReader.Unlock();
+        
+        // dispatch event to all low priority MIDI listeners
+        const std::vector<VirtualMidiDevice*>& listeners =
+            virtualMidiDevicesReader.Lock();
+        for (int i = 0; i < listeners.size(); ++i)
+            listeners[i]->SendCCToDevice(Controller, Value);
+        virtualMidiDevicesReader.Unlock();
     }
 
     void MidiInputPort::DispatchControlChange(uint8_t Controller, uint8_t Value, uint MidiChannel, int32_t FragmentPos) {
@@ -265,6 +272,13 @@ namespace LinuxSampler {
             for (; engineiter != end; engineiter++) (*engineiter)->SendControlChange(Controller, Value, FragmentPos);
         }
         MidiChannelMapReader.Unlock();
+        
+        // dispatch event to all low priority MIDI listeners
+        const std::vector<VirtualMidiDevice*>& listeners =
+            virtualMidiDevicesReader.Lock();
+        for (int i = 0; i < listeners.size(); ++i)
+            listeners[i]->SendCCToDevice(Controller, Value);
+        virtualMidiDevicesReader.Unlock();
     }
 
     void MidiInputPort::DispatchSysex(void* pData, uint Size) {

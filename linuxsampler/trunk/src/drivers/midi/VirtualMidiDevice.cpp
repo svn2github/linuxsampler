@@ -1,5 +1,5 @@
 /*
-    Copyright (C) 2008 Christian Schoenebeck
+    Copyright (C) 2008 - 2009 Christian Schoenebeck
  */
 
 #include "VirtualMidiDevice.h"
@@ -8,7 +8,8 @@
 #include "../../common/atomic.h"
 #include "../../common/RingBuffer.h"
 
-#define MIDI_KEYS	128
+#define MIDI_KEYS		128
+#define MIDI_CONTROLLERS	128
 
 // assuming VirtualMidiDevice implementation is only controlled
 // by mouse (and the user not being Billy the Kid)
@@ -22,6 +23,9 @@ namespace LinuxSampler {
         atomic_t pNoteIsActive[MIDI_KEYS]; // status of each key (either active or inactive)
         atomic_t pNoteOnVelocity[MIDI_KEYS];
         atomic_t pNoteOffVelocity[MIDI_KEYS];
+        atomic_t ccsChanged; // whether some controller changed at all
+        atomic_t pCCChanged[MIDI_CONTROLLERS]; // which controller(s) changed
+        atomic_t pCCValue[MIDI_CONTROLLERS]; // current value of each controller
         RingBuffer<VirtualMidiDevice::event_t,false> events;
 
         private_data_t() : events(MAX_EVENTS, 0) {}
@@ -30,12 +34,16 @@ namespace LinuxSampler {
     VirtualMidiDevice::VirtualMidiDevice() : p(new private_data_t) {
         atomic_t zero = ATOMIC_INIT(0);
         atomic_t defaultVelocity = ATOMIC_INIT(127);
+        atomic_t defaultCCValue = ATOMIC_INIT(0);
         p->notesChanged = zero;
+        p->ccsChanged   = zero;
         for (int i = 0; i < MIDI_KEYS; i++) {
             p->pNoteChanged[i]  = zero;
             p->pNoteIsActive[i] = zero;
             p->pNoteOnVelocity[i] = defaultVelocity;
             p->pNoteOffVelocity[i] = defaultVelocity;
+            p->pCCChanged[i] = zero;
+            p->pCCValue[i]   = defaultCCValue;
         }
     }
 
@@ -58,6 +66,14 @@ namespace LinuxSampler {
         p->events.push(&ev);
         return true;
     }
+    
+    bool VirtualMidiDevice::SendCCToSampler(uint8_t Controller, uint8_t Value) {
+        if (Controller >= MIDI_CONTROLLERS || Value > 127) return false;
+        event_t ev = { EVENT_TYPE_CC, Controller, Value };
+        if (p->events.write_space() <= 0) return false;
+        p->events.push(&ev);
+        return true;
+    }
 
     bool VirtualMidiDevice::GetMidiEventFromDevice(event_t& Event) {
         return (p->events.pop(&Event) > 0);
@@ -68,10 +84,22 @@ namespace LinuxSampler {
         atomic_sub(c, &p->notesChanged );
         return c;
     }
+    
+    bool VirtualMidiDevice::ControllersChanged() {
+        int c = atomic_read( &p->ccsChanged );
+        atomic_sub(c, &p->ccsChanged );
+        return c;
+    }
 
     bool VirtualMidiDevice::NoteChanged(uint8_t Key) {
         int c = atomic_read( &(p->pNoteChanged)[Key] );
         atomic_sub(c, &(p->pNoteChanged)[Key] );
+        return c;
+    }
+    
+    bool VirtualMidiDevice::ControllerChanged(uint8_t Controller) {
+        int c = atomic_read( &(p->pCCChanged)[Controller] );
+        atomic_sub(c, &(p->pCCChanged)[Controller] );
         return c;
     }
 
@@ -85,6 +113,10 @@ namespace LinuxSampler {
 
     uint8_t VirtualMidiDevice::NoteOffVelocity(uint8_t Key) {
         return atomic_read( &(p->pNoteOffVelocity)[Key] );
+    }
+    
+    uint8_t VirtualMidiDevice::ControllerValue(uint8_t Controller) {
+        return atomic_read( &(p->pCCValue)[Controller] );
     }
 
     void VirtualMidiDevice::SendNoteOnToDevice(uint8_t Key, uint8_t Velocity) {
@@ -101,6 +133,13 @@ namespace LinuxSampler {
         atomic_dec( &(p->pNoteIsActive)[Key] );
         atomic_inc( &(p->pNoteChanged)[Key] );
         atomic_inc( &p->notesChanged );
+    }
+    
+    void VirtualMidiDevice::SendCCToDevice(uint8_t Controller, uint8_t Value) {
+        if (Controller >= MIDI_CONTROLLERS) return;
+        atomic_set( &(p->pCCValue)[Controller], Value );
+        atomic_inc( &(p->pCCChanged)[Controller] );
+        atomic_inc( &p->ccsChanged );
     }
 
 } // namespace LinuxSampler

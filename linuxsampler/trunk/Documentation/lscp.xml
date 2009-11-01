@@ -16,7 +16,7 @@
      to an annoying "missing Normative/Informative References" error message -->
 <?rfc strict="no" ?>
 
-<rfc category="std" ipr="full3978" docName="LSCP 1.4">
+<rfc category="std" ipr="full3978" docName="LSCP 1.5">
     <front>
         <title>LinuxSampler Control Protocol</title>
         <author initials='C.S.' surname="Schoenebeck" fullname='C.
@@ -34,7 +34,7 @@ Schoenebeck'>
                 <email>schoenebeck at software minus engineering dot org</email>
             </address>
         </author>
-        <date month="July" year="2009"/>
+        <date month="November" year="2009"/>
         <workgroup>LinuxSampler Developers</workgroup>
         <keyword>LSCP</keyword>
         <abstract>
@@ -3719,7 +3719,7 @@ Schoenebeck'>
                 </section>
 
                 <section title="Sending MIDI messages to sampler channel" anchor="SEND CHANNEL MIDI_DATA">
-                    <t>The front-end can send MIDI events to specific sampler channel
+                    <t>The front-end can send MIDI events to a specific sampler channel
                     by sending the following command:</t>
                     <t>
                         <list>
@@ -3745,6 +3745,14 @@ Schoenebeck'>
                                     <t>For turning a currently playing MIDI note off, where &lt;arg1&gt;
                                     specifies the key number and &lt;arg2&gt; the velocity
                                     as described in the MIDI specification.</t>
+                                </list>
+                            </t>
+                            <t>"CC" -
+                                <list>
+                                    <t>For changing a MIDI controller, where &lt;arg1&gt;
+                                    specifies the controller number and &lt;arg2&gt; the
+                                    new value of the controller as described in the Control
+                                    Change section of the MIDI specification.</t>
                                 </list>
                             </t>
                         </list>
