@@ -18,6 +18,10 @@ Version CVS HEAD (?)
     - ALSA MIDI driver supports now "NAME" device parameter, for overriding
       the ALSA sequencer client name
 
+  * LSCP server:
+    - added support for sending MIDI CC messages via LSCP command
+      "SEND CHANNEL MIDI_DATA CC <sampler-chan> <ctrl> <val>"
+
   * Bug fixes:
     - Fixed crash which may occur when MIDI key + transpose is out of range
 
