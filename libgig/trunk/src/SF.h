@@ -76,7 +76,9 @@
 
 #define NONE 0x1ffffff
 
+/** SoundFont specific classes and definitions */
 namespace sf2 {
+  
     typedef struct _PresetBag {
         uint16_t GenNdx;
         uint16_t ModNdx;

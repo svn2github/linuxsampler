@@ -68,6 +68,8 @@ INPUT                  = @top_srcdir@/src/RIFF.h \
                          @top_srcdir@/src/DLS.cpp \
                          @top_srcdir@/src/gig.h \
                          @top_srcdir@/src/gig.cpp \
+                         @top_srcdir@/src/SF.h \
+                         @top_srcdir@/src/SF.cpp \
                          @top_srcdir@/doc/mainpage.dox
 FILE_PATTERNS          = *.c \
                          *.cpp \
