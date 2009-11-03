@@ -74,11 +74,11 @@
 #define CHUNK_ID_IGEN	RIFF_ID("igen")
 #define CHUNK_ID_SHDR	RIFF_ID("shdr")
 
-#define NONE 0x1ffffff
-
 /** SoundFont specific classes and definitions */
 namespace sf2 {
   
+    static uint NONE = 0x1ffffff;
+
     typedef struct _PresetBag {
         uint16_t GenNdx;
         uint16_t ModNdx;
@@ -366,19 +366,12 @@ namespace sf2 {
             int startAddrsOffset, startAddrsCoarseOffset, endAddrsOffset, endAddrsCoarseOffset;
             int startloopAddrsOffset, startloopAddrsCoarseOffset, endloopAddrsOffset, endloopAddrsCoarseOffset;
 
-            double EG1PreAttackDelay;
-            double EG1Attack;
-            double EG1Hold;
-            double EG1Decay;
-            double EG1Sustain; // Sustain value of the sample amplitude EG (in permilles)
-            double EG1Release;
+            int modEnvToPitch, modLfoToPitch, modEnvToFilterFc, modLfoToFilterFc, modLfoToVolume, freqModLfo;
+            double delayModLfo;
+            int vibLfoToPitch, freqVibLfo;
+            double delayVibLfo;
 
-            double EG2PreAttackDelay;
-            double EG2Attack;
-            double EG2Hold;
-            double EG2Decay;
-            double EG2Sustain; // Sustain value of the filter cutoff EG (in permilles)
-            double EG2Release;
+            uint exclusiveClass; // exclusive group
 
             Sample* pSample;
             bool    HasLoop;
@@ -392,12 +385,64 @@ namespace sf2 {
 
             int GetUnityNote();
 
+            /**
+             * @returns The instrument to which this region belongs, or
+             * NULL if it's preset region.
+             */
+            Instrument* GetParentInstrument() { return pParentInstrument; }
+
             std::vector<ModulatorItem> modulators;
+
+
+            // Instrument can be referenced by more than one presets so we need to calculate values on the fly
+            int    GetPan(Region* pPresetRegion = NULL); // -64 - +63
+            int    GetFineTune(Region* pPresetRegion = NULL); // -99 - +99
+            int    GetCoarseTune(Region* pPresetRegion = NULL); // -120 - +120
+            double GetEG1PreAttackDelay(Region* pPresetRegion = NULL); // in seconds
+            double GetEG1Attack(Region* pPresetRegion = NULL); // in seconds
+            double GetEG1Hold(Region* pPresetRegion = NULL); // in seconds
+            double GetEG1Decay(Region* pPresetRegion = NULL); // in seconds
+            double GetEG1Sustain(Region* pPresetRegion = NULL); // Sustain value of the sample amplitude EG (in permilles)
+            double GetEG1Release(Region* pPresetRegion = NULL); // in seconds
+
+            double GetEG2PreAttackDelay(Region* pPresetRegion = NULL); // in seconds
+            double GetEG2Attack(Region* pPresetRegion = NULL); // in seconds
+            double GetEG2Hold(Region* pPresetRegion = NULL); // in seconds
+            double GetEG2Decay(Region* pPresetRegion = NULL); // in seconds
+            double GetEG2Sustain(Region* pPresetRegion = NULL); // Sustain value of the filter cutoff EG (in permilles)
+            double GetEG2Release(Region* pPresetRegion = NULL); // in seconds
+
+            int    GetModEnvToPitch(Region* pPresetRegion = NULL);
+            int    GetModLfoToPitch(Region* pPresetRegion = NULL);
+            int    GetModEnvToFilterFc(Region* pPresetRegion = NULL);
+            int    GetModLfoToFilterFc(Region* pPresetRegion = NULL);
+            double GetModLfoToVolume(Region* pPresetRegion = NULL); // in permilles
+            double GetFreqModLfo(Region* pPresetRegion = NULL); // in Hz
+            double GetDelayModLfo(Region* pPresetRegion = NULL); // in seconds
+            int    GetVibLfoToPitch(Region* pPresetRegion = NULL);
+            double GetFreqVibLfo(Region* pPresetRegion = NULL); // in Hz
+            double GetDelayVibLfo(Region* pPresetRegion = NULL); // in seconds
 
             friend class Instrument;
             friend class Preset;
 
         private:
+            double EG1PreAttackDelay; // in timecents
+            double EG1Attack; // in timecents
+            double EG1Hold; // in timecents
+            double EG1Decay; // in timecents
+            double EG1Sustain; // Sustain value of the sample amplitude EG (in permilles)
+            double EG1Release; // in timecents
+
+            double EG2PreAttackDelay; // in timecents
+            double EG2Attack; // in timecents
+            double EG2Hold; // in timecents
+            double EG2Decay; // in timecents
+            double EG2Sustain; // Sustain value of the filter cutoff EG (in permilles)
+            double EG2Release; // in timecents
+
+            Instrument* pParentInstrument;
+
             void SetGenerator(sf2::File* pFile, GenList& Gen);
             void SetModulator(sf2::File* pFile, ModList& Mod);
     };
@@ -459,6 +504,8 @@ namespace sf2 {
              * Load all regions (zones, bags) in the range idx1 - idx2
              */
             void LoadRegions(int idx1, int idx2);
+
+            Region* CreateRegion();
     };
 
     class File {

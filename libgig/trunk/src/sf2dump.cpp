@@ -34,6 +34,7 @@
 #include <sstream>
 
 #include "SF.h"
+#include "helper.h"
 
 using namespace std;
 
@@ -51,6 +52,11 @@ void PrintSfInfo(sf2::File* sf);
 string GetControllerType(sf2::Modulator& mod);
 string GetControllerSource(sf2::Modulator& mod);
 string GetSampleType(uint16_t type);
+
+template<class T> inline string GetValue(T val) {
+    if (val == sf2::NONE) return "NONE";
+    return ToString(val);
+}
 
 int main(int argc, char *argv[])
 {
@@ -115,7 +121,7 @@ void PrintSamples(sf2::File* sf) {
     for (int i = 0; i < sf->GetSampleCount(); i++) {
         sf2::Sample* s = sf->GetSample(i);
         cout << "\t" << s->Name << " (Depth: " << ((s->GetFrameSize() / s->GetChannelCount()) * 8);
-        cout << " SampleRate: " << s->SampleRate;
+        cout << ", SampleRate: " << s->SampleRate;
         cout << ", Pitch: " << ((int)s->OriginalPitch);
         cout << ", Pitch Correction: " << ((int)s->PitchCorrection )<< endl;
         cout << "\t\tStart: " << s->Start << ", End: " << s->End;
@@ -171,23 +177,39 @@ void PrintRegion(int idx, sf2::Region* reg) {
         cout << endl;
     }
     cout << "\t\t    Key range=";
-    if (reg->loKey == NONE && reg->hiKey == NONE) cout << "None";
+    if (reg->loKey == ::sf2::NONE && reg->hiKey == ::sf2::NONE) cout << "None";
     else cout << reg->loKey << "-" << reg->hiKey;
     cout << ", Velocity range=";
-    if (reg->minVel == NONE && reg->maxVel == NONE) cout << "None" << endl;
-    else cout << reg->minVel << "-" << reg->maxVel << endl;
+    if (reg->minVel == ::sf2::NONE && reg->maxVel == ::sf2::NONE) cout << "None";
+    else cout << reg->minVel << "-" << reg->maxVel;
+
+    if (reg->exclusiveClass) cout << ", Exclusive group=" << reg->exclusiveClass;
+    cout << endl;
 
     if (reg->pInstrument != NULL) {
         cout << "\t\t    Instrument: " << reg->pInstrument->Name << endl;
     }
 
-    cout << "\t\t\tEG1PreAttackDelay=" << reg->EG1PreAttackDelay << "s, EG1Attack=" << reg->EG1Attack;
-    cout << "s, EG1Hold=" << reg->EG1Hold << "s, EG1Decay=" << reg->EG1Decay << "s,  EG1Sustain=";
-    cout << reg->EG1Sustain << "permille, EG1Release=" << reg->EG1Release << "s" << endl;
+    cout << "\t\t\tEG1PreAttackDelay=" << GetValue(reg->GetEG1PreAttackDelay());
+    cout << "s, EG1Attack=" << GetValue(reg->GetEG1Attack());
+    cout << "s, EG1Hold=" << GetValue(reg->GetEG1Hold()) << "s, EG1Decay=";
+    cout << GetValue(reg->GetEG1Decay()) << "s,  EG1Sustain=" << GetValue(reg->GetEG1Sustain());
+    cout << "permille, EG1Release=" << GetValue(reg->GetEG1Release()) << "s" << endl;
 
-    cout << "\t\t\tEG2PreAttackDelay=" << reg->EG2PreAttackDelay << "s, EG2Attack=" << reg->EG2Attack;
-    cout << "s, EG2Hold=" << reg->EG2Hold << "s, EG2Decay=" << reg->EG2Decay << "s,  EG2Sustain=";
-    cout << reg->EG2Sustain << "permille, EG2Release=" << reg->EG2Release << "s" << endl;
+    cout << "\t\t\tEG2PreAttackDelay=" << GetValue(reg->GetEG2PreAttackDelay());
+    cout << "s, EG2Attack=" << GetValue(reg->GetEG2Attack());
+    cout << "s, EG2Hold=" << GetValue(reg->GetEG2Hold()) << "s, EG2Decay=";
+    cout << GetValue(reg->GetEG2Decay()) << "s,  EG2Sustain=";
+    cout << GetValue(reg->GetEG2Sustain()) << "permille, EG2Release=";
+    cout << GetValue(reg->GetEG2Release()) << "s" << endl;
+
+     cout << "\t\t    Modulation LFO: Delay=" << reg->delayModLfo << "s, Frequency=";
+     cout << reg->freqModLfo << "Hz, LFO to Volume=" << reg->modLfoToVolume;
+     cout << ", LFO to Filter Cutoff=" << reg->modLfoToFilterFc;
+     cout << ", LFO to Pitch=" << reg->modLfoToPitch << endl;
+
+     cout << "\t\t    Vibrato LFO:    Delay=" << reg->delayVibLfo << "s, Frequency=";
+     cout << reg->freqVibLfo << "Hz, LFO to Pitch=" << reg->vibLfoToPitch << endl;
 
     cout << "\t\t\tModulators (" << reg->modulators.size() << ")" << endl;
 
@@ -269,7 +291,7 @@ string GetControllerSource(sf2::Modulator& mod) {
 }
 
 string Revision() {
-    string s = "$Revision: 1.2 $";
+    string s = "$Revision: 1.3 $";
     return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
 }
 
