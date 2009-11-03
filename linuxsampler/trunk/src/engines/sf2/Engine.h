@@ -32,7 +32,7 @@
 
 namespace LinuxSampler { namespace sf2 {
 
-    class Engine: public LinuxSampler::EngineBase<Voice, ::sf2::Region, ::sf2::Region, DiskThread, InstrumentResourceManager, ::sf2::InstrumentBase> {
+    class Engine: public LinuxSampler::EngineBase<Voice, ::sf2::Region, ::sf2::Region, DiskThread, InstrumentResourceManager, ::sf2::Preset> {
         public:
             Engine() { }
             virtual ~Engine() { }

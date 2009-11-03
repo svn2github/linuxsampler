@@ -364,7 +364,7 @@ namespace sfz
 
         trigger = TRIGGER_ATTACK;
 
-        group.unset();
+        group = 0;
         off_by.unset();
         off_mode = OFF_FAST;
 

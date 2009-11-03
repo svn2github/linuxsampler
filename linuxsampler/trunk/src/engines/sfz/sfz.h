@@ -255,7 +255,7 @@ namespace sfz
 
         trigger_t trigger;
 
-        optional<int> group;
+        uint group;
         optional<int> off_by;
         off_mode_t off_mode;
 

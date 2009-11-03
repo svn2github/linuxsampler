@@ -32,7 +32,7 @@
 #include <SF.h>
 
 namespace LinuxSampler { namespace sf2 {
-    class EngineChannel: public LinuxSampler::EngineChannelBase<Voice, ::sf2::Region, ::sf2::InstrumentBase> {
+    class EngineChannel: public LinuxSampler::EngineChannelBase<Voice, ::sf2::Region, ::sf2::Preset> {
         public:
             virtual void SendProgramChange(uint8_t Program);
             virtual void LoadInstrument();

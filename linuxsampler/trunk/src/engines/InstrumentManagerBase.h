@@ -147,6 +147,16 @@ namespace LinuxSampler {
             virtual void DeleteRegionIfNotUsed(R* pRegion, region_info_t* pRegInfo) = 0;
             virtual void DeleteSampleIfNotUsed(S* pSample, region_info_t* pRegInfo) = 0;
 
+            void SetKeyBindings(uint8_t* bindingsArray, int low, int high, int undefined = -1) {
+                if (low == undefined || high == undefined) return;
+                if (low < 0 || low > 127 || high < 0 || high > 127 || low > high) {
+                    std::cerr << "Invalid key range: " << low << " - " << high << std::endl;
+                    return;
+                }
+
+                for (int i = low; i <= high; i++) bindingsArray[i] = 1;
+            }
+
     };
 
     template <class F /* Instrument File */, class I /* Instrument */, class R /* Region */, class S /* Sample */>

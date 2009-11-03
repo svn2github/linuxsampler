@@ -86,25 +86,17 @@ namespace LinuxSampler { namespace sf2 {
 
         pChannel->regionsTemp.clear();
 
-        bool preset = (dynamic_cast< ::sf2::Preset*>(pChannel->pInstrument)) != NULL;
+        for (int i = 0; i < regs.size(); i++) {
+            // TODO: Generators in the PGEN sub-chunk are applied relative to generators in the IGEN sub-chunk in an additive manner.  In
+            // other words, PGEN generators increase or decrease the value of an IGEN generator.
+            ::sf2::Instrument* sfInstr = regs[i]->pInstrument;
 
-        if (preset) {
-            for (int i = 0; i < regs.size(); i++) {
-                // TODO: Generators in the PGEN sub-chunk are applied relative to generators in the IGEN sub-chunk in an additive manner.  In
-                // other words, PGEN generators increase or decrease the value of an IGEN generator.
-                ::sf2::Instrument* sfInstr = regs[i]->pInstrument;
-
-                std::vector< ::sf2::Region*> subRegs = sfInstr->GetRegionsOnKey (
-                    key, vel
-                );
-                for (int j = 0; j < subRegs.size(); j++) {
-                    pChannel->regionsTemp.push_back(subRegs[j]);
-                }
-            }
-        } else {
-            pChannel->regionsTemp = pChannel->pInstrument->GetRegionsOnKey (
+            std::vector< ::sf2::Region*> subRegs = sfInstr->GetRegionsOnKey (
                 key, vel
             );
+            for (int j = 0; j < subRegs.size(); j++) {
+                pChannel->regionsTemp.push_back(subRegs[j]);
+            }
         }
         
         for (int i = 0; i < pChannel->regionsTemp.size(); i++) {
@@ -134,34 +126,7 @@ namespace LinuxSampler { namespace sf2 {
     ) {
         EngineChannel* pChannel = static_cast<EngineChannel*>(pEngineChannel);
         int key = itNoteOnEvent->Param.Note.Key;
-        EngineChannel::MidiKey* pKey  = &pChannel->pMIDIKeyInfo[key];
-        /*::gig::Region* pRegion = pChannel->pInstrument->GetRegion(MIDIKey);
-
-        // if nothing defined for this key
-        if (!pRegion) return Pool<Voice>::Iterator(); // nothing to do
-
-        // only mark the first voice of a layered voice (group) to be in a
-        // key group, so the layered voices won't kill each other
-        int iKeyGroup = (iLayer == 0 && !ReleaseTriggerVoice) ? pRegion->KeyGroup : 0;
-
-        // handle key group (a.k.a. exclusive group) conflicts
-        if (HandleKeyGroupConflicts) {
-            if (iKeyGroup) { // if this voice / key belongs to a key group
-                uint** ppKeyGroup = &pChannel->ActiveKeyGroups[iKeyGroup];
-                if (*ppKeyGroup) { // if there's already an active key in that key group
-                    EngineChannel::MidiKey* pOtherKey = &pChannel->pMIDIKeyInfo[**ppKeyGroup];
-                    // kill all voices on the (other) key
-                    RTList<Voice>::Iterator itVoiceToBeKilled = pOtherKey->pActiveVoices->first();
-                    RTList<Voice>::Iterator end               = pOtherKey->pActiveVoices->end();
-                    for (; itVoiceToBeKilled != end; ++itVoiceToBeKilled) {
-                        if (itVoiceToBeKilled->Type != Voice::type_release_trigger) {
-                            itVoiceToBeKilled->Kill(itNoteOnEvent);
-                            --VoiceSpawnsLeft; //FIXME: just a hack, we should better check in StealVoice() if the voice was killed due to key conflict
-                        }
-                    }
-                }
-            }
-        }*/ // TODO: ^^^
+        EngineChannel::MidiKey* pKey = &pChannel->pMIDIKeyInfo[key];
 
         Voice::type_t VoiceType = Voice::type_normal;
 
@@ -169,55 +134,27 @@ namespace LinuxSampler { namespace sf2 {
         ::sf2::Region* pRgn = pChannel->regionsTemp[iLayer];
 
         // no need to process if sample is silent
-        if (!pRgn->GetSample() || !pRgn->GetSample()->GetTotalFrameCount()) itNewVoice; // TODO: 
+        if (!pRgn->GetSample() || !pRgn->GetSample()->GetTotalFrameCount()) return Pool<Voice>::Iterator();
+
+        // only mark the first voice of a layered voice (group) to be in a
+        // key group, so the layered voices won't kill each other
+        int iKeyGroup = (iLayer == 0 && !ReleaseTriggerVoice) ? pRgn->exclusiveClass : 0;
+        if (HandleKeyGroupConflicts) pChannel->HandleKeyGroupConflicts(iKeyGroup, itNoteOnEvent);
 
         // allocate a new voice for the key
         itNewVoice = pKey->pActiveVoices->allocAppend();
-        if (itNewVoice) {
-            // launch the new voice
-            if (itNewVoice->Trigger(pChannel, itNoteOnEvent, pChannel->Pitch, pRgn, VoiceType, 0 /* iKeyGroup */) < 0) {
-                dmsg(4,("Voice not triggered\n"));
-                pKey->pActiveVoices->free(itNewVoice);
-            }
-            else { // on success
-                --VoiceSpawnsLeft;
-                if (!pKey->Active) { // mark as active key
-                    pKey->Active = true;
-                    pKey->itSelf = pChannel->pActiveKeys->allocAppend();
-                    *pKey->itSelf = itNoteOnEvent->Param.Note.Key;
-                }
-                if (itNewVoice->KeyGroup) {
-                    uint** ppKeyGroup = &pChannel->ActiveKeyGroups[itNewVoice->KeyGroup];
-                    *ppKeyGroup = &*pKey->itSelf; // put key as the (new) active key to its key group
-                }
-                if (itNewVoice->Type == Voice::type_release_trigger_required) pKey->ReleaseTrigger = true; // mark key for the need of release triggered voice(s)
-                return itNewVoice; // success
-            }
-        }
-        else if (VoiceStealing) {
-            // try to steal one voice
-            int result = StealVoice(pChannel, itNoteOnEvent);
-            if (!result) { // voice stolen successfully
-                // put note-on event into voice-stealing queue, so it will be reprocessed after killed voice died
-                RTList<Event>::Iterator itStealEvent = pVoiceStealingQueue->allocAppend();
-                if (itStealEvent) {
-                    *itStealEvent = *itNoteOnEvent; // copy event
-                    itStealEvent->Param.Note.Layer = iLayer;
-                    itStealEvent->Param.Note.ReleaseTrigger = ReleaseTriggerVoice;
-                    pKey->VoiceTheftsQueued++;
-                }
-                else dmsg(1,("Voice stealing queue full!\n"));
-            }
-        }
+        int res = InitNewVoice (
+                pChannel, pRgn, itNoteOnEvent, VoiceType, iLayer,
+                iKeyGroup, ReleaseTriggerVoice, VoiceStealing, itNewVoice
+        );
+        if (!res) return itNewVoice;
 
         // return if this is a release triggered voice and there is no
         // releasetrigger dimension (could happen if an instrument
         // change has occured between note on and off)
         //if (ReleaseTriggerVoice && VoiceType != Voice::type_release_trigger) return Pool<Voice>::Iterator();
 
-        
-
-        return itNewVoice;
+        return Pool<Voice>::Iterator(); // no free voice or error
     }
 
     bool Engine::DiskStreamSupported() {
@@ -229,7 +166,7 @@ namespace LinuxSampler { namespace sf2 {
     }
 
     String Engine::Version() {
-        String s = "$Revision: 1.1 $";
+        String s = "$Revision: 1.2 $";
         return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
 

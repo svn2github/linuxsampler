@@ -121,7 +121,7 @@ namespace LinuxSampler {
                             if (DiskVoice) {
                                 // check if we reached the allowed limit of the sample RAM cache
                                 if (finalSynthesisParameters.dPos > MaxRAMPos) {
-                                    dmsg(5,("Voice: switching to disk playback (Pos=%f)\n", finalSynthesisParameters.dPos));
+                                    dmsg(5,("VoiceBase: switching to disk playback (Pos=%f)\n", finalSynthesisParameters.dPos));
                                     this->PlaybackState = Voice::playback_state_disk;
                                 }
                             } else if (finalSynthesisParameters.dPos >= pSample->GetCache().Size / SmplInfo.FrameSize) {
@@ -175,7 +175,7 @@ namespace LinuxSampler {
                         break;
 
                     case Voice::playback_state_end:
-                        std::cerr << "gig::Voice::Render(): entered with playback_state_end, this is a bug!\n" << std::flush;
+                        std::cerr << "VoiceBase::Render(): entered with playback_state_end, this is a bug!\n" << std::flush;
                         break;
                 }
 

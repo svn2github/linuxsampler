@@ -66,30 +66,42 @@ namespace LinuxSampler { namespace sf2 {
     }
 
     Voice::RegionInfo Voice::GetRegionInfo() {
+        ::sf2::Region* reg = NULL;
+        ::sf2::Preset* preset = GetSf2EngineChannel()->pInstrument;
+        for (int i = 0; i < preset->GetRegionCount(); i++) { // TODO: some optimization?
+            if (preset->GetRegion(i)->pInstrument == pRegion->GetParentInstrument()) {
+                reg = preset->GetRegion(i); // TODO: Can the instrument belongs to more than one preset regions?
+                break;
+            }
+        }
+        
         RegionInfo ri;
         ri.UnityNote = pRegion->GetUnityNote();
-        ri.FineTune  = pRegion->fineTune;
-        ri.Pan       = pRegion->pan;
+        ri.FineTune  = pRegion->GetFineTune(reg) + (pRegion->GetCoarseTune(reg) * 100);
+        ri.Pan       = pRegion->GetPan(reg);
         ri.SampleStartOffset = pRegion->startAddrsOffset + pRegion->startAddrsCoarseOffset;
 
+        // sample amplitude
         ri.EG1PreAttack        = 1000;
-        ri.EG1Attack           = pRegion->EG1Attack;
-        ri.EG1Hold             = pRegion->EG1Hold;
-        ri.EG1Decay1           = pRegion->EG1Decay;
-        ri.EG1Decay2           = pRegion->EG1Decay;
-        ri.EG1Sustain          = pRegion->EG1Sustain;
+        ri.EG1Attack           = pRegion->GetEG1Attack(reg);
+        ri.EG1Hold             = pRegion->GetEG1Hold(reg);
+        ri.EG1Decay1           = pRegion->GetEG1Decay(reg);
+        ri.EG1Decay2           = pRegion->GetEG1Decay(reg);
+        ri.EG1Sustain          = pRegion->GetEG1Sustain(reg);
         ri.EG1InfiniteSustain  = true;
-        ri.EG1Release          = pRegion->EG1Release;
+        ri.EG1Release          = pRegion->GetEG1Release(reg);
 
+        // filter cutoff frequency
         ri.EG2PreAttack        = 1000;
-        ri.EG2Attack           = pRegion->EG2Attack;
+        ri.EG2Attack           = pRegion->GetEG2Attack(reg);
         //ri.EG2Hold             = pRegion->EG2Hold; // TODO:
-        ri.EG2Decay1           = pRegion->EG2Decay;
-        ri.EG2Decay2           = pRegion->EG2Decay;
-        ri.EG2Sustain          = pRegion->EG2Sustain;
+        ri.EG2Decay1           = pRegion->GetEG2Decay(reg);
+        ri.EG2Decay2           = pRegion->GetEG2Decay(reg);
+        ri.EG2Sustain          = pRegion->GetEG2Sustain(reg);
         ri.EG2InfiniteSustain  = true;
-        ri.EG2Release          = pRegion->EG2Release;
+        ri.EG2Release          = pRegion->GetEG2Release(reg);
 
+        // sample pitch
         ri.EG3Attack     = 0; // TODO:
         ri.EG3Depth      = 0; // TODO:
         ri.VCFEnabled    = false; // TODO:

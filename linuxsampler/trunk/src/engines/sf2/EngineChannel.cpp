@@ -35,7 +35,7 @@ namespace LinuxSampler { namespace sf2 {
         DisconnectAudioOutputDevice();
         // In case the channel was removed before the instrument was
         // fully loaded, try to give back instrument again (see bug #113)
-        InstrumentChangeCmd< ::sf2::Region, ::sf2::InstrumentBase>& cmd = ChangeInstrument(NULL);
+        InstrumentChangeCmd< ::sf2::Region, ::sf2::Preset>& cmd = ChangeInstrument(NULL);
         if (cmd.pInstrument) {
                 InstrumentResourceManager* instrs = dynamic_cast<InstrumentResourceManager*>(pEngine->GetInstrumentManager());
                 instrs->HandBack(cmd.pInstrument, this);
@@ -48,7 +48,7 @@ namespace LinuxSampler { namespace sf2 {
     /** This method is not thread safe! */
     void EngineChannel::ResetInternal() {
         CurrentKeyDimension = 0;
-        EngineChannelBase<Voice, ::sf2::Region, ::sf2::InstrumentBase>::ResetInternal();
+        EngineChannelBase<Voice, ::sf2::Region, ::sf2::Preset>::ResetInternal();
         for(int i = 0; i < 128; i++) PressedKeys[i] = false;
     }
 
@@ -84,7 +84,7 @@ namespace LinuxSampler { namespace sf2 {
 
         // make sure we don't trigger any new notes with an old
         // instrument
-        InstrumentChangeCmd< ::sf2::Region, ::sf2::InstrumentBase>& cmd = ChangeInstrument(0);
+        InstrumentChangeCmd< ::sf2::Region, ::sf2::Preset>& cmd = ChangeInstrument(0);
         if (cmd.pInstrument) {
             // give old instrument back to instrument manager, but
             // keep the dimension regions and samples that are in use
@@ -96,7 +96,7 @@ namespace LinuxSampler { namespace sf2 {
         ActiveKeyGroups.clear();
 
         // request sf2 instrument from instrument manager
-        ::sf2::InstrumentBase* newInstrument;
+        ::sf2::Preset* newInstrument;
         try {
             InstrumentManager::instrument_id_t instrid;
             instrid.FileName  = InstrumentFile;

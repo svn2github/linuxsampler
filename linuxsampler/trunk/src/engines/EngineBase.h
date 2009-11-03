@@ -564,7 +564,6 @@ namespace LinuxSampler {
             int       MinFadeOutSamples;     ///< The number of samples needed to make an instant fade out (e.g. for voice stealing) without leading to clicks.
             D*        pDiskThread;
 
-            int                          VoiceSpawnsLeft;       ///< We only allow CONFIG_MAX_VOICES voices to be spawned per audio fragment, we use this variable to ensure this limit.
             int                          ActiveVoiceCountTemp;  ///< number of currently active voices (for internal usage, will be used for incrementation)
             VoiceIterator                itLastStolenVoice;     ///< Only for voice stealing: points to the last voice which was theft in current audio fragment, NULL otherwise.
             RTList<uint>::Iterator       iuiLastStolenKey;      ///< Only for voice stealing: key number of last key on which the last voice was theft in current audio fragment, NULL otherwise.
@@ -1305,6 +1304,59 @@ namespace LinuxSampler {
             ) = 0;
 
             virtual int GetMinFadeOutSamples() { return MinFadeOutSamples; }
+
+            int InitNewVoice (
+                EngineChannelBase<V, R, I>*  pChannel,
+                R*                           pRegion,
+                Pool<Event>::Iterator&       itNoteOnEvent,
+                Voice::type_t                VoiceType,
+                int                          iLayer,
+                int                          iKeyGroup,
+                bool                         ReleaseTriggerVoice,
+                bool                         VoiceStealing,
+                typename Pool<V>::Iterator&  itNewVoice
+            ) {
+                int key = itNoteOnEvent->Param.Note.Key;
+                typename MidiKeyboardManager<V>::MidiKey* pKey = &pChannel->pMIDIKeyInfo[key];
+                if (itNewVoice) {
+                    // launch the new voice
+                    if (itNewVoice->Trigger(pChannel, itNoteOnEvent, pChannel->Pitch, pRegion, VoiceType, iKeyGroup) < 0) {
+                        dmsg(4,("Voice not triggered\n"));
+                        pKey->pActiveVoices->free(itNewVoice);
+                    }
+                    else { // on success
+                        --VoiceSpawnsLeft;
+                        if (!pKey->Active) { // mark as active key
+                            pKey->Active = true;
+                            pKey->itSelf = pChannel->pActiveKeys->allocAppend();
+                            *pKey->itSelf = itNoteOnEvent->Param.Note.Key;
+                        }
+                        if (itNewVoice->KeyGroup) {
+                            uint** ppKeyGroup = &pChannel->ActiveKeyGroups[itNewVoice->KeyGroup];
+                            *ppKeyGroup = &*pKey->itSelf; // put key as the (new) active key to its key group
+                        }
+                        if (itNewVoice->Type == Voice::type_release_trigger_required) pKey->ReleaseTrigger = true; // mark key for the need of release triggered voice(s)
+                        return 0; // success
+                    }
+                }
+                else if (VoiceStealing) {
+                    // try to steal one voice
+                    int result = StealVoice(pChannel, itNoteOnEvent);
+                    if (!result) { // voice stolen successfully
+                        // put note-on event into voice-stealing queue, so it will be reprocessed after killed voice died
+                        RTList<Event>::Iterator itStealEvent = pVoiceStealingQueue->allocAppend();
+                        if (itStealEvent) {
+                            *itStealEvent = *itNoteOnEvent; // copy event
+                            itStealEvent->Param.Note.Layer = iLayer;
+                            itStealEvent->Param.Note.ReleaseTrigger = ReleaseTriggerVoice;
+                            pKey->VoiceTheftsQueued++;
+                        }
+                        else dmsg(1,("Voice stealing queue full!\n"));
+                    }
+                }
+
+                return -1;
+            }
 
         private:
             Pool<V>*    pVoicePool;            ///< Contains all voices that can be activated.

@@ -173,24 +173,7 @@ namespace LinuxSampler { namespace gig {
         // key group, so the layered voices won't kill each other
         int iKeyGroup = (iLayer == 0 && !ReleaseTriggerVoice) ? pRegion->KeyGroup : 0;
 
-        // handle key group (a.k.a. exclusive group) conflicts
-        if (HandleKeyGroupConflicts) {
-            if (iKeyGroup) { // if this voice / key belongs to a key group
-                uint** ppKeyGroup = &pChannel->ActiveKeyGroups[iKeyGroup];
-                if (*ppKeyGroup) { // if there's already an active key in that key group
-                    EngineChannel::MidiKey* pOtherKey = &pChannel->pMIDIKeyInfo[**ppKeyGroup];
-                    // kill all voices on the (other) key
-                    RTList<Voice>::Iterator itVoiceToBeKilled = pOtherKey->pActiveVoices->first();
-                    RTList<Voice>::Iterator end               = pOtherKey->pActiveVoices->end();
-                    for (; itVoiceToBeKilled != end; ++itVoiceToBeKilled) {
-                        if (itVoiceToBeKilled->Type != Voice::type_release_trigger) {
-                            itVoiceToBeKilled->Kill(itNoteOnEvent);
-                            --VoiceSpawnsLeft; //FIXME: just a hack, we should better check in StealVoice() if the voice was killed due to key conflict
-                        }
-                    }
-                }
-            }
-        }
+        if (HandleKeyGroupConflicts) pChannel->HandleKeyGroupConflicts(iKeyGroup, itNoteOnEvent);
 
         Voice::type_t VoiceType = Voice::type_normal;
 
@@ -315,42 +298,12 @@ namespace LinuxSampler { namespace gig {
 
         // allocate a new voice for the key
         Pool<Voice>::Iterator itNewVoice = pKey->pActiveVoices->allocAppend();
-        if (itNewVoice) {
-            // launch the new voice
-            if (itNewVoice->Trigger(pChannel, itNoteOnEvent, pChannel->Pitch, pDimRgn, VoiceType, iKeyGroup) < 0) {
-                dmsg(4,("Voice not triggered\n"));
-                pKey->pActiveVoices->free(itNewVoice);
-            }
-            else { // on success
-                --VoiceSpawnsLeft;
-                if (!pKey->Active) { // mark as active key
-                    pKey->Active = true;
-                    pKey->itSelf = pChannel->pActiveKeys->allocAppend();
-                    *pKey->itSelf = itNoteOnEvent->Param.Note.Key;
-                }
-                if (itNewVoice->KeyGroup) {
-                    uint** ppKeyGroup = &pChannel->ActiveKeyGroups[itNewVoice->KeyGroup];
-                    *ppKeyGroup = &*pKey->itSelf; // put key as the (new) active key to its key group
-                }
-                if (itNewVoice->Type == Voice::type_release_trigger_required) pKey->ReleaseTrigger = true; // mark key for the need of release triggered voice(s)
-                return itNewVoice; // success
-            }
-        }
-        else if (VoiceStealing) {
-            // try to steal one voice
-            int result = StealVoice(pChannel, itNoteOnEvent);
-            if (!result) { // voice stolen successfully
-                // put note-on event into voice-stealing queue, so it will be reprocessed after killed voice died
-                RTList<Event>::Iterator itStealEvent = pVoiceStealingQueue->allocAppend();
-                if (itStealEvent) {
-                    *itStealEvent = *itNoteOnEvent; // copy event
-                    itStealEvent->Param.Note.Layer = iLayer;
-                    itStealEvent->Param.Note.ReleaseTrigger = ReleaseTriggerVoice;
-                    pKey->VoiceTheftsQueued++;
-                }
-                else dmsg(1,("Voice stealing queue full!\n"));
-            }
-        }
+
+        int res = InitNewVoice (
+                pChannel, pDimRgn, itNoteOnEvent, VoiceType, iLayer,
+                iKeyGroup, ReleaseTriggerVoice, VoiceStealing, itNewVoice
+        );
+        if (!res) return itNewVoice;
 
         return Pool<Voice>::Iterator(); // no free voice or error
     }
@@ -364,7 +317,7 @@ namespace LinuxSampler { namespace gig {
     }
 
     String Engine::Version() {
-        String s = "$Revision: 1.105 $";
+        String s = "$Revision: 1.106 $";
         return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
 

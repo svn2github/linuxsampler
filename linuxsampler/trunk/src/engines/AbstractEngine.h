@@ -92,12 +92,13 @@ namespace LinuxSampler {
             EventGenerator*            pEventGenerator;
             RTList<Event>*             pGlobalEvents;         ///< All engine global events for the current audio fragment (usually only SysEx messages).
             Pool<Event>*               pEventPool;            ///< Contains all Event objects that can be used.
-            RingBuffer<uint8_t,false>* pSysexBuffer;       ///< Input buffer for MIDI system exclusive messages.
+            RingBuffer<uint8_t,false>* pSysexBuffer;          ///< Input buffer for MIDI system exclusive messages.
             uint                       SampleRate;            ///< Sample rate of the engines output audio signal (in Hz)
             uint                       MaxSamplesPerCycle;    ///< Size of each audio output buffer
-            unsigned long              FrameTime; ///< Time in frames of the start of the current audio fragment
+            unsigned long              FrameTime;             ///< Time in frames of the start of the current audio fragment
             int                        ActiveVoiceCountMax;   ///< the maximum voice usage since application start
-            atomic_t                   ActiveVoiceCount; ///< number of currently active voices
+            atomic_t                   ActiveVoiceCount;      ///< number of currently active voices
+            int                        VoiceSpawnsLeft;       ///< We only allow CONFIG_MAX_VOICES voices to be spawned per audio fragment, we use this variable to ensure this limit.
 
             void RouteAudio(EngineChannel* pEngineChannel, uint Samples);
             void ClearEventLists();

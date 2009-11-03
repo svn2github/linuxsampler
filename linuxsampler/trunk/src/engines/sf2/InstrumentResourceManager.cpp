@@ -54,7 +54,7 @@ namespace LinuxSampler { namespace sf2 {
 
     String InstrumentResourceManager::GetInstrumentName(instrument_id_t ID) {
         Lock();
-        ::sf2::InstrumentBase* pInstrument = Resource(ID, false);
+        ::sf2::Preset* pInstrument = Resource(ID, false);
         String res = (pInstrument) ? pInstrument->GetName() : "";
         Unlock();
         return res;
@@ -89,7 +89,7 @@ namespace LinuxSampler { namespace sf2 {
 
     InstrumentResourceManager::instrument_info_t InstrumentResourceManager::GetInstrumentInfo(instrument_id_t ID) throw (InstrumentManagerException) {
         Lock();
-        ::sf2::InstrumentBase* pInstrument = Resource(ID, false);
+        ::sf2::Preset* pInstrument = Resource(ID, false);
         bool loaded = (pInstrument != NULL);
         if (!loaded) Unlock();
 
@@ -116,10 +116,15 @@ namespace LinuxSampler { namespace sf2 {
             for (int i = 0; i < pInstrument->GetRegionCount(); i++) {
                 int low = pInstrument->GetRegion(i)->loKey;
                 int high = pInstrument->GetRegion(i)->hiKey;
-                if (low < 0 || low > 127 || high < 0 || high > 127 || low > high) {
-                    std::cerr << "Invalid key range: " << low << " - " << high << std::endl;
+                if (low == ::sf2::NONE || high == ::sf2::NONE) {
+                    ::sf2::Instrument* layer = pInstrument->GetRegion(i)->pInstrument;
+                    for (int j = 0; j < layer->GetRegionCount(); j++) {
+                        int lo = layer->GetRegion(j)->loKey;
+                        int hi = layer->GetRegion(j)->hiKey;
+                        SetKeyBindings(info.KeyBindings, lo, hi, ::sf2::NONE);
+                    }
                 } else {
-                    for (int i = low; i <= high; i++) info.KeyBindings[i] = 1;
+                    SetKeyBindings(info.KeyBindings, low, high, ::sf2::NONE);
                 }
             }
 
@@ -141,12 +146,12 @@ namespace LinuxSampler { namespace sf2 {
         }
     }
 
-    ::sf2::InstrumentBase* InstrumentResourceManager::Create(instrument_id_t Key, InstrumentConsumer* pConsumer, void*& pArg) {
+    ::sf2::Preset* InstrumentResourceManager::Create(instrument_id_t Key, InstrumentConsumer* pConsumer, void*& pArg) {
         // get sfz file from internal sfz file manager
         ::sf2::File* pSf2 = Sf2s.Borrow(Key.FileName, (Sf2Consumer*) Key.Index); // conversion kinda hackish :/
 
         dmsg(1,("Loading sf2 instrument ('%s',%d)...",Key.FileName.c_str(),Key.Index));
-        ::sf2::InstrumentBase* pInstrument = GetSfInstrument(pSf2, Key.Index);
+        ::sf2::Preset* pInstrument = GetSfInstrument(pSf2, Key.Index);
         dmsg(1,("OK\n"));
 
         // cache initial samples points (for actually needed samples)
@@ -155,11 +160,9 @@ namespace LinuxSampler { namespace sf2 {
         for(int i = 0 ; i < pInstrument->GetRegionCount(); i++) {
             ::sf2::Instrument* sf2Instr = pInstrument->GetRegion(i)->pInstrument;
             if(sf2Instr) regTotal += sf2Instr->GetRegionCount();
-            else regTotal++; // if sf2Instr is null, than pInstrument is not a preset
         }
         for(int i = 0 ; i < pInstrument->GetRegionCount(); i++) {
             ::sf2::Instrument* sf2Instr = pInstrument->GetRegion(i)->pInstrument;
-            ::sf2::Sample* sf2Sample = pInstrument->GetRegion(i)->GetSample();
             if(sf2Instr != NULL) {
                 // pInstrument is ::sf2::Preset
                 for(int j = 0; j < sf2Instr->GetRegionCount(); j++) {
@@ -167,9 +170,6 @@ namespace LinuxSampler { namespace sf2 {
                     DispatchResourceProgressEvent(Key, localProgress);
                     CacheInitialSamples(sf2Instr->GetRegion(j)->GetSample(), dynamic_cast<AbstractEngineChannel*>(pConsumer));
                 }
-            } else if(sf2Sample != NULL) {
-                // pInstrument is ::sf2::Instrument
-                CacheInitialSamples(sf2Sample, dynamic_cast<AbstractEngineChannel*>(pConsumer));
             }
         }
         dmsg(1,("OK\n"));
@@ -193,14 +193,14 @@ namespace LinuxSampler { namespace sf2 {
         return pInstrument;
     }
 
-    void InstrumentResourceManager::Destroy( ::sf2::InstrumentBase* pResource, void* pArg) {
+    void InstrumentResourceManager::Destroy( ::sf2::Preset* pResource, void* pArg) {
         instr_entry_t* pEntry = (instr_entry_t*) pArg;
         // we don't need the .sf2 file here anymore
         Sf2s.HandBack(pEntry->pSf2, (Sf2Consumer*) pEntry->ID.Index); // conversion kinda hackish :/
         delete pEntry;
     }
 
-    void InstrumentResourceManager::OnBorrow(::sf2::InstrumentBase* pResource, InstrumentConsumer* pConsumer, void*& pArg) {
+    void InstrumentResourceManager::OnBorrow(::sf2::Preset* pResource, InstrumentConsumer* pConsumer, void*& pArg) {
         instr_entry_t* pEntry = (instr_entry_t*) pArg;
         EngineChannel* pEngineChannel = dynamic_cast<EngineChannel*>(pConsumer);
         uint maxSamplesPerCycle =
@@ -285,20 +285,14 @@ namespace LinuxSampler { namespace sf2 {
     }
 
     int InstrumentResourceManager::GetSfInstrumentCount(::sf2::File* pFile) {
-        return pFile->GetInstrumentCount() + pFile->GetPresetCount();
+        return pFile->GetPresetCount();
     }
 
-    ::sf2::InstrumentBase* InstrumentResourceManager::GetSfInstrument(::sf2::File* pFile, int idx) {
-        if (idx >= pFile->GetInstrumentCount() + pFile->GetPresetCount()) {
+    ::sf2::Preset* InstrumentResourceManager::GetSfInstrument(::sf2::File* pFile, int idx) {
+        if (idx >= pFile->GetPresetCount()) {
             throw InstrumentManagerException("There is no instrument with index " + ToString(idx));
         }
-
-        if (idx < pFile->GetInstrumentCount()) {
-            return pFile->GetInstrument(idx);
-        }
-        
-        int presetIdx = idx - pFile->GetInstrumentCount();
-        return pFile->GetPreset(presetIdx);
+        return pFile->GetPreset(idx);
     }
 
 }} // namespace LinuxSampler::sfz

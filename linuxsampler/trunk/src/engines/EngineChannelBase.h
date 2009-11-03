@@ -347,6 +347,27 @@ namespace LinuxSampler {
             }
 
             virtual void ProcessKeySwitchChange(int key) = 0;
+
+            /**
+             * Handle key group (a.k.a. exclusive group) conflicts
+             */
+            void HandleKeyGroupConflicts(uint KeyGroup, Pool<Event>::Iterator& itNoteOnEvent) {
+                if (KeyGroup) { // if this voice / key belongs to a key group
+                uint** ppKeyGroup = &MidiKeyboardManager<V>::ActiveKeyGroups[KeyGroup];
+                if (*ppKeyGroup) { // if there's already an active key in that key group
+                    MidiKey* pOtherKey = &MidiKeyboardManager<V>::pMIDIKeyInfo[**ppKeyGroup];
+                    // kill all voices on the (other) key
+                    typename RTList<V>::Iterator itVoiceToBeKilled = pOtherKey->pActiveVoices->first();
+                    typename RTList<V>::Iterator end               = pOtherKey->pActiveVoices->end();
+                    for (; itVoiceToBeKilled != end; ++itVoiceToBeKilled) {
+                        if (itVoiceToBeKilled->Type != Voice::type_release_trigger) {
+                            itVoiceToBeKilled->Kill(itNoteOnEvent);
+                            --pEngine->VoiceSpawnsLeft; //FIXME: just a hack, we should better check in StealVoice() if the voice was killed due to key conflict
+                        }
+                    }
+                }
+            }
+            }
     };
 
 } // namespace LinuxSampler
