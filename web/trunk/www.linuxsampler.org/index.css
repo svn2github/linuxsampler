@@ -16,7 +16,7 @@ body    {
 
 
 h2 	{
-	font-size: 11pt;
+	font-size: 11px;
 	font-family: sans-serif,Arial,Helvetica;
 	font-style: normal;
 	font-weight: bold;
@@ -27,7 +27,7 @@ h2 	{
 	}
 
 h3 	{
-	font-size: 11pt;
+	font-size: 11px;
 	font-family: sans-serif,Arial,Helvetica;
 	font-style: normal;
 	font-weight: bold;
@@ -48,7 +48,7 @@ img {
 	}
 
 table th {
-	font-size: 11pt;
+	font-size: 11px;
 	font-family: sans-serif,Arial,Helvetica;
 	font-style: normal;
 	font-weight: bold;
@@ -57,7 +57,7 @@ table th {
 
 .code {
 	overflow: auto;
-	font-size: 8pt;
+	font-size: 8px;
 	/*max-width: 300;*/
 	background-color: #F6F6F6;
 	border: 2px outset GhostWhite;
@@ -70,7 +70,7 @@ table th {
 
 .figure {
 	overflow: auto;
-	font-size: 8pt;
+	font-size: 8px;
 	margin: 0em 3em 0em 3.2em;
 	padding-left: 3px;
 	padding-right: 3px;
@@ -79,7 +79,7 @@ table th {
 }
 
 table.default {
-	font-size: 10pt;
+	font-size: 10px;
 	font-family: sans-serif,Arial,Helvetica;
 	text-align: justify;
 	font-style: normal;
@@ -91,7 +91,7 @@ table.default {
 table.decorated {
 	border: none;
 	background-color: transparent;
-	font-size: 10pt;
+	font-size: 10px;
 	font-family: sans-serif,Arial,Helvetica;
 	text-align: justify;
 	font-style: normal;
@@ -103,7 +103,7 @@ table.decorated {
 td.decorated {
 	border: none;
 	background-color: #F2F2F4;
-	font-size: 10pt;
+	font-size: 10px;
 	font-family: sans-serif,Arial,Helvetica;
 	font-style: normal;
 	font-weight: normal;
@@ -114,7 +114,7 @@ td.decorated {
 td.decorated_header {
 	border: none;
 	background-color: #E0E0FF;
-	font-size: 10pt;
+	font-size: 10px;
 	font-family: sans-serif,Arial,Helvetica;
 	font-style: normal;
 	font-weight: bold;
@@ -126,7 +126,7 @@ td.decorated_header {
 	padding: 0.6em;
 	border: 1px outset White;
 	background-color: #F0F0F0;
-	font-size: 10pt;
+	font-size: 10px;
 	font-family: sans-serif,Arial,Helvetica;
 	text-align: justify;
 	font-style: normal;
@@ -145,7 +145,7 @@ td.default {
 	}
 
 .formatmatrix {
-	font-size: 10pt;
+	font-size: 10px;
 	font-family: sans-serif,Arial,Helvetica;
 	text-align: justify;
 	font-style: normal;
@@ -180,7 +180,7 @@ td.default {
 	}
 
 .linkstable {
-	font-size: 10pt;
+	font-size: 10px;
 	font-family: sans-serif,Arial,Helvetica;
 	text-align: justify;
 	font-style: normal;
@@ -204,7 +204,7 @@ a:visited {
 }
 
 p {
-	font-size: 10pt;
+	font-size: 10px;
 	font-family: sans-serif,Arial,Helvetica;
 	text-align: justify;
 	font-style: normal;
@@ -213,7 +213,7 @@ p {
 }
 
 p.default  {
-	font-size: 10pt;
+	font-size: 10px;
 	font-family: sans-serif,Arial,Helvetica;
 	text-align: justify;
 	font-style: normal;
@@ -224,7 +224,7 @@ p.default  {
 p.caution  {
 	border: solid 1px;
 	background: rgb(255, 180, 180);
-	font-size: 10pt;
+	font-size: 10px;
 	font-family: sans-serif,Arial,Helvetica;
 	text-align: justify;
 	font-style: normal;
@@ -234,7 +234,7 @@ p.caution  {
 }
 
 table.pure {
-	font-size: 10pt;
+	font-size: 10px;
 	font-family: sans-serif,Arial,Helvetica;
 	font-style: normal;
 	font-weight: normal;
@@ -242,7 +242,7 @@ table.pure {
 
 div.groupbox {
 	background: rgb(240, 240, 240);
-	font-size: 10pt;
+	font-size: 10px;
 	font-family: sans-serif,Arial,Helvetica;
 	text-align: justify;
 	font-style: normal;
@@ -254,7 +254,7 @@ div.groupbox {
 p.groupbox {
 	border: none;
 	background: rgb(240, 240, 240);
-	font-size: 10pt;
+	font-size: 10px;
 	font-family: sans-serif,Arial,Helvetica;
 	text-align: justify;
 	font-style: normal;
@@ -264,7 +264,7 @@ p.groupbox {
 	}
 
 span.default  {
-	font-size: 10pt;
+	font-size: 10px;
 	font-family: sans-serif,Arial,Helvetica;
 	text-align: justify;
 	font-style: normal;
@@ -289,7 +289,7 @@ ol.default	{
 
 li	{
 	padding: 0.2em 0.2em 0.2em 0.2em;
-	font-size: 10pt;
+	font-size: 10px;
 	font-family: sans-serif,Arial,Helvetica;
 	text-align: justify;
 	}
@@ -297,7 +297,7 @@ li	{
 li.ok	{
 	list-style-image: url("gfx/okay_green.png");
 	padding: 0.2em 0.2em 0.2em 0.2em;
-	font-size: 10pt;
+	font-size: 10px;
 	font-family: sans-serif,Arial,Helvetica;
 	text-align: justify;
 	}
@@ -305,7 +305,7 @@ li.ok	{
 li.false	{
 	list-style-image: url("gfx/x.png");
 	padding: 0.2em 0.2em 0.2em 0.2em;
-	font-size: 10pt;
+	font-size: 10px;
 	font-family: sans-serif,Arial,Helvetica;
 	text-align: justify;
 	}
@@ -313,7 +313,7 @@ li.false	{
 li.partly	{
 	list-style-image: url("gfx/yellow_light.png");
 	padding: 0.2em 0.2em 0.2em 0.2em;
-	font-size: 10pt;
+	font-size: 10px;
 	font-family: sans-serif,Arial,Helvetica;
 	text-align: justify;
 	}
@@ -350,7 +350,7 @@ div.news {
     border: 1px dotted;
     margin: 0.8em 2em;
     padding: 0.4em 0.4em;
-    font-size: 10pt;
+    font-size: 10px;
     font-family: sans-serif,Arial,Helvetica;
     text-align: justify;
     font-style: normal;
@@ -365,7 +365,7 @@ ul.news {
 }
 
 li.news {
-    font-size: 10pt;
+    font-size: 10px;
     font-family: sans-serif,Arial,Helvetica;
     text-align: justify;
     font-style: normal;
@@ -378,7 +378,7 @@ span.news_date {
 
 span.news_footer {
     margin: 0em 2em;
-    font-size: 10pt;
+    font-size: 10px;
     font-family: sans-serif,Arial,Helvetica;
     text-align: left;
     font-style: normal;
@@ -390,7 +390,7 @@ span.news_footer {
 /* CVS Commits section */
 
 table.cvs {
-    font-size: 10pt;
+    font-size: 10px;
     font-family: sans-serif,Arial,Helvetica;
     text-align: justify;
     font-style: normal;
@@ -405,7 +405,7 @@ table.cvs_project {
 #cvs_content {
     height: 300px;
     overflow: hidden;
-    font-size: 10pt;
+    font-size: 10px;
     font-family: sans-serif,Arial,Helvetica;
     text-align: justify;
     font-style: normal;
@@ -413,7 +413,7 @@ table.cvs_project {
 }
 
 span.cvs_footer {
-    font-size: 10pt;
+    font-size: 10px;
     font-family: sans-serif,Arial,Helvetica;
     text-align: justify;
     font-style: normal;
