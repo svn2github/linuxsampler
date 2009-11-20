@@ -113,6 +113,7 @@ namespace LinuxSampler {
         // calculate volume
         const double velocityAttenuation = GetVelocityAttenuation(itNoteOnEvent->Param.Note.Velocity);
         float volume = CalculateVolume(velocityAttenuation);
+        if (volume <= 0) return -1;
 
         // select channel mode (mono or stereo)
         SYNTHESIS_MODE_SET_CHANNELS(SynthesisMode, SmplInfo.ChannelCount == 2);
@@ -608,7 +609,6 @@ namespace LinuxSampler {
                 GetNoteOnTime(MIDIKey) ) / GetEngine()->SampleRate;
 
             float attenuation = 1 - 0.01053 * (256 >> RgnInfo.ReleaseTriggerDecay) * noteLength;
-            if (attenuation <= 0) return -1;
             volume *= attenuation;
         }
 
