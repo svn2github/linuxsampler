@@ -112,7 +112,7 @@
 
 <body>
 
-	<div id="mainwindow"><img name="LinuxSampler" src="gfx/lsbackground.jpg" alt="LinuxSampler">
+	<div id="mainwindow"><div class="lsbackground"><img name="LinuxSampler" src="gfx/lsbackground.jpg" alt="LinuxSampler"></div>
 
 		<h1><span class="hidden">The LinuxSampler Project</span></h1>
 
@@ -179,7 +179,7 @@ src="http://pagead2.googlesyndication.com/pagead/show_ads.js">
 
             <h2>Latest CVS Commits</h2>
 
-            <table class="cvs" width=100%>
+            <table class="cvs">
               <tbody>
                 <tr>
                   <td valign="top" width=50%>
