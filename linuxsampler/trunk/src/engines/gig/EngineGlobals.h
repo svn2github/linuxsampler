@@ -41,23 +41,6 @@ namespace LinuxSampler { namespace gig {
         voice_steal_algo_oldestkey          ///< Try to kill the oldest voice from the oldest active key.
     };
 
-    /** @brief MIDI key runtime informations
-     *
-     * Reflects runtime informations for one MIDI key.
-     */
-    struct midi_key_info_t {
-        RTList<Voice>*  pActiveVoices;  ///< Contains the active voices associated with the MIDI key.
-        bool            KeyPressed;     ///< Is true if the respective MIDI key is currently pressed.
-        bool            Active;         ///< If the key contains active voices.
-        bool            ReleaseTrigger; ///< If we have to launch release triggered voice(s) when the key is released
-        Pool<uint>::Iterator itSelf;    ///< hack to allow fast deallocation of the key from the list of active keys
-        RTList<Event>*  pEvents;        ///< Key specific events (only Note-on, Note-off and sustain pedal currently)
-        int             VoiceTheftsQueued; ///< Amount of voices postponed due to shortage of voices.
-        uint8_t         RoundRobinIndex; ///< For the round robin dimension: current articulation for this key, will be incremented for each note on
-        uint8_t         Velocity;       ///< Latest Note-on velocity for this key
-        unsigned long   NoteOnTime;     ///< Time for latest Note-on event for this key
-    };
-
 }} // namespace LinuxSampler::gig
 
 #endif // __LS_GIG_ENGINEGLOBALS_H__

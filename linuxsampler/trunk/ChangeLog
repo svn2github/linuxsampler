@@ -4,6 +4,13 @@ Version CVS HEAD (?)
     - Refactoring: moved the independent code from
       the Gigasampler format engine to base classes
 
+  * Gigasampler format engine:
+    - implemented the "round robin keyboard" dimension
+    - fixed round robin and random dimensions for cases when number of
+      dimension zones is not a power of two
+    - made round robin use a counter for each region instead of each
+      key
+
   * SFZ format engine
     - Initial implementation (not usable yet)
 

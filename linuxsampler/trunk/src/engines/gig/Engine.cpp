@@ -203,11 +203,14 @@ namespace LinuxSampler { namespace gig {
                     DimValues[i] = (uint) (pChannel->CurrentKeyDimension * pRegion->pDimensionDefinitions[i].zones);
                     break;
                 case ::gig::dimension_roundrobin:
-                    DimValues[i] = (uint) pChannel->pMIDIKeyInfo[MIDIKey].RoundRobinIndex; // incremented for each note on
+                    DimValues[i] = uint(*pChannel->pMIDIKeyInfo[MIDIKey].pRoundRobinIndex % pRegion->pDimensionDefinitions[i].zones); // RoundRobinIndex is incremented for each note on in this Region
+                    break;
+                case ::gig::dimension_roundrobinkeyboard:
+                    DimValues[i] = uint(pChannel->RoundRobinIndex % pRegion->pDimensionDefinitions[i].zones); // RoundRobinIndex is incremented for each note on
                     break;
                 case ::gig::dimension_random:
                     RandomSeed   = RandomSeed * 1103515245 + 12345; // classic pseudo random number generator
-                    DimValues[i] = (uint) RandomSeed >> (32 - pRegion->pDimensionDefinitions[i].bits); // highest bits are most random
+                    DimValues[i] = uint(RandomSeed / 4294967296.0f * pRegion->pDimensionDefinitions[i].zones);
                     break;
                 case ::gig::dimension_modwheel:
                     DimValues[i] = pChannel->ControllerTable[1];
@@ -317,7 +320,7 @@ namespace LinuxSampler { namespace gig {
     }
 
     String Engine::Version() {
-        String s = "$Revision: 1.106 $";
+        String s = "$Revision: 1.107 $";
         return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
 

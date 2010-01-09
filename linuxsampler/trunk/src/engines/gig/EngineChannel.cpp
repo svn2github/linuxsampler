@@ -123,9 +123,22 @@ namespace LinuxSampler { namespace gig {
             throw Exception("gig::Engine error: Failed to load instrument, cause: Unknown exception while trying to parse gig file.");
         }
 
-        // rebuild ActiveKeyGroups map with key groups of current instrument
-        for (::gig::Region* pRegion = newInstrument->GetFirstRegion(); pRegion; pRegion = newInstrument->GetNextRegion())
+        RoundRobinIndex = 0;
+        for (int i = 0 ; i < 128 ; i++) pMIDIKeyInfo[i].pRoundRobinIndex = NULL;
+
+        // rebuild ActiveKeyGroups map with key groups of current
+        // instrument and set the round robin pointers to use one
+        // counter for each region
+        int region = 0;
+        for (::gig::Region* pRegion = newInstrument->GetFirstRegion(); pRegion; pRegion = newInstrument->GetNextRegion()) {
             if (pRegion->KeyGroup) ActiveKeyGroups[pRegion->KeyGroup] = NULL;
+
+            RoundRobinIndexes[region] = 0;
+            for (int iKey = pRegion->KeyRange.low; iKey <= pRegion->KeyRange.high; iKey++) {
+                pMIDIKeyInfo[iKey].pRoundRobinIndex = &RoundRobinIndexes[region];
+            }
+            region++;
+        }
 
         InstrumentIdxName = newInstrument->pInfo->Name;
         InstrumentStat = 100;

@@ -114,6 +114,7 @@ namespace LinuxSampler {
             int                       iLastPanRequest;          ///< just for the return value of Pan(), so we don't have to make an injective function
             int                       iEngineIndexSelf;         ///< Reflects the index of this EngineChannel in the Engine's ArrayList.
             bool                      bStatusChanged;           ///< true in case an engine parameter has changed (e.g. new instrument, another volumet)
+            uint32_t                  RoundRobinIndex;          ///< counter for round robin sample selection, incremented for each note on
 
             SynchronizedConfig< ArrayList<VirtualMidiDevice*> > virtualMidiDevices;
             SynchronizedConfig< ArrayList<VirtualMidiDevice*> >::Reader virtualMidiDevicesReader_AudioThread;

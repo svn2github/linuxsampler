@@ -1096,7 +1096,10 @@ namespace LinuxSampler {
                     pKey->pEvents->free(itNoteOnEventOnKeyList);
 
                 if (!pChannel->SoloMode || pChannel->PortamentoPos < 0.0f) pChannel->PortamentoPos = (float) key;
-                pKey->RoundRobinIndex++;
+                if (pKey->pRoundRobinIndex) {
+                    (*pKey->pRoundRobinIndex)++; // counter specific for the key or region
+                    pChannel->RoundRobinIndex++; // common counter for the channel
+                }
                 pChannel->listeners.PostProcessNoteOn(key, vel);
             }
 

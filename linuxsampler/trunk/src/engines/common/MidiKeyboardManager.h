@@ -109,7 +109,7 @@ namespace LinuxSampler {
                 voice_steal_algo_oldestvoiceonkey,  ///< Try to kill the oldest voice from same key where the new voice should be spawned.
                 voice_steal_algo_oldestkey          ///< Try to kill the oldest voice from the oldest active key.
             };
-        
+
 
             /** @brief MIDI key runtime informations
              *
@@ -124,7 +124,7 @@ namespace LinuxSampler {
                 Pool<uint>::Iterator itSelf;    ///< hack to allow fast deallocation of the key from the list of active keys
                 RTList<Event>*  pEvents;        ///< Key specific events (only Note-on, Note-off and sustain pedal currently)
                 int             VoiceTheftsQueued; ///< Amount of voices postponed due to shortage of voices.
-                uint8_t         RoundRobinIndex; ///< For the round robin dimension: current articulation for this key, will be incremented for each note on
+                uint32_t*       pRoundRobinIndex; ///< For the round robin dimension: current articulation for this key, will be incremented for each note on
                 uint8_t         Velocity;       ///< Latest Note-on velocity for this key
                 unsigned long   NoteOnTime;     ///< Time for latest Note-on event for this key
 
@@ -135,7 +135,6 @@ namespace LinuxSampler {
                     ReleaseTrigger = false;
                     pEvents        = NULL;
                     VoiceTheftsQueued = 0;
-                    RoundRobinIndex = 0;
                 }
 
                 void Reset() {
@@ -183,6 +182,7 @@ namespace LinuxSampler {
             bool                  SostenutoPedal;           ///< true if sostenuto pedal is down
             int                   SostenutoKeys[128];
             int                   SostenutoKeyCount;
+            uint32_t              RoundRobinIndexes[128];
 
             MidiKeyboardManager() {
                 pMIDIKeyInfo = new MidiKey[128];
@@ -190,6 +190,14 @@ namespace LinuxSampler {
                 SoloMode     = false;
                 SustainPedal   = false;
                 SostenutoPedal = false;
+                for (int i = 0 ; i < 128 ; i++) {
+                    RoundRobinIndexes[i] = 0;
+
+                    // by default use one counter for each key (the
+                    // gig engine will change this to one counter per
+                    // region)
+                    pMIDIKeyInfo[i].pRoundRobinIndex = &RoundRobinIndexes[i];
+                }
             }
 
             virtual ~MidiKeyboardManager() {
