@@ -1,6 +1,6 @@
 /***************************************************************************
  *                                                                         *
- *   Copyright (C) 2008 - 2009 Andreas Persson                             *
+ *   Copyright (C) 2008 - 2010 Andreas Persson                             *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -189,7 +189,7 @@ namespace {
                 InitState();
             }
         } else {
-            Init(int(sampleRate), blockSize);
+            Init(int(sampleRate), blockSize, CHANNELS);
         }
         AudioEffectX::resume();
         dmsg(2, ("<--resume\n"));

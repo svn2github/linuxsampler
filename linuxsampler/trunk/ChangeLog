@@ -20,6 +20,9 @@ Version CVS HEAD (?)
   * Host plugins:
     - AU bugfix: failed to destroy its audio/MIDI devices
     - Listen to all interfaces on Mac OS X (INADDR_ANY)
+    - VST bugfix: If the host called resume() before and after
+      changing sample rate or block size, the number of channels was
+      incorrectly set to two. This caused silence in Cubase 5.
 
   * MIDI driver:
     - ALSA MIDI driver supports now "NAME" device parameter, for overriding

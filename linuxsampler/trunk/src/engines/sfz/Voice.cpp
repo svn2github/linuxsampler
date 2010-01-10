@@ -3,8 +3,8 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 - 2009 Christian Schoenebeck                       *
- *   Copyright (C) 2009 Grigor Iliev                                       *
+ *   Copyright (C) 2005-2008 Christian Schoenebeck                         *
+ *   Copyright (C) 2009-2010 Christian Schoenebeck and Grigor Iliev        *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -68,7 +68,7 @@ namespace LinuxSampler { namespace sfz {
         RegionInfo ri;
         ri.UnityNote = pRegion->pitch_keycenter;
         ri.FineTune  = pRegion->tune;
-        ri.Pan       = pRegion->pan;
+        ri.Pan       = int(pRegion->pan * 0.63); // convert from -100..100 to -64..63
         ri.SampleStartOffset = 0; // TODO: 
 
         ri.EG1PreAttack        = pRegion->ampeg_start * 10;

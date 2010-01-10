@@ -3,8 +3,8 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003,2004 by Benno Senoner and Christian Schoenebeck    *
- *   Copyright (C) 2005-2009 Christian Schoenebeck                         *
- *   Copyright (C) 2009 Grigor Iliev                                       *
+ *   Copyright (C) 2005-2008 Christian Schoenebeck                         *
+ *   Copyright (C) 2009-2010 Christian Schoenebeck and Grigor Iliev        *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -51,7 +51,7 @@ namespace LinuxSampler {
         if (pLFO2) delete pLFO2;
         if (pLFO3) delete pLFO3;
     }
-    
+
     /**
      *  Resets voice variables. Should only be called if rendering process is
      *  suspended / not running.
@@ -184,13 +184,13 @@ namespace LinuxSampler {
             EGInfo egInfo = CalculateEG1ControllerInfluence(eg1controllervalue);
 
             EG1.trigger (
-                RgnInfo.EG1PreAttack,
+                uint(RgnInfo.EG1PreAttack),
                 RgnInfo.EG1Attack * egInfo.Attack,
                 RgnInfo.EG1Hold,
                 RgnInfo.EG1Decay1 * egInfo.Decay * velrelease,
                 RgnInfo.EG1Decay2 * egInfo.Decay * velrelease,
                 RgnInfo.EG1InfiniteSustain,
-                RgnInfo.EG1Sustain,
+                uint(RgnInfo.EG1Sustain),
                 RgnInfo.EG1Release * egInfo.Release * velrelease,
                 velocityAttenuation,
                 GetEngine()->SampleRate / CONFIG_DEFAULT_SUBFRAGMENT_SIZE
@@ -224,13 +224,13 @@ namespace LinuxSampler {
             EGInfo egInfo = CalculateEG2ControllerInfluence(eg2controllervalue);
 
             EG2.trigger (
-                RgnInfo.EG2PreAttack,
+                uint(RgnInfo.EG2PreAttack),
                 RgnInfo.EG2Attack * egInfo.Attack,
                 false,
                 RgnInfo.EG2Decay1 * egInfo.Decay * velrelease,
                 RgnInfo.EG2Decay2 * egInfo.Decay * velrelease,
                 RgnInfo.EG2InfiniteSustain,
-                RgnInfo.EG2Sustain,
+                uint(RgnInfo.EG2Sustain),
                 RgnInfo.EG2Release * egInfo.Release * velrelease,
                 velocityAttenuation,
                 GetEngine()->SampleRate / CONFIG_DEFAULT_SUBFRAGMENT_SIZE
@@ -474,7 +474,7 @@ namespace LinuxSampler {
             i = iSubFragmentEnd;
         }
     }
-    
+
     /**
      * Process given list of MIDI control change and pitch bend events for
      * the given time.
