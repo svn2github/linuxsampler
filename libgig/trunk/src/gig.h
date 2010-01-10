@@ -2,7 +2,7 @@
  *                                                                         *
  *   libgig - C++ cross-platform Gigasampler format file access library    *
  *                                                                         *
- *   Copyright (C) 2003-2009 by Christian Schoenebeck                      *
+ *   Copyright (C) 2003-2010 by Christian Schoenebeck                      *
  *                              <cuse@users.sourceforge.net>               *
  *                                                                         *
  *   This library is free software; you can redistribute it and/or modify  *
@@ -31,7 +31,6 @@
 # define LIST_TYPE_3EWL	0x3365776C
 # define LIST_TYPE_3GRI	0x33677269
 # define LIST_TYPE_3GNL	0x33676E6C
-# define CHUNK_ID_SMPL	0x736D706C
 # define CHUNK_ID_3GIX	0x33676978
 # define CHUNK_ID_3EWA	0x33657761
 # define CHUNK_ID_3LNK	0x336C6E6B
@@ -45,7 +44,6 @@
 # define LIST_TYPE_3EWL	0x6C776533
 # define LIST_TYPE_3GRI	0x69726733
 # define LIST_TYPE_3GNL	0x6C6E6733
-# define CHUNK_ID_SMPL	0x6C706D73
 # define CHUNK_ID_3GIX	0x78696733
 # define CHUNK_ID_3EWA	0x61776533
 # define CHUNK_ID_3LNK	0x6B6E6C33

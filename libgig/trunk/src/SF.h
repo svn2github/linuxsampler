@@ -2,7 +2,7 @@
  *                                                                         *
  *   libsf2 - C++ cross-platform SF2 format file access library            *
  *                                                                         *
- *   Copyright (C) 2009 by Grigor Iliev  <grigor@grigoriliev.com>          *
+ *   Copyright (C) 2009-2010 by Grigor Iliev  <grigor@grigoriliev.com>     *
  *                                                                         *
  *   This library is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -28,55 +28,39 @@
 #include <vector>
 
 
-#if WORDS_BIGENDIAN
-#define ENDIAN_SWAP(x) \
-        ( (x>>24) | ((x<<8) & 0x00FF0000) | ((x>>8) & 0x0000FF00) | (x<<24) )
-#else
-#define ENDIAN_SWAP(x) (x)
-#endif
-
-#define RIFF_ID(x) ENDIAN_SWAP( (*((uint32_t*) x)) )
+#define RIFF_ID(x) (*((uint32_t*) x))
 
 
-#define RIFF_TYPE_SF2	RIFF_ID("sfbk")
+#define RIFF_TYPE_SF2   RIFF_ID("sfbk")
 
 // Level 0
-#define LIST_TYPE_INFO	RIFF_ID("INFO")
-#define LIST_TYPE_SDTA	RIFF_ID("sdta")
-#define LIST_TYPE_PDTA	RIFF_ID("pdta")
+#define LIST_TYPE_SDTA  RIFF_ID("sdta")
+#define LIST_TYPE_PDTA  RIFF_ID("pdta")
 
 // Level 1
 //<INFO-list>
-#define CHUNK_ID_IFIL	RIFF_ID("ifil")
-#define CHUNK_ID_ISNG	RIFF_ID("isng")
-#define CHUNK_ID_INAM	RIFF_ID("INAM")
-#define CHUNK_ID_IROM	RIFF_ID("irom")
-#define CHUNK_ID_IVER	RIFF_ID("iver")
-#define CHUNK_ID_ICRD	RIFF_ID("ICRD")
-#define CHUNK_ID_IENG	RIFF_ID("IENG")
-#define CHUNK_ID_IPRD	RIFF_ID("IPRD")
-#define CHUNK_ID_ICOP	RIFF_ID("ICOP")
-#define CHUNK_ID_ICMT	RIFF_ID("ICMT")
-#define CHUNK_ID_ISFT	RIFF_ID("ISFT")
+#define CHUNK_ID_IFIL   RIFF_ID("ifil")
+#define CHUNK_ID_ISNG   RIFF_ID("isng")
+#define CHUNK_ID_IROM   RIFF_ID("irom")
+#define CHUNK_ID_IVER   RIFF_ID("iver")
 
 //<sdta-list>
-#define CHUNK_ID_SMPL	RIFF_ID("smpl")
-#define CHUNK_ID_SM24	RIFF_ID("sm24")
+#define CHUNK_ID_SM24   RIFF_ID("sm24")
 
 //<pdta-list>
-#define CHUNK_ID_PHDR	RIFF_ID("phdr")
-#define CHUNK_ID_PBAG	RIFF_ID("pbag")
-#define CHUNK_ID_PMOD	RIFF_ID("pmod")
-#define CHUNK_ID_PGEN	RIFF_ID("pgen")
-#define CHUNK_ID_INST	RIFF_ID("inst")
-#define CHUNK_ID_IBAG	RIFF_ID("ibag")
-#define CHUNK_ID_IMOD	RIFF_ID("imod")
-#define CHUNK_ID_IGEN	RIFF_ID("igen")
-#define CHUNK_ID_SHDR	RIFF_ID("shdr")
+#define CHUNK_ID_PHDR   RIFF_ID("phdr")
+#define CHUNK_ID_PBAG   RIFF_ID("pbag")
+#define CHUNK_ID_PMOD   RIFF_ID("pmod")
+#define CHUNK_ID_PGEN   RIFF_ID("pgen")
+#define CHUNK_ID_INST   RIFF_ID("inst")
+#define CHUNK_ID_IBAG   RIFF_ID("ibag")
+#define CHUNK_ID_IMOD   RIFF_ID("imod")
+#define CHUNK_ID_IGEN   RIFF_ID("igen")
+#define CHUNK_ID_SHDR   RIFF_ID("shdr")
 
 /** SoundFont specific classes and definitions */
 namespace sf2 {
-  
+
     static uint NONE = 0x1ffffff;
 
     typedef struct _PresetBag {
@@ -97,8 +81,13 @@ namespace sf2 {
     } ModList;
 
     typedef struct _RangesType {
+        #if WORDS_BIGENDIAN
+        uint8_t byHi;
+        uint8_t byLo;
+        #else
         uint8_t byLo;
         uint8_t byHi;
+        #endif
     } RangesType;
 
     typedef union _GenAmountType {
@@ -221,10 +210,10 @@ namespace sf2 {
     class ModulatorItem {
         public:
             Modulator    ModSrcOper;
-	    SFGenerator  ModDestOper;
-	    uint16_t     ModAmount;
-	    Modulator    ModAmtSrcOper;
-	    SFTransform  ModTransOper;
+            SFGenerator  ModDestOper;
+            uint16_t     ModAmount;
+            Modulator    ModAmtSrcOper;
+            SFTransform  ModTransOper;
 
             ModulatorItem(ModList& mod);
     };
@@ -367,9 +356,9 @@ namespace sf2 {
             int startloopAddrsOffset, startloopAddrsCoarseOffset, endloopAddrsOffset, endloopAddrsCoarseOffset;
 
             int modEnvToPitch, modLfoToPitch, modEnvToFilterFc, modLfoToFilterFc, modLfoToVolume, freqModLfo;
-            double delayModLfo;
+            int delayModLfo;
             int vibLfoToPitch, freqVibLfo;
-            double delayVibLfo;
+            int delayVibLfo;
 
             uint exclusiveClass; // exclusive group
 
@@ -427,19 +416,19 @@ namespace sf2 {
             friend class Preset;
 
         private:
-            double EG1PreAttackDelay; // in timecents
-            double EG1Attack; // in timecents
-            double EG1Hold; // in timecents
-            double EG1Decay; // in timecents
-            double EG1Sustain; // Sustain value of the sample amplitude EG (in permilles)
-            double EG1Release; // in timecents
+            int EG1PreAttackDelay; // in timecents
+            int EG1Attack; // in timecents
+            int EG1Hold; // in timecents
+            int EG1Decay; // in timecents
+            int EG1Sustain; // Sustain value of the sample amplitude EG (in permilles)
+            int EG1Release; // in timecents
 
-            double EG2PreAttackDelay; // in timecents
-            double EG2Attack; // in timecents
-            double EG2Hold; // in timecents
-            double EG2Decay; // in timecents
-            double EG2Sustain; // Sustain value of the filter cutoff EG (in permilles)
-            double EG2Release; // in timecents
+            int EG2PreAttackDelay; // in timecents
+            int EG2Attack; // in timecents
+            int EG2Hold; // in timecents
+            int EG2Decay; // in timecents
+            int EG2Sustain; // Sustain value of the filter cutoff EG (in permilles)
+            int EG2Release; // in timecents
 
             Instrument* pParentInstrument;
 
@@ -457,7 +446,7 @@ namespace sf2 {
 
             sf2::File* GetFile() { return pFile; }
             String     GetName() { return Name; }
-            
+
             int      GetRegionCount();
             Region*  GetRegion(int idx);
 
@@ -476,7 +465,7 @@ namespace sf2 {
             void DeleteRegion(Region* pRegion);
         //private:
             uint16_t InstBagNdx;
-            
+
             /**
              * Load all regions (zones, bags) in the range idx1 - idx2
              */

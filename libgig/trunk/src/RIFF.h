@@ -2,7 +2,7 @@
  *                                                                         *
  *   libgig - C++ cross-platform Gigasampler format file access library    *
  *                                                                         *
- *   Copyright (C) 2003-2009 by Christian Schoenebeck                      *
+ *   Copyright (C) 2003-2010 by Christian Schoenebeck                      *
  *                              <cuse@users.sourceforge.net>               *
  *                                                                         *
  *   This library is free software; you can redistribute it and/or modify  *
@@ -77,10 +77,34 @@ typedef unsigned __int64 uint64_t;
 # define CHUNK_ID_RIFF	0x52494646
 # define CHUNK_ID_RIFX	0x52494658
 # define CHUNK_ID_LIST	0x4C495354
+
+# define LIST_TYPE_INFO	0x494E464F
+# define CHUNK_ID_ICMT	0x49434D54
+# define CHUNK_ID_ICOP	0x49434F50
+# define CHUNK_ID_ICRD	0x49435244
+# define CHUNK_ID_IENG	0x49454E47
+# define CHUNK_ID_INAM	0x494E414D
+# define CHUNK_ID_IPRD	0x49505244
+# define CHUNK_ID_ISFT	0x49534654
+
+# define CHUNK_ID_SMPL	0x736D706C
+
 #else  // little endian
 # define CHUNK_ID_RIFF	0x46464952
 # define CHUNK_ID_RIFX	0x58464952
 # define CHUNK_ID_LIST	0x5453494C
+
+# define LIST_TYPE_INFO	0x4F464E49
+# define CHUNK_ID_ICMT	0x544D4349
+# define CHUNK_ID_ICOP	0x504F4349
+# define CHUNK_ID_ICRD	0x44524349
+# define CHUNK_ID_IENG	0x474E4549
+# define CHUNK_ID_INAM	0x4D414E49
+# define CHUNK_ID_IPRD	0x44525049
+# define CHUNK_ID_ISFT	0x54465349
+
+# define CHUNK_ID_SMPL	0x6C706D73
+
 #endif // WORDS_BIGENDIAN
 
 #define CHUNK_HEADER_SIZE	8

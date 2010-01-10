@@ -2,9 +2,8 @@
  *                                                                         *
  *   libsf2 - C++ cross-platform SF2 format file access library            *
  *                                                                         *
- *   Copyright (C) 2009 Grigor Iliev  <grigor@grigoriliev.com>             *
- *   Copyright (C) 2009 Christian Schoenebeck                              *
- *   Copyright (C) 2009 Andreas Persson                                    *
+ *   Copyright (C) 2009-2010 Grigor Iliev  <grigor@grigoriliev.com>,       *
+ *    Christian Schoenebeck and Andreas Persson                            *
  *                                                                         *
  *   This library is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -616,7 +615,7 @@ namespace sf2 {
         if (pPresetRegion == NULL || pPresetRegion->freqModLfo == NONE) return ToHz(freqModLfo);
         return ToHz(pPresetRegion->freqModLfo + freqModLfo);
     }
-    
+
     double Region::GetDelayModLfo(Region* pPresetRegion) {
         if (pPresetRegion == NULL || pPresetRegion->delayModLfo == NONE) return ToSeconds(delayModLfo);
         return ToSeconds(pPresetRegion->delayModLfo + delayModLfo);
@@ -682,7 +681,6 @@ namespace sf2 {
     }
 
     Instrument::~Instrument() {
-        
     }
 
     Region* Instrument::CreateRegion() {
@@ -771,7 +769,7 @@ namespace sf2 {
             }
 
             Region* reg = CreateRegion();
-            
+
             for (int j = gIdx1; j < gIdx2; j++) {
                 reg->SetGenerator(pFile, pFile->InstGenLists[j]);
                 // TODO: ignore generators following a sampleID generator
@@ -806,7 +804,6 @@ namespace sf2 {
     }
 
     Preset::~Preset() {
-        
     }
 
     Region* Preset::CreateRegion() {
@@ -1074,7 +1071,7 @@ namespace sf2 {
             if (Samples[i]) delete (Samples[i]);
         }
     }
-    
+
     int File::GetPresetCount() {
         return Presets.size() - 1; // exclude terminal preset (EOP)
     }
@@ -1185,8 +1182,8 @@ namespace sf2 {
      * that the size is given in bytes! You get the number of actually cached
      * samples by dividing it by the frame size of the sample:
      * @code
-     * 	buffer_t buf       = pSample->LoadSampleData(acquired_samples);
-     * 	long cachedsamples = buf.Size / pSample->FrameSize;
+     *  buffer_t buf       = pSample->LoadSampleData(acquired_samples);
+     *  long cachedsamples = buf.Size / pSample->FrameSize;
      * @endcode
      *
      * @param SampleCount - number of sample points to load into RAM
@@ -1230,8 +1227,8 @@ namespace sf2 {
      * that the size is given in bytes! You get the number of actually cached
      * samples by dividing it by the frame size of the sample:
      * @code
-     * 	buffer_t buf       = pSample->LoadSampleDataWithNullSamplesExtension(acquired_samples, null_samples);
-     * 	long cachedsamples = buf.Size / pSample->FrameSize;
+     *  buffer_t buf       = pSample->LoadSampleDataWithNullSamplesExtension(acquired_samples, null_samples);
+     *  long cachedsamples = buf.Size / pSample->FrameSize;
      * @endcode
      * The method will add \a NullSamplesCount silence samples past the
      * official buffer end (this won't affect the 'Size' member of the
@@ -1337,7 +1334,7 @@ namespace sf2 {
         if (SampleCount == 0) return 0;
         long pos = GetPos();
         if (pos + SampleCount > GetTotalFrameCount()) SampleCount = GetTotalFrameCount() - pos;
-        
+
         if (GetFrameSize() / GetChannelCount() == 3 /* 24 bit */) {
             uint8_t* pBuf = (uint8_t*)pBuffer;
             if (SampleType == MONO_SAMPLE || SampleType == ROM_MONO_SAMPLE) {

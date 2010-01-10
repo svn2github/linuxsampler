@@ -2,7 +2,7 @@
  *                                                                         *
  *   libgig - C++ cross-platform Gigasampler format file access library    *
  *                                                                         *
- *   Copyright (C) 2003-2009 by Christian Schoenebeck                      *
+ *   Copyright (C) 2003-2010 by Christian Schoenebeck                      *
  *                              <cuse@users.sourceforge.net>               *
  *                                                                         *
  *   This library is free software; you can redistribute it and/or modify  *
@@ -28,7 +28,6 @@
 
 #if WORDS_BIGENDIAN
 # define RIFF_TYPE_DLS	0x444C5320
-# define LIST_TYPE_INFO	0x494E464F
 # define LIST_TYPE_WVPL	0x7776706C
 # define LIST_TYPE_DWPL 0x6477706C  ///< Seen on some files instead of a wvpl list chunk.
 # define LIST_TYPE_WAVE	0x77617665
@@ -42,17 +41,10 @@
 # define CHUNK_ID_IARL	0x4941524C
 # define CHUNK_ID_IART	0x49415254
 # define CHUNK_ID_ICMS	0x49434D53
-# define CHUNK_ID_ICMT	0x49434D54
-# define CHUNK_ID_ICOP	0x49434F50
-# define CHUNK_ID_ICRD	0x49435244
-# define CHUNK_ID_IENG	0x49454E47
 # define CHUNK_ID_IGNR	0x49474E52
 # define CHUNK_ID_IKEY	0x494B4559
 # define CHUNK_ID_IMED	0x494D4544
-# define CHUNK_ID_INAM	0x494E414D
-# define CHUNK_ID_IPRD	0x49505244
 # define CHUNK_ID_ISBJ	0x4953424A
-# define CHUNK_ID_ISFT	0x49534654
 # define CHUNK_ID_ISRC	0x49535243
 # define CHUNK_ID_ISRF	0x49535246
 # define CHUNK_ID_ITCH	0x49544348
@@ -70,7 +62,6 @@
 # define CHUNK_ID_ART2	0x61727432
 #else  // little endian
 # define RIFF_TYPE_DLS	0x20534C44
-# define LIST_TYPE_INFO	0x4F464E49
 # define LIST_TYPE_WVPL	0x6C707677
 # define LIST_TYPE_DWPL 0x6C707764  ///< Seen on some files instead of a wvpl list chunk.
 # define LIST_TYPE_WAVE	0x65766177
@@ -84,17 +75,10 @@
 # define CHUNK_ID_IARL	0x4C524149
 # define CHUNK_ID_IART	0x54524149
 # define CHUNK_ID_ICMS	0x534D4349
-# define CHUNK_ID_ICMT	0x544D4349
-# define CHUNK_ID_ICOP	0x504F4349
-# define CHUNK_ID_ICRD	0x44524349
-# define CHUNK_ID_IENG	0x474E4549
 # define CHUNK_ID_IGNR	0x524E4749
 # define CHUNK_ID_IKEY	0x59454B49
 # define CHUNK_ID_IMED	0x44454D49
-# define CHUNK_ID_INAM	0x4D414E49
-# define CHUNK_ID_IPRD	0x44525049
 # define CHUNK_ID_ISBJ	0x4A425349
-# define CHUNK_ID_ISFT	0x54465349
 # define CHUNK_ID_ISRC	0x43525349
 # define CHUNK_ID_ISRF	0x46525349
 # define CHUNK_ID_ITCH	0x48435449
