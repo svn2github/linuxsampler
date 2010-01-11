@@ -3,6 +3,8 @@ Version CVS HEAD (?)
   * General changes:
     - Refactoring: moved the independent code from
       the Gigasampler format engine to base classes
+    - command line option '--profile' is currently disabled, since the
+      respective profiling code is currently broken
 
   * Gigasampler format engine:
     - implemented the "round robin keyboard" dimension
@@ -11,10 +13,10 @@ Version CVS HEAD (?)
     - made round robin use a counter for each region instead of each
       key
 
-  * SFZ format engine
+  * SFZ format engine:
     - Initial implementation (not usable yet)
 
-  * SoundFont format engine
+  * SoundFont format engine:
     - Initial implementation (not usable yet)
 
   * Host plugins:

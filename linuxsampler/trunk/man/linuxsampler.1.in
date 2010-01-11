@@ -1,4 +1,4 @@
-.TH "linuxsampler" "1" "15 Oct 2007" "linuxsampler @VERSION@" "User Manuals"
+.TH "linuxsampler" "1" "11 Jan 2010" "linuxsampler @VERSION@" "User Manuals"
 .SH NAME
 linuxsampler \- modular, streaming capable sampler
 .SH SYNOPSIS
@@ -16,6 +16,8 @@ Print command line help and exit.
 .IP "--version"
 Print version information and exit.
 .IP "--profile"
+This option is currently not supported anymore, since the respective
+profiling code is currently broken. Original behavior:
 Output benchmark messages on the console. This reflects the current
 efficiency as abstract BogoVoice count which is something like a
 theoretical limit of the amount of voices which can be rendered in the given

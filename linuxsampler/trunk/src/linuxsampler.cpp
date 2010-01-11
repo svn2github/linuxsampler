@@ -345,6 +345,9 @@ void parse_options(int argc, char **argv) {
                     break;
                 case 2: // --profile
                     profile = true;
+                    //FIXME: profiling code is currently broken!
+                    std::cerr << "Option '--profile' is currently not supported, since the profiling code is currently broken!"  << std::endl;
+                    exit(EXIT_FAILURE);
                     break;
                 case 3: // --no-tune
                     tune = false;
