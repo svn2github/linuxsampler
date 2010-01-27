@@ -114,8 +114,18 @@ LinuxSampler initialization completed. :-)
 	</screen>
 	Then there's definitely something wrong. :) So either create the mentioned
 	directory (in this case "/usr/local/lib/linuxsampler/plugins") manually or
-	recompile <application>LinuxSampler</application> in case you want it to use
-	another directory as plugins directory. Assuming you want it to use the directory "/usr/lib/linuxsampler/plugins" instead you could compile the sampler i.e. this way:
+	in case you want to use another directory as plugins directory (and you
+	have linuxsampler version 1.0.0.cvs3 or younger), you can simply override
+	the location where LinuxSampler shall look for plugins by setting the
+	environment variable LINUXSAMPLER_PLUGIN_DIR:
+	<screen>
+<prompt>bob@mybox ~ $</prompt> <command>export LINUXSAMPLER_PLUGIN_DIR="/usr/lib/linuxsampler/plugins"</command>
+<prompt>bob@mybox ~ $</prompt> <command>linuxsampler</command>
+	</screen>
+	or recompile <application>LinuxSampler</application> with another directory
+	as default plugins directory. Assuming you want it to use the directory
+	"/usr/lib/linuxsampler/plugins" instead you could compile the sampler i.e.
+	this way:
 	<screen>
 <prompt>bob@mybox ~/cvs/linuxsampler $</prompt> <command>./configure --enable-plugin-dir=/usr/lib/linuxsampler/plugins &amp;&amp; make</command>
 	</screen>
