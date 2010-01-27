@@ -1,6 +1,6 @@
 /***************************************************************************
  *                                                                         *
- *   Copyright (C) 2007 - 2009 Christian Schoenebeck                       *
+ *   Copyright (C) 2007 - 2010 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -101,13 +101,20 @@ namespace LinuxSampler {
     void InstrumentEditorFactory::LoadPlugins() {
         if (!bPluginsLoaded) {
             dmsg(1,("Loading instrument editor plugins..."));
+            // getenv() is available on Posix and Windows
+            char* pcPluginDir = getenv("LINUXSAMPLER_PLUGIN_DIR");
             #if defined(WIN32)
-            String dir = Sampler::GetInstallDir();
+            String installDir = Sampler::GetInstallDir();
+            String pluginDir;
+            if (pcPluginDir)
+                pluginDir = pcPluginDir;
+            if (pluginDir.empty())
+                pluginDir = installDir + "\\plugins";
 
             // Put the LS installation directory first in DLL search
             // path, so the plugin finds for example the bundled GTK
             // libraries before any other installed versions
-            if (!dir.empty()) {
+            if (!installDir.empty()) {
                 // The SetDllDirectory function is only available on
                 // XP and higher, so we call it dynamically
                 HMODULE k32 = GetModuleHandleA("kernel32.dll");
@@ -115,24 +122,29 @@ namespace LinuxSampler {
                     BOOL WINAPI (*setDllDirectory)(LPCSTR) =
                         (BOOL WINAPI (*)(LPCSTR))GetProcAddress(k32, "SetDllDirectoryA");
                     if (setDllDirectory) {
-                        setDllDirectory(dir.c_str());
+                        setDllDirectory(installDir.c_str());
                     }
                 }
             }
 
-            if (dir.empty() || !LoadPlugins(dir + "\\plugins")) {
+            if (pluginDir.empty() || !LoadPlugins(pluginDir)) {
                 if (!LoadPlugins(CONFIG_PLUGIN_DIR)) {
                     std::cerr << "Could not open instrument editor plugins "
-                              << "directory (" << dir << "\\plugins or "
-                              << CONFIG_PLUGIN_DIR << "), Error: "
+                              << "directory ('" << pluginDir << "' or '"
+                              << CONFIG_PLUGIN_DIR << "'), Error: "
                               << GetLastError() << std::endl;
                     return;
                 }
             }
             #else
-            if (!LoadPlugins(CONFIG_PLUGIN_DIR)) {
+            String dir;
+            if (pcPluginDir)
+                dir = pcPluginDir;
+            if (dir.empty())
+                dir = CONFIG_PLUGIN_DIR;
+            if (!LoadPlugins(dir)) {
                 std::cerr << "Could not open instrument editor plugins "
-                          << "directory (" << CONFIG_PLUGIN_DIR << "): "
+                          << "directory ('" << dir << "'): "
                           << strerror(errno) << std::endl;
                 return;
             }

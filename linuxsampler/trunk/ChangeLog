@@ -5,6 +5,10 @@ Version CVS HEAD (?)
       the Gigasampler format engine to base classes
     - command line option '--profile' is currently disabled, since the
       respective profiling code is currently broken
+    - Introduced support for optional environment variable
+      "LINUXSAMPLER_PLUGIN_DIR" which allows to override the directory
+      where the sampler shall look for instrument editor plugins
+      (patch by Luis Garrido, slightly modified).
 
   * Gigasampler format engine:
     - implemented the "round robin keyboard" dimension

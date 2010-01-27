@@ -1,4 +1,4 @@
-.TH "linuxsampler" "1" "11 Jan 2010" "linuxsampler @VERSION@" "User Manuals"
+.TH "linuxsampler" "1" "27 Jan 2010" "linuxsampler @VERSION@" "User Manuals"
 .SH NAME
 linuxsampler \- modular, streaming capable sampler
 .SH SYNOPSIS
@@ -48,6 +48,10 @@ create the instruments DB file and exit.
 Overrides the location of the database file, which the sampler shall use for
 its instruments database system
 (default: @config_default_instruments_db_file@).
+.SH ENVIRONMENT VARIABLES
+.IP "LINUXSAMPLER_PLUGIN_DIR"
+Allows to override the directory where LinuxSampler shall look for instrument
+editor plugins.
 .SH "SEE ALSO"
 qsampler(1)
 .SH "BUGS"
