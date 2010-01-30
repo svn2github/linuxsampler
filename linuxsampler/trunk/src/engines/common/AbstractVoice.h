@@ -3,8 +3,8 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003,2004 by Benno Senoner and Christian Schoenebeck    *
- *   Copyright (C) 2005-2009 Christian Schoenebeck                         *
- *   Copyright (C) 2009 Grigor Iliev                                       *
+ *   Copyright (C) 2005-2008 Christian Schoenebeck                         *
+ *   Copyright (C) 2009-2010 Christian Schoenebeck and Grigor Iliev        *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -31,6 +31,7 @@
 #include "../AbstractEngineChannel.h"
 #include "../common/LFOBase.h"
 #include "../EngineBase.h"
+#include "EG.h"
 #include "../gig/EGADSR.h"
 #include "../gig/EGDecay.h"
 #include "../gig/SmoothVolume.h"
@@ -133,9 +134,9 @@ namespace LinuxSampler {
             bool                        RAMLoop;            ///< If this voice has a loop defined which completely fits into the cached RAM part of the sample, in this case we handle the looping within the voice class, else if the loop is located in the disk stream part, we let the disk stream handle the looping
             unsigned long               MaxRAMPos;          ///< The upper allowed limit (not actually the end) in the RAM sample cache, after that point it's not safe to chase the interpolator another time over over the current cache position, instead we switch to disk then.
             uint                        Delay;              ///< Number of sample points the rendering process of this voice should be delayed (jitter correction), will be set to 0 after the first audio fragment cycle
-            gig::EGADSR                 EG1;                ///< Envelope Generator 1 (Amplification)
-            gig::EGADSR                 EG2;                ///< Envelope Generator 2 (Filter cutoff frequency)
-            gig::EGDecay                EG3;                ///< Envelope Generator 3 (Pitch)
+            EG*                         pEG1;               ///< Envelope Generator 1 (Amplification)
+            gig::EGADSR                 EG2;                ///< Envelope Generator 2 (Filter cutoff frequency) TODO: use common EG instead of gig
+            gig::EGDecay                EG3;                ///< Envelope Generator 3 (Pitch) TODO: use common EG instead?
             midi_ctrl                   VCFCutoffCtrl;
             midi_ctrl                   VCFResonanceCtrl;
             LFOUnsigned*                pLFO1;               ///< Low Frequency Oscillator 1 (Amplification)
@@ -189,6 +190,10 @@ namespace LinuxSampler {
 
             virtual PitchInfo CalculatePitchInfo(int PitchBend);
 
+            // TODO: cleanup the interface. The following two methods
+            // are maybe not neccessary after the TriggerEG1 method
+            // was added.
+
             /**
              * Get current value of EG1 controller.
              */
@@ -198,6 +203,14 @@ namespace LinuxSampler {
              * Calculate influence of EG1 controller on EG1's parameters.
              */
             virtual EGInfo CalculateEG1ControllerInfluence(double eg1ControllerValue) = 0;
+
+            // TODO: cleanup the interface. The velrelase and
+            // velocityAttenuation parameters are perhaps too gig
+            // specific.
+            /**
+             * Trigger the amplitude envelope generator.
+             */
+            virtual void TriggerEG1(const EGInfo& egInfo, double velrelease, double velocityAttenuation, uint sampleRate, uint8_t velocity) = 0;
 
             /**
              * Get current value of EG2 controller.

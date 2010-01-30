@@ -19,6 +19,9 @@ Version CVS HEAD (?)
 
   * SFZ format engine:
     - Initial implementation (not usable yet)
+    - added support for v2 multiple stage envelope generators
+    - added a fine-tuned v1 envelope generator instead of using the
+      one from the gig engine
 
   * SoundFont format engine:
     - Initial implementation (not usable yet)

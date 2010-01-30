@@ -2,8 +2,8 @@
  *                                                                         *
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
- *   Copyright (C) 2008-2009 Anders Dahnielson <anders@dahnielson.com>     *
- *   Copyright (C) 2009 Grigor Iliev                                       *
+ *   Copyright (C) 2008 Anders Dahnielson <anders@dahnielson.com>          *
+ *   Copyright (C) 2009 - 2010 Anders Dahnielson and Grigor Iliev          *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -32,13 +32,14 @@
 
 #include "../common/SampleFile.h"
 #include "../common/SampleManager.h"
+#include "../../common/ArrayList.h"
 
 #define TRIGGER_ATTACK  ((unsigned char) (1 << 0)) // 0x01
 #define TRIGGER_RELEASE ((unsigned char) (1 << 1)) // 0x02
 #define TRIGGER_FIRST   ((unsigned char) (1 << 2)) // 0x04
 #define TRIGGER_LEGATO  ((unsigned char) (1 << 3)) // 0x08
 
-namespace sfz 
+namespace sfz
 {
     // Forward declarations
     class Articulation;
@@ -46,7 +47,7 @@ namespace sfz
     class Group;
     class Instrument;
     class File;
-    
+
     class Sample : public LinuxSampler::SampleFileBase<Region> {
         public:
             Sample(String File, bool DontClose = false) : LinuxSampler::SampleFileBase<Region>(File, DontClose) { }
@@ -214,6 +215,28 @@ namespace sfz
         virtual ~Articulation();
     };
 
+    class EGNode
+    {
+    public:
+        float time;
+        float level;
+        float shape;
+        float curve;
+        EGNode();
+    };
+
+    class EG
+    {
+    public:
+        LinuxSampler::ArrayList<EGNode> node;
+        int sustain;
+        int loop;
+        int loop_count;
+        float amplitude;
+        float cutoff;
+        EG();
+    };
+
     /////////////////////////////////////////////////////////////
     // class Definition
 
@@ -331,6 +354,9 @@ namespace sfz
         float ampeg_delay, ampeg_start, ampeg_attack, ampeg_hold, ampeg_decay, ampeg_sustain, ampeg_release;
         float fileg_delay, fileg_start, fileg_attack, fileg_hold, fileg_decay, fileg_sustain, fileg_release;
         float pitcheg_delay, pitcheg_start, pitcheg_attack, pitcheg_hold, pitcheg_decay, pitcheg_sustain, pitcheg_release;
+
+        // envelope generators
+        LinuxSampler::ArrayList<EG> eg;
     };
 
     /////////////////////////////////////////////////////////////
@@ -459,6 +485,8 @@ namespace sfz
         void  push_opcode(std::string token);
         int   parseInt(std::string value);
         float parseFloat(std::string value);
+        EG& eg(int x);
+        EGNode& egnode(int x, int y);
 
         std::string currentDir;
         /// Pointer to the Instrument belonging to this file

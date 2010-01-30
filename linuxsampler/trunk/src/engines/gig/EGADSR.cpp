@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 - 2009 Christian Schoenebeck                       *
+ *   Copyright (C) 2005 - 2010 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -27,18 +27,9 @@
 
 namespace LinuxSampler { namespace gig {
 
-    EGADSR::EGADSR() {
-        enterEndStage();
-        Level = 0.0;
-        CalculateFadeOutCoeff(CONFIG_EG_MIN_RELEASE_TIME, 44100.0); // even if the sample rate will be 192kHz it won't hurt at all
-    }
-
-    void EGADSR::CalculateFadeOutCoeff(float FadeOutTime, float SampleRate) {
-        const float killSteps = FadeOutTime * SampleRate / CONFIG_DEFAULT_SUBFRAGMENT_SIZE;
-        FadeOutCoeff = -1.0f / killSteps;
-    }
-
     void EGADSR::update(event_t Event, uint SampleRate) {
+        if (atEnd(Event)) return;
+
         if (Event == event_hold_end) HoldAttack = false;
 
         switch (Stage) {
@@ -149,13 +140,6 @@ namespace LinuxSampler { namespace gig {
                         break;
                 }
                 break;
-            case stage_fadeout:
-                switch (Event) {
-                    case event_stage_end:
-                        enterEndStage();
-                        break;
-                }
-                break;
         }
     }
 
@@ -180,6 +164,7 @@ namespace LinuxSampler { namespace gig {
         ReleaseCoeff3 = ExpOffset * (1 - ReleaseCoeff2);
         ReleaseLevel2 = 0.25 * invVolume;
 
+        enterFirstStage();
         enterAttackStage(PreAttack, AttackTime, SampleRate);
     }
 
@@ -282,33 +267,6 @@ namespace LinuxSampler { namespace gig {
         Coeff     = ReleaseCoeff2;
         Offset    = ReleaseCoeff3;
         if (StepsLeft <= 0) enterFadeOutStage();
-    }
-
-    void EGADSR::enterFadeOutStage() {
-        Stage     = stage_fadeout;
-        Segment   = segment_lin;
-        StepsLeft = int(Level / (-FadeOutCoeff));
-        Coeff     = FadeOutCoeff;
-        if (StepsLeft <= 0) enterEndStage();
-    }
-
-    void EGADSR::enterFadeOutStage(int maxFadeOutSteps) {
-        Stage     = stage_fadeout;
-        Segment   = segment_lin;
-        StepsLeft = int(Level / (-FadeOutCoeff));
-        if (StepsLeft > maxFadeOutSteps) {
-            StepsLeft = maxFadeOutSteps;
-            Coeff = -Level / maxFadeOutSteps;
-        } else {
-            Coeff = FadeOutCoeff;
-        }
-        if (StepsLeft <= 0) enterEndStage();
-    }
-
-    void EGADSR::enterEndStage() {
-        Stage   = stage_end;
-        Segment = segment_end;
-        Level   = 0;
     }
 
 }} // namespace LinuxSampler::gig

@@ -17,25 +17,24 @@
  *                                                                         *
  *   You should have received a copy of the GNU General Public License     *
  *   along with this program; if not, write to the Free Software           *
- *   Foundation, Inc., 59 Temple Place, Suite 330, Boston,                 *
- *   MA  02111-1307  USA                                                   *
+ *   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston,                *
+ *   MA  02110-1301  USA                                                   *
  ***************************************************************************/
 
-#ifndef __LS_GIG_EGADSR_H__
-#define __LS_GIG_EGADSR_H__
+#ifndef LS_SFZ_EGADSR_H
+#define LS_SFZ_EGADSR_H
 
 #include "../common/EG.h"
 
-namespace LinuxSampler { namespace gig {
+namespace LinuxSampler { namespace sfz {
 
 /**
  * ADSR Envelope Generator
  *
- * Envelope Generator with stage 'Attack', 'Attack_Hold', 'Decay_1',
- * 'Decay_2', 'Sustain' and 'Release' for modulating arbitrary synthesis
- * parameters.
+ * SFZ v1 envelope generator with 'Attack', 'Hold', 'Decay', 'Sustain'
+ * and 'Release' stages for modulating arbitrary synthesis parameters.
  */
-class EGADSR : public EG {
+class EGADSR : public ::LinuxSampler::EG {
     public:
 
         /**
@@ -44,27 +43,14 @@ class EGADSR : public EG {
          * @param PreAttack       - Preattack value for the envelope
          *                          (0 - 1000 permille)
          * @param AttackTime      - Attack time for the envelope
-         *                          (0.000 - 60.000s)
-         * @param HoldAttack      - if true, Decay1 will be postponed until the
-         *                          sample reached the sample loop start.
-         * @param Decay1Time      - Decay1 time of the sample amplitude EG
-         *                          (0.000 - 60.000s)
-         * @param Decay2Time      - only if !InfiniteSustain: 2nd decay stage
-         *                          time of the sample amplitude EG
-         *                          (0.000 - 60.000s)
-         * @param InfiniteSustain - if true, instead of going into Decay2
-         *                          stage, Decay1 level will be hold until note
-         *                          will be released
+         * @param HoldAttack      - TODO
+         * @param DecayTime       - Decay1 time of the sample amplitude EG
          * @param SustainLevel    - Sustain level of the sample amplitude EG
          *                          (0 - 1000 permille)
          * @param ReleaseTIme     - Release time for the envelope
-         *                          (0.000 - 60.000s)
-         * @param Volume          - volume the sample will be played at
-         *                          (0.0 - 1.0) - used when calculating the
-         *                          exponential curve parameters.
          * @param SampleRate      - sample rate of used audio output driver
          */
-        void trigger(uint PreAttack, float AttackTime, bool HoldAttack, float Decay1Time, double Decay2Time, bool InfiniteSustain, uint SustainLevel, float ReleaseTime, float Volume, uint SampleRate); //FIXME: we should better use 'float' for SampleRate
+        void trigger(uint PreAttack, float AttackTime, bool HoldAttack, float DecayTime, uint SustainLevel, float ReleaseTime, uint SampleRate); //FIXME: we should better use 'float' for SampleRate
 
         /**
          * Should be called to inform the EG about an external event and
@@ -72,6 +58,7 @@ class EGADSR : public EG {
          * the envelope's transition to the respective next stage.
          *
          * @param Event        - what happened
+         * @param SampleRate   - sample rate of used audio output driver
          */
         void update(event_t Event, uint SampleRate);
 
@@ -80,42 +67,26 @@ class EGADSR : public EG {
         enum stage_t {
             stage_attack,
             stage_attack_hold,
-            stage_decay1_part1,
-            stage_decay1_part2,
-            stage_decay2,
+            stage_decay,
             stage_sustain,
-            stage_release_part1,
-            stage_release_part2,
+            stage_release,
             stage_fadeout,
             stage_end
         };
 
         stage_t   Stage;
         bool      HoldAttack;
-        bool      InfiniteSustain;
-        float     Decay1Time;
-        float     Decay1Level2;
-        float     Decay1Slope;
-        float     Decay2Time;
+        float     DecayTime;
         float     SustainLevel;
-        float     ReleaseCoeff;
-        float     ReleaseCoeff2;
-        float     ReleaseCoeff3;
-        float     ReleaseLevel2;
         float     ReleaseSlope;
-        float     invVolume;
-        float     ExpOffset;
 
         void enterAttackStage(const uint PreAttack, const float AttackTime, const uint SampleRate);
         void enterAttackHoldStage();
-        void enterDecay1Part1Stage(const uint SampleRate);
-        void enterDecay1Part2Stage(const uint SampleRate);
-        void enterDecay2Stage(const uint SampleRate);
+        void enterDecayStage(const uint SampleRate);
         void enterSustainStage();
-        void enterReleasePart1Stage();
-        void enterReleasePart2Stage();
+        void enterReleaseStage();
 };
 
-}} // namespace LinuxSampler::gig
+}} // namespace LinuxSampler::sfz
 
-#endif // __LS_GIG_EGADSR_H__
+#endif // LS_SFZ_EGADSR_H

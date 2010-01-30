@@ -11,4 +11,6 @@ liblinuxsamplersfzengine_la_SOURCES = \
 	EngineChannel.cpp EngineChannel.h \
 	Engine.cpp Engine.h \
 	Voice.cpp Voice.h \
-	Stream.cpp Stream.h
+	Stream.cpp Stream.h \
+	EGADSR.cpp EGADSR.h \
+	EG.cpp EG.h

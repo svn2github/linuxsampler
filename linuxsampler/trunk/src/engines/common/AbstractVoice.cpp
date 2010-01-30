@@ -183,18 +183,7 @@ namespace LinuxSampler {
             // calculate influence of EG1 controller on EG1's parameters
             EGInfo egInfo = CalculateEG1ControllerInfluence(eg1controllervalue);
 
-            EG1.trigger (
-                uint(RgnInfo.EG1PreAttack),
-                RgnInfo.EG1Attack * egInfo.Attack,
-                RgnInfo.EG1Hold,
-                RgnInfo.EG1Decay1 * egInfo.Decay * velrelease,
-                RgnInfo.EG1Decay2 * egInfo.Decay * velrelease,
-                RgnInfo.EG1InfiniteSustain,
-                uint(RgnInfo.EG1Sustain),
-                RgnInfo.EG1Release * egInfo.Release * velrelease,
-                velocityAttenuation,
-                GetEngine()->SampleRate / CONFIG_DEFAULT_SUBFRAGMENT_SIZE
-            );
+            TriggerEG1(egInfo, velrelease, velocityAttenuation, GetEngine()->SampleRate, itNoteOnEvent->Param.Note.Velocity);
         }
 
 #ifdef CONFIG_INTERPOLATE_VOLUME
@@ -207,7 +196,7 @@ namespace LinuxSampler {
         else
     #else
         {
-            float finalVolume = pEngineChannel->MidiVolume * crossfadeVolume * EG1.getLevel();
+            float finalVolume = pEngineChannel->MidiVolume * crossfadeVolume * pEG1->getLevel();
 
             finalSynthesisParameters.fFinalVolumeLeft  = finalVolume * VolumeLeft  * pEngineChannel->GlobalPanLeft;
             finalSynthesisParameters.fFinalVolumeRight = finalVolume * VolumeRight * pEngineChannel->GlobalPanRight;
@@ -347,7 +336,7 @@ namespace LinuxSampler {
                 // drivers that use Samples < MaxSamplesPerCycle).
                 // End the EG1 here, at pos 0, with a shorter max fade
                 // out time.
-                EG1.enterFadeOutStage(Samples / CONFIG_DEFAULT_SUBFRAGMENT_SIZE);
+                pEG1->enterFadeOutStage(Samples / CONFIG_DEFAULT_SUBFRAGMENT_SIZE);
                 itKillEvent = Pool<Event>::Iterator();
             } else {
                 killPos = RTMath::Min(itKillEvent->FragmentPos(), maxFadeOutPos);
@@ -379,21 +368,24 @@ namespace LinuxSampler {
             if ((itKillEvent && killPos <= iSubFragmentEnd) ||
                 (SYNTHESIS_MODE_GET_FILTER(SynthesisMode) &&
                  EG2.getSegmentType() == gig::EGADSR::segment_end)) {
-                EG1.enterFadeOutStage();
+                pEG1->enterFadeOutStage();
                 itKillEvent = Pool<Event>::Iterator();
             }
 
             // process envelope generators
-            switch (EG1.getSegmentType()) {
-                case gig::EGADSR::segment_lin:
-                    fFinalVolume *= EG1.processLin();
+            switch (pEG1->getSegmentType()) {
+                case EG::segment_lin:
+                    fFinalVolume *= pEG1->processLin();
                     break;
-                case gig::EGADSR::segment_exp:
-                    fFinalVolume *= EG1.processExp();
+                case EG::segment_exp:
+                    fFinalVolume *= pEG1->processExp();
                     break;
-                case gig::EGADSR::segment_end:
-                    fFinalVolume *= EG1.getLevel();
+                case EG::segment_end:
+                    fFinalVolume *= pEG1->getLevel();
                     break; // noop
+                case EG::segment_pow:
+                    fFinalVolume *= pEG1->processPow();
+                    break;
             }
             switch (EG2.getSegmentType()) {
                 case gig::EGADSR::segment_lin:
@@ -448,20 +440,20 @@ namespace LinuxSampler {
             RunSynthesisFunction(SynthesisMode, &finalSynthesisParameters, &loop);
 
             // stop the rendering if volume EG is finished
-            if (EG1.getSegmentType() == gig::EGADSR::segment_end) break;
+            if (pEG1->getSegmentType() == EG::segment_end) break;
 
             const double newPos = Pos + (iSubFragmentEnd - i) * finalSynthesisParameters.fFinalPitch;
 
             // increment envelopes' positions
-            if (EG1.active()) {
+            if (pEG1->active()) {
 
                 // if sample has a loop and loop start has been reached in this subfragment, send a special event to EG1 to let it finish the attack hold stage
                 if (SmplInfo.HasLoops && Pos <= SmplInfo.LoopStart && SmplInfo.LoopStart < newPos) {
-                    EG1.update(gig::EGADSR::event_hold_end, GetEngine()->SampleRate / CONFIG_DEFAULT_SUBFRAGMENT_SIZE);
+                    pEG1->update(EG::event_hold_end, GetEngine()->SampleRate / CONFIG_DEFAULT_SUBFRAGMENT_SIZE);
                 }
 
-                EG1.increment(1);
-                if (!EG1.toStageEndLeft()) EG1.update(gig::EGADSR::event_stage_end, GetEngine()->SampleRate / CONFIG_DEFAULT_SUBFRAGMENT_SIZE);
+                pEG1->increment(1);
+                if (!pEG1->toStageEndLeft()) pEG1->update(EG::event_stage_end, GetEngine()->SampleRate / CONFIG_DEFAULT_SUBFRAGMENT_SIZE);
             }
             if (EG2.active()) {
                 EG2.increment(1);
@@ -538,10 +530,10 @@ namespace LinuxSampler {
     void AbstractVoice::processTransitionEvents(RTList<Event>::Iterator& itEvent, uint End) {
         for (; itEvent && itEvent->FragmentPos() <= End; ++itEvent) {
             if (itEvent->Type == Event::type_release) {
-                EG1.update(gig::EGADSR::event_release, GetEngine()->SampleRate / CONFIG_DEFAULT_SUBFRAGMENT_SIZE);
+                pEG1->update(EG::event_release, GetEngine()->SampleRate / CONFIG_DEFAULT_SUBFRAGMENT_SIZE);
                 EG2.update(gig::EGADSR::event_release, GetEngine()->SampleRate / CONFIG_DEFAULT_SUBFRAGMENT_SIZE);
             } else if (itEvent->Type == Event::type_cancel_release) {
-                EG1.update(gig::EGADSR::event_cancel_release, GetEngine()->SampleRate / CONFIG_DEFAULT_SUBFRAGMENT_SIZE);
+                pEG1->update(EG::event_cancel_release, GetEngine()->SampleRate / CONFIG_DEFAULT_SUBFRAGMENT_SIZE);
                 EG2.update(gig::EGADSR::event_cancel_release, GetEngine()->SampleRate / CONFIG_DEFAULT_SUBFRAGMENT_SIZE);
             }
         }

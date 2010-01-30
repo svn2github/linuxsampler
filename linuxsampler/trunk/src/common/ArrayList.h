@@ -1,6 +1,6 @@
 /***************************************************************************
  *                                                                         *
- *   Copyright (C) 2005, 2006 Christian Schoenebeck                        *
+ *   Copyright (C) 2005 - 2010 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -132,9 +132,39 @@ namespace LinuxSampler {
                 return pData[iPosition];
             }
 
+            /**
+             * Copy constructor.
+             */
+            ArrayList(const ArrayList& list) {
+                copy(list);
+            }
+
+            /**
+             * Assignment.
+             */
+            ArrayList& operator=(const ArrayList& list) {
+                if (this != &list) {
+                    clear();
+                    copy(list);
+                }
+                return *this;
+            }
+
         private:
             T*   pData;
             int  iSize;
+
+            void copy(const ArrayList& list) {
+                iSize = list.iSize;
+                if (list.pData) {
+                    pData = new T[iSize];
+                    for (int i = 0 ; i < iSize ; i++) {
+                        pData[i] = list.pData[i];
+                    }
+                } else {
+                    pData = NULL;
+                }
+            }
     };
 
 } // namespace LinuxSampler

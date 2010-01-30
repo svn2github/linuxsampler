@@ -2,8 +2,8 @@
  *                                                                         *
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
- *   Copyright (C) 2008-2009 Anders Dahnielson <anders@dahnielson.com>     *
- *   Copyright (C) 2009 Grigor Iliev                                       *
+ *   Copyright (C) 2008 Anders Dahnielson <anders@dahnielson.com>          *
+ *   Copyright (C) 2009 - 2010 Anders Dahnielson and Grigor Iliev          *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -25,6 +25,8 @@
 
 #include <iostream>
 #include <sstream>
+#include <cstdio>
+#include <cstring>
 
 #include "../../common/File.h"
 #include "../../common/Path.h"
@@ -504,6 +506,8 @@ namespace sfz
             eq3_gain_oncc[i] = 0;
         }
 
+        eg.clear();
+
         // deprecated
         ampeg_delay    = 0;
         ampeg_start    = 0; //in percentage
@@ -707,6 +711,9 @@ namespace sfz
         region->eq2_vel2gain = eq2_vel2gain;
         region->eq3_vel2gain = eq3_vel2gain;
 
+        // envelope generator
+        region->eg = eg;
+
         // deprecated
         region->ampeg_delay    = ampeg_delay;
         region->ampeg_start    = ampeg_start;
@@ -746,7 +753,7 @@ namespace sfz
     {
         _instrument = new Instrument(LinuxSampler::Path::getBaseName(file), pSampleManager);
         _current_group = new Group();
-                pCurDef = _current_group;
+        pCurDef = _current_group;
         enum token_type_t { HEADER, OPCODE };
         token_type_t token_type;
         std::string token_string;
@@ -871,15 +878,15 @@ namespace sfz
         {
             _current_section = GROUP;
             _current_group->Reset();
-                        pCurDef = _current_group;
+            pCurDef = _current_group;
         }
         else if (token == "<region>")
         {
             _current_section = REGION;
             _current_region = _current_group->RegionFactory();
-                        pCurDef = _current_region;
+            pCurDef = _current_region;
             _instrument->regions.push_back(_current_region);
-                        _current_region->SetInstrument(_instrument);
+            _current_region->SetInstrument(_instrument);
         }
         else if (token == "<control>")
         {
@@ -904,6 +911,7 @@ namespace sfz
         std::string::size_type delimiter_index = token.find('=');
         std::string key = token.substr(0, delimiter_index);
         std::string value = token.substr(delimiter_index + 1);
+        int x, y;
 
         // sample definition
         if ("sample" == key)
@@ -1200,7 +1208,22 @@ namespace sfz
             else if ("eq3_gain_on" == key_cc) pCurDef->eq3_gain_oncc[num_cc] = ToInt(value);
             else std::cerr << "The opcode '" << key << "' is unsupported by libsfz!" << std::endl;
         }
-        // Deprecated opcodes
+        // v2 envelope generators
+        else if (sscanf(key.c_str(), "eg%d%n", &x, &y)) {
+            const char* s = key.c_str() + y;
+            if (sscanf(s, "_time%d", &y)) egnode(x, y).time = ToFloat(value);
+            else if (sscanf(s, "_level%d", &y)) egnode(x, y).level = ToFloat(value);
+            else if (sscanf(s, "_shape%d", &y)) egnode(x, y).shape = ToFloat(value);
+            else if (sscanf(s, "_curve%d", &y)) egnode(x, y).curve = ToFloat(value);
+            else if (strcmp(s, "_sustain") == 0) eg(x).sustain = ToInt(value);
+            else if (strcmp(s, "_loop") == 0) eg(x).loop = ToInt(value);
+            else if (strcmp(s, "_loop_count") == 0) eg(x).loop_count = ToInt(value);
+            else if (strcmp(s, "_amplitude") == 0) eg(x).amplitude = ToFloat(value);
+            else if (strcmp(s, "_cutoff") == 0) eg(x).cutoff = ToFloat(value);
+            else std::cerr << "The opcode '" << key << "' is unsupported by libsfz!" << std::endl;
+        }
+
+        // v1 envelope generators
         else if ("ampeg_delay"   == key) pCurDef->ampeg_delay = ToFloat(value);
         else if ("ampeg_start"   == key) pCurDef->ampeg_start = ToFloat(value);
         else if ("ampeg_attack"   == key) pCurDef->ampeg_attack = ToFloat(value);
@@ -1225,6 +1248,29 @@ namespace sfz
         else {
             std::cerr << "The opcode '" << key << "' is unsupported by libsfz!" << std::endl;
         }
+    }
+
+    EGNode::EGNode() : time(0), level(0), shape(0), curve(0) {
+    }
+
+    EG::EG() :
+        sustain(0), loop(0), loop_count(0),
+        amplitude(0), cutoff(0) {
+    }
+
+    EG& File::eg(int x) {
+        while (pCurDef->eg.size() <= x) {
+            pCurDef->eg.add(EG());
+        }
+        return pCurDef->eg[x];
+    }
+
+    EGNode& File::egnode(int x, int y) {
+        EG& e = eg(x);
+        while (e.node.size() <= y) {
+            e.node.add(EGNode());
+        }
+        return e.node[y];
     }
 
 } // !namespace sfz

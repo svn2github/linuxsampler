@@ -3,8 +3,8 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 - 2009 Christian Schoenebeck                       *
- *   Copyright (C) 2009 Grigor Iliev                                       *
+ *   Copyright (C) 2005 - 2008 Christian Schoenebeck                       *
+ *   Copyright (C) 2009 - 2010 Christian Schoenebeck and Grigor Iliev      *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -34,6 +34,8 @@
 #include "../gig/Filter.h"
 #include "../common/VoiceBase.h"
 #include "../gig/SynthesisParam.h"
+#include "EG.h"
+#include "EGADSR.h"
 
 namespace LinuxSampler { namespace sfz {
     class Engine;
@@ -58,6 +60,7 @@ namespace LinuxSampler { namespace sfz {
             virtual AbstractEngine*  GetEngine() { return (AbstractEngine*)pEngine; }
             virtual double           GetEG1ControllerValue(uint8_t MIDIKeyVelocity);
             virtual EGInfo           CalculateEG1ControllerInfluence(double eg1ControllerValue);
+            virtual void             TriggerEG1(const EGInfo& egInfo, double velrelease, double velocityAttenuation, uint sampleRate, uint8_t velocity);
             virtual double           GetEG2ControllerValue(uint8_t MIDIKeyVelocity);
             virtual EGInfo           CalculateEG2ControllerInfluence(double eg2ControllerValue);
             virtual void             InitLFO1();
@@ -74,6 +77,9 @@ namespace LinuxSampler { namespace sfz {
             virtual double           GetSampleAttenuation();
 
         private:
+            EG EG1;
+            EGADSR EGADSR1;
+
         public: // FIXME: just made public for debugging (sanity check in Engine::RenderAudio()), should be changed to private before the final release
             // Attributes
             Engine*                     pEngine;            ///< Pointer to the sampler engine, to be able to access the event lists.

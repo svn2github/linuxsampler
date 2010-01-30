@@ -3,8 +3,8 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005-2008 Christian Schoenebeck                         *
- *   Copyright (C) 2009-2010 Christian Schoenebeck and Grigor Iliev        *
+ *   Copyright (C) 2005 - 2008 Christian Schoenebeck                       *
+ *   Copyright (C) 2009 - 2010 Christian Schoenebeck and Grigor Iliev      *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -76,16 +76,16 @@ namespace LinuxSampler { namespace sfz {
         ri.EG1Hold             = pRegion->ampeg_hold;
         ri.EG1Decay1           = pRegion->ampeg_decay;
         ri.EG1Decay2           = pRegion->ampeg_decay;
-        ri.EG1Sustain          = pRegion->ampeg_sustain;
+        ri.EG1Sustain          = pRegion->ampeg_sustain * 10;
         ri.EG1InfiniteSustain  = true;
         ri.EG1Release          = pRegion->ampeg_release;
 
-        ri.EG2PreAttack        = pRegion->fileg_start;
+        ri.EG2PreAttack        = pRegion->fileg_start * 10;
         ri.EG2Attack           = pRegion->fileg_attack;
         //ri.EG2Hold             = pRegion->fileg_hold; // TODO: 
         ri.EG2Decay1           = pRegion->fileg_decay;
         ri.EG2Decay2           = pRegion->fileg_decay;
-        ri.EG2Sustain          = pRegion->fileg_sustain;
+        ri.EG2Sustain          = pRegion->fileg_sustain * 10;
         ri.EG2InfiniteSustain  = true;
         ri.EG2Release          = pRegion->fileg_release;
 
@@ -202,7 +202,32 @@ namespace LinuxSampler { namespace sfz {
         return eg;
     }
 
-    double Voice::GetEG2ControllerValue(uint8_t MIDIKeyVelocity) {
+    void Voice::TriggerEG1(const EGInfo& egInfo, double velrelease, double velocityAttenuation, uint sampleRate, uint8_t velocity) {
+
+        // TODO: controller modulation
+
+        // first check if there is a v2 EG for amplitude
+        for (int i = 0 ; i < pRegion->eg.size() ; i++) {
+            if (pRegion->eg[i].amplitude > 0) {
+                // TODO: actually use the value of the amplitude parameter
+                pEG1 = &EG1;
+                EG1.trigger(pRegion->eg[i], sampleRate / CONFIG_DEFAULT_SUBFRAGMENT_SIZE, velocity);
+                return;
+            }
+        }
+
+        // otherwise use the v1 EGADSR
+        pEG1 = &EGADSR1;
+        EGADSR1.trigger(uint(RgnInfo.EG1PreAttack),
+                        RgnInfo.EG1Attack,
+                        RgnInfo.EG1Hold,
+                        RgnInfo.EG1Decay1,
+                        uint(RgnInfo.EG1Sustain),
+                        RgnInfo.EG1Release,
+                        sampleRate / CONFIG_DEFAULT_SUBFRAGMENT_SIZE);
+     }
+
+     double Voice::GetEG2ControllerValue(uint8_t MIDIKeyVelocity) {
         /*double eg2controllervalue = 0;
         switch (pRegion->EG2Controller.type) {
             case ::gig::eg2_ctrl_t::type_none: // no controller defined

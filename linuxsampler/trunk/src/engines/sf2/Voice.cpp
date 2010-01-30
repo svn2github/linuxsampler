@@ -3,8 +3,8 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 - 2009 Christian Schoenebeck                       *
- *   Copyright (C) 2009 Grigor Iliev                                       *
+ *   Copyright (C) 2005 - 2008 Christian Schoenebeck                       *
+ *   Copyright (C) 2009 - 2010 Christian Schoenebeck and Grigor Iliev      *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -30,7 +30,8 @@
 namespace LinuxSampler { namespace sf2 {
 
     Voice::Voice() {
-        pEngine     = NULL;
+        pEngine = NULL;
+        pEG1 = &EG1;
     }
 
     Voice::~Voice() {
@@ -213,6 +214,19 @@ namespace LinuxSampler { namespace sf2 {
         eg.Decay = 1.0;
         eg.Release = 1.0;
         return eg;
+    }
+
+    void Voice::TriggerEG1(const EGInfo& egInfo, double velrelease, double velocityAttenuation, uint sampleRate, uint8_t velocity) {
+        EG1.trigger(uint(RgnInfo.EG1PreAttack),
+                    RgnInfo.EG1Attack * egInfo.Attack,
+                    RgnInfo.EG1Hold,
+                    RgnInfo.EG1Decay1 * egInfo.Decay * velrelease,
+                    RgnInfo.EG1Decay2 * egInfo.Decay * velrelease,
+                    RgnInfo.EG1InfiniteSustain,
+                    uint(RgnInfo.EG1Sustain),
+                    RgnInfo.EG1Release * egInfo.Release * velrelease,
+                    velocityAttenuation,
+                    sampleRate / CONFIG_DEFAULT_SUBFRAGMENT_SIZE);
     }
 
     double Voice::GetEG2ControllerValue(uint8_t MIDIKeyVelocity) {
