@@ -10,7 +10,7 @@
 <body>
 <h2 align="center">Windows Build Instructions &nbsp; <img src="gfx/logos/msys.png" alt="msys logo"> &nbsp; HOWTO by Andreas Persson</h2>
 <br>
-<center>July&nbsp;26th,&nbsp;2009</center><br>
+<center>January&nbsp;31th,&nbsp;2010</center><br>
 <div style="background-color: #F4F4FF; margin: 1em 3em 1em 3em; padding: 1em 1em 1em 2.2em;">
 <a href="#intro">1.&nbsp; Introduction</a><br>
 <a href="#mingw">2.&nbsp; MinGW</a><br>
@@ -66,10 +66,11 @@ available.</p>
 
 <h3><a name="mingw">2.&nbsp; MinGW</a></h3>
 
-<p>Download the MinGW installer, MinGW-5.1.4.exe,
-from <a href="http://www.mingw.org">www.mingw.org</a> and run it. The
-installer will automatically download and install further
-packages. Choose the base tools and the g++ compiler.</p>
+<p>Download the MinGW installer, MinGW-5.1.6.exe,
+from <a href="http://www.mingw.org">www.mingw.org</a>, "Automated
+MinGW Installer, MinGW 5.1.6", and run it. The installer will
+automatically download and install further packages. Choose the base
+tools and the g++ compiler.</p>
 
 
 <h3><a name="pkg">3.&nbsp; pkg-config and gtkmm</a></h3>
@@ -88,25 +89,34 @@ the installer adjust the PATH variable as it wants.</p>
 
 <h3><a name="msys">4.&nbsp; MSYS</a></h3>
 
-<p>Download from "MSYS Base System, Current Release_ MSYS-1.0.11":</p>
+<p>Download from "MSYS Base System, msys-1.0.11":</p>
 <pre>MSYS-1.0.11.exe</pre>
 
 <p>Run the installer.</p>
 
-<p>Download from "MSYS Supplementary Tools, Technology Preview_ Tools for MSYS-1.0.11":</p>
-<pre>bison-2.3-MSYS-1.0.11-1.tar.bz2 **
-crypt-1.1-1-MSYS-1.0.11-1.tar.bz2 **
-cvs-1.11.22-MSYS-1.0.11-1-bin.tar.gz **
-perl-5.6.1-MSYS-1.0.11-1.tar.bz2 **</pre>
+<p>Download from "MSYS bison, bison-2.4.1-1":</p>
+<pre>bison-2.4.1-1-msys-1.0.11-bin.tar.lzma **</pre>
+
+<p>From "MSYS crypt, crypt-1.1_1-2":</p>
+<pre>libcrypt-1.1_1-2-msys-1.0.11-dll-0.tar.lzma **</pre>
+
+<p>From "MSYS cvs, cvs-1.12.13-1":</p>
+<pre>cvs-1.12.13-1-msys-1.0.11-bin.tar.lzma **</pre>
+
+<p>From "MSYS perl, perl-5.6.1_2-1":</p>
+<pre>perl-5.6.1_2-1-msys-1.0.11-bin.tar.lzma **</pre>
+
+<p>From "MSYS m4, m4-1.4.13-1":</p>
+<pre>m4-1.4.13-1-msys-1.0.11-bin.tar.lzma **</pre>
 
 <p>Extract these files to the msys root directory, by starting msys, do
-"cd /" followed by "tar xaf <i>filename</i>".</p>
+"cd /" followed by "tar -x --lzma -f <i>filename</i>".</p>
 
-<p>Download from "MinGW autoconf, autoconf2.5, autoconf2.5-2.63-1":</p>
-<pre>autoconf2.5-2.63-1-mingw32-bin.tar.lzma **</pre>
+<p>Download from "MinGW autoconf, autoconf2.5, autoconf2.5-2.64-1":</p>
+<pre>autoconf2.5-2.64-1-mingw32-bin.tar.lzma **</pre>
 
-<p>From "MinGW autoconf, wrapper, autoconf-6-1":</p>
-<pre>autoconf-6-1-mingw32-bin.tar.lzma **</pre>
+<p>From "MinGW autoconf, wrapper, autoconf-7-1":</p>
+<pre>autoconf-7-1-mingw32-bin.tar.lzma **</pre>
 
 <p>From "MinGW automake, automake1.11, automake1.11-1.11-1":</p>
 <pre>automake1.11-1.11-1-mingw32-bin.tar.lzma **</pre>
@@ -125,7 +135,7 @@ libintl-0.17-1-mingw32-dll-8.tar.lzma ***</pre>
 <p>From "GCC Version 4, Current Release_ gcc-4.4.0":</p>
 <pre>gcc-core-4.4.0-mingw32-dll.tar.gz ***</pre>
 
-<p>From "MinGW libtool, libtool-2.27a-1":</p>
+<p>From "MinGW libtool, libtool-2.2.7a-1":</p>
 <pre>libtool-2.2.7a-1-mingw32-bin.tar.lzma</pre>
 
 <p>Extract all these files to the MinGW directory, by starting msys, do
@@ -168,10 +178,9 @@ install it.</p>
 documentation, so it needs the xsltproc command. Download from
 <a href="http://www.zlatkovic.com/pub/libxml/">http://www.zlatkovic.com/pub/libxml/</a>:</p>
 
-<pre>libxml2-2.7.3.win32.zip
-libxslt-1.1.24.win32.zip</pre>
+<pre>libxslt-1.1.26.win32.zip</pre>
 
-<p>Copy the contents of the bin directories from both zip files to a
+<p>Copy the contents of the bin directory from the zip file to a
 directory of your choice. Add this directory last in your msys PATH,
 for example:</p>
 
@@ -224,16 +233,16 @@ export LDFLAGS="-L/c/Progra~1/gtkmm/lib"</pre>
 
 <p>The windows precompiled version of SQLite doesn't include the
 neccessary development files, so it's best to build SQLite yourself.
-Download sqlite-amalgamation-3.6.16.tar.gz
+Download sqlite-amalgamation-3.6.22.tar.gz
 from <a href="http://www.sqlite.org">www.sqlite.org</a>
 and extract it to your $HOME:</p>
 
 <pre>cd
-tar xzf sqlite-amalgamation-3.6.16.tar.gz</pre>
+tar xzf sqlite-amalgamation-3.6.22.tar.gz</pre>
 
 <p>Build and install:</p>
 
-<pre>cd sqlite-3.6.16
+<pre>cd sqlite-3.6.22
 CFLAGS=-O2 ./configure
 make
 make install</pre>
@@ -245,16 +254,16 @@ some problems with creating the debug info for some reason.)</p>
 
 <p>The windows precompiled version of libsndfile doesn't include the
 neccessary pkg-config file, so it's best to build libsndfile
-yourself. Download libsndfile-1.0.20.tar.gz
+yourself. Download libsndfile-1.0.21.tar.gz
 from <a href="http://www.mega-nerd.com/libsndfile/">www.mega-nerd.com</a> and
 extract it to your $HOME:</p>
 
 <pre>cd
-tar xzf libsndfile-1.0.20.tar.gz</pre>
+tar xzf libsndfile-1.0.21.tar.gz</pre>
 
 <p>Build and install:</p>
 
-<pre>cd libsndfile-1.0.20
+<pre>cd libsndfile-1.0.21
 ./configure
 make
 make install</pre>
