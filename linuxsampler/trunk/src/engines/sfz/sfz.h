@@ -483,8 +483,7 @@ namespace sfz
     private:
         void  push_header(std::string token);
         void  push_opcode(std::string token);
-        int   parseInt(std::string value);
-        float parseFloat(std::string value);
+        int parseKey(const std::string& value);
         EG& eg(int x);
         EGNode& egnode(int x, int y);
 

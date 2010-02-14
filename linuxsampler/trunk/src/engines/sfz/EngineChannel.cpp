@@ -150,9 +150,12 @@ namespace LinuxSampler { namespace sfz {
     void EngineChannel::ProcessKeySwitchChange(int key) { }
 
     void EngineChannel::PreProcessNoteOn(uint8_t key, uint8_t velocity) {
-        LastKey = key;
         if(pInstrument != NULL && pInstrument->HasKeySwitchBinding(key)) LastKeySwitch = key;
         PressedKeys[key] = true;
+    }
+
+    void EngineChannel::PostProcessNoteOn(uint8_t key, uint8_t velocity) {
+        LastKey = key;
     }
 
     void EngineChannel::PreProcessNoteOff(uint8_t key, uint8_t velocity) {

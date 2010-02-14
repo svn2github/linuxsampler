@@ -22,6 +22,15 @@ Version CVS HEAD (?)
     - added support for v2 multiple stage envelope generators
     - added a fine-tuned v1 envelope generator instead of using the
       one from the gig engine
+    - fixed memory leak and memory handling errors
+    - added support for sw_trigger=first, sw_trigger=legato and
+      sw_previous
+    - allow non-numerical key values ("C#4" for example)
+    - "key" opcode now sets pitch_keycenter too
+    - fixed error when unloading instrument with same sample used by
+      multiple regions
+    - added some opcode aliases, like loopmode for loop_mode, to be
+      more compatible
 
   * SoundFont format engine:
     - Initial implementation (not usable yet)

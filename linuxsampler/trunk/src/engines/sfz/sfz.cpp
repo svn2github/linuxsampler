@@ -25,6 +25,7 @@
 
 #include <iostream>
 #include <sstream>
+#include <cctype>
 #include <cstdio>
 #include <cstring>
 
@@ -164,7 +165,7 @@ namespace sfz
               ((sw_up   >= sw_lokey && sw_up   <= sw_hikey) ? (!sw[sw_up])  : true) )  &&
 
             ((sw_previous != -1) ? (prev_sw_key == sw_previous) : true)  &&
-             ((trigger && trig) != 0)
+             ((trigger & trig) != 0)
         );
 
         if (!is_triggered)
@@ -227,7 +228,7 @@ namespace sfz
               ((sw_up   >= sw_lokey && sw_up   <= sw_hikey) ? (!sw[sw_up])  : true) )  &&
 
             ((sw_previous != -1) ? (prev_sw_key == sw_previous) : true)  &&
-             ((trigger && trig) != 0)
+             ((trigger & trig) != 0)
         );
 
         if (!is_triggered)
@@ -958,12 +959,11 @@ namespace sfz
         // input controls
         else if ("lochan" == key) pCurDef->lochan = ToInt(value);
         else if ("hichan" == key) pCurDef->hichan = ToInt(value);
-        else if ("lokey"  == key) pCurDef->lokey  = ToInt(value) + note_offset + 12 * octave_offset;
-        else if ("hikey"  == key) pCurDef->hikey  = ToInt(value) + note_offset + 12 * octave_offset;
+        else if ("lokey"  == key) pCurDef->lokey  = parseKey(value);
+        else if ("hikey"  == key) pCurDef->hikey  = parseKey(value);
         else if ("key" == key)
         {
-            pCurDef->lokey = ToInt(value) + note_offset + 12 * octave_offset;
-            pCurDef->hikey = ToInt(value) + note_offset + 12 * octave_offset;
+            pCurDef->lokey = pCurDef->hikey = pCurDef->pitch_keycenter = parseKey(value);
         }
         else if ("lovel"  == key) pCurDef->lovel = ToInt(value);
         else if ("hivel"  == key) pCurDef->hivel = ToInt(value);
@@ -983,12 +983,12 @@ namespace sfz
         else if ("hitimer" == key) pCurDef->hitimer = ToFloat(value);
         else if ("seq_length"   == key) pCurDef->seq_length = ToInt(value);
         else if ("seq_position" == key) pCurDef->seq_position = ToInt(value);
-        else if ("sw_lokey" == key) pCurDef->sw_lokey = ToInt(value) + note_offset + 12 * octave_offset;
-        else if ("sw_hikey" == key) pCurDef->sw_hikey = ToInt(value) + note_offset + 12 * octave_offset;
-        else if ("sw_last"  == key) pCurDef->sw_last = ToInt(value) + note_offset + 12 * octave_offset;
-        else if ("sw_down"  == key) pCurDef->sw_down = ToInt(value) + note_offset + 12 * octave_offset;
-        else if ("sw_up"    == key) pCurDef->sw_up = ToInt(value) + note_offset + 12 * octave_offset;
-        else if ("sw_previous" == key) pCurDef->sw_previous = ToInt(value) + note_offset + 12 * octave_offset;
+        else if ("sw_lokey" == key) pCurDef->sw_lokey = parseKey(value);
+        else if ("sw_hikey" == key) pCurDef->sw_hikey = parseKey(value);
+        else if ("sw_last"  == key) pCurDef->sw_last = parseKey(value);
+        else if ("sw_down"  == key) pCurDef->sw_down = parseKey(value);
+        else if ("sw_up"    == key) pCurDef->sw_up = parseKey(value);
+        else if ("sw_previous" == key) pCurDef->sw_previous = parseKey(value);
         else if ("sw_vel" == key)
         {
             if (value == "current") pCurDef->sw_vel = VEL_CURRENT;
@@ -1002,8 +1002,8 @@ namespace sfz
             else if (value == "legato")  pCurDef->trigger = TRIGGER_LEGATO;
         }
         else if ("group"  == key) pCurDef->group = ToInt(value);
-        else if ("off_by" == key) pCurDef->off_by = ToInt(value);
-        else if ("off_mode" == key)
+        else if ("off_by" == key || "offby" == key) pCurDef->off_by = ToInt(value);
+        else if ("off_mode" == key || "offmode" == key)
         {
             if (value == "fast")  _current_group->off_mode = OFF_FAST;
             else if (value == "normal") _current_group->off_mode = OFF_NORMAL;
@@ -1019,7 +1019,7 @@ namespace sfz
         else if ("end"            == key) pCurDef->end = ToInt(value);
         else if ("loop_crossfade" == key) pCurDef->loop_crossfade = ToFloat(value);
         else if ("offset_random"  == key) pCurDef->offset_random = ToInt(value);
-        else if ("loop_mode" == key)
+        else if ("loop_mode" == key || "loopmode" == key)
         {
             if (value == "no_loop") pCurDef->loop_mode = NO_LOOP;
             else if (value == "one_shot") pCurDef->loop_mode = ONE_SHOT;
@@ -1039,14 +1039,14 @@ namespace sfz
         else if ("width"    == key) pCurDef->width = ToFloat(value);
         else if ("position" == key) pCurDef->position = ToFloat(value);
         else if ("amp_keytrack"  == key) pCurDef->amp_keytrack = ToFloat(value);
-        else if ("amp_keycenter" == key) pCurDef->amp_keycenter = ToInt(value) + note_offset + 12 * octave_offset;
+        else if ("amp_keycenter" == key) pCurDef->amp_keycenter = parseKey(value);
         else if ("amp_veltrack"  == key) pCurDef->amp_veltrack = ToFloat(value);
         else if ("amp_random"  == key) pCurDef->amp_random = ToFloat(value);
         else if ("rt_decay"    == key) pCurDef->rt_decay = ToFloat(value);
-        else if ("xfin_lokey"  == key) pCurDef->xfin_lokey = ToInt(value) + note_offset + 12 * octave_offset;
-        else if ("xfin_hikey"  == key) pCurDef->xfin_hikey = ToInt(value) + note_offset + 12 * octave_offset;
-        else if ("xfout_lokey" == key) pCurDef->xfout_lokey = ToInt(value) + note_offset + 12 * octave_offset;
-        else if ("xfout_hikey" == key) pCurDef->xfout_hikey = ToInt(value) + note_offset + 12 * octave_offset;
+        else if ("xfin_lokey"  == key) pCurDef->xfin_lokey = parseKey(value);
+        else if ("xfin_hikey"  == key) pCurDef->xfin_hikey = parseKey(value);
+        else if ("xfout_lokey" == key) pCurDef->xfout_lokey = parseKey(value);
+        else if ("xfout_hikey" == key) pCurDef->xfout_hikey = parseKey(value);
         else if ("xf_keycurve" == key)
         {
             if (value == "gain") pCurDef->xf_keycurve = GAIN;
@@ -1070,12 +1070,12 @@ namespace sfz
         // pitch
         else if ("transpose" == key) pCurDef->transpose = ToInt(value);
         else if ("tune" == key) pCurDef->tune = ToInt(value);
-        else if ("pitch_keycenter" == key) pCurDef->pitch_keycenter = ToInt(value) + note_offset + 12 * octave_offset;
+        else if ("pitch_keycenter" == key) pCurDef->pitch_keycenter = parseKey(value);
         else if ("pitch_keytrack" == key) pCurDef->pitch_keytrack = ToInt(value);
         else if ("pitch_veltrack" == key) pCurDef->pitch_veltrack = ToInt(value);
         else if ("pitch_random" == key) pCurDef->pitch_random = ToInt(value);
-        else if ("bend_up" == key) pCurDef->bend_up = ToInt(value);
-        else if ("bend_down" == key) pCurDef->bend_down = ToInt(value);
+        else if ("bend_up" == key || "bendup" == key) pCurDef->bend_up = ToInt(value);
+        else if ("bend_down" == key || "benddown" == key) pCurDef->bend_down = ToInt(value);
         else if ("bend_step" == key) pCurDef->bend_step = ToInt(value);
 
         // filter
@@ -1123,8 +1123,8 @@ namespace sfz
         else if ("resonance2" == key) pCurDef->resonance2 = ToFloat(value);
         else if ("fil_keytrack"   == key) pCurDef->fil_keytrack = ToInt(value);
         else if ("fil2_keytrack"  == key) pCurDef->fil2_keytrack = ToInt(value);
-        else if ("fil_keycenter"  == key) pCurDef->fil_keycenter = ToInt(value) + note_offset + 12 * octave_offset;
-        else if ("fil2_keycenter" == key) pCurDef->fil2_keycenter = ToInt(value) + note_offset + 12 * octave_offset;
+        else if ("fil_keycenter"  == key) pCurDef->fil_keycenter = parseKey(value);
+        else if ("fil2_keycenter" == key) pCurDef->fil2_keycenter = parseKey(value);
         else if ("fil_veltrack"   == key) pCurDef->fil_veltrack = ToInt(value);
         else if ("fil2_veltrack"  == key) pCurDef->fil2_veltrack = ToInt(value);
         else if ("fil_random"     == key) pCurDef->fil_random = ToInt(value);
@@ -1248,6 +1248,41 @@ namespace sfz
         else {
             std::cerr << "The opcode '" << key << "' is unsupported by libsfz!" << std::endl;
         }
+    }
+
+    int File::parseKey(const std::string& s) {
+        int i;
+        std::istringstream iss(s);
+        if (isdigit(iss.peek())) {
+            iss >> i;
+        } else {
+            switch (tolower(iss.get())) {
+            case 'c': i = 0; break;
+            case 'd': i = 2; break;
+            case 'e': i = 4; break;
+            case 'f': i = 5; break;
+            case 'g': i = 7; break;
+            case 'a': i = 9; break;
+            case 'b': i = 11; break;
+            default:
+                std::cerr << "Not a note: " << s << std::endl;
+                return 0;
+            }
+            if (iss.peek() == '#') {
+                i++;
+                iss.get();
+            } else if (tolower(iss.peek()) == 'b') {
+                i--;
+                iss.get();
+            }
+            int octave;
+            if (!(iss >> octave)) {
+                std::cerr << "Not a note: " << s << std::endl;
+                return 0;
+            }
+            i += (octave + 1) * 12;
+        }
+        return i + note_offset + 12 * octave_offset;
     }
 
     EGNode::EGNode() : time(0), level(0), shape(0), curve(0) {

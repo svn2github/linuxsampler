@@ -106,13 +106,15 @@ namespace LinuxSampler {
                 int regionRefCount = --regInfo.refCount;
                 int sampleRefCount = --SampleRefCount[pRegion->pSample];
                 if (regionRefCount == 0) {
-                    RegionInfo.erase(pRegion);
+                    S* pSample = pRegion->pSample;
+
                     DeleteRegionIfNotUsed(pRegion, &regInfo);
 
                     if (sampleRefCount == 0) {
-                        SampleRefCount.erase(pRegion->pSample);
-                        DeleteSampleIfNotUsed(pRegion->pSample, &regInfo);
+                        SampleRefCount.erase(pSample);
+                        DeleteSampleIfNotUsed(pSample, &regInfo);
                     }
+                    RegionInfo.erase(pRegion);
                 }
                 RegionInfoMutex.Unlock();
             }

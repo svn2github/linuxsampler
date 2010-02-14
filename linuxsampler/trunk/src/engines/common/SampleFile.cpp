@@ -70,6 +70,7 @@ namespace LinuxSampler {
 
     SampleFile::~SampleFile() {
         Close();
+        ReleaseSampleData();
     }
 
     void SampleFile::Open() {

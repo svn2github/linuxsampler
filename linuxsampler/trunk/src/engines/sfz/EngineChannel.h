@@ -42,6 +42,7 @@ namespace LinuxSampler { namespace sfz {
 
             // methods derived from MidiKeyboardListener
             virtual void PreProcessNoteOn(uint8_t key, uint8_t velocity);
+            virtual void PostProcessNoteOn(uint8_t key, uint8_t velocity);
             virtual void PreProcessNoteOff(uint8_t key, uint8_t velocity);
 
             friend class Voice;

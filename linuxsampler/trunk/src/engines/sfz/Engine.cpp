@@ -79,7 +79,11 @@ namespace LinuxSampler { namespace sfz {
         int      bend     = pChannel->Pitch;
         uint8_t  chanaft  = pChannel->ControllerTable[128];
         uint8_t* cc       = pChannel->ControllerTable;
-        ::sfz::trigger_t trig = TRIGGER_ATTACK;
+        ::sfz::trigger_t trig = TRIGGER_ATTACK |
+              ((pChannel->LastKey != -1 &&
+                pChannel->PressedKeys[pChannel->LastKey] &&
+                pChannel->LastKey != key) ?
+               TRIGGER_LEGATO : TRIGGER_FIRST);
 
         pChannel->regionsTemp = pChannel->pInstrument->GetRegionsOnKey (
             chan, key, vel, bend, 0, chanaft, 0, 0, 0, trig, cc,
@@ -165,7 +169,7 @@ namespace LinuxSampler { namespace sfz {
     }
 
     String Engine::Version() {
-        String s = "$Revision: 1.2 $";
+        String s = "$Revision: 1.3 $";
         return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
 
