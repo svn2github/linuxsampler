@@ -104,14 +104,18 @@ namespace LinuxSampler { namespace sfz {
         EngineChannel* pChannel = static_cast<EngineChannel*>(pEngineChannel);
         uint8_t  chan     = pChannel->MidiChannel();
         int      key      = itNoteOffEvent->Param.Note.Key;
-        uint8_t  vel      = itNoteOffEvent->Param.Note.Velocity;
+
+        // MIDI note-on velocity is used instead of note-off velocity
+        uint8_t  vel      = pChannel->pMIDIKeyInfo[key].Velocity;
+        itNoteOffEvent->Param.Note.Velocity = vel;
+
         int      bend     = pChannel->Pitch;
         uint8_t  chanaft  = pChannel->ControllerTable[128];
         uint8_t* cc       = pChannel->ControllerTable;
         ::sfz::trigger_t trig = TRIGGER_RELEASE;
 
         pChannel->regionsTemp = pChannel->pInstrument->GetRegionsOnKey (
-            chan, key, vel, bend, 0, chanaft, 0, 0, 0, trig, cc, 0.0f, 0, NULL, 0, 0
+            chan, key, vel, bend, 0, chanaft, 0, 0, 0, trig, cc, 0.0f, 1, NULL, 0, 0
         );
 
         // now launch the required amount of voices
@@ -131,7 +135,7 @@ namespace LinuxSampler { namespace sfz {
         EngineChannel* pChannel = static_cast<EngineChannel*>(pEngineChannel);
         int key = itNoteOnEvent->Param.Note.Key;
         EngineChannel::MidiKey* pKey  = &pChannel->pMIDIKeyInfo[key];
-        Voice::type_t VoiceType = Voice::type_normal;
+        Voice::type_t VoiceType = (ReleaseTriggerVoice) ? Voice::type_release_trigger : (!iLayer) ? Voice::type_release_trigger_required : Voice::type_normal;
 
         Pool<Voice>::Iterator itNewVoice;
         ::sfz::Region* pRgn = pChannel->regionsTemp[iLayer];
@@ -169,7 +173,7 @@ namespace LinuxSampler { namespace sfz {
     }
 
     String Engine::Version() {
-        String s = "$Revision: 1.3 $";
+        String s = "$Revision: 1.4 $";
         return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
 

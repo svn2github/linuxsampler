@@ -600,10 +600,13 @@ namespace LinuxSampler {
             float noteLength = float(GetEngine()->FrameTime + Delay -
                 GetNoteOnTime(MIDIKey) ) / GetEngine()->SampleRate;
 
-            float attenuation = 1 - 0.01053 * (256 >> RgnInfo.ReleaseTriggerDecay) * noteLength;
-            volume *= attenuation;
+            volume *= GetReleaseTriggerAttenuation(noteLength);
         }
 
         return volume;
+    }
+
+    float AbstractVoice::GetReleaseTriggerAttenuation(float noteLength) {
+        return 1 - RgnInfo.ReleaseTriggerDecay * noteLength;
     }
 } // namespace LinuxSampler

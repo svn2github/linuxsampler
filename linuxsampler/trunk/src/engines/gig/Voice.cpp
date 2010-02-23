@@ -98,7 +98,7 @@ namespace LinuxSampler { namespace gig {
         ri.VCFType       = pRegion->VCFType;
         ri.VCFResonance  = pRegion->VCFResonance;
 
-        ri.ReleaseTriggerDecay = pRegion->ReleaseTriggerDecay;
+        ri.ReleaseTriggerDecay = 0.01053 * (256 >> pRegion->ReleaseTriggerDecay);
 
         return ri;
     }

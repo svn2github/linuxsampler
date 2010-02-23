@@ -97,7 +97,7 @@ namespace LinuxSampler {
 
                 double  EG3Attack;  ///< Attack time of the sample pitch EG (in seconds)
                 int     EG3Depth;   ///< Depth of the sample pitch EG (-1200 - +1200)
-                uint8_t ReleaseTriggerDecay; ///< 0 - 8
+                double  ReleaseTriggerDecay; ///< How much release sample volume depends on note length. Release sample amplitude is multiplied with (1 - ReleaseTriggerDecay * note length).
 
                 bool               VCFEnabled;    ///< If filter should be used.
                 ::gig::vcf_type_t  VCFType;       ///< Defines the general filter characteristic (lowpass, highpass, bandpass, etc.).

@@ -95,7 +95,9 @@ namespace LinuxSampler { namespace sfz {
         ri.VCFType       = ::gig::vcf_type_lowpass; // TODO:
         ri.VCFResonance  = 0; // TODO:
 
-        ri.ReleaseTriggerDecay = 0;
+        // rt_decay is in dB. Precalculate a suitable value for exp in
+        // GetReleaseTriggerAttenuation: -ln(10) / 20 * rt_decay
+        ri.ReleaseTriggerDecay = -0.115129254649702 * pRegion->rt_decay;
 
         return ri;
     }
@@ -490,6 +492,11 @@ namespace LinuxSampler { namespace sfz {
 
         return ctrl;*/ // TODO: ^^^
         return 0;
+    }
+
+    float Voice::GetReleaseTriggerAttenuation(float noteLength) {
+        // pow(10, -rt_decay * noteLength / 20):
+        return expf(RgnInfo.ReleaseTriggerDecay * noteLength);
     }
 
 }} // namespace LinuxSampler::sfz

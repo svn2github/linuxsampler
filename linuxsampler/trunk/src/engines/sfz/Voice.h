@@ -58,6 +58,7 @@ namespace LinuxSampler { namespace sfz {
             virtual InstrumentInfo   GetInstrumentInfo();
             virtual double           CalculateCrossfadeVolume(uint8_t MIDIKeyVelocity);
             virtual AbstractEngine*  GetEngine() { return (AbstractEngine*)pEngine; }
+            virtual float            GetReleaseTriggerAttenuation(float noteLength);
             virtual double           GetEG1ControllerValue(uint8_t MIDIKeyVelocity);
             virtual EGInfo           CalculateEG1ControllerInfluence(double eg1ControllerValue);
             virtual void             TriggerEG1(const EGInfo& egInfo, double velrelease, double velocityAttenuation, uint sampleRate, uint8_t velocity);

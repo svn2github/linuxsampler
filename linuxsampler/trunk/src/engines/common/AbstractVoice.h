@@ -181,6 +181,8 @@ namespace LinuxSampler {
 
             virtual double CalculateVolume(double velocityAttenuation);
 
+            virtual float GetReleaseTriggerAttenuation(float noteLength);
+
             /**
              * Get starting crossfade volume level
              */
