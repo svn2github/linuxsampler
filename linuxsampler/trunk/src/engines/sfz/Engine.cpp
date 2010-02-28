@@ -146,7 +146,7 @@ namespace LinuxSampler { namespace sfz {
         // only mark the first voice of a layered voice (group) to be in a
         // key group, so the layered voices won't kill each other
         int iKeyGroup = (iLayer == 0 && !ReleaseTriggerVoice) ? pRgn->group : 0;
-        if (HandleKeyGroupConflicts) pChannel->HandleKeyGroupConflicts(iKeyGroup, itNoteOnEvent);
+        if (HandleKeyGroupConflicts) pChannel->HandleKeyGroupConflicts(iKeyGroup, itNoteOnEvent, pRgn->off_mode == ::sfz::OFF_NORMAL);
 
         // allocate a new voice for the key
         itNewVoice = pKey->pActiveVoices->allocAppend();
@@ -173,7 +173,7 @@ namespace LinuxSampler { namespace sfz {
     }
 
     String Engine::Version() {
-        String s = "$Revision: 1.4 $";
+        String s = "$Revision: 1.5 $";
         return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
 

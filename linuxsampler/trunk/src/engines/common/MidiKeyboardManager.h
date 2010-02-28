@@ -288,10 +288,18 @@ namespace LinuxSampler {
                     // free the voice object
                     pKey->pActiveVoices->free(itVoice);
 
-                    // if no other voices left and member of a key group, remove from key group
-                    if (pKey->pActiveVoices->isEmpty() && keygroup) {
-                        uint** ppKeyGroup = &ActiveKeyGroups[keygroup];
-                        if (*ppKeyGroup == &*pKey->itSelf) *ppKeyGroup = NULL; // remove key from key group
+                    // if member of a key group and no other non-release-trigger
+                    // voices left, remove from key group
+                    if (keygroup) {
+                        RTListVoiceIterator it = pKey->pActiveVoices->first();
+                        RTListVoiceIterator end = pKey->pActiveVoices->end();
+                        for (; it != end ; ++it) {
+                            if (it->Type != V::type_release_trigger) break;
+                        }
+                        if (it == end) {
+                            uint** ppKeyGroup = &ActiveKeyGroups[keygroup];
+                            if (*ppKeyGroup == &*pKey->itSelf) *ppKeyGroup = NULL; // remove key from key group
+                        }
                     }
                 }
                 else std::cerr << "Couldn't release voice! (!itVoice)\n" << std::flush;

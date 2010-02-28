@@ -31,6 +31,7 @@ Version CVS HEAD (?)
     - added some opcode aliases, like loopmode for loop_mode, to be
       more compatible
     - added support for trigger=release and rt_decay
+    - added support for off_mode=normal
 
   * SoundFont format engine:
     - Initial implementation (not usable yet)
