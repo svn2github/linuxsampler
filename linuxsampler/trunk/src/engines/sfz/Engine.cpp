@@ -4,7 +4,7 @@
  *                                                                         *
  *   Copyright (C) 2003,2004 by Benno Senoner and Christian Schoenebeck    *
  *   Copyright (C) 2005-2009 Christian Schoenebeck                         *
- *   Copyright (C) 2009 Grigor Iliev                                       *
+ *   Copyright (C) 2009-2010 Grigor Iliev                                  *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -86,8 +86,8 @@ namespace LinuxSampler { namespace sfz {
                TRIGGER_LEGATO : TRIGGER_FIRST);
 
         pChannel->regionsTemp = pChannel->pInstrument->GetRegionsOnKey (
-            chan, key, vel, bend, 0, chanaft, 0, 0, 0, trig, cc,
-            0.0f, 1, pChannel->PressedKeys, pChannel->LastKeySwitch, pChannel->LastKey
+            chan, key, vel, bend, 0, chanaft, 0, 0, Random(), trig, cc,
+            0.0f, pChannel->PressedKeys, pChannel->LastKeySwitch, pChannel->LastKey
         );
 
         for (int i = 0; i < pChannel->regionsTemp.size(); i++) {
@@ -115,7 +115,7 @@ namespace LinuxSampler { namespace sfz {
         ::sfz::trigger_t trig = TRIGGER_RELEASE;
 
         pChannel->regionsTemp = pChannel->pInstrument->GetRegionsOnKey (
-            chan, key, vel, bend, 0, chanaft, 0, 0, 0, trig, cc, 0.0f, 1, NULL, 0, 0
+            chan, key, vel, bend, 0, chanaft, 0, 0, Random(), trig, cc, 0.0f, NULL, 0, 0
         );
 
         // now launch the required amount of voices
@@ -173,7 +173,7 @@ namespace LinuxSampler { namespace sfz {
     }
 
     String Engine::Version() {
-        String s = "$Revision: 1.5 $";
+        String s = "$Revision: 1.6 $";
         return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
 

@@ -32,6 +32,8 @@ Version CVS HEAD (?)
       more compatible
     - added support for trigger=release and rt_decay
     - added support for off_mode=normal
+    - added support for random, seq_position, seq_length and volume
+    - added v1 LFO opcodes to parser (no support in engine yet)
 
   * SoundFont format engine:
     - Initial implementation (not usable yet)

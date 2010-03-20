@@ -3,8 +3,8 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003,2004 by Benno Senoner and Christian Schoenebeck    *
- *   Copyright (C) 2005-2009 Christian Schoenebeck                         *
- *   Copyright (C) 2009 Grigor Iliev                                       *
+ *   Copyright (C) 2005-2008 Christian Schoenebeck                         *
+ *   Copyright (C) 2009-2010 Christian Schoenebeck and Grigor Iliev        *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -351,7 +351,7 @@ namespace LinuxSampler {
             /**
              * Handle key group (a.k.a. exclusive group) conflicts
              */
-        void HandleKeyGroupConflicts(uint KeyGroup, Pool<Event>::Iterator& itNoteOnEvent, bool UseRelease = false) {
+            void HandleKeyGroupConflicts(uint KeyGroup, Pool<Event>::Iterator& itNoteOnEvent, bool UseRelease = false) {
                 if (KeyGroup) { // if this voice / key belongs to a key group
                     uint* pKeyGroup = MidiKeyboardManager<V>::ActiveKeyGroups[KeyGroup];
                     if (pKeyGroup) { // if there's already an active key in that key group

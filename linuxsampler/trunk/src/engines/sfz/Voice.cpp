@@ -27,6 +27,8 @@
 #include "Engine.h"
 #include "EngineChannel.h"
 
+#define LN_10_DIV_20 0.115129254649702
+
 namespace LinuxSampler { namespace sfz {
 
     Voice::Voice() {
@@ -97,7 +99,7 @@ namespace LinuxSampler { namespace sfz {
 
         // rt_decay is in dB. Precalculate a suitable value for exp in
         // GetReleaseTriggerAttenuation: -ln(10) / 20 * rt_decay
-        ri.ReleaseTriggerDecay = -0.115129254649702 * pRegion->rt_decay;
+        ri.ReleaseTriggerDecay = -LN_10_DIV_20 * pRegion->rt_decay;
 
         return ri;
     }
@@ -111,7 +113,7 @@ namespace LinuxSampler { namespace sfz {
     }
 
     double Voice::GetSampleAttenuation() {
-        return 1.0; // TODO: 
+        return exp(LN_10_DIV_20 * pRegion->volume);
     }
 
     double Voice::GetVelocityAttenuation(uint8_t MIDIKeyVelocity) {

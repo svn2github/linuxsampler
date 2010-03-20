@@ -89,6 +89,7 @@ namespace sfz
     Region::Region()
     {
         pSample = NULL;
+        seq_counter = 1;
     }
 
     Region::~Region()
@@ -121,7 +122,7 @@ namespace sfz
     Region::OnKey(uint8_t chan, uint8_t key, uint8_t vel,
               int bend, uint8_t bpm, uint8_t chanaft, uint8_t polyaft,
               uint8_t prog, float rand, trigger_t trig, uint8_t* cc,
-              float timer, uint8_t seq, bool* sw, uint8_t last_sw_key, uint8_t prev_sw_key)
+              float timer, bool* sw, uint8_t last_sw_key, uint8_t prev_sw_key)
     {
         // chan        (MIDI channel)
         // key         (MIDI note)
@@ -137,7 +138,6 @@ namespace sfz
         // cc          (all 128 CC values)
 
         // timer       (time since previous region in the group was triggered)
-        // seq         (the state of the region sequence counter)
         // sw          (the state of region key switches, 128 possible values)
         // last_sw_key (the last key pressed in the key switch range)
         // prev_sw_key (the previous note value)
@@ -147,13 +147,12 @@ namespace sfz
             key     >= lokey      &&  key     <= hikey      &&
             vel     >= lovel      &&  vel     <= hivel      &&
             bend    >= lobend     &&  bend    <= hibend     &&
-            bpm     >= lobpm      &&  bpm     <= hibpm      &&
+            bpm     >= lobpm      &&  bpm     <  hibpm      &&
             chanaft >= lochanaft  &&  chanaft <= hichanaft  &&
             polyaft >= lopolyaft  &&  polyaft <= hipolyaft  &&
             prog    >= loprog     &&  prog    <= hiprog     &&
-            rand    >= lorand     &&  rand    <= hirand     &&
+            rand    >= lorand     &&  rand    <  hirand     &&
             timer   >= lotimer    &&  timer   <= hitimer    &&
-            seq == seq_position   &&
 
             ( (sw_lokey == -1 || sw_hikey == -1 || sw_last  == -1) ||
               ((sw_last >= sw_lokey && sw_last <= sw_hikey) ? (last_sw_key == sw_last) : true) ) &&
@@ -177,14 +176,19 @@ namespace sfz
                 return false;
         }
 
-        return true;
+        // seq_position has to be checked last, so we know that we
+        // increment the right counter
+        is_triggered = (seq_counter == seq_position);
+        seq_counter = (seq_counter % seq_length) + 1;
+
+        return is_triggered;
     }
 
     bool
     Region::OnControl(uint8_t chan, uint8_t cont, uint8_t val,
         int bend, uint8_t bpm, uint8_t chanaft, uint8_t polyaft,
         uint8_t prog, float rand, trigger_t trig, uint8_t* cc,
-        float timer, uint8_t seq, bool* sw, uint8_t last_sw_key, uint8_t prev_sw_key)
+        float timer, bool* sw, uint8_t last_sw_key, uint8_t prev_sw_key)
     {
         // chan      (MIDI channel)
         // cont      (MIDI controller)
@@ -200,7 +204,6 @@ namespace sfz
         // cc        (all CC values)
 
         // timer       (time since previous region in the group was triggered)
-        // seq         (the state of the region sequence counter)
         // sw          (the state of region key switches, 128 possible values)
         // last_sw_key (the last key pressed in the key switch range)
         // prev_sw_key (the previous note value)
@@ -210,13 +213,12 @@ namespace sfz
             ((val   >= on_locc[cont]    &&  val     <= on_hicc[cont])     ||
              (val   >= start_locc[cont] &&  val     <= start_hicc[cont])) &&
             bend    >= lobend           &&  bend    <= hibend             &&
-            bpm     >= lobpm            &&  bpm     <= hibpm              &&
+            bpm     >= lobpm            &&  bpm     <  hibpm              &&
             chanaft >= lochanaft        &&  chanaft <= hichanaft          &&
             polyaft >= lopolyaft        &&  polyaft <= hipolyaft          &&
             prog    >= loprog           &&  prog    <= hiprog             &&
-            rand    >= lorand           &&  rand    <= hirand             &&
+            rand    >= lorand           &&  rand    <  hirand             &&
             timer   >= lotimer          &&  timer   <= hitimer            &&
-            seq == seq_position   &&
 
             ( (sw_lokey == -1 || sw_hikey == -1 || sw_last  == -1) ||
               ((sw_last >= sw_lokey && sw_last <= sw_hikey) ? (last_sw_key == sw_last) : true) ) &&
@@ -287,13 +289,13 @@ namespace sfz
         uint8_t chan, uint8_t key, uint8_t vel,
         int bend, uint8_t bpm, uint8_t chanaft, uint8_t polyaft,
         uint8_t prog, float rand, trigger_t trig, uint8_t* cc,
-        float timer, uint8_t seq, bool* sw, uint8_t last_sw_key, uint8_t prev_sw_key
+        float timer, bool* sw, uint8_t last_sw_key, uint8_t prev_sw_key
     ) {
         std::vector<Region*> v;
         for (int i = 0; i < regions.size(); i++) {
             if (regions[i]->OnKey (
                 chan, key, vel, bend, bpm, chanaft, polyaft, prog,
-                rand, trig, cc, timer, seq, sw, last_sw_key, prev_sw_key)
+                rand, trig, cc, timer, sw, last_sw_key, prev_sw_key)
                     ) { v.push_back(regions[i]); }
         }
 
@@ -533,6 +535,21 @@ namespace sfz
         pitcheg_decay    = 0;
         pitcheg_sustain  = 100; // in percentage
         pitcheg_release  = 0;
+
+        amplfo_delay     = 0;
+        amplfo_fade      = 0;
+        amplfo_freq      = 0;
+        amplfo_depth     = 0;
+
+        fillfo_delay     = 0;
+        fillfo_fade      = 0;
+        fillfo_freq      = 0;
+        fillfo_depth     = 0;
+
+        pitchlfo_delay   = 0;
+        pitchlfo_fade    = 0;
+        pitchlfo_freq    = 0;
+        pitchlfo_depth   = 0;
     }
 
     Region*
@@ -739,6 +756,21 @@ namespace sfz
         region->pitcheg_decay    = pitcheg_decay;
         region->pitcheg_sustain  = pitcheg_sustain;
         region->pitcheg_release  = pitcheg_release;
+
+        region->amplfo_delay     = amplfo_delay;
+        region->amplfo_fade      = amplfo_fade;
+        region->amplfo_freq      = amplfo_freq;
+        region->amplfo_depth     = amplfo_depth;
+
+        region->fillfo_delay     = fillfo_delay;
+        region->fillfo_fade      = fillfo_fade;
+        region->fillfo_freq      = fillfo_freq;
+        region->fillfo_depth     = fillfo_depth;
+
+        region->pitchlfo_delay   = pitchlfo_delay;
+        region->pitchlfo_fade    = pitchlfo_fade;
+        region->pitchlfo_freq    = pitchlfo_freq;
+        region->pitchlfo_depth   = pitchlfo_depth;
 
         return region;
     }
@@ -1245,6 +1277,21 @@ namespace sfz
         else if ("pitcheg_decay"   == key) pCurDef->pitcheg_decay = ToFloat(value);
         else if ("pitcheg_sustain"   == key) pCurDef->pitcheg_sustain = ToFloat(value);
         else if ("pitcheg_release"   == key) pCurDef->pitcheg_release = ToFloat(value);
+
+        // v1 LFO
+        else if ("amplfo_delay" == key) pCurDef->amplfo_delay = ToFloat(value);
+        else if ("amplfo_fade" == key) pCurDef->amplfo_fade = ToFloat(value);
+        else if ("amplfo_freq" == key) pCurDef->amplfo_freq = ToFloat(value);
+        else if ("amplfo_depth" == key) pCurDef->amplfo_depth = ToFloat(value);
+        else if ("fillfo_delay" == key) pCurDef->fillfo_delay = ToFloat(value);
+        else if ("fillfo_fade" == key) pCurDef->fillfo_fade = ToFloat(value);
+        else if ("fillfo_freq" == key) pCurDef->fillfo_freq = ToFloat(value);
+        else if ("fillfo_depth" == key) pCurDef->fillfo_depth = ToFloat(value);
+        else if ("pitchlfo_delay" == key) pCurDef->pitchlfo_delay = ToFloat(value);
+        else if ("pitchlfo_fade" == key) pCurDef->pitchlfo_fade = ToFloat(value);
+        else if ("pitchlfo_freq" == key) pCurDef->pitchlfo_freq = ToFloat(value);
+        else if ("pitchlfo_depth" == key) pCurDef->pitchlfo_depth = ToInt(value);
+
         else {
             std::cerr << "The opcode '" << key << "' is unsupported by libsfz!" << std::endl;
         }

@@ -3,8 +3,8 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003,2004 by Benno Senoner and Christian Schoenebeck    *
- *   Copyright (C) 2005-2009 Christian Schoenebeck                         *
- *   Copyright (C) 2009 Grigor Iliev                                       *
+ *   Copyright (C) 2005-2008 Christian Schoenebeck                         *
+ *   Copyright (C) 2009-2010 Christian Schoenebeck and Grigor Iliev        *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -40,7 +40,7 @@ namespace LinuxSampler { namespace gig {
             virtual bool    DiskStreamSupported();
             virtual String  Description();
             virtual String  Version();
-            
+
             virtual Format  GetEngineFormat();
 
             virtual void ProcessControlChange (
@@ -72,9 +72,6 @@ namespace LinuxSampler { namespace gig {
                 LinuxSampler::EngineChannel*  pEngineChannel,
                 RTList<Event>::Iterator&      itNoteOffEvent
             );
-
-        private:
-            uint32_t RandomSeed;            ///< State of the random number generator used by the random dimension.
     };
 
 }} // namespace LinuxSampler::gig

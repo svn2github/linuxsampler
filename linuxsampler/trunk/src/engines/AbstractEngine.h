@@ -3,8 +3,8 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003,2004 by Benno Senoner and Christian Schoenebeck    *
- *   Copyright (C) 2005-2009 Christian Schoenebeck                         *
- *   Copyright (C) 2009 Grigor Iliev                                       *
+ *   Copyright (C) 2005-2008 Christian Schoenebeck                         *
+ *   Copyright (C) 2009-2010 Christian Schoenebeck and Grigor Iliev        *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -114,6 +114,11 @@ namespace LinuxSampler {
 
             uint8_t GSCheckSum(const RingBuffer<uint8_t,false>::NonVolatileReader AddrReader, uint DataSize);
 
+            float Random() {
+                RandomSeed = RandomSeed * 1103515245 + 12345; // classic pseudo random number generator
+                return RandomSeed / 4294967296.0f;
+            }
+
             virtual void ResetInternal() = 0;
             virtual void KillAllVoices(EngineChannel* pEngineChannel, Pool<Event>::Iterator& itKillEvent) = 0;
             virtual void ProcessNoteOn(EngineChannel* pEngineChannel, Pool<Event>::Iterator& itNoteOnEvent) = 0;
@@ -123,6 +128,7 @@ namespace LinuxSampler {
 
         private:
             static std::map<Format, std::map<AudioOutputDevice*,AbstractEngine*> > engines;
+            uint32_t RandomSeed; ///< State of the random number generator used by the random dimension.
 
             static float* InitVolumeCurve();
             static float* InitPanCurve();

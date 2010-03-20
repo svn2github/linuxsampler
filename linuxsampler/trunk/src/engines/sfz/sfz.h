@@ -354,6 +354,10 @@ namespace sfz
         float ampeg_delay, ampeg_start, ampeg_attack, ampeg_hold, ampeg_decay, ampeg_sustain, ampeg_release;
         float fileg_delay, fileg_start, fileg_attack, fileg_hold, fileg_decay, fileg_sustain, fileg_release;
         float pitcheg_delay, pitcheg_start, pitcheg_attack, pitcheg_hold, pitcheg_decay, pitcheg_sustain, pitcheg_release;
+        float amplfo_delay, amplfo_fade, amplfo_freq, amplfo_depth;
+        float fillfo_delay, fillfo_fade, fillfo_freq, fillfo_depth;
+        float pitchlfo_delay, pitchlfo_fade, pitchlfo_freq;
+        int pitchlfo_depth;
 
         // envelope generators
         LinuxSampler::ArrayList<EG> eg;
@@ -387,13 +391,13 @@ namespace sfz
         bool OnKey(uint8_t chan, uint8_t key, uint8_t vel,
                int bend, uint8_t bpm, uint8_t chanaft, uint8_t polyaft,
                uint8_t prog, float rand, trigger_t trig, uint8_t* cc,
-               float timer, uint8_t seq, bool* sw, uint8_t last_sw_key, uint8_t prev_sw_key);
+               float timer, bool* sw, uint8_t last_sw_key, uint8_t prev_sw_key);
 
         /// Return true if region is triggered by control change
         bool OnControl(uint8_t chan, uint8_t cont, uint8_t val,
                    int bend, uint8_t bpm, uint8_t chanaft, uint8_t polyaft,
                    uint8_t prog, float rand, trigger_t trig, uint8_t* cc,
-                   float timer, uint8_t seq, bool* sw, uint8_t last_sw_key, uint8_t prev_sw_key);
+                   float timer, bool* sw, uint8_t last_sw_key, uint8_t prev_sw_key);
 
         /// Return an articulation for the current state
          Articulation* GetArticulation(int bend, uint8_t bpm, uint8_t chanaft, uint8_t polyaft, uint8_t* cc);
@@ -403,6 +407,7 @@ namespace sfz
 
     private:
         Instrument* pInstrument;
+        int seq_counter;
     };
 
     /////////////////////////////////////////////////////////////
@@ -425,7 +430,7 @@ namespace sfz
             uint8_t chan, uint8_t key, uint8_t vel,
             int bend, uint8_t bpm, uint8_t chanaft, uint8_t polyaft,
             uint8_t prog, float rand, trigger_t trig, uint8_t* cc,
-            float timer, uint8_t seq, bool* sw, uint8_t last_sw_key, uint8_t prev_sw_key
+            float timer, bool* sw, uint8_t last_sw_key, uint8_t prev_sw_key
         );
 
         bool DestroyRegion(Region* pRegion);

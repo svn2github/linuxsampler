@@ -3,8 +3,8 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003,2004 by Benno Senoner and Christian Schoenebeck    *
- *   Copyright (C) 2005-2009 Christian Schoenebeck                         *
- *   Copyright (C) 2009 Grigor Iliev                                       *
+ *   Copyright (C) 2005-2008 Christian Schoenebeck                         *
+ *   Copyright (C) 2009-2010 Christian Schoenebeck and Grigor Iliev        *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -209,8 +209,7 @@ namespace LinuxSampler { namespace gig {
                     DimValues[i] = uint(pChannel->RoundRobinIndex % pRegion->pDimensionDefinitions[i].zones); // RoundRobinIndex is incremented for each note on
                     break;
                 case ::gig::dimension_random:
-                    RandomSeed   = RandomSeed * 1103515245 + 12345; // classic pseudo random number generator
-                    DimValues[i] = uint(RandomSeed / 4294967296.0f * pRegion->pDimensionDefinitions[i].zones);
+                    DimValues[i] = uint(Random() * pRegion->pDimensionDefinitions[i].zones);
                     break;
                 case ::gig::dimension_modwheel:
                     DimValues[i] = pChannel->ControllerTable[1];
@@ -320,7 +319,7 @@ namespace LinuxSampler { namespace gig {
     }
 
     String Engine::Version() {
-        String s = "$Revision: 1.107 $";
+        String s = "$Revision: 1.108 $";
         return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
 
