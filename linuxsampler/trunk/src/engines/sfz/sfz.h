@@ -302,7 +302,7 @@ namespace sfz
         float pan;
         float width;
         float position;
-        float amp_keytrack; int amp_keycenter; float amp_veltrack; std::vector<float> amp_velcurve_; float amp_random;
+        float amp_keytrack; int amp_keycenter; float amp_veltrack; std::vector<float> amp_velcurve; float amp_random;
         float rt_decay;
         std::vector<float> gain_oncc;
         int xfin_lokey; int xfin_hikey;

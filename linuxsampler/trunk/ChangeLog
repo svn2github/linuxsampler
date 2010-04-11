@@ -34,6 +34,8 @@ Version CVS HEAD (?)
     - added support for off_mode=normal
     - added support for random, seq_position, seq_length and volume
     - added v1 LFO opcodes to parser (no support in engine yet)
+    - added support for amp_veltrack and amp_velcurve_N
+    - fine-tuned the default velocity curve
 
   * SoundFont format engine:
     - Initial implementation (not usable yet)

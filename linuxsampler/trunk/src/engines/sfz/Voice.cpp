@@ -117,7 +117,7 @@ namespace LinuxSampler { namespace sfz {
     }
 
     double Voice::GetVelocityAttenuation(uint8_t MIDIKeyVelocity) {
-        return double(MIDIKeyVelocity) / 127.0f; // TODO: 
+        return pRegion->amp_velcurve[MIDIKeyVelocity];
     }
 
     double Voice::GetVelocityRelease(uint8_t MIDIKeyVelocity) {

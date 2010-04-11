@@ -67,7 +67,7 @@ namespace sfz
     Definition::Definition() :
         locc(128), hicc(128), start_locc(128), start_hicc(128), stop_locc(128),
         stop_hicc(128), on_locc(128), on_hicc(128), delay_oncc(128), delay_samples_oncc(128),
-        offset_oncc(128), amp_velcurve_(128), gain_oncc(128), xfin_locc(128), xfin_hicc(128),
+        offset_oncc(128), amp_velcurve(128), gain_oncc(128), xfin_locc(128), xfin_hicc(128),
         xfout_locc(128), xfout_hicc(128), cutoff_oncc(128), cutoff2_oncc(128), cutoff_smoothcc(128),
         cutoff2_smoothcc(128), cutoff_stepcc(128), cutoff2_stepcc(128), cutoff_curvecc(128),
         cutoff2_curvecc(128), resonance_oncc(128), resonance2_oncc(128), resonance_smoothcc(128),
@@ -471,7 +471,7 @@ namespace sfz
             offset_oncc[i].unset();
 
             // amplifier
-            amp_velcurve_[i] = 0; //fixme: 20 log (127^2 / i^2)
+            amp_velcurve[i] = -1;
             gain_oncc[i] = 0;
             xfin_locc[i] = 0;
             xfin_hicc[i] = 0;
@@ -635,7 +635,7 @@ namespace sfz
         region->amp_keytrack = amp_keytrack;
         region->amp_keycenter = amp_keycenter;
         region->amp_veltrack = amp_veltrack;
-        region->amp_velcurve_ = amp_velcurve_;
+        region->amp_velcurve = amp_velcurve;
         region->amp_random = amp_random;
         region->rt_decay = rt_decay;
         region->gain_oncc = gain_oncc;
@@ -888,6 +888,38 @@ namespace sfz
                 for (int j = low; j <= high; j++) _instrument->KeySwitchBindings[j] = true;
             } else {
                 std::cerr << "Invalid key switch range: " << low << " - " << high << std::endl;
+            }
+
+            // create velocity response curve
+            int prev = 0;
+            float prevvalue = 0;
+            for (int v = 0 ; v < 128 ; v++) {
+                if (pRegion->amp_velcurve[v] >= 0) {
+                    float step = (pRegion->amp_velcurve[v] - prevvalue) / (v - prev);
+                    for ( ; prev < v ; prev++) {
+                        pRegion->amp_velcurve[prev] = prevvalue;
+                        prevvalue += step;
+                    }
+                }
+            }
+            if (prev) {
+                float step = (1 - prevvalue) / (127 - prev);
+                for ( ; prev < 128 ; prev++) {
+                    pRegion->amp_velcurve[prev] = prevvalue;
+                    prevvalue += step;
+                }
+            } else {
+                // default curve
+                for (int v = 0 ; v < 128 ; v++) {
+                    pRegion->amp_velcurve[v] = v * v / (127.0 * 127.0);
+                }
+            }
+            // apply amp_veltrack
+            float offset = -pRegion->amp_veltrack;
+            if (offset <= 0) offset += 100;
+            for (int v = 0 ; v < 128 ; v++) {
+                pRegion->amp_velcurve[v] =
+                    (offset + pRegion->amp_veltrack * pRegion->amp_velcurve[v]) / 100;
             }
         }
     }
@@ -1179,7 +1211,9 @@ namespace sfz
         else if ("eq2_vel2gain" == key) pCurDef->eq2_vel2gain = ToFloat(value);
         else if ("eq3_vel2gain" == key) pCurDef->eq3_vel2gain = ToFloat(value);
 
-        //fixme: parse amp_velcurve_N
+        else if (sscanf(key.c_str(), "amp_velcurve_%d", &x)) {
+            pCurDef->amp_velcurve[x] = ToFloat(value);
+        }
 
         // CCs
         else if (key.find("cc") != std::string::npos)
