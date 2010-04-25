@@ -1,6 +1,9 @@
 Version CVS HEAD (?)
 
-  * General changes:
+  * packaging changes:
+    - fixed building with newer MinGW-w64
+
+  * general changes:
     - Refactoring: moved the independent code from
       the Gigasampler format engine to base classes
     - command line option '--profile' is currently disabled, since the
@@ -36,6 +39,10 @@ Version CVS HEAD (?)
     - added v1 LFO opcodes to parser (no support in engine yet)
     - added support for amp_veltrack and amp_velcurve_N
     - fine-tuned the default velocity curve
+    - added support for transpose
+    - fixed crash when using sw_down/up
+    - improved logic for sw_lokey/hikey/up/down/last
+    - added more v1 aliases to parser
 
   * SoundFont format engine:
     - Initial implementation (not usable yet)

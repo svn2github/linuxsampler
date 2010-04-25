@@ -69,7 +69,7 @@ namespace LinuxSampler { namespace sfz {
     Voice::RegionInfo Voice::GetRegionInfo() {
         RegionInfo ri;
         ri.UnityNote = pRegion->pitch_keycenter;
-        ri.FineTune  = pRegion->tune;
+        ri.FineTune  = pRegion->tune + pRegion->transpose * 100;
         ri.Pan       = int(pRegion->pan * 0.63); // convert from -100..100 to -64..63
         ri.SampleStartOffset = 0; // TODO: 
 

@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 - 2007 Christian Schoenebeck                       *
+ *   Copyright (C) 2005 - 2010 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -41,7 +41,7 @@ typedef std::string String;
 // modern MinGW has usleep
 #if (__MINGW32_MAJOR_VERSION < 3 ||                                     \
      (__MINGW32_MAJOR_VERSION == 3 && __MINGW32_MINOR_VERSION < 15)) && \
-    !defined(__MINGW64)
+    !defined(__MINGW64) && !defined(__MINGW64_VERSION_MAJOR)
 #define usleep(a) Sleep(a/1000)
 #endif
 

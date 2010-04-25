@@ -154,17 +154,19 @@ namespace sfz
             rand    >= lorand     &&  rand    <  hirand     &&
             timer   >= lotimer    &&  timer   <= hitimer    &&
 
-            ( (sw_lokey == -1 || sw_hikey == -1 || sw_last  == -1) ||
-              ((sw_last >= sw_lokey && sw_last <= sw_hikey) ? (last_sw_key == sw_last) : true) ) &&
+            ( sw_last == -1 ||
+              ((sw_last >= sw_lokey && sw_last <= sw_hikey) ? (last_sw_key == sw_last) : false) ) &&
 
-            ( (sw_down  == -1 || sw_lokey == -1 || sw_hikey == -1) ||
-              ((sw_down >= sw_lokey && sw_down <= sw_hikey) ? (sw[sw_down]) : true) )  &&
+            ( sw_down == -1 ||
+              ((sw_down >= sw_lokey && (sw_hikey == -1 || sw_down <= sw_hikey)) ? (sw[sw_down]) : false) )  &&
 
-            ( (sw_up    == -1 || sw_lokey == -1 || sw_hikey == -1) ||
-              ((sw_up   >= sw_lokey && sw_up   <= sw_hikey) ? (!sw[sw_up])  : true) )  &&
+            ( sw_up   == -1 ||
+              ((sw_up   >= sw_lokey && (sw_hikey == -1 || sw_up   <= sw_hikey)) ? (!sw[sw_up]) : true) )  &&
 
-            ((sw_previous != -1) ? (prev_sw_key == sw_previous) : true)  &&
-             ((trigger & trig) != 0)
+            ( sw_previous == -1 ||
+              prev_sw_key == sw_previous )  &&
+
+            ((trigger & trig) != 0)
         );
 
         if (!is_triggered)
@@ -220,17 +222,19 @@ namespace sfz
             rand    >= lorand           &&  rand    <  hirand             &&
             timer   >= lotimer          &&  timer   <= hitimer            &&
 
-            ( (sw_lokey == -1 || sw_hikey == -1 || sw_last  == -1) ||
-              ((sw_last >= sw_lokey && sw_last <= sw_hikey) ? (last_sw_key == sw_last) : true) ) &&
+            ( sw_last == -1 ||
+              ((sw_last >= sw_lokey && sw_last <= sw_hikey) ? (last_sw_key == sw_last) : false) ) &&
 
-            ( (sw_down  == -1 || sw_lokey == -1 || sw_hikey == -1) ||
-              ((sw_down >= sw_lokey && sw_down <= sw_hikey) ? (sw[sw_down]) : true) )  &&
+            ( sw_down == -1 ||
+              ((sw_down >= sw_lokey && (sw_hikey == -1 || sw_down <= sw_hikey)) ? (sw[sw_down]) : false) )  &&
 
-            ( (sw_up    == -1 || sw_lokey == -1 || sw_hikey == -1) ||
-              ((sw_up   >= sw_lokey && sw_up   <= sw_hikey) ? (!sw[sw_up])  : true) )  &&
+            ( sw_up   == -1 ||
+              ((sw_up   >= sw_lokey && (sw_hikey == -1 || sw_up   <= sw_hikey)) ? (!sw[sw_up]) : true) )  &&
 
-            ((sw_previous != -1) ? (prev_sw_key == sw_previous) : true)  &&
-             ((trigger & trig) != 0)
+            ( sw_previous == -1 ||
+              prev_sw_key == sw_previous )  &&
+
+            ((trigger & trig) != 0)
         );
 
         if (!is_triggered)
@@ -881,10 +885,11 @@ namespace sfz
 
             // get keyswitches
             low = pRegion->sw_lokey;
+            if (low < 0) low = 0;
             high = pRegion->sw_hikey;
-            if(low == -1 && high == -1) {
+            if (high == -1) {
                 // Key switches not defined, so nothing to do
-            } else if(low >= 0 && low <= 127 && high >= 0 && high <= 127 && high >= low) {
+            } else if (low >= 0 && low <= 127 && high >= 0 && high <= 127 && high >= low) {
                 for (int j = low; j <= high; j++) _instrument->KeySwitchBindings[j] = true;
             } else {
                 std::cerr << "Invalid key switch range: " << low << " - " << high << std::endl;
@@ -1143,7 +1148,7 @@ namespace sfz
         else if ("bend_step" == key) pCurDef->bend_step = ToInt(value);
 
         // filter
-        else if ("fil_type" == key)
+        else if ("fil_type" == key || "filtype" == key)
         {
             if (value == "lpf_1p") pCurDef->fil_type = LPF_1P;
             else if (value == "hpf_1p") pCurDef->fil_type = HPF_1P;
@@ -1238,14 +1243,14 @@ namespace sfz
             else if ("offset_on" == key_cc) pCurDef->offset_oncc[num_cc] = ToInt(value);
 
             // amplifier
-            else if ("gain_on"  == key_cc) pCurDef->gain_oncc[num_cc]  = ToFloat(value);
+            else if ("gain_on"  == key_cc || "gain_" == key_cc) pCurDef->gain_oncc[num_cc]  = ToFloat(value);
             else if ("xfin_lo"  == key_cc) pCurDef->xfin_locc[num_cc]  = ToInt(value);
             else if ("xfin_hi"  == key_cc) pCurDef->xfin_hicc[num_cc]  = ToInt(value);
             else if ("xfout_lo" == key_cc) pCurDef->xfout_locc[num_cc] = ToInt(value);
             else if ("xfout_hi" == key_cc) pCurDef->xfout_hicc[num_cc] = ToInt(value);
 
             // filter
-            else if ("cutoff_on"  == key_cc) pCurDef->cutoff_oncc[num_cc]  = ToInt(value);
+            else if ("cutoff_on"  == key_cc || "cutoff_" == key_cc) pCurDef->cutoff_oncc[num_cc]  = ToInt(value);
             else if ("cutoff2_on" == key_cc) pCurDef->cutoff2_oncc[num_cc] = ToInt(value);
             else if ("cutoff_smooth"  == key_cc) pCurDef->cutoff_smoothcc[num_cc]  = ToInt(value);
             else if ("cutoff2_smooth" == key_cc) pCurDef->cutoff2_smoothcc[num_cc] = ToInt(value);
@@ -1263,15 +1268,15 @@ namespace sfz
             else if ("resonance2_curve" == key_cc) pCurDef->resonance2_curvecc[num_cc] = ToInt(value);
 
             // per voice equalizer
-            else if ("eq1_freq_on" == key_cc) pCurDef->eq1_freq_oncc[num_cc] = ToInt(value);
-            else if ("eq2_freq_on" == key_cc) pCurDef->eq2_freq_oncc[num_cc] = ToInt(value);
-            else if ("eq3_freq_on" == key_cc) pCurDef->eq3_freq_oncc[num_cc] = ToInt(value);
-            else if ("eq1_bw_on" == key_cc) pCurDef->eq1_bw_oncc[num_cc] = ToInt(value);
-            else if ("eq2_bw_on" == key_cc) pCurDef->eq2_bw_oncc[num_cc] = ToInt(value);
-            else if ("eq3_bw_on" == key_cc) pCurDef->eq3_bw_oncc[num_cc] = ToInt(value);
-            else if ("eq1_gain_on" == key_cc) pCurDef->eq1_gain_oncc[num_cc] = ToInt(value);
-            else if ("eq2_gain_on" == key_cc) pCurDef->eq2_gain_oncc[num_cc] = ToInt(value);
-            else if ("eq3_gain_on" == key_cc) pCurDef->eq3_gain_oncc[num_cc] = ToInt(value);
+            else if ("eq1_freq_on" == key_cc || "eq1_freq" == key_cc) pCurDef->eq1_freq_oncc[num_cc] = ToInt(value);
+            else if ("eq2_freq_on" == key_cc || "eq2_freq" == key_cc) pCurDef->eq2_freq_oncc[num_cc] = ToInt(value);
+            else if ("eq3_freq_on" == key_cc || "eq3_freq" == key_cc) pCurDef->eq3_freq_oncc[num_cc] = ToInt(value);
+            else if ("eq1_bw_on" == key_cc || "eq1_bw" == key_cc) pCurDef->eq1_bw_oncc[num_cc] = ToInt(value);
+            else if ("eq2_bw_on" == key_cc || "eq2_bw" == key_cc) pCurDef->eq2_bw_oncc[num_cc] = ToInt(value);
+            else if ("eq3_bw_on" == key_cc || "eq3_bw" == key_cc) pCurDef->eq3_bw_oncc[num_cc] = ToInt(value);
+            else if ("eq1_gain_on" == key_cc || "eq1_gain" == key_cc) pCurDef->eq1_gain_oncc[num_cc] = ToInt(value);
+            else if ("eq2_gain_on" == key_cc || "eq2_gain" == key_cc) pCurDef->eq2_gain_oncc[num_cc] = ToInt(value);
+            else if ("eq3_gain_on" == key_cc || "eq3_gain" == key_cc) pCurDef->eq3_gain_oncc[num_cc] = ToInt(value);
             else std::cerr << "The opcode '" << key << "' is unsupported by libsfz!" << std::endl;
         }
         // v2 envelope generators

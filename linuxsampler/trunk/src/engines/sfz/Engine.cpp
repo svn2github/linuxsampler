@@ -115,7 +115,8 @@ namespace LinuxSampler { namespace sfz {
         ::sfz::trigger_t trig = TRIGGER_RELEASE;
 
         pChannel->regionsTemp = pChannel->pInstrument->GetRegionsOnKey (
-            chan, key, vel, bend, 0, chanaft, 0, 0, Random(), trig, cc, 0.0f, NULL, 0, 0
+            chan, key, vel, bend, 0, chanaft, 0, 0, Random(), trig, cc,
+            0.0f, pChannel->PressedKeys, pChannel->LastKeySwitch, pChannel->LastKey
         );
 
         // now launch the required amount of voices
@@ -173,7 +174,7 @@ namespace LinuxSampler { namespace sfz {
     }
 
     String Engine::Version() {
-        String s = "$Revision: 1.6 $";
+        String s = "$Revision: 1.7 $";
         return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
 
