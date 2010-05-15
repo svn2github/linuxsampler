@@ -43,6 +43,7 @@ Version CVS HEAD (?)
     - fixed crash when using sw_down/up
     - improved logic for sw_lokey/hikey/up/down/last
     - added more v1 aliases to parser
+    - reduced memory usage for sfz data
 
   * SoundFont format engine:
     - Initial implementation (not usable yet)

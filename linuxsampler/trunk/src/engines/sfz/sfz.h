@@ -237,6 +237,47 @@ namespace sfz
         EG();
     };
 
+    // Fixed size array with copy-on-write semantics
+    template<class T>
+    class Array
+    {
+    private:
+        struct Rep {
+            int refcount;
+            T a[128];
+
+            Rep() : refcount(1) { }
+            static void release(Rep* rep) {
+                if (!--rep->refcount) delete rep;
+            }
+        } *ptr;
+    public:
+        Array() : ptr(0) { }
+        ~Array() { Rep::release(ptr); }
+
+        Array& operator=(const Array& array) {
+            if (this != &array) {
+                ptr = array.ptr;
+                if (ptr) ptr->refcount++;
+            }
+            return *this;
+        }
+
+        const T& operator[](int i) const { return ptr->a[i]; }
+
+        void set(int i, const T& v) {
+            if (!ptr) {
+                ptr = new Rep;
+            } else if (ptr->refcount > 1 && ptr->a[i] != v) {
+                Rep* newptr = new Rep(*ptr);
+                newptr->refcount = 1;
+                Rep::release(ptr);
+                ptr = newptr;
+            }
+            ptr->a[i] = v;
+        }
+    };
+
     /////////////////////////////////////////////////////////////
     // class Definition
 
@@ -254,7 +295,7 @@ namespace sfz
         int   lochan;    int   hichan;
         int   lokey;     int   hikey;
         int   lovel;     int   hivel;
-        std::vector<int> locc; std::vector<int> hicc;
+        Array<int> locc; Array<int> hicc;
         int   lobend;    int   hibend;
         int   lobpm;     int   hibpm;
         int   lochanaft; int   hichanaft;
@@ -266,8 +307,8 @@ namespace sfz
         int seq_length;
         int seq_position;
 
-        std::vector<int> start_locc; std::vector<int> start_hicc;
-        std::vector<int> stop_locc;  std::vector<int> stop_hicc;
+        Array<int> start_locc; Array<int> start_hicc;
+        Array<int> stop_locc;  Array<int> stop_hicc;
 
         int sw_lokey;    int sw_hikey;
         int sw_last;
@@ -282,16 +323,16 @@ namespace sfz
         optional<int> off_by;
         off_mode_t off_mode;
 
-        std::vector<int> on_locc; std::vector<int> on_hicc;
+        Array<int> on_locc; Array<int> on_hicc;
 
         // sample player
         optional<int> count;
-        optional<float> delay; optional<float> delay_random; std::vector<optional<float> > delay_oncc;
+        optional<float> delay; optional<float> delay_random; Array<optional<float> > delay_oncc;
         optional<int> delay_beats; optional<int> stop_beats;
-        optional<int> delay_samples; std::vector<optional<int> > delay_samples_oncc;
+        optional<int> delay_samples; Array<optional<int> > delay_samples_oncc;
         optional<int> end;
         optional<float> loop_crossfade;
-        optional<int> offset; optional<int> offset_random; std::vector<optional<int> > offset_oncc;
+        optional<int> offset; optional<int> offset_random; Array<optional<int> > offset_oncc;
         loop_mode_t loop_mode;
         optional<int> loop_start; optional<int> loop_end;
         optional<int> sync_beats;
@@ -302,17 +343,17 @@ namespace sfz
         float pan;
         float width;
         float position;
-        float amp_keytrack; int amp_keycenter; float amp_veltrack; std::vector<float> amp_velcurve; float amp_random;
+        float amp_keytrack; int amp_keycenter; float amp_veltrack; Array<float> amp_velcurve; float amp_random;
         float rt_decay;
-        std::vector<float> gain_oncc;
+        Array<float> gain_oncc;
         int xfin_lokey; int xfin_hikey;
         int xfout_lokey; int xfout_hikey;
         curve_t xf_keycurve;
         int xfin_lovel; int xfin_hivel;
         int xfout_lovel; int xfout_hivel;
         curve_t xf_velcurve;
-        std::vector<int> xfin_locc; std::vector<int> xfin_hicc;
-        std::vector<int> xfout_locc; std::vector<int> xfout_hicc;
+        Array<int> xfin_locc; Array<int> xfin_hicc;
+        Array<int> xfout_locc; Array<int> xfout_hicc;
         curve_t xf_cccurve;
 
         // pitch
@@ -324,17 +365,17 @@ namespace sfz
         // filter
         filter_t fil_type; filter_t fil2_type;
         optional<float> cutoff; optional<float> cutoff2;
-        std::vector<int> cutoff_oncc; std::vector<int> cutoff2_oncc;
-        std::vector<int> cutoff_smoothcc; std::vector<int> cutoff2_smoothcc;
-        std::vector<int> cutoff_stepcc; std::vector<int> cutoff2_stepcc;
-        std::vector<int> cutoff_curvecc; std::vector<int> cutoff2_curvecc;
+        Array<int> cutoff_oncc; Array<int> cutoff2_oncc;
+        Array<int> cutoff_smoothcc; Array<int> cutoff2_smoothcc;
+        Array<int> cutoff_stepcc; Array<int> cutoff2_stepcc;
+        Array<int> cutoff_curvecc; Array<int> cutoff2_curvecc;
         int cutoff_chanaft; int cutoff2_chanaft;
         int cutoff_polyaft; int cutoff2_polyaft;
         float resonance; float resonance2;
-        std::vector<int> resonance_oncc; std::vector<int> resonance2_oncc;
-        std::vector<int> resonance_smoothcc; std::vector<int> resonance2_smoothcc;
-        std::vector<int> resonance_stepcc; std::vector<int> resonance2_stepcc;
-        std::vector<int> resonance_curvecc; std::vector<int> resonance2_curvecc;
+        Array<int> resonance_oncc; Array<int> resonance2_oncc;
+        Array<int> resonance_smoothcc; Array<int> resonance2_smoothcc;
+        Array<int> resonance_stepcc; Array<int> resonance2_stepcc;
+        Array<int> resonance_curvecc; Array<int> resonance2_curvecc;
         int fil_keytrack; int fil2_keytrack;
         int fil_keycenter; int fil2_keycenter;
         int fil_veltrack; int fil2_veltrack;
@@ -342,12 +383,12 @@ namespace sfz
 
         // per voice equalizer
         float eq1_freq; float eq2_freq; float eq3_freq;
-        std::vector<float> eq1_freq_oncc; std::vector<float> eq2_freq_oncc; std::vector<float> eq3_freq_oncc;
+        Array<float> eq1_freq_oncc; Array<float> eq2_freq_oncc; Array<float> eq3_freq_oncc;
         float eq1_vel2freq; float eq2_vel2freq; float eq3_vel2freq;
         float eq1_bw; float eq2_bw; float eq3_bw;
-        std::vector<float> eq1_bw_oncc; std::vector<float> eq2_bw_oncc; std::vector<float> eq3_bw_oncc;
+        Array<float> eq1_bw_oncc; Array<float> eq2_bw_oncc; Array<float> eq3_bw_oncc;
         float eq1_gain; float eq2_gain; float eq3_gain;
-        std::vector<float> eq1_gain_oncc; std::vector<float> eq2_gain_oncc; std::vector<float> eq3_gain_oncc;
+        Array<float> eq1_gain_oncc; Array<float> eq2_gain_oncc; Array<float> eq3_gain_oncc;
         float eq1_vel2gain; float eq2_vel2gain; float eq3_vel2gain;
 
         //Deprecated (from version 1)

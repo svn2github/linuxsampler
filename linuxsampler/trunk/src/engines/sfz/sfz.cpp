@@ -64,18 +64,7 @@ namespace sfz
     /////////////////////////////////////////////////////////////
     // class Definition
 
-    Definition::Definition() :
-        locc(128), hicc(128), start_locc(128), start_hicc(128), stop_locc(128),
-        stop_hicc(128), on_locc(128), on_hicc(128), delay_oncc(128), delay_samples_oncc(128),
-        offset_oncc(128), amp_velcurve(128), gain_oncc(128), xfin_locc(128), xfin_hicc(128),
-        xfout_locc(128), xfout_hicc(128), cutoff_oncc(128), cutoff2_oncc(128), cutoff_smoothcc(128),
-        cutoff2_smoothcc(128), cutoff_stepcc(128), cutoff2_stepcc(128), cutoff_curvecc(128),
-        cutoff2_curvecc(128), resonance_oncc(128), resonance2_oncc(128), resonance_smoothcc(128),
-        resonance2_smoothcc(128), resonance_stepcc(128), resonance2_stepcc(128),
-        resonance_curvecc(128), resonance2_curvecc(128), eq1_freq_oncc(128), eq2_freq_oncc(128),
-        eq3_freq_oncc(128), eq1_bw_oncc(128), eq2_bw_oncc(128), eq3_bw_oncc(128),
-        eq1_gain_oncc(128), eq2_gain_oncc(128), eq3_gain_oncc(128)
-
+    Definition::Definition()
     {
     }
 
@@ -460,57 +449,57 @@ namespace sfz
         for (int i = 0; i < 128; ++i)
         {
             // input control
-            locc[i] = 0;
-            hicc[i] = 127;
-            start_locc[i] = -1;
-            start_hicc[i] = -1;
-            stop_locc[i] = -1;
-            stop_hicc[i] = -1;
-            on_locc[i] = -1;
-            on_hicc[i] = -1;
+            locc.set(i, 0);
+            hicc.set(i, 127);
+            start_locc.set(i, -1);
+            start_hicc.set(i, -1);
+            stop_locc.set(i, -1);
+            stop_hicc.set(i, -1);
+            on_locc.set(i, -1);
+            on_hicc.set(i, -1);
 
             // sample player
-            delay_oncc[i].unset();
-            delay_samples_oncc[i].unset();
-            offset_oncc[i].unset();
+            delay_oncc.set(i, optional<float>::nothing);
+            delay_samples_oncc.set(i, optional<int>::nothing);
+            offset_oncc.set(i, optional<int>::nothing);
 
             // amplifier
-            amp_velcurve[i] = -1;
-            gain_oncc[i] = 0;
-            xfin_locc[i] = 0;
-            xfin_hicc[i] = 0;
-            xfout_locc[i] = 127;
-            xfout_hicc[i] = 127;
+            amp_velcurve.set(i, -1);
+            gain_oncc.set(i, 0);
+            xfin_locc.set(i, 0);
+            xfin_hicc.set(i, 0);
+            xfout_locc.set(i, 127);
+            xfout_hicc.set(i, 127);
 
             // filter
-            cutoff_oncc[i] = 0;
-            cutoff_smoothcc[i] = 0;
-            cutoff_stepcc[i] = 0;
-            cutoff_curvecc[i] = 0;
-            resonance_oncc[i] = 0;
-            resonance_smoothcc[i] = 0;
-            resonance_stepcc[i] = 0;
-            resonance_curvecc[i] = 0;
+            cutoff_oncc.set(i, 0);
+            cutoff_smoothcc.set(i, 0);
+            cutoff_stepcc.set(i, 0);
+            cutoff_curvecc.set(i, 0);
+            resonance_oncc.set(i, 0);
+            resonance_smoothcc.set(i, 0);
+            resonance_stepcc.set(i, 0);
+            resonance_curvecc.set(i, 0);
 
-            cutoff2_oncc[i] = 0;
-            cutoff2_smoothcc[i] = 0;
-            cutoff2_stepcc[i] = 0;
-            cutoff2_curvecc[i] = 0;
-            resonance2_oncc[i] = 0;
-            resonance2_smoothcc[i] = 0;
-            resonance2_stepcc[i] = 0;
-            resonance2_curvecc[i] = 0;
+            cutoff2_oncc.set(i, 0);
+            cutoff2_smoothcc.set(i, 0);
+            cutoff2_stepcc.set(i, 0);
+            cutoff2_curvecc.set(i, 0);
+            resonance2_oncc.set(i, 0);
+            resonance2_smoothcc.set(i, 0);
+            resonance2_stepcc.set(i, 0);
+            resonance2_curvecc.set(i, 0);
 
             // per voice equalizer
-            eq1_freq_oncc[i] = 0;
-            eq2_freq_oncc[i] = 0;
-            eq3_freq_oncc[i] = 0;
-            eq1_bw_oncc[i] = 0;
-            eq2_bw_oncc[i] = 0;
-            eq3_bw_oncc[i] = 0;
-            eq1_gain_oncc[i] = 0;
-            eq2_gain_oncc[i] = 0;
-            eq3_gain_oncc[i] = 0;
+            eq1_freq_oncc.set(i, 0);
+            eq2_freq_oncc.set(i, 0);
+            eq3_freq_oncc.set(i, 0);
+            eq1_bw_oncc.set(i, 0);
+            eq2_bw_oncc.set(i, 0);
+            eq3_bw_oncc.set(i, 0);
+            eq1_gain_oncc.set(i, 0);
+            eq2_gain_oncc.set(i, 0);
+            eq3_gain_oncc.set(i, 0);
         }
 
         eg.clear();
@@ -873,6 +862,7 @@ namespace sfz
             }
         }
 
+        std::set<float*> velcurves;
         for (int i = 0; i < _instrument->regions.size(); i++) {
             ::sfz::Region* pRegion = _instrument->regions[i];
             int low = pRegion->lokey;
@@ -896,35 +886,41 @@ namespace sfz
             }
 
             // create velocity response curve
-            int prev = 0;
-            float prevvalue = 0;
-            for (int v = 0 ; v < 128 ; v++) {
-                if (pRegion->amp_velcurve[v] >= 0) {
-                    float step = (pRegion->amp_velcurve[v] - prevvalue) / (v - prev);
-                    for ( ; prev < v ; prev++) {
-                        pRegion->amp_velcurve[prev] = prevvalue;
-                        prevvalue += step;
+
+            // don't use copy-on-write here, instead change the actual
+            // unique buffers in memory
+            float* velcurve = const_cast<float*>(&pRegion->amp_velcurve[0]);
+            if (velcurves.insert(velcurve).second) {
+                int prev = 0;
+                float prevvalue = 0;
+                for (int v = 0 ; v < 128 ; v++) {
+                    if (velcurve[v] >= 0) {
+                        float step = (velcurve[v] - prevvalue) / (v - prev);
+                        for ( ; prev < v ; prev++) {
+                            velcurve[prev] = prevvalue;
+                            prevvalue += step;
+                        }
                     }
                 }
-            }
-            if (prev) {
-                float step = (1 - prevvalue) / (127 - prev);
-                for ( ; prev < 128 ; prev++) {
-                    pRegion->amp_velcurve[prev] = prevvalue;
-                    prevvalue += step;
+                if (prev) {
+                    float step = (1 - prevvalue) / (127 - prev);
+                    for ( ; prev < 128 ; prev++) {
+                        velcurve[prev] = prevvalue;
+                        prevvalue += step;
+                    }
+                } else {
+                    // default curve
+                    for (int v = 0 ; v < 128 ; v++) {
+                        velcurve[v] = v * v / (127.0 * 127.0);
+                    }
                 }
-            } else {
-                // default curve
+
+                // apply amp_veltrack
+                float offset = -pRegion->amp_veltrack;
+                if (offset <= 0) offset += 100;
                 for (int v = 0 ; v < 128 ; v++) {
-                    pRegion->amp_velcurve[v] = v * v / (127.0 * 127.0);
+                    velcurve[v] = (offset + pRegion->amp_veltrack * velcurve[v]) / 100;
                 }
-            }
-            // apply amp_veltrack
-            float offset = -pRegion->amp_veltrack;
-            if (offset <= 0) offset += 100;
-            for (int v = 0 ; v < 128 ; v++) {
-                pRegion->amp_velcurve[v] =
-                    (offset + pRegion->amp_veltrack * pRegion->amp_velcurve[v]) / 100;
             }
         }
     }
@@ -1217,7 +1213,7 @@ namespace sfz
         else if ("eq3_vel2gain" == key) pCurDef->eq3_vel2gain = ToFloat(value);
 
         else if (sscanf(key.c_str(), "amp_velcurve_%d", &x)) {
-            pCurDef->amp_velcurve[x] = ToFloat(value);
+            pCurDef->amp_velcurve.set(x, ToFloat(value));
         }
 
         // CCs
@@ -1228,55 +1224,55 @@ namespace sfz
             int num_cc = ToInt(key.substr(delimiter_index + 2));
 
             // input controls
-            if ("lo" == key_cc) pCurDef->locc[num_cc] = ToInt(value);
-            else if ("hi" == key_cc) pCurDef->hicc[num_cc] = ToInt(value);
-            else if ("start_lo" == key_cc) pCurDef->start_locc[num_cc] = ToInt(value);
-            else if ("start_hi" == key_cc) pCurDef->start_hicc[num_cc] = ToInt(value);
-            else if ("stop_lo" == key_cc) pCurDef->stop_locc[num_cc] = ToInt(value);
-            else if ("stop_hi" == key_cc) pCurDef->stop_hicc[num_cc] = ToInt(value);
-            else if ("on_lo" == key_cc) pCurDef->on_locc[num_cc] = ToInt(value);
-            else if ("on_hi" == key_cc) pCurDef->on_hicc[num_cc] = ToInt(value);
+            if ("lo" == key_cc) pCurDef->locc.set(num_cc, ToInt(value));
+            else if ("hi" == key_cc) pCurDef->hicc.set(num_cc, ToInt(value));
+            else if ("start_lo" == key_cc) pCurDef->start_locc.set(num_cc, ToInt(value));
+            else if ("start_hi" == key_cc) pCurDef->start_hicc.set(num_cc, ToInt(value));
+            else if ("stop_lo" == key_cc) pCurDef->stop_locc.set(num_cc, ToInt(value));
+            else if ("stop_hi" == key_cc) pCurDef->stop_hicc.set(num_cc, ToInt(value));
+            else if ("on_lo" == key_cc) pCurDef->on_locc.set(num_cc, ToInt(value));
+            else if ("on_hi" == key_cc) pCurDef->on_hicc.set(num_cc, ToInt(value));
 
             // sample player
-            else if ("delay_on" == key_cc) pCurDef->delay_oncc[num_cc] = ToFloat(value);
-            else if ("delay_samples_on" == key_cc) pCurDef->delay_samples_oncc[num_cc] = ToInt(value);
-            else if ("offset_on" == key_cc) pCurDef->offset_oncc[num_cc] = ToInt(value);
+            else if ("delay_on" == key_cc) pCurDef->delay_oncc.set(num_cc, ToFloat(value));
+            else if ("delay_samples_on" == key_cc) pCurDef->delay_samples_oncc.set(num_cc, ToInt(value));
+            else if ("offset_on" == key_cc) pCurDef->offset_oncc.set(num_cc, ToInt(value));
 
             // amplifier
-            else if ("gain_on"  == key_cc || "gain_" == key_cc) pCurDef->gain_oncc[num_cc]  = ToFloat(value);
-            else if ("xfin_lo"  == key_cc) pCurDef->xfin_locc[num_cc]  = ToInt(value);
-            else if ("xfin_hi"  == key_cc) pCurDef->xfin_hicc[num_cc]  = ToInt(value);
-            else if ("xfout_lo" == key_cc) pCurDef->xfout_locc[num_cc] = ToInt(value);
-            else if ("xfout_hi" == key_cc) pCurDef->xfout_hicc[num_cc] = ToInt(value);
+            else if ("gain_on"  == key_cc || "gain_" == key_cc) pCurDef->gain_oncc.set(num_cc, ToFloat(value));
+            else if ("xfin_lo"  == key_cc) pCurDef->xfin_locc.set(num_cc, ToInt(value));
+            else if ("xfin_hi"  == key_cc) pCurDef->xfin_hicc.set(num_cc, ToInt(value));
+            else if ("xfout_lo" == key_cc) pCurDef->xfout_locc.set(num_cc, ToInt(value));
+            else if ("xfout_hi" == key_cc) pCurDef->xfout_hicc.set(num_cc, ToInt(value));
 
             // filter
-            else if ("cutoff_on"  == key_cc || "cutoff_" == key_cc) pCurDef->cutoff_oncc[num_cc]  = ToInt(value);
-            else if ("cutoff2_on" == key_cc) pCurDef->cutoff2_oncc[num_cc] = ToInt(value);
-            else if ("cutoff_smooth"  == key_cc) pCurDef->cutoff_smoothcc[num_cc]  = ToInt(value);
-            else if ("cutoff2_smooth" == key_cc) pCurDef->cutoff2_smoothcc[num_cc] = ToInt(value);
-            else if ("cutoff_step"  == key_cc) pCurDef->cutoff_stepcc[num_cc]  = ToInt(value);
-            else if ("cutoff2_step" == key_cc) pCurDef->cutoff2_stepcc[num_cc] = ToInt(value);
-            else if ("cutoff_curve" == key_cc) pCurDef->cutoff_curvecc[num_cc] = ToInt(value);
-            else if ("cutoff2_curve" == key_cc) pCurDef->cutoff2_curvecc[num_cc] = ToInt(value);
-            else if ("resonance_on" == key_cc) pCurDef->resonance_oncc[num_cc] = ToInt(value);
-            else if ("resonance2_on" == key_cc) pCurDef->resonance2_oncc[num_cc] = ToInt(value);
-            else if ("resonance_smooth" == key_cc) pCurDef->resonance_smoothcc[num_cc] = ToInt(value);
-            else if ("resonance2_smooth" == key_cc) pCurDef->resonance2_smoothcc[num_cc] = ToInt(value);
-            else if ("resonance_step" == key_cc) pCurDef->resonance_stepcc[num_cc] = ToInt(value);
-            else if ("resonance2_step" == key_cc) pCurDef->resonance2_stepcc[num_cc] = ToInt(value);
-            else if ("resonance_curve" == key_cc) pCurDef->resonance_curvecc[num_cc] = ToInt(value);
-            else if ("resonance2_curve" == key_cc) pCurDef->resonance2_curvecc[num_cc] = ToInt(value);
+            else if ("cutoff_on"  == key_cc || "cutoff_" == key_cc) pCurDef->cutoff_oncc.set(num_cc, ToInt(value));
+            else if ("cutoff2_on" == key_cc) pCurDef->cutoff2_oncc.set(num_cc, ToInt(value));
+            else if ("cutoff_smooth"  == key_cc) pCurDef->cutoff_smoothcc.set(num_cc, ToInt(value));
+            else if ("cutoff2_smooth" == key_cc) pCurDef->cutoff2_smoothcc.set(num_cc, ToInt(value));
+            else if ("cutoff_step"  == key_cc) pCurDef->cutoff_stepcc.set(num_cc, ToInt(value));
+            else if ("cutoff2_step" == key_cc) pCurDef->cutoff2_stepcc.set(num_cc, ToInt(value));
+            else if ("cutoff_curve" == key_cc) pCurDef->cutoff_curvecc.set(num_cc, ToInt(value));
+            else if ("cutoff2_curve" == key_cc) pCurDef->cutoff2_curvecc.set(num_cc, ToInt(value));
+            else if ("resonance_on" == key_cc) pCurDef->resonance_oncc.set(num_cc, ToInt(value));
+            else if ("resonance2_on" == key_cc) pCurDef->resonance2_oncc.set(num_cc, ToInt(value));
+            else if ("resonance_smooth" == key_cc) pCurDef->resonance_smoothcc.set(num_cc, ToInt(value));
+            else if ("resonance2_smooth" == key_cc) pCurDef->resonance2_smoothcc.set(num_cc, ToInt(value));
+            else if ("resonance_step" == key_cc) pCurDef->resonance_stepcc.set(num_cc, ToInt(value));
+            else if ("resonance2_step" == key_cc) pCurDef->resonance2_stepcc.set(num_cc, ToInt(value));
+            else if ("resonance_curve" == key_cc) pCurDef->resonance_curvecc.set(num_cc, ToInt(value));
+            else if ("resonance2_curve" == key_cc) pCurDef->resonance2_curvecc.set(num_cc, ToInt(value));
 
             // per voice equalizer
-            else if ("eq1_freq_on" == key_cc || "eq1_freq" == key_cc) pCurDef->eq1_freq_oncc[num_cc] = ToInt(value);
-            else if ("eq2_freq_on" == key_cc || "eq2_freq" == key_cc) pCurDef->eq2_freq_oncc[num_cc] = ToInt(value);
-            else if ("eq3_freq_on" == key_cc || "eq3_freq" == key_cc) pCurDef->eq3_freq_oncc[num_cc] = ToInt(value);
-            else if ("eq1_bw_on" == key_cc || "eq1_bw" == key_cc) pCurDef->eq1_bw_oncc[num_cc] = ToInt(value);
-            else if ("eq2_bw_on" == key_cc || "eq2_bw" == key_cc) pCurDef->eq2_bw_oncc[num_cc] = ToInt(value);
-            else if ("eq3_bw_on" == key_cc || "eq3_bw" == key_cc) pCurDef->eq3_bw_oncc[num_cc] = ToInt(value);
-            else if ("eq1_gain_on" == key_cc || "eq1_gain" == key_cc) pCurDef->eq1_gain_oncc[num_cc] = ToInt(value);
-            else if ("eq2_gain_on" == key_cc || "eq2_gain" == key_cc) pCurDef->eq2_gain_oncc[num_cc] = ToInt(value);
-            else if ("eq3_gain_on" == key_cc || "eq3_gain" == key_cc) pCurDef->eq3_gain_oncc[num_cc] = ToInt(value);
+            else if ("eq1_freq_on" == key_cc || "eq1_freq" == key_cc) pCurDef->eq1_freq_oncc.set(num_cc, ToInt(value));
+            else if ("eq2_freq_on" == key_cc || "eq2_freq" == key_cc) pCurDef->eq2_freq_oncc.set(num_cc, ToInt(value));
+            else if ("eq3_freq_on" == key_cc || "eq3_freq" == key_cc) pCurDef->eq3_freq_oncc.set(num_cc, ToInt(value));
+            else if ("eq1_bw_on" == key_cc || "eq1_bw" == key_cc) pCurDef->eq1_bw_oncc.set(num_cc, ToInt(value));
+            else if ("eq2_bw_on" == key_cc || "eq2_bw" == key_cc) pCurDef->eq2_bw_oncc.set(num_cc, ToInt(value));
+            else if ("eq3_bw_on" == key_cc || "eq3_bw" == key_cc) pCurDef->eq3_bw_oncc.set(num_cc, ToInt(value));
+            else if ("eq1_gain_on" == key_cc || "eq1_gain" == key_cc) pCurDef->eq1_gain_oncc.set(num_cc, ToInt(value));
+            else if ("eq2_gain_on" == key_cc || "eq2_gain" == key_cc) pCurDef->eq2_gain_oncc.set(num_cc, ToInt(value));
+            else if ("eq3_gain_on" == key_cc || "eq3_gain" == key_cc) pCurDef->eq3_gain_oncc.set(num_cc, ToInt(value));
             else std::cerr << "The opcode '" << key << "' is unsupported by libsfz!" << std::endl;
         }
         // v2 envelope generators

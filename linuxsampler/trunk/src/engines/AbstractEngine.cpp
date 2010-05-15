@@ -3,8 +3,8 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003,2004 by Benno Senoner and Christian Schoenebeck    *
- *   Copyright (C) 2005-2009 Christian Schoenebeck                         *
- *   Copyright (C) 2009 Grigor Iliev                                       *
+ *   Copyright (C) 2005-2008 Christian Schoenebeck                         *
+ *   Copyright (C) 2009-2010 Christian Schoenebeck and Grigor Iliev        *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -78,6 +78,7 @@ namespace LinuxSampler {
         pEventPool         = new Pool<Event>(CONFIG_MAX_EVENTS_PER_FRAGMENT);
         pGlobalEvents      = new RTList<Event>(pEventPool);
         FrameTime          = 0;
+        RandomSeed         = 0;
     }
 
     AbstractEngine::~AbstractEngine() {
