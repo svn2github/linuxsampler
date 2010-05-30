@@ -450,11 +450,22 @@ namespace sf2 {
             int      GetRegionCount();
             Region*  GetRegion(int idx);
 
-            std::vector<Region*> GetRegionsOnKey(int key, uint8_t vel);
-
         protected:
             std::vector<Region*> regions;
             sf2::File* pFile;
+    };
+
+    class Query {
+        public:
+            int key;
+            uint8_t vel;
+
+            Query(InstrumentBase& instrument);
+            Region* next();
+
+        private:
+            InstrumentBase& instrument;
+            int i;
     };
 
     class Instrument : public InstrumentBase {

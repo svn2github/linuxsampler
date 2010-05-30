@@ -21,8 +21,6 @@
  *   MA  02111-1307  USA                                                   *
  ***************************************************************************/
 
-#include <vector>
-
 #include "RIFF.h"
 
 #include "SF.h"
@@ -659,19 +657,19 @@ namespace sf2 {
         return regions[idx];
     }
 
-    std::vector<Region*> InstrumentBase::GetRegionsOnKey(int key, uint8_t vel) {
-        std::vector<Region*> v;
-        for (int i = 0; i < GetRegionCount(); i++) {
-            Region* r = GetRegion(i);
-            if (
-                ((r->loKey  == NONE && r->hiKey  == NONE) || (key >= r->loKey && key <= r->hiKey)) &&
-                ((r->minVel == NONE && r->maxVel == NONE) || (vel >= r->minVel && vel <= r->maxVel))
-            ) {
-                v.push_back(r);
+    Query::Query(InstrumentBase& instrument) : instrument(instrument) {
+        i = 0;
+    }
+
+    Region* Query::next() {
+        while (i < instrument.GetRegionCount()) {
+            Region* r = instrument.GetRegion(i++);
+            if (((r->loKey  == NONE && r->hiKey  == NONE) || (key >= r->loKey && key <= r->hiKey)) &&
+                ((r->minVel == NONE && r->maxVel == NONE) || (vel >= r->minVel && vel <= r->maxVel))) {
+                return r;
             }
         }
-
-        return v;
+        return 0;
     }
 
     Instrument::Instrument(sf2::File* pFile, RIFF::Chunk* ck) : InstrumentBase(pFile) {

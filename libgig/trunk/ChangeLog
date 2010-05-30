@@ -1,6 +1,7 @@
 Version CVS HEAD (?)
   * SoundFont file format
     - initial implementation
+    - changed region lookup API to avoid malloc in RT threads
 
 Version 3.3.0 (30 Jul 2009)
 
