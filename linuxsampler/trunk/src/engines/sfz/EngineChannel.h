@@ -57,7 +57,6 @@ namespace LinuxSampler { namespace sfz {
 
         private:
             bool PressedKeys[128];
-            std::vector< ::sfz::Region*> regionsTemp;
             int LastKeySwitch;
             int LastKey;
     };

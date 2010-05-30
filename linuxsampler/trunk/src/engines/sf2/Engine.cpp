@@ -46,7 +46,7 @@ namespace LinuxSampler { namespace sf2 {
         // event can trigger a new note on or note off event
         if (pChannel->pInstrument) {
 
-            // TODO: 
+            // TODO:
         }
 
         // update controller value in the engine channel's controller table
@@ -80,31 +80,24 @@ namespace LinuxSampler { namespace sf2 {
         uint8_t  chanaft  = pChannel->ControllerTable[128];
         uint8_t* cc       = pChannel->ControllerTable;
 
-        std::vector< ::sf2::Region*> regs = pChannel->pInstrument->GetRegionsOnKey (
-            key, vel
-        );
-
-        pChannel->regionsTemp.clear();
-
-        for (int i = 0; i < regs.size(); i++) {
+        int layer = 0;
+        ::sf2::Query query(*pChannel->pInstrument);
+        query.key = key;
+        query.vel = vel;
+        while (::sf2::Region* region = query.next()) {
             // TODO: Generators in the PGEN sub-chunk are applied relative to generators in the IGEN sub-chunk in an additive manner.  In
             // other words, PGEN generators increase or decrease the value of an IGEN generator.
-            ::sf2::Instrument* sfInstr = regs[i]->pInstrument;
-
-            std::vector< ::sf2::Region*> subRegs = sfInstr->GetRegionsOnKey (
-                key, vel
-            );
-            for (int j = 0; j < subRegs.size(); j++) {
-                pChannel->regionsTemp.push_back(subRegs[j]);
-            }
-        }
-        
-        for (int i = 0; i < pChannel->regionsTemp.size(); i++) {
-            ::sf2::Region* r = pChannel->regionsTemp[i];
-            //std::cout << r->GetSample()->GetName();
-            //std::cout << " loKey: " << r->loKey << " hiKey: " << r->hiKey << " minVel: " << r->minVel << " maxVel: " << r->maxVel << " Vel: " << ((int)vel) << std::endl << std::endl;
-            if (!RegionSuspended(pChannel->regionsTemp[i])) {
-                LaunchVoice(pChannel, itNoteOnEvent, i, false, true, HandleKeyGroupConflicts);
+            ::sf2::Query subQuery(*region->pInstrument);
+            subQuery.key = key;
+            subQuery.vel = vel;
+            while (::sf2::Region* r = subQuery.next()) {
+                //std::cout << r->GetSample()->GetName();
+                //std::cout << " loKey: " << r->loKey << " hiKey: " << r->hiKey << " minVel: " << r->minVel << " maxVel: " << r->maxVel << " Vel: " << ((int)vel) << std::endl << std::endl;
+                if (!RegionSuspended(r)) {
+                    itNoteOnEvent->Param.Note.pRegion = r;
+                    LaunchVoice(pChannel, itNoteOnEvent, layer, false, true, HandleKeyGroupConflicts);
+                }
+                layer++;
             }
         }
     }
@@ -113,7 +106,7 @@ namespace LinuxSampler { namespace sf2 {
         LinuxSampler::EngineChannel*  pEngineChannel,
         RTList<Event>::Iterator&      itNoteOffEvent
     ) {
-        
+
     }
 
     Pool<Voice>::Iterator Engine::LaunchVoice (
@@ -131,7 +124,7 @@ namespace LinuxSampler { namespace sf2 {
         Voice::type_t VoiceType = Voice::type_normal;
 
         Pool<Voice>::Iterator itNewVoice;
-        ::sf2::Region* pRgn = pChannel->regionsTemp[iLayer];
+        ::sf2::Region* pRgn = static_cast< ::sf2::Region*>(itNoteOnEvent->Param.Note.pRegion);
 
         // no need to process if sample is silent
         if (!pRgn->GetSample() || !pRgn->GetSample()->GetTotalFrameCount()) return Pool<Voice>::Iterator();
@@ -166,7 +159,7 @@ namespace LinuxSampler { namespace sf2 {
     }
 
     String Engine::Version() {
-        String s = "$Revision: 1.2 $";
+        String s = "$Revision: 1.3 $";
         return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
 

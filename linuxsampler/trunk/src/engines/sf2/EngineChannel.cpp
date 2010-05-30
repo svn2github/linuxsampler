@@ -4,7 +4,7 @@
  *                                                                         *
  *   Copyright (C) 2003,2004 by Benno Senoner and Christian Schoenebeck    *
  *   Copyright (C) 2005-2009 Christian Schoenebeck                         *
- *   Copyright (C) 2009 Grigor Iliev                                       *
+ *   Copyright (C) 2009-2010 Grigor Iliev                                  *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -133,9 +133,13 @@ namespace LinuxSampler { namespace sf2 {
         }
 
         // rebuild ActiveKeyGroups map with key groups of current instrument
-        //for (::gig::Region* pRegion = newInstrument->GetFirstRegion(); pRegion; pRegion = newInstrument->GetNextRegion())
-        //    if (pRegion->KeyGroup) ActiveKeyGroups[pRegion->KeyGroup] = NULL;
-        // TODO: ^^^
+        for (int i = 0 ; i < newInstrument->GetRegionCount() ; i++) {
+            ::sf2::Region* pRegion = newInstrument->GetRegion(i);
+            for (int j = 0 ; j < pRegion->pInstrument->GetRegionCount() ; j++) {
+                ::sf2::Region* pSubRegion = pRegion->pInstrument->GetRegion(j);
+                if (pSubRegion->exclusiveClass) ActiveKeyGroups[pSubRegion->exclusiveClass] = NULL;
+            }
+        }
 
         InstrumentIdxName = newInstrument->GetName();
         InstrumentStat = 100;

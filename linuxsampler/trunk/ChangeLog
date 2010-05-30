@@ -44,9 +44,13 @@ Version CVS HEAD (?)
     - improved logic for sw_lokey/hikey/up/down/last
     - added more v1 aliases to parser
     - reduced memory usage for sfz data
+    - RT-safeness: avoid malloc in audio thread
+    - fixed a bug that could cause voice stealing to fail
 
   * SoundFont format engine:
     - Initial implementation (not usable yet)
+    - RT-safeness: avoid malloc in audio thread
+    - fixed a bug that could cause voice stealing to fail
 
   * Host plugins:
     - AU bugfix: failed to destroy its audio/MIDI devices

@@ -52,7 +52,6 @@ namespace LinuxSampler { namespace sf2 {
 
         private:
             bool PressedKeys[128];
-            std::vector< ::sf2::Region*> regionsTemp;
             int LastKeySwitch;
             int LastKey;
     };

@@ -4,7 +4,7 @@
  *                                                                         *
  *   Copyright (C) 2003,2004 by Benno Senoner and Christian Schoenebeck    *
  *   Copyright (C) 2005-2009 Christian Schoenebeck                         *
- *   Copyright (C) 2009 Grigor Iliev                                       *
+ *   Copyright (C) 2009-2010 Grigor Iliev                                  *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -135,9 +135,10 @@ namespace LinuxSampler { namespace sfz {
         }
 
         // rebuild ActiveKeyGroups map with key groups of current instrument
-        //for (::gig::Region* pRegion = newInstrument->GetFirstRegion(); pRegion; pRegion = newInstrument->GetNextRegion())
-        //    if (pRegion->KeyGroup) ActiveKeyGroups[pRegion->KeyGroup] = NULL;
-        // TODO: ^^^
+        for (std::vector< ::sfz::Region*>::iterator itRegion = newInstrument->regions.begin() ;
+             itRegion != newInstrument->regions.end() ; ++itRegion) {
+            if ((*itRegion)->group) ActiveKeyGroups[(*itRegion)->group] = NULL;
+        }
 
         InstrumentIdxName = newInstrument->GetName();
         InstrumentStat = 100;

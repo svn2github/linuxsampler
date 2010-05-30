@@ -404,6 +404,30 @@ namespace sfz
         LinuxSampler::ArrayList<EG> eg;
     };
 
+    class Query {
+    public:
+        Query(const Instrument& instrument);
+        Region* next();
+        uint8_t chan;        // MIDI channel
+        uint8_t key;         // MIDI note      TODO: or controller
+        uint8_t vel;         // MIDI velocity
+        int bend;            // MIDI pitch bend
+        uint8_t bpm;         // host BPM
+        uint8_t chanaft;     // MIDI channel pressure
+        uint8_t polyaft;     // MIDI polyphonic aftertouch
+        uint8_t prog;        // MIDI program change
+        float rand;          // generated random number
+        trigger_t trig;      // how it was triggered
+        uint8_t* cc;         // all 128 CC values
+        float timer;         // time since previous region in the group was triggered
+        bool* sw;            // state of region key switches, 128 possible values
+        uint8_t last_sw_key; // last key pressed in the key switch range
+        uint8_t prev_sw_key; // previous note value
+    private:
+        std::vector<Region*>::const_iterator i;
+        std::vector<Region*>::const_iterator regions_end;
+    };
+
     /////////////////////////////////////////////////////////////
     // class Region
 
@@ -429,10 +453,7 @@ namespace sfz
         uint GetLoopCount();
 
         /// Return true if region is triggered by key
-        bool OnKey(uint8_t chan, uint8_t key, uint8_t vel,
-               int bend, uint8_t bpm, uint8_t chanaft, uint8_t polyaft,
-               uint8_t prog, float rand, trigger_t trig, uint8_t* cc,
-               float timer, bool* sw, uint8_t last_sw_key, uint8_t prev_sw_key);
+        bool OnKey(const Query& q);
 
         /// Return true if region is triggered by control change
         bool OnControl(uint8_t chan, uint8_t cont, uint8_t val,
@@ -441,7 +462,7 @@ namespace sfz
                    float timer, bool* sw, uint8_t last_sw_key, uint8_t prev_sw_key);
 
         /// Return an articulation for the current state
-         Articulation* GetArticulation(int bend, uint8_t bpm, uint8_t chanaft, uint8_t polyaft, uint8_t* cc);
+        Articulation* GetArticulation(int bend, uint8_t bpm, uint8_t chanaft, uint8_t polyaft, uint8_t* cc);
 
         // unique region id
         int id;
@@ -463,16 +484,6 @@ namespace sfz
 
         std::string GetName() { return name; }
         SampleManager* GetSampleManager() { return pSampleManager; }
-
-        /**
-         * @returns All regions that are triggered by key
-         */
-        std::vector<Region*> GetRegionsOnKey (
-            uint8_t chan, uint8_t key, uint8_t vel,
-            int bend, uint8_t bpm, uint8_t chanaft, uint8_t polyaft,
-            uint8_t prog, float rand, trigger_t trig, uint8_t* cc,
-            float timer, bool* sw, uint8_t last_sw_key, uint8_t prev_sw_key
-        );
 
         bool DestroyRegion(Region* pRegion);
         bool HasKeyBinding(uint8_t key);

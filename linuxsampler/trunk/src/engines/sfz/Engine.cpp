@@ -72,28 +72,34 @@ namespace LinuxSampler { namespace sfz {
         bool                         HandleKeyGroupConflicts
     ) {
         EngineChannel* pChannel = static_cast<EngineChannel*>(pEngineChannel);
+        ::sfz::Query q(*pChannel->pInstrument);
+        q.chan        = pChannel->MidiChannel();
+        q.key         = itNoteOnEvent->Param.Note.Key;
+        q.vel         = itNoteOnEvent->Param.Note.Velocity;
+        q.bend        = pChannel->Pitch;
+        q.bpm         = 0;
+        q.chanaft     = pChannel->ControllerTable[128];
+        q.polyaft     = 0;
+        q.prog        = 0;
+        q.rand        = Random();
+        q.cc          = pChannel->ControllerTable;
+        q.timer       = 0;
+        q.sw          = pChannel->PressedKeys;
+        q.last_sw_key = pChannel->LastKeySwitch;
+        q.prev_sw_key = pChannel->LastKey;
+        q.trig        = TRIGGER_ATTACK |
+            ((pChannel->LastKey != -1 &&
+              pChannel->PressedKeys[pChannel->LastKey] &&
+              pChannel->LastKey != q.key) ?
+             TRIGGER_LEGATO : TRIGGER_FIRST);
 
-        uint8_t  chan     = pChannel->MidiChannel();
-        int      key      = itNoteOnEvent->Param.Note.Key;
-        uint8_t  vel      = itNoteOnEvent->Param.Note.Velocity;
-        int      bend     = pChannel->Pitch;
-        uint8_t  chanaft  = pChannel->ControllerTable[128];
-        uint8_t* cc       = pChannel->ControllerTable;
-        ::sfz::trigger_t trig = TRIGGER_ATTACK |
-              ((pChannel->LastKey != -1 &&
-                pChannel->PressedKeys[pChannel->LastKey] &&
-                pChannel->LastKey != key) ?
-               TRIGGER_LEGATO : TRIGGER_FIRST);
-
-        pChannel->regionsTemp = pChannel->pInstrument->GetRegionsOnKey (
-            chan, key, vel, bend, 0, chanaft, 0, 0, Random(), trig, cc,
-            0.0f, pChannel->PressedKeys, pChannel->LastKeySwitch, pChannel->LastKey
-        );
-
-        for (int i = 0; i < pChannel->regionsTemp.size(); i++) {
-            if (!RegionSuspended(pChannel->regionsTemp[i])) {
+        int i = 0;
+        while (::sfz::Region* region = q.next()) {
+            if (!RegionSuspended(region)) {
+                itNoteOnEvent->Param.Note.pRegion = region;
                 LaunchVoice(pChannel, itNoteOnEvent, i, false, true, HandleKeyGroupConflicts);
             }
+            i++;
         }
     }
 
@@ -102,26 +108,33 @@ namespace LinuxSampler { namespace sfz {
         RTList<Event>::Iterator&      itNoteOffEvent
     ) {
         EngineChannel* pChannel = static_cast<EngineChannel*>(pEngineChannel);
-        uint8_t  chan     = pChannel->MidiChannel();
-        int      key      = itNoteOffEvent->Param.Note.Key;
+        ::sfz::Query q(*pChannel->pInstrument);
+        q.chan        = pChannel->MidiChannel();
+        q.key         = itNoteOffEvent->Param.Note.Key;
 
         // MIDI note-on velocity is used instead of note-off velocity
-        uint8_t  vel      = pChannel->pMIDIKeyInfo[key].Velocity;
-        itNoteOffEvent->Param.Note.Velocity = vel;
+        q.vel         = pChannel->pMIDIKeyInfo[q.key].Velocity;
+        itNoteOffEvent->Param.Note.Velocity = q.vel;
 
-        int      bend     = pChannel->Pitch;
-        uint8_t  chanaft  = pChannel->ControllerTable[128];
-        uint8_t* cc       = pChannel->ControllerTable;
-        ::sfz::trigger_t trig = TRIGGER_RELEASE;
-
-        pChannel->regionsTemp = pChannel->pInstrument->GetRegionsOnKey (
-            chan, key, vel, bend, 0, chanaft, 0, 0, Random(), trig, cc,
-            0.0f, pChannel->PressedKeys, pChannel->LastKeySwitch, pChannel->LastKey
-        );
+        q.bend        = pChannel->Pitch;
+        q.bpm         = 0;
+        q.chanaft     = pChannel->ControllerTable[128];
+        q.polyaft     = 0;
+        q.prog        = 0;
+        q.rand        = Random();
+        q.cc          = pChannel->ControllerTable;
+        q.timer       = 0;
+        q.sw          = pChannel->PressedKeys;
+        q.last_sw_key = pChannel->LastKeySwitch;
+        q.prev_sw_key = pChannel->LastKey;
+        q.trig        = TRIGGER_RELEASE;
 
         // now launch the required amount of voices
-        for (int i = 0; i < pChannel->regionsTemp.size(); i++) {
+        int i = 0;
+        while (::sfz::Region* region = q.next()) {
+            itNoteOffEvent->Param.Note.pRegion = region;
             LaunchVoice(pChannel, itNoteOffEvent, i, true, false, false); //FIXME: for the moment we don't perform voice stealing for release triggered samples
+            i++;
         }
     }
 
@@ -139,7 +152,7 @@ namespace LinuxSampler { namespace sfz {
         Voice::type_t VoiceType = (ReleaseTriggerVoice) ? Voice::type_release_trigger : (!iLayer) ? Voice::type_release_trigger_required : Voice::type_normal;
 
         Pool<Voice>::Iterator itNewVoice;
-        ::sfz::Region* pRgn = pChannel->regionsTemp[iLayer];
+        ::sfz::Region* pRgn = static_cast< ::sfz::Region*>(itNoteOnEvent->Param.Note.pRegion);
 
         // no need to process if sample is silent
         if (!pRgn->GetSample() || !pRgn->GetSample()->GetTotalFrameCount()) return Pool<Voice>::Iterator();
@@ -174,7 +187,7 @@ namespace LinuxSampler { namespace sfz {
     }
 
     String Engine::Version() {
-        String s = "$Revision: 1.7 $";
+        String s = "$Revision: 1.8 $";
         return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
 

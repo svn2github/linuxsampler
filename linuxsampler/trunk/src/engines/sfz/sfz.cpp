@@ -107,63 +107,39 @@ namespace sfz
         }
     }
 
-    bool
-    Region::OnKey(uint8_t chan, uint8_t key, uint8_t vel,
-              int bend, uint8_t bpm, uint8_t chanaft, uint8_t polyaft,
-              uint8_t prog, float rand, trigger_t trig, uint8_t* cc,
-              float timer, bool* sw, uint8_t last_sw_key, uint8_t prev_sw_key)
-    {
-        // chan        (MIDI channel)
-        // key         (MIDI note)
-        // vel         (MIDI velocity)
-
-        // bend        (MIDI pitch bend)
-        // bpm         (host BPM)
-        // chanaft     (MIDI channel pressure)
-        // polyaft     (MIDI polyphonic aftertouch)
-        // prog        (MIDI program change)
-        // rand        (generated random number)
-        // trigger     (how it was triggered)
-        // cc          (all 128 CC values)
-
-        // timer       (time since previous region in the group was triggered)
-        // sw          (the state of region key switches, 128 possible values)
-        // last_sw_key (the last key pressed in the key switch range)
-        // prev_sw_key (the previous note value)
-
-        bool is_triggered (
-            chan    >= lochan     &&  chan    <= hichan     &&
-            key     >= lokey      &&  key     <= hikey      &&
-            vel     >= lovel      &&  vel     <= hivel      &&
-            bend    >= lobend     &&  bend    <= hibend     &&
-            bpm     >= lobpm      &&  bpm     <  hibpm      &&
-            chanaft >= lochanaft  &&  chanaft <= hichanaft  &&
-            polyaft >= lopolyaft  &&  polyaft <= hipolyaft  &&
-            prog    >= loprog     &&  prog    <= hiprog     &&
-            rand    >= lorand     &&  rand    <  hirand     &&
-            timer   >= lotimer    &&  timer   <= hitimer    &&
+    bool Region::OnKey(const Query& q) {
+        bool is_triggered(
+            q.chan    >= lochan     &&  q.chan    <= hichan     &&
+            q.key     >= lokey      &&  q.key     <= hikey      &&
+            q.vel     >= lovel      &&  q.vel     <= hivel      &&
+            q.bend    >= lobend     &&  q.bend    <= hibend     &&
+            q.bpm     >= lobpm      &&  q.bpm     <  hibpm      &&
+            q.chanaft >= lochanaft  &&  q.chanaft <= hichanaft  &&
+            q.polyaft >= lopolyaft  &&  q.polyaft <= hipolyaft  &&
+            q.prog    >= loprog     &&  q.prog    <= hiprog     &&
+            q.rand    >= lorand     &&  q.rand    <  hirand     &&
+            q.timer   >= lotimer    &&  q.timer   <= hitimer    &&
 
             ( sw_last == -1 ||
-              ((sw_last >= sw_lokey && sw_last <= sw_hikey) ? (last_sw_key == sw_last) : false) ) &&
+              ((sw_last >= sw_lokey && sw_last <= sw_hikey) ? (q.last_sw_key == sw_last) : false) ) &&
 
             ( sw_down == -1 ||
-              ((sw_down >= sw_lokey && (sw_hikey == -1 || sw_down <= sw_hikey)) ? (sw[sw_down]) : false) )  &&
+              ((sw_down >= sw_lokey && (sw_hikey == -1 || sw_down <= sw_hikey)) ? (q.sw[sw_down]) : false) )  &&
 
             ( sw_up   == -1 ||
-              ((sw_up   >= sw_lokey && (sw_hikey == -1 || sw_up   <= sw_hikey)) ? (!sw[sw_up]) : true) )  &&
+              ((sw_up   >= sw_lokey && (sw_hikey == -1 || sw_up   <= sw_hikey)) ? (!q.sw[sw_up]) : true) )  &&
 
             ( sw_previous == -1 ||
-              prev_sw_key == sw_previous )  &&
+              q.prev_sw_key == sw_previous )  &&
 
-            ((trigger & trig) != 0)
+            ((trigger & q.trig) != 0)
         );
 
         if (!is_triggered)
             return false;
 
-        for (int i = 0; i < 128; ++i)
-        {
-            if (locc[i] != -1 && hicc[i] != -1 && !(cc[i] >= locc[i] && cc[i] <= hicc[i]))
+        for (int i = 0; i < 128; ++i) {
+            if (locc[i] != -1 && hicc[i] != -1 && !(q.cc[i] >= locc[i] && q.cc[i] <= hicc[i]))
                 return false;
         }
 
@@ -278,21 +254,16 @@ namespace sfz
         regions.clear();
     }
 
-    std::vector<Region*> Instrument::GetRegionsOnKey (
-        uint8_t chan, uint8_t key, uint8_t vel,
-        int bend, uint8_t bpm, uint8_t chanaft, uint8_t polyaft,
-        uint8_t prog, float rand, trigger_t trig, uint8_t* cc,
-        float timer, bool* sw, uint8_t last_sw_key, uint8_t prev_sw_key
-    ) {
-        std::vector<Region*> v;
-        for (int i = 0; i < regions.size(); i++) {
-            if (regions[i]->OnKey (
-                chan, key, vel, bend, bpm, chanaft, polyaft, prog,
-                rand, trig, cc, timer, sw, last_sw_key, prev_sw_key)
-                    ) { v.push_back(regions[i]); }
-        }
+    Query::Query(const Instrument& instrument) {
+        i = instrument.regions.begin();
+        regions_end = instrument.regions.end();
+    }
 
-        return v;
+    Region* Query::next() {
+        while (i != regions_end) {
+            if ((*i++)->OnKey(*this)) return *i;
+        }
+        return 0;
     }
 
     bool Instrument::DestroyRegion(Region* pRegion) {
