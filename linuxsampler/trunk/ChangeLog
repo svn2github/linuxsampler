@@ -46,6 +46,7 @@ Version CVS HEAD (?)
     - reduced memory usage for sfz data
     - RT-safeness: avoid malloc in audio thread
     - fixed a bug that could cause voice stealing to fail
+    - optimized sample lookup
 
   * SoundFont format engine:
     - Initial implementation (not usable yet)

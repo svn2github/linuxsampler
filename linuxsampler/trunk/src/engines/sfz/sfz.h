@@ -47,6 +47,7 @@ namespace sfz
     class Group;
     class Instrument;
     class File;
+    class LookupTable;
 
     class Sample : public LinuxSampler::SampleFileBase<Region> {
         public:
@@ -297,7 +298,7 @@ namespace sfz
         int   lovel;     int   hivel;
         Array<int> locc; Array<int> hicc;
         int   lobend;    int   hibend;
-        int   lobpm;     int   hibpm;
+        float lobpm;     float hibpm;
         int   lochanaft; int   hichanaft;
         int   lopolyaft; int   hipolyaft;
         int   loprog;    int   hiprog;
@@ -406,8 +407,6 @@ namespace sfz
 
     class Query {
     public:
-        Query(const Instrument& instrument);
-        Region* next();
         uint8_t chan;        // MIDI channel
         uint8_t key;         // MIDI note      TODO: or controller
         uint8_t vel;         // MIDI velocity
@@ -423,9 +422,12 @@ namespace sfz
         bool* sw;            // state of region key switches, 128 possible values
         uint8_t last_sw_key; // last key pressed in the key switch range
         uint8_t prev_sw_key; // previous note value
+
+        void search(const Instrument* pInstrument);
+        Region* next();
     private:
-        std::vector<Region*>::const_iterator i;
-        std::vector<Region*>::const_iterator regions_end;
+        LinuxSampler::ArrayList<Region*>* pRegionList;
+        int regionIndex;
     };
 
     /////////////////////////////////////////////////////////////
@@ -452,7 +454,8 @@ namespace sfz
         uint GetLoopEnd();
         uint GetLoopCount();
 
-        /// Return true if region is triggered by key
+        /// Return true if region is triggered by key. Region is
+        /// assumed to come from a search in the lookup table.
         bool OnKey(const Query& q);
 
         /// Return true if region is triggered by control change
@@ -492,13 +495,15 @@ namespace sfz
         /// List of Regions belonging to this Instrument
         std::vector<Region*> regions;
 
-        friend class sfz::File;
+        friend class File;
+        friend class Query;
 
     private:
         std::string name;
         std::vector<bool> KeyBindings;
         std::vector<bool> KeySwitchBindings;
         SampleManager* pSampleManager;
+        LookupTable* pLookupTable;
     };
 
     /////////////////////////////////////////////////////////////

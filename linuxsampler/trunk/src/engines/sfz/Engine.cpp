@@ -41,7 +41,7 @@ namespace LinuxSampler { namespace sfz {
     ) {
         dmsg(4,("Engine::ContinuousController cc=%d v=%d\n", itControlChangeEvent->Param.CC.Controller, itControlChangeEvent->Param.CC.Value));
 
-        EngineChannel* pChannel = dynamic_cast<EngineChannel*>(pEngineChannel);
+        EngineChannel* pChannel = static_cast<EngineChannel*>(pEngineChannel);
         // handle the "control triggered" MIDI rule: a control change
         // event can trigger a new note on or note off event
         if (pChannel->pInstrument) {
@@ -72,7 +72,7 @@ namespace LinuxSampler { namespace sfz {
         bool                         HandleKeyGroupConflicts
     ) {
         EngineChannel* pChannel = static_cast<EngineChannel*>(pEngineChannel);
-        ::sfz::Query q(*pChannel->pInstrument);
+        ::sfz::Query q;
         q.chan        = pChannel->MidiChannel();
         q.key         = itNoteOnEvent->Param.Note.Key;
         q.vel         = itNoteOnEvent->Param.Note.Velocity;
@@ -93,6 +93,8 @@ namespace LinuxSampler { namespace sfz {
               pChannel->LastKey != q.key) ?
              TRIGGER_LEGATO : TRIGGER_FIRST);
 
+        q.search(pChannel->pInstrument);
+
         int i = 0;
         while (::sfz::Region* region = q.next()) {
             if (!RegionSuspended(region)) {
@@ -108,7 +110,7 @@ namespace LinuxSampler { namespace sfz {
         RTList<Event>::Iterator&      itNoteOffEvent
     ) {
         EngineChannel* pChannel = static_cast<EngineChannel*>(pEngineChannel);
-        ::sfz::Query q(*pChannel->pInstrument);
+        ::sfz::Query q;
         q.chan        = pChannel->MidiChannel();
         q.key         = itNoteOffEvent->Param.Note.Key;
 
@@ -128,6 +130,8 @@ namespace LinuxSampler { namespace sfz {
         q.last_sw_key = pChannel->LastKeySwitch;
         q.prev_sw_key = pChannel->LastKey;
         q.trig        = TRIGGER_RELEASE;
+
+        q.search(pChannel->pInstrument);
 
         // now launch the required amount of voices
         int i = 0;
@@ -187,7 +191,7 @@ namespace LinuxSampler { namespace sfz {
     }
 
     String Engine::Version() {
-        String s = "$Revision: 1.8 $";
+        String s = "$Revision: 1.9 $";
         return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
 

@@ -32,6 +32,7 @@
 #include "../../common/File.h"
 #include "../../common/Path.h"
 #include "../../common/global_private.h"
+#include "LookupTable.h"
 
 namespace sfz
 {
@@ -108,15 +109,13 @@ namespace sfz
     }
 
     bool Region::OnKey(const Query& q) {
+        // As the region comes from a LookupTable search on the query,
+        // the following parameters are not checked here: chan, key,
+        // vel, chanaft, polyaft, prog, sw_previous, cc. They are all
+        // handled by the lookup table.
         bool is_triggered(
-            q.chan    >= lochan     &&  q.chan    <= hichan     &&
-            q.key     >= lokey      &&  q.key     <= hikey      &&
-            q.vel     >= lovel      &&  q.vel     <= hivel      &&
             q.bend    >= lobend     &&  q.bend    <= hibend     &&
             q.bpm     >= lobpm      &&  q.bpm     <  hibpm      &&
-            q.chanaft >= lochanaft  &&  q.chanaft <= hichanaft  &&
-            q.polyaft >= lopolyaft  &&  q.polyaft <= hipolyaft  &&
-            q.prog    >= loprog     &&  q.prog    <= hiprog     &&
             q.rand    >= lorand     &&  q.rand    <  hirand     &&
             q.timer   >= lotimer    &&  q.timer   <= hitimer    &&
 
@@ -129,19 +128,11 @@ namespace sfz
             ( sw_up   == -1 ||
               ((sw_up   >= sw_lokey && (sw_hikey == -1 || sw_up   <= sw_hikey)) ? (!q.sw[sw_up]) : true) )  &&
 
-            ( sw_previous == -1 ||
-              q.prev_sw_key == sw_previous )  &&
-
             ((trigger & q.trig) != 0)
         );
 
         if (!is_triggered)
             return false;
-
-        for (int i = 0; i < 128; ++i) {
-            if (locc[i] != -1 && hicc[i] != -1 && !(q.cc[i] >= locc[i] && q.cc[i] <= hicc[i]))
-                return false;
-        }
 
         // seq_position has to be checked last, so we know that we
         // increment the right counter
@@ -244,24 +235,27 @@ namespace sfz
     {
         this->name = name;
         this->pSampleManager = pSampleManager ? pSampleManager : this;
+        pLookupTable = 0;
     }
 
     Instrument::~Instrument()
     {
-        for(int i = 0; i < regions.size(); i++) {
-            delete (regions[i]);
+        for (int i = 0; i < regions.size(); i++) {
+            delete regions[i];
         }
-        regions.clear();
+        delete pLookupTable;
     }
 
-    Query::Query(const Instrument& instrument) {
-        i = instrument.regions.begin();
-        regions_end = instrument.regions.end();
+    void Query::search(const Instrument* pInstrument) {
+        pRegionList = &pInstrument->pLookupTable->query(*this);
+        regionIndex = 0;
     }
 
     Region* Query::next() {
-        while (i != regions_end) {
-            if ((*i++)->OnKey(*this)) return *i;
+        for ( ; regionIndex < pRegionList->size() ; regionIndex++) {
+            if ((*pRegionList)[regionIndex]->OnKey(*this)) {
+                return (*pRegionList)[regionIndex++];
+            }
         }
         return 0;
     }
@@ -894,6 +888,8 @@ namespace sfz
                 }
             }
         }
+
+        _instrument->pLookupTable = new LookupTable(_instrument);
     }
 
     File::~File()
@@ -1005,8 +1001,8 @@ namespace sfz
         else if ("hivel"  == key) pCurDef->hivel = ToInt(value);
         else if ("lobend" == key) pCurDef->lobend = ToInt(value);
         else if ("hibend" == key) pCurDef->hibend = ToInt(value);
-        else if ("lobpm"  == key) pCurDef->lobpm = ToInt(value);
-        else if ("hibpm"  == key) pCurDef->hibpm = ToInt(value);
+        else if ("lobpm"  == key) pCurDef->lobpm = ToFloat(value);
+        else if ("hibpm"  == key) pCurDef->hibpm = ToFloat(value);
         else if ("lochanaft" == key) pCurDef->lochanaft = ToInt(value);
         else if ("hichanaft" == key) pCurDef->hichanaft = ToInt(value);
         else if ("lopolyaft" == key) pCurDef->lopolyaft = ToInt(value);
