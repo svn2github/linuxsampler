@@ -501,4 +501,18 @@ namespace LinuxSampler { namespace sfz {
         return expf(RgnInfo.ReleaseTriggerDecay * noteLength);
     }
 
+    void Voice::ProcessGroupEvent(RTList<Event>::Iterator& itEvent) {
+        dmsg(4,("Voice %x processGroupEvents event type=%d", this, itEvent->Type));
+        if (itEvent->Param.Note.Key != MIDIKey) {
+            dmsg(4,("Voice %x - kill", this));
+            if (pRegion->off_mode == ::sfz::OFF_NORMAL) {
+                // turn off the voice by entering release envelope stage
+                EnterReleaseStage();
+            } else {
+                // kill the voice fast
+                pEG1->enterFadeOutStage();
+            }
+        }
+    }
+
 }} // namespace LinuxSampler::sfz

@@ -3,8 +3,8 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003,2004 by Benno Senoner and Christian Schoenebeck    *
- *   Copyright (C) 2005-2009 Christian Schoenebeck                         *
- *   Copyright (C) 2009 Grigor Iliev                                       *
+ *   Copyright (C) 2005-2008 Christian Schoenebeck                         *
+ *   Copyright (C) 2009-2010 Christian Schoenebeck and Grigor Iliev        *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -49,8 +49,8 @@ namespace LinuxSampler {
     }
 
     AbstractEngineChannel::~AbstractEngineChannel() {
-        
-        if (pEventQueue) delete pEventQueue;
+        delete pEventQueue;
+        DeleteGroupEventLists();
         RemoveAllFxSends();
     }
 
@@ -659,6 +659,61 @@ namespace LinuxSampler {
         for (int i = 0; i < fxSends.size(); i++) delete fxSends[i];
         fxSends.clear();
         if (pEngine) pEngine->Enable();
+    }
+
+    /**
+     * Add a group number to the set of key groups. Should be called
+     * when an instrument is loaded to make sure there are event lists
+     * for all key groups.
+     */ 
+    void AbstractEngineChannel::AddGroup(uint group) {
+        if (group) {
+            typedef std::map<uint, RTList<Event>*> map_t;
+
+            std::pair<map_t::iterator, bool> p =
+                ActiveKeyGroups.insert(map_t::value_type(group, 0));
+            if (p.second) {
+                (*p.first).second = new RTList<Event>(pEngine->pEventPool);
+            }
+        }
+    }
+
+    /**
+     * Handle key group (a.k.a. exclusive group) conflicts.
+     */
+    void AbstractEngineChannel::HandleKeyGroupConflicts(uint KeyGroup, Pool<Event>::Iterator& itNoteOnEvent) {
+        dmsg(4,("HandelKeyGroupConflicts KeyGroup=%d\n", KeyGroup));
+        if (KeyGroup) {
+            // send a release event to all active voices in the group
+            RTList<Event>::Iterator itEvent = ActiveKeyGroups[KeyGroup]->allocAppend();
+            *itEvent = *itNoteOnEvent;
+        }
+    }
+
+    /**
+     * Empty the lists of group events. Should be called from the
+     * audio thread, after all voices have been rendered.
+     */
+    void AbstractEngineChannel::ClearGroupEventLists() {
+        for (std::map<uint,RTList<Event>*>::iterator iter = ActiveKeyGroups.begin();
+             iter != ActiveKeyGroups.end(); iter++) {
+            if (iter->second) {
+                iter->second->clear();
+            } else {
+                dmsg(1,("EngineChannel: group event list was NULL"));
+            }
+        }
+    }
+
+    /**
+     * Remove all lists with group events.
+     */
+    void AbstractEngineChannel::DeleteGroupEventLists() {
+        for (std::map<uint,RTList<Event>*>::iterator iter = ActiveKeyGroups.begin();
+             iter != ActiveKeyGroups.end(); iter++) {
+            delete iter->second;
+        }
+        ActiveKeyGroups.clear();
     }
 
 } // namespace LinuxSampler

@@ -93,7 +93,7 @@ namespace LinuxSampler { namespace sf2 {
         cmd.pRegionsInUse->clear();
 
         // delete all key groups
-        ActiveKeyGroups.clear();
+        DeleteGroupEventLists();
 
         // request sf2 instrument from instrument manager
         ::sf2::Preset* newInstrument;
@@ -137,7 +137,7 @@ namespace LinuxSampler { namespace sf2 {
             ::sf2::Region* pRegion = newInstrument->GetRegion(i);
             for (int j = 0 ; j < pRegion->pInstrument->GetRegionCount() ; j++) {
                 ::sf2::Region* pSubRegion = pRegion->pInstrument->GetRegion(j);
-                if (pSubRegion->exclusiveClass) ActiveKeyGroups[pSubRegion->exclusiveClass] = NULL;
+                AddGroup(pSubRegion->exclusiveClass);
             }
         }
 

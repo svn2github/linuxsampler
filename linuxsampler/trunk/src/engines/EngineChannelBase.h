@@ -183,6 +183,7 @@ namespace LinuxSampler {
 
                     MidiKeyboardManager<V>::DeleteActiveVoices();
                     MidiKeyboardManager<V>::DeleteEvents();
+                    DeleteGroupEventLists();
 
                     AudioOutputDevice* oldAudioDevice = pEngine->pAudioOutputDevice;
                     pEngine = NULL;
@@ -208,6 +209,9 @@ namespace LinuxSampler {
                 // empty MIDI key specific event lists
                 ClearEventListsHandler handler;
                 ProcessActiveVoices(&handler);
+
+                // empty exclusive group specific event lists
+                ClearGroupEventLists();
             }
 
             // implementation of abstract methods derived from interface class 'InstrumentConsumer'
@@ -347,42 +351,6 @@ namespace LinuxSampler {
             }
 
             virtual void ProcessKeySwitchChange(int key) = 0;
-
-            /**
-             * Handle key group (a.k.a. exclusive group) conflicts
-             */
-            void HandleKeyGroupConflicts(uint KeyGroup, Pool<Event>::Iterator& itNoteOnEvent, bool UseRelease = false) {
-                if (KeyGroup) { // if this voice / key belongs to a key group
-                    uint* pKeyGroup = MidiKeyboardManager<V>::ActiveKeyGroups[KeyGroup];
-                    if (pKeyGroup) { // if there's already an active key in that key group
-                        MidiKey* pOtherKey = &MidiKeyboardManager<V>::pMIDIKeyInfo[*pKeyGroup];
-
-                        if (UseRelease) {
-                            // send a note off to the other key
-                            if (pOtherKey->KeyPressed && itNoteOnEvent->Param.Note.Key != *pKeyGroup) {
-                                RTList<Event>::Iterator itNewEvent = pEngine->pGlobalEvents->allocAppend();
-                                if (itNewEvent) {
-                                    pOtherKey->ReleaseTrigger = false;
-                                    *itNewEvent = *itNoteOnEvent;
-                                    itNewEvent->Type = Event::type_note_off;
-                                    itNewEvent->Param.Note.Key = *pKeyGroup;
-                                    pEngine->ProcessNoteOff(this, itNewEvent);
-                                }
-                            }
-                        } else {
-                            // kill all voices on the (other) key
-                            typename RTList<V>::Iterator itVoiceToBeKilled = pOtherKey->pActiveVoices->first();
-                            typename RTList<V>::Iterator end               = pOtherKey->pActiveVoices->end();
-                            for (; itVoiceToBeKilled != end; ++itVoiceToBeKilled) {
-                                if (itVoiceToBeKilled->Type != Voice::type_release_trigger) {
-                                    itVoiceToBeKilled->Kill(itNoteOnEvent);
-                                    --pEngine->VoiceSpawnsLeft; //FIXME: just a hack, we should better check in StealVoice() if the voice was killed due to key conflict
-                                }
-                            }
-                        }
-                    }
-                }
-            }
     };
 
 } // namespace LinuxSampler

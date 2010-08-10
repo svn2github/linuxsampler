@@ -328,7 +328,7 @@ namespace sfz
         trigger = TRIGGER_ATTACK;
 
         group = 0;
-        off_by.unset();
+        off_by = 0;
         off_mode = OFF_FAST;
 
         // sample player
@@ -1037,8 +1037,8 @@ namespace sfz
         else if ("off_by" == key || "offby" == key) pCurDef->off_by = ToInt(value);
         else if ("off_mode" == key || "offmode" == key)
         {
-            if (value == "fast")  _current_group->off_mode = OFF_FAST;
-            else if (value == "normal") _current_group->off_mode = OFF_NORMAL;
+            if (value == "fast")  pCurDef->off_mode = OFF_FAST;
+            else if (value == "normal") pCurDef->off_mode = OFF_NORMAL;
         }
 
         // sample player

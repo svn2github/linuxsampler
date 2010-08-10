@@ -3,8 +3,8 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003,2004 by Benno Senoner and Christian Schoenebeck    *
- *   Copyright (C) 2005-2009 Christian Schoenebeck                         *
- *   Copyright (C) 2009 Grigor Iliev                                       *
+ *   Copyright (C) 2005-2008 Christian Schoenebeck                         *
+ *   Copyright (C) 2009-2010 Christian Schoenebeck and Grigor Iliev        *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -23,7 +23,7 @@
  ***************************************************************************/
 
 #ifndef __LS_ABSTRACTENGINECHANNEL_H__
-#define	__LS_ABSTRACTENGINECHANNEL_H__
+#define __LS_ABSTRACTENGINECHANNEL_H__
 
 #include "EngineChannel.h"
 #include "AbstractEngine.h"
@@ -120,14 +120,21 @@ namespace LinuxSampler {
             SynchronizedConfig< ArrayList<VirtualMidiDevice*> >::Reader virtualMidiDevicesReader_AudioThread;
             SynchronizedConfig< ArrayList<VirtualMidiDevice*> >::Reader virtualMidiDevicesReader_MidiThread;
 
+            std::map<uint,RTList<Event>*> ActiveKeyGroups;      ///< Contains event queues for key groups, ordered by key group ID.
+
             virtual void ResetControllers();
             virtual void ResetInternal();
             virtual void RemoveAllFxSends();
 
             void ImportEvents(uint Samples);
+
+            void AddGroup(uint group);
+            void HandleKeyGroupConflicts(uint KeyGroup, Pool<Event>::Iterator& itNoteOnEvent);
+            void ClearGroupEventLists();
+            void DeleteGroupEventLists();
     };
 
 } // namespace LinuxSampler
 
-#endif	/* __LS_ABSTRACTENGINECHANNEL_H__ */
+#endif  /* __LS_ABSTRACTENGINECHANNEL_H__ */
 

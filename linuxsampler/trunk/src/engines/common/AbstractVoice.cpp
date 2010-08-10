@@ -32,7 +32,6 @@ namespace LinuxSampler {
         pLFO2 = new LFOUnsigned(1.0f);  // filter EG (0..1 range)
         pLFO3 = new LFOSigned(1200.0f); // pitch EG (-1200..+1200 range)
         PlaybackState = playback_state_end;
-        KeyGroup = 0;
         SynthesisMode = 0; // set all mode bits to 0 first
         // select synthesis implementation (asm core is not supported ATM)
         #if 0 // CONFIG_ASM && ARCH_X86
@@ -104,7 +103,8 @@ namespace LinuxSampler {
         Delay           = itNoteOnEvent->FragmentPos();
         itTriggerEvent  = itNoteOnEvent;
         itKillEvent     = Pool<Event>::Iterator();
-        KeyGroup        = iKeyGroup;
+
+        pGroupEvents = iKeyGroup ? pEngineChannel->ActiveKeyGroups[iKeyGroup] : 0;
 
         SmplInfo   = GetSampleInfo();
         RgnInfo    = GetRegionInfo();
@@ -314,8 +314,13 @@ namespace LinuxSampler {
         RTList<Event>::Iterator itNoteEvent;
         GetFirstEventOnKey(MIDIKey, itNoteEvent);
 
+        RTList<Event>::Iterator itGroupEvent;
+        if (pGroupEvents) itGroupEvent = pGroupEvents->first();
+
         if (itTriggerEvent) { // skip events that happened before this voice was triggered
             while (itCCEvent && itCCEvent->FragmentPos() <= Skip) ++itCCEvent;
+            while (itGroupEvent && itGroupEvent->FragmentPos() <= Skip) ++itGroupEvent;
+
             // we can't simply compare the timestamp here, because note events
             // might happen on the same time stamp, so we have to deal on the
             // actual sequence the note events arrived instead (see bug #112)
@@ -362,6 +367,7 @@ namespace LinuxSampler {
 
             // process transition events (note on, note off & sustain pedal)
             processTransitionEvents(itNoteEvent, iSubFragmentEnd);
+            processGroupEvents(itGroupEvent, iSubFragmentEnd);
 
             // if the voice was killed in this subfragment, or if the
             // filter EG is finished, switch EG1 to fade out stage
@@ -529,13 +535,27 @@ namespace LinuxSampler {
      */
     void AbstractVoice::processTransitionEvents(RTList<Event>::Iterator& itEvent, uint End) {
         for (; itEvent && itEvent->FragmentPos() <= End; ++itEvent) {
-            if (itEvent->Type == Event::type_release) {
-                pEG1->update(EG::event_release, GetEngine()->SampleRate / CONFIG_DEFAULT_SUBFRAGMENT_SIZE);
-                EG2.update(gig::EGADSR::event_release, GetEngine()->SampleRate / CONFIG_DEFAULT_SUBFRAGMENT_SIZE);
-            } else if (itEvent->Type == Event::type_cancel_release) {
-                pEG1->update(EG::event_cancel_release, GetEngine()->SampleRate / CONFIG_DEFAULT_SUBFRAGMENT_SIZE);
-                EG2.update(gig::EGADSR::event_cancel_release, GetEngine()->SampleRate / CONFIG_DEFAULT_SUBFRAGMENT_SIZE);
+            if (Type != Voice::type_release_trigger) {
+
+                if (itEvent->Type == Event::type_release) {
+                    EnterReleaseStage();
+                } else if (itEvent->Type == Event::type_cancel_release) {
+                    pEG1->update(EG::event_cancel_release, GetEngine()->SampleRate / CONFIG_DEFAULT_SUBFRAGMENT_SIZE);
+                    EG2.update(gig::EGADSR::event_cancel_release, GetEngine()->SampleRate / CONFIG_DEFAULT_SUBFRAGMENT_SIZE);
+                }
             }
+        }
+    }
+
+    /**
+     * Process given list of events aimed at all voices in a key group.
+     *
+     * @param itEvent - iterator pointing to the next event to be processed
+     * @param End     - youngest time stamp where processing should be stopped
+     */
+    void AbstractVoice::processGroupEvents(RTList<Event>::Iterator& itEvent, uint End) {
+        for (; itEvent && itEvent->FragmentPos() <= End; ++itEvent) {
+            ProcessGroupEvent(itEvent);
         }
     }
 
@@ -609,4 +629,10 @@ namespace LinuxSampler {
     float AbstractVoice::GetReleaseTriggerAttenuation(float noteLength) {
         return 1 - RgnInfo.ReleaseTriggerDecay * noteLength;
     }
+
+    void AbstractVoice::EnterReleaseStage() {
+        pEG1->update(EG::event_release, GetEngine()->SampleRate / CONFIG_DEFAULT_SUBFRAGMENT_SIZE);
+        EG2.update(gig::EGADSR::event_release, GetEngine()->SampleRate / CONFIG_DEFAULT_SUBFRAGMENT_SIZE);
+    }
+
 } // namespace LinuxSampler

@@ -75,6 +75,7 @@ namespace LinuxSampler { namespace sf2 {
             virtual double           GetVelocityAttenuation(uint8_t MIDIKeyVelocity);
             virtual double           GetVelocityRelease(uint8_t MIDIKeyVelocity);
             virtual double           GetSampleAttenuation();
+            virtual void             ProcessGroupEvent(RTList<Event>::Iterator& itEvent);
 
         private:
             ::LinuxSampler::gig::EGADSR EG1; // TODO: add a fine-tuned version for SF2, or maybe use sfz v1 instead of gig

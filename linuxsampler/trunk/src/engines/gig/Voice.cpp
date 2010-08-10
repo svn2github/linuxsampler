@@ -462,4 +462,20 @@ namespace LinuxSampler { namespace gig {
                     velocityAttenuation,
                     sampleRate / CONFIG_DEFAULT_SUBFRAGMENT_SIZE);
     }
+
+    void Voice::ProcessGroupEvent(RTList<Event>::Iterator& itEvent) {
+        dmsg(4,("Voice %x processGroupEvents event type=%d", this, itEvent->Type));
+
+        // TODO: The SustainPedal condition could be wrong, maybe the
+        // check should be if this Voice is in release stage or is a
+        // release sample instead. Need to test this in GSt.
+        if (itEvent->Param.Note.Key != MIDIKey ||
+            !GetGigEngineChannel()->SustainPedal) {
+            dmsg(4,("Voice %x - kill", this));
+
+            // kill the voice fast
+            pEG1->enterFadeOutStage();
+        }
+    }
+
 }} // namespace LinuxSampler::gig

@@ -3,8 +3,8 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003,2004 by Benno Senoner and Christian Schoenebeck    *
- *   Copyright (C) 2005-2009 Christian Schoenebeck                         *
- *   Copyright (C) 2009 Grigor Iliev                                       *
+ *   Copyright (C) 2005-2008 Christian Schoenebeck                         *
+ *   Copyright (C) 2009-2010 Christian Schoenebeck and Grigor Iliev        *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -23,7 +23,7 @@
  ***************************************************************************/
 
 #ifndef __LS_MIDIKEYBOARDMANAGER_H__
-#define	__LS_MIDIKEYBOARDMANAGER_H__
+#define __LS_MIDIKEYBOARDMANAGER_H__
 
 #include "Event.h"
 #include "Stream.h"
@@ -175,7 +175,6 @@ namespace LinuxSampler {
 
             MidiKey*              pMIDIKeyInfo; ///< Contains all active voices sorted by MIDI key number and other informations to the respective MIDI key
             Pool<uint>*           pActiveKeys;  ///< Holds all keys in it's allocation list with active voices.
-            std::map<uint,uint*>  ActiveKeyGroups;  ///< Contains active keys (in case they belong to a key group) ordered by key group ID.
             bool                  SoloMode;                 ///< in Solo Mode we only play one voice (group) at a time
             int                   SoloKey;                  ///< Currently 'active' solo key, that is the key to which the currently sounding voice belongs to (only if SoloMode is enabled)
             bool                  SustainPedal;             ///< true if sustain pedal is down
@@ -206,12 +205,8 @@ namespace LinuxSampler {
                 if (pMIDIKeyInfo) delete[] pMIDIKeyInfo;
             }
 
-            void Reset(){
+            void Reset() {
                 SoloKey = -1;    // no solo key active yet
-
-                // reset all key groups
-                std::map<uint,uint*>::iterator iter = ActiveKeyGroups.begin();
-                for (; iter != ActiveKeyGroups.end(); iter++) iter->second = NULL;
 
                 // reset key info
                 for (uint i = 0; i < 128; i++) pMIDIKeyInfo[i].Reset();
@@ -274,8 +269,6 @@ namespace LinuxSampler {
                 if (itVoice) {
                     MidiKey* pKey = &pMIDIKeyInfo[itVoice->MIDIKey];
 
-                    uint keygroup = itVoice->KeyGroup;
-
                     // if the sample and dimension region belong to an
                     // instrument that is unloaded, tell the disk thread to
                     // release them
@@ -287,20 +280,6 @@ namespace LinuxSampler {
 
                     // free the voice object
                     pKey->pActiveVoices->free(itVoice);
-
-                    // if member of a key group and no other non-release-trigger
-                    // voices left, remove from key group
-                    if (keygroup) {
-                        RTListVoiceIterator it = pKey->pActiveVoices->first();
-                        RTListVoiceIterator end = pKey->pActiveVoices->end();
-                        for (; it != end ; ++it) {
-                            if (it->Type != V::type_release_trigger) break;
-                        }
-                        if (it == end) {
-                            uint** ppKeyGroup = &ActiveKeyGroups[keygroup];
-                            if (*ppKeyGroup == &*pKey->itSelf) *ppKeyGroup = NULL; // remove key from key group
-                        }
-                    }
                 }
                 else std::cerr << "Couldn't release voice! (!itVoice)\n" << std::flush;
             }
@@ -632,5 +611,4 @@ namespace LinuxSampler {
     };
 } // namespace LinuxSampler
 
-#endif	/* __LS_MIDIKEYBOARDMANAGER_H__ */
-
+#endif  /* __LS_MIDIKEYBOARDMANAGER_H__ */

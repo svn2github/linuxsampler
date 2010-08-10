@@ -79,6 +79,7 @@ namespace LinuxSampler { namespace gig {
             virtual double           GetVelocityAttenuation(uint8_t MIDIKeyVelocity);
             virtual double           GetVelocityRelease(uint8_t MIDIKeyVelocity);
             virtual double           GetSampleAttenuation();
+            virtual void             ProcessGroupEvent(RTList<Event>::Iterator& itEvent);
 
         private:
             EGADSR EG1;

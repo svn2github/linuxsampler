@@ -1,6 +1,6 @@
 /***************************************************************************
  *                                                                         *
- *   Copyright (C) 2008 Andreas Persson                                    *
+ *   Copyright (C) 2008 - 2010 Andreas Persson                             *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -165,10 +165,10 @@ namespace LinuxSampler {
         hJackClient = pJackClient->hJackClient;
         existingJackDevices++;
 
-	AcquirePorts(((DeviceCreationParameterInt*)Parameters["PORTS"])->ValueAsInt());
-	if (((DeviceCreationParameterBool*)Parameters["ACTIVE"])->ValueAsBool()) {
+        AcquirePorts(((DeviceCreationParameterInt*)Parameters["PORTS"])->ValueAsInt());
+        if (((DeviceCreationParameterBool*)Parameters["ACTIVE"])->ValueAsBool()) {
             Listen();
-	}
+        }
     }
 
     MidiInputDeviceJack::~MidiInputDeviceJack() {
@@ -210,7 +210,7 @@ namespace LinuxSampler {
     }
 
     String MidiInputDeviceJack::Version() {
-        String s = "$Revision: 1.4 $";
+        String s = "$Revision: 1.5 $";
         return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
 
@@ -225,15 +225,16 @@ namespace LinuxSampler {
 #else
             int event_count = jack_midi_get_event_count(port_buffer);
 #endif
-            for (int i = 0 ; i < event_count ; i++)
-            {
+            for (int i = 0 ; i < event_count ; i++) {
                 jack_midi_event_t ev;
 #if JACK_MIDI_FUNCS_NEED_NFRAMES
                 jack_midi_event_get(&ev, port_buffer, i, nsamples); // old jack version
 #else
                 jack_midi_event_get(&ev, port_buffer, i);
 #endif
-                port->DispatchRaw(ev.buffer, ev.time);
+                if (ev.buffer) { // jack2 1.9.5 has been seen sending NULL here
+                    port->DispatchRaw(ev.buffer, ev.time);
+                }
             }
         }
     }

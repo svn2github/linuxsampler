@@ -1334,10 +1334,6 @@ namespace LinuxSampler {
                             pKey->itSelf = pChannel->pActiveKeys->allocAppend();
                             *pKey->itSelf = itNoteOnEvent->Param.Note.Key;
                         }
-                        if (itNewVoice->KeyGroup) {
-                            uint** ppKeyGroup = &pChannel->ActiveKeyGroups[itNewVoice->KeyGroup];
-                            *ppKeyGroup = &*pKey->itSelf; // put key as the (new) active key to its key group
-                        }
                         if (itNewVoice->Type == Voice::type_release_trigger_required) pKey->ReleaseTrigger = true; // mark key for the need of release triggered voice(s)
                         return 0; // success
                     }

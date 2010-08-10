@@ -169,11 +169,10 @@ namespace LinuxSampler { namespace gig {
         // if nothing defined for this key
         if (!pRegion) return Pool<Voice>::Iterator(); // nothing to do
 
-        // only mark the first voice of a layered voice (group) to be in a
-        // key group, so the layered voices won't kill each other
-        int iKeyGroup = (iLayer == 0 && !ReleaseTriggerVoice) ? pRegion->KeyGroup : 0;
-
-        if (HandleKeyGroupConflicts) pChannel->HandleKeyGroupConflicts(iKeyGroup, itNoteOnEvent);
+        int iKeyGroup = pRegion->KeyGroup;
+        // only need to send a group event from the first voice in a layered region,
+        // as all layers in a region always belongs to the same key group
+        if (HandleKeyGroupConflicts && iLayer == 0) pChannel->HandleKeyGroupConflicts(iKeyGroup, itNoteOnEvent);
 
         Voice::type_t VoiceType = Voice::type_normal;
 
@@ -319,7 +318,7 @@ namespace LinuxSampler { namespace gig {
     }
 
     String Engine::Version() {
-        String s = "$Revision: 1.108 $";
+        String s = "$Revision: 1.109 $";
         return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
 

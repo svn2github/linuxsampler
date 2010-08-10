@@ -34,9 +34,16 @@ namespace LinuxSampler { namespace sfz {
 
     // TODO: add support for loops
     // TODO: optimization: use segment_lin for linear stages
+    // TODO: support cancel_release events?
 
     void EG::update(event_t Event, uint SampleRate) {
         if (atEnd(Event)) return;
+
+        // ignore duplicated release events
+        if (Event == event_release) {
+            if (GotRelease) return;
+            GotRelease = true;
+        }
 
         if (Event == event_stage_end || Event == event_release) {
             if (Stage == eg->node.size() - 1) {
@@ -83,6 +90,7 @@ namespace LinuxSampler { namespace sfz {
         Stage = 0;
         this->eg = &eg;
         TimeCoeff = exp(0.0054578518 * Velocity); // pow(2, Velcocity / 127)
+        GotRelease = false;
 
         enterFirstStage();
         update(event_stage_end, SampleRate);

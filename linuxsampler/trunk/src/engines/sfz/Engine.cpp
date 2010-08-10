@@ -137,7 +137,7 @@ namespace LinuxSampler { namespace sfz {
         int i = 0;
         while (::sfz::Region* region = q.next()) {
             itNoteOffEvent->Param.Note.pRegion = region;
-            LaunchVoice(pChannel, itNoteOffEvent, i, true, false, false); //FIXME: for the moment we don't perform voice stealing for release triggered samples
+            LaunchVoice(pChannel, itNoteOffEvent, i, true, false, true); //FIXME: for the moment we don't perform voice stealing for release triggered samples
             i++;
         }
     }
@@ -161,16 +161,13 @@ namespace LinuxSampler { namespace sfz {
         // no need to process if sample is silent
         if (!pRgn->GetSample() || !pRgn->GetSample()->GetTotalFrameCount()) return Pool<Voice>::Iterator();
 
-        // only mark the first voice of a layered voice (group) to be in a
-        // key group, so the layered voices won't kill each other
-        int iKeyGroup = (iLayer == 0 && !ReleaseTriggerVoice) ? pRgn->group : 0;
-        if (HandleKeyGroupConflicts) pChannel->HandleKeyGroupConflicts(iKeyGroup, itNoteOnEvent, pRgn->off_mode == ::sfz::OFF_NORMAL);
+        if (HandleKeyGroupConflicts) pChannel->HandleKeyGroupConflicts(pRgn->group, itNoteOnEvent);
 
         // allocate a new voice for the key
         itNewVoice = pKey->pActiveVoices->allocAppend();
         int res = InitNewVoice (
                 pChannel, pRgn, itNoteOnEvent, VoiceType, iLayer,
-                iKeyGroup, ReleaseTriggerVoice, VoiceStealing, itNewVoice
+                pRgn->off_by, ReleaseTriggerVoice, VoiceStealing, itNewVoice
         );
         if (!res) return itNewVoice;
 
@@ -191,7 +188,7 @@ namespace LinuxSampler { namespace sfz {
     }
 
     String Engine::Version() {
-        String s = "$Revision: 1.9 $";
+        String s = "$Revision: 1.10 $";
         return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
 

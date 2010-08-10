@@ -95,7 +95,7 @@ namespace LinuxSampler { namespace sfz {
         cmd.pRegionsInUse->clear();
 
         // delete all key groups
-        ActiveKeyGroups.clear();
+        DeleteGroupEventLists();
 
         // request sfz instrument from instrument manager
         ::sfz::Instrument* newInstrument;
@@ -137,7 +137,8 @@ namespace LinuxSampler { namespace sfz {
         // rebuild ActiveKeyGroups map with key groups of current instrument
         for (std::vector< ::sfz::Region*>::iterator itRegion = newInstrument->regions.begin() ;
              itRegion != newInstrument->regions.end() ; ++itRegion) {
-            if ((*itRegion)->group) ActiveKeyGroups[(*itRegion)->group] = NULL;
+            AddGroup((*itRegion)->group);
+            AddGroup((*itRegion)->off_by);
         }
 
         InstrumentIdxName = newInstrument->GetName();

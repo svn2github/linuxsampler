@@ -23,7 +23,7 @@
  ***************************************************************************/
 
 #ifndef __LS_ABSTRACTVOICE_H__
-#define	__LS_ABSTRACTVOICE_H__
+#define __LS_ABSTRACTVOICE_H__
 
 #include "Voice.h"
 
@@ -82,7 +82,6 @@ namespace LinuxSampler {
         public:
             type_t       Type;         ///< Voice Type
             int          MIDIKey;      ///< MIDI key number of the key that triggered the voice
-            uint         KeyGroup;
 
             AbstractVoice();
             virtual ~AbstractVoice();
@@ -106,6 +105,7 @@ namespace LinuxSampler {
             void processPitchEvent(RTList<Event>::Iterator& itEvent);
             void processResonanceEvent(RTList<Event>::Iterator& itEvent);
             void processTransitionEvents(RTList<Event>::Iterator& itEvent, uint End);
+            void processGroupEvents(RTList<Event>::Iterator& itEvent, uint End);
             void UpdatePortamentoPos(Pool<Event>::Iterator& itNoteOffEvent);
             void Kill(Pool<Event>::Iterator& itKillEvent);
 
@@ -152,7 +152,7 @@ namespace LinuxSampler {
             float                       fFinalResonance;
             gig::SynthesisParam         finalSynthesisParameters;
             gig::Loop                   loop;
-
+            RTList<Event>*              pGroupEvents;        ///< Events directed to an exclusive group
 
             virtual AbstractEngine* GetEngine() = 0;
             virtual SampleInfo      GetSampleInfo() = 0;
@@ -241,7 +241,10 @@ namespace LinuxSampler {
             virtual double  GetVelocityRelease(uint8_t MIDIKeyVelocity) = 0;
 
             virtual unsigned long GetNoteOnTime(int MIDIKey) = 0;
+
+            virtual void    ProcessGroupEvent(RTList<Event>::Iterator& itEvent) = 0;
+            void            EnterReleaseStage();
     };
 } // namespace LinuxSampler
 
-#endif	/* __LS_ABSTRACTVOICE_H__ */
+#endif  /* __LS_ABSTRACTVOICE_H__ */

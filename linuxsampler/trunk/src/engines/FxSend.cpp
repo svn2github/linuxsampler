@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 - 2008 Christian Schoenebeck                       *
+ *   Copyright (C) 2005 - 2010 Christian Schoenebeck                       *
  *                                                                         *
  *   This library is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -34,7 +34,7 @@
 namespace LinuxSampler {
 
     FxSend::FxSend(EngineChannel* pEngineChannel, uint8_t MidiCtrl, String Name) throw (Exception)
-        : iMasterEffectChain(-1), iMasterEffect(-1)
+        : iMasterEffectChain(-1), iMasterEffect(-1), bInfoChanged(false)
     {
         this->pEngineChannel = pEngineChannel;
         AudioOutputDevice* pDevice = pEngineChannel->GetAudioOutputDevice();

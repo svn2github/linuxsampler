@@ -4,7 +4,7 @@
  *                                                                         *
  *   Copyright (C) 2003,2004 by Benno Senoner and Christian Schoenebeck    *
  *   Copyright (C) 2005-2009 Christian Schoenebeck                         *
- *   Copyright (C) 2009 Grigor Iliev                                       *
+ *   Copyright (C) 2009-2010 Grigor Iliev                                  *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -129,9 +129,7 @@ namespace LinuxSampler { namespace sf2 {
         // no need to process if sample is silent
         if (!pRgn->GetSample() || !pRgn->GetSample()->GetTotalFrameCount()) return Pool<Voice>::Iterator();
 
-        // only mark the first voice of a layered voice (group) to be in a
-        // key group, so the layered voices won't kill each other
-        int iKeyGroup = (iLayer == 0 && !ReleaseTriggerVoice) ? pRgn->exclusiveClass : 0;
+        int iKeyGroup = pRgn->exclusiveClass;
         if (HandleKeyGroupConflicts) pChannel->HandleKeyGroupConflicts(iKeyGroup, itNoteOnEvent);
 
         // allocate a new voice for the key
@@ -159,7 +157,7 @@ namespace LinuxSampler { namespace sf2 {
     }
 
     String Engine::Version() {
-        String s = "$Revision: 1.3 $";
+        String s = "$Revision: 1.4 $";
         return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
 

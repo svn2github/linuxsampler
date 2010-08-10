@@ -321,7 +321,7 @@ namespace sfz
         trigger_t trigger;
 
         uint group;
-        optional<int> off_by;
+        uint off_by;
         off_mode_t off_mode;
 
         Array<int> on_locc; Array<int> on_hicc;

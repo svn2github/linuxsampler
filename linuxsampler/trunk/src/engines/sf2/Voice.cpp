@@ -494,4 +494,11 @@ namespace LinuxSampler { namespace sf2 {
         return 0;
     }
 
+    void Voice::ProcessGroupEvent(RTList<Event>::Iterator& itEvent) {
+        if (itEvent->Param.Note.Key != MIDIKey) {
+            // kill the voice fast
+            pEG1->enterFadeOutStage();
+        }
+    }
+
 }} // namespace LinuxSampler::sf2

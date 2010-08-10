@@ -47,6 +47,8 @@ Version CVS HEAD (?)
     - RT-safeness: avoid malloc in audio thread
     - fixed a bug that could cause voice stealing to fail
     - optimized sample lookup
+    - improved support for exclusive groups (group, off_by and
+      off_mode)
 
   * SoundFont format engine:
     - Initial implementation (not usable yet)
@@ -70,6 +72,7 @@ Version CVS HEAD (?)
 
   * Bug fixes:
     - Fixed crash which may occur when MIDI key + transpose is out of range
+    - minor valgrind fixes
 
 Version 1.0.0 (31 July 2009)
 

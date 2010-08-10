@@ -3,8 +3,8 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003,2004 by Benno Senoner and Christian Schoenebeck    *
- *   Copyright (C) 2005-2009 Christian Schoenebeck                         *
- *   Copyright (C) 2009 Grigor Iliev                                       *
+ *   Copyright (C) 2005-2008 Christian Schoenebeck                         *
+ *   Copyright (C) 2009-2010 Christian Schoenebeck and Grigor Iliev        *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -91,7 +91,7 @@ namespace LinuxSampler { namespace gig {
         cmd.pRegionsInUse->clear();
 
         // delete all key groups
-        ActiveKeyGroups.clear();
+        DeleteGroupEventLists();
 
         // request gig instrument from instrument manager
         ::gig::Instrument* newInstrument;
@@ -131,7 +131,7 @@ namespace LinuxSampler { namespace gig {
         // counter for each region
         int region = 0;
         for (::gig::Region* pRegion = newInstrument->GetFirstRegion(); pRegion; pRegion = newInstrument->GetNextRegion()) {
-            if (pRegion->KeyGroup) ActiveKeyGroups[pRegion->KeyGroup] = NULL;
+            AddGroup(pRegion->KeyGroup);
 
             RoundRobinIndexes[region] = 0;
             for (int iKey = pRegion->KeyRange.low; iKey <= pRegion->KeyRange.high; iKey++) {

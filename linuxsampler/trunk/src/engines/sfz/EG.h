@@ -61,7 +61,7 @@ class EG : public ::LinuxSampler::EG {
         int Stage;
         ::sfz::EG* eg;
         float TimeCoeff;
-
+        bool GotRelease;
         void enterSustainStage();
 };
 
