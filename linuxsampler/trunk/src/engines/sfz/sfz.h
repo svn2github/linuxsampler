@@ -408,7 +408,7 @@ namespace sfz
     class Query {
     public:
         uint8_t chan;        // MIDI channel
-        uint8_t key;         // MIDI note      TODO: or controller
+        uint8_t key;         // MIDI note
         uint8_t vel;         // MIDI velocity
         int bend;            // MIDI pitch bend
         uint8_t bpm;         // host BPM
@@ -424,6 +424,7 @@ namespace sfz
         uint8_t prev_sw_key; // previous note value
 
         void search(const Instrument* pInstrument);
+        void search(const Instrument* pInstrument, int triggercc);
         Region* next();
     private:
         LinuxSampler::ArrayList<Region*>* pRegionList;
@@ -457,12 +458,6 @@ namespace sfz
         /// Return true if region is triggered by key. Region is
         /// assumed to come from a search in the lookup table.
         bool OnKey(const Query& q);
-
-        /// Return true if region is triggered by control change
-        bool OnControl(uint8_t chan, uint8_t cont, uint8_t val,
-                   int bend, uint8_t bpm, uint8_t chanaft, uint8_t polyaft,
-                   uint8_t prog, float rand, trigger_t trig, uint8_t* cc,
-                   float timer, bool* sw, uint8_t last_sw_key, uint8_t prev_sw_key);
 
         /// Return an articulation for the current state
         Articulation* GetArticulation(int bend, uint8_t bpm, uint8_t chanaft, uint8_t polyaft, uint8_t* cc);
@@ -504,6 +499,7 @@ namespace sfz
         std::vector<bool> KeySwitchBindings;
         SampleManager* pSampleManager;
         LookupTable* pLookupTable;
+        LookupTable* pLookupTableCC[128];
     };
 
     /////////////////////////////////////////////////////////////

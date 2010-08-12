@@ -290,7 +290,7 @@ namespace LinuxSampler { namespace gig {
         // return if this is a release triggered voice and there is no
         // releasetrigger dimension (could happen if an instrument
         // change has occured between note on and off)
-        if (ReleaseTriggerVoice && VoiceType != Voice::type_release_trigger) return Pool<Voice>::Iterator();
+        if (ReleaseTriggerVoice && !(VoiceType & Voice::type_release_trigger)) return Pool<Voice>::Iterator();
 
         ::gig::DimensionRegion* pDimRgn = pRegion->GetDimensionRegionByValue(DimValues);
 
@@ -318,7 +318,7 @@ namespace LinuxSampler { namespace gig {
     }
 
     String Engine::Version() {
-        String s = "$Revision: 1.109 $";
+        String s = "$Revision: 1.110 $";
         return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
 

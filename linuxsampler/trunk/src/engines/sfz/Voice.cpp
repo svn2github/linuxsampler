@@ -503,7 +503,9 @@ namespace LinuxSampler { namespace sfz {
 
     void Voice::ProcessGroupEvent(RTList<Event>::Iterator& itEvent) {
         dmsg(4,("Voice %x processGroupEvents event type=%d", this, itEvent->Type));
-        if (itEvent->Param.Note.Key != MIDIKey) {
+        if (itEvent->Type == Event::type_control_change ||
+            (Type & Voice::type_controller_triggered) ||
+            itEvent->Param.Note.Key != MIDIKey) {
             dmsg(4,("Voice %x - kill", this));
             if (pRegion->off_mode == ::sfz::OFF_NORMAL) {
                 // turn off the voice by entering release envelope stage

@@ -39,23 +39,53 @@ namespace LinuxSampler { namespace sfz {
         LinuxSampler::EngineChannel*  pEngineChannel,
         Pool<Event>::Iterator&        itControlChangeEvent
     ) {
-        dmsg(4,("Engine::ContinuousController cc=%d v=%d\n", itControlChangeEvent->Param.CC.Controller, itControlChangeEvent->Param.CC.Value));
+        uint8_t cc = itControlChangeEvent->Param.CC.Controller;
+        dmsg(4,("Engine::ContinuousController cc=%d v=%d\n", cc, itControlChangeEvent->Param.CC.Value));
 
         EngineChannel* pChannel = static_cast<EngineChannel*>(pEngineChannel);
-        // handle the "control triggered" MIDI rule: a control change
-        // event can trigger a new note on or note off event
-        if (pChannel->pInstrument) {
-
-            // TODO: 
-        }
 
         // update controller value in the engine channel's controller table
-        pChannel->ControllerTable[itControlChangeEvent->Param.CC.Controller] = itControlChangeEvent->Param.CC.Value;
+        pChannel->ControllerTable[cc] = itControlChangeEvent->Param.CC.Value;
 
         ProcessHardcodedControllers(pEngineChannel, itControlChangeEvent);
 
         // handle FX send controllers
         ProcessFxSendControllers(pChannel, itControlChangeEvent);
+
+        // handle control triggered regions: a control change event
+        // can trigger a new voice
+        if (pChannel->pInstrument && cc < 128) {
+
+            ::sfz::Query q;
+            q.chan        = pChannel->MidiChannel();
+            q.key         = 60;
+            q.vel         = 127;
+            q.bend        = pChannel->Pitch;
+            q.bpm         = 0;
+            q.chanaft     = pChannel->ControllerTable[128];
+            q.polyaft     = 0;
+            q.prog        = 0;
+            q.rand        = Random();
+            q.cc          = pChannel->ControllerTable;
+            q.timer       = 0;
+            q.sw          = pChannel->PressedKeys;
+            q.last_sw_key = pChannel->LastKeySwitch;
+            q.prev_sw_key = pChannel->LastKey;
+            q.trig        = TRIGGER_ATTACK | TRIGGER_FIRST;
+
+            q.search(pChannel->pInstrument, cc);
+
+            int i = 0;
+            while (::sfz::Region* region = q.next()) {
+                if (!RegionSuspended(region)) {
+                    itControlChangeEvent->Param.Note.Key = 60;
+                    itControlChangeEvent->Param.Note.Velocity = 127;
+                    itControlChangeEvent->Param.Note.pRegion = region;
+                    LaunchVoice(pChannel, itControlChangeEvent, i, false, false, true);
+                }
+                i++;
+            }
+        }
     }
 
     DiskThread* Engine::CreateDiskThread() {
@@ -153,10 +183,16 @@ namespace LinuxSampler { namespace sfz {
         EngineChannel* pChannel = static_cast<EngineChannel*>(pEngineChannel);
         int key = itNoteOnEvent->Param.Note.Key;
         EngineChannel::MidiKey* pKey  = &pChannel->pMIDIKeyInfo[key];
-        Voice::type_t VoiceType = (ReleaseTriggerVoice) ? Voice::type_release_trigger : (!iLayer) ? Voice::type_release_trigger_required : Voice::type_normal;
+        ::sfz::Region* pRgn = static_cast< ::sfz::Region*>(itNoteOnEvent->Param.Note.pRegion);
+
+        Voice::type_t VoiceType =
+            itNoteOnEvent->Type == Event::type_control_change ? Voice::type_controller_triggered :
+            ReleaseTriggerVoice ? Voice::type_release_trigger :
+            iLayer == 0 ? Voice::type_release_trigger_required :
+            Voice::type_normal;
+        if (pRgn->loop_mode == ::sfz::ONE_SHOT) VoiceType |= Voice::type_one_shot;
 
         Pool<Voice>::Iterator itNewVoice;
-        ::sfz::Region* pRgn = static_cast< ::sfz::Region*>(itNoteOnEvent->Param.Note.pRegion);
 
         // no need to process if sample is silent
         if (!pRgn->GetSample() || !pRgn->GetSample()->GetTotalFrameCount()) return Pool<Voice>::Iterator();
@@ -188,7 +224,7 @@ namespace LinuxSampler { namespace sfz {
     }
 
     String Engine::Version() {
-        String s = "$Revision: 1.10 $";
+        String s = "$Revision: 1.11 $";
         return s.substr(11, s.size() - 13); // cut dollar signs, spaces and CVS macro keyword
     }
 

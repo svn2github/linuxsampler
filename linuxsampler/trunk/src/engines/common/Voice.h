@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003,2004 by Benno Senoner and Christian Schoenebeck    *
- *   Copyright (C) 2005-2009 Christian Schoenebeck                         *
+ *   Copyright (C) 2005-2010 Christian Schoenebeck                         *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -22,7 +22,7 @@
  ***************************************************************************/
 
 #ifndef __LS_VOICE_H__
-#define	__LS_VOICE_H__
+#define __LS_VOICE_H__
 
 #include "Event.h"
 #include "../../common/Pool.h"
@@ -40,11 +40,13 @@ namespace LinuxSampler {
                 playback_state_disk = 3
             };
 
-            // Types
+            // Type bits. Mostly mutual exclusive, but a voice may both be of one shot type and require a release trigger at the same time.
             enum type_t {
-                type_normal,
-                type_release_trigger_required,  ///< If the key of this voice will be released, it causes a release triggered voice to be spawned
-                type_release_trigger            ///< Release triggered voice which cannot be killed by releasing its key
+                type_normal = 0,
+                type_release_trigger_required = 1 << 1,  ///< If the key of this voice will be released, it causes a release triggered voice to be spawned
+                type_release_trigger = 1 << 2,           ///< Release triggered voice which cannot be killed by releasing its key
+                type_one_shot = 1 << 3,                  ///< Voice should not be released by note off
+                type_controller_triggered = 1 << 4       ///< Voice is triggered by MIDI CC instead of a note on
             };
 
             struct PitchInfo {
@@ -119,7 +121,12 @@ namespace LinuxSampler {
             Voice() { }
             virtual ~Voice() { }
     };
+
+    // |= operator for the type_t enum
+    inline Voice::type_t operator|=(Voice::type_t& lhs, Voice::type_t rhs) {
+        return lhs = static_cast<Voice::type_t>(static_cast<unsigned>(lhs) | static_cast<unsigned>(rhs));
+    }
+
 } // namespace LinuxSampler
 
-#endif	/* __LS_VOICE_H__ */
-
+#endif  /* __LS_VOICE_H__ */

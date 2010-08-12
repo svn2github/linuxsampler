@@ -48,7 +48,17 @@ namespace sfz {
      */
     class LookupTable {
     public:
-        LookupTable(const Instrument* instrument);
+        /**
+         * Constructs a lookup table for the instrument. If triggercc
+         * is specified, the lookup table is made for regions
+         * triggered by the MIDI controller, otherwise the table is
+         * made for ordinary note-on triggered regions.
+         *
+         * @param instrument - instrument
+         * @param triggercc - controller number or -1
+         */
+        LookupTable(const Instrument* instrument, int triggercc = -1);
+
         ~LookupTable();
 
         /**
@@ -87,9 +97,10 @@ namespace sfz {
                               const int Definition::* hi,
                               int min, int max, int* a);
         static int fillMapArr(const std::vector<Region*>& regions,
-                              int cc, int* a);
+                              int cc, int* a, int triggercc);
         void fillRegionArr(const int* len, Region* region,
-                           std::vector<int>::size_type dim, int j);
+                           std::vector<int>::size_type dim, int j,
+                           int triggercc);
     };
 }
 

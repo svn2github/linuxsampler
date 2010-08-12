@@ -535,8 +535,8 @@ namespace LinuxSampler {
      */
     void AbstractVoice::processTransitionEvents(RTList<Event>::Iterator& itEvent, uint End) {
         for (; itEvent && itEvent->FragmentPos() <= End; ++itEvent) {
-            if (Type != Voice::type_release_trigger) {
-
+            // some voice types ignore note off 
+            if (!(Type & (Voice::type_one_shot | Voice::type_release_trigger | Voice::type_controller_triggered))) {
                 if (itEvent->Type == Event::type_release) {
                     EnterReleaseStage();
                 } else if (itEvent->Type == Event::type_cancel_release) {
@@ -616,7 +616,7 @@ namespace LinuxSampler {
         volume *= GetSampleAttenuation() * pEngineChannel->GlobalVolume * GLOBAL_VOLUME;
 
         // the volume of release triggered samples depends on note length
-        if (Type == Voice::type_release_trigger) {
+        if (Type & Voice::type_release_trigger) {
             float noteLength = float(GetEngine()->FrameTime + Delay -
                 GetNoteOnTime(MIDIKey) ) / GetEngine()->SampleRate;
 

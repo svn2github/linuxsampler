@@ -49,6 +49,8 @@ Version CVS HEAD (?)
     - optimized sample lookup
     - improved support for exclusive groups (group, off_by and
       off_mode)
+    - added support for controller triggered regions (on_locc/on_hicc)
+    - added support for loop_mode=one_shot
 
   * SoundFont format engine:
     - Initial implementation (not usable yet)

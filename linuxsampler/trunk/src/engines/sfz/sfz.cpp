@@ -142,69 +142,6 @@ namespace sfz
         return is_triggered;
     }
 
-    bool
-    Region::OnControl(uint8_t chan, uint8_t cont, uint8_t val,
-        int bend, uint8_t bpm, uint8_t chanaft, uint8_t polyaft,
-        uint8_t prog, float rand, trigger_t trig, uint8_t* cc,
-        float timer, bool* sw, uint8_t last_sw_key, uint8_t prev_sw_key)
-    {
-        // chan      (MIDI channel)
-        // cont      (MIDI controller)
-        // val       (MIDI controller value)
-
-        // bend      (MIDI pitch bend)
-        // bpm       (host BPM)
-        // chanaft   (MIDI channel pressure)
-        // polyaft   (MIDI polyphonic aftertouch)
-        // prog      (MIDI program change)
-        // rand      (generated random number)
-        // trigger   (how it was triggered)
-        // cc        (all CC values)
-
-        // timer       (time since previous region in the group was triggered)
-        // sw          (the state of region key switches, 128 possible values)
-        // last_sw_key (the last key pressed in the key switch range)
-        // prev_sw_key (the previous note value)
-
-        bool is_triggered = (
-            chan    >= lochan           &&  chan    <= hichan             &&
-            ((val   >= on_locc[cont]    &&  val     <= on_hicc[cont])     ||
-             (val   >= start_locc[cont] &&  val     <= start_hicc[cont])) &&
-            bend    >= lobend           &&  bend    <= hibend             &&
-            bpm     >= lobpm            &&  bpm     <  hibpm              &&
-            chanaft >= lochanaft        &&  chanaft <= hichanaft          &&
-            polyaft >= lopolyaft        &&  polyaft <= hipolyaft          &&
-            prog    >= loprog           &&  prog    <= hiprog             &&
-            rand    >= lorand           &&  rand    <  hirand             &&
-            timer   >= lotimer          &&  timer   <= hitimer            &&
-
-            ( sw_last == -1 ||
-              ((sw_last >= sw_lokey && sw_last <= sw_hikey) ? (last_sw_key == sw_last) : false) ) &&
-
-            ( sw_down == -1 ||
-              ((sw_down >= sw_lokey && (sw_hikey == -1 || sw_down <= sw_hikey)) ? (sw[sw_down]) : false) )  &&
-
-            ( sw_up   == -1 ||
-              ((sw_up   >= sw_lokey && (sw_hikey == -1 || sw_up   <= sw_hikey)) ? (!sw[sw_up]) : true) )  &&
-
-            ( sw_previous == -1 ||
-              prev_sw_key == sw_previous )  &&
-
-            ((trigger & trig) != 0)
-        );
-
-        if (!is_triggered)
-            return false;
-
-        for (int i = 0; i < 128; ++i)
-        {
-            if (locc[i] != -1 && hicc[i] != -1 && !(cc[i] >= locc[i] && cc[i] <= hicc[i]))
-                return false;
-        }
-
-        return true;
-    }
-
     Articulation*
     Region::GetArticulation(int bend, uint8_t bpm, uint8_t chanaft, uint8_t polyaft, uint8_t* cc)
     {
@@ -244,10 +181,18 @@ namespace sfz
             delete regions[i];
         }
         delete pLookupTable;
+        for (int i = 0 ; i < 128 ; i++) {
+            delete pLookupTableCC[i];
+        }
     }
 
     void Query::search(const Instrument* pInstrument) {
         pRegionList = &pInstrument->pLookupTable->query(*this);
+        regionIndex = 0;
+    }
+
+    void Query::search(const Instrument* pInstrument, int triggercc) {
+        pRegionList = &pInstrument->pLookupTableCC[triggercc]->query(*this);
         regionIndex = 0;
     }
 
@@ -832,10 +777,15 @@ namespace sfz
             ::sfz::Region* pRegion = _instrument->regions[i];
             int low = pRegion->lokey;
             int high = pRegion->hikey;
-            if (low < 0 || low > 127 || high < 0 || high > 127 || low > high) {
-                std::cerr << "Invalid key range: " << low << " - " << high << std::endl;
-            } else {
-                for (int j = low; j <= high; j++) _instrument->KeyBindings[j] = true;
+            if (low != -1) { // lokey -1 means region doesn't play on note-on
+                // hikey -1 is the same as no limit, except that it
+                // also enables on_locc/on_hicc
+                if (high == -1) high = 127;
+                if (low < 0 || low > 127 || high < 0 || high > 127 || low > high) {
+                    std::cerr << "Invalid key range: " << low << " - " << high << std::endl;
+                } else {
+                    for (int j = low; j <= high; j++) _instrument->KeyBindings[j] = true;
+                }
             }
 
             // get keyswitches
@@ -890,6 +840,12 @@ namespace sfz
         }
 
         _instrument->pLookupTable = new LookupTable(_instrument);
+
+        // create separate lookup tables for controller triggered
+        // regions, one for each CC
+        for (int i = 0 ; i < 128 ; i++) {
+            _instrument->pLookupTableCC[i] = new LookupTable(_instrument, i);
+        }
     }
 
     File::~File()
@@ -1313,6 +1269,7 @@ namespace sfz
             case 'g': i = 7; break;
             case 'a': i = 9; break;
             case 'b': i = 11; break;
+            case '-': if (s == "-1") return -1;
             default:
                 std::cerr << "Not a note: " << s << std::endl;
                 return 0;

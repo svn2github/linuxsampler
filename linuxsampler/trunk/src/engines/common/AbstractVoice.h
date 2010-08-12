@@ -80,7 +80,7 @@ namespace LinuxSampler {
 
     class AbstractVoice : public Voice {
         public:
-            type_t       Type;         ///< Voice Type
+            type_t       Type;         ///< Voice Type (bit field, a voice may have several types)
             int          MIDIKey;      ///< MIDI key number of the key that triggered the voice
 
             AbstractVoice();

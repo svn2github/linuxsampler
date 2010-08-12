@@ -1064,7 +1064,7 @@ namespace LinuxSampler {
                             VoiceIterator itVoiceToBeKilled = pOtherKey->pActiveVoices->first();
                             VoiceIterator end               = pOtherKey->pActiveVoices->end();
                             for (; itVoiceToBeKilled != end; ++itVoiceToBeKilled) {
-                                if (itVoiceToBeKilled->Type != Voice::type_release_trigger)
+                                if (!(itVoiceToBeKilled->Type & Voice::type_release_trigger))
                                     itVoiceToBeKilled->Kill(itNoteOnEventOnKeyList);
                             }
                         }
@@ -1201,7 +1201,7 @@ namespace LinuxSampler {
                             VoiceIterator itVoiceToBeKilled = pKey->pActiveVoices->first();
                             VoiceIterator end               = pKey->pActiveVoices->end();
                             for (; itVoiceToBeKilled != end; ++itVoiceToBeKilled) {
-                                if (itVoiceToBeKilled->Type != Voice::type_release_trigger)
+                                if (!(itVoiceToBeKilled->Type & Voice::type_release_trigger))
                                     itVoiceToBeKilled->Kill(itNoteOffEventOnKeyList);
                             }
                         }
@@ -1334,7 +1334,7 @@ namespace LinuxSampler {
                             pKey->itSelf = pChannel->pActiveKeys->allocAppend();
                             *pKey->itSelf = itNoteOnEvent->Param.Note.Key;
                         }
-                        if (itNewVoice->Type == Voice::type_release_trigger_required) pKey->ReleaseTrigger = true; // mark key for the need of release triggered voice(s)
+                        if (itNewVoice->Type & Voice::type_release_trigger_required) pKey->ReleaseTrigger = true; // mark key for the need of release triggered voice(s)
                         return 0; // success
                     }
                 }

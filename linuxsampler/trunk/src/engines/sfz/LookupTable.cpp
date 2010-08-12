@@ -86,14 +86,21 @@ namespace sfz {
 
     // fills a mapping array for a given control change number
     int LookupTable::fillMapArr(const std::vector<Region*>& regions,
-                                int cc, int* a) {
+                                int cc, int* a, int triggercc) {
         std::set<int> s;
         s.insert(0);
         s.insert(128);
         for (std::vector<Region*>::const_iterator i = regions.begin() ;
              i != regions.end() ; ++i) {
-            s.insert((*i)->locc[cc]);
-            s.insert((*i)->hicc[cc] + 1);
+            int lo = (*i)->locc[cc];
+            int hi = (*i)->hicc[cc];
+            if (cc == triggercc) {
+                lo = std::max(lo, (*i)->on_locc[cc]);
+                hi = std::min(hi, (*i)->on_hicc[cc]);
+            }
+
+            s.insert(lo);
+            s.insert(hi + 1);
         }
 
         int j = 0;
@@ -115,7 +122,7 @@ namespace sfz {
         int offset = 0;
         int dim;
         for (dim = 0 ; qargs[dim] ; dim++) {
-            offset += mapArr[dim][q.*qargs[dim]];
+            offset += mapArr[dim][int8_t(q.*qargs[dim])];
         }
         for (int cc = 0 ; ccargs[cc] >= 0 ; cc++, dim++) {
             offset += mapArr[dim][q.cc[ccargs[cc]]];
@@ -125,7 +132,8 @@ namespace sfz {
 
     // recursively fills the region array with regions
     void LookupTable::fillRegionArr(const int* len, Region* region,
-                                    std::vector<int>::size_type dim, int j) {
+                                    std::vector<int>::size_type dim, int j,
+                                    int triggercc) {
         if (dim == dims.size() + ccs.size()) {
             regionArr[j].add(region);
         } else if (dim < dims.size()) {
@@ -135,34 +143,62 @@ namespace sfz {
             if (hi == -1) hi = 127;
             for (int l = mapArr[dim][region->*dimDefs[d].lo] ;
                  l <= mapArr[dim][hi] ; l++) {
-                fillRegionArr(len, region, dim + 1, j * len[dim] + l);
+                fillRegionArr(len, region, dim + 1, j * len[dim] + l,
+                              triggercc);
             }
         } else {
             int cc = ccs[dim - dims.size()];
-            for (int l = mapArr[dim][region->locc[cc]] ;
-                 l <= mapArr[dim][region->hicc[cc]] ; l++) {
-                fillRegionArr(len, region, dim + 1, j * len[dim] + l);
+            int lo = region->locc[cc];
+            int hi = region->hicc[cc];
+            if (cc == triggercc) {
+                lo = std::max(lo, region->on_locc[cc]);
+                hi = std::min(hi, region->on_hicc[cc]);
+            }
+            for (int l = mapArr[dim][lo] ; l <= mapArr[dim][hi] ; l++) {
+                fillRegionArr(len, region, dim + 1, j * len[dim] + l,
+                              triggercc);
             }
         }
     }
 
 
-    LookupTable::LookupTable(const Instrument* instrument) {
-        const std::vector<Region*>& regions = instrument->regions;
+    LookupTable::LookupTable(const Instrument* instrument, int triggercc) {
+        std::vector<Region*> regions;
+
+        // copy the interesting regions
+        for (std::vector<Region*>::const_iterator i =
+                 instrument->regions.begin() ;
+             i != instrument->regions.end() ; ++i) {
+
+            if (triggercc == -1) {
+                if ((*i)->lokey >= 0) {
+                    regions.push_back(*i);
+                }
+            } else {
+                if ((*i)->hikey < 0 &&
+                    (*i)->on_locc[triggercc] >= 0 &&
+                    (*i)->on_hicc[triggercc] >= 0) {
+                    regions.push_back(*i);
+                }
+            }
+        }
+
+        dmsg(2,("\nregions before filter: %d, after: %d\n",
+                instrument->regions.size(), regions.size()));
 
         // find dimensions used by the instrument
         for (int dim = 0 ; dimDefs[dim].lo ; dim++) {
             for (std::vector<Region*>::const_iterator i = regions.begin() ;
                  i != regions.end() ; ++i) {
-                if ((*i)->*dimDefs[dim].lo != dimDefs[dim].min ||
-                    (*i)->*dimDefs[dim].hi != dimDefs[dim].max) {
+
+                if ((triggercc == -1 || dimDefs[dim].lo != &Region::lokey) &&
+                    ((*i)->*dimDefs[dim].lo != dimDefs[dim].min ||
+                     (*i)->*dimDefs[dim].hi != dimDefs[dim].max)) {
                     dims.push_back(dim);
                     break;
                 }
             }
         }
-
-        dmsg(2,("\n"));
 
         // create and fill the qargs array with pointers to Query
         // members
@@ -177,8 +213,13 @@ namespace sfz {
         for (int cc = 0 ; cc < 128 ; cc++) {
             for (std::vector<Region*>::const_iterator i = regions.begin() ;
                  i != regions.end() ; ++i) {
-                if ((*i)->locc[cc] > 0 ||
-                    ((*i)->hicc[cc] != 127 && (*i)->hicc[cc] != -1)) {
+                int lo = (*i)->locc[cc];
+                int hi = (*i)->hicc[cc]; // TODO == -1 ? 127 : (*i)->hicc[cc];
+                if (cc == triggercc) {
+                    lo = std::max(lo, (*i)->on_locc[cc]);
+                    hi = std::min(hi, (*i)->on_hicc[cc]);
+                }
+                if (lo > 0 || hi != 127) {
                     ccs.push_back(cc);
                     break;
                 }
@@ -208,7 +249,7 @@ namespace sfz {
             int max = dimDefs[*dimi].max == -1 ? 127 : dimDefs[*dimi].max;
             mapArr[dim] = new int[max - min + 1] - min;
             len[dim] = fillMapArr(regions, dimDefs[*dimi].lo, dimDefs[*dimi].hi,
-                                 min, max, mapArr[dim]);
+                                  min, max, mapArr[dim]);
             size *= len[dim];
             dim++;
         }
@@ -216,7 +257,7 @@ namespace sfz {
         for (std::vector<int>::const_iterator cci = ccs.begin() ;
              cci != ccs.end() ; ++cci) {
             mapArr[dim] = new int[128];
-            len[dim] = fillMapArr(regions, *cci, mapArr[dim]);
+            len[dim] = fillMapArr(regions, *cci, mapArr[dim], triggercc);
             size *= len[dim];
             dim++;
         }
@@ -230,7 +271,7 @@ namespace sfz {
 
         for (std::vector<Region*>::const_iterator i = regions.begin() ;
              i != regions.end() ; ++i) {
-            fillRegionArr(len, *i, 0, 0);
+            fillRegionArr(len, *i, 0, 0, triggercc);
         }
 
         // multiply the offsets in the mapping arrays so simple
