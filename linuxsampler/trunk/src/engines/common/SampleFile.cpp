@@ -22,6 +22,7 @@
  ***************************************************************************/
 
 #include "SampleFile.h"
+#include "../../common/global_private.h"
 #include "../../common/Exception.h"
 
 #include <cstring>
@@ -46,7 +47,7 @@ namespace LinuxSampler {
         ChannelCount = sfInfo.channels;
         Format = sfInfo.format;
 
-        switch(Format & 0xF) {
+        switch(Format & SF_FORMAT_SUBMASK) {
             case SF_FORMAT_PCM_S8:
             case SF_FORMAT_PCM_U8:
             case SF_FORMAT_DPCM_8:
@@ -145,8 +146,27 @@ namespace LinuxSampler {
 
     long SampleFile::Read(void* pBuffer, unsigned long FrameCount) {
         Open();
-        int bytes = sf_read_raw(pSndFile, pBuffer, FrameCount * GetFrameSize());
-        return bytes / GetFrameSize();
+
+        // ogg files must be read with sf_readf, not sf_read_raw. On
+        // big endian machines, sf_readf_short is also used for 16 bit
+        // wav files, to get automatic endian conversion (for 24 bit
+        // samples this is handled in Synthesize::GetSample instead).
+
+#if WORDS_BIGENDIAN || HAVE_DECL_SF_FORMAT_VORBIS
+        if (
+#if WORDS_BIGENDIAN
+            FrameSize == 2 * ChannelCount
+#else
+            (Format & SF_FORMAT_SUBMASK) == SF_FORMAT_VORBIS
+#endif
+            ) {
+            return sf_readf_short(pSndFile, static_cast<short*>(pBuffer), FrameCount);
+        } else
+#endif
+        {
+            int bytes = sf_read_raw(pSndFile, pBuffer, FrameCount * GetFrameSize());
+            return bytes / GetFrameSize();
+        }
     }
 
     unsigned long SampleFile::ReadAndLoop (

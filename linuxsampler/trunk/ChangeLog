@@ -51,6 +51,8 @@ Version CVS HEAD (?)
       off_mode)
     - added support for controller triggered regions (on_locc/on_hicc)
     - added support for loop_mode=one_shot
+    - fixed playback of 16 bit wav files on big endian CPUs
+    - added support for Ogg Vorbis sample files
 
   * SoundFont format engine:
     - Initial implementation (not usable yet)
