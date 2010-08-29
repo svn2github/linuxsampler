@@ -861,7 +861,7 @@ namespace RIFF {
             #else
             int iBytesMoved = 1;
             #endif
-            for (unsigned long ulOffset = 0; iBytesMoved > 0; ulOffset += iBytesMoved, ulToMove -= iBytesMoved) {
+            for (unsigned long ulOffset = 0; ulToMove > 0 && iBytesMoved > 0; ulOffset += iBytesMoved, ulToMove -= iBytesMoved) {
                 iBytesMoved = (ulToMove < 4096) ? ulToMove : 4096;
                 #if POSIX
                 lseek(pFile->hFileRead, ulStartPos + ulCurrentDataOffset + ulOffset, SEEK_SET);
