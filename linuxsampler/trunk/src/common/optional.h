@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005, 2006 Christian Schoenebeck                        *
+ *   Copyright (C) 2005 - 2010 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -28,6 +28,10 @@
 
 namespace LinuxSampler {
 
+    /**
+     * Base class of template class optional, not meant to be instantiated
+     * directly. It just provides the optional<T>::nothing member.
+     */
     class optional_base {
         public:
             class nothing_t { public: nothing_t() {} };
@@ -35,6 +39,15 @@ namespace LinuxSampler {
             static const nothing_t nothing;
     };
 
+    /**
+     * This class can be used for any variable that might not have a value
+     * set. E.g. as a return value type of a function, since in the case of
+     * return values of functions it's often difficult to return a pointer
+     * variable which might do the trick of an optional return value. It
+     * behaves pretty much like a pointer though. That is, it can be checked
+     * against NULL and the actual value can be dereferenced with the
+     * typical C pointer dereference operators.
+     */
     template<class T>
     class optional : public optional_base {
         public:
@@ -67,10 +80,9 @@ namespace LinuxSampler {
                 return data;
             }
 
-            optional& operator =(const optional& arg) throw (Exception) {
-                if (!arg.initialized) throw Exception("optional variable not initialized");
+            optional& operator =(const optional& arg) {
                 this->data  = arg.data;
-                initialized = true;
+                initialized = arg.initialized;
                 return *this;
             }
 

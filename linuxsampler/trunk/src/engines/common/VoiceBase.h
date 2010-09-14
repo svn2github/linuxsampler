@@ -227,6 +227,11 @@ namespace LinuxSampler {
             S*  pSample;   ///< Pointer to the sample to be played back
             R*  pRegion;   ///< Pointer to the articulation information of current region of this voice
 
+            virtual MidiKeyBase* GetMidiKeyInfo(int MIDIKey) {
+                EC* pChannel = static_cast<EC*>(pEngineChannel);
+                return &pChannel->pMIDIKeyInfo[MIDIKey];
+            }
+
             virtual unsigned long GetNoteOnTime(int MIDIKey) {
                 EC* pChannel = static_cast<EC*>(pEngineChannel);
                 return pChannel->pMIDIKeyInfo[MIDIKey].NoteOnTime;

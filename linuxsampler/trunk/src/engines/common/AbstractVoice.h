@@ -188,6 +188,8 @@ namespace LinuxSampler {
              */
             virtual double CalculateCrossfadeVolume(uint8_t MIDIKeyVelocity) = 0;
 
+            virtual MidiKeyBase* GetMidiKeyInfo(int MIDIKey) = 0;
+
             virtual int   OrderNewStream() = 0;
 
             virtual PitchInfo CalculatePitchInfo(int PitchBend);

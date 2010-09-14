@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 - 2009 Christian Schoenebeck                       *
+ *   Copyright (C) 2005 - 20010 Christian Schoenebeck                      *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -43,10 +43,13 @@ namespace LinuxSampler {
         uint8_t uiMidiBankLsb;
         uint8_t uiMidiRpnMsb; ///< MIDI Registered Parameter Number (upper 8 bits / coarse)
         uint8_t uiMidiRpnLsb; ///< MIDI Registered Parameter Number (lower 8 bits / fine)
+        uint8_t uiMidiNrpnMsb; ///< MIDI Non-Registered Parameter Number (upper 8 bits / coarse)
+        uint8_t uiMidiNrpnLsb; ///< MIDI Non-Registered Parameter Number (lower 8 bits / fine)
         bool    bMidiBankMsbReceived;
         bool    bMidiBankLsbReceived;
         bool    bProgramChangeReceived;
         bool    bMidiRpnReceived;
+        bool    bMidiNrpnReceived;
         int     iMidiInstrumentMap;
         atomic_t voiceCount;
         atomic_t diskStreamCount;
@@ -68,6 +71,7 @@ namespace LinuxSampler {
         SetDiskStreamCount(0);
         p->pSamplerChannel = NULL;
         ResetMidiRpnController();
+        ResetMidiNrpnController();
     }
 
     EngineChannel::~EngineChannel() {
@@ -202,6 +206,8 @@ namespace LinuxSampler {
         StatusChanged(true);
     }
 
+    // RPNs ...
+
     void EngineChannel::SetMidiRpnControllerMsb(uint8_t CtrlMSB) {
         p->uiMidiRpnMsb = CtrlMSB;
         p->bMidiRpnReceived = true;
@@ -220,6 +226,28 @@ namespace LinuxSampler {
     int EngineChannel::GetMidiRpnController() {
         return (p->bMidiRpnReceived) ?
                (p->uiMidiRpnMsb << 8) | p->uiMidiRpnLsb : -1;
+    }
+
+    // NRPNs ...
+
+    void EngineChannel::SetMidiNrpnControllerMsb(uint8_t CtrlMSB) {
+        p->uiMidiNrpnMsb = CtrlMSB;
+        p->bMidiNrpnReceived = true;
+    }
+
+    void EngineChannel::SetMidiNrpnControllerLsb(uint8_t CtrlLSB) {
+        p->uiMidiNrpnLsb = CtrlLSB;
+        p->bMidiNrpnReceived = true;
+    }
+
+    void EngineChannel::ResetMidiNrpnController() {
+        p->uiMidiNrpnMsb = p->uiMidiNrpnLsb = 0;
+        p->bMidiNrpnReceived = false;
+    }
+
+    int EngineChannel::GetMidiNrpnController() {
+        return (p->bMidiNrpnReceived) ?
+               (p->uiMidiNrpnMsb << 8) | p->uiMidiNrpnLsb : -1;
     }
 
     uint EngineChannel::GetVoiceCount() {

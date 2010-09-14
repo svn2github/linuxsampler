@@ -103,6 +103,7 @@ namespace LinuxSampler {
         Delay           = itNoteOnEvent->FragmentPos();
         itTriggerEvent  = itNoteOnEvent;
         itKillEvent     = Pool<Event>::Iterator();
+        MidiKeyBase* pKeyInfo = GetMidiKeyInfo(MIDIKey);
 
         pGroupEvents = iKeyGroup ? pEngineChannel->ActiveKeyGroups[iKeyGroup] : 0;
 
@@ -112,7 +113,7 @@ namespace LinuxSampler {
 
         // calculate volume
         const double velocityAttenuation = GetVelocityAttenuation(itNoteOnEvent->Param.Note.Velocity);
-        float volume = CalculateVolume(velocityAttenuation);
+        float volume = CalculateVolume(velocityAttenuation) * pKeyInfo->Volume;
         if (volume <= 0) return -1;
 
         // select channel mode (mono or stereo)
@@ -123,8 +124,8 @@ namespace LinuxSampler {
         // get starting crossfade volume level
         float crossfadeVolume = CalculateCrossfadeVolume(itNoteOnEvent->Param.Note.Velocity);
 
-        VolumeLeft  = volume * AbstractEngine::PanCurve[64 - RgnInfo.Pan];
-        VolumeRight = volume * AbstractEngine::PanCurve[64 + RgnInfo.Pan];
+        VolumeLeft  = volume * pKeyInfo->PanLeft  * AbstractEngine::PanCurve[64 - RgnInfo.Pan];
+        VolumeRight = volume * pKeyInfo->PanRight * AbstractEngine::PanCurve[64 + RgnInfo.Pan];
 
         float subfragmentRate = GetEngine()->SampleRate / CONFIG_DEFAULT_SUBFRAGMENT_SIZE;
         CrossfadeSmoother.trigger(crossfadeVolume, subfragmentRate);
@@ -306,9 +307,20 @@ namespace LinuxSampler {
      */
     void AbstractVoice::Synthesize(uint Samples, sample_t* pSrc, uint Skip) {
         AbstractEngineChannel* pChannel = pEngineChannel;
-        finalSynthesisParameters.pOutLeft  = &pChannel->pChannelLeft->Buffer()[Skip];
-        finalSynthesisParameters.pOutRight = &pChannel->pChannelRight->Buffer()[Skip];
-        finalSynthesisParameters.pSrc      = pSrc;
+        MidiKeyBase* pMidiKeyInfo = GetMidiKeyInfo(MIDIKey);
+
+        const bool bVoiceRequiresDedicatedRouting =
+            pEngineChannel->GetFxSendCount() > 0 &&
+            (pMidiKeyInfo->ReverbSend || pMidiKeyInfo->ChorusSend);
+
+        if (bVoiceRequiresDedicatedRouting) {
+            finalSynthesisParameters.pOutLeft  = &GetEngine()->pDedicatedVoiceChannelLeft->Buffer()[Skip];
+            finalSynthesisParameters.pOutRight = &GetEngine()->pDedicatedVoiceChannelRight->Buffer()[Skip];
+        } else {
+            finalSynthesisParameters.pOutLeft  = &pChannel->pChannelLeft->Buffer()[Skip];
+            finalSynthesisParameters.pOutRight = &pChannel->pChannelRight->Buffer()[Skip];
+        }
+        finalSynthesisParameters.pSrc = pSrc;
 
         RTList<Event>::Iterator itCCEvent = pChannel->pEvents->first();
         RTList<Event>::Iterator itNoteEvent;
@@ -470,6 +482,14 @@ namespace LinuxSampler {
 
             Pos = newPos;
             i = iSubFragmentEnd;
+        }
+
+        if (bVoiceRequiresDedicatedRouting) {
+            optional<float> effectSendLevels[2] = {
+                pMidiKeyInfo->ReverbSend,
+                pMidiKeyInfo->ChorusSend
+            };
+            GetEngine()->RouteDedicatedVoiceChannels(pEngineChannel, effectSendLevels, Samples);
         }
     }
 

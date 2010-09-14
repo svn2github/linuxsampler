@@ -12,6 +12,16 @@ Version CVS HEAD (?)
       "LINUXSAMPLER_PLUGIN_DIR" which allows to override the directory
       where the sampler shall look for instrument editor plugins
       (patch by Luis Garrido, slightly modified).
+    - implemented Roland GS NRPN 1ArrH which allows to set volume per note
+    - implemented Roland GS NRPN 1CrrH which allows to set pan per note
+    - implemented Roland GS NRPN 1DrrH which allows to set reverb send per
+      note (in this implementation of the sampler its simply hard routed to
+      the 1st effect send of the sampler channel, no matter what the actual
+      effect type is)
+    - implemented Roland GS NRPN 1ErrH which allows to set chorus send per
+      note (in this implementation of the sampler its simply hard routed to
+      the 2nd effect send of the sampler channel, no matter what the actual
+      effect type is)
 
   * Gigasampler format engine:
     - implemented the "round robin keyboard" dimension

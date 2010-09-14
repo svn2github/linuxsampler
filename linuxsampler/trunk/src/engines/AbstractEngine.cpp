@@ -79,6 +79,7 @@ namespace LinuxSampler {
         pGlobalEvents      = new RTList<Event>(pEventPool);
         FrameTime          = 0;
         RandomSeed         = 0;
+        pDedicatedVoiceChannelLeft = pDedicatedVoiceChannelRight = NULL;
     }
 
     AbstractEngine::~AbstractEngine() {
@@ -87,6 +88,8 @@ namespace LinuxSampler {
         if (pEventGenerator) delete pEventGenerator;
         if (pGlobalEvents) delete pGlobalEvents;
         if (pSysexBuffer) delete pSysexBuffer;
+        if (pDedicatedVoiceChannelLeft) delete pDedicatedVoiceChannelLeft;
+        if (pDedicatedVoiceChannelRight) delete pDedicatedVoiceChannelRight;
         Unregister();
     }
 
@@ -221,61 +224,115 @@ namespace LinuxSampler {
      */
     void AbstractEngine::RouteAudio(EngineChannel* pEngineChannel, uint Samples) {
         AbstractEngineChannel* pChannel = static_cast<AbstractEngineChannel*>(pEngineChannel);
+        AudioChannel* ppSource[2] = {
+            pChannel->pChannelLeft,
+            pChannel->pChannelRight
+        };
         // route dry signal
         {
             AudioChannel* pDstL = pAudioOutputDevice->Channel(pChannel->AudioDeviceChannelLeft);
             AudioChannel* pDstR = pAudioOutputDevice->Channel(pChannel->AudioDeviceChannelRight);
-            pChannel->pChannelLeft->MixTo(pDstL, Samples);
-            pChannel->pChannelRight->MixTo(pDstR, Samples);
+            ppSource[0]->MixTo(pDstL, Samples);
+            ppSource[1]->MixTo(pDstR, Samples);
         }
-        // route FX send signal
+        // route FX send signal (wet)
         {
             for (int iFxSend = 0; iFxSend < pChannel->GetFxSendCount(); iFxSend++) {
                 FxSend* pFxSend = pChannel->GetFxSend(iFxSend);
-                for (int iChan = 0; iChan < 2; ++iChan) {
-                    AudioChannel* pSource =
-                        (iChan)
-                            ? pChannel->pChannelRight
-                            : pChannel->pChannelLeft;
-                    const int iDstChan = pFxSend->DestinationChannel(iChan);
-                    if (iDstChan < 0) {
-                        dmsg(1,("Engine::RouteAudio() Error: invalid FX send (%s) destination channel (%d->%d)", ((iChan) ? "R" : "L"), iChan, iDstChan));
-                        goto channel_cleanup;
-                    }
-                    AudioChannel* pDstChan = NULL;
-                    if (pFxSend->DestinationMasterEffectChain() >= 0) { // fx send routed to an internal master effect
-                        EffectChain* pEffectChain =
-                            pAudioOutputDevice->MasterEffectChain(
-                                pFxSend->DestinationMasterEffectChain()
-                            );
-                        if (!pEffectChain) {
-                            dmsg(1,("Engine::RouteAudio() Error: invalid FX send (%s) destination effect chain %d", ((iChan) ? "R" : "L"), pFxSend->DestinationMasterEffectChain()));
-                            goto channel_cleanup;
-                        }
-                        Effect* pEffect =
-                            pEffectChain->GetEffect(
-                                pFxSend->DestinationMasterEffect()
-                            );
-                        if (!pEffect) {
-                            dmsg(1,("Engine::RouteAudio() Error: invalid FX send (%s) destination effect %d of effect chain %d", ((iChan) ? "R" : "L"), pFxSend->DestinationMasterEffect(), pFxSend->DestinationMasterEffectChain()));
-                            goto channel_cleanup;
-                        }
-                        pDstChan = pEffect->InputChannel(iDstChan);
-                    } else { // FX send routed directly to an audio output channel
-                        pDstChan = pAudioOutputDevice->Channel(iDstChan);
-                    }
-                    if (!pDstChan) {
-                        dmsg(1,("Engine::RouteAudio() Error: invalid FX send (%s) destination channel (%d->%d)", ((iChan) ? "R" : "L"), iChan, iDstChan));
-                        goto channel_cleanup;
-                    }
-                    pSource->MixTo(pDstChan, Samples, pFxSend->Level());
-                }
+                const bool success = RouteFxSend(pFxSend, ppSource, pFxSend->Level(), Samples);
+                if (!success) goto channel_cleanup;
             }
         }
         channel_cleanup:
         // reset buffers with silence (zero out) for the next audio cycle
-        pChannel->pChannelLeft->Clear();
-        pChannel->pChannelRight->Clear();
+        ppSource[0]->Clear();
+        ppSource[1]->Clear();
+    }
+    
+    /**
+     * Similar to RouteAudio(), but this method is even more special. It is
+     * only called by voices which have dedicated effect send(s) level(s). So
+     * such voices have to be routed separately apart from the other voices
+     * which can just be mixed together and routed afterwards in one turn.
+     */
+    void AbstractEngine::RouteDedicatedVoiceChannels(EngineChannel* pEngineChannel, optional<float> FxSendLevels[2], uint Samples) {
+        AbstractEngineChannel* pChannel = static_cast<AbstractEngineChannel*>(pEngineChannel);
+        AudioChannel* ppSource[2] = {
+            pDedicatedVoiceChannelLeft,
+            pDedicatedVoiceChannelRight
+        };
+        // route dry signal
+        {
+            AudioChannel* pDstL = pAudioOutputDevice->Channel(pChannel->AudioDeviceChannelLeft);
+            AudioChannel* pDstR = pAudioOutputDevice->Channel(pChannel->AudioDeviceChannelRight);
+            ppSource[0]->MixTo(pDstL, Samples);
+            ppSource[1]->MixTo(pDstR, Samples);
+        }
+        // route FX send signals (wet)
+        // (we simply hard code the voices 'reverb send' to the 1st effect
+        // send bus, and the voioces 'chorus send' to the 2nd effect send bus)
+        {
+            for (int iFxSend = 0; iFxSend < 2 && iFxSend < pChannel->GetFxSendCount(); iFxSend++) {
+                // no voice specific FX send level defined for this effect? 
+                if (!FxSendLevels[iFxSend]) continue; // ignore this effect then
+                
+                FxSend* pFxSend = pChannel->GetFxSend(iFxSend);
+                const bool success = RouteFxSend(pFxSend, ppSource, *FxSendLevels[iFxSend], Samples);
+                if (!success) goto channel_cleanup;
+            }
+        }
+        channel_cleanup:
+        // reset buffers with silence (zero out) for the next dedicated voice rendering/routing process
+        ppSource[0]->Clear();
+        ppSource[1]->Clear();
+    }
+    
+    /**
+     * Route the audio signal given by @a ppSource to the effect send bus
+     * defined by @a pFxSend (wet signal only).
+     *
+     * @param pFxSend - definition of effect send bus
+     * @param ppSource - the 2 channels of the audio signal to be routed
+     * @param FxSendLevel - the effect send level to by applied
+     * @param Samples - amount of sample points to be processed
+     * @returns true if signal was routed successfully, false on error
+     */
+    bool AbstractEngine::RouteFxSend(FxSend* pFxSend, AudioChannel* ppSource[2], float FxSendLevel, uint Samples) {
+        for (int iChan = 0; iChan < 2; ++iChan) {
+            const int iDstChan = pFxSend->DestinationChannel(iChan);
+            if (iDstChan < 0) {
+                dmsg(1,("Engine::RouteAudio() Error: invalid FX send (%s) destination channel (%d->%d)", ((iChan) ? "R" : "L"), iChan, iDstChan));
+                return false; // error
+            }
+            AudioChannel* pDstChan = NULL;
+            if (pFxSend->DestinationMasterEffectChain() >= 0) { // fx send routed to an internal master effect
+                EffectChain* pEffectChain =
+                    pAudioOutputDevice->MasterEffectChain(
+                        pFxSend->DestinationMasterEffectChain()
+                    );
+                if (!pEffectChain) {
+                    dmsg(1,("Engine::RouteAudio() Error: invalid FX send (%s) destination effect chain %d", ((iChan) ? "R" : "L"), pFxSend->DestinationMasterEffectChain()));
+                    return false; // error
+                }
+                Effect* pEffect =
+                    pEffectChain->GetEffect(
+                        pFxSend->DestinationMasterEffect()
+                    );
+                if (!pEffect) {
+                    dmsg(1,("Engine::RouteAudio() Error: invalid FX send (%s) destination effect %d of effect chain %d", ((iChan) ? "R" : "L"), pFxSend->DestinationMasterEffect(), pFxSend->DestinationMasterEffectChain()));
+                    return false; // error
+                }
+                pDstChan = pEffect->InputChannel(iDstChan);
+            } else { // FX send routed directly to an audio output channel
+                pDstChan = pAudioOutputDevice->Channel(iDstChan);
+            }
+            if (!pDstChan) {
+                dmsg(1,("Engine::RouteAudio() Error: invalid FX send (%s) destination channel (%d->%d)", ((iChan) ? "R" : "L"), iChan, iDstChan));
+                return false; // error
+            }
+            ppSource[iChan]->MixTo(pDstChan, Samples, FxSendLevel);
+        }
+        return true; // success
     }
 
     /**

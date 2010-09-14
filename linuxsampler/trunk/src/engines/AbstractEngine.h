@@ -78,6 +78,10 @@ namespace LinuxSampler {
             static const FloatTable CrossfadeCurve; ///< Table that maps crossfade control change values 0..127 to amplitude. Unity gain is at 127.
 
             AudioOutputDevice* pAudioOutputDevice;
+            
+            //TODO: should be protected
+            AudioChannel* pDedicatedVoiceChannelLeft;  ///< encapsulates a special audio rendering buffer (left) for rendering and routing audio on a per voice basis (this is a very special case and only used for voices which lie on a note which was set with individual, dedicated FX send level)
+            AudioChannel* pDedicatedVoiceChannelRight; ///< encapsulates a special audio rendering buffer (right) for rendering and routing audio on a per voice basis (this is a very special case and only used for voices which lie on a note which was set with individual, dedicated FX send level)
 
             friend class AbstractVoice;
             friend class AbstractEngineChannel;
@@ -101,6 +105,7 @@ namespace LinuxSampler {
             int                        VoiceSpawnsLeft;       ///< We only allow CONFIG_MAX_VOICES voices to be spawned per audio fragment, we use this variable to ensure this limit.
 
             void RouteAudio(EngineChannel* pEngineChannel, uint Samples);
+            void RouteDedicatedVoiceChannels(EngineChannel* pEngineChannel, optional<float> FxSendLevels[2], uint Samples);
             void ClearEventLists();
             void ImportEvents(uint Samples);
             void ProcessSysex(Pool<Event>::Iterator& itSysexEvent);
@@ -136,6 +141,7 @@ namespace LinuxSampler {
             static float* InitCurve(const float* segments, int size = 128);
 
             void AdjustScale(int8_t ScaleTunes[12]);
+            bool RouteFxSend(FxSend* pFxSend, AudioChannel* ppSource[2], float FxSendLevel, uint Samples);
     };
 
 } // namespace LinuxSampler

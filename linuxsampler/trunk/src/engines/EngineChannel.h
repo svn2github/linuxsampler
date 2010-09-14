@@ -1,6 +1,6 @@
 /***************************************************************************
  *                                                                         *
- *   Copyright (C) 2005 - 2009 Christian Schoenebeck                       *
+ *   Copyright (C) 2005 - 2010 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -251,6 +251,23 @@ namespace LinuxSampler {
              */
             void ResetMidiRpnController();
 
+            /**
+             * Set MIDI Non-Registered Parameter Number (NRPN) Controller
+             * (upper 8 bits / coarse).
+             */
+            void SetMidiNrpnControllerMsb(uint8_t CtrlMSB);
+
+            /**
+             * Set MIDI Non-Registered Parameter Number (NRPN) Controller
+             * (lower 8 bits / fine).
+             */
+            void SetMidiNrpnControllerLsb(uint8_t CtrlLSB);
+
+            /**
+             * Reset to no NRPN controller currently selected.
+             */
+            void ResetMidiNrpnController();
+
              /**
              * Registers the specified listener to be notified when the number
              * of effect sends on this channel is changed.
@@ -281,6 +298,21 @@ namespace LinuxSampler {
              *          value if no RPN controller currently selected
              */
             int GetMidiRpnController();
+
+            /**
+             * Get currently selected MIDI Non-Registered Parameter Number
+             * (NRPN) Controller, this method will return the already merged
+             * value (MSB and LSB value).
+             *
+             * @e WARNING: you have to call @c ResetMidiNrpnController()
+             * after using this value, otherwise all subsequent MIDI CC #6
+             * (Data) messages are interpreted as NRPN controller value
+             * messages.
+             *
+             * @returns currently selected NRPN controller number, a negative
+             *          value if no NRPN controller currently selected
+             */
+            int GetMidiNrpnController();
 
             /**
              * Gets the current number of active voices.
