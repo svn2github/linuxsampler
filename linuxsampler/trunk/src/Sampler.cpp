@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 - 2009 Christian Schoenebeck                       *
+ *   Copyright (C) 2005 - 2010 Christian Schoenebeck                       *
  *                                                                         *
  *   This library is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -88,6 +88,7 @@ namespace LinuxSampler {
 
         // dereference midi input port.
         MidiInputPort* pMidiInputPort = __GetMidiInputDevicePort(GetMidiInputPort());
+        midi_chan_t midiChannel = GetMidiInputChannel();
         // disconnect old engine channel
         if (pEngineChannel) {
             Engine* engine = pEngineChannel->GetEngine();
@@ -107,7 +108,7 @@ namespace LinuxSampler {
             pNewEngineChannel->Connect(pAudioOutputDevice);
             pAudioOutputDevice->Connect(pNewEngineChannel->GetEngine());
         }
-        if (pMidiInputPort) pMidiInputPort->Connect(pNewEngineChannel, GetMidiInputChannel());
+        if (pMidiInputPort) pMidiInputPort->Connect(pNewEngineChannel, midiChannel);
         pEngineChannel = pNewEngineChannel;
 
         // from now on get MIDI device and port from EngineChannel object

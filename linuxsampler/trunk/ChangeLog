@@ -87,6 +87,8 @@ Version CVS HEAD (?)
   * Bug fixes:
     - Fixed crash which may occur when MIDI key + transpose is out of range
     - minor valgrind fixes
+    - fixed crash which occured when changing an already deployed sampler
+      channel to a different engine type
 
 Version 1.0.0 (31 July 2009)
 
