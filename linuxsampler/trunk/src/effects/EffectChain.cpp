@@ -40,7 +40,7 @@ void EffectChain::InsertEffect(Effect* pEffect, int iChainPos) throw (Exception)
             "Cannot insert effect at chain position " +
             ToString(iChainPos) + ", index out of bounds."
         );
-    pEffect->InitEffect(pDevice);
+    pEffect->InitEffect(pDevice); // might throw Exception !
     std::vector<_ChainEntry>::iterator iter = vEntries.begin();
     for (int i = 0; i < iChainPos; ++i) ++iter;
     _ChainEntry entry = { pEffect, true };

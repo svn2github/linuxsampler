@@ -22,6 +22,7 @@ Version CVS HEAD (?)
       note (in this implementation of the sampler its simply hard routed to
       the 2nd effect send of the sampler channel, no matter what the actual
       effect type is)
+    - implemented support for internal LADSPA effects
 
   * Gigasampler format engine:
     - implemented the "round robin keyboard" dimension

@@ -1,6 +1,6 @@
 /***************************************************************************
  *                                                                         *
- *   Copyright (C) 2008 Christian Schoenebeck                              *
+ *   Copyright (C) 2008, 2010 Christian Schoenebeck                        *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -23,6 +23,8 @@
 
 #include <vector>
 #include "../drivers/audio/AudioChannel.h"
+#include "../common/Exception.h"
+#include "EffectControl.h"
 
 namespace LinuxSampler {
 
@@ -42,7 +44,7 @@ public:
      * Use the input audio signal given with @a ppInputChannels, render the
      * effect and mix the result into the effect's output channels.
      *
-     * @param Samples         - amount of sample points to process
+     * @param Samples - amount of sample points to process
      */
     virtual void RenderAudio(uint Samples) = 0;
 
@@ -55,8 +57,9 @@ public:
      * output channels! ;-)
      *
      * @param pDevice - audio output device which is going to play the signal
+     * @throws Exception - if effect could not be initialized successfully
      */
-    virtual void InitEffect(AudioOutputDevice* pDevice);
+    virtual void InitEffect(AudioOutputDevice* pDevice) throw (Exception);
 
     /**
      * Destructor, deletes all audio input and output channels.
@@ -93,9 +96,22 @@ public:
      */
     uint OutputChannelCount() const;
 
+    /**
+     * Returns effect parameter with index \a ControlIndex or NULL if index
+     * out of bounds.
+     */
+    EffectControl* InputControl(uint ControlIndex) const;
+
+    /**
+     * Returns the amount of effect parameters the effect provides.
+     */
+    uint InputControlCount() const;
+
 protected:
     std::vector<AudioChannel*> vInputChannels;
     std::vector<AudioChannel*> vOutputChannels;
+    std::vector<EffectControl*> vInputControls;
+    std::vector<EffectControl*> vOutputControls; ///< yet unused
 };
 
 } // namespace LinuxSampler

@@ -41,6 +41,7 @@
 #include "plugins/InstrumentEditorFactory.h"
 #include "drivers/midi/MidiInputDeviceFactory.h"
 #include "drivers/audio/AudioOutputDeviceFactory.h"
+#include "effects/EffectFactory.h"
 #include "engines/gig/Profiler.h"
 #include "network/lscpserver.h"
 #include "common/stacktrace.h"
@@ -188,6 +189,8 @@ int main(int argc, char **argv) {
     dmsg(1,("Registered MIDI input drivers: %s\n", MidiInputDeviceFactory::AvailableDriversAsString().c_str()));
     dmsg(1,("Registered audio output drivers: %s\n", AudioOutputDeviceFactory::AvailableDriversAsString().c_str()));
     dmsg(1,("Registered instrument editors: %s\n", InstrumentEditorFactory::AvailableEditorsAsString().c_str()));
+    dmsg(1,("Registered internal effect systems: %s\n", EffectFactory::AvailableEffectSystemsAsString().c_str()));
+    dmsg(1,("Registered internal effects: %d\n", EffectFactory::AvailableEffectsCount()));
 
     // start LSCP network server
     struct in_addr addr;

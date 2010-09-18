@@ -5,7 +5,7 @@ AC_INIT(configure.in)
 
 LINUXSAMPLER_RELEASE_MAJOR=1
 LINUXSAMPLER_RELEASE_MINOR=0
-LINUXSAMPLER_RELEASE_BUILD=0.cvs5
+LINUXSAMPLER_RELEASE_BUILD=0.cvs6
 
 #------------------------------------------------------------------------------------
 # The following is the libtool / shared library version. This doesn't have to
@@ -1384,6 +1384,9 @@ echo "# ALSA: ${config_have_alsa}, JACK: ${config_have_jack}, ARTS: ${config_hav
 echo "#-------------------------------------------------------------------"
 echo "# Sampler Engines:"
 echo "# GIG: yes, SF2: ${config_have_sf2}, SFZ: yes"
+echo "#-------------------------------------------------------------------"
+echo "# Effect plugin systems for internal effects:"
+echo "# LADSPA: yes"
 echo "#-------------------------------------------------------------------"
 echo "# Building sampler as plugin for following host standards:"
 echo "# DSSI: ${config_have_dssi}, LV2: ${config_have_lv2}, VST: ${config_have_vst}, AU: ${config_have_au}"

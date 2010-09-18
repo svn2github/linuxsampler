@@ -19,6 +19,7 @@ liblinuxsamplercommon_la_SOURCES = \
 	global_private.cpp global_private.h \
 	atomic.h \
 	ArrayList.h \
+	DynamicLibraries.cpp DynamicLibraries.h \
 	Condition.cpp Condition.h \
 	ConditionServer.cpp ConditionServer.h \
 	Features.cpp Features.h \

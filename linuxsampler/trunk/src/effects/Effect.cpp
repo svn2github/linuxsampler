@@ -1,6 +1,6 @@
 /***************************************************************************
  *                                                                         *
- *   Copyright (C) 2008 Christian Schoenebeck                              *
+ *   Copyright (C) 2008, 2010 Christian Schoenebeck                        *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -27,9 +27,13 @@ Effect::~Effect() {
         delete vInputChannels[i];
     for (int i = 0; i < vOutputChannels.size(); ++i)
         delete vOutputChannels[i];
+    for (int i = 0; i < vInputControls.size(); ++i)
+        delete vInputControls[i];
+    for (int i = 0; i < vOutputControls.size(); ++i)
+        delete vOutputControls[i];
 }
 
-void Effect::InitEffect(AudioOutputDevice* pDevice) {
+void Effect::InitEffect(AudioOutputDevice* pDevice) throw (Exception) {
 }
 
 AudioChannel* Effect::InputChannel(uint ChannelIndex) const {
@@ -48,6 +52,15 @@ AudioChannel* Effect::OutputChannel(uint ChannelIndex) const {
 
 uint Effect::OutputChannelCount() const {
     return vOutputChannels.size();
+}
+
+EffectControl* Effect::InputControl(uint ControlIndex) const {
+    if (ControlIndex >= vInputControls.size()) return NULL;
+    return vInputControls[ControlIndex];
+}
+
+uint Effect::InputControlCount() const {
+    return vInputControls.size();
 }
 
 } // namespace LinuxSampler
