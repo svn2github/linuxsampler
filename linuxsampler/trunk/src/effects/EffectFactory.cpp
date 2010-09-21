@@ -7,11 +7,55 @@
 
 namespace LinuxSampler {
 
-static bool bInitialized = false;
+namespace {
 
-static std::vector<EffectInfo*> vEffectInfos;
+class EffectInfos {
+public:
+    EffectInfos();
+    ~EffectInfos();
+    void Update();
+    uint Count();
+    EffectInfo* GetEffectInfo(uint index);
+private:
+    std::vector<EffectInfo*> infos;
+    bool bInitialized;
+};
 
-static std::vector<Effect*> vEffectInstances;
+EffectInfos::EffectInfos() : bInitialized(false) {
+}
+
+EffectInfos::~EffectInfos() {
+    for (int i = 0; i < infos.size(); i++) delete infos[i];
+}
+
+void EffectInfos::Update() {
+    // clear out all old effect infos
+    for (int i = 0; i < infos.size(); i++) delete infos[i];
+
+    // scan for LADSPA effects
+    infos = LadspaEffect::AvailableEffects();
+}
+
+uint EffectInfos::Count() {
+    if (!bInitialized) {
+        Update();
+        bInitialized = true;
+    }
+    return infos.size();
+}
+
+EffectInfo* EffectInfos::GetEffectInfo(uint index) {
+    if (index >= infos.size()) return NULL;
+    return infos[index];
+}
+
+
+EffectInfos effectInfos;
+
+std::vector<Effect*> vEffectInstances;
+
+}
+
 
 ////////////////////////////////////////////////////////////////////////////
 // class 'EffectFactory'
@@ -21,14 +65,11 @@ String EffectFactory::AvailableEffectSystemsAsString() {
 }
 
 uint EffectFactory::AvailableEffectsCount() {
-    if (!bInitialized) UpdateAvailableEffects();
-    bInitialized = true;
-    return vEffectInfos.size();
+    return effectInfos.Count();
 }
 
 EffectInfo* EffectFactory::GetEffectInfo(uint index) {
-    if (index >= vEffectInfos.size()) return NULL;
-    return vEffectInfos[index];
+    return effectInfos.GetEffectInfo(index);
 }
 
 Effect* EffectFactory::Create(EffectInfo* pEffectInfo) throw (Exception) {
@@ -65,12 +106,7 @@ void EffectFactory::Destroy(Effect* pEffect) {
 }
 
 void EffectFactory::UpdateAvailableEffects() {
-    // clear out all old effect infos
-    for (int i = 0; i < vEffectInfos.size(); i++) delete vEffectInfos[i];
-    vEffectInfos.clear();
-
-    // scan for LADSPA effects
-    vEffectInfos = LadspaEffect::AvailableEffects();
+    effectInfos.Update();
 }
 
 } // namespace LinuxSampler

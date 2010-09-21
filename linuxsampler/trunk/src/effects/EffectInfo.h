@@ -40,6 +40,8 @@ public:
      * unique).
      */
     virtual String Description() = 0;
+
+    virtual ~EffectInfo() { }
 };
 
 } // namespace LinuxSampler
