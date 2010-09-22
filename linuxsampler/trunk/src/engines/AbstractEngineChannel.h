@@ -120,7 +120,23 @@ namespace LinuxSampler {
             SynchronizedConfig< ArrayList<VirtualMidiDevice*> >::Reader virtualMidiDevicesReader_AudioThread;
             SynchronizedConfig< ArrayList<VirtualMidiDevice*> >::Reader virtualMidiDevicesReader_MidiThread;
 
-            std::map<uint,RTList<Event>*> ActiveKeyGroups;      ///< Contains event queues for key groups, ordered by key group ID.
+            // specialization of RTList that doesn't require the pool
+            // to be provided at construction time
+            template<typename T>
+            class LazyList : public RTList<T> {
+            public:
+                using RTList<T>::allocAppend;
+                using RTList<T>::pPool;
+
+                LazyList() : RTList<T>(0) { }
+                typename RTList<T>::Iterator allocAppend(Pool<T>* pool) {
+                    pPool = pool;
+                    return allocAppend();
+                }
+            };
+            
+            typedef std::map<uint, LazyList<Event>*> ActiveKeyGroupMap;
+            ActiveKeyGroupMap ActiveKeyGroups;      ///< Contains event queues for key groups, ordered by key group ID.
 
             virtual void ResetControllers();
             virtual void ResetInternal();

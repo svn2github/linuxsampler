@@ -36,8 +36,7 @@ namespace LinuxSampler { namespace gig {
         // fully loaded, try to give back instrument again (see bug #113)
         InstrumentChangeCmd< ::gig::DimensionRegion, ::gig::Instrument>& cmd = ChangeInstrument(NULL);
         if (cmd.pInstrument) {
-                InstrumentResourceManager* instrs = dynamic_cast<InstrumentResourceManager*>(pEngine->GetInstrumentManager());
-                instrs->HandBack(cmd.pInstrument, this);
+            Engine::instruments.HandBack(cmd.pInstrument, this);
         }
         ///////
     }

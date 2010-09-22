@@ -90,6 +90,8 @@ Version CVS HEAD (?)
     - minor valgrind fixes
     - fixed crash which occured when changing an already deployed sampler
       channel to a different engine type
+    - fixed crash when deleting a sampler channel or changing engine
+      type while an instrument load was in progress
 
 Version 1.0.0 (31 July 2009)
 

@@ -537,6 +537,8 @@ namespace LinuxSampler {
 
             //friend class EngineChannelBase<V, R, I>;
 
+            static IM instruments;
+
         protected:
             class SuspensionVoiceHandler : public MidiKeyboardManager<V>::VoiceHandler {
             public:
@@ -564,8 +566,6 @@ namespace LinuxSampler {
                     //NOTE: maybe we should call FreeVoice() here, shouldn't cause a harm though I think, since the voices should be freed by RenderActiveVoices() in the render loop, they are probably just freed a bit later than they could/should be
                 }
             };
-
-            static IM instruments;
 
             Pool<R*>* pRegionPool[2]; ///< Double buffered pool, used by the engine channels to keep track of regions in use.
             int       MinFadeOutSamples;     ///< The number of samples needed to make an instant fade out (e.g. for voice stealing) without leading to clicks.

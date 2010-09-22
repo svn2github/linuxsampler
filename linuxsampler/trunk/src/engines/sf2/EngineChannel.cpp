@@ -37,8 +37,7 @@ namespace LinuxSampler { namespace sf2 {
         // fully loaded, try to give back instrument again (see bug #113)
         InstrumentChangeCmd< ::sf2::Region, ::sf2::Preset>& cmd = ChangeInstrument(NULL);
         if (cmd.pInstrument) {
-                InstrumentResourceManager* instrs = dynamic_cast<InstrumentResourceManager*>(pEngine->GetInstrumentManager());
-                instrs->HandBack(cmd.pInstrument, this);
+            Engine::instruments.HandBack(cmd.pInstrument, this);
         }
         ///////
     }

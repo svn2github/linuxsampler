@@ -668,12 +668,15 @@ namespace LinuxSampler {
      */ 
     void AbstractEngineChannel::AddGroup(uint group) {
         if (group) {
-            typedef std::map<uint, RTList<Event>*> map_t;
-
-            std::pair<map_t::iterator, bool> p =
-                ActiveKeyGroups.insert(map_t::value_type(group, 0));
+            std::pair<ActiveKeyGroupMap::iterator, bool> p =
+                ActiveKeyGroups.insert(ActiveKeyGroupMap::value_type(group, 0));
             if (p.second) {
-                (*p.first).second = new RTList<Event>(pEngine->pEventPool);
+                // If the engine channel is pending deletion (see bug
+                // #113), pEngine will be null, so we can't use
+                // pEngine->pEventPool here. Instead we're using a
+                // specialized RTList that allows specifying the pool
+                // later.
+                (*p.first).second = new LazyList<Event>;
             }
         }
     }
@@ -685,7 +688,7 @@ namespace LinuxSampler {
         dmsg(4,("HandelKeyGroupConflicts KeyGroup=%d\n", KeyGroup));
         if (KeyGroup) {
             // send a release event to all active voices in the group
-            RTList<Event>::Iterator itEvent = ActiveKeyGroups[KeyGroup]->allocAppend();
+            RTList<Event>::Iterator itEvent = ActiveKeyGroups[KeyGroup]->allocAppend(pEngine->pEventPool);
             *itEvent = *itNoteOnEvent;
         }
     }
@@ -695,7 +698,7 @@ namespace LinuxSampler {
      * audio thread, after all voices have been rendered.
      */
     void AbstractEngineChannel::ClearGroupEventLists() {
-        for (std::map<uint,RTList<Event>*>::iterator iter = ActiveKeyGroups.begin();
+        for (ActiveKeyGroupMap::iterator iter = ActiveKeyGroups.begin();
              iter != ActiveKeyGroups.end(); iter++) {
             if (iter->second) {
                 iter->second->clear();
@@ -709,7 +712,7 @@ namespace LinuxSampler {
      * Remove all lists with group events.
      */
     void AbstractEngineChannel::DeleteGroupEventLists() {
-        for (std::map<uint,RTList<Event>*>::iterator iter = ActiveKeyGroups.begin();
+        for (ActiveKeyGroupMap::iterator iter = ActiveKeyGroups.begin();
              iter != ActiveKeyGroups.end(); iter++) {
             delete iter->second;
         }

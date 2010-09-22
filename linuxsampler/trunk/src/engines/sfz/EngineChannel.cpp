@@ -39,8 +39,7 @@ namespace LinuxSampler { namespace sfz {
         // fully loaded, try to give back instrument again (see bug #113)
         InstrumentChangeCmd< ::sfz::Region, ::sfz::Instrument>& cmd = ChangeInstrument(NULL);
         if (cmd.pInstrument) {
-                InstrumentResourceManager* instrs = dynamic_cast<InstrumentResourceManager*>(pEngine->GetInstrumentManager());
-                instrs->HandBack(cmd.pInstrument, this);
+            Engine::instruments.HandBack(cmd.pInstrument, this);
         }
         ///////
     }
