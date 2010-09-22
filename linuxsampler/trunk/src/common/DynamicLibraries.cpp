@@ -56,7 +56,7 @@ int DynamicLibrariesSearch(String dir, String funct, DynamicLibrariesSearchCallb
             continue;
         }
 
-        void* pFunct = GetProcAddress(hinstLib, funct.c_str());
+        void* pFunct = (void*)GetProcAddress(hinstLib, funct.c_str());
         if (pFunct == NULL) {
             std::cerr << "ERROR: unable to find " << funct << "() in " << sPath
                       << std::endl << std::flush;
@@ -135,7 +135,7 @@ void* DynamicLibraryOpen(String filename) {
 
 void* DynamicLibraryGetSymbol(void* hDLL, String symbol) {
     #if defined(WIN32)
-    return GetProcAddress(hDLL, symbol.c_str());
+    return (void*)GetProcAddress((HMODULE)hDLL, symbol.c_str());
     #else
     return dlsym(hDLL, symbol.c_str());
     #endif
@@ -143,7 +143,7 @@ void* DynamicLibraryGetSymbol(void* hDLL, String symbol) {
 
 void DynamicLibraryClose(void* hDLL) {
     #if defined(WIN32)
-    FreeLibrary(hDLL);
+    FreeLibrary((HMODULE)hDLL);
     #else
     dlclose(hDLL);
     #endif
