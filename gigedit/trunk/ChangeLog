@@ -1,3 +1,6 @@
+Version CVS HEAD (?)
+  * minor fix in configure for cross-compiling
+
 Version 0.2.0 (2009-07-31)
 
   * fixed file properties dialog - properties now can be edited

@@ -98,7 +98,7 @@ if test "$have_linuxsampler" = "0"; then
 else
     echo "Found linuxsampler $liblinuxsampler_version"
     echo -n "Retrieving LinuxSampler's plugin dir... "
-    LINUXSAMPLER_PLUGIN_DIR=`pkg-config --variable plugindir linuxsampler`
+    LINUXSAMPLER_PLUGIN_DIR=`$PKG_CONFIG --variable plugindir linuxsampler`
     if test "$LINUXSAMPLER_PLUGIN_DIR" = ""; then
         have_linuxsampler=0
         echo "Error"
