@@ -25,16 +25,16 @@ endif
 
 bin_PROGRAMS = rifftree dlsdump gigdump gigextract sf2dump
 rifftree_SOURCES = rifftree.cpp
-rifftree_LDADD = $(top_builddir)/src/libgig.la
+rifftree_LDADD = libgig.la
 dlsdump_SOURCES = dlsdump.cpp
-dlsdump_LDADD = $(top_builddir)/src/libgig.la
+dlsdump_LDADD = libgig.la
 gigdump_SOURCES = gigdump.cpp
-gigdump_LDADD = $(top_builddir)/src/libgig.la
+gigdump_LDADD = libgig.la
 gigextract_SOURCES = gigextract.cpp
-gigextract_LDADD = $(top_builddir)/src/libgig.la $(gigextract_libs)
+gigextract_LDADD = libgig.la $(gigextract_libs)
 gigextract_CFLAGS = $(gigextract_flags)
 gigextract_CXXFLAGS = $(gigextract_flags)
 sf2dump_SOURCES = sf2dump.cpp
-sf2dump_LDADD = $(top_builddir)/src/libgig.la
+sf2dump_LDADD = libgig.la
 
 EXTRA_DIST = helper.h

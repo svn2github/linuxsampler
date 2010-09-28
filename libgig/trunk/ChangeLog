@@ -1,4 +1,7 @@
 Version CVS HEAD (?)
+  * general changes:
+    - minor Makefile fix for parallel make
+
   * SoundFont file format
     - initial implementation
     - changed region lookup API to avoid malloc in RT threads
