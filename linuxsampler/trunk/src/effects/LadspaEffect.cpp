@@ -67,12 +67,13 @@ public:
     EffectControl::SetMaxValue;
     EffectControl::SetType;
     EffectControl::SetDescription;
+    EffectControl::SetPossibilities;
 };
 
 ////////////////////////////////////////////////////////////////////////////
 // class 'LadspaEffect'
 
-LadspaEffect::LadspaEffect(EffectInfo* pInfo) throw (Exception) {
+LadspaEffect::LadspaEffect(EffectInfo* pInfo) throw (Exception) : Effect() {
     this->pInfo = dynamic_cast<LadspaEffectInfo*>(pInfo);
     if (!this->pInfo)
         throw Exception("Effect key does not represent a LADSPA effect");
@@ -106,46 +107,10 @@ LadspaEffect::LadspaEffect(EffectInfo* pInfo) throw (Exception) {
     // those will be set later in InitEffect()
     hEffect = NULL;
     pDevice = NULL;
-}
 
-LadspaEffect::~LadspaEffect() {
-    if (!hEffect) return;
-    if (pDescriptor->deactivate)
-        pDescriptor->deactivate(hEffect);
-    pDescriptor->cleanup(hEffect);
-    DynamicLibraryClose(hDLL);
-}
-
-void LadspaEffect::RenderAudio(uint Samples) {
-    // (re)assign audio input and audio output buffers
-    int iInputPort = 0;
-    int iOutputPort = 0;
-    for (int iPort = 0; iPort < pDescriptor->PortCount; iPort++) {
-        LADSPA_PortDescriptor pPortDescriptor = pDescriptor->PortDescriptors[iPort];
-        if (LADSPA_IS_PORT_AUDIO(pPortDescriptor)) {
-            if (LADSPA_IS_PORT_INPUT(pPortDescriptor)) {
-                pDescriptor->connect_port(hEffect, iPort, vInputChannels[iInputPort++]->Buffer());
-            } else if (LADSPA_IS_PORT_OUTPUT(pPortDescriptor)) {
-                pDescriptor->connect_port(hEffect, iPort, vOutputChannels[iOutputPort++]->Buffer());
-            }
-        }
-    }
-
-    // let the effect do its job
-    pDescriptor->run(hEffect, Samples);
-}
-
-void LadspaEffect::InitEffect(AudioOutputDevice* pDevice) throw (Exception) {
-    this->pDevice = pDevice;
-
-    const int iInChannels = _getPortCountByType(
-        pDescriptor,
-        LADSPA_PORT_AUDIO | LADSPA_PORT_INPUT
-    );
-    const int iOutChannels = _getPortCountByType(
-        pDescriptor,
-        LADSPA_PORT_AUDIO | LADSPA_PORT_OUTPUT
-    );
+    // create control input and control output variables (effect parameters)
+    // (they are going to be assigned to the actual LADSPA effect instance
+    // later in InitEffect() )
     const int iInControls = _getPortCountByType(
         pDescriptor,
         LADSPA_PORT_CONTROL | LADSPA_PORT_INPUT
@@ -154,28 +119,10 @@ void LadspaEffect::InitEffect(AudioOutputDevice* pDevice) throw (Exception) {
         pDescriptor,
         LADSPA_PORT_CONTROL | LADSPA_PORT_OUTPUT
     );
-
-    // now create the actual LADSPA effect instance ...
-    dmsg(1, ("Instantiating LADSPA effect '%s'.\n", pInfo->label.c_str()));
-    hEffect = pDescriptor->instantiate(pDescriptor, pDevice->SampleRate());
-    if (!hEffect)
-        throw Exception("Could not instantiate LADSPA effect '" + pInfo->label + "'");
-
-    // create audio input channels
-    vInputChannels.resize(iInChannels);
-    for (int i = 0; i < iInChannels; i++) {
-        vInputChannels[i] = new AudioChannel(i, pDevice->MaxSamplesPerCycle());
-    }
-
-    // create audio output channels
-    vOutputChannels.resize(iOutChannels);
-    for (int i = 0; i < iOutChannels; i++) {
-        vOutputChannels[i] = new AudioChannel(i, pDevice->MaxSamplesPerCycle());
-    }
-
-    // create and assign control input and control output variables (effect parameters)
     vInputControls.resize(iInControls);
     vOutputControls.resize(iOutControls);
+    // create LadspaEffectControl instances and determine its informations
+    // (value range, description, default value)
     int iInControl = 0;
     int iOutControl = 0;
     for (int iPort = 0; iPort < pDescriptor->PortCount; iPort++) {
@@ -184,7 +131,7 @@ void LadspaEffect::InitEffect(AudioOutputDevice* pDevice) throw (Exception) {
             if (LADSPA_IS_PORT_INPUT(pPortDescriptor)) {
                 LadspaEffectControl* pEffectControl = new LadspaEffectControl();
                 vInputControls[iInControl++] = pEffectControl;
-                pDescriptor->connect_port(hEffect, iPort, &pEffectControl->Value());
+
                 const float lower = getLowerB(iPort);
                 const float upper = getUpperB(iPort);
 
@@ -248,12 +195,104 @@ void LadspaEffect::InitEffect(AudioOutputDevice* pDevice) throw (Exception) {
                     pEffectControl->SetMaxValue(upper);
                 }
 
+                // boolean type?
+                if (LADSPA_IS_HINT_TOGGLED(pPortDescriptor)) {
+                    std::vector<float> vPossibilities;
+                    vPossibilities.push_back(0.0f);
+                    vPossibilities.push_back(1.0f);
+                    pEffectControl->SetPossibilities(vPossibilities);
+                }
+
                 // retrieve human readable description about port
                 pEffectControl->SetDescription(pDescriptor->PortNames[iPort]);
 
             } else if (LADSPA_IS_PORT_OUTPUT(pPortDescriptor)) {
                 LadspaEffectControl* pEffectControl = new LadspaEffectControl();
                 vOutputControls[iOutControl++] = pEffectControl;
+
+                //TODO: init output controls like input controls above
+            }
+        }
+    }
+}
+
+LadspaEffect::~LadspaEffect() {
+    if (!hEffect) return;
+    if (pDescriptor->deactivate)
+        pDescriptor->deactivate(hEffect);
+    pDescriptor->cleanup(hEffect);
+    DynamicLibraryClose(hDLL);
+}
+
+EffectInfo* LadspaEffect::GetEffectInfo() {
+    return pInfo;
+}
+
+void LadspaEffect::RenderAudio(uint Samples) {
+    // (re)assign audio input and audio output buffers
+    int iInputPort = 0;
+    int iOutputPort = 0;
+    for (int iPort = 0; iPort < pDescriptor->PortCount; iPort++) {
+        LADSPA_PortDescriptor pPortDescriptor = pDescriptor->PortDescriptors[iPort];
+        if (LADSPA_IS_PORT_AUDIO(pPortDescriptor)) {
+            if (LADSPA_IS_PORT_INPUT(pPortDescriptor)) {
+                pDescriptor->connect_port(hEffect, iPort, vInputChannels[iInputPort++]->Buffer());
+            } else if (LADSPA_IS_PORT_OUTPUT(pPortDescriptor)) {
+                pDescriptor->connect_port(hEffect, iPort, vOutputChannels[iOutputPort++]->Buffer());
+            }
+        }
+    }
+
+    // let the effect do its job
+    pDescriptor->run(hEffect, Samples);
+}
+
+void LadspaEffect::InitEffect(AudioOutputDevice* pDevice) throw (Exception) {
+    this->pDevice = pDevice;
+
+    const int iInChannels = _getPortCountByType(
+        pDescriptor,
+        LADSPA_PORT_AUDIO | LADSPA_PORT_INPUT
+    );
+    const int iOutChannels = _getPortCountByType(
+        pDescriptor,
+        LADSPA_PORT_AUDIO | LADSPA_PORT_OUTPUT
+    );
+    const int iInControls  = vInputControls.size();
+    const int iOutControls = vOutputControls.size();
+
+    // now create the actual LADSPA effect instance ...
+    dmsg(1, ("Instantiating LADSPA effect '%s'.\n", pInfo->label.c_str()));
+    hEffect = pDescriptor->instantiate(pDescriptor, pDevice->SampleRate());
+    if (!hEffect)
+        throw Exception("Could not instantiate LADSPA effect '" + pInfo->label + "'");
+
+    // create audio input channels
+    vInputChannels.resize(iInChannels);
+    for (int i = 0; i < iInChannels; i++) {
+        vInputChannels[i] = new AudioChannel(i, pDevice->MaxSamplesPerCycle());
+    }
+
+    // create audio output channels
+    vOutputChannels.resize(iOutChannels);
+    for (int i = 0; i < iOutChannels; i++) {
+        vOutputChannels[i] = new AudioChannel(i, pDevice->MaxSamplesPerCycle());
+    }
+    
+    // assign (already created and initialized) control input and control
+    // output variables (effect parameters)
+    int iInControl = 0;
+    int iOutControl = 0;
+    for (int iPort = 0; iPort < pDescriptor->PortCount; iPort++) {
+        LADSPA_PortDescriptor pPortDescriptor = pDescriptor->PortDescriptors[iPort];
+        if (LADSPA_IS_PORT_CONTROL(pPortDescriptor)) {
+            if (LADSPA_IS_PORT_INPUT(pPortDescriptor)) {
+                LadspaEffectControl* pEffectControl =
+                    (LadspaEffectControl*) vInputControls[iInControl++];
+                pDescriptor->connect_port(hEffect, iPort, &pEffectControl->Value());
+            } else if (LADSPA_IS_PORT_OUTPUT(pPortDescriptor)) {
+                LadspaEffectControl* pEffectControl =
+                    (LadspaEffectControl*) vOutputControls[iOutControl++];
                 pDescriptor->connect_port(hEffect, iPort, &pEffectControl->Value());
             }
         }

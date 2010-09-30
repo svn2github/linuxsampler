@@ -11,6 +11,9 @@ EffectControl::EffectControl() {
     type = TYPE_BOOL;
 }
 
+EffectControl::~EffectControl() {
+}
+
 void EffectControl::SetValue(float val) throw (Exception) {
     if (minValue && val < *minValue)
         throw Exception("Effect control value smaller than minimum allowed value");
@@ -56,6 +59,10 @@ optional<float> EffectControl::MaxValue() const {
     return maxValue;
 }
 
+std::vector<float> EffectControl::Possibilities() const {
+    return possibilities;
+}
+
 void EffectControl::SetDefaultValue(float val) {
     defaultValue = val;
 }
@@ -66,6 +73,10 @@ void EffectControl::SetMinValue(float val) {
 
 void EffectControl::SetMaxValue(float val) {
     maxValue = val;
+}
+
+void EffectControl::SetPossibilities(const std::vector<float>& v) {
+    possibilities = v;
 }
 
 void EffectControl::SetType(Type_t t) {

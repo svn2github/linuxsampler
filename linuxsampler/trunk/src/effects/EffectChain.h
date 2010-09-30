@@ -1,6 +1,6 @@
 /***************************************************************************
  *                                                                         *
- *   Copyright (C) 2008 Christian Schoenebeck                              *
+ *   Copyright (C) 2008 - 2010 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -40,8 +40,12 @@ public:
      *
      * @param pDevice - audio output context for the effects, providing
      *                  informations like samplerate
+     * @param iEffectChainId - (optional) numerical ID of the effect chain,
+     *                         intended for master effect chains, unique among
+     *                         all master effect chains which share the same
+     *                         audio output device
      */
-    EffectChain(AudioOutputDevice* pDevice);
+    EffectChain(AudioOutputDevice* pDevice, int iEffectChainId = -1);
 
     /**
      * Add the given effect to the end of the effect chain.
@@ -99,6 +103,19 @@ public:
      */
     void ClearAllChannels();
 
+    /**
+     * Returns numerical ID of this effect chain, intended for master effect
+     * chains. The ID is unique among all master effect chains which share the
+     * same audio output device.
+     *
+     * There is no ID for insert effect chains, since a sampler channel
+     * always provides exactly one insert effect chain.
+     *
+     * @returns id equal or larger than zero if master effect chain, negative
+     *          number if this is an insert effect chain
+     */
+    int ID() const;
+
 private:
     struct _ChainEntry {
         Effect* pEffect;
@@ -107,6 +124,7 @@ private:
 
     std::vector<_ChainEntry> vEntries;
     AudioOutputDevice*       pDevice;
+    int                      iID;
 };
 
 } // namespace LinuxSampler

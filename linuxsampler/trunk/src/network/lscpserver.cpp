@@ -43,6 +43,7 @@
 #include "../engines/EngineChannelFactory.h"
 #include "../drivers/audio/AudioOutputDeviceFactory.h"
 #include "../drivers/midi/MidiInputDeviceFactory.h"
+#include "../effects/EffectFactory.h"
 
 namespace LinuxSampler {
 
@@ -2443,6 +2444,432 @@ String LSCPServer::SetFxSendLevel(uint uiSamplerChannel, uint FxSendID, double d
 
         pFxSend->SetLevel((float)dLevel);
         LSCPServer::SendLSCPNotify(LSCPEvent(LSCPEvent::event_fx_send_info, uiSamplerChannel, FxSendID));
+    } catch (Exception e) {
+        result.Error(e);
+    }
+    return result.Produce();
+}
+
+String LSCPServer::GetAvailableEffects() {
+    dmsg(2,("LSCPServer: GetAvailableEffects()\n"));
+    LSCPResultSet result;
+    try {
+        int n = EffectFactory::AvailableEffectsCount();
+        result.Add(n);
+    }
+    catch (Exception e) {
+        result.Error(e);
+    }
+    return result.Produce();
+}
+
+String LSCPServer::ListAvailableEffects() {
+    dmsg(2,("LSCPServer: ListAvailableEffects()\n"));
+    LSCPResultSet result;
+    String list;
+    try {
+        //FIXME: for now we simply enumerate from 0 .. EffectFactory::AvailableEffectsCount() here, in future we should use unique IDs for effects during the whole sampler session. This issue comes into game when the user forces a reload of available effect plugins
+        int n = EffectFactory::AvailableEffectsCount();
+        for (int i = 0; i < n; i++) {
+            if (i) list += ",";
+            list += ToString(i);
+        }
+    }
+    catch (Exception e) {
+        result.Error(e);
+    }
+    result.Add(list);
+    return result.Produce();
+}
+
+String LSCPServer::GetEffectInfo(int iEffectIndex) {
+    dmsg(2,("LSCPServer: GetEffectInfo(%d)\n", iEffectIndex));
+    LSCPResultSet result;
+    try {
+        EffectInfo* pEffectInfo = EffectFactory::GetEffectInfo(iEffectIndex);
+        if (!pEffectInfo)
+            throw Exception("There is no effect with index " + ToString(iEffectIndex));
+
+        // convert the filename into the correct encoding as defined for LSCP
+        // (especially in terms of special characters -> escape sequences)
+#if WIN32
+        const String dllFileName = Path::fromWindows(pEffectInfo->Module()).toLscp();
+#else
+        // assuming POSIX
+        const String dllFileName = Path::fromPosix(pEffectInfo->Module()).toLscp();
+#endif
+
+        result.Add("SYSTEM", pEffectInfo->EffectSystem());
+        result.Add("MODULE", dllFileName);
+        result.Add("NAME", _escapeLscpResponse(pEffectInfo->Name()));
+        result.Add("DESCRIPTION", _escapeLscpResponse(pEffectInfo->Description()));
+    }
+    catch (Exception e) {
+        result.Error(e);
+    }
+    return result.Produce();    
+}
+
+String LSCPServer::GetEffectInstanceInfo(int iEffectInstanceIndex) {
+    dmsg(2,("LSCPServer: GetEffectInstanceInfo(%d)\n", iEffectInstanceIndex));
+    LSCPResultSet result;
+    try {
+        Effect* pEffect = EffectFactory::GetEffectInstanceByID(iEffectInstanceIndex);
+        if (!pEffect)
+            throw Exception("There is no effect instance with index " + ToString(iEffectInstanceIndex));
+
+        EffectInfo* pEffectInfo = pEffect->GetEffectInfo();
+
+        // convert the filename into the correct encoding as defined for LSCP
+        // (especially in terms of special characters -> escape sequences)
+#if WIN32
+        const String dllFileName = Path::fromWindows(pEffectInfo->Module()).toLscp();
+#else
+        // assuming POSIX
+        const String dllFileName = Path::fromPosix(pEffectInfo->Module()).toLscp();
+#endif
+
+        result.Add("SYSTEM", pEffectInfo->EffectSystem());
+        result.Add("MODULE", dllFileName);
+        result.Add("NAME", _escapeLscpResponse(pEffectInfo->Name()));
+        result.Add("DESCRIPTION", _escapeLscpResponse(pEffectInfo->Description()));
+        result.Add("INPUT_CONTROLS", ToString(pEffect->InputControlCount()));
+    }
+    catch (Exception e) {
+        result.Error(e);
+    }
+    return result.Produce();
+}
+
+String LSCPServer::GetEffectInstanceInputControlInfo(int iEffectInstanceIndex, int iInputControlIndex) {
+    dmsg(2,("LSCPServer: GetEffectInstanceInputControlInfo(%d,%d)\n", iEffectInstanceIndex, iInputControlIndex));
+    LSCPResultSet result;
+    try {
+        Effect* pEffect = EffectFactory::GetEffectInstanceByID(iEffectInstanceIndex);
+        if (!pEffect)
+            throw Exception("There is no effect instance with index " + ToString(iEffectInstanceIndex));
+
+        EffectControl* pEffectControl = pEffect->InputControl(iInputControlIndex);
+        if (!pEffectControl)
+            throw Exception(
+                "Effect instance " + ToString(iEffectInstanceIndex) +
+                " does not have an input control with index " +
+                ToString(iInputControlIndex)
+            );
+
+        result.Add("DESCRIPTION", _escapeLscpResponse(pEffectControl->Description()));
+        result.Add("VALUE", pEffectControl->Value());
+        if (pEffectControl->MinValue())
+             result.Add("RANGE_MIN", *pEffectControl->MinValue());
+        if (pEffectControl->MaxValue())
+             result.Add("RANGE_MAX", *pEffectControl->MaxValue());
+        if (!pEffectControl->Possibilities().empty())
+             result.Add("POSSIBILITIES", pEffectControl->Possibilities());
+        if (pEffectControl->DefaultValue())
+             result.Add("DEFAULT", *pEffectControl->DefaultValue());
+    } catch (Exception e) {
+        result.Error(e);
+    }
+    return result.Produce();
+}
+
+String LSCPServer::SetEffectInstanceInputControl(int iEffectInstanceIndex, int iInputControlIndex, double dValue) {
+    dmsg(2,("LSCPServer: SetEffectInstanceInputControl(%d,%d,%f)\n", iEffectInstanceIndex, iInputControlIndex, dValue));
+    LSCPResultSet result;
+    try {
+        Effect* pEffect = EffectFactory::GetEffectInstanceByID(iEffectInstanceIndex);
+        if (!pEffect)
+            throw Exception("There is no effect instance with index " + ToString(iEffectInstanceIndex));
+
+        EffectControl* pEffectControl = pEffect->InputControl(iInputControlIndex);
+        if (!pEffectControl)
+            throw Exception(
+                "Effect instance " + ToString(iEffectInstanceIndex) +
+                " does not have an input control with index " +
+                ToString(iInputControlIndex)
+            );
+
+        pEffectControl->SetValue(dValue);
+    } catch (Exception e) {
+        result.Error(e);
+    }
+    return result.Produce();
+}
+
+String LSCPServer::CreateEffectInstance(int index) {
+    dmsg(2,("LSCPServer: CreateEffectInstance()\n"));
+    LSCPResultSet result;
+    try {
+        EffectInfo* pEffectInfo = EffectFactory::GetEffectInfo(index);
+        if (!pEffectInfo)
+            throw Exception("There is no effect with index " + ToString(index));
+        Effect* pEffect = EffectFactory::Create(pEffectInfo);
+        result.Add(pEffect->ID());
+    } catch (Exception e) {
+        result.Error(e);
+    }
+    return result.Produce();
+}
+
+String LSCPServer::CreateEffectInstance(String effectSystem, String module, String effectName) {
+    dmsg(2,("LSCPServer: CreateEffectInstance()\n"));
+    LSCPResultSet result;
+    try {
+        // to allow loading the same LSCP session file on different systems
+        // successfully, probably with different effect plugin DLL paths or even
+        // running completely different operating systems, we do the following
+        // for finding the right effect:
+        //
+        // first try to search for an exact match of the effect plugin DLL
+        // (a.k.a 'module'), to avoid picking the wrong DLL with the same
+        // effect name ...
+        EffectInfo* pEffectInfo = EffectFactory::GetEffectInfo(effectSystem, module, effectName, EffectFactory::MODULE_MATCH_EXACTLY);
+        // ... if no effect with exactly matchin DLL filename was found, then
+        // try to lower the restrictions of matching the effect plugin DLL
+        // filename and try again and again ...
+        if (!pEffectInfo) {
+            dmsg(2,("no exact module match, trying MODULE_IGNORE_PATH\n"));
+            pEffectInfo = EffectFactory::GetEffectInfo(effectSystem, module, effectName, EffectFactory::MODULE_IGNORE_PATH);
+        }
+        if (!pEffectInfo) {
+            dmsg(2,("no module match, trying MODULE_IGNORE_PATH | MODULE_IGNORE_CASE\n"));
+            pEffectInfo = EffectFactory::GetEffectInfo(effectSystem, module, effectName, EffectFactory::MODULE_IGNORE_PATH | EffectFactory::MODULE_IGNORE_CASE);
+        }
+        if (!pEffectInfo) {
+            dmsg(2,("no module match, trying MODULE_IGNORE_PATH | MODULE_IGNORE_CASE | MODULE_IGNORE_EXTENSION\n"));
+            pEffectInfo = EffectFactory::GetEffectInfo(effectSystem, module, effectName, EffectFactory::MODULE_IGNORE_PATH | EffectFactory::MODULE_IGNORE_CASE | EffectFactory::MODULE_IGNORE_EXTENSION);
+        }
+        // ... if there was still no effect found, then completely ignore the
+        // DLL plugin filename argument and just search for the matching effect
+        // system type and effect name
+        if (!pEffectInfo) {
+            dmsg(2,("no module match, trying MODULE_IGNORE_ALL\n"));
+            pEffectInfo = EffectFactory::GetEffectInfo(effectSystem, module, effectName, EffectFactory::MODULE_IGNORE_ALL);
+        }
+        if (!pEffectInfo)
+            throw Exception("There is no such effect '" + effectSystem + "' '" + module + "' '" + effectName + "'");
+
+        Effect* pEffect = EffectFactory::Create(pEffectInfo);
+        result = LSCPResultSet(pEffect->ID());
+    } catch (Exception e) {
+        result.Error(e);
+    }
+    return result.Produce();
+}
+
+String LSCPServer::DestroyEffectInstance(int iEffectID) {
+    dmsg(2,("LSCPServer: DestroyEffectInstance(%d)\n", iEffectID));
+    LSCPResultSet result;
+    try {
+        Effect* pEffect = EffectFactory::GetEffectInstanceByID(iEffectID);
+        if (!pEffect)
+            throw Exception("There is no effect instance with ID " + ToString(iEffectID));
+        EffectFactory::Destroy(pEffect);
+    } catch (Exception e) {
+        result.Error(e);
+    }
+    return result.Produce();
+}
+
+String LSCPServer::GetEffectInstances() {
+    dmsg(2,("LSCPServer: GetEffectInstances()\n"));
+    LSCPResultSet result;
+    try {
+        int n = EffectFactory::EffectInstancesCount();
+        result.Add(n);
+    } catch (Exception e) {
+        result.Error(e);
+    }
+    return result.Produce();
+}
+
+String LSCPServer::ListEffectInstances() {
+    dmsg(2,("LSCPServer: ListEffectInstances()\n"));
+    LSCPResultSet result;
+    String list;
+    try {
+        int n = EffectFactory::EffectInstancesCount();
+        for (int i = 0; i < n; i++) {
+            Effect* pEffect = EffectFactory::GetEffectInstance(i);
+            if (i) list += ",";
+            list += ToString(pEffect->ID());
+        }
+    } catch (Exception e) {
+        result.Error(e);
+    }
+    result.Add(list);
+    return result.Produce();
+}
+
+String LSCPServer::GetMasterEffectChains(int iAudioOutputDevice) {
+    dmsg(2,("LSCPServer: GetMasterEffectChains(%d)\n", iAudioOutputDevice));
+    LSCPResultSet result;
+    try {
+        std::map<uint,AudioOutputDevice*> devices = pSampler->GetAudioOutputDevices();
+        if (!devices.count(iAudioOutputDevice))
+            throw Exception("There is no audio output device with index " + ToString(iAudioOutputDevice) + ".");
+        AudioOutputDevice* pDevice = devices[iAudioOutputDevice];
+        int n = pDevice->MasterEffectChainCount();
+        result.Add(n);
+    } catch (Exception e) {
+        result.Error(e);
+    }
+    return result.Produce();
+}
+
+String LSCPServer::ListMasterEffectChains(int iAudioOutputDevice) {
+    dmsg(2,("LSCPServer: ListMasterEffectChains(%d)\n", iAudioOutputDevice));
+    LSCPResultSet result;
+    String list;
+    try {
+        std::map<uint,AudioOutputDevice*> devices = pSampler->GetAudioOutputDevices();
+        if (!devices.count(iAudioOutputDevice))
+            throw Exception("There is no audio output device with index " + ToString(iAudioOutputDevice) + ".");
+        AudioOutputDevice* pDevice = devices[iAudioOutputDevice];
+        int n = pDevice->MasterEffectChainCount();
+        for (int i = 0; i < n; i++) {
+            EffectChain* pEffectChain = pDevice->MasterEffectChain(i);
+            if (i) list += ",";
+            list += ToString(pEffectChain->ID());
+        }
+    } catch (Exception e) {
+        result.Error(e);
+    }
+    result.Add(list);
+    return result.Produce();
+}
+
+String LSCPServer::AddMasterEffectChain(int iAudioOutputDevice) {
+    dmsg(2,("LSCPServer: AddMasterEffectChain(%d)\n", iAudioOutputDevice));
+    LSCPResultSet result;
+    try {
+        std::map<uint,AudioOutputDevice*> devices = pSampler->GetAudioOutputDevices();
+        if (!devices.count(iAudioOutputDevice))
+            throw Exception("There is no audio output device with index " + ToString(iAudioOutputDevice) + ".");
+        AudioOutputDevice* pDevice = devices[iAudioOutputDevice];
+        EffectChain* pEffectChain = pDevice->AddMasterEffectChain();
+        result.Add(pEffectChain->ID());
+    } catch (Exception e) {
+        result.Error(e);
+    }
+    return result.Produce();
+}
+
+String LSCPServer::RemoveMasterEffectChain(int iAudioOutputDevice, int iMasterEffectChain) {
+    dmsg(2,("LSCPServer: RemoveMasterEffectChain(%d,%d)\n", iAudioOutputDevice, iMasterEffectChain));
+    LSCPResultSet result;
+    try {
+        std::map<uint,AudioOutputDevice*> devices = pSampler->GetAudioOutputDevices();
+        if (!devices.count(iAudioOutputDevice))
+            throw Exception("There is no audio output device with index " + ToString(iAudioOutputDevice) + ".");
+        AudioOutputDevice* pDevice = devices[iAudioOutputDevice];
+        for (int i = 0; i < pDevice->MasterEffectChainCount(); i++) {
+            EffectChain* pEffectChain = pDevice->MasterEffectChain(i);
+            if (pEffectChain->ID() == iMasterEffectChain) {
+                pDevice->RemoveMasterEffectChain(i);
+                return result.Produce();
+            }
+        }
+        throw Exception(
+            "There is no master effect chain with ID " +
+            ToString(iMasterEffectChain) + " for audio output device " +
+            ToString(iAudioOutputDevice) + "."
+        );
+    } catch (Exception e) {
+        result.Error(e);
+    }
+    return result.Produce();
+}
+
+static EffectChain* _getMasterEffectChain(Sampler* pSampler, int iAudioOutputDevice, int iMasterEffectChain) throw (Exception) {
+    std::map<uint,AudioOutputDevice*> devices = pSampler->GetAudioOutputDevices();
+    if (!devices.count(iAudioOutputDevice))
+        throw Exception(
+            "There is no audio output device with index " +
+            ToString(iAudioOutputDevice) + "."
+        );
+    AudioOutputDevice* pDevice = devices[iAudioOutputDevice];
+    for (int i = 0; i < pDevice->MasterEffectChainCount(); i++) {
+        EffectChain* pEffectChain = pDevice->MasterEffectChain(i);
+        if (pEffectChain->ID() == iMasterEffectChain) {
+            return pEffectChain;
+        }
+    }
+    throw Exception(
+        "There is no master effect chain with ID " +
+        ToString(iMasterEffectChain) + " for audio output device " +
+        ToString(iAudioOutputDevice) + "."
+    );
+}
+
+String LSCPServer::GetMasterEffectChainInfo(int iAudioOutputDevice, int iMasterEffectChain) {
+    dmsg(2,("LSCPServer: GetMasterEffectChainInfo(%d,%d)\n", iAudioOutputDevice, iMasterEffectChain));
+    LSCPResultSet result;
+    try {
+        EffectChain* pEffectChain =
+            _getMasterEffectChain(pSampler, iAudioOutputDevice, iMasterEffectChain);
+        String sEffectSequence;
+        for (int i = 0; i < pEffectChain->EffectCount(); i++) {
+            if (i) sEffectSequence += ",";
+            sEffectSequence += ToString(pEffectChain->GetEffect(i)->ID());
+        }
+        result.Add("EFFECT_COUNT", pEffectChain->EffectCount());
+        result.Add("EFFECT_SEQUENCE", sEffectSequence);
+    } catch (Exception e) {
+        result.Error(e);
+    }
+    return result.Produce();
+}
+
+String LSCPServer::AppendMasterEffectChainEffect(int iAudioOutputDevice, int iMasterEffectChain, int iEffectInstance) {
+    dmsg(2,("LSCPServer: AppendMasterEffectChainEffect(%d,%d,%d)\n", iAudioOutputDevice, iMasterEffectChain, iEffectInstance));
+    LSCPResultSet result;
+    try {
+        EffectChain* pEffectChain =
+            _getMasterEffectChain(pSampler, iAudioOutputDevice, iMasterEffectChain);
+        Effect* pEffect = EffectFactory::GetEffectInstanceByID(iEffectInstance);
+        if (!pEffect)
+            throw Exception("There is no effect instance with index " + ToString(iEffectInstance));
+        pEffectChain->AppendEffect(pEffect);
+    } catch (Exception e) {
+        result.Error(e);
+    }
+    return result.Produce();
+}
+
+String LSCPServer::InsertMasterEffectChainEffect(int iAudioOutputDevice, int iMasterEffectChain, int iEffectInstance, int iEffectChainPosition) {
+    dmsg(2,("LSCPServer: InsertMasterEffectChainEffect(%d,%d,%d,%d)\n", iAudioOutputDevice, iMasterEffectChain, iEffectInstance, iEffectChainPosition));
+    LSCPResultSet result;
+    try {
+        EffectChain* pEffectChain =
+            _getMasterEffectChain(pSampler, iAudioOutputDevice, iMasterEffectChain);
+        Effect* pEffect = EffectFactory::GetEffectInstanceByID(iEffectInstance);
+        if (!pEffect)
+            throw Exception("There is no effect instance with index " + ToString(iEffectInstance));
+        pEffectChain->InsertEffect(pEffect, iEffectChainPosition);
+    } catch (Exception e) {
+        result.Error(e);
+    }
+    return result.Produce();
+}
+
+String LSCPServer::RemoveMasterEffectChainEffect(int iAudioOutputDevice, int iMasterEffectChain, int iEffectInstance) {
+    dmsg(2,("LSCPServer: RemoveMasterEffectChainEffect(%d,%d,%d)\n", iAudioOutputDevice, iMasterEffectChain, iEffectInstance));
+    LSCPResultSet result;
+    try {
+        EffectChain* pEffectChain =
+            _getMasterEffectChain(pSampler, iAudioOutputDevice, iMasterEffectChain);
+        for (int i = 0; i < pEffectChain->EffectCount(); i++) {
+            Effect* pEffect = pEffectChain->GetEffect(i);
+            if (pEffect->ID() == iEffectInstance) {
+                pEffectChain->RemoveEffect(i);
+                return result.Produce();
+            }
+        }
+        throw Exception(
+            "There is no effect instance with index " +
+            ToString(iEffectInstance)
+        );
     } catch (Exception e) {
         result.Error(e);
     }

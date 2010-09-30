@@ -26,6 +26,7 @@
 #include <iostream>
 #include <sstream>
 #include <string>
+#include <vector>
 #include "../Sampler.h"
 #include "../common/global.h"
 #include "../common/Exception.h"
@@ -47,6 +48,7 @@ class LSCPResultSet {
 	void Add(String, int);
         void Add(String, bool);
 	void Add(int);
+    void Add(String Label, const std::vector<float>& v);
 	void Error(String message = "Undefined Error", int code = 0);
 	void Error(Exception e);
 	void Warning(String message = "Undefined Warning", int code = 0);

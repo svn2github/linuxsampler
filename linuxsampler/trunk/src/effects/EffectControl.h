@@ -7,6 +7,7 @@
 
 #include "../common/Exception.h"
 #include "../common/optional.h"
+#include <vector>
 
 namespace LinuxSampler {
 
@@ -27,6 +28,7 @@ public:
     };
 
     EffectControl();
+    virtual ~EffectControl();
     virtual void SetValue(float val) throw (Exception);
     virtual float& Value();
     Type_t Type() const;
@@ -35,6 +37,7 @@ public:
     optional<float> DefaultValue() const;
     optional<float> MinValue() const;
     optional<float> MaxValue() const;
+    std::vector<float> Possibilities() const;
 
 protected:
     void SetDefaultValue(float val);
@@ -42,6 +45,7 @@ protected:
     void SetMaxValue(float val);
     void SetType(Type_t t);
     void SetDescription(String s);
+    void SetPossibilities(const std::vector<float>& v);
 
     friend class Effect;
 
@@ -52,6 +56,7 @@ private:
     optional<float> defaultValue;
     optional<float> minValue;
     optional<float> maxValue;
+    std::vector<float> possibilities;
 };
 
 } // namespace LinuxSampler

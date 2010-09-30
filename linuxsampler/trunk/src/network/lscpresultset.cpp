@@ -120,6 +120,16 @@ void LSCPResultSet::Add(String Value) {
         count = 1;
 }
 
+void LSCPResultSet::Add(String Label, const std::vector<float>& v) {
+    std::stringstream ss;
+    ss.imbue(std::locale::classic());
+    for (int i = 0; i < v.size(); i++) {
+        if (!ss.str().empty()) ss << ",";
+        ss << std::fixed << std::setprecision(3) << v[i];
+    }
+    Add(Label, ss.str());    
+}
+
 //Generate an error result set from an exception.
 //Per LSCP spec, error result is a sinle line in the following format:
 //ERR:<CODE>:Message text\r\n

@@ -30,6 +30,7 @@ namespace LinuxSampler {
 
 // just symbol prototyping
 class AudioOutputDevice;
+class EffectInfo;
 
 /**
  * Abstract base class for sampler internal effects.
@@ -39,6 +40,14 @@ public:
     /////////////////////////////////////////////////////////////////
     // abstract methods
     //     (these have to be implemented by the descendant)
+
+    /**
+     * General information about this effect type, that is independent of this
+     * instance of this effect type.
+     *
+     * @returns general effect information
+     */
+    virtual EffectInfo* GetEffectInfo() = 0;
 
     /**
      * Use the input audio signal given with @a ppInputChannels, render the
@@ -60,6 +69,11 @@ public:
      * @throws Exception - if effect could not be initialized successfully
      */
     virtual void InitEffect(AudioOutputDevice* pDevice) throw (Exception);
+
+    /**
+     * Constructor, initializes variables.
+     */
+    Effect();
 
     /**
      * Destructor, deletes all audio input and output channels.
@@ -107,11 +121,36 @@ public:
      */
     uint InputControlCount() const;
 
+    /**
+     * Shall be called to set the object that uses this effect, e.g. to
+     * determine whether an effect is currently in use.
+     */
+    void SetParent(void* pParent);
+
+    /**
+     * Returns object which currently uses this effect.
+     */
+    void* Parent() const;
+
+    /**
+     * Sets the unique numerical ID of this effect within the sampler instance.
+     * This method is usually only called by the EffectFactory class.
+     */
+    void SetId(int id);
+
+    /**
+     * Returns unique numerical ID of this effect within the sampler instance,
+     * as previously set by SetId() .
+     */
+    int ID() const;
+
 protected:
     std::vector<AudioChannel*> vInputChannels;
     std::vector<AudioChannel*> vOutputChannels;
     std::vector<EffectControl*> vInputControls;
     std::vector<EffectControl*> vOutputControls; ///< yet unused
+    void* pParent;
+    int iID;
 };
 
 } // namespace LinuxSampler

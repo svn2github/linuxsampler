@@ -27,6 +27,7 @@ class LadspaEffect : public Effect {
 public:
     LadspaEffect(EffectInfo* pInfo) throw (Exception);
    ~LadspaEffect();
+    EffectInfo* GetEffectInfo();
     void RenderAudio(uint Samples);
     void InitEffect(AudioOutputDevice* pDevice) throw (Exception);
     static std::vector<EffectInfo*> AvailableEffects();

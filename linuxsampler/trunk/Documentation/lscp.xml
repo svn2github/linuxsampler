@@ -6644,6 +6644,10 @@ Schoenebeck'>
 		</t>
 		<t>/ SEND SP send_instruction
 		</t>
+		<t>/ APPEND SP append_instruction
+		</t>
+		<t>/ INSERT SP insert_instruction
+		</t>
 		<t>/ RESET
 		</t>
 		<t>/ QUIT
@@ -6675,6 +6679,8 @@ Schoenebeck'>
 		<t>/ MIDI_INSTRUMENT_MAP
 		</t>
 		<t>/ MIDI_INSTRUMENT_MAP SP map_name
+		</t>
+		<t>/ MASTER_EFFECT_CHAIN SP number
 		</t>
 	</list>
 </t>
@@ -6816,6 +6822,10 @@ Schoenebeck'>
 		</t>
 		<t>/ MIDI_INSTRUMENT_MAP SP ALL
 		</t>
+		<t>/ MASTER_EFFECT_CHAIN SP number SP number
+		</t>
+		<t>/ MASTER_EFFECT_CHAIN SP EFFECT SP number SP number SP number
+		</t>
 		<t>/ DB_INSTRUMENT_DIRECTORY SP FORCE SP db_path
 		</t>
 		<t>/ DB_INSTRUMENT_DIRECTORY SP db_path
@@ -6827,6 +6837,20 @@ Schoenebeck'>
 <t>get_instruction =
 	<list>
 		<t>AVAILABLE_ENGINES
+		</t>
+		<t>/ AVAILABLE_EFFECTS
+		</t>
+		<t>/ EFFECT_INSTANCES
+		</t>
+		<t>/ EFFECT SP INFO SP number
+		</t>
+		<t>/ EFFECT_INSTANCE SP INFO SP number
+		</t>
+		<t>/ EFFECT_INSTANCE_INPUT_CONTROL SP INFO SP number SP number
+		</t>
+		<t>/ MASTER_EFFECT_CHAINS SP number
+		</t>
+		<t>/ MASTER_EFFECT_CHAIN SP INFO SP number SP number
 		</t>
 		<t>/ AVAILABLE_MIDI_INPUT_DRIVERS
 		</t>
@@ -6932,6 +6956,8 @@ Schoenebeck'>
 		</t>
 		<t>/ MIDI_INPUT_PORT_PARAMETER SP number SP number SP string '=' param_val_list
 		</t>
+		<t>/ EFFECT_INSTANCE_INPUT_CONTROL SP number SP number SP effect_control_value
+		</t>
 		<t>/ CHANNEL SP set_chan_instruction
 		</t>
 		<t>/ MIDI_INSTRUMENT_MAP SP NAME SP midi_map SP map_name
@@ -6977,6 +7003,10 @@ Schoenebeck'>
 		<t>/ FX_SEND SP sampler_channel SP midi_ctrl
 		</t>
 		<t>/ FX_SEND SP sampler_channel SP midi_ctrl SP fx_send_name
+		</t>
+		<t>/ EFFECT_INSTANCE SP number
+		</t>
+		<t>/ EFFECT_INSTANCE SP string SP filename SP effect_name
 		</t>
 	</list>
 </t>
@@ -7032,6 +7062,8 @@ Schoenebeck'>
 		</t>
 		<t>/ FX_SEND SP sampler_channel SP fx_send_id
 		</t>
+		<t>/ EFFECT_INSTANCE SP number
+		</t>
 	</list>
 </t>
 <t>load_instruction =
@@ -7039,6 +7071,18 @@ Schoenebeck'>
 		<t>INSTRUMENT SP load_instr_args
 		</t>
 		<t>/ ENGINE SP load_engine_args
+		</t>
+	</list>
+</t>
+<t>append_instruction =
+	<list>
+		<t>MASTER_EFFECT_CHAIN SP EFFECT SP number SP number SP number
+		</t>
+	</list>
+</t>
+<t>insert_instruction =
+	<list>
+		<t>MASTER_EFFECT_CHAIN SP EFFECT SP number SP number SP number SP number
 		</t>
 	</list>
 </t>
@@ -7119,6 +7163,12 @@ Schoenebeck'>
 		<t>/ CHANNELS
 		</t>
 		<t>/ AVAILABLE_ENGINES
+		</t>
+		<t>/ AVAILABLE_EFFECTS
+		</t>
+		<t>/ EFFECT_INSTANCES
+		</t>
+		<t>/ MASTER_EFFECT_CHAINS SP number
 		</t>
 		<t>/ AVAILABLE_MIDI_INPUT_DRIVERS
 		</t>
@@ -7244,6 +7294,12 @@ Schoenebeck'>
 		</t>
 	</list>
 </t>
+<t>effect_control_value =
+	<list>
+		<t>real
+		</t>
+	</list>
+</t>
 <t>sampler_channel =
 	<list>
 		<t>number
@@ -7293,6 +7349,12 @@ Schoenebeck'>
 	</list>
 </t>
 <t>fx_send_name =
+	<list>
+		<t>stringval_escaped
+		</t>
+	</list>
+</t>
+<t>effect_name =
 	<list>
 		<t>stringval_escaped
 		</t>

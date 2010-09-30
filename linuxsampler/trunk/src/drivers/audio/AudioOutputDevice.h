@@ -43,6 +43,7 @@ namespace LinuxSampler {
     // just symbol prototyping
     class Engine;
     class AudioOutputDeviceFactory;
+    class IDGenerator;
 
     /** Abstract base class for audio output drivers in LinuxSampler
      *
@@ -274,6 +275,7 @@ namespace LinuxSampler {
             std::vector<AudioChannel*>                Channels;    ///< All audio channels of the audio output device. This is just a container; the descendant has to create channels by himself.
             std::map<String,DeviceCreationParameter*> Parameters;  ///< All device parameters.
             std::vector<EffectChain*>                 vEffectChains;
+            IDGenerator*                              EffectChainIDs;
 
             AudioOutputDevice(std::map<String,DeviceCreationParameter*> DriverParameters);
 

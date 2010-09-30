@@ -22,6 +22,11 @@
 
 namespace LinuxSampler {
 
+Effect::Effect() {
+    pParent = NULL;
+    iID = -1;
+}
+
 Effect::~Effect() {
     for (int i = 0; i < vInputChannels.size(); ++i)
         delete vInputChannels[i];
@@ -61,6 +66,22 @@ EffectControl* Effect::InputControl(uint ControlIndex) const {
 
 uint Effect::InputControlCount() const {
     return vInputControls.size();
+}
+
+void Effect::SetParent(void* pParent) {
+    this->pParent = pParent;
+}
+
+void* Effect::Parent() const {
+    return pParent;
+}
+
+void Effect::SetId(int id) {
+    iID = id;
+}
+
+int Effect::ID() const {
+    return iID;
 }
 
 } // namespace LinuxSampler

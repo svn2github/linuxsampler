@@ -20,6 +20,7 @@ liblinuxsamplercommon_la_SOURCES = \
 	atomic.h \
 	ArrayList.h \
 	DynamicLibraries.cpp DynamicLibraries.h \
+	IDGenerator.cpp IDGenerator.h \
 	Condition.cpp Condition.h \
 	ConditionServer.cpp ConditionServer.h \
 	Features.cpp Features.h \

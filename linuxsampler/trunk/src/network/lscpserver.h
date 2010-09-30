@@ -166,6 +166,28 @@ class LSCPServer : public Thread {
         String SetFxSendAudioOutputChannel(uint uiSamplerChannel, uint FxSendID, uint FxSendChannel, uint DeviceChannel);
         String SetFxSendMidiController(uint uiSamplerChannel, uint FxSendID, uint MidiController);
         String SetFxSendLevel(uint uiSamplerChannel, uint FxSendID, double dLevel);
+
+        // effect commands
+        String GetAvailableEffects();
+        String ListAvailableEffects();
+        String GetEffectInfo(int iEffectIndex);
+        String CreateEffectInstance(int index);
+        String CreateEffectInstance(String effectSystem, String module, String effectName);
+        String DestroyEffectInstance(int iEffectID);
+        String GetEffectInstances();
+        String ListEffectInstances();
+        String GetEffectInstanceInfo(int iEffectInstanceIndex);
+        String GetEffectInstanceInputControlInfo(int iEffectInstanceIndex, int iInputControlIndex);
+        String SetEffectInstanceInputControl(int iEffectInstanceIndex, int iInputControlIndex, double dValue);
+        String GetMasterEffectChains(int iAudioOutputDevice);
+        String ListMasterEffectChains(int iAudioOutputDevice);
+        String AddMasterEffectChain(int iAudioOutputDevice);
+        String RemoveMasterEffectChain(int iAudioOutputDevice, int iMasterEffectChain);
+        String GetMasterEffectChainInfo(int iAudioOutputDevice, int iMasterEffectChain);
+        String AppendMasterEffectChainEffect(int iAudioOutputDevice, int iMasterEffectChain, int iEffectInstance);
+        String InsertMasterEffectChainEffect(int iAudioOutputDevice, int iMasterEffectChain, int iEffectInstance, int iEffectChainPosition);
+        String RemoveMasterEffectChainEffect(int iAudioOutputDevice, int iMasterEffectChain, int iEffectInstance);
+
         String AddDbInstrumentDirectory(String Dir);
         String RemoveDbInstrumentDirectory(String Dir, bool Force = false);
         String GetDbInstrumentDirectoryCount(String Dir, bool Recursive = false);

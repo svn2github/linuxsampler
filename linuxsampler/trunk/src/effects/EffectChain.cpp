@@ -1,6 +1,6 @@
 /***************************************************************************
  *                                                                         *
- *   Copyright (C) 2008 Christian Schoenebeck                              *
+ *   Copyright (C) 2008 - 2010 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -24,8 +24,9 @@
 
 namespace LinuxSampler {
 
-EffectChain::EffectChain(AudioOutputDevice* pDevice) {
+EffectChain::EffectChain(AudioOutputDevice* pDevice, int iEffectChainId) {
     this->pDevice = pDevice;
+    iID = iEffectChainId;
 }
 
 void EffectChain::AppendEffect(Effect* pEffect) {
@@ -45,6 +46,7 @@ void EffectChain::InsertEffect(Effect* pEffect, int iChainPos) throw (Exception)
     for (int i = 0; i < iChainPos; ++i) ++iter;
     _ChainEntry entry = { pEffect, true };
     vEntries.insert(iter, entry);
+    pEffect->SetParent(this);
 }
 
 void EffectChain::RemoveEffect(int iChainPos) throw (Exception) {
@@ -55,7 +57,9 @@ void EffectChain::RemoveEffect(int iChainPos) throw (Exception) {
         );
     std::vector<_ChainEntry>::iterator iter = vEntries.begin();
     for (int i = 0; i < iChainPos; ++i) ++iter;
+    Effect* pEffect = (*iter).pEffect;
     vEntries.erase(iter);
+    pEffect->SetParent(NULL); // mark effect as not in use anymore
 }
 
 void EffectChain::RenderAudio(uint Samples) {
@@ -113,6 +117,10 @@ void EffectChain::ClearAllChannels() {
         for (int i = 0; i < pEffect->OutputChannelCount(); ++i)
             pEffect->OutputChannel(i)->Clear(); // zero out buffers
     }
+}
+
+int EffectChain::ID() const {
+    return iID;
 }
 
 } // namespace LinuxSampler

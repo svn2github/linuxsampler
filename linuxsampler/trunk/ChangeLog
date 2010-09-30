@@ -84,6 +84,33 @@ Version CVS HEAD (?)
   * LSCP server:
     - added support for sending MIDI CC messages via LSCP command
       "SEND CHANNEL MIDI_DATA CC <sampler-chan> <ctrl> <val>"
+    - added LSCP command "GET AVAILABLE_EFFECTS"
+    - added LSCP command "LIST AVAILABLE_EFFECTS"
+    - added LSCP command "GET EFFECT INFO <effect-index>"
+    - added LSCP command "CREATE EFFECT_INSTANCE <effect-index>"
+    - added LSCP command
+      "CREATE EFFECT_INSTANCE <effect-system> <module> <effect-name>"
+    - added LSCP command "DESTROY EFFECT_INSTANCE <effect-instance>"
+    - added LSCP command "GET EFFECT_INSTANCES"
+    - added LSCP command "LIST EFFECT_INSTANCES"
+    - added LSCP command "GET EFFECT_INSTANCE INFO <effect-instance>"
+    - added LSCP command
+      "GET EFFECT_INSTANCE_INPUT_CONTROL INFO <effect-instance> <input-control>"
+    - added LSCP command "SET EFFECT_INSTANCE_INPUT_CONTROL <effect-instance>
+      <input-control> <value>"
+    - added LSCP command "GET MASTER_EFFECT_CHAINS <audio-device>"
+    - added LSCP command "LIST MASTER_EFFECT_CHAINS <audio-device>"
+    - added LSCP command "ADD MASTER_EFFECT_CHAIN <audio-device>"
+    - added LSCP command
+      "REMOVE MASTER_EFFECT_CHAIN <audio-device> <effect-chain>"
+    - added LSCP command
+      "GET MASTER_EFFECT_CHAIN INFO <audio-device> <effect-chain>"
+    - added LSCP command "APPEND MASTER_EFFECT_CHAIN EFFECT <audio-device>
+      <effect-chain> <effect-instance>"
+    - added LSCP command "INSERT MASTER_EFFECT_CHAIN EFFECT <audio-device>
+      <effect-chain> <effect-instance> <effect-chain-pos>"
+    - added LSCP command "REMOVE MASTER_EFFECT_CHAIN EFFECT <audio-device>
+      <effect-chain> <effect-instance>"
 
   * Bug fixes:
     - Fixed crash which may occur when MIDI key + transpose is out of range

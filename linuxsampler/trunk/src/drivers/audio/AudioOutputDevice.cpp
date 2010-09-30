@@ -24,6 +24,7 @@
 #include "AudioOutputDeviceFactory.h"
 #include "AudioOutputDevice.h"
 #include "../../common/global_private.h"
+#include "../../common/IDGenerator.h"
 
 namespace LinuxSampler {
 
@@ -183,6 +184,7 @@ namespace LinuxSampler {
     AudioOutputDevice::AudioOutputDevice(std::map<String,DeviceCreationParameter*> DriverParameters)
         : EnginesReader(Engines) {
         this->Parameters = DriverParameters;
+        EffectChainIDs = new IDGenerator();
     }
 
     AudioOutputDevice::~AudioOutputDevice() {
@@ -215,6 +217,8 @@ namespace LinuxSampler {
             }
             vEffectChains.clear();
         }
+        
+        delete EffectChainIDs;
     }
 
     void AudioOutputDevice::Connect(Engine* pEngine) {
@@ -258,7 +262,7 @@ namespace LinuxSampler {
     }
 
     EffectChain* AudioOutputDevice::AddMasterEffectChain() {
-        EffectChain* pChain = new EffectChain(this);
+        EffectChain* pChain = new EffectChain(this, EffectChainIDs->create());
         vEffectChains.push_back(pChain);
         return pChain;
     }
@@ -271,6 +275,7 @@ namespace LinuxSampler {
             );
         std::vector<EffectChain*>::iterator iter = vEffectChains.begin();
         for (int i = 0; i < iChain; ++i) ++iter;
+        EffectChainIDs->destroy((*iter)->ID());
         vEffectChains.erase(iter);
     }
 
