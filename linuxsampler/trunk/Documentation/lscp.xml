@@ -34,7 +34,7 @@ Schoenebeck'>
                 <email>schoenebeck at software minus engineering dot org</email>
             </address>
         </author>
-        <date month="November" year="2009"/>
+        <date month="October" year="2010"/>
         <workgroup>LinuxSampler Developers</workgroup>
         <keyword>LSCP</keyword>
         <abstract>
@@ -3495,7 +3495,21 @@ Schoenebeck'>
                                             channel 1 is routed to the channel 3 of the audio
                                             output device (see
                                             <xref target="SET FX_SEND AUDIO_OUTPUT_CHANNEL">"SET FX_SEND AUDIO_OUTPUT_CHANNEL"</xref>
-                                            for details)</t>
+                                            for details), if an internal send
+                                            effect is assigned to the effect
+                                            send, then this setting defines the
+                                            audio channel routing to that
+                                            effect instance respectively</t>
+                                        </list>
+                                    </t>
+                                    <t>SEND_EFFECT -
+                                        <list>
+                                            <t>destination send effect chain ID
+                                            and destination effect chain
+                                            position, separated by comma in the
+                                            form "&lt;effect-chain&gt;,&lt;chain-pos&gt;"
+                                            or "NONE" if there is no send effect
+                                            assigned to the effect send</t>
                                         </list>
                                     </t>
                                 </list>
@@ -3578,7 +3592,9 @@ Schoenebeck'>
                     &lt;audio-src&gt; is the numerical ID of the effect send's audio channel
                     which should be rerouted and &lt;audio-dst&gt; is the numerical ID of
                     the audio channel of the selected audio output device where &lt;audio-src&gt;
-                    should be routed to.</t>
+                    should be routed to. If an internal send effect is assigned
+                    to the effect send, then this setting defines the audio
+                    channel routing to that effect instance respectively.</t>
 
                     <t>Note that effect sends can only route audio to the same audio output
                     device as assigned to the effect send's sampler channel. Also note that an
@@ -3616,6 +3632,98 @@ Schoenebeck'>
                     <t>
                         <list>
                             <t>C: "SET FX_SEND AUDIO_OUTPUT_CHANNEL 0 0 0 2"</t>
+                            <t>S: "OK"</t>
+                        </list>
+                    </t>
+                </section>
+
+                <section title="Assigning destination effect to an effect send" anchor="SET FX_SEND SEND_EFFECT">
+                    <t>The front-end can (re-)assign a destination effect to an
+                    effect send by sending the following command:</t>
+                    <t>
+                        <list>
+                            <t>SET FX_SEND SEND_EFFECT &lt;sampler-chan&gt; &lt;fx-send-id&gt; &lt;effect-chain&gt; &lt;chain-pos&gt;</t>
+                        </list>
+                    </t>
+                    <t>Where &lt;sampler-chan&gt; is the sampler channel number
+                    as returned by the <xref target="ADD CHANNEL">"ADD CHANNEL"</xref>
+                    or <xref target="LIST CHANNELS">"LIST CHANNELS"</xref> command,
+                    &lt;fx-send-id&gt; reflects the numerical ID of the effect send entity
+                    as returned by the <xref target="CREATE FX_SEND">"CREATE FX_SEND"</xref>
+                    or <xref target="LIST FX_SENDS">"LIST FX_SENDS"</xref> command,
+                    &lt;effect-chain&gt; by the numerical ID of the destination
+                    effect chain as returned by the
+                    <xref target="ADD SEND_EFFECT_CHAIN">"ADD SEND_EFFECT_CHAIN"</xref>
+                    or
+                    <xref target="LIST SEND_EFFECT_CHAINS">"LIST SEND_EFFECT_CHAINS"</xref>
+                    command and &lt;chain-pos&gt; reflects the exact effect
+                    chain position in the effect chain which hosts the actual
+                    destination effect.</t>
+
+                    <t>Possible Answers:</t>
+                    <t>
+                        <list>
+                            <t>"OK" -
+                                <list>
+                                    <t>on success</t>
+                                </list>
+                            </t>
+                            <t>"ERR:&lt;error-code&gt;:&lt;error-message&gt;" -
+                                <list>
+                                    <t>in case it failed, providing an appropriate error code and error message</t>
+                                </list>
+                            </t>
+                        </list>
+                    </t>
+                    <t>Example:</t>
+                    <t>
+                        <list>
+                            <t>C: "SET FX_SEND SEND_EFFECT 0 0 2 5"</t>
+                            <t>S: "OK"</t>
+                        </list>
+                    </t>
+                </section>
+
+                <section title="Removing destination effect from an effect send" anchor="REMOVE FX_SEND SEND_EFFECT">
+                    <t>The front-end can (re-)assign a destination effect to an
+                    effect send by sending the following command:</t>
+                    <t>
+                        <list>
+                            <t>REMOVE FX_SEND SEND_EFFECT &lt;sampler-chan&gt; &lt;fx-send-id&gt;</t>
+                        </list>
+                    </t>
+                    <t>Where &lt;sampler-chan&gt; is the sampler channel number
+                    as returned by the <xref target="ADD CHANNEL">"ADD CHANNEL"</xref>
+                    or <xref target="LIST CHANNELS">"LIST CHANNELS"</xref> command,
+                    &lt;fx-send-id&gt; reflects the numerical ID of the effect send entity
+                    as returned by the <xref target="CREATE FX_SEND">"CREATE FX_SEND"</xref>
+                    or <xref target="LIST FX_SENDS">"LIST FX_SENDS"</xref> command.</t>
+
+                    <t>After the destination effect has been removed from the
+                    effect send, the audio signal of the effect send will be
+                    routed directly to the audio output device, according to the
+                    audio channel routing setting of the effect send.
+                    </t>
+
+                    <t>Possible Answers:</t>
+                    <t>
+                        <list>
+                            <t>"OK" -
+                                <list>
+                                    <t>on success</t>
+                                </list>
+                            </t>
+                            <t>"ERR:&lt;error-code&gt;:&lt;error-message&gt;" -
+                                <list>
+                                    <t>in case it failed, providing an appropriate error code and error message</t>
+                                </list>
+                            </t>
+                        </list>
+                    </t>
+                    <t>Example:</t>
+                    <t>
+                        <list>
+                            <t>C: "REMOVE FX_SEND SEND_EFFECT 0 0"</t>
                             <t>S: "OK"</t>
                         </list>
                     </t>
@@ -6554,6 +6662,1025 @@ Schoenebeck'>
                     </t>
                 </section>
             </section>
+            <section title="Managing Effects" anchor="effects">
+                <t>Audio effects (e.g. reverb, delay, compression) can be
+                applied to the audio signals generated by the sampler. The
+                sampler usually provides a set of internal audio effects for
+                this task. The exact set of effects depends on the availability
+                of third party effect plugins installed on the system where the
+                sampler runs on.</t>
+                <t>At the moment only "send effects" are supported. Support for
+                "insert effects" and "master effects" is planned to be added at
+                a later point.</t>
+                <t>The following commands allow to retrieve the set of internal
+                effects available to the sampler, detailed informations about
+                those effects and to create and destroy instances of such
+                effects. After an instance of an effect is created, the effect
+                instance can be inserted into the audio signal path of the
+                sampler, e.g. as send effect.</t>
+                <t>The sampler allows to create an arbitrary amount of so called
+                send effect chains. Each effect chain can host an arbitrary
+                amount of effect instances. The output of the first effect
+                instance in an effect chain is fed to the input of the second
+                effect instance of the chain and so on. So effects in one chain
+                are processed sequentially. Send effect chains however are
+                processed in parallel to other send effect chains. Audio signals
+                of sampler channels are fed to send effects by creating FX sends
+                to the respective sampler channel and assigning a destination
+                send effect to that FX by using the
+                <xref target="SET FX_SEND SEND_EFFECT">"SET FX_SEND SEND_EFFECT"</xref>
+                command. The latter allows to route the FX send to the beginning
+                of a send effect chain, as well as directly to any other
+                position of the send effect chain.</t>
+
+                <section title="Retrieve amount of available effects" anchor="GET AVAILABLE_EFFECTS">
+                    <t>The front-end can retrieve the amount of internal
+                    effects, available to the sampler by sending
+                    the following command:</t>
+                    <t>
+                        <list>
+                            <t>GET AVAILABLE_EFFECTS</t>
+                        </list>
+                    </t>
+
+                    <t>Possible Answers:</t>
+                    <t>
+                        <list>
+                            <t>The sampler will answer by returning the current
+                            number of effects available to the sampler.</t>
+                        </list>
+                    </t>
+
+                    <t>Examples:</t>
+                    <t>
+                        <list>
+                            <t>C: "GET AVAILABLE_EFFECTS"</t>
+                            <t>S: "129"</t>
+                        </list>
+                    </t>
+                </section>
+
+                <section title="Get list of available effects" anchor="LIST AVAILABLE_EFFECTS">
+                    <t>The set of available internal effects can change at
+                    runtime. The front-end can retrieve the list of internal
+                    effects, available to the sampler by sending the following
+                    command:</t>
+                    <t>
+                        <list>
+                            <t>LIST AVAILABLE_EFFECTS</t>
+                        </list>
+                    </t>
+
+                    <t>Possible Answers:</t>
+                    <t>
+                        <list>
+                            <t>The sampler will answer by returning a comma
+                            separated list with numerical IDs of effects. Note:
+                            the numercial ID of an effect is generated by the
+                            sampler for the current moment. The numerical ID of
+                            the same effect can change at runtime, e.g. when the
+                            user requests a rescan of available effect plugins.
+                            </t>
+                        </list>
+                    </t>
+                    <t>Example:</t>
+                    <t>
+                        <list>
+                            <t>C: "LIST AVAILABLE_EFFECTS"</t>
+                            <t>S: "5,6,7,120,121,122,123,124"</t>
+                        </list>
+                    </t>
+                </section>
+
+                <section title="Retrieving general information about an effect" anchor="GET EFFECT INFO">
+                    <t>The front-end can ask for general informations about an
+                    effect by sending the following command:</t>
+                    <t>
+                        <list>
+                            <t>GET EFFECT INFO &lt;effect-index&gt;</t>
+                        </list>
+                    </t>
+                    <t>Where &lt;effect-index&gt; is the numerical ID of an
+                    effect as returned by the
+                    <xref target="LIST AVAILABLE_EFFECTS">"LIST AVAILABLE_EFFECTS"</xref>
+                    command.</t>
+                    <t>Possible Answers:</t>
+                    <t>
+                        <list>
+                            <t>LinuxSampler will answer by sending a &lt;CRLF&gt; separated list.
+                            Each answer line begins with the effect information
+                            category name, followed by a colon and then a space
+                            character &lt;SP&gt; and finally the info character
+                            string to that effect information category. At the
+                            moment the following categories are defined:</t>
+                            <t>
+                                <list>
+                                    <t>SYSTEM -
+                                        <list>
+                                            <t>name of the effect plugin system
+                                            the effect is based on
+                                            (e.g. "LADSPA")</t>
+                                        </list>
+                                    </t>
+                                    <t>MODULE -
+                                        <list>
+                                            <t>module of the effect plugin
+                                            system that contains this effect,
+                                            the module is usually the
+                                            dynamic-linked library (DLL)
+                                            filename of the effect plugin,
+                                            including full path (note that this
+                                            filename may contain
+                                            <xref target="character_set">escape sequences</xref>)</t>
+                                        </list>
+                                    </t>
+                                    <t>NAME -
+                                        <list>
+                                            <t>character string defining the
+                                            unique name of the effect within its
+                                            module (note that the character
+                                            string may contain
+                                            <xref target="character_set">escape sequences</xref>)</t>
+                                        </list>
+                                    </t>
+                                    <t>DESCRIPTION -
+                                        <list>
+                                            <t>human readable name of the
+                                            effect, intended to be displayed in
+                                            user interfaces (note that the
+                                            character string may contain
+                                            <xref target="character_set">escape sequences</xref>)</t>
+                                        </list>
+                                    </t>
+                                </list>
+                            </t>
+                        </list>
+                    </t>
+                    <t>The mentioned fields above don't have to be in particular order.</t>
+
+                    <t>Example:</t>
+                    <t>
+                        <list>
+                            <t>C: "GET EFFECT INFO 121"</t>
+                            <t>S: "SYSTEM: LADSPA"</t>
+                            <t>&nbsp;&nbsp;&nbsp;"MODULE: /usr/lib/ladspa/lowpass_iir_1891.so"</t>
+                            <t>&nbsp;&nbsp;&nbsp;"NAME: lowpass_iir"</t>
+                            <t>&nbsp;&nbsp;&nbsp;"DESCRIPTION: Glame Lowpass Filter"</t>
+                            <t>&nbsp;&nbsp;&nbsp;"."</t>
+                        </list>
+                    </t>
+                </section>
+
+                <section title="Creating an instance of an effect by its portable ID" anchor="CREATE EFFECT_INSTANCE">
+                    <t>The front-end can spawn an instance of the desired
+                    effect by sending the following command:</t>
+                    <t>
+                        <list>
+                            <t>CREATE EFFECT_INSTANCE &lt;effect-system&gt; &lt;module&gt; &lt;effect-name&gt;</t>
+                        </list>
+                    </t>
+                    <t>Where &lt;effect-system&gt; is the "SYSTEM" field,
+                    &lt;module&gt; the "MODULE" field and &lt;effect-name&gt;
+                    the "NAME" field as returned by the
+                    <xref target="GET EFFECT INFO">"GET EFFECT INFO"</xref>
+                    command. The filename of argument &lt;module&gt; and the
+                    character string of argument &lt;effect-name&gt; may contain
+                    <xref target="character_set">escape sequences</xref>.</t>
+
+                    <t>The sampler will try to load the requested effect and to
+                    create an instance of it. To allow loading the same effect
+                    on a different machine, probably even running a completely
+                    different operating system (e.g. Linux vs. Windows), the
+                    sampler tries to match &lt;module&gt; "softly". That means
+                    it first tries to find an effect that exactly matches the
+                    given &lt;module&gt; argument. If there is no exact match,
+                    the sampler will try to lower the restrictions on matching
+                    the &lt;module&gt; argument more and more, e.g. by ignoring
+                    upper / lower case differences and by ignoring the path of
+                    the DLL filename and file extension. If there is still no
+                    match at the end, the sampler will try to ignore the
+                    &lt;module&gt; argument completely and as a last resort
+                    search for an effect that only matches the given
+                    &lt;effect-system&gt; and &lt;effect-name&gt; arguments.</t>
+
+                    <t>Possible Answers:</t>
+                    <t>
+                        <list>
+                            <t>"OK[&lt;effect-instance&gt;]" -
+                                <list>
+                                    <t>in case the effect instance was
+                                    successfully created, where
+                                    &lt;effect-instance&gt; is the numerical ID
+                                    of the new effect instance</t>
+                                </list>
+                            </t>
+                            <t>"WRN:&lt;warning-code&gt;:&lt;warning-message&gt;" -
+                                <list>
+                                    <t>in case the effect instance was spawned
+                                    successfully, but there are noteworthy
+                                    issue(s) related, providing an appropriate
+                                    warning code and warning message</t>
+                                </list>
+                            </t>
+                            <t>"ERR:&lt;error-code&gt;:&lt;error-message&gt;" -
+                                <list>
+                                    <t>if the effect could not be instantiated</t>
+                                </list>
+                            </t>
+                        </list>
+                    </t>
+
+                    <t>Examples:</t>
+                    <t>
+                        <list>
+                            <t>C: "CREATE EFFECT_INSTANCE LADSPA '/usr/lib/ladspa/mod_delay_1419.so' 'modDelay'"</t>
+                            <t>S: "OK[0]"</t>
+                        </list>
+                    </t>
+                </section>
+
+                <section title="Creating an instance of an effect by its numerical ID" anchor="CREATE EFFECT_INSTANCE (non-portable)">
+                    <t>The front-end can spawn an instance of the desired
+                    effect by sending the following command:</t>
+                    <t>
+                        <list>
+                            <t>CREATE EFFECT_INSTANCE &lt;effect-index&gt;</t>
+                        </list>
+                    </t>
+                    <t>Where &lt;effect-index&gt; is the numerical ID of the
+                    effect as returned by the
+                    <xref target="LIST AVAILABLE_EFFECTS">"LIST AVAILABLE_EFFECTS"</xref>
+                    command.</t>
+
+                    <t>The sampler will try to load the requested effect and to
+                    create an instance of it.</t>
+
+                    <t>Note: Since the numerical ID of a certain effect can
+                    change at any time, you should not use this command in
+                    LSCP files to restore a certain effect at a later time! To
+                    store a sampler session including all its effects, use the
+                    <xref target="CREATE EFFECT_INSTANCE">portable text-based
+                    version of "CREATE EFFECT_INSTANCE"</xref> instead! This
+                    allows to restore a sampler session with all its effects
+                    also on other machines, possibly even running a completely
+                    different operating system (e.g. Linux vs. Windows), with
+                    different plugin directories or plugin DLL names.</t>
+
+                    <t>Possible Answers:</t>
+                    <t>
+                        <list>
+                            <t>"OK[&lt;effect-instance&gt;]" -
+                                <list>
+                                    <t>in case the effect instance was
+                                    successfully created, where
+                                    &lt;effect-instance&gt; is the numerical ID
+                                    of the new effect instance</t>
+                                </list>
+                            </t>
+                            <t>"WRN:&lt;warning-code&gt;:&lt;warning-message&gt;" -
+                                <list>
+                                    <t>in case the effect instance was spawned
+                                    successfully, but there are noteworthy
+                                    issue(s) related, providing an appropriate
+                                    warning code and warning message</t>
+                                </list>
+                            </t>
+                            <t>"ERR:&lt;error-code&gt;:&lt;error-message&gt;" -
+                                <list>
+                                    <t>if the effect could not be instantiated</t>
+                                </list>
+                            </t>
+                        </list>
+                    </t>
+
+                    <t>Examples:</t>
+                    <t>
+                        <list>
+                            <t>C: "CREATE EFFECT_INSTANCE 72"</t>
+                            <t>S: "OK[5]"</t>
+                        </list>
+                    </t>
+                </section>
+
+                <section title="Destroy an effect instance" anchor="DESTROY EFFECT_INSTANCE">
+                    <t>The front-end can destroy an unusued effect instance and
+                    thus freeing it from memory by sending the following command:</t>
+                    <t>
+                        <list>
+                            <t>DESTROY EFFECT_INSTANCE &lt;effect-instance&gt;</t>
+                        </list>
+                    </t>
+                    <t>Where &lt;effect-instance&gt; is the numerical ID of the
+                    effect instance as returned by the
+                    <xref target="CREATE EFFECT_INSTANCE">"CREATE EFFECT_INSTANCE"</xref> or
+                    <xref target="LIST EFFECT_INSTANCES">"LIST EFFECT_INSTANCES"</xref>
+                    command.</t>
+
+                    <t>The effect instance can only be destroyed if it's not
+                    used in any part of the sampler's audio signal path anymore.
+                    If the effect instance is still in use somewhere, trying to
+                    destroy the effect instance will result in an error
+                    message.</t>
+
+                    <t>Possible Answers:</t>
+                    <t>
+                        <list>
+                            <t>"OK" -
+                                <list>
+                                    <t>in case the effect instance was successfully destroyed</t>
+                                </list>
+                            </t>
+                            <t>"ERR:&lt;error-code&gt;:&lt;error-message&gt;" -
+                                <list>
+                                    <t>in case it failed, providing an appropriate error code and
+                                    error message</t>
+                                </list>
+                            </t>
+                        </list>
+                    </t>
+
+                    <t>Examples:</t>
+                    <t>
+                        <list>
+                            <t>C: "DESTROY EFFECT_INSTANCE 5"</t>
+                            <t>S: "OK"</t>
+                        </list>
+                    </t>
+                </section>
+
+                <section title="Retrieve amount of effect instances" anchor="GET EFFECT_INSTANCES">
+                    <t>The front-end can retrieve the current amount of effect
+                    instances by sending the following command:</t>
+                    <t>
+                        <list>
+                            <t>GET EFFECT_INSTANCES</t>
+                        </list>
+                    </t>
+
+                    <t>Possible Answers:</t>
+                    <t>
+                        <list>
+                            <t>The sampler will answer by returning the current
+                            number of effect instances created and not yet
+                            destroyed in the current sampler session.</t>
+                        </list>
+                    </t>
+
+                    <t>Examples:</t>
+                    <t>
+                        <list>
+                            <t>C: "GET EFFECT_INSTANCES"</t>
+                            <t>S: "14"</t>
+                        </list>
+                    </t>
+                </section>
+
+                <section title="Get list of effect instances" anchor="LIST EFFECT_INSTANCES">
+                    <t>The front-end can retrieve the current list of effect
+                    instances by sending the following command:</t>
+                    <t>
+                        <list>
+                            <t>LIST EFFECT_INSTANCES</t>
+                        </list>
+                    </t>
+
+                    <t>Possible Answers:</t>
+                    <t>
+                        <list>
+                            <t>The sampler will answer by returning a comma
+                            separated list with numerical IDs of effects
+                            instances.
+                            </t>
+                        </list>
+                    </t>
+                    <t>Example:</t>
+                    <t>
+                        <list>
+                            <t>C: "LIST EFFECT_INSTANCES"</t>
+                            <t>S: "9,11,14,15,16,17,25"</t>
+                        </list>
+                    </t>
+                </section>
+
+                <section title="Retrieving current information about an effect instance" anchor="GET EFFECT_INSTANCE INFO">
+                    <t>The front-end can ask for the current informations about
+                    a particular effect instance by sending the following command:</t>
+                    <t>
+                        <list>
+                            <t>GET EFFECT_INSTANCE INFO &lt;effect-instance&gt;</t>
+                        </list>
+                    </t>
+                    <t>Where &lt;effect-instance&gt; is the numerical ID of an
+                    effect instance as returned by the
+                    <xref target="CREATE EFFECT_INSTANCE">"CREATE EFFECT_INSTANCE"</xref>
+                    or
+                    <xref target="LIST EFFECT_INSTANCES">"LIST EFFECT_INSTANCES"</xref>
+                    command.</t>
+
+                    <t>Possible Answers:</t>
+                    <t>
+                        <list>
+                            <t>LinuxSampler will answer by sending a &lt;CRLF&gt; separated list.
+                            Each answer line begins with the information
+                            category name, followed by a colon and then a space
+                            character &lt;SP&gt; and finally the info character
+                            string to that information category. At the
+                            moment the following categories are defined:</t>
+                            <t>
+                                <list>
+                                    <t>SYSTEM -
+                                        <list>
+                                            <t>name of the effect plugin system
+                                            the effect is based on
+                                            (e.g. "LADSPA")</t>
+                                        </list>
+                                    </t>
+                                    <t>MODULE -
+                                        <list>
+                                            <t>module of the effect plugin
+                                            system that contains this effect,
+                                            the module is usually the
+                                            dynamic-linked library (DLL)
+                                            filename of the effect plugin,
+                                            including full path (note that this
+                                            filename may contain
+                                            <xref target="character_set">escape sequences</xref>)</t>
+                                        </list>
+                                    </t>
+                                    <t>NAME -
+                                        <list>
+                                            <t>character string defining the
+                                            unique name of the effect within its
+                                            module (note that the character
+                                            string may contain
+                                            <xref target="character_set">escape sequences</xref>)</t>
+                                        </list>
+                                    </t>
+                                    <t>DESCRIPTION -
+                                        <list>
+                                            <t>human readable name of the
+                                            effect, intended to be displayed in
+                                            user interfaces (note that the
+                                            character string may contain
+                                            <xref target="character_set">escape sequences</xref>)</t>
+                                        </list>
+                                    </t>
+                                    <t>INPUT_CONTROLS -
+                                        <list>
+                                            <t>amount of input controls the
+                                            effect instance provides, to allow
+                                            controlling the effect parameters in
+                                            realtime</t>
+                                        </list>
+                                    </t>
+                                </list>
+                            </t>
+                        </list>
+                    </t>
+                    <t>The mentioned fields above don't have to be in particular order.</t>
+
+                    <t>Example:</t>
+                    <t>
+                        <list>
+                            <t>C: "GET EFFECT_INSTANCE INFO 3"</t>
+                            <t>S: "SYSTEM: LADSPA"</t>
+                            <t>&nbsp;&nbsp;&nbsp;"MODULE: /usr/lib/ladspa/mod_delay_1419.so"</t>
+                            <t>&nbsp;&nbsp;&nbsp;"NAME: modDelay"</t>
+                            <t>&nbsp;&nbsp;&nbsp;"DESCRIPTION: Modulatable delay"</t>
+                            <t>&nbsp;&nbsp;&nbsp;"INPUT_CONTROLS: 1"</t>
+                            <t>&nbsp;&nbsp;&nbsp;"."</t>
+                        </list>
+                    </t>
+                </section>
+
+                <section title="Retrieving information about an effect parameter" anchor="GET EFFECT_INSTANCE_INPUT_CONTROL INFO">
+                    <t>Effects typically provide a certain set of effect
+                    parameters which can be altered by the user in realtime
+                    (e.g. depth of a reverb effect, duration of a delay effect,
+                    dry / wet signal ratio). Those controllable effect parameters
+                    are called "input controls". The front-end can ask for the
+                    current informations of an effect instance's input control
+                    by sending the following command:</t>
+                    <t>
+                        <list>
+                            <t>GET EFFECT_INSTANCE_INPUT_CONTROL INFO &lt;effect-instance&gt; &lt;input-control&gt;</t>
+                        </list>
+                    </t>
+                    <t>Where &lt;effect-instance&gt; is the numerical ID of an
+                    effect instance as returned by the
+                    <xref target="CREATE EFFECT_INSTANCE">"CREATE EFFECT_INSTANCE"</xref>
+                    or
+                    <xref target="LIST EFFECT_INSTANCES">"LIST EFFECT_INSTANCES"</xref>
+                    command and &lt;input-control&gt; is the index of the input
+                    control within the numerical bounds as returned by the
+                    "INPUT_CONTROLS" field of the
+                    <xref target="GET EFFECT_INSTANCE INFO">"GET EFFECT_INSTANCE INFO"</xref>
+                    command.</t>
+
+                    <t>Possible Answers:</t>
+                    <t>
+                        <list>
+                            <t>LinuxSampler will answer by sending a &lt;CRLF&gt; separated list.
+                            Each answer line begins with the information
+                            category name, followed by a colon and then a space
+                            character &lt;SP&gt; and finally the info character
+                            string to that information category. There are
+                            information categories which are always returned,
+                            independent of the respective effect parameter and
+                            there are optional information categories
+                            which are only shown for certain effect parameters.
+                            At the moment the following categories are defined:</t>
+                            <t>
+                                <list>
+                                    <t>DESCRIPTION -
+                                        <list>
+                                            <t>(always returned)
+                                            human readable name of the
+                                            effect parameter, intended to be
+                                            displayed in user interfaces (note
+                                            that the character string may
+                                            contain <xref target="character_set">escape sequences</xref>)</t>
+                                        </list>
+                                    </t>
+                                    <t>VALUE -
+                                        <list>
+                                            <t>
+                                            (always returned)
+                                            current (optional dotted)
+                                            floating point value of this effect
+                                            parameter</t>
+                                        </list>
+                                    </t>
+                                    <t>RANGE_MIN -
+                                        <list>
+                                            <t>
+                                            (optionally returned)
+                                            minimum allowed value for this
+                                            effect parameter</t>
+                                        </list>
+                                    </t>
+                                    <t>RANGE_MAX -
+                                        <list>
+                                            <t>
+                                            (optionally returned)
+                                            maximum allowed value for this
+                                            effect parameter</t>
+                                        </list>
+                                    </t>
+                                    <t>POSSIBILITIES -
+                                        <list>
+                                            <t>
+                                            (optionally returned)
+                                            comma separated list of
+                                            (optional dotted) floating point
+                                            numbers, reflecting the exact set of
+                                            possible values for this effect
+                                            parameter</t>
+                                        </list>
+                                    </t>
+                                    <t>DEFAULT -
+                                        <list>
+                                            <t>
+                                            (optionally returned)
+                                            default value of this effect
+                                            parameter</t>
+                                        </list>
+                                    </t>
+                                </list>
+                            </t>
+                        </list>
+                    </t>
+                    <t>The mentioned fields above don't have to be in particular order.</t>
+
+                    <t>Example:</t>
+                    <t>
+                        <list>
+                            <t>C: "GET EFFECT_INSTANCE_INPUT_CONTROL INFO 1 0"</t>
+                            <t>S: "SYSTEM: LADSPA"</t>
+                            <t>&nbsp;&nbsp;&nbsp;"DESCRIPTION: Base delay (s)"</t>
+                            <t>&nbsp;&nbsp;&nbsp;"VALUE: 0.500"</t>
+                            <t>&nbsp;&nbsp;&nbsp;"RANGE_MIN: 0.000"</t>
+                            <t>&nbsp;&nbsp;&nbsp;"."</t>
+                        </list>
+                    </t>
+                </section>
+
+                <section title="Altering an effect parameter" anchor="SET EFFECT_INSTANCE_INPUT_CONTROL VALUE">
+                    <t>The front-end can alter the current value of an effect
+                    parameter by sending the following command:</t>
+                    <t>
+                        <list>
+                            <t>SET EFFECT_INSTANCE_INPUT_CONTROL VALUE &lt;effect-instance&gt; &lt;input-control&gt; &lt;value&gt;</t>
+                        </list>
+                    </t>
+                    <t>Where &lt;effect-instance&gt; is the numerical ID of the
+                    effect instance as returned by the
+                    <xref target="CREATE EFFECT_INSTANCE">"CREATE EFFECT_INSTANCE"</xref> or
+                    <xref target="LIST EFFECT_INSTANCES">"LIST EFFECT_INSTANCES"</xref>
+                    command, &lt;input-control&gt; is the index of the input
+                    control within the numerical bounds as returned by the
+                    "INPUT_CONTROLS" field of the
+                    <xref target="GET EFFECT_INSTANCE INFO">"GET EFFECT_INSTANCE INFO"</xref>
+                    command and &lt;value&gt; is the new (optional dotted)
+                    floating point value for this effect parameter.</t>
+
+                    <t>Possible Answers:</t>
+                    <t>
+                        <list>
+                            <t>"OK" -
+                                <list>
+                                    <t>in case the effect was altered successfully</t>
+                                </list>
+                            </t>
+                            <t>"ERR:&lt;error-code&gt;:&lt;error-message&gt;" -
+                                <list>
+                                    <t>in case it failed, providing an appropriate error code and
+                                    error message</t>
+                                </list>
+                            </t>
+                        </list>
+                    </t>
+
+                    <t>Examples:</t>
+                    <t>
+                        <list>
+                            <t>C: "SET EFFECT_INSTANCE_INPUT_CONTROL VALUE 0 1 0.5"</t>
+                            <t>S: "OK"</t>
+                        </list>
+                    </t>
+                </section>
+
+                <section title="Retrieve amount of send effect chains" anchor="GET SEND_EFFECT_CHAINS">
+                    <t>The front-end can retrieve the current amount of send
+                    effect chains of an audio output device by sending the
+                    following command:</t>
+                    <t>
+                        <list>
+                            <t>GET SEND_EFFECT_CHAINS &lt;audio-device&gt;</t>
+                        </list>
+                    </t>
+                    <t>Where &lt;audio-device&gt; should be replaced by the
+                    numerical ID of the audio output device as given by the
+                    <xref target="CREATE AUDIO_OUTPUT_DEVICE">"CREATE AUDIO_OUTPUT_DEVICE"</xref>
+                    or <xref target="LIST AUDIO_OUTPUT_DEVICES">"LIST AUDIO_OUTPUT_DEVICES"</xref>
+                    command.</t>
+
+                    <t>Possible Answers:</t>
+                    <t>
+                        <list>
+                            <t>The sampler will answer by returning the current
+                            number of send effect chains of the supplied audio
+                            output device.</t>
+                        </list>
+                    </t>
+
+                    <t>Examples:</t>
+                    <t>
+                        <list>
+                            <t>C: "GET SEND_EFFECT_CHAINS 0"</t>
+                            <t>S: "4"</t>
+                        </list>
+                    </t>
+                </section>
+
+                <section title="Retrieve list of send effect chains" anchor="LIST SEND_EFFECT_CHAINS">
+                    <t>The front-end can retrieve the current list of send
+                    effect chains of an audio output device by sending the
+                    following command:</t>
+                    <t>
+                        <list>
+                            <t>LIST SEND_EFFECT_CHAINS &lt;audio-device&gt;</t>
+                        </list>
+                    </t>
+                    <t>Where &lt;audio-device&gt; should be replaced by the
+                    numerical ID of the audio output device as given by the
+                    <xref target="CREATE AUDIO_OUTPUT_DEVICE">"CREATE AUDIO_OUTPUT_DEVICE"</xref>
+                    or <xref target="LIST AUDIO_OUTPUT_DEVICES">"LIST AUDIO_OUTPUT_DEVICES"</xref>
+                    command.</t>
+
+                    <t>Possible Answers:</t>
+                    <t>
+                        <list>
+                            <t>The sampler will answer by returning a comma
+                            separated list with numerical IDs of send effect
+                            chains of the supplied audio output device.
+                            </t>
+                        </list>
+                    </t>
+
+                    <t>Examples:</t>
+                    <t>
+                        <list>
+                            <t>C: "LIST SEND_EFFECT_CHAINS 0"</t>
+                            <t>S: "3,4,7"</t>
+                        </list>
+                    </t>
+                </section>
+
+                <section title="Add send effect chain" anchor="ADD SEND_EFFECT_CHAIN">
+                    <t>The front-end can add a send effect chain by sending the
+                    following command:</t>
+                    <t>
+                        <list>
+                            <t>ADD SEND_EFFECT_CHAIN &lt;audio-device&gt;</t>
+                        </list>
+                    </t>
+                    <t>Where &lt;audio-device&gt; should be replaced by the
+                    numerical ID of the audio output device as given by the
+                    <xref target="CREATE AUDIO_OUTPUT_DEVICE">"CREATE AUDIO_OUTPUT_DEVICE"</xref>
+                    or <xref target="LIST AUDIO_OUTPUT_DEVICES">"LIST AUDIO_OUTPUT_DEVICES"</xref>
+                    command.</t>
+
+                    <t>Possible Answers:</t>
+                    <t>
+                        <list>
+                            <t>"OK[&lt;effect-chain&gt;]" -
+                                <list>
+                                    <t>in case the send effect chain was
+                                    added successfully, where
+                                    &lt;effect-chain&gt; is the numerical ID
+                                    of the new send effect chain</t>
+                                </list>
+                            </t>
+                            <t>"ERR:&lt;error-code&gt;:&lt;error-message&gt;" -
+                                <list>
+                                    <t>if the send effect chain could not be added</t>
+                                </list>
+                            </t>
+                        </list>
+                    </t>
+
+                    <t>Examples:</t>
+                    <t>
+                        <list>
+                            <t>C: "ADD SEND_EFFECT_CHAIN 0"</t>
+                            <t>S: "OK[2]"</t>
+                        </list>
+                    </t>
+                </section>
+
+                <section title="Remove send effect chain" anchor="REMOVE SEND_EFFECT_CHAIN">
+                    <t>The front-end can remove a send effect chain by sending
+                    the following command:</t>
+                    <t>
+                        <list>
+                            <t>REMOVE SEND_EFFECT_CHAIN &lt;audio-device&gt; &lt;effect-chain&gt;</t>
+                        </list>
+                    </t>
+                    <t>Where &lt;audio-device&gt; should be replaced by the
+                    numerical ID of the audio output device as given by the
+                    <xref target="CREATE AUDIO_OUTPUT_DEVICE">"CREATE AUDIO_OUTPUT_DEVICE"</xref>
+                    or <xref target="LIST AUDIO_OUTPUT_DEVICES">"LIST AUDIO_OUTPUT_DEVICES"</xref>
+                    command and &lt;effect-chain&gt; by the numerical ID as
+                    returned by the
+                    <xref target="ADD SEND_EFFECT_CHAIN">"ADD SEND_EFFECT_CHAIN"</xref>
+                    or
+                    <xref target="LIST SEND_EFFECT_CHAINS">"LIST SEND_EFFECT_CHAINS"</xref>
+                    command.</t>
+
+                    <t>Possible Answers:</t>
+                    <t>
+                        <list>
+                            <t>"OK" -
+                                <list>
+                                    <t>in case the send effect chain was
+                                    removed successfully</t>
+                                </list>
+                            </t>
+                            <t>"ERR:&lt;error-code&gt;:&lt;error-message&gt;" -
+                                <list>
+                                    <t>if the send effect chain could not be removed</t>
+                                </list>
+                            </t>
+                        </list>
+                    </t>
+
+                    <t>Examples:</t>
+                    <t>
+                        <list>
+                            <t>C: "REMOVE SEND_EFFECT_CHAIN 0 2"</t>
+                            <t>S: "OK"</t>
+                        </list>
+                    </t>
+                </section>
+
+                <section title="Retrieving information about a send effect chain" anchor="GET SEND_EFFECT_CHAIN INFO">
+                    <t>The front-end can ask for informations of a send effect
+                    chain by sending the following command:</t>
+                    <t>
+                        <list>
+                            <t>GET SEND_EFFECT_CHAIN INFO &lt;audio-device&gt; &lt;effect-chain&gt;</t>
+                        </list>
+                    </t>
+                    <t>Where &lt;audio-device&gt; should be replaced by the
+                    numerical ID of the audio output device as given by the
+                    <xref target="CREATE AUDIO_OUTPUT_DEVICE">"CREATE AUDIO_OUTPUT_DEVICE"</xref>
+                    or <xref target="LIST AUDIO_OUTPUT_DEVICES">"LIST AUDIO_OUTPUT_DEVICES"</xref>
+                    command and &lt;effect-chain&gt; by the numerical ID as
+                    returned by the
+                    <xref target="ADD SEND_EFFECT_CHAIN">"ADD SEND_EFFECT_CHAIN"</xref>
+                    or
+                    <xref target="LIST SEND_EFFECT_CHAINS">"LIST SEND_EFFECT_CHAINS"</xref>
+                    command.</t>
+
+                    <t>Possible Answers:</t>
+                    <t>
+                        <list>
+                            <t>LinuxSampler will answer by sending a &lt;CRLF&gt; separated list.
+                            Each answer line begins with the information
+                            category name, followed by a colon and then a space
+                            character &lt;SP&gt; and finally the info character
+                            string to that information category.
+                            At the moment the following categories are defined:</t>
+                            <t>
+                                <list>
+                                    <t>EFFECT_COUNT -
+                                        <list>
+                                            <t>amount of effects in this send
+                                            effect chain</t>
+                                        </list>
+                                    </t>
+                                    <t>EFFECT_SEQUENCE -
+                                        <list>
+                                            <t>comma separated list of the
+                                            numerical IDs of the effect
+                                            instances in this send effect chain,
+                                            in the order as they are procssed in
+                                            the effect chain</t>
+                                        </list>
+                                    </t>
+                                </list>
+                            </t>
+                        </list>
+                    </t>
+                    <t>The mentioned fields above don't have to be in particular order.</t>
+
+                    <t>Example:</t>
+                    <t>
+                        <list>
+                            <t>C: "GET SEND_EFFECT_CHAIN INFO 0 2"</t>
+                            <t>S: "EFFECT_COUNT: 3"</t>
+                            <t>&nbsp;&nbsp;&nbsp;"EFFECT_SEQUENCE: 31,4,7"</t>
+                            <t>&nbsp;&nbsp;&nbsp;"."</t>
+                        </list>
+                    </t>
+                </section>
+
+                <section title="Append effect instance to a send effect chain" anchor="APPEND SEND_EFFECT_CHAIN EFFECT">
+                    <t>The front-end can add an unused effect instance to the
+                    end of a send effect chain by sending the following command:</t>
+                    <t>
+                        <list>
+                            <t>APPEND SEND_EFFECT_CHAIN EFFECT &lt;audio-device&gt; &lt;effect-chain&gt; &lt;effect-instance&gt;</t>
+                        </list>
+                    </t>
+                    <t>Where &lt;audio-device&gt; should be replaced by the
+                    numerical ID of the audio output device as given by the
+                    <xref target="CREATE AUDIO_OUTPUT_DEVICE">"CREATE AUDIO_OUTPUT_DEVICE"</xref>
+                    or <xref target="LIST AUDIO_OUTPUT_DEVICES">"LIST AUDIO_OUTPUT_DEVICES"</xref>
+                    command and &lt;effect-chain&gt; by the numerical ID as
+                    returned by the
+                    <xref target="ADD SEND_EFFECT_CHAIN">"ADD SEND_EFFECT_CHAIN"</xref>
+                    or
+                    <xref target="LIST SEND_EFFECT_CHAINS">"LIST SEND_EFFECT_CHAINS"</xref>
+                    command and &lt;effect-instance&gt; as returned by the
+                    <xref target="CREATE EFFECT_INSTANCE">"CREATE EFFECT_INSTANCE"</xref> or
+                    <xref target="LIST EFFECT_INSTANCES">"LIST EFFECT_INSTANCES"</xref>
+                    command.</t>
+                    <t>Only unused effect instances can be added to the effect
+                    chain. Trying to add an effect instance which is already in
+                    use somewhere in the audio signal path of the sampler will
+                    result in an error.</t>
+
+                    <t>Possible Answers:</t>
+                    <t>
+                        <list>
+                            <t>"OK" -
+                                <list>
+                                    <t>in case the effect instance was
+                                    added successfully to the chain</t>
+                                </list>
+                            </t>
+                            <t>"ERR:&lt;error-code&gt;:&lt;error-message&gt;" -
+                                <list>
+                                    <t>if the effect instance could not be added</t>
+                                </list>
+                            </t>
+                        </list>
+                    </t>
+
+                    <t>Examples:</t>
+                    <t>
+                        <list>
+                            <t>C: "APPEND SEND_EFFECT_CHAIN EFFECT 0 2 38"</t>
+                            <t>S: "OK"</t>
+                        </list>
+                    </t>
+                </section>
+
+                <section title="Insert effect instance to a send effect chain" anchor="INSERT SEND_EFFECT_CHAIN EFFECT">
+                    <t>The front-end can add an unused effect instance to a
+                    certain position of a send effect chain by sending the
+                    following command:</t>
+                    <t>
+                        <list>
+                            <t>INSERT SEND_EFFECT_CHAIN EFFECT &lt;audio-device&gt; &lt;effect-chain&gt; &lt;chain-pos&gt; &lt;effect-instance&gt;</t>
+                        </list>
+                    </t>
+                    <t>Where &lt;audio-device&gt; should be replaced by the
+                    numerical ID of the audio output device as given by the
+                    <xref target="CREATE AUDIO_OUTPUT_DEVICE">"CREATE AUDIO_OUTPUT_DEVICE"</xref>
+                    or <xref target="LIST AUDIO_OUTPUT_DEVICES">"LIST AUDIO_OUTPUT_DEVICES"</xref>
+                    command, &lt;effect-chain&gt; by the numerical ID as
+                    returned by the
+                    <xref target="ADD SEND_EFFECT_CHAIN">"ADD SEND_EFFECT_CHAIN"</xref>
+                    or
+                    <xref target="LIST SEND_EFFECT_CHAINS">"LIST SEND_EFFECT_CHAINS"</xref>
+                    command, &lt;effect-instance&gt; as returned by the
+                    <xref target="CREATE EFFECT_INSTANCE">"CREATE EFFECT_INSTANCE"</xref> or
+                    <xref target="LIST EFFECT_INSTANCES">"LIST EFFECT_INSTANCES"</xref>
+                    command and &lt;chain-pos&gt; the exact position of the
+                    effect chain where the supplied effect shall be inserted
+                    to.</t>
+                    <t>Only unused effect instances can be added to the effect
+                    chain. Trying to add an effect instance which is already in
+                    use somewhere in the audio signal path of the sampler will
+                    result in an error.</t>
+
+                    <t>Possible Answers:</t>
+                    <t>
+                        <list>
+                            <t>"OK" -
+                                <list>
+                                    <t>in case the effect instance was
+                                    added successfully to the chain</t>
+                                </list>
+                            </t>
+                            <t>"ERR:&lt;error-code&gt;:&lt;error-message&gt;" -
+                                <list>
+                                    <t>if the effect instance could not be added</t>
+                                </list>
+                            </t>
+                        </list>
+                    </t>
+
+                    <t>Examples:</t>
+                    <t>
+                        <list>
+                            <t>C: "INSERT SEND_EFFECT_CHAIN EFFECT 0 2 4 38"</t>
+                            <t>S: "OK"</t>
+                        </list>
+                    </t>
+                </section>
+
+                <section title="Remove effect instance from send effect chain" anchor="REMOVE SEND_EFFECT_CHAIN EFFECT">
+                    <t>The front-end can remove an effect instance from a
+                    certain position of a send effect chain by sending the
+                    following command:</t>
+                    <t>
+                        <list>
+                            <t>REMOVE SEND_EFFECT_CHAIN EFFECT &lt;audio-device&gt; &lt;effect-chain&gt; &lt;chain-pos&gt;</t>
+                        </list>
+                    </t>
+                    <t>Where &lt;audio-device&gt; should be replaced by the
+                    numerical ID of the audio output device as given by the
+                    <xref target="CREATE AUDIO_OUTPUT_DEVICE">"CREATE AUDIO_OUTPUT_DEVICE"</xref>
+                    or <xref target="LIST AUDIO_OUTPUT_DEVICES">"LIST AUDIO_OUTPUT_DEVICES"</xref>
+                    command, &lt;effect-chain&gt; by the numerical ID as
+                    returned by the
+                    <xref target="ADD SEND_EFFECT_CHAIN">"ADD SEND_EFFECT_CHAIN"</xref>
+                    or
+                    <xref target="LIST SEND_EFFECT_CHAINS">"LIST SEND_EFFECT_CHAINS"</xref>
+                    command and &lt;chain-pos&gt; the exact position of the
+                    effect instance to be removed from the effect chain.</t>
+
+                    <t>Possible Answers:</t>
+                    <t>
+                        <list>
+                            <t>"OK" -
+                                <list>
+                                    <t>in case the effect instance was
+                                    removed successfully</t>
+                                </list>
+                            </t>
+                            <t>"ERR:&lt;error-code&gt;:&lt;error-message&gt;" -
+                                <list>
+                                    <t>if the effect instance could not be removed</t>
+                                </list>
+                            </t>
+                        </list>
+                    </t>
+
+                    <t>Examples:</t>
+                    <t>
+                        <list>
+                            <t>C: "REMOVE SEND_EFFECT_CHAIN EFFECT 0 2 4"</t>
+                            <t>S: "OK"</t>
+                        </list>
+                    </t>
+                </section>
+
+            </section>
         </section>
 
         <section title="Command Syntax" anchor="command_syntax">
@@ -7520,6 +8647,9 @@ Schoenebeck'>
                     <t><xref target="GET FILE INSTRUMENTS">"GET FILE INSTRUMENTS"</xref></t>
                     <t><xref target="LIST FILE INSTRUMENTS">"LIST FILE INSTRUMENTS"</xref></t>
                     <t><xref target="GET FILE INSTRUMENT INFO">"GET FILE INSTRUMENT INFO"</xref></t>
+                    <t><xref target="GET EFFECT INFO">"GET EFFECT INFO"</xref></t>
+                    <t><xref target="GET EFFECT_INSTANCE INFO">"GET EFFECT_INSTANCE INFO"</xref></t>
+                    <t><xref target="CREATE EFFECT_INSTANCE">"CREATE EFFECT_INSTANCE"</xref></t>
                 </list>
                 Note that the forward slash character ('/') has a special meaning in
                 filename / path based arguments: it acts as separator of the nodes in
@@ -7564,6 +8694,9 @@ Schoenebeck'>
                     <t><xref target="SET DB_INSTRUMENT NAME">"SET DB_INSTRUMENT NAME"</xref></t>
                     <t><xref target="SET DB_INSTRUMENT DESCRIPTION">"SET DB_INSTRUMENT DESCRIPTION"</xref></t>
                     <t><xref target="FIND DB_INSTRUMENTS">"FIND DB_INSTRUMENTS"</xref></t>
+                    <t><xref target="GET EFFECT INFO">"GET EFFECT INFO"</xref></t>
+                    <t><xref target="GET EFFECT_INSTANCE INFO">"GET EFFECT_INSTANCE INFO"</xref></t>
+                    <t><xref target="CREATE EFFECT_INSTANCE">"CREATE EFFECT_INSTANCE"</xref></t>
                 </list>
                 Please note that these lists are manually maintained. If you
                 find a command that also supports escape sequences we forgot to

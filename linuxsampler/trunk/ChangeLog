@@ -110,7 +110,7 @@ Version CVS HEAD (?)
     - added LSCP command "INSERT SEND_EFFECT_CHAIN EFFECT <audio-device>
       <effect-chain> <effect-chain-pos> <effect-instance>"
     - added LSCP command "REMOVE SEND_EFFECT_CHAIN EFFECT <audio-device>
-      <effect-chain> <effect-instance>"
+      <effect-chain> <chain-pos>"
     - added LSCP command "SET FX_SEND SEND_EFFECT <sampler_channel>
       <fx_send_id> <effect_chain> <chain_pos>"
     - added LSCP command "REMOVE FX_SEND SEND_EFFECT <sampler_channel>

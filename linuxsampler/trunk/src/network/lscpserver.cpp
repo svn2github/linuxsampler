@@ -2624,7 +2624,7 @@ String LSCPServer::CreateEffectInstance(int iEffectIndex) {
         if (!pEffectInfo)
             throw Exception("There is no effect with index " + ToString(iEffectIndex));
         Effect* pEffect = EffectFactory::Create(pEffectInfo);
-        result.Add(pEffect->ID());
+        result = pEffect->ID(); // success
     } catch (Exception e) {
         result.Error(e);
     }
@@ -2768,7 +2768,7 @@ String LSCPServer::AddSendEffectChain(int iAudioOutputDevice) {
             throw Exception("There is no audio output device with index " + ToString(iAudioOutputDevice) + ".");
         AudioOutputDevice* pDevice = devices[iAudioOutputDevice];
         EffectChain* pEffectChain = pDevice->AddSendEffectChain();
-        result.Add(pEffectChain->ID());
+        result = pEffectChain->ID();
     } catch (Exception e) {
         result.Error(e);
     }
