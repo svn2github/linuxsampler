@@ -34,7 +34,7 @@
 namespace LinuxSampler {
 
     FxSend::FxSend(EngineChannel* pEngineChannel, uint8_t MidiCtrl, String Name) throw (Exception)
-        : iMasterEffectChain(-1), iMasterEffect(-1), bInfoChanged(false)
+        : iDestinationEffectChain(-1), iDestinationEffectChainPos(-1), bInfoChanged(false)
     {
         this->pEngineChannel = pEngineChannel;
         AudioOutputDevice* pDevice = pEngineChannel->GetAudioOutputDevice();
@@ -78,29 +78,44 @@ namespace LinuxSampler {
         fLevel = DEFAULT_FX_SEND_LEVEL;
     }
 
-    int FxSend::DestinationMasterEffectChain() const {
-        return iMasterEffectChain;
+    int FxSend::DestinationEffectChain() const {
+        return iDestinationEffectChain;
     }
 
-    int FxSend::DestinationMasterEffect() const {
-        return iMasterEffect;
+    int FxSend::DestinationEffectChainPosition() const {
+        return iDestinationEffectChainPos;
     }
 
-    void FxSend::SetDestinationMasterEffect(int iChain, int iEffect) throw (Exception) {
+    void FxSend::SetDestinationEffect(int iChain, int iChainPos) throw (Exception) {
         AudioOutputDevice* pDevice = pEngineChannel->GetAudioOutputDevice();
-        if (iChain < 0 || iChain >= pDevice->MasterEffectChainCount())
+        if (iChain < 0 || iChain >= pDevice->SendEffectChainCount())
             throw Exception(
-                "Could not assign FX Send to master effect chain " +
+                "Could not assign FX Send to send effect chain " +
                 ToString(iChain) + ": effect chain doesn't exist."
             );
-        if (iEffect < 0 || iEffect >= pDevice->MasterEffectChain(iChain)->EffectCount())
+        if (iChainPos < 0 || iChainPos >= pDevice->SendEffectChain(iChain)->EffectCount())
             throw Exception(
-                "Could not assign FX Send to master effect " +
-                ToString(iEffect) + " of effect chain " + ToString(iChain) +
-                ": effect doesn't exist."
+                "Could not assign FX Send to send effect chain position " +
+                ToString(iChainPos) + " of send effect chain " + ToString(iChain) +
+                ": effect chain position out of bounds."
             );
-        iMasterEffectChain = iChain;
-        iMasterEffect      = iEffect;
+        iDestinationEffectChain    = iChain;
+        iDestinationEffectChainPos = iChainPos;
+    }
+
+    // TODO: to be removed
+    int FxSend::DestinationMasterEffectChain() const {
+        return DestinationEffectChain();
+    }
+
+    // TODO: to be removed
+    int FxSend::DestinationMasterEffect() const {
+        return DestinationEffectChainPosition();
+    }
+
+    // TODO: to be removed
+    void FxSend::SetDestinationMasterEffect(int iChain, int iChainPos) throw (Exception) {
+        SetDestinationEffect(iChain, iChainPos);
     }
 
     int FxSend::DestinationChannel(int SrcChan) {

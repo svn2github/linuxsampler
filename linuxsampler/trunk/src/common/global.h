@@ -57,5 +57,10 @@ typedef unsigned int uint;
 #include <sys/types.h>
 #endif
 
+#ifdef __GNUC__
+#define DEPRECATED_API __attribute__ ((deprecated))
+#else
+#define DEPRECATED_API
+#endif
 
 #endif // __LS_GLOBAL_H__

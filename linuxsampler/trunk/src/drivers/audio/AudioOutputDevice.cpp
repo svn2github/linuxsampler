@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 - 2008 Christian Schoenebeck                       *
+ *   Copyright (C) 2005 - 2010 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -261,13 +261,13 @@ namespace LinuxSampler {
         return Parameters;
     }
 
-    EffectChain* AudioOutputDevice::AddMasterEffectChain() {
+    EffectChain* AudioOutputDevice::AddSendEffectChain() {
         EffectChain* pChain = new EffectChain(this, EffectChainIDs->create());
         vEffectChains.push_back(pChain);
         return pChain;
     }
 
-    void AudioOutputDevice::RemoveMasterEffectChain(uint iChain) throw (Exception) {
+    void AudioOutputDevice::RemoveSendEffectChain(uint iChain) throw (Exception) {
         if (iChain >= vEffectChains.size())
             throw Exception(
                 "Could not remove master effect chain " + ToString(iChain) +
@@ -279,13 +279,33 @@ namespace LinuxSampler {
         vEffectChains.erase(iter);
     }
 
-    EffectChain* AudioOutputDevice::MasterEffectChain(uint iChain) const {
+    EffectChain* AudioOutputDevice::SendEffectChain(uint iChain) const {
         if (iChain >= vEffectChains.size()) return NULL;
         return vEffectChains[iChain];
     }
 
-    uint AudioOutputDevice::MasterEffectChainCount() const {
+    uint AudioOutputDevice::SendEffectChainCount() const {
         return vEffectChains.size();
+    }
+
+    // TODO: to be removed
+    EffectChain* AudioOutputDevice::AddMasterEffectChain() {
+        return AddSendEffectChain();
+    }
+
+    // TODO: to be removed
+    void AudioOutputDevice::RemoveMasterEffectChain(uint iChain) throw (Exception) {
+        RemoveSendEffectChain(iChain);
+    }
+
+    // TODO: to be removed
+    EffectChain* AudioOutputDevice::MasterEffectChain(uint iChain) const {
+        return SendEffectChain(iChain);
+    }
+
+    // TODO: to be removed
+    uint AudioOutputDevice::MasterEffectChainCount() const {
+        return SendEffectChainCount();
     }
 
     int AudioOutputDevice::RenderAudio(uint Samples) {

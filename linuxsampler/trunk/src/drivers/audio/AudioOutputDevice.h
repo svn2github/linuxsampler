@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 - 2009 Christian Schoenebeck                       *
+ *   Copyright (C) 2005 - 2010 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -245,29 +245,49 @@ namespace LinuxSampler {
             std::map<String,DeviceCreationParameter*> DeviceParameters();
 
             /**
-             * Add a chain of master effects to this AudioOutputDevice.
+             * Add a chain of send effects to this AudioOutputDevice.
              * You actually have to add effects to that chain afterwards.
              */
-            EffectChain* AddMasterEffectChain();
+            EffectChain* AddSendEffectChain();
 
             /**
-             * Remove the master effect chain given by @a iChain .
+             * Remove the send effect chain given by @a iChain .
              *
-             * @throws Exception - if given master effect chain doesn't exist
+             * @throws Exception - if given send effect chain doesn't exist
              */
-            void RemoveMasterEffectChain(uint iChain) throw (Exception);
+            void RemoveSendEffectChain(uint iChain) throw (Exception);
 
             /**
-             * Returns master effect chain given by @a iChain or @c NULL if
+             * Returns send effect chain given by @a iChain or @c NULL if
              * there's no such effect chain.
              */
-            EffectChain* MasterEffectChain(uint iChain) const;
+            EffectChain* SendEffectChain(uint iChain) const;
 
             /**
-             * Returns amount of master effect chains this AudioOutputDevice
+             * Returns amount of send effect chains this AudioOutputDevice
              * currently provides.
              */
-            uint MasterEffectChainCount() const;
+            uint SendEffectChainCount() const;
+
+            /**
+             * @deprecated This method will be removed, use AddSendEffectChain() instead!
+             */
+            EffectChain* AddMasterEffectChain() DEPRECATED_API;
+
+            /**
+             * @deprecated This method will be removed, use RemoveSendEffectChain() instead!
+             */
+            void RemoveMasterEffectChain(uint iChain) throw (Exception) DEPRECATED_API;
+
+            /**
+             * @deprecated This method will be removed, use SendEffectChain() instead!
+             */
+            EffectChain* MasterEffectChain(uint iChain) const DEPRECATED_API;
+
+            /**
+             * @deprecated This method will be removed, use SendEffectChainCount() instead!
+             */
+            uint MasterEffectChainCount() const DEPRECATED_API;
 
         protected:
             SynchronizedConfig<std::set<Engine*> >    Engines;     ///< All sampler engines that are connected to the audio output device.

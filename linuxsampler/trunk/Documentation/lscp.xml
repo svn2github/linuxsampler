@@ -6680,7 +6680,7 @@ Schoenebeck'>
 		</t>
 		<t>/ MIDI_INSTRUMENT_MAP SP map_name
 		</t>
-		<t>/ MASTER_EFFECT_CHAIN SP number
+		<t>/ SEND_EFFECT_CHAIN SP device_index
 		</t>
 	</list>
 </t>
@@ -6822,9 +6822,11 @@ Schoenebeck'>
 		</t>
 		<t>/ MIDI_INSTRUMENT_MAP SP ALL
 		</t>
-		<t>/ MASTER_EFFECT_CHAIN SP number SP number
+		<t>/ SEND_EFFECT_CHAIN SP device_index SP effect_chain
 		</t>
-		<t>/ MASTER_EFFECT_CHAIN SP EFFECT SP number SP number SP number
+		<t>/ SEND_EFFECT_CHAIN SP EFFECT SP device_index SP effect_chain SP chain_pos
+		</t>
+		<t>/ FX_SEND SP SEND_EFFECT SP sampler_channel SP fx_send_id
 		</t>
 		<t>/ DB_INSTRUMENT_DIRECTORY SP FORCE SP db_path
 		</t>
@@ -6842,15 +6844,15 @@ Schoenebeck'>
 		</t>
 		<t>/ EFFECT_INSTANCES
 		</t>
-		<t>/ EFFECT SP INFO SP number
+		<t>/ EFFECT SP INFO SP effect_index
 		</t>
-		<t>/ EFFECT_INSTANCE SP INFO SP number
+		<t>/ EFFECT_INSTANCE SP INFO SP effect_instance
 		</t>
-		<t>/ EFFECT_INSTANCE_INPUT_CONTROL SP INFO SP number SP number
+		<t>/ EFFECT_INSTANCE_INPUT_CONTROL SP INFO SP effect_instance SP input_control
 		</t>
-		<t>/ MASTER_EFFECT_CHAINS SP number
+		<t>/ SEND_EFFECT_CHAINS SP device_index
 		</t>
-		<t>/ MASTER_EFFECT_CHAIN SP INFO SP number SP number
+		<t>/ SEND_EFFECT_CHAIN SP INFO SP device_index SP effect_chain
 		</t>
 		<t>/ AVAILABLE_MIDI_INPUT_DRIVERS
 		</t>
@@ -6956,7 +6958,7 @@ Schoenebeck'>
 		</t>
 		<t>/ MIDI_INPUT_PORT_PARAMETER SP number SP number SP string '=' param_val_list
 		</t>
-		<t>/ EFFECT_INSTANCE_INPUT_CONTROL SP number SP number SP effect_control_value
+		<t>/ EFFECT_INSTANCE_INPUT_CONTROL SP VALUE SP effect_instance SP input_control SP control_value
 		</t>
 		<t>/ CHANNEL SP set_chan_instruction
 		</t>
@@ -6969,6 +6971,8 @@ Schoenebeck'>
 		<t>/ FX_SEND SP MIDI_CONTROLLER SP sampler_channel SP fx_send_id SP midi_ctrl
 		</t>
 		<t>/ FX_SEND SP LEVEL SP sampler_channel SP fx_send_id SP volume_value
+		</t>
+		<t>/ FX_SEND SP SEND_EFFECT SP sampler_channel SP fx_send_id SP effect_chain SP chain_pos
 		</t>
 		<t>/ DB_INSTRUMENT_DIRECTORY SP NAME SP db_path SP stringval_escaped
 		</t>
@@ -7004,9 +7008,9 @@ Schoenebeck'>
 		</t>
 		<t>/ FX_SEND SP sampler_channel SP midi_ctrl SP fx_send_name
 		</t>
-		<t>/ EFFECT_INSTANCE SP number
+		<t>/ EFFECT_INSTANCE SP effect_index
 		</t>
-		<t>/ EFFECT_INSTANCE SP string SP filename SP effect_name
+		<t>/ EFFECT_INSTANCE SP effect_system SP module SP effect_name
 		</t>
 	</list>
 </t>
@@ -7076,13 +7080,13 @@ Schoenebeck'>
 </t>
 <t>append_instruction =
 	<list>
-		<t>MASTER_EFFECT_CHAIN SP EFFECT SP number SP number SP number
+		<t>SEND_EFFECT_CHAIN SP EFFECT SP device_index SP effect_chain SP effect_instance
 		</t>
 	</list>
 </t>
 <t>insert_instruction =
 	<list>
-		<t>MASTER_EFFECT_CHAIN SP EFFECT SP number SP number SP number SP number
+		<t>SEND_EFFECT_CHAIN SP EFFECT SP device_index SP effect_chain SP chain_pos SP effect_instance
 		</t>
 	</list>
 </t>
@@ -7168,7 +7172,7 @@ Schoenebeck'>
 		</t>
 		<t>/ EFFECT_INSTANCES
 		</t>
-		<t>/ MASTER_EFFECT_CHAINS SP number
+		<t>/ SEND_EFFECT_CHAINS SP number
 		</t>
 		<t>/ AVAILABLE_MIDI_INPUT_DRIVERS
 		</t>
@@ -7221,6 +7225,12 @@ Schoenebeck'>
 		<t>/ ON_DEMAND_HOLD
 		</t>
 		<t>/ PERSISTENT
+		</t>
+	</list>
+</t>
+<t>effect_instance =
+	<list>
+		<t>number
 		</t>
 	</list>
 </t>
@@ -7294,7 +7304,7 @@ Schoenebeck'>
 		</t>
 	</list>
 </t>
-<t>effect_control_value =
+<t>control_value =
 	<list>
 		<t>real
 		</t>
@@ -7360,6 +7370,30 @@ Schoenebeck'>
 		</t>
 	</list>
 </t>
+<t>effect_index =
+	<list>
+		<t>number
+		</t>
+	</list>
+</t>
+<t>effect_chain =
+	<list>
+		<t>number
+		</t>
+	</list>
+</t>
+<t>chain_pos =
+	<list>
+		<t>number
+		</t>
+	</list>
+</t>
+<t>input_control =
+	<list>
+		<t>number
+		</t>
+	</list>
+</t>
 <t>param_val_list =
 	<list>
 		<t>param_val
@@ -7404,6 +7438,18 @@ Schoenebeck'>
 		<t>/ NON_RECURSIVE
 		</t>
 		<t>/ FLAT
+		</t>
+	</list>
+</t>
+<t>effect_system =
+	<list>
+		<t>string
+		</t>
+	</list>
+</t>
+<t>module =
+	<list>
+		<t>filename
 		</t>
 	</list>
 </t>

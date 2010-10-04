@@ -96,21 +96,25 @@ Version CVS HEAD (?)
     - added LSCP command "GET EFFECT_INSTANCE INFO <effect-instance>"
     - added LSCP command
       "GET EFFECT_INSTANCE_INPUT_CONTROL INFO <effect-instance> <input-control>"
-    - added LSCP command "SET EFFECT_INSTANCE_INPUT_CONTROL <effect-instance>
-      <input-control> <value>"
-    - added LSCP command "GET MASTER_EFFECT_CHAINS <audio-device>"
-    - added LSCP command "LIST MASTER_EFFECT_CHAINS <audio-device>"
-    - added LSCP command "ADD MASTER_EFFECT_CHAIN <audio-device>"
+    - added LSCP command "SET EFFECT_INSTANCE_INPUT_CONTROL VALUE
+      <effect-instance> <input-control> <value>"
+    - added LSCP command "GET SEND_EFFECT_CHAINS <audio-device>"
+    - added LSCP command "LIST SEND_EFFECT_CHAINS <audio-device>"
+    - added LSCP command "ADD SEND_EFFECT_CHAIN <audio-device>"
     - added LSCP command
-      "REMOVE MASTER_EFFECT_CHAIN <audio-device> <effect-chain>"
+      "REMOVE SEND_EFFECT_CHAIN <audio-device> <effect-chain>"
     - added LSCP command
-      "GET MASTER_EFFECT_CHAIN INFO <audio-device> <effect-chain>"
-    - added LSCP command "APPEND MASTER_EFFECT_CHAIN EFFECT <audio-device>
+      "GET SEND_EFFECT_CHAIN INFO <audio-device> <effect-chain>"
+    - added LSCP command "APPEND SEND_EFFECT_CHAIN EFFECT <audio-device>
       <effect-chain> <effect-instance>"
-    - added LSCP command "INSERT MASTER_EFFECT_CHAIN EFFECT <audio-device>
-      <effect-chain> <effect-instance> <effect-chain-pos>"
-    - added LSCP command "REMOVE MASTER_EFFECT_CHAIN EFFECT <audio-device>
+    - added LSCP command "INSERT SEND_EFFECT_CHAIN EFFECT <audio-device>
+      <effect-chain> <effect-chain-pos> <effect-instance>"
+    - added LSCP command "REMOVE SEND_EFFECT_CHAIN EFFECT <audio-device>
       <effect-chain> <effect-instance>"
+    - added LSCP command "SET FX_SEND SEND_EFFECT <sampler_channel>
+      <fx_send_id> <effect_chain> <chain_pos>"
+    - added LSCP command "REMOVE FX_SEND SEND_EFFECT <sampler_channel>
+      <fx_send_id>"
 
   * Bug fixes:
     - Fixed crash which may occur when MIDI key + transpose is out of range

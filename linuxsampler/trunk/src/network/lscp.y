@@ -119,9 +119,9 @@ using namespace LinuxSampler;
 %token <Char> EXT_ASCII_CHAR
 
 %type <Char> char char_base alpha_char digit digit_oct digit_hex escape_seq escape_seq_octal escape_seq_hex
-%type <Dotnum> real dotnum volume_value boolean effect_control_value
-%type <Number> number sampler_channel instrument_index fx_send_id audio_channel_index device_index midi_input_channel_index midi_input_port_index midi_map midi_bank midi_prog midi_ctrl
-%type <String> string string_escaped text text_escaped text_escaped_base stringval stringval_escaped digits param_val_list param_val query_val filename db_path map_name entry_name fx_send_name effect_name engine_name command add_instruction create_instruction destroy_instruction get_instruction list_instruction load_instruction send_instruction set_chan_instruction load_instr_args load_engine_args audio_output_type_name midi_input_type_name remove_instruction unmap_instruction set_instruction subscribe_event unsubscribe_event map_instruction reset_instruction clear_instruction find_instruction move_instruction copy_instruction scan_mode edit_instruction format_instruction append_instruction insert_instruction
+%type <Dotnum> real dotnum volume_value boolean control_value
+%type <Number> number sampler_channel instrument_index fx_send_id audio_channel_index device_index effect_index effect_instance effect_chain chain_pos input_control midi_input_channel_index midi_input_port_index midi_map midi_bank midi_prog midi_ctrl
+%type <String> string string_escaped text text_escaped text_escaped_base stringval stringval_escaped digits param_val_list param_val query_val filename module effect_system db_path map_name entry_name fx_send_name effect_name engine_name command add_instruction create_instruction destroy_instruction get_instruction list_instruction load_instruction send_instruction set_chan_instruction load_instr_args load_engine_args audio_output_type_name midi_input_type_name remove_instruction unmap_instruction set_instruction subscribe_event unsubscribe_event map_instruction reset_instruction clear_instruction find_instruction move_instruction copy_instruction scan_mode edit_instruction format_instruction append_instruction insert_instruction
 %type <FillResponse> buffer_size_type
 %type <KeyValList> key_val_list query_val_list
 %type <LoadMode> instr_load_mode
@@ -198,7 +198,7 @@ add_instruction       :  CHANNEL                               { $$ = LSCPSERVER
                       |  DB_INSTRUMENTS SP db_path SP filename SP instrument_index                              { $$ = LSCPSERVER->AddDbInstruments($3,$5,$7);              }
                       |  MIDI_INSTRUMENT_MAP                   { $$ = LSCPSERVER->AddMidiInstrumentMap();                }
                       |  MIDI_INSTRUMENT_MAP SP map_name       { $$ = LSCPSERVER->AddMidiInstrumentMap($3);              }
-                      |  MASTER_EFFECT_CHAIN SP number         { $$ = LSCPSERVER->AddMasterEffectChain($3);              }
+                      |  SEND_EFFECT_CHAIN SP device_index     { $$ = LSCPSERVER->AddSendEffectChain($3);                }
                       ;
 
 subscribe_event       :  AUDIO_OUTPUT_DEVICE_COUNT             { $$ = LSCPSERVER->SubscribeNotification(LSCPEvent::event_audio_device_count);   }
@@ -269,8 +269,9 @@ unmap_instruction     :  MIDI_INSTRUMENT SP midi_map SP midi_bank SP midi_prog  
 remove_instruction    :  CHANNEL SP sampler_channel                   { $$ = LSCPSERVER->RemoveChannel($3);                      }
                       |  MIDI_INSTRUMENT_MAP SP midi_map              { $$ = LSCPSERVER->RemoveMidiInstrumentMap($3);            }
                       |  MIDI_INSTRUMENT_MAP SP ALL                   { $$ = LSCPSERVER->RemoveAllMidiInstrumentMaps();          }
-                      |  MASTER_EFFECT_CHAIN SP number SP number      { $$ = LSCPSERVER->RemoveMasterEffectChain($3,$5);         }
-                      |  MASTER_EFFECT_CHAIN SP EFFECT SP number SP number SP number  { $$ = LSCPSERVER->RemoveMasterEffectChainEffect($5,$7,$9); }
+                      |  SEND_EFFECT_CHAIN SP device_index SP effect_chain  { $$ = LSCPSERVER->RemoveSendEffectChain($3,$5);     }
+                      |  SEND_EFFECT_CHAIN SP EFFECT SP device_index SP effect_chain SP chain_pos  { $$ = LSCPSERVER->RemoveSendEffectChainEffect($5,$7,$9); }
+                      |  FX_SEND SP SEND_EFFECT SP sampler_channel SP fx_send_id  { $$ = LSCPSERVER->SetFxSendEffect($5,$7,-1,-1); }
                       |  DB_INSTRUMENT_DIRECTORY SP FORCE SP db_path  { $$ = LSCPSERVER->RemoveDbInstrumentDirectory($5, true);  }
                       |  DB_INSTRUMENT_DIRECTORY SP db_path           { $$ = LSCPSERVER->RemoveDbInstrumentDirectory($3);        }
                       |  DB_INSTRUMENT SP db_path                     { $$ = LSCPSERVER->RemoveDbInstrument($3);                 }
@@ -279,11 +280,11 @@ remove_instruction    :  CHANNEL SP sampler_channel                   { $$ = LSC
 get_instruction       :  AVAILABLE_ENGINES                                                          { $$ = LSCPSERVER->GetAvailableEngines();                          }
                       |  AVAILABLE_EFFECTS                                                          { $$ = LSCPSERVER->GetAvailableEffects();                          }
                       |  EFFECT_INSTANCES                                                           { $$ = LSCPSERVER->GetEffectInstances();                           }
-                      |  EFFECT SP INFO SP number                                                   { $$ = LSCPSERVER->GetEffectInfo($5);                              }
-                      |  EFFECT_INSTANCE SP INFO SP number                                          { $$ = LSCPSERVER->GetEffectInstanceInfo($5);                      }
-                      |  EFFECT_INSTANCE_INPUT_CONTROL SP INFO SP number SP number                  { $$ = LSCPSERVER->GetEffectInstanceInputControlInfo($5,$7);       }
-                      |  MASTER_EFFECT_CHAINS SP number                                             { $$ = LSCPSERVER->GetMasterEffectChains($3);                      }
-                      |  MASTER_EFFECT_CHAIN SP INFO SP number SP number                            { $$ = LSCPSERVER->GetMasterEffectChainInfo($5,$7);                }
+                      |  EFFECT SP INFO SP effect_index                                             { $$ = LSCPSERVER->GetEffectInfo($5);                              }
+                      |  EFFECT_INSTANCE SP INFO SP effect_instance                                 { $$ = LSCPSERVER->GetEffectInstanceInfo($5);                      }
+                      |  EFFECT_INSTANCE_INPUT_CONTROL SP INFO SP effect_instance SP input_control  { $$ = LSCPSERVER->GetEffectInstanceInputControlInfo($5,$7);       }
+                      |  SEND_EFFECT_CHAINS SP device_index                                         { $$ = LSCPSERVER->GetSendEffectChains($3);                        }
+                      |  SEND_EFFECT_CHAIN SP INFO SP device_index SP effect_chain                  { $$ = LSCPSERVER->GetSendEffectChainInfo($5,$7);                  }
                       |  AVAILABLE_MIDI_INPUT_DRIVERS                                               { $$ = LSCPSERVER->GetAvailableMidiInputDrivers();                 }
                       |  MIDI_INPUT_DRIVER SP INFO SP string                                        { $$ = LSCPSERVER->GetMidiInputDriverInfo($5);                     }
                       |  MIDI_INPUT_DRIVER_PARAMETER SP INFO SP string SP string                    { $$ = LSCPSERVER->GetMidiInputDriverParameterInfo($5, $7);        }
@@ -336,13 +337,14 @@ set_instruction       :  AUDIO_OUTPUT_DEVICE_PARAMETER SP number SP string '=' p
                       |  MIDI_INPUT_DEVICE_PARAMETER SP number SP string '=' param_val_list               { $$ = LSCPSERVER->SetMidiInputDeviceParameter($3, $5, $7);        }
                       |  MIDI_INPUT_PORT_PARAMETER SP number SP number SP string '=' NONE                 { $$ = LSCPSERVER->SetMidiInputPortParameter($3, $5, $7, "");      }
                       |  MIDI_INPUT_PORT_PARAMETER SP number SP number SP string '=' param_val_list       { $$ = LSCPSERVER->SetMidiInputPortParameter($3, $5, $7, $9);      }
-                      |  EFFECT_INSTANCE_INPUT_CONTROL SP number SP number SP effect_control_value        { $$ = LSCPSERVER->SetEffectInstanceInputControl($3, $5, $7);      }
+                      |  EFFECT_INSTANCE_INPUT_CONTROL SP VALUE SP effect_instance SP input_control SP control_value  { $$ = LSCPSERVER->SetEffectInstanceInputControlValue($5, $7, $9); }
                       |  CHANNEL SP set_chan_instruction                                                  { $$ = $3;                                                         }
                       |  MIDI_INSTRUMENT_MAP SP NAME SP midi_map SP map_name                              { $$ = LSCPSERVER->SetMidiInstrumentMapName($5, $7);               }
                       |  FX_SEND SP NAME SP sampler_channel SP fx_send_id SP fx_send_name                 { $$ = LSCPSERVER->SetFxSendName($5,$7,$9);                        }
                       |  FX_SEND SP AUDIO_OUTPUT_CHANNEL SP sampler_channel SP fx_send_id SP audio_channel_index SP audio_channel_index  { $$ = LSCPSERVER->SetFxSendAudioOutputChannel($5,$7,$9,$11); }
                       |  FX_SEND SP MIDI_CONTROLLER SP sampler_channel SP fx_send_id SP midi_ctrl         { $$ = LSCPSERVER->SetFxSendMidiController($5,$7,$9);              }
                       |  FX_SEND SP LEVEL SP sampler_channel SP fx_send_id SP volume_value                { $$ = LSCPSERVER->SetFxSendLevel($5,$7,$9);                       }
+                      |  FX_SEND SP SEND_EFFECT SP sampler_channel SP fx_send_id SP effect_chain SP chain_pos  { $$ = LSCPSERVER->SetFxSendEffect($5,$7,$9,$11);             }
                       |  DB_INSTRUMENT_DIRECTORY SP NAME SP db_path SP stringval_escaped                  { $$ = LSCPSERVER->SetDbInstrumentDirectoryName($5,$7);            }
                       |  DB_INSTRUMENT_DIRECTORY SP DESCRIPTION SP db_path SP stringval_escaped           { $$ = LSCPSERVER->SetDbInstrumentDirectoryDescription($5,$7);     }
                       |  DB_INSTRUMENT SP NAME SP db_path SP stringval_escaped                            { $$ = LSCPSERVER->SetDbInstrumentName($5,$7);                     }
@@ -360,8 +362,8 @@ create_instruction    :  AUDIO_OUTPUT_DEVICE SP string SP key_val_list  { $$ = L
                       |  MIDI_INPUT_DEVICE SP string                    { $$ = LSCPSERVER->CreateMidiInputDevice($3);      }
                       |  FX_SEND SP sampler_channel SP midi_ctrl        { $$ = LSCPSERVER->CreateFxSend($3,$5);            }
                       |  FX_SEND SP sampler_channel SP midi_ctrl SP fx_send_name  { $$ = LSCPSERVER->CreateFxSend($3,$5,$7); }
-                      |  EFFECT_INSTANCE SP number                      { $$ = LSCPSERVER->CreateEffectInstance($3);       }
-                      |  EFFECT_INSTANCE SP string SP filename SP effect_name  { $$ = LSCPSERVER->CreateEffectInstance($3,$5,$7); }
+                      |  EFFECT_INSTANCE SP effect_index                { $$ = LSCPSERVER->CreateEffectInstance($3);       }
+                      |  EFFECT_INSTANCE SP effect_system SP module SP effect_name  { $$ = LSCPSERVER->CreateEffectInstance($3,$5,$7); }
                       ;
 
 reset_instruction     :  CHANNEL SP sampler_channel  { $$ = LSCPSERVER->ResetChannel($3); }
@@ -396,10 +398,10 @@ load_instruction      :  INSTRUMENT SP load_instr_args  { $$ = $3; }
                       |  ENGINE SP load_engine_args     { $$ = $3; }
                       ;
 
-append_instruction    :  MASTER_EFFECT_CHAIN SP EFFECT SP number SP number SP number  { $$ = LSCPSERVER->AppendMasterEffectChainEffect($5,$7,$9); }
+append_instruction    :  SEND_EFFECT_CHAIN SP EFFECT SP device_index SP effect_chain SP effect_instance  { $$ = LSCPSERVER->AppendSendEffectChainEffect($5,$7,$9); }
                       ;
 
-insert_instruction    :  MASTER_EFFECT_CHAIN SP EFFECT SP number SP number SP number SP number  { $$ = LSCPSERVER->InsertMasterEffectChainEffect($5,$7,$9,$11); }
+insert_instruction    :  SEND_EFFECT_CHAIN SP EFFECT SP device_index SP effect_chain SP chain_pos SP effect_instance  { $$ = LSCPSERVER->InsertSendEffectChainEffect($5,$7,$9,$11); }
                       ;
 
 set_chan_instruction  :  AUDIO_OUTPUT_DEVICE SP sampler_channel SP device_index                                              { $$ = LSCPSERVER->SetAudioOutputDevice($5, $3);      }
@@ -442,7 +444,7 @@ list_instruction      :  AUDIO_OUTPUT_DEVICES                               { $$
                       |  AVAILABLE_ENGINES                                  { $$ = LSCPSERVER->ListAvailableEngines();               }
                       |  AVAILABLE_EFFECTS                                  { $$ = LSCPSERVER->ListAvailableEffects();               }
                       |  EFFECT_INSTANCES                                   { $$ = LSCPSERVER->ListEffectInstances();                }
-                      |  MASTER_EFFECT_CHAINS SP number                     { $$ = LSCPSERVER->ListMasterEffectChains($3);           }
+                      |  SEND_EFFECT_CHAINS SP number                       { $$ = LSCPSERVER->ListSendEffectChains($3);             }
                       |  AVAILABLE_MIDI_INPUT_DRIVERS                       { $$ = LSCPSERVER->ListAvailableMidiInputDrivers();      }
                       |  AVAILABLE_AUDIO_OUTPUT_DRIVERS                     { $$ = LSCPSERVER->ListAvailableAudioOutputDrivers();    }
                       |  MIDI_INSTRUMENTS SP midi_map                       { $$ = LSCPSERVER->ListMidiInstrumentMappings($3);       }
@@ -470,6 +472,9 @@ instr_load_mode       :  ON_DEMAND       { $$ = MidiInstrumentMapper::ON_DEMAND;
                       |  ON_DEMAND_HOLD  { $$ = MidiInstrumentMapper::ON_DEMAND_HOLD; }
                       |  PERSISTENT      { $$ = MidiInstrumentMapper::PERSISTENT;     }
                       ;
+
+effect_instance           : number
+                          ;
 
 device_index              :  number
                           ;
@@ -506,7 +511,7 @@ volume_value              :  dotnum
                           |  number  { $$ = $1; }
                           ;
 
-effect_control_value      :  real
+control_value             :  real
                           ;
 
 sampler_channel           :  number
@@ -546,6 +551,18 @@ fx_send_name              :  stringval_escaped
 effect_name               :  stringval_escaped
                           ;
 
+effect_index              :  number
+                          ;
+
+effect_chain              :  number
+                          ;
+
+chain_pos                 :  number
+                          ;
+
+input_control             :  number
+                          ;
+
 param_val_list            :  param_val
                           |  param_val_list','param_val  { $$ = $1 + "," + $3; }
                           ;
@@ -568,6 +585,12 @@ query_val                 :  text_escaped
 scan_mode                 :  RECURSIVE      { $$ = "RECURSIVE"; }
                           |  NON_RECURSIVE  { $$ = "NON_RECURSIVE"; }
                           |  FLAT           { $$ = "FLAT"; }
+                          ;
+
+effect_system             :  string
+                          ;
+
+module                    :  filename
                           ;
 
 // GRAMMAR_BNF_END - do NOT delete or modify this line !!!
@@ -984,11 +1007,14 @@ EFFECT_INSTANCES :  'E''F''F''E''C''T''_''I''N''S''T''A''N''C''E''S'
 EFFECT_INSTANCE_INPUT_CONTROL :  'E''F''F''E''C''T''_''I''N''S''T''A''N''C''E''_''I''N''P''U''T''_''C''O''N''T''R''O''L'
                               ;
 
-MASTER_EFFECT_CHAIN :  'M''A''S''T''E''R''_''E''F''F''E''C''T''_''C''H''A''I''N'
-                    ;
+SEND_EFFECT_CHAIN :  'S''E''N''D''_''E''F''F''E''C''T''_''C''H''A''I''N'
+                  ;
 
-MASTER_EFFECT_CHAINS :  'M''A''S''T''E''R''_''E''F''F''E''C''T''_''C''H''A''I''N''S'
-                     ;
+SEND_EFFECT  :  'S''E''N''D''_''E''F''F''E''C''T'
+             ;
+
+SEND_EFFECT_CHAINS :  'S''E''N''D''_''E''F''F''E''C''T''_''C''H''A''I''N''S'
+                   ;
 
 AVAILABLE_MIDI_INPUT_DRIVERS  :  'A''V''A''I''L''A''B''L''E''_''M''I''D''I''_''I''N''P''U''T''_''D''R''I''V''E''R''S'
                               ;
@@ -1093,6 +1119,9 @@ VOLUME                :  'V''O''L''U''M''E'
                       ;
 
 LEVEL                 :  'L''E''V''E''L'
+                      ;
+
+VALUE                 :  'V''A''L''U''E'
                       ;
 
 MUTE                  :  'M''U''T''E'

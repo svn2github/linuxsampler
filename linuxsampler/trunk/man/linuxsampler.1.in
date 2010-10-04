@@ -1,4 +1,4 @@
-.TH "linuxsampler" "1" "27 Jan 2010" "linuxsampler @VERSION@" "User Manuals"
+.TH "linuxsampler" "1" "04 Oct 2010" "linuxsampler @VERSION@" "User Manuals"
 .SH NAME
 linuxsampler \- modular, streaming capable sampler
 .SH SYNOPSIS
@@ -52,6 +52,9 @@ its instruments database system
 .IP "LINUXSAMPLER_PLUGIN_DIR"
 Allows to override the directory where LinuxSampler shall look for instrument
 editor plugins.
+.IP "LADSPA_PATH"
+Allows to override the directory where LinuxSampler shall look for LADSPA
+effect plugins.
 .SH "SEE ALSO"
 qsampler(1)
 .SH "BUGS"

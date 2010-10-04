@@ -5,6 +5,7 @@
 #include "LadspaEffect.h"
 #include "../common/DynamicLibraries.h"
 #include "../common/global_private.h"
+#include "../common/File.h"
 #include "../drivers/audio/AudioOutputDevice.h"
 #include <math.h>
 
@@ -346,12 +347,26 @@ static void _foundLadspaDll(String filename, void* hDLL, void* pFunction, void* 
 
 static String defaultLadspaDir() {
     #if defined(WIN32)
-    //FIXME: hmm... who knows what the common default LADSPA path on Windows is?
-    const String sysDir = getenv("PROGRAMFILES");
-    return sysDir + "\ladspa";
+    const String sysDir =
+        getenv("PROGRAMFILES") ? getenv("PROGRAMFILES") : "C:\\Program Files";
+    const String searchDirs[] = {
+        sysDir + "\\ladspa", //FIXME: hmm... who knows what the common default LADSPA path on Windows is?
+        sysDir + "\\Audacity\\Plug-Ins"
+    };
     #else
-    return "/usr/lib/ladspa";
+    const String searchDirs[] = {
+        "/usr/lib/ladspa",
+        "/usr/local/lib/ladspa"
+    };
     #endif
+    // check if one of the suggested directories exists
+    for (int i = 0; i < sizeof(searchDirs) / sizeof(String); i++) {
+        File f(searchDirs[i]);
+        if (f.Exist() && f.IsDirectory())
+            return searchDirs[i];
+    }
+    // No directory of the list exists? Whatever, return the 1st one of the list.
+    return searchDirs[0];
 }
 
 std::vector<EffectInfo*> LadspaEffect::AvailableEffects() {
