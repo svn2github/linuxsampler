@@ -2393,7 +2393,7 @@ String LSCPServer::GetFxSendInfo(uint uiSamplerChannel, uint FxSendID) {
         result.Add("MIDI_CONTROLLER", pFxSend->MidiController());
         result.Add("LEVEL", ToString(pFxSend->Level()));
         result.Add("AUDIO_OUTPUT_ROUTING", AudioRouting);
-        result.Add("SEND_EFFECT", sEffectRouting);
+        result.Add("EFFECT", sEffectRouting);
     } catch (Exception e) {
         result.Error(e);
     }

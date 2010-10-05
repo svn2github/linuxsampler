@@ -23,6 +23,8 @@ Version CVS HEAD (?)
       the 2nd effect send of the sampler channel, no matter what the actual
       effect type is)
     - implemented support for internal LADSPA effects
+    - raised limit of program change queue from 100 to 512
+      (as suggested by Alex Stone)
 
   * Gigasampler format engine:
     - implemented the "round robin keyboard" dimension
@@ -80,6 +82,8 @@ Version CVS HEAD (?)
   * MIDI driver:
     - ALSA MIDI driver supports now "NAME" device parameter, for overriding
       the ALSA sequencer client name
+    - removed limit of maximum amount of MIDI ports per MIDI device, since
+      there is no reason for this limit
 
   * LSCP server:
     - added support for sending MIDI CC messages via LSCP command
@@ -111,10 +115,9 @@ Version CVS HEAD (?)
       <effect-chain> <effect-chain-pos> <effect-instance>"
     - added LSCP command "REMOVE SEND_EFFECT_CHAIN EFFECT <audio-device>
       <effect-chain> <chain-pos>"
-    - added LSCP command "SET FX_SEND SEND_EFFECT <sampler_channel>
+    - added LSCP command "SET FX_SEND EFFECT <sampler_channel>
       <fx_send_id> <effect_chain> <chain_pos>"
-    - added LSCP command "REMOVE FX_SEND SEND_EFFECT <sampler_channel>
-      <fx_send_id>"
+    - added LSCP command "REMOVE FX_SEND EFFECT <sampler_channel> <fx_send_id>"
 
   * Bug fixes:
     - Fixed crash which may occur when MIDI key + transpose is out of range

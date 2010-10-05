@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 - 2008 Christian Schoenebeck                       *
+ *   Copyright (C) 2005 - 2010 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -104,7 +104,7 @@ namespace LinuxSampler {
     }
 
     optional<int> MidiInputDevice::ParameterPorts::RangeMaxAsInt(std::map<String,String> Parameters) {
-        return 100;
+        return optional<int>::nothing;
     }
 
     std::vector<int> MidiInputDevice::ParameterPorts::PossibilitiesAsInt(std::map<String,String> Parameters) {

@@ -271,7 +271,7 @@ remove_instruction    :  CHANNEL SP sampler_channel                   { $$ = LSC
                       |  MIDI_INSTRUMENT_MAP SP ALL                   { $$ = LSCPSERVER->RemoveAllMidiInstrumentMaps();          }
                       |  SEND_EFFECT_CHAIN SP device_index SP effect_chain  { $$ = LSCPSERVER->RemoveSendEffectChain($3,$5);     }
                       |  SEND_EFFECT_CHAIN SP EFFECT SP device_index SP effect_chain SP chain_pos  { $$ = LSCPSERVER->RemoveSendEffectChainEffect($5,$7,$9); }
-                      |  FX_SEND SP SEND_EFFECT SP sampler_channel SP fx_send_id  { $$ = LSCPSERVER->SetFxSendEffect($5,$7,-1,-1); }
+                      |  FX_SEND SP EFFECT SP sampler_channel SP fx_send_id  { $$ = LSCPSERVER->SetFxSendEffect($5,$7,-1,-1);    }
                       |  DB_INSTRUMENT_DIRECTORY SP FORCE SP db_path  { $$ = LSCPSERVER->RemoveDbInstrumentDirectory($5, true);  }
                       |  DB_INSTRUMENT_DIRECTORY SP db_path           { $$ = LSCPSERVER->RemoveDbInstrumentDirectory($3);        }
                       |  DB_INSTRUMENT SP db_path                     { $$ = LSCPSERVER->RemoveDbInstrument($3);                 }
@@ -344,7 +344,7 @@ set_instruction       :  AUDIO_OUTPUT_DEVICE_PARAMETER SP number SP string '=' p
                       |  FX_SEND SP AUDIO_OUTPUT_CHANNEL SP sampler_channel SP fx_send_id SP audio_channel_index SP audio_channel_index  { $$ = LSCPSERVER->SetFxSendAudioOutputChannel($5,$7,$9,$11); }
                       |  FX_SEND SP MIDI_CONTROLLER SP sampler_channel SP fx_send_id SP midi_ctrl         { $$ = LSCPSERVER->SetFxSendMidiController($5,$7,$9);              }
                       |  FX_SEND SP LEVEL SP sampler_channel SP fx_send_id SP volume_value                { $$ = LSCPSERVER->SetFxSendLevel($5,$7,$9);                       }
-                      |  FX_SEND SP SEND_EFFECT SP sampler_channel SP fx_send_id SP effect_chain SP chain_pos  { $$ = LSCPSERVER->SetFxSendEffect($5,$7,$9,$11);             }
+                      |  FX_SEND SP EFFECT SP sampler_channel SP fx_send_id SP effect_chain SP chain_pos  { $$ = LSCPSERVER->SetFxSendEffect($5,$7,$9,$11);                  }
                       |  DB_INSTRUMENT_DIRECTORY SP NAME SP db_path SP stringval_escaped                  { $$ = LSCPSERVER->SetDbInstrumentDirectoryName($5,$7);            }
                       |  DB_INSTRUMENT_DIRECTORY SP DESCRIPTION SP db_path SP stringval_escaped           { $$ = LSCPSERVER->SetDbInstrumentDirectoryDescription($5,$7);     }
                       |  DB_INSTRUMENT SP NAME SP db_path SP stringval_escaped                            { $$ = LSCPSERVER->SetDbInstrumentName($5,$7);                     }
@@ -1009,9 +1009,6 @@ EFFECT_INSTANCE_INPUT_CONTROL :  'E''F''F''E''C''T''_''I''N''S''T''A''N''C''E''_
 
 SEND_EFFECT_CHAIN :  'S''E''N''D''_''E''F''F''E''C''T''_''C''H''A''I''N'
                   ;
-
-SEND_EFFECT  :  'S''E''N''D''_''E''F''F''E''C''T'
-             ;
 
 SEND_EFFECT_CHAINS :  'S''E''N''D''_''E''F''F''E''C''T''_''C''H''A''I''N''S'
                    ;

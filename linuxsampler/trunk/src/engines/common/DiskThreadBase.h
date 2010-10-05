@@ -196,7 +196,7 @@ namespace LinuxSampler {
                 Thread(true, false, 1, -2),
                 pInstruments(pInstruments),
                 DeletionNotificationQueue(4*MaxStreams),
-                ProgramChangeQueue(100)
+                ProgramChangeQueue(512)
             {
                 CreationQueue       = new RingBuffer<create_command_t,false>(4*MaxStreams);
                 DeletionQueue       = new RingBuffer<delete_command_t,false>(4*MaxStreams);

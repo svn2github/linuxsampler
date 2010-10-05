@@ -3502,7 +3502,7 @@ Schoenebeck'>
                                             effect instance respectively</t>
                                         </list>
                                     </t>
-                                    <t>SEND_EFFECT -
+                                    <t>EFFECT -
                                         <list>
                                             <t>destination send effect chain ID
                                             and destination effect chain
@@ -3526,6 +3526,18 @@ Schoenebeck'>
                             <t>&nbsp;&nbsp;&nbsp;"MIDI_CONTROLLER: 91"</t>
                             <t>&nbsp;&nbsp;&nbsp;"LEVEL: 0.3"</t>
                             <t>&nbsp;&nbsp;&nbsp;"AUDIO_OUTPUT_ROUTING: 2,3"</t>
+                            <t>&nbsp;&nbsp;&nbsp;"EFFECT: NONE"</t>
+                            <t>&nbsp;&nbsp;&nbsp;"."</t>
+                        </list>
+                    </t>
+                    <t>
+                        <list>
+                            <t>C: "GET FX_SEND INFO 0 1"</t>
+                            <t>S: "NAME: Delay Send (Internal)"</t>
+                            <t>&nbsp;&nbsp;&nbsp;"MIDI_CONTROLLER: 93"</t>
+                            <t>&nbsp;&nbsp;&nbsp;"LEVEL: 0.51"</t>
+                            <t>&nbsp;&nbsp;&nbsp;"AUDIO_OUTPUT_ROUTING: 1,2"</t>
+                            <t>&nbsp;&nbsp;&nbsp;"EFFECT: 2,0"</t>
                             <t>&nbsp;&nbsp;&nbsp;"."</t>
                         </list>
                     </t>
@@ -3637,12 +3649,12 @@ Schoenebeck'>
                     </t>
                 </section>
 
-                <section title="Assigning destination effect to an effect send" anchor="SET FX_SEND SEND_EFFECT">
+                <section title="Assigning destination effect to an effect send" anchor="SET FX_SEND EFFECT">
                     <t>The front-end can (re-)assign a destination effect to an
                     effect send by sending the following command:</t>
                     <t>
                         <list>
-                            <t>SET FX_SEND SEND_EFFECT &lt;sampler-chan&gt; &lt;fx-send-id&gt; &lt;effect-chain&gt; &lt;chain-pos&gt;</t>
+                            <t>SET FX_SEND EFFECT &lt;sampler-chan&gt; &lt;fx-send-id&gt; &lt;effect-chain&gt; &lt;chain-pos&gt;</t>
                         </list>
                     </t>
                     <t>Where &lt;sampler-chan&gt; is the sampler channel number
@@ -3678,18 +3690,18 @@ Schoenebeck'>
                     <t>Example:</t>
                     <t>
                         <list>
-                            <t>C: "SET FX_SEND SEND_EFFECT 0 0 2 5"</t>
+                            <t>C: "SET FX_SEND EFFECT 0 0 2 5"</t>
                             <t>S: "OK"</t>
                         </list>
                     </t>
                 </section>
 
-                <section title="Removing destination effect from an effect send" anchor="REMOVE FX_SEND SEND_EFFECT">
+                <section title="Removing destination effect from an effect send" anchor="REMOVE FX_SEND EFFECT">
                     <t>The front-end can (re-)assign a destination effect to an
                     effect send by sending the following command:</t>
                     <t>
                         <list>
-                            <t>REMOVE FX_SEND SEND_EFFECT &lt;sampler-chan&gt; &lt;fx-send-id&gt;</t>
+                            <t>REMOVE FX_SEND EFFECT &lt;sampler-chan&gt; &lt;fx-send-id&gt;</t>
                         </list>
                     </t>
                     <t>Where &lt;sampler-chan&gt; is the sampler channel number
@@ -3723,7 +3735,7 @@ Schoenebeck'>
                     <t>Example:</t>
                     <t>
                         <list>
-                            <t>C: "REMOVE FX_SEND SEND_EFFECT 0 0"</t>
+                            <t>C: "REMOVE FX_SEND EFFECT 0 0"</t>
                             <t>S: "OK"</t>
                         </list>
                     </t>
@@ -6688,7 +6700,7 @@ Schoenebeck'>
                 of sampler channels are fed to send effects by creating FX sends
                 to the respective sampler channel and assigning a destination
                 send effect to that FX by using the
-                <xref target="SET FX_SEND SEND_EFFECT">"SET FX_SEND SEND_EFFECT"</xref>
+                <xref target="SET FX_SEND EFFECT">"SET FX_SEND EFFECT"</xref>
                 command. The latter allows to route the FX send to the beginning
                 of a send effect chain, as well as directly to any other
                 position of the send effect chain.</t>
@@ -7953,7 +7965,7 @@ Schoenebeck'>
 		</t>
 		<t>/ SEND_EFFECT_CHAIN SP EFFECT SP device_index SP effect_chain SP chain_pos
 		</t>
-		<t>/ FX_SEND SP SEND_EFFECT SP sampler_channel SP fx_send_id
+		<t>/ FX_SEND SP EFFECT SP sampler_channel SP fx_send_id
 		</t>
 		<t>/ DB_INSTRUMENT_DIRECTORY SP FORCE SP db_path
 		</t>
@@ -8099,7 +8111,7 @@ Schoenebeck'>
 		</t>
 		<t>/ FX_SEND SP LEVEL SP sampler_channel SP fx_send_id SP volume_value
 		</t>
-		<t>/ FX_SEND SP SEND_EFFECT SP sampler_channel SP fx_send_id SP effect_chain SP chain_pos
+		<t>/ FX_SEND SP EFFECT SP sampler_channel SP fx_send_id SP effect_chain SP chain_pos
 		</t>
 		<t>/ DB_INSTRUMENT_DIRECTORY SP NAME SP db_path SP stringval_escaped
 		</t>
