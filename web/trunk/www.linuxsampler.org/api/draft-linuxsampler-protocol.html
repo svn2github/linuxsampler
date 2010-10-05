@@ -322,9 +322,9 @@ Getting effect send information<br />
 Changing effect send's name<br />
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SET FX_SEND AUDIO_OUTPUT_CHANNEL">6.4.31.</a>&nbsp;
 Altering effect send's audio routing<br />
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SET FX_SEND SEND_EFFECT">6.4.32.</a>&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SET FX_SEND EFFECT">6.4.32.</a>&nbsp;
 Assigning destination effect to an effect send<br />
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#REMOVE FX_SEND SEND_EFFECT">6.4.33.</a>&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#REMOVE FX_SEND EFFECT">6.4.33.</a>&nbsp;
 Removing destination effect from an effect send<br />
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SET FX_SEND MIDI_CONTROLLER">6.4.34.</a>&nbsp;
 Altering effect send's MIDI controller<br />
@@ -5486,7 +5486,7 @@ Getting effect send information</h3>
 </blockquote>
                                     
 
-<p>SEND_EFFECT -
+<p>EFFECT -
                                         </p>
 <blockquote class="text">
 <p>destination send effect chain ID
@@ -5521,6 +5521,28 @@ Getting effect send information</h3>
 <p>&nbsp;&nbsp;&nbsp;"LEVEL: 0.3"
 </p>
 <p>&nbsp;&nbsp;&nbsp;"AUDIO_OUTPUT_ROUTING: 2,3"
+</p>
+<p>&nbsp;&nbsp;&nbsp;"EFFECT: NONE"
+</p>
+<p>&nbsp;&nbsp;&nbsp;"."
+</p>
+</blockquote><p>
+                    
+</p>
+<p>
+                        </p>
+<blockquote class="text">
+<p>C: "GET FX_SEND INFO 0 1"
+</p>
+<p>S: "NAME: Delay Send (Internal)"
+</p>
+<p>&nbsp;&nbsp;&nbsp;"MIDI_CONTROLLER: 93"
+</p>
+<p>&nbsp;&nbsp;&nbsp;"LEVEL: 0.51"
+</p>
+<p>&nbsp;&nbsp;&nbsp;"AUDIO_OUTPUT_ROUTING: 1,2"
+</p>
+<p>&nbsp;&nbsp;&nbsp;"EFFECT: 2,0"
 </p>
 <p>&nbsp;&nbsp;&nbsp;"."
 </p>
@@ -5676,7 +5698,7 @@ Altering effect send's audio routing</h3>
 </blockquote><p>
                     
 </p>
-<a name="SET FX_SEND SEND_EFFECT"></a><br /><hr />
+<a name="SET FX_SEND EFFECT"></a><br /><hr />
 <table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
 <a name="rfc.section.6.4.32"></a><h3>6.4.32.&nbsp;
 Assigning destination effect to an effect send</h3>
@@ -5687,7 +5709,7 @@ Assigning destination effect to an effect send</h3>
 <p>
                         </p>
 <blockquote class="text">
-<p>SET FX_SEND SEND_EFFECT &lt;sampler-chan&gt; &lt;fx-send-id&gt; &lt;effect-chain&gt; &lt;chain-pos&gt;
+<p>SET FX_SEND EFFECT &lt;sampler-chan&gt; &lt;fx-send-id&gt; &lt;effect-chain&gt; &lt;chain-pos&gt;
 </p>
 </blockquote><p>
                     
@@ -5736,14 +5758,14 @@ Assigning destination effect to an effect send</h3>
 <p>
                         </p>
 <blockquote class="text">
-<p>C: "SET FX_SEND SEND_EFFECT 0 0 2 5"
+<p>C: "SET FX_SEND EFFECT 0 0 2 5"
 </p>
 <p>S: "OK"
 </p>
 </blockquote><p>
                     
 </p>
-<a name="REMOVE FX_SEND SEND_EFFECT"></a><br /><hr />
+<a name="REMOVE FX_SEND EFFECT"></a><br /><hr />
 <table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
 <a name="rfc.section.6.4.33"></a><h3>6.4.33.&nbsp;
 Removing destination effect from an effect send</h3>
@@ -5754,7 +5776,7 @@ Removing destination effect from an effect send</h3>
 <p>
                         </p>
 <blockquote class="text">
-<p>REMOVE FX_SEND SEND_EFFECT &lt;sampler-chan&gt; &lt;fx-send-id&gt;
+<p>REMOVE FX_SEND EFFECT &lt;sampler-chan&gt; &lt;fx-send-id&gt;
 </p>
 </blockquote><p>
                     
@@ -5801,7 +5823,7 @@ Removing destination effect from an effect send</h3>
 <p>
                         </p>
 <blockquote class="text">
-<p>C: "REMOVE FX_SEND SEND_EFFECT 0 0"
+<p>C: "REMOVE FX_SEND EFFECT 0 0"
 </p>
 <p>S: "OK"
 </p>
@@ -10113,7 +10135,7 @@ Managing Effects</h3>
                 of sampler channels are fed to send effects by creating FX sends
                 to the respective sampler channel and assigning a destination
                 send effect to that FX by using the
-                <a class='info' href='#SET FX_SEND SEND_EFFECT'>"SET FX_SEND SEND_EFFECT"<span> (</span><span class='info'>Assigning destination effect to an effect send</span><span>)</span></a>
+                <a class='info' href='#SET FX_SEND EFFECT'>"SET FX_SEND EFFECT"<span> (</span><span class='info'>Assigning destination effect to an effect send</span><span>)</span></a>
                 command. The latter allows to route the FX send to the beginning
                 of a send effect chain, as well as directly to any other
                 position of the send effect chain.
@@ -11898,7 +11920,7 @@ Command Syntax</h3>
 <p>/ SEND_EFFECT_CHAIN SP EFFECT SP device_index SP effect_chain SP chain_pos
 		
 </p>
-<p>/ FX_SEND SP SEND_EFFECT SP sampler_channel SP fx_send_id
+<p>/ FX_SEND SP EFFECT SP sampler_channel SP fx_send_id
 		
 </p>
 <p>/ DB_INSTRUMENT_DIRECTORY SP FORCE SP db_path
@@ -12117,7 +12139,7 @@ Command Syntax</h3>
 <p>/ FX_SEND SP LEVEL SP sampler_channel SP fx_send_id SP volume_value
 		
 </p>
-<p>/ FX_SEND SP SEND_EFFECT SP sampler_channel SP fx_send_id SP effect_chain SP chain_pos
+<p>/ FX_SEND SP EFFECT SP sampler_channel SP fx_send_id SP effect_chain SP chain_pos
 		
 </p>
 <p>/ DB_INSTRUMENT_DIRECTORY SP NAME SP db_path SP stringval_escaped

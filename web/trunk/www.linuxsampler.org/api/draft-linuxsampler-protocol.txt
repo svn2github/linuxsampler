@@ -147,20 +147,20 @@ Internet-Draft        LinuxSampler Control Protocol         October 2010
        6.4.31.  Altering effect send's audio routing . . . . . . . .  69
        6.4.32.  Assigning destination effect to an effect send . . .  70
        6.4.33.  Removing destination effect from an effect send  . .  71
-       6.4.34.  Altering effect send's MIDI controller . . . . . . .  71
+       6.4.34.  Altering effect send's MIDI controller . . . . . . .  72
        6.4.35.  Altering effect send's send level  . . . . . . . . .  72
        6.4.36.  Sending MIDI messages to sampler channel . . . . . .  73
        6.4.37.  Resetting a sampler channel  . . . . . . . . . . . .  74
      6.5.  Controlling connection  . . . . . . . . . . . . . . . . .  75
        6.5.1.   Register front-end for receiving event messages  . .  75
        6.5.2.   Unregister front-end for not receiving event
-                messages . . . . . . . . . . . . . . . . . . . . . .  75
+                messages . . . . . . . . . . . . . . . . . . . . . .  76
        6.5.3.   Enable or disable echo of commands . . . . . . . . .  76
        6.5.4.   Close client connection  . . . . . . . . . . . . . .  77
      6.6.  Global commands . . . . . . . . . . . . . . . . . . . . .  77
        6.6.1.   Current number of active voices  . . . . . . . . . .  77
-       6.6.2.   Maximum amount of active voices  . . . . . . . . . .  77
-       6.6.3.   Current number of active disk streams  . . . . . . .  77
+       6.6.2.   Maximum amount of active voices  . . . . . . . . . .  78
+       6.6.3.   Current number of active disk streams  . . . . . . .  78
 
 
 
@@ -172,50 +172,50 @@ Internet-Draft        LinuxSampler Control Protocol         October 2010
        6.6.4.   Reset sampler  . . . . . . . . . . . . . . . . . . .  78
        6.6.5.   General sampler informations . . . . . . . . . . . .  78
        6.6.6.   Getting global volume attenuation  . . . . . . . . .  79
-       6.6.7.   Setting global volume attenuation  . . . . . . . . .  79
+       6.6.7.   Setting global volume attenuation  . . . . . . . . .  80
        6.6.8.   Getting global voice limit . . . . . . . . . . . . .  80
-       6.6.9.   Setting global voice limit . . . . . . . . . . . . .  80
+       6.6.9.   Setting global voice limit . . . . . . . . . . . . .  81
        6.6.10.  Getting global disk stream limit . . . . . . . . . .  81
-       6.6.11.  Setting global disk stream limit . . . . . . . . . .  81
-     6.7.  MIDI Instrument Mapping . . . . . . . . . . . . . . . . .  82
+       6.6.11.  Setting global disk stream limit . . . . . . . . . .  82
+     6.7.  MIDI Instrument Mapping . . . . . . . . . . . . . . . . .  83
        6.7.1.   Create a new MIDI instrument map . . . . . . . . . .  83
        6.7.2.   Delete one particular or all MIDI instrument maps  .  84
-       6.7.3.   Get amount of existing MIDI instrument maps  . . . .  84
+       6.7.3.   Get amount of existing MIDI instrument maps  . . . .  85
        6.7.4.   Getting all created MIDI instrument maps . . . . . .  85
-       6.7.5.   Getting MIDI instrument map information  . . . . . .  85
-       6.7.6.   Renaming a MIDI instrument map . . . . . . . . . . .  86
+       6.7.5.   Getting MIDI instrument map information  . . . . . .  86
+       6.7.6.   Renaming a MIDI instrument map . . . . . . . . . . .  87
        6.7.7.   Create or replace a MIDI instrument map entry  . . .  87
-       6.7.8.   Getting ammount of MIDI instrument map entries . . .  89
+       6.7.8.   Getting ammount of MIDI instrument map entries . . .  90
        6.7.9.   Getting indeces of all entries of a MIDI
-                instrument map . . . . . . . . . . . . . . . . . . .  90
+                instrument map . . . . . . . . . . . . . . . . . . .  91
        6.7.10.  Remove an entry from the MIDI instrument map . . . .  91
-       6.7.11.  Get current settings of MIDI instrument map entry  .  91
-       6.7.12.  Clear MIDI instrument map  . . . . . . . . . . . . .  93
+       6.7.11.  Get current settings of MIDI instrument map entry  .  92
+       6.7.12.  Clear MIDI instrument map  . . . . . . . . . . . . .  94
      6.8.  Managing Instruments Database . . . . . . . . . . . . . .  94
-       6.8.1.   Creating a new instrument directory  . . . . . . . .  94
+       6.8.1.   Creating a new instrument directory  . . . . . . . .  95
        6.8.2.   Deleting an instrument directory . . . . . . . . . .  95
-       6.8.3.   Getting amount of instrument directories . . . . . .  95
+       6.8.3.   Getting amount of instrument directories . . . . . .  96
        6.8.4.   Listing all directories in specific directory  . . .  96
        6.8.5.   Getting instrument directory information . . . . . .  97
        6.8.6.   Renaming an instrument directory . . . . . . . . . .  98
-       6.8.7.   Moving an instrument directory . . . . . . . . . . .  98
+       6.8.7.   Moving an instrument directory . . . . . . . . . . .  99
        6.8.8.   Copying instrument directories . . . . . . . . . . .  99
        6.8.9.   Changing the description of directory  . . . . . . . 100
-       6.8.10.  Finding directories  . . . . . . . . . . . . . . . . 100
+       6.8.10.  Finding directories  . . . . . . . . . . . . . . . . 101
        6.8.11.  Adding instruments to the instruments database . . . 102
-       6.8.12.  Removing an instrument . . . . . . . . . . . . . . . 103
+       6.8.12.  Removing an instrument . . . . . . . . . . . . . . . 104
        6.8.13.  Getting amount of instruments  . . . . . . . . . . . 104
-       6.8.14.  Listing all instruments in specific directory  . . . 104
+       6.8.14.  Listing all instruments in specific directory  . . . 105
        6.8.15.  Getting instrument information . . . . . . . . . . . 105
-       6.8.16.  Renaming an instrument . . . . . . . . . . . . . . . 107
+       6.8.16.  Renaming an instrument . . . . . . . . . . . . . . . 108
        6.8.17.  Moving an instrument . . . . . . . . . . . . . . . . 108
        6.8.18.  Copying instruments  . . . . . . . . . . . . . . . . 109
-       6.8.19.  Changing the description of instrument . . . . . . . 109
+       6.8.19.  Changing the description of instrument . . . . . . . 110
        6.8.20.  Finding instruments  . . . . . . . . . . . . . . . . 110
-       6.8.21.  Getting job status information . . . . . . . . . . . 112
-       6.8.22.  Formatting the instruments database  . . . . . . . . 113
+       6.8.21.  Getting job status information . . . . . . . . . . . 113
+       6.8.22.  Formatting the instruments database  . . . . . . . . 114
        6.8.23.  Checking for lost instrument files . . . . . . . . . 114
-       6.8.24.  Replacing an instrument file . . . . . . . . . . . . 114
+       6.8.24.  Replacing an instrument file . . . . . . . . . . . . 115
      6.9.  Editing Instruments . . . . . . . . . . . . . . . . . . . 115
 
 
@@ -226,15 +226,15 @@ Internet-Draft        LinuxSampler Control Protocol         October 2010
 
 
        6.9.1.   Opening an appropriate instrument editor
-                application  . . . . . . . . . . . . . . . . . . . . 115
-     6.10. Managing Files  . . . . . . . . . . . . . . . . . . . . . 116
-       6.10.1.  Retrieving amount of instruments of a file . . . . . 116
+                application  . . . . . . . . . . . . . . . . . . . . 116
+     6.10. Managing Files  . . . . . . . . . . . . . . . . . . . . . 117
+       6.10.1.  Retrieving amount of instruments of a file . . . . . 117
        6.10.2.  Retrieving all instruments of a file . . . . . . . . 117
        6.10.3.  Retrieving informations about one instrument in a
-                file . . . . . . . . . . . . . . . . . . . . . . . . 117
-     6.11. Managing Effects  . . . . . . . . . . . . . . . . . . . . 119
+                file . . . . . . . . . . . . . . . . . . . . . . . . 118
+     6.11. Managing Effects  . . . . . . . . . . . . . . . . . . . . 120
        6.11.1.  Retrieve amount of available effects . . . . . . . . 120
-       6.11.2.  Get list of available effects  . . . . . . . . . . . 120
+       6.11.2.  Get list of available effects  . . . . . . . . . . . 121
        6.11.3.  Retrieving general information about an effect . . . 121
        6.11.4.  Creating an instance of an effect by its portable
                 ID . . . . . . . . . . . . . . . . . . . . . . . . . 122
@@ -242,19 +242,19 @@ Internet-Draft        LinuxSampler Control Protocol         October 2010
                 numerical ID . . . . . . . . . . . . . . . . . . . . 123
        6.11.6.  Destroy an effect instance . . . . . . . . . . . . . 124
        6.11.7.  Retrieve amount of effect instances  . . . . . . . . 125
-       6.11.8.  Get list of effect instances . . . . . . . . . . . . 125
+       6.11.8.  Get list of effect instances . . . . . . . . . . . . 126
        6.11.9.  Retrieving current information about an effect
-                instance . . . . . . . . . . . . . . . . . . . . . . 125
+                instance . . . . . . . . . . . . . . . . . . . . . . 126
        6.11.10. Retrieving information about an effect parameter . . 127
        6.11.11. Altering an effect parameter . . . . . . . . . . . . 129
-       6.11.12. Retrieve amount of send effect chains  . . . . . . . 129
+       6.11.12. Retrieve amount of send effect chains  . . . . . . . 130
        6.11.13. Retrieve list of send effect chains  . . . . . . . . 130
-       6.11.14. Add send effect chain  . . . . . . . . . . . . . . . 130
+       6.11.14. Add send effect chain  . . . . . . . . . . . . . . . 131
        6.11.15. Remove send effect chain . . . . . . . . . . . . . . 131
        6.11.16. Retrieving information about a send effect chain . . 132
        6.11.17. Append effect instance to a send effect chain  . . . 133
-       6.11.18. Insert effect instance to a send effect chain  . . . 133
-       6.11.19. Remove effect instance from send effect chain  . . . 134
+       6.11.18. Insert effect instance to a send effect chain  . . . 134
+       6.11.19. Remove effect instance from send effect chain  . . . 135
    7.  Command Syntax  . . . . . . . . . . . . . . . . . . . . . . . 136
      7.1.  Character Set and Escape Sequences  . . . . . . . . . . . 152
    8.  Events  . . . . . . . . . . . . . . . . . . . . . . . . . . . 157
@@ -3736,7 +3736,7 @@ Internet-Draft        LinuxSampler Control Protocol         October 2010
             then this setting defines the audio channel routing to that
             effect instance respectively
 
-         SEND_EFFECT -
+         EFFECT -
 
             destination send effect chain ID and destination effect
             chain position, separated by comma in the form "<effect-
@@ -3765,6 +3765,22 @@ Internet-Draft        LinuxSampler Control Protocol         October 2010
 
          "AUDIO_OUTPUT_ROUTING: 2,3"
 
+         "EFFECT: NONE"
+
+         "."
+
+      C: "GET FX_SEND INFO 0 1"
+
+      S: "NAME: Delay Send (Internal)"
+
+         "MIDI_CONTROLLER: 93"
+
+         "LEVEL: 0.51"
+
+         "AUDIO_OUTPUT_ROUTING: 1,2"
+
+         "EFFECT: 2,0"
+
          "."
 
 6.4.30.  Changing effect send's name
@@ -3786,6 +3802,13 @@ Internet-Draft        LinuxSampler Control Protocol         October 2010
 
    Possible Answers:
 
+
+
+Schoenebeck               Expires April 8, 2011                [Page 68]
+
+Internet-Draft        LinuxSampler Control Protocol         October 2010
+
+
       "OK" -
 
          on success
@@ -3800,14 +3823,6 @@ Internet-Draft        LinuxSampler Control Protocol         October 2010
       C: "SET FX_SEND NAME 0 0 'Fx Send 1'"
 
       S: "OK"
-
-
-
-
-Schoenebeck               Expires April 8, 2011                [Page 68]
-
-Internet-Draft        LinuxSampler Control Protocol         October 2010
-
 
 6.4.31.  Altering effect send's audio routing
 
@@ -3842,6 +3857,14 @@ Internet-Draft        LinuxSampler Control Protocol         October 2010
    send into a mono one by simply altering its audio routing
    appropriately.
 
+
+
+
+Schoenebeck               Expires April 8, 2011                [Page 69]
+
+Internet-Draft        LinuxSampler Control Protocol         October 2010
+
+
    Possible Answers:
 
       "OK" -
@@ -3855,15 +3878,6 @@ Internet-Draft        LinuxSampler Control Protocol         October 2010
          warning message
 
       "ERR:<error-code>:<error-message>" -
-
-
-
-
-
-Schoenebeck               Expires April 8, 2011                [Page 69]
-
-Internet-Draft        LinuxSampler Control Protocol         October 2010
-
 
          in case it failed, providing an appropriate error code and
          error message
@@ -3879,7 +3893,7 @@ Internet-Draft        LinuxSampler Control Protocol         October 2010
    The front-end can (re-)assign a destination effect to an effect send
    by sending the following command:
 
-      SET FX_SEND SEND_EFFECT <sampler-chan> <fx-send-id> <effect-chain>
+      SET FX_SEND EFFECT <sampler-chan> <fx-send-id> <effect-chain>
       <chain-pos>
 
    Where <sampler-chan> is the sampler channel number as returned by the
@@ -3899,20 +3913,6 @@ Internet-Draft        LinuxSampler Control Protocol         October 2010
 
          on success
 
-      "ERR:<error-code>:<error-message>" -
-
-         in case it failed, providing an appropriate error code and
-         error message
-
-   Example:
-
-      C: "SET FX_SEND SEND_EFFECT 0 0 2 5"
-
-      S: "OK"
-
-
-
-
 
 
 
@@ -3921,12 +3921,23 @@ Schoenebeck               Expires April 8, 2011                [Page 70]
 Internet-Draft        LinuxSampler Control Protocol         October 2010
 
 
+      "ERR:<error-code>:<error-message>" -
+
+         in case it failed, providing an appropriate error code and
+         error message
+
+   Example:
+
+      C: "SET FX_SEND EFFECT 0 0 2 5"
+
+      S: "OK"
+
 6.4.33.  Removing destination effect from an effect send
 
    The front-end can (re-)assign a destination effect to an effect send
    by sending the following command:
 
-      REMOVE FX_SEND SEND_EFFECT <sampler-chan> <fx-send-id>
+      REMOVE FX_SEND EFFECT <sampler-chan> <fx-send-id>
 
    Where <sampler-chan> is the sampler channel number as returned by the
    "ADD CHANNEL" (Section 6.4.5) or "LIST CHANNELS" (Section 6.4.4)
@@ -3952,9 +3963,19 @@ Internet-Draft        LinuxSampler Control Protocol         October 2010
 
    Example:
 
-      C: "REMOVE FX_SEND SEND_EFFECT 0 0"
+      C: "REMOVE FX_SEND EFFECT 0 0"
 
       S: "OK"
+
+
+
+
+
+
+Schoenebeck               Expires April 8, 2011                [Page 71]
+
+Internet-Draft        LinuxSampler Control Protocol         October 2010
+
 
 6.4.34.  Altering effect send's MIDI controller
 
@@ -3969,14 +3990,6 @@ Internet-Draft        LinuxSampler Control Protocol         October 2010
    command, <fx-send-id> reflects the numerical ID of the effect send
    entity as returned by the "CREATE FX_SEND" (Section 6.4.25) or "LIST
    FX_SENDS" (Section 6.4.28) command and <midi-ctrl> reflects the MIDI
-
-
-
-Schoenebeck               Expires April 8, 2011                [Page 71]
-
-Internet-Draft        LinuxSampler Control Protocol         October 2010
-
-
    controller which shall be able to modify the effect send's send
    level.
 
@@ -4012,6 +4025,14 @@ Internet-Draft        LinuxSampler Control Protocol         October 2010
 
    Where <sampler-chan> is the sampler channel number as returned by the
    "ADD CHANNEL" (Section 6.4.5) or "LIST CHANNELS" (Section 6.4.4)
+
+
+
+Schoenebeck               Expires April 8, 2011                [Page 72]
+
+Internet-Draft        LinuxSampler Control Protocol         October 2010
+
+
    command, <fx-send-id> reflects the numerical ID of the effect send
    entity as returned by the "CREATE FX_SEND" (Section 6.4.25) or "LIST
    FX_SENDS" (Section 6.4.28) command and <volume> is an optionally
@@ -4024,14 +4045,6 @@ Internet-Draft        LinuxSampler Control Protocol         October 2010
       "OK" -
 
          on success
-
-
-
-
-Schoenebeck               Expires April 8, 2011                [Page 72]
-
-Internet-Draft        LinuxSampler Control Protocol         October 2010
-
 
       "WRN:<warning-code>:<warning-message>" -
 
@@ -4069,6 +4082,13 @@ Internet-Draft        LinuxSampler Control Protocol         October 2010
          number and <arg2> the velocity as described in the MIDI
          specification.
 
+
+
+Schoenebeck               Expires April 8, 2011                [Page 73]
+
+Internet-Draft        LinuxSampler Control Protocol         October 2010
+
+
       "NOTE_OFF" -
 
          For turning a currently playing MIDI note off, where <arg1>
@@ -4081,13 +4101,6 @@ Internet-Draft        LinuxSampler Control Protocol         October 2010
          controller number and <arg2> the new value of the controller as
          described in the Control Change section of the MIDI
          specification.
-
-
-
-Schoenebeck               Expires April 8, 2011                [Page 73]
-
-Internet-Draft        LinuxSampler Control Protocol         October 2010
-
 
    CAUTION: This command is provided for implementations of virtual MIDI
    keyboards and no realtime guarantee whatsoever will be made!
@@ -4123,6 +4136,15 @@ Internet-Draft        LinuxSampler Control Protocol         October 2010
 
    Possible Answers:
 
+
+
+
+
+Schoenebeck               Expires April 8, 2011                [Page 74]
+
+Internet-Draft        LinuxSampler Control Protocol         October 2010
+
+
       "OK" -
 
          on success
@@ -4137,13 +4159,6 @@ Internet-Draft        LinuxSampler Control Protocol         October 2010
 
          in case it failed, providing an appropriate error code and
          error message
-
-
-
-Schoenebeck               Expires April 8, 2011                [Page 74]
-
-Internet-Draft        LinuxSampler Control Protocol         October 2010
-
 
    Examples:
 
@@ -4176,6 +4191,16 @@ Internet-Draft        LinuxSampler Control Protocol         October 2010
          related, providing an appropriate warning code and warning
          message
 
+
+
+
+
+
+Schoenebeck               Expires April 8, 2011                [Page 75]
+
+Internet-Draft        LinuxSampler Control Protocol         October 2010
+
+
       "ERR:<error-code>:<error-message>" -
 
          in case it failed, providing an appropriate error code and
@@ -4193,14 +4218,6 @@ Internet-Draft        LinuxSampler Control Protocol         October 2010
       UNSUBSCRIBE <event-id>
 
    Where <event-id> will be replaced by the respective event that client
-
-
-
-Schoenebeck               Expires April 8, 2011                [Page 75]
-
-Internet-Draft        LinuxSampler Control Protocol         October 2010
-
-
    doesn't want to receive anymore.
 
    Possible Answers:
@@ -4232,6 +4249,14 @@ Internet-Draft        LinuxSampler Control Protocol         October 2010
       SET ECHO <value>
 
    Where <value> should be replaced either by "1" to enable echo mode or
+
+
+
+Schoenebeck               Expires April 8, 2011                [Page 76]
+
+Internet-Draft        LinuxSampler Control Protocol         October 2010
+
+
    "0" to disable echo mode.  When echo mode is enabled, all commands
    send to LinuxSampler will be immediately send back and after this
    echo the actual response to the command will be returned.  Echo mode
@@ -4249,13 +4274,6 @@ Internet-Draft        LinuxSampler Control Protocol         October 2010
          on syntax error, e.g. non boolean value
 
    Examples:
-
-
-
-Schoenebeck               Expires April 8, 2011                [Page 76]
-
-Internet-Draft        LinuxSampler Control Protocol         October 2010
-
 
 
 
@@ -4285,6 +4303,16 @@ Internet-Draft        LinuxSampler Control Protocol         October 2010
       LinuxSampler will answer by returning the number of all active
       voices on the sampler.
 
+
+
+
+
+
+Schoenebeck               Expires April 8, 2011                [Page 77]
+
+Internet-Draft        LinuxSampler Control Protocol         October 2010
+
+
 6.6.2.  Maximum amount of active voices
 
    The front-end can ask for the maximum number of active voices by
@@ -4305,13 +4333,6 @@ Internet-Draft        LinuxSampler Control Protocol         October 2010
       GET TOTAL_STREAM_COUNT
 
    Possible Answers:
-
-
-
-Schoenebeck               Expires April 8, 2011                [Page 77]
-
-Internet-Draft        LinuxSampler Control Protocol         October 2010
-
 
       LinuxSampler will answer by returning the number of all active
       disk streams on the sampler.
@@ -4338,6 +4359,16 @@ Internet-Draft        LinuxSampler Control Protocol         October 2010
    The client can ask for general informations about the LinuxSampler
    instance by sending the following command:
 
+
+
+
+
+
+Schoenebeck               Expires April 8, 2011                [Page 78]
+
+Internet-Draft        LinuxSampler Control Protocol         October 2010
+
+
       GET SERVER INFO
 
    Possible Answers:
@@ -4359,15 +4390,6 @@ Internet-Draft        LinuxSampler Control Protocol         October 2010
          VERSION -
 
             version of the sampler
-
-
-
-
-
-Schoenebeck               Expires April 8, 2011                [Page 78]
-
-Internet-Draft        LinuxSampler Control Protocol         October 2010
-
 
          PROTOCOL_VERSION -
 
@@ -4395,6 +4417,14 @@ Internet-Draft        LinuxSampler Control Protocol         October 2010
       floating point coefficient, reflecting the current global volume
       attenuation.
 
+
+
+
+Schoenebeck               Expires April 8, 2011                [Page 79]
+
+Internet-Draft        LinuxSampler Control Protocol         October 2010
+
+
    Note: it is up to the respective sampler engine whether to obey that
    global volume parameter or not, but in general all engines SHOULD use
    this parameter.
@@ -4416,14 +4446,6 @@ Internet-Draft        LinuxSampler Control Protocol         October 2010
       "OK" -
 
          on success
-
-
-
-
-Schoenebeck               Expires April 8, 2011                [Page 79]
-
-Internet-Draft        LinuxSampler Control Protocol         October 2010
-
 
       "WRN:<warning-code>:<warning-message>" -
 
@@ -4451,6 +4473,14 @@ Internet-Draft        LinuxSampler Control Protocol         October 2010
    The voice limit setting defines how many voices should maximum be
    processed by the sampler at the same time.  If the user triggers new
    notes which would exceed that voice limit, the sampler engine will
+
+
+
+Schoenebeck               Expires April 8, 2011                [Page 80]
+
+Internet-Draft        LinuxSampler Control Protocol         October 2010
+
+
    react by stealing old voices for those newly triggered notes.  Note
    that the amount of voices triggered by a new note can be larger than
    one and is dependent to the respective instrument and probably
@@ -4472,14 +4502,6 @@ Internet-Draft        LinuxSampler Control Protocol         October 2010
       "OK" -
 
          on success
-
-
-
-
-Schoenebeck               Expires April 8, 2011                [Page 80]
-
-Internet-Draft        LinuxSampler Control Protocol         October 2010
-
 
       "WRN:<warning-code>:<warning-message>" -
 
@@ -4505,6 +4527,16 @@ Internet-Draft        LinuxSampler Control Protocol         October 2010
    The client can ask for the current global sampler-wide limit for
    maximum disk streams by sending the following command:
 
+
+
+
+
+
+Schoenebeck               Expires April 8, 2011                [Page 81]
+
+Internet-Draft        LinuxSampler Control Protocol         October 2010
+
+
       GET STREAMS
 
    Possible Answers:
@@ -4528,14 +4560,6 @@ Internet-Draft        LinuxSampler Control Protocol         October 2010
    Where <max-streams> should be replaced by the integer value,
    reflecting the new global amount limit of maximum disk streams.  This
    value has to be positive.
-
-
-
-
-Schoenebeck               Expires April 8, 2011                [Page 81]
-
-Internet-Draft        LinuxSampler Control Protocol         October 2010
-
 
    Possible Answers:
 
@@ -4562,6 +4586,13 @@ Internet-Draft        LinuxSampler Control Protocol         October 2010
    Caution: when adjusting the disk stream limit, you SHOULD also adjust
    the voice limit respectively and vice versa.
 
+
+
+Schoenebeck               Expires April 8, 2011                [Page 82]
+
+Internet-Draft        LinuxSampler Control Protocol         October 2010
+
+
 6.7.  MIDI Instrument Mapping
 
    The MIDI protocol provides a way to switch between instruments by
@@ -4584,14 +4615,6 @@ Internet-Draft        LinuxSampler Control Protocol         October 2010
    respective instrument.  See command "SET CHANNEL MIDI_INSTRUMENT_MAP"
    (Section 6.4.24) for how to assign a MIDI instrument map to a sampler
    channel.
-
-
-
-
-Schoenebeck               Expires April 8, 2011                [Page 82]
-
-Internet-Draft        LinuxSampler Control Protocol         October 2010
-
 
    Also note per MIDI specification a bank select message does not cause
    to switch to another instrument.  Instead when receiving a bank
@@ -4617,6 +4640,15 @@ Internet-Draft        LinuxSampler Control Protocol         October 2010
 
       "OK[<map>]" -
 
+
+
+
+
+Schoenebeck               Expires April 8, 2011                [Page 83]
+
+Internet-Draft        LinuxSampler Control Protocol         October 2010
+
+
          in case a new MIDI instrument map could be added, where <map>
          reflects the unique ID of the newly created MIDI instrument map
 
@@ -4638,16 +4670,6 @@ Internet-Draft        LinuxSampler Control Protocol         October 2010
       C: "ADD MIDI_INSTRUMENT_MAP"
 
       S: "OK[5]"
-
-
-
-
-
-
-Schoenebeck               Expires April 8, 2011                [Page 83]
-
-Internet-Draft        LinuxSampler Control Protocol         October 2010
-
 
 6.7.2.  Delete one particular or all MIDI instrument maps
 
@@ -4676,6 +4698,13 @@ Internet-Draft        LinuxSampler Control Protocol         October 2010
 
    Examples:
 
+
+
+Schoenebeck               Expires April 8, 2011                [Page 84]
+
+Internet-Draft        LinuxSampler Control Protocol         October 2010
+
+
       C: "REMOVE MIDI_INSTRUMENT_MAP 0"
 
       S: "OK"
@@ -4697,13 +4726,6 @@ Internet-Draft        LinuxSampler Control Protocol         October 2010
       instrument maps.
 
    Example:
-
-
-
-Schoenebeck               Expires April 8, 2011                [Page 84]
-
-Internet-Draft        LinuxSampler Control Protocol         October 2010
-
 
       C: "GET MIDI_INSTRUMENT_MAPS"
 
@@ -4727,6 +4749,17 @@ Internet-Draft        LinuxSampler Control Protocol         October 2010
       C: "LIST MIDI_INSTRUMENT_MAPS"
 
       S: "0,1,5,12"
+
+
+
+
+
+
+
+Schoenebeck               Expires April 8, 2011                [Page 85]
+
+Internet-Draft        LinuxSampler Control Protocol         October 2010
+
 
 6.7.5.  Getting MIDI instrument map information
 
@@ -4753,14 +4786,6 @@ Internet-Draft        LinuxSampler Control Protocol         October 2010
 
             custom name of the given map, which does not have to be
             unique (note that this character string may contain escape
-
-
-
-Schoenebeck               Expires April 8, 2011                [Page 85]
-
-Internet-Draft        LinuxSampler Control Protocol         October 2010
-
-
             sequences (Section 7.1))
 
          DEFAULT -
@@ -4779,6 +4804,18 @@ Internet-Draft        LinuxSampler Control Protocol         October 2010
          "DEFAULT: true"
 
          "."
+
+
+
+
+
+
+
+
+Schoenebeck               Expires April 8, 2011                [Page 86]
+
+Internet-Draft        LinuxSampler Control Protocol         October 2010
+
 
 6.7.6.  Renaming a MIDI instrument map
 
@@ -4809,14 +4846,6 @@ Internet-Draft        LinuxSampler Control Protocol         October 2010
 
       S: "OK"
 
-
-
-
-Schoenebeck               Expires April 8, 2011                [Page 86]
-
-Internet-Draft        LinuxSampler Control Protocol         October 2010
-
-
 6.7.7.  Create or replace a MIDI instrument map entry
 
    The front-end can create a new or replace an existing entry in a
@@ -4836,6 +4865,14 @@ Internet-Draft        LinuxSampler Control Protocol         October 2010
    supporting escape sequences as described in chapter "Character Set
    and Escape Sequences (Section 7.1)"), <instrument_index> the index
    (integer value) of the instrument within the given file,
+
+
+
+Schoenebeck               Expires April 8, 2011                [Page 87]
+
+Internet-Draft        LinuxSampler Control Protocol         October 2010
+
+
    <volume_value> reflects the master volume of the instrument as
    optionally dotted number (where a value < 1.0 means attenuation and a
    value > 1.0 means amplification).  This parameter easily allows to
@@ -4864,15 +4901,6 @@ Internet-Draft        LinuxSampler Control Protocol         October 2010
 
       "PERSISTENT" -
 
-
-
-
-
-Schoenebeck               Expires April 8, 2011                [Page 87]
-
-Internet-Draft        LinuxSampler Control Protocol         October 2010
-
-
          The instrument will immediately be loaded into memory when this
          mapping command is sent and the instrument is kept all the
          time.  Instruments with this mode are only freed when the
@@ -4893,6 +4921,14 @@ Internet-Draft        LinuxSampler Control Protocol         October 2010
    The <instr_load_mode> argument thus allows to define an appropriate
    strategy (low memory consumption vs. fast instrument switching) for
    each instrument individually.  Note, the following restrictions apply
+
+
+
+Schoenebeck               Expires April 8, 2011                [Page 88]
+
+Internet-Draft        LinuxSampler Control Protocol         October 2010
+
+
    to this argument: "ON_DEMAND_HOLD" and "PERSISTENT" have to be
    supported by the respective sampler engine (which is technically the
    case when the engine provides an InstrumentManager for its format).
@@ -4921,14 +4957,6 @@ Internet-Draft        LinuxSampler Control Protocol         October 2010
    a very long time.  It is recommended however to use the OPTIONAL
    "NON_MODAL" argument only if really necessary, because it has the
    following drawbacks: as "NON_MODAL" instructions return immediately,
-
-
-
-Schoenebeck               Expires April 8, 2011                [Page 88]
-
-Internet-Draft        LinuxSampler Control Protocol         October 2010
-
-
    they may not necessarily return an error i.e. when the given
    instrument file turns out to be corrupt, beside that subsequent
    commands in a LSCP instruction sequence might fail, because mandatory
@@ -4946,6 +4974,16 @@ Internet-Draft        LinuxSampler Control Protocol         October 2010
          of range
 
    Examples:
+
+
+
+
+
+
+Schoenebeck               Expires April 8, 2011                [Page 89]
+
+Internet-Draft        LinuxSampler Control Protocol         October 2010
+
 
       C: "MAP MIDI_INSTRUMENT 0 3 0 gig '/usr/share/Steinway D.gig' 0
       0.8 PERSISTENT"
@@ -4977,14 +5015,6 @@ Internet-Draft        LinuxSampler Control Protocol         October 2010
    The front-end can query the amount of currently existing entries in a
    MIDI instrument map by sending the following command:
 
-
-
-
-Schoenebeck               Expires April 8, 2011                [Page 89]
-
-Internet-Draft        LinuxSampler Control Protocol         October 2010
-
-
       GET MIDI_INSTRUMENTS <map>
 
    The front-end can query the amount of currently existing entries in
@@ -5002,6 +5032,14 @@ Internet-Draft        LinuxSampler Control Protocol         October 2010
       C: "GET MIDI_INSTRUMENTS 0"
 
       S: "234"
+
+
+
+
+Schoenebeck               Expires April 8, 2011                [Page 90]
+
+Internet-Draft        LinuxSampler Control Protocol         October 2010
+
 
       C: "GET MIDI_INSTRUMENTS ALL"
 
@@ -5033,14 +5071,6 @@ Internet-Draft        LinuxSampler Control Protocol         October 2010
 
    Example:
 
-
-
-
-Schoenebeck               Expires April 8, 2011                [Page 90]
-
-Internet-Draft        LinuxSampler Control Protocol         October 2010
-
-
       C: "LIST MIDI_INSTRUMENTS 0"
 
       S: "{0,0,0},{0,0,1},{0,0,3},{0,1,4},{1,127,127}"
@@ -5058,6 +5088,14 @@ Internet-Draft        LinuxSampler Control Protocol         October 2010
    program value of the map's entrie's key index triple.
 
    Possible Answers:
+
+
+
+
+Schoenebeck               Expires April 8, 2011                [Page 91]
+
+Internet-Draft        LinuxSampler Control Protocol         October 2010
+
 
       "OK" -
 
@@ -5088,15 +5126,6 @@ Internet-Draft        LinuxSampler Control Protocol         October 2010
 
    Possible Answers:
 
-
-
-
-
-Schoenebeck               Expires April 8, 2011                [Page 91]
-
-Internet-Draft        LinuxSampler Control Protocol         October 2010
-
-
       LinuxSampler will answer by sending a <CRLF> separated list.  Each
       answer line begins with the information category name followed by
       a colon and then a space character <SP> and finally the info
@@ -5115,6 +5144,14 @@ Internet-Draft        LinuxSampler Control Protocol         October 2010
       "ENGINE_NAME" -
 
          Name of the engine to be deployed for this instrument.
+
+
+
+
+Schoenebeck               Expires April 8, 2011                [Page 92]
+
+Internet-Draft        LinuxSampler Control Protocol         October 2010
+
 
       "INSTRUMENT_FILE" -
 
@@ -5143,16 +5180,6 @@ Internet-Draft        LinuxSampler Control Protocol         October 2010
          (where a value < 1.0 means attenuation and a value > 1.0 means
          amplification)
 
-
-
-
-
-
-Schoenebeck               Expires April 8, 2011                [Page 92]
-
-Internet-Draft        LinuxSampler Control Protocol         October 2010
-
-
       The mentioned fields above don't have to be in particular order.
 
    Example:
@@ -5172,6 +5199,15 @@ Internet-Draft        LinuxSampler Control Protocol         October 2010
          "LOAD_MODE: PERSISTENT"
 
          "VOLUME: 1.0"
+
+
+
+
+
+Schoenebeck               Expires April 8, 2011                [Page 93]
+
+Internet-Draft        LinuxSampler Control Protocol         October 2010
+
 
          "."
 
@@ -5201,14 +5237,6 @@ Internet-Draft        LinuxSampler Control Protocol         October 2010
 
    Examples:
 
-
-
-
-Schoenebeck               Expires April 8, 2011                [Page 93]
-
-Internet-Draft        LinuxSampler Control Protocol         October 2010
-
-
       C: "CLEAR MIDI_INSTRUMENTS 0"
 
       S: "OK"
@@ -5227,6 +5255,15 @@ Internet-Draft        LinuxSampler Control Protocol         October 2010
       All command arguments representing a path or instrument/directory
       name support escape sequences as described in chapter "Character
       Set and Escape Sequences (Section 7.1)".
+
+
+
+
+
+Schoenebeck               Expires April 8, 2011                [Page 94]
+
+Internet-Draft        LinuxSampler Control Protocol         October 2010
+
 
       All occurrences of a forward slash in instrument and directory
       names are escaped with its hex (\x2f) or octal (\057) escape
@@ -5256,15 +5293,6 @@ Internet-Draft        LinuxSampler Control Protocol         October 2010
 
    Examples:
 
-
-
-
-
-Schoenebeck               Expires April 8, 2011                [Page 94]
-
-Internet-Draft        LinuxSampler Control Protocol         October 2010
-
-
       C: "ADD DB_INSTRUMENT_DIRECTORY '/Piano Collection'"
 
       S: "OK"
@@ -5283,6 +5311,15 @@ Internet-Draft        LinuxSampler Control Protocol         October 2010
    Possible Answers:
 
       "OK" -
+
+
+
+
+
+Schoenebeck               Expires April 8, 2011                [Page 95]
+
+Internet-Draft        LinuxSampler Control Protocol         October 2010
+
 
          if the directory is deleted successfully
 
@@ -5311,16 +5348,6 @@ Internet-Draft        LinuxSampler Control Protocol         October 2010
 
    Possible Answers:
 
-
-
-
-
-
-Schoenebeck               Expires April 8, 2011                [Page 95]
-
-Internet-Draft        LinuxSampler Control Protocol         October 2010
-
-
       The current number of instrument directories in the specified
       directory.
 
@@ -5342,6 +5369,14 @@ Internet-Draft        LinuxSampler Control Protocol         October 2010
       LIST DB_INSTRUMENT_DIRECTORIES [RECURSIVE] <dir>
 
    Where <dir> should be replaced by the absolute path name of the
+
+
+
+Schoenebeck               Expires April 8, 2011                [Page 96]
+
+Internet-Draft        LinuxSampler Control Protocol         October 2010
+
+
    directory.  If RECURSIVE is specified, the absolute path names of all
    directories, including those located in subdirectories of the
    specified directory, will be returned.
@@ -5365,17 +5400,6 @@ Internet-Draft        LinuxSampler Control Protocol         October 2010
 
       S: "'/Piano Collection','/Piano Collection/Acoustic','/Piano
       Collection/Acoustic/New','/Percussion Collection'"
-
-
-
-
-
-
-
-Schoenebeck               Expires April 8, 2011                [Page 96]
-
-Internet-Draft        LinuxSampler Control Protocol         October 2010
-
 
 6.8.5.  Getting instrument directory information
 
@@ -5402,6 +5426,13 @@ Internet-Draft        LinuxSampler Control Protocol         October 2010
             A brief description of the directory content.  Note that the
             character string may contain escape sequences (Section 7.1).
 
+
+
+Schoenebeck               Expires April 8, 2011                [Page 97]
+
+Internet-Draft        LinuxSampler Control Protocol         October 2010
+
+
          CREATED -
 
             The creation date and time of the directory, represented in
@@ -5424,14 +5455,6 @@ Internet-Draft        LinuxSampler Control Protocol         October 2010
          "CREATED: 2007-02-05 10:23:12"
 
          "MODIFIED: 2007-04-07 12:50:21"
-
-
-
-
-Schoenebeck               Expires April 8, 2011                [Page 97]
-
-Internet-Draft        LinuxSampler Control Protocol         October 2010
-
 
          "."
 
@@ -5458,6 +5481,14 @@ Internet-Draft        LinuxSampler Control Protocol         October 2010
 
    Example:
 
+
+
+
+Schoenebeck               Expires April 8, 2011                [Page 98]
+
+Internet-Draft        LinuxSampler Control Protocol         October 2010
+
+
       C: "SET DB_INSTRUMENT_DIRECTORY NAME '/Piano Collection/Acustic'
       'Acoustic'"
 
@@ -5478,16 +5509,6 @@ Internet-Draft        LinuxSampler Control Protocol         October 2010
       "OK" -
 
          on success
-
-
-
-
-
-
-Schoenebeck               Expires April 8, 2011                [Page 98]
-
-Internet-Draft        LinuxSampler Control Protocol         October 2010
-
 
       "ERR:<error-code>:<error-message>" -
 
@@ -5515,6 +5536,15 @@ Internet-Draft        LinuxSampler Control Protocol         October 2010
 
    Possible Answers:
 
+
+
+
+
+Schoenebeck               Expires April 8, 2011                [Page 99]
+
+Internet-Draft        LinuxSampler Control Protocol         October 2010
+
+
       "OK" -
 
          on success
@@ -5532,18 +5562,6 @@ Internet-Draft        LinuxSampler Control Protocol         October 2010
       '/Acoustic/Pianos'"
 
       S: "OK"
-
-
-
-
-
-
-
-
-Schoenebeck               Expires April 8, 2011                [Page 99]
-
-Internet-Draft        LinuxSampler Control Protocol         October 2010
-
 
 6.8.9.  Changing the description of directory
 
@@ -5574,6 +5592,15 @@ Internet-Draft        LinuxSampler Control Protocol         October 2010
 
       S: "OK"
 
+
+
+
+
+Schoenebeck               Expires April 8, 2011               [Page 100]
+
+Internet-Draft        LinuxSampler Control Protocol         October 2010
+
+
 6.8.10.  Finding directories
 
    The front-end can search for directories in specific directory by
@@ -5593,14 +5620,6 @@ Internet-Draft        LinuxSampler Control Protocol         October 2010
 
       Restricts the search to directories, which names satisfy the
       supplied search string (encapsulated into apostrophes, supporting
-
-
-
-Schoenebeck               Expires April 8, 2011               [Page 100]
-
-Internet-Draft        LinuxSampler Control Protocol         October 2010
-
-
       escape sequences as described in chapter "Character Set and Escape
       Sequences (Section 7.1)").
 
@@ -5630,6 +5649,14 @@ Internet-Draft        LinuxSampler Control Protocol         October 2010
       apostrophes, supporting escape sequences as described in chapter
       "Character Set and Escape Sequences (Section 7.1)").
 
+
+
+
+Schoenebeck               Expires April 8, 2011               [Page 101]
+
+Internet-Draft        LinuxSampler Control Protocol         October 2010
+
+
    Where <search-string> is either a regular expression, or a word list
    separated with spaces for OR search and with '+' for AND search.
 
@@ -5648,14 +5675,6 @@ Internet-Draft        LinuxSampler Control Protocol         October 2010
       C: "FIND DB_INSTRUMENT_DIRECTORIES '/' NAME='Piano'"
 
       S: "'/Piano Collection'"
-
-
-
-
-Schoenebeck               Expires April 8, 2011               [Page 101]
-
-Internet-Draft        LinuxSampler Control Protocol         October 2010
-
 
       C: "FIND DB_INSTRUMENT_DIRECTORIES '/' CREATED='..2007-04-01 09:
       30:13'"
@@ -5684,6 +5703,16 @@ Internet-Draft        LinuxSampler Control Protocol         October 2010
    is provided as <file_path> and specifies how the scanning will be
    done and has exactly the following possibilities:
 
+
+
+
+
+
+Schoenebeck               Expires April 8, 2011               [Page 102]
+
+Internet-Draft        LinuxSampler Control Protocol         October 2010
+
+
       "RECURSIVE" -
 
          All instruments will be processed, including those in the
@@ -5705,14 +5734,6 @@ Internet-Draft        LinuxSampler Control Protocol         October 2010
    If FILE_AS_DIR argument is supplied, all instruments in an instrument
    file will be added to a separate directory in the instruments
    database, which name will be the name of the instrument file with the
-
-
-
-Schoenebeck               Expires April 8, 2011               [Page 102]
-
-Internet-Draft        LinuxSampler Control Protocol         October 2010
-
-
    file extension stripped off.
 
    The difference between regular and NON_MODAL versions of the command
@@ -5739,6 +5760,15 @@ Internet-Draft        LinuxSampler Control Protocol         October 2010
 
    Examples:
 
+
+
+
+
+Schoenebeck               Expires April 8, 2011               [Page 103]
+
+Internet-Draft        LinuxSampler Control Protocol         October 2010
+
+
       C: "ADD DB_INSTRUMENTS '/Piano Collection' '/home/me/gigs/PMI
       Bosendorfer 290.gig' 0"
 
@@ -5759,15 +5789,6 @@ Internet-Draft        LinuxSampler Control Protocol         October 2010
       "OK" -
 
          if the instrument is removed successfully
-
-
-
-
-
-Schoenebeck               Expires April 8, 2011               [Page 103]
-
-Internet-Draft        LinuxSampler Control Protocol         October 2010
-
 
       "ERR:<error-code>:<error-message>" -
 
@@ -5795,6 +5816,15 @@ Internet-Draft        LinuxSampler Control Protocol         October 2010
 
       The current number of instruments in the specified directory.
 
+
+
+
+
+Schoenebeck               Expires April 8, 2011               [Page 104]
+
+Internet-Draft        LinuxSampler Control Protocol         October 2010
+
+
       "ERR:<error-code>:<error-message>" -
 
          if the given directory does not exist.
@@ -5816,14 +5846,6 @@ Internet-Draft        LinuxSampler Control Protocol         October 2010
    directory.  If RECURSIVE is specified, the absolute path names of all
    instruments, including those located in subdirectories of the
    specified directory, will be returned.
-
-
-
-
-Schoenebeck               Expires April 8, 2011               [Page 104]
-
-Internet-Draft        LinuxSampler Control Protocol         October 2010
-
 
    Possible Answers:
 
@@ -5850,6 +5872,15 @@ Internet-Draft        LinuxSampler Control Protocol         October 2010
    The front-end can ask for the current settings of an instrument by
    sending the following command:
 
+
+
+
+
+Schoenebeck               Expires April 8, 2011               [Page 105]
+
+Internet-Draft        LinuxSampler Control Protocol         October 2010
+
+
       GET DB_INSTRUMENT INFO <instr_path>
 
    Where <instr_path> should be replaced by the absolute path name of
@@ -5871,15 +5902,6 @@ Internet-Draft        LinuxSampler Control Protocol         October 2010
             may contain escape sequences (Section 7.1).
 
          INSTRUMENT_NR -
-
-
-
-
-
-Schoenebeck               Expires April 8, 2011               [Page 105]
-
-Internet-Draft        LinuxSampler Control Protocol         October 2010
-
 
             Index of the instrument within the file.
 
@@ -5907,6 +5929,14 @@ Internet-Draft        LinuxSampler Control Protocol         October 2010
             instrument's database settings, represented in "YYYY-MM-DD
             HH:MM:SS" format
 
+
+
+
+Schoenebeck               Expires April 8, 2011               [Page 106]
+
+Internet-Draft        LinuxSampler Control Protocol         October 2010
+
+
          DESCRIPTION -
 
             A brief description of the instrument.  Note that the
@@ -5926,16 +5956,6 @@ Internet-Draft        LinuxSampler Control Protocol         October 2010
 
             Lists the artist names.  Note that the character string may
             contain escape sequences (Section 7.1).
-
-
-
-
-
-
-Schoenebeck               Expires April 8, 2011               [Page 106]
-
-Internet-Draft        LinuxSampler Control Protocol         October 2010
-
 
          KEYWORDS -
 
@@ -5964,6 +5984,15 @@ Internet-Draft        LinuxSampler Control Protocol         October 2010
 
          "MODIFIED: 2007-04-07 12:50:21"
 
+
+
+
+
+Schoenebeck               Expires April 8, 2011               [Page 107]
+
+Internet-Draft        LinuxSampler Control Protocol         October 2010
+
+
          "DESCRIPTION: "
 
          "IS_DRUM: false"
@@ -5985,13 +6014,6 @@ Internet-Draft        LinuxSampler Control Protocol         October 2010
 
    Where <instr> is the absolute path name of the instrument and <name>
    is the new name for that instrument.
-
-
-
-Schoenebeck               Expires April 8, 2011               [Page 107]
-
-Internet-Draft        LinuxSampler Control Protocol         October 2010
-
 
    Possible Answers:
 
@@ -6019,6 +6041,14 @@ Internet-Draft        LinuxSampler Control Protocol         October 2010
       MOVE DB_INSTRUMENT <instr> <dst>
 
    Where <instr> is the absolute path name of the instrument to move and
+
+
+
+Schoenebeck               Expires April 8, 2011               [Page 108]
+
+Internet-Draft        LinuxSampler Control Protocol         October 2010
+
+
    <dst> is the directory where the instrument will be moved to.
 
    Possible Answers:
@@ -6039,15 +6069,6 @@ Internet-Draft        LinuxSampler Control Protocol         October 2010
       Collection/Acoustic'"
 
       S: "OK"
-
-
-
-
-
-Schoenebeck               Expires April 8, 2011               [Page 108]
-
-Internet-Draft        LinuxSampler Control Protocol         October 2010
-
 
 6.8.18.  Copying instruments
 
@@ -6076,6 +6097,14 @@ Internet-Draft        LinuxSampler Control Protocol         October 2010
       C: "COPY DB_INSTRUMENT '/Piano Collection/Bosendorfer 290'
       '/Acoustic/Pianos/'"
 
+
+
+
+Schoenebeck               Expires April 8, 2011               [Page 109]
+
+Internet-Draft        LinuxSampler Control Protocol         October 2010
+
+
       S: "OK"
 
 6.8.19.  Changing the description of instrument
@@ -6095,15 +6124,6 @@ Internet-Draft        LinuxSampler Control Protocol         October 2010
       "OK" -
 
          on success
-
-
-
-
-
-Schoenebeck               Expires April 8, 2011               [Page 109]
-
-Internet-Draft        LinuxSampler Control Protocol         October 2010
-
 
       "ERR:<error-code>:<error-message>" -
 
@@ -6132,6 +6152,15 @@ Internet-Draft        LinuxSampler Control Protocol         October 2010
 
    NAME='<search-string>'
 
+
+
+
+
+Schoenebeck               Expires April 8, 2011               [Page 110]
+
+Internet-Draft        LinuxSampler Control Protocol         October 2010
+
+
       Restricts the search to instruments, which names satisfy the
       supplied search string (encapsulated into apostrophes, supporting
       escape sequences as described in chapter "Character Set and Escape
@@ -6153,13 +6182,6 @@ Internet-Draft        LinuxSampler Control Protocol         October 2010
       search is restricted to instruments created before <date-before>.
       If <date-before> is omitted, the search is restricted to
       instruments created after <date-after>.
-
-
-
-Schoenebeck               Expires April 8, 2011               [Page 110]
-
-Internet-Draft        LinuxSampler Control Protocol         October 2010
-
 
    MODIFIED='[<date-after>]..[<date-before>]'
 
@@ -6187,6 +6209,14 @@ Internet-Draft        LinuxSampler Control Protocol         October 2010
 
    ARTISTS='<search-string>'
 
+
+
+
+Schoenebeck               Expires April 8, 2011               [Page 111]
+
+Internet-Draft        LinuxSampler Control Protocol         October 2010
+
+
       Restricts the search to instruments with artists info that
       satisfies the supplied search string (encapsulated into
       apostrophes, supporting escape sequences as described in chapter
@@ -6209,13 +6239,6 @@ Internet-Draft        LinuxSampler Control Protocol         October 2010
       Restricts the search to instruments of the supplied format
       families, where <format-list> is a comma separated list of format
       families.
-
-
-
-Schoenebeck               Expires April 8, 2011               [Page 111]
-
-Internet-Draft        LinuxSampler Control Protocol         October 2010
-
 
    Where <search-string> is either a regular expression, or a word list
    separated with spaces for OR search and with '+' for AND search.
@@ -6243,6 +6266,13 @@ Internet-Draft        LinuxSampler Control Protocol         October 2010
       S: "'/Piano Collection/Bosendorfer 290','/Piano Collection/
       Steinway D'"
 
+
+
+Schoenebeck               Expires April 8, 2011               [Page 112]
+
+Internet-Draft        LinuxSampler Control Protocol         October 2010
+
+
 6.8.21.  Getting job status information
 
    The front-end can ask for the current status of a particular database
@@ -6264,14 +6294,6 @@ Internet-Draft        LinuxSampler Control Protocol         October 2010
 
 
          FILES_TOTAL -
-
-
-
-
-Schoenebeck               Expires April 8, 2011               [Page 112]
-
-Internet-Draft        LinuxSampler Control Protocol         October 2010
-
 
             The total number of files scheduled for scanning
 
@@ -6298,6 +6320,15 @@ Internet-Draft        LinuxSampler Control Protocol         October 2010
 
       S: "FILES_TOTAL: 12"
 
+
+
+
+
+Schoenebeck               Expires April 8, 2011               [Page 113]
+
+Internet-Draft        LinuxSampler Control Protocol         October 2010
+
+
          "FILES_SCANNED: 7"
 
          "SCANNING: /home/me/gigs/Bosendorfer 290.gig"
@@ -6319,15 +6350,6 @@ Internet-Draft        LinuxSampler Control Protocol         October 2010
       "OK" -
 
          on success
-
-
-
-
-
-Schoenebeck               Expires April 8, 2011               [Page 113]
-
-Internet-Draft        LinuxSampler Control Protocol         October 2010
-
 
       "ERR:<error-code>:<error-message>" -
 
@@ -6353,6 +6375,16 @@ Internet-Draft        LinuxSampler Control Protocol         October 2010
 
    Example:
 
+
+
+
+
+
+Schoenebeck               Expires April 8, 2011               [Page 114]
+
+Internet-Draft        LinuxSampler Control Protocol         October 2010
+
+
       C: "FIND LOST DB_INSTRUMENT_FILES"
 
       S: "'/gigs/Bosendorfer 290.gig','/gigs/Steinway D.gig','/gigs/Free
@@ -6374,16 +6406,6 @@ Internet-Draft        LinuxSampler Control Protocol         October 2010
       "OK" -
 
          on success
-
-
-
-
-
-
-Schoenebeck               Expires April 8, 2011               [Page 114]
-
-Internet-Draft        LinuxSampler Control Protocol         October 2010
-
 
       "ERR:<error-code>:<error-message>" -
 
@@ -6408,6 +6430,16 @@ Internet-Draft        LinuxSampler Control Protocol         October 2010
 
    At the moment there is only one command for this feature set, but
    this will most probably change in future.
+
+
+
+
+
+
+Schoenebeck               Expires April 8, 2011               [Page 115]
+
+Internet-Draft        LinuxSampler Control Protocol         October 2010
+
 
 6.9.1.  Opening an appropriate instrument editor application
 
@@ -6434,13 +6466,6 @@ Internet-Draft        LinuxSampler Control Protocol         October 2010
    Note: consequently instrument editors are always spawned locally on
    the same machine where the sampler is running on!
 
-
-
-Schoenebeck               Expires April 8, 2011               [Page 115]
-
-Internet-Draft        LinuxSampler Control Protocol         October 2010
-
-
    Possible Answers:
 
       "OK" -
@@ -6461,6 +6486,16 @@ Internet-Draft        LinuxSampler Control Protocol         October 2010
       C: "EDIT CHANNEL INSTRUMENT 0"
 
       S: "OK"
+
+
+
+
+
+
+Schoenebeck               Expires April 8, 2011               [Page 116]
+
+Internet-Draft        LinuxSampler Control Protocol         October 2010
+
 
 6.10.  Managing Files
 
@@ -6489,14 +6524,6 @@ Internet-Draft        LinuxSampler Control Protocol         October 2010
       On success, the sampler will answer by returning the amount of
       instruments.
 
-
-
-
-Schoenebeck               Expires April 8, 2011               [Page 116]
-
-Internet-Draft        LinuxSampler Control Protocol         October 2010
-
-
       "ERR:<error-code>:<error-message>" -
 
          if the file could not be handled
@@ -6517,6 +6544,14 @@ Internet-Draft        LinuxSampler Control Protocol         October 2010
    Where <filename> is the name of the instrument file (encapsulated
    into apostrophes, supporting escape sequences as described in chapter
    "Character Set and Escape Sequences (Section 7.1)").
+
+
+
+
+Schoenebeck               Expires April 8, 2011               [Page 117]
+
+Internet-Draft        LinuxSampler Control Protocol         October 2010
+
 
    The sampler will try to ask all sampler engines, whether they support
    the given file and ask the first engine with a positive answer for a
@@ -6543,16 +6578,6 @@ Internet-Draft        LinuxSampler Control Protocol         October 2010
    instrument within a given instrument file by sending the following
    command:
 
-
-
-
-
-
-Schoenebeck               Expires April 8, 2011               [Page 117]
-
-Internet-Draft        LinuxSampler Control Protocol         October 2010
-
-
       GET FILE INSTRUMENT INFO <filename> <instr-id>
 
    Where <filename> is the name of the instrument file (encapsulated
@@ -6573,6 +6598,15 @@ Internet-Draft        LinuxSampler Control Protocol         October 2010
       character string to that setting category.  At the moment the
       following categories are defined:
 
+
+
+
+
+
+
+Schoenebeck               Expires April 8, 2011               [Page 118]
+
+Internet-Draft        LinuxSampler Control Protocol         October 2010
 
 
          NAME -
@@ -6602,13 +6636,6 @@ Internet-Draft        LinuxSampler Control Protocol         October 2010
             instrument's key mapping in the range between 0 .. 127,
             reflecting the analog meaning of the MIDI specification.
 
-
-
-Schoenebeck               Expires April 8, 2011               [Page 118]
-
-Internet-Draft        LinuxSampler Control Protocol         October 2010
-
-
          KEYSWITCH_BINDINGS -
 
             comma separated list of integer values representing the
@@ -6629,6 +6656,14 @@ Internet-Draft        LinuxSampler Control Protocol         October 2010
          "FORMAT_VERSION: 3"
 
          "PRODUCT: The Backbone Bongo Beats"
+
+
+
+
+Schoenebeck               Expires April 8, 2011               [Page 119]
+
+Internet-Draft        LinuxSampler Control Protocol         October 2010
+
 
          "ARTISTS: Jimmy the Fish"
 
@@ -6657,20 +6692,12 @@ Internet-Draft        LinuxSampler Control Protocol         October 2010
    effect instances.  The output of the first effect instance in an
    effect chain is fed to the input of the second effect instance of the
    chain and so on.  So effects in one chain are processed sequentially.
-
-
-
-Schoenebeck               Expires April 8, 2011               [Page 119]
-
-Internet-Draft        LinuxSampler Control Protocol         October 2010
-
-
    Send effect chains however are processed in parallel to other send
    effect chains.  Audio signals of sampler channels are fed to send
    effects by creating FX sends to the respective sampler channel and
    assigning a destination send effect to that FX by using the "SET
-   FX_SEND SEND_EFFECT" (Section 6.4.32) command.  The latter allows to
-   route the FX send to the beginning of a send effect chain, as well as
+   FX_SEND EFFECT" (Section 6.4.32) command.  The latter allows to route
+   the FX send to the beginning of a send effect chain, as well as
    directly to any other position of the send effect chain.
 
 6.11.1.  Retrieve amount of available effects
@@ -6686,6 +6713,13 @@ Internet-Draft        LinuxSampler Control Protocol         October 2010
       available to the sampler.
 
    Examples:
+
+
+
+Schoenebeck               Expires April 8, 2011               [Page 120]
+
+Internet-Draft        LinuxSampler Control Protocol         October 2010
+
 
       C: "GET AVAILABLE_EFFECTS"
 
@@ -6713,14 +6747,6 @@ Internet-Draft        LinuxSampler Control Protocol         October 2010
 
       S: "5,6,7,120,121,122,123,124"
 
-
-
-
-Schoenebeck               Expires April 8, 2011               [Page 120]
-
-Internet-Draft        LinuxSampler Control Protocol         October 2010
-
-
 6.11.3.  Retrieving general information about an effect
 
    The front-end can ask for general informations about an effect by
@@ -6742,6 +6768,14 @@ Internet-Draft        LinuxSampler Control Protocol         October 2010
 
 
          SYSTEM -
+
+
+
+
+Schoenebeck               Expires April 8, 2011               [Page 121]
+
+Internet-Draft        LinuxSampler Control Protocol         October 2010
+
 
             name of the effect plugin system the effect is based on
             (e.g.  "LADSPA")
@@ -6770,13 +6804,6 @@ Internet-Draft        LinuxSampler Control Protocol         October 2010
 
    Example:
 
-
-
-Schoenebeck               Expires April 8, 2011               [Page 121]
-
-Internet-Draft        LinuxSampler Control Protocol         October 2010
-
-
       C: "GET EFFECT INFO 121"
 
       S: "SYSTEM: LADSPA"
@@ -6798,6 +6825,14 @@ Internet-Draft        LinuxSampler Control Protocol         October 2010
 
    Where <effect-system> is the "SYSTEM" field, <module> the "MODULE"
    field and <effect-name> the "NAME" field as returned by the "GET
+
+
+
+Schoenebeck               Expires April 8, 2011               [Page 122]
+
+Internet-Draft        LinuxSampler Control Protocol         October 2010
+
+
    EFFECT INFO" (Section 6.11.3) command.  The filename of argument
    <module> and the character string of argument <effect-name> may
    contain escape sequences (Section 7.1).
@@ -6824,15 +6859,6 @@ Internet-Draft        LinuxSampler Control Protocol         October 2010
          <effect-instance> is the numerical ID of the new effect
          instance
 
-
-
-
-
-Schoenebeck               Expires April 8, 2011               [Page 122]
-
-Internet-Draft        LinuxSampler Control Protocol         October 2010
-
-
       "WRN:<warning-code>:<warning-message>" -
 
          in case the effect instance was spawned successfully, but there
@@ -6854,6 +6880,14 @@ Internet-Draft        LinuxSampler Control Protocol         October 2010
 
    The front-end can spawn an instance of the desired effect by sending
    the following command:
+
+
+
+
+Schoenebeck               Expires April 8, 2011               [Page 123]
+
+Internet-Draft        LinuxSampler Control Protocol         October 2010
+
 
       CREATE EFFECT_INSTANCE <effect-index>
 
@@ -6880,15 +6914,6 @@ Internet-Draft        LinuxSampler Control Protocol         October 2010
          <effect-instance> is the numerical ID of the new effect
          instance
 
-
-
-
-
-Schoenebeck               Expires April 8, 2011               [Page 123]
-
-Internet-Draft        LinuxSampler Control Protocol         October 2010
-
-
       "WRN:<warning-code>:<warning-message>" -
 
          in case the effect instance was spawned successfully, but there
@@ -6909,6 +6934,16 @@ Internet-Draft        LinuxSampler Control Protocol         October 2010
 
    The front-end can destroy an unusued effect instance and thus freeing
    it from memory by sending the following command:
+
+
+
+
+
+
+Schoenebeck               Expires April 8, 2011               [Page 124]
+
+Internet-Draft        LinuxSampler Control Protocol         October 2010
+
 
       DESTROY EFFECT_INSTANCE <effect-instance>
 
@@ -6936,15 +6971,6 @@ Internet-Draft        LinuxSampler Control Protocol         October 2010
 
       C: "DESTROY EFFECT_INSTANCE 5"
 
-
-
-
-
-Schoenebeck               Expires April 8, 2011               [Page 124]
-
-Internet-Draft        LinuxSampler Control Protocol         October 2010
-
-
       S: "OK"
 
 6.11.7.  Retrieve amount of effect instances
@@ -6965,6 +6991,15 @@ Internet-Draft        LinuxSampler Control Protocol         October 2010
       C: "GET EFFECT_INSTANCES"
 
       S: "14"
+
+
+
+
+
+Schoenebeck               Expires April 8, 2011               [Page 125]
+
+Internet-Draft        LinuxSampler Control Protocol         October 2010
+
 
 6.11.8.  Get list of effect instances
 
@@ -6993,14 +7028,6 @@ Internet-Draft        LinuxSampler Control Protocol         October 2010
 
    Where <effect-instance> is the numerical ID of an effect instance as
    returned by the "CREATE EFFECT_INSTANCE" (Section 6.11.4) or "LIST
-
-
-
-Schoenebeck               Expires April 8, 2011               [Page 125]
-
-Internet-Draft        LinuxSampler Control Protocol         October 2010
-
-
    EFFECT_INSTANCES" (Section 6.11.8) command.
 
    Possible Answers:
@@ -7022,6 +7049,14 @@ Internet-Draft        LinuxSampler Control Protocol         October 2010
 
             module of the effect plugin system that contains this
             effect, the module is usually the dynamic-linked library
+
+
+
+Schoenebeck               Expires April 8, 2011               [Page 126]
+
+Internet-Draft        LinuxSampler Control Protocol         October 2010
+
+
             (DLL) filename of the effect plugin, including full path
             (note that this filename may contain escape sequences
             (Section 7.1))
@@ -7047,16 +7082,6 @@ Internet-Draft        LinuxSampler Control Protocol         October 2010
 
    Example:
 
-
-
-
-
-
-Schoenebeck               Expires April 8, 2011               [Page 126]
-
-Internet-Draft        LinuxSampler Control Protocol         October 2010
-
-
       C: "GET EFFECT_INSTANCE INFO 3"
 
       S: "SYSTEM: LADSPA"
@@ -7079,6 +7104,14 @@ Internet-Draft        LinuxSampler Control Protocol         October 2010
    controllable effect parameters are called "input controls".  The
    front-end can ask for the current informations of an effect
    instance's input control by sending the following command:
+
+
+
+
+Schoenebeck               Expires April 8, 2011               [Page 127]
+
+Internet-Draft        LinuxSampler Control Protocol         October 2010
+
 
       GET EFFECT_INSTANCE_INPUT_CONTROL INFO <effect-instance> <input-
       control>
@@ -7105,14 +7138,6 @@ Internet-Draft        LinuxSampler Control Protocol         October 2010
 
          DESCRIPTION -
 
-
-
-
-Schoenebeck               Expires April 8, 2011               [Page 127]
-
-Internet-Draft        LinuxSampler Control Protocol         October 2010
-
-
             (always returned) human readable name of the effect
             parameter, intended to be displayed in user interfaces (note
             that the character string may contain escape sequences
@@ -7134,6 +7159,15 @@ Internet-Draft        LinuxSampler Control Protocol         October 2010
             parameter
 
          POSSIBILITIES -
+
+
+
+
+
+Schoenebeck               Expires April 8, 2011               [Page 128]
+
+Internet-Draft        LinuxSampler Control Protocol         October 2010
+
 
             (optionally returned) comma separated list of (optional
             dotted) floating point numbers, reflecting the exact set of
@@ -7159,16 +7193,6 @@ Internet-Draft        LinuxSampler Control Protocol         October 2010
 
          "."
 
-
-
-
-
-
-Schoenebeck               Expires April 8, 2011               [Page 128]
-
-Internet-Draft        LinuxSampler Control Protocol         October 2010
-
-
 6.11.11.  Altering an effect parameter
 
    The front-end can alter the current value of an effect parameter by
@@ -7190,6 +7214,16 @@ Internet-Draft        LinuxSampler Control Protocol         October 2010
       "OK" -
 
          in case the effect was altered successfully
+
+
+
+
+
+
+Schoenebeck               Expires April 8, 2011               [Page 129]
+
+Internet-Draft        LinuxSampler Control Protocol         October 2010
+
 
       "ERR:<error-code>:<error-message>" -
 
@@ -7216,15 +7250,6 @@ Internet-Draft        LinuxSampler Control Protocol         October 2010
 
    Possible Answers:
 
-
-
-
-
-Schoenebeck               Expires April 8, 2011               [Page 129]
-
-Internet-Draft        LinuxSampler Control Protocol         October 2010
-
-
       The sampler will answer by returning the current number of send
       effect chains of the supplied audio output device.
 
@@ -7247,6 +7272,14 @@ Internet-Draft        LinuxSampler Control Protocol         October 2010
    command.
 
    Possible Answers:
+
+
+
+
+Schoenebeck               Expires April 8, 2011               [Page 130]
+
+Internet-Draft        LinuxSampler Control Protocol         October 2010
+
 
       The sampler will answer by returning a comma separated list with
       numerical IDs of send effect chains of the supplied audio output
@@ -7272,15 +7305,6 @@ Internet-Draft        LinuxSampler Control Protocol         October 2010
 
    Possible Answers:
 
-
-
-
-
-Schoenebeck               Expires April 8, 2011               [Page 130]
-
-Internet-Draft        LinuxSampler Control Protocol         October 2010
-
-
       "OK[<effect-chain>]" -
 
          in case the send effect chain was added successfully, where
@@ -7305,6 +7329,14 @@ Internet-Draft        LinuxSampler Control Protocol         October 2010
 
    Where <audio-device> should be replaced by the numerical ID of the
    audio output device as given by the "CREATE AUDIO_OUTPUT_DEVICE"
+
+
+
+Schoenebeck               Expires April 8, 2011               [Page 131]
+
+Internet-Draft        LinuxSampler Control Protocol         October 2010
+
+
    (Section 6.2.5) or "LIST AUDIO_OUTPUT_DEVICES" (Section 6.2.8)
    command and <effect-chain> by the numerical ID as returned by the
    "ADD SEND_EFFECT_CHAIN" (Section 6.11.14) or "LIST
@@ -7325,17 +7357,6 @@ Internet-Draft        LinuxSampler Control Protocol         October 2010
       C: "REMOVE SEND_EFFECT_CHAIN 0 2"
 
       S: "OK"
-
-
-
-
-
-
-
-Schoenebeck               Expires April 8, 2011               [Page 131]
-
-Internet-Draft        LinuxSampler Control Protocol         October 2010
-
 
 6.11.16.  Retrieving information about a send effect chain
 
@@ -7363,6 +7384,15 @@ Internet-Draft        LinuxSampler Control Protocol         October 2010
 
          EFFECT_COUNT -
 
+
+
+
+
+Schoenebeck               Expires April 8, 2011               [Page 132]
+
+Internet-Draft        LinuxSampler Control Protocol         October 2010
+
+
             amount of effects in this send effect chain
 
          EFFECT_SEQUENCE -
@@ -7382,16 +7412,6 @@ Internet-Draft        LinuxSampler Control Protocol         October 2010
          "EFFECT_SEQUENCE: 31,4,7"
 
          "."
-
-
-
-
-
-
-Schoenebeck               Expires April 8, 2011               [Page 132]
-
-Internet-Draft        LinuxSampler Control Protocol         October 2010
-
 
 6.11.17.  Append effect instance to a send effect chain
 
@@ -7420,6 +7440,15 @@ Internet-Draft        LinuxSampler Control Protocol         October 2010
 
          in case the effect instance was added successfully to the chain
 
+
+
+
+
+Schoenebeck               Expires April 8, 2011               [Page 133]
+
+Internet-Draft        LinuxSampler Control Protocol         October 2010
+
+
       "ERR:<error-code>:<error-message>" -
 
          if the effect instance could not be added
@@ -7441,14 +7470,6 @@ Internet-Draft        LinuxSampler Control Protocol         October 2010
    Where <audio-device> should be replaced by the numerical ID of the
    audio output device as given by the "CREATE AUDIO_OUTPUT_DEVICE"
    (Section 6.2.5) or "LIST AUDIO_OUTPUT_DEVICES" (Section 6.2.8)
-
-
-
-Schoenebeck               Expires April 8, 2011               [Page 133]
-
-Internet-Draft        LinuxSampler Control Protocol         October 2010
-
-
    command, <effect-chain> by the numerical ID as returned by the "ADD
    SEND_EFFECT_CHAIN" (Section 6.11.14) or "LIST SEND_EFFECT_CHAINS"
    (Section 6.11.13) command, <effect-instance> as returned by the
@@ -7476,6 +7497,14 @@ Internet-Draft        LinuxSampler Control Protocol         October 2010
 
       S: "OK"
 
+
+
+
+Schoenebeck               Expires April 8, 2011               [Page 134]
+
+Internet-Draft        LinuxSampler Control Protocol         October 2010
+
+
 6.11.19.  Remove effect instance from send effect chain
 
    The front-end can remove an effect instance from a certain position
@@ -7496,15 +7525,6 @@ Internet-Draft        LinuxSampler Control Protocol         October 2010
 
       "OK" -
 
-
-
-
-
-Schoenebeck               Expires April 8, 2011               [Page 134]
-
-Internet-Draft        LinuxSampler Control Protocol         October 2010
-
-
          in case the effect instance was removed successfully
 
       "ERR:<error-code>:<error-message>" -
@@ -7516,26 +7536,6 @@ Internet-Draft        LinuxSampler Control Protocol         October 2010
       C: "REMOVE SEND_EFFECT_CHAIN EFFECT 0 2 4"
 
       S: "OK"
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -7858,7 +7858,7 @@ Internet-Draft        LinuxSampler Control Protocol         October 2010
       / SEND_EFFECT_CHAIN SP EFFECT SP device_index SP effect_chain SP
       chain_pos
 
-      / FX_SEND SP SEND_EFFECT SP sampler_channel SP fx_send_id
+      / FX_SEND SP EFFECT SP sampler_channel SP fx_send_id
 
       / DB_INSTRUMENT_DIRECTORY SP FORCE SP db_path
 
@@ -8038,7 +8038,7 @@ Internet-Draft        LinuxSampler Control Protocol         October 2010
       / FX_SEND SP LEVEL SP sampler_channel SP fx_send_id SP
       volume_value
 
-      / FX_SEND SP SEND_EFFECT SP sampler_channel SP fx_send_id SP
+      / FX_SEND SP EFFECT SP sampler_channel SP fx_send_id SP
       effect_chain SP chain_pos
 
       / DB_INSTRUMENT_DIRECTORY SP NAME SP db_path SP stringval_escaped
