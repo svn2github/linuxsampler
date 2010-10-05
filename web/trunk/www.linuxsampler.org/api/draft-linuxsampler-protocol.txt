@@ -254,7 +254,7 @@ Internet-Draft        LinuxSampler Control Protocol         October 2010
        6.11.16. Retrieving information about a send effect chain . . 132
        6.11.17. Append effect instance to a send effect chain  . . . 133
        6.11.18. Insert effect instance to a send effect chain  . . . 134
-       6.11.19. Remove effect instance from send effect chain  . . . 135
+       6.11.19. Remove effect instance from send effect chain  . . . 134
    7.  Command Syntax  . . . . . . . . . . . . . . . . . . . . . . . 136
      7.1.  Character Set and Escape Sequences  . . . . . . . . . . . 152
    8.  Events  . . . . . . . . . . . . . . . . . . . . . . . . . . . 157
@@ -7183,9 +7183,7 @@ Internet-Draft        LinuxSampler Control Protocol         October 2010
 
       C: "GET EFFECT_INSTANCE_INPUT_CONTROL INFO 1 0"
 
-      S: "SYSTEM: LADSPA"
-
-         "DESCRIPTION: Base delay (s)"
+      S: "DESCRIPTION: Base delay (s)"
 
          "VALUE: 0.500"
 
@@ -7215,8 +7213,10 @@ Internet-Draft        LinuxSampler Control Protocol         October 2010
 
          in case the effect was altered successfully
 
+      "ERR:<error-code>:<error-message>" -
 
-
+         in case it failed, providing an appropriate error code and
+         error message
 
 
 
@@ -7224,11 +7224,6 @@ Schoenebeck               Expires April 8, 2011               [Page 129]
 
 Internet-Draft        LinuxSampler Control Protocol         October 2010
 
-
-      "ERR:<error-code>:<error-message>" -
-
-         in case it failed, providing an appropriate error code and
-         error message
 
    Examples:
 
@@ -7273,6 +7268,11 @@ Internet-Draft        LinuxSampler Control Protocol         October 2010
 
    Possible Answers:
 
+      The sampler will answer by returning a comma separated list with
+      numerical IDs of send effect chains of the supplied audio output
+      device.
+
+   Examples:
 
 
 
@@ -7280,12 +7280,6 @@ Schoenebeck               Expires April 8, 2011               [Page 130]
 
 Internet-Draft        LinuxSampler Control Protocol         October 2010
 
-
-      The sampler will answer by returning a comma separated list with
-      numerical IDs of send effect chains of the supplied audio output
-      device.
-
-   Examples:
 
       C: "LIST SEND_EFFECT_CHAINS 0"
 
@@ -7329,6 +7323,12 @@ Internet-Draft        LinuxSampler Control Protocol         October 2010
 
    Where <audio-device> should be replaced by the numerical ID of the
    audio output device as given by the "CREATE AUDIO_OUTPUT_DEVICE"
+   (Section 6.2.5) or "LIST AUDIO_OUTPUT_DEVICES" (Section 6.2.8)
+   command and <effect-chain> by the numerical ID as returned by the
+   "ADD SEND_EFFECT_CHAIN" (Section 6.11.14) or "LIST
+   SEND_EFFECT_CHAINS" (Section 6.11.13) command.
+
+   Possible Answers:
 
 
 
@@ -7336,13 +7336,6 @@ Schoenebeck               Expires April 8, 2011               [Page 131]
 
 Internet-Draft        LinuxSampler Control Protocol         October 2010
 
-
-   (Section 6.2.5) or "LIST AUDIO_OUTPUT_DEVICES" (Section 6.2.8)
-   command and <effect-chain> by the numerical ID as returned by the
-   "ADD SEND_EFFECT_CHAIN" (Section 6.11.14) or "LIST
-   SEND_EFFECT_CHAINS" (Section 6.11.13) command.
-
-   Possible Answers:
 
       "OK" -
 
@@ -7384,6 +7377,13 @@ Internet-Draft        LinuxSampler Control Protocol         October 2010
 
          EFFECT_COUNT -
 
+            amount of effects in this send effect chain
+
+         EFFECT_SEQUENCE -
+
+            comma separated list of the numerical IDs of the effect
+            instances in this send effect chain, in the order as they
+            are procssed in the effect chain
 
 
 
@@ -7392,14 +7392,6 @@ Schoenebeck               Expires April 8, 2011               [Page 132]
 
 Internet-Draft        LinuxSampler Control Protocol         October 2010
 
-
-            amount of effects in this send effect chain
-
-         EFFECT_SEQUENCE -
-
-            comma separated list of the numerical IDs of the effect
-            instances in this send effect chain, in the order as they
-            are procssed in the effect chain
 
    The mentioned fields above don't have to be in particular order.
 
@@ -7440,6 +7432,14 @@ Internet-Draft        LinuxSampler Control Protocol         October 2010
 
          in case the effect instance was added successfully to the chain
 
+      "ERR:<error-code>:<error-message>" -
+
+         if the effect instance could not be added
+
+   Examples:
+
+      C: "APPEND SEND_EFFECT_CHAIN EFFECT 0 2 38"
+
 
 
 
@@ -7448,14 +7448,6 @@ Schoenebeck               Expires April 8, 2011               [Page 133]
 
 Internet-Draft        LinuxSampler Control Protocol         October 2010
 
-
-      "ERR:<error-code>:<error-message>" -
-
-         if the effect instance could not be added
-
-   Examples:
-
-      C: "APPEND SEND_EFFECT_CHAIN EFFECT 0 2 38"
 
       S: "OK"
 
@@ -7497,14 +7489,6 @@ Internet-Draft        LinuxSampler Control Protocol         October 2010
 
       S: "OK"
 
-
-
-
-Schoenebeck               Expires April 8, 2011               [Page 134]
-
-Internet-Draft        LinuxSampler Control Protocol         October 2010
-
-
 6.11.19.  Remove effect instance from send effect chain
 
    The front-end can remove an effect instance from a certain position
@@ -7512,6 +7496,14 @@ Internet-Draft        LinuxSampler Control Protocol         October 2010
 
       REMOVE SEND_EFFECT_CHAIN EFFECT <audio-device> <effect-chain>
       <chain-pos>
+
+
+
+
+Schoenebeck               Expires April 8, 2011               [Page 134]
+
+Internet-Draft        LinuxSampler Control Protocol         October 2010
+
 
    Where <audio-device> should be replaced by the numerical ID of the
    audio output device as given by the "CREATE AUDIO_OUTPUT_DEVICE"
@@ -7536,6 +7528,14 @@ Internet-Draft        LinuxSampler Control Protocol         October 2010
       C: "REMOVE SEND_EFFECT_CHAIN EFFECT 0 2 4"
 
       S: "OK"
+
+
+
+
+
+
+
+
 
 
 
