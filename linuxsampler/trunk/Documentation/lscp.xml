@@ -7268,8 +7268,7 @@ Schoenebeck'>
                     <t>
                         <list>
                             <t>C: "GET EFFECT_INSTANCE_INPUT_CONTROL INFO 1 0"</t>
-                            <t>S: "SYSTEM: LADSPA"</t>
-                            <t>&nbsp;&nbsp;&nbsp;"DESCRIPTION: Base delay (s)"</t>
+                            <t>S: "DESCRIPTION: Base delay (s)"</t>
                             <t>&nbsp;&nbsp;&nbsp;"VALUE: 0.500"</t>
                             <t>&nbsp;&nbsp;&nbsp;"RANGE_MIN: 0.000"</t>
                             <t>&nbsp;&nbsp;&nbsp;"."</t>
