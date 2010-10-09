@@ -1,6 +1,6 @@
 ; LinuxSampler Windows installer
 ;
-; Copyright (C) 2007-2009, The LinuxSampler Developers
+; Copyright (C) 2007-2010, The LinuxSampler Developers
 ;
 ; All-in-one Installer for all subprojects / software components of the
 ; LinuxSampler Project.
@@ -21,7 +21,13 @@ SetCompressor lzma
 !include "MUI.nsh"
 !include "EnvVarUpdate.nsh"
 
-!define RELEASE_DATE "20090803"
+!define /date RELEASE_DATE "%Y%m%d"
+!searchparse /file bin/686/linuxsampler.pc `Version: ` LINUXSAMPLER_VERSION
+!searchparse /file bin/686/gig.pc `Version: ` LIBGIG_VERSION
+!searchparse /file bin/686/gigedit.version `` GIGEDIT_VERSION
+!define FANTASIA_VERSION "0.9"
+!searchparse /file bin/686/qsampler.version `` QSAMPLER_VERSION
+!searchparse /file bin/686/sndfile.pc `Version: ` SNDFILE_VERSION
 
 ; The name of the installer
 Name "LinuxSampler (${RELEASE_DATE})"
@@ -31,8 +37,10 @@ OutFile "linuxsampler_${RELEASE_DATE}_setup.exe"
 
 ; Java Runtime Environment, needed for JSampler
 !define JRE_VERSION "1.6"
-!define JRE_32_URL "http://javadl.sun.com/webapps/download/AutoDL?BundleId=31621"
-!define JRE_64_URL "http://javadl.sun.com/webapps/download/AutoDL?BundleId=31623"
+; jre-6u21-windows-i586.exe, 1.6.0_21-b74:
+!define JRE_32_URL "http://javadl.sun.com/webapps/download/AutoDL?BundleId=41724"
+; jre-6u21-windows-x64.exe, 1.6.0_21-b07:
+!define JRE_64_URL "http://javadl.sun.com/webapps/download/AutoDL?BundleId=41293"
 
 ; The default installation directory
 InstallDir "$PROGRAMFILES64\LinuxSampler"
@@ -51,18 +59,6 @@ InstallDirRegKey HKLM "Software\LinuxSampler" "Main Directory"
 !define MUI_HEADERIMAGE
 !define MUI_HEADERIMAGE_BITMAP "linuxsampler.bmp"
 !define MUI_ABORTWARNING
-
-;--------------------------------
-;Version Information
-
-VIProductVersion "0.0.0.0"
-VIAddVersionKey /LANG=${LANG_ENGLISH} "ProductName" "all-in-one installer"
-VIAddVersionKey /LANG=${LANG_ENGLISH} "Comments" "http://linuxsampler.org"
-VIAddVersionKey /LANG=${LANG_ENGLISH} "CompanyName" "The LinuxSampler Project"
-VIAddVersionKey /LANG=${LANG_ENGLISH} "LegalTrademarks" ""
-VIAddVersionKey /LANG=${LANG_ENGLISH} "LegalCopyright" "© 2003-2009 The LinuxSampler Project"
-VIAddVersionKey /LANG=${LANG_ENGLISH} "FileDescription" "LinuxSampler Installer (${RELEASE_DATE})"
-VIAddVersionKey /LANG=${LANG_ENGLISH} "FileVersion" "0.0.0"
 
 !define BIN_TYPE_64BIT  "64 bit"
 !define BIN_TYPE_686SSE "686 SSE"
@@ -84,6 +80,18 @@ Var /GLOBAL binType
 ;Languages
 
 !insertmacro MUI_LANGUAGE "English"
+
+;--------------------------------
+;Version Information
+
+VIProductVersion "0.0.0.0"
+VIAddVersionKey /LANG=${LANG_ENGLISH} "ProductName" "all-in-one installer"
+VIAddVersionKey /LANG=${LANG_ENGLISH} "Comments" "http://linuxsampler.org"
+VIAddVersionKey /LANG=${LANG_ENGLISH} "CompanyName" "The LinuxSampler Project"
+VIAddVersionKey /LANG=${LANG_ENGLISH} "LegalTrademarks" ""
+VIAddVersionKey /LANG=${LANG_ENGLISH} "LegalCopyright" "© 2003-2010 The LinuxSampler Project"
+VIAddVersionKey /LANG=${LANG_ENGLISH} "FileDescription" "LinuxSampler Installer (${RELEASE_DATE})"
+VIAddVersionKey /LANG=${LANG_ENGLISH} "FileVersion" "0.0.0"
 
 ;--------------------------------
 
@@ -140,41 +148,6 @@ FunctionEnd
 !macroend
 !insertmacro DetectSystemType ""
 !insertmacro DetectSystemType "un."
-
-; Check for the presence of gtkmm, and if false, ask the user whether to
-; download and install gtkmm now from the internet.
-; (NOTE: this function is currently unused, since we include the gtk(mm)
-; DLLs with the installer ATM, this is the recommended way by the gtk
-; project)
-Function CheckForGtkmm
-  Var /GLOBAL gtkmmSetupFile
-
-  ClearErrors
-  ; This is just a lazy check for the presence of gtkmm, we should better use:
-  ; System::Call function (NSI internal function) to actually call an arbitrary
-  ; gtkmm function (/method) from a gtkmm DLL to make it certain
-  ReadRegStr $0 HKCU "Software\gtkmm\2.4" "Installer Language"
-  IfErrors +2 0
-  goto NoAbort
-  MessageBox MB_YESNO "gtkmm not found. Install it now (internet connection needed)?" IDYES InstallGtkmm
-    MessageBox MB_YESNO "gigedit won't work without gtkmm. Continue anyway?" IDYES NoAbort
-      Abort ;  causes installer to quit
-  InstallGtkmm:
-    ClearErrors
-	StrCpy $gtkmmSetupFile $TEMP\gtkmm-win32-runtime-2.10.11-1.exe
-    NSISdl::download "http://ftp.gnome.org/pub/gnome/binaries/win32/gtkmm/2.10/gtkmm-win32-runtime-2.10.11-1.exe" $gtkmmSetupFile
-    IfErrors 0 +2
-	Goto InstallGtkmmFailed
-	ExecWait $gtkmmSetupFile
-    Delete $gtkmmSetupFile ; we don't need it anymore
-	IfErrors 0 +2
-	Goto InstallGtkmmFailed
-	Goto NoAbort
-  InstallGtkmmFailed:
-	MessageBox MB_YESNO "Could not download gtkmm. gigedit won't work without gtkmm. Continue anyway?" IDYES NoAbort
-      Abort ;  causes installer to quit
-  NoAbort:
-FunctionEnd
 
 ; Downloads and launches the JRE installer from the internet
 Function GetJRE
@@ -299,7 +272,7 @@ SectionEnd
 ;--------------------------------
 
 ; The stuff to install
-Section "LinuxSampler 1.0.0" SecLinuxSampler
+Section "LinuxSampler ${LINUXSAMPLER_VERSION}" SecLinuxSampler
   DetailPrint "Installing LinuxSampler binaries ..."
   StrCpy $installingLinuxSampler "1"
 
@@ -344,7 +317,7 @@ Section "LinuxSampler 1.0.0" SecLinuxSampler
   done:
 SectionEnd
 
-Section "JSampler 'Fantasia' 0.9" SecJSampler
+Section "JSampler 'Fantasia' ${FANTASIA_VERSION}" SecJSampler
   DetailPrint "Installing JSampler binaries ..."
   ; make sure JRE is installed
   Call DetectJRE
@@ -356,22 +329,27 @@ Section "JSampler 'Fantasia' 0.9" SecJSampler
   File jsampler.ico
 SectionEnd
 
-Section "QSampler 0.2.2" SecQSampler
+Section "QSampler ${QSAMPLER_VERSION}" SecQSampler
   DetailPrint "Installing QSampler binaries ..."
   StrCpy $installingQSampler "1"
   ; Set output path to the installation directory.
   SetOutPath $INSTDIR
   ; Files to install
   File bin\686\qsampler.exe
+  File bin\686\liblscp-6.dll
   File bin\686\QtCore4.dll
   File bin\686\QtGui4.dll
   File bin\686\mingwm10.dll
+  File bin\686\libgcc_s_dw2-1.dll
   File qsampler.ico
   SetOutPath $INSTDIR\share\locale
   File bin\686\share\locale\qsampler_ru.qm
+  File bin\686\share\locale\qsampler_cs.qm
+  File bin\686\share\locale\qt_ru.qm
+  File bin\686\share\locale\qt_cs.qm
 SectionEnd
 
-Section "gigedit 0.2.0" Secgigedit
+Section "gigedit ${GIGEDIT_VERSION}" Secgigedit
   DetailPrint "Installing gigedit binaries ..."
   StrCpy $installinggigedit "1"
 
@@ -398,6 +376,9 @@ Section "gigedit 0.2.0" Secgigedit
   File bin\64\libatkmm-1.6-1.dll
   File bin\64\libcairo-2.dll
   File bin\64\libcairomm-1.0-1.dll
+  File bin\64\libexpat-1.dll
+  File bin\64\libfontconfig-1.dll
+  File bin\64\libfreetype-6.dll
   File bin\64\libgdkmm-2.4-1.dll
   File bin\64\libgdk_pixbuf-2.0-0.dll
   File bin\64\libgdk-win32-2.0-0.dll
@@ -411,14 +392,13 @@ Section "gigedit 0.2.0" Secgigedit
   File bin\64\libgtkmm-2.4-1.dll
   File bin\64\libgtk-win32-2.0-0.dll
   File bin\64\libintl-8.dll
-  File bin\64\libjpeg-62.dll
   File bin\64\libpango-1.0-0.dll
   File bin\64\libpangocairo-1.0-0.dll
+  File bin\64\libpangoft2-1.0-0.dll
   File bin\64\libpangomm-1.4-1.dll
   File bin\64\libpangowin32-1.0-0.dll
-  File bin\64\libpng12-0.dll
+  File bin\64\libpng14-14.dll
   File bin\64\libsigc-2.0-0.dll
-  File bin\64\libtiff.dll
   File bin\64\zlib1.dll
   SetOutPath $INSTDIR\${SUBDIR_64_BIT}\etc\gtk-2.0
   File bin\64\etc\gtk-2.0\gtkrc
@@ -521,8 +501,9 @@ Section "libgig 3.3.0" Seclibgig
   File bin\64\dlsdump.exe
   File bin\64\gigdump.exe
   File bin\64\gigextract.exe
-  ; special dependency for the 64 bit version
+  ; special dependencies for the 64 bit version
   File bin\64\libgcc_s_sjlj-1.dll
+  File bin\64\libstdc++-6.dll
 
   ; shall we install the 32 bit version as well?
   StrCmp $installing32BitToo "1" libgig686sse done
@@ -573,7 +554,7 @@ Section "libgig 3.3.0" Seclibgig
   WriteRegStr HKLM "Software\LinuxSampler" "Release Date" ${RELEASE_DATE}
 SectionEnd
 
-Section "libsndfile 1.0.20" Seclibsndfile
+Section "libsndfile ${SNDFILE_VERSION}" Seclibsndfile
   DetailPrint "Installing libsndfile binaries ..."
   ; We make this a mandatory component
   SectionIn RO
@@ -588,6 +569,10 @@ Section "libsndfile 1.0.20" Seclibsndfile
   libsndfile64:
   SetOutPath "$INSTDIR\${SUBDIR_64_BIT}"
   File bin\64\libsndfile-1.dll
+  File bin\64\libFLAC-8.dll
+  File bin\64\libogg-0.dll
+  File bin\64\libvorbis-0.dll
+  File bin\64\libvorbisenc-2.dll
 
   ; shall we install the 32 bit version as well?
   StrCmp $installing32BitToo "1" libsndfile686 done
@@ -595,6 +580,10 @@ Section "libsndfile 1.0.20" Seclibsndfile
   libsndfile686:
   SetOutPath "$INSTDIR\${SUBDIR_32_BIT}"
   File bin\686\libsndfile-1.dll
+  File bin\686\libFLAC-8.dll
+  File bin\686\libogg-0.dll
+  File bin\686\libvorbis-0.dll
+  File bin\686\libvorbisenc-2.dll
   Goto done
 
   done:
@@ -630,19 +619,19 @@ Section "Start Menu Shortcuts" SecShortcuts
 
   StrCmp $installingLinuxSampler '1' 0 +3
   SetOutPath $samplerDir
-  CreateShortCut "$SMPROGRAMS\LinuxSampler\LinuxSampler 1.0.0 (stand alone backend).lnk" "$samplerDir\linuxsampler.exe" "" "$samplerDir\linuxsampler.exe" 0
+  CreateShortCut "$SMPROGRAMS\LinuxSampler\LinuxSampler ${LINUXSAMPLER_VERSION} (stand alone backend).lnk" "$samplerDir\linuxsampler.exe" "" "$samplerDir\linuxsampler.exe" 0
 
   StrCmp $installingJSampler '1' 0 +3
   SetOutPath $INSTDIR
-  CreateShortCut '$SMPROGRAMS\LinuxSampler\JSampler Fantasia 0.9 (frontend).lnk' '$javawbin' '-jar "$INSTDIR\Fantasia-0.9.jar"' '$INSTDIR\jsampler.ico' 0
+  CreateShortCut '$SMPROGRAMS\LinuxSampler\JSampler Fantasia ${FANTASIA_VERSION} (frontend).lnk' '$javawbin' '-jar "$INSTDIR\Fantasia-0.9.jar"' '$INSTDIR\jsampler.ico' 0
 
   StrCmp $installingQSampler '1' 0 +3
   SetOutPath $INSTDIR
-  CreateShortCut "$SMPROGRAMS\LinuxSampler\QSampler 0.2.2 (frontend).lnk" "$INSTDIR\qsampler.exe" "" "$INSTDIR\qsampler.ico" 0
+  CreateShortCut "$SMPROGRAMS\LinuxSampler\QSampler ${QSAMPLER_VERSION} (frontend).lnk" "$INSTDIR\qsampler.exe" "" "$INSTDIR\qsampler.ico" 0
 
   StrCmp $installinggigedit '1' 0 +3
   SetOutPath $samplerDir
-  CreateShortCut "$SMPROGRAMS\LinuxSampler\gigedit 0.2.0 (stand alone).lnk" "$samplerDir\gigedit.exe" "" "$samplerDir\gigedit.exe" 0
+  CreateShortCut "$SMPROGRAMS\LinuxSampler\gigedit ${GIGEDIT_VERSION} (stand alone).lnk" "$samplerDir\gigedit.exe" "" "$samplerDir\gigedit.exe" 0
 
   !insertmacro CreateInternetShortcut \
   "$SMPROGRAMS\LinuxSampler\\Support LinuxSampler" \
