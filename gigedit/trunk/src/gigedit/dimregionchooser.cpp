@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2009 Andreas Persson
+ * Copyright (C) 2006-2010 Andreas Persson
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -18,9 +18,28 @@
  */
 
 #include "dimregionchooser.h"
+#include <cairomm/context.h>
 #include <gdkmm/cursor.h>
+#include <gdkmm/general.h>
 
 #include "global.h"
+
+#include "global.h"
+
+#if (GTKMM_MAJOR_VERSION == 2 && GTKMM_MINOR_VERSION < 10) || GTKMM_MAJOR_VERSION < 2
+
+#define create_cairo_context()                                          \
+    gobj() ? Cairo::RefPtr<Cairo::Context>(                             \
+        new Cairo::Context(gdk_cairo_create(get_window()->gobj()))) :   \
+    Cairo::RefPtr<Cairo::Context>()
+
+namespace Gdk {
+    namespace Cairo {
+        void set_source_color(const ::Cairo::RefPtr< ::Cairo::Context >& cr,
+                              const Gdk::Color& color);
+    }
+}
+#endif
 
 DimRegionChooser::DimRegionChooser()
 {
@@ -46,7 +65,11 @@ DimRegionChooser::DimRegionChooser()
     resize.active = false;
     cursor_is_resize = false;
     h = 20;
+#if (GTKMM_MAJOR_VERSION == 2 && GTKMM_MINOR_VERSION < 18) || GTKMM_MAJOR_VERSION < 2
     set_flags(Gtk::CAN_FOCUS);
+#else
+    set_can_focus();
+#endif
     add_events(Gdk::BUTTON_PRESS_MASK | Gdk::POINTER_MOTION_MASK |
                Gdk::POINTER_MOTION_HINT_MASK);
 
@@ -55,16 +78,6 @@ DimRegionChooser::DimRegionChooser()
 
 DimRegionChooser::~DimRegionChooser()
 {
-}
-
-void DimRegionChooser::on_realize()
-{
-    // We need to call the base on_realize()
-    Gtk::DrawingArea::on_realize();
-
-    // Now we can allocate any additional resources we need
-    Glib::RefPtr<Gdk::Window> window = get_window();
-    gc = Gdk::GC::create(window);
 }
 
 bool DimRegionChooser::on_expose_event(GdkEventExpose* event)
@@ -77,6 +90,8 @@ bool DimRegionChooser::on_expose_event(GdkEventExpose* event)
     Glib::RefPtr<Pango::Context> context = get_pango_context();
 
     Glib::RefPtr<Pango::Layout> layout = Pango::Layout::create(context);
+    Cairo::RefPtr<Cairo::Context> cr = get_window()->create_cairo_context();
+    cr->set_line_width(1);
 
     window->clear();
 
@@ -135,9 +150,14 @@ bool DimRegionChooser::on_expose_event(GdkEventExpose* event)
             double text_w = double(rectangle.get_width()) / Pango::SCALE;
             if (text_w > maxwidth) maxwidth = text_w;
             double text_h = double(rectangle.get_height()) / Pango::SCALE;
-            Glib::RefPtr<const Gdk::GC> fg = get_style()->get_fg_gc(get_state());
-            window->draw_layout(fg, 4, int(y + (h - text_h) / 2 + 0.5), layout);
-
+            const Gdk::Color fg = get_style()->get_fg(get_state());
+            Gdk::Cairo::set_source_color(cr, fg);
+            cr->move_to(4, int(y + (h - text_h) / 2 + 0.5));
+#if (GTKMM_MAJOR_VERSION == 2 && GTKMM_MINOR_VERSION < 16) || GTKMM_MAJOR_VERSION < 2
+            pango_cairo_show_layout(cr->cobj(), layout->gobj());
+#else
+            layout->show_in_cairo_context(cr);
+#endif
         }
         y += h;
     }
@@ -156,13 +176,18 @@ bool DimRegionChooser::on_expose_event(GdkEventExpose* event)
                                          0, y, label_width, 20);
             }
 
-            Glib::RefPtr<const Gdk::GC> black = get_style()->get_black_gc();
             // draw top and bottom lines of dimension's zones
-            window->draw_line(black, label_width, y, w - 1, y);
-            window->draw_line(black, w - 1, y + h - 1, label_width, y + h - 1);
+            Gdk::Cairo::set_source_color(cr, black);
+            cr->move_to(label_width, y + 0.5);
+            cr->line_to(w, y + 0.5);
+            cr->move_to(w, y + h - 0.5);
+            cr->line_to(label_width, y + h - 0.5);
+            cr->stroke();
+
             // erase whole dimension's zones area
-            window->draw_rectangle(get_style()->get_white_gc(), true,
-                                   label_width + 1, y + 1, (w - label_width - 2), h - 2);
+            Gdk::Cairo::set_source_color(cr, white);
+            cr->rectangle(label_width + 1, y + 1, (w - label_width - 2), h - 2);
+            cr->fill();
 
             int c = 0;
             if (dimregno >= 0) {
@@ -176,26 +201,32 @@ bool DimRegionChooser::on_expose_event(GdkEventExpose* event)
                  region->pDimensionRegions[c]->VelocityUpperLimit));
 
             // draw dimension's zone borders
+            Gdk::Cairo::set_source_color(cr, black);
             if (customsplits) {
-                window->draw_line(black, label_width, y + 1, label_width, y + h - 2);
+                cr->move_to(label_width + 0.5, y + 1);
+                cr->line_to(label_width + 0.5, y + h - 1);
+
                 for (int j = 0 ; j < nbZones ; j++) {
                     gig::DimensionRegion *d = region->pDimensionRegions[c + (j << bitpos)];
                     int upperLimit = d->DimensionUpperLimits[i];
                     if (!upperLimit) upperLimit = d->VelocityUpperLimit;
                     int v = upperLimit + 1;
                     int x = int((w - label_width - 1) * v / 128.0 + 0.5);
-                    window->draw_line(black, label_width + x, y + 1, label_width + x, y + h - 2);
+                    cr->move_to(label_width + x + 0.5, y + 1);
+                    cr->line_to(label_width + x + 0.5, y + h - 1);
                 }
             } else {
                 for (int j = 0 ; j <= nbZones ; j++) {
                     int x = int((w - label_width - 1) * j / double(nbZones) + 0.5);
-                    window->draw_line(black, label_width + x, y + 1, label_width + x, y + h - 2);
+                    cr->move_to(label_width + x + 0.5, y + 1);
+                    cr->line_to(label_width + x + 0.5, y + h - 1);
                 }
             }
+            cr->stroke();
 
             // draw fill for currently selected zone
             if (dimregno >= 0) {
-                gc->set_foreground(red);
+                Gdk::Cairo::set_source_color(cr, red);
                 int dr = (dimregno >> bitpos) & ((1 << region->pDimensionDefinitions[i].bits) - 1);
                 if (customsplits) {
                     int x1 = 0;
@@ -206,8 +237,9 @@ bool DimRegionChooser::on_expose_event(GdkEventExpose* event)
                         int v = upperLimit + 1;
                         int x2 = int((w - label_width - 1) * v / 128.0 + 0.5);
                         if (j == dr && x1 < x2) {
-                            window->draw_rectangle(gc, true, label_width + x1 + 1, y + 1,
-                                                   (x2 - x1) - 1, h - 2);
+                            cr->rectangle(label_width + x1 + 1, y + 1,
+                                          (x2 - x1) - 1, h - 2);
+                            cr->fill();
                             break;
                         }
                         x1 = x2;
@@ -216,8 +248,9 @@ bool DimRegionChooser::on_expose_event(GdkEventExpose* event)
                     if (dr < nbZones) {
                         int x1 = int((w - label_width - 1) * dr / double(nbZones) + 0.5);
                         int x2 = int((w - label_width - 1) * (dr + 1) / double(nbZones) + 0.5);
-                        window->draw_rectangle(gc, true, label_width + x1 + 1, y + 1,
-                                               (x2 - x1) - 1, h - 2);
+                        cr->rectangle(label_width + x1 + 1, y + 1,
+                                      (x2 - x1) - 1, h - 2);
+                        cr->fill();
                     }
                 }
             }
@@ -466,8 +499,8 @@ bool DimRegionChooser::on_motion_notify_event(GdkEventMotion* event)
         if (k < 2) k = 2; // k is upper limit + 1, upper limit 0 is forbidden
 
         if (k != resize.pos) {
-            Glib::RefPtr<const Gdk::GC> black = get_style()->get_black_gc();
-            Glib::RefPtr<const Gdk::GC> white = get_style()->get_white_gc();
+            Cairo::RefPtr<Cairo::Context> cr = get_window()->create_cairo_context();
+            cr->set_line_width(1);
 
             int prevx = int((w - label_width - 1) * resize.pos / 128.0 + 0.5) + label_width;
             int x = int((w - label_width - 1) * k / 128.0 + 0.5) + label_width;
@@ -475,32 +508,38 @@ bool DimRegionChooser::on_motion_notify_event(GdkEventMotion* event)
 
             if (resize.selected == resize.none) {
                 if (resize.pos != resize.min && resize.pos != resize.max) {
-                    window->draw_line(white, prevx, y + 1, prevx, y + h - 2);
+                    Gdk::Cairo::set_source_color(cr, white);
+                    cr->move_to(prevx + 0.5, y + 1);
+                    cr->line_to(prevx + 0.5, y + h - 1);
+                    cr->stroke();
                 }
             } else {
-                gc->set_foreground(red);
-
-                Glib::RefPtr<const Gdk::GC> left;
-                Glib::RefPtr<const Gdk::GC> right;
+                Gdk::Color left;
+                Gdk::Color right;
                 if (resize.selected == resize.left) {
-                    left = gc;
+                    left = red;
                     right = white;
                 } else {
                     left = white;
-                    right = gc;
+                    right = red;
                 }
 
                 if (k > resize.pos) {
                     int xx = resize.pos == resize.min ? 1 : 0;
-                    window->draw_rectangle(left, true,
-                                           prevx + xx, y + 1, x - prevx - xx, h - 2);
+                    Gdk::Cairo::set_source_color(cr, left);
+                    cr->rectangle(prevx + xx, y + 1, x - prevx - xx, h - 2);
                 } else {
                     int xx = resize.pos == resize.max ? 0 : 1;
-                    window->draw_rectangle(right, true,
-                                           x, y + 1, prevx - x + xx, h - 2);
+                    Gdk::Cairo::set_source_color(cr, right);
+                    cr->rectangle(x, y + 1, prevx - x + xx, h - 2);
                 }
+                cr->fill();
             }
-            window->draw_line(black, x, y + 1, x, y + h - 2);
+            Gdk::Cairo::set_source_color(cr, black);
+            cr->move_to(x + 0.5, y + 1);
+            cr->line_to(x + 0.5, y + h - 1);
+            cr->stroke();
+
             resize.pos = k;
         }
     } else {

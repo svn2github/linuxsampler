@@ -1,5 +1,5 @@
 /*                                                         -*- c++ -*-
- * Copyright (C) 2006-2008 Andreas Persson
+ * Copyright (C) 2006-2010 Andreas Persson
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -23,7 +23,6 @@
 #include <vector>
 
 #include <gtkmm/drawingarea.h>
-#include <gdkmm/colormap.h>
 #include <gtkmm/uimanager.h>
 #include <gdkmm/window.h>
 #include <gtkmm/menu.h>
@@ -80,7 +79,6 @@ public:
     Gtk::HBox m_VirtKeybPropsBox;
 
 protected:
-    virtual void on_realize();
     virtual bool on_expose_event(GdkEventExpose* e);
     virtual void on_size_request(GtkRequisition* requisition);
     virtual bool on_button_press_event(GdkEventButton* event);
@@ -89,7 +87,6 @@ protected:
 
     gig::Region* get_region(int key);
 
-    Glib::RefPtr<Gdk::GC> gc;
     Gdk::Color activeKeyColor, red, grey1, white, black;
 
     sigc::signal<void> region_selected;
@@ -109,7 +106,7 @@ protected:
     SortedRegions regions;
 
     bool is_black_key(int key);
-    void draw_region(int from, int to, const Gdk::Color& color);
+    void draw_key(int key, const Gdk::Color& color);
     void draw_digit(int key);
     void motion_resize_region(int x, int y);
     void motion_move_region(int x, int y);

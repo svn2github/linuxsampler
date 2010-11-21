@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2009 Andreas Persson
+ * Copyright (C) 2006-2010 Andreas Persson
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -20,6 +20,7 @@
 #include <iostream>
 #include <cstring>
 
+#include <gtkmm/aboutdialog.h>
 #include <gtkmm/filechooserdialog.h>
 #include <gtkmm/messagedialog.h>
 #include <gtkmm/stock.h>
@@ -30,21 +31,8 @@
 
 #include "global.h"
 
-#if (GTKMM_MAJOR_VERSION == 2 && GTKMM_MINOR_VERSION >= 6) || GTKMM_MAJOR_VERSION > 2
-#define ABOUT_DIALOG
-#include <gtkmm/aboutdialog.h>
-#endif
-
-#if (GLIBMM_MAJOR_VERSION == 2 && GLIBMM_MINOR_VERSION < 6) || GLIBMM_MAJOR_VERSION < 2
-namespace Glib {
-Glib::ustring filename_display_basename(const std::string& filename)
-{
-    gchar* gstr = g_path_get_basename(filename.c_str());
-    Glib::ustring str(gstr);
-    g_free(gstr);
-    return Glib::filename_to_utf8(str);
-}
-}
+#if (GTKMM_MAJOR_VERSION == 2 && GTKMM_MINOR_VERSION < 18) || GTKMM_MAJOR_VERSION < 2
+#define set_can_default() set_flags(Gtk::CAN_DEFAULT)
 #endif
 
 #include <stdio.h>
@@ -179,11 +167,9 @@ MainWindow::MainWindow() :
     action = Gtk::Action::create("MenuHelp", Gtk::Stock::HELP);
     actionGroup->add(Gtk::Action::create("MenuHelp",
                                          action->property_label()));
-#ifdef ABOUT_DIALOG
     actionGroup->add(Gtk::Action::create("About", Gtk::Stock::ABOUT),
                      sigc::mem_fun(
                          *this, &MainWindow::on_action_help_about));
-#endif
     actionGroup->add(
         Gtk::Action::create("AddInstrument", _("Add _Instrument")),
         sigc::mem_fun(*this, &MainWindow::on_action_add_instrument)
@@ -239,11 +225,9 @@ MainWindow::MainWindow() :
         "    <menu action='MenuView'>"
         "      <menuitem action='Statusbar'/>"
         "    </menu>"
-#ifdef ABOUT_DIALOG
         "    <menu action='MenuHelp'>"
         "      <menuitem action='About'/>"
         "    </menu>"
-#endif
         "  </menubar>"
         "  <popup name='PopupMenu'>"
         "    <menuitem action='InstrProperties'/>"
@@ -500,7 +484,7 @@ void Loader::thread_function()
 }
 
 Loader::Loader(const char* filename)
-    : thread(0), filename(filename)
+    : filename(filename), thread(0)
 {
 }
 
@@ -582,9 +566,7 @@ bool MainWindow::close_confirmation_dialog()
                                  Glib::filename_display_basename(filename).c_str());
     Gtk::MessageDialog dialog(*this, msg, false, Gtk::MESSAGE_WARNING, Gtk::BUTTONS_NONE);
     g_free(msg);
-#if (GTKMM_MAJOR_VERSION == 2 && GTKMM_MINOR_VERSION >= 6) || GTKMM_MAJOR_VERSION > 2
     dialog.set_secondary_text(_("If you close without saving, your changes will be lost."));
-#endif
     dialog.add_button(_("Close _Without Saving"), Gtk::RESPONSE_NO);
     dialog.add_button(Gtk::Stock::CANCEL, Gtk::RESPONSE_CANCEL);
     dialog.add_button(file_has_name ? Gtk::Stock::SAVE : Gtk::Stock::SAVE_AS, Gtk::RESPONSE_YES);
@@ -598,13 +580,10 @@ bool MainWindow::close_confirmation_dialog()
 bool MainWindow::leaving_shared_mode_dialog() {
     Glib::ustring msg = _("Detach from sampler and proceed working stand-alone?");
     Gtk::MessageDialog dialog(*this, msg, false, Gtk::MESSAGE_WARNING, Gtk::BUTTONS_NONE);
-#if (GTKMM_MAJOR_VERSION == 2 && GTKMM_MINOR_VERSION >= 6) || GTKMM_MAJOR_VERSION > 2
     dialog.set_secondary_text(
         _("If you proceed to work on another instrument file, it won't be "
           "used by the sampler until you tell the sampler explicitly to "
-          "load it.")
-   );
-#endif
+          "load it."));
     dialog.add_button(_("_Yes, Detach"), Gtk::RESPONSE_YES);
     dialog.add_button(Gtk::Stock::CANCEL, Gtk::RESPONSE_CANCEL);
     dialog.set_default_response(Gtk::RESPONSE_CANCEL);
@@ -746,11 +725,8 @@ bool MainWindow::file_save_as()
     dialog.add_button(Gtk::Stock::CANCEL, Gtk::RESPONSE_CANCEL);
     dialog.add_button(Gtk::Stock::SAVE, Gtk::RESPONSE_OK);
     dialog.set_default_response(Gtk::RESPONSE_OK);
-
-#if (GTKMM_MAJOR_VERSION == 2 && GTKMM_MINOR_VERSION >= 8) || GTKMM_MAJOR_VERSION > 2
     dialog.set_do_overwrite_confirmation();
-    // TODO: an overwrite dialog for gtkmm < 2.8
-#endif
+
     Gtk::FileFilter filter;
     filter.add_pattern("*.gig");
     dialog.set_filter(filter);
@@ -917,7 +893,6 @@ void MainWindow::on_action_file_properties()
 
 void MainWindow::on_action_help_about()
 {
-#ifdef ABOUT_DIALOG
     Gtk::AboutDialog dialog;
 #if (GTKMM_MAJOR_VERSION == 2 && GTKMM_MINOR_VERSION >= 12) || GTKMM_MAJOR_VERSION > 2
     dialog.set_program_name("Gigedit");
@@ -925,7 +900,7 @@ void MainWindow::on_action_help_about()
     dialog.set_name("Gigedit");
 #endif
     dialog.set_version(VERSION);
-    dialog.set_copyright("Copyright (C) 2006-2009 Andreas Persson");
+    dialog.set_copyright("Copyright (C) 2006-2010 Andreas Persson");
     dialog.set_comments(_(
         "Released under the GNU General Public License.\n"
         "\n"
@@ -938,12 +913,10 @@ void MainWindow::on_action_help_about()
     dialog.set_website("http://www.linuxsampler.org");
     dialog.set_website_label("http://www.linuxsampler.org");
     dialog.run();
-#endif
 }
 
 PropDialog::PropDialog()
-    : table(2,1),
-      eName(_("Name")),
+    : eName(_("Name")),
       eCreationDate(_("Creation date")),
       eComments(_("Comments")),
       eProduct(_("Product")),
@@ -960,6 +933,7 @@ PropDialog::PropDialog()
       eCommissioned(_("Commissioned")),
       eSubject(_("Subject")),
       quitButton(Gtk::Stock::CLOSE),
+      table(2, 1),
       update_model(0)
 {
     set_title(_("File Properties"));
@@ -1008,7 +982,7 @@ PropDialog::PropDialog()
     buttonBox.set_border_width(5);
     buttonBox.show();
     buttonBox.pack_start(quitButton);
-    quitButton.set_flags(Gtk::CAN_DEFAULT);
+    quitButton.set_can_default();
     quitButton.grab_focus();
     quitButton.signal_clicked().connect(
         sigc::mem_fun(*this, &PropDialog::hide));
@@ -1078,8 +1052,9 @@ void InstrumentProps::set_DimensionKeyRange_high(uint8_t value)
 }
 
 InstrumentProps::InstrumentProps()
-    : table(2,1),
+    : update_model(0),
       quitButton(Gtk::Stock::CLOSE),
+      table(2,1),
       eName(_("Name")),
       eIsDrum(_("Is drum")),
       eMIDIBank(_("MIDI bank"), 0, 16383),
@@ -1091,8 +1066,7 @@ InstrumentProps::InstrumentProps()
       ePitchbendRange(_("Pitchbend range"), 0, 12),
       ePianoReleaseMode(_("Piano release mode")),
       eDimensionKeyRangeLow(_("Keyswitching range low")),
-      eDimensionKeyRangeHigh(_("Keyswitching range high")),
-      update_model(0)
+      eDimensionKeyRangeHigh(_("Keyswitching range high"))
 {
     set_title(_("Instrument Properties"));
 
@@ -1143,7 +1117,7 @@ InstrumentProps::InstrumentProps()
     buttonBox.set_border_width(5);
     buttonBox.show();
     buttonBox.pack_start(quitButton);
-    quitButton.set_flags(Gtk::CAN_DEFAULT);
+    quitButton.set_can_default();
     quitButton.grab_focus();
 
     quitButton.signal_clicked().connect(

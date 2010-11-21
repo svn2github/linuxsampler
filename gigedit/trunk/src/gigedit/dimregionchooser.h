@@ -1,5 +1,5 @@
 /*                                                         -*- c++ -*-
- * Copyright (C) 2006-2008 Andreas Persson
+ * Copyright (C) 2006-2010 Andreas Persson
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -44,7 +44,6 @@ public:
                         std::set<gig::DimensionRegion*>& dimregs) const;
 
 protected:
-    virtual void on_realize();
     virtual bool on_expose_event(GdkEventExpose* e);
     virtual void on_size_request(GtkRequisition* requisition);
     virtual bool on_button_press_event(GdkEventButton* event);
@@ -52,7 +51,6 @@ protected:
     virtual bool on_motion_notify_event(GdkEventMotion* event);
     virtual bool on_focus(Gtk::DirectionType direction);
 
-    Glib::RefPtr<Gdk::GC> gc;
     Gdk::Color blue, red, black, white, green;
 
     gig::Instrument* instrument;

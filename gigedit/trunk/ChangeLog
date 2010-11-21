@@ -1,6 +1,9 @@
 Version CVS HEAD (?)
   * minor fix in configure for cross-compiling
   * minor Makefile fix for parallel make
+  * use Cairo instead of deprecated gdk drawing primitives
+  * avoid deprecated gtk methods when using newer gtk versions
+  * raised minimum supported gtkmm version to 2.8
 
 Version 0.2.0 (2009-07-31)
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2009 Andreas Persson
+ * Copyright (C) 2006-2010 Andreas Persson
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -18,15 +18,37 @@
  */
 
 #include "regionchooser.h"
+
 #include <algorithm>
+#include <cmath>
+#include <sstream>
+
+#include <cairomm/context.h>
+#include <gdkmm/general.h>
 #include <gdkmm/cursor.h>
 #include <gtkmm/stock.h>
 #include <gtkmm/spinbutton.h>
 #include <gtkmm/dialog.h>
-#include <math.h>
-#include <sstream>
 
 #include "global.h"
+
+#if (GTKMM_MAJOR_VERSION == 2 && GTKMM_MINOR_VERSION < 10) || GTKMM_MAJOR_VERSION < 2
+
+#define create_cairo_context()                                          \
+    gobj() ? Cairo::RefPtr<Cairo::Context>(                             \
+        new Cairo::Context(gdk_cairo_create(get_window()->gobj()))) :   \
+    Cairo::RefPtr<Cairo::Context>()
+
+namespace Gdk {
+    namespace Cairo {
+        void set_source_color(const ::Cairo::RefPtr< ::Cairo::Context >& cr,
+                              const Gdk::Color& color) {
+            gdk_cairo_set_source_color(cr->cobj(),
+                                       const_cast<GdkColor*>(color.gobj()));
+        }
+    }
+}
+#endif
 
 #define REGION_BLOCK_HEIGHT		20
 #define KEYBOARD_HEIGHT			40
@@ -37,7 +59,7 @@ void SortedRegions::update(gig::Instrument* instrument) {
     // RegionChooser code needs a sorted list of regions.
     regions.clear();
     if (instrument) {
-        for (gig::Region *r = instrument->GetFirstRegion() ;
+        for (gig::Region* r = instrument->GetFirstRegion() ;
              r ;
              r = instrument->GetNextRegion()) {
             regions.push_back(r);
@@ -62,19 +84,12 @@ RegionChooser::RegionChooser() :
     m_VirtKeybModeChoice(_("Virtual Keyboard Mode")),
     currentActiveKey(-1)
 {
-    Glib::RefPtr<Gdk::Colormap> colormap = get_default_colormap();
-
     red = Gdk::Color("#8070ff");
     grey1 = Gdk::Color("#b0b0b0");
     activeKeyColor = Gdk::Color("#ff0000");
     white = Gdk::Color("#ffffff");
     black = Gdk::Color("#000000");
 
-    colormap->alloc_color(red);
-    colormap->alloc_color(grey1);
-    colormap->alloc_color(activeKeyColor);
-    colormap->alloc_color(white);
-    colormap->alloc_color(black);
     instrument = 0;
     region = 0;
     resize.active = false;
@@ -170,97 +185,130 @@ template<class T> inline std::string ToString(T o) {
 }
 
 void RegionChooser::on_note_on_event(int key, int velocity) {
-    draw_region(key, key+1, activeKeyColor);
+    draw_key(key, activeKeyColor);
     m_VirtKeybVelocityLabel.set_text(ToString(velocity));
 }
 
 void RegionChooser::on_note_off_event(int key, int velocity) {
     if (is_black_key(key)) {
-        draw_region(key, key+1, black);
+        draw_key(key, black);
     } else {
-        draw_region(key, key+1, key >= 21 && key <= 108 ? white : grey1);
+        draw_key(key, key >= 21 && key <= 108 ? white : grey1);
     }
     m_VirtKeybOffVelocityLabel.set_text(ToString(velocity));
 }
 
-void RegionChooser::on_realize()
-{
-    // We need to call the base on_realize()
-    Gtk::DrawingArea::on_realize();
-
-    // Now we can allocate any additional resources we need
-    Glib::RefPtr<Gdk::Window> window = get_window();
-    gc = Gdk::GC::create(window);
-    window->clear();
-}
 
 bool RegionChooser::on_expose_event(GdkEventExpose* event)
 {
     Glib::RefPtr<Gdk::Window> window = get_window();
-    window->clear();
-    const int h = KEYBOARD_HEIGHT;
-    const int w = get_width() - 1;
-    const int bh = int(h * 0.55);
-
-    Glib::RefPtr<const Gdk::GC> black = get_style()->get_black_gc();
-    Glib::RefPtr<const Gdk::GC> white = get_style()->get_white_gc();
-
-    window->draw_rectangle(black, false, 0, h1, w, h - 1);
-    gc->set_foreground(grey1);
-    int x1 = int(w * 20.5 / 128.0 + 0.5);
-    int x2 = int(w * 109.5 / 128.0 + 0.5);
-    window->draw_rectangle(gc, true, 1, h1 + 1,
-                           x1 - 1, h - 2);
-    window->draw_rectangle(white, true, x1 + 1, h1 + 1, x2 - x1 - 1, h - 2);
-    window->draw_rectangle(gc, true, x2 + 1, h1 + 1,
-                           w - x2 - 1, h - 2);
-    for (int i = 0 ; i < 128 ; i++) {
-        int note = (i + 3) % 12;
-        int x = int(w * i / 128.0 + 0.5);
-
-        if (note == 1 || note == 4 || note == 6 || note == 9 || note == 11) {
-            int x2 = int(w * (i + 0.5) / 128.0 + 0.5);
-            window->draw_line(black, x2, h1 + bh, x2, h1 + h);
-
-            int x3 = int(w * (i + 1) / 128.0 + 0.5);
-            window->draw_rectangle(black, true, x, h1 + 1, x3 - x + 1, bh);
-        } else if (note == 3 || note == 8) {
-            window->draw_line(black, x, h1 + 1, x, h1 + h);
+    if (window) {
+        Cairo::RefPtr<Cairo::Context> cr = window->create_cairo_context();
+        if (event) {
+            cr->rectangle(event->area.x, event->area.y,
+                          event->area.width, event->area.height);
+            cr->clip();
         }
-        if (note == 3) draw_digit(i);
-    }
+        const int h = KEYBOARD_HEIGHT;
+        const int w = get_width() - 1;
+        const int bh = int(h * 0.55);
 
-    if (instrument) {
-        int i = 0;
-        gig::Region *next_region;
-        int x3 = -1;
-        for (gig::Region *r = regions.first() ; r ; r = next_region) {
+        cr->save();
+        cr->set_line_width(1);
 
-            if (x3 < 0) x3 = int(w * (r->KeyRange.low) / 128.0 + 0.5);
-            next_region = regions.next();
-            if (!next_region || r->KeyRange.high + 1 != next_region->KeyRange.low) {
-                int x2 = int(w * (r->KeyRange.high + 1) / 128.0 + 0.5);
-                window->draw_line(black, x3, 0, x2, 0);
-                window->draw_line(black, x3, h1 - 1, x2, h1 - 1);
-                window->draw_line(black, x2, 1, x2, h1 - 2);
-                window->draw_rectangle(white, true, x3 + 1, 1, x2 - x3 - 1, h1 - 2);
-                x3 = -1;
+        const Gdk::Color bg = get_style()->get_bg(Gtk::STATE_NORMAL);
+        Gdk::Cairo::set_source_color(cr, bg);
+        cr->paint();
+
+        Gdk::Cairo::set_source_color(cr, black);
+        cr->rectangle(0.5, h1 + 0.5, w, h - 1);
+        cr->stroke();
+
+        int x1 = int(w * 20.5 / 128.0 + 0.5);
+        int x2 = int(w * 109.5 / 128.0 + 0.5);
+
+        Gdk::Cairo::set_source_color(cr, grey1);
+        cr->rectangle(1, h1 + 1, x1 - 1, h - 2);
+        cr->fill();
+
+        Gdk::Cairo::set_source_color(cr, white);
+        cr->rectangle(x1 + 1, h1 + 1, x2 - x1 - 1, h - 2);
+        cr->fill();
+
+        Gdk::Cairo::set_source_color(cr, grey1);
+        cr->rectangle(x2 + 1, h1 + 1, w - x2 - 1, h - 2);
+        cr->fill();
+
+        Gdk::Cairo::set_source_color(cr, black);
+        for (int i = 0 ; i < 128 ; i++) {
+            int note = (i + 3) % 12;
+            int x = int(w * i / 128.0 + 0.5);
+
+            if (note == 1 || note == 4 || note == 6 ||
+                note == 9 || note == 11) {
+                int x2 = int(w * (i + 0.5) / 128.0 + 0.5);
+                cr->move_to(x2 + 0.5, h1 + bh + 0.5);
+                cr->line_to(x2 + 0.5, h1 + h - 1);
+                cr->stroke();
+
+                int x3 = int(w * (i + 1) / 128.0 + 0.5);
+                cr->rectangle(x, h1 + 1, x3 - x + 1, bh);
+                cr->fill();
+            } else if (note == 3 || note == 8) {
+                cr->move_to(x + 0.5, h1 + 1);
+                cr->line_to(x + 0.5, h1 + h - 1);
+                cr->stroke();
+
+                if (note == 3) draw_digit(i);
             }
-            i++;
         }
 
-        for (gig::Region *r = regions.first() ; r ; r = regions.next()) {
-            int x = int(w * (r->KeyRange.low) / 128.0 + 0.5);
-            window->draw_line(black, x, 1, x, h1 - 2);
+        if (instrument) {
+            int i = 0;
+            gig::Region* next_region;
+            int x3 = -1;
+            for (gig::Region* r = regions.first() ; r ; r = next_region) {
+
+                if (x3 < 0) x3 = int(w * (r->KeyRange.low) / 128.0 + 0.5);
+                next_region = regions.next();
+                if (!next_region ||
+                    r->KeyRange.high + 1 != next_region->KeyRange.low) {
+                    int x2 = int(w * (r->KeyRange.high + 1) / 128.0 + 0.5);
+                    cr->move_to(x3, 0.5);
+                    cr->line_to(x2 + 0.5, 0.5);
+                    cr->line_to(x2 + 0.5, h1 - 0.5);
+                    cr->line_to(x3, h1 - 0.5);
+                    cr->stroke();
+
+                    Gdk::Cairo::set_source_color(cr, white);
+                    cr->rectangle(x3 + 1, 1, x2 - x3 - 1, h1 - 2);
+                    cr->fill();
+                    Gdk::Cairo::set_source_color(cr, black);
+
+                    x3 = -1;
+                }
+                i++;
+            }
+
+            for (gig::Region* r = regions.first() ; r ; r = regions.next()) {
+                int x = int(w * (r->KeyRange.low) / 128.0 + 0.5);
+                cr->move_to(x + 0.5, 1);
+                cr->line_to(x + 0.5, h1 - 1);
+                cr->stroke();
+            }
+
+            if (region) {
+                int x1 = int(w * (region->KeyRange.low) / 128.0 + 0.5);
+                int x2 = int(w * (region->KeyRange.high + 1) / 128.0 + 0.5);
+                Gdk::Cairo::set_source_color(cr, red);
+                cr->rectangle(x1 + 1, 1, x2 - x1 - 1, h1 - 2);
+                cr->fill();
+            }
         }
 
-        if (region) {
-            int x1 = int(w * (region->KeyRange.low) / 128.0 + 0.5);
-            int x2 = int(w * (region->KeyRange.high + 1) / 128.0 + 0.5);
-            gc->set_foreground(red);
-            window->draw_rectangle(gc, true, x1 + 1, 1, x2 - x1 - 1, h1 - 2);
-        }
+        cr->restore();
     }
+
     return true;
 }
 
@@ -288,44 +336,55 @@ void RegionChooser::draw_digit(int key) {
     double text_w = double(rectangle.get_width()) / Pango::SCALE;
     double text_h = double(rectangle.get_height()) / Pango::SCALE;
     double x = w * (key + 0.75) / 128.0;
-    get_window()->draw_layout(get_style()->get_black_gc(), int(x - text_w / 2 + 1),
-                              int(h1 + h - text_h + 0.5), layout);
+    Cairo::RefPtr<Cairo::Context> cr = get_window()->create_cairo_context();
+    Gdk::Cairo::set_source_color(cr, black);
+    cr->move_to(int(x - text_w / 2 + 1), int(h1 + h - text_h + 0.5));
+#if (GTKMM_MAJOR_VERSION == 2 && GTKMM_MINOR_VERSION < 16) || GTKMM_MAJOR_VERSION < 2
+    pango_cairo_show_layout(cr->cobj(), layout->gobj());
+#else
+    layout->show_in_cairo_context(cr);
+#endif
 }
 
-void RegionChooser::draw_region(int from, int to, const Gdk::Color& color)
+void RegionChooser::draw_key(int key, const Gdk::Color& color)
 {
     const int h = KEYBOARD_HEIGHT;
     const int w = get_width() - 1;
     const int bh = int(h * 0.55);
 
-    Glib::RefPtr<Gdk::Window> window = get_window();
-    gc->set_foreground(color);
+    Cairo::RefPtr<Cairo::Context> cr = get_window()->create_cairo_context();
+    Gdk::Cairo::set_source_color(cr, color);
 
-    for (int i = from ; i < to ; i++) {
-        int note = (i + 3) % 12;
-        int x = int(w * i / 128.0 + 0.5) + 1;
-        int x2 = int(w * (i + 1.5) / 128.0 + 0.5);
-        int x3 = int(w * (i + 1) / 128.0 + 0.5);
-        int x4 = int(w * (i - 0.5) / 128.0 + 0.5);
-        int w1 = x3 - x;
-        switch (note) {
-        case 0: case 5: case 10:
-            window->draw_rectangle(gc, true, x, h1 + 1, w1, bh);
-            window->draw_rectangle(gc, true, x4 + 1, h1 + bh + 1, x2 - x4 - 1, h - bh - 2);
-            break;
-        case 2: case 7:
-            window->draw_rectangle(gc, true, x, h1 + 1, w1, bh);
-            window->draw_rectangle(gc, true, x4 + 1, h1 + bh + 1, x3 - x4 - 1, h - bh - 2);
-            break;
-        case 3: case 8:
-            window->draw_rectangle(gc, true, x, h1 + 1, w1, bh);
-            window->draw_rectangle(gc, true, x, h1 + bh + 1, x2 - x, h - bh - 2);
-            if (note == 3) draw_digit(i);
-            break;
-        default:
-            window->draw_rectangle(gc, true, x, h1 + 1, w1, bh - 1);
-            break;
-        }
+    int note = (key + 3) % 12;
+    int x = int(w * key / 128.0 + 0.5) + 1;
+    int x2 = int(w * (key + 1.5) / 128.0 + 0.5);
+    int x3 = int(w * (key + 1) / 128.0 + 0.5);
+    int x4 = int(w * (key - 0.5) / 128.0 + 0.5);
+    int w1 = x3 - x;
+    switch (note) {
+    case 0: case 5: case 10:
+        cr->rectangle(x, h1 + 1, w1, bh);
+        cr->fill();
+        cr->rectangle(x4 + 1, h1 + bh + 1, x2 - x4 - 1, h - bh - 2);
+        cr->fill();
+        break;
+    case 2: case 7:
+        cr->rectangle(x, h1 + 1, w1, bh);
+        cr->fill();
+        cr->rectangle(x4 + 1, h1 + bh + 1, x3 - x4 - 1, h - bh - 2);
+        cr->fill();
+        break;
+    case 3: case 8:
+        cr->rectangle(x, h1 + 1, w1, bh);
+        cr->fill();
+        cr->rectangle(x, h1 + bh + 1, x2 - x, h - bh - 2);
+        cr->fill();
+        if (note == 3) draw_digit(key);
+        break;
+    default:
+        cr->rectangle(x, h1 + 1, w1, bh - 1);
+        cr->fill();
+        break;
     }
 }
 
@@ -480,7 +539,7 @@ gig::Region* RegionChooser::get_region(int key)
 {
     gig::Region* prev_region = 0;
     gig::Region* next_region;
-    for (gig::Region *r = regions.first() ; r ; r = next_region) {
+    for (gig::Region* r = regions.first() ; r ; r = next_region) {
         next_region = regions.next();
 
         if (key < r->KeyRange.low) return 0;
@@ -497,7 +556,6 @@ gig::Region* RegionChooser::get_region(int key)
 void RegionChooser::motion_resize_region(int x, int y)
 {
     const int w = get_width() - 1;
-    Glib::RefPtr<Gdk::Window> window = get_window();
 
     int k = int(double(x) / w * 128.0 + 0.5);
 
@@ -505,6 +563,9 @@ void RegionChooser::motion_resize_region(int x, int y)
     else if (k > resize.max) k = resize.max;
 
     if (k != resize.pos) {
+        Cairo::RefPtr<Cairo::Context> cr = get_window()->create_cairo_context();
+        cr->set_line_width(1);
+
         if (resize.mode == resize.undecided) {
             if (k < resize.pos) {
                 // edit high limit of prev_region
@@ -517,36 +578,56 @@ void RegionChooser::motion_resize_region(int x, int y)
                 resize.mode = resize.moving_low_limit;
             }
         }
-        Glib::RefPtr<const Gdk::GC> black = get_style()->get_black_gc();
-        Glib::RefPtr<const Gdk::GC> white = get_style()->get_white_gc();
-        if (region == resize.region) {
-            gc->set_foreground(red);
-            white = gc;
-        }
-        Glib::RefPtr<const Gdk::GC> bg = get_style()->get_bg_gc(Gtk::STATE_NORMAL);
+        const Gdk::Color white =
+            region == resize.region ? red : get_style()->get_white();
+        const Gdk::Color bg = get_style()->get_bg(Gtk::STATE_NORMAL);
+
         int prevx = int(w * resize.pos / 128.0 + 0.5);
         x = int(w * k / 128.0 + 0.5);
 
         if (resize.mode == resize.moving_high_limit) {
             if (k > resize.pos) {
-                window->draw_rectangle(white, true, prevx, 1, x - prevx, h1 - 2);
-                window->draw_line(black, prevx, 0, x, 0);
-                window->draw_line(black, prevx, h1 - 1, x, h1 - 1);
+                Gdk::Cairo::set_source_color(cr, white);
+                cr->rectangle(prevx, 1, x - prevx, h1 - 2);
+                cr->fill();
+
+                Gdk::Cairo::set_source_color(cr, black);
+                cr->move_to(prevx, 0.5);
+                cr->line_to(x + 1, 0.5);
+                cr->move_to(prevx, h1 - 0.5);
+                cr->line_to(x + 1, h1 - 0.5);
+                cr->stroke();
             } else {
-                int xx = ((resize.pos == resize.max && resize.max != 128) ? 1 : 0);
-                window->draw_rectangle(bg, true, x + 1, 0, prevx - x - xx, h1);
+                int xx = (resize.pos == resize.max &&
+                          resize.max != 128) ? 1 : 0;
+                Gdk::Cairo::set_source_color(cr, bg);
+                cr->rectangle(x + 1, 0, prevx - x - xx, h1);
+                cr->fill();
             }
         } else {
             if (k < resize.pos) {
-                window->draw_rectangle(white, true, x + 1, 1, prevx - x, h1 - 2);
-                window->draw_line(black, x, 0, prevx, 0);
-                window->draw_line(black, x, h1 - 1, prevx, h1 - 1);
+                Gdk::Cairo::set_source_color(cr, white);
+                cr->rectangle(x + 1, 1, prevx - x, h1 - 2);
+                cr->fill();
+
+                Gdk::Cairo::set_source_color(cr, black);
+                cr->move_to(x, 0.5);
+                cr->line_to(prevx, 0.5);
+                cr->move_to(x, h1 - 0.5);
+                cr->line_to(prevx, h1 - 0.5);
+                cr->stroke();
             } else {
-                int xx = ((resize.pos == resize.min && resize.min != 0) ? 1 : 0);
-                window->draw_rectangle(bg, true, prevx + xx, 0, x - prevx - xx, h1);
+                int xx = (resize.pos == resize.min &&
+                          resize.min != 0) ? 1 : 0;
+                Gdk::Cairo::set_source_color(cr, bg);
+                cr->rectangle(prevx + xx, 0, x - prevx - xx, h1);
+                cr->fill();
             }
         }
-        window->draw_line(black, x, 1, x, h1 - 2);
+        Gdk::Cairo::set_source_color(cr, black);
+        cr->move_to(x + 0.5, 1);
+        cr->line_to(x + 0.5, h1 - 1);
+        cr->stroke();
         resize.pos = k;
     }
 }
@@ -554,7 +635,8 @@ void RegionChooser::motion_resize_region(int x, int y)
 void RegionChooser::motion_move_region(int x, int y)
 {
     const int w = get_width() - 1;
-    Glib::RefPtr<Gdk::Window> window = get_window();
+    Cairo::RefPtr<Cairo::Context> cr = get_window()->create_cairo_context();
+    cr->set_line_width(1);
 
     int k = int(double(x - move.from_x) / w * 128.0 + 0.5);
     if (k == move.pos) return;
@@ -627,35 +709,61 @@ void RegionChooser::motion_move_region(int x, int y)
     k = new_k;
     if (k == move.pos) return;
 
-    Glib::RefPtr<const Gdk::GC> bg = get_style()->get_bg_gc(Gtk::STATE_NORMAL);
+    const Gdk::Color bg = get_style()->get_bg(Gtk::STATE_NORMAL);
     int prevx = int(w * (move.pos + region->KeyRange.low) / 128.0 + 0.5);
     x = int(w * (k + region->KeyRange.low) / 128.0 + 0.5);
     int prevx2 = int(w * (move.pos + region->KeyRange.high + 1) / 128.0 + 0.5);
     int x2 = int(w * (k + region->KeyRange.high + 1) / 128.0 + 0.5);
-    Glib::RefPtr<const Gdk::GC> black = get_style()->get_black_gc();
-    gc->set_foreground(red);
+    const Gdk::Color black = get_style()->get_black();
 
-    if (!new_touch_left) window->draw_line(black, x, 1, x, h1 - 2);
-    if (!new_touch_right) window->draw_line(black, x2, 1, x2, h1 - 2);
+    if (!new_touch_left) { 
+        Gdk::Cairo::set_source_color(cr, black);
+        cr->move_to(x + 0.5, 1);
+        cr->line_to(x + 0.5, h1 - 1);
+        cr->stroke();
+    }
+    if (!new_touch_right) { 
+        Gdk::Cairo::set_source_color(cr, black);
+        cr->move_to(x2 + 0.5, 1);
+        cr->line_to(x2 + 0.5, h1 - 1);
+        cr->stroke();
+    }
 
     if (k > move.pos) {
-        window->draw_rectangle(bg, true, prevx + (move.touch_left ? 1 : 0), 0,
-                               std::min(x, prevx2 + 1 - (move.touch_right ? 1 : 0)) -
-                               (prevx + (move.touch_left ? 1 : 0)), h1);
+        Gdk::Cairo::set_source_color(cr, bg);
+        cr->rectangle(prevx + (move.touch_left ? 1 : 0), 0,
+                      std::min(x, prevx2 + 1 - (move.touch_right ? 1 : 0)) -
+                      (prevx + (move.touch_left ? 1 : 0)), h1);
+        cr->fill();
 
-        window->draw_line(black, std::max(x, prevx2 + 1), 0, x2, 0);
-        window->draw_line(black, std::max(x, prevx2 + 1), h1 - 1, x2, h1 - 1);
-        window->draw_rectangle(gc, true, std::max(x + 1, prevx2), 1,
-                               x2 - std::max(x + 1, prevx2), h1 - 2);
+        Gdk::Cairo::set_source_color(cr, black);
+        cr->move_to(std::max(x, prevx2 + 1), 0.5);
+        cr->line_to(x2 + 1, 0.5);
+        cr->move_to(std::max(x, prevx2 + 1), h1 - 0.5);
+        cr->line_to(x2 + 1, h1 - 0.5);
+        cr->stroke();
+
+        Gdk::Cairo::set_source_color(cr, red);
+        cr->rectangle(std::max(x + 1, prevx2), 1,
+                      x2 - std::max(x + 1, prevx2), h1 - 2);
+        cr->fill();
     } else {
-        window->draw_rectangle(bg, true, std::max(x2 + 1, prevx + (move.touch_left ? 1 : 0)), 0,
-                               prevx2 + 1 - (move.touch_right ? 1 : 0) -
-                               std::max(x2 + 1, prevx + (move.touch_left ? 1 : 0)), h1);
+        Gdk::Cairo::set_source_color(cr, bg);
+        cr->rectangle(std::max(x2 + 1, prevx + (move.touch_left ? 1 : 0)), 0,
+                      prevx2 + 1 - (move.touch_right ? 1 : 0) -
+                      std::max(x2 + 1, prevx + (move.touch_left ? 1 : 0)), h1);
+        cr->fill();
 
-        window->draw_line(black, x, 0, std::min(x2, prevx - 1), 0);
-        window->draw_line(black, x, h1 - 1, std::min(x2, prevx - 1), h1 - 1);
+        Gdk::Cairo::set_source_color(cr, black);
+        cr->move_to(x, 0.5);
+        cr->line_to(std::min(x2, prevx - 1) + 1, 0.5);
+        cr->move_to(x, h1 - 0.5);
+        cr->line_to(std::min(x2, prevx - 1) + 1, h1 - 0.5);
+        cr->stroke();
 
-        window->draw_rectangle(gc, true, x + 1, 1, std::min(x2 - 1, prevx) - x, h1 - 2);
+        Gdk::Cairo::set_source_color(cr, red);
+        cr->rectangle(x + 1, 1, std::min(x2 - 1, prevx) - x, h1 - 2);
+        cr->fill();
     }
 
     move.pos = k;

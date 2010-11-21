@@ -1,5 +1,5 @@
 /*                                                         -*- c++ -*-
- * Copyright (C) 2006, 2007 Andreas Persson
+ * Copyright (C) 2006-2010 Andreas Persson
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -22,7 +22,7 @@
 
 #include <gig.h>
 
-#include <math.h>
+#include <cmath>
 
 #include <gtkmm/adjustment.h>
 #include <gtkmm/alignment.h>
@@ -33,7 +33,11 @@
 #include <gtkmm/scale.h>
 #include <gtkmm/spinbutton.h>
 #include <gtkmm/textview.h>
+
+#if (GTKMM_MAJOR_VERSION == 2 && GTKMM_MINOR_VERSION < 12) || GTKMM_MAJOR_VERSION < 2
+#define OLD_TOOLTIPS
 #include <gtkmm/tooltips.h>
+#endif
 
 class LabelWidget {
 public:
@@ -46,7 +50,9 @@ public:
         return sig_changed;
     }
 protected:
+#ifdef OLD_TOOLTIPS
     Gtk::Tooltips tooltips;
+#endif
     sigc::signal<void> sig_changed;
 };
 
@@ -64,7 +70,11 @@ public:
     NumEntry(const char* labelText, double lower = 0, double upper = 127,
              int decimals = 0);
     void set_tip(const Glib::ustring& tip_text) {
+#ifdef OLD_TOOLTIPS
         tooltips.set_tip(spinbutton, tip_text);
+#else
+        spinbutton.set_tooltip_text(tip_text);
+#endif
     }
     void set_upper(double upper) {
         adjust.set_upper(upper);
@@ -166,14 +176,18 @@ public:
     void set_choices(const char** texts, const T* values);
 
     void set_tip(const Glib::ustring& tip_text) {
-        tooltips.set_tip(combobox, tip_text); //FIXME: don't Gtk::ComboBoxes support tooltips ???
+#ifdef OLD_TOOLTIPS
+        tooltips.set_tip(combobox, tip_text);
+#else
+        combobox.set_tooltip_text(tip_text);
+#endif
     }
 };
 
 template<typename T>
 ChoiceEntry<T>::ChoiceEntry(const char* labelText) :
-    align(0, 0, 0, 0),
-    LabelWidget(labelText, align)
+    LabelWidget(labelText, align),
+    align(0, 0, 0, 0)
 {
     combobox.signal_changed().connect(sig_changed.make_slot());
     align.add(combobox);
@@ -229,7 +243,11 @@ public:
     void set_value(bool value) { checkbutton.set_active(value); }
 
     void set_tip(const Glib::ustring& tip_text) {
+#ifdef OLD_TOOLTIPS
         tooltips.set_tip(checkbutton, tip_text);
+#else
+        checkbutton.set_tooltip_text(tip_text);
+#endif
     }
 };
 

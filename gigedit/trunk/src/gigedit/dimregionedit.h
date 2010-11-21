@@ -1,5 +1,5 @@
 /*                                                         -*- c++ -*-
- * Copyright (C) 2006-2008 Andreas Persson
+ * Copyright (C) 2006-2010 Andreas Persson
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -26,7 +26,6 @@
 #include <gtkmm/label.h>
 #include <gtkmm/notebook.h>
 #include <gtkmm/table.h>
-#include <gtkmm/tooltips.h>
 
 #include <set>
 
@@ -54,7 +53,9 @@ protected:
 
     gig::DimensionRegion* dimregion;
 
+#ifdef OLD_TOOLTIPS
     Gtk::Tooltips tooltips;
+#endif
 
     Gtk::Table* table[7];
 

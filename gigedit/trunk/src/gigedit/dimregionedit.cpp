@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2009 Andreas Persson
+ * Copyright (C) 2006-2010 Andreas Persson
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -267,7 +267,11 @@ DimRegionEdit::DimRegionEdit() :
     addHeader(_("Mandatory Settings"));
     addString(_("Sample"), lSample, wSample);
     //TODO: the following would break drag&drop:   wSample->property_editable().set_value(false);  or this:    wSample->set_editable(false);
+#ifdef OLD_TOOLTIPS
     tooltips.set_tip(*wSample, _("Drop a sample here"));
+#else
+    wSample->set_tooltip_text(_("Drop a sample here"));
+#endif
     addProp(eUnityNote);
     addHeader(_("Optional Settings"));
     addProp(eSampleStartOffset);

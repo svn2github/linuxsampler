@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2009 Andreas Persson
+ * Copyright (C) 2006-2010 Andreas Persson
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -76,10 +76,10 @@ void LabelWidget::set_sensitive(bool sensitive)
 
 NumEntry::NumEntry(const char* labelText, double lower, double upper,
                    int decimals) :
+    LabelWidget(labelText, box),
     adjust(lower, lower, upper, 1, 10),
     scale(adjust),
-    spinbutton(adjust),
-    LabelWidget(labelText, box)
+    spinbutton(adjust)
 {
     spinbutton.set_digits(decimals);
     spinbutton.set_value(0);
@@ -92,8 +92,8 @@ NumEntryGain::NumEntryGain(const char* labelText,
 			   double lower, double upper,
 			   int decimals, double coeff) :
     NumEntry(labelText, lower, upper, decimals),
-    coeff(coeff),
     value(0),
+    coeff(coeff),
     connected(true)
 {
     spinbutton.signal_value_changed().connect(
@@ -226,8 +226,8 @@ bool NoteEntry::on_output()
 }
 
 ChoiceEntryLeverageCtrl::ChoiceEntryLeverageCtrl(const char* labelText) :
-    align(0, 0, 0, 0),
-    LabelWidget(labelText, align)
+    LabelWidget(labelText, align),
+    align(0, 0, 0, 0)
 {
     for (int i = 0 ; i < 99 ; i++) {
         if (controlChangeTexts[i]) {
@@ -260,7 +260,7 @@ void ChoiceEntryLeverageCtrl::value_changed()
     default:
         value.type = gig::leverage_ctrl_t::type_controlchange;
         int x = 3;
-        for (int cc = 0 ; cc < 96 ; cc++) {
+        for (uint cc = 0 ; cc < 96 ; cc++) {
             if (controlChangeTexts[cc + 3]) {
                 if (rowno == x) {
                     value.controller_number = cc;
@@ -290,7 +290,7 @@ void ChoiceEntryLeverageCtrl::set_value(gig::leverage_ctrl_t value)
         break;
     case gig::leverage_ctrl_t::type_controlchange:
         x = -1;
-        for (int cc = 0 ; cc < 96 ; cc++) {
+        for (uint cc = 0 ; cc < 96 ; cc++) {
             if (controlChangeTexts[cc + 3]) {
                 x++;
                 if (value.controller_number == cc) {
