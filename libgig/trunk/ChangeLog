@@ -6,6 +6,10 @@ Version CVS HEAD (?)
     - initial implementation
     - changed region lookup API to avoid malloc in RT threads
 
+  * src/gig.cpp:
+    - bugfix: VCF velocity dynamic range and VCF velocity curve
+      weren't saved correctly
+
   * src/RIFF.cpp, src/RIFF.h:
     - bugfix: avoid calling read() with count 0 when writing a file,
       as this may hang on some systems

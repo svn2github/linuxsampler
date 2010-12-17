@@ -1885,7 +1885,7 @@ namespace {
                                       (VCFKeyboardTrackingBreakpoint & 0x7f); /* lower 7 bits */
         pData[137] = vcfbreakpoint;
 
-        const uint8_t vcfvelocity = VCFVelocityDynamicRange % 5 |
+        const uint8_t vcfvelocity = VCFVelocityDynamicRange % 5 +
                                     VCFVelocityCurve * 5;
         pData[138] = vcfvelocity;
 
