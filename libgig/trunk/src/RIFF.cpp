@@ -2,7 +2,7 @@
  *                                                                         *
  *   libgig - C++ cross-platform Gigasampler format file access library    *
  *                                                                         *
- *   Copyright (C) 2003-2009 by Christian Schoenebeck                      *
+ *   Copyright (C) 2003-2011 by Christian Schoenebeck                      *
  *                              <cuse@users.sourceforge.net>               *
  *                                                                         *
  *   This library is free software; you can redistribute it and/or modify  *
@@ -1425,39 +1425,45 @@ namespace RIFF {
      *                         given RIFF file
      */
     File::File(const String& path) : List(this), Filename(path) {
-      #if DEBUG
-      std::cout << "File::File("<<path<<")" << std::endl;
-      #endif // DEBUG
-        bEndianNative = true;
-        //HACK: see _GET_RESIZED_CHUNKS() comment
-        ResizedChunks.push_back(reinterpret_cast<Chunk*>(new std::set<Chunk*>));
-        #if POSIX
-        hFileRead = hFileWrite = open(path.c_str(), O_RDONLY | O_NONBLOCK);
-        if (hFileRead <= 0) {
-            hFileRead = hFileWrite = 0;
-            throw RIFF::Exception("Can't open \"" + path + "\"");
+       #if DEBUG
+       std::cout << "File::File("<<path<<")" << std::endl;
+       #endif // DEBUG
+        try {
+            bEndianNative = true;
+            //HACK: see _GET_RESIZED_CHUNKS() comment
+            ResizedChunks.push_back(reinterpret_cast<Chunk*>(new std::set<Chunk*>));
+            #if POSIX
+            hFileRead = hFileWrite = open(path.c_str(), O_RDONLY | O_NONBLOCK);
+            if (hFileRead <= 0) {
+                hFileRead = hFileWrite = 0;
+                throw RIFF::Exception("Can't open \"" + path + "\"");
+            }
+            #elif defined(WIN32)
+            hFileRead = hFileWrite = CreateFile(
+                                         path.c_str(), GENERIC_READ,
+                                         FILE_SHARE_READ | FILE_SHARE_WRITE,
+                                         NULL, OPEN_EXISTING,
+                                         FILE_ATTRIBUTE_NORMAL |
+                                         FILE_FLAG_RANDOM_ACCESS, NULL
+                                     );
+            if (hFileRead == INVALID_HANDLE_VALUE) {
+                hFileRead = hFileWrite = INVALID_HANDLE_VALUE;
+                throw RIFF::Exception("Can't open \"" + path + "\"");
+            }
+            #else
+            hFileRead = hFileWrite = fopen(path.c_str(), "rb");
+            if (!hFileRead) throw RIFF::Exception("Can't open \"" + path + "\"");
+            #endif // POSIX
+            Mode = stream_mode_read;
+            ulStartPos = RIFF_HEADER_SIZE;
+            ReadHeader(0);
+            if (ChunkID != CHUNK_ID_RIFF && ChunkID != CHUNK_ID_RIFX) {
+                throw RIFF::Exception("Not a RIFF file");
+            }
         }
-        #elif defined(WIN32)
-        hFileRead = hFileWrite = CreateFile(
-                                     path.c_str(), GENERIC_READ,
-                                     FILE_SHARE_READ | FILE_SHARE_WRITE,
-                                     NULL, OPEN_EXISTING,
-                                     FILE_ATTRIBUTE_NORMAL |
-                                     FILE_FLAG_RANDOM_ACCESS, NULL
-                                 );
-        if (hFileRead == INVALID_HANDLE_VALUE) {
-            hFileRead = hFileWrite = INVALID_HANDLE_VALUE;
-            throw RIFF::Exception("Can't open \"" + path + "\"");
-        }
-        #else
-        hFileRead = hFileWrite = fopen(path.c_str(), "rb");
-        if (!hFileRead) throw RIFF::Exception("Can't open \"" + path + "\"");
-        #endif // POSIX
-        Mode = stream_mode_read;
-        ulStartPos = RIFF_HEADER_SIZE;
-        ReadHeader(0);
-        if (ChunkID != CHUNK_ID_RIFF && ChunkID != CHUNK_ID_RIFX) {
-            throw RIFF::Exception("Not a RIFF file");
+        catch (...) {
+            Cleanup();
+            throw;
         }
     }
 
@@ -1766,6 +1772,10 @@ namespace RIFF {
        #if DEBUG
        std::cout << "File::~File()" << std::endl;
        #endif // DEBUG
+        Cleanup();
+    }
+
+    void File::Cleanup() {
         #if POSIX
         if (hFileRead) close(hFileRead);
         #elif defined(WIN32)

@@ -13,6 +13,8 @@ Version CVS HEAD (?)
   * src/RIFF.cpp, src/RIFF.h:
     - bugfix: avoid calling read() with count 0 when writing a file,
       as this may hang on some systems
+    - fixed memory leak and memory handling errors when file loading
+      fails
 
 Version 3.3.0 (30 Jul 2009)
 

@@ -2,7 +2,7 @@
  *                                                                         *
  *   libgig - C++ cross-platform Gigasampler format file access library    *
  *                                                                         *
- *   Copyright (C) 2003-2010 by Christian Schoenebeck                      *
+ *   Copyright (C) 2003-2011 by Christian Schoenebeck                      *
  *                              <cuse@users.sourceforge.net>               *
  *                                                                         *
  *   This library is free software; you can redistribute it and/or modify  *
@@ -358,6 +358,7 @@ namespace RIFF {
             #else
             unsigned long __GetFileSize(FILE* hFile);
             #endif
+            void Cleanup();
     };
 
     /**
