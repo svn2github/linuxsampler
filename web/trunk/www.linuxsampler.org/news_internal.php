@@ -32,7 +32,7 @@ function startElement($parser, $name, $attribs) {
         $current_link_ref = (isset($attribs["ref"])) ? $attribs["ref"] : "";
         echo "<a href=\"$current_link_ref\">";
         if (count($attribs) && isset($attribs["img"])) {
-            $pic = $attribs["img"]);
+            $pic = $attribs["img"];
             echo "<img src=\"$pic\" style=\"float: left; margin: 4px;\">";
             $current_tag_body_is_empty = false;
         }
