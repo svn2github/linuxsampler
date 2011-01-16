@@ -24,12 +24,18 @@ function startElement($parser, $name, $attribs) {
     if ($name == "entry") {
         if (count($attribs) && isset($attribs["date"])) {
             $d = $attribs["date"];
-            echo "<div class=\"news\">";
+            // pack into a (single cell) table so (flaoting) images wont vertically overlap out of the news block border
+            echo "<div class=\"news\"><table><tr><td>";
             echo "<span class=\"news_date\">$d</span> ";
         } else echo "<b>???</b> ";
     } else if ($name == "link") {
         $current_link_ref = (isset($attribs["ref"])) ? $attribs["ref"] : "";
         echo "<a href=\"$current_link_ref\">";
+        if (count($attribs) && isset($attribs["img"])) {
+            $pic = $attribs["img"]);
+            echo "<img src=\"$pic\" style=\"float: left; margin: 4px;\">";
+            $current_tag_body_is_empty = false;
+        }
     } else if ($name == "list") {
         echo "<ul class=\"news\">";
     } else if ($name == "li") {
@@ -47,7 +53,8 @@ function endElement($parser, $name) {
 
     array_pop($current_tag);
 
-    if ($name == "entry") { echo "</div>\n";
+    if ($name == "entry") {
+        echo "</td></tr></table></div>\n";
         if ($max_items > 0) $max_items--;
     }
     else if ($name == "link") {

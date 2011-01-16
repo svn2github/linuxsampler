@@ -1,5 +1,14 @@
 <?xml version='1.0' ?>
 <news>
+  <entry date="2010-10-01">
+    <link ref="misc/press/computer_music_special_44_2010/cms_44_2010_cover.jpg" img="misc/press/computer_music_special_44_2010/cms_44_2010_cover_s.jpg"></link>
+    LinuxSampler is featured in the october special issue of the "Computer Music"
+    magazine. It is available in English language in magazine stores around the
+    UK. This special issue focused on demonstrating the "best free software" for
+    music production on PC, Mac and mobile. LinuxSampler is covered along to four
+    other samplers, with an introduction howto on page 57. You can
+    <link ref="misc/press/computer_music_special_44_2010/cms_44_2010_article.jpg">read the full article here.</link>
+  </entry>
   <entry date="2010-01-07">
     The <link ref="reports/annual_report_2009.pdf">annual report of 2009</link>
     with our financial situation is now online. Happy new year everybody!

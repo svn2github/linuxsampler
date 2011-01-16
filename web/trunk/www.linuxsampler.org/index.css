@@ -81,6 +81,16 @@ table th {
 	padding-bottom: 3px;
 }
 
+table {
+    font-size: 13.33px;
+    font-family: sans-serif,Arial,Helvetica;
+    text-align: justify;
+    font-style: normal;
+    font-weight: normal;
+    padding: 0em 0em 0em 0em;
+    margin: 0em 0em 0em 0em;
+    }
+
 table.default {
 	font-size: 13.33px;
 	font-family: sans-serif,Arial,Helvetica;
