@@ -1,5 +1,15 @@
 <?xml version='1.0' ?>
 <news>
+  <entry date="2011-01-23">
+    <link ref="nkitool/" img="nkitool/native-instruments-kontakt.png"></link>
+    In case you are working a lot on Native Instruments Kontakt instrument
+    files, or if you are just interested in the .nki file format, you might have
+    a look at <link ref="nkitool/">nkitool</link>. It is a simple console
+    application which allows to export and import the human readable XML file
+    from and to Native Instruments Kontakt .nki instrument articulation files.
+    It can be very handy to speedup or even automate the process of creating
+    and editing .nki instrument files.
+  </entry>
   <entry date="2010-10-01">
     <link ref="misc/press/computer_music_special_44_2010/cms_44_2010_cover.jpg" img="misc/press/computer_music_special_44_2010/cms_44_2010_cover_s.jpg"></link>
     LinuxSampler is featured in the october special issue of the "Computer Music"

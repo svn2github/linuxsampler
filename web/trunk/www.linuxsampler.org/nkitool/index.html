@@ -1,0 +1,128 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+  <meta content="text/html; charset=ISO-8859-1"
+ http-equiv="content-type">
+  <title>NKI Tool</title>
+  <link rel="shortcut icon" href="http://download.linuxsampler.org/favicon.ico" type="image/x-icon">
+  <link rel="stylesheet" type="text/css" href="../libgig/css/content.css" title="content" media="all">
+</head>
+<body>
+<h2><center>NKI Tool &nbsp; <img src="native-instruments-kontakt.png"> &nbsp; by Christian Schoenebeck&nbsp;</center></h2>
+<br>
+<center>January&nbsp;23rd,&nbsp;2011</center><br>
+<div style="background-color: #F4F4FF; margin: 1em 3em 1em 3em; padding: 1em 1em 1em 2.2em;">
+<a href="#description">1.&nbsp; Description</a><br>
+<a href="#usage">2.&nbsp; Usage</a><br>
+<a href="#download">3.&nbsp; Download</a><br>
+<a href="#sourcecode">4.&nbsp; Source Code</a><br>
+<a href="#bugs">5.&nbsp; Bugs, Problems and Feature Requests</a><br>
+<a href="#contact">6.&nbsp; Contact</a><br>
+</div>
+<p>
+<center>
+<script type="text/javascript"><!--
+google_ad_client = "pub-3408196773880325";
+/* 728x90, created 8/3/09 */
+google_ad_slot = "7744776541";
+google_ad_width = 728;
+google_ad_height = 90;
+//-->
+</script>
+<script type="text/javascript"
+src="http://pagead2.googlesyndication.com/pagead/show_ads.js">
+</script>
+</center>
+</p>
+
+<a name="description"></a>
+<h3>1.&nbsp; Description</h3>
+nkitool is a simple console application which exports and imports the human
+readable XML file from and to Native Instruments Kontakt .nki instrument
+articulation files. So far, Kontakt v1 to v4 format versions are
+supported by this tool. nkitool is released in binary and source code format
+in the public domain. However in case you find mistakes or improvements, we
+would appreciate if you share them with us!
+
+<a name="usage"></a>
+<h3>2.&nbsp; Usage</h3>
+To extract the human readable XML file from an .nki file, simply call the tool
+as follows from the console:
+<pre>
+nki.exe Foo.nki
+</pre>
+You can then edit the created Foo.xml file with an ordinary text editor. To
+replace the XML file within the .nki file with a new / edited XML file, call
+the tool from the console like this:
+<pre>
+nki.exe Foo.nki Foo.xml
+</pre>
+
+<a name="download"></a>
+<h3>3.&nbsp; Download</h3>
+So far there is only a console binary for MS Windows operating systems:
+<ul>
+  <li><a href="http://download.linuxsampler.org/dev/nkitool/nki.exe">nki.exe</a> (Windows)</li>
+</ul>
+However since there is only one small C source file, you can easily compile it for
+any operating system (see below).
+
+<a name="sourcecode"></a>
+<h3>4.&nbsp; Source Code</h3>
+This tool consists of just one small C source file:
+<ul>
+  <li><a href="http://download.linuxsampler.org/dev/nkitool/nki.c">nki.c</a></li>
+</ul>
+You can most probably compile it for any operating system. The source file depends on
+<a href="http://zlib.net/zlib-1.2.5.tar.gz">zlib-1.2.5</a>. Probably you can however also
+compile and link nkitool against other versions of zlib as well.
+
+<a name="bugs"></a>
+<h3>5.&nbsp; Bugs, Problems and Feature Requests</h3>
+Our Forum is a good place to ask for help:<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="http://bb.linuxsampler.org">http://bb.linuxsampler.org</a><br>
+<br>
+We have a dedicated forum section for
+newbies and support.
+Please <a href="http://www.linuxsampler.org/donations.html">support the
+development of this tool and other applications of the LinuxSampler project by donation</a>.
+Be fair and help us improving this and other free audio tools for you!
+<p>
+<table>
+<tr>
+<td>
+    <form action="https://www.paypal.com/cgi-bin/webscr" method="post">
+    <input type="hidden" name="cmd" value="_s-xclick">
+    <input type="hidden" name="hosted_button_id" value="6746056">
+    <input type="image" src="https://www.paypal.com/en_US/i/btn/btn_subscribeCC_LG.gif" border="0" name="submit" alt="PayPal - The safer, easier way to pay online!">
+    <img alt="" border="0" src="https://www.paypal.com/en_US/i/scr/pixel.gif" width="1" height="1">
+    </form>
+</td>
+<td>
+    <form action="https://www.paypal.com/cgi-bin/webscr" method="post">
+    <input type="hidden" name="cmd" value="_s-xclick">
+    <input type="hidden" name="hosted_button_id" value="6746149">
+    <input type="image" src="https://www.paypal.com/en_US/i/btn/btn_donateCC_LG.gif" border="0" name="submit" alt="PayPal - The safer, easier way to pay online!">
+    <img alt="" border="0" src="https://www.paypal.com/en_US/i/scr/pixel.gif" width="1" height="1">
+    </form>
+</td>
+</tr>
+</table>
+
+<a name="contact"></a>
+<h3>6.&nbsp; Contact</h3>
+If you have questions or want to help us to improve this tool or other
+subprojects of the LinuxSampler project, please subscribe to the
+<a href="http://www.linuxsampler.org/developers.html">LinuxSampler Developer's mailing list</a>.
+If you want to contact a certain developer instead, your can find our email addresses here:<br>
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="http://www.linuxsampler.org/developers.html">http://www.linuxsampler.org/developers.html</a>
+<br><br>
+That's it, enjoy!<br>
+
+<hr style="width: 100%">
+<center>The LinuxSampler Project - <a href="http://www.linuxsampler.org">http://www.linuxsampler.org</a></center>
+
+</body>
+</html>
