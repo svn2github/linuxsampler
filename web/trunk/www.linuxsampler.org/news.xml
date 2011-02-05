@@ -1,5 +1,17 @@
 <?xml version='1.0' ?>
 <news>
+  <entry date="2011-02-05">
+    <link ref="http://download.linuxsampler.org/packages/win32/snapshots/" img="gfx/logos/windows.png"></link>
+    <link ref="http://download.linuxsampler.org/packages/win32/snapshots/">Download the latest Windows snapshot of the sampler!</link>
+    Since we have to confess that we are a bit lazy about putting out official
+    releases, and since the latest official release of the sampler for Windows
+    is quite old, we decided to establish automatic builts of the sampler and
+    all other software components for Windows. As soon as some developer
+    commits something new to the CVS server for any of the project's software
+    components, a new snapshot binary for Windows will automatically built and
+    be available for download within few minutes. Sorry for neglegting you
+    Windows users out there for so long!
+  </entry>
   <entry date="2011-01-23">
     <link ref="nkitool/" img="nkitool/native-instruments-kontakt.png"></link>
     In case you are working a lot on Native Instruments Kontakt instrument
