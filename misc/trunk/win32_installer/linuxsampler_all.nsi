@@ -1,6 +1,6 @@
 ; LinuxSampler Windows installer
 ;
-; Copyright (C) 2007-2010, The LinuxSampler Developers
+; Copyright (C) 2007-2011, The LinuxSampler Developers
 ;
 ; All-in-one Installer for all subprojects / software components of the
 ; LinuxSampler Project.
@@ -89,7 +89,7 @@ VIAddVersionKey /LANG=${LANG_ENGLISH} "ProductName" "all-in-one installer"
 VIAddVersionKey /LANG=${LANG_ENGLISH} "Comments" "http://linuxsampler.org"
 VIAddVersionKey /LANG=${LANG_ENGLISH} "CompanyName" "The LinuxSampler Project"
 VIAddVersionKey /LANG=${LANG_ENGLISH} "LegalTrademarks" ""
-VIAddVersionKey /LANG=${LANG_ENGLISH} "LegalCopyright" "© 2003-2010 The LinuxSampler Project"
+VIAddVersionKey /LANG=${LANG_ENGLISH} "LegalCopyright" "© 2003-2011 The LinuxSampler Project"
 VIAddVersionKey /LANG=${LANG_ENGLISH} "FileDescription" "LinuxSampler Installer (${RELEASE_DATE})"
 VIAddVersionKey /LANG=${LANG_ENGLISH} "FileVersion" "0.0.0"
 
