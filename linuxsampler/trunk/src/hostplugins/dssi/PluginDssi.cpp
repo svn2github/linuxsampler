@@ -1,6 +1,6 @@
 /***************************************************************************
  *                                                                         *
- *   Copyright (C) 2008 - 2009 Andreas Persson                             *
+ *   Copyright (C) 2008 - 2011 Andreas Persson                             *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -266,7 +266,7 @@ namespace {
         Ladspa.Name = "LinuxSampler";
         Ladspa.Maker = "linuxsampler.org";
         Ladspa.Copyright = "(C) 2003,2004 Benno Senoner and Christian Schoenebeck, "
-            "2005-2009 Christian Schoenebeck";
+            "2005-2011 Christian Schoenebeck";
         Ladspa.PortCount = 2;
         Ladspa.ImplementationData = 0;
         Ladspa.PortDescriptors = PortDescriptors;

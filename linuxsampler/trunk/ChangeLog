@@ -126,6 +126,8 @@ Version CVS HEAD (?)
       channel to a different engine type
     - fixed crash when deleting a sampler channel or changing engine
       type while an instrument load was in progress
+    - bugfix: playing a note while changing the instrument could cause
+      a crash, or give "Handing back unknown region" error messages
 
 Version 1.0.0 (31 July 2009)
 

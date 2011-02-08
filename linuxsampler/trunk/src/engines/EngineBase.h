@@ -4,7 +4,7 @@
  *                                                                         *
  *   Copyright (C) 2003,2004 by Benno Senoner and Christian Schoenebeck    *
  *   Copyright (C) 2005-2008 Christian Schoenebeck                         *
- *   Copyright (C) 2009-2010 Christian Schoenebeck and Grigor Iliev        *
+ *   Copyright (C) 2009-2011 Christian Schoenebeck and Grigor Iliev        *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -190,6 +190,15 @@ namespace LinuxSampler {
                 // been deleted by the disk thread
                 if (iPendingStreamDeletions) ProcessPendingStreamDeletions();
 
+                // Release the instrument change command. (This has to
+                // be done after all voices have been rendered and not
+                // in HandleInstrumentChanges, as the RegionsInUse
+                // list has been built up by the voice renderers.)
+                for (int i = 0; i < engineChannels.size(); i++) {
+                    EngineChannelBase<V, R, I>* channel =
+                        static_cast<EngineChannelBase<V, R, I>*>(engineChannels[i]);
+                    channel->InstrumentChangeCommandReader.Unlock();
+                }
                 FrameTime += Samples;
 
                 EngineDisabled.RttDone();
@@ -771,12 +780,6 @@ namespace LinuxSampler {
                 if (instrumentChanged) {
                     //TODO: this is a lazy solution ATM and not safe in case somebody is currently editing the instrument we're currently switching to (we should store all suspended regions on instrument manager side and when switching to another instrument copy that list to the engine's local list of suspensions
                     ResetSuspendedRegions();
-                }
-
-                for (int i = 0; i < engineChannels.size(); i++) {
-                    EngineChannelBase<V, R, I>* channel =
-                        static_cast<EngineChannelBase<V, R, I>*>(engineChannels[i]);
-                    channel->InstrumentChangeCommandReader.Unlock();
                 }
             }
 
