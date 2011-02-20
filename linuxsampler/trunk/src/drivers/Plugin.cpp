@@ -1,6 +1,6 @@
 /***************************************************************************
  *                                                                         *
- *   Copyright (C) 2008 - 2009 Andreas Persson                             *
+ *   Copyright (C) 2008 - 2011 Andreas Persson                             *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -248,7 +248,8 @@ namespace LinuxSampler {
                     engine_channel->OutputChannel(1) << ' ' <<
                     (engine_channel->UsesNoMidiInstrumentMap() ? -2 :
                      (engine_channel->UsesDefaultMidiInstrumentMap() ? -1 :
-                      engine_channel->GetMidiInstrumentMap())) << '\n';
+                      engine_channel->GetMidiInstrumentMap())) << ' ' <<
+                    engine_channel->EngineName() << '\n';
 
                 for (int i = 0 ; i < engine_channel->GetFxSendCount() ; i++) {
                     FxSend* fxsend = engine_channel->GetFxSend(i);
@@ -302,19 +303,28 @@ namespace LinuxSampler {
                 bool mute;
                 s >> index >> solo >> mute;
 
+                int left = -1;
+                int right;
+                int oldMapId;
+                String engineType = "gig";
+                if (s.get() == ' ') {
+                    s >> left >> right >> oldMapId;
+                    if (s.get() == ' ') {
+                        s >> engineType;
+                        // skip rest of line
+                        s.ignore(std::numeric_limits<int>::max(), '\n');
+                    }
+                }
                 SamplerChannel* channel = global->pSampler->AddSamplerChannel();
-                channel->SetEngineType("gig");
+                channel->SetEngineType(engineType);
                 channel->SetAudioOutputDevice(pAudioDevice);
                 channel->SetMidiInputDevice(pMidiDevice);
                 channel->SetMidiInputChannel(midi_chan_t(midiChannel));
 
                 engine_channel = channel->GetEngineChannel();
                 engine_channel->Volume(volume);
-                if (s.get() == ' ') {
-                    int left;
-                    int right;
-                    int oldMapId;
-                    s >> left >> right >> oldMapId;
+
+                if (left != -1) {
                     engine_channel->SetOutputChannel(0, left);
                     engine_channel->SetOutputChannel(1, right);
 
@@ -323,8 +333,6 @@ namespace LinuxSampler {
                     } else if (oldMapId >= 0) {
                         engine_channel->SetMidiInstrumentMap(oldToNewId[oldMapId]);
                     }
-                    // skip rest of line
-                    s.ignore(std::numeric_limits<int>::max(), '\n');
                 }
                 if (!filename.empty() && index != -1) {
                     InstrumentManager::instrument_id_t id;

@@ -1,6 +1,6 @@
 /***************************************************************************
  *                                                                         *
- *   Copyright (C) 2008 - 2010 Andreas Persson                             *
+ *   Copyright (C) 2008 - 2011 Andreas Persson                             *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -43,7 +43,7 @@ namespace {
 
     void log(const char* fmt, ...) {
         logmutex.Lock();
-        FILE* f = fopen("C:\\linuxsamplervst.log", "a");
+        FILE* f = fopen((String(getenv("TEMP")) + "\\linuxsamplervst.log").c_str(), "a");
         va_list ap;
         va_start(ap, fmt);
         vfprintf(f, fmt, ap);
@@ -113,16 +113,37 @@ namespace {
                 FindClose(hFind);
 
                 // start a java process
-                STARTUPINFO si;
-                PROCESS_INFORMATION pi;
-                ZeroMemory(&si, sizeof(si));
-                si.cb = sizeof(si);
-                ZeroMemory(&pi, sizeof(pi));
+                String path; // look in PATH first
+                for (int i = 0 ; i < 2 ; i++) { // two tries
+                    STARTUPINFO si;
+                    PROCESS_INFORMATION pi;
+                    ZeroMemory(&si, sizeof(si));
+                    si.cb = sizeof(si);
+                    ZeroMemory(&pi, sizeof(pi));
 
-                Command = _tcsdup(TEXT((String("javaw -jar \"") + lspath + fantasia + "\"").c_str()));
-                CreateProcess(NULL, Command, NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi);
-                ProcessHandle = pi.hProcess;
-                CloseHandle(pi.hThread);
+                    Command = _tcsdup(TEXT((String("\"") + path + "javaw\" -jar \"" +
+                                            lspath + fantasia + "\"").c_str()));
+                    if (CreateProcess(NULL, Command, NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi)) {
+                        ProcessHandle = pi.hProcess;
+                        CloseHandle(pi.hThread);
+                        break;
+                    } else {
+                        free(Command);
+                        if (path.empty()) {
+                            // java wasn't found in PATH, try again
+                            // with an alternative directory
+                            char* windir = getenv("windir");
+                            if (!windir) break;
+#ifdef _WIN64
+                            // LS plugin is 64 bit - look for 32 bit java
+                            path = String(windir) + "\\SysWOW64\\";
+#else
+                            // LS plugin is 32 bit - look for 64 bit java
+                            path = String(windir) + "\\Sysnative\\";
+#endif
+                        }
+                    }
+                }
             }
         }
 #endif

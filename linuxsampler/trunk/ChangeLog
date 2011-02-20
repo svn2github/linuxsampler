@@ -78,6 +78,9 @@ Version CVS HEAD (?)
     - VST bugfix: If the host called resume() before and after
       changing sample rate or block size, the number of channels was
       incorrectly set to two. This caused silence in Cubase 5.
+    - save engine type (gig, sfz or sf2) in plugin state
+    - VST: when opening Fantasia, look for both 32 and 64 bit Java on
+      64 bit Windows
 
   * MIDI driver:
     - ALSA MIDI driver supports now "NAME" device parameter, for overriding
@@ -128,6 +131,8 @@ Version CVS HEAD (?)
       type while an instrument load was in progress
     - bugfix: playing a note while changing the instrument could cause
       a crash, or give "Handing back unknown region" error messages
+    - bugfix: calling SET VOICES (which Fantasia does on start and
+      refresh) could cause instruments to be unloaded
 
 Version 1.0.0 (31 July 2009)
 

@@ -4,7 +4,7 @@
  *                                                                         *
  *   Copyright (C) 2003,2004 by Benno Senoner and Christian Schoenebeck    *
  *   Copyright (C) 2005-2008 Christian Schoenebeck                         *
- *   Copyright (C) 2009-2010 Christian Schoenebeck and Grigor Iliev        *
+ *   Copyright (C) 2009-2011 Christian Schoenebeck and Grigor Iliev        *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -68,11 +68,13 @@ namespace LinuxSampler {
             virtual void ClearRegionsInUse() {
                 {
                     InstrumentChangeCmd<R, I>& cmd = InstrumentChangeCommand.GetConfigForUpdate();
-                    if(cmd.pRegionsInUse != NULL) cmd.pRegionsInUse->clear();
+                    if (cmd.pRegionsInUse) cmd.pRegionsInUse->clear();
+                    cmd.bChangeInstrument = false;
                 }
                 {
                     InstrumentChangeCmd<R, I>& cmd = InstrumentChangeCommand.SwitchConfig();
-                    if(cmd.pRegionsInUse != NULL) cmd.pRegionsInUse->clear();
+                    if (cmd.pRegionsInUse) cmd.pRegionsInUse->clear();
+                    cmd.bChangeInstrument = false;
                 }
             }
 
@@ -84,17 +86,19 @@ namespace LinuxSampler {
             virtual void DeleteRegionsInUse() {
                 {
                     InstrumentChangeCmd<R, I>& cmd = InstrumentChangeCommand.GetConfigForUpdate();
-                    if(cmd.pRegionsInUse != NULL) {
+                    if (cmd.pRegionsInUse) {
                         delete cmd.pRegionsInUse;
                         cmd.pRegionsInUse = NULL;
                     }
+                    cmd.bChangeInstrument = false;
                 }
                 {
                     InstrumentChangeCmd<R, I>& cmd = InstrumentChangeCommand.SwitchConfig();
-                    if(cmd.pRegionsInUse != NULL) {
+                    if (cmd.pRegionsInUse) {
                         delete cmd.pRegionsInUse;
                         cmd.pRegionsInUse = NULL;
                     }
+                    cmd.bChangeInstrument = false;
                 }
             }
 
@@ -102,10 +106,12 @@ namespace LinuxSampler {
                 {
                     InstrumentChangeCmd<R, I>& cmd = InstrumentChangeCommand.GetConfigForUpdate();
                     cmd.pRegionsInUse = new RTList<R*>(pRegionPool[0]);
+                    cmd.bChangeInstrument = false;
                 }
                 {
                     InstrumentChangeCmd<R, I>& cmd = InstrumentChangeCommand.SwitchConfig();
                     cmd.pRegionsInUse = new RTList<R*>(pRegionPool[1]);
+                    cmd.bChangeInstrument = false;
                 }
             }
 
