@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003 - 2009 Christian Schoenebeck                       *
- *   Copyright (C) 2009 Grigor Iliev                                       *
+ *   Copyright (C) 2009 - 2011 Grigor Iliev                                *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -43,6 +43,9 @@ namespace LinuxSampler {
             virtual int     GetChannelCount() { return ChannelCount; }
             virtual long    GetTotalFrameCount() { return TotalFrameCount; }
             virtual int     GetFrameSize() { return FrameSize; }
+            virtual int     GetLoops() { return Loops; }
+            virtual uint    GetLoopStart() { return LoopStart; }
+            virtual uint    GetLoopEnd() { return LoopEnd; }
 
             virtual buffer_t  LoadSampleData();
             virtual buffer_t  LoadSampleData(unsigned long FrameCount);
@@ -71,6 +74,9 @@ namespace LinuxSampler {
             int    Format;
             int    FrameSize;         ///< In bytes
             long   TotalFrameCount;
+            int    Loops;
+            uint   LoopStart;
+            uint   LoopEnd;
 
             SNDFILE* pSndFile;
 

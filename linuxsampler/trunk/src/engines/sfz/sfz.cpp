@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2008 Anders Dahnielson <anders@dahnielson.com>          *
- *   Copyright (C) 2009 - 2010 Anders Dahnielson and Grigor Iliev          *
+ *   Copyright (C) 2009 - 2011 Anders Dahnielson and Grigor Iliev          *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -149,16 +149,17 @@ namespace sfz
     }
 
     bool Region::HasLoop() {
-        bool b = loop_mode == ::sfz::LOOP_CONTINUOUS || loop_mode == ::sfz::LOOP_SUSTAIN; // TODO: ONE_SHOT mode
+        bool b = loop_mode == ::sfz::LOOP_UNSET ? pSample->GetLoops() :
+            (loop_mode == ::sfz::LOOP_CONTINUOUS || loop_mode == ::sfz::LOOP_SUSTAIN);
         return b && GetLoopStart() && GetLoopEnd() && GetLoopEnd() > GetLoopStart();
     }
 
     uint Region::GetLoopStart() {
-        return (!loop_start) ? 0 : *loop_start; // TODO: use sample loop when loop_start not defined
+        return (!loop_start) ? pSample->GetLoopStart() : *loop_start;
     }
 
     uint Region::GetLoopEnd() {
-        return (!loop_end) ? 0 : *loop_end; // TODO: use sample loop when loop_end not defined
+        return (!loop_end) ? pSample->GetLoopEnd() : *loop_end;
     }
 
     uint Region::GetLoopCount() {
@@ -284,7 +285,7 @@ namespace sfz
         end.unset();
         loop_crossfade.unset();
         offset.unset(); offset_random.unset();
-        loop_mode = NO_LOOP;
+        loop_mode = LOOP_UNSET;
         loop_start.unset(); loop_end.unset();
         sync_beats.unset(); sync_offset.unset();
 

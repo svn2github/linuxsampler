@@ -601,6 +601,13 @@ AC_SUBST(SNDFILE_LIBS)
 linuxsampler_save_CFLAGS=$CFLAGS
 CFLAGS="$SNDFILE_CFLAGS $CFLAGS"
 AC_CHECK_DECLS([SF_FORMAT_VORBIS], [], [] ,[[#include <sndfile.h>]])
+
+# Check for loop functionality in libsndfile
+AC_CHECK_MEMBERS([SF_INSTRUMENT.loops],,
+		 [AC_MSG_WARN([Your version of libsndfile does not support
+    reading of loop information. LinuxSampler will not be able to
+    extract loop information from sample files.])],
+		 [#include <sndfile.h>])
 CFLAGS=$linuxsampler_save_CFLAGS
 
 # Instruments DB feature (requires SQLite 3.3)

@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2008 Anders Dahnielson <anders@dahnielson.com>          *
- *   Copyright (C) 2009 - 2010 Anders Dahnielson and Grigor Iliev          *
+ *   Copyright (C) 2009 - 2011 Anders Dahnielson and Grigor Iliev          *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -58,7 +58,7 @@ namespace sfz
     // Enumerations
     enum sw_vel_t    { VEL_CURRENT, VEL_PREVIOUS };
     enum off_mode_t  { OFF_FAST, OFF_NORMAL };
-    enum loop_mode_t { NO_LOOP, ONE_SHOT, LOOP_CONTINUOUS, LOOP_SUSTAIN };
+    enum loop_mode_t { NO_LOOP, ONE_SHOT, LOOP_CONTINUOUS, LOOP_SUSTAIN, LOOP_UNSET };
     enum curve_t     { GAIN, POWER };
     enum filter_t    { LPF_1P, HPF_1P, BPF_1P, BRF_1P, APF_1P,
                        LPF_2P, HPF_2P, BPF_2P, BRF_2P, PKF_2P,

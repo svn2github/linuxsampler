@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003 - 2009 Christian Schoenebeck                       *
- *   Copyright (C) 2009 Grigor Iliev                                       *
+ *   Copyright (C) 2009 - 2011 Grigor Iliev                                *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -66,6 +66,21 @@ namespace LinuxSampler {
         }
         TotalFrameCount = sfInfo.frames;
 
+        Loops = 0;
+        LoopStart = 0;
+        LoopEnd = 0;
+        SF_INSTRUMENT instrument;
+        if (sf_command(pSndFile, SFC_GET_INSTRUMENT,
+                       &instrument, sizeof(instrument)) != SF_FALSE) {
+            // TODO: instrument.basenote
+#if HAVE_SF_INSTRUMENT_LOOPS
+            if (instrument.loop_count && instrument.loops[0].mode != SF_LOOP_NONE) {
+                Loops = 1;
+                LoopStart = instrument.loops[0].start;
+                LoopEnd = instrument.loops[0].end;
+            }
+#endif
+        }
         if(!DontClose) Close();
     }
 

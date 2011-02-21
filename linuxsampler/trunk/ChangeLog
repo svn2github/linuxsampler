@@ -66,6 +66,8 @@ Version CVS HEAD (?)
     - added support for loop_mode=one_shot
     - fixed playback of 16 bit wav files on big endian CPUs
     - added support for Ogg Vorbis sample files
+    - use loop markers from sample file if loop_start and loop_end are
+      not set in sfz file
 
   * SoundFont format engine:
     - Initial implementation (not usable yet)
