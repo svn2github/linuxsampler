@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2010 Andreas Persson
+ * Copyright (C) 2006-2011 Andreas Persson
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -22,6 +22,7 @@
 #include "paramedit.h"
 
 #include "global.h"
+#include "compat.h"
 
 namespace {
     const char* const controlChangeTexts[] = {
@@ -65,7 +66,7 @@ LabelWidget::LabelWidget(const char* labelText, Gtk::Widget& widget) :
     label(Glib::ustring(labelText) + ":"),
     widget(widget)
 {
-    label.set_alignment(Gtk::ALIGN_LEFT);
+    label.set_alignment(Gtk::ALIGN_START);
 }
 
 void LabelWidget::set_sensitive(bool sensitive)
@@ -77,7 +78,11 @@ void LabelWidget::set_sensitive(bool sensitive)
 NumEntry::NumEntry(const char* labelText, double lower, double upper,
                    int decimals) :
     LabelWidget(labelText, box),
+#if (GTKMM_MAJOR_VERSION == 2 && GTKMM_MINOR_VERSION < 90) || GTKMM_MAJOR_VERSION < 2
     adjust(lower, lower, upper, 1, 10),
+#else
+    adjust(Gtk::Adjustment::create(lower, lower, upper, 1, 10)),
+#endif
     scale(adjust),
     spinbutton(adjust)
 {
@@ -231,7 +236,11 @@ ChoiceEntryLeverageCtrl::ChoiceEntryLeverageCtrl(const char* labelText) :
 {
     for (int i = 0 ; i < 99 ; i++) {
         if (controlChangeTexts[i]) {
+#if (GTKMM_MAJOR_VERSION == 2 && GTKMM_MINOR_VERSION < 90) || GTKMM_MAJOR_VERSION < 2
             combobox.append_text(controlChangeTexts[i]);
+#else
+            combobox.append(controlChangeTexts[i]);
+#endif
         }
     }
     combobox.signal_changed().connect(

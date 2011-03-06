@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2010 Andreas Persson
+ * Copyright (C) 2006-2011 Andreas Persson
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -26,14 +26,12 @@
 #include <gtkmm/stock.h>
 #include <gtkmm/targetentry.h>
 #include <gtkmm/main.h>
+#include <gtkmm/radiomenuitem.h>
 #include <gtkmm/toggleaction.h>
 #include "wrapLabel.hh"
 
 #include "global.h"
-
-#if (GTKMM_MAJOR_VERSION == 2 && GTKMM_MINOR_VERSION < 18) || GTKMM_MAJOR_VERSION < 2
-#define set_can_default() set_flags(Gtk::CAN_DEFAULT)
-#endif
+#include "compat.h"
 
 #include <stdio.h>
 #include <sndfile.h>
@@ -292,8 +290,8 @@ MainWindow::MainWindow() :
     );
 
     // establish drag&drop between samples tree view and dimension region 'Sample' text entry
-    std::list<Gtk::TargetEntry> drag_target_gig_sample;
-    drag_target_gig_sample.push_back( Gtk::TargetEntry("gig::Sample") );
+    std::vector<Gtk::TargetEntry> drag_target_gig_sample;
+    drag_target_gig_sample.push_back(Gtk::TargetEntry("gig::Sample"));
     m_TreeViewSamples.drag_source_set(drag_target_gig_sample);
     m_TreeViewSamples.signal_drag_begin().connect(
         sigc::mem_fun(*this, &MainWindow::on_sample_treeview_drag_begin)
@@ -528,10 +526,12 @@ void MainWindow::__clear() {
     Gtk::MenuItem* instrument_menu =
         dynamic_cast<Gtk::MenuItem*>(uiManager->get_widget("/MenuBar/MenuInstrument"));
     instrument_menu->hide();
-    for (int i = 0; i < instrument_menu->get_submenu()->items().size(); i++) {
-        delete &instrument_menu->get_submenu()->items()[i];
+    Gtk::Menu* menu = instrument_menu->get_submenu();
+    while (menu->get_children().size()) {
+        Gtk::Widget* child = *menu->get_children().begin();
+        menu->remove(*child);
+        delete child;
     }
-    instrument_menu->get_submenu()->items().clear();
     // forget all samples that ought to be imported
     m_SampleImportQueue.clear();
     // clear the samples and instruments tree views
@@ -602,8 +602,13 @@ void MainWindow::on_action_file_open()
     dialog.add_button(Gtk::Stock::CANCEL, Gtk::RESPONSE_CANCEL);
     dialog.add_button(Gtk::Stock::OPEN, Gtk::RESPONSE_OK);
     dialog.set_default_response(Gtk::RESPONSE_OK);
+#if (GTKMM_MAJOR_VERSION == 2 && GTKMM_MINOR_VERSION < 90) || GTKMM_MAJOR_VERSION < 2
     Gtk::FileFilter filter;
     filter.add_pattern("*.gig");
+#else
+    Glib::RefPtr<Gtk::FileFilter> filter = Gtk::FileFilter::create();
+    filter->add_pattern("*.gig");
+#endif
     dialog.set_filter(filter);
     if (current_gig_dir != "") {
         dialog.set_current_folder(current_gig_dir);
@@ -727,8 +732,13 @@ bool MainWindow::file_save_as()
     dialog.set_default_response(Gtk::RESPONSE_OK);
     dialog.set_do_overwrite_confirmation();
 
+#if (GTKMM_MAJOR_VERSION == 2 && GTKMM_MINOR_VERSION < 90) || GTKMM_MAJOR_VERSION < 2
     Gtk::FileFilter filter;
     filter.add_pattern("*.gig");
+#else
+    Glib::RefPtr<Gtk::FileFilter> filter = Gtk::FileFilter::create();
+    filter->add_pattern("*.gig");
+#endif
     dialog.set_filter(filter);
 
     // set initial dir and filename of the Save As dialog
@@ -900,7 +910,7 @@ void MainWindow::on_action_help_about()
     dialog.set_name("Gigedit");
 #endif
     dialog.set_version(VERSION);
-    dialog.set_copyright("Copyright (C) 2006-2010 Andreas Persson");
+    dialog.set_copyright("Copyright (C) 2006-2011 Andreas Persson");
     dialog.set_comments(_(
         "Released under the GNU General Public License.\n"
         "\n"
@@ -1379,7 +1389,13 @@ void MainWindow::on_action_add_sample() {
     dialog.add_button(Gtk::Stock::CANCEL, Gtk::RESPONSE_CANCEL);
     dialog.add_button(Gtk::Stock::OPEN, Gtk::RESPONSE_OK);
     dialog.set_select_multiple(true);
-    Gtk::FileFilter soundfilter; // matches all file types supported by libsndfile
+
+    // matches all file types supported by libsndfile
+#if (GTKMM_MAJOR_VERSION == 2 && GTKMM_MINOR_VERSION < 90) || GTKMM_MAJOR_VERSION < 2
+    Gtk::FileFilter soundfilter;
+#else
+    Glib::RefPtr<Gtk::FileFilter> soundfilter = Gtk::FileFilter::create();
+#endif
     const char* const supportedFileTypes[] = {
         "*.wav", "*.WAV", "*.aiff", "*.AIFF", "*.aifc", "*.AIFC", "*.snd",
         "*.SND", "*.au", "*.AU", "*.paf", "*.PAF", "*.iff", "*.IFF",
@@ -1387,12 +1403,27 @@ void MainWindow::on_action_add_sample() {
         "*.W64", "*.pvf", "*.PVF", "*.xi", "*.XI", "*.htk", "*.HTK",
         "*.caf", "*.CAF", NULL
     };
+    const char* soundfiles = _("Sound Files");
+    const char* allfiles = _("All Files");
+#if (GTKMM_MAJOR_VERSION == 2 && GTKMM_MINOR_VERSION < 90) || GTKMM_MAJOR_VERSION < 2
     for (int i = 0; supportedFileTypes[i]; i++)
         soundfilter.add_pattern(supportedFileTypes[i]);
-    soundfilter.set_name(_("Sound Files"));
-    Gtk::FileFilter allpassfilter; // matches every file
+    soundfilter.set_name(soundfiles);
+
+    // matches every file
+    Gtk::FileFilter allpassfilter;
     allpassfilter.add_pattern("*.*");
-    allpassfilter.set_name(_("All Files"));
+    allpassfilter.set_name(allfiles);
+#else
+    for (int i = 0; supportedFileTypes[i]; i++)
+        soundfilter->add_pattern(supportedFileTypes[i]);
+    soundfilter->set_name(soundfiles);
+
+    // matches every file
+    Glib::RefPtr<Gtk::FileFilter> allpassfilter = Gtk::FileFilter::create();
+    allpassfilter->add_pattern("*.*");
+    allpassfilter->set_name(allfiles);
+#endif
     dialog.add_filter(soundfilter);
     dialog.add_filter(allpassfilter);
     if (current_sample_dir != "") {
@@ -1401,8 +1432,8 @@ void MainWindow::on_action_add_sample() {
     if (dialog.run() == Gtk::RESPONSE_OK) {
         current_sample_dir = dialog.get_current_folder();
         Glib::ustring error_files;
-        Glib::SListHandle<Glib::ustring> filenames = dialog.get_filenames();
-        for (Glib::SListHandle<Glib::ustring>::iterator iter = filenames.begin();
+        std::vector<std::string> filenames = dialog.get_filenames();
+        for (std::vector<std::string>::iterator iter = filenames.begin();
              iter != filenames.end(); ++iter) {
             printf("Adding sample %s\n",(*iter).c_str());
             // use libsndfile to retrieve file informations
@@ -1534,7 +1565,7 @@ void MainWindow::on_action_replace_all_samples_in_all_groups()
           "untouched.\n")
     );
     Gtk::HBox entryArea;
-    Gtk::Label entryLabel( _("Add filename extension: "), Gtk::ALIGN_RIGHT);
+    Gtk::Label entryLabel( _("Add filename extension: "), Gtk::ALIGN_START);
     Gtk::Entry postfixEntryBox;
     postfixEntryBox.set_text(".wav");
     entryArea.pack_start(entryLabel);
@@ -1553,7 +1584,7 @@ void MainWindow::on_action_replace_all_samples_in_all_groups()
     {
         current_sample_dir = dialog.get_current_folder();
         Glib::ustring error_files;
-        Glib::ustring folder = dialog.get_filename();
+        std::string folder = dialog.get_filename();
         for (gig::Sample* sample = file->GetFirstSample();
              sample; sample = file->GetNextSample())
         {

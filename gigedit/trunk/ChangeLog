@@ -4,6 +4,7 @@ Version CVS HEAD (?)
   * use Cairo instead of deprecated gdk drawing primitives
   * avoid deprecated gtk methods when using newer gtk versions
   * raised minimum supported gtkmm version to 2.8
+  * ported to gtkmm 3, keeping compatibility with gtkmm 2
 
 Version 0.2.0 (2009-07-31)
 

@@ -1,5 +1,5 @@
 /*                                                         -*- c++ -*-
- * Copyright (C) 2006-2010 Andreas Persson
+ * Copyright (C) 2006-2011 Andreas Persson
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -29,6 +29,7 @@
 
 #include "dimensionmanager.h"
 #include "paramedit.h"
+#include "compat.h"
 
 #include <gig.h>
 
@@ -79,15 +80,17 @@ public:
     Gtk::HBox m_VirtKeybPropsBox;
 
 protected:
+#if (GTKMM_MAJOR_VERSION == 2 && GTKMM_MINOR_VERSION < 90) || GTKMM_MAJOR_VERSION < 2
     virtual bool on_expose_event(GdkEventExpose* e);
-    virtual void on_size_request(GtkRequisition* requisition);
+#endif
+    virtual bool on_draw(const Cairo::RefPtr<Cairo::Context>& cr);
     virtual bool on_button_press_event(GdkEventButton* event);
     virtual bool on_button_release_event(GdkEventButton* event);
     virtual bool on_motion_notify_event(GdkEventMotion* event);
 
     gig::Region* get_region(int key);
 
-    Gdk::Color activeKeyColor, red, grey1, white, black;
+    Gdk::RGBA activeKeyColor, red, grey1, white, black;
 
     sigc::signal<void> region_selected;
     sigc::signal<void> instrument_changed;
@@ -106,7 +109,7 @@ protected:
     SortedRegions regions;
 
     bool is_black_key(int key);
-    void draw_key(int key, const Gdk::Color& color);
+    void draw_key(int key, const Gdk::RGBA& color);
     void draw_digit(int key);
     void motion_resize_region(int x, int y);
     void motion_move_region(int x, int y);

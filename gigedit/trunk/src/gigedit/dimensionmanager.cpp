@@ -1,5 +1,5 @@
-/*                                                         -*- c++ -*-
- * Copyright (C) 2006-2009 Andreas Persson
+/*
+ * Copyright (C) 2006-2011 Andreas Persson
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -27,6 +27,7 @@
 #include <gtkmm/table.h>
 
 #include "global.h"
+#include "compat.h"
 
 // returns a human readable name of the given dimension type
 static Glib::ustring __dimTypeAsString(gig::dimension_t d) {
@@ -263,12 +264,12 @@ void DimensionManager::addDimension() {
             }
         }
         Gtk::Table table(2, 2);
-        Gtk::Label labelDimType(_("Dimension:"), Gtk::ALIGN_LEFT);
+        Gtk::Label labelDimType(_("Dimension:"), Gtk::ALIGN_START);
         Gtk::ComboBox comboDimType;
         comboDimType.set_model(refComboModel);
         comboDimType.pack_start(comboModel.m_type_id);
         comboDimType.pack_start(comboModel.m_type_name);
-        Gtk::Label labelZones(_("Zones:"), Gtk::ALIGN_LEFT);
+        Gtk::Label labelZones(_("Zones:"), Gtk::ALIGN_START);
         table.attach(labelDimType, 0, 1, 0, 1);
         table.attach(comboDimType, 1, 2, 0, 1);
         table.attach(labelZones, 0, 1, 1, 2);
@@ -287,7 +288,11 @@ void DimensionManager::addDimension() {
             for (int i = 1; i <= 5; i++) {
                 char buf[3];
                 sprintf(buf, "%d", 1 << i);
+#if (GTKMM_MAJOR_VERSION == 2 && GTKMM_MINOR_VERSION < 90) || GTKMM_MAJOR_VERSION < 2
                 comboZones.append_text(buf);
+#else
+                comboZones.append(buf);
+#endif
             }
             table.attach(comboZones, 1, 2, 1, 2);
         } else {

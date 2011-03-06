@@ -65,7 +65,11 @@ case $host in
 esac
 AM_CONDITIONAL(WINDOWS, test "$windows" = "yes")
 
-PKG_CHECK_MODULES(GTKMM, gtkmm-2.4 >= 2.8 gthread-2.0 cairomm-1.0)
+PKG_PROG_PKG_CONFIG
+PKG_CHECK_EXISTS(gtkmm-3.0 >= 2.99,
+        [PKG_CHECK_MODULES(GTKMM, gtkmm-3.0)],
+        [PKG_CHECK_MODULES(GTKMM, gtkmm-2.4 >= 2.8 gthread-2.0 cairomm-1.0)])
+
 PKG_CHECK_MODULES(GIG, gig >= 3.3.0)
 
 # check for presence of libsndfile

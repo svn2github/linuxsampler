@@ -1,5 +1,5 @@
 /*                                                         -*- c++ -*-
- * Copyright (C) 2006-2010 Andreas Persson
+ * Copyright (C) 2006-2011 Andreas Persson
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -27,6 +27,7 @@
 #include <gtkmm/adjustment.h>
 #include <gtkmm/alignment.h>
 #include <gtkmm/box.h>
+#include <gtkmm/checkbutton.h>
 #include <gtkmm/comboboxtext.h>
 #include <gtkmm/frame.h>
 #include <gtkmm/label.h>
@@ -58,7 +59,11 @@ protected:
 
 class NumEntry : public LabelWidget {
 protected:
+#if (GTKMM_MAJOR_VERSION == 2 && GTKMM_MINOR_VERSION < 90) || GTKMM_MAJOR_VERSION < 2
     Gtk::Adjustment adjust;
+#else
+    Glib::RefPtr<Gtk::Adjustment> adjust;
+#endif
     Gtk::HScale scale;
     Gtk::SpinButton spinbutton;
     Gtk::HBox box;
@@ -77,7 +82,11 @@ public:
 #endif
     }
     void set_upper(double upper) {
+#if (GTKMM_MAJOR_VERSION == 2 && GTKMM_MINOR_VERSION < 90) || GTKMM_MAJOR_VERSION < 2
         adjust.set_upper(upper);
+#else
+        adjust->set_upper(upper);
+#endif
     }
 };
 
@@ -130,7 +139,11 @@ void NumEntryTemp<T>::value_changed()
 template<typename T>
 void NumEntryTemp<T>::set_value(T value)
 {
+#if (GTKMM_MAJOR_VERSION == 2 && GTKMM_MINOR_VERSION < 90) || GTKMM_MAJOR_VERSION < 2
     if (value > adjust.get_upper()) value = T(adjust.get_upper());
+#else
+    if (value > adjust->get_upper()) value = T(adjust->get_upper());
+#endif
     if (this->value != value) {
         this->value = value;
         const double f = pow(10, spinbutton.get_digits());
@@ -197,7 +210,11 @@ template<typename T>
 void ChoiceEntry<T>::set_choices(const char** texts, const T* values)
 {
     for (int i = 0 ; texts[i] ; i++) {
+#if (GTKMM_MAJOR_VERSION == 2 && GTKMM_MINOR_VERSION < 90) || GTKMM_MAJOR_VERSION < 2
         combobox.append_text(texts[i]);
+#else
+        combobox.append(texts[i]);
+#endif
     }
     this->values = values;
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2010 Andreas Persson
+ * Copyright (C) 2006-2011 Andreas Persson
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -20,6 +20,7 @@
 #include "dimregionedit.h"
 
 #include "global.h"
+#include "compat.h"
 
 DimRegionEdit::DimRegionEdit() :
     eEG1PreAttack(_("Pre-attack"), 0, 100, 2),
@@ -560,7 +561,7 @@ void DimRegionEdit::addString(const char* labelText, Gtk::Label*& label,
                               Gtk::Entry*& widget)
 {
     label = new Gtk::Label(Glib::ustring(labelText) + ":");
-    label->set_alignment(Gtk::ALIGN_LEFT);
+    label->set_alignment(Gtk::ALIGN_START);
 
     table[pageno]->attach(*label, 1, 2, rowno, rowno + 1,
                           Gtk::FILL, Gtk::SHRINK);
@@ -586,7 +587,7 @@ Gtk::Label* DimRegionEdit::addHeader(const char* text)
     str += "</b>";
     Gtk::Label* label = new Gtk::Label(str);
     label->set_use_markup();
-    label->set_alignment(Gtk::ALIGN_LEFT);
+    label->set_alignment(Gtk::ALIGN_START);
     table[pageno]->attach(*label, 0, 3, rowno, rowno + 1,
                           Gtk::FILL, Gtk::SHRINK);
     rowno++;
