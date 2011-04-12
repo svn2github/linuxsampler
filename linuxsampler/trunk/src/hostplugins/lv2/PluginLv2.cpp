@@ -19,6 +19,7 @@
  ***************************************************************************/
 
 #include <algorithm>
+#include <cassert>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
@@ -27,6 +28,9 @@
 
 #include "PluginLv2.h"
 
+#define NS_ATOM "http://lv2plug.in/ns/ext/atom#"
+#define NS_LS   "http://linuxsampler.org/schema#"
+
 namespace {
 
     PluginLv2::PluginLv2(const LV2_Descriptor* Descriptor,
@@ -34,13 +38,25 @@ namespace {
                          const LV2_Feature* const* Features) {
         Out[0] = 0;
         Out[1] = 0;
+        UriMap = 0;
+        PathSupport = 0;
+        NewFileSupport = 0;
         for (int i = 0 ; Features[i] ; i++) {
             dmsg(2, ("linuxsampler: host feature: %s\n", Features[i]->URI));
+            if (!strcmp(Features[i]->URI, LV2_URI_MAP_URI)) {
+                UriMap = (LV2_URI_Map_Feature*)Features[i]->data;
+            } else if (!strcmp(Features[i]->URI, LV2_FILES_PATH_SUPPORT_URI)) {
+                PathSupport = (LV2_Files_Path_Support*)Features[i]->data;
+            } else if (!strcmp(Features[i]->URI, LV2_FILES_NEW_FILE_SUPPORT_URI)) {
+                NewFileSupport = (LV2_Files_New_File_Support*)Features[i]->data;
+            }
         }
 
         Init(SampleRate, 128);
 
         InitState();
+
+        DefaultState = GetState();
     }
 
     void PluginLv2::ConnectPort(uint32_t Port, void* DataLocation) {
@@ -86,44 +102,97 @@ namespace {
         dmsg(2, ("linuxsampler: Deactivate\n"));
     }
 
-    char* PluginLv2::Save(const char* Directory, LV2SR_File*** Files) {
-        dmsg(2, ("linuxsampler: Save Directory=%s\n", Directory));
-
-        String filename(Directory);
-        filename += "/linuxsampler";
-        dmsg(2, ("saving to %s\n", filename.c_str()));
-        std::ofstream out(filename.c_str());
-        out << GetState();
-        out.close();
-
-        LV2SR_File** filearr = static_cast<LV2SR_File**>(malloc(sizeof(LV2SR_File*) * 2));
-
-        LV2SR_File* file = static_cast<LV2SR_File*>(malloc(sizeof(LV2SR_File)));
-        file->name = strdup("linuxsampler");
-        file->path = strdup(filename.c_str());
-        file->must_copy = 0;
-
-        filearr[0] = file;
-        filearr[1] = 0;
-
-        *Files = filearr;
-
-        dmsg(2, ("saving done\n"));
-        return 0;
+    String PluginLv2::PathToState(const String& path) {
+        if (PathSupport) {
+            char* cstr = PathSupport->abstract_path(PathSupport->host_data,
+                                                    path.c_str());
+            const String abstract_path(cstr);
+            free(cstr);
+            return abstract_path;
+        }
+        return path;
     }
 
-    char* PluginLv2::Restore(const LV2SR_File** Files) {
-        dmsg(2, ("linuxsampler: restore\n"));
-        for (int i = 0 ; Files[i] ; i++) {
-            dmsg(2, ("  name=%s path=%s\n", Files[i]->name, Files[i]->path));
-            if (strcmp(Files[i]->name, "linuxsampler") == 0) {
-                std::ifstream in(Files[0]->path);
-                String state;
-                std::getline(in, state, '\0');
-                SetState(state);
-            }
+    String PluginLv2::PathFromState(const String& path) {
+        if (PathSupport) {
+            char* cstr = PathSupport->absolute_path(PathSupport->host_data,
+                                                    path.c_str());
+            const String abstract_path(cstr);
+            free(cstr);
+            return abstract_path;
         }
-        return 0;
+        return path;
+    }
+
+    void PluginLv2::Save(LV2_Persist_Store_Function store, void* host_data) {
+        if (NewFileSupport) {
+            char* path = NewFileSupport->new_file_path(PathSupport->host_data,
+                                                       "linuxsampler");
+            dmsg(2, ("saving to file %s\n", path));
+
+            std::ofstream out(path);
+            out << GetState();
+
+            const String abstract_path = PathToState(path);
+
+            store(host_data,
+                  uri_to_id(NULL, NS_LS "state-file"),
+                  abstract_path.c_str(),
+                  abstract_path.length() + 1,
+                  uri_to_id(NULL, LV2_FILES_URI "#AbstractPath"),
+                  LV2_PERSIST_IS_PORTABLE);
+        } else {
+            dmsg(2, ("saving to string\n"));
+
+            std::ostringstream out;
+            out << GetState();
+
+            store(host_data,
+                  uri_to_id(NULL, NS_LS "state-string"),
+                  out.str().c_str(),
+                  out.str().length() + 1,
+                  uri_to_id(NULL, NS_ATOM "String"),
+                  LV2_PERSIST_IS_POD | LV2_PERSIST_IS_PORTABLE);
+        }
+        dmsg(2, ("saving done\n"));
+    }
+
+    void PluginLv2::Restore(LV2_Persist_Retrieve_Function retrieve, void* data) {
+        size_t   size;
+        uint32_t type;
+        uint32_t flags;
+
+        const void* value = retrieve(
+            data,
+            uri_to_id(NULL, NS_LS "state-file"),
+            &size, &type, &flags);
+
+        if (value) {
+            assert(type == uri_to_id(NULL, LV2_FILES_URI "#AbstractPath"));
+            const String path = PathFromState((const char*)value);
+            dmsg(2, ("linuxsampler: restoring from file %s\n", path.c_str()));
+            std::ifstream in(path.c_str());
+            String state;
+            std::getline(in, state, '\0');
+            SetState(state);
+            return;
+        }
+
+        value = retrieve(
+                data,
+                uri_to_id(NULL, NS_LS "state-string"),
+                &size, &type, &flags);
+        if (value) {
+            dmsg(2, ("linuxsampler: restoring from string\n"));
+            assert(type == uri_to_id(NULL, NS_ATOM "String"));
+            String state((const char*)value);
+            SetState(state);
+            return;
+        }
+
+        // No valid state found, reset to default state
+        dmsg(2, ("linuxsampler: restoring default state\n"));
+        SetState(DefaultState);
     }
 
     LV2_Handle instantiate(const LV2_Descriptor* descriptor,
@@ -152,12 +221,12 @@ namespace {
         delete static_cast<PluginLv2*>(instance);
     }
 
-    char* save(LV2_Handle handle, const char* directory, LV2SR_File*** files) {
-        return static_cast<PluginLv2*>(handle)->Save(directory, files);
+    void save(LV2_Handle handle, LV2_Persist_Store_Function store, void* callback_data) {
+	    return static_cast<PluginLv2*>(handle)->Save(store, callback_data);
     }
 
-    char* restore(LV2_Handle handle, const LV2SR_File** files) {
-        return static_cast<PluginLv2*>(handle)->Restore(files);
+    void restore(LV2_Handle handle, LV2_Persist_Retrieve_Function store, void* callback_data) {
+        return static_cast<PluginLv2*>(handle)->Restore(store, callback_data);
     }
 
     PluginInfo PluginInfo::Instance;
@@ -171,15 +240,15 @@ namespace {
         Lv2.instantiate = instantiate;
         Lv2.run = run;
         Lv2.extension_data = extension_data;
-        Lv2sr.save = save;
-        Lv2sr.restore = restore;
+        Persist.save = save;
+        Persist.restore = restore;
     }
 
 
     const void* extension_data(const char* uri) {
         dmsg(2, ("linuxsampler: extension_data %s\n", uri));
-        if (strcmp(uri, LV2_SAVERESTORE_URI) == 0) {
-            return PluginInfo::Lv2srDescriptor();
+        if (strcmp(uri, LV2_PERSIST_URI) == 0) {
+            return PluginInfo::Lv2PersistDescriptor();
         }
         return 0;
     }

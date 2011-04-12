@@ -23,7 +23,9 @@
 
 #include <lv2.h>
 #include "lv2_event.h"
-#include "lv2-saverestore.h"
+#include "lv2_persist.h"
+#include "lv2_uri_map.h"
+#include "lv2_files.h"
 #include "../../drivers/Plugin.h"
 
 namespace {
@@ -37,12 +39,25 @@ namespace {
         void Activate();
         void Run(uint32_t SampleCount);
         void Deactivate();
-        char* Save(const char* Directory, LV2SR_File*** Files);
-        char* Restore(const LV2SR_File** Files);
+        void Save(LV2_Persist_Store_Function store, void* data);
+        void Restore(LV2_Persist_Retrieve_Function retrieve, void* data);
+
+	protected:
+        virtual String PathToState(const String& string);
+        virtual String PathFromState(const String& string);
 
     private:
+        uint32_t uri_to_id(const char* map, const char* uri) {
+	        return UriMap->uri_to_id(UriMap->callback_data, map, uri);
+        }
+
         float* Out[2];
         LV2_Event_Buffer* MidiBuf;
+        LV2_URI_Map_Feature* UriMap;
+        LV2_Files_Path_Support* PathSupport;
+        LV2_Files_New_File_Support* NewFileSupport;
+
+        String DefaultState;
     };
 
     class PluginInfo {
@@ -50,12 +65,12 @@ namespace {
         static const LV2_Descriptor* Lv2Descriptor() {
             return &Instance.Lv2;
         }
-        static const LV2SR_Descriptor* Lv2srDescriptor() {
-            return &Instance.Lv2sr;
+        static const LV2_Persist* Lv2PersistDescriptor() {
+            return &Instance.Persist;
         }
     private:
         LV2_Descriptor Lv2;
-        LV2SR_Descriptor Lv2sr;
+        LV2_Persist Persist;
 
         PluginInfo();
         static PluginInfo Instance;
@@ -73,9 +88,13 @@ namespace {
         static void cleanup(LV2_Handle instance);
         static const void* extension_data(const char* uri);
 
-        static char* save(LV2_Handle handle, const char* directory,
-                          LV2SR_File*** files);
-        static char* restore(LV2_Handle handle, const LV2SR_File** files);
+        static void save(LV2_Handle                 handle,
+                         LV2_Persist_Store_Function store,
+                         void*                      data);
+
+        static void restore(LV2_Handle                    handle,
+                            LV2_Persist_Retrieve_Function retrieve,
+                            void*                         data);
     }
 }
 

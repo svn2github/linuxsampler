@@ -8,7 +8,10 @@
     doap:name "LinuxSampler" ;
     doap:license <http://linuxsampler.org/downloads.html#exception> ;
     lv2:optionalFeature lv2:hardRtCapable ;
-    lv2:optionalFeature <http://ll-plugins.nongnu.org/lv2/ext/saverestore> ;
+    lv2:optionalFeature <http://lv2plug.in/ns/ext/persist> ;
+    lv2:optionalFeature <http://lv2plug.in/ns/ext/files#pathSupport> ;
+    lv2:optionalFeature <http://lv2plug.in/ns/ext/files#newFileSupport> ;
+    lv2:optionalFeature <http://lv2plug.in/ns/ext/uri-map> ;
     lv2:port [
 	a lv2:AudioPort , lv2:OutputPort ;
 	lv2:index 0 ;

@@ -173,6 +173,20 @@ namespace LinuxSampler {
     }
 
     /*
+      These methods can be overloaded by different plugin types to map
+      file names to/from file names to be used in the state text, making
+      it possible for state to be self-contained and/or movable.
+    */
+
+    String Plugin::PathToState(const String& string) {
+        return string;
+    }
+
+    String Plugin::PathFromState(const String& string) {
+        return string;
+    }
+
+    /*
       The sampler state is stored in a text base format, designed to
       be easy to parse with the istream >> operator. Values are
       separated by spaces or newlines. All string values that may
@@ -218,7 +232,7 @@ namespace LinuxSampler {
                      int(iter->first.midi_bank_lsb)) << ' ' <<
                     int(iter->first.midi_prog) << ' ' <<
                     iter->second.EngineName << ' ' <<
-                    iter->second.InstrumentFile << '\n' <<
+                    PathToState(iter->second.InstrumentFile) << '\n' <<
                     MIDIMAPPING << ' ' <<
                     iter->second.InstrumentIndex << ' ' <<
                     iter->second.Volume << ' ' <<
@@ -240,7 +254,7 @@ namespace LinuxSampler {
                 String filename = engine_channel->InstrumentFileName();
                 s << channel->GetMidiInputChannel() << ' ' <<
                     engine_channel->Volume() << ' ' <<
-                    filename << '\n' <<
+                    PathToState(filename) << '\n' <<
                     engine_channel->InstrumentIndex() << ' ' <<
                     engine_channel->GetSolo() << ' ' <<
                     (engine_channel->GetMute() == 1) << ' ' <<
@@ -336,7 +350,7 @@ namespace LinuxSampler {
                 }
                 if (!filename.empty() && index != -1) {
                     InstrumentManager::instrument_id_t id;
-                    id.FileName = filename;
+                    id.FileName = PathFromState(filename);
                     id.Index    = index;
                     InstrumentManager::LoadInstrumentInBackground(id, engine_channel);
                 }

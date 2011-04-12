@@ -69,6 +69,9 @@ namespace LinuxSampler {
         void PreInit();
         void Init(int SampleRate, int FragmentSize, int Channels = -1);
 
+        virtual String PathToState(const String& string);
+        virtual String PathFromState(const String& string);
+        
         void InitState();
         String GetState();
         bool SetState(String State);
