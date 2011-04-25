@@ -10,7 +10,7 @@ liblinuxsamplergigengine_la_SOURCES = \
 	EGADSR.cpp EGADSR.h \
 	EGDecay.cpp EGDecay.h \
 	Engine.cpp Engine.h \
-	Filter.h \
+	Filter.h Filter.cpp \
 	InstrumentResourceManager.cpp InstrumentResourceManager.h \
 	Stream.cpp Stream.h \
 	Voice.cpp Voice.h \

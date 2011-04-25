@@ -22,8 +22,8 @@ INCLUDES=-include ../config.h
 
 .PHONY: all gigsynth.o Synthesizer.o RTMath.o
 
-all: Synthesizer.o RTMath.o gigsynth.o
-	$(CPP) $(CFLAGS) -o gigsynth gigsynth.o Synthesizer.o RTMath.o
+all: Synthesizer.o RTMath.o gigsynth.o Filter.o
+	$(CPP) $(CFLAGS) -o gigsynth gigsynth.o Synthesizer.o RTMath.o Filter.o
 
 clean:
 	rm -f gigsynth $(OBJFILES)
@@ -33,6 +33,9 @@ gigsynth.o:
 
 Synthesizer.o:
 	$(CPP) $(INCLUDES) $(CFLAGS) -c ../src/engines/gig/Synthesizer.cpp
+
+Filter.o:
+	$(CPP) $(INCLUDES) $(CFLAGS) -c ../src/engines/gig/Filter.cpp
 
 RTMath.o:
 	$(CPP) $(INCLUDES) $(CFLAGS) -c ../src/common/RTMath.cpp

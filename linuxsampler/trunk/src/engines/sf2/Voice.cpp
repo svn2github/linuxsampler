@@ -4,7 +4,7 @@
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
  *   Copyright (C) 2005 - 2008 Christian Schoenebeck                       *
- *   Copyright (C) 2009 - 2010 Christian Schoenebeck and Grigor Iliev      *
+ *   Copyright (C) 2009 - 2011 Christian Schoenebeck and Grigor Iliev      *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -32,6 +32,7 @@ namespace LinuxSampler { namespace sf2 {
     Voice::Voice() {
         pEngine = NULL;
         pEG1 = &EG1;
+        pEG2 = &EG2;
     }
 
     Voice::~Voice() {
@@ -106,7 +107,7 @@ namespace LinuxSampler { namespace sf2 {
         ri.EG3Attack     = 0; // TODO:
         ri.EG3Depth      = 0; // TODO:
         ri.VCFEnabled    = false; // TODO:
-        ri.VCFType       = ::gig::vcf_type_lowpass; // TODO:
+        ri.VCFType       = Filter::vcf_type_2p_lowpass; // TODO:
         ri.VCFResonance  = 0; // TODO:
 
         ri.ReleaseTriggerDecay = 0; // TODO:
@@ -265,6 +266,19 @@ namespace LinuxSampler { namespace sf2 {
         return eg;
     }
 
+    void Voice::TriggerEG2(const EGInfo& egInfo, double velrelease, double velocityAttenuation, uint sampleRate, uint8_t velocity) {
+        EG2.trigger(uint(RgnInfo.EG2PreAttack),
+                    RgnInfo.EG2Attack * egInfo.Attack,
+                    false,
+                    RgnInfo.EG2Decay1 * egInfo.Decay * velrelease,
+                    RgnInfo.EG2Decay2 * egInfo.Decay * velrelease,
+                    RgnInfo.EG2InfiniteSustain,
+                    uint(RgnInfo.EG2Sustain),
+                    RgnInfo.EG2Release * egInfo.Release * velrelease,
+                    velocityAttenuation,
+                    sampleRate / CONFIG_DEFAULT_SUBFRAGMENT_SIZE);
+    }
+
     void Voice::InitLFO1() {
         /*uint16_t lfo1_internal_depth;
         switch (pRegion->LFO1Controller) {
@@ -403,7 +417,7 @@ namespace LinuxSampler { namespace sf2 {
     float Voice::CalculateCutoffBase(uint8_t MIDIKeyVelocity) {
         /*float cutoff = pRegion->GetVelocityCutoff(MIDIKeyVelocity);
         if (pRegion->VCFKeyboardTracking) {
-            cutoff *= exp((MIDIKeyVelocity - pRegion->VCFKeyboardTrackingBreakpoint) * 0.057762265f); // (ln(2) / 12)
+            cutoff *= RTMath::CentsToFreqRatioUnlimited((MIDIKey - pRegion->VCFKeyboardTrackingBreakpoint) * 100);
         }
         return cutoff;*/ // TODO: ^^^
         return 1.0f;

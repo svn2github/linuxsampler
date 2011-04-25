@@ -4,7 +4,7 @@
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
  *   Copyright (C) 2005 - 2008 Christian Schoenebeck                       *
- *   Copyright (C) 2009 - 2010 Christian Schoenebeck and Grigor Iliev      *
+ *   Copyright (C) 2009 - 2011 Christian Schoenebeck and Grigor Iliev      *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -35,6 +35,7 @@ namespace LinuxSampler { namespace gig {
     Voice::Voice() {
         pEngine = NULL;
         pEG1 = &EG1;
+        pEG2 = &EG2;
     }
 
     Voice::~Voice() {
@@ -95,7 +96,7 @@ namespace LinuxSampler { namespace gig {
         ri.EG3Attack     = pRegion->EG3Attack;
         ri.EG3Depth      = pRegion->EG3Depth;
         ri.VCFEnabled    = pRegion->VCFEnabled;
-        ri.VCFType       = pRegion->VCFType;
+        ri.VCFType       = Filter::vcf_type_t(pRegion->VCFType);
         ri.VCFResonance  = pRegion->VCFResonance;
 
         ri.ReleaseTriggerDecay = 0.01053 * (256 >> pRegion->ReleaseTriggerDecay);
@@ -135,7 +136,7 @@ namespace LinuxSampler { namespace gig {
     void Voice::ProcessCutoffEvent(RTList<Event>::Iterator& itEvent) {
         int ccvalue = itEvent->Param.CC.Value;
         if (VCFCutoffCtrl.value == ccvalue) return;
-        VCFCutoffCtrl.value == ccvalue;
+        VCFCutoffCtrl.value = ccvalue;
         if (pRegion->VCFCutoffControllerInvert)  ccvalue = 127 - ccvalue;
         if (ccvalue < pRegion->VCFVelocityScale) ccvalue = pRegion->VCFVelocityScale;
         float cutoff = CutoffBase * float(ccvalue);
@@ -341,7 +342,7 @@ namespace LinuxSampler { namespace gig {
                 break;
             case ::gig::lfo3_ctrl_internal_aftertouch:
                 lfo3_internal_depth  = pRegion->LFO3InternalDepth;
-                pLFO1->ExtController = 128;
+                pLFO3->ExtController = 128;
                 bLFO3Enabled         = (lfo3_internal_depth > 0 || pRegion->LFO3ControlDepth > 0);
                 break;
             default:
@@ -363,7 +364,7 @@ namespace LinuxSampler { namespace gig {
     float Voice::CalculateCutoffBase(uint8_t MIDIKeyVelocity) {
         float cutoff = pRegion->GetVelocityCutoff(MIDIKeyVelocity);
         if (pRegion->VCFKeyboardTracking) {
-            cutoff *= exp((MIDIKeyVelocity - pRegion->VCFKeyboardTrackingBreakpoint) * 0.057762265f); // (ln(2) / 12)
+            cutoff *= RTMath::CentsToFreqRatioUnlimited((MIDIKey - pRegion->VCFKeyboardTrackingBreakpoint) * 100);
         }
         return cutoff;
     }
@@ -459,6 +460,19 @@ namespace LinuxSampler { namespace gig {
                     RgnInfo.EG1InfiniteSustain,
                     uint(RgnInfo.EG1Sustain),
                     RgnInfo.EG1Release * egInfo.Release * velrelease,
+                    velocityAttenuation,
+                    sampleRate / CONFIG_DEFAULT_SUBFRAGMENT_SIZE);
+    }
+
+    void Voice::TriggerEG2(const EGInfo& egInfo, double velrelease, double velocityAttenuation, uint sampleRate, uint8_t velocity) {
+        EG2.trigger(uint(RgnInfo.EG2PreAttack),
+                    RgnInfo.EG2Attack * egInfo.Attack,
+                    false,
+                    RgnInfo.EG2Decay1 * egInfo.Decay * velrelease,
+                    RgnInfo.EG2Decay2 * egInfo.Decay * velrelease,
+                    RgnInfo.EG2InfiniteSustain,
+                    uint(RgnInfo.EG2Sustain),
+                    RgnInfo.EG2Release * egInfo.Release * velrelease,
                     velocityAttenuation,
                     sampleRate / CONFIG_DEFAULT_SUBFRAGMENT_SIZE);
     }

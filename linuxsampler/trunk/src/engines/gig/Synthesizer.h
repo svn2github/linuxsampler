@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 - 2007 Christian Schoenebeck                       *
+ *   Copyright (C) 2005 - 2011 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -169,7 +169,7 @@ namespace LinuxSampler { namespace gig {
                             double dPos    = pFinalParam->dPos;
                             float fPitch   = pFinalParam->fFinalPitch;
                             if (USEFILTER) {
-                                Filter filterL = pFinalParam->filterLeft;
+                                Filter& filterL = pFinalParam->filterLeft;
                                 for (int i = 0; i < uiToGo; ++i) {
                                     samplePoint = Interpolate1StepMonoCPP(pSrc, &dPos, fPitch);
                                     samplePoint = filterL.Apply(samplePoint);
@@ -195,7 +195,7 @@ namespace LinuxSampler { namespace gig {
                         } else { // no interpolation
                             int pos_offset = (int) pFinalParam->dPos;
                             if (USEFILTER) {
-                                Filter filterL = pFinalParam->filterLeft;
+                                Filter& filterL = pFinalParam->filterLeft;
                                 for (int i = 0; i < uiToGo; ++i) {
                                     samplePoint = getSample(pSrc, i + pos_offset);
                                     samplePoint = filterL.Apply(samplePoint);
@@ -227,8 +227,8 @@ namespace LinuxSampler { namespace gig {
                             double dPos    = pFinalParam->dPos;
                             float fPitch   = pFinalParam->fFinalPitch;
                             if (USEFILTER) {
-                                Filter filterL = pFinalParam->filterLeft;
-                                Filter filterR = pFinalParam->filterRight;
+                                Filter& filterL = pFinalParam->filterLeft;
+                                Filter& filterR = pFinalParam->filterRight;
                                 for (int i = 0; i < uiToGo; ++i) {
                                     samplePoint = Interpolate1StepStereoCPP(pSrc, &dPos, fPitch);
                                     samplePoint.left  = filterL.Apply(samplePoint.left);
@@ -255,8 +255,8 @@ namespace LinuxSampler { namespace gig {
                         } else { // no interpolation
                             int pos_offset = ((int) pFinalParam->dPos) << 1;
                             if (USEFILTER) {
-                                Filter filterL = pFinalParam->filterLeft;
-                                Filter filterR = pFinalParam->filterRight;
+                                Filter& filterL = pFinalParam->filterLeft;
+                                Filter& filterR = pFinalParam->filterRight;
                                 for (int i = 0, ii = 0; i < uiToGo; ++i, ii+=2) {
                                     samplePoint.left = getSample(pSrc, ii + pos_offset);
                                     samplePoint.right = getSample(pSrc, ii + pos_offset + 1);

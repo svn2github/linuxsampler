@@ -4,7 +4,7 @@
  *                                                                         *
  *   Copyright (C) 2003,2004 by Benno Senoner and Christian Schoenebeck    *
  *   Copyright (C) 2005-2008 Christian Schoenebeck                         *
- *   Copyright (C) 2009-2010 Christian Schoenebeck and Grigor Iliev        *
+ *   Copyright (C) 2009-2011 Christian Schoenebeck and Grigor Iliev        *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -28,9 +28,9 @@ namespace LinuxSampler {
 
     AbstractVoice::AbstractVoice() {
         pEngineChannel = NULL;
-        pLFO1 = new LFOUnsigned(1.0f);  // amplitude EG (0..1 range)
-        pLFO2 = new LFOUnsigned(1.0f);  // filter EG (0..1 range)
-        pLFO3 = new LFOSigned(1200.0f); // pitch EG (-1200..+1200 range)
+        pLFO1 = new LFOUnsigned(1.0f);  // amplitude LFO (0..1 range)
+        pLFO2 = new LFOUnsigned(1.0f);  // filter LFO (0..1 range)
+        pLFO3 = new LFOSigned(1200.0f); // pitch LFO (-1200..+1200 range)
         PlaybackState = playback_state_end;
         SynthesisMode = 0; // set all mode bits to 0 first
         // select synthesis implementation (asm core is not supported ATM)
@@ -213,18 +213,7 @@ namespace LinuxSampler {
             // calculate influence of EG2 controller on EG2's parameters
             EGInfo egInfo = CalculateEG2ControllerInfluence(eg2controllervalue);
 
-            EG2.trigger (
-                uint(RgnInfo.EG2PreAttack),
-                RgnInfo.EG2Attack * egInfo.Attack,
-                false,
-                RgnInfo.EG2Decay1 * egInfo.Decay * velrelease,
-                RgnInfo.EG2Decay2 * egInfo.Decay * velrelease,
-                RgnInfo.EG2InfiniteSustain,
-                uint(RgnInfo.EG2Sustain),
-                RgnInfo.EG2Release * egInfo.Release * velrelease,
-                velocityAttenuation,
-                GetEngine()->SampleRate / CONFIG_DEFAULT_SUBFRAGMENT_SIZE
-            );
+            TriggerEG2(egInfo, velrelease, velocityAttenuation, GetEngine()->SampleRate, itNoteOnEvent->Param.Note.Velocity);
         }
 
 
@@ -385,7 +374,7 @@ namespace LinuxSampler {
             // filter EG is finished, switch EG1 to fade out stage
             if ((itKillEvent && killPos <= iSubFragmentEnd) ||
                 (SYNTHESIS_MODE_GET_FILTER(SynthesisMode) &&
-                 EG2.getSegmentType() == gig::EGADSR::segment_end)) {
+                 pEG2->getSegmentType() == EG::segment_end)) {
                 pEG1->enterFadeOutStage();
                 itKillEvent = Pool<Event>::Iterator();
             }
@@ -405,16 +394,19 @@ namespace LinuxSampler {
                     fFinalVolume *= pEG1->processPow();
                     break;
             }
-            switch (EG2.getSegmentType()) {
-                case gig::EGADSR::segment_lin:
-                    fFinalCutoff *= EG2.processLin();
+            switch (pEG2->getSegmentType()) {
+                case EG::segment_lin:
+                    fFinalCutoff *= pEG2->processLin();
                     break;
-                case gig::EGADSR::segment_exp:
-                    fFinalCutoff *= EG2.processExp();
+                case EG::segment_exp:
+                    fFinalCutoff *= pEG2->processExp();
                     break;
-                case gig::EGADSR::segment_end:
-                    fFinalCutoff *= EG2.getLevel();
+                case EG::segment_end:
+                    fFinalCutoff *= pEG2->getLevel();
                     break; // noop
+                case EG::segment_pow:
+                    fFinalCutoff *= pEG2->processPow();
+                    break;
             }
             if (EG3.active()) finalSynthesisParameters.fFinalPitch *= EG3.render();
 
@@ -473,9 +465,9 @@ namespace LinuxSampler {
                 pEG1->increment(1);
                 if (!pEG1->toStageEndLeft()) pEG1->update(EG::event_stage_end, GetEngine()->SampleRate / CONFIG_DEFAULT_SUBFRAGMENT_SIZE);
             }
-            if (EG2.active()) {
-                EG2.increment(1);
-                if (!EG2.toStageEndLeft()) EG2.update(gig::EGADSR::event_stage_end, GetEngine()->SampleRate / CONFIG_DEFAULT_SUBFRAGMENT_SIZE);
+            if (pEG2->active()) {
+                pEG2->increment(1);
+                if (!pEG2->toStageEndLeft()) pEG2->update(EG::event_stage_end, GetEngine()->SampleRate / CONFIG_DEFAULT_SUBFRAGMENT_SIZE);
             }
             EG3.increment(1);
             if (!EG3.toEndLeft()) EG3.update(); // neutralize envelope coefficient if end reached
@@ -561,7 +553,7 @@ namespace LinuxSampler {
                     EnterReleaseStage();
                 } else if (itEvent->Type == Event::type_cancel_release) {
                     pEG1->update(EG::event_cancel_release, GetEngine()->SampleRate / CONFIG_DEFAULT_SUBFRAGMENT_SIZE);
-                    EG2.update(gig::EGADSR::event_cancel_release, GetEngine()->SampleRate / CONFIG_DEFAULT_SUBFRAGMENT_SIZE);
+                    pEG2->update(EG::event_cancel_release, GetEngine()->SampleRate / CONFIG_DEFAULT_SUBFRAGMENT_SIZE);
                 }
             }
         }
@@ -652,7 +644,7 @@ namespace LinuxSampler {
 
     void AbstractVoice::EnterReleaseStage() {
         pEG1->update(EG::event_release, GetEngine()->SampleRate / CONFIG_DEFAULT_SUBFRAGMENT_SIZE);
-        EG2.update(gig::EGADSR::event_release, GetEngine()->SampleRate / CONFIG_DEFAULT_SUBFRAGMENT_SIZE);
+        pEG2->update(EG::event_release, GetEngine()->SampleRate / CONFIG_DEFAULT_SUBFRAGMENT_SIZE);
     }
 
 } // namespace LinuxSampler

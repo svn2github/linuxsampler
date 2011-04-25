@@ -412,6 +412,7 @@ namespace sfz
             eq2_gain_oncc.set(i, 0);
             eq3_gain_oncc.set(i, 0);
         }
+        cutoff_cc = 0;
 
         eg.clear();
 
@@ -574,6 +575,7 @@ namespace sfz
         region->fil_type = fil_type;
         region->cutoff = cutoff;
         region->cutoff_oncc = cutoff_oncc;
+        region->cutoff_cc = cutoff_cc;
         region->cutoff_smoothcc = cutoff_smoothcc;
         region->cutoff_stepcc = cutoff_stepcc;
         region->cutoff_curvecc = cutoff_curvecc;
@@ -1170,8 +1172,10 @@ namespace sfz
             else if ("xfout_hi" == key_cc) pCurDef->xfout_hicc.set(num_cc, ToInt(value));
 
             // filter
-            else if ("cutoff_on"  == key_cc || "cutoff_" == key_cc) pCurDef->cutoff_oncc.set(num_cc, ToInt(value));
-            else if ("cutoff2_on" == key_cc) pCurDef->cutoff2_oncc.set(num_cc, ToInt(value));
+            else if ("cutoff_on"  == key_cc || "cutoff_" == key_cc) {
+                pCurDef->cutoff_oncc.set(num_cc, ToInt(value));
+                pCurDef->cutoff_cc = num_cc;
+            } else if ("cutoff2_on" == key_cc) pCurDef->cutoff2_oncc.set(num_cc, ToInt(value));
             else if ("cutoff_smooth"  == key_cc) pCurDef->cutoff_smoothcc.set(num_cc, ToInt(value));
             else if ("cutoff2_smooth" == key_cc) pCurDef->cutoff2_smoothcc.set(num_cc, ToInt(value));
             else if ("cutoff_step"  == key_cc) pCurDef->cutoff_stepcc.set(num_cc, ToInt(value));

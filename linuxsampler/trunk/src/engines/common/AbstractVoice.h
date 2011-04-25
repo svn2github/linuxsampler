@@ -4,7 +4,7 @@
  *                                                                         *
  *   Copyright (C) 2003,2004 by Benno Senoner and Christian Schoenebeck    *
  *   Copyright (C) 2005-2008 Christian Schoenebeck                         *
- *   Copyright (C) 2009-2010 Christian Schoenebeck and Grigor Iliev        *
+ *   Copyright (C) 2009-2011 Christian Schoenebeck and Grigor Iliev        *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -135,7 +135,7 @@ namespace LinuxSampler {
             unsigned long               MaxRAMPos;          ///< The upper allowed limit (not actually the end) in the RAM sample cache, after that point it's not safe to chase the interpolator another time over over the current cache position, instead we switch to disk then.
             uint                        Delay;              ///< Number of sample points the rendering process of this voice should be delayed (jitter correction), will be set to 0 after the first audio fragment cycle
             EG*                         pEG1;               ///< Envelope Generator 1 (Amplification)
-            gig::EGADSR                 EG2;                ///< Envelope Generator 2 (Filter cutoff frequency) TODO: use common EG instead of gig
+            EG*                         pEG2;               ///< Envelope Generator 2 (Filter cutoff frequency)
             gig::EGDecay                EG3;                ///< Envelope Generator 3 (Pitch) TODO: use common EG instead?
             midi_ctrl                   VCFCutoffCtrl;
             midi_ctrl                   VCFResonanceCtrl;
@@ -225,6 +225,8 @@ namespace LinuxSampler {
              * Calculate influence of EG2 controller on EG2's parameters.
              */
             virtual EGInfo CalculateEG2ControllerInfluence(double eg2ControllerValue) = 0;
+
+            virtual void TriggerEG2(const EGInfo& egInfo, double velrelease, double velocityAttenuation, uint sampleRate, uint8_t velocity) = 0;
 
             virtual float CalculateCutoffBase(uint8_t MIDIKeyVelocity) = 0;
             virtual float CalculateFinalCutoff(float cutoffBase) = 0;

@@ -71,11 +71,22 @@ Version CVS HEAD (?)
     - added support for Ogg Vorbis sample files
     - use loop markers from sample file if loop_start and loop_end are
       not set in sfz file
+    - implemeted filters. Filter types: lowpass, bandpass, bandreject
+      and highpass. 1, 2, 4 and 6 pole filters. Opcodes: fil_type,
+      cutoff, resonance, fil_veltrack, fil_keytrack, fil_keycenter,
+      cutoff_cc, cutoff_chanaft.
+    - bugfix: zero ampeg_sustain didn't work
 
   * SoundFont format engine:
     - Initial implementation (not usable yet)
     - RT-safeness: avoid malloc in audio thread
     - fixed a bug that could cause voice stealing to fail
+
+  * Gigasampler format engine:
+    - bugfix: pitch LFO controller "internal+aftertouch" was broken
+    - bugfix: filter keyboard tracking was broken
+    - filter performance fix (an unnecessary copy was made of the
+      filter parameters in each sub fragment)
 
   * Host plugins:
     - AU bugfix: failed to destroy its audio/MIDI devices
@@ -92,6 +103,9 @@ Version CVS HEAD (?)
       the ALSA sequencer client name
     - removed limit of maximum amount of MIDI ports per MIDI device, since
       there is no reason for this limit
+
+  * audio driver:
+    - ASIO driver fixes for newer gcc versions (fix from PortAudio)
 
   * LSCP server:
     - added support for sending MIDI CC messages via LSCP command

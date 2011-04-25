@@ -4,7 +4,7 @@
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
  *   Copyright (C) 2005 - 2008 Christian Schoenebeck                       *
- *   Copyright (C) 2009 - 2010 Christian Schoenebeck and Grigor Iliev      *
+ *   Copyright (C) 2009 - 2011 Christian Schoenebeck and Grigor Iliev      *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -93,9 +93,48 @@ namespace LinuxSampler { namespace sfz {
 
         ri.EG3Attack     = pRegion->pitcheg_attack;
         ri.EG3Depth      = 0; // TODO:
-        ri.VCFEnabled    = false; // TODO:
-        ri.VCFType       = ::gig::vcf_type_lowpass; // TODO:
-        ri.VCFResonance  = 0; // TODO:
+        ri.VCFEnabled    = pRegion->cutoff;
+        switch (pRegion->fil_type) {
+        case ::sfz::LPF_1P:
+            ri.VCFType = Filter::vcf_type_1p_lowpass;
+            break;
+        case ::sfz::LPF_2P:
+            ri.VCFType = Filter::vcf_type_2p_lowpass;
+            break;
+        case ::sfz::LPF_4P:
+            ri.VCFType = Filter::vcf_type_4p_lowpass;
+            break;
+        case ::sfz::LPF_6P:
+            ri.VCFType = Filter::vcf_type_6p_lowpass;
+            break;
+        case ::sfz::HPF_1P:
+            ri.VCFType = Filter::vcf_type_1p_highpass;
+            break;
+        case ::sfz::HPF_2P:
+            ri.VCFType = Filter::vcf_type_2p_highpass;
+            break;
+        case ::sfz::HPF_4P:
+            ri.VCFType = Filter::vcf_type_4p_highpass;
+            break;
+        case ::sfz::HPF_6P:
+            ri.VCFType = Filter::vcf_type_6p_highpass;
+            break;
+        case ::sfz::BPF_1P:
+        case ::sfz::BPF_2P:
+            ri.VCFType = Filter::vcf_type_2p_bandpass;
+            break;
+        case ::sfz::BRF_1P:
+        case ::sfz::BRF_2P:
+            ri.VCFType = Filter::vcf_type_2p_bandreject;
+            break;
+        case ::sfz::APF_1P:
+        case ::sfz::PKF_2P:
+        default:
+            ri.VCFEnabled = false;
+            break;
+        }
+
+        ri.VCFResonance  = pRegion->resonance;
 
         // rt_decay is in dB. Precalculate a suitable value for exp in
         // GetReleaseTriggerAttenuation: -ln(10) / 20 * rt_decay
@@ -134,16 +173,16 @@ namespace LinuxSampler { namespace sfz {
     }
 
     void Voice::ProcessCutoffEvent(RTList<Event>::Iterator& itEvent) {
-        /*int ccvalue = itEvent->Param.CC.Value;
+        int ccvalue = itEvent->Param.CC.Value;
         if (VCFCutoffCtrl.value == ccvalue) return;
-        VCFCutoffCtrl.value == ccvalue;
-        if (pRegion->VCFCutoffControllerInvert)  ccvalue = 127 - ccvalue;
-        if (ccvalue < pRegion->VCFVelocityScale) ccvalue = pRegion->VCFVelocityScale;
-        float cutoff = CutoffBase * float(ccvalue);
-        if (cutoff > 127.0f) cutoff = 127.0f;
+        VCFCutoffCtrl.value = ccvalue;
+
+        float cutoff = CutoffBase * RTMath::CentsToFreqRatioUnlimited(
+            ccvalue / 127.0f * pRegion->cutoff_oncc[VCFCutoffCtrl.controller]);
+        if (cutoff > 0.49 * pEngine->SampleRate) cutoff = 0.49 * pEngine->SampleRate;
 
         VCFCutoffCtrl.fvalue = cutoff; // needed for initialization of fFinalCutoff next time
-        fFinalCutoff = cutoff;*/ // TODO: ^^^
+        fFinalCutoff = cutoff;
     }
 
     double Voice::CalculateCrossfadeVolume(uint8_t MIDIKeyVelocity) {
@@ -265,6 +304,21 @@ namespace LinuxSampler { namespace sfz {
         eg.Decay = 1.0;
         eg.Release = 1.0;
         return eg;
+    }
+
+    void Voice::TriggerEG2(const EGInfo& egInfo, double velrelease, double velocityAttenuation, uint sampleRate, uint8_t velocity) {
+
+        // TODO: the sfz filter EG should modulate cents, not hertz,
+        // so we can't use the EG or EGADSR as it is. Disable for now.
+
+        pEG2 = &EGADSR2;
+        EGADSR2.trigger(0,
+                        0,
+                        false,
+                        0,
+                        1000,
+                        0,
+                        sampleRate / CONFIG_DEFAULT_SUBFRAGMENT_SIZE);
     }
 
     void Voice::InitLFO1() {
@@ -403,72 +457,32 @@ namespace LinuxSampler { namespace sfz {
     }
 
     float Voice::CalculateCutoffBase(uint8_t MIDIKeyVelocity) {
-        /*float cutoff = pRegion->GetVelocityCutoff(MIDIKeyVelocity);
-        if (pRegion->VCFKeyboardTracking) {
-            cutoff *= exp((MIDIKeyVelocity - pRegion->VCFKeyboardTrackingBreakpoint) * 0.057762265f); // (ln(2) / 12)
-        }
-        return cutoff;*/ // TODO: ^^^
-        return 1.0f;
+        float cutoff = *pRegion->cutoff;
+        cutoff *= RTMath::CentsToFreqRatioUnlimited(
+            MIDIKeyVelocity / 127.0f * pRegion->fil_veltrack +
+            (MIDIKey - pRegion->fil_keycenter) * pRegion->fil_keytrack);
+        return cutoff;
     }
 
     float Voice::CalculateFinalCutoff(float cutoffBase) {
-        /*int cvalue;
+        float cutoff;
         if (VCFCutoffCtrl.controller) {
-            cvalue = GetSfzEngineChannel()->ControllerTable[VCFCutoffCtrl.controller];
-            if (pRegion->VCFCutoffControllerInvert) cvalue = 127 - cvalue;
-            // VCFVelocityScale in this case means Minimum cutoff
-            if (cvalue < pRegion->VCFVelocityScale) cvalue = pRegion->VCFVelocityScale;
+            int ccvalue = GetSfzEngineChannel()->ControllerTable[VCFCutoffCtrl.controller];
+            cutoff = CutoffBase * RTMath::CentsToFreqRatioUnlimited(
+                ccvalue / 127.0f * pRegion->cutoff_oncc[VCFCutoffCtrl.controller]);
+        } else {
+            cutoff = cutoffBase;
         }
-        else {
-            cvalue = pRegion->VCFCutoff;
-        }
-        float fco = cutoffBase * float(cvalue);
-        if (fco > 127.0f) fco = 127.0f;
-
-        return fco;*/ // TODO: ^^^
-        return 127.0f;
+        if (cutoff > 0.49 * pEngine->SampleRate) cutoff = 0.49 * pEngine->SampleRate;
+        return cutoff;
     }
 
     uint8_t Voice::GetVCFCutoffCtrl() {
-        /*uint8_t ctrl;
-        switch (pRegion->VCFCutoffController) {
-            case ::gig::vcf_cutoff_ctrl_modwheel:
-                ctrl = 1;
-                break;
-            case ::gig::vcf_cutoff_ctrl_effect1:
-                ctrl = 12;
-                break;
-            case ::gig::vcf_cutoff_ctrl_effect2:
-                ctrl = 13;
-                break;
-            case ::gig::vcf_cutoff_ctrl_breath:
-                ctrl = 2;
-                break;
-            case ::gig::vcf_cutoff_ctrl_foot:
-                ctrl = 4;
-                break;
-            case ::gig::vcf_cutoff_ctrl_sustainpedal:
-                ctrl = 64;
-                break;
-            case ::gig::vcf_cutoff_ctrl_softpedal:
-                ctrl = 67;
-                break;
-            case ::gig::vcf_cutoff_ctrl_genpurpose7:
-                ctrl = 82;
-                break;
-            case ::gig::vcf_cutoff_ctrl_genpurpose8:
-                ctrl = 83;
-                break;
-            case ::gig::vcf_cutoff_ctrl_aftertouch:
-                ctrl = 128;
-                break;
-            case ::gig::vcf_cutoff_ctrl_none:
-            default:
-                ctrl = 0;
-                break;
-        }
-
-        return ctrl;*/ // TODO: ^^^
+        // TODO: the sfz format allows several CC for the same
+        // modulation destination. The Voice interface needs to be
+        // changed to support that.
+        if (pRegion->cutoff_cc) return pRegion->cutoff_cc;
+        else if (pRegion->cutoff_chanaft) return 128;
         return 0;
     }
 

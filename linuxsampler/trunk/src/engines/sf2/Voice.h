@@ -4,7 +4,7 @@
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
  *   Copyright (C) 2005 - 2008 Christian Schoenebeck                       *
- *   Copyright (C) 2009 - 2010 Christian Schoenebeck and Grigor Iliev      *
+ *   Copyright (C) 2009 - 2011 Christian Schoenebeck and Grigor Iliev      *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -63,6 +63,7 @@ namespace LinuxSampler { namespace sf2 {
             virtual void             TriggerEG1(const EGInfo& egInfo, double velrelease, double velocityAttenuation, uint sampleRate, uint8_t velocity);
             virtual double           GetEG2ControllerValue(uint8_t MIDIKeyVelocity);
             virtual EGInfo           CalculateEG2ControllerInfluence(double eg2ControllerValue);
+            virtual void             TriggerEG2(const EGInfo& egInfo, double velrelease, double velocityAttenuation, uint sampleRate, uint8_t velocity);
             virtual void             InitLFO1();
             virtual void             InitLFO2();
             virtual void             InitLFO3();
@@ -79,6 +80,7 @@ namespace LinuxSampler { namespace sf2 {
 
         private:
             ::LinuxSampler::gig::EGADSR EG1; // TODO: add a fine-tuned version for SF2, or maybe use sfz v1 instead of gig
+            ::LinuxSampler::gig::EGADSR EG2; // TODO: add a fine-tuned version for SF2, or maybe use sfz v1 instead of gig
 
         public: // FIXME: just made public for debugging (sanity check in Engine::RenderAudio()), should be changed to private before the final release
             // Attributes

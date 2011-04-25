@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003, 2004 by Benno Senoner and Christian Schoenebeck   *
- *   Copyright (C) 2005 - 2010 Christian Schoenebeck                       *
+ *   Copyright (C) 2005 - 2011 Christian Schoenebeck                       *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -140,7 +140,7 @@ namespace LinuxSampler { namespace sfz {
             Segment = segment_exp;
             const float slope = -9.226 / StepsLeft;
             Coeff  = exp(slope);
-            StepsLeft = int(log(SustainLevel / Level) / slope);
+            StepsLeft = int(log(std::max(SustainLevel, float(CONFIG_EG_BOTTOM)) / Level) / slope);
             if (StepsLeft > 0) return;
 
             enterSustainStage();

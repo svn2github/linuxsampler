@@ -367,6 +367,8 @@ namespace sfz
         filter_t fil_type; filter_t fil2_type;
         optional<float> cutoff; optional<float> cutoff2;
         Array<int> cutoff_oncc; Array<int> cutoff2_oncc;
+        int cutoff_cc; // TODO: this is just a temporary fix to avoid
+                       // looping through the cutoff_oncc array
         Array<int> cutoff_smoothcc; Array<int> cutoff2_smoothcc;
         Array<int> cutoff_stepcc; Array<int> cutoff2_stepcc;
         Array<int> cutoff_curvecc; Array<int> cutoff2_curvecc;

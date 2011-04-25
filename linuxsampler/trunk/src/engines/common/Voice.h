@@ -3,7 +3,7 @@
  *   LinuxSampler - modular, streaming capable sampler                     *
  *                                                                         *
  *   Copyright (C) 2003,2004 by Benno Senoner and Christian Schoenebeck    *
- *   Copyright (C) 2005-2010 Christian Schoenebeck                         *
+ *   Copyright (C) 2005-2011 Christian Schoenebeck                         *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -25,6 +25,7 @@
 #define __LS_VOICE_H__
 
 #include "Event.h"
+#include "../gig/Filter.h"
 #include "../../common/Pool.h"
 
 #include <gig.h> // TODO: remove gig dependency
@@ -102,7 +103,7 @@ namespace LinuxSampler {
                 double  ReleaseTriggerDecay; ///< How much release sample volume depends on note length. Release sample amplitude is multiplied with (1 - ReleaseTriggerDecay * note length).
 
                 bool               VCFEnabled;    ///< If filter should be used.
-                ::gig::vcf_type_t  VCFType;       ///< Defines the general filter characteristic (lowpass, highpass, bandpass, etc.).
+                Filter::vcf_type_t VCFType;       ///< Defines the general filter characteristic (lowpass, highpass, bandpass, etc.).
                 uint8_t            VCFResonance;  ///< Firm internal filter resonance weight.
             };
 
