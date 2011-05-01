@@ -76,6 +76,9 @@ Version CVS HEAD (?)
       cutoff, resonance, fil_veltrack, fil_keytrack, fil_keycenter,
       cutoff_cc, cutoff_chanaft.
     - bugfix: zero ampeg_sustain didn't work
+    - added support for velocity effect on amplifier envelope time
+      (ampeg_vel2attack, ampeg_vel2decay, ampeg_vel2sustain and
+      ampeg_vel2release)
 
   * SoundFont format engine:
     - Initial implementation (not usable yet)

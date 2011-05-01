@@ -425,6 +425,13 @@ namespace sfz
         ampeg_sustain  = 100; // in percentage
         ampeg_release  = 0;
 
+        ampeg_vel2delay   = 0;
+        ampeg_vel2attack  = 0;
+        ampeg_vel2hold    = 0;
+        ampeg_vel2decay   = 0;
+        ampeg_vel2sustain = 0;
+        ampeg_vel2release = 0;
+
         fileg_delay    = 0;
         fileg_start    = 0; //in percentage
         fileg_attack   = 0;
@@ -646,6 +653,13 @@ namespace sfz
         region->ampeg_decay    = ampeg_decay;
         region->ampeg_sustain  = ampeg_sustain;
         region->ampeg_release  = ampeg_release;
+
+        region->ampeg_vel2delay   = ampeg_vel2delay;
+        region->ampeg_vel2attack  = ampeg_vel2attack;
+        region->ampeg_vel2hold    = ampeg_vel2hold;
+        region->ampeg_vel2decay   = ampeg_vel2decay;
+        region->ampeg_vel2sustain = ampeg_vel2sustain;
+        region->ampeg_vel2release = ampeg_vel2release;
 
         region->fileg_delay    = fileg_delay;
         region->fileg_start    = fileg_start;
@@ -1225,7 +1239,13 @@ namespace sfz
         else if ("ampeg_hold"   == key) pCurDef->ampeg_hold = ToFloat(value);
         else if ("ampeg_decay"   == key) pCurDef->ampeg_decay = ToFloat(value);
         else if ("ampeg_sustain"   == key) pCurDef->ampeg_sustain = ToFloat(value);
-        else if ("ampeg_release"   == key) pCurDef->ampeg_release = ToFloat(value);
+        else if ("ampeg_release" == key) pCurDef->ampeg_release = ToFloat(value);
+        else if ("ampeg_vel2delay" == key) pCurDef->ampeg_vel2delay = ToFloat(value);
+        else if ("ampeg_vel2attack" == key) pCurDef->ampeg_vel2attack = ToFloat(value);
+        else if ("ampeg_vel2hold" == key) pCurDef->ampeg_vel2hold = ToFloat(value);
+        else if ("ampeg_vel2decay" == key) pCurDef->ampeg_vel2decay = ToFloat(value);
+        else if ("ampeg_vel2sustain" == key) pCurDef->ampeg_vel2sustain = ToFloat(value);
+        else if ("ampeg_vel2release" == key) pCurDef->ampeg_vel2release = ToFloat(value);
         else if ("fileg_delay"   == key) pCurDef->fileg_delay = ToFloat(value);
         else if ("fileg_start"   == key) pCurDef->fileg_start = ToFloat(value);
         else if ("fileg_attack"   == key) pCurDef->fileg_attack = ToFloat(value);

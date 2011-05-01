@@ -160,7 +160,7 @@ namespace LinuxSampler { namespace sfz {
     }
 
     double Voice::GetVelocityRelease(uint8_t MIDIKeyVelocity) {
-        return 0.9; // TODO:
+        return 127.0 / MIDIKeyVelocity;
     }
 
     void Voice::ProcessCCEvent(RTList<Event>::Iterator& itEvent) {
@@ -262,15 +262,15 @@ namespace LinuxSampler { namespace sfz {
         // otherwise use the v1 EGADSR
         pEG1 = &EGADSR1;
         EGADSR1.trigger(uint(RgnInfo.EG1PreAttack),
-                        RgnInfo.EG1Attack,
-                        RgnInfo.EG1Hold,
-                        RgnInfo.EG1Decay1,
-                        uint(RgnInfo.EG1Sustain),
-                        RgnInfo.EG1Release,
+                        std::max(0.0, RgnInfo.EG1Attack + pRegion->ampeg_vel2attack * velrelease),
+                        std::max(0.0, RgnInfo.EG1Hold + pRegion->ampeg_vel2hold * velrelease),
+                        std::max(0.0, RgnInfo.EG1Decay1 + pRegion->ampeg_vel2decay * velrelease),
+                        uint(std::min(std::max(0.0, RgnInfo.EG1Sustain + 10 * pRegion->ampeg_vel2sustain * velrelease), 1000.0)),
+                        std::max(0.0, RgnInfo.EG1Release + pRegion->ampeg_vel2release * velrelease),
                         sampleRate / CONFIG_DEFAULT_SUBFRAGMENT_SIZE);
-     }
+    }
 
-     double Voice::GetEG2ControllerValue(uint8_t MIDIKeyVelocity) {
+    double Voice::GetEG2ControllerValue(uint8_t MIDIKeyVelocity) {
         /*double eg2controllervalue = 0;
         switch (pRegion->EG2Controller.type) {
             case ::gig::eg2_ctrl_t::type_none: // no controller defined

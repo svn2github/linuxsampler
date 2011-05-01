@@ -396,6 +396,7 @@ namespace sfz
 
         //Deprecated (from version 1)
         float ampeg_delay, ampeg_start, ampeg_attack, ampeg_hold, ampeg_decay, ampeg_sustain, ampeg_release;
+        float ampeg_vel2delay, ampeg_vel2attack, ampeg_vel2hold, ampeg_vel2decay, ampeg_vel2sustain, ampeg_vel2release;
         float fileg_delay, fileg_start, fileg_attack, fileg_hold, fileg_decay, fileg_sustain, fileg_release;
         float pitcheg_delay, pitcheg_start, pitcheg_attack, pitcheg_hold, pitcheg_decay, pitcheg_sustain, pitcheg_release;
         float amplfo_delay, amplfo_fade, amplfo_freq, amplfo_depth;
