@@ -172,9 +172,10 @@ src="http://pagead2.googlesyndication.com/pagead/show_ads.js">
 			<div id="contents">
 
 			<h2>News</h2>
-            <?php readfile("http://www.linuxsampler.org/news_internal.php?max_items=3"); ?>
+            <?php $_GET['max_items'] = "3";
+		  include("news_internal.php"); ?>
             <span class="news_footer">
-              <a href="http://www.linuxsampler.org/news_history.php">More ...</a>
+              <a href="news_history.php">More ...</a>
             </span>
 
             <h2>Latest CVS Commits</h2>
@@ -195,7 +196,7 @@ src="http://pagead2.googlesyndication.com/pagead/show_ads.js">
                         <tr>
                           <td>
                             <div id="cvs_content">
-                              <?php readfile("http://cvs.linuxsampler.org/log/linuxsampler_latest.html"); ?>
+                              <?php readfile("log/linuxsampler_latest.html"); ?>
                             </div>
                           </td>
                         </tr>
@@ -204,7 +205,7 @@ src="http://pagead2.googlesyndication.com/pagead/show_ads.js">
                         <tr>
                           <td>
                             <span class="cvs_footer">
-                              <a href="http://www.linuxsampler.org/cvshistory.php?subproject=linuxsampler">More ...</a>
+                              <a href="cvshistory.php?subproject=linuxsampler">More ...</a>
                             </span>
                           </td>
                         </tr>
@@ -224,14 +225,14 @@ src="http://pagead2.googlesyndication.com/pagead/show_ads.js">
                         <tr>
                           <td>
                             <div id="cvs_content">
-                              <?php readfile("http://cvs.linuxsampler.org/log/gigedit_latest.html"); ?>
+                              <?php readfile("log/gigedit_latest.html"); ?>
                             </div>
                           </td>
                         </tr>
                         <tr>
                           <td>
                             <span class="cvs_footer">
-                              <a href="http://www.linuxsampler.org/cvshistory.php?subproject=gigedit">More ...</a>
+                              <a href="cvshistory.php?subproject=gigedit">More ...</a>
                             </span>
                           </td>
                         </tr>
@@ -253,14 +254,14 @@ src="http://pagead2.googlesyndication.com/pagead/show_ads.js">
                         <tr>
                           <td>
                             <div id="cvs_content">
-                              <?php readfile("http://cvs.linuxsampler.org/log/libgig_latest.html"); ?>
+                              <?php readfile("log/libgig_latest.html"); ?>
                             </div>
                           </td>
                         </tr>
                         <tr>
                           <td>
                             <span class="cvs_footer">
-                              <a href="http://www.linuxsampler.org/cvshistory.php?subproject=libgig">More ...</a>
+                              <a href="cvshistory.php?subproject=libgig">More ...</a>
                             </span>
                           </td>
                         </tr>
@@ -280,14 +281,14 @@ src="http://pagead2.googlesyndication.com/pagead/show_ads.js">
                         <tr>
                           <td>
                             <div id="cvs_content">
-                              <?php readfile("http://cvs.linuxsampler.org/log/qsampler_latest.html"); ?>
+                              <?php readfile("log/qsampler_latest.html"); ?>
                             </div>
                           </td>
                         </tr>
                         <tr>
                           <td>
                             <span class="cvs_footer">
-                              <a href="http://www.linuxsampler.org/cvshistory.php?subproject=qsampler">More ...</a>
+                              <a href="cvshistory.php?subproject=qsampler">More ...</a>
                             </span>
                           </td>
                         </tr>
@@ -309,14 +310,14 @@ src="http://pagead2.googlesyndication.com/pagead/show_ads.js">
                         <tr>
                           <td>
                             <div id="cvs_content">
-                              <?php readfile("http://cvs.linuxsampler.org/log/liblscp_latest.html"); ?>
+                              <?php readfile("log/liblscp_latest.html"); ?>
                             </div>
                           </td>
                         </tr>
                         <tr>
                           <td>
                             <span class="cvs_footer">
-                              <a href="http://www.linuxsampler.org/cvshistory.php?subproject=liblscp">More ...</a>
+                              <a href="cvshistory.php?subproject=liblscp">More ...</a>
                             </span>
                           </td>
                         </tr>
@@ -336,14 +337,14 @@ src="http://pagead2.googlesyndication.com/pagead/show_ads.js">
                         <tr>
                           <td>
                             <div id="cvs_content">
-                              <?php readfile("http://cvs.linuxsampler.org/log/jsampler_latest.html"); ?>
+                              <?php readfile("log/jsampler_latest.html"); ?>
                             </div>
                           </td>
                         </tr>
                         <tr>
                           <td>
                             <span class="cvs_footer">
-                              <a href="http://www.linuxsampler.org/cvshistory.php?subproject=jsampler">More ...</a>
+                              <a href="cvshistory.php?subproject=jsampler">More ...</a>
                             </span>
                           </td>
                         </tr>
@@ -365,14 +366,14 @@ src="http://pagead2.googlesyndication.com/pagead/show_ads.js">
                         <tr>
                           <td>
                             <div id="cvs_content">
-                              <?php readfile("http://cvs.linuxsampler.org/log/jlscp_latest.html"); ?>
+                              <?php readfile("log/jlscp_latest.html"); ?>
                             </div>
                           </td>
                         </tr>
                         <tr>
                           <td>
                             <span class="cvs_footer">
-                              <a href="http://www.linuxsampler.org/cvshistory.php?subproject=jlscp">More ...</a>
+                              <a href="cvshistory.php?subproject=jlscp">More ...</a>
                             </span>
                           </td>
                         </tr>

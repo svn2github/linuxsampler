@@ -141,25 +141,25 @@
 
 			<h2>
             <?php
-              if (isset($HTTP_GET_VARS['subproject']))
-                  echo $HTTP_GET_VARS['subproject'];
+              if (isset($_GET['subproject']))
+                  echo $_GET['subproject'];
             ?>
             CVS History
             </h2>
 
             <p class="default">
               <?php
-                if (isset($HTTP_GET_VARS['subproject'])) {
+                if (isset($_GET['subproject'])) {
                     if (
-                        $HTTP_GET_VARS['subproject'] == "linuxsampler" ||
-                        $HTTP_GET_VARS['subproject'] == "qsampler" ||
-                        $HTTP_GET_VARS['subproject'] == "jsampler" ||
-                        $HTTP_GET_VARS['subproject'] == "gigedit" ||
-                        $HTTP_GET_VARS['subproject'] == "libgig" ||
-                        $HTTP_GET_VARS['subproject'] == "liblscp" ||
-                        $HTTP_GET_VARS['subproject'] == "jlscp"
+                        $_GET['subproject'] == "linuxsampler" ||
+                        $_GET['subproject'] == "qsampler" ||
+                        $_GET['subproject'] == "jsampler" ||
+                        $_GET['subproject'] == "gigedit" ||
+                        $_GET['subproject'] == "libgig" ||
+                        $_GET['subproject'] == "liblscp" ||
+                        $_GET['subproject'] == "jlscp"
                     ) {
-                        readfile("http://cvs.linuxsampler.org/log/" . $HTTP_GET_VARS['subproject'] . "_history.html");
+                        readfile("log/" . $_GET['subproject'] . "_history.html");
                     }
                 }
               ?>

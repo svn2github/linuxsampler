@@ -78,8 +78,8 @@ function characterData($parser, $data) {
     echo $data;
 }
 
-if (isset($HTTP_GET_VARS['max_items'])) {
-    $max_items = $HTTP_GET_VARS['max_items'];
+if (isset($_GET['max_items'])) {
+    $max_items = $_GET['max_items'];
 }
 
 $xml_parser = xml_parser_create();
