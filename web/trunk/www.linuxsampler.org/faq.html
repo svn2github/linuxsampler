@@ -187,8 +187,8 @@ src="http://pagead2.googlesyndication.com/pagead/show_ads.js">
 				3.&nbsp;Compilation / Installation<br>
 				&nbsp;&nbsp;&nbsp;&nbsp;3.1&nbsp;<a href="#install">What do I need to compile and install?</a><br>
 				&nbsp;&nbsp;&nbsp;&nbsp;3.2&nbsp;<a href="#compilarion_error">Compilation of LinuxSampler aborts with ...</a><br>
-				&nbsp;&nbsp;&nbsp;&nbsp;3.3&nbsp;<a href="#cvs_checkout">How do I checkout from CVS?</a><br>
-				&nbsp;&nbsp;&nbsp;&nbsp;3.4&nbsp;<a href="#compile_cvs">How do I compile from CVS?</a><br>
+				&nbsp;&nbsp;&nbsp;&nbsp;3.3&nbsp;<a href="#svn_checkout">How do I checkout from Subversion?</a><br>
+				&nbsp;&nbsp;&nbsp;&nbsp;3.4&nbsp;<a href="#compile_svn">How do I compile from Subversion?</a><br>
 				4.&nbsp;Setup<br>
 				&nbsp;&nbsp;&nbsp;&nbsp;4.1&nbsp;<a href="#examples_lscp">Are there example LSCP script files somewhere?</a><br>
 				&nbsp;&nbsp;&nbsp;&nbsp;4.2&nbsp;<a href="#dropouts">I get dropouts (click sounds, noise), what can I do about it?</a><br>
@@ -341,10 +341,10 @@ src="http://pagead2.googlesyndication.com/pagead/show_ads.js">
 				&bull;&nbsp;&nbsp;&nbsp;"<code>Required libgig version not found...</code>"<br>
 				<br>
 				This error might occur when running LinuxSampler's configure script. Make sure
-				you have the required libgig version installed. If you're compiling a CVS
+				you have the required libgig version installed. If you're compiling a Subversion
 				version of LinuxSampler you usually have to compile and install the current
-				CVS version of libgig as well. Also note there are couple common mistakes which
-				let this error occur even after having compiled and installed the required
+				Subversion version of libgig as well. Also note there are couple common mistakes
+                                which let this error occur even after having compiled and installed the required
 				libgig version. Read
 				<a href="https://bugs.linuxsampler.org/cgi-bin/show_bug.cgi?id=29">this bug report</a>
 				about common mistakes and how you can fix them.
@@ -396,20 +396,20 @@ export CXX=`which g++`</pre>
 				(<a href="https://bugs.linuxsampler.org/cgi-bin/show_bug.cgi?id=34">read this for details</a>).
 			</p>
 
-			<a name="cvs_checkout"></a>
-			<h3>How do I checkout from CVS?</h3>
+			<a name="svn_checkout"></a>
+			<h3>How do I checkout from Subversion?</h3>
 			<p class="default">
-				The procedure of checking out the newest version from CVS is described on the
-				<a href="downloads.html#cvs">Downloads</a> site and on the
-				<a href="http://cvs.linuxsampler.org/cgi-bin/viewcvs.cgi/">web interface site
-				of our CVS server</a>.
+				The procedure of checking out the newest version from Subversion is described on the
+				<a href="downloads.html#svn">Downloads</a> site and on the
+				<a href="http://svn.linuxsampler.org/cgi-bin/viewvc.cgi/">web interface site
+				of our Subversion server</a>.
 			</p>
 
-			<a name="compile_cvs"></a>
-  			<h3>How do I compile from CVS?</h3>
+			<a name="compile_svn"></a>
+  			<h3>How do I compile from Subversion?</h3>
 			<p class="default">
-				The procedure for compiling from CVS is the same for all subprojects, that is no matter
-				if you are compiling linuxsampler, qsampler, libgig or liblscp from CVS, you need to
+				The procedure for compiling from Subversion is the same for all subprojects, that is no matter
+				if you are compiling linuxsampler, qsampler, libgig or liblscp from Subversion, you need to
 				have the autotools (automake, autoconf and libtool) installed and compile it that way:
 				<pre class="code">make -f Makefile.cvs
 ./configure

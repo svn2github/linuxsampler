@@ -144,7 +144,7 @@
               if (isset($_GET['subproject']))
                   echo $_GET['subproject'];
             ?>
-            CVS History
+            Subversion History
             </h2>
 
             <p class="default">

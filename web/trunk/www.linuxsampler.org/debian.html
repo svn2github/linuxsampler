@@ -113,7 +113,7 @@ expect it.
 
 <a name="build_backend"></a>
 <h3>3.&nbsp; Building the Backend</h3>
-Grab the source code files  of libgig (e.g. from our CVS server, as
+Grab the source code files  of libgig (e.g. from our Subversion server, as
 described on the
 <a href="http://linuxsampler.org/downloads.html">downloads site</a>). Then you
 should optimize the compilation flags for your machine. This really depends
@@ -176,16 +176,16 @@ already explained above with libgig.<br>
 <br>
 And that's it!</br>
 <br>
-The good thing: if you grabbed the sources of libgig and LS from CVS, you only
+The good thing: if you grabbed the sources of libgig and LS from Subversion, you only
 have to call:
 <pre>
-  cvs update
+  svn update
   dpkg-buildpackage -rfakeroot -b
 </pre>
 once in a while from the source directory to conveniently compile the latest
 version with your personal optimizations and configuration parameters for
-your system, because "cvs update" updates your local source files to the
-latest bleeding edge version from our CVS server but won't touch your
+your system, because "svn update" updates your local source files to the
+latest bleeding edge version from our Subversion server but won't touch your
 modifications!
 <br>
 The problematic part is to find good compile time options for your specific

@@ -178,7 +178,7 @@ src="http://pagead2.googlesyndication.com/pagead/show_ads.js">
               <a href="news_history.php">More ...</a>
             </span>
 
-            <h2>Latest CVS Commits</h2>
+            <h2>Latest Subversion Commits</h2>
 
             <table class="cvs">
               <tbody>
@@ -205,7 +205,7 @@ src="http://pagead2.googlesyndication.com/pagead/show_ads.js">
                         <tr>
                           <td>
                             <span class="cvs_footer">
-                              <a href="cvshistory.php?subproject=linuxsampler">More ...</a>
+                              <a href="svnhistory.php?subproject=linuxsampler">More ...</a>
                             </span>
                           </td>
                         </tr>
@@ -232,7 +232,7 @@ src="http://pagead2.googlesyndication.com/pagead/show_ads.js">
                         <tr>
                           <td>
                             <span class="cvs_footer">
-                              <a href="cvshistory.php?subproject=gigedit">More ...</a>
+                              <a href="svnhistory.php?subproject=gigedit">More ...</a>
                             </span>
                           </td>
                         </tr>
@@ -261,7 +261,7 @@ src="http://pagead2.googlesyndication.com/pagead/show_ads.js">
                         <tr>
                           <td>
                             <span class="cvs_footer">
-                              <a href="cvshistory.php?subproject=libgig">More ...</a>
+                              <a href="svnhistory.php?subproject=libgig">More ...</a>
                             </span>
                           </td>
                         </tr>
@@ -288,7 +288,7 @@ src="http://pagead2.googlesyndication.com/pagead/show_ads.js">
                         <tr>
                           <td>
                             <span class="cvs_footer">
-                              <a href="cvshistory.php?subproject=qsampler">More ...</a>
+                              <a href="svnhistory.php?subproject=qsampler">More ...</a>
                             </span>
                           </td>
                         </tr>
@@ -317,7 +317,7 @@ src="http://pagead2.googlesyndication.com/pagead/show_ads.js">
                         <tr>
                           <td>
                             <span class="cvs_footer">
-                              <a href="cvshistory.php?subproject=liblscp">More ...</a>
+                              <a href="svnhistory.php?subproject=liblscp">More ...</a>
                             </span>
                           </td>
                         </tr>
@@ -344,7 +344,7 @@ src="http://pagead2.googlesyndication.com/pagead/show_ads.js">
                         <tr>
                           <td>
                             <span class="cvs_footer">
-                              <a href="cvshistory.php?subproject=jsampler">More ...</a>
+                              <a href="svnhistory.php?subproject=jsampler">More ...</a>
                             </span>
                           </td>
                         </tr>
@@ -373,7 +373,7 @@ src="http://pagead2.googlesyndication.com/pagead/show_ads.js">
                         <tr>
                           <td>
                             <span class="cvs_footer">
-                              <a href="cvshistory.php?subproject=jlscp">More ...</a>
+                              <a href="svnhistory.php?subproject=jlscp">More ...</a>
                             </span>
                           </td>
                         </tr>

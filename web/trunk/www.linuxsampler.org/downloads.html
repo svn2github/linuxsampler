@@ -347,7 +347,7 @@ libgig before being able to compile and use gigedit.</p>
                 <img src="gfx/logos/windows.png">Windows
               </a>
             </td>
-            <td class="decorated"> <!--<div style="font-weight: bold; color: #ff0000;">New version!</div>--> Self-extracting all-in-one installer of all software components for Windows. It includes native 64 bit and native 32 bit binaries, standalone and VST plugin versions. The windows binaries are snapshots which are automatically built on our server from the latest CVS (development) version of the sampler. We recommend you to always download the latest snapshot.</td>
+            <td class="decorated"> <!--<div style="font-weight: bold; color: #ff0000;">New version!</div>--> Self-extracting all-in-one installer of all software components for Windows. It includes native 64 bit and native 32 bit binaries, standalone and VST plugin versions. The windows binaries are snapshots which are automatically built on our server from the latest Subversion (development) version of the sampler. We recommend you to always download the latest snapshot.</td>
           </tr>
           <tr>
             <td class="decorated">
@@ -469,37 +469,31 @@ gigedit-0.2.0.tar.gz </a> </td>
       </table>
       <br>
 
-      <a name="cvs"></a><h2>CVS</h2>
-      <p class="default"> This project's CVS repository can be checked
-out through anonymous (pserver) CVS with the following instruction set.
-When prompted for a password for anonymous, simply press the Enter key.
+      <a name="svn"></a><h2>Subversion</h2>
+      <p class="default"> This project's Subversion repository can be checked
+out through anonymous Subversion with the following instruction set.
 There are currently seven subprojects in the LinuxSampler project, pick
 the line of the respective subproject you want to checkout from below: </p>
 
-       <pre class="code">cvs -z3 -d:pserver:anonymous@cvs.linuxsampler.org:/var/cvs/linuxsampler \
-  co libgig
-cvs -z3 -d:pserver:anonymous@cvs.linuxsampler.org:/var/cvs/linuxsampler \
-  co liblscp
-cvs -z3 -d:pserver:anonymous@cvs.linuxsampler.org:/var/cvs/linuxsampler \
-  co linuxsampler<br>cvs -z3 -d:pserver:anonymous@cvs.linuxsampler.org:/var/cvs/linuxsampler \
-  co qsampler
-cvs -z3 -d:pserver:anonymous@cvs.linuxsampler.org:/var/cvs/linuxsampler \
-  co jlscp
-cvs -z3 -d:pserver:anonymous@cvs.linuxsampler.org:/var/cvs/linuxsampler \
-  co jsampler
-cvs -z3 -d:pserver:anonymous@cvs.linuxsampler.org:/var/cvs/linuxsampler \
-  co gigedit</pre>
+       <pre class="code">svn co https://svn.linuxsampler.org/svn/libgig/trunk libgig
+svn co https://svn.linuxsampler.org/svn/liblscp/trunk liblscp
+svn co https://svn.linuxsampler.org/svn/linuxsampler/trunk linuxsampler
+svn co https://svn.linuxsampler.org/svn/qsampler/trunk qsampler
+svn co https://svn.linuxsampler.org/svn/jlscp/trunk jlscp
+svn co https://svn.linuxsampler.org/svn/jsampler/trunk jsampler
+svn co https://svn.linuxsampler.org/svn/gigedit/trunk gigedit</pre>
 
-      <p class="default"> You don't need to checkout the sources again later on,
-      just for keeping track to the latest development version. For updating to
-      the latest CVS version you can simply run the following command at any
-      time from the checked out source directory:</p>
+      <p class="default"> You don't need to checkout the sources again
+      later on, just for keeping track to the latest development
+      version. For updating to the latest Subversion version you can
+      simply run the following command at any time from the checked
+      out source directory:</p>
 
-      <pre class="code">cvs update -d -P</pre>
+      <pre class="code">svn update</pre>
 
-      <p class="default"> You can also <a
- href="http://cvs.linuxsampler.org/cgi-bin/viewcvs.cgi/">browse the CVS
-repository</a>. </p>
+      <p class="default"> You can
+ also <a href="http://svn.linuxsampler.org/cgi-bin/viewvc.cgi/">browse
+ the Subversion repository</a>. </p>
       <h2>Bootsplash theme</h2>
       <p class="default"> Does your computer already boot in LinuxSampler style? No? Checkout the following LinuxSampler theme for either <a href="http://dev.gentoo.org/~spock/projects/gensplash/">fbsplash (gensplash)</a> or <a href="http://www.bootsplash.org">bootsplash</a>:</p>
       <table class="default">
