@@ -1,5 +1,26 @@
 <?xml version='1.0' ?>
 <news>
+  <entry date="2011-06-05">
+    <link ref="http://svn.linuxsampler.org" img="gfx/logos/subversion.png"></link>
+    From now on, our source code is managed by a Subversion server. We
+    converted our existing CVS repository for the
+    <link ref="http://svn.linuxsampler.org">new Subversion server</link>, so
+    the complete history from the beginning of this project is also
+    available in this new Subversion repository. Our
+    <link ref="http://cvs.linuxsampler.org">old CVS server, along with its web frontend</link>
+    is still available, however is now in read only mode, so no changes can be
+    commited to CVS anymore. On the downloads page you can find
+    <link ref="http://www.linuxsampler.org/downloads.html#svn">instructions how
+    to download ("checkout") source code from our Subversion server.</link>
+  </entry>
+  <entry date="2011-06-05">
+    <link ref="http://www.linuxsampler.org" img="gfx/sorryd.jpg"></link>
+    After a huge down time of almost one month, we decided to move to new, more
+    reliable servers. Thanks to the University of Heilbronn which kindly hosted
+    our servers for 8 years. We started to move the most important services to
+    a commercial server host, which will be financed by your donations. Sorry
+    for this long absence and thank you for your support!
+  </entry>
   <entry date="2011-02-05">
     <link ref="http://download.linuxsampler.org/packages/win32/snapshots/" img="gfx/logos/windows.png"></link>
     <link ref="http://download.linuxsampler.org/packages/win32/snapshots/">Download the latest Windows snapshot of the sampler!</link>
