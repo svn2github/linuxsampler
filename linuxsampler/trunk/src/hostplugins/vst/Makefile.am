@@ -14,8 +14,6 @@ nodist_LinuxSampler_la_SOURCES = \
 LinuxSampler_la_LDFLAGS = -module -avoid-version -no-undefined -Wl,-s
 LinuxSampler_la_LIBADD = $(top_builddir)/src/liblinuxsampler.la
 
-EXTRA_DIST = PluginVst.def
-
 if HAVE_WINDOWS
 LinuxSampler_la_LDFLAGS += -Wl,$(srcdir)/PluginVst.def
 LinuxSampler_la_LIBADD += -lws2_32
@@ -25,3 +23,5 @@ LinuxSampler_la_LDFLAGS += -Wl,--defsym -Wl,main=VSTPluginMain
 endif
 
 endif
+
+EXTRA_DIST = PluginVst.def

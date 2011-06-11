@@ -5,6 +5,11 @@ Version CVS HEAD (?)
 
   * packaging changes:
     - fixed building with newer MinGW-w64
+    - Mac OS X: support the new dir for Core Audio SDK
+    - Mac OS X: fixed building outside source directory
+    - made sure all source files for hostplugins are included when
+      doing "make dist"
+    - removed empty directories left from the cvs to svn migration
 
   * general changes:
     - Refactoring: moved the independent code from
@@ -155,6 +160,8 @@ Version CVS HEAD (?)
       a crash, or give "Handing back unknown region" error messages
     - bugfix: calling SET VOICES (which Fantasia does on start and
       refresh) could cause instruments to be unloaded
+    - Mac OS X: fixed name collision of enum in EffectControl and
+      wrong name of destructor in AudioOutputDeviceCoreAudio.cpp
 
 Version 1.0.0 (31 July 2009)
 

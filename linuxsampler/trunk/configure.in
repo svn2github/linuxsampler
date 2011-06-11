@@ -528,6 +528,16 @@ AC_CHECK_HEADERS(AudioUnit/AudioUnit.h,
 AM_CONDITIONAL(HAVE_AU, test $config_have_au = "yes")
 AM_CONDITIONAL(HAVE_AUFLAGS, test "$AUFLAGS" != "")
 
+if test $config_have_au = "yes" ; then
+    if test "x$DEVELOPER_EXTRAS_DIR" = "x" ; then
+        if test -d /Developer/Extras ; then
+            DEVELOPER_EXTRAS_DIR=/Developer/Extras
+        else      
+            DEVELOPER_EXTRAS_DIR=/Developer/Examples
+        fi
+    fi
+    AC_SUBST(DEVELOPER_EXTRAS_DIR)
+fi
 
 # have we found at least one MIDI input and one audio output driver ?
 if test "$have_midi_input_driver" = "false"; then

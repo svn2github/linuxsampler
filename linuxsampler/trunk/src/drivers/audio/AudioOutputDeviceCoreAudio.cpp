@@ -141,7 +141,7 @@ namespace LinuxSampler {
 	}
     }
 
-    AudioOutputDeviceCoreAudio::~AudioOutputDevice() {
+    AudioOutputDeviceCoreAudio::~AudioOutputDeviceCoreAudio() {
         atomic_set(&(aqPlayerState.mIsRunning), 0);
         destroyMutex.Lock();
         AudioQueueDispose(aqPlayerState.mQueue, true);

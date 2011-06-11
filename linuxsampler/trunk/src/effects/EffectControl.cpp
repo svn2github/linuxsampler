@@ -8,7 +8,7 @@ namespace LinuxSampler {
 
 EffectControl::EffectControl() {
     value = 0.0f;
-    type = TYPE_BOOL;
+    type = EFFECT_TYPE_BOOL;
 }
 
 EffectControl::~EffectControl() {
@@ -32,11 +32,11 @@ EffectControl::Type_t EffectControl::Type() const {
 
 String EffectControl::TypeAsString() const {
     switch (type) {
-        case TYPE_FLOAT:
+        case EFFECT_TYPE_FLOAT:
             return "FLOAT";
-        case TYPE_INT:
+        case EFFECT_TYPE_INT:
             return "INT";
-        case TYPE_BOOL:
+        case EFFECT_TYPE_BOOL:
             return "BOOL";
         default:
             return "INVALID";

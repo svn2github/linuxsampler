@@ -1,7 +1,7 @@
 if HAVE_AU
 
 plugindir = $(libdir)/au
-examples_dir = /Developer/Examples
+examples_dir = @DEVELOPER_EXTRAS_DIR@
 au_public_dir = $(examples_dir)/CoreAudio/AudioUnits/AUPublic
 ca_public_dir = $(examples_dir)/CoreAudio/PublicUtility
 INCLUDES = -I$(au_public_dir)/AUBase -I$(au_public_dir)/OtherBases \
@@ -56,7 +56,7 @@ nodist_libpluginau_a_SOURCES = $(ca_public_dir)/CAHostTimeBase.cpp \
     $(au_public_dir)/OtherBases/MusicDeviceBase.h
 
 bin_PROGRAMS = LinuxSamplerAU
-LinuxSamplerAU_SOURCES = PluginAU.cpp
+LinuxSamplerAU_SOURCES = PluginAU.cpp PluginAU.h PluginAUVersion.h
 
 LinuxSamplerAU_LDADD = $(top_builddir)/src/.libs/liblinuxsampler.a libpluginau.a
 
@@ -67,14 +67,14 @@ endif
 
 LinuxSamplerAU_CXXFLAGS = -bundle $(debug_messages)
 LinuxSamplerAU_LDFLAGS = -static $(AUFLAGS) \
-    -exported_symbols_list PluginAU.exp \
+    -exported_symbols_list $(srcdir)/PluginAU.exp \
     -framework CoreServices -framework CoreMIDI -framework CoreAudio \
     -framework CoreFoundation -framework AudioToolbox -framework AudioUnit
 
 COMPONENT_DIR = LinuxSamplerAU.component
 
 all-local:
-	Rez PluginAU.r -d SystemSevenOrLater=1 -useDF -script Roman -d ppc_YES -d i386_YES -d x86_64_YES \
+	Rez $(srcdir)/PluginAU.r -d SystemSevenOrLater=1 -useDF -script Roman -d ppc_YES -d i386_YES -d x86_64_YES \
 	    -I /System/Library/Frameworks/CoreServices.framework/Frameworks/CarbonCore.framework/Versions/Current/Headers \
 	    -I $(au_public_dir)/AUBase/ -arch i386 -arch x86_64 -arch ppc -o LinuxSamplerAU.rsrc
 
@@ -82,8 +82,8 @@ all-local:
 	if test ! -d "$(COMPONENT_DIR)/Contents/MacOS"; then mkdir -p "$(COMPONENT_DIR)/Contents/MacOS"; fi
 	if test ! -d "$(COMPONENT_DIR)/Contents/Resources"; then mkdir -p "$(COMPONENT_DIR)/Contents/Resources"; fi
 
-	cp PkgInfo "$(COMPONENT_DIR)/Contents"
-	cp Info.plist "$(COMPONENT_DIR)/Contents"
+	cp $(srcdir)/PkgInfo "$(COMPONENT_DIR)/Contents"
+	cp $(srcdir)/Info.plist "$(COMPONENT_DIR)/Contents"
 	cp LinuxSamplerAU "$(COMPONENT_DIR)/Contents/MacOS"
 	cp LinuxSamplerAU.rsrc "$(COMPONENT_DIR)/Contents/Resources"
 
@@ -121,3 +121,5 @@ install-exec-hook:
 uninstall-hook:
 	rm -rf /Library/Audio/Plug-Ins/Components/$(COMPONENT_DIR)
 endif
+
+EXTRA_DIST = PluginAU.exp PluginAU.r PkgInfo Info.plist

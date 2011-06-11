@@ -178,11 +178,11 @@ LadspaEffect::LadspaEffect(EffectInfo* pInfo) throw (Exception) : Effect() {
                 // determine value range type
                 EffectControl::Type_t type;
                 if (LADSPA_IS_HINT_INTEGER(pPortDescriptor)) {
-                    type = EffectControl::TYPE_INT;
+                    type = EffectControl::EFFECT_TYPE_INT;
                 } else if (LADSPA_IS_HINT_TOGGLED(pPortDescriptor)) {
-                    type = EffectControl::TYPE_BOOL;
+                    type = EffectControl::EFFECT_TYPE_BOOL;
                 } else {
-                    type = EffectControl::TYPE_FLOAT;
+                    type = EffectControl::EFFECT_TYPE_FLOAT;
                 }
                 pEffectControl->SetType(type);
 

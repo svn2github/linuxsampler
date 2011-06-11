@@ -34,7 +34,8 @@ liblinuxsamplercommon_la_SOURCES = \
 	Thread.cpp Thread.h \
 	WorkerThread.cpp WorkerThread.h \
 	Path.cpp Path.h \
-	File.cpp File.h
+	File.cpp File.h \
+	ladspa.h
 
 # create the plugins directory (i.e. /usr/lib/linuxsampler/plugins)
 install-exec-hook:

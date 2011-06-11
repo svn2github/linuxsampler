@@ -22,9 +22,9 @@ class Effect;
 class EffectControl {
 public:
     enum Type_t {
-        TYPE_FLOAT,
-        TYPE_INT,
-        TYPE_BOOL
+        EFFECT_TYPE_FLOAT,
+        EFFECT_TYPE_INT,
+        EFFECT_TYPE_BOOL
     };
 
     EffectControl();
