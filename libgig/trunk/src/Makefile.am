@@ -22,7 +22,9 @@ libgig_la_LDFLAGS = -no-undefined -version-info @SHARED_VERSION_INFO@ @SHLIB_VER
 if WIN32
 libgig_la_LIBADD = -lrpcrt4
 endif
-
+if MAC
+libgig_la_LDFLAGS += -framework CoreFoundation
+endif
 bin_PROGRAMS = rifftree dlsdump gigdump gigextract sf2dump
 rifftree_SOURCES = rifftree.cpp
 rifftree_LDADD = libgig.la
